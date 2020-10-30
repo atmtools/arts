@@ -358,27 +358,42 @@ class TransmissionMatrix {
    
    One key change is that we consider polarization but only based on unpolarized radiation
    *
+   * FIXME: This function is not done properly for Stokes Dim > 1.  The results might be correct but the derivation is not understood.
    *
-   * @param[in] i Index of frequency
+   * @param[in] T The transmission matrix
+   * @param[in] far The source at the destination of the RT step
+   * @param[in] close The source at the start of the RT step
+   * @param[in] Kfar The propagation matrix at the destination of the RT step
+   * @param[in] Kclose The propagation matrix at the start of the RT step
+   * @param[in] r The distance of the RT step
    * @return Linear Weights
    */
   template <int N>
-  Eigen::Matrix<Numeric, N, 1> second_order_integration_source(size_t i, const Eigen::Matrix<Numeric, N, 1> far, const Eigen::Matrix<Numeric, N, 1> close) const noexcept {
-    static_assert (N > 0 or N < 5, "Bad size N");
+  Eigen::Matrix<Numeric, N, 1> second_order_integration_source(const Eigen::Matrix<Numeric, N, N> T, const Eigen::Matrix<Numeric, N, 1> far, const Eigen::Matrix<Numeric, N, 1> close,
+                                                               const Eigen::Matrix<Numeric, N, N> Kfar, const Eigen::Matrix<Numeric, N, N> Kclose, const Numeric r)
+  const noexcept {
+    static_assert (N>0 and N<5, "Bad size N");
     
     const auto I = Eigen::Matrix<Numeric, N, N>::Identity();
-    const auto T = TraMat<N>(i);
-    const Eigen::Matrix<Numeric, N, 1> first = 0.5 * (I - T) * (far + close);
     if (T(0, 0) < 0.99) {
-      const auto od = OptDepth<N>(i);
+      const auto od = 0.5 * r * (Kfar + Kclose);
       const Eigen::Matrix<Numeric, N, 1> second = od.inverse() * ((I - (I + od) * T) * far + (od - I + T) * close);
-      if (first[0] > second[0]) {
-        return second;
+      if ((far[0] < close[0] and Kfar(0, 0) > Kclose(0, 0)) or (far[0] > close[0] and Kfar(0, 0) < Kclose(0, 0))) {
+        const Eigen::Matrix<Numeric, N, 1> second_limit = 0.5 * (I - T) * (far + close);
+        
+        // FIXME: This is the equation given in the source material...
+        // const Eigen::Matrix<Numeric, N, 1> second_limit = 0.25 * r * (Kfar * far + Kclose * close);
+        
+        if (second_limit[0] > second[0]) {
+          return second;
+        } else {
+          return second_limit;
+        }
       } else {
-        return first;
+        return second;
       }
     } else {
-      return first;
+      return 0.5 * (I - T) * (far + close);
     }
   }
   
@@ -649,25 +664,25 @@ class RadiationVector {
       R1[i].noalias() += 0.5 * (O1.R1[i] + O2.R1[i]);
   }
   
-  
   /** Add the weighted source of two RadiationVector to *this
    * 
    * @param[in] T The transmission matrix
    * @param[in] far   Input 1
    * @param[in] close Input 2
    */
-  void add_weighted(const TransmissionMatrix& T, const RadiationVector& far, const RadiationVector& close) {
+  void add_weighted(const TransmissionMatrix& T, const RadiationVector& far, const RadiationVector& close, 
+                    const ConstMatrixView Kfar, const ConstMatrixView Kclose, const Numeric r) {
     for (size_t i = 0; i < R4.size(); i++) {
-      R4[i].noalias() += T.second_order_integration_source<4>(i, far.R4[i], close.R4[i]);
+      R4[i].noalias() += T.second_order_integration_source<4>(T.TraMat<4>(i), far.R4[i], close.R4[i], matrix_from_vectorview<4>(Kfar(i, joker)), matrix_from_vectorview<4>(Kclose(i, joker)), r);
     }
     for (size_t i = 0; i < R3.size(); i++) {
-      R3[i].noalias() += T.second_order_integration_source<3>(i, far.R3[i], close.R3[i]);
+      R3[i].noalias() += T.second_order_integration_source<3>(T.TraMat<3>(i), far.R3[i], close.R3[i], matrix_from_vectorview<3>(Kfar(i, joker)), matrix_from_vectorview<3>(Kclose(i, joker)), r);
     }
     for (size_t i = 0; i < R2.size(); i++) {
-      R2[i].noalias() += T.second_order_integration_source<2>(i, far.R2[i], close.R2[i]);
+      R2[i].noalias() += T.second_order_integration_source<2>(T.TraMat<2>(i), far.R2[i], close.R2[i], matrix_from_vectorview<2>(Kfar(i, joker)), matrix_from_vectorview<2>(Kclose(i, joker)), r);
     }
     for (size_t i = 0; i < R1.size(); i++) {
-      R1[i].noalias() += T.second_order_integration_source<1>(i, far.R1[i], close.R1[i]);
+      R1[i].noalias() += T.second_order_integration_source<1>(T.TraMat<1>(i), far.R1[i], close.R1[i], matrix_from_vectorview<1>(Kfar(i, joker)), matrix_from_vectorview<1>(Kclose(i, joker)), r);
     }
   }
 
@@ -1047,6 +1062,15 @@ void update_radiation_vector(RadiationVector& I,
                              const TransmissionMatrix& PiT,
                              const ArrayOfTransmissionMatrix& dT1,
                              const ArrayOfTransmissionMatrix& dT2,
+                             const PropagationMatrix& K1,
+                             const PropagationMatrix& K2,
+                             const ArrayOfPropagationMatrix& dK1,
+                             const ArrayOfPropagationMatrix& dK2,
+                             const Numeric r,
+                             const Vector& dr1,
+                             const Vector& dr2,
+                             const Index ia,
+                             const Index iz,
                              const RadiativeTransferSolver solver);
 
 /** Set the stepwise source

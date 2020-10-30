@@ -99,152 +99,6 @@ inline Eigen::Vector4d vector4(const StokesVector& a,
                            dS.K14()[i] + da.K14()[i] * B[i]);
 }
 
-inline Eigen::Matrix<double, 1, 1> matrix1(const Numeric& a) noexcept {
-  return Eigen::Matrix<double, 1, 1>(a);
-}
-
-inline Eigen::Matrix2d matrix2(const Numeric& a, const Numeric& b) noexcept {
-  return (Eigen::Matrix2d() << a, b, b, a).finished();
-}
-
-inline Eigen::Matrix3d matrix3(const Numeric& a,
-                               const Numeric& b,
-                               const Numeric& c,
-                               const Numeric& u) noexcept {
-  return (Eigen::Matrix3d() << a, b, c, b, a, u, c, -u, a).finished();
-}
-
-inline Eigen::Matrix4d matrix4(const Numeric& a,
-                               const Numeric& b,
-                               const Numeric& c,
-                               const Numeric& d,
-                               const Numeric& u,
-                               const Numeric& v,
-                               const Numeric& w) noexcept {
-  return (Eigen::Matrix4d() << a,
-          b,
-          c,
-          d,
-          b,
-          a,
-          u,
-          v,
-          c,
-          -u,
-          a,
-          w,
-          d,
-          -v,
-          -w,
-          a)
-      .finished();
-}
-
-inline Eigen::Matrix<double, 1, 1> matrix1(const ConstMatrixView m) noexcept {
-  return Eigen::Matrix<double, 1, 1>(m(0, 0));
-}
-
-inline Eigen::Matrix2d matrix2(const ConstMatrixView m) noexcept {
-  return (Eigen::Matrix2d() << m(0, 0), m(0, 1), m(1, 0), m(1, 1)).finished();
-}
-
-inline Eigen::Matrix3d matrix3(const ConstMatrixView m) noexcept {
-  return (Eigen::Matrix3d() << m(0, 0),
-          m(0, 1),
-          m(0, 2),
-          m(1, 0),
-          m(1, 1),
-          m(1, 2),
-          m(2, 0),
-          m(2, 1),
-          m(2, 2))
-      .finished();
-}
-
-inline Eigen::Matrix4d matrix4(const ConstMatrixView m) noexcept {
-  return (Eigen::Matrix4d() << m(0, 0),
-          m(0, 1),
-          m(0, 2),
-          m(0, 3),
-          m(1, 0),
-          m(1, 1),
-          m(1, 2),
-          m(1, 3),
-          m(2, 0),
-          m(2, 1),
-          m(2, 2),
-          m(2, 3),
-          m(3, 0),
-          m(3, 1),
-          m(3, 2),
-          m(3, 3))
-      .finished();
-}
-
-inline Eigen::Matrix<double, 1, 1> inv1(const Numeric& a) noexcept {
-  return Eigen::Matrix<double, 1, 1>(1 / a);
-}
-
-inline Eigen::Matrix2d inv2(const Numeric& a, const Numeric& b) noexcept {
-  return (Eigen::Matrix2d() << a, -b, -b, a).finished() / (a * a - b * b);
-}
-
-inline Eigen::Matrix3d inv3(const Numeric& a,
-                            const Numeric& b,
-                            const Numeric& c,
-                            const Numeric& u) noexcept {
-  return (Eigen::Matrix3d() << a * a + u * u,
-          -a * b - c * u,
-          -a * c + b * u,
-          -a * b + c * u,
-          a * a - c * c,
-          -a * u + b * c,
-          -a * c - b * u,
-          a * u + b * c,
-          a * a - b * b)
-             .finished() /
-         (a * a * a - a * b * b - a * c * c + a * u * u);
-}
-
-inline Eigen::Matrix4d inv4(const Numeric& a,
-                            const Numeric& b,
-                            const Numeric& c,
-                            const Numeric& d,
-                            const Numeric& u,
-                            const Numeric& v,
-                            const Numeric& w) noexcept {
-  return (Eigen::Matrix4d() << a * a * a + a * u * u + a * v * v + a * w * w,
-          -a * a * b - a * c * u - a * d * v - b * w * w + c * v * w -
-              d * u * w,
-          -a * a * c + a * b * u - a * d * w + b * v * w - c * v * v +
-              d * u * v,
-          -a * a * d + a * b * v + a * c * w - b * u * w + c * u * v -
-              d * u * u,
-          -a * a * b + a * c * u + a * d * v - b * w * w + c * v * w -
-              d * u * w,
-          a * a * a - a * c * c - a * d * d + a * w * w,
-          -a * a * u + a * b * c - a * v * w + b * d * w - c * d * v +
-              d * d * u,
-          -a * a * v + a * b * d + a * u * w - b * c * w + c * c * v -
-              c * d * u,
-          -a * a * c - a * b * u + a * d * w + b * v * w - c * v * v +
-              d * u * v,
-          a * a * u + a * b * c - a * v * w - b * d * w + c * d * v - d * d * u,
-          a * a * a - a * b * b - a * d * d + a * v * v,
-          -a * a * w + a * c * d - a * u * v + b * b * w - b * c * v +
-              b * d * u,
-          -a * a * d - a * b * v - a * c * w - b * u * w + c * u * v -
-              d * u * u,
-          a * a * v + a * b * d + a * u * w + b * c * w - c * c * v + c * d * u,
-          a * a * w + a * c * d - a * u * v - b * b * w + b * c * v - b * d * u,
-          a * a * a - a * b * b - a * c * c + a * u * u)
-             .finished() /
-         (a * a * a * a - a * a * b * b - a * a * c * c - a * a * d * d +
-          a * a * u * u + a * a * v * v + a * a * w * w - b * b * w * w +
-          2 * b * c * v * w - 2 * b * d * u * w - c * c * v * v +
-          2 * c * d * u * v - d * d * u * u);
-}
-
 inline void transmat1(TransmissionMatrix& T,
                       const PropagationMatrix& K1,
                       const PropagationMatrix& K2,
@@ -1493,6 +1347,15 @@ void update_radiation_vector(RadiationVector& I,
                              const TransmissionMatrix& PiT,
                              const ArrayOfTransmissionMatrix& dT1,
                              const ArrayOfTransmissionMatrix& dT2,
+                             [[maybe_unused]] const PropagationMatrix& K1,
+                             [[maybe_unused]] const PropagationMatrix& K2,
+                             [[maybe_unused]] const ArrayOfPropagationMatrix& dK1,
+                             [[maybe_unused]] const ArrayOfPropagationMatrix& dK2,
+                             [[maybe_unused]] const Numeric r,
+                             [[maybe_unused]] const Vector& dr1,
+                             [[maybe_unused]] const Vector& dr2,
+                             [[maybe_unused]] const Index ia,
+                             [[maybe_unused]] const Index iz,
                              const RadiativeTransferSolver solver) {
   switch (solver) {
     case RadiativeTransferSolver::Emission: {
@@ -1516,13 +1379,8 @@ void update_radiation_vector(RadiationVector& I,
     case RadiativeTransferSolver::LinearWeightedEmission: {
       if (dI1.size()) throw std::runtime_error("Cannot support derivatives with current integration method\n");
       
-      for (size_t i = 0; i < dI1.size(); i++) {
-        // FIXME: Switch false/true ?????
-        dI1[i].addWeightedDerivEmission(PiT, dT1[i], T, I, J1, J2, dJ1[i], true);
-        dI2[i].addWeightedDerivEmission(PiT, dT2[i], T, I, J1, J2, dJ2[i], false);
-      }
       I.leftMul(T);
-      I.add_weighted(T, J1, J2);  
+      I.add_weighted(T, J1, J2, K1.Data()(ia, iz, joker, joker), K2.Data()(ia, iz, joker, joker), r);  
       
     } break;
   }
