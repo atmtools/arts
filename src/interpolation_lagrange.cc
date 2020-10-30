@@ -2,18 +2,16 @@
 
 namespace Interpolation {
 
-std::vector<Lagrange> LagrangeVector(const ConstVectorView& xs,
-                                     const ConstVectorView& xi,
-                                     const Index polyorder,
-                                     const Numeric extrapol,
-                                     const bool do_derivs,
-                                     const LagrangeType type) {
+std::vector<Lagrange> LagrangeVector(
+    const ConstVectorView& xs, const ConstVectorView& xi, const Index polyorder,
+    const Numeric extrapol, const bool do_derivs, const LagrangeType type) {
   std::vector<Lagrange> out;
   out.reserve(xs.nelem());
-  bool has_one=false;
+  bool has_one = false;
   for (auto x : xs) {
     if (has_one) {
-      out.push_back(Lagrange(out.back().pos, x, xi, polyorder, extrapol, do_derivs, type));
+      out.push_back(Lagrange(out.back().pos, x, xi, polyorder, extrapol,
+                             do_derivs, type));
     } else {
       out.push_back(Lagrange(0, x, xi, polyorder, extrapol, do_derivs, type));
       has_one = true;
@@ -78,9 +76,10 @@ Numeric interp(const ConstVectorView& yi, const ConstVectorView& iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-void reinterp(VectorView out, const ConstVectorView& iy, const Grid<Vector, 1>& iw,
-              const std::vector<Lagrange>& dim0) {
-  for (std::size_t i = 0; i < dim0.size(); i++) out[i] = interp(iy, iw(i), dim0[i]);
+void reinterp(VectorView out, const ConstVectorView& iy,
+              const Grid<Vector, 1>& iw, const std::vector<Lagrange>& dim0) {
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    out[i] = interp(iy, iw(i), dim0[i]);
 }
 
 Vector reinterp(const ConstVectorView& iy, const Grid<Vector, 1>& iw,
@@ -101,12 +100,11 @@ Vector reinterp(const ConstVectorView& iy, const Grid<Vector, 1>& iw,
 
 void interpweights(MatrixView out, const Lagrange& dim0, const Lagrange& dim1) {
   for (Index i = 0; i < dim0.size(); i++)
-    for (Index j = 0; j < dim1.size(); j++)
-      out(i, j) = dim0.lx[i] * dim1.lx[j];
+    for (Index j = 0; j < dim1.size(); j++) out(i, j) = dim0.lx[i] * dim1.lx[j];
 }
 
 void interpweights(Grid<Matrix, 2>& out, const std::vector<Lagrange>& dim0,
-                              const std::vector<Lagrange>& dim1) {
+                   const std::vector<Lagrange>& dim1) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       interpweights(out(i, j), dim0[i], dim1[j]);
@@ -132,19 +130,20 @@ Grid<Matrix, 2> interpweights(const std::vector<Lagrange>& dim0,
 /////////// Derivatives of Interpolation Weights
 ////////////////////////////////////////////////
 
-void dinterpweights(MatrixView out, const Lagrange& dim0, const Lagrange& dim1, Index dim) {
+void dinterpweights(MatrixView out, const Lagrange& dim0, const Lagrange& dim1,
+                    Index dim) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       out(i, j) = (dim == 0 ? dim0.dlx[i] : dim0.lx[i]) *
-      (dim == 1 ? dim1.dlx[j] : dim1.lx[j]);
+                  (dim == 1 ? dim1.dlx[j] : dim1.lx[j]);
 }
 
 void dinterpweights(Grid<Matrix, 2>& out, const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1, Index dim) {
+                    const std::vector<Lagrange>& dim1, Index dim) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       dinterpweights(out(i, j), dim0[i], dim1[j], dim);
-                               }
+}
 
 Matrix dinterpweights(const Lagrange& dim0, const Lagrange& dim1, Index dim) {
   Matrix out(dim0.size(), dim1.size());
@@ -182,21 +181,24 @@ Numeric interp(const ConstMatrixView& yi, const ConstMatrixView& iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-void reinterp(MatrixView out, const ConstMatrixView& iy, const Grid<Matrix, 2>& iw,
-                const std::vector<Lagrange>& dim0,
-                const std::vector<Lagrange>& dim1) {
+void reinterp(MatrixView out, const ConstMatrixView& iy,
+              const Grid<Matrix, 2>& iw, const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       out(i, j) = interp(iy, iw(i, j), dim0[i], dim1[j]);
 }
 
-void reinterp_reduce(VectorView out, const ConstMatrixView& iy, const Grid<Matrix, 2>& iw,
-                const std::vector<Lagrange>& dim0,
-                const std::vector<Lagrange>& dim1) {
+void reinterp_reduce(VectorView out, const ConstMatrixView& iy,
+                     const Grid<Matrix, 2>& iw,
+                     const std::vector<Lagrange>& dim0,
+                     const std::vector<Lagrange>& dim1) {
   if (dim0.size() > 1) {
-    for (std::size_t i = 0; i < dim0.size(); i++) out[i] = interp(iy, iw(i, 0), dim0[i], dim1[0]);
-  } else  {
-    for (std::size_t i = 0; i < dim1.size(); i++) out[i] = interp(iy, iw(0, i), dim0[0], dim1[i]);
+    for (std::size_t i = 0; i < dim0.size(); i++)
+      out[i] = interp(iy, iw(i, 0), dim0[i], dim1[0]);
+  } else {
+    for (std::size_t i = 0; i < dim1.size(); i++)
+      out[i] = interp(iy, iw(0, i), dim0[0], dim1[i]);
   }
 }
 
@@ -219,7 +221,7 @@ Matrix reinterp(const ConstMatrixView& iy, const Grid<Matrix, 2>& iw,
 ////////////////////////////////////////////////
 
 void interpweights(Tensor3View out, const Lagrange& dim0, const Lagrange& dim1,
-                      const Lagrange& dim2) {
+                   const Lagrange& dim2) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -227,8 +229,8 @@ void interpweights(Tensor3View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void interpweights(Grid<Tensor3, 3>& out, const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2) {
+                   const std::vector<Lagrange>& dim1,
+                   const std::vector<Lagrange>& dim2) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -261,7 +263,7 @@ Grid<Tensor3, 3> interpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////////////////////
 
 void dinterpweights(Tensor3View out, const Lagrange& dim0, const Lagrange& dim1,
-                       const Lagrange& dim2, Index dim) {
+                    const Lagrange& dim2, Index dim) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -271,8 +273,8 @@ void dinterpweights(Tensor3View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void dinterpweights(Grid<Tensor3, 3>& out, const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2, Index dim) {
+                    const std::vector<Lagrange>& dim1,
+                    const std::vector<Lagrange>& dim2, Index dim) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -322,26 +324,30 @@ Numeric interp(const ConstTensor3View& yi, const ConstTensor3View& iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-void reinterp(Tensor3View out, const ConstTensor3View& iy, const Grid<Tensor3, 3>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2) {
+void reinterp(Tensor3View out, const ConstTensor3View& iy,
+              const Grid<Tensor3, 3>& iw, const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
         out(i, j, k) = interp(iy, iw(i, j, k), dim0[i], dim1[j], dim2[k]);
 }
 
-void reinterp_reduce(VectorView out, const ConstTensor3View& iy, const Grid<Tensor3, 3>& iw,
+void reinterp_reduce(VectorView out, const ConstTensor3View& iy,
+                     const Grid<Tensor3, 3>& iw,
                      const std::vector<Lagrange>& dim0,
                      const std::vector<Lagrange>& dim1,
                      const std::vector<Lagrange>& dim2) {
   if (dim0.size() > 1) {
-    for (std::size_t i = 0; i < dim0.size(); i++) out[i] = interp(iy, iw(i, 0, 0), dim0[i], dim1[0], dim2[0]);
+    for (std::size_t i = 0; i < dim0.size(); i++)
+      out[i] = interp(iy, iw(i, 0, 0), dim0[i], dim1[0], dim2[0]);
   } else if (dim1.size() > 1) {
-    for (std::size_t i = 0; i < dim1.size(); i++) out[i] = interp(iy, iw(0, i, 0), dim0[0], dim1[i], dim2[0]);
-  } else  {
-    for (std::size_t i = 0; i < dim2.size(); i++) out[i] = interp(iy, iw(0, 0, i), dim0[0], dim1[0], dim2[i]);
+    for (std::size_t i = 0; i < dim1.size(); i++)
+      out[i] = interp(iy, iw(0, i, 0), dim0[0], dim1[i], dim2[0]);
+  } else {
+    for (std::size_t i = 0; i < dim2.size(); i++)
+      out[i] = interp(iy, iw(0, 0, i), dim0[0], dim1[0], dim2[i]);
   }
 }
 
@@ -366,7 +372,7 @@ Tensor3 reinterp(const ConstTensor3View& iy, const Grid<Tensor3, 3>& iw,
 ////////////////////////////////////////////////
 
 void interpweights(Tensor4View out, const Lagrange& dim0, const Lagrange& dim1,
-                      const Lagrange& dim2, const Lagrange& dim3) {
+                   const Lagrange& dim2, const Lagrange& dim3) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -375,9 +381,9 @@ void interpweights(Tensor4View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void interpweights(Grid<Tensor4, 4>& out, const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2,
-                               const std::vector<Lagrange>& dim3) {
+                   const std::vector<Lagrange>& dim1,
+                   const std::vector<Lagrange>& dim2,
+                   const std::vector<Lagrange>& dim3) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -414,7 +420,7 @@ Grid<Tensor4, 4> interpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////////////////////
 
 void dinterpweights(Tensor4View out, const Lagrange& dim0, const Lagrange& dim1,
-                       const Lagrange& dim2, const Lagrange& dim3, Index dim) {
+                    const Lagrange& dim2, const Lagrange& dim3, Index dim) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -426,14 +432,15 @@ void dinterpweights(Tensor4View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void dinterpweights(Grid<Tensor4, 4>& out, const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2,
-                                const std::vector<Lagrange>& dim3, Index dim) {
+                    const std::vector<Lagrange>& dim1,
+                    const std::vector<Lagrange>& dim2,
+                    const std::vector<Lagrange>& dim3, Index dim) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
         for (std::size_t l = 0; l < dim3.size(); l++)
-          dinterpweights(out(i, j, k, l), dim0[i], dim1[j], dim2[k], dim3[l], dim);
+          dinterpweights(out(i, j, k, l), dim0[i], dim1[j], dim2[k], dim3[l],
+                         dim);
 }
 
 Tensor4 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
@@ -486,11 +493,11 @@ Numeric interp(const ConstTensor4View& yi, const ConstTensor4View& iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-void reinterp(Tensor4View out, const ConstTensor4View& iy, const Grid<Tensor4, 4>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2,
-                 const std::vector<Lagrange>& dim3) {
+void reinterp(Tensor4View out, const ConstTensor4View& iy,
+              const Grid<Tensor4, 4>& iw, const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2,
+              const std::vector<Lagrange>& dim3) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -499,19 +506,24 @@ void reinterp(Tensor4View out, const ConstTensor4View& iy, const Grid<Tensor4, 4
               interp(iy, iw(i, j, k, l), dim0[i], dim1[j], dim2[k], dim3[l]);
 }
 
-void reinterp_reduce(VectorView out,  const ConstTensor4View& iy, const Grid<Tensor4, 4>& iw,
+void reinterp_reduce(VectorView out, const ConstTensor4View& iy,
+                     const Grid<Tensor4, 4>& iw,
                      const std::vector<Lagrange>& dim0,
                      const std::vector<Lagrange>& dim1,
                      const std::vector<Lagrange>& dim2,
                      const std::vector<Lagrange>& dim3) {
   if (dim0.size() > 1) {
-    for (std::size_t i = 0; i < dim0.size(); i++) out[i] = interp(iy, iw(i, 0, 0, 0), dim0[i], dim1[0], dim2[0], dim3[0]);
+    for (std::size_t i = 0; i < dim0.size(); i++)
+      out[i] = interp(iy, iw(i, 0, 0, 0), dim0[i], dim1[0], dim2[0], dim3[0]);
   } else if (dim1.size() > 1) {
-    for (std::size_t i = 0; i < dim1.size(); i++) out[i] = interp(iy, iw(0, i, 0, 0), dim0[0], dim1[i], dim2[0], dim3[0]);
+    for (std::size_t i = 0; i < dim1.size(); i++)
+      out[i] = interp(iy, iw(0, i, 0, 0), dim0[0], dim1[i], dim2[0], dim3[0]);
   } else if (dim2.size() > 1) {
-    for (std::size_t i = 0; i < dim2.size(); i++) out[i] = interp(iy, iw(0, 0, i, 0), dim0[0], dim1[0], dim2[i], dim3[0]);
+    for (std::size_t i = 0; i < dim2.size(); i++)
+      out[i] = interp(iy, iw(0, 0, i, 0), dim0[0], dim1[0], dim2[i], dim3[0]);
   } else {
-    for (std::size_t i = 0; i < dim3.size(); i++) out[i] = interp(iy, iw(0, 0, 0, i), dim0[0], dim1[0], dim2[0], dim3[i]);
+    for (std::size_t i = 0; i < dim3.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, i), dim0[0], dim1[0], dim2[0], dim3[i]);
   }
 }
 
@@ -539,8 +551,8 @@ Tensor4 reinterp(const ConstTensor4View& iy, const Grid<Tensor4, 4>& iw,
 ////////////////////////////////////////////////
 
 void interpweights(Tensor5View out, const Lagrange& dim0, const Lagrange& dim1,
-                      const Lagrange& dim2, const Lagrange& dim3,
-                      const Lagrange& dim4) {
+                   const Lagrange& dim2, const Lagrange& dim3,
+                   const Lagrange& dim4) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -551,16 +563,17 @@ void interpweights(Tensor5View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void interpweights(Grid<Tensor5, 5>& out, const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2,
-                               const std::vector<Lagrange>& dim3,
-                               const std::vector<Lagrange>& dim4) {
+                   const std::vector<Lagrange>& dim1,
+                   const std::vector<Lagrange>& dim2,
+                   const std::vector<Lagrange>& dim3,
+                   const std::vector<Lagrange>& dim4) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
         for (std::size_t l = 0; l < dim3.size(); l++)
           for (std::size_t m = 0; m < dim4.size(); m++)
-            interpweights(out(i, j, k, l, m), dim0[i], dim1[j], dim2[k], dim3[l], dim4[m]);
+            interpweights(out(i, j, k, l, m), dim0[i], dim1[j], dim2[k],
+                          dim3[l], dim4[m]);
 }
 
 Tensor5 interpweights(const Lagrange& dim0, const Lagrange& dim1,
@@ -599,8 +612,8 @@ Grid<Tensor5, 5> interpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////////////////////
 
 void dinterpweights(Tensor5View out, const Lagrange& dim0, const Lagrange& dim1,
-                       const Lagrange& dim2, const Lagrange& dim3,
-                       const Lagrange& dim4, Index dim) {
+                    const Lagrange& dim2, const Lagrange& dim3,
+                    const Lagrange& dim4, Index dim) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -614,17 +627,17 @@ void dinterpweights(Tensor5View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void dinterpweights(Grid<Tensor5, 5>& out, const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2,
-                                const std::vector<Lagrange>& dim3,
-                                const std::vector<Lagrange>& dim4, Index dim) {
+                    const std::vector<Lagrange>& dim1,
+                    const std::vector<Lagrange>& dim2,
+                    const std::vector<Lagrange>& dim3,
+                    const std::vector<Lagrange>& dim4, Index dim) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
         for (std::size_t l = 0; l < dim3.size(); l++)
           for (std::size_t m = 0; m < dim4.size(); m++)
             dinterpweights(out(i, j, k, l, m), dim0[i], dim1[j], dim2[k],
-                                                dim3[l], dim4[m], dim);
+                           dim3[l], dim4[m], dim);
 }
 
 Tensor5 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
@@ -684,12 +697,12 @@ Numeric interp(const ConstTensor5View& yi, const ConstTensor5View& iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-void reinterp(Tensor5View out, const ConstTensor5View& iy, const Grid<Tensor5, 5>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2,
-                 const std::vector<Lagrange>& dim3,
-                 const std::vector<Lagrange>& dim4) {
+void reinterp(Tensor5View out, const ConstTensor5View& iy,
+              const Grid<Tensor5, 5>& iw, const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2,
+              const std::vector<Lagrange>& dim3,
+              const std::vector<Lagrange>& dim4) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -699,22 +712,33 @@ void reinterp(Tensor5View out, const ConstTensor5View& iy, const Grid<Tensor5, 5
                                         dim2[k], dim3[l], dim4[m]);
 }
 
-void reinterp_reduce(VectorView out, const ConstTensor5View& iy, const Grid<Tensor5, 5>& iw,
+void reinterp_reduce(VectorView out, const ConstTensor5View& iy,
+                     const Grid<Tensor5, 5>& iw,
                      const std::vector<Lagrange>& dim0,
                      const std::vector<Lagrange>& dim1,
                      const std::vector<Lagrange>& dim2,
                      const std::vector<Lagrange>& dim3,
                      const std::vector<Lagrange>& dim4) {
   if (dim0.size() > 1) {
-    for (std::size_t i = 0; i < dim0.size(); i++) out[i] = interp(iy, iw(i, 0, 0, 0, 0), dim0[i], dim1[0], dim2[0], dim3[0], dim4[0]);
+    for (std::size_t i = 0; i < dim0.size(); i++)
+      out[i] = interp(iy, iw(i, 0, 0, 0, 0), dim0[i], dim1[0], dim2[0], dim3[0],
+                      dim4[0]);
   } else if (dim1.size() > 1) {
-    for (std::size_t i = 0; i < dim1.size(); i++) out[i] = interp(iy, iw(0, i, 0, 0, 0), dim0[0], dim1[i], dim2[0], dim3[0], dim4[0]);
+    for (std::size_t i = 0; i < dim1.size(); i++)
+      out[i] = interp(iy, iw(0, i, 0, 0, 0), dim0[0], dim1[i], dim2[0], dim3[0],
+                      dim4[0]);
   } else if (dim2.size() > 1) {
-    for (std::size_t i = 0; i < dim2.size(); i++) out[i] = interp(iy, iw(0, 0, i, 0, 0), dim0[0], dim1[0], dim2[i], dim3[0], dim4[0]);
+    for (std::size_t i = 0; i < dim2.size(); i++)
+      out[i] = interp(iy, iw(0, 0, i, 0, 0), dim0[0], dim1[0], dim2[i], dim3[0],
+                      dim4[0]);
   } else if (dim3.size() > 1) {
-    for (std::size_t i = 0; i < dim3.size(); i++) out[i] = interp(iy, iw(0, 0, 0, i, 0), dim0[0], dim1[0], dim2[0], dim3[i], dim4[0]);
+    for (std::size_t i = 0; i < dim3.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, i, 0), dim0[0], dim1[0], dim2[0], dim3[i],
+                      dim4[0]);
   } else {
-    for (std::size_t i = 0; i < dim4.size(); i++) out[i] = interp(iy, iw(0, 0, 0, 0, i), dim0[0], dim1[0], dim2[0], dim3[0], dim4[i]);
+    for (std::size_t i = 0; i < dim4.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, 0, i), dim0[0], dim1[0], dim2[0], dim3[0],
+                      dim4[i]);
   }
 }
 
@@ -744,8 +768,8 @@ Tensor5 reinterp(const ConstTensor5View& iy, const Grid<Tensor5, 5>& iw,
 ////////////////////////////////////////////////
 
 void interpweights(Tensor6View out, const Lagrange& dim0, const Lagrange& dim1,
-                      const Lagrange& dim2, const Lagrange& dim3,
-                      const Lagrange& dim4, const Lagrange& dim5) {
+                   const Lagrange& dim2, const Lagrange& dim3,
+                   const Lagrange& dim4, const Lagrange& dim5) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -757,11 +781,11 @@ void interpweights(Tensor6View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void interpweights(Grid<Tensor6, 6>& out, const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2,
-                               const std::vector<Lagrange>& dim3,
-                               const std::vector<Lagrange>& dim4,
-                               const std::vector<Lagrange>& dim5) {
+                   const std::vector<Lagrange>& dim1,
+                   const std::vector<Lagrange>& dim2,
+                   const std::vector<Lagrange>& dim3,
+                   const std::vector<Lagrange>& dim4,
+                   const std::vector<Lagrange>& dim5) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -769,7 +793,7 @@ void interpweights(Grid<Tensor6, 6>& out, const std::vector<Lagrange>& dim0,
           for (std::size_t m = 0; m < dim4.size(); m++)
             for (std::size_t n = 0; n < dim5.size(); n++)
               interpweights(out(i, j, k, l, m, n), dim0[i], dim1[j], dim2[k],
-                                                    dim3[l], dim4[m], dim5[n]);
+                            dim3[l], dim4[m], dim5[n]);
 }
 
 Tensor6 interpweights(const Lagrange& dim0, const Lagrange& dim1,
@@ -812,8 +836,8 @@ Grid<Tensor6, 6> interpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////////////////////
 
 void dinterpweights(Tensor6View out, const Lagrange& dim0, const Lagrange& dim1,
-                       const Lagrange& dim2, const Lagrange& dim3,
-                       const Lagrange& dim4, const Lagrange& dim5, Index dim) {
+                    const Lagrange& dim2, const Lagrange& dim3,
+                    const Lagrange& dim4, const Lagrange& dim5, Index dim) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -829,19 +853,19 @@ void dinterpweights(Tensor6View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void dinterpweights(Grid<Tensor6, 6>& out, const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2,
-                                const std::vector<Lagrange>& dim3,
-                                const std::vector<Lagrange>& dim4,
-                                const std::vector<Lagrange>& dim5, Index dim) {
+                    const std::vector<Lagrange>& dim1,
+                    const std::vector<Lagrange>& dim2,
+                    const std::vector<Lagrange>& dim3,
+                    const std::vector<Lagrange>& dim4,
+                    const std::vector<Lagrange>& dim5, Index dim) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
         for (std::size_t l = 0; l < dim3.size(); l++)
           for (std::size_t m = 0; m < dim4.size(); m++)
             for (std::size_t n = 0; n < dim5.size(); n++)
-              dinterpweights(out(i, j, k, l, m, n),
-                  dim0[i], dim1[j], dim2[k], dim3[l], dim4[m], dim5[n], dim);
+              dinterpweights(out(i, j, k, l, m, n), dim0[i], dim1[j], dim2[k],
+                             dim3[l], dim4[m], dim5[n], dim);
 }
 
 Tensor6 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
@@ -908,13 +932,13 @@ Numeric interp(const ConstTensor6View& yi, const ConstTensor6View& iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-void reinterp(Tensor6View out, const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2,
-                 const std::vector<Lagrange>& dim3,
-                 const std::vector<Lagrange>& dim4,
-                 const std::vector<Lagrange>& dim5) {
+void reinterp(Tensor6View out, const ConstTensor6View& iy,
+              const Grid<Tensor6, 6>& iw, const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2,
+              const std::vector<Lagrange>& dim3,
+              const std::vector<Lagrange>& dim4,
+              const std::vector<Lagrange>& dim5) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -926,25 +950,35 @@ void reinterp(Tensor6View out, const ConstTensor6View& iy, const Grid<Tensor6, 6
                          dim3[l], dim4[m], dim5[n]);
 }
 
-void reinterp_reduce(VectorView out, const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
-                     const std::vector<Lagrange>& dim0,
-                     const std::vector<Lagrange>& dim1,
-                     const std::vector<Lagrange>& dim2,
-                     const std::vector<Lagrange>& dim3,
-                     const std::vector<Lagrange>& dim4,
-                     const std::vector<Lagrange>& dim5) {
+void reinterp_reduce(
+    VectorView out, const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
+    const std::vector<Lagrange>& dim0, const std::vector<Lagrange>& dim1,
+    const std::vector<Lagrange>& dim2, const std::vector<Lagrange>& dim3,
+    const std::vector<Lagrange>& dim4, const std::vector<Lagrange>& dim5) {
   if (dim0.size() > 1) {
-    for (std::size_t i = 0; i < dim0.size(); i++) out[i] = interp(iy, iw(i, 0, 0, 0, 0, 0), dim0[i], dim1[0], dim2[0], dim3[0], dim4[0], dim5[0]);
+    for (std::size_t i = 0; i < dim0.size(); i++)
+      out[i] = interp(iy, iw(i, 0, 0, 0, 0, 0), dim0[i], dim1[0], dim2[0],
+                      dim3[0], dim4[0], dim5[0]);
   } else if (dim1.size() > 1) {
-    for (std::size_t i = 0; i < dim1.size(); i++) out[i] = interp(iy, iw(0, i, 0, 0, 0, 0), dim0[0], dim1[i], dim2[0], dim3[0], dim4[0], dim5[0]);
+    for (std::size_t i = 0; i < dim1.size(); i++)
+      out[i] = interp(iy, iw(0, i, 0, 0, 0, 0), dim0[0], dim1[i], dim2[0],
+                      dim3[0], dim4[0], dim5[0]);
   } else if (dim2.size() > 1) {
-    for (std::size_t i = 0; i < dim2.size(); i++) out[i] = interp(iy, iw(0, 0, i, 0, 0, 0), dim0[0], dim1[0], dim2[i], dim3[0], dim4[0], dim5[0]);
+    for (std::size_t i = 0; i < dim2.size(); i++)
+      out[i] = interp(iy, iw(0, 0, i, 0, 0, 0), dim0[0], dim1[0], dim2[i],
+                      dim3[0], dim4[0], dim5[0]);
   } else if (dim3.size() > 1) {
-    for (std::size_t i = 0; i < dim3.size(); i++) out[i] = interp(iy, iw(0, 0, 0, i, 0, 0), dim0[0], dim1[0], dim2[0], dim3[i], dim4[0], dim5[0]);
+    for (std::size_t i = 0; i < dim3.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, i, 0, 0), dim0[0], dim1[0], dim2[0],
+                      dim3[i], dim4[0], dim5[0]);
   } else if (dim4.size() > 1) {
-    for (std::size_t i = 0; i < dim4.size(); i++) out[i] = interp(iy, iw(0, 0, 0, 0, i, 0), dim0[0], dim1[0], dim2[0], dim3[0], dim4[i], dim5[0]);
+    for (std::size_t i = 0; i < dim4.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, 0, i, 0), dim0[0], dim1[0], dim2[0],
+                      dim3[0], dim4[i], dim5[0]);
   } else {
-    for (std::size_t i = 0; i < dim5.size(); i++) out[i] = interp(iy, iw(0, 0, 0, 0, 0, i), dim0[0], dim1[0], dim2[0], dim3[0], dim4[0], dim5[i]);
+    for (std::size_t i = 0; i < dim5.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, 0, 0, i), dim0[0], dim1[0], dim2[0],
+                      dim3[0], dim4[0], dim5[i]);
   }
 }
 
@@ -978,9 +1012,9 @@ Tensor6 reinterp(const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
 ////////////////////////////////////////////////
 
 void interpweights(Tensor7View out, const Lagrange& dim0, const Lagrange& dim1,
-                      const Lagrange& dim2, const Lagrange& dim3,
-                      const Lagrange& dim4, const Lagrange& dim5,
-                      const Lagrange& dim6) {
+                   const Lagrange& dim2, const Lagrange& dim3,
+                   const Lagrange& dim4, const Lagrange& dim5,
+                   const Lagrange& dim6) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -994,12 +1028,12 @@ void interpweights(Tensor7View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void interpweights(Grid<Tensor7, 7>& out, const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2,
-                               const std::vector<Lagrange>& dim3,
-                               const std::vector<Lagrange>& dim4,
-                               const std::vector<Lagrange>& dim5,
-                               const std::vector<Lagrange>& dim6) {
+                   const std::vector<Lagrange>& dim1,
+                   const std::vector<Lagrange>& dim2,
+                   const std::vector<Lagrange>& dim3,
+                   const std::vector<Lagrange>& dim4,
+                   const std::vector<Lagrange>& dim5,
+                   const std::vector<Lagrange>& dim6) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -1007,8 +1041,8 @@ void interpweights(Grid<Tensor7, 7>& out, const std::vector<Lagrange>& dim0,
           for (std::size_t m = 0; m < dim4.size(); m++)
             for (std::size_t n = 0; n < dim5.size(); n++)
               for (std::size_t o = 0; o < dim6.size(); o++)
-                interpweights(out(i, j, k, l, m, n, o), dim0[i], dim1[j], dim2[k], dim3[l], dim4[m],
-                                  dim5[n], dim6[o]);
+                interpweights(out(i, j, k, l, m, n, o), dim0[i], dim1[j],
+                              dim2[k], dim3[l], dim4[m], dim5[n], dim6[o]);
 }
 
 Tensor7 interpweights(const Lagrange& dim0, const Lagrange& dim1,
@@ -1057,9 +1091,9 @@ Grid<Tensor7, 7> interpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////////////////////
 
 void dinterpweights(Tensor7View out, const Lagrange& dim0, const Lagrange& dim1,
-                       const Lagrange& dim2, const Lagrange& dim3,
-                       const Lagrange& dim4, const Lagrange& dim5,
-                       const Lagrange& dim6, Index dim) {
+                    const Lagrange& dim2, const Lagrange& dim3,
+                    const Lagrange& dim4, const Lagrange& dim5,
+                    const Lagrange& dim6, Index dim) {
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -1078,12 +1112,12 @@ void dinterpweights(Tensor7View out, const Lagrange& dim0, const Lagrange& dim1,
 }
 
 void dinterpweights(Grid<Tensor7, 7>& out, const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2,
-                                const std::vector<Lagrange>& dim3,
-                                const std::vector<Lagrange>& dim4,
-                                const std::vector<Lagrange>& dim5,
-                                const std::vector<Lagrange>& dim6, Index dim) {
+                    const std::vector<Lagrange>& dim1,
+                    const std::vector<Lagrange>& dim2,
+                    const std::vector<Lagrange>& dim3,
+                    const std::vector<Lagrange>& dim4,
+                    const std::vector<Lagrange>& dim5,
+                    const std::vector<Lagrange>& dim6, Index dim) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -1091,8 +1125,9 @@ void dinterpweights(Grid<Tensor7, 7>& out, const std::vector<Lagrange>& dim0,
           for (std::size_t m = 0; m < dim4.size(); m++)
             for (std::size_t n = 0; n < dim5.size(); n++)
               for (std::size_t o = 0; o < dim6.size(); o++)
-                dinterpweights(out(i, j, k, l, m, n, o), dim0[i], dim1[j], dim2[k], dim3[l], dim4[m],
-                                   dim5[n], dim6[o], dim);
+                dinterpweights(out(i, j, k, l, m, n, o), dim0[i], dim1[j],
+                               dim2[k], dim3[l], dim4[m], dim5[n], dim6[o],
+                               dim);
 }
 
 Tensor7 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
@@ -1168,14 +1203,14 @@ Numeric interp(const ConstTensor7View& yi, const ConstTensor7View& iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-void reinterp(Tensor7View out, const ConstTensor7View& iy, const Grid<Tensor7, 7>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2,
-                 const std::vector<Lagrange>& dim3,
-                 const std::vector<Lagrange>& dim4,
-                 const std::vector<Lagrange>& dim5,
-                 const std::vector<Lagrange>& dim6) {
+void reinterp(Tensor7View out, const ConstTensor7View& iy,
+              const Grid<Tensor7, 7>& iw, const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2,
+              const std::vector<Lagrange>& dim3,
+              const std::vector<Lagrange>& dim4,
+              const std::vector<Lagrange>& dim5,
+              const std::vector<Lagrange>& dim6) {
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
       for (std::size_t k = 0; k < dim2.size(); k++)
@@ -1188,28 +1223,40 @@ void reinterp(Tensor7View out, const ConstTensor7View& iy, const Grid<Tensor7, 7
                            dim2[k], dim3[l], dim4[m], dim5[n], dim6[o]);
 }
 
-void reinterp_reduce(VectorView out, const ConstTensor7View& iy, const Grid<Tensor7, 7>& iw,
-                     const std::vector<Lagrange>& dim0,
-                     const std::vector<Lagrange>& dim1,
-                     const std::vector<Lagrange>& dim2,
-                     const std::vector<Lagrange>& dim3,
-                     const std::vector<Lagrange>& dim4,
-                     const std::vector<Lagrange>& dim5,
-                     const std::vector<Lagrange>& dim6) {
+void reinterp_reduce(
+    VectorView out, const ConstTensor7View& iy, const Grid<Tensor7, 7>& iw,
+    const std::vector<Lagrange>& dim0, const std::vector<Lagrange>& dim1,
+    const std::vector<Lagrange>& dim2, const std::vector<Lagrange>& dim3,
+    const std::vector<Lagrange>& dim4, const std::vector<Lagrange>& dim5,
+    const std::vector<Lagrange>& dim6) {
   if (dim0.size() > 1) {
-    for (std::size_t i = 0; i < dim0.size(); i++) out[i] = interp(iy, iw(i, 0, 0, 0, 0, 0, 0), dim0[i], dim1[0], dim2[0], dim3[0], dim4[0], dim5[0], dim6[0]);
+    for (std::size_t i = 0; i < dim0.size(); i++)
+      out[i] = interp(iy, iw(i, 0, 0, 0, 0, 0, 0), dim0[i], dim1[0], dim2[0],
+                      dim3[0], dim4[0], dim5[0], dim6[0]);
   } else if (dim1.size() > 1) {
-    for (std::size_t i = 0; i < dim1.size(); i++) out[i] = interp(iy, iw(0, i, 0, 0, 0, 0, 0), dim0[0], dim1[i], dim2[0], dim3[0], dim4[0], dim5[0], dim6[0]);
+    for (std::size_t i = 0; i < dim1.size(); i++)
+      out[i] = interp(iy, iw(0, i, 0, 0, 0, 0, 0), dim0[0], dim1[i], dim2[0],
+                      dim3[0], dim4[0], dim5[0], dim6[0]);
   } else if (dim2.size() > 1) {
-    for (std::size_t i = 0; i < dim2.size(); i++) out[i] = interp(iy, iw(0, 0, i, 0, 0, 0, 0), dim0[0], dim1[0], dim2[i], dim3[0], dim4[0], dim5[0], dim6[0]);
+    for (std::size_t i = 0; i < dim2.size(); i++)
+      out[i] = interp(iy, iw(0, 0, i, 0, 0, 0, 0), dim0[0], dim1[0], dim2[i],
+                      dim3[0], dim4[0], dim5[0], dim6[0]);
   } else if (dim3.size() > 1) {
-    for (std::size_t i = 0; i < dim3.size(); i++) out[i] = interp(iy, iw(0, 0, 0, i, 0, 0, 0), dim0[0], dim1[0], dim2[0], dim3[i], dim4[0], dim5[0], dim6[0]);
+    for (std::size_t i = 0; i < dim3.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, i, 0, 0, 0), dim0[0], dim1[0], dim2[0],
+                      dim3[i], dim4[0], dim5[0], dim6[0]);
   } else if (dim4.size() > 1) {
-    for (std::size_t i = 0; i < dim4.size(); i++) out[i] = interp(iy, iw(0, 0, 0, 0, i, 0, 0), dim0[0], dim1[0], dim2[0], dim3[0], dim4[i], dim5[0], dim6[0]);
+    for (std::size_t i = 0; i < dim4.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, 0, i, 0, 0), dim0[0], dim1[0], dim2[0],
+                      dim3[0], dim4[i], dim5[0], dim6[0]);
   } else if (dim5.size() > 1) {
-    for (std::size_t i = 0; i < dim5.size(); i++) out[i] = interp(iy, iw(0, 0, 0, 0, 0, i, 0), dim0[0], dim1[0], dim2[0], dim3[0], dim4[0], dim5[i], dim6[0]);
+    for (std::size_t i = 0; i < dim5.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, 0, 0, i, 0), dim0[0], dim1[0], dim2[0],
+                      dim3[0], dim4[0], dim5[i], dim6[0]);
   } else {
-    for (std::size_t i = 0; i < dim6.size(); i++) out[i] = interp(iy, iw(0, 0, 0, 0, 0, 0, i), dim0[0], dim1[0], dim2[0], dim3[0], dim4[0], dim5[0], dim6[i]);
+    for (std::size_t i = 0; i < dim6.size(); i++)
+      out[i] = interp(iy, iw(0, 0, 0, 0, 0, 0, i), dim0[0], dim1[0], dim2[0],
+                      dim3[0], dim4[0], dim5[0], dim6[i]);
   }
 }
 
