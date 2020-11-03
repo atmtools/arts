@@ -68,7 +68,8 @@ Grid<Vector, 1> dinterpweights(const std::vector<Lagrange>& dim0) {
 Numeric interp(const ConstVectorView& yi, const ConstVectorView& iw,
                const Lagrange& dim0) {
   Numeric out(0.0);
-  for (Index i = 0; i < dim0.size(); i++) out += iw[i] * yi[i + dim0.pos];
+  const Index I = yi.size();
+  for (Index i = 0; i < dim0.size(); i++) out += iw[i] * yi[cycler(i + dim0.pos, I)];
   return out;
 }
 
@@ -170,10 +171,12 @@ Grid<Matrix, 2> dinterpweights(const std::vector<Lagrange>& dim0,
 Numeric interp(const ConstMatrixView& yi, const ConstMatrixView& iw,
                const Lagrange& dim0, const Lagrange& dim1) {
   Numeric out(0.0);
-
+  const Index I = yi.nrows();
+  const Index J = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
-      out += iw(i, j) * yi(i + dim0.pos, j + dim1.pos);
+      out += iw(i, j) * yi(cycler(i + dim0.pos, I),
+                           cycler(j + dim1.pos, J));
   return out;
 }
 
@@ -312,11 +315,15 @@ Numeric interp(const ConstTensor3View& yi, const ConstTensor3View& iw,
                const Lagrange& dim0, const Lagrange& dim1,
                const Lagrange& dim2) {
   Numeric out(0.0);
-
+  const Index I = yi.npages();
+  const Index J = yi.nrows();
+  const Index K = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
-        out += iw(i, j, k) * yi(i + dim0.pos, j + dim1.pos, k + dim2.pos);
+        out += iw(i, j, k) * yi(cycler(i + dim0.pos, I),
+                                cycler(j + dim1.pos, J),
+                                (k + dim1.pos) > K ? k + dim2.pos - K : k + dim2.pos);
   return out;
 }
 
@@ -479,13 +486,19 @@ Numeric interp(const ConstTensor4View& yi, const ConstTensor4View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3) {
   Numeric out(0.0);
-
+  const Index I = yi.nbooks();
+  const Index J = yi.npages();
+  const Index K = yi.nrows();
+  const Index L = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
         for (Index l = 0; l < dim3.size(); l++)
           out += iw(i, j, k, l) *
-                 yi(i + dim0.pos, j + dim1.pos, k + dim2.pos, l + dim3.pos);
+            yi(cycler(i + dim0.pos, I),
+               cycler(j + dim1.pos, J),
+               cycler(k + dim2.pos, K),
+               cycler(l + dim3.pos, L));
   return out;
 }
 
@@ -682,14 +695,22 @@ Numeric interp(const ConstTensor5View& yi, const ConstTensor5View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4) {
   Numeric out(0.0);
+  const Index I = yi.nshelves();
+  const Index J = yi.nbooks();
+  const Index K = yi.npages();
+  const Index L = yi.nrows();
+  const Index M = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
         for (Index l = 0; l < dim3.size(); l++)
           for (Index m = 0; m < dim4.size(); m++)
             out +=
-                iw(i, j, k, l, m) * yi(i + dim0.pos, j + dim1.pos, k + dim2.pos,
-                                       l + dim3.pos, m + dim4.pos);
+            iw(i, j, k, l, m) * yi(cycler(i + dim0.pos, I),
+                                   cycler(j + dim1.pos, J),
+                                   cycler(k + dim2.pos, K),
+                                   cycler(l + dim3.pos, L),
+                                   cycler(m + dim4.pos, M));
   return out;
 }
 
@@ -916,15 +937,24 @@ Numeric interp(const ConstTensor6View& yi, const ConstTensor6View& iw,
                const Lagrange& dim3, const Lagrange& dim4,
                const Lagrange& dim5) {
   Numeric out(0.0);
+  const Index I = yi.nvitrines();
+  const Index J = yi.nshelves();
+  const Index K = yi.nbooks();
+  const Index L = yi.npages();
+  const Index M = yi.nrows();
+  const Index N = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
         for (Index l = 0; l < dim3.size(); l++)
           for (Index m = 0; m < dim4.size(); m++)
             for (Index n = 0; n < dim5.size(); n++)
-              out += iw(i, j, k, l, m, n) * yi(i + dim0.pos, j + dim1.pos,
-                                               k + dim2.pos, l + dim3.pos,
-                                               m + dim4.pos, n + dim5.pos);
+              out += iw(i, j, k, l, m, n) * yi(cycler(i + dim0.pos, I),
+                                               cycler(j + dim1.pos, J),
+                                               cycler(k + dim2.pos, K),
+                                               cycler(l + dim3.pos, L),
+                                               cycler(m + dim4.pos, M),
+                                               cycler(n + dim5.pos, N));
   return out;
 }
 
@@ -1185,6 +1215,13 @@ Numeric interp(const ConstTensor7View& yi, const ConstTensor7View& iw,
                const Lagrange& dim3, const Lagrange& dim4, const Lagrange& dim5,
                const Lagrange& dim6) {
   Numeric out(0.0);
+  const Index I = yi.nlibraries();
+  const Index J = yi.nvitrines();
+  const Index K = yi.nshelves();
+  const Index L = yi.nbooks();
+  const Index M = yi.npages();
+  const Index N = yi.nrows();
+  const Index O = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -1192,10 +1229,13 @@ Numeric interp(const ConstTensor7View& yi, const ConstTensor7View& iw,
           for (Index m = 0; m < dim4.size(); m++)
             for (Index n = 0; n < dim5.size(); n++)
               for (Index o = 0; o < dim6.size(); o++)
-                out += iw(i, j, k, l, m, n, o) * yi(i + dim0.pos, j + dim1.pos,
-                                                    k + dim2.pos, l + dim3.pos,
-                                                    m + dim4.pos, n + dim5.pos,
-                                                    o + dim6.pos);
+                out += iw(i, j, k, l, m, n, o) * yi(cycler(i + dim0.pos, I),
+                                                    cycler(j + dim1.pos, J),
+                                                    cycler(k + dim2.pos, K),
+                                                    cycler(l + dim3.pos, L),
+                                                    cycler(m + dim4.pos, M),
+                                                    cycler(n + dim5.pos, N),
+                                                    cycler(o + dim6.pos, O));
   return out;
 }
 

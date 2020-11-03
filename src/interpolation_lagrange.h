@@ -14,7 +14,7 @@
 
 namespace Interpolation {
 
-ENUMCLASS(LagrangeType, unsigned char, Linear, Log)
+ENUMCLASS(LagrangeType, unsigned char, Linear, Log, Cyclic)
 
 /*! Compute the multiplication of all inds */
 template <typename... Inds>
@@ -34,26 +34,187 @@ constexpr std::size_t mul(const std::array<std::size_t, N>& arr) {
   }
 }
 
+/*! Cycle once back through a list
+ *
+ * @param[in] n Index in a list 0 <= n < 2*N
+ * @param[in] N Index size of a list
+ * @return n - N if n >= N else n
+ */
+constexpr Index cycler(Index n, Index N) noexcept {return n >= N ? n - N : n;}
+
+constexpr Numeric cyclic_clamp(Numeric x, std::pair<Numeric, Numeric> xlim) noexcept {
+  if (x < xlim.first) return cyclic_clamp(x + xlim.second - xlim.first, xlim);
+  else if (x >= xlim.second) return cyclic_clamp(x - xlim.second + xlim.first, xlim);
+  else return x;
+}
+
 /*! Finds the position
  *
  * @param[in] x Coordinate to find a position for
  * @param[in] xi Original sorted grid
  * @param[in] N Max position plus one
  * @param[in] p0 Estimation of the first position, must be [0, N)
+ * @param[in] cyclic The sorting is cyclic (1, 2, 3, 0.5, 1.5...)
  * @param[in] ascending The sorting is ascending (1, 2, 3...)
+ * @param[in] cycle The size of a cycle (optional)
  */
 template <class SortedVectorType>
 constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
-                           const Index N, Index p0,
-                           const bool ascending) noexcept {
-  if (ascending) {
-    while (p0 < N and xi[p0] < x) ++p0;
-    while (p0 > 0 and xi[p0] > x) --p0;
+                           const Index N, Index p0, const bool cyclic,
+                           const bool ascending, const std::pair<Numeric, Numeric> cycle={-180, 180}) noexcept {
+  if (cyclic) {
+    if (ascending) {
+      if (x < xi[0] or x > xi[N-1]) {  // cyclic if out-of-bounds
+        if (x < cycle.first or x >= cycle.second) {
+          p0 = pos_finder(cyclic_clamp(x, cycle), xi, N, p0, cyclic, ascending, cycle);
+        } else {
+          p0 = N - 1;
+        }
+      } else {
+        while (p0 < N and xi[p0] < x) ++p0;
+        while (p0 > 0 and xi[p0] > x) --p0;
+      }
+    } else {
+      if (x > xi[0] or x < xi[N-1]) {  // cyclic if out-of-bounds
+        if (x < cycle.first or x >= cycle.second) {
+          p0 = pos_finder(cyclic_clamp(x, cycle), xi, N, p0, cyclic, ascending, cycle);
+        } else {
+          p0 = N - 1;
+        }
+      } else {
+        while (p0 < N and xi[p0] > x) ++p0;
+        while (p0 > 0 and xi[p0] < x) --p0;
+      }
+    }
   } else {
-    while (p0 < N and xi[p0] > x) ++p0;
-    while (p0 > 0 and xi[p0] < x) --p0;
+    if (ascending) {
+      while (p0 < N and xi[p0] < x) ++p0;
+      while (p0 > 0 and xi[p0] > x) --p0;
+    } else {
+      while (p0 < N and xi[p0] > x) ++p0;
+      while (p0 > 0 and xi[p0] < x) --p0;
+    }
   }
   return p0;
+}
+
+/*! Computes the weights for a given coefficient
+ * 
+ * @param[in] p0 The original position
+ * @param[in] n The number of weights
+ * @param[in] x The position for the weights
+ * @param[in] xi The sorted vector of values
+ * @param[in] j The current coefficient
+ * @param[in] cycle The size of a cycle (optional)
+ */
+template <LagrangeType type, typename SortedVectorType>
+constexpr Numeric l(const Index p0, const Index n,
+                        const Numeric x, const SortedVectorType& xi,
+                        const Index j, [[maybe_unused]] const std::pair<Numeric, Numeric> cycle={-180, 180}) noexcept {
+  Numeric val = 1.0;
+  for (Index m = 0; m < n; m++) {
+    if (m not_eq j) {
+      if constexpr (type == LagrangeType::Log) {
+        val *= (std::log(x) - std::log(xi[m + p0])) /
+               (std::log(xi[j + p0]) - std::log(xi[m + p0]));
+      } else if constexpr (type == LagrangeType::Linear) {
+        val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
+      } else if constexpr (type == LagrangeType::Cyclic) {
+        const decltype(m + p0) N = xi.size();
+        const Numeric c = cycle.second - cycle.first;
+        Index m_pos = cycler(m + p0, N);
+        Index j_pos = cycler(j + p0, N);
+        if (((m_pos == 0 and j_pos == N-1) or (m_pos == N-1 and j_pos == 0)) and xi[0] == cycle.first and xi[N-1] == cycle.second) {
+          if (m_pos < j_pos) val *= 0;  // nb. Reduced order in cyclic-crossings
+        } else {
+        const Numeric nom0 = cyclic_clamp(x, cycle) - xi[m_pos];
+        const auto tn0p = std::abs(nom0) < std::abs(nom0+c);
+        const auto tn0m = std::abs(nom0) < std::abs(nom0-c);
+        const auto tnpm = std::abs(nom0+c) < std::abs(nom0-c);
+        const Numeric nom = (tn0p and tn0m) ? nom0 : tnpm ? nom0 + c : nom0 - c;
+        
+        const Numeric denom0 = xi[j_pos] - xi[m_pos];
+        const auto td0p = std::abs(denom0) < std::abs(denom0+c);
+        const auto td0m = std::abs(denom0) < std::abs(denom0-c);
+        const auto tdpm = std::abs(denom0-+c) < std::abs(denom0-c);
+        const Numeric denom = (td0p and td0m) ? denom0 : tdpm ? denom0 + c : denom0 - c;
+        
+        val *= nom / denom;
+}
+      }
+    }
+  }
+  return val;
+}
+
+/*! Computes the derivatives of the weights for a given coefficient
+ * 
+ * @param[in] p0 The original position
+ * @param[in] n The number of weights
+ * @param[in] x The position for the weights
+ * @param[in] xi The sorted vector of values
+ * @param[in] j The current coefficient
+ * @param[in] cycle The size of a cycle (optional)
+ */
+template <LagrangeType type, typename SortedVectorType>
+constexpr Numeric dl(const Index p0, const Index n,
+                            const Numeric x,
+                            const SortedVectorType& xi,
+                     const Index j, [[maybe_unused]] const std::pair<Numeric, Numeric> cycle={-180, 180}) noexcept {
+  Numeric dval = 0.0;
+  for (Index i = 0; i < n; i++) {
+    if (i not_eq j) {
+      if (type == LagrangeType::Log) {
+        const Numeric outer_denom = std::log(xi[j + p0]) - std::log(xi[i + p0]);
+        Numeric val = 1.0;
+        for (Index m=0; m<n; m++) {
+          if (m not_eq i and m not_eq j) {
+            val *= (std::log(x) - std::log(xi[m + p0])) / (std::log(xi[j + p0]) - std::log(xi[m + p0]));
+          }
+        }
+        dval += val / outer_denom;
+      } else if (type == LagrangeType::Linear) {
+        const Numeric outer_denom = xi[j + p0] - xi[i + p0];
+        Numeric val = 1.0;
+        for (Index m=0; m<n; m++) {
+          if (m not_eq i and m not_eq j) {
+            val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
+          }
+        }
+        dval += val / outer_denom;
+      } else if constexpr (type == LagrangeType::Cyclic) {
+        const decltype(i + p0) N = xi.size();
+        const Numeric c = cycle.second - cycle.first;
+        
+        const Numeric outer_denom0 = xi[cycler(j + p0, N)] - xi[cycler(i + p0, N)];
+        const auto tod0p = std::abs(outer_denom0) < std::abs(outer_denom0 + c);
+        const auto tod0m = std::abs(outer_denom0) < std::abs(outer_denom0 - c);
+        const auto todpm = std::abs(outer_denom0 + c) < std::abs(outer_denom0 - c);
+        const Numeric outer_denom = (tod0p and tod0m) ? outer_denom0 : todpm ? outer_denom0 + c : outer_denom0 - c;
+        
+        Numeric val = 1.0;
+        for (Index m=0; m<n; m++) {
+          if (m not_eq i and m not_eq j) {
+            const Numeric nom0 = cyclic_clamp(x, cycle) - xi[cycler(m + p0, N)];
+            const auto tn0p = std::abs(nom0) < std::abs(nom0 + c);
+            const auto tn0m = std::abs(nom0) < std::abs(nom0 - c);
+            const auto tnpm = std::abs(nom0 + c) < std::abs(nom0 - c);
+            const Numeric nom = (tn0p and tn0m) ? nom0 : tnpm ? nom0 + c : nom0 - c;
+            
+            const Numeric denom0 = xi[cycler(j + p0, N)] - xi[cycler(m + p0, N)];
+            const auto td0p = std::abs(denom0) < std::abs(denom0 + c);
+            const auto td0m = std::abs(denom0) < std::abs(denom0 - c);
+            const auto tdpm = std::abs(denom0 + c) < std::abs(denom0 - c);
+            const Numeric denom = (td0p and td0m) ? denom0 : tdpm ? denom0 + c : denom0 - c;
+            
+            val *= nom / denom;
+          }
+        }
+        dval += val / outer_denom;
+      }
+    }
+  }
+  return dval;
 }
 
 /*! A Lagrange interpolation computer */
@@ -65,19 +226,22 @@ struct Lagrange {
   /* Number of weights */
   Index size() const noexcept { return lx.size(); }
 
-  /*! Standard and only initializer, assumes sorted xi and atleast 2 of them
+  /*! Standard and only initializer, assumes sorted xi
    *
    * @param[in] x New grid position
    * @param[in] xi Old grid positions
    * @param[in] polyorder Polynominal degree
    * @param[in] extrapol Level of extrapolation
-   * @param[in] type Type of Lagrange (Normal or Log)
+   * @param[in] do_derivs Compute derivatives?
+   * @param[in] type Type of Lagrange (Linear or Log or Cyclic)
+   * @param[in] cycle Size of a cycle if Cyclic type
    */
   template <class SortedVectorType>
   Lagrange(Index p0, const Numeric x, const SortedVectorType& xi,
            const Index polyorder = 1, const Numeric extrapol = 0.5,
            const bool do_derivs = true,
-           const LagrangeType type = LagrangeType::Linear) {
+           const LagrangeType type = LagrangeType::Linear,
+           const std::pair<Numeric, Numeric> cycle={-180, 180}) {
     const Index n = xi.nelem();
     const Index p = polyorder + 1;
 
@@ -97,13 +261,13 @@ struct Lagrange {
       throw std::runtime_error(os.str());
     } else {
       // Set the position
-      pos = pos_finder(x, xi, n - p, p0, ascending);
+      pos = pos_finder(x, xi, type == LagrangeType::Cyclic ? n : n - p, p0, type == LagrangeType::Cyclic, ascending, cycle);
 
       // Set weights
-      lx = lx_finder(pos, p, x, xi, type);
+      lx = lx_finder(pos, p, x, xi, type, cycle);
 
       // Set derivatives after the weights
-      if (do_derivs) dlx = dlx_finder(pos, p, x, xi, lx, type);
+      if (do_derivs) dlx = dlx_finder(pos, p, x, xi, type, cycle);
     }
   }
 
@@ -120,9 +284,25 @@ struct Lagrange {
   static std::vector<Numeric> lx_finder(const Index p0, const Index n,
                                         const Numeric x,
                                         const SortedVectorType& xi,
-                                        const LagrangeType type) noexcept {
+                                        const LagrangeType type,
+                                        const std::pair<Numeric, Numeric> cycle
+                                       ) noexcept {
     std::vector<Numeric> out(n);
-    for (Index j = 0; j < n; j++) out[j] = l(x, xi, j, n, p0, type);
+    switch(type) {
+      case LagrangeType::Linear:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Linear>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Log:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Log>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Cyclic:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Cyclic>(p0, n, x, xi, j, cycle);
+        break;
+      case LagrangeType::FINAL: {/* pass */}
+    }
     return out;
   }
 
@@ -131,59 +311,25 @@ struct Lagrange {
   static std::vector<Numeric> dlx_finder(const Index p0, const Index n,
                                          const Numeric x,
                                          const SortedVectorType& xi,
-                                         const std::vector<Numeric>& li,
-                                         const LagrangeType type) noexcept {
+                                         const LagrangeType type,
+                                         const std::pair<Numeric, Numeric> cycle) noexcept {
     std::vector<Numeric> out(n);
-    for (Index j = 0; j < n; j++) out[j] = dl(x, xi, li, j, n, p0, type);
+    switch(type) {
+      case LagrangeType::Linear:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Linear>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Log:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Log>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Cyclic:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Cyclic>(p0, n, x, xi, j, cycle);
+        break;
+      case LagrangeType::FINAL: {/* pass */}
+    }
     return out;
-  }
-
-  /*! Computes the weights for a given coefficient */
-  template <class SortedVectorType>
-  static Numeric l(const Numeric x, const SortedVectorType& xi, const Index j,
-                   const Index n, const Index p0,
-                   const LagrangeType type) noexcept {
-    Numeric val = 1.0;
-    if (type == LagrangeType::Log) {
-      for (Index m = 0; m < n; m++) {
-        if (m not_eq j) {
-          val *= (std::log(x) - std::log(xi[m + p0])) /
-                 (std::log(xi[j + p0]) - std::log(xi[m + p0]));
-        }
-      }
-    } else if (type == LagrangeType::Linear) {
-      for (Index m = 0; m < n; m++) {
-        if (m not_eq j) {
-          val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
-        }
-      }
-    }
-    return val;
-  }
-
-  /*! Computes the derivatives of the weights for a given coefficient
-   *
-   * Must be called with all lx known
-   */
-  template <class SortedVectorType>
-  static Numeric dl(const Numeric x, const SortedVectorType& xi,
-                    const Vector& li, const Index j, const Index n,
-                    const Index p0, const LagrangeType type) noexcept {
-    Numeric dval = 0.0;
-    if (type == LagrangeType::Log) {
-      for (Index i = 0; i < n; i++) {
-        if (i not_eq j) {
-          dval += li[j] / (std::log(x) - std::log(xi[i + p0]));
-        }
-      }
-    } else if (type == LagrangeType::Linear) {
-      for (Index i = 0; i < n; i++) {
-        if (i not_eq j) {
-          dval += li[j] / (x - xi[i + p0]);
-        }
-      }
-    }
-    return dval;
   }
 };
 
@@ -208,11 +354,13 @@ struct FixedLagrange {
   constexpr FixedLagrange(const Index p0, const Numeric x,
                           const SortedVectorType& xi,
                           const bool do_derivs = true,
-                          const LagrangeType type = LagrangeType::Linear)
-      : pos(pos_finder(x, xi, Index(xi.size()) - size(), p0,
-                       xi.size() > 1 ? xi[0] < xi[1] : false)),
-        lx(lx_finder(pos, x, xi, type)),
-        dlx(do_derivs ? dlx_finder(pos, x, xi, lx, type)
+                          const LagrangeType type = LagrangeType::Linear,
+                          const std::pair<Numeric, Numeric> cycle={-180, 180})
+  : pos(pos_finder(x, xi, type == LagrangeType::Cyclic ? Index(xi.size()) : Index(xi.size()) - size(), p0,
+                       type == LagrangeType::Cyclic,
+                       xi.size() > 1 ? xi[0] < xi[1] : false, cycle)),
+        lx(lx_finder(pos, x, xi, type, cycle)),
+        dlx(do_derivs ? dlx_finder(pos, x, xi, type, cycle)
                       : std::array<Numeric, PolyOrder + 1>{}) {}
 
   friend std::ostream& operator<<(std::ostream& os, const FixedLagrange& l) {
@@ -227,14 +375,24 @@ struct FixedLagrange {
   template <class SortedVectorType>
   static constexpr std::array<Numeric, PolyOrder + 1> lx_finder(
       const Index p0, const Numeric x, const SortedVectorType& xi,
-      const LagrangeType type) noexcept {
+      const LagrangeType type,
+      const std::pair<Numeric, Numeric> cycle) noexcept {
     std::array<Numeric, PolyOrder + 1> out{};
-    if (type == LagrangeType::Linear) {
-      for (Index j = 0; j < size(); j++)
-        out[j] = l<LagrangeType::Linear>(p0, x, xi, j);
-    } else if (type == LagrangeType::Log) {
-      for (Index j = 0; j < size(); j++)
-        out[j] = l<LagrangeType::Log>(p0, x, xi, j);
+    constexpr Index n=PolyOrder+1;
+    switch(type) {
+      case LagrangeType::Linear:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Linear>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Log:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Log>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Cyclic:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Cyclic>(p0, n, x, xi, j, cycle);
+        break;
+      case LagrangeType::FINAL: {/* pass */}
     }
     return out;
   }
@@ -243,58 +401,26 @@ struct FixedLagrange {
   template <class SortedVectorType>
   static constexpr std::array<Numeric, PolyOrder + 1> dlx_finder(
       const Index p0, const Numeric x, const SortedVectorType& xi,
-      const std::array<Numeric, PolyOrder + 1>& li,
-      const LagrangeType type) noexcept {
+      const LagrangeType type,
+      const std::pair<Numeric, Numeric> cycle) noexcept {
     std::array<Numeric, PolyOrder + 1> out{};
-    if (type == LagrangeType::Linear) {
-      for (Index j = 0; j < size(); j++)
-        out[j] = dl<LagrangeType::Linear>(p0, x, xi, li, j);
-    } else if (type == LagrangeType::Log) {
-      for (Index j = 0; j < size(); j++)
-        out[j] = dl<LagrangeType::Log>(p0, x, xi, li, j);
+    constexpr Index n=PolyOrder+1;
+    switch(type) {
+      case LagrangeType::Linear:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Linear>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Log:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Log>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Cyclic:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Cyclic>(p0, n, x, xi, j, cycle);
+        break;
+      case LagrangeType::FINAL: {/* pass */}
     }
     return out;
-  }
-
-  /*! Computes the weights for a given coefficient */
-  template <LagrangeType type, typename SortedVectorType>
-  static constexpr Numeric l(const Index p0, const Numeric x,
-                             const SortedVectorType& xi,
-                             const Index j) noexcept {
-    Numeric val = 1.0;
-    for (Index m = 0; m < size(); m++) {
-      if (m not_eq j) {
-        if constexpr (type == LagrangeType::Log) {
-          val *= (std::log(x) - std::log(xi[m + p0])) /
-                 (std::log(xi[j + p0]) - std::log(xi[m + p0]));
-        } else if constexpr (type == LagrangeType::Linear) {
-          val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
-        }
-      }
-    }
-    return val;
-  }
-
-  /*! Computes the derivatives of the weights for a given coefficient
-   *
-   * Must be called with all lx known
-   */
-  template <LagrangeType type, typename SortedVectorType>
-  static constexpr Numeric dl(const Index p0, const Numeric x,
-                              const SortedVectorType& xi,
-                              const std::array<Numeric, PolyOrder + 1>& li,
-                              const Index j) noexcept {
-    Numeric dval = 0.0;
-    for (Index i = 0; i < size(); i++) {
-      if (i not_eq j) {
-        if (type == LagrangeType::Log) {
-          dval += li[j] / (std::log(x) - std::log(xi[i + p0]));
-        } else if (type == LagrangeType::Linear) {
-          dval += li[j] / (x - xi[i + p0]);
-        }
-      }
-    }
-    return dval;
   }
 };
 
@@ -515,7 +641,7 @@ Grid<Vector, 1> interpweights(const std::vector<Lagrange>& dim0);
  * @return Vector - interpweights
  */
 template <std::size_t PolyOrder>
-constexpr std::array<Numeric, PolyOrder + 1> interpweights(
+constexpr const std::array<Numeric, PolyOrder + 1>& interpweights(
     const FixedLagrange<PolyOrder>& dim0) {
   return dim0.lx;
 }
@@ -620,7 +746,8 @@ constexpr Numeric interp(const VectorType& yi,
                          const std::array<Numeric, PolyOrder + 1>& iw,
                          const FixedLagrange<PolyOrder>& dim0) {
   Numeric out(0.0);
-  for (Index i = 0; i < dim0.size(); i++) out += iw[i] * yi[i + dim0.pos];
+  const Index I = yi.size();
+  for (Index i = 0; i < dim0.size(); i++) out += iw[i] * yi[cycler(i + dim0.pos, I)];
   return out;
 }
 
@@ -868,10 +995,12 @@ constexpr Numeric interp(
     const FixedLagrange<PolyOrder0>& dim0,
     const FixedLagrange<PolyOrder1>& dim1) {
   Numeric out(0.0);
-
+  const Index I = yi.nrows();
+  const Index J = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
-      out += iw(i, j) * yi(i + dim0.pos, j + dim1.pos);
+      out += iw(i, j) * yi(cycler(i + dim0.pos, I),
+                           cycler(j + dim1.pos, J));
   return out;
 }
 
@@ -1178,11 +1307,15 @@ constexpr Numeric interp(const Tensor3Type& yi,
                          const FixedLagrange<PolyOrder1>& dim1,
                          const FixedLagrange<PolyOrder2>& dim2) {
   Numeric out(0.0);
-
+  const Index I = yi.npages();
+  const Index J = yi.nrows();
+  const Index K = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
-        out += iw(i, j, k) * yi(i + dim0.pos, j + dim1.pos, k + dim2.pos);
+        out += iw(i, j, k) * yi(cycler(i + dim0.pos, I),
+                                cycler(j + dim1.pos, J),
+                                (k + dim1.pos) > K ? k + dim2.pos - K : k + dim2.pos);
   return out;
 }
 
@@ -1546,13 +1679,19 @@ constexpr Numeric interp(
     const FixedLagrange<PolyOrder2>& dim2,
     const FixedLagrange<PolyOrder3>& dim3) {
   Numeric out(0.0);
-
+  const Index I = yi.nbooks();
+  const Index J = yi.npages();
+  const Index K = yi.nrows();
+  const Index L = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
         for (Index l = 0; l < dim3.size(); l++)
           out += iw(i, j, k, l) *
-                 yi(i + dim0.pos, j + dim1.pos, k + dim2.pos, l + dim3.pos);
+          yi(cycler(i + dim0.pos, I),
+             cycler(j + dim1.pos, J),
+             cycler(k + dim2.pos, K),
+             cycler(l + dim3.pos, L));
   return out;
 }
 
@@ -1964,14 +2103,22 @@ constexpr Numeric interp(
     const FixedLagrange<PolyOrder3>& dim3,
     const FixedLagrange<PolyOrder4>& dim4) {
   Numeric out(0.0);
+  const Index I = yi.nshelves();
+  const Index J = yi.nbooks();
+  const Index K = yi.npages();
+  const Index L = yi.nrows();
+  const Index M = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
         for (Index l = 0; l < dim3.size(); l++)
           for (Index m = 0; m < dim4.size(); m++)
             out +=
-                iw(i, j, k, l, m) * yi(i + dim0.pos, j + dim1.pos, k + dim2.pos,
-                                       l + dim3.pos, m + dim4.pos);
+            iw(i, j, k, l, m) * yi(cycler(i + dim0.pos, I),
+                                   cycler(j + dim1.pos, J),
+                                   cycler(k + dim2.pos, K),
+                                   cycler(l + dim3.pos, L),
+                                   cycler(m + dim4.pos, M));
   return out;
 }
 
@@ -2427,15 +2574,24 @@ constexpr Numeric interp(
     const FixedLagrange<PolyOrder4>& dim4,
     const FixedLagrange<PolyOrder5>& dim5) {
   Numeric out(0.0);
+  const Index I = yi.nvitrines();
+  const Index J = yi.nshelves();
+  const Index K = yi.nbooks();
+  const Index L = yi.npages();
+  const Index M = yi.nrows();
+  const Index N = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
         for (Index l = 0; l < dim3.size(); l++)
           for (Index m = 0; m < dim4.size(); m++)
             for (Index n = 0; n < dim5.size(); n++)
-              out += iw(i, j, k, l, m, n) * yi(i + dim0.pos, j + dim1.pos,
-                                               k + dim2.pos, l + dim3.pos,
-                                               m + dim4.pos, n + dim5.pos);
+              out += iw(i, j, k, l, m, n) * yi(cycler(i + dim0.pos, I),
+                                               cycler(j + dim1.pos, J),
+                                               cycler(k + dim2.pos, K),
+                                               cycler(l + dim3.pos, L),
+                                               cycler(m + dim4.pos, M),
+                                               cycler(n + dim5.pos, N));
   return out;
 }
 
@@ -2943,6 +3099,13 @@ constexpr Numeric interp(
     const FixedLagrange<PolyOrder5>& dim5,
     const FixedLagrange<PolyOrder6>& dim6) {
   Numeric out(0.0);
+  const Index I = yi.nlibraries();
+  const Index J = yi.nvitrines();
+  const Index K = yi.nshelves();
+  const Index L = yi.nbooks();
+  const Index M = yi.npages();
+  const Index N = yi.nrows();
+  const Index O = yi.ncols();
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
@@ -2950,10 +3113,13 @@ constexpr Numeric interp(
           for (Index m = 0; m < dim4.size(); m++)
             for (Index n = 0; n < dim5.size(); n++)
               for (Index o = 0; o < dim6.size(); o++)
-                out += iw(i, j, k, l, m, n, o) * yi(i + dim0.pos, j + dim1.pos,
-                                                    k + dim2.pos, l + dim3.pos,
-                                                    m + dim4.pos, n + dim5.pos,
-                                                    o + dim6.pos);
+                out += iw(i, j, k, l, m, n, o) * yi(cycler(i + dim0.pos, I),
+                                                    cycler(j + dim1.pos, J),
+                                                    cycler(k + dim2.pos, K),
+                                                    cycler(l + dim3.pos, L),
+                                                    cycler(m + dim4.pos, M),
+                                                    cycler(n + dim5.pos, N),
+                                                    cycler(o + dim6.pos, O));
   return out;
 }
 
