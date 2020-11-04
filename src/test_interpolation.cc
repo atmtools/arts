@@ -17,7 +17,9 @@
 
 #include <cmath>
 #include <iostream>
+
 #include "array.h"
+#include "auto_md.h"
 #include "constants.h"
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
@@ -25,7 +27,6 @@
 #include "math_funcs.h"
 #include "matpackVII.h"
 #include "xml_io.h"
-#include "auto_md.h"
 
 void test01() {
   cout << "Simple interpolation cases\n"
@@ -142,31 +143,21 @@ void test01() {
        << "---------\n";
   {
     // To store interpolation weights:
-    Tensor7 itw(gp.nelem(),
-                gp.nelem(),
-                gp.nelem(),
-                gp.nelem(),
-                gp.nelem(),
-                gp.nelem(),
-                64);
+    Tensor7 itw(gp.nelem(), gp.nelem(), gp.nelem(), gp.nelem(), gp.nelem(),
+                gp.nelem(), 64);
     interpweights(itw, gp, gp, gp, gp, gp, gp);
 
     // Original field:
-    Tensor6 of(og.nelem(),
-               og.nelem(),
-               og.nelem(),
-               og.nelem(),
-               og.nelem(),
-               og.nelem(),
-               0);
+    Tensor6 of(og.nelem(), og.nelem(), og.nelem(), og.nelem(), og.nelem(),
+               og.nelem(), 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
     cout << "Middle slice of of:\n"
          << of(2, 2, 2, 2, Range(joker), Range(joker)) << "\n";
 
     // Interpolated field:
-    Tensor6 nf(
-        ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem());
+    Tensor6 nf(ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(),
+               ng.nelem());
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
@@ -406,31 +397,21 @@ void test06() {
        << "---------\n";
   {
     // To store interpolation weights:
-    Tensor7 itw(gp.nelem(),
-                gp.nelem(),
-                gp.nelem(),
-                gp.nelem(),
-                gp.nelem(),
-                gp.nelem(),
-                64);
+    Tensor7 itw(gp.nelem(), gp.nelem(), gp.nelem(), gp.nelem(), gp.nelem(),
+                gp.nelem(), 64);
     interpweights(itw, gp, gp, gp, gp, gp, gp);
 
     // Original field:
-    Tensor6 of(og.nelem(),
-               og.nelem(),
-               og.nelem(),
-               og.nelem(),
-               og.nelem(),
-               og.nelem(),
-               0);
+    Tensor6 of(og.nelem(), og.nelem(), og.nelem(), og.nelem(), og.nelem(),
+               og.nelem(), 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
     cout << "Middle slice of of:\n"
          << of(2, 2, 2, 2, Range(joker), Range(joker)) << "\n";
 
     // Interpolated field:
-    Tensor6 nf(
-        ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem());
+    Tensor6 nf(ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(),
+               ng.nelem());
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
@@ -568,90 +549,104 @@ void test09() {
   Vector ng(2, 9, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0 ... 4.0
   Vector yi{5, -2, 50, 2, 1};
   std::cout << yi << '\n';
-  
-  for (auto x: ng) {
+
+  for (auto x : ng) {
     GridPos gp;
     gridpos(gp, og, x);
     const Interpolation::Lagrange lag(0, x, og);
     std::cout << "gp " << gp << "lag: " << lag << '\n';
-    
+
     Vector iwgp(2);
     interpweights(iwgp, gp);
     const Vector iwlag = interpweights(lag);
     std::cout << "gp " << iwgp << "\nlag: " << iwlag << '\n';
-    
-    
-    std::cout << "gp " << interp(iwgp, yi, gp) << "\nlag: " << interp(yi, iwlag, lag) << '\n' << '\n';
+
+    std::cout << "gp " << interp(iwgp, yi, gp)
+              << "\nlag: " << interp(yi, iwlag, lag) << '\n'
+              << '\n';
   }
 }
 
 void test10() {
-  Vector xi(1, 100, +1);    // 1, 2, 3, 4, 5 ... 100
+  Vector xi(1, 100, +1);  // 1, 2, 3, 4, 5 ... 100
   Vector xn(2, 900, +0.1);
   Vector yi(100);
-  for (Index i=0; i<100; i++) yi[i] = std::exp(-xi[i]/3.14);
-  
+  for (Index i = 0; i < 100; i++) yi[i] = std::exp(-xi[i] / 3.14);
+
   Index order = 10;
   {
-    for (auto x: xn) {
+    for (auto x : xn) {
       GridPosPoly gp;
       gridpos_poly(gp, xi, x, order);
       const Interpolation::Lagrange lag(0, x, xi, order);
-      
-      Vector iwgp(order+1);
+
+      Vector iwgp(order + 1);
       interpweights(iwgp, gp);
       const Vector iwlag = interpweights(lag);
-      
-      std::cout << order << ' ' << x << ' ' << interp(iwgp, yi, gp) << " " << interp(yi, iwlag, lag) << '\n';
+
+      std::cout << order << ' ' << x << ' ' << interp(iwgp, yi, gp) << " "
+                << interp(yi, iwlag, lag) << '\n';
     }
   }
 }
 
 void test11() {
-  constexpr int N=20;
-  Vector x0(1, N, +1);    // 1, 2, 3, 4, 5 ... 10
-  Vector x1(1, N, +2);    // 1, 2, 3, 4, 5 ... 10
+  constexpr int N = 20;
+  Vector x0(1, N, +1);  // 1, 2, 3, 4, 5 ... 10
+  Vector x1(1, N, +2);  // 1, 2, 3, 4, 5 ... 10
   Vector x0n(100);
   Vector x1n(100);
-  nlinspace(x0n, x0[0], x0[N-1], 100);
-  nlinspace(x1n, x1[0], x1[N-1], 100);
+  nlinspace(x0n, x0[0], x0[N - 1], 100);
+  nlinspace(x1n, x1[0], x1[N - 1], 100);
   Matrix yi(N, N);
-  for (Index i=0; i<N; i++) for (Index j=0; j<N; j++) yi(i, j) = std::exp(-x0[i]/3.14 + x1[j]/3.14);
-  
+  for (Index i = 0; i < N; i++)
+    for (Index j = 0; j < N; j++)
+      yi(i, j) = std::exp(-x0[i] / 3.14 + x1[j] / 3.14);
+
   std::cerr << x0 << '\n';
   std::cerr << x1 << '\n';
   std::cerr << yi << '\n';
-  
+
   constexpr Index order = 5;
   {
-      const auto lag0 = Interpolation::LagrangeVector(x0n, x0, order, 0.5, false, Interpolation::LagrangeType::Linear);
-      const auto lag1 = Interpolation::LagrangeVector(x1n, x1, order, 0.5, false, Interpolation::LagrangeType::Linear);
-      const auto iwlag = interpweights(lag0, lag1);
-      std::cout << x0n << '\n' << x1n << '\n' << reinterp(yi, iwlag, lag0, lag1) << '\n';
+    const auto lag0 = Interpolation::LagrangeVector(
+        x0n, x0, order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto lag1 = Interpolation::LagrangeVector(
+        x1n, x1, order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto iwlag = interpweights(lag0, lag1);
+    std::cout << x0n << '\n'
+              << x1n << '\n'
+              << reinterp(yi, iwlag, lag0, lag1) << '\n';
   }
 }
 
-constexpr bool is_around(Numeric x, Numeric x0, Numeric e=1e-12) {
+constexpr bool is_around(Numeric x, Numeric x0, Numeric e = 1e-12) {
   return x - x0 < e and x - x0 > -e;
 }
 
 void test12() {
-  constexpr int N=10;
+  constexpr int N = 10;
   constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  constexpr std::array<Numeric, N> y2{1, 2*2, 3*3, 4*4, 5*5, 6*6, 7*7, 8*8, 9*9, 10*10};
-  constexpr std::array<Numeric, N> y3{1, 2*2*2, 3*3*3, 4*4*4, 5*5*5, 6*6*6, 7*7*7, 8*8*8, 9*9*9, 10*10*10};
+  constexpr std::array<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
+                                      6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
+  constexpr std::array<Numeric, N> y3{
+      1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
+      6 * 6 * 6, 7 * 7 * 7, 8 * 8 * 8, 9 * 9 * 9, 10 * 10 * 10};
   constexpr Numeric x = 1.5;
-  
+
   // Set up the interpolation Lagranges
-  constexpr Interpolation::FixedLagrange<1> lin(0, x, std::array<Numeric, 2>{1, 2});
-  constexpr Interpolation::FixedLagrange<2> sqr(0, x, std::array<Numeric, 3>{1, 2, 3});
-  constexpr Interpolation::FixedLagrange<3> cub(0, x, std::array<Numeric, 4>{1, 2, 3, 4});
-  
+  constexpr Interpolation::FixedLagrange<1> lin(0, x,
+                                                std::array<Numeric, 2>{1, 2});
+  constexpr Interpolation::FixedLagrange<2> sqr(
+      0, x, std::array<Numeric, 3>{1, 2, 3});
+  constexpr Interpolation::FixedLagrange<3> cub(
+      0, x, std::array<Numeric, 4>{1, 2, 3, 4});
+
   // Set up the interpolation weights
   constexpr auto lin_iw = interpweights(lin);
   constexpr auto sqr_iw = interpweights(sqr);
   constexpr auto cub_iw = interpweights(cub);
-  
+
   // Get interpolation value
   constexpr auto lin_lin = interp(y, lin_iw, lin);
   constexpr auto lin_sqr = interp(y2, lin_iw, lin);
@@ -662,34 +657,43 @@ void test12() {
   constexpr auto cub_lin = interp(y, cub_iw, cub);
   constexpr auto cub_sqr = interp(y2, cub_iw, cub);
   constexpr auto cub_cub = interp(y3, cub_iw, cub);
-  
+
   // Compile-time check that these values are good
   static_assert(is_around(lin_lin, x));
-  static_assert(is_around(sqr_sqr, x*x));
-  static_assert(is_around(cub_cub, x*x*x));
-  
+  static_assert(is_around(sqr_sqr, x * x));
+  static_assert(is_around(cub_cub, x * x * x));
+
   // Should output 1.5 2.5 4.5 1.5 2.25 3 1.5 2.25 3.375
-  std::cout << lin_lin << ' ' << lin_sqr << ' ' << lin_cub << ' '
-            << sqr_lin << ' ' << sqr_sqr << ' ' << sqr_cub << ' '
-            << cub_lin << ' ' << cub_sqr << ' ' << cub_cub << '\n';
+  std::cout << lin_lin << ' ' << lin_sqr << ' ' << lin_cub << ' ' << sqr_lin
+            << ' ' << sqr_sqr << ' ' << sqr_cub << ' ' << cub_lin << ' '
+            << cub_sqr << ' ' << cub_cub << '\n';
 }
 
 void test13() {
-  constexpr int N=10;
+  constexpr int N = 10;
   constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  constexpr std::array<Numeric, N> y2{1, 2*2, 3*3, 4*4, 5*5, 6*6, 7*7, 8*8, 9*9, 10*10};
-  constexpr std::array<Numeric, N> y3{1, 2*2*2, 3*3*3, 4*4*4, 5*5*5, 6*6*6, 7*7*7, 8*8*8, 9*9*9, 10*10*10};
+  constexpr std::array<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
+                                      6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
+  constexpr std::array<Numeric, N> y3{
+      1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
+      6 * 6 * 6, 7 * 7 * 7, 8 * 8 * 8, 9 * 9 * 9, 10 * 10 * 10};
   constexpr Numeric x = 1.5;
   constexpr Numeric dx = 1e-2;
-  
+
   // Set up the interpolation Lagranges
-  constexpr Interpolation::FixedLagrange<1> lin(0, x, std::array<Numeric, 2>{1, 2});
-  constexpr Interpolation::FixedLagrange<2> sqr(0, x, std::array<Numeric, 3>{1, 2, 3});
-  constexpr Interpolation::FixedLagrange<3> cub(0, x, std::array<Numeric, 4>{1, 2, 3, 4});
-  constexpr Interpolation::FixedLagrange<1> dlin(0, x+dx, std::array<Numeric, 2>{1, 2});
-  constexpr Interpolation::FixedLagrange<2> dsqr(0, x+dx, std::array<Numeric, 3>{1, 2, 3});
-  constexpr Interpolation::FixedLagrange<3> dcub(0, x+dx, std::array<Numeric, 4>{1, 2, 3, 4});
-  
+  constexpr Interpolation::FixedLagrange<1> lin(0, x,
+                                                std::array<Numeric, 2>{1, 2});
+  constexpr Interpolation::FixedLagrange<2> sqr(
+      0, x, std::array<Numeric, 3>{1, 2, 3});
+  constexpr Interpolation::FixedLagrange<3> cub(
+      0, x, std::array<Numeric, 4>{1, 2, 3, 4});
+  constexpr Interpolation::FixedLagrange<1> dlin(0, x + dx,
+                                                 std::array<Numeric, 2>{1, 2});
+  constexpr Interpolation::FixedLagrange<2> dsqr(
+      0, x + dx, std::array<Numeric, 3>{1, 2, 3});
+  constexpr Interpolation::FixedLagrange<3> dcub(
+      0, x + dx, std::array<Numeric, 4>{1, 2, 3, 4});
+
   // Set up the interpolation weights
   constexpr auto lin_iw = interpweights(lin);
   constexpr auto sqr_iw = interpweights(sqr);
@@ -700,7 +704,7 @@ void test13() {
   constexpr auto alt_lin_iw = interpweights(dlin);
   constexpr auto alt_sqr_iw = interpweights(dsqr);
   constexpr auto alt_cub_iw = interpweights(dcub);
-  
+
   // Get interpolation value
   constexpr auto lin_lin = interp(y, lin_iw, lin);
   constexpr auto sqr_sqr = interp(y2, sqr_iw, sqr);
@@ -711,38 +715,46 @@ void test13() {
   constexpr auto alt_lin_lin = interp(y, alt_lin_iw, dlin);
   constexpr auto alt_sqr_sqr = interp(y2, alt_sqr_iw, dsqr);
   constexpr auto alt_cub_cub = interp(y3, alt_cub_iw, dcub);
-  
+
   // Compile-time check that these values are good
-//   static_assert(is_around(lin_lin, x));
-//   static_assert(is_around(sqr_sqr, x*x));
-//   static_assert(is_around(cub_cub, x*x*x));
-//   static_assert(is_around(dlin_lin, 1));
-//   static_assert(is_around(dsqr_sqr, 2*x));
-//   static_assert(is_around(dcub_cub, 3*x*x));
-  
+  //   static_assert(is_around(lin_lin, x));
+  //   static_assert(is_around(sqr_sqr, x*x));
+  //   static_assert(is_around(cub_cub, x*x*x));
+  //   static_assert(is_around(dlin_lin, 1));
+  //   static_assert(is_around(dsqr_sqr, 2*x));
+  //   static_assert(is_around(dcub_cub, 3*x*x));
+
   // Should be
   // 1.5  2.25   3.375
   // 1    3      6.75
   // 1.51 2.2801 3.44295
   // ~1   ~3     ~6.75 (ofc, worse for less linear cases)
-  std::cout << lin_lin << ' ' << ' ' << sqr_sqr << ' ' << ' ' << ' ' << cub_cub << '\n' 
-            << dlin_lin << ' ' << ' ' << ' ' << ' ' << dsqr_sqr << ' ' << ' ' << ' ' << ' ' << ' ' << ' '  << dcub_cub << '\n'
+  std::cout << lin_lin << ' ' << ' ' << sqr_sqr << ' ' << ' ' << ' ' << cub_cub
+            << '\n'
+            << dlin_lin << ' ' << ' ' << ' ' << ' ' << dsqr_sqr << ' ' << ' '
+            << ' ' << ' ' << ' ' << ' ' << dcub_cub << '\n'
             << alt_lin_lin << ' ' << alt_sqr_sqr << ' ' << alt_cub_cub << '\n'
-            << (alt_lin_lin - lin_lin)/dx << ' ' << ' ' << ' ' << ' ' << (alt_sqr_sqr - sqr_sqr)/dx << ' ' << ' ' << ' ' << (alt_cub_cub - cub_cub)/dx << '\n';
+            << (alt_lin_lin - lin_lin) / dx << ' ' << ' ' << ' ' << ' '
+            << (alt_sqr_sqr - sqr_sqr) / dx << ' ' << ' ' << ' '
+            << (alt_cub_cub - cub_cub) / dx << '\n';
 }
 
 void test14() {
   Vector y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  Vector y2{1, 2*2, 3*3, 4*4, 5*5, 6*6, 7*7, 8*8, 9*9, 10*10};
-  Vector y3{1, 2*2*2, 3*3*3, 4*4*4, 5*5*5, 6*6*6, 7*7*7, 8*8*8, 9*9*9, 10*10*10};
-  
+  Vector y2{1, 2 * 2, 3 * 3, 4 * 4, 5 * 5, 6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
+  Vector y3{1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
+            6 * 6 * 6, 7 * 7 * 7, 8 * 8 * 8, 9 * 9 * 9, 10 * 10 * 10};
+
   Vector x{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5};
-  
+
   // Set up the interpolation Lagranges
-  auto lin = Interpolation::FixedLagrangeVector<1>(x, y, true, Interpolation::LagrangeType::Linear);
-  auto sqr = Interpolation::FixedLagrangeVector<2>(x, y, true, Interpolation::LagrangeType::Linear);
-  auto cub = Interpolation::FixedLagrangeVector<3>(x, y, true, Interpolation::LagrangeType::Linear);
-  
+  auto lin = Interpolation::FixedLagrangeVector<1>(
+      x, y, true, Interpolation::LagrangeType::Linear);
+  auto sqr = Interpolation::FixedLagrangeVector<2>(
+      x, y, true, Interpolation::LagrangeType::Linear);
+  auto cub = Interpolation::FixedLagrangeVector<3>(
+      x, y, true, Interpolation::LagrangeType::Linear);
+
   // Set up the interpolation weights
   auto lin_iw = interpweights(lin);
   auto sqr_iw = interpweights(sqr);
@@ -750,7 +762,7 @@ void test14() {
   auto dlin_iw = dinterpweights(lin);
   auto dsqr_iw = dinterpweights(sqr);
   auto dcub_iw = dinterpweights(cub);
-  
+
   // Get interpolation value
   auto lin_lin = reinterp(y, lin_iw, lin);
   auto sqr_sqr = reinterp(y2, sqr_iw, sqr);
@@ -758,7 +770,7 @@ void test14() {
   auto dlin_lin = reinterp(y, dlin_iw, lin);
   auto dsqr_sqr = reinterp(y2, dsqr_iw, sqr);
   auto dcub_cub = reinterp(y3, dcub_iw, cub);
-  
+
   // Print the values and derivatives
   std::cout << lin_lin << '\n' << sqr_sqr << '\n' << cub_cub << '\n';
   std::cout << dlin_lin << '\n' << dsqr_sqr << '\n' << dcub_cub << '\n';
@@ -776,76 +788,84 @@ void test15() {
   VectorNLinSpace(yold, old_size, 100, 200, verbosity);
 
   constexpr Index f_order = 3;
-  chk_interpolation_grids(
-      "Frequency interpolation for cross sections", xold, xnew, f_order);
+  chk_interpolation_grids("Frequency interpolation for cross sections", xold,
+                          xnew, f_order);
 
   constexpr Index N = 200;
   std::vector<TimeStep> new_fixed_time(N);
   std::vector<TimeStep> new_time(N);
   std::vector<TimeStep> old_time(N);
-  
+
   std::cout << "========== Fix interp ==========" << std::endl;
-  for (Index i=0; i<N; i++) {
+  for (Index i = 0; i < N; i++) {
     Time now_fixed_new;
-    const auto lag_interp =
-    Interpolation::FixedLagrangeVector<f_order>(xnew, xold, false, Interpolation::LagrangeType::Linear);
+    const auto lag_interp = Interpolation::FixedLagrangeVector<f_order>(
+        xnew, xold, false, Interpolation::LagrangeType::Linear);
     const auto iw_interp = interpweights(lag_interp);
     const auto ynew = reinterp(yold, iw_interp, lag_interp);
     new_fixed_time[i] = Time() - now_fixed_new;
   }
   std::sort(new_fixed_time.begin(), new_fixed_time.end());
   std::cerr << "Fastest time: " << new_fixed_time[0] << '\n';
-  std::cerr << "Median  time: " << new_fixed_time[N/2] << '\n';
-  std::cerr << "Max-5\%  time: " << new_fixed_time[N-N/20] << '\n';
-  
+  std::cerr << "Median  time: " << new_fixed_time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << new_fixed_time[N - N / 20] << '\n';
+
   std::cout << "========== New interp ==========" << std::endl;
-  for (Index i=0; i<N; i++) {
+  for (Index i = 0; i < N; i++) {
     Time now_new;
-    const auto lag_interp =
-    Interpolation::LagrangeVector(xnew, xold, f_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto lag_interp = Interpolation::LagrangeVector(
+        xnew, xold, f_order, 0.5, false, Interpolation::LagrangeType::Linear);
     const auto iw_interp = interpweights(lag_interp);
     const auto ynew = reinterp(yold, iw_interp, lag_interp);
     new_time[i] = Time() - now_new;
   }
   std::sort(new_time.begin(), new_time.end());
   std::cerr << "Fastest time: " << new_time[0] << '\n';
-  std::cerr << "Median  time: " << new_time[N/2] << '\n';
-  std::cerr << "Max-5\%  time: " << new_time[N-N/20] << '\n';
-  
+  std::cerr << "Median  time: " << new_time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << new_time[N - N / 20] << '\n';
+
   std::cout << "========== Old interp ==========" << std::endl;
-  for (Index i=0; i<N; i++) {
+  for (Index i = 0; i < N; i++) {
     Time now_old;
     ArrayOfGridPosPoly f_gp(xnew.nelem()), T_gp(1);
     gridpos_poly(f_gp, xold, xnew, f_order);
-    
+
     Matrix itw(f_gp.nelem(), f_order + 1);
     interpweights(itw, f_gp);
-    
+
     Vector ynew_oldinterp(new_size);
     interp(ynew_oldinterp, itw, yold, f_gp);
     old_time[i] = Time() - now_old;
   }
   std::sort(old_time.begin(), old_time.end());
   std::cerr << "Fastest time: " << old_time[0] << '\n';
-  std::cerr << "Median  time: " << old_time[N/2] << '\n';
-  std::cerr << "Max-5\%  time: " << old_time[N-N/20] << '\n';
+  std::cerr << "Median  time: " << old_time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << old_time[N - N / 20] << '\n';
 }
 
 void test16() {
   const Vector xasc{2, 3, 4};
   const Vector xdes{4, 3, 2};
   Vector x{2.25, 3.25, 2.35};
-  
-  auto asc=Interpolation::LagrangeVector(x, xasc, 1, 1.0, true, Interpolation::LagrangeType::Linear);
-  auto des=Interpolation::LagrangeVector(x, xdes, 1, 1.0, true, Interpolation::LagrangeType::Linear);
-  auto fasc=Interpolation::FixedLagrangeVector<1>(x, xasc, true, Interpolation::LagrangeType::Linear);
-  auto fdes=Interpolation::FixedLagrangeVector<1>(x, xdes, true, Interpolation::LagrangeType::Linear);
-  for (Index i=0; i<x.size(); i++) {
-    std::cout << x[i] << ": " << asc[i] << ' ' << '-' << ' ' << des[i] << ' ' << " xstart [asc des]: " << xasc[asc[i].pos] << ' ' << xdes[des[i].pos] << '\n';
+
+  auto asc = Interpolation::LagrangeVector(x, xasc, 1, 1.0, true,
+                                           Interpolation::LagrangeType::Linear);
+  auto des = Interpolation::LagrangeVector(x, xdes, 1, 1.0, true,
+                                           Interpolation::LagrangeType::Linear);
+  auto fasc = Interpolation::FixedLagrangeVector<1>(
+      x, xasc, true, Interpolation::LagrangeType::Linear);
+  auto fdes = Interpolation::FixedLagrangeVector<1>(
+      x, xdes, true, Interpolation::LagrangeType::Linear);
+  for (Index i = 0; i < x.size(); i++) {
+    std::cout << x[i] << ": " << asc[i] << ' ' << '-' << ' ' << des[i] << ' '
+              << " xstart [asc des]: " << xasc[asc[i].pos] << ' '
+              << xdes[des[i].pos] << '\n';
   }
   std::cout << '\n';
-  for (Index i=0; i<x.size(); i++) {
-    std::cout << x[i] << ": " << fasc[i] << ' ' << '-' << ' ' << fdes[i] << ' ' << " xstart [asc des]: " << xasc[fasc[i].pos] << ' ' << xdes[fdes[i].pos] << '\n';
+  for (Index i = 0; i < x.size(); i++) {
+    std::cout << x[i] << ": " << fasc[i] << ' ' << '-' << ' ' << fdes[i] << ' '
+              << " xstart [asc des]: " << xasc[fasc[i].pos] << ' '
+              << xdes[fdes[i].pos] << '\n';
   }
 }
 
@@ -853,20 +873,74 @@ void test17() {
   const Index N = 500;
   Vector x(N);
   Verbosity verbosity;
-  VectorNLinSpace(x, N, 0, 360, verbosity);
+  VectorNLinSpace(x, N, 0, Constant::two_pi, verbosity);
   Vector y = x;
-  for (auto& f : y) f = Conversion::sind(f);
-  for (Numeric n=0; n<=360; n+=5) {
-    auto lag = Interpolation::Lagrange(0, n, x, 1, 100000, true, Interpolation::LagrangeType::Cyclic, {0, 360});
-    auto flag = Interpolation::FixedLagrange<1>(0, n, x, true, Interpolation::LagrangeType::Cyclic, {0, 360});
+  for (auto& f : y) f = std::sin(f);
+  for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
+    auto lag = Interpolation::Lagrange(0, n, x, 1, 100000, true,
+                                       Interpolation::LagrangeType::Cyclic,
+                                       {0, Constant::two_pi});
+    auto flag = Interpolation::FixedLagrange<1>(
+        0, n, x, true, Interpolation::LagrangeType::Cyclic,
+        {0, Constant::two_pi});
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
     auto dlag_iw = dinterpweights(lag);
     auto dflag_iw = dinterpweights(flag);
-//     std::cout << dlag_iw << ' ' << lag_iw << '\n';
-    std::cout << "VALUE:" << ' ' << interp(y, lag_iw, lag) << ' ' << interp(y, flag_iw, flag) << " TRUE: " << Conversion::sind(n) << '\n'
-              << "DERIVATIVE: " << interp(y, dlag_iw, lag) << ' ' << interp(y, dflag_iw, flag) << " TRUE: " << Conversion::cosd(n) << '\n';
+    std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
+              << interp(y, flag_iw, flag) << ' ' << std::sin(n) << ' '
+              << interp(y, dlag_iw, lag) << ' ' << interp(y, dflag_iw, flag)
+              << ' ' << std::cos(n) << '\n';
   }
 }
 
-int main() { /*test15(); std::cout << '\n'; test16(); */ test17(); }
+void test18() {
+  const Index N = 500;
+  Vector x(N);
+  Verbosity verbosity;
+  VectorNLinSpace(x, N, -180, 180, verbosity);
+  Vector y = x;
+  for (auto& f : y) f = Conversion::sind(f);
+  for (Numeric n = -3 * 180; n <= 3 * 180; n += 0.1) {
+    auto lag = Interpolation::Lagrange(0, n, x, 1, 100000, true,
+                                       Interpolation::LagrangeType::Cyclic,
+                                       {-180, 180});
+    auto flag = Interpolation::FixedLagrange<1>(
+        0, n, x, true, Interpolation::LagrangeType::Cyclic, {-180, 180});
+    auto lag_iw = interpweights(lag);
+    auto flag_iw = interpweights(flag);
+    auto dlag_iw = dinterpweights(lag);
+    auto dflag_iw = dinterpweights(flag);
+    std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
+              << interp(y, flag_iw, flag) << ' ' << Conversion::sind(n) << ' '
+              << interp(y, dlag_iw, lag) << ' ' << interp(y, dflag_iw, flag)
+              << ' ' << Conversion::cosd(n) << '\n';
+  }
+}
+
+void test19() {
+  const Index N = 500;
+  Vector x(N);
+  Verbosity verbosity;
+  VectorNLinSpace(x, N, 0, 0.5, verbosity);
+  Vector y = x;
+  for (auto& f : y) f = Conversion::sind(720 * f);
+  for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
+    auto lag =
+        Interpolation::Lagrange(0, n, x, 1, 100000, true,
+                                Interpolation::LagrangeType::Cyclic, {0, 0.5});
+    auto flag = Interpolation::FixedLagrange<1>(
+        0, n, x, true, Interpolation::LagrangeType::Cyclic, {0, 0.5});
+    auto lag_iw = interpweights(lag);
+    auto flag_iw = interpweights(flag);
+    auto dlag_iw = dinterpweights(lag);
+    auto dflag_iw = dinterpweights(flag);
+    std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
+              << interp(y, flag_iw, flag) << ' ' << Conversion::sind(720 * n)
+              << ' ' << interp(y, dlag_iw, lag) << ' '
+              << interp(y, dflag_iw, flag) << ' ' << Conversion::cosd(720 * n)
+              << '\n';
+  }
+}
+
+int main() { test15(); }
