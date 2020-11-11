@@ -672,12 +672,12 @@ void test12() {
 void test13() {
   constexpr int N = 10;
   constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  constexpr std::array<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
+  constexpr std::array<Numeric, N> y2{1, 2 * 2, 3 * 3, 4 * 4, 5 * 5,
                                       6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
   constexpr std::array<Numeric, N> y3{
       1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
       6 * 6 * 6, 7 * 7 * 7, 8 * 8 * 8, 9 * 9 * 9, 10 * 10 * 10};
-  constexpr Numeric x = 1.5;
+  constexpr Numeric x = 2;
   constexpr Numeric dx = 1e-2;
 
   // Set up the interpolation Lagranges
@@ -717,12 +717,12 @@ void test13() {
   constexpr auto alt_cub_cub = interp(y3, alt_cub_iw, dcub);
 
   // Compile-time check that these values are good
-  //   static_assert(is_around(lin_lin, x));
-  //   static_assert(is_around(sqr_sqr, x*x));
-  //   static_assert(is_around(cub_cub, x*x*x));
-  //   static_assert(is_around(dlin_lin, 1));
-  //   static_assert(is_around(dsqr_sqr, 2*x));
-  //   static_assert(is_around(dcub_cub, 3*x*x));
+  static_assert(is_around(lin_lin, x));
+  static_assert(is_around(sqr_sqr, x*x));
+  static_assert(is_around(cub_cub, x*x*x));
+  static_assert(is_around(dlin_lin, 1));
+  static_assert(is_around(dsqr_sqr, 2*x));
+  static_assert(is_around(dcub_cub, 3*x*x));
 
   // Should be
   // 1.5  2.25   3.375
@@ -1043,4 +1043,4 @@ void test23() {
   }
 }
 
-int main() { test23(); }
+int main() { test13(); }

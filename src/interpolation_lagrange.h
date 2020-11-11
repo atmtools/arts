@@ -15,7 +15,7 @@
 
 namespace Interpolation {
 
-ENUMCLASS(LagrangeType, unsigned char, Linear, Log, Cyclic)
+ENUMCLASS(LagrangeType, unsigned char, Linear, Log, Cyclic, Log10, Log2)
 
 /*! Compute the multiplication of all inds */
 template <typename... Inds>
@@ -43,6 +43,12 @@ constexpr std::size_t mul(const std::array<std::size_t, N>& arr) {
  */
 constexpr Index cycler(Index n, Index N) noexcept { return n >= N ? n - N : n; }
 
+/*! Clamp the value within a cycle by recursion
+ * 
+ * @param[in] x Value to clamp
+ * @param[in] xlim [Lower, Upper) bound of cycle
+ * @return Value of x in the cycle [Lower, Upper)
+ */
 constexpr Numeric cyclic_clamp(Numeric x,
                                std::pair<Numeric, Numeric> xlim) noexcept {
   if (x < xlim.first)
@@ -140,6 +146,12 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
       if constexpr (type == LagrangeType::Log) {
         val *= (std::log(x) - std::log(xi[m + p0])) /
                (std::log(xi[j + p0]) - std::log(xi[m + p0]));
+      } else if constexpr (type == LagrangeType::Log10) {
+        val *= (std::log10(x) - std::log10(xi[m + p0])) /
+               (std::log10(xi[j + p0]) - std::log10(xi[m + p0]));
+      } else if constexpr (type == LagrangeType::Log2) {
+        val *= (std::log2(x) - std::log2(xi[m + p0])) /
+               (std::log2(xi[j + p0]) - std::log2(xi[m + p0]));
       } else if constexpr (type == LagrangeType::Linear) {
         val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
       } else if constexpr (type == LagrangeType::Cyclic) {
@@ -163,6 +175,115 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
   return val;
 }
 
+
+/*! Computes the derivatives of the weights for a given coefficient for a given weight
+ * 
+ * If x is on the grid, this is more expensive than if x is not on the grid
+ * 
+ * @param[in] p0 The original position
+ * @param[in] n The number of weights
+ * @param[in] x The position for the weights
+ * @param[in] xi The sorted vector of values
+ * @param[in] li The Lagrange weights
+ * @param[in] j The current coefficient
+ * @param[in] i The current wight Index
+ * @param[in] cycle The size of a cycle (optional)
+ */
+template <LagrangeType type, typename SortedVectorType,
+          class LagrangeVectorType>
+constexpr double dl_dval(
+  const Index p0, const Index n, const Numeric x, const SortedVectorType& xi,
+  const LagrangeVectorType& li, const Index j, const Index i,
+  [[maybe_unused]] const std::pair<Numeric, Numeric> cycle)
+{
+  if constexpr (type == LagrangeType::Log) {
+    Numeric val = std::log(x) - std::log(xi[i + p0]);
+    if (val not_eq 0) {
+      return li[j] / val;
+    } else {
+      val = 1.0 / (std::log(xi[j + p0]) - std::log(xi[i + p0]));
+      for (Index m=0; m<n; m++) {
+        if (m not_eq j and m not_eq i) {
+          val *= (std::log(x) - std::log(xi[m + p0])) / (std::log(xi[j + p0]) - std::log(xi[m + p0]));
+        }
+      }
+      return val;
+    }
+  } else if constexpr (type == LagrangeType::Log10) {
+    Numeric val = std::log10(x) - std::log10(xi[i + p0]);
+    if (val not_eq 0) {
+      return li[j] / val;
+    } else {
+      val = 1.0 / (std::log10(xi[j + p0]) - std::log10(xi[i + p0]));
+      for (Index m=0; m<n; m++) {
+        if (m not_eq j and m not_eq i) {
+          val *= (std::log10(x) - std::log10(xi[m + p0])) / (std::log10(xi[j + p0]) - std::log10(xi[m + p0]));
+        }
+      }
+      return val;
+    }
+  } else if constexpr (type == LagrangeType::Log2) {
+    Numeric val = std::log2(x) - std::log2(xi[i + p0]);
+    if (val not_eq 0) {
+      return li[j] / val;
+    } else {
+      val = 1.0 / (std::log2(xi[j + p0]) - std::log2(xi[i + p0]));
+      for (Index m=0; m<n; m++) {
+        if (m not_eq j and m not_eq i) {
+          val *= (std::log2(x) - std::log2(xi[m + p0])) / (std::log2(xi[j + p0]) - std::log2(xi[m + p0]));
+        }
+      }
+      return val;
+    }
+  } else if constexpr (type == LagrangeType::Linear) {
+    Numeric val = x - xi[i + p0];
+    if (val not_eq 0) {
+      return li[j] / val;
+    } else {
+      val = 1.0 / (xi[j + p0] - xi[i + p0]);
+      for (Index m=0; m<n; m++) {
+        if (m not_eq j and m not_eq i) {
+          val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
+        }
+      }
+      return val;
+    }
+  } else if constexpr (type == LagrangeType::Cyclic) {
+    const decltype(i + p0) N = xi.size();
+    const Numeric c = cycle.second - cycle.first;
+    const Index i_pos = cycler(i + p0, N);
+    
+    Numeric val = (c / Constant::two_pi);
+    const Numeric rat = min_cyclic(cyclic_clamp(x, cycle) - xi[i_pos], c);
+    if (rat not_eq 0) {
+      return val * li[j] / rat;
+    } else {
+      const Index j_pos = cycler(j + p0, N);
+      
+      if (((i_pos == 0 and j_pos == N - 1) or (i_pos == N - 1 and j_pos == 0)) and xi[0] == cycle.first and xi[N - 1] == cycle.second) {
+        return 0;
+      } else {
+        const Numeric outer_denom = min_cyclic(xi[j_pos] - xi[i_pos], c);
+        for (Index m = 0; m < n; m++) {
+          if (m not_eq j and m not_eq i) {
+            const Index m_pos = cycler(m + p0, N);
+            
+            if (((m_pos == 0 and j_pos == N - 1) or (m_pos == N - 1 and j_pos == 0)) and xi[0] == cycle.first and xi[N - 1] == cycle.second) {
+              return 0;
+            } else {
+              const Numeric nom =
+              min_cyclic(cyclic_clamp(x, cycle) - xi[m_pos], c);
+              const Numeric denom = min_cyclic(xi[j_pos] - xi[m_pos], c);
+              val *= nom / denom;
+            }
+          }
+        }
+        return val / outer_denom;
+      }
+    }
+  }
+}
+
 /*! Computes the derivatives of the weights for a given coefficient
  *
  * @param[in] p0 The original position
@@ -178,57 +299,11 @@ template <LagrangeType type, typename SortedVectorType,
 constexpr Numeric dl(
     const Index p0, const Index n, const Numeric x, const SortedVectorType& xi,
     const LagrangeVectorType& li, const Index j,
-    [[maybe_unused]] const std::pair<Numeric, Numeric> cycle = {-180,
-                                                                180}) noexcept {
+    const std::pair<Numeric, Numeric> cycle = {-180, 180}) noexcept {
   Numeric dval = 0.0;
   for (Index i = 0; i < n; i++) {
     if (i not_eq j) {
-      if (type == LagrangeType::Log) {
-        const Numeric rat = std::log(x) - std::log(xi[i + p0]);
-        dval += li[j] / rat;
-      } else if (type == LagrangeType::Linear) {
-        const Numeric rat = x - xi[i + p0];
-        dval += li[j] / rat;
-      } else if constexpr (type == LagrangeType::Cyclic) {
-        const decltype(i + p0) N = xi.size();
-        const Numeric c = cycle.second - cycle.first;
-        const Index i_pos = cycler(i + p0, N);
-
-        Numeric val = (c / Constant::two_pi);
-        const Numeric rat = min_cyclic(cyclic_clamp(x, cycle) - xi[i_pos], c);
-        if (rat not_eq 0) {
-          dval += val * li[j] / rat;
-        } else {
-          const Index j_pos = cycler(j + p0, N);
-
-          if (((i_pos == 0 and j_pos == N - 1) or
-               (i_pos == N - 1 and j_pos == 0)) and
-              xi[0] == cycle.first and xi[N - 1] == cycle.second) {
-            if (i_pos < j_pos)
-              val *= 0;  // nb. Reduced order in cyclic-crossings
-          } else {
-            const Numeric outer_denom = min_cyclic(xi[j_pos] - xi[i_pos], c);
-            for (Index m = 0; m < n; m++) {
-              if (m not_eq j and m not_eq i) {
-                const Index m_pos = cycler(m + p0, N);
-
-                if (((m_pos == 0 and j_pos == N - 1) or
-                     (m_pos == N - 1 and j_pos == 0)) and
-                    xi[0] == cycle.first and xi[N - 1] == cycle.second) {
-                  if (m_pos < j_pos)
-                    val *= 0;  // nb. Reduced order in cyclic-crossings
-                } else {
-                  const Numeric nom =
-                      min_cyclic(cyclic_clamp(x, cycle) - xi[m_pos], c);
-                  const Numeric denom = min_cyclic(xi[j_pos] - xi[m_pos], c);
-                  val *= nom / denom;
-                }
-              }
-            }
-            dval += val / outer_denom;
-          }
-        }
-      }
+      dval += dl_dval<type>(p0, n, x, xi, li, j, i, cycle);
     }
   }
   return dval;
@@ -318,6 +393,14 @@ struct Lagrange {
         for (Index j = 0; j < n; j++)
           out[j] = l<LagrangeType::Log>(p0, n, x, xi, j);
         break;
+      case LagrangeType::Log10:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Log10>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Log2:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Log2>(p0, n, x, xi, j);
+        break;
       case LagrangeType::Cyclic:
         for (Index j = 0; j < n; j++)
           out[j] = l<LagrangeType::Cyclic>(p0, n, x, xi, j, cycle);
@@ -344,6 +427,14 @@ struct Lagrange {
       case LagrangeType::Log:
         for (Index j = 0; j < n; j++)
           out[j] = dl<LagrangeType::Log>(p0, n, x, xi, li, j);
+        break;
+      case LagrangeType::Log10:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Log10>(p0, n, x, xi, li, j);
+        break;
+      case LagrangeType::Log2:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Log2>(p0, n, x, xi, li, j);
         break;
       case LagrangeType::Cyclic:
         for (Index j = 0; j < n; j++)
@@ -413,6 +504,14 @@ struct FixedLagrange {
         for (Index j = 0; j < n; j++)
           out[j] = l<LagrangeType::Log>(p0, n, x, xi, j);
         break;
+      case LagrangeType::Log10:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Log10>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::Log2:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::Log2>(p0, n, x, xi, j);
+        break;
       case LagrangeType::Cyclic:
         for (Index j = 0; j < n; j++)
           out[j] = l<LagrangeType::Cyclic>(p0, n, x, xi, j, cycle);
@@ -439,6 +538,14 @@ struct FixedLagrange {
       case LagrangeType::Log:
         for (Index j = 0; j < n; j++)
           out[j] = dl<LagrangeType::Log>(p0, n, x, xi, li, j);
+        break;
+      case LagrangeType::Log10:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Log10>(p0, n, x, xi, li, j);
+        break;
+      case LagrangeType::Log2:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::Log2>(p0, n, x, xi, li, j);
         break;
       case LagrangeType::Cyclic:
         for (Index j = 0; j < n; j++)
