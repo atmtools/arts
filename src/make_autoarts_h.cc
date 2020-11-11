@@ -408,6 +408,8 @@ void print_groups_and_namespaces(const NameMaps& artsname) {
   std::cout << "using Workspace=Workspace; \n\n";
   std::cout << "/*! The ARTS constants namespace */\n";
   std::cout << "namespace Constant { using namespace ::Constant; }\n\n";
+  std::cout << "/*! The ARTS conversions namespace */\n";
+  std::cout << "namespace Conversion { using namespace ::Conversion; }\n\n";
   std::cout << "/*! The ARTS Group namespace */\n";
   std::cout << "namespace Group {\n";
   for (auto& x : artsname.group) {
