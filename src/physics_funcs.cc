@@ -102,7 +102,7 @@ Numeric dinvplanckdI(const Numeric& i, const Numeric& f) try {
   static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
   static const Numeric b = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
   const Numeric d = b * f * f * f / i;
-  const Numeric binv = a * f / log(d + 1);
+  const Numeric binv = a * f / log1p(d);
 
   return binv * binv / (a * f * i * (1 / d + 1));
 } catch (const char* e) {
@@ -169,7 +169,7 @@ Numeric invplanck(const Numeric& i, const Numeric& f) try {
   static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
   static const Numeric b = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
 
-  return (a * f) / log((b * f * f * f) / i + 1.0);
+  return (a * f) / log1p((b * f * f * f) / i);
 } catch (const char* e) {
   std::ostringstream os;
   os << "Errors raised by *invplanck* internal function:\n";
