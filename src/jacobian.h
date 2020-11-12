@@ -45,7 +45,7 @@
 namespace Jacobian {
 
 /** Holds the type of the target quantity */
-ENUMCLASS(Type, Index,
+ENUMCLASS(Type, char,
           Atm,
           Line,
           Sensor,
@@ -53,7 +53,7 @@ ENUMCLASS(Type, Index,
           )
 
 /** Holds the Atmosphere-related targets */
-ENUMCLASS(Atm, Index,
+ENUMCLASS(Atm, char,
           Temperature,
           WindMagnitude, WindU, WindV, WindW,
           MagneticMagnitude, MagneticU, MagneticV, MagneticW,
@@ -62,7 +62,7 @@ ENUMCLASS(Atm, Index,
           )
 
 /** Holds the Line-related targets */
-ENUMCLASS(Line, Index,
+ENUMCLASS(Line, char,
           VMR,
           Strength,
           Center,
@@ -80,7 +80,7 @@ ENUMCLASS(Line, Index,
           )
 
 /** Holds the Sensor-related targets */
-ENUMCLASS(Sensor, Index,
+ENUMCLASS(Sensor, char,
           FrequencyShift,
           FrequencyStretch,
           Polyfit,
@@ -90,7 +90,7 @@ ENUMCLASS(Sensor, Index,
           )
 
 /** Holds special targets that require careful extra manipulation */
-ENUMCLASS(Special, Index,
+ENUMCLASS(Special, char,
           ArrayOfSpeciesTagVMR,
           ScatteringString,
           SurfaceString
