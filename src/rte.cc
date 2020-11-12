@@ -62,7 +62,6 @@ void adapt_stepwise_partial_derivatives(
     const Numeric& ppath_temperature,
     const Numeric& ppath_pressure,
     const ArrayOfIndex& jacobian_species,
-    const ArrayOfIndex& jacobian_wind,
     const Index& lte,
     const Index& atmosphere_dim,
     const bool& jacobian_do) {
@@ -77,33 +76,10 @@ void adapt_stepwise_partial_derivatives(
   for (Index i = 0; i < nq; i++) {
     if (jacobian_quantities[i] == Jacobian::Type::Sensor or jacobian_quantities[i] == Jacobian::Special::SurfaceString) continue;
 
-    Index component;
-
-    switch (jacobian_wind[i]) {
-      case Index(JacobianType::AbsWind):
-        component = 0;
-        break;
-      case Index(JacobianType::WindFieldU):
-        component = 1;
-        break;
-      case Index(JacobianType::WindFieldV):
-        component = 2;
-        break;
-      case Index(JacobianType::WindFieldW):
-        component = 3;
-        break;
-      default:
-        component = -1;  // This could be frequency derivative...
-    }
-    if (component not_eq -1) {
-      get_stepwise_f_partials(
-          a, component, ppath_line_of_sight, ppath_f_grid, atmosphere_dim);
-
-      // Apply conversion to K-matrix partial derivative
-      dK_dx[i] *= a;
-
-      // Apply conversion to source vector partial derivative
-      if (not lte) dS_dx[i] *= a;
+    if (is_wind_parameter(jacobian_quantities[i])) {
+      const auto scale = get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, jacobian_quantities[i].Target().AtmType(), atmosphere_dim);
+      dK_dx[i] *= scale;
+      if (not lte) dS_dx[i] *= scale;
     } else if (jacobian_species[i] > -1) {
       const Index& isp = jacobian_species[i];
 
@@ -1532,54 +1508,38 @@ void get_stepwise_frequency_grid(VectorView ppath_f_grid,
   if (v_doppler not_eq 0) ppath_f_grid *= 1 - v_doppler / SPEED_OF_LIGHT;
 }
 
-void get_stepwise_f_partials(Vector& f_partials,
-                             const Index& component,
-                             ConstVectorView& line_of_sight,
-                             ConstVectorView f_grid,
-                             const Index& atmosphere_dim) {
-  // component 0 means total speed
-  // component 1 means u speed
-  // component 2 means v speed
-  // component 3 means w speed
-
-  // Sizes
-  const Index nf = f_grid.nelem();
-
+Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
+                               const ConstVectorView& f_grid,
+                               const Jacobian::Atm wind_type,
+                               const Index& atmosphere_dim) {
   // Doppler relevant velocity
-  //
-  // initialize
   Numeric dv_doppler_dx = 0.0;
-
-  switch (component) {
-    case 0:  // this is total and is already initialized to avoid compiler warnings
+  
+  Vector deriv(f_grid);
+  
+  switch (wind_type) {
+    case Jacobian::Atm::WindMagnitude:
       dv_doppler_dx = 1.0;
       break;
-    case 1:  // this is the u-component
+    case Jacobian::Atm::WindU:
       dv_doppler_dx =
           (dotprod_with_los(line_of_sight, 1, 0, 0, atmosphere_dim));
       break;
-    case 2:  // this is v-component
+    case Jacobian::Atm::WindV:
       dv_doppler_dx =
           (dotprod_with_los(line_of_sight, 0, 1, 0, atmosphere_dim));
       break;
-    case 3:  // this is w-component
+    case Jacobian::Atm::WindW:
       dv_doppler_dx =
           (dotprod_with_los(line_of_sight, 0, 0, 1, atmosphere_dim));
       break;
     default:
-      throw std::runtime_error(
-          "This being seen means that there is a development bug in interactions with get_ppath_df_dW.\n");
+      throw std::runtime_error("Not allowed to call this function without a wind parameter as wind_type");
       break;
   }
-
-  // Determine frequency grid
-  if (dv_doppler_dx == 0.0) {
-    f_partials.resize(nf);
-    f_partials = 0.0;
-  } else {
-    f_partials = f_grid;
-    f_partials *= -dv_doppler_dx / SPEED_OF_LIGHT;
-  }
+  
+  deriv *= - dv_doppler_dx / Constant::c;
+  return deriv;
 }
 
 void get_stepwise_scattersky_propmat(
@@ -2339,69 +2299,6 @@ void pos2true_latlon(Numeric& lat,
   }
 }
 
-void rtmethods_jacobian_init(
-    ArrayOfIndex& jac_species_i,
-    ArrayOfIndex& jac_scat_i,
-    ArrayOfIndex& jac_is_t,
-    ArrayOfIndex& jac_wind_i,
-    ArrayOfIndex& jac_mag_i,
-    ArrayOfIndex& jac_other,
-    ArrayOfTensor3& diy_dx,
-    ArrayOfTensor3& diy_dpath,
-    const Index& ns,
-    const Index& nf,
-    const Index& np,
-    const Index& nq,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Index& cloudbox_on,
-    const ArrayOfString& scat_species,
-    const ArrayOfTensor4& dpnd_field_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Index& iy_agenda_call1,
-    const bool is_active) {
-  const Index nn = is_active ? nf * np : nf;
-
-  FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq].resize(np, nn, ns);
-                              diy_dpath[iq] = 0.0;)
-
-  get_pointers_for_analytical_jacobians(jac_species_i,
-                                        jac_scat_i,
-                                        jac_is_t,
-                                        jac_wind_i,
-                                        jac_mag_i,
-                                        jacobian_quantities,
-                                        abs_species,
-                                        cloudbox_on,
-                                        scat_species);
-
-  FOR_ANALYTICAL_JACOBIANS_DO(
-      if (jac_scat_i[iq] + 1) {
-        if (dpnd_field_dx[iq].empty())
-          throw runtime_error(
-              "*dpnd_field_dx* not allowed to be empty for "
-              "scattering Jacobian species.");
-      }
-      // FIXME: should we indeed check for that? remove if it causes issues.
-      else {
-        if (!dpnd_field_dx[iq].empty())
-          throw runtime_error(
-              "*dpnd_field_dx* must be empty for "
-              "non-scattering Jacobian species.");
-      })
-
-  if (iy_agenda_call1) {
-    diy_dx.resize(nq);
-    //
-    bool any_affine;
-    ArrayOfArrayOfIndex jacobian_indices;
-    jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities, true);
-    //
-    FOR_ANALYTICAL_JACOBIANS_DO2(diy_dx[iq].resize(
-        jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1, nn, ns);
-                                 diy_dx[iq] = 0.0;)
-  }
-}
-
 void rtmethods_jacobian_finalisation(
     Workspace& ws,
     ArrayOfTensor3& diy_dx,
@@ -2418,8 +2315,7 @@ void rtmethods_jacobian_finalisation(
     const Tensor3& iy_transmittance,
     const Agenda& water_p_eq_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfIndex jac_species_i,
-    const ArrayOfIndex jac_is_t) {
+    const ArrayOfIndex jac_species_i) {
   // Weight with iy_transmittance
   if (!iy_agenda_call1) {
     Matrix X, Y;
@@ -2492,7 +2388,7 @@ void rtmethods_jacobian_finalisation(
     // df/da*da/dT for which abs species having da/dT != 0
     // This is only true for "nd" and "rh"
     //
-    if (jac_is_t[iq] != Index(JacobianType::None)) {
+    if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
       // Loop abs species, again
       for (Index ia = 0; ia < jacobian_quantities.nelem(); ia++) {
         if (jac_species_i[ia] >= 0) {

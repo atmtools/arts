@@ -573,87 +573,80 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
   }
 }
 
-void get_pointers_for_analytical_jacobians(
-    ArrayOfIndex& abs_species_i,
-    ArrayOfIndex& scat_species_i,
-    ArrayOfIndex& is_t,
-    ArrayOfIndex& wind_i,
-    ArrayOfIndex& magfield_i,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Index& cloudbox_on,
-    const ArrayOfString& scat_species) {
+ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                                 const ArrayOfArrayOfSpeciesTag& abs_species) {
+  ArrayOfIndex aoi(jacobian_quantities.nelem(), -1);
+  
   FOR_ANALYTICAL_JACOBIANS_DO(
-      //
-      if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
-        is_t[iq] = Index(JacobianType::Temperature);
-      } else { is_t[iq] = Index(JacobianType::None); }
-      //
-      if (jacobian_quantities[iq] == Jacobian::Line::VMR) {
-        auto p = std::find_if(abs_species.cbegin(), abs_species.cend(),
-                              [qid=jacobian_quantities[iq].QuantumIdentity()](auto& specs){
-          return std::any_of(specs.cbegin(), specs.cend(),
-                             [qid](auto& spec){return spec.Species() == qid.Species() and qid.Isotopologue() == spec.Isotopologue();});
-        });
-        if (p not_eq abs_species.cend()) {
-          abs_species_i[iq] = Index(abs_species.cend() - p);
-        } else {
-          ostringstream os;
-          os << "Could not find " << jacobian_quantities[iq].Subtag()
-              << " in species of abs_species.\n";
-          throw std::runtime_error(os.str());
-        }
-      } else if (jacobian_quantities[iq] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
-        ArrayOfSpeciesTag atag;
-        array_species_tag_from_string(atag, jacobian_quantities[iq].Subtag());
-        abs_species_i[iq] = chk_contains("abs_species", abs_species, atag);
-      } else if (jacobian_quantities[iq] == Jacobian::Atm::Particulates ||
-                 jacobian_quantities[iq] == Jacobian::Atm::Electrons) {
-        abs_species_i[iq] = -9999;
-      } else { abs_species_i[iq] = -1; }
-      //
-      if (cloudbox_on &&
-          jacobian_quantities[iq] == Jacobian::Special::ScatteringString) {
-        scat_species_i[iq] =
-            find_first(scat_species, jacobian_quantities[iq].Subtag());
-        if (scat_species_i[iq] < 0) {
-          ostringstream os;
-          os << "Jacobian quantity with index " << iq << " refers to\n"
-             << "  " << jacobian_quantities[iq].Subtag()
-             << "\nbut this species could not be found in *scat_species*.";
-          throw runtime_error(os.str());
-        }
-      } else { scat_species_i[iq] = -1; }
-      //
-      if (jacobian_quantities[iq].Target().isWind()) {
-        // Map u, v and w to 1, 2 and 3, respectively
-        char c = jacobian_quantities[iq].Subtag()[0];
-        const Index test = Index(c) - 116;
-        if (test == 1)
-          wind_i[iq] = Index(JacobianType::WindFieldU);
-        else if (test == 2)
-          wind_i[iq] = Index(JacobianType::WindFieldV);
-        else if (test == 3)
-          wind_i[iq] = Index(JacobianType::WindFieldW);
-        else if (test == (Index('s') - 116))
-          wind_i[iq] = Index(JacobianType::AbsWind);
-      } else { wind_i[iq] = Index(JacobianType::None); }
-      //
-      if (jacobian_quantities[iq].Target().isMagnetic()) {
-        // Map u, v and w to 1, 2 and 3, respectively
-        char c = jacobian_quantities[iq].Subtag()[0];
-        const Index test = Index(c) - 116;
-        if (test == 1)
-          magfield_i[iq] = Index(JacobianType::MagFieldU);
-        else if (test == 2)
-          magfield_i[iq] = Index(JacobianType::MagFieldV);
-        else if (test == 3)
-          magfield_i[iq] = Index(JacobianType::MagFieldW);
-        else if (test == (Index('s') - 116))
-          magfield_i[iq] = Index(JacobianType::AbsMag);
-      } else { magfield_i[iq] = Index(JacobianType::None); }
-
+    if (jacobian_quantities[iq] == Jacobian::Line::VMR) {
+      auto p = std::find_if(abs_species.cbegin(), abs_species.cend(),
+                            [qid=jacobian_quantities[iq].QuantumIdentity()](auto& specs){
+                              return std::any_of(specs.cbegin(), specs.cend(),
+                                                 [qid](auto& spec){return spec.Species() == qid.Species() and qid.Isotopologue() == spec.Isotopologue();});
+                            });
+      if (p not_eq abs_species.cend()) {
+        aoi[iq] = Index(abs_species.cend() - p);
+      } else {
+        ostringstream os;
+        os << "Could not find " << jacobian_quantities[iq].Subtag()
+        << " in species of abs_species.\n";
+        throw std::runtime_error(os.str());
+      }
+    } else if (jacobian_quantities[iq] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+      ArrayOfSpeciesTag atag;
+      array_species_tag_from_string(atag, jacobian_quantities[iq].Subtag());
+      aoi[iq] = chk_contains("abs_species", abs_species, atag);
+    } else if (jacobian_quantities[iq] == Jacobian::Atm::Particulates) {
+      aoi[iq] = -9999;
+    } else if (jacobian_quantities[iq] == Jacobian::Atm::Electrons) {
+      aoi[iq] = -9999;
+    }
   )
+  
+  return aoi;
+}
+
+ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, Index ns, bool active) {
+  ArrayOfTensor3 diy_dpath(jacobian_quantities.nelem());
+  
+  const Index nn = active ? np * nf : nf;
+  FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq] = Tensor3(np, nn, ns, 0.0);)
+  
+  return diy_dpath;
+}
+
+ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, Index ns, bool active) {
+  ArrayOfTensor3 diy_dx(jacobian_quantities.nelem());
+  
+  bool any_affine;
+  ArrayOfArrayOfIndex jacobian_indices;
+  jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities, true);
+  
+  const Index nn = active ? np * nf : nf;
+  FOR_ANALYTICAL_JACOBIANS_DO2(diy_dx[iq] = Tensor3(jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1, nn, ns, 0.0);)
+  
+  return diy_dx;
+}
+
+ArrayOfIndex get_pointers_for_scat_species(const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                           const ArrayOfString& scat_species,
+                                           const bool cloudbox_on) {
+  ArrayOfIndex aoi(jacobian_quantities.nelem(), -1);
+  
+  FOR_ANALYTICAL_JACOBIANS_DO(
+    if (cloudbox_on and jacobian_quantities[iq] == Jacobian::Special::ScatteringString) {
+      aoi[iq] = find_first(scat_species, jacobian_quantities[iq].Subtag());
+      if (aoi[iq] < 0) {
+        ostringstream os;
+        os << "Jacobian quantity with index " << iq << " refers to\n"
+            << "  " << jacobian_quantities[iq].Subtag()
+            << "\nbut this species could not be found in *scat_species*.";
+        throw runtime_error(os.str());
+      }
+    }
+  )
+  
+  return aoi;
 }
 
 /*===========================================================================

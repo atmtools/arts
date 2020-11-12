@@ -279,6 +279,9 @@ public:
   /** Return the line type */
   constexpr Line LineType() const {return msubtype.line;}
   
+  /** Return the line type */
+  constexpr Atm AtmType() const {return msubtype.atm;}
+  
   /** Checks if the type of jacobian is the input atmospheric parameter */
   constexpr bool operator==(Atm other) const noexcept {return Type::Atm == mtype and other == msubtype.atm;}
   
@@ -785,39 +788,108 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
                             ConstMatrixView diy_dpos,
                             const Index& atmosphere_dim,
                             ConstVectorView rtp_pos);
+
+/** Help function for analytical jacobian calculations
+ * 
+ *  The size of the by-path computations of the Jacobian
+ *  is set and zeroed
+ * 
+ *  @param[in]    jacobian_quantities   As the WSV.
+ *  @param[in]    np                    The path grid count
+ *  @param[in]    nf                    The frequency grid count
+ *  @param[in]    ns                    The Stokes grid count
+ *  @param[in]    active                If true, the middle dimension is np times nf, otherwise it is nf
+ * 
+ *  @return       diy_dpath             As expected by the methods using diy_dpath (size: jacobain_quantities.nelem())
+ * 
+ *  @author Richard Larsson 
+ *  @date   2020-11-12
+ */
+ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, Index ns, bool active);
+
+/** Help function for analytical jacobian calculations
+ * 
+ *  The size of the computations of the Jacobian is set and zeroed
+ * 
+ *  @param[in]    jacobian_quantities   As the WSV.
+ *  @param[in]    np                    The path grid count
+ *  @param[in]    nf                    The frequency grid count
+ *  @param[in]    ns                    The Stokes grid count
+ *  @param[in]    active                If true, the middle dimension is np times nf, otherwise it is nf
+ * 
+ *  @return       diy_dx                As expected by the methods using diy_dpath (size: jacobain_quantities.nelem())
+ * 
+ *  @author Richard Larsson 
+ *  @date   2020-11-12
+ */
+ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, Index ns, bool active);
  
 /** Help function for analytical jacobian calculations
 
     The function determines which terms in jacobian_quantities that are 
-    analytical absorption species and temperature jacobians. 
+    analytical absorption species. 
 
-    *abs_species_i* and *is_t* shall be sized to have the same length
-    as *jacobian_quantities*. For analytical absorption species
-    jacobians, *abs_species_i* is set to the matching index in
-    *abs_species*. Otherwise, to -1. For analytical temperature
-    jacobians, *is_t* is set to 1. Otherwise to 0.
+    The output Array has the position in abs_species for
+    Jacobian::Line::VMR and Jacobian::Special::ArrayOfSpeciesTagVMR
+    quantities.  It has -9999 for Jacobian::Atm::Particulates and
+    for Jacobian::Atm::Electrons.  It has -1 for all other types of
+    partial derivatives
 
-    @param[out]   abs_species_i         Matching index in abs_species 
-    @param[out]   scat_species_i        Matching index among scattering species 
-    @param[out]   is_t                  Flag for: Is a temperature jacobian?
     @param[in]    jacobian_quantities   As the WSV.
     @param[in]    abs_species           As the WSV.
-    @param[in]    cloudbox_on           As the WSV.
-    @param[in]    scat_species          As the WSV.
+    
+    @return       ArrayOfIndex          With information as above (size: jacobain_quantities.nelem())
 
-    @author Patrick Eriksson 
-    @date   2009-10-07
+    @author Richard Larsson 
+    @date   2020-11-12
+*/
+ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                                 const ArrayOfArrayOfSpeciesTag& abs_species);
+
+/** Help function for analytical jacobian calculations
+
+    The function determines which terms in jacobian_quantities that are 
+    analytical absorption species. 
+
+    If the scat species is there, it will have an index pointing to it,
+    otherwise the index will be -1
+    
+    cloudbox_on must be true or all output is -1
+
+    @param[in]    jacobian_quantities   As the WSV.
+    @param[in]    scat_species          As the WSV.
+    @param[in]    cloudbox_on           As the WSV.
+    
+    @return       ArrayOfIndex          With information as above (size: jacobain_quantities.nelem())
+
+    @author Richard Larsson 
+    @date   2020-11-12
  */
-void get_pointers_for_analytical_jacobians(
-    ArrayOfIndex& abs_species_i,
-    ArrayOfIndex& scat_species_i,
-    ArrayOfIndex& is_t,
-    ArrayOfIndex& wind_i,
-    ArrayOfIndex& magfield_i,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Index& cloudbox_on,
-    const ArrayOfString& scat_species);
+ArrayOfIndex get_pointers_for_scat_species(const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                           const ArrayOfString& scat_species,
+                                           const bool cloudbox_on);
+
+/** Checks if analytical calculations are needed at all
+    
+    The template argument is either 1 or 2 for checks with the macros
+    FOR_ANALYTICAL_JACOBIANS_DO or FOR_ANALYTICAL_JACOBIANS_DO2,
+    respectively
+    
+    @param[in]    jacobian_quantities   As the WSV.
+    
+    @return       true if we need analytical calculations
+    @return       false if we do not need analytical calculations
+
+    @author Richard Larsson 
+    @date   2020-11-12
+*/
+template <std::size_t N>
+Index do_analytical_jacobian(const ArrayOfRetrievalQuantity& jacobian_quantities) {
+  static_assert(N == 1 or N == 2, "FOR_ANALYTICAL_JACOBIANS_DO or FOR_ANALYTICAL_JACOBIANS_DO2");
+  if constexpr (N == 1) FOR_ANALYTICAL_JACOBIANS_DO(return 1;)
+  else if constexpr (N == 2) FOR_ANALYTICAL_JACOBIANS_DO2(return 1;)
+  return 0;
+}
 
 /** Adopts grid positions to extrapolation used for jacobians
 

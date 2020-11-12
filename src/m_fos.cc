@@ -962,11 +962,14 @@ void iyHybrid(Workspace& ws,
                        verbosity);
     return;
   }
+  //  Init Jacobian quantities?
+  const Index j_analytical_do = jacobian_do ? do_analytical_jacobian<1>(jacobian_quantities) : 0;
 
   // Some basic sizes
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
   const Index np = ppath.np;
+  const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
 
   // Radiative background index
   const Index rbi = ppath_what_background(ppath);
@@ -1020,38 +1023,18 @@ void iyHybrid(Workspace& ws,
     throw runtime_error(
         "Obtained *cloudbox_field* number of frequency points inconsistent with "
         "*f_grid*.");
-
-  //  Init Jacobian quantities
-  Index j_analytical_do = 0;
-  if (jacobian_do) {
-    FOR_ANALYTICAL_JACOBIANS_DO(j_analytical_do = 1;)
-  }
-  //
-  const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
-  ArrayOfTensor3 diy_dpath(nq);
-  ArrayOfIndex jac_species_i(nq), jac_scat_i(nq), jac_is_t(nq), jac_wind_i(nq);
-  ArrayOfIndex jac_mag_i(nq), jac_other(nq);
-
-  if (j_analytical_do) {
-    rtmethods_jacobian_init(jac_species_i,
-                            jac_scat_i,
-                            jac_is_t,
-                            jac_wind_i,
-                            jac_mag_i,
-                            jac_other,
-                            diy_dx,
-                            diy_dpath,
-                            ns,
-                            nf,
-                            np,
-                            nq,
-                            abs_species,
-                            cloudbox_on,
-                            scat_species,
-                            dpnd_field_dx,
-                            jacobian_quantities,
-                            iy_agenda_call1);
-  }
+  
+  // Set diy_dpath if we are doing are doing jacobian calculations
+  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, ns, false) : ArrayOfTensor3(0);
+  
+  // Set the species pointers if we are doing jacobian
+  const ArrayOfIndex jac_species_i = j_analytical_do ? get_pointers_for_analytical_species(jacobian_quantities, abs_species) : ArrayOfIndex(0);
+  
+  // Start diy_dx out if we are doing the first run and are doing jacobian calculations
+  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, ns, false);
+  
+  // Checks that the scattering species are treated correctly if their derivatives are needed (we can here discard the Array)
+  if (j_analytical_do and iy_agenda_call1) get_pointers_for_scat_species(jacobian_quantities, scat_species, cloudbox_on);
 
   // Init iy_aux and fill where possible
   const Index naux = iy_aux_vars.nelem();
@@ -1191,7 +1174,6 @@ void iyHybrid(Workspace& ws,
                                            ppvar_t[ip],
                                            ppvar_p[ip],
                                            jac_species_i,
-                                           jac_wind_i,
                                            lte[ip],
                                            atmosphere_dim,
                                            j_analytical_do);
@@ -1395,8 +1377,7 @@ void iyHybrid(Workspace& ws,
                                     iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
-                                    jac_species_i,
-                                    jac_is_t);
+                                    jac_species_i);
   }
 
   // Unit conversions
@@ -1525,11 +1506,14 @@ void iyHybrid2(Workspace& ws,
                        verbosity);
     return;
   }
+  //  Init Jacobian quantities?
+  const Index j_analytical_do = jacobian_do ? do_analytical_jacobian<1>(jacobian_quantities) : 0;
 
   // Some basic sizes
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
   const Index np = ppath.np;
+  const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
 
   // Radiative background index
   const Index rbi = ppath_what_background(ppath);
@@ -1582,35 +1566,18 @@ void iyHybrid2(Workspace& ws,
     throw runtime_error(
         "Obtained *cloudbox_field* number of frequency points inconsistent with "
         "*f_grid*.");
-
-  //  Init Jacobian quantities
-  Index j_analytical_do = 0;
-  if (jacobian_do) FOR_ANALYTICAL_JACOBIANS_DO(j_analytical_do = 1;)
-  //
-  const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
-  ArrayOfTensor3 diy_dpath(nq);
-  ArrayOfIndex jac_species_i(nq), jac_scat_i(nq), jac_is_t(nq), jac_wind_i(nq);
-  ArrayOfIndex jac_mag_i(nq), jac_other(nq);
-
-  if (j_analytical_do)
-    rtmethods_jacobian_init(jac_species_i,
-                            jac_scat_i,
-                            jac_is_t,
-                            jac_wind_i,
-                            jac_mag_i,
-                            jac_other,
-                            diy_dx,
-                            diy_dpath,
-                            ns,
-                            nf,
-                            np,
-                            nq,
-                            abs_species,
-                            cloudbox_on,
-                            scat_species,
-                            dpnd_field_dx,
-                            jacobian_quantities,
-                            iy_agenda_call1);
+  
+  // Set diy_dpath if we are doing are doing jacobian calculations
+  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, ns, false) : ArrayOfTensor3(0);
+  
+  // Set the species pointers if we are doing jacobian
+  const ArrayOfIndex jac_species_i = j_analytical_do ? get_pointers_for_analytical_species(jacobian_quantities, abs_species) : ArrayOfIndex(0);
+  
+  // Start diy_dx out if we are doing the first run and are doing jacobian calculations
+  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, ns, false);
+  
+  // Checks that the scattering species are treated correctly if their derivatives are needed (we can here discard the Array)
+  if (j_analytical_do and iy_agenda_call1) get_pointers_for_scat_species(jacobian_quantities, scat_species, cloudbox_on);
 
   // Init iy_aux and fill where possible
   const Index naux = iy_aux_vars.nelem();
@@ -1762,7 +1729,6 @@ void iyHybrid2(Workspace& ws,
                                            ppvar_t[ip],
                                            ppvar_p[ip],
                                            jac_species_i,
-                                           jac_wind_i,
                                            lte[ip],
                                            atmosphere_dim,
                                            j_analytical_do);
@@ -1948,8 +1914,7 @@ void iyHybrid2(Workspace& ws,
                                     iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
-                                    jac_species_i,
-                                    jac_is_t);
+                                    jac_species_i);
 
   // Unit conversions
   if (iy_agenda_call1)
