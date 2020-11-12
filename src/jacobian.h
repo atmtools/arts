@@ -279,7 +279,7 @@ public:
   /** Return the line type */
   constexpr Line LineType() const {return msubtype.line;}
   
-  /** Return the line type */
+  /** Return the atm type */
   constexpr Atm AtmType() const {return msubtype.atm;}
   
   /** Checks if the type of jacobian is the input atmospheric parameter */
