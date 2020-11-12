@@ -999,21 +999,6 @@ void dxdvmrscf(Numeric& x,
                const Numeric& p,
                const Numeric& t);
 
-/** Enum for knowing what Jacobian scheme is in-play in the m_rte.cc methods */
-enum class JacobianType : Index {
-  None = 0,  // Setting to nil means that (bool)0 and (bool)N still works.
-  Temperature,
-  WindFieldU,
-  WindFieldV,
-  WindFieldW,
-  AbsWind,
-  MagFieldU,
-  MagFieldV,
-  MagFieldW,
-  AbsMag,
-  Other
-};
-
 /*! FIXMEDOC: Remove this function when iyHybrid2 has become new iyHybrid
  *   The function helps to calculate the partial derivative of iy with respect
  *   to one input at one pressure.  The formalism here assumes that the radiation
