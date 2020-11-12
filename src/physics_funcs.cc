@@ -204,54 +204,6 @@ Numeric invrayjean(const Numeric& i, const Numeric& f) try {
   throw std::runtime_error(os.str());
 }
 
-/** number_density
- *
- * Calculates the atmospheric number density.
- *
- * @param[in]  p  Pressure.
- * @param[in]  t  Temperature.
- *
- * @return     Number density.
- *
- * @author Patrick Eriksson
- * @date   2000-04-08
-*/
-Numeric number_density(const Numeric& p, const Numeric& t) try {
-  if (p < 0) throw "Negative pressure";
-  if (t <= 0) throw "Non-positive temperature";
-
-  return p / (t * BOLTZMAN_CONST);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *number_density* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-}
-
-/** dnumber_density_dT
- *
- * Calculates the atmospheric number density derivative with temperature.
- *
- * @param[in]  p  Pressure.
- * @param[in]  t  Temperature.
- *
- * @return     Number density.
- *
- * @author Richard Larsson
- * @date   2015-09-22
- */
-Numeric dnumber_density_dt(const Numeric& p, const Numeric& t) try {
-  if (p < 0) throw "Negative pressure";
-  if (t <= 0) throw "Non-positive temperature";
-
-  return -p / (t * BOLTZMAN_CONST * t);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *dnumber_density_dt* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-}
-
 /** planck
  *
  * Calculates the Planck function for a single temperature.
@@ -269,11 +221,11 @@ Numeric dnumber_density_dt(const Numeric& p, const Numeric& t) try {
 Numeric planck(const Numeric& f, const Numeric& t) try {
   if (t <= 0) throw "Non-positive temperature";
   if (f <= 0) throw "Non-positive frequency";
+  
+  constexpr Numeric a = 2 * Constant::h / Constant::pow2(Constant::c);;
+  constexpr Numeric b = Constant::h / Constant::k;
 
-  static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
-  static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
-
-  return (a * f * f * f) / (exp((b * f) / t) - 1.0);
+  return a * Constant::pow3(f) / std::expm1((b * f) / t);
 } catch (const char* e) {
   std::ostringstream os;
   os << "Errors raised by *planck* internal function:\n";
@@ -329,7 +281,7 @@ void planck(VectorView b, ConstVectorView f, const Numeric& t) try {
  * @param[in]  f  Frequency.
  * @param[in]  t  Temperature.
  *
- * @return     Blackbody radiation.
+ * @return     Blackbody radiation temperature derivative.
  *
  * @author Richard Larsson
  * @date   2015-09-15
@@ -338,14 +290,13 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) try {
   if (t <= 0) throw "Non-positive temperature";
   if (f <= 0) throw "Non-positive frequency";
 
-  static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
-  static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
+  constexpr Numeric a = 2 * Constant::h / Constant::pow2(Constant::c);;
+  constexpr Numeric b = Constant::h / Constant::k;
+  
+  // nb. expm1(x) should be more accurate than exp(x) - 1, so use it
+  const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
-  const Numeric exp_t = exp(b * f / t);
-  const Numeric exp_t_m1 = exp_t - 1.0;
-  const Numeric f2 = f * f;
-
-  return a * b * f2 * f2 * exp_t / (t * t * exp_t_m1 * exp_t_m1);
+  return a * b * Constant::pow4(f) * inv_exp_t_m1 * (1 + inv_exp_t_m1) / Constant::pow2(t);
 } catch (const char* e) {
   std::ostringstream os;
   os << "Errors raised by *dplanck_dt* internal function:\n";
@@ -361,7 +312,7 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) try {
  * @param[in]  f  Frequency.
  * @param[in]  t  Temperature.
  *
- * @return     Blackbody radiation.
+ * @return     Blackbody radiation temperature derivative.
  *
  * @author Richard Larsson
  * @date   2019-10-11
@@ -399,7 +350,7 @@ void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) try {
  * @param[in]  f  Frequency.
  * @param[in]  t  Temperature.
  *
- * @return     Blackbody radiation.
+ * @return     Blackbody radiation frequency derivative.
  *
  * @author Richard Larsson
  * @date   2015-09-15
@@ -407,15 +358,13 @@ void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) try {
 Numeric dplanck_df(const Numeric& f, const Numeric& t) try {
   if (t <= 0) throw "Non-positive temperature";
   if (f <= 0) throw "Non-positive frequency";
+  
+  constexpr Numeric a = 2 * Constant::h / Constant::pow2(Constant::c);;
+  constexpr Numeric b = Constant::h / Constant::k;
+  
+  const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
-  static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
-  static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
-
-  const Numeric exp_t = exp(b * f / t);
-  const Numeric exp_t_m1 = exp_t - 1.0;
-
-  return -(a * f * f * (3.0 * t - 3.0 * t * exp_t + b * f * exp_t)) /
-         (t * exp_t_m1 * exp_t_m1);
+  return a * Constant::pow2(f) * (3.0 - (b * f / t) * (1 + inv_exp_t_m1)) * inv_exp_t_m1;
 } catch (const char* e) {
   std::ostringstream os;
   os << "Errors raised by *dplanck_df* internal function:\n";
