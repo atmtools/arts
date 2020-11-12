@@ -298,36 +298,6 @@ Numeric dotprod_with_los(ConstVectorView los,
                          const Numeric& w,
                          const Index& atmosphere_dim);
 
-/** Converts an extinction matrix to a transmission matrix
-
-    The function performs the calculations differently depending on the
-    conditions, to improve the speed. There are three cases: <br>
-       1. Scalar RT and/or the matrix ext_mat_av is diagonal. <br>
-       2. Special expression for "azimuthally_random" case. <br>
-       3. The total general case.
-
-    If the structure of *ext_mat* is known, *icase* can be set to "case index"
-    (1, 2 or 3) and some time is saved. This includes that no asserts are
-    performed on *ext_mat*.
-
-    Otherwise, *icase* must be set to 0. *ext_mat* is then analysed and *icase*
-    is set by the function and is returned.
-
-    trans_mat must be sized before calling the function.
-
-    @param[out]   trans_mat      Transmission matrix of slab.
-    @param[out]   icase          Index giving ext_mat case.
-    @param[in]    ext_mat        Averaged extinction matrix.
-    @param[in]    lstep          The length of the RTE step.
-
-    @author Patrick Eriksson (based on earlier version started by Claudia)
-    @date   2013-05-17 
- */
-void ext2trans(MatrixView trans_mat,
-               Index& icase,
-               ConstMatrixView ext_mat_av,
-               const Numeric& l_step);
-
 /** Basic call of *iy_main_agenda*.
 
     This function is an interface to *iy_main_agenda* that can be used when
