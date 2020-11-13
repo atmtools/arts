@@ -450,13 +450,6 @@ if (MATLABDIR AND ATMLABDIR AND CSHFOUND AND OEM_SUPPORT)
 endif()
 ########### next testcase ###############
 
-add_executable (test_omp
-  test_omp.cc)
-
-target_link_libraries (test_omp  ${ALL_ARTS_LIBRARIES})
-
-########### next testcase ###############
-
 add_executable (test_poly poly_roots.h poly_roots.cc test_poly.cc)
 target_link_libraries (test_poly matpack)
 
