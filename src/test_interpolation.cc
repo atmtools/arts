@@ -1059,28 +1059,32 @@ void test24() {
                           xnew, f_order);
 
   constexpr Index N = 200;
-  std::vector<TimeStep> new_fixed_time(N);
-  std::vector<TimeStep> new_time(N);
-  std::vector<TimeStep> old_time(N);
+  std::array<TimeStep, N> time{};
+  
+  volatile Numeric sleep_time = 1.5;
+  
+  Sleep(Numeric(sleep_time), verbosity);
 
-  std::cout << "========== New fix interp ======" << std::endl;
   for (Index i = 0; i < N; i++) {
     Time now_fixed_new;
     const auto lag_interp = Interpolation::FixedLagrangeVector<f_order>(
         xnew, xold, false, Interpolation::LagrangeType::Linear);
     const auto iw_interp = interpweights(lag_interp);
     const auto ynew = reinterp(yold, iw_interp, lag_interp);
-    new_fixed_time[i] = Time() - now_fixed_new;
+    time[i] = Time() - now_fixed_new;
   }
-  std::sort(new_fixed_time.begin(), new_fixed_time.end());
-  std::cerr << "Fastest time: " << new_fixed_time[0] << '\n';
-  std::cerr << "Median  time: " << new_fixed_time[N / 2] << '\n';
-  std::cerr << "Max-5\%  time: " << new_fixed_time[N - N / 20] << '\n';
+  std::cout << "========== New fix interp ======" << std::endl;
+  std::sort(time.begin(), time.end());
+  std::cerr << "Fastest time: " << time[0] << '\n';
+  std::cerr << "Median  time: " << time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << time[N - N / 20] << '\n';
+  std::cerr << "Slowest time: " << time[N - 1] << '\n';
+  
+  Sleep(Numeric(sleep_time), verbosity);
 
-  std::cout << "========== Old fix interp ======" << std::endl;
   for (Index i = 0; i < N; i++) {
     Time now_old;
-    ArrayOfGridPos f_gp(xnew.nelem()), T_gp(1);
+    ArrayOfGridPos f_gp(xnew.nelem());
     gridpos(f_gp, xold, xnew, f_order);
 
     Matrix itw(f_gp.nelem(), f_order + 1);
@@ -1088,31 +1092,37 @@ void test24() {
 
     Vector ynew_oldinterp(new_size);
     interp(ynew_oldinterp, itw, yold, f_gp);
-    old_time[i] = Time() - now_old;
+    time[i] = Time() - now_old;
   }
-  std::sort(old_time.begin(), old_time.end());
-  std::cerr << "Fastest time: " << old_time[0] << '\n';
-  std::cerr << "Median  time: " << old_time[N / 2] << '\n';
-  std::cerr << "Max-5\%  time: " << old_time[N - N / 20] << '\n';
+  std::cout << "========== Old fix interp ======" << std::endl;
+  std::sort(time.begin(), time.end());
+  std::cerr << "Fastest time: " << time[0] << '\n';
+  std::cerr << "Median  time: " << time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << time[N - N / 20] << '\n';
+  std::cerr << "Slowest time: " << time[N - 1] << '\n';
+  
+  Sleep(Numeric(sleep_time), verbosity);
 
-  std::cout << "========== New interp ==========" << std::endl;
   for (Index i = 0; i < N; i++) {
     Time now_new;
     const auto lag_interp = Interpolation::LagrangeVector(
         xnew, xold, f_order, 0.5, false, Interpolation::LagrangeType::Linear);
     const auto iw_interp = interpweights(lag_interp);
     const auto ynew = reinterp(yold, iw_interp, lag_interp);
-    new_time[i] = Time() - now_new;
+    time[i] = Time() - now_new;
   }
-  std::sort(new_time.begin(), new_time.end());
-  std::cerr << "Fastest time: " << new_time[0] << '\n';
-  std::cerr << "Median  time: " << new_time[N / 2] << '\n';
-  std::cerr << "Max-5\%  time: " << new_time[N - N / 20] << '\n';
+  std::cout << "========== New interp ==========" << std::endl;
+  std::sort(time.begin(), time.end());
+  std::cerr << "Fastest time: " << time[0] << '\n';
+  std::cerr << "Median  time: " << time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << time[N - N / 20] << '\n';
+  std::cerr << "Slowest time: " << time[N - 1] << '\n';
+  
+  Sleep(Numeric(sleep_time), verbosity);
 
-  std::cout << "========== Old interp ==========" << std::endl;
   for (Index i = 0; i < N; i++) {
     Time now_old;
-    ArrayOfGridPosPoly f_gp(xnew.nelem()), T_gp(1);
+    ArrayOfGridPosPoly f_gp(xnew.nelem());
     gridpos_poly(f_gp, xold, xnew, f_order);
 
     Matrix itw(f_gp.nelem(), f_order + 1);
@@ -1120,12 +1130,14 @@ void test24() {
 
     Vector ynew_oldinterp(new_size);
     interp(ynew_oldinterp, itw, yold, f_gp);
-    old_time[i] = Time() - now_old;
+    time[i] = Time() - now_old;
   }
-  std::sort(old_time.begin(), old_time.end());
-  std::cerr << "Fastest time: " << old_time[0] << '\n';
-  std::cerr << "Median  time: " << old_time[N / 2] << '\n';
-  std::cerr << "Max-5\%  time: " << old_time[N - N / 20] << '\n';
+  std::cout << "========== Old interp ==========" << std::endl;
+  std::sort(time.begin(), time.end());
+  std::cerr << "Fastest time: " << time[0] << '\n';
+  std::cerr << "Median  time: " << time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << time[N - N / 20] << '\n';
+  std::cerr << "Slowest time: " << time[N - 1] << '\n';
 }
 
 int main() { test24(); }
