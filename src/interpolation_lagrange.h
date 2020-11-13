@@ -15,17 +15,15 @@
 
 namespace Interpolation {
 
-ENUMCLASS(LagrangeType, unsigned char, Linear, Log, Cyclic, Log10, Log2)
-
 /*! Compute the multiplication of all inds */
 template <typename... Inds>
-constexpr std::size_t mul(Inds... inds) {
+constexpr std::size_t mul(Inds... inds) noexcept {
   return (std::size_t(inds) * ...);
 }
 
 /*! Compute the multiplication of all inds in arr */
 template <std::size_t N>
-constexpr std::size_t mul(const std::array<std::size_t, N>& arr) {
+constexpr std::size_t mul(const std::array<std::size_t, N>& arr) noexcept {
   if constexpr (N == 0) {
     return 0;
   } else {
@@ -34,6 +32,112 @@ constexpr std::size_t mul(const std::array<std::size_t, N>& arr) {
     return out;
   }
 }
+
+/*! Compute gridsizes from indices */
+template <typename... Inds>
+constexpr std::array<std::size_t, sizeof...(Inds)> gridsize_from_index(Inds... inds) noexcept {
+  std::array<std::size_t, sizeof...(Inds)> out{};
+  std::array<std::size_t, sizeof...(Inds)> arr{std::size_t(inds)...};
+  std::size_t i = sizeof...(Inds)-1;
+  std::size_t s = 1;
+  while (i < sizeof...(Inds)) {
+    out[i] = s;
+    s *= arr[i];
+    i--;
+  }
+  return out;
+}
+
+/*! Compute gridsizes from indices */
+template <std::size_t N>
+constexpr std::size_t index_from_gridsize(std::array<std::size_t, N> gridsize,
+                                          std::array<std::size_t, N> inds) noexcept {
+  std::size_t pos=0;
+  for (std::size_t i=0; i<N; i++) pos += gridsize[i] * inds[i];
+  return pos;
+}
+
+/** Row-major grid creation */
+template <typename b, std::size_t n>
+class Grid {
+  Array<b> ptr;
+  std::array<std::size_t, n> gridsize;
+  
+  std::size_t nelem() const { return ptr.size(); }
+  
+public:
+  static constexpr std::size_t N = n;
+  using base = b;
+  static_assert(N, "Must have size");
+  
+  template <typename... Inds>
+  Grid(Inds... inds) : ptr(mul(inds...)), gridsize(gridsize_from_index(inds...)) {
+    static_assert(sizeof...(Inds) == N,
+                  "Must have same size for initialization");
+  }
+  
+  template <typename... Inds>
+  base& operator()(Inds... inds) noexcept {
+    return ptr[index_from_gridsize(gridsize, std::array<std::size_t, N>{std::size_t(inds)...})];
+  }
+  
+  template <typename... Inds>
+  const base& operator()(Inds... inds) const noexcept {
+    return ptr[index_from_gridsize(gridsize, std::array<std::size_t, N>{std::size_t(inds)...})];
+  }
+  
+  friend std::ostream& operator<<(std::ostream& os, const Grid& g) {
+    const std::size_t nel = g.nelem();
+    for (std::size_t i = 0; i < nel; i++) {
+      os << g.ptr[i];
+      if constexpr (N > 1) {
+        if (i not_eq 0 and i not_eq nel and i % g.gridsize[N-2] == 0)
+          os << '\n';
+        else if (i not_eq nel)
+          os << ' ';
+      } else if (i not_eq nel) {
+        os << ' ';
+      }
+    }
+    return os;
+  }
+};  // Grid
+
+/** Row-major fixed grid creation */
+template <typename b, std::size_t... Sizes>
+class FixedGrid {
+  std::array<b, mul(Sizes...)> ptr;
+  
+public:
+  constexpr FixedGrid() noexcept : ptr({}) {static_assert(mul(Sizes...), "Must have size");}
+  
+  static constexpr std::size_t N = sizeof...(Sizes);
+  using base = b;
+  static_assert(N, "Must have size");
+  
+  template <typename... Inds>
+  base& operator()(Inds... inds) noexcept {
+    return ptr[index_from_gridsize(gridsize_from_index(Sizes...), std::array<std::size_t, N>{std::size_t(inds)...})];
+  }
+  
+  template <typename... Inds>
+  constexpr const base& operator()(Inds... inds) const noexcept {
+    return ptr[index_from_gridsize(gridsize_from_index(Sizes...), std::size_t(inds)...)];
+  }
+  
+  friend std::ostream& operator<<(std::ostream& os, const FixedGrid& g) {
+    constexpr std::size_t nel = mul(Sizes...);
+    constexpr std::size_t last_of = (std::array<std::size_t, N>{std::size_t(Sizes)...}).back();
+    for (std::size_t i = 0; i < nel; i++) {
+      os << g.ptr[i];
+      if (i not_eq 0 and i not_eq nel and i % last_of == 0)
+        os << '\n';
+      else if (i not_eq nel)
+        os << ' ';
+    }
+    return os;
+  }
+};  // FixedGrid
 
 /*! Cycle once back through a list
  *
@@ -129,6 +233,9 @@ constexpr Numeric min_cyclic(Numeric x, Numeric dx) noexcept {
   const bool me = std::abs(x + dx) < std::abs(x - dx);
   return (lo and hi) ? x : me ? x + dx : x - dx;
 }
+
+/*! Type of Lagrange interpolation weights */
+ENUMCLASS(LagrangeType, char, Linear, Log, Cyclic, Log10, Log2)
 
 /*! Computes the weights for a given coefficient
  *
@@ -568,138 +675,6 @@ struct FixedLagrange {
     return out;
   }
 };
-
-/** Row-major grid creation */
-template <typename b, std::size_t n>
-class Grid {
-  Array<b> ptr;
-  std::array<std::size_t, n> gridsize;
-
-  std::size_t nelem() const { return ptr.size(); }
-
- public:
-  static constexpr std::size_t N = n;
-  using base = b;
-  static_assert(N, "Must have size");
-
-  template <typename... Inds>
-  Grid(Inds... inds) : ptr(mul(inds...)), gridsize({std::size_t(inds)...}) {
-    static_assert(sizeof...(Inds) == N,
-                  "Must have same size for initialization");
-  }
-
-  template <typename... Inds>
-  base& operator()(Inds... inds) noexcept {
-    return ptr[index(std::array<std::size_t, N>{std::size_t(inds)...})];
-  }
-
-  template <typename... Inds>
-  const base& operator()(Inds... inds) const noexcept {
-    return ptr[index(std::array<std::size_t, N>{std::size_t(inds)...})];
-  }
-
-  friend std::ostream& operator<<(std::ostream& os, const Grid& g) {
-    std::size_t i = 0;
-    const std::size_t nel = g.nelem();
-    while (i < nel) {
-      os << g.ptr[i];
-      i++;
-      if (i not_eq 0 and i not_eq nel and i % g.gridsize.back() == 0)
-        os << '\n';
-      else if (i not_eq nel)
-        os << ' ';
-    }
-
-    return os;
-  }
-
- private:
-  base& operator()(std::array<std::size_t, N> inds) noexcept {
-    return ptr[index(inds)];
-  }
-
-  const base& operator()(std::array<std::size_t, N> inds) const noexcept {
-    return ptr[index(inds)];
-  }
-
-  std::size_t index(std::array<std::size_t, N> ind) const noexcept {
-    std::size_t posmul{gridsize.back()};
-    std::size_t pos{ind.back()};
-    for (std::size_t i{N - 2}; i < N; i--) {
-      pos += posmul * ind[i];
-      posmul *= gridsize[i];
-      if (ind[i] >= gridsize[i]) {
-        std::cerr << "Out of range\n";
-        std::terminate();
-      }
-    }
-    return pos;
-  }
-};  // Grid
-
-/** Row-major fixed grid creation */
-template <typename b, std::size_t... Sizes>
-class FixedGrid {
-  std::array<b, mul(Sizes...)> ptr;
-  static constexpr std::array<std::size_t, sizeof...(Sizes)> gridsize{Sizes...};
-
-  constexpr std::size_t nelem() const { return mul(Sizes...); }
-
- public:
-  constexpr FixedGrid() noexcept : ptr({}) {}
-
-  static constexpr std::size_t N = sizeof...(Sizes);
-  using base = b;
-  static_assert(N, "Must have size");
-
-  template <typename... Inds>
-  base& operator()(Inds... inds) noexcept {
-    return ptr[index(std::array<std::size_t, N>{std::size_t(inds)...})];
-  }
-
-  template <typename... Inds>
-  const base& operator()(Inds... inds) const noexcept {
-    return ptr[index(std::array<std::size_t, N>{std::size_t(inds)...})];
-  }
-
-  friend std::ostream& operator<<(std::ostream& os, const FixedGrid& g) {
-    std::size_t i = 0;
-    constexpr std::size_t nel = g.nelem();
-    while (i < nel) {
-      os << g.ptr[i];
-      i++;
-      if (i not_eq 0 and i not_eq nel and i % g.gridsize.back() == 0)
-        os << '\n';
-      else if (i not_eq nel)
-        os << ' ';
-    }
-
-    return os;
-  }
-
- private:
-  base& operator()(std::array<std::size_t, N> inds) noexcept {
-    return ptr[index(inds)];
-  }
-
-  const base& operator()(std::array<std::size_t, N> inds) const noexcept {
-    return ptr[index(inds)];
-  }
-
-  std::size_t index(std::array<std::size_t, N> ind) const noexcept {
-    std::size_t posmul{gridsize.back()};
-    std::size_t pos{ind.back()};
-    for (std::size_t i{N - 2}; i < N; i--) {
-      pos += posmul * ind[i];
-      posmul *= gridsize[i];
-      if (ind[i] >= gridsize[i]) {
-        std::cerr << "Out of range\n";
-        std::terminate();
-      }
-    }
-    return pos;
-  }
-};  // FixedGrid
 
 ////////////////////////////////////////////////////////
 ////////////////////// For reinterpreting interpolations
