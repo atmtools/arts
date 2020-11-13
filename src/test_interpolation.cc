@@ -672,7 +672,7 @@ void test12() {
 void test13() {
   constexpr int N = 10;
   constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  constexpr std::array<Numeric, N> y2{1, 2 * 2, 3 * 3, 4 * 4, 5 * 5,
+  constexpr std::array<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
                                       6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
   constexpr std::array<Numeric, N> y3{
       1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
@@ -718,11 +718,11 @@ void test13() {
 
   // Compile-time check that these values are good
   static_assert(is_around(lin_lin, x));
-  static_assert(is_around(sqr_sqr, x*x));
-  static_assert(is_around(cub_cub, x*x*x));
+  static_assert(is_around(sqr_sqr, x * x));
+  static_assert(is_around(cub_cub, x * x * x));
   static_assert(is_around(dlin_lin, 1));
-  static_assert(is_around(dsqr_sqr, 2*x));
-  static_assert(is_around(dcub_cub, 3*x*x));
+  static_assert(is_around(dsqr_sqr, 2 * x));
+  static_assert(is_around(dcub_cub, 3 * x * x));
 
   // Should be
   // 1.5  2.25   3.375
@@ -949,22 +949,22 @@ void test20() {
   Verbosity verbosity;
   VectorNLinSpace(x, N, -0.123, 0.456, verbosity);
   Vector y = x;
-  for (auto& f : y) f = Conversion::sind(360 / (0.456+0.123) * f);
+  for (auto& f : y) f = Conversion::sind(360 / (0.456 + 0.123) * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
-    auto lag =
-    Interpolation::Lagrange(0, n, x, 1, 100000, true,
-                            Interpolation::LagrangeType::Cyclic, {-0.123, 0.456});
+    auto lag = Interpolation::Lagrange(0, n, x, 1, 100000, true,
+                                       Interpolation::LagrangeType::Cyclic,
+                                       {-0.123, 0.456});
     auto flag = Interpolation::FixedLagrange<1>(
-      0, n, x, true, Interpolation::LagrangeType::Cyclic, {-0.123, 0.456});
+        0, n, x, true, Interpolation::LagrangeType::Cyclic, {-0.123, 0.456});
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
     auto dlag_iw = dinterpweights(lag);
     auto dflag_iw = dinterpweights(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
-    << interp(y, flag_iw, flag) << ' ' << Conversion::sind(360 / (0.456+0.123) * n)
-    << ' ' << interp(y, dlag_iw, lag) << ' '
-    << interp(y, dflag_iw, flag) << ' ' << Conversion::cosd(360 / (0.456+0.123) * n)
-    << '\n';
+              << interp(y, flag_iw, flag) << ' '
+              << Conversion::sind(360 / (0.456 + 0.123) * n) << ' '
+              << interp(y, dlag_iw, lag) << ' ' << interp(y, dflag_iw, flag)
+              << ' ' << Conversion::cosd(360 / (0.456 + 0.123) * n) << '\n';
   }
 }
 
@@ -977,19 +977,19 @@ void test21() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-    Interpolation::Lagrange(0, n, x, 1, 100000, true,
-                            Interpolation::LagrangeType::Cyclic, {0, 0.5});
+        Interpolation::Lagrange(0, n, x, 1, 100000, true,
+                                Interpolation::LagrangeType::Cyclic, {0, 0.5});
     auto flag = Interpolation::FixedLagrange<1>(
-      0, n, x, true, Interpolation::LagrangeType::Cyclic, {0, 0.5});
+        0, n, x, true, Interpolation::LagrangeType::Cyclic, {0, 0.5});
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
     auto dlag_iw = dinterpweights(lag);
     auto dflag_iw = dinterpweights(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
-    << interp(y, flag_iw, flag) << ' ' << Conversion::sind(720 * n)
-    << ' ' << interp(y, dlag_iw, lag) << ' '
-    << interp(y, dflag_iw, flag) << ' ' << Conversion::cosd(720 * n)
-    << '\n';
+              << interp(y, flag_iw, flag) << ' ' << Conversion::sind(720 * n)
+              << ' ' << interp(y, dlag_iw, lag) << ' '
+              << interp(y, dflag_iw, flag) << ' ' << Conversion::cosd(720 * n)
+              << '\n';
   }
 }
 
@@ -1005,16 +1005,16 @@ void test22() {
                                        Interpolation::LagrangeType::Cyclic,
                                        {0, Constant::two_pi});
     auto flag = Interpolation::FixedLagrange<1>(
-      0, n, x, true, Interpolation::LagrangeType::Cyclic,
-      {0, Constant::two_pi});
+        0, n, x, true, Interpolation::LagrangeType::Cyclic,
+        {0, Constant::two_pi});
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
     auto dlag_iw = dinterpweights(lag);
     auto dflag_iw = dinterpweights(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
-    << interp(y, flag_iw, flag) << ' ' << std::sin(n) << ' '
-    << interp(y, dlag_iw, lag) << ' ' << interp(y, dflag_iw, flag)
-    << ' ' << std::cos(n) << '\n';
+              << interp(y, flag_iw, flag) << ' ' << std::sin(n) << ' '
+              << interp(y, dlag_iw, lag) << ' ' << interp(y, dflag_iw, flag)
+              << ' ' << std::cos(n) << '\n';
   }
 }
 
@@ -1022,25 +1022,110 @@ void test23() {
   const Index N = 500;
   Vector x(N);
   Verbosity verbosity;
-  VectorNLinSpace(x, N,  0.45, 0.05, verbosity);
+  VectorNLinSpace(x, N, 0.45, 0.05, verbosity);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-    Interpolation::Lagrange(0, n, x, 1, 100000, true,
-                            Interpolation::LagrangeType::Cyclic, {0, 0.5});
+        Interpolation::Lagrange(0, n, x, 1, 100000, true,
+                                Interpolation::LagrangeType::Cyclic, {0, 0.5});
     auto flag = Interpolation::FixedLagrange<1>(
-      0, n, x, true, Interpolation::LagrangeType::Cyclic, {0, 0.5});
+        0, n, x, true, Interpolation::LagrangeType::Cyclic, {0, 0.5});
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
     auto dlag_iw = dinterpweights(lag);
     auto dflag_iw = dinterpweights(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
-    << interp(y, flag_iw, flag) << ' ' << Conversion::sind(720 * n)
-    << ' ' << interp(y, dlag_iw, lag) << ' '
-    << interp(y, dflag_iw, flag) << ' ' << Conversion::cosd(720 * n)
-    << '\n';
+              << interp(y, flag_iw, flag) << ' ' << Conversion::sind(720 * n)
+              << ' ' << interp(y, dlag_iw, lag) << ' '
+              << interp(y, dflag_iw, flag) << ' ' << Conversion::cosd(720 * n)
+              << '\n';
   }
 }
 
-int main() { test13(); }
+void test24() {
+  Verbosity verbosity;
+  const Index old_size = 50000;
+  const Index new_size = 100000;
+  Vector xold;
+  VectorNLinSpace(xold, old_size, 1, 100, verbosity);
+  Vector xnew;
+  VectorNLinSpace(xnew, new_size, 1, 100, verbosity);
+  Vector yold;
+  VectorNLinSpace(yold, old_size, 100, 200, verbosity);
+
+  constexpr Index f_order = 1;
+  chk_interpolation_grids("Frequency interpolation for cross sections", xold,
+                          xnew, f_order);
+
+  constexpr Index N = 200;
+  std::vector<TimeStep> new_fixed_time(N);
+  std::vector<TimeStep> new_time(N);
+  std::vector<TimeStep> old_time(N);
+
+  std::cout << "========== New fix interp ======" << std::endl;
+  for (Index i = 0; i < N; i++) {
+    Time now_fixed_new;
+    const auto lag_interp = Interpolation::FixedLagrangeVector<f_order>(
+        xnew, xold, false, Interpolation::LagrangeType::Linear);
+    const auto iw_interp = interpweights(lag_interp);
+    const auto ynew = reinterp(yold, iw_interp, lag_interp);
+    new_fixed_time[i] = Time() - now_fixed_new;
+  }
+  std::sort(new_fixed_time.begin(), new_fixed_time.end());
+  std::cerr << "Fastest time: " << new_fixed_time[0] << '\n';
+  std::cerr << "Median  time: " << new_fixed_time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << new_fixed_time[N - N / 20] << '\n';
+
+  std::cout << "========== Old fix interp ======" << std::endl;
+  for (Index i = 0; i < N; i++) {
+    Time now_old;
+    ArrayOfGridPos f_gp(xnew.nelem()), T_gp(1);
+    gridpos(f_gp, xold, xnew, f_order);
+
+    Matrix itw(f_gp.nelem(), f_order + 1);
+    interpweights(itw, f_gp);
+
+    Vector ynew_oldinterp(new_size);
+    interp(ynew_oldinterp, itw, yold, f_gp);
+    old_time[i] = Time() - now_old;
+  }
+  std::sort(old_time.begin(), old_time.end());
+  std::cerr << "Fastest time: " << old_time[0] << '\n';
+  std::cerr << "Median  time: " << old_time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << old_time[N - N / 20] << '\n';
+
+  std::cout << "========== New interp ==========" << std::endl;
+  for (Index i = 0; i < N; i++) {
+    Time now_new;
+    const auto lag_interp = Interpolation::LagrangeVector(
+        xnew, xold, f_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto iw_interp = interpweights(lag_interp);
+    const auto ynew = reinterp(yold, iw_interp, lag_interp);
+    new_time[i] = Time() - now_new;
+  }
+  std::sort(new_time.begin(), new_time.end());
+  std::cerr << "Fastest time: " << new_time[0] << '\n';
+  std::cerr << "Median  time: " << new_time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << new_time[N - N / 20] << '\n';
+
+  std::cout << "========== Old interp ==========" << std::endl;
+  for (Index i = 0; i < N; i++) {
+    Time now_old;
+    ArrayOfGridPosPoly f_gp(xnew.nelem()), T_gp(1);
+    gridpos_poly(f_gp, xold, xnew, f_order);
+
+    Matrix itw(f_gp.nelem(), f_order + 1);
+    interpweights(itw, f_gp);
+
+    Vector ynew_oldinterp(new_size);
+    interp(ynew_oldinterp, itw, yold, f_gp);
+    old_time[i] = Time() - now_old;
+  }
+  std::sort(old_time.begin(), old_time.end());
+  std::cerr << "Fastest time: " << old_time[0] << '\n';
+  std::cerr << "Median  time: " << old_time[N / 2] << '\n';
+  std::cerr << "Max-5\%  time: " << old_time[N - N / 20] << '\n';
+}
+
+int main() { test24(); }

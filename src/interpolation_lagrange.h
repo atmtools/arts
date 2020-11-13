@@ -44,7 +44,7 @@ constexpr std::size_t mul(const std::array<std::size_t, N>& arr) {
 constexpr Index cycler(Index n, Index N) noexcept { return n >= N ? n - N : n; }
 
 /*! Clamp the value within a cycle by recursion
- * 
+ *
  * @param[in] x Value to clamp
  * @param[in] xlim [Lower, Upper) bound of cycle
  * @return Value of x in the cycle [Lower, Upper)
@@ -117,7 +117,11 @@ constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
   return p0;
 }
 
-/*! Find the minimum in a cycle
+/*! Find the absolute minimum in a cycle
+ *
+ * @param[in] x A position relative to a cycle
+ * @param[in] dx The size of a cycle
+ * @return x-dx, x, or x+dx, whichever absolute is the smallest
  */
 constexpr Numeric min_cyclic(Numeric x, Numeric dx) noexcept {
   const bool lo = std::abs(x) < std::abs(x - dx);
@@ -175,11 +179,11 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
   return val;
 }
 
-
-/*! Computes the derivatives of the weights for a given coefficient for a given weight
- * 
+/*! Computes the derivatives of the weights for a given coefficient for a given
+ * weight
+ *
  * If x is on the grid, this is more expensive than if x is not on the grid
- * 
+ *
  * @param[in] p0 The original position
  * @param[in] n The number of weights
  * @param[in] x The position for the weights
@@ -192,19 +196,19 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
 template <LagrangeType type, typename SortedVectorType,
           class LagrangeVectorType>
 constexpr double dl_dval(
-  const Index p0, const Index n, const Numeric x, const SortedVectorType& xi,
-  const LagrangeVectorType& li, const Index j, const Index i,
-  [[maybe_unused]] const std::pair<Numeric, Numeric> cycle)
-{
+    const Index p0, const Index n, const Numeric x, const SortedVectorType& xi,
+    const LagrangeVectorType& li, const Index j, const Index i,
+    [[maybe_unused]] const std::pair<Numeric, Numeric> cycle) {
   if constexpr (type == LagrangeType::Log) {
     Numeric val = std::log(x) - std::log(xi[i + p0]);
     if (val not_eq 0) {
       return li[j] / val;
     } else {
       val = 1.0 / (std::log(xi[j + p0]) - std::log(xi[i + p0]));
-      for (Index m=0; m<n; m++) {
+      for (Index m = 0; m < n; m++) {
         if (m not_eq j and m not_eq i) {
-          val *= (std::log(x) - std::log(xi[m + p0])) / (std::log(xi[j + p0]) - std::log(xi[m + p0]));
+          val *= (std::log(x) - std::log(xi[m + p0])) /
+                 (std::log(xi[j + p0]) - std::log(xi[m + p0]));
         }
       }
       return val;
@@ -215,9 +219,10 @@ constexpr double dl_dval(
       return li[j] / val;
     } else {
       val = 1.0 / (std::log10(xi[j + p0]) - std::log10(xi[i + p0]));
-      for (Index m=0; m<n; m++) {
+      for (Index m = 0; m < n; m++) {
         if (m not_eq j and m not_eq i) {
-          val *= (std::log10(x) - std::log10(xi[m + p0])) / (std::log10(xi[j + p0]) - std::log10(xi[m + p0]));
+          val *= (std::log10(x) - std::log10(xi[m + p0])) /
+                 (std::log10(xi[j + p0]) - std::log10(xi[m + p0]));
         }
       }
       return val;
@@ -228,9 +233,10 @@ constexpr double dl_dval(
       return li[j] / val;
     } else {
       val = 1.0 / (std::log2(xi[j + p0]) - std::log2(xi[i + p0]));
-      for (Index m=0; m<n; m++) {
+      for (Index m = 0; m < n; m++) {
         if (m not_eq j and m not_eq i) {
-          val *= (std::log2(x) - std::log2(xi[m + p0])) / (std::log2(xi[j + p0]) - std::log2(xi[m + p0]));
+          val *= (std::log2(x) - std::log2(xi[m + p0])) /
+                 (std::log2(xi[j + p0]) - std::log2(xi[m + p0]));
         }
       }
       return val;
@@ -241,7 +247,7 @@ constexpr double dl_dval(
       return li[j] / val;
     } else {
       val = 1.0 / (xi[j + p0] - xi[i + p0]);
-      for (Index m=0; m<n; m++) {
+      for (Index m = 0; m < n; m++) {
         if (m not_eq j and m not_eq i) {
           val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
         }
@@ -252,27 +258,31 @@ constexpr double dl_dval(
     const decltype(i + p0) N = xi.size();
     const Numeric c = cycle.second - cycle.first;
     const Index i_pos = cycler(i + p0, N);
-    
+
     Numeric val = (c / Constant::two_pi);
     const Numeric rat = min_cyclic(cyclic_clamp(x, cycle) - xi[i_pos], c);
     if (rat not_eq 0) {
       return val * li[j] / rat;
     } else {
       const Index j_pos = cycler(j + p0, N);
-      
-      if (((i_pos == 0 and j_pos == N - 1) or (i_pos == N - 1 and j_pos == 0)) and xi[0] == cycle.first and xi[N - 1] == cycle.second) {
+
+      if (((i_pos == 0 and j_pos == N - 1) or
+           (i_pos == N - 1 and j_pos == 0)) and
+          xi[0] == cycle.first and xi[N - 1] == cycle.second) {
         return 0;
       } else {
         const Numeric outer_denom = min_cyclic(xi[j_pos] - xi[i_pos], c);
         for (Index m = 0; m < n; m++) {
           if (m not_eq j and m not_eq i) {
             const Index m_pos = cycler(m + p0, N);
-            
-            if (((m_pos == 0 and j_pos == N - 1) or (m_pos == N - 1 and j_pos == 0)) and xi[0] == cycle.first and xi[N - 1] == cycle.second) {
+
+            if (((m_pos == 0 and j_pos == N - 1) or
+                 (m_pos == N - 1 and j_pos == 0)) and
+                xi[0] == cycle.first and xi[N - 1] == cycle.second) {
               return 0;
             } else {
               const Numeric nom =
-              min_cyclic(cyclic_clamp(x, cycle) - xi[m_pos], c);
+                  min_cyclic(cyclic_clamp(x, cycle) - xi[m_pos], c);
               const Numeric denom = min_cyclic(xi[j_pos] - xi[m_pos], c);
               val *= nom / denom;
             }
@@ -296,10 +306,11 @@ constexpr double dl_dval(
  */
 template <LagrangeType type, typename SortedVectorType,
           class LagrangeVectorType>
-constexpr Numeric dl(
-    const Index p0, const Index n, const Numeric x, const SortedVectorType& xi,
-    const LagrangeVectorType& li, const Index j,
-    const std::pair<Numeric, Numeric> cycle = {-180, 180}) noexcept {
+constexpr Numeric dl(const Index p0, const Index n, const Numeric x,
+                     const SortedVectorType& xi, const LagrangeVectorType& li,
+                     const Index j,
+                     const std::pair<Numeric, Numeric> cycle = {-180,
+                                                                180}) noexcept {
   Numeric dval = 0.0;
   for (Index i = 0; i < n; i++) {
     if (i not_eq j) {
@@ -1447,9 +1458,9 @@ constexpr Numeric interp(const Tensor3Type& yi,
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
-        out += iw(i, j, k) *
-               yi(cycler(i + dim0.pos, I), cycler(j + dim1.pos, J),
-                  (k + dim1.pos) > K ? k + dim2.pos - K : k + dim2.pos);
+        out +=
+            iw(i, j, k) * yi(cycler(i + dim0.pos, I), cycler(j + dim1.pos, J),
+                             cycler(k + dim2.pos, K));
   return out;
 }
 
@@ -1754,10 +1765,10 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                PolyOrder3 + 1>,
      4>
-dinterpweights(const std::vector<Lagrange>& dim0,
-               const std::vector<Lagrange>& dim1,
-               const std::vector<Lagrange>& dim2,
-               const std::vector<Lagrange>& dim3) {
+dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
+               const std::vector<FixedLagrange<PolyOrder1>>& dim1,
+               const std::vector<FixedLagrange<PolyOrder2>>& dim2,
+               const std::vector<FixedLagrange<PolyOrder3>>& dim3) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                  PolyOrder3 + 1>,
        4>
