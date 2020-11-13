@@ -60,7 +60,7 @@ constexpr std::size_t index_from_gridsize(std::array<std::size_t, N> gridsize,
 /** Row-major grid creation */
 template <typename b, std::size_t n>
 class Grid {
-  Array<b> ptr;
+  std::vector<b> ptr;
   std::array<std::size_t, n> gridsize;
   
   std::size_t nelem() const { return ptr.size(); }
@@ -122,7 +122,7 @@ public:
   
   template <typename... Inds>
   constexpr const base& operator()(Inds... inds) const noexcept {
-    return ptr[index_from_gridsize(gridsize_from_index(Sizes...), std::size_t(inds)...)];
+    return ptr[index_from_gridsize(gridsize_from_index(Sizes...), std::array<std::size_t, N>{std::size_t(inds)...})];
   }
   
   friend std::ostream& operator<<(std::ostream& os, const FixedGrid& g) {
