@@ -33,6 +33,7 @@
   ===========================================================================*/
 
 #include "arts.h"
+#include "constants.h"
 #include "complex.h"
 #include "matpackI.h"
 
@@ -54,9 +55,33 @@ Numeric invplanck(const Numeric& i, const Numeric& f);
 
 Numeric invrayjean(const Numeric& i, const Numeric& f);
 
-Numeric number_density(const Numeric& p, const Numeric& t);
+/** number_density
+ * 
+ * Calculates the atmospheric number density.
+ *
+ * @param[in]  p  Pressure.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Number density.
+ *
+ * @author Patrick Eriksson
+ * @date   2000-04-08
+ */
+constexpr Numeric number_density(Numeric p, Numeric t) noexcept {return p / (Constant::k * t);}
 
-Numeric dnumber_density_dt(const Numeric& p, const Numeric& t);
+/** dnumber_density_dT
+ * 
+ * Calculates the atmospheric number density derivative with temperature.
+ *
+ * @param[in]  p  Pressure.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Number density.
+ *
+ * @author Richard Larsson
+ * @date   2015-09-22
+ */
+constexpr Numeric dnumber_density_dt(Numeric p, Numeric t) noexcept {return - p / (Constant::k * Constant::pow2(t));}
 
 Numeric planck(const Numeric& f, const Numeric& t);
 

@@ -87,7 +87,6 @@ void adapt_stepwise_partial_derivatives(
     const Numeric& ppath_temperature,
     const Numeric& ppath_pressure,
     const ArrayOfIndex& jacobian_species,
-    const ArrayOfIndex& jacobian_wind,
     const Index& lte,
     const Index& atmosphere_dim,
     const bool& jacobian_do);
@@ -298,36 +297,6 @@ Numeric dotprod_with_los(ConstVectorView los,
                          const Numeric& v,
                          const Numeric& w,
                          const Index& atmosphere_dim);
-
-/** Converts an extinction matrix to a transmission matrix
-
-    The function performs the calculations differently depending on the
-    conditions, to improve the speed. There are three cases: <br>
-       1. Scalar RT and/or the matrix ext_mat_av is diagonal. <br>
-       2. Special expression for "azimuthally_random" case. <br>
-       3. The total general case.
-
-    If the structure of *ext_mat* is known, *icase* can be set to "case index"
-    (1, 2 or 3) and some time is saved. This includes that no asserts are
-    performed on *ext_mat*.
-
-    Otherwise, *icase* must be set to 0. *ext_mat* is then analysed and *icase*
-    is set by the function and is returned.
-
-    trans_mat must be sized before calling the function.
-
-    @param[out]   trans_mat      Transmission matrix of slab.
-    @param[out]   icase          Index giving ext_mat case.
-    @param[in]    ext_mat        Averaged extinction matrix.
-    @param[in]    lstep          The length of the RTE step.
-
-    @author Patrick Eriksson (based on earlier version started by Claudia)
-    @date   2013-05-17 
- */
-void ext2trans(MatrixView trans_mat,
-               Index& icase,
-               ConstMatrixView ext_mat_av,
-               const Numeric& l_step);
 
 /** Basic call of *iy_main_agenda*.
 
@@ -647,19 +616,18 @@ void get_stepwise_frequency_grid(VectorView ppath_f_grid,
  *  relates to the wind of come component
  * 
  * @param[in,out] ppath_f_grid Wind-adjusted frequency grid wind derivative at propagation path point
- * @param[in] component The wind component [0 is full, 1 is u, 2 is v, 3 is w, rest are undefined]
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
  * @param[in] f_grid As WSV
+ * @param[in] wind_type The wind component
  * @param[in] atmosphere_dim As WSV
  * 
  * @author Richard Larsson 
  * @date   2017-09-21
  */
-void get_stepwise_f_partials(Vector& f_partials,
-                             const Index& component,
-                             ConstVectorView& ppath_line_of_sight,
-                             ConstVectorView f_grid,
-                             const Index& atmosphere_dim);
+Vector get_stepwise_f_partials(const ConstVectorView& ppath_line_of_sight,
+                               const ConstVectorView& f_grid,
+                               const Jacobian::Atm wind_type,
+                               const Index& atmosphere_dim);
 
 /** Computes the contribution by scattering at propagation path point
  * 
@@ -884,35 +852,6 @@ void pos2true_latlon(Numeric& lat,
                      ConstVectorView lon_true,
                      ConstVectorView pos);
 
-/** This function fixes the initial steps around Jacobian calculations, to be
-    done inside radiative transfer WSMs.
-
-    See iyEmissonStandard for usage example.
-
-    @author Patrick Eriksson 
-    @date   2017-11-20
-*/
-void rtmethods_jacobian_init(
-    ArrayOfIndex& jac_species_i,
-    ArrayOfIndex& jac_scat_i,
-    ArrayOfIndex& jac_is_t,
-    ArrayOfIndex& jac_wind_i,
-    ArrayOfIndex& jac_mag_i,
-    ArrayOfIndex& jac_other,
-    ArrayOfTensor3& diy_dx,
-    ArrayOfTensor3& diy_dpath,
-    const Index& ns,
-    const Index& nf,
-    const Index& np,
-    const Index& nq,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Index& cloudbox_on,
-    const ArrayOfString& scat_species,
-    const ArrayOfTensor4& dpnd_field_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Index& iy_agenda_call1,
-    const bool is_active = false);
-
 /** This function fixes the last steps to made on the Jacobian in some
     radiative transfer WSMs. The method applies iy_transmittance, maps from
     ppath to the retrieval grids and applies non-standard Jacobian units.
@@ -938,8 +877,7 @@ void rtmethods_jacobian_finalisation(
     const Tensor3& iy_transmittance,
     const Agenda& water_p_eq_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfIndex jac_species_i,
-    const ArrayOfIndex jac_is_t);
+    const ArrayOfIndex jac_species_i);
 
 /** This function handles the unit conversion to be done at the end of some
     radiative transfer WSMs. 
