@@ -534,6 +534,9 @@ struct Lagrange {
       if (do_derivs) dlx = dlx_finder(pos, p, x, xi, lx, type, cycle);
     }
   }
+  
+  // Default constructor for zero-length elements
+  Lagrange() noexcept : pos(0), lx(1, 1), dlx(1, 0) {}
 
   friend std::ostream& operator<<(std::ostream& os, const Lagrange& l) {
     os << l.pos;
@@ -655,7 +658,7 @@ struct FixedLagrange {
         lx(lx_finder(pos, x, xi, type, cycle)),
         dlx(do_derivs ? dlx_finder(pos, x, xi, lx, type, cycle)
                       : std::array<Numeric, PolyOrder + 1>{}) {}
-
+  
   friend std::ostream& operator<<(std::ostream& os, const FixedLagrange& l) {
     os << l.pos;
     for (auto x : l.lx) os << ' ' << x;
