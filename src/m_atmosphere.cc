@@ -51,6 +51,7 @@
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "interpolation_poly.h"
+#include "interpolation_lagrange.h"
 #include "linescaling.h"
 #include "matpackIII.h"
 #include "messages.h"
@@ -125,10 +126,6 @@ void atm_fields_compactExpand(GriddedField4& af,
       dummy;
 }
 
-/*===========================================================================
-  === The functions (in alphabetical order)
-  ===========================================================================*/
-
 //! Calculate grid positions and interpolations weights for AtmFieldPRegrid
 /*
  This helper function is used by all AtmFieldPRegrid WSMs to do the common
@@ -149,8 +146,8 @@ void atm_fields_compactExpand(GriddedField4& af,
  */
 void AtmFieldPRegridHelper(Index& ing_min,
                            Index& ing_max,
-                           ArrayOfGridPosPoly& gp_p,
-                           Matrix& itw,
+                           ArrayOfLagrangeInterpolation& lag_p,
+                           VectorOfVector& itw,
                            ConstVectorView p_grid_out,
                            ConstVectorView p_grid_in,
                            const Index& interp_order,
@@ -168,15 +165,8 @@ void AtmFieldPRegridHelper(Index& ing_min,
 
   // Calculate grid positions:
   if (nelem_in_range > 0) {
-    gp_p.resize(nelem_in_range);
-    p2gridpos_poly(gp_p,
-                   p_grid_in,
-                   p_grid_out[Range(ing_min, nelem_in_range)],
-                   interp_order);
-
-    // Interpolation weights:
-    itw.resize(nelem_in_range, interp_order + 1);
-    interpweights(itw, gp_p);
+    lag_p = Interpolation::LagrangeVector(p_grid_out, p_grid_in, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    itw = interpweights(lag_p);
   }
 }
 
@@ -214,14 +204,14 @@ void AtmFieldPRegrid(  // WS Generic Output:
   atmtensor_out.resize(
       p_grid_new.nelem(), atmtensor_in.nrows(), atmtensor_in.ncols());
 
-  ArrayOfGridPosPoly gp_p;
-  Matrix itw;
+  ArrayOfLagrangeInterpolation lag_p;
+  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
   AtmFieldPRegridHelper(ing_min,
                         ing_max,
-                        gp_p,
+                        lag_p,
                         itw,
                         p_grid_new,
                         p_grid_old,
@@ -238,7 +228,7 @@ void AtmFieldPRegrid(  // WS Generic Output:
 
   for (Index i = 0; i < atmtensor_in.nrows(); i++)
     for (Index j = 0; j < atmtensor_in.ncols(); j++)
-      interp(atmtensor_out(joker, i, j), itw, atmtensor_in(joker, i, j), gp_p);
+      reinterp(atmtensor_out(joker, i, j), atmtensor_in(joker, i, j), itw, lag_p);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -266,15 +256,15 @@ void AtmFieldPRegrid(  // WS Generic Output:
                        p_grid_new.nelem(),
                        atmtensor_in.nrows(),
                        atmtensor_in.ncols());
-
-  ArrayOfGridPosPoly gp_p;
-  Matrix itw;
+  
+  ArrayOfLagrangeInterpolation lag_p;
+  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
   AtmFieldPRegridHelper(ing_min,
                         ing_max,
-                        gp_p,
+                        lag_p,
                         itw,
                         p_grid_new,
                         p_grid_old,
@@ -292,10 +282,10 @@ void AtmFieldPRegrid(  // WS Generic Output:
   for (Index b = 0; b < atmtensor_in.nbooks(); b++)
     for (Index i = 0; i < atmtensor_in.nrows(); i++)
       for (Index j = 0; j < atmtensor_in.ncols(); j++)
-        interp(atmtensor_out(b, joker, i, j),
-               itw,
-               atmtensor_in(b, joker, i, j),
-               gp_p);
+        reinterp(atmtensor_out(b, joker, i, j),
+                 atmtensor_in(b, joker, i, j),
+                 itw,
+                 lag_p);
 }
 
 //! Check for correct grid dimensions
@@ -646,8 +636,8 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
  */
 void GriddedFieldPRegridHelper(Index& ing_min,
                                Index& ing_max,
-                               ArrayOfGridPosPoly& gp_p,
-                               Matrix& itw,
+                               ArrayOfLagrangeInterpolation& lag_p,
+                               VectorOfVector& itw,
                                GriddedField& gfraw_out,
                                const GriddedField& gfraw_in,
                                const Index p_grid_index,
@@ -689,13 +679,8 @@ void GriddedFieldPRegridHelper(Index& ing_min,
 
   // Calculate grid positions:
   if (nelem_in_range > 0) {
-    gp_p.resize(nelem_in_range);
-    p2gridpos_poly(
-        gp_p, in_p_grid, p_grid[Range(ing_min, nelem_in_range)], interp_order);
-
-    // Interpolation weights:
-    itw.resize(nelem_in_range, interp_order + 1);
-    interpweights(itw, gp_p);
+    lag_p = Interpolation::LagrangeVector(p_grid[Range(ing_min, nelem_in_range)], in_p_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    itw = interpweights(lag_p);
   }
 }
 
@@ -729,15 +714,15 @@ void GriddedFieldPRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
   gfraw_out.set_grid(2, gfraw_in.get_numeric_grid(2));
   gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
-
-  ArrayOfGridPosPoly gp_p;
-  Matrix itw;
+  
+  ArrayOfLagrangeInterpolation lag_p;
+  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
   GriddedFieldPRegridHelper(ing_min,
                             ing_max,
-                            gp_p,
+                            lag_p,
                             itw,
                             gfraw_out,
                             gfraw_in,
@@ -758,16 +743,16 @@ void GriddedFieldPRegrid(  // WS Generic Output:
         //                                                         "Raw field to p_grid",
         //                                                         gfraw_in.get_numeric_grid(p_grid_index),
         //                                                         p_grid, gfraw_in.data(joker, i, j));
-        interp(gfraw_out.data(Range(ing_min, ing_max - ing_min + 1), i, j),
-               itw,
-               gfraw_in.data(joker, i, j),
-               gp_p);
+        reinterp(gfraw_out.data(Range(ing_min, ing_max - ing_min + 1), i, j),
+                 gfraw_in.data(joker, i, j),
+                 itw,
+                 lag_p);
       }
   } else
     for (Index i = 0; i < gfraw_in.data.nrows(); i++)
       for (Index j = 0; j < gfraw_in.data.ncols(); j++)
-        interp(
-            gfraw_out.data(joker, i, j), itw, gfraw_in.data(joker, i, j), gp_p);
+        reinterp(
+          gfraw_out.data(joker, i, j), gfraw_in.data(joker, i, j), itw, lag_p);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -804,15 +789,15 @@ void GriddedFieldPRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
   gfraw_out.set_grid(3, gfraw_in.get_numeric_grid(3));
   gfraw_out.set_grid_name(3, gfraw_in.get_grid_name(3));
-
-  ArrayOfGridPosPoly gp_p;
-  Matrix itw;
+  
+  ArrayOfLagrangeInterpolation lag_p;
+  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
   GriddedFieldPRegridHelper(ing_min,
                             ing_max,
-                            gp_p,
+                            lag_p,
                             itw,
                             gfraw_out,
                             gfraw_in,
@@ -834,19 +819,19 @@ void GriddedFieldPRegrid(  // WS Generic Output:
           //                                                             "Raw field to p_grid",
           //                                                             gfraw_in.get_numeric_grid(p_grid_index),
           //                                                             p_grid, gfraw_in.data(b, joker, i, j));
-          interp(gfraw_out.data(b, Range(ing_min, ing_max - ing_min), i, j),
-                 itw,
-                 gfraw_in.data(b, joker, i, j),
-                 gp_p);
+          reinterp(gfraw_out.data(b, Range(ing_min, ing_max - ing_min), i, j),
+                   gfraw_in.data(b, joker, i, j),
+                   itw,
+                   lag_p);
         }
   } else
     for (Index b = 0; b < gfraw_in.data.nbooks(); b++)
       for (Index i = 0; i < gfraw_in.data.nrows(); i++)
         for (Index j = 0; j < gfraw_in.data.ncols(); j++)
-          interp(gfraw_out.data(b, joker, i, j),
-                 itw,
-                 gfraw_in.data(b, joker, i, j),
-                 gp_p);
+          reinterp(gfraw_out.data(b, joker, i, j),
+                   gfraw_in.data(b, joker, i, j),
+                   itw,
+                   lag_p);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -888,9 +873,9 @@ void GriddedFieldPRegrid(  // WS Generic Output:
  \param[in]     interp_order    Interpolation order
  \param[in]     verbosity       Verbosity levels
  */
-void GriddedFieldLatLonRegridHelper(ArrayOfGridPosPoly& gp_lat,
-                                    ArrayOfGridPosPoly& gp_lon,
-                                    Tensor3& itw,
+void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
+                                    ArrayOfLagrangeInterpolation& lag_lon,
+                                    MatrixOfMatrix& itw,
                                     GriddedField& gfraw_out,
                                     const GriddedField& gfraw_in,
                                     const Index lat_grid_index,
@@ -929,21 +914,9 @@ void GriddedFieldLatLonRegridHelper(ArrayOfGridPosPoly& gp_lat,
       "Raw field to lat_grid, 3D case", in_lat_grid, lat_true, interp_order);
 
   // Calculate grid positions:
-  gp_lat.resize(lat_true.nelem());
-  gp_lon.resize(lon_true.nelem());
-  gridpos_poly(gp_lat, in_lat_grid, lat_true, interp_order);
-
-  gridpos_poly_longitudinal("Raw field to lon_grid, 3D case",
-                            gp_lon,
-                            in_lon_grid,
-                            lon_true,
-                            interp_order);
-
-  // Interpolation weights:
-  itw.resize(lat_true.nelem(),
-             lon_true.nelem(),
-             (interp_order + 1) * (interp_order + 1));
-  interpweights(itw, gp_lat, gp_lon);
+  lag_lat = Interpolation::LagrangeVector(lat_true, in_lat_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+  lag_lon = Interpolation::LagrangeVector(lon_true, in_lon_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Cyclic, {0, 360});
+  itw = interpweights(lag_lat, lag_lon);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -986,9 +959,9 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   // Resize output GriddedField
   gfraw_out.resize(lat_true.nelem(), lon_true.nelem());
 
-  ArrayOfGridPosPoly gp_lat;
-  ArrayOfGridPosPoly gp_lon;
-  Tensor3 itw;
+  ArrayOfLagrangeInterpolation lag_lat;
+  ArrayOfLagrangeInterpolation lag_lon;
+  MatrixOfMatrix itw(0, 0);
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_lat_grid =
@@ -1019,8 +992,8 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     }
   }
 
-  GriddedFieldLatLonRegridHelper(gp_lat,
-                                 gp_lon,
+  GriddedFieldLatLonRegridHelper(lag_lat,
+                                 lag_lon,
                                  itw,
                                  gfraw_out,
                                  gfraw_in,
@@ -1032,7 +1005,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
                                  verbosity);
 
   // Interpolate:
-  interp(gfraw_out.data, itw, gfraw_in.data, gp_lat, gp_lon);
+  reinterp(gfraw_out.data, gfraw_in.data, itw, lag_lat, lag_lon);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1076,10 +1049,10 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   gfraw_out.resize(gfraw_in.data.npages(), lat_true.nelem(), lon_true.nelem());
   gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
   gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
-
-  ArrayOfGridPosPoly gp_lat;
-  ArrayOfGridPosPoly gp_lon;
-  Tensor3 itw;
+  
+  ArrayOfLagrangeInterpolation lag_lat;
+  ArrayOfLagrangeInterpolation lag_lon;
+  MatrixOfMatrix itw(0, 0);
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_grid0 = gfraw_in.get_numeric_grid(0);
@@ -1115,8 +1088,8 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
       }
   }
 
-  GriddedFieldLatLonRegridHelper(gp_lat,
-                                 gp_lon,
+  GriddedFieldLatLonRegridHelper(lag_lat,
+                                 lag_lon,
                                  itw,
                                  gfraw_out,
                                  gfraw_in,
@@ -1129,11 +1102,11 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
 
   // Interpolate:
   for (Index i = 0; i < gfraw_in.data.npages(); i++)
-    interp(gfraw_out.data(i, joker, joker),
-           itw,
-           gfraw_in.data(i, joker, joker),
-           gp_lat,
-           gp_lon);
+    reinterp(gfraw_out.data(i, joker, joker),
+             gfraw_in.data(i, joker, joker),
+             itw,
+             lag_lat,
+             lag_lon);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1182,13 +1155,13 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
   gfraw_out.set_grid(1, gfraw_in.get_numeric_grid(1));
   gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
+  
+  ArrayOfLagrangeInterpolation lag_lat;
+  ArrayOfLagrangeInterpolation lag_lon;
+  MatrixOfMatrix itw(0, 0);
 
-  ArrayOfGridPosPoly gp_lat;
-  ArrayOfGridPosPoly gp_lon;
-  Tensor3 itw;
-
-  GriddedFieldLatLonRegridHelper(gp_lat,
-                                 gp_lon,
+  GriddedFieldLatLonRegridHelper(lag_lat,
+                                 lag_lon,
                                  itw,
                                  gfraw_out,
                                  gfraw_in,
@@ -1240,11 +1213,11 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   // Interpolate:
   for (Index i = 0; i < gfraw_in.data.nbooks(); i++)
     for (Index j = 0; j < gfraw_in.data.npages(); j++)
-      interp(gfraw_out.data(i, j, joker, joker),
-             itw,
-             gfraw_in.data(i, j, joker, joker),
-             gp_lat,
-             gp_lon);
+      reinterp(gfraw_out.data(i, j, joker, joker),
+               gfraw_in.data(i, j, joker, joker),
+               itw,
+               lag_lat,
+               lag_lon);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1289,8 +1262,8 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
  */
 void GriddedFieldZToPRegridHelper(Index& ing_min,
                                   Index& ing_max,
-                                  ArrayOfGridPosPoly& gp_p,
-                                  Matrix& itw,
+                                  ArrayOfLagrangeInterpolation& lag_p,
+                                  VectorOfVector& itw,
                                   const GriddedField& gfraw_in,
                                   const Index z_grid_index,
                                   ConstVectorView z_grid,
@@ -1328,13 +1301,8 @@ void GriddedFieldZToPRegridHelper(Index& ing_min,
 
   // Calculate grid positions:
   if (nelem_in_range > 0) {
-    gp_p.resize(nelem_in_range);
-    gridpos_poly(
-        gp_p, in_z_grid, z_grid[Range(ing_min, nelem_in_range)], interp_order);
-
-    // Interpolation weights:
-    itw.resize(nelem_in_range, interp_order + 1);
-    interpweights(itw, gp_p);
+    lag_p = Interpolation::LagrangeVector(z_grid[Range(ing_min, nelem_in_range)], in_z_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    itw = interpweights(lag_p);
   }
 }
 
@@ -1402,8 +1370,8 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
   gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
   gfraw_out.data = 0.;
 
-  ArrayOfGridPosPoly gp_p;
-  Matrix itw;
+  ArrayOfLagrangeInterpolation lag_p;
+  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -1413,7 +1381,7 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
 
       GriddedFieldZToPRegridHelper(ing_min,
                                    ing_max,
-                                   gp_p,
+                                   lag_p,
                                    itw,
                                    gfraw_in,
                                    0,
@@ -1429,10 +1397,10 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
           r = Range(ing_min, ing_max - ing_min + 1);
         }
 
-        interp(gfraw_out.data(r, lat_index, lon_index),
-               itw,
-               gfraw_in.data(joker, lat_index, lon_index),
-               gp_p);
+        reinterp(gfraw_out.data(r, lat_index, lon_index),
+                 gfraw_in.data(joker, lat_index, lon_index),
+                 itw,
+                 lag_p);
       }
     }
   }
@@ -2197,10 +2165,6 @@ void AtmFieldsCalc(  //WS Output:
     else
       nlte_field.Data().resize(0, 0, 0, 0);
 
-    // Gridpositions:
-    ArrayOfGridPosPoly gp_p(p_grid.nelem());
-    ArrayOfGridPosPoly gp_lat(lat_grid.nelem());
-
     // Interpolate t_field:
 
     // Check that interpolation grids are ok (and throw a detailed
@@ -2213,23 +2177,16 @@ void AtmFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    p2gridpos_poly(gp_p, tfr_p_grid, p_grid, interp_order);
-    gridpos_poly(gp_lat, tfr_lat_grid, lat_grid, interp_order);
-
-    // Interpolation weights:
-    Tensor3 itw(p_grid.nelem(),
-                lat_grid.nelem(),
-                (interp_order + 1) * (interp_order + 1));
-    // (4 interpolation weights are required for example for linear 2D
-    // interpolation)
-    interpweights(itw, gp_p, gp_lat);
+    auto lag_p=Interpolation::LagrangeVector(p_grid, tfr_p_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    auto lag_lat=Interpolation::LagrangeVector(lat_grid, tfr_lat_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    auto itw=interpweights(lag_p, lag_lat);
 
     // Interpolate:
-    interp(t_field(joker, joker, 0),
-           itw,
-           t_field_raw.data(joker, joker, 0),
-           gp_p,
-           gp_lat);
+    reinterp(t_field(joker, joker, 0),
+             t_field_raw.data(joker, joker, 0),
+             itw,
+             lag_p,
+             lag_lat);
 
     // Interpolate z_field:
 
@@ -2241,18 +2198,16 @@ void AtmFieldsCalc(  //WS Output:
         "Raw z to lat_grid, 2D case", zfr_lat_grid, lat_grid, interp_order);
 
     // Calculate grid positions:
-    p2gridpos_poly(gp_p, zfr_p_grid, p_grid, interp_order);
-    gridpos_poly(gp_lat, zfr_lat_grid, lat_grid, interp_order);
-
-    // Interpolation weights:
-    interpweights(itw, gp_p, gp_lat);
+    lag_p=Interpolation::LagrangeVector(p_grid, zfr_p_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    lag_lat=Interpolation::LagrangeVector(lat_grid, zfr_lat_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    itw=interpweights(lag_p, lag_lat);
 
     // Interpolate:
-    interp(z_field(joker, joker, 0),
-           itw,
-           z_field_raw.data(joker, joker, 0),
-           gp_p,
-           gp_lat);
+    reinterp(z_field(joker, joker, 0),
+             z_field_raw.data(joker, joker, 0),
+             itw,
+             lag_p,
+             lag_lat);
 
     // Interpolate vmr_field.
     // Loop over the gaseous species:
@@ -2283,26 +2238,17 @@ void AtmFieldsCalc(  //WS Output:
           vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
           lat_grid,
           interp_order);
-
-      // Calculate grid positions:
-      p2gridpos_poly(gp_p,
-                     vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                     p_grid,
-                     interp_order);
-      gridpos_poly(gp_lat,
-                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
-                   lat_grid,
-                   interp_order);
-
-      // Interpolation weights:
-      interpweights(itw, gp_p, gp_lat);
+      
+      lag_p=Interpolation::LagrangeVector(p_grid, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+      lag_lat=Interpolation::LagrangeVector(lat_grid, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+      itw=interpweights(lag_p, lag_lat);
 
       // Interpolate:
-      interp(vmr_field(gas_i, joker, joker, 0),
-             itw,
-             vmr_field_raw[gas_i].data(joker, joker, 0),
-             gp_p,
-             gp_lat);
+      reinterp(vmr_field(gas_i, joker, joker, 0),
+               vmr_field_raw[gas_i].data(joker, joker, 0),
+               itw,
+               lag_p,
+               lag_lat);
     }
 
     // Interpolate Non-LTE
@@ -2334,26 +2280,17 @@ void AtmFieldsCalc(  //WS Output:
           lat_grid,
           interp_order);
 
-      // Calculate grid positions:
-      p2gridpos_poly(gp_p,
-                     nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID),
-                     p_grid,
-                     interp_order);
-      gridpos_poly(gp_lat,
-                   nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID),
-                   lat_grid,
-                   interp_order);
-
-      // Interpolation weights:
-      interpweights(itw, gp_p, gp_lat);
+      lag_p=Interpolation::LagrangeVector(p_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID), interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+      lag_lat=Interpolation::LagrangeVector(lat_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID), interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+      itw=interpweights(lag_p, lag_lat);
 
       // Interpolate:
       if (nlte_ids.nelem() == nlte_field_raw.nelem())
-        interp(nlte_field.Data()(qi_i, joker, joker, 0),
-              itw,
-              nlte_field_raw[qi_i].data(joker, joker, 0),
-              gp_p,
-              gp_lat);
+        reinterp(nlte_field.Data()(qi_i, joker, joker, 0),
+                 nlte_field_raw[qi_i].data(joker, joker, 0),
+                 itw,
+                 lag_p,
+                 lag_lat);
       else
         nlte_field.Data().resize(0, 0, 0, 0);
     }
@@ -2568,10 +2505,6 @@ void MagFieldsCalc(  //WS Output:
     mag_v_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
     mag_w_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
 
-    // Gridpositions:
-    ArrayOfGridPosPoly gp_p(p_grid.nelem());
-    ArrayOfGridPosPoly gp_lat(lat_grid.nelem());
-
     // Interpolate mag_u_field:
 
     // Check that interpolation grids are ok (and throw a detailed
@@ -2584,23 +2517,16 @@ void MagFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    p2gridpos_poly(gp_p, ufr_p_grid, p_grid, interp_order);
-    gridpos_poly(gp_lat, ufr_lat_grid, lat_grid, interp_order);
-
-    // Interpolation weights:
-    Tensor3 itwu(p_grid.nelem(),
-                 lat_grid.nelem(),
-                 (interp_order + 1) * (interp_order + 1));
-    // (4 interpolation weights are required for example for linear 2D
-    // interpolation)
-    interpweights(itwu, gp_p, gp_lat);
+    auto lag_p = Interpolation::LagrangeVector(ufr_p_grid, p_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    auto lag_lat = Interpolation::LagrangeVector(ufr_lat_grid, lat_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto itwu = interpweights(lag_p, lag_lat);
 
     // Interpolate:
-    interp(mag_u_field(joker, joker, 0),
-           itwu,
-           mag_u_field_raw.data(joker, joker, 0),
-           gp_p,
-           gp_lat);
+    reinterp(mag_u_field(joker, joker, 0),
+             mag_u_field_raw.data(joker, joker, 0),
+             itwu,
+             lag_p,
+             lag_lat);
 
     // Interpolate mag_v_field:
 
@@ -2614,23 +2540,16 @@ void MagFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    p2gridpos_poly(gp_p, vfr_p_grid, p_grid, interp_order);
-    gridpos_poly(gp_lat, vfr_lat_grid, lat_grid, interp_order);
-
-    // Interpolation weights:
-    Tensor3 itwv(p_grid.nelem(),
-                 lat_grid.nelem(),
-                 (interp_order + 1) * (interp_order + 1));
-    // (4 interpolation weights are required for example for linear 2D
-    // interpolation)
-    interpweights(itwv, gp_p, gp_lat);
+    lag_p = Interpolation::LagrangeVector(vfr_p_grid, p_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    lag_lat = Interpolation::LagrangeVector(vfr_lat_grid, lat_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto itwv = interpweights(lag_p, lag_lat);
 
     // Interpolate:
-    interp(mag_v_field(joker, joker, 0),
-           itwv,
-           mag_v_field_raw.data(joker, joker, 0),
-           gp_p,
-           gp_lat);
+    reinterp(mag_v_field(joker, joker, 0),
+             mag_v_field_raw.data(joker, joker, 0),
+             itwv,
+             lag_p,
+             lag_lat);
 
     // Interpolate mag_w_field:
 
@@ -2644,23 +2563,16 @@ void MagFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    p2gridpos_poly(gp_p, wfr_p_grid, p_grid, interp_order);
-    gridpos_poly(gp_lat, wfr_lat_grid, lat_grid, interp_order);
-
-    // Interpolation weights:
-    Tensor3 itww(p_grid.nelem(),
-                 lat_grid.nelem(),
-                 (interp_order + 1) * (interp_order + 1));
-    // (4 interpolation weights are required for example for linear 2D
-    // interpolation)
-    interpweights(itww, gp_p, gp_lat);
+    lag_p = Interpolation::LagrangeVector(wfr_p_grid, p_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    lag_lat = Interpolation::LagrangeVector(wfr_lat_grid, lat_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto itww = interpweights(lag_p, lag_lat);
 
     // Interpolate:
-    interp(mag_w_field(joker, joker, 0),
-           itww,
-           mag_w_field_raw.data(joker, joker, 0),
-           gp_p,
-           gp_lat);
+    reinterp(mag_w_field(joker, joker, 0),
+             mag_w_field_raw.data(joker, joker, 0),
+             itww,
+             lag_p,
+             lag_lat);
   }
 
   //================================================================
@@ -2767,25 +2679,15 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
   mag_w_field.resize(nalt, nlat, nlon);
   for (Index ilat = 0; ilat < nlat; ilat++) {
     for (Index ilon = 0; ilon < nlon; ilon++) {
-      ArrayOfGridPosPoly gp;
-      Matrix itw;
-
       chk_interpolation_grids("Magnetic U Field Altitude",
                               u.get_numeric_grid(0),
                               z_field(joker, ilat, ilon),
                               interp_order,
                               extrapolation_factor,
                               false);
-      gp = ArrayOfGridPosPoly(nalt);
-      gridpos_poly(gp,
-                   u.get_numeric_grid(0),
-                   z_field(joker, ilat, ilon),
-                   interp_order,
-                   extrapolation_factor);
-      itw = Matrix(nalt, gp[0].w.nelem());
-      interpweights(itw, gp);
-      interp(
-          mag_u_field(joker, ilat, ilon), itw, u.data(joker, ilat, ilon), gp);
+      auto lag=Interpolation::LagrangeVector(z_field(joker, ilat, ilon), u.get_numeric_grid(0), interp_order, extrapolation_factor, false, Interpolation::LagrangeType::Linear);
+      auto itw = interpweights(lag);
+      reinterp(mag_u_field(joker, ilat, ilon), u.data(joker, ilat, ilon), itw, lag);
 
       chk_interpolation_grids("Magnetic V Field Altitude",
                               v.get_numeric_grid(0),
@@ -2793,16 +2695,10 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
                               interp_order,
                               extrapolation_factor,
                               false);
-      gp = ArrayOfGridPosPoly(nalt);
-      gridpos_poly(gp,
-                   v.get_numeric_grid(0),
-                   z_field(joker, ilat, ilon),
-                   interp_order,
-                   extrapolation_factor);
-      itw = Matrix(nalt, gp[0].w.nelem());
-      interpweights(itw, gp);
-      interp(
-          mag_v_field(joker, ilat, ilon), itw, v.data(joker, ilat, ilon), gp);
+      
+      lag=Interpolation::LagrangeVector(z_field(joker, ilat, ilon), v.get_numeric_grid(0), interp_order, extrapolation_factor, false, Interpolation::LagrangeType::Linear);
+      itw=interpweights(lag);
+      reinterp(mag_v_field(joker, ilat, ilon), v.data(joker, ilat, ilon), itw, lag);
 
       chk_interpolation_grids("Magnetic W Field Altitude",
                               w.get_numeric_grid(0),
@@ -2810,16 +2706,10 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
                               interp_order,
                               extrapolation_factor,
                               false);
-      gp = ArrayOfGridPosPoly(nalt);
-      gridpos_poly(gp,
-                   w.get_numeric_grid(0),
-                   z_field(joker, ilat, ilon),
-                   interp_order,
-                   extrapolation_factor);
-      itw = Matrix(nalt, gp[0].w.nelem());
-      interpweights(itw, gp);
-      interp(
-          mag_w_field(joker, ilat, ilon), itw, w.data(joker, ilat, ilon), gp);
+      
+      lag=Interpolation::LagrangeVector(z_field(joker, ilat, ilon), w.get_numeric_grid(0), interp_order, extrapolation_factor, false, Interpolation::LagrangeType::Linear);
+      itw=interpweights(lag);
+      reinterp(mag_w_field(joker, ilat, ilon), w.data(joker, ilat, ilon), itw, lag);
     }
   }
 }
@@ -2916,10 +2806,6 @@ void WindFieldsCalc(  //WS Output:
     wind_v_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
     wind_w_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
 
-    // Gridpositions:
-    ArrayOfGridPosPoly gp_p(p_grid.nelem());
-    ArrayOfGridPosPoly gp_lat(lat_grid.nelem());
-
     // Interpolate wind_u_field:
 
     // Check that interpolation grids are ok (and throw a detailed
@@ -2932,23 +2818,16 @@ void WindFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    p2gridpos_poly(gp_p, ufr_p_grid, p_grid, interp_order);
-    gridpos_poly(gp_lat, ufr_lat_grid, lat_grid, interp_order);
-
-    // Interpolation weights:
-    Tensor3 itwu(p_grid.nelem(),
-                 lat_grid.nelem(),
-                 (interp_order + 1) * (interp_order + 1));
-    // (4 interpolation weights are required for example for linear 2D
-    // interpolation)
-    interpweights(itwu, gp_p, gp_lat);
+    auto lag_p=Interpolation::LagrangeVector(p_grid, ufr_p_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    auto lag_lat=Interpolation::LagrangeVector(lat_grid, ufr_lat_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto itwu = interpweights(lag_p, lag_lat);
 
     // Interpolate:
-    interp(wind_u_field(joker, joker, 0),
-           itwu,
-           wind_u_field_raw.data(joker, joker, 0),
-           gp_p,
-           gp_lat);
+    reinterp(wind_u_field(joker, joker, 0),
+             wind_u_field_raw.data(joker, joker, 0),
+             itwu,
+             lag_p,
+             lag_lat);
 
     // Interpolate wind_v_field:
 
@@ -2962,23 +2841,16 @@ void WindFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    p2gridpos_poly(gp_p, vfr_p_grid, p_grid, interp_order);
-    gridpos_poly(gp_lat, vfr_lat_grid, lat_grid, interp_order);
-
-    // Interpolation weights:
-    Tensor3 itwv(p_grid.nelem(),
-                 lat_grid.nelem(),
-                 (interp_order + 1) * (interp_order + 1));
-    // (4 interpolation weights are required for example for linear 2D
-    // interpolation)
-    interpweights(itwv, gp_p, gp_lat);
+    lag_p=Interpolation::LagrangeVector(p_grid, vfr_p_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    lag_lat=Interpolation::LagrangeVector(lat_grid, vfr_lat_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto itwv=interpweights(lag_p, lag_lat);
 
     // Interpolate:
-    interp(wind_v_field(joker, joker, 0),
-           itwv,
-           wind_v_field_raw.data(joker, joker, 0),
-           gp_p,
-           gp_lat);
+    reinterp(wind_v_field(joker, joker, 0),
+             wind_v_field_raw.data(joker, joker, 0),
+             itwv,
+             lag_p,
+             lag_lat);
 
     // Interpolate wind_w_field:
 
@@ -2992,23 +2864,16 @@ void WindFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    p2gridpos_poly(gp_p, wfr_p_grid, p_grid, interp_order);
-    gridpos_poly(gp_lat, wfr_lat_grid, lat_grid, interp_order);
-
-    // Interpolation weights:
-    Tensor3 itww(p_grid.nelem(),
-                 lat_grid.nelem(),
-                 (interp_order + 1) * (interp_order + 1));
-    // (4 interpolation weights are required for example for linear 2D
-    // interpolation)
-    interpweights(itww, gp_p, gp_lat);
+    lag_p=Interpolation::LagrangeVector(p_grid, wfr_p_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Log);
+    lag_lat=Interpolation::LagrangeVector(lat_grid, wfr_lat_grid, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+    const auto itww=interpweights(lag_p, lag_lat);
 
     // Interpolate:
-    interp(wind_w_field(joker, joker, 0),
-           itww,
-           wind_w_field_raw.data(joker, joker, 0),
-           gp_p,
-           gp_lat);
+    reinterp(wind_w_field(joker, joker, 0),
+             wind_w_field_raw.data(joker, joker, 0),
+             itww,
+             lag_p,
+             lag_lat);
   }
 
   //================================================================
