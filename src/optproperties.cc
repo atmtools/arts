@@ -327,7 +327,7 @@ void opt_prop_NScatElems(            //Output
   \author Jana Mendrok
   \date   2018-05-01
 */
-std::vector<LagrangeInterpolation> ssd_tinterp_parameters(  //Output
+ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
     VectorView t_ok,
     Index& this_T_interp_order,
     //Input
@@ -366,7 +366,7 @@ std::vector<LagrangeInterpolation> ssd_tinterp_parameters(  //Output
     
     if (any_T_exceed) {
       // Reserve output
-      std::vector<LagrangeInterpolation> T_lag;
+      ArrayOfLagrangeInterpolation T_lag;
       T_lag.reserve(nTout);
       
       bool grid_unchecked = true;
@@ -375,7 +375,7 @@ std::vector<LagrangeInterpolation> ssd_tinterp_parameters(  //Output
         if (t_ok[iT] < 0) {
           T_lag.emplace_back(0, 0.5, Vector({0, 1, 2}), 1, false);
           T_lag.back().pos = 0;
-          T_lag.back().lx = std::vector<double>(this_T_interp_order+1, 0);
+          T_lag.back().lx = Array<double>(this_T_interp_order+1, 0);
           T_lag.back().lx[0] = 1.;
         } else {
           if (grid_unchecked) {
