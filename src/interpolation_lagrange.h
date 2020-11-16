@@ -3355,4 +3355,9 @@ Tensor7 reinterp(
 }
 }  // namespace Interpolation
 
+using LagrangeInterpolation = Interpolation::Lagrange;
+
+template <std::size_t N>
+using FixedLagrangeInterpolation = Interpolation::FixedLagrange<N>;
+
 #endif  // interpolation_lagrange_h
