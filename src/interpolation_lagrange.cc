@@ -6,14 +6,14 @@ std::vector<Lagrange> LagrangeVector(
     const ConstVectorView& xs, const ConstVectorView& xi, const Index polyorder,
     const Numeric extrapol, const bool do_derivs, const LagrangeType type) {
   std::vector<Lagrange> out;
-  out.reserve(xs.nelem());
+  out.reserve(xs.size());
   bool has_one = false;
   for (auto x : xs) {
     if (has_one) {
-      out.push_back(Lagrange(out.back().pos, x, xi, polyorder, extrapol,
+      out.emplace_back(Lagrange(out.back().pos, x, xi, polyorder, extrapol,
                              do_derivs, type));
     } else {
-      out.push_back(Lagrange(0, x, xi, polyorder, extrapol, do_derivs, type));
+      out.emplace_back(Lagrange(start_pos_finder(x, xi, extrapol), x, xi, polyorder, extrapol, do_derivs, type));
       has_one = true;
     }
   }

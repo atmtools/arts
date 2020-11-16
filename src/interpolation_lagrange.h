@@ -63,7 +63,7 @@ class Grid {
   std::vector<b> ptr;
   std::array<std::size_t, n> gridsize;
   
-  std::size_t nelem() const { return ptr.size(); }
+  std::size_t size() const { return ptr.size(); }
   
 public:
   static constexpr std::size_t N = n;
@@ -87,7 +87,7 @@ public:
   }
   
   friend std::ostream& operator<<(std::ostream& os, const Grid& g) {
-    const std::size_t nel = g.nelem();
+    const std::size_t nel = g.size();
     for (std::size_t i = 0; i < nel; i++) {
       os << g.ptr[i];
       if constexpr (N > 1) {
@@ -161,6 +161,28 @@ constexpr Numeric cyclic_clamp(Numeric x,
     return cyclic_clamp(x - xlim.second + xlim.first, xlim);
   else
     return x;
+}
+
+/*! Find an estimation of the start position in a linearly
+ * separated grid (useful as a start position esitmated
+ * 
+ * @param[in] x The position
+ * @param[in] xvec The grid
+ * @param[in] extrapol Extrapolation factor to estimate some min-max values
+ * @return Estimated position of x [0, xvec.size())
+*/
+template <class SortedVectorType>
+constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec, const Numeric extrapol=0.5) {
+  const Index n = xvec.size();
+  if (n > 1) {
+    const Numeric minval = xvec[    0] - extrapol * (xvec[    1] - xvec[    0]);
+    const Numeric maxval = xvec[n - 1] + extrapol * (xvec[n - 1] - xvec[n - 2]);
+    const Numeric frac = (x - minval) / (maxval - minval);
+    const Index start_pos = Index(frac * (Numeric)(n - 2));
+    return start_pos > 0 ? (start_pos < n ? start_pos : n - 1) : 0;
+  } else {
+    return 0;
+  }
 }
 
 /*! Finds the position
@@ -435,6 +457,17 @@ struct Lagrange {
 
   /* Number of weights */
   Index size() const noexcept { return lx.size(); }
+  
+  // Enusre that the move constructor exists
+  Lagrange(Lagrange&& l) noexcept : pos(l.pos), lx(std::move(l.lx)), dlx(std::move(l.dlx)) {}
+  
+  // Enusre that the move operator exists
+  Lagrange& operator=(Lagrange&& l) noexcept {
+    pos = l.pos;
+    lx = std::move(l.lx);
+    dlx = std::move(l.dlx);
+    return *this;
+  }
 
   /*! Standard and only initializer, assumes sorted xi
    *
@@ -452,7 +485,7 @@ struct Lagrange {
            const bool do_derivs = true,
            const LagrangeType type = LagrangeType::Linear,
            const std::pair<Numeric, Numeric> cycle = {-180, 180}) {
-    const Index n = xi.nelem();
+    const Index n = xi.size();
     const Index p = polyorder + 1;
 
     if (cycle.first >= cycle.second) {
@@ -574,6 +607,17 @@ struct FixedLagrange {
 
   /* Number of weights */
   static constexpr Index size() noexcept { return PolyOrder + 1; }
+  
+  // Enusre that the move constructor exists
+  constexpr FixedLagrange(FixedLagrange&& l) noexcept : pos(l.pos), lx(std::move(l.lx)), dlx(std::move(l.dlx)) {}
+  
+  // Enusre that the move operator exists
+  constexpr FixedLagrange& operator=(FixedLagrange&& l) noexcept {
+    pos = l.pos;
+    lx = std::move(l.lx);
+    dlx = std::move(l.dlx);
+    return *this;
+  }
 
   /*! Standard initializer from Vector-types
    *
@@ -706,12 +750,13 @@ std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(
     const bool do_derivs, const LagrangeType type) {
   std::vector<FixedLagrange<PolyOrder>> out;
   out.reserve(xs.size());
-  for (decltype(xs.size()) i = 0; i < xs.size(); i++) {
-    if (i) {
-      out.push_back(
-          FixedLagrange<PolyOrder>(out[i - 1].pos, xs[i], xi, do_derivs, type));
+  bool has_one = false;
+  for (auto x : xs) {
+    if (has_one) {
+      out.emplace_back(FixedLagrange<PolyOrder>(out.back().pos, x, xi, do_derivs, type));
     } else {
-      out.push_back(FixedLagrange<PolyOrder>(0, xs[i], xi, do_derivs, type));
+      out.emplace_back(FixedLagrange<PolyOrder>(start_pos_finder(x, xi, 0.0), x, xi, do_derivs, type));
+      has_one = true;
     }
   }
   return out;
