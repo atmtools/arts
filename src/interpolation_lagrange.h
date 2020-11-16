@@ -60,7 +60,7 @@ constexpr std::size_t index_from_gridsize(std::array<std::size_t, N> gridsize,
 /** Row-major grid creation */
 template <typename b, std::size_t n>
 class Grid {
-  std::vector<b> ptr;
+  Array<b> ptr;
   std::array<std::size_t, n> gridsize;
   
   std::size_t size() const { return ptr.size(); }
@@ -467,8 +467,8 @@ constexpr Numeric dl(const Index p0, const Index n, const Numeric x,
 /*! A Lagrange interpolation computer */
 struct Lagrange {
   Index pos;
-  std::vector<Numeric> lx;
-  std::vector<Numeric> dlx;
+  Array<Numeric> lx;
+  Array<Numeric> dlx;
 
   /* Number of weights */
   Index size() const noexcept { return lx.size(); }
@@ -503,24 +503,23 @@ struct Lagrange {
     const Index n = xi.size();
     const Index p = polyorder + 1;
 
-    if (cycle.first >= cycle.second) {
-      throw std::runtime_error(
-          "The cycle must be {low, high}, regardless of LagrangeType");
-    }
-
     if (p > n) {
       throw std::runtime_error(
           "Requesting greater interpolation order than possible with given "
           "input grid\n");
-    } else if (const bool ascending = xi[0] < xi[1];
-               extrapol >= 0 and ascending
+    } else if (const bool ascending = xi[0] < xi[1]; LagrangeType::Cyclic not_eq type and
+               (extrapol >= 0 and ascending
                    ? (x < (xi[0] - extrapol * (xi[1] - xi[0])) or
                       x > (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2])))
                    : (x > (xi[0] - extrapol * (xi[1] - xi[0])) or
-                      x < (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2])))) {
+                      x < (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2]))))) {
       std::ostringstream os;
-      os << "Extrapolation factor too small at: " << extrapol
+      os << "Extrapolation factor too small at: " << extrapol << " for position: " << x
          << ", for grid: " << xi << '\n';
+      throw std::runtime_error(os.str());
+    } else if (LagrangeType::Cyclic == type and cycle.first >= cycle.second) {
+      std::ostringstream os;
+      os << "Cannot have a zero or negative cycle.  Cycle: " << cycle.first << " to " << cycle.second << '\n';
       throw std::runtime_error(os.str());
     } else {
       // Set the position
@@ -548,11 +547,11 @@ struct Lagrange {
  private:
   /*! Finds lx */
   template <class SortedVectorType>
-  static std::vector<Numeric> lx_finder(
+  static Array<Numeric> lx_finder(
       const Index p0, const Index n, const Numeric x,
       const SortedVectorType& xi, const LagrangeType type,
       const std::pair<Numeric, Numeric> cycle) noexcept {
-    std::vector<Numeric> out(n);
+    Array<Numeric> out(n);
     switch (type) {
       case LagrangeType::Linear:
         for (Index j = 0; j < n; j++)
@@ -582,12 +581,12 @@ struct Lagrange {
 
   /*! Finds dlx */
   template <class SortedVectorType>
-  static std::vector<Numeric> dlx_finder(
+  static Array<Numeric> dlx_finder(
       const Index p0, const Index n, const Numeric x,
-      const SortedVectorType& xi, const std::vector<Numeric>& li,
+      const SortedVectorType& xi, const Array<Numeric>& li,
       const LagrangeType type,
       const std::pair<Numeric, Numeric> cycle) noexcept {
-    std::vector<Numeric> out(n);
+    Array<Numeric> out(n);
     switch (type) {
       case LagrangeType::Linear:
         for (Index j = 0; j < n; j++)
@@ -750,9 +749,9 @@ struct FixedLagrange {
  * @param[in] extrapol Level of extrapolation
  * @return vector of Lagrange
  */
-std::vector<Lagrange> LagrangeVector(
+Array<Lagrange> LagrangeVector(
     const ConstVectorView& x, const ConstVectorView& xi, const Index polyorder,
-    const Numeric extrapol, const bool do_derivs, const LagrangeType type);
+    const Numeric extrapol, const bool do_derivs, const LagrangeType type, const std::pair<Numeric, Numeric> cycle={-180, 180});
 
 /*! Gets a vector of Lagrange interpolation points
  *
@@ -763,17 +762,17 @@ std::vector<Lagrange> LagrangeVector(
  */
 template <std::size_t PolyOrder, class UnsortedVectorType,
           class SortedVectorType>
-std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(
+Array<FixedLagrange<PolyOrder>> FixedLagrangeVector(
     const UnsortedVectorType& xs, const SortedVectorType& xi,
-    const bool do_derivs, const LagrangeType type) {
-  std::vector<FixedLagrange<PolyOrder>> out;
+    const bool do_derivs, const LagrangeType type, const std::pair<Numeric, Numeric> cycle={-180, 180}) {
+  Array<FixedLagrange<PolyOrder>> out;
   out.reserve(xs.size());
   bool has_one = false;
   for (auto x : xs) {
     if (has_one) {
-      out.emplace_back(out.back().pos, x, xi, do_derivs, type);
+      out.emplace_back(out.back().pos, x, xi, do_derivs, type, cycle);
     } else {
-      out.emplace_back(start_pos_finder(x, xi, 0.0), x, xi, do_derivs, type);
+      out.emplace_back(start_pos_finder(x, xi, 0.0), x, xi, do_derivs, type, cycle);
       has_one = true;
     }
   }
@@ -802,7 +801,7 @@ void interpweights(VectorView iw, const Lagrange& dim0);
  * @param[in] dim0 - Interpolation along dimension 0
  * @return Vector - interpweights
  */
-void interpweights(Grid<Vector, 1>& iw, const std::vector<Lagrange>& dim0);
+void interpweights(Grid<Vector, 1>& iw, const Array<Lagrange>& dim0);
 
 /*! Interpolation weights for a 1D reduction
  *
@@ -816,7 +815,7 @@ Vector interpweights(const Lagrange& dim0);
  * @param[in] dim0 - Interpolation along dimension 0
  * @return Vector - interpweights
  */
-Grid<Vector, 1> interpweights(const std::vector<Lagrange>& dim0);
+Grid<Vector, 1> interpweights(const Array<Lagrange>& dim0);
 
 /*! Interpolation weights for a 1D reduction
  *
@@ -836,7 +835,7 @@ constexpr const std::array<Numeric, PolyOrder + 1>& interpweights(
  */
 template <std::size_t PolyOrder>
 Grid<std::array<Numeric, PolyOrder + 1>, 1> interpweights(
-    const std::vector<FixedLagrange<PolyOrder>>& dim0) {
+    const Array<FixedLagrange<PolyOrder>>& dim0) {
   Grid<std::array<Numeric, PolyOrder + 1>, 1> out(dim0.size());
   for (std::size_t i = 0; i < dim0.size(); i++) out(i) = interpweights(dim0[i]);
   return out;
@@ -860,7 +859,7 @@ void dinterpweights(VectorView diw, const Lagrange& dim0);
  * @param[in] dim0 - Interpolation along dimension 0
  * @return Vector - interpweights derivative along 0th dimension
  */
-void dinterpweights(Grid<Vector, 1>& diw, const std::vector<Lagrange>& dim0);
+void dinterpweights(Grid<Vector, 1>& diw, const Array<Lagrange>& dim0);
 
 /*! Interpolation weights derivative for a 1D reduction
  *
@@ -874,7 +873,7 @@ Vector dinterpweights(const Lagrange& dim0);
  * @param[in] dim0 - Interpolation along dimension 0
  * @return Vector - interpweights derivative along 0th dimension
  */
-Grid<Vector, 1> dinterpweights(const std::vector<Lagrange>& dim0);
+Grid<Vector, 1> dinterpweights(const Array<Lagrange>& dim0);
 
 /*! Interpolation weights derivative for a 1D reduction
  *
@@ -894,7 +893,7 @@ constexpr std::array<Numeric, PolyOrder + 1> dinterpweights(
  */
 template <std::size_t PolyOrder>
 Grid<std::array<Numeric, PolyOrder + 1>, 1> dinterpweights(
-    const std::vector<FixedLagrange<PolyOrder>>& dim0) {
+    const Array<FixedLagrange<PolyOrder>>& dim0) {
   Grid<std::array<Numeric, PolyOrder + 1>, 1> out(dim0.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
     out(i) = dinterpweights(dim0[i]);
@@ -949,7 +948,7 @@ constexpr Numeric interp(const VectorType& yi,
  * @return Vector of interpolated value
  */
 void reinterp(VectorView out, const ConstVectorView& iy,
-              const Grid<Vector, 1>& iw, const std::vector<Lagrange>& dim0);
+              const Grid<Vector, 1>& iw, const Array<Lagrange>& dim0);
 
 /*! Reinterpreting interpolation routine
  *
@@ -960,7 +959,7 @@ void reinterp(VectorView out, const ConstVectorView& iy,
  * @return Vector of interpolated value
  */
 Vector reinterp(const ConstVectorView& iy, const Grid<Vector, 1>& iw,
-                const std::vector<Lagrange>& dim0);
+                const Array<Lagrange>& dim0);
 
 /*! Reinterpreting fixed interpolation routine
  *
@@ -973,7 +972,7 @@ Vector reinterp(const ConstVectorView& iy, const Grid<Vector, 1>& iw,
 template <std::size_t PolyOrder>
 Vector reinterp(const ConstVectorView& iy,
                 const Grid<std::array<Numeric, PolyOrder + 1>, 1>& iw,
-                const std::vector<FixedLagrange<PolyOrder>>& dim0) {
+                const Array<FixedLagrange<PolyOrder>>& dim0) {
   Vector out(dim0.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
     out[i] = interp(iy, iw(i), dim0[i]);
@@ -1004,8 +1003,8 @@ void interpweights(MatrixView iw, const Lagrange& dim0, const Lagrange& dim1);
  * @param[in] dim1 - Interpolation along dimension 1
  * @return Matrix - interpweights
  */
-void interpweights(Grid<Matrix, 2>& iw, const std::vector<Lagrange>& dim0,
-                   const std::vector<Lagrange>& dim1);
+void interpweights(Grid<Matrix, 2>& iw, const Array<Lagrange>& dim0,
+                   const Array<Lagrange>& dim1);
 
 /*! Interpolation weights for a 2D reduction
  *
@@ -1021,8 +1020,8 @@ Matrix interpweights(const Lagrange& dim0, const Lagrange& dim1);
  * @param[in] dim1 - Interpolation along dimension 1
  * @return Matrix - interpweights
  */
-Grid<Matrix, 2> interpweights(const std::vector<Lagrange>& dim0,
-                              const std::vector<Lagrange>& dim1);
+Grid<Matrix, 2> interpweights(const Array<Lagrange>& dim0,
+                              const Array<Lagrange>& dim1);
 /*! Interpolation weights for a 2D reduction
  *
  * @param[in] dim0 - Interpolation along dimension 0
@@ -1047,8 +1046,8 @@ constexpr FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1> interpweights(
  */
 template <std::size_t PolyOrder0, std::size_t PolyOrder1>
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1>, 2> interpweights(
-    const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-    const std::vector<FixedLagrange<PolyOrder1>>& dim1) {
+    const Array<FixedLagrange<PolyOrder0>>& dim0,
+    const Array<FixedLagrange<PolyOrder1>>& dim1) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1>, 2> out(dim0.size(),
                                                                   dim1.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
@@ -1080,8 +1079,8 @@ void dinterpweights(MatrixView diw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Matrix - interpweights derivative along dim dimension
  */
-void dinterpweights(Grid<Matrix, 2>& diw, const std::vector<Lagrange>& dim0,
-                    const std::vector<Lagrange>& dim1, Index dim);
+void dinterpweights(Grid<Matrix, 2>& diw, const Array<Lagrange>& dim0,
+                    const Array<Lagrange>& dim1, Index dim);
 
 /*! Interpolation weights derivative for a 2D reduction
  *
@@ -1099,8 +1098,8 @@ Matrix dinterpweights(const Lagrange& dim0, const Lagrange& dim1, Index dim);
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Matrix - interpweights derivative along dim dimension
  */
-Grid<Matrix, 2> dinterpweights(const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1, Index dim);
+Grid<Matrix, 2> dinterpweights(const Array<Lagrange>& dim0,
+                               const Array<Lagrange>& dim1, Index dim);
 
 /*! Interpolation weights derivative for a 2D reduction
  *
@@ -1134,8 +1133,8 @@ constexpr FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1> dinterpweights(
 template <std::size_t PolyOrder0, std::size_t PolyOrder1,
           std::size_t DerivativeDim>
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1>, 2> dinterpweights(
-    const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-    const std::vector<FixedLagrange<PolyOrder1>>& dim1) {
+    const Array<FixedLagrange<PolyOrder0>>& dim0,
+    const Array<FixedLagrange<PolyOrder1>>& dim1) {
   static_assert(DerivativeDim < 2);
 
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1>, 2> out(dim0.size(),
@@ -1202,8 +1201,8 @@ constexpr Numeric interp(
  * @return Matrix of interpolated value
  */
 void reinterp(MatrixView out, const ConstMatrixView& iy,
-              const Grid<Matrix, 2>& iw, const std::vector<Lagrange>& dim0,
-              const std::vector<Lagrange>& dim1);
+              const Grid<Matrix, 2>& iw, const Array<Lagrange>& dim0,
+              const Array<Lagrange>& dim1);
 
 /*! Reinterpreting interpolation routine
  *
@@ -1217,8 +1216,8 @@ void reinterp(MatrixView out, const ConstMatrixView& iy,
  */
 void reinterp_reduce(VectorView out, const ConstMatrixView& iy,
                      const Grid<Matrix, 2>& iw,
-                     const std::vector<Lagrange>& dim0,
-                     const std::vector<Lagrange>& dim1);
+                     const Array<Lagrange>& dim0,
+                     const Array<Lagrange>& dim1);
 
 /*! Reinterpreting interpolation routine
  *
@@ -1230,8 +1229,8 @@ void reinterp_reduce(VectorView out, const ConstMatrixView& iy,
  * @return Matrix of interpolated value
  */
 Matrix reinterp(const ConstMatrixView& iy, const Grid<Matrix, 2>& iw,
-                const std::vector<Lagrange>& dim0,
-                const std::vector<Lagrange>& dim1);
+                const Array<Lagrange>& dim0,
+                const Array<Lagrange>& dim1);
 
 /*! Reinterpreting interpolation routine
  *
@@ -1246,8 +1245,8 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1>
 Matrix reinterp(
     const ConstMatrixView& iy,
     const Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1>, 2>& iw,
-    const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-    const std::vector<FixedLagrange<PolyOrder1>>& dim1) {
+    const Array<FixedLagrange<PolyOrder0>>& dim0,
+    const Array<FixedLagrange<PolyOrder1>>& dim1) {
   Matrix out(dim0.size(), dim1.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
@@ -1282,9 +1281,9 @@ void interpweights(Tensor3View iw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim2 - Interpolation along dimension 2
  * @return Tensor3 - interpweights
  */
-void interpweights(Grid<Tensor3, 3>& iw, const std::vector<Lagrange>& dim0,
-                   const std::vector<Lagrange>& dim1,
-                   const std::vector<Lagrange>& dim2);
+void interpweights(Grid<Tensor3, 3>& iw, const Array<Lagrange>& dim0,
+                   const Array<Lagrange>& dim1,
+                   const Array<Lagrange>& dim2);
 
 /*! Interpolation weights for a 3D reduction
  *
@@ -1303,9 +1302,9 @@ Tensor3 interpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim2 - Interpolation along dimension 2
  * @return Tensor3 - interpweights
  */
-Grid<Tensor3, 3> interpweights(const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2);
+Grid<Tensor3, 3> interpweights(const Array<Lagrange>& dim0,
+                               const Array<Lagrange>& dim1,
+                               const Array<Lagrange>& dim2);
 
 /*! Interpolation weights for a 3D reduction
  *
@@ -1338,9 +1337,9 @@ interpweights(const FixedLagrange<PolyOrder0>& dim0,
 template <std::size_t PolyOrder0, std::size_t PolyOrder1,
           std::size_t PolyOrder2>
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1>, 3>
-interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-              const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-              const std::vector<FixedLagrange<PolyOrder2>>& dim2) {
+interpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+              const Array<FixedLagrange<PolyOrder1>>& dim1,
+              const Array<FixedLagrange<PolyOrder2>>& dim2) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1>, 3>
       out(dim0.size(), dim1.size(), dim2.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
@@ -1375,9 +1374,9 @@ void dinterpweights(Tensor3View diw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor3 - interpweights derivative along dim dimension
  */
-void dinterpweights(Grid<Tensor3, 3>& diw, const std::vector<Lagrange>& dim0,
-                    const std::vector<Lagrange>& dim1,
-                    const std::vector<Lagrange>& dim2, Index dim);
+void dinterpweights(Grid<Tensor3, 3>& diw, const Array<Lagrange>& dim0,
+                    const Array<Lagrange>& dim1,
+                    const Array<Lagrange>& dim2, Index dim);
 
 /*! Interpolation weights derivative for a 3D reduction
  *
@@ -1398,9 +1397,9 @@ Tensor3 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor3 - interpweights derivative along dim dimension
  */
-Grid<Tensor3, 3> dinterpweights(const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2, Index dim);
+Grid<Tensor3, 3> dinterpweights(const Array<Lagrange>& dim0,
+                                const Array<Lagrange>& dim1,
+                                const Array<Lagrange>& dim2, Index dim);
 
 /*! Interpolation weights derivative for a 3D reduction
  *
@@ -1439,9 +1438,9 @@ dinterpweights(const FixedLagrange<PolyOrder0>& dim0,
 template <std::size_t PolyOrder0, std::size_t PolyOrder1,
           std::size_t PolyOrder2, std::size_t DerivativeDim>
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1>, 3>
-dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-               const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-               const std::vector<FixedLagrange<PolyOrder2>>& dim2) {
+dinterpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+               const Array<FixedLagrange<PolyOrder1>>& dim1,
+               const Array<FixedLagrange<PolyOrder2>>& dim2) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1>, 3>
       out(dim0.size(), dim0.size(), dim2.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
@@ -1518,9 +1517,9 @@ constexpr Numeric interp(const Tensor3Type& yi,
  * @return Tensor3 of interpolated value
  */
 void reinterp(Tensor3View out, const ConstTensor3View& iy,
-              const Grid<Tensor3, 3>& iw, const std::vector<Lagrange>& dim0,
-              const std::vector<Lagrange>& dim1,
-              const std::vector<Lagrange>& dim2);
+              const Grid<Tensor3, 3>& iw, const Array<Lagrange>& dim0,
+              const Array<Lagrange>& dim1,
+              const Array<Lagrange>& dim2);
 
 /*! Reinterpreting interpolation routine
  *
@@ -1535,9 +1534,9 @@ void reinterp(Tensor3View out, const ConstTensor3View& iy,
  */
 void reinterp_reduce(VectorView out, const ConstTensor3View& iy,
                      const Grid<Tensor3, 3>& iw,
-                     const std::vector<Lagrange>& dim0,
-                     const std::vector<Lagrange>& dim1,
-                     const std::vector<Lagrange>& dim2);
+                     const Array<Lagrange>& dim0,
+                     const Array<Lagrange>& dim1,
+                     const Array<Lagrange>& dim2);
 
 /*! Reinterpreting interpolation routine
  *
@@ -1550,9 +1549,9 @@ void reinterp_reduce(VectorView out, const ConstTensor3View& iy,
  * @return Tensor3 of interpolated value
  */
 Tensor3 reinterp(const ConstTensor3View& iy, const Grid<Tensor3, 3>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2);
+                 const Array<Lagrange>& dim0,
+                 const Array<Lagrange>& dim1,
+                 const Array<Lagrange>& dim2);
 
 /*! Reinterpreting interpolation routine
  *
@@ -1571,9 +1570,9 @@ Tensor3 reinterp(
     const Grid<
         FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1>, 3>&
         iw,
-    const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-    const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-    const std::vector<FixedLagrange<PolyOrder2>>& dim2) {
+    const Array<FixedLagrange<PolyOrder0>>& dim0,
+    const Array<FixedLagrange<PolyOrder1>>& dim1,
+    const Array<FixedLagrange<PolyOrder2>>& dim2) {
   Tensor3 out(dim0.size(), dim1.size(), dim2.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
@@ -1611,10 +1610,10 @@ void interpweights(Tensor4View iw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim3 - Interpolation along dimension 3
  * @return Tensor4 - interpweights
  */
-void interpweights(Grid<Tensor4, 4>& iw, const std::vector<Lagrange>& dim0,
-                   const std::vector<Lagrange>& dim1,
-                   const std::vector<Lagrange>& dim2,
-                   const std::vector<Lagrange>& dim3);
+void interpweights(Grid<Tensor4, 4>& iw, const Array<Lagrange>& dim0,
+                   const Array<Lagrange>& dim1,
+                   const Array<Lagrange>& dim2,
+                   const Array<Lagrange>& dim3);
 
 /*! Interpolation weights for a 4D reduction
  *
@@ -1635,10 +1634,10 @@ Tensor4 interpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim3 - Interpolation along dimension 3
  * @return Tensor4 - interpweights
  */
-Grid<Tensor4, 4> interpweights(const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2,
-                               const std::vector<Lagrange>& dim3);
+Grid<Tensor4, 4> interpweights(const Array<Lagrange>& dim0,
+                               const Array<Lagrange>& dim1,
+                               const Array<Lagrange>& dim2,
+                               const Array<Lagrange>& dim3);
 
 /*! Interpolation weights for a 4D reduction
  *
@@ -1680,10 +1679,10 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                PolyOrder3 + 1>,
      4>
-interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-              const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-              const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-              const std::vector<FixedLagrange<PolyOrder3>>& dim3) {
+interpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+              const Array<FixedLagrange<PolyOrder1>>& dim1,
+              const Array<FixedLagrange<PolyOrder2>>& dim2,
+              const Array<FixedLagrange<PolyOrder3>>& dim3) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                  PolyOrder3 + 1>,
        4>
@@ -1723,10 +1722,10 @@ void dinterpweights(Tensor4View diw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor4 - interpweights derivative along dim dimension
  */
-void dinterpweights(Grid<Tensor4, 4>& diw, const std::vector<Lagrange>& dim0,
-                    const std::vector<Lagrange>& dim1,
-                    const std::vector<Lagrange>& dim2,
-                    const std::vector<Lagrange>& dim3, Index dim);
+void dinterpweights(Grid<Tensor4, 4>& diw, const Array<Lagrange>& dim0,
+                    const Array<Lagrange>& dim1,
+                    const Array<Lagrange>& dim2,
+                    const Array<Lagrange>& dim3, Index dim);
 
 /*! Interpolation weights derivative for a 4D reduction
  *
@@ -1749,10 +1748,10 @@ Tensor4 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor4 - interpweights derivative along dim dimension
  */
-Grid<Tensor4, 4> dinterpweights(const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2,
-                                const std::vector<Lagrange>& dim3, Index dim);
+Grid<Tensor4, 4> dinterpweights(const Array<Lagrange>& dim0,
+                                const Array<Lagrange>& dim1,
+                                const Array<Lagrange>& dim2,
+                                const Array<Lagrange>& dim3, Index dim);
 
 /*! Interpolation weights derivative for a 4D reduction
  *
@@ -1803,10 +1802,10 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                PolyOrder3 + 1>,
      4>
-dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-               const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-               const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-               const std::vector<FixedLagrange<PolyOrder3>>& dim3) {
+dinterpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+               const Array<FixedLagrange<PolyOrder1>>& dim1,
+               const Array<FixedLagrange<PolyOrder2>>& dim2,
+               const Array<FixedLagrange<PolyOrder3>>& dim3) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                  PolyOrder3 + 1>,
        4>
@@ -1893,10 +1892,10 @@ constexpr Numeric interp(
  * @return Tensor4 of interpolated value
  */
 void reinterp(Tensor4View out, const ConstTensor4View& iy,
-              const Grid<Tensor4, 4>& iw, const std::vector<Lagrange>& dim0,
-              const std::vector<Lagrange>& dim1,
-              const std::vector<Lagrange>& dim2,
-              const std::vector<Lagrange>& dim3);
+              const Grid<Tensor4, 4>& iw, const Array<Lagrange>& dim0,
+              const Array<Lagrange>& dim1,
+              const Array<Lagrange>& dim2,
+              const Array<Lagrange>& dim3);
 
 /*! Reinterpreting interpolation routine
  *
@@ -1912,10 +1911,10 @@ void reinterp(Tensor4View out, const ConstTensor4View& iy,
  */
 void reinterp_reduce(VectorView out, const ConstTensor4View& iy,
                      const Grid<Tensor4, 4>& iw,
-                     const std::vector<Lagrange>& dim0,
-                     const std::vector<Lagrange>& dim1,
-                     const std::vector<Lagrange>& dim2,
-                     const std::vector<Lagrange>& dim3);
+                     const Array<Lagrange>& dim0,
+                     const Array<Lagrange>& dim1,
+                     const Array<Lagrange>& dim2,
+                     const Array<Lagrange>& dim3);
 
 /*! Reinterpreting interpolation routine
  *
@@ -1929,10 +1928,10 @@ void reinterp_reduce(VectorView out, const ConstTensor4View& iy,
  * @return Tensor4 of interpolated value
  */
 Tensor4 reinterp(const ConstTensor4View& iy, const Grid<Tensor4, 4>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2,
-                 const std::vector<Lagrange>& dim3);
+                 const Array<Lagrange>& dim0,
+                 const Array<Lagrange>& dim1,
+                 const Array<Lagrange>& dim2,
+                 const Array<Lagrange>& dim3);
 
 /*! Reinterpreting interpolation routine
  *
@@ -1951,10 +1950,10 @@ Tensor4 reinterp(const ConstTensor4View& iy,
                  const Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1,
                                       PolyOrder2 + 1, PolyOrder3 + 1>,
                             4>& iw,
-                 const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-                 const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-                 const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-                 const std::vector<FixedLagrange<PolyOrder3>>& dim3) {
+                 const Array<FixedLagrange<PolyOrder0>>& dim0,
+                 const Array<FixedLagrange<PolyOrder1>>& dim1,
+                 const Array<FixedLagrange<PolyOrder2>>& dim2,
+                 const Array<FixedLagrange<PolyOrder3>>& dim3) {
   Tensor4 out(dim0.size(), dim1.size(), dim2.size(), dim3.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
     for (std::size_t j = 0; j < dim1.size(); j++)
@@ -1997,11 +1996,11 @@ void interpweights(Tensor5View iw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim4 - Interpolation along dimension 4
  * @return Tensor5 - interpweights
  */
-void interpweights(Grid<Tensor5, 5>& iw, const std::vector<Lagrange>& dim0,
-                   const std::vector<Lagrange>& dim1,
-                   const std::vector<Lagrange>& dim2,
-                   const std::vector<Lagrange>& dim3,
-                   const std::vector<Lagrange>& dim4);
+void interpweights(Grid<Tensor5, 5>& iw, const Array<Lagrange>& dim0,
+                   const Array<Lagrange>& dim1,
+                   const Array<Lagrange>& dim2,
+                   const Array<Lagrange>& dim3,
+                   const Array<Lagrange>& dim4);
 
 /*! Interpolation weights for a 5D reduction
  *
@@ -2025,11 +2024,11 @@ Tensor5 interpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim4 - Interpolation along dimension 4
  * @return Tensor5 - interpweights
  */
-Grid<Tensor5, 5> interpweights(const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2,
-                               const std::vector<Lagrange>& dim3,
-                               const std::vector<Lagrange>& dim4);
+Grid<Tensor5, 5> interpweights(const Array<Lagrange>& dim0,
+                               const Array<Lagrange>& dim1,
+                               const Array<Lagrange>& dim2,
+                               const Array<Lagrange>& dim3,
+                               const Array<Lagrange>& dim4);
 
 /*! Interpolation weights for a 5D reduction
  *
@@ -2078,11 +2077,11 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                PolyOrder3 + 1, PolyOrder4 + 1>,
      5>
-interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-              const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-              const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-              const std::vector<FixedLagrange<PolyOrder3>>& dim3,
-              const std::vector<FixedLagrange<PolyOrder4>>& dim4) {
+interpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+              const Array<FixedLagrange<PolyOrder1>>& dim1,
+              const Array<FixedLagrange<PolyOrder2>>& dim2,
+              const Array<FixedLagrange<PolyOrder3>>& dim3,
+              const Array<FixedLagrange<PolyOrder4>>& dim4) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                  PolyOrder3 + 1, PolyOrder4 + 1>,
        5>
@@ -2127,11 +2126,11 @@ void dinterpweights(Tensor5View diw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor5 - interpweights derivative along dim dimension
  */
-void dinterpweights(Grid<Tensor5, 5>& diw, const std::vector<Lagrange>& dim0,
-                    const std::vector<Lagrange>& dim1,
-                    const std::vector<Lagrange>& dim2,
-                    const std::vector<Lagrange>& dim3,
-                    const std::vector<Lagrange>& dim4, Index dim);
+void dinterpweights(Grid<Tensor5, 5>& diw, const Array<Lagrange>& dim0,
+                    const Array<Lagrange>& dim1,
+                    const Array<Lagrange>& dim2,
+                    const Array<Lagrange>& dim3,
+                    const Array<Lagrange>& dim4, Index dim);
 
 /*! Interpolation weights derivative for a 5D reduction
  *
@@ -2157,11 +2156,11 @@ Tensor5 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor5 - interpweights derivative along dim dimension
  */
-Grid<Tensor5, 5> dinterpweights(const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2,
-                                const std::vector<Lagrange>& dim3,
-                                const std::vector<Lagrange>& dim4, Index dim);
+Grid<Tensor5, 5> dinterpweights(const Array<Lagrange>& dim0,
+                                const Array<Lagrange>& dim1,
+                                const Array<Lagrange>& dim2,
+                                const Array<Lagrange>& dim3,
+                                const Array<Lagrange>& dim4, Index dim);
 
 /*! Interpolation weights derivative for a 5D reduction
  *
@@ -2218,11 +2217,11 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                PolyOrder3 + 1, PolyOrder4 + 1>,
      5>
-dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-               const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-               const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-               const std::vector<FixedLagrange<PolyOrder3>>& dim3,
-               const std::vector<FixedLagrange<PolyOrder4>>& dim4) {
+dinterpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+               const Array<FixedLagrange<PolyOrder1>>& dim1,
+               const Array<FixedLagrange<PolyOrder2>>& dim2,
+               const Array<FixedLagrange<PolyOrder3>>& dim3,
+               const Array<FixedLagrange<PolyOrder4>>& dim4) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                  PolyOrder3 + 1, PolyOrder4 + 1>,
        5>
@@ -2319,11 +2318,11 @@ constexpr Numeric interp(
  * @return Tensor5 of interpolated value
  */
 void reinterp(Tensor5View out, const ConstTensor5View& iy,
-              const Grid<Tensor5, 5>& iw, const std::vector<Lagrange>& dim0,
-              const std::vector<Lagrange>& dim1,
-              const std::vector<Lagrange>& dim2,
-              const std::vector<Lagrange>& dim3,
-              const std::vector<Lagrange>& dim4);
+              const Grid<Tensor5, 5>& iw, const Array<Lagrange>& dim0,
+              const Array<Lagrange>& dim1,
+              const Array<Lagrange>& dim2,
+              const Array<Lagrange>& dim3,
+              const Array<Lagrange>& dim4);
 
 /*! Reinterpreting interpolation routine
  *
@@ -2340,11 +2339,11 @@ void reinterp(Tensor5View out, const ConstTensor5View& iy,
  */
 void reinterp_reduce(VectorView out, const ConstTensor5View& iy,
                      const Grid<Tensor5, 5>& iw,
-                     const std::vector<Lagrange>& dim0,
-                     const std::vector<Lagrange>& dim1,
-                     const std::vector<Lagrange>& dim2,
-                     const std::vector<Lagrange>& dim3,
-                     const std::vector<Lagrange>& dim4);
+                     const Array<Lagrange>& dim0,
+                     const Array<Lagrange>& dim1,
+                     const Array<Lagrange>& dim2,
+                     const Array<Lagrange>& dim3,
+                     const Array<Lagrange>& dim4);
 
 /*! Reinterpreting interpolation routine
  *
@@ -2359,11 +2358,11 @@ void reinterp_reduce(VectorView out, const ConstTensor5View& iy,
  * @return Tensor5 of interpolated value
  */
 Tensor5 reinterp(const ConstTensor5View& iy, const Grid<Tensor5, 5>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2,
-                 const std::vector<Lagrange>& dim3,
-                 const std::vector<Lagrange>& dim4);
+                 const Array<Lagrange>& dim0,
+                 const Array<Lagrange>& dim1,
+                 const Array<Lagrange>& dim2,
+                 const Array<Lagrange>& dim3,
+                 const Array<Lagrange>& dim4);
 
 /*! Reinterpreting interpolation routine
  *
@@ -2435,12 +2434,12 @@ void interpweights(Tensor6View iw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim5 - Interpolation along dimension 5
  * @return Tensor6 - interpweights
  */
-void interpweights(Grid<Tensor6, 6>& iw, const std::vector<Lagrange>& dim0,
-                   const std::vector<Lagrange>& dim1,
-                   const std::vector<Lagrange>& dim2,
-                   const std::vector<Lagrange>& dim3,
-                   const std::vector<Lagrange>& dim4,
-                   const std::vector<Lagrange>& dim5);
+void interpweights(Grid<Tensor6, 6>& iw, const Array<Lagrange>& dim0,
+                   const Array<Lagrange>& dim1,
+                   const Array<Lagrange>& dim2,
+                   const Array<Lagrange>& dim3,
+                   const Array<Lagrange>& dim4,
+                   const Array<Lagrange>& dim5);
 
 /*! Interpolation weights for a 6D reduction
  *
@@ -2466,12 +2465,12 @@ Tensor6 interpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim5 - Interpolation along dimension 5
  * @return Tensor6 - interpweights
  */
-Grid<Tensor6, 6> interpweights(const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2,
-                               const std::vector<Lagrange>& dim3,
-                               const std::vector<Lagrange>& dim4,
-                               const std::vector<Lagrange>& dim5);
+Grid<Tensor6, 6> interpweights(const Array<Lagrange>& dim0,
+                               const Array<Lagrange>& dim1,
+                               const Array<Lagrange>& dim2,
+                               const Array<Lagrange>& dim3,
+                               const Array<Lagrange>& dim4,
+                               const Array<Lagrange>& dim5);
 
 /*! Interpolation weights for a 6D reduction
  *
@@ -2524,12 +2523,12 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                PolyOrder3 + 1, PolyOrder4 + 1, PolyOrder5 + 1>,
      6>
-interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-              const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-              const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-              const std::vector<FixedLagrange<PolyOrder3>>& dim3,
-              const std::vector<FixedLagrange<PolyOrder4>>& dim4,
-              const std::vector<FixedLagrange<PolyOrder5>>& dim5) {
+interpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+              const Array<FixedLagrange<PolyOrder1>>& dim1,
+              const Array<FixedLagrange<PolyOrder2>>& dim2,
+              const Array<FixedLagrange<PolyOrder3>>& dim3,
+              const Array<FixedLagrange<PolyOrder4>>& dim4,
+              const Array<FixedLagrange<PolyOrder5>>& dim5) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                  PolyOrder3 + 1, PolyOrder4 + 1, PolyOrder5 + 1>,
        6>
@@ -2578,12 +2577,12 @@ void dinterpweights(Tensor6View diw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor6 - interpweights derivative along dim dimension
  */
-void dinterpweights(Grid<Tensor6, 6>& diw, const std::vector<Lagrange>& dim0,
-                    const std::vector<Lagrange>& dim1,
-                    const std::vector<Lagrange>& dim2,
-                    const std::vector<Lagrange>& dim3,
-                    const std::vector<Lagrange>& dim4,
-                    const std::vector<Lagrange>& dim5, Index dim);
+void dinterpweights(Grid<Tensor6, 6>& diw, const Array<Lagrange>& dim0,
+                    const Array<Lagrange>& dim1,
+                    const Array<Lagrange>& dim2,
+                    const Array<Lagrange>& dim3,
+                    const Array<Lagrange>& dim4,
+                    const Array<Lagrange>& dim5, Index dim);
 
 /*! Interpolation weights derivative for a 6D reduction
  *
@@ -2611,12 +2610,12 @@ Tensor6 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor6 - interpweights derivative along dim dimension
  */
-Grid<Tensor6, 6> dinterpweights(const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2,
-                                const std::vector<Lagrange>& dim3,
-                                const std::vector<Lagrange>& dim4,
-                                const std::vector<Lagrange>& dim5, Index dim);
+Grid<Tensor6, 6> dinterpweights(const Array<Lagrange>& dim0,
+                                const Array<Lagrange>& dim1,
+                                const Array<Lagrange>& dim2,
+                                const Array<Lagrange>& dim3,
+                                const Array<Lagrange>& dim4,
+                                const Array<Lagrange>& dim5, Index dim);
 
 /*! Interpolation weights derivative for a 6D reduction
  *
@@ -2680,12 +2679,12 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                PolyOrder3 + 1, PolyOrder4 + 1, PolyOrder5 + 1>,
      6>
-dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-               const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-               const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-               const std::vector<FixedLagrange<PolyOrder3>>& dim3,
-               const std::vector<FixedLagrange<PolyOrder4>>& dim4,
-               const std::vector<FixedLagrange<PolyOrder5>>& dim5) {
+dinterpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+               const Array<FixedLagrange<PolyOrder1>>& dim1,
+               const Array<FixedLagrange<PolyOrder2>>& dim2,
+               const Array<FixedLagrange<PolyOrder3>>& dim3,
+               const Array<FixedLagrange<PolyOrder4>>& dim4,
+               const Array<FixedLagrange<PolyOrder5>>& dim5) {
   Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                  PolyOrder3 + 1, PolyOrder4 + 1, PolyOrder5 + 1>,
        6>
@@ -2791,12 +2790,12 @@ constexpr Numeric interp(
  * @return Tensor6 of interpolated value
  */
 void reinterp(Tensor6View out, const ConstTensor6View& iy,
-              const Grid<Tensor6, 6>& iw, const std::vector<Lagrange>& dim0,
-              const std::vector<Lagrange>& dim1,
-              const std::vector<Lagrange>& dim2,
-              const std::vector<Lagrange>& dim3,
-              const std::vector<Lagrange>& dim4,
-              const std::vector<Lagrange>& dim5);
+              const Grid<Tensor6, 6>& iw, const Array<Lagrange>& dim0,
+              const Array<Lagrange>& dim1,
+              const Array<Lagrange>& dim2,
+              const Array<Lagrange>& dim3,
+              const Array<Lagrange>& dim4,
+              const Array<Lagrange>& dim5);
 
 /*! Reinterpreting interpolation routine
  *
@@ -2814,9 +2813,9 @@ void reinterp(Tensor6View out, const ConstTensor6View& iy,
  */
 void reinterp_reduce(
     VectorView out, const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
-    const std::vector<Lagrange>& dim0, const std::vector<Lagrange>& dim1,
-    const std::vector<Lagrange>& dim2, const std::vector<Lagrange>& dim3,
-    const std::vector<Lagrange>& dim4, const std::vector<Lagrange>& dim5);
+    const Array<Lagrange>& dim0, const Array<Lagrange>& dim1,
+    const Array<Lagrange>& dim2, const Array<Lagrange>& dim3,
+    const Array<Lagrange>& dim4, const Array<Lagrange>& dim5);
 
 /*! Reinterpreting interpolation routine
  *
@@ -2832,12 +2831,12 @@ void reinterp_reduce(
  * @return Tensor6 of interpolated value
  */
 Tensor6 reinterp(const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2,
-                 const std::vector<Lagrange>& dim3,
-                 const std::vector<Lagrange>& dim4,
-                 const std::vector<Lagrange>& dim5);
+                 const Array<Lagrange>& dim0,
+                 const Array<Lagrange>& dim1,
+                 const Array<Lagrange>& dim2,
+                 const Array<Lagrange>& dim3,
+                 const Array<Lagrange>& dim4,
+                 const Array<Lagrange>& dim5);
 
 /*! Reinterpreting interpolation routine
  *
@@ -2860,12 +2859,12 @@ Tensor6 reinterp(const ConstTensor6View& iy,
                                       PolyOrder2 + 1, PolyOrder3 + 1,
                                       PolyOrder4 + 1, PolyOrder5 + 1>,
                             6>& iw,
-                 const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-                 const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-                 const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-                 const std::vector<FixedLagrange<PolyOrder3>>& dim3,
-                 const std::vector<FixedLagrange<PolyOrder4>>& dim4,
-                 const std::vector<FixedLagrange<PolyOrder5>>& dim5) {
+                 const Array<FixedLagrange<PolyOrder0>>& dim0,
+                 const Array<FixedLagrange<PolyOrder1>>& dim1,
+                 const Array<FixedLagrange<PolyOrder2>>& dim2,
+                 const Array<FixedLagrange<PolyOrder3>>& dim3,
+                 const Array<FixedLagrange<PolyOrder4>>& dim4,
+                 const Array<FixedLagrange<PolyOrder5>>& dim5) {
   Tensor6 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
               dim5.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
@@ -2917,13 +2916,13 @@ void interpweights(Tensor7View iw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim6 - Interpolation along dimension 6
  * @return Tensor7 - interpweights
  */
-void interpweights(Grid<Tensor7, 7>& iw, const std::vector<Lagrange>& dim0,
-                   const std::vector<Lagrange>& dim1,
-                   const std::vector<Lagrange>& dim2,
-                   const std::vector<Lagrange>& dim3,
-                   const std::vector<Lagrange>& dim4,
-                   const std::vector<Lagrange>& dim5,
-                   const std::vector<Lagrange>& dim6);
+void interpweights(Grid<Tensor7, 7>& iw, const Array<Lagrange>& dim0,
+                   const Array<Lagrange>& dim1,
+                   const Array<Lagrange>& dim2,
+                   const Array<Lagrange>& dim3,
+                   const Array<Lagrange>& dim4,
+                   const Array<Lagrange>& dim5,
+                   const Array<Lagrange>& dim6);
 
 /*! Interpolation weights for a 7D reduction
  *
@@ -2952,13 +2951,13 @@ Tensor7 interpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim6 - Interpolation along dimension 6
  * @return Tensor7 - interpweights
  */
-Grid<Tensor7, 7> interpweights(const std::vector<Lagrange>& dim0,
-                               const std::vector<Lagrange>& dim1,
-                               const std::vector<Lagrange>& dim2,
-                               const std::vector<Lagrange>& dim3,
-                               const std::vector<Lagrange>& dim4,
-                               const std::vector<Lagrange>& dim5,
-                               const std::vector<Lagrange>& dim6);
+Grid<Tensor7, 7> interpweights(const Array<Lagrange>& dim0,
+                               const Array<Lagrange>& dim1,
+                               const Array<Lagrange>& dim2,
+                               const Array<Lagrange>& dim3,
+                               const Array<Lagrange>& dim4,
+                               const Array<Lagrange>& dim5,
+                               const Array<Lagrange>& dim6);
 
 /*! Interpolation weights for a 7D reduction
  *
@@ -3019,13 +3018,13 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                PolyOrder3 + 1, PolyOrder4 + 1, PolyOrder5 + 1, PolyOrder6 + 1>,
      7>
-interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-              const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-              const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-              const std::vector<FixedLagrange<PolyOrder3>>& dim3,
-              const std::vector<FixedLagrange<PolyOrder4>>& dim4,
-              const std::vector<FixedLagrange<PolyOrder5>>& dim5,
-              const std::vector<FixedLagrange<PolyOrder6>>& dim6) {
+interpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+              const Array<FixedLagrange<PolyOrder1>>& dim1,
+              const Array<FixedLagrange<PolyOrder2>>& dim2,
+              const Array<FixedLagrange<PolyOrder3>>& dim3,
+              const Array<FixedLagrange<PolyOrder4>>& dim4,
+              const Array<FixedLagrange<PolyOrder5>>& dim5,
+              const Array<FixedLagrange<PolyOrder6>>& dim6) {
   Grid<
       FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                 PolyOrder3 + 1, PolyOrder4 + 1, PolyOrder5 + 1, PolyOrder6 + 1>,
@@ -3080,13 +3079,13 @@ void dinterpweights(Tensor7View diw, const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor7 - interpweights derivative along dim dimension
  */
-void dinterpweights(Grid<Tensor7, 7>& diw, const std::vector<Lagrange>& dim0,
-                    const std::vector<Lagrange>& dim1,
-                    const std::vector<Lagrange>& dim2,
-                    const std::vector<Lagrange>& dim3,
-                    const std::vector<Lagrange>& dim4,
-                    const std::vector<Lagrange>& dim5,
-                    const std::vector<Lagrange>& dim6, Index dim);
+void dinterpweights(Grid<Tensor7, 7>& diw, const Array<Lagrange>& dim0,
+                    const Array<Lagrange>& dim1,
+                    const Array<Lagrange>& dim2,
+                    const Array<Lagrange>& dim3,
+                    const Array<Lagrange>& dim4,
+                    const Array<Lagrange>& dim5,
+                    const Array<Lagrange>& dim6, Index dim);
 
 /*! Interpolation weights derivative for a 7D reduction
  *
@@ -3117,13 +3116,13 @@ Tensor7 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] dim - Axis along which to compute the derivatives
  * @return Tensor7 - interpweights derivative along dim dimension
  */
-Grid<Tensor7, 7> dinterpweights(const std::vector<Lagrange>& dim0,
-                                const std::vector<Lagrange>& dim1,
-                                const std::vector<Lagrange>& dim2,
-                                const std::vector<Lagrange>& dim3,
-                                const std::vector<Lagrange>& dim4,
-                                const std::vector<Lagrange>& dim5,
-                                const std::vector<Lagrange>& dim6, Index dim);
+Grid<Tensor7, 7> dinterpweights(const Array<Lagrange>& dim0,
+                                const Array<Lagrange>& dim1,
+                                const Array<Lagrange>& dim2,
+                                const Array<Lagrange>& dim3,
+                                const Array<Lagrange>& dim4,
+                                const Array<Lagrange>& dim5,
+                                const Array<Lagrange>& dim6, Index dim);
 
 /*! Interpolation weights derivative for a 7D reduction
  *
@@ -3193,13 +3192,13 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                PolyOrder3 + 1, PolyOrder4 + 1, PolyOrder5 + 1, PolyOrder6 + 1>,
      7>
-dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-               const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-               const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-               const std::vector<FixedLagrange<PolyOrder3>>& dim3,
-               const std::vector<FixedLagrange<PolyOrder4>>& dim4,
-               const std::vector<FixedLagrange<PolyOrder5>>& dim5,
-               const std::vector<FixedLagrange<PolyOrder6>>& dim6) {
+dinterpweights(const Array<FixedLagrange<PolyOrder0>>& dim0,
+               const Array<FixedLagrange<PolyOrder1>>& dim1,
+               const Array<FixedLagrange<PolyOrder2>>& dim2,
+               const Array<FixedLagrange<PolyOrder3>>& dim3,
+               const Array<FixedLagrange<PolyOrder4>>& dim4,
+               const Array<FixedLagrange<PolyOrder5>>& dim5,
+               const Array<FixedLagrange<PolyOrder6>>& dim6) {
   Grid<
       FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1,
                 PolyOrder3 + 1, PolyOrder4 + 1, PolyOrder5 + 1, PolyOrder6 + 1>,
@@ -3318,13 +3317,13 @@ constexpr Numeric interp(
  * @return Tensor7 of interpolated value
  */
 void reinterp(Tensor7View out, const ConstTensor7View& iy,
-              const Grid<Tensor7, 7>& iw, const std::vector<Lagrange>& dim0,
-              const std::vector<Lagrange>& dim1,
-              const std::vector<Lagrange>& dim2,
-              const std::vector<Lagrange>& dim3,
-              const std::vector<Lagrange>& dim4,
-              const std::vector<Lagrange>& dim5,
-              const std::vector<Lagrange>& dim6);
+              const Grid<Tensor7, 7>& iw, const Array<Lagrange>& dim0,
+              const Array<Lagrange>& dim1,
+              const Array<Lagrange>& dim2,
+              const Array<Lagrange>& dim3,
+              const Array<Lagrange>& dim4,
+              const Array<Lagrange>& dim5,
+              const Array<Lagrange>& dim6);
 
 /*! Reinterpreting interpolation routine
  *
@@ -3343,10 +3342,10 @@ void reinterp(Tensor7View out, const ConstTensor7View& iy,
  */
 void reinterp_reduce(
     VectorView out, const ConstTensor7View& iy, const Grid<Tensor7, 7>& iw,
-    const std::vector<Lagrange>& dim0, const std::vector<Lagrange>& dim1,
-    const std::vector<Lagrange>& dim2, const std::vector<Lagrange>& dim3,
-    const std::vector<Lagrange>& dim4, const std::vector<Lagrange>& dim5,
-    const std::vector<Lagrange>& dim6);
+    const Array<Lagrange>& dim0, const Array<Lagrange>& dim1,
+    const Array<Lagrange>& dim2, const Array<Lagrange>& dim3,
+    const Array<Lagrange>& dim4, const Array<Lagrange>& dim5,
+    const Array<Lagrange>& dim6);
 
 /*! Reinterpreting interpolation routine
  *
@@ -3363,13 +3362,13 @@ void reinterp_reduce(
  * @return Tensor7 of interpolated value
  */
 Tensor7 reinterp(const ConstTensor7View& iy, const Grid<Tensor7, 7>& iw,
-                 const std::vector<Lagrange>& dim0,
-                 const std::vector<Lagrange>& dim1,
-                 const std::vector<Lagrange>& dim2,
-                 const std::vector<Lagrange>& dim3,
-                 const std::vector<Lagrange>& dim4,
-                 const std::vector<Lagrange>& dim5,
-                 const std::vector<Lagrange>& dim6);
+                 const Array<Lagrange>& dim0,
+                 const Array<Lagrange>& dim1,
+                 const Array<Lagrange>& dim2,
+                 const Array<Lagrange>& dim3,
+                 const Array<Lagrange>& dim4,
+                 const Array<Lagrange>& dim5,
+                 const Array<Lagrange>& dim6);
 
 /*! Reinterpreting interpolation routine
  *
@@ -3395,13 +3394,13 @@ Tensor7 reinterp(
                          PolyOrder2 + 1, PolyOrder3 + 1, PolyOrder4 + 1,
                          PolyOrder5 + 1, PolyOrder6 + 1>,
                7>& iw,
-    const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-    const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-    const std::vector<FixedLagrange<PolyOrder2>>& dim2,
-    const std::vector<FixedLagrange<PolyOrder3>>& dim3,
-    const std::vector<FixedLagrange<PolyOrder4>>& dim4,
-    const std::vector<FixedLagrange<PolyOrder5>>& dim5,
-    const std::vector<FixedLagrange<PolyOrder6>>& dim6) {
+    const Array<FixedLagrange<PolyOrder0>>& dim0,
+    const Array<FixedLagrange<PolyOrder1>>& dim1,
+    const Array<FixedLagrange<PolyOrder2>>& dim2,
+    const Array<FixedLagrange<PolyOrder3>>& dim3,
+    const Array<FixedLagrange<PolyOrder4>>& dim4,
+    const Array<FixedLagrange<PolyOrder5>>& dim5,
+    const Array<FixedLagrange<PolyOrder6>>& dim6) {
   Tensor7 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
               dim5.size(), dim6.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
@@ -3419,6 +3418,12 @@ Tensor7 reinterp(
 }  // namespace Interpolation
 
 using LagrangeInterpolation = Interpolation::Lagrange;
+
+using ArrayOfLagrangeInterpolation = Array<LagrangeInterpolation>;
+
+using VectorOfVector = Interpolation::Grid<Vector, 1>;
+
+using MatrixOfMatrix = Interpolation::Grid<Matrix, 2>;
 
 template <std::size_t N>
 using FixedLagrangeInterpolation = Interpolation::FixedLagrange<N>;
