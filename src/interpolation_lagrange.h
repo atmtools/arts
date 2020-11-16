@@ -71,9 +71,17 @@ public:
   static_assert(N, "Must have size");
   
   template <typename... Inds>
-  Grid(Inds... inds) : ptr(mul(inds...)), gridsize(gridsize_from_index(inds...)) {
+  Grid(Inds... inds) noexcept : ptr(mul(inds...)), gridsize(gridsize_from_index(inds...)) {
     static_assert(sizeof...(Inds) == N,
                   "Must have same size for initialization");
+  }
+  
+  Grid(Grid&& g) noexcept : ptr(std::move(g.ptr)), gridsize(std::move(g.gridsize)) {}
+  
+  Grid& operator=(Grid&& g) noexcept {
+    ptr = std::move(g.ptr);
+    gridsize = std::move(g.gridsize);
+    return *this;
   }
   
   template <typename... Inds>
@@ -110,6 +118,13 @@ class FixedGrid {
   
 public:
   constexpr FixedGrid() noexcept : ptr({}) {static_assert(mul(Sizes...), "Must have size");}
+  
+  constexpr FixedGrid(FixedGrid&& g) noexcept : ptr(std::move(g.ptr)) {}
+  
+  constexpr FixedGrid& operator=(FixedGrid&& g) noexcept {
+    ptr = std::move(g.ptr);
+    return *this;
+  }
   
   static constexpr std::size_t N = sizeof...(Sizes);
   using base = b;
