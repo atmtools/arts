@@ -51,6 +51,7 @@
 #include "file.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
+#include "interpolation_lagrange.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -912,9 +913,7 @@ void iyInterpCloudboxField(Matrix& iy,
     }
   }
 
-  // Grid position in *za_grid*
-  GridPosPoly gp_za, gp_aa;
-
+  LagrangeInterpolation lag_za;
   if (cos_za_interp) {
     Vector cosza_grid(za_extend);
     const Numeric cosza = cos(rte_los[0] * DEG2RAD);
@@ -949,7 +948,7 @@ void iyInterpCloudboxField(Matrix& iy,
       throw runtime_error(os.str());
     }
 
-    gridpos_poly(gp_za, cosza_grid, cosza, za_interp_order, za_extpolfac);
+    lag_za = LagrangeInterpolation(0, cosza, cosza_grid, za_interp_order, za_extpolfac, false);
   } else {
     Vector za_g = za_grid[Range(za_start, za_extend)];
     const Numeric za = rte_los[0];
@@ -976,30 +975,23 @@ void iyInterpCloudboxField(Matrix& iy,
          << " use wider za_grid.\n";
       throw runtime_error(os.str());
     }
-    gridpos_poly(gp_za, za_g, za, za_interp_order, za_extpolfac);
+    
+    lag_za = LagrangeInterpolation(0, za, za_g, za_interp_order, za_extpolfac, false);
   }
-
-  if (atmosphere_dim > 1) {
-    gridpos_poly_cyclic_longitudinal(
-        gp_aa, aa_grid, rte_los[1], aa_interp_order);
-  } else {
-    gp_aa.idx.resize(1);
-    gp_aa.idx[0] = 0;
-    gp_aa.w.resize(1);
-    gp_aa.w[0] = 1;
-  }
+  
+  // First position if 1D atmosphere, otherwise compute cyclic for a azimuth grid [-180, 180]
+  const auto lag_aa = (atmosphere_dim > 1) ? LagrangeInterpolation(0, rte_los[1], aa_grid, aa_interp_order, 0.5, false, Interpolation::LagrangeType::Cyclic, {-180, 180}) : LagrangeInterpolation();
 
   // Corresponding interpolation weights
-  Vector itw_angs(gp_za.idx.nelem() * gp_aa.idx.nelem());
-  interpweights(itw_angs, gp_za, gp_aa);
+  const auto itw_angs=interpweights(lag_za, lag_aa);
 
   for (Index is = 0; is < stokes_dim; is++) {
     for (Index iv = 0; iv < nf; iv++) {
       iy(iv, is) =
-          interp(itw_angs,
-                 i_field_local(iv, Range(za_start, za_extend), joker, is),
-                 gp_za,
-                 gp_aa);
+          interp(i_field_local(iv, Range(za_start, za_extend), joker, is),
+                 itw_angs,
+                 lag_za,
+                 lag_aa);
     }
   }
 }
