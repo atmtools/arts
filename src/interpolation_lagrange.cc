@@ -10,10 +10,9 @@ std::vector<Lagrange> LagrangeVector(
   bool has_one = false;
   for (auto x : xs) {
     if (has_one) {
-      out.emplace_back(Lagrange(out.back().pos, x, xi, polyorder, extrapol,
-                             do_derivs, type));
+      out.emplace_back(out.back().pos, x, xi, polyorder, extrapol, do_derivs, type);
     } else {
-      out.emplace_back(Lagrange(start_pos_finder(x, xi, extrapol), x, xi, polyorder, extrapol, do_derivs, type));
+      out.emplace_back(start_pos_finder(x, xi, extrapol), x, xi, polyorder, extrapol, do_derivs, type);
       has_one = true;
     }
   }

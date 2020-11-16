@@ -473,10 +473,10 @@ struct Lagrange {
   /* Number of weights */
   Index size() const noexcept { return lx.size(); }
   
-  // Enusre that the move constructor exists
+  // Ensure that the move constructor exists
   Lagrange(Lagrange&& l) noexcept : pos(l.pos), lx(std::move(l.lx)), dlx(std::move(l.dlx)) {}
   
-  // Enusre that the move operator exists
+  // Ensure that the move operator exists
   Lagrange& operator=(Lagrange&& l) noexcept {
     pos = l.pos;
     lx = std::move(l.lx);
@@ -768,9 +768,9 @@ std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(
   bool has_one = false;
   for (auto x : xs) {
     if (has_one) {
-      out.emplace_back(FixedLagrange<PolyOrder>(out.back().pos, x, xi, do_derivs, type));
+      out.emplace_back(out.back().pos, x, xi, do_derivs, type);
     } else {
-      out.emplace_back(FixedLagrange<PolyOrder>(start_pos_finder(x, xi, 0.0), x, xi, do_derivs, type));
+      out.emplace_back(start_pos_finder(x, xi, 0.0), x, xi, do_derivs, type);
       has_one = true;
     }
   }
