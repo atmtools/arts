@@ -200,23 +200,43 @@ constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec, 
   }
 }
 
+/*! Find the max of a and b
+ * 
+ * @param a Input a.
+ * @param b Input b.
+ * 
+ * @return The maximum of a and b.
+ */
+constexpr Index IMAX(Index a, Index b) { return a > b ? a : b; }
+
+/*! Find the min of a and b
+ * 
+ * @param a Input a.
+ * @param b Input b.
+ * 
+ * @return The minimum of a and b.
+*/
+constexpr Index IMIN(Index a, Index b) { return a < b ? a : b; }
+
 /*! Finds the position
  *
  * @param[in] x Coordinate to find a position for
  * @param[in] xi Original sorted grid
- * @param[in] N Max position plus one
- * @param[in] p0 Estimation of the first position, must be [0, N)
+ * @param[in] m Size of polynominal orders
+ * @param[in] p0 Estimation of the first position, must be [0, xi.size())
  * @param[in] cyclic The sorting is cyclic (1, 2, 3, 0.5, 1.5...)
  * @param[in] ascending The sorting is ascending (1, 2, 3...)
- * @param[in] cycle The size of a cycle (optional)
+ * @param[in] cycle The size of a cycle (optional; increasing first->second)
  */
 template <class SortedVectorType>
 constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
-                           const Index N, Index p0, const bool cyclic,
+                           const Index m, Index p0, const bool cyclic,
                            const bool ascending,
                            const std::pair<Numeric, Numeric> cycle = {
                                -180, 180}) noexcept {
+                                 
   if (cyclic) {
+    const Index N = xi.size();
     if (ascending) {
       if (x <= xi[0] or x >= xi[N - 1]) {  // cyclic if out-of-bounds
         if (x == cycle.first or x == cycle.second) {
@@ -247,6 +267,7 @@ constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
       }
     }
   } else {
+    const Index N = xi.size() - m;
     if (ascending) {
       while (p0 < N and xi[p0] < x) ++p0;
       while (p0 > 0 and xi[p0] > x) --p0;
@@ -254,7 +275,17 @@ constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
       while (p0 < N and xi[p0] > x) ++p0;
       while (p0 > 0 and xi[p0] < x) --p0;
     }
+    
+    // Adjustment for higher and lower polynominal orders than 1
+    if (m == 1) {
+      // pass
+    } else if (m not_eq 1) {
+      p0 = IMIN(IMAX(p0 - (m - 1) / 2, 0), N);
+    } else if (std::abs(xi[p0] - x) >= std::abs(xi[p0+1] - x)) {
+      p0 += 1;
+    }
   }
+  
   return p0;
 }
 
@@ -523,7 +554,7 @@ struct Lagrange {
       throw std::runtime_error(os.str());
     } else {
       // Set the position
-      pos = pos_finder(x, xi, type == LagrangeType::Cyclic ? n : n - p, p0,
+      pos = pos_finder(x, xi, p, p0,
                        type == LagrangeType::Cyclic, ascending, cycle);
 
       // Set weights
@@ -649,9 +680,7 @@ struct FixedLagrange {
                           const bool do_derivs = true,
                           const LagrangeType type = LagrangeType::Linear,
                           const std::pair<Numeric, Numeric> cycle = {-180, 180})
-      : pos(pos_finder(x, xi,
-                       type == LagrangeType::Cyclic ? Index(xi.size())
-                                                    : Index(xi.size()) - size(),
+      : pos(pos_finder(x, xi, size(),
                        p0, type == LagrangeType::Cyclic,
                        xi.size() > 1 ? xi[0] < xi[1] : false, cycle)),
         lx(lx_finder(pos, x, xi, type, cycle)),
