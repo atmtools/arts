@@ -44,6 +44,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "interpolation_poly.h"
+#include "interpolation_lagrange.h"
 #include "m_select.h"
 #include "math_funcs.h"
 #include "messages.h"
@@ -1699,13 +1700,7 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
     fnew[Range(i * n1, n2)] = fp;
   }
 
-  // Find interpolation weights
-  //
-  ArrayOfGridPosPoly gp(nnew);
-  Matrix itw(nnew, polyorder + 1);
-  //
-  gridpos_poly(gp, sensor_response_f_grid, fnew, polyorder);
-  interpweights(itw, gp);
+  const auto lag = Interpolation::LagrangeVector(fnew, sensor_response_f_grid, polyorder, 0.5, false, Interpolation::LagrangeType::Linear);
 
   // Set up H for this part
   //
@@ -1717,15 +1712,15 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
     for (Index iv = 0; iv < nnew; iv++) {
       for (Index ip = 0; ip < npol; ip++) {
         const Index col0 = ilos * nf * npol;
-        for (Index i = 0; i < gp[iv].idx.nelem(); i++) {
-          const Numeric w = gp[iv].w[i];
+        for (Index i = 0; i < polyorder+1; i++) {
+          const Numeric w = lag[iv].lx[i];
           if (abs(w) > 1e-5) {
-            hrow[col0 + gp[iv].idx[i] * npol + ip] = w;
+            hrow[col0 + (lag[iv].pos + i) * npol + ip] = lag[iv].lx[i];
           }
         }
         hpoly.insert_row(row, hrow);
-        for (Index i = 0; i < gp[iv].idx.nelem(); i++) {
-          hrow[col0 + gp[iv].idx[i] * npol + ip] = 0;
+        for (Index i = 0; i < polyorder+1; i++) {
+          hrow[col0 + (lag[iv].pos + i) * npol + ip] = 0;
         }
         row += 1;
       }
