@@ -34,6 +34,7 @@
 #include "absorption.h"
 #include "file.h"
 #include "interpolation_poly.h"
+#include "interpolation_lagrange.h"
 
 extern const Numeric SPEED_OF_LIGHT;
 
@@ -123,7 +124,7 @@ void cia_interpolation(VectorView result,
   VectorView result_active = result[Range(i_fstart, f_extent)];
 
   // Decide on interpolation orders:
-  const Index f_order = 3;
+  constexpr Index f_order = 3;
 
   // The frequency grid has to have enough points for this interpolation
   // order, otherwise throw a runtime error.
@@ -179,41 +180,29 @@ void cia_interpolation(VectorView result,
       }
     }
   }
-
+  
   // Find frequency grid positions:
-  ArrayOfGridPosPoly f_gp(f_grid_active.nelem()), T_gp(1);
-  gridpos_poly(f_gp, data_f_grid, f_grid_active, f_order);
-
+  const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid, false, Interpolation::LagrangeType::Linear);
+  
   // Do the rest of the interpolation.
   if (T_order == 0) {
     // No temperature interpolation in this case, just a frequency interpolation.
-
-    Matrix itw(f_gp.nelem(), f_order + 1);
-    interpweights(itw, f_gp);
-    interp(result_active, itw, cia_data.data(joker, 0), f_gp);
+    result_active = reinterp(cia_data.data(joker, 0), interpweights(f_lag), f_lag);
   } else {
     // Temperature and frequency interpolation.
-
-    // Find temperature grid position:
-    gridpos_poly(T_gp, data_T_grid, temperature, T_order, T_extrapolfac);
-
-    // Calculate combined interpolation weights:
-    Tensor3 itw(f_gp.nelem(), T_gp.nelem(), (f_order + 1) * (T_order + 1));
-    interpweights(itw, f_gp, T_gp);
-
-    // Make a matrix view of the results vector:
-    MatrixView result_matrix(result_active);
-
-    //        cout << "result_matrix r/c: " << result_matrix.nrows() << " / "
-    //             << result_matrix.ncols() << endl;
-    //        cout << "result_matrix before: " << result_matrix << endl;
-
-    //        cout << "cia_data: " << cia_data.data << endl;
-
-    // Actual interpolation:
-    interp(result_matrix, itw, cia_data.data, f_gp, T_gp);
-
-    //        cout << "result_matrix after: " << result_matrix << endl;
+    const auto Tnew = std::array<double, 1>{temperature};
+    if (T_order == 1) {
+      const auto T_lag = Interpolation::FixedLagrangeVector<1>(Tnew, data_T_grid, false, Interpolation::LagrangeType::Linear);
+      result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
+    } else if (T_order == 2) {
+      const auto T_lag = Interpolation::FixedLagrangeVector<2>(Tnew, data_T_grid, false, Interpolation::LagrangeType::Linear);
+      result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
+    } else if (T_order == 3) {
+      const auto T_lag = Interpolation::FixedLagrangeVector<3>(Tnew, data_T_grid, false, Interpolation::LagrangeType::Linear);
+      result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
+    } else {
+      throw std::runtime_error("Cannot have this T_order, you must update the code...");
+    }
   }
 
   //    cout << "result_active before: " << result_active << endl;
