@@ -209,15 +209,6 @@ constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec, 
  */
 constexpr Index IMAX(Index a, Index b) { return a > b ? a : b; }
 
-/*! Find the min of a and b
- * 
- * @param a Input a.
- * @param b Input b.
- * 
- * @return The minimum of a and b.
-*/
-constexpr Index IMIN(Index a, Index b) { return a < b ? a : b; }
-
 /*! Finds the position
  *
  * @param[in] x Coordinate to find a position for
@@ -248,8 +239,7 @@ constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
           p0 = N - 1;
         }
       } else {
-        while (p0 < N and xi[p0] < x) ++p0;
-        while (p0 > 0 and xi[p0] > x) --p0;
+        p0 = pos_finder(cyclic_clamp(x, cycle), xi, N, p0, false, ascending, cycle);
       }
     } else {
       if (x >= xi[0] or x <= xi[N - 1]) {  // cyclic if out-of-bounds
@@ -262,8 +252,7 @@ constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
           p0 = N - 1;
         }
       } else {
-        while (p0 < N and xi[p0] > x) ++p0;
-        while (p0 > 0 and xi[p0] < x) --p0;
+        p0 = pos_finder(cyclic_clamp(x, cycle), xi, N, p0, false, ascending, cycle);
       }
     }
   } else {
@@ -276,12 +265,12 @@ constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
       while (p0 > 0 and xi[p0] < x) --p0;
     }
     
-    // Adjustment for higher and lower polynominal orders than 1
-    if (m == 1) {
+    // Adjustment for higher and lower polynominal orders than 1 (except at limit)
+    if (m == 1 or p0 == N) {
       // pass
     } else if (m not_eq 1) {
-      p0 = IMIN(IMAX(p0 - (m - 1) / 2, 0), N);
-    } else if (std::abs(xi[p0] - x) >= std::abs(xi[p0+1] - x)) {
+      p0 = IMAX(p0 - (m - 1) / 2, 0);
+    } else if (std::abs(xi[p0] - x) >= std::abs(xi[p0 + 1] - x)) {
       p0 += 1;
     }
   }
@@ -569,10 +558,11 @@ struct Lagrange {
   Lagrange() noexcept : pos(0), lx(1, 1), dlx(1, 0) {}
 
   friend std::ostream& operator<<(std::ostream& os, const Lagrange& l) {
-    os << l.pos;
+    os << "pos: " << l.pos << '\n' << "lx: ";
     for (auto x : l.lx) os << ' ' << x;
+    os << '\n' << "dlx: ";
     for (auto x : l.dlx) os << ' ' << x;
-    return os;
+    return os << '\n';
   }
 
  private:
@@ -688,10 +678,11 @@ struct FixedLagrange {
                       : std::array<Numeric, PolyOrder + 1>{}) {}
   
   friend std::ostream& operator<<(std::ostream& os, const FixedLagrange& l) {
-    os << l.pos;
+    os << "pos: " << l.pos << '\n' << "lx: ";
     for (auto x : l.lx) os << ' ' << x;
+    os << '\n' << "dlx: ";
     for (auto x : l.dlx) os << ' ' << x;
-    return os;
+    return os << '\n';
   }
 
  private:
