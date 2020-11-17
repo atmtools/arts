@@ -786,7 +786,7 @@ void run_rt4(Workspace& ws,
         const LagrangeInterpolation lag_za(0,
                                            cos_za_interp ? mu_values[j] : za_grid_orig[j], 
                                            cos_za_interp ? mu_values_new : za_grid[Range(0, nummu_new)],
-                                           za_interp_order, 0.5);
+                                           za_interp_order, 0.5, false);
         const auto itw = interpweights(lag_za);
 
         for (Index k = 0; k < num_layers + 1; k++)
