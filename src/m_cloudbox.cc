@@ -912,75 +912,19 @@ void iyInterpCloudboxField(Matrix& iy,
       throw runtime_error(os.str());
     }
   }
-
-  LagrangeInterpolation lag_za;
-  if (cos_za_interp) {
-    Vector cosza_grid(za_extend);
-    const Numeric cosza = cos(rte_los[0] * DEG2RAD);
-
-    for (Index i_za = 0; i_za < za_extend; i_za++)
-      cosza_grid[i_za] = cos(za_grid[i_za + za_start] * DEG2RAD);
-
-    // OBS: cosza is a decreasing grid!
-    const Numeric cosza_min =
-        cosza_grid[0] + za_extpolfac * (cosza_grid[0] - cosza_grid[1]);
-    if (cosza > cosza_min) {
-      ostringstream os;
-      os << "Zenith angle " << rte_los[0] << "deg is outside the range"
-         << " covered by za_grid.\n"
-         << "Lower limit of allowed range is " << acos(cosza_min) * RAD2DEG
-         << ".\n"
-         << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider za_grid.\n";
-      throw runtime_error(os.str());
-    }
-    const Numeric cosza_max =
-        cosza_grid[za_extend - 1] -
-        za_extpolfac * (cosza_grid[za_extend - 2] - cosza_grid[za_extend - 1]);
-    if (cosza < cosza_max) {
-      ostringstream os;
-      os << "Zenith angle " << rte_los[0] << "deg is outside the range"
-         << " covered by za_grid.\n"
-         << "Upper limit of allowed range is " << acos(cosza_max) * RAD2DEG
-         << ".\n"
-         << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider za_grid.\n";
-      throw runtime_error(os.str());
-    }
-
-    lag_za = LagrangeInterpolation(0, cosza, cosza_grid, za_interp_order, za_extpolfac, false);
-  } else {
-    Vector za_g = za_grid[Range(za_start, za_extend)];
-    const Numeric za = rte_los[0];
-
-    const Numeric za_min = za_g[0] - za_extpolfac * (za_g[1] - za_g[0]);
-    if (za < za_min) {
-      ostringstream os;
-      os << "Zenith angle " << rte_los[0] << "deg is outside the range"
-         << " covered by za_grid.\n"
-         << "Lower limit of allowed range is " << za_min << ".\n"
-         << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider za_grid.\n";
-      throw runtime_error(os.str());
-    }
-    const Numeric za_max =
-        za_g[za_g.nelem() - 1] +
-        za_extpolfac * (za_g[za_extend - 1] - za_g[za_extend - 2]);
-    if (za > za_max) {
-      ostringstream os;
-      os << "Zenith angle " << za << "deg is outside the range"
-         << " covered by za_grid.\n"
-         << "Upper limit of allowed range is " << za_max << ".\n"
-         << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider za_grid.\n";
-      throw runtime_error(os.str());
-    }
-    
-    lag_za = LagrangeInterpolation(0, za, za_g, za_interp_order, za_extpolfac, false);
-  }
+  
+  const auto range = Range(za_start, za_extend);
+  const ConstVectorView za_g(za_grid[range]);
+  
+  // Find position of zenith, either by cosine or linear weights
+  const auto lag_za = cos_za_interp ?
+    LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, za_extpolfac, false, Interpolation::LagrangeType::CosDeg) :
+    LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, za_extpolfac, false, Interpolation::LagrangeType::Linear);
   
   // First position if 1D atmosphere, otherwise compute cyclic for a azimuth grid [-180, 180]
-  const auto lag_aa = (atmosphere_dim > 1) ? LagrangeInterpolation(0, rte_los[1], aa_grid, aa_interp_order, 0.5, false, Interpolation::LagrangeType::Cyclic, {-180, 180}) : LagrangeInterpolation();
+  const auto lag_aa = (atmosphere_dim > 1) ?
+    LagrangeInterpolation(0, rte_los[1], aa_grid, aa_interp_order, 0.5, false, Interpolation::LagrangeType::Cyclic, {-180, 180}) :
+    LagrangeInterpolation();
 
   // Corresponding interpolation weights
   const auto itw_angs=interpweights(lag_za, lag_aa);
@@ -988,7 +932,7 @@ void iyInterpCloudboxField(Matrix& iy,
   for (Index is = 0; is < stokes_dim; is++) {
     for (Index iv = 0; iv < nf; iv++) {
       iy(iv, is) =
-          interp(i_field_local(iv, Range(za_start, za_extend), joker, is),
+          interp(i_field_local(iv, range, joker, is),
                  itw_angs,
                  lag_za,
                  lag_aa);
