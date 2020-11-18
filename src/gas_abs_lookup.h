@@ -29,6 +29,7 @@
 #include "abs_species_tags.h"
 #include "absorption.h"
 #include "interpolation_poly.h"
+#include "interpolation_lagrange.h"
 #include "matpackIV.h"
 #include "messages.h"
 
@@ -168,7 +169,7 @@ class GasAbsLookup {
   Vector& Fgrid() {return f_grid;}
   
   /** Frequency grid positions */
-  ArrayOfGridPosPoly& FGPDefault() {return fgp_default;}
+  ArrayOfLagrangeInterpolation& FLAGDefault() {return flag_default;}
   
   /** The pressure grid for the table [Pa] */
   Vector& Pgrid() {return p_grid;}
@@ -216,7 +217,7 @@ class GasAbsLookup {
    extract all frequencies. (Nearest neighbor interpolation onto exactly the
    same frequency grid.) This is the most comon case, so no point in
    doing it over and over again. */
-  ArrayOfGridPosPoly fgp_default;
+  ArrayOfLagrangeInterpolation flag_default;
 
   //! The pressure grid for the table [Pa].
   /*! Must be sorted in decreasing order. */

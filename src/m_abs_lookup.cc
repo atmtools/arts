@@ -443,8 +443,7 @@ void abs_lookupCalc(  // Workspace reference:
   }
 
   // 6. Initialize fgp_default.
-  abs_lookup.fgp_default.resize(f_grid.nelem());
-  gridpos_poly(abs_lookup.fgp_default, abs_lookup.f_grid, abs_lookup.f_grid, 0);
+  abs_lookup.flag_default = Interpolation::LagrangeVector(abs_lookup.f_grid, abs_lookup.f_grid, 0, 0.5, false, Interpolation::LagrangeType::Linear);
 
   // Set the abs_lookup_is_adapted flag. After all, the table fits the
   // current frequency grid and species selection.
@@ -1577,10 +1576,6 @@ void abs_lookupSetupBatch(  // WS Output:
   Matrix smooth_datamean(datamean.nrows(), datamean.ncols(), 0);
   for (Index i = 0; i < np; ++i) {
     const Index idx0 = Interpolation::pos_finder(i, log_abs_p[i], log_abs_p, abs_p_interp_order, false, false);
-
-    // We do this in practice by using the indices returned by
-    // gridpos_poly. We simply take a mean over all points that
-    // would be used in the interpolation.
 
     for (Index fi = 0; fi < datamean.nrows(); ++fi)
       if (1 != fi)  // We skip the z field, which we do not need
