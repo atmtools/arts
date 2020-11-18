@@ -200,61 +200,91 @@ constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec, 
   }
 }
 
-/*! Find the max of a and 0
- * 
- * @param a Input a.
- * 
- * @return The maximum of a and 0.
+//! Return the maximum of two integer numbers.
+/*! 
+ T his function is based on a macro from Numerical Rec*eipes. The
+ original macro:
+ 
+ static Index imaxarg1, imaxarg2;
+ #define IMAX(a,b) (imaxarg1=(a), imaxarg2=(b),(imaxarg1) > (imaxarg2) ? \
+ (imaxarg1) : (imaxarg2))
+ 
+ The macro can cause trouble if used in parallel regions, so we use this
+ function instead.  
+ 
+ \param a Input a.
+ \param b Input b.
+ 
+ \return The maximum of a and b.
  */
-constexpr Index MIN0(Index a) { return a > 0 ? a : 0; }
+constexpr Index IMAX(Index a, Index b) noexcept { return a > b ? a : b; }
+
+//! Return the minimum of two integer numbers.
+/*! 
+ T his function is based on a macro from Numerical Rec*eipes. The
+ original macro:
+ 
+ static Index iminarg1, iminarg2;
+ #define IMIN(a,b) (iminarg1=(a), iminarg2=(b),(iminarg1) < (iminarg2) ? \
+ (iminarg1) : (iminarg2))
+ 
+ The macro can cause trouble if used in parallel regions, so we use this
+ function instead.  
+ 
+ \param a Input a.
+ \param b Input b.
+ 
+ \return The minimum of a and b.
+ */
+constexpr Index IMIN(Index a, Index b) noexcept { return a < b ? a : b; }
 
 /*! Finds the position
  *
  * @param[in] pos0 Estimation of the first position, must be [0, xi.size())
  * @param[in] x Coordinate to find a position for
  * @param[in] xi Original sorted grid
- * @param[in] m Size of polynominal orders
+ * @param[in] polyorder Polynominal orders
  * @param[in] cyclic The sorting is cyclic (1, 2, 3, 0.5, 1.5...)
  * @param[in] ascending The sorting is ascending (1, 2, 3...)
  * @param[in] cycle The size of a cycle (optional; increasing first->second)
  */
 template <class SortedVectorType>
 constexpr Index pos_finder(const Index pos0, const Numeric x, const SortedVectorType& xi,
-                           const Index m, const bool cyclic,
+                           const Index polyorder, const bool cyclic,
                            const bool ascending,
                            const std::pair<Numeric, Numeric> cycle = {
                                -180, 180}) noexcept {
   if (cyclic) {
-    const Index N = xi.size();
+  const Index N = xi.size();
     if (ascending) {
       if (x <= xi[0] or x >= xi[N - 1]) {  // cyclic if out-of-bounds
         if (x == cycle.first or x == cycle.second) {
           return 0;
         } else if (x < cycle.first or x > cycle.second) {
-          return pos_finder(pos0, cyclic_clamp(x, cycle), xi, m, cyclic, ascending,
+          return pos_finder(pos0, cyclic_clamp(x, cycle), xi, polyorder, cyclic, ascending,
                             cycle);
         } else {
           return N - 1;
         }
       } else {
-        return pos_finder(pos0, cyclic_clamp(x, cycle), xi, m, false, ascending, cycle);
+        return pos_finder(pos0, cyclic_clamp(x, cycle), xi, polyorder, false, ascending, cycle);
       }
     } else {
       if (x >= xi[0] or x <= xi[N - 1]) {  // cyclic if out-of-bounds
         if (x == cycle.first or x == cycle.second) {
           return 0;
         } else if (x < cycle.first or x > cycle.second) {
-          return pos_finder(pos0, cyclic_clamp(x, cycle), xi, m, cyclic, ascending,
+          return pos_finder(pos0, cyclic_clamp(x, cycle), xi, polyorder, cyclic, ascending,
                           cycle);
         } else {
           return N - 1;
         }
       } else {
-        return pos_finder(pos0, cyclic_clamp(x, cycle), xi, m, false, ascending, cycle);
+        return pos_finder(pos0, cyclic_clamp(x, cycle), xi, polyorder, false, ascending, cycle);
       }
     }
   } else {
-    const Index N = xi.size() - m;
+    const Index N = xi.size()-1;
     Index p0=pos0;
     if (ascending) {
       while (p0 < N and xi[p0] < x) ++p0;
@@ -265,11 +295,9 @@ constexpr Index pos_finder(const Index pos0, const Numeric x, const SortedVector
     }
     
     // Adjustment for higher and lower polynominal orders than 1 (except at limit)
-    if (m == 1 or p0 == N) {
-      // pass
-    } else if (m not_eq 1) {
-      p0 = MIN0(p0 - (m - 1) / 2);
-    } else if (std::abs(xi[p0] - x) >= std::abs(xi[p0 + 1] - x)) {
+    if (polyorder) {
+      p0 = IMIN(IMAX(p0 - polyorder / 2, 0), N-polyorder);
+    } else if (p0 < N and std::abs(xi[p0] - x) >= std::abs(xi[p0 + 1] - x)) {
       p0 += 1;
     }
     return p0;
@@ -529,7 +557,7 @@ struct Lagrange {
       throw std::runtime_error(os.str());
     } else {
       // Set the position
-      pos = pos_finder(p0, x, xi, p,
+      pos = pos_finder(p0, x, xi, polyorder,
                        type == LagrangeType::Cyclic, ascending, cycle);
 
       // Set weights
@@ -672,7 +700,7 @@ struct FixedLagrange {
                           const bool do_derivs = true,
                           const LagrangeType type = LagrangeType::Linear,
                           const std::pair<Numeric, Numeric> cycle = {-180, 180})
-      : pos(pos_finder(p0, x, xi, size(),
+      : pos(pos_finder(p0, x, xi, PolyOrder,
                        type == LagrangeType::Cyclic,
                        xi.size() > 1 ? xi[0] < xi[1] : false, cycle)),
         lx(lx_finder(pos, x, xi, type, cycle)),
