@@ -186,6 +186,10 @@ BasicInputOutputCAPI(ArrayOfArrayOfIndex)
 // Numeric
 BasicInterfaceCAPI(Numeric)
 BasicInputOutputCAPI(Numeric)
+VoidArrayCAPI(ArrayOfNumeric)
+BasicInterfaceCAPI(ArrayOfNumeric)
+Index xmlreadArrayOfNumeric(void *, char *) {return 1;}
+Index xmlsaveArrayOfNumeric(void *, char *, Index, Index) {return 1;}
 Numeric getNumeric(void * data) { return *static_cast<Numeric *>(data); }
 void setNumeric(void * data, Numeric newval) { *static_cast<Numeric *>(data) = newval; }
 

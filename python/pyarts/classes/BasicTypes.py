@@ -422,6 +422,9 @@ exec(array_base(Index))
 exec(array_base(ArrayOfIndex))
 
 
+exec(array_base(Numeric))
+
+
 exec(array_base(String))
 
 

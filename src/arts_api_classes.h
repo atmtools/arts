@@ -121,6 +121,9 @@ extern "C" {
     // Numeric
     BasicInterfaceCAPI(Numeric)
     BasicInputOutputCAPI(Numeric)
+    VoidArrayCAPI(ArrayOfNumeric)
+    BasicInterfaceCAPI(ArrayOfNumeric)
+    BasicInputOutputCAPI(ArrayOfNumeric)
     DLL_PUBLIC Numeric getNumeric(void * data);
     DLL_PUBLIC void setNumeric(void * data, Numeric newval);
   
