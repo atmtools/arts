@@ -1140,4 +1140,18 @@ void test24() {
   std::cerr << "Slowest time: " << time[N - 1] << '\n';
 }
 
-int main() { test24(); }
+void test25() {
+  const Index N = 500;
+  Vector x(N);
+  Verbosity verbosity;
+  VectorNLinSpace(x, N, 30, 150, verbosity);
+  Vector y = x;
+  for (auto& f : y) f = 15*f*f + f*f*f;
+  for (Numeric n = 0; n <= 180; n += 0.01) {
+    const auto lag =
+    Interpolation::Lagrange(0, n, x, 5, 100000, true, Interpolation::LagrangeType::CosDeg);
+    std::cout << n << ' ' << interp(y, interpweights(lag), lag) << ' ' << interp(y, dinterpweights(lag), lag) << '\n';
+  }
+}
+
+int main() { test25(); }

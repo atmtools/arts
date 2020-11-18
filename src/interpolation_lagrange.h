@@ -200,63 +200,62 @@ constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec, 
   }
 }
 
-/*! Find the max of a and b
+/*! Find the max of a and 0
  * 
  * @param a Input a.
- * @param b Input b.
  * 
- * @return The maximum of a and b.
+ * @return The maximum of a and 0.
  */
-constexpr Index IMAX(Index a, Index b) { return a > b ? a : b; }
+constexpr Index MIN0(Index a) { return a > 0 ? a : 0; }
 
 /*! Finds the position
  *
+ * @param[in] pos0 Estimation of the first position, must be [0, xi.size())
  * @param[in] x Coordinate to find a position for
  * @param[in] xi Original sorted grid
  * @param[in] m Size of polynominal orders
- * @param[in] p0 Estimation of the first position, must be [0, xi.size())
  * @param[in] cyclic The sorting is cyclic (1, 2, 3, 0.5, 1.5...)
  * @param[in] ascending The sorting is ascending (1, 2, 3...)
  * @param[in] cycle The size of a cycle (optional; increasing first->second)
  */
 template <class SortedVectorType>
-constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
-                           const Index m, Index p0, const bool cyclic,
+constexpr Index pos_finder(const Index pos0, const Numeric x, const SortedVectorType& xi,
+                           const Index m, const bool cyclic,
                            const bool ascending,
                            const std::pair<Numeric, Numeric> cycle = {
                                -180, 180}) noexcept {
-                                 
   if (cyclic) {
     const Index N = xi.size();
     if (ascending) {
       if (x <= xi[0] or x >= xi[N - 1]) {  // cyclic if out-of-bounds
         if (x == cycle.first or x == cycle.second) {
-          p0 = 0;
+          return 0;
         } else if (x < cycle.first or x > cycle.second) {
-          p0 = pos_finder(cyclic_clamp(x, cycle), xi, N, p0, cyclic, ascending,
-                          cycle);
+          return pos_finder(pos0, cyclic_clamp(x, cycle), xi, m, cyclic, ascending,
+                            cycle);
         } else {
-          p0 = N - 1;
+          return N - 1;
         }
       } else {
-        p0 = pos_finder(cyclic_clamp(x, cycle), xi, N, p0, false, ascending, cycle);
+        return pos_finder(pos0, cyclic_clamp(x, cycle), xi, m, false, ascending, cycle);
       }
     } else {
       if (x >= xi[0] or x <= xi[N - 1]) {  // cyclic if out-of-bounds
         if (x == cycle.first or x == cycle.second) {
-          p0 = 0;
+          return 0;
         } else if (x < cycle.first or x > cycle.second) {
-          p0 = pos_finder(cyclic_clamp(x, cycle), xi, N, p0, cyclic, ascending,
+          return pos_finder(pos0, cyclic_clamp(x, cycle), xi, m, cyclic, ascending,
                           cycle);
         } else {
-          p0 = N - 1;
+          return N - 1;
         }
       } else {
-        p0 = pos_finder(cyclic_clamp(x, cycle), xi, N, p0, false, ascending, cycle);
+        return pos_finder(pos0, cyclic_clamp(x, cycle), xi, m, false, ascending, cycle);
       }
     }
   } else {
     const Index N = xi.size() - m;
+    Index p0=pos0;
     if (ascending) {
       while (p0 < N and xi[p0] < x) ++p0;
       while (p0 > 0 and xi[p0] > x) --p0;
@@ -269,13 +268,12 @@ constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
     if (m == 1 or p0 == N) {
       // pass
     } else if (m not_eq 1) {
-      p0 = IMAX(p0 - (m - 1) / 2, 0);
+      p0 = MIN0(p0 - (m - 1) / 2);
     } else if (std::abs(xi[p0] - x) >= std::abs(xi[p0 + 1] - x)) {
       p0 += 1;
     }
+    return p0;
   }
-  
-  return p0;
 }
 
 /*! Find the absolute minimum in a cycle
@@ -284,15 +282,32 @@ constexpr Index pos_finder(const Numeric x, const SortedVectorType& xi,
  * @param[in] dx The size of a cycle
  * @return x-dx, x, or x+dx, whichever absolute is the smallest
  */
-constexpr Numeric min_cyclic(Numeric x, Numeric dx) noexcept {
+constexpr Numeric min_cyclic(const Numeric x, const Numeric dx) noexcept {
   const bool lo = std::abs(x) < std::abs(x - dx);
   const bool hi = std::abs(x) < std::abs(x + dx);
   const bool me = std::abs(x + dx) < std::abs(x - dx);
   return (lo and hi) ? x : me ? x + dx : x - dx;
 }
 
-/*! Type of Lagrange interpolation weights */
-ENUMCLASS(LagrangeType, char, Linear, Log, Cyclic, Log10, Log2)
+/*! Type of Lagrange interpolation weights
+ * 
+ * Note that Cyclic interpolation has reduced
+ * poly-order crossing the cycle if both the
+ * start and the end of the cycle are in the
+ * original x-data and the polyorder is above 1.  
+ * 
+ * Note that all derivatives are linear regardless
+ * of the type
+ */
+ENUMCLASS(LagrangeType, char,
+          Linear,  /* Linear interpolation grid */
+          Log,     /* Natural logarithm interpolation grid */
+          Cyclic,  /* Cyclic interpolation grid */
+          Log10,   /* 10-base logarithm interpolation grid */
+          Log2,    /* 2-base logarithm interpolation grid */
+          CosDeg,  /* Cosine in degrees interpolation grid, grid only defined [0, 180] */
+          CosRad   /* Cosine in radians interpolation grid, grid only defined [0, 2PI] */
+         )
 
 /*! Computes the weights for a given coefficient
  *
@@ -320,6 +335,12 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
       } else if constexpr (type == LagrangeType::Log2) {
         val *= (std::log2(x) - std::log2(xi[m + p0])) /
                (std::log2(xi[j + p0]) - std::log2(xi[m + p0]));
+      } else if constexpr (type == LagrangeType::CosDeg) {
+        val *= (Conversion::cosd(xi[m + p0]) - Conversion::cosd(x)) /
+               (Conversion::cosd(xi[m + p0]) - Conversion::cosd(xi[j + p0]));
+      } else if constexpr (type == LagrangeType::CosRad) {
+        val *= (std::cos(xi[m + p0]) - std::cos(x)) /
+               (std::cos(xi[m + p0]) - std::cos(xi[j + p0]));
       } else if constexpr (type == LagrangeType::Linear) {
         val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
       } else if constexpr (type == LagrangeType::Cyclic) {
@@ -361,56 +382,13 @@ template <LagrangeType type, typename SortedVectorType,
           class LagrangeVectorType>
 constexpr double dl_dval(
     const Index p0, const Index n, const Numeric x, const SortedVectorType& xi,
-    const LagrangeVectorType& li, const Index j, const Index i,
+    [[maybe_unused]] const LagrangeVectorType& li, const Index j, const Index i,
     [[maybe_unused]] const std::pair<Numeric, Numeric> cycle) {
-  if constexpr (type == LagrangeType::Log) {
-    Numeric val = std::log(x) - std::log(xi[i + p0]);
-    if (val not_eq 0) {
-      return li[j] / val;
+  if constexpr (type == LagrangeType::Linear) {
+    if (x not_eq xi[i + p0]) {
+      return li[j] / (x - xi[i + p0]);
     } else {
-      val = 1.0 / (std::log(xi[j + p0]) - std::log(xi[i + p0]));
-      for (Index m = 0; m < n; m++) {
-        if (m not_eq j and m not_eq i) {
-          val *= (std::log(x) - std::log(xi[m + p0])) /
-                 (std::log(xi[j + p0]) - std::log(xi[m + p0]));
-        }
-      }
-      return val;
-    }
-  } else if constexpr (type == LagrangeType::Log10) {
-    Numeric val = std::log10(x) - std::log10(xi[i + p0]);
-    if (val not_eq 0) {
-      return li[j] / val;
-    } else {
-      val = 1.0 / (std::log10(xi[j + p0]) - std::log10(xi[i + p0]));
-      for (Index m = 0; m < n; m++) {
-        if (m not_eq j and m not_eq i) {
-          val *= (std::log10(x) - std::log10(xi[m + p0])) /
-                 (std::log10(xi[j + p0]) - std::log10(xi[m + p0]));
-        }
-      }
-      return val;
-    }
-  } else if constexpr (type == LagrangeType::Log2) {
-    Numeric val = std::log2(x) - std::log2(xi[i + p0]);
-    if (val not_eq 0) {
-      return li[j] / val;
-    } else {
-      val = 1.0 / (std::log2(xi[j + p0]) - std::log2(xi[i + p0]));
-      for (Index m = 0; m < n; m++) {
-        if (m not_eq j and m not_eq i) {
-          val *= (std::log2(x) - std::log2(xi[m + p0])) /
-                 (std::log2(xi[j + p0]) - std::log2(xi[m + p0]));
-        }
-      }
-      return val;
-    }
-  } else if constexpr (type == LagrangeType::Linear) {
-    Numeric val = x - xi[i + p0];
-    if (val not_eq 0) {
-      return li[j] / val;
-    } else {
-      val = 1.0 / (xi[j + p0] - xi[i + p0]);
+      Numeric val = 1.0 / (xi[j + p0] - xi[i + p0]);
       for (Index m = 0; m < n; m++) {
         if (m not_eq j and m not_eq i) {
           val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
@@ -455,6 +433,14 @@ constexpr double dl_dval(
         return val / outer_denom;
       }
     }
+  } else /*if any other case */ {
+    Numeric val = 1.0 / (xi[j + p0] - xi[i + p0]);
+    for (Index m = 0; m < n; m++) {
+      if (m not_eq j and m not_eq i) {
+        val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
+      }
+    }
+    return val;
   }
 }
 
@@ -543,7 +529,7 @@ struct Lagrange {
       throw std::runtime_error(os.str());
     } else {
       // Set the position
-      pos = pos_finder(x, xi, p, p0,
+      pos = pos_finder(p0, x, xi, p,
                        type == LagrangeType::Cyclic, ascending, cycle);
 
       // Set weights
@@ -594,6 +580,14 @@ struct Lagrange {
         for (Index j = 0; j < n; j++)
           out[j] = l<LagrangeType::Cyclic>(p0, n, x, xi, j, cycle);
         break;
+      case LagrangeType::CosDeg:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::CosDeg>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::CosRad:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::CosRad>(p0, n, x, xi, j);
+        break;
       case LagrangeType::FINAL: { /* pass */
       }
     }
@@ -628,6 +622,14 @@ struct Lagrange {
       case LagrangeType::Cyclic:
         for (Index j = 0; j < n; j++)
           out[j] = dl<LagrangeType::Cyclic>(p0, n, x, xi, li, j, cycle);
+        break;
+      case LagrangeType::CosDeg:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::CosDeg>(p0, n, x, xi, li, j);
+        break;
+      case LagrangeType::CosRad:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::CosRad>(p0, n, x, xi, li, j);
         break;
       case LagrangeType::FINAL: { /* pass */
       }
@@ -670,8 +672,8 @@ struct FixedLagrange {
                           const bool do_derivs = true,
                           const LagrangeType type = LagrangeType::Linear,
                           const std::pair<Numeric, Numeric> cycle = {-180, 180})
-      : pos(pos_finder(x, xi, size(),
-                       p0, type == LagrangeType::Cyclic,
+      : pos(pos_finder(p0, x, xi, size(),
+                       type == LagrangeType::Cyclic,
                        xi.size() > 1 ? xi[0] < xi[1] : false, cycle)),
         lx(lx_finder(pos, x, xi, type, cycle)),
         dlx(do_derivs ? dlx_finder(pos, x, xi, lx, type, cycle)
@@ -715,6 +717,14 @@ struct FixedLagrange {
         for (Index j = 0; j < n; j++)
           out[j] = l<LagrangeType::Cyclic>(p0, n, x, xi, j, cycle);
         break;
+      case LagrangeType::CosDeg:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::CosDeg>(p0, n, x, xi, j);
+        break;
+      case LagrangeType::CosRad:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<LagrangeType::CosRad>(p0, n, x, xi, j);
+        break;
       case LagrangeType::FINAL: { /* pass */
       }
     }
@@ -745,6 +755,14 @@ struct FixedLagrange {
       case LagrangeType::Log2:
         for (Index j = 0; j < n; j++)
           out[j] = dl<LagrangeType::Log2>(p0, n, x, xi, li, j);
+        break;
+      case LagrangeType::CosDeg:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::CosDeg>(p0, n, x, xi, li, j);
+        break;
+      case LagrangeType::CosRad:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<LagrangeType::CosRad>(p0, n, x, xi, li, j);
         break;
       case LagrangeType::Cyclic:
         for (Index j = 0; j < n; j++)
