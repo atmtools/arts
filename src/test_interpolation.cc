@@ -428,7 +428,7 @@ void test09() {
   for (auto x : ng) {
     GridPos gp;
     gridpos(gp, og, x);
-    const Interpolation::Lagrange lag(0, x, og);
+    const LagrangeInterpolation lag(0, x, og);
     std::cout << "gp " << gp << "lag: " << lag << '\n';
 
     Vector iwgp(2);
@@ -533,17 +533,17 @@ void test13() {
   constexpr Numeric dx = 1e-2;
 
   // Set up the interpolation Lagranges
-  constexpr Interpolation::FixedLagrange<1> lin(0, x,
+  constexpr FixedLagrangeInterpolation<1> lin(0, x,
                                                 std::array<Numeric, 2>{1, 2});
-  constexpr Interpolation::FixedLagrange<2> sqr(
+  constexpr FixedLagrangeInterpolation<2> sqr(
       0, x, std::array<Numeric, 3>{1, 2, 3});
-  constexpr Interpolation::FixedLagrange<3> cub(
+  constexpr FixedLagrangeInterpolation<3> cub(
       0, x, std::array<Numeric, 4>{1, 2, 3, 4});
-  constexpr Interpolation::FixedLagrange<1> dlin(0, x + dx,
+  constexpr FixedLagrangeInterpolation<1> dlin(0, x + dx,
                                                  std::array<Numeric, 2>{1, 2});
-  constexpr Interpolation::FixedLagrange<2> dsqr(
+  constexpr FixedLagrangeInterpolation<2> dsqr(
       0, x + dx, std::array<Numeric, 3>{1, 2, 3});
-  constexpr Interpolation::FixedLagrange<3> dcub(
+  constexpr FixedLagrangeInterpolation<3> dcub(
       0, x + dx, std::array<Numeric, 4>{1, 2, 3, 4});
 
   // Set up the interpolation weights
@@ -576,11 +576,6 @@ void test13() {
   static_assert(is_around(dsqr_sqr, 2 * x));
   static_assert(is_around(dcub_cub, 3 * x * x));
 
-  // Should be
-  // 1.5  2.25   3.375
-  // 1    3      6.75
-  // 1.51 2.2801 3.44295
-  // ~1   ~3     ~6.75 (ofc, worse for less linear cases)
   std::cout << lin_lin << ' ' << ' ' << sqr_sqr << ' ' << ' ' << ' ' << cub_cub
             << '\n'
             << dlin_lin << ' ' << ' ' << ' ' << ' ' << dsqr_sqr << ' ' << ' '

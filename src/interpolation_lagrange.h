@@ -329,8 +329,8 @@ constexpr Numeric min_cyclic(const Numeric x, const Numeric dx) noexcept {
  */
 ENUMCLASS(LagrangeType, char,
           Linear,  /* Linear interpolation grid */
-          Log,     /* Natural logarithm interpolation grid */
           Cyclic,  /* Cyclic interpolation grid */
+          Log,     /* Natural logarithm interpolation grid */
           Log10,   /* 10-base logarithm interpolation grid */
           Log2,    /* 2-base logarithm interpolation grid */
           CosDeg,  /* Cosine in degrees interpolation grid, grid only defined [0, 180] */
@@ -536,7 +536,7 @@ struct Lagrange {
    * @param[in] polyorder Polynominal degree
    * @param[in] extrapol Level of extrapolation
    * @param[in] do_derivs Compute derivatives?
-   * @param[in] type Type of Lagrange (Linear or Log or Cyclic)
+   * @param[in] type Type of Lagrange
    * @param[in] cycle Size of a cycle if Cyclic type
    */
   template <class SortedVectorType>
@@ -703,7 +703,7 @@ struct FixedLagrange {
    * @param[in] p0 Guess of first position
    * @param[in] x New grid position
    * @param[in] xi Old grid positions
-   * @param[in] type Type of grid (Linear or Log)
+   * @param[in] type Type of grid
    */
   template <class SortedVectorType>
   constexpr FixedLagrange(const Index p0, const Numeric x,
