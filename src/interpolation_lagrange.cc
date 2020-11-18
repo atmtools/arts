@@ -12,7 +12,7 @@ Array<Lagrange> LagrangeVector(
     if (has_one) {
       out.emplace_back(out.back().pos, x, xi, polyorder, extrapol, do_derivs, type, cycle);
     } else {
-      out.emplace_back(start_pos_finder(x, xi, extrapol), x, xi, polyorder, extrapol, do_derivs, type, cycle);
+      out.emplace_back(start_pos_finder(x, xi), x, xi, polyorder, extrapol, do_derivs, type, cycle);
       has_one = true;
     }
   }

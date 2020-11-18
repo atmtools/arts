@@ -183,16 +183,16 @@ constexpr Numeric cyclic_clamp(Numeric x,
  * 
  * @param[in] x The position
  * @param[in] xvec The grid
- * @param[in] extrapol Extrapolation factor to estimate some min-max values
  * @return Estimated position of x [0, xvec.size())
 */
 template <class SortedVectorType>
-constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec, const Numeric extrapol=0.5) {
-  const Index n = xvec.size();
-  if (n > 1) {
-    const Numeric minval = xvec[    0] - extrapol * (xvec[    1] - xvec[    0]);
-    const Numeric maxval = xvec[n - 1] + extrapol * (xvec[n - 1] - xvec[n - 2]);
-    const Numeric frac = (x - minval) / (maxval - minval);
+constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec) {
+  if (const Index n = xvec.size(); n > 1) {
+    const Numeric val0 = xvec[    0];
+    const Numeric val1 = xvec[n - 1];
+    const Numeric frac = (val0 < val1) ?
+      ((x - val0) / (val1 - val0)) :
+      ((x - val1) / (val0 - val1));
     const Index start_pos = Index(frac * (Numeric)(n - 2));
     return start_pos > 0 ? (start_pos < n ? start_pos : n - 1) : 0;
   } else {
@@ -510,11 +510,22 @@ struct Lagrange {
   // Ensure that the move constructor exists
   Lagrange(Lagrange&& l) noexcept : pos(l.pos), lx(std::move(l.lx)), dlx(std::move(l.dlx)) {}
   
+  // Ensure that the copy constructor exists
+  Lagrange(const Lagrange& l) noexcept : pos(l.pos), lx(l.lx), dlx(l.dlx) {}
+  
   // Ensure that the move operator exists
   Lagrange& operator=(Lagrange&& l) noexcept {
     pos = l.pos;
     lx = std::move(l.lx);
     dlx = std::move(l.dlx);
+    return *this;
+  }
+  
+  // Ensure that the copy operator exists
+  Lagrange& operator=(const Lagrange& l) noexcept {
+    pos = l.pos;
+    lx = l.lx;
+    dlx = l.dlx;
     return *this;
   }
 
@@ -541,8 +552,8 @@ struct Lagrange {
       throw std::runtime_error(
           "Requesting greater interpolation order than possible with given "
           "input grid\n");
-    } else if (const bool ascending = xi[0] < xi[1]; LagrangeType::Cyclic not_eq type and
-               (extrapol >= 0 and ascending
+    } else if (const bool ascending = xi[0] < xi[1]; polyorder and LagrangeType::Cyclic not_eq type and
+      (extrapol >= 0 and ascending
                    ? (x < (xi[0] - extrapol * (xi[1] - xi[0])) or
                       x > (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2])))
                    : (x > (xi[0] - extrapol * (xi[1] - xi[0])) or
@@ -551,7 +562,7 @@ struct Lagrange {
       os << "Extrapolation factor too small at: " << extrapol << " for position: " << x
          << ", for grid: " << xi << '\n';
       throw std::runtime_error(os.str());
-    } else if (LagrangeType::Cyclic == type and cycle.first >= cycle.second) {
+    } else if (polyorder and LagrangeType::Cyclic == type and cycle.first >= cycle.second) {
       std::ostringstream os;
       os << "Cannot have a zero or negative cycle.  Cycle: " << cycle.first << " to " << cycle.second << '\n';
       throw std::runtime_error(os.str());
@@ -838,7 +849,7 @@ Array<FixedLagrange<PolyOrder>> FixedLagrangeVector(
     if (has_one) {
       out.emplace_back(out.back().pos, x, xi, do_derivs, type, cycle);
     } else {
-      out.emplace_back(start_pos_finder(x, xi, 0.0), x, xi, do_derivs, type, cycle);
+      out.emplace_back(start_pos_finder(x, xi), x, xi, do_derivs, type, cycle);
       has_one = true;
     }
   }
@@ -3490,6 +3501,8 @@ using ArrayOfLagrangeInterpolation = Array<LagrangeInterpolation>;
 using VectorOfVector = Interpolation::Grid<Vector, 1>;
 
 using MatrixOfMatrix = Interpolation::Grid<Matrix, 2>;
+
+using Tensor3OfTensor3 = Interpolation::Grid<Tensor3, 3>;
 
 template <std::size_t N>
 using FixedLagrangeInterpolation = Interpolation::FixedLagrange<N>;
