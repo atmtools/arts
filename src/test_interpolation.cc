@@ -23,7 +23,6 @@
 #include "constants.h"
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
-#include "interpolation_poly.h"
 #include "math_funcs.h"
 #include "matpackVII.h"
 #include "xml_io.h"

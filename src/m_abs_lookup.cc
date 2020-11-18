@@ -36,7 +36,6 @@
 #include "cloudbox.h"
 #include "gas_abs_lookup.h"
 #include "global_data.h"
-#include "interpolation_poly.h"
 #include "interpolation_lagrange.h"
 #include "math_funcs.h"
 #include "matpackV.h"

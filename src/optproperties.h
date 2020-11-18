@@ -34,7 +34,6 @@
 #define optproperties_h
 
 #include "gridded_fields.h"
-#include "interpolation_poly.h"
 #include "matpackVII.h"
 #include "messages.h"
 #include "mystring.h"

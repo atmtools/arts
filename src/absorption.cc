@@ -39,7 +39,6 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "file.h"
-#include "interpolation_poly.h"
 #include "linescaling.h"
 #include "logic.h"
 #include "math_funcs.h"

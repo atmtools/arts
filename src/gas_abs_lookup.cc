@@ -28,7 +28,6 @@
 #include <cmath>
 #include "check_input.h"
 #include "interpolation.h"
-#include "interpolation_poly.h"
 #include "logic.h"
 #include "messages.h"
 #include "physics_funcs.h"

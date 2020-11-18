@@ -28,7 +28,6 @@
 
 #include "abs_species_tags.h"
 #include "absorption.h"
-#include "interpolation_poly.h"
 #include "interpolation_lagrange.h"
 #include "matpackIV.h"
 #include "messages.h"

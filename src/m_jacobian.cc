@@ -36,7 +36,6 @@
 #include "check_input.h"
 #include "cloudbox.h"
 #include "constants.h"
-#include "interpolation_poly.h"
 #include "interpolation_lagrange.h"
 #include "jacobian.h"
 #include "m_xml.h"

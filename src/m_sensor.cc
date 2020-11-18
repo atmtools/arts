@@ -43,7 +43,6 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "interpolation_poly.h"
 #include "interpolation_lagrange.h"
 #include "m_select.h"
 #include "math_funcs.h"

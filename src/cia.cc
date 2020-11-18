@@ -33,7 +33,6 @@
 #include "abs_species_tags.h"
 #include "absorption.h"
 #include "file.h"
-#include "interpolation_poly.h"
 #include "interpolation_lagrange.h"
 
 extern const Numeric SPEED_OF_LIGHT;

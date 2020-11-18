@@ -50,7 +50,6 @@
 #include "global_data.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
-#include "interpolation_poly.h"
 #include "interpolation_lagrange.h"
 #include "linescaling.h"
 #include "matpackIII.h"

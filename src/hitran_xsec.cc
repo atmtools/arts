@@ -24,7 +24,6 @@
 */
 
 #include "arts.h"
-#include "interpolation_poly.h"
 #include "interpolation_lagrange.h"
 
 #ifdef ENABLE_FFTW
