@@ -25,6 +25,7 @@
 
 #include "arts.h"
 #include "interpolation_poly.h"
+#include "interpolation_lagrange.h"
 
 #ifdef ENABLE_FFTW
 
@@ -255,7 +256,7 @@ void XsecRecord::Extract(VectorView result,
     Vector xsec_interp(f_extent);
 
     // Decide on interpolation orders:
-    const Index f_order = 3;
+    constexpr Index f_order = 3;
 
     // The frequency grid has to have enough points for this interpolation
     // order, otherwise throw a runtime error.
@@ -266,6 +267,9 @@ void XsecRecord::Extract(VectorView result,
          << "But need at least " << f_order + 1 << ".";
       throw runtime_error(os.str());
     }
+    
+    // Find frequency grid positions:
+    const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid_active, false, Interpolation::LagrangeType::Linear);
 
     if (pressure > mrefpressure[this_dataset_i] &&
         mrefpressure[this_dataset_i] > 0.) {
@@ -309,23 +313,9 @@ void XsecRecord::Extract(VectorView result,
                               f_grid_active,
                               f_order);
 
-      {
-        // Find frequency grid positions:
-        ArrayOfGridPosPoly f_gp(f_grid_active.nelem()), T_gp(1);
-        gridpos_poly(f_gp, data_f_grid_active, f_grid_active, f_order);
-
-        Matrix itw(f_gp.nelem(), f_order + 1);
-        interpweights(itw, f_gp);
-        interp(xsec_interp, itw, data_result, f_gp);
-      }
+      xsec_interp = reinterp(data_result, interpweights(f_lag), f_lag);
     } else {
-      // Find frequency grid positions:
-      ArrayOfGridPosPoly f_gp(f_grid_active.nelem()), T_gp(1);
-      gridpos_poly(f_gp, data_f_grid_active, f_grid_active, f_order);
-
-      Matrix itw(f_gp.nelem(), f_order + 1);
-      interpweights(itw, f_gp);
-      interp(xsec_interp, itw, xsec_active, f_gp);
+      xsec_interp = reinterp(xsec_active, interpweights(f_lag), f_lag);
     }
 
     result_active += xsec_interp;
