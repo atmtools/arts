@@ -339,7 +339,7 @@ ENUMCLASS(LagrangeType, char,
 
 /*! Computes the weights for a given coefficient
  *
- * @param[in] p0 The original position
+ * @param[in] p0 The origin position
  * @param[in] n The number of weights
  * @param[in] x The position for the weights
  * @param[in] xi The sorted vector of values
@@ -397,7 +397,7 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
  *
  * If x is on the grid, this is more expensive than if x is not on the grid
  *
- * @param[in] p0 The original position
+ * @param[in] p0 The origin position
  * @param[in] n The number of weights
  * @param[in] x The position for the weights
  * @param[in] xi The sorted vector of values
@@ -474,7 +474,7 @@ constexpr double dl_dval(
 
 /*! Computes the derivatives of the weights for a given coefficient
  *
- * @param[in] p0 The original position
+ * @param[in] p0 The origin position
  * @param[in] n The number of weights
  * @param[in] x The position for the weights
  * @param[in] xi The sorted vector of values
@@ -529,8 +529,9 @@ struct Lagrange {
     return *this;
   }
 
-  /*! Standard and only initializer, assumes sorted xi
-   *
+  /*! Standard initializer, assumes sorted xi
+   * 
+   * @param[in] pos0 Estimation of original position, must be [0, xi.size())
    * @param[in] x New grid position
    * @param[in] xi Old grid positions
    * @param[in] polyorder Polynominal degree
@@ -540,7 +541,7 @@ struct Lagrange {
    * @param[in] cycle Size of a cycle if Cyclic type
    */
   template <class SortedVectorType>
-  Lagrange(Index p0, const Numeric x, const SortedVectorType& xi,
+  Lagrange(const Index pos0, const Numeric x, const SortedVectorType& xi,
            const Index polyorder = 1, const Numeric extrapol = 0.5,
            const bool do_derivs = true,
            const LagrangeType type = LagrangeType::Linear,
@@ -552,30 +553,36 @@ struct Lagrange {
       throw std::runtime_error(
           "Requesting greater interpolation order than possible with given "
           "input grid\n");
-    } else if (const bool ascending = xi[0] < xi[1]; polyorder and LagrangeType::Cyclic not_eq type and
-      (extrapol >= 0 and ascending
-                   ? (x < (xi[0] - extrapol * (xi[1] - xi[0])) or
-                      x > (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2])))
-                   : (x > (xi[0] - extrapol * (xi[1] - xi[0])) or
-                      x < (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2]))))) {
-      std::ostringstream os;
-      os << "Extrapolation factor too small at: " << extrapol << " for position: " << x
-         << ", for grid: " << xi << '\n';
-      throw std::runtime_error(os.str());
-    } else if (polyorder and LagrangeType::Cyclic == type and cycle.first >= cycle.second) {
-      std::ostringstream os;
-      os << "Cannot have a zero or negative cycle.  Cycle: " << cycle.first << " to " << cycle.second << '\n';
-      throw std::runtime_error(os.str());
+    } else if (n > 1) {
+      if (const bool ascending = xi[0] < xi[1]; polyorder and LagrangeType::Cyclic not_eq type and
+        (extrapol >= 0 and ascending
+                     ? (x < (xi[0    ] - extrapol * (xi[1    ] - xi[0    ])) or
+                        x > (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2])))
+                     : (x > (xi[0    ] - extrapol * (xi[1    ] - xi[0    ])) or
+                        x < (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2]))))) {
+        std::ostringstream os;
+        os << "Extrapolation factor too small at: " << extrapol << " for position: " << x
+           << ", for grid: " << xi << '\n';
+        throw std::runtime_error(os.str());
+      } else if (polyorder and LagrangeType::Cyclic == type and cycle.first >= cycle.second) {
+        std::ostringstream os;
+        os << "Cannot have a zero or negative cycle.  Cycle: " << cycle.first << " to " << cycle.second << '\n';
+        throw std::runtime_error(os.str());
+      } else {
+        // Set the position
+        pos = pos_finder(pos0, x, xi, polyorder,
+                         type == LagrangeType::Cyclic, ascending, cycle);
+
+        // Set weights
+        lx = lx_finder(pos, p, x, xi, type, cycle);
+
+        // Set derivatives after the weights
+        if (do_derivs) dlx = dlx_finder(pos, p, x, xi, lx, type, cycle);
+      }
     } else {
-      // Set the position
-      pos = pos_finder(p0, x, xi, polyorder,
-                       type == LagrangeType::Cyclic, ascending, cycle);
-
-      // Set weights
-      lx = lx_finder(pos, p, x, xi, type, cycle);
-
-      // Set derivatives after the weights
-      if (do_derivs) dlx = dlx_finder(pos, p, x, xi, lx, type, cycle);
+      pos = 0;
+      lx = Array<Numeric>(1, 1);
+      dlx = Array<Numeric>(1, 0);
     }
   }
   
