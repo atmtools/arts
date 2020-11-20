@@ -657,7 +657,7 @@ void test17() {
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
-    auto lag = Interpolation::Lagrange(0, n, x, 1, 100000, true,
+    auto lag = Interpolation::Lagrange(0, n, x, 1, true,
                                        Interpolation::LagrangeType::Cyclic,
                                        {0, Constant::two_pi});
     auto flag = Interpolation::FixedLagrange<1>(
@@ -682,7 +682,7 @@ void test18() {
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(f);
   for (Numeric n = -3 * 180; n <= 3 * 180; n += 0.1) {
-    auto lag = Interpolation::Lagrange(0, n, x, 1, 100000, true,
+    auto lag = Interpolation::Lagrange(0, n, x, 1, true,
                                        Interpolation::LagrangeType::Cyclic,
                                        {-180, 180});
     auto flag = Interpolation::FixedLagrange<1>(
@@ -707,7 +707,7 @@ void test19() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-        Interpolation::Lagrange(0, n, x, 1, 100000, true,
+        Interpolation::Lagrange(0, n, x, 1, true,
                                 Interpolation::LagrangeType::Cyclic, {0, 0.5});
     auto flag = Interpolation::FixedLagrange<1>(
         0, n, x, true, Interpolation::LagrangeType::Cyclic, {0, 0.5});
@@ -731,7 +731,7 @@ void test20() {
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(360 / (0.456 + 0.123) * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
-    auto lag = Interpolation::Lagrange(0, n, x, 1, 100000, true,
+    auto lag = Interpolation::Lagrange(0, n, x, 1, true,
                                        Interpolation::LagrangeType::Cyclic,
                                        {-0.123, 0.456});
     auto flag = Interpolation::FixedLagrange<1>(
@@ -757,7 +757,7 @@ void test21() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-        Interpolation::Lagrange(0, n, x, 1, 100000, true,
+        Interpolation::Lagrange(0, n, x, 1, true,
                                 Interpolation::LagrangeType::Cyclic, {0, 0.5});
     auto flag = Interpolation::FixedLagrange<1>(
         0, n, x, true, Interpolation::LagrangeType::Cyclic, {0, 0.5});
@@ -781,7 +781,7 @@ void test22() {
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
-    auto lag = Interpolation::Lagrange(0, n, x, 1, 100000, true,
+    auto lag = Interpolation::Lagrange(0, n, x, 1, true,
                                        Interpolation::LagrangeType::Cyclic,
                                        {0, Constant::two_pi});
     auto flag = Interpolation::FixedLagrange<1>(
@@ -807,7 +807,7 @@ void test23() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-        Interpolation::Lagrange(0, n, x, 1, 100000, true,
+        Interpolation::Lagrange(0, n, x, 1, true,
                                 Interpolation::LagrangeType::Cyclic, {0, 0.5});
     auto flag = Interpolation::FixedLagrange<1>(
         0, n, x, true, Interpolation::LagrangeType::Cyclic, {0, 0.5});
@@ -832,9 +832,96 @@ void test25() {
   for (auto& f : y) f = 15*f*f + f*f*f;
   for (Numeric n = 0; n <= 180; n += 0.01) {
     const auto lag =
-    Interpolation::Lagrange(0, n, x, 5, 100000, true, Interpolation::LagrangeType::CosDeg);
+    Interpolation::Lagrange(0, n, x, 5, true, Interpolation::LagrangeType::CosDeg);
     std::cout << n << ' ' << interp(y, interpweights(lag), lag) << ' ' << interp(y, dinterpweights(lag), lag) << '\n';
   }
 }
 
-int main() { test25(); }
+void test26() {
+  auto f = [](Numeric x){return Constant::pow2(Interpolation::cyclic_clamp(x, {-2, 2})) - 4;};
+  auto df = [](Numeric x){return 2*Interpolation::cyclic_clamp(x, {-2, 2});};
+  
+  constexpr Index N = 9;
+  constexpr std::array<Numeric, N> xi{-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2};
+  constexpr std::array<Numeric, N> yi{f(-2), f(-1.5), f(-1), f(-0.5), f(0), f(0.5), f(1), f(1.5), f(2)};
+  constexpr Index O1 = 3;
+  
+  // Test for a few values of interpolation
+  {
+    constexpr Numeric x = -1.75;
+    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::LagrangeType::Cyclic, {-2, 2});
+    static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::LagrangeType::Linear);
+    static_assert(f(x) == interp(yi, interpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+  }
+  {
+    constexpr Numeric x = -1.25;
+    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::LagrangeType::Cyclic, {-2, 2});
+    static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::LagrangeType::Linear);
+    static_assert(f(x) == interp(yi, interpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+  }
+  {
+    constexpr Numeric x = -0.25;
+    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::LagrangeType::Cyclic, {-2, 2});
+    static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::LagrangeType::Linear);
+    static_assert(f(x) == interp(yi, interpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+  }
+  {
+    constexpr Numeric x = 1;
+    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::LagrangeType::Cyclic, {-2, 2});
+    static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::LagrangeType::Linear);
+    static_assert(f(x) == interp(yi, interpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+  }
+  {
+    constexpr Numeric x = -2;
+    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::LagrangeType::Cyclic, {-2, 2});
+    static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::LagrangeType::Linear);
+    static_assert(f(x) == interp(yi, interpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+  }
+  {
+    constexpr Numeric x = 0;
+    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::LagrangeType::Cyclic, {-2, 2});
+    static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::LagrangeType::Linear);
+    static_assert(f(x) == interp(yi, interpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+  }
+  {
+    constexpr Numeric x = -4;
+    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::LagrangeType::Cyclic, {-2, 2});
+    static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+  }
+  {
+    constexpr Numeric x = 4;
+    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::LagrangeType::Cyclic, {-2, 2});
+    static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+  }
+
+  constexpr Index O2 = 3;
+  std::cout << "x f(x) interp(x) df(x) dinterp(x)\n";
+  for (Numeric X=-3; X<3; X+=0.025) {
+    const Interpolation::FixedLagrange<O2> cyc(0, X, xi, true, Interpolation::LagrangeType::Cyclic, {-2, 2});
+    const Interpolation::FixedLagrange<O2> lin(0, X, xi, true, Interpolation::LagrangeType::Linear);
+    std::cout << X << ' ' << f(X) << ' ' << interp(yi, interpweights(cyc), cyc) << ' ' << df(X) << ' ' << interp(yi, dinterpweights(cyc), cyc) 
+    << ' ' << interp(yi, interpweights(lin), lin) << ' ' << interp(yi, dinterpweights(lin), lin) << '\n';
+  }
+}
+
+int main() { test26(); }

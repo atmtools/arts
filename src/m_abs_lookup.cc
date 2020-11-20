@@ -2981,7 +2981,7 @@ void abs_lookupTestAccMC(  // Workspace reference:
       // pressure, so that we can apply the dT and dh2o perturbations.
 
       // Pressure grid positions:
-      const auto lag = Interpolation::Lagrange(0, rand_lp[i], al.log_p_grid, abs_p_interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+      const auto lag = Interpolation::Lagrange(0, rand_lp[i], al.log_p_grid, abs_p_interp_order, false, Interpolation::LagrangeType::Linear);
       const auto itw = interpweights(lag);
 
       // Interpolated temperature:

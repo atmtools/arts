@@ -704,44 +704,56 @@ order, whereas the concept of fractional distance does not.
 
 The weights are calculated according to 
 \begin{equation}
- l_j(x) = \prod_{0 \leq m \leq k} \left\{
+ l_j(x) = \prod_{0 \leq m \leq O} \left\{
  \begin{array}{lcr}
- \frac{f(x) - f(x _m)}{f(x_j) - f(x_m)} & \mathrm{if} & m \neq k \\[5pt]
- 1 & \mathrm{if} & m \equiv k
+ \frac{f(x) - f(x _m)}{f(x_j) - f(x_m)} & \mathrm{if} & m \neq j \\[5pt]
+ 1 & \mathrm{if} & m \equiv j
  \end{array}
- \right.,
+ \right. 0 \leq j \leq O, 
 \end{equation}
 where $f$ is a scaling function.  This can be a logarithm, reverse cosine,
 circular constraints, or, most commonly, just the input.  The provided options
 are:
-\shortcode{Linear} $(f(x) = x)$,
-\shortcode{Cyclic} $(f(x) = x \leftarrow x_0 \leq x + n(x_1 - x_0) < x_1$,
-where $x$ is moved between $x_0$ and $x_1$ by some cyclic steps $n)$,
-\shortcode{Log} $(f(x) = \ln(x))$,
-\shortcode{Log10} $(f(x) = \log(x))$,
-\shortcode{Log2} $(f(x) = \log_2(x))$,
-\shortcode{CosDeg} $(f(x) = \cos(\pi(1-x/180)))$, and
-\shortcode{CosRad} $(f(x) = \cos(\pi-x))$.
+\begin{itemize}
+ \item[\shortcode{Linear}] $f\left(t\right) = t$
+ \item[\shortcode{Cyclic}] $f\left(t\right) = t + n\left(t_1 - t_0\right)$,
+                           where $c_0 \leq t + n\left(c_1 - c_0\right) < c_1$,
+                           with $n$ as an integer and $\left[c_0, c_1\right)$
+                           are the cyclic limits so that
+                           $g\left(c_0\right) \equiv g\left(c_0 + m\left[c_1-c_0\right]\right)$
+                           holds true for valid function $g(t)$ and any integer $m$
+ \item[\shortcode{Log}] $f\left(t\right) = \ln\left(t\right)$
+ \item[\shortcode{Log10}] $f\left(t\right) = \log_{10}\left(t\right)$
+ \item[\shortcode{Log2}] $f\left(t\right) = \log_2\left(t\right)$
+ \item[\shortcode{CosDeg}] $f\left(t\right) = \cos\left(\left[1 - \frac{t}{180}\right]\pi\right)$
+ \item[\shortcode{CosRad}] $f\left(t\right) = \cos\left(\pi-t\right)$
+\end{itemize}
+
 These are for the 1D case. For 2D and higher dimensional cases, the weights of
 the individual dimensions have to be multiplied, just as in the linear
 interpolation case.
 The derivatives are computed as
 \begin{equation}
- \frac{\partial l_j(x)}{\partial x} = \sum_{i=0}^k
+ \frac{\partial l_j(x)}{\partial x} = \sum_{i=0}^{O}
  \left\{
  \begin{array}{lcr}
   \frac{l_j(x)}{x - x_i} & \mathrm{if} & x \neq x_i \\
-  \frac{1}{x_j - x_i} \prod_{m=0}^k
+  \frac{1}{x_j - x_i} \prod_{m=0}^O
   \left\{
   \begin{array}{lcr}
-   \frac{x - x_m}{x_j - x_m} & \mathrm{if} & m \neq i, j \\
-   1 & \mathrm{if} & m \in (i, j)
+   \frac{x - x_m}{x_j - x_m} & \mathrm{if} & m \neq i,\; j \\
+   1 & \mathrm{if} & m \in i,\; j
   \end{array} \right. & \mathrm{if} & x \equiv x_i
  \end{array}
- \right..
+ \right. \; i \neq j.
 \end{equation}
 Note that to retain linearity in the derivatives, the \shortcode{Cyclic} code
-scales the derivatives by $(x_1 - x_0) / 2\pi$.
+scales the derivatives by $(x_1 - x_0) / 2\pi$.  Also note that the upper branch
+speedup is only available for \shortcode{Linear} and for \shortcode{Cyclic} code.
+Other cases must use the lower branch.
+These are again for the 1D case. For 2D and higher dimensional cases, the weights of
+the individual dimensions have to be multiplied with the weights of the derivative
+along the dimension of interest.
 
 Instead of \shortcode{gridpos}, you have to use the constructor
 \shortcode{LagrangeInterpolation} for higher order interpolation
@@ -764,7 +776,7 @@ involves:
 \begin{code}
 LagrangeInterpolation or Interpolation::LagrangeVector
 interpweights
-interp
+interp or reinterp
 \end{code}
 
 For $O=1$ the result of the
@@ -880,12 +892,12 @@ Now you probably understand better what was written at the very
 beginning of this chapter, namely that doing an interpolation always
 requires the chain of function calls:
 \begin{enumerate}
-\item \shortcode{gridpos} or \shortcode{gridpos\_poly} (one for each interpolation dimension)
+\item \shortcode{gridpos} or \shortcode{LagrangeInterpolation} or \shortcode{Interpolation::LagrangeVector} or \shortcode{FixedLagrangeInterpolation<O>} or \shortcode{Interpolation::FixedLagrangeVector<O>} (one for each interpolation dimension)
 \item \shortcode{interpweights}
-\item \shortcode{interp}
+\item \shortcode{interp} or \shortcode{reinterp}
 \end{enumerate}
 If you are interested in how the functions really work, look in file
-\fileindex{interpolation.cc} or \fileindex{interpolation\_poly.cc}.
+\fileindex{interpolation.cc} or \fileindex{interpolation_lagrange.cc}.
 The documentation there is quite detailed.  When you are using
 interpolation, you should always give some thought to whether you can
 re-use grid positions or even interpolation weights. This can really

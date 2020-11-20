@@ -916,14 +916,17 @@ void iyInterpCloudboxField(Matrix& iy,
   const auto range = Range(za_start, za_extend);
   const ConstVectorView za_g(za_grid[range]);
   
+  // Check the zenith-grid
+  Interpolation::check_lagrange_interpolation(za_g, za_interp_order, rte_los[0], za_extpolfac);
+  
   // Find position of zenith, either by cosine or linear weights
   const auto lag_za = cos_za_interp ?
-    LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, za_extpolfac, false, Interpolation::LagrangeType::CosDeg) :
-    LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, za_extpolfac, false, Interpolation::LagrangeType::Linear);
+    LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, false, Interpolation::LagrangeType::CosDeg) :
+    LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, false, Interpolation::LagrangeType::Linear);
   
   // First position if 1D atmosphere, otherwise compute cyclic for a azimuth grid [-180, 180]
   const auto lag_aa = (atmosphere_dim > 1) ?
-    LagrangeInterpolation(0, rte_los[1], aa_grid, aa_interp_order, 0.5, false, Interpolation::LagrangeType::Cyclic, {-180, 180}) :
+    LagrangeInterpolation(0, rte_los[1], aa_grid, aa_interp_order, false, Interpolation::LagrangeType::Cyclic, {-180, 180}) :
     LagrangeInterpolation();
 
   // Corresponding interpolation weights

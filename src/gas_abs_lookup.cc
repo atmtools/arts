@@ -928,7 +928,7 @@ void GasAbsLookup::Extract(Matrix& sga,
         }
       }
 
-      tlag_withT[0] = LagrangeInterpolation(0, T_offset, t_pert, t_interp_order, extpolfac, false, Interpolation::LagrangeType::Linear);
+      tlag_withT[0] = LagrangeInterpolation(0, T_offset, t_pert, t_interp_order, false, Interpolation::LagrangeType::Linear);
     }
 
     // Determine the H2O VMR grid position. We need to do this only
@@ -987,7 +987,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       }
 
       // For now, do linear interpolation in the fractional VMR.
-      vlag_h2o[0] = LagrangeInterpolation(0, VMR_frac, nls_pert, h2o_interp_order, extpolfac, false, Interpolation::LagrangeType::Linear);
+      vlag_h2o[0] = LagrangeInterpolation(0, VMR_frac, nls_pert, h2o_interp_order, false, Interpolation::LagrangeType::Linear);
     }
 
     // Precalculate interpolation weights.

@@ -373,7 +373,7 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
 
       for (Index iT = 0; iT < nTout; iT++) {
         if (t_ok[iT] < 0) {
-          T_lag.emplace_back(0, 0, Vector({0, 1}), 1, 0.5, false);
+          T_lag.emplace_back();
         } else {
           if (grid_unchecked) {
             chk_interpolation_grids(
@@ -383,7 +383,7 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
                 this_T_interp_order);
             grid_unchecked = false;
           }
-          T_lag.emplace_back(0, T_array[iT], T_grid, this_T_interp_order, extrapolfac, false);
+          T_lag.emplace_back(0, T_array[iT], T_grid, this_T_interp_order, false);
         }
       }
       return T_lag;

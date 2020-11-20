@@ -1782,7 +1782,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
       chk_interpolation_grids(ost.str(), T_DATAGRID, T, interp_order);
 
       // Gridpositions:
-      const LagrangeInterpolation lag_T(0, T, T_DATAGRID, interp_order, 0.5, false, Interpolation::LagrangeType::Linear);
+      const LagrangeInterpolation lag_T(0, T, T_DATAGRID, interp_order, false, Interpolation::LagrangeType::Linear);
       const auto itw = interpweights(lag_T);
 
       //Sizing of temporary SSD data containers
