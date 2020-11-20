@@ -747,10 +747,9 @@ The derivatives are computed as
  \end{array}
  \right. \; i \neq j.
 \end{equation}
-Note that to retain linearity in the derivatives, the \shortcode{Cyclic} code
-scales the derivatives by $(x_1 - x_0) / 2\pi$.  Also note that the upper branch
-speedup is only available for \shortcode{Linear} and for \shortcode{Cyclic} code.
-Other cases must use the lower branch.
+Note that the upper branch speedup is only available for 
+\shortcode{Linear} and for \shortcode{Cyclic} code.
+Other cases must use the lower branch to get linear derivatives.
 These are again for the 1D case. For 2D and higher dimensional cases, the weights of
 the individual dimensions have to be multiplied with the weights of the derivative
 along the dimension of interest.
