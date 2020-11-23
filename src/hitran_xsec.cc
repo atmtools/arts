@@ -463,32 +463,17 @@ void XsecRecord::Extract2(VectorView result,
       fit_result[i] *= fit_result[i];
     }
 
-    // Decide on interpolation orders:
-    const Index f_order = 3;
-
-    // The frequency grid has to have enough points for this interpolation
-    // order, otherwise throw a runtime error.
-    if (data_f_grid.nelem() < f_order + 1) {
-      ostringstream os;
-      os << "Not enough frequency grid points in Hitran Xsec data.\n"
-         << "You have only " << data_f_grid.nelem() << " grid points.\n"
-         << "But need at least " << f_order + 1 << ".";
-      throw runtime_error(os.str());
-    }
-
-    // TODO: Add to result_active here
     // Check if frequency is inside the range covered by the data:
     chk_interpolation_grids("Frequency interpolation for cross sections",
                             data_f_grid,
-                            f_grid_active,
-                            f_order);
+                            f_grid_active);
 
     {
       // Find frequency grid positions:
-      ArrayOfGridPosPoly f_gp(f_grid_active.nelem()), T_gp(1);
-      gridpos_poly(f_gp, data_f_grid_active, f_grid_active, f_order);
+      ArrayOfGridPos f_gp(f_grid_active.nelem());
+      gridpos(f_gp, data_f_grid_active, f_grid_active);
 
-      Matrix itw(f_gp.nelem(), f_order + 1);
+      Matrix itw(f_gp.nelem(), 2);
       interpweights(itw, f_gp);
       interp(xsec_interp, itw, fit_result, f_gp);
     }
