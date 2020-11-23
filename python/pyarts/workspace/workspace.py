@@ -11,6 +11,7 @@ Attributes:
 """
 import ctypes as c
 import logging
+import sys
 import numpy  as np
 import weakref
 
@@ -127,7 +128,11 @@ def arts_agenda(func):
         Helper function that creates a wrapper function around
         python code to be executed withing an ARTS agenda.
         """
-        m = Module(body)
+        if sys.version_info >= (3, 8):
+            # https://bugs.python.org/issue35894#msg334808
+            m = Module(body, [])
+        else:
+            m = Module(body)
 
         def callback(ptr):
             try:
