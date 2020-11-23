@@ -223,17 +223,17 @@ class VariableValueStruct(c.Structure):
             if "dimensions" in d:
                 dimensions = d["dimensions"]
         # Index
-        elif type(value) == int:
+        elif isinstance(value, np.long):
             ptr = c.cast(c.pointer(c.c_long(value)), c.c_void_p)
         # Numeric
-        elif type(value) == float or type(value) == np.float32 or type(value) == np.float64:
+        elif isinstance(value, (float, np.double)):
             temp = np.float64(value)
             ptr = c.cast(c.pointer(c.c_double(temp)), c.c_void_p)
         # String
-        elif type(value) == str:
+        elif isinstance(value, str):
             ptr = c.cast(c.c_char_p(value.encode()), c.c_void_p)
         # Vector, Matrix
-        elif type(value) == np.ndarray:
+        elif isinstance(value, np.ndarray):
             # arrays need to be contiguous when passed to the ARTS API
             value = np.ascontiguousarray(value)
 
@@ -252,17 +252,16 @@ class VariableValueStruct(c.Structure):
             self.inner_ptr = c.cast(m.row.ctypes.data, c.POINTER(c.c_int))
             self.outer_ptr = c.cast(m.col.ctypes.data, c.POINTER(c.c_int))
         # Array of String or Integer
-        elif type(value) == list:
+        elif isinstance(value, list):
             if not value:
                 raise ValueError("Empty lists currently not supported.")
-            t = type(value[0])
             ps = []
-            if t ==str:
+            if isinstance(value[0], str):
                 for s in value:
                     ps.append(c.cast(c.c_char_p(s.encode()), c.c_void_p))
                 p_array = (c.c_void_p * len(value))(*ps)
                 ptr = c.cast(c.pointer(p_array), c.c_void_p)
-            if t == int:
+            if isinstance(value[0], np.long):
                 ptr = c.cast(c.pointer((c.c_long * len(value))(*value)), c.c_void_p)
             dimensions[0] = len(value)
 
