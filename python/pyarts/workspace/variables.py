@@ -152,30 +152,35 @@ class WorkspaceVariable:
                  or None if the type is not supported.
         """
         import numpy as np
-        if type(value) == WorkspaceVariable:
+        if isinstance(value, WorkspaceVariable):
             return group_ids[value.group]
-        elif type(value) == Agenda:
+        elif isinstance(value, Agenda):
             return group_ids["Agenda"]
-        elif type(value) == int:
+        elif isinstance(value, np.long):
             return group_ids["Index"]
-        elif type(value) == float or type(value) == np.float32 or type(value) == np.float64:
+        elif isinstance(value, (float, np.double)):
             return group_ids["Numeric"]
-        elif type(value) == str:
+        elif isinstance(value, str):
             return group_ids["String"]
-        elif type(value) == np.ndarray and value.ndim == 1:
-            return group_ids["Vector"]
-        elif type(value) == np.ndarray and value.ndim == 2:
-            return group_ids["Matrix"]
-        elif type(value) == np.ndarray and value.ndim == 3:
-            return group_ids["Tensor3"]
-        elif type(value) == np.ndarray and value.ndim == 4:
-            return group_ids["Tensor4"]
-        elif type(value) == np.ndarray and value.ndim == 5:
-            return group_ids["Tensor5"]
-        elif type(value) == np.ndarray and value.ndim == 6:
-            return group_ids["Tensor6"]
-        elif type(value) == np.ndarray and value.ndim == 7:
-            return group_ids["Tensor7"]
+        elif isinstance(value, np.ndarray):
+            if value.ndim == 1:
+                return group_ids["Vector"]
+            elif value.ndim == 2:
+                return group_ids["Matrix"]
+            elif value.ndim == 3:
+                return group_ids["Tensor3"]
+            elif value.ndim == 4:
+                return group_ids["Tensor4"]
+            elif value.ndim == 5:
+                return group_ids["Tensor5"]
+            elif value.ndim == 6:
+                return group_ids["Tensor6"]
+            elif value.ndim == 7:
+                return group_ids["Tensor7"]
+            else:
+                raise ValueError(
+                    "Numpy arrays are only supported up to 7 dimensions."
+                )
         elif sp.sparse.issparse(value):
             return group_ids["Sparse"]
         elif type(value) == list:
@@ -187,33 +192,30 @@ class WorkspaceVariable:
             if type(nested_value) == list and len(nested_value) == 0:
                 raise ValueError("Empty lists are currently not handled.")
             else:
-                t = type(nested_value)
-                if t == str:
+                typename = type(nested_value).__name__
+                if isinstance(nested_value, str):
                     group_name += "String"
                     return group_ids[group_name]
-                elif t == int:
+                elif isinstance(nested_value, np.long):
                     group_name += "Index"
                     return group_ids[group_name]
-                elif (t == np.float) or (t == np.float32) or (t == np.float64)  \
-                     or (t == np.float128):
-                    raise ValueError("Vectors, Matrices or Tensors should be"   \
-                                     + " passed as numpy.ndarray and not as"    \
+                elif isinstance(nested_value, (float, np.double)):
+                    raise ValueError("Vectors, Matrices or Tensors should be"
+                                     " passed as numpy.ndarray and not as"
                                      " lists.")
-                elif hasattr(nested_value, 'write_xml') \
-                     and t.__name__ in group_names:
-
-                    group_name += t.__name__
-                    return group_ids[group_name]
+                elif hasattr(nested_value, 'write_xml') and typename in group_names:
+                    return group_ids[group_name + typename]
                 elif isinstance(nested_value, np.ndarray):
                     group_name += tensor_names[len(nested_value.shape) - 1]
                     return group_ids[group_name]
                 else:
-                    raise ValueError("Nested array with internal type " +       \
-                                     str(t) + " not supported.")
+                    raise ValueError(
+                        f"Nested array with internal type "
+                        f"{type(nested_value)} not supported.")
         elif hasattr(value, 'write_xml') and type(value).__name__ in group_names:
             return group_ids[type(value).__name__]
         else:
-            raise ValueError("Type " + str(type(value)) + " currently not supported.")
+            raise ValueError(f"Type {type(value)} currently not supported.")
 
     @classmethod
     def convert(cls, group, value):
