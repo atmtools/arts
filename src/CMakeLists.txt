@@ -183,7 +183,6 @@ add_library (artscore STATIC
   cia.cc
   cloudbox.cc
   constants.cc
-  legacy_continua.cc
   covariance_matrix.cc
   disort.cc
   docserver.cc
@@ -200,8 +199,10 @@ add_library (artscore STATIC
   interpolation.cc
   interpolation_poly.cc
   jacobian.cc
+  legacy_continua.cc
   legendre.cc
   lin_alg.cc
+  linemixing.cc
   linemixing_hitran.cc
   linescaling.cc
   lineshapemodel.cc

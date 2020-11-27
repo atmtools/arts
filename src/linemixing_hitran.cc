@@ -29,6 +29,7 @@
 #include "linemixing_hitran.h"
 
 #include "lin_alg.h"
+#include "linemixing.h"
 #include "linefunctions.h"
 #include "physics_funcs.h"
 
@@ -946,19 +947,10 @@ void calcw(CommonBlock& cmn,
   }
 }
 
+// Equivalent lines --- class is not allowed to copy
+using EqvLinesOut = Absorption::LineMixing::EquivalentLines;
 
-// Class not allowed to copy
-struct EqvLinesOut {
-  ComplexVector zval, zstr;
-  explicit EqvLinesOut(Index n=0) noexcept : zval(n, 0), zstr(n, 0) {}
-  EqvLinesOut(const EqvLinesOut&) = delete;
-  EqvLinesOut(EqvLinesOut&&) = default;
-  EqvLinesOut& operator=(const EqvLinesOut&) = delete;
-  EqvLinesOut& operator=(EqvLinesOut&&) = default;
-};
-
-
-// Class not allowed to copy
+// Converted Temperature-Pressure data --- class is not allowed to copy
 struct ConvTPOut {
   Vector Y, hwt, hwt2, shft, f0, pop, dip;
   ComplexMatrix W;
@@ -1221,12 +1213,12 @@ EqvLinesOut eqvlines(const ConstComplexMatrixView W,
   EqvLinesOut out(n);
   
   // Main computations
-  diagonalize(zvec, out.zval, W);
+  diagonalize(zvec, out.val, W);
   
   // Do the matrix forward multiplication
   for (Index i=0; i<n; i++) {
     for (Index j=0; j<n; j++) {
-      out.zstr[i] += dip[j] * zvec(j, i);
+      out.str[i] += dip[j] * zvec(j, i);
     }
   }
   
@@ -1237,11 +1229,11 @@ EqvLinesOut eqvlines(const ConstComplexMatrixView W,
     for (Index j=0; j<n; j++) {
       z += pop[j] * dip[j] * inv_zvec(i, j);
     }
-    out.zstr[i] *= z;
+    out.str[i] *= z;
   }
   
   // Add the weighted frequency
-  out.zval += fmean;
+  out.val += fmean;
   
   return out;
 }
@@ -1695,7 +1687,7 @@ Vector compabs(
       Numeric a=0;
       for (Index iline=0; iline<bands[iband].NumLines(); iline++) {
         const Numeric gamd=GD_div_F0 * tp.f0[iline];
-        const Numeric gamd_mod=GD_div_F0 * tp.eqv.zval[iline].real();
+        const Numeric gamd_mod=GD_div_F0 * tp.eqv.val[iline].real();
         const Numeric cte = sq_ln2 / gamd;
         const Numeric cte_mod = sq_ln2 / gamd_mod;
         const Numeric popudipo = tp.pop[iline] * pow2(tp.dip[iline]);
@@ -1717,11 +1709,11 @@ Vector compabs(
           const Complex w = Faddeeva::w(Complex(xx, yy));
           a += popudipo * (Complex(1, tp.Y[iline]) * w).real() / gamd;  // NB. Changing sign on Y gave positive absorption but is not agreeing with measurements according to HITRAN data
         } else if (full and vp) {
-          const Complex z = (tp.eqv.zval[iline]-f) * cte_mod;
+          const Complex z = (tp.eqv.val[iline]-f) * cte_mod;
           const Complex w = Faddeeva::w(z);
-          a += (tp.eqv.zstr[iline] * w).real() / gamd_mod;
+          a += (tp.eqv.str[iline] * w).real() / gamd_mod;
         } else if (full) {
-          a += u_sqln2pi * u_pi * (tp.eqv.zstr[iline] / (f - tp.eqv.zval[iline])).imag();
+          a += u_sqln2pi * u_pi * (tp.eqv.str[iline] / (f - tp.eqv.val[iline])).imag();
         } else {
           throw std::runtime_error("Cannot understand the combination of calculations requested...");
         }
