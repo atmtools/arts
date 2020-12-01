@@ -159,6 +159,31 @@ class XsecRecord {
                 const Numeric temperature,
                 const Verbosity& verbosity) const;
 
+  void CalcXsec(VectorView& xsec,
+                const Index dataset,
+                const Range range,
+                const Numeric pressure,
+                const Numeric temperature) const;
+
+  void CalcDT(VectorView& xsec_dt,
+              const Index dataset,
+              const Range range,
+              const Numeric pressure,
+              const Numeric temperature) const;
+
+  void CalcDP(VectorView& xsec_dp,
+              const Index dataset,
+              const Range range,
+              const Numeric pressure,
+              const Numeric temperature) const;
+
+  static const Index P00 = 0;
+  static const Index P10 = 1;
+  static const Index P01 = 2;
+  static const Index P20 = 3;
+  static const Index P11 = 4;
+  static const Index P02 = 5;
+
   Index mversion;
   Index mspecies;
   /* VERSION 1 */
