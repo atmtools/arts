@@ -436,31 +436,48 @@ void XsecRecord::Extract2(VectorView result,
         mfitcoeffs[this_dataset_i].data(active_range, joker);
 
     Vector fit_result(data_f_extent);
+    Vector derivative(data_f_extent);
 
     // We have to create a matching view on the result vector:
     VectorView result_active = result[Range(i_fstart, f_extent)];
     Vector xsec_interp(f_extent);
 
-    const Index P00 = 0;
-    const Index P10 = 1;
-    const Index P01 = 2;
-    const Index P20 = 3;
-    const Index P11 = 4;
-    const Index P02 = 5;
-    const Numeric active_temperature = temperature;
-    const Numeric fitminpressure = mfitminpressures[this_dataset_i];
-    const Numeric active_pressure =
-        pressure > fitminpressure ? log10(pressure) : log10(fitminpressure);
+    const Numeric min_p = mfitminpressures[this_dataset_i];
+    const Numeric max_p = mfitmaxpressures[this_dataset_i];
+    const Numeric min_t = mfitmintemperatures[this_dataset_i];
+    const Numeric max_t = mfitmaxtemperatures[this_dataset_i];
 
-    for (Index i = i_data_fstart; i <= i_data_fstop; i++) {
-      const ConstVectorView these_coeffs = coeffs_active(i, joker);
-      fit_result[i] =
-          these_coeffs[P00] + these_coeffs[P10] * active_temperature +
-          these_coeffs[P01] * active_pressure +
-          these_coeffs[P20] * active_temperature * active_temperature +
-          these_coeffs[P11] * active_temperature * active_pressure +
-          these_coeffs[P02] * active_pressure * active_pressure;
-      fit_result[i] *= fit_result[i];
+    const Numeric active_temperature =
+        temperature < min_t ? min_t
+                            : (temperature > max_t ? max_t : temperature);
+
+    const Numeric active_pressure =
+        pressure < min_p ? min_p : (pressure > max_p ? max_p : pressure);
+
+    CalcXsec(fit_result,
+             this_dataset_i,
+             active_range,
+             active_pressure,
+             active_temperature);
+
+    if (pressure < min_p || pressure > max_p) {
+      CalcDP(derivative,
+             this_dataset_i,
+             active_range,
+             active_pressure,
+             active_temperature);
+      derivative *= pressure - active_pressure;
+      fit_result += derivative;
+    }
+
+    if (temperature < min_t || temperature > max_t) {
+      CalcDT(derivative,
+             this_dataset_i,
+             active_range,
+             active_pressure,
+             active_temperature);
+      derivative *= temperature - active_temperature;
+      fit_result += derivative;
     }
 
     // Check if frequency is inside the range covered by the data:
@@ -479,6 +496,64 @@ void XsecRecord::Extract2(VectorView result,
     }
 
     result_active += xsec_interp;
+  }
+}
+
+void XsecRecord::CalcXsec(VectorView& xsec,
+                          const Index dataset,
+                          const Range range,
+                          const Numeric pressure,
+                          const Numeric temperature) const {
+  const Numeric logp = log10(pressure);
+  for (Index i = range.get_start();
+       i <= range.get_start() + range.get_extent() - 1;
+       i++) {
+    const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
+    xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * logp +
+              coeffs[P20] * temperature * temperature +
+              coeffs[P11] * temperature * logp +
+              coeffs[P02] * logp * logp;
+    xsec[i] *= xsec[i];
+  }
+}
+
+void XsecRecord::CalcDT(VectorView& xsec_dt,
+                        const Index dataset,
+                        const Range range,
+                        const Numeric pressure,
+                        const Numeric temperature) const {
+  const Numeric logp = log10(pressure);
+  for (Index i = range.get_start();
+       i <= range.get_start() + range.get_extent() - 1;
+       i++) {
+    const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
+    xsec_dt[i] =
+        2. *
+        (coeffs[P10] + 2. * coeffs[P20] * temperature + coeffs[P11] * logp) *
+        (coeffs[P00] + coeffs[P10] * temperature +
+         coeffs[P20] * temperature * temperature + coeffs[P01] * logp +
+         coeffs[P11] * temperature * logp + coeffs[P02] * logp * logp);
+  }
+}
+
+void XsecRecord::CalcDP(VectorView& xsec_dp,
+                        const Index dataset,
+                        const Range range,
+                        const Numeric pressure,
+                        const Numeric temperature) const {
+  const Numeric logp = log10(pressure);
+  const Numeric plog = pressure * log(10);
+
+  for (Index i = range.get_start();
+       i <= range.get_start() + range.get_extent() - 1;
+       i++) {
+    const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
+    xsec_dp[i] = 2. *
+                 (coeffs[P01] / plog + coeffs[P11] * temperature / plog +
+                  2. * coeffs[P02] * logp / plog) *
+                 (coeffs[P00] + coeffs[P10] * temperature +
+                  coeffs[P20] * temperature * temperature + coeffs[P01] * logp +
+                  coeffs[P11] * temperature * logp + coeffs[P02] * logp * logp);
   }
 }
 
