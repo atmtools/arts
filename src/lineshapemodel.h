@@ -1244,6 +1244,30 @@ class Model {
             DV(T, T0, P, vmrs)};
   }
 
+  /** Compute all shape parameters
+   * 
+   * @param[in] T The temperature
+   * @param[in] T0 The temperature used to derive the coefficients
+   * @param[in] P The pressure
+   * @param[in] k The position of the single species shape parameters
+   * 
+   * @return Shape parameters
+   */
+  Output GetParams(Numeric T,
+                   Numeric T0,
+                   Numeric P,
+                   size_t k) const noexcept {
+    return {P * mdata[k].compute(T, T0, Variable::G0),
+            P * mdata[k].compute(T, T0, Variable::D0),
+            P * mdata[k].compute(T, T0, Variable::G2),
+            P * mdata[k].compute(T, T0, Variable::D2),
+            P * mdata[k].compute(T, T0, Variable::FVC),
+            mdata[k].compute(T, T0, Variable::ETA),
+            P * mdata[k].compute(T, T0, Variable::Y),
+            P * P * mdata[k].compute(T, T0, Variable::G),
+            P * P * mdata[k].compute(T, T0, Variable::DV)};
+  }
+
   /** Derivative of GetParams(...) wrt T
    * 
    * @param[in] T The temperature

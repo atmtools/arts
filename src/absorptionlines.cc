@@ -73,6 +73,10 @@ LineShape::Output Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeri
   return x;
 }
 
+LineShape::Output Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeric P, size_t m) const noexcept {
+  return mlines[k].LineShape().GetParams(T, mT0, P, m);
+}
+
 LineShape::Output Absorption::Lines::ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
   auto x = mlines[k].LineShape().GetTemperatureDerivs(T, mT0, P, vmrs);
   

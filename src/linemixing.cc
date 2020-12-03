@@ -110,13 +110,14 @@ void relaxation_matrix_makarov2020_offdiagonal(MatrixView W,
     
     // Constant from Makarov etal 2020
     constexpr Numeric dc = Conversion::angstrom2meter(0.61);
+    constexpr Numeric fac = 8 * k / (Constant::m_u * pi);
                          
     const Numeric en = Erot(N);
     const Numeric enm2 = Erot(N-2);
     const Numeric wnnm2 = (en - enm2) / h_bar;
     
     const Numeric mu = 1 / m1 + 1 / m2;
-    const Numeric v_bar_pow2 = 8*k*temp*mu/pi;
+    const Numeric v_bar_pow2 = fac*temp*mu;
     const Numeric tauc_pow2 = pow2(dc) / v_bar_pow2;
     
     return 1.0 / pow2(1 + 1.0/24.0 * pow2(wnnm2) * tauc_pow2);
@@ -236,21 +237,19 @@ ComplexMatrix relaxation_matrix(const Numeric T,
   ComplexMatrix W(N, N, 0);
   
   // Loop over all the broadeners
-  for (Index J; J<M; J++) {
+  for (Index J=0; J<M; J++) {
     // Create temporary
     ComplexMatrix Wtmp(N, N, 0);
     
     // Fill diagonal keeping track of the reshuffle (sorting)
     for (Index I=0; I<N; I++) {
       const Index i = sorting[I];
-      auto shape = band.ShapeParameters(i, T, P, vmrs);
+      auto shape = band.ShapeParameters(i, T, P, J);
       Wtmp(I, I) = Complex(shape.D0, shape.G0);
     }
 
     // Set the off-diagonal part of the matrix for this broadener
-    relaxation_matrix_makarov2020_offdiagonal(Wtmp.imag(), T, band, sorting,
-                                              Constant::m_u * band.SpeciesMass(),
-                                              Constant::m_u * mass[J]);
+    relaxation_matrix_makarov2020_offdiagonal(Wtmp.imag(), T, band, sorting, band.SpeciesMass(), mass[J]);
     
     // Sum up all atmospheric components
     for (Index i=0; i<N; i++) {

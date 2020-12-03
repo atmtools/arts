@@ -14,8 +14,7 @@ int main() {
   define_species_data();
   define_species_map();
   
-  constexpr Index nfreq = 1000;
-  const Vector f_grid = VectorNLinSpaceConst(40e9, 80e9, nfreq);
+  constexpr Index nfreq = 10000;
   SpeciesAuxData partition_functions;
   partition_functionsInitFromBuiltin(partition_functions, Verbosity{});
   
@@ -80,18 +79,16 @@ int main() {
                        {QuantumNumberType::J, QuantumNumberType::N}, ArrayOfSpeciesTag(2), metamodel);
   ss >> band;
   
-  
+  const Vector f_grid = VectorNLinSpaceConst(10e9, 300e9, nfreq);
   const Numeric P=1e5;
   const Numeric T=296;
   const Vector VMR = {0.21, 0.79};
   
   Index wigner_initialized;
   Wigner6Init(wigner_initialized, 20000000, 250, Verbosity{});
-//   wig_temp_init(500);
   ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
                                                                         partition_functions.getParamType(band.QuantumIdentity()),
                                                                         partition_functions.getParam(band.QuantumIdentity()));
-//   wig_temp_free();
   
   Matrix xsec(nfreq, 1, 0);
   ArrayOfMatrix dxsec, dsource, dphase;

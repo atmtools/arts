@@ -1231,6 +1231,16 @@ public:
    */
   LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept;
   
+  /** Line shape parameters
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] T Atmospheric temperature
+   * @param[in] P Atmospheric pressure
+   * @param[in] m Line broadening species position
+   * @return Line shape parameters
+   */
+  LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, size_t m) const noexcept;
+  
   /** Line shape parameters temperature derivatives
    * 
    * @param[in] k Line number (less than NumLines())
