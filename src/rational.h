@@ -307,12 +307,12 @@ class Rational {
   }
 
   /** Cast to bool */
-  constexpr operator bool() const {
+  explicit constexpr operator bool() const {
     return isDefined() and bool(mnom);
   }
 
   /** Cast to Numeric */
-  constexpr operator Numeric() const { return toNumeric(); }
+  explicit constexpr operator Numeric() const { return toNumeric(); }
 
   /** Cast to Index */
   explicit constexpr operator Index() const { return toIndex(); }

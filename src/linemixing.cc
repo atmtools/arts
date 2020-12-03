@@ -70,7 +70,6 @@ ArrayOfIndex PopulationAndDipole::sort(const AbsorptionLines& band) noexcept {
 
 void relaxation_matrix_makarov2020_offdiagonal(MatrixView W,
                                                const Numeric T,
-                                               const Vector& pop,
                                                const AbsorptionLines& band,
                                                const ArrayOfIndex& sorting,
                                                const Numeric& mass1,
@@ -136,7 +135,16 @@ void relaxation_matrix_makarov2020_offdiagonal(MatrixView W,
     return Numeric(2*L + 1) / pow(L * (L+1), lambda) * std::exp(-beta * el / (k*temp));
   };
   
+  const auto zero_dipole = [](auto Jup, auto Jlo, auto N) {
+    return (even(Jlo + N) ? 1 : -1) * sqrt(6 * (2*Jlo + 1) * (2*Jup + 1)) * wigner6j(1, 1, 1, Jup, Jlo, N);
+  };
+  
+  Vector dip0(n);
   for (Index i=0; i<n; i++) {
+    dip0[i] = std::abs(zero_dipole(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
+                                   band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
+                                   band.UpperQuantumNumber(sorting[i], QuantumNumberType::N)));
+    
     for (Index j=0; j<n; j++) {
       if (i == j) continue;
       
@@ -169,12 +177,46 @@ void relaxation_matrix_makarov2020_offdiagonal(MatrixView W,
         const Numeric d = wigner6j(L, Jk, Jl, 1, Jl_p, Jk_p);
         sum += sgn * a * b * c * d * Q(L, T) / Omega(L, T, mass1, mass2);
       }
-      sum *= scale / Omega(Nk, T, mass1, mass2);
-//       W(k, l) = sum;
-//       W(l, k) = sum * pop[k] / pop[l];
-      // Decent numbers
+      sum *= scale * Omega(Nk, T, mass1, mass2);
+      
+      // Add to W and rescale to upwards element by the populations
       W(l, k) = sum;
-      W(k, l) = sum * pop[l] / pop[k];
+      W(k, l) = sum * std::exp((Erot(Jl) - Erot(Jk)) / (Constant::k*T));
+    }
+  }
+  
+  // Transpose?  Why is this transpose required?
+  if constexpr (1) {
+    for (Index i=0; i<n; i++) {
+      for (Index j=0; j<i; j++) {
+        swap(W(i, j), W(j, i));
+      }
+    }
+  }
+  
+  // Sum rule correction
+  for (Index i=0; i<n; i++) {
+    Numeric sumlw = 0.0;
+    Numeric sumup = 0.0;
+    
+    for (Index j=0; j<n; j++) {
+      if (j > i) {
+        sumlw += std::abs(dip0[j]) * W(j, i);
+      } else {
+        sumup += std::abs(dip0[j]) * W(j, i);
+      }
+    }
+    
+    const Rational Ji = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
+    for (Index j=i+1; j<n; j++) {
+      const Rational Jj = band.UpperQuantumNumber(sorting[j], QuantumNumberType::J);
+      if (sumlw == 0) {
+        W(j, i) = 0.0;
+        W(i, j) = 0.0;
+      } else {
+        W(j, i) *= - sumup / sumlw;
+        W(i, j) = W(j, i) * std::exp((Erot(Ji) - Erot(Jj)) / (Constant::k*T));
+      }
     }
   }
 }
@@ -183,7 +225,6 @@ void relaxation_matrix_makarov2020_offdiagonal(MatrixView W,
 ComplexMatrix relaxation_matrix(const Numeric T,
                                 const Numeric P,
                                 const Vector& vmrs,
-                                const Vector& pop,  // Already sorted
                                 const AbsorptionLines& band,
                                 const ArrayOfIndex& sorting,
                                 const Numeric frenorm) {
@@ -192,48 +233,16 @@ ComplexMatrix relaxation_matrix(const Numeric T,
   // Create output
   ComplexMatrix W(N, N, 0);
   
-  // Reduced dipole
-  Vector dip0(N);
-  for (Index I=0; I<N; I++) {
-    const Index i = sorting[I];
-    dip0[I] = std::abs(o2_makarov2013_reduced_dipole(band.UpperQuantumNumber(i, QuantumNumberType::J),
-                                                     band.LowerQuantumNumber(i, QuantumNumberType::J),
-                                                     band.UpperQuantumNumber(i, QuantumNumberType::N)));
-  }
-  
   // Fill diagonal
   for (Index I=0; I<N; I++) {
     const Index i = sorting[I];
     auto shape = band.ShapeParameters(i, T, P, vmrs);
-    W(I, I) = Complex(shape.D0, shape.G0);  // No scaling with pressure
+    W(I, I) = Complex(shape.D0, shape.G0);
   }
 
-  relaxation_matrix_makarov2020_offdiagonal(W.imag(), T, pop, band, sorting,
-                                            Constant::m_u * 28.006148,
+  relaxation_matrix_makarov2020_offdiagonal(W.imag(), T, band, sorting,
+                                            Constant::m_u * 31.989830,
                                             Constant::m_u * 31.989830);
-  
-  // Sum rule correction
-  for (Index I=0; I<N; I++) {
-    Numeric sumup = 0.0;
-    for (Index J=0; J<=I; J++) {
-      sumup += dip0[J] * W(I, J).imag();
-    }
-    
-    Numeric sumlw = 0.0;
-    for (Index J=I+1; J<N; J++) {
-        sumlw += dip0[J] * W(I, J).imag();
-    }
-    
-    for (Index J=I+1; J<N; J++) {
-      if (sumlw == 0) {
-        W(I, J) = 0.0;
-        W(J, I) = 0.0;
-      } else {
-        W(I, J) *= - sumup / sumlw;
-        W(J, I) = W(I, J) * pop[J] / pop[I];
-      }
-    }
-  }
   
   for (Index I=0; I<N; I++) {
     W(I, I) += band.F0(sorting[I]) - frenorm;
@@ -271,7 +280,7 @@ ComplexVector linemixing_ecs_absorption(const Numeric T,
   const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
   
   // Relaxation matrix
-  const ComplexMatrix W = relaxation_matrix(T, P, vmrs, tp.pop, band, sorting, frenorm);
+  const ComplexMatrix W = relaxation_matrix(T, P, vmrs, band, sorting, frenorm);
   
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
