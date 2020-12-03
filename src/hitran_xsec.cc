@@ -158,14 +158,21 @@ void XsecRecord::SetVersion(const Index version) {
 
 void XsecRecord::Extract(VectorView result,
                          ConstVectorView f_grid,
-                         const Numeric& pressure,
-                         const Numeric& temperature,
-                         const Index& apply_tfit,
+                         const Numeric pressure,
+                         const Numeric temperature,
+                         const Index extrapolate_pressure,
+                         const Index extrapolate_temperature,
                          const Verbosity& verbosity) const {
   if (mversion == 1) {
-    Extract1(result, f_grid, pressure, temperature, apply_tfit, verbosity);
+    Extract1(result, f_grid, pressure, temperature, 1, verbosity);
   } else if (mversion == 2) {
-    Extract2(result, f_grid, pressure, temperature, verbosity);
+    Extract2(result,
+             f_grid,
+             pressure,
+             temperature,
+             extrapolate_pressure,
+             extrapolate_temperature,
+             verbosity);
   } else {
     throw std::runtime_error("Unsupported XsecRecord version");
   }
@@ -173,9 +180,9 @@ void XsecRecord::Extract(VectorView result,
 
 void XsecRecord::Extract1(VectorView result,
                           ConstVectorView f_grid,
-                          const Numeric& pressure,
-                          const Numeric& temperature,
-                          const Index& apply_tfit,
+                          const Numeric pressure,
+                          const Numeric temperature,
+                          const Index apply_tfit,
                           const Verbosity& verbosity) const {
   CREATE_OUTS;
 
@@ -348,6 +355,8 @@ void XsecRecord::Extract2(VectorView result,
                           ConstVectorView f_grid,
                           const Numeric pressure,
                           const Numeric temperature,
+                          const Index extrapolate_p,
+                          const Index extrapolate_t,
                           const Verbosity& verbosity) const {
   CREATE_OUTS;
 
@@ -460,7 +469,7 @@ void XsecRecord::Extract2(VectorView result,
              active_pressure,
              active_temperature);
 
-    if (pressure < min_p || pressure > max_p) {
+    if (extrapolate_p && (pressure < min_p || pressure > max_p)) {
       CalcDP(derivative,
              this_dataset_i,
              active_range,
@@ -470,7 +479,7 @@ void XsecRecord::Extract2(VectorView result,
       fit_result += derivative;
     }
 
-    if (temperature < min_t || temperature > max_t) {
+    if (extrapolate_t && (temperature < min_t || temperature > max_t)) {
       CalcDT(derivative,
              this_dataset_i,
              active_range,

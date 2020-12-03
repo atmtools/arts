@@ -92,9 +92,10 @@ void abs_xsec_per_speciesAddHitranXsec2(  // WS Output:
     const Vector& abs_p,
     const Vector& abs_t,
     const ArrayOfXsecRecord& hitran_xsec_data,
-    const Index& apply_tfit,
     const Numeric& force_p,
     const Numeric& force_t,
+    const Index& extpol_p,
+    const Index& extpol_t,
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUTS;
@@ -207,14 +208,20 @@ void abs_xsec_per_speciesAddHitranXsec2(  // WS Output:
 
         // Get the absorption cross sections from the HITRAN data:
         try {
-          this_xdata.Extract(
-              xsec_temp, f_grid, current_p, current_t, apply_tfit, verbosity);
+          this_xdata.Extract(xsec_temp,
+                             f_grid,
+                             current_p,
+                             current_t,
+                             extpol_p,
+                             extpol_t,
+                             verbosity);
           if (do_freq_jac)
             this_xdata.Extract(dxsec_temp_dF,
                                dfreq,
                                current_p,
                                current_t,
-                               apply_tfit,
+                               extpol_p,
+                               extpol_t,
                                verbosity);
           // FIXME: Temperature is not yet taken into account
           // if(do_temp_jac)
@@ -279,9 +286,10 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
     const Vector& abs_p,
     const Vector& abs_t,
     const ArrayOfXsecRecord& hitran_xsec_data,
-    const Index& apply_tfit,
     const Numeric& force_p,
     const Numeric& force_t,
+    const Index& extpol_p,
+    const Index& extpol_t,
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUTS;
@@ -386,14 +394,20 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
 
         // Get the absorption cross sections from the HITRAN data:
         try {
-          this_xdata.Extract(
-              xsec_temp, f_grid, current_p, current_t, apply_tfit, verbosity);
+          this_xdata.Extract(xsec_temp,
+                             f_grid,
+                             current_p,
+                             current_t,
+                             extpol_p,
+                             extpol_t,
+                             verbosity);
           if (do_freq_jac)
             this_xdata.Extract(dxsec_temp_dF,
                                dfreq,
                                current_p,
                                current_t,
-                               apply_tfit,
+                               extpol_p,
+                               extpol_t,
                                verbosity);
           // FIXME: Temperature is not yet taken into account
           // if(do_temp_jac)
