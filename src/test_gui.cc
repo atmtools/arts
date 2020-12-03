@@ -87,11 +87,11 @@ int main() {
   
   Index wigner_initialized;
   Wigner6Init(wigner_initialized, 20000000, 250, Verbosity{});
-  wig_temp_init(500);
-  ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption(T, P, 1, VMR, f_grid, band,
+//   wig_temp_init(500);
+  ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
                                                                         partition_functions.getParamType(band.QuantumIdentity()),
                                                                         partition_functions.getParam(band.QuantumIdentity()));
-  wig_temp_free();
+//   wig_temp_free();
   
   Matrix xsec(nfreq, 1, 0);
   ArrayOfMatrix dxsec, dsource, dphase;

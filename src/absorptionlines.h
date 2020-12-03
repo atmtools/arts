@@ -1434,6 +1434,14 @@ public:
    */
   Vector BroadeningSpeciesVMR(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&) const;
   
+  /** Returns the mass of the broadening species
+   * 
+   * @param[in] atm_vmrs Atmospheric VMRs
+   * @param[in] atm_spec Atmospheric Species
+   * @return Mass list of the species
+   */
+  Vector BroadeningSpeciesMass(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&) const;
+  
   /** Returns the VMR of the species
    * 
    * @param[in] atm_vmrs Atmospheric VMRs

@@ -160,11 +160,13 @@ void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_cle
       if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
         // vmrs should be for the line
         const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
+        const Vector line_shape_mass = band.BroadeningSpeciesMass(rtp_vmr, abs_species);
         const Numeric this_vmr = 0;
         const ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption(rtp_temperature,
                                                                                     rtp_pressure,
                                                                                     this_vmr,
                                                                                     line_shape_vmr,
+                                                                                    line_shape_mass,
                                                                                     f_grid,
                                                                                     band,
                                                                                     partition_functions.getParamType(band.QuantumIdentity()),

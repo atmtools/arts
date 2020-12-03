@@ -560,6 +560,9 @@ class QuantumIdentifier {
 
   /** Return the Species by index */
   constexpr Index Species() const { return mspecies; }
+  
+  /** Return the Species mass */
+  Numeric SpeciesMass() const;
 
   /** Return the Species by index reference */
   Index& Species() { return mspecies; }

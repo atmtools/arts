@@ -225,25 +225,42 @@ void relaxation_matrix_makarov2020_offdiagonal(MatrixView W,
 ComplexMatrix relaxation_matrix(const Numeric T,
                                 const Numeric P,
                                 const Vector& vmrs,
+                                const Vector& mass,
                                 const AbsorptionLines& band,
                                 const ArrayOfIndex& sorting,
                                 const Numeric frenorm) {
   const Index N = band.NumLines();
+  const Index M = vmrs.nelem();
   
   // Create output
   ComplexMatrix W(N, N, 0);
   
-  // Fill diagonal
-  for (Index I=0; I<N; I++) {
-    const Index i = sorting[I];
-    auto shape = band.ShapeParameters(i, T, P, vmrs);
-    W(I, I) = Complex(shape.D0, shape.G0);
-  }
+  // Loop over all the broadeners
+  for (Index J; J<M; J++) {
+    // Create temporary
+    ComplexMatrix Wtmp(N, N, 0);
+    
+    // Fill diagonal keeping track of the reshuffle (sorting)
+    for (Index I=0; I<N; I++) {
+      const Index i = sorting[I];
+      auto shape = band.ShapeParameters(i, T, P, vmrs);
+      Wtmp(I, I) = Complex(shape.D0, shape.G0);
+    }
 
-  relaxation_matrix_makarov2020_offdiagonal(W.imag(), T, band, sorting,
-                                            Constant::m_u * 31.989830,
-                                            Constant::m_u * 31.989830);
+    // Set the off-diagonal part of the matrix for this broadener
+    relaxation_matrix_makarov2020_offdiagonal(Wtmp.imag(), T, band, sorting,
+                                              Constant::m_u * band.SpeciesMass(),
+                                              Constant::m_u * mass[J]);
+    
+    // Sum up all atmospheric components
+    for (Index i=0; i<N; i++) {
+      for (Index j=0; j<N; j++) {
+        W(i, j) += vmrs[J] * Wtmp(i, j);
+      }
+    }
+  }
   
+  // Deal with line frequency and its re-normalization
   for (Index I=0; I<N; I++) {
     W(I, I) += band.F0(sorting[I]) - frenorm;
   }
@@ -265,6 +282,7 @@ ComplexVector linemixing_ecs_absorption(const Numeric T,
                                         const Numeric P,
                                         const Numeric this_vmr,
                                         const Vector& vmrs,
+                                        const Vector& mass,
                                         const Vector& f_grid,
                                         const AbsorptionLines& band,
                                         const SpeciesAuxData::AuxType& partition_type,
@@ -280,7 +298,7 @@ ComplexVector linemixing_ecs_absorption(const Numeric T,
   const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
   
   // Relaxation matrix
-  const ComplexMatrix W = relaxation_matrix(T, P, vmrs, band, sorting, frenorm);
+  const ComplexMatrix W = relaxation_matrix(T, P, vmrs, mass, band, sorting, frenorm);
   
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
