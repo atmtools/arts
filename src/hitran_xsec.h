@@ -109,9 +109,10 @@ class XsecRecord {
      */
   void Extract(VectorView result,
                ConstVectorView f_grid,
-               const Numeric& pressure,
-               const Numeric& temperature,
-               const Index& apply_tfit,
+               const Numeric pressure,
+               const Numeric temperature,
+               const Index extrapolate_pressure,
+               const Index extrapolate_temperature,
                const Verbosity& verbosity) const;
 
   /************ VERSION 2 *************/
@@ -148,15 +149,17 @@ class XsecRecord {
  private:
   void Extract1(VectorView result,
                 ConstVectorView f_grid,
-                const Numeric& pressure,
-                const Numeric& temperature,
-                const Index& apply_tfit,
+                const Numeric pressure,
+                const Numeric temperature,
+                const Index apply_tfit,
                 const Verbosity& verbosity) const;
 
   void Extract2(VectorView result,
                 ConstVectorView f_grid,
                 const Numeric pressure,
                 const Numeric temperature,
+                const Index extrapolate_pressure,
+                const Index extrapolate_temperature,
                 const Verbosity& verbosity) const;
 
   void CalcXsec(VectorView& xsec,
