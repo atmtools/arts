@@ -620,6 +620,10 @@ ComplexVector::ComplexVector(const ComplexVector& v)
   copy(v.begin(), v.end(), begin());
 }
 
+ComplexVector::ComplexVector(const Vector& v) : ComplexVectorView(new Complex[v.nelem()], Range(0, v.nelem())) {
+  for (Index i=0; i<nelem(); i++) operator[](i) = Complex(v[i], 0);
+}
+
 /** Converting constructor from std::vector. */
 ComplexVector::ComplexVector(const std::vector<Complex>& v)
     : ComplexVectorView(new Complex[v.size()], Range(0, v.size())) {

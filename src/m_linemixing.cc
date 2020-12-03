@@ -29,6 +29,7 @@
  */
 
 #include "global_data.h"
+#include "linemixing.h"
 #include "linemixing_hitran.h"
 #include "propagationmatrix.h"
 
@@ -132,5 +133,46 @@ void propmat_clearskyAddHitranLineMixingLines(ArrayOfPropagationMatrix& propmat_
       (abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANFullRelmat or
        abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat))
       propmat_clearsky[i].Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], rtp_pressure, rtp_temperature, vmrs, f_grid, partition_functions);
+  }
+}
+
+void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_clearsky,
+                                           const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                           const Vector& f_grid,
+                                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                                           const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                           const SpeciesAuxData& partition_functions,
+                                           const Numeric& rtp_pressure,
+                                           const Numeric& rtp_temperature,
+                                           const Vector& rtp_vmr,
+                                           const Verbosity&)
+{
+  if (jacobian_quantities.nelem())
+    throw std::runtime_error("Cannot support any Jacobian at this time");
+  if (abs_species.nelem() not_eq abs_lines_per_species.nelem())
+    throw std::runtime_error("Bad size of input species+lines");
+  if (abs_species.nelem() not_eq rtp_vmr.nelem())
+    throw std::runtime_error("Bad size of input species+vmrs");
+  
+  
+  for (Index i=0; i<abs_species.nelem(); i++) {
+    for (auto& band: abs_lines_per_species[i]) {
+      if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+        // vmrs should be for the line
+        const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
+        const Numeric this_vmr = 0;
+        const ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption(rtp_temperature,
+                                                                                    rtp_pressure,
+                                                                                    this_vmr,
+                                                                                    line_shape_vmr,
+                                                                                    f_grid,
+                                                                                    band,
+                                                                                    partition_functions.getParamType(band.QuantumIdentity()),
+                                                                                    partition_functions.getParam(band.QuantumIdentity()));
+        
+        // Note, should support Zeeman effect later...
+        propmat_clearsky[i].Kjj() += abs.real();
+      }
+    }
   }
 }

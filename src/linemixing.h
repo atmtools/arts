@@ -48,20 +48,14 @@ struct PopulationAndDipole {
   ArrayOfIndex sort(const AbsorptionLines& band) noexcept;
 };  // PopulationAndDipole
 
-ComplexMatrix relaxation_matrix_makarov2020(const Numeric T,
-                                            const Numeric P,
-                                            const Vector& vmrs,
-                                            const Vector& pop,  // Already sorted
-                                            const AbsorptionLines& band,
-                                            const ArrayOfIndex& sorting);
-
-ComplexVector linemixing_ecs_makarov2020(const Numeric T,
-                                         const Numeric P,
-                                         const Vector& vmrs,
-                                         const Vector& f_grid,
-                                         const AbsorptionLines& band,
-                                         const SpeciesAuxData::AuxType& partition_type,
-                                         const ArrayOfGriddedField1& partition_data);
+ComplexVector linemixing_ecs_absorption(const Numeric T,
+                                        const Numeric P,
+                                        const Numeric this_vmr,
+                                        const Vector& vmrs,
+                                        const Vector& f_grid,
+                                        const AbsorptionLines& band,
+                                        const SpeciesAuxData::AuxType& partition_type,
+                                        const ArrayOfGriddedField1& partition_data);
 }  // Absorption::LineMixing 
 
 #endif  // linemixing_h

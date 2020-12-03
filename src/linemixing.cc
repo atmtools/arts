@@ -5,6 +5,7 @@
 #include "lin_alg.h"
 #include "linefunctions.h"
 #include "linemixing.h"
+#include "physics_funcs.h"
 
 
 namespace Absorption::LineMixing {
@@ -66,125 +67,236 @@ ArrayOfIndex PopulationAndDipole::sort(const AbsorptionLines& band) noexcept {
   return out;
 }
 
-ComplexMatrix relaxation_matrix_makarov2020(const Numeric T,
-                                            const Numeric P,
-                                            const Vector& vmrs,
-                                            const Vector& pop,  // Already sorted
-                                            const AbsorptionLines& band,
-                                            const ArrayOfIndex& sorting) {
+
+void relaxation_matrix_makarov2020_offdiagonal(MatrixView W,
+                                               const Numeric T,
+                                               const Vector& pop,
+                                               const AbsorptionLines& band,
+                                               const ArrayOfIndex& sorting,
+                                               const Numeric& mass1,
+                                               const Numeric& mass2)
+{
+  const Index n = band.NumLines();
+  
+  // Energy calculations
+  const auto Erot = [](auto J) -> Numeric {
+    using Constant::h;
+    using Constant::pow2;
+    using Constant::pow3;
+    
+    // Constant for O2-66 energy
+    constexpr auto B = 43100.44276e6;
+    constexpr auto D = 145.1271e3;
+    constexpr auto H = 49e-3;
+    constexpr auto lB = 59501.3438e6;
+    constexpr auto lD = 58.3680e3;
+    constexpr auto lH = 290.8e-3;
+    constexpr auto gB = -252.58634e6;
+    constexpr auto gD = -243.42;
+    constexpr auto gH = -1.46e-3;
+    
+    const auto lJ = Numeric(J * (J + 1));
+    return h * (B*lJ - D*pow2(lJ) + H*pow3(lJ) -
+               (gB + gD*lJ + gH*pow2(lJ)) +
+     2.0/3.0 * (lB + lD*lJ + lH*pow2(lJ)));
+  };
+  
+  // Adiabatic factor
+  const auto Omega = [Erot](auto N, auto temp, auto m1, auto m2) -> Numeric {
+    using Constant::h;
+    using Constant::k;
+    using Constant::pi;
+    using Constant::h_bar;
+    using Constant::pow2;
+    
+    // Constant from Makarov etal 2020
+    constexpr Numeric dc = Conversion::angstrom2meter(0.61);
+                         
+    const Numeric en = Erot(N);
+    const Numeric enm2 = Erot(N-2);
+    const Numeric wnnm2 = (en - enm2) / h_bar;
+    
+    const Numeric mu = 1 / m1 + 1 / m2;
+    const Numeric v_bar_pow2 = 8*k*temp*mu/pi;
+    const Numeric tauc_pow2 = pow2(dc) / v_bar_pow2;
+    
+    return 1.0 / pow2(1 + 1.0/24.0 * pow2(wnnm2) * tauc_pow2);
+  };
+  
+  // Basis rate
+  const auto Q = [Erot](auto L, auto temp) -> Numeric {
+    using Constant::k;
+    
+    // Constants from Makarov etal 2020
+    constexpr Numeric lambda =  0.39;
+    constexpr Numeric beta = 0.567;
+    
+    auto el = Erot(L);
+    
+    return Numeric(2*L + 1) / pow(L * (L+1), lambda) * std::exp(-beta * el / (k*temp));
+  };
+  
+  for (Index i=0; i<n; i++) {
+    for (Index j=0; j<n; j++) {
+      if (i == j) continue;
+      
+      // Select upper quantum number
+      const bool ihigh = band.E0(sorting[i]) > band.E0(sorting[j]);
+      const Index k = ihigh ? i : j;
+      const Index l = ihigh ? j : i;
+      
+      // Quantum numbers
+      const Rational Jk = band.UpperQuantumNumber(sorting[k], QuantumNumberType::J);
+      const Rational Jl = band.UpperQuantumNumber(sorting[l], QuantumNumberType::J);
+      const Rational Nk = band.UpperQuantumNumber(sorting[k], QuantumNumberType::N);
+      const Rational Nl = band.UpperQuantumNumber(sorting[l], QuantumNumberType::N);
+      const Rational Jk_p = band.LowerQuantumNumber(sorting[k], QuantumNumberType::J);
+      const Rational Jl_p = band.LowerQuantumNumber(sorting[l], QuantumNumberType::J);
+      
+      // Makarov 2013 symbol with modifications:
+      //    1) Squared scale
+      //    2) Squared 3J-symbol
+      //    3) Using the updated 2020 constants
+      // These are modified after reading the original code
+      Numeric sum = 0;
+      const Numeric scale = Numeric((2*Nk + 1) * (2*Nl + 1)) * sqrt((2*Jk + 1) * (2*Jl + 1) * (2*Jk_p + 1) * (2* Jl_p + 1));
+      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Nl, Nk), {Rational(2), 100000});
+      for (Rational L=L0; L<L1; L+=2) {
+        const Numeric sgn = even(Jk + Jl + L + 1) ? 1 : -1;
+        const Numeric a = Constant::pow2(wigner3j(Nl, Nk, L, 0, 0, 0));
+        const Numeric b = wigner6j(L, Jk, Jl, 1, Nl, Nk);
+        const Numeric c = wigner6j(L, Jk_p, Jl_p, 1, Nl, Nk);
+        const Numeric d = wigner6j(L, Jk, Jl, 1, Jl_p, Jk_p);
+        sum += sgn * a * b * c * d * Q(L, T) / Omega(L, T, mass1, mass2);
+      }
+      sum *= scale / Omega(Nk, T, mass1, mass2);
+//       W(k, l) = sum;
+//       W(l, k) = sum * pop[k] / pop[l];
+      // Decent numbers
+      W(l, k) = sum;
+      W(k, l) = sum * pop[l] / pop[k];
+    }
+  }
+}
+
+
+ComplexMatrix relaxation_matrix(const Numeric T,
+                                const Numeric P,
+                                const Vector& vmrs,
+                                const Vector& pop,  // Already sorted
+                                const AbsorptionLines& band,
+                                const ArrayOfIndex& sorting,
+                                const Numeric frenorm) {
   const Index N = band.NumLines();
   
   // Create output
-  ComplexMatrix W(N, N);
-  
-  // Diagonal and upper triangular values
-  for (Index I=0; I<N; I++) {
-    const Index i = sorting[I];
-    auto Ji = band.UpperQuantumNumber(i, QuantumNumberType::J);
-    auto Jf = band.LowerQuantumNumber(i, QuantumNumberType::J);
-    auto Ni = band.UpperQuantumNumber(i, QuantumNumberType::N);
-    auto Nf = band.LowerQuantumNumber(i, QuantumNumberType::N);
-    for (Index J=0; J<N; J++) {
-      const Index j = sorting[J];
-      auto Ji_p = band.UpperQuantumNumber(j, QuantumNumberType::J);
-      auto Jf_p = band.LowerQuantumNumber(j, QuantumNumberType::J);
-      auto Ni_p = band.UpperQuantumNumber(j, QuantumNumberType::N);
-      auto Nf_p = band.LowerQuantumNumber(j, QuantumNumberType::N);
-      if (I not_eq J) {
-        W(I, J) = Complex(0, o2_ecs_wigner_symbol_tran(Ji, Jf, Ni, Nf, 1_rat, 1_rat, Ji_p, Jf_p, Ni_p, Nf_p, 1_rat, T));
-        W(J, I) = W(I, J) * pop[J] / pop[I];
-      } else {
-        W(I, J) = Complex(0, band.ShapeParameters(i, T, P, vmrs).G0);
-      }
-    }
-  }
-  
-  // Weird undocumented minus sign
-  for (Index I=0; I<N; I++) {
-    for (Index J=0; J<N; J++) {
-      if (J not_eq I) {
-        W(I, J) = - std::abs(W(I, J));
-      }
-    }
-  }
+  ComplexMatrix W(N, N, 0);
   
   // Reduced dipole
   Vector dip0(N);
   for (Index I=0; I<N; I++) {
     const Index i = sorting[I];
-    dip0[I] = o2_makarov2013_reduced_dipole(band.UpperQuantumNumber(i, QuantumNumberType::J),
-                                            band.LowerQuantumNumber(i, QuantumNumberType::J),
-                                            band.UpperQuantumNumber(i, QuantumNumberType::N));
+    dip0[I] = std::abs(o2_makarov2013_reduced_dipole(band.UpperQuantumNumber(i, QuantumNumberType::J),
+                                                     band.LowerQuantumNumber(i, QuantumNumberType::J),
+                                                     band.UpperQuantumNumber(i, QuantumNumberType::N)));
   }
+  
+  // Fill diagonal
+  for (Index I=0; I<N; I++) {
+    const Index i = sorting[I];
+    auto shape = band.ShapeParameters(i, T, P, vmrs);
+    W(I, I) = Complex(shape.D0, shape.G0);  // No scaling with pressure
+  }
+
+  relaxation_matrix_makarov2020_offdiagonal(W.imag(), T, pop, band, sorting,
+                                            Constant::m_u * 28.006148,
+                                            Constant::m_u * 31.989830);
   
   // Sum rule correction
   for (Index I=0; I<N; I++) {
-    Numeric sumlw = 0.0;
     Numeric sumup = 0.0;
+    for (Index J=0; J<=I; J++) {
+      sumup += dip0[J] * W(I, J).imag();
+    }
     
-    for (Index J=0; J<N; J++) {
-      if (J > I) {
-        sumlw += std::abs(dip0[J]) * W(J, I).imag();
-      } else {
-        sumup += std::abs(dip0[J]) * W(J, I).imag();
-      }
+    Numeric sumlw = 0.0;
+    for (Index J=I+1; J<N; J++) {
+        sumlw += dip0[J] * W(I, J).imag();
     }
     
     for (Index J=I+1; J<N; J++) {
       if (sumlw == 0) {
-        W(J, I) = 0.0;
         W(I, J) = 0.0;
+        W(J, I) = 0.0;
       } else {
-        W(J, I) *= - sumup / sumlw;
-        W(I, J) = W(J, I) * pop[I] / pop[J];
+        W(I, J) *= - sumup / sumlw;
+        W(J, I) = W(I, J) * pop[J] / pop[I];
       }
     }
   }
   
-  // Add the frequency on the real diagonal
   for (Index I=0; I<N; I++) {
-    W(I, I) += band.F0(sorting[I]);
+    W(I, I) += band.F0(sorting[I]) - frenorm;
   }
   
   return W;
 }
 
 
-ComplexVector linemixing_ecs_makarov2020(const Numeric T,
-                                         const Numeric P,
-                                         const Vector& vmrs,
-                                         const Vector& f_grid,
-                                         const AbsorptionLines& band,
-                                         const SpeciesAuxData::AuxType& partition_type,
-                                         const ArrayOfGriddedField1& partition_data)
+std::pair<ArrayOfIndex, PopulationAndDipole> sorted_population_and_dipole(const Numeric T,
+                                                                          const AbsorptionLines& band,
+                                                                          const SpeciesAuxData::AuxType& partition_type,
+                                                                          const ArrayOfGriddedField1& partition_data) {
+  PopulationAndDipole tp(T, band, partition_type, partition_data);
+  return {tp.sort(band), tp};
+}
+
+
+ComplexVector linemixing_ecs_absorption(const Numeric T,
+                                        const Numeric P,
+                                        const Numeric this_vmr,
+                                        const Vector& vmrs,
+                                        const Vector& f_grid,
+                                        const AbsorptionLines& band,
+                                        const SpeciesAuxData::AuxType& partition_type,
+                                        const ArrayOfGriddedField1& partition_data)
 {
-  // Constants for the band at this temperature
+  // Weighted center of the band
   const Numeric frenorm = band.F_mean();
+  
+  // Band Doppler broadening constant
   const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, band.SpeciesMass());
   
   // Sorted population
-  PopulationAndDipole tp = PopulationAndDipole(T, band, partition_type, partition_data);
-  const ArrayOfIndex sorting = tp.sort(band);
+  const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
   
   // Relaxation matrix
-  ComplexMatrix W = relaxation_matrix_makarov2020(T, P, vmrs, tp.pop, band, sorting);
-  W.diagonal() -= frenorm;
+  const ComplexMatrix W = relaxation_matrix(T, P, vmrs, tp.pop, band, sorting, frenorm);
   
   // Equivalent lines computations
-  EquivalentLines eqv(W, tp.pop, tp.dip);
-  eqv.val += frenorm;
+  const EquivalentLines eqv(W, tp.pop, tp.dip);
   
   // Absorption of this band
-  ComplexVector a(f_grid.nelem(), 0);
+  ComplexVector absorption(f_grid.nelem(), 0);
   for (Index i=0; i<band.NumLines(); i++) {
-    const Numeric gamd = GD_div_F0 * eqv.val[i].real();
+    const Numeric gamd = GD_div_F0 * (eqv.val[i].real() + frenorm);
     const Numeric cte = Constant::sqrt_ln_2 / gamd;
     for (Index iv=0; iv<f_grid.nelem(); iv++) {
-      const Complex z = (eqv.val[i]-f_grid[iv]) * cte;
+      const Complex z = (eqv.val[i] + frenorm - f_grid[iv]) * cte;
       const Complex w = Faddeeva::w(z);
-      a[iv] += (eqv.str[i] * w) / gamd;
+      absorption[iv] += eqv.str[i] * w / gamd;
     }
   }
-  return a;
+  
+  // Adjust by frequency and number density
+  const Numeric numdens = this_vmr * number_density(P, T);
+  constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
+  for (Index iv=0; iv<f_grid.nelem(); iv++) {
+    const Numeric f = f_grid[iv];
+    const Numeric fact = f * (1 - stimulated_emission(T, f));
+    absorption[iv] *= fact * numdens * sq_ln2pi;
+  }
+  
+  return absorption;
 }
 }

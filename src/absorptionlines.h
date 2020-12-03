@@ -146,11 +146,12 @@ inline String normalizationtype2metadatastring(NormalizationType in) {
  * The types here might require that different data is available at runtime absorption calculations
  */
 enum class PopulationType : Index {
-  ByLTE,                          // Assume line is in LTE
-  ByNLTEVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
-  ByNLTEPopulationDistribution,   // Assume line is in NLTE and the upper-to-lower ratio is known
-  ByHITRANRosenkranzRelmat,       // Assume line needs to compute relaxation matrix to derive HITRAN Y-coefficients
-  ByHITRANFullRelmat,             // Assume line needs to compute and directly use the relaxation matrix
+  ByLTE,                          // Assume band is in LTE
+  ByNLTEVibrationalTemperatures,  // Assume band is in NLTE described by vibrational temperatures
+  ByNLTEPopulationDistribution,   // Assume band is in NLTE and the upper-to-lower ratio is known
+  ByHITRANRosenkranzRelmat,       // Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+  ByHITRANFullRelmat,             // Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+  ByMakarovFullRelmat,            // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
 };  // PopulationType
 
 inline PopulationType string2populationtype(const String& in) {
@@ -160,6 +161,8 @@ inline PopulationType string2populationtype(const String& in) {
     return PopulationType::ByHITRANRosenkranzRelmat;
   else if (in == "ByHITRANFullRelmat")
     return PopulationType::ByHITRANFullRelmat;
+  else if (in == "ByMakarovFullRelmat")
+    return PopulationType::ByMakarovFullRelmat;
   else if (in == "NLTE-VibrationalTemperatures")
     return PopulationType::ByNLTEVibrationalTemperatures;
   else if (in == "NLTE")
@@ -174,6 +177,8 @@ inline String populationtype2string(PopulationType in) {
       return "LTE";
     case PopulationType::ByHITRANFullRelmat:
       return "ByHITRANFullRelmat";
+    case PopulationType::ByMakarovFullRelmat:
+      return "ByMakarovFullRelmat";
     case PopulationType::ByHITRANRosenkranzRelmat:
       return "ByHITRANRosenkranzRelmat";
     case PopulationType::ByNLTEVibrationalTemperatures:
@@ -187,6 +192,8 @@ inline String populationtype2metadatastring(PopulationType in) {
   switch (in) {
     case PopulationType::ByLTE:
       return "The lines are considered as in pure LTE.\n";
+    case PopulationType::ByMakarovFullRelmat:
+      return "The lines requires relaxation matrix calculations in LTE - Makarov et al 2020 full method.\n";
     case PopulationType::ByHITRANFullRelmat:
       return "The lines requires relaxation matrix calculations in LTE - HITRAN full method.\n";
     case PopulationType::ByHITRANRosenkranzRelmat:
@@ -198,8 +205,9 @@ inline String populationtype2metadatastring(PopulationType in) {
   } std::terminate();
 }
 
-inline bool relaxationtype_relmat(PopulationType in) {
+constexpr bool relaxationtype_relmat(PopulationType in) noexcept {
   return in == PopulationType::ByHITRANFullRelmat or
+         in == PopulationType::ByMakarovFullRelmat or
          in == PopulationType::ByHITRANRosenkranzRelmat;
 }
 

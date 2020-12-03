@@ -85,74 +85,16 @@ Numeric wigner6j(const Rational j1,
   return Numeric(g);
 }
 
-Numeric co2_ecs_wigner_symbol(
-    int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf) {
-  return WIGNER3(Ji_p, L, Ji, li, 0, -li) * WIGNER3(Jf_p, L, Jf, -lf, 0, lf) *
-         WIGNER6(Ji, Jf, 2, Jf_p, Ji_p, L) * Numeric(L + 1);
-}
 
-Numeric o2_ecs_wigner_symbol(
-    int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L) {
-  return WIGNER3(Nl, Nk, L, 0, 0, 0) * WIGNER6(L, Jk, Jl, 2, Nl, Nk) *
-         WIGNER6(L, Jk_p, Jl_p, 2, Nl, Nk) * WIGNER6(L, Jk, Jl, 2, Jl_p, Jk_p);
-}
-
-
-struct Wigner3JTriangleLimit {
-  int lower;
-  int upper;
-};
-
-
-
-/** Finds the upper and lower limits of L3 given a Wigner-3J symbol:
- * 
- * /            \
- * |  L1 L2 L3  |
- * |            |
- * |  M1 M2 M3  |
- * \            /
- * 
- * Based on abs(L1-L2) <= L3 <= L1+L2, where L1 and L2 are positives
- * 
- * @param[in] L1 As in Wigner symbol
- * @param[in] L2 As in Wigner symbol
- * @return The limits
- */
-constexpr Wigner3JTriangleLimit find_wigner3j_limits(const Rational L1,
-                                                     const Rational L2)
-{
-  return {abs(L1-L2).toInt(), (L1+L2).toInt()};
-}
-
-
-/** Combines two limits and return the highest even-numbered low value and the
- * lowest numbered even high value
- * 
- * @param[in] lim1 Limit 1
- * @param[in] lim2 Limit 2
- * @return More limited limit
- */
-constexpr Wigner3JTriangleLimit find_even_limits(const Wigner3JTriangleLimit lim1,
-                                                 const Wigner3JTriangleLimit lim2)
-{
-  return 
-  {
-  lim1.lower > lim2.lower ?
-    ((lim1.lower % 2) ?
-      lim1.lower + 1 :
-      lim1.lower) :
-    ((lim2.lower % 2) ?
-      lim2.lower + 1 :
-      lim2.lower),
-  lim1.upper < lim2.upper ?
-    ((lim1.upper % 2) ?
-      lim1.upper - 1 :
-      lim1.upper) :
-    ((lim2.upper % 2) ?
-      lim2.upper - 1 :
-      lim2.upper)
-  };
+std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a, std::pair<Rational, Rational> b) {
+  const bool invalid = a.first.isUndefined() or b.first.isUndefined();
+  if (invalid) {
+    return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
+  } else {
+    std::pair<Rational, Rational> out {max(a.first, b.first), min(a.second, b.second)};
+    if (out.first > out.second) out = {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
+    return out;
+  }
 }
 
 
@@ -202,7 +144,7 @@ Numeric o2_ecs_adiabatic_factor_makarov(Rational N, Numeric T)
   using Constant::pi;
   using Constant::k;
   
-  auto dc =  angstrom2meter(0.61);
+  auto dc = angstrom2meter(0.61);
   
   auto en = o2_ecs_erot_jn_same(N);
   auto enm2 = o2_ecs_erot_jn_same(N-2);
@@ -231,24 +173,15 @@ Numeric o2_ecs_wigner_symbol_tran(
 {
   Numeric o2_ecs_wigner_symbol_tran = 0;
   
-//   std::cout<<"import numpy as np";
-//   std::cout << "wigsym=np.array([";
-//   for (Index L=1; L<=250; L++) {
-//     std::cout<<"["<<L<<", "<< o2_ecs_adiabatic_factor_makarov(L, T)<<","<<o2_ecs_ql_makarov(L, T)<<"],\n";
-//   }
-//   std::cout<<"])\n";
-//   std::exit(1);
-  
-  // Limits above 2 and below the largest index there is
-  auto lims = find_even_limits({2, std::numeric_limits<int>::max()},
-                               find_even_limits(find_wigner3j_limits(Ni_p, Ni),
-                                                find_wigner3j_limits(Nf_p, Nf)));
+  auto lims = wigner_limits(wigner_limits({Rational(2), Rational(100000000000000)},
+                              wigner3j_limits<3>(Ni_p, Ni, 0, 0, 0)),
+                              wigner3j_limits<3>(Nf_p, Nf, 0, 0, 0));
   
   auto f = sqrt(2*Ni+1) * sqrt(2*Ni_p+1) * sqrt(2*Jf+1) * sqrt(2*Jf_p+1) * sqrt(2*Nf+1) * sqrt(2*Nf_p+1) * (2*Ji_p+1).toNumeric();
   auto g = even(Ji_p + Ji + n) ? 1 : -1;  // -1^(Ji_p + Ji + n)
-  auto OmegaNi = o2_ecs_ql_makarov(Ni, T);
+  auto OmegaNi = o2_ecs_adiabatic_factor_makarov(Ni, T);
   
-  for (int L=lims.lower; L<=lims.upper; L+=2) {
+  for (int L=lims.first.toInt(); L<=lims.second.toInt(); L+=2) {
     auto OmegaL = o2_ecs_adiabatic_factor_makarov(Rational(L), T);
     auto QL = o2_ecs_ql_makarov(Rational(L), T);
     auto a = WIGNER3(Ni_p.toInt(2), Ni.toInt(2), 2*L, 0, 0, 0);
@@ -261,6 +194,19 @@ Numeric o2_ecs_wigner_symbol_tran(
   }
   
   return o2_ecs_wigner_symbol_tran;
+}
+
+
+Numeric o2_tran2006_reduced_dipole(const Rational& Ji, const Rational& Jf, const Rational& Nf, const Rational& Ni)
+{
+  if (Nf == Ni + 1 and Jf == Ji + 1)
+    return + sqrt(Ji / (2*Ji + 1));
+  else if (Nf == Ni + 1 and Jf == Ji)
+    return - sqrt((Ji + 1) / (2*Ji + 1));
+  else if (Nf == Ni - 1 and Jf == Ji)
+    return - sqrt(Ji / (2*Ji + 1));
+  else
+    return + sqrt((Ji + 1) / (2*Ji + 1));
 }
 
 

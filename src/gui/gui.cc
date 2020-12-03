@@ -167,6 +167,23 @@ void quitscreen(const Config &cfg, GLFWwindow *window) {
     glfwSetWindowShouldClose(window, 1);
   }
 }
+
+void exportdata(const Config &cfg, ImGui::FileBrowser& fileBrowser) {
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem(" Export Data ", "Ctrl+S")) {
+        fileBrowser.Open();
+      }
+      ImGui::Separator();
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
+  
+  if (cfg.io.KeyCtrl and ImGui::IsKeyPressed(GLFW_KEY_S)) {
+    fileBrowser.Open();
+  }
+}
 }  // MainMenu
 
 namespace Windows {
@@ -178,4 +195,14 @@ ImVec2 CurrentPosition() { return ImGui::GetCursorPos(); }
   
 void end() { ImGui::End(); }
 }  // Windows
+
+namespace Files {
+  ImGui::FileBrowser xmlfile_chooser() {
+    ImGui::FileBrowser fileBrowser(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CloseOnEsc);
+    fileBrowser.SetTitle("Choose Save File");
+    fileBrowser.SetPwd();
+    fileBrowser.SetTypeFilters({".xml", ".xml.bin", ".xml.gz"});
+    return fileBrowser;
+  }
+}  // Files
 }  // ARTSGUI

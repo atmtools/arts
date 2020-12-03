@@ -1,5 +1,5 @@
-#ifndef gui_h
-#define gui_h
+#ifndef arts_gui_h
+#define arts_gui_h
 
 #include <imgui.h>
 
@@ -36,6 +36,7 @@ struct Config {
 
   /** User input */
   bool new_save_path;
+  std::filesystem::path save_path;
 
   Config(bool fullscreen_on = false)
       : io(ImGui::GetIO()),
@@ -47,7 +48,8 @@ struct Config {
         ypos(50),
         tabspos(0),
         tabs(0),
-        new_save_path(false) {
+        new_save_path(false),
+        save_path() {
     (void)io;
     io.ConfigFlags |=
         ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
@@ -62,6 +64,7 @@ GLFWmonitor *get_current_monitor(GLFWwindow *window);
 namespace MainMenu {
 void fullscreen(Config &cfg, GLFWwindow *window);
 void quitscreen(const Config &cfg, GLFWwindow *window);
+void exportdata(const Config &cfg, ImGui::FileBrowser& fileBrowser);
 }  // namespace MainMenu
 
 namespace Windows {
@@ -105,6 +108,59 @@ bool full(GLFWwindow *window, const ImVec2 origpos, const char *name);
 ImVec2 CurrentPosition();
 void end();
 }  // namespace Windows
+
+namespace Files {
+  ImGui::FileBrowser xmlfile_chooser();
+  template <class Data> void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Data& data) {
+    fileBrowser.Display();
+    if (fileBrowser.HasSelected()) {
+      config.save_path = fileBrowser.GetSelected();
+      
+      if (not config.new_save_path and std::filesystem::exists(config.save_path) ) {
+        ImGui::OpenPopup("Overwrite?");
+      }
+      config.new_save_path = true;
+      
+      if (ImGui::BeginPopupModal("Overwrite?")) {
+        ImGui::Text("\n\t %s exists\t "
+                    "\n\t Overwrite?\t ", config.save_path .c_str());
+        if (ImGui::Button(" OK ", {80.0f, 30.0f})) {
+          ImGui::CloseCurrentPopup();
+          ImGui::EndPopup();
+          goto save_anyways;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(" Cancel ", {80.0f, 30.0f})) {
+          config.new_save_path = false;
+          fileBrowser.ClearSelected();
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      } else { save_anyways:
+        std::string type;
+        if(config.save_path.extension() == ".xml") {
+          type = "ascii";
+        } else if(config.save_path.extension() == ".gz") {
+          config.save_path.replace_extension("");
+          if (config.save_path.extension() not_eq ".xml")
+            config.save_path += ".xml";
+          type = "zascii";
+        } else if(config.save_path.extension() == ".bin") {
+          config.save_path.replace_extension("");
+          if (config.save_path.extension() not_eq ".xml")
+            config.save_path += ".xml";
+          type = "binary";
+        } else {
+          config.save_path  += ".xml";
+          type = "ascii";
+        }
+        WriteXML(type, data, config.save_path .native(), 0, "", "", "", {});
+        config.new_save_path = false;
+        fileBrowser.ClearSelected();
+      }
+    }
+  }
+}  // namespace Files
 }  // namespace GUI
 
-#endif  // gui_h
+#endif  // arts_gui_h

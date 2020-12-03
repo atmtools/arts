@@ -58,7 +58,7 @@ class Rational {
    * @param[in] nom Nominator
    * @param[in] denom Denominator
    */
-  explicit constexpr Rational(const Index nom = 0, const Index denom = 1)
+  constexpr Rational(const Index nom = 0, const Index denom = 1)
   : mnom(denom ? nom : 0), mdenom(denom) {
     const auto div = gcd(nom, denom);
     if (div) {
@@ -176,6 +176,16 @@ class Rational {
     mnom += mdenom * a;
     return *this;
   }
+  
+  /** Add to this
+   * 
+   * @param[in] a To add
+   * @return Rational& *this
+   */
+  Rational& operator+=(const int& a) {
+    mnom += mdenom * a;
+    return *this;
+  }
 
   /** Remove from this
    * 
@@ -194,6 +204,16 @@ class Rational {
    * @return Rational& *this
    */
   Rational& operator-=(const Index& a) {
+    mnom -= mdenom * a;
+    return *this;
+  }
+  
+  /** Remove from this
+   * 
+   * @param[in] a To remove
+   * @return Rational& *this
+   */
+  Rational& operator-=(const int& a) {
     mnom -= mdenom * a;
     return *this;
   }
@@ -218,6 +238,16 @@ class Rational {
     mdenom *= a;
     return *this;
   }
+  
+  /** Divide by this
+   * 
+   * @param[in] a To divide by
+   * @return Rational& *this
+   */
+  Rational& operator/=(const int& a) {
+    mdenom *= a;
+    return *this;
+  }
 
   /** Multiply by this
    * 
@@ -236,6 +266,16 @@ class Rational {
    * @return Rational& *this
    */
   Rational& operator*=(const Index& a) {
+    mnom *= a;
+    return *this;
+  }
+  
+  /** Multiply by this
+   * 
+   * @param[in] a To multiply by
+   * @return Rational& *this
+   */
+  Rational& operator*=(const int& a) {
     mnom *= a;
     return *this;
   }
@@ -267,12 +307,12 @@ class Rational {
   }
 
   /** Cast to bool */
-  explicit constexpr operator bool() const {
+  constexpr operator bool() const {
     return isDefined() and bool(mnom);
   }
 
   /** Cast to Numeric */
-  explicit constexpr operator Numeric() const { return toNumeric(); }
+  constexpr operator Numeric() const { return toNumeric(); }
 
   /** Cast to Index */
   explicit constexpr operator Index() const { return toIndex(); }
@@ -401,11 +441,29 @@ constexpr Rational operator+(const Rational a, Index b) {
 
 /** Addition
  * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Index
+ * @return constexpr Rational a + b
+ */
+constexpr Rational operator+(const Rational a, int b) {
+  return Rational(a.Nom() + b * a.Denom(), a.Denom());
+}
+
+/** Addition
+ * 
  * @param[in] b Any Index
  * @param[in] a Any Rational
  * @return constexpr Rational a + b
  */
 constexpr Rational operator+(Index b, const Rational a) { return operator+(a, b); }
+
+/** Addition
+ * 
+ * @param[in] b Any Index
+ * @param[in] a Any Rational
+ * @return constexpr Rational a + b
+ */
+constexpr Rational operator+(int b, const Rational a) { return operator+(a, b); }
 
 /** Subtraction
  * 
@@ -432,11 +490,31 @@ constexpr Rational operator-(const Rational a, Index b) {
 
 /** Subtraction
  * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Index
+ * @return constexpr Rational a - b
+ */
+constexpr Rational operator-(const Rational a, int b) {
+  return Rational(a.Nom() - b * a.Denom(), a.Denom());
+}
+
+/** Subtraction
+ * 
  * @param[in] b Any Index
  * @param[in] a Any Rational
  * @return constexpr Rational b - a
  */
 constexpr Rational operator-(Index b, const Rational a) {
+  return Rational(-a.Nom() + b * a.Denom(), a.Denom());
+}
+
+/** Subtraction
+ * 
+ * @param[in] b Any Index
+ * @param[in] a Any Rational
+ * @return constexpr Rational b - a
+ */
+constexpr Rational operator-(int b, const Rational a) {
   return Rational(-a.Nom() + b * a.Denom(), a.Denom());
 }
 
@@ -462,11 +540,31 @@ constexpr Rational operator/(const Rational a, Index b) {
 
 /** Division
  * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Index
+ * @return constexpr Rational a / b
+ */
+constexpr Rational operator/(const Rational a, int b) {
+  return Rational(a.Nom(), a.Denom() * b);
+}
+
+/** Division
+ * 
  * @param[in] b Any Index
  * @param[in] a Any Rational
  * @return constexpr Rational b / a
  */
 constexpr Rational operator/(Index b, const Rational a) {
+  return Rational(a.Denom() * b, a.Nom());
+}
+
+/** Division
+ * 
+ * @param[in] b Any Index
+ * @param[in] a Any Rational
+ * @return constexpr Rational b / a
+ */
+constexpr Rational operator/(int b, const Rational a) {
   return Rational(a.Denom() * b, a.Nom());
 }
 
@@ -492,11 +590,29 @@ constexpr Rational operator*(const Rational a, Index b) {
 
 /** Multiplication
  * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Index
+ * @return constexpr Rational a * b
+ */
+constexpr Rational operator*(const Rational a, int b) {
+  return Rational(a.Nom() * b, a.Denom());
+}
+
+/** Multiplication
+ * 
  * @param[in] b Any Index
  * @param[in] a Any Rational
  * @return constexpr Rational a * b
  */
 constexpr Rational operator*(Index b, const Rational a) { return operator*(a, b); }
+
+/** Multiplication
+ * 
+ * @param[in] b Any Index
+ * @param[in] a Any Rational
+ * @return constexpr Rational a * b
+ */
+constexpr Rational operator*(int b, const Rational a) { return operator*(a, b); }
 
 /** Remainder
  * 
@@ -523,11 +639,31 @@ constexpr Rational operator%(const Rational a, Index b) {
 
 /** Remainder
  * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Index
+ * @return constexpr Rational a % b
+ */
+constexpr Rational operator%(const Rational a, int b) {
+  return Rational(a.Nom() % (a.Denom() * b), a.Denom());
+}
+
+/** Remainder
+ * 
  * @param[in] b Any Index
  * @param[in] a Any Rational
  * @return constexpr Rational b % a
  */
 constexpr Rational operator%(Index b, const Rational a) {
+  return Rational((b * a.Denom()) % a.Nom(), a.Denom());
+}
+
+/** Remainder
+ * 
+ * @param[in] b Any Index
+ * @param[in] a Any Rational
+ * @return constexpr Rational b % a
+ */
+constexpr Rational operator%(int b, const Rational a) {
   return Rational((b * a.Denom()) % a.Nom(), a.Denom());
 }
 
@@ -667,11 +803,31 @@ constexpr bool operator<(const Index a, const Rational b) {
 
 /** less
  * 
+ * @param[in] a Any Index
+ * @param[in] b Any Rational
+ * @return True if a is less than b
+ */
+constexpr bool operator<(const int a, const Rational b) {
+  return Rational(a, 1) < b;
+}
+
+/** less
+ * 
  * @param[in] a Any Rational
  * @param[in] b Any Index
  * @return True if a is less than b
  */
 constexpr bool operator<(const Rational a, const Index b) {
+  return a < Rational(b, 1);
+}
+
+/** less
+ * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Index
+ * @return True if a is less than b
+ */
+constexpr bool operator<(const Rational a, const int b) {
   return a < Rational(b, 1);
 }
 
@@ -687,11 +843,31 @@ constexpr bool operator>(const Index a, const Rational b) {
 
 /** more
  * 
+ * @param[in] a Any Index
+ * @param[in] b Any Rational
+ * @return True if a is more than b
+ */
+constexpr bool operator>(const int a, const Rational b) {
+  return Rational(a, 1) > b;
+}
+
+/** more
+ * 
  * @param[in] a Any Rational
  * @param[in] b Any Index
  * @return True if a is more than b
  */
 constexpr bool operator>(const Rational a, const Index b) {
+  return a > Rational(b, 1);
+}
+
+/** more
+ * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Index
+ * @return True if a is more than b
+ */
+constexpr bool operator>(const Rational a, const int b) {
   return a > Rational(b, 1);
 }
 
@@ -705,6 +881,16 @@ constexpr bool operator==(const Rational a, const Index b) {
   return a == Rational(b, 1);
 }
 
+/** equal
+ * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Index
+ * @return True if a is equal to b
+ */
+constexpr bool operator==(const Rational a, const int b) {
+  return a == Rational(b, 1);
+}
+
 /** not equal
  * 
  * @param[in] a Any Rational
@@ -712,6 +898,16 @@ constexpr bool operator==(const Rational a, const Index b) {
  * @return True if a is not equal to b
  */
 constexpr bool operator!=(const Rational a, const Index b) {
+  return not(a == b);
+}
+
+/** not equal
+ * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Index
+ * @return True if a is not equal to b
+ */
+constexpr bool operator!=(const Rational a, const int b) {
   return not(a == b);
 }
 

@@ -1609,42 +1609,7 @@ void define_md_data_raw() {
                "Flag for loose match (0 means only complete matches)")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesSetBaseParameterForMatchingLines"),
-      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLines*\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species"),
-      GIN("QI", "parameter_name", "change", "loose_matching"),
-      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "Value with which to change matching line's value",
-               "Flag for loose match (0 means only complete matches)")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesSetBaseParameterForSpecies"),
-      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLines* but for single species\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species", "abs_species"),
-      GIN("QI", "parameter_name", "change", "loose_matching", "species_tag"),
-      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", NODEF),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "Value with which to change matching line's value",
-               "Flag for loose match (0 means only complete matches)",
-               "The species tag from *abs_species* to change")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesSetLineShapeModelParameterForMatchingLines"),
+      NAME("abs_linesSetLineShapeModelParametersForMatchingLines"),
       DESCRIPTION("Sets line shape model data parameter in matching lines.\n"
         "\n"
         "The matching is done so that QI must be in the line identifier\n"
@@ -1660,18 +1625,23 @@ void define_md_data_raw() {
         "\t\"G\"\n"
         "\t\"DV\"\n"
         "\n"
-        "Acceptable coefficient(s) are:\n"
-        "\t\"X0\"\n"
-        "\t\"X1\"\n"
-        "\t\"X2\"\n"
-        "\t\"X3\"\n"
+        "Acceptable temperaturemodel(s) are:\n"
+        "\tNone,\n"
+        "\t\"T0\"\n"
+        "\t\"T1\"\n"
+        "\t\"T2\"\n"
+        "\t\"T3\"\n"
+        "\t\"T4\"\n"
+        "\t\"T5\"\n"
+        "\t\"LM_AER\"\n"
+        "\t\"DPL\"\n"
         "\n"
         "Acceptable species are:\n"
         "\t\"AIR\" (so long as it is the broadening species list)\n"
         "\t\"SELF\" (so long as it is the broadening species list)\n"
         "\tAny species in the line broadening species\n"
         "\n"
-        "Throws an error if it cannot find any targets to change\n"
+        "See the user guide for the meanings of all of these keywords\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
@@ -1679,22 +1649,22 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("QI", "parameter", "coefficient", "species", "change"),
+      GIN("QI", "parameter", "species", "temperaturemodel", "new_values"),
       GIN_TYPE("QuantumIdentifier",
                "String",
                "String",
                "String",
-               "Numeric"),
+               "Vector"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
       GIN_DESC("Information to match the line.",
                "Name of parameter to be replaced",
-               "Coefficient of the parameter to be changed",
                "Species of parameter to be changed",
-               "Sets the value found")));
+               "Temperature model for the new values",
+               "Sets the values found")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesSetLineShapeModelParameterForMatchingLines"),
-      DESCRIPTION("See *abs_linesSetLineShapeModelParameterForMatchingLines*\n"
+      NAME("abs_lines_per_speciesSetLineShapeModelParametersForMatchingLines"),
+      DESCRIPTION("See *abs_linesSetLineShapeModelParametersForMatchingLines*\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
@@ -1702,43 +1672,18 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species"),
-      GIN("QI", "parameter", "coefficient", "species", "change"),
+      GIN("QI", "parameter", "species", "temperaturemodel", "new_values"),
       GIN_TYPE("QuantumIdentifier",
                "String",
                "String",
                "String",
-               "Numeric"),
+               "Vector"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
       GIN_DESC("Information to match the line.",
                "Name of parameter to be replaced",
-               "Coefficient of the parameter to be changed",
                "Species of parameter to be changed",
-               "Sets the value found")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesSetLineShapeModelParameterForSpecies"),
-      DESCRIPTION("See *abs_linesSetLineShapeModelParameterForMatchingLines*\n"
-      ),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species", "abs_species"),
-      GIN("QI", "parameter", "coefficient", "species", "change", "species_tag"),
-      GIN_TYPE("QuantumIdentifier",
-               "String",
-               "String",
-               "String",
-               "Numeric",
-               "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "Coefficient of the parameter to be changed",
-               "Species of parameter to be changed",
-               "Sets the value found",
-               "The species tag from *abs_species* to change")));
+               "Temperature model for the new values",
+               "Sets the values found")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesSetZeemanCoefficients"),
@@ -1769,113 +1714,6 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Information to match an energy level of a/many lines.",
                "Corresponding value to set as Zeeman coefficient")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesChangeLineShapeModelParameterForMatchingLines"),
-      DESCRIPTION("Change line shape model data parameter in matching lines.\n"
-        "\n"
-        "The matching is done so that QI must be in the line identifier\n"
-        "\n"
-        "Acceptable parameter(s) are:\n"
-        "\t\"G0\"\n"
-        "\t\"D0\"\n"
-        "\t\"G2\"\n"
-        "\t\"D2\"\n"
-        "\t\"FVC\"\n"
-        "\t\"ETA\"\n"
-        "\t\"Y\"\n"
-        "\t\"G\"\n"
-        "\t\"DV\"\n"
-        "\n"
-        "Acceptable coefficient(s) are:\n"
-        "\t\"X0\"\n"
-        "\t\"X1\"\n"
-        "\t\"X2\"\n"
-        "\t\"X3\"\n"
-        "\n"
-        "Acceptable species are:\n"
-        "\t\"AIR\" (so long as it is the broadening species list)\n"
-        "\t\"SELF\" (so long as it is the broadening species list)\n"
-        "\tAny species in the line broadening species\n"
-        "\n"
-        "The line parameter will have its old value plus the change if\n"
-        "relative is false, else it will have its old value times\n"
-        "(1+change).\n"
-        "\n"
-        "Throws an error if it cannot find any targets to change\n"
-      ),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("QI", "parameter", "coefficient", "species", "change", "relative"),
-      GIN_TYPE("QuantumIdentifier",
-               "String",
-               "String",
-               "String",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "Coefficient of the parameter to be changed",
-               "Species of parameter to be changed",
-               "Change in the value found",
-               "Flag for relative change (0 is absolute change)")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesChangeLineShapeModelParameterForMatchingLines"),
-      DESCRIPTION("See *abs_linesChangeLineShapeModelParameterForMatchingLines*\n"
-      ),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species"),
-      GIN("QI", "parameter", "coefficient", "species", "change", "relative"),
-      GIN_TYPE("QuantumIdentifier",
-               "String",
-               "String",
-               "String",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "Coefficient of the parameter to be changed",
-               "Species of parameter to be changed",
-               "Change in the value found",
-               "Flag for relative change (0 is absolute change)")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesChangeLineShapeModelParameterForSpecies"),
-      DESCRIPTION("See *abs_linesChangeLineShapeModelParameterForMatchingLines*\n"
-      ),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species", "abs_species"),
-      GIN("QI", "parameter", "coefficient", "species", "change", "relative", "species_tag"),
-      GIN_TYPE("QuantumIdentifier",
-               "String",
-               "String",
-               "String",
-               "Numeric",
-               "Index",
-               "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "0", NODEF),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "Coefficient of the parameter to be changed",
-               "Species of parameter to be changed",
-               "Change in the value found",
-               "Flag for relative change (0 is absolute change)",
-               "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesCompact"),
@@ -12692,6 +12530,8 @@ void define_md_data_raw() {
           "\n"
           "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
           "\n"
+          "Note that you need to have propmat_clearskyAddOnTheFly in addition to this method\n"
+          "to compensate the calculations for the pressure limit\n"
           "\n"
           "Please ensure you cite the original authors when you use this function:\n"
           "\tJ. Lamouroux, L. Realia, X. Thomas, et al., J.Q.S.R.T. 151 (2015), 88-96\n"),
@@ -12702,6 +12542,39 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("propmat_clearsky",
          "abs_hitran_relmat_data",
+         "abs_lines_per_species",
+         "f_grid",
+         "abs_species",
+         "jacobian_quantities",
+         "partition_functions",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_vmr"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddOnTheFlyLineMixing"),
+      DESCRIPTION(
+          "Compute the line mixing of matching lines and add it to the propagation matrix\n"
+          "\n"
+          "Each band's Population Type is checked and the calculations are only performed\n"
+          "for bands with matching population types (and a good pressure limits)\n"
+          "\n"
+          "Presently only supports one method: ByMakarovFullRelmat, based on Makarov et al 2020\n"
+          "\n"
+          "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
+          "\n"
+          "Note that you need to have propmat_clearskyAddOnTheFly in addition to this method\n"
+          "to compensate the calculations for the pressure limit\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("propmat_clearsky"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
          "abs_lines_per_species",
          "f_grid",
          "abs_species",
