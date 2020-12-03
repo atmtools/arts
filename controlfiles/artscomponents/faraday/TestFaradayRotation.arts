@@ -222,7 +222,7 @@ ReadXML( frtotREFERENCE, "farrot_totalREFERENCE.xml" )
 # Check
 #
 Compare( y, yREFERENCE, 1e-4 )
-# Temporarily rempved, PE 180313
+# Temporarily removed, PE 180313
 #Compare( farrot_total, frtotREFERENCE, 1e-2 )
 
 }

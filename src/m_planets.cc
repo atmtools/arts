@@ -66,6 +66,12 @@ void g0Earth(Numeric& g0, const Numeric& lat, const Verbosity&) {
 
   g0 = 9.780327 *
        (1 + 5.3024e-3 * pow(sin(x), 2.0) + 5.8e-6 * pow(sin(2 * x), 2.0));
+
+  // Move to apparent gravity, i.e. include effect of the centrifugal force. See:
+  // A first course in Atmospheric Thermodynamics by G. Petty (page 89)
+  // As well as https://glossary.ametsoc.org/wiki/Apparent_gravity
+  // 0.033895 = (7.29e-5)^2 * 6378e3
+  g0 -= 0.033895 * pow(cos(x), 2.0);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
