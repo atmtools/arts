@@ -2033,10 +2033,10 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   
   const LineShape::Variable var = LineShape::string2variable(parameter);
   
-  if (new_values.nelem() not_eq LineShape::nVars) {
+  if (new_values.nelem() not_eq LineShape::nmaxTempModelParams) {
     std::ostringstream os;
     os << "Mismatch between input and expected number of variables\n";
-    os << "\tInput is: " << new_values.nelem() << " long but expects: " << LineShape::nVars << " values\n";
+    os << "\tInput is: " << new_values.nelem() << " long but expects: " << LineShape::nmaxTempModelParams << " values\n";
     throw std::runtime_error(os.str());
   }
   
