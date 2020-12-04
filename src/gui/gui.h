@@ -14,6 +14,8 @@
 
 #include "gui_macros.h"
 
+#include <matpackI.h>
+
 namespace ARTSGUI {
   /** A global config for all things ARTSGUI */
 struct Config {
@@ -111,55 +113,8 @@ void end();
 
 namespace Files {
   ImGui::FileBrowser xmlfile_chooser();
-  template <class Data> void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Data& data) {
-    fileBrowser.Display();
-    if (fileBrowser.HasSelected()) {
-      config.save_path = fileBrowser.GetSelected();
-      
-      if (not config.new_save_path and std::filesystem::exists(config.save_path) ) {
-        ImGui::OpenPopup("Overwrite?");
-      }
-      config.new_save_path = true;
-      
-      if (ImGui::BeginPopupModal("Overwrite?")) {
-        ImGui::Text("\n\t %s exists\t "
-                    "\n\t Overwrite?\t ", config.save_path .c_str());
-        if (ImGui::Button(" OK ", {80.0f, 30.0f})) {
-          ImGui::CloseCurrentPopup();
-          ImGui::EndPopup();
-          goto save_anyways;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(" Cancel ", {80.0f, 30.0f})) {
-          config.new_save_path = false;
-          fileBrowser.ClearSelected();
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-      } else { save_anyways:
-        std::string type;
-        if(config.save_path.extension() == ".xml") {
-          type = "ascii";
-        } else if(config.save_path.extension() == ".gz") {
-          config.save_path.replace_extension("");
-          if (config.save_path.extension() not_eq ".xml")
-            config.save_path += ".xml";
-          type = "zascii";
-        } else if(config.save_path.extension() == ".bin") {
-          config.save_path.replace_extension("");
-          if (config.save_path.extension() not_eq ".xml")
-            config.save_path += ".xml";
-          type = "binary";
-        } else {
-          config.save_path  += ".xml";
-          type = "ascii";
-        }
-        WriteXML(type, data, config.save_path .native(), 0, "", "", "", {});
-        config.new_save_path = false;
-        fileBrowser.ClearSelected();
-      }
-    }
-  }
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Vector& data);
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfVector& data);
 }  // namespace Files
 }  // namespace GUI
 

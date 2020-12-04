@@ -1,4 +1,5 @@
 #include "gui.h"
+#include <xml_io.h>
 
 namespace ARTSGUI {
   void LayoutAndStyleSettings() {
@@ -203,6 +204,111 @@ namespace Files {
     fileBrowser.SetPwd();
     fileBrowser.SetTypeFilters({".xml", ".xml.bin", ".xml.gz"});
     return fileBrowser;
+  }
+  
+  void fix_file_ext_xml(Config& config) {
+    if(config.save_path.extension() == ".xml") {
+    } else {
+      config.save_path  += ".xml";
+    }
+  }
+  
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Vector& data) {
+    fileBrowser.Display();
+    if (fileBrowser.HasSelected()) {
+      config.save_path = fileBrowser.GetSelected();
+      
+      // Fix filename
+      fix_file_ext_xml(config);
+      
+      // Open popup box to not overwrite files without consent
+      if (not config.new_save_path and std::filesystem::exists(config.save_path)) {
+        ImGui::OpenPopup("Overwrite?");
+      }
+      
+      // Still, we are here so we have a new file to save
+      config.new_save_path = true;
+      
+      // Now, if we have opened a popup, that means we had the file so we need to be careful
+      bool save = false;
+      if (ImGui::BeginPopupModal("Overwrite?")) {
+        // Tell the user about the problem
+        ImGui::Text("\n\t %s exists\t n\t Overwrite?\t ", config.save_path .c_str());
+        
+        // Press OK and we save the file
+        if (ImGui::Button(" OK ", {80.0f, 30.0f})) {
+          ImGui::CloseCurrentPopup();
+          save = true;
+        }
+        ImGui::SameLine();
+        
+        // If you cancel, we clear the selection already and won't save
+        if (ImGui::Button(" Cancel ", {80.0f, 30.0f})) {
+          config.new_save_path = false;
+          fileBrowser.ClearSelected();
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      } else {
+        save = true;
+      }
+      
+      // Without popup, we save but otherwise we skip saving and wait
+      if (save) {
+        xml_write_to_file(config.save_path.native(), data, FILE_TYPE_ASCII, 0, {});
+        config.new_save_path = false;
+        fileBrowser.ClearSelected();
+      }
+    }
+  }
+  
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfVector& data) {
+    fileBrowser.Display();
+    if (fileBrowser.HasSelected()) {
+      config.save_path = fileBrowser.GetSelected();
+      
+      // Fix filename
+      fix_file_ext_xml(config);
+      
+      // Open popup box to not overwrite files without consent
+      if (not config.new_save_path and std::filesystem::exists(config.save_path)) {
+        ImGui::OpenPopup("Overwrite?");
+      }
+      
+      // Still, we are here so we have a new file to save
+      config.new_save_path = true;
+      
+      // Now, if we have opened a popup, that means we had the file so we need to be careful
+      bool save = false;
+      if (ImGui::BeginPopupModal("Overwrite?")) {
+        // Tell the user about the problem
+        ImGui::Text("\n\t %s exists\t n\t Overwrite?\t ", config.save_path .c_str());
+        
+        // Press OK and we save the file
+        if (ImGui::Button(" OK ", {80.0f, 30.0f})) {
+          ImGui::CloseCurrentPopup();
+          save = true;
+        }
+        ImGui::SameLine();
+        
+        // If you cancel, we clear the selection already and won't save
+        if (ImGui::Button(" Cancel ", {80.0f, 30.0f})) {
+          config.new_save_path = false;
+          fileBrowser.ClearSelected();
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      } else {
+        save = true;
+      }
+      
+      // Without popup, we save but otherwise we skip saving and wait
+      if (save) {
+        xml_write_to_file(config.save_path.native(), data, FILE_TYPE_ASCII, 0, {});
+        config.new_save_path = false;
+        fileBrowser.ClearSelected();
+      }
+    }
   }
 }  // Files
 }  // ARTSGUI

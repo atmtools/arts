@@ -1,5 +1,4 @@
 #include "plot.h"
-#include "auto_md.h"
 
 namespace ARTSGUI {
 void plot(const Vector& ydata) {
@@ -22,8 +21,8 @@ void plot(const Vector& ydata) {
   
   // Main menu bar
   MainMenu::fullscreen(config, window);
-  MainMenu::quitscreen(config, window);
   MainMenu::exportdata(config, fileBrowser);
+  MainMenu::quitscreen(config, window);
   
   // Full screen plot
   if (Windows::full(window, Windows::CurrentPosition(), "Plot Window")) {
@@ -67,8 +66,8 @@ void plot(const Vector& xdata, const Vector& ydata) {
   
   // Main menu bar
   MainMenu::fullscreen(config, window);
-  MainMenu::quitscreen(config, window);
   MainMenu::exportdata(config, fileBrowser);
+  MainMenu::quitscreen(config, window);
   
   // Full screen plot if valid or just a warning if invalid data
   if (Windows::full(window, Windows::CurrentPosition(), "Plot Window")) {
@@ -133,8 +132,8 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   
   // Main menu bar
   MainMenu::fullscreen(config, window);
-  MainMenu::quitscreen(config, window);
   MainMenu::exportdata(config, fileBrowser);
+  MainMenu::quitscreen(config, window);
   
   // Full screen plot if valid or just a warning if invalid data
   if (Windows::full(window, Windows::CurrentPosition(), "Plot Window")) {

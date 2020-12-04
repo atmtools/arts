@@ -11,12 +11,8 @@
 namespace ARTSGUI {
 void plot(const Vector& y);
 void plot(const Vector& xdata, const Vector& ydata);
-void plot(const ComplexVector& y);
-void plot(const Vector& xdata, const ComplexVector& ydata);
 
 void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata);
-
-void plot(const ArrayOfVector& xdata, const ArrayOfComplexVector& ydata);
 
 template <typename ... Lines> void plot(Lines ... lines) {
   static_assert(sizeof...(Lines) % 2 == 0, "Must have even combinations of X1, Y1, X2, Y2, ... , XN, YN");
