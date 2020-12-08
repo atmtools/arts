@@ -7192,128 +7192,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("iyActiveSingleScat"),
-      DESCRIPTION(
-          "Simulation of radar/lidar, restricted to single scattering.\n"
-          "\n"
-          "The WSM treats e.g. radar measurements of cloud and precipitation,\n"
-          "on the condition that multiple scattering can be ignored. Beside\n"
-          "the direct backsacttering, the two-way attenuation by gases and\n"
-          "particles is considered. Surface scattering is ignored.\n"
-          "\n"
-          "The method could potentially be used for lidars, but multiple\n"
-          "scattering poses here a must stronger constrain for the range of\n"
-          "applications.\n"
-          "\n"
-          "The method can be used with *iyCalc*, but not with *yCalc*. In the\n"
-          "later case, use instead *yActive*.\n"
-          "\n"
-          "The method returns the backscattering for each point of *ppath*.\n"
-          "Several frequencies can be treated in parallel. The size of *iy*\n"
-          "is [ nf*np, stokes_dim ], where nf is the length of *f_grid* and\n"
-          "np is the number of path points. The data are stored in blocks\n"
-          "of [ np, stokes_dim ]. That is, all the results for the first\n"
-          "frequency occupy the np first rows of *iy* etc.\n"
-          "\n"
-          "The polarisation state of the transmitted pulse is taken from\n"
-          "*iy_transmitter_agenda*. If the radar transmits several polarisations\n"
-          "at the same frequency, you need to handle this by using two frequencies\n"
-          "in *f_grid*, but these can be almost identical.\n"
-          "\n"
-          "This method does not consider *iy_unit*. Unit changes are insted applied\n"
-          "in *yActive. The output of this method matches the option \"1\".\n"
-          "\n"
-          "Transmittance is handled in a slightly simplified manner for efficiency\n"
-          "reasons. First of all, the transmittance matrix is assumed to be the same\n"
-          "in both directions between the sensor and the point of back-scattering.\n"
-          "This should in general be true, but exceptions could exist. The extinction\n"
-          "due to particles can also be scaled, which could be of interest when e.g.\n"
-          "characterising inversions.\n"
-          "\n"
-          "Further, for Jacobian calculations the default is to assume that the\n"
-          "transmittance is unaffected by the retrieval quantities. This is done\n"
-          "to save computational time, and should be a valid approximation for the\n"
-          "single-scattering conditions. Set *trans_in_jacobian* to 1 to obtain\n"
-          "the more accurate Jacobian.\n"
-          "\n"
-          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
-          " \"Radiative background\": Index value flagging the radiative\n"
-          "    background. The following coding is used: 0=space, 1=surface\n"
-          "    and 2=cloudbox.\n"
-          " \"Backscattering\": The unattenuated backscattering. That is, as\n"
-          "    *iy* but with no attenuated applied. Here all columns are filled.\n"
-          " \"Optical depth\": Scalar, total and two-way, optical depth between\n"
-          "    sensor and each point of the propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
-          "    i.e. only fully valid for scalar RT.\n"
-          " \"Particle extinction\": As \"Optical depth\", but only with particle\n"
-          "    attenuation included. That is, gas absorption is ignored.\n"
-          "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
-          "i.e. the column matching Stokes element I, while remaing columns are\n"
-          "are filled with zeros.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("iy",
-          "iy_aux",
-          "diy_dx",
-          "ppvar_p",
-          "ppvar_t",
-          "ppvar_nlte",
-          "ppvar_vmr",
-          "ppvar_wind",
-          "ppvar_mag",
-          "ppvar_pnd",
-          "ppvar_f",
-          "ppvar_trans_cumulat"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("diy_dx",
-         "stokes_dim",
-         "f_grid",
-         "atmosphere_dim",
-         "p_grid",
-         "t_field",
-         "nlte_field",
-         "vmr_field",
-         "abs_species",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "pnd_field",
-         "dpnd_field_dx",
-         "scat_species",
-         "scat_data",
-         "scat_data_checked",
-         "iy_aux_vars",
-         "jacobian_do",
-         "jacobian_quantities",
-         "ppath",
-         "propmat_clearsky_agenda",
-         "water_p_eq_agenda",
-         "iy_transmitter_agenda",
-         "iy_agenda_call1",
-         "iy_transmittance",
-         "rte_alonglos_v"),
-      GIN("trans_in_jacobian", "pext_scaling", "t_interp_order"),
-      GIN_TYPE("Index", "Numeric", "Index"),
-      GIN_DEFAULT("0", "1", "1"),
-      GIN_DESC("Flag determining if change in transmittance is considered"
-               " in calculation of the Jacobian or not.",
-               "Particle extinction is scaled with this value. A value"
-               " inside [0,2]. Set it to 0 if you want to remove particle"
-               " extinction totally.",
-               "Interpolation order of temperature for scattering data (so"
-               " far only applied in phase matrix, not in extinction and"
-               " absorption.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
       DESCRIPTION(
           "Conversion of *iy* to other spectral units (for passive observations).\n"
@@ -7982,6 +7860,128 @@ void define_md_data_raw() {
                   "Angular shift to apply in defocusing estimates." )
         ));
   */
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iyRadarSingleScat"),
+      DESCRIPTION(
+          "Simulation of radar, restricted to single scattering.\n"
+          "\n"
+          "The WSM treats e.g. radar measurements of cloud and precipitation,\n"
+          "on the condition that multiple scattering can be ignored. Beside\n"
+          "the direct backsacttering, the two-way attenuation by gases and\n"
+          "particles is considered. Surface scattering is ignored.\n"
+          "\n"
+          "The method could potentially be used for lidars, but multiple\n"
+          "scattering poses here a must stronger constrain for the range of\n"
+          "applications.\n"
+          "\n"
+          "The method can be used with *iyCalc*, but not with *yCalc*. In the\n"
+          "later case, use instead *yRadar*.\n"
+          "\n"
+          "The method returns the backscattering for each point of *ppath*.\n"
+          "Several frequencies can be treated in parallel. The size of *iy*\n"
+          "is [ nf*np, stokes_dim ], where nf is the length of *f_grid* and\n"
+          "np is the number of path points. The data are stored in blocks\n"
+          "of [ np, stokes_dim ]. That is, all the results for the first\n"
+          "frequency occupy the np first rows of *iy* etc.\n"
+          "\n"
+          "The polarisation state of the transmitted pulse is taken from\n"
+          "*iy_transmitter_agenda*. If the radar transmits several polarisations\n"
+          "at the same frequency, you need to handle this by using two frequencies\n"
+          "in *f_grid*, but these can be almost identical.\n"
+          "\n"
+          "This method does not consider *iy_unit*. Unit changes are insted applied\n"
+          "in *yRadar. The output of this method matches the option \"1\".\n"
+          "\n"
+          "Transmittance is handled in a slightly simplified manner for efficiency\n"
+          "reasons. First of all, the transmittance matrix is assumed to be the same\n"
+          "in both directions between the sensor and the point of back-scattering.\n"
+          "This should in general be true, but exceptions could exist. The extinction\n"
+          "due to particles can also be scaled, which could be of interest when e.g.\n"
+          "characterising inversions.\n"
+          "\n"
+          "Further, for Jacobian calculations the default is to assume that the\n"
+          "transmittance is unaffected by the retrieval quantities. This is done\n"
+          "to save computational time, and should be a valid approximation for the\n"
+          "single-scattering conditions. Set *trans_in_jacobian* to 1 to obtain\n"
+          "the more accurate Jacobian.\n"
+          "\n"
+          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Radiative background\": Index value flagging the radiative\n"
+          "    background. The following coding is used: 0=space, 1=surface\n"
+          "    and 2=cloudbox.\n"
+          " \"Backscattering\": The unattenuated backscattering. That is, as\n"
+          "    *iy* but with no attenuated applied. Here all columns are filled.\n"
+          " \"Optical depth\": Scalar, total and two-way, optical depth between\n"
+          "    sensor and each point of the propagation path. Calculated based on\n"
+          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
+          "    i.e. only fully valid for scalar RT.\n"
+          " \"Particle extinction\": As \"Optical depth\", but only with particle\n"
+          "    attenuation included. That is, gas absorption is ignored.\n"
+          "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
+          "i.e. the column matching Stokes element I, while remaing columns are\n"
+          "are filled with zeros.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("iy",
+          "iy_aux",
+          "diy_dx",
+          "ppvar_p",
+          "ppvar_t",
+          "ppvar_nlte",
+          "ppvar_vmr",
+          "ppvar_wind",
+          "ppvar_mag",
+          "ppvar_pnd",
+          "ppvar_f",
+          "ppvar_trans_cumulat"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("diy_dx",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "pnd_field",
+         "dpnd_field_dx",
+         "scat_species",
+         "scat_data",
+         "scat_data_checked",
+         "iy_aux_vars",
+         "jacobian_do",
+         "jacobian_quantities",
+         "ppath",
+         "propmat_clearsky_agenda",
+         "water_p_eq_agenda",
+         "iy_transmitter_agenda",
+         "iy_agenda_call1",
+         "iy_transmittance",
+         "rte_alonglos_v"),
+      GIN("trans_in_jacobian", "pext_scaling", "t_interp_order"),
+      GIN_TYPE("Index", "Numeric", "Index"),
+      GIN_DEFAULT("0", "1", "1"),
+      GIN_DESC("Flag determining if change in transmittance is considered"
+               " in calculation of the Jacobian or not.",
+               "Particle extinction is scaled with this value. A value"
+               " inside [0,2]. Set it to 0 if you want to remove particle"
+               " extinction totally.",
+               "Interpolation order of temperature for scattering data (so"
+               " far only applied in phase matrix, not in extinction and"
+               " absorption.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyReplaceFromAux"),
@@ -10200,7 +10200,7 @@ void define_md_data_raw() {
           "radar reflectivity integrated over the antenna function, and the\n"
           "estimated error in this vector, respectively.\n"
           "\n"
-          "Unlike with yActive, the range bins gives the boundaries of \n"
+          "Unlike with yRadar, the range bins gives the boundaries of \n"
           "the range bins as either round-trip time or distance from radar.\n"
           "\n"
           "The WSV *mc_y_tx* gives the polarization state of the \n"
@@ -10218,7 +10218,7 @@ void define_md_data_raw() {
           "\n"
           "Here \"1\" and \"Ze\" are the allowed options for *iy_unit_radar*.\n"
           "The value of *mc_error* follows the selection for *iy_unit_radar*\n"
-          "(both for in- and output. See *yActive* for details of the units.\n"),
+          "(both for in- and output. See *yRadar* for details of the units.\n"),
       AUTHORS("Ian S. Adams"),
       OUT("y", "mc_error"),
       GOUT(),
@@ -20792,14 +20792,14 @@ void define_md_data_raw() {
                "appended or treated as different retrieval quantities.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("yActive"),
+      NAME("yRadar"),
       DESCRIPTION(
           "Replaces *yCalc* for radar/lidar calculations.\n"
           "\n"
           "The output format for *iy* when simulating radars and lidars differs\n"
           "from the standard one, and *yCalc* can not be used for such simulations.\n"
           "This method works largely as *yCalc*, but is tailored to handle the\n"
-          "output from *iyActiveSingleScat*.\n"
+          "output from *iyRadarSingleScat*.\n"
           "\n"
           "The method requires additional information about the sensor,\n"
           "regarding its recieving properties. First of all, recieved\n"

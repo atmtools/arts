@@ -1,6 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# Performs some basic test of iyActiveSingleScat. The test is based on the fact
+# Performs some basic test of iyRadarSingleScat. The test is based on the fact
 # that dBZ is defined with respect to the Rayleigh scattering of a 1mm liquid
 # droplet. The test is designed in such way that the direct backscattering
 # shall be -30 dBZ.
@@ -89,7 +89,7 @@ AgendaSet( iy_main_agenda ){
   Ignore( rte_pos2 )
   Ignore( iy_unit )
   ppathPlaneParallel( cloudbox_on = 0 )
-  iyActiveSingleScat( pext_scaling = weight_ext )
+  iyRadarSingleScat( pext_scaling = weight_ext )
 }
 IndexSet( stokes_dim, 3 )
 sensorOff
@@ -112,7 +112,7 @@ lbl_checkedCalc
 #
 NumericSet( weight_ext, 0 )
 #
-yActive( ze_tref = t_ref )
+yRadar( ze_tref = t_ref )
 #
 # Here we expect a close match with dbz_ref
 ReadXML( dbz_ref, "testdata/dbz_ref.xml" )
@@ -124,7 +124,7 @@ Compare( dbz_max, dbz_ref, 0.005 )
 #
 NumericSet( weight_ext, 1 )
 #
-yActive( ze_tref = t_ref )
+yRadar( ze_tref = t_ref )
 #
 # Still a quite close match expected
 NumericFromVector( dbz_max, y, "max" )
@@ -141,7 +141,7 @@ abs_speciesSet( species=[ "N2-SelfContStandardType",
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 #
-yActive( ze_tref = t_ref )
+yRadar( ze_tref = t_ref )
 #
 # Here we expect 0.13 attenuation in max value 
 NumericFromVector( dbz_max, y, "max" )

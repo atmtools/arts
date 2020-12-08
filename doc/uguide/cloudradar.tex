@@ -1,4 +1,4 @@
-\chapter{Active measurements}
+\chapter{Radar measurements}
  \label{sec:cradar}
 
 
@@ -8,18 +8,17 @@
 \stophistory
 
 ARTS provides some support for modelling measurements of backscattering inside
-the atmosphere. Such observations are for simplicity denoted as ``active''.
-These radar or lidar measurements deviate for the transmission observations
-discussed in the previous chapter, as in this case the transmitter and receiver
-are placed at the same position. Here backscattering is recorded, while in the
-transmission case the attenuation through the atmosphere is probed. This has
-the consequence that the measurement data not only span the frequency and a
-polarisation dimensions, but also has a time (or distance) dimension. That is,
-the backscattering is basically reported as a function of distance from the
-sensor, for one or several frequencies frequencies and combinations of
-transmitted and received polarisations. Accordingly, these data differ in
-nature from the other types of measurements, and the standard main function
-(\builtindoc{yCalc}) is not applicable.
+the atmosphere. These radar (or lidar?) measurements deviate for the
+transmission observations discussed in the previous chapter, as in this case
+the transmitter and receiver are placed at the same position. Here
+backscattering is recorded, while in the transmission case the attenuation
+through the atmosphere is probed. This has the consequence that the measurement
+data not only span the frequency and a polarisation dimensions, but also has a
+time (or distance) dimension. That is, the backscattering is basically reported
+as a function of distance from the sensor, for one or several frequencies
+frequencies and combinations of transmitted and received polarisations.
+Accordingly, these data differ in nature from the other types of measurements,
+and the standard main function (\builtindoc{yCalc}) is not applicable.
 
 
 
@@ -28,7 +27,7 @@ nature from the other types of measurements, and the standard main function
 \label{sec:cradar:single}
 
 The fastest method for this observation approach is
-\wsmindex{iyActiveSingleScat}. As the name of the method indicates a very
+\wsmindex{iyRadarSingleScat}. As the name of the method indicates a very
 important restriction applies, only single scattering is treated (but the
 attenuation due to particles is also considered). This is frequently an
 acceptable simplification for precipitation and cloud radars observations, and
@@ -108,7 +107,7 @@ water, $n$:
 
 As for other measurements, the main radiative transfer calculations are
 performed inside \builtindoc{iy\_main\_agenda}. When using
-\builtindoc{iyActiveSingleScat}, \aStoVec{b} is returned
+\builtindoc{iyRadarSingleScat}, \aStoVec{b} is returned
 for each point of the propagation path, and for each frequency in
 \builtindoc{f\_grid}. The calculated data are packed into \builtindoc{iy}. Here
 the difference to other measurement types emerge. For example, the second row
@@ -131,7 +130,7 @@ refractive index of water at the specified temperature.
 Hence, the basic calculations are performed in standard manner, using
 \builtindoc{iy\_main\_agenda}. However, the deviating data pattern in
 \wsvindex{iy} results in that an alternative to \builtindoc{yCalc} is needed
-and it is \wsmindex{yActive}. The method applies two instrument effects.
+and it is \wsmindex{yRadar}. The method applies two instrument effects.
 Firstly, the polarisation response of the receiver is incorporated
 (Eq.~\ref{eq:cradar:bscatt2}). Secondly, the data are averaged as a
 function of ``range'', following the \wsvindex{range\_bins}. These range bins
@@ -139,13 +138,13 @@ can be specified either as geometrical altitude or the two-way propagation time.
 The range binning is described further in the built-in documentation.
 Further, the data are rearranged into a vector and returned as \builtindoc{y}.
 
-A number of auxiliary data can be obtained by \builtindoc{iyActiveSingleScat}, this
+A number of auxiliary data can be obtained by \builtindoc{iyRadarSingleScat}, this
 including $\beta$. For a list of possible variables:
 \begin{code}
-arts -d iyActiveSingleScat
+arts -d iyRadarSingleScat
 \end{code}
-A difference of \builtindoc{yActive}, compared to \builtindoc{yCalc}, is
-that all auxiliary quantities provided by \builtindoc{iyActiveSingleScat} are
+A difference of \builtindoc{yRadar}, compared to \builtindoc{yCalc}, is
+that all auxiliary quantities provided by \builtindoc{iyRadarSingleScat} are
 treated.
 
 

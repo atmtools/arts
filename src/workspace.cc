@@ -5495,7 +5495,7 @@ void Workspace::define_wsv_data() {
           "    LOS inside the measurement block\n"
           "    Measurement block\n"
           "With sensor response included, the order can be differ. As output\n"
-          "of *yActive*, the order will also be different.\n"
+          "of *yRadar*, the order will also be different.\n"
           "\n"
           "Usage: Output from radiative transfer calculations considering\n"
           "       sensor response.\n"
