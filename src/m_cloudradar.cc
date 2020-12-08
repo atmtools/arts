@@ -132,13 +132,17 @@ void iyActiveSingleScat(Workspace& ws,
           "*pnd_field* and *scat_data* inconsistent regarding total number of"
           " scattering elements.");
   }
-  if (jacobian_do)
+  if (jacobian_do) {
+    // FIXME: These needs to be tested properly
+    throw std::runtime_error("Jacobian calculations are currently not working in iyActiveSingleScat");
+    
     if (dpnd_field_dx.nelem() != jacobian_quantities.nelem())
       throw runtime_error(
           "*dpnd_field_dx* not properly initialized:\n"
           "Number of elements in dpnd_field_dx must be equal number of jacobian"
           " quantities.\n(Note: jacobians have to be defined BEFORE *pnd_field*"
           " is calculated/set.");
+  }
   // iy_aux_vars checked below
   chk_if_in_range("pext_scaling", pext_scaling, 0, 2);
 
