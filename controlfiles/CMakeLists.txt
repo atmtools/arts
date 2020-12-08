@@ -85,6 +85,8 @@ arts_test_run_ctlfile(fast artscomponents/lineshapes/TestSDVP.arts)
 arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTP.arts)
 arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTPLM.arts)
 
+arts_test_run_ctlfile(fast artscomponents/psd/TestFromParticleBulkProps.arts)
+
 #arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioLink.arts)
 #arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
 #arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)
