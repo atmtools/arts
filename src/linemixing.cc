@@ -348,6 +348,66 @@ ComplexVector linemixing_ecs_absorption(const Numeric T,
   return absorption;
 }
 
+
+ComplexVector linemixing_ecs_absorption_with_zeeman_perturbations(const Numeric T,
+                                                                  const Numeric H,
+                                                                  const Numeric P,
+                                                                  const Numeric this_vmr,
+                                                                  const Vector& vmrs,
+                                                                  const Vector& mass,
+                                                                  const Vector& f_grid,
+                                                                  const Zeeman::Polarization zeeman_polarization,
+                                                                  const AbsorptionLines& band,
+                                                                  const SpeciesAuxData::AuxType& partition_type,
+                                                                  const ArrayOfGriddedField1& partition_data)
+{
+  constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
+  
+  // Weighted center of the band
+  const Numeric frenorm = band.F_mean();
+  
+  // Band Doppler broadening constant
+  const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, band.SpeciesMass());
+  
+  // Sorted population
+  const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
+  
+  // Relaxation matrix
+  const ComplexMatrix W = relaxation_matrix(T, P, vmrs, mass, band, sorting, frenorm);
+  
+  // Equivalent lines computations
+  const EquivalentLines eqv(W, tp.pop, tp.dip);
+  
+  // Absorption of this band
+  ComplexVector absorption(f_grid.nelem(), 0);
+  for (Index i=0; i<band.NumLines(); i++) {
+    // Zeeman lines if necessary
+    const Index nz = band.ZeemanCount(i, zeeman_polarization);
+    for (Index j=0; j<nz; j++) {
+      const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, j);
+      const Numeric dzeeman = H * band.ZeemanSplitting(i, zeeman_polarization, j);
+      
+      const Numeric gamd = GD_div_F0 * (eqv.val[i].real() + frenorm + dzeeman);
+      const Numeric cte = Constant::sqrt_ln_2 / gamd;
+      for (Index iv=0; iv<f_grid.nelem(); iv++) {
+        const Complex z = (eqv.val[i] + frenorm + dzeeman - f_grid[iv]) * cte;
+        const Complex w = Faddeeva::w(z);
+        absorption[iv] += Sz * eqv.str[i] * w / gamd;
+      }
+    }
+  }
+  
+  // Adjust by frequency and number density
+  const Numeric numdens = this_vmr * number_density(P, T);
+  for (Index iv=0; iv<f_grid.nelem(); iv++) {
+    const Numeric f = f_grid[iv];
+    const Numeric fact = f * (1 - stimulated_emission(T, f));
+    absorption[iv] *= fact * numdens * sq_ln2pi;
+  }
+  
+  return absorption;
+}
+
 Vector linemixing_Y(const Vector& dip,
                     const ConstMatrixView W,
                     const AbsorptionLines& band) {

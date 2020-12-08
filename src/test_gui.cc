@@ -14,7 +14,7 @@ int main() {
   define_species_data();
   define_species_map();
   
-  constexpr Index nfreq = 10000;
+  constexpr Index nfreq = 100000;
   SpeciesAuxData partition_functions;
   partition_functionsInitFromBuiltin(partition_functions, Verbosity{});
   
@@ -80,9 +80,10 @@ int main() {
   ss >> band;
   
   // Initializing values
-  const Vector f_grid = VectorNLinSpaceConst(10e9, 300e9, nfreq);
-  const Numeric P=1e5;
+  const Vector f_grid = VectorNLinSpaceConst(50e9, 70e9, nfreq);
+  const Numeric P=1e4;
   const Numeric T=296;
+  const Numeric H=50e-6;
   const Vector VMR = {0.21, 0.79};
   Index wigner_initialized;
   Wigner6Init(wigner_initialized, 20000000, 250, Verbosity{});
@@ -96,8 +97,22 @@ int main() {
   
   // Line Mixing full calculations
   const ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
-                                                                        partition_functions.getParamType(band.QuantumIdentity()),
-                                                                        partition_functions.getParam(band.QuantumIdentity()));
+                                                                              partition_functions.getParamType(band.QuantumIdentity()),
+                                                                              partition_functions.getParam(band.QuantumIdentity()));
+  
+  // Line Mixing full calculations with Zeeman (ignoring polarization...)
+  ComplexVector absZ = Absorption::LineMixing::linemixing_ecs_absorption_with_zeeman_perturbations(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
+                                                                                                   Zeeman::Polarization::Pi, band,
+                                                                                                   partition_functions.getParamType(band.QuantumIdentity()),
+                                                                                                   partition_functions.getParam(band.QuantumIdentity()));
+  absZ += Absorption::LineMixing::linemixing_ecs_absorption_with_zeeman_perturbations(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
+                                                                                      Zeeman::Polarization::SigmaMinus, band,
+                                                                                      partition_functions.getParamType(band.QuantumIdentity()),
+                                                                                      partition_functions.getParam(band.QuantumIdentity()));
+  absZ += Absorption::LineMixing::linemixing_ecs_absorption_with_zeeman_perturbations(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
+                                                                                      Zeeman::Polarization::SigmaPlus, band,
+                                                                                      partition_functions.getParamType(band.QuantumIdentity()),
+                                                                                      partition_functions.getParam(band.QuantumIdentity()));
   
   // Line Mixing reimplementation of MPM19
   Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec,
@@ -115,5 +130,5 @@ int main() {
   xsec2 *= number_density(P, T);
   
   // Plot it all
-  ARTSGUI::plot(f_grid, abs.real(), f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0));
+  ARTSGUI::plot(f_grid, abs.real(), f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0), f_grid, absZ.real());
 }

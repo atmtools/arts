@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "gridded_fields.h"
 #include "linescaling.h"
+#include "zeemandata.h"
 
 namespace Absorption::LineMixing {
 struct EquivalentLines {
@@ -57,6 +58,18 @@ ComplexVector linemixing_ecs_absorption(const Numeric T,
                                         const AbsorptionLines& band,
                                         const SpeciesAuxData::AuxType& partition_type,
                                         const ArrayOfGriddedField1& partition_data);
+
+ComplexVector linemixing_ecs_absorption_with_zeeman_perturbations(const Numeric T,
+                                                                  const Numeric H,
+                                                                  const Numeric P,
+                                                                  const Numeric this_vmr,
+                                                                  const Vector& vmrs,
+                                                                  const Vector& mass,
+                                                                  const Vector& f_grid,
+                                                                  const Zeeman::Polarization zeeman_polarization,
+                                                                  const AbsorptionLines& band,
+                                                                  const SpeciesAuxData::AuxType& partition_type,
+                                                                  const ArrayOfGriddedField1& partition_data);
 }  // Absorption::LineMixing 
 
 #endif  // linemixing_h

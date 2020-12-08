@@ -1672,10 +1672,11 @@ Vector compabs(
   constexpr Numeric u_sqln2pi = 1 / sq_ln2pi;
   
   for (Index iband=0; iband<bands.nelem(); iband++) {
+    if (not bands[iband].DoLineMixing(P)) continue;
+    
     auto tp = convtp(vmrs, hitran, bands[iband], T, P, partition_functions.getParamType(bands[iband].QuantumIdentity()), partition_functions.getParam(bands[iband].QuantumIdentity()));
     const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, bands[iband].SpeciesMass());
     
-    const bool nolm = not bands[iband].DoLineMixing(P);
     const bool sdvp = bands[iband].LineShapeType() == LineShape::Type::SDVP;
     const bool vp = bands[iband].LineShapeType() == LineShape::Type::VP;
     const bool rosenkranz = bands[iband].Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat;
@@ -1692,17 +1693,9 @@ Vector compabs(
         const Numeric cte_mod = sq_ln2 / gamd_mod;
         const Numeric popudipo = tp.pop[iline] * pow2(tp.dip[iline]);
         
-        if (rosenkranz and sdvp and nolm) {
-          const Complex w = qsdv_si(tp.f0[iline], gamd, tp.hwt[iline], tp.hwt2[iline], tp.shft[iline], 0, f);
-          a += popudipo * w.real() * u_sqln2pi;
-        } else if (rosenkranz and sdvp) {
+        if (rosenkranz and sdvp) {
           const Complex w = qsdv_si(tp.f0[iline], gamd, tp.hwt[iline], tp.hwt2[iline], tp.shft[iline], 0, f);
           a += popudipo * u_sqln2pi * (Complex(1, tp.Y[iline]) * w).real();  // NB. Changing sign on Y gave positive absorption but is not agreeing with measurements according to HITRAN data
-        } else if ((rosenkranz and vp and nolm) or (full and nolm)) {
-          const Numeric yy = tp.hwt[iline] * cte;
-          const Numeric xx = (tp.f0[iline]+tp.shft[iline] - f) * cte;
-          const Complex w = Faddeeva::w(Complex(xx, yy));
-          a += popudipo * w.real() / gamd;
         } else if (rosenkranz and vp) {
           const Numeric yy = tp.hwt[iline] * cte;
           const Numeric xx = (tp.f0[iline]+tp.shft[iline] - f) * cte;

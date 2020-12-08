@@ -12582,7 +12582,45 @@ void define_md_data_raw() {
          "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
-         "rtp_vmr"),
+         "rtp_vmr",
+         "lbl_checked"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddOnTheFlyLineMixingWithZeeman"),
+      DESCRIPTION(
+          "Compute the line mixing of matching lines and add it to the propagation matrix\n"
+          "Also computes Zeeman effect for all the lines in the band\n"
+          "\n"
+          "Each band's Population Type is checked and the calculations are only performed\n"
+          "for bands with matching population types (and a good pressure limits)\n"
+          "\n"
+          "Presently only supports one method: ByMakarovFullRelmat, based on Makarov et al 2020\n"
+          "\n"
+          "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
+          "\n"
+          "Note that you need to have propmat_clearskyAddOnTheFly in addition to this method\n"
+          "to compensate the calculations for the pressure limit\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("propmat_clearsky"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "abs_lines_per_species",
+         "f_grid",
+         "abs_species",
+         "jacobian_quantities",
+         "partition_functions",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_vmr",
+         "rtp_mag",
+         "rtp_los",
+         "lbl_checked"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),

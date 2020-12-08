@@ -1316,7 +1316,7 @@ void Linefunctions::set_cross_section_of_band(
   // Sum up variable reset
   sum.SetZero();
   
-  if (band.NumLines() == 0 or (Absorption::relaxationtype_relmat(band.Population()) and band.LinemixingLimit() > P)) {
+  if (band.NumLines() == 0 or (Absorption::relaxationtype_relmat(band.Population()) and band.DoLineMixing(P))) {
     return;  // No line-by-line computations required/wanted
   }
   
