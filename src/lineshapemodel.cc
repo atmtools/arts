@@ -525,8 +525,7 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                        const QuantumIdentifier& self,
                        const ArrayOfSpeciesTag& lineshape_species,
                        bool self_in_list,
-                       bool bath_in_list,
-                       Type type) {
+                       bool bath_in_list) {
   if (atmospheric_species.nelem() != atmospheric_vmrs.nelem())
     throw std::runtime_error("Bad atmospheric inputs");
   

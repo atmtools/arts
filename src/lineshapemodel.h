@@ -310,7 +310,7 @@ inline Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
   std::terminate();
 }
 
-inline bool modelparameterEmpty(const ModelParameters mp) noexcept {
+constexpr bool modelparameterEmpty(const ModelParameters mp) noexcept {
   switch(mp.type) {
     case TemperatureModel::None:   // 0
       return true;
@@ -330,6 +330,30 @@ inline bool modelparameterEmpty(const ModelParameters mp) noexcept {
       return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
     case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
       return (mp.X0 == 0 and mp.X2 == 0);
+  }
+  std::terminate();
+}
+
+constexpr Numeric modelparameterFirstExponent(const ModelParameters mp) noexcept {
+  switch(mp.type) {
+    case TemperatureModel::None:   // 0
+      return 0;
+    case TemperatureModel::T0:     // Constant, X0
+      return 0;
+    case TemperatureModel::T1:     // Standard, X0 * (T0/T) ^ X1
+      return mp.X1;
+    case TemperatureModel::T2:     // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+      return mp.X1;
+    case TemperatureModel::T3:     // X0 + X1 * (T - T0)
+      return 0;
+    case TemperatureModel::T4:     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+      return mp.X2;
+    case TemperatureModel::T5:     // X0 * (T0/T)^(0.25 + 1.5*X1)
+      return (0.25 + 1.5*mp.X1);
+    case TemperatureModel::LM_AER: // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+      return 0;
+    case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+      return mp.X1;
   }
   std::terminate();
 }
@@ -985,8 +1009,7 @@ Vector mass(const ConstVectorView& atmospheric_vmrs,
             const QuantumIdentifier& self,
             const ArrayOfSpeciesTag& lineshape_species,
             bool self_in_list,
-            bool bath_in_list,
-            Type type);
+            bool bath_in_list);
 
 /** Name for bath broadening in printing and reading user input */
 static constexpr const char* const bath_broadening = "AIR";

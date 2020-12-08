@@ -79,29 +79,33 @@ int main() {
                        {QuantumNumberType::J, QuantumNumberType::N}, ArrayOfSpeciesTag(2), metamodel);
   ss >> band;
   
+  // Initializing values
   const Vector f_grid = VectorNLinSpaceConst(10e9, 300e9, nfreq);
   const Numeric P=1e5;
   const Numeric T=296;
   const Vector VMR = {0.21, 0.79};
-  
   Index wigner_initialized;
   Wigner6Init(wigner_initialized, 20000000, 250, Verbosity{});
-  ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
-                                                                        partition_functions.getParamType(band.QuantumIdentity()),
-                                                                        partition_functions.getParam(band.QuantumIdentity()));
-  
   Matrix xsec(nfreq, 1, 0);
   ArrayOfMatrix dxsec, dsource, dphase;
-  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec,
-                                                        f_grid, {P}, {T}, {0},
-                                                        ArrayOfRetrievalQuantity(0),
-                                                        ArrayOfIndex(0));
-  
   ArrayOfArrayOfSpeciesTag specs(2, ArrayOfSpeciesTag(1));
   specs[0][0] = SpeciesTag("O2");
   specs[1][0] = SpeciesTag("N2");
   Matrix VMRmat(2, 1); VMRmat(0, 0) = VMR[0]; VMRmat(1, 0) = VMR[1];
   Matrix xsec2(nfreq, 1, 0), source, phase;
+  
+  // Line Mixing full calculations
+  const ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
+                                                                        partition_functions.getParamType(band.QuantumIdentity()),
+                                                                        partition_functions.getParam(band.QuantumIdentity()));
+  
+  // Line Mixing reimplementation of MPM19
+  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec,
+                                                        f_grid, {P}, {T}, {0},
+                                                        ArrayOfRetrievalQuantity(0),
+                                                        ArrayOfIndex(0));
+  
+  // Line by line calculations
   band.Population(Absorption::PopulationType::ByLTE);
   xsec_species(xsec2, source, phase, dxsec, dsource, dphase,
                ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
@@ -110,5 +114,6 @@ int main() {
                partition_functions.getParam(band.QuantumIdentity()));
   xsec2 *= number_density(P, T);
   
+  // Plot it all
   ARTSGUI::plot(f_grid, abs.real(), f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0));
 }

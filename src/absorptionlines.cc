@@ -2729,10 +2729,12 @@ Vector Absorption::Lines::BroadeningSpeciesVMR(const ConstVectorView atm_vmrs,
 }
 
 Vector Absorption::Lines::BroadeningSpeciesMass(const ConstVectorView atm_vmrs,
-                                                const ArrayOfArrayOfSpeciesTag& atm_spec) const
+                                                const ArrayOfArrayOfSpeciesTag& atm_spec,
+                                                const Numeric& bath_mass) const
 {
-  return LineShape::mass(atm_vmrs, atm_spec, QuantumIdentity(),
-                         BroadeningSpecies(), Self(), Bath(), LineShapeType());
+  Vector mass = LineShape::mass(atm_vmrs, atm_spec, QuantumIdentity(), BroadeningSpecies(), Self(), Bath());
+  if (Bath() and bath_mass > 0) mass[mass.nelem()-1] = bath_mass;
+  return mass;
 }
 
 Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,

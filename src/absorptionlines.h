@@ -1448,9 +1448,10 @@ public:
    * 
    * @param[in] atm_vmrs Atmospheric VMRs
    * @param[in] atm_spec Atmospheric Species
+   * @param[in] bath_mass Mass of Bath/Air (optional, will compute it if <=0)
    * @return Mass list of the species
    */
-  Vector BroadeningSpeciesMass(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&) const;
+  Vector BroadeningSpeciesMass(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&, const Numeric& bath_mass=0) const;
   
   /** Returns the VMR of the species
    * 
