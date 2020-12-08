@@ -331,7 +331,7 @@ constexpr bool modelparameterEmpty(const ModelParameters mp) noexcept {
     case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
       return (mp.X0 == 0 and mp.X2 == 0);
   }
-  std::terminate();
+  return true;
 }
 
 constexpr Numeric modelparameterFirstExponent(const ModelParameters mp) noexcept {
@@ -355,7 +355,7 @@ constexpr Numeric modelparameterFirstExponent(const ModelParameters mp) noexcept
     case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
       return mp.X1;
   }
-  std::terminate();
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 /** Output operator for ModelParameters */
