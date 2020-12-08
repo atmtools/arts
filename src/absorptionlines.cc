@@ -73,6 +73,10 @@ LineShape::Output Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeri
   return x;
 }
 
+LineShape::Output Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeric P, size_t m) const noexcept {
+  return mlines[k].LineShape().GetParams(T, mT0, P, m);
+}
+
 LineShape::Output Absorption::Lines::ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
   auto x = mlines[k].LineShape().GetTemperatureDerivs(T, mT0, P, vmrs);
   
@@ -2722,6 +2726,15 @@ Vector Absorption::Lines::BroadeningSpeciesVMR(const ConstVectorView atm_vmrs,
 {
   return LineShape::vmrs(atm_vmrs, atm_spec, QuantumIdentity(),
                          BroadeningSpecies(), Self(), Bath(), LineShapeType());
+}
+
+Vector Absorption::Lines::BroadeningSpeciesMass(const ConstVectorView atm_vmrs,
+                                                const ArrayOfArrayOfSpeciesTag& atm_spec,
+                                                const Numeric& bath_mass) const
+{
+  Vector mass = LineShape::mass(atm_vmrs, atm_spec, QuantumIdentity(), BroadeningSpecies(), Self(), Bath());
+  if (Bath() and bath_mass > 0) mass[mass.nelem()-1] = bath_mass;
+  return mass;
 }
 
 Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,

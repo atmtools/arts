@@ -234,6 +234,17 @@ String QuantumIdentifier::SpeciesName() const {
   spr.Isotopologue()[Isotopologue()].Name();
 }
 
+Numeric QuantumIdentifier::SpeciesMass() const {
+  // Species lookup data:
+  using global_data::species_data;
+  
+  // A reference to the relevant record of the species data:
+  const SpeciesRecord& spr = species_data[Species()];
+  
+  // First the species name:
+  return spr.Isotopologue()[Isotopologue()].Mass();
+}
+
 void QuantumIdentifier::SetTransition(const QuantumNumbers& upper,
                                       const QuantumNumbers& lower) {
   mqtype = QuantumIdentifier::TRANSITION;

@@ -1,5 +1,5 @@
-#ifndef gui_h
-#define gui_h
+#ifndef arts_gui_h
+#define arts_gui_h
 
 #include <imgui.h>
 
@@ -13,6 +13,8 @@
 #include <vector>
 
 #include "gui_macros.h"
+
+#include <matpackI.h>
 
 namespace ARTSGUI {
   /** A global config for all things ARTSGUI */
@@ -36,6 +38,7 @@ struct Config {
 
   /** User input */
   bool new_save_path;
+  std::filesystem::path save_path;
 
   Config(bool fullscreen_on = false)
       : io(ImGui::GetIO()),
@@ -47,7 +50,8 @@ struct Config {
         ypos(50),
         tabspos(0),
         tabs(0),
-        new_save_path(false) {
+        new_save_path(false),
+        save_path() {
     (void)io;
     io.ConfigFlags |=
         ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
@@ -62,6 +66,7 @@ GLFWmonitor *get_current_monitor(GLFWwindow *window);
 namespace MainMenu {
 void fullscreen(Config &cfg, GLFWwindow *window);
 void quitscreen(const Config &cfg, GLFWwindow *window);
+void exportdata(const Config &cfg, ImGui::FileBrowser& fileBrowser);
 }  // namespace MainMenu
 
 namespace Windows {
@@ -105,6 +110,12 @@ bool full(GLFWwindow *window, const ImVec2 origpos, const char *name);
 ImVec2 CurrentPosition();
 void end();
 }  // namespace Windows
+
+namespace Files {
+  ImGui::FileBrowser xmlfile_chooser();
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Vector& data);
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfVector& data);
+}  // namespace Files
 }  // namespace GUI
 
-#endif  // gui_h
+#endif  // arts_gui_h

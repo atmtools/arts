@@ -310,7 +310,7 @@ inline Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
   std::terminate();
 }
 
-inline bool modelparameterEmpty(const ModelParameters mp) noexcept {
+constexpr bool modelparameterEmpty(const ModelParameters mp) noexcept {
   switch(mp.type) {
     case TemperatureModel::None:   // 0
       return true;
@@ -331,7 +331,31 @@ inline bool modelparameterEmpty(const ModelParameters mp) noexcept {
     case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
       return (mp.X0 == 0 and mp.X2 == 0);
   }
-  std::terminate();
+  return true;
+}
+
+constexpr Numeric modelparameterFirstExponent(const ModelParameters mp) noexcept {
+  switch(mp.type) {
+    case TemperatureModel::None:   // 0
+      return 0;
+    case TemperatureModel::T0:     // Constant, X0
+      return 0;
+    case TemperatureModel::T1:     // Standard, X0 * (T0/T) ^ X1
+      return mp.X1;
+    case TemperatureModel::T2:     // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+      return mp.X1;
+    case TemperatureModel::T3:     // X0 + X1 * (T - T0)
+      return 0;
+    case TemperatureModel::T4:     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+      return mp.X2;
+    case TemperatureModel::T5:     // X0 * (T0/T)^(0.25 + 1.5*X1)
+      return (0.25 + 1.5*mp.X1);
+    case TemperatureModel::LM_AER: // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+      return 0;
+    case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+      return mp.X1;
+  }
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 /** Output operator for ModelParameters */
@@ -958,6 +982,35 @@ Vector vmrs(const ConstVectorView& atmospheric_vmrs,
             bool bath_in_list,
             Type type);
 
+
+
+/** Returns a mass vector for this model's main calculations
+ * 
+ * Sets a vector that matches the mdata size of VMRs based
+ * on atmospheric species and VMRs
+ * 
+ * Only checks the first species in inner atmosphere
+ * 
+ * Renormalizes the values to unity.  If this renormalization
+ * is impossible then it throws an error
+ * 
+ * Returns 0s if type is Doppler line shape
+ * 
+ * @param[in] atmospheric_vmrs VMRS in atmosphere
+ * @param[in] atmospheric_species Species in atmosphere
+ * @param[in] self An ID of whichever species is self
+ * @param[in] lineshape_species Species affecting lineshape
+ * @param[in] self_in_list Affects lineshape by itself?
+ * @param[in] bath_in_list Affected lineshape by environment?
+ * @param[in] type The type of line shape
+ */
+Vector mass(const ConstVectorView& atmospheric_vmrs,
+            const ArrayOfArrayOfSpeciesTag& atmospheric_species,
+            const QuantumIdentifier& self,
+            const ArrayOfSpeciesTag& lineshape_species,
+            bool self_in_list,
+            bool bath_in_list);
+
 /** Name for bath broadening in printing and reading user input */
 static constexpr const char* const bath_broadening = "AIR";
 
@@ -1212,6 +1265,30 @@ class Model {
             Y(T, T0, P, vmrs),
             G(T, T0, P, vmrs),
             DV(T, T0, P, vmrs)};
+  }
+
+  /** Compute all shape parameters
+   * 
+   * @param[in] T The temperature
+   * @param[in] T0 The temperature used to derive the coefficients
+   * @param[in] P The pressure
+   * @param[in] k The position of the single species shape parameters
+   * 
+   * @return Shape parameters
+   */
+  Output GetParams(Numeric T,
+                   Numeric T0,
+                   Numeric P,
+                   size_t k) const noexcept {
+    return {P * mdata[k].compute(T, T0, Variable::G0),
+            P * mdata[k].compute(T, T0, Variable::D0),
+            P * mdata[k].compute(T, T0, Variable::G2),
+            P * mdata[k].compute(T, T0, Variable::D2),
+            P * mdata[k].compute(T, T0, Variable::FVC),
+            mdata[k].compute(T, T0, Variable::ETA),
+            P * mdata[k].compute(T, T0, Variable::Y),
+            P * P * mdata[k].compute(T, T0, Variable::G),
+            P * P * mdata[k].compute(T, T0, Variable::DV)};
   }
 
   /** Derivative of GetParams(...) wrt T

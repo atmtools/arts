@@ -2014,47 +2014,53 @@ void abs_lines_per_speciesSetBaseParameterForSpecies(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesChangeLineShapeModelParameterForMatchingLines(
-    ArrayOfAbsorptionLines& abs_lines,
-    const QuantumIdentifier& QI,
-    const String& parameter,
-    const String& coefficient,
-    const String& species,
-    const Numeric& x,
-    const Index& relative,
-    const Verbosity&)
+void abs_linesSetLineShapeModelParametersForMatchingLines(
+  ArrayOfAbsorptionLines& abs_lines,
+  const QuantumIdentifier& QI,
+  const String& parameter,
+  const String& species,
+  const String& temperaturemodel,
+  const Vector& new_values,
+  const Verbosity& verbosity)
 {
+  CREATE_OUT3;
+  
   const bool do_self = species == LineShape::self_broadening;
   const bool do_bath = species == LineShape::bath_broadening;
   
   // Set the spec index if possible
   const Index spec = (do_self or do_bath) ? -1 : SpeciesTag(species).Species();
-
+  
   const LineShape::Variable var = LineShape::string2variable(parameter);
+  
+  if (new_values.nelem() not_eq LineShape::nmaxTempModelParams) {
+    std::ostringstream os;
+    os << "Mismatch between input and expected number of variables\n";
+    os << "\tInput is: " << new_values.nelem() << " long but expects: " << LineShape::nmaxTempModelParams << " values\n";
+    throw std::runtime_error(os.str());
+  }
+  
+  LineShape::ModelParameters newdata;
+  newdata.type = LineShape::string2temperaturemodel(temperaturemodel);
+  newdata.X0 = new_values[0];
+  newdata.X1 = new_values[1];
+  newdata.X2 = new_values[2];
+  newdata.X3 = new_values[3];
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
       if (Absorption::id_in_line(band, QI, k)) {
         if (do_self and band.Self()) {
-          if (relative) {
-            SingleModelParameter(band.Line(k).LineShape().Data().front().Data()[Index(var)], coefficient) *= 1 + x;
-          } else {
-            SingleModelParameter(band.Line(k).LineShape().Data().front().Data()[Index(var)], coefficient) += x;
-          }
+          out3 << "Changing self\n";
+          band.Line(k).LineShape().Data().front().Data()[Index(var)] = newdata;
         } else if (do_bath and band.Bath()) {
-          if (relative) {
-            SingleModelParameter(band.Line(k).LineShape().Data().back().Data()[Index(var)], coefficient) *= 1 + x;
-          } else {
-            SingleModelParameter(band.Line(k).LineShape().Data().back().Data()[Index(var)], coefficient) += x;
-          }
+          out3 << "Changing bath\n";
+          band.Line(k).LineShape().Data().back().Data()[Index(var)] = newdata;
         } else {
           for (Index i=band.Self(); i<band.BroadeningSpecies().nelem()-band.Bath(); i++) {
             if (spec == band.BroadeningSpecies()[i].Species()) {
-              if (relative) {
-                SingleModelParameter(band.Line(k).LineShape().Data()[i].Data()[Index(var)], coefficient) *= 1 + x;
-              } else {
-                SingleModelParameter(band.Line(k).LineShape().Data()[i].Data()[Index(var)], coefficient) += x;
-              }
+              out3 << "Changing species: " << spec << '\n';
+              band.Line(k).LineShape().Data()[i].Data()[Index(var)] = newdata;
             }
           }
         }
@@ -2064,118 +2070,18 @@ void abs_linesChangeLineShapeModelParameterForMatchingLines(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesChangeLineShapeModelParameterForMatchingLines(
+void abs_lines_per_speciesSetLineShapeModelParametersForMatchingLines(
   ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
   const QuantumIdentifier& QI,
   const String& parameter,
-  const String& coefficient,
   const String& species,
-  const Numeric& x,
-  const Index& relative,
+  const String& temperaturemodel,
+  const Vector& new_values,
   const Verbosity& verbosity)
 {
   for (auto& lines: abs_lines_per_species)
-    abs_linesChangeLineShapeModelParameterForMatchingLines(
-      lines, QI, parameter, coefficient, species, x, relative, verbosity);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesChangeLineShapeModelParameterForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const QuantumIdentifier& QI,
-  const String& parameter,
-  const String& coefficient,
-  const String& species,
-  const Numeric& x,
-  const Index& relative,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
-  Index t1, t2;
-  ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesChangeLineShapeModelParameterForMatchingLines(
-        abs_lines_per_species[ispec], QI, parameter, coefficient, species, x, relative, verbosity);
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetLineShapeModelParameterForMatchingLines(
-    ArrayOfAbsorptionLines& abs_lines,
-    const QuantumIdentifier& QI,
-    const String& parameter,
-    const String& coefficient,
-    const String& species,
-    const Numeric& new_value,
-    const Verbosity&)
-{
-  const bool do_self = species == LineShape::self_broadening;
-  const bool do_bath = species == LineShape::bath_broadening;
-  
-  // Set the spec index if possible
-  const Index spec = (do_self or do_bath) ? -1 : SpeciesTag(species).Species();
-
-  const LineShape::Variable var = LineShape::string2variable(parameter);
-  
-  for (auto& band: abs_lines) {
-    for (Index k=0; k<band.NumLines(); k++) {
-      if (Absorption::id_in_line(band, QI, k)) {
-        if (do_self and band.Self()) {
-          SingleModelParameter(band.Line(k).LineShape().Data().front().Data()[Index(var)], coefficient) = new_value;
-        } else if (do_bath and band.Bath()) {
-          SingleModelParameter(band.Line(k).LineShape().Data().back().Data()[Index(var)], coefficient) = new_value;
-        } else {
-          for (Index i=band.Self(); i<band.BroadeningSpecies().nelem()-band.Bath(); i++) {
-            if (spec == band.BroadeningSpecies()[i].Species()) {
-              SingleModelParameter(band.Line(k).LineShape().Data()[i].Data()[Index(var)], coefficient) = new_value;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetLineShapeModelParameterForMatchingLines(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const QuantumIdentifier& QI,
-  const String& parameter,
-  const String& coefficient,
-  const String& species,
-  const Numeric& new_value,
-  const Verbosity& verbosity)
-{
-  for (auto& lines: abs_lines_per_species)
-    abs_linesSetLineShapeModelParameterForMatchingLines(
-      lines, QI, parameter, coefficient, species, new_value, verbosity);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetLineShapeModelParameterForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const QuantumIdentifier& QI,
-  const String& parameter,
-  const String& coefficient,
-  const String& species,
-  const Numeric& new_value,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
-  Index t1, t2;
-  ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesSetLineShapeModelParameterForMatchingLines(
-        abs_lines_per_species[ispec], QI, parameter, coefficient, species, new_value, verbosity);
-    }
-  }
+    abs_linesSetLineShapeModelParametersForMatchingLines(
+      lines, QI, parameter, species, temperaturemodel, new_values, verbosity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

@@ -1316,7 +1316,7 @@ void Linefunctions::set_cross_section_of_band(
   // Sum up variable reset
   sum.SetZero();
   
-  if (band.NumLines() == 0 or (Absorption::relaxationtype_relmat(band.Population()) and band.LinemixingLimit() > P)) {
+  if (band.NumLines() == 0 or (Absorption::relaxationtype_relmat(band.Population()) and band.DoLineMixing(P))) {
     return;  // No line-by-line computations required/wanted
   }
   
@@ -1495,6 +1495,7 @@ void Linefunctions::set_cross_section_of_band(
       // Apply line strength by whatever method is necessary
       switch (band.Population()) {
         case Absorption::PopulationType::ByHITRANFullRelmat:
+        case Absorption::PopulationType::ByMakarovFullRelmat:
         case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
         case Absorption::PopulationType::ByLTE:
           apply_linestrength_scaling_by_lte(F, dF, N, dN, band.Line(i), T, band.T0(), isot_ratio, QT, QT0, band, i, derivatives_data, derivatives_data_active, dQTdT);

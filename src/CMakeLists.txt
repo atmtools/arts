@@ -183,7 +183,6 @@ add_library (artscore STATIC
   cia.cc
   cloudbox.cc
   constants.cc
-  legacy_continua.cc
   covariance_matrix.cc
   disort.cc
   docserver.cc
@@ -200,8 +199,10 @@ add_library (artscore STATIC
   interpolation.cc
   interpolation_poly.cc
   jacobian.cc
+  legacy_continua.cc
   legendre.cc
   lin_alg.cc
+  linemixing.cc
   linemixing_hitran.cc
   linescaling.cc
   lineshapemodel.cc
@@ -578,3 +579,9 @@ add_executable(test_cpp_api test_cpp_api.cc)
 target_link_libraries(test_cpp_api public_arts_interface)
 add_test(NAME "arts.cpp_api.fast.silly_groundbased_water_test" COMMAND test_cpp_api)
 ########################################################################################
+
+# Build a test for the plotting tool
+if (ENABLE_GUI)
+  add_executable(test_gui test_gui.cc)
+  target_link_libraries(test_gui PUBLIC ${ALL_ARTS_LIBRARIES})
+endif()

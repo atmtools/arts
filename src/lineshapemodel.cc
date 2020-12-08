@@ -520,6 +520,59 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
   return line_vmrs;
 }
 
+Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
+                       const ArrayOfArrayOfSpeciesTag& atmospheric_species,
+                       const QuantumIdentifier& self,
+                       const ArrayOfSpeciesTag& lineshape_species,
+                       bool self_in_list,
+                       bool bath_in_list) {
+  if (atmospheric_species.nelem() != atmospheric_vmrs.nelem())
+    throw std::runtime_error("Bad atmospheric inputs");
+  
+  // Initialize list of VMRS to 0
+  Vector line_vmrs(lineshape_species.nelem(), 0);
+  Vector line_mass(lineshape_species.nelem(), 0);
+  const Index back = lineshape_species.nelem() - 1;  // Last index
+  
+  // Loop species ignoring self and bath
+  for (Index i = 0; i < lineshape_species.nelem()-bath_in_list; i++) {
+    // Select target in-case this is self-broadening
+    const auto target =
+    (self_in_list and  &lineshape_species[i] == &lineshape_species.front()) ? self.Species() : lineshape_species[i].Species();
+    
+    // Find species in list or do nothing at all
+    Index this_species_index = -1;
+    for (Index j = 0; j < atmospheric_species.nelem(); j++)
+      if (atmospheric_species[j][0].Species() == target)
+        this_species_index = j;
+      
+    // Set to non-zero in-case species exists
+    if (this_species_index not_eq -1) {
+      line_vmrs[i] = atmospheric_vmrs[this_species_index];
+      line_mass[i] = atmospheric_species[this_species_index][0].SpeciesMass();
+    }
+  }
+  
+  // Renormalize, if bath-species exist this is automatic.
+  if(line_vmrs.sum() == 0) {  // Special case, there should be no atmosphere if this happens???
+    return line_mass;
+  } else if (bath_in_list) {
+    line_mass[back] = (line_vmrs * line_mass) / line_vmrs.sum();
+  }
+  
+  if (self_in_list) {
+    line_mass[0] = self.SpeciesMass();
+  }
+  
+  // The result must be non-zero, a real number, and finite
+  if (not std::isnormal(line_mass.sum())) {
+    throw std::runtime_error(
+      "Bad VMRs, your atmosphere does not support the line of interest");
+  }
+    
+  return line_vmrs;
+}
+
 std::ostream& LineShape::operator<<(std::ostream& os, const LineShape::Model& m)
 {
   for(auto& data: m.Data())

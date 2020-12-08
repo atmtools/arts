@@ -291,7 +291,7 @@ constexpr Numeric SimpleGCaseA(Rational Omega,
                                Numeric GL) noexcept {
   auto JJ = J * (J + 1);
 
-  if (JJ == 0)
+  if (JJ == Rational(0))
     return 0.0;
   else {
     auto DIV = Omega / JJ;
