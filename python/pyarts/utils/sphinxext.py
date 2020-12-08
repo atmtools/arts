@@ -36,7 +36,7 @@ def arts_docserver_role(name, rawtext, text, lineno, inliner, options=None,
     if options is None:
         options = {}
 
-    url = 'http://radiativetransfer.org/docserver-trunk/all/{}'.format(text)
+    url = 'https://atmtools.github.io/arts-docs-2.4/docserver/all/{}'.format(text)
     node = nodes.reference(rawtext, text, refuri=url, **options)
 
     return [node], []

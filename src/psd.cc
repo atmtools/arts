@@ -315,14 +315,27 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
 
   // Loop input data and calculate PSDs
   for (Index ip = 0; ip < np; ip++) {
+    
     // Extract mass
     ext_pars[0] = pnd_agenda_input(ip, ext_i_pai[0]);
+
+    // No calc needed if mass==0 and no jacobians requested.
+    if ((ext_pars[0] == 0.) && (!ndx)) {
+      continue;
+    }  // If here, we are ready with this point!
+
+    // Extract "something"
     ext_pars[1] = pnd_agenda_input(ip, ext_i_pai[1]);
     if (ext_pars[1] <= 0) {
       ostringstream os;
-      os << "Negative " << something << "found.\nThis is not allowed.";
+      os << "Negative or zero " << something << " found in a position where "
+         << "this is not allowed.";
+      if (ndx)
+        os << "\nNote that for retrievals, " << something
+           << " must be set to a value > 0 even where\nmass is zero.";
       throw std::runtime_error(os.str());
     }
+    
     // Extract core MGD parameters
     for (Index i = 0; i < 4; i++) {
       if (mgd_i_pai[i] >= 0) {
@@ -330,11 +343,6 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
       }
     }
     Numeric t = pnd_agenda_input_t[ip];
-
-    // No calc needed if mass==0 and no jacobians requested.
-    if ((ext_pars[0] == 0.) && (!ndx)) {
-      continue;
-    }  // If here, we are ready with this point!
 
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {

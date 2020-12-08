@@ -495,6 +495,7 @@ void pndFromPsd(Matrix& pnd_data,
   }
 }
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldCalcFromParticleBulkProps(
     Workspace& ws,
@@ -517,7 +518,8 @@ void pnd_fieldCalcFromParticleBulkProps(
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity&) {
-  // Do nothing if cloudbix ix inactive
+  
+  // Do nothing if cloudbox is inactive
   if (!cloudbox_on) {
     return;
   }
@@ -592,7 +594,9 @@ void pnd_fieldCalcFromParticleBulkProps(
 
   // Effective lengths of cloudbox
   const Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  const Index ip_offset = cloudbox_limits[0];
+  Index np_nonzero = np;                 // Can be changed below
+  Index ip_offset = cloudbox_limits[0];  // Can be changed below
+  Index pf_offset = 0;                   // Can be changed below
   Index nlat = 1;
   Index ilat_offset = 0;
   if (atmosphere_dim > 1) {
@@ -612,16 +616,16 @@ void pnd_fieldCalcFromParticleBulkProps(
       "*particle_bulkprop_field* allowed to contain"
       " non-zero values only inside the cloudbox.";
   // Pressure end ranges
-  Index dp_start, dp_end;
   if (cloudbox_limits[0] != 0) {
     if (max(particle_bulkprop_field(
             joker, Range(0, ip_offset + 1), joker, joker)) > 0 ||
         min(particle_bulkprop_field(
             joker, Range(0, ip_offset + 1), joker, joker)) < 0)
       throw runtime_error(estring);
-    dp_start = 1;
-  } else
-    dp_start = 0;
+    np_nonzero--;
+    ip_offset++;
+    pf_offset = 1;
+  }
   if (cloudbox_limits[1] != p_grid.nelem() - 1) {
     const Index np_above = p_grid.nelem() + 1 - (np + ip_offset);
     if (max(particle_bulkprop_field(
@@ -629,9 +633,8 @@ void pnd_fieldCalcFromParticleBulkProps(
         min(particle_bulkprop_field(
             joker, Range(cloudbox_limits[1], np_above), joker, joker)) < 0)
       throw runtime_error(estring);
-    dp_end = np - 1;
-  } else
-    dp_end = np;
+    np_nonzero--;
+  }
 
   // Cumulative number of scattering elements
   ArrayOfIndex ncumse(nss + 1);
@@ -646,7 +649,7 @@ void pnd_fieldCalcFromParticleBulkProps(
   // Allocate output variables
   //
   pnd_field.resize(ncumse[nss], np, nlat, nlon);
-  pnd_field = 0.0;  // To set all end values to zero
+  pnd_field = 0.0;  
   //
   // Help variables for partial derivatives
   Index nq = 0;
@@ -672,7 +675,7 @@ void pnd_fieldCalcFromParticleBulkProps(
         }
         scatspecies_to_jq[ihit].push_back(iq);
         dpnd_field_dx[iq].resize(ncumse[nss], np, nlat, nlon);
-        dpnd_field_dx[iq] = 0.0;  // To set all end values to zero
+        dpnd_field_dx[iq] = 0.0;  
       }
     }
   }
@@ -717,20 +720,17 @@ void pnd_fieldCalcFromParticleBulkProps(
     // Loop lat/lon positions and call *pnd_agenda*
     for (Index ilon = 0; ilon < nlon; ilon++) {
       for (Index ilat = 0; ilat < nlat; ilat++) {
-        // Note that we don't need any calculations for end points
 
-        // Here we consider this for lat and lon
+        // Nothing to do for lat/lon end points, if not 1D
         if ((nlat > 1 && (ilat == 0 || ilat == nlat - 1)) ||
             (nlon > 1 && (ilon == 0 || ilon == nlon - 1))) {
           continue;
         }
 
-        // Pressure handled here, by not including end points in loops
-
-        Matrix pnd_agenda_input(np, nin);
+        Matrix pnd_agenda_input(np_nonzero, nin);
         //
         for (Index i = 0; i < nin; i++) {
-          for (Index ip = 0; ip < np; ip++) {
+          for (Index ip = 0; ip < np_nonzero; ip++) {
             pnd_agenda_input(ip, i) =
                 particle_bulkprop_field(i_pbulkprop[i],
                                         ip_offset + ip,
@@ -741,7 +741,7 @@ void pnd_fieldCalcFromParticleBulkProps(
 
         Vector pnd_agenda_input_t(np);
         //
-        for (Index ip = 0; ip < np; ip++) {
+        for (Index ip = 0; ip < np_nonzero; ip++) {
           pnd_agenda_input_t[ip] =
               t_field(ip_offset + ip, ilat_offset + ilat, ilon_offset + ilon);
         }
@@ -761,12 +761,12 @@ void pnd_fieldCalcFromParticleBulkProps(
                                 pnd_agenda_array);
 
         // Copy to output variables
-        for (Index ip = 0; ip < np; ip++) {
-          pnd_field(se_range, ip, ilat, ilon) = pnd_data(ip, joker);
+        for (Index ip = 0; ip < np_nonzero; ip++) {
+          pnd_field(se_range, pf_offset+ip, ilat, ilon) = pnd_data(ip, joker);
         }
         for (Index ix = 0; ix < ndx; ix++) {
-          for (Index ip = dp_start; ip < dp_end; ip++) {
-            dpnd_field_dx[scatspecies_to_jq[is][ix]](se_range, ip, ilat, ilon) =
+          for (Index ip = 0; ip < np_nonzero; ip++) {
+            dpnd_field_dx[scatspecies_to_jq[is][ix]](se_range, pf_offset+ip, ilat, ilon) =
                 dpnd_data_dx(ix, ip, joker);
           }
         }
@@ -774,6 +774,8 @@ void pnd_fieldCalcFromParticleBulkProps(
     }
   }
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ScatSpeciesSizeMassInfo(Vector& scat_species_x,
