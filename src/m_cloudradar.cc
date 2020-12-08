@@ -554,7 +554,7 @@ void yActive(Workspace& ws,
              Matrix& jacobian,
              const Index& atmgeom_checked,
              const Index& atmfields_checked,
-             const String& iy_unit,
+             const String& iy_unit_radar,
              const ArrayOfString& iy_aux_vars,
              const Index& stokes_dim,
              const Vector& f_grid,
@@ -631,19 +631,19 @@ void yActive(Workspace& ws,
         "The main length of *instrument_pol_array* must match "
         "the number of frequencies.");
 
-  // iy_unit and variables to handle conversion to Ze and dBZe
+  // iy_unit_radar and variables to handle conversion to Ze and dBZe
   Vector cfac(nf, 1.0);
   Numeric ze_min = 0;
   const Numeric jfac = 10 * log10(exp(1.0));
-  if (iy_unit == "1") {
-  } else if (iy_unit == "Ze") {
+  if (iy_unit_radar == "1") {
+  } else if (iy_unit_radar == "Ze") {
     ze_cfac(cfac, f_grid, ze_tref, k2);
-  } else if (iy_unit == "dBZe") {
+  } else if (iy_unit_radar == "dBZe") {
     ze_cfac(cfac, f_grid, ze_tref, k2);
     ze_min = pow(10.0, dbze_min / 10);
   } else {
     throw runtime_error(
-        "For this method, *iy_unit* must be set to \"1\", "
+        "For this method, *iy_unit_radar* must be set to \"1\", "
         "\"Ze\" or \"dBZe\".");
   }
 
@@ -728,7 +728,7 @@ void yActive(Workspace& ws,
                           iy_transmittance,
                           iy_aux_vars,
                           iy_id,
-                          iy_unit,
+                          iy_unit_radar,
                           cloudbox_on,
                           jacobian_do,
                           f_grid,
@@ -834,14 +834,14 @@ void yActive(Workspace& ws,
                   for (Index k = 0; k < drefl[iq].nrows(); k++) {
                     jacobian(iout, jacobian_indices[iq][0] + k) =
                         cfac[iv] * (hbin * drefl[iq](k, joker));
-                    if (iy_unit == "dBZe") {
+                    if (iy_unit_radar == "dBZe") {
                       jacobian(iout, jacobian_indices[iq][0] + k) *=
                           jfac / max(y[iout], ze_min);
                     }
                   })
             }
 
-            if (iy_unit == "dBZe") {
+            if (iy_unit_radar == "dBZe") {
               y[iout] = y[iout] <= ze_min ? dbze_min : 10 * log10(y[iout]);
             }
 
@@ -849,7 +849,7 @@ void yActive(Workspace& ws,
             for (Index a = 0; a < naux; a++) {
               if (iy_aux_vars[a] == "Backscattering") {
                 y_aux[a][iout] = cfac[iv] * (hbin * auxvar[a]);
-                if (iy_unit == "dBZe") {
+                if (iy_unit_radar == "dBZe") {
                   y_aux[a][iout] = y_aux[a][iout] <= ze_min
                                        ? dbze_min
                                        : 10 * log10(y_aux[a][iout]);

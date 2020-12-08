@@ -2104,13 +2104,21 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("iy_unit"),
       DESCRIPTION(
-          "Selection of output unit for some radiative transfer methods.\n"
+          "Selection of output unit for radiative transfer methods.\n"
           "\n"
           "This variable allows that the unit of the output radiance/intensity\n"
           "is changed. The possible choices differ between the radiative\n"
           "methods, including not considering the variable at all.\n"
           "Accordingly, for details see the radiative method you have selected\n"
-          "(e.g., *iyEmissionStandard*, *iyMC*, *iyActiveSingleScat* and the like).\n"),
+          "(e.g., *iyEmissionStandard*, *iyMC* and the like).\n"),
+      GROUP("String")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("iy_unit_radar"),
+      DESCRIPTION(
+          "Unit for radar simulations.\n"
+          "\n"          
+          "See the radar methods for allowed options.\n"),
       GROUP("String")));
 
   wsv_data.push_back(WsvRecord(

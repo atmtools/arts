@@ -7316,7 +7316,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
       DESCRIPTION(
-          "Conversion of *iy* to other spectral units.\n"
+          "Conversion of *iy* to other spectral units (for passive observations).\n"
           "\n"
           "The method allows a change of unit, as a post-processing step,\n"
           "ignoring the n2-law of radiance.\n"
@@ -7334,7 +7334,9 @@ void define_md_data_raw() {
           "Beside *iy*, these auxilary quantities are modified:\n"
           "    \"iy\", \"Error\" and \"Error (uncorrelated)\"\n"
           "\n"
-          "Please note that *diy_dx* is not handled.\n"),
+          "Please note that *diy_dx* is not handled. Also note that this method\n"
+          "considers *iy_unit*, while *iy_unit_radar* is handled directly by\n"
+          "the methods dealing with such simulations.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux"),
       GOUT(),
@@ -10214,9 +10216,9 @@ void define_md_data_raw() {
           "If negative values are given for these parameters then it is\n"
           "ignored.\n"
           "\n"
-          "Only \"1\" and \"Ze\" are allowed for *iy_unit*. The value of\n"
-          "*mc_error* follows the selection for *iy_unit* (both for in- and\n"
-          "output.\n"),
+          "Here \"1\" and \"Ze\" are the allowed options for *iy_unit_radar*.\n"
+          "The value of *mc_error* follows the selection for *iy_unit_radar*\n"
+          "(both for in- and output. See *yActive* for details of the units.\n"),
       AUTHORS("Ian S. Adams"),
       OUT("y", "mc_error"),
       GOUT(),
@@ -10251,7 +10253,7 @@ void define_md_data_raw() {
          "atmgeom_checked",
          "scat_data_checked",
          "cloudbox_checked",
-         "iy_unit",
+         "iy_unit_radar",
          "mc_max_scatorder",
          "mc_seed",
          "mc_max_iter"),
@@ -20813,7 +20815,7 @@ void define_md_data_raw() {
           "average inside the bins. If a bin is totally outside the model\n"
           "atmosphere, NaN is returned.\n"
           "\n"
-          "The options for *iy_unit* are:\n"
+          "The options for *iy_unit_radar* are:\n"
           " \"1\"   : Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
           "           attenuation, this equals the scattering matrix value for\n"
           "           the backward direction. See further AUG.\n"
@@ -20844,7 +20846,7 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("atmgeom_checked",
          "atmfields_checked",
-         "iy_unit",
+         "iy_unit_radar",
          "iy_aux_vars",
          "stokes_dim",
          "f_grid",

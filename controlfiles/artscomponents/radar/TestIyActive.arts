@@ -93,7 +93,7 @@ AgendaSet( iy_main_agenda ){
 }
 IndexSet( stokes_dim, 3 )
 sensorOff
-StringSet( iy_unit, "dBZe" )
+StringSet( iy_unit_radar, "dBZe" )
 
 
 # Make checks

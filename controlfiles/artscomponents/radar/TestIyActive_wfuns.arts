@@ -93,7 +93,7 @@ AgendaSet( iy_main_agenda ){
   iyActiveSingleScat( trans_in_jacobian = 1 )
 }
 #
-StringSet( iy_unit, "Ze" )
+StringSet( iy_unit_radar, "Ze" )
 #
 VectorLinSpace(range_bins, 0, 15e3, 500 )
 
