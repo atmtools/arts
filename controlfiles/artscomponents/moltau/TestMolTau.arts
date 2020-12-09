@@ -2,8 +2,8 @@
 
 Arts2 {
 
-INCLUDE "general/general"
-INCLUDE "general/continua"
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
@@ -31,7 +31,7 @@ Print(fmax, 1)
 VectorNLinSpace(f_grid, 1000, fmin, fmax)
 
 # Read HITRAN data (for this example we use a reduced test catalog)
-abs_linesReadFromArts(abs_lines, "testdata/abs_lines_IR.xml.gz", fmin, fmax)
+ReadARTSCAT(abs_lines, "testdata/abs_lines_IR.xml.gz", fmin, fmax)
 
 # Set species to be considered in line-by-line calculation
 abs_speciesSet(species=[
@@ -87,6 +87,7 @@ abs_speciesSet(abs_species=abs_nls, species=[])
 VectorSet(abs_t_pert, [])
 VectorSet(abs_nls_pert, [])
 
+lbl_checkedCalc
 abs_xsec_agenda_checkedCalc
 jacobianOff
 
