@@ -6,20 +6,46 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 template <typename T>
 constexpr bool good_enum(T x) {
   return long(x) < long(T::FINAL) and long(x) >= 0;
 }
-template <typename T>
-std::array<std::string, long(T::FINAL)> enum_strarray(
-    const std::string &strchars) {
-  std::array<std::string, long(T::FINAL)> out;
-  std::istringstream x(strchars);
-  for (long i = 0; i < long(T::FINAL); i++) {
-    std::getline(x, out[i], ',');
-    out[i].erase(std::remove(out[i].begin(), out[i].end(), ' '), out[i].end());
+
+constexpr bool is_space_char(char x) {
+  return x == ' '  or
+         x == '\n' or
+         x == '\r' or
+         x == '\t' or
+         x == '\f' or
+         x == '\v';
+}
+
+template <typename T> constexpr
+std::array<std::string_view, size_t(T::FINAL)> enum_strarray(
+  const std::string_view strchars) {
+  std::array<std::string_view, size_t(T::FINAL)> out;
+  
+  // Find the start
+  std::string_view::size_type N0 = 0;
+  
+  // Set all the values
+  for (auto& str: out) {
+    // Find a comma but never look beyond the end of the string
+    const std::string_view::size_type N1 = std::min(strchars.find(',', N0), strchars.size());
+    
+    // Set the string between start and the length of the string
+    str = strchars.substr(N0, N1 - N0);
+    
+    // Remove spaces at the beginning and at the end of the string
+    while (is_space_char(str.front())) str.remove_prefix(1);
+    while (is_space_char(str.back())) str.remove_suffix(1);
+    
+    // Set the new start for the next iteration
+    N0 = N1 + 1;
   }
+  
   return out;
 }
 
@@ -59,17 +85,17 @@ std::array<std::string, long(T::FINAL)> enum_strarray(
   enum class ENUMTYPE : TYPE { __VA_ARGS__, FINAL };                           \
                                                                                \
   namespace enumstrs {                                                         \
-  static const auto ENUMTYPE##Names = enum_strarray<ENUMTYPE>(#__VA_ARGS__);   \
+  constexpr auto ENUMTYPE##Names = enum_strarray<ENUMTYPE>(#__VA_ARGS__);      \
   }                                                                            \
                                                                                \
-  inline std::string toString(ENUMTYPE x) noexcept {                           \
+  constexpr std::string_view toString(ENUMTYPE x) noexcept {                   \
     if (good_enum(x))                                                          \
       return enumstrs::ENUMTYPE##Names[(TYPE)x];                               \
     else                                                                       \
       return "BAD " #ENUMTYPE;                                                 \
   }                                                                            \
                                                                                \
-  inline ENUMTYPE to##ENUMTYPE(const std::string &x) noexcept {                \
+  constexpr ENUMTYPE to##ENUMTYPE(const std::string_view x) noexcept {         \
     for (TYPE i = 0; i < (TYPE)ENUMTYPE::FINAL; i++)                           \
       if (enumstrs::ENUMTYPE##Names[i] == x) return ENUMTYPE(i);               \
     return ENUMTYPE::FINAL;                                                    \

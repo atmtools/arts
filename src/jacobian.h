@@ -128,13 +128,13 @@ inline TypeOfTarget toTypeOfTarget(const String& s, Type x) noexcept {
 inline String toString(TypeOfTarget y, Type x) noexcept {
   switch (x) {
     case Type::Special:
-      return toString(y.special);
+      return toString(y.special).data();
     case Type::Sensor:
-      return toString(y.sensor);
+      return toString(y.sensor).data();
     case Type::Line:
-      return toString(y.line);
+      return toString(y.line).data();
     case Type::Atm:
-      return toString(y.atm);
+      return toString(y.atm).data();
     case Type::FINAL: /* leave last, don't use default */ ;
   }
   return "Unrecognizable Target";
@@ -217,7 +217,7 @@ public:
   constexpr bool operator==(Type other) const noexcept {return other == mtype;}
   
   /** Return type as string */
-  String TargetType() const noexcept {return toString(mtype);}
+  String TargetType() const noexcept {return toString(mtype).data();}
   
   /** Sets target based on a string */
   void TargetType(const String& s) noexcept {mtype = toType(s);}

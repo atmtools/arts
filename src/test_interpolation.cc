@@ -924,4 +924,9 @@ void test26() {
   }
 }
 
+void test27() {
+  static_assert(Interpolation::toLagrangeType("Cyclic") == Interpolation::LagrangeType::Cyclic);
+  static_assert(Interpolation::toString(Interpolation::LagrangeType::Cyclic) == "Cyclic");
+}
+
 int main() { test26(); }
