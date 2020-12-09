@@ -19123,6 +19123,25 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("Trapz"),
+      DESCRIPTION(
+          "Intregrates a vector of over its grid range\n"
+          "\n"
+          "The method integrates y(x) by the trapezoidal method.\n"
+          "\n"
+          "The vector x is the positions where the integrand, y, is known.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Numeric"),
+      GOUT_DESC("Value of integral"),
+      IN(),
+      GIN("x", "y"),
+      GIN_TYPE("Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Grid.", "Integrand.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorAddScalar"),
       DESCRIPTION(
           "Adds a scalar to all elements of a vector.\n"
@@ -19362,6 +19381,23 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Start value.", "End value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorPower"),
+      DESCRIPTION(
+          "Calculates the power of each element in a vector.\n"
+          "\n"
+          "The result can either be stored in the same or another vector.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output vector."),
+      IN(),
+      GIN("in", "power"),
+      GIN_TYPE("Vector", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input vector.", "Power (exponent).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorReshapeMatrix"),
