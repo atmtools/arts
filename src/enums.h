@@ -49,6 +49,8 @@ std::array<std::string_view, size_t(T::FINAL)> enum_strarray(
   return out;
 }
 
+inline std::string string_view_to_string(const std::string_view v) {return std::string(v.data(), v.size());}
+
 /* Enum style
  *
  * Generates a "enum class ENUMTYPE : long"
