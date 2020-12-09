@@ -703,7 +703,7 @@ void psdDelanoeEtAl14(Matrix& psd_data,
         (nin + iwc_fixed + n0_fixed + dm_fixed == 1))) {
     throw runtime_error(
         "This PSD can have one or two independent parameters, that is \n"
-        "the sum of the number of rows in pnd_agenda_input and\n"
+        "the sum of the number of columns in pnd_agenda_input and\n"
         "non-NAN, non-dependent values in iwc, n0, dm must be equal to\n"
         "one or two.");
   }
