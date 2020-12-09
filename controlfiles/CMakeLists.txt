@@ -114,7 +114,7 @@ arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4_transmission.art
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfuns.arts)
 
 arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive.arts)
-arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
+# arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 

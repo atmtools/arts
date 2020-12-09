@@ -999,42 +999,6 @@ void dxdvmrscf(Numeric& x,
                const Numeric& p,
                const Numeric& t);
 
-/*! FIXMEDOC: Remove this function when iyHybrid2 has become new iyHybrid
- *   The function helps to calculate the partial derivative of iy with respect
- *   to one input at one pressure.  The formalism here assumes that the radiation
- *   terms are averaged rather than the absorption parameters, thus this can be 
- *   solved per layer rather than for two layers at a time.  Still, the absorption
- *   parameters for the transmission needs to be considered by the two layer derivatives
- * 
- *   FIXME:  Add HSE support
- * 
- * @param[in,out] diy1 Derivative if iy for level 1
- * @param[in,out] diy2 Derivative if iy for level 2
- * @param[in] ImT Identity matrix minus the transmission matrix
- * @param[in] cumulative_transmission Accumulative transmission from level to sensor
- * @param[in] dT1 Transmission matrix derivative for level 1
- * @param[in] dT2 Transmission matrix derivative for level 2
- * @param[in] iYmJ iy minus the source
- * @param[in] dJ1 Source vector derivative for level 1
- * @param[in] dJ2 Source vector derivative for level 2
- * @param[in] stokes_dim As WSV
- * @param[in] transmission_only Bool for not doing emission calculations
- * 
- * @author Richard Larsson
- * @date   2017-09-20
- */
-void get_diydx(VectorView diy1,
-               VectorView diy2,
-               ConstMatrixView ImT,
-               ConstMatrixView cumulative_transmission,
-               ConstMatrixView dT1,
-               ConstMatrixView dT2,
-               ConstVectorView iYmJ,
-               ConstVectorView dJ1,
-               ConstVectorView dJ2,
-               const Index stokes_dim,
-               const bool transmission_only = false);
-
 //======================================================================
 //             Propmat partials descriptions
 //======================================================================
