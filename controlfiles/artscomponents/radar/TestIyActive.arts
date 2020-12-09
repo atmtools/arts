@@ -84,10 +84,8 @@ AgendaSet( iy_transmitter_agenda ){
 ArrayOfIndexSet( instrument_pol, [ 5 ] )
 Append( instrument_pol_array, instrument_pol )
 #
-AgendaSet( iy_main_agenda ){
+AgendaSet( iy_radar_agenda ){
   Ignore( iy_id )
-  Ignore( rte_pos2 )
-  Ignore( iy_unit )
   ppathPlaneParallel( cloudbox_on = 0 )
   iyRadarSingleScat( pext_scaling = weight_ext )
 }

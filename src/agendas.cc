@@ -394,6 +394,21 @@ void define_agenda_data() {
             "rte_pos2")));
 
   agenda_data.push_back(AgRecord(
+      NAME("iy_radar_agenda"),
+      DESCRIPTION(
+          "Calculation of pointwise backscattering.\n"
+          "\n"
+          "This agenda has a similar role for *yRadar* as *iy_main_agenda*.\n"
+          "for *yCalc*.\n"),
+      OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
+      INPUT("iy_aux_vars",
+            "iy_id",
+            "cloudbox_on",
+            "jacobian_do",
+            "rte_pos",
+            "rte_los")));
+
+  agenda_data.push_back(AgRecord(
       NAME("iy_space_agenda"),
       DESCRIPTION(
           "Downwelling radiation at the top of the atmosphere.\n"

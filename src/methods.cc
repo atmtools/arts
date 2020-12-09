@@ -7875,8 +7875,7 @@ void define_md_data_raw() {
           "scattering poses here a must stronger constrain for the range of\n"
           "applications.\n"
           "\n"
-          "The method can be used with *iyCalc*, but not with *yCalc*. In the\n"
-          "later case, use instead *yRadar*.\n"
+          "The method shall be used with *yRadar*, NOT with *yCalc*.\n"
           "\n"
           "The method returns the backscattering for each point of *ppath*.\n"
           "Several frequencies can be treated in parallel. The size of *iy*\n"
@@ -7890,8 +7889,8 @@ void define_md_data_raw() {
           "at the same frequency, you need to handle this by using two frequencies\n"
           "in *f_grid*, but these can be almost identical.\n"
           "\n"
-          "This method does not consider *iy_unit*. Unit changes are insted applied\n"
-          "in *yRadar. The output of this method matches the option \"1\".\n"
+          "This method does not consider *iy_unit_radar*. Unit changes are instead\n"
+          "applied in *yRadar. The output of this method matches the option \"1\".\n"
           "\n"
           "Transmittance is handled in a slightly simplified manner for efficiency\n"
           "reasons. First of all, the transmittance matrix is assumed to be the same\n"
@@ -7939,8 +7938,7 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("diy_dx",
-         "stokes_dim",
+      IN("stokes_dim",
          "f_grid",
          "atmosphere_dim",
          "p_grid",
@@ -7968,8 +7966,6 @@ void define_md_data_raw() {
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
          "iy_transmitter_agenda",
-         "iy_agenda_call1",
-         "iy_transmittance",
          "rte_alonglos_v"),
       GIN("trans_in_jacobian", "pext_scaling", "t_interp_order"),
       GIN_TYPE("Index", "Numeric", "Index"),
@@ -20835,7 +20831,8 @@ void define_md_data_raw() {
           "The output format for *iy* when simulating radars and lidars differs\n"
           "from the standard one, and *yCalc* can not be used for such simulations.\n"
           "This method works largely as *yCalc*, but is tailored to handle the\n"
-          "output from *iyRadarSingleScat*.\n"
+          "output from *iyRadarSingleScat*. Note that *iy_radar_agenda* repalces\n"
+          "*iy_main_agenda*.\n"
           "\n"
           "The method requires additional information about the sensor,\n"
           "regarding its recieving properties. First of all, recieved\n"
@@ -20887,7 +20884,6 @@ void define_md_data_raw() {
          "stokes_dim",
          "f_grid",
          "atmosphere_dim",
-         "nlte_field",
          "cloudbox_on",
          "cloudbox_checked",
          "sensor_pos",
@@ -20895,7 +20891,7 @@ void define_md_data_raw() {
          "sensor_checked",
          "jacobian_do",
          "jacobian_quantities",
-         "iy_main_agenda",
+         "iy_radar_agenda",
          "geo_pos_agenda",
          "instrument_pol_array",
          "range_bins"),

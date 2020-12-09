@@ -2058,6 +2058,12 @@ void Workspace::define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("iy_radar_agenda"),
+      DESCRIPTION(
+          "Agenda calculating pointwise backscattering.\n"),
+      GROUP("Agenda")));
+  
+  wsv_data.push_back(WsvRecord(
       NAME("iy_space_agenda"),
       DESCRIPTION(
           "Agenda providing the downwelling radiation at the top of the atmosphere.\n"),

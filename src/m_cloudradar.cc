@@ -86,8 +86,6 @@ void iyRadarSingleScat(Workspace& ws,
                         const Agenda& propmat_clearsky_agenda,
                         const Agenda& water_p_eq_agenda,
                         const Agenda& iy_transmitter_agenda,
-                        const Index& iy_agenda_call1,
-                        const Tensor3& iy_transmittance,
                         const Numeric& rte_alonglos_v,
                         const Index& trans_in_jacobian,
                         const Numeric& pext_scaling,
@@ -108,11 +106,6 @@ void iyRadarSingleScat(Workspace& ws,
 
   // Checks of input
   // Throw error if unsupported features are requested
-  if (!iy_agenda_call1)
-    throw runtime_error(
-        "Recursive usage not possible (iy_agenda_call1 must be 1)");
-  if (!iy_transmittance.empty())
-    throw runtime_error("*iy_transmittance* must be empty");
   if (rbi < 1 || rbi > 9)
     throw runtime_error(
         "ppath.background is invalid. Check your "
@@ -172,13 +165,19 @@ void iyRadarSingleScat(Workspace& ws,
           "must have the value 1 in the first column.");
 
   // Set diy_dpath if we are doing are doing jacobian calculations
-  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, ns, true) : ArrayOfTensor3(0);
+  ArrayOfTensor3 diy_dpath = j_analytical_do ?
+    get_standard_diy_dpath(jacobian_quantities, np, nf, ns, true) :
+    ArrayOfTensor3(0);
   
   // Set the species pointers if we are doing jacobian
-  const ArrayOfIndex jac_species_i = j_analytical_do ? get_pointers_for_analytical_species(jacobian_quantities, abs_species) : ArrayOfIndex(0);
+  const ArrayOfIndex jac_species_i = j_analytical_do ?
+    get_pointers_for_analytical_species(jacobian_quantities, abs_species) :
+    ArrayOfIndex(0);
   
   // Start diy_dx out if we are doing the first run and are doing jacobian calculations
-  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, ns, true);
+  diy_dx = j_analytical_do ?
+    get_standard_starting_diy_dx(jacobian_quantities, np, nf, ns, true) :
+    ArrayOfTensor3(0);
   
   // Checks that the scattering species are treated correctly if their derivatives are needed
   const ArrayOfIndex jac_scat_i = j_analytical_do ? get_pointers_for_scat_species(jacobian_quantities, scat_species, cloudbox_on) : ArrayOfIndex(0);
@@ -523,7 +522,10 @@ void iyRadarSingleScat(Workspace& ws,
 
 
   // Finalize analytical Jacobian
-  if (j_analytical_do)
+  if (j_analytical_do) {
+    const Index iy_agenda_call1 = 1;
+    const Tensor3 iy_transmittance(0, 0, 0);
+
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
@@ -540,6 +542,7 @@ void iyRadarSingleScat(Workspace& ws,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
                                     jac_species_i);
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -559,7 +562,6 @@ void yRadar(Workspace& ws,
             const Index& stokes_dim,
             const Vector& f_grid,
             const Index& atmosphere_dim,
-            const EnergyLevelMap& nlte_field,
             const Index& cloudbox_on,
             const Index& cloudbox_checked,
             const Matrix& sensor_pos,
@@ -567,7 +569,7 @@ void yRadar(Workspace& ws,
             const Index& sensor_checked,
             const Index& jacobian_do,
             const ArrayOfRetrievalQuantity& jacobian_quantities,
-            const Agenda& iy_main_agenda,
+            const Agenda& iy_radar_agenda,
             const Agenda& geo_pos_agenda,
             const ArrayOfArrayOfIndex& instrument_pol_array,
             const Vector& range_bins,
@@ -711,32 +713,24 @@ void yRadar(Workspace& ws,
   // Loop positions
   for (Index p = 0; p < npos; p++) {
     // RT part
-    Tensor3 iy_transmittance(0, 0, 0);
     ArrayOfTensor3 diy_dx;
-    Vector rte_pos2(0);
     Matrix iy;
     Ppath ppath;
     ArrayOfMatrix iy_aux;
     const Index iy_id = (Index)1e6 * p;
     //
-    iy_main_agendaExecute(ws,
+    iy_radar_agendaExecute(ws,
                           iy,
                           iy_aux,
                           ppath,
                           diy_dx,
-                          1,
-                          iy_transmittance,
                           iy_aux_vars,
                           iy_id,
-                          iy_unit_radar,
                           cloudbox_on,
                           jacobian_do,
-                          f_grid,
-                          nlte_field,
                           sensor_pos(p, joker),
                           sensor_los(p, joker),
-                          rte_pos2,
-                          iy_main_agenda);
+                          iy_radar_agenda);
 
     // Check if path and size OK
     const Index np = ppath.np;
@@ -747,7 +741,7 @@ void yRadar(Workspace& ws,
     error_if_limb_ppath(ppath);
     if (iy.nrows() != nf * np)
       throw runtime_error(
-          "The size of *iy* returned from *iy_main_agenda* "
+          "The size of *iy* returned from *iy_radar_agenda* "
           "is not correct (for this method).");
 
     // Range of ppath, in altitude or time
