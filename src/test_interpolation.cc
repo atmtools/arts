@@ -932,7 +932,7 @@ void test27() {
   for (auto a : Interpolation::enumstrs::GridTypeNames)
     std::cout << a << '\n';
   for (auto a : Interpolation::enumstrs::GridTypeNames)
-    std::cout << string_view_to_string(a) << '\n';
+    std::cout << a << '\n';
 }
 
 int main() { test27(); }
