@@ -4,7 +4,7 @@ namespace Interpolation {
 
 Array<Lagrange> LagrangeVector(
     const ConstVectorView& xs, const ConstVectorView& xi, const Index polyorder,
-    const Numeric extrapol, const bool do_derivs, const LagrangeType type, const std::pair<Numeric, Numeric> cycle) {
+    const Numeric extrapol, const bool do_derivs, const GridType type, const std::pair<Numeric, Numeric> cycle) {
   if (xs.size() == 1) {
     check_lagrange_interpolation(xi, polyorder, xs[0], extrapol, type, cycle);
   } else {

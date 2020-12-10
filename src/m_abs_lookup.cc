@@ -442,7 +442,7 @@ void abs_lookupCalc(  // Workspace reference:
   }
 
   // 6. Initialize fgp_default.
-  abs_lookup.flag_default = Interpolation::LagrangeVector(abs_lookup.f_grid, abs_lookup.f_grid, 0, 0.5, false, Interpolation::LagrangeType::Linear);
+  abs_lookup.flag_default = Interpolation::LagrangeVector(abs_lookup.f_grid, abs_lookup.f_grid, 0, 0.5, false, Interpolation::GridType::Linear);
 
   // Set the abs_lookup_is_adapted flag. After all, the table fits the
   // current frequency grid and species selection.
@@ -2981,7 +2981,7 @@ void abs_lookupTestAccMC(  // Workspace reference:
       // pressure, so that we can apply the dT and dh2o perturbations.
 
       // Pressure grid positions:
-      const auto lag = Interpolation::Lagrange(0, rand_lp[i], al.log_p_grid, abs_p_interp_order, false, Interpolation::LagrangeType::Linear);
+      const auto lag = Interpolation::Lagrange(0, rand_lp[i], al.log_p_grid, abs_p_interp_order, false, Interpolation::GridType::Linear);
       const auto itw = interpweights(lag);
 
       // Interpolated temperature:

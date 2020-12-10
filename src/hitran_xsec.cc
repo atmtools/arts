@@ -268,7 +268,7 @@ void XsecRecord::Extract(VectorView result,
     }
     
     // Find frequency grid positions:
-    const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid_active, false, Interpolation::LagrangeType::Linear);
+    const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid_active, false, Interpolation::GridType::Linear);
 
     if (pressure > mrefpressure[this_dataset_i] &&
         mrefpressure[this_dataset_i] > 0.) {

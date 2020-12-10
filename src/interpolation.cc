@@ -2704,6 +2704,70 @@ void interp(Tensor6View ia,
   }
 }
 
+
+//! Polynomial interpolation.
+/*! 
+  This function performs a polinomial interpolation. Given arrays xa(n) and
+  ya(n), and a given value x, this function returns a value y and an error 
+  estimate dy.
+  This function is (almost) copied from: 
+  Numerical Recipies in C, pages 108-110.
+   
+  \param y_int interpolated value
+  \param dy_int error estimate
+  \param xa original grid (n elements)
+  \param ya corresponding values (n elements)
+  \param n order of polynom
+  \param x requested grid point
+
+  \return interpolated value
+
+  \author Claudia Emde
+  \date 2004-03-12
+*/
+void polint(Numeric& y_int,
+            Numeric& dy_int,
+            ConstVectorView xa,
+            ConstVectorView ya,
+            const Index& n,
+            const Numeric& x) {
+  Index ns = 1;
+  Numeric den, dif, dift, ho, hp, w;
+
+  dif = abs(x - xa[0]);
+
+  Vector c(n);
+  Vector d(n);
+
+  // Find the index of the closest table entry
+  for (Index i = 0; i < n; i++) {
+    if ((dift = abs(x - xa[i])) < dif) {
+      ns = i;
+      dif = dift;
+    }
+    // Initialize c and d
+    c[i] = ya[i];
+    d[i] = ya[i];
+  }
+  // Initial approximation to y
+  y_int = ya[ns--];
+
+  for (Index m = 1; m < n; m++) {
+    for (Index i = 0; i < n - m; i++) {
+      ho = xa[i] - x;
+      hp = xa[i + m] - x;
+      w = c[i + 1] - d[i];
+      den = ho - hp;
+      // This error occurs when two input xa's are identical.
+      assert(den != 0.);
+      den = w / den;
+      d[i] = hp * den;
+      c[i] = ho * den;
+    }
+    y_int += (dy_int = (2 * (ns + 1) < (n - m) ? c[ns + 1] : d[ns--]));
+  }
+}
+
 //! Polynomial interpolation.
 /*! 
   This function performs a polynomial interpolation. Given two vectors x, y 
@@ -2858,67 +2922,4 @@ Numeric interp_poly(ConstVectorView x,
   }
 
   return y_int;
-}
-
-//! Polynomial interpolation.
-/*! 
-  This function performs a polinomial interpolation. Given arrays xa(n) and
-  ya(n), and a given value x, this function returns a value y and an error 
-  estimate dy.
-  This function is (almost) copied from: 
-  Numerical Recipies in C, pages 108-110.
-   
-  \param y_int interpolated value
-  \param dy_int error estimate
-  \param xa original grid (n elements)
-  \param ya corresponding values (n elements)
-  \param n order of polynom
-  \param x requested grid point
-
-  \return interpolated value
-
-  \author Claudia Emde
-  \date 2004-03-12
-*/
-void polint(Numeric& y_int,
-            Numeric& dy_int,
-            ConstVectorView xa,
-            ConstVectorView ya,
-            const Index& n,
-            const Numeric& x) {
-  Index ns = 1;
-  Numeric den, dif, dift, ho, hp, w;
-
-  dif = abs(x - xa[0]);
-
-  Vector c(n);
-  Vector d(n);
-
-  // Find the index of the closest table entry
-  for (Index i = 0; i < n; i++) {
-    if ((dift = abs(x - xa[i])) < dif) {
-      ns = i;
-      dif = dift;
-    }
-    // Initialize c and d
-    c[i] = ya[i];
-    d[i] = ya[i];
-  }
-  // Initial approximation to y
-  y_int = ya[ns--];
-
-  for (Index m = 1; m < n; m++) {
-    for (Index i = 0; i < n - m; i++) {
-      ho = xa[i] - x;
-      hp = xa[i + m] - x;
-      w = c[i + 1] - d[i];
-      den = ho - hp;
-      // This error occurs when two input xa's are identical.
-      assert(den != 0.);
-      den = w / den;
-      d[i] = hp * den;
-      c[i] = ho * den;
-    }
-    y_int += (dy_int = (2 * (ns + 1) < (n - m) ? c[ns + 1] : d[ns--]));
-  }
 }

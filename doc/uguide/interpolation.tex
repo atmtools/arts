@@ -711,9 +711,9 @@ The weights are calculated according to
  \end{array}
  \right. 0 \leq j \leq O, 
 \end{equation}
-where $f$ is a scaling function.  This can be a logarithm, reverse cosine,
+where $f$ is a grid scaling function.  This can be a logarithm, reverse cosine,
 circular constraints, or, most commonly, just the input.  The provided options
-are:
+are part of the \shortcode{Interpolation::GridType} enum class and are:
 \begin{itemize}
  \item[\shortcode{Linear}] $f\left(t\right) = t$
  \item[\shortcode{Cyclic}] $f\left(t\right) = t + n\left(t_1 - t_0\right)$,
@@ -765,7 +765,8 @@ the $x_0$ and $x_1$ pair of cyclic limits.
 
 After setting up the \shortcode{LagrangeInterpolation} object with
 either of the constructors, you have to call \shortcode{interpweights}
-and \shortcode{interp}, as in the linear case. (The actual
+and \shortcode{interp}, as in the linear case for single-point interpolation,
+or \shortcode{reinterp} for multiple interpolations. (The actual
 functions used are not the same, since the name is overloaded. The
 \shortcode{interpweights} and \shortcode{interp} functions for use
 with \shortcode{LagrangeInterpolation} are implemented in
@@ -777,6 +778,14 @@ LagrangeInterpolation or Interpolation::LagrangeVector
 interpweights
 interp or reinterp
 \end{code}
+
+Note that \shortcode{reinterp} is used as the function name 
+for the green interpolations of the linear interpolation routines.
+They demand all arrays of interpolation points and returns only the
+same type as was originally interpolated from.  For example Tensor7 $\rightarrow$ Tensor7.
+There is no blue interpolation routine for the Lagrange interpolation
+routine.  Instead, we have added a reduce-operator on all matpack-types
+so that they can efficiently be reduced to the size of interest.
 
 For $O=1$ the result of the
 interpolation chain will be the same as for the linear interpolation

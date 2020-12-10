@@ -318,7 +318,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     Vector fg_new = f_grid, iyb2(niyb);
     fg_new += rq.Target().Perturbation();
     //
-    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid, false, Interpolation::LagrangeType::Linear);
+    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid, false, Interpolation::GridType::Linear);
     const auto itw = interpweights(lag);
 
     // Do interpolation
@@ -467,7 +467,7 @@ void jacobianCalcFreqStretch(
     //
     fg_new += rq.Target().Perturbation();
     //
-    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid, false, Interpolation::LagrangeType::Linear);
+    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid, false, Interpolation::GridType::Linear);
     const auto itw = interpweights(lag);
 
     // Do interpolation
