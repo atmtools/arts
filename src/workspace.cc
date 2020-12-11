@@ -2058,6 +2058,12 @@ void Workspace::define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("iy_radar_agenda"),
+      DESCRIPTION(
+          "Agenda calculating pointwise backscattering.\n"),
+      GROUP("Agenda")));
+  
+  wsv_data.push_back(WsvRecord(
       NAME("iy_space_agenda"),
       DESCRIPTION(
           "Agenda providing the downwelling radiation at the top of the atmosphere.\n"),
@@ -2104,13 +2110,21 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("iy_unit"),
       DESCRIPTION(
-          "Selection of output unit for some radiative transfer methods.\n"
+          "Selection of output unit for radiative transfer methods.\n"
           "\n"
           "This variable allows that the unit of the output radiance/intensity\n"
           "is changed. The possible choices differ between the radiative\n"
           "methods, including not considering the variable at all.\n"
           "Accordingly, for details see the radiative method you have selected\n"
-          "(e.g., *iyEmissionStandard*, *iyMC*, *iyActiveSingleScat* and the like).\n"),
+          "(e.g., *iyEmissionStandard*, *iyMC* and the like).\n"),
+      GROUP("String")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("iy_unit_radar"),
+      DESCRIPTION(
+          "Unit for radar simulations.\n"
+          "\n"          
+          "See the radar methods for allowed options.\n"),
       GROUP("String")));
 
   wsv_data.push_back(WsvRecord(
@@ -5487,7 +5501,7 @@ void Workspace::define_wsv_data() {
           "    LOS inside the measurement block\n"
           "    Measurement block\n"
           "With sensor response included, the order can be differ. As output\n"
-          "of *yActive*, the order will also be different.\n"
+          "of *yRadar*, the order will also be different.\n"
           "\n"
           "Usage: Output from radiative transfer calculations considering\n"
           "       sensor response.\n"

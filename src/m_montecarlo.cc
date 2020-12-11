@@ -544,6 +544,8 @@ void MCGeneral(Workspace& ws,
   }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MCRadar(  // Workspace reference:
     Workspace& ws,
@@ -580,7 +582,7 @@ void MCRadar(  // Workspace reference:
     const Index& atmgeom_checked,
     const Index& scat_data_checked,
     const Index& cloudbox_checked,
-    const String& iy_unit,
+    const String& iy_unit_radar,
     const Index& mc_max_scatorder,
     const Index& mc_seed,
     const Index& mc_max_iter,
@@ -748,18 +750,18 @@ void MCRadar(  // Workspace reference:
   Numeric r_trav, r_bin;  // range traveled (1-way distance) or round-trip time
 
   Numeric fac;
-  if (iy_unit == "1") {
+  if (iy_unit_radar == "1") {
     fac = 1.0;
   }
   // Conversion from intensity to reflectivity
-  else if (iy_unit == "Ze") {
+  else if (iy_unit_radar == "Ze") {
     Vector cfac(1);
     ze_cfac(cfac, Vector(1, f_mono), ze_tref, k2);
     // Due to different definitions, the factor shall here be scaled with 1/(2pi)
     fac = cfac[0] / (2 * PI);
   } else {
     ostringstream os;
-    os << "Invalid value for *iy_unit*:" << iy_unit << ".\n"
+    os << "Invalid value for *iy_unit_radar*:" << iy_unit_radar << ".\n"
        << "This method allows only the options \"Ze\" and \"1\".";
     throw runtime_error(os.str());
   }

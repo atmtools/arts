@@ -1003,6 +1003,23 @@ void VectorExtractFromMatrix(
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated  */
+void Trapz(
+    Numeric& out,
+    const Vector& x,
+    const Vector& y,
+    const Verbosity&) {
+  const Index n = x.nelem();
+  if (y.nelem() != n) 
+    throw runtime_error("The vectors *x* and *y* must have the same length.");
+    
+  out = 0;
+  for (Index i=1; i<n; i++)
+    out += 0.5*(y[i-1]+y[i]) * (x[i]-x[i-1]);
+}
+
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3ExtractFromTensor4(
     // WS Generic Output:
@@ -1294,6 +1311,23 @@ void VectorNLogSpace(Vector& x,
 
   if (x.nelem() > 1)
     out3 << "        last value : " << x[x.nelem() - 1] << "\n";
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorPower(Vector& out,
+                 const Vector& in,
+                 const Numeric& value,
+                 const Verbosity&) {
+  const Index n = in.nelem();
+  // Note that in and out can be the same vector
+  if (&out == &in) {
+    // Out and in are the same. 
+  } else {
+    out.resize(n);
+  }
+  for (Index i=0; i<n; i++) {
+    out[i] = pow( in[i], value );
+  }  
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
