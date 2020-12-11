@@ -210,6 +210,12 @@ constexpr Numeric cyclic_clamp(const Numeric x,
     return x;
 }
 
+/*!  For std functions that are not constexpr */
+namespace nonstd {
+/*! abs(x) returns |x| using -x if x < 0 or x otherwise */
+template <class T> constexpr T abs(T x) {return x < 0 ? - x : x;}
+}  // nonstd
+
 /*! Find the absolute minimum in a cycle
  *
  * @param[in] x A position relative to a cycle
@@ -219,9 +225,9 @@ constexpr Numeric cyclic_clamp(const Numeric x,
 constexpr Numeric min_cyclic(const Numeric x,
                              const std::pair<Numeric, Numeric> xlim) noexcept {
   const Numeric dx = xlim.second - xlim.first;
-  const bool lo = std::abs(x) < std::abs(x - dx);
-  const bool hi = std::abs(x) < std::abs(x + dx);
-  const bool me = std::abs(x + dx) < std::abs(x - dx);
+  const bool lo = nonstd::abs(x) < nonstd::abs(x - dx);
+  const bool hi = nonstd::abs(x) < nonstd::abs(x + dx);
+  const bool me = nonstd::abs(x + dx) < nonstd::abs(x - dx);
   return (lo and hi) ? x : me ? x + dx : x - dx;
 }
 
@@ -342,7 +348,7 @@ constexpr Index pos_finder(const Index pos0, const Numeric x, const SortedVector
       }
     } else {
       // In the nearest neighbor case, we mus choose the closest neighbor
-      if (p0 < N and (std::abs(xi[p0] - x) >= std::abs(xi[p0 + 1] - x))) {
+      if (p0 < N and (nonstd::abs(xi[p0] - x) >= nonstd::abs(xi[p0 + 1] - x))) {
         return p0 + 1;
       } else {
         return p0;
@@ -594,10 +600,10 @@ void check_lagrange_interpolation([[maybe_unused]] const SortedVectorType& xi,
       "\tBad cycle, must be [first, second)");
   } else if (polyorder and extrapol > 0 and GridType::Cyclic not_eq type) {
     const bool ascending = is_ascending(xi);
-    const Numeric xmin = ascending ? xi[0  ] - extrapol * std::abs(xi[1  ] - xi[0  ]) :
-                                     xi[n-1] - extrapol * std::abs(xi[n-2] - xi[n-1]) ;
-    const Numeric xmax = ascending ? xi[n-1] + extrapol * std::abs(xi[n-2] - xi[n-1]) :
-                                     xi[0  ] + extrapol * std::abs(xi[1  ] - xi[0  ]) ;
+    const Numeric xmin = ascending ? xi[0  ] - extrapol * nonstd::abs(xi[1  ] - xi[0  ]) :
+                                     xi[n-1] - extrapol * nonstd::abs(xi[n-2] - xi[n-1]) ;
+    const Numeric xmax = ascending ? xi[n-1] + extrapol * nonstd::abs(xi[n-2] - xi[n-1]) :
+                                     xi[0  ] + extrapol * nonstd::abs(xi[1  ] - xi[0  ]) ;
     if (x.first < xmin or x.second > xmax) {
       std::ostringstream os;
       os << "Interpolation setup has failed!\n";
