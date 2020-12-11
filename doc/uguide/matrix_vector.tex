@@ -94,6 +94,7 @@ vector. (Surprise, surprise.) This means that:
 You can construct an object of class Vector in any of these ways:
 
 \begin{code}
+// By simple initialization
 Vector a;         // Create empty Vector.
 Vector b(3);      // Create Vector of length 3, if
                   // created like this it will contain
@@ -101,20 +102,35 @@ Vector b(3);      // Create Vector of length 3, if
 Vector c(3,0.0);  // Create Vector of length 3, and
                   // fill it with 0.
 
+// By copy
 Vector d=c;       // Make d a copy of c.
 
+// By special initialization
 Vector e(1,5,1);  // 1, 2, 3, 4, 5
 Vector f(1,5,.5); // 1, 1.5, 2, 2.5, 3
 Vector g(5,5,-1); // 5, 4, 3, 2, 1
+
+// By initialization list
 Vector h{1.0,2.0,3.0};  // Creates a vector of length 3
                         // containing the values
                         // 1.0, 2.0, and 3.0.
+
+// By moving from another target
+Vector i=func(...;  // func(...) returns a Vector
+Vector j=other.reduce_rank<I>();  // Where other is an
+                                  // rvalue matrix or
+                                  // tensor and I is the
+                                  // kept dimension
 \end{code}
 
-The last three examples all use the same constructor, which takes
+The special initialization examples all use the same constructor, which takes
 the three arguments `start', `extent', and `stride'. It will create a
 Vector containing `extent' elements, starting with `start', with a
 step of `stride'.
+
+The `reduce\_rank' example requires that `I' is less than the rank of the matrix/tensor,
+and that the dimensions not kept are all 1-long in the higher ranked type.  Note that the
+higher ranked type will be left in a valid to destroy, but not valid to access state.
 
 \subsection{VectorViews}
 %-------------------------------------------------------------------------
@@ -338,6 +354,7 @@ matrix. (Who would have guessed this?) This means that:
 You can construct an object of class Matrix in any of these ways:
 
 \begin{code}
+// By simple initialization
 Matrix a;          // Create empty Matrix.
 Matrix b(3,4);     // Create Matrix with 3 rows
                    // and 4 columns. When
@@ -346,8 +363,20 @@ Matrix b(3,4);     // Create Matrix with 3 rows
 Matrix c(3,4,0.0); // Similar, but
                    // fill it with 0.
 
+// By copy
 Matrix d=c;        // Make d a copy of c.
+
+// By moving from another target
+Matrix e=func2(...;  // func2(...) returns a Matrix
+Matrix f=other.reduce_rank<I, J>();  // Where other is an
+                                     // rvalue tensor and
+                                     // I and J are the
+                                     // kept dimensions
 \end{code}
+
+The `reduce\_rank' example requires that `I' and `J' are less than the rank of the tensor,
+and that the dimensions not kept are all 1-long in the higher ranked type.  Note that the
+higher ranked type will be left in a valid to destroy, but not valid to access state.
 
 \subsection{MatrixViews}
 %-------------------------------------------------------------------------
@@ -610,14 +639,46 @@ order tensor, except that it has some additional features.)
 You can construct an object of a tensor class like this:
 
 \begin{code}
+// By simple initialization
 Tensor7 a;            // Create empty tensor of rank 7
 Tensor3 b(2,4,3);     // 2 pages, 4 rows, 3 columns
 Tensor3 c(2,4,3,0.0); // Similar, but
                       // fill it with 0.
 
+// By copy
 Tensor3 d=c;          // Make d a copy of c.
+
+// By moving from another target
+Tensor3 e3=func3(...;  // func3(...) returns a Tensor3
+Tensor4 e4=func4(...;  // func4(...) returns a Tensor4
+Tensor4 e5=func5(...;  // func5(...) returns a Tensor5
+Tensor4 e6=func6(...;  // func6(...) returns a Tensor6
+Tensor4 e7=func7(...;  // func7(...) returns a Tensor7
+Tensor3 f=other.reduce_rank<I, J, K>();  // Where other is an
+                                         // rvalue tensor of
+                                         // higher order than 3
+                                         // and I-K are the
+                                         // kept dimensions
+Tensor4 f=other.reduce_rank<I, J, K, L>();  // Where other is an
+                                         // rvalue tensor of
+                                         // higher order than 4
+                                         // and I-L are the
+                                         // kept dimensions
+Tensor5 f=other.reduce_rank<I, J, K, L, M>();  // Where other is an
+                                         // rvalue tensor of
+                                         // higher order than 5
+                                         // and I-L are the
+                                         // kept dimensions
+Tensor6 f=other.reduce_rank<I, J, K, L, M, N>();  // Where other is an
+                                         // rvalue Tensor7 and
+                                         // I-N are the kept
+                                         // dimensions
 \end{code}
 
+The `reduce\_rank' examples requires that `I' to `N' are all less than the rank of the 
+higher ranked tensor,
+and that the dimensions not kept are all 1-long of this tensor.  Note that the
+higher ranked tensor will be left in a valid to destroy, but not valid to access state.
 
 \subsection{Tensor views}
 %-------------------------------------------------------------------------
