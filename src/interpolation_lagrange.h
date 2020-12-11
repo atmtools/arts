@@ -367,8 +367,10 @@ ENUMCLASS(GridType, char,
           Log,        /* Natural logarithm interpolation grid */
           Log10,      /* 10-base logarithm interpolation grid */
           Log2,       /* 2-base logarithm interpolation grid */
+          SinDeg,     /* Cosine in degrees interpolation grid, grid only defined [-90, 90] */
+          SinRad,     /* Cosine in radians interpolation grid, grid only defined [-PI/2, PI/2] */
           CosDeg,     /* Cosine in degrees interpolation grid, grid only defined [0, 180] */
-          CosRad      /* Cosine in radians interpolation grid, grid only defined [0, 2PI] */
+          CosRad      /* Cosine in radians interpolation grid, grid only defined [0,  PI] */
          )
 
 /*! Computes the weights for a given coefficient
@@ -400,14 +402,22 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
         // Binary log weights
         val *= (std::log2(x) - std::log2(xi[m + p0])) /
                (std::log2(xi[j + p0]) - std::log2(xi[m + p0]));
+      } else if constexpr (type == GridType::SinDeg) {
+        // Sine in degrees weights
+        using Conversion::sind;
+        val *= (sind(x) - sind(xi[m + p0])) / (sind(xi[j + p0]) - sind(xi[m + p0]));
+      } else if constexpr (type == GridType::SinRad) {
+        // Sine in radians weights
+        using std::sin;
+        val *= (sin(x) - sin(xi[m + p0])) / (sin(xi[j + p0]) - sin(xi[m + p0]));
       } else if constexpr (type == GridType::CosDeg) {
-        // Cosine in degrees weights (nb. switch order of arguments)
-        val *= (Conversion::cosd(xi[m + p0]) - Conversion::cosd(x)) /
-               (Conversion::cosd(xi[m + p0]) - Conversion::cosd(xi[j + p0]));
+        // Cosine in degrees weights (nb. order changed)
+        using Conversion::cosd;
+        val *= (cosd(xi[m + p0]) - cosd(x)) / (cosd(xi[m + p0]) - cosd(xi[j + p0]));
       } else if constexpr (type == GridType::CosRad) {
-        // Cosine in radians weights (nb. switch order of arguments)
-        val *= (std::cos(xi[m + p0]) - std::cos(x)) /
-               (std::cos(xi[m + p0]) - std::cos(xi[j + p0]));
+        // Cosine in radians weights (nb. order changed)
+        using std::cos;
+        val *= (cos(xi[m + p0]) - cos(x)) / (cos(xi[m + p0]) - cos(xi[j + p0]));
       } else if constexpr (type == GridType::Standard) {
         // Linear weights, simple and straightforward
         val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
@@ -720,6 +730,14 @@ struct Lagrange {
         for (Index j = 0; j < n; j++)
           out[j] = l<GridType::Cyclic>(p0, n, x, xi, j, cycle);
         break;
+      case GridType::SinDeg:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<GridType::SinDeg>(p0, n, x, xi, j);
+        break;
+      case GridType::SinRad:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<GridType::SinRad>(p0, n, x, xi, j);
+        break;
       case GridType::CosDeg:
         for (Index j = 0; j < n; j++)
           out[j] = l<GridType::CosDeg>(p0, n, x, xi, j);
@@ -762,6 +780,14 @@ struct Lagrange {
       case GridType::Cyclic:
         for (Index j = 0; j < n; j++)
           out[j] = dl<GridType::Cyclic>(p0, n, x, xi, li, j, cycle);
+        break;
+      case GridType::SinDeg:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<GridType::SinDeg>(p0, n, x, xi, li, j);
+        break;
+      case GridType::SinRad:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<GridType::SinRad>(p0, n, x, xi, li, j);
         break;
       case GridType::CosDeg:
         for (Index j = 0; j < n; j++)
@@ -857,6 +883,14 @@ struct FixedLagrange {
         for (Index j = 0; j < n; j++)
           out[j] = l<GridType::Cyclic>(p0, n, x, xi, j, cycle);
         break;
+      case GridType::SinDeg:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<GridType::SinDeg>(p0, n, x, xi, j);
+        break;
+      case GridType::SinRad:
+        for (Index j = 0; j < n; j++)
+          out[j] = l<GridType::SinRad>(p0, n, x, xi, j);
+        break;
       case GridType::CosDeg:
         for (Index j = 0; j < n; j++)
           out[j] = l<GridType::CosDeg>(p0, n, x, xi, j);
@@ -895,6 +929,14 @@ struct FixedLagrange {
       case GridType::Log2:
         for (Index j = 0; j < n; j++)
           out[j] = dl<GridType::Log2>(p0, n, x, xi, li, j);
+        break;
+      case GridType::SinDeg:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<GridType::SinDeg>(p0, n, x, xi, li, j);
+        break;
+      case GridType::SinRad:
+        for (Index j = 0; j < n; j++)
+          out[j] = dl<GridType::SinRad>(p0, n, x, xi, li, j);
         break;
       case GridType::CosDeg:
         for (Index j = 0; j < n; j++)

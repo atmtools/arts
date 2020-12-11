@@ -715,18 +715,20 @@ where $f$ is a grid scaling function.  This can be a logarithm, reverse cosine,
 circular constraints, or, most commonly, just the input.  The provided options
 are part of the \shortcode{Interpolation::GridType} enum class and are:
 \begin{itemize}
- \item[\shortcode{Linear}] $f\left(t\right) = t$
+ \item[\shortcode{Standard}] $f\left(t\right) = t$
  \item[\shortcode{Cyclic}] $f\left(t\right) = t + n\left(t_1 - t_0\right)$,
                            where $c_0 \leq t + n\left(c_1 - c_0\right) < c_1$,
                            with $n$ as an integer and $\left[c_0, c_1\right)$
                            are the cyclic limits so that
                            $g\left(c_0\right) \equiv g\left(c_0 + m\left[c_1-c_0\right]\right)$
                            holds true for valid function $g(t)$ and any integer $m$
- \item[\shortcode{Log}] $f\left(t\right) = \ln\left(t\right)$
- \item[\shortcode{Log10}] $f\left(t\right) = \log_{10}\left(t\right)$
- \item[\shortcode{Log2}] $f\left(t\right) = \log_2\left(t\right)$
- \item[\shortcode{CosDeg}] $f\left(t\right) = \cos\left(\left[1 - \frac{t}{180}\right]\pi\right)$
- \item[\shortcode{CosRad}] $f\left(t\right) = \cos\left(\pi-t\right)$
+ \item[\shortcode{Log}] $f\left(t\right) = \ln\left(t\right)$, where $t > 0$
+ \item[\shortcode{Log10}] $f\left(t\right) = \log_{10}\left(t\right)$, where $t > 0$
+ \item[\shortcode{Log2}] $f\left(t\right) = \log_2\left(t\right)$, where $t > 0$
+ \item[\shortcode{SinDeg}] $f\left(t\right) = \sin\left(\frac{\pi}{180}t\right)$, where $-90\leq t \leq 90$
+ \item[\shortcode{SinRad}] $f\left(t\right) = \sin\left(t\right)$, where $-\pi/2 \leq t \leq \pi/2$
+ \item[\shortcode{CosDeg}] $f\left(t\right) = \cos\left(\frac{\pi}{180}\left[180 - t\right]\right)$, where $0\leq t \leq 180$
+ \item[\shortcode{CosRad}] $f\left(t\right) = \cos\left(\pi-t\right)$, where $0 \leq t \leq \pi$
 \end{itemize}
 
 These are for the 1D case. For 2D and higher dimensional cases, the weights of
@@ -748,7 +750,7 @@ The derivatives are computed as
  \right. \; i \neq j.
 \end{equation}
 Note that the upper branch speedup is only available for 
-\shortcode{Linear} and for \shortcode{Cyclic} code.
+\shortcode{Standard} and for \shortcode{Cyclic} code.
 Other cases must use the lower branch to get linear derivatives.
 These are again for the 1D case. For 2D and higher dimensional cases, the weights of
 the individual dimensions have to be multiplied with the weights of the derivative
@@ -789,9 +791,10 @@ so that they can efficiently be reduced to the size of interest.
 
 For $O=1$ the result of the
 interpolation chain will be the same as for the linear interpolation
-routines. Below is a simple complete example, taken from
-the file \fileindex{test\_interpolation.cc} in the arts source directory: 
+routines. Below are two simple complete examples, first for \shortcode{interp} and then for \shortcode{reinterp}+\shortcode{reduce}.
+Both examples taken from the file \fileindex{test\_interpolation.cc} in the arts source directory.
 
+Example 1:
 \begin{code}
 void test09() {
   Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
@@ -816,6 +819,60 @@ void test09() {
   }
 }
 \end{code}
+
+Example 2:
+\begin{code}
+void test28() {
+  using Constant::pow2;
+  using Constant::pow3;
+  using Conversion::sind;
+  using Conversion::cosd;
+  
+  // Old Grid of pressure, latitude, and longitude
+  Vector pre; VectorNLogSpace(pre, 10, 1e5, 1e-1, Verbosity()); 
+  Vector lat; VectorNLinSpace(lat, 5, -80, 80, Verbosity());
+  Vector lon; VectorNLinSpace(lon, 4, -170, 170, Verbosity());
+  
+  // New Grids (pressure will be reduced)
+  Vector newpre(1, pre[pre.nelem()/2]); 
+  Vector newlat; VectorNLinSpace(newlat, 4, - 90,  90, Verbosity());
+  Vector newlon; VectorNLinSpace(newlon, 3, -180, 180, Verbosity());
+  
+  // Old Data given some values
+  Tensor3 data(pre.nelem(), lat.nelem(), lon.nelem());
+  for (Index i=0; i<pre.nelem(); i++) {
+    for (Index j=0; j<lat.nelem(); j++) {
+      for (Index k=0; k<lon.nelem(); k++) {
+        data(i, j, k) =
+          std::log(pre[i]) * sind(lat[j]) * pow3(cosd(lon[k]));
+      }
+    }
+  }
+  
+  // Create Lagrange interpolation values
+  const ArrayOfLagrangeInterpolation lag_pre =
+    Interpolation::LagrangeVector(newpre, pre, 2, 1e9, false,
+      Interpolation::GridType::Log);
+  const ArrayOfLagrangeInterpolation lag_lat =
+    Interpolation::LagrangeVector(newlat, lat, 3, 1e9, false,
+      Interpolation::GridType::SinDeg);
+  const ArrayOfLagrangeInterpolation lag_lon =
+    Interpolation::LagrangeVector(newlon, lon, 1, 1e9, false,
+      Interpolation::GridType::Cyclic, {-180, 180});
+  
+  // Create the interpolation weights
+  const auto lag_iw = interpweights(lag_pre, lag_lat, lag_lon);
+  
+  // Create and reduce the new data
+  const Matrix newdata = reinterp(data,
+    lag_iw, lag_pre, lag_lat, lag_lon).reduce_rank<1, 2>();
+  
+  // Print the data
+  std::cout << data(pre.nelem()/2, joker, joker) 
+            << '\n' << '\n' << newdata << '\n';
+}
+\end{code}
+
 
 Note that we also provide fixed interpolation higher order calculations where
 the weights are stored in types of \shortcode{FixedLagrangeInterpolation<O>}.

@@ -237,9 +237,7 @@ Numeric interp(const ConstTensor3View& yi, const ConstTensor3View& iw,
   for (Index i = 0; i < dim0.size(); i++)
     for (Index j = 0; j < dim1.size(); j++)
       for (Index k = 0; k < dim2.size(); k++)
-        out += iw(i, j, k) *
-               yi(cycler(i + dim0.pos, I), cycler(j + dim1.pos, J),
-                  (k + dim1.pos) > K ? k + dim2.pos - K : k + dim2.pos);
+        out += iw(i, j, k) * yi(cycler(i + dim0.pos, I), cycler(j + dim1.pos, J), cycler(k + dim2.pos, K));
   return out;
 }
 

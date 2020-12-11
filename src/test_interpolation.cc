@@ -935,4 +935,54 @@ void test27() {
     std::cout << a << '\n';
 }
 
-int main() { test27(); }
+void test28() {
+  using Constant::pow2;
+  using Constant::pow3;
+  using Conversion::sind;
+  using Conversion::cosd;
+  
+  // Old Grid of pressure, latitude, and longitude
+  Vector pre; VectorNLogSpace(pre, 10, 1e5, 1e-1, Verbosity()); 
+  Vector lat; VectorNLinSpace(lat, 5, -80, 80, Verbosity());
+  Vector lon; VectorNLinSpace(lon, 4, -170, 170, Verbosity());
+  
+  // New Grids (pressure will be reduced)
+  Vector newpre(1, pre[pre.nelem()/2]); 
+  Vector newlat; VectorNLinSpace(newlat, 4, - 90,  90, Verbosity());
+  Vector newlon; VectorNLinSpace(newlon, 3, -180, 180, Verbosity());
+  
+  // Old Data given some values
+  Tensor3 data(pre.nelem(), lat.nelem(), lon.nelem());
+  for (Index i=0; i<pre.nelem(); i++) {
+    for (Index j=0; j<lat.nelem(); j++) {
+      for (Index k=0; k<lon.nelem(); k++) {
+        data(i, j, k) =
+          std::log(pre[i]) * sind(lat[j]) * pow3(cosd(lon[k]));
+      }
+    }
+  }
+  
+  // Create Lagrange interpolation values
+  const ArrayOfLagrangeInterpolation lag_pre =
+    Interpolation::LagrangeVector(newpre, pre, 2, 1e9, false,
+      Interpolation::GridType::Log);
+  const ArrayOfLagrangeInterpolation lag_lat =
+    Interpolation::LagrangeVector(newlat, lat, 3, 1e9, false,
+      Interpolation::GridType::SinDeg);
+  const ArrayOfLagrangeInterpolation lag_lon =
+    Interpolation::LagrangeVector(newlon, lon, 1, 1e9, false,
+      Interpolation::GridType::Cyclic, {-180, 180});
+  
+  // Create the interpolation weights
+  const auto lag_iw = interpweights(lag_pre, lag_lat, lag_lon);
+  
+  // Create and reduce the new data to dim 1 and 2
+  const Matrix newdata = reinterp(data,
+    lag_iw, lag_pre, lag_lat, lag_lon).reduce_rank<1, 2>();
+  
+  // Print the data
+  std::cout << data(pre.nelem()/2, joker, joker) 
+            << '\n' << '\n' << newdata << '\n';
+}
+
+int main() { test28(); }
