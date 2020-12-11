@@ -388,7 +388,7 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
       }
       return T_lag;
     } else {
-      return Interpolation::LagrangeVector(T_array, T_grid, this_T_interp_order, extrapolfac, false, Interpolation::GridType::Linear);
+      return Interpolation::LagrangeVector(T_array, T_grid, this_T_interp_order, extrapolfac);
     }
   } else {
     t_ok = 1.;

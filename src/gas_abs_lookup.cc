@@ -453,7 +453,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   transform(log_p_grid, log, p_grid);
 
   // 6. Initialize flag_default.
-  flag_default = Interpolation::LagrangeVector(f_grid, f_grid, 0, 0.5, false, Interpolation::GridType::Linear);
+  flag_default = Interpolation::LagrangeVector(f_grid, f_grid, 0);
 }
 
 //! Extract scalar gas absorption coefficients from the lookup table.
@@ -707,7 +707,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       }
     } else if (n_new_f_grid == 1) {
       flag = &flag_local;
-      flag_local = Interpolation::LagrangeVector(new_f_grid, f_grid, 0, 0.5, false, Interpolation::GridType::Linear);
+      flag_local = Interpolation::LagrangeVector(new_f_grid, f_grid, 0);
 
       // Check that we really are on a frequency grid point, for safety's sake.
       if (abs(f_grid[flag_local[0].pos] - new_f_grid[0]) > allowed_f_margin)
@@ -749,7 +749,7 @@ void GasAbsLookup::Extract(Matrix& sga,
 
     // We do have real frequency interpolation (f_interp_order!=0).
     flag = &flag_local;
-    flag_local = Interpolation::LagrangeVector(new_f_grid, f_grid, f_interp_order, 0.5, false, Interpolation::GridType::Linear);
+    flag_local = Interpolation::LagrangeVector(new_f_grid, f_grid, f_interp_order);
   }
 
   // 4.b Other stuff
@@ -792,7 +792,7 @@ void GasAbsLookup::Extract(Matrix& sga,
   // For sure, we need to store the pressure grid position.
   // We do the interpolation in log(p). Test have shown that this
   // gives slightly better accuracy than interpolating in p directly.
-  const auto plag = Interpolation::LagrangeVector(log(p), log_p_grid, p_interp_order, 0.5, false, Interpolation::GridType::Linear);
+  const auto plag = Interpolation::LagrangeVector(log(p), log_p_grid, p_interp_order);
 
   // Pressure interpolation weights:
   const auto pitw = interpweights(plag[0]);
@@ -928,7 +928,7 @@ void GasAbsLookup::Extract(Matrix& sga,
         }
       }
 
-      tlag_withT[0] = LagrangeInterpolation(0, T_offset, t_pert, t_interp_order, false, Interpolation::GridType::Linear);
+      tlag_withT[0] = LagrangeInterpolation(0, T_offset, t_pert, t_interp_order);
     }
 
     // Determine the H2O VMR grid position. We need to do this only
@@ -987,7 +987,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       }
 
       // For now, do linear interpolation in the fractional VMR.
-      vlag_h2o[0] = LagrangeInterpolation(0, VMR_frac, nls_pert, h2o_interp_order, false, Interpolation::GridType::Linear);
+      vlag_h2o[0] = LagrangeInterpolation(0, VMR_frac, nls_pert, h2o_interp_order);
     }
 
     // Precalculate interpolation weights.

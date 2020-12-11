@@ -181,7 +181,7 @@ void cia_interpolation(VectorView result,
   }
   
   // Find frequency grid positions:
-  const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid, false, Interpolation::GridType::Linear);
+  const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid);
   
   // Do the rest of the interpolation.
   if (T_order == 0) {
@@ -191,13 +191,13 @@ void cia_interpolation(VectorView result,
     // Temperature and frequency interpolation.
     const auto Tnew = std::array<double, 1>{temperature};
     if (T_order == 1) {
-      const auto T_lag = Interpolation::FixedLagrangeVector<1>(Tnew, data_T_grid, false, Interpolation::GridType::Linear);
+      const auto T_lag = Interpolation::FixedLagrangeVector<1>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else if (T_order == 2) {
-      const auto T_lag = Interpolation::FixedLagrangeVector<2>(Tnew, data_T_grid, false, Interpolation::GridType::Linear);
+      const auto T_lag = Interpolation::FixedLagrangeVector<2>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else if (T_order == 3) {
-      const auto T_lag = Interpolation::FixedLagrangeVector<3>(Tnew, data_T_grid, false, Interpolation::GridType::Linear);
+      const auto T_lag = Interpolation::FixedLagrangeVector<3>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else {
       throw std::runtime_error("Cannot have this T_order, you must update the code...");

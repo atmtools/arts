@@ -1611,7 +1611,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
           (scat_data_raw[i_ss][i_se].f_grid.nelem() == 1);
       if (!single_se_fgrid) {
         // Gridpositions:
-        const auto lag_freq=Interpolation::LagrangeVector(f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order, 0.5, false, Interpolation::GridType::Linear);
+        const auto lag_freq=Interpolation::LagrangeVector(f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order);
         const auto itw = interpweights(lag_freq);
 
         //Phase matrix data
@@ -1782,7 +1782,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
       chk_interpolation_grids(ost.str(), T_DATAGRID, T, interp_order);
 
       // Gridpositions:
-      const LagrangeInterpolation lag_T(0, T, T_DATAGRID, interp_order, false, Interpolation::GridType::Linear);
+      const LagrangeInterpolation lag_T(0, T, T_DATAGRID, interp_order);
       const auto itw = interpweights(lag_T);
 
       //Sizing of temporary SSD data containers

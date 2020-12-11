@@ -922,7 +922,7 @@ void iyInterpCloudboxField(Matrix& iy,
   // Find position of zenith, either by cosine or linear weights
   const auto lag_za = cos_za_interp ?
   LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, false, Interpolation::GridType::CosDeg) :
-    LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, false, Interpolation::GridType::Linear);
+  LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order);
   
   // First position if 1D atmosphere, otherwise compute cyclic for a azimuth grid [-180, 180]
   const auto lag_aa = (atmosphere_dim > 1) ?

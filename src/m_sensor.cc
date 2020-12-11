@@ -1699,7 +1699,7 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
     fnew[Range(i * n1, n2)] = fp;
   }
 
-  const auto lag = Interpolation::LagrangeVector(fnew, sensor_response_f_grid, polyorder, 0.5, false, Interpolation::GridType::Linear);
+  const auto lag = Interpolation::LagrangeVector(fnew, sensor_response_f_grid, polyorder);
 
   // Set up H for this part
   //

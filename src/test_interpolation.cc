@@ -462,9 +462,9 @@ void test11() {
   constexpr Index order = 5;
   {
     const auto lag0 = Interpolation::LagrangeVector(
-        x0n, x0, order, 0.5, false, Interpolation::GridType::Linear);
+        x0n, x0, order, 0.5, false, Interpolation::GridType::Standard);
     const auto lag1 = Interpolation::LagrangeVector(
-        x1n, x1, order, 0.5, false, Interpolation::GridType::Linear);
+        x1n, x1, order, 0.5, false, Interpolation::GridType::Standard);
     const auto iwlag = interpweights(lag0, lag1);
     std::cout << x0n << '\n'
               << x1n << '\n'
@@ -534,17 +534,17 @@ void test13() {
 
   // Set up the interpolation Lagranges
   constexpr FixedLagrangeInterpolation<1> lin(0, x,
-                                                std::array<Numeric, 2>{1, 2});
+                                                std::array<Numeric, 2>{1, 2}, true);
   constexpr FixedLagrangeInterpolation<2> sqr(
-      0, x, std::array<Numeric, 3>{1, 2, 3});
+    0, x, std::array<Numeric, 3>{1, 2, 3}, true);
   constexpr FixedLagrangeInterpolation<3> cub(
-      0, x, std::array<Numeric, 4>{1, 2, 3, 4});
+    0, x, std::array<Numeric, 4>{1, 2, 3, 4}, true);
   constexpr FixedLagrangeInterpolation<1> dlin(0, x + dx,
-                                                 std::array<Numeric, 2>{1, 2});
+                                               std::array<Numeric, 2>{1, 2}, true);
   constexpr FixedLagrangeInterpolation<2> dsqr(
-      0, x + dx, std::array<Numeric, 3>{1, 2, 3});
+    0, x + dx, std::array<Numeric, 3>{1, 2, 3}, true);
   constexpr FixedLagrangeInterpolation<3> dcub(
-      0, x + dx, std::array<Numeric, 4>{1, 2, 3, 4});
+    0, x + dx, std::array<Numeric, 4>{1, 2, 3, 4}, true);
 
   // Set up the interpolation weights
   constexpr auto lin_iw = interpweights(lin);
@@ -596,11 +596,11 @@ void test14() {
 
   // Set up the interpolation Lagranges
   auto lin = Interpolation::FixedLagrangeVector<1>(
-      x, y, true, Interpolation::GridType::Linear);
+      x, y, true, Interpolation::GridType::Standard);
   auto sqr = Interpolation::FixedLagrangeVector<2>(
-      x, y, true, Interpolation::GridType::Linear);
+      x, y, true, Interpolation::GridType::Standard);
   auto cub = Interpolation::FixedLagrangeVector<3>(
-      x, y, true, Interpolation::GridType::Linear);
+      x, y, true, Interpolation::GridType::Standard);
 
   // Set up the interpolation weights
   auto lin_iw = interpweights(lin);
@@ -629,13 +629,13 @@ void test16() {
   Vector x{2.25, 3.25, 2.35};
 
   auto asc = Interpolation::LagrangeVector(x, xasc, 1, 1.0, true,
-                                           Interpolation::GridType::Linear);
+                                           Interpolation::GridType::Standard);
   auto des = Interpolation::LagrangeVector(x, xdes, 1, 1.0, true,
-                                           Interpolation::GridType::Linear);
+                                           Interpolation::GridType::Standard);
   auto fasc = Interpolation::FixedLagrangeVector<1>(
-      x, xasc, true, Interpolation::GridType::Linear);
+      x, xasc, true, Interpolation::GridType::Standard);
   auto fdes = Interpolation::FixedLagrangeVector<1>(
-      x, xdes, true, Interpolation::GridType::Linear);
+      x, xdes, true, Interpolation::GridType::Standard);
   for (Index i = 0; i < x.size(); i++) {
     std::cout << x[i] << ": " << asc[i] << ' ' << '-' << ' ' << des[i] << ' '
               << " xstart [asc des]: " << xasc[asc[i].pos] << ' '
@@ -852,7 +852,7 @@ void test26() {
     constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Linear);
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
     static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
   }
@@ -861,7 +861,7 @@ void test26() {
     constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Linear);
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
     static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
   }
@@ -870,7 +870,7 @@ void test26() {
     constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Linear);
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
     static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
   }
@@ -879,7 +879,7 @@ void test26() {
     constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Linear);
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
     static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
   }
@@ -888,7 +888,7 @@ void test26() {
     constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Linear);
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
     static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
   }
@@ -897,7 +897,7 @@ void test26() {
     constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Linear);
+    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
     static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
   }
@@ -918,7 +918,7 @@ void test26() {
   std::cout << "x f(x) interp(x) df(x) dinterp(x)\n";
   for (Numeric X=-3; X<3; X+=0.025) {
     const Interpolation::FixedLagrange<O2> cyc(0, X, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
-    const Interpolation::FixedLagrange<O2> lin(0, X, xi, true, Interpolation::GridType::Linear);
+    const Interpolation::FixedLagrange<O2> lin(0, X, xi, true, Interpolation::GridType::Standard);
     std::cout << X << ' ' << f(X) << ' ' << interp(yi, interpweights(cyc), cyc) << ' ' << df(X) << ' ' << interp(yi, dinterpweights(cyc), cyc) 
     << ' ' << interp(yi, interpweights(lin), lin) << ' ' << interp(yi, dinterpweights(lin), lin) << '\n';
   }

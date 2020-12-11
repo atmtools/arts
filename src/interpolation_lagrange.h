@@ -362,13 +362,13 @@ constexpr Index pos_finder(const Index pos0, const Numeric x, const SortedVector
  * of the type
  */
 ENUMCLASS(GridType, char,
-          Linear,  /* Linear interpolation grid */
-          Cyclic,  /* Cyclic interpolation grid */
-          Log,     /* Natural logarithm interpolation grid */
-          Log10,   /* 10-base logarithm interpolation grid */
-          Log2,    /* 2-base logarithm interpolation grid */
-          CosDeg,  /* Cosine in degrees interpolation grid, grid only defined [0, 180] */
-          CosRad   /* Cosine in radians interpolation grid, grid only defined [0, 2PI] */
+          Standard,   /* 1-to-1 interpolation grid */
+          Cyclic,     /* Cyclic interpolation grid */
+          Log,        /* Natural logarithm interpolation grid */
+          Log10,      /* 10-base logarithm interpolation grid */
+          Log2,       /* 2-base logarithm interpolation grid */
+          CosDeg,     /* Cosine in degrees interpolation grid, grid only defined [0, 180] */
+          CosRad      /* Cosine in radians interpolation grid, grid only defined [0, 2PI] */
          )
 
 /*! Computes the weights for a given coefficient
@@ -408,7 +408,7 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
         // Cosine in radians weights (nb. switch order of arguments)
         val *= (std::cos(xi[m + p0]) - std::cos(x)) /
                (std::cos(xi[m + p0]) - std::cos(xi[j + p0]));
-      } else if constexpr (type == GridType::Linear) {
+      } else if constexpr (type == GridType::Standard) {
         // Linear weights, simple and straightforward
         val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
       } else if constexpr (type == GridType::Cyclic) {
@@ -454,7 +454,7 @@ constexpr double dl_dval(
     const Index p0, const Index n, const Numeric x, const SortedVectorType& xi,
     [[maybe_unused]] const LagrangeVectorType& li, const Index j, const Index i,
     [[maybe_unused]] const std::pair<Numeric, Numeric> cycle) {
-  if constexpr (type == GridType::Linear) {
+  if constexpr (type == GridType::Standard) {
     // Linear weights, simple and straightforward
     if (x not_eq xi[i + p0]) {
       // A simple case when x is not on the grid
@@ -572,7 +572,7 @@ void check_lagrange_interpolation([[maybe_unused]] const SortedVectorType& xi,
                                   [[maybe_unused]] const Index polyorder = 1,
                                   [[maybe_unused]] const std::pair<Numeric, Numeric> x={std::numeric_limits<Numeric>::infinity(), -std::numeric_limits<Numeric>::infinity()},
                                   [[maybe_unused]] const Numeric extrapol = 0.5,
-                                  [[maybe_unused]] const GridType type = GridType::Linear,
+                                  [[maybe_unused]] const GridType type = GridType::Standard,
                                   [[maybe_unused]] const std::pair<Numeric, Numeric> cycle = {-180, 180}) {
   const Index n = Index(xi.size());
   
@@ -613,7 +613,7 @@ void check_lagrange_interpolation([[maybe_unused]] const SortedVectorType& xi,
                                   [[maybe_unused]] const Index polyorder,
                                   [[maybe_unused]] const Numeric x,
                                   [[maybe_unused]] const Numeric extrapol = 0.5,
-                                  [[maybe_unused]] const GridType type = GridType::Linear,
+                                  [[maybe_unused]] const GridType type = GridType::Standard,
                                   [[maybe_unused]] const std::pair<Numeric, Numeric> cycle = {-180, 180}) {
   check_lagrange_interpolation(xi, polyorder, {x, x}, extrapol, type, cycle);
 }
@@ -662,8 +662,8 @@ struct Lagrange {
   template <class SortedVectorType>
   Lagrange(const Index pos0, const Numeric x, const SortedVectorType& xi,
            const Index polyorder = 1,
-           const bool do_derivs = true,
-           const GridType type = GridType::Linear,
+           const bool do_derivs = false,
+           const GridType type = GridType::Standard,
            const std::pair<Numeric, Numeric> cycle = {-180, 180}) noexcept {
     const Index n = xi.size();
     if (n > 1) {
@@ -700,9 +700,9 @@ struct Lagrange {
       const std::pair<Numeric, Numeric> cycle) noexcept {
     Array<Numeric> out(n);
     switch (type) {
-      case GridType::Linear:
+      case GridType::Standard:
         for (Index j = 0; j < n; j++)
-          out[j] = l<GridType::Linear>(p0, n, x, xi, j);
+          out[j] = l<GridType::Standard>(p0, n, x, xi, j);
         break;
       case GridType::Log:
         for (Index j = 0; j < n; j++)
@@ -743,9 +743,9 @@ struct Lagrange {
       const std::pair<Numeric, Numeric> cycle) noexcept {
     Array<Numeric> out(n);
     switch (type) {
-      case GridType::Linear:
+      case GridType::Standard:
         for (Index j = 0; j < n; j++)
-          out[j] = dl<GridType::Linear>(p0, n, x, xi, li, j);
+          out[j] = dl<GridType::Standard>(p0, n, x, xi, li, j);
         break;
       case GridType::Log:
         for (Index j = 0; j < n; j++)
@@ -809,8 +809,8 @@ struct FixedLagrange {
   template <class SortedVectorType>
   constexpr FixedLagrange(const Index p0, const Numeric x,
                           const SortedVectorType& xi,
-                          const bool do_derivs = true,
-                          const GridType type = GridType::Linear,
+                          const bool do_derivs = false,
+                          const GridType type = GridType::Standard,
                           const std::pair<Numeric, Numeric> cycle = {-180, 180})
       : pos(pos_finder(p0, x, xi, PolyOrder,
                        type == GridType::Cyclic,
@@ -837,9 +837,9 @@ struct FixedLagrange {
     std::array<Numeric, PolyOrder + 1> out{};
     constexpr Index n = PolyOrder + 1;
     switch (type) {
-      case GridType::Linear:
+      case GridType::Standard:
         for (Index j = 0; j < n; j++)
-          out[j] = l<GridType::Linear>(p0, n, x, xi, j);
+          out[j] = l<GridType::Standard>(p0, n, x, xi, j);
         break;
       case GridType::Log:
         for (Index j = 0; j < n; j++)
@@ -880,9 +880,9 @@ struct FixedLagrange {
     std::array<Numeric, PolyOrder + 1> out{};
     constexpr Index n = PolyOrder + 1;
     switch (type) {
-      case GridType::Linear:
+      case GridType::Standard:
         for (Index j = 0; j < n; j++)
-          out[j] = dl<GridType::Linear>(p0, n, x, xi, li, j);
+          out[j] = dl<GridType::Standard>(p0, n, x, xi, li, j);
         break;
       case GridType::Log:
         for (Index j = 0; j < n; j++)
@@ -929,7 +929,7 @@ struct FixedLagrange {
  */
 Array<Lagrange> LagrangeVector(
     const ConstVectorView& x, const ConstVectorView& xi, const Index polyorder,
-    const Numeric extrapol, const bool do_derivs, const GridType type, const std::pair<Numeric, Numeric> cycle={-180, 180});
+    const Numeric extrapol=0.5, const bool do_derivs=false, const GridType type=GridType::Standard, const std::pair<Numeric, Numeric> cycle={-180, 180});
 
 /*! Gets a vector of Lagrange interpolation points
  *
@@ -942,7 +942,7 @@ template <std::size_t PolyOrder, class UnsortedVectorType,
           class SortedVectorType>
 Array<FixedLagrange<PolyOrder>> FixedLagrangeVector(
     const UnsortedVectorType& xs, const SortedVectorType& xi,
-    const bool do_derivs, const GridType type, const std::pair<Numeric, Numeric> cycle={-180, 180}) {
+    const bool do_derivs=false, const GridType type=GridType::Standard, const std::pair<Numeric, Numeric> cycle={-180, 180}) {
   Array<FixedLagrange<PolyOrder>> out;
   out.reserve(xs.size());
   bool has_one = false;
