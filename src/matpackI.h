@@ -1253,7 +1253,7 @@ class Matrix : public MatrixView {
   
   /*! Reduce a Matrix to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() {
+  Vector reduce_rank() && {
     static_assert(dim0 < 2, "Bad Dimension, Out-of-Bounds");
     
     Range r0(0, dim0 == 0 ? nrows() : ncols());

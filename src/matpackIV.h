@@ -468,7 +468,7 @@ class Tensor4 : public Tensor4View {
   
   /*! Reduce a Tensor4 to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() {
+  Vector reduce_rank() && {
     static_assert(dim0 < 4, "Bad Dimension, Out-of-Bounds");
     
     Range r0(0, dim0 == 0 ? nbooks() : dim0 == 1 ? npages() : dim0 == 2 ? nrows() : ncols());
@@ -481,7 +481,7 @@ class Tensor4 : public Tensor4View {
   
   /*! Reduce a Tensor4 to a Matrix and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1>
-  Matrix reduce_rank() {
+  Matrix reduce_rank() && {
     static_assert(dim1 < 4, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     
@@ -496,7 +496,7 @@ class Tensor4 : public Tensor4View {
   
   /*! Reduce a Tensor4 to a Tensor3 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2>
-  Tensor3 reduce_rank() {
+  Tensor3 reduce_rank() && {
     static_assert(dim2 < 4, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");

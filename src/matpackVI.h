@@ -1139,7 +1139,7 @@ class Tensor6 : public Tensor6View {
   
   /*! Reduce a Tensor6 to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() {
+  Vector reduce_rank() && {
     static_assert(dim0 < 6, "Bad Dimension, Out-of-Bounds");
     
     Range r0(0, dim0 == 0 ? nvitrines() : dim0 == 1 ? nshelves() : dim0 == 2 ? nbooks() : dim0 == 3 ? npages() : dim0 == 4 ? nrows() : ncols());
@@ -1152,7 +1152,7 @@ class Tensor6 : public Tensor6View {
   
   /*! Reduce a Tensor6 to a Matrix and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1>
-  Matrix reduce_rank() {
+  Matrix reduce_rank() && {
     static_assert(dim1 < 6, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     
@@ -1167,7 +1167,7 @@ class Tensor6 : public Tensor6View {
   
   /*! Reduce a Tensor6 to a Tensor3 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2>
-  Tensor3 reduce_rank() {
+  Tensor3 reduce_rank() && {
     static_assert(dim2 < 6, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
@@ -1184,7 +1184,7 @@ class Tensor6 : public Tensor6View {
   
   /*! Reduce a Tensor6 to a Tensor4 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2, std::size_t dim3>
-  Tensor4 reduce_rank() {
+  Tensor4 reduce_rank() && {
     static_assert(dim3 < 6, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
@@ -1203,7 +1203,7 @@ class Tensor6 : public Tensor6View {
   
   /*! Reduce a Tensor6 to a Tensor5 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2, std::size_t dim3, std::size_t dim4>
-  Tensor5 reduce_rank() {
+  Tensor5 reduce_rank() && {
     static_assert(dim4 < 6, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
