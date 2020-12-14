@@ -116,7 +116,7 @@ Vector h{1.0,2.0,3.0};  // Creates a vector of length 3
                         // 1.0, 2.0, and 3.0.
 
 // By moving from another target
-Vector i=func(...;  // func(...) returns a Vector
+Vector i=func(...);  // func(...) returns a Vector
 Vector j=other.reduce_rank<I>();  // Where other is an
                                   // rvalue matrix or
                                   // tensor and I is the
@@ -367,7 +367,7 @@ Matrix c(3,4,0.0); // Similar, but
 Matrix d=c;        // Make d a copy of c.
 
 // By moving from another target
-Matrix e=func2(...;  // func2(...) returns a Matrix
+Matrix e=func2(...);  // func2(...) returns a Matrix
 Matrix f=other.reduce_rank<I, J>();  // Where other is an
                                      // rvalue tensor and
                                      // I and J are the
@@ -649,11 +649,11 @@ Tensor3 c(2,4,3,0.0); // Similar, but
 Tensor3 d=c;          // Make d a copy of c.
 
 // By moving from another target
-Tensor3 e3=func3(...;  // func3(...) returns a Tensor3
-Tensor4 e4=func4(...;  // func4(...) returns a Tensor4
-Tensor4 e5=func5(...;  // func5(...) returns a Tensor5
-Tensor4 e6=func6(...;  // func6(...) returns a Tensor6
-Tensor4 e7=func7(...;  // func7(...) returns a Tensor7
+Tensor3 e3=func3(...);  // func3(...) returns a Tensor3
+Tensor4 e4=func4(...);  // func4(...) returns a Tensor4
+Tensor4 e5=func5(...);  // func5(...) returns a Tensor5
+Tensor4 e6=func6(...);  // func6(...) returns a Tensor6
+Tensor4 e7=func7(...);  // func7(...) returns a Tensor7
 Tensor3 f=other.reduce_rank<I, J, K>();  // Where other is an
                                          // rvalue tensor of
                                          // higher order than 3

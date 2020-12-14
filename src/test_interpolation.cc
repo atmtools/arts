@@ -420,26 +420,52 @@ void test06() {
 }
 
 void test09() {
+  // Original and new grid
   Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
   Vector ng(2, 9, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0 ... 4.0
+  
+  // Original data
   Vector yi{5, -2, 50, 2, 1};
-  std::cout << yi << '\n';
+  
+  std::cout << og << '\n' << yi << '\n' << '\n';
 
+  // Do the fit point-by-point:
   for (auto x : ng) {
+    // Simple linear interpolation:
     GridPos gp;
     gridpos(gp, og, x);
+    
+    // General Lagrange interpolation, special case interpolation order 1:
     const LagrangeInterpolation lag(0, x, og);
-    std::cout << "gp " << gp << "lag: " << lag << '\n';
+    
+    std::cout << "gp point:  " << gp << "lag point:\n" << lag;
 
+    // Linear interpolation weights:
     Vector iwgp(2);
     interpweights(iwgp, gp);
+    
+    // General Lagrange interpolation weights:
     const Vector iwlag = interpweights(lag);
-    std::cout << "gp " << iwgp << "\nlag: " << iwlag << '\n';
+    
+    std::cout << "gp iw:  " << iwgp << "\nlag iw: " << iwlag << '\n';
 
-    std::cout << "gp " << interp(iwgp, yi, gp)
-              << "\nlag: " << interp(yi, iwlag, lag) << '\n'
+    std::cout << "gp res:  " << interp(iwgp, yi, gp)
+              << "\nlag res: " << interp(yi, iwlag, lag) << '\n'
               << '\n';
   }
+  
+  // Linear interpolation of all points
+  ArrayOfGridPos gp(ng.nelem());
+  gridpos(gp, og, ng);
+  Matrix gp_iw(gp.nelem(), 2);
+  interpweights(gp_iw, gp);
+  Vector gp_y(ng.nelem());
+  interp(gp_y, gp_iw, yi, gp);
+  std::cout << "gp:  " << gp_y << '\n';
+  
+  // General Lagrange interpolation, special case interpolation order 1:
+  const auto lag = Interpolation::LagrangeVector(ng, og, 1);
+  std::cout << "lag: " << reinterp(yi, interpweights(lag), lag) << '\n';
 }
 
 void test11() {
@@ -533,14 +559,14 @@ void test13() {
   constexpr Numeric dx = 1e-2;
 
   // Set up the interpolation Lagranges
-  constexpr FixedLagrangeInterpolation<1> lin(0, x,
-                                                std::array<Numeric, 2>{1, 2}, true);
+  constexpr FixedLagrangeInterpolation<1> lin(
+    0, x, std::array<Numeric, 2>{1, 2}, true);
   constexpr FixedLagrangeInterpolation<2> sqr(
     0, x, std::array<Numeric, 3>{1, 2, 3}, true);
   constexpr FixedLagrangeInterpolation<3> cub(
     0, x, std::array<Numeric, 4>{1, 2, 3, 4}, true);
-  constexpr FixedLagrangeInterpolation<1> dlin(0, x + dx,
-                                               std::array<Numeric, 2>{1, 2}, true);
+  constexpr FixedLagrangeInterpolation<1> dlin(
+    0, x + dx, std::array<Numeric, 2>{1, 2}, true);
   constexpr FixedLagrangeInterpolation<2> dsqr(
     0, x + dx, std::array<Numeric, 3>{1, 2, 3}, true);
   constexpr FixedLagrangeInterpolation<3> dcub(
@@ -985,4 +1011,4 @@ void test28() {
             << '\n' << '\n' << newdata << '\n';
 }
 
-int main() { test28(); }
+int main() { test09(); }
