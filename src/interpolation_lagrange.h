@@ -636,8 +636,13 @@ void check_lagrange_interpolation([[maybe_unused]] const SortedVectorType& xi,
 
 /*! A Lagrange interpolation computer */
 struct Lagrange {
+  /*! The first position of the Lagrange interpolation grid */
   Index pos;
+  
+  /*! The Lagrange interpolation weights at each point */
   Array<Numeric> lx;
+  
+  /*! The Lagrange interpolation weights derivatives at each point */
   Array<Numeric> dlx;
 
   /* Number of weights */
@@ -813,8 +818,14 @@ struct Lagrange {
 /*! A Fixed Lagrange interpolation computer */
 template <std::size_t PolyOrder>
 struct FixedLagrange {
+  /*! The first position of the Lagrange interpolation grid */
   Index pos;
+  
+  
+  /*! The Lagrange interpolation weights at each point */
   std::array<Numeric, PolyOrder + 1> lx;
+  
+  /*! The Lagrange interpolation weights derivatives at each point */
   std::array<Numeric, PolyOrder + 1> dlx;
 
   /* Number of weights */
@@ -3148,16 +3159,22 @@ Tensor7 reinterp(
 }
 }  // namespace Interpolation
 
+/*! The Lagrange interpolation base point */
 using LagrangeInterpolation = Interpolation::Lagrange;
 
+/*! A list of Lagrange interpolation points */
 using ArrayOfLagrangeInterpolation = Array<LagrangeInterpolation>;
 
+/*! A Vector of Vector for Lagrange Interpolation */
 using VectorOfVector = Interpolation::Grid<Vector, 1>;
 
+/*! A Matrix of Matrix for Lagrange Interpolation */
 using MatrixOfMatrix = Interpolation::Grid<Matrix, 2>;
 
+/*! A Tensor3 of Tensor3 for Lagrange Interpolation */
 using Tensor3OfTensor3 = Interpolation::Grid<Tensor3, 3>;
 
+/*! The fixed Lagrange interpolation base point */
 template <std::size_t N>
 using FixedLagrangeInterpolation = Interpolation::FixedLagrange<N>;
 
