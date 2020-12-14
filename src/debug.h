@@ -28,8 +28,9 @@
 #define debug_h
 
 #ifndef NDEBUG
-
+#include <exception>
 #include <iostream>
+#include <sstream>
 
 // Use this macro around function parameter names and variable definitions
 // which are only used in assertions
@@ -60,6 +61,45 @@
               << std::setprecision(old_p);                            \
   }
 
+/*! Turn off noexcept explicitly */
+#define ARTS_NOEXCEPT noexcept(false)
+
+/*! Take all arguments and turn to string by their operator<<() */
+template <typename ... Args>
+std::string variadic_to_string(Args ... args) {
+  std::ostringstream os;
+  (os << ... << args);
+  return os.str();
+}
+
+/*! Condition should be true to pass */
+#define ARTS_CHECK(condition) {               \
+  if (condition) {                            \
+    throw std::runtime_error("Failed Check"); \
+  } }
+
+/*! Condition should be true to pass */
+#define ARTS_CHECK_WITH_MESSAGE(condition, ...) { \
+  if (condition) {                                \
+    throw std::runtime_error(                     \
+      variadic_to_string("Failed Check\n",        \
+                         __VA_ARGS__));           \
+  } }
+
+/*! Condition should be false to pass */
+#define ARTS_ASSERT(condition) {                  \
+  if (not (condition)) {                          \
+    throw std::runtime_error("Failed Assertion"); \
+  } }
+
+/*! Condition should be false to pass */
+#define ARTS_ASSERT_WITH_MESSAGE(condition, ...) {  \
+  if (not (condition)) {                            \
+    throw std::runtime_error(                       \
+      variadic_to_string("Failed Assertion\n",      \
+                         __VA_ARGS__));             \
+  } }
+
 #else
 
 #define DEBUG_ONLY(...)
@@ -71,6 +111,21 @@
 #define DEBUG_VAR(e)
 
 #define DEBUG_VAR_FLT(p, e)
+
+/*! Turn on noexcept explicitly */
+#define ARTS_NOEXCEPT noexcept(true)
+
+/*! Condition should be true to pass */
+#define ARTS_CHECK(condition)
+
+/*! Condition should be true to pass */
+#define ARTS_CHECK_WITH_MESSAGE(condition, ...)
+
+/*! Condition should be false to pass */
+#define ARTS_ASSERT(condition)
+
+/*! Condition should be false to pass */
+#define ARTS_ASSERT_WITH_MESSAGE(condition, ...)
 
 #endif /* NDEBUG */
 

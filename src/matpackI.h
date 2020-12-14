@@ -179,31 +179,31 @@ class Range {
 
   \param[in] stride Stride can be anything. It can be omitted, in which case the
   default value is 1. */
-  constexpr Range(Index start, Index extent, Index stride = 1)
+  constexpr Range(Index start, Index extent, Index stride = 1) ARTS_NOEXCEPT
     : mstart(start), mextent(extent), mstride(stride) {
       // Start must be >= 0:
-      assert(0 <= mstart);
+      ARTS_ASSERT(0 <= mstart);
       // Extent also. Although internally negative extent means "to the end",
       // this can not be created this way, only with the joker. Zero
       // extent is allowed, though, which corresponds to an empty range.
-      assert(0 <= mextent);
+      ARTS_ASSERT(0 <= mextent);
       // Stride can be anything except 0.
       // SAB 2001-09-21: Allow 0 stride.
-      //  assert( 0!=mstride);
+      //  ARTS_ASSERT( 0!=mstride);
     }
 
   /** Constructor with joker extent. Depending on the sign of stride,
     this means "to the end", or "to the beginning". */
-  constexpr Range(Index start, Joker, Index stride = 1)
+  constexpr Range(Index start, Joker, Index stride = 1) ARTS_NOEXCEPT
   : mstart(start), mextent(-1), mstride(stride) {
     // Start must be >= 0:
-    assert(0 <= mstart);
+    ARTS_ASSERT(0 <= mstart);
   }
 
   /** Constructor with just a joker. This means, take everything. You
     can still optionally give a stride, though. This constructor is
     just shorter notation for Range(0,joker) */
-  constexpr Range(Joker, Index stride = 1) : mstart(0), mextent(-1), mstride(stride) {
+  constexpr Range(Joker, Index stride = 1) ARTS_NOEXCEPT : mstart(0), mextent(-1), mstride(stride) {
     // Nothing to do here.
   };
 
@@ -212,15 +212,15 @@ class Range {
 
     \param[in] max_size The maximum allowed size of the vector.
     \param[in] r The new range, with joker. */
-  constexpr Range(Index max_size, const Range& r)
+  constexpr Range(Index max_size, const Range& r) ARTS_NOEXCEPT
   : mstart(r.mstart), mextent(r.mextent), mstride(r.mstride) {
     // Start must be >= 0:
-    assert(0 <= mstart);
+    ARTS_ASSERT(0 <= mstart);
     // ... and < max_size:
-    assert(mstart < max_size);
+    ARTS_ASSERT(mstart < max_size);
     
     // Stride must be != 0:
-    assert(0 != mstride);
+    ARTS_ASSERT(0 != mstride);
     
     // Convert negative extent (joker) to explicit extent
     if (mextent < 0) {
@@ -232,8 +232,8 @@ class Range {
       #ifndef NDEBUG
       // Check that extent is ok:
       Index fin = mstart + (mextent - 1) * mstride;
-      assert(0 <= fin);
-      assert(fin < max_size);
+      ARTS_ASSERT(0 <= fin);
+      ARTS_ASSERT(fin < max_size);
       #endif
     }
   }
@@ -243,7 +243,7 @@ class Range {
 
     \param[in] p Previous range.
     \param[in] n New range. */
-  constexpr Range(const Range& p, const Range& n)
+  constexpr Range(const Range& p, const Range& n) ARTS_NOEXCEPT
       : mstart(p.mstart + n.mstart * p.mstride),
         mextent(n.mextent),
         mstride(p.mstride * n.mstride) {
@@ -257,12 +257,12 @@ class Range {
     Index prev_fin = p.mstart + (p.mextent - 1) * p.mstride;
 
     // Resulting start must be >= previous start:
-    assert(p.mstart <= mstart);
+    ARTS_ASSERT(p.mstart <= mstart);
     // and <= prev_fin, except for Joker:
-    assert(mstart <= prev_fin || mextent == -1);
+    ARTS_ASSERT(mstart <= prev_fin || mextent == -1);
 
     // Resulting stride must be != 0:
-    assert(0 != mstride);
+    ARTS_ASSERT(0 != mstride);
 
     // Convert negative extent (joker) to explicit extent
     if (mextent < 0) {
@@ -274,8 +274,8 @@ class Range {
   #ifndef NDEBUG
       // Check that extent is ok:
       Index fin = mstart + (mextent - 1) * mstride;
-      assert(p.mstart <= fin);
-      assert(fin <= prev_fin);
+      ARTS_ASSERT(p.mstart <= fin);
+      ARTS_ASSERT(fin <= prev_fin);
   #endif
     }
   };
@@ -331,14 +331,14 @@ class Range {
   // Member functions:
 
   /** Returns the start index of the range. */
-  constexpr Index get_start() const { return mstart; }
+  constexpr Index get_start() const ARTS_NOEXCEPT { return mstart; }
   /** Returns the extent of the range. */
-  constexpr Index get_extent() const { return mextent; }
+  constexpr Index get_extent() const ARTS_NOEXCEPT { return mextent; }
   /** Returns the stride of the range. */
-  constexpr Index get_stride() const { return mstride; }
+  constexpr Index get_stride() const ARTS_NOEXCEPT { return mstride; }
 
   /** Range of range. */
-  constexpr Range operator()(const Range r) const {
+  constexpr Range operator()(const Range r) const ARTS_NOEXCEPT {
     return (r.mextent < 0) ? (mextent < 0) ? Range(mstart + r.mstart * mstride,
                                                    joker,
                                                    r.mstride * mstride)
@@ -350,7 +350,7 @@ class Range {
                                    r.mstride * mstride);
   }
 
-  constexpr Index operator()(const Index i) const { return mstart + i * mstride; };
+  constexpr Index operator()(const Index i) const ARTS_NOEXCEPT { return mstart + i * mstride; };
 
  private:
   /** The start index. */
@@ -376,23 +376,23 @@ class Iterator1D {
   Iterator1D() = default;
 
   /** Explicit constructor. */
-  Iterator1D(Numeric* x, Index stride)
+  Iterator1D(Numeric* x, Index stride) ARTS_NOEXCEPT
       : mx(x), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
 
   /** Prefix increment operator. */
-  Iterator1D& operator++() {
+  Iterator1D& operator++() ARTS_NOEXCEPT {
     mx += mstride;
     return *this;
   }
 
   /** Dereferencing. */
-  Numeric& operator*() const { return *mx; }
+  Numeric& operator*() const ARTS_NOEXCEPT { return *mx; }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const Iterator1D& other) const {
+  bool operator!=(const Iterator1D& other) const ARTS_NOEXCEPT {
     if (mx != other.mx)
       return true;
     else
@@ -400,9 +400,9 @@ class Iterator1D {
   }
 
 #ifdef __GLIBCXX__
-  bool operator==(const Iterator1D& other) const { return !operator!=(other); }
+  bool operator==(const Iterator1D& other) const ARTS_NOEXCEPT { return !operator!=(other); }
 
-  Index operator-(const Iterator1D& other) const {
+  Index operator-(const Iterator1D& other) const ARTS_NOEXCEPT {
     return (Index)(mx - other.mx) / mstride;
   }
 #endif
@@ -436,22 +436,22 @@ class ConstIterator1D {
   ConstIterator1D() = default;
 
   /** Explicit constructor. */
-  ConstIterator1D(const Numeric* x, Index stride)
+  ConstIterator1D(const Numeric* x, Index stride) ARTS_NOEXCEPT
       : mx(x), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
   /** Prefix increment operator. */
-  ConstIterator1D& operator++() {
+  ConstIterator1D& operator++() ARTS_NOEXCEPT {
     mx += mstride;
     return *this;
   }
 
   /** Dereferencing. */
-  const Numeric& operator*() const { return *mx; }
+  const Numeric& operator*() const ARTS_NOEXCEPT { return *mx; }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const ConstIterator1D& other) const {
+  bool operator!=(const ConstIterator1D& other) const ARTS_NOEXCEPT {
     if (mx != other.mx)
       return true;
     else
@@ -514,14 +514,14 @@ class ConstVectorView {
 
   // Const index operators:
   /** Plain const index operator. */
-  Numeric operator[](Index n) const {  // Check if index is valid:
-    assert(0 <= n);
-    assert(n < mrange.mextent);
+  Numeric operator[](Index n) const ARTS_NOEXCEPT {  // Check if index is valid:
+    ARTS_ASSERT_WITH_MESSAGE(0 <= n,             "Valid range: [", 0, ',', ' ', mrange.mextent, ") but index is: ", n, '\n');
+    ARTS_ASSERT_WITH_MESSAGE(n < mrange.mextent, "Valid range: [", 0, ',', ' ', mrange.mextent, ") but index is: ", n, '\n');
     return get(n);
   }
 
   /** Get element implementation without assertions. */
-  Numeric get(Index n) const {
+  Numeric get(Index n) const ARTS_NOEXCEPT {
     return *(mdata + mrange.mstart + n * mrange.mstride);
   }
 
@@ -638,14 +638,14 @@ class VectorView : public ConstVectorView {
   typedef Iterator1D iterator;
 
   /** Plain Index operator. */
-  Numeric& operator[](Index n) {  // Check if index is valid:
-    assert(0 <= n);
-    assert(n < mrange.mextent);
+  Numeric& operator[](Index n) ARTS_NOEXCEPT {  // Check if index is valid:
+    ARTS_ASSERT(0 <= n);
+    ARTS_ASSERT(n < mrange.mextent);
     return get(n);
   }
 
   /** Get element implementation without assertions. */
-  Numeric& get(Index n) {
+  Numeric& get(Index n) ARTS_NOEXCEPT {
     return *(mdata + mrange.mstart + n * mrange.mstride);
   }
 
@@ -779,19 +779,19 @@ class Iterator2D {
   Iterator2D() = default;
 
   /** Explicit constructor. */
-  Iterator2D(const VectorView& x, Index stride)
+  Iterator2D(const VectorView& x, Index stride) ARTS_NOEXCEPT
       : msv(x), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
   /** Prefix increment operator. */
-  Iterator2D& operator++() {
+  Iterator2D& operator++() ARTS_NOEXCEPT {
     msv.mdata += mstride;
     return *this;
   }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const Iterator2D& other) const {
+  bool operator!=(const Iterator2D& other) const ARTS_NOEXCEPT {
     if (msv.mdata + msv.mrange.mstart !=
         other.msv.mdata + other.msv.mrange.mstart)
       return true;
@@ -801,10 +801,10 @@ class Iterator2D {
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-  VectorView* operator->() { return &msv; }
+  VectorView* operator->() ARTS_NOEXCEPT { return &msv; }
 
   /** Dereferencing. */
-  VectorView& operator*() { return msv; }
+  VectorView& operator*() ARTS_NOEXCEPT { return msv; }
 
  private:
   /** Current position. */
@@ -823,19 +823,19 @@ class ConstIterator2D {
   ConstIterator2D() = default;
 
   /** Explicit constructor. */
-  ConstIterator2D(const ConstVectorView& x, Index stride)
+  ConstIterator2D(const ConstVectorView& x, Index stride) ARTS_NOEXCEPT
       : msv(x), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
   /** Prefix increment operator. */
-  ConstIterator2D& operator++() {
+  ConstIterator2D& operator++() ARTS_NOEXCEPT {
     msv.mdata += mstride;
     return *this;
   }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const ConstIterator2D& other) const {
+  bool operator!=(const ConstIterator2D& other) const ARTS_NOEXCEPT {
     if (msv.mdata + msv.mrange.mstart !=
         other.msv.mdata + other.msv.mrange.mstart)
       return true;
@@ -845,10 +845,10 @@ class ConstIterator2D {
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-  const ConstVectorView* operator->() const { return &msv; }
+  const ConstVectorView* operator->() const ARTS_NOEXCEPT { return &msv; }
 
   /** Dereferencing. */
-  const ConstVectorView& operator*() const { return msv; }
+  const ConstVectorView& operator*() const ARTS_NOEXCEPT { return msv; }
 
  private:
   /** Current position. */
@@ -1019,17 +1019,17 @@ class ConstMatrixView {
 
   // Const index operators:
   /** Plain const index operator. */
-  Numeric operator()(Index r, Index c) const {  // Check if indices are valid:
-    assert(0 <= r);
-    assert(0 <= c);
-    assert(r < mrr.mextent);
-    assert(c < mcr.mextent);
+  Numeric operator()(Index r, Index c) const ARTS_NOEXCEPT {  // Check if indices are valid:
+    ARTS_ASSERT(0 <= r);
+    ARTS_ASSERT(0 <= c);
+    ARTS_ASSERT(r < mrr.mextent);
+    ARTS_ASSERT(c < mcr.mextent);
 
     return get(r, c);
   }
 
   /** Get element implementation without assertions. */
-  Numeric get(Index r, Index c) const {
+  Numeric get(Index r, Index c) const ARTS_NOEXCEPT {
     return *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart +
              c * mcr.mstride);
   }
@@ -1128,17 +1128,17 @@ class MatrixView : public ConstMatrixView {
 
   // Index Operators:
   /** Plain index operator. */
-  Numeric& operator()(Index r, Index c) {  // Check if indices are valid:
-    assert(0 <= r);
-    assert(0 <= c);
-    assert(r < mrr.mextent);
-    assert(c < mcr.mextent);
+  Numeric& operator()(Index r, Index c) ARTS_NOEXCEPT {  // Check if indices are valid:
+    ARTS_ASSERT(0 <= r);
+    ARTS_ASSERT(0 <= c);
+    ARTS_ASSERT(r < mrr.mextent);
+    ARTS_ASSERT(c < mcr.mextent);
 
     return get(r, c);
   }
 
   /** Get element implementation without assertions. */
-  Numeric& get(Index r, Index c) {
+  Numeric& get(Index r, Index c) ARTS_NOEXCEPT {
     return *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart +
              c * mcr.mstride);
   }
@@ -1221,7 +1221,7 @@ class Matrix : public MatrixView {
   Matrix(Index r, Index c, Numeric fill);
   Matrix(const ConstMatrixView& v);
   Matrix(const Matrix& v);
-  Matrix(Matrix&& v) noexcept : MatrixView(std::forward<MatrixView>(v)) {
+  Matrix(Matrix&& v) noexcept : MatrixView(std::forward<MatrixView>(v))  {
     v.mdata = nullptr;
   }
   
@@ -1271,7 +1271,7 @@ class Matrix : public MatrixView {
     return out;
   }
 
-  Numeric* get_raw_data() { return mdata; }
+  Numeric* get_raw_data() ARTS_NOEXCEPT { return mdata; }
 };
 
 // Function declarations:
