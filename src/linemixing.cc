@@ -1,6 +1,7 @@
 #include <numeric>
 
 #include <Faddeeva/Faddeeva.hh>
+#include <invlib/optimization.h>
 
 #include "lin_alg.h"
 #include "linefunctions.h"
