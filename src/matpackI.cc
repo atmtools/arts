@@ -1467,7 +1467,7 @@ MatrixView transpose(MatrixView m) ARTS_NOEXCEPT { return MatrixView(m.mdata, m.
     \param   y Output:   The results of the function acting on each element of x.
     \param    my_func A function (e.g., sqrt).
     \param    x   A vector. */
-void transform(VectorView y, double (&my_func)(double), ConstVectorView x) ARTS_NOEXCEPT {
+void transform(VectorView y, double (&my_func)(double), ConstVectorView x) {
   // Check dimensions:
   ARTS_ASSERT(y.nelem() == x.nelem());
 
@@ -1495,7 +1495,7 @@ void transform(VectorView y, double (&my_func)(double), ConstVectorView x) ARTS_
    \param   y Output:   The results of the function acting on each element of x.
    \param    my_func A function (e.g., sqrt).
    \param    x   A matrix. */
-void transform(MatrixView y, double (&my_func)(double), ConstMatrixView x) ARTS_NOEXCEPT {
+void transform(MatrixView y, double (&my_func)(double), ConstMatrixView x) {
   // Check dimensions:
   ARTS_ASSERT(y.nrows() == x.nrows());
   ARTS_ASSERT(y.ncols() == x.ncols());

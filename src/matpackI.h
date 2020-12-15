@@ -1313,9 +1313,9 @@ ConstMatrixView transpose(ConstMatrixView m) ARTS_NOEXCEPT;
 
 MatrixView transpose(MatrixView m) ARTS_NOEXCEPT;
 
-void transform(VectorView y, double (&my_func)(double), ConstVectorView x) ARTS_NOEXCEPT;
+void transform(VectorView y, double (&my_func)(double), ConstVectorView x);
 
-void transform(MatrixView y, double (&my_func)(double), ConstMatrixView x) ARTS_NOEXCEPT;
+void transform(MatrixView y, double (&my_func)(double), ConstMatrixView x);
 
 Numeric max(const ConstVectorView& x) ARTS_NOEXCEPT;
 
