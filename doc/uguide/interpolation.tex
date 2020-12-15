@@ -716,19 +716,26 @@ circular constraints, or, most commonly, just the input.  The provided options
 are part of the \shortcode{Interpolation::GridType} enum class and are:
 \begin{itemize}
  \item[\shortcode{Standard}] $f\left(t\right) = t$
- \item[\shortcode{Cyclic}] $f\left(t\right) = t + n\left(t_1 - t_0\right)$,
-                           where $c_0 \leq t + n\left(c_1 - c_0\right) < c_1$,
-                           with $n$ as an integer and $\left[c_0, c_1\right)$
-                           are the cyclic limits so that
-                           $g\left(c_0\right) \equiv g\left(c_0 + m\left[c_1-c_0\right]\right)$
-                           holds true for valid function $g(t)$ and any integer $m$
- \item[\shortcode{Log}] $f\left(t\right) = \ln\left(t\right)$, where $t > 0$
- \item[\shortcode{Log10}] $f\left(t\right) = \log_{10}\left(t\right)$, where $t > 0$
- \item[\shortcode{Log2}] $f\left(t\right) = \log_2\left(t\right)$, where $t > 0$
- \item[\shortcode{SinDeg}] $f\left(t\right) = \sin\left(\frac{\pi}{180}t\right)$, where $-90\leq t \leq 90$
- \item[\shortcode{SinRad}] $f\left(t\right) = \sin\left(t\right)$, where $-\pi/2 \leq t \leq \pi/2$
- \item[\shortcode{CosDeg}] $f\left(t\right) = \cos\left(\frac{\pi}{180}\left[180 - t\right]\right)$, where $0\leq t \leq 180$
- \item[\shortcode{CosRad}] $f\left(t\right) = \cos\left(\pi-t\right)$, where $0 \leq t \leq \pi$
+ \item[\shortcode{Cyclic}]   $f\left(t\right) = t + n\left(t_1 - t_0\right)$,
+                             where $c_0 \leq t + n\left(c_1 - c_0\right) < c_1$,
+                             with $n$ as an integer and
+                             $\left[c_0, c_1\right)$ as the cyclic limits so that
+                             $g\left(c_0\right) \equiv g\left(c_0 + m\left[c_1-c_0\right]\right)$
+                             holds true for a valid function $g(t)$ and any integer $m$
+ \item[\shortcode{Log}]      $f\left(t\right) = \ln\left(t\right)$,
+                             where $t > 0$
+ \item[\shortcode{Log10}]    $f\left(t\right) = \log_{10}\left(t\right)$,
+                             where $t > 0$
+ \item[\shortcode{Log2}]     $f\left(t\right) = \log_2\left(t\right)$,
+                             where $t > 0$
+ \item[\shortcode{SinDeg}]   $f\left(t\right) = \sin\left(\frac{\pi}{180}t\right)$,
+                             where $-90\leq t \leq 90$
+ \item[\shortcode{SinRad}]   $f\left(t\right) = \sin\left(t\right)$,
+                             where $-\pi/2 \leq t \leq \pi/2$
+ \item[\shortcode{CosDeg}]   $f\left(t\right) = \cos\left(\frac{\pi}{180}\left[180 - t\right]\right)$,
+                             where $0\leq t \leq 180$
+ \item[\shortcode{CosRad}]   $f\left(t\right) = \cos\left(\pi-t\right)$,
+                             where $0 \leq t \leq \pi$
 \end{itemize}
 
 These are for the 1D case. For 2D and higher dimensional cases, the weights of
@@ -763,7 +770,7 @@ for multiple outputs. The single constructor needs an
 initial guess of the position.  Other than that they need the new grid,
 the old grid, the interpolation order, the extrapolation factor allowed,
 whether the derivative should be computed, the type of $f$, and, if needed,
-the $x_0$ and $x_1$ pair of cyclic limits.
+the $c_0$ and $c_1$ pair of cyclic limits.
 
 After setting up the \shortcode{LagrangeInterpolation} object with
 either of the constructors, you have to call \shortcode{interpweights}

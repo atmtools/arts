@@ -61,50 +61,66 @@ constexpr std::size_t index_from_gridsize(std::array<std::size_t, N> gridsize,
 /** Row-major grid creation */
 template <typename b, std::size_t n>
 class Grid {
+  /*! List of values */
   Array<b> ptr;
+  
+  /*! List of sizes of the grid so that the numbers represent the stepping */
   std::array<std::size_t, n> gridsize;
   
-  std::size_t size() const { return ptr.size(); }
+  /*! Number of elements in total */
+  std::size_t size() const noexcept { return ptr.size(); }
   
 public:
+  /*! Number of dimensions */
   static constexpr std::size_t N = n;
+  
+  /*! Base unit of the Grid */
   using base = b;
+  
   static_assert(N, "Must have size");
   
+  /*! Initialization of grid with size of the input list of indices */
   template <typename... Inds>
   Grid(Inds... inds) noexcept : ptr(mul(inds...)), gridsize(gridsize_from_index(inds...)) {
     static_assert(sizeof...(Inds) == N,
                   "Must have same size for initialization");
   }
   
+  /*! Move initialization */
   Grid(Grid&& g) noexcept : ptr(std::move(g.ptr)), gridsize(std::move(g.gridsize)) {}
   
+  /*! Move and set operator */
   Grid& operator=(Grid&& g) noexcept {
     ptr = std::move(g.ptr);
     gridsize = std::move(g.gridsize);
     return *this;
   }
   
+  /*! Access operator */
   template <typename... Inds>
   base& operator()(Inds... inds) noexcept {
     return ptr[index_from_gridsize(gridsize, std::array<std::size_t, N>{std::size_t(inds)...})];
   }
   
+  /*! Access operator */
   template <typename... Inds>
   const base& operator()(Inds... inds) const noexcept {
     return ptr[index_from_gridsize(gridsize, std::array<std::size_t, N>{std::size_t(inds)...})];
   }
   
+  /*! Access operator for VectorType */
   base& operator[](std::size_t ind) noexcept {
     static_assert(N == 1);
     return ptr[ind];
   }
   
+  /*! Access operator for VectorType */
   const base& operator[](std::size_t ind) const noexcept {
     static_assert(N == 1);
     return ptr[ind];
   }
   
+  /*! Friendly stream operator */
   friend std::ostream& operator<<(std::ostream& os, const Grid& g) {
     const std::size_t nel = g.size();
     for (std::size_t i = 0; i < nel; i++) {
@@ -125,48 +141,61 @@ public:
 /** Row-major fixed grid creation */
 template <typename b, std::size_t... Sizes>
 class FixedGrid {
+  /*! List of values */
   std::array<b, mul(Sizes...)> ptr;
   
 public:
+  /*! Number of dimensions */
+  static constexpr std::size_t N = sizeof...(Sizes);
+  
+  /*! Base unit of the Grid */
+  using base = b;
+  
+  static_assert(N, "Must have size");
+  
   /*! throw-away constructor so that Grid and FixedGrid can be output in same templates */
   template <typename... Inds>
   constexpr FixedGrid(Inds... inds [[maybe_unused]]) noexcept : ptr({}) {
     static_assert(sizeof...(Inds) == N, "Must have same size for initialization");
   }
   
+  /*! Standard constructor uses standard constructor of the base */
   constexpr FixedGrid() noexcept : ptr({}) {static_assert(mul(Sizes...), "Must have size");}
   
+  /*! Move initialization */
   constexpr FixedGrid(FixedGrid&& g) noexcept : ptr(std::move(g.ptr)) {}
   
+  /*! Move and set operator */
   constexpr FixedGrid& operator=(FixedGrid&& g) noexcept {
     ptr = std::move(g.ptr);
     return *this;
   }
   
-  static constexpr std::size_t N = sizeof...(Sizes);
-  using base = b;
-  static_assert(N, "Must have size");
-  
+  /*! Access operator */
   template <typename... Inds>
   constexpr base& operator()(Inds... inds) noexcept {
     return ptr[index_from_gridsize(gridsize_from_index(Sizes...), std::array<std::size_t, N>{std::size_t(inds)...})];
   }
   
+  /*! Access operator */
   template <typename... Inds>
   constexpr const base& operator()(Inds... inds) const noexcept {
     return ptr[index_from_gridsize(gridsize_from_index(Sizes...), std::array<std::size_t, N>{std::size_t(inds)...})];
   }
   
+  /*! Access operator for VectorType */
   constexpr base& operator[](std::size_t ind) noexcept {
     static_assert(N == 1);
     return ptr[ind];
   }
   
+  /*! Access operator for VectorType */
   constexpr const base& operator[](std::size_t ind) const noexcept {
     static_assert(N == 1);
     return ptr[ind];
   }
   
+  /*! Friendly stream operator */
   friend std::ostream& operator<<(std::ostream& os, const FixedGrid& g) {
     constexpr std::size_t nel = mul(Sizes...);
     constexpr std::size_t last_of = (std::array<std::size_t, N>{std::size_t(Sizes)...}).back();
@@ -210,7 +239,7 @@ constexpr Numeric cyclic_clamp(const Numeric x,
     return x;
 }
 
-/*!  For std functions that are not constexpr */
+/*! For std functions that are not constexpr */
 namespace nonstd {
 /*! abs(x) returns |x| using -x if x < 0 or x otherwise */
 template <class T> constexpr T abs(T x) {return x < 0 ? - x : x;}
@@ -253,7 +282,7 @@ constexpr bool full_cycle(const Numeric xo,
  * @return Estimated position of x [0, xvec.size())
 */
 template <class SortedVectorType>
-constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec) {
+constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec) noexcept {
   if (const Index n = xvec.size(); n > 1) {
     const Numeric x0 = xvec[    0];
     const Numeric x1 = xvec[n - 1];
@@ -377,7 +406,7 @@ ENUMCLASS(GridType, char,
           SinRad,     /* Cosine in radians interpolation grid, grid only defined [-PI/2, PI/2] */
           CosDeg,     /* Cosine in degrees interpolation grid, grid only defined [0, 180] */
           CosRad      /* Cosine in radians interpolation grid, grid only defined [0,  PI] */
-         )
+         );
 
 /*! Computes the weights for a given coefficient
  *
@@ -469,7 +498,7 @@ template <GridType type, class SortedVectorType,
 constexpr double dl_dval(
     const Index p0, const Index n, const Numeric x, const SortedVectorType& xi,
     [[maybe_unused]] const LagrangeVectorType& li, const Index j, const Index i,
-    [[maybe_unused]] const std::pair<Numeric, Numeric> cycle) {
+    [[maybe_unused]] const std::pair<Numeric, Numeric> cycle) noexcept {
   if constexpr (type == GridType::Standard) {
     // Linear weights, simple and straightforward
     if (x not_eq xi[i + p0]) {
@@ -566,6 +595,7 @@ constexpr Numeric dl(const Index p0, const Index n, const Numeric x,
   return dval;
 }
 
+//! Checks whether the Sorted Vector is ascending or not by checking its first two elements
 template <class SortedVectorType>
 constexpr bool is_ascending(const SortedVectorType& xi) noexcept {
   if (xi.nelem() > 1)
@@ -634,7 +664,7 @@ void check_lagrange_interpolation([[maybe_unused]] const SortedVectorType& xi,
   check_lagrange_interpolation(xi, polyorder, {x, x}, extrapol, type, cycle);
 }
 
-/*! A Lagrange interpolation computer */
+/** A Lagrange interpolation computer */
 struct Lagrange {
   /*! The first position of the Lagrange interpolation grid */
   Index pos;
@@ -648,13 +678,13 @@ struct Lagrange {
   /* Number of weights */
   Index size() const noexcept { return lx.size(); }
   
-  // Ensure that the move constructor exists
+  //! Ensure that the move constructor exists
   Lagrange(Lagrange&& l) noexcept : pos(l.pos), lx(std::move(l.lx)), dlx(std::move(l.dlx)) {}
   
-  // Ensure that the copy constructor exists
+  //! Ensure that the copy constructor exists
   Lagrange(const Lagrange& l) noexcept : pos(l.pos), lx(l.lx), dlx(l.dlx) {}
   
-  // Ensure that the move operator exists
+  //! Ensure that the move operator exists
   Lagrange& operator=(Lagrange&& l) noexcept {
     pos = l.pos;
     lx = std::move(l.lx);
@@ -662,7 +692,7 @@ struct Lagrange {
     return *this;
   }
   
-  // Ensure that the copy operator exists
+  //! Ensure that the copy operator exists
   Lagrange& operator=(const Lagrange& l) noexcept {
     pos = l.pos;
     lx = l.lx;
@@ -701,9 +731,10 @@ struct Lagrange {
     }
   }
   
-  // Default constructor for zero-length elements
+  //! Default constructor for zero-length elements
   Lagrange() noexcept : pos(0), lx(1, 1), dlx(1, 0) {}
-
+  
+  /*! Friendly stream operator */
   friend std::ostream& operator<<(std::ostream& os, const Lagrange& l) {
     os << "pos: " << l.pos << '\n' << "lx: ";
     for (auto x : l.lx) os << ' ' << x;
@@ -713,7 +744,15 @@ struct Lagrange {
   }
 
  private:
-  /*! Finds lx */
+  /*! Finds lx 
+   * 
+   * @param[in] p0 Estimation of original position, must be [0, xi.size())
+   * @param[in] n The number of lx to find
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] type Type of Lagrange
+   * @param[in] cycle Size of a cycle if Cyclic type
+   */
   template <class SortedVectorType>
   static Array<Numeric> lx_finder(
       const Index p0, const Index n, const Numeric x,
@@ -763,7 +802,16 @@ struct Lagrange {
     return out;
   }
 
-  /*! Finds dlx */
+  /*! Finds dlx
+   * 
+   * @param[in] p0 Estimation of original position, must be [0, xi.size())
+   * @param[in] n The number of lx to find
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] li The lx produced by lx_finder
+   * @param[in] type Type of Lagrange
+   * @param[in] cycle Size of a cycle if Cyclic type
+   */
   template <class SortedVectorType>
   static Array<Numeric> dlx_finder(
       const Index p0, const Index n, const Numeric x,
@@ -813,14 +861,13 @@ struct Lagrange {
     }
     return out;
   }
-};
+};  // Lagrange
 
 /*! A Fixed Lagrange interpolation computer */
 template <std::size_t PolyOrder>
 struct FixedLagrange {
   /*! The first position of the Lagrange interpolation grid */
   Index pos;
-  
   
   /*! The Lagrange interpolation weights at each point */
   std::array<Numeric, PolyOrder + 1> lx;
@@ -831,10 +878,10 @@ struct FixedLagrange {
   /* Number of weights */
   static constexpr Index size() noexcept { return PolyOrder + 1; }
   
-  // Enusre that the move constructor exists
+  //! Enusre that the move constructor exists
   constexpr FixedLagrange(FixedLagrange&& l) noexcept : pos(l.pos), lx(std::move(l.lx)), dlx(std::move(l.dlx)) {}
   
-  // Enusre that the move operator exists
+  //! Enusre that the move operator exists
   constexpr FixedLagrange& operator=(FixedLagrange&& l) noexcept {
     pos = l.pos;
     lx = std::move(l.lx);
@@ -844,17 +891,19 @@ struct FixedLagrange {
 
   /*! Standard initializer from Vector-types
    *
-   * @param[in] p0 Guess of first position
+   * @param[in] pos0 Estimation of original position, must be [0, xi.size())
    * @param[in] x New grid position
    * @param[in] xi Old grid positions
-   * @param[in] type Type of grid
+   * @param[in] do_derivs Compute derivatives?
+   * @param[in] type Type of Lagrange
+   * @param[in] cycle Size of a cycle if Cyclic type
    */
   template <class SortedVectorType>
   constexpr FixedLagrange(const Index p0, const Numeric x,
                           const SortedVectorType& xi,
                           const bool do_derivs = false,
                           const GridType type = GridType::Standard,
-                          const std::pair<Numeric, Numeric> cycle = {-180, 180})
+                          const std::pair<Numeric, Numeric> cycle = {-180, 180}) noexcept
       : pos(pos_finder(p0, x, xi, PolyOrder,
                        type == GridType::Cyclic,
                        xi.size() > 1 ? xi[0] < xi[1] : false, cycle)),
@@ -862,6 +911,7 @@ struct FixedLagrange {
         dlx(do_derivs ? dlx_finder(pos, x, xi, lx, type, cycle)
                       : std::array<Numeric, PolyOrder + 1>{}) {}
   
+  /*! Friendly stream operator */
   friend std::ostream& operator<<(std::ostream& os, const FixedLagrange& l) {
     os << "pos: " << l.pos << '\n' << "lx: ";
     for (auto x : l.lx) os << ' ' << x;
@@ -871,7 +921,14 @@ struct FixedLagrange {
   }
 
  private:
-  /*! Finds lx */
+  /*! Finds lx 
+   * 
+   * @param[in] p0 Estimation of original position, must be [0, xi.size())
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] type Type of Lagrange
+   * @param[in] cycle Size of a cycle if Cyclic type
+   */
   template <class SortedVectorType>
   static constexpr std::array<Numeric, PolyOrder + 1> lx_finder(
       const Index p0, const Numeric x, const SortedVectorType& xi,
@@ -921,8 +978,16 @@ struct FixedLagrange {
     }
     return out;
   }
-
-  /*! Finds dlx */
+  
+  /*! Finds dlx
+   * 
+   * @param[in] p0 Estimation of original position, must be [0, xi.size())
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] li The lx produced by lx_finder
+   * @param[in] type Type of Lagrange
+   * @param[in] cycle Size of a cycle if Cyclic type
+   */
   template <class SortedVectorType>
   static constexpr std::array<Numeric, PolyOrder + 1> dlx_finder(
       const Index p0, const Numeric x, const SortedVectorType& xi,
@@ -972,18 +1037,23 @@ struct FixedLagrange {
     }
     return out;
   }
-};
+};  // FixedLagrange
 
 ////////////////////////////////////////////////////////
 ////////////////////// For reinterpreting interpolations
 ////////////////////////////////////////////////////////
 
 /*! Gets a vector of Lagrange interpolation points
+ * 
+ * Estimates start position using start_pos_finder
  *
  * @param[in] x New grid positions
  * @param[in] xi Old grid positions
  * @param[in] polyorder Polynominal degree
  * @param[in] extrapol Level of extrapolation
+ * @param[in] do_derivs Flag to activate derivative calculations
+ * @param[in] type Type of Lagrange
+ * @param[in] cycle Size of a cycle if Cyclic type
  * @return vector of Lagrange
  */
 Array<Lagrange> LagrangeVector(
@@ -991,10 +1061,14 @@ Array<Lagrange> LagrangeVector(
     const Numeric extrapol=0.5, const bool do_derivs=false, const GridType type=GridType::Standard, const std::pair<Numeric, Numeric> cycle={-180, 180});
 
 /*! Gets a vector of Lagrange interpolation points
+ * 
+ * Estimates start position using start_pos_finder
  *
  * @param[in] x New grid positions
  * @param[in] xi Old grid positions
- * @param[in] extrapol Level of extrapolation
+ * @param[in] do_derivs Flag to activate derivative calculations
+ * @param[in] type Type of Lagrange
+ * @param[in] cycle Size of a cycle if Cyclic type
  * @return vector of FixedLagrange
  */
 template <std::size_t PolyOrder, class UnsortedVectorType,
