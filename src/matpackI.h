@@ -373,7 +373,7 @@ class Iterator1D {
   using iterator_category = std::random_access_iterator_tag;
 
   /** Default constructor. */
-  Iterator1D() ARTS_NOEXCEPT = default;
+  Iterator1D() = default;
 
   /** Explicit constructor. */
   Iterator1D(Numeric* x, Index stride) ARTS_NOEXCEPT
@@ -433,7 +433,7 @@ class ConstIterator1D {
   using iterator_category = std::random_access_iterator_tag;
 
   /** Default constructor. */
-  ConstIterator1D() ARTS_NOEXCEPT = default;
+  ConstIterator1D() = default;
 
   /** Explicit constructor. */
   ConstIterator1D(const Numeric* x, Index stride) ARTS_NOEXCEPT
@@ -482,9 +482,9 @@ class MatrixView;
     case of a VectorView which also allocates storage. */
 class ConstVectorView {
  public:
-  constexpr ConstVectorView(const ConstVectorView&) ARTS_NOEXCEPT = default;
+  constexpr ConstVectorView(const ConstVectorView&) = default;
   constexpr ConstVectorView(ConstVectorView&&) = default;
-  ConstVectorView& operator=(const ConstVectorView&) ARTS_NOEXCEPT = default;
+  ConstVectorView& operator=(const ConstVectorView&) = default;
   ConstVectorView& operator=(ConstVectorView&&) = default;
 
   // Typedef for compatibility with STL
@@ -625,7 +625,7 @@ class VectorView : public ConstVectorView {
   using ConstVectorView::operator[];
   using ConstVectorView::get;
 
-  constexpr VectorView(const VectorView&) ARTS_NOEXCEPT = default;
+  constexpr VectorView(const VectorView&) = default;
 
   /** Bail out immediately if somebody tries to create a VectorView from
       a const Vector. */
@@ -776,7 +776,7 @@ class Iterator2D {
  public:
   // Constructors:
   /** Default constructor. */
-  Iterator2D() ARTS_NOEXCEPT = default;
+  Iterator2D() = default;
 
   /** Explicit constructor. */
   Iterator2D(const VectorView& x, Index stride) ARTS_NOEXCEPT
@@ -820,7 +820,7 @@ class ConstIterator2D {
  public:
   // Constructors:
   /** Default constructor. */
-  ConstIterator2D() ARTS_NOEXCEPT = default;
+  ConstIterator2D() = default;
 
   /** Explicit constructor. */
   ConstIterator2D(const ConstVectorView& x, Index stride) ARTS_NOEXCEPT
@@ -870,7 +870,7 @@ class ConstIterator2D {
 class Vector : public VectorView {
  public:
   // Constructors:
-  Vector() ARTS_NOEXCEPT = default;
+  Vector() = default;
 
   /** Initialization list constructor. */
   Vector(std::initializer_list<Numeric> init);
@@ -1004,9 +1004,9 @@ class Matrix;
     which also allocates storage. */
 class ConstMatrixView {
  public:
-  constexpr ConstMatrixView(const ConstMatrixView&) ARTS_NOEXCEPT = default;
+  constexpr ConstMatrixView(const ConstMatrixView&) = default;
   constexpr ConstMatrixView(ConstMatrixView&&) = default;
-  ConstMatrixView& operator=(const ConstMatrixView&) ARTS_NOEXCEPT = default;
+  ConstMatrixView& operator=(const ConstMatrixView&) = default;
   ConstMatrixView& operator=(ConstMatrixView&&) = default;
 
   // Typedef for compatibility with STL
@@ -1086,7 +1086,7 @@ class ConstMatrixView {
 
  protected:
   // Constructors:
-  ConstMatrixView() ARTS_NOEXCEPT = default;
+  ConstMatrixView() = default;
   ConstMatrixView(Numeric* data, const Range& r, const Range& c) ARTS_NOEXCEPT;
   ConstMatrixView(Numeric* data,
                   const Range& pr,
@@ -1121,7 +1121,7 @@ class MatrixView : public ConstMatrixView {
   using ConstMatrixView::operator();
   using ConstMatrixView::get;
 
-  constexpr MatrixView(const MatrixView&) ARTS_NOEXCEPT = default;
+  constexpr MatrixView(const MatrixView&) = default;
 
   // Typedef for compatibility with STL
   typedef Iterator2D iterator;
@@ -1196,7 +1196,7 @@ class MatrixView : public ConstMatrixView {
 
  protected:
   // Constructors:
-  MatrixView() ARTS_NOEXCEPT = default;
+  MatrixView() = default;
   MatrixView(Numeric* data, const Range& rr, const Range& cr) ARTS_NOEXCEPT;
   MatrixView(Numeric* data,
              const Range& pr,
@@ -1216,7 +1216,7 @@ class MatrixView : public ConstMatrixView {
 class Matrix : public MatrixView {
  public:
   // Constructors:
-  Matrix() ARTS_NOEXCEPT = default;
+  Matrix() = default;
   Matrix(Index r, Index c);
   Matrix(Index r, Index c, Numeric fill);
   Matrix(const ConstMatrixView& m);
