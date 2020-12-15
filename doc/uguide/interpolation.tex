@@ -793,8 +793,20 @@ for the green interpolations of the linear interpolation routines.
 They demand all arrays of interpolation points and returns only the
 same type as was originally interpolated from.  For example Tensor7 $\rightarrow$ Tensor7.
 There is no blue interpolation routine for the Lagrange interpolation
-routine.  To do blue interpolation, a standard for-loop over all of the
-\shortcode{LagrangeInterpolation} is necessary.
+routine.
+
+The way to emulate blue interpolation using the Lagrange interpolation
+routines is by computing the \shortcode{LagrangeInterpolation} for each grid
+one-by-one before using them in a standard for-loop to get the Blue vector output
+by calling \shortcode{interpweights}, \shortcode{dinterpweights} and then \shortcode{interp}
+for each new grid point manually.
+The function \shortcode{Interpolation::LagrangeVector} can conveniently be used
+for computing all necessary \shortcode{LagrangeInterpolation}.  This function speeds up
+the search routine significantly for new grids with relatively
+small differences between neighboring grid points (relative to the spacing of the original grid).
+Note that it might be faster to not use \shortcode{Interpolation::LagrangeVector} but instead manually
+remembering the past grid position for the search of the next \shortcode{LagrangeInterpolation}.
+We cannot judge this at this time.
 
 For $O=1$ the result of the
 interpolation chain will be the same as for the linear interpolation
