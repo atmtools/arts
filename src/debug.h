@@ -73,31 +73,35 @@ std::string variadic_to_string(Args ... args) {
 }
 
 /*! Condition should be true to pass */
-#define ARTS_CHECK(condition) {               \
-  if (condition) {                            \
-    throw std::runtime_error("Failed Check"); \
+#define ARTS_CHECK(condition) {                 \
+  if (condition) {                              \
+    throw std::runtime_error("Failed Check: "   \
+                             #condition "\n");  \
   } }
 
 /*! Condition should be true to pass */
 #define ARTS_CHECK_WITH_MESSAGE(condition, ...) { \
   if (condition) {                                \
     throw std::runtime_error(                     \
-      variadic_to_string("Failed Check\n",        \
+      variadic_to_string("Failed Check: "         \
+                         #condition "\n",         \
                          __VA_ARGS__));           \
   } }
 
 /*! Condition should be false to pass */
 #define ARTS_ASSERT(condition) {                  \
   if (not (condition)) {                          \
-    throw std::runtime_error("Failed Assertion"); \
+    throw std::runtime_error("Failed Assertion: " \
+                             #condition "\n");    \
   } }
 
 /*! Condition should be false to pass */
 #define ARTS_ASSERT_WITH_MESSAGE(condition, ...) {  \
   if (not (condition)) {                            \
     throw std::runtime_error(                       \
-      variadic_to_string("Failed Assertion\n",      \
-                         __VA_ARGS__));             \
+    throw std::runtime_error("Failed Assertion: "   \
+                             #condition "\n");      \
+                             __VA_ARGS__));         \
   } }
 
 #else
