@@ -20,7 +20,6 @@
 #include "invlib/interfaces/arts_wrapper.h"
 #include "invlib/map.h"
 #include "invlib/optimization.h"
-#include "invlib/profiling/timer.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Type Aliases

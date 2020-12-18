@@ -62,7 +62,7 @@ class CGDefaultSettings
 
 public:
 
-    CGDefaultSettings(double);
+    inline CGDefaultSettings(double);
 
     CGDefaultSettings(const CGDefaultSettings & )             = default;
     CGDefaultSettings(      CGDefaultSettings &&)             = default;
@@ -71,12 +71,12 @@ public:
 
     /*! Returns the 0 vector as start vector for the CG method. */
     template <typename VectorType>
-    VectorType start_vector(const VectorType &) const;
+    inline VectorType start_vector(const VectorType &) const;
 
     /*! Check whether the norm of the residual normalized by the RHS norm
      * is smaller than tolerance */
     template <typename VectorType>
-    bool converged(const VectorType &, const VectorType &) const;
+    inline bool converged(const VectorType &, const VectorType &) const;
 
 private:
 
@@ -96,7 +96,7 @@ class CGStepLimit
 
 public:
 
-    CGStepLimit(double);
+    inline CGStepLimit(double);
 
     CGStepLimit(const CGStepLimit & )             = default;
     CGStepLimit(      CGStepLimit &&)             = default;
@@ -105,12 +105,12 @@ public:
 
     /*! Returns the 0 vector as start vector for the CG method. */
     template <typename VectorType>
-    VectorType start_vector(const VectorType &);
+    inline VectorType start_vector(const VectorType &);
 
     /*! Check whether the norm of the residual normalized by the RHS norm
      * is smaller than tolerance */
     template <typename VectorType>
-    bool converged(const VectorType &, const VectorType &);
+    inline bool converged(const VectorType &, const VectorType &);
 
 private:
 
@@ -130,7 +130,7 @@ class CGContinued
 
 public:
 
-    CGContinued(double);
+    inline CGContinued(double);
 
     CGContinued(const CGContinued & )             = default;
     CGContinued(      CGContinued &&)             = default;
@@ -138,11 +138,11 @@ public:
     CGContinued & operator=(      CGContinued &&) = default;
 
     /*! Returns the 0 vector as start vector for the CG method. */
-    VectorType & start_vector(const VectorType &);
+    inline VectorType & start_vector(const VectorType &);
 
     /*! Check whether the norm of the residual normalized by the RHS norm
      * is smaller than tolerance */
-    bool converged(const VectorType &, const VectorType &);
+    inline bool converged(const VectorType &, const VectorType &);
 
 private:
 
@@ -187,7 +187,7 @@ public:
      * \param trans The coordinate transformation. Defaults to the identity
      * transformation.
      */
-    ConjugateGradient(double tol, int verbosity = 0);
+    inline ConjugateGradient(double tol, int verbosity = 0);
 
     /*! Solve linear system using the conjugate gradient method.
      *
@@ -207,7 +207,7 @@ public:
     typename MatrixType,
     template <LogType> class Log = StandardLog
     >
-    VectorType solve(const MatrixType&A, const VectorType& v);
+    inline VectorType solve(const MatrixType&A, const VectorType& v);
 
 private:
 

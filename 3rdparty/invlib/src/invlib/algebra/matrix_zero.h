@@ -40,12 +40,12 @@ public:
     // --------------------- //
 
     template <typename T1>
-    T1 && multiply(T1 &&A) const;
+    inline T1 && multiply(T1 &&A) const;
 
-    MatrixZero invert() const;
+    inline MatrixZero invert() const;
 
     template <typename T1>
-        T1 && solve(T1 && v) const;
+    inline T1 && solve(T1 && v) const;
 
     // --------------------- //
     // Arithmetic Operators  //
@@ -55,13 +55,13 @@ public:
         using Sum = T1;
 
     template<typename T1>
-    T1 && operator+(T1 &&B) const;
+    inline T1 && operator+(T1 &&B) const;
 
     template <typename T1>
     using Product = MatrixProduct<MatrixZero, T1>;
 
     template <typename T1>
-    Product<T1> operator*(const T1 &A) const;
+    inline Product<T1> operator*(const T1 &A) const;
 
 };
 
@@ -70,7 +70,7 @@ public:
   *
   * \return A zero matrix object.
   */
-MatrixZero inv(const MatrixZero &A);
+inline MatrixZero inv(const MatrixZero &A);
 
 #include "matrix_zero.cpp"
 

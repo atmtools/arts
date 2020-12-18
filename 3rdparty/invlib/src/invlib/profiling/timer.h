@@ -20,14 +20,14 @@ using std::chrono::duration_cast;
 namespace invlib
 {
 
-duration<double> multiply_mv_time;
-duration<double> multiply_mtv_time;
-duration<double> multiply_mm_time;
-duration<double> multiply_mtm_time;
-duration<double> solve_time;
-duration<double> invert_time;
+extern duration<double> multiply_mv_time;
+extern duration<double> multiply_mtv_time;
+extern duration<double> multiply_mm_time;
+extern duration<double> multiply_mtm_time;
+extern duration<double> solve_time;
+extern duration<double> invert_time;
 
-void reset_times()
+inline void reset_times()
 {
     multiply_mv_time  = duration<double>::zero();
     multiply_mtv_time = duration<double>::zero();
