@@ -755,7 +755,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
     ppath2.np = 1;
   }
 
-  // Merge grid positions, sorted correctly
+  // Merge grid positions, and sort from bottom to top of atmosphere
   const Index np = ppath.np + ppath2.np - 1;
   ArrayOfGridPos gp_p(np), gp_lat(np), gp_lon(np);
   if (ppath.np > 1 &&
