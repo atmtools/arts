@@ -1128,7 +1128,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
     ppath2.np = 1;
   }
 
-  // Grid positions, sorted correctly
+  // Merge grid positions, sorted correctly
   const Index np = ppath.np + ppath2.np - 1;
   ArrayOfGridPos gp_p(np), gp_lat(np), gp_lon(np);
   if (ppath.np > 1 &&
@@ -1279,7 +1279,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
     // Otherwise set 1D cloud variables
     else {
       // We can enter the cloudbox from the side, and we need to add 1
-      // level on each side to be safe
+      // level on each side to be safe (if not limits already at edges)
       //
       const Index extra_bot = ifirst == 0 ? 0 : 1;
       const Index extra_top = ilast == np - 1 ? 0 : 1;
@@ -1291,6 +1291,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
       // pnd_field
       //
       pnd1.resize(pnd_field.nbooks(), cbox_lims1[1] - cbox_lims1[0] + 1, 1, 1);
+      pnd1 = 0;   // As lowermost and uppermost level not always filled
       //
       itw.resize(1, Index(pow(2.0, Numeric(atmosphere_dim))));
       //
