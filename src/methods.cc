@@ -15377,15 +15377,13 @@ void define_md_data_raw() {
           "- TOA incoming radiation is so far assumed as blackbody cosmic\n"
           "  background (temperature taken from the ARTS-internal constant).\n"
           "\n"
-          "The keyword *pfct_method* allows to choose the method to extract the\n"
-          "scattering matrix. 'interpolate' considers temperature dependence,\n"
-          "others neglect it by chosing one specific temperature grid point\n"
+          "The keyword *pfct_method* allows to choose how to extract the\n"
+          "scattering matrix, by chosing one specific temperature grid point\n"
           "from the single scattering data: 'low' choses the lowest T-point,\n"
           "'high' the highest T-point, and 'median' the median T-point. As\n"
           "different scattering elements can have different temperature grids,\n"
           "the actual temperature value used can differ between the scattering\n"
-          "elements.\n"
-          "Note that this keyword solely affects the scattering matrix;\n"
+          "elements. Note that this keyword solely affects the scattering matrix;\n"
           "extinction matrix and absorption vector are always interpolated to\n"
           "the actual temperature.\n"),
       AUTHORS("Jana Mendrok"),

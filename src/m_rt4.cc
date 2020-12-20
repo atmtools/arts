@@ -86,12 +86,9 @@ void RT4Calc(Workspace& ws,
     return;
   }
 
-  // FIXME: so far surface is implictly assumed at lowest atmospheric level.
-  // That should be fixed (using z_surface and allowing other altitudes) at some
-  // point.
-
   const String quad_type = quadtype.toupper();
   Index nhza, nhstreams, nummu;
+  
   check_rt4_input(nhstreams,
                   nhza,
                   nummu,
