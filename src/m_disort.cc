@@ -73,7 +73,6 @@ void DisortCalc(Workspace& ws,
                 const Numeric& surface_skin_t,
                 const Vector& surface_scalar_reflectivity,
                 const Index& nstreams,
-                const String& pfct_method,
                 const Index& Npfct,
                 const Index& cdisort_quiet,
                 const Verbosity& verbosity) {
@@ -83,9 +82,6 @@ void DisortCalc(Workspace& ws,
     out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
     return;
   }
-
-  // FIXME: At the moment, combining scattering elements stored on different
-  //  scattering angle grids is only possible for pfct_method 'interpolate'.
 
   check_disort_input(cloudbox_on,
                      atmfields_checked,
@@ -97,8 +93,7 @@ void DisortCalc(Workspace& ws,
                      cloudbox_limits,
                      scat_data,
                      za_grid,
-                     nstreams,
-                     pfct_method);
+                     nstreams);
 
   init_ifield(
       cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), stokes_dim);
@@ -155,7 +150,6 @@ void DisortCalcWithARTSSurface(
     const Vector& za_grid,
     const Index& stokes_dim,
     const Index& nstreams,
-    const String& pfct_method,
     const Index& Npfct,
     const Index& cdisort_quiet,
     const Verbosity& verbosity) {
@@ -169,9 +163,6 @@ void DisortCalcWithARTSSurface(
   // That should be fixed (using z_surface and allowing other altitudes) at some
   // point.
 
-  // FIXME: At the moment, combining scattering elements stored on different
-  //  scattering angle grids is only possible for pfct_method 'interpolate'.
-
   check_disort_input(cloudbox_on,
                      atmfields_checked,
                      atmgeom_checked,
@@ -182,8 +173,7 @@ void DisortCalcWithARTSSurface(
                      cloudbox_limits,
                      scat_data,
                      za_grid,
-                     nstreams,
-                     pfct_method);
+                     nstreams);
 
   init_ifield(
       cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), stokes_dim);
@@ -304,7 +294,6 @@ void DisortCalcClearsky(Workspace& ws,
              surface_skin_t,
              surface_scalar_reflectivity,
              nstreams,
-             "median",
              181,
              cdisort_quiet,
              verbosity);

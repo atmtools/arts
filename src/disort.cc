@@ -63,8 +63,7 @@ void check_disort_input(  // Input
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     ConstVectorView za_grid,
-    const Index& nstreams,
-    const String& pfct_method) {
+    const Index& nstreams) {
   if (!cloudbox_on) {
     throw runtime_error(
         "Cloudbox is off, no scattering calculations to be"
@@ -176,31 +175,6 @@ void check_disort_input(  // Input
        << PTypeToString(PTYPE_AZIMUTH_RND) << " or " << PTYPE_GENERAL << "="
        << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
     throw runtime_error(os.str());
-  }
-
-  if (pfct_method != "interpolate") {
-    // The old interface can only handle particles with single scattering data
-    // given on identical angular grids.
-    const Vector data_za_grid = scat_data[0][0].za_grid;
-    const Index ndza = data_za_grid.nelem();
-    bool ident_anggrid = true;
-    for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
-      for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
-        // not an exhaustive test, but should catch most cases: checking
-        // identical size as well as identical second and second to last
-        // elements. no use in checking first and last elements as they should
-        // be 0 and 180 and this should have been checked elsewhere.
-        if (scat_data[i_ss][i_se].za_grid.nelem() != ndza ||
-            scat_data[i_ss][i_se].za_grid[1] != data_za_grid[1] ||
-            scat_data[i_ss][i_se].za_grid[ndza - 2] != data_za_grid[ndza - 2])
-          ident_anggrid = false;
-    if (!ident_anggrid) {
-      ostringstream os;
-      os << "ARTS-DISORT currently supports varying angular grids of\n"
-         << "scattering data for different scattering elements only for\n"
-         << "pfct_method = \"interpolate.\"";
-      throw runtime_error(os.str());
-    }
   }
 }
 

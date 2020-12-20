@@ -5360,26 +5360,7 @@ void define_md_data_raw() {
           "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
           "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
           "  atmosphere, but only the radiation field within the cloudbox is\n"
-          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"
-          "\n"
-          "Known issues of ARTS implementation:\n"
-          "- Surface altitude is not an interface parameter. Surface is\n"
-          "  implicitly assumed to be at the lowest atmospheric level.\n"
-          "- Scattering angle grids of all scattering elements have to be\n"
-          "  identical (except if *pfct_method* is 'interpolate').\n"
-          "\n"
-          "Keyword *pfct_method* allows to chose the method to extract phase\n"
-          "function. 'interpolate' considers temperature dependence. Others\n"
-          "neglect it by chosing one specific temperature grid point from the\n"
-          "single scattering data: 'low' choses the lowest T-point, 'high' the\n"
-          "highest T-point, and 'median' the median T-point. As different\n"
-          "scattering elements can have different temperature grids, the actual\n"
-          "temperature value used can differ between the scattering elements.\n"
-          "Currently, other methods than 'interpolate' require all scattering\n"
-          "elements to be given on identical scattering angle grids.\n"
-          "Note that this keyword solely affects the phase function;\n"
-          "extinction/absorption/scattering cross sections are always\n"
-          "interpolated to the actual temperature.\n"),
+          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"),
       AUTHORS("Claudia Emde, Jana Mendrok"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -5405,14 +5386,13 @@ void define_md_data_raw() {
          "z_surface",
          "surface_skin_t",
          "surface_scalar_reflectivity"),
-      GIN("nstreams", "pfct_method", "Npfct", "quiet"),
-      GIN_TYPE("Index", "String", "Index", "Index"),
-      GIN_DEFAULT("8", "median", "181", "0"),
+      GIN("nstreams", "Npfct", "quiet"),
+      GIN_TYPE("Index", "Index", "Index"),
+      GIN_DEFAULT("8", "181", "0"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
-               "Flag which method to apply to derive phase function.",
                "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polnomials from). If <0,"
+               " function on (and derive Legendre polynomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
                "Silence C Disort warnings.")));
 
@@ -5444,14 +5424,13 @@ void define_md_data_raw() {
          "f_grid",
          "za_grid",
          "stokes_dim"),
-      GIN("nstreams", "pfct_method", "Npfct", "quiet"),
-      GIN_TYPE("Index", "String", "Index", "Index"),
-      GIN_DEFAULT("8", "median", "181", "0"),
+      GIN("nstreams", "Npfct", "quiet"),
+      GIN_TYPE("Index", "Index", "Index"),
+      GIN_DEFAULT("8", "181", "0"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
-               "Flag which method to apply to derive phase function.",
                "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polnomials from). If <0,"
+               " function on (and derive Legendre polynomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
                "Silence C Disort warnings.")));
 
