@@ -7973,9 +7973,35 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyIndependentBeamApproximation"),
-      DESCRIPTION("In development ....\n"
-                  "\n"
-                  "Describe how *atm_fields_compact* is filled.\n"),
+      DESCRIPTION(
+        "Samples atmosphere along ppath and make 1D-type RT calculation.\n"
+        "\n"
+        "The main application of this method should be to apply 1D\n"
+        "scattering solvers on 2D or 3D atmospheres. The 1D calculation\n"
+        "is set up inside *iy_independent_beam_approx_agenda*.\n"
+        "\n"
+        "The method calculates the ppath until reaching the surface or the\n"
+        "top-of-the atmosphere. If the sensor is inside the atmosphere the\n"
+        "ppath is extended from the sensor vertically to cover the remaining\n"
+        "part of the atmosphere. All atmospheric fields are interpolated to\n"
+        "the obtain ppath, to form a 1D view of the atmosphere. This 1D\n"
+        "atmosphere forms the input to *iy_independent_beam_approx_agenda*\n"
+        "\n"
+        "*lat_true* and *lon_true* for the 1D view is set to the intersection\n"
+        "with the surface of the ppath described above.\n"
+        "\n"
+        "The function accepts that the input atmosphere is 1D, as well as\n"
+        "that there is no active cloudbox.\n"
+        "\n"
+        "The constructed 1D atmosphere is exported if the GIN *return_atm1d*\n"
+        "is set to 1. The default then is to include all atmospheric fields,\n"
+        "but *vmr_field* and *pnd_field* can be deselected by two of the GIN-s.\n"
+        "The order of the fields is specified by the first grid in the structure\n"
+        "member grids. If *atm_fields_compact* is denoted as A, then\n"
+        "A.grids{0}{i} gives the name of field with index i.\n"
+        "Each book in *vmr_field* and *pnd_field* is stored separately. For\n"
+        "example, the first book in *pnd_field* is stored with the name\n"
+        "\"Scattering element 0\".\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "ppath", "diy_dx", "atm_fields_compact"),
       GOUT(),
