@@ -964,11 +964,6 @@ void surf_albedoCalc(Workspace& ws,
   // We do all frequencies here at once (assuming this is the faster variant as
   // the agenda anyway (can) provide output for full f_grid at once and as we
   // have to apply the same inter/extrapolation to all the frequencies).
-  //
-  // FIXME: Allow surface to be elsewhere than at lowest atm level (this
-  // requires changes in the surface setting part and more extensive ones in the
-  // atmospheric optical property prep part within the frequency loop further
-  // below).
 
   CREATE_OUT2;
 
