@@ -5563,7 +5563,11 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcWithARTSSurface"),
       DESCRIPTION(
-          "DISORT with surface.\n"
+          "As *DisortCalc* but uses *surface_rtprop_agenda*.\n"
+          "\n"
+          "The Lambertian surface reflection is set by calling\n"
+          "*surface_rtprop_agenda* for a set of angles and taking an\n"
+          "angular weighed mean value.\n"
           ),
       AUTHORS("Claudia Emde, Jana Mendrok"),
       OUT("cloudbox_field"),
@@ -5584,6 +5588,7 @@ void define_md_data_raw() {
          "z_field",
          "vmr_field",
          "p_grid",
+         "z_surface",
          "scat_data",
          "f_grid",
          "za_grid",
