@@ -4,7 +4,7 @@ Arts2{
 Copy( za_grid_copy, za_grid )
 Copy( aa_grid_copy, aa_grid )
 RT4Calc( nstreams = 16, auto_inc_nstreams=32, robust=1, quad_type = "l", 
-         pfct_aa_grid_size=37, pfct_method = "interpolate" )
+         pfct_aa_grid_size=37, pfct_method = "median" )
 yCalc( y = y_rt4 )
 Copy( za_grid, za_grid_copy )
 Copy( aa_grid, aa_grid_copy )

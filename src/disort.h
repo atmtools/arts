@@ -44,7 +44,6 @@
  * @param[in]  scat_data             as the WSV.
  * @param[in]  za_grid          as the WSV.
  * @param[in]  nstreams              Number of quadrature angles (both hemispheres).
- * @param[in]  pfct_method           see DisortCalc doc.
  *
  * @author     Jana Mendrok
  * @date       2017-02-23
@@ -60,8 +59,7 @@ void check_disort_input(  // Input
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     ConstVectorView za_grid,
-    const Index& nstreams,
-    const String& pfct_method);
+    const Index& nstreams);
 
 /** init_ifield.
  *

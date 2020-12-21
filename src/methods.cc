@@ -5360,26 +5360,7 @@ void define_md_data_raw() {
           "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
           "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
           "  atmosphere, but only the radiation field within the cloudbox is\n"
-          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"
-          "\n"
-          "Known issues of ARTS implementation:\n"
-          "- Surface altitude is not an interface parameter. Surface is\n"
-          "  implicitly assumed to be at the lowest atmospheric level.\n"
-          "- Scattering angle grids of all scattering elements have to be\n"
-          "  identical (except if *pfct_method* is 'interpolate').\n"
-          "\n"
-          "Keyword *pfct_method* allows to chose the method to extract phase\n"
-          "function. 'interpolate' considers temperature dependence. Others\n"
-          "neglect it by chosing one specific temperature grid point from the\n"
-          "single scattering data: 'low' choses the lowest T-point, 'high' the\n"
-          "highest T-point, and 'median' the median T-point. As different\n"
-          "scattering elements can have different temperature grids, the actual\n"
-          "temperature value used can differ between the scattering elements.\n"
-          "Currently, other methods than 'interpolate' require all scattering\n"
-          "elements to be given on identical scattering angle grids.\n"
-          "Note that this keyword solely affects the phase function;\n"
-          "extinction/absorption/scattering cross sections are always\n"
-          "interpolated to the actual temperature.\n"),
+          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"),
       AUTHORS("Claudia Emde, Jana Mendrok"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -5405,21 +5386,24 @@ void define_md_data_raw() {
          "z_surface",
          "surface_skin_t",
          "surface_scalar_reflectivity"),
-      GIN("nstreams", "pfct_method", "Npfct", "quiet"),
-      GIN_TYPE("Index", "String", "Index", "Index"),
-      GIN_DEFAULT("8", "median", "181", "0"),
+      GIN("nstreams", "Npfct", "quiet"),
+      GIN_TYPE("Index", "Index", "Index"),
+      GIN_DEFAULT("8", "181", "0"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
-               "Flag which method to apply to derive phase function.",
                "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polnomials from). If <0,"
+               " function on (and derive Legendre polynomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
                "Silence C Disort warnings.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcWithARTSSurface"),
       DESCRIPTION(
-          "DISORT with surface.\n"
+          "As *DisortCalc* but uses *surface_rtprop_agenda*.\n"
+          "\n"
+          "The Lambertian surface reflection is set by calling\n"
+          "*surface_rtprop_agenda* for a set of angles and taking an\n"
+          "angular weighed mean value.\n"
           ),
       AUTHORS("Claudia Emde, Jana Mendrok"),
       OUT("cloudbox_field"),
@@ -5440,18 +5424,18 @@ void define_md_data_raw() {
          "z_field",
          "vmr_field",
          "p_grid",
+         "z_surface",
          "scat_data",
          "f_grid",
          "za_grid",
          "stokes_dim"),
-      GIN("nstreams", "pfct_method", "Npfct", "quiet"),
-      GIN_TYPE("Index", "String", "Index", "Index"),
-      GIN_DEFAULT("8", "median", "181", "0"),
+      GIN("nstreams", "Npfct", "quiet"),
+      GIN_TYPE("Index", "Index", "Index"),
+      GIN_DEFAULT("8", "181", "0"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
-               "Flag which method to apply to derive phase function.",
                "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polnomials from). If <0,"
+               " function on (and derive Legendre polynomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
                "Silence C Disort warnings.")));
 
@@ -7519,9 +7503,35 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyIndependentBeamApproximation"),
-      DESCRIPTION("In development ....\n"
-                  "\n"
-                  "Describe how *atm_fields_compact* is filled.\n"),
+      DESCRIPTION(
+        "Samples atmosphere along ppath and make 1D-type RT calculation.\n"
+        "\n"
+        "The main application of this method should be to apply 1D\n"
+        "scattering solvers on 2D or 3D atmospheres. The 1D calculation\n"
+        "is set up inside *iy_independent_beam_approx_agenda*.\n"
+        "\n"
+        "The method calculates the ppath until reaching the surface or the\n"
+        "top-of-the atmosphere. If the sensor is inside the atmosphere the\n"
+        "ppath is extended from the sensor vertically to cover the remaining\n"
+        "part of the atmosphere. All atmospheric fields are interpolated to\n"
+        "the obtain ppath, to form a 1D view of the atmosphere. This 1D\n"
+        "atmosphere forms the input to *iy_independent_beam_approx_agenda*\n"
+        "\n"
+        "*lat_true* and *lon_true* for the 1D view is set to the intersection\n"
+        "with the surface of the ppath described above.\n"
+        "\n"
+        "The function accepts that the input atmosphere is 1D, as well as\n"
+        "that there is no active cloudbox.\n"
+        "\n"
+        "The constructed 1D atmosphere is exported if the GIN *return_atm1d*\n"
+        "is set to 1. The default then is to include all atmospheric fields,\n"
+        "but *vmr_field* and *pnd_field* can be deselected by two of the GIN-s.\n"
+        "The order of the fields is specified by the first grid in the structure\n"
+        "member grids. If *atm_fields_compact* is denoted as A, then\n"
+        "A.grids{0}{i} gives the name of field with index i.\n"
+        "Each book in *vmr_field* and *pnd_field* is stored separately. For\n"
+        "example, the first book in *pnd_field* is stored with the name\n"
+        "\"Scattering element 0\".\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "ppath", "diy_dx", "atm_fields_compact"),
       GOUT(),
@@ -15377,15 +15387,13 @@ void define_md_data_raw() {
           "- TOA incoming radiation is so far assumed as blackbody cosmic\n"
           "  background (temperature taken from the ARTS-internal constant).\n"
           "\n"
-          "The keyword *pfct_method* allows to choose the method to extract the\n"
-          "scattering matrix. 'interpolate' considers temperature dependence,\n"
-          "others neglect it by chosing one specific temperature grid point\n"
+          "The keyword *pfct_method* allows to choose how to extract the\n"
+          "scattering matrix, by chosing one specific temperature grid point\n"
           "from the single scattering data: 'low' choses the lowest T-point,\n"
           "'high' the highest T-point, and 'median' the median T-point. As\n"
           "different scattering elements can have different temperature grids,\n"
           "the actual temperature value used can differ between the scattering\n"
-          "elements.\n"
-          "Note that this keyword solely affects the scattering matrix;\n"
+          "elements. Note that this keyword solely affects the scattering matrix;\n"
           "extinction matrix and absorption vector are always interpolated to\n"
           "the actual temperature.\n"),
       AUTHORS("Jana Mendrok"),
