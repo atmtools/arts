@@ -11183,6 +11183,96 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("particle_bulkpropRadarOnionPeeling"),
+      DESCRIPTION(
+          "Inverts radar reflectivities by in an onion peeling manner.\n"
+          "\n"
+          "The method assumes space-based measurements and invert one altitude\n"
+          "at the time,based on a pre-calculated inversion table (*invtable*)\n"
+          "and starting at the top of the atmosphere. If attenuation is\n"
+          "completely ignored, the table is effectively used as a look-up table\n"
+          "to map dBZe to hydrometeor values. The method considers attenuation\n"
+          "by default, where extinction due to hydrometeors is taken from the\n"
+          "table and the one due to *abs_species* is obtained by\n"
+          "*propmat_clearsky_agenda*.\n"
+          "\n"
+          "The inversion table consists of two GriddedField3. The first field\n"
+          "shall match liquid hydrometeors and is applied for temperatures above\n"
+          "*t_phase*. The second field is applied for lower temperatures and\n"
+          "shall thus correspond to ice hydrometeors.\n"
+          "\n"
+          "The size of each field is (2,ndb,nt). The two page dimensions match\n"
+          "the hydrometeor property to retrieve and extinction, respectively.\n"
+          "The table shall hold the (natural) logarithm of the property, such\n"
+          "as log(IWC). ndb is the number of dBZe values in the table and nt\n"
+          "the number of temperatures. The table is interpolated in temperature\n"
+          "in a nearest neighbour fashion, while in a linear interpolation is\n"
+          "applied in the dBZe dimension.\n"
+          "\n"
+          "The field of radar reflectivities (*dBZe*) shall cover the complete\n"
+          "atmosphere and then match e.g. *t_field* in size.\n"
+          "\n"
+          "All values below *dbze_noise* are treated as pure noise and\n"
+          "*particle_bulkprop_field* is set to zero for these positions.\n"
+          "The comparison to *dbze_noise* is done with uncorrected values.\n"
+          "\n"
+          "Further, all values at altitudes below z_surface + h_clutter are\n"
+          "assumed to be surface clutter and are rejected. If *fill_clutter*\n"
+          "is set to 1, the retrieval just above the clutter zone is assumed\n"
+          "valid also below and is copied to all altitudes below (also for\n"
+          "altitudes below the surface).\n"
+          "\n"
+          "Significant radar echos (>dbze_noise and above clutter zone) are\n"
+          "assumed to match liquid hydrometeors for temperatures >= *t_phase*\n"
+          "and ice ones for lower temperatures.\n"
+          "\n"
+          "Default is to consider attenuation of both hydrometeors and absorption\n"
+          "species. These two sources to attenuation can be ignored by setting\n"
+          "*do_atten_hyd* and *do_atten_abs* to zero, respectively. To avoid\n"
+          "\"run away\" in attenuation, a maximum value to attenuation correction\n"
+          "can be set by *dbze_max_corr*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("particle_bulkprop_field", "particle_bulkprop_names"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmosphere_dim",
+         "p_grid",
+         "lat_grid",
+         "lon_grid",
+         "t_field",
+         "z_field",
+         "vmr_field",
+         "z_surface",
+         "atmfields_checked",
+         "atmgeom_checked",
+         "f_grid",
+         "propmat_clearsky_agenda",
+         "scat_species"),
+      GIN("invtable",
+          "dBZe",
+          "dbze_noise",
+          "h_clutter",
+          "fill_clutter",
+          "t_phase",
+          "do_atten_abs",
+          "do_atten_hyd",
+          "dbze_max_corr"),
+      GIN_TYPE("ArrayOfGriddedField3", "Tensor3", "Numeric", "Numeric",
+               "Index", "Numeric", "Index", "Index", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, "-99", "0", "0", "273.15", "1", "1", "10" ),
+      GIN_DESC("Inversion table, see above.",
+               "Field of radar reflectivities, in dBZe.",
+               "Noise level. See above.",
+               "Height of clutter zone.",
+               "Flag to fill clutter zone, by copuyting retrieval just above it.",
+               "Phase boundary temperature. See above.",
+               "Flag to consider attenuation due to hydrometeors.",
+               "Flag to consider attenuation due to absorption species.",
+               "Max allowed change of measured dBZe to approx. correct "
+               "for attenuation.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldClip"),
       DESCRIPTION(
           "Clipping of *particle_bulkprop_field*.\n"
@@ -13857,6 +13947,52 @@ void define_md_data_raw() {
                "Maximum step in log10(p[Pa]). If the pressure grid is "
                "coarser than this, additional points are added until each "
                "log step is smaller than this.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("RadarOnionPeelingTableCalc"),
+      DESCRIPTION(
+          "Creates a radar inversion table.\n"
+          "\n"
+          "This method is tailored to make inversion tables that fit\n"
+          "*particle_bulkpropRadarOnionPeeling*. See that method for\n"
+          "format of the table.\n"
+          "\n"
+          "The method needs to be called twice to form a complete table,\n"
+          "once for liquid and ice hydrometeors. The table can be empty at\n"
+          "the first call.\n"
+          "\n"
+          "The input data (*scat_data* etc.) must match two scattering\n"
+          "species and a single frequency (the one of the radar).\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("invtable"),
+      GOUT_TYPE("ArrayOfGriddedField3"),
+      GOUT_DESC(""),
+      IN("f_grid",
+         "scat_species",
+         "scat_data",
+         "scat_meta",
+         "pnd_agenda_array",
+         "pnd_agenda_array_input_names"),
+      GIN("i_species",
+          "dbze_grid",
+          "t_grid",
+          "wc_min",
+          "wc_max",
+          "ze_tref",
+          "k2"),
+      GIN_TYPE("Index", "Vector", "Vector", "Numeric", "Numeric",
+               "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1e-9", "1e-1", "273.15", "-1" ),
+      GIN_DESC("Index of *scat_species* to do. Can be 0 or 1.",
+               "Grid of dBZe values to use for the table.",
+               "Temperature grid to use for the table.",
+               "A water content value that gives a dBZe smaller than first "
+               "value of *dbze_grid*.",
+               "A water content value that gives a dBZe larger than last "
+               "value of *dbze_grid*.",
+               "Reference temperature for conversion to Ze. See further *yRadar*.",
+               "Reference dielectric factor. See further *yRadar*.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RadiationFieldSpectralIntegrate"),
@@ -18692,6 +18828,20 @@ void define_md_data_raw() {
                "Direction. \"book\" or \"page\" or \"row\" or \"column\".")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("Tensor3FromVector"),
+      DESCRIPTION("Forms a Tensor3 of size nx1x1 from a vector of length n.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Tensor3"),
+      GOUT_DESC("Output tensor."),
+      IN(),
+      GIN("v"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Input vector.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3Scale"),
       DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
                   "\n"
@@ -20843,7 +20993,7 @@ void define_md_data_raw() {
           "The output format for *iy* when simulating radars and lidars differs\n"
           "from the standard one, and *yCalc* can not be used for such simulations.\n"
           "This method works largely as *yCalc*, but is tailored to handle the\n"
-          "output from *iyRadarSingleScat*. Note that *iy_radar_agenda* repalces\n"
+          "output from *iyRadarSingleScat*. Note that *iy_radar_agenda* replaces\n"
           "*iy_main_agenda*.\n"
           "\n"
           "The method requires additional information about the sensor,\n"
@@ -20882,8 +21032,8 @@ void define_md_data_raw() {
           "parameterization.\n"
           "\n"
           "A lower limit for dBZe is applied (*dbze_min*). The main reason is to\n"
-          "handle the fact dBZe is not defined for Ze=0, and dBZe is set to the\n"
-          "clip value when Ze < 10^(dbze_min/10).\n"),
+          "handle the fact that dBZe is not defined for Ze=0, and dBZe is set to\n"
+          "the clip value when Ze < 10^(dbze_min/10).\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"),
       GOUT(),

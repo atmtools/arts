@@ -599,6 +599,18 @@ void Tensor3AddScalar(Tensor3& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Tensor3FromVector(  // WS Generic Output:
+    Tensor3& m,
+    // WS Generic Input:
+    const Vector& v,
+    const Verbosity&) {
+  const Index nv = v.nelem();
+
+  m.resize(nv, 1, 1);
+  m(joker, 0, 0) = v;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3Scale(Tensor3& out,
                   const Tensor3& in,
                   const Numeric& value,

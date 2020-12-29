@@ -43,54 +43,60 @@
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric LOG10_EULER_NUMBER;
+
+// Index of grids inside radar inversion tables
+const Index GFIELD3_DB_GRID = 1;
+const Index GFIELD3_T_GRID = 2;
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyRadarSingleScat(Workspace& ws,
-                        Matrix& iy,
-                        ArrayOfMatrix& iy_aux,
-                        ArrayOfTensor3& diy_dx,
-                        Vector& ppvar_p,
-                        Vector& ppvar_t,
-                        EnergyLevelMap& ppvar_nlte,
-                        Matrix& ppvar_vmr,
-                        Matrix& ppvar_wind,
-                        Matrix& ppvar_mag,
-                        Matrix& ppvar_pnd,
-                        Matrix& ppvar_f,
-                        Tensor4& ppvar_trans_cumulat,
-                        const Index& stokes_dim,
-                        const Vector& f_grid,
-                        const Index& atmosphere_dim,
-                        const Vector& p_grid,
-                        const Tensor3& t_field,
-                        const EnergyLevelMap& nlte_field,
-                        const Tensor4& vmr_field,
-                        const ArrayOfArrayOfSpeciesTag& abs_species,
-                        const Tensor3& wind_u_field,
-                        const Tensor3& wind_v_field,
-                        const Tensor3& wind_w_field,
-                        const Tensor3& mag_u_field,
-                        const Tensor3& mag_v_field,
-                        const Tensor3& mag_w_field,
-                        const Index& cloudbox_on,
-                        const ArrayOfIndex& cloudbox_limits,
-                        const Tensor4& pnd_field,
-                        const ArrayOfTensor4& dpnd_field_dx,
-                        const ArrayOfString& scat_species,
-                        const ArrayOfArrayOfSingleScatteringData& scat_data,
-                        const Index& scat_data_checked,
-                        const ArrayOfString& iy_aux_vars,
-                        const Index& jacobian_do,
-                        const ArrayOfRetrievalQuantity& jacobian_quantities,
-                        const Ppath& ppath,
-                        const Agenda& propmat_clearsky_agenda,
-                        const Agenda& water_p_eq_agenda,
-                        const Agenda& iy_transmitter_agenda,
-                        const Numeric& rte_alonglos_v,
-                        const Index& trans_in_jacobian,
-                        const Numeric& pext_scaling,
-                        const Index& t_interp_order,
-                        const Verbosity& verbosity [[maybe_unused]]) {
+                       Matrix& iy,
+                       ArrayOfMatrix& iy_aux,
+                       ArrayOfTensor3& diy_dx,
+                       Vector& ppvar_p,
+                       Vector& ppvar_t,
+                       EnergyLevelMap& ppvar_nlte,
+                       Matrix& ppvar_vmr,
+                       Matrix& ppvar_wind,
+                       Matrix& ppvar_mag,
+                       Matrix& ppvar_pnd,
+                       Matrix& ppvar_f,
+                       Tensor4& ppvar_trans_cumulat,
+                       const Index& stokes_dim,
+                       const Vector& f_grid,
+                       const Index& atmosphere_dim,
+                       const Vector& p_grid,
+                       const Tensor3& t_field,
+                       const EnergyLevelMap& nlte_field,
+                       const Tensor4& vmr_field,
+                       const ArrayOfArrayOfSpeciesTag& abs_species,
+                       const Tensor3& wind_u_field,
+                       const Tensor3& wind_v_field,
+                       const Tensor3& wind_w_field,
+                       const Tensor3& mag_u_field,
+                       const Tensor3& mag_v_field,
+                       const Tensor3& mag_w_field,
+                       const Index& cloudbox_on,
+                       const ArrayOfIndex& cloudbox_limits,
+                       const Tensor4& pnd_field,
+                       const ArrayOfTensor4& dpnd_field_dx,
+                       const ArrayOfString& scat_species,
+                       const ArrayOfArrayOfSingleScatteringData& scat_data,
+                       const Index& scat_data_checked,
+                       const ArrayOfString& iy_aux_vars,
+                       const Index& jacobian_do,
+                       const ArrayOfRetrievalQuantity& jacobian_quantities,
+                       const Ppath& ppath,
+                       const Agenda& propmat_clearsky_agenda,
+                       const Agenda& water_p_eq_agenda,
+                       const Agenda& iy_transmitter_agenda,
+                       const Numeric& rte_alonglos_v,
+                       const Index& trans_in_jacobian,
+                       const Numeric& pext_scaling,
+                       const Index& t_interp_order,
+                       const Verbosity& verbosity [[maybe_unused]]) {
   //  Init Jacobian quantities?
   const Index j_analytical_do = jacobian_do ? do_analytical_jacobian<1>(jacobian_quantities) : 0;
   
@@ -882,5 +888,339 @@ void yRadar(Workspace& ws,
         }
       }
     }
+  }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void particle_bulkpropRadarOnionPeeling(
+    Workspace& ws,
+    Tensor4& particle_bulkprop_field,
+    ArrayOfString& particle_bulkprop_names,
+    const Index& atmosphere_dim,
+    const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Tensor3& t_field,
+    const Tensor3& z_field,
+    const Tensor4& vmr_field,
+    const Matrix& z_surface,
+    const Index& atmfields_checked,
+    const Index& atmgeom_checked,
+    const Vector& f_grid,
+    const Agenda& propmat_clearsky_agenda,
+    const ArrayOfString& scat_species,
+    const ArrayOfGriddedField3& invtable,
+    const Tensor3& dBZe,
+    const Numeric& dbze_noise,
+    const Numeric& h_clutter,
+    const Index& fill_clutter,
+    const Numeric& t_phase,
+    const Index& do_atten_abs,
+    const Index& do_atten_hyd,
+    const Numeric& dbze_max_corr,
+    const Verbosity&)
+{
+  // Checks of input
+  if (atmfields_checked != 1)
+    throw runtime_error(
+        "The atmospheric fields must be flagged to have\n"
+        "passed a consistency check (atmfields_checked=1).");
+  if (atmgeom_checked != 1)
+    throw runtime_error(
+        "The atmospheric geometry must be flagged to have\n"
+        "passed a consistency check (atmgeom_checked=1).");
+  if (scat_species.nelem() != 2)
+    throw runtime_error("Length of *scat_data* must be two.");
+  if (invtable.nelem() != 2)
+    throw runtime_error("Length of *invtable* must be two.");
+  if (dbze_noise < invtable[0].get_numeric_grid(GFIELD3_DB_GRID)[0])
+    throw runtime_error( "*dbze_noise* not covered by invtable[0]." );
+  if (dbze_noise < invtable[1].get_numeric_grid(GFIELD3_DB_GRID)[0])
+    throw runtime_error( "*dbze_noise* not covered by invtable[1]." );    
+  chk_atm_field("reflectivities", dBZe, atmosphere_dim, p_grid, lat_grid, lon_grid);
+
+  // Init output
+  const Index np = t_field.npages();
+  const Index nlat = t_field.nrows();
+  const Index nlon = t_field.ncols();
+  particle_bulkprop_field.resize(2, np, nlat, nlon);
+  particle_bulkprop_field = 0;
+  particle_bulkprop_names = scat_species;
+
+  // Loop all profiles
+  for (Index ilat=0; ilat<nlat; ilat++) {
+    for (Index ilon=0; ilon<nlon; ilon++) {
+
+      // Check if any significant reflectivity at all in profile
+      if (max(dBZe(joker,ilat,ilon)) > dbze_noise) {
+
+        Numeric dbze_corr = 0;   // Correction for 2-way attenuation
+        Numeric k_part_above = 0, k_abs_above = 0;
+        
+        for (Index ip=np-1; ip>=0; ip--) {
+
+          // Above clutter zone
+          if (z_field(ip,ilat,ilon) >= z_surface(ilat,ilon) + h_clutter) {
+
+            // Uncorrected dBZe and temperature
+            Numeric dbze = dBZe(ip,ilat,ilon);
+            const Numeric t = t_field(ip,ilat,ilon);
+
+            // Prepare for interpolation of invtable, when needed
+            Index phase = -1, it = -1;  // Dummy values
+            if (dbze > dbze_noise) {
+              phase = t >= t_phase ? 0 : 1;
+              // Find closest temperature
+              GridPos gp;
+              gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_T_GRID), t);
+              it = gp.fd[0] < 0.5 ? gp.idx : gp.idx+1;
+            }
+            
+            // Calculate attenuation from previous point
+            //
+            // For simplicity, extinction estimated from
+            // uncorrected dBZe and assumed zero at TOA
+            //
+            if (ip < np-1 && dbze_corr < dbze_max_corr) {
+
+              // Attenuation due particles
+              if (do_atten_hyd && dbze > dbze_noise) {
+                // Extinction
+                GridPos gp;
+                gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID), dbze);
+                Vector itw(2);
+                interpweights(itw, gp);
+                Numeric k_this= interp(itw, invtable[phase].data(1,joker,it), gp);
+                // Optical thickness
+                Numeric tau = 0.5 * (k_part_above + k_this) *
+                  (z_field(ip+1,ilat,ilon) - z_field(ip,ilat,ilon));
+                // This equals -10*log10(exp(-tau)^2)
+                dbze_corr += 20 * LOG10_EULER_NUMBER * tau;
+                // k_this can ne be shifted to be "above value"
+                k_part_above = k_this;
+              }
+              
+              // Attenuation due to abs_species
+              if (do_atten_abs) {
+                // Calculate local attenuation
+                Numeric k_this;
+                ArrayOfPropagationMatrix propmat, partial_dummy;
+                ArrayOfStokesVector nlte_dummy, partial_s_dummy, partial_nlte_dummy;
+                EnergyLevelMap rtp_nlte_local_dummy;
+                propmat_clearsky_agendaExecute(ws,
+                                               propmat,
+                                               nlte_dummy,
+                                               partial_dummy,
+                                               partial_s_dummy,
+                                               partial_nlte_dummy,
+                                               ArrayOfRetrievalQuantity(0),
+                                               f_grid,
+                                               Vector(3,0),
+                                               Vector(0),
+                                               p_grid[ip],
+                                               t_field(ip,ilat,ilon),
+                                               rtp_nlte_local_dummy,
+                                               vmr_field(joker,ip,ilat,ilon),
+                                               propmat_clearsky_agenda);
+                k_this = propmat[0].Kjj()[0];
+                for (Index i=1; i < propmat.nelem(); i++)
+                  k_this += propmat[i].Kjj()[0];
+                // Optical thickness
+                Numeric tau = 0.5 * (k_abs_above + k_this) *
+                  (z_field(ip+1,ilat,ilon) - z_field(ip,ilat,ilon));
+                // This equals -10*log10(exp(-tau)^2)
+                dbze_corr += 20 * LOG10_EULER_NUMBER * tau;
+                // k_this can ne be shifted to be "above value"
+                k_abs_above = k_this;
+              }
+            } 
+            
+            // Invert
+            if (dbze > dbze_noise) {
+              // Correct reflectivity for attenuation
+              dbze += min(dbze_corr, dbze_max_corr);
+              // Interpolate inversion table (table holds log of water content)
+              GridPos gp;
+              gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID), dbze);
+              Vector itw(2);
+              interpweights(itw, gp);
+              particle_bulkprop_field(phase,ip,ilat,ilon) =
+                exp(interp(itw, invtable[phase].data(0,joker,it), gp));
+            }
+            
+          // In clutter zone or below surface
+          } else {
+            if (fill_clutter) {
+              particle_bulkprop_field(0,ip,ilat,ilon) =
+                particle_bulkprop_field(0,ip+1,ilat,ilon);
+              particle_bulkprop_field(1,ip,ilat,ilon) =
+                particle_bulkprop_field(1,ip+1,ilat,ilon);
+            }
+          }
+          
+        } // presuure
+      } // R > 0
+    } // lon
+  } // lat
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void RadarOnionPeelingTableCalc(
+    Workspace& ws,
+    ArrayOfGriddedField3& invtable,
+    const Vector& f_grid,
+    const ArrayOfString& scat_species,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const ArrayOfArrayOfScatteringMetaData& scat_meta,
+    const ArrayOfAgenda& pnd_agenda_array,
+    const ArrayOfArrayOfString& pnd_agenda_array_input_names,
+    const Index& i_species,
+    const Vector& dbze_grid,
+    const Vector& t_grid,
+    const Numeric& wc_min,
+    const Numeric& wc_max,
+    const Numeric& ze_tref,
+    const Numeric& k2,
+    const Verbosity& verbosity)
+{
+  // Some index and sizes
+  const Index nss = scat_data.nelem();
+  const Index ndb = dbze_grid.nelem();
+  const Index nt = t_grid.nelem();
+  const Index iss = i_species;
+
+  // Check input
+  if (f_grid.nelem() != 1)
+    throw runtime_error("This method requires that *f_grid* has length 1.");
+  if (i_species < 0 || i_species > 1)
+    throw runtime_error("*i_species* must either be 0 or 1.");
+  if (nss != 2)
+    throw runtime_error("*scat_data* must contain data for exactly two "
+                        "scattering species.");
+  if (scat_species.nelem() != nss)
+    throw runtime_error(
+        "*scat_data* and *scat_species* are inconsistent in size.");
+  if (scat_meta.nelem() != nss)
+    throw runtime_error(
+        "*scat_data* and *scat_meta* are inconsistent in size.");
+  if (scat_data[iss].nelem() != scat_meta[iss].nelem())
+    throw runtime_error("*scat_data* and *scat_meta* have inconsistent sizes.");
+  if (scat_data[iss][0].f_grid.nelem() != 1)
+    throw runtime_error("*scat_data* should just contain one frequency.");
+  if (pnd_agenda_array_input_names[iss].nelem() != 1)
+    throw runtime_error("The PSD applied must be of 1-moment type.");
+  
+  // Allocate
+  if (invtable.empty())
+    invtable.resize(2);
+  invtable[iss].set_name("Radar inversion table created by *RadarOnionPeelingTableCalc*");
+  invtable[iss].resize(2, ndb, nt);
+  invtable[iss].data = 0;
+  invtable[iss].set_grid_name(0, "Radiative properties");
+  invtable[iss].set_grid(0, {"Log of water content","Extinction"});
+  invtable[iss].set_grid_name(1, "Radar reflectivity");
+  invtable[iss].set_grid(1, dbze_grid);
+  invtable[iss].set_grid_name(2, "Temperature");
+  invtable[iss].set_grid(2, t_grid);  
+
+  // Determine back-scattering and extinction on t_grid, at each size
+  const Index nse = scat_data[iss].nelem();
+  Matrix b(nt,nse), e(nt,nse);
+  {
+    Matrix itw(nt,2);
+    ArrayOfGridPos gp(nt);
+    for (Index i=0; i<nse; i++) {
+      if (scat_data[iss][i].ptype != PTYPE_TOTAL_RND)
+        throw runtime_error("So far only TRO is handled by this method.");
+      const Index ib = scat_data[iss][i].za_grid.nelem() - 1;
+      if (scat_data[iss][i].za_grid[ib] < 179.999) {
+        ostringstream os;
+        os << "All za_grid in scat_data must end with 180.\n"
+           << "This is not the case for scat_data[" << iss << "]["
+           << i << "] (0-based)";
+        throw runtime_error(os.str());
+      }
+      gridpos(gp, scat_data[iss][i].T_grid, t_grid, 10);
+      interpweights(itw, gp);
+      interp(e(joker,i), itw, scat_data[iss][i].ext_mat_data(0,joker,0,0,0), gp);
+      interp(b(joker,i), itw, scat_data[iss][i].pha_mat_data(0,joker,ib,0,0,0,0), gp);
+    }
+  }
+
+  // Create test grid for water content
+  const Index nwc = 250;
+  Vector wc_grid;
+  VectorNLogSpace(wc_grid, nwc, wc_min, wc_max, verbosity);
+  
+  // Calculate dBZe and extinction for wc_grid
+  //
+  Tensor3 D(2, nwc, nt, 0);
+  //
+  Vector pnd_agenda_input_t = t_grid;
+  Matrix pnd_agenda_input(nt, 1);
+  ArrayOfString dpnd_data_dx_names(0);
+  //
+  Vector cfac(1);
+  ze_cfac(cfac, f_grid, ze_tref, k2);
+  //
+  for (Index w=0; w<nwc; w++) {
+    // Get pnd
+    pnd_agenda_input = wc_grid[w];
+    Matrix pnd_data;
+    Tensor3 dpnd_data_dx;    
+    pnd_agenda_arrayExecute(ws,
+                            pnd_data,
+                            dpnd_data_dx,
+                            iss,
+                            pnd_agenda_input_t,
+                            pnd_agenda_input,
+                            pnd_agenda_array_input_names[iss],
+                            dpnd_data_dx_names,
+                            pnd_agenda_array);
+    
+    // Sum up to get bulk back-scattering and extinction
+    for (Index t=0; t<nt; t++) {
+      for (Index i=0; i<nse; i++) {
+        D(0,w,t) += pnd_data(t,i) * b(t,i);
+        D(1,w,t) += pnd_data(t,i) * e(t,i);
+      }
+      // Convert to dBZe
+      D(0,w,t) = 10 * log10(cfac[0] * D(0,w,t));
+    }
+  }
+
+  // Get water content and extinction as a function of dBZe by interpolation
+  Matrix itw(ndb,2);
+  ArrayOfGridPos gp(ndb);
+  // Water content interpolated in log
+  Vector wc_log(nwc);
+  transform(wc_log, log, wc_grid);
+  for (Index t=0; t<nt; t++) {
+    if (!is_increasing(D(0,joker,t))) {
+      ostringstream os;
+      os << "A case found of non-increasing dBZe.\n"
+         << "Found for scat_species " << iss << " and " << t_grid[t] << "K.";
+      throw runtime_error(os.str());
+    }
+    if (D(0,0,t) > dbze_grid[0]) {
+      ostringstream os;
+      os << "A case found where start of dbze_grid not covered.\n"
+         << "Found for scat_species " << iss << " and " << t_grid[t] << "K.";
+      throw runtime_error(os.str());      
+    }
+    if (D(0,nwc-1,t) < dbze_grid[ndb-1]) {
+      ostringstream os;
+      os << "A case found where end of dbze_grid not covered.\n"
+         << "Found for scat_species " << iss << " and " << t_grid[t] << "K.";
+      throw runtime_error(os.str());      
+    }
+    //
+    gridpos(gp, D(0,joker,t), dbze_grid);
+    interpweights(itw, gp);
+    interp(invtable[iss].data(0,joker,t), itw, wc_log, gp);
+    interp(invtable[iss].data(1,joker,t), itw, D(1,joker,t), gp);
   }
 }
