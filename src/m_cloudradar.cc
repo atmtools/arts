@@ -551,6 +551,8 @@ void iyRadarSingleScat(Workspace& ws,
   }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yRadar(Workspace& ws,
             Vector& y,
@@ -964,8 +966,9 @@ void particle_bulkpropRadarOnionPeeling(
           // Above clutter zone
           if (z_field(ip,ilat,ilon) >= z_surface(ilat,ilon) + h_clutter) {
 
-            // Uncorrected dBZe and temperature
-            Numeric dbze = dBZe(ip,ilat,ilon);
+            // Local dBZe, roughly corrected with attenuation for previos point
+            Numeric dbze = dBZe(ip,ilat,ilon) + min(dbze_corr, dbze_max_corr);
+            // Local temperature
             const Numeric t = t_field(ip,ilat,ilon);
 
             // Prepare for interpolation of invtable, when needed
@@ -980,13 +983,12 @@ void particle_bulkpropRadarOnionPeeling(
             
             // Calculate attenuation from previous point
             //
-            // For simplicity, extinction estimated from
-            // uncorrected dBZe and assumed zero at TOA
+            // For simplicity, extinction estimated using "roughly" corrected dBZe
             //
             if (ip < np-1 && dbze_corr < dbze_max_corr) {
 
               // Attenuation due particles
-              if (do_atten_hyd && dbze > dbze_noise) {
+              if (do_atten_hyd && dBZe(ip,ilat,ilon) > dbze_noise) {
                 // Extinction
                 GridPos gp;
                 gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID), dbze);
@@ -1038,9 +1040,9 @@ void particle_bulkpropRadarOnionPeeling(
             } 
             
             // Invert
-            if (dbze > dbze_noise) {
-              // Correct reflectivity for attenuation
-              dbze += min(dbze_corr, dbze_max_corr);
+            if (dBZe(ip,ilat,ilon) > dbze_noise) {
+              // Correct reflectivity with (updated) attenuation
+              dbze = dBZe(ip,ilat,ilon) + min(dbze_corr, dbze_max_corr);
               // Interpolate inversion table (table holds log of water content)
               GridPos gp;
               gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID), dbze);
@@ -1065,6 +1067,7 @@ void particle_bulkpropRadarOnionPeeling(
     } // lon
   } // lat
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
