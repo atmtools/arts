@@ -41,7 +41,7 @@ AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 
 # Various things not used
-ArrayOfStringSet( iy_aux_vars, [] )
+ArrayOfStringSet( iy_aux_vars, [] )   # Changed towards end of file
 jacobianOff
 
 # Non-standard variables
@@ -138,6 +138,11 @@ abs_speciesSet( species=[ "N2-SelfContStandardType",
                         ] )
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+#
+# Check that iy_aux vars rrun
+ArrayOfStringSet( iy_aux_vars, ["Radiative background",
+                                "Abs species extinction",
+                                "Particle extinction"] )
 #
 yRadar( ze_tref = t_ref )
 #

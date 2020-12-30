@@ -195,33 +195,31 @@ void iyRadarSingleScat(Workspace& ws,
 
   // Init iy_aux
   iy_aux.resize(naux);
-
-  // Not implemented in this function yet
-  //  Index auxBackScat = -1;
-  //  Index auxOptDepth = -1;
-  //  Index auxPartAtte = -1;
+  //
+  Index auxBackScat = -1;
+  Index auxAbSpAtte = -1;
+  Index auxPartAtte = -1;
   //
   for (Index i = 0; i < naux; i++) {
     iy_aux[i].resize(nf * np, ns);
-    iy_aux[i] = 0;
 
-    if (iy_aux_vars[i] == "Radiative background")
+    if (iy_aux_vars[i] == "Radiative background") {
+      iy_aux[i] = 0;
       iy_aux[i](joker, 0) = (Numeric)min((Index)2, rbi - 1);
-    //    else if( iy_aux_vars[i] == "Backscattering" ) {
-    //      iy_aux[i]   = 0;
-    //      auxBackScat = i;
-    //    }
-    //    else if( iy_aux_vars[i] == "Optical depth" )
-    //      auxOptDepth = i;
-    //    else if( iy_aux_vars[i] == "Particle extinction" ) {
-    //      iy_aux[i](Range(0,nf,np),joker) = 0;
-    //      auxPartAtte = i;
-    //    }
-    else {
+    } else if( iy_aux_vars[i] == "Backscattering" ) {
+      iy_aux[i]   = 0;
+      auxBackScat = i;
+    } else if( iy_aux_vars[i] == "Abs species extinction" ) {
+      iy_aux[i]   = 0;
+      auxAbSpAtte = i; 
+    } else if( iy_aux_vars[i] == "Particle extinction" ) {
+      iy_aux[i]   = 0;
+      auxPartAtte = i;
+    } else {
       ostringstream os;
       os << "The only allowed strings in *iy_aux_vars* are:\n"
          << "  \"Radiative background\"\n"
-         //      << "  \"Backscattering\"\n"
+         << "  \"Backscattering\"\n"
          //      << "  \"Optical depth\"\n"
          //      << "  \"Particle extinction\"\n"
          << "but you have selected: \"" << iy_aux_vars[i] << "\"";
@@ -395,10 +393,19 @@ void iyRadarSingleScat(Workspace& ws,
           }
         }
 
+        // Some iy_aux quantities
+        if (auxAbSpAtte >= 0) {
+          for (Index iv = 0; iv < nf; iv++) {
+            iy_aux[auxAbSpAtte](iv*np+ip, joker) = K_this.Kjj()[iv];
+          }
+        }
+        if (auxPartAtte >= 0) {
+          for (Index iv = 0; iv < nf; iv++) {
+            iy_aux[auxPartAtte](iv*np+ip, joker) = Kp.Kjj()[iv];
+          }
+        }
+        
         K_this += Kp;
-
-        //        if( auxPartAtte >= 0 )
-        //          scalar_ext(ip,joker) = Kp.Kjj();
 
         if (trans_in_jacobian && j_analytical_do)
           FOR_ANALYTICAL_JACOBIANS_DO(dK_this_dx[iq] += dKp_dx[iq];);
@@ -494,9 +501,9 @@ void iyRadarSingleScat(Workspace& ws,
   const ArrayOfTransmissionMatrix tot_tra_reflect =
       cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
   const ArrayOfTransmissionMatrix reflect_matrix =
-      cumulative_backscatter(Pe, ppvar_pnd);
+      bulk_backscatter(Pe, ppvar_pnd);
   const ArrayOfArrayOfTransmissionMatrix dreflect_matrix =
-      cumulative_backscatter_derivative(Pe, ppvar_dpnd_dx);
+      bulk_backscatter_derivative(Pe, ppvar_dpnd_dx);
 
   lvl_rad[0] = iy0;
   RadiationVector rad_inc = RadiationVector(nf, ns);
@@ -521,17 +528,15 @@ void iyRadarSingleScat(Workspace& ws,
   for (Index ip = 0; ip < np; ip++) {
     for (Index iv = 0; iv < nf; iv++) {
       for (Index is = 0; is < stokes_dim; is++) {
-        iy(iv * np + ip, is) = lvl_rad[ip](iv, is);
+        iy(iv*np+ip, is) = lvl_rad[ip](iv, is);
         if (j_analytical_do) {
           FOR_ANALYTICAL_JACOBIANS_DO(for (Index ip2 = 0; ip2 < np; ip2++)
-                                          diy_dpath[iq](ip, iv * np + ip2, is) =
+                                          diy_dpath[iq](ip, iv*np+ip2, is) =
                                               dlvl_rad[ip][ip2][iq](iv, is););
         }
       }
     }
   }
-  // FIXME: Add the aux-variables back
-
 
   // Finalize analytical Jacobian
   if (j_analytical_do) {
@@ -554,6 +559,17 @@ void iyRadarSingleScat(Workspace& ws,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
                                     jac_species_i);
+  }
+
+  // Remaining part of iy_aux
+  if (auxBackScat >= 0) {
+    for (Index ip = 0; ip < np; ip++) {
+      for (Index iv = 0; iv < nf; iv++) {
+        // Richard, help!!!!!
+        // rad_inc could be replaced with iy0 (Matrix), if it would help
+        //iy_aux[auxBackScat](iv*np+ip, joker) = reflect_matrix[ip] * rad_inc;
+      }
+    }
   }
 }
 

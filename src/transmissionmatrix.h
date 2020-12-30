@@ -1164,28 +1164,30 @@ void set_backscatter_radiation_vector(
     const ArrayOfArrayOfTransmissionMatrix& dZ,
     const BackscatterSolver solver);
 
-/** Accumulated backscatter (???)
+/** Bulk back-scattering 
  * 
- * FIXMEDOC Patrick, these are translated from other functions that accumulate
- * the back-scattering.  I do not remember how this worked.
+ * Sums up the back-scattering per element with particle number densities.
+ *
+ * Below ns is Stokes dim, nf the number of frequencies, np number of
+ * atmospheric positions, and ne the number of scattering elements.
  * 
- * @param t Tensor5 of backscattering
- * @param m (???)
- * @return ArrayOfTransmissionMatrix cumulative backscattering
+ * @param Pe Back-scattering on scattering element basis (ne,np,nf,ns,ns)
+ * @param pnd Particle number densities (ne,np)
+ * @return ArrayOfTransmissionMatrix Bulk back-scattering matrices
  */
-ArrayOfTransmissionMatrix cumulative_backscatter(ConstTensor5View t,
-                                                 ConstMatrixView m);
+ArrayOfTransmissionMatrix bulk_backscatter(ConstTensor5View Pe,
+                                           ConstMatrixView pnd);
 
-/** Accumulated backscatter derivative (???)
+/** Derivatives of bulk back-scattering  
  * 
- * FIXMEDOC Patrick, these are translated from other functions that accumulate
- * the back-scattering.  I do not remember how this worked.
+ * Below ns is Stokes dim, nf the number of frequencies, np number of
+ * atmospheric positions, and ne the number of scattering elements.
  * 
- * @param t Tensor5 of backscattering
- * @param m (???)
- * @return ArrayOfTArrayOfTransmissionMatrix cumulative backscattering
+ * @param Pe Back-scattering on scattering element basis (ne,np,nf,ns,ns)
+ * @param dpnd_dx Derivatives of pnd with respect to Jacobian quantities 
+ * @return ArrayOfTArrayOfTransmissionMatrix Derivatives of bulk back-scattering
  */
-ArrayOfArrayOfTransmissionMatrix cumulative_backscatter_derivative(
-    ConstTensor5View t, const ArrayOfMatrix& aom);
+ArrayOfArrayOfTransmissionMatrix bulk_backscatter_derivative(
+    ConstTensor5View Pe, const ArrayOfMatrix& dpnd_dx);
 
 #endif  // transmissionmatrix_h
