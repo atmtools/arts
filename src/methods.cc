@@ -11184,7 +11184,7 @@ void define_md_data_raw() {
           "Inverts radar reflectivities by in an onion peeling manner.\n"
           "\n"
           "The method assumes space-based measurements and invert one altitude\n"
-          "at the time,based on a pre-calculated inversion table (*invtable*)\n"
+          "at the time, based on a pre-calculated inversion table (*invtable*)\n"
           "and starting at the top of the atmosphere. If attenuation is\n"
           "completely ignored, the table is effectively used as a look-up table\n"
           "to map dBZe to hydrometeor values. The method considers attenuation\n"
@@ -11206,7 +11206,10 @@ void define_md_data_raw() {
           "applied in the dBZe dimension.\n"
           "\n"
           "The field of radar reflectivities (*dBZe*) shall cover the complete\n"
-          "atmosphere and then match e.g. *t_field* in size.\n"
+          "atmosphere and then match e.g. *t_field* in size. The observation\n"
+          "geometry is here specified by giving the incidence angle for each\n"
+          "profile of dBZe values (by *incangles*). A flat Earth approximation\n"
+          "is applied inside the method.\n"
           "\n"
           "All values below *dbze_noise* are treated as pure noise and\n"
           "*particle_bulkprop_field* is set to zero for these positions.\n"
@@ -11246,6 +11249,7 @@ void define_md_data_raw() {
          "propmat_clearsky_agenda",
          "scat_species"),
       GIN("invtable",
+          "incangles",
           "dBZe",
           "dbze_noise",
           "h_clutter",
@@ -11254,10 +11258,11 @@ void define_md_data_raw() {
           "do_atten_abs",
           "do_atten_hyd",
           "dbze_max_corr"),
-      GIN_TYPE("ArrayOfGriddedField3", "Tensor3", "Numeric", "Numeric",
-               "Index", "Numeric", "Index", "Index", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, "-99", "0", "0", "273.15", "1", "1", "10" ),
+      GIN_TYPE("ArrayOfGriddedField3", "Matrix", "Tensor3", "Numeric",
+               "Numeric", "Index", "Numeric", "Index", "Index", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", "0", "0", "273.15", "1", "1", "10"),
       GIN_DESC("Inversion table, see above.",
+               "Incidence angles.",
                "Field of radar reflectivities, in dBZe.",
                "Noise level. See above.",
                "Height of clutter zone.",

@@ -191,10 +191,13 @@ RadarOnionPeelingTableCalc( invtable = invtable,
 # Run onion peeling
 #
 Tensor4Create( retrieved )
+MatrixCreate( incangles )
+MatrixSetConstant( incangles, 1, 1, 0 )
 #
 particle_bulkpropRadarOnionPeeling( particle_bulkprop_field = retrieved,
                                     invtable = invtable,
                                     dBZe = dBZe,
+                                    incangles = incangles,
                                     dbze_noise = -30,
                                     do_atten_abs = 1,
                                     do_atten_hyd = 1 )

@@ -936,6 +936,7 @@ void particle_bulkpropRadarOnionPeeling(
     const Agenda& propmat_clearsky_agenda,
     const ArrayOfString& scat_species,
     const ArrayOfGriddedField3& invtable,
+    const Matrix& incangles,
     const Tensor3& dBZe,
     const Numeric& dbze_noise,
     const Numeric& h_clutter,
@@ -963,7 +964,10 @@ void particle_bulkpropRadarOnionPeeling(
     throw runtime_error( "*dbze_noise* not covered by invtable[0]." );
   if (dbze_noise < invtable[1].get_numeric_grid(GFIELD3_DB_GRID)[0])
     throw runtime_error( "*dbze_noise* not covered by invtable[1]." );    
-  chk_atm_field("reflectivities", dBZe, atmosphere_dim, p_grid, lat_grid, lon_grid);
+  chk_atm_field("GIN reflectivities", dBZe, atmosphere_dim, p_grid,
+                lat_grid, lon_grid);
+  chk_atm_surface("GIN incangles", incangles, atmosphere_dim, lat_grid,
+                  lon_grid);
 
   // Init output
   const Index np = t_field.npages();
@@ -982,6 +986,7 @@ void particle_bulkpropRadarOnionPeeling(
 
         Numeric dbze_corr = 0;   // Correction for 2-way attenuation
         Numeric k_part_above = 0, k_abs_above = 0;
+        const Numeric hfac = 1 / cos( DEG2RAD*incangles(ilat,ilon) );
         
         for (Index ip=np-1; ip>=0; ip--) {
 
@@ -1018,7 +1023,7 @@ void particle_bulkpropRadarOnionPeeling(
                 interpweights(itw, gp);
                 Numeric k_this= interp(itw, invtable[phase].data(1,joker,it), gp);
                 // Optical thickness
-                Numeric tau = 0.5 * (k_part_above + k_this) *
+                Numeric tau = 0.5 * hfac * (k_part_above + k_this) *
                   (z_field(ip+1,ilat,ilon) - z_field(ip,ilat,ilon));
                 // This equals -10*log10(exp(-tau)^2)
                 dbze_corr += 20 * LOG10_EULER_NUMBER * tau;
@@ -1052,7 +1057,7 @@ void particle_bulkpropRadarOnionPeeling(
                 for (Index i=1; i < propmat.nelem(); i++)
                   k_this += propmat[i].Kjj()[0];
                 // Optical thickness
-                Numeric tau = 0.5 * (k_abs_above + k_this) *
+                Numeric tau = 0.5 * hfac * (k_abs_above + k_this) *
                   (z_field(ip+1,ilat,ilon) - z_field(ip,ilat,ilon));
                 // This equals -10*log10(exp(-tau)^2)
                 dbze_corr += 20 * LOG10_EULER_NUMBER * tau;
