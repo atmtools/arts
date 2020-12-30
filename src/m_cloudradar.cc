@@ -57,13 +57,11 @@ void iyRadarSingleScat(Workspace& ws,
                        ArrayOfTensor3& diy_dx,
                        Vector& ppvar_p,
                        Vector& ppvar_t,
-                       EnergyLevelMap& ppvar_nlte,
                        Matrix& ppvar_vmr,
                        Matrix& ppvar_wind,
                        Matrix& ppvar_mag,
                        Matrix& ppvar_pnd,
                        Matrix& ppvar_f,
-                       Tensor4& ppvar_trans_cumulat,
                        const Index& stokes_dim,
                        const Vector& f_grid,
                        const Index& atmosphere_dim,
@@ -98,7 +96,8 @@ void iyRadarSingleScat(Workspace& ws,
                        const Index& t_interp_order,
                        const Verbosity& verbosity [[maybe_unused]]) {
   //  Init Jacobian quantities?
-  const Index j_analytical_do = jacobian_do ? do_analytical_jacobian<1>(jacobian_quantities) : 0;
+  const Index j_analytical_do = jacobian_do ?
+    do_analytical_jacobian<1>(jacobian_quantities) : 0;
   
   // Some basic sizes
   const Index nf = f_grid.nelem();
@@ -106,6 +105,7 @@ void iyRadarSingleScat(Workspace& ws,
   const Index np = ppath.np;
   const Index ne = pnd_field.nbooks();
   const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
+  const Index naux = iy_aux_vars.nelem();
 
   // Radiative background index
   const Index rbi = ppath_what_background(ppath);
@@ -133,7 +133,8 @@ void iyRadarSingleScat(Workspace& ws,
   }
   if (jacobian_do) {
     // FIXME: These needs to be tested properly
-    throw std::runtime_error("Jacobian calculations are currently not working in iyActiveSingleScat");
+    throw std::runtime_error("Jacobian calculations *iyActiveSingleScat* need "
+                             "revision before safe to use.");
     
     if (dpnd_field_dx.nelem() != jacobian_quantities.nelem())
       throw runtime_error(
@@ -155,7 +156,7 @@ void iyRadarSingleScat(Workspace& ws,
                                ppath.pos(np - 1, Range(0, atmosphere_dim)),
                                ppath.los(np - 1, joker),
                                iy_transmitter_agenda);
-
+  //
   if (iy0.ncols() != ns || iy0.nrows() != nf) {
     ostringstream os;
     os << "The size of *iy* returned from *iy_transmitter_agenda* is\n"
@@ -180,16 +181,19 @@ void iyRadarSingleScat(Workspace& ws,
     get_pointers_for_analytical_species(jacobian_quantities, abs_species) :
     ArrayOfIndex(0);
   
-  // Start diy_dx out if we are doing the first run and are doing jacobian calculations
+  // Start diy_dx out if we are doing the first run and are doing jacobian
+  // calculations
   diy_dx = j_analytical_do ?
     get_standard_starting_diy_dx(jacobian_quantities, np, nf, ns, true) :
     ArrayOfTensor3(0);
   
-  // Checks that the scattering species are treated correctly if their derivatives are needed
-  const ArrayOfIndex jac_scat_i = j_analytical_do ? get_pointers_for_scat_species(jacobian_quantities, scat_species, cloudbox_on) : ArrayOfIndex(0);
+  // Checks that the scattering species are treated correctly if their
+  // derivatives are needed
+  const ArrayOfIndex jac_scat_i = j_analytical_do ?
+    get_pointers_for_scat_species(jacobian_quantities, scat_species, cloudbox_on) :
+    ArrayOfIndex(0);
 
   // Init iy_aux
-  const Index naux = iy_aux_vars.nelem();
   iy_aux.resize(naux);
 
   // Not implemented in this function yet
@@ -226,32 +230,32 @@ void iyRadarSingleScat(Workspace& ws,
   }
 
   // Get atmospheric and radiative variables along the propagation path
-  ppvar_trans_cumulat.resize(np, nf, ns, ns);
-
+  //
   ArrayOfRadiationVector lvl_rad(np, RadiationVector(nf, ns));
-  ArrayOfArrayOfArrayOfRadiationVector dlvl_rad(
-      np,
-      ArrayOfArrayOfRadiationVector(
-          np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns))));
-
+  ArrayOfArrayOfArrayOfRadiationVector dlvl_rad(np,
+      ArrayOfArrayOfRadiationVector(np,
+        ArrayOfRadiationVector(nq, RadiationVector(nf, ns))));
+  //
   ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
-  ArrayOfArrayOfTransmissionMatrix dlyr_tra_above(
-      np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
-  ArrayOfArrayOfTransmissionMatrix dlyr_tra_below(
-      np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
+  ArrayOfArrayOfTransmissionMatrix dlyr_tra_above(np,
+      ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
+  ArrayOfArrayOfTransmissionMatrix dlyr_tra_below(np,
+      ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
 
-  // TEMPORARY VARIABLE, THIS COULD BE AN ArrayOfArrayOfPropagationMatrix most likely, to speedup calculations
+  // Consider to make Pe an ArrayOfArrayOfPropagationMatrix!
   Tensor5 Pe(ne, np, nf, ns, ns, 0);
 
+  // Various 
   ArrayOfMatrix ppvar_dpnd_dx(0);
   ArrayOfIndex clear2cloudy;
   //  Matrix scalar_ext(np,nf,0);  // Only used for iy_aux
-  Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
-  Index duplicate_freqs = ((nf == nf_ssd) ? 0 : 1);
+  const Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
+  const Index duplicate_freqs = ((nf == nf_ssd) ? 0 : 1);
   Tensor6 pha_mat_1se(nf_ssd, 1, 1, 1, ns, ns);
   Vector t_ok(1), t_array(1);
-  Matrix pdir(1, 2), idir(1, 2);
+  Matrix mlos_sca(1, 2), mlos_inc(1, 2);
   Index ptype;
+  EnergyLevelMap ppvar_nlte;
 
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
     ppvar_p.resize(0);
@@ -297,7 +301,8 @@ void iyRadarSingleScat(Workspace& ws,
                           dpnd_field_dx);
     else {
       clear2cloudy.resize(np);
-      for (Index ip = 0; ip < np; ip++) clear2cloudy[ip] = -1;
+      for (Index ip = 0; ip < np; ip++)
+        clear2cloudy[ip] = -1;
     }
 
     // Size radiative variables always used
@@ -403,17 +408,16 @@ void iyRadarSingleScat(Workspace& ws,
           // Direction of outgoing scattered radiation (which is reverse to LOS).
           Vector los_sca;
           mirror_los(los_sca, ppath.los(ip, joker), atmosphere_dim);
-          pdir(0, joker) = los_sca;
+          mlos_sca(0, joker) = los_sca;
 
           // Obtain a length-2 vector for incoming direction
           Vector los_inc;
           if (atmosphere_dim == 3) {
             los_inc = ppath.los(ip, joker);
-          } else  // Mirror back to get a correct 3D LOS
-          {
+          } else { // Mirror back to get a correct 3D LOS
             mirror_los(los_inc, los_sca, 3);
           }
-          idir(0, joker) = los_inc;
+          mlos_inc(0, joker) = los_inc;
 
           Index i_se_flat = 0;
           for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
@@ -436,8 +440,8 @@ void iyRadarSingleScat(Workspace& ws,
                                   t_ok,
                                   scat_data[i_ss][i_se],
                                   ppvar_t[Range(ip, 1)],
-                                  pdir,
-                                  idir,
+                                  mlos_sca,
+                                  mlos_inc,
                                   0,
                                   t_interp_order);
                 if (t_ok[0] not_eq 0)
@@ -457,7 +461,7 @@ void iyRadarSingleScat(Workspace& ws,
                 }
               }
               i_se_flat++;
-            }
+            } // for i_ss
 
         }  // local scope
       }    // clear2cloudy
@@ -510,8 +514,10 @@ void iyRadarSingleScat(Workspace& ws,
                                    BackscatterSolver::CommutativeTransmission);
 
 
-  // Size iy and set to zero
+  // Fill iy and diy_dpath
+  //
   iy.resize(nf * np, ns);  // iv*np + ip is the desired output order...
+  //
   for (Index ip = 0; ip < np; ip++) {
     for (Index iv = 0; iv < nf; iv++) {
       for (Index is = 0; is < stokes_dim; is++) {
