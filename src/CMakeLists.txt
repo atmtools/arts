@@ -67,6 +67,7 @@ add_custom_command (
 
 add_executable (arts main.cc)
 add_dependencies (arts auto_version_h)
+add_dependencies(check-deps arts)
 
 target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
 
@@ -573,5 +574,6 @@ add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts
 # Generate autoarts.h for the ARTS interface
 add_executable(test_cpp_api test_cpp_api.cc)
 target_link_libraries(test_cpp_api public_arts_interface)
+add_dependencies(check-deps test_cpp_api)
 add_test(NAME "arts.cpp_api.fast.silly_groundbased_water_test" COMMAND test_cpp_api)
 ########################################################################################

@@ -1099,8 +1099,12 @@ void sca_optpropCalc(  //Output
         i_pfct = 0;
       else if (pfct_method == "high")
         i_pfct = ssd.T_grid.nelem() - 1;
-      else  //if( pfct_method=="median" )
+      else if( pfct_method=="median" )
         i_pfct = ssd.T_grid.nelem() / 2;
+      else {
+        throw runtime_error(
+          "*pfct_method* must be \"low\", \"high\" or \"median\"." );
+      }
 
       if (ssd.ptype == PTYPE_TOTAL_RND) {
         Matrix pha_mat(stokes_dim, stokes_dim, 0.);

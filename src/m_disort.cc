@@ -73,7 +73,6 @@ void DisortCalc(Workspace& ws,
                 const Numeric& surface_skin_t,
                 const Vector& surface_scalar_reflectivity,
                 const Index& nstreams,
-                const String& pfct_method,
                 const Index& Npfct,
                 const Index& cdisort_quiet,
                 const Verbosity& verbosity) {
@@ -83,9 +82,6 @@ void DisortCalc(Workspace& ws,
     out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
     return;
   }
-
-  // FIXME: At the moment, combining scattering elements stored on different
-  //  scattering angle grids is only possible for pfct_method 'interpolate'.
 
   check_disort_input(cloudbox_on,
                      atmfields_checked,
@@ -97,8 +93,7 @@ void DisortCalc(Workspace& ws,
                      cloudbox_limits,
                      scat_data,
                      za_grid,
-                     nstreams,
-                     pfct_method);
+                     nstreams);
 
   init_ifield(
       cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), stokes_dim);
@@ -150,12 +145,12 @@ void DisortCalcWithARTSSurface(
     const Tensor3& z_field,
     const Tensor4& vmr_field,
     const Vector& p_grid,
+    const Matrix& z_surface,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Vector& f_grid,
     const Vector& za_grid,
     const Index& stokes_dim,
     const Index& nstreams,
-    const String& pfct_method,
     const Index& Npfct,
     const Index& cdisort_quiet,
     const Verbosity& verbosity) {
@@ -169,9 +164,6 @@ void DisortCalcWithARTSSurface(
   // That should be fixed (using z_surface and allowing other altitudes) at some
   // point.
 
-  // FIXME: At the moment, combining scattering elements stored on different
-  //  scattering angle grids is only possible for pfct_method 'interpolate'.
-
   check_disort_input(cloudbox_on,
                      atmfields_checked,
                      atmgeom_checked,
@@ -182,8 +174,7 @@ void DisortCalcWithARTSSurface(
                      cloudbox_limits,
                      scat_data,
                      za_grid,
-                     nstreams,
-                     pfct_method);
+                     nstreams);
 
   init_ifield(
       cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), stokes_dim);
@@ -191,19 +182,13 @@ void DisortCalcWithARTSSurface(
   Vector albedo(f_grid.nelem(), 0.);
   Numeric btemp;
 
-  // for now, surface at lowest atm level. later use z_surface or the like
-  // for that.
-  // at the moment this is only required for groundtype "A", but
-  const Numeric surf_altitude = z_field(0, 0, 0);
-  //const Numeric surf_altitude = z_surface(0,0);
-
   surf_albedoCalc(ws,
                   albedo,
                   btemp,
                   surface_rtprop_agenda,
                   f_grid,
                   za_grid,
-                  surf_altitude,
+                  z_surface(0,0),
                   verbosity);
 
   run_cdisort(ws,
@@ -211,7 +196,7 @@ void DisortCalcWithARTSSurface(
               f_grid,
               p_grid,
               z_field(joker, 0, 0),
-              surf_altitude,
+              z_surface(0,0),
               t_field(joker, 0, 0),
               vmr_field(joker, joker, 0, 0),
               pnd_field(joker, joker, 0, 0),
@@ -304,7 +289,6 @@ void DisortCalcClearsky(Workspace& ws,
              surface_skin_t,
              surface_scalar_reflectivity,
              nstreams,
-             "median",
              181,
              cdisort_quiet,
              verbosity);
