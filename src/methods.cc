@@ -2663,18 +2663,18 @@ void define_md_data_raw() {
       NAME("AngularGridsSetFluxCalc"),
       DESCRIPTION(
           "Sets the angular grids for the calculation of radiation fluxes\n"
-          "(irradiance) per hemispheres and heating rates\n"
+          "(irradiance) per hemispheres and heating rates.\n"
           "\n"
           "This method sets the angular grids for the radiation fluxes type\n"
           "calculations and calculates the integration weights *za_grid_weights*\n"
-          "for the zenith angle integration. For down- und up-looking\n"
-          "geometries it suffices to define *N_za_grid* and\n"
-          "*N_aa_grid*. From *N_aa_grid* an equally spaced grid is\n"
-          "created and stored in the WSV*aa_grid*.\n"
-          "Depending on the desired *za_grid_type* *za_grid* will be\n"
+          "for the zenith angle integration. For down- und up-looking geometries\n"
+          "it suffices to use the default values of N_za_grid and N_aa_grid.\n"
+          "From N_aa_grid an equally spaced grid is created and stored in the\n"
+          "WSV *aa_grid*.\n"
+          "Depending on the desired za_grid_type *za_grid* will be\n"
           "equally spaced ('linear') or unequally ('linear_mu','double_gauss')\n"
-          "Important, *N_za_grid* must be an even number because for the \n"
-          "integration over each hemisphere *N_za_grid* / 2 zenith angles are needed.\n"
+          "Important, N_za_grid must be an even number because for the \n"
+          "integration over each hemisphere N_za_grid / 2 zenith angles are needed.\n"
           "\n"
           "Possible zenith angle grid types are:\n"
           "double_gauss:     The zenith grid and the integration weights are set according\n"
@@ -6866,13 +6866,14 @@ void define_md_data_raw() {
       GIN_DESC("Raw input; Altitude-gridded field.",
                "Interpolation order.",
                "Apply zero-padding.")));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("heating_ratesFromIrradiance"),
       DESCRIPTION(
           "Calculates heating rates. It assumes that the heating rates\n"
           "depend only on the vertical derivation of the net flux.\n"
-          "The net flux is the sum of the irradiance field in upward \n"
-          " direction and the irradiance field in downward direction\n"),
+          "The net flux is the sum of the *irradiance_field* in upward\n"
+          "direction and the *irradiance_field* in downward direction\n"),
       AUTHORS("Manfred Brath"),
       OUT("heating_rates"),
       GOUT(),
@@ -7143,11 +7144,11 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("irradiance_fieldFromRadiance"),
       DESCRIPTION(
-          "Calculate the irradiance also known as flux density from the *radiance_field* .\n"
-          "by integrating over the angular grids according to the grids set\n"
-          "by *AngularGridsSetFluxCalc* \n"
-          "See *AngularGridsSetFluxCalc to set \n"
-          "*za_grid, aa_grid, and za_grid_weights*\n"),
+          "Calculates the irradiance also known as flux density from the\n"
+          "*radiance_field* by integrating over the angular grids according to\n"
+          "the grids set by *AngularGridsSetFluxCalc*. \n"
+          "See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and\n"
+          "*za_grid_weights*\n"),
       AUTHORS("Manfred Brath"),
       OUT("irradiance_field"),
       GOUT(),
@@ -13858,21 +13859,21 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("RadiationFieldSpectralIntegrate"),
       DESCRIPTION(
-          "Integrates fields like *spectral_irradiance_field* or *cloudbox_field*\n"
-          "over frequency.\n"
+          "Integrates fields like *spectral_irradiance_field* or\n"
+          "*spectral_radiance_field* over frequency.\n"
           "Important, the first dimension must be the frequency dimension!\n"
-          "If a field  like *cloudbox_field* is input, the stokes dimension\n"
+          "If a field  like *spectral_radiance_field* is input, the stokes dimension\n"
           "is also removed.\n"),
       AUTHORS("Manfred Brath"),
       OUT(),
       GOUT("radiation_field"),
       GOUT_TYPE("Tensor4, Tensor5"),
-      GOUT_DESC("TBD"),
+      GOUT_DESC("Field similar to irradiance field or spectral irradiance field"),
       IN("f_grid"),
       GIN("spectral_radiation_field"),
       GIN_TYPE("Tensor5, Tensor7"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("TBD")));
+      GIN_DESC("Field similar to spectral irradiance field, spectral radiance field")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D"),
@@ -17386,11 +17387,11 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_irradiance_fieldFromSpectralRadianceField"),
       DESCRIPTION(
-          "Calculates the spectral irradiance from *spectral_radiance_field* .\n"
+          "Calculates the spectral irradiance from *spectral_radiance_field*\n"
           "by integrating over the angular grids according to the grids set\n"
-          "by *AngularGridsSetFluxCalc* \n"
-          "See *AngularGridsSetFluxCalc to set \n"
-          "*za_grid, aa_grid, and za_grid_weights*\n"),
+          "by *AngularGridsSetFluxCalc*.\n"
+          "See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and \n"
+          "*za_grid_weights*.\n"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field"),
       GOUT(),
