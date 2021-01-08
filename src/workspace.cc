@@ -5769,7 +5769,7 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("za_grid_weights"),
-      DESCRIPTION("Zanith angle integration weights.\n"
+      DESCRIPTION("Zenith angle integration weights.\n"
           "\n"
           "The integration weight are needed for calculation of radiation fluxes\n"
           "\n"
