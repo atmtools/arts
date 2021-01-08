@@ -100,10 +100,11 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "Azimuthal angle grid.\n"
           "\n"
-          "The azimutal angle grid, on which the intensity field is stored. \n"
+          "The azimutal angle grid, on which the *cloudbox_field* is stored. \n"
           "This grid is used for RT calculations inside the cloudbox, \n"
           "therefore one has to define it if the cloudbox is activated by \n"
-          "the flag *cloudbox_on*.\n"
+          "the flag *cloudbox_on*. Furthermore the zenith angle grid is also used"
+          "for RT calculations of clear-sky *spectral radiance field*.\n"
           "The grid must be sorted in increasing order, with no repetitions.\n"
           "\n"
           "Usage:      Set by the user.\n"
@@ -1821,14 +1822,14 @@ void Workspace::define_wsv_data() {
           "The heating rates of atmospheric layers.\n"
           "\n"
           "The heating rate is defined as the rate of temperature change of an \n"
-          "atmospheric layer due the heating by absorption of radiation or if it\n"
-          "is negative the loss of energy by emission of radiation.\n"
+          "atmospheric layer due to heating by absorption of radiation or if it\n"
+          "is negative due to loss of energy by emission of radiation.\n"
           "\n"
           "Units: K s^-1\n"
           "\n"
-          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"),
+          "Size: [ p_grid, \n"
+          "        lat_grid, \n"
+          "        lon_grid ]\n"),
       GROUP("Tensor3")));
 
   wsv_data.push_back(
@@ -1902,17 +1903,17 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("irradiance_field"),
       DESCRIPTION(
-          "Irradiance also known as flux density.\n"
+          "Irradiance field also known as flux density.\n"
           "\n"
-          "Radiant flux received by a surface per unit area\n"
-          "seperately for each hemisphere.\n"
-          "The last dimension denotes the hemispheres. The first component is the downward irradiance\n"
-          "and the second component is the upward irradiance"
+          "Radiant flux received by a surface per unit area for each hemisphere.\n"
+          "The last dimension denotes the hemispheres. The first component is\n"
+          "the downward irradiance and the second component is the upward irradiance\n"
+          "\n"
           "Units: W m^-2\n"
           "\n"
-          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1,\n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1,\n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1,\n"
+          "Size: [ p_grid, \n"
+          "        lat_grid, \n"
+          "        lon_grid, \n"
           "        2 ]\n"),
       GROUP("Tensor4")));
 
@@ -3539,17 +3540,19 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("radiance_field"),
       DESCRIPTION(
-          "Radiant flux per unit solid angle per unit projected area\n"
-          "seperately for each hemisphere. \n"
+          "Radiance field.\n"
           "\n"
-          "The last dimension denotes the hemispheres. The first component is the downward radiance\n"
-          "and the second component is the upward radiance"
+          "Radiant flux received by a surface per unit solid angle and per unit\n"
+          "area for each hemisphere. The last dimension denotes the hemispheres.\n"
+          "The first component is the downward radiance and the second component\n"
+          "is the upward radiance.\n"
+          "\n"
           "Units: W / (m^2 sr)\n"
           "\n"
-          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-          "        N_za, N_aa\n"),
+          "Size: [p_grid, \n"
+          "       lat_grid, \n"
+          "       lon_grid, \n"
+          "       N_za, N_aa\n"),
       GROUP("Tensor5")));
 
   wsv_data.push_back(WsvRecord(
@@ -4625,15 +4628,15 @@ void Workspace::define_wsv_data() {
           "Spectral irradiance is the radiative power per unit area\n"
           "and unit frequency. The last dimension denotes the hemispheres.\n"
           "The first component denotes the downward direction and the second\n"
-          "component denotes the upward direction\n"
+          "component denotes the upward direction.\n"
           "\n"
           "Units: W m^-2 Hz^-1\n"
           "\n"
-          " Size: [Nf,\n"
-          "       (cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-          "        2]\n"),
+          " Size: [ Nf,\n"
+          "         p_grid, \n"
+          "         lat_grid, \n"
+          "         lon_grid, \n"
+          "         2 ]\n"),
       GROUP("Tensor5")));
 
   wsv_data.push_back(WsvRecord(
@@ -4667,11 +4670,12 @@ void Workspace::define_wsv_data() {
                   "\n"
                   "It is the heat capacity per unit \n"
                   "mass of a material.\n"
+                  "\n"
                   "Units: K J^-1 kg^-1\n"
                   "\n"
-                  "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-                  "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-                  "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"),
+                  "Size: [ p_grid, \n"
+                  "        lat_grid, \n"
+                  "        lon_grid] \n"),
       GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
@@ -5751,10 +5755,11 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "Zenith angle grid.\n"
           "\n"
-          "The zenith angle grid, on which the intensity field is stored. \n"
+          "The zenith angle grid, on which the *cloudbox_field* is stored. \n"
           "This grid is used for RT calculations inside the cloudbox, therefore\n"
-          "the grid has to be defined\n"
-          "if the cloudbox is activated by the flag *cloudbox_on*.\n"
+          "the grid has to be defined if the cloudbox is activated by the flag\n"
+          "*cloudbox_on*. Furthermore the zenith angle grid is also used for RT\n"
+          "calculations of clear-sky *spectral radiance field*. \n"
           "The grid must be sorted in increasing order, with no repetitions.\n"
           "\n"
           "Usage:      Set by the user.\n"
@@ -5762,11 +5767,14 @@ void Workspace::define_wsv_data() {
           "Unit:       degrees \n"),
       GROUP("Vector")));
 
-  wsv_data.push_back(WsvRecord(NAME("za_grid_weights"),
-                               DESCRIPTION("TBD.\n"
-                                           "\n"
-                                           "Unit:  unitless\n"),
-                               GROUP("Vector")));
+  wsv_data.push_back(WsvRecord(
+      NAME("za_grid_weights"),
+      DESCRIPTION("Zenith angle integration weights.\n"
+          "\n"
+          "The integration weight are needed for calculation of radiation fluxes\n"
+          "\n"
+          "Unit:  unitless\n"),
+      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("za_index"),
