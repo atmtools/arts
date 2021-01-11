@@ -1,11 +1,11 @@
 #include <numeric>
 
 #include <Faddeeva/Faddeeva.hh>
-#include <invlib/optimization.h>
 
 #include "lin_alg.h"
 #include "linefunctions.h"
 #include "linemixing.h"
+#include "minimize.h"
 #include "physics_funcs.h"
 
 
@@ -13,8 +13,7 @@ namespace Absorption::LineMixing {
 EquivalentLines::EquivalentLines(const ComplexMatrix& W,
                                  const Vector& pop,
                                  const Vector& dip) noexcept :
-  val(pop.nelem(), 0), str(pop.nelem(), 0)
-{
+  val(pop.nelem(), 0), str(pop.nelem(), 0) {
   const Index n = pop.nelem();
   
   // Compute values
@@ -40,6 +39,26 @@ EquivalentLines::EquivalentLines(const ComplexMatrix& W,
     str[i] *= z;
   }
 }
+
+
+PopulationAndDipole::PopulationAndDipole(const Numeric T,
+                                         const AbsorptionLines& band,
+                                         const SpeciesAuxData::AuxType& partition_type,
+                                         const ArrayOfGriddedField1& partition_data) noexcept :
+  pop(band.NumLines()), dip(band.NumLines()) {
+  const Index N = band.NumLines();
+  
+  const Numeric QT = single_partition_function(T, partition_type, partition_data);
+  const Numeric QT0 = single_partition_function(band.T0(), partition_type, partition_data);
+  const Numeric ratiopart = QT0 / QT;
+  
+  for (Index i=0; i<N; i++) {
+    const Numeric pop0 = (band.g_upp(i) / QT0) * boltzman_factor(band.T0(), band.E0(i));
+    pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
+    dip[i] = std::sqrt(band.I0(i)/(pop0 * band.F0(i) * (1-stimulated_emission(band.T0(), band.F0(i)))));
+  }
+}
+
 
 ArrayOfIndex PopulationAndDipole::sort(const AbsorptionLines& band) noexcept {
   const Index N = pop.nelem();
@@ -69,13 +88,32 @@ ArrayOfIndex PopulationAndDipole::sort(const AbsorptionLines& band) noexcept {
 }
 
 
+void PopulationAndDipole::sort(const ArrayOfIndex& presorting) noexcept {
+  const Index N = presorting.size();
+  Vector dipcopy(dip), popcopy(pop);
+  for (Index i=0; i<N; i++) {
+    dip[i] = dipcopy[presorting[i]];
+    pop[i] = popcopy[presorting[i]];
+  }
+}
+
+
+/*! Computes the off-diagonal elements of the relaxation matrix
+ * following Makarov etal 2020.
+ * 
+ * @param[in,out] W The imaginary part of the relaxation matrix
+ * @param[in] T The temperature
+ * @param[in] band The absorption band
+ * @param[in] sorting The sorting of the band
+ * @param[in] mass_self The mass of the self-species
+ * @param[in] mass_other The mass of the colliding species
+ */
 void relaxation_matrix_makarov2020_offdiagonal(MatrixView W,
                                                const Numeric T,
                                                const AbsorptionLines& band,
                                                const ArrayOfIndex& sorting,
                                                const Numeric& mass_self,
-                                               const Numeric& mass_other)
-{
+                                               const Numeric& mass_other) {
   const Index n = band.NumLines();
   
   // Energy calculations
@@ -224,12 +262,24 @@ void relaxation_matrix_makarov2020_offdiagonal(MatrixView W,
 }
 
 
-ComplexMatrix single_species_relaxation_matrix(const AbsorptionLines& band,
-                                               const ArrayOfIndex& sorting,
-                                               const Numeric T,
-                                               const Numeric P,
-                                               const Numeric species_mass,
-                                               const Index species_pos) {
+/*! Computes the Error Corrected Sudden relaxation matrix for a single species
+ * 
+ * The band population type is used to select type of off-diagonal element computations
+ * 
+ * @param[in] band The absorption band
+ * @param[in] sorting The sorting of the band
+ * @param[in] T The temperature
+ * @param[in] P The pressure
+ * @param[in] species_mass The mass of the colliding species
+ * @param[in] species_pos The index position of the colliding species among the band broadeners
+ * @return The single species relaxation matrix
+ */
+ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
+                                                   const ArrayOfIndex& sorting,
+                                                   const Numeric T,
+                                                   const Numeric P,
+                                                   const Numeric species_mass,
+                                                   const Index species_pos) {
   const Index N = band.NumLines();
   
   // Allocate the matrix
@@ -255,13 +305,24 @@ ComplexMatrix single_species_relaxation_matrix(const AbsorptionLines& band,
 }
 
 
-ComplexMatrix relaxation_matrix(const Numeric T,
-                                const Numeric P,
-                                const Vector& vmrs,
-                                const Vector& mass,
-                                const AbsorptionLines& band,
-                                const ArrayOfIndex& sorting,
-                                const Numeric frenorm) {
+/*! Computes the Error Corrected Sudden relaxation matrix
+ * 
+ * @param[in] T The temperature
+ * @param[in] P The pressure
+ * @param[in] vmrs The VMRs of all broadeners of the absorption band
+ * @param[in] mass The mass of all broadeners of the absorption band
+ * @param[in] band The absorption band
+ * @param[in] sorting The sorting of the band
+ * @param[in] frenorm The renormalization of frequency
+ * @return The relaxation matrix
+ */
+ComplexMatrix ecs_relaxation_matrix(const Numeric T,
+                                    const Numeric P,
+                                    const Vector& vmrs,
+                                    const Vector& mass,
+                                    const AbsorptionLines& band,
+                                    const ArrayOfIndex& sorting,
+                                    const Numeric frenorm) {
   const Index N = band.NumLines();
   const Index M = vmrs.nelem();
   
@@ -271,7 +332,7 @@ ComplexMatrix relaxation_matrix(const Numeric T,
   // Loop over all the broadeners
   for (Index k=0; k<M; k++) {
     // Create temporary
-    const ComplexMatrix Wtmp = single_species_relaxation_matrix(band, sorting, T, P, mass[k], k);
+    const ComplexMatrix Wtmp = single_species_ecs_relaxation_matrix(band, sorting, T, P, mass[k], k);
     
     // Sum up all atmospheric components
     for (Index i=0; i<N; i++) {
@@ -290,6 +351,14 @@ ComplexMatrix relaxation_matrix(const Numeric T,
 }
 
 
+/*! Returns sorted population distribtions and dipoles and the original sorting
+ * 
+ * @param[in] T The temperature
+ * @param[in] band The absorption band
+ * @param[in] partition_type The type of partition function data
+ * @param[in] partition_data The partition function data
+ * @return {sorting, sorted population distribtions and dipoles}
+ */
 std::pair<ArrayOfIndex, PopulationAndDipole> sorted_population_and_dipole(const Numeric T,
                                                                           const AbsorptionLines& band,
                                                                           const SpeciesAuxData::AuxType& partition_type,
@@ -299,16 +368,35 @@ std::pair<ArrayOfIndex, PopulationAndDipole> sorted_population_and_dipole(const 
 }
 
 
-ComplexVector linemixing_ecs_absorption(const Numeric T,
-                                        const Numeric P,
-                                        const Numeric this_vmr,
-                                        const Vector& vmrs,
-                                        const Vector& mass,
-                                        const Vector& f_grid,
-                                        const AbsorptionLines& band,
-                                        const SpeciesAuxData::AuxType& partition_type,
-                                        const ArrayOfGriddedField1& partition_data)
-{
+/*! Returns pre-sorted population distribtions and dipoles
+ * 
+ * @param[in] T The temperature
+ * @param[in] presorting Changes positions from [0 ... N-1] to presorting positions
+ * @param[in] band The absorption band
+ * @param[in] partition_type The type of partition function data
+ * @param[in] partition_data The partition function data
+ * @return Pre-sorted  population distribtions and dipoles
+ */
+PopulationAndDipole presorted_population_and_dipole(const Numeric T,
+                                                    const ArrayOfIndex& presorting,
+                                                    const AbsorptionLines& band,
+                                                    const SpeciesAuxData::AuxType& partition_type,
+                                                    const ArrayOfGriddedField1& partition_data) {
+  PopulationAndDipole tp(T, band, partition_type, partition_data);
+  tp.sort(presorting);
+  return tp;
+}
+
+
+ComplexVector ecs_absorption(const Numeric T,
+                             const Numeric P,
+                             const Numeric this_vmr,
+                             const Vector& vmrs,
+                             const Vector& mass,
+                             const Vector& f_grid,
+                             const AbsorptionLines& band,
+                             const SpeciesAuxData::AuxType& partition_type,
+                             const ArrayOfGriddedField1& partition_data) {
   constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
   
   // Weighted center of the band
@@ -321,7 +409,7 @@ ComplexVector linemixing_ecs_absorption(const Numeric T,
   const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
   
   // Relaxation matrix
-  const ComplexMatrix W = relaxation_matrix(T, P, vmrs, mass, band, sorting, frenorm);
+  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, mass, band, sorting, frenorm);
   
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
@@ -350,18 +438,17 @@ ComplexVector linemixing_ecs_absorption(const Numeric T,
 }
 
 
-ComplexVector linemixing_ecs_absorption_with_zeeman_perturbations(const Numeric T,
-                                                                  const Numeric H,
-                                                                  const Numeric P,
-                                                                  const Numeric this_vmr,
-                                                                  const Vector& vmrs,
-                                                                  const Vector& mass,
-                                                                  const Vector& f_grid,
-                                                                  const Zeeman::Polarization zeeman_polarization,
-                                                                  const AbsorptionLines& band,
-                                                                  const SpeciesAuxData::AuxType& partition_type,
-                                                                  const ArrayOfGriddedField1& partition_data)
-{
+ComplexVector ecs_absorption_with_zeeman_perturbations(const Numeric T,
+                                                       const Numeric H,
+                                                       const Numeric P,
+                                                       const Numeric this_vmr,
+                                                       const Vector& vmrs,
+                                                       const Vector& mass,
+                                                       const Vector& f_grid,
+                                                       const Zeeman::Polarization zeeman_polarization,
+                                                       const AbsorptionLines& band,
+                                                       const SpeciesAuxData::AuxType& partition_type,
+                                                       const ArrayOfGriddedField1& partition_data)  {
   constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
   
   // Weighted center of the band
@@ -374,7 +461,7 @@ ComplexVector linemixing_ecs_absorption_with_zeeman_perturbations(const Numeric 
   const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
   
   // Relaxation matrix
-  const ComplexMatrix W = relaxation_matrix(T, P, vmrs, mass, band, sorting, frenorm);
+  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, mass, band, sorting, frenorm);
   
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
@@ -409,9 +496,17 @@ ComplexVector linemixing_ecs_absorption_with_zeeman_perturbations(const Numeric 
   return absorption;
 }
 
-Vector linemixing_Y(const Vector& dip,
-                    const ConstMatrixView W,
-                    const AbsorptionLines& band) {
+
+/*! Computes the Rosenkranz first order perturbation
+ * 
+ * @param[in] dip Reduced dipoles
+ * @param[in] W The relaxation matrix
+ * @param[in] band The absorption band
+ * @return First order coefficients
+ */
+Vector RosenkranzY(const Vector& dip,
+                   const ConstMatrixView& W,
+                   const AbsorptionLines& band) {
   const Index N = dip.nelem();
   
   // Output
@@ -424,12 +519,21 @@ Vector linemixing_Y(const Vector& dip,
       else Y[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) / (band.F0(k) - band.F0(j));
     }
   }
+  
   return Y;
 }
 
-Vector linemixing_G(const Vector& dip,
-                    const ConstMatrixView W,
-                    const AbsorptionLines& band) {
+
+/*! Computes the Rosenkranz second order real perturbation
+ * 
+ * @param[in] dip Reduced dipoles
+ * @param[in] W The relaxation matrix
+ * @param[in] band The absorption band
+ * @return Second order real coefficients
+ */
+Vector RosenkranzG(const Vector& dip,
+                   const ConstMatrixView& W,
+                   const AbsorptionLines& band) {
   const Index N = dip.nelem();
   
   // Output
@@ -456,9 +560,17 @@ Vector linemixing_G(const Vector& dip,
   return G;
 }
 
-Vector linemixing_DV(const Vector& dip,
-                     const ConstMatrixView W,
-                     const AbsorptionLines& band) {
+
+/*! Computes the Rosenkranz second order imaginary perturbation
+ * 
+ * @param[in] dip Reduced dipoles
+ * @param[in] W The relaxation matrix
+ * @param[in] band The absorption band
+ * @return Second order imaginary coefficients
+ */
+Vector RosenkranzDV(const Vector& dip,
+                    const ConstMatrixView& W,
+                    const AbsorptionLines& band) {
   const Index N = dip.nelem();
   
   // Output
@@ -475,8 +587,9 @@ Vector linemixing_DV(const Vector& dip,
   return DV;
 }
 
+
 //! Class to order the data of linemixing
-struct LineMixingAdaptation {
+struct RosenkranzAdaptation {
   ArrayOfMatrix Y;   // size N, M ; Y  per species for lines at temperatures
   ArrayOfMatrix G;   // size N, M ; G  per species for lines at temperatures
   ArrayOfMatrix DV;  // size N, M ; DV per species for lines at temperatures
@@ -487,32 +600,50 @@ struct LineMixingAdaptation {
    * @param[in] M Number of temperatures
    * @param[in] S Number of broadening species
    */
-  LineMixingAdaptation(Index N, Index M, Index S) : Y(S, Matrix(N, M)), G(S, Matrix(N, M)), DV(S, Matrix(N, M)) {}
+  RosenkranzAdaptation(Index N, Index M, Index S) : Y(S, Matrix(N, M)), G(S, Matrix(N, M)), DV(S, Matrix(N, M)) {}
 };
 
-LineMixingAdaptation linemixing_ecs_ordered_approximation(const AbsorptionLines& band,
-                                                          const Vector& temperatures,
-                                                          const Vector& mass,
-                                                          const SpeciesAuxData::AuxType& partition_type,
-                                                          const ArrayOfGriddedField1& partition_data) {
+
+/*! Computes the Rosenkranz adaptation
+ * 
+ * This function does not work properly and using it will result in
+ * bad parameters
+ * 
+ * @param[in] band The absorption band
+ * @param[in] temperatures The temperature grid for fitting parameters upon
+ * @param[in] mass The mass of all broadeners of the absorption band
+ * @param[in] partition_type The type of partition function data
+ * @param[in] partition_data The partition function data
+ * @return Rosenkranz line mixing parameters
+ */
+RosenkranzAdaptation ecs_rosenkranz_approximation(const AbsorptionLines& band,
+                                                  const Vector& temperatures,
+                                                  const Vector& mass,
+                                                  const SpeciesAuxData::AuxType& partition_type,
+                                                  const ArrayOfGriddedField1& partition_data) {
   const Index N = band.NumLines();
   const Index M = temperatures.nelem();
   const Index S = band.NumBroadeners();
   
-  LineMixingAdaptation out(N, M, S);
+  // Need sorting to put weak lines last, but we need the sorting constant or the output jumps
+  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0(), band, partition_type, partition_data).first;
+  
+  RosenkranzAdaptation out(N, M, S);
   
   for (Index i=0; i<M; i++) {
     for (Index j=0; j<S; j++) {
       const Numeric T = temperatures[i];
       
-      // Sorted population
-      const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
+      // Use pre-sort on the population and dipole to make the curves smooth
+      const auto tp = presorted_population_and_dipole(T, sorting, band, partition_type, partition_data);
       
-      const ComplexMatrix W = single_species_relaxation_matrix(band, sorting, T, 1, mass[j], j);
+      // Relaxation matrix at T0 sorting at T
+      const ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, T, 1, mass[j], j);
       
-      const Vector Y = linemixing_Y(tp.dip, W.imag(), band);
-      const Vector G = linemixing_G(tp.dip, W.imag(), band);
-      const Vector DV = linemixing_DV(tp.dip, W.imag(), band);
+      // Unsort the output
+      const Vector Y = RosenkranzY(tp.dip, W.imag(), band);
+      const Vector G = RosenkranzG(tp.dip, W.imag(), band);
+      const Vector DV = RosenkranzDV(tp.dip, W.imag(), band);
       for (Index k=0; k<N; k++) {
         out.Y[j](sorting[k], i) = Y[k];
         out.G[j](sorting[k], i) = G[k];
@@ -525,130 +656,43 @@ LineMixingAdaptation linemixing_ecs_ordered_approximation(const AbsorptionLines&
 }
 
 
-struct LineMixingResults {
-  Vector Y;
-  Vector G;
-  Vector DV;
-  LineMixingResults(const LineMixingAdaptation& lmdata, const Vector& vmrs, Numeric P, Index i) : Y(lmdata.Y[0].nrows(), 0), G(lmdata.Y[0].nrows(), 0), DV(lmdata.Y[0].nrows(), 0) {
-    for (Index k=0; k<lmdata.Y[0].nrows(); k++) {
-      for (Index j=0; j<vmrs.nelem(); j++) {
-        Y[k] += vmrs[j] * P * lmdata.Y[j](k, i);
-        G[k] += Constant::pow2(vmrs[j] * P) * lmdata.G[j](k, i);
-        DV[k] += Constant::pow2(vmrs[j] * P) * lmdata.DV[j](k, i);
-      }
-    }
-  }
-};
-
-
-ComplexVector linemixing_ecs_absorption_rosenkranz_limit(const Numeric T,
-                                                         const Numeric P,
-                                                         const Numeric this_vmr,
-                                                         const Vector& vmrs,
-                                                         const Vector& mass,
-                                                         const Vector& f_grid,
-                                                         const AbsorptionLines& band,
-                                                         const SpeciesAuxData::AuxType& partition_type,
-                                                         const ArrayOfGriddedField1& partition_data)
-{
-  // FIXME: This entire function is not working...
-  
-  // Band Doppler broadening constant
-  const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, band.SpeciesMass());
-  const Numeric numdens = this_vmr * number_density(P, T);
-  
-  const auto lmres = LineMixingResults(linemixing_ecs_ordered_approximation(band, {T}, mass, partition_type, partition_data), vmrs, P, 0);
-  
-  // Absorption of this band
-  ComplexVector absorption(f_grid.nelem(), 0);
-  for (Index i=0; i<band.NumLines(); i++) {
-    
-    const auto X = band.ShapeParameters(i, T, P, vmrs);
-                                            
-    const Numeric F0 = band.F0(i) + lmres.DV[i] + X.D0 + lmres.DV[i];
-    const Numeric invGD = 1 / (GD_div_F0 * F0);
-    const Numeric fac = Constant::inv_sqrt_pi * invGD;
-    
-    const Numeric QT = single_partition_function(T, partition_type, partition_data);
-    const Numeric QT0 = single_partition_function(band.T0(), partition_type, partition_data);
-    const Numeric S = fac * numdens * Linefunctions::lte_linestrength(band.I0(i), band.E0(i), F0, QT0, band.T0(), QT, T);
-    
-    for (Index iv=0; iv<f_grid.nelem(); iv++) {
-      const Complex z = Complex(F0 - f_grid[iv], X.G0) * invGD;
-      const Complex w = Faddeeva::w(z);
-      const Complex lm = Complex(1 + lmres.G[i], lmres.Y[i]);
-      absorption[iv] += lm * S * w;
-    }
-  }
-  
-  return absorption;
-}
-
-void linemixing_ecs_rosenkranz_adaptation(AbsorptionLines& band,
-                                          const Vector& temperatures,
-                                          const Vector& mass,
-                                          const SpeciesAuxData::AuxType& partition_type,
-                                          const ArrayOfGriddedField1& partition_data) {
-  // FIXME: This entire function is not working...
-  
-  constexpr Numeric minrelstep = 1e-4;
-  
+Index ecs_rosenkranz_adaptation(AbsorptionLines& band,
+                                const Vector& temperatures,
+                                const Vector& mass,
+                                const SpeciesAuxData::AuxType& partition_type,
+                                const ArrayOfGriddedField1& partition_data) {
   const Index N = band.NumLines();
-  const Index M = temperatures.nelem();
+  const Index S = band.NumBroadeners();
   
-  const auto lmdata = linemixing_ecs_ordered_approximation(band, temperatures, mass, partition_type, partition_data);
+  const auto lmdata = ecs_rosenkranz_approximation(band, temperatures, mass, partition_type, partition_data);
   
-  // Best fit matrix and best-fit parameter allocation
-  Matrix A(M, 2, 0);
-  Vector dY(M, 0);
-  Vector dX(2);
-  
-  // For each line
-  for (Index i=0; i<N; i++) {
-    
-    // For each broadener
-    for (Index k=0; k<mass.nelem(); k++) {
-      Numeric X0 = mean(lmdata.Y[k](i, joker));
-      Numeric X1 = 1e-2 * X0;
-      Numeric X2 = modelparameterFirstExponent(band.AllLines()[i].LineShape()[k].G0());
-    
-      // Best-fit loop
-      Index ITTR = 0;
-      constexpr Index MAXITTR=1000;
-      while (ITTR < MAXITTR) {
-        for (Index j=0; j<M; j++) {
-          const Numeric& T = temperatures[j];
-          A(j, 0) = std::pow(band.T0()/T, X2);
-          A(j, 1) = (band.T0()/T - 1) * A(j, 0);
-          dY[j] = lmdata.Y[k](i, j) - X0 * A(j, 0) - X1 * A(j, 1);
-        }
-        lsf(dX, A, dY);
-        
-        if (std::isnormal(dX[0]) and std::isnormal(dX[1])) {
-          if (std::abs(dX[0] / X0) > minrelstep or std::abs(dX[1] / X1) > minrelstep) {
-            X0 += dX[0];
-            X1 += dX[1];
-          } else {
-            break;
-          }
-        } else {
-          std::cerr << "WARNING: FAILING TO GET BEST FIT... continuing anyways...\n";
-          break;
-        }
-        
-        ITTR++;
-      }
+  for (Index iN=0; iN<N; iN++) {
+    for (Index iS=0; iS<S; iS++) {
+      auto& lineshapemodel = band.AllLines()[iN].LineShape()[iS];
+      const ConstVectorView Y  = lmdata.Y[ iS](iN, joker);
+      const ConstVectorView G  = lmdata.G[ iS](iN, joker);
+      const ConstVectorView D = lmdata.DV[iS](iN, joker);
+      const Numeric sX2 = modelparameterFirstExponent(lineshapemodel.G0());
       
-      if (ITTR == MAXITTR) {
-        std::cerr << "WARNING: FAILING TO GET BEST FIT... continuing anyways...\n";
-      } else {
-        band.AllLines()[i].LineShape()[k].Y().type = LineShape::TemperatureModel::T4;
-        band.AllLines()[i].LineShape()[k].Y().X0 = X0;
-        band.AllLines()[i].LineShape()[k].Y().X1 = X1;
-        band.AllLines()[i].LineShape()[k].Y().X2 = X2;
-      }
+      // Best fits and success status
+      auto [found_y, yc] = Minimize::curve_fit<Minimize::T4>(temperatures, Y, band.T0(), 1 * sX2);
+      auto [found_g, gc] = Minimize::curve_fit<Minimize::T4>(temperatures, G, band.T0(), 2 * sX2);
+      auto [found_d, dc] = Minimize::curve_fit<Minimize::T4>(temperatures, D, band.T0(), 2 * sX2);
+      
+      // Any false in any loop and the function fails so it must leave because we cannot set ByLTE population type
+      if (not (found_d and found_g and found_y)) return EXIT_FAILURE;
+      
+      // Update parameters
+      lineshapemodel.Y()  = LineShape::ModelParameters(LineShape::TemperatureModel::T4, yc[0], yc[1], yc[2]);
+      lineshapemodel.G()  = LineShape::ModelParameters(LineShape::TemperatureModel::T4, gc[0], gc[1], gc[2]);
+      lineshapemodel.DV() = LineShape::ModelParameters(LineShape::TemperatureModel::T4, dc[0], dc[1], dc[2]);
     }
   }
+  
+  // If we reach here, we have to set the band population type to LTE
+  band.Population(Absorption::PopulationType::ByLTE);
+  
+  return EXIT_SUCCESS;
 }
 }  // Absorption::LineMixing
 

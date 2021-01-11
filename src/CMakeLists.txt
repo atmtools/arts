@@ -3,6 +3,7 @@ include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
                       ${ZLIB_INCLUDE_DIR}
                       ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
                       ${ARTS_SOURCE_DIR}/3rdparty/cdisort
+                      ${ARTS_SOURCE_DIR}/3rdparty/Eigen
                     )
 
 if (NETCDF_FOUND)
@@ -262,6 +263,7 @@ add_library (artscore STATIC
   mc_interp.cc
   messages.cc
   microphysics.cc
+  minimize.cc
   montecarlo.cc
   nlte.cc
   optproperties.cc

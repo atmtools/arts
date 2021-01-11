@@ -165,15 +165,15 @@ void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_cle
         const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
         const Vector line_shape_mass = band.BroadeningSpeciesMass(rtp_vmr, abs_species);
         const Numeric this_vmr = rtp_vmr[i];
-        const ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption(rtp_temperature,
-                                                                                    rtp_pressure,
-                                                                                    this_vmr,
-                                                                                    line_shape_vmr,
-                                                                                    line_shape_mass,
-                                                                                    f_grid,
-                                                                                    band,
-                                                                                    partition_functions.getParamType(band.QuantumIdentity()),
-                                                                                    partition_functions.getParam(band.QuantumIdentity()));
+        const ComplexVector abs = Absorption::LineMixing::ecs_absorption(rtp_temperature,
+                                                                         rtp_pressure,
+                                                                         this_vmr,
+                                                                         line_shape_vmr,
+                                                                         line_shape_mass,
+                                                                         f_grid,
+                                                                         band,
+                                                                         partition_functions.getParamType(band.QuantumIdentity()),
+                                                                         partition_functions.getParam(band.QuantumIdentity()));
         propmat_clearsky[i].Kjj() += abs.real();
       }
     }
@@ -217,17 +217,17 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
         const Vector line_shape_mass = band.BroadeningSpeciesMass(rtp_vmr, abs_species);
         const Numeric this_vmr = rtp_vmr[i];
         for (Zeeman::Polarization polarization : {Zeeman::Polarization::Pi, Zeeman::Polarization::SigmaMinus, Zeeman::Polarization::SigmaPlus}) {
-          const ComplexVector abs = Absorption::LineMixing::linemixing_ecs_absorption_with_zeeman_perturbations(rtp_temperature,
-                                                                                                                Z.H,
-                                                                                                                rtp_pressure,
-                                                                                                                this_vmr,
-                                                                                                                line_shape_vmr,
-                                                                                                                line_shape_mass,
-                                                                                                                f_grid,
-                                                                                                                polarization,
-                                                                                                                band,
-                                                                                                                partition_functions.getParamType(band.QuantumIdentity()),
-                                                                                                                partition_functions.getParam(band.QuantumIdentity()));
+          const ComplexVector abs = Absorption::LineMixing::ecs_absorption_with_zeeman_perturbations(rtp_temperature,
+                                                                                                     Z.H,
+                                                                                                     rtp_pressure,
+                                                                                                     this_vmr,
+                                                                                                     line_shape_vmr,
+                                                                                                     line_shape_mass,
+                                                                                                     f_grid,
+                                                                                                     polarization,
+                                                                                                     band,
+                                                                                                     partition_functions.getParamType(band.QuantumIdentity()),
+                                                                                                     partition_functions.getParam(band.QuantumIdentity()));
           
           auto& pol = Zeeman::SelectPolarization(polarization_scale_data, polarization);
           auto pol_real = pol.attenuation();
