@@ -50,37 +50,37 @@ constexpr Complex dw(Complex z, Complex w) noexcept {
 constexpr Complex pCqSDHC_to_arts(Complex x) noexcept {
   using Constant::c;
   using Constant::pow2;
-  using Conversion::hitran2arts_linestrength;
+  using Conversion::kaycm_per_cmsquared2hz_per_msquared;
   
-  return conj(hitran2arts_linestrength(x) / pow2(c));
+  return conj(kaycm_per_cmsquared2hz_per_msquared(x) / pow2(c));
 }
 
 /** Conversion from CGS-style lineshape to ARTS for frequncy derivatives */
 constexpr Complex pCqSDHC_to_arts_freq_deriv(Complex x) noexcept {
   using Constant::c;
   using Constant::pow4;
-  using Conversion::hitran2arts_linestrength;
+  using Conversion::kaycm_per_cmsquared2hz_per_msquared;
   
-  return hitran2arts_linestrength(hitran2arts_linestrength(x)) / pow4(c);
+  return kaycm_per_cmsquared2hz_per_msquared(kaycm_per_cmsquared2hz_per_msquared(x)) / pow4(c);
 }
 
 /** Conversion from CGS-style lineshape to ARTS G2 derivative */
 constexpr Complex pCqSDHC_to_arts_G2_deriv(Complex x) noexcept {
   using Constant::c;
   using Constant::pow4;
-  using Conversion::hitran2arts_linestrength;
+  using Conversion::kaycm_per_cmsquared2hz_per_msquared;
   
   return Complex(0, -1) *
-  hitran2arts_linestrength(hitran2arts_linestrength(x)) / pow4(c);
+  kaycm_per_cmsquared2hz_per_msquared(kaycm_per_cmsquared2hz_per_msquared(x)) / pow4(c);
 }
 
 /** Conversion from CGS-style lineshape to ARTS D2 derivative */
 constexpr Complex pCqSDHC_to_arts_D2_deriv(Complex x) noexcept {
   using Constant::c;
   using Constant::pow4;
-  using Conversion::hitran2arts_linestrength;
+  using Conversion::kaycm_per_cmsquared2hz_per_msquared;
   
-  return Complex(0, 1) * hitran2arts_linestrength(hitran2arts_linestrength(x)) /
+  return Complex(0, 1) * kaycm_per_cmsquared2hz_per_msquared(kaycm_per_cmsquared2hz_per_msquared(x)) /
   pow4(c);
 }
 
