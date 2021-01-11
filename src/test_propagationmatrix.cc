@@ -620,7 +620,7 @@ void test_hitran2017(bool newtest = true)
   for (Index i=0;i<n; i++) {
     auto type=types[i];
     
-    lm_hitran_2017::read(hitran, bands, "data_new", -1, Conversion::kaycm2freq(sigmin), Conversion::kaycm2freq(sigmax), Conversion::hitran2arts_linestrength(stotmax), type.first);
+    lm_hitran_2017::read(hitran, bands, "data_new", -1, Conversion::kaycm2freq(sigmin), Conversion::kaycm2freq(sigmax), Conversion::kaycm_per_cmsquared2hz_per_msquared(stotmax), type.first);
     Vector vmrs = {1-xco2/100-xh2o/100, xh2o/100, xco2/100};
     SpeciesAuxData partition_functions;
     partition_functionsInitFromBuiltin(partition_functions, Verbosity());
