@@ -770,21 +770,6 @@ void p2gridpos(ArrayOfGridPos& gp,
   gridpos(gp, logold, lognew, extpolfac);
 }
 
-void p2gridpos_poly(ArrayOfGridPosPoly& gp,
-                    ConstVectorView old_pgrid,
-                    ConstVectorView new_pgrid,
-                    const Index order,
-                    const Numeric& extpolfac) {
-  // Local variable to store log of the pressure grids
-  Vector logold(old_pgrid.nelem());
-  Vector lognew(new_pgrid.nelem());
-
-  transform(logold, log, old_pgrid);
-  transform(lognew, log, new_pgrid);
-
-  gridpos_poly(gp, logold, lognew, order, extpolfac);
-}
-
 void rte_pos2gridpos(GridPos& gp_p,
                      GridPos& gp_lat,
                      GridPos& gp_lon,

@@ -44,6 +44,7 @@
 #include "check_input.h"
 #include "exceptions.h"
 #include "interpolation.h"
+#include "interpolation_lagrange.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpackIII.h"
@@ -1610,14 +1611,8 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
           (scat_data_raw[i_ss][i_se].f_grid.nelem() == 1);
       if (!single_se_fgrid) {
         // Gridpositions:
-        ArrayOfGridPosPoly freq_gp(nf);
-        ;
-        gridpos_poly(
-            freq_gp, scat_data_raw[i_ss][i_se].f_grid, f_grid, interp_order);
-
-        // Interpolation weights:
-        Matrix itw(nf, interp_order + 1);
-        interpweights(itw, freq_gp);
+        const auto lag_freq=Interpolation::LagrangeVector(f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order);
+        const auto itw = interpweights(lag_freq);
 
         //Phase matrix data
         for (Index t_index = 0;
@@ -1638,22 +1633,22 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
                   for (Index i = 0;
                        i < scat_data_raw[i_ss][i_se].pha_mat_data.ncols();
                        i++) {
-                    interp(scat_data[i_ss][i_se].pha_mat_data(joker,
-                                                              t_index,
-                                                              i_za_sca,
-                                                              i_aa_sca,
-                                                              i_za_inc,
-                                                              i_aa_inc,
-                                                              i),
-                           itw,
-                           scat_data_raw[i_ss][i_se].pha_mat_data(joker,
-                                                                  t_index,
-                                                                  i_za_sca,
-                                                                  i_aa_sca,
-                                                                  i_za_inc,
-                                                                  i_aa_inc,
-                                                                  i),
-                           freq_gp);
+                    reinterp(scat_data[i_ss][i_se].pha_mat_data(joker,
+                                                                t_index,
+                                                                i_za_sca,
+                                                                i_aa_sca,
+                                                                i_za_inc,
+                                                                i_aa_inc,
+                                                                i),
+                             scat_data_raw[i_ss][i_se].pha_mat_data(joker,
+                                                                    t_index,
+                                                                    i_za_sca,
+                                                                    i_aa_sca,
+                                                                    i_za_inc,
+                                                                    i_aa_inc,
+                                                                    i),
+                             itw,
+                             lag_freq);
                   }
                 }
               }
@@ -1674,12 +1669,12 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
               for (Index i = 0;
                    i < scat_data_raw[i_ss][i_se].ext_mat_data.ncols();
                    i++) {
-                interp(scat_data[i_ss][i_se].ext_mat_data(
-                           joker, t_index, i_za_sca, i_aa_sca, i),
-                       itw,
-                       scat_data_raw[i_ss][i_se].ext_mat_data(
-                           joker, t_index, i_za_sca, i_aa_sca, i),
-                       freq_gp);
+                reinterp(scat_data[i_ss][i_se].ext_mat_data(
+                             joker, t_index, i_za_sca, i_aa_sca, i),
+                         scat_data_raw[i_ss][i_se].ext_mat_data(
+                             joker, t_index, i_za_sca, i_aa_sca, i),
+                         itw,
+                         lag_freq);
               }
             }
           }
@@ -1698,12 +1693,12 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
               for (Index i = 0;
                    i < scat_data_raw[i_ss][i_se].abs_vec_data.ncols();
                    i++) {
-                interp(scat_data[i_ss][i_se].abs_vec_data(
-                           joker, t_index, i_za_sca, i_aa_sca, i),
-                       itw,
-                       scat_data_raw[i_ss][i_se].abs_vec_data(
-                           joker, t_index, i_za_sca, i_aa_sca, i),
-                       freq_gp);
+                reinterp(scat_data[i_ss][i_se].abs_vec_data(
+                             joker, t_index, i_za_sca, i_aa_sca, i),
+                         scat_data_raw[i_ss][i_se].abs_vec_data(
+                             joker, t_index, i_za_sca, i_aa_sca, i),
+                         itw,
+                         lag_freq);
               }
             }
           }
@@ -1787,10 +1782,8 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
       chk_interpolation_grids(ost.str(), T_DATAGRID, T, interp_order);
 
       // Gridpositions:
-      GridPosPoly gp_T;
-      gridpos_poly(gp_T, T_DATAGRID, T, interp_order);
-      Vector itw(interp_order + 1);
-      interpweights(itw, gp_T);
+      const LagrangeInterpolation lag_T(0, T, T_DATAGRID, interp_order);
+      const auto itw = interpweights(lag_T);
 
       //Sizing of temporary SSD data containers
       Tensor7 phamat_tmp(PHA_MAT_DATA.nlibraries(),
@@ -1826,10 +1819,10 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
               for (Index i_aa2 = 0; i_aa2 < PHA_MAT_DATA.nrows(); i_aa2++)
                 for (Index i_st = 0; i_st < PHA_MAT_DATA.ncols(); i_st++)
                   phamat_tmp(i_f, 0, i_za1, i_aa1, i_za2, i_aa2, i_st) =
-                      interp(itw,
-                             PHA_MAT_DATA(
+                      interp(PHA_MAT_DATA(
                                  i_f, joker, i_za1, i_aa1, i_za2, i_aa2, i_st),
-                             gp_T);
+                             itw,
+                             lag_T);
 
       // a2) temp interpol of ext and abs.
       //We do that regardless of whether they should be reduced or not, because
@@ -1839,10 +1832,10 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
           for (Index i_aa = 0; i_aa < EXT_MAT_DATA.nrows(); i_aa++) {
             for (Index i_st = 0; i_st < EXT_MAT_DATA.ncols(); i_st++)
               extmat_tmp(i_f, 0, i_za, i_aa, i_st) =
-                  interp(itw, EXT_MAT_DATA(i_f, joker, i_za, i_aa, i_st), gp_T);
+                  interp(EXT_MAT_DATA(i_f, joker, i_za, i_aa, i_st), itw, lag_T);
             for (Index i_st = 0; i_st < ABS_VEC_DATA.ncols(); i_st++)
               absvec_tmp(i_f, 0, i_za, i_aa, i_st) =
-                  interp(itw, ABS_VEC_DATA(i_f, joker, i_za, i_aa, i_st), gp_T);
+                  interp(ABS_VEC_DATA(i_f, joker, i_za, i_aa, i_st), itw, lag_T);
           }
 
       // Norm & other consistency checks.

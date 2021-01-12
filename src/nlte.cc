@@ -25,7 +25,7 @@
  */
 
 #include "nlte.h"
-#include "interpolation_poly.h"
+#include "interpolation_lagrange.h"
 
 void statistical_equilibrium_equation(MatrixView A,
                                       ConstVectorView Aij,
@@ -221,12 +221,10 @@ void nlte_collision_factorsCalcFromCoeffs(
             
             if (Absorption::id_in_line(band, transition, k)) {
               // Standard linear ARTS interpolation
-              GridPosPoly gp;
-              gridpos_poly(gp, gf1.get_numeric_grid(0), T, 1, 0.5);
-              Vector itw(gp.idx.nelem());
-              interpweights(itw, gp);
+              const FixedLagrangeInterpolation<1> lag(0, T, gf1.get_numeric_grid(0), false);
+              const auto itw = interpweights(lag);
               
-              Cij[iline] += interp(itw, gf1.data, gp) * numden * isot_ratio;
+              Cij[iline] += interp(gf1.data, itw, lag) * numden * isot_ratio;
               iline++;
               break;
             }

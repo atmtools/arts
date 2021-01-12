@@ -46,18 +46,14 @@ Numeric single_partition_function(const Numeric& T,
 
 /** Computes the partition function temperature derivative
  * 
- * @param[in] QT partition function
  * @param[in] T Temperature
- * @param[in] dT Temperature perturbance
  * @param[in] partition_type Switch for partition type of line
  * @param[in] partition_data Partition data of line
  * 
  * @return partition function derivative wrt temperature
  */
 Numeric dsingle_partition_function_dT(
-    const Numeric& QT,
     const Numeric& T,
-    const Numeric& dT,
     const SpeciesAuxData::AuxType& partition_type,
     const ArrayOfGriddedField1& partition_data);
 

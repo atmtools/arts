@@ -42,6 +42,7 @@
 #include "arts.h"
 #include "check_input.h"
 #include "interpolation.h"
+#include "interpolation_lagrange.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpackVII.h"
@@ -308,6 +309,93 @@ void opt_prop_NScatElems(            //Output
   assert(i_se_flat == Nse_all);
 }
 
+//! Determine T-interpol parameters for a specific scattering element.
+/*! 
+  Determine T-interpol order as well as interpol positions and weights (they
+  are the same for all directions (and freqs), ie it is sufficient to
+  calculate them once).
+
+  \param[out] t_ok       Flag whether T-interpol valid (length of T_array).
+  \param[out] this_T_interp_order  Temperature interpolation order adjusted
+                           according to data availability.
+  \param[out] T_lag      GridPos data for temperature interpolation.
+  \param[out] T_itw      Interpolation weights for temperature interpolation.
+  \param[in]  T_grid     Single scattering data temperature grid.
+  \param[in]  T_array    Temperatures to extract single scattering data for.
+  \param[in]  t_interp_order  Requested temperature interpolation order.
+
+  \author Jana Mendrok
+  \date   2018-05-01
+*/
+ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
+    VectorView t_ok,
+    Index& this_T_interp_order,
+    //Input
+    ConstVectorView T_grid,
+    const Vector& T_array,
+    const Index& t_interp_order) {
+  const Index nTin = T_grid.nelem();
+  const Index nTout = T_array.nelem();
+
+  this_T_interp_order = -1;
+  
+  
+  if (nTin > 1) {
+    this_T_interp_order = min(t_interp_order, nTin - 1);
+
+    // we need to check T-grid exceedance. and catch these cases (because T
+    // is assumed to correspond to a location and T-exceedance is ok when pnd=0
+    // there. however, here we do not know pnd.) and report them to have the
+    // calling method dealing with it.
+
+    // we set the extrapolfax explicitly and use it here as well as in
+    // gridpos_poly below.
+    const Numeric extrapolfac = 0.5;
+    const Numeric lowlim = T_grid[0] - extrapolfac * (T_grid[1] - T_grid[0]);
+    const Numeric uplim =
+        T_grid[nTin - 1] + extrapolfac * (T_grid[nTin - 1] - T_grid[nTin - 2]);
+
+    bool any_T_exceed = false;
+    for (Index Tind = 0; Tind < nTout; Tind++) {
+      if (T_array[Tind] < lowlim || T_array[Tind] > uplim) {
+        t_ok[Tind] = -1.;
+        any_T_exceed = true;
+      } else
+        t_ok[Tind] = 1.;
+    }
+    
+    if (any_T_exceed) {
+      // Reserve output
+      ArrayOfLagrangeInterpolation T_lag;
+      T_lag.reserve(nTout);
+      
+      bool grid_unchecked = true;
+
+      for (Index iT = 0; iT < nTout; iT++) {
+        if (t_ok[iT] < 0) {
+          T_lag.emplace_back();
+        } else {
+          if (grid_unchecked) {
+            chk_interpolation_grids(
+                "Temperature interpolation in pha_mat_1ScatElem",
+                T_grid,
+                T_array[Range(iT, 1)],
+                this_T_interp_order);
+            grid_unchecked = false;
+          }
+          T_lag.emplace_back(0, T_array[iT], T_grid, this_T_interp_order, false);
+        }
+      }
+      return T_lag;
+    } else {
+      return Interpolation::LagrangeVector(T_array, T_grid, this_T_interp_order, extrapolfac);
+    }
+  } else {
+    t_ok = 1.;
+    return {};
+  }
+}
+
 //! Preparing extinction and absorption from one scattering element.
 /*! 
   Extracts and prepares extinction matrix and absorption vector data for one
@@ -388,16 +476,13 @@ void opt_prop_1ScatElem(  //Output
   // calculate them once).
   const Index nTin = ssd.T_grid.nelem();
   Index this_T_interp_order;
-  Matrix T_itw;
-  ArrayOfGridPosPoly T_gp(nTout);
-  ssd_tinterp_parameters(t_ok,
-                         this_T_interp_order,
-                         T_gp,
-                         T_itw,
-                         ssd.T_grid,
-                         T_array,
-                         t_interp_order);
-
+  const auto T_lag =  ssd_tinterp_parameters(t_ok,
+                                             this_T_interp_order,
+                                             ssd.T_grid,
+                                             T_array,
+                                             t_interp_order);
+  const auto T_itw_lag = interpweights(T_lag);
+  
   // Now loop over requested directions (and apply simultaneously for all freqs):
   // 1) extract/interpolate direction (but not for tot.random)
   // 2) apply T-interpol
@@ -431,11 +516,11 @@ void opt_prop_1ScatElem(  //Output
       Matrix ext_mat_tmp_ssd(nTout, ssd.ext_mat_data.ncols());
       Matrix abs_vec_tmp_ssd(nTout, ssd.abs_vec_data.ncols());
       for (Index find = 0; find < nf; find++) {
-        for (Index nst = 0; nst < ext_mat_tmp_ssd.ncols(); nst++)
-          interp(ext_mat_tmp_ssd(joker, nst),
-                 T_itw,
-                 ssd.ext_mat_data(find + f_start, joker, 0, 0, nst),
-                 T_gp);
+        for (Index nst = 0; nst < ext_mat_tmp_ssd.ncols(); nst++) {
+          reinterp(ext_mat_tmp_ssd(joker, nst), 
+                   ssd.ext_mat_data(find + f_start, joker, 0, 0, nst),
+                   T_itw_lag, T_lag);
+        }
         for (Index Tind = 0; Tind < nTout; Tind++)
           if (t_ok[Tind] > 0.)
             ext_mat_SSD2Stokes(ext_mat_tmp(find, Tind, joker, joker),
@@ -445,11 +530,12 @@ void opt_prop_1ScatElem(  //Output
           else
             ext_mat_tmp(find, Tind, joker, joker) = 0.;
 
-        for (Index nst = 0; nst < abs_vec_tmp_ssd.ncols(); nst++)
-          interp(abs_vec_tmp_ssd(joker, nst),
-                 T_itw,
-                 ssd.abs_vec_data(find + f_start, joker, 0, 0, nst),
-                 T_gp);
+        for (Index nst = 0; nst < abs_vec_tmp_ssd.ncols(); nst++) {
+          reinterp(abs_vec_tmp_ssd(joker, nst),
+                   ssd.abs_vec_data(find + f_start, joker, 0, 0, nst),
+                   T_itw_lag,
+                   T_lag);
+        }
         for (Index Tind = 0; Tind < nTout; Tind++)
           if (t_ok[Tind] > 0.)
             abs_vec_SSD2Stokes(abs_vec_tmp(find, Tind, joker),
@@ -541,22 +627,24 @@ void opt_prop_1ScatElem(  //Output
         }
 
         for (Index Dind = 0; Dind < nDir; Dind++) {
-          for (Index nst = 0; nst < next; nst++)
-            interp(ext_mat_tmp(joker, nst),
-                   T_itw,
-                   ext_mat_tmp_ssd(joker, Dind, nst),
-                   T_gp);
+          for (Index nst = 0; nst < next; nst++) {
+            reinterp(ext_mat_tmp(joker, nst),
+                     ext_mat_tmp_ssd(joker, Dind, nst),
+                     T_itw_lag,
+                     T_lag);
+          }
           for (Index Tind = 0; Tind < nTout; Tind++)
             ext_mat_SSD2Stokes(ext_mat(find, Tind, Dind, joker, joker),
                                ext_mat_tmp(Tind, joker),
                                stokes_dim,
                                ptype);
 
-          for (Index nst = 0; nst < nabs; nst++)
-            interp(abs_vec_tmp(joker, nst),
-                   T_itw,
-                   abs_vec_tmp_ssd(joker, Dind, nst),
-                   T_gp);
+          for (Index nst = 0; nst < nabs; nst++) {
+            reinterp(abs_vec_tmp(joker, nst),
+                     abs_vec_tmp_ssd(joker, Dind, nst),
+                     T_itw_lag,
+                     T_lag);
+          }
           for (Index Tind = 0; Tind < nTout; Tind++)
             abs_vec_SSD2Stokes(abs_vec(find, Tind, Dind, joker),
                                abs_vec_tmp(Tind, joker),
@@ -916,15 +1004,12 @@ void pha_mat_1ScatElem(   //Output
   // calculate them once).
   const Index nTin = ssd.T_grid.nelem();
   Index this_T_interp_order;
-  Matrix T_itw;
-  ArrayOfGridPosPoly T_gp(nTout);
-  ssd_tinterp_parameters(t_ok,
-                         this_T_interp_order,
-                         T_gp,
-                         T_itw,
-                         ssd.T_grid,
-                         T_array,
-                         t_interp_order);
+  const auto T_lag = ssd_tinterp_parameters(t_ok,
+                                            this_T_interp_order,
+                                            ssd.T_grid,
+                                            T_array,
+                                            t_interp_order);
+  const auto T_itw_lag = interpweights(T_lag);
 
   // Now loop over requested directions (and apply simultaneously for all freqs):
   // 1) interpolate direction
@@ -1009,10 +1094,10 @@ void pha_mat_1ScatElem(   //Output
               }
             // perform the T-interpolation
             for (Index nst = 0; nst < npha; nst++) {
-              interp(pha_mat_tmp(joker, nst),
-                     T_itw,
-                     pha_mat_int(joker, nst),
-                     T_gp);
+              reinterp(pha_mat_tmp(joker, nst),
+                       pha_mat_int(joker, nst),
+                       T_itw_lag,
+                       T_lag);
             }
             // FIXME: it's probably better to do the frame conversion first,
             // then the T-interpolation (which is better depends on how many T-
@@ -1154,10 +1239,10 @@ void pha_mat_1ScatElem(   //Output
           for (Index idir = 0; idir < niDir; idir++) {
             for (Index ist1 = 0; ist1 < stokes_dim; ist1++)
               for (Index ist2 = 0; ist2 < stokes_dim; ist2++)
-                interp(pha_mat(find, joker, pdir, idir, ist1, ist2),
-                       T_itw,
-                       pha_mat_int(joker, i, ist1, ist2),
-                       T_gp);
+                reinterp(pha_mat(find, joker, pdir, idir, ist1, ist2),
+                         pha_mat_int(joker, i, ist1, ist2),
+                         T_itw_lag,
+                         T_lag);
             i++;
           }
 
@@ -1261,15 +1346,12 @@ void FouComp_1ScatElem(       //Output
   // calculate them once).
   const Index nTin = ssd.T_grid.nelem();
   Index this_T_interp_order;
-  Matrix T_itw;
-  ArrayOfGridPosPoly T_gp(nTout);
-  ssd_tinterp_parameters(t_ok,
-                         this_T_interp_order,
-                         T_gp,
-                         T_itw,
-                         ssd.T_grid,
-                         T_array,
-                         t_interp_order);
+  const auto T_lag = ssd_tinterp_parameters(t_ok,
+                                            this_T_interp_order,
+                                            ssd.T_grid,
+                                            T_array,
+                                            t_interp_order);
+  const auto T_itw_lag = interpweights(T_lag);
 
   // 1) derive Fourier component(s)
   // 2) apply T-interpol
@@ -1354,10 +1436,10 @@ void FouComp_1ScatElem(       //Output
             for (Index ist1 = 0; ist1 < stokes_dim; ist1++)
               for (Index ist2 = 0; ist2 < stokes_dim; ist2++)
                 for (Index im = 0; im < nmodes; im++)
-                  interp(pha_mat_fou(find, joker, pdir, idir, ist1, ist2, im),
-                         T_itw,
-                         Fou_int(joker, ist1, ist2),
-                         T_gp);
+                  reinterp(pha_mat_fou(find, joker, pdir, idir, ist1, ist2, im),
+                           Fou_int(joker, ist1, ist2),
+                           T_itw_lag,
+                           T_lag);
           }
         }
       }
@@ -1440,10 +1522,10 @@ void FouComp_1ScatElem(       //Output
             for (Index ist1 = 0; ist1 < stokes_dim; ist1++)
               for (Index ist2 = 0; ist2 < stokes_dim; ist2++)
                 for (Index im = 0; im < nmodes; im++)
-                  interp(pha_mat_fou(find, joker, pdir, idir, ist1, ist2, im),
-                         T_itw,
-                         Fou_angint(joker, pdir, idir, ist1, ist2),
-                         T_gp);
+                  reinterp(pha_mat_fou(find, joker, pdir, idir, ist1, ist2, im),
+                           Fou_angint(joker, pdir, idir, ist1, ist2),
+                           T_itw_lag,
+                           T_lag);
       }
     }
   }
@@ -1984,97 +2066,6 @@ void ext_matFromabs_vec(  //Output
   for (Index is = 1; is < stokes_dim; is++) {
     ext_mat(0, is) += abs_vec[is];
     ext_mat(is, 0) += abs_vec[is];
-  }
-}
-
-//! Determine T-interpol parameters for a specific scattering element.
-/*! 
-  Determine T-interpol order as well as interpol positions and weights (they
-  are the same for all directions (and freqs), ie it is sufficient to
-  calculate them once).
-
-  \param[out] t_ok       Flag whether T-interpol valid (length of T_array).
-  \param[out] this_T_interp_order  Temperature interpolation order adjusted
-                           according to data availability.
-  \param[out] T_gp       GridPos data for temperature interpolation.
-  \param[out] T_itw      Interpolation weights for temperature interpolation.
-  \param[in]  T_grid     Single scattering data temperature grid.
-  \param[in]  T_array    Temperatures to extract single scattering data for.
-  \param[in]  t_interp_order  Requested temperature interpolation order.
-
-  \author Jana Mendrok
-  \date   2018-05-01
-*/
-void ssd_tinterp_parameters(  //Output
-    VectorView t_ok,
-    Index& this_T_interp_order,
-    ArrayOfGridPosPoly& T_gp,
-    Matrix& T_itw,
-    //Input
-    ConstVectorView T_grid,
-    const Vector& T_array,
-    const Index& t_interp_order) {
-  const Index nTin = T_grid.nelem();
-  const Index nTout = T_array.nelem();
-
-  this_T_interp_order = -1;
-
-  if (nTin > 1) {
-    this_T_interp_order = min(t_interp_order, nTin - 1);
-    T_itw.resize(nTout, this_T_interp_order + 1);
-
-    // we need to check T-grid exceedance. and catch these cases (because T
-    // is assumed to correspond to a location and T-exceedance is ok when pnd=0
-    // there. however, here we do not know pnd.) and report them to have the
-    // calling method dealing with it.
-
-    // we set the extrapolfax explicitly and use it here as well as in
-    // gridpos_poly below.
-    const Numeric extrapolfac = 0.5;
-    const Numeric lowlim = T_grid[0] - extrapolfac * (T_grid[1] - T_grid[0]);
-    const Numeric uplim =
-        T_grid[nTin - 1] + extrapolfac * (T_grid[nTin - 1] - T_grid[nTin - 2]);
-
-    bool any_T_exceed = false;
-    for (Index Tind = 0; Tind < nTout; Tind++) {
-      if (T_array[Tind] < lowlim || T_array[Tind] > uplim) {
-        t_ok[Tind] = -1.;
-        any_T_exceed = true;
-      } else
-        t_ok[Tind] = 1.;
-    }
-
-    if (any_T_exceed) {
-      GridPosPoly dummy_gp;
-      dummy_gp.idx.resize(this_T_interp_order + 1);
-      dummy_gp.w.resize(this_T_interp_order + 1);
-      for (Index i = 0; i <= this_T_interp_order; ++i) dummy_gp.idx[i] = i;
-      dummy_gp.w = 0.;
-      dummy_gp.w[0] = 1.;
-      bool grid_unchecked = true;
-
-      for (Index iT = 0; iT < nTout; iT++) {
-        if (t_ok[iT] < 0)
-          // setup T-exceed points with dummy grid positions
-          T_gp[iT] = dummy_gp;
-        else {
-          if (grid_unchecked) {
-            chk_interpolation_grids(
-                "Temperature interpolation in pha_mat_1ScatElem",
-                T_grid,
-                T_array[Range(iT, 1)],
-                this_T_interp_order);
-            grid_unchecked = false;
-          }
-          gridpos_poly(
-              T_gp[iT], T_grid, T_array[iT], this_T_interp_order, extrapolfac);
-        }
-      }
-    } else
-      gridpos_poly(T_gp, T_grid, T_array, this_T_interp_order, extrapolfac);
-    interpweights(T_itw, T_gp);
-  } else {
-    t_ok = 1.;
   }
 }
 

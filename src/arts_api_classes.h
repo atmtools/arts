@@ -121,6 +121,9 @@ extern "C" {
     // Numeric
     BasicInterfaceCAPI(Numeric)
     BasicInputOutputCAPI(Numeric)
+    VoidArrayCAPI(ArrayOfNumeric)
+    BasicInterfaceCAPI(ArrayOfNumeric)
+    BasicInputOutputCAPI(ArrayOfNumeric)
     DLL_PUBLIC Numeric getNumeric(void * data);
     DLL_PUBLIC void setNumeric(void * data, Numeric newval);
   
@@ -415,13 +418,14 @@ extern "C" {
     BasicInterfaceCAPI(ArrayOfGridPos)
     BasicInputOutputCAPI(ArrayOfGridPos)
     
-    // GridPosPoly
-    BasicInterfaceCAPI(GridPosPoly)
-    VoidStructGetterCAPI(GridPosPoly, idx)
-    VoidStructGetterCAPI(GridPosPoly, w)
-    VoidArrayCAPI(ArrayOfGridPosPoly)
-    BasicInterfaceCAPI(ArrayOfGridPosPoly)
-    BasicInputOutputCAPI(ArrayOfGridPosPoly)
+    // LagrangeInterpolation
+    BasicInterfaceCAPI(LagrangeInterpolation)
+    VoidStructGetterCAPI(LagrangeInterpolation, pos)
+    VoidStructGetterCAPI(LagrangeInterpolation, lx)
+    VoidStructGetterCAPI(LagrangeInterpolation, dlx)
+    VoidArrayCAPI(ArrayOfLagrangeInterpolation)
+    BasicInterfaceCAPI(ArrayOfLagrangeInterpolation)
+    BasicInputOutputCAPI(ArrayOfLagrangeInterpolation)
     
     // Ppath
     BasicInterfaceCAPI(Ppath)
@@ -761,7 +765,7 @@ extern "C" {
     VoidGetterCAPI(GasAbsLookup, Species)
     VoidGetterCAPI(GasAbsLookup, NonLinearSpecies)
     VoidGetterCAPI(GasAbsLookup, Fgrid)
-    VoidGetterCAPI(GasAbsLookup, FGPDefault)
+    VoidGetterCAPI(GasAbsLookup, FLAGDefault)
     VoidGetterCAPI(GasAbsLookup, Pgrid)
     VoidGetterCAPI(GasAbsLookup, LogPgrid)
     VoidGetterCAPI(GasAbsLookup, VMRs)

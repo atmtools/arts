@@ -45,6 +45,7 @@
 #include "fastem.h"
 #include "geodetic.h"
 #include "interpolation.h"
+#include "interpolation_lagrange.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "physics_funcs.h"
@@ -2059,20 +2060,15 @@ void surface_reflectivityFromGriddedField6(Tensor3& surface_reflectivity,
     order = 1;
   }
   {
-    Vector incang(1, 180 - rtp_los[0]);
     chk_interpolation_grids(
-        "Incidence angle interpolation", r_field.get_numeric_grid(3), incang);
-    ArrayOfGridPosPoly gp(1);
-    Matrix itw(1, order + 1);
-    Vector tmp(1);
-    gridpos_poly(gp, r_field.get_numeric_grid(3), incang, order);
-    interpweights(itw, gp);
+      "Incidence angle interpolation", r_field.get_numeric_grid(3), 180 - rtp_los[0]);
+    const LagrangeInterpolation lag(0, 180 - rtp_los[0], r_field.get_numeric_grid(3), order);
+    const auto itw = interpweights(lag);
     //
     for (Index i = 0; i < nf_in; i++) {
       for (Index is1 = 0; is1 < stokes_dim; is1++) {
         for (Index is2 = 0; is2 < stokes_dim; is2++) {
-          interp(tmp, itw, r_f_za(i, is1, is2, joker), gp);
-          r_f(i, is1, is2) = tmp[0];
+          r_f(i, is1, is2) = interp(r_f_za(i, is1, is2, joker), itw, lag);
         }
       }
     }
@@ -2182,18 +2178,12 @@ void surface_scalar_reflectivityFromGriddedField4(
     order = 1;
   }
   {
-    Vector incang(1, 180 - rtp_los[0]);
     chk_interpolation_grids(
-        "Incidence angle interpolation", r_field.get_numeric_grid(1), incang);
-    ArrayOfGridPosPoly gp(1);
-    Matrix itw(1, order + 1);
-    Vector tmp(1);
-    gridpos_poly(gp, r_field.get_numeric_grid(1), incang, order);
-    interpweights(itw, gp);
-    //
+      "Incidence angle interpolation", r_field.get_numeric_grid(1), 180 - rtp_los[0]);
+    const LagrangeInterpolation lag(0, 180 - rtp_los[0], r_field.get_numeric_grid(1), order);
+    const auto itw=interpweights(lag);
     for (Index i = 0; i < nf_in; i++) {
-      interp(tmp, itw, r_f_za(i, joker), gp);
-      r_f[i] = tmp[0];
+      r_f[i] = interp(r_f_za(i, joker), itw, lag);
     }
   }
 

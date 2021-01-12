@@ -498,6 +498,9 @@ class ConstVectorView {
     array of float can be addressed with this index. So the extra bit
     that size_t has compared to long is not needed. */
   Index nelem() const;
+  
+  /*! See nelem() */
+  Index size() const;
 
   /** The sum of all elements of a Vector. */
   Numeric sum() const;
@@ -896,6 +899,19 @@ class Vector : public VectorView {
 
   /** Converting constructor from std::vector<Numeric>. */
   Vector(const std::vector<Numeric>&);
+  
+  /*! Construct from known data
+   * 
+   * Note that this will call delete on the pointer if it is still valid
+   * at the end of the lifetime of this variable
+   * 
+   * @param[in] d - A pointer to some raw data
+   * @param[in] r0 - The Range along the first dimension
+   */
+  Vector(Numeric* d, const Range& r0)
+  : VectorView(d, r0) {
+    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
+  }
 
   // Assignment operators:
 
@@ -1201,6 +1217,21 @@ class Matrix : public MatrixView {
   Matrix(Matrix&& v) noexcept : MatrixView(std::forward<MatrixView>(v)) {
     v.mdata = nullptr;
   }
+  
+  /*! Construct from known data
+   * 
+   * Note that this will call delete on the pointer if it is still valid
+   * at the end of the lifetime of this variable
+   * 
+   * @param[in] d - A pointer to some raw data
+   * @param[in] r0 - The Range along the first dimension
+   * @param[in] r1 - The Range along the second dimension
+   */
+  Matrix(Numeric* d, const Range& r0, const Range& r1)
+  : MatrixView(d, r0, r1) {
+    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
+    if (r1.get_extent() < 0) throw std::runtime_error("Must have size");
+  }
 
   // Assignment operators:
   Matrix& operator=(const Matrix& x);
@@ -1216,6 +1247,22 @@ class Matrix : public MatrixView {
 
   // Destructor:
   virtual ~Matrix();
+  
+  // Total size
+  Index size() const noexcept {return nrows() * ncols();}
+  
+  /*! Reduce a Matrix to a Vector and leave this in an empty state */
+  template <std::size_t dim0>
+  Vector reduce_rank() && {
+    static_assert(dim0 < 2, "Bad Dimension, Out-of-Bounds");
+    
+    Range r0(0, dim0 == 0 ? nrows() : ncols());
+    
+    Vector out(mdata, r0);
+    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    mdata = nullptr;
+    return out;
+  }
 
   Numeric* get_raw_data() { return mdata; }
 };

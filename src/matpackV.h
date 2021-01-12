@@ -514,6 +514,27 @@ class Tensor5 : public Tensor5View {
   Tensor5(Tensor5&& v) noexcept : Tensor5View(std::forward<Tensor5View>(v)) {
     v.mdata = nullptr;
   }
+  
+  /*! Construct from known data
+   * 
+   * Note that this will call delete on the pointer if it is still valid
+   * at the end of the lifetime of this variable
+   * 
+   * @param[in] d - A pointer to some raw data
+   * @param[in] r0 - The Range along the first dimension
+   * @param[in] r1 - The Range along the second dimension
+   * @param[in] r2 - The Range along the third dimension
+   * @param[in] r3 - The Range along the fourth dimension
+   * @param[in] r4 - The Range along the fifth dimension
+   */
+  Tensor5(Numeric* d, const Range& r0, const Range& r1, const Range& r2, const Range& r3, const Range& r4)
+  : Tensor5View(d, r0, r1, r2, r3, r4) {
+    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
+    if (r1.get_extent() < 0) throw std::runtime_error("Must have size");
+    if (r2.get_extent() < 0) throw std::runtime_error("Must have size");
+    if (r3.get_extent() < 0) throw std::runtime_error("Must have size");
+    if (r4.get_extent() < 0) throw std::runtime_error("Must have size");
+  }
 
   // Assignment operators:
   Tensor5& operator=(const Tensor5& x);
@@ -528,6 +549,73 @@ class Tensor5 : public Tensor5View {
 
   // Destructor:
   virtual ~Tensor5();
+  
+  // Total size
+  Index size() const noexcept {return nshelves() * nbooks() * npages() * nrows() * ncols();}
+  
+  /*! Reduce a Tensor5 to a Vector and leave this in an empty state */
+  template <std::size_t dim0>
+  Vector reduce_rank() && {
+    static_assert(dim0 < 5, "Bad Dimension, Out-of-Bounds");
+    
+    Range r0(0, dim0 == 0 ? nshelves() : dim0 == 1 ? nbooks() : dim0 == 2 ? npages() : dim0 == 3 ? nrows() : ncols());
+    
+    Vector out(mdata, r0);
+    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    mdata = nullptr;
+    return out;
+  }
+  
+  /*! Reduce a Tensor5 to a Matrix and leave this in an empty state */
+  template <std::size_t dim0, std::size_t dim1>
+  Matrix reduce_rank() && {
+    static_assert(dim1 < 5, "Bad Dimension, Out-of-Bounds");
+    static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
+    
+    const Range r1(0, dim1 == 1 ? nbooks() : dim1 == 2 ? npages() : dim1 == 3 ? nrows() : ncols());
+    const Range r0(0, dim0 == 0 ? nshelves() : dim0 == 1 ? nbooks() : dim0 == 2 ? npages() : nrows(), r1.get_extent());
+    
+    Matrix out(mdata, r0, r1);
+    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    mdata = nullptr;
+    return out;
+  }
+  
+  /*! Reduce a Tensor5 to a Tensor3 and leave this in an empty state */
+  template <std::size_t dim0, std::size_t dim1, std::size_t dim2>
+  Tensor3 reduce_rank() && {
+    static_assert(dim2 < 5, "Bad Dimension, Out-of-Bounds");
+    static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
+    static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
+    
+    const Range r2(0, dim2 == 2 ? npages() : dim2 == 3 ? nrows() : ncols());
+    const Range r1(0, dim1 == 1 ? nbooks() : dim1 == 2 ? npages() : nrows(), r2.get_extent());
+    const Range r0(0, dim0 == 0 ? nshelves() : dim0 == 1 ? nbooks() : npages(), r1.get_extent() * r2.get_extent());
+    
+    Tensor3 out(mdata, r0, r1, r2);
+    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    mdata = nullptr;
+    return out;
+  }
+  
+  /*! Reduce a Tensor5 to a Tensor4 and leave this in an empty state */
+  template <std::size_t dim0, std::size_t dim1, std::size_t dim2, std::size_t dim3>
+  Tensor4 reduce_rank() && {
+    static_assert(dim3 < 5, "Bad Dimension, Out-of-Bounds");
+    static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
+    static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
+    static_assert(dim2 < dim3, "Bad Dimensions, dim3 must be larger than dim2");
+    
+    const Range r3(0, dim3 == 3 ? nrows() : ncols());
+    const Range r2(0, dim2 == 2 ? npages() : nrows(), r3.get_extent());
+    const Range r1(0, dim1 == 1 ? nbooks() : npages(), r2.get_extent() * r3.get_extent());
+    const Range r0(0, dim0 == 0 ? nshelves() : nbooks(), r1.get_extent() * r2.get_extent() * r3.get_extent());
+    
+    Tensor4 out(mdata, r0, r1, r2, r3);
+    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    mdata = nullptr;
+    return out;
+  }
 };
 
 // Function declarations:

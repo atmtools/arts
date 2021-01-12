@@ -558,19 +558,22 @@ void fos(
                           }
 
                         // Zenith angle interpolation of Y
-                        ArrayOfGridPosPoly gp( nin );
-                        gridpos_poly( gp, fos_iyin_za_angles, 
-                                      fos_scatint_angles(joker,0),
-                                      fos_za_interporder );
-                        Matrix itw( nin, fos_za_interporder+1 );
-                        interpweights( itw, gp );
+                        //ArrayOfGridPosPoly gp( nin );  FIXME: REMOVE WHEN UNCOMMENTING THIS CODE
+                        //gridpos_poly( gp, fos_iyin_za_angles, 
+                        //              fos_scatint_angles(joker,0),
+                        //              fos_za_interporder );
+                        const auto lag = Interpolation::LagrangeVector(fos_scatint_angles(joker, 0), fos_iyin_za_angles, 0.5, false, Interpolation::LagrangeType::Linear);
+                        //Matrix itw( nin, fos_za_interporder+1 );
+                        //interpweights( itw, gp );
+                        const auto itw = interpweights( lag )
                         //
                         for( Index iv=0; iv<nf; iv++ ) 
                           { 
                             for( Index is1=0; is1<stokes_dim; is1++ ) 
                               { 
-                                interp( Y(joker,iv,is1), itw, 
-                                        Y1(joker,iv,is1), gp );
+                                //interp( Y(joker,iv,is1), itw, 
+                                //        Y1(joker,iv,is1), gp );
+                                reinterp( Y(joker,iv,is1), Y1(joker,iv,is1), itw, lag );
                               }
                           }
                       }

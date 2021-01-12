@@ -1358,6 +1358,455 @@ void test47() {
   std::cout << "mv2.ncols: " << mv2.ncols() << std::endl;
 }
 
+void test48() {
+  
+  // Test each simple reduction
+  std::cout << Tensor7(2, 2, 2, 2, 2, 2, 1, 8).reduce_rank<0, 1, 2, 3, 4, 5>() << '\n';
+  std::cout << Tensor7(2, 2, 2, 2, 2, 1, 1, 9).reduce_rank<0, 1, 2, 3, 4>() << '\n';
+  std::cout << Tensor7(2, 2, 2, 2, 1, 1, 1, 10).reduce_rank<0, 1, 2, 3>() << '\n';
+  std::cout << Tensor7(2, 2, 2, 1, 1, 1, 1, 11).reduce_rank<0, 1, 2>() << '\n';
+  std::cout << Tensor7(2, 2, 1, 1, 1, 1, 1, 12).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor7(2, 1, 1, 1, 1, 1, 1, 13).reduce_rank<0>() << '\n';
+  std::cout << Tensor7(1, 1, 1, 1, 1, 1, 1, 14) << '\n';
+  std::cout << Tensor6(2, 2, 2, 2, 2, 1, 15).reduce_rank<0, 1, 2, 3, 4>() << '\n';
+  std::cout << Tensor6(2, 2, 2, 2, 1, 1, 16).reduce_rank<0, 1, 2, 3>() << '\n';
+  std::cout << Tensor6(2, 2, 2, 1, 1, 1, 17).reduce_rank<0, 1, 2>() << '\n';
+  std::cout << Tensor6(2, 2, 1, 1, 1, 1, 18).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor6(2, 1, 1, 1, 1, 1, 19).reduce_rank<0>() << '\n';
+  std::cout << Tensor6(1, 1, 1, 1, 1, 1, 20) << '\n';
+  std::cout << Tensor5(2, 2, 2, 2, 1, 21).reduce_rank<0, 1, 2, 3>() << '\n';
+  std::cout << Tensor5(2, 2, 2, 1, 1, 22).reduce_rank<0, 1, 2>() << '\n';
+  std::cout << Tensor5(2, 2, 1, 1, 1, 23).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor5(2, 1, 1, 1, 1, 24).reduce_rank<0>() << '\n';
+  std::cout << Tensor5(1, 1, 1, 1, 1, 25) << '\n';
+  std::cout << Tensor4(2, 2, 2, 1, 26).reduce_rank<0, 1, 2>() << '\n';
+  std::cout << Tensor4(2, 2, 1, 1, 27).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor4(2, 1, 1, 1, 28).reduce_rank<0>() << '\n';
+  std::cout << Tensor4(1, 1, 1, 1, 29) << '\n';
+  std::cout << Tensor3(2, 2, 1, 30).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor3(2, 1, 1, 31).reduce_rank<0>() << '\n';
+  std::cout << Tensor3(1, 1, 1, 32) << '\n';
+  std::cout << Matrix(2, 1, 33).reduce_rank<0>() << '\n';
+  std::cout << Matrix(1, 1, 34) << '\n';
+  
+  // Test that the reductions work along different axis for Vector
+  std::cout << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 1>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 2>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 3>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 4>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 5>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 6>()).transpose() << '\n';
+  
+  // Test that the reductions work along different axis for Matrix
+  std::cout << MapToEigen(Tensor7(2, 2, 1, 1, 1, 1, 1, 36).reduce_rank<0, 1>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 2, 1, 1, 1, 1, 36).reduce_rank<0, 2>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 2, 1, 1, 1, 36).reduce_rank<0, 3>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 2, 1, 1, 36).reduce_rank<0, 4>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 2, 1, 36).reduce_rank<0, 5>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 2, 36).reduce_rank<0, 6>()) << '\n';
+            
+  // Test that the right elements are accessed
+  {
+    Index val=1;
+    Tensor7 testvar(9, 2, 4, 3, 5, 7, 11);for (Index i=0; i<9; i++)
+    for (Index j=0; j<2; j++) {
+      for (Index k=0; k<4; k++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index n=0; n<7; n++) {
+              for (Index o=0; o<11; o++) {
+                testvar(i, j, k, l, m, n, o) = Numeric(val++);
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    //  Vector test
+    for (Index j=0; j<2; j++) {
+      for (Index k=0; k<4; k++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index n=0; n<7; n++) {
+              for (Index o=0; o<11; o++) {
+                std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<0>() << '\n';
+                std::cout << testvar(joker, j, k, l, m, n, o) << '\n';
+                std::cout << '\n';
+              }
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index k=0; k<4; k++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index n=0; n<7; n++) {
+              for (Index o=0; o<11; o++) {
+                std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<1>() << '\n';
+                std::cout << testvar(i, joker, k, l, m, n, o) << '\n';
+                std::cout << '\n';
+              }
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index n=0; n<7; n++) {
+              for (Index o=0; o<11; o++) {
+                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<2>() << '\n';
+                std::cout << testvar(i, j, joker, l, m, n, o) << '\n';
+                std::cout << '\n';
+              }
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index m=0; m<5; m++) {
+            for (Index n=0; n<7; n++) {
+              for (Index o=0; o<11; o++) {
+                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<3>() << '\n';
+                std::cout << testvar(i, j, k, joker, m, n, o) << '\n';
+                std::cout << '\n';
+              }
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index l=0; l<3; l++) {
+            for (Index n=0; n<7; n++) {
+              for (Index o=0; o<11; o++) {
+                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1))).reduce_rank<4>() << '\n';
+                std::cout << testvar(i, j, k, l, joker, n, o) << '\n';
+                std::cout << '\n';
+              }
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index l=0; l<3; l++) {
+            for (Index m=0; m<5; m++) {
+              for (Index o=0; o<11; o++) {
+                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1))).reduce_rank<5>() << '\n';
+                std::cout << testvar(i, j, k, l, m, joker, o) << '\n';
+                std::cout << '\n';
+              }
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index l=0; l<3; l++) {
+            for (Index m=0; m<5; m++) {
+              for (Index n=0; n<7; n++) {
+                std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker)).reduce_rank<6>() << '\n';
+                std::cout << testvar(i, j, k, l, m, n, joker) << '\n';
+                std::cout << '\n';
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Matrix test
+    for (Index k=0; k<4; k++) {
+      for (Index l=0; l<3; l++) {
+        for (Index m=0; m<5; m++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(joker, joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<0, 1>() << '\n';
+              std::cout << testvar(joker, joker, k, l, m, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index j=0; j<2; j++) {
+      for (Index l=0; l<3; l++) {
+        for (Index m=0; m<5; m++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(joker, Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<0, 2>() << '\n';
+              std::cout << testvar(joker, j, joker, l, m, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index j=0; j<2; j++) {
+      for (Index k=0; k<4; k++) {
+        for (Index m=0; m<5; m++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<0, 3>() << '\n';
+              std::cout << testvar(joker, j, k, joker, m, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index j=0; j<2; j++) {
+      for (Index k=0; k<4; k++) {
+        for (Index l=0; l<3; l++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1))).reduce_rank<0, 4>() << '\n';
+              std::cout << testvar(joker, j, k, l, joker, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index j=0; j<2; j++) {
+      for (Index k=0; k<4; k++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1))).reduce_rank<0, 5>() << '\n';
+              std::cout << testvar(joker, j, k, l, m, joker, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index j=0; j<2; j++) {
+      for (Index k=0; k<4; k++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index n=0; n<7; n++) {
+              std::cout << Tensor7(testvar(joker, Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker)).reduce_rank<0, 6>() << '\n';
+              std::cout << testvar(joker, j, k, l, m, n, joker) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index l=0; l<3; l++) {
+        for (Index m=0; m<5; m++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), joker, joker, Range(l, 1), Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<1, 2>() << '\n';
+              std::cout << testvar(i, joker, joker, l, m, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index k=0; k<4; k++) {
+        for (Index m=0; m<5; m++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), joker, Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<1, 3>() << '\n';
+              std::cout << testvar(i, joker, k, joker, m, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index k=0; k<4; k++) {
+        for (Index l=0; l<3; l++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), Range(l, 1), joker, Range(n, 1), Range(o, 1))).reduce_rank<1, 4>() << '\n';
+              std::cout << testvar(i, joker, k, l, joker, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index k=0; k<4; k++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), joker, Range(o, 1))).reduce_rank<1, 5>() << '\n';
+              std::cout << testvar(i, joker, k, l, m, joker, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index k=0; k<4; k++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index n=0; n<7; n++) {
+              std::cout << Tensor7(testvar(Range(i, 1), joker, Range(k, 1), Range(l, 1), Range(m, 1), Range(n, 1), joker)).reduce_rank<1, 6>() << '\n';
+              std::cout << testvar(i, joker, k, l, m, n, joker) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index m=0; m<5; m++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, joker, Range(m, 1), Range(n, 1), Range(o, 1))).reduce_rank<2, 3>() << '\n';
+              std::cout << testvar(i, j, joker, joker, m, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index l=0; l<3; l++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, Range(l, 1), joker, Range(n, 1), Range(o, 1))).reduce_rank<2, 4>() << '\n';
+              std::cout << testvar(i, j, joker, l, joker, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), joker, Range(o, 1))).reduce_rank<2, 5>() << '\n';
+              std::cout << testvar(i, j, joker, l, m, joker, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index l=0; l<3; l++) {
+          for (Index m=0; m<5; m++) {
+            for (Index n=0; n<7; n++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), joker, Range(l, 1), Range(m, 1), Range(n, 1), joker)).reduce_rank<2, 6>() << '\n';
+              std::cout << testvar(i, j, joker, l, m, n, joker) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index n=0; n<7; n++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), joker, joker, Range(n, 1), Range(o, 1))).reduce_rank<3, 4>() << '\n';
+              std::cout << testvar(i, j, k, joker, joker, n, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index m=0; m<5; m++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), joker, Range(o, 1))).reduce_rank<3, 5>() << '\n';
+              std::cout << testvar(i, j, k, joker, m, joker, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index m=0; m<5; m++) {
+            for (Index n=0; n<7; n++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), joker, Range(m, 1), Range(n, 1), joker)).reduce_rank<3, 6>() << '\n';
+              std::cout << testvar(i, j, k, joker, m, n, joker) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index l=0; l<3; l++) {
+            for (Index o=0; o<11; o++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, joker, Range(o, 1))).reduce_rank<4, 5>() << '\n';
+              std::cout << testvar(i, j, k, l, joker, joker, o) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index l=0; l<3; l++) {
+            for (Index n=0; n<7; n++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), joker, Range(n, 1), joker)).reduce_rank<4, 6>() << '\n';
+              std::cout << testvar(i, j, k, l, joker, n, joker) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+    for (Index i=0; i<9; i++) {
+      for (Index j=0; j<2; j++) {
+        for (Index k=0; k<4; k++) {
+          for (Index l=0; l<3; l++) {
+            for (Index m=0; m<5; m++) {
+              std::cout << Tensor7(testvar(Range(i, 1), Range(j, 1), Range(k, 1), Range(l, 1), Range(m, 1), joker, joker)).reduce_rank<5, 6>() << '\n';
+              std::cout << testvar(i, j, k, l, m, joker, joker) << '\n';
+              std::cout << '\n';
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 int main() {
   //   test1();
   //   test2();
@@ -1402,11 +1851,12 @@ int main() {
   //  test40();
   //  test41();
   //    test42();
-  test43();
+  //   test43();
   //    test44();
   //    test45();
   //    test46();
   //  test47();
+  test48();
 
   //    const double tolerance = 1e-9;
   //    double error;

@@ -2,7 +2,7 @@ import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.BasicTypes import ArrayOfIndex
-from pyarts.classes.GridPosPoly import ArrayOfGridPosPoly
+from pyarts.classes.LagrangeInterpolation import ArrayOfLagrangeInterpolation
 from pyarts.classes.Matrix import Matrix
 from pyarts.classes.SpeciesTag import ArrayOfArrayOfSpeciesTag
 from pyarts.classes.Tensor4 import Tensor4
@@ -23,8 +23,8 @@ class GasAbsLookup:
         f_grid:
             The frequency grid [Hz] (Vector)
 
-        fgp_default:
-            Frequency grid positions (ArrayOfGridPosPoly)
+        flag_default:
+            Frequency lagrange interpolation (ArrayOfLagrangeInterpolation)
 
         p_grid:
             The pressure grid for the table [Pa] (Vector)
@@ -86,13 +86,13 @@ class GasAbsLookup:
         self.f_grid.set(val)
 
     @property
-    def fgp_default(self):
-        """ Frequency grid positions (ArrayOfGridPosPoly) """
-        return ArrayOfGridPosPoly(c.c_void_p(lib.getFGPDefaultGasAbsLookup(self.__data__)))
+    def flag_default(self):
+        """ Frequency grid positions (ArrayOfLagrangeInterpolation) """
+        return ArrayOfLagrangeInterpolation(c.c_void_p(lib.getFLAGDefaultGasAbsLookup(self.__data__)))
 
-    @fgp_default.setter
-    def fgp_default(self, val):
-        self.fgp_default.set(val)
+    @flag_default.setter
+    def flag_default(self, val):
+        self.flag_default.set(val)
 
     @property
     def p_grid(self):
@@ -178,7 +178,7 @@ class GasAbsLookup:
             self.specs = other.specs
             self.nonlinspecs = other.nonlinspecs
             self.f_grid = other.f_grid
-            self.fgp_default = other.fgp_default
+            self.flag_default = other.flag_default
             self.p_grid = other.p_grid
             self.log_p_grid = other.log_p_grid
             self.vmrs = other.vmrs
@@ -220,7 +220,7 @@ class GasAbsLookup:
                 self.specs == other.specs and \
                 self.nonlinspecs == other.nonlinspecs and \
                 self.f_grid == other.f_grid and \
-                self.fgp_default == other.fgp_default and \
+                self.flag_default == other.flag_default and \
                 self.p_grid == other.p_grid and \
                 self.log_p_grid == other.log_p_grid and \
                 self.vmrs == other.vmrs and \
@@ -260,8 +260,8 @@ lib.getNonLinearSpeciesGasAbsLookup.argtypes = [c.c_void_p]
 lib.getFgridGasAbsLookup.restype = c.c_void_p
 lib.getFgridGasAbsLookup.argtypes = [c.c_void_p]
 
-lib.getFGPDefaultGasAbsLookup.restype = c.c_void_p
-lib.getFGPDefaultGasAbsLookup.argtypes = [c.c_void_p]
+lib.getFLAGDefaultGasAbsLookup.restype = c.c_void_p
+lib.getFLAGDefaultGasAbsLookup.argtypes = [c.c_void_p]
 
 lib.getPgridGasAbsLookup.restype = c.c_void_p
 lib.getPgridGasAbsLookup.argtypes = [c.c_void_p]

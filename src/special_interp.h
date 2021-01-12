@@ -28,7 +28,6 @@
 
 #include "gridded_fields.h"
 #include "interpolation.h"
-#include "interpolation_poly.h"
 #include "jacobian.h"
 
 /*===========================================================================
@@ -571,30 +570,6 @@ void p2gridpos(ArrayOfGridPos& gp,
                ConstVectorView old_pgrid,
                ConstVectorView new_pgrid,
                const Numeric& extpolfac = 0.5);
-
-/** p2gridpos_poly
-
- Calculates grid positions for pressure values - higher order interpolation.
- 
- This function is similar to p2gridpos, but for higher order interpolation.
- 
- @param[out]  gp          Grid position Array.
- @param[in]   old_pgrid   The original pressure grid.
- @param[in]   new_pgrid   The new pressure grid.
- @param[in]   order       Interpolation order (1=linear, 2=quadratic, etc.)
- @param[in]   extpolfac   Extrapolation factor. Default value is 0.5,
-                          which means that extrapolation of half of the
-                          last grid distance is allowed.
-                          You don't have to specify this.
- 
- @author Stefan Buehler
- @date   2010-05-03
- */
-void p2gridpos_poly(ArrayOfGridPosPoly& gp,
-                    ConstVectorView old_pgrid,
-                    ConstVectorView new_pgrid,
-                    const Index order,
-                    const Numeric& extpolfac = 0.5);
 
 /** Converts a geographical position (rte_pos) to grid positions for p, 
    lat and lon. (field version)

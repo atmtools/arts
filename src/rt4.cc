@@ -38,6 +38,7 @@
 #include <stdexcept>
 #include "disort.h"
 #include "interpolation.h"
+#include "interpolation_lagrange.h"
 #include "m_xml.h"
 #include "optproperties.h"
 #include "physics_funcs.h"
@@ -782,25 +783,16 @@ void run_rt4(Workspace& ws,
       //     - loop over num_layers and stokes_dim:
       //       - apply weights
       for (Index j = 0; j < nummu; j++) {
-        GridPosPoly gp_za;
-        if (cos_za_interp) {
-          gridpos_poly(
-              gp_za, mu_values_new, mu_values[j], za_interp_order, 0.5);
-        } else {
-          gridpos_poly(gp_za,
-                       za_grid[Range(0, nummu_new)],
-                       za_grid_orig[j],
-                       za_interp_order,
-                       0.5);
-        }
-        Vector itw(gp_za.idx.nelem());
-        interpweights(itw, gp_za);
+        const LagrangeInterpolation lag_za(0,
+                                           cos_za_interp ? mu_values[j] : za_grid_orig[j], 
+                                           cos_za_interp ? mu_values_new : za_grid[Range(0, nummu_new)],
+                                           za_interp_order, false);
+        const auto itw = interpweights(lag_za);
 
         for (Index k = 0; k < num_layers + 1; k++)
           for (Index ist = 0; ist < stokes_dim; ist++) {
-            up_rad(k, j, ist) = interp(itw, up_rad_new(k, joker, ist), gp_za);
-            down_rad(k, j, ist) =
-                interp(itw, down_rad_new(k, joker, ist), gp_za);
+            up_rad(k, j, ist) = interp(up_rad_new(k, joker, ist), itw, lag_za);
+            down_rad(k, j, ist) = interp(down_rad_new(k, joker, ist), itw, lag_za);
           }
       }
 

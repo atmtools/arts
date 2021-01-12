@@ -39,7 +39,6 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "file.h"
-#include "interpolation_poly.h"
 #include "linescaling.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -650,7 +649,6 @@ void xsec_species(Matrix& xsec,
   
   // Constant for all lines
   const Numeric QT0 = single_partition_function(band.T0(), partfun_type, partfun_data);
-  const Numeric dT = temperature_perturbation(jacobian_quantities);
 
   ArrayOfString fail_msg;
   bool do_abort = false;
@@ -668,9 +666,7 @@ void xsec_species(Matrix& xsec,
       const Numeric QT =
           single_partition_function(temperature, partfun_type, partfun_data);
       const Numeric dQTdT = dsingle_partition_function_dT(
-          QT,
           temperature,
-          dT,
           partfun_type,
           partfun_data);
       const Numeric DC =

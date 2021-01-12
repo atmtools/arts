@@ -354,11 +354,4 @@ Numeric interp_poly(ConstVectorView x,
                     const Numeric& x_i,
                     const GridPos& gp);
 
-void polint(Numeric& y_int,
-            Numeric& dy_int,
-            ConstVectorView xa,
-            ConstVectorView ya,
-            const Index& i,
-            const Numeric& x);
-
 #endif  // interpolation_h

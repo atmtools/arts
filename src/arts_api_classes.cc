@@ -186,6 +186,10 @@ BasicInputOutputCAPI(ArrayOfArrayOfIndex)
 // Numeric
 BasicInterfaceCAPI(Numeric)
 BasicInputOutputCAPI(Numeric)
+VoidArrayCAPI(ArrayOfNumeric)
+BasicInterfaceCAPI(ArrayOfNumeric)
+Index xmlreadArrayOfNumeric(void *, char *) {return 1;}
+Index xmlsaveArrayOfNumeric(void *, char *, Index, Index) {return 1;}
 Numeric getNumeric(void * data) { return *static_cast<Numeric *>(data); }
 void setNumeric(void * data, Numeric newval) { *static_cast<Numeric *>(data) = newval; }
 
@@ -560,14 +564,15 @@ BasicInterfaceCAPI(ArrayOfGridPos)
 BasicInputOutputCAPI(ArrayOfGridPos)
 
 
-// GridPosPoly
-BasicInterfaceCAPI(GridPosPoly)
-VoidStructGetterCAPI(GridPosPoly, idx)
-VoidStructGetterCAPI(GridPosPoly, w)
-VoidArrayCAPI(ArrayOfGridPosPoly)
-BasicInterfaceCAPI(ArrayOfGridPosPoly)
-Index xmlreadArrayOfGridPosPoly(void *, char *) {return 1;}
-Index xmlsaveArrayOfGridPosPoly(void *, char *, Index, Index) {return 1;}
+// LagrangeInterpolation
+BasicInterfaceCAPI(LagrangeInterpolation)
+VoidStructGetterCAPI(LagrangeInterpolation, pos)
+VoidStructGetterCAPI(LagrangeInterpolation, lx)
+VoidStructGetterCAPI(LagrangeInterpolation, dlx)
+VoidArrayCAPI(ArrayOfLagrangeInterpolation)
+BasicInterfaceCAPI(ArrayOfLagrangeInterpolation)
+Index xmlreadArrayOfLagrangeInterpolation(void *, char *) {return 1;}
+Index xmlsaveArrayOfLagrangeInterpolation(void *, char *, Index, Index) {return 1;}
 
 
 // Ppath
@@ -1111,7 +1116,7 @@ BasicInputOutputCAPI(GasAbsLookup)
 VoidGetterCAPI(GasAbsLookup, Species)
 VoidGetterCAPI(GasAbsLookup, NonLinearSpecies)
 VoidGetterCAPI(GasAbsLookup, Fgrid)
-VoidGetterCAPI(GasAbsLookup, FGPDefault)
+VoidGetterCAPI(GasAbsLookup, FLAGDefault)
 VoidGetterCAPI(GasAbsLookup, Pgrid)
 VoidGetterCAPI(GasAbsLookup, LogPgrid)
 VoidGetterCAPI(GasAbsLookup, VMRs)

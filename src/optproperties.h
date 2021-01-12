@@ -34,7 +34,6 @@
 #define optproperties_h
 
 #include "gridded_fields.h"
-#include "interpolation_poly.h"
 #include "matpackVII.h"
 #include "messages.h"
 #include "mystring.h"
@@ -280,16 +279,6 @@ void ext_matFromabs_vec(  //Output
     //Input
     ConstVectorView abs_vec,
     const Index& stokes_dim);
-
-void ssd_tinterp_parameters(  //Output
-    VectorView t_ok,
-    Index& this_T_interp_order,
-    ArrayOfGridPosPoly& T_gp,
-    Matrix& T_itw,
-    //Input
-    ConstVectorView T_grid,
-    const Vector& T_array,
-    const Index& t_interp_order);
 
 // Functions for the case: Randomly oriented particles:
 // ========================================================

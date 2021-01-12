@@ -32,6 +32,7 @@
 #include <climits>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include "array.h"
 #include "matpack.h"
 
@@ -61,6 +62,7 @@ class my_basic_string : public std::basic_string<charT> {
                   Index pos = 0,
                   Index numpos = my_basic_string<charT>::npos);
   my_basic_string(const char A[]);
+  my_basic_string(const std::string_view& sv);
 
   // Insert string before all occurrences of the substring.
   void insert_substr(const my_basic_string<charT>& searchstr,
@@ -173,6 +175,12 @@ inline my_basic_string<charT>::my_basic_string(
 template <class charT>
 inline my_basic_string<charT>::my_basic_string(const char A[])
     : std::basic_string<charT>(A) { /* Nothing to do here. */
+}
+
+/** Constructor from a std::string_view. */
+template <class charT>
+inline my_basic_string<charT>::my_basic_string(const std::string_view& sv)
+    : std::basic_string<charT>(std::string(sv)) { /* Nothing to do here. */
 }
 
 /** Insert string before all occurrences of the substring.

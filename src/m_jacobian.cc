@@ -36,7 +36,7 @@
 #include "check_input.h"
 #include "cloudbox.h"
 #include "constants.h"
-#include "interpolation_poly.h"
+#include "interpolation_lagrange.h"
 #include "jacobian.h"
 #include "m_xml.h"
 #include "math_funcs.h"
@@ -313,25 +313,20 @@ void jacobianCalcFreqShift(Matrix& jacobian,
 
     // Interpolation weights
     //
-    const Index porder = 3;
+    constexpr Index porder = 3;
     //
-    ArrayOfGridPosPoly gp(nf2);
-    Matrix itw(nf2, porder + 1);
     Vector fg_new = f_grid, iyb2(niyb);
-    //
     fg_new += rq.Target().Perturbation();
-    gridpos_poly(gp, f_grid, fg_new, porder, 1.0);
-    interpweights(itw, gp);
+    //
+    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid);
+    const auto itw = interpweights(lag);
 
     // Do interpolation
     for (Index ilos = 0; ilos < nlos2; ilos++) {
       const Index row0 = ilos * nf2 * stokes_dim;
 
       for (Index is = 0; is < stokes_dim; is++) {
-        interp(iyb2[Range(row0 + is, nf2, stokes_dim)],
-               itw,
-               iyb[Range(row0 + is, nf2, stokes_dim)],
-               gp);
+        iyb2[Range(row0 + is, nf2, stokes_dim)] = reinterp(iyb[Range(row0 + is, nf2, stokes_dim)], itw, lag);
       }
     }
 
@@ -466,25 +461,21 @@ void jacobianCalcFreqStretch(
 
     // Interpolation weights
     //
-    const Index porder = 3;
+    constexpr Index porder = 3;
     //
-    ArrayOfGridPosPoly gp(nf2);
-    Matrix itw(nf2, porder + 1);
     Vector fg_new = f_grid, iyb2(niyb);
     //
     fg_new += rq.Target().Perturbation();
-    gridpos_poly(gp, f_grid, fg_new, porder, 1.0);
-    interpweights(itw, gp);
+    //
+    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid);
+    const auto itw = interpweights(lag);
 
     // Do interpolation
     for (Index ilos = 0; ilos < nlos2; ilos++) {
       const Index row0 = ilos * nf2 * stokes_dim;
 
       for (Index is = 0; is < stokes_dim; is++) {
-        interp(iyb2[Range(row0 + is, nf2, stokes_dim)],
-               itw,
-               iyb[Range(row0 + is, nf2, stokes_dim)],
-               gp);
+        iyb2[Range(row0 + is, nf2, stokes_dim)] = reinterp(iyb[Range(row0 + is, nf2, stokes_dim)], itw, lag);
       }
     }
 

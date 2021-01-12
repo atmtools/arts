@@ -28,7 +28,6 @@
 #include <cmath>
 #include "check_input.h"
 #include "interpolation.h"
-#include "interpolation_poly.h"
 #include "logic.h"
 #include "messages.h"
 #include "physics_funcs.h"
@@ -453,9 +452,8 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   log_p_grid.resize(n_p_grid);
   transform(log_p_grid, log, p_grid);
 
-  // 6. Initialize fgp_default.
-  fgp_default.resize(f_grid.nelem());
-  gridpos_poly(fgp_default, f_grid, f_grid, 0);
+  // 6. Initialize flag_default.
+  flag_default = Interpolation::LagrangeVector(f_grid, f_grid, 0);
 }
 
 //! Extract scalar gas absorption coefficients from the lookup table.
@@ -665,8 +663,8 @@ void GasAbsLookup::Extract(Matrix& sga,
 
   // Frequency grid positions. The pointer is used to save copying of the
   // default from the lookup table.
-  const ArrayOfGridPosPoly* fgp;
-  ArrayOfGridPosPoly fgp_local;
+  const ArrayOfLagrangeInterpolation* flag;
+  ArrayOfLagrangeInterpolation flag_local;
 
   // With f_interp_order 0 the frequency grid has to have the same size as in the
   // lookup table, or exactly one element. If it matches the lookup table, we
@@ -682,9 +680,9 @@ void GasAbsLookup::Extract(Matrix& sga,
     const Numeric allowed_f_margin = 0.09;
     
     if (n_new_f_grid == n_f_grid) {
-      // Use the default fgp that is stored in the lookup table itself
+      // Use the default flag that is stored in the lookup table itself
       // (which effectively means no frequency interpolation)
-      fgp = &fgp_default;
+      flag = &flag_default;
 
       // Check first f_grid element:
       if (abs(f_grid[0] - new_f_grid[0]) > allowed_f_margin)
@@ -708,12 +706,11 @@ void GasAbsLookup::Extract(Matrix& sga,
         throw runtime_error(os.str());
       }
     } else if (n_new_f_grid == 1) {
-      fgp = &fgp_local;
-      fgp_local.resize(1);
-      gridpos_poly(fgp_local, f_grid, new_f_grid, 0);
+      flag = &flag_local;
+      flag_local = Interpolation::LagrangeVector(new_f_grid, f_grid, 0);
 
       // Check that we really are on a frequency grid point, for safety's sake.
-      if (abs(f_grid[fgp_local[0].idx[0]] - new_f_grid[0]) > allowed_f_margin)
+      if (abs(f_grid[flag_local[0].pos] - new_f_grid[0]) > allowed_f_margin)
       {
 	ostringstream os;
 	os << "Cannot find a matching lookup table frequency for frequency "
@@ -751,9 +748,8 @@ void GasAbsLookup::Extract(Matrix& sga,
     }
 
     // We do have real frequency interpolation (f_interp_order!=0).
-    fgp = &fgp_local;
-    fgp_local.resize(n_new_f_grid);
-    gridpos_poly(fgp_local, f_grid, new_f_grid, f_interp_order);
+    flag = &flag_local;
+    flag_local = Interpolation::LagrangeVector(new_f_grid, f_grid, f_interp_order);
   }
 
   // 4.b Other stuff
@@ -796,44 +792,34 @@ void GasAbsLookup::Extract(Matrix& sga,
   // For sure, we need to store the pressure grid position.
   // We do the interpolation in log(p). Test have shown that this
   // gives slightly better accuracy than interpolating in p directly.
-  ArrayOfGridPosPoly pgp(1);
-  gridpos_poly(pgp, log_p_grid, log(p), p_interp_order);
+  const auto plag = Interpolation::LagrangeVector(log(p), log_p_grid, p_interp_order);
 
   // Pressure interpolation weights:
-  Vector pitw;
-  pitw.resize(p_interp_order + 1);
-  interpweights(pitw, pgp[0]);
+  const auto pitw = interpweights(plag[0]);
 
   // Define also other grid positions and interpolation weights here, so that
   // we do not have to allocate them over and over in the loops below.
 
-  // Define the ArrayOfGridPosPoly that corresponds to "no interpolation at all".
-  ArrayOfGridPosPoly gp_trivial(1);
-  gp_trivial[0].idx.resize(1);
-  gp_trivial[0].w.resize(1);
-  gp_trivial[0].idx[0] = 0;
-  gp_trivial[0].w[0] = 1;
+  // Define the ArrayOfLagrangeInterpolation that corresponds to "no interpolation at all".
+  const ArrayOfLagrangeInterpolation lag_trivial(1);
 
   // Temperature grid positions.
-  ArrayOfGridPosPoly tgp_withT(1);  // Only a scalar.
-  ArrayOfGridPosPoly* tgp;  // Pointer to either tgp_withT or gp_trivial.
+  ArrayOfLagrangeInterpolation tlag_withT(1);  // Only a scalar.
+  const ArrayOfLagrangeInterpolation* tlag;  // Pointer to either tlag_withT or lag_trivial.
 
   // Set this_t_interp_order, depending on whether we do T interpolation or not.
-  Index this_t_interp_order;  // Local T interpolation order
   if (do_T) {
-    this_t_interp_order = t_interp_order;
-    tgp = &tgp_withT;
+    tlag = &tlag_withT;
   } else {
     // For the !do_T case we simply take the single
     // temperature that is there, so we point tgp accordingly.
-    this_t_interp_order = 0;
-    tgp = &gp_trivial;
+    tlag = &lag_trivial;
   }
 
-  // H2O(VMR) grid positions. vgp is what will be used in the interpolation.
-  // Depending on species, it is either pointed to gp_trivial, or to vgp_h2o.
-  ArrayOfGridPosPoly* vgp;
-  ArrayOfGridPosPoly vgp_h2o(1);  // only a scalar
+  // H2O(VMR) grid positions. vlag is what will be used in the interpolation.
+  // Depending on species, it is either pointed to lag_trivial, or to vlag_h2o.
+  const ArrayOfLagrangeInterpolation* vlag;
+  ArrayOfLagrangeInterpolation vlag_h2o(1);  // only a scalar
 
   // 6. We do the T and VMR interpolation for the pressure levels
   // that are used in the pressure interpolation. (How many depends on
@@ -860,7 +846,8 @@ void GasAbsLookup::Extract(Matrix& sga,
   // Define variables for interpolation weights outside the loops.
   // We will make itw point to either the weights with H2O interpolation, or
   // the ones without.
-  Tensor4 itw_withH2O, itw_noH2O, *itw;
+  Tensor3OfTensor3 itw_withH2O(0,0,0), itw_noH2O(0,0,0);
+  const Tensor3OfTensor3 *itw;
 
   for (Index pi = 0; pi < p_interp_order + 1; ++pi) {
     // Throw a runtime error if one of the reference VMR profiles is zero, but
@@ -881,7 +868,7 @@ void GasAbsLookup::Extract(Matrix& sga,
     //        }
 
     // Index into p_grid:
-    const Index this_p_grid_index = pgp[0].idx[pi];
+    const Index this_p_grid_index = plag[0].pos + pi;
 
     // Determine temperature grid position. This is only done if we
     // want temperature interpolation, but the variable tgp has to
@@ -941,7 +928,7 @@ void GasAbsLookup::Extract(Matrix& sga,
         }
       }
 
-      gridpos_poly(tgp_withT, t_pert, T_offset, t_interp_order, extpolfac);
+      tlag_withT[0] = LagrangeInterpolation(0, T_offset, t_pert, t_interp_order);
     }
 
     // Determine the H2O VMR grid position. We need to do this only
@@ -1000,7 +987,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       }
 
       // For now, do linear interpolation in the fractional VMR.
-      gridpos_poly(vgp_h2o, nls_pert, VMR_frac, h2o_interp_order, extpolfac);
+      vlag_h2o[0] = LagrangeInterpolation(0, VMR_frac, nls_pert, h2o_interp_order);
     }
 
     // Precalculate interpolation weights.
@@ -1008,22 +995,12 @@ void GasAbsLookup::Extract(Matrix& sga,
       // Precalculate weights without H2O interpolation if there are less
       // nonlinear species than total species. (So at least one species
       // without H2O interpolation.)
-      itw_noH2O.resize(1,
-                       1,
-                       n_new_f_grid,
-                       (this_t_interp_order + 1) * (1) *  // H2O dimension
-                           (f_interp_order + 1));
-      interpweights(itw_noH2O, *tgp, gp_trivial, *fgp);
+      itw_noH2O = interpweights(*tlag, lag_trivial, *flag);
     }
     if (n_nls > 0) {
       // Precalculate weights with H2O interpolation if there is at least
       // one nonlinear species.
-      itw_withH2O.resize(1,
-                         1,
-                         n_new_f_grid,
-                         (this_t_interp_order + 1) * (h2o_interp_order + 1) *
-                             (f_interp_order + 1));
-      interpweights(itw_withH2O, *tgp, vgp_h2o, *fgp);
+      itw_withH2O = interpweights(*tlag, vlag_h2o, *flag);
     }
 
     // 7. Loop species:
@@ -1059,11 +1036,11 @@ void GasAbsLookup::Extract(Matrix& sga,
       // Set h2o related interpolation parameters:
       Index this_h2o_extent;  // Range of H2O interpolation
       if (do_VMR) {
-        vgp = &vgp_h2o;
+        vlag = &vlag_h2o;
         this_h2o_extent = n_nls_pert;
         itw = &itw_withH2O;
       } else {
-        vgp = &gp_trivial;
+        vlag = &lag_trivial;
         this_h2o_extent = 1;
         itw = &itw_noH2O;
       }
@@ -1076,12 +1053,12 @@ void GasAbsLookup::Extract(Matrix& sga,
                this_p_grid_index);           // Pressure index
 
       // Do interpolation.
-      interp(res,        // result
-             *itw,       // weights
-             this_xsec,  // input
-             *tgp,
-             *vgp,
-             *fgp);  // grid positions
+      reinterp(res,        // result
+               this_xsec,  // input
+               *itw,       // weights
+               *tlag,
+               *vlag,
+               *flag);  // grid positions
 
       // Increase fpi. fpi marks the position of the first profile
       // of the current species in xsec. This is needed to find

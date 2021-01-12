@@ -51,6 +51,7 @@
 #include "file.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
+#include "interpolation_lagrange.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -911,95 +912,33 @@ void iyInterpCloudboxField(Matrix& iy,
       throw runtime_error(os.str());
     }
   }
-
-  // Grid position in *za_grid*
-  GridPosPoly gp_za, gp_aa;
-
-  if (cos_za_interp) {
-    Vector cosza_grid(za_extend);
-    const Numeric cosza = cos(rte_los[0] * DEG2RAD);
-
-    for (Index i_za = 0; i_za < za_extend; i_za++)
-      cosza_grid[i_za] = cos(za_grid[i_za + za_start] * DEG2RAD);
-
-    // OBS: cosza is a decreasing grid!
-    const Numeric cosza_min =
-        cosza_grid[0] + za_extpolfac * (cosza_grid[0] - cosza_grid[1]);
-    if (cosza > cosza_min) {
-      ostringstream os;
-      os << "Zenith angle " << rte_los[0] << "deg is outside the range"
-         << " covered by za_grid.\n"
-         << "Lower limit of allowed range is " << acos(cosza_min) * RAD2DEG
-         << ".\n"
-         << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider za_grid.\n";
-      throw runtime_error(os.str());
-    }
-    const Numeric cosza_max =
-        cosza_grid[za_extend - 1] -
-        za_extpolfac * (cosza_grid[za_extend - 2] - cosza_grid[za_extend - 1]);
-    if (cosza < cosza_max) {
-      ostringstream os;
-      os << "Zenith angle " << rte_los[0] << "deg is outside the range"
-         << " covered by za_grid.\n"
-         << "Upper limit of allowed range is " << acos(cosza_max) * RAD2DEG
-         << ".\n"
-         << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider za_grid.\n";
-      throw runtime_error(os.str());
-    }
-
-    gridpos_poly(gp_za, cosza_grid, cosza, za_interp_order, za_extpolfac);
-  } else {
-    Vector za_g = za_grid[Range(za_start, za_extend)];
-    const Numeric za = rte_los[0];
-
-    const Numeric za_min = za_g[0] - za_extpolfac * (za_g[1] - za_g[0]);
-    if (za < za_min) {
-      ostringstream os;
-      os << "Zenith angle " << rte_los[0] << "deg is outside the range"
-         << " covered by za_grid.\n"
-         << "Lower limit of allowed range is " << za_min << ".\n"
-         << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider za_grid.\n";
-      throw runtime_error(os.str());
-    }
-    const Numeric za_max =
-        za_g[za_g.nelem() - 1] +
-        za_extpolfac * (za_g[za_extend - 1] - za_g[za_extend - 2]);
-    if (za > za_max) {
-      ostringstream os;
-      os << "Zenith angle " << za << "deg is outside the range"
-         << " covered by za_grid.\n"
-         << "Upper limit of allowed range is " << za_max << ".\n"
-         << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider za_grid.\n";
-      throw runtime_error(os.str());
-    }
-    gridpos_poly(gp_za, za_g, za, za_interp_order, za_extpolfac);
-  }
-
-  if (atmosphere_dim > 1) {
-    gridpos_poly_cyclic_longitudinal(
-        gp_aa, aa_grid, rte_los[1], aa_interp_order);
-  } else {
-    gp_aa.idx.resize(1);
-    gp_aa.idx[0] = 0;
-    gp_aa.w.resize(1);
-    gp_aa.w[0] = 1;
-  }
+  
+  const auto range = Range(za_start, za_extend);
+  const ConstVectorView za_g(za_grid[range]);
+  
+  // Check the zenith-grid
+  Interpolation::check_lagrange_interpolation(za_g, za_interp_order, rte_los[0], za_extpolfac);
+  
+  // Find position of zenith, either by cosine or linear weights
+  const auto lag_za = cos_za_interp ?
+  LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, false, Interpolation::GridType::CosDeg) :
+  LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order);
+  
+  // First position if 1D atmosphere, otherwise compute cyclic for a azimuth grid [-180, 180]
+  const auto lag_aa = (atmosphere_dim > 1) ?
+    LagrangeInterpolation(0, rte_los[1], aa_grid, aa_interp_order, false, Interpolation::GridType::Cyclic, {-180, 180}) :
+    LagrangeInterpolation();
 
   // Corresponding interpolation weights
-  Vector itw_angs(gp_za.idx.nelem() * gp_aa.idx.nelem());
-  interpweights(itw_angs, gp_za, gp_aa);
+  const auto itw_angs=interpweights(lag_za, lag_aa);
 
   for (Index is = 0; is < stokes_dim; is++) {
     for (Index iv = 0; iv < nf; iv++) {
       iy(iv, is) =
-          interp(itw_angs,
-                 i_field_local(iv, Range(za_start, za_extend), joker, is),
-                 gp_za,
-                 gp_aa);
+          interp(i_field_local(iv, range, joker, is),
+                 itw_angs,
+                 lag_za,
+                 lag_aa);
     }
   }
 }

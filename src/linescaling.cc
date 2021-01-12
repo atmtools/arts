@@ -17,7 +17,7 @@
    USA. */
 
 #include "linescaling.h"
-#include "interpolation_poly.h"
+#include "interpolation_lagrange.h"
 
 Numeric SingleCalculatePartitionFctFromCoeff(const Numeric& T,
                                              ConstVectorView q_grid) {
@@ -47,26 +47,18 @@ Numeric SingleCalculatePartitionFctFromCoeff_dT(const Numeric& T,
 
 Numeric SingleCalculatePartitionFctFromData(const Numeric& T,
                                             ConstVectorView t_grid,
-                                            ConstVectorView q_grid,
-                                            const Index& interp_order) {
-  GridPosPoly gp;
-  gridpos_poly(gp, t_grid, T, interp_order);
-  Vector itw(gp.idx.nelem());
-  interpweights(itw, gp);
-  return interp(itw, q_grid, gp);
+                                            ConstVectorView q_grid) {
+  const Interpolation::FixedLagrange<1> lag(0, T, t_grid);
+  const auto lag_iw = interpweights(lag);
+  return interp(q_grid, lag_iw, lag);
 }
 
-Numeric SingleCalculatePartitionFctFromData_dT(const Numeric& QT,
-                                               const Numeric& T,
-                                               const Numeric& dT,
+Numeric SingleCalculatePartitionFctFromData_dT(const Numeric& T,
                                                ConstVectorView t_grid,
-                                               ConstVectorView q_grid,
-                                               const Index& interp_order) {
-  GridPosPoly gp;
-  gridpos_poly(gp, t_grid, T + dT, interp_order);
-  Vector itw(gp.idx.nelem());
-  interpweights(itw, gp);
-  return (interp(itw, q_grid, gp) - QT) / dT;
+                                               ConstVectorView q_grid) {
+  const Interpolation::FixedLagrange<1> lag(0, T, t_grid);
+  const auto dlag_iw = dinterpweights(lag);
+  return interp(q_grid, dlag_iw, lag);
 }
 
 Numeric single_partition_function(const Numeric& T,
@@ -77,7 +69,7 @@ Numeric single_partition_function(const Numeric& T,
       return SingleCalculatePartitionFctFromCoeff(T, partition_data[0].data);
     case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
       return SingleCalculatePartitionFctFromData(
-          T, partition_data[0].get_numeric_grid(0), partition_data[0].data, 1);
+          T, partition_data[0].get_numeric_grid(0), partition_data[0].data);
     default:
       throw std::runtime_error(
           "Unknown or deprecated partition type requested.\n");
@@ -85,25 +77,17 @@ Numeric single_partition_function(const Numeric& T,
 }
 
 Numeric dsingle_partition_function_dT(
-    const Numeric& QT,
     const Numeric& T,
-    const Numeric& dT,
     const SpeciesAuxData::AuxType& partition_type,
     const ArrayOfGriddedField1& partition_data) {
-  if (std::isnan(dT))
-    return dT;
-  
   switch (partition_type) {
     case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
       return SingleCalculatePartitionFctFromCoeff_dT(T, partition_data[0].data);
     case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
       return SingleCalculatePartitionFctFromData_dT(
-          QT,
           T,
-          dT,
           partition_data[0].get_numeric_grid(0),
-          partition_data[0].data,
-          1);
+          partition_data[0].data);
     default:
       throw std::runtime_error(
           "Unknown or deprecated partition type requested.\n");

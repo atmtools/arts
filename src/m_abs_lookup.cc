@@ -36,7 +36,7 @@
 #include "cloudbox.h"
 #include "gas_abs_lookup.h"
 #include "global_data.h"
-#include "interpolation_poly.h"
+#include "interpolation_lagrange.h"
 #include "math_funcs.h"
 #include "matpackV.h"
 #include "messages.h"
@@ -442,8 +442,7 @@ void abs_lookupCalc(  // Workspace reference:
   }
 
   // 6. Initialize fgp_default.
-  abs_lookup.fgp_default.resize(f_grid.nelem());
-  gridpos_poly(abs_lookup.fgp_default, abs_lookup.f_grid, abs_lookup.f_grid, 0);
+  abs_lookup.flag_default = Interpolation::LagrangeVector(abs_lookup.f_grid, abs_lookup.f_grid, 0);
 
   // Set the abs_lookup_is_adapted flag. After all, the table fits the
   // current frequency grid and species selection.
@@ -632,18 +631,17 @@ void choose_abs_t_pert(Vector& abs_t_pert,
 
   Vector the_grid(0, abs_t.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
-    GridPosPoly gp;
-    gridpos_poly(gp, the_grid, (Numeric)i, p_interp_order);
+    const Index idx0 = Interpolation::pos_finder(i, Numeric(i), the_grid, p_interp_order, false, true);
 
-    for (Index j = 0; j < gp.idx.nelem(); ++j) {
+    for (Index j = 0; j < p_interp_order+1; ++j) {
       // Our pressure grid for the lookup table may be coarser than
       // the original one for the batch cases. This may lead to max/min
       // values in the original data that exceed those we assumed
       // above. We add some extra margin here to account for
       // that. (The margin is +-10K)
 
-      Numeric delta_min = tmin[i] - abs_t[gp.idx[j]] - 10;
-      Numeric delta_max = tmax[i] - abs_t[gp.idx[j]] + 10;
+      Numeric delta_min = tmin[i] - abs_t[idx0 + j] - 10;
+      Numeric delta_max = tmax[i] - abs_t[idx0 + j] + 10;
 
       if (delta_min < mindev) mindev = delta_min;
       if (delta_max > maxdev) maxdev = delta_max;
@@ -713,11 +711,10 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
     //       cout << " min/ref/max = " << minprof[i] << " / "
     //            << refprof[i] << " / "
     //            << maxprof[i] << "\n";
+    
+    const Index idx0 = Interpolation::pos_finder(i, Numeric(i), the_grid, p_interp_order, false, true);
 
-    GridPosPoly gp;
-    gridpos_poly(gp, the_grid, (Numeric)i, p_interp_order);
-
-    for (Index j = 0; j < gp.idx.nelem(); ++j) {
+    for (Index j = 0; j < p_interp_order+1; ++j) {
       //           cout << "!!!!!! j = " << j << "\n";
       //           cout << "  ref[j] = " << refprof[gp.idx[j]] << "   ";
       //           cout << "  minfrac[j] = " << minprof[i] / refprof[gp.idx[j]] << "   ";
@@ -729,8 +726,8 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
       // above. We add some extra margin to the max value here to account for
       // that. (The margin is a factor of 2.)
 
-      Numeric delta_min = minprof[i] / refprof[gp.idx[j]];
-      Numeric delta_max = 2 * maxprof[i] / refprof[gp.idx[j]];
+      Numeric delta_min = minprof[i] / refprof[idx0 + j];
+      Numeric delta_max = 2 * maxprof[i] / refprof[idx0 + j];
 
       if (delta_min < mindev) mindev = delta_min;
       // do not update maxdev, when delta_max is infinity (this results from
@@ -1577,20 +1574,15 @@ void abs_lookupSetupBatch(  // WS Output:
   assert(log_abs_p.nelem() == np);
   Matrix smooth_datamean(datamean.nrows(), datamean.ncols(), 0);
   for (Index i = 0; i < np; ++i) {
-    GridPosPoly gp;
-    gridpos_poly(gp, log_abs_p, log_abs_p[i], abs_p_interp_order);
-
-    // We do this in practice by using the indices returned by
-    // gridpos_poly. We simply take a mean over all points that
-    // would be used in the interpolation.
+    const Index idx0 = Interpolation::pos_finder(i, log_abs_p[i], log_abs_p, abs_p_interp_order, false, false);
 
     for (Index fi = 0; fi < datamean.nrows(); ++fi)
       if (1 != fi)  // We skip the z field, which we do not need
       {
-        for (Index j = 0; j < gp.idx.nelem(); ++j) {
-          smooth_datamean(fi, i) += datamean(fi, gp.idx[j]);
+        for (Index j = 0; j < abs_p_interp_order+1; ++j) {
+          smooth_datamean(fi, i) += datamean(fi, idx0 + j);
         }
-        smooth_datamean(fi, i) /= (Numeric)gp.idx.nelem();
+        smooth_datamean(fi, i) /= Numeric(abs_p_interp_order + 1);
       }
     //       cout << "H2O-raw / H2O-smooth: "
     //            << datamean(h2o_index+2,i) << " / "
@@ -2989,21 +2981,16 @@ void abs_lookupTestAccMC(  // Workspace reference:
       // pressure, so that we can apply the dT and dh2o perturbations.
 
       // Pressure grid positions:
-      ArrayOfGridPosPoly pgp(1);
-      gridpos_poly(pgp, al.log_p_grid, this_lp, abs_p_interp_order);
-
-      // Pressure interpolation weights:
-      Vector pitw;
-      pitw.resize(abs_p_interp_order + 1);
-      interpweights(pitw, pgp[0]);
+      const auto lag = Interpolation::Lagrange(0, rand_lp[i], al.log_p_grid, abs_p_interp_order);
+      const auto itw = interpweights(lag);
 
       // Interpolated temperature:
-      const Numeric this_t_ref = interp(pitw, al.t_ref, pgp[0]);
+      const Numeric this_t_ref = interp(al.t_ref, itw, lag);
 
       // Interpolated VMRs:
       Vector these_vmrs(n_species);
       for (Index j = 0; j < n_species; ++j) {
-        these_vmrs[j] = interp(pitw, al.vmrs_ref(j, Range(joker)), pgp[0]);
+        these_vmrs[j] = interp(al.vmrs_ref(j, Range(joker)), itw, lag);
       }
 
       // Now get the actual p, T and H2O values:
