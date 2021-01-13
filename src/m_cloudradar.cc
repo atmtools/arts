@@ -565,9 +565,8 @@ void iyRadarSingleScat(Workspace& ws,
   if (auxBackScat >= 0) {
     for (Index ip = 0; ip < np; ip++) {
       for (Index iv = 0; iv < nf; iv++) {
-        // Richard, help!!!!!
-        // rad_inc could be replaced with iy0 (Matrix), if it would help
-        //iy_aux[auxBackScat](iv*np+ip, joker) = reflect_matrix[ip] * rad_inc;
+        VectorView stokesvec = VectorView(iy_aux[auxBackScat](iv*np+ip, joker));
+        MapToEigen(stokesvec).noalias() = reflect_matrix[ip].Mat(iv) * rad_inc.Vec(iv);
       }
     }
   }

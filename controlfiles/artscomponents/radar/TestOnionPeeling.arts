@@ -172,7 +172,7 @@ ArrayOfGriddedField3Create( invtable )
 VectorCreate( dbze_grid )
 VectorCreate( t_grid )
 #
-VectorLinSpace( dbze_grid, -30, 26, 1 )
+VectorLinSpace( dbze_grid, -30, 25, 1 )
 #
 # Rain
 VectorLinSpace( t_grid, 274, 330, 2 )

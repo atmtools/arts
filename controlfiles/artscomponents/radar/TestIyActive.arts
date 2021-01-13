@@ -141,6 +141,7 @@ propmat_clearsky_agenda_checkedCalc
 #
 # Check that iy_aux vars rrun
 ArrayOfStringSet( iy_aux_vars, ["Radiative background",
+                                "Backscattering",
                                 "Abs species extinction",
                                 "Particle extinction"] )
 #
