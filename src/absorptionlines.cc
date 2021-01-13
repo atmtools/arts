@@ -3844,4 +3844,94 @@ QuantumIdentifier Lines::QuantumIdentityOfLine(Index k) const noexcept {
   }
   return qid_copy;
 }
+
+LineTarget::LineTarget(const Jacobian::Target& target, const Lines& band) :
+  found(LineTargetType::None), pos({-1, -1})
+{
+  if (target.needQuantumIdentity()) {
+    // We need to look at these things
+    
+    // First check if we are a transition or energy level
+    if (target.QuantumIdentity().Type() == QuantumIdentifier::TRANSITION) {
+      // OK, we are a transition
+      
+      if (band.QuantumIdentity().In(target.QuantumIdentity())) {
+        // OK, we will be either a band or a line parameter or a shape parameter but we belong to this band
+        found = LineTargetType::Band;
+        
+        // Which line do we match?
+        for (Index i=0; i<band.NumLines(); i++) {
+          if (id_in_line(band, target.QuantumIdentity(), i)) {
+            // We match this line!
+            found = LineTargetType::Line;
+            pos[0] = i;
+            
+            // Now for complicated logic.
+            // A position other than the smallest possible
+            // position is considered a good position
+            if (target.Position() not_eq -std::numeric_limits<Index>::max()) {
+              // OK, we actually match a line shape parameter
+              found = LineTargetType::LineshapeParameter;
+              
+              // -1 means we are Self
+              // max() means we are Bath
+              // Else means we are a specific species and must look through all of them
+              if (target.Position() == -1) {
+                pos[1] = 0;
+              } else if (target.Position() == std::numeric_limits<Index>::max()) {
+                pos[1] = band.BroadeningSpecies().nelem() - 1;
+              } else {
+                for (Index j=band.Self(); j<band.BroadeningSpecies().nelem()-band.Bath(); j++) {
+                  if (target.Position() == band.BroadeningSpecies()[j].Species()) {
+                    pos[1] = j;
+                    return;
+                  }
+                }
+              }
+            }
+            return;
+          }
+        }
+        return;
+      }
+    } else if (target.QuantumIdentity().Type() == QuantumIdentifier::ENERGY_LEVEL) {
+      // OK, we are an energy level, we must look at the lines to see which energy level we are
+      for (Index i=0; i<band.NumLines(); i++) {
+        const bool upper = id_in_line_upper(band, target.QuantumIdentity(), i);
+        const bool lower = id_in_line_lower(band, target.QuantumIdentity(), i);
+        if (upper and lower) {
+          // We are actually both energy levels!
+          pos[1] = 2;
+        } else if (upper) {
+          // We are the upper energy level!
+          pos[1] = 0;
+        } else if (lower) {
+          // We are the lower energy level!
+          pos[1] = 1;
+        }
+        
+        // We should return if we found anything
+        if (upper or lower) {
+          found = LineTargetType::Level;
+          pos[0] = i;
+          return;
+        }
+      }
+    }
+    
+    // In case we didn't change anything but still entered one of the two above
+    if (found == LineTargetType::None and band.Species() == target.QuantumIdentity().Species()) {
+      // OK, We are the correct species!
+      if (band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
+        // OK, we are also the right isotopologue
+        found = LineTargetType::SpeciesAndIsotopologue;
+      } else {
+        // We are a different isotopologue so we are just a species
+        found = LineTargetType::Species;
+      }
+    }
+  } else {
+    /* We don't have to do anything! */
+  }
 }
+}  // Absorption

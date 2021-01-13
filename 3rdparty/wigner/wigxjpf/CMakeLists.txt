@@ -15,4 +15,6 @@ if(NOT FASTWIGNER)
   include_directories(inc/ cfg/ gen/ src/)
 
   set_target_properties(wigxjpf PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS}")
+  
+  target_compile_options(wigxjpf PRIVATE -Wno-shadow)
 endif()

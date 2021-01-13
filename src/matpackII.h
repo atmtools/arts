@@ -42,8 +42,15 @@
 #define matpackII_h
 
 #include <iostream>
-#include "Eigen/Core"
-#include "Eigen/SparseCore"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
+#include <Eigen/Core>
+#include <Eigen/SparseCore>
+#pragma GCC diagnostic pop
+
 #include "array.h"
 #include "matpackI.h"
 

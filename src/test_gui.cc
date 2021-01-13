@@ -131,7 +131,6 @@ int main() {
   
   // Rosenkranz adapted calculations (This gives nonsense at the time of writing)
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
-  const auto status =
   Absorption::LineMixing::ecs_rosenkranz_adaptation(band,
                                                     VectorNLinSpaceConst(150, 350, 51),
                                                     {31.989830, 28.97}, 

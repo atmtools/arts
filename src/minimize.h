@@ -4,8 +4,12 @@
 #include <utility>
 
 #include "matpackI.h"
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
 #include <unsupported/Eigen/NonLinearOptimization>
+#pragma GCC diagnostic pop
 
 namespace Minimize {
 //! Functor for minimizing (X0 + X1 (T0 / T - 1)) * (T0 / T) ** X2 - Y
