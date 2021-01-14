@@ -43,7 +43,7 @@ class LineShapeModelParameters:
         x3:
             Model parameter #4 (Numeric)
         """
-    def __init__(self, type="#", x0=nan, x1=nan, x2=nan, x3=nan):
+    def __init__(self, type="None", x0=nan, x1=nan, x2=nan, x3=nan):
         if isinstance(type, InternalLineShapeModelParameters):
             self.__data__ = type
         else:

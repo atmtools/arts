@@ -699,7 +699,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
             // cutoff frequency
             if (token == "CUT") {
               icecream >> data.cutofffreq;
-              data.cutoff = CutoffType::LineByLineOffset;
+              data.cutoff = CutoffType::ByLine;
             }
 
             // linemixing pressure limit
@@ -709,18 +709,12 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
 
             // mirroring
             else if (token == "MTM") {
-              String value;
-              icecream >> value;
-
-              data.mirroring = string2mirroringtype(value);
+              icecream >> data.mirroring;
             }
 
             // line normalization
             else if (token == "LNT") {
-              String value;
-              icecream >> value;
-
-              data.normalization = string2normalizationtype(value);
+              icecream >> data.normalization;
             }
 
             else {

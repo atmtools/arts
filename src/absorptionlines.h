@@ -46,39 +46,14 @@ namespace Absorption {
  * 
  * Each type but None has to have an implemented effect
  */
-enum class MirroringType : Index {
+ENUMCLASS(MirroringType, char,
   None,             // No mirroring
   Lorentz,          // Mirror, but use Lorentz line shape
   SameAsLineShape,  // Mirror using the same line shape
-  Manual,           // Mirror by having a line in the array of line record with negative F0
-};  // MirroringType
+  Manual            // Mirror by having a line in the array of line record with negative F0
+)  // MirroringType
 
-inline MirroringType string2mirroringtype(const String& in) {
-  if (in == "None")
-    return MirroringType::None;
-  else if (in == "Lorentz")
-    return MirroringType::Lorentz;
-  else if (in == "Same")
-    return MirroringType::SameAsLineShape;
-  else if (in == "Manual")
-    return MirroringType::Manual;
-  else
-    throw std::runtime_error("Cannot recognize the mirroring type");
-}
-
-inline String mirroringtype2string(MirroringType in) {
-  if (in == MirroringType::None)
-    return "None";
-  else if (in == MirroringType::Lorentz)
-    return "Lorentz";
-  else if (in == MirroringType::SameAsLineShape)
-    return "Same";
-  else if (in == MirroringType::Manual)
-    return "Manual";
-  std::terminate();
-}
-
-inline String mirroringtype2metadatastring(MirroringType in) {
+constexpr std::string_view mirroringtype2metadatastring(MirroringType in) noexcept {
   if (in == MirroringType::None)
     return "These lines are not mirrored at 0 Hz.\n";
   else if (in == MirroringType::Lorentz)
@@ -87,46 +62,22 @@ inline String mirroringtype2metadatastring(MirroringType in) {
     return "These line are mirrored around 0 Hz using the original line shape.\n";
   else if (in == MirroringType::Manual)
     return "There are manual line entries in the catalog to mirror this line.\n";
-  std::terminate();
+  else 
+    std::terminate();
 }
 
 /** Describes the type of normalization line effects
  *
  * Each type but None has to have an implemented effect
  */
-enum class NormalizationType : Index {
-  None,  // Do not renormalize the line shape
-  VVH,   // Renormalize with Van Vleck and Huber specifications
-  VVW,   // Renormalize with Van Vleck and Weiskopf specifications
-  RosenkranzQuadratic,  // Renormalize using Rosenkranz's quadratic specifications
-};  // LineNormalizationType
+ENUMCLASS(NormalizationType, char,
+  None,                // Do not renormalize the line shape
+  VVH,                 // Renormalize with Van Vleck and Huber specifications
+  VVW,                 // Renormalize with Van Vleck and Weiskopf specifications
+  RQ                   // Renormalize using Rosenkranz's quadratic specifications
+)  // NormalizationType
 
-inline NormalizationType string2normalizationtype(const String& in) {
-  if (in == "None")
-    return NormalizationType::None;
-  else if (in == "VVH")
-    return NormalizationType::VVH;
-  else if (in == "VVW")
-    return NormalizationType::VVW;
-  else if (in == "RQ")
-    return NormalizationType::RosenkranzQuadratic;
-  else
-    throw std::runtime_error("Cannot recognize the normalization type");
-}
-
-inline String normalizationtype2string(NormalizationType in) {
-  if (in == NormalizationType::None)
-    return "None";
-  else if (in == NormalizationType::VVH)
-    return "VVH";
-  else if (in == NormalizationType::VVW)
-    return "VVW";
-  else if (in == NormalizationType::RosenkranzQuadratic)
-    return "RQ";
-  std::terminate();
-}
-
-inline String normalizationtype2metadatastring(NormalizationType in) {
+constexpr std::string_view normalizationtype2metadatastring(NormalizationType in) {
   if (in == NormalizationType::None)
     return "No re-normalization in the far wing will be applied.\n";
   else if (in == NormalizationType::VVH)
@@ -135,7 +86,7 @@ inline String normalizationtype2metadatastring(NormalizationType in) {
   else if (in == NormalizationType::VVW)
     return "van Vleck and Weisskopf far-wing renormalization will be applied, "
       "i.e. F ~ (f/f0)^2\n";
-  else if (in == NormalizationType::RosenkranzQuadratic)
+  else if (in == NormalizationType::RQ)
     return "Rosenkranz quadratic far-wing renormalization will be applied, "
       "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
   std::terminate();
@@ -145,52 +96,18 @@ inline String normalizationtype2metadatastring(NormalizationType in) {
  *
  * The types here might require that different data is available at runtime absorption calculations
  */
-enum class PopulationType : Index {
-  ByLTE,                          // Assume band is in LTE
-  ByNLTEVibrationalTemperatures,  // Assume band is in NLTE described by vibrational temperatures
-  ByNLTEPopulationDistribution,   // Assume band is in NLTE and the upper-to-lower ratio is known
-  ByHITRANRosenkranzRelmat,       // Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-  ByHITRANFullRelmat,             // Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-  ByMakarovFullRelmat,            // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
-};  // PopulationType
+ENUMCLASS(PopulationType, char,
+  LTE,                       // Assume band is in LTE
+  NLTE,                      // Assume band is in NLTE and the upper-to-lower ratio is known
+  VibTemps,                  // Assume band is in NLTE described by vibrational temperatures
+  ByHITRANRosenkranzRelmat,  // Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+  ByHITRANFullRelmat,        // Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+  ByMakarovFullRelmat        // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+)  // PopulationType
 
-inline PopulationType string2populationtype(const String& in) {
-  if (in == "LTE")
-    return PopulationType::ByLTE;
-  else if (in == "ByHITRANRosenkranzRelmat")
-    return PopulationType::ByHITRANRosenkranzRelmat;
-  else if (in == "ByHITRANFullRelmat")
-    return PopulationType::ByHITRANFullRelmat;
-  else if (in == "ByMakarovFullRelmat")
-    return PopulationType::ByMakarovFullRelmat;
-  else if (in == "NLTE-VibrationalTemperatures")
-    return PopulationType::ByNLTEVibrationalTemperatures;
-  else if (in == "NLTE")
-    return PopulationType::ByNLTEPopulationDistribution;
-  else
-    throw std::runtime_error("Cannot recognize the population type");
-}
-
-inline String populationtype2string(PopulationType in) {
+constexpr std::string_view populationtype2metadatastring(PopulationType in) {
   switch (in) {
-    case PopulationType::ByLTE:
-      return "LTE";
-    case PopulationType::ByHITRANFullRelmat:
-      return "ByHITRANFullRelmat";
-    case PopulationType::ByMakarovFullRelmat:
-      return "ByMakarovFullRelmat";
-    case PopulationType::ByHITRANRosenkranzRelmat:
-      return "ByHITRANRosenkranzRelmat";
-    case PopulationType::ByNLTEVibrationalTemperatures:
-      return "NLTE-VibrationalTemperatures";
-    case PopulationType::ByNLTEPopulationDistribution:
-      return "NLTE";
-  } std::terminate();
-}
-
-inline String populationtype2metadatastring(PopulationType in) {
-  switch (in) {
-    case PopulationType::ByLTE:
+    case PopulationType::LTE:
       return "The lines are considered as in pure LTE.\n";
     case PopulationType::ByMakarovFullRelmat:
       return "The lines requires relaxation matrix calculations in LTE - Makarov et al 2020 full method.\n";
@@ -198,10 +115,11 @@ inline String populationtype2metadatastring(PopulationType in) {
       return "The lines requires relaxation matrix calculations in LTE - HITRAN full method.\n";
     case PopulationType::ByHITRANRosenkranzRelmat:
       return "The lines requires Relaxation matrix calculations in LTE - HITRAN Rosenkranz method.\n";
-    case PopulationType::ByNLTEVibrationalTemperatures:
+    case PopulationType::VibTemps:
       return "The lines are considered as in NLTE by vibrational temperatures.\n";
-    case PopulationType::ByNLTEPopulationDistribution:
+    case PopulationType::NLTE:
       return "The lines are considered as in pure NLTE.\n";
+    case PopulationType::FINAL: return "There's an error";
   } std::terminate();
 }
 
@@ -212,40 +130,19 @@ constexpr bool relaxationtype_relmat(PopulationType in) noexcept {
 }
 
 /** Describes the type of cutoff calculations */
-enum class CutoffType : Index {
-  None,                // No cutoff frequency at all
-  LineByLineOffset,    // The cutoff frequency is at SingleLine::F0 plus the cutoff frequency
-  BandFixedFrequency,  // The curoff frequency is the cutoff frequency for all SingleLine(s)
-};  // LineCutoffType
-
-inline CutoffType string2cutofftype(const String& in) {
-  if (in == "None")
-    return CutoffType::None;
-  else if (in == "ByLine")
-    return CutoffType::LineByLineOffset;
-  else if (in == "ByBand")
-    return CutoffType::BandFixedFrequency;
-  else
-    throw std::runtime_error("Cannot recognize the cutoff type");
-}
-
-inline String cutofftype2string(CutoffType in) {
-  if (in == CutoffType::None)
-    return "None";
-  else if (in == CutoffType::LineByLineOffset)
-    return "ByLine";
-  else if (in == CutoffType::BandFixedFrequency)
-    return "ByBand";
-  std::terminate();
-}
+ENUMCLASS(CutoffType, char,
+  None,    // No cutoff frequency at all
+  ByLine,  // The cutoff frequency is at SingleLine::F0 plus the cutoff frequency
+  ByBand   // The curoff frequency is the cutoff frequency for all SingleLine(s)
+)  // CutoffType
 
 inline String cutofftype2metadatastring(CutoffType in, Numeric cutoff) {
   std::ostringstream os;
   if (in == CutoffType::None)
     os << "No cut-off will be applied.\n";
-  else if (in == CutoffType::LineByLineOffset)
+  else if (in == CutoffType::ByLine)
     os << "The lines will be cut-off " << cutoff << " Hz from the line center.\n";
-  else if (in == CutoffType::BandFixedFrequency)
+  else if (in == CutoffType::ByBand)
     os << "All lines are cut-off at " << cutoff << " Hz.\n";
   return os.str();
 }
@@ -541,7 +438,7 @@ struct SingleLineExternal {
   bool bathbroadening=false;
   CutoffType cutoff=CutoffType::None;
   MirroringType mirroring=MirroringType::None;
-  PopulationType population=PopulationType::ByLTE;
+  PopulationType population=PopulationType::LTE;
   NormalizationType normalization=NormalizationType::None;
   LineShape::Type lineshapetype=LineShape::Type::DP;
   Numeric T0=0;
@@ -618,7 +515,7 @@ public:
         bool bathbroadening=false,
         CutoffType cutoff=CutoffType::None,
         MirroringType mirroring=MirroringType::None,
-        PopulationType population=PopulationType::ByLTE,
+        PopulationType population=PopulationType::LTE,
         NormalizationType normalization=NormalizationType::None,
         LineShape::Type lineshapetype=LineShape::Type::DP,
         Numeric T0=296,
@@ -1088,22 +985,12 @@ public:
   
   /** Checks if index is a valid mirroring */
   static bool validIndexForMirroring(Index x) noexcept {
-    constexpr auto keys = stdarrayify(Index(MirroringType::None), MirroringType::None, MirroringType::Lorentz, MirroringType::SameAsLineShape, MirroringType::Manual);
-    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
+    return good_enum(MirroringType(x));
   }
   
   /** @return MirroringType if string is a MirroringType or -1 if not */
   static MirroringType string2Mirroring(const String& in) noexcept {
-    if (in == "None")
-      return MirroringType::None;
-    else if (in == "Lorentz")
-      return MirroringType::Lorentz;
-    else if (in == "Same")
-      return MirroringType::SameAsLineShape;
-    else if (in == "Manual")
-      return MirroringType::Manual;
-    else
-      return MirroringType(-1);
+    return toMirroringType(in);
   }
   
   /** Returns normalization style */
@@ -1114,22 +1001,12 @@ public:
   
   /** Checks if index is a valid normalization */
   static bool validIndexForNormalization(Index x) noexcept {
-    constexpr auto keys = stdarrayify(Index(NormalizationType::None), NormalizationType::VVH, NormalizationType::VVW, NormalizationType::RosenkranzQuadratic);
-    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
+    return good_enum(NormalizationType(x));
   }
   
   /** @return NormalizationType if string is a NormalizationType or -1 if not */
   static NormalizationType string2Normalization(const String& in) noexcept {
-    if (in == "None")
-      return NormalizationType::None;
-    else if (in == "VVH")
-      return NormalizationType::VVH;
-    else if (in == "VVW")
-      return NormalizationType::VVW;
-    else if (in == "RQ")
-      return NormalizationType::RosenkranzQuadratic;
-    else
-      return NormalizationType(-1);
+    return toNormalizationType(in);
   }
   
   /** Returns cutoff style */
@@ -1140,20 +1017,12 @@ public:
   
   /** Checks if index is a valid cutoff */
   static bool validIndexForCutoff(Index x) noexcept {
-    constexpr auto keys = stdarrayify(Index(CutoffType::None), CutoffType::LineByLineOffset, CutoffType::BandFixedFrequency);
-    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
+    return good_enum(CutoffType(x));
   }
   
   /** @return CutoffType if string is a CutoffType or -1 if not */
   static CutoffType string2Cutoff(const String& in) noexcept {
-    if (in == "None")
-      return CutoffType::None;
-    else if (in == "ByLine")
-      return CutoffType::LineByLineOffset;
-    else if (in == "ByBand")
-      return CutoffType::BandFixedFrequency;
-    else
-      return CutoffType(-1);
+    return toCutoffType(in);
   }
   
   /** Returns population style */
@@ -1164,24 +1033,12 @@ public:
   
   /** Checks if index is a valid population */
   static bool validIndexForPopulation(Index x) noexcept {
-    constexpr auto keys = stdarrayify(Index(PopulationType::ByLTE), PopulationType::ByHITRANFullRelmat, PopulationType::ByHITRANRosenkranzRelmat, PopulationType::ByNLTEVibrationalTemperatures, PopulationType::ByNLTEPopulationDistribution);
-    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
+    return good_enum(PopulationType(x));
   }
   
   /** @return PopulationType if string is a PopulationType or -1 if not */
   static PopulationType string2Population(const String& in) noexcept {
-    if (in == "LTE")
-      return PopulationType::ByLTE;
-    else if (in == "ByHITRANFullRelmat")
-      return PopulationType::ByHITRANFullRelmat;
-    else if (in == "ByHITRANRosenkranzRelmat")
-      return PopulationType::ByHITRANRosenkranzRelmat;
-    else if (in == "NLTE-VibrationalTemperatures")
-      return PopulationType::ByNLTEVibrationalTemperatures;
-    else if (in == "NLTE")
-      return PopulationType::ByNLTEPopulationDistribution;
-    else
-      return PopulationType(-1);
+    return toPopulationType(in);
   }
   
   /** Returns lineshapetype style */
@@ -1192,24 +1049,12 @@ public:
   
   /** Checks if index is a valid lineshapetype */
   static bool validIndexForLineShapeType(Index x) noexcept {
-    constexpr auto keys = stdarrayify(Index(LineShape::Type::DP), LineShape::Type::LP, LineShape::Type::VP, LineShape::Type::SDVP, LineShape::Type::HTP);
-    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
+    return good_enum(LineShape::Type(x));
   }
   
   /** @return LineShape::Type if string is a LineShape::Type or -1 if not */
   static LineShape::Type string2LineShapeType(const String& type) noexcept {
-    if (type == "DP")
-      return LineShape::Type::DP;
-    else if (type == String("LP"))
-      return LineShape::Type::LP;
-    else if (type == String("VP"))
-      return LineShape::Type::VP;
-    else if (type == String("SDVP"))
-      return LineShape::Type::SDVP;
-    else if (type == String("HTP"))
-      return LineShape::Type::HTP;
-    else
-      return LineShape::Type(-1);
+    return LineShape::toType(type);
   }
   
   /** Returns if the pressure should do line mixing
@@ -1298,12 +1143,13 @@ public:
    */
   Numeric CutoffFreq(size_t k) const noexcept {
     switch(mcutoff) {
-      case CutoffType::LineByLineOffset:
+      case CutoffType::ByLine:
         return F0(k) + mcutofffreq;
-      case CutoffType::BandFixedFrequency:
+      case CutoffType::ByBand:
         return mcutofffreq;
       case CutoffType::None:
         return std::numeric_limits<Numeric>::max();
+      case CutoffType::FINAL: break;
     }
     std::terminate();
   }
@@ -1315,12 +1161,13 @@ public:
    */
   Numeric CutoffFreqMinus(size_t k, Numeric fmean) const noexcept {
     switch(mcutoff) {
-      case CutoffType::LineByLineOffset:
+      case CutoffType::ByLine:
         return F0(k) - mcutofffreq;
-      case CutoffType::BandFixedFrequency:
+      case CutoffType::ByBand:
         return mcutofffreq - 2*fmean;
       case CutoffType::None:
         return std::numeric_limits<Numeric>::lowest();
+      case CutoffType::FINAL: break;
     }
     std::terminate();
   }

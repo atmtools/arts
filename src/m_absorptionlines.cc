@@ -29,6 +29,7 @@
 
 #include "absorptionlines.h"
 #include "auto_md.h"
+#include "enums.h"
 #include "file.h"
 #include "global_data.h"
 #include "xml_io_private.h"
@@ -422,25 +423,11 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
-enum class HitranType {
+ENUMCLASS(HitranType, char,
   Pre2004,
   Post2004,
-  Online,
-};
-
-HitranType string2hitrantype(const String& s) {
-  if (s == "Pre2004")
-    return HitranType::Pre2004;
-  else if (s == "Post2004")
-    return HitranType::Post2004;
-  else if (s == "Online")
-    return HitranType::Online;
-  else {
-    std::ostringstream os;
-    os << "The type \"" << s << "\" is an invalid hitran type\n";
-    throw std::runtime_error(os.str());
-  }
-}
+  Online
+)
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
@@ -466,7 +453,8 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   // HITRAN type
-  const auto hitran_version = string2hitrantype(hitran_type);
+  const HitranType hitran_version = toHitranType(hitran_type);
+  EnumErrorQuery(hitran_version, "Cannot understand hitran_type: ", hitran_type);
   
   // Hitran data
   ifstream is;
@@ -487,7 +475,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
         v.push_back(Absorption::ReadFromHitranOnlineStream(is));
         break;
       default:
-        throw std::runtime_error("A bad developer did not throw in time to stop this message.\nThe HitranType enum class has to be fully updated!\n");
+        throw std::runtime_error("[DEV error] The HitranType enum class has to be fully updated!\n");
     }
     
     if (v.back().bad) {
@@ -1330,7 +1318,8 @@ void abs_linesSetCutoff(ArrayOfAbsorptionLines& abs_lines,
                         const Numeric& x,
                         const Verbosity&) 
 {
-  auto t = Absorption::string2cutofftype(type);
+  auto t = Absorption::toCutoffType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines) {
     lines.Cutoff(t);
     lines.CutoffFreqValue(x);
@@ -1355,7 +1344,8 @@ void abs_linesSetCutoffForMatch(
   const QuantumIdentifier& QI,
   const Verbosity&)
 {
-  auto t = Absorption::string2cutofftype(type);
+  auto t = Absorption::toCutoffType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& band: abs_lines) {
     if (QI.In(band.QuantumIdentity())) {
       band.Cutoff(t);
@@ -1405,7 +1395,8 @@ void abs_linesSetMirroring(ArrayOfAbsorptionLines& abs_lines,
                            const String& type,
                            const Verbosity&) 
 {
-  auto t = Absorption::string2mirroringtype(type);
+  auto t = Absorption::toMirroringType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     lines.Mirroring(t);
 }
@@ -1425,7 +1416,8 @@ void abs_linesSetMirroringForMatch(ArrayOfAbsorptionLines& abs_lines,
                                    const QuantumIdentifier& QI,
                                    const Verbosity&) 
 {
-  auto t = Absorption::string2mirroringtype(type);
+  auto t = Absorption::toMirroringType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& band: abs_lines) {
     if (QI.In(band.QuantumIdentity())) {
       band.Mirroring(t);
@@ -1470,7 +1462,8 @@ void abs_linesSetPopulation(ArrayOfAbsorptionLines& abs_lines,
                             const String& type,
                             const Verbosity&) 
 {
-  auto t = Absorption::string2populationtype(type);
+  auto t = Absorption::toPopulationType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     lines.Population(t);
 }
@@ -1490,7 +1483,8 @@ void abs_linesSetPopulationForMatch(ArrayOfAbsorptionLines& abs_lines,
                                     const QuantumIdentifier& QI,
                                     const Verbosity&) 
 {
-  auto t = Absorption::string2populationtype(type);
+  auto t = Absorption::toPopulationType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     if (QI.In(lines.QuantumIdentity()))
       lines.Population(t);
@@ -1533,7 +1527,8 @@ void abs_linesSetNormalization(ArrayOfAbsorptionLines& abs_lines,
                            const String& type,
                            const Verbosity&) 
 {
-  auto t = Absorption::string2normalizationtype(type);
+  auto t = Absorption::toNormalizationType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     lines.Normalization(t);
 }
@@ -1553,7 +1548,8 @@ void abs_linesSetNormalizationForMatch(ArrayOfAbsorptionLines& abs_lines,
                                        const QuantumIdentifier& QI,
                                        const Verbosity&) 
 {
-  auto t = Absorption::string2normalizationtype(type);
+  auto t = Absorption::toNormalizationType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     if (QI.In(lines.QuantumIdentity()))
       lines.Normalization(t);
@@ -1596,7 +1592,8 @@ void abs_linesSetLineShapeType(ArrayOfAbsorptionLines& abs_lines,
                                const String& type,
                                const Verbosity&) 
 {
-  auto t = LineShape::string2shapetype(type);
+  auto t = LineShape::toType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     lines.LineShapeType(t);
 }
@@ -1616,7 +1613,8 @@ void abs_linesSetLineShapeTypeForMatch(ArrayOfAbsorptionLines& abs_lines,
                                        const QuantumIdentifier& QI,
                                        const Verbosity&) 
 {
-  auto t = LineShape::string2shapetype(type);
+  auto t = LineShape::toType(type);
+  EnumErrorQuery(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     if (QI.In(lines.QuantumIdentity()))
       lines.LineShapeType(t);
@@ -2031,7 +2029,8 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   // Set the spec index if possible
   const Index spec = (do_self or do_bath) ? -1 : SpeciesTag(species).Species();
   
-  const LineShape::Variable var = LineShape::string2variable(parameter);
+  const LineShape::Variable var = LineShape::toVariable(parameter);
+  EnumErrorQuery(var, "Cannot understand parameter: ", parameter);
   
   if (new_values.nelem() not_eq LineShape::nmaxTempModelParams) {
     std::ostringstream os;
@@ -2041,7 +2040,8 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   }
   
   LineShape::ModelParameters newdata;
-  newdata.type = LineShape::string2temperaturemodel(temperaturemodel);
+  newdata.type = LineShape::toTemperatureModel(temperaturemodel);
+  EnumErrorQuery(newdata.type, "Cannot understand temperaturemodel: ", temperaturemodel);
   newdata.X0 = new_values[0];
   newdata.X1 = new_values[1];
   newdata.X2 = new_values[2];
@@ -2331,8 +2331,8 @@ void nlteSetByQuantumIdentifiers(
   }
   
   const Absorption::PopulationType poptyp = nlte_field.Energies().empty() ? 
-        Absorption::PopulationType::ByNLTEPopulationDistribution :
-        Absorption::PopulationType::ByNLTEVibrationalTemperatures;
+        Absorption::PopulationType::NLTE :
+        Absorption::PopulationType::VibTemps;
 
   for (auto& spec_lines: abs_lines_per_species) {
     for (auto& band: spec_lines) {
@@ -2340,7 +2340,7 @@ void nlteSetByQuantumIdentifiers(
         if (band.QuantumIdentity().UpperQuantumId().In(id) or
             band.QuantumIdentity().LowerQuantumId().In(id)) {
           for (Index k=0; k<band.NumLines(); k++) {
-            if (poptyp==Absorption::PopulationType::ByNLTEPopulationDistribution and
+            if (poptyp==Absorption::PopulationType::NLTE and
                 (not std::isnormal(band.A(k)) or band.A(k) < 0)) {
               std::ostringstream os;
               os << "Error in band deemed for NLTE calculations by population distribution\n"
@@ -2376,7 +2376,7 @@ void abs_linesCompact(ArrayOfAbsorptionLines& abs_lines,
   const Numeric fmin = min(f_grid);
   
   for (auto& band: abs_lines) {
-    const Numeric fmean = (band.Cutoff() == Absorption::CutoffType::BandFixedFrequency) ? band.F_mean() : 0;
+    const Numeric fmean = (band.Cutoff() == Absorption::CutoffType::ByBand) ? band.F_mean() : 0;
     for (Index k=band.NumLines()-1; k>=0; k--) {
       const Numeric fcut_upp = band.CutoffFreq(k);
       const Numeric fcut_low = band.CutoffFreqMinus(k, fmean);

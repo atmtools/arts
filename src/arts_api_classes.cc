@@ -210,7 +210,12 @@ void simplifyRational(void * data) { static_cast<Rational *>(data)->simplify_in_
 
 // LineShape::ModelParameters
 void printLineShapeModelParameters(void * data) { std::cout << (*static_cast<LineShape::ModelParameters *>(data)) << std::endl; }
-Index getLineShapeModelParametersType(char * data) { try { return Index(LineShape::string2temperaturemodel(data)); } catch (std::runtime_error& e) { return -1; } }
+Index getLineShapeModelParametersType(char * data) {
+  if (const LineShape::TemperatureModel val = LineShape::toTemperatureModel(data); good_enum(val))
+    return Index(val);
+  else
+    return -1;
+}
 
 
 // LineShape::SingleSpeciesModel

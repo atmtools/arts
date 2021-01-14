@@ -1656,27 +1656,27 @@ void xml_read_from_stream(istream& is_xml,
   // Cutoff type
   String s_cutoff;
   tag.get_attribute_value("cutofftype", s_cutoff);
-  const Absorption::CutoffType cutoff = Absorption::string2cutofftype(s_cutoff);
+  const Absorption::CutoffType cutoff = Absorption::toCutoffType(s_cutoff);
   
   // Mirroring type
   String s_mirroring;
   tag.get_attribute_value("mirroringtype", s_mirroring);
-  const Absorption::MirroringType mirroring = Absorption::string2mirroringtype(s_mirroring);
+  const Absorption::MirroringType mirroring = Absorption::toMirroringType(s_mirroring);
   
   // Line population type
   String s_population;
   tag.get_attribute_value("populationtype", s_population);
-  const Absorption::PopulationType population = Absorption::string2populationtype(s_population);
+  const Absorption::PopulationType population = Absorption::toPopulationType(s_population);
   
   // Normalization type
   String s_normalization;
   tag.get_attribute_value("normalizationtype", s_normalization);
-  const Absorption::NormalizationType normalization = Absorption::string2normalizationtype(s_normalization);
+  const Absorption::NormalizationType normalization = Absorption::toNormalizationType(s_normalization);
   
-  // Normalization type
+  // Shape type
   String s_lineshapetype;
   tag.get_attribute_value("lineshapetype", s_lineshapetype);
-  const LineShape::Type lineshapetype = LineShape::string2shapetype(s_lineshapetype);
+  const LineShape::Type lineshapetype = LineShape::toType(s_lineshapetype);
   
   /** Reference temperature for all parameters of the lines */
   Numeric T0;
@@ -1765,11 +1765,11 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("AbsorptionLines");
   open_tag.add_attribute("nlines", al.NumLines());
   open_tag.add_attribute("species", al.SpeciesName());
-  open_tag.add_attribute("cutofftype", Absorption::cutofftype2string(al.Cutoff()));
-  open_tag.add_attribute("mirroringtype", Absorption::mirroringtype2string(al.Mirroring()));
-  open_tag.add_attribute("populationtype", Absorption::populationtype2string(al.Population()));
-  open_tag.add_attribute("normalizationtype", Absorption::normalizationtype2string(al.Normalization()));
-  open_tag.add_attribute("lineshapetype", LineShape::shapetype2string(al.LineShapeType()));
+  open_tag.add_attribute("cutofftype", Absorption::toString(al.Cutoff()));
+  open_tag.add_attribute("mirroringtype", Absorption::toString(al.Mirroring()));
+  open_tag.add_attribute("populationtype", Absorption::toString(al.Population()));
+  open_tag.add_attribute("normalizationtype", Absorption::toString(al.Normalization()));
+  open_tag.add_attribute("lineshapetype", LineShape::toString(al.LineShapeType()));
   open_tag.add_attribute("T0", al.T0());
   open_tag.add_attribute("cutofffreq", al.CutoffFreqValue());
   open_tag.add_attribute("linemixinglimit", al.LinemixingLimit());

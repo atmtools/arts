@@ -40,7 +40,7 @@
 namespace Zeeman {
   
 /** Zeeman polarization selection */
-enum class Polarization { SigmaMinus, Pi, SigmaPlus };
+enum class Polarization : char { SigmaMinus, Pi, SigmaPlus };
 
 /** Gives the change of M given a polarization type
  * 
