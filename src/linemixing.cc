@@ -168,7 +168,7 @@ Numeric erot(const Rational N, const Rational j=-1) {
  * @param[in] m2 Mass of the other species in atomic mass units
  * @return The adiabatic factor
  */
-template <SpecialParam param=SpecialParam::None>
+template <SpecialParam param>
 constexpr Numeric Omega(const Rational N,
                         const Numeric T,
                         const Numeric m1,
@@ -206,7 +206,7 @@ constexpr Numeric Omega(const Rational N,
  * @param[in] T The temperature
  * @return The basis rate
  */
-template <SpecialParam param=SpecialParam::None>
+template <SpecialParam param>
 Numeric Q(const Rational N, const Numeric T) {
   using Conversion::kelvin2joule;
   
@@ -240,6 +240,7 @@ Numeric zero_dipole(const Rational Ju, const Rational Jl, const Rational N) {
  * @param[in] mass_self The mass of the self-species
  * @param[in] mass_other The mass of the colliding species
  */
+template <SpecialParam param>
 void relaxation_matrix_offdiagonal(MatrixView W,
                                    const Numeric T,
                                    const AbsorptionLines& band,
@@ -287,9 +288,9 @@ void relaxation_matrix_offdiagonal(MatrixView W,
         const Numeric b = wigner6j(L, Jk, Jl, 1, Nl, Nk);
         const Numeric c = wigner6j(L, Jk_p, Jl_p, 1, Nl, Nk);
         const Numeric d = wigner6j(L, Jk, Jl, 1, Jl_p, Jk_p);
-        sum += sgn * a * b * c * d * Q(L, T) / Omega(L, T, mass_self, mass_other);
+        sum += sgn * a * b * c * d * Q<param>(L, T) / Omega<param>(L, T, mass_self, mass_other);
       }
-      sum *= scale * Omega(Nk, T, mass_self, mass_other);
+      sum *= scale * Omega<param>(Nk, T, mass_self, mass_other);
       
       // Add to W and rescale to upwards element by the populations
       W(l, k) = sum;
@@ -369,7 +370,7 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
   // Set the off-diagonal part of the matrix for this broadener
   switch (band.Population()) {
     case PopulationType::ByMakarovFullRelmat:
-      Makarov2020etal::relaxation_matrix_offdiagonal(W.imag(), T, band, sorting, band.SpeciesMass(), species_mass);
+      Makarov2020etal::relaxation_matrix_offdiagonal<param>(W.imag(), T, band, sorting, band.SpeciesMass(), species_mass);
       break;
     default:
       throw std::runtime_error("Bad type [developer error: do not reach here]");
@@ -539,10 +540,12 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
                                                                const ArrayOfGriddedField1& partition_data,
                                                                const ArrayOfRetrievalQuantity& jacobian_quantities) {
   const ComplexVector absorption = ecs_absorption(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
-  ArrayOfComplexVector jac(jacobian_quantities.nelem(), absorption);
+  
+  // Start as original, so remove new and divide with the negative to get forward derivative
+  ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
   
   for (Index i=0; i<jacobian_quantities.nelem(); i++) {
-    auto& vec = jac[i];
+    auto& vec = jacobian[i];
     auto& target = jacobian_quantities[i].Target();
     
     if (target == Jacobian::Atm::Temperature) {
@@ -577,11 +580,12 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
       vec -= ecs_absorption(T, P, this_vmr_copy, vmrs_copy, mass, f_grid, band, partition_type, partition_data);
       vec /= -dvmr;
     } else if (target.needQuantumIdentity()) {
-      AbsorptionLines band_copy = band;
       Numeric d=1e-6;
       
       const Absorption::LineTarget lt(target, band);
       if (lt.found == Absorption::LineTargetType::Line) {
+        AbsorptionLines band_copy = band;
+        
         if (target == Jacobian::Line::Strength) {
           d *= band.AllLines()[lt.pos[0]].I0();
           band_copy.AllLines()[lt.pos[0]].I0() += d;
@@ -589,7 +593,13 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
           d *= band.AllLines()[lt.pos[0]].F0();
           band_copy.AllLines()[lt.pos[0]].F0() += d;
         }
+        
+        // Perform calculations and estimate derivative
+        vec -= ecs_absorption(T, P, this_vmr, vmrs, mass, f_grid, band_copy, partition_type, partition_data);
+        vec /= -d;
       } else if (lt.found == Absorption::LineTargetType::LineshapeParameter) {
+        AbsorptionLines band_copy = band;
+        
         switch (target.LineType()) {
           case Jacobian::Line::ShapeG0X0:
             d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G0().X0;
@@ -710,25 +720,37 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
             /* do nothing */
           }
         }
+        
+        // Perform calculations and estimate derivative
+        vec -= ecs_absorption(T, P, this_vmr, vmrs, mass, f_grid, band_copy, partition_type, partition_data);
+        vec /= -d;
       } else if (lt.found == Absorption::LineTargetType::Band) {
         if (target == Jacobian::Line::SpecialParameter1) {
-          // TOBE Implemented
+          if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+            d = Conversion::angstrom2meter(1e-6);
+          }
+          vec -= ecs_absorption_impl<SpecialParam::ModifyParameter1>(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
         } else if (target == Jacobian::Line::SpecialParameter2) {
-          // TOBE Implemented
+          if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+            d = 1e-6;
+          }
+          vec -= ecs_absorption_impl<SpecialParam::ModifyParameter2>(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
         } else if (target == Jacobian::Line::SpecialParameter3) {
-          // TOBE Implemented
+          if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+            d = 1e-6;
+          }
+          vec -= ecs_absorption_impl<SpecialParam::ModifyParameter3>(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
         }
+        vec /= -d;
+      } else {
+        throw std::runtime_error("[DEV bug] Missing Line Derivative");
       }
-      
-      // Perform calculations and estimate derivative
-      vec -= ecs_absorption(T, P, this_vmr, vmrs, mass, f_grid, band_copy, partition_type, partition_data);
-      vec /= d;
     } else {
-      jac[i] *= 0;
+      vec *= 0;  // No derivative, so don't mess around and remove everything
     }
   }
   
-  return {absorption, jac};
+  return {absorption, jacobian};
 }
 
 

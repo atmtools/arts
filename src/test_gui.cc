@@ -100,6 +100,20 @@ int main() {
                                                                    partition_functions.getParamType(band.QuantumIdentity()),
                                                                    partition_functions.getParam(band.QuantumIdentity()));
   
+  
+  RetrievalQuantity rq;
+  rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
+  rq.Target().Perturbation(0.1);
+  const auto [abs2, dabs] = Absorption::LineMixing::ecs_absorption2(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
+                                                                    partition_functions.getParamType(band.QuantumIdentity()),
+                                                                    partition_functions.getParam(band.QuantumIdentity()),
+                                                                    {rq});
+  
+  // Line Mixing full calculations
+  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
+                                                               partition_functions.getParamType(band.QuantumIdentity()),
+                                                               partition_functions.getParam(band.QuantumIdentity()));
+  
   // Line Mixing full calculations with Zeeman (ignoring polarization...)
   ComplexVector absZ = Absorption::LineMixing::ecs_absorption_with_zeeman_perturbations(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
                                                                                         Zeeman::Polarization::Pi, band,
@@ -145,4 +159,8 @@ int main() {
   
   // Plot it all
   ARTSGUI::plot(f_grid, abs.real(), f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0), f_grid, absZ.real(), f_grid, xsec3(joker, 0));
+  
+  absdT -= abs;
+  absdT /= 0.1;
+  ARTSGUI::plot(f_grid, dabs[0].real(), f_grid, absdT.real());
 }
