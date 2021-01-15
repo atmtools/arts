@@ -963,7 +963,7 @@ void abs_linesSetQuantumNumberForMatch(ArrayOfAbsorptionLines& abs_lines,
                                        const Verbosity&)
 {
   auto QN = string2quantumnumbertype(qn);
-  if (QN == QuantumNumberType::FINAL_ENTRY) {
+  if (QN == QuantumNumberType::FINAL) {
     ostringstream os;
     os << "Usupported quantum number key: " << qn << '\n';
     throw std::runtime_error(os.str());
@@ -2517,7 +2517,7 @@ void abs_linesPrintDefinedQuantumNumbers(const ArrayOfAbsorptionLines& abs_lines
   
   for (auto& band: abs_lines) {
     for (Index iline=0; iline<band.NumLines(); iline++) {
-      for (Index iqn=0; iqn<Index(QuantumNumberType::FINAL_ENTRY); iqn++) {
+      for (Index iqn=0; iqn<Index(QuantumNumberType::FINAL); iqn++) {
         if (band.LowerQuantumNumber(iline, QuantumNumberType(iqn)).isDefined() or
             band.UpperQuantumNumber(iline, QuantumNumberType(iqn)).isDefined()) {
           qns[iqn]++;
@@ -2527,6 +2527,6 @@ void abs_linesPrintDefinedQuantumNumbers(const ArrayOfAbsorptionLines& abs_lines
   }
   
   for (auto& qn: qns) {
-    out0 << quantumnumbertype2string(QuantumNumberType(qn.first)) << ':' << ' ' << qn.second << '\n';
+    out0 << QuantumNumberType(qn.first) << ':' << ' ' << qn.second << '\n';
   }
 }

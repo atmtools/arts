@@ -98,8 +98,8 @@ void ArtsXMLTag::add_attribute(const String& aname, const std::vector<QuantumNum
     v << "";
   else {
     for(size_t i=0; i<value.size()-1; i++)
-      v << quantumnumbertype2string(value[i]) << " ";
-    v << quantumnumbertype2string(value.back());
+      v << value[i] << ' ';
+    v << value.back();
   }
   
   add_attribute(aname, v.str());

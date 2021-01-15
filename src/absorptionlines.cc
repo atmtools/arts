@@ -2605,12 +2605,12 @@ String Absorption::Lines::MetaData() const
     os << "\t\t" << "Zeeman splitting of upper state: " << line.Zeeman().gu() << " [-]\n";
     os << "\t\t" << "Lower state local quantum numbers:";
     for(size_t i=0; i<mlocalquanta.size(); i++)
-      os << " " << quantumnumbertype2string(mlocalquanta[i])
+      os << " " << mlocalquanta[i]
       << "=" << line.LowerQuantumNumber(i) << ";";
     os << "\n";
     os << "\t\t" << "Upper state local quantum numbers:";
     for(size_t i=0; i<mlocalquanta.size(); i++)
-      os << " " << quantumnumbertype2string(mlocalquanta[i])
+      os << " " << mlocalquanta[i]
       << "=" << line.UpperQuantumNumber(i) << ";";
     os << "\n";
     ArrayOfString ls_meta = LineShape::ModelMetaDataArray(line.LineShape(),
@@ -2756,7 +2756,7 @@ bool Absorption::line_in_id(const Absorption::Lines& band, const QuantumIdentifi
   else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL)
     throw std::runtime_error("Cannot match energy level to line");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
       
@@ -2766,7 +2766,7 @@ bool Absorption::line_in_id(const Absorption::Lines& band, const QuantumIdentifi
       }
     }
     
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.UpperQuantumNumber(QuantumNumberType(iq));
       
@@ -2793,7 +2793,7 @@ bool Absorption::line_upper_in_id(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Cannot match transition level to energy level");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
@@ -2820,7 +2820,7 @@ bool Absorption::line_lower_in_id(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Cannot match transition level to energy level");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
@@ -2847,7 +2847,7 @@ bool Absorption::id_in_line(const Absorption::Lines& band, const QuantumIdentifi
   else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL)
     throw std::runtime_error("Cannot match energy level to line");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
       
@@ -2857,7 +2857,7 @@ bool Absorption::id_in_line(const Absorption::Lines& band, const QuantumIdentifi
       }
     }
     
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.UpperQuantumNumber(QuantumNumberType(iq));
       
@@ -2884,7 +2884,7 @@ bool Absorption::id_in_line_upper(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Cannot match transition level to energy level");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
@@ -2911,7 +2911,7 @@ bool Absorption::id_in_line_lower(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Cannot match transition level to energy level");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       

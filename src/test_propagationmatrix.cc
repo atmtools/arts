@@ -527,7 +527,7 @@ constexpr bool test_quantum_numbers(const QuantumNumbers qns, const Index i)
 
 void test_quantum()
 {
-  static_assert(test_quantum_numbers(QuantumNumbers(), Index(QuantumNumberType::FINAL_ENTRY) - 1),
+  static_assert(test_quantum_numbers(QuantumNumbers(), Index(QuantumNumberType::FINAL) - 1),
                 "Bad last entry in QuantumNumbers.  Did you recently expand the list?");
 }
 

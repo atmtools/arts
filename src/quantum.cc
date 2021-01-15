@@ -38,7 +38,7 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const {
   Index qnri = 0;
 
   // Compare all quantum numbers in mqnumbers and qnumbers2
-  while (match && qnri != Index(QuantumNumberType::FINAL_ENTRY)) {
+  while (match && qnri != Index(QuantumNumberType::FINAL)) {
     // If one of the two numbers is undefined, it is considered as
     // a match.
     if (!mqnumbers[qnri].isUndefined() && !qnumbers2[qnri].isUndefined() &&
@@ -68,7 +68,7 @@ bool QuantumIdentifier::InUpper(const QuantumIdentifier& other) const {
         "One of your inputs is bad.  You are using function comparing energy levels to the upper state of lines, but the types mismatch");
 
   Index qnri = 0;
-  while (qnri not_eq Index(QuantumNumberType::FINAL_ENTRY)) {
+  while (qnri not_eq Index(QuantumNumberType::FINAL)) {
     if (other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined()) {
       if (not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) return false;
     } else {
@@ -99,7 +99,7 @@ bool QuantumIdentifier::InLower(const QuantumIdentifier& other) const {
         "One of your inputs is bad.  You are using function comparing energy levels to the lower state of lines, but the types mismatch");
 
   Index qnri = 0;
-  while (qnri not_eq Index(QuantumNumberType::FINAL_ENTRY)) {
+  while (qnri not_eq Index(QuantumNumberType::FINAL)) {
     if (other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined()) {
       if (not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) return false;
     } else {
@@ -132,7 +132,7 @@ bool QuantumIdentifier::In(const QuantumIdentifier& other) const {
     auto& this_low = mqm[TRANSITION_LOWER_INDEX];
     auto& this_upp = mqm[TRANSITION_UPPER_INDEX];
 
-    for (Index i = 0; i < Index(QuantumNumberType::FINAL_ENTRY); i++) {
+    for (Index i = 0; i < Index(QuantumNumberType::FINAL); i++) {
       if (other_low[i].isUndefined()) {
       } else if (this_low[i].isUndefined())
         return false;
@@ -149,7 +149,7 @@ bool QuantumIdentifier::In(const QuantumIdentifier& other) const {
     auto& other_qn = other.mqm[ENERGY_LEVEL_INDEX];
     auto& this_qn = mqm[ENERGY_LEVEL_INDEX];
 
-    for (Index i = 0; i < Index(QuantumNumberType::FINAL_ENTRY); i++) {
+    for (Index i = 0; i < Index(QuantumNumberType::FINAL); i++) {
       if (other_qn[i].isUndefined()) {
       } else if (this_qn[i].isUndefined())
         return false;
@@ -162,7 +162,7 @@ bool QuantumIdentifier::In(const QuantumIdentifier& other) const {
 }
 
 bool IsValidQuantumNumberName(String name) {
-  return QuantumNumberType::FINAL_ENTRY not_eq string2quantumnumbertype(name);
+  return QuantumNumberType::FINAL not_eq string2quantumnumbertype(name);
 }
 
 void ThrowIfQuantumNumberNameInvalid(String name) {
@@ -186,13 +186,13 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn) {
 
 std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn) {
   bool first = true;
-  for (Index i=0; i<Index(QuantumNumberType::FINAL_ENTRY); i++) {
+  for (Index i=0; i<Index(QuantumNumberType::FINAL); i++) {
     if (qn[i].isDefined()) {
       if (first) {
-        os << quantumnumbertype2string(QuantumNumberType(i)) << ' ' << qn[i];
+        os << QuantumNumberType(i) << ' ' << qn[i];
         first = false;
       } else {
-        os << ' ' << quantumnumbertype2string(QuantumNumberType(i)) << ' ' << qn[i];
+        os << ' ' << QuantumNumberType(i) << ' ' << qn[i];
       }
     }
   }
@@ -409,18 +409,13 @@ bool QuantumIdentifier::any_quantumnumbers() const {
       for (const auto& qns : mqm) do {
           if (not qns[qni].isUndefined()) return true;
           qni++;
-        } while (qni not_eq Index(QuantumNumberType::FINAL_ENTRY));
+      } while (qni not_eq Index(QuantumNumberType::FINAL));
       break;
     case QuantumIdentifier::ALL:
     case QuantumIdentifier::NONE:
       break;
   }
   return false;
-}
-
-std::ostream& operator<<(std::ostream& os, QuantumNumberType t)
-{
-  return os << quantumnumbertype2string(t);
 }
 
 Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
@@ -448,7 +443,7 @@ void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >
 {
   for (auto& keyval: upper_list) {
     auto key = string2quantumnumbertype(keyval[0]);
-    if (key == QuantumNumberType::FINAL_ENTRY) {
+    if (key == QuantumNumberType::FINAL) {
       std::ostringstream os;
       os << "The key \"" << keyval[0] << "\" is an invalid input as a quantum number key";
       std::cout << "WARNING: " << os.str() << '\n';
@@ -466,7 +461,7 @@ void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >
   
   for (auto& keyval: lower_list) {
     auto key = string2quantumnumbertype(keyval[0]);
-    if (key == QuantumNumberType::FINAL_ENTRY) {
+    if (key == QuantumNumberType::FINAL) {
       std::ostringstream os;
       os << "The key \"" << keyval[0] << "\" is an invalid input as a quantum number key";
       std::cout << "WARNING: " << os.str() << '\n';
@@ -491,4 +486,16 @@ String QuantumNumbers::toString() const
   if(s.back() == ' ')
     s.pop_back();
   return s;
+}
+
+QuantumNumberType string2quantumnumbertype(const String& s) {
+  QuantumNumberType out = toQuantumNumberType(s);
+  if (out == QuantumNumberType::FINAL) {
+    if (s.find("F#") < s.length()) out = QuantumNumberType::F;  // HITRAN has many names for F
+    else if (s == "K") out = QuantumNumberType::Ka;  // HITRAN name
+    else if (s == "v") out = QuantumNumberType::v1;  // HITRAN name
+    else if (s == "l") out = QuantumNumberType::l1;  // HITRAN name
+    else if (s == "ElecStateLabel") out = QuantumNumberType::ElectronState;  // HITRAN name
+  }
+  return out;
 }

@@ -33,6 +33,7 @@
 #include <numeric>
 #include <stdexcept>
 #include "array.h"
+#include "enums.h"
 #include "interpolation.h"
 #include "matpack.h"
 #include "mystring.h"
@@ -45,8 +46,8 @@
  * operator>>(istream&, QuantumNumbers&)
  * to handle the added numbers.
  */
-enum class QuantumNumberType : Index {
-  J = 0,   // Total angular momentum
+ENUMCLASS(QuantumNumberType, char,
+  J,       // Total angular momentum
   dJ,      // Delta total angular momentum
   M,       // Projection of J along magnetic field
   N,       // J minus spin
@@ -94,126 +95,10 @@ enum class QuantumNumberType : Index {
   ElectronState,  // Electronic state
   n_global,  // Torosional quanta
   C,         // Another symmetry expression
-  Hund,  // Flag for Hund case type.  This flag lets Zeeman know what to expect
-  FINAL_ENTRY  // We need this to determine the number of elements in this enum
-};
+  Hund  // Flag for Hund case type.  This flag lets Zeeman know what to expect
+)  // QuantumNumberType
 
-inline QuantumNumberType string2quantumnumbertype(const String& s) {
-  #define INPUT_QUANTUM(ID) \
-  if (s == #ID) return QuantumNumberType::ID
-  INPUT_QUANTUM(J);
-  else INPUT_QUANTUM(dJ);
-  else INPUT_QUANTUM(M);
-  else INPUT_QUANTUM(N);
-  else INPUT_QUANTUM(dN);
-  else INPUT_QUANTUM(tau);
-  else INPUT_QUANTUM(n);
-  else INPUT_QUANTUM(S);
-  else INPUT_QUANTUM(F);
-  else if (s.find("F#") < s.length()) return QuantumNumberType::F;  // HITRAN has many names for F
-  else if (s == "K") return QuantumNumberType::Ka;  // HITRAN name
-  else INPUT_QUANTUM(Ka);
-  else INPUT_QUANTUM(Kc);
-  else INPUT_QUANTUM(Omega);
-  else INPUT_QUANTUM(i);
-  else INPUT_QUANTUM(Lambda);
-  else INPUT_QUANTUM(alpha);
-  else INPUT_QUANTUM(Sym);
-  else INPUT_QUANTUM(parity);
-  else INPUT_QUANTUM(kronigParity);
-  else if (s == "v") return QuantumNumberType::v1;  // HITRAN name
-  else INPUT_QUANTUM(v1);
-  else INPUT_QUANTUM(v2);
-  else INPUT_QUANTUM(v3);
-  else INPUT_QUANTUM(v4);
-  else INPUT_QUANTUM(v5);
-  else INPUT_QUANTUM(v6);
-  else INPUT_QUANTUM(v7);
-  else INPUT_QUANTUM(v8);
-  else INPUT_QUANTUM(v9);
-  else INPUT_QUANTUM(v10);
-  else INPUT_QUANTUM(v11);
-  else INPUT_QUANTUM(v12);
-  else if (s == "l") return QuantumNumberType::l1;  // HITRAN name
-  else INPUT_QUANTUM(l1);
-  else INPUT_QUANTUM(l2);
-  else INPUT_QUANTUM(l3);
-  else INPUT_QUANTUM(l4);
-  else INPUT_QUANTUM(l5);
-  else INPUT_QUANTUM(l6);
-  else INPUT_QUANTUM(l7);
-  else INPUT_QUANTUM(l8);
-  else INPUT_QUANTUM(l9);
-  else INPUT_QUANTUM(l10);
-  else INPUT_QUANTUM(l11);
-  else INPUT_QUANTUM(l12);
-  else INPUT_QUANTUM(pm);
-  else INPUT_QUANTUM(r);
-  else INPUT_QUANTUM(S_global);
-  else INPUT_QUANTUM(ElectronState);
-  else if (s == "ElecStateLabel") return QuantumNumberType::ElectronState;  // HITRAN name
-  else INPUT_QUANTUM(n_global);
-  else INPUT_QUANTUM(C);
-  else INPUT_QUANTUM(Hund);
-  else return QuantumNumberType::FINAL_ENTRY;
-  #undef INPUT_QUANTUM
-}
-
-inline String quantumnumbertype2string(QuantumNumberType s) {
-  #define INPUT_QUANTUM(ID) \
-  if (s == QuantumNumberType::ID) return #ID
-  INPUT_QUANTUM(J);
-  else INPUT_QUANTUM(dJ);
-  else INPUT_QUANTUM(M);
-  else INPUT_QUANTUM(N);
-  else INPUT_QUANTUM(dN);
-  else INPUT_QUANTUM(tau);
-  else INPUT_QUANTUM(n);
-  else INPUT_QUANTUM(S);
-  else INPUT_QUANTUM(F);
-  else INPUT_QUANTUM(Ka);
-  else INPUT_QUANTUM(Kc);
-  else INPUT_QUANTUM(Omega);
-  else INPUT_QUANTUM(i);
-  else INPUT_QUANTUM(Lambda);
-  else INPUT_QUANTUM(alpha);
-  else INPUT_QUANTUM(Sym);
-  else INPUT_QUANTUM(parity);
-  else INPUT_QUANTUM(kronigParity);
-  else INPUT_QUANTUM(v1);
-  else INPUT_QUANTUM(v2);
-  else INPUT_QUANTUM(v3);
-  else INPUT_QUANTUM(v4);
-  else INPUT_QUANTUM(v5);
-  else INPUT_QUANTUM(v6);
-  else INPUT_QUANTUM(v7);
-  else INPUT_QUANTUM(v8);
-  else INPUT_QUANTUM(v9);
-  else INPUT_QUANTUM(v10);
-  else INPUT_QUANTUM(v11);
-  else INPUT_QUANTUM(v12);
-  else INPUT_QUANTUM(l1);
-  else INPUT_QUANTUM(l2);
-  else INPUT_QUANTUM(l3);
-  else INPUT_QUANTUM(l4);
-  else INPUT_QUANTUM(l5);
-  else INPUT_QUANTUM(l6);
-  else INPUT_QUANTUM(l7);
-  else INPUT_QUANTUM(l8);
-  else INPUT_QUANTUM(l9);
-  else INPUT_QUANTUM(l10);
-  else INPUT_QUANTUM(l11);
-  else INPUT_QUANTUM(l12);
-  else INPUT_QUANTUM(pm);
-  else INPUT_QUANTUM(r);
-  else INPUT_QUANTUM(S_global);
-  else INPUT_QUANTUM(ElectronState);
-  else INPUT_QUANTUM(n_global);
-  else INPUT_QUANTUM(C);
-  else INPUT_QUANTUM(Hund);
-  throw std::runtime_error("Bad quantum number type");
-  #undef INPUT_QUANTUM
-}
+QuantumNumberType string2quantumnumbertype(const String& s);
 
 /** Enum for Hund cases */
 enum class Hund : Index { CaseA = int('a'), CaseB = int('b') };
@@ -221,7 +106,7 @@ enum class Hund : Index { CaseA = int('a'), CaseB = int('b') };
 /** Container class for Quantum Numbers */
 class QuantumNumbers {
  public:
-  typedef std::array<Rational, Index(QuantumNumberType::FINAL_ENTRY)>
+  typedef std::array<Rational, Index(QuantumNumberType::FINAL)>
       QuantumContainer;
 
   /** Initializer with undefined values */
@@ -308,7 +193,7 @@ class QuantumNumbers {
    * @param[in] r Rational to set
    */
   void Set(Index qn, Rational r) {
-    assert(qn < Index(QuantumNumberType::FINAL_ENTRY));
+    assert(qn < Index(QuantumNumberType::FINAL));
     mqnumbers[qn] = r;
   }
 
@@ -774,8 +659,6 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
 
 /** Output operator */
 std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi);
-
-std::ostream& operator<<(std::ostream& os, QuantumNumberType t);
 
 /** Updates the quantum identifier based on a lists of strings
  * 

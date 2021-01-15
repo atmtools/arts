@@ -229,7 +229,6 @@ extern "C" {
     GetterSetterCAPI(AbsorptionLines, CutoffFreqValue, Numeric)
     GetterSetterCAPI(AbsorptionLines, LinemixingLimit, Numeric)
     VoidGetterCAPI(AbsorptionLines, QuantumIdentity)
-    VoidArrayElemCAPI(AbsorptionLines, LocalQuanta)
     VoidGetterCAPI(AbsorptionLines, BroadeningSpecies)
     VoidArrayElemCAPI(AbsorptionLines, AllLines)
     VoidArrayCAPI(ArrayOfAbsorptionLines)
@@ -238,6 +237,10 @@ extern "C" {
     VoidArrayCAPI(ArrayOfArrayOfAbsorptionLines)
     BasicInterfaceCAPI(ArrayOfArrayOfAbsorptionLines)
     BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
+    DLL_PUBLIC Index sizeLocalQuantaAbsorptionLines(void * data);
+    DLL_PUBLIC void resizeLocalQuantaAbsorptionLines(Index n, void * data);
+    DLL_PUBLIC Index getLocalQuantaAbsorptionLines(Index i, void * data);
+    DLL_PUBLIC void setLocalQuantaAbsorptionLines(Index i, void * data, Index newval);
     DLL_PUBLIC void printmetaAbsorptionLines(void *);
     DLL_PUBLIC Index isAbsorptionLinesOK(void *);
     DLL_PUBLIC void * getSpeciesNameAbsorptionLines(void *);
