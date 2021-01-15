@@ -89,7 +89,8 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
   else if (in == NormalizationType::RQ)
     return "Rosenkranz quadratic far-wing renormalization will be applied, "
       "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
-  std::terminate();
+  else
+    std::terminate();
 }
 
 /** Describes the type of population level counter
@@ -99,7 +100,7 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
 ENUMCLASS(PopulationType, char,
   LTE,                       // Assume band is in LTE
   NLTE,                      // Assume band is in NLTE and the upper-to-lower ratio is known
-  VibTemps,                  // Assume band is in NLTE described by vibrational temperatures
+  VibTemps,                  // Assume band is in NLTE described by vibrational temperatures and LTE at other levels
   ByHITRANRosenkranzRelmat,  // Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
   ByHITRANFullRelmat,        // Assume band needs to compute and directly use the relaxation matrix according to HITRAN
   ByMakarovFullRelmat        // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
@@ -136,16 +137,7 @@ ENUMCLASS(CutoffType, char,
   ByBand   // The curoff frequency is the cutoff frequency for all SingleLine(s)
 )  // CutoffType
 
-inline String cutofftype2metadatastring(CutoffType in, Numeric cutoff) {
-  std::ostringstream os;
-  if (in == CutoffType::None)
-    os << "No cut-off will be applied.\n";
-  else if (in == CutoffType::ByLine)
-    os << "The lines will be cut-off " << cutoff << " Hz from the line center.\n";
-  else if (in == CutoffType::ByBand)
-    os << "All lines are cut-off at " << cutoff << " Hz.\n";
-  return os.str();
-}
+String cutofftype2metadatastring(CutoffType in, Numeric cutoff);
 
 /** Computations and data for a single absorption line */
 class SingleLine {
@@ -359,72 +351,25 @@ public:
    * @param[in] qid Copy of the global identifier to fill by local numbers
    * @param[in] keys List of quantum number keys in this line's local quantum number lists
    */
-  void SetAutomaticZeeman(QuantumIdentifier qid, const std::vector<QuantumNumberType>& keys) {
-    for(size_t i=0; i<keys.size(); i++) {
-      qid.LowerQuantumNumber(keys[i]) = mlowerquanta[i];
-      qid.UpperQuantumNumber(keys[i]) = mupperquanta[i];
-    }
-    
-    mzeeman = Zeeman::Model(qid);
-  }
+  void SetAutomaticZeeman(const QuantumIdentifier& qid, const std::vector<QuantumNumberType>& keys);
   
   /** Set the line mixing model to 2nd order
    * 
    * @param[in] d Data in 2nd order format
    */
-  void SetLineMixing2SecondOrderData(const Vector& d) {
-    mlineshape.SetLineMixingModel(
-      LineShape::LegacyLineMixingData::vector2modellm(
-        d, LineShape::LegacyLineMixingData::TypeLM::LM_2NDORDER)
-      .Data()[0]);
-  }
+  void SetLineMixing2SecondOrderData(const Vector& d);
   
   /** Set the line mixing model to AER kind
    * 
    * @param[in] d Data in AER format
    */
-  void SetLineMixing2AER(const Vector& d) {
-    const LineShape::ModelParameters Y = {LineShape::TemperatureModel::LM_AER, d[4], d[5], d[6], d[7]};
-    const LineShape::ModelParameters G = {LineShape::TemperatureModel::LM_AER, d[8], d[9], d[10], d[11]};
-    for (auto& sm : mlineshape.Data()) {
-      sm.Y() = Y;
-      sm.G() = G;
-    }
-  }
+  void SetLineMixing2AER(const Vector& d);
   
   /** Binary read for AbsorptionLines */
-  bifstream& read(bifstream& bif) {
-    /** Standard parameters */
-    bif >> mF0 >> mI0 >> mE0 >> mglow >> mgupp >> mA >> mzeeman;
-    
-    /** Line shape model */
-    mlineshape.read(bif);
-    
-    /** Lower level quantum numbers */
-    for (auto& rat: mlowerquanta) rat.read(bif);
-    
-    /** Upper level quantum numbers */
-    for (auto& rat: mupperquanta) rat.read(bif);
-    
-    return bif;
-  }
+  bifstream& read(bifstream& bif);
   
   /** Binary write for AbsorptionLines */
-  bofstream& write(bofstream& bof) const {
-    /** Standard parameters */
-    bof << mF0 << mI0 << mE0 << mglow << mgupp << mA << mzeeman;
-    
-    /** Line shape model */
-    mlineshape.write(bof);
-    
-    /** Lower level quantum numbers */
-    for (auto& rat: mlowerquanta) rat.write(bof);
-    
-    /** Upper level quantum numbers */
-    for (auto& rat: mupperquanta) rat.write(bof);
-    
-    return bof;
-  }
+  bofstream& write(bofstream& bof) const;
 };  // SingleLine
 
 std::ostream& operator<<(std::ostream&, const SingleLine&);
@@ -602,17 +547,7 @@ public:
    * 
    * @param[in] sl A single line
    */
-  void AppendSingleLine(SingleLine&& sl) {
-    if(NumLocalQuanta() not_eq sl.LowerQuantumElems() or
-       NumLocalQuanta() not_eq sl.UpperQuantumElems())
-      throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
-    
-    if(NumLines() not_eq 0 and 
-       sl.LineShapeElems() not_eq mlines[0].LineShapeElems())
-      throw std::runtime_error("Error calling appending function, bad size of broadening species");
-    
-    mlines.push_back(std::move(sl));
-  }
+  void AppendSingleLine(SingleLine&& sl);
   
   /** Appends a single line to the absorption lines
    * 
@@ -626,110 +561,30 @@ public:
    * 
    * @param[in] sl A single line
    */
-  void AppendSingleLine(const SingleLine& sl) {
-    if(NumLocalQuanta() not_eq sl.LowerQuantumElems() or
-       NumLocalQuanta() not_eq sl.UpperQuantumElems())
-      throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
-    
-    if(NumLines() not_eq 0 and 
-       sl.LineShapeElems() not_eq mlines[0].LineShapeElems())
-      throw std::runtime_error("Error calling appending function, bad size of broadening species");
-    
-    mlines.push_back(sl);
-  }
+  void AppendSingleLine(const SingleLine& sl);
   
   /** Checks if an external line matches this structure
    * 
    * @param[in] sle Full external lines
    * @param[in] quantumidentity Expected global quantum id of the line
    */
-  bool MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const noexcept {
-    if(sle.bad)
-      return false;
-    else if(sle.selfbroadening not_eq mselfbroadening)
-      return false;
-    else if(sle.bathbroadening not_eq mbathbroadening)
-      return false;
-    else if(sle.cutoff not_eq mcutoff)
-      return false;
-    else if(sle.mirroring not_eq mmirroring)
-      return false;
-    else if(sle.population not_eq mpopulation)
-      return false;
-    else if(sle.normalization not_eq mnormalization)
-      return false;
-    else if(sle.lineshapetype not_eq mlineshapetype)
-      return false;
-    else if(sle.T0 not_eq mT0)
-      return false;
-    else if(sle.cutofffreq not_eq mcutofffreq)
-      return false;
-    else if(sle.linemixinglimit not_eq mlinemixinglimit)
-      return false;
-    else if(quantumidentity not_eq mquantumidentity)
-      return false;
-    else if(not std::equal(sle.species.cbegin(), sle.species.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
-      return false;
-    else if(NumLines() not_eq 0 and not sle.line.LineShape().Match(mlines[0].LineShape()))
-      return false;
-    else
-      return true;
-  }
+  bool MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const noexcept;
   
   /** Checks if another line list matches this structure
    * 
    * @param[in] sle Full external lines
    * @param[in] quantumidentity Expected global quantum id of the line
    */
-  bool Match(const Lines& l) const noexcept {
-    if(l.mselfbroadening not_eq mselfbroadening)
-      return false;
-    else if(l.mbathbroadening not_eq mbathbroadening)
-      return false;
-    else if(l.mcutoff not_eq mcutoff)
-      return false;
-    else if(l.mmirroring not_eq mmirroring)
-      return false;
-    else if(l.mpopulation not_eq mpopulation)
-      return false;
-    else if(l.mnormalization not_eq mnormalization)
-      return false;
-    else if(l.mlineshapetype not_eq mlineshapetype)
-      return false;
-    else if(l.mT0 not_eq mT0)
-      return false;
-    else if(l.mcutofffreq not_eq mcutofffreq)
-      return false;
-    else if(l.mlinemixinglimit not_eq mlinemixinglimit)
-      return false;
-    else if(l.mquantumidentity not_eq mquantumidentity)
-      return false;
-    else if(not std::equal(l.mbroadeningspecies.cbegin(), l.mbroadeningspecies.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
-      return false;
-    else if(not std::equal(l.mlocalquanta.cbegin(), l.mlocalquanta.cend(), mlocalquanta.cbegin(), mlocalquanta.cend()))
-      return false;
-    else if(NumLines() not_eq 0 and l.NumLines() not_eq 0 and not l.mlines[0].LineShape().Match(mlines[0].LineShape()))
-      return false;
-    else
-      return true;
-  }
+  bool Match(const Lines& l) const noexcept;
   
   /** Sort inner line list by frequency */
-  void sort_by_frequency() {
-    std::sort(mlines.begin(), mlines.end(),
-              [](const SingleLine& a, const SingleLine& b){return a.F0() < b.F0();});
-  }
+  void sort_by_frequency();
   
   /** Sort inner line list by Einstein coefficient */
-  void sort_by_einstein() {
-    std::sort(mlines.begin(), mlines.end(),
-              [](const SingleLine& a, const SingleLine& b){return a.A() < b.A();});
-  }
+  void sort_by_einstein();
   
   /** Removes all global quantum numbers */
-  void truncate_global_quantum_numbers() {
-    mquantumidentity.SetTransition(QuantumNumbers(), QuantumNumbers());
-  }
+  void truncate_global_quantum_numbers();
   
   /** Species Name */
   String SpeciesName() const noexcept;
@@ -741,11 +596,7 @@ public:
   String LowerQuantumNumbers() const noexcept;
   
   /** Meta data for the line shape if it exists */
-  String LineShapeMetaData() const noexcept {
-    return NumLines() ?
-      LineShape::ModelShape2MetaData(mlines[0].LineShape()) :
-      "";
-  }
+  String LineShapeMetaData() const noexcept;
   
   /** Species Index */
   Index Species() const noexcept {return mquantumidentity.Species();}
@@ -813,17 +664,7 @@ public:
    * @param[in] k Line number (less than NumLines())
    * @param[in] type Type of Zeeman polarization
    */
-  Index ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
-    if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
-      return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::F),
-                           LowerQuantumNumber(k, QuantumNumberType::F),
-                           type);
-    } else {
-      return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::J),
-                           LowerQuantumNumber(k, QuantumNumberType::J),
-                           type);
-    }
-  }
+  Index ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept;
   
   /** Returns the strength of a Zeeman split line
    * 
@@ -831,17 +672,7 @@ public:
    * @param[in] type Type of Zeeman polarization
    * @param[in] i Zeeman line count
    */
-  Numeric ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const noexcept {
-    if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
-      return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::F),
-                                         LowerQuantumNumber(k, QuantumNumberType::F),
-                                         type, i);
-    } else {
-      return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::J),
-                                         LowerQuantumNumber(k, QuantumNumberType::J),
-                                         type, i);
-    }
-  }
+  Numeric ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const noexcept;
   
   /** Returns the splitting of a Zeeman split line
    * 
@@ -849,23 +680,10 @@ public:
    * @param[in] type Type of Zeeman polarization
    * @param[in] i Zeeman line count
    */
-  Numeric ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const noexcept {
-    if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
-      return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::F),
-                                          LowerQuantumNumber(k, QuantumNumberType::F),
-                                          type, i);
-    } else {
-      return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::J),
-                                          LowerQuantumNumber(k, QuantumNumberType::J),
-                                          type, i);
-    }
-  }
+  Numeric ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const noexcept;
   
   /** Set Zeeman effect for all lines that have the correct quantum numbers */
-  void SetAutomaticZeeman() noexcept {
-    for(auto& line: mlines)
-      line.SetAutomaticZeeman(mquantumidentity, mlocalquanta);
-  }
+  void SetAutomaticZeeman() noexcept;
   
   /** Central frequency
    * 
@@ -885,27 +703,14 @@ public:
    * 
    * @return Mean frequency
    */
-  Numeric F_mean() const noexcept {
-    const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
-                                          mlines.cbegin(), 0.0, std::plus<Numeric>(),
-                                          [](const auto& a, const auto& b){return a.F0() * b.I0();});
-    const Numeric div = std::accumulate(mlines.cbegin(), mlines.cend(), 0.0,
-                                        [](const auto& a, const auto& b){return a + b.I0();});
-    return  val / div;
-  }
+  Numeric F_mean() const noexcept;
   
   /** Mean frequency by weight of line strengt
    * 
    * @param[in] wgts Weight of averaging
    * @return Mean frequency
    */
-  Numeric F_mean(const ConstVectorView wgts) const noexcept {
-    const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
-                                           wgts.begin(), 0.0, std::plus<Numeric>(),
-                                           [](const auto& a, const auto& b){return a.F0() * b;});
-    const Numeric div = wgts.sum();
-    return  val / div;
-  }
+  Numeric F_mean(const ConstVectorView wgts) const noexcept;
   
   /** Lower level energy
    * 
@@ -1141,36 +946,14 @@ public:
    * @param[in] k Line number (less than NumLines())
    * @returns Cutoff frequency or 0
    */
-  Numeric CutoffFreq(size_t k) const noexcept {
-    switch(mcutoff) {
-      case CutoffType::ByLine:
-        return F0(k) + mcutofffreq;
-      case CutoffType::ByBand:
-        return mcutofffreq;
-      case CutoffType::None:
-        return std::numeric_limits<Numeric>::max();
-      case CutoffType::FINAL: break;
-    }
-    std::terminate();
-  }
+  Numeric CutoffFreq(size_t k) const noexcept;
   
   /** Returns negative cutoff frequency or lowest value
    * 
    * @param[in] k Line number (less than NumLines())
    * @returns Negative cutoff frequency or the lowest value
    */
-  Numeric CutoffFreqMinus(size_t k, Numeric fmean) const noexcept {
-    switch(mcutoff) {
-      case CutoffType::ByLine:
-        return F0(k) - mcutofffreq;
-      case CutoffType::ByBand:
-        return mcutofffreq - 2*fmean;
-      case CutoffType::None:
-        return std::numeric_limits<Numeric>::lowest();
-      case CutoffType::FINAL: break;
-    }
-    std::terminate();
-  }
+  Numeric CutoffFreqMinus(size_t k, Numeric fmean) const noexcept;
   
   /** Returns reference temperature */
   Numeric T0() const noexcept {
@@ -1253,14 +1036,7 @@ public:
   }
   
   /** Returns identity status */
-  QuantumIdentifier QuantumIdentityOfLine(Index k) const noexcept {
-    QuantumIdentifier qid_copy(mquantumidentity);
-    for (size_t i=0; i<mlocalquanta.size(); i++) {
-      qid_copy.UpperQuantumNumber(mlocalquanta[i]) = mlines[k].UpperQuantumNumber(i);
-      qid_copy.LowerQuantumNumber(mlocalquanta[i]) = mlines[k].LowerQuantumNumber(i);
-    }
-    return qid_copy;
-  }
+  QuantumIdentifier QuantumIdentityOfLine(Index k) const noexcept;
   
   /** Returns a printable statement about the lines */
   String MetaData() const;
@@ -1309,18 +1085,10 @@ public:
   Numeric SelfVMR(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&) const;
   
   /** Binary read for Lines */
-  bifstream& read(bifstream& is) {
-    for (auto& line: mlines)
-      line.read(is);
-    return is;
-  }
+  bifstream& read(bifstream& is);
   
   /** Binary write for Lines */
-  bofstream& write(bofstream& os) const {
-    for (auto& line: mlines)
-      line.write(os);
-    return os;
-  }
+  bofstream& write(bofstream& os) const;
   
   bool OK() const noexcept;
 };  // Lines

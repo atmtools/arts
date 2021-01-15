@@ -121,7 +121,7 @@ int main() {
                                                         ArrayOfIndex(0));
   
   // Line by line calculations
-  band.Population(Absorption::PopulationType::ByLTE);
+  band.Population(Absorption::PopulationType::LTE);
   xsec_species(xsec2, source, phase, dxsec, dsource, dphase,
                ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
                f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1, 
