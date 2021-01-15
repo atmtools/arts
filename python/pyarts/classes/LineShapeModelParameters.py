@@ -6,7 +6,7 @@ from math import isnan, nan
 
 class InternalLineShapeModelParameters(c.Structure):
     """ ARTS Internal data layout... do not use """
-    _fields_ = [("type", c.c_long),
+    _fields_ = [("type", c.c_char),
                 ("x0", c.c_double),
                 ("x1", c.c_double),
                 ("x2", c.c_double),

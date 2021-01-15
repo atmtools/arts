@@ -76,7 +76,7 @@ namespace LineShape {
  * 
  * FIXME:  The python API breaks if this is a char type even though it can be????
  */
-ENUMCLASS(TemperatureModel, Index,
+ENUMCLASS(TemperatureModel, char,
   None,   // 0
   T0,     // Constant, X0
   T1,     // Standard, X0 * (T0/T) ^ X1
