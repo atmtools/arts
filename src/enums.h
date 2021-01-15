@@ -8,9 +8,9 @@
 #include <string>
 #include <string_view>
 
-template <typename T>
-constexpr bool good_enum(T x) {
-  return long(x) < long(T::FINAL) and long(x) >= 0;
+template <typename EnumType>
+constexpr bool good_enum(EnumType x) {
+  return long(x) < long(EnumType::FINAL) and long(x) >= 0;
 }
 
 constexpr bool is_space_char(char x) {
@@ -22,10 +22,10 @@ constexpr bool is_space_char(char x) {
          x == '\v';
 }
 
-template <typename T> constexpr
-std::array<std::string_view, size_t(T::FINAL)> enum_strarray(
+template <typename EnumType> constexpr
+std::array<std::string_view, size_t(EnumType::FINAL)> enum_strarray(
   const std::string_view strchars) {
-  std::array<std::string_view, size_t(T::FINAL)> out;
+  std::array<std::string_view, size_t(EnumType::FINAL)> out;
   
   // Find the start
   std::string_view::size_type N0 = 0;
@@ -50,7 +50,7 @@ std::array<std::string_view, size_t(T::FINAL)> enum_strarray(
 }
 
 template <typename EnumType, typename ... Messages>
-void EnumErrorQuery(EnumType type, Messages ... args) {
+void check_enum_error(EnumType type, Messages ... args) {
   if (not good_enum(type)) {
     std::ostringstream os;
     (os << ... << args);
@@ -118,7 +118,7 @@ void EnumErrorQuery(EnumType type, Messages ... args) {
     std::string val;                                                      \
     is >> val;                                                            \
     x = to##ENUMTYPE(val);                                                \
-    EnumErrorQuery(x, "Cannot understand value: ", val);                  \
+    check_enum_error(x, "Cannot understand value: ", val);                \
     return is;                                                            \
   }
 

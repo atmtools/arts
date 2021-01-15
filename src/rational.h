@@ -114,7 +114,7 @@ class Rational {
    * @return true If Denom() is not 0
    * @return false Otherwise
    */
-  constexpr bool isDefined() const { return mdenom not_eq 0; }
+  constexpr bool isDefined() const { return not isUndefined(); }
 
   /** Is the object a n-scaled Index
    * 

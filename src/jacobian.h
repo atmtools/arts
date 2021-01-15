@@ -110,7 +110,7 @@ union TypeOfTarget {
   constexpr bool operator==(const TypeOfTarget& other) const noexcept {return atm == other.atm;} /** Technically breaks C++ standard; supported by GCC and clang */
 };
 
-inline TypeOfTarget toTypeOfTarget(const String& s, Type x) noexcept {
+constexpr TypeOfTarget toTypeOfTarget(const std::string_view& s, Type x) noexcept {
   switch (x) {
     case Type::Special:
       return TypeOfTarget(toSpecial(s));
@@ -125,7 +125,7 @@ inline TypeOfTarget toTypeOfTarget(const String& s, Type x) noexcept {
   return TypeOfTarget();
 }
 
-inline String toString(TypeOfTarget y, Type x) noexcept {
+constexpr std::string_view toString(TypeOfTarget y, Type x) noexcept {
   switch (x) {
     case Type::Special:
       return toString(y.special);
@@ -139,7 +139,7 @@ inline String toString(TypeOfTarget y, Type x) noexcept {
   }
   return "Unrecognizable Target";
 }
-         
+
 /** Holds all information required for individual partial derivatives */
 class Target {
 private:
@@ -217,19 +217,19 @@ public:
   constexpr bool operator==(Type other) const noexcept {return other == mtype;}
   
   /** Return type as string */
-  String TargetType() const noexcept {return toString(mtype);}
+  constexpr std::string_view TargetType() const noexcept {return toString(mtype);}
   
   /** Sets target based on a string */
-  void TargetType(const String& s) noexcept {mtype = toType(s);}
+  constexpr void TargetType(const std::string_view& s) noexcept {mtype = toType(s);}
   
   /** Are we good? */
-  bool TargetTypeOK() const noexcept {return good_enum(mtype);}
+  constexpr bool TargetTypeOK() const noexcept {return good_enum(mtype);}
   
   /** Return sub type as string */
-  String TargetSubType() const noexcept {return toString(msubtype, mtype);}
+  constexpr std::string_view TargetSubType() const noexcept {return toString(msubtype, mtype);}
   
   /** Sets target based on a string */
-  void TargetSubType(const String& s) noexcept {msubtype = toTypeOfTarget(s, mtype);}
+  constexpr void TargetSubType(const std::string_view& s) noexcept {msubtype = toTypeOfTarget(s, mtype);}
   
   /** Are we good? */
   constexpr bool TargetSubTypeOK() const noexcept {
@@ -292,9 +292,7 @@ public:
  * @param[in] x A Target
  * @return A modified stream
  */
-inline std::ostream& operator<<(std::ostream& os, const Target& x) {
-  return os << x.TargetType() << " " << x.TargetSubType() << " " << x.Perturbation() << " " << x.QuantumIdentity();
-}
+std::ostream& operator<<(std::ostream& os, const Target& x);
 };  // Jacobian
 using JacobianTarget = Jacobian::Target;
 using ArrayOfJacobianTarget = Array<Jacobian::Target>;

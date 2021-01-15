@@ -454,7 +454,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   
   // HITRAN type
   const HitranType hitran_version = toHitranType(hitran_type);
-  EnumErrorQuery(hitran_version, "Cannot understand hitran_type: ", hitran_type);
+  check_enum_error(hitran_version, "Cannot understand hitran_type: ", hitran_type);
   
   // Hitran data
   ifstream is;
@@ -1319,7 +1319,7 @@ void abs_linesSetCutoff(ArrayOfAbsorptionLines& abs_lines,
                         const Verbosity&) 
 {
   auto t = Absorption::toCutoffType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines) {
     lines.Cutoff(t);
     lines.CutoffFreqValue(x);
@@ -1345,7 +1345,7 @@ void abs_linesSetCutoffForMatch(
   const Verbosity&)
 {
   auto t = Absorption::toCutoffType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& band: abs_lines) {
     if (QI.In(band.QuantumIdentity())) {
       band.Cutoff(t);
@@ -1396,7 +1396,7 @@ void abs_linesSetMirroring(ArrayOfAbsorptionLines& abs_lines,
                            const Verbosity&) 
 {
   auto t = Absorption::toMirroringType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     lines.Mirroring(t);
 }
@@ -1417,7 +1417,7 @@ void abs_linesSetMirroringForMatch(ArrayOfAbsorptionLines& abs_lines,
                                    const Verbosity&) 
 {
   auto t = Absorption::toMirroringType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& band: abs_lines) {
     if (QI.In(band.QuantumIdentity())) {
       band.Mirroring(t);
@@ -1463,7 +1463,7 @@ void abs_linesSetPopulation(ArrayOfAbsorptionLines& abs_lines,
                             const Verbosity&) 
 {
   auto t = Absorption::toPopulationType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     lines.Population(t);
 }
@@ -1484,7 +1484,7 @@ void abs_linesSetPopulationForMatch(ArrayOfAbsorptionLines& abs_lines,
                                     const Verbosity&) 
 {
   auto t = Absorption::toPopulationType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     if (QI.In(lines.QuantumIdentity()))
       lines.Population(t);
@@ -1528,7 +1528,7 @@ void abs_linesSetNormalization(ArrayOfAbsorptionLines& abs_lines,
                            const Verbosity&) 
 {
   auto t = Absorption::toNormalizationType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     lines.Normalization(t);
 }
@@ -1549,7 +1549,7 @@ void abs_linesSetNormalizationForMatch(ArrayOfAbsorptionLines& abs_lines,
                                        const Verbosity&) 
 {
   auto t = Absorption::toNormalizationType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     if (QI.In(lines.QuantumIdentity()))
       lines.Normalization(t);
@@ -1593,7 +1593,7 @@ void abs_linesSetLineShapeType(ArrayOfAbsorptionLines& abs_lines,
                                const Verbosity&) 
 {
   auto t = LineShape::toType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     lines.LineShapeType(t);
 }
@@ -1614,7 +1614,7 @@ void abs_linesSetLineShapeTypeForMatch(ArrayOfAbsorptionLines& abs_lines,
                                        const Verbosity&) 
 {
   auto t = LineShape::toType(type);
-  EnumErrorQuery(t, "Cannot understand type: ", type);
+  check_enum_error(t, "Cannot understand type: ", type);
   for (auto& lines: abs_lines)
     if (QI.In(lines.QuantumIdentity()))
       lines.LineShapeType(t);
@@ -2030,7 +2030,7 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   const Index spec = (do_self or do_bath) ? -1 : SpeciesTag(species).Species();
   
   const LineShape::Variable var = LineShape::toVariable(parameter);
-  EnumErrorQuery(var, "Cannot understand parameter: ", parameter);
+  check_enum_error(var, "Cannot understand parameter: ", parameter);
   
   if (new_values.nelem() not_eq LineShape::nmaxTempModelParams) {
     std::ostringstream os;
@@ -2041,7 +2041,7 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   
   LineShape::ModelParameters newdata;
   newdata.type = LineShape::toTemperatureModel(temperaturemodel);
-  EnumErrorQuery(newdata.type, "Cannot understand temperaturemodel: ", temperaturemodel);
+  check_enum_error(newdata.type, "Cannot understand temperaturemodel: ", temperaturemodel);
   newdata.X0 = new_values[0];
   newdata.X1 = new_values[1];
   newdata.X2 = new_values[2];

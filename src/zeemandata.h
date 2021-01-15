@@ -381,16 +381,16 @@ class Model {
   }
 
   /** Returns the upper state g */
-  Numeric& gu() noexcept { return mdata.gu; }
+  constexpr Numeric& gu() noexcept { return mdata.gu; }
   
   /** Returns the lower state g */
-  Numeric& gl() noexcept { return mdata.gl; }
+  constexpr Numeric& gl() noexcept { return mdata.gl; }
 
   /** Sets the upper state g */
-  void gu(Numeric x) noexcept { mdata.gu = x; }
+  constexpr void gu(Numeric x) noexcept { mdata.gu = x; }
   
   /** Sets the lower state g */
-  void gl(Numeric x) noexcept { mdata.gl = x; }
+  constexpr void gl(Numeric x) noexcept { mdata.gl = x; }
   
   /** Returns the upper state g */
   constexpr Numeric gu() const noexcept { return mdata.gu; }
@@ -411,14 +411,7 @@ class Model {
    * 
    * @return The relative strength of the Zeeman subline
    */
-  Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const {
-    using Constant::pow2;
-
-    auto ml = Ml(Ju, Jl, type, n);
-    auto mu = Mu(Ju, Jl, type, n);
-    auto dm = Rational(dM(type));
-    return PolarizationFactor(type) * pow2(wigner3j(Jl, Rational(1), Ju, ml, -dm, -mu));
-  }
+  Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const;
   
   /** Gives the splitting of one subline of a given polarization
    * 
@@ -444,16 +437,16 @@ class Model {
   }
 
   /** Output operator for Zeeman::Model */
-  friend inline std::ostream& operator<<(std::ostream& os, const Model& m);
+  friend std::ostream& operator<<(std::ostream& os, const Model& m);
   
   /** Input operator for Zeeman::Model */
-  friend inline std::istream& operator>>(std::istream& is, Model& m);
+  friend std::istream& operator>>(std::istream& is, Model& m);
   
   /** Output operator for Zeeman::Model */
-  friend inline std::ostream& operator<<(bofstream& bof, const Model& m);
+  friend std::ostream& operator<<(bofstream& bof, const Model& m);
   
   /** Input operator for Zeeman::Model */
-  friend inline std::istream& operator>>(bifstream& bif, Model& m);
+  friend std::istream& operator>>(bifstream& bif, Model& m);
 };  // Model;
 
 /** Returns a simple Zeeman model 
@@ -480,25 +473,13 @@ Model GetSimpleModel(const QuantumIdentifier& qid) noexcept;
  */
 Model GetAdvancedModel(const QuantumIdentifier& qid) noexcept;
 
-inline std::ostream& operator<<(std::ostream& os, const Model& m) {
-  os << m.mdata.gu << ' ' << m.mdata.gl;
-  return os;
-}
+std::ostream& operator<<(std::ostream& os, const Model& m);
 
-inline std::istream& operator>>(std::istream& is, Model& m) {
-  is >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
-  return is;
-}
+std::istream& operator>>(std::istream& is, Model& m);
 
-inline std::ostream& operator<<(bofstream& bof, const Model& m) {
-  bof << m.mdata.gu << m.mdata.gl;
-  return bof;
-}
+std::ostream& operator<<(bofstream& bof, const Model& m);
 
-inline std::istream& operator>>(bifstream& bif, Model& m) {
-  bif >> m.mdata.gu >> m.mdata.gl;
-  return bif;
-}
+std::istream& operator>>(bifstream& bif, Model& m);
 
 /** Polarization vector for Zeeman Propagation Matrix
  * 
@@ -575,21 +556,8 @@ struct AllPolarizationVectors {
  * 
  * @return The polarization vectors of all Zeeman polarization
  */
-inline AllPolarizationVectors AllPolarization(Numeric theta,
-                                              Numeric eta) noexcept {
-  const Numeric ST = std::sin(theta), CT = std::cos(theta), ST2 = ST * ST,
-                CT2 = CT * CT, ST2C2E = ST2 * std::cos(2 * eta),
-                ST2S2E = ST2 * std::sin(2 * eta);
-
-  AllPolarizationVectors pv;
-  pv.sm = PolarizationVector(
-      1 + CT2, ST2C2E, ST2S2E, 2 * CT, 4 * CT, 2 * ST2S2E, -2 * ST2C2E);
-  pv.pi =
-      PolarizationVector(ST2, -ST2C2E, -ST2S2E, 0, 0, -2 * ST2S2E, 2 * ST2C2E);
-  pv.sp = PolarizationVector(
-      1 + CT2, ST2C2E, ST2S2E, -2 * CT, -4 * CT, 2 * ST2S2E, -2 * ST2C2E);
-  return pv;
-}
+AllPolarizationVectors AllPolarization(Numeric theta,
+                                       Numeric eta) noexcept;
 
 /** The derivative of AllPolarization wrt theta
  * 
@@ -598,22 +566,8 @@ inline AllPolarizationVectors AllPolarization(Numeric theta,
  * 
  * @return The derivative of AllPolarization wrt theta
  */
-inline AllPolarizationVectors AllPolarization_dtheta(
-    Numeric theta, const Numeric eta) noexcept {
-  const Numeric ST = std::sin(theta), CT = std::cos(theta),
-                C2E = std::cos(2 * eta), S2E = std::sin(2 * eta), dST = CT,
-                dST2 = 2 * ST * dST, dCT = -ST, dST2C2E = dST2 * C2E,
-                dST2S2E = dST2 * S2E, dCT2 = 2 * CT * dCT;
-
-  AllPolarizationVectors pv;
-  pv.sm = PolarizationVector(
-      dCT2, dST2C2E, dST2S2E, 2 * dCT, 4 * dCT, 2 * dST2S2E, -2 * dST2C2E);
-  pv.pi = PolarizationVector(
-      dST2, -dST2C2E, -dST2S2E, 0, 0, -2 * dST2S2E, 2 * dST2C2E);
-  pv.sp = PolarizationVector(
-      dCT2, dST2C2E, dST2S2E, -2 * dCT, -4 * dCT, 2 * dST2S2E, -2 * dST2C2E);
-  return pv;
-}
+AllPolarizationVectors AllPolarization_dtheta(
+    Numeric theta, const Numeric eta) noexcept;
 
 /** The derivative of AllPolarization wrt eta
  * 
@@ -622,39 +576,16 @@ inline AllPolarizationVectors AllPolarization_dtheta(
  * 
  * @return The derivative of AllPolarization wrt eta
  */
-inline AllPolarizationVectors AllPolarization_deta(Numeric theta,
-                                                   Numeric eta) noexcept {
-  const Numeric ST = std::sin(theta), ST2 = ST * ST, C2E = std::cos(2 * eta),
-                S2E = std::sin(2 * eta), dST2C2E = -2 * ST2 * S2E,
-                dST2S2E = 2 * ST2 * C2E;
-
-  AllPolarizationVectors pv;
-  pv.sm =
-      PolarizationVector(0, dST2C2E, dST2S2E, 0, 0, 2 * dST2S2E, -2 * dST2C2E);
-  pv.pi = PolarizationVector(
-      0, -dST2C2E, -dST2S2E, 0, 0, -2 * dST2S2E, 2 * dST2C2E);
-  pv.sp =
-      PolarizationVector(0, dST2C2E, dST2S2E, 0, 0, 2 * dST2S2E, -2 * dST2C2E);
-  return pv;
-}
+AllPolarizationVectors AllPolarization_deta(Numeric theta,
+                                            Numeric eta) noexcept;
 
 /** Selects the polarization vector depending on polarization type 
  * 
  * @param[in] data The pre-computed polarization vectors
  * @param[in] type The type of polarization to select
  */
-inline const PolarizationVector& SelectPolarization(
-    const AllPolarizationVectors& data, Polarization type) noexcept {
-      switch (type) {
-    case Polarization::SigmaMinus:
-      return data.sm;
-    case Polarization::Pi:
-      return data.pi;
-    case Polarization::SigmaPlus:
-      return data.sp;
-  }
-  std::terminate();
-}
+const PolarizationVector& SelectPolarization(
+    const AllPolarizationVectors& data, Polarization type) noexcept;
 
 /** Contains derived values useful for Zeeman calculations
  * 

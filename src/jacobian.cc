@@ -1244,3 +1244,7 @@ Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
   else
     return std::numeric_limits<Numeric>::quiet_NaN();
 }
+
+std::ostream& Jacobian::operator<<(std::ostream& os, const Target& x) {
+  return os << x.TargetType() << " " << x.TargetSubType() << " " << x.Perturbation() << " " << x.QuantumIdentity();
+}

@@ -554,10 +554,10 @@ Vector mass(const ConstVectorView& atmospheric_vmrs,
             bool bath_in_list);
 
 /** Name for bath broadening in printing and reading user input */
-static constexpr const char* const bath_broadening = "AIR";
+static constexpr std::string_view bath_broadening = "AIR";
 
 /** Name for self broadening in printing and reading user input */
-static constexpr const char* const self_broadening = "SELF";
+static constexpr std::string_view self_broadening = "SELF";
 
 /** Main line shape model class
  * 
@@ -875,6 +875,7 @@ class Model {
 };  // Model;
 
 std::ostream& operator<<(std::ostream&, const Model&);
+
 std::istream& operator>>(std::istream&, Model&);
 
 String ModelShape2MetaData(const Model& m);
@@ -960,7 +961,23 @@ enum class TypeLM {
 LegacyLineMixingData::TypeLM string2typelm(String type);
 
 /** Line mixing types to number */
-Index typelm2nelem(LegacyLineMixingData::TypeLM type);
+constexpr Index typelm2nelem(LegacyLineMixingData::TypeLM type) {
+  switch (type) {
+    case TypeLM::LM_NONE:  // The standard case
+      return 0;
+    case TypeLM::LM_LBLRTM:  // The LBLRTM case
+      return 12;
+    case TypeLM::LM_LBLRTM_O2NonResonant:  // Nonresonant is just a tag
+      return 1;
+    case TypeLM::LM_2NDORDER:  // The 2nd order case
+      return 10;
+    case TypeLM::LM_1STORDER:  // The 2nd order case
+      return 3;
+    case TypeLM::LM_BYBAND:  // The band class
+      return 1;
+  }
+  std::terminate();
+}
 
 /** LineShape::Model from legacy input vector */
 Model vector2modellm(Vector x, LegacyLineMixingData::TypeLM type);
@@ -989,7 +1006,19 @@ Index self_listed(const QuantumIdentifier& qid,
                   LegacyPressureBroadeningData::TypePB t);
 
 /** Pressure broadening types to number of elements */
-Index typepb2nelem(LegacyPressureBroadeningData::TypePB type);
+constexpr Index typepb2nelem(LegacyPressureBroadeningData::TypePB type)  {
+  switch (type) {
+    case TypePB::PB_NONE:
+      return 0;
+    case TypePB::PB_AIR_BROADENING:
+      return 10;
+    case TypePB::PB_AIR_AND_WATER_BROADENING:
+      return 9;
+    case TypePB::PB_PLANETARY_BROADENING:
+      return 20;
+  }
+  std::terminate();
+}
 
 /** LineShape::Model from legacy input vector */
 void vector2modelpb(LineShape::Type& mtype,

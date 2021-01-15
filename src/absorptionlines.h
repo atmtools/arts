@@ -35,6 +35,7 @@
 #include <vector>
 #include "bifstream.h"
 #include "bofstream.h"
+#include "enums.h"
 #include "lineshapemodel.h"
 #include "matpack.h"
 #include "quantum.h"

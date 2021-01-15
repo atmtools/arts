@@ -2760,8 +2760,9 @@ bool Absorption::line_in_id(const Absorption::Lines& band, const QuantumIdentifi
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_id.isUndefined() and qn_line.isDefined()) or 
-          (qn_line.isDefined() and qn_line not_eq qn_id)) {
+      if (qn_line.isDefined() and qn_line not_eq qn_id) {
+        return false;
+      } else if (qn_id.isUndefined() and qn_line.isDefined()) {
         return false;
       }
     }
@@ -2770,8 +2771,9 @@ bool Absorption::line_in_id(const Absorption::Lines& band, const QuantumIdentifi
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.UpperQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_id.isUndefined() and qn_line.isDefined()) or 
-          (qn_line.isDefined() and qn_line not_eq qn_id)) {
+      if (qn_line.isDefined() and qn_line not_eq qn_id) {
+        return false;
+      } else if (qn_id.isUndefined() and qn_line.isDefined()) {
         return false;
       }
     }
@@ -2797,8 +2799,9 @@ bool Absorption::line_upper_in_id(const Absorption::Lines& band, const QuantumId
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_id.isUndefined() and qn_line.isDefined()) or 
-          (qn_line.isDefined() and qn_line not_eq qn_id)) {
+      if (qn_line.isDefined() and qn_line not_eq qn_id) {
+        return false;
+      } else if (qn_id.isUndefined() and qn_line.isDefined()) {
         return false;
       }
     }
@@ -2824,8 +2827,9 @@ bool Absorption::line_lower_in_id(const Absorption::Lines& band, const QuantumId
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_id.isUndefined() and qn_line.isDefined()) or 
-          (qn_line.isDefined() and qn_line not_eq qn_id)) {
+      if (qn_line.isDefined() and qn_line not_eq qn_id) {
+        return false;
+      } else if (qn_id.isUndefined() and qn_line.isDefined()){
         return false;
       }
     }
@@ -2851,8 +2855,9 @@ bool Absorption::id_in_line(const Absorption::Lines& band, const QuantumIdentifi
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_line.isUndefined() and qn_id.isDefined()) or 
-          (qn_id.isDefined() and qn_id not_eq qn_line)) {
+      if (qn_id.isDefined() and qn_id not_eq qn_line) {
+        return false;
+      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
         return false;
       }
     }
@@ -2861,8 +2866,9 @@ bool Absorption::id_in_line(const Absorption::Lines& band, const QuantumIdentifi
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.UpperQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_line.isUndefined() and qn_id.isDefined()) or 
-          (qn_id.isDefined() and qn_id not_eq qn_line)) {
+      if (qn_id.isDefined() and qn_id not_eq qn_line) {
+        return false;
+      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
         return false;
       }
     }
@@ -2888,8 +2894,9 @@ bool Absorption::id_in_line_upper(const Absorption::Lines& band, const QuantumId
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_line.isUndefined() and qn_id.isDefined()) or 
-          (qn_id.isDefined() and qn_id not_eq qn_line)) {
+      if (qn_id.isDefined() and qn_id not_eq qn_line) {
+        return false;
+      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
         return false;
       }
     }
@@ -2915,8 +2922,9 @@ bool Absorption::id_in_line_lower(const Absorption::Lines& band, const QuantumId
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_line.isUndefined() and qn_id.isDefined()) or 
-          (qn_id.isDefined() and qn_id not_eq qn_line)) {
+      if (qn_id.isDefined() and qn_id not_eq qn_line) {
+        return false;
+      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
         return false;
       }
     }
@@ -2927,10 +2935,7 @@ bool Absorption::id_in_line_lower(const Absorption::Lines& band, const QuantumId
 
 bool Absorption::line_is_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
 {
-  if (line_in_id(band, id, line_index) and id_in_line(band, id, line_index))
-    return true;
-  else
-    return false;
+  return (line_in_id(band, id, line_index) and id_in_line(band, id, line_index));
 }
 
 Numeric Absorption::reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k) {

@@ -167,7 +167,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
 
   // The first tag should give the line shape scheme
   data >> mtype;
-  EnumErrorQuery(mtype, "Bad Data");
+  check_enum_error(mtype, "Bad Data");
 
   // Order of elements for line shape
   const auto shapeparams =
@@ -1388,24 +1388,6 @@ LegacyLineMixingData::TypeLM string2typelm(String type) {
     throw std::runtime_error(os.str());
   }
 }
-
-Index typelm2nelem(LegacyLineMixingData::TypeLM type) {
-  switch (type) {
-    case TypeLM::LM_NONE:  // The standard case
-      return 0;
-    case TypeLM::LM_LBLRTM:  // The LBLRTM case
-      return 12;
-    case TypeLM::LM_LBLRTM_O2NonResonant:  // Nonresonant is just a tag
-      return 1;
-    case TypeLM::LM_2NDORDER:  // The 2nd order case
-      return 10;
-    case TypeLM::LM_1STORDER:  // The 2nd order case
-      return 3;
-    case TypeLM::LM_BYBAND:  // The band class
-      return 1;
-  }
-  std::terminate();
-}
 }  // LegacyLineMixingData
 
 
@@ -1442,20 +1424,6 @@ Index self_listed(const QuantumIdentifier& qid,
     return true;
   else
     return false;
-}
-
-Index typepb2nelem(LegacyPressureBroadeningData::TypePB type) {
-  switch (type) {
-    case TypePB::PB_NONE:
-      return 0;
-    case TypePB::PB_AIR_BROADENING:
-      return 10;
-    case TypePB::PB_AIR_AND_WATER_BROADENING:
-      return 9;
-    case TypePB::PB_PLANETARY_BROADENING:
-      return 20;
-  }
-  std::terminate();
 }
 }  // LegacyPressureBroadeningData
 }  // LineShape
