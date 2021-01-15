@@ -154,6 +154,8 @@ class TransmissionMatrix {
    * @param[in] i Position
    * @return Right size
    */
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wreturn-type"
   Eigen::MatrixXd Mat(size_t i) const {
     switch (stokes_dim) {
       case 1:
@@ -165,8 +167,8 @@ class TransmissionMatrix {
       case 4:
         return Mat4(i);
     }
-    std::terminate();
   }
+  #pragma GCC diagnostic pop
 
   /** Get Matrix at position
    * 

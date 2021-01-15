@@ -54,18 +54,22 @@ ENUMCLASS(MirroringType, char,
   Manual            // Mirror by having a line in the array of line record with negative F0
 )  // MirroringType
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr std::string_view mirroringtype2metadatastring(MirroringType in) noexcept {
-  if (in == MirroringType::None)
-    return "These lines are not mirrored at 0 Hz.\n";
-  else if (in == MirroringType::Lorentz)
-    return "These lines are mirrored around 0 Hz using the Lorentz line shape.\n";
-  else if (in == MirroringType::SameAsLineShape)
-    return "These line are mirrored around 0 Hz using the original line shape.\n";
-  else if (in == MirroringType::Manual)
-    return "There are manual line entries in the catalog to mirror this line.\n";
-  else 
-    std::terminate();
+  switch (in) {
+    case MirroringType::None:
+      return "These lines are not mirrored at 0 Hz.\n";
+    case MirroringType::Lorentz:
+      return "These lines are mirrored around 0 Hz using the Lorentz line shape.\n";
+    case MirroringType::SameAsLineShape:
+      return "These line are mirrored around 0 Hz using the original line shape.\n";
+    case MirroringType::Manual:
+      return "There are manual line entries in the catalog to mirror this line.\n";
+    case MirroringType::FINAL: break;
+  }
 }
+#pragma GCC diagnostic pop
 
 /** Describes the type of normalization line effects
  *
@@ -78,21 +82,25 @@ ENUMCLASS(NormalizationType, char,
   RQ                   // Renormalize using Rosenkranz's quadratic specifications
 )  // NormalizationType
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr std::string_view normalizationtype2metadatastring(NormalizationType in) {
-  if (in == NormalizationType::None)
-    return "No re-normalization in the far wing will be applied.\n";
-  else if (in == NormalizationType::VVH)
-    return "van Vleck and Huber far-wing renormalization will be applied, "
-      "i.e. F ~ (f tanh(hf/2kT))/(f0 tanh(hf0/2kT))\n";
-  else if (in == NormalizationType::VVW)
-    return "van Vleck and Weisskopf far-wing renormalization will be applied, "
-      "i.e. F ~ (f/f0)^2\n";
-  else if (in == NormalizationType::RQ)
-    return "Rosenkranz quadratic far-wing renormalization will be applied, "
-      "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
-  else
-    std::terminate();
+  switch (in) {
+    case NormalizationType::None:
+      return "No re-normalization in the far wing will be applied.\n";
+    case NormalizationType::VVH:
+      return "van Vleck and Huber far-wing renormalization will be applied, "
+        "i.e. F ~ (f tanh(hf/2kT))/(f0 tanh(hf0/2kT))\n";
+    case NormalizationType::VVW:
+      return "van Vleck and Weisskopf far-wing renormalization will be applied, "
+        "i.e. F ~ (f/f0)^2\n";
+    case NormalizationType::RQ:
+      return "Rosenkranz quadratic far-wing renormalization will be applied, "
+        "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
+    case NormalizationType::FINAL: break;
+  }
 }
+#pragma GCC diagnostic pop
 
 /** Describes the type of population level counter
  *
@@ -107,6 +115,8 @@ ENUMCLASS(PopulationType, char,
   ByMakarovFullRelmat        // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
 )  // PopulationType
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr std::string_view populationtype2metadatastring(PopulationType in) {
   switch (in) {
     case PopulationType::LTE:
@@ -122,8 +132,9 @@ constexpr std::string_view populationtype2metadatastring(PopulationType in) {
     case PopulationType::NLTE:
       return "The lines are considered as in pure NLTE.\n";
     case PopulationType::FINAL: return "There's an error";
-  } std::terminate();
+  }
 }
+#pragma GCC diagnostic pop
 
 constexpr bool relaxationtype_relmat(PopulationType in) noexcept {
   return in == PopulationType::ByHITRANFullRelmat or

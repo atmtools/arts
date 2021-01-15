@@ -358,9 +358,11 @@ AllPolarizationVectors AllPolarization_deta(Numeric theta,
   return pv;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
 const PolarizationVector& SelectPolarization(
     const AllPolarizationVectors& data, Polarization type) noexcept {
-      switch (type) {
+  switch (type) {
     case Polarization::SigmaMinus:
       return data.sm;
     case Polarization::Pi:
@@ -368,6 +370,6 @@ const PolarizationVector& SelectPolarization(
     case Polarization::SigmaPlus:
       return data.sp;
   }
-  std::terminate();
 }
+#pragma GCC diagnostic pop
 }

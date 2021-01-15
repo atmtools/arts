@@ -3555,12 +3555,15 @@ bool Absorption::Lines::OK() const noexcept
 namespace Absorption {
 String cutofftype2metadatastring(CutoffType in, Numeric cutoff) {
   std::ostringstream os;
-  if (in == CutoffType::None)
-    os << "No cut-off will be applied.\n";
-  else if (in == CutoffType::ByLine)
-    os << "The lines will be cut-off " << cutoff << " Hz from the line center.\n";
-  else if (in == CutoffType::ByBand)
-    os << "All lines are cut-off at " << cutoff << " Hz.\n";
+  switch (in) {
+    case CutoffType::None:
+      os << "No cut-off will be applied.\n"; break;
+    case CutoffType::ByLine:
+      os << "The lines will be cut-off " << cutoff << " Hz from the line center.\n"; break;
+    case CutoffType::ByBand:
+      os << "All lines are cut-off at " << cutoff << " Hz.\n"; break;
+    case CutoffType::FINAL: break;
+  }
   return os.str();
 }
 
@@ -3789,6 +3792,8 @@ Numeric Lines::F_mean(const ConstVectorView wgts) const noexcept {
   return  val / div;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
 Numeric Lines::CutoffFreq(size_t k) const noexcept {
   switch(mcutoff) {
     case CutoffType::ByLine:
@@ -3799,9 +3804,11 @@ Numeric Lines::CutoffFreq(size_t k) const noexcept {
       return std::numeric_limits<Numeric>::max();
     case CutoffType::FINAL: break;
   }
-  std::terminate();
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
 Numeric Lines::CutoffFreqMinus(size_t k, Numeric fmean) const noexcept {
   switch(mcutoff) {
     case CutoffType::ByLine:
@@ -3812,8 +3819,8 @@ Numeric Lines::CutoffFreqMinus(size_t k, Numeric fmean) const noexcept {
       return std::numeric_limits<Numeric>::lowest();
     case CutoffType::FINAL: break;
   }
-  std::terminate();
 }
+#pragma GCC diagnostic pop
 
 bifstream& Lines::read(bifstream& is) {
   for (auto& line: mlines)
