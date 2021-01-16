@@ -179,7 +179,8 @@ VectorLinSpace( t_grid, 274, 330, 2 )
 RadarOnionPeelingTableCalc( invtable = invtable,
                             i_species = 0,
                             dbze_grid = dbze_grid,
-                            t_grid = t_grid)
+                            t_grid = t_grid,
+                            wc_min = 1e-9)
 # Ice
 VectorLinSpace( t_grid, 199, 273, 1 )
 RadarOnionPeelingTableCalc( invtable = invtable,

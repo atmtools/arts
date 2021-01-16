@@ -1002,9 +1002,17 @@ void particle_bulkpropRadarOnionPeeling(
             if (dbze > dbze_noise) {
               phase = t >= t_phase ? 0 : 1;
               // Find closest temperature
-              GridPos gp;
-              gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_T_GRID), t);
-              it = gp.fd[0] < 0.5 ? gp.idx : gp.idx+1;
+              const Index tlast =
+                invtable[phase].get_numeric_grid(GFIELD3_T_GRID).nelem() - 1;
+              if (t <= invtable[phase].get_numeric_grid(GFIELD3_T_GRID)[0])
+                it = 0;
+              else if (t >= invtable[phase].get_numeric_grid(GFIELD3_T_GRID)[tlast])
+                it = tlast;
+              else {
+                GridPos gp;
+                gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_T_GRID), t);
+                it = gp.fd[0] < 0.5 ? gp.idx : gp.idx+1;
+              }
             }
             
             // Calculate attenuation from previous point
@@ -1069,13 +1077,15 @@ void particle_bulkpropRadarOnionPeeling(
             if (dBZe(ip,ilat,ilon) > dbze_noise) {
               // Correct reflectivity with (updated) attenuation
               dbze = dBZe(ip,ilat,ilon) + min(dbze_corr, dbze_max_corr);
-              // Interpolate inversion table (table holds log of water content)
+              // Interpolate inversion table (table holds log10 of water content)
+              // Allowing quite a bit of extrapolation
               GridPos gp;
-              gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID), dbze);
+              gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
+                      dbze, 10);
               Vector itw(2);
               interpweights(itw, gp);
               particle_bulkprop_field(phase,ip,ilat,ilon) =
-                exp(interp(itw, invtable[phase].data(0,joker,it), gp));
+                pow(10.0, (interp(itw, invtable[phase].data(0,joker,it), gp)));
             }
             
           // In clutter zone or below surface
@@ -1172,7 +1182,7 @@ void RadarOnionPeelingTableCalc(
            << i << "] (0-based)";
         throw runtime_error(os.str());
       }
-      gridpos(gp, scat_data[iss][i].T_grid, t_grid, 10);
+      gridpos(gp, scat_data[iss][i].T_grid, t_grid, 1);
       interpweights(itw, gp);
       interp(e(joker,i), itw, scat_data[iss][i].ext_mat_data(0,joker,0,0,0), gp);
       interp(b(joker,i), itw, scat_data[iss][i].pha_mat_data(0,joker,ib,0,0,0,0), gp);
@@ -1180,9 +1190,9 @@ void RadarOnionPeelingTableCalc(
   }
 
   // Create test grid for water content
-  const Index nwc = 250;
   Vector wc_grid;
-  VectorNLogSpace(wc_grid, nwc, wc_min, wc_max, verbosity);
+  VectorLogSpace(wc_grid, wc_min, wc_max, 0.04, verbosity);
+  const Index nwc = wc_grid.nelem();
   
   // Calculate dBZe and extinction for wc_grid
   //
@@ -1213,11 +1223,30 @@ void RadarOnionPeelingTableCalc(
     // Sum up to get bulk back-scattering and extinction
     for (Index t=0; t<nt; t++) {
       for (Index i=0; i<nse; i++) {
+        if (b(t,i) < 0) {
+          ostringstream os;
+          os << "A negative back-scattering found for scat_species " << iss 
+             << ",\ntemperature " << t_grid[t] << "K and element " << i; 
+          throw runtime_error(os.str());      
+        }
+        if (e(t,i) < 0) {
+          ostringstream os;
+          os << "A negative extinction found for scat_species " << iss 
+             << ",\ntemperature " << t_grid[t] << "K and element " << i; 
+          throw runtime_error(os.str());      
+        }
+        if (pnd_data(t,i) < 0) {
+          ostringstream os;
+          os << "A negative PSD value found for scat_species " << iss 
+             << ",\ntemperature " << t_grid[t] << "K and " << wc_grid[w]
+             << " kg/m3";
+          throw runtime_error(os.str());      
+        }
         D(0,w,t) += pnd_data(t,i) * b(t,i);
         D(1,w,t) += pnd_data(t,i) * e(t,i);
       }
       // Convert to dBZe
-      D(0,w,t) = 10 * log10(cfac[0] * D(0,w,t));
+      D(0,w,t) = 10 * log10(cfac[0] * D(0,w,t));      
     }
   }
 
@@ -1226,21 +1255,30 @@ void RadarOnionPeelingTableCalc(
   ArrayOfGridPos gp(ndb);
   // Water content interpolated in log
   Vector wc_log(nwc);
-  transform(wc_log, log, wc_grid);
+  transform(wc_log, log10, wc_grid);
   for (Index t=0; t<nt; t++) {
     if (!is_increasing(D(0,joker,t))) {
+      for (Index w=0; w<nwc; w++) {
+        cout << wc_grid[w] << " " << D(0,w,t) << endl;
+      }
       ostringstream os;
       os << "A case found of non-increasing dBZe.\n"
          << "Found for scat_species " << iss << " and " << t_grid[t] << "K.";
       throw runtime_error(os.str());
     }
     if (D(0,0,t) > dbze_grid[0]) {
+      for (Index w=0; w<nwc; w++) {
+        cout << wc_grid[w] << " " << D(0,w,t) << endl;
+      }
       ostringstream os;
       os << "A case found where start of dbze_grid not covered.\n"
          << "Found for scat_species " << iss << " and " << t_grid[t] << "K.";
       throw runtime_error(os.str());      
     }
     if (D(0,nwc-1,t) < dbze_grid[ndb-1]) {
+      for (Index w=0; w<nwc; w++) {
+        cout << wc_grid[w] << " " << D(0,w,t) << endl;
+      }
       ostringstream os;
       os << "A case found where end of dbze_grid not covered.\n"
          << "Found for scat_species " << iss << " and " << t_grid[t] << "K.";

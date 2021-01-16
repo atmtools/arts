@@ -11199,8 +11199,8 @@ void define_md_data_raw() {
           "\n"
           "The size of each field is (2,ndb,nt). The two page dimensions match\n"
           "the hydrometeor property to retrieve and extinction, respectively.\n"
-          "The table shall hold the (natural) logarithm of the property, such\n"
-          "as log(IWC). ndb is the number of dBZe values in the table and nt\n"
+          "The table shall hold the 10-logarithm of the property, such as\n"
+          "log10(IWC). ndb is the number of dBZe values in the table and nt\n"
           "the number of temperatures. The table is interpolated in temperature\n"
           "in a nearest neighbour fashion, while in a linear interpolation is\n"
           "applied in the dBZe dimension.\n"
@@ -11385,9 +11385,7 @@ void define_md_data_raw() {
           "is assumed (see *particle_masses* for a definition of \"mass\n"
           "category\").\n"
           "\n"
-          "To be clear, the above are assumptions of the method, the user\n"
-          "is free to work with any scattering element. For Earth and just having\n"
-          "cloud and particles, the resulting mass category can be seen as\n"
+          "If just having clouds, the resulting mass category can be seen as\n"
           "the total cloud water content, with possible contribution from\n"
           "both ice and liquid phase.\n"),
       AUTHORS("Jana Mendrok", "Patrick Eriksson"),
@@ -11406,14 +11404,9 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Derives *particle_masses* from *scat_meta*.\n"
           "\n"
-          "This method is supposed to be used to derive *particle_masses*\n"
-          "when *pnd_field* is internally calculated using\n"
-          "*pnd_fieldCalcFromParticleBulkProps* (in contrast to reading it\n"
-          "from external sources using *ScatElementsPndAndScatAdd* and\n"
-          "*pnd_fieldCalcFrompnd_field_raw*).\n"
-          "It extracts the mass information of the scattering elements from\n"
-          "*scat_meta*. Each scattering species is taken as a separate\n"
-          "category of particle_masses, i.e., the resulting\n"
+          "It extracts the mass information of the scattering elements\n"
+          "from *scat_meta*. Each scattering species is taken as a\n"
+          "separate category of particle_masses, i.e., the resulting\n"
           "*particle_masses* matrix will contain as many columns as\n"
           "scattering species are present in *scat_meta*.\n"),
       AUTHORS("Jana Mendrok"),
@@ -13984,7 +13977,7 @@ void define_md_data_raw() {
           "k2"),
       GIN_TYPE("Index", "Vector", "Vector", "Numeric", "Numeric",
                "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "1e-9", "1e-1", "273.15", "-1" ),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1e-8", "2e-2", "273.15", "-1" ),
       GIN_DESC("Index of *scat_species* to do. Can be 0 or 1.",
                "Grid of dBZe values to use for the table.",
                "Temperature grid to use for the table.",
