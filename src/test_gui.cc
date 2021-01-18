@@ -95,38 +95,35 @@ int main() {
   Matrix VMRmat(2, 1); VMRmat(0, 0) = VMR[0]; VMRmat(1, 0) = VMR[1];
   Matrix xsec2(nfreq, 1, 0), xsec3(nfreq, 1, 0), source, phase;
   
-  // Line Mixing full calculations
-  const ComplexVector abs = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
-                                                                   partition_functions.getParamType(band.QuantumIdentity()),
-                                                                   partition_functions.getParam(band.QuantumIdentity()));
-  
-  
+  // Retrieval Quantities
   RetrievalQuantity rq;
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
   rq.Target().Perturbation(0.1);
-  const auto [abs2, dabs] = Absorption::LineMixing::ecs_absorption2(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
-                                                                    partition_functions.getParamType(band.QuantumIdentity()),
-                                                                    partition_functions.getParam(band.QuantumIdentity()),
-                                                                    {rq});
+  
+  // Line Mixing full calculations
+  const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
+                                                                  partition_functions.getParamType(band.QuantumIdentity()),
+                                                                  partition_functions.getParam(band.QuantumIdentity()),
+                                                                  {rq});
   
   // Line Mixing full calculations
   ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
                                                                partition_functions.getParamType(band.QuantumIdentity()),
-                                                               partition_functions.getParam(band.QuantumIdentity()));
+                                                               partition_functions.getParam(band.QuantumIdentity())).first;
   
   // Line Mixing full calculations with Zeeman (ignoring polarization...)
-  ComplexVector absZ = Absorption::LineMixing::ecs_absorption_with_zeeman_perturbations(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
-                                                                                        Zeeman::Polarization::Pi, band,
-                                                                                        partition_functions.getParamType(band.QuantumIdentity()),
-                                                                                        partition_functions.getParam(band.QuantumIdentity()));
-  absZ += Absorption::LineMixing::ecs_absorption_with_zeeman_perturbations(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
-                                                                           Zeeman::Polarization::SigmaMinus, band,
-                                                                           partition_functions.getParamType(band.QuantumIdentity()),
-                                                                           partition_functions.getParam(band.QuantumIdentity()));
-  absZ += Absorption::LineMixing::ecs_absorption_with_zeeman_perturbations(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
-                                                                           Zeeman::Polarization::SigmaPlus, band,
-                                                                           partition_functions.getParamType(band.QuantumIdentity()),
-                                                                           partition_functions.getParam(band.QuantumIdentity()));
+  auto [absZ, dabsZ] = Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
+                                                                     Zeeman::Polarization::Pi, band,
+                                                                     partition_functions.getParamType(band.QuantumIdentity()),
+                                                                     partition_functions.getParam(band.QuantumIdentity()));
+  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
+                                                        Zeeman::Polarization::SigmaMinus, band,
+                                                        partition_functions.getParamType(band.QuantumIdentity()),
+                                                        partition_functions.getParam(band.QuantumIdentity())).first;
+  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
+                                                        Zeeman::Polarization::SigmaPlus, band,
+                                                        partition_functions.getParamType(band.QuantumIdentity()),
+                                                        partition_functions.getParam(band.QuantumIdentity())).first;
   
   // Line Mixing reimplementation of MPM19
   Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec,

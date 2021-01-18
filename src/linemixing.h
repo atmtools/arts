@@ -86,43 +86,19 @@ struct PopulationAndDipole {
  * @param[in] band The absorption band
  * @param[in] partition_type The type of partition function data
  * @param[in] partition_data The partition function data
- * @return Complex absorption
- */
-ComplexVector ecs_absorption(const Numeric T,
-                             const Numeric P,
-                             const Numeric this_vmr,
-                             const Vector& vmrs,
-                             const Vector& mass,
-                             const Vector& f_grid,
-                             const AbsorptionLines& band,
-                             const SpeciesAuxData::AuxType& partition_type,
-                             const ArrayOfGriddedField1& partition_data);
-
-
-/*! Computed the Error Corrected Sudden Complex absorption
- * 
- * @param[in] T The temperature
- * @param[in] P The pressure
- * @param[in] this_vmr The VMR of this species
- * @param[in] vmrs The VMRs of all broadeners of the absorption band
- * @param[in] mass The mass of all broadeners of the absorption band
- * @param[in] f_grid The grid of frequencies
- * @param[in] band The absorption band
- * @param[in] partition_type The type of partition function data
- * @param[in] partition_data The partition function data
  * @param[in] jacobian_quantities As WSV
  * @return Complex absorption and list of Complex absorption partial derivatives
  */
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
-                                                               const Numeric P,
-                                                               const Numeric this_vmr,
-                                                               const Vector& vmrs,
-                                                               const Vector& mass,
-                                                               const Vector& f_grid,
-                                                               const AbsorptionLines& band,
-                                                               const SpeciesAuxData::AuxType& partition_type,
-                                                               const ArrayOfGriddedField1& partition_data,
-                                                               const ArrayOfRetrievalQuantity& jacobian_quantities);
+std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
+                                                              const Numeric P,
+                                                              const Numeric this_vmr,
+                                                              const Vector& vmrs,
+                                                              const Vector& mass,
+                                                              const Vector& f_grid,
+                                                              const AbsorptionLines& band,
+                                                              const SpeciesAuxData::AuxType& partition_type,
+                                                              const ArrayOfGriddedField1& partition_data,
+                                                              const ArrayOfRetrievalQuantity& jacobian_quantities={});
 
 
 /*! Computed the Error Corrected Sudden Complex absorption with Zeeman effect perturbations
@@ -141,17 +117,18 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
  * @param[in] partition_data The partition function data
  * @return Complex absorption of the Zeeman component
  */
-ComplexVector ecs_absorption_with_zeeman_perturbations(const Numeric T,
-                                                       const Numeric H,
-                                                       const Numeric P,
-                                                       const Numeric this_vmr,
-                                                       const Vector& vmrs,
-                                                       const Vector& mass,
-                                                       const Vector& f_grid,
-                                                       const Zeeman::Polarization zeeman_polarization,
-                                                       const AbsorptionLines& band,
-                                                       const SpeciesAuxData::AuxType& partition_type,
-                                                       const ArrayOfGriddedField1& partition_data);
+std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numeric T,
+                                                                     const Numeric H,
+                                                                     const Numeric P,
+                                                                     const Numeric this_vmr,
+                                                                     const Vector& vmrs,
+                                                                     const Vector& mass,
+                                                                     const Vector& f_grid,
+                                                                     const Zeeman::Polarization zeeman_polarization,
+                                                                     const AbsorptionLines& band,
+                                                                     const SpeciesAuxData::AuxType& partition_type,
+                                                                     const ArrayOfGriddedField1& partition_data,
+                                                                     const ArrayOfRetrievalQuantity& jacobian_quantities={});
 
 
 /*! Adapts the band to use Rosenkranz parameters

@@ -372,4 +372,47 @@ const PolarizationVector& SelectPolarization(
   }
 }
 #pragma GCC diagnostic pop
+
+void sum(PropagationMatrix& pm, const ComplexVector& abs, const PolarizationVector& polvec) {
+  auto pol_real = polvec.attenuation();
+  auto pol_imag = polvec.dispersion();
+  for (Index iv=0; iv<pm.NumberOfFrequencies(); iv++) {
+    pm.Kjj()[iv] += abs[iv].real() * pol_real[0];
+    pm.K12()[iv] += abs[iv].real() * pol_real[1];
+    pm.K13()[iv] += abs[iv].real() * pol_real[2];
+    pm.K14()[iv] += abs[iv].real() * pol_real[3];
+    pm.K23()[iv] += abs[iv].imag() * pol_imag[0];
+    pm.K24()[iv] += abs[iv].imag() * pol_imag[1];
+    pm.K34()[iv] += abs[iv].imag() * pol_imag[2];
+  }
 }
+
+void dsum(PropagationMatrix& pm,
+          const ComplexVector& abs,
+          const ComplexVector& dabs,
+          const PolarizationVector& polvec,
+          const PolarizationVector& dpolvec_dtheta,
+          const PolarizationVector& dpolvec_deta,
+          const Numeric dH,
+          const Numeric dt,
+          const Numeric de) {
+  auto pol_real = polvec.attenuation();
+  auto pol_imag = polvec.dispersion();
+  auto dp_dt_r = dpolvec_dtheta.attenuation();
+  auto dp_dt_i = dpolvec_dtheta.dispersion();
+  auto dp_de_r = dpolvec_deta.attenuation();
+  auto dp_de_i = dpolvec_deta.dispersion();
+  
+  for (Index iv=0; iv<pm.NumberOfFrequencies(); iv++) {
+    const auto da_r = (dt * dp_dt_r + de * dp_de_r);
+    const auto da_i = (dt * dp_dt_i + de * dp_de_i);
+    pm.Kjj()[iv] += dabs[iv].real() * dH * pol_real[0] + abs[iv].real() * da_r[0];
+    pm.K12()[iv] += dabs[iv].real() * dH * pol_real[1] + abs[iv].real() * da_r[1];
+    pm.K13()[iv] += dabs[iv].real() * dH * pol_real[2] + abs[iv].real() * da_r[2];
+    pm.K14()[iv] += dabs[iv].real() * dH * pol_real[3] + abs[iv].real() * da_r[3];
+    pm.K23()[iv] += dabs[iv].imag() * dH * pol_imag[0] + abs[iv].imag() * da_i[0];
+    pm.K24()[iv] += dabs[iv].imag() * dH * pol_imag[1] + abs[iv].imag() * da_i[1];
+    pm.K34()[iv] += dabs[iv].imag() * dH * pol_imag[2] + abs[iv].imag() * da_i[2];;
+  }
+}
+}  // Zeeman

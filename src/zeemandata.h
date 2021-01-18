@@ -33,6 +33,7 @@
 #include "constants.h"
 #include "file.h"
 #include "mystring.h"
+#include "propagationmatrix.h"
 #include "quantum.h"
 #include "wigner_functions.h"
 
@@ -586,6 +587,36 @@ AllPolarizationVectors AllPolarization_deta(Numeric theta,
  */
 const PolarizationVector& SelectPolarization(
     const AllPolarizationVectors& data, Polarization type) noexcept;
+
+/** Sums the Zeeman components into a propagation matrix
+ * 
+ * @param[in,out] pm The propagation matrix
+ * @param[in] abs The complex absorption vector
+ * @param[in] polvec The polarization vector
+ */
+void sum(PropagationMatrix& pm, const ComplexVector& abs, const PolarizationVector& polvec);
+
+/** Sums the Zeeman components derivatives into a propagation matrix
+ * 
+ * @param[in,out] pm The propagation matrix derivative
+ * @param[in] abs The complex absorption vector
+ * @param[in] dabs The complex absorption vector derivative w.r.t. H
+ * @param[in] polvec The polarization vector
+ * @param[in] dpolvec_dtheta The polarization vector derivative w.r.t. theta
+ * @param[in] dpolvec_deta The polarization vector derivative w.r.t. eta
+ * @param[in] dH The derivative w.r.t. H
+ * @param[in] dtheta The derivative w.r.t. theta
+ * @param[in] deta The derivative w.r.t. eta
+ */
+void dsum(PropagationMatrix& dpm,
+          const ComplexVector& abs,
+          const ComplexVector& dabs,
+          const PolarizationVector& polvec,
+          const PolarizationVector& dpolvec_dtheta,
+          const PolarizationVector& dpolvec_deta,
+          const Numeric dH,
+          const Numeric dtheta,
+          const Numeric deta);
 
 /** Contains derived values useful for Zeeman calculations
  * 

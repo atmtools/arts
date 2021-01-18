@@ -130,13 +130,14 @@ void propmat_clearskyAddHitranLineMixingLines(ArrayOfPropagationMatrix& propmat_
     
   for (Index i=0; i<abs_species.nelem(); i++) {
     if (abs_lines_per_species[i].nelem() and 
-      (abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANFullRelmat or
-       abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat))
+       (abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANFullRelmat or
+        abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat))
       propmat_clearsky[i].Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], rtp_pressure, rtp_temperature, vmrs, f_grid, partition_functions);
   }
 }
 
 void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_clearsky,
+                                           ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                            const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                            const Vector& f_grid,
                                            const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -148,8 +149,6 @@ void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_cle
                                            const Index& lbl_checked,
                                            const Verbosity&)
 {
-  if (jacobian_quantities.nelem())
-    throw std::runtime_error("Cannot support any Jacobian at this time");
   if (abs_species.nelem() not_eq abs_lines_per_species.nelem())
     throw std::runtime_error("Bad size of input species+lines");
   if (abs_species.nelem() not_eq rtp_vmr.nelem())
@@ -157,6 +156,8 @@ void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_cle
   if (not lbl_checked)
     throw std::runtime_error("Please set lbl_checked true to use this function");
   
+  // Meta variables that explain the calculations required
+  const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
   
   for (Index i=0; i<abs_species.nelem(); i++) {
     for (auto& band: abs_lines_per_species[i]) {
@@ -165,22 +166,29 @@ void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_cle
         const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
         const Vector line_shape_mass = band.BroadeningSpeciesMass(rtp_vmr, abs_species);
         const Numeric this_vmr = rtp_vmr[i];
-        const ComplexVector abs = Absorption::LineMixing::ecs_absorption(rtp_temperature,
-                                                                         rtp_pressure,
-                                                                         this_vmr,
-                                                                         line_shape_vmr,
-                                                                         line_shape_mass,
-                                                                         f_grid,
-                                                                         band,
-                                                                         partition_functions.getParamType(band.QuantumIdentity()),
-                                                                         partition_functions.getParam(band.QuantumIdentity()));
+        const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(rtp_temperature,
+                                                                        rtp_pressure,
+                                                                        this_vmr,
+                                                                        line_shape_vmr,
+                                                                        line_shape_mass,
+                                                                        f_grid,
+                                                                        band,
+                                                                        partition_functions.getParamType(band.QuantumIdentity()),
+                                                                        partition_functions.getParam(band.QuantumIdentity()),
+                                                                        jacobian_quantities);
         propmat_clearsky[i].Kjj() += abs.real();
+        
+        // Sum up the resorted Jacobian
+        for (Index j=0; j<jac_pos.nelem(); j++) {
+          dpropmat_clearsky_dx[j].Kjj() += dabs[jac_pos[j]].real();
+        }
       }
     }
   }
 }
 
 void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& propmat_clearsky,
+                                                     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                                      const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                                      const Vector& f_grid,
                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -196,8 +204,6 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
 {
   if (std::any_of(propmat_clearsky.begin(), propmat_clearsky.end(), [](auto& pm){return pm.StokesDimensions() not_eq 4;}))
     throw std::runtime_error("Only for stokes dim 4");
-  if (jacobian_quantities.nelem())
-    throw std::runtime_error("Cannot support any Jacobian at this time");
   if (abs_species.nelem() not_eq abs_lines_per_species.nelem())
     throw std::runtime_error("Bad size of input species+lines");
   if (abs_species.nelem() not_eq rtp_vmr.nelem())
@@ -205,9 +211,14 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
   if (not lbl_checked)
     throw std::runtime_error("Please set lbl_checked true to use this function");
   
+  // Meta variables that explain the calculations required
+  const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
+  
   // Polarization
   const auto Z = Zeeman::FromGrids(rtp_mag[0], rtp_mag[1], rtp_mag[2], Conversion::deg2rad(rtp_los[0]), Conversion::deg2rad(rtp_los[1]));
   const auto polarization_scale_data = Zeeman::AllPolarization(Z.theta, Z.eta);
+  const auto polarization_scale_dtheta_data = Zeeman::AllPolarization_dtheta(Z.theta, Z.eta);
+  const auto polarization_scale_deta_data = Zeeman::AllPolarization_deta(Z.theta, Z.eta);
   
   for (Index i=0; i<abs_species.nelem(); i++) {
     for (auto& band: abs_lines_per_species[i]) {
@@ -217,29 +228,45 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
         const Vector line_shape_mass = band.BroadeningSpeciesMass(rtp_vmr, abs_species);
         const Numeric this_vmr = rtp_vmr[i];
         for (Zeeman::Polarization polarization : {Zeeman::Polarization::Pi, Zeeman::Polarization::SigmaMinus, Zeeman::Polarization::SigmaPlus}) {
-          const ComplexVector abs = Absorption::LineMixing::ecs_absorption_with_zeeman_perturbations(rtp_temperature,
-                                                                                                     Z.H,
-                                                                                                     rtp_pressure,
-                                                                                                     this_vmr,
-                                                                                                     line_shape_vmr,
-                                                                                                     line_shape_mass,
-                                                                                                     f_grid,
-                                                                                                     polarization,
-                                                                                                     band,
-                                                                                                     partition_functions.getParamType(band.QuantumIdentity()),
-                                                                                                     partition_functions.getParam(band.QuantumIdentity()));
+          const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption_zeeman(rtp_temperature,
+                                                                                 Z.H,
+                                                                                 rtp_pressure,
+                                                                                 this_vmr,
+                                                                                 line_shape_vmr,
+                                                                                 line_shape_mass,
+                                                                                 f_grid,
+                                                                                 polarization,
+                                                                                 band,
+                                                                                 partition_functions.getParamType(band.QuantumIdentity()),
+                                                                                 partition_functions.getParam(band.QuantumIdentity()),
+                                                                                 jacobian_quantities);
           
-          auto& pol = Zeeman::SelectPolarization(polarization_scale_data, polarization);
-          auto pol_real = pol.attenuation();
-          auto pol_imag = pol.dispersion();
-          for (Index iv=0; iv<f_grid.nelem(); iv++) {
-            propmat_clearsky[i].Kjj()[iv] += abs[iv].real() * pol_real[0];
-            propmat_clearsky[i].K12()[iv] += abs[iv].real() * pol_real[1];
-            propmat_clearsky[i].K13()[iv] += abs[iv].real() * pol_real[2];
-            propmat_clearsky[i].K14()[iv] += abs[iv].real() * pol_real[3];
-            propmat_clearsky[i].K23()[iv] += abs[iv].imag() * pol_imag[0];
-            propmat_clearsky[i].K24()[iv] += abs[iv].imag() * pol_imag[1];
-            propmat_clearsky[i].K34()[iv] += abs[iv].imag() * pol_imag[2];
+          // Sum up the propagation matrix
+          Zeeman::sum(propmat_clearsky[i], abs, Zeeman::SelectPolarization(polarization_scale_data, polarization));
+          
+          // Sum up the resorted Jacobian
+          for (Index j=0; j<jac_pos.nelem(); j++) {
+            if (jacobian_quantities[jac_pos[j]] == Jacobian::Atm::MagneticU) {
+              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[jac_pos[j]],
+                           Zeeman::SelectPolarization(polarization_scale_data, polarization),
+                           Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
+                           Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
+                           Z.dH_du, Z.dtheta_du, Z.deta_du);
+            } else if (jacobian_quantities[jac_pos[j]] == Jacobian::Atm::MagneticV) {
+              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[jac_pos[j]],
+                           Zeeman::SelectPolarization(polarization_scale_data, polarization),
+                           Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
+                           Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
+                           Z.dH_dv, Z.dtheta_dv, Z.deta_dv);
+            } else if (jacobian_quantities[jac_pos[j]] == Jacobian::Atm::MagneticW) {
+              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[jac_pos[j]],
+                           Zeeman::SelectPolarization(polarization_scale_data, polarization),
+                           Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
+                           Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
+                           Z.dH_dw, Z.dtheta_dw, Z.deta_dw);
+            } else {
+              dpropmat_clearsky_dx[j].Kjj() += dabs[jac_pos[j]].real();
+            }
           }
         }
       }

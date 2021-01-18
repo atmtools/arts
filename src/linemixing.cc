@@ -516,30 +516,17 @@ ComplexVector ecs_absorption_impl(const Numeric T,
 }
 
 
-ComplexVector ecs_absorption(const Numeric T,
-                             const Numeric P,
-                             const Numeric this_vmr,
-                             const Vector& vmrs,
-                             const Vector& mass,
-                             const Vector& f_grid,
-                             const AbsorptionLines& band,
-                             const SpeciesAuxData::AuxType& partition_type,
-                             const ArrayOfGriddedField1& partition_data) {
-  return ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
-}
-
-
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
-                                                               const Numeric P,
-                                                               const Numeric this_vmr,
-                                                               const Vector& vmrs,
-                                                               const Vector& mass,
-                                                               const Vector& f_grid,
-                                                               const AbsorptionLines& band,
-                                                               const SpeciesAuxData::AuxType& partition_type,
-                                                               const ArrayOfGriddedField1& partition_data,
-                                                               const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  const ComplexVector absorption = ecs_absorption(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
+std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
+                                                              const Numeric P,
+                                                              const Numeric this_vmr,
+                                                              const Vector& vmrs,
+                                                              const Vector& mass,
+                                                              const Vector& f_grid,
+                                                              const AbsorptionLines& band,
+                                                              const SpeciesAuxData::AuxType& partition_type,
+                                                              const ArrayOfGriddedField1& partition_data,
+                                                              const ArrayOfRetrievalQuantity& jacobian_quantities) {
+  const ComplexVector absorption = ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
   
   // Start as original, so remove new and divide with the negative to get forward derivative
   ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
@@ -550,13 +537,13 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
     
     if (target == Jacobian::Atm::Temperature) {
       const Numeric dT = target.Perturbation();
-      vec -= ecs_absorption(T+dT, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
+      vec -= ecs_absorption_impl<SpecialParam::None>(T+dT, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
       vec /= -dT;
     } else if (target.isWind()) {
       const Numeric df = target.Perturbation();
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
-      vec -= ecs_absorption(T, P, this_vmr, vmrs, mass, f_grid_copy, band, partition_type, partition_data);
+      vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid_copy, band, partition_type, partition_data);
     } else if (target == Jacobian::Line::VMR) {
       Vector vmrs_copy = vmrs;
       Numeric this_vmr_copy = this_vmr;
@@ -577,7 +564,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
       }
       
       // Computations
-      vec -= ecs_absorption(T, P, this_vmr_copy, vmrs_copy, mass, f_grid, band, partition_type, partition_data);
+      vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr_copy, vmrs_copy, mass, f_grid, band, partition_type, partition_data);
       vec /= -dvmr;
     } else if (target.needQuantumIdentity()) {
       Numeric d=1e-6;
@@ -595,7 +582,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
         }
         
         // Perform calculations and estimate derivative
-        vec -= ecs_absorption(T, P, this_vmr, vmrs, mass, f_grid, band_copy, partition_type, partition_data);
+        vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid, band_copy, partition_type, partition_data);
         vec /= -d;
       } else if (lt.found == Absorption::LineTargetType::LineshapeParameter) {
         AbsorptionLines band_copy = band;
@@ -722,7 +709,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
         }
         
         // Perform calculations and estimate derivative
-        vec -= ecs_absorption(T, P, this_vmr, vmrs, mass, f_grid, band_copy, partition_type, partition_data);
+        vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid, band_copy, partition_type, partition_data);
         vec /= -d;
       } else if (lt.found == Absorption::LineTargetType::Band) {
         if (target == Jacobian::Line::SpecialParameter1) {
@@ -754,17 +741,18 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption2(const Numeric T,
 }
 
 
-ComplexVector ecs_absorption_with_zeeman_perturbations(const Numeric T,
-                                                       const Numeric H,
-                                                       const Numeric P,
-                                                       const Numeric this_vmr,
-                                                       const Vector& vmrs,
-                                                       const Vector& mass,
-                                                       const Vector& f_grid,
-                                                       const Zeeman::Polarization zeeman_polarization,
-                                                       const AbsorptionLines& band,
-                                                       const SpeciesAuxData::AuxType& partition_type,
-                                                       const ArrayOfGriddedField1& partition_data)  {
+template <SpecialParam param>
+ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
+                                         const Numeric H,
+                                         const Numeric P,
+                                         const Numeric this_vmr,
+                                         const Vector& vmrs,
+                                         const Vector& mass,
+                                         const Vector& f_grid,
+                                         const Zeeman::Polarization zeeman_polarization,
+                                         const AbsorptionLines& band,
+                                         const SpeciesAuxData::AuxType& partition_type,
+                                         const ArrayOfGriddedField1& partition_data) {
   constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
   
   // Weighted center of the band
@@ -777,7 +765,7 @@ ComplexVector ecs_absorption_with_zeeman_perturbations(const Numeric T,
   const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
   
   // Relaxation matrix
-  const ComplexMatrix W = ecs_relaxation_matrix<SpecialParam::None>(T, P, vmrs, mass, band, sorting, frenorm);
+  const ComplexMatrix W = ecs_relaxation_matrix<param>(T, P, vmrs, mass, band, sorting, frenorm);
   
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
@@ -810,6 +798,237 @@ ComplexVector ecs_absorption_with_zeeman_perturbations(const Numeric T,
   }
   
   return absorption;
+}
+
+
+std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numeric T,
+                                                                     const Numeric H,
+                                                                     const Numeric P,
+                                                                     const Numeric this_vmr,
+                                                                     const Vector& vmrs,
+                                                                     const Vector& mass,
+                                                                     const Vector& f_grid,
+                                                                     const Zeeman::Polarization zeeman_polarization,
+                                                                     const AbsorptionLines& band,
+                                                                     const SpeciesAuxData::AuxType& partition_type,
+                                                                     const ArrayOfGriddedField1& partition_data,
+                                                                     const ArrayOfRetrievalQuantity& jacobian_quantities) {
+  const ComplexVector absorption = ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+  
+  // Start as original, so remove new and divide with the negative to get forward derivative
+  ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
+  
+  for (Index i=0; i<jacobian_quantities.nelem(); i++) {
+    auto& vec = jacobian[i];
+    auto& target = jacobian_quantities[i].Target();
+    
+    if (target == Jacobian::Atm::Temperature) {
+      const Numeric dT = target.Perturbation();
+      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T+dT, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+      vec /= -dT;
+    } else if (target.isMagnetic()) {
+      const Numeric dH = target.Perturbation();
+      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H+dH, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+      vec /= -dH;
+    } else if (target.isWind()) {
+      const Numeric df = target.Perturbation();
+      Vector f_grid_copy = f_grid;
+      f_grid_copy += df;
+      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid_copy, zeeman_polarization, band, partition_type, partition_data);;
+    } else if (target == Jacobian::Line::VMR) {
+      Vector vmrs_copy = vmrs;
+      Numeric this_vmr_copy = this_vmr;
+      const Numeric dvmr = target.Perturbation();
+      
+      // Alter the VMRs for self 
+      if (band.Species() == target.QuantumIdentity().Species() and
+        band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
+        this_vmr_copy += dvmr;
+      if (band.Self()) vmrs_copy[0] += dvmr;  // First value is self if band has self broadener
+        } else {
+          for (Index j=band.Self(); j<band.BroadeningSpecies().nelem()-band.Bath(); j++) {
+            if (band.BroadeningSpecies()[j].Species() == target.QuantumIdentity().Species() and
+              band.BroadeningSpecies()[j].Isotopologue() == target.QuantumIdentity().Isotopologue()) {
+              vmrs_copy[j] += dvmr;
+              }
+          }
+        }
+        
+        // Computations
+        vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr_copy, vmrs_copy, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+        vec /= -dvmr;
+    } else if (target.needQuantumIdentity()) {
+      Numeric d=1e-6;
+      
+      const Absorption::LineTarget lt(target, band);
+      if (lt.found == Absorption::LineTargetType::Line) {
+        AbsorptionLines band_copy = band;
+        
+        if (target == Jacobian::Line::Strength) {
+          d *= band.AllLines()[lt.pos[0]].I0();
+          band_copy.AllLines()[lt.pos[0]].I0() += d;
+        } else if (target == Jacobian::Line::Center) {
+          d *= band.AllLines()[lt.pos[0]].F0();
+          band_copy.AllLines()[lt.pos[0]].F0() += d;
+        }
+        
+        // Perform calculations and estimate derivative
+        vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band_copy, partition_type, partition_data);
+        vec /= -d;
+      } else if (lt.found == Absorption::LineTargetType::LineshapeParameter) {
+        AbsorptionLines band_copy = band;
+        
+        switch (target.LineType()) {
+          case Jacobian::Line::ShapeG0X0:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G0().X0;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G0().X0 += d;
+            break;
+          case Jacobian::Line::ShapeG0X1:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G0().X1;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G0().X1 += d;
+            break;
+          case Jacobian::Line::ShapeG0X2:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G0().X2;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G0().X2 += d;
+            break;
+          case Jacobian::Line::ShapeG0X3:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G0().X3;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G0().X3 += d;
+            break;
+          case Jacobian::Line::ShapeD0X0:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D0().X0;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D0().X0 += d;
+            break;
+          case Jacobian::Line::ShapeD0X1:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D0().X1;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D0().X1 += d;
+            break;
+          case Jacobian::Line::ShapeD0X2:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D0().X2;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D0().X2 += d;
+            break;
+          case Jacobian::Line::ShapeD0X3:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D0().X3;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D0().X3 += d;
+            break;
+          case Jacobian::Line::ShapeG2X0:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G2().X0;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G2().X0 += d;
+            break;
+          case Jacobian::Line::ShapeG2X1:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G2().X1;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G2().X1 += d;
+            break;
+          case Jacobian::Line::ShapeG2X2:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G2().X2;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G2().X2 += d;
+            break;
+          case Jacobian::Line::ShapeG2X3:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G2().X3;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].G2().X3 += d;
+            break;
+          case Jacobian::Line::ShapeD2X0:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D2().X0;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D2().X0 += d;
+            break;
+          case Jacobian::Line::ShapeD2X1:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D2().X1;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D2().X1 += d;
+            break;
+          case Jacobian::Line::ShapeD2X2:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D2().X2;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D2().X2 += d;
+            break;
+          case Jacobian::Line::ShapeD2X3:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D2().X3;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].D2().X3 += d;
+            break;
+          case Jacobian::Line::ShapeFVCX0:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].FVC().X0;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].FVC().X0 += d;
+            break;
+          case Jacobian::Line::ShapeFVCX1:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].FVC().X1;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].FVC().X1 += d;
+            break;
+          case Jacobian::Line::ShapeFVCX2:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].FVC().X2;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].FVC().X2 += d;
+            break;
+          case Jacobian::Line::ShapeFVCX3:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].FVC().X3;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].FVC().X3 += d;
+            break;
+          case Jacobian::Line::ShapeETAX0:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].ETA().X0;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].ETA().X0 += d;
+            break;
+          case Jacobian::Line::ShapeETAX1:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].ETA().X1;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].ETA().X1 += d;
+            break;
+          case Jacobian::Line::ShapeETAX2:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].ETA().X2;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].ETA().X2 += d;
+            break;
+          case Jacobian::Line::ShapeETAX3:
+            d *= band.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].ETA().X3;
+            band_copy.AllLines()[lt.pos[0]].LineShape()[lt.pos[1]].ETA().X3 += d;
+            break;
+          case Jacobian::Line::Center:
+          case Jacobian::Line::Strength:
+          case Jacobian::Line::ShapeYX0:
+          case Jacobian::Line::ShapeYX1:
+          case Jacobian::Line::ShapeYX2:
+          case Jacobian::Line::ShapeYX3:
+          case Jacobian::Line::ShapeGX0:
+          case Jacobian::Line::ShapeGX1:
+          case Jacobian::Line::ShapeGX2:
+          case Jacobian::Line::ShapeGX3:
+          case Jacobian::Line::ShapeDVX0:
+          case Jacobian::Line::ShapeDVX1:
+          case Jacobian::Line::ShapeDVX2:
+          case Jacobian::Line::ShapeDVX3:
+          case Jacobian::Line::NLTE:
+          case Jacobian::Line::VMR:
+          case Jacobian::Line::SpecialParameter1:
+          case Jacobian::Line::SpecialParameter2:
+          case Jacobian::Line::SpecialParameter3:
+          case Jacobian::Line::FINAL: {
+            /* do nothing */
+          }
+        }
+        
+        // Perform calculations and estimate derivative
+        vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band_copy, partition_type, partition_data);
+        vec /= -d;
+      } else if (lt.found == Absorption::LineTargetType::Band) {
+        if (target == Jacobian::Line::SpecialParameter1) {
+          if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+            d = Conversion::angstrom2meter(1e-6);
+          }
+          vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter1>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+        } else if (target == Jacobian::Line::SpecialParameter2) {
+          if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+            d = 1e-6;
+          }
+          vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter2>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+        } else if (target == Jacobian::Line::SpecialParameter3) {
+          if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+            d = 1e-6;
+          }
+          vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter3>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+        }
+        vec /= -d;
+      } else {
+        throw std::runtime_error("[DEV bug] Missing Line Derivative");
+      }
+    } else {
+      vec *= 0;  // No derivative, so don't mess around and remove everything
+    }
+  }
+  
+  return {absorption, jacobian};
 }
 
 
