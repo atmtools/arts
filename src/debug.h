@@ -99,9 +99,9 @@ std::string variadic_to_string(Args ... args) {
 #define ARTS_ASSERT_WITH_MESSAGE(condition, ...) {  \
   if (not (condition)) {                            \
     throw std::runtime_error(                       \
-    throw std::runtime_error("Failed Assertion: "   \
-                             #condition "\n");      \
-                             __VA_ARGS__));         \
+      variadic_to_string("Failed Assertion: "       \
+                         #condition "\n",           \
+                         __VA_ARGS__));             \
   } }
 
 #else
