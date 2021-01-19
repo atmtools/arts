@@ -14,6 +14,23 @@ EquivalentLines::EquivalentLines(const ComplexMatrix& W,
                                  const Vector& pop,
                                  const Vector& dip) noexcept :
   val(pop.nelem(), 0), str(pop.nelem(), 0) {
+  /* FIXME:  (Added 2021-01-19; Richard Larsson)
+    * 
+    * This function cannot easily be used with partial derivatives
+    * 
+    * Doing so would allow the entire ECS approach to be analytical
+    * in its derivatives.
+    * 
+    * The problem in short:
+    *    There is an Eigenvalue decomposition happening (W = V diag(e) V^-1)
+    * 
+    *    We use V and e in a strange way.  We do not know how to get the
+    *    partial derivatives of these two variables
+    * 
+    * The question:
+    *    How do we compute dV and de?  We can get dW somewhat easily.
+    */
+    
   const Index n = pop.nelem();
   
   // Compute values
