@@ -699,7 +699,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
             // cutoff frequency
             if (token == "CUT") {
               icecream >> data.cutofffreq;
-              data.cutoff = CutoffType::LineByLineOffset;
+              data.cutoff = CutoffType::ByLine;
             }
 
             // linemixing pressure limit
@@ -709,18 +709,12 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
 
             // mirroring
             else if (token == "MTM") {
-              String value;
-              icecream >> value;
-
-              data.mirroring = string2mirroringtype(value);
+              icecream >> data.mirroring;
             }
 
             // line normalization
             else if (token == "LNT") {
-              String value;
-              icecream >> value;
-
-              data.normalization = string2normalizationtype(value);
+              icecream >> data.normalization;
             }
 
             else {
@@ -2611,12 +2605,12 @@ String Absorption::Lines::MetaData() const
     os << "\t\t" << "Zeeman splitting of upper state: " << line.Zeeman().gu() << " [-]\n";
     os << "\t\t" << "Lower state local quantum numbers:";
     for(size_t i=0; i<mlocalquanta.size(); i++)
-      os << " " << quantumnumbertype2string(mlocalquanta[i])
+      os << " " << mlocalquanta[i]
       << "=" << line.LowerQuantumNumber(i) << ";";
     os << "\n";
     os << "\t\t" << "Upper state local quantum numbers:";
     for(size_t i=0; i<mlocalquanta.size(); i++)
-      os << " " << quantumnumbertype2string(mlocalquanta[i])
+      os << " " << mlocalquanta[i]
       << "=" << line.UpperQuantumNumber(i) << ";";
     os << "\n";
     ArrayOfString ls_meta = LineShape::ModelMetaDataArray(line.LineShape(),
@@ -2762,22 +2756,24 @@ bool Absorption::line_in_id(const Absorption::Lines& band, const QuantumIdentifi
   else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL)
     throw std::runtime_error("Cannot match energy level to line");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_id.isUndefined() and qn_line.isDefined()) or 
-          (qn_line.isDefined() and qn_line not_eq qn_id)) {
+      if (qn_line.isDefined() and qn_line not_eq qn_id) {
+        return false;
+      } else if (qn_id.isUndefined() and qn_line.isDefined()) {
         return false;
       }
     }
     
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.UpperQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_id.isUndefined() and qn_line.isDefined()) or 
-          (qn_line.isDefined() and qn_line not_eq qn_id)) {
+      if (qn_line.isDefined() and qn_line not_eq qn_id) {
+        return false;
+      } else if (qn_id.isUndefined() and qn_line.isDefined()) {
         return false;
       }
     }
@@ -2799,12 +2795,13 @@ bool Absorption::line_upper_in_id(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Cannot match transition level to energy level");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_id.isUndefined() and qn_line.isDefined()) or 
-          (qn_line.isDefined() and qn_line not_eq qn_id)) {
+      if (qn_line.isDefined() and qn_line not_eq qn_id) {
+        return false;
+      } else if (qn_id.isUndefined() and qn_line.isDefined()) {
         return false;
       }
     }
@@ -2826,12 +2823,13 @@ bool Absorption::line_lower_in_id(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Cannot match transition level to energy level");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_id.isUndefined() and qn_line.isDefined()) or 
-          (qn_line.isDefined() and qn_line not_eq qn_id)) {
+      if (qn_line.isDefined() and qn_line not_eq qn_id) {
+        return false;
+      } else if (qn_id.isUndefined() and qn_line.isDefined()){
         return false;
       }
     }
@@ -2853,22 +2851,24 @@ bool Absorption::id_in_line(const Absorption::Lines& band, const QuantumIdentifi
   else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL)
     throw std::runtime_error("Cannot match energy level to line");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_line.isUndefined() and qn_id.isDefined()) or 
-          (qn_id.isDefined() and qn_id not_eq qn_line)) {
+      if (qn_id.isDefined() and qn_id not_eq qn_line) {
+        return false;
+      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
         return false;
       }
     }
     
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.UpperQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_line.isUndefined() and qn_id.isDefined()) or 
-          (qn_id.isDefined() and qn_id not_eq qn_line)) {
+      if (qn_id.isDefined() and qn_id not_eq qn_line) {
+        return false;
+      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
         return false;
       }
     }
@@ -2890,12 +2890,13 @@ bool Absorption::id_in_line_upper(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Cannot match transition level to energy level");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_line.isUndefined() and qn_id.isDefined()) or 
-          (qn_id.isDefined() and qn_id not_eq qn_line)) {
+      if (qn_id.isDefined() and qn_id not_eq qn_line) {
+        return false;
+      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
         return false;
       }
     }
@@ -2917,12 +2918,13 @@ bool Absorption::id_in_line_lower(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Cannot match transition level to energy level");
   else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL_ENTRY); iq++) {
+    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
       
-      if ((qn_line.isUndefined() and qn_id.isDefined()) or 
-          (qn_id.isDefined() and qn_id not_eq qn_line)) {
+      if (qn_id.isDefined() and qn_id not_eq qn_line) {
+        return false;
+      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
         return false;
       }
     }
@@ -2933,10 +2935,7 @@ bool Absorption::id_in_line_lower(const Absorption::Lines& band, const QuantumId
 
 bool Absorption::line_is_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
 {
-  if (line_in_id(band, id, line_index) and id_in_line(band, id, line_index))
-    return true;
-  else
-    return false;
+  return (line_in_id(band, id, line_index) and id_in_line(band, id, line_index));
 }
 
 Numeric Absorption::reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k) {
@@ -3550,4 +3549,297 @@ bool Absorption::Lines::OK() const noexcept
   
   // Otherwise everything is fine!
   return true;
+}
+
+
+namespace Absorption {
+String cutofftype2metadatastring(CutoffType in, Numeric cutoff) {
+  std::ostringstream os;
+  switch (in) {
+    case CutoffType::None:
+      os << "No cut-off will be applied.\n"; break;
+    case CutoffType::ByLine:
+      os << "The lines will be cut-off " << cutoff << " Hz from the line center.\n"; break;
+    case CutoffType::ByBand:
+      os << "All lines are cut-off at " << cutoff << " Hz.\n"; break;
+    case CutoffType::FINAL: break;
+  }
+  return os.str();
+}
+
+void SingleLine::SetAutomaticZeeman(const QuantumIdentifier& qid, const std::vector<QuantumNumberType>& keys) {
+  for(size_t i=0; i<keys.size(); i++) {
+    qid.LowerQuantumNumber(keys[i]) = mlowerquanta[i];
+    qid.UpperQuantumNumber(keys[i]) = mupperquanta[i];
+  }
+  
+  mzeeman = Zeeman::Model(qid);
+}
+
+void SingleLine::SetLineMixing2SecondOrderData(const Vector& d) {
+  mlineshape.SetLineMixingModel(
+    LineShape::LegacyLineMixingData::vector2modellm(
+      d, LineShape::LegacyLineMixingData::TypeLM::LM_2NDORDER)
+    .Data()[0]);
+}
+
+void SingleLine::SetLineMixing2AER(const Vector& d) {
+  const LineShape::ModelParameters Y = {LineShape::TemperatureModel::LM_AER, d[4], d[5], d[6], d[7]};
+  const LineShape::ModelParameters G = {LineShape::TemperatureModel::LM_AER, d[8], d[9], d[10], d[11]};
+  for (auto& sm : mlineshape.Data()) {
+    sm.Y() = Y;
+    sm.G() = G;
+  }
+}
+
+bifstream& SingleLine::read(bifstream& bif) {
+  /** Standard parameters */
+  bif >> mF0 >> mI0 >> mE0 >> mglow >> mgupp >> mA >> mzeeman;
+  
+  /** Line shape model */
+  mlineshape.read(bif);
+  
+  /** Lower level quantum numbers */
+  for (auto& rat: mlowerquanta) rat.read(bif);
+  
+  /** Upper level quantum numbers */
+  for (auto& rat: mupperquanta) rat.read(bif);
+  
+  return bif;
+}
+
+bofstream& SingleLine::write(bofstream& bof) const {
+  /** Standard parameters */
+  bof << mF0 << mI0 << mE0 << mglow << mgupp << mA << mzeeman;
+  
+  /** Line shape model */
+  mlineshape.write(bof);
+  
+  /** Lower level quantum numbers */
+  for (auto& rat: mlowerquanta) rat.write(bof);
+  
+  /** Upper level quantum numbers */
+  for (auto& rat: mupperquanta) rat.write(bof);
+  
+  return bof;
+}
+
+void Lines::AppendSingleLine(SingleLine&& sl) {
+  if(NumLocalQuanta() not_eq sl.LowerQuantumElems() or
+    NumLocalQuanta() not_eq sl.UpperQuantumElems())
+    throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
+  
+  if(NumLines() not_eq 0 and 
+    sl.LineShapeElems() not_eq mlines[0].LineShapeElems())
+    throw std::runtime_error("Error calling appending function, bad size of broadening species");
+  
+  mlines.push_back(std::move(sl));
+}
+
+void Lines::AppendSingleLine(const SingleLine& sl) {
+  if(NumLocalQuanta() not_eq sl.LowerQuantumElems() or
+    NumLocalQuanta() not_eq sl.UpperQuantumElems())
+    throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
+  
+  if(NumLines() not_eq 0 and 
+    sl.LineShapeElems() not_eq mlines[0].LineShapeElems())
+    throw std::runtime_error("Error calling appending function, bad size of broadening species");
+  
+  mlines.push_back(sl);
+}
+
+bool Lines::MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const noexcept {
+  if(sle.bad)
+    return false;
+  else if(sle.selfbroadening not_eq mselfbroadening)
+    return false;
+  else if(sle.bathbroadening not_eq mbathbroadening)
+    return false;
+  else if(sle.cutoff not_eq mcutoff)
+    return false;
+  else if(sle.mirroring not_eq mmirroring)
+    return false;
+  else if(sle.population not_eq mpopulation)
+    return false;
+  else if(sle.normalization not_eq mnormalization)
+    return false;
+  else if(sle.lineshapetype not_eq mlineshapetype)
+    return false;
+  else if(sle.T0 not_eq mT0)
+    return false;
+  else if(sle.cutofffreq not_eq mcutofffreq)
+    return false;
+  else if(sle.linemixinglimit not_eq mlinemixinglimit)
+    return false;
+  else if(quantumidentity not_eq mquantumidentity)
+    return false;
+  else if(not std::equal(sle.species.cbegin(), sle.species.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
+    return false;
+  else if(NumLines() not_eq 0 and not sle.line.LineShape().Match(mlines[0].LineShape()))
+    return false;
+  else
+    return true;
+}
+
+bool Lines::Match(const Lines& l) const noexcept {
+  if(l.mselfbroadening not_eq mselfbroadening)
+    return false;
+  else if(l.mbathbroadening not_eq mbathbroadening)
+    return false;
+  else if(l.mcutoff not_eq mcutoff)
+    return false;
+  else if(l.mmirroring not_eq mmirroring)
+    return false;
+  else if(l.mpopulation not_eq mpopulation)
+    return false;
+  else if(l.mnormalization not_eq mnormalization)
+    return false;
+  else if(l.mlineshapetype not_eq mlineshapetype)
+    return false;
+  else if(l.mT0 not_eq mT0)
+    return false;
+  else if(l.mcutofffreq not_eq mcutofffreq)
+    return false;
+  else if(l.mlinemixinglimit not_eq mlinemixinglimit)
+    return false;
+  else if(l.mquantumidentity not_eq mquantumidentity)
+    return false;
+  else if(not std::equal(l.mbroadeningspecies.cbegin(), l.mbroadeningspecies.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
+    return false;
+  else if(not std::equal(l.mlocalquanta.cbegin(), l.mlocalquanta.cend(), mlocalquanta.cbegin(), mlocalquanta.cend()))
+    return false;
+  else if(NumLines() not_eq 0 and l.NumLines() not_eq 0 and not l.mlines[0].LineShape().Match(mlines[0].LineShape()))
+    return false;
+  else
+    return true;
+}
+
+void Lines::sort_by_frequency() {
+  std::sort(mlines.begin(), mlines.end(),
+            [](const SingleLine& a, const SingleLine& b){return a.F0() < b.F0();});
+}
+
+void Lines::sort_by_einstein() {
+  std::sort(mlines.begin(), mlines.end(),
+            [](const SingleLine& a, const SingleLine& b){return a.A() < b.A();});
+}
+
+void Lines::truncate_global_quantum_numbers() {
+  mquantumidentity.SetTransition(QuantumNumbers(), QuantumNumbers());
+}
+
+String Lines::LineShapeMetaData() const noexcept {
+  return NumLines() ?
+  LineShape::ModelShape2MetaData(mlines[0].LineShape()) :
+  "";
+}
+
+Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
+  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
+    return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::F),
+                         LowerQuantumNumber(k, QuantumNumberType::F),
+                         type);
+  } else {
+    return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::J),
+                         LowerQuantumNumber(k, QuantumNumberType::J),
+                         type);
+  }
+}
+
+Numeric Lines::ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const noexcept {
+  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
+    return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::F),
+                                       LowerQuantumNumber(k, QuantumNumberType::F),
+                                       type, i);
+  } else {
+    return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::J),
+                                       LowerQuantumNumber(k, QuantumNumberType::J),
+                                       type, i);
+  }
+}
+
+Numeric Lines::ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const noexcept {
+  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
+    return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::F),
+                                        LowerQuantumNumber(k, QuantumNumberType::F),
+                                        type, i);
+  } else {
+    return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::J),
+                                        LowerQuantumNumber(k, QuantumNumberType::J),
+                                        type, i);
+  }
+}
+
+void Lines::SetAutomaticZeeman() noexcept {
+  for(auto& line: mlines)
+    line.SetAutomaticZeeman(mquantumidentity, mlocalquanta);
+}
+
+Numeric Lines::F_mean() const noexcept {
+  const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
+                                         mlines.cbegin(), 0.0, std::plus<Numeric>(),
+                                         [](const auto& a, const auto& b){return a.F0() * b.I0();});
+  const Numeric div = std::accumulate(mlines.cbegin(), mlines.cend(), 0.0,
+                                      [](const auto& a, const auto& b){return a + b.I0();});
+  return  val / div;
+}
+
+Numeric Lines::F_mean(const ConstVectorView wgts) const noexcept {
+  const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
+                                         wgts.begin(), 0.0, std::plus<Numeric>(),
+                                         [](const auto& a, const auto& b){return a.F0() * b;});
+  const Numeric div = wgts.sum();
+  return  val / div;
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
+Numeric Lines::CutoffFreq(size_t k) const noexcept {
+  switch(mcutoff) {
+    case CutoffType::ByLine:
+      return F0(k) + mcutofffreq;
+    case CutoffType::ByBand:
+      return mcutofffreq;
+    case CutoffType::None:
+      return std::numeric_limits<Numeric>::max();
+    case CutoffType::FINAL: break;
+  }
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
+Numeric Lines::CutoffFreqMinus(size_t k, Numeric fmean) const noexcept {
+  switch(mcutoff) {
+    case CutoffType::ByLine:
+      return F0(k) - mcutofffreq;
+    case CutoffType::ByBand:
+      return mcutofffreq - 2*fmean;
+    case CutoffType::None:
+      return std::numeric_limits<Numeric>::lowest();
+    case CutoffType::FINAL: break;
+  }
+}
+#pragma GCC diagnostic pop
+
+bifstream& Lines::read(bifstream& is) {
+  for (auto& line: mlines)
+    line.read(is);
+  return is;
+}
+
+bofstream& Lines::write(bofstream& os) const {
+  for (auto& line: mlines)
+    line.write(os);
+  return os;
+}
+
+QuantumIdentifier Lines::QuantumIdentityOfLine(Index k) const noexcept {
+  QuantumIdentifier qid_copy(mquantumidentity);
+  for (size_t i=0; i<mlocalquanta.size(); i++) {
+    qid_copy.UpperQuantumNumber(mlocalquanta[i]) = mlines[k].UpperQuantumNumber(i);
+    qid_copy.LowerQuantumNumber(mlocalquanta[i]) = mlines[k].LowerQuantumNumber(i);
+  }
+  return qid_copy;
+}
 }

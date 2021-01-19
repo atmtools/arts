@@ -210,7 +210,12 @@ void simplifyRational(void * data) { static_cast<Rational *>(data)->simplify_in_
 
 // LineShape::ModelParameters
 void printLineShapeModelParameters(void * data) { std::cout << (*static_cast<LineShape::ModelParameters *>(data)) << std::endl; }
-Index getLineShapeModelParametersType(char * data) { try { return Index(LineShape::string2temperaturemodel(data)); } catch (std::runtime_error& e) { return -1; } }
+Index getLineShapeModelParametersType(char * data) {
+  if (const LineShape::TemperatureModel val = LineShape::toTemperatureModel(data); good_enum(val))
+    return Index(val);
+  else
+    return -1;
+}
 
 
 // LineShape::SingleSpeciesModel
@@ -248,7 +253,7 @@ VoidArrayElemCAPI(AbsorptionSingleLine, UpperQuantumNumbers)
 // QuantumNumbers
 BasicInterfaceCAPI(QuantumNumbers)
 void * getelemQuantumNumbers(Index i, void * data) { return &static_cast<QuantumNumbers *>(data)->operator[](i); }
-Index sizeQuantumNumbers() { return Index(QuantumNumberType::FINAL_ENTRY); }
+Index sizeQuantumNumbers() { return Index(QuantumNumberType::FINAL); }
 Index string2quantumnumbersindex(char * str) { return Index(string2quantumnumbertype(str)); }
 
 
@@ -344,7 +349,6 @@ GetterSetterCAPI(AbsorptionLines, T0, Numeric)
 GetterSetterCAPI(AbsorptionLines, CutoffFreqValue, Numeric)
 GetterSetterCAPI(AbsorptionLines, LinemixingLimit, Numeric)
 VoidGetterCAPI(AbsorptionLines, QuantumIdentity)
-VoidArrayElemCAPI(AbsorptionLines, LocalQuanta)
 VoidGetterCAPI(AbsorptionLines, BroadeningSpecies)
 VoidArrayElemCAPI(AbsorptionLines, AllLines)
 VoidArrayCAPI(ArrayOfAbsorptionLines)
@@ -353,6 +357,10 @@ BasicInputOutputCAPI(ArrayOfAbsorptionLines)
 VoidArrayCAPI(ArrayOfArrayOfAbsorptionLines)
 BasicInterfaceCAPI(ArrayOfArrayOfAbsorptionLines)
 BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
+Index sizeLocalQuantaAbsorptionLines(void * data) { return static_cast<AbsorptionLines *>(data) -> LocalQuanta().size(); }
+void resizeLocalQuantaAbsorptionLines(Index n, void * data) { static_cast<AbsorptionLines *>(data) -> LocalQuanta().resize(n); }
+Index getLocalQuantaAbsorptionLines(Index i, void * data) { return Index(static_cast<AbsorptionLines *>(data) -> LocalQuanta()[i]); }
+void setLocalQuantaAbsorptionLines(Index i, void * data, Index newval) { static_cast<AbsorptionLines *>(data) -> LocalQuanta()[i] = QuantumNumberType(newval); }
 void printmetaAbsorptionLines(void * data) { std::cout << static_cast<AbsorptionLines *>(data) -> MetaData() << std::endl; }
 Index isAbsorptionLinesOK(void * data) { return Index(static_cast<AbsorptionLines *>(data) -> OK()); }
 void * getSpeciesNameAbsorptionLines(void * data) {

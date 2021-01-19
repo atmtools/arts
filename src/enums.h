@@ -8,9 +8,9 @@
 #include <string>
 #include <string_view>
 
-template <typename T>
-constexpr bool good_enum(T x) {
-  return long(x) < long(T::FINAL) and long(x) >= 0;
+template <typename EnumType>
+constexpr bool good_enum(EnumType x) {
+  return long(x) < long(EnumType::FINAL) and long(x) >= 0;
 }
 
 constexpr bool is_space_char(char x) {
@@ -22,10 +22,10 @@ constexpr bool is_space_char(char x) {
          x == '\v';
 }
 
-template <typename T> constexpr
-std::array<std::string_view, size_t(T::FINAL)> enum_strarray(
+template <typename EnumType> constexpr
+std::array<std::string_view, size_t(EnumType::FINAL)> enum_strarray(
   const std::string_view strchars) {
-  std::array<std::string_view, size_t(T::FINAL)> out;
+  std::array<std::string_view, size_t(EnumType::FINAL)> out;
   
   // Find the start
   std::string_view::size_type N0 = 0;
@@ -47,6 +47,15 @@ std::array<std::string_view, size_t(T::FINAL)> enum_strarray(
   }
   
   return out;
+}
+
+template <typename EnumType, typename ... Messages>
+void check_enum_error(EnumType type, Messages ... args) {
+  if (not good_enum(type)) {
+    std::ostringstream os;
+    (os << ... << args);
+    throw std::runtime_error(os.str());
+  }
 }
 
 /* Enum style
@@ -81,36 +90,36 @@ std::array<std::string_view, size_t(T::FINAL)> enum_strarray(
  * std::string toString(Test x) noexcept;
  * Test toTest(const std::string& x) noexcept;
  */
-#define ENUMCLASS(ENUMTYPE, TYPE, ...)                                         \
-  enum class ENUMTYPE : TYPE { __VA_ARGS__, FINAL };                           \
-                                                                               \
-  namespace enumstrs {                                                         \
-  constexpr auto ENUMTYPE##Names = enum_strarray<ENUMTYPE>(#__VA_ARGS__);      \
-  }                                                                            \
-                                                                               \
-  constexpr std::string_view toString(ENUMTYPE x) noexcept {                   \
-    if (good_enum(x))                                                          \
-      return enumstrs::ENUMTYPE##Names[(TYPE)x];                               \
-    else                                                                       \
-      return "BAD " #ENUMTYPE;                                                 \
-  }                                                                            \
-                                                                               \
-  constexpr ENUMTYPE to##ENUMTYPE(const std::string_view x) noexcept {         \
-    for (TYPE i = 0; i < (TYPE)ENUMTYPE::FINAL; i++)                           \
-      if (enumstrs::ENUMTYPE##Names[i] == x) return ENUMTYPE(i);               \
-    return ENUMTYPE::FINAL;                                                    \
-  }                                                                            \
-                                                                               \
-  inline std::ostream &operator<<(std::ostream &os, const ENUMTYPE x) {        \
-    return os << toString(x);                                                  \
-  }                                                                            \
-                                                                               \
-  inline std::istream &operator>>(std::istream &is, ENUMTYPE &x) {             \
-    std::string val;                                                           \
-    is >> val;                                                                 \
-    x = to##ENUMTYPE(val);                                                     \
-    if (x == ENUMTYPE::FINAL) throw std::runtime_error("Bad read " #ENUMTYPE); \
-    return is;                                                                 \
+#define ENUMCLASS(ENUMTYPE, TYPE, ...)                                    \
+  enum class ENUMTYPE : TYPE { __VA_ARGS__, FINAL };                      \
+                                                                          \
+  namespace enumstrs {                                                    \
+  constexpr auto ENUMTYPE##Names = enum_strarray<ENUMTYPE>(#__VA_ARGS__); \
+  }                                                                       \
+                                                                          \
+  constexpr std::string_view toString(ENUMTYPE x) noexcept {              \
+    if (good_enum(x))                                                     \
+      return enumstrs::ENUMTYPE##Names[(TYPE)x];                          \
+    else                                                                  \
+      return "BAD " #ENUMTYPE;                                            \
+  }                                                                       \
+                                                                          \
+  constexpr ENUMTYPE to##ENUMTYPE(const std::string_view x) noexcept {    \
+    for (TYPE i = 0; i < (TYPE)ENUMTYPE::FINAL; i++)                      \
+      if (enumstrs::ENUMTYPE##Names[i] == x) return ENUMTYPE(i);          \
+    return ENUMTYPE::FINAL;                                               \
+  }                                                                       \
+                                                                          \
+  inline std::ostream &operator<<(std::ostream &os, const ENUMTYPE x) {   \
+    return os << toString(x);                                             \
+  }                                                                       \
+                                                                          \
+  inline std::istream &operator>>(std::istream &is, ENUMTYPE &x) {        \
+    std::string val;                                                      \
+    is >> val;                                                            \
+    x = to##ENUMTYPE(val);                                                \
+    check_enum_error(x, "Cannot understand value: ", val);                \
+    return is;                                                            \
   }
 
 #endif  // enums_h

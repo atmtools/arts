@@ -278,3 +278,98 @@ Zeeman::Derived Zeeman::FromGrids(Numeric u, Numeric v, Numeric w, Numeric z, Nu
   
   return output;
 }
+
+namespace Zeeman {
+Numeric Model::Strength(Rational Ju, Rational Jl, Zeeman::Polarization type, Index n) const {
+  using Constant::pow2;
+  
+  auto ml = Ml(Ju, Jl, type, n);
+  auto mu = Mu(Ju, Jl, type, n);
+  auto dm = Rational(dM(type));
+  return PolarizationFactor(type) * pow2(wigner3j(Jl, Rational(1), Ju, ml, -dm, -mu));
+}
+
+std::ostream& operator<<(std::ostream& os, const Model& m) {
+  os << m.mdata.gu << ' ' << m.mdata.gl;
+  return os;
+}
+
+std::istream& operator>>(std::istream& is, Model& m) {
+  is >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
+  return is;
+}
+
+std::ostream& operator<<(bofstream& bof, const Model& m) {
+  bof << m.mdata.gu << m.mdata.gl;
+  return bof;
+}
+
+std::istream& operator>>(bifstream& bif, Model& m) {
+  bif >> m.mdata.gu >> m.mdata.gl;
+  return bif;
+}
+
+AllPolarizationVectors AllPolarization(Numeric theta,
+                                       Numeric eta) noexcept {
+  const Numeric ST = std::sin(theta), CT = std::cos(theta), ST2 = ST * ST,
+                CT2 = CT * CT, ST2C2E = ST2 * std::cos(2 * eta),
+                ST2S2E = ST2 * std::sin(2 * eta);
+
+  AllPolarizationVectors pv;
+  pv.sm = PolarizationVector(
+      1 + CT2, ST2C2E, ST2S2E, 2 * CT, 4 * CT, 2 * ST2S2E, -2 * ST2C2E);
+  pv.pi =
+      PolarizationVector(ST2, -ST2C2E, -ST2S2E, 0, 0, -2 * ST2S2E, 2 * ST2C2E);
+  pv.sp = PolarizationVector(
+      1 + CT2, ST2C2E, ST2S2E, -2 * CT, -4 * CT, 2 * ST2S2E, -2 * ST2C2E);
+  return pv;
+}
+
+AllPolarizationVectors AllPolarization_dtheta(
+    Numeric theta, const Numeric eta) noexcept {
+  const Numeric ST = std::sin(theta), CT = std::cos(theta),
+                C2E = std::cos(2 * eta), S2E = std::sin(2 * eta), dST = CT,
+                dST2 = 2 * ST * dST, dCT = -ST, dST2C2E = dST2 * C2E,
+                dST2S2E = dST2 * S2E, dCT2 = 2 * CT * dCT;
+
+  AllPolarizationVectors pv;
+  pv.sm = PolarizationVector(
+      dCT2, dST2C2E, dST2S2E, 2 * dCT, 4 * dCT, 2 * dST2S2E, -2 * dST2C2E);
+  pv.pi = PolarizationVector(
+      dST2, -dST2C2E, -dST2S2E, 0, 0, -2 * dST2S2E, 2 * dST2C2E);
+  pv.sp = PolarizationVector(
+      dCT2, dST2C2E, dST2S2E, -2 * dCT, -4 * dCT, 2 * dST2S2E, -2 * dST2C2E);
+  return pv;
+}
+
+AllPolarizationVectors AllPolarization_deta(Numeric theta,
+                                            Numeric eta) noexcept {
+  const Numeric ST = std::sin(theta), ST2 = ST * ST, C2E = std::cos(2 * eta),
+                S2E = std::sin(2 * eta), dST2C2E = -2 * ST2 * S2E,
+                dST2S2E = 2 * ST2 * C2E;
+
+  AllPolarizationVectors pv;
+  pv.sm =
+      PolarizationVector(0, dST2C2E, dST2S2E, 0, 0, 2 * dST2S2E, -2 * dST2C2E);
+  pv.pi = PolarizationVector(
+      0, -dST2C2E, -dST2S2E, 0, 0, -2 * dST2S2E, 2 * dST2C2E);
+  pv.sp =
+      PolarizationVector(0, dST2C2E, dST2S2E, 0, 0, 2 * dST2S2E, -2 * dST2C2E);
+  return pv;
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
+const PolarizationVector& SelectPolarization(
+    const AllPolarizationVectors& data, Polarization type) noexcept {
+  switch (type) {
+    case Polarization::SigmaMinus:
+      return data.sm;
+    case Polarization::Pi:
+      return data.pi;
+    case Polarization::SigmaPlus:
+      return data.sp;
+  }
+}
+#pragma GCC diagnostic pop
+}

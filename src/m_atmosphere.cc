@@ -4151,7 +4151,7 @@ void nlte_fieldSetLteExternalPartitionFunction(
       for (auto& band : abs_lines) {
         for (Index k=0; k<band.NumLines(); k++) {
           if (Absorption::id_in_line_lower(band, qi, k)) {
-            band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
+            band.Population(Absorption::PopulationType::NLTE);
             
             if (not checked[in]) {
               checked[in] = 1;
@@ -4173,7 +4173,7 @@ void nlte_fieldSetLteExternalPartitionFunction(
           }
           
           if (Absorption::id_in_line_upper(band, qi, k)) {
-            band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
+            band.Population(Absorption::PopulationType::NLTE);
             
             if (not checked[in]) {
               checked[in] = 1;
@@ -4256,7 +4256,7 @@ void nlte_fieldSetLteInternalPartitionFunction(
       for (auto& band : abs_lines) {
         for (Index k=0; k<band.NumLines(); k++) {
           if (Absorption::id_in_line_lower(band, qi, k)) {
-            band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
+            band.Population(Absorption::PopulationType::NLTE);
             
             if (not checked[in]) {
               checked[in] = 1;
@@ -4276,7 +4276,7 @@ void nlte_fieldSetLteInternalPartitionFunction(
           }
           
           if (Absorption::id_in_line_upper(band, qi, k)) {
-            band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
+            band.Population(Absorption::PopulationType::NLTE);
             
             if (not checked[in]) {
               checked[in] = 1;

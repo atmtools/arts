@@ -136,6 +136,8 @@ void Linefunctions::set_lineshape(
       set_lorentz(
           F, dF, data, f_grid, zeeman_df, magnetic_magnitude, line.F0(), X);
       break;
+    case LineShape::Type::FINAL:
+      break;
   }
 
   switch (mirroring_type) {
@@ -206,11 +208,14 @@ void Linefunctions::set_lineshape(
                   -doppler_constant,
                   LineShape::mirroredOutput(X));
           break;
+        case LineShape::Type::FINAL:
+          break;
       }
 
       F.noalias() += Fm;
       break;
     }
+    case Absorption::MirroringType::FINAL: break;
   }
 
   // Line normalization if necessary
@@ -225,9 +230,10 @@ void Linefunctions::set_lineshape(
     case Absorption::NormalizationType::VVW:
       apply_VVW_scaling(F, dF, f_grid, line.F0());
       break;
-    case Absorption::NormalizationType::RosenkranzQuadratic:
+    case Absorption::NormalizationType::RQ:
       apply_rosenkranz_quadratic_scaling(F, dF, f_grid, line.F0(), temperature);
       break;
+    case Absorption::NormalizationType::FINAL: break;
   }
 }
 
@@ -1332,7 +1338,7 @@ void Linefunctions::set_cross_section_of_band(
   const auto f_full = MapToEigen(f_grid);
   
   // Cut off range
-  const Numeric fmean = (band.Cutoff() == Absorption::CutoffType::BandFixedFrequency) ? band.F_mean() : 0;
+  const Numeric fmean = (band.Cutoff() == Absorption::CutoffType::ByBand) ? band.F_mean() : 0;
   Numeric fcut_upp, fcut_low;
   Index start, nelem;
   fcut_upp = band.CutoffFreq(0);
@@ -1349,7 +1355,7 @@ void Linefunctions::set_cross_section_of_band(
   for (Index i=0; i<band.NumLines(); i++) {
     
     // Select the range of cutoff if different for each line
-    if (band.Cutoff() == Absorption::CutoffType::LineByLineOffset and i>0) {
+    if (band.Cutoff() == Absorption::CutoffType::ByLine and i>0) {
       fcut_upp = band.CutoffFreq(i);
       fcut_low = band.CutoffFreqMinus(i, fmean);
       find_cutoff_ranges(start, nelem, f_full, fcut_low, fcut_upp);
@@ -1410,6 +1416,7 @@ void Linefunctions::set_cross_section_of_band(
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
             set_voigt(Fc, dFc, datac, fc, dfdH, H, band.F0(i), DC, X, band, i, derivatives_data, derivatives_data_active, dDCdT, dXdT, dXdVMR);
           break;
+        case LineShape::Type::FINAL: break;
       }
       
       // Remove the cutoff values
@@ -1457,8 +1464,10 @@ void Linefunctions::set_cross_section_of_band(
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
                 set_htp(Nc, dNc, fc, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, derivatives_data_active, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
               break;
+            case LineShape::Type::FINAL: break;
           }
           break;
+        case Absorption::MirroringType::FINAL: break;
       }
       
       // Remove the mirrored cutoff values
@@ -1487,9 +1496,10 @@ void Linefunctions::set_cross_section_of_band(
         case Absorption::NormalizationType::VVW:
           apply_VVW_scaling(F, dF, f, band.F0(i), band, i, derivatives_data, derivatives_data_active);
           break;
-        case Absorption::NormalizationType::RosenkranzQuadratic:
+        case Absorption::NormalizationType::RQ:
           apply_rosenkranz_quadratic_scaling(F, dF, f, band.F0(i), T, band, i, derivatives_data, derivatives_data_active);
           break;
+        case Absorption::NormalizationType::FINAL: break;
       }
 
       // Apply line strength by whatever method is necessary
@@ -1497,17 +1507,18 @@ void Linefunctions::set_cross_section_of_band(
         case Absorption::PopulationType::ByHITRANFullRelmat:
         case Absorption::PopulationType::ByMakarovFullRelmat:
         case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
-        case Absorption::PopulationType::ByLTE:
+        case Absorption::PopulationType::LTE:
           apply_linestrength_scaling_by_lte(F, dF, N, dN, band.Line(i), T, band.T0(), isot_ratio, QT, QT0, band, i, derivatives_data, derivatives_data_active, dQTdT);
           break;
-        case Absorption::PopulationType::ByNLTEVibrationalTemperatures: {
+        case Absorption::PopulationType::VibTemps: {
           auto nlte_data = nlte.get_vibtemp_params(band, i, T);
           apply_linestrength_scaling_by_vibrational_nlte(F, dF, N, dN, band.Line(i), T, band.T0(), nlte_data.T_upp, nlte_data.T_low, nlte_data.E_upp, nlte_data.E_low, isot_ratio, QT, QT0, band, i, derivatives_data, derivatives_data_active, dQTdT);
         } break;
-        case Absorption::PopulationType::ByNLTEPopulationDistribution: {
+        case Absorption::PopulationType::NLTE: {
           auto nlte_data = nlte.get_ratio_params(band, i);
           apply_linestrength_from_nlte_level_distributions(F, dF, N, dN, nlte_data.r_low, nlte_data.r_upp, band.g_low(i), band.g_upp(i), band.A(i), band.F0(i), T, band, i, derivatives_data, derivatives_data_active);
         } break;
+        case Absorption::PopulationType::FINAL: break;
       }
       
       // Zeeman-adjusted strength

@@ -258,24 +258,26 @@ class AbsorptionLines:
         n = self.sizelocalquantumnumbers
         x = []
         for i in range(n):
-            x.append(Index(c.c_void_p(lib.getelemLocalQuantaAbsorptionLines(i, self.__data__))))
+            x.append(Index(QuantumNumbers.to_index(
+                    lib.getLocalQuantaAbsorptionLines(i, self.__data__))))
         return x
 
     @localquantumnumbers.setter
     def localquantumnumbers(self, val):
         if isinstance(val, Sized):
             self.sizelocalquantumnumbers = len(val)
-            x = self.localquantumnumbers
             n = self.sizelocalquantumnumbers
             for i in range(n):
-                x[i].set(QuantumNumbers.to_index(val[i]))
+                lib.setLocalQuantaAbsorptionLines(i, self.__data__,
+                                                  QuantumNumbers.to_index(val[i]))
         else:
             raise TypeError("Only accepts array-like input")
 
     @property
     def broadeningspecies(self):
         """ Broadening species (ArrayOfSpeciesTag) """
-        return ArrayOfSpeciesTag(c.c_void_p(lib.getBroadeningSpeciesAbsorptionLines(self.__data__)))
+        return ArrayOfSpeciesTag(c.c_void_p(
+                lib.getBroadeningSpeciesAbsorptionLines(self.__data__)))
 
     @broadeningspecies.setter
     def broadeningspecies(self, val):
@@ -300,7 +302,8 @@ class AbsorptionLines:
         n = self.sizelines
         x = []
         for i in range(n):
-            x.append(AbsorptionSingleLine(c.c_void_p(lib.getelemAllLinesAbsorptionLines(i, self.__data__))))
+            x.append(AbsorptionSingleLine(c.c_void_p(
+                    lib.getelemAllLinesAbsorptionLines(i, self.__data__))))
         return x
 
     @lines.setter
@@ -523,8 +526,11 @@ lib.sizeLocalQuantaAbsorptionLines.argtypes = [c.c_void_p]
 lib.resizeLocalQuantaAbsorptionLines.restype = None
 lib.resizeLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
 
-lib.getelemLocalQuantaAbsorptionLines.restype = c.c_void_p
-lib.getelemLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
+lib.getLocalQuantaAbsorptionLines.restype = c.c_long
+lib.getLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
+
+lib.setLocalQuantaAbsorptionLines.restype = None
+lib.setLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p, c.c_long]
 
 lib.getBroadeningSpeciesAbsorptionLines.restype = c.c_void_p
 lib.getBroadeningSpeciesAbsorptionLines.argtypes = [c.c_void_p]

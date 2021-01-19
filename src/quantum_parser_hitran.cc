@@ -55,7 +55,7 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004() {
 
 #define SKIP_X_SPACES(container, nspaces)                                   \
   container.push_back_n(                                                    \
-      QuantumFieldDescription(QuantumNumberType::FINAL_ENTRY, parse_space), \
+      QuantumFieldDescription(QuantumNumberType::FINAL, parse_space), \
       nspaces)
 
   // HITRAN Classes
