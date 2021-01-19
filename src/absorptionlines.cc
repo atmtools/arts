@@ -933,7 +933,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     // Conversion from wavenumber to Hz. If you multiply a line
     // position in wavenumber (cm^-1) by this constant, you get the
     // frequency in Hz.
-    const Numeric w2Hz = Constant::c * 100.;
+    constexpr Numeric w2Hz = Constant::c * 100.;
 
     // Extract HITRAN postion:
     extract(v, line, 12);
@@ -954,7 +954,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
     // 3. Take out the isotopologue ratio.
 
-    const Numeric hi2arts = 1e-2 * Constant::c;
+    constexpr Numeric hi2arts = 1e-2 * Constant::c;
 
     Numeric s;
 
@@ -983,9 +983,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     Numeric gam;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = Constant::c * 1e2;
+    constexpr Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
+    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
 
     // Extract HITRAN AGAM value:
     extract(gam, line, 5);
@@ -1036,9 +1036,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     Numeric d;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = Constant::c * 1e2;
+    constexpr Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
+    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
 
     // Extract HITRAN value:
     extract(d, line, 8);
@@ -1341,7 +1341,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     // Conversion from wavenumber to Hz. If you multiply a line
     // position in wavenumber (cm^-1) by this constant, you get the
     // frequency in Hz.
-    const Numeric w2Hz = Constant::c * 100.;
+    constexpr Numeric w2Hz = Constant::c * 100.;
 
     // Extract HITRAN postion:
     extract(v, line, 12);
@@ -1362,7 +1362,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
     // 3. Take out the isotopologue ratio.
 
-    const Numeric hi2arts = 1e-2 * Constant::c;
+    constexpr Numeric hi2arts = 1e-2 * Constant::c;
 
     Numeric s;
 
@@ -1391,9 +1391,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     Numeric gam;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = Constant::c * 1e2;
+    constexpr Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
+    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
 
     // Extract HITRAN AGAM value:
     extract(gam, line, 5);
@@ -1444,9 +1444,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     Numeric d;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = Constant::c * 1e2;
+    constexpr Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
+    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
 
     // Extract HITRAN value:
     extract(d, line, 8);
@@ -1741,7 +1741,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     // Conversion from wavenumber to Hz. If you multiply a line
     // position in wavenumber (cm^-1) by this constant, you get the
     // frequency in Hz.
-    const Numeric w2Hz = Constant::c * 100.;
+    constexpr Numeric w2Hz = Constant::c * 100.;
 
     // Extract HITRAN postion:
     extract(v, line, 12);
@@ -1763,7 +1763,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
     // 3. Take out the isotopologue ratio.
 
-    const Numeric hi2arts = 1e-2 * Constant::c;
+    constexpr Numeric hi2arts = 1e-2 * Constant::c;
 
     Numeric s;
 
@@ -1791,9 +1791,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     Numeric gam;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = Constant::c * 1e2;
+    constexpr Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
+    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
 
     // Extract HITRAN AGAM value:
     extract(gam, line, 5);
@@ -1844,9 +1844,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     Numeric d;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = Constant::c * 1e2;
+    constexpr Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
+    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
 
     // Extract HITRAN value:
     extract(d, line, 8);
@@ -2101,7 +2101,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     // Conversion from wavenumber to Hz. If you multiply a line
     // position in wavenumber (cm^-1) by this constant, you get the
     // frequency in Hz.
-    const Numeric w2Hz = Constant::c * 100.;
+    constexpr Numeric w2Hz = Constant::c * 100.;
 
     // Extract HITRAN postion:
     extract(v, line, 12);
@@ -2123,7 +2123,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
     // 3. Take out the isotopologue ratio.
 
-    const Numeric hi2arts = 1e-2 * Constant::c;
+    constexpr Numeric hi2arts = 1e-2 * Constant::c;
 
     Numeric s;
     if (line[6] == 'D') line[6] = 'E';
@@ -2153,9 +2153,9 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     Numeric gam;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = Constant::c * 1e2;
+    constexpr Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
+    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
 
     // Extract HITRAN AGAM value:
     extract(gam, line, 5);
@@ -2206,9 +2206,9 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     Numeric d;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = Constant::c * 1e2;
+    constexpr Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
+    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
 
     // Extract HITRAN value:
     extract(d, line, 8);
@@ -2374,10 +2374,12 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     G[3] = G_340K;
   }
 
-  Y /= Conversion::ATM2PA;
-  G /= Conversion::ATM2PA / Conversion::ATM2PA;
-  Y *=
-      -1;  // ARTS uses (1-iY) as line-mixing factor, LBLRTM CO2 uses (1+iY), so we must change sign
+  // Cpnvert from per Atm and per Atm^2
+  Y /= Conversion::atm2pa(1);
+  G /= Constant::pow2(Conversion::atm2pa(1));
+  
+  // ARTS uses (1-iY) as line-mixing factor, LBLRTM uses (1+iY), so we must change sign
+  Y *= -1;
   
   // Test that this is the end
   {
@@ -2939,14 +2941,14 @@ bool Absorption::line_is_id(const Absorption::Lines& band, const QuantumIdentifi
 }
 
 Numeric Absorption::reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k) {
-  if (not even(Jf + lf + 1))
+  if (not iseven(Jf + lf + 1))
     return - sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
   else
     return + sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
 }
 
 Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N) {
-  if (not even(Jf + N))
+  if (not iseven(Jf + N))
     return - sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1_rat, 1_rat, 1_rat, Ji, Jf, N);
   else
     return + sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1_rat, 1_rat, 1_rat, Ji, Jf, N);
@@ -3153,7 +3155,7 @@ Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
     // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c)
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4)
 
-    const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
+    constexpr Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
 
     Numeric s;
 
@@ -3172,7 +3174,7 @@ Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
     Numeric gam;
     // External constant from constants.cc: Converts torr to
     // Pa. Multiply value in torr by this number to get value in Pa.
-    constexpr Numeric TORR2PA = Conversion::TORR2PA;
+    constexpr Numeric TORR2PA = Conversion::torr2pa(1);
 
     // Extract HITRAN AGAM value:
     extract(gam, line, 5);
@@ -3226,7 +3228,7 @@ Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
     Numeric d;
     // External constant from constants.cc: Converts torr to
     // Pa. Multiply value in torr by this number to get value in Pa.
-    constexpr Numeric TORR2PA = Conversion::TORR2PA;
+    constexpr Numeric TORR2PA = Conversion::torr2pa(1);
 
     // Extract MYTRAN value:
     extract(d, line, 9);
@@ -3842,4 +3844,94 @@ QuantumIdentifier Lines::QuantumIdentityOfLine(Index k) const noexcept {
   }
   return qid_copy;
 }
+
+LineTarget::LineTarget(const Jacobian::Target& target, const Lines& band) :
+  found(LineTargetType::None), pos({-1, -1})
+{
+  if (target.needQuantumIdentity()) {
+    // We need to look at these things
+    
+    // First check if we are a transition or energy level
+    if (target.QuantumIdentity().Type() == QuantumIdentifier::TRANSITION) {
+      // OK, we are a transition
+      
+      if (band.QuantumIdentity().In(target.QuantumIdentity())) {
+        // OK, we will be either a band or a line parameter or a shape parameter but we belong to this band
+        found = LineTargetType::Band;
+        
+        // Which line do we match?
+        for (Index i=0; i<band.NumLines(); i++) {
+          if (id_in_line(band, target.QuantumIdentity(), i)) {
+            // We match this line!
+            found = LineTargetType::Line;
+            pos[0] = i;
+            
+            // Now for complicated logic.
+            // A position other than the smallest possible
+            // position is considered a good position
+            if (target.Position() not_eq -std::numeric_limits<Index>::max()) {
+              // OK, we actually match a line shape parameter
+              found = LineTargetType::LineshapeParameter;
+              
+              // -1 means we are Self
+              // max() means we are Bath
+              // Else means we are a specific species and must look through all of them
+              if (target.Position() == -1) {
+                pos[1] = 0;
+              } else if (target.Position() == std::numeric_limits<Index>::max()) {
+                pos[1] = band.BroadeningSpecies().nelem() - 1;
+              } else {
+                for (Index j=band.Self(); j<band.BroadeningSpecies().nelem()-band.Bath(); j++) {
+                  if (target.Position() == band.BroadeningSpecies()[j].Species()) {
+                    pos[1] = j;
+                    return;
+                  }
+                }
+              }
+            }
+            return;
+          }
+        }
+        return;
+      }
+    } else if (target.QuantumIdentity().Type() == QuantumIdentifier::ENERGY_LEVEL) {
+      // OK, we are an energy level, we must look at the lines to see which energy level we are
+      for (Index i=0; i<band.NumLines(); i++) {
+        const bool upper = id_in_line_upper(band, target.QuantumIdentity(), i);
+        const bool lower = id_in_line_lower(band, target.QuantumIdentity(), i);
+        if (upper and lower) {
+          // We are actually both energy levels!
+          pos[1] = 2;
+        } else if (upper) {
+          // We are the upper energy level!
+          pos[1] = 0;
+        } else if (lower) {
+          // We are the lower energy level!
+          pos[1] = 1;
+        }
+        
+        // We should return if we found anything
+        if (upper or lower) {
+          found = LineTargetType::Level;
+          pos[0] = i;
+          return;
+        }
+      }
+    }
+    
+    // In case we didn't change anything but still entered one of the two above
+    if (found == LineTargetType::None and band.Species() == target.QuantumIdentity().Species()) {
+      // OK, We are the correct species!
+      if (band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
+        // OK, we are also the right isotopologue
+        found = LineTargetType::SpeciesAndIsotopologue;
+      } else {
+        // We are a different isotopologue so we are just a species
+        found = LineTargetType::Species;
+      }
+    }
+  } else {
+    /* We don't have to do anything! */
+  }
 }
+}  // Absorption

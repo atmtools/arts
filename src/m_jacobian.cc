@@ -1546,17 +1546,23 @@ void jacobianAddShapeCatalogParameter(Workspace&,
 
   out3 << "Attempting to create RT tag for " << line_identity << " " << variable
        << " " << coefficient << " for ";
-  if (species not_eq LineShape::self_broadening and
-      species not_eq LineShape::bath_broadening)
-    out3 << SpeciesTag(species).SpeciesNameMain() << "\n";
-  else
-    out3 << species << "\n";
 
   // Create the quantity
   RetrievalQuantity rq;
   rq.Mode(species);
   rq.Grids(ArrayOfVector(0, Vector(0)));
-  rq.Target(Jacobian::Target(jpt, line_identity));
+  
+  // Map the species
+  if (species == LineShape::self_broadening) {
+    out3 << species << "\n";
+    rq.Target(Jacobian::Target(jpt, line_identity, 0));
+  } else if (species == LineShape::bath_broadening) {
+    out3 << species << "\n";
+    rq.Target(Jacobian::Target(jpt, line_identity, std::numeric_limits<Index>::max()));
+  } else {
+    out3 << SpeciesTag(species).SpeciesNameMain() << "\n";
+    rq.Target(Jacobian::Target(jpt, line_identity, SpeciesTag(species).Species()));
+  }
 
   // Test this is not a copy
   for (auto& q : jq)

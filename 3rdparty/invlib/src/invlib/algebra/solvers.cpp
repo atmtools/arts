@@ -3,7 +3,7 @@
 // ------------------ //
 
     template<typename VectorType, typename MatrixType>
-auto Standard::solve(const MatrixType &A,const VectorType &v)
+inline auto Standard::solve(const MatrixType &A,const VectorType &v)
     -> VectorType
 {
     VectorType x = A.solve(v);
@@ -14,28 +14,28 @@ auto Standard::solve(const MatrixType &A,const VectorType &v)
 //  Setting Functors for CG Solvers //
 // -------------------------------- //
 
-CGDefaultSettings::CGDefaultSettings(double tolerance_)
+inline CGDefaultSettings::CGDefaultSettings(double tolerance_)
     : tolerance(tolerance_)
 {
     // Nothing to do here.
 }
 
 template<typename VectorType>
-VectorType CGDefaultSettings::start_vector(const VectorType & v) const
+inline VectorType CGDefaultSettings::start_vector(const VectorType & v) const
 {
     VectorType w = 0.0 * v;
     return w;
 }
 
 template<typename VectorType>
-bool CGDefaultSettings::converged(const VectorType & r,
+inline bool CGDefaultSettings::converged(const VectorType & r,
                                   const VectorType & v) const
 {
     return ((r.norm() / v.norm()) < tolerance);
 }
 
 template<size_t maximum_steps>
-CGStepLimit<maximum_steps>::CGStepLimit(double /* unused */)
+inline CGStepLimit<maximum_steps>::CGStepLimit(double /* unused */)
     : steps(0)
 {
     // Nothing to do here.
@@ -43,7 +43,7 @@ CGStepLimit<maximum_steps>::CGStepLimit(double /* unused */)
 
 template<size_t maximum_steps>
 template<typename VectorType>
-VectorType CGStepLimit<maximum_steps>::start_vector(const VectorType & v)
+inline VectorType CGStepLimit<maximum_steps>::start_vector(const VectorType & v)
 {
     steps = 0;
     VectorType w = 0.0 * v;
@@ -52,7 +52,7 @@ VectorType CGStepLimit<maximum_steps>::start_vector(const VectorType & v)
 
 template<size_t maximum_steps>
 template<typename VectorType>
-bool CGStepLimit<maximum_steps>::converged(const VectorType & /*r*/,
+inline bool CGStepLimit<maximum_steps>::converged(const VectorType & /*r*/,
                                            const VectorType & /*v*/)
 {
     steps++;
@@ -60,14 +60,14 @@ bool CGStepLimit<maximum_steps>::converged(const VectorType & /*r*/,
 }
 
 template<typename VectorType, size_t maximum_steps>
-CGContinued<VectorType, maximum_steps>::CGContinued(double /* unused */)
+inline CGContinued<VectorType, maximum_steps>::CGContinued(double /* unused */)
     : steps(0)
 {
     // Nothing to do here.
 }
 
 template<typename VectorType, size_t maximum_steps>
-VectorType & CGContinued<VectorType, maximum_steps>::start_vector(const VectorType & w)
+inline VectorType & CGContinued<VectorType, maximum_steps>::start_vector(const VectorType & w)
 {
     if (steps == 0)
     {
@@ -80,8 +80,8 @@ VectorType & CGContinued<VectorType, maximum_steps>::start_vector(const VectorTy
 }
 
 template<typename VectorType, size_t maximum_steps>
-bool CGContinued<VectorType, maximum_steps>::converged(const VectorType & /*r*/,
-                                           const VectorType & /*v*/)
+inline bool CGContinued<VectorType, maximum_steps>::converged(const VectorType & /*r*/,
+                                                              const VectorType & /*v*/)
 {
     steps++;
     return (steps > maximum_steps);
@@ -92,7 +92,7 @@ bool CGContinued<VectorType, maximum_steps>::converged(const VectorType & /*r*/,
 // -------------------------  //
 
 template<typename CGSettings>
-ConjugateGradient<CGSettings>::ConjugateGradient(double tol, int verbosity_)
+inline ConjugateGradient<CGSettings>::ConjugateGradient(double tol, int verbosity_)
     : verbosity(verbosity_), tolerance(tol), settings(tol)
 {
     // Nothing to do here.
@@ -108,8 +108,8 @@ template
     typename MatrixType,
     template <LogType> class Log
 >
-auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
-                                          const VectorType &v)
+inline auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
+                                                 const VectorType &v)
     -> VectorType
 {
     using RealType = typename VectorType::RealType;
@@ -154,7 +154,7 @@ auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
 // ----------------------------------------- //
 
 template<typename F>
-PreconditionedConjugateGradient<F, true>::PreconditionedConjugateGradient(
+inline PreconditionedConjugateGradient<F, true>::PreconditionedConjugateGradient(
     const F &f_,
     double tolerance_,
     int verbosity_)
@@ -170,8 +170,8 @@ template
     typename MatrixType,
     template <LogType> class Log
 >
-auto PreconditionedConjugateGradient<F, true>::solve(const MatrixType &A,
-                                                     const VectorType &v)
+inline auto PreconditionedConjugateGradient<F, true>::solve(const MatrixType &A,
+                                                            const VectorType &v)
     -> VectorType
 {
     using RealType = typename VectorType::RealType;
@@ -216,7 +216,7 @@ auto PreconditionedConjugateGradient<F, true>::solve(const MatrixType &A,
 }
 
 template<typename F>
-PreconditionedConjugateGradient<F, false>::PreconditionedConjugateGradient(
+inline PreconditionedConjugateGradient<F, false>::PreconditionedConjugateGradient(
     double tolerance_,
     int verbosity_)
     : verbosity(verbosity_), tolerance(tolerance_)
@@ -231,8 +231,8 @@ template
     typename MatrixType,
     template <LogType> class Log
 >
-auto PreconditionedConjugateGradient<F, false>::solve(const MatrixType &A,
-                                                      const VectorType &v)
+inline auto PreconditionedConjugateGradient<F, false>::solve(const MatrixType &A,
+                                                             const VectorType &v)
     -> VectorType
 {
     using RealType = typename VectorType::RealType;

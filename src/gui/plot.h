@@ -6,7 +6,12 @@
 #include <matpackI.h>
 #include <complex.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
 #include "gui.h"
+#pragma GCC diagnostic pop
 
 namespace ARTSGUI {
 void plot(const Vector& y);

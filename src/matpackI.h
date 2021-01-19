@@ -95,8 +95,15 @@
 #ifndef matpackI_h
 #define matpackI_h
 
-#include <Eigen/Dense>
 #include <cassert>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
+#include <Eigen/Dense>
+#pragma GCC diagnostic pop
+
 #include "array.h"
 #include "matpack.h"
 

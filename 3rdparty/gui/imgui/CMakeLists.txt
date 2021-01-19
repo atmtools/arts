@@ -16,4 +16,5 @@ add_library(imgui STATIC
             )
 target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(imgui PUBLIC ImDrawIdx=unsigned\ int)
+target_compile_options(imgui PRIVATE -Wno-conversion)
 target_link_libraries(imgui glfw GLEW::glew OpenGL::GL)

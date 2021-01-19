@@ -33,6 +33,7 @@
 #include "constants.h"
 #include "file.h"
 #include "mystring.h"
+#include "propagationmatrix.h"
 #include "quantum.h"
 #include "wigner_functions.h"
 
@@ -587,6 +588,36 @@ AllPolarizationVectors AllPolarization_deta(Numeric theta,
 const PolarizationVector& SelectPolarization(
     const AllPolarizationVectors& data, Polarization type) noexcept;
 
+/** Sums the Zeeman components into a propagation matrix
+ * 
+ * @param[in,out] pm The propagation matrix
+ * @param[in] abs The complex absorption vector
+ * @param[in] polvec The polarization vector
+ */
+void sum(PropagationMatrix& pm, const ComplexVector& abs, const PolarizationVector& polvec);
+
+/** Sums the Zeeman components derivatives into a propagation matrix
+ * 
+ * @param[in,out] pm The propagation matrix derivative
+ * @param[in] abs The complex absorption vector
+ * @param[in] dabs The complex absorption vector derivative w.r.t. H
+ * @param[in] polvec The polarization vector
+ * @param[in] dpolvec_dtheta The polarization vector derivative w.r.t. theta
+ * @param[in] dpolvec_deta The polarization vector derivative w.r.t. eta
+ * @param[in] dH The derivative w.r.t. H
+ * @param[in] dtheta The derivative w.r.t. theta
+ * @param[in] deta The derivative w.r.t. eta
+ */
+void dsum(PropagationMatrix& dpm,
+          const ComplexVector& abs,
+          const ComplexVector& dabs,
+          const PolarizationVector& polvec,
+          const PolarizationVector& dpolvec_dtheta,
+          const PolarizationVector& dpolvec_deta,
+          const Numeric dH,
+          const Numeric dtheta,
+          const Numeric deta);
+
 /** Contains derived values useful for Zeeman calculations
  * 
  * These are called derived since ARTS operates on a 3D grid
@@ -608,19 +639,20 @@ struct Derived {
  * \f[ \eta = \arctan\left( \frac{y}{x} \right), \f]
  * \f[ \frac{\partial H}{\partial \vec{H}} = \vec{n}_H, \f]
  * \f[ \frac{\partial \theta}{\partial \vec{H}} = \frac{\vec{n}_H \cos{\theta} - \vec{n}}{H\sin\theta}, \f]
- * \f[ \frac{\partial \eta}{\partial \vec{H}} = \frac{\vec{n}\times\vec{n}_H}{Hx^2 + Hy^2} \f]
+ * \f[ \frac{\partial \eta}{\partial \vec{H}} = \frac{\vec{n}\times\vec{n}_H}{H\left(x^2 + y^2\right)} \f]
  * 
  * With these helpers (some defined, others not):
- * \f[ \vec{H} = \left[v,u,w\right], \f]
- * \f[ \vec{n}_H = \left[v,u,w\right] / H, \f]
- * \f[ \vec{n} = \left[ \cos a \sin z, \sin a\sin z, \cos z \right], \f]
- * \f[ \vec{e}_v = \left[ \cos a \cos z, \sin a\cos z, -\sin z \right], \f]
+ * \f[ \vec{H} = \left[\begin{array}{l} v \\ u \\ w \end{array}\right], \f]
+ * \f[ \vec{n}_H = \frac{\vec{H}}{H} , \f]
+ * \f[ \vec{n} = \left[\begin{array}{r} \cos a \sin z \\ \sin a\sin z \\ \cos z \end{array}\right], \f]
+ * \f[ \vec{e}_v = \left[\begin{array}{r} \cos a \cos z \\ \sin a\cos z \\ -\sin z \end{array}\right], \f]
  * \f[ y = \left\{\vec{e}_v \times \left[\vec{n}_H - \left(\vec{n}_H\cdot\vec{n}\right)\vec{n}\right]\right\} \cdot \vec{n}, \f]
  * \f[ x = \vec{e}_v \cdot \left[\vec{n}_H - \left(\vec{n}_H\cdot\vec{n}\right)\vec{n}\right] \f]
  * 
  * Note that all other values are zero if \f$ H \f$ is zero, that \f$ \frac{\partial \theta}{\partial \vec{H}} \f$
  * is zero if \f$ \sin{\theta} \f$ is zero, that \f$ \frac{\partial \eta}{\partial \vec{H}} \f$ is zero
- * if \f$ x \f$ and \f$ y \f$ are zero, and that the atan2(y, x) function is used for \f$ \eta \f$.
+ * if \f$ x \f$ and \f$ y \f$ are zero, and that the atan2(y, x) function is used for \f$ \eta \f$ to
+ * compensate for when \f$ x \f$ is zero.
  * 
  * @param[in] u Magnetic field u-parameter
  * @param[in] v Magnetic field b-parameter

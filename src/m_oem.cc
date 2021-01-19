@@ -430,9 +430,7 @@ void xaStandard(Workspace& ws,
         for (Index i = 0; i < gp_p.nelem(); i++)
           for (Index j = 0; j < gp_lat.nelem(); j++)
             for (Index k = 0; k < gp_lon.nelem(); k++)
-              mag_x(i, j, k) = std::hypot(
-                  std::hypot(mag_u(i, j, k), mag_u(i, j, k)),
-                  mag_w(i, j, k));  //nb, should remove one hypot for c++17
+              mag_x(i, j, k) = std::hypot(mag_u(i, j, k), mag_v(i, j, k), mag_w(i, j, k));
         flat(xa[ind], mag_x);
       } else {
         ConstTensor3View source_field(mag_u_field);
@@ -440,9 +438,7 @@ void xaStandard(Workspace& ws,
           source_field = mag_v_field;
         } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticW) {
           source_field = mag_w_field;
-        } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticU) {
-        } else
-          throw runtime_error("Unsupported magnetism type");
+        }
 
         // Determine grid positions for interpolation from retrieval grids back
         // to atmospheric grids
@@ -832,11 +828,8 @@ void x2artsAtmAndSurf(Workspace& ws,
         for (Index i = 0; i < n_p; i++) {
           for (Index j = 0; j < n_lat; j++) {
             for (Index k = 0; k < n_lon; k++) {
-              Numeric scale =
-                  mag_x(i, j, k) /
-                  std::hypot(
-                      std::hypot(mag_u_field(i, j, k), mag_v_field(i, j, k)),
-                      mag_w_field(i, j, k));  // nb,remove one hypot for c++17
+              const Numeric scale = mag_x(i, j, k) /
+                std::hypot(mag_u_field(i, j, k), mag_v_field(i, j, k), mag_w_field(i, j, k));
               mag_u_field(i, j, k) *= scale;
               mag_v_field(i, j, k) *= scale;
               mag_w_field(i, j, k) *= scale;

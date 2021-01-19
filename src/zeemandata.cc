@@ -230,50 +230,51 @@ Zeeman::Derived Zeeman::FromGrids(Numeric u, Numeric v, Numeric w, Numeric z, Nu
 {
   Derived output;
   
-  // XYZ vectors normalized
-  const Eigen::Vector3d n = los_xyz_by_za_local(z, a);
-  const Eigen::Vector3d ev = ev_xyz_by_za_local(z, a);
-  const Eigen::Vector3d nH = los_xyz_by_uvw_local(u, v, w);
-  
   // If there is no magnetic field, bailout quickly
-  output.H = std::hypot(std::hypot(u, v), w);
-  if (output.H == 0)
-    return FromPreDerived(0, 0, 0);  // Guard against the 0-field
-  
-  // Normalized vector (which are also the magnetic field derivatives)
-  output.dH_dv = nH[0];
-  output.dH_du = nH[1];
-  output.dH_dw = nH[2];
-  
-  // Compute theta (and its derivatives if possible)
-  const Numeric cos_theta = n.dot(nH);
-  const Numeric sin_theta = std::sqrt(1 - Constant::pow2(cos_theta));
-  output.theta = std::acos(cos_theta);
-  if (sin_theta not_eq 0) {
-    const Eigen::Vector3d dtheta =  (nH * cos_theta - n) / (output.H * sin_theta);
-    output.dtheta_dv = dtheta[0];
-    output.dtheta_du = dtheta[1];
-    output.dtheta_dw = dtheta[2];
+  output.H = std::hypot(u, v, w);
+  if (output.H == 0) {
+    output = FromPreDerived(0, 0, 0);
   } else {
-    output.dtheta_du = 0;
-    output.dtheta_dv = 0;
-    output.dtheta_dw = 0;
-  }
-  
-  // Compute eta (and its derivatives if possible)
-  const Eigen::Vector3d inplane = nH - nH.dot(n) * n;
-  const Numeric y = ev.cross(inplane).dot(n);
-  const Numeric x = ev.dot(inplane);
-  output.eta = std::atan2(y, x);
-  if (x not_eq 0 or y not_eq 0) {
-    const Eigen::Vector3d deta = n.cross(nH) / (output.H * (Constant::pow2(x) + Constant::pow2(y)));
-    output.deta_dv = deta[0];
-    output.deta_du = deta[1];
-    output.deta_dw = deta[2];
-  } else {
-    output.deta_du = 0;
-    output.deta_dv = 0;
-    output.deta_dw = 0;
+    // XYZ vectors normalized
+    const Eigen::Vector3d n = los_xyz_by_za_local(z, a);
+    const Eigen::Vector3d ev = ev_xyz_by_za_local(z, a);
+    const Eigen::Vector3d nH = los_xyz_by_uvw_local(u, v, w);
+    
+    // Normalized vector (which are also the magnetic field derivatives)
+    output.dH_dv = nH[0];
+    output.dH_du = nH[1];
+    output.dH_dw = nH[2];
+    
+    // Compute theta (and its derivatives if possible)
+    const Numeric cos_theta = n.dot(nH);
+    const Numeric sin_theta = std::sqrt(1 - Constant::pow2(cos_theta));
+    output.theta = std::acos(cos_theta);
+    if (sin_theta not_eq 0) {
+      const Eigen::Vector3d dtheta = (nH * cos_theta - n) / (output.H * sin_theta);
+      output.dtheta_dv = dtheta[0];
+      output.dtheta_du = dtheta[1];
+      output.dtheta_dw = dtheta[2];
+    } else {
+      output.dtheta_dv = 0;
+      output.dtheta_du = 0;
+      output.dtheta_dw = 0;
+    }
+    
+    // Compute eta (and its derivatives if possible)
+    const Eigen::Vector3d inplane = nH - nH.dot(n) * n;
+    const Numeric y = ev.cross(inplane).dot(n);
+    const Numeric x = ev.dot(inplane);
+    output.eta = std::atan2(y, x);
+    if (x not_eq 0 or y not_eq 0) {
+      const Eigen::Vector3d deta = n.cross(nH) / (output.H * (Constant::pow2(x) + Constant::pow2(y)));
+      output.deta_dv = deta[0];
+      output.deta_du = deta[1];
+      output.deta_dw = deta[2];
+    } else {
+      output.deta_dv = 0;
+      output.deta_du = 0;
+      output.deta_dw = 0;
+    }
   }
   
   return output;
@@ -372,4 +373,48 @@ const PolarizationVector& SelectPolarization(
   }
 }
 #pragma GCC diagnostic pop
+
+void sum(PropagationMatrix& pm, const ComplexVector& abs, const PolarizationVector& polvec) {
+  auto pol_real = polvec.attenuation();
+  auto pol_imag = polvec.dispersion();
+  
+  for (Index iv=0; iv<pm.NumberOfFrequencies(); iv++) {
+    pm.Kjj()[iv] += abs[iv].real() * pol_real[0];
+    pm.K12()[iv] += abs[iv].real() * pol_real[1];
+    pm.K13()[iv] += abs[iv].real() * pol_real[2];
+    pm.K14()[iv] += abs[iv].real() * pol_real[3];
+    pm.K23()[iv] += abs[iv].imag() * pol_imag[0];
+    pm.K24()[iv] += abs[iv].imag() * pol_imag[1];
+    pm.K34()[iv] += abs[iv].imag() * pol_imag[2];
+  }
 }
+
+void dsum(PropagationMatrix& pm,
+          const ComplexVector& abs,
+          const ComplexVector& dabs,
+          const PolarizationVector& polvec,
+          const PolarizationVector& dpolvec_dtheta,
+          const PolarizationVector& dpolvec_deta,
+          const Numeric dH,
+          const Numeric dt,
+          const Numeric de) {
+  auto pol_real = polvec.attenuation();
+  auto pol_imag = polvec.dispersion();
+  auto dp_dt_r = dpolvec_dtheta.attenuation();
+  auto dp_dt_i = dpolvec_dtheta.dispersion();
+  auto dp_de_r = dpolvec_deta.attenuation();
+  auto dp_de_i = dpolvec_deta.dispersion();
+  
+  for (Index iv=0; iv<pm.NumberOfFrequencies(); iv++) {
+    const auto da_r = (dt * dp_dt_r + de * dp_de_r);
+    const auto da_i = (dt * dp_dt_i + de * dp_de_i);
+    pm.Kjj()[iv] += dabs[iv].real() * dH * pol_real[0] + abs[iv].real() * da_r[0];
+    pm.K12()[iv] += dabs[iv].real() * dH * pol_real[1] + abs[iv].real() * da_r[1];
+    pm.K13()[iv] += dabs[iv].real() * dH * pol_real[2] + abs[iv].real() * da_r[2];
+    pm.K14()[iv] += dabs[iv].real() * dH * pol_real[3] + abs[iv].real() * da_r[3];
+    pm.K23()[iv] += dabs[iv].imag() * dH * pol_imag[0] + abs[iv].imag() * da_i[0];
+    pm.K24()[iv] += dabs[iv].imag() * dH * pol_imag[1] + abs[iv].imag() * da_i[1];
+    pm.K34()[iv] += dabs[iv].imag() * dH * pol_imag[2] + abs[iv].imag() * da_i[2];;
+  }
+}
+}  // Zeeman

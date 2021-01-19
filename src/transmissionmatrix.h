@@ -29,8 +29,14 @@
 #ifndef transmissionmatrix_h
 #define transmissionmatrix_h
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
+#pragma GCC diagnostic pop
+
 #include "jacobian.h"
 #include "propagationmatrix.h"
 

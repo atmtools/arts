@@ -1929,7 +1929,7 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
     newbase = ".";
   
   CommonBlock cmn;
-  detband(cmn, Conversion::freq2kaycm(fmin), Conversion::freq2kaycm(fmax), Conversion::arts2hitran_linestrength(stot), newbase);
+  detband(cmn, Conversion::freq2kaycm(fmin), Conversion::freq2kaycm(fmax), Conversion::hz_per_msquared2kaycm_per_cmsquared(stot), newbase);
   readw(cmn, newbase);
   readlines(cmn, newbase);
   
@@ -2026,29 +2026,29 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
       const std::vector<Rational> inner_lower{Rational(cmn.Jfln.Jf(j, i))};
       
       const LineShape::ModelParameters G0_sdvp_air{LineShape::TemperatureModel::T1,
-        Conversion::hitran2arts_broadening(cmn.GamSDVT0AIR.HWSDVT0AIR(j, i)), 
+        Conversion::kaycm_per_atm2hz_per_pa(cmn.GamSDVT0AIR.HWSDVT0AIR(j, i)), 
         cmn.DTGAMAIR.BHWAIR(j, i)};
       const LineShape::ModelParameters G0_sdvp_h2o{LineShape::TemperatureModel::T1,
-        Conversion::hitran2arts_broadening(cmn.GamSDVT0H2O.HWSDVT0H2O(j, i)), 
+        Conversion::kaycm_per_atm2hz_per_pa(cmn.GamSDVT0H2O.HWSDVT0H2O(j, i)), 
         cmn.DTGAMH2O.BHWH2O(j, i)};
       const LineShape::ModelParameters G0_sdvp_co2{LineShape::TemperatureModel::T1,
-        Conversion::hitran2arts_broadening(cmn.GamSDVT0CO2.HWSDVT0SELF(j, i)), 
+        Conversion::kaycm_per_atm2hz_per_pa(cmn.GamSDVT0CO2.HWSDVT0SELF(j, i)), 
         cmn.DTGAMCO2.BHWSELF(j, i)};
       
       LineShape::ModelParameters G2_sdvp_air{G0_sdvp_air}; G2_sdvp_air.X0 *= cmn.GamSDVT0AIR.rHWT0AIR(j, i);
       LineShape::ModelParameters G2_sdvp_h2o{G0_sdvp_h2o}; G2_sdvp_h2o.X0 *= cmn.GamSDVT0H2O.rHWT0H2O(j, i);
       LineShape::ModelParameters G2_sdvp_co2{G0_sdvp_co2}; G2_sdvp_co2.X0 *= cmn.GamSDVT0CO2.rHWT0SELF(j, i);
       
-      const LineShape::ModelParameters D0{LineShape::TemperatureModel::T0, Conversion::hitran2arts_broadening(cmn.SHIFT0.shft0(j, i))};
+      const LineShape::ModelParameters D0{LineShape::TemperatureModel::T0, Conversion::kaycm_per_atm2hz_per_pa(cmn.SHIFT0.shft0(j, i))};
       
       const LineShape::ModelParameters G0_vp_air{LineShape::TemperatureModel::T1,
-        Conversion::hitran2arts_broadening(cmn.GamVT0AIR.HWVT0AIR(j, i)), 
+        Conversion::kaycm_per_atm2hz_per_pa(cmn.GamVT0AIR.HWVT0AIR(j, i)), 
         cmn.DTGAMAIR.BHWAIR(j, i)};
       const LineShape::ModelParameters G0_vp_h2o{LineShape::TemperatureModel::T1,
-        Conversion::hitran2arts_broadening(cmn.GamVT0H2O.HWVT0H2O(j, i)), 
+        Conversion::kaycm_per_atm2hz_per_pa(cmn.GamVT0H2O.HWVT0H2O(j, i)), 
         cmn.DTGAMH2O.BHWH2O(j, i)};
       const LineShape::ModelParameters G0_vp_co2{LineShape::TemperatureModel::T1,
-        Conversion::hitran2arts_broadening(cmn.GamVT0CO2.HWVT0SELF(j, i)), 
+        Conversion::kaycm_per_atm2hz_per_pa(cmn.GamVT0CO2.HWVT0SELF(j, i)), 
         cmn.DTGAMCO2.BHWSELF(j, i)};
       
       const LineShape::SingleSpeciesModel sdvp_air{G0_sdvp_air, D0, G2_sdvp_air};
@@ -2066,8 +2066,8 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
       
       // Should probably use the isotopologue ratio
       bands[i].Line(j) = {Conversion::kaycm2freq(cmn.LineSg.Sig(j, i)),
-                          Conversion::hitran2arts_linestrength(cmn.UnusedBandParams.intens(j, i)),
-                          Conversion::hitran2arts_energy(cmn.Energy.E(j, i)),
+                          Conversion::kaycm_per_cmsquared2hz_per_msquared(cmn.UnusedBandParams.intens(j, i)),
+                          Conversion::kaycm2joule(cmn.Energy.E(j, i)),
                           gsi0*Numeric(cmn.Jfln.Jf(j, i) * 2 + 1),
                           gsi0*Numeric(cmn.Jiln.Ji(j, i) * 2 + 1),
                           cmn.UnusedBandParams.eina(j, i),

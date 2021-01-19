@@ -76,7 +76,9 @@ ENUMCLASS(Line, char,
           ShapeGX0, ShapeGX1, ShapeGX2, ShapeGX3,
           ShapeDVX0, ShapeDVX1, ShapeDVX2, ShapeDVX3,
           NLTE,
-          SpecialParameter1
+          SpecialParameter1,
+          SpecialParameter2,
+          SpecialParameter3
           )
 
 /** Holds the Sensor-related targets */
@@ -143,7 +145,7 @@ constexpr std::string_view toString(TypeOfTarget y, Type x) noexcept {
 /** Holds all information required for individual partial derivatives */
 class Target {
 private:
-  /** Type of quantity, never set manually */
+  /**! Type of quantity, never set manually */
   Type mtype;
   
   /** Type of quantity, set manually */
@@ -155,21 +157,24 @@ private:
   /** ID for the Line types of partial derivatives */
   QuantumIdentifier mqid;
   
+  /** A position for a Target that requires it */
+  Index position;
+  
 public:
   /** Atmospheric type */
-  constexpr explicit Target (Atm type) noexcept : mtype(Type::Atm), msubtype(type), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid() {}
+  constexpr explicit Target (Atm type) noexcept : mtype(Type::Atm), msubtype(type), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid(), position(-std::numeric_limits<Index>::max()) {}
   
   /** Line type */
-  constexpr explicit Target (Line type, const QuantumIdentifier& qid) noexcept : mtype(Type::Line), msubtype(type), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid(qid) {}
+  constexpr explicit Target (Line type, const QuantumIdentifier& qid, const Index pos=-std::numeric_limits<Index>::max()) noexcept : mtype(Type::Line), msubtype(type), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid(qid), position(pos) {}
   
   /** Sensor type */
-  constexpr explicit Target (Sensor type) noexcept : mtype(Type::Sensor), msubtype(type), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid() {}
+  constexpr explicit Target (Sensor type) noexcept : mtype(Type::Sensor), msubtype(type), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid(), position(-std::numeric_limits<Index>::max()) {}
   
   /** Special type */
-  constexpr explicit Target (Special type, const QuantumIdentifier& qid) noexcept : mtype(Type::Special), msubtype(type), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid(qid) {}
+  constexpr explicit Target (Special type, const QuantumIdentifier& qid) noexcept : mtype(Type::Special), msubtype(type), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid(qid), position(-std::numeric_limits<Index>::max()) {}
   
   /** A defaultable none-type */
-  constexpr Target() noexcept : mtype(Type::FINAL), msubtype(), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid() {}
+  constexpr Target() noexcept : mtype(Type::FINAL), msubtype(), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid(), position(-std::numeric_limits<Index>::max()) {}
   
   /** Perturbation */
   void Perturbation(Numeric x) noexcept {mperturbation=x;}
@@ -284,6 +289,15 @@ public:
   constexpr bool needQuantumIdentity() const noexcept {
     return mtype == Type::Line;
   }
+  
+  /** Position for cases that requires it */
+  constexpr Index Position() const {return position;}
+  
+  /** Position for cases that requires it */
+  constexpr Index& Position() {return position;}
+  
+  /** Position for cases that requires it */
+  constexpr void Position(Index pos) {position=pos;}
 };  // Target
 
 /** Output operator 

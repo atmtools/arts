@@ -8,7 +8,6 @@
 #include <iomanip>
 
 #include "invlib/traits.h"
-#include "invlib/profiling/timer.h"
 
 namespace invlib
 {
@@ -76,7 +75,7 @@ private:
 //  Formatting Functions  //
 // ---------------------- //
 
-std::string center(const std::string &s, int width = 80)
+inline std::string center(const std::string &s, int width = 80)
 {
     auto padding_length = (width - s.size()) / 2;
     std::string padding(padding_length, ' ');
@@ -86,7 +85,7 @@ std::string center(const std::string &s, int width = 80)
     return centered;
 }
 
-std::string separator(int width = 80)
+inline std::string separator(int width = 80)
 {
     std::string separator(width, '-');
     return separator;
@@ -286,24 +285,6 @@ void StandardLog<LogType::MAP>::time(Params... params)
         std::cout << std::get<1>(tuple) << std::endl;
         std::cout << "Time in Jacobian(...): ";
         std::cout << std::get<2>(tuple) << std::endl;
-
-        auto t1 = multiply_mm_time.count();
-        auto t2 = multiply_mv_time.count();
-        auto t3 = solve_time.count();
-        auto t4 = invert_time.count();
-
-        if (t1 > 0.0 || t2 > 0.0 || t3 > 0.0 || t4 > 0.0)
-        {
-            std::cout << std::endl;
-            std::cout << "Time in MM multiply(...): ";
-            std::cout << t1 << std::endl;
-            std::cout << "Time in MV multiply(...): ";
-            std::cout << t2 << std::endl;
-            std::cout << "Time in solve(...): ";
-            std::cout << t3 << std::endl;
-            std::cout << "Time in invert(...): ";
-            std::cout << t4 << std::endl;
-        }
     }
 }
 

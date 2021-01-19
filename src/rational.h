@@ -686,7 +686,7 @@ constexpr bool operator==(const Rational a, const Rational b) {
  * @return true If not equal
  * @return false Otherwise
  */
-constexpr bool operator!=(Rational a, Rational b) {
+constexpr bool operator!=(const Rational a, const Rational b) {
   return not operator==(a, b);
 }
 
@@ -697,7 +697,7 @@ constexpr bool operator!=(Rational a, Rational b) {
  * @return true If a < b
  * @return false Otherwise
  */
-constexpr bool operator<(Rational a, Rational b) {
+constexpr bool operator<(const Rational a, const Rational b) {
   return a.isDefined() and b.isDefined() and
          a.Nom() * b.Denom() < a.Denom() * b.Nom();
 }
@@ -709,7 +709,7 @@ constexpr bool operator<(Rational a, Rational b) {
  * @return true If a > b
  * @return false Otherwise
  */
-constexpr bool operator>(Rational a, Rational b) { return operator<(b, a); }
+constexpr bool operator>(const Rational a, const Rational b) { return operator<(b, a); }
 
 /** Less than or equal to
  * 
@@ -718,7 +718,7 @@ constexpr bool operator>(Rational a, Rational b) { return operator<(b, a); }
  * @return true If a <= b
  * @return false Otherwise
  */
-constexpr bool operator<=(Rational a, Rational b) {
+constexpr bool operator<=(const Rational a, const Rational b) {
   return not operator>(a, b);
 }
 
@@ -955,7 +955,7 @@ constexpr Rational operator ""_rat(unsigned long long int n) {
  * @param[in]  r Any rational
  * @return  true if r is even, otherwise false
  */
-constexpr bool even(const Rational r) {
+constexpr bool iseven(const Rational r) {
   if (r % 2)
     return false;
   else

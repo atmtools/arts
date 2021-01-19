@@ -22,5 +22,7 @@ if (ENABLE_DOCSERVER)
     reason_phrase.h
     response.c
     response.h)
+    
+  target_compile_options(microhttpd PRIVATE -Wno-unused-result)
 endif (ENABLE_DOCSERVER)
 

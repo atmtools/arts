@@ -61,19 +61,19 @@
 namespace Constant {
 /** power of two */
 template <class T>
-constexpr T pow2(T x) {
+constexpr auto pow2(T x) -> decltype(x * x) {
   return x * x;
 }
 
 /** power of three */
 template <class T>
-constexpr T pow3(T x) {
+constexpr auto pow3(T x) -> decltype(pow2(x) * x) {
   return pow2(x) * x;
 }
 
 /** power of four */
 template <class T>
-constexpr T pow4(T x) {
+constexpr auto pow4(T x) -> decltype(pow2(pow2(x))) {
   return pow2(pow2(x));
 }
 
@@ -312,191 +312,223 @@ static constexpr Numeric ideal_gas_constant = k * NA;
 static constexpr Numeric R = ideal_gas_constant;
 
 /** Doppler broadening constant squared [kg/T]^2 **/
-static constexpr Numeric doppler_broadening_const_squared = 2000 * R / pow2(c);
+static constexpr Numeric doppler_broadening_const_squared = 2'000 * R / pow2(c);
+
+/** One degree in radians */
+static constexpr Numeric one_degree_in_radians = pi / 180;
 };  // namespace Constant
 
 /** Namespace containing several practical unit conversions, physical and mathematical **/
 namespace Conversion {
 using namespace Constant;
 
-/** Conversion constant degrees to radians and back.  Use conversion formulae instead of pure constant if possible. NOTE:  No constexpr cos etal in ARTS yet. **/
-static constexpr Numeric DEG2RAD = pi / 180;
-static constexpr Numeric RAD2DEG = 1 / DEG2RAD;
-/** Converts degrees to radians  */
+/** Converts degrees to radians */
 template <class T>
-constexpr Numeric deg2rad(T x) {
-  return x * DEG2RAD;
+constexpr auto deg2rad(T x) -> decltype(x * one_degree_in_radians) {
+  return x * one_degree_in_radians;
 }
 
-/** Converts radians to degrees  */
+/** Converts radians to degrees */
 template <class T>
-constexpr Numeric rad2deg(T x) {
-  return x * RAD2DEG;
+constexpr auto rad2deg(T x) -> decltype(x / one_degree_in_radians) {
+  return x / one_degree_in_radians;
 }
 
-/** Returns the cosine of the deg2rad of the input  */
+/** Returns the cosine of the deg2rad of the input */
 template <class T>
-Numeric cosd(T x) {
+auto cosd(T x) -> decltype(std::cos(deg2rad(x))) {
   return std::cos(deg2rad(x));
 }
 
-/** Returns the sine of the deg2rad of the input  */
+/** Returns the sine of the deg2rad of the input */
 template <class T>
-Numeric sind(T x) {
+auto sind(T x) -> decltype(std::sin(deg2rad(x))) {
   return std::sin(deg2rad(x));
 }
 
-/** Returns the tangent of the deg2rad of the input  */
+/** Returns the tangent of the deg2rad of the input */
 template <class T>
-Numeric tand(T x) {
+auto tand(T x) -> decltype(std::tan(deg2rad(x)))  {
   return std::tan(deg2rad(x));
 }
 
-/** Returns rad2deg of the arc-cosine of the input  */
+/** Returns rad2deg of the arc-cosine of the input */
 template <class T>
-Numeric acosd(T x) {
+auto acosd(T x) -> decltype(rad2deg(std::acos(x))) {
   return rad2deg(std::acos(x));
 }
 
-/** Returns rad2deg of the arc-sine of the input  */
+/** Returns rad2deg of the arc-sine of the input */
 template <class T>
-Numeric asind(T x) {
+auto asind(T x) -> decltype(rad2deg(std::asin(x))) {
   return rad2deg(std::asin(x));
 }
 
-/** Returns rad2deg of the arc-tangent of the input  */
+/** Returns rad2deg of the arc-tangent of the input */
 template <class T>
-Numeric atand(T x) {
+auto atand(T x) -> decltype(rad2deg(std::atan(x)))  {
   return rad2deg(std::atan(x));
 }
 
 /** Returns rad2deg of the arc-tangent of inputs #T1/#T2  */
 template <class T1, class T2>
-Numeric atan2d(T1 y, T2 x) {
+auto atan2d(T1 y, T2 x) -> decltype(rad2deg(std::atan2(y, x))) {
   return rad2deg(std::atan2(y, x));
 }
 
-/** Conversion constant Kayser wavenumber to frequency and back.  Use conversion formulae instead of pure constant if possible. **/
-static constexpr Numeric KAYCM2FREQ = 100 * c;
-static constexpr Numeric FREQ2KAYCM = 1 / KAYCM2FREQ;
+/** Conversion from Kayser wavenumber to Hz */
 template <class T>
-constexpr Numeric kaycm2freq(T x) {
-  return x * KAYCM2FREQ;
-}
-template <class T>
-constexpr Numeric freq2kaycm(T x) {
-  return x * FREQ2KAYCM;
+constexpr auto kaycm2freq(T x) -> decltype(x * (100 * c)) {
+  return x * (100 * c);
 }
 
-/** Conversion constant Angular wavenumber to frequency and back.  Use conversion formulae instead of pure constant if possible. **/
-static constexpr Numeric ANGCM2FREQ = KAYCM2FREQ * inv_two_pi;
-static constexpr Numeric FREQ2ANGCM = 1 / ANGCM2FREQ;
+/** Conversion from Hz to Kayser wavenumber */
 template <class T>
-constexpr Numeric angcm2freq(T x) {
-  return x * ANGCM2FREQ;
-}
-template <class T>
-constexpr Numeric freq2angcm(T x) {
-  return x * FREQ2ANGCM;
+constexpr auto freq2kaycm(T x) -> decltype(x / (100 * c)) {
+  return x / (100 * c);
 }
 
-/** Conversion constant Angular frequency to frequency and back **/
+/** Conversion from Angular wavenumber to Hz */
 template <class T>
-constexpr Numeric angfreq2freq(T x) {
+constexpr auto angcm2freq(T x) -> decltype(kaycm2freq(inv_two_pi)) {
+  return x * kaycm2freq(inv_two_pi);
+}
+
+/** Conversion from Hz to Angular wavenumber */
+template <class T>
+constexpr auto freq2angcm(T x) -> decltype(x / kaycm2freq(inv_two_pi)) {
+  return x / kaycm2freq(inv_two_pi);
+}
+
+/** Conversion from Angular Hz to Hz */
+template <class T>
+constexpr auto angfreq2freq(T x) -> decltype(x * inv_two_pi) {
   return x * inv_two_pi;
 }
+
+/** Conversion from Hz to Angular Hz */
 template <class T>
-constexpr Numeric freq2angfreq(T x) {
+constexpr auto freq2angfreq(T x) -> decltype(x * two_pi) {
   return x * two_pi;
 }
 
-/** Conversion wavelength to frequency and back. **/
+/** Conversion from wavelength to Hz */
 template <class T>
-constexpr Numeric wavelen2freq(T x) {
-  return c / x;
-}
-template <class T>
-constexpr Numeric freq2wavelen(T x) {
+constexpr auto wavelen2freq(T x) -> decltype(c / x) {
   return c / x;
 }
 
-/** Conversion constant 1 atmosphere to 1 Pascal and back.  Use conversion formulae instead of pure constant if possible. **/
-static constexpr Numeric ATM2PA = 101325;
-static constexpr Numeric PA2ATM = 1 / ATM2PA;
+/** Conversion from Hz to wavelength */
 template <class T>
-constexpr Numeric atm2pa(T x) {
-  return x * ATM2PA;
-}
-template <class T>
-constexpr Numeric pa2atm(T x) {
-  return x * PA2ATM;
+constexpr auto freq2wavelen(T x) -> decltype(c / x) {
+  return c / x;
 }
 
-/** Conversion constant 1 torr to 1 Pascal and back.  Use conversion formulae instead of pure constant if possible. **/
-static constexpr Numeric TORR2PA = ATM2PA / 760;
-static constexpr Numeric PA2TORR = 1 / TORR2PA;
+/** Conversion from Atm to Pa */
 template <class T>
-constexpr Numeric torr2pa(T x) {
-  return x * TORR2PA;
-}
-template <class T>
-constexpr Numeric pa2torr(T x) {
-  return x * PA2TORR;
+constexpr auto atm2pa(T x) -> decltype(x * 101'325.0) {
+  return x * 101'325.0;
 }
 
-/** Conversion constant Celsius to Kelvin and back.  Use conversion formulae instead of pure constant if possible. **/
-static constexpr Numeric CEL2KEL = 273.15;
+/** Conversion from Pa to Atm */
 template <class T>
-constexpr Numeric celsius2kelvin(T x) {
-  return x + CEL2KEL;
+constexpr auto pa2atm(T x) -> decltype(x / 101'325.0) {
+  return x / 101'325.0;
 }
+
+/** Conversion from Torr to Pa */
 template <class T>
-constexpr Numeric kelvin2celsius(T x) {
-  return x - CEL2KEL;
+constexpr auto torr2pa(T x) -> decltype(x * atm2pa(1.0 / 760.0)) {
+  return x * atm2pa(1.0 / 760.0);
+}
+
+/** Conversion from Pa to Torr */
+template <class T>
+constexpr auto pa2torr(T x) -> decltype(x / atm2pa(1.0 / 760.0)) {
+  return x / atm2pa(1.0 / 760.0);
+}
+
+/** Conversion from MHz/Torr to Hz/Pa */
+template <class T>
+constexpr auto mhz_per_torr2hz_per_pa(T x) -> decltype(x * pa2torr(1e6)) {
+  return x * pa2torr(1e6);
+}
+
+/** Conversion from C to K */
+template <class T>
+constexpr auto celsius2kelvin(T x) -> decltype(x + 273.15) {
+  return x + 273.15;
+}
+
+/** Conversion from K to C */
+template <class T>
+constexpr auto kelvin2celsius(T x) -> decltype(x - 273.15) {
+  return x - 273.15;
 }
 
 /** Conversion from cm-1 per molecule per cm^2 to Hz per molecule per m^2 **/
-static constexpr Numeric HITRAN2ARTS_LS = KAYCM2FREQ * 1e-4;
-static constexpr Numeric ARTS2HITRAN_LS = 1 / HITRAN2ARTS_LS;
 template <class T>
-constexpr T hitran2arts_linestrength(T x) {
-  return x * HITRAN2ARTS_LS;
+constexpr auto kaycm_per_cmsquared2hz_per_msquared(T x) -> decltype(x * kaycm2freq(1e-4)) {
+  return x * kaycm2freq(1e-4);
 }
+
+/** Conversion from Hz per molecule per m^2 to cm-1 per molecule per cm^2 **/
 template <class T>
-constexpr T arts2hitran_linestrength(T x) {
-  return x * ARTS2HITRAN_LS;
+constexpr auto hz_per_msquared2kaycm_per_cmsquared(T x) -> decltype(x * freq2kaycm(1e4)) {
+  return x * freq2kaycm(1e4);
 }
 
 /** Conversion from cm-1 per atmosphere to Hz per Pascal **/
-static constexpr Numeric HITRAN2ARTS_GAMMA = KAYCM2FREQ / ATM2PA;
-static constexpr Numeric ARTS2HITRAN_GAMMA = 1 / HITRAN2ARTS_GAMMA;
 template <class T>
-constexpr T hitran2arts_broadening(T x) {
-  return x * HITRAN2ARTS_GAMMA;
+constexpr auto kaycm_per_atm2hz_per_pa(T x) -> decltype(x * kaycm2freq(pa2atm(1))) {
+  return x * kaycm2freq(pa2atm(1));
 }
+
+/** Conversion from Hz per Pascal to cm-1 per atmosphere **/
 template <class T>
-constexpr T arts2hitran_broadening(T x) {
-  return x * ARTS2HITRAN_GAMMA;
+constexpr auto hz_per_pa2kaycm_per_atm(T x) -> decltype(x * freq2kaycm(atm2pa(1))) {
+  return x * freq2kaycm(atm2pa(1));
 }
 
 /** Conversion from cm-1 to Joule **/
-static constexpr Numeric HITRAN2ARTS_ENERGY = h * KAYCM2FREQ;
-static constexpr Numeric ARTS2HITRAN_ENERGY = 1 / HITRAN2ARTS_ENERGY;
 template <class T>
-constexpr T hitran2arts_energy(T x) {
-  return x * HITRAN2ARTS_ENERGY;
-}
-template <class T>
-constexpr T arts2hitran_energy(T x) {
-  return x * ARTS2HITRAN_ENERGY;
+constexpr auto kaycm2joule(T x) -> decltype(x * kaycm2freq(h)) {
+  return x * kaycm2freq(h);
 }
 
+/** Conversion from MHz to Joule **/
 template <class T>
-constexpr T angstrom2meter(T x) {
+constexpr auto mhz2joule(T x) -> decltype(x * h * 1e6) {
+  return x * h * 1e6;
+}
+
+/** Conversion from Kelvin to Joule **/
+template <class T>
+constexpr auto kelvin2joule(T x) -> decltype(x * k) {
+  return x * k;
+}
+
+/** Conversion from Hz to Joule **/
+template <class T>
+constexpr auto joule2hz(T x) -> decltype(x / h) {
+  return x / h;
+}
+
+/** Conversion from Joule to cm-1 **/
+template <class T>
+constexpr auto joule2kaycm(T x) -> decltype(x / kaycm2freq(h)) {
+  return x / kaycm2freq(h);
+}
+
+/** Conversion from Å to meter **/
+template <class T>
+constexpr auto angstrom2meter(T x) -> decltype(x * 1e-10) {
   return x * 1e-10;
 }
+
+/** Conversion from meter to Å **/
 template <class T>
-constexpr T meter2angstrom(T x) {
+constexpr auto meter2angstrom(T x) -> decltype(x * 1e10) {
   return x * 1e10;
 }
 };  // namespace Conversion
