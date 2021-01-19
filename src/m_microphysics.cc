@@ -87,16 +87,7 @@ void particle_massesFromMetaDataSingleCategory(
         throw std::runtime_error(os.str());
       }
 
-      if (scat_meta[i_ss][i_se].diameter_volume_equ <= 0 ||
-          scat_meta[i_ss][i_se].diameter_volume_equ > 0.5) {
-        ostringstream os;
-        os << "A presumably incorrect value found for "
-           << "scat_meta[" << i_ss << "][" << i_se << "].diameter_volume_equ.\n"
-           << "The value is " << scat_meta[i_ss][i_se].diameter_volume_equ;
-        throw std::runtime_error(os.str());
-      }
-
-      particle_masses(i_se_flat, 0) = scat_meta[i_ss][i_se].diameter_volume_equ;
+      particle_masses(i_se_flat, 0) = scat_meta[i_ss][i_se].mass;
 
       i_se_flat++;
     }
@@ -117,8 +108,16 @@ void particle_massesFromMetaData(  //WS Output:
   Index i_se_flat = 0;
   for (Index i_ss = 0; i_ss < scat_meta.nelem(); i_ss++) {
     for (Index i_se = 0; i_se < scat_meta[i_ss].nelem(); i_se++) {
-      particle_masses(i_se_flat, i_ss) =
-          scat_meta[i_ss][i_se].diameter_volume_equ;
+      if (std::isnan(scat_meta[i_ss][i_se].mass) ||
+          scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.) {
+        ostringstream os;
+        os << "A presumably incorrect value found for "
+           << "scat_meta[" << i_ss << "][" << i_se << "].mass.\n"
+           << "The value is " << scat_meta[i_ss][i_se].mass;
+        throw std::runtime_error(os.str());
+      }
+      
+      particle_masses(i_se_flat, i_ss) = scat_meta[i_ss][i_se].mass;
       i_se_flat++;
     }
   }

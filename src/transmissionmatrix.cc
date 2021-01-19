@@ -1573,86 +1573,90 @@ void set_backscatter_radiation_vector(
   }
 }
 
-ArrayOfTransmissionMatrix cumulative_backscatter(ConstTensor5View t,
-                                                 ConstMatrixView m) {
-  const Index ns = t.ncols();
-  const Index nv = t.npages();
-  const Index np = t.nbooks();
-  const Index nd = t.nshelves();
+ArrayOfTransmissionMatrix bulk_backscatter(ConstTensor5View Pe,
+                                           ConstMatrixView pnd) {
+  const Index ns = Pe.ncols();
+  const Index nv = Pe.npages();
+  const Index np = Pe.nbooks();
+  const Index ne = Pe.nshelves();
 
   ArrayOfTransmissionMatrix aotm(np, TransmissionMatrix(nv, ns));
+  
   for (Index ip = 0; ip < np; ip++) {
+
     aotm[ip].setZero();
 
     switch (ns) {
       case 4:
         for (Index iv = 0; iv < nv; iv++)
-          for (Index id = 0; id < nd; id++)
+          for (Index ie = 0; ie < ne; ie++)
             aotm[ip].Mat4(iv).noalias() +=
-                m(id, ip) * matrix4(t(id, ip, iv, joker, joker));
+                pnd(ie, ip) * matrix4(Pe(ie, ip, iv, joker, joker));
         break;
       case 3:
         for (Index iv = 0; iv < nv; iv++)
-          for (Index id = 0; id < nd; id++)
+          for (Index ie = 0; ie < ne; ie++)
             aotm[ip].Mat3(iv).noalias() +=
-                m(id, ip) * matrix3(t(id, ip, iv, joker, joker));
+                pnd(ie, ip) * matrix3(Pe(ie, ip, iv, joker, joker));
         break;
       case 2:
         for (Index iv = 0; iv < nv; iv++)
-          for (Index id = 0; id < nd; id++)
+          for (Index ie = 0; ie < ne; ie++)
             aotm[ip].Mat2(iv).noalias() +=
-                m(id, ip) * matrix2(t(id, ip, iv, joker, joker));
+                pnd(ie, ip) * matrix2(Pe(ie, ip, iv, joker, joker));
         break;
       case 1:
         for (Index iv = 0; iv < nv; iv++)
-          for (Index id = 0; id < nd; id++)
+          for (Index ie = 0; ie < ne; ie++)
             aotm[ip].Mat1(iv).noalias() +=
-                m(id, ip) * matrix1(t(id, ip, iv, joker, joker));
+                pnd(ie, ip) * matrix1(Pe(ie, ip, iv, joker, joker));
         break;
     }
   }
   return aotm;
 }
 
-ArrayOfArrayOfTransmissionMatrix cumulative_backscatter_derivative(
-    ConstTensor5View t, const ArrayOfMatrix& aom) {
-  const Index ns = t.ncols();
-  const Index nv = t.npages();
-  const Index np = t.nbooks();
-  const Index nd = t.nshelves();
-  const Index nq = aom.nelem();
+ArrayOfArrayOfTransmissionMatrix bulk_backscatter_derivative(
+    ConstTensor5View Pe, const ArrayOfMatrix& dpnd_dx) {
+  const Index ns = Pe.ncols();
+  const Index nv = Pe.npages();
+  const Index np = Pe.nbooks();
+  const Index ne = Pe.nshelves();
+  const Index nq = dpnd_dx.nelem();
 
   ArrayOfArrayOfTransmissionMatrix aoaotm(
       np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nv, ns)));
+  
   for (Index ip = 0; ip < np; ip++) {
     for (Index iq = 0; iq < nq; iq++) {
+
       aoaotm[ip][iq].setZero();
 
-      if(not aom[iq].empty()) {
+      if(not dpnd_dx[iq].empty()) {
         switch (ns) {
           case 4:
             for (Index iv = 0; iv < nv; iv++)
-              for (Index id = 0; id < nd; id++)
+              for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat4(iv).noalias() +=
-                    aom[iq](id, ip) * matrix4(t(id, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) * matrix4(Pe(ie, ip, iv, joker, joker));
             break;
           case 3:
             for (Index iv = 0; iv < nv; iv++)
-              for (Index id = 0; id < nd; id++)
+              for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat3(iv).noalias() +=
-                    aom[iq](id, ip) * matrix3(t(id, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) * matrix3(Pe(ie, ip, iv, joker, joker));
             break;
           case 2:
             for (Index iv = 0; iv < nv; iv++)
-              for (Index id = 0; id < nd; id++)
+              for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat2(iv).noalias() +=
-                    aom[iq](id, ip) * matrix2(t(id, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) * matrix2(Pe(ie, ip, iv, joker, joker));
             break;
           case 1:
             for (Index iv = 0; iv < nv; iv++)
-              for (Index id = 0; id < nd; id++)
+              for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat1(iv).noalias() +=
-                    aom[iq](id, ip) * matrix1(t(id, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) * matrix1(Pe(ie, ip, iv, joker, joker));
             break;
         }
       }

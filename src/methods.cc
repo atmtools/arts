@@ -7881,8 +7881,8 @@ void define_md_data_raw() {
           "\n"
           "The WSM treats e.g. radar measurements of cloud and precipitation,\n"
           "on the condition that multiple scattering can be ignored. Beside\n"
-          "the direct backsacttering, the two-way attenuation by gases and\n"
-          "particles is considered. Surface scattering is ignored.\n"
+          "the direct back-scattering, the two-way attenuation by gases and\n"
+          "particles is considered. Surface scattering/clutter is ignored.\n"
           "\n"
           "The method could potentially be used for lidars, but multiple\n"
           "scattering poses here a must stronger constrain for the range of\n"
@@ -7890,7 +7890,10 @@ void define_md_data_raw() {
           "\n"
           "The method shall be used with *yRadar*, NOT with *yCalc*.\n"
           "\n"
-          "The method returns the backscattering for each point of *ppath*.\n"
+          "The *ppath* provided should be calculated including cloudbox interior:\n"
+          "     ppathCalc( cloudbox_on=0 )\n"
+          "\n"
+          "The method returns the back-scattering for each point of *ppath*.\n"
           "Several frequencies can be treated in parallel. The size of *iy*\n"
           "is [ nf*np, stokes_dim ], where nf is the length of *f_grid* and\n"
           "np is the number of path points. The data are stored in blocks\n"
@@ -7898,56 +7901,49 @@ void define_md_data_raw() {
           "frequency occupy the np first rows of *iy* etc.\n"
           "\n"
           "The polarisation state of the transmitted pulse is taken from\n"
-          "*iy_transmitter_agenda*. If the radar transmits several polarisations\n"
-          "at the same frequency, you need to handle this by using two frequencies\n"
-          "in *f_grid*, but these can be almost identical.\n"
+          "*iy_transmitter_agenda*. If the radar transmits several\n"
+          "polarisations at the same frequency, you need to handle this by\n"
+          "using two frequencies in *f_grid*, but these can be almost identical.\n"
           "\n"
           "This method does not consider *iy_unit_radar*. Unit changes are instead\n"
           "applied in *yRadar. The output of this method matches the option \"1\".\n"
           "\n"
-          "Transmittance is handled in a slightly simplified manner for efficiency\n"
-          "reasons. First of all, the transmittance matrix is assumed to be the same\n"
-          "in both directions between the sensor and the point of back-scattering.\n"
-          "This should in general be true, but exceptions could exist. The extinction\n"
-          "due to particles can also be scaled, which could be of interest when e.g.\n"
-          "characterising inversions.\n"
+          "The extinction due to particles can be scaled (by *pext_scaling*),\n"
+          "which could be of interest when e.g. characterising inversions.\n"
           "\n"
-          "Further, for Jacobian calculations the default is to assume that the\n"
-          "transmittance is unaffected by the retrieval quantities. This is done\n"
-          "to save computational time, and should be a valid approximation for the\n"
-          "single-scattering conditions. Set *trans_in_jacobian* to 1 to obtain\n"
-          "the more accurate Jacobian.\n"
+          "For Jacobian calculations the default is to assume that the\n"
+          "transmittance is unaffected by the retrieval quantities. This is\n"
+          "done to save computational time, and should be a valid approximation\n"
+          "for the single-scattering conditions. Set *trans_in_jacobian* to 1 to\n"
+          "activate full Jacobian calculations.\n"
           "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
           "Valid choices for auxiliary data are:\n"
           " \"Radiative background\": Index value flagging the radiative\n"
           "    background. The following coding is used: 0=space, 1=surface\n"
-          "    and 2=cloudbox.\n"
-          " \"Backscattering\": The unattenuated backscattering. That is, as\n"
+          "    and 2=cloudbox (the last case should not occur!). Only column\n"
+          "    matching first Stokes element filled. Other columns are set to 0.\n"
+          " \"Backscattering\": The unattenuated back-scattering. That is, as\n"
           "    *iy* but with no attenuated applied. Here all columns are filled.\n"
-          " \"Optical depth\": Scalar, total and two-way, optical depth between\n"
-          "    sensor and each point of the propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
-          "    i.e. only fully valid for scalar RT.\n"
-          " \"Particle extinction\": As \"Optical depth\", but only with particle\n"
-          "    attenuation included. That is, gas absorption is ignored.\n"
-          "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
-          "i.e. the column matching Stokes element I, while remaing columns are\n"
-          "are filled with zeros.\n"),
+          "    By combing *iy* and this auxiliary variable, the total two-way\n"
+          "    attenuation can be derived.\n"
+          " \"Abs species extinction\": Extinction due to *abs_species* at each\n"
+          "    ppath point, taken as the diagonal of the local extinction matrix.\n"
+          " \"Particle extinction\": Extinction due to particles at each\n"
+          "    ppath point, taken as the diagonal of the local extinction matrix.\n"
+          "    The retunred values includes *pext_scaling*\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy",
           "iy_aux",
           "diy_dx",
           "ppvar_p",
           "ppvar_t",
-          "ppvar_nlte",
           "ppvar_vmr",
           "ppvar_wind",
           "ppvar_mag",
           "ppvar_pnd",
-          "ppvar_f",
-          "ppvar_trans_cumulat"),
+          "ppvar_f"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -11183,6 +11179,101 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("particle_bulkpropRadarOnionPeeling"),
+      DESCRIPTION(
+          "Inverts radar reflectivities by in an onion peeling manner.\n"
+          "\n"
+          "The method assumes space-based measurements and invert one altitude\n"
+          "at the time, based on a pre-calculated inversion table (*invtable*)\n"
+          "and starting at the top of the atmosphere. If attenuation is\n"
+          "completely ignored, the table is effectively used as a look-up table\n"
+          "to map dBZe to hydrometeor values. The method considers attenuation\n"
+          "by default, where extinction due to hydrometeors is taken from the\n"
+          "table and the one due to *abs_species* is obtained by\n"
+          "*propmat_clearsky_agenda*.\n"
+          "\n"
+          "The inversion table consists of two GriddedField3. The first field\n"
+          "shall match liquid hydrometeors and is applied for temperatures above\n"
+          "*t_phase*. The second field is applied for lower temperatures and\n"
+          "shall thus correspond to ice hydrometeors.\n"
+          "\n"
+          "The size of each field is (2,ndb,nt). The two page dimensions match\n"
+          "the hydrometeor property to retrieve and extinction, respectively.\n"
+          "The table shall hold the 10-logarithm of the property, such as\n"
+          "log10(IWC). ndb is the number of dBZe values in the table and nt\n"
+          "the number of temperatures. The table is interpolated in temperature\n"
+          "in a nearest neighbour fashion, while in a linear interpolation is\n"
+          "applied in the dBZe dimension.\n"
+          "\n"
+          "The field of radar reflectivities (*dBZe*) shall cover the complete\n"
+          "atmosphere and then match e.g. *t_field* in size. The observation\n"
+          "geometry is here specified by giving the incidence angle for each\n"
+          "profile of dBZe values (by *incangles*). A flat Earth approximation\n"
+          "is applied inside the method.\n"
+          "\n"
+          "All values below *dbze_noise* are treated as pure noise and\n"
+          "*particle_bulkprop_field* is set to zero for these positions.\n"
+          "The comparison to *dbze_noise* is done with uncorrected values.\n"
+          "\n"
+          "Further, all values at altitudes below z_surface + h_clutter are\n"
+          "assumed to be surface clutter and are rejected. If *fill_clutter*\n"
+          "is set to 1, the retrieval just above the clutter zone is assumed\n"
+          "valid also below and is copied to all altitudes below (also for\n"
+          "altitudes below the surface).\n"
+          "\n"
+          "Significant radar echos (>dbze_noise and above clutter zone) are\n"
+          "assumed to match liquid hydrometeors for temperatures >= *t_phase*\n"
+          "and ice ones for lower temperatures.\n"
+          "\n"
+          "Default is to consider attenuation of both hydrometeors and absorption\n"
+          "species. These two sources to attenuation can be ignored by setting\n"
+          "*do_atten_hyd* and *do_atten_abs* to zero, respectively. To avoid\n"
+          "\"run away\" in attenuation, a maximum value to attenuation correction\n"
+          "can be set by *dbze_max_corr*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("particle_bulkprop_field", "particle_bulkprop_names"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmosphere_dim",
+         "p_grid",
+         "lat_grid",
+         "lon_grid",
+         "t_field",
+         "z_field",
+         "vmr_field",
+         "z_surface",
+         "atmfields_checked",
+         "atmgeom_checked",
+         "f_grid",
+         "propmat_clearsky_agenda",
+         "scat_species"),
+      GIN("invtable",
+          "incangles",
+          "dBZe",
+          "dbze_noise",
+          "h_clutter",
+          "fill_clutter",
+          "t_phase",
+          "do_atten_abs",
+          "do_atten_hyd",
+          "dbze_max_corr"),
+      GIN_TYPE("ArrayOfGriddedField3", "Matrix", "Tensor3", "Numeric",
+               "Numeric", "Index", "Numeric", "Index", "Index", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", "0", "0", "273.15", "1", "1", "10"),
+      GIN_DESC("Inversion table, see above.",
+               "Incidence angles.",
+               "Field of radar reflectivities, in dBZe.",
+               "Noise level. See above.",
+               "Height of clutter zone.",
+               "Flag to fill clutter zone, by copuyting retrieval just above it.",
+               "Phase boundary temperature. See above.",
+               "Flag to consider attenuation due to hydrometeors.",
+               "Flag to consider attenuation due to absorption species.",
+               "Max allowed change of measured dBZe to approx. correct "
+               "for attenuation.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldClip"),
       DESCRIPTION(
           "Clipping of *particle_bulkprop_field*.\n"
@@ -11294,9 +11385,7 @@ void define_md_data_raw() {
           "is assumed (see *particle_masses* for a definition of \"mass\n"
           "category\").\n"
           "\n"
-          "To be clear, the above are assumptions of the method, the user\n"
-          "is free to work with any scattering element. For Earth and just having\n"
-          "cloud and particles, the resulting mass category can be seen as\n"
+          "If just having clouds, the resulting mass category can be seen as\n"
           "the total cloud water content, with possible contribution from\n"
           "both ice and liquid phase.\n"),
       AUTHORS("Jana Mendrok", "Patrick Eriksson"),
@@ -11315,14 +11404,9 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Derives *particle_masses* from *scat_meta*.\n"
           "\n"
-          "This method is supposed to be used to derive *particle_masses*\n"
-          "when *pnd_field* is internally calculated using\n"
-          "*pnd_fieldCalcFromParticleBulkProps* (in contrast to reading it\n"
-          "from external sources using *ScatElementsPndAndScatAdd* and\n"
-          "*pnd_fieldCalcFrompnd_field_raw*).\n"
-          "It extracts the mass information of the scattering elements from\n"
-          "*scat_meta*. Each scattering species is taken as a separate\n"
-          "category of particle_masses, i.e., the resulting\n"
+          "It extracts the mass information of the scattering elements\n"
+          "from *scat_meta*. Each scattering species is taken as a\n"
+          "separate category of particle_masses, i.e., the resulting\n"
           "*particle_masses* matrix will contain as many columns as\n"
           "scattering species are present in *scat_meta*.\n"),
       AUTHORS("Jana Mendrok"),
@@ -13857,6 +13941,52 @@ void define_md_data_raw() {
                "Maximum step in log10(p[Pa]). If the pressure grid is "
                "coarser than this, additional points are added until each "
                "log step is smaller than this.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("RadarOnionPeelingTableCalc"),
+      DESCRIPTION(
+          "Creates a radar inversion table.\n"
+          "\n"
+          "This method is tailored to make inversion tables that fit\n"
+          "*particle_bulkpropRadarOnionPeeling*. See that method for\n"
+          "format of the table.\n"
+          "\n"
+          "The method needs to be called twice to form a complete table,\n"
+          "once for liquid and ice hydrometeors. The table can be empty at\n"
+          "the first call.\n"
+          "\n"
+          "The input data (*scat_data* etc.) must match two scattering\n"
+          "species and a single frequency (the one of the radar).\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("invtable"),
+      GOUT_TYPE("ArrayOfGriddedField3"),
+      GOUT_DESC(""),
+      IN("f_grid",
+         "scat_species",
+         "scat_data",
+         "scat_meta",
+         "pnd_agenda_array",
+         "pnd_agenda_array_input_names"),
+      GIN("i_species",
+          "dbze_grid",
+          "t_grid",
+          "wc_min",
+          "wc_max",
+          "ze_tref",
+          "k2"),
+      GIN_TYPE("Index", "Vector", "Vector", "Numeric", "Numeric",
+               "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1e-8", "2e-2", "273.15", "-1" ),
+      GIN_DESC("Index of *scat_species* to do. Can be 0 or 1.",
+               "Grid of dBZe values to use for the table.",
+               "Temperature grid to use for the table.",
+               "A water content value that gives a dBZe smaller than first "
+               "value of *dbze_grid*.",
+               "A water content value that gives a dBZe larger than last "
+               "value of *dbze_grid*.",
+               "Reference temperature for conversion to Ze. See further *yRadar*.",
+               "Reference dielectric factor. See further *yRadar*.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RadiationFieldSpectralIntegrate"),
@@ -18692,6 +18822,20 @@ void define_md_data_raw() {
                "Direction. \"book\" or \"page\" or \"row\" or \"column\".")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("Tensor3FromVector"),
+      DESCRIPTION("Forms a Tensor3 of size nx1x1 from a vector of length n.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Tensor3"),
+      GOUT_DESC("Output tensor."),
+      IN(),
+      GIN("v"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Input vector.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3Scale"),
       DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
                   "\n"
@@ -20843,7 +20987,7 @@ void define_md_data_raw() {
           "The output format for *iy* when simulating radars and lidars differs\n"
           "from the standard one, and *yCalc* can not be used for such simulations.\n"
           "This method works largely as *yCalc*, but is tailored to handle the\n"
-          "output from *iyRadarSingleScat*. Note that *iy_radar_agenda* repalces\n"
+          "output from *iyRadarSingleScat*. Note that *iy_radar_agenda* replaces\n"
           "*iy_main_agenda*.\n"
           "\n"
           "The method requires additional information about the sensor,\n"
@@ -20882,8 +21026,8 @@ void define_md_data_raw() {
           "parameterization.\n"
           "\n"
           "A lower limit for dBZe is applied (*dbze_min*). The main reason is to\n"
-          "handle the fact dBZe is not defined for Ze=0, and dBZe is set to the\n"
-          "clip value when Ze < 10^(dbze_min/10).\n"),
+          "handle the fact that dBZe is not defined for Ze=0, and dBZe is set to\n"
+          "the clip value when Ze < 10^(dbze_min/10).\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"),
       GOUT(),

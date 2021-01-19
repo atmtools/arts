@@ -1,0 +1,222 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# ...
+#
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# on-the-fly absorption
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# A pressure grid rougly matching 0 to 16 km, in steps of 500 m.
+IndexCreate( np )
+IndexSet( np, 33 )
+VectorNLogSpace( p_grid, np, 1013e2, 100e2 )
+
+# Initial definition of species
+abs_speciesSet( species= [  "N2-SelfContStandardType", "O2-TRE05", "H2O-PWR98" ] )
+
+# No line data needed here
+abs_lines_per_speciesSetEmpty
+
+# Dimensionality of the atmosphere
+AtmosphereSet1D
+
+# Atmospheric profiles
+AtmRawRead( basename = "testdata/midlatitude-winter" )
+#
+AtmFieldsCalc
+
+# Get ground altitude (z_surface) from z_field
+Extract( z_surface, z_field, 0 )
+
+# Various things not used
+ArrayOfStringSet( iy_aux_vars, [] )
+jacobianOff
+
+
+# Extract altitudes to set range_bins
+#
+MatrixCreate( m_tmp )
+VectorCreate( v_tmp )
+NumericCreate( z_toa )
+IndexCreate( ilast )
+#
+MatrixExtractFromTensor3( m_tmp, z_field, 0, "column" )
+VectorExtractFromMatrix( v_tmp, m_tmp, 0, "column" )
+IndexAdd( ilast, np, -1 )
+Extract( z_toa, v_tmp, ilast )
+
+
+# Define the radar
+#
+VectorSet( f_grid, [94e9] )
+#
+Copy( range_bins, v_tmp )
+VectorAddScalar( range_bins, range_bins, -250 )
+Append( range_bins, z_toa )
+Print(range_bins)
+#
+MatrixSet( sensor_pos, [400e3] )
+MatrixSet( sensor_los, [180] )
+#
+AgendaSet( iy_transmitter_agenda ){
+  Ignore( rtp_pos )
+  Ignore( rtp_los )
+  iy_transmitterSinglePol
+}
+ArrayOfIndexSet( instrument_pol, [ 5 ] )
+Append( instrument_pol_array, instrument_pol )
+#
+AgendaSet( iy_radar_agenda ){
+  Ignore( iy_id )
+  ppathPlaneParallel( cloudbox_on = 0 )
+  iyRadarSingleScat
+}
+IndexSet( stokes_dim, 2 )
+sensorOff
+StringSet( iy_unit_radar, "dBZe" )
+
+
+# PSDs
+#
+StringCreate( species_id_string )
+#
+# Scat species 0
+StringSet( species_id_string, "RWC" )
+ArrayOfStringSet( pnd_agenda_input_names, [ "RWC" ] )
+
+ArrayOfAgendaAppend( pnd_agenda_array ){
+  ScatSpeciesSizeMassInfo( species_index=agenda_array_index, x_unit="dveq" )
+  Copy( psd_size_grid, scat_species_x )
+  Copy( pnd_size_grid, scat_species_x )
+  psdModifiedGammaMass( n0=1e6, mu=0, la=-999, ga=1, t_min=273.15, t_max=999 )
+  pndFromPsdBasic
+}
+Append( scat_species, species_id_string )
+Append( pnd_agenda_array_input_names, pnd_agenda_input_names )
+#
+# Scat species 1
+StringSet( species_id_string, "IWC" )
+ArrayOfStringSet( pnd_agenda_input_names, [ "IWC" ] )
+ArrayOfAgendaAppend( pnd_agenda_array ){
+  ScatSpeciesSizeMassInfo( species_index=agenda_array_index, x_unit="dmax",
+                           x_fit_start=100e-6 )
+  Copy( psd_size_grid, scat_species_x )
+  Copy( pnd_size_grid, scat_species_x )
+  psdFieldEtAl07( regime = "ML", t_min = 10, t_max = 273.15, t_min_psd = 220,
+                  picky = 1 )
+  pndFromPsdBasic
+}
+Append( scat_species, species_id_string )
+Append( pnd_agenda_array_input_names, pnd_agenda_input_names )
+
+
+# Corresponding scattering data
+#
+ReadXML( scat_data_raw, "testdata/scat_data_onion.xml" )
+ReadXML( scat_meta, "testdata/scat_meta_onion.xml" )
+scat_dataCalc
+
+
+# Mass contents
+#
+NumericCreate( iwc )
+NumericSet( iwc, 1e-5 )
+ArrayOfStringSet( particle_bulkprop_names, [ "RWC", "IWC" ] )
+Tensor4SetConstant( particle_bulkprop_field, 1, np, 1, 1, 0 )
+VectorSetConstant( v_tmp, np, iwc )
+Tensor3Create( t3_tmp )
+Tensor3FromVector( t3_tmp, v_tmp )
+Append( particle_bulkprop_field, t3_tmp )
+
+
+# The cloudbox and pnd_field
+#
+cloudboxSetFullAtm
+pnd_fieldCalcFromParticleBulkProps
+
+
+# Make checks
+#
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+scat_data_checkedCalc
+lbl_checkedCalc
+
+
+# Simulate the radar
+#
+yRadar
+
+
+# Move the simulation to a Tensor3
+Tensor3Create(dBZe)
+Tensor3FromVector( dBZe, y )
+
+
+# Create radar inversion table
+#
+ArrayOfGriddedField3Create( invtable )
+VectorCreate( dbze_grid )
+VectorCreate( t_grid )
+#
+VectorLinSpace( dbze_grid, -30, 25, 1 )
+#
+# Rain
+VectorLinSpace( t_grid, 274, 330, 2 )
+RadarOnionPeelingTableCalc( invtable = invtable,
+                            i_species = 0,
+                            dbze_grid = dbze_grid,
+                            t_grid = t_grid,
+                            wc_min = 1e-9)
+# Ice
+VectorLinSpace( t_grid, 199, 273, 1 )
+RadarOnionPeelingTableCalc( invtable = invtable,
+                            i_species = 1,
+                            dbze_grid = dbze_grid,
+                            t_grid = t_grid)
+
+
+# Run onion peeling
+#
+Tensor4Create( retrieved )
+MatrixCreate( incangles )
+MatrixSetConstant( incangles, 1, 1, 0 )
+#
+particle_bulkpropRadarOnionPeeling( particle_bulkprop_field = retrieved,
+                                    invtable = invtable,
+                                    dBZe = dBZe,
+                                    incangles = incangles,
+                                    dbze_noise = -30,
+                                    do_atten_abs = 1,
+                                    do_atten_hyd = 1 )
+
+
+# Compare to "true". Deviation should be below 2%
+#
+NumericScale( iwc, iwc, 0.02 )
+#
+Compare( retrieved, particle_bulkprop_field, iwc )
+
+Exit
+
+# Print retrieved values
+#
+Extract( t3_tmp, retrieved, 1 )
+MatrixExtractFromTensor3( m_tmp, t3_tmp, 0, "column" )
+Print( m_tmp, 0 )
+
+}
+ 
