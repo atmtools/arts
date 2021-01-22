@@ -10380,6 +10380,28 @@ void define_md_data_raw() {
       GIN_DESC("Input numeric.", "Value to add.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("NumericClip"),
+      DESCRIPTION(
+          "Clipping of a numeric.\n"
+          "\n"
+          "The input value is copied to the output one (that can be same WSV)\n"
+          "but ensures that *out* is inside the range [limit_low,limit_high].\n"
+          "When the input value is below *limit_low*, *out* is set to *limit_low*.\n"
+          "And the same is performed with respect to *limit_high*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Numeric"),
+      GOUT_DESC("Output numeric."),
+      IN(),
+      GIN("in", "limit_low", "limit_high"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "-Inf", "Inf"),
+      GIN_DESC("Input numeric.",
+               "Lower limit for clipping.",
+               "Upper limit for clipping.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("NumericFromVector"),
       DESCRIPTION(
           "Derivs a numeric from a vector, following selected operation.\n"
@@ -19334,6 +19356,32 @@ void define_md_data_raw() {
       GIN_TYPE("Vector", "Vector"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "Vector to be added.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorClip"),
+      DESCRIPTION(
+          "Clipping of a vector.\n"
+          "\n"
+          "The input vector is copied to the output one (that can be same WSV)\n"
+          "but ensures that all values in *out* are inside the range [limit_low,\n"
+          "limit_high]. Where the input vector is below *limit_low*, *out* is set\n"
+          "to *limit_low*. And the same is performed with respect to *limit_high*.\n"
+          "That is, the method works as *NumericClip* for each element of the\n"
+          "vector.\n"
+          "\n"
+          "The method adopts the length of *out* when needed.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output vector."),
+      IN(),
+      GIN("in", "limit_low", "limit_high"),
+      GIN_TYPE("Vector", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "-Inf", "Inf"),
+      GIN_DESC("Input vector.",
+               "Lower limit for clipping.",
+               "Upper limit for clipping.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorCrop"),
