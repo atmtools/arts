@@ -945,6 +945,11 @@ void particle_bulkpropRadarOnionPeeling(
   particle_bulkprop_field = 0;
   particle_bulkprop_names = scat_species;
 
+  // We apply huge extrapolation in dbze, to handle values outside the table
+  // range. Extrapolation should be OK dBZe and log(IWC) have close to linear
+  // relationship. 
+  const Numeric extrap_fac = 100;
+  
   // Loop all profiles
   for (Index ilat=0; ilat<nlat; ilat++) {
     for (Index ilon=0; ilon<nlon; ilon++) {
@@ -994,7 +999,8 @@ void particle_bulkpropRadarOnionPeeling(
               if (do_atten_hyd && dBZe(ip,ilat,ilon) > dbze_noise) {
                 // Extinction
                 GridPos gp;
-                gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID), dbze);
+                gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
+                        dbze, extrap_fac);
                 Vector itw(2);
                 interpweights(itw, gp);
                 Numeric k_this= interp(itw, invtable[phase].data(1,joker,it), gp);
@@ -1047,10 +1053,9 @@ void particle_bulkpropRadarOnionPeeling(
               // Correct reflectivity with (updated) attenuation
               dbze = dBZe(ip,ilat,ilon) + min(dbze_corr, dbze_max_corr);
               // Interpolate inversion table (table holds log10 of water content)
-              // Allowing quite a bit of extrapolation
               GridPos gp;
               gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
-                      dbze, 10);
+                      dbze, extrap_fac);
               Vector itw(2);
               interpweights(itw, gp);
               particle_bulkprop_field(phase,ip,ilat,ilon) =
