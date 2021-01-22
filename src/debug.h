@@ -61,47 +61,38 @@
               << std::setprecision(old_p);                            \
   }
 
-/*! Turn off noexcept explicitly */
-#define ARTS_NOEXCEPT noexcept(false)
+/*! Turn off noexcept */
+#define ARTS_NOEXCEPT
 
 /*! Take all arguments and turn to string by their operator<<() */
 template <typename ... Args>
-std::string variadic_to_string(Args ... args) {
-  std::ostringstream os;
-  (os << ... << args);
-  return os.str();
+std::string variadic_to_string(Args ... args [[maybe_unused]]) {
+  if constexpr (sizeof...(Args) not_eq 0) {
+    std::ostringstream os;
+    os << std::boolalpha;
+    (os << ... << args);
+    return os.str();
+  } else {
+    return "";
+  }
 }
 
 /*! Condition should be true to pass */
-#define ARTS_CHECK(condition) {                 \
-  if (condition) {                              \
-    throw std::runtime_error("Failed Check: "   \
-                             #condition "\n");  \
-  } }
-
-/*! Condition should be true to pass */
-#define ARTS_CHECK_WITH_MESSAGE(condition, ...) { \
-  if (condition) {                                \
-    throw std::runtime_error(                     \
-      variadic_to_string("Failed Check: "         \
-                         #condition "\n",         \
-                         __VA_ARGS__));           \
+#define ARTS_ASSERT_FALSE(condition, ...) { \
+  if (condition) {                          \
+    throw std::runtime_error(               \
+      std::string("Failed Assert False: "   \
+                  #condition "\n") +        \
+      variadic_to_string(__VA_ARGS__));     \
   } }
 
 /*! Condition should be false to pass */
-#define ARTS_ASSERT(condition) {                  \
-  if (not (condition)) {                          \
-    throw std::runtime_error("Failed Assertion: " \
-                             #condition "\n");    \
-  } }
-
-/*! Condition should be false to pass */
-#define ARTS_ASSERT_WITH_MESSAGE(condition, ...) {  \
-  if (not (condition)) {                            \
-    throw std::runtime_error(                       \
-      variadic_to_string("Failed Assertion: "       \
-                         #condition "\n",           \
-                         __VA_ARGS__));             \
+#define ARTS_ASSERT_TRUE(condition, ...) {  \
+  if (not (condition)) {                    \
+    throw std::runtime_error(               \
+      std::string("Failed Assert True: "    \
+                  #condition "\n") +        \
+      variadic_to_string(__VA_ARGS__));     \
   } }
 
 #else
@@ -117,19 +108,13 @@ std::string variadic_to_string(Args ... args) {
 #define DEBUG_VAR_FLT(p, e)
 
 /*! Turn on noexcept explicitly */
-#define ARTS_NOEXCEPT noexcept(true)
+#define ARTS_NOEXCEPT noexcept
 
 /*! Condition should be true to pass */
-#define ARTS_CHECK(condition)
-
-/*! Condition should be true to pass */
-#define ARTS_CHECK_WITH_MESSAGE(condition, ...)
+#define ARTS_ASSERT_TRUE(condition, ...)
 
 /*! Condition should be false to pass */
-#define ARTS_ASSERT(condition)
-
-/*! Condition should be false to pass */
-#define ARTS_ASSERT_WITH_MESSAGE(condition, ...)
+#define ARTS_ASSERT_FALSE(condition, ...)
 
 #endif /* NDEBUG */
 

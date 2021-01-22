@@ -182,14 +182,14 @@ class Range {
   constexpr Range(Index start, Index extent, Index stride = 1) ARTS_NOEXCEPT
     : mstart(start), mextent(extent), mstride(stride) {
       // Start must be >= 0:
-      ARTS_ASSERT(0 <= mstart);
+      ARTS_ASSERT_TRUE(0 <= mstart);
       // Extent also. Although internally negative extent means "to the end",
       // this can not be created this way, only with the joker. Zero
       // extent is allowed, though, which corresponds to an empty range.
-      ARTS_ASSERT(0 <= mextent);
+      ARTS_ASSERT_TRUE(0 <= mextent);
       // Stride can be anything except 0.
       // SAB 2001-09-21: Allow 0 stride.
-      //  ARTS_ASSERT( 0!=mstride);
+      //  ARTS_ASSERT_TRUE( 0!=mstride);
     }
 
   /** Constructor with joker extent. Depending on the sign of stride,
@@ -197,13 +197,13 @@ class Range {
   constexpr Range(Index start, Joker, Index stride = 1) ARTS_NOEXCEPT
   : mstart(start), mextent(-1), mstride(stride) {
     // Start must be >= 0:
-    ARTS_ASSERT(0 <= mstart);
+    ARTS_ASSERT_TRUE(0 <= mstart);
   }
 
   /** Constructor with just a joker. This means, take everything. You
     can still optionally give a stride, though. This constructor is
     just shorter notation for Range(0,joker) */
-  constexpr Range(Joker, Index stride = 1) ARTS_NOEXCEPT : mstart(0), mextent(-1), mstride(stride) {
+  constexpr Range(Joker, Index stride = 1) noexcept : mstart(0), mextent(-1), mstride(stride) {
     // Nothing to do here.
   };
 
@@ -215,12 +215,12 @@ class Range {
   constexpr Range(Index max_size, const Range& r) ARTS_NOEXCEPT
   : mstart(r.mstart), mextent(r.mextent), mstride(r.mstride) {
     // Start must be >= 0:
-    ARTS_ASSERT(0 <= mstart);
+    ARTS_ASSERT_TRUE(0 <= mstart);
     // ... and < max_size:
-    ARTS_ASSERT(mstart < max_size);
+    ARTS_ASSERT_TRUE(mstart < max_size);
     
     // Stride must be != 0:
-    ARTS_ASSERT(0 != mstride);
+    ARTS_ASSERT_TRUE(0 != mstride);
     
     // Convert negative extent (joker) to explicit extent
     if (mextent < 0) {
@@ -232,8 +232,8 @@ class Range {
       #ifndef NDEBUG
       // Check that extent is ok:
       Index fin = mstart + (mextent - 1) * mstride;
-      ARTS_ASSERT(0 <= fin);
-      ARTS_ASSERT(fin < max_size);
+      ARTS_ASSERT_TRUE(0 <= fin);
+      ARTS_ASSERT_TRUE(fin < max_size);
       #endif
     }
   }
@@ -257,12 +257,12 @@ class Range {
     Index prev_fin = p.mstart + (p.mextent - 1) * p.mstride;
 
     // Resulting start must be >= previous start:
-    ARTS_ASSERT(p.mstart <= mstart);
+    ARTS_ASSERT_TRUE(p.mstart <= mstart);
     // and <= prev_fin, except for Joker:
-    ARTS_ASSERT(mstart <= prev_fin || mextent == -1);
+    ARTS_ASSERT_TRUE(mstart <= prev_fin || mextent == -1);
 
     // Resulting stride must be != 0:
-    ARTS_ASSERT(0 != mstride);
+    ARTS_ASSERT_TRUE(0 != mstride);
 
     // Convert negative extent (joker) to explicit extent
     if (mextent < 0) {
@@ -274,8 +274,8 @@ class Range {
   #ifndef NDEBUG
       // Check that extent is ok:
       Index fin = mstart + (mextent - 1) * mstride;
-      ARTS_ASSERT(p.mstart <= fin);
-      ARTS_ASSERT(fin <= prev_fin);
+      ARTS_ASSERT_TRUE(p.mstart <= fin);
+      ARTS_ASSERT_TRUE(fin <= prev_fin);
   #endif
     }
   };
@@ -515,8 +515,8 @@ class ConstVectorView {
   // Const index operators:
   /** Plain const index operator. */
   Numeric operator[](Index n) const ARTS_NOEXCEPT {  // Check if index is valid:
-    ARTS_ASSERT(0 <= n);
-    ARTS_ASSERT(n < mrange.mextent);
+    ARTS_ASSERT_TRUE(0 <= n);
+    ARTS_ASSERT_TRUE(n < mrange.mextent);
     return get(n);
   }
 
@@ -639,8 +639,8 @@ class VectorView : public ConstVectorView {
 
   /** Plain Index operator. */
   Numeric& operator[](Index n) ARTS_NOEXCEPT {  // Check if index is valid:
-    ARTS_ASSERT(0 <= n);
-    ARTS_ASSERT(n < mrange.mextent);
+    ARTS_ASSERT_TRUE(0 <= n);
+    ARTS_ASSERT_TRUE(n < mrange.mextent);
     return get(n);
   }
 
@@ -917,7 +917,7 @@ class Vector : public VectorView {
    */
   Vector(Numeric* d, const Range& r0) ARTS_NOEXCEPT
   : VectorView(d, r0) {
-    ARTS_ASSERT_WITH_MESSAGE(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
+    ARTS_ASSERT_TRUE(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
   }
 
   // Assignment operators:
@@ -1020,10 +1020,10 @@ class ConstMatrixView {
   // Const index operators:
   /** Plain const index operator. */
   Numeric operator()(Index r, Index c) const ARTS_NOEXCEPT {  // Check if indices are valid:
-    ARTS_ASSERT(0 <= r);
-    ARTS_ASSERT(0 <= c);
-    ARTS_ASSERT(r < mrr.mextent);
-    ARTS_ASSERT(c < mcr.mextent);
+    ARTS_ASSERT_TRUE(0 <= r);
+    ARTS_ASSERT_TRUE(0 <= c);
+    ARTS_ASSERT_TRUE(r < mrr.mextent);
+    ARTS_ASSERT_TRUE(c < mcr.mextent);
 
     return get(r, c);
   }
@@ -1129,10 +1129,10 @@ class MatrixView : public ConstMatrixView {
   // Index Operators:
   /** Plain index operator. */
   Numeric& operator()(Index r, Index c) ARTS_NOEXCEPT {  // Check if indices are valid:
-    ARTS_ASSERT(0 <= r);
-    ARTS_ASSERT(0 <= c);
-    ARTS_ASSERT(r < mrr.mextent);
-    ARTS_ASSERT(c < mcr.mextent);
+    ARTS_ASSERT_TRUE(0 <= r);
+    ARTS_ASSERT_TRUE(0 <= c);
+    ARTS_ASSERT_TRUE(r < mrr.mextent);
+    ARTS_ASSERT_TRUE(c < mcr.mextent);
 
     return get(r, c);
   }
@@ -1236,8 +1236,8 @@ class Matrix : public MatrixView {
    */
   Matrix(Numeric* d, const Range& r0, const Range& r1) ARTS_NOEXCEPT
   : MatrixView(d, r0, r1) {
-    ARTS_ASSERT_WITH_MESSAGE(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
-    ARTS_ASSERT_WITH_MESSAGE(r1.get_extent() >= 0, "Must have size. Has: ", r1.get_extent());
+    ARTS_ASSERT_TRUE(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
+    ARTS_ASSERT_TRUE(r1.get_extent() >= 0, "Must have size. Has: ", r1.get_extent());
   }
 
   // Assignment operators:
@@ -1266,7 +1266,7 @@ class Matrix : public MatrixView {
     Range r0(0, dim0 == 0 ? nrows() : ncols());
     
     Vector out(mdata, r0);
-    ARTS_ASSERT_WITH_MESSAGE(size() == out.size(), "Can only reduce size on same size input. "
+    ARTS_ASSERT_TRUE(size() == out.size(), "Can only reduce size on same size input. "
       "The sizes are (input v. output): ", size(), " v. ", out.size());
     mdata = nullptr;
     return out;

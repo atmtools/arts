@@ -156,7 +156,7 @@ VectorView& VectorView::operator=(const ConstVectorView& v) {
   //  cout << "Assigning VectorView from ConstVectorView.\n";
 
   // Check that sizes are compatible:
-  ARTS_ASSERT(mrange.mextent == v.mrange.mextent);
+  ARTS_ASSERT_TRUE(mrange.mextent == v.mrange.mextent);
 
   copy(v.begin(), v.end(), begin());
 
@@ -167,7 +167,7 @@ VectorView& VectorView::operator=(const VectorView& v) {
   //  cout << "Assigning VectorView from VectorView.\n";
 
   // Check that sizes are compatible:
-  ARTS_ASSERT(mrange.mextent == v.mrange.mextent);
+  ARTS_ASSERT_TRUE(mrange.mextent == v.mrange.mextent);
 
   copy(v.begin(), v.end(), begin());
 
@@ -178,7 +178,7 @@ VectorView& VectorView::operator=(const Vector& v) {
   //  cout << "Assigning VectorView from Vector.\n";
 
   // Check that sizes are compatible:
-  ARTS_ASSERT(mrange.mextent == v.mrange.mextent);
+  ARTS_ASSERT_TRUE(mrange.mextent == v.mrange.mextent);
 
   copy(v.begin(), v.end(), begin());
 
@@ -215,7 +215,7 @@ VectorView VectorView::operator-=(Numeric x) ARTS_NOEXCEPT {
 }
 
 VectorView VectorView::operator*=(const ConstVectorView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nelem() == x.nelem());
+  ARTS_ASSERT_TRUE(nelem() == x.nelem());
 
   ConstIterator1D s = x.begin();
 
@@ -227,7 +227,7 @@ VectorView VectorView::operator*=(const ConstVectorView& x) ARTS_NOEXCEPT {
 }
 
 VectorView VectorView::operator/=(const ConstVectorView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nelem() == x.nelem());
+  ARTS_ASSERT_TRUE(nelem() == x.nelem());
 
   ConstIterator1D s = x.begin();
 
@@ -239,7 +239,7 @@ VectorView VectorView::operator/=(const ConstVectorView& x) ARTS_NOEXCEPT {
 }
 
 VectorView VectorView::operator+=(const ConstVectorView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nelem() == x.nelem());
+  ARTS_ASSERT_TRUE(nelem() == x.nelem());
 
   ConstIterator1D s = x.begin();
 
@@ -251,7 +251,7 @@ VectorView VectorView::operator+=(const ConstVectorView& x) ARTS_NOEXCEPT {
 }
 
 VectorView VectorView::operator-=(const ConstVectorView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nelem() == x.nelem());
+  ARTS_ASSERT_TRUE(nelem() == x.nelem());
 
   ConstIterator1D s = x.begin();
 
@@ -272,14 +272,14 @@ VectorView::operator MatrixView() ARTS_NOEXCEPT {
 }
 
 const Numeric* VectorView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_CHECK_WITH_MESSAGE(mrange.mstart != 0 || mrange.mstride != 1,
+  ARTS_ASSERT_FALSE(mrange.mstart != 0 || mrange.mstride != 1,
         "A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
 }
 
 Numeric* VectorView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_CHECK_WITH_MESSAGE(mrange.mstart != 0 || mrange.mstride != 1,
+  ARTS_ASSERT_FALSE(mrange.mstart != 0 || mrange.mstride != 1,
         "A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
@@ -402,7 +402,7 @@ Vector& Vector::operator=(Numeric x) {
 }
 
 void Vector::resize(Index n) {
-  ARTS_ASSERT(0 <= n);
+  ARTS_ASSERT_TRUE(0 <= n);
   if (mrange.mextent != n) {
     delete[] mdata;
     mdata = new Numeric[n];
@@ -446,8 +446,8 @@ ConstMatrixView ConstMatrixView::operator()(const Range& r,
     \param c Index of selected column */
 ConstVectorView ConstMatrixView::operator()(const Range& r, Index c) const ARTS_NOEXCEPT {
   // Check that c is valid:
-  ARTS_ASSERT(0 <= c);
-  ARTS_ASSERT(c < mcr.mextent);
+  ARTS_ASSERT_TRUE(0 <= c);
+  ARTS_ASSERT_TRUE(c < mcr.mextent);
 
   return ConstVectorView(mdata + mcr.mstart + c * mcr.mstride, mrr, r);
 }
@@ -459,8 +459,8 @@ ConstVectorView ConstMatrixView::operator()(const Range& r, Index c) const ARTS_
     \param c Range of columns */
 ConstVectorView ConstMatrixView::operator()(Index r, const Range& c) const ARTS_NOEXCEPT {
   // Check that r is valid:
-  ARTS_ASSERT(0 <= r);
-  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT_TRUE(0 <= r);
+  ARTS_ASSERT_TRUE(r < mrr.mextent);
 
   return ConstVectorView(mdata + mrr.mstart + r * mrr.mstride, mcr, c);
 }
@@ -583,8 +583,8 @@ MatrixView MatrixView::operator()(const Range& r, const Range& c) ARTS_NOEXCEPT 
     \param c Index of selected column */
 VectorView MatrixView::operator()(const Range& r, Index c) ARTS_NOEXCEPT {
   // Check that c is valid:
-  ARTS_ASSERT(0 <= c);
-  ARTS_ASSERT(c < mcr.mextent);
+  ARTS_ASSERT_TRUE(0 <= c);
+  ARTS_ASSERT_TRUE(c < mcr.mextent);
 
   return VectorView(mdata + mcr.mstart + c * mcr.mstride, mrr, r);
 }
@@ -595,8 +595,8 @@ VectorView MatrixView::operator()(const Range& r, Index c) ARTS_NOEXCEPT {
     \param c Range of columns */
 VectorView MatrixView::operator()(Index r, const Range& c) ARTS_NOEXCEPT {
   // Check that r is valid:
-  ARTS_ASSERT(0 <= r);
-  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT_TRUE(0 <= r);
+  ARTS_ASSERT_TRUE(r < mrr.mextent);
 
   return VectorView(mdata + mrr.mstart + r * mrr.mstride, mcr, c);
 }
@@ -632,8 +632,8 @@ Iterator2D MatrixView::end() ARTS_NOEXCEPT {
     setting its range. */
 MatrixView& MatrixView::operator=(const ConstMatrixView& m) {
   // Check that sizes are compatible:
-  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
-  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT_TRUE(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT_TRUE(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -646,8 +646,8 @@ MatrixView& MatrixView::operator=(const ConstMatrixView& m) {
     override the default. */
 MatrixView& MatrixView::operator=(const MatrixView& m) {
   // Check that sizes are compatible:
-  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
-  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT_TRUE(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT_TRUE(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -658,8 +658,8 @@ MatrixView& MatrixView::operator=(const MatrixView& m) {
     contents! */
 MatrixView& MatrixView::operator=(const Matrix& m) {
   // Check that sizes are compatible:
-  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
-  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT_TRUE(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT_TRUE(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -671,8 +671,8 @@ MatrixView& MatrixView::operator=(const Matrix& m) {
     setting its range. */
 MatrixView& MatrixView::operator=(const ConstVectorView& v) {
   // Check that sizes are compatible:
-  ARTS_ASSERT(mrr.mextent == v.nelem());
-  ARTS_ASSERT(mcr.mextent == 1);
+  ARTS_ASSERT_TRUE(mrr.mextent == v.nelem());
+  ARTS_ASSERT_TRUE(mcr.mextent == 1);
   //  dummy = ConstMatrixView(v.mdata,v.mrange,Range(v.mrange.mstart,1));;
   ConstMatrixView dummy(v);
   copy(dummy.begin(), dummy.end(), begin());
@@ -733,7 +733,7 @@ MatrixView& MatrixView::operator-=(Numeric x) ARTS_NOEXCEPT {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 const Numeric* MatrixView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_CHECK_WITH_MESSAGE(mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
+  ARTS_ASSERT_FALSE(mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
       mcr.mstride != 1,
         "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
@@ -747,7 +747,7 @@ const Numeric* MatrixView::get_c_array() const ARTS_NOEXCEPT {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 Numeric* MatrixView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_CHECK_WITH_MESSAGE(mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
+  ARTS_ASSERT_FALSE(mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
       mcr.mstride != 1,
         "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
@@ -756,8 +756,8 @@ Numeric* MatrixView::get_c_array() ARTS_NOEXCEPT {
 
 /** Element-vise multiplication by another Matrix. */
 MatrixView& MatrixView::operator*=(const ConstMatrixView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nrows() == x.nrows());
-  ARTS_ASSERT(ncols() == x.ncols());
+  ARTS_ASSERT_TRUE(nrows() == x.nrows());
+  ARTS_ASSERT_TRUE(ncols() == x.ncols());
   ConstIterator2D sr = x.begin();
   Iterator2D r = begin();
   const Iterator2D er = end();
@@ -772,8 +772,8 @@ MatrixView& MatrixView::operator*=(const ConstMatrixView& x) ARTS_NOEXCEPT {
 
 /** Element-vise division by another Matrix. */
 MatrixView& MatrixView::operator/=(const ConstMatrixView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nrows() == x.nrows());
-  ARTS_ASSERT(ncols() == x.ncols());
+  ARTS_ASSERT_TRUE(nrows() == x.nrows());
+  ARTS_ASSERT_TRUE(ncols() == x.ncols());
   ConstIterator2D sr = x.begin();
   Iterator2D r = begin();
   const Iterator2D er = end();
@@ -788,8 +788,8 @@ MatrixView& MatrixView::operator/=(const ConstMatrixView& x) ARTS_NOEXCEPT {
 
 /** Element-vise addition of another Matrix. */
 MatrixView& MatrixView::operator+=(const ConstMatrixView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nrows() == x.nrows());
-  ARTS_ASSERT(ncols() == x.ncols());
+  ARTS_ASSERT_TRUE(nrows() == x.nrows());
+  ARTS_ASSERT_TRUE(ncols() == x.ncols());
   ConstIterator2D sr = x.begin();
   Iterator2D r = begin();
   const Iterator2D er = end();
@@ -804,8 +804,8 @@ MatrixView& MatrixView::operator+=(const ConstMatrixView& x) ARTS_NOEXCEPT {
 
 /** Element-vise subtraction of another Matrix. */
 MatrixView& MatrixView::operator-=(const ConstMatrixView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nrows() == x.nrows());
-  ARTS_ASSERT(ncols() == x.ncols());
+  ARTS_ASSERT_TRUE(nrows() == x.nrows());
+  ARTS_ASSERT_TRUE(ncols() == x.ncols());
   ConstIterator2D sr = x.begin();
   Iterator2D r = begin();
   const Iterator2D er = end();
@@ -820,8 +820,8 @@ MatrixView& MatrixView::operator-=(const ConstMatrixView& x) ARTS_NOEXCEPT {
 
 /** Element-vise multiplication by a Vector (acting like a 1-column Matrix). */
 MatrixView& MatrixView::operator*=(const ConstVectorView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nrows() == x.nelem());
-  ARTS_ASSERT(ncols() == 1);
+  ARTS_ASSERT_TRUE(nrows() == x.nelem());
+  ARTS_ASSERT_TRUE(ncols() == 1);
   ConstIterator1D sc = x.begin();
   Iterator2D r = begin();
   const Iterator2D er = end();
@@ -834,8 +834,8 @@ MatrixView& MatrixView::operator*=(const ConstVectorView& x) ARTS_NOEXCEPT {
 
 /** Element-vise division by a Vector (acting like a 1-column Matrix). */
 MatrixView& MatrixView::operator/=(const ConstVectorView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nrows() == x.nelem());
-  ARTS_ASSERT(ncols() == 1);
+  ARTS_ASSERT_TRUE(nrows() == x.nelem());
+  ARTS_ASSERT_TRUE(ncols() == 1);
   ConstIterator1D sc = x.begin();
   Iterator2D r = begin();
   const Iterator2D er = end();
@@ -848,8 +848,8 @@ MatrixView& MatrixView::operator/=(const ConstVectorView& x) ARTS_NOEXCEPT {
 
 /** Element-vise addition of a Vector (acting like a 1-column Matrix). */
 MatrixView& MatrixView::operator+=(const ConstVectorView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nrows() == x.nelem());
-  ARTS_ASSERT(ncols() == 1);
+  ARTS_ASSERT_TRUE(nrows() == x.nelem());
+  ARTS_ASSERT_TRUE(ncols() == 1);
   ConstIterator1D sc = x.begin();
   Iterator2D r = begin();
   const Iterator2D er = end();
@@ -862,8 +862,8 @@ MatrixView& MatrixView::operator+=(const ConstVectorView& x) ARTS_NOEXCEPT {
 
 /** Element-vise subtraction of a Vector (acting like a 1-column Matrix). */
 MatrixView& MatrixView::operator-=(const ConstVectorView& x) ARTS_NOEXCEPT {
-  ARTS_ASSERT(nrows() == x.nelem());
-  ARTS_ASSERT(ncols() == 1);
+  ARTS_ASSERT_TRUE(nrows() == x.nelem());
+  ARTS_ASSERT_TRUE(ncols() == 1);
   ConstIterator1D sc = x.begin();
   Iterator2D r = begin();
   const Iterator2D er = end();
@@ -1052,8 +1052,8 @@ Matrix& Matrix::operator=(const ConstVectorView& v) {
     nothing. All data is lost after resizing! The new Matrix is not
     initialized, so it will contain random values.*/
 void Matrix::resize(Index r, Index c) {
-  ARTS_ASSERT(0 <= r);
-  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT_TRUE(0 <= r);
+  ARTS_ASSERT_TRUE(0 <= c);
 
   if (mrr.mextent != r || mcr.mextent != c) {
     delete[] mdata;
@@ -1089,7 +1089,7 @@ Matrix::~Matrix() {
 /** Scalar product. The two vectors may be identical. */
 Numeric operator*(const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT {
   // Check dimensions:
-  ARTS_ASSERT(a.nelem() == b.nelem());
+  ARTS_ASSERT_TRUE(a.nelem() == b.nelem());
 
   const ConstIterator1D ae = a.end();
   ConstIterator1D ai = a.begin();
@@ -1119,9 +1119,9 @@ Numeric operator*(const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXC
   \param[in] x Reference to the length-n ConstVectorView holding the vector x.
 */
 void mult(VectorView y, const ConstMatrixView& M, const ConstVectorView& x) {
-  ARTS_ASSERT(y.mrange.get_extent() == M.mrr.get_extent());
-  ARTS_ASSERT(M.mcr.get_extent() == x.mrange.get_extent());
-  ARTS_ASSERT((M.mcr.get_extent() != 0) && (M.mrr.get_extent() != 0));
+  ARTS_ASSERT_TRUE(y.mrange.get_extent() == M.mrr.get_extent());
+  ARTS_ASSERT_TRUE(M.mcr.get_extent() == x.mrange.get_extent());
+  ARTS_ASSERT_TRUE((M.mcr.get_extent() != 0) && (M.mrr.get_extent() != 0));
 
   if ((M.mcr.get_stride() == 1) || (M.mrr.get_stride() == 1)) {
     char trans;
@@ -1180,9 +1180,9 @@ void mult_general(VectorView y,
                   const ConstMatrixView& M,
                   const ConstVectorView& x) ARTS_NOEXCEPT {
   // Check dimensions:
-  ARTS_ASSERT(y.mrange.mextent == M.mrr.mextent);
-  ARTS_ASSERT(M.mcr.mextent == x.mrange.mextent);
-  ARTS_ASSERT(M.mcr.mextent != 0 && M.mrr.mextent != 0);
+  ARTS_ASSERT_TRUE(y.mrange.mextent == M.mrr.mextent);
+  ARTS_ASSERT_TRUE(M.mcr.mextent == x.mrange.mextent);
+  ARTS_ASSERT_TRUE(M.mcr.mextent != 0 && M.mrr.mextent != 0);
 
   // Let's first find the pointers to the starting positions
   Numeric* mdata = M.mdata + M.mcr.mstart + M.mrr.mstart;
@@ -1239,9 +1239,9 @@ void mult_general(VectorView y,
 */
 void mult(MatrixView A, const ConstMatrixView& B, const ConstMatrixView& C) {
   // Check dimensions:
-  ARTS_ASSERT(A.nrows() == B.nrows());
-  ARTS_ASSERT(A.ncols() == C.ncols());
-  ARTS_ASSERT(B.ncols() == C.nrows());
+  ARTS_ASSERT_TRUE(A.nrows() == B.nrows());
+  ARTS_ASSERT_TRUE(A.ncols() == C.ncols());
+  ARTS_ASSERT_TRUE(B.ncols() == C.nrows());
 
   // Catch trivial case if one of the matrices is empty.
   if ((B.nrows() == 0) || (B.ncols() == 0) || (C.ncols() == 0)) return;
@@ -1345,9 +1345,9 @@ void mult_general(MatrixView A,
                   const ConstMatrixView& B,
                   const ConstMatrixView& C) ARTS_NOEXCEPT {
   // Check dimensions:
-  ARTS_ASSERT(A.nrows() == B.nrows());
-  ARTS_ASSERT(A.ncols() == C.ncols());
-  ARTS_ASSERT(B.ncols() == C.nrows());
+  ARTS_ASSERT_TRUE(A.nrows() == B.nrows());
+  ARTS_ASSERT_TRUE(A.ncols() == C.ncols());
+  ARTS_ASSERT_TRUE(B.ncols() == C.nrows());
 
   // Let's get the transpose of C, so that we can use 2D iterators to
   // access the columns (= rows of the transpose).
@@ -1389,9 +1389,9 @@ void mult_general(MatrixView A,
     \date   2012-02-12
 */
 void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT {
-  ARTS_ASSERT(a.nelem() == 3);
-  ARTS_ASSERT(b.nelem() == 3);
-  ARTS_ASSERT(c.nelem() == 3);
+  ARTS_ASSERT_TRUE(a.nelem() == 3);
+  ARTS_ASSERT_TRUE(b.nelem() == 3);
+  ARTS_ASSERT_TRUE(c.nelem() == 3);
 
   c[0] = a[1] * b[2] - a[2] * b[1];
   c[1] = a[2] * b[0] - a[0] * b[2];
@@ -1408,7 +1408,7 @@ void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b) AR
     \date   2012-07-10
 */
 Numeric vector_angle(ConstVectorView a, ConstVectorView b) {
-  ARTS_ASSERT(a.nelem() == b.nelem());
+  ARTS_ASSERT_TRUE(a.nelem() == b.nelem());
   Numeric arg = (a * b) / sqrt(a * a) / sqrt(b * b);
 
   // Due to numerical inaccuracy, arg might be slightly larger than 1.
@@ -1430,8 +1430,8 @@ Numeric vector_angle(ConstVectorView a, ConstVectorView b) {
     \date   2012-07-10
 */
 void proj(Vector& c, ConstVectorView a, ConstVectorView b) ARTS_NOEXCEPT {
-  ARTS_ASSERT(a.nelem() == b.nelem());
-  ARTS_ASSERT(a.nelem() == c.nelem());
+  ARTS_ASSERT_TRUE(a.nelem() == b.nelem());
+  ARTS_ASSERT_TRUE(a.nelem() == c.nelem());
 
   const Numeric C = (a * b) / (a * a);
   c = a;
@@ -1469,7 +1469,7 @@ MatrixView transpose(MatrixView m) ARTS_NOEXCEPT { return MatrixView(m.mdata, m.
     \param    x   A vector. */
 void transform(VectorView y, double (&my_func)(double), ConstVectorView x) {
   // Check dimensions:
-  ARTS_ASSERT(y.nelem() == x.nelem());
+  ARTS_ASSERT_TRUE(y.nelem() == x.nelem());
 
   const ConstIterator1D xe = x.end();
   ConstIterator1D xi = x.begin();
@@ -1497,8 +1497,8 @@ void transform(VectorView y, double (&my_func)(double), ConstVectorView x) {
    \param    x   A matrix. */
 void transform(MatrixView y, double (&my_func)(double), ConstMatrixView x) {
   // Check dimensions:
-  ARTS_ASSERT(y.nrows() == x.nrows());
-  ARTS_ASSERT(y.ncols() == x.ncols());
+  ARTS_ASSERT_TRUE(y.nrows() == x.nrows());
+  ARTS_ASSERT_TRUE(y.ncols() == x.ncols());
 
   const ConstIterator2D rxe = x.end();
   ConstIterator2D rx = x.begin();
@@ -1627,7 +1627,7 @@ VectorView& VectorView::operator=(const Array<Numeric>& v) {
   //  cout << "Assigning VectorView from Array<Numeric>.\n";
 
   // Check that sizes are compatible:
-  ARTS_ASSERT(mrange.mextent == v.nelem());
+  ARTS_ASSERT_TRUE(mrange.mextent == v.nelem());
 
   // Iterators for Array:
   Array<Numeric>::const_iterator i = v.begin();
