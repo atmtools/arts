@@ -69,7 +69,6 @@ template <typename ... Args>
 std::string variadic_to_string(Args ... args [[maybe_unused]]) {
   if constexpr (sizeof...(Args) not_eq 0) {
     std::ostringstream os;
-    os << std::boolalpha;
     (os << ... << args);
     return os.str();
   } else {
@@ -77,22 +76,14 @@ std::string variadic_to_string(Args ... args [[maybe_unused]]) {
   }
 }
 
-/*! Condition should be true to pass */
-#define ARTS_ASSERT_FALSE(condition, ...) { \
-  if (condition) {                          \
-    throw std::runtime_error(               \
-      std::string("Failed Assert False: "   \
-                  #condition "\n") +        \
-      variadic_to_string(__VA_ARGS__));     \
-  } }
-
 /*! Condition should be false to pass */
-#define ARTS_ASSERT_TRUE(condition, ...) {  \
-  if (not (condition)) {                    \
-    throw std::runtime_error(               \
-      std::string("Failed Assert True: "    \
-                  #condition "\n") +        \
-      variadic_to_string(__VA_ARGS__));     \
+#define ARTS_ASSERT(condition, ...) {         \
+  if (not (condition)) {                      \
+    throw std::runtime_error(                 \
+      std::string("Failed Internal Assert: "  \
+        #condition "\n" "This is a bug.  "    \
+        "Please contact ARTS developers\n") + \
+        variadic_to_string(__VA_ARGS__));     \
   } }
 
 #else
@@ -110,11 +101,8 @@ std::string variadic_to_string(Args ... args [[maybe_unused]]) {
 /*! Turn on noexcept explicitly */
 #define ARTS_NOEXCEPT noexcept
 
-/*! Condition should be true to pass */
-#define ARTS_ASSERT_TRUE(condition, ...)
-
 /*! Condition should be false to pass */
-#define ARTS_ASSERT_FALSE(condition, ...)
+#define ARTS_ASSERT(condition, ...)
 
 #endif /* NDEBUG */
 
