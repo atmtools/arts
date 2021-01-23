@@ -917,6 +917,8 @@ void particle_bulkpropRadarOnionPeeling(
     const Index& do_atten_abs,
     const Index& do_atten_hyd,
     const Numeric& dbze_max_corr,
+    const Numeric& wc_max,
+    const Numeric& wc_clip,
     const Verbosity&)
 {
   // Checks of input
@@ -1058,8 +1060,14 @@ void particle_bulkpropRadarOnionPeeling(
                       dbze, extrap_fac);
               Vector itw(2);
               interpweights(itw, gp);
-              particle_bulkprop_field(phase,ip,ilat,ilon) =
-                pow(10.0, (interp(itw, invtable[phase].data(0,joker,it), gp)));
+              Numeric wc = pow(10.0,
+                               (interp(itw, invtable[phase].data(0,joker,it), gp)));
+              // Apply max and clip values
+              if (wc > wc_max)
+                wc = 0;
+              else if (wc > wc_clip)
+                wc = wc_clip;
+              particle_bulkprop_field(phase,ip,ilat,ilon) = wc;
             }
             
           // In clutter zone or below surface

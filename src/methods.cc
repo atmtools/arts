@@ -11243,6 +11243,11 @@ void define_md_data_raw() {
           "valid also below and is copied to all altitudes below (also for\n"
           "altitudes below the surface).\n"
           "\n"
+          "Unfiltered clutter can cause extremely high retrived water contents.\n"
+          "The GIN *wc_max* defines an upper limit for reasonable water contents.\n"
+          "Retrievals ending up above this value are set to zero. Values below\n"
+          "*wc_max* but above *wc_clip*, are set to *wc_clip*.\n"
+          "\n"
           "Significant radar echos (>dbze_noise and above clutter zone) are\n"
           "assumed to match liquid hydrometeors for temperatures >= *t_phase*\n"
           "and ice ones for lower temperatures.\n"
@@ -11279,10 +11284,14 @@ void define_md_data_raw() {
           "t_phase",
           "do_atten_abs",
           "do_atten_hyd",
-          "dbze_max_corr"),
+          "dbze_max_corr",
+          "wc_max",
+          "wc_clip"),
       GIN_TYPE("ArrayOfGriddedField3", "Matrix", "Tensor3", "Numeric",
-               "Numeric", "Index", "Numeric", "Index", "Index", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", "0", "0", "273.15", "1", "1", "10"),
+               "Numeric", "Index", "Numeric", "Index", "Index", "Numeric",
+               "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", "0", "0", "273.15",
+                  "1", "1", "10", "10e-3", "5e-3"),
       GIN_DESC("Inversion table, see above.",
                "Incidence angles.",
                "Field of radar reflectivities, in dBZe.",
@@ -11293,7 +11302,9 @@ void define_md_data_raw() {
                "Flag to consider attenuation due to hydrometeors.",
                "Flag to consider attenuation due to absorption species.",
                "Max allowed change of measured dBZe to approx. correct "
-               "for attenuation.")));
+               "for attenuation.",
+               "Max reasonable water content",
+               "Clip value for water content retrievals.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldClip"),
