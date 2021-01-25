@@ -114,6 +114,15 @@ if (NO_ASSERT)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
 endif (NO_ASSERT)
 
+if (NO_USER_ERRORS)
+  message(STATUS "Experimental reckless build enabled (-DNO_USER_ERRORS=0 to disable)")
+  set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DNO_ARTS_USER_ERRORS=1")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_ARTS_USER_ERRORS=1")
+else (NO_USER_ERRORS)
+  set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DNO_ARTS_USER_ERRORS=0")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_ARTS_USER_ERRORS=0")
+endif (NO_USER_ERRORS)
+
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
 ########### ccache Support ##########
@@ -495,3 +504,4 @@ if (NOT "${NUMERIC}" STREQUAL "double")
   message (WARNING "You chose ${NUMERIC} as the Numeric type. Using anything different than double is completely unsupported, unrecommended and will probably lead to compilation errors, crashes and wrong results. Sorry, you're on your own here. Godspeed!")
 endif()
 
+message(STATUS "Building ARTS in ${CMAKE_BUILD_TYPE} mode")

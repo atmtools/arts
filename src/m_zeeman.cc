@@ -56,17 +56,17 @@ void propmat_clearskyAddZeeman(
     const Numeric& manual_zeeman_magnetic_field_strength,
     const Numeric& manual_zeeman_theta,
     const Numeric& manual_zeeman_eta,
-    const Verbosity&) try {
+    const Verbosity&) {
   if (abs_lines_per_species.nelem() == 0) return;
 
-  if ((atmosphere_dim not_eq 3) and (not manual_zeeman_tag))
-    throw "Only for 3D *atmosphere_dim* or a manual magnetic field";
+  ARTS_USER_ERROR_IF((atmosphere_dim not_eq 3) and (not manual_zeeman_tag),
+    "Only for 3D *atmosphere_dim* or a manual magnetic field")
   
-  if ((ppath_los.nelem() not_eq 2) and (not manual_zeeman_tag))
-    throw "Only for 2D *ppath_los* or a manual magnetic field";
+  ARTS_USER_ERROR_IF((ppath_los.nelem() not_eq 2) and (not manual_zeeman_tag),
+    "Only for 2D *ppath_los* or a manual magnetic field");
   
-  if (not lbl_checked)
-    throw "Please set lbl_checked true to use this function";
+  ARTS_USER_ERROR_IF(not lbl_checked,
+    "Please set lbl_checked true to use this function")
 
   // Change to LOS by radiation
   Vector rtp_los;
@@ -94,14 +94,4 @@ void propmat_clearskyAddZeeman(
                     manual_zeeman_magnetic_field_strength,
                     manual_zeeman_theta,
                     manual_zeeman_eta);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *propmat_clearskyAddZeeman*:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-} catch (const std::exception& e) {
-  std::ostringstream os;
-  os << "Errors in calls by *propmat_clearskyAddZeeman*:\n";
-  os << e.what();
-  throw std::runtime_error(os.str());
 }

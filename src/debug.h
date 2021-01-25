@@ -27,10 +27,25 @@
 #ifndef debug_h
 #define debug_h
 
+#include <sstream>
+#include <string>
+#include <tuple>
+
+/*! Take all arguments and turn to string by their operator<<() */
+template <typename ... Args>
+std::string var_string(Args ... args) {
+  if constexpr (sizeof...(Args) not_eq 0) {
+    std::ostringstream os;
+    (os << ... << args);
+    return os.str();
+  } else {
+    return "";
+  }
+}
+
 #ifndef NDEBUG
 #include <exception>
 #include <iostream>
-#include <sstream>
 
 // Use this macro around function parameter names and variable definitions
 // which are only used in assertions
@@ -64,26 +79,19 @@
 /*! Turn off noexcept */
 #define ARTS_NOEXCEPT
 
-/*! Take all arguments and turn to string by their operator<<() */
-template <typename ... Args>
-std::string variadic_to_string(Args ... args [[maybe_unused]]) {
-  if constexpr (sizeof...(Args) not_eq 0) {
-    std::ostringstream os;
-    (os << ... << args);
-    return os.str();
-  } else {
-    return "";
-  }
-}
-
-/*! Condition should be false to pass */
-#define ARTS_ASSERT(condition, ...) {         \
-  if (not (condition)) {                      \
-    throw std::runtime_error(                 \
-      std::string("Failed Internal Assert: "  \
-        #condition "\n" "This is a bug.  "    \
-        "Please contact ARTS developers\n") + \
-        variadic_to_string(__VA_ARGS__));     \
+/*! Condition should be true to pass internal check */
+#define ARTS_ASSERT(condition, ...) {     \
+  if (not (condition)) {                  \
+    throw std::runtime_error(             \
+    var_string("Failed Internal Assert: " \
+        #condition "\n" "This is a bug! " \
+        "Bug is found at:\n\t" __FILE__   \
+        ":", __LINE__, "\nPlease contact" \
+        " ARTS developers so we can fix " \
+        "our error(s) via:\n\t"           \
+        "github.com/atmtools/arts\n") +   \
+    var_string(__VA_ARGS__)               \
+    );                                    \
   } }
 
 #else
@@ -101,9 +109,40 @@ std::string variadic_to_string(Args ... args [[maybe_unused]]) {
 /*! Turn on noexcept explicitly */
 #define ARTS_NOEXCEPT noexcept
 
-/*! Condition should be false to pass */
+/*! Condition should be true to pass internal check, lets hope it is! */
 #define ARTS_ASSERT(condition, ...)
 
 #endif /* NDEBUG */
+
+#if NO_ARTS_USER_ERRORS == 1
+
+/*! Turn on noexcept for user-facing functions */
+#define ARTS_USER_NOEXCEPT noexcept
+
+/*! Condition should be false to pass external check, lets hope it is!  */
+#define ARTS_USER_ERROR_IF(condition, ...)
+
+#else  // NO_ARTS_USER_ERRORS == 0
+
+/*! Turn off noexcept for user-facing functions */
+#define ARTS_USER_NOEXCEPT
+
+/*! Condition should be false to pass external check */
+#define ARTS_USER_ERROR_IF(condition, ...) {  \
+  static_assert(std::tuple_size<decltype(     \
+    std::make_tuple(__VA_ARGS__))>::value,    \
+    "Must have an error message in user-"     \
+    "facing code in " __FILE__);              \
+  if (condition) {                            \
+    throw std::runtime_error(                 \
+      var_string("User Error: " #condition    \
+        "\nError is found at:\n\t" __FILE__   \
+        ":", __LINE__, "\nPlease follow "     \
+        "these instructions to correct your " \
+        "error:\n") + var_string(__VA_ARGS__) \
+    );                                        \
+  } }
+
+#endif  // NO_ARTS_USER_ERRORS
 
 #endif /* debug_h */
