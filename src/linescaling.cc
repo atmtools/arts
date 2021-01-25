@@ -20,7 +20,7 @@
 #include "interpolation_lagrange.h"
 
 Numeric SingleCalculatePartitionFctFromCoeff(const Numeric& T,
-                                             ConstVectorView q_grid) {
+                                             ConstVectorView q_grid) noexcept {
   Numeric result = 0.;
   Numeric TN = 1;
 
@@ -33,7 +33,7 @@ Numeric SingleCalculatePartitionFctFromCoeff(const Numeric& T,
 }
 
 Numeric SingleCalculatePartitionFctFromCoeff_dT(const Numeric& T,
-                                                ConstVectorView q_grid) {
+                                                ConstVectorView q_grid) noexcept {
   Numeric result = 0;
   Numeric TN = 1;
 
@@ -47,7 +47,7 @@ Numeric SingleCalculatePartitionFctFromCoeff_dT(const Numeric& T,
 
 Numeric SingleCalculatePartitionFctFromData(const Numeric& T,
                                             ConstVectorView t_grid,
-                                            ConstVectorView q_grid) {
+                                            ConstVectorView q_grid) noexcept {
   const Interpolation::FixedLagrange<1> lag(0, T, t_grid);
   const auto lag_iw = interpweights(lag);
   return interp(q_grid, lag_iw, lag);
@@ -55,7 +55,7 @@ Numeric SingleCalculatePartitionFctFromData(const Numeric& T,
 
 Numeric SingleCalculatePartitionFctFromData_dT(const Numeric& T,
                                                ConstVectorView t_grid,
-                                               ConstVectorView q_grid) {
+                                               ConstVectorView q_grid) noexcept {
   const Interpolation::FixedLagrange<1> lag(0, T, t_grid);
   const auto dlag_iw = dinterpweights(lag);
   return interp(q_grid, dlag_iw, lag);
@@ -63,7 +63,7 @@ Numeric SingleCalculatePartitionFctFromData_dT(const Numeric& T,
 
 Numeric single_partition_function(const Numeric& T,
                                   const SpeciesAuxData::AuxType& partition_type,
-                                  const ArrayOfGriddedField1& partition_data) {
+                                  const ArrayOfGriddedField1& partition_data) noexcept {
   switch (partition_type) {
     case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
       return SingleCalculatePartitionFctFromCoeff(T, partition_data[0].data);
@@ -71,8 +71,7 @@ Numeric single_partition_function(const Numeric& T,
       return SingleCalculatePartitionFctFromData(
           T, partition_data[0].get_numeric_grid(0), partition_data[0].data);
     default:
-      throw std::runtime_error(
-          "Unknown or deprecated partition type requested.\n");
+      return std::numeric_limits<Numeric>::quiet_NaN();
   }
 }
 

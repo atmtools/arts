@@ -42,7 +42,7 @@
  */
 Numeric single_partition_function(const Numeric& T,
                                   const SpeciesAuxData::AuxType& partition_type,
-                                  const ArrayOfGriddedField1& partition_data);
+                                  const ArrayOfGriddedField1& partition_data) noexcept;
 
 /** Computes the partition function temperature derivative
  * 

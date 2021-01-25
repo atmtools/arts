@@ -1130,26 +1130,26 @@ bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
 }
 
 bool supports_continuum(const ArrayOfRetrievalQuantity& js) {
-  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
-    throw std::runtime_error("Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n");
+  ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
+    "Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n")
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or is_frequency_parameter(j));});
 }
 
 bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
-  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
-    throw std::runtime_error("Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n");
+  ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
+    "Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n")
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or is_frequency_parameter(j));});
 }
 
 bool supports_lookup(const ArrayOfRetrievalQuantity& js) {
-  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
-    throw std::runtime_error("Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
+  ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
+    "Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n")
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or is_frequency_parameter(j));});
 }
 
 bool supports_faraday(const ArrayOfRetrievalQuantity& js) {
-  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_derived_magnetic_parameter(j);}))
-    throw std::runtime_error("This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n");
+  ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_derived_magnetic_parameter(j);}),
+    "This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n")
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::MagneticU or j == Jacobian::Atm::MagneticV or j == Jacobian::Atm::MagneticW or j == Jacobian::Atm::Electrons or is_frequency_parameter(j);});
 }
 

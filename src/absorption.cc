@@ -725,12 +725,6 @@ void xsec_species(Matrix& xsec,
     }
   }
 
-  if (do_abort) {
-    std::ostringstream os;
-    os << "Error messages from failed cases:\n";
-    for (const auto& msg : fail_msg) {
-      os << msg << '\n';
-    }
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (do_abort,
+    "Error messages from failed cases:\n", fail_msg)
 }

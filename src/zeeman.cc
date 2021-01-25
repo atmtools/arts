@@ -37,7 +37,7 @@
 template <class T>
 bool bad_propmat(const Array<T>& main,
                  const Vector& f_grid,
-                 const Index sd = 4) {
+                 const Index sd = 4) noexcept {
   const Index nf = f_grid.nelem();
   for (auto& var : main) {
     const bool bad_stokes = sd not_eq var.StokesDimensions();
@@ -48,7 +48,7 @@ bool bad_propmat(const Array<T>& main,
 }
 
 /** Checks if abs_species is acceptable */
-bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
+bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) noexcept {
   for (auto& species : abs_species) {
     if (species.nelem()) {
       for (auto& spec : species)
@@ -63,17 +63,8 @@ bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
 }
 
 /** Checks for negative values */
-bool any_negative(const Vector& var) {
-  if (var.empty())
-    return false;
-  else if (min(var) < 0)
-    return true;
-  else
-    return false;
-}
-
-/** Checks for negative values */
-bool any_negative(const Tensor4& var) {
+template <typename MatpackType> constexpr
+bool any_negative(const MatpackType& var) noexcept {
   if (var.empty())
     return false;
   else if (min(var) < 0)
@@ -115,8 +106,6 @@ void zeeman_on_the_fly(
   const Index nn = rtp_nlte.Levels().nelem();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  const bool do_src = not nlte_source.empty();
-  const bool do_jac = not jacobian_quantities_positions.nelem();
   ARTS_USER_ERROR_IF(bad_abs_species(abs_species),
     "*abs_species* sub-arrays must have the same species, isotopologue, and type as first sub-array.")
   ARTS_USER_ERROR_IF((rtp_mag.nelem() not_eq 3) and (not manual_tag),
@@ -127,21 +116,21 @@ void zeeman_on_the_fly(
     "*abs_species* must match *propmat_clearsky*")
   ARTS_USER_ERROR_IF(bad_propmat(propmat_clearsky, f_grid),
     "*propmat_clearsky* must have *stokes_dim* 4 and frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(do_src and (nlte_source.nelem() not_eq abs_species.nelem()),
+  ARTS_USER_ERROR_IF(not nlte_source.empty() and (nlte_source.nelem() not_eq abs_species.nelem()),
     "*abs_species* must match *nlte_source* when non-LTE is on")
-  ARTS_USER_ERROR_IF(do_src and bad_propmat(nlte_source, f_grid),
+  ARTS_USER_ERROR_IF(not nlte_source.empty() and bad_propmat(nlte_source, f_grid),
     "*nlte_source* must have *stokes_dim* 4 and frequency dim same as *f_grid* when non-LTE is on")
-  ARTS_USER_ERROR_IF(do_jac and (nq not_eq dpropmat_clearsky_dx.nelem()),
+  ARTS_USER_ERROR_IF(not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
     "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
-  ARTS_USER_ERROR_IF(do_jac and bad_propmat(dpropmat_clearsky_dx, f_grid),
+  ARTS_USER_ERROR_IF(not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
     "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(do_jac and do_src and (nq not_eq dnlte_dx_source.nelem()),
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq dnlte_dx_source.nelem()),
     "*dnlte_dx_source* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(do_jac and do_src and bad_propmat(dnlte_dx_source, f_grid),
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(dnlte_dx_source, f_grid),
     "*dnlte_dx_source* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
-  ARTS_USER_ERROR_IF(do_jac and do_src and (nq not_eq nlte_dsource_dx.nelem()),
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq nlte_dsource_dx.nelem()),
     "*nlte_dsource_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(do_jac and do_src and bad_propmat(nlte_dsource_dx, f_grid),
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(nlte_dsource_dx, f_grid),
     "*nlte_dsource_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
