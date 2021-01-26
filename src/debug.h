@@ -114,7 +114,7 @@ std::string var_string(Args&& ... args) {
 
 #endif /* NDEBUG */
 
-#if NO_ARTS_USER_ERRORS == 1
+#ifdef NO_ARTS_USER_ERRORS
 
 /*! Turn on noexcept for user-facing functions */
 #define ARTS_USER_NOEXCEPT noexcept
