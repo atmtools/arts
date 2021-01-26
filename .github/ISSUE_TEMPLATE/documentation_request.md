@@ -8,9 +8,11 @@ assignees: ''
 ---
 
 **Which part of the documentation do you suggest an improvement for?**
+Delete the non-applicable items from the list:
 User/Theory/Developer Guide
 Built-in/docserver documentation
 Doxygen documentation
+PyARTS documentation
 
 **Describe the problem**
 A clear and concise description of what the problem is.
