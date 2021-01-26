@@ -1245,7 +1245,7 @@ void abs_lookupSetupBatch(  // WS Output:
     ArrayOfString particle_bulkprop_names;
     GriddedField4 atm_fields_compact;
     SpeciesAuxData partition_functions;
-    Index abs_f_interp_order;
+    Index abs_f_interp_order{0};
 
     // Extract fields from atmfield and check their validity.
     // This closes the loophole when only calculating lookup tables.
