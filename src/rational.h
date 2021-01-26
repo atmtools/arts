@@ -27,7 +27,6 @@ USA. */
 #ifndef rational_h
 #define rational_h
 
-#include <cassert>
 #include <ostream>
 #include "array.h"
 #include "bifstream.h"

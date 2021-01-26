@@ -98,8 +98,8 @@ bool is_lon_cyclic(ConstVectorView grid, const Numeric& epsilon = 0.001);
 
 //! Verifies that the size of x is n.
 /*! 
-  This function is supposed to be used together with assert like this:
-  assert(is_size(x,n)). It works for any array type.
+  This function is supposed to be used together with ARTS_ASSERT like this:
+  ARTS_ASSERT(is_size(x,n)). It works for any array type.
 
   \param  x The Array to check.
   \param  n The desired length.

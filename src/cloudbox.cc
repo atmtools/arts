@@ -314,7 +314,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
                    const Verbosity& verbosity) {
   CREATE_OUT3;
 
-  assert(scat_data_single.ptype == PTYPE_GENERAL ||
+  ARTS_ASSERT(scat_data_single.ptype == PTYPE_GENERAL ||
          scat_data_single.ptype == PTYPE_TOTAL_RND ||
          scat_data_single.ptype == PTYPE_AZIMUTH_RND);
 
@@ -581,7 +581,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
                         const bool include_boundaries)
 
 {
-  assert(cloudbox_limits.nelem() == 6);
+  ARTS_ASSERT(cloudbox_limits.nelem() == 6);
   const Index np = ppath_step.np;
 
   return is_gp_inside_cloudbox(ppath_step.gp_p[np - 1],
@@ -611,8 +611,8 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 void bin_quadweights(Vector& w, const Vector& x, const Index& order) {
   Index nx = x.nelem();
 
-  assert(nx > 1);
-  assert(is_increasing(x));
+  ARTS_ASSERT(nx > 1);
+  ARTS_ASSERT(is_increasing(x));
 
   if (order == 0) {
     w[0] = min(x[1] - x[0],

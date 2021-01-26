@@ -227,7 +227,7 @@ int main() {
         // large to correspond to a group. This can easily
         // happen if somebody puts a variable identifier instead
         // of a group identifier in the argument of GOUTPUT:
-        assert(wsv_data[vo[j]].Group() < wsv_group_names.nelem());
+        ARTS_ASSERT(wsv_data[vo[j]].Group() < wsv_group_names.nelem());
 
         // Add comma and line break, if not first element:
         align(ofs, is_first_parameter, indent);
@@ -242,7 +242,7 @@ int main() {
         // large to correspond to a group. This can easily
         // happen if somebody puts a variable identifier instead
         // of a group identifier in the argument of GOUTPUT:
-        assert(vgo[j] < wsv_group_names.nelem());
+        ARTS_ASSERT(vgo[j] < wsv_group_names.nelem());
 
         // Add comma and line break, if not first element:
         align(ofs, is_first_parameter, indent);
@@ -290,7 +290,7 @@ int main() {
             // large to correspond to a group. This can easily
             // happen if somebody puts a variable identifier instead
             // of a group identifier in the argument of GINPUT:
-            assert(vgi[j] < wsv_group_names.nelem());
+            ARTS_ASSERT(vgi[j] < wsv_group_names.nelem());
 
             // Add comma and line break, if not first element:
             align(ofs, is_first_parameter, indent);

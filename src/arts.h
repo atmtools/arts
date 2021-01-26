@@ -104,9 +104,6 @@
 //----------< First of all, include the configuration header >----------
 #include "config.h"
 
-// C Assert macro:
-#include <cassert>
-
 #ifdef HAVE_NAMESPACES
 // We need those to support ansi-compliant compilers (gcc-3x)
 namespace std {}

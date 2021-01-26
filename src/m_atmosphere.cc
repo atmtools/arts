@@ -1531,8 +1531,8 @@ void atm_fields_compactAddSpecies(  // WS Output:
     const GriddedField3& species,
     const Index& prepend,
     const Verbosity& verbosity) {
-  assert(atm_fields_compact.checksize());
-  assert(species.checksize());
+  ARTS_ASSERT(atm_fields_compact.checksize());
+  ARTS_ASSERT(species.checksize());
 
   ConstVectorView af_p_grid =
       atm_fields_compact.get_numeric_grid(GFIELD4_P_GRID);
@@ -1612,7 +1612,7 @@ void atm_fields_compactCleanup(  //WS Output:
     //WS Input:
     const Numeric& threshold,
     const Verbosity&) {
-  assert(atm_fields_compact.checksize());
+  ARTS_ASSERT(atm_fields_compact.checksize());
   Tensor4View afd = atm_fields_compact.data;
 
   // Check that the data tensor does not contain realistically low (e.g.
@@ -1634,7 +1634,7 @@ void atm_fields_compactCreateFromField(  // WS Output:
     const String& name,
     const GriddedField3& field,
     const Verbosity&) {
-  assert(field.checksize());
+  ARTS_ASSERT(field.checksize());
 
   ConstVectorView sp_p_grid = field.get_numeric_grid(GFIELD3_P_GRID);
   ConstVectorView sp_lat_grid = field.get_numeric_grid(GFIELD3_LAT_GRID);
@@ -2369,7 +2369,7 @@ void AtmFieldsCalc(  //WS Output:
   } else {
     // We can never get here, since there was a runtime
     // error check for atmosphere_dim at the beginning.
-    assert(false);
+    ARTS_ASSERT(false);
   }
 
   // remove negatives?
@@ -2625,7 +2625,7 @@ void MagFieldsCalc(  //WS Output:
   } else {
     // We can never get here, since there was a runtime
     // error check for atmosphere_dim at the beginning.
-    assert(false);
+    ARTS_ASSERT(false);
   }
 }
 
@@ -2926,7 +2926,7 @@ void WindFieldsCalc(  //WS Output:
   } else {
     // We can never get here, since there was a runtime
     // error check for atmosphere_dim at the beginning.
-    assert(false);
+    ARTS_ASSERT(false);
   }
 }
 
@@ -2992,7 +2992,7 @@ void AtmFieldsCalcExpand1D(Tensor3& t_field,
   }
   const Index nspecies = vmr_temp.nbooks();
   //
-  assert(t_temp.npages() == np);
+  ARTS_ASSERT(t_temp.npages() == np);
   //
   t_field.resize(np, nlat, nlon);
   z_field.resize(np, nlat, nlon);
@@ -3067,9 +3067,9 @@ void MagFieldsCalcExpand1D(Tensor3& mag_u_field,
     nlon = 1;
   }
   //
-  assert(mag_u_field_temp.npages() == np);
-  assert(mag_v_field_temp.npages() == np);
-  assert(mag_w_field_temp.npages() == np);
+  ARTS_ASSERT(mag_u_field_temp.npages() == np);
+  ARTS_ASSERT(mag_v_field_temp.npages() == np);
+  ARTS_ASSERT(mag_w_field_temp.npages() == np);
   //
   mag_u_field.resize(np, nlat, nlon);
   mag_v_field.resize(np, nlat, nlon);
@@ -3130,9 +3130,9 @@ void WindFieldsCalcExpand1D(Tensor3& wind_u_field,
     nlon = 1;
   }
   //
-  assert(wind_u_field_temp.npages() == np);
-  assert(wind_v_field_temp.npages() == np);
-  assert(wind_w_field_temp.npages() == np);
+  ARTS_ASSERT(wind_u_field_temp.npages() == np);
+  ARTS_ASSERT(wind_v_field_temp.npages() == np);
+  ARTS_ASSERT(wind_w_field_temp.npages() == np);
   //
   wind_u_field.resize(np, nlat, nlon);
   wind_v_field.resize(np, nlat, nlon);

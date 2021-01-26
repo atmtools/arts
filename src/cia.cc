@@ -62,7 +62,7 @@ void cia_interpolation(VectorView result,
   const Index nf = f_grid.nelem();
 
   // Assert that result vector has right size:
-  assert(result.nelem() == nf);
+  ARTS_ASSERT(result.nelem() == nf);
 
   // Get data grids:
   ConstVectorView data_f_grid = cia_data.get_numeric_grid(0);
@@ -264,8 +264,8 @@ void CIARecord::Extract(VectorView result,
 // Documentation in header file.
 String CIARecord::MoleculeName(const Index i) const {
   // Assert that i is 0 or 1:
-  assert(i >= 0);
-  assert(i <= 1);
+  ARTS_ASSERT(i >= 0);
+  ARTS_ASSERT(i <= 1);
 
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
@@ -275,8 +275,8 @@ String CIARecord::MoleculeName(const Index i) const {
 // Documentation in header file.
 void CIARecord::SetMoleculeName(const Index i, const String& name) {
   // Assert that i is 0 or 1:
-  assert(i >= 0);
-  assert(i <= 1);
+  ARTS_ASSERT(i >= 0);
+  ARTS_ASSERT(i <= 1);
 
   // Find out the species index for name:
   Index spec_ind = species_index_from_species_name(name);

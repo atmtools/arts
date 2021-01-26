@@ -159,7 +159,7 @@ Numeric SpeciesAuxData::getIsotopologueRatio(const QuantumIdentifier& qid) const
 
 String SpeciesAuxData::getTypeString(const Index species,
                                      const Index isotopologue) const {
-  assert(mparam_type[species][isotopologue] < AT_FINAL_ENTRY);
+  ARTS_ASSERT(mparam_type[species][isotopologue] < AT_FINAL_ENTRY);
   return SpeciesAuxTypeNames[mparam_type[species][isotopologue]];
 }
 
@@ -436,7 +436,7 @@ void fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(
       Vector grid;
       const Vector& coeffs = species_data[isp].Isotopologue()[iiso].GetCoeff();
 
-      assert(coeffs.nelem() >= 2);
+      ARTS_ASSERT(coeffs.nelem() >= 2);
 
       nlinspace(grid, 0, (Numeric)coeffs.nelem() - 1., coeffs.nelem());
       pfuncs[0].set_grid(0, grid);
@@ -447,7 +447,7 @@ void fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(
 
       // Temperature data should either contain two Ts, lower and upper value of
       // the valid range or be empty
-      assert(temp_range.nelem() == 0 || temp_range.nelem() == 2);
+      ARTS_ASSERT(temp_range.nelem() == 0 || temp_range.nelem() == 2);
 
       if (temp_range.nelem() == 2) {
         pfuncs[1].set_grid(0, tgrid);
@@ -572,8 +572,8 @@ String species_name_from_species_index(const Index spec_ind) {
   // Assert that spec_ind is inside species data. (This is an assertion,
   // because species indices should never be user input, but set by the
   // program automatically, based on species names.)
-  assert(spec_ind >= 0);
-  assert(spec_ind < species_data.nelem());
+  ARTS_ASSERT(spec_ind >= 0);
+  ARTS_ASSERT(spec_ind < species_data.nelem());
 
   // A reference to the relevant record of the species data:
   const SpeciesRecord& spr = species_data[spec_ind];

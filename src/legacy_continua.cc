@@ -5572,13 +5572,13 @@ void MPM87H2OAbsModel(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -5746,13 +5746,13 @@ void MPM89H2OAbsModel(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -5982,13 +5982,13 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -6230,13 +6230,13 @@ void MPM93H2OAbsModel(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -6509,13 +6509,13 @@ void PWR98H2OAbsModel(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
 #pragma omp parallel for if (!arts_omp_in_parallel() && \
@@ -6660,13 +6660,13 @@ void CP98H2OAbsModel(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -6786,13 +6786,13 @@ void Standard_H2O_self_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop over pressure/temperature grid:
   for (Index i = 0; i < n_p; ++i) {
@@ -6895,13 +6895,13 @@ void Standard_H2O_foreign_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
@@ -6990,13 +6990,13 @@ void MaTipping_H2O_foreign_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
@@ -7208,13 +7208,13 @@ void CKD_222_self_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -7464,13 +7464,13 @@ void CKD_222_foreign_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -7668,13 +7668,13 @@ void CKD_242_self_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -7936,13 +7936,13 @@ void CKD_242_foreign_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -8160,13 +8160,13 @@ void CKD_mt_100_self_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -8396,13 +8396,13 @@ void CKD_mt_100_foreign_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -8580,13 +8580,13 @@ void CKD_mt_250_self_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -8844,13 +8844,13 @@ void CKD_mt_250_foreign_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -9046,13 +9046,13 @@ void CKD_mt_320_self_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -9319,13 +9319,13 @@ void CKD_mt_320_foreign_h2o(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -9535,13 +9535,13 @@ void CKD_241_co2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -9707,13 +9707,13 @@ void CKD_mt_co2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -9879,13 +9879,13 @@ void CKD_mt_250_co2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -10142,13 +10142,13 @@ void CKD_mt_CIArot_n2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -10359,13 +10359,13 @@ void CKD_mt_CIAfun_n2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -10556,13 +10556,13 @@ void CKD_mt_250_CIArot_n2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -10791,13 +10791,13 @@ void CKD_mt_250_CIAfun_n2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -10985,13 +10985,13 @@ void CKD_mt_CIAfun_o2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -11185,13 +11185,13 @@ void CKD_mt_v0v0_o2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -11371,13 +11371,13 @@ void CKD_mt_v1v0_o2(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -11582,13 +11582,13 @@ void CKD_mt_250_o2_vis(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // ************************** CKD stuff ************************************
 
@@ -11820,13 +11820,13 @@ void CKD24_H20(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   //  ivc = 1     : N2-N2 CKD version of Borysow-Fromhold model
   //  ivc = 21    : H2O CKD2.4  self cont part
@@ -11955,13 +11955,13 @@ void Pardo_ATM_H2O_ForeignContinuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop over pressure/temperature grid:
   for (Index i = 0; i < n_p; ++i) {
@@ -12097,13 +12097,13 @@ void MPM93_H2O_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
@@ -12303,13 +12303,13 @@ void MPM85O2AbsModel(MatrixView pxsec,
   const Numeric VMRISO = 0.2085;
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -12576,13 +12576,13 @@ void MPM87O2AbsModel(MatrixView pxsec,
   const Numeric VMRISO = 0.2085;
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -12831,13 +12831,13 @@ void MPM89O2AbsModel(MatrixView pxsec,
   const Numeric VMRISO = 0.2085;
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -13088,13 +13088,13 @@ void MPM92O2AbsModel(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -13357,13 +13357,13 @@ void TRE05O2AbsModel(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -13619,13 +13619,13 @@ void MPM93O2AbsModel(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for (Index i = 0; i < n_p; ++i) {
@@ -13958,13 +13958,13 @@ void PWR93O2AbsModel(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   String fail_msg;
   bool failed = false;
@@ -14150,13 +14150,13 @@ void MPM93_O2_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we
@@ -14291,13 +14291,13 @@ void Rosenkranz_O2_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // loop over all pressure levels:
   for (Index i = 0; i < n_p; ++i) {
@@ -14448,13 +14448,13 @@ void Standard_O2_continuum(MatrixView pxsec,         // cross section
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we
@@ -14564,13 +14564,13 @@ void BF86_CIA_N2(MatrixView pxsec,
   const Numeric RIDGAS = 8.314510;    // ideal gas constant
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
@@ -14707,13 +14707,13 @@ void MPM93_N2_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   Numeric fac = 4.0 * PI / SPEED_OF_LIGHT;  //  = 4 * pi / c
   // Loop pressure/temperature:
@@ -14799,13 +14799,13 @@ void Pardo_ATM_N2_dry_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop over pressure/temperature grid:
   for (Index i = 0; i < n_p; ++i) {
@@ -14902,13 +14902,13 @@ void Rosenkranz_N2_self_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop over pressure/temperature grid:
   for (Index i = 0; i < n_p; ++i) {
@@ -15012,13 +15012,13 @@ void Standard_N2_self_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop over pressure/temperature grid:
   for (Index i = 0; i < n_p; ++i) {
@@ -15113,13 +15113,13 @@ void Rosenkranz_CO2_self_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop over pressure/temperature grid:
   for (Index i = 0; i < n_p; ++i) {
@@ -15208,13 +15208,13 @@ void Rosenkranz_CO2_foreign_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
@@ -15299,13 +15299,13 @@ void Ho66_CO2_self_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop over pressure/temperature grid:
   for (Index i = 0; i < n_p; ++i) {
@@ -15394,13 +15394,13 @@ void Ho66_CO2_foreign_continuum(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
@@ -15502,13 +15502,13 @@ void MPM93WaterDropletAbs(
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
@@ -15666,13 +15666,13 @@ void ELL07WaterDropletAbs(
   const Numeric p19 = 3.528051e-18;
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
@@ -15880,13 +15880,13 @@ void MPM93IceCrystalAbs(
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
@@ -16023,13 +16023,13 @@ void MPM93RainExt(MatrixView pxsec,
   const Index n_f = f_grid.nelem();  // Number of frequencies
 
   // Check that dimensions of abs_p, abs_t, and vmr agree:
-  assert(n_p == abs_t.nelem());
-  assert(n_p == vmr.nelem());
+  ARTS_ASSERT(n_p == abs_t.nelem());
+  ARTS_ASSERT(n_p == vmr.nelem());
 
   // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert(n_f == pxsec.nrows());
-  assert(n_p == pxsec.ncols());
+  ARTS_ASSERT(n_f == pxsec.nrows());
+  ARTS_ASSERT(n_p == pxsec.ncols());
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {

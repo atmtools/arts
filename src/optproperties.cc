@@ -108,7 +108,7 @@ void opt_prop_Bulk(    //Output
     const ArrayOfTensor5& ext_mat_ss,  // [nss](nf,nT,ndir,nst,nst)
     const ArrayOfTensor4& abs_vec_ss,  // [nss](nf,nT,ndir,nst)
     const ArrayOfIndex& ptypes_ss) {
-  assert(ext_mat_ss.nelem() == abs_vec_ss.nelem());
+  ARTS_ASSERT(ext_mat_ss.nelem() == abs_vec_ss.nelem());
 
   ext_mat = ext_mat_ss[0];
   abs_vec = abs_vec_ss[0];
@@ -156,11 +156,11 @@ void opt_prop_ScatSpecBulk(   //Output
     const ArrayOfArrayOfIndex& ptypes_se,
     ConstMatrixView pnds,
     ConstMatrixView t_ok) {
-  assert(t_ok.nrows() == pnds.nrows());
-  assert(t_ok.ncols() == pnds.ncols());
-  assert(TotalNumberOfElements(ext_mat_se) == pnds.nrows());
-  assert(TotalNumberOfElements(abs_vec_se) == pnds.nrows());
-  assert(ext_mat_se.nelem() == abs_vec_se.nelem());
+  ARTS_ASSERT(t_ok.nrows() == pnds.nrows());
+  ARTS_ASSERT(t_ok.ncols() == pnds.ncols());
+  ARTS_ASSERT(TotalNumberOfElements(ext_mat_se) == pnds.nrows());
+  ARTS_ASSERT(TotalNumberOfElements(abs_vec_se) == pnds.nrows());
+  ARTS_ASSERT(ext_mat_se.nelem() == abs_vec_se.nelem());
 
   const Index nT = pnds.ncols();
   const Index nf = abs_vec_se[0][0].nbooks();
@@ -177,9 +177,9 @@ void opt_prop_ScatSpecBulk(   //Output
   Index i_se_flat = 0;
 
   for (Index i_ss = 0; i_ss < nss; i_ss++) {
-    assert(ext_mat_se[i_ss].nelem() == abs_vec_se[i_ss].nelem());
-    assert(nT == ext_mat_se[i_ss][0].nbooks());
-    assert(nT == abs_vec_se[i_ss][0].npages());
+    ARTS_ASSERT(ext_mat_se[i_ss].nelem() == abs_vec_se[i_ss].nelem());
+    ARTS_ASSERT(nT == ext_mat_se[i_ss][0].nbooks());
+    ARTS_ASSERT(nT == abs_vec_se[i_ss][0].npages());
 
     ext_mat[i_ss].resize(nf, nT, nDir, stokes_dim, stokes_dim);
     ext_mat[i_ss] = 0.;
@@ -187,8 +187,8 @@ void opt_prop_ScatSpecBulk(   //Output
     abs_vec[i_ss] = 0.;
 
     for (Index i_se = 0; i_se < ext_mat_se[i_ss].nelem(); i_se++) {
-      assert(nT == ext_mat_se[i_ss][i_se].nbooks());
-      assert(nT == abs_vec_se[i_ss][i_se].npages());
+      ARTS_ASSERT(nT == ext_mat_se[i_ss][i_se].nbooks());
+      ARTS_ASSERT(nT == abs_vec_se[i_ss][i_se].npages());
 
       for (Index Tind = 0; Tind < nT; Tind++) {
         if (pnds(i_se_flat, Tind) != 0.) {
@@ -306,7 +306,7 @@ void opt_prop_NScatElems(            //Output
       i_se_flat++;
     }
   }
-  assert(i_se_flat == Nse_all);
+  ARTS_ASSERT(i_se_flat == Nse_all);
 }
 
 //! Determine T-interpol parameters for a specific scattering element.
@@ -432,7 +432,7 @@ void opt_prop_1ScatElem(  //Output
     const Index& f_start,
     const Index& t_interp_order) {
   // FIXME: this is prob best done in scat_data_checkedCalc (or
-  // cloudbox_checkedCalc) to have it done once and for all. Here at max assert.
+  // cloudbox_checkedCalc) to have it done once and for all. Here at max ARTS_ASSERT.
 
   // At very first check validity of the scatt elements ptype (so far we only
   // handle PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND).
@@ -448,26 +448,26 @@ void opt_prop_1ScatElem(  //Output
   }
   */
 
-  assert(ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND);
+  ARTS_ASSERT(ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND);
 
   const Index nf = ext_mat.nshelves();
-  assert(abs_vec.nbooks() == nf);
+  ARTS_ASSERT(abs_vec.nbooks() == nf);
   if (nf > 1) {
-    assert(nf == ssd.f_grid.nelem());
+    ARTS_ASSERT(nf == ssd.f_grid.nelem());
   }
 
   const Index nTout = T_array.nelem();
-  assert(ext_mat.nbooks() == nTout);
-  assert(abs_vec.npages() == nTout);
-  assert(t_ok.nelem() == nTout);
+  ARTS_ASSERT(ext_mat.nbooks() == nTout);
+  ARTS_ASSERT(abs_vec.npages() == nTout);
+  ARTS_ASSERT(t_ok.nelem() == nTout);
 
   const Index nDir = dir_array.nrows();
-  assert(ext_mat.npages() == nDir);
-  assert(abs_vec.nrows() == nDir);
+  ARTS_ASSERT(ext_mat.npages() == nDir);
+  ARTS_ASSERT(abs_vec.nrows() == nDir);
 
   const Index stokes_dim = abs_vec.ncols();
-  assert(ext_mat.nrows() == stokes_dim);
-  assert(ext_mat.ncols() == stokes_dim);
+  ARTS_ASSERT(ext_mat.nrows() == stokes_dim);
+  ARTS_ASSERT(ext_mat.ncols() == stokes_dim);
 
   ptype = ssd.ptype;
 
@@ -678,7 +678,7 @@ void ext_mat_SSD2Stokes(  //Output
     const Index& ptype) {
   // for now, no handling of PTYPE_GENERAL. should be ensured somewhere in the
   // calling methods, though.
-  assert(ptype <= PTYPE_AZIMUTH_RND);
+  ARTS_ASSERT(ptype <= PTYPE_AZIMUTH_RND);
 
   ext_mat_stokes = 0.;
 
@@ -726,7 +726,7 @@ void abs_vec_SSD2Stokes(  //Output
     const Index& ptype) {
   // for now, no handling of PTYPE_GENERAL. should be ensured somewhere in the
   // calling methods, though.
-  assert(ptype <= PTYPE_AZIMUTH_RND);
+  ARTS_ASSERT(ptype <= PTYPE_AZIMUTH_RND);
 
   abs_vec_stokes = 0.;
 
@@ -802,9 +802,9 @@ void pha_mat_ScatSpecBulk(    //Output
     const ArrayOfArrayOfIndex& ptypes_se,
     ConstMatrixView pnds,
     ConstMatrixView t_ok) {
-  assert(t_ok.nrows() == pnds.nrows());
-  assert(t_ok.ncols() == pnds.ncols());
-  assert(TotalNumberOfElements(pha_mat_se) == pnds.nrows());
+  ARTS_ASSERT(t_ok.nrows() == pnds.nrows());
+  ARTS_ASSERT(t_ok.ncols() == pnds.ncols());
+  ARTS_ASSERT(TotalNumberOfElements(pha_mat_se) == pnds.nrows());
 
   const Index nT = pnds.ncols();
   const Index nf = pha_mat_se[0][0].nvitrines();
@@ -820,13 +820,13 @@ void pha_mat_ScatSpecBulk(    //Output
   Index i_se_flat = 0;
 
   for (Index i_ss = 0; i_ss < nss; i_ss++) {
-    assert(nT == pha_mat_se[i_ss][0].nshelves());
+    ARTS_ASSERT(nT == pha_mat_se[i_ss][0].nshelves());
 
     pha_mat[i_ss].resize(nf, nT, npDir, niDir, stokes_dim, stokes_dim);
     pha_mat[i_ss] = 0.;
 
     for (Index i_se = 0; i_se < pha_mat_se[i_ss].nelem(); i_se++) {
-      assert(nT == pha_mat_se[i_ss][i_se].nshelves());
+      ARTS_ASSERT(nT == pha_mat_se[i_ss][i_se].nshelves());
 
       for (Index Tind = 0; Tind < nT; Tind++) {
         if (pnds(i_se_flat, Tind) != 0.) {
@@ -939,7 +939,7 @@ void pha_mat_NScatElems(             //Output
       i_se_flat++;
     }
   }
-  assert(i_se_flat == Nse_all);
+  ARTS_ASSERT(i_se_flat == Nse_all);
 }
 
 //! Preparing phase matrix from one scattering element.
@@ -977,25 +977,25 @@ void pha_mat_1ScatElem(   //Output
     const Matrix& idir_array,
     const Index& f_start,
     const Index& t_interp_order) {
-  assert(ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND);
+  ARTS_ASSERT(ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND);
 
   const Index nf = pha_mat.nvitrines();
   if (nf > 1) {
-    assert(nf == ssd.f_grid.nelem());
+    ARTS_ASSERT(nf == ssd.f_grid.nelem());
   }
 
   const Index nTout = T_array.nelem();
-  assert(pha_mat.nshelves() == nTout);
-  assert(t_ok.nelem() == nTout);
+  ARTS_ASSERT(pha_mat.nshelves() == nTout);
+  ARTS_ASSERT(t_ok.nelem() == nTout);
 
   const Index npDir = pdir_array.nrows();
-  assert(pha_mat.nbooks() == npDir);
+  ARTS_ASSERT(pha_mat.nbooks() == npDir);
 
   const Index niDir = idir_array.nrows();
-  assert(pha_mat.npages() == niDir);
+  ARTS_ASSERT(pha_mat.npages() == niDir);
 
   const Index stokes_dim = pha_mat.ncols();
-  assert(pha_mat.nrows() == stokes_dim);
+  ARTS_ASSERT(pha_mat.nrows() == stokes_dim);
 
   ptype = ssd.ptype;
 
@@ -1312,32 +1312,32 @@ void FouComp_1ScatElem(       //Output
     const Index& f_start,
     const Index& t_interp_order,
     const Index& naa_totran) {
-  assert(ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND);
+  ARTS_ASSERT(ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND);
 
   const Index nf = pha_mat_fou.nlibraries();
   if (nf > 1) {
-    assert(nf == ssd.f_grid.nelem());
+    ARTS_ASSERT(nf == ssd.f_grid.nelem());
   }
 
   const Index nTout = T_array.nelem();
-  assert(pha_mat_fou.nvitrines() == nTout);
-  assert(t_ok.nelem() == nTout);
+  ARTS_ASSERT(pha_mat_fou.nvitrines() == nTout);
+  ARTS_ASSERT(t_ok.nelem() == nTout);
 
   const Index npDir = pdir_array.nelem();
-  assert(pha_mat_fou.nshelves() == npDir);
+  ARTS_ASSERT(pha_mat_fou.nshelves() == npDir);
   const Index niDir = idir_array.nelem();
-  assert(pha_mat_fou.nbooks() == niDir);
+  ARTS_ASSERT(pha_mat_fou.nbooks() == niDir);
 
   const Index stokes_dim = pha_mat_fou.nrows();
-  assert(pha_mat_fou.npages() == stokes_dim);
+  ARTS_ASSERT(pha_mat_fou.npages() == stokes_dim);
   // currently code is only prepared for stokes_dim up to 2 (nothing else needed in
   // RT4 and generally in azimuth-symmetrical system)
-  assert(stokes_dim < 3);
+  ARTS_ASSERT(stokes_dim < 3);
 
   const Index nmodes = pha_mat_fou.ncols();
   // currently code is only prepared for fourier mode 0 (nothing else needed in
   // RT4 and generally in azimuth-symmetrical system)
-  assert(nmodes == 0);
+  ARTS_ASSERT(nmodes == 0);
 
   ptype = ssd.ptype;
 
@@ -1451,8 +1451,8 @@ void FouComp_1ScatElem(       //Output
     Index naa = ssd.aa_grid.nelem();
     ConstVectorView za_datagrid = ssd.za_grid;
     ConstVectorView aa_datagrid = ssd.aa_grid;
-    assert(aa_datagrid[0] == 0.);
-    assert(aa_datagrid[naa - 1] == 180.);
+    ARTS_ASSERT(aa_datagrid[0] == 0.);
+    ARTS_ASSERT(aa_datagrid[naa - 1] == 180.);
     Vector daa(naa);
 
     // Precalculate azimuth integration weights for this azimuthally randomly
@@ -1564,7 +1564,7 @@ void abs_vecTransform(  //Output and Input
     const Numeric& aa_sca _U_,
     const Verbosity& verbosity) {
   const Index stokes_dim = abs_vec_lab.StokesDimensions();
-  assert(abs_vec_lab.NumberOfFrequencies() == 1);
+  ARTS_ASSERT(abs_vec_lab.NumberOfFrequencies() == 1);
 
   if (stokes_dim > 4 || stokes_dim < 1) {
     throw runtime_error(
@@ -1599,7 +1599,7 @@ void abs_vecTransform(  //Output and Input
 
     case PTYPE_AZIMUTH_RND:  //Added by Cory Davis 9/12/03
     {
-      assert(abs_vec_data.ncols() == 2);
+      ARTS_ASSERT(abs_vec_data.ncols() == 2);
 
       // In the case of azimuthally randomly oriented particles, only the first
       // two elements of the absorption coefficient vector are non-zero.
@@ -1662,7 +1662,7 @@ void ext_matTransform(  //Output and Input
     const Numeric& aa_sca _U_,
     const Verbosity& verbosity) {
   const Index stokes_dim = ext_mat_lab.StokesDimensions();
-  assert(ext_mat_lab.NumberOfFrequencies() == 1);
+  ARTS_ASSERT(ext_mat_lab.NumberOfFrequencies() == 1);
 
   if (stokes_dim > 4 || stokes_dim < 1) {
     throw runtime_error(
@@ -1686,7 +1686,7 @@ void ext_matTransform(  //Output and Input
       break;
     }
     case PTYPE_TOTAL_RND: {
-      assert(ext_mat_data.ncols() == 1);
+      ARTS_ASSERT(ext_mat_data.ncols() == 1);
 
       // In the case of randomly oriented particles the extinction matrix is
       // diagonal. The value of each element of the diagonal is the
@@ -1700,7 +1700,7 @@ void ext_matTransform(  //Output and Input
 
     case PTYPE_AZIMUTH_RND:  //Added by Cory Davis 9/12/03
     {
-      assert(ext_mat_data.ncols() == 3);
+      ARTS_ASSERT(ext_mat_data.ncols() == 3);
 
       // In the case of azimuthally randomly oriented particles, the extinction
       // matrix has only 3 independent non-zero elements Kjj, K12=K21, and K34=-K43.
@@ -1833,8 +1833,8 @@ void pha_matTransform(  //Output
                              //Data is already stored in the laboratory frame,
       //but it is compressed a little.  Details elsewhere.
       {
-        assert(pha_mat_data.ncols() == 16);
-        assert(pha_mat_data.npages() == za_datagrid.nelem());
+        ARTS_ASSERT(pha_mat_data.ncols() == 16);
+        ARTS_ASSERT(pha_mat_data.npages() == za_datagrid.nelem());
         Numeric delta_aa = aa_sca - aa_inc + (aa_sca - aa_inc < -180) * 360 -
                            (aa_sca - aa_inc > 180) *
                                360;  //delta_aa corresponds to the "books"
@@ -2053,10 +2053,10 @@ void ext_matFromabs_vec(  //Output
     //Input
     ConstVectorView abs_vec,
     const Index& stokes_dim) {
-  assert(stokes_dim >= 1 && stokes_dim <= 4);
-  assert(ext_mat.nrows() == stokes_dim);
-  assert(ext_mat.ncols() == stokes_dim);
-  assert(abs_vec.nelem() == stokes_dim);
+  ARTS_ASSERT(stokes_dim >= 1 && stokes_dim <= 4);
+  ARTS_ASSERT(ext_mat.nrows() == stokes_dim);
+  ARTS_ASSERT(ext_mat.ncols() == stokes_dim);
+  ARTS_ASSERT(abs_vec.nelem() == stokes_dim);
 
   // first: diagonal elements
   for (Index is = 0; is < stokes_dim; is++) {
@@ -2154,7 +2154,7 @@ void interpolate_scat_angle(  //Output:
   Vector itw(2);
   interpweights(itw, thet_gp);
 
-  assert(pha_mat_data.ncols() == 6);
+  ARTS_ASSERT(pha_mat_data.ncols() == 6);
   for (Index i = 0; i < 6; i++) {
     pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), thet_gp);
   }
@@ -2306,9 +2306,9 @@ void pha_mat_labCalc(  //Output:
       pha_mat_lab(1, 0) = C2 * F12;
       pha_mat_lab(1, 1) = C1 * C2 * F22 - S1 * S2 * F33;
 
-      //assert(!std::isnan(pha_mat_lab(0,1)));
-      //assert(!std::isnan(pha_mat_lab(1,0)));
-      //assert(!std::isnan(pha_mat_lab(1,1)));
+      //ARTS_ASSERT(!std::isnan(pha_mat_lab(0,1)));
+      //ARTS_ASSERT(!std::isnan(pha_mat_lab(1,0)));
+      //ARTS_ASSERT(!std::isnan(pha_mat_lab(1,1)));
       if (std::isnan(pha_mat_lab(0, 1)) || std::isnan(pha_mat_lab(1, 0)) ||
           std::isnan(pha_mat_lab(1, 1))) {
         throw runtime_error(

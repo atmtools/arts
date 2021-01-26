@@ -94,8 +94,8 @@ const Numeric LON_NOT_FOUND = 99e99;
    @date   2002-05-17
   */
 Numeric geometrical_ppc(const Numeric& r, const Numeric& za) {
-  assert(r > 0);
-  assert(abs(za) <= 180);
+  ARTS_ASSERT(r > 0);
+  ARTS_ASSERT(abs(za) <= 180);
 
   return r * sin(DEG2RAD * abs(za));
 }
@@ -103,9 +103,9 @@ Numeric geometrical_ppc(const Numeric& r, const Numeric& za) {
 Numeric geompath_za_at_r(const Numeric& ppc,
                          const Numeric& a_za,
                          const Numeric& r) {
-  assert(ppc >= 0);
-  assert(abs(a_za) <= 180);
-  assert(r >= ppc - RTOL);
+  ARTS_ASSERT(ppc >= 0);
+  ARTS_ASSERT(abs(a_za) <= 180);
+  ARTS_ASSERT(r >= ppc - RTOL);
 
   if (r > ppc) {
     Numeric za = RAD2DEG * asin(ppc / r);
@@ -139,8 +139,8 @@ Numeric geompath_za_at_r(const Numeric& ppc,
    @date   2002-06-05
   */
 Numeric geompath_r_at_za(const Numeric& ppc, const Numeric& za) {
-  assert(ppc >= 0);
-  assert(abs(za) <= 180);
+  ARTS_ASSERT(ppc >= 0);
+  ARTS_ASSERT(abs(za) <= 180);
 
   return ppc / sin(DEG2RAD * abs(za));
 }
@@ -148,16 +148,16 @@ Numeric geompath_r_at_za(const Numeric& ppc, const Numeric& za) {
 Numeric geompath_lat_at_za(const Numeric& za0,
                            const Numeric& lat0,
                            const Numeric& za) {
-  assert(abs(za0) <= 180);
-  assert(abs(za) <= 180);
-  assert((za0 >= 0 && za >= 0) || (za0 < 0 && za < 0));
+  ARTS_ASSERT(abs(za0) <= 180);
+  ARTS_ASSERT(abs(za) <= 180);
+  ARTS_ASSERT((za0 >= 0 && za >= 0) || (za0 < 0 && za < 0));
 
   return lat0 + za0 - za;
 }
 
 Numeric geompath_l_at_r(const Numeric& ppc, const Numeric& r) {
-  assert(ppc >= 0);
-  assert(r >= ppc - RTOL);
+  ARTS_ASSERT(ppc >= 0);
+  ARTS_ASSERT(r >= ppc - RTOL);
 
   if (r > ppc) {
     return sqrt(r * r - ppc * ppc);
@@ -167,7 +167,7 @@ Numeric geompath_l_at_r(const Numeric& ppc, const Numeric& r) {
 }
 
 Numeric geompath_r_at_l(const Numeric& ppc, const Numeric& l) {
-  assert(ppc >= 0);
+  ARTS_ASSERT(ppc >= 0);
 
   return sqrt(l * l + ppc * ppc);
 }
@@ -188,9 +188,9 @@ Numeric geompath_r_at_lat(const Numeric& ppc,
                           const Numeric& lat0,
                           const Numeric& za0,
                           const Numeric& lat) {
-  assert(ppc >= 0);
-  assert(abs(za0) <= 180);
-  assert((za0 >= 0 && lat >= lat0) || (za0 <= 0 && lat <= lat0));
+  ARTS_ASSERT(ppc >= 0);
+  ARTS_ASSERT(abs(za0) <= 180);
+  ARTS_ASSERT((za0 >= 0 && lat >= lat0) || (za0 <= 0 && lat <= lat0));
 
   // Zenith angle at the new latitude
   const Numeric za = za0 + lat0 - lat;
@@ -303,7 +303,7 @@ void cart2zaaa(Numeric& za,
                const Numeric& dz) {
   const Numeric r = sqrt(dx * dx + dy * dy + dz * dz);
 
-  assert(r > 0);
+  ARTS_ASSERT(r > 0);
 
   za = RAD2DEG * acos(dz / r);
   aa = RAD2DEG * atan2(dy, dx);
@@ -360,13 +360,13 @@ void zaaa2enu(Numeric& de,
    @date   2009-10-02
  */
 void rotationmat3D(Matrix& R, ConstVectorView vrot, const Numeric& a) {
-  assert(R.ncols() == 3);
-  assert(R.nrows() == 3);
-  assert(vrot.nelem() == 3);
+  ARTS_ASSERT(R.ncols() == 3);
+  ARTS_ASSERT(R.nrows() == 3);
+  ARTS_ASSERT(vrot.nelem() == 3);
 
   const Numeric l =
       sqrt(vrot[0] * vrot[0] + vrot[1] * vrot[1] + vrot[2] * vrot[2]);
-  assert(l > 1 - 9);
+  ARTS_ASSERT(l > 1 - 9);
   const Numeric u = vrot[0] / l;
   const Numeric v = vrot[1] / l;
   const Numeric w = vrot[2] / l;
@@ -436,7 +436,7 @@ void diff_za_aa(Numeric& dza,
   Vector vrot(3);
   Vector u(3);
 
-  assert(za != 0 && za != 180);
+  ARTS_ASSERT(za != 0 && za != 180);
 
   // Unit vector towards aa0 at za=90
   //
@@ -491,14 +491,14 @@ void diff_za_aa(Numeric& dza,
 Numeric refraction_ppc(const Numeric& r,
                        const Numeric& za,
                        const Numeric& refr_index_air) {
-  assert(r > 0);
-  assert(abs(za) <= 180);
+  ARTS_ASSERT(r > 0);
+  ARTS_ASSERT(abs(za) <= 180);
 
   return r * refr_index_air * sin(DEG2RAD * abs(za));
 }
 
 void resolve_lon(Numeric& lon, const Numeric& lon5, const Numeric& lon6) {
-  assert(lon6 >= lon5);
+  ARTS_ASSERT(lon6 >= lon5);
 
   if (lon < lon5 && lon + 180 <= lon6) {
     lon += 360;
@@ -621,7 +621,7 @@ Numeric plevel_angletilt(const Numeric& r, const Numeric& c1) {
 }
 
 bool is_los_downwards(const Numeric& za, const Numeric& tilt) {
-  assert(abs(za) <= 180);
+  ARTS_ASSERT(abs(za) <= 180);
 
   // Yes, it shall be -tilt in both cases, if you wonder.
   if (za > (90 - tilt) || za < (-90 - tilt)) {
@@ -660,8 +660,8 @@ void r_crossing_2d(Numeric& lat,
                    const Numeric& lat_start,
                    const Numeric& za_start,
                    const Numeric& ppc) {
-  assert(abs(za_start) <= 180);
-  assert(r_start >= ppc);
+  ARTS_ASSERT(abs(za_start) <= 180);
+  ARTS_ASSERT(r_start >= ppc);
 
   const Numeric absza = abs(za_start);
 
@@ -684,7 +684,7 @@ void r_crossing_2d(Numeric& lat,
       Numeric za = geompath_za_at_r(ppc, za_start, r_hit);
       lat = geompath_lat_at_za(za_start, lat_start, za);
       l = abs(geompath_l_at_r(ppc, r_start) - geompath_l_at_r(ppc, r_hit));
-      assert(l > 0);
+      ARTS_ASSERT(l > 0);
     }
   }
 }
@@ -730,9 +730,9 @@ Numeric rslope_crossing2d(const Numeric& rp,
                           Numeric c1) {
   const Numeric zaabs = abs(za);
 
-  assert(za != 0);
-  assert(zaabs != 180);
-  assert(abs(c1) > 0);  // c1=0 should work, but unnecessary to use this func.
+  ARTS_ASSERT(za != 0);
+  ARTS_ASSERT(zaabs != 180);
+  ARTS_ASSERT(abs(c1) > 0);  // c1=0 should work, but unnecessary to use this func.
 
   // Convert slope to m/radian and consider viewing direction
   c1 *= RAD2DEG;
@@ -786,7 +786,7 @@ Numeric rslope_crossing2d(const Numeric& rp,
     solutionfailure = poly_root_solve(roots, p);
     if (solutionfailure) {
       n -= 1;
-      assert(n > 0);
+      ARTS_ASSERT(n > 0);
     }
   }
 
@@ -867,8 +867,8 @@ void plevel_crossing_2d(Numeric& r,
                         const bool& above) {
   const Numeric absza = abs(za_start);
 
-  assert(absza <= 180);
-  assert(lat_start >= lat1 && lat_start <= lat3);
+  ARTS_ASSERT(absza <= 180);
+  ARTS_ASSERT(lat_start >= lat1 && lat_start <= lat3);
 
   // Zenith case
   if (absza < ANGTOL) {
@@ -1047,7 +1047,7 @@ Numeric rsurf_at_latlon(const Numeric& lat1,
                         const Numeric& r16,
                         const Numeric& lat,
                         const Numeric& lon) {
-  // We can't have any assert of *lat* and *lon* here as we can go outside
+  // We can't have any ARTS_ASSERT of *lat* and *lon* here as we can go outside
   // the ranges when called from *plevel_slope_3d*.
 
   if (lat == lat1) {
@@ -1279,7 +1279,7 @@ Numeric rslope_crossing3d(const Numeric& rp,
     solutionfailure = poly_root_solve(roots, p);
     if (solutionfailure) {
       n -= 1;
-      assert(n > 0);
+      ARTS_ASSERT(n > 0);
     }
   }
 
@@ -1357,8 +1357,8 @@ void r_crossing_3d(Numeric& lat,
                    const Numeric& dx,
                    const Numeric& dy,
                    const Numeric& dz) {
-  assert(za_start >= 0);
-  assert(za_start <= 180);
+  ARTS_ASSERT(za_start >= 0);
+  ARTS_ASSERT(za_start <= 180);
 
   // If above and looking upwards or r_hit below tangent point,
   // we have no crossing:
@@ -1396,7 +1396,7 @@ void r_crossing_3d(Numeric& lat,
       } else {
         l = lmin;
       }
-      assert(l > 0);
+      ARTS_ASSERT(l > 0);
 
       lat = RAD2DEG * asin((z + dz * l) / r_hit);
       lon = RAD2DEG * atan2(y + dy * l, x + dx * l);
@@ -1411,9 +1411,9 @@ void r_crossing_3d(Numeric& lat,
 void ppath_init_structure(Ppath& ppath,
                           const Index& atmosphere_dim,
                           const Index& np) {
-  assert(np > 0);
-  assert(atmosphere_dim >= 1);
-  assert(atmosphere_dim <= 3);
+  ARTS_ASSERT(np > 0);
+  ARTS_ASSERT(atmosphere_dim >= 1);
+  ARTS_ASSERT(atmosphere_dim <= 3);
 
   ppath.dim = atmosphere_dim;
   ppath.np = np;
@@ -1505,7 +1505,7 @@ void ppath_copy(Ppath& ppath1, const Ppath& ppath2, const Index& ncopy) {
     n = ncopy;
   }
 
-  assert(ppath1.np >= n);
+  ARTS_ASSERT(ppath1.np >= n);
 
   // The field np shall not be copied !
 
@@ -2297,9 +2297,9 @@ void do_gridrange_1d(Vector& r_v,
                      const Numeric& rsurface) {
   Numeric r_start = r_start0;
 
-  assert(rb > ra);
-  assert(r_start >= ra - RTOL);
-  assert(r_start <= rb + RTOL);
+  ARTS_ASSERT(rb > ra);
+  ARTS_ASSERT(r_start >= ra - RTOL);
+  ARTS_ASSERT(r_start <= rb + RTOL);
 
   // Shift radius if outside
   if (r_start < ra) {
@@ -2339,7 +2339,7 @@ void do_gridrange_1d(Vector& r_v,
     }
   }
 
-  assert(endface > 0);
+  ARTS_ASSERT(endface > 0);
 
   geompath_from_r1_to_r2(r_v,
                          lat_v,
@@ -2444,11 +2444,11 @@ void do_gridcell_2d_byltest(Vector& r_v,
   Numeric r_start = r_start0;
   Numeric lat_start = lat_start0;
 
-  assert(icall < 10);
+  ARTS_ASSERT(icall < 10);
 
   // Assert latitude and longitude
-  assert(lat_start >= lat1 - LATLONTOL);
-  assert(lat_start <= lat3 + LATLONTOL);
+  ARTS_ASSERT(lat_start >= lat1 - LATLONTOL);
+  ARTS_ASSERT(lat_start <= lat3 + LATLONTOL);
 
   // Shift latitude and longitude if outside
   if (lat_start < lat1) {
@@ -2462,8 +2462,8 @@ void do_gridcell_2d_byltest(Vector& r_v,
   Numeric rupp = rsurf_at_lat(lat1, lat3, r1b, r3b, lat_start);
 
   // Assert radius (some extra tolerance is needed for radius)
-  assert(r_start >= rlow - RTOL);
-  assert(r_start <= rupp + RTOL);
+  ARTS_ASSERT(r_start >= rlow - RTOL);
+  ARTS_ASSERT(r_start <= rupp + RTOL);
 
   // Shift radius if outside
   if (r_start < rlow) {
@@ -2846,16 +2846,16 @@ void do_gridcell_3d_byltest(Vector& r_v,
   Numeric lat_start = lat_start0;
   Numeric lon_start = lon_start0;
 
-  assert(icall < 10);
+  ARTS_ASSERT(icall < 10);
 
   // Assert latitude and longitude
-  assert(lat_start >= lat1 - LATLONTOL);
-  assert(lat_start <= lat3 + LATLONTOL);
-  assert(!(abs(lat_start) < POLELAT && lon_start < lon5 - LATLONTOL));
-  assert(!(abs(lat_start) < POLELAT && lon_start > lon6 + LATLONTOL));
+  ARTS_ASSERT(lat_start >= lat1 - LATLONTOL);
+  ARTS_ASSERT(lat_start <= lat3 + LATLONTOL);
+  ARTS_ASSERT(!(abs(lat_start) < POLELAT && lon_start < lon5 - LATLONTOL));
+  ARTS_ASSERT(!(abs(lat_start) < POLELAT && lon_start > lon6 + LATLONTOL));
 
   // Assertthat ppc and path data are consustent
-  assert(abs(ppc - r_start0 * sin(DEG2RAD * za_start)) < 0.1);
+  ARTS_ASSERT(abs(ppc - r_start0 * sin(DEG2RAD * za_start)) < 0.1);
 
   // Shift latitude and longitude if outside
   if (lat_start < lat1) {
@@ -2876,8 +2876,8 @@ void do_gridcell_3d_byltest(Vector& r_v,
       lat1, lat3, lon5, lon6, r15b, r35b, r36b, r16b, lat_start, lon_start);
 
   // Assert radius (some extra tolerance is needed for radius)
-  assert(r_start >= rlow - RTOL);
-  assert(r_start <= rupp + RTOL);
+  ARTS_ASSERT(r_start >= rlow - RTOL);
+  ARTS_ASSERT(r_start <= rupp + RTOL);
 
   // Shift radius if outside
   if (r_start < rlow) {
@@ -3481,7 +3481,7 @@ void raytrace_1d_linear_basic(Workspace& ws,
                     r1,
                     r3,
                     rsurface);
-    assert(r_v.nelem() == 2);
+    ARTS_ASSERT(r_v.nelem() == 2);
 
     // If *lstep* is <= *lraytrace*, extract the found end point (if not
     // a tangent point, we are ready).
@@ -3645,7 +3645,7 @@ void ppath_step_refr_1d(Workspace& ws,
                              za_start);
   } else {
     // Make sure we fail if called with an invalid rtrace_method.
-    assert(false);
+    ARTS_ASSERT(false);
   }
 
   // Fill *ppath*
@@ -3802,7 +3802,7 @@ void raytrace_2d_linear_basic(Workspace& ws,
                            r1b,
                            rsurface1,
                            rsurface3);
-    assert(r_v.nelem() == 2);
+    ARTS_ASSERT(r_v.nelem() == 2);
 
     // If *lstep* is <= *lraytrace*, extract the found end point (if not
     // a tangent point, we are ready).
@@ -3986,7 +3986,7 @@ void ppath_step_refr_2d(Workspace& ws,
                              za_start);
   } else {
     // Make sure we fail if called with an invalid rtrace_method.
-    assert(false);
+    ARTS_ASSERT(false);
   }
 
   // Fill *ppath*
@@ -4189,7 +4189,7 @@ void raytrace_3d_linear_basic(Workspace& ws,
                            rsurface35,
                            rsurface36,
                            rsurface16);
-    assert(r_v.nelem() == 2);
+    ARTS_ASSERT(r_v.nelem() == 2);
 
     // If *lstep* is <= *lraytrace*, extract the found end point.
     // Otherwise, we make a geometrical step with length *lraytrace*.
@@ -4431,7 +4431,7 @@ void ppath_step_refr_3d(Workspace& ws,
                              aa_start);
   } else {
     // Make sure we fail if called with an invalid rtrace_method.
-    assert(false);
+    ARTS_ASSERT(false);
   }
 
   // Fill *ppath*
@@ -4548,7 +4548,7 @@ void ppath_start_stepping(Ppath& ppath,
       // Inside cloudbox:
       DEBUG_ONLY(if (ppath_inside_cloudbox_do) {
         const Numeric fgp = fractional_gp(ppath.gp_p[0]);
-        assert(fgp >= (Numeric)cloudbox_limits[0] &&
+        ARTS_ASSERT(fgp >= (Numeric)cloudbox_limits[0] &&
                fgp <= (Numeric)cloudbox_limits[1]);
       })
     }
@@ -4697,7 +4697,7 @@ void ppath_start_stepping(Ppath& ppath,
       DEBUG_ONLY(if (ppath_inside_cloudbox_do) {
         const Numeric fgp = fractional_gp(ppath.gp_p[0]);
         const Numeric fgl = fractional_gp(ppath.gp_lat[0]);
-        assert(fgp >= (Numeric)cloudbox_limits[0] &&
+        ARTS_ASSERT(fgp >= (Numeric)cloudbox_limits[0] &&
                fgp <= (Numeric)cloudbox_limits[1] &&
                fgl >= (Numeric)cloudbox_limits[2] &&
                fgl <= (Numeric)cloudbox_limits[3]);
@@ -4790,7 +4790,7 @@ void ppath_start_stepping(Ppath& ppath,
             // Calculate length to entrance point at rt
             r_crossing_2d(
                 latt, lt, rt, r_p, rte_pos[1], rte_los[0], ppath.constant);
-            assert(lt < 9e9);
+            ARTS_ASSERT(lt < 9e9);
 
             // Entrance outside range of lat_grid = fail
             if (latt < lat_grid[0] || latt > lat_grid[llat]) {
@@ -4974,7 +4974,7 @@ void ppath_start_stepping(Ppath& ppath,
         const Numeric fgp = fractional_gp(ppath.gp_p[0]);
         const Numeric fgl = fractional_gp(ppath.gp_lat[0]);
         const Numeric fgo = fractional_gp(ppath.gp_lon[0]);
-        assert(fgp >= (Numeric)cloudbox_limits[0] &&
+        ARTS_ASSERT(fgp >= (Numeric)cloudbox_limits[0] &&
                fgp <= (Numeric)cloudbox_limits[1] &&
                fgl >= (Numeric)cloudbox_limits[2] &&
                fgl <= (Numeric)cloudbox_limits[3] &&
@@ -5155,7 +5155,7 @@ void ppath_start_stepping(Ppath& ppath,
                       lon2use,
                       rte_los[0],
                       rte_los[1]);
-          assert(abs(ppath.r[0] - rt) < RTOL);
+          ARTS_ASSERT(abs(ppath.r[0] - rt) < RTOL);
           resolve_lon(ppath.pos(0, 2), lon_grid[0], lon_grid[llon]);
           //
           ppath.pos(0, 0) =
@@ -5423,8 +5423,8 @@ void ppath_calc(Workspace& ws,
       // Pressure dimension
       Numeric ipos1 = fractional_gp(ppath_step.gp_p[n - 1]);
       Numeric ipos2 = fractional_gp(ppath_step.gp_p[n - 2]);
-      assert(ipos1 >= (Numeric)cloudbox_limits[0]);
-      assert(ipos1 <= (Numeric)cloudbox_limits[1]);
+      ARTS_ASSERT(ipos1 >= (Numeric)cloudbox_limits[0]);
+      ARTS_ASSERT(ipos1 <= (Numeric)cloudbox_limits[1]);
       if (ipos1 <= (Numeric)cloudbox_limits[0] && ipos1 < ipos2) {
         ppath_set_background(ppath_step, 3);
       }
@@ -5437,8 +5437,8 @@ void ppath_calc(Workspace& ws,
         // Latitude dimension
         ipos1 = fractional_gp(ppath_step.gp_lat[n - 1]);
         ipos2 = fractional_gp(ppath_step.gp_lat[n - 2]);
-        assert(ipos1 >= (Numeric)cloudbox_limits[2]);
-        assert(ipos1 <= (Numeric)cloudbox_limits[3]);
+        ARTS_ASSERT(ipos1 >= (Numeric)cloudbox_limits[2]);
+        ARTS_ASSERT(ipos1 <= (Numeric)cloudbox_limits[3]);
         if (ipos1 <= Numeric(cloudbox_limits[2]) && ipos1 < ipos2) {
           ppath_set_background(ppath_step, 3);
         }
@@ -5451,8 +5451,8 @@ void ppath_calc(Workspace& ws,
           // Longitude dimension
           ipos1 = fractional_gp(ppath_step.gp_lon[n - 1]);
           ipos2 = fractional_gp(ppath_step.gp_lon[n - 2]);
-          assert(ipos1 >= (Numeric)cloudbox_limits[4]);
-          assert(ipos1 <= (Numeric)cloudbox_limits[5]);
+          ARTS_ASSERT(ipos1 >= (Numeric)cloudbox_limits[4]);
+          ARTS_ASSERT(ipos1 <= (Numeric)cloudbox_limits[5]);
           if (ipos1 <= Numeric(cloudbox_limits[4]) && ipos1 < ipos2) {
             ppath_set_background(ppath_step, 3);
           }

@@ -133,7 +133,7 @@ bool check_agenda_data() {
     // exactly the same in both places.
     // Uncomment the cout statement above and recompile to see which
     // agenda causes the trouble.
-    assert(Workspace::WsvMap.end() !=
+    ARTS_ASSERT(Workspace::WsvMap.end() !=
            Workspace::WsvMap.find(agenda_data[i].Name()));
   }
 
@@ -152,7 +152,7 @@ bool check_agenda_data() {
       // exactly the same in both places.
       // Uncomment the cout statement above and recompile to see which
       // agenda causes the trouble.
-      assert(AgendaMap.end() != AgendaMap.find(Workspace::wsv_data[j].Name()));
+      ARTS_ASSERT(AgendaMap.end() != AgendaMap.find(Workspace::wsv_data[j].Name()));
 
       // Counts the number of agenda WSVs in Workspace::wsv_data:
       ++k;
@@ -161,7 +161,7 @@ bool check_agenda_data() {
 
   // As a last check we make sure that both lists contain the same
   // number of agendas:
-  assert(i == k);
+  ARTS_ASSERT(i == k);
 
   return true;
 }
@@ -254,7 +254,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr) {
     map<String, Index>::const_iterator j = AgendaMap.find(wr.Name());
 
     // Just for added safety, check that we really found something:
-    assert(j != AgendaMap.end());
+    ARTS_ASSERT(j != AgendaMap.end());
 
     cout << agenda_data[j->second] << "\n";
   }

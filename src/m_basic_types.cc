@@ -1195,7 +1195,7 @@ void VectorInsertGridPoints(  // WS Generic Output:
     }
   } else {
     // We should never be here.
-    assert(false);
+    ARTS_ASSERT(false);
     arts_exit();
   }
 

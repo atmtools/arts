@@ -141,8 +141,8 @@ void apply_iy_unit(MatrixView iy,
   const Index nf = iy.nrows();
   const Index ns = iy.ncols();
 
-  assert(f_grid.nelem() == nf);
-  assert(i_pol.nelem() == ns);
+  ARTS_ASSERT(f_grid.nelem() == nf);
+  ARTS_ASSERT(i_pol.nelem() == ns);
 
   if (iy_unit == "1") {
     if (n != 1) {
@@ -172,7 +172,7 @@ void apply_iy_unit(MatrixView iy,
         if (i_pol[is] == 1) {
           iy(iv, is) = invplanck(iy(iv, is), f_grid[iv]);
         } else if (i_pol[is] < 5) {
-          assert(i_pol[0] == 1);
+          ARTS_ASSERT(i_pol[0] == 1);
           iy(iv, is) = invplanck(0.5 * (iy(iv, 0) + iy(iv, is)), f_grid[iv]) -
                        invplanck(0.5 * (iy(iv, 0) - iy(iv, is)), f_grid[iv]);
         } else {
@@ -218,10 +218,10 @@ void apply_iy_unit2(Tensor3View J,
   const Index ns = iy.ncols();
   const Index np = J.npages();
 
-  assert(J.nrows() == nf);
-  assert(J.ncols() == ns);
-  assert(f_grid.nelem() == nf);
-  assert(i_pol.nelem() == ns);
+  ARTS_ASSERT(J.nrows() == nf);
+  ARTS_ASSERT(J.ncols() == ns);
+  ARTS_ASSERT(f_grid.nelem() == nf);
+  ARTS_ASSERT(i_pol.nelem() == ns);
 
   if (iy_unit == "1") {
     if (n != 1) {
@@ -255,7 +255,7 @@ void apply_iy_unit2(Tensor3View J,
         if (i_pol[is] == 1) {
           scfac = dinvplanckdI(iy(iv, is), f_grid[iv]);
         } else if (i_pol[is] < 5) {
-          assert(i_pol[0] == 1);
+          ARTS_ASSERT(i_pol[0] == 1);
           scfac = dinvplanckdI(0.5 * (iy(iv, 0) + iy(iv, is)), f_grid[iv]) +
                   dinvplanckdI(0.5 * (iy(iv, 0) - iy(iv, is)), f_grid[iv]);
         } else {
@@ -604,7 +604,7 @@ void defocusing_sat2sat(Workspace& ws,
   // Index of tangent point
   Index it;
   find_tanpoint(it, ppath);
-  assert(it >= 0);
+  ARTS_ASSERT(it >= 0);
 
   // Length between tangent point and transmitter/reciver
   Numeric lt = ppath.start_lstep, lr = ppath.end_lstep;
@@ -862,7 +862,7 @@ void get_iy_of_background(Workspace& ws,
 
     default:  //--- ????? ----------------------------------------------------
       // Are we here, the coding is wrong somewhere
-      assert(false);
+      ARTS_ASSERT(false);
   }
 
   if (iy.ncols() != stokes_dim || iy.nrows() != nf) {
@@ -1557,7 +1557,7 @@ void get_stepwise_scattersky_source(
   const Index nf = Sp.NumberOfFrequencies();
   const Index stokes_dim = Sp.StokesDimensions();
   const Index ne = ppath_1p_pnd.nelem();
-  assert(TotalNumberOfElements(scat_data) == ne);
+  ARTS_ASSERT(TotalNumberOfElements(scat_data) == ne);
   const Index nza = za_grid.nelem();
   const Index naa = aa_grid.nelem();
   const Index nq = jacobian_do ? jacobian_quantities.nelem() : 0;
@@ -2084,10 +2084,10 @@ void iy_transmittance_mult(Tensor3& iy_trans_total,
   const Index nf = iy_trans_old.npages();
   const Index ns = iy_trans_old.ncols();
 
-  assert(ns == iy_trans_old.nrows());
-  assert(nf == iy_trans_new.npages());
-  assert(ns == iy_trans_new.nrows());
-  assert(ns == iy_trans_new.ncols());
+  ARTS_ASSERT(ns == iy_trans_old.nrows());
+  ARTS_ASSERT(nf == iy_trans_new.npages());
+  ARTS_ASSERT(ns == iy_trans_new.nrows());
+  ARTS_ASSERT(ns == iy_trans_new.ncols());
 
   iy_trans_total.resize(nf, ns, ns);
 
@@ -2104,9 +2104,9 @@ void iy_transmittance_mult(Matrix& iy_new,
   const Index nf = iy_trans.npages();
   const Index ns = iy_trans.ncols();
 
-  assert(ns == iy_trans.nrows());
-  assert(nf == iy_old.nrows());
-  assert(ns == iy_old.ncols());
+  ARTS_ASSERT(ns == iy_trans.nrows());
+  ARTS_ASSERT(nf == iy_old.nrows());
+  ARTS_ASSERT(ns == iy_old.ncols());
 
   iy_new.resize(nf, ns);
 
@@ -2146,19 +2146,19 @@ void pos2true_latlon(Numeric& lat,
                      ConstVectorView lat_true,
                      ConstVectorView lon_true,
                      ConstVectorView pos) {
-  assert(pos.nelem() == atmosphere_dim);
+  ARTS_ASSERT(pos.nelem() == atmosphere_dim);
 
   if (atmosphere_dim == 1) {
-    assert(lat_true.nelem() == 1);
-    assert(lon_true.nelem() == 1);
+    ARTS_ASSERT(lat_true.nelem() == 1);
+    ARTS_ASSERT(lon_true.nelem() == 1);
     //
     lat = lat_true[0];
     lon = lon_true[0];
   }
 
   else if (atmosphere_dim == 2) {
-    assert(lat_true.nelem() == lat_grid.nelem());
-    assert(lon_true.nelem() == lat_grid.nelem());
+    ARTS_ASSERT(lat_true.nelem() == lat_grid.nelem());
+    ARTS_ASSERT(lon_true.nelem() == lat_grid.nelem());
     GridPos gp;
     Vector itw(2);
     gridpos(gp, lat_grid, pos[1]);
@@ -2249,7 +2249,7 @@ void rtmethods_jacobian_finalisation(
       }
 
       else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
   }
@@ -2500,7 +2500,7 @@ void ze_cfac(Vector& fac,
              const Numeric& k2) {
   const Index nf = f_grid.nelem();
 
-  assert(fac.nelem() == nf);
+  ARTS_ASSERT(fac.nelem() == nf);
 
   // Refractive index for water (if needed)
   Matrix complex_n(0, 0);

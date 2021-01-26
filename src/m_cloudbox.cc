@@ -215,33 +215,33 @@ void cloudboxSetAutomatically(  // WS Output:
     }
     cloudbox_limits[1] = p2;
 
-    // assert keyword arguments
+    // ARTS_ASSERT keyword arguments
 
     // The pressure in *p1* must be bigger than the pressure in *p2*.
-    assert(p_grid[p1] > p_grid[p2]);
+    ARTS_ASSERT(p_grid[p1] > p_grid[p2]);
     // The pressure in *p1* must be larger than the last value in *p_grid*.
-    assert(p_grid[p1] > p_grid[p_grid.nelem() - 1]);
+    ARTS_ASSERT(p_grid[p1] > p_grid[p_grid.nelem() - 1]);
     // The pressure in *p2* must be smaller than the first value in *p_grid*."
-    assert(p_grid[p2] < p_grid[0]);
+    ARTS_ASSERT(p_grid[p2] < p_grid[0]);
 
     /*
     if ( atmosphere_dim >= 2 )
     {
       // The latitude in *lat2* must be bigger than the latitude in *lat1*.
-      assert ( lat_grid[lat2] > lat_grid[lat1] );
+      ARTS_ASSERT ( lat_grid[lat2] > lat_grid[lat1] );
       // The latitude in *lat1* must be >= the second value in *lat_grid*.
-      assert ( lat_grid[lat1] >= lat_grid[1] );
+      ARTS_ASSERT ( lat_grid[lat1] >= lat_grid[1] );
       // The latitude in *lat2* must be <= the next to last value in *lat_grid*.
-      assert ( lat_grid[lat2] <= lat_grid[lat_grid.nelem()-2] );
+      ARTS_ASSERT ( lat_grid[lat2] <= lat_grid[lat_grid.nelem()-2] );
     }
     if ( atmosphere_dim == 3 )
     {
       // The longitude in *lon2* must be bigger than the longitude in *lon1*.
-      assert ( lon_grid[lon2] > lon_grid[lon1] );
+      ARTS_ASSERT ( lon_grid[lon2] > lon_grid[lon1] );
       // The longitude in *lon1* must be >= the second value in *lon_grid*.
-      assert ( lon_grid[lon1] >= lon_grid[1] );
+      ARTS_ASSERT ( lon_grid[lon1] >= lon_grid[1] );
       // The longitude in *lon2* must be <= the next to last value in *lon_grid*.
-      assert ( lon_grid[lon2] <= lon_grid[lon_grid.nelem()-2] );
+      ARTS_ASSERT ( lon_grid[lon2] <= lon_grid[lon_grid.nelem()-2] );
     }
     */
   }
@@ -738,9 +738,9 @@ void iyInterpCloudboxField(Matrix& iy,
           "Radiation extraction for a position inside cloudbox\n"
           "is not yet implemented for 3D cases.\n");
     } else {
-      assert(atmosphere_dim == 1);
+      ARTS_ASSERT(atmosphere_dim == 1);
 
-      assert(is_size(cloudbox_field, nf, np, 1, 1, nza, 1, stokes_dim));
+      ARTS_ASSERT(is_size(cloudbox_field, nf, np, 1, 1, nza, 1, stokes_dim));
 
       // Grid position in *p_grid*
       gp_p.idx = gp_p.idx - cloudbox_limits[0];
@@ -766,7 +766,7 @@ void iyInterpCloudboxField(Matrix& iy,
 
   // --- 3D ------------------------------------------------------------------
   else {
-    assert(is_size(cloudbox_field,
+    ARTS_ASSERT(is_size(cloudbox_field,
                    nf,
                    cloudbox_field.nvitrines(),
                    cloudbox_field.nshelves(),
@@ -1524,7 +1524,7 @@ void ScatElementsSelect(  //WS Output:
   // check if array is empty. should never apply (since we checked the re-worked
   // data before and that error should also catch cases that are empty from the
   // beginning).
-  assert(TotalNumberOfElements(scat_meta));
+  ARTS_ASSERT(TotalNumberOfElements(scat_meta));
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

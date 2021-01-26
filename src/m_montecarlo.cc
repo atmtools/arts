@@ -499,7 +499,7 @@ void MCGeneral(Workspace& ws,
         Isum += I_i;
 
         for (Index j = 0; j < stokes_dim; j++) {
-          assert(!std::isnan(I_i[j]));
+          ARTS_ASSERT(!std::isnan(I_i[j]));
           Isquaredsum[j] += I_i[j] * I_i[j];
         }
         y = Isum;
@@ -1020,7 +1020,7 @@ void MCRadar(  // Workspace reference:
 
             for (Index istokes = 0; istokes < stokes_dim; istokes++) {
               Index ibiny = ibin * stokes_dim + istokes;
-              assert(!std::isnan(I_i_rot[istokes]));
+              ARTS_ASSERT(!std::isnan(I_i_rot[istokes]));
               Isum[ibiny] += antenna_wgt * I_i_rot[istokes];
               Isquaredsum[ibiny] += antenna_wgt * antenna_wgt *
                                     I_i_rot[istokes] * I_i_rot[istokes];

@@ -36,7 +36,7 @@
 // Correlations
 //------------------------------------------------------------------------------
 void mult(MatrixView C, ConstMatrixView A, const Block &B) {
-  assert((B.sparse_ != nullptr) || (B.dense_ != nullptr));
+  ARTS_ASSERT((B.sparse_ != nullptr) || (B.dense_ != nullptr));
 
   MatrixView CView(C(joker, B.get_column_range()));
   MatrixView CTView(C(joker, B.get_row_range()));
@@ -66,7 +66,7 @@ void mult(MatrixView C, ConstMatrixView A, const Block &B) {
 }
 
 void mult(MatrixView C, const Block &A, ConstMatrixView B) {
-  assert((A.sparse_ != nullptr) || (A.dense_ != nullptr));
+  ARTS_ASSERT((A.sparse_ != nullptr) || (A.dense_ != nullptr));
 
   MatrixView CView(C(A.get_row_range(), joker));
   MatrixView CTView(C(A.get_column_range(), joker));
@@ -399,7 +399,7 @@ void CovarianceMatrix::compute_inverse() const {
 void CovarianceMatrix::invert_correlation_block(
     std::vector<Block> &inverses, std::vector<const Block *> &blocks) const {
   // Can't compute inverse of empty block.
-  assert(blocks.size() > 0);
+  ARTS_ASSERT(blocks.size() > 0);
 
   // Sort blocks w.r.t. indices.
   auto comp = [](const Block *a, const Block *b) {

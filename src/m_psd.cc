@@ -417,7 +417,7 @@ void psdModifiedGammaMass(Matrix& psd_data,
       scfac = pow(scfac, -1 / eterm);
       mgd_pars[2] = scfac * pow(ext_pars[0], -1 / eterm);
     } else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
 
     // Now when all four MGD parameters are set, check that they were OK from
@@ -453,7 +453,7 @@ void psdModifiedGammaMass(Matrix& psd_data,
         dpsd_data_dx(ext_i_jac[0], ip, joker) *=
             scfac * (-1 / eterm) * pow(ext_pars[0], -(1 / eterm + 1));
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 

@@ -469,7 +469,7 @@ void cloud_atm_vars_by_gp(VectorView pressure,
                           ConstTensor4View vmr_field_cloud,
                           ConstTensor4View pnd_field) {
   Index np = gp_p.nelem();
-  assert(pressure.nelem() == np);
+  ARTS_ASSERT(pressure.nelem() == np);
   Index ns = vmr_field_cloud.nbooks();
   Index N_se = pnd_field.nbooks();
   ArrayOfGridPos gp_p_cloud = gp_p;
@@ -554,27 +554,27 @@ void ext_mat_case(Index& icase,
     //--- Vector RT ------------------------------------------------------------
     else {
       // Check symmetries and analyse structure of exp_mat:
-      assert(ext_mat(1, 1) == ext_mat(0, 0));
-      assert(ext_mat(1, 0) == ext_mat(0, 1));
+      ARTS_ASSERT(ext_mat(1, 1) == ext_mat(0, 0));
+      ARTS_ASSERT(ext_mat(1, 0) == ext_mat(0, 1));
 
       if (ext_mat(1, 0) != 0) {
         icase = 2;
       }
 
       if (stokes_dim >= 3) {
-        assert(ext_mat(2, 2) == ext_mat(0, 0));
-        assert(ext_mat(2, 1) == -ext_mat(1, 2));
-        assert(ext_mat(2, 0) == ext_mat(0, 2));
+        ARTS_ASSERT(ext_mat(2, 2) == ext_mat(0, 0));
+        ARTS_ASSERT(ext_mat(2, 1) == -ext_mat(1, 2));
+        ARTS_ASSERT(ext_mat(2, 0) == ext_mat(0, 2));
 
         if (ext_mat(2, 0) != 0 || ext_mat(2, 1) != 0) {
           icase = 3;
         }
 
         if (stokes_dim > 3) {
-          assert(ext_mat(3, 3) == ext_mat(0, 0));
-          assert(ext_mat(3, 2) == -ext_mat(2, 3));
-          assert(ext_mat(3, 1) == -ext_mat(1, 3));
-          assert(ext_mat(3, 0) == ext_mat(0, 3));
+          ARTS_ASSERT(ext_mat(3, 3) == ext_mat(0, 0));
+          ARTS_ASSERT(ext_mat(3, 2) == -ext_mat(2, 3));
+          ARTS_ASSERT(ext_mat(3, 1) == -ext_mat(1, 3));
+          ARTS_ASSERT(ext_mat(3, 0) == ext_mat(0, 3));
 
           if (icase < 3)  // if icase==3, already at most complex case
           {
@@ -621,17 +621,17 @@ void ext2trans(MatrixView trans_mat,
                const Numeric& lstep) {
   const Index stokes_dim = ext_mat.ncols();
 
-  assert(ext_mat.nrows() == stokes_dim);
-  assert(trans_mat.nrows() == stokes_dim && trans_mat.ncols() == stokes_dim);
+  ARTS_ASSERT(ext_mat.nrows() == stokes_dim);
+  ARTS_ASSERT(trans_mat.nrows() == stokes_dim && trans_mat.ncols() == stokes_dim);
 
   // Theoretically ext_mat(0,0) >= 0, but to demand this can cause problems for
   // iterative retrievals, and the assert is skipped. Negative should be a
   // result of negative vmr, and this issue is checked in basics_checkedCalc.
-  //assert( ext_mat(0,0) >= 0 );
+  //ARTS_ASSERT( ext_mat(0,0) >= 0 );
 
-  assert(icase >= 0 && icase <= 3);
-  assert(!is_singular(ext_mat));
-  assert(lstep >= 0);
+  ARTS_ASSERT(icase >= 0 && icase <= 3);
+  ARTS_ASSERT(!is_singular(ext_mat));
+  ARTS_ASSERT(lstep >= 0);
 
   // Analyse ext_mat?
   ext_mat_case(icase, ext_mat, stokes_dim);
@@ -1173,7 +1173,7 @@ void mcPathTraceGeneral(Workspace& ws,
     Vector itw(2);
 
     gridpos(gp, x, ds);
-    assert(gp[0].idx == 0);
+    ARTS_ASSERT(gp[0].idx == 0);
     interpweights(itw, gp[0]);
     interp(ext_mat_mono, itw, ext_matArray, gp[0]);
     ext_mat = ext_mat_mono;
@@ -1195,7 +1195,7 @@ void mcPathTraceGeneral(Workspace& ws,
     rte_pos[2] = interp(itw, ppath_step.pos(Range(ip - 1, 2), 2), gp[0]);
   }
 
-  assert(isfinite(g));
+  ARTS_ASSERT(isfinite(g));
 
   // A dirty trick to avoid copying ppath_step
   const Index np = ip + 1;
@@ -1512,7 +1512,7 @@ void mcPathTraceRadar(Workspace& ws,
     x[1] = dl;
     Vector itw(2);
     gridpos(gp, x, ds);
-    assert(gp[0].idx == 0);
+    ARTS_ASSERT(gp[0].idx == 0);
     interpweights(itw, gp[0]);
     interp(ext_mat_mono, itw, ext_matArray, gp[0]);
     ext_mat = ext_mat_mono;
@@ -1560,7 +1560,7 @@ void Sample_los(VectorView new_rte_los,
 
   // Rejection method http://en.wikipedia.org/wiki/Rejection_sampling
   Index np = pnd_vec.nelem();
-  assert(TotalNumberOfElements(scat_data) == np);
+  ARTS_ASSERT(TotalNumberOfElements(scat_data) == np);
   for (Index i = 0; i < np; i++) {
     Z11max += Z11maxvector[i] * pnd_vec[i];
   }

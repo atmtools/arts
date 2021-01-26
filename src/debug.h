@@ -110,7 +110,7 @@ std::string var_string(Args ... args) {
 #define ARTS_NOEXCEPT noexcept
 
 /*! Condition should be true to pass internal check, lets hope it is! */
-#define ARTS_ASSERT(condition, ...)
+#define ARTS_ASSERT(condition, ...) {}
 
 #endif /* NDEBUG */
 
@@ -120,7 +120,7 @@ std::string var_string(Args ... args) {
 #define ARTS_USER_NOEXCEPT noexcept
 
 /*! Condition should be false to pass external check, lets hope it is!  */
-#define ARTS_USER_ERROR_IF(condition, ...)
+#define ARTS_USER_ERROR_IF(condition, ...) {}
 
 #else  // NO_ARTS_USER_ERRORS == 0
 

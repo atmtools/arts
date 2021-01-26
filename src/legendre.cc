@@ -149,7 +149,7 @@ Numeric legendre_poly_norm_schmidt(Index l, Index m, Numeric x) {
     \date   2003-08-18
 */
 Numeric legendre_poly_deriv(Index l, Index m, Numeric x) {
-  assert(x != 1.);
+  ARTS_ASSERT(x != 1.);
   if (x == 1.) {
     ostringstream os;
     os << "legendre_poly_deriv: Condition x != 1 failed" << endl
@@ -214,7 +214,7 @@ Numeric legendre_poly_deriv(Index l, Index m, Numeric x) {
   \date   2003-08-18
 */
 Numeric legendre_poly_norm_schmidt_deriv(Index l, Index m, Numeric x) {
-  assert(x != 1.);
+  ARTS_ASSERT(x != 1.);
   if (x == 1.) {
     ostringstream os;
     os << "legendre_poly_norm_schmidt_deriv: Condition x != 1 failed" << endl
@@ -383,7 +383,7 @@ Numeric g_legendre_poly_norm_schmidt(Index l, Index m, Numeric x) {
   \date   2003-09-02
   */
 Numeric g_legendre_poly_deriv(Index l, Index m, Numeric x) {
-  assert(x != 1.);
+  ARTS_ASSERT(x != 1.);
   if (x == 1.) {
     ostringstream os;
     os << "g_legendre_poly_deriv: Condition x != 1 failed" << endl
@@ -449,7 +449,7 @@ Numeric g_legendre_poly_deriv(Index l, Index m, Numeric x) {
   \date   2003-09-02
 */
 Numeric g_legendre_poly_norm_schmidt_deriv(Index l, Index m, Numeric x) {
-  assert(x != 1.);
+  ARTS_ASSERT(x != 1.);
   if (x == 1.) {
     ostringstream os;
     os << "g_legendre_poly_norm_schmidt_deriv: Condition x != 1 failed" << endl
@@ -520,7 +520,7 @@ Numeric g_legendre_poly_norm_schmidt_deriv(Index l, Index m, Numeric x) {
   \date   2003-09-02
 */
 Numeric g_legendre_poly_norm_schmidt_deriv1(Index l, Index m, Numeric x) {
-  assert(x != 1.);
+  ARTS_ASSERT(x != 1.);
   if (x == 1.) {
     ostringstream os;
     os << "g_legendre_poly_norm_schmidt_deriv: Condition x != 1 failed" << endl
@@ -592,7 +592,7 @@ Numeric g_legendre_poly_norm_schmidt_deriv1(Index l, Index m, Numeric x) {
   \date   2003-09-02
 */
 Numeric g_legendre_poly_norm_schmidt_deriv2(Index l, Index m, Numeric x) {
-  assert(x != 1.);
+  ARTS_ASSERT(x != 1.);
   if (x == 1.) {
     ostringstream os;
     os << "g_legendre_poly_norm_schmidt_deriv: Condition x != 1 failed" << endl
@@ -661,7 +661,7 @@ Numeric g_legendre_poly_norm_schmidt_deriv2(Index l, Index m, Numeric x) {
   \date   2003-09-02
   */
 Numeric g_legendre_poly_norm_schmidt_deriv3(Index l, Index m, Numeric x) {
-  assert(x != 1.);
+  ARTS_ASSERT(x != 1.);
   if (x == 1.) {
     ostringstream os;
     os << "g_legendre_poly_norm_schmidt_deriv: Condition x != 1 failed" << endl
@@ -730,7 +730,7 @@ Numeric g_legendre_poly_norm_schmidt_deriv3(Index l, Index m, Numeric x) {
   \date   2003-09-02
 */
 Numeric g_legendre_poly_norm_schmidt_deriv4(Index l, Index m, Numeric x) {
-  assert(x != 1.);
+  ARTS_ASSERT(x != 1.);
   if (x == 1.) {
     ostringstream os;
     os << "g_legendre_poly_norm_schmidt_deriv: Condition x != 1 failed" << endl

@@ -81,7 +81,7 @@ void derive_scat_species_a_and_b(Numeric& a,
                                  const Numeric& x_fit_start,
                                  const Numeric& x_fit_end) {
   const Index nse = x.nelem();
-  assert(nse > 1);
+  ARTS_ASSERT(nse > 1);
 
   ArrayOfIndex intarr_sort, intarr_unsort(0);
   Vector x_unsorted(nse), m_unsorted(nse);

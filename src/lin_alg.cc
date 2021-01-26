@@ -56,7 +56,7 @@
 void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A) {
   // Assert that A is quadratic.
   const Index n = A.nrows();
-  assert(is_size(LU, n, n));
+  ARTS_ASSERT(is_size(LU, n, n));
 
   int n_int, info;
   int* ipiv = new int[n];
@@ -99,11 +99,11 @@ void lubacksub(VectorView x,
   DEBUG_ONLY(Index column_stride = LU.mcr.get_stride());
   DEBUG_ONLY(Index vec_stride = b.mrange.get_stride());
 
-  assert(is_size(LU, n, n));
-  assert(is_size(b, n));
-  assert(is_size(indx, n));
-  assert(column_stride == 1);
-  assert(vec_stride == 1);
+  ARTS_ASSERT(is_size(LU, n, n));
+  ARTS_ASSERT(is_size(b, n));
+  ARTS_ASSERT(is_size(indx, n));
+  ARTS_ASSERT(column_stride == 1);
+  ARTS_ASSERT(vec_stride == 1);
 
   char trans = 'N';
   int n_int = (int)n;
@@ -139,9 +139,9 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
   Index n = A.ncols();
 
   // Check dimensions of the system.
-  assert(n == A.nrows());
-  assert(n == x.nelem());
-  assert(n == b.nelem());
+  ARTS_ASSERT(n == A.nrows());
+  ARTS_ASSERT(n == x.nelem());
+  ARTS_ASSERT(n == b.nelem());
 
   // Allocate matrix and index vector for the LU decomposition.
   Matrix LU = Matrix(n, n);
@@ -166,7 +166,7 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
 */
 void inv(MatrixView Ainv, ConstMatrixView A) {
   // A must be a square matrix.
-  assert(A.ncols() == A.nrows());
+  ARTS_ASSERT(A.ncols() == A.nrows());
 
   Index n = A.ncols();
   Matrix LU(A);
@@ -204,7 +204,7 @@ void inv(MatrixView Ainv, ConstMatrixView A) {
 
 void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
   // A must be a square matrix.
-  assert(A.ncols() == A.nrows());
+  ARTS_ASSERT(A.ncols() == A.nrows());
   
   Index n = A.ncols();
   
@@ -249,11 +249,11 @@ void diagonalize(MatrixView P,
   Index n = A.ncols();
 
   // A must be a square matrix.
-  assert(n == A.nrows());
-  assert(n == WR.nelem());
-  assert(n == WI.nelem());
-  assert(n == P.nrows());
-  assert(n == P.ncols());
+  ARTS_ASSERT(n == A.nrows());
+  ARTS_ASSERT(n == WR.nelem());
+  ARTS_ASSERT(n == WI.nelem());
+  ARTS_ASSERT(n == P.nrows());
+  ARTS_ASSERT(n == P.ncols());
 
   Matrix A_tmp = A;
   Matrix P2 = P;
@@ -333,10 +333,10 @@ void diagonalize(ComplexMatrixView P,
   Index n = A.ncols();
 
   // A must be a square matrix.
-  assert(n == A.nrows());
-  assert(n == W.nelem());
-  assert(n == P.nrows());
-  assert(n == P.ncols());
+  ARTS_ASSERT(n == A.nrows());
+  ARTS_ASSERT(n == W.nelem());
+  ARTS_ASSERT(n == P.nrows());
+  ARTS_ASSERT(n == P.ncols());
 
   ComplexMatrix A_tmp = A;
 
@@ -392,8 +392,8 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
   const Index n = A.ncols();
 
   /* Check if A and F are a quadratic and of the same dimension. */
-  assert(is_size(A, n, n));
-  assert(is_size(F, n, n));
+  ARTS_ASSERT(is_size(A, n, n));
+  ARTS_ASSERT(is_size(F, n, n));
 
   Numeric A_norm_inf, c;
   Numeric j;
@@ -458,8 +458,8 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
 void matrix_exp2(MatrixView F, ConstMatrixView A) {
   const Index n = F.nrows();
 
-  assert(is_size(F, n, n));
-  assert(is_size(A, n, n));
+  ARTS_ASSERT(is_size(F, n, n));
+  ARTS_ASSERT(is_size(A, n, n));
 
   Matrix P(n, n), invP(n, n);
   Vector WR(n), WI(n);
@@ -480,8 +480,8 @@ void matrix_exp2(MatrixView F, ConstMatrixView A) {
 
 void matrix_exp_4x4(MatrixView arts_f, ConstMatrixView A, const Index& q) {
   /* Check if A and F are a quadratic and of the same dimension. */
-  assert(is_size(A, 4, 4));
-  assert(is_size(arts_f, 4, 4));
+  ARTS_ASSERT(is_size(A, 4, 4));
+  ARTS_ASSERT(is_size(arts_f, 4, 4));
 
   // Set constants and Numerics
   const Numeric A_norm_inf = norm_inf(A);
@@ -519,8 +519,8 @@ void matrix_exp_4x4(MatrixView arts_f, ConstMatrixView A, const Index& q) {
 
 //Matrix exponent with decomposition
 void matrix_exp2_4x4(MatrixView arts_f, ConstMatrixView A) {
-  assert(is_size(arts_f, 4, 4));
-  assert(is_size(A, 4, 4));
+  ARTS_ASSERT(is_size(arts_f, 4, 4));
+  ARTS_ASSERT(is_size(A, 4, 4));
 
   Matrix4x4ViewMap F = MapToEigen4x4(arts_f);
   Eigen::EigenSolver<Eigen::Matrix4d> es;
@@ -568,16 +568,16 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(MatrixView F,
   const Index n = A.ncols();
 
   /* Check if A and F are a quadratic and of the same dimension. */
-  assert(is_size(A, n, n));
-  assert(is_size(F, n, n));
-  assert(n_partials == dF_upp.npages());
-  assert(n_partials == dF_low.npages());
-  assert(n_partials == dA_low.npages());
+  ARTS_ASSERT(is_size(A, n, n));
+  ARTS_ASSERT(is_size(F, n, n));
+  ARTS_ASSERT(n_partials == dF_upp.npages());
+  ARTS_ASSERT(n_partials == dF_low.npages());
+  ARTS_ASSERT(n_partials == dA_low.npages());
   for (Index ii = 0; ii < n_partials; ii++) {
-    assert(is_size(dA_upp(ii, joker, joker), n, n));
-    assert(is_size(dA_low(ii, joker, joker), n, n));
-    assert(is_size(dF_upp(ii, joker, joker), n, n));
-    assert(is_size(dF_low(ii, joker, joker), n, n));
+    ARTS_ASSERT(is_size(dA_upp(ii, joker, joker), n, n));
+    ARTS_ASSERT(is_size(dA_low(ii, joker, joker), n, n));
+    ARTS_ASSERT(is_size(dF_upp(ii, joker, joker), n, n));
+    ARTS_ASSERT(is_size(dF_low(ii, joker, joker), n, n));
   }
 
   // This sets up some constants
@@ -1790,16 +1790,16 @@ void propmat4x4_to_transmat4x4(MatrixView F,
   const Index n_partials = dA_upp.npages();
 
   /* Check if A and F are a quadratic and of the same dimension. */
-  assert(is_size(A, 4, 4));
-  assert(is_size(F, 4, 4));
-  assert(n_partials == dF_upp.npages());
-  assert(n_partials == dF_low.npages());
-  assert(n_partials == dA_low.npages());
+  ARTS_ASSERT(is_size(A, 4, 4));
+  ARTS_ASSERT(is_size(F, 4, 4));
+  ARTS_ASSERT(n_partials == dF_upp.npages());
+  ARTS_ASSERT(n_partials == dF_low.npages());
+  ARTS_ASSERT(n_partials == dA_low.npages());
   for (Index ii = 0; ii < n_partials; ii++) {
-    assert(is_size(dA_upp(ii, joker, joker), 4, 4));
-    assert(is_size(dA_low(ii, joker, joker), 4, 4));
-    assert(is_size(dF_upp(ii, joker, joker), 4, 4));
-    assert(is_size(dF_low(ii, joker, joker), 4, 4));
+    ARTS_ASSERT(is_size(dA_upp(ii, joker, joker), 4, 4));
+    ARTS_ASSERT(is_size(dA_low(ii, joker, joker), 4, 4));
+    ARTS_ASSERT(is_size(dF_upp(ii, joker, joker), 4, 4));
+    ARTS_ASSERT(is_size(dF_low(ii, joker, joker), 4, 4));
   }
 
   // Set constants and Numerics
@@ -1933,12 +1933,12 @@ void matrix_exp_dmatrix_exp(MatrixView F,
   const Index n = A.ncols();
 
   /* Check if A and F are a quadratic and of the same dimension. */
-  assert(is_size(A, n, n));
-  assert(is_size(F, n, n));
-  assert(n_partials == dF.npages());
+  ARTS_ASSERT(is_size(A, n, n));
+  ARTS_ASSERT(is_size(F, n, n));
+  ARTS_ASSERT(n_partials == dF.npages());
   for (Index ii = 0; ii < n_partials; ii++) {
-    assert(is_size(dA(ii, joker, joker), n, n));
-    assert(is_size(dF(ii, joker, joker), n, n));
+    ARTS_ASSERT(is_size(dA(ii, joker, joker), n, n));
+    ARTS_ASSERT(is_size(dF(ii, joker, joker), n, n));
   }
 
   // This sets up some cnstants
@@ -2092,10 +2092,10 @@ void matrix_exp_dmatrix_exp(MatrixView F,
   const Index n = A.ncols();
 
   /* Check if A and F are a quadratic and of the same dimension. */
-  assert(is_size(A, n, n));
-  assert(is_size(F, n, n));
-  assert(is_size(dA, n, n));
-  assert(is_size(dF, n, n));
+  ARTS_ASSERT(is_size(A, n, n));
+  ARTS_ASSERT(is_size(F, n, n));
+  ARTS_ASSERT(is_size(dA, n, n));
+  ARTS_ASSERT(is_size(dF, n, n));
 
   // This is the definition of how to scale
   Numeric A_norm_inf, e;
@@ -2239,7 +2239,7 @@ Numeric norm_inf(ConstMatrixView A) {
 */
 void id_mat(MatrixView I) {
   const Index n = I.ncols();
-  assert(n == I.nrows());
+  ARTS_ASSERT(n == I.nrows());
 
   I = 0;
   for (Index i = 0; i < n; i++) I(i, i) = 1.;
@@ -2255,7 +2255,7 @@ void id_mat(MatrixView I) {
 */
 Numeric det(ConstMatrixView A) {
   const Index dim = A.nrows();
-  assert(dim == A.ncols());
+  ARTS_ASSERT(dim == A.ncols());
 
   if (dim == 3)
     return A(0, 0) * A(1, 1) * A(2, 2) + A(0, 1) * A(1, 2) * A(2, 0) +
@@ -2302,7 +2302,7 @@ Numeric det(ConstMatrixView A) {
 void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
   const Index n = x.nelem();
 
-  assert(y.nelem() == n);
+  ARTS_ASSERT(y.nelem() == n);
 
   p.resize(2);
 

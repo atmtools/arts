@@ -51,7 +51,7 @@ Numeric SLIData2::interpolate(Numeric x1, Numeric x2) const {
 //void SLIData2::check() const
 //{
 //  Index nx1=this->x1a.nelem();
-//  assert(nx1>0);
+//  ARTS_ASSERT(nx1>0);
 //}
 
 ostream& operator<<(ostream& os, const SLIData2& /* sli */) {
@@ -65,18 +65,18 @@ void interp(MatrixView tia,
             const GridPos& tc) {
   DEBUG_ONLY(const Numeric sum_check_epsilon = 1e-6);
 
-  assert(is_size(itw, 2));  // We need 2 interpolation
+  ARTS_ASSERT(is_size(itw, 2));  // We need 2 interpolation
                             // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
 
   Index anr = a[0].nrows();
   Index anc = a[0].ncols();
 
-  assert(tia.nrows() == anr);
-  assert(tia.ncols() == anc);
+  ARTS_ASSERT(tia.nrows() == anr);
+  ARTS_ASSERT(tia.ncols() == anc);
 
   for (Index inr = 0; inr < anr; inr++)
     for (Index inc = 0; inc < anc; inc++) {
@@ -90,16 +90,16 @@ void interp(VectorView tia,
             const ArrayOfVector& a,
             const GridPos& tc) {
   DEBUG_ONLY(const Numeric sum_check_epsilon = 1e-6);
-  assert(is_size(itw, 2));  // We need 2 interpolation
+  ARTS_ASSERT(is_size(itw, 2));  // We need 2 interpolation
                             // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
 
   Index an = a[0].nelem();
 
-  assert(tia.nelem() == an);
+  ARTS_ASSERT(tia.nelem() == an);
 
   for (Index i = 0; i < an; ++i) {
     tia[i] = a[tc.idx][i] * itw[0] + a[tc.idx + 1][i] * itw[1];
@@ -137,7 +137,7 @@ void interp_scat_angle_temperature(  //Output:
     const Numeric aa_inc_rad = aa_inc * DEG2RAD;
 
     // cout << "Interpolation on scattering angle" << endl;
-    assert(scat_data_single.pha_mat_data.ncols() == 6);
+    ARTS_ASSERT(scat_data_single.pha_mat_data.ncols() == 6);
     // Calculation of the scattering angle:
     theta_rad =
         acos(cos(za_sca_rad) * cos(za_inc_rad) +

@@ -321,7 +321,7 @@ void xaStandard(Workspace& ws,
             }
           }
         } else {
-          assert(0);
+          ARTS_ASSERT(0);
         }
       }
     }
@@ -692,7 +692,7 @@ void x2artsAtmAndSurf(Workspace& ws,
           }
         }
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 
@@ -976,13 +976,13 @@ void x2artsSensor(Workspace& ws,
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q].Target().isFrequency()) {
       if (jacobian_quantities[q] == Jacobian::Sensor::FrequencyShift) {
-        assert(np == 1);
+        ARTS_ASSERT(np == 1);
         if (x_t[ji[q][0]] != 0) {
           do_sensor = true;
           f_backend += x_t[ji[q][0]];
         }
       } else if (jacobian_quantities[q] == Jacobian::Sensor::FrequencyStretch) {
-        assert(np == 1);
+        ARTS_ASSERT(np == 1);
         if (x_t[ji[q][0]] != 0) {
           do_sensor = true;
           Vector w;
@@ -992,7 +992,7 @@ void x2artsSensor(Workspace& ws,
           }
         }
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 

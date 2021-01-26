@@ -73,17 +73,17 @@ void rte_step_doit_replacement(  //Output and Input:
   Index stokes_dim = stokes_vec.nelem();
 
   //Test sizes
-  assert(ext_mat_av.NumberOfFrequencies() == 1 and
+  ARTS_ASSERT(ext_mat_av.NumberOfFrequencies() == 1 and
          abs_vec_av.NumberOfFrequencies() == 1);
 
   //Check inputs:
-  assert(is_size(trans_mat, 1, stokes_dim, stokes_dim));
-  assert(stokes_dim == ext_mat_av.StokesDimensions() and
+  ARTS_ASSERT(is_size(trans_mat, 1, stokes_dim, stokes_dim));
+  ARTS_ASSERT(stokes_dim == ext_mat_av.StokesDimensions() and
          stokes_dim == abs_vec_av.StokesDimensions());
-  assert(is_size(sca_vec_av, stokes_dim));
-  assert(rtp_planck_value >= 0);
-  assert(lstep >= 0);
-  //assert (not ext_mat_av.AnySingular());  This is asserted at a later time in this version...
+  ARTS_ASSERT(is_size(sca_vec_av, stokes_dim));
+  ARTS_ASSERT(rtp_planck_value >= 0);
+  ARTS_ASSERT(lstep >= 0);
+  //ARTS_ASSERT (not ext_mat_av.AnySingular());  This is ARTS_ASSERTed at a later time in this version...
 
   // Check, if only the first component of abs_vec is non-zero:
 //   const bool unpol_abs_vec = abs_vec_av.IsUnpolarized(0);
@@ -183,8 +183,8 @@ void cloud_fieldsCalc(Workspace& ws,
   const Index N_se = pnd_field.nbooks();
   const Index stokes_dim = ext_mat_field.ncols();
 
-  assert(atmosphere_dim == 1 || atmosphere_dim == 3);
-  assert(ext_mat_field.ncols() == ext_mat_field.nrows() &&
+  ARTS_ASSERT(atmosphere_dim == 1 || atmosphere_dim == 3);
+  ARTS_ASSERT(ext_mat_field.ncols() == ext_mat_field.nrows() &&
          ext_mat_field.ncols() == abs_vec_field.ncols());
 
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
@@ -771,7 +771,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
         out3 << "Absorption vector: " << vector_tmp << "\n";
         out3 << "Extinction matrix: " << matrix_tmp << "\n";
 
-        assert(!is_singular(matrix_tmp));
+        ARTS_ASSERT(!is_singular(matrix_tmp));
       }
 
       // Radiative transfer step calculation. The Stokes vector
@@ -903,7 +903,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
         out3 << "Absorption vector: " << vector_tmp << "\n";
         out3 << "Extinction matrix: " << matrix_tmp << "\n";
 
-        assert(!is_singular(matrix_tmp));
+        ARTS_ASSERT(!is_singular(matrix_tmp));
       }
 
       // Radiative transfer step calculation. The Stokes vector
@@ -1089,7 +1089,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           //
           Numeric rte_planck_value = planck(f, rtp_temperature);
 
-          assert (!is_singular( ext_mat(0,joker,joker)));
+          ARTS_ASSERT (!is_singular( ext_mat(0,joker,joker)));
 
           // Radiative transfer step calculation. The Stokes vector
           // is updated until the considered point is reached.
@@ -1516,7 +1516,7 @@ void cloud_RT_no_background(Workspace& ws,
       out3 << "Absorption vector: " << vector_tmp << "\n";
       out3 << "Extinction matrix: " << matrix_tmp << "\n";
 
-      assert(!is_singular(matrix_tmp));
+      ARTS_ASSERT(!is_singular(matrix_tmp));
     }
 
     // Radiative transfer step calculation. The Stokes vector
@@ -1860,7 +1860,7 @@ void za_gridOpt(  //Output:
     const Index& scat_za_interp) {
   Index N_za = za_grid_fine.nelem();
 
-  assert(cloudbox_field_mono.npages() == N_za);
+  ARTS_ASSERT(cloudbox_field_mono.npages() == N_za);
 
   Index N_p = cloudbox_field_mono.nvitrines();
 
@@ -1913,7 +1913,7 @@ void za_gridOpt(  //Output:
         }
       } else
         // Interpolation method not defined
-        assert(false);
+        ARTS_ASSERT(false);
 
       // Calculate differences between approximated i-vector and
       // exact i_vector for the i_p pressure level
@@ -1989,7 +1989,7 @@ void doit_scat_fieldNormalize(Workspace& ws,
 
   // Get stokes dimension from *doit_scat_field*:
   const Index stokes_dim = doit_scat_field.ncols();
-  assert(stokes_dim > 0 || stokes_dim < 5);
+  ARTS_ASSERT(stokes_dim > 0 || stokes_dim < 5);
 
   // To use special interpolation functions for atmospheric fields we
   // use ext_mat_field and abs_vec_field:

@@ -59,7 +59,7 @@ void Agenda::append(const String& methodname, const TokVal& keywordvalue) {
   using global_data::MdMap;
 
   const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
-  assert(i2 != MdMap.end());
+  ARTS_ASSERT(i2 != MdMap.end());
   Index id = i2->second;
 
   using global_data::md_data;
@@ -168,7 +168,7 @@ void Agenda::execute(Workspace& ws) const {
   }
 
   // An empty Agenda name indicates that something going wrong here
-  assert(mname != "");
+  ARTS_ASSERT(mname != "");
 
   // The method description lookup table:
   using global_data::md_data;
@@ -508,8 +508,8 @@ bool Agenda::is_input(Workspace&, Index var) const {
       MdMap.find("AgendaExecuteExclusive")->second;
 
   // Make sure that var is the index of a valid WSV:
-  assert(0 <= var);
-  assert(var < Workspace::wsv_data.nelem());
+  ARTS_ASSERT(0 <= var);
+  ARTS_ASSERT(var < Workspace::wsv_data.nelem());
 
   // Determine the index of WsvGroup Agenda
   const Index WsvAgendaGroupIndex = WsvGroupMap.find("Agenda")->second;

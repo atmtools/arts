@@ -107,7 +107,7 @@ void pha_mat_sptFromData(  // Output:
   // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
   // checks the same as the runtime_error above. Still, we keep it to be on the
   // save side.
-  assert(pha_mat_spt.nshelves() == N_se_total);
+  ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
   // Check that we don't have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
@@ -299,38 +299,38 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
   // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
   // checks the same as the runtime_error above. Still, we keep it to be on the
   // save side.
-  assert(pha_mat_spt.nshelves() == N_se_total);
+  ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
   // atmosphere_dim = 3
   if (pnd_field.ncols() > 1) {
-    assert(pha_mat_sptDOITOpt.nelem() == N_se_total);
+    ARTS_ASSERT(pha_mat_sptDOITOpt.nelem() == N_se_total);
     // Assuming that if the size is o.k. for one scattering element, it will
     // also be o.k. for the other scattering elements.
-    assert(pha_mat_sptDOITOpt[0].nlibraries() ==
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nlibraries() ==
            scat_data_mono[0][0].T_grid.nelem());
-    assert(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
-    assert(pha_mat_sptDOITOpt[0].nshelves() == aa_grid.nelem());
-    assert(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
-    assert(pha_mat_sptDOITOpt[0].npages() == aa_grid.nelem());
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nshelves() == aa_grid.nelem());
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].npages() == aa_grid.nelem());
   }
 
   // atmosphere_dim = 1, only zenith angle required for scattered directions.
   else if (pnd_field.ncols() == 1) {
-    //assert(is_size(scat_theta, doit_za_grid_size, 1,
+    //ARTS_ASSERT(is_size(scat_theta, doit_za_grid_size, 1,
     //                doit_za_grid_size, aa_grid.nelem()));
 
-    assert(pha_mat_sptDOITOpt.nelem() == TotalNumberOfElements(scat_data_mono));
+    ARTS_ASSERT(pha_mat_sptDOITOpt.nelem() == TotalNumberOfElements(scat_data_mono));
     // Assuming that if the size is o.k. for one scattering element, it will
     // also be o.k. for the other scattering elements.
-    assert(pha_mat_sptDOITOpt[0].nlibraries() ==
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nlibraries() ==
            scat_data_mono[0][0].T_grid.nelem());
-    assert(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
-    assert(pha_mat_sptDOITOpt[0].nshelves() == 1);
-    assert(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
-    assert(pha_mat_sptDOITOpt[0].npages() == aa_grid.nelem());
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nshelves() == 1);
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].npages() == aa_grid.nelem());
   }
 
-  assert(doit_za_grid_size > 0);
+  ARTS_ASSERT(doit_za_grid_size > 0);
 
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
@@ -478,8 +478,8 @@ void opt_prop_sptFromData(  // Output and Input:
 
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);
              if (N_ss) {
-               assert(ext_mat_spt[0].NumberOfFrequencies() == N_se_total);
-               assert(abs_vec_spt[0].NumberOfFrequencies() == N_se_total);
+               ARTS_ASSERT(ext_mat_spt[0].NumberOfFrequencies() == N_se_total);
+               ARTS_ASSERT(abs_vec_spt[0].NumberOfFrequencies() == N_se_total);
              });
 
   // Check that we don't have scat_data_mono here. Only checking the first
@@ -693,8 +693,8 @@ void opt_prop_sptFromScat_data(  // Output and Input:
   }
 
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);)
-  assert(ext_mat_spt.nelem() == N_se_total);
-  assert(abs_vec_spt.nelem() == N_se_total);
+  ARTS_ASSERT(ext_mat_spt.nelem() == N_se_total);
+  ARTS_ASSERT(abs_vec_spt.nelem() == N_se_total);
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
@@ -867,7 +867,7 @@ void opt_prop_bulkCalc(  // Output and Input:
     const Index& scat_lon_index,
     const Verbosity&) {
   Index N_se = abs_vec_spt.nelem();
-  //assert( ext_mat_spt.npages()==N_se )
+  //ARTS_ASSERT( ext_mat_spt.npages()==N_se )
   if (ext_mat_spt.nelem() not_eq N_se) {
     ostringstream os;
     os << "Number of scattering elements in *abs_vec_spt* and *ext_mat_spt*\n"
@@ -876,7 +876,7 @@ void opt_prop_bulkCalc(  // Output and Input:
   }
 
   Index stokes_dim = abs_vec_spt[0].StokesDimensions();
-  //assert( ext_mat_spt.ncols()==stokes_dim && ext_mat_spt.nrows()==stokes_dim )
+  //ARTS_ASSERT( ext_mat_spt.ncols()==stokes_dim && ext_mat_spt.nrows()==stokes_dim )
   if (ext_mat_spt[0].StokesDimensions() not_eq stokes_dim) {
     ostringstream os;
     os << "*stokes_dim* of *abs_vec_spt* and *ext_mat_spt* does not agree.";
@@ -1402,7 +1402,7 @@ void DoitScatteringDataPrepare(
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size);
 
-  assert(scat_data.nelem() == scat_data_mono.nelem());
+  ARTS_ASSERT(scat_data.nelem() == scat_data_mono.nelem());
 
   const Index N_ss = scat_data.nelem();
   // FIXME: We need this still as a workspace variable because pha_mat_spt_agenda
@@ -1704,7 +1704,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
           }
         }
       } else {
-        assert(nf == 1);
+        ARTS_ASSERT(nf == 1);
         // we do only have one f_grid value in old and new data (and they have
         // been confirmed to be the same), hence only need to copy over/reassign
         // the data.
@@ -1772,8 +1772,8 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
 
       // Check that ext_mat and abs_vec have the same temp dimensions as T_grid.
       // This should always be true, if not it's a bug not a user mistake, hence
-      // use assert.
-      assert(EXT_MAT_DATA.nbooks() == nT and ABS_VEC_DATA.nbooks() == nT);
+      // use ARTS_ASSERT.
+      ARTS_ASSERT(EXT_MAT_DATA.nbooks() == nT and ABS_VEC_DATA.nbooks() == nT);
 
       // Check that T_grid is consistent with requested interpolation order
       ostringstream ost;
@@ -2037,7 +2037,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
         default: {
           // other ptype cases already excluded above. i.e. we shouldn't end up
           // here. If we do, that's a bug.
-          assert(0);
+          ARTS_ASSERT(0);
         }
       }
 
@@ -2278,8 +2278,8 @@ void opt_prop_sptFromMonoData(  // Output and Input:
         "must be 1,2,3 or 4");
   }
 
-  assert(ext_mat_spt.nelem() == N_se_total);
-  assert(abs_vec_spt.nelem() == N_se_total);
+  ARTS_ASSERT(ext_mat_spt.nelem() == N_se_total);
+  ARTS_ASSERT(abs_vec_spt.nelem() == N_se_total);
 
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
@@ -2449,7 +2449,7 @@ void pha_mat_sptFromMonoData(  // Output:
   // as pha_mat_spt is typically initialized from pnd_field, this theoretically
   // checks the same as the runtime_error above. Still, we keep it to be on the
   // save side.
-  assert(pha_mat_spt.nshelves() == N_se_total);
+  ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
   const Index stokes_dim = pha_mat_spt.ncols();
   if (stokes_dim > 4 || stokes_dim < 1) {
@@ -2625,7 +2625,7 @@ void pha_mat_sptFromScat_data(  // Output:
   // as pha_mat_spt is typically initialized from pnd_field, this theoretically
   // checks the same as the runtime_error above. Still, we keep it to be on the
   // save side.
-  assert(pha_mat_spt.nshelves() == N_se_total);
+  ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
   const Index N_ss = scat_data.nelem();
 

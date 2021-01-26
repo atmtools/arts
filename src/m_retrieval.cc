@@ -121,8 +121,8 @@ void insert_elements(Matrix& matrix,
                      const ArrayOfIndex& row_indices,
                      const ArrayOfIndex& column_indices,
                      const Vector& elements) {
-  assert(row_indices.nelem() == column_indices.nelem());
-  assert(column_indices.nelem() == elements.nelem());
+  ARTS_ASSERT(row_indices.nelem() == column_indices.nelem());
+  ARTS_ASSERT(column_indices.nelem() == elements.nelem());
 
   matrix.resize(m, n);
 
@@ -261,14 +261,14 @@ void covmat1D(MatrixType& block,
   Index m = grid1.nelem();
   Vector sigma1_copy(sigma1), lc1_copy(lc1);
 
-  assert((sigma1.nelem() == m) || (sigma1.nelem() == 1));
+  ARTS_ASSERT((sigma1.nelem() == m) || (sigma1.nelem() == 1));
   if (sigma1.nelem() == 1) {
     Numeric v = sigma1[0];
     sigma1_copy = Vector(m);
     sigma1_copy = v;
   }
 
-  assert((lc1.nelem() == m) || (lc1.nelem() == 1));
+  ARTS_ASSERT((lc1.nelem() == m) || (lc1.nelem() == 1));
   if (lc1.nelem() == 1) {
     Numeric v = lc1[0];
     lc1_copy = Vector(m);
@@ -278,14 +278,14 @@ void covmat1D(MatrixType& block,
   Index n = grid2.nelem();
   Vector sigma2_copy(sigma2), lc2_copy(lc2);
 
-  assert((sigma2.nelem() == n) || (sigma2.nelem() == 1));
+  ARTS_ASSERT((sigma2.nelem() == n) || (sigma2.nelem() == 1));
   if (sigma2.nelem() == 1) {
     Numeric v = sigma2[0];
     sigma2_copy = Vector(n);
     sigma2_copy = v;
   }
 
-  assert((lc2.nelem() == n) || (lc2.nelem() == 1));
+  ARTS_ASSERT((lc2.nelem() == n) || (lc2.nelem() == 1));
   if (lc2.nelem() == 1) {
     Numeric v = lc2[0];
     lc2_copy = Vector(n);

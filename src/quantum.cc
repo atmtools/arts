@@ -191,9 +191,9 @@ void QuantumIdentifier::SetFromString(String str) {
 void QuantumIdentifier::SetFromStringForCO2Band(String upper,
                                                 String lower,
                                                 String iso) {
-  assert(upper.nelem() == 5);
-  assert(lower.nelem() == 5);
-  assert(iso.nelem() == 3);
+  ARTS_ASSERT(upper.nelem() == 5);
+  ARTS_ASSERT(lower.nelem() == 5);
+  ARTS_ASSERT(iso.nelem() == 3);
 
   std::ostringstream os;
 
@@ -227,7 +227,7 @@ std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi) {
   else if (qi.Type() == QuantumIdentifier::NONE)
     os << "NONE";
   else
-    assert(0);
+    ARTS_ASSERT(0);
 
   return os;
 }

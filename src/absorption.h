@@ -73,10 +73,10 @@ class IsotopologueRecord {
 #ifndef NDEBUG
     {
       /* 1. All the tags must be positive or -1 */
-      assert((0 < mmytrantag) || (-1 == mmytrantag));
-      assert((0 < mhitrantag) || (-1 == mhitrantag));
+      ARTS_ASSERT((0 < mmytrantag) || (-1 == mmytrantag));
+      ARTS_ASSERT((0 < mhitrantag) || (-1 == mhitrantag));
       for (Index i = 0; i < mjpltags.nelem(); ++i)
-        assert((0 < mjpltags[i]) || (-1 == mjpltags[i]));
+        ARTS_ASSERT((0 < mjpltags[i]) || (-1 == mjpltags[i]));
     }
 #endif  // ifndef NDEBUG
   }
@@ -160,7 +160,7 @@ class SpeciesRecord {
     {
       /* Check that the isotopologues are correctly sorted. */
       for (Index i = 0; i < misotopologue.nelem() - 1; ++i) {
-        assert(std::isnan(misotopologue[i].Abundance()) ||
+        ARTS_ASSERT(std::isnan(misotopologue[i].Abundance()) ||
                std::isnan(misotopologue[i + 1].Abundance()) ||
                misotopologue[i].Abundance() >=
                    misotopologue[i + 1].Abundance());
@@ -170,11 +170,11 @@ class SpeciesRecord {
       for (Index i = 0; i < misotopologue.nelem() - 1; ++i) {
         if ((0 < misotopologue[i].MytranTag()) &&
             (0 < misotopologue[i + 1].MytranTag())) {
-          assert(misotopologue[i].MytranTag() <
+          ARTS_ASSERT(misotopologue[i].MytranTag() <
                  misotopologue[i + 1].MytranTag());
 
           // Also check that the tags have the same base number:
-          assert(misotopologue[i].MytranTag() / 10 ==
+          ARTS_ASSERT(misotopologue[i].MytranTag() / 10 ==
                  misotopologue[i].MytranTag() / 10);
         }
       }
@@ -183,10 +183,10 @@ class SpeciesRecord {
       for (Index i = 0; i < misotopologue.nelem() - 1; ++i) {
         if ((0 < misotopologue[i].HitranTag()) &&
             (0 < misotopologue[i + 1].HitranTag())) {
-          //                assert( misotopologue[i].HitranTag() < misotopologue[i+1].HitranTag() );
+          //                ARTS_ASSERT( misotopologue[i].HitranTag() < misotopologue[i+1].HitranTag() );
 
           // Also check that the tags have the same base number:
-          assert(misotopologue[i].HitranTag() / 10 ==
+          ARTS_ASSERT(misotopologue[i].HitranTag() / 10 ==
                  misotopologue[i + 1].HitranTag() / 10);
         }
       }

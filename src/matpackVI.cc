@@ -1772,12 +1772,12 @@ Iterator6D Tensor6View::end() {
     setting its range. */
 Tensor6View& Tensor6View::operator=(const ConstTensor6View& m) {
   // Check that sizes are compatible:
-  assert(mvr.mextent == m.mvr.mextent);
-  assert(msr.mextent == m.msr.mextent);
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mvr.mextent == m.mvr.mextent);
+  ARTS_ASSERT(msr.mextent == m.msr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -1790,12 +1790,12 @@ Tensor6View& Tensor6View::operator=(const ConstTensor6View& m) {
     override the default. */
 Tensor6View& Tensor6View::operator=(const Tensor6View& m) {
   // Check that sizes are compatible:
-  assert(mvr.mextent == m.mvr.mextent);
-  assert(msr.mextent == m.msr.mextent);
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mvr.mextent == m.mvr.mextent);
+  ARTS_ASSERT(msr.mextent == m.msr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -1806,12 +1806,12 @@ Tensor6View& Tensor6View::operator=(const Tensor6View& m) {
     contents! */
 Tensor6View& Tensor6View::operator=(const Tensor6& m) {
   // Check that sizes are compatible:
-  assert(mvr.mextent == m.mvr.mextent);
-  assert(msr.mextent == m.msr.mextent);
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mvr.mextent == m.mvr.mextent);
+  ARTS_ASSERT(msr.mextent == m.msr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -1865,12 +1865,12 @@ Tensor6View& Tensor6View::operator-=(Numeric x) {
 
 /** Element-vise multiplication by another Tensor6. */
 Tensor6View& Tensor6View::operator*=(const ConstTensor6View& x) {
-  assert(nvitrines() == x.nvitrines());
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nvitrines() == x.nvitrines());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator6D xp = x.begin();
   Iterator6D p = begin();
   const Iterator6D ep = end();
@@ -1882,12 +1882,12 @@ Tensor6View& Tensor6View::operator*=(const ConstTensor6View& x) {
 
 /** Element-vise division by another Tensor6. */
 Tensor6View& Tensor6View::operator/=(const ConstTensor6View& x) {
-  assert(nvitrines() == x.nvitrines());
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nvitrines() == x.nvitrines());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator6D xp = x.begin();
   Iterator6D p = begin();
   const Iterator6D ep = end();
@@ -1899,12 +1899,12 @@ Tensor6View& Tensor6View::operator/=(const ConstTensor6View& x) {
 
 /** Element-vise addition of another Tensor6. */
 Tensor6View& Tensor6View::operator+=(const ConstTensor6View& x) {
-  assert(nvitrines() == x.nvitrines());
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nvitrines() == x.nvitrines());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator6D xp = x.begin();
   Iterator6D p = begin();
   const Iterator6D ep = end();
@@ -1916,12 +1916,12 @@ Tensor6View& Tensor6View::operator+=(const ConstTensor6View& x) {
 
 /** Element-vise subtraction of another Tensor6. */
 Tensor6View& Tensor6View::operator-=(const ConstTensor6View& x) {
-  assert(nvitrines() == x.nvitrines());
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nvitrines() == x.nvitrines());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator6D xp = x.begin();
   Iterator6D p = begin();
   const Iterator6D ep = end();
@@ -2173,12 +2173,12 @@ Tensor6& Tensor6::operator=(Numeric x) {
     nothing. All data is lost after resizing! The new tensor is not
     initialized, so it will contain random values. */
 void Tensor6::resize(Index v, Index s, Index b, Index p, Index r, Index c) {
-  assert(0 <= v);
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
+  ARTS_ASSERT(0 <= v);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
 
   if (mvr.mextent != v || msr.mextent != s || mbr.mextent != b ||
       mpr.mextent != p || mrr.mextent != r || mcr.mextent != c) {
@@ -2247,12 +2247,12 @@ Tensor6::~Tensor6() {
     \param    x   A tensor. */
 void transform(Tensor6View y, double (&my_func)(double), ConstTensor6View x) {
   // Check dimensions:
-  assert(y.nvitrines() == x.nvitrines());
-  assert(y.nshelves() == x.nshelves());
-  assert(y.nbooks() == x.nbooks());
-  assert(y.npages() == x.npages());
-  assert(y.nrows() == x.nrows());
-  assert(y.ncols() == x.ncols());
+  ARTS_ASSERT(y.nvitrines() == x.nvitrines());
+  ARTS_ASSERT(y.nshelves() == x.nshelves());
+  ARTS_ASSERT(y.nbooks() == x.nbooks());
+  ARTS_ASSERT(y.npages() == x.npages());
+  ARTS_ASSERT(y.nrows() == x.nrows());
+  ARTS_ASSERT(y.ncols() == x.ncols());
 
   const ConstIterator6D xe = x.end();
   ConstIterator6D xi = x.begin();

@@ -1239,7 +1239,7 @@ void propmat_clearskyAddParticles(
 
       // running beyond number of abs_species entries when looking for next
       // particle entry. shouldn't happen, though.
-      assert(sp < na);
+      ARTS_ASSERT(sp < na);
       ARTS_USER_ERROR_IF (rtp_vmr[sp] < 0.,
         "Negative absorbing particle 'vmr' (aka number density)"
         " encountered:\n"

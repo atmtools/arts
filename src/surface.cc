@@ -92,9 +92,9 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
                               const Numeric& f,
                               const Index& stokes_dim,
                               const Numeric& surface_skin_t) {
-  assert(surface_rmatrix.nrows() == stokes_dim);
-  assert(surface_rmatrix.ncols() == stokes_dim);
-  assert(surface_emission.nelem() == stokes_dim);
+  ARTS_ASSERT(surface_rmatrix.nrows() == stokes_dim);
+  ARTS_ASSERT(surface_rmatrix.ncols() == stokes_dim);
+  ARTS_ASSERT(surface_emission.nelem() == stokes_dim);
 
   // Expressions are derived in the surface chapter in the user guide
 
@@ -185,8 +185,8 @@ void surface_props_interp(Vector& v,
                           const Matrix& itw,
                           const Tensor3& surface_props_data,
                           const ArrayOfString& surface_props_names) {
-  assert(v.nelem() == 1);
-  assert(surface_props_data.npages() == surface_props_names.nelem());
+  ARTS_ASSERT(v.nelem() == 1);
+  ARTS_ASSERT(surface_props_data.npages() == surface_props_names.nelem());
 
   for (Index i = 0; i < surface_props_names.nelem(); i++) {
     if (surface_props_names[i] == vname) {

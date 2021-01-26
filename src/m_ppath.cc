@@ -679,7 +679,7 @@ void ppathFixedLstep(Ppath& ppath,
       gridpos_1to1(gp_z, Vector(nz));
       Tensor3 z_grid(nz,1,1);   // The altitudes at one (lat,lon)
       const Numeric lat1=lat_grid[0], lat2=last(lat_grid);
-      assert( abs(dy) < 1e-9 );    // 2D happens strictly inside plane y=0
+      ARTS_ASSERT( abs(dy) < 1e-9 );    // 2D happens strictly inside plane y=0
       for (Index i=0; i<ppath.np; i++) {
         if (i > 0)
           ppath.lstep[i-1] = lvec[i]-lvec[i-1];;
@@ -1193,7 +1193,7 @@ void ppathFromRtePos2(Workspace& ws,
 
       // n by linear interpolation
       // Gets tripped when ll is very close to (slightly greater than) lstep (ISA)
-      assert(ll < ppt.lstep[i - 1]);
+      ARTS_ASSERT(ll < ppt.lstep[i - 1]);
       const Numeric w = ll / ppt.lstep[i - 1];
       ppath.nreal[i] = (1 - w) * ppt.nreal[i - 1] + w * ppt.nreal[i];
       ppath.ngroup[i] = (1 - w) * ppt.ngroup[i - 1] + w * ppt.ngroup[i];
@@ -1792,7 +1792,7 @@ void ppath_stepGeometric(  // WS Output:
   }
 
   else {
-    assert(ppath_step.np == 1);
+    ARTS_ASSERT(ppath_step.np == 1);
     ppath_step.nreal[0] = 1;
     ppath_step.ngroup[0] = 1;
   }
@@ -1817,7 +1817,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
                                const Verbosity&) {
   // Input checks here would be rather costly as this function is called
   // many times.
-  assert(ppath_lraytrace > 0);
+  ARTS_ASSERT(ppath_lraytrace > 0);
 
   // A call with background set, just wants to obtain the refractive index for
   // complete ppaths consistent of a single point.
@@ -1873,7 +1873,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
   }
 
   else {
-    assert(ppath_step.np == 1);
+    ARTS_ASSERT(ppath_step.np == 1);
     if (atmosphere_dim == 1) {
       get_refr_index_1d(ws,
                         ppath_step.nreal[0],

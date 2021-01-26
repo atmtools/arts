@@ -204,14 +204,14 @@ class ConstTensor4View {
                      Index p,
                      Index r,
                      Index c) const {  // Check if indices are valid:
-    assert(0 <= b);
-    assert(0 <= p);
-    assert(0 <= r);
-    assert(0 <= c);
-    assert(b < mbr.mextent);
-    assert(p < mpr.mextent);
-    assert(r < mrr.mextent);
-    assert(c < mcr.mextent);
+    ARTS_ASSERT(0 <= b);
+    ARTS_ASSERT(0 <= p);
+    ARTS_ASSERT(0 <= r);
+    ARTS_ASSERT(0 <= c);
+    ARTS_ASSERT(b < mbr.mextent);
+    ARTS_ASSERT(p < mpr.mextent);
+    ARTS_ASSERT(r < mrr.mextent);
+    ARTS_ASSERT(c < mcr.mextent);
 
     return get(b, p, r, c);
   }
@@ -332,14 +332,14 @@ class Tensor4View : public ConstTensor4View {
                       Index p,
                       Index r,
                       Index c) {  // Check if indices are valid:
-    assert(0 <= b);
-    assert(0 <= p);
-    assert(0 <= r);
-    assert(0 <= c);
-    assert(b < mbr.mextent);
-    assert(p < mpr.mextent);
-    assert(r < mrr.mextent);
-    assert(c < mcr.mextent);
+    ARTS_ASSERT(0 <= b);
+    ARTS_ASSERT(0 <= p);
+    ARTS_ASSERT(0 <= r);
+    ARTS_ASSERT(0 <= c);
+    ARTS_ASSERT(b < mbr.mextent);
+    ARTS_ASSERT(p < mpr.mextent);
+    ARTS_ASSERT(r < mrr.mextent);
+    ARTS_ASSERT(c < mcr.mextent);
 
     return get(b, p, r, c);
   }

@@ -95,8 +95,6 @@
 #ifndef matpackI_h
 #define matpackI_h
 
-#include <cassert>
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"

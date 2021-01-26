@@ -151,7 +151,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
       Index this_cia_index = cia_get_index(
           abs_cia_data, this_species.Species(), this_species.CIASecond());
 
-      assert(this_cia_index != -1);
+      ARTS_ASSERT(this_cia_index != -1);
 
       const CIARecord& this_cia = abs_cia_data[this_cia_index];
       Matrix& this_xsec = abs_xsec_per_species[i];

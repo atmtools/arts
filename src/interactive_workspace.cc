@@ -86,7 +86,7 @@ void InteractiveWorkspace::initialize() {
   define_md_raw_map();
   define_agenda_data();
   define_agenda_map();
-  assert(check_agenda_data());
+  ARTS_ASSERT(check_agenda_data());
   define_species_data();
   define_species_map();
   workspace_memory_handler.initialize();

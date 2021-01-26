@@ -157,22 +157,22 @@ class Block {
   MatrixType get_matrix_type() const { return matrix_type_; }
 
   const Matrix &get_dense() const {
-    assert(dense_);
+    ARTS_ASSERT(dense_);
     return *dense_;
   }
 
   Matrix &get_dense() {
-    assert(dense_);
+    ARTS_ASSERT(dense_);
     return *dense_;
   }
 
   const Sparse &get_sparse() const {
-    assert(sparse_);
+    ARTS_ASSERT(sparse_);
     return *sparse_;
   }
 
   Sparse &get_sparse() {
-    assert(sparse_);
+    ARTS_ASSERT(sparse_);
     return *sparse_;
   }
 

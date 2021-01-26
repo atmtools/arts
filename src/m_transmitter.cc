@@ -572,7 +572,7 @@ void iyRadioLink(
         { iy_aux[auxAtmosphericLoss](joker,0,0,0) = iy(joker,0); }      
       if( auxImpactParam >= 0 )
         { 
-          assert( ppath.constant >= 0 );
+          ARTS_ASSERT( ppath.constant >= 0 );
           iy_aux[auxImpactParam](joker,0,0,0) = ppath.constant; 
         }
       //=======================================================================

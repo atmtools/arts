@@ -1307,7 +1307,7 @@ void iyMC(Workspace& ws,
                   t_interp_order,
                   verbosity);
 
-        assert(y.nelem() == stokes_dim);
+        ARTS_ASSERT(y.nelem() == stokes_dim);
 
         iy(f_index, joker) = y;
 

@@ -94,9 +94,9 @@ int poly_root_solve(Matrix &roots, Vector &coeffs) {
 
   a = coeffs.nelem();
 
-  assert(roots.nrows() == a - 1);
-  assert(roots.ncols() == 2);
-  assert(coeffs[a - 1] != 0);
+  ARTS_ASSERT(roots.nrows() == a - 1);
+  ARTS_ASSERT(roots.ncols() == 2);
+  ARTS_ASSERT(coeffs[a - 1] != 0);
 
 #ifdef USE_DOUBLE
   c = coeffs.mdata;

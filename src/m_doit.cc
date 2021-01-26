@@ -665,10 +665,10 @@ void cloudbox_fieldUpdate1D(
         "*doit_za_interpSet*.\n");
 
   const Index stokes_dim = doit_scat_field.ncols();
-  assert(stokes_dim > 0 || stokes_dim < 5);
+  ARTS_ASSERT(stokes_dim > 0 || stokes_dim < 5);
 
   // These variables are calculated internally, so assertions should be o.k.
-  assert(is_size(cloudbox_field_mono,
+  ARTS_ASSERT(is_size(cloudbox_field_mono,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
@@ -676,7 +676,7 @@ void cloudbox_fieldUpdate1D(
                  1,
                  stokes_dim));
 
-  assert(is_size(doit_scat_field,
+  ARTS_ASSERT(is_size(doit_scat_field,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
@@ -850,10 +850,10 @@ void cloudbox_fieldUpdateSeq1D(
         "*doit_za_interpSet*.\n");
 
   const Index stokes_dim = doit_scat_field.ncols();
-  assert(stokes_dim > 0 || stokes_dim < 5);
+  ARTS_ASSERT(stokes_dim > 0 || stokes_dim < 5);
 
   // These variables are calculated internally, so assertions should be o.k.
-  assert(is_size(cloudbox_field_mono,
+  ARTS_ASSERT(is_size(cloudbox_field_mono,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
@@ -861,7 +861,7 @@ void cloudbox_fieldUpdateSeq1D(
                  1,
                  stokes_dim));
 
-  assert(is_size(doit_scat_field,
+  ARTS_ASSERT(is_size(doit_scat_field,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
@@ -1181,10 +1181,10 @@ void cloudbox_fieldUpdateSeq3D(
         "*doit_za_interpSet*.\n");
 
   const Index stokes_dim = doit_scat_field.ncols();
-  assert(stokes_dim > 0 || stokes_dim < 5);
+  ARTS_ASSERT(stokes_dim > 0 || stokes_dim < 5);
 
   // These variables are calculated internally, so assertions should be o.k.
-  assert(is_size(cloudbox_field_mono,
+  ARTS_ASSERT(is_size(cloudbox_field_mono,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
                  (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -1192,7 +1192,7 @@ void cloudbox_fieldUpdateSeq3D(
                  N_scat_aa,
                  stokes_dim));
 
-  assert(is_size(doit_scat_field,
+  ARTS_ASSERT(is_size(doit_scat_field,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
                  (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -1449,7 +1449,7 @@ void cloudbox_fieldUpdateSeq1DPP(
         "The dimension of stokes vector must be"
         "1,2,3, or 4");
 
-  assert(is_size(cloudbox_field_mono,
+  ARTS_ASSERT(is_size(cloudbox_field_mono,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
@@ -1457,7 +1457,7 @@ void cloudbox_fieldUpdateSeq1DPP(
                  1,
                  stokes_dim));
 
-  assert(is_size(doit_scat_field,
+  ARTS_ASSERT(is_size(doit_scat_field,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
@@ -1466,7 +1466,7 @@ void cloudbox_fieldUpdateSeq1DPP(
                  stokes_dim));
 
   // Is the frequency index valid?
-  assert(f_index <= f_grid.nelem());
+  ARTS_ASSERT(f_index <= f_grid.nelem());
 
   // End of checks
 
@@ -2117,7 +2117,7 @@ void doit_scat_fieldCalc(Workspace& ws,
 
   // Get stokes dimension from *doit_scat_field*:
   const Index stokes_dim = doit_scat_field.ncols();
-  assert(stokes_dim > 0 || stokes_dim < 5);
+  ARTS_ASSERT(stokes_dim > 0 || stokes_dim < 5);
 
   // Size of particle number density field can not be checked here,
   // because the function does not use the atmospheric grids.
@@ -2128,14 +2128,14 @@ void doit_scat_fieldCalc(Workspace& ws,
   // radiation field (*cloudbox_field*) and scattering integral field
   // (*doit_scat_field*)
   if (atmosphere_dim == 1) {
-    assert(is_size(cloudbox_field_mono,
+    ARTS_ASSERT(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
                    1,
                    Nza,
                    1,
                    stokes_dim));
-    assert(is_size(doit_scat_field,
+    ARTS_ASSERT(is_size(doit_scat_field,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
                    1,
@@ -2143,14 +2143,14 @@ void doit_scat_fieldCalc(Workspace& ws,
                    1,
                    stokes_dim));
   } else if (atmosphere_dim == 3) {
-    assert(is_size(cloudbox_field_mono,
+    ARTS_ASSERT(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
                    (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
                    Nza,
                    Naa,
                    stokes_dim));
-    assert(is_size(doit_scat_field,
+    ARTS_ASSERT(is_size(doit_scat_field,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
                    (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -2390,7 +2390,7 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
 
   // Get stokes dimension from *doit_scat_field*:
   const Index stokes_dim = doit_scat_field.ncols();
-  assert(stokes_dim > 0 || stokes_dim < 5);
+  ARTS_ASSERT(stokes_dim > 0 || stokes_dim < 5);
 
   // Size of particle number density field can not be checked here,
   // because the function does not use the atmospheric grids.
@@ -2401,14 +2401,14 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
   // radiation field (*cloudbox_field*) and scattering integral field
   // (*doit_scat_field*)
   if (atmosphere_dim == 1) {
-    assert(is_size(cloudbox_field_mono,
+    ARTS_ASSERT(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
                    1,
                    Nza,
                    1,
                    stokes_dim));
-    assert(is_size(doit_scat_field,
+    ARTS_ASSERT(is_size(doit_scat_field,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
                    1,
@@ -2416,14 +2416,14 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                    1,
                    stokes_dim));
   } else if (atmosphere_dim == 3) {
-    assert(is_size(cloudbox_field_mono,
+    ARTS_ASSERT(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
                    (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
                    Nza,
                    Naa,
                    stokes_dim));
-    assert(is_size(doit_scat_field,
+    ARTS_ASSERT(is_size(doit_scat_field,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
                    (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -2534,7 +2534,7 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
         }
         // doit_za_interp must be 0 or 1 (linear or polynomial)!!!
         else
-          assert(false);
+          ARTS_ASSERT(false);
       }
 
       //There is only loop over zenith angle grid; no azimuth angle grid.
@@ -3496,8 +3496,8 @@ void cloudbox_fieldSetFromPrecalc(Tensor7& cloudbox_field,
   // Find which za_grid entries describe upwelling, which downwelling
   // radiation.
   Index first_upwell = 0;
-  assert(za_grid[0] < 90.);
-  assert(za_grid[za_grid.nelem() - 1] > 90.);
+  ARTS_ASSERT(za_grid[0] < 90.);
+  ARTS_ASSERT(za_grid[za_grid.nelem() - 1] > 90.);
   while (za_grid[first_upwell] < 90.) first_upwell++;
 
   Range downwell(0, first_upwell);

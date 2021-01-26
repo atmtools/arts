@@ -75,10 +75,10 @@ void antenna1d_matrix(Sparse& H,
   const Index n_ant = antenna_dza.nelem();
 
   // Asserts for variables beside antenna_response
-  assert(antenna_dim == 1);
-  assert(n_za >= 2);
-  assert(n_pol >= 1);
-  assert(do_norm >= 0 && do_norm <= 1);
+  ARTS_ASSERT(antenna_dim == 1);
+  ARTS_ASSERT(n_za >= 2);
+  ARTS_ASSERT(n_pol >= 1);
+  ARTS_ASSERT(do_norm >= 0 && do_norm <= 1);
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -96,10 +96,10 @@ void antenna1d_matrix(Sparse& H,
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
-  assert(n_ar_pol == 1 || n_ar_pol >= n_pol);
-  assert(n_ar_f);
-  assert(n_ar_za > 1);
-  assert(n_ar_aa == 1);
+  ARTS_ASSERT(n_ar_pol == 1 || n_ar_pol >= n_pol);
+  ARTS_ASSERT(n_ar_f);
+  ARTS_ASSERT(n_ar_za > 1);
+  ARTS_ASSERT(n_ar_aa == 1);
 
   // If response data extend outside za_grid is checked in
   // integration_func_by_vecmult
@@ -252,9 +252,9 @@ void antenna2d_gridded_dlos(Sparse& H,
   const Index n_ant = antenna_dlos.nrows();
 
   // Asserts for variables beside antenna_response
-  assert(antenna_dim == 2);
-  assert(n_dlos >= 1);
-  assert(n_pol >= 1);
+  ARTS_ASSERT(antenna_dim == 2);
+  ARTS_ASSERT(n_dlos >= 1);
+  ARTS_ASSERT(n_pol >= 1);
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -272,14 +272,14 @@ void antenna2d_gridded_dlos(Sparse& H,
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
-  assert(n_ar_pol == 1 || n_ar_pol >= n_pol);
-  assert(n_ar_f);
-  assert(n_ar_za > 1);
-  assert(n_ar_aa > 1);
-  assert(antenna_response.data.ncols() == n_ar_aa );
-  assert(antenna_response.data.nrows() == n_ar_za );
-  assert(antenna_response.data.npages() == n_ar_f );
-  assert(antenna_response.data.nbooks() == n_ar_pol );
+  ARTS_ASSERT(n_ar_pol == 1 || n_ar_pol >= n_pol);
+  ARTS_ASSERT(n_ar_f);
+  ARTS_ASSERT(n_ar_za > 1);
+  ARTS_ASSERT(n_ar_aa > 1);
+  ARTS_ASSERT(antenna_response.data.ncols() == n_ar_aa );
+  ARTS_ASSERT(antenna_response.data.nrows() == n_ar_za );
+  ARTS_ASSERT(antenna_response.data.npages() == n_ar_f );
+  ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol );
 
   // Include cos(za)-term in response
   Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
@@ -476,9 +476,9 @@ void antenna2d_interp_response(Sparse& H,
   const Index n_ant = antenna_dlos.nrows();
 
   // Asserts for variables beside antenna_response
-  assert(antenna_dim == 2);
-  assert(n_dlos >= 1);
-  assert(n_pol >= 1);
+  ARTS_ASSERT(antenna_dim == 2);
+  ARTS_ASSERT(n_dlos >= 1);
+  ARTS_ASSERT(n_pol >= 1);
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -496,14 +496,14 @@ void antenna2d_interp_response(Sparse& H,
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
-  assert(n_ar_pol == 1 || n_ar_pol >= n_pol);
-  assert(n_ar_f);
-  assert(n_ar_za > 1);
-  assert(n_ar_aa > 1);
-  assert(antenna_response.data.ncols() == n_ar_aa );
-  assert(antenna_response.data.nrows() == n_ar_za );
-  assert(antenna_response.data.npages() == n_ar_f );
-  assert(antenna_response.data.nbooks() == n_ar_pol );
+  ARTS_ASSERT(n_ar_pol == 1 || n_ar_pol >= n_pol);
+  ARTS_ASSERT(n_ar_f);
+  ARTS_ASSERT(n_ar_za > 1);
+  ARTS_ASSERT(n_ar_aa > 1);
+  ARTS_ASSERT(antenna_response.data.ncols() == n_ar_aa );
+  ARTS_ASSERT(antenna_response.data.nrows() == n_ar_za );
+  ARTS_ASSERT(antenna_response.data.npages() == n_ar_f );
+  ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol );
 
   // Include cos(za)-term in response
   Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
@@ -643,7 +643,7 @@ void gaussian_response_autogrid(Vector& x,
                                 const Numeric& fwhm,
                                 const Numeric& xwidth_si,
                                 const Numeric& dx_si) {
-  assert(dx_si <= xwidth_si);
+  ARTS_ASSERT(dx_si <= xwidth_si);
 
   const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
 
@@ -690,10 +690,10 @@ void mixer_matrix(Sparse& H,
   DEBUG_ONLY(const Index nrp = filter.data.nelem();)
 
   // Asserts
-  assert(lo > f_grid[0]);
-  assert(lo < last(f_grid));
-  assert(filter_grid.nelem() == nrp);
-  assert(fabs(last(filter_grid) + filter_grid[0]) < 1e3);
+  ARTS_ASSERT(lo > f_grid[0]);
+  ARTS_ASSERT(lo < last(f_grid));
+  ARTS_ASSERT(filter_grid.nelem() == nrp);
+  ARTS_ASSERT(fabs(last(filter_grid) + filter_grid[0]) < 1e3);
   // If response data extend outside f_grid is checked in summation_by_vecmult
 
   // Find indices in f_grid where f_grid is just below and above the
@@ -779,26 +779,26 @@ void mixer_matrix(Sparse& H,
 void mueller_rotation(Sparse& H,
                       const Index& stokes_dim,
                       const Numeric& rotangle) {
-  assert(stokes_dim > 1);
-  assert(H.nrows() == stokes_dim);
-  assert(H.ncols() == stokes_dim);
-  assert(H(0, 1) == 0);
-  assert(H(1, 0) == 0);
+  ARTS_ASSERT(stokes_dim > 1);
+  ARTS_ASSERT(H.nrows() == stokes_dim);
+  ARTS_ASSERT(H.ncols() == stokes_dim);
+  ARTS_ASSERT(H(0, 1) == 0);
+  ARTS_ASSERT(H(1, 0) == 0);
 
   H.rw(0, 0) = 1;
   const Numeric a = cos(2 * DEG2RAD * rotangle);
   H.rw(1, 1) = a;
   if (stokes_dim > 2) {
-    assert(H(2, 0) == 0);
-    assert(H(0, 2) == 0);
+    ARTS_ASSERT(H(2, 0) == 0);
+    ARTS_ASSERT(H(0, 2) == 0);
 
     const Numeric b = sin(2 * DEG2RAD * rotangle);
     H.rw(1, 2) = b;
     H.rw(2, 1) = -b;
     H.rw(2, 2) = a;
     if (stokes_dim > 3) {
-      // More values should be checked, but to save time we just assert one
-      assert(H(2, 3) == 0);
+      // More values should be checked, but to save time we just ARTS_ASSERT one
+      ARTS_ASSERT(H(2, 3) == 0);
       H.rw(3, 3) = 1;
     }
   }
@@ -811,7 +811,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
                                  const Numeric dza,
                                  const Index stokes_dim,
                                  const String& iy_unit) {
-  assert(stokes_dim > 1);
+  ARTS_ASSERT(stokes_dim > 1);
 
   // Set "Stokes vector weights" according to iy_unit
   Numeric w = 0.5;
@@ -876,7 +876,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
         else if( pol[i] == "RHC" )  // Right hand circular
         { ipv = 9; }
         else
-        { assert( 0 ); }
+        { ARTS_ASSERT( 0 ); }
       */
     // See instrument_pol for index order
     Index ipol = -1;
@@ -891,7 +891,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
     {
       ipol = 10;
     } else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
 
     /*
@@ -938,7 +938,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
           mueller_rotation(Hrot, stokes_dim, dza);
         }
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
 
       // H-matrix matching polarization
@@ -1016,7 +1016,7 @@ void spectrometer_matrix(Sparse& H,
   // Check if matrix has one frequency column or one for every channel
   // frequency
   //
-  assert(ch_response.nelem() == 1 || ch_response.nelem() == ch_f.nelem());
+  ARTS_ASSERT(ch_response.nelem() == 1 || ch_response.nelem() == ch_f.nelem());
   //
   Index freq_full = ch_response.nelem() > 1;
 
@@ -1076,7 +1076,7 @@ void stokes2pol(VectorView w,
                 const Index& stokes_dim,
                 const Index& ipol_1based,
                 const Numeric nv) {
-  assert(w.nelem() == stokes_dim);
+  ARTS_ASSERT(w.nelem() == stokes_dim);
 
   if (ipol_1based < 1 || ipol_1based > 10)
     throw runtime_error("Valid polarization indices are 1 to 10 (1-based).");
@@ -1143,11 +1143,11 @@ void stokes2pol(VectorView w,
 */
 bool test_and_merge_two_channels(Vector& fmin, Vector& fmax, Index i, Index j) {
   const Index nf = fmin.nelem();
-  assert(fmax.nelem() == nf);
-  assert(i >= 0 && i < nf);
-  assert(j >= 0 && j < nf);
-  assert(fmin[i] <= fmin[j]);
-  assert(i < j);
+  ARTS_ASSERT(fmax.nelem() == nf);
+  ARTS_ASSERT(i >= 0 && i < nf);
+  ARTS_ASSERT(j >= 0 && j < nf);
+  ARTS_ASSERT(fmin[i] <= fmin[j]);
+  ARTS_ASSERT(i < j);
 
   // There are three cases to consider:
   // a) The two channels are separate: fmax[i] <  fmin[j]
@@ -1401,11 +1401,11 @@ void integration_func_by_vecmult(VectorView h,
   const Index ng = x_g_in.nelem();
 
   // Asserts
-  assert(h.nelem() == ng);
-  assert(f.nelem() == nf);
-  assert(is_increasing(x_f_in));
-  assert(is_increasing(x_g_in) || is_decreasing(x_g_in));
-  // More asserts below
+  ARTS_ASSERT(h.nelem() == ng);
+  ARTS_ASSERT(f.nelem() == nf);
+  ARTS_ASSERT(is_increasing(x_f_in));
+  ARTS_ASSERT(is_increasing(x_g_in) || is_decreasing(x_g_in));
+  // More ARTS_ASSERTs below
 
   // End points of x_f
   Numeric xfmin = x_f_in[0];
@@ -1422,8 +1422,8 @@ void integration_func_by_vecmult(VectorView h,
     x_g = x_g_in;
   }
   //
-  assert(x_g[0] <= xfmin);
-  assert(x_g[ng - 1] >= xfmax);
+  ARTS_ASSERT(x_g[0] <= xfmin);
+  ARTS_ASSERT(x_g[ng - 1] >= xfmax);
 
   // Normalise grids so x_f covers [0,1]
   const Numeric df = xfmax - xfmin;
@@ -1542,9 +1542,9 @@ void integration_bin_by_vecmult(VectorView h,
   const Index ng = x_g_in.nelem();
 
   // Asserts
-  assert(ng > 1);
-  assert(h.nelem() == ng);
-  assert(limit1 <= limit2);
+  ARTS_ASSERT(ng > 1);
+  ARTS_ASSERT(h.nelem() == ng);
+  ARTS_ASSERT(limit1 <= limit2);
 
   // Handle possibly reversed x_g.
   Vector x_g;
@@ -1557,8 +1557,8 @@ void integration_bin_by_vecmult(VectorView h,
     x_g = x_g_in;
   }
   //
-  assert(x_g[0] <= limit1);
-  assert(x_g[ng - 1] >= limit2);
+  ARTS_ASSERT(x_g[0] <= limit1);
+  ARTS_ASSERT(x_g[ng - 1] >= limit2);
 
   // Handle extreme cases
   // Bin has zero width
@@ -1645,14 +1645,14 @@ void summation_by_vecmult(VectorView h,
                           const Numeric x1,
                           const Numeric x2) {
   // Asserts
-  assert(h.nelem() == x_g.nelem());
-  assert(f.nelem() == x_f.nelem());
-  assert(x_g[0] <= x_f[0]);
-  assert(last(x_g) >= last(x_f));
-  assert(x1 >= x_f[0]);
-  assert(x2 >= x_f[0]);
-  assert(x1 <= last(x_f));
-  assert(x2 <= last(x_f));
+  ARTS_ASSERT(h.nelem() == x_g.nelem());
+  ARTS_ASSERT(f.nelem() == x_f.nelem());
+  ARTS_ASSERT(x_g[0] <= x_f[0]);
+  ARTS_ASSERT(last(x_g) >= last(x_f));
+  ARTS_ASSERT(x1 >= x_f[0]);
+  ARTS_ASSERT(x2 >= x_f[0]);
+  ARTS_ASSERT(x1 <= last(x_f));
+  ARTS_ASSERT(x2 <= last(x_f));
 
   // Determine grid positions for point 1 (both with respect to f and g grids)
   // and interpolate response function.

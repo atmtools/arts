@@ -31,8 +31,8 @@
 #include "matpackV.h"
 
 #define CHECK(x)  \
-  assert(0 <= x); \
-  assert(x < m##x##r.mextent)
+  ARTS_ASSERT(0 <= x); \
+  ARTS_ASSERT(x < m##x##r.mextent)
 #define OFFSET(x) m##x##r.mstart + x* m##x##r.mstride
 
 /** The outermost iterator class for rank 6 tensors. This takes into

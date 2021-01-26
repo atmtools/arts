@@ -449,17 +449,17 @@ void test_workspace_methods() {
   // covmat_seSet
 
   covmat_seSet(covmat, A, Verbosity());
-  assert(covmat.ncols() == 10);
+  ARTS_ASSERT(covmat.ncols() == 10);
 
   // covmat_seAddBlock
 
   covmat_seAddBlock(covmat, A_sparse, -1, -1, Verbosity());
-  assert(covmat.ncols() == 20);
+  ARTS_ASSERT(covmat.ncols() == 20);
 
   try {
     covmat_seAddBlock(covmat, A, 3, 3, Verbosity());
     // This should fail.
-    assert(false);
+    ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 
@@ -470,7 +470,7 @@ void test_workspace_methods() {
   try {
     covmat_seAddBlock(covmat, B, 1, 2, Verbosity());
     // This should fail.
-    assert(false);
+    ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 
@@ -479,13 +479,13 @@ void test_workspace_methods() {
   try {
     covmat_seAddInverseBlock(covmat, B, 3, 3, Verbosity());
     // This should fail.
-    assert(false);
+    ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 
   // covmat_sxSet
   covmat_sxSet(covmat, A, Verbosity());
-  assert(covmat.ncols() == 10);
+  ARTS_ASSERT(covmat.ncols() == 10);
 
   // covmat_sxAddBlock
 
@@ -508,7 +508,7 @@ void test_workspace_methods() {
   try {
     covmat_sxAddBlock(covmat, rqs, A_sparse, 0, 1, Verbosity());
     // This should fail.
-    assert(false);
+    ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 
@@ -518,7 +518,7 @@ void test_workspace_methods() {
   try {
     covmat_sxAddInverseBlock(covmat, rqs, C, 1, 1, Verbosity());
     // This should fail.
-    assert(false);
+    ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 }

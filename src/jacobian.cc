@@ -121,7 +121,7 @@ void transform_jacobian(Matrix& jacobian,
             2 * (pars[1] - pars[0]) / pow(exp(-x_t[c]) + exp(x_t[c]), 2.0);
       }
     } else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
   }
 
@@ -210,7 +210,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
         x[r] = atanh(2 * (x[r] - pars[0]) / (pars[1] - pars[0]) - 1);
       }
     } else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
   }
 
@@ -300,7 +300,7 @@ void transform_x_back(Vector& x_t,
           x_t[r] = pars[0] + ((pars[1] - pars[0]) / 2) * (1 + tanh(x_t[r]));
         }
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
   }
@@ -327,7 +327,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
                              const Index& atmosphere_dim,
                              const Ppath& ppath,
                              ConstVectorView ppath_p) {
-  assert(jacobian_quantity.Grids().nelem() == atmosphere_dim or jacobian_quantity.Grids().empty());
+  ARTS_ASSERT(jacobian_quantity.Grids().nelem() == atmosphere_dim or jacobian_quantity.Grids().empty());
 
   // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
@@ -488,9 +488,9 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
                             ConstMatrixView diy_dpos,
                             const Index& atmosphere_dim,
                             ConstVectorView rtp_pos) {
-  assert(jacobian_quantity.Grids().nelem() ==
+  ARTS_ASSERT(jacobian_quantity.Grids().nelem() ==
          max(atmosphere_dim - 1, Index(1)));
-  assert(rtp_pos.nelem() == atmosphere_dim);
+  ARTS_ASSERT(rtp_pos.nelem() == atmosphere_dim);
 
   // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
@@ -665,7 +665,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lat_retr_name,
                            const String& lon_retr_name,
                            const Index& dim) {
-  assert(grids.nelem() == dim);
+  ARTS_ASSERT(grids.nelem() == dim);
 
   if (p_retr.nelem() == 0) {
     os << "The grid vector *" << p_retr_name << "* is empty,"
@@ -772,7 +772,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lat_retr_name,
                            const String& lon_retr_name,
                            const Index& dim) {
-  assert(grids.nelem() == max(dim - 1, Index(1)));
+  ARTS_ASSERT(grids.nelem() == max(dim - 1, Index(1)));
 
   if (dim == 1) {
     // Here we only need to create a length 1 dummy grid
@@ -865,7 +865,7 @@ void polynomial_basis_func(Vector& b,
                            const Index& poly_coeff) {
   const Index l = x.nelem();
 
-  assert(l > poly_coeff);
+  ARTS_ASSERT(l > poly_coeff);
 
   if (b.nelem() != l) b.resize(l);
 

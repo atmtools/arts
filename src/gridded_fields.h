@@ -117,7 +117,7 @@ class GriddedField {
    */
   Index get_grid_size(Index i) const {
     Index ret = 0;
-    assert(i < dim);
+    ARTS_ASSERT(i < dim);
     switch (mgridtypes[i]) {
       case GRID_TYPE_NUMERIC:
         ret = mnumericgrids[i].nelem();
@@ -163,7 +163,7 @@ class GriddedField {
     \param[in] s Grid name.
   */
   void set_grid_name(Index i, const String& s) {
-    assert(i < dim);
+    ARTS_ASSERT(i < dim);
     mgridnames[i] = s;
   }
 

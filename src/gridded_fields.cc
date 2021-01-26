@@ -57,7 +57,7 @@ using std::runtime_error;
   \param[in] gf Source gridded field
 */
 void GriddedField::copy_grids(const GriddedField& gf) {
-  assert(gf.get_dim() == dim);
+  ARTS_ASSERT(gf.get_dim() == dim);
 
   for (Index i = 0; i < dim; i++) {
     switch (gf.get_grid_type(i)) {
@@ -85,7 +85,7 @@ void GriddedField::copy_grids(const GriddedField& gf) {
   \return        Numeric grid.
 */
 const Vector& GriddedField::get_numeric_grid(Index i) const {
-  assert(i < dim);
+  ARTS_ASSERT(i < dim);
   if (mgridtypes[i] != GRID_TYPE_NUMERIC) {
     ostringstream os;
 
@@ -114,7 +114,7 @@ const Vector& GriddedField::get_numeric_grid(Index i) const {
   \return        Numeric grid.
 */
 Vector& GriddedField::get_numeric_grid(Index i) {
-  assert(i < dim);
+  ARTS_ASSERT(i < dim);
   if (mgridtypes[i] != GRID_TYPE_NUMERIC) {
     ostringstream os;
 
@@ -143,7 +143,7 @@ Vector& GriddedField::get_numeric_grid(Index i) {
   \return        String grid.
 */
 const ArrayOfString& GriddedField::get_string_grid(Index i) const {
-  assert(i < dim);
+  ARTS_ASSERT(i < dim);
   if (mgridtypes[i] != GRID_TYPE_STRING) {
     ostringstream os;
 
@@ -172,7 +172,7 @@ const ArrayOfString& GriddedField::get_string_grid(Index i) const {
   \return        String grid.
 */
 ArrayOfString& GriddedField::get_string_grid(Index i) {
-  assert(i < dim);
+  ARTS_ASSERT(i < dim);
   if (mgridtypes[i] != GRID_TYPE_STRING) {
     ostringstream os;
 
@@ -199,7 +199,7 @@ ArrayOfString& GriddedField::get_string_grid(Index i) {
   \param[in]  g  New grid.
 */
 void GriddedField::set_grid(Index i, const Vector& g) {
-  assert(i < dim);
+  ARTS_ASSERT(i < dim);
   mgridtypes[i] = GRID_TYPE_NUMERIC;
   mstringgrids[i].resize(0);
   mnumericgrids[i] = g;
@@ -213,7 +213,7 @@ void GriddedField::set_grid(Index i, const Vector& g) {
   \param[in] g New grid.
 */
 void GriddedField::set_grid(Index i, const ArrayOfString& g) {
-  assert(i < dim);
+  ARTS_ASSERT(i < dim);
   mgridtypes[i] = GRID_TYPE_STRING;
   mnumericgrids[i].resize(0);
   mstringgrids[i] = g;

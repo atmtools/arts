@@ -5055,13 +5055,13 @@ Iterator7D Tensor7View::end() {
     setting its range. */
 Tensor7View& Tensor7View::operator=(const ConstTensor7View& m) {
   // Check that sizes are compatible:
-  assert(mlr.mextent == m.mlr.mextent);
-  assert(mvr.mextent == m.mvr.mextent);
-  assert(msr.mextent == m.msr.mextent);
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mlr.mextent == m.mlr.mextent);
+  ARTS_ASSERT(mvr.mextent == m.mvr.mextent);
+  ARTS_ASSERT(msr.mextent == m.msr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -5074,13 +5074,13 @@ Tensor7View& Tensor7View::operator=(const ConstTensor7View& m) {
     override the default. */
 Tensor7View& Tensor7View::operator=(const Tensor7View& m) {
   // Check that sizes are compatible:
-  assert(mlr.mextent == m.mlr.mextent);
-  assert(mvr.mextent == m.mvr.mextent);
-  assert(msr.mextent == m.msr.mextent);
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mlr.mextent == m.mlr.mextent);
+  ARTS_ASSERT(mvr.mextent == m.mvr.mextent);
+  ARTS_ASSERT(msr.mextent == m.msr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -5091,13 +5091,13 @@ Tensor7View& Tensor7View::operator=(const Tensor7View& m) {
     contents! */
 Tensor7View& Tensor7View::operator=(const Tensor7& m) {
   // Check that sizes are compatible:
-  assert(mlr.mextent == m.mlr.mextent);
-  assert(mvr.mextent == m.mvr.mextent);
-  assert(msr.mextent == m.msr.mextent);
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mlr.mextent == m.mlr.mextent);
+  ARTS_ASSERT(mvr.mextent == m.mvr.mextent);
+  ARTS_ASSERT(msr.mextent == m.msr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -5151,13 +5151,13 @@ Tensor7View& Tensor7View::operator-=(Numeric x) {
 
 /** Element-vise multiplication by another Tensor7. */
 Tensor7View& Tensor7View::operator*=(const ConstTensor7View& x) {
-  assert(nlibraries() == x.nlibraries());
-  assert(nvitrines() == x.nvitrines());
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nlibraries() == x.nlibraries());
+  ARTS_ASSERT(nvitrines() == x.nvitrines());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator7D xp = x.begin();
   Iterator7D p = begin();
   const Iterator7D ep = end();
@@ -5169,13 +5169,13 @@ Tensor7View& Tensor7View::operator*=(const ConstTensor7View& x) {
 
 /** Element-vise division by another Tensor7. */
 Tensor7View& Tensor7View::operator/=(const ConstTensor7View& x) {
-  assert(nlibraries() == x.nlibraries());
-  assert(nvitrines() == x.nvitrines());
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nlibraries() == x.nlibraries());
+  ARTS_ASSERT(nvitrines() == x.nvitrines());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator7D xp = x.begin();
   Iterator7D p = begin();
   const Iterator7D ep = end();
@@ -5187,13 +5187,13 @@ Tensor7View& Tensor7View::operator/=(const ConstTensor7View& x) {
 
 /** Element-vise addition of another Tensor7. */
 Tensor7View& Tensor7View::operator+=(const ConstTensor7View& x) {
-  assert(nlibraries() == x.nlibraries());
-  assert(nvitrines() == x.nvitrines());
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nlibraries() == x.nlibraries());
+  ARTS_ASSERT(nvitrines() == x.nvitrines());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator7D xp = x.begin();
   Iterator7D p = begin();
   const Iterator7D ep = end();
@@ -5205,13 +5205,13 @@ Tensor7View& Tensor7View::operator+=(const ConstTensor7View& x) {
 
 /** Element-vise subtraction of another Tensor7. */
 Tensor7View& Tensor7View::operator-=(const ConstTensor7View& x) {
-  assert(nlibraries() == x.nlibraries());
-  assert(nvitrines() == x.nvitrines());
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nlibraries() == x.nlibraries());
+  ARTS_ASSERT(nvitrines() == x.nvitrines());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator7D xp = x.begin();
   Iterator7D p = begin();
   const Iterator7D ep = end();
@@ -5483,13 +5483,13 @@ Tensor7& Tensor7::operator=(Numeric x) {
     initialized, so it will contain random values. */
 void Tensor7::resize(
     Index l, Index v, Index s, Index b, Index p, Index r, Index c) {
-  assert(0 <= l);
-  assert(0 <= v);
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
+  ARTS_ASSERT(0 <= l);
+  ARTS_ASSERT(0 <= v);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
 
   if (mlr.mextent != l || mvr.mextent != v || msr.mextent != s ||
       mbr.mextent != b || mpr.mextent != p || mrr.mextent != r ||
@@ -5564,13 +5564,13 @@ Tensor7::~Tensor7() {
     \param    x   A tensor. */
 void transform(Tensor7View y, double (&my_func)(double), ConstTensor7View x) {
   // Check dimensions:
-  assert(y.nlibraries() == x.nlibraries());
-  assert(y.nvitrines() == x.nvitrines());
-  assert(y.nshelves() == x.nshelves());
-  assert(y.nbooks() == x.nbooks());
-  assert(y.npages() == x.npages());
-  assert(y.nrows() == x.nrows());
-  assert(y.ncols() == x.ncols());
+  ARTS_ASSERT(y.nlibraries() == x.nlibraries());
+  ARTS_ASSERT(y.nvitrines() == x.nvitrines());
+  ARTS_ASSERT(y.nshelves() == x.nshelves());
+  ARTS_ASSERT(y.nbooks() == x.nbooks());
+  ARTS_ASSERT(y.npages() == x.npages());
+  ARTS_ASSERT(y.nrows() == x.nrows());
+  ARTS_ASSERT(y.ncols() == x.ncols());
 
   const ConstIterator7D xe = x.end();
   ConstIterator7D xi = x.begin();

@@ -64,13 +64,13 @@ void psd_cloudice_MH97(Vector& psd,
   psd.resize(nD);
   psd = 0.;
 
-  assert(t > 0.);
+  ARTS_ASSERT(t > 0.);
 
   // skip calculation if IWC is 0.0
   if (iwc == 0.0) {
     return;
   }
-  assert(iwc > 0.);
+  ARTS_ASSERT(iwc > 0.);
 
   // convert m to microns
   Vector d_um(nD);
@@ -378,7 +378,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
             (mgd_pars[3] * pow(mgd_pars[2], eterm)) / (scat_species_a * gterm);
         mgd_pars[0] = scfac1 * ext_pars[0];
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 
@@ -399,7 +399,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
             (mgd_pars[3] * pow(mgd_pars[2], eterm)) / (scat_species_a * gterm);
         mgd_pars[0] = scfac1 * ext_pars[0];
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 
@@ -420,7 +420,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
             (mgd_pars[3] * pow(mgd_pars[2], eterm)) / (scat_species_a * gterm);
         mgd_pars[0] = scfac1 * ext_pars[0];
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 
@@ -440,13 +440,13 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
             (mgd_pars[3] * pow(mgd_pars[2], eterm)) / (scat_species_a * gterm);
         mgd_pars[0] = scfac1 * ext_pars[0];
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 
     // String something not recognised
     else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
 
     // Now when all four MGD parameters are set, check that la and ga are OK
@@ -495,7 +495,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
                 -mgd_pars[3] * scfac2 * pow(ext_pars[1], -(mgd_pars[3] + 1));
           }
         } else {
-          assert(0);
+          ARTS_ASSERT(0);
         }
       }
 
@@ -523,7 +523,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
                 -mgd_pars[3] * scfac2 * pow(ext_pars[1], -(mgd_pars[3] + 1));
           }
         } else {
-          assert(0);
+          ARTS_ASSERT(0);
         }
       }
 
@@ -551,7 +551,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
                 scfac2 * (-mgd_pars[3] / scat_species_b) *
                 pow(ext_pars[1], -(gab + 1));
           } else {
-            assert(0);
+            ARTS_ASSERT(0);
           }
         }
       }
@@ -592,13 +592,13 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
                 (mgd_pars[3] / scat_species_b) * pow(ext_pars[1], gab - 1);
           }
         } else {
-          assert(0);
+          ARTS_ASSERT(0);
         }
       }
 
       // String something not recognised
       else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 
@@ -699,7 +699,7 @@ void psd_mono_common(Matrix& psd_data,
         dpsd_data_dx(0, ip, 0) = 1 / pmass;
       }
     } else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
   }
 }
@@ -713,7 +713,7 @@ void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc) {
   if (rwc == 0.0) {
     return;
   }
-  assert(rwc > 0.);
+  ARTS_ASSERT(rwc > 0.);
 
   // a and b relates N0 to lambda N0 = a*lambda^b
   Numeric a = 0.000141;
@@ -851,7 +851,7 @@ void psd_mgd_smm_common(Matrix& psd_data,
       gamma = gamma_in;
     }
     else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
 
     // Calculate PSD
@@ -872,7 +872,7 @@ void psd_mgd_smm_common(Matrix& psd_data,
 			   true, // lambda jacobian
 			   false); // gamma jacobian
     } else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
     //
     for (Index i = 0; i < nsi; i++) {
@@ -902,13 +902,13 @@ void psd_snow_F07(Vector& psd,
   psd.resize(nD);
   psd = 0.;
 
-  assert(t > 0.);
+  ARTS_ASSERT(t > 0.);
 
   // skip calculation if SWC is 0.0
   if (swc == 0.0) {
     return;
   }
-  assert(swc > 0.);
+  ARTS_ASSERT(swc > 0.);
 
   Numeric An, Bn, Cn;
   Numeric M2, Mn, M2Mn;
@@ -918,7 +918,7 @@ void psd_snow_F07(Vector& psd,
 
   Vector q(5);
 
-  assert((regime == "TR") || (regime == "ML"));
+  ARTS_ASSERT((regime == "TR") || (regime == "ML"));
 
   //factors of phi23
   if (regime == "TR")

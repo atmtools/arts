@@ -1550,7 +1550,7 @@ void abs_lookupSetupBatch(  // WS Output:
        << "  min(H2O) / max(H2O) [VMR]: " << minh2o << " / " << maxh2o << "\n";
 
   // Divide mean by mean_norm to get the mean:
-  assert(np == mean_norm.nelem());
+  ARTS_ASSERT(np == mean_norm.nelem());
   for (Index fi = 0; fi < datamean.nrows(); ++fi)
     if (1 != fi)  // We skip the z field, which we do not need
       for (Index pi = 0; pi < np; ++pi) {
@@ -1571,7 +1571,7 @@ void abs_lookupSetupBatch(  // WS Output:
   // smooth the reference profiles with a boxcar filter of width
   // p_interp_order+1. Otherwise we get numerical problems if there
   // are any sharp spikes in the reference profiles.
-  assert(log_abs_p.nelem() == np);
+  ARTS_ASSERT(log_abs_p.nelem() == np);
   Matrix smooth_datamean(datamean.nrows(), datamean.ncols(), 0);
   for (Index i = 0; i < np; ++i) {
     const Index idx0 = Interpolation::pos_finder(i, log_abs_p[i], log_abs_p, abs_p_interp_order, false, false);
@@ -1599,11 +1599,11 @@ void abs_lookupSetupBatch(  // WS Output:
     // and h2o_index in abs_species
     parse_atmcompact_speciestype(
         species_type, field_names[batch_index[h2o_index]], delim);
-    assert(species_type == "abs_species");
+    ARTS_ASSERT(species_type == "abs_species");
     parse_atmcompact_speciesname(
         species_name, field_names[batch_index[h2o_index]], delim);
-    assert("H2O" == species_name);
-    assert("H2O" == species_names[h2o_index]);
+    ARTS_ASSERT("H2O" == species_name);
+    ARTS_ASSERT("H2O" == species_names[h2o_index]);
 
     // Find mean and max H2O for this level:
     Numeric& mean_h2o = smooth_datamean(h2o_index + 2, i);
@@ -1623,7 +1623,7 @@ void abs_lookupSetupBatch(  // WS Output:
   //   cout << "tmax:  " << datamax(0,joker) << "\n";
 
   // Set abs_vmrs:
-  assert(abs_species.nelem() == smooth_datamean.nrows() - 2);
+  ARTS_ASSERT(abs_species.nelem() == smooth_datamean.nrows() - 2);
   abs_vmrs.resize(abs_species.nelem(), np);
   abs_vmrs = smooth_datamean(Range(2, abs_species.nelem()), joker);
   //  cout << "\n\nabs_vmrs: " << abs_vmrs << "\n\n";
@@ -2539,9 +2539,9 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
 
   // Ok. What we have to compare is abs_tab and abs_lbl.
 
-  assert(abs_tab.nelem() == n_f);
-  assert(abs_lbl.nelem() == n_f);
-  assert(abs_rel_diff.nelem() == n_f);
+  ARTS_ASSERT(abs_tab.nelem() == n_f);
+  ARTS_ASSERT(abs_lbl.nelem() == n_f);
+  ARTS_ASSERT(abs_rel_diff.nelem() == n_f);
   for (Index i = 0; i < n_f; ++i) {
     // Absolute value of relative difference in percent:
     abs_rel_diff[i] = fabs((abs_tab[i] - abs_lbl[i]) / abs_lbl[i] * 100);
@@ -2855,7 +2855,7 @@ void abs_lookupTestAccuracy(  // Workspace reference:
 
   // Check pressure interpolation
 
-  //   assert(p_grid.nelem()==log_p_grid.nelem()); // Make sure that log_p_grid is initialized.
+  //   ARTS_ASSERT(p_grid.nelem()==log_p_grid.nelem()); // Make sure that log_p_grid is initialized.
   //   Vector inbet_log_p_grid(log_p_grid.nelem()-1)
   //   for (Index i=0; i<log_p_grid.nelem()-1; ++i)
   //     {

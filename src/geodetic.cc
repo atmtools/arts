@@ -184,7 +184,7 @@ void distance2D(Numeric& l,
                 const Numeric& lat1,
                 const Numeric& r2,
                 const Numeric& lat2) {
-  assert(abs(lat2 - lat1) <= 180);
+  ARTS_ASSERT(abs(lat2 - lat1) <= 180);
 
   Numeric x1, z1, x2, z2;
   pol2cart(x1, z1, r1, lat1);
@@ -235,12 +235,12 @@ void geomtanpoint2d(
        const Numeric&    lat,
        const Numeric&    za )
 {
-  assert( refellipsoid.nelem() == 2 );
-  assert( refellipsoid[0] > 0 );
-  assert( refellipsoid[1] >= 0 );
-  assert( refellipsoid[1] < 1 );
-  assert( r > 0 );
-  assert( za >= 90 );
+  ARTS_ASSERT( refellipsoid.nelem() == 2 );
+  ARTS_ASSERT( refellipsoid[0] > 0 );
+  ARTS_ASSERT( refellipsoid[1] >= 0 );
+  ARTS_ASSERT( refellipsoid[1] < 1 );
+  ARTS_ASSERT( r > 0 );
+  ARTS_ASSERT( za >= 90 );
                                 // e=1e-7 corresponds to that polar radius
   if( refellipsoid[1] < 1e-7 )  // less than 1 um smaller than equatorial 
     {                           // one for the Earth
@@ -253,7 +253,7 @@ void geomtanpoint2d(
 
   else
     {
-      assert( 0 );  // To be implemented
+      ARTS_ASSERT( 0 );  // To be implemented
     }  
 }  
 */
@@ -290,7 +290,7 @@ void line_circle_intersect(Numeric& x,
       xc * xc + zc * zc + xl * xl + zl * zl - 2 * (xc * xl + zc * zl) - r * r;
 
   Numeric d = b * b - 4 * a * c;
-  assert(d > 0);
+  ARTS_ASSERT(d > 0);
 
   const Numeric a2 = 2 * a;
   const Numeric b2 = -b / a2;
@@ -306,7 +306,7 @@ void line_circle_intersect(Numeric& x,
     l = l1;
   } else {
     l = min(l1, l2);
-    assert(l >= 0);
+    ARTS_ASSERT(l >= 0);
   }
 
   x = xl + l * dx;
@@ -329,7 +329,7 @@ void line_circle_intersect(Numeric& x,
    \date   2012-03-20
 */
 void pol2cart(Numeric& x, Numeric& z, const Numeric& r, const Numeric& lat) {
-  assert(r > 0);
+  ARTS_ASSERT(r > 0);
 
   const Numeric latrad = DEG2RAD * lat;
 
@@ -359,8 +359,8 @@ void poslos2cart(Numeric& x,
                  const Numeric& r,
                  const Numeric& lat,
                  const Numeric& za) {
-  assert(r > 0);
-  assert(za >= -180 && za <= 180);
+  ARTS_ASSERT(r > 0);
+  ARTS_ASSERT(za >= -180 && za <= 180);
 
   const Numeric latrad = DEG2RAD * lat;
   const Numeric zarad = DEG2RAD * za;
@@ -713,8 +713,8 @@ void geompath_tanpos_3d(Numeric& r_tan,
                         const Numeric& za,
                         const Numeric& aa,
                         const Numeric& ppc) {
-  assert(za >= 90);
-  assert(r >= ppc);
+  ARTS_ASSERT(za >= 90);
+  ARTS_ASSERT(r >= ppc);
 
   Numeric x, y, z, dx, dy, dz;
 
@@ -777,12 +777,12 @@ void geomtanpoint(
        const Numeric&    za,
        const Numeric&    aa )
 {
-  assert( refellipsoid.nelem() == 2 );
-  assert( refellipsoid[0] > 0 );
-  assert( refellipsoid[1] >= 0 );
-  assert( refellipsoid[1] < 1 );
-  assert( r > 0 );
-  assert( za >= 90 );
+  ARTS_ASSERT( refellipsoid.nelem() == 2 );
+  ARTS_ASSERT( refellipsoid[0] > 0 );
+  ARTS_ASSERT( refellipsoid[1] >= 0 );
+  ARTS_ASSERT( refellipsoid[1] < 1 );
+  ARTS_ASSERT( r > 0 );
+  ARTS_ASSERT( za >= 90 );
 
   if( refellipsoid[1] < 1e-7 )        // e=1e-7 corresponds to that polar radius
     {                                 // less than 1 um smaller than equatorial 
@@ -969,7 +969,7 @@ void line_sphere_intersect(Numeric& x,
                     2 * (xc * xl + yc * yl + zc * zl) - r * r;
 
   Numeric d = b * b - 4 * a * c;
-  assert(d > 0);
+  ARTS_ASSERT(d > 0);
 
   const Numeric a2 = 2 * a;
   const Numeric b2 = -b / a2;
@@ -985,7 +985,7 @@ void line_sphere_intersect(Numeric& x,
     l = l1;
   } else {
     l = min(l1, l2);
-    assert(l >= 0);
+    ARTS_ASSERT(l >= 0);
   }
 
   x = xl + l * dx;
@@ -1135,10 +1135,10 @@ void poslos2cart(Numeric& x,
                  const Numeric& lon,
                  const Numeric& za,
                  const Numeric& aa) {
-  assert(r > 0);
-  assert(abs(lat) <= 90);
-  //assert( abs( lon ) <= 360 );
-  assert(za >= 0 && za <= 180);
+  ARTS_ASSERT(r > 0);
+  ARTS_ASSERT(abs(lat) <= 90);
+  //ARTS_ASSERT( abs( lon ) <= 360 );
+  ARTS_ASSERT(za >= 0 && za <= 180);
 
   // lat = +-90
   // For lat = +- 90 the azimuth angle gives the longitude along which the
@@ -1216,14 +1216,14 @@ Numeric pos2refell_r(const Index& atmosphere_dim,
   if (atmosphere_dim == 1) {
     return refellipsoid[0];
   } else {
-    assert(rte_pos.nelem() > 1);
+    ARTS_ASSERT(rte_pos.nelem() > 1);
 
     bool inside = true;
 
     if (rte_pos[1] < lat_grid[0] || rte_pos[1] > last(lat_grid)) {
       inside = false;
     } else if (atmosphere_dim == 3) {
-      assert(rte_pos.nelem() == 3);
+      ARTS_ASSERT(rte_pos.nelem() == 3);
       if (rte_pos[2] < lon_grid[0] || rte_pos[2] > last(lon_grid)) {
         inside = false;
       }
@@ -1263,10 +1263,10 @@ Numeric pos2refell_r(const Index& atmosphere_dim,
     \date   2012-02-07
 */
 Numeric refell2r(ConstVectorView refellipsoid, const Numeric& lat) {
-  assert(refellipsoid.nelem() == 2);
-  assert(refellipsoid[0] > 0);
-  assert(refellipsoid[1] >= 0);
-  assert(refellipsoid[1] < 1);
+  ARTS_ASSERT(refellipsoid.nelem() == 2);
+  ARTS_ASSERT(refellipsoid[0] > 0);
+  ARTS_ASSERT(refellipsoid[1] >= 0);
+  ARTS_ASSERT(refellipsoid[1] < 1);
 
   if (refellipsoid[1] < 1e-7)  // e=1e-7 corresponds to that polar radius
   {                            // less than 1 um smaller than equatorial
@@ -1369,9 +1369,9 @@ void sph2cart(Numeric& x,
               const Numeric& r,
               const Numeric& lat,
               const Numeric& lon) {
-  assert(r > 0);
-  assert(abs(lat) <= 90);
-  assert(abs(lon) <= 360);
+  ARTS_ASSERT(r > 0);
+  ARTS_ASSERT(abs(lat) <= 90);
+  ARTS_ASSERT(abs(lon) <= 360);
 
   const Numeric latrad = DEG2RAD * lat;
   const Numeric lonrad = DEG2RAD * lon;
@@ -1577,8 +1577,8 @@ void geodeticposlos2cart(Numeric& x,
                          const Numeric& za,
                          const Numeric& aa,
                          const Vector& refellipsoid ) {
-  assert(abs(lat) <= 90);
-  assert(za >= 0 && za <= 180);
+  ARTS_ASSERT(abs(lat) <= 90);
+  ARTS_ASSERT(za >= 0 && za <= 180);
 
   // lat = +-90
   // For lat = +- 90 the azimuth angle gives the longitude along which the

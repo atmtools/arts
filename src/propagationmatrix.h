@@ -267,7 +267,7 @@ class PropagationMatrix {
         mza(nr_za),
         maa(nr_aa),
         mvectortype(false) {
-    assert(mstokes_dim < 5 and mstokes_dim > 0);
+    ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mdata = Tensor4(maa, mza, mfreqs, NumberOfNeededVectors(), v);
   }
 
@@ -331,7 +331,7 @@ class PropagationMatrix {
    */
   explicit PropagationMatrix(ConstMatrixView x, const bool& assume_fit = false)
       : mfreqs(1), mstokes_dim(x.ncols()), mza(1), maa(1) {
-    assert(mstokes_dim < 5 and mstokes_dim > 0);
+    ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mvectortype = false;
 
     if (not assume_fit) {
@@ -1256,7 +1256,7 @@ class StokesVector final : public PropagationMatrix {
     mstokes_dim = stokes_dim;
     mza = nr_za;
     maa = nr_aa;
-    assert(mstokes_dim < 5 and mstokes_dim > 0);
+    ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mdata = Tensor4(maa, mza, mfreqs, mstokes_dim, v);
   };
 
@@ -1284,7 +1284,7 @@ class StokesVector final : public PropagationMatrix {
     mstokes_dim = x.nelem();
     mza = 1;
     maa = 1;
-    assert(mstokes_dim < 5 and mstokes_dim > 0);
+    ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mvectortype = true;
     mdata.resize(1, 1, 1, mstokes_dim);
     for (Index i = 0; i < mstokes_dim; i++) mdata(0, 0, 0, i) = x[i];
@@ -1391,10 +1391,10 @@ class StokesVector final : public PropagationMatrix {
    * @param[in] y Input
    */
   void MultiplyAndAdd(const Numeric x, const PropagationMatrix& y) {
-    assert(mstokes_dim == y.StokesDimensions());
-    assert(mfreqs == y.NumberOfFrequencies());
-    assert(mza == y.NumberOfZenithAngles());
-    assert(maa == y.NumberOfAzimuthAngles());
+    ARTS_ASSERT(mstokes_dim == y.StokesDimensions());
+    ARTS_ASSERT(mfreqs == y.NumberOfFrequencies());
+    ARTS_ASSERT(mza == y.NumberOfZenithAngles());
+    ARTS_ASSERT(maa == y.NumberOfAzimuthAngles());
 
     const Tensor4& data = y.Data();
 
