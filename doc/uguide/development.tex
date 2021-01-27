@@ -683,35 +683,45 @@ request, the ARTS test-suite will be run on your code. If all tests pass, an
 ARTS core developer will review your code and finally merge it into the central
 repository.
 
-\section{Debugging (use of assert)}
+\section{Debugging (use of ARTS\_ASSERT)}
 %================================
 \label{sec:development:assert}
  
-The idea behind assert is simple. Suppose that at a certain point in
+The idea behind \shortcode{ARTS\_ASSERT} is simple.
+It exists to stop program execution at times when the precondition
+or post-condition of the function is not met.
+Suppose that at a certain point in
 your code, you expect two variables to be equal.  If this expectation
 is a precondition that must be satisfied in order for the subsequent
-code to execute correctly, you must assert it with a statement like
+code to execute correctly, you must \shortcode{ARTS\_ASSERT} it with a statement like
 this:
 \begin{quote}
-\shortcode{assert(var1 == var2);}
+\shortcode{ARTS\_ASSERT(var1 == var2);}
+
+or
+
+\shortcode{ARTS\_ASSERT(var1 == var2, "(",var1,", ",var2,")")}
 \end{quote}
 
-In general assert takes as argument a boolean expression. If the
-boolean expression is true, execution continues. Otherwise the
-\shortcode{abort} system call is invoked and the program execution is
+In general \shortcode{ARTS\_ASSERT} takes as argument a boolean expression
+followed by any number of arguments that the developer wants to pass along to the
+output operator in case the assertion is invoked. If the
+boolean expression is true, execution continues. Otherwise a
+C++ \shortcode{std::runtime\_error} is invoked and the program execution is
 stopped. If a bug prevents the precondition from being true, then you
 can trace the bug at the point where the precondition breaks down
-instead of further down in execution or not at all.  The \shortcode{assert} call
+instead of further down in execution or not at all.  The \shortcode{ARTS\_ASSERT} call
 is implemented as a C preprocessor macro, so it can be enabled or
-disabled at will. 
+disabled at will.
 
-In ARTS, you don't have to do this manually, as long as your source file
-includes \shortcode{arts.h} either directly or indirectly. Instead, assertions
-are turned on and off with the global NDEBUG preprocessor macro, which is
+In ARTS, you don't have to do this manually.  Instead, assertions
+are turned on and off with the global \shortcode{NDEBUG}
+preprocessor macro, which is
 set or unset automatically by the \shortcode{cmake} build configuration.
 Assertions are enabled in the default \shortcode{cmake} build configuration
 (\shortcode{-DCMAKE\_BUILD\_TYPE=RelWithDebInfo}). They are turned off in the
-release configuration (\shortcode{-DCMAKE\_BUILD\_TYPE=Release}).
+release configuration (\shortcode{-DCMAKE\_BUILD\_TYPE=Release}) and in
+native configuration (\shortcode{-DCMAKE\_BUILD\_TYPE=Native}).
 
 If your program is stopped by an assertion failure, then the first
 thing you should do is to find out where the error happens. To do
@@ -756,3 +766,28 @@ can very conveniently step through your code.
 %%% mode: latex
 %%% TeX-master: "uguide"
 %%% End: 
+
+\section{Debugging (use of ARTS\_USER\_ERROR\_IF)}
+
+The \shortcode{ARTS\_USER\_ERROR\_IF} command should be used whenever the
+validity of the program being able to produce expected output is compromised
+by direct user input.  This helps the user debug their controlfiles, python
+scripts, or C++ API usage.  Developing ARTS, you should use these devotedly
+to ensure that the user input is correct and can be understood by all internal
+functions called by a user-facing method. Invocation of
+\shortcode{ARTS\_USER\_ERROR\_IF} is not a bug in ARTS per se but an indication
+that some calculations will fail at a later stage given the user input.
+
+The interface is exactly the same as for \shortcode{ARTS\_ASSERT}, however the
+expectation is that the first boolean argument is false for the program execution
+to stop.  As for the assertions, you can pass any number of arguments to the
+output operator, however, as opposed to the assertions, you are not allowed to
+pass no arguments because the user needs to be able to understand what s/he did wrong.
+
+The \shortcode{ARTS\_USER\_ERROR\_IF} command is also implemented as a macro
+and can be turned off manually by passing \shortcode{-DNO\_USER\_ERRORS=1}
+to cmake.  Note that this is not recommended and that the kinds of errors
+that it can cause to ARTS execution is beyond the responsibility of the
+ARTS developers and that we do not even try to understand what might happen.
+It might speed up execution times, however, so it is provided for users that
+need all possible speed-ups.
