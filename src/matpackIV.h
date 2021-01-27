@@ -352,8 +352,8 @@ class Tensor4View : public ConstTensor4View {
   }
 
   // Conversion to a plain C-array
-  const Numeric* get_c_array() const;
-  Numeric* get_c_array();
+  const Numeric* get_c_array() const ARTS_NOEXCEPT;
+  Numeric* get_c_array() ARTS_NOEXCEPT;
 
   // Functions returning iterators:
   Iterator4D begin();
@@ -441,12 +441,12 @@ class Tensor4 : public Tensor4View {
    * @param[in] r2 - The Range along the third dimension
    * @param[in] r3 - The Range along the fourth dimension
    */
-  Tensor4(Numeric* d, const Range& r0, const Range& r1, const Range& r2, const Range& r3)
+  Tensor4(Numeric* d, const Range& r0, const Range& r1, const Range& r2, const Range& r3) ARTS_NOEXCEPT
   : Tensor4View(d, r0, r1, r2, r3) {
-    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r1.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r2.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r3.get_extent() < 0) throw std::runtime_error("Must have size");
+    ARTS_ASSERT (not (r0.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r1.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r2.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r3.get_extent() < 0), "Must have size");
   }
 
   // Assignment operators:
@@ -468,20 +468,20 @@ class Tensor4 : public Tensor4View {
   
   /*! Reduce a Tensor4 to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() && {
+  Vector reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim0 < 4, "Bad Dimension, Out-of-Bounds");
     
     Range r0(0, dim0 == 0 ? nbooks() : dim0 == 1 ? npages() : dim0 == 2 ? nrows() : ncols());
     
     Vector out(mdata, r0);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
   
   /*! Reduce a Tensor4 to a Matrix and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1>
-  Matrix reduce_rank() && {
+  Matrix reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim1 < 4, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     
@@ -489,14 +489,14 @@ class Tensor4 : public Tensor4View {
     const Range r0(0, dim0 == 0 ? nbooks() : dim0 == 1 ? npages() : nrows(), r1.get_extent());
     
     Matrix out(mdata, r0, r1);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
   
   /*! Reduce a Tensor4 to a Tensor3 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2>
-  Tensor3 reduce_rank() && {
+  Tensor3 reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim2 < 4, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
@@ -506,7 +506,7 @@ class Tensor4 : public Tensor4View {
     const Range r0(0, dim0 == 0 ? nbooks() : npages(), r1.get_extent() * r2.get_extent());
     
     Tensor3 out(mdata, r0, r1, r2);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }

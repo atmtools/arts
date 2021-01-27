@@ -25,8 +25,6 @@
 #include "matpackIII.h"
 #include "exceptions.h"
 
-using std::runtime_error;
-
 // Functions for ConstTensor3View:
 // ------------------------------
 
@@ -302,13 +300,11 @@ VectorView Tensor3View::operator()(const Range& p, Index r, Index c) {
   Tensor3View is not pointing to the beginning of a Tensor3 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Numeric* Tensor3View::get_c_array() {
-  if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
+Numeric* Tensor3View::get_c_array() ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
       mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+      mcr.mstride != 1),
         "A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
@@ -318,13 +314,11 @@ Numeric* Tensor3View::get_c_array() {
   Tensor3View is not pointing to the beginning of a Tensor3 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Numeric* Tensor3View::get_c_array() const {
-  if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
-      mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
-        "A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
+const Numeric* Tensor3View::get_c_array() const ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
+  mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
+  mcr.mstride != 1),
+  "A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
   return mdata;
 }
 

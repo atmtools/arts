@@ -55,15 +55,10 @@ Jacobian::Line select_derivativeLineShape(const String& var,
     if (coeff == c) coeff_OK = true;
 
   // Fails either when the user has bad input or when the developer fails to update AllLineShapeVars or AllLineShapeCoeffs
-  if (not var_OK or not coeff_OK) {
-    std::ostringstream os;
-    os << "At least one of your variable and/or your coefficient is not OK\n";
-    os << "Your variable: \"" << var << "\".  OK variables include: " << vars
-       << "\n";
-    os << "Your coefficient: \"" << coeff
-       << "\".  OK coefficients include: " << coeffs << "\n";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (not var_OK or not coeff_OK,
+    "At least one of your variable and/or your coefficient is not OK\n"
+    "Your variable: \"", var, "\".  OK variables include: ", vars, "\n"
+    "Your coefficient: \"", coeff, "\".  OK coefficients include: ", coeffs, "\n")
 
 // Define a repetitive pattern.  Update if/when there are more coefficients in the future
 #define ReturnJacPropMatType(ID)                \
@@ -137,15 +132,12 @@ std::istream& LineShape::from_artscat4(std::istream& is,
   // Special case when self is part of this list, it needs to be removed
   for (int k = 1; k < 7; k++) {
     if (qid.Species() == species[k].Species()) {
-      if(m.mdata.front().G0().X0 not_eq m.mdata[k].G0().X0 or
-        m.mdata.front().G0().X1 not_eq m.mdata[k].G0().X1 or
-        m.mdata.front().D0().X1 not_eq m.mdata[k].D0().X1) {
-        std::ostringstream os;
-        os << "Species is " << qid.SpeciesName() << " and this is a broadening species in ARTSCAT-4.\n"
-           << "Despite this, values representing self and " << qid.SpeciesName() << " does not match "
-           << "in input string\n";
-        throw std::runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF(m.mdata.front().G0().X0 not_eq m.mdata[k].G0().X0 or
+                         m.mdata.front().G0().X1 not_eq m.mdata[k].G0().X1 or
+                         m.mdata.front().D0().X1 not_eq m.mdata[k].D0().X1,
+          "Species is ", qid.SpeciesName(), " and this is a broadening species in ARTSCAT-4.\n"
+          "Despite this, values representing self and ", qid.SpeciesName(), " does not match "
+          "in input string\n")
       m.mdata.front().D0().X0 = m.mdata[k].D0().X0;
       m.Remove(k, species);
       break;
@@ -185,8 +177,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
   species.resize(specs);
   m.mdata.resize(specs);
 
-  if (not specs and mtype not_eq Type::DP)
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (not specs and mtype not_eq Type::DP,
         "Need at least one species for non-Doppler line shapes");
 
   // For all species, we need to set the methods to compute them
@@ -196,29 +187,24 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
     if (s == self_broadening) {
       // If the species is self, then  we need to flag this
       self = true;
-      if (i not_eq 0)  // but self has to be first for consistent behavior
-        throw std::runtime_error("Self broadening must be first, it is not\n");
-    }
-
-    else if (s == bath_broadening) {
+      ARTS_USER_ERROR_IF (i not_eq 0,
+                          "Self broadening must be first, it is not\n");
+    } else if (s == bath_broadening) {
       // If the species is air, then we need to flag this
       bath = true;
-      if (i not_eq
-          specs - 1)  // but air has to be last because it needs the rest's VMR
-        throw std::runtime_error(
+      ARTS_USER_ERROR_IF (i not_eq specs - 1,
             "Air/bath broadening must be last, it is not\n");
     } else {
       // Otherwise, we hope we find a species
       try {
         species[i] = SpeciesTag(s);
       } catch (const std::runtime_error& e) {
-        ostringstream os;
-        os << "Encountered " << s
-           << " in a position where a species should have been ";
-        os << "defined.\nPlease check your pressure broadening data structure and ensure ";
-        os << "that it follows the correct conventions.\n";
-        os << "SpeciesTag error reads:  " << e.what();
-        throw std::runtime_error(os.str());
+        ARTS_USER_ERROR_IF (true,
+                            "Encountered ", s,
+                            " in a position where a species should have been "
+                            "defined.\nPlease check your pressure broadening data structure and ensure "
+                            "that it follows the correct conventions.\n"
+                            "SpeciesTag error reads:\n", e.what())
       }
     }
 
@@ -249,14 +235,12 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
             case 0:
               break;
             default:
-              throw std::runtime_error(
+              ARTS_USER_ERROR_IF (true,
                   "Unknown number of input parameters in Legacy mode.");
           }
         } else {  // Has to be the only allowed interpolation case
-          if (ntemp > 12) {
-            throw std::runtime_error(
+          ARTS_USER_ERROR_IF (ntemp > 12,
                 "Too many input parameters in interpolation results Legacy mode.");
-          }
           Numeric temp;
           data >> temp;  // should be 200
           data >> temp;  // should be 250
@@ -480,8 +464,8 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
                        bool self_in_list,
                        bool bath_in_list,
                        Type type) {
-  if (atmospheric_species.nelem() != atmospheric_vmrs.nelem())
-    throw std::runtime_error("Bad atmospheric inputs");
+  ARTS_USER_ERROR_IF (atmospheric_species.nelem() != atmospheric_vmrs.nelem(),
+                      "Bad atmospheric inputs");
   
   // Initialize list of VMRS to 0
   Vector line_vmrs(lineshape_species.nelem(), 0);
@@ -515,8 +499,7 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
     line_vmrs /= line_vmrs.sum();
   
   // The result must be non-zero, a real number, and finite
-  if (not std::isnormal(line_vmrs.sum()))
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (not std::isnormal(line_vmrs.sum()),
       "Bad VMRs, your atmosphere does not support the line of interest");
     
   return line_vmrs;
@@ -528,8 +511,8 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfSpeciesTag& lineshape_species,
                        bool self_in_list,
                        bool bath_in_list) {
-  if (atmospheric_species.nelem() != atmospheric_vmrs.nelem())
-    throw std::runtime_error("Bad atmospheric inputs");
+  ARTS_USER_ERROR_IF (atmospheric_species.nelem() != atmospheric_vmrs.nelem(),
+                      "Bad atmospheric inputs");
   
   // Initialize list of VMRS to 0
   Vector line_vmrs(lineshape_species.nelem(), 0);
@@ -567,10 +550,8 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
   }
   
   // The result must be non-zero, a real number, and finite
-  if (not std::isnormal(line_mass.sum())) {
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (not std::isnormal(line_mass.sum()),
       "Bad VMRs, your atmosphere does not support the line of interest");
-  }
     
   return line_vmrs;
 }
@@ -750,10 +731,9 @@ Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
   else if (type == "X3")
     return mp.X3;
   else {
-    std::ostringstream os;
-    os << "Type: " << type << ", is not accepted.  "
-    << "See documentation for accepted types\n";
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Type: ", type, ", is not accepted.  "
+      "See documentation for accepted types\n")
   }
 }
 #pragma GCC diagnostic pop
@@ -1344,10 +1324,9 @@ std::vector<Variable> lineshapetag2variablesvector(String type) {
       Variable::FVC,
       Variable::ETA};
       else {
-        std::ostringstream os;
-        os << "Type: " << type << ", is not accepted.  "
-        << "See documentation for accepted types\n";
-        throw std::runtime_error(os.str());
+        ARTS_USER_ERROR_IF (true,
+          "Type: ", type, ", is not accepted.  "
+          "See documentation for accepted types\n")
       }
 }
 
@@ -1363,10 +1342,9 @@ std::vector<Variable> linemixingtag2variablesvector(String type) {
   else if (type == "ConstG")
     return {Variable::G};
   else {
-    std::ostringstream os;
-    os << "Type: " << type << ", is not accepted.  "
-    << "See documentation for accepted types\n";
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Type: ", type, ", is not accepted.  "
+      "See documentation for accepted types\n")
   }
 }
 }  // LegacyLineFunctionData
@@ -1386,10 +1364,9 @@ LegacyLineMixingData::TypeLM string2typelm(String type) {
   else if (type == "BB")  // The band class
     return TypeLM::LM_BYBAND;
   else {
-    std::ostringstream os;
-    os << "Type: " << type << ", is not accepted.  "
-    << "See documentation for accepted types\n";
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Type: ", type, ", is not accepted.  "
+      "See documentation for accepted types\n")
   }
 }
 }  // LegacyLineMixingData
@@ -1406,10 +1383,9 @@ LegacyPressureBroadeningData::TypePB string2typepb(String type) {
   else if (type == "AP")  // Planetary broadening
     return TypePB::PB_PLANETARY_BROADENING;
   else {
-    std::ostringstream os;
-    os << "Type: " << type << ", is not accepted.  "
-    << "See documentation for accepted types\n";
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Type: ", type, ", is not accepted.  "
+      "See documentation for accepted types\n")
   }
 }
 

@@ -278,8 +278,8 @@ class Tensor3View : public ConstTensor3View {
   }
 
   // Conversion to a plain C-array
-  const Numeric* get_c_array() const;
-  Numeric* get_c_array();
+  const Numeric* get_c_array() const ARTS_NOEXCEPT;
+  Numeric* get_c_array() ARTS_NOEXCEPT;
 
   // Functions returning iterators:
   Iterator3D begin();
@@ -358,11 +358,11 @@ class Tensor3 : public Tensor3View {
    * @param[in] r1 - The Range along the second dimension
    * @param[in] r2 - The Range along the third dimension
    */
-  Tensor3(Numeric* d, const Range& r0, const Range& r1, const Range& r2)
+  Tensor3(Numeric* d, const Range& r0, const Range& r1, const Range& r2) ARTS_NOEXCEPT
   : Tensor3View(d, r0, r1, r2) {
-    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r1.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r2.get_extent() < 0) throw std::runtime_error("Must have size");
+    ARTS_ASSERT (not (r0.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r1.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r2.get_extent() < 0), "Must have size");
   }
 
   // Assignment operators:
@@ -384,20 +384,20 @@ class Tensor3 : public Tensor3View {
   
   /*! Reduce a Tensor3 to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() && {
+  Vector reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim0 < 3, "Bad Dimension, Out-of-Bounds");
     
     Range r0(0, dim0 == 0 ? npages() : dim0 == 1 ? nrows() : ncols());
     
     Vector out(mdata, r0);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
   
   /*! Reduce a Tensor3 to a Matrix and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1>
-  Matrix reduce_rank() && {
+  Matrix reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim1 < 3, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     
@@ -405,7 +405,7 @@ class Tensor3 : public Tensor3View {
     const Range r0(0, dim0 == 0 ? npages() : nrows(), r1.get_extent());
     
     Matrix out(mdata, r0, r1);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }

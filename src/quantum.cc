@@ -31,11 +31,8 @@
 #include "special_interp.h"
 
 void ThrowIfQuantumNumberNameInvalid(String name) {
-  if (!IsValidQuantumNumberName(name)) {
-    ostringstream os;
-    os << "Invalid quantum number: " << name;
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!IsValidQuantumNumberName(name),
+    "Invalid quantum number: ", name)
 }
 
 std::istream& operator>>(std::istream& is, QuantumNumbers& qn) {
@@ -122,11 +119,8 @@ void QuantumIdentifier::SetFromString(String str) {
   // ok, now for the cool index map:
   // is this arts identifier valid?
   const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(token);
-  if (i == ArtsMap.end()) {
-    ostringstream os;
-    os << "ARTS Tag: " << token << " is unknown.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (i == ArtsMap.end(),
+    "ARTS Tag: ", token, " is unknown.")
 
   SpecIsoMap id = i->second;
   Species(id.Speciesindex());
@@ -136,11 +130,8 @@ void QuantumIdentifier::SetFromString(String str) {
   if (token == "TR") {
     mqtype = QuantumIdentifier::TRANSITION;
     is >> token;
-    if (token != "UP") {
-      std::ostringstream os;
-      os << "Expected 'UP', but got: " << token;
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (token != "UP",
+      "Expected 'UP', but got: ", token)
 
     is >> token;
     Rational r;
@@ -152,11 +143,8 @@ void QuantumIdentifier::SetFromString(String str) {
       if (token == "LO") break;
     }
 
-    if (!is) {
-      std::ostringstream os;
-      os << "Premature end of data, expected 'LO'.";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!is,
+      "Premature end of data, expected 'LO'.")
     is >> token;
     while (is) {
       ThrowIfQuantumNumberNameInvalid(token);
@@ -180,11 +168,10 @@ void QuantumIdentifier::SetFromString(String str) {
   } else if (token == "NONE") {
     mqtype = QuantumIdentifier::NONE;
   } else {
-    std::ostringstream os;
-    os << "Error parsing QuantumIdentifier. Expected TR or EN, but got: "
-       << token << "\n"
-       << "QI: " << str;
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Error parsing QuantumIdentifier. Expected TR or EN, but got: ",
+      token, "\n"
+      "QI: ", str)
   }
 }
 

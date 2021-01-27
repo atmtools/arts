@@ -33,10 +33,10 @@
 
 /*! Take all arguments and turn to string by their operator<<() */
 template <typename ... Args>
-std::string var_string(Args ... args) {
+std::string var_string(Args&& ... args) {
   if constexpr (sizeof...(Args) not_eq 0) {
     std::ostringstream os;
-    (os << ... << args);
+    ((os << std::forward<Args>(args)), ...);
     return os.str();
   } else {
     return "";

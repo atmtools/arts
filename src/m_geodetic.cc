@@ -55,8 +55,8 @@ void refellipsoidForAzimuth(Vector& refellipsoid,
                             const Numeric& latitude,
                             const Numeric& azimuth,
                             const Verbosity&) {
-  if (refellipsoid.nelem() != 2)
-    throw runtime_error("Input *refellispoid must be a vector of length 2*.");
+  ARTS_USER_ERROR_IF (refellipsoid.nelem() != 2,
+                      "Input *refellispoid must be a vector of length 2*.");
 
   if (refellipsoid[1] > 0) {
     const Numeric e2 = refellipsoid[1] * refellipsoid[1];
@@ -79,8 +79,8 @@ void refellipsoidForAzimuth(Vector& refellipsoid,
 void refellipsoidOrbitPlane(Vector& refellipsoid,
                             const Numeric& orbitinc,
                             const Verbosity&) {
-  if (refellipsoid.nelem() != 2)
-    throw runtime_error("Input *refellispoid must be a vector of length 2*.");
+  ARTS_USER_ERROR_IF (refellipsoid.nelem() != 2,
+                      "Input *refellispoid must be a vector of length 2*.");
   chk_if_in_range("orbitinc", orbitinc, 0, 180);
 
   // Radius at maximum latitude
@@ -112,8 +112,8 @@ void rte_poslosFromECEF(Vector& rte_pos,
                         const Matrix& sensor_los_ecef,
                         const Vector& refellipsoid,
                         const Verbosity& v) {
-  if (sensor_pos_ecef.nrows() != 1)
-    throw runtime_error("For this WSM, *sensor_pos_ecef* can only have one row.");
+  ARTS_USER_ERROR_IF (sensor_pos_ecef.nrows() != 1,
+                      "For this WSM, *sensor_pos_ecef* can only have one row.");
 
   Matrix sensor_pos, sensor_los;
   sensor_poslosFromECEF(sensor_pos,
@@ -138,8 +138,8 @@ void rte_poslosFromGeodetic(Vector& rte_pos,
                             const Matrix& sensor_los_geodetic,
                             const Vector& refellipsoid,
                             const Verbosity& v) {
-  if (sensor_pos_geodetic.nrows() != 1)
-    throw runtime_error("For this WSM, *sensor_pos_geodetic* can only have one row.");
+  ARTS_USER_ERROR_IF (sensor_pos_geodetic.nrows() != 1,
+                      "For this WSM, *sensor_pos_geodetic* can only have one row.");
 
   Matrix sensor_pos, sensor_los;
   sensor_poslosFromGeodetic(sensor_pos,
@@ -166,8 +166,8 @@ void sensor_poslosFromECEF(Matrix& sensor_pos,
                            const Verbosity&) {
   const Index ncols = sensor_pos_ecef.ncols();
   const Index nrows = sensor_pos_ecef.nrows();
-  if (ncols != 3)
-    throw runtime_error("*sensor_pos_geodetic* must have three columns.");
+  ARTS_USER_ERROR_IF (ncols != 3,
+                      "*sensor_pos_geodetic* must have three columns.");
   
   sensor_pos.resize( nrows, ncols );
 
@@ -186,12 +186,12 @@ void sensor_poslosFromECEF(Matrix& sensor_pos,
   }
   else {
     const Index ncols2 = sensor_los_ecef.ncols();
-    if (ncols2 != 3)
-      throw runtime_error("*sensor_los_ecef* must be empty or have "
-                          "three columns.");
-    if (nrows != sensor_los_ecef.nrows())
-      throw runtime_error("*sensor_los_ecef* must be empty or have the "
-                            "same number of rows as *sensor_pos_ecef*");
+    ARTS_USER_ERROR_IF (ncols2 != 3,
+                        "*sensor_los_ecef* must be empty or have "
+                        "three columns.");
+    ARTS_USER_ERROR_IF (nrows != sensor_los_ecef.nrows(),
+                        "*sensor_los_ecef* must be empty or have the "
+                        "same number of rows as *sensor_pos_ecef*");
 
     sensor_pos.resize( nrows, ncols );
     sensor_los.resize( nrows, 2 );
@@ -224,8 +224,8 @@ void sensor_poslosFromGeodetic(Matrix& sensor_pos,
                                const Verbosity&) {
   const Index ncols = sensor_pos_geodetic.ncols();
   const Index nrows = sensor_pos_geodetic.nrows();
-  if (ncols != 3)
-    throw runtime_error("*sensor_pos_geodetic* must have three columns.");
+  ARTS_USER_ERROR_IF (ncols != 3,
+                      "*sensor_pos_geodetic* must have three columns.");
   
   // No conversion to do if geoid is spherical
   if (refellipsoid[1] < 1e-7) {
@@ -253,12 +253,12 @@ void sensor_poslosFromGeodetic(Matrix& sensor_pos,
       }
     } else {
       const Index ncols2 = sensor_los_geodetic.ncols();
-      if (ncols2 != 2)
-        throw runtime_error("*sensor_los_geodetic* must be empty or have "
-                             "two columns.");
-      if (nrows != sensor_los_geodetic.nrows())
-        throw runtime_error("*sensor_los_geodetic* must be empty or have the "
-                            "same number of rows as *sensor_pos_geodetic*");
+      ARTS_USER_ERROR_IF (ncols2 != 2,
+                          "*sensor_los_geodetic* must be empty or have "
+                          "two columns.");
+      ARTS_USER_ERROR_IF (nrows != sensor_los_geodetic.nrows(),
+                          "*sensor_los_geodetic* must be empty or have the "
+                          "same number of rows as *sensor_pos_geodetic*");
 
       sensor_pos.resize( nrows, ncols );
       sensor_los.resize( nrows, ncols2 );

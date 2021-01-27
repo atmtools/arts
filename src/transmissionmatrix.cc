@@ -1377,7 +1377,8 @@ void update_radiation_vector(RadiationVector& I,
     } break;
     
     case RadiativeTransferSolver::LinearWeightedEmission: {
-      if (dI1.size()) throw std::runtime_error("Cannot support derivatives with current integration method\n");
+      ARTS_USER_ERROR_IF (dI1.size(),
+                          "Cannot support derivatives with current integration method\n");
       
       I.leftMul(T);
       I.add_weighted(T, J1, J2, K1.Data()(ia, iz, joker, joker), K2.Data()(ia, iz, joker, joker), r);  

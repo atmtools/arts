@@ -226,8 +226,8 @@ public:
    */
   SingleLine(size_t nbroadeners, size_t nquanta, const LineShape::Model& metamodel) :
   mlineshape(metamodel), mlowerquanta(nquanta), mupperquanta(nquanta) {
-    if(Index(nbroadeners) not_eq mlineshape.nelem())
-      throw std::runtime_error("Mismatch between broadeners and model");
+    ARTS_USER_ERROR_IF(Index(nbroadeners) not_eq mlineshape.nelem(),
+                       "Mismatch between broadeners and model");
   }
   
   //////////////////////////////////////////////////////////////////

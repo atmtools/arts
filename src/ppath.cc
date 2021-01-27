@@ -541,8 +541,7 @@ void error_if_limb_ppath(const Ppath& ppath) {
   if (ppath.np > 2) {
     Numeric signfac = sign(ppath.pos(1, 0) - ppath.pos(0, 0));
     for (Index i = 2; i < ppath.np; i++) {
-      if (signfac * (ppath.pos(i, 0) - ppath.pos(i - 1, 0)) < 0)
-        throw runtime_error(
+      ARTS_USER_ERROR_IF (signfac * (ppath.pos(i, 0) - ppath.pos(i - 1, 0)) < 0,
             "A propagation path of limb character found. Such "
             "viewing geometries are not supported by this method. "
             "Propagation paths must result in strictly "
@@ -1163,7 +1162,7 @@ void plevel_slope_3d(Numeric& c1,
     if (lat_grid[llat] > POLELAT) {
       ilat = llat - 1;
     } else {
-      throw runtime_error(
+      ARTS_USER_ERROR_IF (true,
           "The upper latitude end of the atmosphere "
           "reached, that is not allowed.");
     }
@@ -1173,7 +1172,7 @@ void plevel_slope_3d(Numeric& c1,
     if (is_lon_cyclic(lon_grid)) {
       ilon = 0;
     } else {
-      throw runtime_error(
+      ARTS_USER_ERROR_IF (true,
           "The upper longitude end of the atmosphere "
           "reached, that is not allowed.");
     }
@@ -1470,9 +1469,8 @@ void ppath_set_background(Ppath& ppath, const Index& case_nr) {
       ppath.background = "transmitter";
       break;
     default:
-      ostringstream os;
-      os << "Case number " << case_nr << " is not defined.";
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR_IF (true,
+                          "Case number ", case_nr, " is not defined.")
   }
 }
 
@@ -1490,10 +1488,9 @@ Index ppath_what_background(const Ppath& ppath) {
   } else if (ppath.background == "transmitter") {
     return 9;
   } else {
-    ostringstream os;
-    os << "The string " << ppath.background
-       << " is not a valid background case.";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "The string ", ppath.background,
+      " is not a valid background case.")
   }
 }
 
@@ -4513,12 +4510,9 @@ void ppath_start_stepping(Ppath& ppath,
     // Sensor is inside the model atmosphere:
     if (rte_pos[0] < z_field(lp, 0, 0)) {
       // Check that the sensor is above the surface
-      if ((rte_pos[0] + RTOL) < z_surface(0, 0)) {
-        ostringstream os;
-        os << "The ppath starting point is placed "
-           << (z_surface(0, 0) - rte_pos[0]) / 1e3 << " km below the surface.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF ((rte_pos[0] + RTOL) < z_surface(0, 0),
+          "The ppath starting point is placed ",
+          (z_surface(0, 0) - rte_pos[0]) / 1e3, " km below the surface.")
 
       // Set ppath
       ppath.pos(0, joker) = ppath.end_pos;
@@ -4630,12 +4624,9 @@ void ppath_start_stepping(Ppath& ppath,
       const Numeric z_s = interp(itw, z_surface(joker, 0), gp_lat);
 
       // Check that the sensor is above the surface
-      if ((rte_pos[0] + RTOL) < z_s) {
-        ostringstream os;
-        os << "The ppath starting point is placed " << (z_s - rte_pos[0]) / 1e3
-           << " km below the surface.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF ((rte_pos[0] + RTOL) < z_s,
+          "The ppath starting point is placed ", (z_s - rte_pos[0]) / 1e3,
+          " km below the surface.")
 
       // Set ppath
       ppath.pos(0, joker) = ppath.end_pos;
@@ -4707,15 +4698,12 @@ void ppath_start_stepping(Ppath& ppath,
     // Sensor is outside the model atmosphere:
     else {
       // Handle cases when the sensor looks in the wrong way
-      if ((rte_pos[1] <= lat_grid[0] && rte_los[0] <= 0) ||
-          (rte_pos[1] >= lat_grid[llat] && rte_los[0] >= 0)) {
-        ostringstream os;
-        os << "The sensor is outside (or at the limit) of the model "
-           << "atmosphere but\nlooks in the wrong direction (wrong sign "
-           << "for the zenith angle?).\nThis case includes nadir "
-           << "looking exactly at the latitude end points.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF ((rte_pos[1] <= lat_grid[0] && rte_los[0] <= 0) ||
+                          (rte_pos[1] >= lat_grid[llat] && rte_los[0] >= 0),
+          "The sensor is outside (or at the limit) of the model "
+          "atmosphere but\nlooks in the wrong direction (wrong sign "
+          "for the zenith angle?).\nThis case includes nadir "
+          "looking exactly at the latitude end points.")
 
       // We can here set ppc and n as we are outside the atmosphere
       ppath.nreal = 1.0;
@@ -4736,15 +4724,12 @@ void ppath_start_stepping(Ppath& ppath,
           r_toa_max = r_toa[ilat];
         }
       }
-      if (r_p <= r_toa_max) {
-        ostringstream os;
-        os << "The sensor is horizontally outside (or at the limit) of "
-           << "the model\natmosphere, but is at a radius smaller than "
-           << "the maximum value of\nthe top-of-the-atmosphere radii. "
-           << "This is not allowed. Make the\nmodel atmosphere larger "
-           << "to also cover the sensor position?";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (r_p <= r_toa_max,
+          "The sensor is horizontally outside (or at the limit) of "
+          "the model\natmosphere, but is at a radius smaller than "
+          "the maximum value of\nthe top-of-the-atmosphere radii. "
+          "This is not allowed. Make the\nmodel atmosphere larger "
+          "to also cover the sensor position?")
 
       // Upward:
       if (abs(rte_los[0]) <= 90) {
@@ -4813,13 +4798,11 @@ void ppath_start_stepping(Ppath& ppath,
           }
         }  // while
 
-        if (failed) {
-          ostringstream os;
-          os << "The path does not enter the model atmosphere. It "
-             << "reaches the\ntop of the atmosphere "
-             << "altitude around latitude " << latt << " deg.";
-          throw runtime_error(os.str());
-        } else if (above) {
+        ARTS_USER_ERROR_IF (failed,
+            "The path does not enter the model atmosphere. It "
+            "reaches the\ntop of the atmosphere "
+            "altitude around latitude ", latt, " deg.")
+        if (above) {
           ppath.pos(0, 0) = rte_pos[0];
           ppath.pos(0, 1) = rte_pos[1];
           ppath.r[0] = r_e + rte_pos[0];
@@ -4900,12 +4883,9 @@ void ppath_start_stepping(Ppath& ppath,
       const Numeric z_s = interp(itw, z_surface, gp_lat, gp_lon);
 
       // Check that the sensor is above the surface
-      if ((rte_pos[0] + RTOL) < z_s) {
-        ostringstream os;
-        os << "The ppath starting point is placed " << (z_s - rte_pos[0]) / 1e3
-           << " km below the surface.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF ((rte_pos[0] + RTOL) < z_s,
+          "The ppath starting point is placed ", (z_s - rte_pos[0]) / 1e3,
+          " km below the surface.")
 
       // Set ppath
       ppath.pos(0, joker) = ppath.end_pos;
@@ -5007,15 +4987,12 @@ void ppath_start_stepping(Ppath& ppath,
         }
       }
 
-      if (r_p <= r_toa_max) {
-        ostringstream os;
-        os << "The sensor is horizontally outside (or at the limit) of "
-           << "the model\natmosphere, but is at a radius smaller than "
-           << "the maximum value of\nthe top-of-the-atmosphere radii. "
-           << "This is not allowed. Make the\nmodel atmosphere larger "
-           << "to also cover the sensor position?";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (r_p <= r_toa_max,
+          "The sensor is horizontally outside (or at the limit) of "
+          "the model\natmosphere, but is at a radius smaller than "
+          "the maximum value of\nthe top-of-the-atmosphere radii. "
+          "This is not allowed. Make the\nmodel atmosphere larger "
+          "to also cover the sensor position?")
 
       // Upward:
       if (rte_los[0] <= 90) {
@@ -5115,13 +5092,11 @@ void ppath_start_stepping(Ppath& ppath,
           }
         }  // while
 
-        if (failed) {
-          ostringstream os;
-          os << "The path does not enter the model atmosphere. It\n"
-             << "reaches the top of the atmosphere altitude around:\n"
-             << "  lat: " << latt << " deg.\n  lon: " << lont << " deg.";
-          throw runtime_error(os.str());
-        } else if (above) {
+        ARTS_USER_ERROR_IF (failed,
+            "The path does not enter the model atmosphere. It\n"
+            "reaches the top of the atmosphere altitude around:\n"
+            "  lat: ", latt, " deg.\n  lon: ", lont, " deg.")
+        if (above) {
           ppath.pos(0, 0) = rte_pos[0];
           ppath.pos(0, 1) = rte_pos[1];
 //           ppath.pos(0, 1) = lon2use;
@@ -5215,8 +5190,7 @@ void ppath_calc(Workspace& ws,
   //--- Check input -----------------------------------------------------------
   chk_rte_pos(atmosphere_dim, rte_pos);
   chk_rte_los(atmosphere_dim, rte_los);
-  if (ppath_inside_cloudbox_do && !cloudbox_on)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (ppath_inside_cloudbox_do && !cloudbox_on,
         "The WSV *ppath_inside_cloudbox_do* can only be set "
         "to 1 if also *cloudbox_on* is 1.");
   //--- End: Check input ------------------------------------------------------
@@ -5292,8 +5266,7 @@ void ppath_calc(Workspace& ws,
     // Increase the total number
     np += n - 1;
 
-    if (istep > (Index)1e4)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (istep > 10'000,
           "10 000 path points have been reached. Is this an infinite loop?");
 
     //----------------------------------------------------------------------
@@ -5314,39 +5287,27 @@ void ppath_calc(Workspace& ws,
       // Check that path does not exit at a latitude or longitude end face
       if (atmosphere_dim == 2) {
         // Latitude
-        if (is_gridpos_at_index_i(ppath_step.gp_lat[n - 1], 0)) {
-          ostringstream os;
-          os << "The path exits the atmosphere through the lower "
-             << "latitude end face.\nThe exit point is at an altitude"
-             << " of " << ppath_step.pos(n - 1, 0) / 1e3 << " km.";
-          throw runtime_error(os.str());
-        }
-        if (is_gridpos_at_index_i(ppath_step.gp_lat[n - 1], imax_lat)) {
-          ostringstream os;
-          os << "The path exits the atmosphere through the upper "
-             << "latitude end face.\nThe exit point is at an altitude"
-             << " of " << ppath_step.pos(n - 1, 0) / 1e3 << " km.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (is_gridpos_at_index_i(ppath_step.gp_lat[n - 1], 0),
+            "The path exits the atmosphere through the lower "
+            "latitude end face.\nThe exit point is at an altitude"
+            " of ", ppath_step.pos(n - 1, 0) / 1e3, " km.")
+        ARTS_USER_ERROR_IF (is_gridpos_at_index_i(ppath_step.gp_lat[n - 1], imax_lat),
+            "The path exits the atmosphere through the upper "
+            "latitude end face.\nThe exit point is at an altitude"
+            " of ", ppath_step.pos(n - 1, 0) / 1e3, " km.")
       }
       if (atmosphere_dim == 3) {
         // Latitude
-        if (lat_grid[0] > -90 &&
-            is_gridpos_at_index_i(ppath_step.gp_lat[n - 1], 0)) {
-          ostringstream os;
-          os << "The path exits the atmosphere through the lower "
-             << "latitude end face.\nThe exit point is at an altitude"
-             << " of " << ppath_step.pos(n - 1, 0) / 1e3 << " km.";
-          throw runtime_error(os.str());
-        }
-        if (lat_grid[imax_lat] < 90 &&
-            is_gridpos_at_index_i(ppath_step.gp_lat[n - 1], imax_lat)) {
-          ostringstream os;
-          os << "The path exits the atmosphere through the upper "
-             << "latitude end face.\nThe exit point is at an altitude"
-             << " of " << ppath_step.pos(n - 1, 0) / 1e3 << " km.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (lat_grid[0] > -90 &&
+            is_gridpos_at_index_i(ppath_step.gp_lat[n - 1], 0),
+            "The path exits the atmosphere through the lower "
+            "latitude end face.\nThe exit point is at an altitude"
+            " of ", ppath_step.pos(n - 1, 0) / 1e3, " km.")
+        ARTS_USER_ERROR_IF (lat_grid[imax_lat] < 90 &&
+            is_gridpos_at_index_i(ppath_step.gp_lat[n - 1], imax_lat),
+            "The path exits the atmosphere through the upper "
+            "latitude end face.\nThe exit point is at an altitude"
+            " of ", ppath_step.pos(n - 1, 0) / 1e3, " km.")
 
         // Longitude
         // Note that it must be if and else if here. Otherwise e.g. -180
@@ -5360,11 +5321,10 @@ void ppath_calc(Workspace& ws,
             gridpos(
                 ppath_step.gp_lon[n - 1], lon_grid, ppath_step.pos(n - 1, 2));
           } else {
-            ostringstream os;
-            os << "The path exits the atmosphere through the lower "
-               << "longitude end face.\nThe exit point is at an "
-               << "altitude of " << ppath_step.pos(n - 1, 0) / 1e3 << " km.";
-            throw runtime_error(os.str());
+            ARTS_USER_ERROR_IF (true,
+                                "The path exits the atmosphere through the lower "
+                                "longitude end face.\nThe exit point is at an "
+                                "altitude of ", ppath_step.pos(n - 1, 0) / 1e3, " km.")
           }
         } else if (is_gridpos_at_index_i(ppath_step.gp_lon[n - 1], imax_lon) &&
                    ppath_step.los(n - 1, 1) > 0 &&
@@ -5375,11 +5335,10 @@ void ppath_calc(Workspace& ws,
             gridpos(
                 ppath_step.gp_lon[n - 1], lon_grid, ppath_step.pos(n - 1, 2));
           } else {
-            ostringstream os;
-            os << "The path exits the atmosphere through the upper "
-               << "longitude end face.\nThe exit point is at an "
-               << "altitude of " << ppath_step.pos(n - 1, 0) / 1e3 << " km.";
-            throw runtime_error(os.str());
+            ARTS_USER_ERROR_IF (true,
+                                "The path exits the atmosphere through the upper "
+                                "longitude end face.\nThe exit point is at an "
+                                "altitude of ", ppath_step.pos(n - 1, 0) / 1e3, " km.")
           }
         }
       }

@@ -506,6 +506,32 @@ void abs_xsec_per_speciesInit(  // WS Output:
   out3 << os.str();
 }
 
+
+String continua_model_error_message(const ArrayOfString& abs_cont_names,
+                                    const ArrayOfVector& abs_cont_parameters,
+                                    const ArrayOfString& abs_cont_models) {
+  std::ostringstream os;
+  
+  for (Index i = 0; i < abs_cont_names.nelem(); ++i)
+    os << "abs_xsec_per_speciesAddConts: " << i
+       << " name : " << abs_cont_names[i] << "\n";
+  
+  for (Index i = 0; i < abs_cont_parameters.nelem(); ++i)
+    os << "abs_xsec_per_speciesAddConts: " << i
+       << " param: " << abs_cont_parameters[i] << "\n";	
+  
+  for (Index i = 0; i < abs_cont_models.nelem(); ++i)	
+    os << "abs_xsec_per_speciesAddConts: " << i
+       << " option: " << abs_cont_models[i] << "\n";	
+  
+  os << "The following variables must have the same dimension:\n"	
+     << "abs_cont_names:      " << abs_cont_names.nelem() << "\n"	
+     << "abs_cont_parameters: " << abs_cont_parameters.nelem();	
+  
+  return os.str();
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddConts(  // WS Output:
     ArrayOfMatrix& abs_xsec_per_species,
@@ -568,16 +594,12 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
   }
   // Jacobian overhead END
 
+  
+  
   // Check, that dimensions of abs_cont_names and
   // abs_cont_parameters are consistent...
   ARTS_USER_ERROR_IF (abs_cont_names.nelem() != abs_cont_parameters.nelem(),
-    "The following variables must have the same dimension:\n"
-    "abs_cont_names:      ", abs_cont_names.nelem(), "\n"
-    "abs_cont_parameters: ", abs_cont_parameters.nelem(), "\n"
-    "They have these contents:\n\t"
-    "abs_cont_names:", abs_cont_names, "\n\t"
-    "abs_cont_parameters:", abs_cont_parameters, "\n\t"
-    "abs_cont_models", abs_cont_models)
+    continua_model_error_message(abs_cont_names, abs_cont_parameters, abs_cont_models))
 
   // Check that abs_p, abs_t, and abs_vmrs have the same
   // dimension. This could be a user error, so we throw a

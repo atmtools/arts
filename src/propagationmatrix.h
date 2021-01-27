@@ -319,8 +319,7 @@ class PropagationMatrix {
         mstokes_dim = 1;
         break;
       default:
-        throw std::runtime_error(
-            "Tensor4 not representative of PropagationMatrix");
+        ARTS_ASSERT(false, "Tensor4 not representative of PropagationMatrix");
     }
   }
 
@@ -335,9 +334,8 @@ class PropagationMatrix {
     mvectortype = false;
 
     if (not assume_fit) {
-      if (not FittingShape(x)) {
-        throw std::runtime_error("Matrix not fit as propagation matrix");
-      }
+      ARTS_ASSERT(FittingShape(x),
+        "Matrix not fit as propagation matrix");
     }
 
     mdata.resize(1, 1, 1, NumberOfNeededVectors());
@@ -414,6 +412,8 @@ class PropagationMatrix {
   };
 
   /** The number of required vectors to fill this PropagationMatrix */
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wreturn-type"
   Index NumberOfNeededVectors() const {
     if (not mvectortype) {
       switch (mstokes_dim) {
@@ -430,13 +430,14 @@ class PropagationMatrix {
           return 7;
           break;
         default:
-          throw std::runtime_error(
+          ARTS_ASSERT (false,
               "Cannot understand the input in PropagationMatrix");
       }
     } else {
       return mstokes_dim;
     }
   }
+  #pragma GCC diagnostic pop
 
   /** access operator.  Please refrain from using this if possible since it copies */
   Numeric operator()(const Index iv = 0,
@@ -1271,8 +1272,8 @@ class StokesVector final : public PropagationMatrix {
     maa = x.nbooks();
     mdata = x;
     mvectortype = true;
-    if (mstokes_dim > 4 or mstokes_dim < 1)
-      throw std::runtime_error("Tensor4 is bad for StokesVector");
+    ARTS_ASSERT (not (mstokes_dim > 4 or mstokes_dim < 1),
+      "Tensor4 is bad for StokesVector");
   }
 
   /** Construct a new Stokes Vector object

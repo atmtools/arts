@@ -390,7 +390,7 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
       Makarov2020etal::relaxation_matrix_offdiagonal<param>(W.imag(), T, band, sorting, band.SpeciesMass(), species_mass);
       break;
     default:
-      throw std::runtime_error("Bad type [developer error: do not reach here]");
+      ARTS_ASSERT (false, "Bad type");
       break;
   }
   
@@ -747,7 +747,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
         }
         vec /= -d;
       } else {
-        throw std::runtime_error("[DEV bug] Missing Line Derivative");
+        ARTS_ASSERT (false, "Missing Line Derivative");
       }
     } else {
       vec *= 0;  // No derivative, so don't mess around and remove everything
@@ -1038,7 +1038,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
         }
         vec /= -d;
       } else {
-        throw std::runtime_error("[DEV bug] Missing Line Derivative");
+        ARTS_ASSERT (false, "Missing Line Derivative");
       }
     } else {
       vec *= 0;  // No derivative, so don't mess around and remove everything

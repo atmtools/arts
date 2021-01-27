@@ -31,8 +31,8 @@
 Output2 EnergyLevelMap::get_ratio_params(
   const AbsorptionLines& band, const Index& line_index) const
 {
-  if (mtype not_eq EnergyLevelMapType::Numeric_t)
-    throw std::runtime_error("Must have Numeric_t, input type is bad");
+  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Numeric_t,
+                      "Must have Numeric_t, input type is bad");
     
   Output2 x{/*.r_low=*/0, /*.r_upp=*/0};
   
@@ -60,8 +60,8 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   const Index& line_index,
   const Numeric T) const
 {
-  if (mtype not_eq EnergyLevelMapType::Numeric_t)
-    throw std::runtime_error("Must have Numeric_t, input type is bad");
+  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Numeric_t,
+                      "Must have Numeric_t, input type is bad");
   
   Output4 x{/*.E_low=*/0, /*.E_upp=*/0, /*.T_low=*/T, /*.T_upp=*/T};
   
@@ -120,8 +120,8 @@ EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const Array
 {
   if (mtype == EnergyLevelMapType::None_t)
     return EnergyLevelMap();
-  else if (mtype not_eq EnergyLevelMapType::Tensor3_t)
-    throw std::runtime_error("Must have Tensor3_t, input type is bad");
+  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Tensor3_t,
+                      "Must have Tensor3_t, input type is bad");
   
   EnergyLevelMap elm(EnergyLevelMapType::Vector_t, 1, 1, p.nelem(), *this);
   
@@ -142,15 +142,12 @@ EnergyLevelMap EnergyLevelMap::operator[](Index ip) const
     return EnergyLevelMap();
   if (mtype == EnergyLevelMapType::Numeric_t)
     return *this;
-  else if (mtype not_eq EnergyLevelMapType::Vector_t)
-    throw std::runtime_error("Must have Vector_t, input type is bad");
+  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Vector_t
+  ,"Must have Vector_t, input type is bad");
   
-  if (ip >= mvalue.ncols() or ip < 0) {
-    std::ostringstream os;
-    os << "Bad dims for data:\n\tThe pressure dim of data contains: "
-    << mvalue.ncols() << " values and you are requesting element index " << ip << "\n";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (ip >= mvalue.ncols() or ip < 0,
+    "Bad dims for data:\n\tThe pressure dim of data contains: ",
+    mvalue.ncols(), " values and you are requesting element index ", ip, "\n")
   
   EnergyLevelMap elm(EnergyLevelMapType::Numeric_t, 1, 1, 1, *this);
   elm.mvalue(joker, 0, 0, 0) = mvalue(joker, 0, 0, ip);
@@ -167,10 +164,9 @@ EnergyLevelMapType string2energylevelmaptype(const String& s) {
   else if (s == "None")
     return EnergyLevelMapType::None_t;
   else {
-    std::ostringstream os;
-    os << "Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
-       << "You request to have an EnergyLevelMap of type: " << s << '\n';
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+                        "Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
+                        "You request to have an EnergyLevelMap of type: ", s, '\n')
   }
 }
 
@@ -200,8 +196,8 @@ EnergyLevelMap EnergyLevelMap::operator()(Index ip, Index ilat, Index ilon) cons
 {
   if (mtype == EnergyLevelMapType::None_t or mtype == EnergyLevelMapType::Numeric_t)
     return *this;
-  else if (mtype not_eq EnergyLevelMapType::Tensor3_t)
-    throw std::runtime_error("Must have Tensor3_t, input type is bad");
+  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Tensor3_t,
+                      "Must have Tensor3_t, input type is bad");
   
   auto elm = EnergyLevelMap(EnergyLevelMapType::Numeric_t, 1, 1, 1, *this);
   elm.mvalue(joker, 0, 0, 0) = mvalue(joker, ip, ilat, ilon);

@@ -4983,8 +4983,8 @@ This function returns a pointer to the raw data. It fails if the
 Tensor5View is not pointing to the beginning of a Tensor5 or the stride
 is not 1 because the caller expects to get a C array with continuous data.
 */
-Numeric* Tensor7View::get_c_array() {
-  if (mlr.mstart != 0 ||
+Numeric* Tensor7View::get_c_array() ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mlr.mstart != 0 ||
       mlr.mstride != mvr.mextent * msr.mextent * mbr.mextent * mpr.mextent *
                          mrr.mextent * mcr.mextent ||
       mvr.mstart != 0 ||
@@ -4996,8 +4996,7 @@ Numeric* Tensor7View::get_c_array() {
       mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
       mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
       mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+      mcr.mstride != 1),
         "A Tensor7View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
@@ -5009,8 +5008,8 @@ Numeric* Tensor7View::get_c_array() {
   Tensor5View is not pointing to the beginning of a Tensor5 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Numeric* Tensor7View::get_c_array() const {
-  if (mlr.mstart != 0 ||
+const Numeric* Tensor7View::get_c_array() const ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mlr.mstart != 0 ||
       mlr.mstride != mvr.mextent * msr.mextent * mbr.mextent * mpr.mextent *
                          mrr.mextent * mcr.mextent ||
       mvr.mstart != 0 ||
@@ -5022,8 +5021,7 @@ const Numeric* Tensor7View::get_c_array() const {
       mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
       mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
       mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+      mcr.mstride != 1),
         "A Tensor7View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;

@@ -45,9 +45,6 @@
 #include "rt4.h"
 #include "rte.h"
 
-using std::ostringstream;
-using std::runtime_error;
-
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -73,73 +70,56 @@ void check_rt4_input(  // Output
     const Index& add_straight_angles,
     const Index& pnd_ncols) {
   // Don't do anything if there's no cloudbox defined.
-  if (!cloudbox_on) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!cloudbox_on,
         "Cloudbox is off, no scattering calculations to be"
         " performed.");
-  }
 
-  if (atmfields_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have"
         " passed a consistency check (atmfields_checked=1).");
-  if (atmgeom_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have"
         " passed a consistency check (atmgeom_checked=1).");
-  if (cloudbox_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_checked != 1,
         "The cloudbox must be flagged to have"
         " passed a consistency check (cloudbox_checked=1).");
-  if (scat_data_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (scat_data_checked != 1,
         "The scat_data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
-  if (atmosphere_dim != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
         "For running RT4, atmospheric dimensionality"
         " must be 1.\n");
 
-  if (stokes_dim < 0 || stokes_dim > 2)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (stokes_dim < 0 || stokes_dim > 2,
         "For running RT4, the dimension of stokes vector"
         " must be 1 or 2.\n");
 
-  if (cloudbox_limits[0] != 0) {
-    ostringstream os;
-    os << "RT4 calculations currently only possible with"
-       << " lower cloudbox limit\n"
-       << "at 0th atmospheric level"
-       << " (assumes surface there, ignoring z_surface).\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (cloudbox_limits[0] != 0,
+    "RT4 calculations currently only possible with"
+    " lower cloudbox limit\n"
+    "at 0th atmospheric level"
+    " (assumes surface there, ignoring z_surface).\n")
 
-  if (cloudbox_limits.nelem() != 2 * atmosphere_dim)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
         "*cloudbox_limits* is a vector which contains the"
         " upper and lower limit of the cloud for all"
         " atmospheric dimensions. So its dimension must"
         " be 2 x *atmosphere_dim*");
 
-  if (scat_data.empty())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (scat_data.empty(),
         "No single scattering data present.\n"
         "See documentation of WSV *scat_data* for options to"
         " make single scattering data available.\n");
 
-  if (pnd_ncols != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (pnd_ncols != 1,
         "*pnd_field* is not 1D! \n"
         "RT4 can only be used for 1D!\n");
 
-  if (quad_type.length() > 1) {
-    ostringstream os;
-    os << "Input parameter *quad_type* not allowed to contain more than a"
-       << " single character.\n"
-       << "Yours has " << quad_type.length() << ".\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (quad_type.length() > 1,
+    "Input parameter *quad_type* not allowed to contain more than a"
+    " single character.\n"
+    "Yours has ", quad_type.length(), ".\n")
 
   if (quad_type == "D" || quad_type == "G") {
     if (add_straight_angles)
@@ -149,22 +129,19 @@ void check_rt4_input(  // Output
   } else if (quad_type == "L") {
     nhza = 0;
   } else {
-    ostringstream os;
-    os << "Unknown quadrature type: " << quad_type
-       << ".\nOnly D, G, and L allowed.\n";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Unknown quadrature type: ", quad_type,
+      ".\nOnly D, G, and L allowed.\n")
   }
 
   // RT4 actually uses number of angles in single hemisphere. However, we don't
   // want a bunch of different approaches used in the interface, so we apply the
   // DISORT (and ARTS) way of total number of angles here. Hence, we have to
   // ensure here that total number is even.
-  if (nstreams / 2 * 2 != nstreams) {
-    ostringstream os;
-    os << "RT4 requires an even number of streams, but yours is " << nstreams
-       << ".\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (nstreams / 2 * 2 != nstreams,
+    "RT4 requires an even number of streams, but yours is ", nstreams,
+    ".\n")
+  
   nhstreams = nstreams / 2;
   // nummu is the total number of angles in one hemisphere, including both
   // the quadrature angles and the "extra" angles.
@@ -177,16 +154,14 @@ void check_rt4_input(  // Output
       if (scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND &&
           scat_data[i_ss][i_se].ptype != PTYPE_AZIMUTH_RND)
         no_arb_ori = false;
-  if (!no_arb_ori) {
-    ostringstream os;
-    os << "RT4 can only handle scattering elements of type " << PTYPE_TOTAL_RND
-       << " (" << PTypeToString(PTYPE_TOTAL_RND) << ") and\n"
-       << PTYPE_AZIMUTH_RND << " (" << PTypeToString(PTYPE_AZIMUTH_RND)
-       << "),\n"
-       << "but at least one element of other type (" << PTYPE_GENERAL << "="
-       << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
-    throw runtime_error(os.str());
-  }
+  
+  ARTS_USER_ERROR_IF (!no_arb_ori,
+    "RT4 can only handle scattering elements of type ", PTYPE_TOTAL_RND,
+    " (", PTypeToString(PTYPE_TOTAL_RND), ") and\n",
+    PTYPE_AZIMUTH_RND, " (", PTypeToString(PTYPE_AZIMUTH_RND),
+    "),\n"
+    "but at least one element of other type (", PTYPE_GENERAL, "=",
+    PTypeToString(PTYPE_GENERAL), ") is present.\n")
 
   //------------- end of checks ---------------------------------------
 }
@@ -241,22 +216,17 @@ void get_rt4surf_props(  // Output
     ConstTensor3View surface_reflectivity,
     const GriddedField3& surface_complex_refr_index,
     const Index& stokes_dim) {
-  if (surface_skin_t < 0. || surface_skin_t > 1000.) {
-    ostringstream os;
-    os << "Surface temperature is set to " << surface_skin_t << " K,\n"
-       << "which is not considered a meaningful value.\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (surface_skin_t < 0. || surface_skin_t > 1000.,
+    "Surface temperature is set to ", surface_skin_t, " K,\n"
+    "which is not considered a meaningful value.\n")
 
   const Index nf = f_grid.nelem();
 
   if (ground_type == "L")  // RT4's proprietary Lambertian
   {
-    if (min(surface_scalar_reflectivity) < 0 ||
-        max(surface_scalar_reflectivity) > 1) {
-      throw runtime_error(
-          "All values in *surface_scalar_reflectivity* must be inside [0,1].");
-    }
+    ARTS_USER_ERROR_IF (min(surface_scalar_reflectivity) < 0 ||
+                        max(surface_scalar_reflectivity) > 1,
+          "All values in *surface_scalar_reflectivity* must be inside [0,1].")
 
     // surface albedo
     if (surface_scalar_reflectivity.nelem() == f_grid.nelem())
@@ -264,14 +234,13 @@ void get_rt4surf_props(  // Output
     else if (surface_scalar_reflectivity.nelem() == 1)
       ground_albedo += surface_scalar_reflectivity[0];
     else {
-      ostringstream os;
-      os << "For Lambertian surface reflection, the number of elements in\n"
-         << "*surface_scalar_reflectivity* needs to match the length of\n"
-         << "*f_grid* or be 1."
-         << "\n length of *f_grid* : " << f_grid.nelem()
-         << "\n length of *surface_scalar_reflectivity* : "
-         << surface_scalar_reflectivity.nelem() << "\n";
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR_IF(true,
+      "For Lambertian surface reflection, the number of elements in\n"
+      "*surface_scalar_reflectivity* needs to match the length of\n"
+      "*f_grid* or be 1."
+      "\n length of *f_grid* : ", f_grid.nelem(),
+      "\n length of *surface_scalar_reflectivity* : ",
+      surface_scalar_reflectivity.nelem(), "\n")
     }
 
   } else if (ground_type == "S")  // RT4's 'proprietary' Specular
@@ -279,18 +248,13 @@ void get_rt4surf_props(  // Output
     const Index ref_sto = surface_reflectivity.nrows();
 
     chk_if_in_range("surface_reflectivity's stokes_dim", ref_sto, 1, 4);
-    if (ref_sto != surface_reflectivity.ncols()) {
-      ostringstream os;
-      os << "The number of rows and columnss in *surface_reflectivity*\n"
-         << "must match each other.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (ref_sto != surface_reflectivity.ncols(),
+      "The number of rows and columnss in *surface_reflectivity*\n"
+      "must match each other.")
 
-    if (min(surface_reflectivity(joker, 0, 0)) < 0 ||
-        max(surface_reflectivity(joker, 0, 0)) > 1) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (min(surface_reflectivity(joker, 0, 0)) < 0 ||
+                        max(surface_reflectivity(joker, 0, 0)) > 1,
           "All r11 values in *surface_reflectivity* must be inside [0,1].");
-    }
 
     // surface reflectivity
     if (surface_reflectivity.npages() == f_grid.nelem())
@@ -310,14 +274,13 @@ void get_rt4surf_props(  // Output
           ground_reflec(f_index, joker, joker) += surface_reflectivity(
               0, Range(0, stokes_dim), Range(0, stokes_dim));
     else {
-      ostringstream os;
-      os << "For specular surface reflection, the number of elements in\n"
-         << "*surface_reflectivity* needs to match the length of\n"
-         << "*f_grid* or be 1."
-         << "\n length of *f_grid* : " << f_grid.nelem()
-         << "\n length of *surface_reflectivity* : "
-         << surface_reflectivity.npages() << "\n";
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR_IF (true,
+        "For specular surface reflection, the number of elements in\n"
+        "*surface_reflectivity* needs to match the length of\n"
+        "*f_grid* or be 1."
+        "\n length of *f_grid* : ", f_grid.nelem(),
+        "\n length of *surface_reflectivity* : ",
+        surface_reflectivity.npages(), "\n")
     }
 
   } else if (ground_type == "F")  // RT4's proprietary Fresnel
@@ -335,9 +298,7 @@ void get_rt4surf_props(  // Output
       ground_index[f_index] = Complex(n_real(f_index, 0), n_imag(f_index, 0));
     }
   } else {
-    ostringstream os;
-    os << "Unknown surface type.\n";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true, "Unknown surface type.\n")
   }
 }
 
@@ -677,41 +638,39 @@ void run_rt4(Workspace& ws,
 
       if (pfct_failed) {
         nummu_new = nummu_new - 1;
-        ostringstream os;
+        std::ostringstream os;
         os << "Could not increase nstreams sufficiently (current: "
            << 2 * nummu_new << ")\n"
            << "to satisfy scattering matrix norm at f[" << f_index
            << "]=" << f_grid[f_index] * 1e-9 << " GHz.\n";
-        if (!robust) {
+        ARTS_USER_ERROR_IF (!robust,
           // couldn't find a nstreams within the limits of auto_inc_nstremas
           // (aka max. nstreams) that satisfies the scattering matrix norm.
           // Hence fail completely.
-          os << "Try higher maximum number of allowed streams (ie. higher"
-             << " auto_inc_nstreams than " << auto_inc_nstreams << ").";
-          throw runtime_error(os.str());
-        } else {
-          CREATE_OUT1;
-          os << "Continuing with nstreams=" << 2 * nummu_new
-             << ". Output for this frequency might be erroneous.";
-          out1 << os.str();
-          pfct_failed = -1;
-          sca_optpropCalc(
-              scatter_matrix_new,
-              pfct_failed,
-              emis_vector_new(0, joker, joker, joker, joker),
-              extinct_matrix_new(0, joker, joker, joker, joker, joker),
-              f_index,
-              scat_data,
-              pnd,
-              stokes_dim,
-              za_grid,
-              quad_weights_new,
-              pfct_method,
-              pfct_aa_grid_size,
-              pfct_threshold,
-              0,
-              verbosity);
-        }
+          "Try higher maximum number of allowed streams (ie. higher"
+          " auto_inc_nstreams than ", auto_inc_nstreams, ").");
+        
+        CREATE_OUT1;
+        os << "Continuing with nstreams=" << 2 * nummu_new
+            << ". Output for this frequency might be erroneous.";
+        out1 << os.str();
+        pfct_failed = -1;
+        sca_optpropCalc(
+            scatter_matrix_new,
+            pfct_failed,
+            emis_vector_new(0, joker, joker, joker, joker),
+            extinct_matrix_new(0, joker, joker, joker, joker, joker),
+            f_index,
+            scat_data,
+            pnd,
+            stokes_dim,
+            za_grid,
+            quad_weights_new,
+            pfct_method,
+            pfct_aa_grid_size,
+            pfct_threshold,
+            0,
+            verbosity);
       }
 
       // resize and calc remaining nstream-affected variables:
@@ -868,7 +827,7 @@ void gas_optpropCalc(Workspace& ws,
 
   const Index Np = p_grid.nelem();
 
-  assert(gas_extinct.nelem() == Np - 1);
+  ARTS_ASSERT(gas_extinct.nelem() == Np - 1);
 
   // Local variables to be used in agendas
   Numeric rtp_temperature_local;
@@ -938,8 +897,8 @@ void par_optpropCalc(Tensor5View emis_vector,
   const Index Np_cloud = pnd_profiles.ncols();
   const Index nummu = za_grid.nelem() / 2;
 
-  assert(emis_vector.nbooks() == Np_cloud - 1);
-  assert(extinct_matrix.nshelves() == Np_cloud - 1);
+  ARTS_ASSERT(emis_vector.nbooks() == Np_cloud - 1);
+  ARTS_ASSERT(extinct_matrix.nshelves() == Np_cloud - 1);
 
   // preparing input data
   Vector T_array = t_profile[Range(cloudbox_limits[0], Np_cloud)];
@@ -1043,27 +1002,22 @@ void sca_optpropCalc(  //Output
   const Index Np_cloud = pnd_profiles.ncols();
   const Index nza_rt = za_grid.nelem();
 
-  assert(scatter_matrix.nvitrines() == Np_cloud - 1);
+  ARTS_ASSERT(scatter_matrix.nvitrines() == Np_cloud - 1);
 
   // Check that total number of scattering elements in scat_data and pnd_profiles
   // agree.
   // FIXME: this should be done earlier. in calling method. outside freq- and
   // other possible loops. rather assert than runtime error.
-  if (TotalNumberOfElements(scat_data) != N_se) {
-    ostringstream os;
-    os << "Total number of scattering elements in scat_data ("
-       << TotalNumberOfElements(scat_data) << ") and pnd_profiles (" << N_se
-       << ") disagree.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (TotalNumberOfElements(scat_data) != N_se,
+    "Total number of scattering elements in scat_data (",
+    TotalNumberOfElements(scat_data), ") and pnd_profiles (", N_se,
+    ") disagree.")
 
-  if (pfct_aa_grid_size < 2) {
-    ostringstream os;
-    os << "Azimuth grid size for scatt matrix extraction"
-       << " (*pfct_aa_grid_size*) must be >1.\n"
-       << "Yours is " << pfct_aa_grid_size << ".\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (pfct_aa_grid_size < 2,
+    "Azimuth grid size for scatt matrix extraction"
+    " (*pfct_aa_grid_size*) must be >1.\n"
+    "Yours is ", pfct_aa_grid_size, ".\n")
+  
   Vector aa_grid;
   nlinspace(aa_grid, 0, 180, pfct_aa_grid_size);
 
@@ -1094,7 +1048,7 @@ void sca_optpropCalc(  //Output
       else if( pfct_method=="median" )
         i_pfct = ssd.T_grid.nelem() / 2;
       else {
-        throw runtime_error(
+        ARTS_USER_ERROR_IF(true,
           "*pfct_method* must be \"low\", \"high\" or \"median\"." );
       }
 
@@ -1138,8 +1092,8 @@ void sca_optpropCalc(  //Output
         Tensor4 pha_mat_int(nza_se, nza_se, stokes_dim, stokes_dim, 0.);
         ConstVectorView za_datagrid = ssd.za_grid;
         ConstVectorView aa_datagrid = ssd.aa_grid;
-        assert(aa_datagrid[0] == 0.);
-        assert(aa_datagrid[naa_se - 1] == 180.);
+        ARTS_ASSERT(aa_datagrid[0] == 0.);
+        ARTS_ASSERT(aa_datagrid[naa_se - 1] == 180.);
         Vector daa(naa_se);
 
         // Precalculate azimuth integration weights for this azimuthally
@@ -1207,15 +1161,13 @@ void sca_optpropCalc(  //Output
               ssd.abs_vec_data(this_f_index, i_pfct, iza, 0, 0);
         }
       } else {
-        ostringstream os;
-        os << "Unsuitable particle type encountered.";
-        throw runtime_error(os.str());
+        ARTS_USER_ERROR_IF (true, "Unsuitable particle type encountered.")
       }
       i_se_flat++;
     }
   }
 
-  assert(i_se_flat == N_se);
+  ARTS_ASSERT(i_se_flat == N_se);
   // now we sum up the Z(mu,mu') over the scattering elements weighted by the
   // pnd_field data, deriving Z(z,mu,mu') and sorting this into
   // scatter_matrix
@@ -1276,7 +1228,7 @@ void sca_optpropCalc(  //Output
           Numeric ext_nom = ext_fixT[iza];
           Numeric sca_nom = ext_nom - abs_fixT[iza];
           Numeric w0_nom = sca_nom / ext_nom;
-          assert(w0_nom >= 0.);
+          ARTS_ASSERT(w0_nom >= 0.);
 
           for (Index sza = 0; sza < nummu; sza++) {
             //                SUM2 = SUM2 + 2.0D0*PI*QUAD_WEIGHTS(J2)*
@@ -1320,18 +1272,17 @@ void sca_optpropCalc(  //Output
                 pfct_failed = 1;
                 return;
               } else {
-                ostringstream os;
-                os << "Bulk scattering matrix normalization deviates significantly\n"
-                   << "from expected value (" << 1e2 * abs(1. - pfct_norm)
-                   << "%,"
-                   << " resulting in albedo deviation of "
-                   << abs(w0_act - w0_nom) << ").\n"
-                   << "Something seems wrong with your scattering data "
-                   << " (did you run *scat_dataCheck*?)\n"
-                   << "or your RT4 setup (try increasing *nstreams* and in case"
-                   << " of randomly oriented particles possibly also"
-                   << " pfct_aa_grid_size).";
-                throw runtime_error(os.str());
+                ARTS_USER_ERROR_IF(true,
+                  "Bulk scattering matrix normalization deviates significantly\n"
+                  "from expected value (", 1e2 * abs(1. - pfct_norm),
+                  "%,"
+                  " resulting in albedo deviation of ",
+                  abs(w0_act - w0_nom), ").\n"
+                  "Something seems wrong with your scattering data "
+                  " (did you run *scat_dataCheck*?)\n"
+                  "or your RT4 setup (try increasing *nstreams* and in case"
+                  " of randomly oriented particles possibly also"
+                  " pfct_aa_grid_size).");
               }
             }
           } else if (abs(w0_act - w0_nom) > pfct_threshold * 0.1 ||
@@ -1451,7 +1402,7 @@ void surf_optpropCalc(Workspace& ws,
                                  rtp_los,
                                  surface_rtprop_agenda);
     Index nsl = surface_los.nrows();
-    assert(surface_los.ncols() == 1 || nsl == 0);
+    ARTS_ASSERT(surface_los.ncols() == 1 || nsl == 0);
 
     // ARTS' surface_emission is equivalent to RT4's gnd_radiance (here:
     // surf_emis_vec) except for ARTS using Planck in terms of frequency,
@@ -1542,7 +1493,7 @@ void surf_optpropCalc(Workspace& ws,
           // the actual RT4 angle (aka quadrature) weights:
           surf_refl_mat(joker, imu, joker, rmu, joker) *=
               (quad_weights[imu] * mu_values[imu]);
-        } catch (const runtime_error& e) {
+        } catch (const std::runtime_error& e) {
           // nothing to do here. we just leave the reflection matrix
           // entry at the 0.0 it was initialized with.
         }
@@ -1558,7 +1509,7 @@ void surf_optpropCalc(Workspace& ws,
       // 180. - (rtp_los=za_grid[nummu+rmu]=180.-za_grid[rmu])
       // = za_grid[rmu].
       // check that, and if so, sort values into refmat(rmu,rmu).
-      assert(is_same_within_epsilon(surface_los(0, 0), za_grid[rmu], 1e-12));
+      ARTS_ASSERT(is_same_within_epsilon(surface_los(0, 0), za_grid[rmu], 1e-12));
       for (Index f_index = 0; f_index < nf; f_index++)
         for (Index sto1 = 0; sto1 < stokes_dim; sto1++)
           for (Index sto2 = 0; sto2 < stokes_dim; sto2++)
@@ -1573,15 +1524,12 @@ void surf_optpropCalc(Workspace& ws,
       Numeric R_scale = 1.;
       Numeric R_rt4 = surf_refl_mat(f_index, joker, 0, rmu, 0).sum();
       if (R_rt4 == 0.) {
-        if (R_arts[f_index] != 0.) {
-          ostringstream os;
-          os << "Something went wrong.\n"
-             << "At reflected stream #" << rmu
-             << ", power reflection coefficient for RT4\n"
-             << "became 0, although the one from surface_rtprop_agenda is "
-             << R_arts << ".\n";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (R_arts[f_index] != 0.,
+          "Something went wrong.\n"
+          "At reflected stream #", rmu,
+          ", power reflection coefficient for RT4\n"
+          "became 0, although the one from surface_rtprop_agenda is ",
+          R_arts, ".\n")
       } else {
         R_scale = R_arts[f_index] / R_rt4;
         surf_refl_mat(f_index, joker, joker, rmu, joker) *= R_scale;

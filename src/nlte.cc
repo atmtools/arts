@@ -267,8 +267,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
   i = 0;
   for (Index il = 0; il < nl; il++)
     if (upper[il] < 0 or lower[il] < 0) i++;
-  if (i > 1)
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (i > 1,
         "Must set upper and lower levels completely for all but one level");
 }
 
@@ -289,15 +288,11 @@ void check_collision_line_identifiers(const ArrayOfQuantumIdentifier& collision_
                           spec not_eq x.Species() or 
                           isot not_eq x.Isotopologue() or 
                           x.Type() not_eq QuantumIdentifier::TRANSITION;});
-  if (p not_eq collision_line_identifiers.cend()) {
-    std::ostringstream os;
-    os << *p << "\n"
-    << "does not match the requirements for a line identifier\n"
-    << "Your list of species is:\n"
-    << collision_line_identifiers << "\n"
-    << "This contains more than one isotopologue or it contains some non-transition type identifiers.\n"
-    << "It will therefore fail in current code.  You can only input transitions, and a single isotopologue.\n";
-    
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (p not_eq collision_line_identifiers.cend(),
+    *p, "\n"
+    "does not match the requirements for a line identifier\n"
+    "Your list of species is:\n",
+    collision_line_identifiers, "\n"
+    "This contains more than one isotopologue or it contains some non-transition type identifiers.\n"
+    "It will therefore fail in current code.  You can only input transitions, and a single isotopologue.\n")
 }

@@ -63,12 +63,9 @@ extern const Index GFIELD3_LON_GRID;
     \date   2002-04-15
 */
 void chk_if_bool(const String& x_name, const Index& x) {
-  if (!is_bool(x)) {
-    ostringstream os;
-    os << "The variable *" << x_name << "* must be a boolean (0 or 1).\n"
-       << "The present value of *" << x_name << "* is " << x << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_bool(x),
+      "The variable *", x_name, "* must be a boolean (0 or 1).\n"
+      "The present value of *", x_name, "* is ", x, ".")
 }
 
 //! chk_if_in_range
@@ -90,13 +87,10 @@ void chk_if_in_range(const String& x_name,
                      const Index& x,
                      const Index& x_low,
                      const Index& x_high) {
-  if ((x < x_low) || (x > x_high)) {
-    ostringstream os;
-    os << "The variable *" << x_name << "* must fulfill:\n"
-       << "   " << x_low << " <= " << x_name << " <= " << x_high << "\n"
-       << "The present value of *" << x_name << "* is " << x << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF ((x < x_low) || (x > x_high),
+    "The variable *", x_name, "* must fulfill:\n"
+      , "   ", x_low, " <= ", x_name, " <= ", x_high, "\n"
+      , "The present value of *", x_name, "* is ", x, ".")
 }
 
 //! chk_if_increasing
@@ -115,13 +109,10 @@ void chk_if_in_range(const String& x_name,
     \date   2007-05-18
 */
 void chk_if_increasing(const String& x_name, const ArrayOfIndex& x) {
-  if (!is_increasing(x)) {
-    ostringstream os;
-    os << "The ArrayOfIndex *" << x_name << "* must have strictly\n"
-       << "increasing values, but this is not the case.\n";
-    os << "x = " << x << "\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_increasing(x),
+      "The ArrayOfIndex *", x_name, "* must have strictly\n"
+      "increasing values, but this is not the case.\n"
+      "x = ", x, "\n")
 }
 
 /*===========================================================================
@@ -141,12 +132,9 @@ void chk_if_increasing(const String& x_name, const ArrayOfIndex& x) {
     \date   2002-04-15
 */
 void chk_not_negative(const String& x_name, const Numeric& x) {
-  if (x < 0) {
-    ostringstream os;
-    os << "The variable *" << x_name << "* must be >= 0.\n"
-       << "The present value of *" << x_name << "* is " << x << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (x < 0,
+      "The variable *", x_name, "* must be >= 0.\n"
+      "The present value of *", x_name, "* is ", x, ".")
 }
 
 //! chk_if_in_range
@@ -168,13 +156,10 @@ void chk_if_in_range(const String& x_name,
                      const Numeric& x,
                      const Numeric& x_low,
                      const Numeric& x_high) {
-  if ((x < x_low) || (x > x_high)) {
-    ostringstream os;
-    os << "The variable *" << x_name << "* must fulfill:\n"
-       << "   " << x_low << " <= " << x_name << " <= " << x_high << "\n"
-       << "The present value of *" << x_name << "* is " << x << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF ((x < x_low) || (x > x_high),
+      "The variable *", x_name, "* must fulfill:\n"
+      "   ", x_low, " <= ", x_name, " <= ", x_high, "\n"
+      "The present value of *", x_name, "* is ", x, ".")
 }
 
 //! chk_if_in_range_exclude_low
@@ -196,13 +181,10 @@ void chk_if_in_range_exclude_low(const String& x_name,
                                  const Numeric& x,
                                  const Numeric& x_low,
                                  const Numeric& x_high) {
-  if ((x <= x_low) || (x > x_high)) {
-    ostringstream os;
-    os << "The variable *" << x_name << "* must fulfill:\n"
-       << "   " << x_low << " < " << x_name << " <= " << x_high << "\n"
-       << "The present value of *" << x_name << "* is " << x << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF ((x <= x_low) || (x > x_high),
+      "The variable *", x_name, "* must fulfill:\n"
+      "   ", x_low, " < ", x_name, " <= ", x_high, "\n"
+      "The present value of *", x_name, "* is ", x, ".")
 }
 
 //! chk_if_in_range_exclude_high
@@ -224,13 +206,10 @@ void chk_if_in_range_exclude_high(const String& x_name,
                                   const Numeric& x,
                                   const Numeric& x_low,
                                   const Numeric& x_high) {
-  if ((x < x_low) || (x >= x_high)) {
-    ostringstream os;
-    os << "The variable *" << x_name << "* must fulfill:\n"
-       << "   " << x_low << " <= " << x_name << " < " << x_high << "\n"
-       << "The present value of *" << x_name << "* is " << x << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF ((x < x_low) || (x >= x_high),
+      "The variable *", x_name, "* must fulfill:\n"
+      "   ", x_low, " <= ", x_name, " < ", x_high, "\n"
+      "The present value of *", x_name, "* is ", x, ".")
 }
 
 //! chk_if_in_range_exclude
@@ -252,13 +231,10 @@ void chk_if_in_range_exclude(const String& x_name,
                              const Numeric& x,
                              const Numeric& x_low,
                              const Numeric& x_high) {
-  if ((x <= x_low) || (x >= x_high)) {
-    ostringstream os;
-    os << "The variable *" << x_name << "* must fulfill:\n"
-       << "   " << x_low << " < " << x_name << " < " << x_high << "\n"
-       << "The present value of *" << x_name << "* is " << x << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF ((x <= x_low) || (x >= x_high),
+      "The variable *", x_name, "* must fulfill:\n"
+      "   ", x_low, " < ", x_name, " < ", x_high, "\n"
+      "The present value of *", x_name, "* is ", x, ".")
 }
 
 /*===========================================================================
@@ -281,12 +257,9 @@ void chk_if_in_range_exclude(const String& x_name,
 void chk_vector_length(const String& x_name,
                        ConstVectorView x,
                        const Index& l) {
-  if (x.nelem() != l) {
-    ostringstream os;
-    os << "The vector *" << x_name << "* must have the length " << l << ".\n"
-       << "The present length of *" << x_name << "* is " << x.nelem() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (x.nelem() != l,
+      "The vector *", x_name, "* must have the length ", l, ".\n"
+      "The present length of *", x_name, "* is ", x.nelem(), ".")
 }
 
 //! chk_vector_length
@@ -307,14 +280,11 @@ void chk_vector_length(const String& x1_name,
                        const String& x2_name,
                        ConstVectorView x1,
                        ConstVectorView x2) {
-  if (x1.nelem() != x2.nelem()) {
-    ostringstream os;
-    os << "The vectors *" << x1_name << "* and *" << x2_name
-       << "* must have the same length.\n"
-       << "The length of *" << x1_name << "* is " << x1.nelem() << ".\n"
-       << "The length of *" << x2_name << "* is " << x2.nelem() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (x1.nelem() != x2.nelem(),
+      "The vectors *", x1_name, "* and *", x2_name,
+      "* must have the same length.\n"
+      "The length of *", x1_name, "* is ", x1.nelem(), ".\n"
+      "The length of *", x2_name, "* is ", x2.nelem(), ".")
 }
 
 //! chk_if_increasing
@@ -332,13 +302,10 @@ void chk_vector_length(const String& x1_name,
     \date   2002-04-15
 */
 void chk_if_increasing(const String& x_name, ConstVectorView x) {
-  if (!is_increasing(x)) {
-    ostringstream os;
-    os << "The vector *" << x_name << "* must have strictly\n"
-       << "increasing values, but this is not the case.\n";
-    os << "x = " << x << "\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_increasing(x),
+      "The vector *", x_name, "* must have strictly\n"
+      "increasing values, but this is not the case.\n"
+      "x = ", x, "\n")
 }
 
 //! chk_if_decreasing
@@ -356,12 +323,9 @@ void chk_if_increasing(const String& x_name, ConstVectorView x) {
     \date   2002-04-15
 */
 void chk_if_decreasing(const String& x_name, ConstVectorView x) {
-  if (!is_decreasing(x)) {
-    ostringstream os;
-    os << "The vector *" << x_name << "* must have strictly\ndecreasing "
-       << "values, but this is not the case.\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_decreasing(x),
+      "The vector *", x_name, "* must have strictly\ndecreasing "
+      "values, but this is not the case.\n")
 }
 
 //! chk_if_equal
@@ -386,16 +350,13 @@ void chk_if_equal(const String& x1_name,
   chk_vector_length(x1_name, x2_name, v1, v2);
 
   for (Index i = 0; i < v1.nelem(); i++) {
-    if (abs(v1[i] - v2[i]) > margin) {
-      ostringstream os;
-      os << "Vectors " << x1_name << " and " << x2_name << " differ.\n"
-         << x1_name << "[" << i << "]"
-         << " = " << v1[i] << "\n"
-         << x2_name << "[" << i << "]"
-         << " = " << v2[i] << "\n"
-         << "Difference should not exceed " << margin << "\n";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (abs(v1[i] - v2[i]) > margin,
+        "Vectors ", x1_name, " and ", x2_name, " differ.\n",
+        x1_name, "[", i, "]"
+        , " = ", v1[i], "\n"
+        , x2_name, "[", i, "]"
+        , " = ", v2[i], "\n"
+        , "Difference should not exceed ", margin, "\n")
   }
 }
 
@@ -417,12 +378,9 @@ void chk_if_equal(const String& x1_name,
     \date   2002-05-16
 */
 void chk_matrix_ncols(const String& x_name, ConstMatrixView x, const Index& l) {
-  if (x.ncols() != l) {
-    ostringstream os;
-    os << "The matrix *" << x_name << "* must have " << l << " columns,\n"
-       << "but the number of columns is " << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (x.ncols() != l,
+    "The matrix *", x_name, "* must have ", l, " columns,\n"
+      , "but the number of columns is ", x.ncols(), ".")
 }
 
 //! chk_matrix_nrows
@@ -439,12 +397,9 @@ void chk_matrix_ncols(const String& x_name, ConstMatrixView x, const Index& l) {
     \date   2002-05-16
 */
 void chk_matrix_nrows(const String& x_name, ConstMatrixView x, const Index& l) {
-  if (x.nrows() != l) {
-    ostringstream os;
-    os << "The matrix *" << x_name << "* must have " << l << " rows,\n"
-       << "but the number of rows is " << x.nrows() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (x.nrows() != l,
+      "The matrix *", x_name, "* must have ", l, " rows,\n"
+      , "but the number of rows is ", x.nrows(), ".")
 }
 
 /*===========================================================================
@@ -487,14 +442,11 @@ void chk_size(const String& x_name,
               ConstMatrixView x,
               const Index& r,
               const Index& c) {
-  if (!is_size(x, r, c)) {
-    ostringstream os;
-    os << "The object *" << x_name << "* does not have the right size.\n"
-       << "Dimensions should be:"
-       << " " << r << " " << c << ",\nbut they are:         "
-       << " " << x.nrows() << " " << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_size(x, r, c),
+      "The object *", x_name, "* does not have the right size.\n"
+      , "Dimensions should be:"
+      , " ", r, " ", c, ",\nbut they are:         "
+      , " ", x.nrows(), " ", x.ncols(), ".")
 }
 
 //! Runtime check for size of Tensor.
@@ -516,14 +468,11 @@ void chk_size(const String& x_name,
               const Index& p,
               const Index& r,
               const Index& c) {
-  if (!is_size(x, p, r, c)) {
-    ostringstream os;
-    os << "The object *" << x_name << "* does not have the right size.\n"
-       << "Dimensions should be:"
-       << " " << p << " " << r << " " << c << ",\nbut they are:         "
-       << " " << x.npages() << " " << x.nrows() << " " << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_size(x, p, r, c),
+      "The object *", x_name, "* does not have the right size.\n"
+      , "Dimensions should be:"
+      , " ", p, " ", r, " ", c, ",\nbut they are:         "
+      , " ", x.npages(), " ", x.nrows(), " ", x.ncols(), ".")
 }
 
 //! Runtime check for size of Tensor.
@@ -547,16 +496,13 @@ void chk_size(const String& x_name,
               const Index& p,
               const Index& r,
               const Index& c) {
-  if (!is_size(x, b, p, r, c)) {
-    ostringstream os;
-    os << "The object *" << x_name << "* does not have the right size.\n"
-       << "Dimensions should be:"
-       << " " << b << " " << p << " " << r << " " << c
-       << ",\nbut they are:         "
-       << " " << x.nbooks() << " " << x.npages() << " " << x.nrows() << " "
-       << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_size(x, b, p, r, c),
+      "The object *", x_name, "* does not have the right size.\n"
+      , "Dimensions should be:"
+      , " ", b, " ", p, " ", r, " ", c
+      , ",\nbut they are:         "
+      , " ", x.nbooks(), " ", x.npages(), " ", x.nrows(), " "
+      , x.ncols(), ".")
 }
 
 //! Runtime check for size of Tensor.
@@ -582,16 +528,13 @@ void chk_size(const String& x_name,
               const Index& p,
               const Index& r,
               const Index& c) {
-  if (!is_size(x, s, b, p, r, c)) {
-    ostringstream os;
-    os << "The object *" << x_name << "* does not have the right size.\n"
-       << "Dimensions should be:"
-       << " " << s << " " << b << " " << p << " " << r << " " << c
-       << ",\nbut they are:         "
-       << " " << x.nshelves() << " " << x.nbooks() << " " << x.npages() << " "
-       << x.nrows() << " " << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_size(x, s, b, p, r, c),
+      "The object *", x_name, "* does not have the right size.\n"
+      , "Dimensions should be:"
+      , " ", s, " ", b, " ", p, " ", r, " ", c
+      , ",\nbut they are:         "
+      , " ", x.nshelves(), " ", x.nbooks(), " ", x.npages(), " "
+      , x.nrows(), " ", x.ncols(), ".")
 }
 
 //! Runtime check for size of Tensor.
@@ -619,16 +562,13 @@ void chk_size(const String& x_name,
               const Index& p,
               const Index& r,
               const Index& c) {
-  if (!is_size(x, v, s, b, p, r, c)) {
-    ostringstream os;
-    os << "The object *" << x_name << "* does not have the right size.\n"
-       << "Dimensions should be:"
-       << " " << v << " " << s << " " << b << " " << p << " " << r << " " << c
-       << ",\nbut they are:         "
-       << " " << x.nvitrines() << " " << x.nshelves() << " " << x.nbooks()
-       << " " << x.npages() << " " << x.nrows() << " " << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_size(x, v, s, b, p, r, c),
+      "The object *", x_name, "* does not have the right size.\n"
+      , "Dimensions should be:"
+      , " ", v, " ", s, " ", b, " ", p, " ", r, " ", c
+      , ",\nbut they are:         "
+      , " ", x.nvitrines(), " ", x.nshelves(), " ", x.nbooks()
+      , " ", x.npages(), " ", x.nrows(), " ", x.ncols(), ".")
 }
 
 //! Runtime check for size of Tensor.
@@ -658,17 +598,14 @@ void chk_size(const String& x_name,
               const Index& p,
               const Index& r,
               const Index& c) {
-  if (!is_size(x, l, v, s, b, p, r, c)) {
-    ostringstream os;
-    os << "The object *" << x_name << "* does not have the right size.\n"
-       << "Dimensions should be:"
-       << " " << l << " " << v << " " << s << " " << b << " " << p << " " << r
-       << " " << c << ",\nbut they are:         "
-       << " " << x.nlibraries() << " " << x.nvitrines() << " " << x.nshelves()
-       << " " << x.nbooks() << " " << x.npages() << " " << x.nrows() << " "
-       << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_size(x, l, v, s, b, p, r, c),
+      "The object *", x_name, "* does not have the right size.\n"
+      , "Dimensions should be:"
+      , " ", l, " ", v, " ", s, " ", b, " ", p, " ", r
+      , " ", c, ",\nbut they are:         "
+      , " ", x.nlibraries(), " ", x.nvitrines(), " ", x.nshelves()
+      , " ", x.nbooks(), " ", x.npages(), " ", x.nrows(), " "
+      , x.ncols(), ".")
 }
 
 /*===========================================================================
@@ -688,14 +625,11 @@ void chk_size(const String& x_name,
     \date   2002-08-20
 */
 void chk_not_empty(const String& x_name, const Agenda& x) {
-  if (x.nelem() == 0) {
-    ostringstream os;
-    os << "The agenda *" << x_name << "* is empty.\nIt is not allowed \n"
-       << "that an empty agenda that is actually used.\n"
-       << "Empty agendas are only created of methods setting dummy values \n"
-       << "to variables.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (x.nelem() == 0,
+      "The agenda *", x_name, "* is empty.\nIt is not allowed \n"
+      , "that an empty agenda that is actually used.\n"
+      , "Empty agendas are only created of methods setting dummy values \n"
+      , "to variables.")
 }
 
 /*===========================================================================
@@ -775,18 +709,13 @@ void chk_interpolation_grids_loose_no_data_check(
     const Index order) {
   const Index n_old = old_grid.nelem();
 
-  if (!new_grid.nelem())
-    throw runtime_error("The new grid is not allowed to be empty.");
-
-  ostringstream os;
-  os << "There is a problem with the grids for the following interpolation:\n"
-     << which_interpolation << "\n";
+  ARTS_USER_ERROR_IF (!new_grid.nelem(),
+                      "The new grid is not allowed to be empty.");
 
   // Old grid must have at least order+1 elements:
-  if (n_old < order + 1) {
-    os << "The original grid must have at least " << order + 1 << " elements.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (n_old < order + 1, "There is a problem with the grids for the following interpolation:\n",
+                      which_interpolation, "\n",
+    "The original grid must have at least ", order + 1, " elements.")
 
   // Decide whether we have an ascending or descending grid:
   const bool ascending = (old_grid[0] <= old_grid[1]);
@@ -799,24 +728,22 @@ void chk_interpolation_grids_loose_no_data_check(
   ing_max = new_grid.nelem() - 1;
   if (ascending) {
     // Old grid must be strictly increasing (no duplicate values.)
-    if (!is_increasing(old_grid)) {
-      os << "The original grid must be strictly sorted\n"
-         << "(no duplicate values). Yours is:\n"
-         << old_grid << ".";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!is_increasing(old_grid), "There is a problem with the grids for the following interpolation:\n",
+                        which_interpolation, "\n",
+      "The original grid must be strictly sorted\n"
+        , "(no duplicate values). Yours is:\n"
+        , old_grid, ".")
 
     // Limits of extrapolation.
     og_min = old_grid[0];
     og_max = old_grid[n_old - 1];
   } else {
     // Old grid must be strictly decreasing (no duplicate values.)
-    if (!is_decreasing(old_grid)) {
-      os << "The original grid must be strictly sorted\n"
-         << "(no duplicate values). Yours is:\n"
-         << old_grid << ".";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!is_decreasing(old_grid), "There is a problem with the grids for the following interpolation:\n",
+                        which_interpolation, "\n",
+      "The original grid must be strictly sorted\n"
+        , "(no duplicate values). Yours is:\n"
+        , old_grid, ".")
 
     // The max is now the first point, the min the last point!
     og_max = old_grid[0];
@@ -929,12 +856,8 @@ void chk_interpolation_grids_loose_check_data(Index& ing_min,
                                               ConstVectorView old_grid,
                                               ConstVectorView new_grid,
                                               ConstVectorView data) {
-  if (!new_grid.nelem())
-    throw runtime_error("The new grid is not allowed to be empty.");
-
-  ostringstream os;
-  os << "There is a problem with the grids for the following interpolation:\n"
-     << which_interpolation << "\n";
+  ARTS_USER_ERROR_IF (!new_grid.nelem(),
+                      "The new grid is not allowed to be empty.");
 
   // Decide whether we have an ascending or descending grid:
   const bool ascending = (old_grid[0] <= old_grid[1]);
@@ -945,23 +868,21 @@ void chk_interpolation_grids_loose_check_data(Index& ing_min,
   const Index iog_min = ascending ? old_grid.nelem() - 1 : 0;
   const Index iog_max = ascending ? 0 : old_grid.nelem() - 1;
 
-  if (ing_min > 0 && data[iog_min] != 0) {
-    os << "\nThe new grid is not fully inside the original grid.\n"
-       << "This is allowed if the corresponding boundary value of raw data is 0.\n"
-       << "New grid point: " << new_grid[ing_min] << "\n"
-       << "Old grid point: " << old_grid[iog_min] << "\n"
-       << "Boundary value: " << data[iog_min];
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (ing_min > 0 && data[iog_min] != 0, "There is a problem with the grids for the following interpolation:\n"
+  , which_interpolation, "\n",
+    "\nThe new grid is not fully inside the original grid.\n"
+      , "This is allowed if the corresponding boundary value of raw data is 0.\n"
+      , "New grid point: ", new_grid[ing_min], "\n"
+      , "Old grid point: ", old_grid[iog_min], "\n"
+      , "Boundary value: ", data[iog_min])
 
-  if (ing_max < new_grid.nelem() - 1 && data[iog_max] != 0) {
-    os << "\nThe the new grid is not fully inside the original grid.\n"
-       << "This is allowed if the corresponding boundary value of raw data is 0.\n"
-       << "New grid point: " << new_grid[ing_max] << "\n"
-       << "Old grid point: " << old_grid[iog_max] << "\n"
-       << "Boundary value: " << data[iog_max];
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (ing_max < new_grid.nelem() - 1 && data[iog_max] != 0, "There is a problem with the grids for the following interpolation:\n"
+  , which_interpolation, "\n",
+    "\nThe the new grid is not fully inside the original grid.\n"
+      , "This is allowed if the corresponding boundary value of raw data is 0.\n"
+      , "New grid point: ", new_grid[ing_max], "\n"
+      , "Old grid point: ", old_grid[iog_max], "\n"
+      , "Boundary value: ", data[iog_max])
 }
 
 //! Check interpolation grids
@@ -990,30 +911,24 @@ void chk_interpolation_grids(const String& which_interpolation,
                              const bool islog) {
   const Index n_old = old_grid.nelem();
 
-  if (!new_grid.nelem())
-    throw runtime_error("The new grid is not allowed to be empty.");
+  ARTS_USER_ERROR_IF (!new_grid.nelem(),
+                      "The new grid is not allowed to be empty.");
 
-  if (order < 0) {
-    ostringstream os;
-    os << "There is a problem with the grids for the following "
-       << "interpolation:\n"
-       << which_interpolation << "\n"
-       << "Interpolation order must be 0 or larger (but your's is " << order
-       << ").";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (order < 0,
+      "There is a problem with the grids for the following "
+      "interpolation:\n",
+      which_interpolation, "\n"
+      "Interpolation order must be 0 or larger (but your's is ", order,
+      ").")
 
   // Old grid must have at least order+1 elements:
-  if (n_old < order + 1) {
-    ostringstream os;
-    os << "There is a problem with the grids for the following "
-       << "interpolation:\n"
-       << which_interpolation << "\n"
-       << "For interpolation order " << order
-       << ", the original grid must have at least\n"
-       << order + 1 << " elements (but your's has only " << n_old << ").";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (n_old < order + 1,
+    "There is a problem with the grids for the following "
+      , "interpolation:\n"
+      , which_interpolation, "\n"
+      , "For interpolation order ", order
+      , ", the original grid must have at least\n"
+      , order + 1, " elements (but your's has only ", n_old, ").")
 
   // Decide whether we have an ascending or descending grid:
   const bool ascending = ((n_old > 1) ? (old_grid[0] <= old_grid[1]) : true);
@@ -1024,16 +939,13 @@ void chk_interpolation_grids(const String& which_interpolation,
 
   if (ascending) {
     // Old grid must be strictly increasing (no duplicate values.)
-    if (!is_increasing(old_grid)) {
-      ostringstream os;
-      os << "There is a problem with the grids for the "
-         << "following interpolation:\n"
-         << which_interpolation << "\n"
-         << "The original grid must be strictly sorted\n"
-         << "(no duplicate values). Yours is:\n"
-         << old_grid << ".";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!is_increasing(old_grid),
+      "There is a problem with the grids for the "
+        , "following interpolation:\n"
+        , which_interpolation, "\n"
+        , "The original grid must be strictly sorted\n"
+        , "(no duplicate values). Yours is:\n"
+        , old_grid, ".")
 
     // Limits of extrapolation.
     if (n_old > 1) {
@@ -1043,16 +955,13 @@ void chk_interpolation_grids(const String& which_interpolation,
     }
   } else {
     // Old grid must be strictly decreasing (no duplicate values.)
-    if (!is_decreasing(old_grid)) {
-      ostringstream os;
-      os << "There is a problem with the grids for the "
-         << "following interpolation:\n"
-         << which_interpolation << "\n"
-         << "The original grid must be strictly sorted\n"
-         << "(no duplicate values). Yours is:\n"
-         << old_grid << ".";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!is_decreasing(old_grid),
+      "There is a problem with the grids for the "
+        , "following interpolation:\n"
+        , which_interpolation, "\n"
+        , "The original grid must be strictly sorted\n"
+        , "(no duplicate values). Yours is:\n"
+        , old_grid, ".")
 
     // The max is now the first point, the min the last point!
     // I think the sign is right here...
@@ -1071,39 +980,33 @@ void chk_interpolation_grids(const String& which_interpolation,
   // (Values right on the edge (ng_min==og_min) are still allowed.)
 
   if (n_old > 1) {
-    if (ng_min < og_min) {
-      ostringstream os;
-      os << "There is a problem with the grids for the "
-         << "following interpolation:\n"
-         << which_interpolation << "\n"
-         << "The minimum of the new grid must be inside "
-         << "the original grid.\n(We allow a bit of extrapolation, "
-         << "but not so much).\n"
-         << "Minimum of original grid:           " << min(old_grid);
-      if (islog) os << " (" << exp(min(old_grid)) << ")";
-      os << "\nMinimum allowed value for new grid: " << og_min;
-      if (islog) os << " (" << exp(og_min) << ")";
-      os << "\nActual minimum of new grid:         " << ng_min;
-      if (islog) os << " (" << exp(ng_min) << ")";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (ng_min < og_min,
+      "There is a problem with the grids for the "
+        , "following interpolation:\n"
+        , which_interpolation, "\n"
+        , "The minimum of the new grid must be inside "
+        , "the original grid.\n(We allow a bit of extrapolation, "
+        , "but not so much).\n"
+        , "Minimum of original grid:           ", min(old_grid),
+        islog ? var_string(" (", exp(min(old_grid)), ")") : var_string(),
+        "\nMinimum allowed value for new grid: ", og_min,
+        islog ? var_string(" (", exp(og_min), ")") : var_string(),
+        "\nActual minimum of new grid:         ", ng_min,
+        islog ? var_string(" (", exp(ng_min), ")") : var_string())
 
-    if (ng_max > og_max) {
-      ostringstream os;
-      os << "There is a problem with the grids for the "
-         << "following interpolation:\n"
-         << which_interpolation << "\n"
-         << "The maximum of the new grid must be inside\n"
-         << "the original grid. (We allow a bit of extrapolation,\n"
-         << "but not so much).\n"
-         << "Maximum of original grid:           " << max(old_grid);
-      if (islog) os << " (" << exp(max(old_grid)) << ")";
-      os << "\nMaximum allowed value for new grid: " << og_max;
-      if (islog) os << " (" << exp(og_max) << ")";
-      os << "\nActual maximum of new grid:         " << ng_max;
-      if (islog) os << " (" << exp(ng_max) << ")";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (ng_max > og_max,
+      "There is a problem with the grids for the "
+        , "following interpolation:\n"
+        , which_interpolation, "\n"
+        , "The maximum of the new grid must be inside\n"
+        , "the original grid. (We allow a bit of extrapolation,\n"
+        , "but not so much).\n"
+        , "Maximum of original grid:           ", max(old_grid),
+        islog ? var_string(" (", exp(max(old_grid)), ")") : var_string(),
+        "\nMaximum allowed value for new grid: ", og_max,
+        islog ? var_string(" (", exp(og_max), ")") : var_string(),
+        "\nActual maximum of new grid:         ", ng_max,
+        islog ? var_string(" (", exp(ng_max), ")") : var_string())
   }
 
   // If we get here, than everything should be fine.
@@ -1199,46 +1102,41 @@ void chk_atm_grids(const Index& dim,
                    ConstVectorView lat_grid,
                    ConstVectorView lon_grid) {
   // p_grid
-  if (p_grid.nelem() < 2)
-    throw runtime_error("The length of *p_grid* must be >= 2.");
+  ARTS_USER_ERROR_IF (p_grid.nelem() < 2,
+                      "The length of *p_grid* must be >= 2.");
   chk_if_decreasing("p_grid", p_grid);
 
   // lat_grid
   if (dim == 1) {
-    if (lat_grid.nelem() > 0)
-      throw runtime_error("For dim=1, the length of *lat_grid* must be 0.");
+    ARTS_USER_ERROR_IF (lat_grid.nelem() > 0,
+                        "For dim=1, the length of *lat_grid* must be 0.");
   } else {
-    if (lat_grid.nelem() < 2)
-      throw runtime_error("For dim>1, the length of *lat_grid* must be >= 2.");
+    ARTS_USER_ERROR_IF (lat_grid.nelem() < 2,
+                        "For dim>1, the length of *lat_grid* must be >= 2.");
     chk_if_increasing("lat_grid", lat_grid);
   }
 
   // lon_grid
   if (dim < 3) {
-    if (lon_grid.nelem() > 0)
-      throw runtime_error("For dim<3, the length of *lon_grid* must be 0.");
+    ARTS_USER_ERROR_IF (lon_grid.nelem() > 0,
+                        "For dim<3, the length of *lon_grid* must be 0.");
   } else {
-    if (lon_grid.nelem() < 2)
-      throw runtime_error("For dim=3, the length of *lon_grid* must be >= 2.");
+    ARTS_USER_ERROR_IF (lon_grid.nelem() < 2,
+                        "For dim=3, the length of *lon_grid* must be >= 2.");
     chk_if_increasing("lon_grid", lon_grid);
   }
 
   // Check that latitude and longitude grids are inside OK ranges for 3D
   if (dim == 3) {
-    if (lat_grid[0] < -90)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lat_grid[0] < -90,
           "The latitude grid cannot extend below -90 degrees for 3D");
-    if (lat_grid[lat_grid.nelem() - 1] > 90)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lat_grid[lat_grid.nelem() - 1] > 90,
           "The latitude grid cannot extend above 90 degrees for 3D");
-    if (lon_grid[0] < -360)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lon_grid[0] < -360,
           "No longitude (in lon_grid) can be below -360 degrees.");
-    if (lon_grid[lon_grid.nelem() - 1] > 360)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lon_grid[lon_grid.nelem() - 1] > 360,
           "No longitude (in lon_grid) can be above 360 degrees.");
-    if (lon_grid[lon_grid.nelem() - 1] - lon_grid[0] > 360)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lon_grid[lon_grid.nelem() - 1] - lon_grid[0] > 360,
           "The longitude grid is not allowed to cover more than 360 degrees.");
   }
 }
@@ -1272,25 +1170,19 @@ void chk_atm_field(const String& x_name,
   Index npages = p_grid.nelem(), nrows = 1, ncols = 1;
   if (dim > 1) nrows = lat_grid.nelem();
   if (dim > 2) ncols = lon_grid.nelem();
-  if (x.ncols() != ncols || x.nrows() != nrows || x.npages() != npages) {
-    ostringstream os;
-    os << "The atmospheric field *" << x_name << "* has wrong size.\n"
-       << "Expected size is " << npages << " x " << nrows << " x " << ncols
-       << ", while actual size is " << x.npages() << " x " << x.nrows() << " x "
-       << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (x.ncols() != ncols || x.nrows() != nrows || x.npages() != npages,
+    "The atmospheric field *", x_name, "* has wrong size.\n"
+      , "Expected size is ", npages, " x ", nrows, " x ", ncols
+      , ", while actual size is ", x.npages(), " x ", x.nrows(), " x "
+      , x.ncols(), ".")
 
   // NaNs are not allowed
   for (Index ip = 0; ip < npages; ip++) {
     for (Index ir = 0; ir < nrows; ir++) {
       for (Index ic = 0; ic < ncols; ic++) {
-        if (std::isnan(x(ip, ir, ic))) {
-          ostringstream os;
-          os << "The variable *" << x_name << "* contains one or "
-             << "several NaNs. This is not allowed!";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (std::isnan(x(ip, ir, ic)),
+          "The variable *", x_name, "* contains one or "
+            , "several NaNs. This is not allowed!")
       }
     }
   }
@@ -1302,19 +1194,16 @@ void chk_atm_field(const String& x_name,
       const Index ic = ncols - 1;
       for (Index ip = 0; ip < npages; ip++) {
         for (Index ir = 0; ir < nrows; ir++) {
-          if (!is_same_within_epsilon(
-                  x(ip, ir, ic), x(ip, ir, 0), 4 * DBL_EPSILON)) {
-            ostringstream os;
-            os << "The variable *" << x_name << "* covers 360 "
-               << "degrees in the longitude direction, but the field "
-               << "seems to deviate between first and last longitude "
-               << "point. The field must be \"cyclic\".\n"
-               << "Difference: " << setprecision(16)
-               << x(ip, ir, ic) - x(ip, ir, 0) << "\n"
-               << "Epsilon   : "
-               << 4 * DBL_EPSILON * max(x(ip, ir, ic), x(ip, ir, 0));
-            throw runtime_error(os.str());
-          }
+          ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+                  x(ip, ir, ic), x(ip, ir, 0), 4 * DBL_EPSILON),
+            "The variable *", x_name, "* covers 360 "
+              , "degrees in the longitude direction, but the field "
+              , "seems to deviate between first and last longitude "
+              , "point. The field must be \"cyclic\".\n"
+              , "Difference: ", setprecision(16)
+              , x(ip, ir, ic) - x(ip, ir, 0), "\n"
+              , "Epsilon   : "
+              , 4 * DBL_EPSILON * max(x(ip, ir, ic), x(ip, ir, 0)))
         }
       }
     }
@@ -1325,20 +1214,17 @@ void chk_atm_field(const String& x_name,
       if (lat_grid[0] == -90) {
         for (Index ip = 0; ip < npages; ip++) {
           for (Index ic = 1; ic < ncols; ic++) {
-            if (!is_same_within_epsilon(
-                    x(ip, 0, ic), x(ip, 0, ic - 1), 2 * DBL_EPSILON)) {
-              ostringstream os;
-              os << "The variable *" << x_name << "* covers the South\n"
-                 << "pole. The data corresponding to the pole can not\n"
-                 << "vary with longitude, but this appears to be the\n"
-                 << "case.";
-              /*                             << "case: at " << ip << ".th  pressure it has val\n"
-                             << x(ip,0,ic-1) << ", but " << x(ip,0,ic)
-                             << " (i.e., a diff of " << fabs(x(ip,0,ic)-x(ip,0,ic-1))
-                             << ") at " << ic-1 << "th and " << ic << "th longitudes!\n";
+            ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+                    x(ip, 0, ic), x(ip, 0, ic - 1), 2 * DBL_EPSILON),
+              "The variable *", x_name, "* covers the South\n"
+                , "pole. The data corresponding to the pole can not\n"
+                , "vary with longitude, but this appears to be the\n"
+                , "case.")
+              /*                            , "case: at ", ip, ".th  pressure it has val\n"
+                            , x(ip,0,ic-1), ", but ", x(ip,0,ic)
+                            , " (i.e., a diff of ", fabs(x(ip,0,ic)-x(ip,0,ic-1))
+                            , ") at ", ic-1, "th and ", ic, "th longitudes!\n";
 */
-              throw runtime_error(os.str());
-            }
           }
         }
       }
@@ -1347,20 +1233,17 @@ void chk_atm_field(const String& x_name,
         const Index ir = nrows - 1;
         for (Index ip = 0; ip < npages; ip++) {
           for (Index ic = 1; ic < ncols; ic++) {
-            if (!is_same_within_epsilon(
-                    x(ip, ir, ic), x(ip, ir, ic - 1), 2 * DBL_EPSILON)) {
-              ostringstream os;
-              os << "The variable *" << x_name << "* covers the North\n"
-                 << "pole. The data corresponding to the pole can not\n"
-                 << "vary with longitude, but this appears to be the "
-                 << "case.";
-              /*                             << "case: at " << ip << ".th  pressure it has val\n"
-                             << x(ip,ir,ic-1) << ", but " << x(ip,ir,ic)
-                             << " (i.e., a diff of " << fabs(x(ip,ir,ic)-x(ip,ir,ic-1))
-                             << ") at " << ic-1 << "th and " << ic << "th longitudes!\n";
+            ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+                    x(ip, ir, ic), x(ip, ir, ic - 1), 2 * DBL_EPSILON),
+              "The variable *", x_name, "* covers the North\n"
+                , "pole. The data corresponding to the pole can not\n"
+                , "vary with longitude, but this appears to be the "
+                , "case.")
+              /*                            , "case: at ", ip, ".th  pressure it has val\n"
+                            , x(ip,ir,ic-1), ", but ", x(ip,ir,ic)
+                            , " (i.e., a diff of ", fabs(x(ip,ir,ic)-x(ip,ir,ic-1))
+                            , ") at ", ic-1, "th and ", ic, "th longitudes!\n";
 */
-              throw runtime_error(os.str());
-            }
           }
         }
       }
@@ -1398,29 +1281,22 @@ void chk_atm_field(const String& x_name,
   const Index nbooks = nspecies;
   //
   if (nbooks == 0) {
-    if (x.nbooks()) {
-      ostringstream os;
-      os << "The atmospheric field *" << x_name << "* should be empty.\n";
-      throw runtime_error(os.str());
-    } else {
-      return;
-    }
+    ARTS_USER_ERROR_IF (x.nbooks(),
+      "The atmospheric field *", x_name, "* should be empty.\n")
+    return;
   }
 
   Index npages = p_grid.nelem(), nrows = 1, ncols = 1;
   if (dim > 1) nrows = lat_grid.nelem();
   if (dim > 2) ncols = lon_grid.nelem();
 
-  if (x.ncols() != ncols || x.nrows() != nrows || x.npages() != npages ||
-      x.nbooks() != nbooks) {
-    ostringstream os;
-    os << "The atmospheric field *" << x_name << "* has wrong size.\n"
-       << "Expected size is " << nbooks << " x " << npages << " x " << nrows
-       << " x " << ncols << ",\n"
-       << "while actual size is " << x.nbooks() << " x " << x.npages() << " x "
-       << x.nrows() << " x " << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (x.ncols() != ncols || x.nrows() != nrows || x.npages() != npages ||
+      x.nbooks() != nbooks,
+    "The atmospheric field *", x_name, "* has wrong size.\n"
+      , "Expected size is ", nbooks, " x ", npages, " x ", nrows
+      , " x ", ncols, ",\n"
+      , "while actual size is ", x.nbooks(), " x ", x.npages(), " x "
+      , x.nrows(), " x ", x.ncols(), ".")
 
   if (check_nan)
   // NaNs are not allowed
@@ -1429,12 +1305,9 @@ void chk_atm_field(const String& x_name,
       for (Index ip = 0; ip < npages; ip++) {
         for (Index ir = 0; ir < nrows; ir++) {
           for (Index ic = 0; ic < ncols; ic++) {
-            if (std::isnan(x(ib, ip, ir, ic))) {
-              ostringstream os;
-              os << "The variable *" << x_name << "* contains one or "
-                 << "several NaNs. This is not allowed!";
-              throw runtime_error(os.str());
-            }
+            ARTS_USER_ERROR_IF (std::isnan(x(ib, ip, ir, ic)),
+              "The variable *", x_name, "* contains one or "
+                , "several NaNs. This is not allowed!")
           }
         }
       }
@@ -1449,17 +1322,14 @@ void chk_atm_field(const String& x_name,
       for (Index is = 0; is < nspecies; is++) {
         for (Index ip = 0; ip < npages; ip++) {
           for (Index ir = 0; ir < nrows; ir++) {
-            if (!is_same_within_epsilon(
-                    x(is, ip, ir, ic), x(is, ip, ir, 0), 2 * DBL_EPSILON)) {
-              ostringstream os;
-              os << "The variable *" << x_name << "* covers 360 "
-                 << "degrees in the longitude direction, but at least "
-                 << "one field seems to deviate between first and last "
-                 << "longitude point. The field must be \"cyclic\". "
-                 << "This was found for field with index " << is
-                 << " (0-based).";
-              throw runtime_error(os.str());
-            }
+            ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+                    x(is, ip, ir, ic), x(is, ip, ir, 0), 2 * DBL_EPSILON),
+              "The variable *", x_name, "* covers 360 "
+                , "degrees in the longitude direction, but at least "
+                , "one field seems to deviate between first and last "
+                , "longitude point. The field must be \"cyclic\". "
+                , "This was found for field with index ", is
+                , " (0-based).")
           }
         }
       }
@@ -1469,16 +1339,13 @@ void chk_atm_field(const String& x_name,
       for (Index is = 0; is < nspecies; is++) {
         for (Index ip = 0; ip < npages; ip++) {
           for (Index ic = 1; ic < ncols; ic++) {
-            if (!is_same_within_epsilon(
-                    x(is, ip, 0, ic), x(is, ip, 0, ic - 1), 2 * DBL_EPSILON)) {
-              ostringstream os;
-              os << "The variable *" << x_name << "* covers the South "
-                 << "pole. The data corresponding to the pole can not "
-                 << "vary with longitude, but this appears to be the "
-                 << "case. This was found for field with index " << is
-                 << " (0-based).";
-              throw runtime_error(os.str());
-            }
+            ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+                    x(is, ip, 0, ic), x(is, ip, 0, ic - 1), 2 * DBL_EPSILON),
+              "The variable *", x_name, "* covers the South "
+                , "pole. The data corresponding to the pole can not "
+                , "vary with longitude, but this appears to be the "
+                , "case. This was found for field with index ", is
+                , " (0-based).")
           }
         }
       }
@@ -1489,17 +1356,14 @@ void chk_atm_field(const String& x_name,
       for (Index is = 0; is < nspecies; is++) {
         for (Index ip = 0; ip < npages; ip++) {
           for (Index ic = 1; ic < ncols; ic++) {
-            if (!is_same_within_epsilon(x(is, ip, ir, ic),
+            ARTS_USER_ERROR_IF (!is_same_within_epsilon(x(is, ip, ir, ic),
                                         x(is, ip, ir, ic - 1),
-                                        2 * DBL_EPSILON)) {
-              ostringstream os;
-              os << "The variable *" << x_name << "* covers the North "
-                 << "pole. The data corresponding to the pole can not "
-                 << "vary with longitude, but this appears to be the "
-                 << "case. This was found for field with index " << is
-                 << " (0-based).";
-              throw runtime_error(os.str());
-            }
+                                        2 * DBL_EPSILON),
+              "The variable *", x_name, "* covers the North "
+                , "pole. The data corresponding to the pole can not "
+                , "vary with longitude, but this appears to be the "
+                , "case. This was found for field with index ", is
+                , " (0-based).")
           }
         }
       }
@@ -1551,15 +1415,12 @@ void chk_atm_vecfield_lat90(const String& x1_name,
     Index ncols = x1.ncols();
 
     // For safety check that both fields have identical dimensions
-    if (x2.ncols() != ncols || x2.nrows() != nrows || x2.npages() != npages) {
-      ostringstream os;
-      os << "The atmospheric fields *" << x1_name << "* and *" << x2_name
-         << "* do not match in size.\n"
-         << "*" << x1_name << "*'s size is " << npages << " x " << nrows
-         << " x " << ncols << ", while *" << x1_name << "*'s size is "
-         << x2.npages() << " x " << x2.nrows() << " x " << x2.ncols() << ".";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (x2.ncols() != ncols || x2.nrows() != nrows || x2.npages() != npages,
+      "The atmospheric fields *", x1_name, "* and *", x2_name
+        , "* do not match in size.\n"
+        , "*", x1_name, "*'s size is ", npages, " x ", nrows
+        , " x ", ncols, ", while *", x1_name, "*'s size is "
+        , x2.npages(), " x ", x2.nrows(), " x ", x2.ncols(), ".")
 
     // redefine ratio deviation threshold of vector lengths to ratio of
     // squared vector lengths, cause don't want to calc squareroot everytime.
@@ -1585,20 +1446,17 @@ void chk_atm_vecfield_lat90(const String& x1_name,
           vec1 = x1(ip, 0, ic) * x1(ip, 0, ic) + x2(ip, 0, ic) * x2(ip, 0, ic);
           vec2 = x1(ip, 0, ic - 1) * x1(ip, 0, ic - 1) +
                  x2(ip, 0, ic - 1) * x2(ip, 0, ic - 1);
-          if (fabs(vec1 / vec2 - 1.) > th) {
-            ostringstream os;
-            os << "The variables *" << x1_name << "* and *" << x2_name
-               << "* are assumed\n"
-               << "to be two horizontal components of a vector field.\n"
-               << "At the pole, the data (here: the total length of\n"
-               << "the horizontal vector) can NOT vary with longitude,\n"
-               << "but this appears to be the case on the South pole.\n"
-               << "The threshold is " << threshold << ", but the actual\n"
-               << "deviation at pressure level " << ip << " and longitude\n"
-               << "points " << ic - 1 << " and " << ic << " is "
-               << sqrt(vec1) / sqrt(vec2) - 1.;
-            throw runtime_error(os.str());
-          }
+          ARTS_USER_ERROR_IF (fabs(vec1 / vec2 - 1.) > th,
+            "The variables *", x1_name, "* and *", x2_name
+              , "* are assumed\n"
+              , "to be two horizontal components of a vector field.\n"
+              , "At the pole, the data (here: the total length of\n"
+              , "the horizontal vector) can NOT vary with longitude,\n"
+              , "but this appears to be the case on the South pole.\n"
+              , "The threshold is ", threshold, ", but the actual\n"
+              , "deviation at pressure level ", ip, " and longitude\n"
+              , "points ", ic - 1, " and ", ic, " is "
+              , sqrt(vec1) / sqrt(vec2) - 1.)
         }
       }
     }
@@ -1612,20 +1470,17 @@ void chk_atm_vecfield_lat90(const String& x1_name,
               x1(ip, ir, ic) * x1(ip, ir, ic) + x2(ip, ir, ic) * x2(ip, ir, ic);
           vec2 = x1(ip, ir, ic - 1) * x1(ip, ir, ic - 1) +
                  x2(ip, ir, ic - 1) * x2(ip, ir, ic - 1);
-          if (fabs(vec1 / vec2 - 1.) > th) {
-            ostringstream os;
-            os << "The variables *" << x1_name << "* and *" << x2_name
-               << "* are assumed\n"
-               << "to be two horizontal components of a vector field.\n"
-               << "At the pole, the data (here: the total length of\n"
-               << "the horizontal vector) can NOT vary with longitude,\n"
-               << "but this appears to be the case on the North pole.\n"
-               << "The threshold is " << threshold << ", but the actual\n"
-               << "deviation at pressure level " << ip << " and longitude\n"
-               << "points " << ic - 1 << " and " << ic << " is "
-               << sqrt(vec1) / sqrt(vec2) - 1.;
-            throw runtime_error(os.str());
-          }
+          ARTS_USER_ERROR_IF (fabs(vec1 / vec2 - 1.) > th,
+            "The variables *", x1_name, "* and *", x2_name
+              , "* are assumed\n"
+              , "to be two horizontal components of a vector field.\n"
+              , "At the pole, the data (here: the total length of\n"
+              , "the horizontal vector) can NOT vary with longitude,\n"
+              , "but this appears to be the case on the North pole.\n"
+              , "The threshold is ", threshold, ", but the actual\n"
+              , "deviation at pressure level ", ip, " and longitude\n"
+              , "points ", ic - 1, " and ", ic, " is "
+              , sqrt(vec1) / sqrt(vec2) - 1.)
         }
       }
     }
@@ -1650,20 +1505,16 @@ void chk_latlon_true(const Index& atmosphere_dim,
                      ConstVectorView lat_true,
                      ConstVectorView lon_true) {
   if (atmosphere_dim == 1) {
-    if (lat_true.nelem() != 1 || lon_true.nelem() != 1) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lat_true.nelem() != 1 || lon_true.nelem() != 1,
           "For 1D, the method requires that *lat_true* "
           "and *lon_true* have length 1.");
-    }
   }
   //
-  else if (atmosphere_dim == 2) {
-    if (lat_true.nelem() != lat_grid.nelem() ||
-        lon_true.nelem() != lat_grid.nelem()) {
-      throw runtime_error(
+  if (atmosphere_dim == 2) {
+    ARTS_USER_ERROR_IF (lat_true.nelem() != lat_grid.nelem() ||
+                        lon_true.nelem() != lat_grid.nelem(),
           "For 2D, the method requires that *lat_true* "
           "and *lon_true* have the same length as *lat_grid*.");
-    }
   }
 }
 
@@ -1690,13 +1541,10 @@ void chk_atm_surface(const String& x_name,
   Index ncols = 1, nrows = 1;
   if (dim > 1) nrows = lat_grid.nelem();
   if (dim > 2) ncols = lon_grid.nelem();
-  if (x.ncols() != ncols || x.nrows() != nrows) {
-    ostringstream os;
-    os << "The surface variable *" << x_name << "* has wrong size.\n"
-       << "Expected size is " << nrows << " x " << ncols << ","
-       << " while actual size is " << x.nrows() << " x " << x.ncols() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (x.ncols() != ncols || x.nrows() != nrows,
+    "The surface variable *", x_name, "* has wrong size.\n"
+      , "Expected size is ", nrows, " x ", ncols, ","
+      , " while actual size is ", x.nrows(), " x ", x.ncols(), ".")
 
   // Special 3D checks:
   if (dim == 3) {
@@ -1704,43 +1552,34 @@ void chk_atm_surface(const String& x_name,
     if ((lon_grid[ncols - 1] - lon_grid[0]) == 360) {
       const Index ic = ncols - 1;
       for (Index ir = 0; ir < nrows; ir++) {
-        if (!is_same_within_epsilon(x(ir, ic), x(ir, 0), 2 * DBL_EPSILON)) {
-          ostringstream os;
-          os << "The variable *" << x_name << "* covers 360 "
-             << "degrees in the longitude direction, but the field "
-             << "seems to deviate between first and last longitude "
-             << "point. The field must be \"cyclic\".";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (!is_same_within_epsilon(x(ir, ic), x(ir, 0), 2 * DBL_EPSILON),
+          "The variable *", x_name, "* covers 360 "
+            , "degrees in the longitude direction, but the field "
+            , "seems to deviate between first and last longitude "
+            , "point. The field must be \"cyclic\".")
       }
     }
 
     // No variation at the South pole!
     if (lat_grid[0] == -90) {
       for (Index ic = 1; ic < ncols; ic++) {
-        if (!is_same_within_epsilon(x(0, ic), x(0, ic - 1), 2 * DBL_EPSILON)) {
-          ostringstream os;
-          os << "The variable *" << x_name << "* covers the South "
-             << "pole. The data corresponding to the pole can not "
-             << "vary with longitude, but this appears to be the "
-             << "case.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (!is_same_within_epsilon(x(0, ic), x(0, ic - 1), 2 * DBL_EPSILON),
+          "The variable *", x_name, "* covers the South "
+            , "pole. The data corresponding to the pole can not "
+            , "vary with longitude, but this appears to be the "
+            , "case.")
       }
     }
     // No variation at the North pole!
     if (lat_grid[nrows - 1] == 90) {
       const Index ir = nrows - 1;
       for (Index ic = 1; ic < ncols; ic++) {
-        if (!is_same_within_epsilon(
-                x(ir, ic), x(ir, ic - 1), 2 * DBL_EPSILON)) {
-          ostringstream os;
-          os << "The variable *" << x_name << "* covers the North "
-             << "pole. The data corresponding to the pole can not "
-             << "vary with longitude, but this appears to be the "
-             << "case.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+                x(ir, ic), x(ir, ic - 1), 2 * DBL_EPSILON),
+          "The variable *", x_name, "* covers the North "
+            , "pole. The data corresponding to the pole can not "
+            , "vary with longitude, but this appears to be the "
+            , "case.")
       }
     }
   }
@@ -1775,48 +1614,27 @@ void chk_rte_pos(const Index& atmosphere_dim,
 
   if (atmosphere_dim == 1) {
     if (!is_rte_pos2) {
-      if (rte_pos.nelem() != 1) {
-        ostringstream os;
-        os << "For 1D, " << vname << " must have length 1.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (rte_pos.nelem() != 1,
+        "For 1D, ", vname, " must have length 1.")
     } else {
-      if (rte_pos.nelem() != 2) {
-        ostringstream os;
-        os << "For 1D, " << vname << " must have length 2.";
-        throw runtime_error(os.str());
-      }
-      if (rte_pos[1] < -180 || rte_pos[1] > 180) {
-        ostringstream os;
-        os << "For 1D, the latitude in " << vname << " must be in the "
-           << "range [-180,180].";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (rte_pos.nelem() != 2,
+        "For 1D, ", vname, " must have length 2.")
+      ARTS_USER_ERROR_IF (rte_pos[1] < -180 || rte_pos[1] > 180,
+        "For 1D, the latitude in ", vname, " must be in the "
+          , "range [-180,180].")
     }
   } else if (atmosphere_dim == 2) {
-    if (rte_pos.nelem() != 2) {
-      ostringstream os;
-      os << "For 2D, " << vname << " must have length 2.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (rte_pos.nelem() != 2,
+      "For 2D, ", vname, " must have length 2.")
   } else {
-    if (rte_pos.nelem() != 3) {
-      ostringstream os;
-      os << "For 3D, " << vname << " must have length 3.";
-      throw runtime_error(os.str());
-    }
-    if (rte_pos[1] < -90 || rte_pos[1] > 90) {
-      ostringstream os;
-      os << "The (3D) latitude in " << vname << " must be in the "
-         << "range [-90,90].";
-      throw runtime_error(os.str());
-    }
-    if (rte_pos[2] < -360 || rte_pos[2] > 360) {
-      ostringstream os;
-      os << "The longitude in " << vname << " must be in the "
-         << "range [-360,360].";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (rte_pos.nelem() != 3,
+      "For 3D, ", vname, " must have length 3.")
+    ARTS_USER_ERROR_IF (rte_pos[1] < -90 || rte_pos[1] > 90,
+      "The (3D) latitude in ", vname, " must be in the "
+        , "range [-90,90].")
+    ARTS_USER_ERROR_IF (rte_pos[2] < -360 || rte_pos[2] > 360,
+      "The longitude in ", vname, " must be in the "
+        , "range [-360,360].")
   }
 }
 
@@ -1836,37 +1654,26 @@ void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los)
 
 {
   if (atmosphere_dim == 1) {
-    if (rte_los.nelem() != 1) {
-      throw runtime_error("For 1D, los-vectors must have length 1.");
-    }
-    if (rte_los[0] < 0 || rte_los[0] > 180) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (rte_los.nelem() != 1,
+                        "For 1D, los-vectors must have length 1.");
+    ARTS_USER_ERROR_IF (rte_los[0] < 0 || rte_los[0] > 180,
           "For 1D, the zenith angle of a los-vector must "
           "be in the range [0,180].");
-    }
   } else if (atmosphere_dim == 2) {
-    if (rte_los.nelem() != 1) {
-      throw runtime_error("For 2D, los-vectors must have length 1.");
-    }
-    if (rte_los[0] < -180 || rte_los[0] > 180) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (rte_los.nelem() != 1,
+          "For 2D, los-vectors must have length 1.");
+    ARTS_USER_ERROR_IF (rte_los[0] < -180 || rte_los[0] > 180,
           "For 2D, the zenith angle of a los-vector must "
           "be in the range [-180,180].");
-    }
   } else {
-    if (rte_los.nelem() != 2) {
-      throw runtime_error("For 3D, los-vectors must have length 2.");
-    }
-    if (rte_los[0] < 0 || rte_los[0] > 180) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (rte_los.nelem() != 2,
+          "For 3D, los-vectors must have length 2.");
+    ARTS_USER_ERROR_IF (rte_los[0] < 0 || rte_los[0] > 180,
           "For 3D, the zenith angle of a los-vector must "
           "be in the range [0,180].");
-    }
-    if (rte_los[1] < -180 || rte_los[1] > 180) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (rte_los[1] < -180 || rte_los[1] > 180,
           "For 3D, the azimuth angle of a los-vector must "
           "be in the range [-180,180].");
-    }
   }
 }
 
@@ -1887,12 +1694,9 @@ void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los)
 void chk_griddedfield_gridname(const GriddedField& gf,
                                const Index gridindex,
                                const String& gridname) {
-  if (gf.get_dim() - 1 < gridindex) {
-    ostringstream os;
-    os << "Grid index " << gridindex << " exceeds dimension of GriddedField";
-    if (gf.get_name().nelem()) os << " \"" << gf.get_name() << "\"";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (gf.get_dim() - 1 < gridindex,
+    "Grid index ", gridindex, " exceeds dimension of GriddedField",
+    (gf.get_name().nelem()) ? var_string(" \"", gf.get_name(), "\"") : var_string())
 
   String gfgridnameupper = gf.get_grid_name(gridindex);
   gfgridnameupper.toupper();
@@ -1900,14 +1704,11 @@ void chk_griddedfield_gridname(const GriddedField& gf,
   String gridnameupper = gridname;
   gridnameupper.toupper();
 
-  if (gfgridnameupper != gridnameupper) {
-    ostringstream os;
-    os << "Name of grid " << gridindex << " in GriddedField";
-    if (gf.get_name().nelem()) os << " \"" << gf.get_name() << "\"";
-    os << " is \"" << gf.get_grid_name(gridindex) << "\".\n"
-       << "The expected name is \"" << gridname << "\".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (gfgridnameupper != gridnameupper,
+    "Name of grid ", gridindex, " in GriddedField",
+    (gf.get_name().nelem()) ? var_string(" \"", gf.get_name(), "\"") : var_string(),
+    " is \"", gf.get_grid_name(gridindex), "\".\n"
+      , "The expected name is \"", gridname, "\".")
 }
 
 /*===========================================================================
@@ -1925,11 +1726,11 @@ void chk_griddedfield_gridname(const GriddedField& gf,
  \author Oliver Lemke
  */
 void chk_met_mm_backend(const Matrix& mmb) {
-  if (!mmb.nrows())
-    throw std::runtime_error("No channels defined in *met_mm_backend*.");
+  ARTS_USER_ERROR_IF (!mmb.nrows(),
+    "No channels defined in *met_mm_backend*.");
 
-  if (mmb.ncols() != 4)
-    throw std::runtime_error("*met_mm_backend* must have 4 columns.");
+  ARTS_USER_ERROR_IF (mmb.ncols() != 4,
+    "*met_mm_backend* must have 4 columns.");
 
   for (Index ch = 0; ch < mmb.nrows(); ch++) {
     Numeric lo = mmb(ch, 0);
@@ -1938,74 +1739,56 @@ void chk_met_mm_backend(const Matrix& mmb) {
     Numeric bandwidth = mmb(ch, 3);
 
     // Negative LO
-    if (lo < 0.) {
-      ostringstream os;
-      os << "Error in channel " << ch + 1 << " at row " << ch
-         << " in *met_mm_backend*.\n"
-         << "Center frequency is negative: " << mmb(ch, 0) << " Hz";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (lo < 0.,
+      "Error in channel ", ch + 1, " at row ", ch
+        , " in *met_mm_backend*.\n"
+        , "Center frequency is negative: ", mmb(ch, 0), " Hz")
 
     // Negative offsets
-    if (offset1 < 0. || offset2 < 0.) {
-      ostringstream os;
-      os << "Error in channel " << ch + 1 << " at row " << ch
-         << " in *met_mm_backend*.\n"
-         << "Offset is negative:\n"
-         << "offset1: " << offset1 << " Hz\n"
-         << "offset2: " << offset2 << " Hz\n";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (offset1 < 0. || offset2 < 0.,
+      "Error in channel ", ch + 1, " at row ", ch
+        , " in *met_mm_backend*.\n"
+        , "Offset is negative:\n"
+        , "offset1: ", offset1, " Hz\n"
+        , "offset2: ", offset2, " Hz\n")
 
     // First offset is smaller than second offset
-    if (offset1 != 0. && offset1 <= offset2) {
-      ostringstream os;
-      os << "Error in channel " << ch + 1 << " at row " << ch
-         << " in *met_mm_backend*.\n"
-         << "First passband offset is smaller than/equal to the second offset:\n"
-         << "offset1: " << offset1 << " Hz\n"
-         << "offset2: " << offset2 << " Hz\n";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (offset1 != 0. && offset1 <= offset2,
+      "Error in channel ", ch + 1, " at row ", ch
+        , " in *met_mm_backend*.\n"
+        , "First passband offset is smaller than/equal to the second offset:\n"
+        , "offset1: ", offset1, " Hz\n"
+        , "offset2: ", offset2, " Hz\n")
 
     // Bandwidth too wide, overlap with LO
-    if (offset1 > 0 && offset1 - offset2 <= bandwidth / 2.) {
-      ostringstream os;
-      os << "Error in channel " << ch + 1 << " at row " << ch
-         << " in *met_mm_backend*.\n"
-         << "Band touches or overlaps with the center frequency:\n"
-         << "offset1                        : " << offset1 << " Hz\n"
-         << "offset2                        : " << offset2 << " Hz\n"
-         << "bandwidth                      : " << bandwidth << " Hz\n"
-         << "offset1 - offset2 - bandwidth/2: "
-         << offset1 - offset2 - bandwidth / 2. << " Hz\n";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (offset1 > 0 && offset1 - offset2 <= bandwidth / 2.,
+      "Error in channel ", ch + 1, " at row ", ch
+        , " in *met_mm_backend*.\n"
+        , "Band touches or overlaps with the center frequency:\n"
+        , "offset1                        : ", offset1, " Hz\n"
+        , "offset2                        : ", offset2, " Hz\n"
+        , "bandwidth                      : ", bandwidth, " Hz\n"
+        , "offset1 - offset2 - bandwidth/2: "
+        , offset1 - offset2 - bandwidth / 2., " Hz\n")
 
     // Bandwidth too wide, passbands overlap
-    if (offset2 > 0 && offset2 <= bandwidth / 2.) {
-      ostringstream os;
-      os << "Error in channel " << ch + 1 << " at row " << ch
-         << " in *met_mm_backend*.\n"
-         << "Bands overlap or touch, offset2 > bandwidth/2:\n"
-         << "offset2    : " << offset2 << " Hz\n"
-         << "bandwidth/2: " << bandwidth / 2. << " Hz\n";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (offset2 > 0 && offset2 <= bandwidth / 2.,
+      "Error in channel ", ch + 1, " at row ", ch
+        , " in *met_mm_backend*.\n"
+        , "Bands overlap or touch, offset2 > bandwidth/2:\n"
+        , "offset2    : ", offset2, " Hz\n"
+        , "bandwidth/2: ", bandwidth / 2., " Hz\n")
 
     // Channel too wide, goes negative
-    if (lo - offset1 - offset2 - bandwidth / 2. <= 0) {
-      ostringstream os;
-      os << "Error in channel " << ch + 1 << " at row " << ch
-         << " in *met_mm_backend*.\n"
-         << "Band too wide, reaches/exceeds 0 Hz:\n"
-         << "LO                                  : " << lo << " Hz\n"
-         << "offset1                             : " << offset1 << " Hz\n"
-         << "offset2                             : " << offset2 << " Hz\n"
-         << "bandwidth                           : " << bandwidth << " Hz\n"
-         << "LO - offset1 - offset2 - bandwidth/2: "
-         << lo - offset1 - offset2 - bandwidth / 2. << " Hz\n";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (lo - offset1 - offset2 - bandwidth / 2. <= 0,
+      "Error in channel ", ch + 1, " at row ", ch
+        , " in *met_mm_backend*.\n"
+        , "Band too wide, reaches/exceeds 0 Hz:\n"
+        , "LO                                  : ", lo, " Hz\n"
+        , "offset1                             : ", offset1, " Hz\n"
+        , "offset2                             : ", offset2, " Hz\n"
+        , "bandwidth                           : ", bandwidth, " Hz\n"
+        , "LO - offset1 - offset2 - bandwidth/2: "
+        , lo - offset1 - offset2 - bandwidth / 2., " Hz\n")
   }
 }

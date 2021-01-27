@@ -66,16 +66,13 @@ void iyApplyUnit(Matrix& iy,
                  const ArrayOfString& iy_aux_vars,
                  const String& iy_unit,
                  const Verbosity&) {
-  if (iy_unit == "1")
-    throw runtime_error("No need to use this method with *iy_unit* = \"1\".");
+  ARTS_USER_ERROR_IF (iy_unit == "1",
+    "No need to use this method with *iy_unit* = \"1\".");
 
-  if (max(iy(joker, 0)) > 1e-3) {
-    ostringstream os;
-    os << "The spectrum matrix *iy* is required to have original radiance\n"
-       << "unit, but this seems not to be the case. This as a value above\n"
-       << "1e-3 is found in *iy*.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (max(iy(joker, 0)) > 1e-3,
+      "The spectrum matrix *iy* is required to have original radiance\n"
+      "unit, but this seems not to be the case. This as a value above\n"
+      "1e-3 is found in *iy*.")
 
   // Polarisation index variable
   ArrayOfIndex i_pol(stokes_dim);
@@ -115,21 +112,17 @@ void iyCalc(Workspace& ws,
             const Verbosity&) {
   // Basics
   //
-  if (atmfields_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have\n"
         "passed a consistency check (atmfields_checked=1).");
-  if (atmgeom_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have\n"
         "passed a consistency check (atmgeom_checked=1).");
-  if (cloudbox_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_checked != 1,
         "The cloudbox must be flagged to have\n"
         "passed a consistency check (cloudbox_checked=1).");
   if (cloudbox_on)
-    if (scat_data_checked != 1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (scat_data_checked != 1,
           "The scattering data must be flagged to have\n"
           "passed a consistency check (scat_data_checked=1).");
 
@@ -158,8 +151,8 @@ void iyCalc(Workspace& ws,
 
   // Don't allow NaNs (should suffice to check first stokes element)
   for (Index i = 0; i < iy.nrows(); i++) {
-    if (std::isnan(iy(i, 0)))
-      throw runtime_error("One or several NaNs found in *iy*.");
+    ARTS_USER_ERROR_IF (std::isnan(iy(i, 0)),
+                        "One or several NaNs found in *iy*.");
   }
 }
 
@@ -226,12 +219,10 @@ void iyEmissionStandard(
   const Index rbi = ppath_what_background(ppath);
 
   // Checks of input
-  if (rbi < 1 || rbi > 9)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (rbi < 1 || rbi > 9,
         "ppath.background is invalid. Check your "
         "calculation of *ppath*?");
-  if (!iy_agenda_call1 && np == 1 && rbi == 2)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!iy_agenda_call1 && np == 1 && rbi == 2,
         "A secondary propagation path starting at the "
         "surface and is going directly into the surface "
         "is found. This is not allowed.");
@@ -260,12 +251,11 @@ void iyEmissionStandard(
     else if (iy_aux_vars[i] == "Optical depth")
       auxOptDepth = i;
     else {
-      ostringstream os;
-      os << "The only allowed strings in *iy_aux_vars* are:\n"
-         << "  \"Radiative background\"\n"
-         << "  \"Optical depth\"\n"
-         << "but you have selected: \"" << iy_aux_vars[i] << "\"";
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR_IF (true,
+        "The only allowed strings in *iy_aux_vars* are:\n"
+        "  \"Radiative background\"\n"
+        "  \"Optical depth\"\n"
+        "but you have selected: \"", iy_aux_vars[i], "\"")
     }
   }
 
@@ -469,14 +459,8 @@ void iyEmissionStandard(
       }
     }
 
-    if (do_abort) {
-      std::ostringstream os;
-      os << "Error messages from failed cases:\n";
-      for (const auto& msg : fail_msg) {
-        os << msg << '\n';
-      }
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (do_abort,
+      "Error messages from failed cases:\n", fail_msg)
   }
 
   const ArrayOfTransmissionMatrix tot_tra =
@@ -572,7 +556,7 @@ void iyEmissionStandard(
                               RadiativeTransferSolver::LinearWeightedEmission);
     }
   } else {
-    throw runtime_error("Only allowed choices for *integration order* are "
+    ARTS_USER_ERROR_IF (true, "Only allowed choices for *integration order* are "
                         "1 and 2.");    
   }
   
@@ -669,35 +653,26 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                     const Index& return_masses,
                                     const Verbosity&) {
   // Throw error if unsupported features are requested
-  if (jacobian_do)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (jacobian_do,
         "Jacobians not provided by the method, *jacobian_do* "
         "must be 0.");
-  if (!nlte_field.Data().empty())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!nlte_field.Data().empty(),
         "This method does not yet support non-empty *nlte_field*.");
-  if (!wind_u_field.empty())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!wind_u_field.empty(),
         "This method does not yet support non-empty *wind_u_field*.");
-  if (!wind_v_field.empty())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!wind_v_field.empty(),
         "This method does not yet support non-empty *wind_v_field*.");
-  if (!wind_w_field.empty())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!wind_w_field.empty(),
         "This method does not yet support non-empty *wind_w_field*.");
-  if (!mag_u_field.empty())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!mag_u_field.empty(),
         "This method does not yet support non-empty *mag_u_field*.");
-  if (!mag_v_field.empty())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!mag_v_field.empty(),
         "This method does not yet support non-empty *mag_v_field*.");
-  if (!mag_w_field.empty())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!mag_w_field.empty(),
         "This method does not yet support non-empty *mag_w_field*.");
   //
   if (return_masses) {
-    if (pnd_field.nbooks() != particle_masses.nrows())
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (pnd_field.nbooks() != particle_masses.nrows(),
           "Sizes of *pnd_field* and *particle_masses* "
           "are inconsistent.");
   }
@@ -1081,11 +1056,10 @@ void iyLoopFrequencies(Workspace& ws,
                        const Agenda& iy_loop_freqs_agenda,
                        const Verbosity&) {
   // Throw error if unsupported features are requested
-  if (!iy_agenda_call1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!iy_agenda_call1,
         "Recursive usage not possible (iy_agenda_call1 must be 1).");
-  if (iy_transmittance.ncols())
-    throw runtime_error("*iy_transmittance* must be empty.");
+  ARTS_USER_ERROR_IF (iy_transmittance.ncols(),
+        "*iy_transmittance* must be empty.");
 
   const Index nf = f_grid.nelem();
 
@@ -1177,20 +1151,16 @@ void iyMC(Workspace& ws,
           const Index& t_interp_order,
           const Verbosity& verbosity) {
   // Throw error if unsupported features are requested
-  if (atmosphere_dim != 3)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmosphere_dim != 3,
         "Only 3D atmospheres are allowed (atmosphere_dim must be 3)");
-  if (!cloudbox_on)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!cloudbox_on,
         "The cloudbox must be activated (cloudbox_on must be 1)");
-  if (jacobian_do)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (jacobian_do,
         "This method does not provide any jacobians (jacobian_do must be 0)");
-  if (!iy_agenda_call1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!iy_agenda_call1,
         "Recursive usage not possible (iy_agenda_call1 must be 1)");
-  if (iy_transmittance.ncols())
-    throw runtime_error("*iy_transmittance* must be empty");
+  ARTS_USER_ERROR_IF (iy_transmittance.ncols(),
+        "*iy_transmittance* must be empty");
 
   // Size output variables
   //
@@ -1210,10 +1180,9 @@ void iyMC(Workspace& ws,
         auxError = i;
         iy_aux[i].resize(nf, stokes_dim);
       } else {
-        ostringstream os;
-        os << "In *iy_aux_vars* you have included: \"" << iy_aux_vars[i]
-           << "\"\nThis choice is not recognised.";
-        throw runtime_error(os.str());
+        ARTS_USER_ERROR_IF (true,
+          "In *iy_aux_vars* you have included: \"", iy_aux_vars[i],
+          "\"\nThis choice is not recognised.")
       }
     }
   }
@@ -1328,7 +1297,7 @@ void iyMC(Workspace& ws,
       }
     }
 
-  if (failed) throw runtime_error(fail_msg);
+    ARTS_USER_ERROR_IF (failed, fail_msg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1338,13 +1307,11 @@ void iyReplaceFromAux(Matrix& iy,
                       const Index& jacobian_do,
                       const String& aux_var,
                       const Verbosity&) {
-  if (iy_aux.nelem() != iy_aux_vars.nelem())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (iy_aux.nelem() != iy_aux_vars.nelem(),
         "*iy_aux* and *iy_aux_vars* must have the same "
         "number of elements.");
 
-  if (jacobian_do)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (jacobian_do,
         "This method can not provide any jacobians and "
         "*jacobian_do* must be 0.");
 
@@ -1357,8 +1324,7 @@ void iyReplaceFromAux(Matrix& iy,
     }
   }
 
-  if (!ready)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!ready,
         "The selected auxiliary variable to insert in *iy* "
         "is either not defined at all or is not set.");
 }
@@ -1415,33 +1381,26 @@ void yCalc(Workspace& ws,
   //
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   //
-  if (f_grid.empty()) {
-    throw runtime_error("The frequency grid is empty.");
-  }
+  ARTS_USER_ERROR_IF (f_grid.empty(),
+                      "The frequency grid is empty.");
   chk_if_increasing("f_grid", f_grid);
-  if (f_grid[0] <= 0) {
-    throw runtime_error("All frequencies in *f_grid* must be > 0.");
-  }
+  ARTS_USER_ERROR_IF (f_grid[0] <= 0,
+                      "All frequencies in *f_grid* must be > 0.");
   //
-  if (atmfields_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have\n"
         "passed a consistency check (atmfields_checked=1).");
-  if (atmgeom_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have\n"
         "passed a consistency check (atmgeom_checked=1).");
-  if (cloudbox_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_checked != 1,
         "The cloudbox must be flagged to have\n"
         "passed a consistency check (cloudbox_checked=1).");
   if (cloudbox_on)
-    if (scat_data_checked != 1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (scat_data_checked != 1,
           "The scattering data must be flagged to have\n"
           "passed a consistency check (scat_data_checked=1).");
-  if (sensor_checked != 1)
-    throw runtime_error(
+    ARTS_USER_ERROR_IF (sensor_checked != 1,
         "The sensor variables must be flagged to have\n"
         "passed a consistency check (sensor_checked=1).");
 
@@ -1595,7 +1554,7 @@ void yCalc(Workspace& ws,
   }
 
   // Rethrow exception if a runtime error occurred in the mblock loop
-  if (failed) throw runtime_error(fail_msg);
+  ARTS_USER_ERROR_IF (failed, fail_msg);
 
   // Compile y_aux
   //
@@ -1680,23 +1639,23 @@ void yCalcAppend(Workspace& ws,
   // Check consistency of data representing first measurement
   const Index n1 = y.nelem();
   Index nrq1 = 0;
-  if (y.empty()) throw runtime_error("Input *y* is empty. Use *yCalc*");
-  if (y_f.nelem() != n1)
-    throw runtime_error("Lengths of input *y* and *y_f* are inconsistent.");
-  if (y_pol.nelem() != n1)
-    throw runtime_error("Lengths of input *y* and *y_pol* are inconsistent.");
-  if (y_pos.nrows() != n1)
-    throw runtime_error("Sizes of input *y* and *y_pos* are inconsistent.");
-  if (y_los.nrows() != n1)
-    throw runtime_error("Sizes of input *y* and *y_los* are inconsistent.");
-  if (y_geo.nrows() != n1)
-    throw runtime_error("Sizes of input *y* and *y_geo* are inconsistent.");
+  ARTS_USER_ERROR_IF (y.empty(),
+                      "Input *y* is empty. Use *yCalc*");
+  ARTS_USER_ERROR_IF (y_f.nelem() != n1,
+                      "Lengths of input *y* and *y_f* are inconsistent.");
+  ARTS_USER_ERROR_IF (y_pol.nelem() != n1,
+                      "Lengths of input *y* and *y_pol* are inconsistent.");
+  ARTS_USER_ERROR_IF (y_pos.nrows() != n1,
+                      "Sizes of input *y* and *y_pos* are inconsistent.");
+  ARTS_USER_ERROR_IF (y_los.nrows() != n1,
+                      "Sizes of input *y* and *y_los* are inconsistent.");
+  ARTS_USER_ERROR_IF (y_geo.nrows() != n1,
+                      "Sizes of input *y* and *y_geo* are inconsistent.");
   if (jacobian_do) {
     nrq1 = jacobian_quantities_copy.nelem();
-    if (jacobian.nrows() != n1)
-      throw runtime_error("Sizes of *y* and *jacobian* are inconsistent.");
-    if (jacobian.ncols() != jacobian_indices_copy[nrq1 - 1][1] + 1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (jacobian.nrows() != n1,
+                        "Sizes of *y* and *jacobian* are inconsistent.");
+    ARTS_USER_ERROR_IF (jacobian.ncols() != jacobian_indices_copy[nrq1 - 1][1] + 1,
           "Size of input *jacobian* and size implied "
           "*jacobian_quantities_copy* are inconsistent.");
   }
@@ -1745,11 +1704,9 @@ void yCalcAppend(Workspace& ws,
         verbosity);
 
   // Consistency checks
-  if (y_pos.ncols() != y_pos2.ncols())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (y_pos.ncols() != y_pos2.ncols(),
         "Different number of columns in *y_pos* between the measurements.");
-  if (y_los.ncols() != y_los2.ncols())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (y_los.ncols() != y_los2.ncols(),
         "Different number of columns in *y_los* between the measurements.");
 
   // y and y_XXX
@@ -1850,13 +1807,12 @@ void yCalcAppend(Workspace& ws,
                   jacobian_quantities_copy[q1].Mode()) {
                 pos = q1;
               } else {
-                ostringstream os;
-                os << "Jacobians for " << jacobian_quantities2[q2]
-                    << " shall be appended.\nThis requires "
-                    << "that the same retrieval unit is used "
-                    << "but it seems that this requirement is "
-                    << "not met.";
-                throw runtime_error(os.str());
+                ARTS_USER_ERROR_IF (true,
+                  "Jacobians for ", jacobian_quantities2[q2],
+                  " shall be appended.\nThis requires "
+                  "that the same retrieval unit is used "
+                  "but it seems that this requirement is "
+                  "not met.")
               }
             }
           }
@@ -1866,13 +1822,12 @@ void yCalcAppend(Workspace& ws,
                 jacobian_quantities_copy[q1].Subtag()) {
               pos = q1;
             } else {
-              ostringstream os;
-              os << "Jacobians for " << jacobian_quantities2[q2]
-                  << " shall be appended.\nThis requires "
-                  << "that HSE is either ON or OFF for both "
-                  << "parts but it seems that this requirement "
-                  << "is not met.";
-              throw runtime_error(os.str());
+              ARTS_USER_ERROR_IF (true,
+                "Jacobians for ", jacobian_quantities2[q2],
+                " shall be appended.\nThis requires "
+                "that HSE is either ON or OFF for both "
+                "parts but it seems that this requirement "
+                "is not met.")
             }
           } else if (jacobian_quantities[q2] == Jacobian::Special::ScatteringString) {
             if ((jacobian_quantities2[q2].Subtag() ==
@@ -1926,12 +1881,11 @@ void yCalcAppend(Workspace& ws,
           }
         }
         if (any_wrong) {
-          ostringstream os;
-          os << "Jacobians for " << jacobian_quantities2[q2]
-             << " shall be appended.\nThis requires that the "
-             << "same grids are used for both measurements,\nbut "
-             << "it seems that this requirement is not met.";
-          throw runtime_error(os.str());
+          ARTS_USER_ERROR_IF (true,
+            "Jacobians for ", jacobian_quantities2[q2],
+            " shall be appended.\nThis requires that the "
+            "same grids are used for both measurements,\nbut "
+            "it seems that this requirement is not met.")
         }
       }
     }
@@ -1968,17 +1922,13 @@ void yApplyUnit(Vector& y,
                 const ArrayOfIndex& y_pol,
                 const String& iy_unit,
                 const Verbosity&) {
-  if (iy_unit == "1") {
-    throw runtime_error("No need to use this method with *iy_unit* = \"1\".");
-  }
+  ARTS_USER_ERROR_IF (iy_unit == "1",
+                      "No need to use this method with *iy_unit* = \"1\".");
 
-  if (max(y) > 1e-3) {
-    ostringstream os;
-    os << "The spectrum vector *y* is required to have original radiance\n"
-       << "unit, but this seems not to be the case. This as a value above\n"
-       << "1e-3 is found in *y*.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (max(y) > 1e-3,
+      "The spectrum vector *y* is required to have original radiance\n"
+      "unit, but this seems not to be the case. This as a value above\n"
+      "1e-3 is found in *y*.")
 
   // Is jacobian set?
   //
@@ -1987,15 +1937,12 @@ void yApplyUnit(Vector& y,
   const bool do_j = jacobian.nrows() == ny;
 
   // Some jacobian quantities can not be handled
-  if (do_j && max(jacobian) > 1e-3) {
-    ostringstream os;
-    os << "The method can not be used with jacobian quantities that are not\n"
-       << "obtained through radiative transfer calculations. One example on\n"
-       << "quantity that can not be handled is *jacobianAddPolyfit*.\n"
-       << "The maximum value of *jacobian* indicates that one or several\n"
-       << "such jacobian quantities are included.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (do_j && max(jacobian) > 1e-3,
+      "The method can not be used with jacobian quantities that are not\n"
+      "obtained through radiative transfer calculations. One example on\n"
+      "quantity that can not be handled is *jacobianAddPolyfit*.\n"
+      "The maximum value of *jacobian* indicates that one or several\n"
+      "such jacobian quantities are included.")
 
   // Planck-Tb
   //--------------------------------------------------------------------------
@@ -2033,14 +1980,11 @@ void yApplyUnit(Vector& y,
       Range ii(i0, n);
 
       if (do_j) {
-        if (any_quv && i_pol[0] != 1) {
-          ostringstream os;
-          os << "The conversion to PlanckBT, of the Jacobian and "
-             << "errors for Q, U and V, requires that I (first Stokes "
-             << "element) is at hand and that the data are sorted in "
-             << "such way that I comes first for each frequency.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (any_quv && i_pol[0] != 1,
+            "The conversion to PlanckBT, of the Jacobian and "
+            "errors for Q, U and V, requires that I (first Stokes "
+            "element) is at hand and that the data are sorted in "
+            "such way that I comes first for each frequency.")
 
         // Jacobian
         Tensor3 J(jacobian.ncols(), 1, n);

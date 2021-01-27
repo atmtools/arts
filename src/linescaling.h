@@ -55,7 +55,7 @@ Numeric single_partition_function(const Numeric& T,
 Numeric dsingle_partition_function_dT(
     const Numeric& T,
     const SpeciesAuxData::AuxType& partition_type,
-    const ArrayOfGriddedField1& partition_data);
+    const ArrayOfGriddedField1& partition_data) noexcept;
 
 /** Computes exp(-hf/kT)
  * 
@@ -195,7 +195,7 @@ Numeric dboltzman_factordE0(Numeric T, Numeric E0);
  */
 Numeric absorption_nlte_ratio(const Numeric& gamma,
                               const Numeric& r_upp = 1.0,
-                              const Numeric& r_low = 1.0);
+                              const Numeric& r_low = 1.0) noexcept;
 
 /** Computes temperature derivatives of (r_low - r_upp * gamma) / (1 - gamma)
  * 

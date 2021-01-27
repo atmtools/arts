@@ -29,9 +29,6 @@
 #include "blas.h"
 #include "exceptions.h"
 
-using std::runtime_error;
-using std::setw;
-
 // Functions for ConstComplexVectorView:
 // ------------------------------
 
@@ -136,11 +133,11 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v) {
   const ConstComplexIterator1D end = v.end();
 
   if (i != end) {
-    os << setw(3) << *i;
+    os << std::setw(3) << *i;
     ++i;
   }
   for (; i != end; ++i) {
-    os << " " << setw(3) << *i;
+    os << " " << std::setw(3) << *i;
   }
 
   return os;
@@ -152,13 +149,13 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v) {
 /** Bail out immediately if somebody tries to create a ComplexVectorView from
  a const Complex*Vector. */
 ComplexVectorView::ComplexVectorView(const ComplexVector&) {
-  throw runtime_error(
-      "Creating a ComplexVectorView from a const ComplexVector is not allowed.");
-  // This is not really a runtime error, but I don't want to start
-  // producing direct output from inside matpack. And just exiting is
-  // not so nice.
-  // If you see this error, there is a bug in the code, not in the
-  // ARTS input.
+  ARTS_ASSERT (false,
+      "Creating a ComplexVectorView from a const ComplexVector is not allowed.\n"
+      "This is not really a runtime error, but I don't want to start\n"
+      "producing direct output from inside matpack. And just exiting is\n"
+      "not so nice.\n"
+      "If you see this error, there is a bug in the code, not in the\n"
+      "ARTS input.")
 }
 
 /** Create ComplexVectorView from a ComplexVector. */
@@ -418,11 +415,9 @@ ComplexVectorView::operator ComplexMatrixView() {
   VectorView is not pointing to the beginning of a Vector or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Complex* ComplexVectorView::get_c_array() const {
-  if (mrange.mstart != 0 || mrange.mstride != 1)
-    throw runtime_error(
+const Complex* ComplexVectorView::get_c_array() const ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mrange.mstart != 0 || mrange.mstride != 1),
         "A ComplexVectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
@@ -432,11 +427,9 @@ const Complex* ComplexVectorView::get_c_array() const {
   VectorView is not pointing to the beginning of a Vector or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Complex* ComplexVectorView::get_c_array() {
-  if (mrange.mstart != 0 || mrange.mstride != 1)
-    throw runtime_error(
-        "A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
+Complex* ComplexVectorView::get_c_array() ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mrange.mstart != 0 || mrange.mstride != 1),
+        "A ComplexVectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
   return mdata;
 }
 
@@ -877,11 +870,11 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v) {
     const ConstComplexIterator1D end_col = ir->end();
 
     if (ic != end_col) {
-      os << setw(3) << *ic;
+      os << std::setw(3) << *ic;
       ++ic;
     }
     for (; ic != end_col; ++ic) {
-      os << " " << setw(3) << *ic;
+      os << " " << std::setw(3) << *ic;
     }
     ++ir;
   }
@@ -891,11 +884,11 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v) {
 
     os << "\n";
     if (ic != end_col) {
-      os << setw(3) << *ic;
+      os << std::setw(3) << *ic;
       ++ic;
     }
     for (; ic != end_col; ++ic) {
-      os << " " << setw(3) << *ic;
+      os << " " << std::setw(3) << *ic;
     }
   }
 
@@ -1113,12 +1106,10 @@ ComplexMatrixView& ComplexMatrixView::operator-=(Numeric x) {
   MatrixView is not pointing to the beginning of a Matrix or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Complex* ComplexMatrixView::get_c_array() const {
-  if (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+const Complex* ComplexMatrixView::get_c_array() const ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
+      mcr.mstride != 1),
         "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
@@ -1128,12 +1119,10 @@ const Complex* ComplexMatrixView::get_c_array() const {
   MatrixView is not pointing to the beginning of a Matrix or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Complex* ComplexMatrixView::get_c_array() {
-  if (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+Complex* ComplexMatrixView::get_c_array() ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
+      mcr.mstride != 1),
         "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
@@ -1502,9 +1491,8 @@ ComplexMatrix& ComplexMatrix::inv(const lapack_help::Inverse<Complex>& help)
   lapack::zgetri_(help.size(), mdata, help.size(), help.ipivdata(), help.workdata(), help.lsize(), &info);
   
   // Check for success.
-  if (info not_eq 0) {
-    throw runtime_error("Error inverting matrix: Matrix not of full rank.");
-  }
+  ARTS_USER_ERROR_IF (info not_eq 0,
+    "Error inverting matrix: Matrix not of full rank.");
   
   return *this;
 }

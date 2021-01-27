@@ -1430,12 +1430,10 @@ void lon_shiftgrid(Vector& longrid_out,
  * \date   2018-05-22
 */
 void cycle_lat_lon(Numeric& lat, Numeric& lon) {
-  if (lat < -180.0) {
-    throw std::runtime_error("Latitude values < -180.0 are not supported.");
-  }
-  if (lat > 180.0) {
-    throw std::runtime_error("Latitude values > 180.0 are not supported.");
-  }
+  ARTS_USER_ERROR_IF (lat < -180.0,
+                      "Latitude values < -180.0 are not supported.");
+  ARTS_USER_ERROR_IF (lat > 180.0,
+                      "Latitude values > 180.0 are not supported.");
 
   if (lat < -90.0) {
     lat = -180.0 - lat;

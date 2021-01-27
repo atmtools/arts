@@ -201,11 +201,10 @@ void opt_prop_ScatSpecBulk(   //Output
             abs_tmp *= pnds(i_se_flat, Tind);
             abs_vec[i_ss](joker, Tind, joker, joker) += abs_tmp;
           } else {
-            ostringstream os;
-            os << "Interpolation error for (flat-array) scattering element #"
-               << i_se_flat << "\n"
-               << "at location/temperature point #" << Tind << "\n";
-            throw runtime_error(os.str());
+            ARTS_USER_ERROR_IF (true,
+              "Interpolation error for (flat-array) scattering element #",
+              i_se_flat, "\n"
+              "at location/temperature point #", Tind, "\n")
           }
         }
       }
@@ -836,11 +835,10 @@ void pha_mat_ScatSpecBulk(    //Output
             pha_tmp *= pnds(i_se_flat, Tind);
             pha_mat[i_ss](joker, Tind, joker, joker, joker, joker) += pha_tmp;
           } else {
-            ostringstream os;
-            os << "Interpolation error for (flat-array) scattering element #"
-               << i_se_flat << "\n"
-               << "at location/temperature point #" << Tind << "\n";
-            throw runtime_error(os.str());
+            ARTS_USER_ERROR_IF (true,
+              "Interpolation error for (flat-array) scattering element #",
+              i_se_flat, "\n"
+              "at location/temperature point #", Tind, "\n")
           }
         }
       }
@@ -1358,13 +1356,10 @@ void FouComp_1ScatElem(       //Output
   if (ptype == PTYPE_TOTAL_RND) {
     // DCalculate azimuth angles and their integration weights for Fourier
     // component derivation (they are only determined by naa_totran).
-    if (naa_totran < 3) {
-      ostringstream os;
-      os << "Azimuth grid size for scatt matrix extraction"
-         << " (*naa_totran*) must be >3.\n"
-         << "Yours is " << naa_totran << ".\n";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (naa_totran < 3,
+        "Azimuth grid size for scatt matrix extraction"
+        " (*naa_totran*) must be >3.\n"
+        "Yours is ", naa_totran, ".\n")
     Vector aa_grid;
     nlinspace(aa_grid, 0, 180, naa_totran);
     Numeric daa_totran =
@@ -1566,11 +1561,9 @@ void abs_vecTransform(  //Output and Input
   const Index stokes_dim = abs_vec_lab.StokesDimensions();
   ARTS_ASSERT(abs_vec_lab.NumberOfFrequencies() == 1);
 
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (stokes_dim > 4 || stokes_dim < 1,
         "The dimension of the stokes vector \n"
         "must be 1,2,3 or 4");
-  }
 
   switch (ptype) {
     case PTYPE_GENERAL: {
@@ -1664,11 +1657,9 @@ void ext_matTransform(  //Output and Input
   const Index stokes_dim = ext_mat_lab.StokesDimensions();
   ARTS_ASSERT(ext_mat_lab.NumberOfFrequencies() == 1);
 
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (stokes_dim > 4 || stokes_dim < 1,
         "The dimension of the stokes vector \n"
         "must be 1,2,3 or 4");
-  }
 
   switch (ptype) {
     case PTYPE_GENERAL: {
@@ -1792,11 +1783,9 @@ void pha_matTransform(  //Output
   Numeric za_inc = za_grid[za_inc_idx];
   Numeric aa_inc = aa_grid[aa_inc_idx];
 
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (stokes_dim > 4 || stokes_dim < 1,
         "The dimension of the stokes vector \n"
         "must be 1,2,3 or 4");
-  }
 
   switch (ptype) {
     case PTYPE_GENERAL: {
@@ -2197,8 +2186,7 @@ void pha_mat_labCalc(  //Output:
     const Numeric& theta_rad) {
   const Index stokes_dim = pha_mat_lab.ncols();
 
-  if (std::isnan(F11)) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (std::isnan(F11),
         "NaN value(s) detected in *pha_mat_labCalc* (0,0). Could the "
         "input data contain NaNs? Please check with *scat_dataCheck*. If "
         "input data are OK and you critically need the ongoing calculations, "
@@ -2207,7 +2195,6 @@ void pha_mat_labCalc(  //Output:
         "the reason to this problem. If you see this message occasionally "
         "when doing MC calculations, it should not be critical. This path "
         "sampling will be rejected and replaced with a new one.");
-  }
 
   // For stokes_dim = 1, we only need Z11=F11:
   pha_mat_lab(0, 0) = F11;
@@ -2309,9 +2296,8 @@ void pha_mat_labCalc(  //Output:
       //ARTS_ASSERT(!std::isnan(pha_mat_lab(0,1)));
       //ARTS_ASSERT(!std::isnan(pha_mat_lab(1,0)));
       //ARTS_ASSERT(!std::isnan(pha_mat_lab(1,1)));
-      if (std::isnan(pha_mat_lab(0, 1)) || std::isnan(pha_mat_lab(1, 0)) ||
-          std::isnan(pha_mat_lab(1, 1))) {
-        throw runtime_error(
+      ARTS_USER_ERROR_IF (std::isnan(pha_mat_lab(0, 1)) || std::isnan(pha_mat_lab(1, 0)) ||
+          std::isnan(pha_mat_lab(1, 1)),
             "NaN value(s) detected in *pha_mat_labCalc* (0/1,1). Could the "
             "input data contain NaNs? Please check with *scat_dataCheck*. If "
             "input data are OK  and you critically need the ongoing calculations, "
@@ -2320,7 +2306,6 @@ void pha_mat_labCalc(  //Output:
             "the reason to this problem. If you see this message occasionally "
             "when doing MC calculations, it should not be critical. This path "
             "sampling will be rejected and replaced with a new one.");
-      }
 
       if (stokes_dim > 2) {
         /*CPD: For skokes_dim > 2 some of the transformation formula 
@@ -2451,11 +2436,10 @@ PType PTypeFromString(const String& ptype_string) {
   else if (ptype_string == "azimuthally_random")
     ptype = PTYPE_AZIMUTH_RND;
   else {
-    ostringstream os;
-    os << "Unknown ptype: " << ptype_string << endl
-       << "Valid types are: general, totally_random and "
-       << "azimuthally_random.";
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Unknown ptype: ", ptype_string, "\n"
+      "Valid types are: general, totally_random and "
+      "azimuthally_random.")
   }
 
   return ptype;
@@ -2481,11 +2465,10 @@ PType PType2FromString(const String& ptype_string) {
   else if (ptype_string == "horizontally_aligned")
     ptype = PTYPE_AZIMUTH_RND;
   else {
-    ostringstream os;
-    os << "Unknown ptype: " << ptype_string << endl
-       << "Valid types are: general, macroscopically_isotropic and "
-       << "horizontally_aligned.";
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Unknown ptype: ", ptype_string, "\n"
+       "Valid types are: general, macroscopically_isotropic and "
+       "horizontally_aligned.")
   }
 
   return ptype;
@@ -2514,10 +2497,9 @@ String PTypeToString(const PType& ptype) {
       ptype_string = "azimuthally_random";
       break;
     default:
-      ostringstream os;
-      os << "Internal error: Cannot map PType enum value " << ptype
-         << " to String.";
-      throw std::runtime_error(os.str());
+      ARTS_USER_ERROR_IF (true,
+                          "Internal error: Cannot map PType enum value ",
+                          ptype, " to String.")
       break;
   }
 
@@ -2537,20 +2519,14 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   // 1) Is za_grid symmetric and includes 90deg?
   Index nza = ssd.za_grid.nelem();
   for (Index i = 0; i < nza / 2; i++) {
-    if (!is_same_within_epsilon(
-            180. - ssd.za_grid[nza - 1 - i], ssd.za_grid[i], 2 * DBL_EPSILON)) {
-      ostringstream os;
-      os << "Zenith grid of azimuthally_random single scattering data\n"
-         << "is not symmetric with respect to 90degree.";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!is_same_within_epsilon(
+            180. - ssd.za_grid[nza - 1 - i], ssd.za_grid[i], 2 * DBL_EPSILON),
+        "Zenith grid of azimuthally_random single scattering data\n"
+        "is not symmetric with respect to 90degree.")
   }
-  if (!is_same_within_epsilon(ssd.za_grid[nza / 2], 90., 2 * DBL_EPSILON)) {
-    ostringstream os;
-    os << "Zenith grid of azimuthally_random single scattering data\n"
-       << "does not contain 90 degree grid point.";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is_same_within_epsilon(ssd.za_grid[nza / 2], 90., 2 * DBL_EPSILON),
+      "Zenith grid of azimuthally_random single scattering data\n"
+      "does not contain 90 degree grid point.")
 
   // 2) Are data sizes correct?
   ostringstream os_pha_mat;
@@ -2652,10 +2628,10 @@ ParticleSSDMethod ParticleSSDMethodFromString(
   if (particle_ssdmethod_string == "tmatrix")
     particle_ssdmethod = PARTICLE_SSDMETHOD_TMATRIX;
   else {
-    ostringstream os;
-    os << "Unknown particle SSD method: " << particle_ssdmethod_string << endl
-       << "Valid methods: tmatrix";
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+                        "Unknown particle SSD method: ",
+                        particle_ssdmethod_string, "\n"
+                        "Valid methods: tmatrix")
   }
 
   return particle_ssdmethod;
@@ -2678,10 +2654,9 @@ String PTypeToString(const ParticleSSDMethod& particle_ssdmethod) {
       particle_ssdmethod_string = "tmatrix";
       break;
     default:
-      ostringstream os;
-      os << "Internal error: Cannot map ParticleSSDMethod enum value "
-         << particle_ssdmethod << " to String.";
-      throw std::runtime_error(os.str());
+      ARTS_USER_ERROR_IF (true,
+        "Internal error: Cannot map ParticleSSDMethod enum value ",
+        particle_ssdmethod, " to String.")
       break;
   }
 

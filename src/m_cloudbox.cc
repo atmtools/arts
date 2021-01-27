@@ -131,11 +131,8 @@ void cloudboxSetAutomatically(  // WS Output:
   // Set cloudbox_on
   cloudbox_on = 1;
 
-  if (atmosphere_dim > 1) {
-    ostringstream os;
-    os << "cloudboxSetAutomatically not yet available for 2D and 3D cases.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (atmosphere_dim > 1,
+    "cloudboxSetAutomatically not yet available for 2D and 3D cases.")
 
   Index np = p_grid.nelem();
 
@@ -280,28 +277,22 @@ void cloudboxSetFullAtm(  //WS Output
     // find minimum lat_grid point i with lat_grid[i]-lat_grid[0]>=LAT_LON_MIN
     Index i = 1;
     while ((i < last_lat - 1) && (lat_grid[i] - lat_grid[0] < LAT_LON_MIN)) i++;
-    if (i == last_lat - 1) {
-      ostringstream os;
-      os << "Can not define lower latitude edge of cloudbox:\n"
-         << "Extend of atmosphere too small. Distance to minimum latitude\n"
-         << "has to be at least " << LAT_LON_MIN << "deg, but only "
-         << lat_grid[i - 1] - lat_grid[0] << " available here.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (i == last_lat - 1,
+        "Can not define lower latitude edge of cloudbox:\n"
+        "Extend of atmosphere too small. Distance to minimum latitude\n"
+        "has to be at least ", LAT_LON_MIN, "deg, but only ",
+        lat_grid[i - 1] - lat_grid[0], " available here.")
     cloudbox_limits[2] = i;
 
     // find maximum lat_grid point j with lat_grid[-1]-lat_grid[j]>=LAT_LON_MIN
     // and j>i
     Index j = last_lat - 1;
     while ((j > i) && (lat_grid[last_lat] - lat_grid[j] < LAT_LON_MIN)) j--;
-    if (j == i) {
-      ostringstream os;
-      os << "Can not define upper latitude edge of cloudbox:\n"
-         << "Extend of atmosphere too small. Distance to maximum latitude\n"
-         << "has to be at least " << LAT_LON_MIN << "deg, but only "
-         << lat_grid[last_lat] - lat_grid[j + 1] << " available here.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (j == i,
+        "Can not define upper latitude edge of cloudbox:\n"
+        "Extend of atmosphere too small. Distance to maximum latitude\n"
+        "has to be at least ", LAT_LON_MIN, "deg, but only ",
+        lat_grid[last_lat] - lat_grid[j + 1], " available here.")
     cloudbox_limits[3] = j;
   }
 
@@ -316,14 +307,11 @@ void cloudboxSetFullAtm(  //WS Output
     while ((i < last_lon - 1) &&
            (lon_grid[i] - lon_grid[0] < LAT_LON_MIN / lfac))
       i++;
-    if (i == last_lon - 1) {
-      ostringstream os;
-      os << "Can not define lower longitude edge of cloudbox:\n"
-         << "Extend of atmosphere too small. Distance to minimum longitude\n"
-         << "has to be at least " << LAT_LON_MIN / lfac << "deg, but only "
-         << lon_grid[i - 1] - lon_grid[0] << " available here.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (i == last_lon - 1,
+        "Can not define lower longitude edge of cloudbox:\n"
+        "Extend of atmosphere too small. Distance to minimum longitude\n"
+        "has to be at least ", LAT_LON_MIN / lfac, "deg, but only ",
+        lon_grid[i - 1] - lon_grid[0], " available here.")
     cloudbox_limits[4] = i;
 
     // find maximum lon_grid point j with lon_grid[-1]-lon_grid[j]>=LAT_LON_MIN/lfac
@@ -331,14 +319,11 @@ void cloudboxSetFullAtm(  //WS Output
     Index j = last_lon - 1;
     while ((j > i) && (lon_grid[last_lon] - lon_grid[j] < LAT_LON_MIN / lfac))
       j--;
-    if (j == i) {
-      ostringstream os;
-      os << "Can not define upper longitude edge of cloudbox:\n"
-         << "Extend of atmosphere too small. Distance to maximum longitude\n"
-         << "has to be at least " << LAT_LON_MIN / lfac << "deg, but only "
-         << lon_grid[last_lon] - lon_grid[j + 1] << " available here.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (j == i,
+        "Can not define upper longitude edge of cloudbox:\n"
+        "Extend of atmosphere too small. Distance to maximum longitude\n"
+        "has to be at least ", LAT_LON_MIN / lfac, "deg, but only ",
+        lon_grid[last_lon] - lon_grid[j + 1], " available here.")
     cloudbox_limits[5] = j;
   }
 }
@@ -365,43 +350,34 @@ void cloudboxSetManually(  // WS Output:
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
 
   // Check keyword arguments
-  if (p1 <= p2)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (p1 <= p2,
         "The pressure in *p1* must be bigger than the "
         "pressure in *p2*.");
-  if (p1 <= p_grid[p_grid.nelem() - 1])
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (p1 <= p_grid[p_grid.nelem() - 1],
         "The pressure in *p1* must be larger than the "
         "last value in *p_grid*.");
-  if (p2 >= p_grid[0])
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (p2 >= p_grid[0],
         "The pressure in *p2* must be smaller than the "
         "first value in *p_grid*.");
   if (atmosphere_dim >= 2) {
-    if (lat2 <= lat1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lat2 <= lat1,
           "The latitude in *lat2* must be bigger than the "
           "latitude in *lat1*.");
-    if (lat1 < lat_grid[1])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lat1 < lat_grid[1],
           "The latitude in *lat1* must be >= the "
           "second value in *lat_grid*.");
-    if (lat2 > lat_grid[lat_grid.nelem() - 2])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lat2 > lat_grid[lat_grid.nelem() - 2],
           "The latitude in *lat2* must be <= the "
           "next to last value in *lat_grid*.");
   }
   if (atmosphere_dim == 3) {
-    if (lon2 <= lon1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lon2 <= lon1,
           "The longitude in *lon2* must be bigger than the "
           "longitude in *lon1*.");
-    if (lon1 < lon_grid[1])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lon1 < lon_grid[1],
           "The longitude in *lon1* must be >= the "
           "second value in *lon_grid*.");
-    if (lon2 > lon_grid[lon_grid.nelem() - 2])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lon2 > lon_grid[lon_grid.nelem() - 2],
           "The longitude in *lon2* must be <= the "
           "next to last value in *lon_grid*.");
   }
@@ -473,8 +449,7 @@ void cloudboxSetManuallyAltitude(  // WS Output:
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
 
   // Check keyword arguments
-  if (z1 >= z2)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (z1 >= z2,
         "The altitude in *z1* must be smaller than the "
         "altitude in *z2*.");
   /* These cases are in fact handled
@@ -486,28 +461,22 @@ void cloudboxSetManuallyAltitude(  // WS Output:
                          "last value in *z_field*." );
   */
   if (atmosphere_dim == 3) {
-    if (lat2 <= lat1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lat2 <= lat1,
           "The latitude in *lat2* must be bigger than the "
           " latitude in *lat1*.");
-    if (lat1 < lat_grid[1])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lat1 < lat_grid[1],
           "The latitude in *lat1* must be >= the "
           "second value in *lat_grid*.");
-    if (lat2 > lat_grid[lat_grid.nelem() - 2])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lat2 > lat_grid[lat_grid.nelem() - 2],
           "The latitude in *lat2* must be <= the "
           "next to last value in *lat_grid*.");
-    if (lon2 <= lon1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lon2 <= lon1,
           "The longitude in *lon2* must be bigger than the "
           "longitude in *lon1*.");
-    if (lon1 < lon_grid[1])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lon1 < lon_grid[1],
           "The longitude in *lon1* must be >= the "
           "second value in *lon_grid*.");
-    if (lon2 > lon_grid[lon_grid.nelem() - 2])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lon2 > lon_grid[lon_grid.nelem() - 2],
           "The longitude in *lon2* must be <= the "
           "next to last value in *lon_grid*.");
   }
@@ -584,36 +553,29 @@ void iyInterpCloudboxField(Matrix& iy,
                            const Index& aa_interp_order,
                            const Verbosity&) {
   //--- Check input -----------------------------------------------------------
-  if (!(atmosphere_dim == 1 || atmosphere_dim == 3))
-    throw runtime_error("The atmospheric dimensionality must be 1 or 3.");
-  if (jacobian_do)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!(atmosphere_dim == 1 || atmosphere_dim == 3),
+                      "The atmospheric dimensionality must be 1 or 3.");
+  ARTS_USER_ERROR_IF (jacobian_do,
         "This method does not support jacobians (jacobian_do must be 0)");
-  if (!cloudbox_on)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!cloudbox_on,
         "The cloud box is not activated and no outgoing "
         "field can be returned.");
-  if (cloudbox_limits.nelem() != 2 * atmosphere_dim)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
         "*cloudbox_limits* is a vector which contains the upper and lower\n"
         "limit of the cloud for all atmospheric dimensions.\n"
         "So its length must be 2 x *atmosphere_dim*");
-  if (za_grid.nelem() == 0)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (za_grid.nelem() == 0,
         "The variable *za_grid* is empty. Are dummy "
         "values from *cloudboxOff used?");
-  if (!(za_interp_order < za_grid.nelem()))
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!(za_interp_order < za_grid.nelem()),
         "Zenith angle interpolation order *za_interp_order*"
         " must be smaller\n"
         "than number of angles in *za_grid*.");
-  if (atmosphere_dim > 1 && !(aa_interp_order < aa_grid.nelem()))
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmosphere_dim > 1 && !(aa_interp_order < aa_grid.nelem()),
         "Azimuth angle interpolation order *aa_interp_order*"
         " must be smaller\n"
         "than number of angles in *aa_grid*.");
-  if (cloudbox_field.nlibraries() != f_grid.nelem())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_field.nlibraries() != f_grid.nelem(),
         "Inconsistency in size between f_grid and cloudbox_field! "
         "(This method does not yet handle dispersion type calculations.)");
   //---------------------------------------------------------------------------
@@ -704,10 +666,8 @@ void iyInterpCloudboxField(Matrix& iy,
   }
 
   // If outside, something is wrong
-  if (border > 100) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (border > 100,
         "Given position has been found to be outside the cloudbox.");
-  }
 
   //- Sizes
   const Index nf = f_grid.nelem();
@@ -733,27 +693,24 @@ void iyInterpCloudboxField(Matrix& iy,
 
   // Sensor points inside the cloudbox
   if (border == 99) {
-    if (atmosphere_dim == 3) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (atmosphere_dim == 3,
           "Radiation extraction for a position inside cloudbox\n"
           "is not yet implemented for 3D cases.\n");
-    } else {
-      ARTS_ASSERT(atmosphere_dim == 1);
+    ARTS_ASSERT(atmosphere_dim == 1);
 
-      ARTS_ASSERT(is_size(cloudbox_field, nf, np, 1, 1, nza, 1, stokes_dim));
+    ARTS_ASSERT(is_size(cloudbox_field, nf, np, 1, 1, nza, 1, stokes_dim));
 
-      // Grid position in *p_grid*
-      gp_p.idx = gp_p.idx - cloudbox_limits[0];
-      gridpos_upperend_check(gp_p, cloudbox_limits[1] - cloudbox_limits[0]);
-      Vector itw_p(2);
-      interpweights(itw_p, gp_p);
+    // Grid position in *p_grid*
+    gp_p.idx = gp_p.idx - cloudbox_limits[0];
+    gridpos_upperend_check(gp_p, cloudbox_limits[1] - cloudbox_limits[0]);
+    Vector itw_p(2);
+    interpweights(itw_p, gp_p);
 
-      for (Index is = 0; is < stokes_dim; is++)
-        for (Index iv = 0; iv < nf; iv++)
-          for (Index i_za = 0; i_za < nza; i_za++)
-            i_field_local(iv, i_za, 0, is) = interp(
-                itw_p, cloudbox_field(iv, joker, 0, 0, i_za, 0, is), gp_p);
-    }
+    for (Index is = 0; is < stokes_dim; is++)
+      for (Index iv = 0; iv < nf; iv++)
+        for (Index i_za = 0; i_za < nza; i_za++)
+          i_field_local(iv, i_za, 0, is) = interp(
+              itw_p, cloudbox_field(iv, joker, 0, 0, i_za, 0, is), gp_p);
   }
 
   // Sensor outside the cloudbox
@@ -873,21 +830,19 @@ void iyInterpCloudboxField(Matrix& iy,
   Index za_extend = za_grid.nelem();
   if (za_restrict) {
     // which hemisphere do we need?
-    if (is_same_within_epsilon(rte_los[0], 90., 1e-6)) {
+    ARTS_USER_ERROR_IF (is_same_within_epsilon(rte_los[0], 90., 1e-6),
       //FIXME: we should allow this though, if za_grid has a grid point
       //at 90deg.
-      throw runtime_error(
           "Hemisphere-restricted zenith angle interpolation not allowed\n"
           "for 90degree views.");
-    } else if (rte_los[0] > 90) {
+    if (rte_los[0] > 90) {
       // upwelling, i.e. second part of za_grid. that is, we need to find
       // the first point in za_grid where za>90. and update za_start
       // accordingly.
       while (za_start < za_grid.nelem() && za_grid[za_start] < 90.) {
         za_start++;
       }
-      if (za_start == za_grid.nelem())
-        throw runtime_error(
+      ARTS_USER_ERROR_IF (za_start == za_grid.nelem(),
             "No za_grid grid point found in 90-180deg hemisphere.\n"
             "No hemispheric interpolation possible.");
       za_extend -= za_start;
@@ -898,19 +853,15 @@ void iyInterpCloudboxField(Matrix& iy,
       while (za_extend > 0 && za_grid[za_extend - 1] > 90.) {
         za_extend--;
       }
-      if (za_extend == 0)
-        throw runtime_error(
+      ARTS_USER_ERROR_IF (za_extend == 0,
             "No za_grid grid point found in 0-90deg hemisphere.\n"
             "No hemispheric interpolation possible.");
     }
-    if (!(za_interp_order < za_extend)) {
-      ostringstream os;
-      os << "Zenith angle interpolation order *za_interp_order* ("
-         << za_interp_order << ") must be smaller\n"
-         << "than number of angles in respective hemisphere (" << za_extend
-         << ").";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!(za_interp_order < za_extend),
+        "Zenith angle interpolation order *za_interp_order* (",
+        za_interp_order, ") must be smaller\n"
+        "than number of angles in respective hemisphere (", za_extend,
+        ").")
   }
   
   const auto range = Range(za_start, za_extend);
@@ -955,12 +906,12 @@ void cloudbox_fieldCrop(Tensor7& cloudbox_field,
                         const Index& new_limit4,
                         const Index& new_limit5,
                         const Verbosity&) {
-  if (!cloudbox_on)
-    throw runtime_error("No need to use this method with cloudbox=0.");
-  if (new_limit0 < cloudbox_limits[0])
-    throw runtime_error("new_limits0 < cloudbox_limits[0], not allowed!");
-  if (new_limit1 > cloudbox_limits[1])
-    throw runtime_error("new_limits1 > cloudbox_limits[1], not allowed!");
+  ARTS_USER_ERROR_IF (!cloudbox_on,
+                      "No need to use this method with cloudbox=0.");
+  ARTS_USER_ERROR_IF (new_limit0 < cloudbox_limits[0],
+                      "new_limits0 < cloudbox_limits[0], not allowed!");
+  ARTS_USER_ERROR_IF (new_limit1 > cloudbox_limits[1],
+                      "new_limits1 > cloudbox_limits[1], not allowed!");
 
   Tensor7 fcopy = cloudbox_field;
 
@@ -976,10 +927,10 @@ void cloudbox_fieldCrop(Tensor7& cloudbox_field,
     cloudbox_limits[0] = new_limit0;
     cloudbox_limits[1] = new_limit1;
   } else {
-    if (new_limit2 < cloudbox_limits[2])
-      throw runtime_error("new_limits2 < cloudbox_limits[2], not allowed!");
-    if (new_limit3 > cloudbox_limits[3])
-      throw runtime_error("new_limits3 > cloudbox_limits[3], not allowed!");
+    ARTS_USER_ERROR_IF (new_limit2 < cloudbox_limits[2],
+                        "new_limits2 < cloudbox_limits[2], not allowed!");
+    ARTS_USER_ERROR_IF (new_limit3 > cloudbox_limits[3],
+                        "new_limits3 > cloudbox_limits[3], not allowed!");
 
     if (atmosphere_dim == 2) {
       cloudbox_field = fcopy(
@@ -995,10 +946,10 @@ void cloudbox_fieldCrop(Tensor7& cloudbox_field,
       cloudbox_limits[2] = new_limit2;
       cloudbox_limits[3] = new_limit3;
     } else {
-      if (new_limit4 < cloudbox_limits[4])
-        throw runtime_error("new_limits4 < cloudbox_limits[4], not allowed!");
-      if (new_limit5 > cloudbox_limits[5])
-        throw runtime_error("new_limits5 > cloudbox_limits[5], not allowed!");
+      ARTS_USER_ERROR_IF (new_limit4 < cloudbox_limits[4],
+                          "new_limits4 < cloudbox_limits[4], not allowed!");
+      ARTS_USER_ERROR_IF (new_limit5 > cloudbox_limits[5],
+                          "new_limits5 > cloudbox_limits[5], not allowed!");
       cloudbox_field = fcopy(
           joker,
           Range(new_limit0 - cloudbox_limits[0], new_limit1 - new_limit0 + 1),
@@ -1078,12 +1029,9 @@ void ScatElementsPndAndScatAdd(  //WS Output:
 
   //--- Reading the data ---------------------------------------------------
 
-  if (scat_data_files.nelem() != pnd_field_files.nelem()) {
-    ostringstream os;
-    os << "Number of elements in scat_data and pnd_field filelists is"
-       << "inconsistent.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_data_files.nelem() != pnd_field_files.nelem(),
+      "Number of elements in scat_data and pnd_field filelists is"
+      "inconsistent.")
 
   Index last_species = scat_data_raw.nelem() - 1;
   if (last_species == -1) {
@@ -1192,17 +1140,14 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
   //chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
   // Frequency grid
-  if (f_grid.empty()) throw runtime_error("The frequency grid is empty.");
+  ARTS_USER_ERROR_IF (f_grid.empty(), "The frequency grid is empty.");
   chk_if_increasing("f_grid", f_grid);
 
   //--- Reading the data ---------------------------------------------------
 
-  if (scat_data_files.nelem() != pnd_field_files.nelem()) {
-    ostringstream os;
-    os << "Number of elements in scat_data and pnd_field filelists is"
-       << "inconsistent.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_data_files.nelem() != pnd_field_files.nelem(),
+      "Number of elements in scat_data and pnd_field filelists is"
+      "inconsistent.")
 
   Index last_species = scat_data_raw.nelem() - 1;
   if (last_species == -1) {
@@ -1251,16 +1196,14 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
           if (tmp.nelem() == 1) {
             vmr_field_raw[vmr_field_raw.nelem() - 1] = tmp[0];
           } else {
-            std::ostringstream os;
-            os << "The file " << pnd_field_files[i] << "\n"
-               << "is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n";
-            throw std::runtime_error(os.str());
+            ARTS_USER_ERROR_IF (true,
+              "The file ", pnd_field_files[i], "\n"
+              "is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
           }
         } catch (...) {
-          std::ostringstream os;
-          os << "The file " << pnd_field_files[i] << " does not exist or\n"
-             << "its type is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n";
-          throw std::runtime_error(os.str());
+          ARTS_USER_ERROR_IF (true,
+                              "The file ", pnd_field_files[i], " does not exist or\n"
+                              "its type is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
         }
       }
 
@@ -1325,10 +1268,8 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
       } else {
         try {
           scat_data_files[i].split(strarr, "scat_data");
-          if (strarr.nelem() < 2) {
-            throw std::runtime_error(
+          ARTS_USER_ERROR_IF (strarr.nelem() < 2,
                 "Splitting scattering data filename up at 'scat_data' also failed.");
-          }
           scat_meta_file = strarr[0] + "scat_meta" + strarr[1];
 
           out3 << "  Read scattering meta data\n";
@@ -1336,16 +1277,15 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
 
           meta_naming_conv = 2;
         } catch (const std::runtime_error& e) {
-          ostringstream os;
-          os << "No meta data file following one of the allowed naming "
-             << "conventions was found.\n"
-             << "Allowed are "
-             << "*.meta.xml from *.xml and "
-             << "*scat_meta* from *scat_data*\n"
-             << "Scattering meta data file not found: " << scat_meta_file
-             << "\n"
-             << e.what();
-          throw runtime_error(os.str());
+          ARTS_USER_ERROR_IF (true,
+                              "No meta data file following one of the allowed naming "
+                              "conventions was found.\n"
+                              "Allowed are "
+                              "*.meta.xml from *.xml and "
+                              "*scat_meta* from *scat_data*\n"
+                              "Scattering meta data file not found: ", scat_meta_file,
+                              "\n",
+                              e.what())
         }
       }
     }
@@ -1403,10 +1343,10 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
   }
 
   if (fail_msg.nelem()) {
-    ostringstream os;
+    std::ostringstream os;
     for (auto& msg : fail_msg) os << msg << '\n';
 
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true, os.str());
   }
 
   // check if arrays have same size
@@ -1432,16 +1372,13 @@ void ScatElementsSelect(  //WS Output:
     const Verbosity&) {
   // first check that sizes of scat_species and scat_data_raw/scat_meta agree
   Index nspecies = scat_species.nelem();
-  if (nspecies != scat_data_raw.nelem() || nspecies != scat_meta.nelem()) {
-    ostringstream os;
-    os << "Number of scattering species specified by scat_species does\n"
-       << "not agree with number of scattering species in\n"
-       << "scat_data_raw or scat_meta:\n"
-       << "scat_species has " << nspecies
-       << " entries, while scat_data_raw has " << scat_data_raw.nelem()
-       << " and scat_meta has " << scat_meta.nelem() << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (nspecies != scat_data_raw.nelem() || nspecies != scat_meta.nelem(),
+      "Number of scattering species specified by scat_species does\n"
+      "not agree with number of scattering species in\n"
+      "scat_data_raw or scat_meta:\n"
+      "scat_species has ", nspecies,
+      " entries, while scat_data_raw has ", scat_data_raw.nelem(),
+      " and scat_meta has ", scat_meta.nelem(), ".")
 
   // create temporary containers for selected elements
   ArrayOfSingleScatteringData scat_data_raw_tmp;
@@ -1455,11 +1392,8 @@ void ScatElementsSelect(  //WS Output:
     parse_partfield_name(partfield_name, scat_species[i], delim);
     if (partfield_name == species) i_ss = i;
   }
-  if (i_ss < 0) {
-    ostringstream os;
-    os << "Scattering species " << species << " not found among scat_species.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (i_ss < 0,
+    "Scattering species ", species, " not found among scat_species.")
 
   // choosing the specified SingleScatteringData and ScatteringMetaData
   if (sizeparam == "diameter_max")
@@ -1501,22 +1435,18 @@ void ScatElementsSelect(  //WS Output:
       }
     }
   else {
-    ostringstream os;
-    os << "Size parameter " << sizeparam << "is unknown.";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+                        "Size parameter ", sizeparam, "is unknown.")
   }
 
   // To use a particle species field without associated scattering element
   // data poses a high risk of accidentially neglecting these species. That's
   // unlikely what the user intends. Hence throw error.
-  if (scat_meta_tmp.nelem() < 1) {
-    ostringstream os;
-    os << "For scattering species " << species << " no scattering "
-       << "element matching the requested size range found.\n"
-       << "Check *scat_data_raw* and *scat_meta* input as well as your size limit "
-       << "selection!";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_meta_tmp.nelem() < 1,
+      "For scattering species ", species, " no scattering "
+      "element matching the requested size range found.\n"
+      "Check *scat_data_raw* and *scat_meta* input as well as your size limit "
+      "selection!")
 
   scat_meta[i_ss] = std::move(scat_meta_tmp);
   scat_data_raw[i_ss] = std::move(scat_data_raw_tmp);
@@ -1544,24 +1474,18 @@ void ScatSpeciesExtendTemperature(  //WS Output:
     Index i_ss = -1;
     if (species == "") {
       i_ss = scat_data_raw.nelem() - 1;
-      if (i_ss == -1) {
-        ostringstream os;
-        os << "No *scat_data* available. Can not extend temperature range on "
-           << "inexistent data.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (i_ss == -1,
+          "No *scat_data* available. Can not extend temperature range on "
+          "inexistent data.")
     } else {
       // first check that sizes of scat_species and scat_data_raw agree
       Index nspecies = scat_species.nelem();
-      if (nspecies != scat_data_raw.nelem()) {
-        ostringstream os;
-        os << "Number of scattering species specified by scat_species does\n"
-           << "not agree with number of scattering species in *scat_data*:\n"
-           << "scat_species has " << nspecies
-           << " entries, while *scat_data* has " << scat_data_raw.nelem()
-           << ".";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (nspecies != scat_data_raw.nelem(),
+          "Number of scattering species specified by scat_species does\n"
+          "not agree with number of scattering species in *scat_data*:\n"
+          "scat_species has ", nspecies,
+          " entries, while *scat_data* has ", scat_data_raw.nelem(),
+          ".")
       String partfield_name;
       //find the species to handle: compare 'species' to 'partfield' part of
       //scat_species tags
@@ -1570,12 +1494,8 @@ void ScatSpeciesExtendTemperature(  //WS Output:
             partfield_name, scat_species[i], scat_species_delim);
         if (partfield_name == species) i_ss = i;
       }
-      if (i_ss < 0) {
-        ostringstream os;
-        os << "Scattering species " << species
-           << " not found among scat_species.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (i_ss < 0,
+        "Scattering species ", species, " not found among scat_species.")
     }
 
     for (Index i_se = 0; i_se < scat_data_raw[i_ss].nelem(); i_se++) {
@@ -1697,13 +1617,10 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
   //
   // Particle number density data
   //
-  if (pnd_field_raw.empty()) {
-    ostringstream os;
-    os << "No particle number density data given. Please use WSMs\n"
-       << "*ParticleTypeInit* and *ParticleTypeAdd(All)* for reading\n"
-       << "scattering element data.\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (pnd_field_raw.empty(),
+      "No particle number density data given. Please use WSMs\n"
+      "*ParticleTypeInit* and *ParticleTypeAdd(All)* for reading\n"
+      "scattering element data.\n")
 
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
   ArrayOfIndex cloudbox_limits_tmp;
@@ -1733,32 +1650,27 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
         }
     }
   else */
-  if (cloudbox_limits.nelem() != 2 * atmosphere_dim)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
         "be 2 x *atmosphere_dim*");
-  else
-    cloudbox_limits_tmp = cloudbox_limits;
+  cloudbox_limits_tmp = cloudbox_limits;
 
   // Check that pnd_field_raw has at least 2 grid-points in each dimension.
   // Otherwise, interpolation further down will fail with assertion.
 
   for (Index d = 0; d < atmosphere_dim; d++) {
     for (Index i = 0; i < pnd_field_raw.nelem(); i++) {
-      if (pnd_field_raw[i].get_grid_size(d) < 2) {
-        ostringstream os;
-        os << "Error in pnd_field_raw data. ";
-        os << "Dimension " << d << " (name: \"";
-        os << pnd_field_raw[i].get_grid_name(d);
-        os << "\") has only ";
-        os << pnd_field_raw[i].get_grid_size(d);
-        os << " element";
-        os << ((pnd_field_raw[i].get_grid_size(d) == 1) ? "" : "s");
-        os << ". Must be at least 2.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (pnd_field_raw[i].get_grid_size(d) < 2,
+        "Error in pnd_field_raw data. "
+        "Dimension ", d, " (name: \"",
+        pnd_field_raw[i].get_grid_name(d),
+        "\") has only ",
+        pnd_field_raw[i].get_grid_size(d),
+        " element",
+        ((pnd_field_raw[i].get_grid_size(d) == 1) ? "" : "s"),
+        ". Must be at least 2.")
     }
   }
   const Index Np_cloud = cloudbox_limits_tmp[1] - cloudbox_limits_tmp[0] + 1;
@@ -1898,16 +1810,12 @@ void pnd_fieldExpand1D(Tensor4& pnd_field,
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
 */
-  if (atmosphere_dim == 1) {
-    throw runtime_error("No use in calling this method for 1D.");
-  }
-  if (!cloudbox_on) {
-    throw runtime_error("No use in calling this method with cloudbox off.");
-  }
-
-  if (nzero < 1) {
-    throw runtime_error("The argument *nzero* must be > 0.");
-  }
+  ARTS_USER_ERROR_IF (atmosphere_dim == 1,
+                      "No use in calling this method for 1D.");
+  ARTS_USER_ERROR_IF (!cloudbox_on,
+                      "No use in calling this method with cloudbox off.");
+  ARTS_USER_ERROR_IF (nzero < 1,
+                      "The argument *nzero* must be > 0.");
 
   // Sizes
   const Index npart = pnd_field.nbooks();
@@ -1918,12 +1826,11 @@ void pnd_fieldExpand1D(Tensor4& pnd_field,
     nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
   }
 
-  if (pnd_field.npages() != np || pnd_field.nrows() != 1 ||
-      pnd_field.ncols() != 1) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (pnd_field.npages() != np ||
+                      pnd_field.nrows() != 1 ||
+                      pnd_field.ncols() != 1,
         "The input *pnd_field* is either not 1D or does not "
         "match pressure size of cloudbox.");
-  }
 
   // Temporary container
   Tensor4 pnd_temp = pnd_field;
@@ -1956,8 +1863,7 @@ void pnd_fieldZero(  //WS Output:
     const Verbosity&) {
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
 
-  if (cloudbox_limits.nelem() != 2 * atmosphere_dim)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"

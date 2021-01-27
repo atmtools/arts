@@ -81,23 +81,17 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
 
   out3 << "Check particle number density file " << pnd_field_file << "\n";
 
-  if (atmosphere_dim == 1 &&
-      (pfr_lat_grid.nelem() != 1 || pfr_lon_grid.nelem() != 1)) {
-    ostringstream os;
-    os << "The atmospheric dimension is 1D but the particle "
-       << "number density file * " << pnd_field_file
-       << " is for a 3D atmosphere. \n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (atmosphere_dim == 1 &&
+      (pfr_lat_grid.nelem() != 1 || pfr_lon_grid.nelem() != 1),
+      "The atmospheric dimension is 1D but the particle "
+      "number density file * ", pnd_field_file,
+      " is for a 3D atmosphere. \n")
 
-  else if (atmosphere_dim == 3) {
-    if (pfr_lat_grid.nelem() == 1 || pfr_lon_grid.nelem() == 1) {
-      ostringstream os;
-      os << "The atmospheric dimension is 3D but the particle "
-         << "number density file * " << pnd_field_file
-         << " is for a 1D or a 2D atmosphere. \n";
-      throw runtime_error(os.str());
-    }
+  if (atmosphere_dim == 3) {
+    ARTS_USER_ERROR_IF (pfr_lat_grid.nelem() == 1 || pfr_lon_grid.nelem() == 1,
+         "The atmospheric dimension is 3D but the particle "
+         "number density file * ", pnd_field_file,
+         " is for a 1D or a 2D atmosphere. \n")
   }
 
   out3 << "Particle number density data is o.k. \n";
@@ -163,49 +157,40 @@ void chk_pnd_field_raw_only_in_cloudbox(
             p = pnd_field_raw[n].get_numeric_grid(GFIELD3_P_GRID)[p_i];
             //                        if (!((p <= p_grid[cloudbox_limits[0]]) &
             //                              (p >= p_grid[cloudbox_limits[1]]))) {
-            if ((p <= p_grid[cloudbox_limits[1]]) ||
+            ARTS_USER_ERROR_IF ((p <= p_grid[cloudbox_limits[1]]) ||
                 ((p >= p_grid[cloudbox_limits[0]]) &&
-                 (cloudbox_limits[0] != 0))) {
-              ostringstream os;
-              os << "Found non-zero pnd outside cloudbox. "
-                 << "Cloudbox extends from p=" << p_grid[cloudbox_limits[0]]
-                 << " Pa to p=" << p_grid[cloudbox_limits[1]]
-                 << " Pa, but found pnd=" << v << "/m³ at p=" << p
-                 << " Pa for scattering "
-                 << "element #" << n << ".";
-              throw runtime_error(os.str());
-            }
+                 (cloudbox_limits[0] != 0)),
+                 "Found non-zero pnd outside cloudbox. "
+                 "Cloudbox extends from p=", p_grid[cloudbox_limits[0]],
+                 " Pa to p=", p_grid[cloudbox_limits[1]],
+                 " Pa, but found pnd=", v, "/m³ at p=", p,
+                 " Pa for scattering "
+                 "element #", n, ".")
             // Verify latitude is too
             if (dim > 1) {
               lat = pnd_field_raw[n].get_numeric_grid(GFIELD3_LAT_GRID)[lat_i];
-              if (!((lat > lat_grid[cloudbox_limits[2]]) bitand
-                    (lat < lat_grid[cloudbox_limits[3]]))) {
-                ostringstream os;
-                os << "Found non-zero pnd outside cloudbox. "
-                   << "Cloudbox extends from lat="
-                   << lat_grid[cloudbox_limits[2]]
-                   << "° to lat=" << lat_grid[cloudbox_limits[3]]
-                   << "°, but found pnd=" << v << "/m³ at lat=" << lat
-                   << "° for scattering "
-                   << "element #" << n << ".";
-                throw runtime_error(os.str());
-              }
+              ARTS_USER_ERROR_IF (!((lat > lat_grid[cloudbox_limits[2]]) bitand
+                    (lat < lat_grid[cloudbox_limits[3]])),
+                  "Found non-zero pnd outside cloudbox. "
+                  "Cloudbox extends from lat=",
+                  lat_grid[cloudbox_limits[2]],
+                  "° to lat=", lat_grid[cloudbox_limits[3]],
+                  "°, but found pnd=", v, "/m³ at lat=", lat,
+                  "° for scattering "
+                  "element #", n, ".")
             }
             // Etc. for longitude
             if (dim > 2) {
               lon = pnd_field_raw[n].get_numeric_grid(GFIELD3_LON_GRID)[lon_i];
-              if (!((lon > lon_grid[cloudbox_limits[4]]) bitand
-                    (lon < lon_grid[cloudbox_limits[5]]))) {
-                ostringstream os;
-                os << "Found non-zero pnd outside cloudbox. "
-                   << "Cloudbox extends from lon="
-                   << lon_grid[cloudbox_limits[4]]
-                   << "° to lat=" << lon_grid[cloudbox_limits[5]]
-                   << "°, but found pnd=" << v << "/m³ at lon=" << lon
-                   << "° for scattering "
-                   << "element #" << n << ".";
-                throw runtime_error(os.str());
-              }
+              ARTS_USER_ERROR_IF (!((lon > lon_grid[cloudbox_limits[4]]) bitand
+                    (lon < lon_grid[cloudbox_limits[5]])),
+                  "Found non-zero pnd outside cloudbox. "
+                  "Cloudbox extends from lon=",
+                  lon_grid[cloudbox_limits[4]],
+                  "° to lat=", lon_grid[cloudbox_limits[5]],
+                  "°, but found pnd=", v, "/m³ at lon=", lon,
+                  "° for scattering "
+                  "element #", n, ".")
             }
           }
         }
@@ -233,15 +218,12 @@ void chk_scat_species(const ArrayOfString& scat_species, const String& delim) {
 
   for (Index k = 0; k < scat_species.nelem(); k++) {
     scat_species[k].split(strarr, delim);
-    if (strarr.nelem() < nelem) {
-      ostringstream os;
-      os << "Individual strings in scat_species must contain at least " << nelem
-         << " elements,\n"
-         << "but entry #" << k << " contains only the following "
-         << strarr.nelem() << ":\n"
-         << strarr << "\n";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (strarr.nelem() < nelem,
+         "Individual strings in scat_species must contain at least ", nelem,
+         " elements,\n"
+         "but entry #", k, " contains only the following ",
+         strarr.nelem(), ":\n",
+         strarr, "\n")
   }
 }
 
@@ -259,13 +241,10 @@ void chk_scat_species(const ArrayOfString& scat_species, const String& delim) {
 void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
                          const ArrayOfScatteringMetaData& scat_meta,
                          const Verbosity&) {
-  if (scat_data.nelem() != scat_meta.nelem()) {
-    ostringstream os;
-    os << "The number of elements in in current scat_species'  *scat_data* and "
-       << "*scat_meta* do not match.\n"
-       << "Each *scat_data* entry must correspond to one entry in *scat_meta*.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_data.nelem() != scat_meta.nelem(),
+      "The number of elements in in current scat_species'  *scat_data* and "
+      "*scat_meta* do not match.\n"
+      "Each *scat_data* entry must correspond to one entry in *scat_meta*.")
 }
 
 //! Check scattering data meta
@@ -318,47 +297,32 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
          scat_data_single.ptype == PTYPE_TOTAL_RND ||
          scat_data_single.ptype == PTYPE_AZIMUTH_RND);
 
-  if (scat_data_single.za_grid[0] != 0.) {
-    ostringstream os;
-    os << "The first value of the zenith angle grid in the single"
-       << " scattering properties data must be 0.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_data_single.za_grid[0] != 0.,
+      "The first value of the zenith angle grid in the single"
+      " scattering properties data must be 0.")
 
-  if (last(scat_data_single.za_grid) != 180.) {
-    ostringstream os;
-    os << "The last value of the zenith angle grid in the single"
-       << " scattering properties data must be 180.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (last(scat_data_single.za_grid) != 180.,
+      "The last value of the zenith angle grid in the single"
+      " scattering properties data must be 180.")
 
-  if (scat_data_single.ptype == PTYPE_GENERAL &&
-      scat_data_single.aa_grid[0] != -180.) {
-    ostringstream os;
-    os << "For ptype = \"general\" the first value"
-       << " of the azimuth angle grid in the single scattering"
-       << " properties data must be -180.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_data_single.ptype == PTYPE_GENERAL &&
+                      scat_data_single.aa_grid[0] != -180.,
+      "For ptype = \"general\" the first value"
+      " of the azimuth angle grid in the single scattering"
+      " properties data must be -180.")
 
-  if (scat_data_single.ptype == PTYPE_AZIMUTH_RND &&
-      scat_data_single.aa_grid[0] != 0.) {
-    ostringstream os;
-    os << "For ptype = \"azimuthally_random\""
-       << " the first value"
-       << " of the azimuth angle grid in the single scattering"
-       << " properties data must be 0.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_data_single.ptype == PTYPE_AZIMUTH_RND &&
+                      scat_data_single.aa_grid[0] != 0.,
+      "For ptype = \"azimuthally_random\""
+      " the first value"
+      " of the azimuth angle grid in the single scattering"
+      " properties data must be 0.")
 
-  if (scat_data_single.ptype != PTYPE_TOTAL_RND &&
-      last(scat_data_single.aa_grid) != 180.) {
-    ostringstream os;
-    os << "For ptypes = \"azimuthally_random\" and \"general\""
-       << " the last value of the azimuth angle grid in the single"
-       << " scattering properties data must be 180.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_data_single.ptype != PTYPE_TOTAL_RND &&
+                      last(scat_data_single.aa_grid) != 180.,
+       "For ptypes = \"azimuthally_random\" and \"general\""
+       " the last value of the azimuth angle grid in the single"
+       " scattering properties data must be 180.")
 
   ostringstream os_pha_mat;
   os_pha_mat << "pha_mat ";
@@ -470,14 +434,11 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
   // is non-zero for the corresponding temperature. This check is done in the
   // functions where the multiplication with the particle number density is
   // done.
-  if (scat_data_single.T_grid[0] < 0. ||
-      last(scat_data_single.T_grid) > 1001.) {
-    ostringstream os;
-    os << "The temperature values in the single scattering data"
-       << " are negative or very large. Check whether you use the "
-       << "right unit [Kelvin].";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_data_single.T_grid[0] < 0. ||
+                      last(scat_data_single.T_grid) > 1001.,
+        "The temperature values in the single scattering data"
+        " are negative or very large. Check whether you use the "
+        "right unit [Kelvin].")
 }
 
 /*! Checks, whether a gridpoint is inside the cloudbox.
@@ -651,34 +612,25 @@ void chk_scat_species_field(bool& empty_flag,
                             const Vector& lat_grid,
                             const Vector& lon_grid) {
   // check p
-  if (scat_species_field.npages() != p_grid.nelem()) {
-    ostringstream os;
-    os << "The size of *p_grid* (" << p_grid.nelem()
-       << ") is unequal the number of pages of *" << fieldname << "* ("
-       << scat_species_field.npages() << ").";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_species_field.npages() != p_grid.nelem(),
+                      "The size of *p_grid* (", p_grid.nelem(),
+                      ") is unequal the number of pages of *", fieldname, "* (",
+                      scat_species_field.npages(), ").")
 
   // check lat
   if (dim >= 2) {
-    if (scat_species_field.nrows() != lat_grid.nelem()) {
-      ostringstream os;
-      os << "The size of *lat_grid* (" << lat_grid.nelem()
-         << ") is unequal the number of rows of *" << fieldname << "* ("
-         << scat_species_field.nrows() << ").";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (scat_species_field.nrows() != lat_grid.nelem(),
+        "The size of *lat_grid* (", lat_grid.nelem(),
+         ") is unequal the number of rows of *", fieldname, "* (",
+         scat_species_field.nrows(), ").")
   }
 
   // check lon
   if (dim == 3) {
-    if (scat_species_field.ncols() != lon_grid.nelem()) {
-      ostringstream os;
-      os << "The size of *lon_grid* (" << lon_grid.nelem()
-         << ") is unequal the number of columns of *" << fieldname << "* ("
-         << scat_species_field.ncols() << ").";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (scat_species_field.ncols() != lon_grid.nelem(),
+        "The size of *lon_grid* (", lon_grid.nelem(),
+        ") is unequal the number of columns of *", fieldname, "* (",
+        scat_species_field.ncols(), ").")
   }
 
   empty_flag = false;
@@ -768,9 +720,7 @@ void find_cloudlimits(Index& lower,
   }
 
   else {
-    ostringstream os;
-    os << "Not yet available for 2D and 3D cases.";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true, "Not yet available for 2D and 3D cases.")
   }
 
   /*  //NOT WORKING YET
@@ -860,10 +810,9 @@ void parse_atmcompact_speciestype(  //WS Output:
   if (strarr.size() > 0 && field_name[0] != '-') {
     species_type = strarr[0];
   } else {
-    ostringstream os;
-    os << "No information on field species type found in '" << field_name
-       << "'\n";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+                        "No information on field species type found in '",
+                        field_name, "'\n")
   }
 }
 
@@ -892,10 +841,9 @@ void parse_atmcompact_speciesname(  //WS Output:
   if (strarr.size() > 1) {
     species_name = strarr[1];
   } else {
-    ostringstream os;
-    os << "No information on field species name found in '" << field_name
-       << "'\n";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+                        "No information on field species name found in '",
+                        field_name, "'\n")
   }
 }
 
@@ -924,10 +872,9 @@ void parse_atmcompact_scattype(  //WS Output:
   if (strarr.size() > 2) {
     scat_type = strarr[2];
   } else {
-    ostringstream os;
-    os << "No information on type of scat_species field found in '"
-       << field_name << "'\n";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+                        "No information on type of scat_species field found in '",
+                        field_name, "'\n")
   }
 }
 
@@ -955,10 +902,8 @@ void parse_partfield_name(  //WS Output:
   if (strarr.size() > 0 && part_string[0] != delim[0]) {
     partfield_name = strarr[0];
   } else {
-    ostringstream os;
-    os << "No information on scattering species field name in '" << part_string
-       << "'\n";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true, "No information on scattering species field name in '",
+                        part_string, "'\n")
   }
 }
 

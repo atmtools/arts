@@ -126,8 +126,7 @@ void psdModifiedGamma(Matrix& psd_data,
   START_OF_PSD_METHODS();
 
   // Additional (basic) checks
-  if (nin > 4)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (nin > 4,
         "The number of columns in *pnd_agenda_input* must "
         "be 0, 1, 2, 3 or 4.");
 
@@ -137,8 +136,7 @@ void psdModifiedGamma(Matrix& psd_data,
   const Index la_fixed = (Index) !(std::isnan(la));
   const Index ga_fixed = (Index) !(std::isnan(ga));
   //
-  if (nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4,
         "This PSD has four free parameters. This means that "
         "the number\nof columns in *pnd_agenda_input* and the "
         "number of numerics\n(i.e. non-NaN) and among "
@@ -209,22 +207,19 @@ void psdModifiedGamma(Matrix& psd_data,
 
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {
-      if (picky) {
-        ostringstream os;
-        os << "Method called with a temperature of " << t << " K.\n"
-           << "This is outside the specified allowed range: [ max(0.," << t_min
-           << "), " << t_max << " ]";
-        throw runtime_error(os.str());
-      } else {
-        continue;
-      }  // If here, we are ready with this point!
+      ARTS_USER_ERROR_IF (picky,
+          "Method called with a temperature of ", t, " K.\n"
+          "This is outside the specified allowed range: [ max(0.,", t_min,
+          "), ", t_max, " ]")
+      continue;
+      // If here, we are ready with this point!
     }
 
     // Check that la and ga are OK
-    if (mgd_pars[2] <= 0)
-      throw runtime_error("Bad MGD parameter detected: la <= 0");
-    if (mgd_pars[3] <= 0)
-      throw runtime_error("Bad MGD parameter detected: ga <= 0");
+    ARTS_USER_ERROR_IF (mgd_pars[2] <= 0,
+                        "Bad MGD parameter detected: la <= 0");
+    ARTS_USER_ERROR_IF (mgd_pars[3] <= 0,
+                        "Bad MGD parameter detected: ga <= 0");
 
     // Calculate PSD and derivatives
     Matrix jac_data(4, nsi);
@@ -271,14 +266,13 @@ void psdModifiedGammaMass(Matrix& psd_data,
   START_OF_PSD_METHODS();
 
   // Additional (basic) checks
-  if (nin < 1 || nin > 4)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (nin < 1 || nin > 4,
         "The number of columns in *pnd_agenda_input* must "
         "be 1, 2, 3 or 4.");
-  if (scat_species_a <= 0)
-    throw runtime_error("*scat_species_a* should be > 0.");
-  if (scat_species_b <= 0 || scat_species_b >= 5)
-    throw runtime_error("*scat_species_b* should be > 0 and < 5.");
+  ARTS_USER_ERROR_IF (scat_species_a <= 0,
+                      "*scat_species_a* should be > 0.");
+  ARTS_USER_ERROR_IF (scat_species_b <= 0 || scat_species_b >= 5,
+                      "*scat_species_b* should be > 0 and < 5.");
 
   // Check and determine dependent and fixed parameters
   const Index n0_depend = (Index)n0 == -999;
@@ -286,13 +280,11 @@ void psdModifiedGammaMass(Matrix& psd_data,
   const Index la_depend = (Index)la == -999;
   const Index ga_depend = (Index)ga == -999;
   //
-  if (n0_depend + mu_depend + la_depend + ga_depend != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (n0_depend + mu_depend + la_depend + ga_depend != 1,
         "One (but only one) of n0, mu, la and ga must be NaN, "
         "to flag that this parameter is the one dependent of "
         "mass content.");
-  if (mu_depend || ga_depend)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (mu_depend || ga_depend,
         "Sorry, mu and la are not yet allowed to be the "
         "dependent parameter.");
   //
@@ -301,8 +293,7 @@ void psdModifiedGammaMass(Matrix& psd_data,
   const Index la_fixed = (Index) !(la_depend || std::isnan(la));
   const Index ga_fixed = (Index) !(ga_depend || std::isnan(ga));
   //
-  if (nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4,
         "This PSD has four free parameters. This means that "
         "the number\nof columns in *pnd_agenda_input* and the "
         "number of numerics\n(i.e. not -999 or NaN) and among "
@@ -385,15 +376,12 @@ void psdModifiedGammaMass(Matrix& psd_data,
 
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {
-      if (picky) {
-        ostringstream os;
-        os << "Method called with a temperature of " << t << " K.\n"
-           << "This is outside the specified allowed range: [ max(0.," << t_min
-           << "), " << t_max << " ]";
-        throw runtime_error(os.str());
-      } else {
-        continue;
-      }  // If here, we are ready with this point!
+      ARTS_USER_ERROR_IF (picky,
+          "Method called with a temperature of ", t, " K.\n"
+          "This is outside the specified allowed range: [ max(0.,", t_min,
+          "), ", t_max, " ]")
+      continue;
+      // If here, we are ready with this point!
     }
 
     // Derive the dependent parameter
@@ -407,8 +395,7 @@ void psdModifiedGammaMass(Matrix& psd_data,
               (scat_species_a * tgamma(eterm));
       mgd_pars[0] = scfac * ext_pars[0];
     } else if (la_depend) {
-      if (ext_pars[0] <= 0)
-        throw runtime_error(
+      ARTS_USER_ERROR_IF (ext_pars[0] <= 0,
             "The mass content must be > 0 when la is "
             "the dependent parameter.");
       mub1 = mgd_pars[1] + scat_species_b + 1;
@@ -422,12 +409,12 @@ void psdModifiedGammaMass(Matrix& psd_data,
 
     // Now when all four MGD parameters are set, check that they were OK from
     // start, or became OK if set
-    if (mub1 <= 0)
-      throw runtime_error("Bad MGD parameter detected: mu + b + 1 <= 0");
-    if (mgd_pars[2] <= 0)
-      throw runtime_error("Bad MGD parameter detected: la <= 0");
-    if (mgd_pars[3] <= 0)
-      throw runtime_error("Bad MGD parameter detected: ga <= 0");
+    ARTS_USER_ERROR_IF (mub1 <= 0,
+                        "Bad MGD parameter detected: mu + b + 1 <= 0");
+    ARTS_USER_ERROR_IF (mgd_pars[2] <= 0,
+                        "Bad MGD parameter detected: la <= 0");
+    ARTS_USER_ERROR_IF (mgd_pars[3] <= 0,
+                        "Bad MGD parameter detected: ga <= 0");
 
     // Calculate PSS
     Matrix jac_data(4, nsi);
@@ -684,8 +671,7 @@ void psdDelanoeEtAl14(Matrix& psd_data,
   START_OF_PSD_METHODS();
 
   // Additional (basic) checks
-  if (nin > 2)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (nin > 2,
         "The number of columns in *pnd_agenda_input* must "
         "be 0, 1 or 2");
 
@@ -699,14 +685,12 @@ void psdDelanoeEtAl14(Matrix& psd_data,
   const bool n0_fixed = !(std::isnan(n0)) && !n0_depend;
   const bool dm_fixed = !(std::isnan(dm)) && !dm_depend;
 
-  if (!((nin + iwc_fixed + n0_fixed + dm_fixed == 2) ||
-        (nin + iwc_fixed + n0_fixed + dm_fixed == 1))) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!((nin + iwc_fixed + n0_fixed + dm_fixed == 2) ||
+        (nin + iwc_fixed + n0_fixed + dm_fixed == 1)),
         "This PSD can have one or two independent parameters, that is \n"
         "the sum of the number of columns in pnd_agenda_input and\n"
         "non-NAN, non-dependent values in iwc, n0, dm must be equal to\n"
         "one or two.");
-  }
 
   ArrayOfIndex i_pai = {-1, -1, -1};  // Position in pnd_agenda_input
 
@@ -739,10 +723,8 @@ void psdDelanoeEtAl14(Matrix& psd_data,
   }
 
   if (psd_size_grid[0] < std::numeric_limits<Numeric>::epsilon()) {
-    if (psd_size_grid.nelem() < 2) {
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (psd_size_grid.nelem() < 2,
           "psd_size_grid has only one element which is 0. This is not allowed.");
-    }
   }
 
   Numeric iwc_p(0.0), n0_p(0.0), dm_p(0.0);
@@ -772,27 +754,20 @@ void psdDelanoeEtAl14(Matrix& psd_data,
 
     // Outside of [t_min,tmax]?
     if ((t < t_min) || (t > t_max)) {
-      if (picky) {
-        ostringstream os;
-        os << "Method called with a temperature of " << t << " K.\n"
-           << "This is outside the specified allowed range: [ max(0.," << t_min
-           << "), " << t_max << " ]";
-        throw runtime_error(os.str());
-      } else {
-        continue;
-      }
+      ARTS_USER_ERROR_IF (picky,
+          "Method called with a temperature of ", t, " K.\n"
+           "This is outside the specified allowed range: [ max(0.,", t_min,
+           "), ", t_max, " ]")
+      continue;
     }
 
     if (iwc > 0.0) {
-      if ((iwc > 0.0) && ((dm_p <= 0.0) || (dm_p < dm_min))) {
-        ostringstream os;
-        os << "The provided or inferred value of *Dm* (" << dm_p << ") is "
-           << " less than zero or *Dm_min* and this is not allowed. "
-           << "This means that you have very small or zero values "
-           << "in *pnd_agenda_input* which is not supported "
-           << "by this PSD." << std::endl;
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF ((iwc > 0.0) && ((dm_p <= 0.0) || (dm_p < dm_min)),
+           "The provided or inferred value of *Dm* (", dm_p, ") is "
+           " less than zero or *Dm_min* and this is not allowed. "
+           "This means that you have very small or zero values "
+           "in *pnd_agenda_input* which is not supported "
+           "by this PSD.\n")
     }
 
     // Calculate PSD and derivatives
@@ -890,20 +865,17 @@ void psdFieldEtAl07(Matrix& psd_data,
   START_OF_PSD_METHODS();
 
   // Additional (basic) checks
-  if (pnd_agenda_input.ncols() != 1)
-    throw runtime_error("*pnd_agenda_input* must have one column.");
-  if (regime != "TR" && regime != "ML")
-    throw runtime_error("regime must either be \"TR\" or \"ML\".");
-  if (scat_species_a <= 0)
-    throw runtime_error("*scat_species_a* should be > 0.");
-  if (scat_species_b < b_min || scat_species_b > b_max) {
-    ostringstream os;
-    os << "Method called with a mass-dimension-relation exponent b of "
-       << scat_species_b << ".\n"
-       << "This is outside the specified allowed range: [" << b_min << ","
-       << b_max << "]";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (pnd_agenda_input.ncols() != 1,
+                      "*pnd_agenda_input* must have one column.");
+  ARTS_USER_ERROR_IF (regime != "TR" && regime != "ML",
+                      "regime must either be \"TR\" or \"ML\".");
+  ARTS_USER_ERROR_IF (scat_species_a <= 0,
+                      "*scat_species_a* should be > 0.");
+  ARTS_USER_ERROR_IF (scat_species_b < b_min || scat_species_b > b_max,
+      "Method called with a mass-dimension-relation exponent b of ",
+      scat_species_b, ".\n"
+      "This is outside the specified allowed range: [", b_min, ",",
+      b_max, "]")
 
   for (Index ip = 0; ip < np; ip++) {
     // Extract the input variables
@@ -923,15 +895,12 @@ void psdFieldEtAl07(Matrix& psd_data,
 
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {
-      if (picky) {
-        ostringstream os;
-        os << "Method called with a temperature of " << t << " K.\n"
-           << "This is outside the specified allowed range: [ max(0.," << t_min
-           << "), " << t_max << " ]";
-        throw runtime_error(os.str());
-      } else {
-        continue;
-      }  // If here, we are ready with this point!
+      ARTS_USER_ERROR_IF (picky,
+          "Method called with a temperature of ", t, " K.\n"
+          "This is outside the specified allowed range: [ max(0.,", t_min,
+          "), ", t_max, " ]")
+      continue;
+      // If here, we are ready with this point!
     }
 
     // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
@@ -1003,28 +972,21 @@ void psdMcFarquaharHeymsfield97(Matrix& psd_data,
   START_OF_PSD_METHODS();
 
   // Extra checks for this PSD
-  if (pnd_agenda_input.ncols() != 1)
-    throw runtime_error("*pnd_agenda_input* must have one column.");
-  if (noisy && ndx)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (pnd_agenda_input.ncols() != 1,
+                      "*pnd_agenda_input* must have one column.");
+  ARTS_USER_ERROR_IF (noisy && ndx,
         "Jacobian calculations and \"noisy\" can not be "
         "combined.");
-  if (scat_species_b < 2.9 || scat_species_b > 3.1) {
-    ostringstream os;
-    os << "This PSD treats pure ice, using Dveq as size grid.\n"
-       << "This means that *scat_species_b* should be close to 3,\n"
-       << "but it is outside of the tolerated range of [2.9,3.1].\n"
-       << "Your value of *scat_species_b* is: " << scat_species_b;
-    throw runtime_error(os.str());
-  }
-  if (scat_species_a < 460 || scat_species_a > 500) {
-    ostringstream os;
-    os << "This PSD treats pure ice, using Dveq as size grid.\n"
-       << "This means that *scat_species_a* should be close to 480,\n"
-       << "but it is outside of the tolerated range of [460,500].\n"
-       << "Your value of *scat_species_a* is: " << scat_species_a;
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (scat_species_b < 2.9 || scat_species_b > 3.1,
+      "This PSD treats pure ice, using Dveq as size grid.\n"
+      "This means that *scat_species_b* should be close to 3,\n"
+      "but it is outside of the tolerated range of [2.9,3.1].\n"
+      "Your value of *scat_species_b* is: ", scat_species_b)
+  ARTS_USER_ERROR_IF (scat_species_a < 460 || scat_species_a > 500,
+      "This PSD treats pure ice, using Dveq as size grid.\n"
+      "This means that *scat_species_a* should be close to 480,\n"
+      "but it is outside of the tolerated range of [460,500].\n"
+      "Your value of *scat_species_a* is: ", scat_species_a)
 
   for (Index ip = 0; ip < np; ip++) {
     // Extract the input variables
@@ -1038,15 +1000,12 @@ void psdMcFarquaharHeymsfield97(Matrix& psd_data,
 
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {
-      if (picky) {
-        ostringstream os;
-        os << "Method called with a temperature of " << t << " K.\n"
-           << "This is outside the specified allowed range: [ max(0.," << t_min
-           << "), " << t_max << " ]";
-        throw runtime_error(os.str());
-      } else {
-        continue;
-      }  // If here, we are ready with this point!
+      ARTS_USER_ERROR_IF (picky,
+          "Method called with a temperature of ", t, " K.\n"
+          "This is outside the specified allowed range: [ max(0.,", t_min,
+          "), ", t_max, " ]")
+      continue;
+      // If here, we are ready with this point!
     }
 
     // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
@@ -1219,20 +1178,15 @@ void psdSeifertBeheng06(Matrix& psd_data,
   const Index nsi = psd_size_grid.nelem();
 
   // Checks
-  if (pnd_agenda_input.ncols() != nin) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (pnd_agenda_input.ncols() != nin,
         "Length of *pnd_agenda_input_names* and number of "
         "columns in *pnd_agenda_input* must be equal.");
-  }
-  if (pnd_agenda_input.ncols() != 2) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (pnd_agenda_input.ncols() != 2,
         "*pnd_agenda_input* must have two columns"
         "(mass density and number density).");
-  }
 
-  if (ndx > 2) {
-    throw runtime_error("*dpnd_data_dx_names* must have length <=2.");
-  }
+  ARTS_USER_ERROR_IF (ndx > 2,
+                      "*dpnd_data_dx_names* must have length <=2.");
 
   // check name tags
   ArrayOfIndex input_idx = {-1, -1};
@@ -1246,12 +1200,10 @@ void psdSeifertBeheng06(Matrix& psd_data,
     }
   }
 
-  if (input_idx[0] == -1) {
-    throw runtime_error("mass_density-tag not found ");
-  }
-  if (input_idx[1] == -1) {
-    throw runtime_error("number_density-tag not found ");
-  }
+  ARTS_USER_ERROR_IF (input_idx[0] == -1,
+                      "mass_density-tag not found ");
+  ARTS_USER_ERROR_IF (input_idx[1] == -1,
+                      "number_density-tag not found ");
 
   // look after jacobian tags
   ArrayOfIndex dpnd_data_dx_idx = {-1, -1};
@@ -1288,15 +1240,12 @@ void psdSeifertBeheng06(Matrix& psd_data,
 
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {
-      if (picky) {
-        ostringstream os;
-        os << "Method called with a temperature of " << t << " K.\n"
-           << "This is outside the specified allowed range: [ max(0.," << t_min
-           << "), " << t_max << " ]";
-        throw runtime_error(os.str());
-      } else {
-        continue;
-      }  // If here, we are ready with this point!
+      ARTS_USER_ERROR_IF (picky,
+          "Method called with a temperature of ", t, " K.\n"
+          "This is outside the specified allowed range: [ max(0.,", t_min,
+          "), ", t_max, " ]")
+      continue;
+      // If here, we are ready with this point!
     }
 
     // Negative swc?
@@ -1348,20 +1297,15 @@ void psdMilbrandtYau05(Matrix& psd_data,
   const Index nsi = psd_size_grid.nelem();
 
   // Checks
-  if (pnd_agenda_input.ncols() != nin) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (pnd_agenda_input.ncols() != nin,
         "Length of *pnd_agenda_input_names* and number of "
         "columns in *pnd_agenda_input* must be equal.");
-  }
-  if (pnd_agenda_input.ncols() != 2) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (pnd_agenda_input.ncols() != 2,
         "*pnd_agenda_input* must have two columns"
         "(mass density and number density).");
-  }
 
-  if (ndx > 2) {
-    throw runtime_error("*dpnd_data_dx_names* must have length <=2.");
-  }
+  ARTS_USER_ERROR_IF (ndx > 2,
+                      "*dpnd_data_dx_names* must have length <=2.");
 
   // check name tags
   ArrayOfIndex input_idx = {-1, -1};
@@ -1375,12 +1319,10 @@ void psdMilbrandtYau05(Matrix& psd_data,
     }
   }
 
-  if (input_idx[0] == -1) {
-    throw runtime_error("mass_density-tag not found ");
-  }
-  if (input_idx[1] == -1) {
-    throw runtime_error("number_density-tag not found ");
-  }
+  ARTS_USER_ERROR_IF (input_idx[0] == -1,
+                      "mass_density-tag not found ");
+  ARTS_USER_ERROR_IF (input_idx[1] == -1,
+                      "number_density-tag not found ");
 
   // look after jacobian tags
   ArrayOfIndex dpnd_data_dx_idx = {-1, -1};
@@ -1417,15 +1359,12 @@ void psdMilbrandtYau05(Matrix& psd_data,
 
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {
-      if (picky) {
-        ostringstream os;
-        os << "Method called with a temperature of " << t << " K.\n"
-           << "This is outside the specified allowed range: [ max(0.," << t_min
-           << "), " << t_max << " ]";
-        throw runtime_error(os.str());
-      } else {
-        continue;
-      }  // If here, we are ready with this point!
+      ARTS_USER_ERROR_IF (picky,
+          "Method called with a temperature of ", t, " K.\n"
+          "This is outside the specified allowed range: [ max(0.,", t_min,
+          "), ", t_max, " ]")
+      continue;
+      // If here, we are ready with this point!
     }
 
     // Negative wc?

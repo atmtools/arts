@@ -25,8 +25,6 @@
 #include "matpackIV.h"
 #include "exceptions.h"
 
-using std::runtime_error;
-
 /** The -> operator is needed, so that we can write i->begin() to get
     the 3D iterators. */
 Tensor3View* Iterator4D::operator->() { return &msv; }
@@ -337,15 +335,13 @@ ConstVectorView ConstTensor4View::operator()(Index b,
   Tensor4View is not pointing to the beginning of a Tensor4 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Numeric* Tensor4View::get_c_array() {
-  if (mbr.mstart != 0 ||
+Numeric* Tensor4View::get_c_array() ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mbr.mstart != 0 ||
       mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
       mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
       mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+      mcr.mstride != 1),
         "A Tensor4View can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
@@ -355,15 +351,13 @@ Numeric* Tensor4View::get_c_array() {
   Tensor4View is not pointing to the beginning of a Tensor4 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Numeric* Tensor4View::get_c_array() const {
-  if (mbr.mstart != 0 ||
+const Numeric* Tensor4View::get_c_array() const ARTS_NOEXCEPT {
+  ARTS_ASSERT (not  (mbr.mstart != 0 ||
       mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
       mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
       mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+      mcr.mstride != 1),
         "A Tensor4View can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 

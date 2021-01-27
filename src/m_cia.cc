@@ -65,17 +65,11 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
     const Index nr_vmrs = abs_vmrs.nrows();
     //    const Index n_cia    = abs_cia_data.nelem();
 
-    if (n_tgs != n_xsec || n_tgs != nr_vmrs)  //  ||
-                                              //        n_tgs != n_cia)
-    {
-      ostringstream os;
-      os << "The following variables must all have the same dimension:\n"
-         << "abs_species:          " << n_tgs << "\n"
-         << "abs_xsec_per_species: " << n_xsec << "\n"
-         << "abs_vmrs.nrows:       " << nr_vmrs << "\n";
-      //           << "abs_cia_data:         " << n_cia;
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (n_tgs != n_xsec || n_tgs != nr_vmrs,
+      "The following variables must all have the same dimension:\n"
+      "abs_species:          ", n_tgs, "\n"
+      "abs_xsec_per_species: ", n_xsec, "\n"
+      "abs_vmrs.nrows:       ", nr_vmrs, "\n")
   }
 
   // Jacobian overhead START
@@ -112,14 +106,11 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
     const Index n_t = abs_t.nelem();
     const Index nc_vmrs = abs_vmrs.ncols();
 
-    if (n_p != n_t || n_p != nc_vmrs) {
-      ostringstream os;
-      os << "The following variables must all have the same dimension:\n"
-         << "abs_p:          " << n_p << "\n"
-         << "abs_t:          " << n_t << "\n"
-         << "abs_vmrs.ncols: " << nc_vmrs;
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (n_p != n_t || n_p != nc_vmrs,
+        "The following variables must all have the same dimension:\n"
+        "abs_p:          ", n_p, "\n"
+        "abs_t:          ", n_t, "\n"
+        "abs_vmrs.ncols: ", nc_vmrs)
   }
 
   // Allocate a vector with dimension frequencies for constructing our
@@ -163,35 +154,26 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
 
       // Check that the dimension of this_xsec is
       // consistent with abs_p and f_grid.
-      if (this_xsec.nrows() != f_grid.nelem()) {
-        ostringstream os;
-        os << "Wrong dimension of abs_xsec_per_species.nrows for species " << i
-           << ":\n"
-           << "should match f_grid (" << f_grid.nelem() << ") but is "
-           << this_xsec.nrows() << ".";
-        throw runtime_error(os.str());
-      }
-      if (this_xsec.ncols() != abs_p.nelem()) {
-        ostringstream os;
-        os << "Wrong dimension of abs_xsec_per_species.ncols for species " << i
-           << ":\n"
-           << "should match abs_p (" << abs_p.nelem() << ") but is "
-           << this_xsec.ncols() << ".";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (this_xsec.nrows() != f_grid.nelem(),
+          "Wrong dimension of abs_xsec_per_species.nrows for species ", i,
+          ":\n"
+          "should match f_grid (", f_grid.nelem(), ") but is ",
+          this_xsec.nrows(), ".")
+      ARTS_USER_ERROR_IF (this_xsec.ncols() != abs_p.nelem(),
+          "Wrong dimension of abs_xsec_per_species.ncols for species ", i,
+          ":\n"
+          "should match abs_p (", abs_p.nelem(), ") but is ",
+          this_xsec.ncols(), ".")
 
       // Find out index of VMR for the second CIA species.
       // (The index for the first species is simply i.)
       Index i_sec = find_first_species_tg(abs_species, this_cia.Species(1));
 
       // Catch the case that the VMR for the second species does not exist:
-      if (i_sec < 0) {
-        ostringstream os;
-        os << "VMR profile for second species in CIA species pair does not exist.\n"
-           << "Tag " << this_species.Name() << " needs a VMR profile of "
-           << this_cia.MoleculeName(1) << "!";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (i_sec < 0,
+          "VMR profile for second species in CIA species pair does not exist.\n"
+          "Tag ", this_species.Name(), " needs a VMR profile of ",
+          this_cia.MoleculeName(1), "!")
 
       // Loop over pressure:
       for (Index ip = 0; ip < abs_p.nelem(); ip++) {
@@ -221,10 +203,8 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
                              robust,
                              verbosity);
         } catch (const std::runtime_error& e) {
-          ostringstream os;
-          os << "Problem with CIA species " << this_species.Name() << ":\n"
-             << e.what();
-          throw runtime_error(os.str());
+          ARTS_USER_ERROR_IF (true, "Problem with CIA species ",
+                              this_species.Name(), ":\n", e.what())
         }
 
         // We have to multiply with the number density of the second CIA species.
@@ -280,12 +260,9 @@ void CIARecordReadFromFile(  // WS GOutput:
     const Verbosity& verbosity) {
   SpeciesTag species(species_tag);
 
-  if (species.Type() != SpeciesTag::TYPE_CIA) {
-    ostringstream os;
-    os << "Invalid species tag " << species_tag << ".\n"
-       << "This is not recognized as a CIA type.\n";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (species.Type() != SpeciesTag::TYPE_CIA,
+      "Invalid species tag ", species_tag, ".\n"
+      "This is not recognized as a CIA type.\n")
 
   cia_record.SetSpecies(species.Species(), species.CIASecond());
   cia_record.ReadFromCIA(filename, verbosity);
@@ -385,14 +362,10 @@ void abs_cia_dataReadFromCIA(  // WS Output:
         }
       }
 
-      if (!found) {
-        ostringstream os;
-        os << "Error: No data file found for CIA species " << cia_names[0]
-           << endl
-           << "Looked in directories: " << checked_dirs;
-
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (!found,
+          "Error: No data file found for CIA species ", cia_names[0],
+           "\n"
+           "Looked in directories: ", checked_dirs)
     }
   }
 }
@@ -444,7 +417,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
         first = false;
       os << missing_tags[i];
     }
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true, os.str());
   }
 }
 
@@ -464,11 +437,8 @@ void CIAInfo(  // Generic Input:
 
     cia_tags[i].split(species_names, "-");
 
-    if (species_names.nelem() != 2) {
-      ostringstream os;
-      os << "ERROR: Cannot parse CIA tag: " << cia_tags[i];
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (species_names.nelem() != 2,
+      "ERROR: Cannot parse CIA tag: ", cia_tags[i])
 
     this_species_tag.push_back(
         SpeciesTag(species_names[0] + "-CIA-" + species_names[1] + "-0"));

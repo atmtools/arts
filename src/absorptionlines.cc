@@ -201,7 +201,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
     if (is.eof()) return data;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -232,11 +232,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
     // ok, now for the cool index map:
     // is this arts identifier valid?
     const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
-    if (i == ArtsMap.end()) {
-      ostringstream os;
-      os << "ARTS Tag: " << artsid << " is unknown.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (i == ArtsMap.end(),
+      "ARTS Tag: ", artsid, " is unknown.")
 
     SpecIsoMap id = i->second;
 
@@ -363,7 +360,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
     if (is.eof()) return data;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -394,11 +391,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
     // ok, now for the cool index map:
     // is this arts identifier valid?
     const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
-    if (i == ArtsMap.end()) {
-      ostringstream os;
-      os << "ARTS Tag: " << artsid << " is unknown.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (i == ArtsMap.end(),
+                        "ARTS Tag: ", artsid, " is unknown.")
 
     SpecIsoMap id = i->second;
 
@@ -559,7 +553,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
     if (is.eof()) return data;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -591,11 +585,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
       // ok, now for the cool index map:
       // is this arts identifier valid?
       const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
-      if (i == ArtsMap.end()) {
-        ostringstream os;
-        os << "ARTS Tag: " << artsid << " is unknown.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (i == ArtsMap.end(),
+                          "ARTS Tag: ", artsid, " is unknown.")
 
       SpecIsoMap id = i->second;
 
@@ -644,11 +635,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
           // Quantum numbers
 
           icecream >> token;
-          if (token != "UP") {
-            ostringstream os;
-            os << "Unknown quantum number tag: " << token;
-            throw std::runtime_error(os.str());
-          }
+          ARTS_USER_ERROR_IF (token != "UP",
+            "Unknown quantum number tag: ", token)
 
           icecream >> token;
           Rational r;
@@ -660,11 +648,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
             if (token == "LO") break;
           }
 
-          if (!is || token != "LO") {
-            std::ostringstream os;
-            os << "Error in catalog. Lower quantum number tag 'LO' not found.";
-            throw std::runtime_error(os.str());
-          }
+          ARTS_USER_ERROR_IF (!is || token != "LO",
+            "Error in catalog. Lower quantum number tag 'LO' not found.")
 
           icecream >> token;
           while (icecream && IsValidQuantumNumberName(token)) {
@@ -718,25 +703,19 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
             }
 
             else {
-              ostringstream os;
-              os << "Unknown line modifications given: " << token;
-              throw std::runtime_error(os.str());
+              ARTS_USER_ERROR_IF (true, "Unknown line modifications given: ", token)
             }
           }
           icecream >> token;
         } else {
-          ostringstream os;
-          os << "Unknown line data tag: " << token;
-          throw std::runtime_error(os.str());
+          ARTS_USER_ERROR_IF (true, "Unknown line data tag: ", token)
         }
       }
     }
   } catch (const std::runtime_error& e) {
-    ostringstream os;
-    os << "Parse error in catalog line: " << endl;
-    os << line << endl;
-    os << e.what();
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+                        "Parse error in catalog line: \n",
+                        line, '\n', e.what())
   }
 
   if (lmd_found)
@@ -853,7 +832,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     if (is.eof()) return data;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -889,12 +868,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
         // Check if data record has the right number of characters for the
         // in Hitran 2004 format
         Index nChar = line.nelem() + 2;  // number of characters in data record;
-        if ((nChar == 161 && line[158] != ' ') || nChar > 161) {
-          ostringstream os;
-          os << "Invalid HITRAN 2004 line data record with " << nChar
-             << " characters (expected: 160).";
-          throw std::runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF ((nChar == 161 && line[158] != ' ') || nChar > 161,
+          "Invalid HITRAN 2004 line data record with ", nChar,
+          " characters (expected: 160).")
 
       }
     }
@@ -919,12 +895,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-  if (missing == data.quantumidentity.Isotopologue()) {
-    ostringstream os;
-    os << "Species: " << species_data[data.quantumidentity.Species()].Name()
-       << ", isotopologue iso = " << iso << " is unknown.";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (missing == data.quantumidentity.Isotopologue(),
+    "Species: ", species_data[data.quantumidentity.Species()].Name(),
+    ", isotopologue iso = ", iso, " is unknown.")
 
   // Position.
   {
@@ -1272,7 +1245,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     if (is.eof()) return data;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -1327,12 +1300,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-  if (missing == data.quantumidentity.Isotopologue()) {
-    ostringstream os;
-    os << "Species: " << species_data[data.quantumidentity.Species()].Name()
-       << ", isotopologue iso = " << iso << " is unknown.";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (missing == data.quantumidentity.Isotopologue(),
+    "Species: ", species_data[data.quantumidentity.Species()].Name(),
+    ", isotopologue iso = ", iso, " is unknown.")
 
   // Position.
   {
@@ -1661,7 +1631,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     if (is.eof()) return data;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -1697,13 +1667,10 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
         // Check if data record has the right number of characters for the
         // in Hitran 1986-2001 format
         Index nChar = line.nelem() + 2;  // number of characters in data record;
-        if (nChar != 100) {
-          ostringstream os;
-          os << "Invalid HITRAN 1986-2001 line data record with " << nChar
-             << " characters (expected: 100)." << endl
-             << line << " n: " << line.nelem();
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (nChar != 100,
+          "Invalid HITRAN 1986-2001 line data record with ", nChar,
+          " characters (expected: 100).\n",
+          line, " n: ", line.nelem())
       }
     }
   }
@@ -1727,12 +1694,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-  if (missing == data.quantumidentity.Isotopologue()) {
-    ostringstream os;
-    os << "Species: " << species_data[data.quantumidentity.Species()].Name()
-       << ", isotopologue iso = " << iso << " is unknown.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (missing == data.quantumidentity.Isotopologue(),
+    "Species: ", species_data[data.quantumidentity.Species()].Name(),
+    ", isotopologue iso = ", iso, " is unknown.")
 
   // Position.
   {
@@ -2020,7 +1984,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     if (is.eof()) return data;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw std::runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -2056,13 +2020,10 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
         // Check if data record has the right number of characters for the
         // in Hitran 1986-2001 format
         Index nChar = line.nelem() + 2;  // number of characters in data record;
-        if (nChar != 100) {
-          ostringstream os;
-          os << "Invalid HITRAN 1986-2001 line data record with " << nChar
-             << " characters (expected: 100)." << endl
-             << line << " n: " << line.nelem();
-          throw std::runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (nChar != 100,
+          "Invalid HITRAN 1986-2001 line data record with ", nChar,
+          " characters (expected: 100).\n",
+          line, " n: ", line.nelem())
 
       }
     }
@@ -2087,12 +2048,9 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-  if (missing == data.quantumidentity.Isotopologue()) {
-    ostringstream os;
-    os << "Species: " << species_data[data.quantumidentity.Species()].Name()
-       << ", isotopologue iso = " << iso << " is unknown.";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (missing == data.quantumidentity.Isotopologue(),
+    "Species: ", species_data[data.quantumidentity.Species()].Name(),
+    ", isotopologue iso = ", iso, " is unknown.")
 
   // Position.
   {
@@ -2320,8 +2278,8 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     extract(mo2, line, 2);
     // Skip one
 
-    if (mo != mo2)
-      throw std::runtime_error("There is an error in the line mixing\n");
+    ARTS_USER_ERROR_IF (mo != mo2,
+                        "There is an error in the line mixing\n");
   }
 
   Vector Y(4), G(4), T(4);
@@ -2736,8 +2694,8 @@ Vector Absorption::Lines::BroadeningSpeciesMass(const ConstVectorView atm_vmrs,
 Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,
                                    const ArrayOfArrayOfSpeciesTag& atm_spec) const
 {
-  if (atm_vmrs.nelem() not_eq atm_spec.nelem())
-    throw std::runtime_error("Bad species and vmr lists");
+  ARTS_USER_ERROR_IF (atm_vmrs.nelem() not_eq atm_spec.nelem(),
+                      "Bad species and vmr lists");
     
   for (Index i=0; i<atm_spec.nelem(); i++)
     if (atm_spec[i].nelem() and atm_spec[i][0].Species() == Species())
@@ -2755,9 +2713,9 @@ bool Absorption::line_in_id(const Absorption::Lines& band, const QuantumIdentifi
     return false;
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
-  else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL)
-    throw std::runtime_error("Cannot match energy level to line");
-  else {
+  else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+    ARTS_USER_ERROR_IF (true, "Cannot match energy level to line");
+  } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
@@ -2794,9 +2752,9 @@ bool Absorption::line_upper_in_id(const Absorption::Lines& band, const QuantumId
     return false;
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
-  else if (id.Type() == QuantumIdentifier::TRANSITION)
-    throw std::runtime_error("Cannot match transition level to energy level");
-  else {
+  else if (id.Type() == QuantumIdentifier::TRANSITION) {
+    ARTS_USER_ERROR_IF (true, "Cannot match transition level to energy level");
+  } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
@@ -2822,9 +2780,9 @@ bool Absorption::line_lower_in_id(const Absorption::Lines& band, const QuantumId
     return false;
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
-  else if (id.Type() == QuantumIdentifier::TRANSITION)
-    throw std::runtime_error("Cannot match transition level to energy level");
-  else {
+  else if (id.Type() == QuantumIdentifier::TRANSITION) {
+    ARTS_USER_ERROR_IF (true, "Cannot match transition level to energy level");
+  } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
@@ -2850,9 +2808,9 @@ bool Absorption::id_in_line(const Absorption::Lines& band, const QuantumIdentifi
     return false;
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
-  else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL)
-    throw std::runtime_error("Cannot match energy level to line");
-  else {
+  else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+    ARTS_USER_ERROR_IF (true, "Cannot match energy level to line");
+  } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
@@ -2889,9 +2847,9 @@ bool Absorption::id_in_line_upper(const Absorption::Lines& band, const QuantumId
     return false;
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
-  else if (id.Type() == QuantumIdentifier::TRANSITION)
-    throw std::runtime_error("Cannot match transition level to energy level");
-  else {
+  else if (id.Type() == QuantumIdentifier::TRANSITION) {
+    ARTS_USER_ERROR_IF (true, "Cannot match transition level to energy level");
+  } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
@@ -2917,9 +2875,9 @@ bool Absorption::id_in_line_lower(const Absorption::Lines& band, const QuantumId
     return false;
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
-  else if (id.Type() == QuantumIdentifier::TRANSITION)
-    throw std::runtime_error("Cannot match transition level to energy level");
-  else {
+  else if (id.Type() == QuantumIdentifier::TRANSITION) {
+    ARTS_USER_ERROR_IF (true, "Cannot match transition level to energy level");
+  } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
       auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
@@ -3059,7 +3017,7 @@ Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
     if (is.eof()) return data;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -3115,12 +3073,9 @@ Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
     if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-  if (missing == data.quantumidentity.Isotopologue()) {
-    ostringstream os;
-    os << "Species: " << species_data[data.quantumidentity.Species()].Name()
-       << ", isotopologue iso = " << iso << " is unknown.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (missing == data.quantumidentity.Isotopologue(),
+    "Species: ", species_data[data.quantumidentity.Species()].Name(),
+    ", isotopologue iso = ", iso, " is unknown.")
 
   // Position.
   {
@@ -3360,7 +3315,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
     if (is.eof()) return data;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -3462,11 +3417,8 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
 
   // is this tag valid?
   const map<Index, SpecIsoMap>::const_iterator i = JplMap.find(tag);
-  if (i == JplMap.end()) {
-    ostringstream os;
-    os << "JPL Tag: " << tag << " is unknown.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (i == JplMap.end(),
+    "JPL Tag: ", tag, " is unknown.")
 
   SpecIsoMap id = i->second;
 
@@ -3627,25 +3579,25 @@ bofstream& SingleLine::write(bofstream& bof) const {
 }
 
 void Lines::AppendSingleLine(SingleLine&& sl) {
-  if(NumLocalQuanta() not_eq sl.LowerQuantumElems() or
-    NumLocalQuanta() not_eq sl.UpperQuantumElems())
-    throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
+  ARTS_USER_ERROR_IF (NumLocalQuanta() not_eq sl.LowerQuantumElems() or
+                      NumLocalQuanta() not_eq sl.UpperQuantumElems(),
+                     "Error calling appending function, bad size of quantum numbers");
   
-  if(NumLines() not_eq 0 and 
-    sl.LineShapeElems() not_eq mlines[0].LineShapeElems())
-    throw std::runtime_error("Error calling appending function, bad size of broadening species");
+  ARTS_USER_ERROR_IF(NumLines() not_eq 0 and 
+    sl.LineShapeElems() not_eq mlines[0].LineShapeElems(),
+                     "Error calling appending function, bad size of broadening species");
   
   mlines.push_back(std::move(sl));
 }
 
 void Lines::AppendSingleLine(const SingleLine& sl) {
-  if(NumLocalQuanta() not_eq sl.LowerQuantumElems() or
-    NumLocalQuanta() not_eq sl.UpperQuantumElems())
-    throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
+  ARTS_USER_ERROR_IF( NumLocalQuanta() not_eq sl.LowerQuantumElems() or
+                      NumLocalQuanta() not_eq sl.UpperQuantumElems(),
+                     "Error calling appending function, bad size of quantum numbers");
   
-  if(NumLines() not_eq 0 and 
-    sl.LineShapeElems() not_eq mlines[0].LineShapeElems())
-    throw std::runtime_error("Error calling appending function, bad size of broadening species");
+  ARTS_USER_ERROR_IF (NumLines() not_eq 0 and 
+                      sl.LineShapeElems() not_eq mlines[0].LineShapeElems(),
+                     "Error calling appending function, bad size of broadening species");
   
   mlines.push_back(sl);
 }

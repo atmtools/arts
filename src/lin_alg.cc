@@ -186,7 +186,7 @@ void inv(MatrixView Ainv, ConstMatrixView A) {
   try {
     work = new double[lwork];
   } catch (std::bad_alloc& ba) {
-    throw runtime_error(
+    ARTS_USER_ERROR_IF (true,
         "Error inverting matrix: Could not allocate workspace memory.");
   }
 
@@ -195,11 +195,8 @@ void inv(MatrixView Ainv, ConstMatrixView A) {
   delete[] ipiv;
 
   // Check for success.
-  if (info == 0) {
-    Ainv = LU;
-  } else {
-    throw runtime_error("Error inverting matrix: Matrix not of full rank.");
-  }
+  ARTS_USER_ERROR_IF (info not_eq 0, "Error inverting matrix: Matrix not of full rank.");
+  Ainv = LU;
 }
 
 void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
@@ -219,9 +216,8 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
   lapack::zgetri_(&n_int, Ainv.get_c_array(), &n_int, ipiv.data(), work.get_c_array(), &lwork, &info);
   
   // Check for success.
-  if (info not_eq 0) {
-    throw runtime_error("Error inverting matrix: Matrix not of full rank.");
-  }
+  ARTS_USER_ERROR_IF (info not_eq 0,
+                      "Error inverting matrix: Matrix not of full rank.");
 }
 
 //! Matrix Diagonalization
@@ -275,7 +271,7 @@ void diagonalize(MatrixView P,
     rwork = new double[2 * n_int];
     work = new double[lwork];
   } catch (std::bad_alloc& ba) {
-    throw std::runtime_error(
+    ARTS_USER_ERROR_IF (true,
         "Error diagonalizing: Could not allocate workspace memory.");
   }
 
@@ -468,8 +464,7 @@ void matrix_exp2(MatrixView F, ConstMatrixView A) {
   inv(invP, P);
 
   for (Index k = 0; k < n; k++) {
-    if (WI[k] != 0)
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (WI[k] != 0,
           "We require real eigenvalues for your chosen method.");
     P(joker, k) *= exp(WR[k]);
   }

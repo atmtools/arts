@@ -94,11 +94,8 @@ SpeciesTag::SpeciesTag(String def) : misotopologue(-1), mlf(-1), muf(-1), mtype(
     return;
   }
 
-  if (0 > mspecies) {
-    ostringstream os;
-    os << "Species \"" << name << "\" is not a valid species.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (0 > mspecies,
+    "Species \"", name, "\" is not a valid species.")
 
   // Get a reference to the relevant Species Record:
   const SpeciesRecord& spr = species_data[mspecies];
@@ -191,34 +188,25 @@ SpeciesTag::SpeciesTag(String def) : misotopologue(-1), mlf(-1), muf(-1), mtype(
     // We have to read in the second species, and the dataset index
     n = def.find('-');  // find the '-'
 
-    if (n == def.npos) {
-      ostringstream os;
-      os << "Invalid species tag " << def_original << ".\n"
-         << "I am missing a minus sign (and a dataset index after that.)";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (n == def.npos,
+      "Invalid species tag ", def_original, ".\n"
+      "I am missing a minus sign (and a dataset index after that.)")
 
     String otherspec = def.substr(0, n);  // Extract before '-'
     def.erase(0, n + 1);                  // Remove from def
 
     mcia_second = species_index_from_species_name(otherspec);
 
-    if (0 > mcia_second) {
-      ostringstream os;
-      os << "CIA species \"" << otherspec << "\" is not a valid species.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (0 > mcia_second,
+      "CIA species \"", otherspec, "\" is not a valid species.")
 
     // Convert remaining def to dataset index.
 
     // Check that everything remaining is just numbers.
     for (Index i = 0; i < def.nelem(); ++i)
-      if (!isdigit(def[i])) {
-        ostringstream os;
-        os << "Invalid species tag " << def_original << ".\n"
-           << "The tag should end with a dataset index";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (!isdigit(def[i]),
+          "Invalid species tag ", def_original, ".\n"
+          "The tag should end with a dataset index")
 
     // Do the conversion from string to index:
     istringstream is(def);
@@ -234,15 +222,10 @@ SpeciesTag::SpeciesTag(String def) : misotopologue(-1), mlf(-1), muf(-1), mtype(
     misotopologue = find_first(ins, isoname);
 
     // Check if we found a matching isotopologue:
-    if (misotopologue < 0) {
-      ostringstream os;
-      os << "Isotopologue " << isoname << " is not a valid isotopologue or "
-         << "absorption model for species " << name << ".\n"
-         << "Valid options are:\n";
-      for (Index i = 0; i < ins.nelem(); ++i)
-        os << name << "-" << ins[i] << "\n";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (misotopologue < 0,
+        "Isotopologue ", isoname, " is not a valid isotopologue or "
+        "absorption model for species ", name, ".\n"
+        "Valid options are:\n", ins)
 
     // Check if the found isotopologue represents a predefined model
     // (continuum or full absorption model) and set the type accordingly:
@@ -257,11 +240,8 @@ SpeciesTag::SpeciesTag(String def) : misotopologue(-1), mlf(-1), muf(-1), mtype(
     return;
   }
 
-  if (def[0] != '*' && !isdigit(def[0])) {
-    ostringstream os;
-    os << "Expected frequency limits, but got \"" << def << "\"";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (def[0] != '*' && !isdigit(def[0]),
+    "Expected frequency limits, but got \"", def, "\"")
 
   // Look for the two frequency limits:
 
@@ -277,24 +257,19 @@ SpeciesTag::SpeciesTag(String def) : misotopologue(-1), mlf(-1), muf(-1), mtype(
     if ("*" == fname) {
       // The default for mlf is already -1, meaning `ALL'.
       // So there is nothing to do here.
-    } else if (!isdigit(fname[0])) {
-      ostringstream os;
-      os << "Expected frequency limit, but got \"" << fname << "\"";
-      throw runtime_error(os.str());
     } else {
-      // Convert to Numeric:
+      ARTS_USER_ERROR_IF (!isdigit(fname[0]),
+        "Expected frequency limit, but got \"", fname, "\"")
+        // Convert to Numeric:
       char* endptr;
       mlf = strtod(fname.c_str(), &endptr);
-      if (endptr != fname.c_str() + fname.nelem()) {
-        ostringstream os;
-        os << "Error parsing frequency limit \"" << fname << "\"";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (endptr != fname.c_str() + fname.nelem(),
+          "Error parsing frequency limit \"", fname, "\"")
     }
   } else {
     // n==def.npos means that def does not contain a '-'. In this
     // case that is not allowed!
-    throw runtime_error(
+    ARTS_USER_ERROR_IF (true,
         "You must either specify both frequency limits\n"
         "(at least with jokers), or none.");
   }
@@ -304,19 +279,14 @@ SpeciesTag::SpeciesTag(String def) : misotopologue(-1), mlf(-1), muf(-1), mtype(
   if ("*" == def) {
     // The default for muf is already -1, meaning `ALL'.
     // So there is nothing to do here.
-  } else if (!isdigit(def[0])) {
-    ostringstream os;
-    os << "Expected frequency limit, but got \"" << def << "\"";
-    throw runtime_error(os.str());
   } else {
+    ARTS_USER_ERROR_IF (!isdigit(def[0]),
+      "Expected frequency limit, but got \"", def, "\"")
     // Convert to Numeric:
     char* endptr;
     muf = strtod(def.c_str(), &endptr);
-    if (endptr != def.c_str() + def.nelem()) {
-      ostringstream os;
-      os << "Error parsing frequency limit \"" << def << "\"";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (endptr != def.c_str() + def.nelem(),
+      "Error parsing frequency limit \"", def, "\"")
   }
 }
 
@@ -502,12 +472,9 @@ String get_species_name(const ArrayOfSpeciesTag& tg) {
   // the same:
   for (Index i = 1; i < tg.nelem(); ++i) {
     //      out1 << spec_ind << " " << tg[i].Species() << "\n";
-    if (tg[i].Species() != spec_ind) {
-      ostringstream os;
-      os << "All tags in a tag group must belong to the same species!\n"
-         << "The offending tag group is: " << get_tag_group_name(tg);
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (tg[i].Species() != spec_ind,
+         "All tags in a tag group must belong to the same species!\n"
+         "The offending tag group is: ", get_tag_group_name(tg))
   }
 
   return species_name_from_species_index(spec_ind);
@@ -616,17 +583,15 @@ void array_species_tag_from_string(ArrayOfSpeciesTag& tags,
     // Safety checks:
     if (s > 0) {
       // Tags inside a group must belong to the same species.
-      if (tags[0].Species() != this_tag.Species())
-        throw runtime_error(
+      ARTS_USER_ERROR_IF (tags[0].Species() != this_tag.Species(),
             "Tags in a tag group must belong to the same species.");
 
       // Zeeman tags and plain line by line tags must not be mixed. (Because
       // there can be only one line list per tag group.)
-      if (((tags[0].Type() == SpeciesTag::TYPE_ZEEMAN) &&
+      ARTS_USER_ERROR_IF (((tags[0].Type() == SpeciesTag::TYPE_ZEEMAN) &&
            (this_tag.Type() == SpeciesTag::TYPE_PLAIN)) ||
           ((tags[0].Type() == SpeciesTag::TYPE_PLAIN) &&
-           (this_tag.Type() == SpeciesTag::TYPE_ZEEMAN)))
-        throw runtime_error(
+           (this_tag.Type() == SpeciesTag::TYPE_ZEEMAN)),
             "Zeeman tags and plain line-by-line tags must "
             "not be mixed in the same tag group.");
     }
@@ -667,22 +632,18 @@ void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
       }
     }
 
-    if (abs_species[i].nelem() > 1 && has_free_electrons)
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (abs_species[i].nelem() > 1 && has_free_electrons,
           "'free_electrons' must not be combined "
           "with other tags in the same group.");
-    if (num_free_electrons > 1)
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (num_free_electrons > 1,
           "'free_electrons' must not be defined "
           "more than once.");
 
-    if (abs_species[i].nelem() > 1 && has_particles)
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (abs_species[i].nelem() > 1 && has_particles,
           "'particles' must not be combined "
           "with other tags in the same group.");
 
-    if (abs_species[i].nelem() > 1 && has_hitran_xsec)
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (abs_species[i].nelem() > 1 && has_hitran_xsec,
           "'hitran_xsec' must not be combined "
           "with other tags in the same group.");
   }
@@ -738,12 +699,9 @@ void get_tag_group_index_for_tag_group(Index& tags1_index,
     }
   }
 
-  if (!found) {
-    ostringstream os;
-    os << "The tag String \"" << tag2
-       << "\" does not match any of the given tags.\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!found,
+      "The tag String \"", tag2,
+       "\" does not match any of the given tags.\n")
 }
 
 

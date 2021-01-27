@@ -59,10 +59,10 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     const Numeric& r,
     const Verbosity& verbosity)
 {
-  if (abs_lines_per_species.nelem() not_eq 1)
-    throw std::runtime_error("Only for one species...");
-  if (nf % 2 not_eq 1)
-    throw std::runtime_error("Must hit line center, nf % 2 must be 1.");
+  ARTS_USER_ERROR_IF (abs_lines_per_species.nelem() not_eq 1,
+                      "Only for one species...");
+  ARTS_USER_ERROR_IF (nf % 2 not_eq 1,
+                      "Must hit line center, nf % 2 must be 1.");
   const Index nl = nelem(abs_lines_per_species);
   const Index np = p_grid.nelem();
 

@@ -169,44 +169,32 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
     } else if (tfun == "log") {
       const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        if (x[r] <= pars[0]) {
-          ostringstream os;
-          os << "log-transformation selected for retrieval quantity with\n"
-             << "index " << i << " (0-based), but at least one value <= z_min\n"
-             << "found for this quantity. This is not allowed.";
-          throw std::runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (x[r] <= pars[0],
+            "log-transformation selected for retrieval quantity with\n"
+            "index ", i, " (0-based), but at least one value <= z_min\n"
+            "found for this quantity. This is not allowed.")
         x[r] = log(x[r] - pars[0]);
       }
     } else if (tfun == "log10") {
       const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        if (x[r] <= 0) {
-          ostringstream os;
-          os << "log10-transformation selected for retrieval quantity with\n"
-             << "index " << i << " (0-based), but at least one value <= z_min\n"
-             << "found for this quantity. This is not allowed.";
-          throw std::runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (x[r] <= 0,
+            "log10-transformation selected for retrieval quantity with\n"
+            "index ", i, " (0-based), but at least one value <= z_min\n"
+            "found for this quantity. This is not allowed.")
         x[r] = log10(x[r] - pars[0]);
       }
     } else if (tfun == "atanh") {
       const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        if (x[r] <= pars[0]) {
-          ostringstream os;
-          os << "atanh-transformation selected for retrieval quantity with\n"
-             << "index " << i << " (0-based), but at least one value <= z_min\n"
-             << "found for this quantity. This is not allowed.";
-          throw std::runtime_error(os.str());
-        }
-        if (x[r] >= pars[1]) {
-          ostringstream os;
-          os << "atanh-transformation selected for retrieval quantity with\n"
-             << "index " << i << " (0-based), but at least one value is\n"
-             << ">= z_max. This is not allowed.";
-          throw std::runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (x[r] <= pars[0],
+            "atanh-transformation selected for retrieval quantity with\n"
+            "index ", i, " (0-based), but at least one value <= z_min\n"
+            "found for this quantity. This is not allowed.")
+        ARTS_USER_ERROR_IF (x[r] >= pars[1],
+            "atanh-transformation selected for retrieval quantity with\n"
+            "index ", i, " (0-based), but at least one value is\n"
+            ">= z_max. This is not allowed.")
         x[r] = atanh(2 * (x[r] - pars[0]) / (pars[1] - pars[0]) - 1);
       }
     } else {
@@ -587,10 +575,10 @@ ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity&
       if (p not_eq abs_species.cend()) {
         aoi[iq] = Index(abs_species.cend() - p);
       } else {
-        ostringstream os;
-        os << "Could not find " << jacobian_quantities[iq].Subtag()
-        << " in species of abs_species.\n";
-        throw std::runtime_error(os.str());
+        ARTS_USER_ERROR_IF (true,
+                            "Could not find ",
+                            jacobian_quantities[iq].Subtag(),
+                            " in species of abs_species.\n")
       }
     } else if (jacobian_quantities[iq] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
       ArrayOfSpeciesTag atag;
@@ -636,13 +624,10 @@ ArrayOfIndex get_pointers_for_scat_species(const ArrayOfRetrievalQuantity& jacob
   FOR_ANALYTICAL_JACOBIANS_DO(
     if (cloudbox_on and jacobian_quantities[iq] == Jacobian::Special::ScatteringString) {
       aoi[iq] = find_first(scat_species, jacobian_quantities[iq].Subtag());
-      if (aoi[iq] < 0) {
-        ostringstream os;
-        os << "Jacobian quantity with index " << iq << " refers to\n"
-            << "  " << jacobian_quantities[iq].Subtag()
-            << "\nbut this species could not be found in *scat_species*.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (aoi[iq] < 0,
+          "Jacobian quantity with index ", iq, " refers to\n"
+          "  ", jacobian_quantities[iq].Subtag(),
+          "\nbut this species could not be found in *scat_species*.")
     }
   )
   
@@ -900,7 +885,7 @@ void calcBaselineFit(Vector& y_baseline,
   } else if (rq == Jacobian::Sensor::Sinefit) {
     is_sine_fit = true;
   } else {
-    throw runtime_error(
+    ARTS_USER_ERROR_IF (true,
         "Retrieval quantity is neither a polynomial or a sine "
         " baseline fit.");
   }
@@ -984,11 +969,10 @@ void vmrunitscf(Numeric& x,
     }
     x = 1 / (vmr * number_density(p, t));
   } else {
-    ostringstream os;
-    os << "Allowed options for gas species jacobians are "
-          "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "
-       << unit << std::endl;
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Allowed options for gas species jacobians are "
+      "\"rel\", \"vmr\" and \"nd\".\nYou have selected: ",
+      unit, '\n')
   }
 }
 
@@ -1004,11 +988,10 @@ void dxdvmrscf(Numeric& x,
   } else if (unit == "nd") {
     x = 1 / number_density(p, t);
   } else {
-    ostringstream os;
-    os << "Allowed options for gas species jacobians are "
-          "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "
-       << unit << std::endl;
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "Allowed options for gas species jacobians are "
+      "\"rel\", \"vmr\" and \"nd\".\nYou have selected: ",
+      unit, '\n')
   }
 }
 

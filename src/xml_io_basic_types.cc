@@ -162,11 +162,8 @@ void xml_read_from_stream(istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/JacobianTarget");
   
-  if (not jt.TargetSubTypeOK()) {
-    ostringstream os;
-    os << "Bad input: " << typestr << " or " << subtypestr << '\n' << "\tCannot be interpreted as a type or substype...\n";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (not jt.TargetSubTypeOK(),
+    "Bad input: ", typestr, " or ", subtypestr, '\n', "\tCannot be interpreted as a type or substype...\n")
 }
 
 //! Writes JacobianTarget to XML output stream
@@ -1580,18 +1577,14 @@ void xml_read_from_stream(istream& is_xml,
   
   Index version;
   tag.get_attribute_value("version", version);
-  if (version == 1) {/* OK */}
-  else {
-    throw std::runtime_error("Your version of ARTS can only handle version 1 of Time");
-  }
+  ARTS_USER_ERROR_IF (version not_eq 1,
+                      "Your version of ARTS can only handle version 1 of Time");
   
-  if (pbifs) {
-    throw std::runtime_error("Cannot read binary Time");
-  } else {
-    is_xml >> t;
-    if (is_xml.fail()) {
-      xml_data_parse_error(tag, "Time is poorly formatted");
-    }
+  ARTS_USER_ERROR_IF (pbifs, "Cannot read binary Time");
+  
+  is_xml >> t;
+  if (is_xml.fail()) {
+    xml_data_parse_error(tag, "Time is poorly formatted");
   }
 
   tag.read_from_stream(is_xml);
@@ -1618,10 +1611,9 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.write_to_stream(os_xml);
 
   xml_set_stream_precision(os_xml);
-  if (pbofs)
-    throw std::runtime_error("Cannot write binary time");
-  else
-    os_xml << ' ' << t << ' ';
+  ARTS_USER_ERROR_IF (pbofs, "Cannot write binary time");
+  
+  os_xml << ' ' << t << ' ';
 
   close_tag.set_name("/Time");
   close_tag.write_to_stream(os_xml);
@@ -1805,7 +1797,7 @@ void xml_read_from_stream(istream&,
                           Timer&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR_IF(true, "Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -1813,5 +1805,5 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR_IF(true, "Method not implemented!");
 }

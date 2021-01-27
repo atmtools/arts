@@ -90,7 +90,7 @@ public:
     return true;
   }
   
-  void ThrowIfNotOK() const {if (not OK()) throw std::runtime_error("Class in bad state");}
+  void ThrowIfNotOK() const {ARTS_USER_ERROR_IF (not OK(), "Class in bad state");}
   
   EnergyLevelMap() : mtype(EnergyLevelMapType::None_t), mlevels(0),
   mvib_energy(0), mvalue(0, 0, 0, 0) {ThrowIfNotOK();}

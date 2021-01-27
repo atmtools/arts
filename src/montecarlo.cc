@@ -1004,11 +1004,9 @@ void mcPathTraceGeneral(Workspace& ws,
   while ((evol_op(0, 0) > r) && (!termination_flag)) {
     istep++;
 
-    if (istep > 100000) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (istep > 100000,
           "100000 path points have been reached. "
           "Is this an infinite loop?");
-    }
 
     evol_opArray[0] = evol_opArray[1];
     ext_matArray[0] = ext_matArray[1];
@@ -1358,11 +1356,9 @@ void mcPathTraceRadar(Workspace& ws,
   while ((evop0 > r) && (!termination_flag)) {
     istep++;
 
-    if (istep > 25000) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (istep > 25000,
           "25000 path points have been reached. "
           "Is this an infinite loop?");
-    }
 
     evol_opArray[0] = evol_opArray[1];
     ext_matArray[0] = ext_matArray[1];

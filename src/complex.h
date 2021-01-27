@@ -451,8 +451,8 @@ class ComplexVectorView : public ConstComplexVectorView {
   // Conversion to 1 column matrix:
   operator ComplexMatrixView();
   // Conversion to a plain C-array
-  const Complex* get_c_array() const;
-  Complex* get_c_array();
+  const Complex* get_c_array() const ARTS_NOEXCEPT;
+  Complex* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
   virtual ~ComplexVectorView() = default;
@@ -825,8 +825,8 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   ComplexMatrixView& operator-=(const ConstComplexVectorView& x);
 
   // Conversion to a plain C-array
-  const Complex* get_c_array() const;
-  Complex* get_c_array();
+  const Complex* get_c_array() const ARTS_NOEXCEPT;
+  Complex* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
   virtual ~ComplexMatrixView() = default;

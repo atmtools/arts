@@ -48,24 +48,18 @@ void telsemStandalone(Matrix &emis,
   Index cellnumber = atlas.calc_cellnum(lat, lon);
   // Check if cell is in atlas.
   if (!atlas.contains(cellnumber)) {
-    if (d_max <= 0.0) {
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (d_max <= 0.0,
           "Given coordinates are not contained in "
           " TELSEM atlas. To enable nearest neighbor"
           "interpolation set *d_max* to a positive "
           "value.");
-    } else {
-      cellnumber = atlas.calc_cellnum_nearest_neighbor(lat, lon);
-      Numeric lat_nn, lon_nn;
-      std::tie(lat_nn, lon_nn) = atlas.get_coordinates(cellnumber);
-      Numeric d = sphdist(lat, lon, lat_nn, lon_nn);
-      if (d > d_max) {
-        std::ostringstream out{};
-        out << "Distance of nearest neighbor exceeds provided limit (";
-        out << d << " > " << d_max << ").";
-        throw std::runtime_error(out.str());
-      }
-    }
+    cellnumber = atlas.calc_cellnum_nearest_neighbor(lat, lon);
+    Numeric lat_nn, lon_nn;
+    std::tie(lat_nn, lon_nn) = atlas.get_coordinates(cellnumber);
+    Numeric d = sphdist(lat, lon, lat_nn, lon_nn);
+    ARTS_USER_ERROR_IF (d > d_max,
+      "Distance of nearest neighbor exceeds provided limit (",
+      d, " > ", d_max, ").")
   }
 
   Index class1 = atlas.get_class1(cellnumber);
@@ -165,8 +159,8 @@ void telsem_atlasReadAscii(TelsemAtlas &atlas,
     for (Index j = 0; j < 7; j++) {
       for (Index k = 0; k < 7; k++) {
         corr_is >> correlation(i, j, k);
-        if (corr_is.fail())
-          throw std::runtime_error("Error reading correlation.");
+        ARTS_USER_ERROR_IF (corr_is.fail(),
+                            "Error reading correlation.");
       }
       std::getline(corr_is, s);
     }
@@ -214,7 +208,7 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
     for (Index j = 0; j < 7; j++) {
       for (Index k = 0; k < 7; k++) {
         is >> correlation(i, j, k);
-        if (is.fail()) throw std::runtime_error("Error reading correlation.");
+        ARTS_USER_ERROR_IF (is.fail(), "Error reading correlation.");
       }
       std::getline(is, s);
     }

@@ -57,9 +57,10 @@ void AddZaAa(Matrix& new_los,
              const Vector& ref_los,
              const Matrix& dlos,
              const Verbosity&) {
-  if (ref_los.nelem() != 2)
-    throw runtime_error("*ref_los* must have two columns.");
-  if (dlos.ncols() != 2) throw runtime_error("*dlos* must have two columns.");
+  ARTS_USER_ERROR_IF (ref_los.nelem() != 2,
+                      "*ref_los* must have two columns.");
+  ARTS_USER_ERROR_IF (dlos.ncols() != 2,
+                      "*dlos* must have two columns.");
 
   const Index nlos = dlos.nrows();
 
@@ -80,10 +81,10 @@ void DiffZaAa(Matrix& dlos,
               const Vector& ref_los,
               const Matrix& other_los,
               const Verbosity&) {
-  if (ref_los.nelem() != 2)
-    throw runtime_error("*ref_los* must have two columns.");
-  if (other_los.ncols() != 2)
-    throw runtime_error("*other_los* must have two columns.");
+  ARTS_USER_ERROR_IF (ref_los.nelem() != 2,
+                      "*ref_los* must have two columns.");
+  ARTS_USER_ERROR_IF (other_los.ncols() != 2,
+                      "*other_los* must have two columns.");
 
   const Index nlos = other_los.nrows();
 
@@ -206,12 +207,10 @@ void ppathCalc(Workspace& ws,
                const Verbosity&) {
   // Basics
   //
-  if (atmgeom_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have "
         "passed a consistency check (atmgeom_checked=1).");
-  if (cloudbox_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_checked != 1,
         "The cloudbox must be flagged to have "
         "passed a consistency check (cloudbox_checked=1).");
 
@@ -339,18 +338,13 @@ void surf_radius_at_l(Numeric& r,
     cart2sph(r, lat, lon, x0+l*dx, y0+l*dy, z0+l*dz, lat0, lon0, za0, aa0);
 
     // Latitude grid position
-    if (lat < lat_grid[0]) {
-      ostringstream os;
-      os << "Search of surface intersection ended up " << lat_grid[0]-lat
-         << " degrees below start of *lat_grid*. You need to expand the grid.";
-      throw runtime_error(os.str());
-    }
-    if (lat > last(lat_grid)) {
-      ostringstream os;
-      os << "Search of surface intersection ended up " << lat-last(lat_grid)
-         << " degrees above end of *lat_grid*. You need to expand the grid.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (lat < lat_grid[0],
+        "Search of surface intersection ended up ", lat_grid[0]-lat,
+        " degrees below start of *lat_grid*. You need to expand the grid.")
+    ARTS_USER_ERROR_IF (lat > last(lat_grid),
+        "Search of surface intersection ended up ", lat-last(lat_grid),
+        " degrees above end of *lat_grid*. You need to expand the grid.")
+    
     GridPos gp_lat, gp_lon;
     gridpos(gp_lat, lat_grid, lat);
 
@@ -364,18 +358,13 @@ void surf_radius_at_l(Numeric& r,
     } else {
       const Numeric lonmax = last(lon_grid);
       resolve_lon(lon, lon_grid[0], lonmax);
-      if (lon < lon_grid[0]) {
-        ostringstream os;
-        os << "Search of surface intersection ended up " << lon_grid[0]-lon
-           << " degrees below start of *lon_grid*. You need to expand the grid.";
-        throw runtime_error(os.str());
-      }
-      if (lon > lonmax) {
-        ostringstream os;
-        os << "Search of surface intersection ended up " << lon-lonmax
-           << " degrees above end of *lon_grid*. You need to expand the grid.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (lon < lon_grid[0],
+          "Search of surface intersection ended up ", lon_grid[0]-lon,
+          " degrees below start of *lon_grid*. You need to expand the grid.")
+      ARTS_USER_ERROR_IF (lon > lonmax,
+          "Search of surface intersection ended up ", lon-lonmax,
+           " degrees above end of *lon_grid*. You need to expand the grid.")
+      
       gridpos(gp_lon, lon_grid, lon);
       Vector itw(4);
       interpweights(itw, gp_lat, gp_lon);
@@ -404,24 +393,20 @@ void ppathFixedLstep(Ppath& ppath,
                      const Numeric& l_coarse,
                      const Verbosity&) {
   // Basics checks of input
-  if (atmfields_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
-  if (atmgeom_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have "
         "passed a consistency check (atmgeom_checked=1).");
   chk_rte_pos(atmosphere_dim, rte_pos);
   chk_rte_los(atmosphere_dim, rte_los);
-  if (cloudbox_on)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_on,
         "This method does not yet handle an active cloudbox.");
-  if (ppath_lmax <= 0)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (ppath_lmax <= 0,
         "This method requires that *ppath_lmax* > 0.");
-  if (atmosphere_dim == 1 && refellipsoid[1] > 1e-7)
-    throw runtime_error("For 1D, second element of *refellipsoid* must be 0.");
+  ARTS_USER_ERROR_IF (atmosphere_dim == 1 && refellipsoid[1] > 1e-7,
+    "For 1D, second element of *refellipsoid* must be 0.");
 
   // Set lat etc according to atmosphere_dim
   const Numeric lon0 = atmosphere_dim == 3 ? rte_pos[2] : 0;
@@ -484,11 +469,8 @@ void ppathFixedLstep(Ppath& ppath,
       surf_radius_at_l(r, r_e, z_surf, atmosphere_dim, lat_grid, lon_grid,
                        refellipsoid, z_surface, x0, y0, z0, dx, dy, dz,
                        0, lat0, lon0, za0, aa0);
-      if (r < r_e+z_surf) {
-        ostringstream os;
-        os << "The sensor is " << r_e+z_surf - r << " m below the surface";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (r < r_e+z_surf,
+        "The sensor is ", r_e+z_surf - r, " m below the surface")
 
       // Create vector with lengths, considering z_coarse
       if (z_coarse < 0) {
@@ -542,11 +524,12 @@ void ppathFixedLstep(Ppath& ppath,
     // No intersection with surface
     if (l2s < 0) {
       if (!surface_found) {
-        throw runtime_error("Cases of limb sounding type are only allowed "
+        ARTS_USER_ERROR_IF (true,
+                            "Cases of limb sounding type are only allowed "
                             "together with constant surface altitude.");
       } else {
         // Make function to find proper (geodetic) tangent point to finish this
-        throw runtime_error("Limb sounding not yet handled.");
+        ARTS_USER_ERROR_IF (true, "Limb sounding not yet handled.");
       }
 
     // Ensured intersection with surface
@@ -686,20 +669,14 @@ void ppathFixedLstep(Ppath& ppath,
         const Numeric l = lvec[i], x = x0+l*dx, z = z0+l*dz;
         cart2poslos(ppath.r[i], ppath.pos(i,1), ppath.los(i,0),
                     x, z, dx, dz, ppath.constant, rte_pos[1], rte_los[0]);
-        if (ppath.pos(i,1) < lat1) {
-          ostringstream os;
-          os << "The latitude grid must be extended downwards with at "
-             << "least " << lat1-ppath.pos(i,1) << " degrees to allow "
-             << "the ppath to fully be inside of the model atmosphere.";
-          throw runtime_error(os.str());
-        }
-        if (ppath.pos(i,1) > lat2) {
-          ostringstream os;
-          os << "The latitude grid must be extended upwards with at "
-             << "least " << ppath.pos(i,1)-lat2 << " degrees to allow "
-             << "the ppath to fully be inside of the model atmosphere.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (ppath.pos(i,1) < lat1,
+            "The latitude grid must be extended downwards with at "
+            "least ", lat1-ppath.pos(i,1), " degrees to allow "
+            "the ppath to fully be inside of the model atmosphere.")
+        ARTS_USER_ERROR_IF (ppath.pos(i,1) > lat2,
+            "The latitude grid must be extended upwards with at "
+            "least ", ppath.pos(i,1)-lat2, " degrees to allow "
+            "the ppath to fully be inside of the model atmosphere.")
         gridpos(ppath.gp_lat[i], lat_grid, ppath.pos(i,1));
         //
         gridpos_copy(gp_lat[0], ppath.gp_lat[i]);
@@ -726,34 +703,22 @@ void ppathFixedLstep(Ppath& ppath,
                     ppath.los(i,0), ppath.los(i,1), x, y, z, dx, dy, dz,
                     ppath.constant, x0, y0, z0, rte_pos[1], rte_pos[2],
                     rte_los[0], rte_los[1]);
-        if (ppath.pos(i,1) < lat1) {
-          ostringstream os;
-          os << "The latitude grid must be extended downwards with at "
-             << "least " << lat1-ppath.pos(i,1) << " degrees to allow "
-             << "the ppath to fully be inside of the model atmosphere.";
-          throw runtime_error(os.str());
-        }
-        if (ppath.pos(i,1) > lat2) {
-          ostringstream os;
-          os << "The latitude grid must be extended upwards with at "
-             << "least " << ppath.pos(i,1)-lat2 << " degrees to allow "
-             << "the ppath to fully be inside of the model atmosphere.";
-          throw runtime_error(os.str());
-        }
-        if (ppath.pos(i,2) < lon1) {
-          ostringstream os;
-          os << "The latitude grid must be extended downwards with at "
-             << "least " << lon1-ppath.pos(i,2) << " degrees to allow "
-             << "the ppath to fully be inside of the model atmosphere.";
-          throw runtime_error(os.str());
-        }
-        if (ppath.pos(i,2) > lon2) {
-          ostringstream os;
-          os << "The latitude grid must be extended upwards with at "
-             << "least " << ppath.pos(i,2)-lon2 << " degrees to allow "
-             << "the ppath to fully be inside of the model atmosphere.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (ppath.pos(i,1) < lat1,
+            "The latitude grid must be extended downwards with at "
+            "least ", lat1-ppath.pos(i,1), " degrees to allow "
+            "the ppath to fully be inside of the model atmosphere.")
+        ARTS_USER_ERROR_IF (ppath.pos(i,1) > lat2,
+            "The latitude grid must be extended upwards with at "
+            "least ", ppath.pos(i,1)-lat2, " degrees to allow "
+            "the ppath to fully be inside of the model atmosphere.")
+        ARTS_USER_ERROR_IF (ppath.pos(i,2) < lon1,
+            "The latitude grid must be extended downwards with at "
+            "least ", lon1-ppath.pos(i,2), " degrees to allow "
+            "the ppath to fully be inside of the model atmosphere.")
+        ARTS_USER_ERROR_IF (ppath.pos(i,2) > lon2,
+            "The latitude grid must be extended upwards with at "
+            "least ", ppath.pos(i,2)-lon2, " degrees to allow "
+            "the ppath to fully be inside of the model atmosphere.")
         gridpos(ppath.gp_lat[i], lat_grid, ppath.pos(i,1));
         gridpos(ppath.gp_lon[i], lon_grid, ppath.pos(i,2));
         //
@@ -790,8 +755,7 @@ void ppathFromRtePos2(Workspace& ws,
                       const Numeric& pplrt_lowest,
                       const Verbosity& verbosity) {
   //--- Check input -----------------------------------------------------------
-  if (atmosphere_dim == 2)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmosphere_dim == 2,
         "2D atmospheres not yet handled. Support for negative"
         " zenith angles needed. Remind me (Patrick) to fix this.");
   //---------------------------------------------------------------------------
@@ -1250,28 +1214,21 @@ void ppathPlaneParallel(Ppath& ppath,
   Index background = -99;
 
   // Basics checks of input
-  if (atmosphere_dim != 1)
-    throw runtime_error("The function can only be used for 1D atmospheres.");
+  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
+                      "The function can only be used for 1D atmospheres.");
   chk_rte_pos(atmosphere_dim, rte_pos);
   chk_rte_los(atmosphere_dim, rte_los);
-  if (ppath_inside_cloudbox_do && !cloudbox_on)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (ppath_inside_cloudbox_do && !cloudbox_on,
         "The WSV *ppath_inside_cloudbox_do* can only be set "
         "to 1 if also *cloudbox_on* is 1.");
-  if (z_sensor < z_surface(0, 0)) {
-    ostringstream os;
-    os << "The sensor is below the surface."
-       << "   altitude of sensor  : " << z_sensor << endl
-       << "   altitude of surface : " << z_surface(0, 0);
-    throw runtime_error(os.str());
-  }
-  if (abs(za_sensor - 90) < 0.1) {
-    ostringstream os;
-    os << "The zenith angle is " << za_sensor << endl
-       << "The method does not allow this. The zenith angle must deviate\n"
-       << "from 90 deg with at least 0.1 deg. That is, to be outside [89.9,90.1].";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (z_sensor < z_surface(0, 0),
+       "The sensor is below the surface."
+       "   altitude of sensor  : ", z_sensor, "\n"
+       "   altitude of surface : ", z_surface(0, 0))
+  ARTS_USER_ERROR_IF (abs(za_sensor - 90) < 0.1,
+      "The zenith angle is ", za_sensor, "\n"
+      "The method does not allow this. The zenith angle must deviate\n"
+      "from 90 deg with at least 0.1 deg. That is, to be outside [89.9,90.1].")
 
   // Find end grid position
   GridPos gp_end;
@@ -1601,12 +1558,12 @@ void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
                                     const Index& atmosphere_dim,
                                     const Index& zenith_angles_per_position,
                                     const Verbosity& verbosity) {
-  if (atmosphere_dim not_eq 1)
-    throw std::runtime_error("Only for 1D atmospheres");
-  if (refellipsoid[1] not_eq 0.0)
-    throw std::runtime_error("Not allowed for non-spherical planets");
-  if (ppath_lmax >= 0)
-    throw std::runtime_error("Only allowed for long paths (ppath_lmax < 0)");
+  ARTS_USER_ERROR_IF (atmosphere_dim not_eq 1,
+                      "Only for 1D atmospheres");
+  ARTS_USER_ERROR_IF (refellipsoid[1] not_eq 0.0,
+                      "Not allowed for non-spherical planets");
+  ARTS_USER_ERROR_IF (ppath_lmax >= 0,
+                      "Only allowed for long paths (ppath_lmax < 0)");
 
   // Positions and angles of interest
   const Numeric zmin = z_field(0, 0, 0);
@@ -1719,8 +1676,7 @@ void ppath_fieldCalc(Workspace& ws,
   auto n = sensor_pos.nrows();
   ppath_field.resize(n);
 
-  if (sensor_los.nrows() not_eq n)
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (sensor_los.nrows() not_eq n,
         "Your sensor position matrix and sensor line of sight matrix do not match in size.\n");
 
   for (auto i = 0; i < n; i++)
@@ -1787,7 +1743,7 @@ void ppath_stepGeometric(  // WS Output:
     }
 
     else {
-      throw runtime_error("The atmospheric dimensionality must be 1-3.");
+      ARTS_USER_ERROR_IF (true, "The atmospheric dimensionality must be 1-3.");
     }
   }
 
@@ -1868,7 +1824,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
                          "linear_basic",
                          ppath_lraytrace);
     } else {
-      throw runtime_error("The atmospheric dimensionality must be 1-3.");
+      ARTS_USER_ERROR_IF (true, "The atmospheric dimensionality must be 1-3.");
     }
   }
 
@@ -2029,9 +1985,8 @@ void rte_pos_losMoveToStartOfPpath(Vector& rte_pos,
 
   // Check input
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  if (np == 0) throw runtime_error("The input *ppath* is empty.");
-  if (ppath.pos.nrows() != np)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (np == 0, "The input *ppath* is empty.");
+  ARTS_USER_ERROR_IF (ppath.pos.nrows() != np,
         "Internal inconsistency in *ppath* (size of data "
         "does not match np).");
 
@@ -2055,18 +2010,15 @@ void sensor_losGeometricFromSensorPosToOtherPositions(
     const Verbosity& verbosity) {
   const Index n = sensor_pos.nrows();
 
-  if (sensor_pos.ncols() != atmosphere_dim)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (sensor_pos.ncols() != atmosphere_dim,
         "The number of columns of sensor_pos must be "
         "equal to the atmospheric dimensionality.");
-  if ((atmosphere_dim == 1 && target_pos.ncols() != 2) ||
-      (atmosphere_dim >= 2 && target_pos.ncols() != atmosphere_dim))
-    throw runtime_error(
+  ARTS_USER_ERROR_IF ((atmosphere_dim == 1 && target_pos.ncols() != 2) ||
+      (atmosphere_dim >= 2 && target_pos.ncols() != atmosphere_dim),
         "The number of columns of targe_pos must be equal to "
         "the atmospheric dimensionality, except for 1D where "
         "two columns are demended (as for *rte_pos2*).");
-  if (target_pos.nrows() != n)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (target_pos.nrows() != n,
         "*sensor_pos* and *target_pos* must have the same "
         "number of rows.");
 
@@ -2144,16 +2096,12 @@ void VectorZtanToZaRefr1D(Workspace& ws,
                           const Vector& f_grid,
                           const Vector& ztan_vector,
                           const Verbosity&) {
-  if (atmosphere_dim != 1) {
-    throw runtime_error("The function can only be used for 1D atmospheres.");
-  }
+  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
+                      "The function can only be used for 1D atmospheres.");
 
-  if (ztan_vector.nelem() != sensor_pos.nrows()) {
-    ostringstream os;
-    os << "The number of altitudes in true tangent altitude vector must\n"
-       << "match the number of positions in *sensor_pos*.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (ztan_vector.nelem() != sensor_pos.nrows(),
+    "The number of altitudes in true tangent altitude vector must\n"
+    "match the number of positions in *sensor_pos*.")
 
   // Set za_vector's size equal to ztan_vector
   za_vector.resize(ztan_vector.nelem());
@@ -2163,30 +2111,27 @@ void VectorZtanToZaRefr1D(Workspace& ws,
 
   // Calculate refractive index for the tangential altitudes
   for (Index i = 0; i < ztan_vector.nelem(); i++) {
-    if (ztan_vector[i] > sensor_pos(i, 0)) {
-      ostringstream os;
-      os << "Invalid observation geometry: sensor (at z=" << sensor_pos(i, 0)
-         << "m) is located below the requested tangent altitude (tanh="
-         << ztan_vector[i] << "m)";
-      throw runtime_error(os.str());
-    } else {
-      get_refr_index_1d(ws,
-                        refr_index_air,
-                        refr_index_air_group,
-                        refr_index_air_agenda,
-                        p_grid,
-                        refellipsoid[0],
-                        z_field,
-                        t_field,
-                        vmr_field,
-                        f_grid,
-                        ztan_vector[i] + refellipsoid[0]);
+    ARTS_USER_ERROR_IF (ztan_vector[i] > sensor_pos(i, 0),
+        "Invalid observation geometry: sensor (at z=", sensor_pos(i, 0),
+        "m) is located below the requested tangent altitude (tanh=",
+        ztan_vector[i], "m)")
+    
+    get_refr_index_1d(ws,
+                      refr_index_air,
+                      refr_index_air_group,
+                      refr_index_air_agenda,
+                      p_grid,
+                      refellipsoid[0],
+                      z_field,
+                      t_field,
+                      vmr_field,
+                      f_grid,
+                      ztan_vector[i] + refellipsoid[0]);
 
-      // Calculate zenith angle
-      za_vector[i] = 180 - RAD2DEG * asin(refr_index_air *
-                                          (refellipsoid[0] + ztan_vector[i]) /
-                                          (refellipsoid[0] + sensor_pos(i, 0)));
-    }
+    // Calculate zenith angle
+    za_vector[i] = 180 - RAD2DEG * asin(refr_index_air *
+                                        (refellipsoid[0] + ztan_vector[i]) /
+                                        (refellipsoid[0] + sensor_pos(i, 0)));
   }
 }
 
@@ -2197,33 +2142,26 @@ void VectorZtanToZa1D(Vector& za_vector,
                       const Index& atmosphere_dim,
                       const Vector& ztan_vector,
                       const Verbosity&) {
-  if (atmosphere_dim != 1) {
-    throw runtime_error("The function can only be used for 1D atmospheres.");
-  }
+  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
+                      "The function can only be used for 1D atmospheres.");
 
   const Index npos = sensor_pos.nrows();
 
-  if (ztan_vector.nelem() != npos) {
-    ostringstream os;
-    os << "The number of altitudes in the geometric tangent altitude vector\n"
-       << "must match the number of positions in *sensor_pos*.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (ztan_vector.nelem() != npos,
+      "The number of altitudes in the geometric tangent altitude vector\n"
+      "must match the number of positions in *sensor_pos*.")
 
   za_vector.resize(npos);
 
   for (Index i = 0; i < npos; i++) {
-    if (ztan_vector[i] > sensor_pos(i, 0)) {
-      ostringstream os;
-      os << "Invalid observation geometry: sensor (at z=" << sensor_pos(i, 0)
-         << "m) is located below the requested tangent altitude (tanh="
-         << ztan_vector[i] << "m)";
-      throw runtime_error(os.str());
-    } else {
-      za_vector[i] = geompath_za_at_r(refellipsoid[0] + ztan_vector[i],
-                                      100,
-                                      refellipsoid[0] + sensor_pos(i, 0));
-    }
+    ARTS_USER_ERROR_IF (ztan_vector[i] > sensor_pos(i, 0),
+        "Invalid observation geometry: sensor (at z=", sensor_pos(i, 0),
+        "m) is located below the requested tangent altitude (tanh=",
+        ztan_vector[i], "m)")
+    
+    za_vector[i] = geompath_za_at_r(refellipsoid[0] + ztan_vector[i],
+                                    100,
+                                    refellipsoid[0] + sensor_pos(i, 0));
   }
 }
 

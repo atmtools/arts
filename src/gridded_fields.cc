@@ -86,21 +86,10 @@ void GriddedField::copy_grids(const GriddedField& gf) {
 */
 const Vector& GriddedField::get_numeric_grid(Index i) const {
   ARTS_ASSERT(i < dim);
-  if (mgridtypes[i] != GRID_TYPE_NUMERIC) {
-    ostringstream os;
-
-    if (mname.length()) os << mname << " ";
-
-    os << "Grid ";
-    if (mgridnames[i].length())
-      os << mgridnames[i];
-    else
-      os << i;
-    os << " is not a numeric grid.";
-
-    throw runtime_error(os.str());
-  }
-
+  ARTS_USER_ERROR_IF (mgridtypes[i] != GRID_TYPE_NUMERIC,
+                      mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
+                      mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
+                      " is not a numeric grid.")
   return mnumericgrids[i];
 }
 
@@ -115,21 +104,10 @@ const Vector& GriddedField::get_numeric_grid(Index i) const {
 */
 Vector& GriddedField::get_numeric_grid(Index i) {
   ARTS_ASSERT(i < dim);
-  if (mgridtypes[i] != GRID_TYPE_NUMERIC) {
-    ostringstream os;
-
-    if (mname.length()) os << mname << " ";
-
-    os << "Grid ";
-    if (mgridnames[i].length())
-      os << mgridnames[i];
-    else
-      os << i;
-    os << " is not a numeric grid.";
-
-    throw runtime_error(os.str());
-  }
-
+  ARTS_USER_ERROR_IF (mgridtypes[i] != GRID_TYPE_NUMERIC,
+                      mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
+                      mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
+                      " is not a numeric grid.")
   return mnumericgrids[i];
 }
 
@@ -144,21 +122,10 @@ Vector& GriddedField::get_numeric_grid(Index i) {
 */
 const ArrayOfString& GriddedField::get_string_grid(Index i) const {
   ARTS_ASSERT(i < dim);
-  if (mgridtypes[i] != GRID_TYPE_STRING) {
-    ostringstream os;
-
-    if (mname.length()) os << mname << " ";
-
-    os << "Grid ";
-    if (mgridnames[i].length())
-      os << mgridnames[i];
-    else
-      os << i;
-    os << " is not a string grid.";
-
-    throw runtime_error(os.str());
-  }
-
+  ARTS_USER_ERROR_IF (mgridtypes[i] != GRID_TYPE_STRING,
+                      mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
+                      mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
+                      " is not a string grid.")
   return (mstringgrids[i]);
 }
 
@@ -173,21 +140,10 @@ const ArrayOfString& GriddedField::get_string_grid(Index i) const {
 */
 ArrayOfString& GriddedField::get_string_grid(Index i) {
   ARTS_ASSERT(i < dim);
-  if (mgridtypes[i] != GRID_TYPE_STRING) {
-    ostringstream os;
-
-    if (mname.length()) os << mname << " ";
-
-    os << "Grid ";
-    if (mgridnames[i].length())
-      os << mgridnames[i];
-    else
-      os << i;
-    os << " is not a string grid.";
-
-    throw runtime_error(os.str());
-  }
-
+  ARTS_USER_ERROR_IF (mgridtypes[i] != GRID_TYPE_STRING,
+                      mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
+                      mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
+                      " is not a string grid.")
   return (mstringgrids[i]);
 }
 

@@ -945,7 +945,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
     // FIXME: Convert to new agenda scheme before using
     // surface_rtprop_agenda.execute();
 
-    throw runtime_error(
+    ARTS_USER_ERROR_IF (true,
         "Surface reflections inside cloud box not yet handled.");
     /*
         See comment in function above
@@ -1969,8 +1969,8 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               const Numeric& norm_error_threshold,
                               const Index& norm_debug,
                               const Verbosity& verbosity) {
-  if (atmosphere_dim != 1)
-    throw runtime_error("Only 1D is supported here for now");
+  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
+                      "Only 1D is supported here for now");
 
   CREATE_OUT0;
   CREATE_OUT2;
@@ -1978,14 +1978,14 @@ void doit_scat_fieldNormalize(Workspace& ws,
   // Number of zenith angles.
   const Index Nza = za_grid.nelem();
 
-  if (za_grid[0] != 0. || za_grid[Nza - 1] != 180.)
-    throw runtime_error("The range of *za_grid* must [0 180].");
+  ARTS_USER_ERROR_IF (za_grid[0] != 0. || za_grid[Nza - 1] != 180.,
+                      "The range of *za_grid* must [0 180].");
 
   // Number of azimuth angles.
   const Index Naa = aa_grid.nelem();
 
-  if (Naa > 1 && (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.))
-    throw runtime_error("The range of *aa_grid* must [0 360].");
+  ARTS_USER_ERROR_IF (Naa > 1 && (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.),
+                      "The range of *aa_grid* must [0 360].");
 
   // Get stokes dimension from *doit_scat_field*:
   const Index stokes_dim = doit_scat_field.ncols();
@@ -2074,13 +2074,11 @@ void doit_scat_fieldNormalize(Workspace& ws,
              << ", scat_int: " << scat_int << ")"
              << " at p_index " << p_index << "\n";
       }
-      if (abs(1. - corr_factor) > norm_error_threshold) {
-        ostringstream os;
-        os << "ERROR: DOIT correction factor exceeds threshold (="
-           << norm_error_threshold << "): " << setprecision(4)
-           << 1. - corr_factor << " at p_index " << p_index << "\n";
-        throw runtime_error(os.str());
-      } else if (abs(1. - corr_factor) > norm_error_threshold / 2.) {
+      ARTS_USER_ERROR_IF (abs(1. - corr_factor) > norm_error_threshold,
+          "ERROR: DOIT correction factor exceeds threshold (=",
+          norm_error_threshold, "): ", setprecision(4),
+          1. - corr_factor, " at p_index ", p_index, "\n")
+      if (abs(1. - corr_factor) > norm_error_threshold / 2.) {
         out0 << "  WARNING: DOIT correction factor above threshold/2: "
              << 1. - corr_factor << " at p_index " << p_index << "\n";
       }

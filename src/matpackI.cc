@@ -125,13 +125,13 @@ std::ostream& operator<<(std::ostream& os, const ConstVectorView& v) {
 // ------------------------
 
 VectorView::VectorView(const Vector&) {
-  throw runtime_error(
-      "Creating a VectorView from a const Vector is not allowed.");
-  // This is not really a runtime error, but I don't want to start
-  // producing direct output from inside matpack. And just exiting is
-  // not so nice.
-  // If you see this error, there is a bug in the code, not in the
-  // ARTS input.
+  ARTS_ASSERT (false,
+      "Creating a VectorView from a const Vector is not allowed.\n"
+      "This is not really a runtime error, but I don't want to start\n"
+      "producing direct output from inside matpack. And just exiting is\n"
+      "not so nice.\n"
+      "If you see this error, there is a bug in the code, not in the\n"
+      "ARTS input.")
 }
 
 VectorView::VectorView(Vector& v) ARTS_NOEXCEPT {

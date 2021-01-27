@@ -142,37 +142,30 @@ void surface_props_check(const Index& atmosphere_dim,
                          const Tensor3& surface_props_data,
                          const ArrayOfString& surface_props_names) {
   // Check sizes
-  if (surface_props_data.npages() != surface_props_names.nelem())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (surface_props_data.npages() != surface_props_names.nelem(),
         "The number of pages in *surface_props_data* and "
         "length of *surface_props_names* differ.");
   // If no surface properties, then we are ready
   if (surface_props_names.nelem() == 0) {
     return;
   }
-  if (surface_props_data.nrows() !=
-      (atmosphere_dim == 1 ? 1 : lat_grid.nelem()))
-    throw runtime_error("Row-size of *surface_props_data* not as expected.");
-  if (surface_props_data.ncols() !=
-      (atmosphere_dim <= 2 ? 1 : lon_grid.nelem()))
-    throw runtime_error("Column-size of *surface_props_data* not as expected.");
+  ARTS_USER_ERROR_IF (surface_props_data.nrows() !=
+      (atmosphere_dim == 1 ? 1 : lat_grid.nelem()),
+                      "Row-size of *surface_props_data* not as expected.");
+  ARTS_USER_ERROR_IF (surface_props_data.ncols() !=
+      (atmosphere_dim <= 2 ? 1 : lon_grid.nelem()),
+                      "Column-size of *surface_props_data* not as expected.");
 
   for (Index i = 0; i < surface_props_names.nelem(); i++) {
-    if (surface_props_names[i].nelem() == 0) {
-      ostringstream os;
-      os << "Element " << i << " (0-based) of *surface_props_names* is empty.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (surface_props_names[i].nelem() == 0,
+      "Element ", i, " (0-based) of *surface_props_names* is empty.")
     for (Index j = i + 1; j < surface_props_names.nelem(); j++) {
-      if (surface_props_names[j] == surface_props_names[i]) {
-        ostringstream os;
-        os << "Two surface properties with same name found!\n"
-           << "This found for these two properties\n"
-           << "   index: " << i << endl
-           << "   index: " << j << endl
-           << "    name: " << surface_props_names[i];
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (surface_props_names[j] == surface_props_names[i],
+        "Two surface properties with same name found!\n"
+        "This found for these two properties\n"
+        "   index: ", i, '\n',
+        "   index: ", j, '\n',
+        "    name: ", surface_props_names[i])
     }
   }
 }
@@ -200,11 +193,10 @@ void surface_props_interp(Vector& v,
     }
   }
 
-  ostringstream os;
-  os << "The following property was requested\n"
-     << "   " << vname << endl
-     << "but it could not be found in *surface_props_names*.";
-  throw runtime_error(os.str());
+  ARTS_USER_ERROR_IF (true,
+                      "The following property was requested\n"
+                      "   ", vname, '\n',
+                      "but it could not be found in *surface_props_names*.")
 }
 
 void dsurface_check(const ArrayOfString& surface_props_names,
@@ -213,14 +205,10 @@ void dsurface_check(const ArrayOfString& surface_props_names,
                     const ArrayOfMatrix& dsurface_emission_dx) {
   const Index nq = dsurface_names.nelem();
 
-  if (dsurface_rmatrix_dx.nelem() != nq) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (dsurface_rmatrix_dx.nelem() != nq,
         "The lengths of *dsurface_names* and *dsurface_rmatrix_dx* differ.");
-  }
-  if (dsurface_emission_dx.nelem() != nq) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (dsurface_emission_dx.nelem() != nq,
         "The lengths of *dsurface_names* and *dsurface_emission_dx* differ.");
-  }
 
   for (Index i = 0; i < nq; i++) {
     bool found = false;
@@ -229,14 +217,11 @@ void dsurface_check(const ArrayOfString& surface_props_names,
         found = true;
       }
     }
-    if (!found) {
-      ostringstream os;
-      os << "String " << i << " (0-based) of *dsurface_names* is \""
-         << dsurface_names[i] << "\"\n"
-         << "but this string could not be found in *surface_props_names*.\n"
-         << "This is likely due to incorrect choice of quantity when\n"
-         << " calling *jacobianAddSurfaceQuantity*.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!found,
+        "String ", i, " (0-based) of *dsurface_names* is \"",
+        dsurface_names[i], "\"\n"
+        "but this string could not be found in *surface_props_names*.\n"
+        "This is likely due to incorrect choice of quantity when\n"
+        " calling *jacobianAddSurfaceQuantity*.")
   }
 }

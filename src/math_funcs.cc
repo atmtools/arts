@@ -119,22 +119,16 @@ Numeric LagrangeInterpol4(ConstVectorView x,
   // Check that dimensions of x and y vector agree
   const Index n_x = x.nelem();
   const Index n_y = y.nelem();
-  if ((n_x != 4) || (n_y != 4)) {
-    ostringstream os;
-    os << "The vectors x and y must all have the same length of 4 elements!\n"
-       << "Actual lengths:\n"
-       << "x:" << n_x << ", "
-       << "y:" << n_y << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF ((n_x != 4) || (n_y != 4),
+      "The vectors x and y must all have the same length of 4 elements!\n"
+      "Actual lengths:\n"
+      "x:", n_x, ", "
+      "y:", n_y, ".")
 
   // assure that x1 =< a < x2 holds
-  if ((a < x[1]) || (a > x[2])) {
-    ostringstream os;
-    os << "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. "
-       << "No interpolation can be calculated.\n";
-    throw runtime_error(os.str());
-  };
+  ARTS_USER_ERROR_IF ((a < x[1]) || (a > x[2]),
+    "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. "
+    "No interpolation can be calculated.\n")
 
   // calculate the Lagrange polynomial coefficients for a polynomial of the order of 3
   Numeric b[4];
@@ -466,12 +460,9 @@ void mgd(VectorView psd,
         psd[ix] = n0 * eterm;
       }
     } else {
-      if (mu > 10) {
-        ostringstream os;
-        os << "Given mu is " << mu << endl
-           << "Seems unreasonable. Have you mixed up the inputs?";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (mu > 10,
+          "Given mu is ", mu, '\n',
+          "Seems unreasonable. Have you mixed up the inputs?")
       // Gamma distribution
       for (Index ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
@@ -482,18 +473,12 @@ void mgd(VectorView psd,
     }
   } else {
     // Complete MGD
-    if (mu > 10) {
-      ostringstream os;
-      os << "Given mu is " << mu << endl
-         << "Seems unreasonable. Have you mixed up the inputs?";
-      throw runtime_error(os.str());
-    }
-    if (ga > 10) {
-      ostringstream os;
-      os << "Given gamma is " << ga << endl
-         << "Seems unreasonable. Have you mixed up the inputs?";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (mu > 10,
+        "Given mu is ", mu, '\n',
+        "Seems unreasonable. Have you mixed up the inputs?")
+    ARTS_USER_ERROR_IF (ga > 10,
+        "Given gamma is ", ga, '\n',
+        "Seems unreasonable. Have you mixed up the inputs?")
     for (Index ix = 0; ix < nx; ix++) {
       const Numeric pterm = pow(x[ix], ga);
       const Numeric eterm = exp(-la * pterm);
@@ -558,12 +543,9 @@ void mgd_with_derivatives(VectorView psd,
         }
       }
     } else {
-      if (mu > 10) {
-        ostringstream os;
-        os << "Given mu is " << mu << endl
-           << "Seems unreasonable. Have you mixed up the inputs?";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (mu > 10,
+          "Given mu is ", mu, '\n',
+          "Seems unreasonable. Have you mixed up the inputs?")
       // Gamma distribution
       for (Index ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
@@ -583,18 +565,12 @@ void mgd_with_derivatives(VectorView psd,
     }
   } else {
     // Complete MGD
-    if (mu > 10) {
-      ostringstream os;
-      os << "Given mu is " << mu << endl
-         << "Seems unreasonable. Have you mixed up the inputs?";
-      throw runtime_error(os.str());
-    }
-    if (ga > 10) {
-      ostringstream os;
-      os << "Given gamma is " << ga << endl
-         << "Seems unreasonable. Have you mixed up the inputs?";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (mu > 10,
+        "Given mu is ", mu, '\n',
+        "Seems unreasonable. Have you mixed up the inputs?")
+    ARTS_USER_ERROR_IF (ga > 10,
+        "Given gamma is ", ga, '\n',
+        "Seems unreasonable. Have you mixed up the inputs?")
     for (Index ix = 0; ix < nx; ix++) {
       const Numeric pterm = pow(x[ix], ga);
       const Numeric eterm = exp(-la * pterm);
@@ -660,16 +636,14 @@ Numeric mod_gamma_dist(
 
     return dN;
   } else {
-    ostringstream os;
-    os << "At least one argument is zero or negative.\n"
-       << "Modified gamma distribution can not be calculated.\n"
-       << "x      = " << x << "\n"
-       << "N0     = " << N0 << "\n"
-       << "lambda = " << Lambda << "\n"
-       << "mu     = " << mu << "\n"
-       << "gamma  = " << gamma << "\n";
-
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR_IF (true,
+      "At least one argument is zero or negative.\n"
+      "Modified gamma distribution can not be calculated.\n"
+      "x      = ", x, "\n"
+      "N0     = ", N0, "\n"
+      "lambda = ", Lambda, "\n"
+      "mu     = ", mu, "\n"
+      "gamma  = ", gamma, "\n")
   }
 }
 

@@ -29,11 +29,8 @@
 
 void error_in_integrate(const String& error_msg,
                         const Numeric& value_that_should_be_unity) {
-  if (std::abs(value_that_should_be_unity - 1.0) > 1e-4) {
-    std::ostringstream os;
-    os << "Failure in normalization:\n" << error_msg << "\n";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (std::abs(value_that_should_be_unity - 1.0) > 1e-4,
+    "Failure in normalization:\n", error_msg, "\n")
 }
 
 Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> F,

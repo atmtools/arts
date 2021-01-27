@@ -68,14 +68,14 @@ void TelsemAtlas::read(std::istream& is) {
   Index ipos = -1;
   for (Index j = 0; j < ndat; j++) {
     is >> cellnum;
-    if (is.fail()) throw std::runtime_error("Error reading cellnum.");
+    ARTS_USER_ERROR_IF (is.fail(), "Error reading cellnum.");
     for (Index nssmi = 0; nssmi < 2 * nchan; nssmi++) {
       is >> ssmi[nssmi];
-      if (is.fail()) throw std::runtime_error("Error reading emissivity.");
+      ARTS_USER_ERROR_IF (is.fail(), "Error reading emissivity.");
     }
 
     is >> class1 >> class2;
-    if (is.fail()) throw std::runtime_error("Error reading classes.");
+    ARTS_USER_ERROR_IF (is.fail(), "Error reading classes.");
     if (class1 > 0 && class2 > 0 && ipos < ndat) {
       ipos++;
       for (Index i = 0; i < nchan; i++) {
@@ -140,15 +140,11 @@ void TelsemAtlas::telsem_calc_correspondence() {
 }
 
 Index TelsemAtlas::calc_cellnum(Numeric lat, Numeric lon) const {
-  if ((lat < -90.0) || (lat > 90.0)) {
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF ((lat < -90.0) || (lat > 90.0),
         "Latitude input must be within the range [-90.0, 90.0].");
-  }
 
-  if ((lon < 0.0) || (lon > 360.0)) {
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF ((lon < 0.0) || (lon > 360.0),
         "Longitude input must be within the range [0.0, 360.0].");
-  }
 
   // Avoid corner cases that hit the outermost edge of the atlas cells.
   if (lat == 90.0) {
