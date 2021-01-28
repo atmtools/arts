@@ -1345,9 +1345,9 @@ void propmat_clearskyAddParticles(
             dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
         }
       }
+      sp++;
+      i_se_flat++;
     }
-    sp++;
-    i_se_flat++;
   }
 
   //checking that no further 'particle' entry left after all scat_data entries
