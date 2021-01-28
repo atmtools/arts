@@ -418,7 +418,7 @@ void chk_matrix_nrows(const String& x_name, ConstMatrixView x, const Index& l) {
   \author Stefan Buehler
   \date   2002-11-29
 */
-void chk_size(const String& x_name [[maybe_unused]], ConstVectorView x [[maybe_unused]], const Index& c [[maybe_unused]]) {
+void chk_size(const String& x_name, ConstVectorView x, const Index& c) {
   ARTS_USER_ERROR_IF (!is_size(x, c),
     "The object *", x_name, "* does not have the right size.\n"
     "Dimension should be:" " ", c,  ",\nbut it is:          " " ",

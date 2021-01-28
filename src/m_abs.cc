@@ -236,7 +236,7 @@ void AbsInputFromAtmFields(  // WS Output:
     Vector& abs_t,
     Matrix& abs_vmrs,
     // WS Input:
-    const Index& atmosphere_dim [[maybe_unused]],
+    const Index& atmosphere_dim,
     const Vector& p_grid,
     const Tensor3& t_field,
     const Tensor4& vmr_field,
@@ -436,7 +436,7 @@ void abs_xsec_per_speciesInit(  // WS Output:
     const ArrayOfIndex& abs_species_active,
     const Vector& f_grid,
     const Vector& abs_p,
-    const Index& abs_xsec_agenda_checked [[maybe_unused]],
+    const Index& abs_xsec_agenda_checked,
     const Index& nlte_do,
     const Verbosity& verbosity) {
   CREATE_OUT3;
@@ -981,7 +981,7 @@ void propmat_clearskyInit(  //WS Output
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
     const Index& stokes_dim,
-    const Index& propmat_clearsky_agenda_checked [[maybe_unused]],
+    const Index& propmat_clearsky_agenda_checked,
     const Index& nlte_do,
     const Verbosity&) {
   ARTS_USER_ERROR_IF (!propmat_clearsky_agenda_checked,
@@ -1018,7 +1018,7 @@ void propmat_clearskyInit(  //WS Output
 void propmat_clearskyAddFaraday(
     ArrayOfPropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    const Index& stokes_dim [[maybe_unused]],
+    const Index& stokes_dim,
     const Index& atmosphere_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -1148,7 +1148,7 @@ void propmat_clearskyAddParticles(
     const Vector& rtp_los,
     const Numeric& rtp_temperature,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& scat_data_checked [[maybe_unused]],
+    const Index& scat_data_checked,
     const Index& use_abs_as_ext,
     // Verbosity object:
     const Verbosity& verbosity) {
@@ -1165,7 +1165,7 @@ void propmat_clearskyAddParticles(
         "The scat_data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).")
 
-  const Index ns [[maybe_unused]] = TotalNumberOfElements(scat_data);
+  const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
   for (Index sp = 0; sp < abs_species.nelem(); sp++) {
     if (abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES) {
@@ -1692,7 +1692,7 @@ void abs_xsec_per_speciesAddLines(
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesAuxData& isotopologue_ratios,
     const SpeciesAuxData& partition_functions,
-    const Index& lbl_checked [[maybe_unused]],
+    const Index& lbl_checked,
     const Verbosity&) {
   if (not abs_lines_per_species.nelem()) return;
   

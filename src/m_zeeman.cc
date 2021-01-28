@@ -51,7 +51,7 @@ void propmat_clearskyAddZeeman(
     const Vector& rtp_mag,
     const Vector& ppath_los,
     const Index& atmosphere_dim,
-    const Index& lbl_checked [[maybe_unused]],
+    const Index& lbl_checked,
     const Index& manual_zeeman_tag,
     const Numeric& manual_zeeman_magnetic_field_strength,
     const Numeric& manual_zeeman_theta,
