@@ -51,23 +51,35 @@ void yColdAtmHot(Vector& y,
 
 
 void ybatchCAHA(ArrayOfVector& ybatch,
-                const ArrayOfVector& data,
+                ArrayOfTime& time_grid,
+                const ArrayOfVector& rawdata,
+                const ArrayOfTime& timedata,
                 const Vector& cold_temp,
                 const Vector& hot_temp,
                 const Index& c_offset,
                 const Verbosity&)
 {
-  ARTS_USER_ERROR_IF (data.nelem() not_eq cold_temp.nelem() or data.nelem() not_eq hot_temp.nelem(),
-                      "Length of vectors must be correct");
+  ARTS_USER_ERROR_IF(rawdata.nelem() not_eq cold_temp.nelem() or
+                     rawdata.nelem() not_eq hot_temp.nelem(),
+                     "Length of vectors must be correct");
+  ARTS_USER_ERROR_IF (timedata.nelem() not_eq rawdata.nelem() and timedata.nelem() not_eq 0,
+                      "Bad timedata length, must be empty of same as data");
   
-  ybatch = Raw::Calibration::caha(data, cold_temp, hot_temp, c_offset);
+  ybatch = Raw::Calibration::caha(rawdata, cold_temp, hot_temp, c_offset);
+  
+  // Fix time using the same method as CAHA
+  if (timedata.nelem()) {
+    time_grid.resize(ybatch.nelem());
+    const Index pos = c_offset - ((c_offset > 1) ? 2 : 0);
+    for (Index i=0; i<time_grid.nelem(); i++) {
+      time_grid[i] = timedata[pos + 2*i];
+    }
+  }
 }
 
 
 void ybatchTimeAveraging(ArrayOfVector& ybatch,
                          ArrayOfTime& time_grid,
-                         ArrayOfMatrix& covmat_sepsbatch,
-                         ArrayOfIndex& counts,
                          const String& time_step,
                          const Index& disregard_first,
                          const Index& disregard_last,
@@ -92,8 +104,6 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
   if (lims.front() == n) {
     ybatch_out.resize(0);
     time_grid_out.resize(0);
-    covmat_sepsbatch.resize(0);
-    counts.resize(0);
   } else {
     
     // Frequency grids
@@ -108,31 +118,23 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
                         "Must include last if time step covers all of the range");
     ybatch_out = ArrayOfVector(m, Vector(k));
     time_grid_out = ArrayOfTime(m);
-    covmat_sepsbatch = ArrayOfMatrix(m, Matrix(k, k));
-    counts.resize(m);
     
     // Fill output
     #pragma omp parallel for if (not arts_omp_in_parallel()) schedule(guided)
     for (Index i=0; i<m; i++) {
-      counts[i] = lims[i+1] - lims[i];
       time_grid_out[i] = mean_time(time_grid, lims[i], lims[i+1]);
-      Raw::Average::avg(ybatch_out[i], ybatch, lims[i], lims[i+1]);
-      Raw::Average::cov(covmat_sepsbatch[i], ybatch_out[i], ybatch, lims[i], lims[i+1]);
+      Raw::Average::nanavg(ybatch_out[i], ybatch, lims[i], lims[i+1]);
     }
   }
   
   if (disregard_first) {
-    counts.erase(counts.begin());
     ybatch_out.erase(ybatch_out.begin());
     time_grid_out.erase(time_grid_out.begin());
-    covmat_sepsbatch.erase(covmat_sepsbatch.begin());
   }
   
   if (disregard_last) {
-    counts.pop_back();
     ybatch_out.pop_back();
     time_grid_out.pop_back();
-    covmat_sepsbatch.pop_back();
   }
   
   ybatch = ybatch_out;
@@ -151,6 +153,7 @@ void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
   const Index n=ybatch.nelem();
   
   const Index m=n?ybatch[0].nelem():0;
+  
   ARTS_USER_ERROR_IF (std::any_of(ybatch.begin(), ybatch.end(),
                                   [m](auto& y){return y.nelem() not_eq m;}),
                       "Bad input size, all of ybatch must match itself");
@@ -162,8 +165,8 @@ void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
   
   // Compute tropospheric correction
   for (Index i=0; i<n; i++) {
-    ybatch_corr[i][2] = trop_temp[i];
-    ybatch_corr[i][0] = Raw::Average::median(ybatch[i], range);
+    ybatch_corr[i][2] = trop_temp.nelem() > 1 ? trop_temp[i] : trop_temp[0];
+    ybatch_corr[i][0] = Raw::Average::nanmedian(ybatch[i], range);
     ybatch_corr[i][1] = std::exp(- std::log((ybatch_corr[i][2] - ybatch_corr[i][0])  / (ybatch_corr[i][2] - targ_temp)));
   }
   
@@ -190,4 +193,83 @@ void ybatchTroposphericCorrectionNaiveMedianInverse(ArrayOfVector& ybatch,
     ybatch[i] -= ybatch_corr[i][2] * (1 - ybatch_corr[i][1]);
     ybatch[i] /= ybatch_corr[i][1];
   }
+}
+
+void yMaskOutsideMedianRange(Vector& y,
+                             const Numeric& dx,
+                             const Verbosity&) {
+  const Numeric median = Raw::Average::nanmedian(y);
+  auto mask = Raw::Mask::out_of_bounds(y, median-dx, median+dx);
+  
+  for (Index i=0; i<y.nelem(); i++) {
+    y[i] = mask[i] ? std::numeric_limits<Numeric>::quiet_NaN() : y[i];
+  }
+}
+
+void ybatchMaskOutsideMedianRange(ArrayOfVector& ybatch,
+                                  const Numeric& dx,
+                                  const Verbosity& verbosity) {
+  for (Vector& y: ybatch) yMaskOutsideMedianRange(y, dx, verbosity);
+}
+
+void yDoublingMeanFocus(Vector& f_grid,
+                        Vector& y,
+                        const Numeric& f0,
+                        const Numeric& df,
+                        const Verbosity&) {
+  if (f_grid.nelem() not_eq y.nelem()) {
+    throw std::runtime_error("f_grid and y must have the same size");
+  }
+  
+  if (not is_increasing(f_grid)) {
+    throw std::runtime_error("f_grid must be sorted and ever increasing");
+  }
+  
+  if (f_grid.nelem() < 2) {
+    throw std::runtime_error("Must have at least 2 frequency grid points");
+  }
+  
+  // Sets defaults by method description
+  const Numeric F0 = f0 > 0 ? f0 : mean(f_grid);
+  const Numeric DF = df > 0 ? df : 10 * (f_grid[1] - f_grid[0]);
+  
+  if (f_grid[0] <= F0 or F0 >= last(f_grid)) {
+    throw std::runtime_error("Needs F0 in the range of f_grid");
+  }
+  
+  auto red = Raw::Reduce::focus_doublescaling(f_grid, F0, DF);
+  y = Raw::Reduce::nanfocus(y, red);
+  f_grid = Raw::Reduce::nanfocus(f_grid, red);
+}
+
+void ybatchDoublingMeanFocus(Vector& f_grid,
+                             ArrayOfVector& ybatch,
+                             const Numeric& f0,
+                             const Numeric& df,
+                             const Verbosity&) {
+  for (Vector& y: ybatch) {
+    if (f_grid.nelem() not_eq y.nelem()) {
+      throw std::runtime_error("f_grid and all of ybatch must have the same size");
+    }
+  }
+  
+  if (not is_increasing(f_grid)) {
+    throw std::runtime_error("f_grid must be sorted and ever increasing");
+  }
+  
+  if (f_grid.nelem() < 2) {
+    throw std::runtime_error("Must have at least 2 frequency grid points");
+  }
+  
+  // Sets defaults by method description
+  const Numeric F0 = f0 > 0 ? f0 : mean(f_grid);
+  const Numeric DF = df > 0 ? df : 10 * (f_grid[1] - f_grid[0]);
+  
+  if (last(f_grid) <= F0 or f_grid[0] >= F0) {
+    throw std::runtime_error("Needs F0 in the range of f_grid");
+  }
+  
+  auto red = Raw::Reduce::focus_doublescaling(f_grid, F0, DF);
+  for (Vector& y: ybatch) y = Raw::Reduce::nanfocus(y, red);
+  f_grid = Raw::Reduce::nanfocus(f_grid, red);
 }

@@ -76,6 +76,9 @@ public:
   Numeric Seconds() const {return std::chrono::duration_cast<TimeStep>(mtime.time_since_epoch()).count();}
   void Seconds(Numeric x) {operator+=(TimeStep(x - Seconds()));}
   Numeric PartOfSecond() const {return std::fmod(Seconds(), 1.0);}
+  
+  // Conversion
+  explicit operator Numeric() const { return Seconds(); }
 }; // Time
 
 /** List of times */

@@ -29,6 +29,9 @@
 #include "constants.h"
 #include "raw.h"
 
+template <typename T>
+constexpr bool isnormal_or_zero(T x) noexcept {return std::isnormal(x) or x == 0;}
+
 namespace Raw {
 namespace Calibration {
 Vector calibration(const Vector& pc, const Vector& pa, const Vector& ph, Numeric tc, Numeric th) noexcept
@@ -136,7 +139,7 @@ VectorView nanavg(VectorView y, const ArrayOfVector& ys, const Index start, cons
   for (Index i=0; i<y.nelem(); i++) {
     Index numnormal=0;
     for (Index k=start; k<end; k++) {
-      if (std::isnormal(ys[k][i]) or ys[k][i] == 0) {
+      if (isnormal_or_zero(ys[k][i])) {
         y[i] += ys[k][i];
         numnormal++;
       }
@@ -183,7 +186,7 @@ VectorView nanvar(VectorView var, const Vector& y, const ArrayOfVector& ys, cons
   for (Index i=0; i<y.nelem(); i++) {
     Index numnormal=0;
     for (Index k=start; k<end; k++) {
-      if (std::isnormal(ys[k][i]) or ys[k][i] == 0) {
+      if (isnormal_or_zero(ys[k][i])) {
         var[i] += Constant::pow2(ys[k][i] - y[i]);
         numnormal++;
       }
@@ -262,17 +265,19 @@ Numeric nanmedian(const ConstVectorView v, const ArrayOfIndex& pos)
   
   // Create a vector to sort
   ArrayOfNumeric calc(n);
-  for (Index i=0; i<n; i++)
-    if (pos.nelem())
+  for (Index i=0; i<n; i++) {
+    if (pos.nelem()) {
       calc[i] = v[pos[i]];
-    else
+    } else {
       calc[i] = v[i];
+    }
+  }
     
   // Sort the vector
   std::sort(calc.begin(), calc.end());
   
   // Remove non-normal
-  auto newend = std::remove_if(calc.begin(), calc.end(), [](auto x){return not (std::isnormal(x) or x == 0);});
+  auto newend = std::remove_if(calc.begin(), calc.end(), [](auto x){return not isnormal_or_zero(x);});
   const Index numnormal = n - Index(calc.end() - newend);
   
   // Return the median
@@ -305,7 +310,7 @@ ArrayOfIndex focus_doublescaling(const Vector& x, const Numeric x0, const Numeri
   return scale;
 }
 
-std::pair<Index, Index> find_first_and_last_one(const ArrayOfIndex& x)
+std::pair<Index, Index> find_first_and_last_1(const ArrayOfIndex& x)
 {
   Index first=x.nelem() - 1;
   Index last=0;
@@ -326,7 +331,7 @@ Vector focus(const Vector& x, const ArrayOfIndex& scaling)
   Index first_i, last_i;
   
   // Find the first and last one in scaling
-  const auto [firstone, lastone] = find_first_and_last_one(scaling);
+  const auto [firstone, lastone] = find_first_and_last_1(scaling);
   
   // All the central numbers
   std::vector<Numeric> out;
@@ -360,12 +365,12 @@ Vector nanfocus(const Vector& x, const ArrayOfIndex& scaling)
   Index first_i, last_i;
   
   // Find the first and last one in scaling
-  const auto [firstone, lastone] = find_first_and_last_one(scaling);
+  const auto [firstone, lastone] = find_first_and_last_1(scaling);
   
   // All the central numbers
   std::vector<Numeric> out;
   for (Index i=firstone; i<=lastone; i++) {
-    if (std::isnormal(x[i]) or x[i] == 0) {
+    if (isnormal_or_zero(x[i])) {
       out.emplace_back(x[i]);
     } else {
       out.emplace_back(std::numeric_limits<Numeric>::quiet_NaN());
@@ -399,7 +404,7 @@ namespace Mask {
 std::vector<bool> out_of_bounds(const Vector& x, const Numeric xmin, const Numeric xmax)
 {
   std::vector<bool> mask(x.size(), false);
-  for (Index i=0; i<x.size(); i++) mask[i] = (xmin > x[i]) or (xmax < x[i]) or (not std::isnormal(x[i]) and x[i] not_eq 0);
+  for (Index i=0; i<x.size(); i++) mask[i] = (xmin > x[i]) or (xmax < x[i]) or (not isnormal_or_zero(x[i]));
   return mask;
 }
 

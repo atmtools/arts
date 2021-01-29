@@ -55,6 +55,7 @@
 #define CONSTANTS_IN_ARTS_H
 
 #include <cmath>
+#include "enums.h"
 #include "matpack.h"
 
 /** Namespace containing several constants, physical and mathematical **/
@@ -532,5 +533,13 @@ constexpr auto meter2angstrom(T x) -> decltype(x * 1e10) {
   return x * 1e10;
 }
 };  // namespace Conversion
+
+namespace Options {
+  /** Keep time options available to switch over them */
+  ENUMCLASS(TimeStep, char,
+            hour, hours, h,
+            minute, minutes, min,
+            second, seconds, s)
+}
 
 #endif

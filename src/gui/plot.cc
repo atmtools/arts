@@ -53,7 +53,13 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
         ImPlot::EndPlot();
       }
     } else {
-      ImGui::Text("Invalid sizes, xdata is %ld elements and ydata is %ld elements", xdata.size(), ydata.size());
+      if (xdata.size() not_eq ydata.size())
+        ImGui::Text("Invalid sizes, xdata is %ld elements and ydata is %ld elements", xdata.size(), ydata.size());
+      else {
+        for (Index i=0; i<xdata.nelem(); i++) {
+          ImGui::Text("xdata[%ld] is %ld elements and ydata[%ld] is %ld elements", i, xdata[i].size(), i, ydata[i].size());
+        }
+      }
     }
   }
   Windows::end();
@@ -70,6 +76,11 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   
   // Clean Graphics data
   CleanupGUI;
+}
+
+void plot(const Vector& xdata, const ArrayOfVector& y) {
+  const ArrayOfVector x(y.nelem(), xdata);
+  plot(x, y);
 }
 
 void plot(const Vector& xdata, const Vector& ydata) {

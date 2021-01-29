@@ -28,7 +28,17 @@ void plot(const ArrayOfVector& x, const ArrayOfVector& y);
 /** Plots XY
  * 
  * Wraps plot(const ArrayOfVector& x, const ArrayOfVector& y)
- * with 1-long inputs
+ * with 1-long inputs for x
+ * 
+ * @param[in] x An x-vector
+ * @param[in] y All y-vectors
+ */
+void plot(const Vector& x, const ArrayOfVector& y);
+
+/** Plots XY
+ * 
+ * Wraps plot(const ArrayOfVector& x, const ArrayOfVector& y)
+ * with 1-long inputs for x and y
  * 
  * @param[in] x An x-vector
  * @param[in] y An y-vector

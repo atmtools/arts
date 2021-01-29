@@ -1141,12 +1141,6 @@ void Workspace::define_wsv_data() {
           "      ArrayOfString Complex[2]\n"
           "      Tensor3 data[N_f][N_T][2]\n"),
       GROUP("GriddedField3")));
-  
-  wsv_data.push_back(WsvRecord(
-      NAME("counts"),
-      DESCRIPTION(
-          "Holds a list of counts, any counts.\n"),
-      GROUP("ArrayOfIndex")));
 
   wsv_data.push_back(WsvRecord(
       NAME("covmat_block"),
@@ -1188,15 +1182,6 @@ void Workspace::define_wsv_data() {
           "Dimensions: \n"
           "     [ y, y ]\n"),
       GROUP("CovarianceMatrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("covmat_sepsbatch"),
-      DESCRIPTION(
-          "Covariance matrix for measurement uncertainties\n"
-          "\n"
-          "Dimensions: \n"
-          "     [*ybatch*.nelem()][ *ybatch*[i], *ybatch*[i] ]\n"),
-      GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("covmat_sx"),
@@ -3570,6 +3555,12 @@ void Workspace::define_wsv_data() {
           "\n"
           "Unit: m or s\n"),
       GROUP("Vector")));
+  
+
+  wsv_data.push_back(WsvRecord(
+      NAME("raw_agenda"),
+      DESCRIPTION("Agenda that supplies raw data to calculations"),
+      GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("refr_index_air"),

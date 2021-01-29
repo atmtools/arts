@@ -6578,6 +6578,86 @@ void define_md_data_raw() {
                "Merge frequencies that are closer than this value in Hz.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("yMaskOutsideMedianRange"),
+      DESCRIPTION("Masks values not within the range as NaN:\n"
+        "\t[median(y) - dx, median(y) + dx]\n"
+        "Ignores NaNs in median calculations.\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("y"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y"),
+      GIN("dx"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Range plus-minus the median of unmasked values")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ybatchMaskOutsideMedianRange"),
+      DESCRIPTION("Apply *yMaskOutsideMedianRange* for each *y* in *ybatch*\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("ybatch"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ybatch"),
+      GIN("dx"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Range plus-minus the median of unmasked values")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("yDoublingMeanFocus"),
+      DESCRIPTION("Focus in on *y* around some *f_grid*, then sets *f_grid* to\n"
+                  "same focus\n"
+                  "\n"
+                  "The algorithm will double the frequency spacing DF\n"
+                  "steps away from F0, doubling it again DF steps away\n"
+                  "from F0+DF, and so on until the end of the range.\n"
+                  "The same happens but reversely towards F0-DF, ...\n"
+                  "\n"
+                  "Inside these ranges, the values will be averaged\n"
+                  "so that there's one value per original input\n"
+                  "between F0-DF and F0+DF, 1 value per 2 original values\n"
+                  "between F0+DF and F0+2*DF, and so on ever doubling the\n"
+                  "number of original values per output value\n"
+                  "\n"
+                  "F0 and DF are set inside the function to either the values\n"
+                  "given by the user, or if they are non-positive as mean(f_grid)\n"
+                  "and 10 * (f_grid[1] - f_grid[0]), respectively\n"
+                  "\n"
+                  "Ignores NaNs and infinities in averaging calculations.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("f_grid", "y"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid", "y"),
+      GIN("f0", "df"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1"),
+      GIN_DESC("User input for F0 [see description for default]",
+               "User input for DF [see description for default]")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ybatchDoublingMeanFocus"),
+      DESCRIPTION("See *yDoublingMeanFocus*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("f_grid", "ybatch"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid", "ybatch"),
+      GIN("f0", "df"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1"),
+      GIN_DESC("User input for F0 [see description for default]",
+               "User input for DF [see description for default]")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("g0Earth"),
       DESCRIPTION(
           "Gravity at zero altitude on Earth.\n"
@@ -20674,17 +20754,21 @@ void define_md_data_raw() {
           "index so that data[c_offset] is a cold-measurements.  Note that if\n"
           "c_offset is larger than 1, then the first output data will be around the\n"
           "observation cycle -HAC-, where H is at data[c_offset-2]\n"
+          "\n"
+          "Also returns the times of the Atm measurements in *time_grid*\n"
+          "if the measurement's time data is provided\n"
           ),
       AUTHORS("Richard Larsson"),
-      OUT("ybatch"),
+      OUT("ybatch", "time_grid"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("data", "cold_temp", "hot_temp", "c_offset"),
-      GIN_TYPE("ArrayOfVector", "Vector", "Vector", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
+      GIN("data", "time_data", "cold_temp", "hot_temp", "c_offset"),
+      GIN_TYPE("ArrayOfVector", "ArrayOfTime", "Vector", "Vector", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, "0"),
       GIN_DESC("N-elem ArrayOfVector containing raw measurements",
+               "N-elem or 0-elem ArrayOfTime for the raw measurement times",
                "N-elem Vector of cold load temperature",
                "N-elem Vector of hot load temperature",
                "Index offset of the first cold position")));
@@ -20861,12 +20945,9 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTimeAveraging"),
       DESCRIPTION(
-          "Time average of *ybatch* and *time_grid*\n"
-          "\n"
-          "Computes the internal covariance matrix in *covmat_sepsbatch*, and\n"
-          "stores the number of elements per averaging in *counts*\n"),
+          "Time average of *ybatch* and *time_grid*\n"),
       AUTHORS("Richard Larsson"),
-      OUT("ybatch", "time_grid", "covmat_sepsbatch", "counts"),
+      OUT("ybatch", "time_grid"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -20884,7 +20965,9 @@ void define_md_data_raw() {
           "Performs naive tropospheric corrections on *ybatch*\n"
           "\n"
           "Sets *ybatch_corr* to be able to perform the inverse of the corrections,\n"
-          "each array-element with 3 entries as [median, part_trans, trop_temp]\n"),
+          "each array-element with 3 entries as [median, part_trans, trop_temp]\n"
+          "\n"
+          "Uses the same tropospheric temperature for all values if trop_temp.nelem()==1\n"),
       AUTHORS("Richard Larsson"),
       OUT("ybatch_corr", "ybatch"),
       GOUT(),
@@ -20893,9 +20976,9 @@ void define_md_data_raw() {
       IN("ybatch"),
       GIN("range", "trop_temp", "targ_temp"),
       GIN_TYPE("ArrayOfIndex", "Vector", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, "2.73"),
+      GIN_DEFAULT("ArrayOfIndex(0)", NODEF, "2.73"),
       GIN_DESC("Positions where the median of the baseline is computed, if empty all is used",
-               "Radiative temperature of the troposphere",
+               "Radiative temperature of the troposphere [dim: 1 or ybatch.nelem()]",
                "Temperature target of the baseline")));
 
   md_data_raw.push_back(create_mdrecord(

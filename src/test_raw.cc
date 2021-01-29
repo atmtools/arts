@@ -19,6 +19,11 @@ struct XmlStruct {
     double room_temp2;
     std::array<float, NumSpecChannel> waspam3;
     std::array<float, NumSpecChannel> waspam7;
+    XmlStruct(std::fstream& file) {
+      file.read((char *)&t, sizeof(Time) + sizeof(int));
+      file.read((char *)&Cts1Temperature1,
+                sizeof(XmlStruct) - sizeof(Time) - 2*sizeof(int));
+    }
 };
 
 std::ostream& operator<<(std::ostream& os, const XmlStruct& x) {
@@ -45,11 +50,7 @@ int main() {
   // Read raw data
   std::vector<XmlStruct> data;
   while (not file.eof()) {
-    XmlStruct tmp;
-    file.read((char *)&tmp, sizeof(Time) + sizeof(int));
-    file.read((char *)&tmp.Cts1Temperature1,
-              sizeof(XmlStruct) - sizeof(Time) - 2*sizeof(int));
-    if (not file.eof()) data.emplace_back(tmp);
+    data.emplace_back(file);
   }
   
   // Translation to ARTS style
@@ -67,8 +68,49 @@ int main() {
     if (first_c < 0 and data[i].chopperpos == 0) first_c = i;
   }
   
-  // ARTS f_grid
+  auto ws = ARTS::init();
+  auto waspam3_data = ARTS::Var::ArrayOfVectorCreate(ws, waspam3, "waspam3");
+  auto waspam7_data = ARTS::Var::ArrayOfVectorCreate(ws, waspam7, "waspam7");
+  auto cold_temp = ARTS::Var::VectorCreate(ws, tc, "cold_temp");
+  auto hot_temp = ARTS::Var::VectorCreate(ws, th, "hot_temp");
+  auto first_cold = ARTS::Var::IndexCreate(ws, first_c, "first_cold");
+  auto time_step = ARTS::Var::StringCreate(ws, "60 min", "time_step");
+  auto time_list = ARTS::Var::ArrayOfTimeCreate(ws, time_grid, "time_grid_in");
+  auto trop_temp = ARTS::Var::VectorCreate(ws, {273}, "trop_temp");
+  auto dx = ARTS::Var::NumericCreate(ws, 1, "dx");
+  auto f0 = ARTS::Var::NumericCreate(ws, 20'245'117.1875, "f0");
+  auto df = ARTS::Var::NumericCreate(ws, 195'312.5, "df");
   Vector f_grid(0, NumSpecChannel, 40e6/NumSpecChannel);
+  auto f_grid_in = ARTS::Var::VectorCreate(ws, f_grid, "f_grid_in");
+  ARTS::Agenda::Define::raw_agenda(ws,
+    ARTS::Agenda::Method::ybatchCAHA(ws, waspam3_data, time_list, cold_temp, hot_temp, first_cold),
+    ARTS::Agenda::Method::ybatchTimeAveraging(ws, time_step),
+    ARTS::Agenda::Method::ybatchTroposphericCorrectionNaiveMedianForward(ws, trop_temp),
+    ARTS::Agenda::Method::ybatchMaskOutsideMedianRange(ws, dx),
+    ARTS::Agenda::Method::VectorSet(ws, ARTS::Var::f_grid(ws), f_grid_in),
+    ARTS::Agenda::Method::ybatchDoublingMeanFocus(ws, f0, df)
+  );
+  ARTS::Agenda::Execute::raw_agenda(ws);
+  
+  Vector raw_agenda_waspam3(ARTS::Var::f_grid(ws).value().nelem());
+  Raw::Average::avg(raw_agenda_waspam3, ARTS::Var::ybatch(ws).value());
+  
+  ARTS::Agenda::Define::raw_agenda(ws,
+                                   ARTS::Agenda::Method::ybatchCAHA(ws, waspam7_data, time_list, cold_temp, hot_temp, first_cold),
+                                   ARTS::Agenda::Method::ybatchTimeAveraging(ws, time_step),
+                                   ARTS::Agenda::Method::ybatchTroposphericCorrectionNaiveMedianForward(ws, trop_temp),
+                                   ARTS::Agenda::Method::ybatchMaskOutsideMedianRange(ws, dx),
+                                   ARTS::Agenda::Method::VectorSet(ws, ARTS::Var::f_grid(ws), f_grid_in),
+                                   ARTS::Agenda::Method::ybatchDoublingMeanFocus(ws, f0, df)
+  );
+  ARTS::Agenda::Execute::raw_agenda(ws);
+  
+  Vector raw_agenda_waspam7(ARTS::Var::f_grid(ws).value().nelem());
+  Raw::Average::avg(raw_agenda_waspam7, ARTS::Var::ybatch(ws).value());
+  std::cout << ARTS::Var::ybatch(ws).value().nelem() << '\n'
+  << ARTS::Var::time_grid(ws).value() << '\n';
+  
+  Vector f_raw_grid = ARTS::Var::f_grid(ws).value();
   
   // CAHA calibrations of the data
   const ArrayOfVector calib_waspam3 = Raw::Calibration::caha(waspam3, tc, th, first_c);
@@ -102,5 +144,8 @@ int main() {
   ARTSGUI::plot(f_grid_c, fullwaspam3_c3,
                 f_grid_c, fullwaspam7_c3,
                 f_grid, fullwaspam3,
-                f_grid, fullwaspam7);
+                f_grid, fullwaspam7,
+                f_raw_grid, raw_agenda_waspam3,
+                f_raw_grid, raw_agenda_waspam7
+               );
 }

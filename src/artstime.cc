@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "artstime.h"
+#include "constants.h"
 
 TimeStep time_stepper_selection(const String& time_step)
 {
@@ -37,15 +38,27 @@ TimeStep time_stepper_selection(const String& time_step)
   x >> length >> type;
   type.tolower();
   
-  if (type == "hour" or type == "hours" or type == "h")
-    return TimeStep(std::chrono::hours(length ));
-  else if (type == "minute" or type == "minutes" or type == "min")
-    return TimeStep(std::chrono::minutes(length));
-  else if (type == "second" or type == "seconds" or type == "s")
-    return TimeStep(std::chrono::seconds(length));
-  else {
-    ARTS_USER_ERROR ("Bad time step definition: ", time_step);
+  const Options::TimeStep t = Options::toTimeStep(type);
+  check_enum_error(t, "bad time step: ", time_step);
+  
+  switch (t) {
+    case Options::TimeStep::hour:
+    case Options::TimeStep::hours:
+    case Options::TimeStep::h:
+      return TimeStep(std::chrono::hours(length ));
+    case Options::TimeStep::minute:
+    case Options::TimeStep::minutes:
+    case Options::TimeStep::min:
+      return TimeStep(std::chrono::minutes(length));
+    case Options::TimeStep::second:
+    case Options::TimeStep::seconds:
+    case Options::TimeStep::s:
+      return TimeStep(std::chrono::seconds(length));
+    case Options::TimeStep::FINAL: {
+      /* Leave empty and last */
+    }
   }
+  return {};
 }
 
 Time next_even(const Time& t, const TimeStep& dt)
@@ -58,29 +71,29 @@ Time next_even(const Time& t, const TimeStep& dt)
     return t;
 }
 
-ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& dt)
+ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& DT)
 {
   Index N = times.nelem();
   ARTS_USER_ERROR_IF (N < 2,
     "Can only find time steps for 2-long or longer time grids");
   
-  ARTS_USER_ERROR_IF (dt < TimeStep(0),
-    "Must have positive time steps (or 0 for all times)");
+  // algorithm only works with absolute times
+  const TimeStep dt = std::chrono::abs(DT);
   
   ArrayOfIndex time_steps{0};
   
   if (N > 2) {
     Time tupp = next_even(times[0], dt);
-    time_steps.push_back(1);
+    time_steps.emplace_back(1);
     
     for (; time_steps.back() < N; time_steps.back()++) {
       if (not (times[time_steps.back()] < tupp)) {
         tupp = next_even(tupp, dt);
-        time_steps.push_back(time_steps.back());
+        time_steps.emplace_back(time_steps.back());
       }
     }
   } else {
-    time_steps.push_back(N);
+    time_steps.emplace_back(N);
   }
   return time_steps;
 }
@@ -150,6 +163,6 @@ Time mean_time(const ArrayOfTime& ts, Index s, Index E)
 
 Vector time_vector(const ArrayOfTime& times) {
   Vector t(times.nelem());
-  for (Index i=0; i<times.nelem(); i++) t[i] = times[i].Seconds();
+  for (Index i=0; i<times.nelem(); i++) t[i] = Numeric(times[i]);
   return t;
 }

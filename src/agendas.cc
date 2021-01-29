@@ -657,6 +657,15 @@ void define_agenda_data() {
           "used here."),
       OUTPUT("ppath_step"),
       INPUT("ppath_step", "ppath_lmax", "ppath_lraytrace", "f_grid")));
+  
+  agenda_data.emplace_back(AgRecord(
+    NAME("raw_agenda"),
+    DESCRIPTION("Returns *ybatch*, *f_grid*, and *time_grid*\n"
+                "\n"
+                "This is a free-form agenda to help work with any\n"
+                "kind of raw inputs\n"),
+    OUTPUT("ybatch", "f_grid", "time_grid"),
+    INPUT()));
 
   agenda_data.push_back(AgRecord(
       NAME("refr_index_air_agenda"),
