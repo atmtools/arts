@@ -1753,6 +1753,7 @@ void ppath_start_2d(Numeric& r_start,
   // pressure level limits of the grid cell to match the found ip.
   //
   ip = gridpos2gridrange(ppath.gp_p[imax], abs(za_start) <= 90);
+  cout << "ip0 = " << ip << endl; 
   //
   const Numeric re1 = refell2r(refellipsoid, lat_grid[ilat]);
   const Numeric re3 = refell2r(refellipsoid, lat_grid[ilat + 1]);
@@ -1799,6 +1800,9 @@ void ppath_start_2d(Numeric& r_start,
 
     if (!is_los_downwards(za_start, tilt)) {
       ip++;
+      cout << "tilt = " << tilt << endl;       
+      cout << "ip+ = " << ip << endl; 
+
       r1a = r1b;
       r3a = r3b;
       r3b = re3 + z_field(ip + 1, ilat + 1);
@@ -1810,6 +1814,8 @@ void ppath_start_2d(Numeric& r_start,
   // Surface radius at latitude end points
   rsurface1 = re1 + z_surface[ilat];
   rsurface3 = re3 + z_surface[ilat + 1];
+
+  cout << "ip = " << ip << endl; 
 }
 
 /** Internal help function for 2D path calculations.
@@ -4723,7 +4729,7 @@ void ppath_start_stepping(Ppath& ppath,
           r_toa_max = r_toa[ilat];
         }
       }
-      ARTS_USER_ERROR_IF (r_p <= r_toa_max,
+      ARTS_USER_ERROR_IF (!islatin && r_p <= r_toa_max,
           "The sensor is horizontally outside (or at the limit) of "
           "the model\natmosphere, but is at a radius smaller than "
           "the maximum value of\nthe top-of-the-atmosphere radii. "
@@ -5275,7 +5281,7 @@ void ppath_calc(Workspace& ws,
     // Increase the total number
     np += n - 1;
 
-    ARTS_USER_ERROR_IF (istep > 10'000,
+    ARTS_USER_ERROR_IF (istep > 10000,
           "10 000 path points have been reached. Is this an infinite loop?");
 
     //----------------------------------------------------------------------
