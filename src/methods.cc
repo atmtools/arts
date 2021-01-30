@@ -3536,6 +3536,11 @@ void define_md_data_raw() {
           " 2. *z_field* and *z_surface* have sizes consistent with the\n"
           "    atmospheric grids.\n"
           " 3. There is no gap between *z_surface* and *z_field*.\n"
+          " 4. A rough search of maximum gradient of the altitude of the pressure\n"
+          "    level closest to 500 hPa\n is made. If this value exceeds the GIN"
+          "    *max500hpa_gradient* an error is issued. Please note that the unit\n"
+          "    of this GIN is m per 100km. For normal conditions on Earth, large\n"
+          "    scale gradients of the 500 hPa level is in the order of 20m/100km.\n"
           "\n"
           "*lat_true* and *lon_true* are allowed to be empty.\n"
           "\n"
@@ -3557,10 +3562,10 @@ void define_md_data_raw() {
          "z_surface",
          "lat_true",
          "lon_true"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("max500hpa_gradient"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("100"),
+      GIN_DESC("The maximum allowed gradient of 500 hPa pressure level [m/100km].")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AtmosphereSet1D"),
