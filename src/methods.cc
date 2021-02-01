@@ -3537,7 +3537,7 @@ void define_md_data_raw() {
           "    atmospheric grids.\n"
           " 3. There is no gap between *z_surface* and *z_field*.\n"
           " 4. A rough search of maximum gradient of the altitude of the pressure\n"
-          "    level closest to 500 hPa\n is made. If this value exceeds the GIN"
+          "    level closest to 500 hPa is made. If this value exceeds the GIN\n"
           "    *max500hpa_gradient* an error is issued. Please note that the unit\n"
           "    of this GIN is m per 100km. For normal conditions on Earth, large\n"
           "    scale gradients of the 500 hPa level is in the order of 20m/100km.\n"
