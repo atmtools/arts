@@ -44,7 +44,7 @@ TimeStep time_stepper_selection(const String& time_step)
   else if (type == "second" or type == "seconds" or type == "s")
     return TimeStep(std::chrono::seconds(length));
   else {
-    ARTS_USER_ERROR_IF (true, "Bad time step definition: ", time_step);
+    ARTS_USER_ERROR ("Bad time step definition: ", time_step);
   }
 }
 

@@ -193,7 +193,7 @@ void surface_props_interp(Vector& v,
     }
   }
 
-  ARTS_USER_ERROR_IF (true,
+  ARTS_USER_ERROR (
                       "The following property was requested\n"
                       "   ", vname, '\n',
                       "but it could not be found in *surface_props_names*.")

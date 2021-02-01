@@ -122,6 +122,9 @@ std::string var_string(Args&& ... args) {
 /*! Condition should be false to pass external check, lets hope it is!  */
 #define ARTS_USER_ERROR_IF(condition, ...) {}
 
+/*! An error has occured, should throw the error, but will instead ignore */
+#define ARTS_USER_ERROR(...) {}
+
 #else  // NO_ARTS_USER_ERRORS == 0
 
 /*! Turn off noexcept for user-facing functions */
@@ -142,6 +145,21 @@ std::string var_string(Args&& ... args) {
         "error:\n") + var_string(__VA_ARGS__) \
     );                                        \
   } }
+
+/*! An error has occured, will throw the error */
+#define ARTS_USER_ERROR(...) {                \
+  static_assert(std::tuple_size<decltype(     \
+    std::make_tuple(__VA_ARGS__))>::value,    \
+    "Must have an error message in user-"     \
+    "facing code in " __FILE__);              \
+    throw std::runtime_error(                 \
+      var_string("User Error:\n"              \
+        "Error is found at:\n\t" __FILE__     \
+        ":", __LINE__, "\nPlease follow "     \
+        "these instructions to correct your " \
+        "error:\n") + var_string(__VA_ARGS__) \
+    );                                        \
+  }
 
 #endif  // NO_ARTS_USER_ERRORS
 

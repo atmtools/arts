@@ -703,17 +703,17 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
             }
 
             else {
-              ARTS_USER_ERROR_IF (true, "Unknown line modifications given: ", token)
+              ARTS_USER_ERROR ("Unknown line modifications given: ", token)
             }
           }
           icecream >> token;
         } else {
-          ARTS_USER_ERROR_IF (true, "Unknown line data tag: ", token)
+          ARTS_USER_ERROR ("Unknown line data tag: ", token)
         }
       }
     }
   } catch (const std::runtime_error& e) {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
                         "Parse error in catalog line: \n",
                         line, '\n', e.what())
   }
@@ -2714,7 +2714,7 @@ bool Absorption::line_in_id(const Absorption::Lines& band, const QuantumIdentifi
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
   else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL) {
-    ARTS_USER_ERROR_IF (true, "Cannot match energy level to line");
+    ARTS_USER_ERROR ("Cannot match energy level to line");
   } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
@@ -2753,7 +2753,7 @@ bool Absorption::line_upper_in_id(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
   else if (id.Type() == QuantumIdentifier::TRANSITION) {
-    ARTS_USER_ERROR_IF (true, "Cannot match transition level to energy level");
+    ARTS_USER_ERROR ("Cannot match transition level to energy level");
   } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
@@ -2781,7 +2781,7 @@ bool Absorption::line_lower_in_id(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
   else if (id.Type() == QuantumIdentifier::TRANSITION) {
-    ARTS_USER_ERROR_IF (true, "Cannot match transition level to energy level");
+    ARTS_USER_ERROR ("Cannot match transition level to energy level");
   } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
@@ -2809,7 +2809,7 @@ bool Absorption::id_in_line(const Absorption::Lines& band, const QuantumIdentifi
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
   else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL) {
-    ARTS_USER_ERROR_IF (true, "Cannot match energy level to line");
+    ARTS_USER_ERROR ("Cannot match energy level to line");
   } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
@@ -2848,7 +2848,7 @@ bool Absorption::id_in_line_upper(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
   else if (id.Type() == QuantumIdentifier::TRANSITION) {
-    ARTS_USER_ERROR_IF (true, "Cannot match transition level to energy level");
+    ARTS_USER_ERROR ("Cannot match transition level to energy level");
   } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
@@ -2876,7 +2876,7 @@ bool Absorption::id_in_line_lower(const Absorption::Lines& band, const QuantumId
   else if (id.Type() == QuantumIdentifier::ALL)
     return true;
   else if (id.Type() == QuantumIdentifier::TRANSITION) {
-    ARTS_USER_ERROR_IF (true, "Cannot match transition level to energy level");
+    ARTS_USER_ERROR ("Cannot match transition level to energy level");
   } else {
     for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
       auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));

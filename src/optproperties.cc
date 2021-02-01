@@ -201,7 +201,7 @@ void opt_prop_ScatSpecBulk(   //Output
             abs_tmp *= pnds(i_se_flat, Tind);
             abs_vec[i_ss](joker, Tind, joker, joker) += abs_tmp;
           } else {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
               "Interpolation error for (flat-array) scattering element #",
               i_se_flat, "\n"
               "at location/temperature point #", Tind, "\n")
@@ -835,7 +835,7 @@ void pha_mat_ScatSpecBulk(    //Output
             pha_tmp *= pnds(i_se_flat, Tind);
             pha_mat[i_ss](joker, Tind, joker, joker, joker, joker) += pha_tmp;
           } else {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
               "Interpolation error for (flat-array) scattering element #",
               i_se_flat, "\n"
               "at location/temperature point #", Tind, "\n")
@@ -2436,7 +2436,7 @@ PType PTypeFromString(const String& ptype_string) {
   else if (ptype_string == "azimuthally_random")
     ptype = PTYPE_AZIMUTH_RND;
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Unknown ptype: ", ptype_string, "\n"
       "Valid types are: general, totally_random and "
       "azimuthally_random.")
@@ -2465,7 +2465,7 @@ PType PType2FromString(const String& ptype_string) {
   else if (ptype_string == "horizontally_aligned")
     ptype = PTYPE_AZIMUTH_RND;
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Unknown ptype: ", ptype_string, "\n"
        "Valid types are: general, macroscopically_isotropic and "
        "horizontally_aligned.")
@@ -2497,7 +2497,7 @@ String PTypeToString(const PType& ptype) {
       ptype_string = "azimuthally_random";
       break;
     default:
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
                           "Internal error: Cannot map PType enum value ",
                           ptype, " to String.")
       break;
@@ -2628,7 +2628,7 @@ ParticleSSDMethod ParticleSSDMethodFromString(
   if (particle_ssdmethod_string == "tmatrix")
     particle_ssdmethod = PARTICLE_SSDMETHOD_TMATRIX;
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
                         "Unknown particle SSD method: ",
                         particle_ssdmethod_string, "\n"
                         "Valid methods: tmatrix")
@@ -2654,7 +2654,7 @@ String PTypeToString(const ParticleSSDMethod& particle_ssdmethod) {
       particle_ssdmethod_string = "tmatrix";
       break;
     default:
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "Internal error: Cannot map ParticleSSDMethod enum value ",
         particle_ssdmethod, " to String.")
       break;

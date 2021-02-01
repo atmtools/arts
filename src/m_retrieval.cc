@@ -28,7 +28,7 @@ void check_and_add_block(CovarianceMatrix& covmat,
       covmat.add_correlation(
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "The matrix in covmat_block was expected to have dimensions [",
         n_gps, ", ", n_gps, "] but found  to have dimensions [",
         covmat_block.nrows(), ", ", covmat_block.ncols(), "].")
@@ -41,7 +41,7 @@ void check_and_add_block(CovarianceMatrix& covmat,
       covmat.add_correlation_inverse(
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "The matrix in covmat_inv_block was expected to have dimensions [",
         n_gps, ", ", n_gps, "] but found  to have dimensions [",
         covmat_block.nrows(), ", ", covmat_block.ncols(), "].")
@@ -412,7 +412,7 @@ void covmat_seAddBlock(CovarianceMatrix& covmat_se,
       ARTS_USER_ERROR_IF (jj > ii,
             "Off-diagonal block can only be added to rows that already "
             "have a block on the diagonal.");
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
             "Diagonal block must be added row-by-row starting in the "
             " upper left of the matrix.");
     }

@@ -820,9 +820,8 @@ void ScatSpeciesSizeMassInfo(Vector& scat_species_x,
   }
 
   else {
-    ARTS_USER_ERROR_IF (true,
-                        "You have selected the x_unit: ", x_unit,
-                        "while accepted choices are: \"dveq\", \"dmax\", \"mass\" and \"area\"")
+    ARTS_USER_ERROR ("You have selected the x_unit: ", x_unit,
+                     "while accepted choices are: \"dveq\", \"dmax\", \"mass\" and \"area\"")
   }
 }
 

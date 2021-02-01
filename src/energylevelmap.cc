@@ -164,9 +164,8 @@ EnergyLevelMapType string2energylevelmaptype(const String& s) {
   else if (s == "None")
     return EnergyLevelMapType::None_t;
   else {
-    ARTS_USER_ERROR_IF (true,
-                        "Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
-                        "You request to have an EnergyLevelMap of type: ", s, '\n')
+    ARTS_USER_ERROR ("Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
+                     "You request to have an EnergyLevelMap of type: ", s, '\n')
   }
 }
 

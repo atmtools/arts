@@ -51,7 +51,7 @@ void WignerFastInfoPrint(const Index& wigner_initialized, const Verbosity&) {
 #if DO_FAST_WIGNER
   fastwigxj_print_stats();
 #else
-  ARTS_USER_ERROR_IF (true,
+  ARTS_USER_ERROR (
       "You cannot do this without having compiled with fast wigner.");
 #endif
 }

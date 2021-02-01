@@ -215,6 +215,6 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
     for (const auto& msg : fail_msg) {
       os << msg << '\n';
     }
-    ARTS_USER_ERROR_IF (true, os.str());
+    ARTS_USER_ERROR (os.str());
   }
 }

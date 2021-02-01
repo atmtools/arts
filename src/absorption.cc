@@ -283,7 +283,7 @@ bool SpeciesAuxData::ReadFromStream(String& artsid,
       ratios[0].data = aux;
       mparams[mspecies][misotopologue] = ratios;
     } catch (const runtime_error&) {
-      ARTS_USER_ERROR_IF (true, "Error reading SpeciesAuxData.");
+      ARTS_USER_ERROR ("Error reading SpeciesAuxData.");
     }
   }
 

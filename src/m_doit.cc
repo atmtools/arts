@@ -1651,7 +1651,7 @@ void DoitInit(  //WS Output
     cloudbox_field.resize(Nf, Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns);
     doit_scat_field.resize(Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns);
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
         "Scattering calculations are not possible for a 2D"
         "atmosphere. If you want to do scattering calculations"
         "*atmosphere_dim* has to be either 1 or 3");
@@ -2123,7 +2123,7 @@ void doit_scat_fieldCalc(Workspace& ws,
                    Naa,
                    stokes_dim));
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "The atmospheric dimension must be 1D or 3D \n"
       "for scattering calculations using the DOIT\n"
       "module, but it is not. The value of *atmosphere_dim*\n"
@@ -2393,7 +2393,7 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                    Naa,
                    stokes_dim));
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "The atmospheric dimension must be 1D or 3D \n"
       "for scattering calculations using the DOIT\n"
       "module, but it is not. The value of *atmosphere_dim*\n"
@@ -2741,7 +2741,7 @@ void doit_za_interpSet(Index& doit_za_interp,
   else if (method == "polynomial")
     doit_za_interp = 1;
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
         "Possible interpolation methods are 'linear' "
         "and 'polynomial'.\n");
   }

@@ -2051,7 +2051,7 @@ void AtmFieldsCalc(  //WS Output:
                           vmr_zeropadding,
                           verbosity);
     } catch (const std::runtime_error& e) {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         e.what(), "\n"
         "Note that you can explicitly set vmr_zeropadding "
         "to 1 in the method call.")
@@ -2242,7 +2242,7 @@ void AtmFieldsCalc(  //WS Output:
                           vmr_zeropadding,
                           verbosity);
     } catch (const std::runtime_error& e) {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         e.what(), "\n"
         "Note that you can explicitly set vmr_zeropadding "
         "to 1 in the method call.")
@@ -2262,7 +2262,7 @@ void AtmFieldsCalc(  //WS Output:
         GriddedFieldPRegrid(
           temp_agfield3, p_grid, temp_agfield3, interp_order, 0, verbosity);
       } catch (const std::runtime_error& e) {
-        ARTS_USER_ERROR_IF (true, e.what(), "\n"
+        ARTS_USER_ERROR ( e.what(), "\n"
           "Note that you can explicitly set vmr_zeropadding "
           "to 1 in the method call.")
       }
@@ -3136,7 +3136,7 @@ void AtmFieldsExtract1D(Index& atmosphere_dim,
   }
 
   else {
-    ARTS_USER_ERROR_IF (true, "Invalid of *atmosphere_dim*. It must be 1-3.");
+    ARTS_USER_ERROR ( "Invalid of *atmosphere_dim*. It must be 1-3.");
   }
 
   AtmosphereSet1D(atmosphere_dim, lat_grid, lon_grid, verbosity);
@@ -3660,7 +3660,7 @@ void p_gridFromZRaw(  //WS Output
     }
     p_grid = p_grid_raw[Range(i, joker, -1)];
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
                         "z_field_raw needs to be monotonous, but this is not the case.\n")
   }
 }

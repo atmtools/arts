@@ -168,7 +168,7 @@ void QuantumIdentifier::SetFromString(String str) {
   } else if (token == "NONE") {
     mqtype = QuantumIdentifier::NONE;
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Error parsing QuantumIdentifier. Expected TR or EN, but got: ",
       token, "\n"
       "QI: ", str)

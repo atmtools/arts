@@ -171,7 +171,7 @@ void MCAntenna::return_los(Numeric& wgt,
       break;
 
     default:
-      ARTS_USER_ERROR_IF (true, "invalid Antenna type.")
+      ARTS_USER_ERROR ("invalid Antenna type.")
   }
 }
 
@@ -236,7 +236,7 @@ void MCAntenna::draw_los(VectorView sampled_rte_los,
       break;
 
     default:
-      ARTS_USER_ERROR_IF (true, "invalid Antenna type.")
+      ARTS_USER_ERROR ("invalid Antenna type.")
   }
 }
 

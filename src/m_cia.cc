@@ -203,8 +203,8 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
                              robust,
                              verbosity);
         } catch (const std::runtime_error& e) {
-          ARTS_USER_ERROR_IF (true, "Problem with CIA species ",
-                              this_species.Name(), ":\n", e.what())
+          ARTS_USER_ERROR ("Problem with CIA species ",
+                           this_species.Name(), ":\n", e.what())
         }
 
         // We have to multiply with the number density of the second CIA species.
@@ -417,7 +417,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
         first = false;
       os << missing_tags[i];
     }
-    ARTS_USER_ERROR_IF (true, os.str());
+    ARTS_USER_ERROR (os.str());
   }
 }
 

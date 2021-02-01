@@ -129,7 +129,7 @@ void iyRadarSingleScat(Workspace& ws,
   }
   if (jacobian_do) {
     // FIXME: These needs to be tested properly
-    ARTS_USER_ERROR_IF (true, "Jacobian calculations *iyActiveSingleScat* need "
+    ARTS_USER_ERROR ( "Jacobian calculations *iyActiveSingleScat* need "
                               "revision before safe to use.");
     
     ARTS_USER_ERROR_IF (dpnd_field_dx.nelem() != jacobian_quantities.nelem(),
@@ -207,7 +207,7 @@ void iyRadarSingleScat(Workspace& ws,
       iy_aux[i]   = 0;
       auxPartAtte = i;
     } else {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "The only allowed strings in *iy_aux_vars* are:\n"
         "  \"Radiative background\"\n"
         "  \"Backscattering\"\n"
@@ -450,7 +450,7 @@ void iyRadarSingleScat(Workspace& ws,
                     Pe(i_se_flat, ip, joker, joker, joker) =
                         pha_mat_1se(joker, 0, 0, 0, joker, joker);
                 else {
-                  ARTS_USER_ERROR_IF (true,
+                  ARTS_USER_ERROR (
                     "Interpolation error for (flat-array) scattering"
                     " element #", i_se_flat, "\n"
                     "at location/temperature point #", ip, "\n")
@@ -650,7 +650,7 @@ void yRadar(Workspace& ws,
     ze_cfac(cfac, f_grid, ze_tref, k2);
     ze_min = pow(10.0, dbze_min / 10);
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
         "For this method, *iy_unit_radar* must be set to \"1\", "
         "\"Ze\" or \"dBZe\".");
   }
@@ -1216,7 +1216,7 @@ void RadarOnionPeelingTableCalc(
       for (Index w=0; w<nwc; w++) {
         cout << wc_grid[w] << " " << D(0,w,t) << endl;
       }
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "A case found of non-increasing dBZe.\n"
         "Found for scat_species ", iss, " and ", t_grid[t], "K.")
     }
@@ -1224,7 +1224,7 @@ void RadarOnionPeelingTableCalc(
       for (Index w=0; w<nwc; w++) {
         cout << wc_grid[w] << " " << D(0,w,t) << endl;
       }
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "A case found where start of dbze_grid not covered.\n"
         "Found for scat_species ", iss, " and ", t_grid[t], "K.")      
     }
@@ -1232,7 +1232,7 @@ void RadarOnionPeelingTableCalc(
       for (Index w=0; w<nwc; w++) {
         cout << wc_grid[w] << " " << D(0,w,t) << endl;
       }
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "A case found where end of dbze_grid not covered.\n"
         "Found for scat_species ", iss, " and ", t_grid[t], "K.")
     }

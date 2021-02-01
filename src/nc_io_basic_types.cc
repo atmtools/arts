@@ -231,10 +231,10 @@ void nca_write_to_file(const int ncid, const Vector& v, const Verbosity&) {
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                         \
   void nca_write_to_file(const int, const what&, const Verbosity&) {                \
-    ARTS_USER_ERROR_IF (true, "NetCDF support not yet implemented for this type!"); \
+    ARTS_USER_ERROR ("NetCDF support not yet implemented for this type!"); \
   }                                                                                 \
   void nca_read_from_file(const int, what&, const Verbosity&) {                     \
-    ARTS_USER_ERROR_IF (true, "NetCDF support not yet implemented for this type!"); \
+    ARTS_USER_ERROR ("NetCDF support not yet implemented for this type!"); \
   }
 
 //==========================================================================

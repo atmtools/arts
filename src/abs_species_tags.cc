@@ -269,7 +269,7 @@ SpeciesTag::SpeciesTag(String def) : misotopologue(-1), mlf(-1), muf(-1), mtype(
   } else {
     // n==def.npos means that def does not contain a '-'. In this
     // case that is not allowed!
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
         "You must either specify both frequency limits\n"
         "(at least with jokers), or none.");
   }

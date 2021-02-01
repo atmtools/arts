@@ -196,7 +196,7 @@ void apply_iy_unit(MatrixView iy,
   }
 
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Unknown option: iy_unit = \"", iy_unit, "\"\n"
       "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
       "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"")
@@ -283,7 +283,7 @@ void apply_iy_unit2(Tensor3View J,
   }
 
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Unknown option: iy_unit = \"", iy_unit, "\"\n"
       "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
       "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"")

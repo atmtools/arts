@@ -74,7 +74,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
           needs_hxsec = true;
           break;
         default:
-          ARTS_USER_ERROR_IF (true,
+          ARTS_USER_ERROR (
                               "Unknown species type: ", abs_species[sp][tgs].Type())
           break;
       }
@@ -295,10 +295,10 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                 if (part_fun[1].data[0] > min_T) min_T = part_fun[1].data[0];
                 if (part_fun[1].data[1] < max_T) max_T = part_fun[1].data[1];
               } else
-                ARTS_USER_ERROR_IF (true,
+                ARTS_USER_ERROR (
                     "Bad coefficient parameter in partition_function.\n");
             } else
-              ARTS_USER_ERROR_IF (true,
+              ARTS_USER_ERROR (
                   "Bad coefficient parameter in partition_function.\n");
             break;
 
@@ -310,10 +310,10 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                 if (part_fun[2].data[0] > min_T) min_T = part_fun[2].data[0];
                 if (part_fun[2].data[1] < max_T) max_T = part_fun[2].data[1];
               } else
-                ARTS_USER_ERROR_IF (true,
+                ARTS_USER_ERROR (
                     "Bad coefficient parameter in partition_function.\n");
             } else
-              ARTS_USER_ERROR_IF (true,
+              ARTS_USER_ERROR (
                   "Bad coefficient parameter in partition_function.\n");
             break;
 
@@ -328,15 +328,15 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                   max_T = part_fun[0].get_numeric_grid(
                       0)[part_fun[0].data.nelem() - 1];
               } else
-                ARTS_USER_ERROR_IF (true,
+                ARTS_USER_ERROR (
                     "Bad t_field parameter in partition_function.\n");
             } else
-              ARTS_USER_ERROR_IF (true,
+              ARTS_USER_ERROR (
                   "Bad t_field parameter in partition_function.\n");
             break;
 
           default:
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
                 "Bad parameter type in partition_functions.\n");
             break;
         }
@@ -420,8 +420,8 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
         "min of z_field: ", z_field(0, row, col), "\n"
         "max of z_field: ", z_field(z_field.npages() - 1, row, col),
         "\n",
-        (atmosphere_dim > 1) ? var_string("\nThis was found to be the case for:\n", "latitude ", lat_grid[row]) : var_string(""),
-        (atmosphere_dim > 2) ? var_string("\nlongitude ", lon_grid[col]) : var_string(""))
+        (atmosphere_dim > 1) ? var_string("\nThis was found to be the case for:\n", "latitude ", lat_grid[row]) : var_string(),
+        (atmosphere_dim > 2) ? var_string("\nlongitude ", lon_grid[col]) : var_string())
     }
   }
 
@@ -812,7 +812,7 @@ void lbl_checkedCalc(Index& lbl_checked,
       if (not lines.nelem()) {
         continue;
       } else {
-        ARTS_USER_ERROR_IF (true, "Lines for non-existent species discovered!\n");
+        ARTS_USER_ERROR ( "Lines for non-existent species discovered!\n");
       }
     }
     
@@ -898,7 +898,7 @@ void propmat_clearsky_agenda_checkedCalc(
           needs_hxsec = true;
           break;
         default:
-          ARTS_USER_ERROR_IF (true,
+          ARTS_USER_ERROR (
                               "Unknown species type: ", abs_species[sp][tgs].Type())
           break;
       }

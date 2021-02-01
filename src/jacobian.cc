@@ -575,7 +575,7 @@ ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity&
       if (p not_eq abs_species.cend()) {
         aoi[iq] = Index(abs_species.cend() - p);
       } else {
-        ARTS_USER_ERROR_IF (true,
+        ARTS_USER_ERROR (
                             "Could not find ",
                             jacobian_quantities[iq].Subtag(),
                             " in species of abs_species.\n")
@@ -885,7 +885,7 @@ void calcBaselineFit(Vector& y_baseline,
   } else if (rq == Jacobian::Sensor::Sinefit) {
     is_sine_fit = true;
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
         "Retrieval quantity is neither a polynomial or a sine "
         " baseline fit.");
   }
@@ -969,7 +969,7 @@ void vmrunitscf(Numeric& x,
     }
     x = 1 / (vmr * number_density(p, t));
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Allowed options for gas species jacobians are "
       "\"rel\", \"vmr\" and \"nd\".\nYou have selected: ",
       unit, '\n')
@@ -988,7 +988,7 @@ void dxdvmrscf(Numeric& x,
   } else if (unit == "nd") {
     x = 1 / number_density(p, t);
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Allowed options for gas species jacobians are "
       "\"rel\", \"vmr\" and \"nd\".\nYou have selected: ",
       unit, '\n')

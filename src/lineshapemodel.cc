@@ -199,7 +199,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
       try {
         species[i] = SpeciesTag(s);
       } catch (const std::runtime_error& e) {
-        ARTS_USER_ERROR_IF (true,
+        ARTS_USER_ERROR (
                             "Encountered ", s,
                             " in a position where a species should have been "
                             "defined.\nPlease check your pressure broadening data structure and ensure "
@@ -235,7 +235,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
             case 0:
               break;
             default:
-              ARTS_USER_ERROR_IF (true,
+              ARTS_USER_ERROR (
                   "Unknown number of input parameters in Legacy mode.");
           }
         } else {  // Has to be the only allowed interpolation case
@@ -731,7 +731,7 @@ Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
   else if (type == "X3")
     return mp.X3;
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Type: ", type, ", is not accepted.  "
       "See documentation for accepted types\n")
   }
@@ -1324,7 +1324,7 @@ std::vector<Variable> lineshapetag2variablesvector(String type) {
       Variable::FVC,
       Variable::ETA};
       else {
-        ARTS_USER_ERROR_IF (true,
+        ARTS_USER_ERROR (
           "Type: ", type, ", is not accepted.  "
           "See documentation for accepted types\n")
       }
@@ -1342,7 +1342,7 @@ std::vector<Variable> linemixingtag2variablesvector(String type) {
   else if (type == "ConstG")
     return {Variable::G};
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Type: ", type, ", is not accepted.  "
       "See documentation for accepted types\n")
   }
@@ -1364,7 +1364,7 @@ LegacyLineMixingData::TypeLM string2typelm(String type) {
   else if (type == "BB")  // The band class
     return TypeLM::LM_BYBAND;
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Type: ", type, ", is not accepted.  "
       "See documentation for accepted types\n")
   }
@@ -1383,7 +1383,7 @@ LegacyPressureBroadeningData::TypePB string2typepb(String type) {
   else if (type == "AP")  // Planetary broadening
     return TypePB::PB_PLANETARY_BROADENING;
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Type: ", type, ", is not accepted.  "
       "See documentation for accepted types\n")
   }

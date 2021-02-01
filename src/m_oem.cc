@@ -485,7 +485,7 @@ void xaStandard(Workspace& ws,
     }
 
     else {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "Found a retrieval quantity that is not yet handled by\n"
         "internal retrievals: ", jacobian_quantities[q], '\n')
     }
@@ -801,7 +801,7 @@ void x2artsAtmAndSurf(Workspace& ws,
           }
         }
       } else {
-        ARTS_USER_ERROR_IF (true, "Unsupported magnetism type");
+        ARTS_USER_ERROR ( "Unsupported magnetism type");
       }
     }
 
@@ -1004,7 +1004,7 @@ void x2artsSensor(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void x2artsSpectroscopy(const Verbosity&) {
-  ARTS_USER_ERROR_IF (true, "Retrievals of spectroscopic variables not yet handled.");
+  ARTS_USER_ERROR ( "Retrievals of spectroscopic variables not yet handled.");
 }
 
 
@@ -1363,7 +1363,7 @@ void covmat_soCalc(Matrix& /* covmat_so */,
                    const Matrix& /* dxdy */,
                    const CovarianceMatrix& /* covmat_se*/,
                    const Verbosity& /*v*/) {
-  ARTS_USER_ERROR_IF (true,
+  ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
 }
@@ -1372,7 +1372,7 @@ void covmat_ssCalc(Matrix& /*covmat_ss*/,
                    const Matrix& /*avk*/,
                    const CovarianceMatrix& /*covmat_sx*/,
                    const Verbosity& /*v*/) {
-  ARTS_USER_ERROR_IF (true,
+  ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
 }
@@ -1381,7 +1381,7 @@ void avkCalc(Matrix& /* avk */,
              const Matrix& /* dxdy */,
              const Matrix& /* jacobian */,
              const Verbosity& /*v*/) {
-  ARTS_USER_ERROR_IF (true,
+  ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
 }
@@ -1411,7 +1411,7 @@ void OEM(Workspace&,
          const Index&,
          const Index&,
          const Verbosity&) {
-  ARTS_USER_ERROR_IF (true,
+  ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
 }
@@ -1662,7 +1662,7 @@ void OEM_MPI(Workspace&,
              const Index&,
              const Index&,
              const Verbosity&) {
-  ARTS_USER_ERROR_IF (true,
+  ARTS_USER_ERROR (
       "You have to compile ARTS with OEM support "
       " and enable MPI to use OEM_MPI.");
 }

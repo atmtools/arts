@@ -68,10 +68,10 @@ std::istream& operator>>(std::istream& is, Rational& a) {
                           "Error parsing rational number denominator");
       a = Rational(nom, denom);
     } else {
-      ARTS_USER_ERROR_IF (true, "Error parsing rational number");
+      ARTS_USER_ERROR ("Error parsing rational number");
     }
   } catch (const std::runtime_error& e) {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
                         "Error parsing rational number: ",
                         s, '\n', e.what())
   }

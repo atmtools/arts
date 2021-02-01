@@ -1196,12 +1196,12 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
           if (tmp.nelem() == 1) {
             vmr_field_raw[vmr_field_raw.nelem() - 1] = tmp[0];
           } else {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
               "The file ", pnd_field_files[i], "\n"
               "is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
           }
         } catch (...) {
-          ARTS_USER_ERROR_IF (true,
+          ARTS_USER_ERROR (
                               "The file ", pnd_field_files[i], " does not exist or\n"
                               "its type is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
         }
@@ -1277,7 +1277,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
 
           meta_naming_conv = 2;
         } catch (const std::runtime_error& e) {
-          ARTS_USER_ERROR_IF (true,
+          ARTS_USER_ERROR (
                               "No meta data file following one of the allowed naming "
                               "conventions was found.\n"
                               "Allowed are "
@@ -1346,7 +1346,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     std::ostringstream os;
     for (auto& msg : fail_msg) os << msg << '\n';
 
-    ARTS_USER_ERROR_IF (true, os.str());
+    ARTS_USER_ERROR ( os.str());
   }
 
   // check if arrays have same size
@@ -1435,7 +1435,7 @@ void ScatElementsSelect(  //WS Output:
       }
     }
   else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
                         "Size parameter ", sizeparam, "is unknown.")
   }
 

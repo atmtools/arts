@@ -186,7 +186,7 @@ void inv(MatrixView Ainv, ConstMatrixView A) {
   try {
     work = new double[lwork];
   } catch (std::bad_alloc& ba) {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
         "Error inverting matrix: Could not allocate workspace memory.");
   }
 
@@ -271,7 +271,7 @@ void diagonalize(MatrixView P,
     rwork = new double[2 * n_int];
     work = new double[lwork];
   } catch (std::bad_alloc& ba) {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
         "Error diagonalizing: Could not allocate workspace memory.");
   }
 

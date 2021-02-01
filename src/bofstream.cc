@@ -61,14 +61,14 @@ streampos bofstream::pos() {
 void bofstream::putByte(bofstream::Byte b) {
   if (!this->good()) {
     err |= NotOpen;
-    ARTS_USER_ERROR_IF (true, "Cannot open binary file for writing");
+    ARTS_USER_ERROR ("Cannot open binary file for writing");
     return;
   }
 
   this->put(b);
   if (this->bad()) {
     err |= Fatal;
-    ARTS_USER_ERROR_IF (true, "Writing to binary file failed");
+    ARTS_USER_ERROR ("Writing to binary file failed");
   }
 }
 

@@ -122,7 +122,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     if (version == "3") {
       artscat_version = 3;
     } else if (version.substr(0, 8) != "ARTSCAT-") {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "The ARTS line file you are trying to read does not contain a valid version tag.\n"
         "Probably it was created with an older version of ARTS that used different units.")
     } else {
@@ -240,7 +240,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   if (version == "3") {
     artscat_version = 3;
   } else if (version.substr(0, 8) != "ARTSCAT-") {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "The ARTS line file you are trying to read does not contain a valid version tag.\n"
       "Probably it was created with an older version of ARTS that used different units.")
   } else {
@@ -1840,7 +1840,7 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_li
               band.Line(k).Zeeman().gu() *= 1.0e0 + change;
             break;
           default: {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
                                 "Usupported paramter_name\n", parameter_name,
                                 "\nSee method description for supported parameter names.\n")
           }
@@ -1946,7 +1946,7 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
             band.Line(k).Zeeman().gu() = x;
             break;
           default: {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
                                 "Usupported paramter_name\n", parameter_name,
                                 "\nSee method description for supported parameter names.\n")
           }
@@ -2100,7 +2100,7 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
               band.Line(k).Zeeman().gl() *= 1.0e0 + change;
             break;
           default: {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
                                 "Usupported paramter_name\n", parameter_name,
                                 "\nSee method description for supported parameter names.\n")
           }
@@ -2120,7 +2120,7 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
               band.Line(k).Zeeman().gu() *= 1.0e0 + change;
             break;
           default: {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
                                 "Usupported paramter_name\n", parameter_name,
                                 "\nSee method description for supported parameter names.\n")
           }
@@ -2203,7 +2203,7 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
             band.Line(k).Zeeman().gl() = x;
             break;
           default: {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
                                 "Usupported paramter_name\n", parameter_name,
                                 "\nSee method description for supported parameter names.\n")
           }
@@ -2217,7 +2217,7 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
             band.Line(k).Zeeman().gu() = x;
             break;
           default: {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
                                 "Usupported paramter_name\n", parameter_name,
                                 "\nSee method description for supported parameter names.\n")
           }

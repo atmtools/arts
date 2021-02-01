@@ -566,7 +566,7 @@ class QuantumIdentifier {
       return false;
     } else if (mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {
     } else if (mqtype not_eq other.mqtype) {
-      ARTS_USER_ERROR_IF (true, "Can never compare different types of identifiers with "
+      ARTS_USER_ERROR ( "Can never compare different types of identifiers with "
         "QID.In(QID), one of your inputs is of wrong QuantumIdentifier type");
     } else if (mqtype == QuantumIdentifier::TRANSITION) {
       auto& other_low = other.mqm[TRANSITION_LOWER_INDEX];
@@ -626,7 +626,7 @@ class QuantumIdentifier {
     } else if (mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {
       return true;
     } else if (mqtype not_eq QuantumIdentifier::ENERGY_LEVEL or other.mqtype not_eq QuantumIdentifier::TRANSITION) {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "One of your inputs is bad.  You are using function comparing energy "
         "levels to the lower state of lines, but the types mismatch");
     }
@@ -666,7 +666,7 @@ class QuantumIdentifier {
     } else if (mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {
       return true;
     } else if (mqtype not_eq QuantumIdentifier::ENERGY_LEVEL or other.mqtype not_eq QuantumIdentifier::TRANSITION) {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "One of your inputs is bad.  You are using function comparing energy "
         "levels to the upper state of lines, but the types mismatch");
     }

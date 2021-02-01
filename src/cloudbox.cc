@@ -720,7 +720,7 @@ void find_cloudlimits(Index& lower,
   }
 
   else {
-    ARTS_USER_ERROR_IF (true, "Not yet available for 2D and 3D cases.")
+    ARTS_USER_ERROR ("Not yet available for 2D and 3D cases.")
   }
 
   /*  //NOT WORKING YET
@@ -810,7 +810,7 @@ void parse_atmcompact_speciestype(  //WS Output:
   if (strarr.size() > 0 && field_name[0] != '-') {
     species_type = strarr[0];
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
                         "No information on field species type found in '",
                         field_name, "'\n")
   }
@@ -841,7 +841,7 @@ void parse_atmcompact_speciesname(  //WS Output:
   if (strarr.size() > 1) {
     species_name = strarr[1];
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
                         "No information on field species name found in '",
                         field_name, "'\n")
   }
@@ -872,7 +872,7 @@ void parse_atmcompact_scattype(  //WS Output:
   if (strarr.size() > 2) {
     scat_type = strarr[2];
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
                         "No information on type of scat_species field found in '",
                         field_name, "'\n")
   }
@@ -902,7 +902,7 @@ void parse_partfield_name(  //WS Output:
   if (strarr.size() > 0 && part_string[0] != delim[0]) {
     partfield_name = strarr[0];
   } else {
-    ARTS_USER_ERROR_IF (true, "No information on scattering species field name in '",
+    ARTS_USER_ERROR ("No information on scattering species field name in '",
                         part_string, "'\n")
   }
 }

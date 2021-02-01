@@ -636,7 +636,7 @@ Numeric mod_gamma_dist(
 
     return dN;
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "At least one argument is zero or negative.\n"
       "Modified gamma distribution can not be calculated.\n"
       "x      = ", x, "\n"

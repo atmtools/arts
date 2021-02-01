@@ -129,7 +129,7 @@ void check_rt4_input(  // Output
   } else if (quad_type == "L") {
     nhza = 0;
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "Unknown quadrature type: ", quad_type,
       ".\nOnly D, G, and L allowed.\n")
   }
@@ -274,7 +274,7 @@ void get_rt4surf_props(  // Output
           ground_reflec(f_index, joker, joker) += surface_reflectivity(
               0, Range(0, stokes_dim), Range(0, stokes_dim));
     else {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "For specular surface reflection, the number of elements in\n"
         "*surface_reflectivity* needs to match the length of\n"
         "*f_grid* or be 1."
@@ -298,7 +298,7 @@ void get_rt4surf_props(  // Output
       ground_index[f_index] = Complex(n_real(f_index, 0), n_imag(f_index, 0));
     }
   } else {
-    ARTS_USER_ERROR_IF (true, "Unknown surface type.\n")
+    ARTS_USER_ERROR ( "Unknown surface type.\n")
   }
 }
 
@@ -1161,7 +1161,7 @@ void sca_optpropCalc(  //Output
               ssd.abs_vec_data(this_f_index, i_pfct, iza, 0, 0);
         }
       } else {
-        ARTS_USER_ERROR_IF (true, "Unsuitable particle type encountered.")
+        ARTS_USER_ERROR ( "Unsuitable particle type encountered.")
       }
       i_se_flat++;
     }

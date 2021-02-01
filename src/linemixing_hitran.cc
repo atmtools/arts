@@ -1709,7 +1709,7 @@ Vector compabs(
         } else if (full) {
           a += u_sqln2pi * u_pi * (tp.eqv.str[iline] / (f - tp.eqv.val[iline])).imag();
         } else {
-          ARTS_USER_ERROR_IF (true, "Cannot understand the combination of calculations requested...");
+          ARTS_USER_ERROR ("Cannot understand the combination of calculations requested...");
         }
       }
       

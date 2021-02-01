@@ -832,7 +832,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
       rot[i] = "none";
       pol[i] = mm_pol[i];
     } else {
-      ARTS_USER_ERROR_IF (true, "Unknown polarisation ", mm_pol[i])
+      ARTS_USER_ERROR ( "Unknown polarisation ", mm_pol[i])
     }
   }
 

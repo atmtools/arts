@@ -365,7 +365,7 @@ void timerStart(  // WS Output
 void timerStart(  // WS Output
     Timer& /*starttime*/,
     const Verbosity&) {
-  ARTS_USER_ERROR_IF (true,
+  ARTS_USER_ERROR (
       "Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
 }
 #endif
@@ -388,7 +388,7 @@ void timerStop(  // WS Input
 void timerStop(  // WS Input
     const Timer&,
     const Verbosity&) {
-  ARTS_USER_ERROR_IF (true,
+  ARTS_USER_ERROR (
     "Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
 }
 #endif
@@ -396,7 +396,7 @@ void timerStop(  // WS Input
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Error(const String& msg, const Verbosity& verbosity) {
   CREATE_OUT0;
-  ARTS_USER_ERROR_IF (true, msg);
+  ARTS_USER_ERROR ( msg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

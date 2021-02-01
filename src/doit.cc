@@ -945,7 +945,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
     // FIXME: Convert to new agenda scheme before using
     // surface_rtprop_agenda.execute();
 
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
         "Surface reflections inside cloud box not yet handled.");
     /*
         See comment in function above

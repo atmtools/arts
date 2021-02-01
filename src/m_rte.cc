@@ -251,7 +251,7 @@ void iyEmissionStandard(
     else if (iy_aux_vars[i] == "Optical depth")
       auxOptDepth = i;
     else {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
         "The only allowed strings in *iy_aux_vars* are:\n"
         "  \"Radiative background\"\n"
         "  \"Optical depth\"\n"
@@ -556,7 +556,7 @@ void iyEmissionStandard(
                               RadiativeTransferSolver::LinearWeightedEmission);
     }
   } else {
-    ARTS_USER_ERROR_IF (true, "Only allowed choices for *integration order* are "
+    ARTS_USER_ERROR ( "Only allowed choices for *integration order* are "
                         "1 and 2.");    
   }
   
@@ -1180,7 +1180,7 @@ void iyMC(Workspace& ws,
         auxError = i;
         iy_aux[i].resize(nf, stokes_dim);
       } else {
-        ARTS_USER_ERROR_IF (true,
+        ARTS_USER_ERROR (
           "In *iy_aux_vars* you have included: \"", iy_aux_vars[i],
           "\"\nThis choice is not recognised.")
       }
@@ -1807,7 +1807,7 @@ void yCalcAppend(Workspace& ws,
                   jacobian_quantities_copy[q1].Mode()) {
                 pos = q1;
               } else {
-                ARTS_USER_ERROR_IF (true,
+                ARTS_USER_ERROR (
                   "Jacobians for ", jacobian_quantities2[q2],
                   " shall be appended.\nThis requires "
                   "that the same retrieval unit is used "
@@ -1822,7 +1822,7 @@ void yCalcAppend(Workspace& ws,
                 jacobian_quantities_copy[q1].Subtag()) {
               pos = q1;
             } else {
-              ARTS_USER_ERROR_IF (true,
+              ARTS_USER_ERROR (
                 "Jacobians for ", jacobian_quantities2[q2],
                 " shall be appended.\nThis requires "
                 "that HSE is either ON or OFF for both "
@@ -1881,7 +1881,7 @@ void yCalcAppend(Workspace& ws,
           }
         }
         if (any_wrong) {
-          ARTS_USER_ERROR_IF (true,
+          ARTS_USER_ERROR (
             "Jacobians for ", jacobian_quantities2[q2],
             " shall be appended.\nThis requires that the "
             "same grids are used for both measurements,\nbut "

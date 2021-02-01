@@ -524,12 +524,12 @@ void ppathFixedLstep(Ppath& ppath,
     // No intersection with surface
     if (l2s < 0) {
       if (!surface_found) {
-        ARTS_USER_ERROR_IF (true,
+        ARTS_USER_ERROR (
                             "Cases of limb sounding type are only allowed "
                             "together with constant surface altitude.");
       } else {
         // Make function to find proper (geodetic) tangent point to finish this
-        ARTS_USER_ERROR_IF (true, "Limb sounding not yet handled.");
+        ARTS_USER_ERROR ( "Limb sounding not yet handled.");
       }
 
     // Ensured intersection with surface
@@ -1743,7 +1743,7 @@ void ppath_stepGeometric(  // WS Output:
     }
 
     else {
-      ARTS_USER_ERROR_IF (true, "The atmospheric dimensionality must be 1-3.");
+      ARTS_USER_ERROR ( "The atmospheric dimensionality must be 1-3.");
     }
   }
 
@@ -1824,7 +1824,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
                          "linear_basic",
                          ppath_lraytrace);
     } else {
-      ARTS_USER_ERROR_IF (true, "The atmospheric dimensionality must be 1-3.");
+      ARTS_USER_ERROR ( "The atmospheric dimensionality must be 1-3.");
     }
   }
 

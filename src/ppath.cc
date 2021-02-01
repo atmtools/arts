@@ -1162,7 +1162,7 @@ void plevel_slope_3d(Numeric& c1,
     if (lat_grid[llat] > POLELAT) {
       ilat = llat - 1;
     } else {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
           "The upper latitude end of the atmosphere "
           "reached, that is not allowed.");
     }
@@ -1172,7 +1172,7 @@ void plevel_slope_3d(Numeric& c1,
     if (is_lon_cyclic(lon_grid)) {
       ilon = 0;
     } else {
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
           "The upper longitude end of the atmosphere "
           "reached, that is not allowed.");
     }
@@ -1469,7 +1469,7 @@ void ppath_set_background(Ppath& ppath, const Index& case_nr) {
       ppath.background = "transmitter";
       break;
     default:
-      ARTS_USER_ERROR_IF (true,
+      ARTS_USER_ERROR (
                           "Case number ", case_nr, " is not defined.")
   }
 }
@@ -1488,7 +1488,7 @@ Index ppath_what_background(const Ppath& ppath) {
   } else if (ppath.background == "transmitter") {
     return 9;
   } else {
-    ARTS_USER_ERROR_IF (true,
+    ARTS_USER_ERROR (
       "The string ", ppath.background,
       " is not a valid background case.")
   }
@@ -5321,7 +5321,7 @@ void ppath_calc(Workspace& ws,
             gridpos(
                 ppath_step.gp_lon[n - 1], lon_grid, ppath_step.pos(n - 1, 2));
           } else {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
                                 "The path exits the atmosphere through the lower "
                                 "longitude end face.\nThe exit point is at an "
                                 "altitude of ", ppath_step.pos(n - 1, 0) / 1e3, " km.")
@@ -5335,7 +5335,7 @@ void ppath_calc(Workspace& ws,
             gridpos(
                 ppath_step.gp_lon[n - 1], lon_grid, ppath_step.pos(n - 1, 2));
           } else {
-            ARTS_USER_ERROR_IF (true,
+            ARTS_USER_ERROR (
                                 "The path exits the atmosphere through the upper "
                                 "longitude end face.\nThe exit point is at an "
                                 "altitude of ", ppath_step.pos(n - 1, 0) / 1e3, " km.")
