@@ -21,7 +21,6 @@ def f(sec: float, n: int):
 tg = pyarts.classes.from_workspace(ws.time_grid)
 ts = pyarts.classes.from_workspace(ws.time_stamps)
 ys = pyarts.classes.from_workspace(ws.ybatch)
-ceps = pyarts.classes.from_workspace(ws.covmat_sepsbatch)
 
 # Current time
 some_time = pyarts.classes.Time()
@@ -56,7 +55,3 @@ rang.set(trp_range)
 ws.ybatchTroposphericCorrectionNaiveMedianForward(ws.ybatch_corr, ws.ybatch, ws.range, ws.trop_temp, ws.targ_temp)
 ws.ybatchTimeAveraging(time_step="24 h", disregard_first=1, disregard_last=1)
 
-# A simple
-ncfn = os.path.splitext(__file__)[0]+'_ref.nc'
-# pyarts.classes.netcdf.save(ncfn, [ws.covmat_sepsbatch, ws.ybatch])
-refs = pyarts.classes.netcdf.load(ncfn)
