@@ -1592,13 +1592,13 @@ void jacobianAddShapeCatalogParameters(
 
   ArrayOfString vars;
   if (variables[0] == "ALL")
-    vars = AllLineShapeVars();
+    vars = ArrayOfString(LineShape::enumstrs::VariableNames);
   else
     vars = variables;
 
   ArrayOfString coeffs;
   if (coefficients[0] == "ALL")
-    coeffs = AllLineShapeCoeffs();
+    coeffs = ArrayOfString(Options::enumstrs::LineShapeCoeffNames);
   else
     coeffs = coefficients;
 

@@ -1020,13 +1020,12 @@ void particle_bulkpropRadarOnionPeeling(
                 // Calculate local attenuation
                 Numeric k_this;
                 ArrayOfPropagationMatrix propmat, partial_dummy;
-                ArrayOfStokesVector nlte_dummy, partial_s_dummy, partial_nlte_dummy;
+                ArrayOfStokesVector nlte_dummy, partial_nlte_dummy;
                 EnergyLevelMap rtp_nlte_local_dummy;
                 propmat_clearsky_agendaExecute(ws,
                                                propmat,
                                                nlte_dummy,
                                                partial_dummy,
-                                               partial_s_dummy,
                                                partial_nlte_dummy,
                                                ArrayOfRetrievalQuantity(0),
                                                f_grid,

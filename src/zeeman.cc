@@ -77,8 +77,7 @@ void zeeman_on_the_fly(
     ArrayOfPropagationMatrix& propmat_clearsky,
     ArrayOfStokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_dx_source,
-    ArrayOfStokesVector& nlte_dsource_dx,
+    ArrayOfStokesVector& dnlte_source_dx,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -124,14 +123,10 @@ void zeeman_on_the_fly(
     "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
   ARTS_USER_ERROR_IF(not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
     "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq dnlte_dx_source.nelem()),
-    "*dnlte_dx_source* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(dnlte_dx_source, f_grid),
-    "*dnlte_dx_source* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq nlte_dsource_dx.nelem()),
-    "*nlte_dsource_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(nlte_dsource_dx, f_grid),
-    "*nlte_dsource_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq dnlte_source_dx.nelem()),
+    "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(dnlte_source_dx, f_grid),
+    "*dnlte_source_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_nlte.Data()), "Negative NLTE (at least one value).")
@@ -324,9 +319,9 @@ void zeeman_on_the_fly(
 
             Eigen::Map<
                 Eigen::Matrix<Numeric, Eigen::Dynamic, 4, Eigen::RowMajor>>
-                dnlte_dx_src(dnlte_dx_source[j].Data().get_c_array(),
+                dnlte_dx_src(dnlte_source_dx[j].Data().get_c_array(),
                             f_grid.nelem(), 4),
-                nlte_dsrc_dx(nlte_dsource_dx[j].Data().get_c_array(),
+                nlte_dsrc_dx(dnlte_source_dx[j].Data().get_c_array(),
                             f_grid.nelem(), 4);
 
             if (deriv == Jacobian::Atm::Temperature) {

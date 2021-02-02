@@ -831,8 +831,7 @@ void abs_cont_descriptionAppend(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
     ArrayOfStokesVector& nlte_source,
-    ArrayOfStokesVector& dnlte_dx_source,
-    ArrayOfStokesVector& nlte_dsource_dx,
+    ArrayOfStokesVector& dnlte_source_dx,
     // WS Input:
     const ArrayOfMatrix& src_coef_per_species,
     const ArrayOfMatrix& dsrc_coef_dx,
@@ -891,12 +890,12 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
       for (Index si = 0; si < n_species; ++si) {
         sv.Kjj() = src_coef_per_species[si](joker, 0);
         sv *= dB;
-        nlte_dsource_dx[ii].Kjj() += sv.Kjj();
+        dnlte_source_dx[ii].Kjj() += sv.Kjj();
       }
 
       sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
       sv *= B;
-      dnlte_dx_source[ii].Kjj() += sv.Kjj();
+      dnlte_source_dx[ii].Kjj() += sv.Kjj();
     } else if (is_frequency_parameter(
                    jacobian_quantities[jacobian_quantities_position[ii]])) {
       Vector dB(n_f);
@@ -906,16 +905,16 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
       for (Index si = 0; si < n_species; ++si) {
         sv.Kjj() = src_coef_per_species[si](joker, 0);
         sv *= dB;
-        nlte_dsource_dx[ii].Kjj() += sv.Kjj();
+        dnlte_source_dx[ii].Kjj() += sv.Kjj();
       }
 
       sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
       sv *= B;
-      dnlte_dx_source[ii].Kjj() += sv.Kjj();
+      dnlte_source_dx[ii].Kjj() += sv.Kjj();
     } else {
       sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
       sv *= B;
-      dnlte_dx_source[ii].Kjj() += sv.Kjj();
+      dnlte_source_dx[ii].Kjj() += sv.Kjj();
     }
   }
 }
@@ -974,8 +973,7 @@ void propmat_clearskyInit(  //WS Output
     ArrayOfPropagationMatrix& propmat_clearsky,
     ArrayOfStokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_dx_source,
-    ArrayOfStokesVector& nlte_dsource_dx,
+    ArrayOfStokesVector& dnlte_source_dx,
     //WS Input
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -1006,10 +1004,7 @@ void propmat_clearskyInit(  //WS Output
   nlte_source = nlte_do ? ArrayOfStokesVector(abs_species.nelem(),
                                               StokesVector(nf, stokes_dim))
                         : ArrayOfStokesVector(0);
-  dnlte_dx_source = nlte_do
-                        ? ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim))
-                        : ArrayOfStokesVector(0);
-  nlte_dsource_dx = nlte_do
+  dnlte_source_dx = nlte_do
                         ? ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim))
                         : ArrayOfStokesVector(0);
 }
@@ -1375,8 +1370,7 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
     ArrayOfPropagationMatrix& propmat_clearsky,
     ArrayOfStokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_dx_source,
-    ArrayOfStokesVector& nlte_dsource_dx,
+    ArrayOfStokesVector& dnlte_source_dx,
     // WS Input:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -1461,8 +1455,7 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
   // Now turn nlte_source from absorption into a proper source function
   if (not nlte_source.empty())
     nlte_sourceFromTemperatureAndSrcCoefPerSpecies(nlte_source,
-                                                   dnlte_dx_source,
-                                                   nlte_dsource_dx,
+                                                   dnlte_source_dx,
                                                    src_coef_per_species,
                                                    dsrc_coef_dx,
                                                    jacobian_quantities,

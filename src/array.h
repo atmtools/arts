@@ -120,8 +120,9 @@ class Array : public std::vector<base> {
   Array(std::initializer_list<base> init)
       : std::vector<base>(init) { /* Nothing to do here. */
   }
-  template <size_t N> explicit Array(const std::array<base, N>& input)
-      : std::vector<base>(input.begin(), input.end()) { /* Nothing to do here. */
+  template <class base2, size_t N> explicit Array(const std::array<base2, N>& input)
+      : std::vector<base>(input.begin(), input.end()) {
+    static_assert(std::is_convertible<base, base2>::value, "Must be convertible");
   }
 
   // Assignment operators:

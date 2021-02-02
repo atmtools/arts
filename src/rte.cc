@@ -1178,15 +1178,14 @@ void get_stepwise_clearsky_propmat(
 
   // Local variables inside Agenda
   ArrayOfPropagationMatrix propmat_clearsky, dpropmat_clearsky_dx;
-  ArrayOfStokesVector nlte_source, dnlte_dx_source, nlte_dx_dsource_dx;
+  ArrayOfStokesVector nlte_source, dnlte_source_dx;
 
   // Perform the propagation matrix computations
   propmat_clearsky_agendaExecute(ws,
                                  propmat_clearsky,
                                  nlte_source,
                                  dpropmat_clearsky_dx,
-                                 dnlte_dx_source,
-                                 nlte_dx_dsource_dx,
+                                 dnlte_source_dx,
                                  jacobian_quantities,
                                  ppath_f_grid,
                                  ppath_magnetic_field,
@@ -1230,14 +1229,7 @@ void get_stepwise_clearsky_propmat(
         if (lte) {
           dS_dx[i].SetZero();
         } else {
-          dS_dx[i] = dnlte_dx_source[j];
-          dS_dx[i] += nlte_dx_dsource_dx[j];
-
-          // TEST:  Old routine applied unit conversion on only the last
-          // part of the equation. Was this correct or wrong?  If correct,
-          // this is an issue.  Otherwise, the old version was incorrect.
-          // Have to setup perturbation test-case to study which is most
-          // reasonable...
+          dS_dx[i] = dnlte_source_dx[j];
         }
       } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
       {

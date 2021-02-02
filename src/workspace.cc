@@ -1470,27 +1470,9 @@ void Workspace::define_wsv_data() {
       GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("dnlte_dx_source"),
+      NAME("dnlte_source_dx"),
       DESCRIPTION(
-          // FIXMEDOC
           "NLTE partial derivatives output is two parts:  S*dB/dx+dS/dx*B.\n"
-          "This should contain the latter term for one point in the atmosphere\n"
-          "(one set of pressure, temperature, zn magnetic field, and VMR values)\n"
-          "with respect to one of of the input parameters.\n"
-          "\n"
-          "Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]\n"
-          "\n"
-          "Unit: 1/m/jacobian_quantity\n"),
-      GROUP("ArrayOfStokesVector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("nlte_dsource_dx"),
-      DESCRIPTION(
-          // FIXMEDOC
-          "NLTE partial derivatives output is two parts:  S*dB/dx+dS/dx*B.\n"
-          "This should contain the first term for one point in the atmosphere\n"
-          "(one set of pressure, temperature, zn magnetic field, and VMR values)\n"
-          "with respect to one of of the input parameters.\n"
           "\n"
           "Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]\n"
           "\n"

@@ -32,56 +32,51 @@
  * real work happens in the header file and not here
  **/
 
+#include "constants.h"
 #include "lineshapemodel.h"
-
-ArrayOfString AllLineShapeCoeffs() { return {"X0", "X1", "X2", "X3"}; }
-
-ArrayOfString AllLineShapeVars() {
-  return {"G0", "D0", "G2", "D2", "FVC", "ETA", "Y", "G", "DV"};
-}
 
 Jacobian::Line select_derivativeLineShape(const String& var,
                                           const String& coeff) {
   // Test viability of model variables
-  static const ArrayOfString vars = AllLineShapeVars();
-  bool var_OK = false;
-  for (auto& v : vars)
-    if (var == v) var_OK = true;
+  const auto var_type = LineShape::toVariable(var);
+  check_enum_error(var_type,
+                   "The var: \"", var, "\" is not good");
 
   // Test viability of model coefficients
-  static const ArrayOfString coeffs = AllLineShapeCoeffs();
-  bool coeff_OK = false;
-  for (auto& c : coeffs)
-    if (coeff == c) coeff_OK = true;
-
-  // Fails either when the user has bad input or when the developer fails to update AllLineShapeVars or AllLineShapeCoeffs
-  ARTS_USER_ERROR_IF (not var_OK or not coeff_OK,
-    "At least one of your variable and/or your coefficient is not OK\n"
-    "Your variable: \"", var, "\".  OK variables include: ", vars, "\n"
-    "Your coefficient: \"", coeff, "\".  OK coefficients include: ", coeffs, "\n")
+  const auto coeff_type = Options::toLineShapeCoeff(coeff);
+  check_enum_error(coeff_type,
+                   "The coeff: \"", coeff, "\" is not good");
 
 // Define a repetitive pattern.  Update if/when there are more coefficients in the future
-#define ReturnJacPropMatType(ID)                \
-  (var == #ID) {                                \
-    if (coeff == "X0")                          \
-      return Jacobian::Line::Shape##ID##X0; \
-    else if (coeff == "X1")                     \
-      return Jacobian::Line::Shape##ID##X1; \
-    else if (coeff == "X2")                     \
-      return Jacobian::Line::Shape##ID##X2; \
-    else if (coeff == "X3")                     \
-      return Jacobian::Line::Shape##ID##X3; \
+#define ReturnJacPropMatType(ID)              \
+  case LineShape::Variable::ID:               \
+    switch (coeff_type) {                     \
+      case Options::LineShapeCoeff::X0:       \
+        return Jacobian::Line::Shape##ID##X0; \
+      case Options::LineShapeCoeff::X1:       \
+        return Jacobian::Line::Shape##ID##X1; \
+      case Options::LineShapeCoeff::X2:       \
+        return Jacobian::Line::Shape##ID##X2; \
+      case Options::LineShapeCoeff::X3:       \
+        return Jacobian::Line::Shape##ID##X3; \
+      case Options::LineShapeCoeff::FINAL:    \
+        return Jacobian::Line::FINAL;         \
+  } break
+
+  switch (var_type) {
+    ReturnJacPropMatType(G0);
+    ReturnJacPropMatType(D0);
+    ReturnJacPropMatType(G2);
+    ReturnJacPropMatType(D2);
+    ReturnJacPropMatType(FVC);
+    ReturnJacPropMatType(ETA);
+    ReturnJacPropMatType(Y);
+    ReturnJacPropMatType(G);
+    ReturnJacPropMatType(DV);
+    case LineShape::Variable::FINAL: {
+      /* Leave last */ }
   }
 
-  if ReturnJacPropMatType(G0)
-  else if ReturnJacPropMatType(D0)
-  else if ReturnJacPropMatType(G2)
-  else if ReturnJacPropMatType(D2)
-  else if ReturnJacPropMatType(FVC)
-  else if ReturnJacPropMatType(ETA)
-  else if ReturnJacPropMatType(Y)
-  else if ReturnJacPropMatType(G)
-  else if ReturnJacPropMatType(DV)
 #undef ReturnJacPropMatType
   
   return Jacobian::Line::FINAL;
@@ -471,12 +466,13 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
   Vector line_vmrs(lineshape_species.nelem(), 0);
   const Index back = lineshape_species.nelem() - 1;  // Last index
   
+  // DP is the only style that allows no species
   if (type == Type::DP) return line_vmrs;
   
   // Loop species ignoring self and bath
   for (Index i = 0; i < lineshape_species.nelem()-bath_in_list; i++) {
     // Select target in-case this is self-broadening
-    const auto target =
+    const Index target =
     (self_in_list and  &lineshape_species[i] == &lineshape_species.front()) ? self.Species() : lineshape_species[i].Species();
     
     // Find species in list or do nothing at all
@@ -574,11 +570,7 @@ std::istream& LineShape::operator>>(std::istream& is, Model& m)
 String LineShape::ModelShape2MetaData(const Model& m)
 {
   String out = "";
-  
-  const auto names = AllLineShapeVars();
-  std::vector<Variable> vars(0);
-  for (auto& n: names)
-    vars.push_back(toVariable(n));
+  const auto& vars = enumtyps::VariableTypes;
   
   for (auto& var: vars) {
     if (std::any_of(m.Data().cbegin(), m.Data().cend(),
@@ -601,7 +593,7 @@ LineShape::Model LineShape::MetaData2ModelShape(const String& s)
   if (s.nelem() == 0)
     return LineShape::Model();
   
-  const auto names = AllLineShapeVars();
+  const auto& names = enumstrs::VariableNames;
   
   std::istringstream str(s);
   String part;
@@ -681,21 +673,17 @@ ArrayOfString LineShape::ModelMetaDataArray(const LineShape::Model& m,
                                 const ArrayOfSpeciesTag& sts,
                                 const Numeric T0)
 {
-  const auto names = AllLineShapeVars();
-  std::vector<Variable> vars(0);
-  for (auto& n: names)
-    vars.push_back(toVariable(n));
-  
+  const auto& vars = enumtyps::VariableTypes;
   ArrayOfString as(0);
   
-  for (Index i=0; i<names.nelem(); i++) {
+  for (Index i=0; i<Index(Variable::FINAL); i++) {
     Variable var = vars[i];
     
     if (std::any_of(m.Data().cbegin(), m.Data().cend(),
       [var](auto& x){return x.Get(var).type not_eq TemperatureModel::None;})) {
       
       std::ostringstream os;
-      os << names[i] << " ~ ";
+      os << var << " ~ ";
       for (Index j=0; j<sts.nelem(); j++) {
         if (&sts[j] == &sts.front() and self)
           os << "VMR(" << self_broadening << ") * "

@@ -44,19 +44,13 @@
 
 /** Return the derivative type based on string input 
  * 
- * @param[in] var Variable in AllLineShapeVars()
- * @param[in] coeff Coefficient in AllLineShapeCoeffs()
+ * @param[in] var Variable good with LineShape::toVariable()
+ * @param[in] coeff Coefficient good with Options::toLineShapeCoeff()
  * 
- * @return Derivative
+ * @return Derivative type
  */
 Jacobian::Line select_derivativeLineShape(const String& var,
                                           const String& coeff);
-
-/** All available line shape coefficients */
-ArrayOfString AllLineShapeCoeffs();
-
-/** All available line shape variables */
-ArrayOfString AllLineShapeVars();
 
 /** Computations of line shape derived parameters
  * 
@@ -537,8 +531,6 @@ Vector vmrs(const ConstVectorView& atmospheric_vmrs,
  * 
  * Renormalizes the values to unity.  If this renormalization
  * is impossible then it throws an error
- * 
- * Returns 0s if type is Doppler line shape
  * 
  * @param[in] atmospheric_vmrs VMRS in atmosphere
  * @param[in] atmospheric_species Species in atmosphere

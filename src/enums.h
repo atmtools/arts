@@ -10,11 +10,23 @@
 
 #include "debug.h"
 
+/** Checks if the enum number is good.
+ * 
+ * It is good as long as it is above-equal to 0 and less than FINAL
+ * 
+ * @param[in] x An enum class defined by ENUMCLASS or similar
+ * @return Whether the enum is good
+ */
 template <typename EnumType>
 constexpr bool good_enum(EnumType x) {
   return long(x) < long(EnumType::FINAL) and long(x) >= 0;
 }
 
+/** Returns true if x is a standard space-character
+ * 
+ * @param[in] x a character
+ * @return true if x is a space
+ */
 constexpr bool is_space_char(char x) {
   return x == ' '  or
          x == '\n' or
@@ -24,6 +36,14 @@ constexpr bool is_space_char(char x) {
          x == '\v';
 }
 
+/** Internal string view array generator.
+ * 
+ * Automagically seperates a list by the commas in it,
+ * removing spaces before creating the named variable
+ * 
+ * @param[in] strchars A list of characters
+ * @return An array of views into the original strchars
+ */
 template <typename EnumType> constexpr
 std::array<std::string_view, size_t(EnumType::FINAL)> enum_strarray(
   const std::string_view strchars) {
@@ -52,48 +72,87 @@ std::array<std::string_view, size_t(EnumType::FINAL)> enum_strarray(
   return out;
 }
 
+/** A list of all enum types by index-conversion
+ * 
+ * Note that this assumes the enums are sorted from 0-FINAL
+ * 
+ * @return A list of all enum types
+ */
+template <typename EnumType> constexpr
+std::array<EnumType, size_t(EnumType::FINAL)> enum_typarray() noexcept {
+  std::array<EnumType, size_t(EnumType::FINAL)> out{};
+  for (size_t i = 0; i < size_t(EnumType::FINAL); i++)
+    out[i] = EnumType(i);
+  return out;
+}
+
+/** Checks if the enum class type is good and otherwise throws
+ * an error message composed by variadic input
+ * 
+ * @param[in] type The enum class type variable
+ * @param[in] ...args A list of errors to print if type is bad
+ */
 template <typename EnumType, typename ... Messages>
 void check_enum_error(EnumType type, Messages ... args) {
   ARTS_USER_ERROR_IF (not good_enum(type), args...)
 }
 
-/* Enum style
+/*! Enum style
  *
- * Generates a "enum class ENUMTYPE : long"
+ * Generates a "enum class ENUMTYPE : TYPE"
  * with all the following arguments and terminated by FINAL
  *
  * Additionally, will fill a local namespace "enumstrs" with
- * a std::array<std::string, long(ENUMTYPE::FINAL)> with all of
- * the names in the ENUMTYPE enum class
+ * a std::array<std::string_view, TYPE(ENUMTYPE::FINAL)> with all of
+ * the names in the ENUMTYPE enum class (bar FINAL)
  *
- * Additionally, will generate a inlined "toString" function
+ * Additionally, will fill a local namespace "enumtyps" with
+ * a std::array<ENUMTYPE, TYPE(ENUMTYPE::FINAL)> with all of
+ * the types in the ENUMTYPE enum class (bar FINAL)
+ *
+ * Additionally, will generate a constexpr "toString" function
  * that takes a ENUMTYPE object and returns either its partial
- * name or "BAD ENUMTYPE" as a string
+ * name or "BAD ENUMTYPE" as a string_view
  *
- * Additionally, will generate a inlined "toENUMTYPE" function
- * that takes a std::string and returns a corresponding ENUMTYPE
+ * Additionally, will generate a constexpr "toENUMTYPE" function
+ * that takes a std::string_view and returns a corresponding ENUMTYPE
  * object or ENUMTYPE::FINAL if the object is bad
+ * 
+ * Additionally, will generate intuitive std::istream& and
+ * std::ostream& operators
  *
  * Use the "good_enum(ENUMTYPE)" template function to check
- * if the enum classs object is any good
+ * if the enum class object is any good
+ * 
+ * Use check_enum_error(ENUMTYPE, message...) to throw an error
+ * composed by the variadic message if the enum value is bad
  *
- * Will be updated as soon as possible to ensure that all functions
- * that can be are turned into constexpr functions
- *
- * Example:
- * ENUMCLASS(Test, Value)
- *
- * Generates:
- * enum class Test : long {Value, FINAL};
- * namespace enumstrs {std::array<std::string, 1> TestNames={"Value"};};
- * std::string toString(Test x) noexcept;
- * Test toTest(const std::string& x) noexcept;
+ * \verbatim
+ // Example:
+ ENUMCLASS(Test, char, Value)
+ 
+ // Generates (effectively):
+ enum class Test : char {Value, FINAL};
+ namespace enumstrs {
+    constexpr std::array<std::string_view, 1> TestNames={"Value"};
+ }
+ namespace enumtyps {
+    constexpr std::array<Test, 1> TestTypes={Test::Value};
+ }
+ constexpr std::string_view toString(Test x) noexcept;
+ constexpr Test toTest(const std::string_view& x) noexcept;
+ inline std::ostream &operator<<(std::ostream &os, const Test x);
+ inline std::istream &operator>>(std::istream &is, Test &x);  // throws if not good_enum(x) at end
+ \endverbatim
  */
 #define ENUMCLASS(ENUMTYPE, TYPE, ...)                                    \
   enum class ENUMTYPE : TYPE { __VA_ARGS__, FINAL };                      \
                                                                           \
   namespace enumstrs {                                                    \
   constexpr auto ENUMTYPE##Names = enum_strarray<ENUMTYPE>(#__VA_ARGS__); \
+  }                                                                       \
+  namespace enumtyps {                                                    \
+  constexpr auto ENUMTYPE##Types = enum_typarray<ENUMTYPE>();             \
   }                                                                       \
                                                                           \
   constexpr std::string_view toString(ENUMTYPE x) noexcept {              \

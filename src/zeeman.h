@@ -40,8 +40,7 @@
  * @param[in,out] propmat_clearsky as WSV
  * @param[in,out] nlte_source as WSV
  * @param[in,out] dpropmat_clearsky_dx as WSV
- * @param[in,out] dnlte_dx_source as WSV
- * @param[in,out] nlte_dsource_dx as WSV
+ * @param[in,out] dnlte_source_dx as WSV
  * @param[in]  abs_species as WSV
  * @param[in]  jacobian_quantities as WSV
  * @param[in]  abs_lines_per_species as WSV
@@ -63,8 +62,7 @@ void zeeman_on_the_fly(
   ArrayOfPropagationMatrix& propmat_clearsky,
   ArrayOfStokesVector& nlte_source,
   ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-  ArrayOfStokesVector& dnlte_dx_source,
-  ArrayOfStokesVector& nlte_dsource_dx,
+  ArrayOfStokesVector& dnlte_source_dx,
   const ArrayOfArrayOfSpeciesTag& abs_species,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,

@@ -1749,7 +1749,7 @@ void OptimizeDoitPressureGrid(
   const Vector ppath_los_dummy;
   ArrayOfStokesVector nlte_dummy;
   ArrayOfPropagationMatrix partial_dummy;
-  ArrayOfStokesVector partial_source_dummy, partial_nlte_dummy;
+  ArrayOfStokesVector partial_nlte_dummy;
   EnergyLevelMap rtp_nlte_dummy;
   ArrayOfPropagationMatrix cur_propmat_clearsky;
 
@@ -1771,7 +1771,6 @@ void OptimizeDoitPressureGrid(
                                    cur_propmat_clearsky,
                                    nlte_dummy,
                                    partial_dummy,
-                                   partial_source_dummy,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    f_grid[Range(f_index, 1)],

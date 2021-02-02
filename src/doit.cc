@@ -701,13 +701,11 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       ArrayOfStokesVector nlte_dummy;  //FIXME: do this right?
       ArrayOfPropagationMatrix
           partial_dummy;  // This is right since there should be only clearsky partials
-      ArrayOfStokesVector partial_source_dummy,
-          partial_nlte_dummy;  // This is right since there should be only clearsky partials
+      ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
                                      nlte_dummy,
                                      partial_dummy,
-                                     partial_source_dummy,
                                      partial_nlte_dummy,
                                      ArrayOfRetrievalQuantity(0),
                                      f_grid[Range(f_index, 1)],
@@ -828,13 +826,11 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       ArrayOfStokesVector nlte_dummy;  //FIXME: do this right?
       ArrayOfPropagationMatrix
           partial_dummy;  // This is right since there should be only clearsky partials
-      ArrayOfStokesVector partial_source_dummy,
-          partial_nlte_dummy;  // This is right since there should be only clearsky partials
+      ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
                                      nlte_dummy,
                                      partial_dummy,
-                                     partial_source_dummy,
                                      partial_nlte_dummy,
                                      ArrayOfRetrievalQuantity(0),
                                      f_grid[Range(f_index, 1)],
@@ -1438,13 +1434,11 @@ void cloud_RT_no_background(Workspace& ws,
     ArrayOfStokesVector nlte_dummy;  //FIXME: do this right?
     ArrayOfPropagationMatrix
         partial_dummy;  // This is right since there should be only clearsky partials
-    ArrayOfStokesVector partial_source_dummy,
-        partial_nlte_dummy;  // This is right since there should be only clearsky partials
+    ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
     propmat_clearsky_agendaExecute(ws,
                                    cur_propmat_clearsky,
                                    nlte_dummy,
                                    partial_dummy,
-                                   partial_source_dummy,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    f_grid[Range(f_index, 1)],

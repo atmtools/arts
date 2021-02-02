@@ -2169,8 +2169,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
         "passed a consistency check (atmfields_checked=1).");
 
   ArrayOfPropagationMatrix partial_abs;
-  ArrayOfStokesVector partial_nlte_source,
-      nlte_partial_source;  // FIXME: This is not stored!
+  ArrayOfStokesVector partial_nlte;  // FIXME: This is not stored!
   ArrayOfPropagationMatrix abs;
   ArrayOfStokesVector nlte;
   Vector a_vmr_list;
@@ -2261,8 +2260,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
     firstprivate(l_ws, l_abs_agenda, this_f_grid) private(abs,                 \
                                                           nlte,                \
                                                           partial_abs,         \
-                                                          partial_nlte_source, \
-                                                          nlte_partial_source, \
+                                                          partial_nlte,        \
                                                           a_vmr_list)
     for (Index ipr = 0; ipr < n_pressures; ++ipr)  // Pressure:  ipr
     {
@@ -2312,8 +2310,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                            abs,
                                            nlte,
                                            partial_abs,
-                                           partial_nlte_source,
-                                           nlte_partial_source,
+                                           partial_nlte,
                                            ArrayOfRetrievalQuantity(0),
                                            this_f_grid,
                                            this_rtp_mag,
@@ -2494,7 +2491,7 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
   ArrayOfPropagationMatrix propmat_clearsky;
   ArrayOfStokesVector nlte_source;
   ArrayOfPropagationMatrix dpropmat_clearsky_dx;
-  ArrayOfStokesVector dnlte_dx_source, nlte_dsource_dx;
+  ArrayOfStokesVector dnlte_source_dx;
   ArrayOfMatrix d;
   const ArrayOfRetrievalQuantity jacobian_quantities(0);
   Index propmat_clearsky_checked = 1,
@@ -2504,8 +2501,7 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
   propmat_clearskyInit(propmat_clearsky,
                        nlte_source,
                        dpropmat_clearsky_dx,
-                       dnlte_dx_source,
-                       nlte_dsource_dx,
+                       dnlte_source_dx,
                        al.species,
                        jacobian_quantities,
                        al.f_grid,
@@ -2519,8 +2515,7 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
                               propmat_clearsky,
                               nlte_source,
                               dpropmat_clearsky_dx,
-                              dnlte_dx_source,
-                              nlte_dsource_dx,
+                              dnlte_source_dx,
                               al.f_grid,
                               al.species,
                               jacobian_quantities,

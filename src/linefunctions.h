@@ -578,7 +578,7 @@ public:
 void set_cross_section_of_band(
   InternalData& scratch,
   InternalData& sum,
-  const ConstVectorView f_grid,
+  const ConstVectorView& f_grid,
   const AbsorptionLines& band,
   const ArrayOfRetrievalQuantity& derivatives_data,
   const ArrayOfIndex& derivatives_data_active,

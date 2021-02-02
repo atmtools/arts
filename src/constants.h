@@ -540,6 +540,13 @@ namespace Options {
             hour, hours, h,
             minute, minutes, min,
             second, seconds, s)
+  
+  /** Possible line shape coefficients */
+  ENUMCLASS(LineShapeCoeff, char,
+            X0,
+            X1,
+            X2,
+            X3)
 }
 
 #endif

@@ -48,8 +48,7 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore(jacobian_quantities)
   Touch( nlte_source )
   Touch( dpropmat_clearsky_dx )
-  Touch( dnlte_dx_source)
-  Touch( nlte_dsource_dx)
+  Touch( dnlte_source_dx)
   propmat_clearskyZero
 }
 #
