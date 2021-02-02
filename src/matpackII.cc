@@ -90,10 +90,10 @@ Index Sparse::nnz() const { return matrix.nonZeros(); }
 */
 Numeric& Sparse::rw(Index r, Index c) {
   // Check if indices are valid:
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(r < nrows());
-  assert(c < ncols());
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(r < nrows());
+  ARTS_ASSERT(c < ncols());
 
   return matrix.coeffRef((int)r, (int)c);
 }
@@ -129,10 +129,10 @@ Numeric Sparse::operator()(Index r, Index c) const {
   \date   Tue Jul 15 15:05:40 2003 */
 Numeric Sparse::ro(Index r, Index c) const {
   // Check if indices are valid:
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(r < nrows());
-  assert(c < ncols());
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(r < nrows());
+  ARTS_ASSERT(c < ncols());
 
   return matrix.coeff((int)r, (int)c);
 }
@@ -313,9 +313,9 @@ void Sparse::split(Index offset, Index nrows_block) {
 */
 void Sparse::insert_row(Index r, Vector v) {
   // Check if the row index and the Vector length are valid
-  assert(0 <= r);
-  assert(r < nrows());
-  assert(v.nelem() == ncols());
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(r < nrows());
+  ARTS_ASSERT(v.nelem() == ncols());
 
   for (int i = 0; i < ncols(); i++) {
     if (v[i] != 0) matrix.coeffRef((int)r, i) = v[i];
@@ -359,8 +359,8 @@ void Sparse::insert_elements(Index nelems,
   \param c New column dimension.
 */
 void Sparse::resize(Index r, Index c) {
-  assert(0 <= r);
-  assert(0 <= c);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
 
   matrix.resize((int)r, (int)c);
 }
@@ -393,8 +393,8 @@ std::ostream& operator<<(std::ostream& os, const Sparse& M) {
 */
 void abs(Sparse& A, const Sparse& B) {
   // Check dimensions
-  assert(A.nrows() == B.nrows());
-  assert(A.ncols() == B.ncols());
+  ARTS_ASSERT(A.nrows() == B.nrows());
+  ARTS_ASSERT(A.ncols() == B.ncols());
 
   A.matrix = B.matrix.cwiseAbs();
 }
@@ -416,8 +416,8 @@ void abs(Sparse& A, const Sparse& B) {
 */
 void mult(VectorView y, const Sparse& M, ConstVectorView x) {
   // Check dimensions:
-  assert(y.nelem() == M.nrows());
-  assert(M.ncols() == x.nelem());
+  ARTS_ASSERT(y.nelem() == M.nrows());
+  ARTS_ASSERT(M.ncols() == x.nelem());
 
   // Typedefs for Eigen interface
   typedef Eigen::Matrix<Numeric, Eigen::Dynamic, 1, Eigen::ColMajor>
@@ -451,8 +451,8 @@ void mult(VectorView y, const Sparse& M, ConstVectorView x) {
 */
 void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x) {
   // Check dimensions:
-  assert(y.nelem() == M.ncols());
-  assert(M.nrows() == x.nelem());
+  ARTS_ASSERT(y.nelem() == M.ncols());
+  ARTS_ASSERT(M.nrows() == x.nelem());
 
   // Typedefs for Eigen interface
   typedef Eigen::Matrix<Numeric, 1, Eigen::Dynamic, Eigen::RowMajor>
@@ -489,9 +489,9 @@ void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x) {
 */
 void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C) {
   // Check dimensions:
-  assert(A.nrows() == B.nrows());
-  assert(A.ncols() == C.ncols());
-  assert(B.ncols() == C.nrows());
+  ARTS_ASSERT(A.nrows() == B.nrows());
+  ARTS_ASSERT(A.ncols() == C.ncols());
+  ARTS_ASSERT(B.ncols() == C.nrows());
 
   // Typedefs for Eigen interface
   typedef Eigen::
@@ -538,9 +538,9 @@ void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C) {
 */
 void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C) {
   // Check dimensions:
-  assert(A.nrows() == B.nrows());
-  assert(A.ncols() == C.ncols());
-  assert(B.ncols() == C.nrows());
+  ARTS_ASSERT(A.nrows() == B.nrows());
+  ARTS_ASSERT(A.ncols() == C.ncols());
+  ARTS_ASSERT(B.ncols() == C.nrows());
 
   // Typedefs for Eigen interface.
   typedef Eigen::
@@ -581,8 +581,8 @@ void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C) {
 */
 void transpose(Sparse& A, const Sparse& B) {
   // Check dimensions
-  assert(A.nrows() == B.ncols());
-  assert(A.ncols() == B.nrows());
+  ARTS_ASSERT(A.nrows() == B.ncols());
+  ARTS_ASSERT(A.ncols() == B.nrows());
 
   A.matrix = B.matrix.transpose();
 }
@@ -605,9 +605,9 @@ void transpose(Sparse& A, const Sparse& B) {
 */
 void mult(Sparse& A, const Sparse& B, const Sparse& C) {
   // Check dimensions and make sure that A is empty
-  assert(A.nrows() == B.nrows());
-  assert(A.ncols() == C.ncols());
-  assert(B.ncols() == C.nrows());
+  ARTS_ASSERT(A.nrows() == B.nrows());
+  ARTS_ASSERT(A.ncols() == C.ncols());
+  ARTS_ASSERT(B.ncols() == C.nrows());
 
   A.matrix = B.matrix * C.matrix;
 }
@@ -629,8 +629,8 @@ void mult(Sparse& A, const Sparse& B, const Sparse& C) {
 */
 void add(Sparse& A, const Sparse& B, const Sparse& C) {
   // Check dimensions
-  assert(B.ncols() == C.ncols());
-  assert(B.nrows() == C.nrows());
+  ARTS_ASSERT(B.ncols() == C.ncols());
+  ARTS_ASSERT(B.nrows() == C.nrows());
 
   A.resize(B.nrows(), B.ncols());
   A.matrix = B.matrix + C.matrix;
@@ -645,7 +645,7 @@ void add(Sparse& A, const Sparse& B, const Sparse& C) {
   \param A The matrix to be set to the identity matrix.
 */
 void id_mat(Sparse& A) {
-  assert(A.ncols() == A.nrows());
+  ARTS_ASSERT(A.ncols() == A.nrows());
   A.matrix.setIdentity();
 }
 
@@ -668,8 +668,8 @@ void sub(Sparse& A, const Sparse& B, const Sparse& C) {
   A.resize(B.nrows(), B.ncols());
 
   // Check dimensions
-  assert(B.ncols() == C.ncols());
-  assert(B.nrows() == C.nrows());
+  ARTS_ASSERT(B.ncols() == C.ncols());
+  ARTS_ASSERT(B.nrows() == C.nrows());
 
   A.matrix = B.matrix - C.matrix;
 }

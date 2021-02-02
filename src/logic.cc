@@ -26,7 +26,7 @@
   condition is fullfilled and return true if that is the case.
 
   These functions are intended to be used either inside "if" statements
-  or inside "assert" statements.
+  or inside "ARTS_ASSERT" statements.
 
   The condition should have a simple and intuitive meaning!
 */
@@ -63,14 +63,14 @@ bool is_bool(const Index& x) { return (x == 0 || x == 1); }
    \date   2002-08-11 
 */
 bool is_multiple(const Index& x, const Index& y) {
-  assert(y != 0);
+  ARTS_ASSERT(y != 0);
   return (0 == fmod(Numeric(x), Numeric(y)));
 }
 
 //! Verifies that the size of x is l.
 /*! 
-  This function is supposed to be used together with assert like this:
-  assert(is_size(x,l)) 
+  This function is supposed to be used together with ARTS_ASSERT like this:
+  ARTS_ASSERT(is_size(x,l)) 
 
   \param  x The Vector to check.
   \param  n The desired length.
@@ -293,7 +293,7 @@ bool is_unique(const ArrayOfIndex& x) {
     \param   A   A square matrix.
 */
 bool is_singular(ConstMatrixView A) {
-  assert(A.nrows() == A.ncols());
+  ARTS_ASSERT(A.nrows() == A.ncols());
   Numeric temp = 0.;
 
   for (Index i = 0; i < A.nrows(); i++) {
@@ -321,7 +321,7 @@ bool is_singular(ConstMatrixView A) {
     \param   A   A square matrix.
 */
 bool is_diagonal(ConstMatrixView A) {
-  assert(A.nrows() == A.ncols());
+  ARTS_ASSERT(A.nrows() == A.ncols());
 
   for (Index i = 1; i < A.ncols(); i++) {
     for (Index j = 0; j < i; j++) {

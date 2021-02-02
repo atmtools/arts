@@ -427,7 +427,7 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
               wsv_group_names[Workspace::wsv_data[output[0]].Group()];
           map<String, Index>::const_iterator mdit;
           mdit = MdMap.find(method_name);
-          assert(mdit != MdMap.end());
+          ARTS_ASSERT(mdit != MdMap.end());
 
           tasklist.push_back(MRecord(
               mdit->second, ArrayOfIndex(), output, TokVal(), Agenda(), true));
@@ -780,7 +780,7 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
   if (!mdd->Supergeneric()) {
     // Find explicit method id in MdMap:
     const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
-    assert(i2 != MdMap.end());
+    ARTS_ASSERT(i2 != MdMap.end());
     id = i2->second;
 
     mdd = &md_data[id];
@@ -888,7 +888,7 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
           os.str(), msource.File(), msource.Line(), msource.Column());
     }
 
-    assert(!still_supergeneric);
+    ARTS_ASSERT(!still_supergeneric);
     assertain_character(')');
   } else {
     if (mdd->GOut().nelem()) {
@@ -1618,7 +1618,7 @@ void ArtsParser::tasklist_insert_set_delete(
     }
 
     mdit = MdMap.find(method_name);
-    assert(mdit != MdMap.end());
+    ARTS_ASSERT(mdit != MdMap.end());
     init_mdid = mdit->second;
 
     tasklist.push_back(MRecord(init_mdid,

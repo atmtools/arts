@@ -248,8 +248,8 @@ void get_gasoptprop(Workspace& ws,
                     ConstVectorView f_grid) {
   const Index Np = p_grid.nelem();
 
-  assert(ext_bulk_gas.nrows() == f_grid.nelem());
-  assert(ext_bulk_gas.ncols() == Np);
+  ARTS_ASSERT(ext_bulk_gas.nrows() == f_grid.nelem());
+  ARTS_ASSERT(ext_bulk_gas.ncols() == Np);
 
   // Initialization
   ext_bulk_gas = 0.;
@@ -304,10 +304,10 @@ void get_paroptprop(MatrixView ext_bulk_par,
   DEBUG_ONLY(const Index Np = p_grid.nelem());
   const Index nf = f_grid.nelem();
 
-  assert(ext_bulk_par.nrows() == nf);
-  assert(abs_bulk_par.nrows() == nf);
-  assert(ext_bulk_par.ncols() == Np);
-  assert(abs_bulk_par.ncols() == Np);
+  ARTS_ASSERT(ext_bulk_par.nrows() == nf);
+  ARTS_ASSERT(abs_bulk_par.nrows() == nf);
+  ARTS_ASSERT(ext_bulk_par.ncols() == Np);
+  ARTS_ASSERT(abs_bulk_par.ncols() == Np);
 
   // Initialization
   ext_bulk_par = 0.;
@@ -376,10 +376,10 @@ void get_dtauc_ssalb(MatrixView dtauc,
   const Index nf = ext_bulk_gas.nrows();
   const Index Np = ext_bulk_gas.ncols();
 
-  assert(dtauc.nrows() == nf);
-  assert(ssalb.nrows() == nf);
-  assert(dtauc.ncols() == Np - 1);
-  assert(ssalb.ncols() == Np - 1);
+  ARTS_ASSERT(dtauc.nrows() == nf);
+  ARTS_ASSERT(ssalb.nrows() == nf);
+  ARTS_ASSERT(dtauc.ncols() == Np - 1);
+  ARTS_ASSERT(ssalb.ncols() == Np - 1);
 
   // Initialization
   dtauc = 0.;
@@ -497,9 +497,9 @@ void get_pfct(Tensor3& pfct_bulk_par,
   const Index nf = pha_bulk_par.npages();
   Index nang = pha_bulk_par.ncols();
 
-  assert(pfct_bulk_par.npages() == nf);
-  assert(pfct_bulk_par.nrows() == Np - 1);
-  assert(pfct_bulk_par.ncols() == nang);
+  ARTS_ASSERT(pfct_bulk_par.npages() == nf);
+  ARTS_ASSERT(pfct_bulk_par.nrows() == Np - 1);
+  ARTS_ASSERT(pfct_bulk_par.ncols() == nang);
 
   // Initialization
   pfct_bulk_par = 0.;
@@ -530,11 +530,11 @@ void get_pmom(Tensor3View pmom,
   const Index nlyr = pfct_bulk_par.nrows();
   const Index nang = pfct_bulk_par.ncols();
 
-  assert(nang == pfct_angs.nelem());
+  ARTS_ASSERT(nang == pfct_angs.nelem());
 
-  assert(pmom.npages() == nf);
-  assert(pmom.nrows() == nlyr);
-  assert(pmom.ncols() == Nlegendre);
+  ARTS_ASSERT(pmom.npages() == nf);
+  ARTS_ASSERT(pmom.nrows() == nlyr);
+  ARTS_ASSERT(pmom.ncols() == Nlegendre);
 
   Numeric pfct_threshold = 0.1;
 
@@ -1008,7 +1008,7 @@ void surf_albedoCalc(Workspace& ws,
                                  surface_rtprop_agenda);
     //cout << "surf_los has " << surface_los.ncols() << " columns and "
     //     << surface_los.nrows() << " rows.\n";
-    assert(surface_los.ncols() == 1 || surface_los.nrows() == 0);
+    ARTS_ASSERT(surface_los.ncols() == 1 || surface_los.nrows() == 0);
     if (rza == 0)
       btemp = surface_skin_t;
     else if (surface_skin_t != btemp) {

@@ -281,8 +281,8 @@ Rational toRationalSum(char a, char b=' ')
 
 void readlines(CommonBlock& cmn, const String& basedir="data_new/")
 {
-  if (cmn.Bands.nBand > parameters::nBmx)
-    throw std::runtime_error("Too many bands");
+  ARTS_USER_ERROR_IF (cmn.Bands.nBand > parameters::nBmx,
+                      "Too many bands");
   
   for (Index iband=0; iband<cmn.Bands.nBand; iband++) {
     std::ifstream fortranfile;
@@ -295,8 +295,8 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
       
       Index nliner=0;
       while (fortranfile.good()) {
-        if (nliner >= parameters::nLmx)
-          throw std::runtime_error("Too many lines");
+        ARTS_USER_ERROR_IF (nliner >= parameters::nLmx,
+                            "Too many lines");
         
         char tpline, x;
         char sDipoRigid[21], sPopTrf[21];
@@ -357,7 +357,9 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
           cmn.UnusedBandParams.fl2[iband]=Rational(toRationalSum(fl21, fl22));
           cmn.UnusedBandParams.fv3[iband]=Rational(toRationalSum(fv31, fv32));
           cmn.UnusedBandParams.fr[iband]=Rational(toRationalSum(fr1));
-        } else if(not (
+        }
+        
+        ARTS_USER_ERROR_IF(not (
           cmn.UnusedBandParams.iv1[iband]==Rational(toRationalSum(iv11, iv12)) and
           cmn.UnusedBandParams.iv2[iband]==Rational(toRationalSum(iv21, iv22)) and
           cmn.UnusedBandParams.il2[iband]==Rational(toRationalSum(il21, il22)) and
@@ -367,9 +369,8 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
           cmn.UnusedBandParams.fv2[iband]==Rational(toRationalSum(fv21, fv22)) and
           cmn.UnusedBandParams.fl2[iband]==Rational(toRationalSum(fl21, fl22)) and
           cmn.UnusedBandParams.fv3[iband]==Rational(toRationalSum(fv31, fv32)) and
-          cmn.UnusedBandParams.fr[iband]==Rational(toRationalSum(fr1)))) {
-          throw std::runtime_error("Bad read, bands do not have the same global quantum numbers...");
-        }
+          cmn.UnusedBandParams.fr[iband]==Rational(toRationalSum(fr1))),
+                           "Bad read, bands do not have the same global quantum numbers...");
         
         // Fix...
         String ssDipoRigid = sDipoRigid;
@@ -1708,7 +1709,7 @@ Vector compabs(
         } else if (full) {
           a += u_sqln2pi * u_pi * (tp.eqv.str[iline] / (f - tp.eqv.val[iline])).imag();
         } else {
-          throw std::runtime_error("Cannot understand the combination of calculations requested...");
+          ARTS_USER_ERROR ("Cannot understand the combination of calculations requested...");
         }
       }
       
@@ -1737,8 +1738,8 @@ void detband(CommonBlock& cmn,
   std::ifstream fortranfile;
   fortranfile.open(basedir + "/BandInfo.dat");
   
-  if (not fortranfile.is_open())
-    throw std::runtime_error("Cannot read the file.  Please make sure you point at BandInfo.dat basedir and have the right to read.");
+  ARTS_USER_ERROR_IF (not fortranfile.is_open(),
+                      "Cannot read the file.  Please make sure you point at BandInfo.dat basedir and have the right to read.");
   
   String line;
   getline(fortranfile, line);
@@ -1784,9 +1785,8 @@ void detband(CommonBlock& cmn,
       sprintf(name, "S%ld%c%c%ld%c%c%c%c%ld%c%c%c%c", isotr, c11, c12, lfr, c21, c22, c31, c32, lir, c41, c42, c51, c52);
       cmn.Bands.BandFile[cmn.Bands.nBand] = name;
       cmn.Bands.nBand++;
-      if (cmn.Bands.nBand > parameters::nBmx) {
-        throw std::runtime_error("Too many bands");
-      }
+      ARTS_USER_ERROR_IF (cmn.Bands.nBand > parameters::nBmx,
+                          "Too many bands");
     }
   }
   fortranfile.close();
@@ -1825,11 +1825,11 @@ void readw(CommonBlock& cmn, const String& basedir="data_new/")
         
         getline(fortranfile, line);
         
-        if (lli > cmn.Wfittedp.W0pp.nbooks() or
-            llf > cmn.Wfittedp.W0pp.npages() or
-            jic > cmn.Wfittedp.W0pp.nrows() or
-            jipc > cmn.Wfittedp.W0pp.ncols())
-          throw std::runtime_error("Out of bounds in reading...");
+        ARTS_USER_ERROR_IF (lli > cmn.Wfittedp.W0pp.nbooks() or
+                            llf > cmn.Wfittedp.W0pp.npages() or
+                            jic > cmn.Wfittedp.W0pp.nrows() or
+                            jipc > cmn.Wfittedp.W0pp.ncols(),
+                            "Out of bounds in reading...");
           
         if (jic > jfc and jipc > jfpc) {
           cmn.Wfittedp.W0pp(lli,llf,jic,jipc) = w0r;
@@ -1941,7 +1941,7 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
     case ModeOfLineMixing::VP_W:
     case ModeOfLineMixing::VP_Y:
     case ModeOfLineMixing::SDVP_Y: linemixinglimit_internal=linemixinglimit; break;
-    default: throw std::runtime_error("Bad mode input.  Must update function.");
+    default: ARTS_ASSERT(true, "Bad mode input.  Must update function.");
   }
   
   const auto lstype = typeLP(mode) ? 

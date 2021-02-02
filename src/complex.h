@@ -283,8 +283,8 @@ class ConstComplexVectorView {
   // Const index operators:
   /** Plain const index operator. */
   const Complex& operator[](Index n) const {  // Check if index is valid:
-    assert(0 <= n);
-    assert(n < mrange.mextent);
+    ARTS_ASSERT(0 <= n);
+    ARTS_ASSERT(n < mrange.mextent);
     return get(n);
   }
 
@@ -385,8 +385,8 @@ class ComplexVectorView : public ConstComplexVectorView {
 
   /** Plain Index operator. */
   Complex& operator[](Index n) {  // Check if index is valid:
-    assert(0 <= n);
-    assert(n < mrange.mextent);
+    ARTS_ASSERT(0 <= n);
+    ARTS_ASSERT(n < mrange.mextent);
     return get(n);
   }
 
@@ -451,8 +451,8 @@ class ComplexVectorView : public ConstComplexVectorView {
   // Conversion to 1 column matrix:
   operator ComplexMatrixView();
   // Conversion to a plain C-array
-  const Complex* get_c_array() const;
-  Complex* get_c_array();
+  const Complex* get_c_array() const ARTS_NOEXCEPT;
+  Complex* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
   virtual ~ComplexVectorView() = default;
@@ -633,10 +633,10 @@ class ConstComplexMatrixView {
   // Const index operators:
   /** Plain const index operator. */
   Complex operator()(Index r, Index c) const {  // Check if indices are valid:
-    assert(0 <= r);
-    assert(0 <= c);
-    assert(r < mrr.mextent);
-    assert(c < mcr.mextent);
+    ARTS_ASSERT(0 <= r);
+    ARTS_ASSERT(0 <= c);
+    ARTS_ASSERT(r < mrr.mextent);
+    ARTS_ASSERT(c < mcr.mextent);
 
     return get(r, c);
   }
@@ -749,10 +749,10 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   // Index Operators:
   /** Plain index operator. */
   Complex& operator()(Index r, Index c) {  // Check if indices are valid:
-    assert(0 <= r);
-    assert(0 <= c);
-    assert(r < mrr.mextent);
-    assert(c < mcr.mextent);
+    ARTS_ASSERT(0 <= r);
+    ARTS_ASSERT(0 <= c);
+    ARTS_ASSERT(r < mrr.mextent);
+    ARTS_ASSERT(c < mcr.mextent);
 
     return get(r, c);
   }
@@ -825,8 +825,8 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   ComplexMatrixView& operator-=(const ConstComplexVectorView& x);
 
   // Conversion to a plain C-array
-  const Complex* get_c_array() const;
-  Complex* get_c_array();
+  const Complex* get_c_array() const ARTS_NOEXCEPT;
+  Complex* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
   virtual ~ComplexMatrixView() = default;

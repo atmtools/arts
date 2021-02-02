@@ -112,32 +112,27 @@ void iyRadarSingleScat(Workspace& ws,
 
   // Checks of input
   // Throw error if unsupported features are requested
-  if (rbi < 1 || rbi > 9)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (rbi < 1 || rbi > 9,
         "ppath.background is invalid. Check your "
         "calculation of *ppath*?");
-  if (rbi == 3 || rbi == 4)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (rbi == 3 || rbi == 4,
         "The propagation path ends inside or at boundary of "
         "the cloudbox.\nFor this method, *ppath* must be "
         "calculated in this way:\n   ppathCalc( cloudbox_on = 0 ).");
   if (cloudbox_on) {
-    if (scat_data_checked != 1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (scat_data_checked != 1,
           "The scattering data must be flagged to have\n"
           "passed a consistency check (scat_data_checked=1).");
-    if (ne != TotalNumberOfElements(scat_data))
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (ne != TotalNumberOfElements(scat_data),
           "*pnd_field* and *scat_data* inconsistent regarding total number of"
           " scattering elements.");
   }
   if (jacobian_do) {
     // FIXME: These needs to be tested properly
-    throw std::runtime_error("Jacobian calculations *iyActiveSingleScat* need "
-                             "revision before safe to use.");
+    ARTS_USER_ERROR ( "Jacobian calculations *iyActiveSingleScat* need "
+                              "revision before safe to use.");
     
-    if (dpnd_field_dx.nelem() != jacobian_quantities.nelem())
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (dpnd_field_dx.nelem() != jacobian_quantities.nelem(),
           "*dpnd_field_dx* not properly initialized:\n"
           "Number of elements in dpnd_field_dx must be equal number of jacobian"
           " quantities.\n(Note: jacobians have to be defined BEFORE *pnd_field*"
@@ -157,17 +152,13 @@ void iyRadarSingleScat(Workspace& ws,
                                ppath.los(np - 1, joker),
                                iy_transmitter_agenda);
   //
-  if (iy0.ncols() != ns || iy0.nrows() != nf) {
-    ostringstream os;
-    os << "The size of *iy* returned from *iy_transmitter_agenda* is\n"
-       << "not correct:\n"
-       << "  expected size = [" << nf << "," << stokes_dim << "]\n"
-       << "  size of iy    = [" << iy0.nrows() << "," << iy0.ncols() << "]\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (iy0.ncols() != ns || iy0.nrows() != nf,
+    "The size of *iy* returned from *iy_transmitter_agenda* is\n"
+    "not correct:\n"
+    "  expected size = [", nf, ",", stokes_dim, "]\n"
+    "  size of iy    = [", iy0.nrows(), ",", iy0.ncols(), "]\n")
   for (Index iv = 0; iv < nf; iv++)
-    if (iy0(iv, 0) != 1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (iy0(iv, 0) != 1,
           "The *iy* returned from *iy_transmitter_agenda* "
           "must have the value 1 in the first column.");
 
@@ -216,14 +207,13 @@ void iyRadarSingleScat(Workspace& ws,
       iy_aux[i]   = 0;
       auxPartAtte = i;
     } else {
-      ostringstream os;
-      os << "The only allowed strings in *iy_aux_vars* are:\n"
-         << "  \"Radiative background\"\n"
-         << "  \"Backscattering\"\n"
-         //      << "  \"Optical depth\"\n"
-         //      << "  \"Particle extinction\"\n"
-         << "but you have selected: \"" << iy_aux_vars[i] << "\"";
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR (
+        "The only allowed strings in *iy_aux_vars* are:\n"
+        "  \"Radiative background\"\n"
+        "  \"Backscattering\"\n"
+        //         "  \"Optical depth\"\n"
+        //         "  \"Particle extinction\"\n"
+        "but you have selected: \"", iy_aux_vars[i], "\"")
     }
   }
 
@@ -460,11 +450,10 @@ void iyRadarSingleScat(Workspace& ws,
                     Pe(i_se_flat, ip, joker, joker, joker) =
                         pha_mat_1se(joker, 0, 0, 0, joker, joker);
                 else {
-                  ostringstream os;
-                  os << "Interpolation error for (flat-array) scattering"
-                     << " element #" << i_se_flat << "\n"
-                     << "at location/temperature point #" << ip << "\n";
-                  throw runtime_error(os.str());
+                  ARTS_USER_ERROR (
+                    "Interpolation error for (flat-array) scattering"
+                    " element #", i_se_flat, "\n"
+                    "at location/temperature point #", ip, "\n")
                 }
               }
               i_se_flat++;
@@ -620,45 +609,33 @@ void yRadar(Workspace& ws,
   //
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   //
-  if (f_grid.empty()) {
-    throw runtime_error("The frequency grid is empty.");
-  }
+  ARTS_USER_ERROR_IF (f_grid.empty(), "The frequency grid is empty.");
   chk_if_increasing("f_grid", f_grid);
-  if (f_grid[0] <= 0) {
-
-    throw runtime_error("All frequencies in *f_grid* must be > 0.");
-  }
+  ARTS_USER_ERROR_IF (f_grid[0] <= 0, "All frequencies in *f_grid* must be > 0.");
   //
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  if (atmfields_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
-  if (atmgeom_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have "
         "passed a consistency check (atmgeom_checked=1).");
-  if (cloudbox_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_checked != 1,
         "The cloudbox must be flagged to have "
         "passed a consistency check (cloudbox_checked=1).");
-  if (sensor_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (sensor_checked != 1,
         "The sensor variables must be flagged to have "
         "passed a consistency check (sensor_checked=1).");
 
   // Method specific variables
   bool is_z = max(range_bins) > 1;
-  if (!is_increasing(range_bins))
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!is_increasing(range_bins),
         "The vector *range_bins* must contain strictly "
         "increasing values.");
-  if (!is_z && min(range_bins) < 0)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!is_z && min(range_bins) < 0,
         "The vector *range_bins* is not allowed to contain "
         "negative times.");
-  if (instrument_pol_array.nelem() != nf)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (instrument_pol_array.nelem() != nf,
         "The main length of *instrument_pol_array* must match "
         "the number of frequencies.");
 
@@ -673,7 +650,7 @@ void yRadar(Workspace& ws,
     ze_cfac(cfac, f_grid, ze_tref, k2);
     ze_min = pow(10.0, dbze_min / 10);
   } else {
-    throw runtime_error(
+    ARTS_USER_ERROR (
         "For this method, *iy_unit_radar* must be set to \"1\", "
         "\"Ze\" or \"dBZe\".");
   }
@@ -763,13 +740,11 @@ void yRadar(Workspace& ws,
 
     // Check if path and size OK
     const Index np = ppath.np;
-    if (np == 1)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (np == 1,
           "A path consisting of a single point found. "
           "This is not allowed.");
     error_if_limb_ppath(ppath);
-    if (iy.nrows() != nf * np)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (iy.nrows() != nf * np,
           "The size of *iy* returned from *iy_radar_agenda* "
           "is not correct (for this method).");
 
@@ -890,12 +865,10 @@ void yRadar(Workspace& ws,
     //
     Vector geo_pos;
     geo_pos_agendaExecute(ws, geo_pos, ppath, geo_pos_agenda);
-    if (geo_pos.nelem() && geo_pos.nelem() != atmosphere_dim) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (geo_pos.nelem() && geo_pos.nelem() != atmosphere_dim,
           "Wrong size of *geo_pos* obtained from "
           "*geo_pos_agenda*.\nThe length of *geo_pos* must "
           "be zero or equal to *atmosphere_dim*.");
-    }
     //
     for (Index b = 0; b < nbins; b++) {
       for (Index iv = 0; iv < nf; iv++) {
@@ -947,22 +920,18 @@ void particle_bulkpropRadarOnionPeeling(
     const Verbosity&)
 {
   // Checks of input
-  if (atmfields_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have\n"
         "passed a consistency check (atmfields_checked=1).");
-  if (atmgeom_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have\n"
         "passed a consistency check (atmgeom_checked=1).");
-  if (scat_species.nelem() != 2)
-    throw runtime_error("Length of *scat_data* must be two.");
-  if (invtable.nelem() != 2)
-    throw runtime_error("Length of *invtable* must be two.");
-  if (dbze_noise < invtable[0].get_numeric_grid(GFIELD3_DB_GRID)[0])
-    throw runtime_error( "*dbze_noise* not covered by invtable[0]." );
-  if (dbze_noise < invtable[1].get_numeric_grid(GFIELD3_DB_GRID)[0])
-    throw runtime_error( "*dbze_noise* not covered by invtable[1]." );    
+  ARTS_USER_ERROR_IF (scat_species.nelem() != 2, "Length of *scat_data* must be two.");
+  ARTS_USER_ERROR_IF (invtable.nelem() != 2, "Length of *invtable* must be two.");
+  ARTS_USER_ERROR_IF (dbze_noise < invtable[0].get_numeric_grid(GFIELD3_DB_GRID)[0],
+                      "*dbze_noise* not covered by invtable[0]." );
+  ARTS_USER_ERROR_IF (dbze_noise < invtable[1].get_numeric_grid(GFIELD3_DB_GRID)[0],
+                      "*dbze_noise* not covered by invtable[1]." );    
   chk_atm_field("GIN reflectivities", dBZe, atmosphere_dim, p_grid,
                 lat_grid, lon_grid);
   chk_atm_surface("GIN incangles", incangles, atmosphere_dim, lat_grid,
@@ -1132,25 +1101,23 @@ void RadarOnionPeelingTableCalc(
   const Index iss = i_species;
 
   // Check input
-  if (f_grid.nelem() != 1)
-    throw runtime_error("This method requires that *f_grid* has length 1.");
-  if (i_species < 0 || i_species > 1)
-    throw runtime_error("*i_species* must either be 0 or 1.");
-  if (nss != 2)
-    throw runtime_error("*scat_data* must contain data for exactly two "
-                        "scattering species.");
-  if (scat_species.nelem() != nss)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (f_grid.nelem() != 1,
+                      "This method requires that *f_grid* has length 1.");
+  ARTS_USER_ERROR_IF (i_species < 0 || i_species > 1,
+                      "*i_species* must either be 0 or 1.");
+  ARTS_USER_ERROR_IF (nss != 2,
+                      "*scat_data* must contain data for exactly two "
+                      "scattering species.");
+  ARTS_USER_ERROR_IF (scat_species.nelem() != nss,
         "*scat_data* and *scat_species* are inconsistent in size.");
-  if (scat_meta.nelem() != nss)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (scat_meta.nelem() != nss,
         "*scat_data* and *scat_meta* are inconsistent in size.");
-  if (scat_data[iss].nelem() != scat_meta[iss].nelem())
-    throw runtime_error("*scat_data* and *scat_meta* have inconsistent sizes.");
-  if (scat_data[iss][0].f_grid.nelem() != 1)
-    throw runtime_error("*scat_data* should just contain one frequency.");
-  if (pnd_agenda_array_input_names[iss].nelem() != 1)
-    throw runtime_error("The PSD applied must be of 1-moment type.");
+  ARTS_USER_ERROR_IF (scat_data[iss].nelem() != scat_meta[iss].nelem(),
+                      "*scat_data* and *scat_meta* have inconsistent sizes.");
+  ARTS_USER_ERROR_IF (scat_data[iss][0].f_grid.nelem() != 1,
+                      "*scat_data* should just contain one frequency.");
+  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names[iss].nelem() != 1,
+                      "The PSD applied must be of 1-moment type.");
   
   // Allocate
   if (invtable.empty())
@@ -1172,16 +1139,13 @@ void RadarOnionPeelingTableCalc(
     Matrix itw(nt,2);
     ArrayOfGridPos gp(nt);
     for (Index i=0; i<nse; i++) {
-      if (scat_data[iss][i].ptype != PTYPE_TOTAL_RND)
-        throw runtime_error("So far only TRO is handled by this method.");
+      ARTS_USER_ERROR_IF (scat_data[iss][i].ptype != PTYPE_TOTAL_RND,
+                          "So far only TRO is handled by this method.");
       const Index ib = scat_data[iss][i].za_grid.nelem() - 1;
-      if (scat_data[iss][i].za_grid[ib] < 179.999) {
-        ostringstream os;
-        os << "All za_grid in scat_data must end with 180.\n"
-           << "This is not the case for scat_data[" << iss << "]["
-           << i << "] (0-based)";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (scat_data[iss][i].za_grid[ib] < 179.999,
+          "All za_grid in scat_data must end with 180.\n"
+          "This is not the case for scat_data[", iss, "][",
+          i, "] (0-based)")
       gridpos(gp, scat_data[iss][i].T_grid, t_grid, 1);
       interpweights(itw, gp);
       interp(e(joker,i), itw, scat_data[iss][i].ext_mat_data(0,joker,0,0,0), gp);
@@ -1223,25 +1187,16 @@ void RadarOnionPeelingTableCalc(
     // Sum up to get bulk back-scattering and extinction
     for (Index t=0; t<nt; t++) {
       for (Index i=0; i<nse; i++) {
-        if (b(t,i) < 0) {
-          ostringstream os;
-          os << "A negative back-scattering found for scat_species " << iss 
-             << ",\ntemperature " << t_grid[t] << "K and element " << i; 
-          throw runtime_error(os.str());      
-        }
-        if (e(t,i) < 0) {
-          ostringstream os;
-          os << "A negative extinction found for scat_species " << iss 
-             << ",\ntemperature " << t_grid[t] << "K and element " << i; 
-          throw runtime_error(os.str());      
-        }
-        if (pnd_data(t,i) < 0) {
-          ostringstream os;
-          os << "A negative PSD value found for scat_species " << iss 
-             << ",\ntemperature " << t_grid[t] << "K and " << wc_grid[w]
-             << " kg/m3";
-          throw runtime_error(os.str());      
-        }
+        ARTS_USER_ERROR_IF (b(t,i) < 0,
+          "A negative back-scattering found for scat_species ", iss,
+          ",\ntemperature ", t_grid[t], "K and element ", i)
+        ARTS_USER_ERROR_IF (e(t,i) < 0,
+          "A negative extinction found for scat_species ", iss, 
+          ",\ntemperature ", t_grid[t], "K and element ", i)
+        ARTS_USER_ERROR_IF (pnd_data(t,i) < 0,
+          "A negative PSD value found for scat_species ", iss, 
+          ",\ntemperature ", t_grid[t], "K and ", wc_grid[w],
+          " kg/m3")
         D(0,w,t) += pnd_data(t,i) * b(t,i);
         D(1,w,t) += pnd_data(t,i) * e(t,i);
       }
@@ -1261,28 +1216,25 @@ void RadarOnionPeelingTableCalc(
       for (Index w=0; w<nwc; w++) {
         cout << wc_grid[w] << " " << D(0,w,t) << endl;
       }
-      ostringstream os;
-      os << "A case found of non-increasing dBZe.\n"
-         << "Found for scat_species " << iss << " and " << t_grid[t] << "K.";
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR (
+        "A case found of non-increasing dBZe.\n"
+        "Found for scat_species ", iss, " and ", t_grid[t], "K.")
     }
     if (D(0,0,t) > dbze_grid[0]) {
       for (Index w=0; w<nwc; w++) {
         cout << wc_grid[w] << " " << D(0,w,t) << endl;
       }
-      ostringstream os;
-      os << "A case found where start of dbze_grid not covered.\n"
-         << "Found for scat_species " << iss << " and " << t_grid[t] << "K.";
-      throw runtime_error(os.str());      
+      ARTS_USER_ERROR (
+        "A case found where start of dbze_grid not covered.\n"
+        "Found for scat_species ", iss, " and ", t_grid[t], "K.")      
     }
     if (D(0,nwc-1,t) < dbze_grid[ndb-1]) {
       for (Index w=0; w<nwc; w++) {
         cout << wc_grid[w] << " " << D(0,w,t) << endl;
       }
-      ostringstream os;
-      os << "A case found where end of dbze_grid not covered.\n"
-         << "Found for scat_species " << iss << " and " << t_grid[t] << "K.";
-      throw runtime_error(os.str());      
+      ARTS_USER_ERROR (
+        "A case found where end of dbze_grid not covered.\n"
+        "Found for scat_species ", iss, " and ", t_grid[t], "K.")
     }
     //
     gridpos(gp, D(0,joker,t), dbze_grid);

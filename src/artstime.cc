@@ -43,8 +43,9 @@ TimeStep time_stepper_selection(const String& time_step)
     return TimeStep(std::chrono::minutes(length));
   else if (type == "second" or type == "seconds" or type == "s")
     return TimeStep(std::chrono::seconds(length));
-  else 
-    throw std::runtime_error("Bad time step definition");
+  else {
+    ARTS_USER_ERROR ("Bad time step definition: ", time_step);
+  }
 }
 
 Time next_even(const Time& t, const TimeStep& dt)
@@ -60,14 +61,12 @@ Time next_even(const Time& t, const TimeStep& dt)
 ArrayOfIndex time_steps(const ArrayOfTime& times, const String& step)
 {
   Index N = times.nelem();
-  if (N < 2) {
-    throw std::runtime_error("Can only find time steps for 2-long or longer time grids");
-  }
+  ARTS_USER_ERROR_IF (N < 2,
+    "Can only find time steps for 2-long or longer time grids");
   
   auto dt = time_stepper_selection(step);
-  if (dt < decltype(dt)(0)) {
-    throw std::runtime_error("Must have positive time steps (or 0 for all times)");
-  }
+  ARTS_USER_ERROR_IF (dt < decltype(dt)(0),
+    "Must have positive time steps (or 0 for all times)");
   
   ArrayOfIndex time_steps{0};
   
@@ -114,8 +113,10 @@ std::istream& operator>>(std::istream& is, Time& t)
   ymd.split(YMD, "-");
   hms.split(HMS, ":");
   
-  if (YMD.nelem() not_eq HMS.nelem() and YMD.nelem() not_eq 3)
-    throw std::runtime_error("Time stream must look like \"year-month-day hour:min:seconds\"");
+  ARTS_USER_ERROR_IF (YMD.nelem() not_eq HMS.nelem() and YMD.nelem() not_eq 3,
+    "Time stream must look like \"year-month-day hour:min:seconds\"\n"
+    "\"year-month-day\"   looks like: ", ymd, '\n',
+    "\"hour:min:seconds\" looks like: ", hms);
   
   // FIXME: C++20 has much better calendar handling
   std::tm x;
@@ -132,15 +133,15 @@ std::istream& operator>>(std::istream& is, Time& t)
   return is;
 }
 
-Time mean_time(const ArrayOfTime& ts, Index s, Index e)
+Time mean_time(const ArrayOfTime& ts, Index s, Index E)
 {
-  if (e == -1)
-    e = ts.nelem();
-  else if (e < 0 or e > ts.nelem())
-    throw std::runtime_error("Bad last index, valid options are [-1, ts.nelem()]");
+  Index e=0;
+  if (e == -1) e = ts.nelem();
+  ARTS_USER_ERROR_IF (e < 0 or e > ts.nelem(),
+    "Bad last index, valid options are [-1, ts.nelem()], got: ", E);
   
-  if (s < 0 or s > ts.nelem())
-    throw std::runtime_error("Bad first index, valid options are [0, ts.nelem()]");
+  ARTS_USER_ERROR_IF (s < 0 or s > ts.nelem(),
+    "Bad first index, valid options are [0, ts.nelem()], got: ", s);
 
   Time::InternalTimeStep dt(0);    
   for (Index i=s+1; i<e; i++)

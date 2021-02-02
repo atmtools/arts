@@ -253,8 +253,8 @@ void Print(  // WS Generic Input:
   static long clktck = 0;
 
   if (clktck == 0)
-    if ((clktck = sysconf(_SC_CLK_TCK)) < 0)
-      throw runtime_error("Timer error: Unable to determine CPU clock ticks");
+    ARTS_USER_ERROR_IF ((clktck = sysconf(_SC_CLK_TCK)) < 0,
+                        "Timer error: Unable to determine CPU clock ticks");
 
   os << "  * CPU time  total: " << setprecision(2)
      << (Numeric)(
@@ -355,8 +355,8 @@ void StringJoin(String& out,
 void timerStart(  // WS Output
     Timer& timer,
     const Verbosity&) {
-  if ((timer.realtime_start = times(&timer.cputime_start)) == (clock_t)-1)
-    throw runtime_error("Timer error: Unable to get current CPU time");
+  ARTS_USER_ERROR_IF ((timer.realtime_start = times(&timer.cputime_start)) == (clock_t)-1,
+                      "Timer error: Unable to get current CPU time");
 
   timer.running = true;
   timer.finished = false;
@@ -365,7 +365,7 @@ void timerStart(  // WS Output
 void timerStart(  // WS Output
     Timer& /*starttime*/,
     const Verbosity&) {
-  throw runtime_error(
+  ARTS_USER_ERROR (
       "Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
 }
 #endif
@@ -375,12 +375,11 @@ void timerStart(  // WS Output
 void timerStop(  // WS Input
     Timer& timer,
     const Verbosity&) {
-  if (!timer.running)
-    throw runtime_error(
-        "Timer error: Unable to stop timer that's not running.");
+  ARTS_USER_ERROR_IF (!timer.running,
+      "Timer error: Unable to stop timer that's not running.");
 
-  if ((timer.realtime_end = times(&(timer.cputime_end))) == (clock_t)-1)
-    throw runtime_error("Timer error: Unable to get current CPU time");
+  ARTS_USER_ERROR_IF ((timer.realtime_end = times(&(timer.cputime_end))) == (clock_t)-1,
+    "Timer error: Unable to get current CPU time");
 
   timer.running = false;
   timer.finished = true;
@@ -389,15 +388,15 @@ void timerStop(  // WS Input
 void timerStop(  // WS Input
     const Timer&,
     const Verbosity&) {
-  throw runtime_error(
-      "Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
+  ARTS_USER_ERROR (
+    "Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
 }
 #endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Error(const String& msg, const Verbosity& verbosity) {
   CREATE_OUT0;
-  throw runtime_error(msg);
+  ARTS_USER_ERROR ( msg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -481,11 +480,8 @@ void GetEnvironmentVariable(  // WS Generic Output:
     const Verbosity& /* verbosity */) {
   char* cstr;
   cstr = std::getenv(envvar.c_str());
-  if (cstr == NULL) {
-    std::ostringstream os;
-    os << "Environment variable " << envvar << " does not exist.";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (cstr == NULL,
+    "Environment variable ", envvar, " does not exist.")
   str = cstr != NULL ? String(cstr) : "";
 }
 
@@ -502,19 +498,14 @@ void GetEnvironmentVariable(  // WS Generic Output:
     const Verbosity& /* verbosity */) {
   char* cstr;
   cstr = std::getenv(envvar.c_str());
-  if (cstr == NULL || std::strlen(cstr) == 0) {
-    std::ostringstream os;
-    os << "Environment variable " << envvar << " is empty or does not exist.";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (cstr == NULL || std::strlen(cstr) == 0,
+    "Environment variable ", envvar, " "
+    "is empty or does not exist.")
   std::istringstream is(cstr);
   is >> i;
-  if (!is.eof()) {
-    ostringstream os;
-    os << "Cannot convert environment variable " << envvar
-       << " to Index: " << cstr;
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (!is.eof(),
+      "Cannot convert environment variable ", envvar, " "
+      "to Index: ", cstr)
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -112,11 +112,8 @@ void SpeciesAuxData::setParam(const String& artstag,
   // ok, now for the cool index map:
   // is this arts identifier valid?
   const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artstag);
-  if (i == ArtsMap.end()) {
-    ostringstream os;
-    os << "ARTS Tag: " << artstag << " is unknown.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (i == ArtsMap.end(),
+                      "ARTS Tag: ", artstag, " is unknown.")
 
   SpecIsoMap id = i->second;
 
@@ -159,7 +156,7 @@ Numeric SpeciesAuxData::getIsotopologueRatio(const QuantumIdentifier& qid) const
 
 String SpeciesAuxData::getTypeString(const Index species,
                                      const Index isotopologue) const {
-  assert(mparam_type[species][isotopologue] < AT_FINAL_ENTRY);
+  ARTS_ASSERT(mparam_type[species][isotopologue] < AT_FINAL_ENTRY);
   return SpeciesAuxTypeNames[mparam_type[species][isotopologue]];
 }
 
@@ -221,7 +218,7 @@ bool SpeciesAuxData::ReadFromStream(String& artsid,
     if (is.eof()) return true;
 
     // Throw runtime_error if stream is bad:
-    if (!is) throw runtime_error("Stream bad.");
+    ARTS_USER_ERROR_IF (!is, "Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -254,11 +251,8 @@ bool SpeciesAuxData::ReadFromStream(String& artsid,
     // ok, now for the cool index map:
     // is this arts identifier valid?
     const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
-    if (i == ArtsMap.end()) {
-      ostringstream os;
-      os << "ARTS Tag: " << artsid << " is unknown.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (i == ArtsMap.end(),
+      "ARTS Tag: ", artsid, " is unknown.")
 
     SpecIsoMap id = i->second;
 
@@ -289,7 +283,7 @@ bool SpeciesAuxData::ReadFromStream(String& artsid,
       ratios[0].data = aux;
       mparams[mspecies][misotopologue] = ratios;
     } catch (const runtime_error&) {
-      throw runtime_error("Error reading SpeciesAuxData.");
+      ARTS_USER_ERROR ("Error reading SpeciesAuxData.");
     }
   }
 
@@ -302,13 +296,10 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
   using global_data::species_data;
 
   // Check total number of species:
-  if (species_data.nelem() != isoratios.nspecies()) {
-    ostringstream os;
-    os << "Number of species in SpeciesAuxData (" << isoratios.nspecies()
-       << ") "
-       << "does not fit builtin species data (" << species_data.nelem() << ").";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (species_data.nelem() != isoratios.nspecies(),
+      "Number of species in SpeciesAuxData (", isoratios.nspecies(),
+      ") " "does not fit builtin species data (",
+      species_data.nelem(), ").")
 
   // For the selected species, we check all isotopes by looping over the
   // species data. (Trying to check only the isotopes actually used gets
@@ -323,30 +314,24 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
     const SpeciesRecord& this_sd = species_data[sp];
 
     // Check number of isotopologues:
-    if (this_sd.Isotopologue().nelem() != isoratios.nisotopologues(sp)) {
-      ostringstream os;
-      os << "Incorrect number of isotopologues in isotopologue data.\n"
-         << "Species: " << this_sd.Name() << ".\n"
-         << "Number of isotopes in SpeciesAuxData ("
-         << isoratios.nisotopologues(sp) << ") "
-         << "does not fit builtin species data ("
-         << this_sd.Isotopologue().nelem() << ").";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (this_sd.Isotopologue().nelem() != isoratios.nisotopologues(sp),
+        "Incorrect number of isotopologues in isotopologue data.\n"
+        "Species: ", this_sd.Name(), ".\n"
+        "Number of isotopes in SpeciesAuxData (",
+        isoratios.nisotopologues(sp), ") "
+        "does not fit builtin species data (",
+        this_sd.Isotopologue().nelem(), ").")
 
     for (Index iso = 0; iso < this_sd.Isotopologue().nelem(); ++iso) {
       // For "real" species (not representing continau) the isotopologue
       // ratio must not be NAN or below zero.
       if (!this_sd.Isotopologue()[iso].isContinuum()) {
-        if (std::isnan(isoratios.getParam(sp, iso)[0].data[0]) ||
-            isoratios.getParam(sp, iso)[0].data[0] < 0.) {
-          ostringstream os;
-          os << "Invalid isotopologue ratio.\n"
-             << "Species: " << this_sd.Name() << "-"
-             << this_sd.Isotopologue()[iso].Name() << "\n"
-             << "Ratio:   " << isoratios.getParam(sp, iso)[0].data[0];
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (std::isnan(isoratios.getParam(sp, iso)[0].data[0]) ||
+                            isoratios.getParam(sp, iso)[0].data[0] < 0.,
+            "Invalid isotopologue ratio.\n"
+            "Species: ", this_sd.Name(), "-",
+            this_sd.Isotopologue()[iso].Name(), "\n"
+            "Ratio:   ", isoratios.getParam(sp, iso)[0].data[0])
       }
     }
   }
@@ -357,12 +342,9 @@ void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species,
   using global_data::species_data;
 
   // Check total number of species:
-  if (species_data.nelem() != partfun.nspecies()) {
-    ostringstream os;
-    os << "Number of species in SpeciesAuxData (" << partfun.nspecies() << ") "
-       << "does not fit builtin species data (" << species_data.nelem() << ").";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (species_data.nelem() != partfun.nspecies(),
+        "Number of species in SpeciesAuxData (", partfun.nspecies(), ") "
+       "does not fit builtin species data (", species_data.nelem(), ").")
 
   // For the selected species, we check all isotopes by looping over the
   // species data. (Trying to check only the isotopes actually used gets
@@ -377,16 +359,13 @@ void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species,
     const SpeciesRecord& this_sd = species_data[sp];
 
     // Check number of isotopologues:
-    if (this_sd.Isotopologue().nelem() != partfun.nisotopologues(sp)) {
-      ostringstream os;
-      os << "Incorrect number of isotopologues in partition function data.\n"
-         << "Species: " << this_sd.Name() << ".\n"
-         << "Number of isotopes in SpeciesAuxData ("
-         << partfun.nisotopologues(sp) << ") "
-         << "does not fit builtin species data ("
-         << this_sd.Isotopologue().nelem() << ").";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (this_sd.Isotopologue().nelem() != partfun.nisotopologues(sp),
+        "Incorrect number of isotopologues in partition function data.\n"
+        "Species: ", this_sd.Name(), ".\n"
+        "Number of isotopes in SpeciesAuxData (",
+        partfun.nisotopologues(sp), ") "
+        "does not fit builtin species data (",
+        this_sd.Isotopologue().nelem(), ").")
   }
 }
 
@@ -436,7 +415,7 @@ void fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(
       Vector grid;
       const Vector& coeffs = species_data[isp].Isotopologue()[iiso].GetCoeff();
 
-      assert(coeffs.nelem() >= 2);
+      ARTS_ASSERT(coeffs.nelem() >= 2);
 
       nlinspace(grid, 0, (Numeric)coeffs.nelem() - 1., coeffs.nelem());
       pfuncs[0].set_grid(0, grid);
@@ -447,7 +426,7 @@ void fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(
 
       // Temperature data should either contain two Ts, lower and upper value of
       // the valid range or be empty
-      assert(temp_range.nelem() == 0 || temp_range.nelem() == 2);
+      ARTS_ASSERT(temp_range.nelem() == 0 || temp_range.nelem() == 2);
 
       if (temp_range.nelem() == 2) {
         pfuncs[1].set_grid(0, tgrid);
@@ -572,8 +551,8 @@ String species_name_from_species_index(const Index spec_ind) {
   // Assert that spec_ind is inside species data. (This is an assertion,
   // because species indices should never be user input, but set by the
   // program automatically, based on species names.)
-  assert(spec_ind >= 0);
-  assert(spec_ind < species_data.nelem());
+  ARTS_ASSERT(spec_ind >= 0);
+  ARTS_ASSERT(spec_ind < species_data.nelem());
 
   // A reference to the relevant record of the species data:
   const SpeciesRecord& spr = species_data[spec_ind];
@@ -725,12 +704,6 @@ void xsec_species(Matrix& xsec,
     }
   }
 
-  if (do_abort) {
-    std::ostringstream os;
-    os << "Error messages from failed cases:\n";
-    for (const auto& msg : fail_msg) {
-      os << msg << '\n';
-    }
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (do_abort,
+    "Error messages from failed cases:\n", fail_msg)
 }

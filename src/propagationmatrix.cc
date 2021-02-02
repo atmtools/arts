@@ -1602,7 +1602,7 @@ void PropagationMatrix::MatrixInverseAtPosition(MatrixView ret,
       ret(3, 3) = a * (a2 - b2 - c2 + u2) * div;
     } break;
     default:
-      throw std::runtime_error("Strange stokes dimensions");
+      ARTS_ASSERT(false, "Strange stokes dimensions");
       break;
   }
 }
@@ -1662,8 +1662,7 @@ bool PropagationMatrix::FittingShape(ConstMatrixView x) const {
             return true;
           break;
         default:
-          throw std::runtime_error(
-              "Stokes dimension does not agree with accepted values");
+          ARTS_ASSERT(false, "Stokes dimension does not agree with accepted values");
           break;
       }
     }
@@ -1698,8 +1697,7 @@ void PropagationMatrix::GetTensor3(Tensor3View tensor3, Index iz, Index ia) {
       tensor3(joker, 0, 0) = mdata(ia, iz, joker, 0);
       break;
     default:
-      throw std::runtime_error(
-          "Stokes dimension does not agree with accepted values");
+      ARTS_ASSERT(false, "Stokes dimension does not agree with accepted values");
       break;
   }
 }
@@ -1950,6 +1948,8 @@ void PropagationMatrix::MatrixAtPosition(MatrixView ret,
   }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
 Numeric PropagationMatrix::operator()(const Index iv,
                                       const Index is1,
                                       const Index is2,
@@ -1971,7 +1971,7 @@ Numeric PropagationMatrix::operator()(const Index iv,
           return mdata(ia, iz, iv, 3);
           break;
         default:
-          throw std::runtime_error("out of bounds");
+          ARTS_ASSERT(false, "out of bounds");
       }
       break;
     case 1:
@@ -1989,7 +1989,7 @@ Numeric PropagationMatrix::operator()(const Index iv,
           return mdata(ia, iz, iv, 5);
           break;
         default:
-          throw std::runtime_error("out of bounds");
+          ARTS_ASSERT(false, "out of bounds");
       }
     case 2:
       switch (is2) {
@@ -2006,7 +2006,7 @@ Numeric PropagationMatrix::operator()(const Index iv,
           return mdata(ia, iz, iv, 6);
           break;
         default:
-          throw std::runtime_error("out of bounds");
+          ARTS_ASSERT(false, "out of bounds");
       }
       break;
     case 3:
@@ -2024,13 +2024,14 @@ Numeric PropagationMatrix::operator()(const Index iv,
           return mdata(ia, iz, iv, 0);
           break;
         default:
-          throw std::runtime_error("out of bounds");
+          ARTS_ASSERT(false, "out of bounds");
       }
       break;
     default:
-      throw std::runtime_error("out of bounds");
+      ARTS_ASSERT(false, "out of bounds");
   }
 }
+#pragma GCC diagnostic pop
 
 // Needs to be implemented in this file!!!
 std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm) {

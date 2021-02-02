@@ -31,8 +31,8 @@
 #include "matpackV.h"
 
 #define CHECK(x)  \
-  assert(0 <= x); \
-  assert(x < m##x##r.mextent)
+  ARTS_ASSERT(0 <= x); \
+  ARTS_ASSERT(x < m##x##r.mextent)
 #define OFFSET(x) m##x##r.mstart + x* m##x##r.mstride
 
 /** The outermost iterator class for rank 6 tensors. This takes into
@@ -1018,8 +1018,8 @@ class Tensor6View : public ConstTensor6View {
   }
 
   // Conversion to a plain C-array
-  const Numeric* get_c_array() const;
-  Numeric* get_c_array();
+  const Numeric* get_c_array() const ARTS_NOEXCEPT;
+  Numeric* get_c_array() ARTS_NOEXCEPT;
 
   // Functions returning iterators:
   Iterator6D begin();
@@ -1110,14 +1110,14 @@ class Tensor6 : public Tensor6View {
    * @param[in] r4 - The Range along the fifth dimension
    * @param[in] r5 - The Range along the sixth dimension
    */
-  Tensor6(Numeric* d, const Range& r0, const Range& r1, const Range& r2, const Range& r3, const Range& r4, const Range& r5)
+  Tensor6(Numeric* d, const Range& r0, const Range& r1, const Range& r2, const Range& r3, const Range& r4, const Range& r5) ARTS_NOEXCEPT
   : Tensor6View(d, r0, r1, r2, r3, r4, r5) {
-    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r1.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r2.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r3.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r4.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r5.get_extent() < 0) throw std::runtime_error("Must have size");
+    ARTS_ASSERT (not (r0.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r1.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r2.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r3.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r4.get_extent() < 0), "Must have size");
+    ARTS_ASSERT (not (r5.get_extent() < 0), "Must have size");
   }
 
   // Assignment operators:
@@ -1139,20 +1139,20 @@ class Tensor6 : public Tensor6View {
   
   /*! Reduce a Tensor6 to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() && {
+  Vector reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim0 < 6, "Bad Dimension, Out-of-Bounds");
     
     Range r0(0, dim0 == 0 ? nvitrines() : dim0 == 1 ? nshelves() : dim0 == 2 ? nbooks() : dim0 == 3 ? npages() : dim0 == 4 ? nrows() : ncols());
     
     Vector out(mdata, r0);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
   
   /*! Reduce a Tensor6 to a Matrix and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1>
-  Matrix reduce_rank() && {
+  Matrix reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim1 < 6, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     
@@ -1160,14 +1160,14 @@ class Tensor6 : public Tensor6View {
     const Range r0(0, dim0 == 0 ? nvitrines() : dim0 == 1 ? nshelves() : dim0 == 2 ? nbooks() : dim0 == 3 ? npages() : nrows(), r1.get_extent());
     
     Matrix out(mdata, r0, r1);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
   
   /*! Reduce a Tensor6 to a Tensor3 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2>
-  Tensor3 reduce_rank() && {
+  Tensor3 reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim2 < 6, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
@@ -1177,14 +1177,14 @@ class Tensor6 : public Tensor6View {
     const Range r0(0, dim0 == 0 ? nvitrines() : dim0 == 1 ? nshelves() : dim0 == 2 ? nbooks() : npages(), r1.get_extent() * r2.get_extent());
     
     Tensor3 out(mdata, r0, r1, r2);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
   
   /*! Reduce a Tensor6 to a Tensor4 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2, std::size_t dim3>
-  Tensor4 reduce_rank() && {
+  Tensor4 reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim3 < 6, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
@@ -1196,14 +1196,14 @@ class Tensor6 : public Tensor6View {
     const Range r0(0, dim0 == 0 ? nvitrines() : dim0 == 1 ? nshelves() : nbooks(), r1.get_extent() * r2.get_extent() * r3.get_extent());
     
     Tensor4 out(mdata, r0, r1, r2, r3);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
   
   /*! Reduce a Tensor6 to a Tensor5 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2, std::size_t dim3, std::size_t dim4>
-  Tensor5 reduce_rank() && {
+  Tensor5 reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim4 < 6, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
@@ -1217,7 +1217,7 @@ class Tensor6 : public Tensor6View {
     const Range r0(0, dim0 == 0 ? nvitrines() : nshelves(), r1.get_extent() * r2.get_extent() * r3.get_extent() * r4.get_extent());
     
     Tensor5 out(mdata, r0, r1, r2, r3, r4);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }

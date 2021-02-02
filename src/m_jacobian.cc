@@ -340,7 +340,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
   }
 
   //--- Set jacobian ---
-  assert(rq.Grids()[0].nelem() == 1);
+  ARTS_ASSERT(rq.Grids()[0].nelem() == 1);
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
   jacobian(rowind, ji[0]) = dy;
 }
@@ -507,7 +507,7 @@ void jacobianCalcFreqStretch(
   }
 
   //--- Set jacobians ---
-  assert(rq.Grids()[0].nelem() == 1);
+  ARTS_ASSERT(rq.Grids()[0].nelem() == 1);
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
   jacobian(rowind, ji[0]) = dy;
 }
@@ -697,8 +697,8 @@ void jacobianCalcPointingZaInterp(
   // Handle pointing "jitter" seperately
   if (rq.Grids()[0][0] == -1)          // Not all values are set here,
   {                                    // but should already have been
-    assert(lg == sensor_los.nrows());  // set to 0
-    assert(rq.Grids()[0][mblock_index] == -1);
+    ARTS_ASSERT(lg == sensor_los.nrows());  // set to 0
+    ARTS_ASSERT(rq.Grids()[0][mblock_index] == -1);
     jacobian(rowind, it + mblock_index) = dy;
   }
 
@@ -706,7 +706,7 @@ void jacobianCalcPointingZaInterp(
   else {
     Vector w;
     for (Index c = 0; c < lg; c++) {
-      assert(Numeric(c) == rq.Grids()[0][c]);
+      ARTS_ASSERT(Numeric(c) == rq.Grids()[0][c]);
       //
       polynomial_basis_func(w, sensor_time, c);
       //
@@ -820,8 +820,8 @@ void jacobianCalcPointingZaRecalc(
   // Handle "jitter" seperately
   if (rq.Grids()[0][0] == -1)          // Not all values are set here,
   {                                    // but should already have been
-    assert(lg == sensor_los.nrows());  // set to 0
-    assert(rq.Grids()[0][mblock_index] == -1);
+    ARTS_ASSERT(lg == sensor_los.nrows());  // set to 0
+    ARTS_ASSERT(rq.Grids()[0][mblock_index] == -1);
     jacobian(rowind, it + mblock_index) = dy;
   }
 
@@ -829,7 +829,7 @@ void jacobianCalcPointingZaRecalc(
   else {
     Vector w;
     for (Index c = 0; c < lg; c++) {
-      assert(Numeric(c) == rq.Grids()[0][c]);
+      ARTS_ASSERT(Numeric(c) == rq.Grids()[0][c]);
       //
       polynomial_basis_func(w, sensor_time, c);
       //

@@ -9,7 +9,7 @@ Vector VectorNLinSpaceConst(Numeric f0, Numeric f1, Index n) {
   VectorNLinSpace(x, n, f0, f1, Verbosity{});
   return x;
 }
-
+  
 int main() {
   define_species_data();
   define_species_map();

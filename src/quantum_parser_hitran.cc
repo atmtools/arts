@@ -720,7 +720,7 @@ void postprocess_group5_hitran(QuantumIdentifier& qid) {
       qid.LowerQuantumNumbers()[QuantumNumberType::J] -
           qid.LowerQuantumNumbers()[QuantumNumberType::dJ]);
 
-  assert(qid.Species() == species_index_from_species_name("O2"));
+  ARTS_ASSERT(qid.Species() == species_index_from_species_name("O2"));
 
   if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
       Index(QuantumNumberTypeLabelsHitran::O2_X_is_X)) {
@@ -820,7 +820,7 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
 }
 
 void postprocess_group6oh_hitran(QuantumIdentifier& qid) {
-  assert(qid.Species() == species_index_from_species_name("OH"));
+  ARTS_ASSERT(qid.Species() == species_index_from_species_name("OH"));
 
   qid.UpperQuantumNumbers().Set(
       QuantumNumberType::J,

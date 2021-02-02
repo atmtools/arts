@@ -787,7 +787,7 @@ int main(int argc, char** argv) {
   define_agenda_map();
 
   // Check that agenda information in wsv_data and agenda_data is consistent:
-  assert(check_agenda_data());
+  ARTS_ASSERT(check_agenda_data());
 
   // Initialize memory handler.
   global_data::workspace_memory_handler.initialize();

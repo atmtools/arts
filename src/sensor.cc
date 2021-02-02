@@ -75,10 +75,10 @@ void antenna1d_matrix(Sparse& H,
   const Index n_ant = antenna_dza.nelem();
 
   // Asserts for variables beside antenna_response
-  assert(antenna_dim == 1);
-  assert(n_za >= 2);
-  assert(n_pol >= 1);
-  assert(do_norm >= 0 && do_norm <= 1);
+  ARTS_ASSERT(antenna_dim == 1);
+  ARTS_ASSERT(n_za >= 2);
+  ARTS_ASSERT(n_pol >= 1);
+  ARTS_ASSERT(do_norm >= 0 && do_norm <= 1);
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -96,10 +96,10 @@ void antenna1d_matrix(Sparse& H,
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
-  assert(n_ar_pol == 1 || n_ar_pol >= n_pol);
-  assert(n_ar_f);
-  assert(n_ar_za > 1);
-  assert(n_ar_aa == 1);
+  ARTS_ASSERT(n_ar_pol == 1 || n_ar_pol >= n_pol);
+  ARTS_ASSERT(n_ar_f);
+  ARTS_ASSERT(n_ar_za > 1);
+  ARTS_ASSERT(n_ar_aa == 1);
 
   // If response data extend outside za_grid is checked in
   // integration_func_by_vecmult
@@ -213,48 +213,42 @@ void antenna2d_gridded_dlos(Sparse& H,
   const Index n_f = f_grid.nelem();
 
   // Decompose mblock_dlos into za and aa grids, including checking
-  if( mblock_dlos.ncols() != 2 )
-    throw runtime_error("For the gridded_dlos option, *mblock_dlos_grid* "
-                        "must have two columns.");
+  ARTS_USER_ERROR_IF (mblock_dlos.ncols() != 2 ,
+                      "For the gridded_dlos option, *mblock_dlos_grid* "
+                      "must have two columns.");
 
 
   Index nza = 1;
   for(Index i=0; i<n_dlos-1 && mblock_dlos(i+1,0) > mblock_dlos(i,0); i++ ) {
     nza++;
   }
-  if( nza < 2 ) 
-    throw runtime_error("For the gridded_dlos option, the number of za angles "
-                        "(among dlos directions) must be >= 2.");
-  if( n_dlos % nza > 0 ) 
-    throw runtime_error("For the gridded_dlos option, the number of dlos angles "
-                        "must be a product of two integers.");
+  ARTS_USER_ERROR_IF(nza < 2,
+                     "For the gridded_dlos option, the number of za angles "
+                     "(among dlos directions) must be >= 2.");
+  ARTS_USER_ERROR_IF (n_dlos % nza > 0,
+                      "For the gridded_dlos option, the number of dlos angles "
+                      "must be a product of two integers.");
   const Index naa = n_dlos / nza; 
   const Vector za_grid = mblock_dlos(Range(0,nza),0);
   const Vector aa_grid = mblock_dlos(Range(0,naa,nza),1);
   for(Index i=0; i<n_dlos; i++ ) {
-    if(i>=nza && abs(mblock_dlos(i,0)-mblock_dlos(i-nza,0)) > 1e-6 ) {
-      ostringstream os;
-      os << "Zenith angle of dlos " << i << " (0-based) differs to zenith " 
-         << "angle of dlos " << i-nza << ", while they need to be equal "
-         << "to form rectangular grid.";
-      throw std::runtime_error(os.str());      
-    }
-    if(abs(mblock_dlos(i,1)-aa_grid[i/nza]) > 1e-6) {
-      ostringstream os;
-      os << "Azimuth angle of dlos " << i << " (0-based) differs to azimuth " 
-         << "angle " << (i/nza)*nza  << ", while they need to be equal "
-         << "to form rectangular grid.";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF(i>=nza && abs(mblock_dlos(i,0)-mblock_dlos(i-nza,0)) > 1e-6 ,
+        "Zenith angle of dlos ", i, " (0-based) differs to zenith " 
+        "angle of dlos ", i-nza, ", while they need to be equal "
+        "to form rectangular grid.")
+    ARTS_USER_ERROR_IF(abs(mblock_dlos(i,1)-aa_grid[i/nza]) > 1e-6,
+        "Azimuth angle of dlos ", i, " (0-based) differs to azimuth " 
+        "angle ", (i/nza)*nza , ", while they need to be equal "
+        "to form rectangular grid.")
   }
 
   // Calculate number of antenna beams
   const Index n_ant = antenna_dlos.nrows();
 
   // Asserts for variables beside antenna_response
-  assert(antenna_dim == 2);
-  assert(n_dlos >= 1);
-  assert(n_pol >= 1);
+  ARTS_ASSERT(antenna_dim == 2);
+  ARTS_ASSERT(n_dlos >= 1);
+  ARTS_ASSERT(n_pol >= 1);
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -272,14 +266,14 @@ void antenna2d_gridded_dlos(Sparse& H,
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
-  assert(n_ar_pol == 1 || n_ar_pol >= n_pol);
-  assert(n_ar_f);
-  assert(n_ar_za > 1);
-  assert(n_ar_aa > 1);
-  assert(antenna_response.data.ncols() == n_ar_aa );
-  assert(antenna_response.data.nrows() == n_ar_za );
-  assert(antenna_response.data.npages() == n_ar_f );
-  assert(antenna_response.data.nbooks() == n_ar_pol );
+  ARTS_ASSERT(n_ar_pol == 1 || n_ar_pol >= n_pol);
+  ARTS_ASSERT(n_ar_f);
+  ARTS_ASSERT(n_ar_za > 1);
+  ARTS_ASSERT(n_ar_aa > 1);
+  ARTS_ASSERT(antenna_response.data.ncols() == n_ar_aa );
+  ARTS_ASSERT(antenna_response.data.nrows() == n_ar_za );
+  ARTS_ASSERT(antenna_response.data.npages() == n_ar_f );
+  ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol );
 
   // Include cos(za)-term in response
   Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
@@ -366,40 +360,30 @@ void antenna2d_gridded_dlos(Sparse& H,
           // za grid positions
           Vector zas = aresponse_za_grid;
           zas += antenna_dlos(ia, 0);
-          if( zas[0] < za_grid[0] ) {
-            ostringstream os;
-            os << "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
-               << "It must be extended downwards with at least " 
-               << za_grid[0]-zas[0] << " deg.";
-            throw std::runtime_error(os.str());      
-          }
-          if( zas[n_ar_za-1] > za_grid[nza-1] ) {
-            ostringstream os;
-            os << "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
-               << "It must be extended upwards with at least " 
-               << zas[n_ar_za-1] - za_grid[nza-1] << " deg.";
-            throw std::runtime_error(os.str());      
-          }
+          ARTS_USER_ERROR_IF( zas[0] < za_grid[0],
+              "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
+              "It must be extended downwards with at least ",
+              za_grid[0]-zas[0], " deg.")
+          ARTS_USER_ERROR_IF( zas[n_ar_za-1] > za_grid[nza-1],
+              "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
+              "It must be extended upwards with at least ",
+              zas[n_ar_za-1] - za_grid[nza-1], " deg.")
+          
           ArrayOfGridPos gp_za(n_ar_za);
           gridpos(gp_za, za_grid, zas);
           
           // aa grid positions
           Vector aas = aresponse_aa_grid;
           if (antenna_dlos.ncols() > 1) { aas += antenna_dlos(ia, 1); }              
-          if( aas[0] < aa_grid[0] ) {
-            ostringstream os;
-            os << "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
-               << "It must be extended downwards with at least " 
-               << aa_grid[0]-aas[0] << " deg.";
-            throw std::runtime_error(os.str());      
-          }
-          if( aas[n_ar_aa-1] > aa_grid[naa-1] ) {
-            ostringstream os;
-            os << "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
-               << "It must be extended upwards with at least " 
-               << aas[n_ar_aa-1] - aa_grid[naa-1] << " deg.";
-            throw std::runtime_error(os.str());      
-          }
+          ARTS_USER_ERROR_IF( aas[0] < aa_grid[0],
+              "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
+              "It must be extended downwards with at least ",
+              aa_grid[0]-aas[0], " deg.")
+          ARTS_USER_ERROR_IF( aas[n_ar_aa-1] > aa_grid[naa-1],
+              "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
+              "It must be extended upwards with at least ",
+              aas[n_ar_aa-1] - aa_grid[naa-1], " deg.")
+          
           ArrayOfGridPos gp_aa(n_ar_aa);
           gridpos(gp_aa, aa_grid, aas);
 
@@ -476,9 +460,9 @@ void antenna2d_interp_response(Sparse& H,
   const Index n_ant = antenna_dlos.nrows();
 
   // Asserts for variables beside antenna_response
-  assert(antenna_dim == 2);
-  assert(n_dlos >= 1);
-  assert(n_pol >= 1);
+  ARTS_ASSERT(antenna_dim == 2);
+  ARTS_ASSERT(n_dlos >= 1);
+  ARTS_ASSERT(n_pol >= 1);
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -496,14 +480,14 @@ void antenna2d_interp_response(Sparse& H,
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
-  assert(n_ar_pol == 1 || n_ar_pol >= n_pol);
-  assert(n_ar_f);
-  assert(n_ar_za > 1);
-  assert(n_ar_aa > 1);
-  assert(antenna_response.data.ncols() == n_ar_aa );
-  assert(antenna_response.data.nrows() == n_ar_za );
-  assert(antenna_response.data.npages() == n_ar_f );
-  assert(antenna_response.data.nbooks() == n_ar_pol );
+  ARTS_ASSERT(n_ar_pol == 1 || n_ar_pol >= n_pol);
+  ARTS_ASSERT(n_ar_f);
+  ARTS_ASSERT(n_ar_za > 1);
+  ARTS_ASSERT(n_ar_aa > 1);
+  ARTS_ASSERT(antenna_response.data.ncols() == n_ar_aa );
+  ARTS_ASSERT(antenna_response.data.nrows() == n_ar_za );
+  ARTS_ASSERT(antenna_response.data.npages() == n_ar_f );
+  ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol );
 
   // Include cos(za)-term in response
   Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
@@ -643,7 +627,7 @@ void gaussian_response_autogrid(Vector& x,
                                 const Numeric& fwhm,
                                 const Numeric& xwidth_si,
                                 const Numeric& dx_si) {
-  assert(dx_si <= xwidth_si);
+  ARTS_ASSERT(dx_si <= xwidth_si);
 
   const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
 
@@ -690,10 +674,10 @@ void mixer_matrix(Sparse& H,
   DEBUG_ONLY(const Index nrp = filter.data.nelem();)
 
   // Asserts
-  assert(lo > f_grid[0]);
-  assert(lo < last(f_grid));
-  assert(filter_grid.nelem() == nrp);
-  assert(fabs(last(filter_grid) + filter_grid[0]) < 1e3);
+  ARTS_ASSERT(lo > f_grid[0]);
+  ARTS_ASSERT(lo < last(f_grid));
+  ARTS_ASSERT(filter_grid.nelem() == nrp);
+  ARTS_ASSERT(fabs(last(filter_grid) + filter_grid[0]) < 1e3);
   // If response data extend outside f_grid is checked in summation_by_vecmult
 
   // Find indices in f_grid where f_grid is just below and above the
@@ -779,26 +763,26 @@ void mixer_matrix(Sparse& H,
 void mueller_rotation(Sparse& H,
                       const Index& stokes_dim,
                       const Numeric& rotangle) {
-  assert(stokes_dim > 1);
-  assert(H.nrows() == stokes_dim);
-  assert(H.ncols() == stokes_dim);
-  assert(H(0, 1) == 0);
-  assert(H(1, 0) == 0);
+  ARTS_ASSERT(stokes_dim > 1);
+  ARTS_ASSERT(H.nrows() == stokes_dim);
+  ARTS_ASSERT(H.ncols() == stokes_dim);
+  ARTS_ASSERT(H(0, 1) == 0);
+  ARTS_ASSERT(H(1, 0) == 0);
 
   H.rw(0, 0) = 1;
   const Numeric a = cos(2 * DEG2RAD * rotangle);
   H.rw(1, 1) = a;
   if (stokes_dim > 2) {
-    assert(H(2, 0) == 0);
-    assert(H(0, 2) == 0);
+    ARTS_ASSERT(H(2, 0) == 0);
+    ARTS_ASSERT(H(0, 2) == 0);
 
     const Numeric b = sin(2 * DEG2RAD * rotangle);
     H.rw(1, 2) = b;
     H.rw(2, 1) = -b;
     H.rw(2, 2) = a;
     if (stokes_dim > 3) {
-      // More values should be checked, but to save time we just assert one
-      assert(H(2, 3) == 0);
+      // More values should be checked, but to save time we just ARTS_ASSERT one
+      ARTS_ASSERT(H(2, 3) == 0);
       H.rw(3, 3) = 1;
     }
   }
@@ -811,7 +795,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
                                  const Numeric dza,
                                  const Index stokes_dim,
                                  const String& iy_unit) {
-  assert(stokes_dim > 1);
+  ARTS_ASSERT(stokes_dim > 1);
 
   // Set "Stokes vector weights" according to iy_unit
   Numeric w = 0.5;
@@ -848,9 +832,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
       rot[i] = "none";
       pol[i] = mm_pol[i];
     } else {
-      ostringstream os;
-      os << "Unknown polarisation " << mm_pol[i];
-      throw std::runtime_error(os.str());
+      ARTS_USER_ERROR ( "Unknown polarisation ", mm_pol[i])
     }
   }
 
@@ -876,7 +858,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
         else if( pol[i] == "RHC" )  // Right hand circular
         { ipv = 9; }
         else
-        { assert( 0 ); }
+        { ARTS_ASSERT( 0 ); }
       */
     // See instrument_pol for index order
     Index ipol = -1;
@@ -891,7 +873,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
     {
       ipol = 10;
     } else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
 
     /*
@@ -938,7 +920,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
           mueller_rotation(Hrot, stokes_dim, dza);
         }
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
 
       // H-matrix matching polarization
@@ -1016,7 +998,7 @@ void spectrometer_matrix(Sparse& H,
   // Check if matrix has one frequency column or one for every channel
   // frequency
   //
-  assert(ch_response.nelem() == 1 || ch_response.nelem() == ch_f.nelem());
+  ARTS_ASSERT(ch_response.nelem() == 1 || ch_response.nelem() == ch_f.nelem());
   //
   Index freq_full = ch_response.nelem() > 1;
 
@@ -1076,10 +1058,10 @@ void stokes2pol(VectorView w,
                 const Index& stokes_dim,
                 const Index& ipol_1based,
                 const Numeric nv) {
-  assert(w.nelem() == stokes_dim);
+  ARTS_ASSERT(w.nelem() == stokes_dim);
 
-  if (ipol_1based < 1 || ipol_1based > 10)
-    throw runtime_error("Valid polarization indices are 1 to 10 (1-based).");
+  ARTS_USER_ERROR_IF (ipol_1based < 1 || ipol_1based > 10,
+                      "Valid polarization indices are 1 to 10 (1-based).");
 
   ArrayOfVector s2p(10);
   //
@@ -1095,14 +1077,11 @@ void stokes2pol(VectorView w,
   s2p[9] = {nv, 0, 0, -nv};  // Irhc
 
   const Index l = s2p[ipol_1based - 1].nelem();
-  if (l > stokes_dim) {
-    ostringstream os;
-    os << "You have selected polarization with 1-based index: " << ipol_1based
-       << endl
-       << "but this polarization demands stokes_dim >= " << l << endl
-       << "while the actual values of stokes_dim is " << stokes_dim;
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (l > stokes_dim,
+    "You have selected polarization with 1-based index: ", ipol_1based,
+    "\n",
+    "but this polarization demands stokes_dim >= ", l, "\n",
+    "while the actual values of stokes_dim is ", stokes_dim)
 
   w[Range(0, l)] = s2p[ipol_1based - 1];
   if (l < stokes_dim) {
@@ -1143,11 +1122,11 @@ void stokes2pol(VectorView w,
 */
 bool test_and_merge_two_channels(Vector& fmin, Vector& fmax, Index i, Index j) {
   const Index nf = fmin.nelem();
-  assert(fmax.nelem() == nf);
-  assert(i >= 0 && i < nf);
-  assert(j >= 0 && j < nf);
-  assert(fmin[i] <= fmin[j]);
-  assert(i < j);
+  ARTS_ASSERT(fmax.nelem() == nf);
+  ARTS_ASSERT(i >= 0 && i < nf);
+  ARTS_ASSERT(j >= 0 && j < nf);
+  ARTS_ASSERT(fmin[i] <= fmin[j]);
+  ARTS_ASSERT(i < j);
 
   // There are three cases to consider:
   // a) The two channels are separate: fmax[i] <  fmin[j]
@@ -1199,20 +1178,14 @@ void find_effective_channel_boundaries(  // Output:
   // Checks on input quantities:
 
   // There must be at least one channel.
-  if (n_chan < 1) {
-    ostringstream os;
-    os << "There must be at least one channel.\n"
-       << "(The vector *f_backend* must have at least one element.)";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (n_chan < 1,
+      "There must be at least one channel.\n"
+      "(The vector *f_backend* must have at least one element.)")
 
   // There must be a response function for each channel.
-  if (n_chan != backend_channel_response.nelem()) {
-    ostringstream os;
-    os << "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
-       << "must have same number of bands for each LO.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (n_chan != backend_channel_response.nelem(),
+      "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
+      "must have same number of bands for each LO.")
 
   // Frequency grids for response functions must be strictly increasing.
   for (Index i = 0; i < n_chan; ++i) {
@@ -1220,13 +1193,10 @@ void find_effective_channel_boundaries(  // Output:
     const Vector& backend_f_grid =
         backend_channel_response[i].get_numeric_grid(0);
 
-    if (!is_increasing(backend_f_grid)) {
-      ostringstream os;
-      os << "The frequency grid for the backend channel response of\n"
-         << "channel " << i << " is not strictly increasing.\n";
-      os << "It is: " << backend_f_grid << "\n";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!is_increasing(backend_f_grid),
+        "The frequency grid for the backend channel response of\n"
+        "channel ", i, " is not strictly increasing.\n"
+        "It is: ", backend_f_grid, "\n")
   }
 
   // Start the actual work.
@@ -1253,13 +1223,11 @@ void find_effective_channel_boundaries(  // Output:
     }
   }
 
-  if (!numPB) {
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (!numPB,
         "No passbands found.\n"
         "*backend_channel_response* must be zero around the passbands.\n"
         "backend_channel_response.data = [0, >0, >0, 0]\n"
         "Borders between passbands are identified as [...0,0...]");
-  }
 
   Vector fmin_pb(numPB);
   Vector fmax_pb(numPB);
@@ -1401,11 +1369,11 @@ void integration_func_by_vecmult(VectorView h,
   const Index ng = x_g_in.nelem();
 
   // Asserts
-  assert(h.nelem() == ng);
-  assert(f.nelem() == nf);
-  assert(is_increasing(x_f_in));
-  assert(is_increasing(x_g_in) || is_decreasing(x_g_in));
-  // More asserts below
+  ARTS_ASSERT(h.nelem() == ng);
+  ARTS_ASSERT(f.nelem() == nf);
+  ARTS_ASSERT(is_increasing(x_f_in));
+  ARTS_ASSERT(is_increasing(x_g_in) || is_decreasing(x_g_in));
+  // More ARTS_ASSERTs below
 
   // End points of x_f
   Numeric xfmin = x_f_in[0];
@@ -1422,8 +1390,8 @@ void integration_func_by_vecmult(VectorView h,
     x_g = x_g_in;
   }
   //
-  assert(x_g[0] <= xfmin);
-  assert(x_g[ng - 1] >= xfmax);
+  ARTS_ASSERT(x_g[0] <= xfmin);
+  ARTS_ASSERT(x_g[ng - 1] >= xfmax);
 
   // Normalise grids so x_f covers [0,1]
   const Numeric df = xfmax - xfmin;
@@ -1523,8 +1491,7 @@ void integration_func_by_vecmult(VectorView h,
   // The expressions are sensitive to numerical issues if two points in x_ref
   // are very close compared to the values in x_ref. A test trying to warn when
   // this happens:
-  if (min(f) >= 0 && min(h) < -1e-15)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (min(f) >= 0 && min(h) < -1e-15,
         "Significant negative response value obtained, "
         "despite sensor reponse is strictly positive. This "
         "indicates numerical problems. Is there any very "
@@ -1542,9 +1509,9 @@ void integration_bin_by_vecmult(VectorView h,
   const Index ng = x_g_in.nelem();
 
   // Asserts
-  assert(ng > 1);
-  assert(h.nelem() == ng);
-  assert(limit1 <= limit2);
+  ARTS_ASSERT(ng > 1);
+  ARTS_ASSERT(h.nelem() == ng);
+  ARTS_ASSERT(limit1 <= limit2);
 
   // Handle possibly reversed x_g.
   Vector x_g;
@@ -1557,8 +1524,8 @@ void integration_bin_by_vecmult(VectorView h,
     x_g = x_g_in;
   }
   //
-  assert(x_g[0] <= limit1);
-  assert(x_g[ng - 1] >= limit2);
+  ARTS_ASSERT(x_g[0] <= limit1);
+  ARTS_ASSERT(x_g[ng - 1] >= limit2);
 
   // Handle extreme cases
   // Bin has zero width
@@ -1645,14 +1612,14 @@ void summation_by_vecmult(VectorView h,
                           const Numeric x1,
                           const Numeric x2) {
   // Asserts
-  assert(h.nelem() == x_g.nelem());
-  assert(f.nelem() == x_f.nelem());
-  assert(x_g[0] <= x_f[0]);
-  assert(last(x_g) >= last(x_f));
-  assert(x1 >= x_f[0]);
-  assert(x2 >= x_f[0]);
-  assert(x1 <= last(x_f));
-  assert(x2 <= last(x_f));
+  ARTS_ASSERT(h.nelem() == x_g.nelem());
+  ARTS_ASSERT(f.nelem() == x_f.nelem());
+  ARTS_ASSERT(x_g[0] <= x_f[0]);
+  ARTS_ASSERT(last(x_g) >= last(x_f));
+  ARTS_ASSERT(x1 >= x_f[0]);
+  ARTS_ASSERT(x2 >= x_f[0]);
+  ARTS_ASSERT(x1 <= last(x_f));
+  ARTS_ASSERT(x2 <= last(x_f));
 
   // Determine grid positions for point 1 (both with respect to f and g grids)
   // and interpolate response function.

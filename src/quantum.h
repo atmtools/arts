@@ -566,7 +566,7 @@ class QuantumIdentifier {
       return false;
     } else if (mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {
     } else if (mqtype not_eq other.mqtype) {
-      throw std::runtime_error("Can never compare different types of identifiers with "
+      ARTS_USER_ERROR ( "Can never compare different types of identifiers with "
         "QID.In(QID), one of your inputs is of wrong QuantumIdentifier type");
     } else if (mqtype == QuantumIdentifier::TRANSITION) {
       auto& other_low = other.mqm[TRANSITION_LOWER_INDEX];
@@ -626,7 +626,7 @@ class QuantumIdentifier {
     } else if (mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {
       return true;
     } else if (mqtype not_eq QuantumIdentifier::ENERGY_LEVEL or other.mqtype not_eq QuantumIdentifier::TRANSITION) {
-      throw runtime_error(
+      ARTS_USER_ERROR (
         "One of your inputs is bad.  You are using function comparing energy "
         "levels to the lower state of lines, but the types mismatch");
     }
@@ -666,7 +666,7 @@ class QuantumIdentifier {
     } else if (mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {
       return true;
     } else if (mqtype not_eq QuantumIdentifier::ENERGY_LEVEL or other.mqtype not_eq QuantumIdentifier::TRANSITION) {
-      throw runtime_error(
+      ARTS_USER_ERROR (
         "One of your inputs is bad.  You are using function comparing energy "
         "levels to the upper state of lines, but the types mismatch");
     }
@@ -742,6 +742,8 @@ constexpr bool operator==(const QuantumNumbers& a, const QuantumNumbers& b) {
  * @return true If all doubly defined quantum numbers match
  * @return false Otherwise
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr bool operator==(const QuantumIdentifier& a, const QuantumIdentifier& b) {
   if (!(a.Isotopologue() == b.Isotopologue() && a.Species() == b.Species() &&
         a.Type() == b.Type()))
@@ -756,9 +758,11 @@ constexpr bool operator==(const QuantumIdentifier& a, const QuantumIdentifier& b
     return true;
   else if (a.Type() == QuantumIdentifier::NONE)
     return false;
-  else
-    throw std::runtime_error("Programmer error --- added type is missing");
+  else {
+    ARTS_ASSERT(false, "Programmer error --- added type is missing");
+  }
 }
+#pragma GCC diagnostic pop
 
 /** Is anything different between the identifiers
  * 

@@ -40,7 +40,7 @@
 extern const Numeric PI;
 
 Numeric func_2straights(const Numeric x, const Vector& coeffs) {
-  assert(coeffs.nelem() == 3);
+  ARTS_ASSERT(coeffs.nelem() == 3);
   return (x <= coeffs[0]) ? coeffs[1] * x
                           : coeffs[2] * (x - coeffs[0]) + coeffs[1] * coeffs[0];
 }
@@ -61,7 +61,7 @@ void convolve(Vector& result,
               const ConstVectorView& lorentz) {
   Index n_xsec = xsec.nelem();
   Index n_lorentz = lorentz.nelem();
-  //    assert(n_xsec == n_lorentz);
+  //    ARTS_ASSERT(n_xsec == n_lorentz);
   Vector temp(n_xsec + n_lorentz - 1);
 
   for (Index i = 0; i < n_xsec + n_lorentz - 1; ++i) {
@@ -159,7 +159,7 @@ void XsecRecord::Extract(VectorView result,
   const Index nf = f_grid.nelem();
 
   // Assert that result vector has right size:
-  assert(result.nelem() == nf);
+  ARTS_ASSERT(result.nelem() == nf);
 
   // Initialize result to zero (important for those frequencies outside the data grid).
   result = 0.;

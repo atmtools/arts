@@ -117,23 +117,22 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
 {
   CREATE_OUT2;
 
-  if (not nlte_do) throw std::runtime_error("Must be set to do NLTE");
-  if (nlte_field.Data().empty())
-    throw std::runtime_error("Error in NLTE field, it is empty");
+  ARTS_USER_ERROR_IF (not nlte_do, "Must be set to do NLTE");
+  ARTS_USER_ERROR_IF (nlte_field.Data().empty(),
+                      "Error in NLTE field, it is empty");
 
   Matrix line_irradiance;
   Tensor3 line_transmission;
 
   const Index nlevels = nlte_field.Levels().nelem(), np = p_grid.nelem();
-  if (nlevels < 5)
-    throw std::runtime_error("Must have more than a four levels");
+  ARTS_USER_ERROR_IF (nlevels < 5,
+                      "Must have more than a four levels");
 
-  if (atmosphere_dim not_eq 1)
-    throw std::runtime_error("Only for 1D atmosphere");
+  ARTS_USER_ERROR_IF (atmosphere_dim not_eq 1,
+                      "Only for 1D atmosphere");
 
   const Index nlines = nelem(abs_lines_per_species);
-  if (nlevels >= nlines)
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (nlevels >= nlines,
         "Bad number of lines... overlapping lines in nlte_level_identifiers?");
 
   // Create basic compute vectors
@@ -269,8 +268,7 @@ void collision_coefficientsFromSplitFiles(
     // Read the file for a species and check that the size is correct of the array
     filename = tmp_basename + abs_species[i][0].SpeciesNameMain() + ".xml";
     xml_read_from_file(filename, aogf1, verbosity);
-    if (aogf1.nelem() not_eq n)
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (aogf1.nelem() not_eq n,
           "Mismatch between collision_line_identifiers and some collision_coefficients");
     collision_coefficients[i] = aogf1;
   }

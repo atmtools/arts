@@ -1716,13 +1716,13 @@ void define_partition_species_data() {
   }
 
   // Ensure that we took care of all species
-  assert(it_species == species_data.end());
+  ARTS_ASSERT(it_species == species_data.end());
 }
 
 void next_species(Array<SpeciesRecord>::iterator& is,
                   Array<IsotopologueRecord>::iterator& ii,
                   String name _U_) {
-  assert(name == is->Name());
+  ARTS_ASSERT(name == is->Name());
 
   ii = is->Isotopologue().begin();
 
@@ -1734,7 +1734,7 @@ void iso(Array<IsotopologueRecord>::iterator& ii,
          const ArrayOfNumeric& coeff,
          const ArrayOfNumeric& temp_range,
          const Index& coefftype) {
-  assert(name == ii->Name());
+  ARTS_ASSERT(name == ii->Name());
 
   ii->SetPartitionFctCoeff(coeff, temp_range, coefftype);
 

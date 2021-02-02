@@ -470,9 +470,8 @@ CovarianceMatrixBlockStruct get_covariance_matrix_block(CovarianceMatrix *m,
   std::vector<Block> &blocks =
       inverse ? m->get_inverse_blocks() : m->get_blocks();
 
-  if ((block_index < 0) || ((size_t)block_index >= blocks.size())) {
-    throw std::runtime_error("The block index is invalid.");
-  }
+  ARTS_USER_ERROR_IF ((block_index < 0) || ((size_t)block_index >= blocks.size()),
+      "The block index is invalid.");
   Block &block = blocks[block_index];
 
   Index i, j;

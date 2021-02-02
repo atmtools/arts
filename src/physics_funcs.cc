@@ -95,9 +95,9 @@ Numeric barometric_heightformula(  //output is p1
  * @author Patrick Eriksson
  * @date   2010-10-26
  */
-Numeric dinvplanckdI(const Numeric& i, const Numeric& f) try {
-  if (i <= 0) throw "Non-positive radiance";
-  if (f <= 0) throw "Non-positive frequency";
+Numeric dinvplanckdI(const Numeric& i, const Numeric& f) {
+  ARTS_USER_ERROR_IF (i <= 0, "Non-positive radiance")
+  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
 
   static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
   static const Numeric b = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
@@ -105,11 +105,6 @@ Numeric dinvplanckdI(const Numeric& i, const Numeric& f) try {
   const Numeric binv = a * f / log1p(d);
 
   return binv * binv / (a * f * i * (1 / d + 1));
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *dinvplanckdI* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
 }
 
 /** fresnel
@@ -162,19 +157,14 @@ void fresnel(Complex& Rv,
  * @author Patrick Eriksson
  * @date   2002-08-11
 */
-Numeric invplanck(const Numeric& i, const Numeric& f) try {
-  if (i <= 0) throw "Non-positive radiance";
-  if (f < 0) throw "Non-positive frequency";
+Numeric invplanck(const Numeric& i, const Numeric& f) {
+  ARTS_USER_ERROR_IF (i <= 0, "Non-positive radiance")
+  ARTS_USER_ERROR_IF (f < 0, "Non-positive frequency")
 
   static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
   static const Numeric b = 2 * PLANCK_CONST / (SPEED_OF_LIGHT * SPEED_OF_LIGHT);
 
   return (a * f) / log1p((b * f * f * f) / i);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *invplanck* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
 }
 
 /** invrayjean
@@ -189,19 +179,14 @@ Numeric invplanck(const Numeric& i, const Numeric& f) try {
  * @author Patrick Eriksson
  * @date   2000-09-28
  */
-Numeric invrayjean(const Numeric& i, const Numeric& f) try {
-  //   if(i <  0) throw "Negative radiance";
-  if (f <= 0) throw "Non-positive frequency";
+Numeric invrayjean(const Numeric& i, const Numeric& f) {
+  //   ARTS_USER_ERROR_IF (i <  0, "Negative radiance")
+  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
 
   static const Numeric a =
       SPEED_OF_LIGHT * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
 
   return (a * i) / (f * f);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *invrayjean* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
 }
 
 /** planck
@@ -218,19 +203,14 @@ Numeric invrayjean(const Numeric& i, const Numeric& f) try {
  *  @author Patrick Eriksson
  *  @date   2000-04-08
  */
-Numeric planck(const Numeric& f, const Numeric& t) try {
-  if (t <= 0) throw "Non-positive temperature";
-  if (f <= 0) throw "Non-positive frequency";
+Numeric planck(const Numeric& f, const Numeric& t) {
+  ARTS_USER_ERROR_IF (t <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
   
   constexpr Numeric a = 2 * Constant::h / Constant::pow2(Constant::c);;
   constexpr Numeric b = Constant::h / Constant::k;
 
   return a * Constant::pow3(f) / std::expm1((b * f) / t);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *planck* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
 }
 
 /** planck
@@ -248,29 +228,10 @@ Numeric planck(const Numeric& f, const Numeric& t) try {
  * @author Patrick Eriksson
  * @date   2015-12-15
  */
-void planck(VectorView b, ConstVectorView f, const Numeric& t) try {
-  if (b.nelem() not_eq f.nelem())
-    throw "Vector size mismatch: frequency dim is bad";
-
+void planck(VectorView b, ConstVectorView f, const Numeric& t) {
+  ARTS_USER_ERROR_IF (b.nelem() not_eq f.nelem(),
+                      "Vector size mismatch: frequency dim is bad")
   for (Index i = 0; i < f.nelem(); i++) b[i] = planck(f[i], t);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *planck* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-} catch (const std::exception& e) {
-  std::ostringstream os;
-  os << "Errors in calls by *planck* internal function:\n";
-  os << e.what();
-
-  Index n = 0;
-  for (auto& F : f)
-    if (F <= 0) n++;
-  if (n)
-    os << '\t' << "You have " << n
-       << " frequency grid points that reports a negative frequency!\n";
-
-  throw std::runtime_error(os.str());
 }
 
 /** dplanck_dt
@@ -286,9 +247,9 @@ void planck(VectorView b, ConstVectorView f, const Numeric& t) try {
  * @author Richard Larsson
  * @date   2015-09-15
  */
-Numeric dplanck_dt(const Numeric& f, const Numeric& t) try {
-  if (t <= 0) throw "Non-positive temperature";
-  if (f <= 0) throw "Non-positive frequency";
+Numeric dplanck_dt(const Numeric& f, const Numeric& t) {
+  ARTS_USER_ERROR_IF (t <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
 
   constexpr Numeric a = 2 * Constant::h / Constant::pow2(Constant::c);;
   constexpr Numeric b = Constant::h / Constant::k;
@@ -297,11 +258,6 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) try {
   const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
   return a * b * Constant::pow4(f) * inv_exp_t_m1 * (1 + inv_exp_t_m1) / Constant::pow2(t);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *dplanck_dt* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
 }
 
 /** dplanck_dt
@@ -317,29 +273,10 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) try {
  * @author Richard Larsson
  * @date   2019-10-11
  */
-void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) try {
-  if (dbdt.nelem() not_eq f.nelem())
-    throw "Vector size mismatch: frequency dim is bad";
-  
+void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) {
+  ARTS_USER_ERROR_IF (dbdt.nelem() not_eq f.nelem(),
+                      "Vector size mismatch: frequency dim is bad")
   for (Index i = 0; i < f.nelem(); i++) dbdt[i] = dplanck_dt(f[i], t);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *planck* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-} catch (const std::exception& e) {
-  std::ostringstream os;
-  os << "Errors in calls by *planck* internal function:\n";
-  os << e.what();
-  
-  Index n = 0;
-  for (auto& F : f)
-    if (F <= 0) n++;
-  if (n)
-    os << '\t' << "You have " << n
-    << " frequency grid points that reports a negative frequency!\n";
-    
-  throw std::runtime_error(os.str());
 }
 
 /** dplanck_df
@@ -355,9 +292,9 @@ void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) try {
  * @author Richard Larsson
  * @date   2015-09-15
  */
-Numeric dplanck_df(const Numeric& f, const Numeric& t) try {
-  if (t <= 0) throw "Non-positive temperature";
-  if (f <= 0) throw "Non-positive frequency";
+Numeric dplanck_df(const Numeric& f, const Numeric& t)  {
+  ARTS_USER_ERROR_IF (t <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
   
   constexpr Numeric a = 2 * Constant::h / Constant::pow2(Constant::c);;
   constexpr Numeric b = Constant::h / Constant::k;
@@ -365,11 +302,6 @@ Numeric dplanck_df(const Numeric& f, const Numeric& t) try {
   const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
   return a * Constant::pow2(f) * (3.0 - (b * f / t) * (1 + inv_exp_t_m1)) * inv_exp_t_m1;
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *dplanck_df* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
 }
 
 /** rayjean
@@ -384,17 +316,12 @@ Numeric dplanck_df(const Numeric& f, const Numeric& t) try {
  * @author Patrick Eriksson
  * @date   2011-07-13
  */
-Numeric rayjean(const Numeric& f, const Numeric& tb) try {
-  if (tb <= 0) throw "Non-positive temperature";
-  if (f < 0) throw "Negative frequency";
+Numeric rayjean(const Numeric& f, const Numeric& tb) {
+  ARTS_USER_ERROR_IF (tb <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF (f < 0, "Negative frequency")
 
   static const Numeric a =
       SPEED_OF_LIGHT * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
 
   return (f * f) / (a * tb);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *rayjean* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
 }

@@ -706,7 +706,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
             ihit = j;
           }
         }
-        assert(ihit >= 0);
+        ARTS_ASSERT(ihit >= 0);
         // Derivative, as observed at the surface
         Matrix diy_dpos0, diy_dpos;
         surface_calc(diy_dpos0,
@@ -1258,7 +1258,7 @@ void surfaceFlatRefractiveIndex(Matrix& surface_los,
 
   // Incidence angle
   const Numeric incang = calc_incang(rtp_los, specular_los);
-  assert(incang <= 90);
+  ARTS_ASSERT(incang <= 90);
 
   // Complex (amplitude) reflection coefficients
   Complex Rv, Rh;

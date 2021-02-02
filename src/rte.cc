@@ -141,8 +141,8 @@ void apply_iy_unit(MatrixView iy,
   const Index nf = iy.nrows();
   const Index ns = iy.ncols();
 
-  assert(f_grid.nelem() == nf);
-  assert(i_pol.nelem() == ns);
+  ARTS_ASSERT(f_grid.nelem() == nf);
+  ARTS_ASSERT(i_pol.nelem() == ns);
 
   if (iy_unit == "1") {
     if (n != 1) {
@@ -172,7 +172,7 @@ void apply_iy_unit(MatrixView iy,
         if (i_pol[is] == 1) {
           iy(iv, is) = invplanck(iy(iv, is), f_grid[iv]);
         } else if (i_pol[is] < 5) {
-          assert(i_pol[0] == 1);
+          ARTS_ASSERT(i_pol[0] == 1);
           iy(iv, is) = invplanck(0.5 * (iy(iv, 0) + iy(iv, is)), f_grid[iv]) -
                        invplanck(0.5 * (iy(iv, 0) - iy(iv, is)), f_grid[iv]);
         } else {
@@ -196,12 +196,10 @@ void apply_iy_unit(MatrixView iy,
   }
 
   else {
-    ostringstream os;
-    os << "Unknown option: iy_unit = \"" << iy_unit << "\"\n"
-       << "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
-       << "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"";
-
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR (
+      "Unknown option: iy_unit = \"", iy_unit, "\"\n"
+      "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
+      "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"")
   }
 }
 
@@ -218,10 +216,10 @@ void apply_iy_unit2(Tensor3View J,
   const Index ns = iy.ncols();
   const Index np = J.npages();
 
-  assert(J.nrows() == nf);
-  assert(J.ncols() == ns);
-  assert(f_grid.nelem() == nf);
-  assert(i_pol.nelem() == ns);
+  ARTS_ASSERT(J.nrows() == nf);
+  ARTS_ASSERT(J.ncols() == ns);
+  ARTS_ASSERT(f_grid.nelem() == nf);
+  ARTS_ASSERT(i_pol.nelem() == ns);
 
   if (iy_unit == "1") {
     if (n != 1) {
@@ -255,7 +253,7 @@ void apply_iy_unit2(Tensor3View J,
         if (i_pol[is] == 1) {
           scfac = dinvplanckdI(iy(iv, is), f_grid[iv]);
         } else if (i_pol[is] < 5) {
-          assert(i_pol[0] == 1);
+          ARTS_ASSERT(i_pol[0] == 1);
           scfac = dinvplanckdI(0.5 * (iy(iv, 0) + iy(iv, is)), f_grid[iv]) +
                   dinvplanckdI(0.5 * (iy(iv, 0) - iy(iv, is)), f_grid[iv]);
         } else {
@@ -285,12 +283,10 @@ void apply_iy_unit2(Tensor3View J,
   }
 
   else {
-    ostringstream os;
-    os << "Unknown option: iy_unit = \"" << iy_unit << "\"\n"
-       << "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
-       << "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"";
-
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR (
+      "Unknown option: iy_unit = \"", iy_unit, "\"\n"
+      "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
+      "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"")
   }
 }
 
@@ -596,15 +592,14 @@ void defocusing_sat2sat(Workspace& ws,
                         const Numeric& ppath_lraytrace,
                         const Numeric& dza,
                         const Verbosity& verbosity) {
-  if (ppath.end_los[0] < 90 || ppath.start_los[0] > 90)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (ppath.end_los[0] < 90 || ppath.start_los[0] > 90,
         "The function *defocusing_sat2sat* can only be used "
         "for limb sounding geometry.");
 
   // Index of tangent point
   Index it;
   find_tanpoint(it, ppath);
-  assert(it >= 0);
+  ARTS_ASSERT(it >= 0);
 
   // Length between tangent point and transmitter/reciver
   Numeric lt = ppath.start_lstep, lr = ppath.end_lstep;
@@ -862,17 +857,14 @@ void get_iy_of_background(Workspace& ws,
 
     default:  //--- ????? ----------------------------------------------------
       // Are we here, the coding is wrong somewhere
-      assert(false);
+      ARTS_ASSERT(false);
   }
 
-  if (iy.ncols() != stokes_dim || iy.nrows() != nf) {
-    ostringstream os;
-    os << "The size of *iy* returned from *" << agenda_name << "* is\n"
-       << "not correct:\n"
-       << "  expected size = [" << nf << "," << stokes_dim << "]\n"
-       << "  size of iy    = [" << iy.nrows() << "," << iy.ncols() << "]\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (iy.ncols() != stokes_dim || iy.nrows() != nf,
+      "The size of *iy* returned from *", agenda_name, "* is\n"
+      "not correct:\n"
+      "  expected size = [", nf, ",", stokes_dim, "]\n"
+      "  size of iy    = [", iy.nrows(), ",", iy.ncols(), "]\n")
 }
 
 void get_ppath_atmvars(Vector& ppath_p,
@@ -1255,13 +1247,9 @@ void get_stepwise_clearsky_propmat(
         // because that information is thrown away. It is still faster
         // to retain this method since it requires less computations
         // when we do not need NLTE, which is most of the time...
-        if (not lte) {
-          ostringstream os;
-
-          os << "We do not yet support species"
-             << " tag and NLTE Jacobians.\n";
-          throw std::runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (not lte,
+          "We do not yet support species"
+          " tag and NLTE Jacobians.\n")
         dS_dx[i].SetZero();
       }
     }
@@ -1408,7 +1396,7 @@ Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
           (dotprod_with_los(line_of_sight, 0, 0, 1, atmosphere_dim));
       break;
     default:
-      throw std::runtime_error("Not allowed to call this function without a wind parameter as wind_type");
+      ARTS_ASSERT(false, "Not allowed to call this function without a wind parameter as wind_type");
       break;
   }
   
@@ -1551,13 +1539,13 @@ void get_stepwise_scattersky_source(
     const Index& atmosphere_dim,
     const bool& jacobian_do,
     const Index& t_interp_order) {
-  if (atmosphere_dim != 1)
-    throw runtime_error("This function handles so far only 1D atmospheres.");
+  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
+                      "This function handles so far only 1D atmospheres.");
 
   const Index nf = Sp.NumberOfFrequencies();
   const Index stokes_dim = Sp.StokesDimensions();
   const Index ne = ppath_1p_pnd.nelem();
-  assert(TotalNumberOfElements(scat_data) == ne);
+  ARTS_ASSERT(TotalNumberOfElements(scat_data) == ne);
   const Index nza = za_grid.nelem();
   const Index naa = aa_grid.nelem();
   const Index nq = jacobian_do ? jacobian_quantities.nelem() : 0;
@@ -1636,13 +1624,10 @@ void get_stepwise_scattersky_source(
                           idir,
                           0,
                           t_interp_order);
-        if (t_ok[0] == 0) {
-          ostringstream os;
-          os << "Interpolation error for (flat-array) scattering "
-             << "element #" << ise_flat << "\n"
-             << "at location/temperature point #" << ppath_1p_id << "\n";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (t_ok[0] == 0,
+            "Interpolation error for (flat-array) scattering "
+            "element #", ise_flat, "\n"
+            "at location/temperature point #", ppath_1p_id, "\n")
 
         Index this_iv = 0;
         for (Index iv = 0; iv < nf; iv++) {
@@ -1978,8 +1963,7 @@ void iyb_calc(Workspace& ws,
       try {
         geo_pos_agendaExecute(l_ws, geo_pos, ppath, l_geo_pos_agenda);
         if (geo_pos.nelem()) {
-          if (geo_pos.nelem() != 5)
-            throw runtime_error(
+          ARTS_USER_ERROR_IF (geo_pos.nelem() != 5,
                 "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
                 "The length of *geo_pos* must be zero or five.");
 
@@ -2036,8 +2020,7 @@ void iyb_calc(Workspace& ws,
       try {
         geo_pos_agendaExecute(l_ws, geo_pos, ppath, l_geo_pos_agenda);
         if (geo_pos.nelem()) {
-          if (geo_pos.nelem() != 5)
-            throw runtime_error(
+          ARTS_USER_ERROR_IF (geo_pos.nelem() != 5,
                 "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
                 "The length of *geo_pos* must be zero or five.");
 
@@ -2053,8 +2036,8 @@ void iyb_calc(Workspace& ws,
     }
   }
 
-  if (failed)
-    throw runtime_error("Run-time error in function: iyb_calc\n" + fail_msg);
+  ARTS_USER_ERROR_IF (failed,
+                      "Run-time error in function: iyb_calc\n", fail_msg);
 
   // Compile iyb_aux
   //
@@ -2084,10 +2067,10 @@ void iy_transmittance_mult(Tensor3& iy_trans_total,
   const Index nf = iy_trans_old.npages();
   const Index ns = iy_trans_old.ncols();
 
-  assert(ns == iy_trans_old.nrows());
-  assert(nf == iy_trans_new.npages());
-  assert(ns == iy_trans_new.nrows());
-  assert(ns == iy_trans_new.ncols());
+  ARTS_ASSERT(ns == iy_trans_old.nrows());
+  ARTS_ASSERT(nf == iy_trans_new.npages());
+  ARTS_ASSERT(ns == iy_trans_new.nrows());
+  ARTS_ASSERT(ns == iy_trans_new.ncols());
 
   iy_trans_total.resize(nf, ns, ns);
 
@@ -2104,9 +2087,9 @@ void iy_transmittance_mult(Matrix& iy_new,
   const Index nf = iy_trans.npages();
   const Index ns = iy_trans.ncols();
 
-  assert(ns == iy_trans.nrows());
-  assert(nf == iy_old.nrows());
-  assert(ns == iy_old.ncols());
+  ARTS_ASSERT(ns == iy_trans.nrows());
+  ARTS_ASSERT(nf == iy_old.nrows());
+  ARTS_ASSERT(ns == iy_old.ncols());
 
   iy_new.resize(nf, ns);
 
@@ -2146,19 +2129,19 @@ void pos2true_latlon(Numeric& lat,
                      ConstVectorView lat_true,
                      ConstVectorView lon_true,
                      ConstVectorView pos) {
-  assert(pos.nelem() == atmosphere_dim);
+  ARTS_ASSERT(pos.nelem() == atmosphere_dim);
 
   if (atmosphere_dim == 1) {
-    assert(lat_true.nelem() == 1);
-    assert(lon_true.nelem() == 1);
+    ARTS_ASSERT(lat_true.nelem() == 1);
+    ARTS_ASSERT(lon_true.nelem() == 1);
     //
     lat = lat_true[0];
     lon = lon_true[0];
   }
 
   else if (atmosphere_dim == 2) {
-    assert(lat_true.nelem() == lat_grid.nelem());
-    assert(lon_true.nelem() == lat_grid.nelem());
+    ARTS_ASSERT(lat_true.nelem() == lat_grid.nelem());
+    ARTS_ASSERT(lon_true.nelem() == lat_grid.nelem());
     GridPos gp;
     Vector itw(2);
     gridpos(gp, lat_grid, pos[1]);
@@ -2249,7 +2232,7 @@ void rtmethods_jacobian_finalisation(
       }
 
       else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
   }
@@ -2433,8 +2416,8 @@ void yCalc_mblock_loop_body(bool& failed,
     //
     for (Index i = 0; i < n1y; i++) {
       const Index ii = row0 + i;
-      if (std::isnan(y[ii]))
-        throw runtime_error("One or several NaNs found in *y*.");
+      ARTS_USER_ERROR_IF (std::isnan(y[ii]),
+                          "One or several NaNs found in *y*.");
       y_f[ii] = sensor_response_f[i];
       y_pol[ii] = sensor_response_pol[i];
       y_pos(ii, joker) = sensor_pos(mblock_index, joker);
@@ -2500,7 +2483,7 @@ void ze_cfac(Vector& fac,
              const Numeric& k2) {
   const Index nf = f_grid.nelem();
 
-  assert(fac.nelem() == nf);
+  ARTS_ASSERT(fac.nelem() == nf);
 
   // Refractive index for water (if needed)
   Matrix complex_n(0, 0);

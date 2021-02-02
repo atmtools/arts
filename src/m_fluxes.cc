@@ -589,7 +589,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                            rte_los,
                            ppath_lmax,
                            verbosity);
-        assert(ppath.gp_p[ppath.np - 1].idx == i0 ||
+        ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
         iyEmissionStandard(l_ws,
@@ -640,7 +640,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                            rte_alonglos_v,
                            surface_props_data,
                            verbosity);
-        assert(iy.ncols() == stokes_dim);
+        ARTS_ASSERT(iy.ncols() == stokes_dim);
 
         // First and last points are most easily handled separately
         if (za_grid[i] < 90) {
@@ -845,7 +845,7 @@ void spectral_radiance_fieldExpandCloudboxField(
                            rte_los,
                            ppath_lmax,
                            verbosity);
-        assert(ppath.gp_p[ppath.np - 1].idx == i0 ||
+        ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
         iyEmissionStandard(l_ws,
@@ -896,7 +896,7 @@ void spectral_radiance_fieldExpandCloudboxField(
                            rte_alonglos_v,
                            surface_props_data,
                            verbosity);
-        assert(iy.ncols() == stokes_dim);
+        ARTS_ASSERT(iy.ncols() == stokes_dim);
 
         // First and last points are most easily handled separately
         // But field at top cloudbox already known from copying above

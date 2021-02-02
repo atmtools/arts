@@ -224,7 +224,7 @@ Numeric AngIntegrate_trapezoid_original(MatrixView Integrand,
   Index n = za_grid.nelem();
   Index m = aa_grid.nelem();
   Vector res1(n);
-  assert(is_size(Integrand, n, m));
+  ARTS_ASSERT(is_size(Integrand, n, m));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -261,7 +261,7 @@ Numeric AngIntegrate_trapezoid_opt(MatrixView Integrand,
   Index n = za_grid.nelem();
   Index m = aa_grid.nelem();
   Vector res1(n);
-  assert(is_size(Integrand, n, m));
+  ARTS_ASSERT(is_size(Integrand, n, m));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -301,7 +301,7 @@ Numeric AngIntegrate_trapezoid_fixedstep(MatrixView Integrand,
   Index n = za_grid.nelem();
   Index m = aa_grid.nelem();
   Vector res1(n);
-  assert(is_size(Integrand, n, m));
+  ARTS_ASSERT(is_size(Integrand, n, m));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -340,7 +340,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
   Index n = za_grid.nelem();
   Index m = aa_grid.nelem();
   Vector res1(n);
-  assert(is_size(Integrand, n, m));
+  ARTS_ASSERT(is_size(Integrand, n, m));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -385,7 +385,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
   Index n = za_grid.nelem();
   Index m = aa_grid.nelem();
   Vector res1(n);
-  assert(is_size(Integrand, n, m));
+  ARTS_ASSERT(is_size(Integrand, n, m));
 
   Numeric temp = 0.0;
 
@@ -417,7 +417,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
 Numeric AngIntegrate_trapezoid_original(ConstVectorView Integrand,
                                         ConstVectorView za_grid) {
   Index n = za_grid.nelem();
-  assert(is_size(Integrand, n));
+  ARTS_ASSERT(is_size(Integrand, n));
 
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i) {
@@ -440,7 +440,7 @@ Numeric AngIntegrate_trapezoid_fixedstep(ConstVectorView Integrand,
                                          ConstVectorView za_grid,
                                          Numeric stepsize) {
   Index n = za_grid.nelem();
-  assert(is_size(Integrand, n));
+  ARTS_ASSERT(is_size(Integrand, n));
 
   Numeric res = 0.0;
   // cout << "Stepsize: " << stepsize << endl;

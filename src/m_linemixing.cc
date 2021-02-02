@@ -54,10 +54,10 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
   else if (mode == "SDVP_Y") intmode = lm_hitran_2017::ModeOfLineMixing::SDVP_Y;
   else if (mode == "FullW") intmode = lm_hitran_2017::ModeOfLineMixing::FullW;
   else if (mode == "VP_W") intmode = lm_hitran_2017::ModeOfLineMixing::VP_W;
-  else throw std::runtime_error("Bad mode, see method instruction for valid arguments");
+  else ARTS_USER_ERROR ("Bad mode, see method instruction for valid arguments");
   
-  if (abs_species.nelem() not_eq abs_lines_per_species.nelem())
-    throw std::runtime_error("Bad size of input species+lines");
+  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_lines_per_species.nelem(),
+                      "Bad size of input species+lines");
   
   ArrayOfAbsorptionLines lines;
   lm_hitran_2017::read(abs_hitran_relmat_data, lines, basedir, linemixinglimit, fmin, fmax, stot, intmode);
@@ -106,12 +106,12 @@ void propmat_clearskyAddHitranLineMixingLines(ArrayOfPropagationMatrix& propmat_
                                               const Vector& rtp_vmr,
                                               const Verbosity&)
 {
-  if (jacobian_quantities.nelem())
-    throw std::runtime_error("Cannot support any Jacobian at this time");
-  if (abs_species.nelem() not_eq abs_lines_per_species.nelem())
-    throw std::runtime_error("Bad size of input species+lines");
-  if (abs_species.nelem() not_eq rtp_vmr.nelem())
-    throw std::runtime_error("Bad size of input species+vmrs");
+  ARTS_USER_ERROR_IF (jacobian_quantities.nelem(),
+                      "Cannot support any Jacobian at this time");
+  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_lines_per_species.nelem(),
+                      "Bad size of input species+lines");
+  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq rtp_vmr.nelem(),
+                      "Bad size of input species+vmrs");
   
   // vmrs should be [air, water, co2]
   Vector vmrs(3, 0);
@@ -149,12 +149,12 @@ void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_cle
                                            const Index& lbl_checked,
                                            const Verbosity&)
 {
-  if (abs_species.nelem() not_eq abs_lines_per_species.nelem())
-    throw std::runtime_error("Bad size of input species+lines");
-  if (abs_species.nelem() not_eq rtp_vmr.nelem())
-    throw std::runtime_error("Bad size of input species+vmrs");
-  if (not lbl_checked)
-    throw std::runtime_error("Please set lbl_checked true to use this function");
+  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_lines_per_species.nelem(),
+                      "Bad size of input species+lines");
+  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq rtp_vmr.nelem(),
+                      "Bad size of input species+vmrs");
+  ARTS_USER_ERROR_IF (not lbl_checked,
+                      "Please set lbl_checked true to use this function");
   
   // Meta variables that explain the calculations required
   const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
@@ -202,14 +202,15 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
                                                      const Index& lbl_checked,
                                                      const Verbosity&)
 {
-  if (std::any_of(propmat_clearsky.begin(), propmat_clearsky.end(), [](auto& pm){return pm.StokesDimensions() not_eq 4;}))
-    throw std::runtime_error("Only for stokes dim 4");
-  if (abs_species.nelem() not_eq abs_lines_per_species.nelem())
-    throw std::runtime_error("Bad size of input species+lines");
-  if (abs_species.nelem() not_eq rtp_vmr.nelem())
-    throw std::runtime_error("Bad size of input species+vmrs");
-  if (not lbl_checked)
-    throw std::runtime_error("Please set lbl_checked true to use this function");
+  ARTS_USER_ERROR_IF (std::any_of(propmat_clearsky.begin(), propmat_clearsky.end(),
+                                  [](auto& pm){return pm.StokesDimensions() not_eq 4;}),
+                      "Only for stokes dim 4");
+  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_lines_per_species.nelem(),
+                      "Bad size of input species+lines");
+  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq rtp_vmr.nelem(),
+                      "Bad size of input species+vmrs");
+  ARTS_USER_ERROR_IF (not lbl_checked,
+                      "Please set lbl_checked true to use this function");
   
   // Meta variables that explain the calculations required
   const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);

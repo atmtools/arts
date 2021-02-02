@@ -37,7 +37,7 @@
 template <class T>
 bool bad_propmat(const Array<T>& main,
                  const Vector& f_grid,
-                 const Index sd = 4) {
+                 const Index sd = 4) noexcept {
   const Index nf = f_grid.nelem();
   for (auto& var : main) {
     const bool bad_stokes = sd not_eq var.StokesDimensions();
@@ -48,7 +48,7 @@ bool bad_propmat(const Array<T>& main,
 }
 
 /** Checks if abs_species is acceptable */
-bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
+bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) noexcept {
   for (auto& species : abs_species) {
     if (species.nelem()) {
       for (auto& spec : species)
@@ -63,17 +63,8 @@ bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
 }
 
 /** Checks for negative values */
-bool any_negative(const Vector& var) {
-  if (var.empty())
-    return false;
-  else if (min(var) < 0)
-    return true;
-  else
-    return false;
-}
-
-/** Checks for negative values */
-bool any_negative(const Tensor4& var) {
+template <typename MatpackType> constexpr
+bool any_negative(const MatpackType& var) noexcept {
   if (var.empty())
     return false;
   else if (min(var) < 0)
@@ -103,7 +94,7 @@ void zeeman_on_the_fly(
     const Index& manual_tag,
     const Numeric& H0,
     const Numeric& theta0,
-    const Numeric& eta0) try {
+    const Numeric& eta0) {
   // Find relevant derivatives in retrieval quantities positions
   const ArrayOfIndex jacobian_quantities_positions =
       equivalent_propmattype_indexes(jacobian_quantities);
@@ -115,40 +106,38 @@ void zeeman_on_the_fly(
   const Index nn = rtp_nlte.Levels().nelem();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  const bool do_src = not nlte_source.empty();
-  const bool do_jac = not jacobian_quantities_positions.nelem();
-  if (bad_abs_species(abs_species))
-    throw "*abs_species* sub-arrays must have the same species, isotopologue, and type as first sub-array.";
-  if ((rtp_mag.nelem() not_eq 3) and (not manual_tag))
-    throw "Only for 3D *rtp_mag* or a manual magnetic field";
-  if (rtp_vmr.nelem() not_eq abs_species.nelem())
-    throw "*rtp_vmr* must match *abs_species*";
-  if (abs_species.nelem() not_eq propmat_clearsky.nelem())
-    throw "*abs_species* must match *propmat_clearsky*";
-  if (bad_propmat(propmat_clearsky, f_grid))
-    throw "*propmat_clearsky* must have *stokes_dim* 4 and frequency dim same as *f_grid*";
-  if (do_src and (nlte_source.nelem() not_eq abs_species.nelem()))
-    throw "*abs_species* must match *nlte_source* when non-LTE is on";
-  if (do_src and bad_propmat(nlte_source, f_grid))
-    throw "*nlte_source* must have *stokes_dim* 4 and frequency dim same as *f_grid* when non-LTE is on";
-  if (do_jac and (nq not_eq dpropmat_clearsky_dx.nelem()))
-    throw "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*";
-  if (do_jac and bad_propmat(dpropmat_clearsky_dx, f_grid))
-    throw "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*";
-  if (do_jac and do_src and (nq not_eq dnlte_dx_source.nelem()))
-    throw "*dnlte_dx_source* must match derived form of *jacobian_quantities* when non-LTE is on";
-  if (do_jac and do_src and bad_propmat(dnlte_dx_source, f_grid))
-    throw "*dnlte_dx_source* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on";
-  if (do_jac and do_src and (nq not_eq nlte_dsource_dx.nelem()))
-    throw "*nlte_dsource_dx* must match derived form of *jacobian_quantities* when non-LTE is on";
-  if (do_jac and do_src and bad_propmat(nlte_dsource_dx, f_grid))
-    throw "*nlte_dsource_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on";
-  if (any_negative(f_grid)) throw "Negative frequency (at least one value).";
-  if (any_negative(rtp_vmr)) throw "Negative VMR (at least one value).";
-  if (any_negative(rtp_nlte.Data())) throw "Negative NLTE (at least one value).";
-  if (rtp_temperature <= 0) throw "Non-positive temperature";
-  if (rtp_pressure <= 0) throw "Non-positive pressure";
-  if (manual_tag and H0 < 0) throw "Negative manual magnetic field strength";
+  ARTS_USER_ERROR_IF(bad_abs_species(abs_species),
+    "*abs_species* sub-arrays must have the same species, isotopologue, and type as first sub-array.")
+  ARTS_USER_ERROR_IF((rtp_mag.nelem() not_eq 3) and (not manual_tag),
+    "Only for 3D *rtp_mag* or a manual magnetic field")
+  ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
+    "*rtp_vmr* must match *abs_species*")
+  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq propmat_clearsky.nelem(),
+    "*abs_species* must match *propmat_clearsky*")
+  ARTS_USER_ERROR_IF(bad_propmat(propmat_clearsky, f_grid),
+    "*propmat_clearsky* must have *stokes_dim* 4 and frequency dim same as *f_grid*")
+  ARTS_USER_ERROR_IF(not nlte_source.empty() and (nlte_source.nelem() not_eq abs_species.nelem()),
+    "*abs_species* must match *nlte_source* when non-LTE is on")
+  ARTS_USER_ERROR_IF(not nlte_source.empty() and bad_propmat(nlte_source, f_grid),
+    "*nlte_source* must have *stokes_dim* 4 and frequency dim same as *f_grid* when non-LTE is on")
+  ARTS_USER_ERROR_IF(not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
+    "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
+  ARTS_USER_ERROR_IF(not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
+    "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*")
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq dnlte_dx_source.nelem()),
+    "*dnlte_dx_source* must match derived form of *jacobian_quantities* when non-LTE is on")
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(dnlte_dx_source, f_grid),
+    "*dnlte_dx_source* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq nlte_dsource_dx.nelem()),
+    "*nlte_dsource_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
+  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(nlte_dsource_dx, f_grid),
+    "*nlte_dsource_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
+  ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
+  ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
+  ARTS_USER_ERROR_IF(any_negative(rtp_nlte.Data()), "Negative NLTE (at least one value).")
+  ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
+  ARTS_USER_ERROR_IF(manual_tag and H0 < 0, "Negative manual magnetic field strength")
 
   // Pressure information
   const Numeric dnumdens_dmvr = number_density(rtp_pressure, rtp_temperature);
@@ -381,15 +370,4 @@ void zeeman_on_the_fly(
       }
     }
   }
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *zeeman_on_the_fly* internal function:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-} catch (const std::exception& e) {
-  // Initialize an error message:
-  std::ostringstream os;
-  os << "Errors in calls by *zeeman_on_the_fly* internal function:\n";
-  os << e.what();
-  throw std::runtime_error(os.str());
 }

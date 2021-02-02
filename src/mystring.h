@@ -28,7 +28,6 @@
 #define mystring_h
 
 #include <algorithm>
-#include <cassert>
 #include <climits>
 #include <sstream>
 #include <string>
@@ -142,7 +141,7 @@ template <class charT>
 inline my_basic_string<charT>::my_basic_string(
     const std::basic_string<charT>& A, Index pos, Index numpos) {
   // Range checks:
-  assert(0 <= pos);  // Start index must be 0 or greater 0.
+  ARTS_ASSERT(0 <= pos);  // Start index must be 0 or greater 0.
 
   if (!A.size()) return;
 
@@ -150,11 +149,11 @@ inline my_basic_string<charT>::my_basic_string(
   //   cout << "pos = " << pos << "\n";
   //   cout << "size = " << A.size() << "\n";
 
-  assert(static_cast<typename std::basic_string<charT>::size_type>(pos) <
+  ARTS_ASSERT(static_cast<typename std::basic_string<charT>::size_type>(pos) <
          A.size());
   // At most the last element of the original string.
 
-  assert(numpos == my_basic_string<charT>::npos ||
+  ARTS_ASSERT(numpos == my_basic_string<charT>::npos ||
          ((numpos >= 0) &&
           (static_cast<typename std::basic_string<charT>::size_type>(numpos) <=
            (A.size() -
@@ -253,7 +252,7 @@ void my_basic_string<charT>::trim() {
 template <class charT>
 inline Index my_basic_string<charT>::nelem() const {
   size_t s = this->size();
-  assert(s < LONG_MAX);
+  ARTS_ASSERT(s < LONG_MAX);
   return static_cast<long>(s);
 }
 
@@ -265,8 +264,8 @@ inline Index my_basic_string<charT>::nelem() const {
 */
 template <class charT>
 inline char my_basic_string<charT>::operator[](Index n) const {
-  assert(0 <= n);
-  assert(n < nelem());
+  ARTS_ASSERT(0 <= n);
+  ARTS_ASSERT(n < nelem());
   return std::basic_string<charT>::operator[](n);
 }
 
@@ -278,8 +277,8 @@ inline char my_basic_string<charT>::operator[](Index n) const {
 */
 template <class charT>
 inline char& my_basic_string<charT>::operator[](Index n) {
-  assert(0 <= n);
-  assert(n < nelem());
+  ARTS_ASSERT(0 <= n);
+  ARTS_ASSERT(n < nelem());
   return std::basic_string<charT>::operator[](n);
 }
 

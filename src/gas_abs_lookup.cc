@@ -54,7 +54,7 @@ void find_new_grid_in_old_grid(ArrayOfIndex& pos,
   const Index n_old_grid = old_grid.nelem();
 
   // Make sure that pos has the right size:
-  assert(n_new_grid == pos.nelem());
+  ARTS_ASSERT(n_new_grid == pos.nelem());
 
   // Old grid position:
   Index j = 0;
@@ -570,10 +570,10 @@ void GasAbsLookup::Extract(Matrix& sga,
   }
 
   // Check that the dimension of vmrs_ref is consistent with species and p_grid:
-  assert(is_size(vmrs_ref, n_species, n_p_grid));
+  ARTS_ASSERT(is_size(vmrs_ref, n_species, n_p_grid));
 
   // Check dimension of t_ref:
-  assert(is_size(t_ref, n_p_grid));
+  ARTS_ASSERT(is_size(t_ref, n_p_grid));
 
   // Check dimension of xsec:
   DEBUG_ONLY({
@@ -595,7 +595,7 @@ void GasAbsLookup::Extract(Matrix& sga,
     //            << b << ", "
     //            << c << ", "
     //            << d << "\n";
-    assert(is_size(xsec, a, b, c, d));
+    ARTS_ASSERT(is_size(xsec, a, b, c, d));
   })
 
   // Make sure that log_p_grid is initialized:
@@ -1072,7 +1072,7 @@ void GasAbsLookup::Extract(Matrix& sga,
 
     // fpi should have reached the end of that dimension of xsec. Check
     // this with an assertion:
-    assert(fpi == xsec.npages());
+    ARTS_ASSERT(fpi == xsec.npages());
 
   }  // End of pressure index loop (below and above gp)
 

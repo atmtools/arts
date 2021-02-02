@@ -106,11 +106,11 @@ MdRecord::MdRecord(const char name[],
   // Generic variable names, types and defaults must have the same number of
   // elements. (Defaults specifies the default values associated with each
   // generic input.)
-  assert(mgout.nelem() == gouttype.nelem());
-  assert(mgout.nelem() == goutdesc.nelem());
-  assert(mgin.nelem() == mgindefault.nelem());
-  assert(mgin.nelem() == gintype.nelem());
-  assert(mgin.nelem() == gindesc.nelem());
+  ARTS_ASSERT(mgout.nelem() == gouttype.nelem());
+  ARTS_ASSERT(mgout.nelem() == goutdesc.nelem());
+  ARTS_ASSERT(mgin.nelem() == mgindefault.nelem());
+  ARTS_ASSERT(mgin.nelem() == gintype.nelem());
+  ARTS_ASSERT(mgin.nelem() == gindesc.nelem());
 
   // Check that GIN and GOUT don't contain duplicates
   ArrayOfString gin_sorted = mgin;
@@ -324,16 +324,16 @@ void MdRecord::subst_any_with_group(Index g) {
   using global_data::wsv_group_names;
 
   // Make sure they are initialized:
-  assert(0 != wsv_group_names.nelem());
+  ARTS_ASSERT(0 != wsv_group_names.nelem());
 
   // Make sure that g is in the allowed range, which means
   // 0<=g<wsv_group_names.nelem() and g != Any_
-  assert(0 <= g);
-  assert(wsv_group_id_Any != g);
-  assert(g < wsv_group_names.nelem());
+  ARTS_ASSERT(0 <= g);
+  ARTS_ASSERT(wsv_group_id_Any != g);
+  ARTS_ASSERT(g < wsv_group_names.nelem());
 
   // Make sure that this really is a supergeneric method:
-  assert(Supergeneric());
+  ARTS_ASSERT(Supergeneric());
 
   // Modify the name:
   //   {
@@ -369,10 +369,10 @@ void MdRecord::subst_any_with_specific_group(Index g) {
 
   // Make sure that g is in the allowed range, which means
   // 0<=g<wsv_group_names.nelem() and g != Any_
-  assert(0 <= g);
+  ARTS_ASSERT(0 <= g);
 
   // Make sure that this really is a supergeneric method:
-  assert(Supergeneric());
+  ARTS_ASSERT(Supergeneric());
 
   // Modify the name:
   //   {
@@ -417,7 +417,7 @@ void expand_md_data_raw_to_md_data() {
   const Index wsv_group_id_Any = get_wsv_group_id("Any");
 
   // Make sure that they have been initialized:
-  assert(0 != wsv_group_names.nelem());
+  ARTS_ASSERT(0 != wsv_group_names.nelem());
 
   // Reset md_data, just in case:
   md_data.resize(0);
@@ -477,8 +477,8 @@ void define_md_map() {
   DEBUG_ONLY(using global_data::wsv_group_names;)
 
   // Check that md_data and wsv_group_names have already be defined:
-  assert(0 != md_data.nelem());
-  assert(0 != wsv_group_names.nelem());
+  ARTS_ASSERT(0 != md_data.nelem());
+  ARTS_ASSERT(0 != wsv_group_names.nelem());
 
   for (Index i = 0; i < md_data.nelem(); ++i) {
     const MdRecord& mdd = md_data[i];

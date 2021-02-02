@@ -78,14 +78,11 @@ void particle_massesFromMetaDataSingleCategory(
   Index i_se_flat = 0;
   for (Index i_ss = 0; i_ss < scat_meta.nelem(); i_ss++) {
     for (Index i_se = 0; i_se < scat_meta[i_ss].nelem(); i_se++) {
-      if (std::isnan(scat_meta[i_ss][i_se].mass) ||
-          scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.) {
-        ostringstream os;
-        os << "A presumably incorrect value found for "
-           << "scat_meta[" << i_ss << "][" << i_se << "].mass.\n"
-           << "The value is " << scat_meta[i_ss][i_se].mass;
-        throw std::runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (std::isnan(scat_meta[i_ss][i_se].mass) ||
+          scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.,
+          "A presumably incorrect value found for "
+          "scat_meta[", i_ss, "][", i_se, "].mass.\n"
+          "The value is ", scat_meta[i_ss][i_se].mass)
 
       particle_masses(i_se_flat, 0) = scat_meta[i_ss][i_se].mass;
 
@@ -108,14 +105,11 @@ void particle_massesFromMetaData(  //WS Output:
   Index i_se_flat = 0;
   for (Index i_ss = 0; i_ss < scat_meta.nelem(); i_ss++) {
     for (Index i_se = 0; i_se < scat_meta[i_ss].nelem(); i_se++) {
-      if (std::isnan(scat_meta[i_ss][i_se].mass) ||
-          scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.) {
-        ostringstream os;
-        os << "A presumably incorrect value found for "
-           << "scat_meta[" << i_ss << "][" << i_se << "].mass.\n"
-           << "The value is " << scat_meta[i_ss][i_se].mass;
-        throw std::runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (std::isnan(scat_meta[i_ss][i_se].mass) ||
+          scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.,
+          "A presumably incorrect value found for "
+          "scat_meta[", i_ss, "][", i_se, "].mass.\n"
+          "The value is ", scat_meta[i_ss][i_se].mass)
       
       particle_masses(i_se_flat, i_ss) = scat_meta[i_ss][i_se].mass;
       i_se_flat++;
@@ -139,28 +133,23 @@ void pndFromPsdBasic(Matrix& pnd_data,
   const bool do_dx = !dpsd_data_dx.empty();
 
   // Checks
-  if (ng < 2)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (ng < 2,
         "The method requires that length of *psd_size_grid* is >= 2.");
-  if (ng != pnd_size_grid.nelem())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (ng != pnd_size_grid.nelem(),
         "So far, the method requires that *psd_size_grid* and "
         "*pnd_size_grid* have same length.");
   for (Index i = 0; i < ng; i++) {
-    if (psd_size_grid[i] != pnd_size_grid[i])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (psd_size_grid[i] != pnd_size_grid[i],
           "So far, the method requires that *psd_size_grid* and "
           "*pnd_size_grid* are identical.");
   }
-  if (psd_data.ncols() != ng)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (psd_data.ncols() != ng,
         "Number of columns in *psd_data* and length of "
         "*psd_size_grid* must match.");
 
   pnd_data.resize(np, ng);
   if (do_dx) {
-    if (dpsd_data_dx.ncols() != ng)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (dpsd_data_dx.ncols() != ng,
           "Number of columns in *dpsd_data_dx* and length of "
           "*psd_size_grid* must match.");
     ndx = dpsd_data_dx.npages();
@@ -177,8 +166,7 @@ void pndFromPsdBasic(Matrix& pnd_data,
   for (Index i = 0; i < ng; i++)
     psd_size_grid_sorted[i] = psd_size_grid[intarr[i]];
 
-  if (!is_increasing(psd_size_grid_sorted))
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (!is_increasing(psd_size_grid_sorted),
         "*psd_size_grid* is not allowed to contain "
         "duplicate values.");
 
@@ -225,28 +213,23 @@ void pndFromPsd(Matrix& pnd_data,
   const bool do_dx = !dpsd_data_dx.empty();
 
   // Checks
-  if (ng < 3)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (ng < 3,
         "The method requires that length of *psd_size_grid* is >= 3.");
-  if (ng != pnd_size_grid.nelem())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (ng != pnd_size_grid.nelem(),
         "So far, the method requires that *psd_size_grid* and"
         " *pnd_size_grid* have the same length.");
   for (Index i = 0; i < ng; i++) {
-    if (psd_size_grid[i] != pnd_size_grid[i])
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (psd_size_grid[i] != pnd_size_grid[i],
           "So far, the method requires that *psd_size_grid* and"
           " *pnd_size_grid* are identical.");
   }
-  if (psd_data.ncols() != ng)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (psd_data.ncols() != ng,
         "Number of columns in *psd_data* and length of"
         " *psd_size_grid* must match.");
 
   pnd_data.resize(np, ng);
   if (do_dx) {
-    if (dpsd_data_dx.ncols() != ng)
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (dpsd_data_dx.ncols() != ng,
           "Number of columns in *dpsd_data_dx* and length of"
           " *psd_size_grid* must match.");
     ndx = dpsd_data_dx.npages();
@@ -255,17 +238,14 @@ void pndFromPsd(Matrix& pnd_data,
     dpnd_data_dx.resize(0, 0, 0);
   }
 
-  if (!scat_data_checked)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!scat_data_checked,
         "*scat_data* must have passed a consistency check"
         " (scat_data_checked=1).\n"
         "Alternatively, use *pndFromPsdBasic*.");
-  if (scat_index >= scat_data.nelem())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (scat_index >= scat_data.nelem(),
         "*scat_index* exceeds the number of available"
         " scattering species.");
-  if (scat_data[scat_index].nelem() != ng)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (scat_data[scat_index].nelem() != ng,
         "Number of scattering elements in this scattering"
         " species (*scat_index*) inconsistent with length of"
         " *pnd_size_grid*.");
@@ -278,8 +258,7 @@ void pndFromPsd(Matrix& pnd_data,
   for (Index i = 0; i < ng; i++)
     psd_size_grid_sorted[i] = psd_size_grid[intarr[i]];
 
-  if (!is_increasing(psd_size_grid_sorted))
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (!is_increasing(psd_size_grid_sorted),
         "*psd_size_grid* is not allowed to contain "
         "duplicate values.");
 
@@ -405,46 +384,40 @@ void pndFromPsd(Matrix& pnd_data,
         // check that bin-width normalized extinction (or ext*psd) is
         // decreasing.
         if (abs(bulkext(ip, f)) > 1e-2 * threshold_bext) {
-          if (abs(psd_data(ip, intarr[0])) > 0. and
+          ARTS_USER_ERROR_IF (abs(psd_data(ip, intarr[0])) > 0. and
               ext_s0[f] * abs(psd_data(ip, intarr[0])) >=
-                  ext_s1[f] * abs(psd_data(ip, intarr[1]))) {
-            ostringstream os;
-            os << "  Bin-width normalized extinction (ext*psd) not decreasing"
-               << " at small size edge\n"
-               << "  at atm level #" << ip << " and freq point #" << f << ".\n"
-               << "  ext_s0=" << ext_s0[f]
-               << ", psd_s0=" << abs(psd_data(ip, intarr[0]))
-               << ", ext_s0*psd_s0=" << ext_s0[f] * abs(psd_data(ip, intarr[0]))
-               << "\n    LARGER EQUAL\n"
-               << "  ext_s1=" << ext_s1[f]
-               << ", psd_s1=" << abs(psd_data(ip, intarr[1]))
-               << ", ext_s1*psd_s1=" << ext_s1[f] * abs(psd_data(ip, intarr[1]))
-               << "\n"
-               << "    Total bulk ext = " << abs(bulkext(ip, f)) << "\n"
-               << "  Need to add smaller sized particles!\n";
-            throw runtime_error(os.str());
-          }
+                  ext_s1[f] * abs(psd_data(ip, intarr[1])),
+              "  Bin-width normalized extinction (ext*psd) not decreasing"
+              " at small size edge\n"
+              "  at atm level #", ip, " and freq point #", f, ".\n"
+              "  ext_s0=", ext_s0[f],
+              ", psd_s0=", abs(psd_data(ip, intarr[0])),
+              ", ext_s0*psd_s0=", ext_s0[f] * abs(psd_data(ip, intarr[0])),
+              "\n    LARGER EQUAL\n"
+              "  ext_s1=", ext_s1[f],
+              ", psd_s1=", abs(psd_data(ip, intarr[1])),
+              ", ext_s1*psd_s1=", ext_s1[f] * abs(psd_data(ip, intarr[1])),
+              "\n"
+              "    Total bulk ext = ", abs(bulkext(ip, f)), "\n"
+              "  Need to add smaller sized particles!\n")
 
-          if (abs(psd_data(ip, intarr[ng - 1])) > 0. and
+          ARTS_USER_ERROR_IF (abs(psd_data(ip, intarr[ng - 1])) > 0. and
               ext_l0[f] * abs(psd_data(ip, intarr[ng - 1])) >=
-                  ext_l1[f] * abs(psd_data(ip, intarr[ng - 2]))) {
-            ostringstream os;
-            os << "Bin-width normalized extinction (ext*psd) not decreasing"
-               << " at large size edge\n"
-               << "at atm level #" << ip << " and freq point #" << f << ".\n"
-               << "  ext_l0=" << ext_l0[f]
-               << ", psd_l0=" << abs(psd_data(ip, intarr[ng - 1]))
-               << ", ext_l0*psd_l0="
-               << ext_l0[f] * abs(psd_data(ip, intarr[ng - 1]))
-               << "\n    LARGER EQUAL\n"
-               << "  ext_l1=" << ext_l1[f]
-               << ", psd_l1=" << abs(psd_data(ip, intarr[ng - 2]))
-               << ", ext_l1*psd_l1="
-               << ext_l1[f] * abs(psd_data(ip, intarr[ng - 2])) << "\n"
-               << "    Total bulk ext = " << abs(bulkext(ip, f)) << "\n"
-               << "  Need to add larger sized particles!\n";
-            throw runtime_error(os.str());
-          }
+                  ext_l1[f] * abs(psd_data(ip, intarr[ng - 2])),
+              "Bin-width normalized extinction (ext*psd) not decreasing"
+              " at large size edge\n"
+              "at atm level #", ip, " and freq point #", f, ".\n"
+              "  ext_l0=", ext_l0[f],
+              ", psd_l0=", abs(psd_data(ip, intarr[ng - 1])),
+              ", ext_l0*psd_l0=",
+              ext_l0[f] * abs(psd_data(ip, intarr[ng - 1])),
+              "\n    LARGER EQUAL\n"
+              "  ext_l1=", ext_l1[f],
+              ", psd_l1=", abs(psd_data(ip, intarr[ng - 2])),
+              ", ext_l1*psd_l1=",
+              ext_l1[f] * abs(psd_data(ip, intarr[ng - 2])), "\n"
+              "    Total bulk ext = ", abs(bulkext(ip, f)), "\n"
+              "  Need to add larger sized particles!\n")
         }
 
         // check that contribution of edge bins to total extinction is
@@ -456,17 +429,14 @@ void pndFromPsd(Matrix& pnd_data,
             //cout << "    small edge contrib = pnd*ext/bext = "
             //     << abs(pnd_data(ip,intarr[0])) << "*" << ext_s0[f] << "/"
             //     << abs(bulkext(ip,f)) << " = " << contrib << "\n";
-            if (abs(pnd_data(ip, intarr[0])) * ext_s0[f] >
-                threshold_rsec * abs(bulkext(ip, f))) {
-              ostringstream os;
-              os << "Contribution of edge bin to total extinction too high"
-                 << " (" << contrib * 1e2 << "% of " << abs(bulkext(ip, f))
-                 << ") at small size edge\n"
-                 << "at atm level #" << ip << " and freq point #" << f << ".\n"
-                 << "  Need to add smaller sized particles or refine the size"
-                 << " grid on the small size edge!\n";
-              throw runtime_error(os.str());
-            }
+            ARTS_USER_ERROR_IF (abs(pnd_data(ip, intarr[0])) * ext_s0[f] >
+                threshold_rsec * abs(bulkext(ip, f)),
+                "Contribution of edge bin to total extinction too high"
+                " (", contrib * 1e2, "% of ", abs(bulkext(ip, f)),
+                ") at small size edge\n"
+                "at atm level #", ip, " and freq point #", f, ".\n"
+                "  Need to add smaller sized particles or refine the size"
+                " grid on the small size edge!\n")
           }
           if (abs(pnd_data(ip, intarr[ng - 1])) > threshold_rpnd * max1) {
             contrib = abs(pnd_data(ip, intarr[ng - 1])) * ext_l0[f] /
@@ -474,17 +444,14 @@ void pndFromPsd(Matrix& pnd_data,
             //cout << "    large edge contrib = pnd*ext/bext = "
             //     << abs(pnd_data(ip,ng-1)) << "*" << ext_l0[f] << "/"
             //     << abs(bulkext(ip,f)) << " = " << contrib << "\n";
-            if (abs(pnd_data(ip, intarr[ng - 1])) * ext_l0[f] >
-                threshold_rsec * abs(bulkext(ip, f))) {
-              ostringstream os;
-              os << "Contribution of edge bin to total extinction too high"
-                 << " (" << contrib * 1e2 << "% of " << abs(bulkext(ip, f))
-                 << ") at large size edge\n"
-                 << "at atm level #" << ip << " and freq point #" << f << ".\n"
-                 << "  Need to add larger sized particles or refine the size"
-                 << " grid on the large size edge!\n";
-              throw runtime_error(os.str());
-            }
+            ARTS_USER_ERROR_IF (abs(pnd_data(ip, intarr[ng - 1])) * ext_l0[f] >
+                threshold_rsec * abs(bulkext(ip, f)),
+                "Contribution of edge bin to total extinction too high"
+                " (", contrib * 1e2, "% of ", abs(bulkext(ip, f)),
+                ") at large size edge\n"
+                "at atm level #", ip, " and freq point #", f, ".\n"
+                "  Need to add larger sized particles or refine the size"
+                " grid on the large size edge!\n")
           }
         }
       }
@@ -522,8 +489,8 @@ void pnd_fieldCalcFromParticleBulkProps(
     return;
   }
 
-  if (particle_bulkprop_field.empty())
-    throw runtime_error("*particle_bulkprop_field* is empty.");
+  ARTS_USER_ERROR_IF (particle_bulkprop_field.empty(),
+                      "*particle_bulkprop_field* is empty.");
 
   // Checks (not totally complete, but should cover most mistakes)
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
@@ -540,52 +507,41 @@ void pnd_fieldCalcFromParticleBulkProps(
   // Number of scattering species
   const Index nss = scat_data.nelem();
 
-  if (particle_bulkprop_names.nelem() == 0 ||
-      particle_bulkprop_names.nelem() != particle_bulkprop_field.nbooks()) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (particle_bulkprop_names.nelem() == 0 ||
+      particle_bulkprop_names.nelem() != particle_bulkprop_field.nbooks(),
         "Number of fields in *particle_bulkprop_field*"
         " inconsistent with number of names in"
         " *particle_bulkprop_names*.");
-  }
-  if (particle_bulkprop_field.nbooks() < nss) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (particle_bulkprop_field.nbooks() < nss,
         "At least one field per scattering species required"
         " in *particle_bulkprop_field*.");
-  }
 
-  if (cloudbox_limits.nelem() != 2 * atmosphere_dim)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
         "Length of *cloudbox_limits* incorrect with respect "
         "to *atmosphere_dim*.");
-  if (cloudbox_limits[1] <= cloudbox_limits[0] || cloudbox_limits[0] < 0 ||
-      cloudbox_limits[1] >= p_grid.nelem())
-    throw runtime_error("Invalid data in pressure part of *cloudbox_limits*.");
+  ARTS_USER_ERROR_IF (cloudbox_limits[1] <= cloudbox_limits[0] || cloudbox_limits[0] < 0 ||
+      cloudbox_limits[1] >= p_grid.nelem(),
+                      "Invalid data in pressure part of *cloudbox_limits*.");
   if (atmosphere_dim > 1) {
-    if (cloudbox_limits[3] <= cloudbox_limits[2] || cloudbox_limits[2] < 0 ||
-        cloudbox_limits[3] >= lat_grid.nelem())
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (cloudbox_limits[3] <= cloudbox_limits[2] || cloudbox_limits[2] < 0 ||
+        cloudbox_limits[3] >= lat_grid.nelem(),
           "Invalid data in latitude part of *cloudbox_limits*.");
     if (atmosphere_dim > 2) {
-      if (cloudbox_limits[5] <= cloudbox_limits[4] || cloudbox_limits[4] < 0 ||
-          cloudbox_limits[5] >= lon_grid.nelem())
-        throw runtime_error(
+      ARTS_USER_ERROR_IF (cloudbox_limits[5] <= cloudbox_limits[4] || cloudbox_limits[4] < 0 ||
+          cloudbox_limits[5] >= lon_grid.nelem(),
             "Invalid data in longitude part of *cloudbox_limits*.");
     }
   }
 
-  if (nss < 1) throw runtime_error("*scat_data* is empty!.");
-  if (scat_species.nelem() != nss)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (nss < 1, "*scat_data* is empty!.");
+  ARTS_USER_ERROR_IF (scat_species.nelem() != nss,
         "*scat_data* and *scat_species* are inconsistent in size.");
-  if (scat_meta.nelem() != nss)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (scat_meta.nelem() != nss,
         "*scat_data* and *scat_meta* are inconsistent in size.");
-  if (pnd_agenda_array.nelem() != nss)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (pnd_agenda_array.nelem() != nss,
         "*scat_data* and *pnd_agenda_array* are inconsistent "
         "in size.");
-  if (pnd_agenda_array_input_names.nelem() != nss)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names.nelem() != nss,
         "*scat_data* and *pnd_agenda_array_input_names* are "
         "inconsistent in size.");
   // Further checks of scat_data vs. scat_meta below
@@ -610,27 +566,27 @@ void pnd_fieldCalcFromParticleBulkProps(
 
   // Check that *particle_bulkprop_field* contains zeros outside and at
   // cloudbox boundaries
-  const String estring =
+  constexpr std::string_view estring =
       "*particle_bulkprop_field* allowed to contain"
       " non-zero values only inside the cloudbox.";
   // Pressure end ranges
   if (cloudbox_limits[0] != 0) {
-    if (max(particle_bulkprop_field(
+    ARTS_USER_ERROR_IF (max(particle_bulkprop_field(
             joker, Range(0, ip_offset + 1), joker, joker)) > 0 ||
         min(particle_bulkprop_field(
-            joker, Range(0, ip_offset + 1), joker, joker)) < 0)
-      throw runtime_error(estring);
+            joker, Range(0, ip_offset + 1), joker, joker)) < 0,
+                        estring);
     np_nonzero--;
     ip_offset++;
     pf_offset = 1;
   }
   if (cloudbox_limits[1] != p_grid.nelem() - 1) {
     const Index np_above = p_grid.nelem() + 1 - (np + ip_offset);
-    if (max(particle_bulkprop_field(
+    ARTS_USER_ERROR_IF (max(particle_bulkprop_field(
             joker, Range(cloudbox_limits[1], np_above), joker, joker)) > 0 ||
         min(particle_bulkprop_field(
-            joker, Range(cloudbox_limits[1], np_above), joker, joker)) < 0)
-      throw runtime_error(estring);
+            joker, Range(cloudbox_limits[1], np_above), joker, joker)) < 0,
+                        estring);
     np_nonzero--;
   }
 
@@ -638,8 +594,7 @@ void pnd_fieldCalcFromParticleBulkProps(
   ArrayOfIndex ncumse(nss + 1);
   ncumse[0] = 0;
   for (Index i = 0; i < nss; i++) {
-    if (scat_data[i].nelem() != scat_meta[i].nelem())
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (scat_data[i].nelem() != scat_meta[i].nelem(),
           "*scat_data* and *scat_meta* have inconsistent sizes.");
     ncumse[i + 1] = ncumse[i] + scat_data[i].nelem();
   }
@@ -664,13 +619,10 @@ void pnd_fieldCalcFromParticleBulkProps(
       if (jacobian_quantities[iq] == Jacobian::Special::ScatteringString) {
         const Index ihit =
             find_first(scat_species, jacobian_quantities[iq].Subtag());
-        if (ihit < 0) {
-          ostringstream os;
-          os << "Jacobian quantity with index " << iq << " refers to\n"
-             << "  " << jacobian_quantities[iq].Subtag()
-             << "\nbut this species could not be found in *scat_species*.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (ihit < 0,
+            "Jacobian quantity with index ", iq, " refers to\n"
+            "  ", jacobian_quantities[iq].Subtag(),
+            "\nbut this species could not be found in *scat_species*.")
         scatspecies_to_jq[ihit].push_back(iq);
         dpnd_field_dx[iq].resize(ncumse[nss], np, nlat, nlon);
         dpnd_field_dx[iq] = 0.0;  
@@ -691,14 +643,11 @@ void pnd_fieldCalcFromParticleBulkProps(
     for (Index i = 0; i < nin; i++) {
       i_pbulkprop[i] = find_first(particle_bulkprop_names,
                                   pnd_agenda_array_input_names[is][i]);
-      if (i_pbulkprop[i] < 0) {
-        ostringstream os;
-        os << "Pnd-agenda with index " << is << " is set to require \""
-           << pnd_agenda_array_input_names[is][i] << "\",\nbut this quantity "
-           << "could not found in *particle_bulkprop_names*.\n"
-           << "(Note that temperature must be written as \"Temperature\")";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (i_pbulkprop[i] < 0,
+          "Pnd-agenda with index ", is, " is set to require \"",
+           pnd_agenda_array_input_names[is][i], "\",\nbut this quantity "
+           "could not found in *particle_bulkprop_names*.\n"
+           "(Note that temperature must be written as \"Temperature\")")
     }
 
     // Set *dpnd_data_dx_names*
@@ -788,18 +737,14 @@ void ScatSpeciesSizeMassInfo(Vector& scat_species_x,
                              const Verbosity&) {
   // Checks
   const Index nss = scat_meta.nelem();
-  if (nss == 0) throw runtime_error("*scat_meta* is empty!");
-  if (nss < species_index + 1) {
-    ostringstream os;
-    os << "Selected scattering species index is " << species_index
-       << " but this "
-       << "is not allowed since *scat_meta* has only " << nss << " elements.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (nss == 0, "*scat_meta* is empty!");
+  ARTS_USER_ERROR_IF (nss < species_index + 1,
+      "Selected scattering species index is ", species_index,
+      " but this "
+      "is not allowed since *scat_meta* has only ", nss, " elements.")
   //
   const Index nse = scat_meta[species_index].nelem();
-  if (nse < 2)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (nse < 2,
         "The scattering species must have at least two "
         "elements to use this method.");
 
@@ -875,10 +820,8 @@ void ScatSpeciesSizeMassInfo(Vector& scat_species_x,
   }
 
   else {
-    ostringstream os;
-    os << "You have selected the x_unit: " << x_unit
-       << "while accepted choices are: \"dveq\", \"dmax\", \"mass\" and \"area\"";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR ("You have selected the x_unit: ", x_unit,
+                     "while accepted choices are: \"dveq\", \"dmax\", \"mass\" and \"area\"")
   }
 }
 

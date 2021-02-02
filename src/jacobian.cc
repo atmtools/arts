@@ -121,7 +121,7 @@ void transform_jacobian(Matrix& jacobian,
             2 * (pars[1] - pars[0]) / pow(exp(-x_t[c]) + exp(x_t[c]), 2.0);
       }
     } else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
   }
 
@@ -169,48 +169,36 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
     } else if (tfun == "log") {
       const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        if (x[r] <= pars[0]) {
-          ostringstream os;
-          os << "log-transformation selected for retrieval quantity with\n"
-             << "index " << i << " (0-based), but at least one value <= z_min\n"
-             << "found for this quantity. This is not allowed.";
-          throw std::runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (x[r] <= pars[0],
+            "log-transformation selected for retrieval quantity with\n"
+            "index ", i, " (0-based), but at least one value <= z_min\n"
+            "found for this quantity. This is not allowed.")
         x[r] = log(x[r] - pars[0]);
       }
     } else if (tfun == "log10") {
       const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        if (x[r] <= 0) {
-          ostringstream os;
-          os << "log10-transformation selected for retrieval quantity with\n"
-             << "index " << i << " (0-based), but at least one value <= z_min\n"
-             << "found for this quantity. This is not allowed.";
-          throw std::runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (x[r] <= 0,
+            "log10-transformation selected for retrieval quantity with\n"
+            "index ", i, " (0-based), but at least one value <= z_min\n"
+            "found for this quantity. This is not allowed.")
         x[r] = log10(x[r] - pars[0]);
       }
     } else if (tfun == "atanh") {
       const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        if (x[r] <= pars[0]) {
-          ostringstream os;
-          os << "atanh-transformation selected for retrieval quantity with\n"
-             << "index " << i << " (0-based), but at least one value <= z_min\n"
-             << "found for this quantity. This is not allowed.";
-          throw std::runtime_error(os.str());
-        }
-        if (x[r] >= pars[1]) {
-          ostringstream os;
-          os << "atanh-transformation selected for retrieval quantity with\n"
-             << "index " << i << " (0-based), but at least one value is\n"
-             << ">= z_max. This is not allowed.";
-          throw std::runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (x[r] <= pars[0],
+            "atanh-transformation selected for retrieval quantity with\n"
+            "index ", i, " (0-based), but at least one value <= z_min\n"
+            "found for this quantity. This is not allowed.")
+        ARTS_USER_ERROR_IF (x[r] >= pars[1],
+            "atanh-transformation selected for retrieval quantity with\n"
+            "index ", i, " (0-based), but at least one value is\n"
+            ">= z_max. This is not allowed.")
         x[r] = atanh(2 * (x[r] - pars[0]) / (pars[1] - pars[0]) - 1);
       }
     } else {
-      assert(0);
+      ARTS_ASSERT(0);
     }
   }
 
@@ -300,7 +288,7 @@ void transform_x_back(Vector& x_t,
           x_t[r] = pars[0] + ((pars[1] - pars[0]) / 2) * (1 + tanh(x_t[r]));
         }
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
   }
@@ -327,7 +315,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
                              const Index& atmosphere_dim,
                              const Ppath& ppath,
                              ConstVectorView ppath_p) {
-  assert(jacobian_quantity.Grids().nelem() == atmosphere_dim or jacobian_quantity.Grids().empty());
+  ARTS_ASSERT(jacobian_quantity.Grids().nelem() == atmosphere_dim or jacobian_quantity.Grids().empty());
 
   // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
@@ -488,9 +476,9 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
                             ConstMatrixView diy_dpos,
                             const Index& atmosphere_dim,
                             ConstVectorView rtp_pos) {
-  assert(jacobian_quantity.Grids().nelem() ==
+  ARTS_ASSERT(jacobian_quantity.Grids().nelem() ==
          max(atmosphere_dim - 1, Index(1)));
-  assert(rtp_pos.nelem() == atmosphere_dim);
+  ARTS_ASSERT(rtp_pos.nelem() == atmosphere_dim);
 
   // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
@@ -587,10 +575,10 @@ ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity&
       if (p not_eq abs_species.cend()) {
         aoi[iq] = Index(abs_species.cend() - p);
       } else {
-        ostringstream os;
-        os << "Could not find " << jacobian_quantities[iq].Subtag()
-        << " in species of abs_species.\n";
-        throw std::runtime_error(os.str());
+        ARTS_USER_ERROR (
+                            "Could not find ",
+                            jacobian_quantities[iq].Subtag(),
+                            " in species of abs_species.\n")
       }
     } else if (jacobian_quantities[iq] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
       ArrayOfSpeciesTag atag;
@@ -636,13 +624,10 @@ ArrayOfIndex get_pointers_for_scat_species(const ArrayOfRetrievalQuantity& jacob
   FOR_ANALYTICAL_JACOBIANS_DO(
     if (cloudbox_on and jacobian_quantities[iq] == Jacobian::Special::ScatteringString) {
       aoi[iq] = find_first(scat_species, jacobian_quantities[iq].Subtag());
-      if (aoi[iq] < 0) {
-        ostringstream os;
-        os << "Jacobian quantity with index " << iq << " refers to\n"
-            << "  " << jacobian_quantities[iq].Subtag()
-            << "\nbut this species could not be found in *scat_species*.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (aoi[iq] < 0,
+          "Jacobian quantity with index ", iq, " refers to\n"
+          "  ", jacobian_quantities[iq].Subtag(),
+          "\nbut this species could not be found in *scat_species*.")
     }
   )
   
@@ -665,7 +650,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lat_retr_name,
                            const String& lon_retr_name,
                            const Index& dim) {
-  assert(grids.nelem() == dim);
+  ARTS_ASSERT(grids.nelem() == dim);
 
   if (p_retr.nelem() == 0) {
     os << "The grid vector *" << p_retr_name << "* is empty,"
@@ -772,7 +757,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lat_retr_name,
                            const String& lon_retr_name,
                            const Index& dim) {
-  assert(grids.nelem() == max(dim - 1, Index(1)));
+  ARTS_ASSERT(grids.nelem() == max(dim - 1, Index(1)));
 
   if (dim == 1) {
     // Here we only need to create a length 1 dummy grid
@@ -865,7 +850,7 @@ void polynomial_basis_func(Vector& b,
                            const Index& poly_coeff) {
   const Index l = x.nelem();
 
-  assert(l > poly_coeff);
+  ARTS_ASSERT(l > poly_coeff);
 
   if (b.nelem() != l) b.resize(l);
 
@@ -900,7 +885,7 @@ void calcBaselineFit(Vector& y_baseline,
   } else if (rq == Jacobian::Sensor::Sinefit) {
     is_sine_fit = true;
   } else {
-    throw runtime_error(
+    ARTS_USER_ERROR (
         "Retrieval quantity is neither a polynomial or a sine "
         " baseline fit.");
   }
@@ -984,11 +969,10 @@ void vmrunitscf(Numeric& x,
     }
     x = 1 / (vmr * number_density(p, t));
   } else {
-    ostringstream os;
-    os << "Allowed options for gas species jacobians are "
-          "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "
-       << unit << std::endl;
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR (
+      "Allowed options for gas species jacobians are "
+      "\"rel\", \"vmr\" and \"nd\".\nYou have selected: ",
+      unit, '\n')
   }
 }
 
@@ -1004,11 +988,10 @@ void dxdvmrscf(Numeric& x,
   } else if (unit == "nd") {
     x = 1 / number_density(p, t);
   } else {
-    ostringstream os;
-    os << "Allowed options for gas species jacobians are "
-          "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "
-       << unit << std::endl;
-    throw std::runtime_error(os.str());
+    ARTS_USER_ERROR (
+      "Allowed options for gas species jacobians are "
+      "\"rel\", \"vmr\" and \"nd\".\nYou have selected: ",
+      unit, '\n')
   }
 }
 
@@ -1130,26 +1113,26 @@ bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
 }
 
 bool supports_continuum(const ArrayOfRetrievalQuantity& js) {
-  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
-    throw std::runtime_error("Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n");
+  ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
+    "Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n")
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or is_frequency_parameter(j));});
 }
 
 bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
-  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
-    throw std::runtime_error("Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n");
+  ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
+    "Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n")
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or is_frequency_parameter(j));});
 }
 
 bool supports_lookup(const ArrayOfRetrievalQuantity& js) {
-  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
-    throw std::runtime_error("Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
+  ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
+    "Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n")
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or is_frequency_parameter(j));});
 }
 
 bool supports_faraday(const ArrayOfRetrievalQuantity& js) {
-  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_derived_magnetic_parameter(j);}))
-    throw std::runtime_error("This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n");
+  ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_derived_magnetic_parameter(j);}),
+    "This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n")
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::MagneticU or j == Jacobian::Atm::MagneticV or j == Jacobian::Atm::MagneticW or j == Jacobian::Atm::Electrons or is_frequency_parameter(j);});
 }
 

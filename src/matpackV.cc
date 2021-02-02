@@ -74,8 +74,8 @@ ConstTensor4View ConstTensor5View::operator()(const Range& s,
                                               const Range& r,
                                               Index c) const {
   // Check that c is valid:
-  assert(0 <= c);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstTensor4View(
       mdata + mcr.mstart + c * mcr.mstride, msr, mbr, mpr, mrr, s, b, p, r);
@@ -89,8 +89,8 @@ ConstTensor4View ConstTensor5View::operator()(const Range& s,
                                               Index r,
                                               const Range& c) const {
   // Check that r is valid:
-  assert(0 <= r);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstTensor4View(
       mdata + mrr.mstart + r * mrr.mstride, msr, mbr, mpr, mcr, s, b, p, c);
@@ -104,8 +104,8 @@ ConstTensor4View ConstTensor5View::operator()(const Range& s,
                                               const Range& r,
                                               const Range& c) const {
   // Check that p is valid:
-  assert(0 <= p);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return ConstTensor4View(
       mdata + mpr.mstart + p * mpr.mstride, msr, mbr, mrr, mcr, s, b, r, c);
@@ -119,8 +119,8 @@ ConstTensor4View ConstTensor5View::operator()(const Range& s,
                                               const Range& r,
                                               const Range& c) const {
   // Check that b is valid:
-  assert(0 <= b);
-  assert(b < mbr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(b < mbr.mextent);
 
   return ConstTensor4View(
       mdata + mbr.mstart + b * mbr.mstride, msr, mpr, mrr, mcr, s, p, r, c);
@@ -134,8 +134,8 @@ ConstTensor4View ConstTensor5View::operator()(Index s,
                                               const Range& r,
                                               const Range& c) const {
   // Check that s is valid:
-  assert(0 <= s);
-  assert(s < msr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(s < msr.mextent);
 
   return ConstTensor4View(
       mdata + msr.mstart + s * msr.mstride, mbr, mpr, mrr, mcr, b, p, r, c);
@@ -146,10 +146,10 @@ ConstTensor4View ConstTensor5View::operator()(Index s,
 ConstTensor3View ConstTensor5View::operator()(
     const Range& s, const Range& b, const Range& p, Index r, Index c) const {
   // Check that r and c is valid:
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstTensor3View(
       mdata + mrr.mstart + r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -166,10 +166,10 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstTensor3View ConstTensor5View::operator()(
     const Range& s, const Range& b, Index p, const Range& r, Index c) const {
   // Check that p and c are valid:
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstTensor3View(
       mdata + mpr.mstart + p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -186,10 +186,10 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstTensor3View ConstTensor5View::operator()(
     const Range& s, const Range& b, Index p, Index r, const Range& c) const {
   // Check that p and r are valid:
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstTensor3View(
       mdata + mpr.mstart + p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -206,10 +206,10 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstTensor3View ConstTensor5View::operator()(
     const Range& s, Index b, const Range& p, Index r, const Range& c) const {
   // Check that b and r are valid:
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstTensor3View(
       mdata + mbr.mstart + b * mbr.mstride + mrr.mstart + r * mrr.mstride,
@@ -226,10 +226,10 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstTensor3View ConstTensor5View::operator()(
     const Range& s, Index b, const Range& p, const Range& r, Index c) const {
   // Check that b and c are valid:
-  assert(0 <= b);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstTensor3View(
       mdata + mbr.mstart + b * mbr.mstride + mcr.mstart + c * mcr.mstride,
@@ -246,10 +246,10 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstTensor3View ConstTensor5View::operator()(
     const Range& s, Index b, Index p, const Range& r, const Range& c) const {
   // Check that b and p are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return ConstTensor3View(
       mdata + mbr.mstart + b * mbr.mstride + mpr.mstart + p * mpr.mstride,
@@ -266,10 +266,10 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstTensor3View ConstTensor5View::operator()(
     Index s, const Range& b, Index p, const Range& r, const Range& c) const {
   // Check that s and p are valid:
-  assert(0 <= s);
-  assert(0 <= p);
-  assert(s < msr.mextent);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return ConstTensor3View(
       mdata + msr.mstart + s * msr.mstride + mpr.mstart + p * mpr.mstride,
@@ -286,10 +286,10 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstTensor3View ConstTensor5View::operator()(
     Index s, const Range& b, const Range& p, Index r, const Range& c) const {
   // Check that s and r are valid:
-  assert(0 <= s);
-  assert(0 <= r);
-  assert(s < msr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstTensor3View(
       mdata + msr.mstart + s * msr.mstride + mrr.mstart + r * mrr.mstride,
@@ -306,10 +306,10 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstTensor3View ConstTensor5View::operator()(
     Index s, const Range& b, const Range& p, const Range& r, Index c) const {
   // Check that s and c are valid:
-  assert(0 <= s);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstTensor3View(
       mdata + msr.mstart + s * msr.mstride + mcr.mstart + c * mcr.mstride,
@@ -326,10 +326,10 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstTensor3View ConstTensor5View::operator()(
     Index s, Index b, const Range& p, const Range& r, const Range& c) const {
   // Check that s and b are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
 
   return ConstTensor3View(
       mdata + msr.mstart + s * msr.mstride + mbr.mstart + b * mbr.mstride,
@@ -346,12 +346,12 @@ ConstTensor3View ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     const Range& s, const Range& b, Index p, Index r, Index c) const {
   // Check that p, r and c are valid:
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstMatrixView(mdata + mpr.mstart + p * mpr.mstride + mrr.mstart +
                              r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -366,12 +366,12 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     const Range& s, Index b, const Range& p, Index r, Index c) const {
   // Check that b, r and c are valid:
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstMatrixView(mdata + mbr.mstart + b * mbr.mstride + mrr.mstart +
                              r * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -386,12 +386,12 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     const Range& s, Index b, Index p, const Range& r, Index c) const {
   // Check that b, p and c are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstMatrixView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                              p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -406,12 +406,12 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     const Range& s, Index b, Index p, Index r, const Range& c) const {
   // Check that b, p and r are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstMatrixView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                              p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -426,12 +426,12 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     Index s, const Range& b, Index p, Index r, const Range& c) const {
   // Check that s, p and r are valid:
-  assert(0 <= s);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(s < msr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstMatrixView(mdata + msr.mstart + s * msr.mstride + mpr.mstart +
                              p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -446,12 +446,12 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     Index s, const Range& b, Index p, const Range& r, Index c) const {
   // Check that s, p and c are valid:
-  assert(0 <= s);
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstMatrixView(mdata + msr.mstart + s * msr.mstride + mpr.mstart +
                              p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -466,12 +466,12 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     Index s, const Range& b, const Range& p, Index r, Index c) const {
   // Check that s, r and c are valid:
-  assert(0 <= s);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstMatrixView(mdata + msr.mstart + s * msr.mstride + mrr.mstart +
                              r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -486,12 +486,12 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     Index s, Index b, const Range& p, const Range& r, Index c) const {
   // Check that s, b and c are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstMatrixView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                              b * mbr.mstride + mcr.mstart + c * mcr.mstride,
@@ -506,12 +506,12 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     Index s, Index b, const Range& p, Index r, const Range& c) const {
   // Check that s, b and r are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstMatrixView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                              b * mbr.mstride + mrr.mstart + r * mrr.mstride,
@@ -526,12 +526,12 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstMatrixView ConstTensor5View::operator()(
     Index s, Index b, Index p, const Range& r, const Range& c) const {
   // Check that s, b and p are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return ConstMatrixView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                              b * mbr.mstride + mpr.mstart + p * mpr.mstride,
@@ -546,14 +546,14 @@ ConstMatrixView ConstTensor5View::operator()(
 ConstVectorView ConstTensor5View::operator()(
     const Range& s, Index b, Index p, Index r, Index c) const {
   // Check that b, p, r and c are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstVectorView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                              p * mpr.mstride + mrr.mstart + r * mrr.mstride +
@@ -567,14 +567,14 @@ ConstVectorView ConstTensor5View::operator()(
 ConstVectorView ConstTensor5View::operator()(
     Index s, const Range& b, Index p, Index r, Index c) const {
   // Check that s, p, r and c are valid:
-  assert(0 <= s);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstVectorView(mdata + msr.mstart + s * msr.mstride + mpr.mstart +
                              p * mpr.mstride + mrr.mstart + r * mrr.mstride +
@@ -588,14 +588,14 @@ ConstVectorView ConstTensor5View::operator()(
 ConstVectorView ConstTensor5View::operator()(
     Index s, Index b, const Range& p, Index r, Index c) const {
   // Check that s, b, r and c are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstVectorView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                              b * mbr.mstride + mrr.mstart + r * mrr.mstride +
@@ -609,14 +609,14 @@ ConstVectorView ConstTensor5View::operator()(
 ConstVectorView ConstTensor5View::operator()(
     Index s, Index b, Index p, const Range& r, Index c) const {
   // Check that s, b, p and c are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstVectorView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                              b * mbr.mstride + mpr.mstart + p * mpr.mstride +
@@ -630,14 +630,14 @@ ConstVectorView ConstTensor5View::operator()(
 ConstVectorView ConstTensor5View::operator()(
     Index s, Index b, Index p, Index r, const Range& c) const {
   // Check that s, b, p and r are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstVectorView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                              b * mbr.mstride + mpr.mstart + p * mpr.mstride +
@@ -652,15 +652,14 @@ This function returns a pointer to the raw data. It fails if the
 Tensor5View is not pointing to the beginning of a Tensor5 or the stride
 is not 1 because the caller expects to get a C array with continuous data.
 */
-Numeric* Tensor5View::get_c_array() {
-  if (msr.mstart != 0 ||
+Numeric* Tensor5View::get_c_array() ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (msr.mstart != 0 ||
       msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent ||
       mbr.mstart != 0 ||
       mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
       mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
       mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+      mcr.mstride != 1),
         "A Tensor5View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
@@ -672,15 +671,14 @@ Numeric* Tensor5View::get_c_array() {
   Tensor5View is not pointing to the beginning of a Tensor5 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Numeric* Tensor5View::get_c_array() const {
-  if (msr.mstart != 0 ||
+const Numeric* Tensor5View::get_c_array() const ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (msr.mstart != 0 ||
       msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent ||
       mbr.mstart != 0 ||
       mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
       mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
       mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+      mcr.mstride != 1),
         "A Tensor5View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
@@ -792,8 +790,8 @@ Tensor5View Tensor5View::operator()(const Range& s,
 Tensor4View Tensor5View::operator()(
     const Range& s, const Range& b, const Range& p, const Range& r, Index c) {
   // Check that c is valid:
-  assert(0 <= c);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return Tensor4View(
       mdata + mcr.mstart + c * mcr.mstride, msr, mbr, mpr, mrr, s, b, p, r);
@@ -804,8 +802,8 @@ Tensor4View Tensor5View::operator()(
 Tensor4View Tensor5View::operator()(
     const Range& s, const Range& b, const Range& p, Index r, const Range& c) {
   // Check that r is valid:
-  assert(0 <= r);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return Tensor4View(
       mdata + mrr.mstart + r * mrr.mstride, msr, mbr, mpr, mcr, s, b, p, c);
@@ -816,8 +814,8 @@ Tensor4View Tensor5View::operator()(
 Tensor4View Tensor5View::operator()(
     const Range& s, const Range& b, Index p, const Range& r, const Range& c) {
   // Check that p is valid:
-  assert(0 <= p);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return Tensor4View(
       mdata + mpr.mstart + p * mpr.mstride, msr, mbr, mrr, mcr, s, b, r, c);
@@ -828,8 +826,8 @@ Tensor4View Tensor5View::operator()(
 Tensor4View Tensor5View::operator()(
     const Range& s, Index b, const Range& p, const Range& r, const Range& c) {
   // Check that b is valid:
-  assert(0 <= b);
-  assert(b < mbr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(b < mbr.mextent);
 
   return Tensor4View(
       mdata + mbr.mstart + b * mbr.mstride, msr, mpr, mrr, mcr, s, p, r, c);
@@ -840,8 +838,8 @@ Tensor4View Tensor5View::operator()(
 Tensor4View Tensor5View::operator()(
     Index s, const Range& b, const Range& p, const Range& r, const Range& c) {
   // Check that s is valid:
-  assert(0 <= s);
-  assert(s < msr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(s < msr.mextent);
 
   return Tensor4View(
       mdata + msr.mstart + s * msr.mstride, mbr, mpr, mrr, mcr, b, p, r, c);
@@ -852,10 +850,10 @@ Tensor4View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     const Range& s, const Range& b, const Range& p, Index r, Index c) {
   // Check that r and c is valid:
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return Tensor3View(
       mdata + mrr.mstart + r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -872,10 +870,10 @@ Tensor3View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     const Range& s, const Range& b, Index p, const Range& r, Index c) {
   // Check that p and c are valid:
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return Tensor3View(
       mdata + mpr.mstart + p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -892,10 +890,10 @@ Tensor3View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     const Range& s, const Range& b, Index p, Index r, const Range& c) {
   // Check that p and r are valid:
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return Tensor3View(
       mdata + mpr.mstart + p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -912,10 +910,10 @@ Tensor3View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     const Range& s, Index b, const Range& p, Index r, const Range& c) {
   // Check that b and r are valid:
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return Tensor3View(
       mdata + mbr.mstart + b * mbr.mstride + mrr.mstart + r * mrr.mstride,
@@ -932,10 +930,10 @@ Tensor3View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     const Range& s, Index b, const Range& p, const Range& r, Index c) {
   // Check that b and c are valid:
-  assert(0 <= b);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return Tensor3View(
       mdata + mbr.mstart + b * mbr.mstride + mcr.mstart + c * mcr.mstride,
@@ -952,10 +950,10 @@ Tensor3View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     const Range& s, Index b, Index p, const Range& r, const Range& c) {
   // Check that b and p are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return Tensor3View(
       mdata + mbr.mstart + b * mbr.mstride + mpr.mstart + p * mpr.mstride,
@@ -972,10 +970,10 @@ Tensor3View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     Index s, const Range& b, Index p, const Range& r, const Range& c) {
   // Check that s and p are valid:
-  assert(0 <= s);
-  assert(0 <= p);
-  assert(s < msr.mextent);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return Tensor3View(
       mdata + msr.mstart + s * msr.mstride + mpr.mstart + p * mpr.mstride,
@@ -992,10 +990,10 @@ Tensor3View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     Index s, const Range& b, const Range& p, Index r, const Range& c) {
   // Check that s and r are valid:
-  assert(0 <= s);
-  assert(0 <= r);
-  assert(s < msr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return Tensor3View(
       mdata + msr.mstart + s * msr.mstride + mrr.mstart + r * mrr.mstride,
@@ -1012,10 +1010,10 @@ Tensor3View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     Index s, const Range& b, const Range& p, const Range& r, Index c) {
   // Check that s and c are valid:
-  assert(0 <= s);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return Tensor3View(
       mdata + msr.mstart + s * msr.mstride + mcr.mstart + c * mcr.mstride,
@@ -1032,10 +1030,10 @@ Tensor3View Tensor5View::operator()(
 Tensor3View Tensor5View::operator()(
     Index s, Index b, const Range& p, const Range& r, const Range& c) {
   // Check that s and b are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
 
   return Tensor3View(
       mdata + msr.mstart + s * msr.mstride + mbr.mstart + b * mbr.mstride,
@@ -1052,12 +1050,12 @@ Tensor3View Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     const Range& s, const Range& b, Index p, Index r, Index c) {
   // Check that p, r and c are valid:
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return MatrixView(mdata + mpr.mstart + p * mpr.mstride + mrr.mstart +
                         r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -1072,12 +1070,12 @@ MatrixView Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     const Range& s, Index b, const Range& p, Index r, Index c) {
   // Check that b, r and c are valid:
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return MatrixView(mdata + mbr.mstart + b * mbr.mstride + mrr.mstart +
                         r * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -1092,12 +1090,12 @@ MatrixView Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     const Range& s, Index b, Index p, const Range& r, Index c) {
   // Check that b, p and c are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return MatrixView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                         p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -1112,12 +1110,12 @@ MatrixView Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     const Range& s, Index b, Index p, Index r, const Range& c) {
   // Check that b, p and r are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return MatrixView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                         p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -1132,12 +1130,12 @@ MatrixView Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     Index s, const Range& b, Index p, Index r, const Range& c) {
   // Check that s, p and r are valid:
-  assert(0 <= s);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(s < msr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return MatrixView(mdata + msr.mstart + s * msr.mstride + mpr.mstart +
                         p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -1152,12 +1150,12 @@ MatrixView Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     Index s, const Range& b, Index p, const Range& r, Index c) {
   // Check that s, p and c are valid:
-  assert(0 <= s);
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return MatrixView(mdata + msr.mstart + s * msr.mstride + mpr.mstart +
                         p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -1172,12 +1170,12 @@ MatrixView Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     Index s, const Range& b, const Range& p, Index r, Index c) {
   // Check that s, r and c are valid:
-  assert(0 <= s);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return MatrixView(mdata + msr.mstart + s * msr.mstride + mrr.mstart +
                         r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -1192,12 +1190,12 @@ MatrixView Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     Index s, Index b, const Range& p, const Range& r, Index c) {
   // Check that s, b and c are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return MatrixView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                         b * mbr.mstride + mcr.mstart + c * mcr.mstride,
@@ -1212,12 +1210,12 @@ MatrixView Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     Index s, Index b, const Range& p, Index r, const Range& c) {
   // Check that s, b and r are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return MatrixView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                         b * mbr.mstride + mrr.mstart + r * mrr.mstride,
@@ -1232,12 +1230,12 @@ MatrixView Tensor5View::operator()(
 MatrixView Tensor5View::operator()(
     Index s, Index b, Index p, const Range& r, const Range& c) {
   // Check that s, b and p are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return MatrixView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                         b * mbr.mstride + mpr.mstart + p * mpr.mstride,
@@ -1252,14 +1250,14 @@ MatrixView Tensor5View::operator()(
 VectorView Tensor5View::operator()(
     const Range& s, Index b, Index p, Index r, Index c) {
   // Check that b, p, r and c are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return VectorView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                         p * mpr.mstride + mrr.mstart + r * mrr.mstride +
@@ -1273,14 +1271,14 @@ VectorView Tensor5View::operator()(
 VectorView Tensor5View::operator()(
     Index s, const Range& b, Index p, Index r, Index c) {
   // Check that s, p, r and c are valid:
-  assert(0 <= s);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return VectorView(mdata + msr.mstart + s * msr.mstride + mpr.mstart +
                         p * mpr.mstride + mrr.mstart + r * mrr.mstride +
@@ -1294,14 +1292,14 @@ VectorView Tensor5View::operator()(
 VectorView Tensor5View::operator()(
     Index s, Index b, const Range& p, Index r, Index c) {
   // Check that s, b, r and c are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return VectorView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                         b * mbr.mstride + mrr.mstart + r * mrr.mstride +
@@ -1315,14 +1313,14 @@ VectorView Tensor5View::operator()(
 VectorView Tensor5View::operator()(
     Index s, Index b, Index p, const Range& r, Index c) {
   // Check that s, b, p and c are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return VectorView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                         b * mbr.mstride + mpr.mstart + p * mpr.mstride +
@@ -1336,14 +1334,14 @@ VectorView Tensor5View::operator()(
 VectorView Tensor5View::operator()(
     Index s, Index b, Index p, Index r, const Range& c) {
   // Check that s, b, p and r are valid:
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(s < msr.mextent);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(s < msr.mextent);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return VectorView(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
                         b * mbr.mstride + mpr.mstart + p * mpr.mstride +
@@ -1372,11 +1370,11 @@ Iterator5D Tensor5View::end() {
     setting its range. */
 Tensor5View& Tensor5View::operator=(const ConstTensor5View& m) {
   // Check that sizes are compatible:
-  assert(msr.mextent == m.msr.mextent);
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(msr.mextent == m.msr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -1389,11 +1387,11 @@ Tensor5View& Tensor5View::operator=(const ConstTensor5View& m) {
     override the default. */
 Tensor5View& Tensor5View::operator=(const Tensor5View& m) {
   // Check that sizes are compatible:
-  assert(msr.mextent == m.msr.mextent);
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(msr.mextent == m.msr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -1404,11 +1402,11 @@ Tensor5View& Tensor5View::operator=(const Tensor5View& m) {
     contents! */
 Tensor5View& Tensor5View::operator=(const Tensor5& m) {
   // Check that sizes are compatible:
-  assert(msr.mextent == m.msr.mextent);
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(msr.mextent == m.msr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -1462,11 +1460,11 @@ Tensor5View& Tensor5View::operator-=(Numeric x) {
 
 /** Element-vise multiplication by another Tensor5. */
 Tensor5View& Tensor5View::operator*=(const ConstTensor5View& x) {
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator5D xs = x.begin();
   Iterator5D s = begin();
   const Iterator5D es = end();
@@ -1478,11 +1476,11 @@ Tensor5View& Tensor5View::operator*=(const ConstTensor5View& x) {
 
 /** Element-vise division by another Tensor5. */
 Tensor5View& Tensor5View::operator/=(const ConstTensor5View& x) {
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator5D xs = x.begin();
   Iterator5D s = begin();
   const Iterator5D es = end();
@@ -1494,11 +1492,11 @@ Tensor5View& Tensor5View::operator/=(const ConstTensor5View& x) {
 
 /** Element-vise addition of another Tensor5. */
 Tensor5View& Tensor5View::operator+=(const ConstTensor5View& x) {
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator5D xs = x.begin();
   Iterator5D s = begin();
   const Iterator5D es = end();
@@ -1510,11 +1508,11 @@ Tensor5View& Tensor5View::operator+=(const ConstTensor5View& x) {
 
 /** Element-vise subtraction of another Tensor5. */
 Tensor5View& Tensor5View::operator-=(const ConstTensor5View& x) {
-  assert(nshelves() == x.nshelves());
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nshelves() == x.nshelves());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator5D xs = x.begin();
   Iterator5D s = begin();
   const Iterator5D es = end();
@@ -1741,11 +1739,11 @@ Tensor5& Tensor5::operator=(Numeric x) {
     nothing. All data is lost after resizing! The new tensor is not
     initialized, so it will contain random values.*/
 void Tensor5::resize(Index s, Index b, Index p, Index r, Index c) {
-  assert(0 <= s);
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
+  ARTS_ASSERT(0 <= s);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
 
   if (msr.mextent != s || mbr.mextent != b || mpr.mextent != p ||
       mrr.mextent != r || mcr.mextent != c) {
@@ -1809,11 +1807,11 @@ Tensor5::~Tensor5() {
     \param    x   A tensor. */
 void transform(Tensor5View y, double (&my_func)(double), ConstTensor5View x) {
   // Check dimensions:
-  assert(y.nshelves() == x.nshelves());
-  assert(y.nbooks() == x.nbooks());
-  assert(y.npages() == x.npages());
-  assert(y.nrows() == x.nrows());
-  assert(y.ncols() == x.ncols());
+  ARTS_ASSERT(y.nshelves() == x.nshelves());
+  ARTS_ASSERT(y.nbooks() == x.nbooks());
+  ARTS_ASSERT(y.npages() == x.npages());
+  ARTS_ASSERT(y.nrows() == x.nrows());
+  ARTS_ASSERT(y.ncols() == x.ncols());
 
   const ConstIterator5D xe = x.end();
   ConstIterator5D xi = x.begin();

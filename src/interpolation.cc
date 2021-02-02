@@ -161,10 +161,10 @@ void gridpos(ArrayOfGridPos& gp,
   const Index n_new = new_grid.nelem();
 
   // Assert that gp has the right size:
-  assert(is_size(gp, n_new));
+  ARTS_ASSERT(is_size(gp, n_new));
 
   // Assert, that the old grid has more than one element
-  assert(1 < n_old);
+  ARTS_ASSERT(1 < n_old);
 
   // This function hast two parts, depending on whether old_grid is
   // sorted in ascending or descending order. Maybe that's not too
@@ -172,7 +172,7 @@ void gridpos(ArrayOfGridPos& gp,
   // is no additional runtime overhead to handle both cases.
 
   // We use only the first two elements to decide how the grid is
-  // sorted. (The rest of the grid is checked later by an assert.)
+  // sorted. (The rest of the grid is checked later by an ARTS_ASSERT.)
   // If both values are the same, we still assume the grid is
   // ascending. However, this will lead to an assertion fail later on,
   // because the grid has to be strictly sorted.
@@ -186,7 +186,7 @@ void gridpos(ArrayOfGridPos& gp,
     // that. There must be runtime checks on higher levels to insure
     // that all grids are sorted. The assertion here is just as a last
     // safety check.
-    assert(is_increasing(old_grid));
+    ARTS_ASSERT(is_increasing(old_grid));
 
     // Limits of extrapolation.
     const Numeric og_min =
@@ -220,8 +220,8 @@ void gridpos(ArrayOfGridPos& gp,
     // Assert that this is indeed the case.
     //       cout << "frac             = " << frac             << "\n";
     //       cout << "current_position = " << current_position << "\n";
-    assert(0 <= current_position);
-    assert(current_position <= n_old - 2);
+    ARTS_ASSERT(0 <= current_position);
+    ARTS_ASSERT(current_position <= n_old - 2);
 
     // The variables lower and upper are used to remember the value of
     // the old grid at current_position and one above current_position:
@@ -237,8 +237,8 @@ void gridpos(ArrayOfGridPos& gp,
 
       // Verify that the new grid is within the limits of
       // extrapolation that we have defined by og_min and og_max:
-      assert(og_min <= tng);
-      assert(tng <= og_max);
+      ARTS_ASSERT(og_min <= tng);
+      ARTS_ASSERT(tng <= og_max);
 
       //           cout << "lower / tng / upper = "
       //                << lower << " / "
@@ -292,7 +292,7 @@ void gridpos(ArrayOfGridPos& gp,
       //          cout << tgp.idx << " " << tgp.fd[0] << " " << tgp.fd[1] << endl;
 
       // Safety check to ensure the above promise:
-      assert(old_grid[tgp.idx] <= tng || tgp.idx == 0);
+      ARTS_ASSERT(old_grid[tgp.idx] <= tng || tgp.idx == 0);
     }
   } else  //   if (ascending)
   {
@@ -303,7 +303,7 @@ void gridpos(ArrayOfGridPos& gp,
     // case for more general comments.
 
     // This time ensure strictly descending order:
-    assert(is_decreasing(old_grid));
+    ARTS_ASSERT(is_decreasing(old_grid));
 
     // The max is now the first point, the min the last point!
     // I think the sign is right here...
@@ -328,8 +328,8 @@ void gridpos(ArrayOfGridPos& gp,
     // Assert that this is indeed the case.
     //       cout << "frac             = " << frac             << "\n";
     //       cout << "current_position = " << current_position << "\n";
-    assert(0 <= current_position);
-    assert(current_position <= n_old - 2);
+    ARTS_ASSERT(0 <= current_position);
+    ARTS_ASSERT(current_position <= n_old - 2);
 
     // Note, that old_grid[lower] has a higher numerical value than
     // old_grid[upper]!
@@ -342,8 +342,8 @@ void gridpos(ArrayOfGridPos& gp,
 
       // Verify that the new grid is within the limits of
       // extrapolation that we have defined by og_min and og_max:
-      assert(og_min <= tng);
-      assert(tng <= og_max);
+      ARTS_ASSERT(og_min <= tng);
+      ARTS_ASSERT(tng <= og_max);
 
       //           cout << "lower / tng / upper = "
       //                << lower << " / "
@@ -394,7 +394,7 @@ void gridpos(ArrayOfGridPos& gp,
       }
 
       // Safety check to ensure the above promise:
-      assert(old_grid[tgp.idx] >= tng || tgp.idx == 0);
+      ARTS_ASSERT(old_grid[tgp.idx] >= tng || tgp.idx == 0);
     }
   }
 }
@@ -508,10 +508,10 @@ Numeric fractional_gp(const GridPos& gp) {
 */
 void gridpos_check_fd(GridPos& gp) {
   // Catch values that "must" be wrong
-  assert(gp.fd[0] > -FD_TOL);
-  assert(gp.fd[0] < 1.0 + FD_TOL);
-  assert(gp.fd[1] > -FD_TOL);
-  assert(gp.fd[1] < 1.0 + FD_TOL);
+  ARTS_ASSERT(gp.fd[0] > -FD_TOL);
+  ARTS_ASSERT(gp.fd[0] < 1.0 + FD_TOL);
+  ARTS_ASSERT(gp.fd[1] > -FD_TOL);
+  ARTS_ASSERT(gp.fd[1] < 1.0 + FD_TOL);
 
   if (gp.fd[0] < 0.0) {
     gp.fd[0] = 0.0;
@@ -553,7 +553,7 @@ void gridpos_check_fd(GridPos& gp) {
    \date   2002-05-22
 */
 void gridpos_force_end_fd(GridPos& gp, const Index& n) {
-  assert(gp.idx >= 0);
+  ARTS_ASSERT(gp.idx >= 0);
 
   // If fd=1, shift to grid index above
   if (gp.fd[0] > 0.5) {
@@ -562,7 +562,7 @@ void gridpos_force_end_fd(GridPos& gp, const Index& n) {
   gp.fd[0] = 0;
   gp.fd[1] = 1;
 
-  assert(gp.idx < n);
+  ARTS_ASSERT(gp.idx < n);
 
   // End of complete grid range must be handled separately
   if (gp.idx == n - 1) {
@@ -588,7 +588,7 @@ void gridpos_force_end_fd(GridPos& gp, const Index& n) {
 */
 void gridpos_upperend_check(GridPos& gp, const Index& ie) {
   if (gp.idx == ie) {
-    assert(gp.fd[0] < 0.005);  // To capture obviously bad cases
+    ARTS_ASSERT(gp.fd[0] < 0.005);  // To capture obviously bad cases
     gp.idx -= 1;
     gp.fd[0] = 1.0;
     gp.fd[1] = 0.0;
@@ -612,7 +612,7 @@ void gridpos_upperend_check(GridPos& gp, const Index& ie) {
 void gridpos_upperend_check(ArrayOfGridPos& gp, const Index& ie) {
   for (Index i = 0; i < gp.nelem(); i++) {
     if (gp[i].idx == ie) {
-      assert(gp[i].fd[0] < 0.005);  // To capture obviously bad cases
+      ARTS_ASSERT(gp[i].fd[0] < 0.005);  // To capture obviously bad cases
       gp[i].idx -= 1;
       gp[i].fd[0] = 1.0;
       gp[i].fd[1] = 0.0;
@@ -695,8 +695,8 @@ bool is_gridpos_at_index_i(const GridPos& gp,
    \date   2002-05-20
 */
 Index gridpos2gridrange(const GridPos& gp, const bool& upwards) {
-  assert(gp.fd[0] >= 0);
-  assert(gp.fd[1] >= 0);
+  ARTS_ASSERT(gp.fd[0] >= 0);
+  ARTS_ASSERT(gp.fd[1] >= 0);
 
   // Not at a grid point
   if (gp.fd[0] > 0 && gp.fd[1] > 0) {
@@ -739,7 +739,7 @@ Index gridpos2gridrange(const GridPos& gp, const bool& upwards) {
   \date   Fri Jun 28 10:53:32 2002
 */
 void interpweights(VectorView itw, const GridPos& tc) {
-  assert(is_size(itw, 2));  // We must store 2 interpolation
+  ARTS_ASSERT(is_size(itw, 2));  // We must store 2 interpolation
                             // weights.
 
   // Interpolation weights are stored in this order (l=lower
@@ -794,7 +794,7 @@ void interpweights(VectorView itw, const GridPos& tc) {
   \date   Fri Jun 28 10:53:32 2002
 */
 void interpweights(VectorView itw, const GridPos& tr, const GridPos& tc) {
-  assert(is_size(itw, 4));  // We must store 4 interpolation
+  ARTS_ASSERT(is_size(itw, 4));  // We must store 4 interpolation
                             // weights.
   Index iti = 0;
 
@@ -825,7 +825,7 @@ void interpweights(VectorView itw,
                    const GridPos& tp,
                    const GridPos& tr,
                    const GridPos& tc) {
-  assert(is_size(itw, 8));  // We must store 8 interpolation
+  ARTS_ASSERT(is_size(itw, 8));  // We must store 8 interpolation
                             // weights.
   Index iti = 0;
 
@@ -859,7 +859,7 @@ void interpweights(VectorView itw,
                    const GridPos& tp,
                    const GridPos& tr,
                    const GridPos& tc) {
-  assert(is_size(itw, 16));  // We must store 16 interpolation
+  ARTS_ASSERT(is_size(itw, 16));  // We must store 16 interpolation
                              // weights.
   Index iti = 0;
 
@@ -896,7 +896,7 @@ void interpweights(VectorView itw,
                    const GridPos& tp,
                    const GridPos& tr,
                    const GridPos& tc) {
-  assert(is_size(itw, 32));  // We must store 32 interpolation
+  ARTS_ASSERT(is_size(itw, 32));  // We must store 32 interpolation
                              // weights.
   Index iti = 0;
 
@@ -936,7 +936,7 @@ void interpweights(VectorView itw,
                    const GridPos& tp,
                    const GridPos& tr,
                    const GridPos& tc) {
-  assert(is_size(itw, 64));  // We must store 64 interpolation
+  ARTS_ASSERT(is_size(itw, 64));  // We must store 64 interpolation
                              // weights.
   Index iti = 0;
 
@@ -968,12 +968,12 @@ void interpweights(VectorView itw,
   \date   Fri Jun 28 10:53:32 2002
 */
 Numeric interp(ConstVectorView itw, ConstVectorView a, const GridPos& tc) {
-  assert(is_size(itw, 2));  // We need 2 interpolation
+  ARTS_ASSERT(is_size(itw, 2));  // We need 2 interpolation
                             // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1008,12 +1008,12 @@ Numeric interp(ConstVectorView itw,
                ConstMatrixView a,
                const GridPos& tr,
                const GridPos& tc) {
-  assert(is_size(itw, 4));  // We need 4 interpolation
+  ARTS_ASSERT(is_size(itw, 4));  // We need 4 interpolation
                             // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1051,12 +1051,12 @@ Numeric interp(ConstVectorView itw,
                const GridPos& tp,
                const GridPos& tr,
                const GridPos& tc) {
-  assert(is_size(itw, 8));  // We need 8 interpolation
+  ARTS_ASSERT(is_size(itw, 8));  // We need 8 interpolation
                             // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1097,12 +1097,12 @@ Numeric interp(ConstVectorView itw,
                const GridPos& tp,
                const GridPos& tr,
                const GridPos& tc) {
-  assert(is_size(itw, 16));  // We need 16 interpolation
+  ARTS_ASSERT(is_size(itw, 16));  // We need 16 interpolation
                              // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1147,12 +1147,12 @@ Numeric interp(ConstVectorView itw,
                const GridPos& tp,
                const GridPos& tr,
                const GridPos& tc) {
-  assert(is_size(itw, 32));  // We need 32 interpolation
+  ARTS_ASSERT(is_size(itw, 32));  // We need 32 interpolation
                              // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1204,12 +1204,12 @@ Numeric interp(ConstVectorView itw,
                const GridPos& tp,
                const GridPos& tr,
                const GridPos& tc) {
-  assert(is_size(itw, 64));  // We need 64 interpolation
+  ARTS_ASSERT(is_size(itw, 64));  // We need 64 interpolation
                              // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1256,7 +1256,7 @@ Numeric interp(ConstVectorView itw,
 */
 void interpweights(MatrixView itw, const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(itw, n, 2));  // We must store 2 interpolation
+  ARTS_ASSERT(is_size(itw, n, 2));  // We must store 2 interpolation
                                // weights for each position.
 
   // We have to loop all the points in the sequence:
@@ -1327,8 +1327,8 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(rgp, n));     // rgp must have same size as cgp.
-  assert(is_size(itw, n, 4));  // We must store 4 interpolation
+  ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 4));  // We must store 4 interpolation
                                // weights for each position.
 
   // We have to loop all the points in the sequence:
@@ -1382,9 +1382,9 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(pgp, n));     // pgp must have same size as cgp.
-  assert(is_size(rgp, n));     // rgp must have same size as cgp.
-  assert(is_size(itw, n, 8));  // We must store 8 interpolation
+  ARTS_ASSERT(is_size(pgp, n));     // pgp must have same size as cgp.
+  ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 8));  // We must store 8 interpolation
                                // weights for each position.
 
   // We have to loop all the points in the sequence:
@@ -1434,10 +1434,10 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(bgp, n));      // bgp must have same size as cgp.
-  assert(is_size(pgp, n));      // pgp must have same size as cgp.
-  assert(is_size(rgp, n));      // rgp must have same size as cgp.
-  assert(is_size(itw, n, 16));  // We must store 16 interpolation
+  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
+  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
+  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 16));  // We must store 16 interpolation
                                 // weights for each position.
 
   // We have to loop all the points in the sequence:
@@ -1491,11 +1491,11 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(sgp, n));      // sgp must have same size as cgp.
-  assert(is_size(bgp, n));      // bgp must have same size as cgp.
-  assert(is_size(pgp, n));      // pgp must have same size as cgp.
-  assert(is_size(rgp, n));      // rgp must have same size as cgp.
-  assert(is_size(itw, n, 32));  // We must store 32 interpolation
+  ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
+  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
+  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
+  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 32));  // We must store 32 interpolation
                                 // weights for each position.
 
   // We have to loop all the points in the sequence:
@@ -1553,12 +1553,12 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(vgp, n));      // vgp must have same size as cgp.
-  assert(is_size(sgp, n));      // sgp must have same size as cgp.
-  assert(is_size(bgp, n));      // bgp must have same size as cgp.
-  assert(is_size(pgp, n));      // pgp must have same size as cgp.
-  assert(is_size(rgp, n));      // rgp must have same size as cgp.
-  assert(is_size(itw, n, 64));  // We must store 64 interpolation
+  ARTS_ASSERT(is_size(vgp, n));      // vgp must have same size as cgp.
+  ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
+  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
+  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
+  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 64));  // We must store 64 interpolation
                                 // weights for each position.
 
   // We have to loop all the points in the sequence:
@@ -1606,14 +1606,14 @@ void interp(VectorView ia,
             ConstVectorView a,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia, n));      //  ia must have same size as cgp.
-  assert(is_size(itw, n, 2));  // We need 2 interpolation
+  ARTS_ASSERT(is_size(ia, n));      //  ia must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 2));  // We need 2 interpolation
                                // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(
+  ARTS_ASSERT(
       is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
@@ -1628,7 +1628,7 @@ void interp(VectorView ia,
 
     Index iti = 0;
     for (Index c = 0; c < 2; ++c) {
-      assert(tc.idx + c < a.nelem());  // Temporary !?
+      ARTS_ASSERT(tc.idx + c < a.nelem());  // Temporary !?
       tia += a.get(tc.idx + c) * itw.get(i, iti);
       ++iti;
     }
@@ -1663,15 +1663,15 @@ void interp(VectorView ia,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia, n));      //  ia must have same size as cgp.
-  assert(is_size(rgp, n));     // rgp must have same size as cgp.
-  assert(is_size(itw, n, 4));  // We need 4 interpolation
+  ARTS_ASSERT(is_size(ia, n));      //  ia must have same size as cgp.
+  ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 4));  // We need 4 interpolation
                                // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(
+  ARTS_ASSERT(
       is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
@@ -1724,16 +1724,16 @@ void interp(VectorView ia,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia, n));      //  ia must have same size as cgp.
-  assert(is_size(pgp, n));     // pgp must have same size as cgp.
-  assert(is_size(rgp, n));     // rgp must have same size as cgp.
-  assert(is_size(itw, n, 8));  // We need 8 interpolation
+  ARTS_ASSERT(is_size(ia, n));      //  ia must have same size as cgp.
+  ARTS_ASSERT(is_size(pgp, n));     // pgp must have same size as cgp.
+  ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 8));  // We need 8 interpolation
                                // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(
+  ARTS_ASSERT(
       is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
@@ -1790,17 +1790,17 @@ void interp(VectorView ia,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia, n));       //  ia must have same size as cgp.
-  assert(is_size(bgp, n));      // bgp must have same size as cgp.
-  assert(is_size(pgp, n));      // pgp must have same size as cgp.
-  assert(is_size(rgp, n));      // rgp must have same size as cgp.
-  assert(is_size(itw, n, 16));  // We need 16 interpolation
+  ARTS_ASSERT(is_size(ia, n));       //  ia must have same size as cgp.
+  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
+  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
+  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 16));  // We need 16 interpolation
                                 // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(
+  ARTS_ASSERT(
       is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
@@ -1862,18 +1862,18 @@ void interp(VectorView ia,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia, n));       //  ia must have same size as cgp.
-  assert(is_size(sgp, n));      // sgp must have same size as cgp.
-  assert(is_size(bgp, n));      // bgp must have same size as cgp.
-  assert(is_size(pgp, n));      // pgp must have same size as cgp.
-  assert(is_size(rgp, n));      // rgp must have same size as cgp.
-  assert(is_size(itw, n, 32));  // We need 32 interpolation
+  ARTS_ASSERT(is_size(ia, n));       //  ia must have same size as cgp.
+  ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
+  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
+  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
+  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 32));  // We need 32 interpolation
                                 // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(
+  ARTS_ASSERT(
       is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
@@ -1943,19 +1943,19 @@ void interp(VectorView ia,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia, n));       //  ia must have same size as cgp.
-  assert(is_size(vgp, n));      // vgp must have same size as cgp.
-  assert(is_size(sgp, n));      // sgp must have same size as cgp.
-  assert(is_size(bgp, n));      // bgp must have same size as cgp.
-  assert(is_size(pgp, n));      // pgp must have same size as cgp.
-  assert(is_size(rgp, n));      // rgp must have same size as cgp.
-  assert(is_size(itw, n, 64));  // We need 64 interpolation
+  ARTS_ASSERT(is_size(ia, n));       //  ia must have same size as cgp.
+  ARTS_ASSERT(is_size(vgp, n));      // vgp must have same size as cgp.
+  ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
+  ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
+  ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
+  ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
+  ARTS_ASSERT(is_size(itw, n, 64));  // We need 64 interpolation
                                 // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(
+  ARTS_ASSERT(
       is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
@@ -2023,7 +2023,7 @@ void interpweights(Tensor3View itw,
                    const ArrayOfGridPos& cgp) {
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(itw, nr, nc, 4));  // We must store 4 interpolation
+  ARTS_ASSERT(is_size(itw, nr, nc, 4));  // We must store 4 interpolation
                                     // weights for each position.
 
   // We have to loop all the points in the new grid:
@@ -2084,7 +2084,7 @@ void interpweights(Tensor4View itw,
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
   // We must store 8 interpolation weights for each position:
-  assert(is_size(itw, np, nr, nc, 8));
+  ARTS_ASSERT(is_size(itw, np, nr, nc, 8));
 
   // We have to loop all the points in the new grid:
   for (Index ip = 0; ip < np; ++ip) {
@@ -2141,7 +2141,7 @@ void interpweights(Tensor5View itw,
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
   // We must store 16 interpolation weights for each position:
-  assert(is_size(itw, nb, np, nr, nc, 16));
+  ARTS_ASSERT(is_size(itw, nb, np, nr, nc, 16));
 
   // We have to loop all the points in the new grid:
   for (Index ib = 0; ib < nb; ++ib) {
@@ -2205,7 +2205,7 @@ void interpweights(Tensor6View itw,
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
   // We must store 32 interpolation weights for each position:
-  assert(is_size(itw, ns, nb, np, nr, nc, 32));
+  ARTS_ASSERT(is_size(itw, ns, nb, np, nr, nc, 32));
 
   // We have to loop all the points in the new grid:
   for (Index is = 0; is < ns; ++is) {
@@ -2277,7 +2277,7 @@ void interpweights(Tensor7View itw,
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
   // We must store 64 interpolation weights for each position:
-  assert(is_size(itw, nv, ns, nb, np, nr, nc, 64));
+  ARTS_ASSERT(is_size(itw, nv, ns, nb, np, nr, nc, 64));
 
   // We have to loop all the points in the new grid:
   for (Index iv = 0; iv < nv; ++iv) {
@@ -2342,14 +2342,14 @@ void interp(MatrixView ia,
             const ArrayOfGridPos& cgp) {
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia, nr, nc));
-  assert(is_size(itw, nr, nc, 4));  // We need 4 interpolation
+  ARTS_ASSERT(is_size(ia, nr, nc));
+  ARTS_ASSERT(is_size(itw, nr, nc, 4));  // We need 4 interpolation
                                     // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon(
       itw(0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2369,8 +2369,8 @@ void interp(MatrixView ia,
       Index iti = 0;
       for (Index r = 0; r < 2; ++r)
         for (Index c = 0; c < 2; ++c) {
-          assert(tr.idx + r < a.nrows());  // Temporary !?
-          assert(tc.idx + c < a.ncols());  // Temporary !?
+          ARTS_ASSERT(tr.idx + r < a.nrows());  // Temporary !?
+          ARTS_ASSERT(tc.idx + c < a.ncols());  // Temporary !?
           tia += a.get(tr.idx + r, tc.idx + c) * itw.get(ir, ic, iti);
           ++iti;
         }
@@ -2410,13 +2410,13 @@ void interp(Tensor3View ia,
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia, np, nr, nc));
-  assert(is_size(itw, np, nr, nc, 8));
+  ARTS_ASSERT(is_size(ia, np, nr, nc));
+  ARTS_ASSERT(is_size(itw, np, nr, nc, 8));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon(
       itw(0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2437,9 +2437,9 @@ void interp(Tensor3View ia,
         for (Index p = 0; p < 2; ++p)
           for (Index r = 0; r < 2; ++r)
             for (Index c = 0; c < 2; ++c) {
-              assert(tp.idx + p < a.npages());  // Temporary !?
-              assert(tr.idx + r < a.nrows());   // Temporary !?
-              assert(tc.idx + c < a.ncols());   // Temporary !?
+              ARTS_ASSERT(tp.idx + p < a.npages());  // Temporary !?
+              ARTS_ASSERT(tr.idx + r < a.nrows());   // Temporary !?
+              ARTS_ASSERT(tc.idx + c < a.ncols());   // Temporary !?
               tia += a.get(tp.idx + p, tr.idx + r, tc.idx + c) *
                      itw.get(ip, ir, ic, iti);
               ++iti;
@@ -2484,13 +2484,13 @@ void interp(Tensor4View ia,
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia, nb, np, nr, nc));
-  assert(is_size(itw, nb, np, nr, nc, 16));
+  ARTS_ASSERT(is_size(ia, nb, np, nr, nc));
+  ARTS_ASSERT(is_size(itw, nb, np, nr, nc, 16));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon(
       itw(0, 0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2562,13 +2562,13 @@ void interp(Tensor5View ia,
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia, ns, nb, np, nr, nc));
-  assert(is_size(itw, ns, nb, np, nr, nc, 32));
+  ARTS_ASSERT(is_size(ia, ns, nb, np, nr, nc));
+  ARTS_ASSERT(is_size(itw, ns, nb, np, nr, nc, 32));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon(
       itw(0, 0, 0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2651,13 +2651,13 @@ void interp(Tensor6View ia,
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia, nv, ns, nb, np, nr, nc));
-  assert(is_size(itw, nv, ns, nb, np, nr, nc, 64));
+  ARTS_ASSERT(is_size(ia, nv, ns, nb, np, nr, nc));
+  ARTS_ASSERT(is_size(itw, nv, ns, nb, np, nr, nc, 64));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert(is_same_within_epsilon(
+  ARTS_ASSERT(is_same_within_epsilon(
       itw(0, 0, 0, 0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
@@ -2759,7 +2759,7 @@ void polint(Numeric& y_int,
       w = c[i + 1] - d[i];
       den = ho - hp;
       // This error occurs when two input xa's are identical.
-      assert(den != 0.);
+      ARTS_ASSERT(den != 0.);
       den = w / den;
       d[i] = hp * den;
       c[i] = ho * den;
@@ -2790,8 +2790,8 @@ Numeric interp_poly(ConstVectorView x,
                     const GridPos& gp) {
   Index N_x = x.nelem();
 
-  assert(N_x == y.nelem());
-  assert(N_x > 2);
+  ARTS_ASSERT(N_x == y.nelem());
+  ARTS_ASSERT(N_x > 2);
 
   Vector xa(4), ya(4);
   Numeric y_int;
@@ -2835,7 +2835,7 @@ Numeric interp_poly(ConstVectorView x,
       ya[1] = y[N_x - 1];
       ya[2] = y[N_x];
     } else {
-      assert(false);
+      ARTS_ASSERT(false);
       arts_exit();
     }
 

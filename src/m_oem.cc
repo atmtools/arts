@@ -74,12 +74,9 @@ void particle_bulkprop_fieldClip(Tensor4& particle_bulkprop_field,
         break;
       }
     }
-    if (iq < 0) {
-      ostringstream os;
-      os << "Could not find " << bulkprop_name
-         << " in particle_bulkprop_names.\n";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (iq < 0,
+      "Could not find ", bulkprop_name,
+      " in particle_bulkprop_names.\n")
   }
 
   Tensor4Clip(particle_bulkprop_field, iq, limit_low, limit_high);
@@ -103,11 +100,8 @@ void vmr_fieldClip(Tensor4& vmr_field,
         break;
       }
     }
-    if (iq < 0) {
-      ostringstream os;
-      os << "Could not find " << species << " in abs_species.\n";
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (iq < 0,
+      "Could not find ", species, " in abs_species.\n")
   }
 
   Tensor4Clip(vmr_field, iq, limit_low, limit_high);
@@ -123,15 +117,12 @@ void xClip(Vector& x,
   // Sizes
   const Index nq = jacobian_quantities.nelem();
 
-  if (ijq < -1) throw runtime_error("Argument *ijq* must be >= -1.");
-  if (ijq >= nq) {
-    ostringstream os;
-    os << "Argument *ijq* is too high.\n"
-       << "You have selected index: " << ijq << "\n"
-       << "but the number of quantities is only: " << nq << "\n"
-       << "(Note that zero-based indexing is used)\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (ijq < -1, "Argument *ijq* must be >= -1.");
+  ARTS_USER_ERROR_IF (ijq >= nq,
+      "Argument *ijq* is too high.\n"
+      "You have selected index: ", ijq, "\n"
+      "but the number of quantities is only: ", nq, "\n"
+      "(Note that zero-based indexing is used)\n")
 
   // Jacobian indices
   ArrayOfArrayOfIndex ji;
@@ -187,16 +178,13 @@ void xaStandard(Workspace& ws,
                 const Verbosity&) {
   // Basics
   //
-  if (atmfields_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
-  if (atmgeom_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have "
         "passed a consistency check (atmgeom_checked=1).");
-  if (cloudbox_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_checked != 1,
         "The cloudbox must be flagged to have "
         "passed a consistency check (cloudbox_checked=1).");
 
@@ -321,7 +309,7 @@ void xaStandard(Workspace& ws,
             }
           }
         } else {
-          assert(0);
+          ARTS_ASSERT(0);
         }
       }
     }
@@ -329,29 +317,22 @@ void xaStandard(Workspace& ws,
     // Scattering species
     else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       if (cloudbox_on) {
-        if (particle_bulkprop_field.empty()) {
-          throw runtime_error(
+        ARTS_USER_ERROR_IF (particle_bulkprop_field.empty(),
               "One jacobian quantity belongs to the "
               "scattering species category, but *particle_bulkprop_field* "
               "is empty.");
-        }
-        if (particle_bulkprop_field.nbooks() !=
-            particle_bulkprop_names.nelem()) {
-          throw runtime_error(
+        ARTS_USER_ERROR_IF (particle_bulkprop_field.nbooks() !=
+                            particle_bulkprop_names.nelem(),
               "Mismatch in size between "
               "*particle_bulkprop_field* and *particle_bulkprop_names*.");
-        }
 
         const Index isp = find_first(particle_bulkprop_names,
                                      jacobian_quantities[q].SubSubtag());
-        if (isp < 0) {
-          ostringstream os;
-          os << "Jacobian quantity with index " << q << " covers a "
-             << "scattering species, and the field quantity is set to \""
-             << jacobian_quantities[q].SubSubtag() << "\", but this quantity "
-             << "could not found in *particle_bulkprop_names*.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (isp < 0,
+            "Jacobian quantity with index ", q, " covers a "
+            "scattering species, and the field quantity is set to \"",
+            jacobian_quantities[q].SubSubtag(), "\", but this quantity "
+            "could not found in *particle_bulkprop_names*.")
 
         ArrayOfGridPos gp_p, gp_lat, gp_lon;
         get_gp_atmgrids_to_rq(gp_p,
@@ -466,22 +447,17 @@ void xaStandard(Workspace& ws,
                           lon_grid,
                           surface_props_data,
                           surface_props_names);
-      if (surface_props_data.empty()) {
-        throw runtime_error(
+      ARTS_USER_ERROR_IF (surface_props_data.empty(),
             "One jacobian quantity belongs to the "
             "surface category, but *surface_props_data* is empty.");
-      }
 
       const Index isu =
           find_first(surface_props_names, jacobian_quantities[q].Subtag());
-      if (isu < 0) {
-        ostringstream os;
-        os << "Jacobian quantity with index " << q << " covers a "
-           << "surface property, and the field Subtag is set to \""
-           << jacobian_quantities[q].Subtag() << "\", but this quantity "
-           << "could not found in *surface_props_names*.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (isu < 0,
+          "Jacobian quantity with index ", q, " covers a "
+          "surface property, and the field Subtag is set to \"",
+          jacobian_quantities[q].Subtag(), "\", but this quantity "
+          "could not found in *surface_props_names*.")
 
       ArrayOfGridPos gp_lat, gp_lon;
       get_gp_atmsurf_to_rq(gp_lat,
@@ -509,10 +485,9 @@ void xaStandard(Workspace& ws,
     }
 
     else {
-      ostringstream os;
-      os << "Found a retrieval quantity that is not yet handled by\n"
-         << "internal retrievals: " << jacobian_quantities[q] << endl;
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR (
+        "Found a retrieval quantity that is not yet handled by\n"
+        "internal retrievals: ", jacobian_quantities[q], '\n')
     }
   }
 
@@ -549,16 +524,13 @@ void x2artsAtmAndSurf(Workspace& ws,
                       const Verbosity&) {
   // Basics
   //
-  if (atmfields_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
-  if (atmgeom_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
         "The atmospheric geometry must be flagged to have "
         "passed a consistency check (atmgeom_checked=1).");
-  if (cloudbox_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (cloudbox_checked != 1,
         "The cloudbox must be flagged to have "
         "passed a consistency check (cloudbox_checked=1).");
 
@@ -577,8 +549,7 @@ void x2artsAtmAndSurf(Workspace& ws,
   }
 
   // Check input
-  if (x_t.nelem() != ji[nq - 1][1] + 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (x_t.nelem() != ji[nq - 1][1] + 1,
         "Length of *x* does not match length implied by "
         "*jacobian_quantities*.");
 
@@ -692,7 +663,7 @@ void x2artsAtmAndSurf(Workspace& ws,
           }
         }
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 
@@ -701,29 +672,22 @@ void x2artsAtmAndSurf(Workspace& ws,
     else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       // If no cloudbox, we assume that there is nothing to do
       if (cloudbox_on) {
-        if (particle_bulkprop_field.empty()) {
-          throw runtime_error(
+        ARTS_USER_ERROR_IF (particle_bulkprop_field.empty(),
               "One jacobian quantity belongs to the "
               "scattering species category, but *particle_bulkprop_field* "
               "is empty.");
-        }
-        if (particle_bulkprop_field.nbooks() !=
-            particle_bulkprop_names.nelem()) {
-          throw runtime_error(
+        ARTS_USER_ERROR_IF (particle_bulkprop_field.nbooks() !=
+                            particle_bulkprop_names.nelem(),
               "Mismatch in size between "
               "*particle_bulkprop_field* and *particle_bulkprop_field*.");
-        }
 
         const Index isp = find_first(particle_bulkprop_names,
                                      jacobian_quantities[q].SubSubtag());
-        if (isp < 0) {
-          ostringstream os;
-          os << "Jacobian quantity with index " << q << " covers a "
-             << "scattering species, and the field quantity is set to \""
-             << jacobian_quantities[q].SubSubtag() << "\", but this quantity "
-             << "could not found in *particle_bulkprop_names*.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (isp < 0,
+            "Jacobian quantity with index ", q, " covers a "
+            "scattering species, and the field quantity is set to \"",
+            jacobian_quantities[q].SubSubtag(), "\", but this quantity "
+            "could not found in *particle_bulkprop_names*.")
 
         // Determine grid positions for interpolation from retrieval grids back
         // to atmospheric grids
@@ -836,8 +800,9 @@ void x2artsAtmAndSurf(Workspace& ws,
             }
           }
         }
-      } else
-        throw runtime_error("Unsupported magnetism type");
+      } else {
+        ARTS_USER_ERROR ( "Unsupported magnetism type");
+      }
     }
 
     // Surface
@@ -848,22 +813,17 @@ void x2artsAtmAndSurf(Workspace& ws,
                           lon_grid,
                           surface_props_data,
                           surface_props_names);
-      if (surface_props_data.empty()) {
-        throw runtime_error(
+      ARTS_USER_ERROR_IF (surface_props_data.empty(),
             "One jacobian quantity belongs to the "
             "surface category, but *surface_props_data* is empty.");
-      }
 
       const Index isu =
           find_first(surface_props_names, jacobian_quantities[q].Subtag());
-      if (isu < 0) {
-        ostringstream os;
-        os << "Jacobian quantity with index " << q << " covers a "
-           << "surface property, and the field Subtag is set to \""
-           << jacobian_quantities[q].Subtag() << "\", but this quantity "
-           << "could not found in *surface_props_names*.";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (isu < 0,
+          "Jacobian quantity with index ", q, " covers a "
+          "surface property, and the field Subtag is set to \"",
+          jacobian_quantities[q].Subtag(), "\", but this quantity "
+          "could not found in *surface_props_names*.")
 
       // Determine grid positions for interpolation from retrieval grids back
       // to atmospheric grids
@@ -908,8 +868,7 @@ void x2artsSensor(Workspace& ws,
                   const Verbosity&) {
   // Basics
   //
-  if (sensor_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (sensor_checked != 1,
         "The sensor response must be flagged to have "
         "passed a consistency check (sensor_checked=1).");
 
@@ -928,8 +887,7 @@ void x2artsSensor(Workspace& ws,
   }
 
   // Check input
-  if (x_t.nelem() != ji[nq - 1][1] + 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (x_t.nelem() != ji[nq - 1][1] + 1,
         "Length of *x* does not match length implied by "
         "*jacobian_quantities*.");
 
@@ -949,8 +907,7 @@ void x2artsSensor(Workspace& ws,
     if (jacobian_quantities[q].Target().isPointing()) {
       // Handle pointing "jitter" seperately
       if (jacobian_quantities[q].Grids()[0][0] == -1) {
-        if (sensor_los.nrows() != np)
-          throw runtime_error(
+        ARTS_USER_ERROR_IF (sensor_los.nrows() != np,
               "Mismatch between pointing jacobian and *sensor_los* found.");
         // Simply add retrieved off-set(s) to za column of *sensor_los*
         for (Index i = 0; i < np; i++) {
@@ -959,8 +916,7 @@ void x2artsSensor(Workspace& ws,
       }
       // Polynomial representation
       else {
-        if (sensor_los.nrows() != sensor_time.nelem())
-          throw runtime_error(
+        ARTS_USER_ERROR_IF (sensor_los.nrows() != sensor_time.nelem(),
               "Sizes of *sensor_los* and *sensor_time* do not match.");
         Vector w;
         for (Index c = 0; c < np; c++) {
@@ -976,13 +932,13 @@ void x2artsSensor(Workspace& ws,
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q].Target().isFrequency()) {
       if (jacobian_quantities[q] == Jacobian::Sensor::FrequencyShift) {
-        assert(np == 1);
+        ARTS_ASSERT(np == 1);
         if (x_t[ji[q][0]] != 0) {
           do_sensor = true;
           f_backend += x_t[ji[q][0]];
         }
       } else if (jacobian_quantities[q] == Jacobian::Sensor::FrequencyStretch) {
-        assert(np == 1);
+        ARTS_ASSERT(np == 1);
         if (x_t[ji[q][0]] != 0) {
           do_sensor = true;
           Vector w;
@@ -992,7 +948,7 @@ void x2artsSensor(Workspace& ws,
           }
         }
       } else {
-        assert(0);
+        ARTS_ASSERT(0);
       }
     }
 
@@ -1048,7 +1004,7 @@ void x2artsSensor(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void x2artsSpectroscopy(const Verbosity&) {
-  throw runtime_error("Retrievals of spectroscopic variables not yet handled.");
+  ARTS_USER_ERROR ( "Retrievals of spectroscopic variables not yet handled.");
 }
 
 
@@ -1129,14 +1085,11 @@ void OEM(Workspace& ws,
         ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
   }
 
-  if (yf.nelem() not_eq y.nelem()) {
-    std::ostringstream os;
-    os << "Mismatch between simulated y and input y.\n";
-    os << "Input y is size " << y.nelem() << " but simulated y is "
-       << yf.nelem() << "\n";
-    os << "Use your frequency grid vector and your sensor response matrix to match simulations with measurements.\n";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (yf.nelem() not_eq y.nelem(),
+      "Mismatch between simulated y and input y.\n"
+      "Input y is size ", y.nelem(), " but simulated y is ",
+      yf.nelem(), "\n"
+      "Use your frequency grid vector and your sensor response matrix to match simulations with measurements.\n")
 
   // TODO: Get this from invlib log.
   // Start value of cost function
@@ -1345,14 +1298,10 @@ void covmat_soCalc(Matrix& covmat_so,
   Index n(dxdy.nrows()), m(dxdy.ncols());
   Matrix tmp1(m, n);
 
-  if ((m == 0) || (n == 0)) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF ((m == 0) || (n == 0),
         "The gain matrix *dxdy* is required to compute the observation error covariance matrix.");
-  }
-  if ((covmat_se.nrows() != m) || (covmat_se.ncols() != m)) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF ((covmat_se.nrows() != m) || (covmat_se.ncols() != m),
         "The covariance matrix covmat_se has invalid dimensions.");
-  }
 
   covmat_so.resize(n, n);
   mult(tmp1, covmat_se, transpose(dxdy));
@@ -1367,14 +1316,10 @@ void covmat_ssCalc(Matrix& covmat_ss,
   Index n(avk.ncols());
   Matrix tmp1(n, n), tmp2(n, n);
 
-  if (n == 0) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (n == 0,
         "The averaging kernel matrix *dxdy* is required to compute the smoothing error covariance matrix.");
-  }
-  if ((covmat_sx.nrows() != n) || (covmat_sx.ncols() != n)) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF ((covmat_sx.nrows() != n) || (covmat_sx.ncols() != n),
         "The covariance matrix *covmat_sx* invalid dimensions.");
-  }
 
   covmat_ss.resize(n, n);
 
@@ -1399,17 +1344,14 @@ void avkCalc(Matrix& avk,
              const Matrix& jacobian,
              const Verbosity& /*v*/) {
   Index m(jacobian.nrows()), n(jacobian.ncols());
-  if ((m == 0) || (n == 0))
-    throw runtime_error("The Jacobian matrix is empty.");
-  if ((dxdy.nrows() != n) || (dxdy.ncols() != m)) {
-    ostringstream os;
-    os << "Matrices have inconsistent sizes.\n"
-       << "  Size of gain matrix: " << dxdy.nrows() << " x " << dxdy.ncols()
-       << "\n"
-       << "     Size of Jacobian: " << jacobian.nrows() << " x "
-       << jacobian.ncols() << "\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF ((m == 0) || (n == 0),
+                      "The Jacobian matrix is empty.");
+  ARTS_USER_ERROR_IF ((dxdy.nrows() != n) || (dxdy.ncols() != m),
+      "Matrices have inconsistent sizes.\n"
+      "  Size of gain matrix: ", dxdy.nrows(), " x ", dxdy.ncols(),
+      "\n"
+      "     Size of Jacobian: ", jacobian.nrows(), " x ",
+      jacobian.ncols(), "\n")
 
   avk.resize(n, n);
   mult(avk, dxdy, jacobian);
@@ -1421,7 +1363,7 @@ void covmat_soCalc(Matrix& /* covmat_so */,
                    const Matrix& /* dxdy */,
                    const CovarianceMatrix& /* covmat_se*/,
                    const Verbosity& /*v*/) {
-  throw runtime_error(
+  ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
 }
@@ -1430,7 +1372,7 @@ void covmat_ssCalc(Matrix& /*covmat_ss*/,
                    const Matrix& /*avk*/,
                    const CovarianceMatrix& /*covmat_sx*/,
                    const Verbosity& /*v*/) {
-  throw runtime_error(
+  ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
 }
@@ -1439,7 +1381,7 @@ void avkCalc(Matrix& /* avk */,
              const Matrix& /* dxdy */,
              const Matrix& /* jacobian */,
              const Verbosity& /*v*/) {
-  throw runtime_error(
+  ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
 }
@@ -1469,7 +1411,7 @@ void OEM(Workspace&,
          const Index&,
          const Index&,
          const Verbosity&) {
-  throw runtime_error(
+  ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
 }
@@ -1720,7 +1662,7 @@ void OEM_MPI(Workspace&,
              const Index&,
              const Index&,
              const Verbosity&) {
-  throw runtime_error(
+  ARTS_USER_ERROR (
       "You have to compile ARTS with OEM support "
       " and enable MPI to use OEM_MPI.");
 }

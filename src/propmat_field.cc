@@ -52,11 +52,10 @@ void field_of_propagation(Workspace& ws,
   const Index nq = jacobian_quantities.nelem();
   const Index nf = f_grid.nelem();
 
-  if (nq)
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (nq,
         "Does not support Jacobian calculations at this time");
-  if (stokes_dim not_eq 1)
-    throw std::runtime_error("Only for stokes_dim 1 at this time.");
+  ARTS_USER_ERROR_IF (stokes_dim not_eq 1,
+        "Only for stokes_dim 1 at this time.");
 
   // Compute variables
   const Vector mag_field = Vector(3, 0);
@@ -145,8 +144,8 @@ void emission_from_propmat_field(
   const Index np = ppath.np;
 
   // Current limitations
-  if (ns not_eq 1) throw std::runtime_error("Only for stokes_dim 1");
-  if (ppath.dim not_eq 1) throw std::runtime_error("Only for atmosphere_dim 1");
+  ARTS_USER_ERROR_IF (ns not_eq 1, "Only for stokes_dim 1");
+  ARTS_USER_ERROR_IF (ppath.dim not_eq 1, "Only for atmosphere_dim 1");
 
   // Size of compute variables
   lvl_rad = ArrayOfRadiationVector(np, RadiationVector(nf, ns));

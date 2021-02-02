@@ -242,12 +242,9 @@ void AbsInputFromAtmFields(  // WS Output:
     const Tensor4& vmr_field,
     const Verbosity&) {
   // First, make sure that we really have a 1D atmosphere:
-  if (1 != atmosphere_dim) {
-    ostringstream os;
-    os << "Atmospheric dimension must be 1D, but atmosphere_dim is "
-       << atmosphere_dim << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (1 != atmosphere_dim,
+      "Atmospheric dimension must be 1D, but atmosphere_dim is ",
+      atmosphere_dim, ".")
 
   abs_p = p_grid;
   abs_t = t_field(joker, 0, 0);
@@ -277,25 +274,18 @@ void abs_coefCalcFromXsec(  // WS Output:
 
   // Check that abs_vmrs and abs_xsec_per_species really have compatible
   // dimensions. In abs_vmrs there should be one row for each tg:
-  if (abs_vmrs.nrows() != abs_xsec_per_species.nelem()) {
-    ostringstream os;
-    os << "Variable abs_vmrs must have compatible dimension to abs_xsec_per_species.\n"
-       << "abs_vmrs.nrows() = " << abs_vmrs.nrows() << "\n"
-       << "abs_xsec_per_species.nelem() = " << abs_xsec_per_species.nelem();
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF(abs_vmrs.nrows() != abs_xsec_per_species.nelem(),
+    "Variable abs_vmrs must have compatible dimension to abs_xsec_per_species.\n"
+    "abs_vmrs.nrows() = ", abs_vmrs.nrows(), "\n"
+    "abs_xsec_per_species.nelem() = ", abs_xsec_per_species.nelem())
 
   // Check that number of altitudes are compatible. We only check the
   // first element, this is possilble because within arts all elements
   // are on the same altitude grid.
-  if (abs_vmrs.ncols() != abs_xsec_per_species[0].ncols()) {
-    ostringstream os;
-    os << "Variable abs_vmrs must have same numbers of altitudes as abs_xsec_per_species.\n"
-       << "abs_vmrs.ncols() = " << abs_vmrs.ncols() << "\n"
-       << "abs_xsec_per_species[0].ncols() = "
-       << abs_xsec_per_species[0].ncols();
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF(abs_vmrs.ncols() != abs_xsec_per_species[0].ncols(),
+    "Variable abs_vmrs must have same numbers of altitudes as abs_xsec_per_species.\n"
+    "abs_vmrs.ncols() = ", abs_vmrs.ncols(), "\n"
+    "abs_xsec_per_species[0].ncols() = ", abs_xsec_per_species[0].ncols());
 
   // Check dimensions of abs_p and abs_t:
   chk_size("abs_p", abs_p, abs_vmrs.ncols());
@@ -451,8 +441,7 @@ void abs_xsec_per_speciesInit(  // WS Output:
     const Verbosity& verbosity) {
   CREATE_OUT3;
 
-  if (!abs_xsec_agenda_checked)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!abs_xsec_agenda_checked,
         "You must call *abs_xsec_agenda_checkedCalc* before calling this method.");
 
   // We need to check that abs_species_active doesn't have more elements than
@@ -460,13 +449,10 @@ void abs_xsec_per_speciesInit(  // WS Output:
   // Usually we come here through an agenda call, where abs_species_active has
   // been properly created somewhere internally. But we might get here by
   // direct call, and then need to be safe!).
-  if (tgs.nelem() < abs_species_active.nelem()) {
-    ostringstream os;
-    os << "abs_species_active (n=" << abs_species_active.nelem()
-       << ") not allowed to have more elements than abs_species (n="
-       << tgs.nelem() << ")!\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (tgs.nelem() < abs_species_active.nelem(),
+    "abs_species_active (n=", abs_species_active.nelem(),
+    ") not allowed to have more elements than abs_species (n=",
+    tgs.nelem(), ")!\n")
 
   // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
   // is the same as that of abs_lines_per_species.
@@ -486,12 +472,10 @@ void abs_xsec_per_speciesInit(  // WS Output:
     const Index i = abs_species_active[ii];
     // Check that abs_species_active index is not higher than the number
     // of species
-    if (i >= tgs.nelem()) {
-      ostringstream os;
-      os << "*abs_species_active* contains an invalid species index.\n"
-         << "Species index must be between 0 and " << tgs.nelem() - 1;
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (i >= tgs.nelem(),
+      "*abs_species_active* contains an invalid species index.\n"
+      "Species index must be between 0 and ", tgs.nelem() - 1)
+    
     // Make this element of abs_xsec_per_species the right size:
     abs_xsec_per_species[i].resize(f_grid.nelem(), abs_p.nelem());
     abs_xsec_per_species[i] = 0;  // Matpack can set all elements like this.
@@ -522,6 +506,32 @@ void abs_xsec_per_speciesInit(  // WS Output:
   out3 << os.str();
 }
 
+
+String continua_model_error_message(const ArrayOfString& abs_cont_names,
+                                    const ArrayOfVector& abs_cont_parameters,
+                                    const ArrayOfString& abs_cont_models) {
+  std::ostringstream os;
+  
+  for (Index i = 0; i < abs_cont_names.nelem(); ++i)
+    os << "abs_xsec_per_speciesAddConts: " << i
+       << " name : " << abs_cont_names[i] << "\n";
+  
+  for (Index i = 0; i < abs_cont_parameters.nelem(); ++i)
+    os << "abs_xsec_per_speciesAddConts: " << i
+       << " param: " << abs_cont_parameters[i] << "\n";	
+  
+  for (Index i = 0; i < abs_cont_models.nelem(); ++i)	
+    os << "abs_xsec_per_speciesAddConts: " << i
+       << " option: " << abs_cont_models[i] << "\n";	
+  
+  os << "The following variables must have the same dimension:\n"	
+     << "abs_cont_names:      " << abs_cont_names.nelem() << "\n"	
+     << "abs_cont_parameters: " << abs_cont_parameters.nelem();	
+  
+  return os.str();
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddConts(  // WS Output:
     ArrayOfMatrix& abs_xsec_per_species,
@@ -545,20 +555,11 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
 
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
-  {
-    const Index n_tgs = tgs.nelem();
-    const Index n_xsec = abs_xsec_per_species.nelem();
-    const Index n_vmrs = abs_vmrs.nrows();
-
-    if (n_tgs != n_xsec || n_tgs != n_vmrs) {
-      ostringstream os;
-      os << "The following variables must all have the same dimension:\n"
-         << "tgs:          " << tgs.nelem() << "\n"
-         << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << "\n"
-         << "abs_vmrs.nrows():      " << abs_vmrs.nrows();
-      throw runtime_error(os.str());
-    }
-  }
+  ARTS_USER_ERROR_IF (tgs.nelem() != abs_xsec_per_species.nelem() || tgs.nelem() != abs_vmrs.nrows(),
+    "The following variables must all have the same dimension:\n"
+    "tgs:          ", tgs.nelem(), "\n"
+    "abs_xsec_per_species:  ", abs_xsec_per_species.nelem(), "\n"
+    "abs_vmrs.nrows():      ", abs_vmrs.nrows())
 
   // Jacobian overhead START
   /* NOTE: if any of the functions inside continuum tags could 
@@ -593,50 +594,27 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
   }
   // Jacobian overhead END
 
+  
+  
   // Check, that dimensions of abs_cont_names and
   // abs_cont_parameters are consistent...
-  if (abs_cont_names.nelem() != abs_cont_parameters.nelem()) {
-    ostringstream os;
-
-    for (Index i = 0; i < abs_cont_names.nelem(); ++i)
-      os << "abs_xsec_per_speciesAddConts: " << i
-         << " name : " << abs_cont_names[i] << "\n";
-
-    for (Index i = 0; i < abs_cont_parameters.nelem(); ++i)
-      os << "abs_xsec_per_speciesAddConts: " << i
-         << " param: " << abs_cont_parameters[i] << "\n";
-
-    for (Index i = 0; i < abs_cont_models.nelem(); ++i)
-      os << "abs_xsec_per_speciesAddConts: " << i
-         << " option: " << abs_cont_models[i] << "\n";
-
-    os << "The following variables must have the same dimension:\n"
-       << "abs_cont_names:      " << abs_cont_names.nelem() << "\n"
-       << "abs_cont_parameters: " << abs_cont_parameters.nelem();
-
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (abs_cont_names.nelem() != abs_cont_parameters.nelem(),
+    continua_model_error_message(abs_cont_names, abs_cont_parameters, abs_cont_models))
 
   // Check that abs_p, abs_t, and abs_vmrs have the same
   // dimension. This could be a user error, so we throw a
   // runtime_error.
 
-  if (abs_t.nelem() != abs_p.nelem()) {
-    ostringstream os;
-    os << "Variable abs_t must have the same dimension as abs_p.\n"
-       << "abs_t.nelem() = " << abs_t.nelem() << '\n'
-       << "abs_p.nelem() = " << abs_p.nelem();
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (abs_t.nelem() != abs_p.nelem(),
+    "Variable abs_t must have the same dimension as abs_p.\n"
+    "abs_t.nelem() = ", abs_t.nelem(), '\n',
+    "abs_p.nelem() = ", abs_p.nelem())
 
-  if (abs_vmrs.ncols() != abs_p.nelem()) {
-    ostringstream os;
-    os << "Variable dimension abs_vmrs.ncols() must\n"
-       << "be the same as abs_p.nelem().\n"
-       << "abs_vmrs.ncols() = " << abs_vmrs.ncols() << '\n'
-       << "abs_p.nelem() = " << abs_p.nelem();
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (abs_vmrs.ncols() != abs_p.nelem(),
+    "Variable dimension abs_vmrs.ncols() must\n"
+    "be the same as abs_p.nelem().\n"
+    "abs_vmrs.ncols() = ", abs_vmrs.ncols(), '\n',
+    "abs_p.nelem() = ", abs_p.nelem())
 
   // We set abs_h2o, abs_n2, and abs_o2 later, because we only want to
   // do it if the parameters are really needed.
@@ -675,11 +653,8 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
 
         // n==abs_cont_names.nelem() indicates that
         // the name was not found.
-        if (n == abs_cont_names.nelem()) {
-          ostringstream os;
-          os << "Cannot find model " << name << " in abs_cont_names.";
-          throw runtime_error(os.str());
-        }
+        ARTS_USER_ERROR_IF (n == abs_cont_names.nelem(),
+          "Cannot find model ", name, " in abs_cont_names.")
 
         // Ok, the tag specifies a valid continuum model and
         // we have continuum parameters.
@@ -872,36 +847,24 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
 
   Index n_species = src_coef_per_species.nelem();  // # species
 
-  if (not n_species) {
-    ostringstream os;
-    os << "Must have at least one species.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (not n_species,
+    "Must have at least one species.")
 
   Index n_f = src_coef_per_species[0].nrows();  // # frequencies
 
   // # pressures must be 1:
-  if (1 not_eq src_coef_per_species[0].ncols()) {
-    ostringstream os;
-    os << "Must have exactly one pressure.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (1 not_eq src_coef_per_species[0].ncols(),
+    "Must have exactly one pressure.")
 
   // Check species dimension of propmat_clearsky
-  if (nlte_source.nelem() not_eq n_species) {
-    ostringstream os;
-    os << "Species dimension of propmat_clearsky does not\n"
-       << "match src_coef_per_species.";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (nlte_source.nelem() not_eq n_species,
+    "Species dimension of propmat_clearsky does not\n"
+    "match src_coef_per_species.")
 
   // Check frequency dimension of propmat_clearsky
-  if (nlte_source[0].NumberOfFrequencies() not_eq n_f) {
-    ostringstream os;
-    os << "Frequency dimension of propmat_clearsky does not\n"
-       << "match abs_coef_per_species.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (nlte_source[0].NumberOfFrequencies() not_eq n_f,
+    "Frequency dimension of propmat_clearsky does not\n"
+    "match abs_coef_per_species.")
 
   const ArrayOfIndex jacobian_quantities_position =
       equivalent_propmattype_indexes(jacobian_quantities);
@@ -972,36 +935,24 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
 
   Index n_species = abs_coef_per_species.nelem();  // # species
 
-  if (0 == n_species) {
-    ostringstream os;
-    os << "Must have at least one species.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (0 == n_species,
+    "Must have at least one species.")
 
   Index n_f = abs_coef_per_species[0].nrows();  // # frequencies
 
   // # pressures must be 1:
-  if (1 not_eq abs_coef_per_species[0].ncols()) {
-    ostringstream os;
-    os << "Must have exactly one pressure.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (1 not_eq abs_coef_per_species[0].ncols(),
+    "Must have exactly one pressure.")
 
   // Check species dimension of propmat_clearsky
-  if (propmat_clearsky.nelem() not_eq n_species) {
-    ostringstream os;
-    os << "Species dimension of propmat_clearsky does not\n"
-       << "match abs_coef_per_species.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (propmat_clearsky.nelem() not_eq n_species,
+    "Species dimension of propmat_clearsky does not\n"
+    "match abs_coef_per_species.")
 
   // Check frequency dimension of propmat_clearsky
-  if (propmat_clearsky[0].NumberOfFrequencies() not_eq n_f) {
-    ostringstream os;
-    os << "Frequency dimension of propmat_clearsky does not\n"
-       << "match abs_coef_per_species.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (propmat_clearsky[0].NumberOfFrequencies() not_eq n_f,
+    "Frequency dimension of propmat_clearsky does not\n"
+    "match abs_coef_per_species.")
 
   // Loop species and stokes dimensions, and add to propmat_clearsky:
   for (Index si = 0; si < n_species; ++si)
@@ -1011,8 +962,9 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
     if (dabs_coef_dx[iqn].nrows() == n_f) {
       if (dabs_coef_dx[iqn].ncols() == 1) {
         dpropmat_clearsky_dx[iqn].Kjj() += dabs_coef_dx[iqn](joker, 0);
-      } else
-        throw std::runtime_error("Must have exactly one pressure.");
+      } else {
+        ARTS_USER_ERROR_IF(true, "Must have exactly one pressure.");
+      }
     }
   }
 }
@@ -1032,18 +984,17 @@ void propmat_clearskyInit(  //WS Output
     const Index& propmat_clearsky_agenda_checked,
     const Index& nlte_do,
     const Verbosity&) {
-  if (!propmat_clearsky_agenda_checked)
-    throw runtime_error(
-        "You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.");
+  ARTS_USER_ERROR_IF (!propmat_clearsky_agenda_checked,
+        "You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.")
 
   Index nf = f_grid.nelem();
 
-  if (not abs_species.nelem())
-    throw std::runtime_error("abs_species.nelem() = 0");
+  ARTS_USER_ERROR_IF (not abs_species.nelem(),
+    "abs_species.nelem() = 0")
 
-  if (not nf) throw runtime_error("nf = 0");
+  ARTS_USER_ERROR_IF (not nf, "nf = 0");
 
-  if (not stokes_dim) throw runtime_error("stokes_dim = 0");
+  ARTS_USER_ERROR_IF (not stokes_dim, "stokes_dim = 0");
 
   const Index nq = equivalent_propmattype_indexes(jacobian_quantities).nelem();
 
@@ -1083,23 +1034,16 @@ void propmat_clearskyAddFaraday(
           (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * ELECTRON_MASS *
            ELECTRON_MASS));
 
-  if (stokes_dim < 3)
-    throw runtime_error(
-        "To include Faraday rotation, stokes_dim >= 3 is required.");
-
-  if (atmosphere_dim == 1 && rtp_los.nelem() < 1) {
-    ostringstream os;
-    os << "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
-       << "(at least zenith angle component for atmosphere_dim==1),\n"
-       << "but it is not.\n";
-    throw runtime_error(os.str());
-  } else if (atmosphere_dim > 1 && rtp_los.nelem() < 2) {
-    ostringstream os;
-    os << "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
-       << "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
-       << "but it is not.\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (stokes_dim < 3,
+        "To include Faraday rotation, stokes_dim >= 3 is required.")
+  ARTS_USER_ERROR_IF (atmosphere_dim == 1 && rtp_los.nelem() < 1,
+    "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
+    "(at least zenith angle component for atmosphere_dim==1),\n"
+    "but it is not.\n")
+  ARTS_USER_ERROR_IF (atmosphere_dim > 1 && rtp_los.nelem() < 2,
+    "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
+    "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
+    "but it is not.\n")
 
   const bool do_jac = supports_faraday(jacobian_quantities);
   const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
@@ -1114,77 +1058,75 @@ void propmat_clearskyAddFaraday(
     }
   }
 
-  if (ife < 0) {
-    throw runtime_error(
-        "Free electrons not found in *abs_species* and "
-        "Faraday rotation can not be calculated.");
-  } else {
-    const Numeric ne = rtp_vmr[ife];
+  ARTS_USER_ERROR_IF (ife < 0,
+    "Free electrons not found in *abs_species* and "
+    "Faraday rotation can not be calculated.");
 
-    if (ne != 0 && (rtp_mag[0] != 0 || rtp_mag[1] != 0 || rtp_mag[2] != 0)) {
-      // Include remaining terms, beside /f^2
-      const Numeric c1 =
-          2 * FRconst * ne *
-          dotprod_with_los(
-              rtp_los, rtp_mag[0], rtp_mag[1], rtp_mag[2], atmosphere_dim);
+  const Numeric ne = rtp_vmr[ife];
 
-      Numeric dc1_u = 0.0, dc1_v = 0.0, dc1_w = 0.0;
-      if (do_magn_jac) {
-        dc1_u = (2 * FRconst * ne *
-                     dotprod_with_los(rtp_los,
-                                      rtp_mag[0] + dmag,
-                                      rtp_mag[1],
-                                      rtp_mag[2],
-                                      atmosphere_dim) -
-                 c1) /
-                dmag;
-        dc1_v = (2 * FRconst * ne *
-                     dotprod_with_los(rtp_los,
-                                      rtp_mag[0],
-                                      rtp_mag[1] + dmag,
-                                      rtp_mag[2],
-                                      atmosphere_dim) -
-                 c1) /
-                dmag;
-        dc1_w = (2 * FRconst * ne *
-                     dotprod_with_los(rtp_los,
-                                      rtp_mag[0],
-                                      rtp_mag[1],
-                                      rtp_mag[2] + dmag,
-                                      atmosphere_dim) -
-                 c1) /
-                dmag;
+  if (ne != 0 && (rtp_mag[0] != 0 || rtp_mag[1] != 0 || rtp_mag[2] != 0)) {
+    // Include remaining terms, beside /f^2
+    const Numeric c1 =
+        2 * FRconst * ne *
+        dotprod_with_los(
+            rtp_los, rtp_mag[0], rtp_mag[1], rtp_mag[2], atmosphere_dim);
+
+    Numeric dc1_u = 0.0, dc1_v = 0.0, dc1_w = 0.0;
+    if (do_magn_jac) {
+      dc1_u = (2 * FRconst * ne *
+                    dotprod_with_los(rtp_los,
+                                    rtp_mag[0] + dmag,
+                                    rtp_mag[1],
+                                    rtp_mag[2],
+                                    atmosphere_dim) -
+                c1) /
+              dmag;
+      dc1_v = (2 * FRconst * ne *
+                    dotprod_with_los(rtp_los,
+                                    rtp_mag[0],
+                                    rtp_mag[1] + dmag,
+                                    rtp_mag[2],
+                                    atmosphere_dim) -
+                c1) /
+              dmag;
+      dc1_w = (2 * FRconst * ne *
+                    dotprod_with_los(rtp_los,
+                                    rtp_mag[0],
+                                    rtp_mag[1],
+                                    rtp_mag[2] + dmag,
+                                    atmosphere_dim) -
+                c1) /
+              dmag;
+    }
+
+    if (not do_jac) {
+      for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+        const Numeric r = c1 / (f_grid[iv] * f_grid[iv]);
+        propmat_clearsky[ife].SetFaraday(r, iv);
       }
+    } else {
+      for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+        const Numeric f2 = f_grid[iv] * f_grid[iv];
+        const Numeric r = c1 / f2;
+        propmat_clearsky[ife].SetFaraday(r, iv);
 
-      if (not do_jac) {
-        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-          const Numeric r = c1 / (f_grid[iv] * f_grid[iv]);
-          propmat_clearsky[ife].SetFaraday(r, iv);
-        }
-      } else {
-        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-          const Numeric f2 = f_grid[iv] * f_grid[iv];
-          const Numeric r = c1 / f2;
-          propmat_clearsky[ife].SetFaraday(r, iv);
-
-          // The Jacobian loop
-          for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
-            if (is_frequency_parameter(
-                    jacobian_quantities[jacobian_quantities_position[iq]]))
-              dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
-            else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                     Jacobian::Atm::MagneticU)
-              dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
-            else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                     Jacobian::Atm::MagneticV)
-              dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
-            else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                     Jacobian::Atm::MagneticW)
-              dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
-            else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                     Jacobian::Atm::Electrons)
-              dpropmat_clearsky_dx[iq].AddFaraday(r / ne, iv);
-          }
+        // The Jacobian loop
+        for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
+          if (is_frequency_parameter(
+                  jacobian_quantities[jacobian_quantities_position[iq]]))
+            dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
+          else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
+                   Jacobian::Atm::MagneticU)
+            dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
+          else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
+                   Jacobian::Atm::MagneticV)
+            dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
+          else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
+                   Jacobian::Atm::MagneticW)
+            dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
+          else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
+                   Jacobian::Atm::Electrons)
+            dpropmat_clearsky_dx[iq].AddFaraday(r / ne, iv);
         }
       }
     }
@@ -1219,10 +1161,9 @@ void propmat_clearskyAddParticles(
   // scat_data_checkedCalc in that case. This approach seems to be the more
   // handy compared to cloudboxOff setting scat_data_checked=1 without checking
   // it assuming we won't use it anyways.)
-  if (scat_data_checked != 1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (scat_data_checked != 1,
         "The scat_data must be flagged to have "
-        "passed a consistency check (scat_data_checked=1).");
+        "passed a consistency check (scat_data_checked=1).")
 
   const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
@@ -1232,35 +1173,24 @@ void propmat_clearskyAddParticles(
     }
   }
 
-  if (np == 0) {
-    ostringstream os;
-    os << "For applying propmat_clearskyAddParticles, *abs_species* needs to"
-       << "contain species 'particles', but it does not.\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (np == 0,
+    "For applying propmat_clearskyAddParticles, *abs_species* needs to"
+    "contain species 'particles', but it does not.\n")
 
-  if (ns != np) {
-    ostringstream os;
-    os << "Number of 'particles' entries in abs_species and of elements in\n"
-       << "*scat_data* needs to be identical. But you have " << np
-       << " 'particles' entries\n"
-       << "and " << ns << " *scat_data* elements.\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (ns != np,
+    "Number of 'particles' entries in abs_species and of elements in\n"
+    "*scat_data* needs to be identical. But you have " , np,
+    " 'particles' entries\n"
+    "and ", ns, " *scat_data* elements.\n")
 
-  if (atmosphere_dim == 1 && rtp_los.nelem() < 1) {
-    ostringstream os;
-    os << "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
-       << "(at least zenith angle component for atmosphere_dim==1),\n"
-       << "but it is not.\n";
-    throw runtime_error(os.str());
-  } else if (atmosphere_dim > 1 && rtp_los.nelem() < 2) {
-    ostringstream os;
-    os << "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
-       << "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
-       << "but it is not.\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (atmosphere_dim == 1 && rtp_los.nelem() < 1,
+    "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
+    "(at least zenith angle component for atmosphere_dim==1),\n"
+    "but it is not.\n")
+  ARTS_USER_ERROR_IF (atmosphere_dim > 1 && rtp_los.nelem() < 2,
+    "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
+    "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
+    "but it is not.\n")
 
   // Use for rescaling vmr of particulates
   Numeric rtp_vmr_sum = 0.0;
@@ -1331,96 +1261,88 @@ void propmat_clearskyAddParticles(
 
       // running beyond number of abs_species entries when looking for next
       // particle entry. shouldn't happen, though.
-      assert(sp < na);
-      if (rtp_vmr[sp] < 0.) {
-        ostringstream os;
-        os << "Negative absorbing particle 'vmr' (aka number density)"
-           << " encountered:\n"
-           << "scat species #" << i_ss << ", scat elem #" << i_se
-           << " (vmr_field entry #" << sp << ")\n";
-        throw runtime_error(os.str());
-      } else if (rtp_vmr[sp] > 0.) {
-        if (t_ok(i_se_flat, 0) < 0.) {
-          ostringstream os;
-          os << "Temperature interpolation error:\n"
-             << "scat species #" << i_ss << ", scat elem #" << i_se << "\n";
-          throw runtime_error(os.str());
-        } else {
-          if (use_abs_as_ext) {
-            if (nf > 1)
-              for (Index iv = 0; iv < f_grid.nelem(); iv++)
-                propmat_clearsky[sp].AddAbsorptionVectorAtPosition(
-                    abs_vec_Nse[i_ss][i_se](iv, 0, 0, joker), iv);
-            else
-              for (Index iv = 0; iv < f_grid.nelem(); iv++)
-                propmat_clearsky[sp].AddAbsorptionVectorAtPosition(
-                    abs_vec_Nse[i_ss][i_se](0, 0, 0, joker), iv);
-          } else {
-            if (nf > 1)
-              for (Index iv = 0; iv < f_grid.nelem(); iv++)
-                propmat_clearsky[sp].SetAtPosition(
-                    ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker), iv);
-            else
-              for (Index iv = 0; iv < f_grid.nelem(); iv++)
-                propmat_clearsky[sp].SetAtPosition(
-                    ext_mat_Nse[i_ss][i_se](0, 0, 0, joker, joker), iv);
-          }
-          propmat_clearsky[sp] *= rtp_vmr[sp];
-        }
-
-        // For temperature derivatives (so we don't need to check it in jac loop)
-        if (do_jac_temperature) {
-          if (t_ok(i_se_flat, 1) < 0.) {
-            ostringstream os;
-            os << "Temperature interpolation error (in perturbation):\n"
-               << "scat species #" << i_ss << ", scat elem #" << i_se << "\n";
-            throw runtime_error(os.str());
-          }
-        }
-
-        // For number density derivatives
-        if (do_jac) rtp_vmr_sum += rtp_vmr[sp];
-
-        for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
-          
-          if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-              Jacobian::Atm::Temperature) {
-            if (use_abs_as_ext) {
-              tmp(joker, joker, 0) =
-                  abs_vec_Nse[i_ss][i_se](joker, 1, 0, joker);
-              tmp(joker, joker, 0) -=
-                  abs_vec_Nse[i_ss][i_se](joker, 0, 0, joker);
-            } else {
-              tmp = ext_mat_Nse[i_ss][i_se](joker, 1, 0, joker, joker);
-              tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
-            }
-
-            tmp *= rtp_vmr[sp];
-            tmp /= dT;
-
-            if (nf > 1)
-              for (Index iv = 0; iv < f_grid.nelem(); iv++)
-                if (use_abs_as_ext)
-                  dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(
-                      tmp(iv, joker, 0), iv);
-                else
-                  dpropmat_clearsky_dx[iq].AddAtPosition(tmp(iv, joker, joker),
-                                                         iv);
-            else
-              for (Index iv = 0; iv < f_grid.nelem(); iv++)
-                if (use_abs_as_ext)
-                  dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(
-                      tmp(0, joker, 0), iv);
-                else
-                  dpropmat_clearsky_dx[iq].AddAtPosition(tmp(0, joker, joker),
-                                                         iv);
-          }
-
-          else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                   Jacobian::Atm::Particulates) {
+      ARTS_ASSERT(sp < na);
+      ARTS_USER_ERROR_IF (rtp_vmr[sp] < 0.,
+        "Negative absorbing particle 'vmr' (aka number density)"
+        " encountered:\n"
+        "scat species #", i_ss, ", scat elem #", i_se,
+        " (vmr_field entry #", sp, ")\n")
+      
+      if (rtp_vmr[sp] > 0.) {
+        ARTS_USER_ERROR_IF (t_ok(i_se_flat, 0) < 0.,
+          "Temperature interpolation error:\n"
+          "scat species #", i_ss, ", scat elem #", i_se, "\n")
+        if (use_abs_as_ext) {
+          if (nf > 1)
             for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
+              propmat_clearsky[sp].AddAbsorptionVectorAtPosition(
+                  abs_vec_Nse[i_ss][i_se](iv, 0, 0, joker), iv);
+          else
+            for (Index iv = 0; iv < f_grid.nelem(); iv++)
+              propmat_clearsky[sp].AddAbsorptionVectorAtPosition(
+                  abs_vec_Nse[i_ss][i_se](0, 0, 0, joker), iv);
+        } else {
+          if (nf > 1)
+            for (Index iv = 0; iv < f_grid.nelem(); iv++)
+              propmat_clearsky[sp].SetAtPosition(
+                  ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker), iv);
+          else
+            for (Index iv = 0; iv < f_grid.nelem(); iv++)
+              propmat_clearsky[sp].SetAtPosition(
+                  ext_mat_Nse[i_ss][i_se](0, 0, 0, joker, joker), iv);
+        }
+        propmat_clearsky[sp] *= rtp_vmr[sp];
+      }
+
+      // For temperature derivatives (so we don't need to check it in jac loop)
+      if (do_jac_temperature) {
+        ARTS_USER_ERROR_IF (t_ok(i_se_flat, 1) < 0.,
+            "Temperature interpolation error (in perturbation):\n"
+            "scat species #", i_ss, ", scat elem #", i_se, "\n")
+      }
+
+      // For number density derivatives
+      if (do_jac) rtp_vmr_sum += rtp_vmr[sp];
+
+      for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
+        
+        if (jacobian_quantities[jacobian_quantities_position[iq]] ==
+            Jacobian::Atm::Temperature) {
+          if (use_abs_as_ext) {
+            tmp(joker, joker, 0) =
+                abs_vec_Nse[i_ss][i_se](joker, 1, 0, joker);
+            tmp(joker, joker, 0) -=
+                abs_vec_Nse[i_ss][i_se](joker, 0, 0, joker);
+          } else {
+            tmp = ext_mat_Nse[i_ss][i_se](joker, 1, 0, joker, joker);
+            tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
           }
+
+          tmp *= rtp_vmr[sp];
+          tmp /= dT;
+
+          if (nf > 1)
+            for (Index iv = 0; iv < f_grid.nelem(); iv++)
+              if (use_abs_as_ext)
+                dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(
+                    tmp(iv, joker, 0), iv);
+              else
+                dpropmat_clearsky_dx[iq].AddAtPosition(tmp(iv, joker, joker),
+                                                        iv);
+          else
+            for (Index iv = 0; iv < f_grid.nelem(); iv++)
+              if (use_abs_as_ext)
+                dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(
+                    tmp(0, joker, 0), iv);
+              else
+                dpropmat_clearsky_dx[iq].AddAtPosition(tmp(0, joker, joker),
+                                                        iv);
+        }
+
+        else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
+                 Jacobian::Atm::Particulates) {
+          for (Index iv = 0; iv < f_grid.nelem(); iv++)
+            dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
         }
       }
       sp++;
@@ -1432,7 +1354,7 @@ void propmat_clearskyAddParticles(
   //are processes. this is basically not necessary. but checking it anyway to
   //really be safe. remove later, when more extensively tested.
   while (sp < na) {
-    assert(abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES);
+    ARTS_ASSERT(abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES);
     sp++;
   }
 
@@ -1595,8 +1517,8 @@ void WriteMolTau(  //WS Input
   int dimids[4];
   int wvlmin_varid, wvlmax_varid, z_varid, wvl_varid, tau_varid;
 
-  if (atmosphere_dim != 1)
-    throw runtime_error("WriteMolTau can only be used for atmosphere_dim=1");
+  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
+    "WriteMolTau can only be used for atmosphere_dim=1")
 
 #pragma omp critical(netcdf__critical_region)
   {
@@ -1744,7 +1666,7 @@ void WriteMolTau(  //WS Input
     //Keyword
     const String& filename _U_,
     const Verbosity&) {
-  throw runtime_error(
+  ARTS_USER_ERROR_IF(true,
       "The workspace method WriteMolTau is not available"
       "because ARTS was compiled without NetCDF support.");
 }
@@ -1774,35 +1696,24 @@ void abs_xsec_per_speciesAddLines(
     const Verbosity&) {
   if (not abs_lines_per_species.nelem()) return;
   
-  if (not lbl_checked)
-    throw std::runtime_error("Please set lbl_checked true to use this function");
+  ARTS_USER_ERROR_IF (not lbl_checked,
+    "Please set lbl_checked true to use this function");
 
   // Check that all temperatures are above 0 K
-  if (min(abs_t) < 0) {
-    std::ostringstream os;
-    os << "Temperature must be at least 0 K. But you request an absorption\n"
-       << "calculation at " << min(abs_t) << " K!";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (min(abs_t) < 0,
+    "Temperature must be at least 0 K. But you request an absorption\n"
+    "calculation at ", min(abs_t), " K!")
 
   // Check that all parameters that should have the number of tag
   // groups as a dimension are consistent.
-  {
-    const Index n_tgs = abs_species.nelem();
-    const Index n_xsec = abs_xsec_per_species.nelem();
-    const Index n_vmrs = abs_vmrs.nrows();
-    const Index n_lines = abs_lines_per_species.nelem();
-
-    if (n_tgs not_eq n_xsec or n_tgs not_eq n_vmrs or n_tgs not_eq n_lines) {
-      std::ostringstream os;
-      os << "The following variables must all have the same dimension:\n"
-         << "abs_species:           " << abs_species.nelem() << '\n'
-         << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << '\n'
-         << "abs_vmrs:              " << abs_vmrs.nrows() << '\n'
-         << "abs_lines_per_species: " << abs_lines_per_species.nelem() << '\n';
-      throw std::runtime_error(os.str());
-    }
-  }
+  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_xsec_per_species.nelem() or
+                      abs_species.nelem() not_eq abs_vmrs.nrows() or
+                      abs_species.nelem() not_eq abs_lines_per_species.nelem(),
+    "The following variables must all have the same dimension:\n"
+    "abs_species:           ", abs_species.nelem(), '\n',
+    "abs_xsec_per_species:  ", abs_xsec_per_species.nelem(), '\n',
+    "abs_vmrs:              ", abs_vmrs.nrows(), '\n',
+    "abs_lines_per_species: ", abs_lines_per_species.nelem(), '\n')
 
   // Meta variables that explain the calculations required
   const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);

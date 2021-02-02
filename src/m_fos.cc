@@ -104,7 +104,7 @@ void fos(
   if( atmosphere_dim > 1 )
     throw runtime_error( "FOS is so far only handling 1D atmospheres." );
 
-  assert( fos_i >= 0  &&  fos_i <= fos_n );
+  ARTS_ASSERT( fos_i >= 0  &&  fos_i <= fos_n );
 
 
   // Determine propagation path

@@ -40,39 +40,37 @@ void abs_xsec_per_speciesAddPredefinedO2MPM2020(ArrayOfMatrix& abs_xsec_per_spec
                                                 const Verbosity&)
 {
   // Forward simulations and their error handling
-  if (abs_vmrs.ncols() not_eq abs_p.nelem()) {
-    throw std::runtime_error("Mismatch dimensions on pressure and VMR inputs");
-  } else if (abs_t.nelem() not_eq abs_p.nelem()) {
-    throw std::runtime_error("Mismatch dimensions on pressure and temperature inputs");
-  } else if (abs_vmrs.nrows() not_eq abs_species.nelem()) {
-    throw std::runtime_error("Mismatch dimensions on species and VMR inputs");
-  } else if (abs_xsec_per_species.nelem() not_eq abs_species.nelem()) {
-    throw std::runtime_error("Mismatch dimensions on xsec and VMR inputs");
-  } else if (std::any_of(abs_xsec_per_species.cbegin(), abs_xsec_per_species.cend(), 
-    [&abs_p](auto x){return x.ncols() not_eq abs_p.nelem();})) {
-    throw std::runtime_error("Mismatch dimensions on internal matrices of xsec and pressure");
-  } else if (std::any_of(abs_xsec_per_species.cbegin(), abs_xsec_per_species.cend(),
-    [&f_grid](auto x){return x.nrows() not_eq f_grid.nelem();})) {
-    throw std::runtime_error("Mismatch dimensions on internal matrices of xsec and frequency");
-  }
+  ARTS_USER_ERROR_IF (abs_vmrs.ncols() not_eq abs_p.nelem(),
+    "Mismatch dimensions on pressure and VMR inputs")
+  ARTS_USER_ERROR_IF (abs_t.nelem() not_eq abs_p.nelem(),
+    "Mismatch dimensions on pressure and temperature inputs");
+  ARTS_USER_ERROR_IF (abs_vmrs.nrows() not_eq abs_species.nelem(),
+    "Mismatch dimensions on species and VMR inputs");
+  ARTS_USER_ERROR_IF (abs_xsec_per_species.nelem() not_eq abs_species.nelem(),
+    "Mismatch dimensions on xsec and VMR inputs");
+  ARTS_USER_ERROR_IF (std::any_of(abs_xsec_per_species.cbegin(), abs_xsec_per_species.cend(), 
+    [&abs_p](auto x){return x.ncols() not_eq abs_p.nelem();}),
+    "Mismatch dimensions on internal matrices of xsec and pressure");
+  ARTS_USER_ERROR_IF (std::any_of(abs_xsec_per_species.cbegin(), abs_xsec_per_species.cend(),
+    [&f_grid](auto x){return x.nrows() not_eq f_grid.nelem();}),
+    "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
   const auto jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
   if (dabs_xsec_per_species_dx.nelem()) {
-    if(dabs_xsec_per_species_dx.nelem() not_eq abs_species.nelem()) {
-      throw std::runtime_error("Mismatch dimensions on species inputs and xsec derivatives");
-    } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(), 
-      [&jac_pos](auto x){return x.nelem() not_eq jac_pos.nelem();})) {
-      throw std::runtime_error("Mismatch dimensions on xsec derivatives and Jacobian grids");
-    } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
+    ARTS_USER_ERROR_IF(dabs_xsec_per_species_dx.nelem() not_eq abs_species.nelem(),
+      "Mismatch dimensions on species inputs and xsec derivatives");
+    ARTS_USER_ERROR_IF (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(), 
+      [&jac_pos](auto x){return x.nelem() not_eq jac_pos.nelem();}),
+      "Mismatch dimensions on xsec derivatives and Jacobian grids");
+    ARTS_USER_ERROR_IF (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
       [&abs_p](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
-        [&abs_p](auto x2){return x2.ncols() not_eq abs_p.nelem();});})) {
-      throw std::runtime_error("Mismatch dimensions on internal matrices of xsec derivatives and pressure");
-    } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
+        [&abs_p](auto x2){return x2.ncols() not_eq abs_p.nelem();});}),
+      "Mismatch dimensions on internal matrices of xsec derivatives and pressure");
+    ARTS_USER_ERROR_IF (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
       [&f_grid](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
-        [&f_grid](auto x2){return x2.nrows() not_eq f_grid.nelem();});})) {
-      throw std::runtime_error("Mismatch dimensions on internal matrices of xsec derivatives and frequency");
-    }
+        [&f_grid](auto x2){return x2.nrows() not_eq f_grid.nelem();});}),
+      "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
   
   // Positions of important species and VMR of water

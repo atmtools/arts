@@ -229,12 +229,12 @@ void nca_write_to_file(const int ncid, const Vector& v, const Verbosity&) {
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
 
-#define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                   \
-  void nca_write_to_file(const int, const what&, const Verbosity&) {          \
-    throw runtime_error("NetCDF support not yet implemented for this type!"); \
-  }                                                                           \
-  void nca_read_from_file(const int, what&, const Verbosity&) {               \
-    throw runtime_error("NetCDF support not yet implemented for this type!"); \
+#define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                         \
+  void nca_write_to_file(const int, const what&, const Verbosity&) {                \
+    ARTS_USER_ERROR ("NetCDF support not yet implemented for this type!"); \
+  }                                                                                 \
+  void nca_read_from_file(const int, what&, const Verbosity&) {                     \
+    ARTS_USER_ERROR ("NetCDF support not yet implemented for this type!"); \
   }
 
 //==========================================================================

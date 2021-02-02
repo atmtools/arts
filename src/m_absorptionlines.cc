@@ -54,13 +54,9 @@ std::vector<QuantumNumberType> string2vecqn(const String& qnstr)
     std::istringstream str(qnstr);
     while (not str.eof()) {
       str >> part; 
-      if (IsValidQuantumNumberName(part)) {
-        nums.push_back(string2quantumnumbertype(part));
-      } else {
-        std::ostringstream os;
-        os << "The quantum number key: \"" << part << "\" is invalid.\n";
-        throw std::runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (not IsValidQuantumNumberName(part),
+                          "The quantum number key: \"", part, "\" is invalid.\n")
+      nums.push_back(string2quantumnumbertype(part));
     }
   }
   
@@ -126,20 +122,16 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     if (version == "3") {
       artscat_version = 3;
     } else if (version.substr(0, 8) != "ARTSCAT-") {
-      ostringstream os;
-      os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
-      << "Probably it was created with an older version of ARTS that used different units.";
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR (
+        "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+        "Probably it was created with an older version of ARTS that used different units.")
     } else {
       istringstream is(version.substr(8));
       is >> artscat_version;
     }
     
-    if (artscat_version < 3 or artscat_version > 5) {
-      ostringstream os;
-      os << "Unknown ARTS line file version: " << version;
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (artscat_version < 3 or artscat_version > 5,
+      "Unknown ARTS line file version: ", version)
     
     bool go_on = true;
     Index n = 0;
@@ -155,7 +147,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
           v.push_back(Absorption::ReadFromArtscat5Stream(is_xml));
           break;
         default:
-          throw std::runtime_error("Bad version!");
+          ARTS_ASSERT (false, "Bad version!");
       }
       
       if (v.back().bad) {
@@ -248,20 +240,16 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   if (version == "3") {
     artscat_version = 3;
   } else if (version.substr(0, 8) != "ARTSCAT-") {
-    ostringstream os;
-    os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
-    << "Probably it was created with an older version of ARTS that used different units.";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR (
+      "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+      "Probably it was created with an older version of ARTS that used different units.")
   } else {
     istringstream is(version.substr(8));
     is >> artscat_version;
   }
   
-  if (artscat_version < 3 or artscat_version > 5) {
-    ostringstream os;
-    os << "Unknown ARTS line file version: " << version;
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (artscat_version < 3 or artscat_version > 5,
+                      "Unknown ARTS line file version: ", version)
   
   std::vector<Absorption::SingleLineExternal> v(0);
   
@@ -280,7 +268,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
           v.push_back(Absorption::ReadFromArtscat5Stream(is_xml));
           break;
         default:
-          throw std::runtime_error("Bad version!");
+          ARTS_ASSERT(false, "Bad version!");
       }
       
       if (v.back().bad) {
@@ -396,14 +384,10 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
         }
       }
     } catch (const std::exception& e) {
-      if (not ignore_missing) {
-        std::ostringstream os;
-        os << "Errors in calls by *propmat_clearskyAddZeeman*:\n";
-        os << e.what();
-        throw std::runtime_error(os.str());
-      } else {
-        continue;
-      }
+      ARTS_USER_ERROR_IF (not ignore_missing,
+        "Errors in calls by *propmat_clearskyAddZeeman*:\n",
+        e.what())
+      continue;
     }
   }
   
@@ -475,7 +459,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
         v.push_back(Absorption::ReadFromHitranOnlineStream(is));
         break;
       default:
-        throw std::runtime_error("[DEV error] The HitranType enum class has to be fully updated!\n");
+        ARTS_ASSERT(false, "[DEV error] The HitranType enum class has to be fully updated!\n");
     }
     
     if (v.back().bad) {
@@ -892,10 +876,9 @@ void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
     }
   }
   
-  if (not bands_found and not robust)
-    throw std::runtime_error("Cannot find any bands in the directory you are reading");
-  else
-    out3 << "Found " << bands_found << " bands\n";
+  ARTS_USER_ERROR_IF (not bands_found and not robust,
+                      "Cannot find any bands in the directory you are reading");
+  out3 << "Found " << bands_found << " bands\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -943,10 +926,9 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
     }
   }
   
-  if (not bands_found and not robust)
-    throw std::runtime_error("Cannot find any bands in the directory you are reading");
-  else
-    out3 << "Found " << bands_found << " bands\n";
+  ARTS_USER_ERROR_IF (not bands_found and not robust,
+                      "Cannot find any bands in the directory you are reading");
+  out3 << "Found " << bands_found << " bands\n";
   
   abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
 }
@@ -963,11 +945,8 @@ void abs_linesSetQuantumNumberForMatch(ArrayOfAbsorptionLines& abs_lines,
                                        const Verbosity&)
 {
   auto QN = string2quantumnumbertype(qn);
-  if (QN == QuantumNumberType::FINAL) {
-    ostringstream os;
-    os << "Usupported quantum number key: " << qn << '\n';
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (QN == QuantumNumberType::FINAL,
+    "Usupported quantum number key: ", qn, '\n')
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
@@ -1051,17 +1030,19 @@ void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfA
             }
           }
           
-          if (number_of_matching_single_lines not_eq 1) {
-            throw std::runtime_error("Error: Did not match to a single single line.  This means the input data has not been understood.  This function needs exactly one match.");
-          }
+          ARTS_USER_ERROR_IF (number_of_matching_single_lines not_eq 1,
+                              "Error: Did not match to a single single line.  "
+                              "This means the input data has not been understood.  "
+                              "This function needs exactly one match.");
         }
         tlines.sort_by_frequency();
       }
     }
     
-    if (number_of_matching_bands not_eq 1) {
-      throw std::runtime_error("Error: Did not match to a single set of absorption lines.  This means the input data has not been understood.  This function needs exactly one match.");
-    }
+    ARTS_USER_ERROR_IF (number_of_matching_bands not_eq 1,
+                        "Error: Did not match to a single set of absorption lines.  "
+                        "This means the input data has not been understood.  "
+                        "This function needs exactly one match.");
   }
 }
 
@@ -1083,20 +1064,21 @@ void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
                 number_of_matching_single_lines++;
               }
             }
-            if (number_of_matching_single_lines not_eq 0) {
-              throw std::runtime_error("Error: Did match to a single single line.  This means the input data has not been understood.  This function needs exactly zero matches.");
-            }
+            ARTS_USER_ERROR_IF (number_of_matching_single_lines not_eq 0,
+                                "Error: Did match to a single single line.  "
+                                "This means the input data has not been understood.  "
+                                "This function needs exactly zero matches.");
             tlines.AppendSingleLine(aline);
           }
           tlines.sort_by_frequency();
         }
       }
       
-      if (number_of_matching_bands == 0)
-        addedlines.push_back(alines);
-      else if (number_of_matching_bands not_eq 1) {
-        throw std::runtime_error("Error: Did not match to a single set of absorption lines.  This means the input data has not been understood.  This function needs exactly one or zero matches.");
-      }
+      if (number_of_matching_bands == 0) addedlines.push_back(alines);
+      ARTS_USER_ERROR_IF (number_of_matching_bands not_eq 1,
+                          "Error: Did not match to a single set of absorption lines.  "
+                          "This means the input data has not been understood.  "
+                          "This function needs exactly one or zero matches.");
     }
     
     for (auto& lines: addedlines) {
@@ -1149,9 +1131,8 @@ void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
         std::sort(hits.begin(), hits.end());
         auto n = hits.size();
         hits.erase(std::unique(hits.begin(), hits.end()), hits.end());
-        if(n not_eq hits.size()) {
-          throw std::runtime_error("Removing the same line more than once is not accepted");
-        }
+        ARTS_USER_ERROR_IF(n not_eq hits.size(),
+                           "Removing the same line more than once is not accepted");
         
         // Remove the bad values
         while(not hits.empty()) {
@@ -1269,9 +1250,8 @@ void abs_linesSetEmptyBroadeningParametersToEmpty(ArrayOfAbsorptionLines& abs_li
 void abs_linesKeepBands(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifier& qid, const Index& ignore_spec, const Index& ignore_isot, const Verbosity&)
 {
   // Invalid setting
-  if (ignore_spec and not ignore_isot) {
-    throw std::runtime_error("Cannot ignore the species and not ignore the isotopologue");
-  }
+  ARTS_USER_ERROR_IF (ignore_spec and not ignore_isot,
+                      "Cannot ignore the species and not ignore the isotopologue");
   
   // local ID is a transition even if an energy level is given
   QuantumIdentifier this_id=qid;
@@ -1785,10 +1765,11 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_li
 {
   Index parameter_switch = -1;
 
-  if (parameter_name.nelem() == 0)
-    throw std::runtime_error("parameter_name is empty.\n");
-  else if (parameter_name == "Central Frequency" or
-           parameter_name == "Line Center")
+  ARTS_USER_ERROR_IF (parameter_name.nelem() == 0,
+                      "parameter_name is empty.\n");
+  
+  if (parameter_name == "Central Frequency" or
+      parameter_name == "Line Center")
     parameter_switch = 0;
   else if (parameter_name == "Line Strength")
     parameter_switch = 1;
@@ -1859,11 +1840,9 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_li
               band.Line(k).Zeeman().gu() *= 1.0e0 + change;
             break;
           default: {
-            ostringstream os;
-            os << "Usupported paramter_name\n"
-              << parameter_name
-              << "\nSee method description for supported parameter names.\n";
-            throw std::runtime_error(os.str());
+            ARTS_USER_ERROR (
+                                "Usupported paramter_name\n", parameter_name,
+                                "\nSee method description for supported parameter names.\n")
           }
         }
       }
@@ -1916,10 +1895,11 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
 {
   Index parameter_switch = -1;
   
-  if (parameter_name.nelem() == 0)
-    throw std::runtime_error("parameter_name is empty.\n");
-  else if (parameter_name == "Central Frequency" or
-    parameter_name == "Line Center")
+  ARTS_USER_ERROR_IF (parameter_name.nelem() == 0,
+                      "parameter_name is empty.\n");
+  
+  if (parameter_name == "Central Frequency" or
+      parameter_name == "Line Center")
     parameter_switch = 0;
   else if (parameter_name == "Line Strength")
     parameter_switch = 1;
@@ -1966,11 +1946,9 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
             band.Line(k).Zeeman().gu() = x;
             break;
           default: {
-            ostringstream os;
-            os << "Usupported paramter_name\n"
-            << parameter_name
-            << "\nSee method description for supported parameter names.\n";
-            throw std::runtime_error(os.str());
+            ARTS_USER_ERROR (
+                                "Usupported paramter_name\n", parameter_name,
+                                "\nSee method description for supported parameter names.\n")
           }
         }
       }
@@ -2032,12 +2010,9 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   const LineShape::Variable var = LineShape::toVariable(parameter);
   check_enum_error(var, "Cannot understand parameter: ", parameter);
   
-  if (new_values.nelem() not_eq LineShape::nmaxTempModelParams) {
-    std::ostringstream os;
-    os << "Mismatch between input and expected number of variables\n";
-    os << "\tInput is: " << new_values.nelem() << " long but expects: " << LineShape::nmaxTempModelParams << " values\n";
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (new_values.nelem() not_eq LineShape::nmaxTempModelParams,
+    "Mismatch between input and expected number of variables\n"
+    "\tInput is: ", new_values.nelem(), " long but expects: ", LineShape::nmaxTempModelParams, " values\n")
   
   LineShape::ModelParameters newdata;
   newdata.type = LineShape::toTemperatureModel(temperaturemodel);
@@ -2096,17 +2071,14 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
                                                   const Index& relative,
                                                   const Verbosity&)
 {
-  if (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL) {
-    std::ostringstream os;
-    os << "Bad input.  Must be energy level.  Is: " << QI << '\n';
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL,
+    "Bad input.  Must be energy level.  Is: ", QI, '\n')
   
   Index parameter_switch = -1;
   
-  if (parameter_name.nelem() == 0)
-    throw std::runtime_error("parameter_name is empty.\n");
-  else if (parameter_name == "Statistical Weight")
+  ARTS_USER_ERROR_IF (parameter_name.nelem() == 0,
+                      "parameter_name is empty.\n");
+  if (parameter_name == "Statistical Weight")
     parameter_switch = 1;
   else if (parameter_name == "Zeeman Coefficient")
     parameter_switch = 2;
@@ -2128,11 +2100,9 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
               band.Line(k).Zeeman().gl() *= 1.0e0 + change;
             break;
           default: {
-            ostringstream os;
-            os << "Usupported paramter_name\n"
-            << parameter_name
-            << "\nSee method description for supported parameter names.\n";
-            throw std::runtime_error(os.str());
+            ARTS_USER_ERROR (
+                                "Usupported paramter_name\n", parameter_name,
+                                "\nSee method description for supported parameter names.\n")
           }
         }
       } else if (Absorption::id_in_line_upper(band, QI, k)) {
@@ -2150,11 +2120,9 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
               band.Line(k).Zeeman().gu() *= 1.0e0 + change;
             break;
           default: {
-            ostringstream os;
-            os << "Usupported paramter_name\n"
-            << parameter_name
-            << "\nSee method description for supported parameter names.\n";
-            throw std::runtime_error(os.str());
+            ARTS_USER_ERROR (
+                                "Usupported paramter_name\n", parameter_name,
+                                "\nSee method description for supported parameter names.\n")
           }
         }
       }
@@ -2182,9 +2150,8 @@ void abs_linesChangeBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_l
                                                    const Index& relative,
                                                    const Verbosity& verbosity)
 {
-  if (QID.nelem() not_eq change.nelem()) {
-    throw std::runtime_error("Mismatch between QID and change input lengths not allowed");
-  }
+  ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
+                      "Mismatch between QID and change input lengths not allowed");
   
   for (Index iq=0; iq<QID.nelem(); iq++)
     abs_linesChangeBaseParameterForMatchingLevel(abs_lines, QID[iq], parameter_name, change[iq], relative, verbosity);
@@ -2198,9 +2165,8 @@ void abs_lines_per_speciesChangeBaseParameterForMatchingLevels(ArrayOfArrayOfAbs
                                                                const Index& relative,
                                                                const Verbosity& verbosity)
 {
-  if (QID.nelem() not_eq change.nelem()) {
-    throw std::runtime_error("Mismatch between QID and change input lengths not allowed");
-  }
+  ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
+                      "Mismatch between QID and change input lengths not allowed");
   
   for (Index iq=0; iq<QID.nelem(); iq++)
     for (auto& lines: abs_lines_per_species)
@@ -2214,17 +2180,14 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
                                                const Numeric& x,
                                                const Verbosity&)
 {
-  if (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL) {
-    std::ostringstream os;
-    os << "Bad input.  Must be energy level.  Is: " << QI << '\n';
-    throw std::runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL,
+    "Bad input.  Must be energy level.  Is: ", QI, '\n')
   
   Index parameter_switch = -1;
   
-  if (parameter_name.nelem() == 0)
-    throw std::runtime_error("parameter_name is empty.\n");
-  else if (parameter_name == "Statistical Weight")
+  ARTS_USER_ERROR_IF (parameter_name.nelem() == 0,
+                      "parameter_name is empty.\n");
+  if (parameter_name == "Statistical Weight")
     parameter_switch = 1;
   else if (parameter_name == "Zeeman Coefficient")
     parameter_switch = 2;
@@ -2240,11 +2203,9 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
             band.Line(k).Zeeman().gl() = x;
             break;
           default: {
-            ostringstream os;
-            os << "Usupported paramter_name\n"
-            << parameter_name
-            << "\nSee method description for supported parameter names.\n";
-            throw std::runtime_error(os.str());
+            ARTS_USER_ERROR (
+                                "Usupported paramter_name\n", parameter_name,
+                                "\nSee method description for supported parameter names.\n")
           }
         }
       } else if (Absorption::id_in_line_upper(band, QI, k)) {
@@ -2256,11 +2217,9 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
             band.Line(k).Zeeman().gu() = x;
             break;
           default: {
-            ostringstream os;
-            os << "Usupported paramter_name\n"
-            << parameter_name
-            << "\nSee method description for supported parameter names.\n";
-            throw std::runtime_error(os.str());
+            ARTS_USER_ERROR (
+                                "Usupported paramter_name\n", parameter_name,
+                                "\nSee method description for supported parameter names.\n")
           }
         }
       }
@@ -2286,9 +2245,8 @@ void abs_linesSetBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_line
                                                 const Vector& change,
                                                 const Verbosity& verbosity)
 {
-  if (QID.nelem() not_eq change.nelem()) {
-    throw std::runtime_error("Mismatch between QID and change input lengths not allowed");
-  }
+  ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
+                      "Mismatch between QID and change input lengths not allowed");
   
   for (Index iq=0; iq<QID.nelem(); iq++)
     abs_linesSetBaseParameterForMatchingLevel(abs_lines, QID[iq], parameter_name, change[iq], verbosity);
@@ -2301,9 +2259,8 @@ void abs_lines_per_speciesSetBaseParameterForMatchingLevels(ArrayOfArrayOfAbsorp
                                                             const Vector& change,
                                                             const Verbosity& verbosity)
 {
-  if (QID.nelem() not_eq change.nelem()) {
-    throw std::runtime_error("Mismatch between QID and change input lengths not allowed");
-  }
+  ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
+                      "Mismatch between QID and change input lengths not allowed");
   
   for (Index iq=0; iq<QID.nelem(); iq++)
     for (auto& lines: abs_lines_per_species)
@@ -2340,14 +2297,11 @@ void nlteSetByQuantumIdentifiers(
         if (band.QuantumIdentity().UpperQuantumId().In(id) or
             band.QuantumIdentity().LowerQuantumId().In(id)) {
           for (Index k=0; k<band.NumLines(); k++) {
-            if (poptyp==Absorption::PopulationType::NLTE and
-                (not std::isnormal(band.A(k)) or band.A(k) < 0)) {
-              std::ostringstream os;
-              os << "Error in band deemed for NLTE calculations by population distribution\n"
-                 << "some of the lines in the band below have a bad Einstein coefficient:\n"
-                 << band << '\n';
-              throw std::runtime_error(os.str());
-            }
+            ARTS_USER_ERROR_IF (poptyp==Absorption::PopulationType::NLTE and
+                (not std::isnormal(band.A(k)) or band.A(k) < 0),
+                "Error in band deemed for NLTE calculations by population distribution\n"
+                "some of the lines in the band below have a bad Einstein coefficient:\n",
+                band, '\n')
           }
           band.Population(poptyp);
         }
@@ -2419,7 +2373,7 @@ void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
                                     const ArrayOfQuantumIdentifier& qid,
                                     const Vector& gs,
                                     const Verbosity& verbosity) {
-  if (qid.nelem() not_eq gs.nelem()) throw std::runtime_error("Inputs not matching in size");
+  ARTS_USER_ERROR_IF (qid.nelem() not_eq gs.nelem(), "Inputs not matching in size");
   for (Index i=0; i<qid.nelem(); i++) {
     abs_linesSetBaseParameterForMatchingLevel(abs_lines, qid[i], "Zeeman Coefficient", gs[i], verbosity);
   }
@@ -2429,7 +2383,7 @@ void abs_lines_per_speciesSetZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& a
                                                 const ArrayOfQuantumIdentifier& qid,
                                                 const Vector& gs,
                                                 const Verbosity& verbosity) {
-  if (qid.nelem() not_eq gs.nelem()) throw std::runtime_error("Inputs not matching in size");
+  ARTS_USER_ERROR_IF (qid.nelem() not_eq gs.nelem(), "Inputs not matching in size");
   for (auto& abs_lines: abs_lines_per_species) {
     for (Index i=0; i<qid.nelem(); i++) {
       abs_linesSetBaseParameterForMatchingLevel(abs_lines, qid[i], "Zeeman Coefficient", gs[i], verbosity);
@@ -2470,15 +2424,14 @@ void f_gridFromAbsorptionLines(Vector& f_grid,
 {
   const Index n=nelem(abs_lines_per_species);
   
-  if (delta_f_low >= delta_f_upp) {
-    throw std::runtime_error("The lower frequency delta has to be smaller "
-                             "than the upper frequency delta");
-  } else if (num_freqs == 0) {
-    throw std::runtime_error("Need more than zero frequency points");
-  } else if (n < 1) {
-    throw std::runtime_error("No lines found.  Error?  Use *VectorSet* "
-                             "to resize *f_grid*");
-  }
+  ARTS_USER_ERROR_IF (delta_f_low >= delta_f_upp,
+                      "The lower frequency delta has to be smaller "
+                      "than the upper frequency delta");
+  ARTS_USER_ERROR_IF (num_freqs == 0,
+                      "Need more than zero frequency points");
+  ARTS_USER_ERROR_IF(n < 1,
+                     "No lines found.  Error?  Use *VectorSet* "
+                     "to resize *f_grid*");
   
   std::vector<Numeric> fout(0);
   for (auto& lines: abs_lines_per_species) {

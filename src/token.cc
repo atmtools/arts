@@ -35,37 +35,37 @@ String TokValTypeName[8] = {"String",
 // Conversion functions to read TokVal for the 6 different types:
 
 TokVal::operator String() const {
-  assert(mtype == String_t);
+  ARTS_ASSERT(mtype == String_t);
   return ms;
 }
 
 TokVal::operator Index() const {
-  assert(mtype == Index_t);
+  ARTS_ASSERT(mtype == Index_t);
   return mn;
 }
 
 TokVal::operator Numeric() const {
-  assert(mtype == Numeric_t);
+  ARTS_ASSERT(mtype == Numeric_t);
   return mx;
 }
 
 TokVal::operator ArrayOfString() const {
-  assert(mtype == Array_String_t);
+  ARTS_ASSERT(mtype == Array_String_t);
   return msv;
 }
 
 TokVal::operator ArrayOfIndex() const {
-  assert(mtype == Array_Index_t);
+  ARTS_ASSERT(mtype == Array_Index_t);
   return mnv;
 }
 
 TokVal::operator Vector() const {
-  assert(mtype == Vector_t);
+  ARTS_ASSERT(mtype == Vector_t);
   return mxv;
 }
 
 TokVal::operator Matrix() const {
-  assert(mtype == Matrix_t);
+  ARTS_ASSERT(mtype == Matrix_t);
   return mm;
 }
 

@@ -267,7 +267,7 @@ class PropagationMatrix {
         mza(nr_za),
         maa(nr_aa),
         mvectortype(false) {
-    assert(mstokes_dim < 5 and mstokes_dim > 0);
+    ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mdata = Tensor4(maa, mza, mfreqs, NumberOfNeededVectors(), v);
   }
 
@@ -319,8 +319,7 @@ class PropagationMatrix {
         mstokes_dim = 1;
         break;
       default:
-        throw std::runtime_error(
-            "Tensor4 not representative of PropagationMatrix");
+        ARTS_ASSERT(false, "Tensor4 not representative of PropagationMatrix");
     }
   }
 
@@ -331,13 +330,12 @@ class PropagationMatrix {
    */
   explicit PropagationMatrix(ConstMatrixView x, const bool& assume_fit = false)
       : mfreqs(1), mstokes_dim(x.ncols()), mza(1), maa(1) {
-    assert(mstokes_dim < 5 and mstokes_dim > 0);
+    ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mvectortype = false;
 
     if (not assume_fit) {
-      if (not FittingShape(x)) {
-        throw std::runtime_error("Matrix not fit as propagation matrix");
-      }
+      ARTS_ASSERT(FittingShape(x),
+        "Matrix not fit as propagation matrix");
     }
 
     mdata.resize(1, 1, 1, NumberOfNeededVectors());
@@ -414,6 +412,8 @@ class PropagationMatrix {
   };
 
   /** The number of required vectors to fill this PropagationMatrix */
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wreturn-type"
   Index NumberOfNeededVectors() const {
     if (not mvectortype) {
       switch (mstokes_dim) {
@@ -430,13 +430,14 @@ class PropagationMatrix {
           return 7;
           break;
         default:
-          throw std::runtime_error(
+          ARTS_ASSERT (false,
               "Cannot understand the input in PropagationMatrix");
       }
     } else {
       return mstokes_dim;
     }
   }
+  #pragma GCC diagnostic pop
 
   /** access operator.  Please refrain from using this if possible since it copies */
   Numeric operator()(const Index iv = 0,
@@ -1256,7 +1257,7 @@ class StokesVector final : public PropagationMatrix {
     mstokes_dim = stokes_dim;
     mza = nr_za;
     maa = nr_aa;
-    assert(mstokes_dim < 5 and mstokes_dim > 0);
+    ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mdata = Tensor4(maa, mza, mfreqs, mstokes_dim, v);
   };
 
@@ -1271,8 +1272,8 @@ class StokesVector final : public PropagationMatrix {
     maa = x.nbooks();
     mdata = x;
     mvectortype = true;
-    if (mstokes_dim > 4 or mstokes_dim < 1)
-      throw std::runtime_error("Tensor4 is bad for StokesVector");
+    ARTS_ASSERT (not (mstokes_dim > 4 or mstokes_dim < 1),
+      "Tensor4 is bad for StokesVector");
   }
 
   /** Construct a new Stokes Vector object
@@ -1284,7 +1285,7 @@ class StokesVector final : public PropagationMatrix {
     mstokes_dim = x.nelem();
     mza = 1;
     maa = 1;
-    assert(mstokes_dim < 5 and mstokes_dim > 0);
+    ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mvectortype = true;
     mdata.resize(1, 1, 1, mstokes_dim);
     for (Index i = 0; i < mstokes_dim; i++) mdata(0, 0, 0, i) = x[i];
@@ -1391,10 +1392,10 @@ class StokesVector final : public PropagationMatrix {
    * @param[in] y Input
    */
   void MultiplyAndAdd(const Numeric x, const PropagationMatrix& y) {
-    assert(mstokes_dim == y.StokesDimensions());
-    assert(mfreqs == y.NumberOfFrequencies());
-    assert(mza == y.NumberOfZenithAngles());
-    assert(maa == y.NumberOfAzimuthAngles());
+    ARTS_ASSERT(mstokes_dim == y.StokesDimensions());
+    ARTS_ASSERT(mfreqs == y.NumberOfFrequencies());
+    ARTS_ASSERT(mza == y.NumberOfZenithAngles());
+    ARTS_ASSERT(maa == y.NumberOfAzimuthAngles());
 
     const Tensor4& data = y.Data();
 

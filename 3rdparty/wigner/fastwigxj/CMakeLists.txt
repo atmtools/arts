@@ -27,6 +27,9 @@ add_dependencies(fastwigxj automatic_fastwigxj automatic_wigxjpf)
     
 set_target_properties(fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS} -march=native")
 
+target_compile_options(fastwigxj PRIVATE -Wno-shadow)
+
+
 add_library(hashing_fastwigxj STATIC
             src/unique_js.cc
             src/combine_js.cc

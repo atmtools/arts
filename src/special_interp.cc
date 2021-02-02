@@ -85,14 +85,14 @@ void interp_atmfield_gp2itw(Matrix& itw,
   }
 
   else if (atmosphere_dim == 2) {
-    assert(gp_lat.nelem() == n);
+    ARTS_ASSERT(gp_lat.nelem() == n);
     itw.resize(n, 4);
     interpweights(itw, gp_p, gp_lat);
   }
 
   else if (atmosphere_dim == 3) {
-    assert(gp_lat.nelem() == n);
-    assert(gp_lon.nelem() == n);
+    ARTS_ASSERT(gp_lat.nelem() == n);
+    ARTS_ASSERT(gp_lon.nelem() == n);
     itw.resize(n, 8);
     interpweights(itw, gp_p, gp_lat, gp_lon);
   }
@@ -105,20 +105,20 @@ void interp_atmfield_by_itw(VectorView x,
                             const ArrayOfGridPos& gp_lat,
                             const ArrayOfGridPos& gp_lon,
                             ConstMatrixView itw) {
-  assert(x.nelem() == gp_p.nelem());
+  ARTS_ASSERT(x.nelem() == gp_p.nelem());
 
   if (atmosphere_dim == 1) {
-    assert(itw.ncols() == 2);
+    ARTS_ASSERT(itw.ncols() == 2);
     interp(x, itw, x_field(Range(joker), 0, 0), gp_p);
   }
 
   else if (atmosphere_dim == 2) {
-    assert(itw.ncols() == 4);
+    ARTS_ASSERT(itw.ncols() == 4);
     interp(x, itw, x_field(Range(joker), Range(joker), 0), gp_p, gp_lat);
   }
 
   else if (atmosphere_dim == 3) {
-    assert(itw.ncols() == 8);
+    ARTS_ASSERT(itw.ncols() == 8);
     interp(x, itw, x_field, gp_p, gp_lat, gp_lon);
   }
 }
@@ -176,7 +176,7 @@ void interp_cloudfield_gp2itw(VectorView itw,
     gridpos_copy(gp_p_out, gp_p_in);
     gp_p_out.idx -= cloudbox_limits[0];
     gridpos_upperend_check(gp_p_out, cloudbox_limits[1] - cloudbox_limits[0]);
-    assert(itw.nelem() == 2);
+    ARTS_ASSERT(itw.nelem() == 2);
     interpweights(itw, gp_p_out);
   } else if (atmosphere_dim == 2) {
     gridpos_copy(gp_p_out, gp_p_in);
@@ -185,7 +185,7 @@ void interp_cloudfield_gp2itw(VectorView itw,
     gp_lat_out.idx -= cloudbox_limits[2];
     gridpos_upperend_check(gp_p_out, cloudbox_limits[1] - cloudbox_limits[0]);
     gridpos_upperend_check(gp_lat_out, cloudbox_limits[3] - cloudbox_limits[2]);
-    assert(itw.nelem() == 4);
+    ARTS_ASSERT(itw.nelem() == 4);
     interpweights(itw, gp_p_out, gp_lat_out);
   } else {
     gridpos_copy(gp_p_out, gp_p_in);
@@ -197,7 +197,7 @@ void interp_cloudfield_gp2itw(VectorView itw,
     gridpos_upperend_check(gp_p_out, cloudbox_limits[1] - cloudbox_limits[0]);
     gridpos_upperend_check(gp_lat_out, cloudbox_limits[3] - cloudbox_limits[2]);
     gridpos_upperend_check(gp_lon_out, cloudbox_limits[5] - cloudbox_limits[4]);
-    assert(itw.nelem() == 8);
+    ARTS_ASSERT(itw.nelem() == 8);
     interpweights(itw, gp_p_out, gp_lat_out, gp_lon_out);
   }
 }
@@ -238,7 +238,7 @@ void interp_atmsurface_gp2itw(Matrix& itw,
 
   else if (atmosphere_dim == 3) {
     const Index n = gp_lat.nelem();
-    assert(n == gp_lon.nelem());
+    ARTS_ASSERT(n == gp_lon.nelem());
     itw.resize(n, 4);
     interpweights(itw, gp_lat, gp_lon);
   }
@@ -251,19 +251,19 @@ void interp_atmsurface_by_itw(VectorView x,
                               const ArrayOfGridPos& gp_lon,
                               ConstMatrixView itw) {
   if (atmosphere_dim == 1) {
-    assert(itw.ncols() == 1);
+    ARTS_ASSERT(itw.ncols() == 1);
     x = x_surface(0, 0);
   }
 
   else if (atmosphere_dim == 2) {
-    assert(x.nelem() == gp_lat.nelem());
-    assert(itw.ncols() == 2);
+    ARTS_ASSERT(x.nelem() == gp_lat.nelem());
+    ARTS_ASSERT(itw.ncols() == 2);
     interp(x, itw, x_surface(Range(joker), 0), gp_lat);
   }
 
   else if (atmosphere_dim == 3) {
-    assert(x.nelem() == gp_lat.nelem());
-    assert(itw.ncols() == 4);
+    ARTS_ASSERT(x.nelem() == gp_lat.nelem());
+    ARTS_ASSERT(itw.ncols() == 4);
     interp(x, itw, x_surface, gp_lat, gp_lon);
   }
 }
@@ -545,7 +545,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
         Vector tmp(n2);
         interp(tmp, itw, field_old(0, joker, 0), gp_lat);
         for (Index p = 0; p < n1; p++) {
-          assert(gp_p[p].fd[0] < 1e-6);
+          ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
           field_new(p, joker, 0) = tmp;
         }
       } else  // 3: Pressure interpolation
@@ -555,7 +555,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
         Vector tmp(n1);
         interp(tmp, itw, field_old(joker, 0, 0), gp_p);
         for (Index lat = 0; lat < n2; lat++) {
-          assert(gp_lat[lat].fd[0] < 1e-6);
+          ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
           field_new(joker, lat, 0) = tmp;
         }
       }
@@ -581,9 +581,9 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Vector tmp(n3);
           interp(tmp, itw, field_old(0, 0, joker), gp_lon);
           for (Index p = 0; p < n1; p++) {
-            assert(gp_p[p].fd[0] < 1e-6);
+            ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
             for (Index lat = 0; lat < n2; lat++) {
-              assert(gp_lat[lat].fd[0] < 1e-6);
+              ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
               field_new(p, lat, joker) = tmp;
             }
           }
@@ -594,9 +594,9 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Vector tmp(n2);
           interp(tmp, itw, field_old(0, joker, 0), gp_lat);
           for (Index p = 0; p < n1; p++) {
-            assert(gp_p[p].fd[0] < 1e-6);
+            ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
             for (Index lon = 0; lon < n3; lon++) {
-              assert(gp_lon[lon].fd[0] < 1e-6);
+              ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
               field_new(p, joker, lon) = tmp;
             }
           }
@@ -607,7 +607,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Matrix tmp(n2, n3);
           interp(tmp, itw, field_old(0, joker, joker), gp_lat, gp_lon);
           for (Index p = 0; p < n1; p++) {
-            assert(gp_p[p].fd[0] < 1e-6);
+            ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
             field_new(p, joker, joker) = tmp;
           }
         }
@@ -622,9 +622,9 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Vector tmp(n1);
           interp(tmp, itw, field_old(joker, 0, 0), gp_p);
           for (Index lat = 0; lat < n2; lat++) {
-            assert(gp_lat[lat].fd[0] < 1e-6);
+            ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
             for (Index lon = 0; lon < n3; lon++) {
-              assert(gp_lon[lon].fd[0] < 1e-6);
+              ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
               field_new(joker, lat, lon) = tmp;
             }
           }
@@ -635,7 +635,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Matrix tmp(n1, n3);
           interp(tmp, itw, field_old(joker, 0, joker), gp_p, gp_lon);
           for (Index lat = 0; lat < n2; lat++) {
-            assert(gp_lat[lat].fd[0] < 1e-6);
+            ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
             field_new(joker, lat, joker) = tmp;
           }
         } else  // 7: Both p and lat interpolation
@@ -645,7 +645,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           Matrix tmp(n1, n2);
           interp(tmp, itw, field_old(joker, joker, 0), gp_p, gp_lat);
           for (Index lon = 0; lon < n3; lon++) {
-            assert(gp_lon[lon].fd[0] < 1e-6);
+            ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
             field_new(joker, joker, lon) = tmp;
           }
         }
@@ -692,7 +692,7 @@ void regrid_atmsurf_by_gp_oem(Matrix& field_new,
           Vector tmp(n1);
           interp(tmp, itw, field_old(joker, 0), gp_lat);
           for (Index lon = 0; lon < n2; lon++) {
-            assert(gp_lon[lon].fd[0] < 1e-6);
+            ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
             field_new(joker, lon) = tmp;
           }
         } else  // 2: Just longitude interpolation
@@ -702,7 +702,7 @@ void regrid_atmsurf_by_gp_oem(Matrix& field_new,
           Vector tmp(n2);
           interp(tmp, itw, field_old(0, joker), gp_lon);
           for (Index lat = 0; lat < n1; lat++) {
-            assert(gp_lat[lat].fd[0] < 1e-6);
+            ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
             field_new(lat, joker) = tmp;
           }
         }
@@ -719,8 +719,8 @@ void itw2p(VectorView p_values,
            ConstVectorView p_grid,
            const ArrayOfGridPos& gp,
            ConstMatrixView itw) {
-  assert(itw.ncols() == 2);
-  assert(p_values.nelem() == itw.nrows());
+  ARTS_ASSERT(itw.ncols() == 2);
+  ARTS_ASSERT(p_values.nelem() == itw.nrows());
 
   // Local variable to store log of the pressure grid:
   Vector logpgrid(p_grid.nelem());
@@ -854,9 +854,9 @@ void z_at_lat_2d(VectorView z,
                  const GridPos& gp_lat) {
   const Index np = p_grid.nelem();
 
-  assert(z.nelem() == np);
-  assert(z_field.nrows() == np);
-  assert(z_field.ncols() == lat_grid.nelem());
+  ARTS_ASSERT(z.nelem() == np);
+  ARTS_ASSERT(z_field.nrows() == np);
+  ARTS_ASSERT(z_field.ncols() == lat_grid.nelem());
 
   Matrix z_matrix(np, 1);
   ArrayOfGridPos gp_z(np), agp_lat(1);
@@ -885,10 +885,10 @@ void z_at_latlon(VectorView z,
                  const GridPos& gp_lon) {
   const Index np = p_grid.nelem();
 
-  assert(z.nelem() == np);
-  assert(z_field.npages() == np);
-  assert(z_field.nrows() == lat_grid.nelem());
-  assert(z_field.ncols() == lon_grid.nelem());
+  ARTS_ASSERT(z.nelem() == np);
+  ARTS_ASSERT(z_field.npages() == np);
+  ARTS_ASSERT(z_field.nrows() == lat_grid.nelem());
+  ARTS_ASSERT(z_field.ncols() == lon_grid.nelem());
 
   Tensor3 z_tensor(np, 1, 1);
   ArrayOfGridPos agp_z(np), agp_lat(1), agp_lon(1);
@@ -941,8 +941,8 @@ void complex_n_interp(MatrixView n_real,
   const Index nt_out = t_grid.nelem();
 
   //Assert size of output variables
-  assert(n_real.nrows() == nf_out && n_real.ncols() == nt_out);
-  assert(n_imag.nrows() == nf_out && n_imag.ncols() == nt_out);
+  ARTS_ASSERT(n_real.nrows() == nf_out && n_real.ncols() == nt_out);
+  ARTS_ASSERT(n_imag.nrows() == nf_out && n_imag.ncols() == nt_out);
 
   const Vector& f_grid_in = complex_n.get_numeric_grid(gfield_fID);
   const Vector& t_grid_in = complex_n.get_numeric_grid(gfield_tID);

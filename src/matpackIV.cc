@@ -25,8 +25,6 @@
 #include "matpackIV.h"
 #include "exceptions.h"
 
-using std::runtime_error;
-
 /** The -> operator is needed, so that we can write i->begin() to get
     the 3D iterators. */
 Tensor3View* Iterator4D::operator->() { return &msv; }
@@ -82,8 +80,8 @@ ConstTensor3View ConstTensor4View::operator()(const Range& b,
                                               const Range& r,
                                               Index c) const {
   // Check that c is valid:
-  assert(0 <= c);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstTensor3View(
       mdata + mcr.mstart + c * mcr.mstride, mbr, mpr, mrr, b, p, r);
@@ -96,8 +94,8 @@ ConstTensor3View ConstTensor4View::operator()(const Range& b,
                                               Index r,
                                               const Range& c) const {
   // Check that r is valid:
-  assert(0 <= r);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstTensor3View(
       mdata + mrr.mstart + r * mrr.mstride, mbr, mpr, mcr, b, p, c);
@@ -110,8 +108,8 @@ ConstTensor3View ConstTensor4View::operator()(const Range& b,
                                               const Range& r,
                                               const Range& c) const {
   // Check that p is valid:
-  assert(0 <= p);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return ConstTensor3View(
       mdata + mpr.mstart + p * mpr.mstride, mbr, mrr, mcr, b, r, c);
@@ -124,8 +122,8 @@ ConstTensor3View ConstTensor4View::operator()(Index b,
                                               const Range& r,
                                               const Range& c) const {
   // Check that b is valid:
-  assert(0 <= b);
-  assert(b < mbr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(b < mbr.mextent);
 
   return ConstTensor3View(
       mdata + mbr.mstart + b * mbr.mstride, mpr, mrr, mcr, p, r, c);
@@ -138,10 +136,10 @@ ConstMatrixView ConstTensor4View::operator()(const Range& b,
                                              Index r,
                                              Index c) const {
   // Check that r and c are valid:
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstMatrixView(
       mdata + mrr.mstart + r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -158,10 +156,10 @@ ConstMatrixView ConstTensor4View::operator()(const Range& b,
                                              const Range& r,
                                              Index c) const {
   // Check that p and c are valid:
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstMatrixView(
       mdata + mpr.mstart + p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -178,10 +176,10 @@ ConstMatrixView ConstTensor4View::operator()(const Range& b,
                                              Index r,
                                              const Range& c) const {
   // Check that p and r are valid:
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstMatrixView(
       mdata + mpr.mstart + p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -198,10 +196,10 @@ ConstMatrixView ConstTensor4View::operator()(Index b,
                                              Index r,
                                              const Range& c) const {
   // Check that b and r are valid:
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstMatrixView(
       mdata + mbr.mstart + b * mbr.mstride + mrr.mstart + r * mrr.mstride,
@@ -218,10 +216,10 @@ ConstMatrixView ConstTensor4View::operator()(Index b,
                                              const Range& r,
                                              Index c) const {
   // Check that b and c are valid:
-  assert(0 <= b);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstMatrixView(
       mdata + mbr.mstart + b * mbr.mstride + mcr.mstart + c * mcr.mstride,
@@ -238,10 +236,10 @@ ConstMatrixView ConstTensor4View::operator()(Index b,
                                              const Range& r,
                                              const Range& c) const {
   // Check that b and p are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return ConstMatrixView(
       mdata + mbr.mstart + b * mbr.mstride + mpr.mstart + p * mpr.mstride,
@@ -258,12 +256,12 @@ ConstVectorView ConstTensor4View::operator()(const Range& b,
                                              Index r,
                                              Index c) const {
   // Check that p, r and c are valid:
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstVectorView(mdata + mpr.mstart + p * mpr.mstride + mrr.mstart +
                              r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -278,12 +276,12 @@ ConstVectorView ConstTensor4View::operator()(Index b,
                                              Index r,
                                              Index c) const {
   // Check that b, r and c are valid:
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstVectorView(mdata + mbr.mstart + b * mbr.mstride + mrr.mstart +
                              r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -298,12 +296,12 @@ ConstVectorView ConstTensor4View::operator()(Index b,
                                              const Range& r,
                                              Index c) const {
   // Check that b, p and c are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstVectorView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                              p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -318,12 +316,12 @@ ConstVectorView ConstTensor4View::operator()(Index b,
                                              Index r,
                                              const Range& c) const {
   // Check that b, p and r are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstVectorView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                              p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -337,15 +335,13 @@ ConstVectorView ConstTensor4View::operator()(Index b,
   Tensor4View is not pointing to the beginning of a Tensor4 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Numeric* Tensor4View::get_c_array() {
-  if (mbr.mstart != 0 ||
+Numeric* Tensor4View::get_c_array() ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mbr.mstart != 0 ||
       mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
       mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
       mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+      mcr.mstride != 1),
         "A Tensor4View can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
@@ -355,15 +351,13 @@ Numeric* Tensor4View::get_c_array() {
   Tensor4View is not pointing to the beginning of a Tensor4 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Numeric* Tensor4View::get_c_array() const {
-  if (mbr.mstart != 0 ||
+const Numeric* Tensor4View::get_c_array() const ARTS_NOEXCEPT {
+  ARTS_ASSERT (not  (mbr.mstart != 0 ||
       mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
       mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
       mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+      mcr.mstride != 1),
         "A Tensor4View can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
@@ -465,8 +459,8 @@ Tensor3View Tensor4View::operator()(const Range& b,
                                     const Range& r,
                                     Index c) {
   // Check that c is valid:
-  assert(0 <= c);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return Tensor3View(
       mdata + mcr.mstart + c * mcr.mstride, mbr, mpr, mrr, b, p, r);
@@ -479,8 +473,8 @@ Tensor3View Tensor4View::operator()(const Range& b,
                                     Index r,
                                     const Range& c) {
   // Check that r is valid:
-  assert(0 <= r);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return Tensor3View(
       mdata + mrr.mstart + r * mrr.mstride, mbr, mpr, mcr, b, p, c);
@@ -493,8 +487,8 @@ Tensor3View Tensor4View::operator()(const Range& b,
                                     const Range& r,
                                     const Range& c) {
   // Check that p is valid:
-  assert(0 <= p);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return Tensor3View(
       mdata + mpr.mstart + p * mpr.mstride, mbr, mrr, mcr, b, r, c);
@@ -507,8 +501,8 @@ Tensor3View Tensor4View::operator()(Index b,
                                     const Range& r,
                                     const Range& c) {
   // Check that b is valid:
-  assert(0 <= b);
-  assert(b < mbr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(b < mbr.mextent);
 
   return Tensor3View(
       mdata + mbr.mstart + b * mbr.mstride, mpr, mrr, mcr, p, r, c);
@@ -521,10 +515,10 @@ MatrixView Tensor4View::operator()(const Range& b,
                                    Index r,
                                    Index c) {
   // Check that r and c are valid:
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return MatrixView(
       mdata + mrr.mstart + r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -541,10 +535,10 @@ MatrixView Tensor4View::operator()(const Range& b,
                                    const Range& r,
                                    Index c) {
   // Check that p and c are valid:
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return MatrixView(
       mdata + mpr.mstart + p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -561,10 +555,10 @@ MatrixView Tensor4View::operator()(const Range& b,
                                    Index r,
                                    const Range& c) {
   // Check that p and r are valid:
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return MatrixView(
       mdata + mpr.mstart + p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -581,10 +575,10 @@ MatrixView Tensor4View::operator()(Index b,
                                    Index r,
                                    const Range& c) {
   // Check that b and r are valid:
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return MatrixView(
       mdata + mbr.mstart + b * mbr.mstride + mrr.mstart + r * mrr.mstride,
@@ -601,10 +595,10 @@ MatrixView Tensor4View::operator()(Index b,
                                    const Range& r,
                                    Index c) {
   // Check that b and c are valid:
-  assert(0 <= b);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return MatrixView(
       mdata + mbr.mstart + b * mbr.mstride + mcr.mstart + c * mcr.mstride,
@@ -621,10 +615,10 @@ MatrixView Tensor4View::operator()(Index b,
                                    const Range& r,
                                    const Range& c) {
   // Check that b and p are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
 
   return MatrixView(
       mdata + mbr.mstart + b * mbr.mstride + mpr.mstart + p * mpr.mstride,
@@ -638,12 +632,12 @@ MatrixView Tensor4View::operator()(Index b,
     VectorView. (Reducing the dimension by three.) */
 VectorView Tensor4View::operator()(const Range& b, Index p, Index r, Index c) {
   // Check that p, r and c are valid:
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return VectorView(mdata + mpr.mstart + p * mpr.mstride + mrr.mstart +
                         r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -655,12 +649,12 @@ VectorView Tensor4View::operator()(const Range& b, Index p, Index r, Index c) {
     VectorView. (Reducing the dimension by three.) */
 VectorView Tensor4View::operator()(Index b, const Range& p, Index r, Index c) {
   // Check that b, r and c are valid:
-  assert(0 <= b);
-  assert(0 <= r);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(r < mrr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return VectorView(mdata + mbr.mstart + b * mbr.mstride + mrr.mstart +
                         r * mrr.mstride + mcr.mstart + c * mcr.mstride,
@@ -672,12 +666,12 @@ VectorView Tensor4View::operator()(Index b, const Range& p, Index r, Index c) {
     VectorView. (Reducing the dimension by three.) */
 VectorView Tensor4View::operator()(Index b, Index p, const Range& r, Index c) {
   // Check that b, p and c are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= c);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return VectorView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                         p * mpr.mstride + mcr.mstart + c * mcr.mstride,
@@ -689,12 +683,12 @@ VectorView Tensor4View::operator()(Index b, Index p, const Range& r, Index c) {
     VectorView. Reducing the dimension by three.) */
 VectorView Tensor4View::operator()(Index b, Index p, Index r, const Range& c) {
   // Check that b, p and r are valid:
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(b < mbr.mextent);
-  assert(p < mpr.mextent);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(b < mbr.mextent);
+  ARTS_ASSERT(p < mpr.mextent);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return VectorView(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
                         p * mpr.mstride + mrr.mstart + r * mrr.mstride,
@@ -722,10 +716,10 @@ Iterator4D Tensor4View::end() {
     setting its range. */
 Tensor4View& Tensor4View::operator=(const ConstTensor4View& m) {
   // Check that sizes are compatible:
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -738,10 +732,10 @@ Tensor4View& Tensor4View::operator=(const ConstTensor4View& m) {
     override the default. */
 Tensor4View& Tensor4View::operator=(const Tensor4View& m) {
   // Check that sizes are compatible:
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -752,10 +746,10 @@ Tensor4View& Tensor4View::operator=(const Tensor4View& m) {
     contents! */
 Tensor4View& Tensor4View::operator=(const Tensor4& m) {
   // Check that sizes are compatible:
-  assert(mbr.mextent == m.mbr.mextent);
-  assert(mpr.mextent == m.mpr.mextent);
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mbr.mextent == m.mbr.mextent);
+  ARTS_ASSERT(mpr.mextent == m.mpr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -809,10 +803,10 @@ Tensor4View& Tensor4View::operator-=(Numeric x) {
 
 /** Element-vise multiplication by another Tensor4. */
 Tensor4View& Tensor4View::operator*=(const ConstTensor4View& x) {
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator4D xb = x.begin();
   Iterator4D b = begin();
   const Iterator4D eb = end();
@@ -824,10 +818,10 @@ Tensor4View& Tensor4View::operator*=(const ConstTensor4View& x) {
 
 /** Element-vise division by another Tensor4. */
 Tensor4View& Tensor4View::operator/=(const ConstTensor4View& x) {
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator4D xb = x.begin();
   Iterator4D b = begin();
   const Iterator4D eb = end();
@@ -839,10 +833,10 @@ Tensor4View& Tensor4View::operator/=(const ConstTensor4View& x) {
 
 /** Element-vise addition of another Tensor4. */
 Tensor4View& Tensor4View::operator+=(const ConstTensor4View& x) {
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator4D xb = x.begin();
   Iterator4D b = begin();
   const Iterator4D eb = end();
@@ -854,10 +848,10 @@ Tensor4View& Tensor4View::operator+=(const ConstTensor4View& x) {
 
 /** Element-vise subtraction of another Tensor4. */
 Tensor4View& Tensor4View::operator-=(const ConstTensor4View& x) {
-  assert(nbooks() == x.nbooks());
-  assert(npages() == x.npages());
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nbooks() == x.nbooks());
+  ARTS_ASSERT(npages() == x.npages());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator4D xb = x.begin();
   Iterator4D b = begin();
   const Iterator4D eb = end();
@@ -1062,10 +1056,10 @@ Tensor4& Tensor4::operator=(Numeric x) {
     nothing. All data is lost after resizing! The new tensor is not
     initialized, so it will contain random values.*/
 void Tensor4::resize(Index b, Index p, Index r, Index c) {
-  assert(0 <= b);
-  assert(0 <= p);
-  assert(0 <= r);
-  assert(0 <= c);
+  ARTS_ASSERT(0 <= b);
+  ARTS_ASSERT(0 <= p);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
 
   if (mbr.mextent != b || mpr.mextent != p || mrr.mextent != r ||
       mcr.mextent != c) {
@@ -1124,10 +1118,10 @@ Tensor4::~Tensor4() {
     \param    x   A tensor. */
 void transform(Tensor4View y, double (&my_func)(double), ConstTensor4View x) {
   // Check dimensions:
-  assert(y.nbooks() == x.nbooks());
-  assert(y.npages() == x.npages());
-  assert(y.nrows() == x.nrows());
-  assert(y.ncols() == x.ncols());
+  ARTS_ASSERT(y.nbooks() == x.nbooks());
+  ARTS_ASSERT(y.npages() == x.npages());
+  ARTS_ASSERT(y.nrows() == x.nrows());
+  ARTS_ASSERT(y.ncols() == x.ncols());
 
   const ConstIterator4D xe = x.end();
   ConstIterator4D xi = x.begin();

@@ -27,7 +27,6 @@
 #ifndef array_h
 #define array_h
 
-#include <cassert>
 #include <climits>
 #include <iomanip>
 #include <iostream>
@@ -131,7 +130,7 @@ class Array : public std::vector<base> {
   Array& operator=(Array<base>&& A) noexcept;
 
   // Number of elements:
-  Index nelem() const;
+  Index nelem() const ARTS_NOEXCEPT;
 
   // Index operators:
   const base& operator[](const Index n) const;
@@ -192,18 +191,18 @@ inline Array<base>& Array<base>::operator=(Array<base>&& A) noexcept {
 
 /** Number of elements. */
 template <class base>
-inline Index Array<base>::nelem() const {
+inline Index Array<base>::nelem() const ARTS_NOEXCEPT {
   size_t s = this->size();
-  assert(s < LONG_MAX);
-  return static_cast<long>(s);
+  ARTS_ASSERT(s < LONG_MAX);
+  return static_cast<Index>(s);
 }
 
 /** Constant index operator. We redifine this here so that we can have
     range checking by assert. */
 template <class base>
 inline const base& Array<base>::operator[](const Index n) const {
-  assert(0 <= n);
-  assert(n < nelem());
+  ARTS_ASSERT(0 <= n);
+  ARTS_ASSERT(n < nelem());
   return std::vector<base>::operator[](n);
 }
 
@@ -211,8 +210,8 @@ inline const base& Array<base>::operator[](const Index n) const {
     have range checking by assert. */
 template <class base>
 inline base& Array<base>::operator[](const Index n) {
-  assert(0 <= n);
-  assert(n < nelem());
+  ARTS_ASSERT(0 <= n);
+  ARTS_ASSERT(n < nelem());
   return std::vector<base>::operator[](n);
 }
 
@@ -354,8 +353,8 @@ template <class base>
 Index FlattenedIndex(const Array<Array<base> >& aa,
                      Index outer,
                      Index inner = 0) {
-  assert(outer < aa.nelem());
-  assert(inner < aa[outer].nelem());
+  ARTS_ASSERT(outer < aa.nelem());
+  ARTS_ASSERT(inner < aa[outer].nelem());
 
   Index N = 0;
   for (Index i = 0; i < outer; i++) {

@@ -48,6 +48,35 @@ typedef Array<GridType> ArrayOfGridType;
   "Note that a grid is allowed to be empty, but in the\n" \
   "data that dimension must have exactly one element.\n"
 
+template <Index N, typename GriddedFieldType>
+String metaErrorData(const GriddedFieldType& gf) {
+  std::ostringstream os;
+  os << "GriddedField" << N << " ";
+  if (gf.get_name().length()) os << "(" << gf.get_name() << ") ";
+  os << CHECK_ERROR_BOILERPLATE;
+  for (Index i = 0; i < N; i++) {
+    os << "Grid";
+    if (gf.get_grid_name(i).nelem()) os << " (" << gf.get_grid_name(i) << ")";
+    os << " = " << gf.get_grid_size(i) << "\n";
+  }
+  os << "Data =";
+  if constexpr (N > 6)
+    os << ' ' <<gf.data.nlibraries();
+  if constexpr (N > 5)
+    os << ' ' <<gf.data.nvitrines();
+  if constexpr (N > 4)
+    os << ' ' <<gf.data.nshelves();
+  if constexpr (N > 3)
+    os << ' ' <<gf.data.nbooks();
+  if constexpr (N > 2)
+    os << ' ' <<gf.data.npages();
+  if constexpr (N > 1)
+    os << ' ' <<gf.data.nrows() << ' ' << gf.data.ncols();
+  else
+    os << ' ' << gf.data.nelem();
+  return os.str();
+}
+
 /*! Abstract base class for gridded fields. */
 class GriddedField {
  private:
@@ -117,7 +146,7 @@ class GriddedField {
    */
   Index get_grid_size(Index i) const {
     Index ret = 0;
-    assert(i < dim);
+    ARTS_ASSERT(i < dim);
     switch (mgridtypes[i]) {
       case GRID_TYPE_NUMERIC:
         ret = mnumericgrids[i].nelem();
@@ -163,7 +192,7 @@ class GriddedField {
     \param[in] s Grid name.
   */
   void set_grid_name(Index i, const String& s) {
-    assert(i < dim);
+    ARTS_ASSERT(i < dim);
     mgridnames[i] = s;
   }
 
@@ -207,18 +236,7 @@ class GriddedField1 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    if (!checksize()) {
-      std::ostringstream os;
-      os << "GriddedField1 ";
-      if (get_name().length()) os << "(" << get_name() << ") ";
-      os << CHECK_ERROR_BOILERPLATE;
-      os << "Grid";
-      if (get_grid_name(0).nelem()) os << " (" << get_grid_name(0) << ")";
-      os << " = " << get_grid_size(0) << "\n";
-      os << "Data";
-      os << " = " << data.nelem();
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<1, GriddedField1>(*this))
   }
 
   //! Make this GriddedField1 the same size as the given one.
@@ -230,6 +248,8 @@ class GriddedField1 final : public GriddedField {
   void resize(Index n) { data.resize(n); }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField1& gf);
+  
+  friend String metaErrorData<1, GriddedField1>(const GriddedField1& gf);
 
   Vector data;
 };
@@ -250,20 +270,7 @@ class GriddedField2 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    if (!checksize()) {
-      std::ostringstream os;
-      os << "GriddedField2 ";
-      if (get_name().length()) os << "(" << get_name() << ") ";
-      os << CHECK_ERROR_BOILERPLATE;
-      for (Index i = 0; i < 2; i++) {
-        os << "Grid " << i;
-        if (get_grid_name(i).nelem()) os << " (" << get_grid_name(i) << ")";
-        os << " = " << get_grid_size(i) << "\n";
-      }
-      os << "Data";
-      os << " = " << data.nrows() << ", " << data.ncols();
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<2, GriddedField2>(*this))
   }
 
   //! Make this GriddedField2 the same size as the given one.
@@ -277,6 +284,8 @@ class GriddedField2 final : public GriddedField {
   void resize(Index r, Index c) { data.resize(r, c); }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField2& gf);
+  
+  friend String metaErrorData<2, GriddedField2>(const GriddedField2& gf);
 
   Matrix data;
 };
@@ -305,21 +314,7 @@ class GriddedField3 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    if (!checksize()) {
-      std::ostringstream os;
-      os << "GriddedField3 ";
-      if (get_name().length()) os << "(" << get_name() << ") ";
-      os << CHECK_ERROR_BOILERPLATE;
-      for (Index i = 0; i < 3; i++) {
-        os << "Grid " << i;
-        if (get_grid_name(i).nelem()) os << " (" << get_grid_name(i) << ")";
-        os << " = " << get_grid_size(i) << "\n";
-      }
-      os << "Data";
-      os << " = " << data.npages() << ", " << data.nrows() << ", "
-         << data.ncols();
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<3, GriddedField3>(*this))
   }
 
   //! Make this GriddedField3 the same size as the given one.
@@ -333,6 +328,8 @@ class GriddedField3 final : public GriddedField {
   void resize(Index p, Index r, Index c) { data.resize(p, r, c); }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField3& gf);
+  
+  friend String metaErrorData<3, GriddedField3>(const GriddedField3& gf);
 
   Tensor3 data;
 };
@@ -357,21 +354,7 @@ class GriddedField4 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    if (!checksize()) {
-      std::ostringstream os;
-      os << "GriddedField4 ";
-      if (get_name().length()) os << "(" << get_name() << ") ";
-      os << CHECK_ERROR_BOILERPLATE;
-      for (Index i = 0; i < 4; i++) {
-        os << "Grid " << i;
-        if (get_grid_name(i).nelem()) os << " (" << get_grid_name(i) << ")";
-        os << " = " << get_grid_size(i) << "\n";
-      }
-      os << "Data";
-      os << " = " << data.nbooks() << ", " << data.npages() << ", ";
-      os << data.nrows() << ", " << data.ncols();
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<4, GriddedField4>(*this))
   }
 
   //! Make this GriddedField4 the same size as the given one.
@@ -388,6 +371,8 @@ class GriddedField4 final : public GriddedField {
   void resize(Index b, Index p, Index r, Index c) { data.resize(b, p, r, c); }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField4& gf);
+  
+  friend String metaErrorData<4, GriddedField4>(const GriddedField4& gf);
 
   Tensor4 data;
 };
@@ -414,21 +399,7 @@ class GriddedField5 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    if (!checksize()) {
-      std::ostringstream os;
-      os << "GriddedField5 ";
-      if (get_name().length()) os << "(" << get_name() << ") ";
-      os << CHECK_ERROR_BOILERPLATE;
-      for (Index i = 0; i < 5; i++) {
-        os << "Grid " << i;
-        if (get_grid_name(i).nelem()) os << " (" << get_grid_name(i) << ")";
-        os << " = " << get_grid_size(i) << "\n";
-      }
-      os << "Data";
-      os << " = " << data.nshelves() << ", " << data.nbooks() << ", ";
-      os << data.npages() << ", " << data.nrows() << ", " << data.ncols();
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<5, GriddedField5>(*this))
   }
 
   //! Make this GriddedField5 the same size as the given one.
@@ -448,6 +419,8 @@ class GriddedField5 final : public GriddedField {
   }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField5& gf);
+  
+  friend String metaErrorData<5, GriddedField5>(const GriddedField5& gf);
 
   Tensor5 data;
 };
@@ -476,22 +449,7 @@ class GriddedField6 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    if (!checksize()) {
-      std::ostringstream os;
-      os << "GriddedField6 ";
-      if (get_name().length()) os << "(" << get_name() << ") ";
-      os << CHECK_ERROR_BOILERPLATE;
-      for (Index i = 0; i < 5; i++) {
-        os << "Grid " << i;
-        if (get_grid_name(i).nelem()) os << " (" << get_grid_name(i) << ")";
-        os << " = " << get_grid_size(i) << "\n";
-      }
-      os << "Data";
-      os << " = " << data.nvitrines() << data.nshelves() << ", "
-         << data.nbooks() << ", ";
-      os << data.npages() << ", " << data.nrows() << ", " << data.ncols();
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<6, GriddedField6>(*this))
   }
 
   //! Make this GriddedField6 the same size as the given one.
@@ -512,6 +470,8 @@ class GriddedField6 final : public GriddedField {
   }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField6& gf);
+  
+  friend String metaErrorData<6, GriddedField6>(const GriddedField6& gf);
 
   Tensor6 data;
 };

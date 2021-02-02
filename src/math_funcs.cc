@@ -85,7 +85,7 @@ Numeric fac(const Index n) {
     \date   2002-08-11
 */
 Index integer_div(const Index& x, const Index& y) {
-  assert(is_multiple(x, y));
+  ARTS_ASSERT(is_multiple(x, y));
   return x / y;
 }
 
@@ -119,22 +119,16 @@ Numeric LagrangeInterpol4(ConstVectorView x,
   // Check that dimensions of x and y vector agree
   const Index n_x = x.nelem();
   const Index n_y = y.nelem();
-  if ((n_x != 4) || (n_y != 4)) {
-    ostringstream os;
-    os << "The vectors x and y must all have the same length of 4 elements!\n"
-       << "Actual lengths:\n"
-       << "x:" << n_x << ", "
-       << "y:" << n_y << ".";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF ((n_x != 4) || (n_y != 4),
+      "The vectors x and y must all have the same length of 4 elements!\n"
+      "Actual lengths:\n"
+      "x:", n_x, ", "
+      "y:", n_y, ".")
 
   // assure that x1 =< a < x2 holds
-  if ((a < x[1]) || (a > x[2])) {
-    ostringstream os;
-    os << "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. "
-       << "No interpolation can be calculated.\n";
-    throw runtime_error(os.str());
-  };
+  ARTS_USER_ERROR_IF ((a < x[1]) || (a > x[2]),
+    "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. "
+    "No interpolation can be calculated.\n")
 
   // calculate the Lagrange polynomial coefficients for a polynomial of the order of 3
   Numeric b[4];
@@ -163,7 +157,7 @@ Numeric LagrangeInterpol4(ConstVectorView x,
     \date   2000-06-27
 */
 Numeric last(ConstVectorView x) {
-  assert(x.nelem() > 0);
+  ARTS_ASSERT(x.nelem() > 0);
   return x[x.nelem() - 1];
 }
 
@@ -178,7 +172,7 @@ Numeric last(ConstVectorView x) {
     \date   2000-06-27
 */
 Index last(const ArrayOfIndex& x) {
-  assert(x.nelem() > 0);
+  ARTS_ASSERT(x.nelem() > 0);
   return x[x.nelem() - 1];
 }
 
@@ -232,7 +226,7 @@ void nlinspace(Vector& x,
                const Numeric start,
                const Numeric stop,
                const Index n) {
-  assert(1 < n);  // Number of points must be greater 1.
+  ARTS_ASSERT(1 < n);  // Number of points must be greater 1.
   x.resize(n);
   Numeric step = (stop - start) / ((double)n - 1);
   for (Index i = 0; i < n - 1; i++) x[i] = start + (double)i * step;
@@ -269,10 +263,10 @@ void nlogspace(Vector& x,
                const Numeric stop,
                const Index n) {
   // Number of points must be greater than 1:
-  assert(1 < n);
+  ARTS_ASSERT(1 < n);
   // Only positive numbers are allowed for start and stop:
-  assert(0 < start);
-  assert(0 < stop);
+  ARTS_ASSERT(0 < start);
+  ARTS_ASSERT(0 < stop);
 
   x.resize(n);
   Numeric a = log(start);
@@ -299,7 +293,7 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
   Index n = za_grid.nelem();
   Index m = aa_grid.nelem();
   Vector res1(n);
-  assert(is_size(Integrand, n, m));
+  ARTS_ASSERT(is_size(Integrand, n, m));
 
   for (Index i = 0; i < n; ++i) {
     res1[i] = 0.0;
@@ -348,7 +342,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
     Numeric stepsize_za = grid_stepsize[0];
     Numeric stepsize_aa = grid_stepsize[1];
     Vector res1(n);
-    assert(is_size(Integrand, n, m));
+    ARTS_ASSERT(is_size(Integrand, n, m));
 
     Numeric temp = 0.0;
 
@@ -393,7 +387,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
 Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
                                ConstVectorView za_grid) {
   Index n = za_grid.nelem();
-  assert(is_size(Integrand, n));
+  ARTS_ASSERT(is_size(Integrand, n));
 
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i) {
@@ -456,7 +450,7 @@ void mgd(VectorView psd,
          const Numeric& ga) {
   const Index nx = x.nelem();
 
-  assert(psd.nelem() == nx);
+  ARTS_ASSERT(psd.nelem() == nx);
 
   if (ga == 1) {
     if (mu == 0) {
@@ -466,12 +460,9 @@ void mgd(VectorView psd,
         psd[ix] = n0 * eterm;
       }
     } else {
-      if (mu > 10) {
-        ostringstream os;
-        os << "Given mu is " << mu << endl
-           << "Seems unreasonable. Have you mixed up the inputs?";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (mu > 10,
+          "Given mu is ", mu, '\n',
+          "Seems unreasonable. Have you mixed up the inputs?")
       // Gamma distribution
       for (Index ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
@@ -482,18 +473,12 @@ void mgd(VectorView psd,
     }
   } else {
     // Complete MGD
-    if (mu > 10) {
-      ostringstream os;
-      os << "Given mu is " << mu << endl
-         << "Seems unreasonable. Have you mixed up the inputs?";
-      throw runtime_error(os.str());
-    }
-    if (ga > 10) {
-      ostringstream os;
-      os << "Given gamma is " << ga << endl
-         << "Seems unreasonable. Have you mixed up the inputs?";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (mu > 10,
+        "Given mu is ", mu, '\n',
+        "Seems unreasonable. Have you mixed up the inputs?")
+    ARTS_USER_ERROR_IF (ga > 10,
+        "Given gamma is ", ga, '\n',
+        "Seems unreasonable. Have you mixed up the inputs?")
     for (Index ix = 0; ix < nx; ix++) {
       const Numeric pterm = pow(x[ix], ga);
       const Numeric eterm = exp(-la * pterm);
@@ -540,9 +525,9 @@ void mgd_with_derivatives(VectorView psd,
                           const bool& do_ga_jac) {
   const Index nx = x.nelem();
 
-  assert(psd.nelem() == nx);
-  assert(jac_data.nrows() == 4);
-  assert(jac_data.ncols() == nx);
+  ARTS_ASSERT(psd.nelem() == nx);
+  ARTS_ASSERT(jac_data.nrows() == 4);
+  ARTS_ASSERT(jac_data.ncols() == nx);
 
   if (ga == 1 && !do_ga_jac) {
     if (mu == 0 && !do_mu_jac) {
@@ -558,12 +543,9 @@ void mgd_with_derivatives(VectorView psd,
         }
       }
     } else {
-      if (mu > 10) {
-        ostringstream os;
-        os << "Given mu is " << mu << endl
-           << "Seems unreasonable. Have you mixed up the inputs?";
-        throw runtime_error(os.str());
-      }
+      ARTS_USER_ERROR_IF (mu > 10,
+          "Given mu is ", mu, '\n',
+          "Seems unreasonable. Have you mixed up the inputs?")
       // Gamma distribution
       for (Index ix = 0; ix < nx; ix++) {
         const Numeric eterm = exp(-la * x[ix]);
@@ -583,18 +565,12 @@ void mgd_with_derivatives(VectorView psd,
     }
   } else {
     // Complete MGD
-    if (mu > 10) {
-      ostringstream os;
-      os << "Given mu is " << mu << endl
-         << "Seems unreasonable. Have you mixed up the inputs?";
-      throw runtime_error(os.str());
-    }
-    if (ga > 10) {
-      ostringstream os;
-      os << "Given gamma is " << ga << endl
-         << "Seems unreasonable. Have you mixed up the inputs?";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (mu > 10,
+        "Given mu is ", mu, '\n',
+        "Seems unreasonable. Have you mixed up the inputs?")
+    ARTS_USER_ERROR_IF (ga > 10,
+        "Given gamma is ", ga, '\n',
+        "Seems unreasonable. Have you mixed up the inputs?")
     for (Index ix = 0; ix < nx; ix++) {
       const Numeric pterm = pow(x[ix], ga);
       const Numeric eterm = exp(-la * pterm);
@@ -660,16 +636,14 @@ Numeric mod_gamma_dist(
 
     return dN;
   } else {
-    ostringstream os;
-    os << "At least one argument is zero or negative.\n"
-       << "Modified gamma distribution can not be calculated.\n"
-       << "x      = " << x << "\n"
-       << "N0     = " << N0 << "\n"
-       << "lambda = " << Lambda << "\n"
-       << "mu     = " << mu << "\n"
-       << "gamma  = " << gamma << "\n";
-
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR (
+      "At least one argument is zero or negative.\n"
+      "Modified gamma distribution can not be calculated.\n"
+      "x      = ", x, "\n"
+      "N0     = ", N0, "\n"
+      "lambda = ", Lambda, "\n"
+      "mu     = ", mu, "\n"
+      "gamma  = ", gamma, "\n")
   }
 }
 
@@ -685,7 +659,7 @@ Numeric mod_gamma_dist(
     \date   2012-02-12
 */
 void unitl(Vector& x) {
-  assert(x.nelem() > 0);
+  ARTS_ASSERT(x.nelem() > 0);
 
   const Numeric l = sqrt(x * x);
   for (Index i = 0; i < x.nelem(); i++) x[i] /= l;
@@ -705,7 +679,7 @@ void unitl(Vector& x) {
     \date   2015-09-09
 */
 void flat(VectorView x, ConstMatrixView X) {
-  assert(x.nelem() == X.nrows() * X.ncols());
+  ARTS_ASSERT(x.nelem() == X.nrows() * X.ncols());
 
   Index i = 0;
 
@@ -731,7 +705,7 @@ void flat(VectorView x, ConstMatrixView X) {
     \date   2015-09-09
 */
 void flat(VectorView x, ConstTensor3View X) {
-  assert(x.nelem() == X.nrows() * X.ncols() * X.npages());
+  ARTS_ASSERT(x.nelem() == X.nrows() * X.ncols() * X.npages());
 
   Index i = 0;
 
@@ -759,7 +733,7 @@ void flat(VectorView x, ConstTensor3View X) {
     \date   2015-09-10
 */
 void reshape(Tensor3View X, ConstVectorView x) {
-  assert(x.nelem() == X.nrows() * X.ncols() * X.npages());
+  ARTS_ASSERT(x.nelem() == X.nrows() * X.ncols() * X.npages());
 
   Index i = 0;
 
@@ -787,7 +761,7 @@ void reshape(Tensor3View X, ConstVectorView x) {
     \date   2015-09-10
 */
 void reshape(MatrixView X, ConstVectorView x) {
-  assert(x.nelem() == X.nrows() * X.ncols());
+  ARTS_ASSERT(x.nelem() == X.nrows() * X.ncols());
 
   Index i = 0;
 

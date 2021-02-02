@@ -95,8 +95,6 @@
 #ifndef matpackI_h
 #define matpackI_h
 
-#include <cassert>
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -179,31 +177,31 @@ class Range {
 
   \param[in] stride Stride can be anything. It can be omitted, in which case the
   default value is 1. */
-  constexpr Range(Index start, Index extent, Index stride = 1)
+  constexpr Range(Index start, Index extent, Index stride = 1) ARTS_NOEXCEPT
     : mstart(start), mextent(extent), mstride(stride) {
       // Start must be >= 0:
-      assert(0 <= mstart);
+      ARTS_ASSERT(0 <= mstart);
       // Extent also. Although internally negative extent means "to the end",
       // this can not be created this way, only with the joker. Zero
       // extent is allowed, though, which corresponds to an empty range.
-      assert(0 <= mextent);
+      ARTS_ASSERT(0 <= mextent);
       // Stride can be anything except 0.
       // SAB 2001-09-21: Allow 0 stride.
-      //  assert( 0!=mstride);
+      //  ARTS_ASSERT( 0!=mstride);
     }
 
   /** Constructor with joker extent. Depending on the sign of stride,
     this means "to the end", or "to the beginning". */
-  constexpr Range(Index start, Joker, Index stride = 1)
+  constexpr Range(Index start, Joker, Index stride = 1) ARTS_NOEXCEPT
   : mstart(start), mextent(-1), mstride(stride) {
     // Start must be >= 0:
-    assert(0 <= mstart);
+    ARTS_ASSERT(0 <= mstart);
   }
 
   /** Constructor with just a joker. This means, take everything. You
     can still optionally give a stride, though. This constructor is
     just shorter notation for Range(0,joker) */
-  constexpr Range(Joker, Index stride = 1) : mstart(0), mextent(-1), mstride(stride) {
+  constexpr Range(Joker, Index stride = 1) noexcept : mstart(0), mextent(-1), mstride(stride) {
     // Nothing to do here.
   };
 
@@ -212,15 +210,15 @@ class Range {
 
     \param[in] max_size The maximum allowed size of the vector.
     \param[in] r The new range, with joker. */
-  constexpr Range(Index max_size, const Range& r)
+  constexpr Range(Index max_size, const Range& r) ARTS_NOEXCEPT
   : mstart(r.mstart), mextent(r.mextent), mstride(r.mstride) {
     // Start must be >= 0:
-    assert(0 <= mstart);
+    ARTS_ASSERT(0 <= mstart);
     // ... and < max_size:
-    assert(mstart < max_size);
+    ARTS_ASSERT(mstart < max_size);
     
     // Stride must be != 0:
-    assert(0 != mstride);
+    ARTS_ASSERT(0 != mstride);
     
     // Convert negative extent (joker) to explicit extent
     if (mextent < 0) {
@@ -232,8 +230,8 @@ class Range {
       #ifndef NDEBUG
       // Check that extent is ok:
       Index fin = mstart + (mextent - 1) * mstride;
-      assert(0 <= fin);
-      assert(fin < max_size);
+      ARTS_ASSERT(0 <= fin);
+      ARTS_ASSERT(fin < max_size);
       #endif
     }
   }
@@ -243,7 +241,7 @@ class Range {
 
     \param[in] p Previous range.
     \param[in] n New range. */
-  constexpr Range(const Range& p, const Range& n)
+  constexpr Range(const Range& p, const Range& n) ARTS_NOEXCEPT
       : mstart(p.mstart + n.mstart * p.mstride),
         mextent(n.mextent),
         mstride(p.mstride * n.mstride) {
@@ -257,12 +255,12 @@ class Range {
     Index prev_fin = p.mstart + (p.mextent - 1) * p.mstride;
 
     // Resulting start must be >= previous start:
-    assert(p.mstart <= mstart);
+    ARTS_ASSERT(p.mstart <= mstart);
     // and <= prev_fin, except for Joker:
-    assert(mstart <= prev_fin || mextent == -1);
+    ARTS_ASSERT(mstart <= prev_fin || mextent == -1);
 
     // Resulting stride must be != 0:
-    assert(0 != mstride);
+    ARTS_ASSERT(0 != mstride);
 
     // Convert negative extent (joker) to explicit extent
     if (mextent < 0) {
@@ -274,8 +272,8 @@ class Range {
   #ifndef NDEBUG
       // Check that extent is ok:
       Index fin = mstart + (mextent - 1) * mstride;
-      assert(p.mstart <= fin);
-      assert(fin <= prev_fin);
+      ARTS_ASSERT(p.mstart <= fin);
+      ARTS_ASSERT(fin <= prev_fin);
   #endif
     }
   };
@@ -326,19 +324,19 @@ class Range {
 
   friend void mult_general(VectorView,
                            const ConstMatrixView&,
-                           const ConstVectorView&);
+                           const ConstVectorView&) ARTS_NOEXCEPT;
 
   // Member functions:
 
   /** Returns the start index of the range. */
-  constexpr Index get_start() const { return mstart; }
+  constexpr Index get_start() const ARTS_NOEXCEPT { return mstart; }
   /** Returns the extent of the range. */
-  constexpr Index get_extent() const { return mextent; }
+  constexpr Index get_extent() const ARTS_NOEXCEPT { return mextent; }
   /** Returns the stride of the range. */
-  constexpr Index get_stride() const { return mstride; }
+  constexpr Index get_stride() const ARTS_NOEXCEPT { return mstride; }
 
   /** Range of range. */
-  constexpr Range operator()(const Range r) const {
+  constexpr Range operator()(const Range r) const ARTS_NOEXCEPT {
     return (r.mextent < 0) ? (mextent < 0) ? Range(mstart + r.mstart * mstride,
                                                    joker,
                                                    r.mstride * mstride)
@@ -350,7 +348,7 @@ class Range {
                                    r.mstride * mstride);
   }
 
-  constexpr Index operator()(const Index i) const { return mstart + i * mstride; };
+  constexpr Index operator()(const Index i) const ARTS_NOEXCEPT { return mstart + i * mstride; };
 
  private:
   /** The start index. */
@@ -376,23 +374,23 @@ class Iterator1D {
   Iterator1D() = default;
 
   /** Explicit constructor. */
-  Iterator1D(Numeric* x, Index stride)
+  Iterator1D(Numeric* x, Index stride) ARTS_NOEXCEPT
       : mx(x), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
 
   /** Prefix increment operator. */
-  Iterator1D& operator++() {
+  Iterator1D& operator++() ARTS_NOEXCEPT {
     mx += mstride;
     return *this;
   }
 
   /** Dereferencing. */
-  Numeric& operator*() const { return *mx; }
+  Numeric& operator*() const ARTS_NOEXCEPT { return *mx; }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const Iterator1D& other) const {
+  bool operator!=(const Iterator1D& other) const ARTS_NOEXCEPT {
     if (mx != other.mx)
       return true;
     else
@@ -400,9 +398,9 @@ class Iterator1D {
   }
 
 #ifdef __GLIBCXX__
-  bool operator==(const Iterator1D& other) const { return !operator!=(other); }
+  bool operator==(const Iterator1D& other) const ARTS_NOEXCEPT { return !operator!=(other); }
 
-  Index operator-(const Iterator1D& other) const {
+  Index operator-(const Iterator1D& other) const ARTS_NOEXCEPT {
     return (Index)(mx - other.mx) / mstride;
   }
 #endif
@@ -436,22 +434,22 @@ class ConstIterator1D {
   ConstIterator1D() = default;
 
   /** Explicit constructor. */
-  ConstIterator1D(const Numeric* x, Index stride)
+  ConstIterator1D(const Numeric* x, Index stride) ARTS_NOEXCEPT
       : mx(x), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
   /** Prefix increment operator. */
-  ConstIterator1D& operator++() {
+  ConstIterator1D& operator++() ARTS_NOEXCEPT {
     mx += mstride;
     return *this;
   }
 
   /** Dereferencing. */
-  const Numeric& operator*() const { return *mx; }
+  const Numeric& operator*() const ARTS_NOEXCEPT { return *mx; }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const ConstIterator1D& other) const {
+  bool operator!=(const ConstIterator1D& other) const ARTS_NOEXCEPT {
     if (mx != other.mx)
       return true;
     else
@@ -493,7 +491,7 @@ class ConstVectorView {
   // Member functions:
 
   //! Returns true if variable size is zero.
-  bool empty() const;
+  bool empty() const ARTS_NOEXCEPT;
 
   /** Returns the number of elements.  The names `size' and `length'
     are already used by STL functions returning size_t. To avoid
@@ -504,41 +502,41 @@ class ConstVectorView {
     PC from -2147483648 to 2147483647. This means that a 15GB large
     array of float can be addressed with this index. So the extra bit
     that size_t has compared to long is not needed. */
-  Index nelem() const;
+  Index nelem() const ARTS_NOEXCEPT;
   
   /*! See nelem() */
-  Index size() const;
+  Index size() const ARTS_NOEXCEPT;
 
   /** The sum of all elements of a Vector. */
-  Numeric sum() const;
+  Numeric sum() const ARTS_NOEXCEPT;
 
   // Const index operators:
   /** Plain const index operator. */
-  Numeric operator[](Index n) const {  // Check if index is valid:
-    assert(0 <= n);
-    assert(n < mrange.mextent);
+  Numeric operator[](Index n) const ARTS_NOEXCEPT {  // Check if index is valid:
+    ARTS_ASSERT(0 <= n);
+    ARTS_ASSERT(n < mrange.mextent);
     return get(n);
   }
 
   /** Get element implementation without assertions. */
-  Numeric get(Index n) const {
+  Numeric get(Index n) const ARTS_NOEXCEPT {
     return *(mdata + mrange.mstart + n * mrange.mstride);
   }
 
   /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Vector. This allows
     correct recursive behavior.  */
-  ConstVectorView operator[](const Range& r) const;
+  ConstVectorView operator[](const Range& r) const ARTS_NOEXCEPT;
 
-  friend Numeric operator*(const ConstVectorView& a, const ConstVectorView& b);
+  friend Numeric operator*(const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT;
 
   // Functions returning iterators:
 
   /** Return const iterator to first element. */
-  ConstIterator1D begin() const;
+  ConstIterator1D begin() const ARTS_NOEXCEPT;
 
   /** Return const iterator behind last element. */
-  ConstIterator1D end() const;
+  ConstIterator1D end() const ARTS_NOEXCEPT;
 
   /** Conversion to const 1 column matrix. */
   operator ConstMatrixView() const;
@@ -562,7 +560,7 @@ class ConstVectorView {
   friend void transpose_mult(VectorView, const Sparse&, ConstVectorView);
   friend void mult_general(VectorView,
                            const ConstMatrixView&,
-                           const ConstVectorView&);
+                           const ConstVectorView&) ARTS_NOEXCEPT;
   friend void lubacksub(VectorView,
                         ConstMatrixView,
                         ConstVectorView,
@@ -576,7 +574,7 @@ class ConstVectorView {
 
   /** A special constructor, which allows to make a ConstVectorView from
     a scalar. */
-  ConstVectorView(const Numeric& a);
+  ConstVectorView(const Numeric& a) ARTS_NOEXCEPT;
 
  protected:
   // Constructors:
@@ -584,7 +582,7 @@ class ConstVectorView {
 
   /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
-  ConstVectorView(Numeric* data, const Range& range);
+  ConstVectorView(Numeric* data, const Range& range) ARTS_NOEXCEPT;
 
   /** Recursive constructor. This is used to construct sub ranges from
     sub ranges. That means that the new range has to be interpreted
@@ -596,7 +594,7 @@ class ConstVectorView {
     \param *data The actual data.
     \param p Previous range.
     \param n New Range.  */
-  ConstVectorView(Numeric* data, const Range& p, const Range& n);
+  ConstVectorView(Numeric* data, const Range& p, const Range& n) ARTS_NOEXCEPT;
 
   // Data members:
   // -------------
@@ -632,35 +630,35 @@ class VectorView : public ConstVectorView {
   VectorView(const Vector&);
 
   /** Create VectorView from a Vector. */
-  VectorView(Vector& v);
+  VectorView(Vector& v) ARTS_NOEXCEPT;
 
   // Typedef for compatibility with STL
   typedef Iterator1D iterator;
 
   /** Plain Index operator. */
-  Numeric& operator[](Index n) {  // Check if index is valid:
-    assert(0 <= n);
-    assert(n < mrange.mextent);
+  Numeric& operator[](Index n) ARTS_NOEXCEPT {  // Check if index is valid:
+    ARTS_ASSERT(0 <= n);
+    ARTS_ASSERT(n < mrange.mextent);
     return get(n);
   }
 
   /** Get element implementation without assertions. */
-  Numeric& get(Index n) {
+  Numeric& get(Index n) ARTS_NOEXCEPT {
     return *(mdata + mrange.mstart + n * mrange.mstride);
   }
 
   /** Index operator for subrange. We have to also account for the case,
     that *this is already a subrange of a Vector. This allows correct
     recursive behavior.  */
-  VectorView operator[](const Range& r);
+  VectorView operator[](const Range& r) ARTS_NOEXCEPT;
 
   // Iterators:
 
   /** Return iterator to first element. */
-  Iterator1D begin();
+  Iterator1D begin() ARTS_NOEXCEPT;
 
   /** Return iterator behind last element. */
-  Iterator1D end();
+  Iterator1D end() ARTS_NOEXCEPT;
 
   // Assignment operators:
 
@@ -690,45 +688,45 @@ class VectorView : public ConstVectorView {
   // Other operators:
 
   /** Multiplication by scalar. */
-  VectorView operator*=(Numeric x);
+  VectorView operator*=(Numeric x) ARTS_NOEXCEPT;
 
   /** Division by scalar. */
-  VectorView operator/=(Numeric x);
+  VectorView operator/=(Numeric x) ARTS_NOEXCEPT;
 
   /** Addition of scalar. */
-  VectorView operator+=(Numeric x);
+  VectorView operator+=(Numeric x) ARTS_NOEXCEPT;
 
   /** Subtraction of scalar. */
-  VectorView operator-=(Numeric x);
+  VectorView operator-=(Numeric x) ARTS_NOEXCEPT;
 
   /** Element-vise multiplication by another vector. */
-  VectorView operator*=(const ConstVectorView& x);
+  VectorView operator*=(const ConstVectorView& x) ARTS_NOEXCEPT;
 
   /** Element-vise division by another vector. */
-  VectorView operator/=(const ConstVectorView& x);
+  VectorView operator/=(const ConstVectorView& x) ARTS_NOEXCEPT;
 
   /** Element-vise addition of another vector. */
-  VectorView operator+=(const ConstVectorView& x);
+  VectorView operator+=(const ConstVectorView& x) ARTS_NOEXCEPT;
 
   /** Element-vise subtraction of another vector. */
-  VectorView operator-=(const ConstVectorView& x);
+  VectorView operator-=(const ConstVectorView& x) ARTS_NOEXCEPT;
 
   /** Conversion to 1 column matrix. */
-  operator MatrixView();
+  operator MatrixView() ARTS_NOEXCEPT;
 
   /** Conversion to plain C-array, const-version.
 
   This function returns a pointer to the raw data. It fails if the
   VectorView is not pointing to the beginning of a Vector or the stride
   is not 1 because the caller expects to get a C array with continuous data. */
-  const Numeric* get_c_array() const;
+  const Numeric* get_c_array() const ARTS_NOEXCEPT;
 
   /** Conversion to plain C-array, non-const version.
 
   This function returns a pointer to the raw data. It fails if the
   VectorView is not pointing to the beginning of a Vector or the stride
   is not 1 because the caller expects to get a C array with continuous data. */
-  Numeric* get_c_array();
+  Numeric* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
   virtual ~VectorView() = default;
@@ -746,7 +744,7 @@ class VectorView : public ConstVectorView {
 
   /** A special constructor, which allows to make a VectorView from
     a scalar. */
-  VectorView(Numeric& a);
+  VectorView(Numeric& a) ARTS_NOEXCEPT;
 
  protected:
   // Constructors:
@@ -754,7 +752,7 @@ class VectorView : public ConstVectorView {
 
   /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
-  VectorView(Numeric* data, const Range& range);
+  VectorView(Numeric* data, const Range& range) ARTS_NOEXCEPT;
 
   /** Recursive constructor. This is used to construct sub ranges from
     sub ranges. That means that the new range has to be interpreted
@@ -766,7 +764,7 @@ class VectorView : public ConstVectorView {
     \param[in] *data The actual data.
     \param[in] p Previous range.
     \param[in] n New Range.  */
-  VectorView(Numeric* data, const Range& p, const Range& n);
+  VectorView(Numeric* data, const Range& p, const Range& n) ARTS_NOEXCEPT;
 };
 
 /** The row iterator class for sub matrices. This takes into account the
@@ -779,19 +777,19 @@ class Iterator2D {
   Iterator2D() = default;
 
   /** Explicit constructor. */
-  Iterator2D(const VectorView& x, Index stride)
+  Iterator2D(const VectorView& x, Index stride) ARTS_NOEXCEPT
       : msv(x), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
   /** Prefix increment operator. */
-  Iterator2D& operator++() {
+  Iterator2D& operator++() ARTS_NOEXCEPT {
     msv.mdata += mstride;
     return *this;
   }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const Iterator2D& other) const {
+  bool operator!=(const Iterator2D& other) const ARTS_NOEXCEPT {
     if (msv.mdata + msv.mrange.mstart !=
         other.msv.mdata + other.msv.mrange.mstart)
       return true;
@@ -801,10 +799,10 @@ class Iterator2D {
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-  VectorView* operator->() { return &msv; }
+  VectorView* operator->() ARTS_NOEXCEPT { return &msv; }
 
   /** Dereferencing. */
-  VectorView& operator*() { return msv; }
+  VectorView& operator*() ARTS_NOEXCEPT { return msv; }
 
  private:
   /** Current position. */
@@ -823,19 +821,19 @@ class ConstIterator2D {
   ConstIterator2D() = default;
 
   /** Explicit constructor. */
-  ConstIterator2D(const ConstVectorView& x, Index stride)
+  ConstIterator2D(const ConstVectorView& x, Index stride) ARTS_NOEXCEPT
       : msv(x), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
   /** Prefix increment operator. */
-  ConstIterator2D& operator++() {
+  ConstIterator2D& operator++() ARTS_NOEXCEPT {
     msv.mdata += mstride;
     return *this;
   }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const ConstIterator2D& other) const {
+  bool operator!=(const ConstIterator2D& other) const ARTS_NOEXCEPT {
     if (msv.mdata + msv.mrange.mstart !=
         other.msv.mdata + other.msv.mrange.mstart)
       return true;
@@ -845,10 +843,10 @@ class ConstIterator2D {
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-  const ConstVectorView* operator->() const { return &msv; }
+  const ConstVectorView* operator->() const ARTS_NOEXCEPT { return &msv; }
 
   /** Dereferencing. */
-  const ConstVectorView& operator*() const { return msv; }
+  const ConstVectorView& operator*() const ARTS_NOEXCEPT { return msv; }
 
  private:
   /** Current position. */
@@ -915,9 +913,9 @@ class Vector : public VectorView {
    * @param[in] d - A pointer to some raw data
    * @param[in] r0 - The Range along the first dimension
    */
-  Vector(Numeric* d, const Range& r0)
+  Vector(Numeric* d, const Range& r0) ARTS_NOEXCEPT
   : VectorView(d, r0) {
-    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
+    ARTS_ASSERT(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
   }
 
   // Assignment operators:
@@ -964,13 +962,13 @@ class Vector : public VectorView {
   have to transfer the content to a Vector. With this assignment
   operator that's easy.
 
-  \param[in] v The array to assign to this.
+  \param[in] x The array to assign to this.
 
   \return This vector, by tradition.
 
   \author Stefan Buehler
   \date   2002-12-19                                    */
-  Vector& operator=(const Array<Numeric>& v);
+  Vector& operator=(const Array<Numeric>& x);
 
   /** Assignment operator from scalar. Assignment operators are not
     inherited. */
@@ -1013,37 +1011,37 @@ class ConstMatrixView {
   typedef ConstIterator2D const_iterator;
 
   // Member functions:
-  bool empty() const;
-  Index nrows() const;
-  Index ncols() const;
+  bool empty() const ARTS_NOEXCEPT;
+  Index nrows() const ARTS_NOEXCEPT;
+  Index ncols() const ARTS_NOEXCEPT;
 
   // Const index operators:
   /** Plain const index operator. */
-  Numeric operator()(Index r, Index c) const {  // Check if indices are valid:
-    assert(0 <= r);
-    assert(0 <= c);
-    assert(r < mrr.mextent);
-    assert(c < mcr.mextent);
+  Numeric operator()(Index r, Index c) const ARTS_NOEXCEPT {  // Check if indices are valid:
+    ARTS_ASSERT(0 <= r);
+    ARTS_ASSERT(0 <= c);
+    ARTS_ASSERT(r < mrr.mextent);
+    ARTS_ASSERT(c < mcr.mextent);
 
     return get(r, c);
   }
 
   /** Get element implementation without assertions. */
-  Numeric get(Index r, Index c) const {
+  Numeric get(Index r, Index c) const ARTS_NOEXCEPT {
     return *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart +
              c * mcr.mstride);
   }
 
-  ConstMatrixView operator()(const Range& r, const Range& c) const;
-  ConstVectorView operator()(const Range& r, Index c) const;
-  ConstVectorView operator()(Index r, const Range& c) const;
+  ConstMatrixView operator()(const Range& r, const Range& c) const ARTS_NOEXCEPT;
+  ConstVectorView operator()(const Range& r, Index c) const ARTS_NOEXCEPT;
+  ConstVectorView operator()(Index r, const Range& c) const ARTS_NOEXCEPT;
 
   // Functions returning iterators:
-  ConstIterator2D begin() const;
-  ConstIterator2D end() const;
+  ConstIterator2D begin() const ARTS_NOEXCEPT;
+  ConstIterator2D end() const ARTS_NOEXCEPT;
 
   // View on diagonal vector
-  ConstVectorView diagonal() const;
+  ConstVectorView diagonal() const ARTS_NOEXCEPT;
 
   //! Destructor
   virtual ~ConstMatrixView() = default;
@@ -1058,7 +1056,7 @@ class ConstMatrixView {
   friend class ConstTensor6View;
   friend class ConstTensor7View;
   friend class ConstComplexMatrixView;
-  friend ConstMatrixView transpose(ConstMatrixView m);
+  friend ConstMatrixView transpose(ConstMatrixView m) ARTS_NOEXCEPT;
   friend int poly_root_solve(Matrix& roots, Vector& coeffs);
   friend void mult(VectorView, const ConstMatrixView&, const ConstVectorView&);
   friend void mult(MatrixView, const ConstMatrixView&, const ConstMatrixView&);
@@ -1066,10 +1064,10 @@ class ConstMatrixView {
   friend void mult(MatrixView, const ConstMatrixView&, const Sparse&);
   friend void mult_general(VectorView,
                            const ConstMatrixView&,
-                           const ConstVectorView&);
+                           const ConstVectorView&) ARTS_NOEXCEPT;
   friend void mult_general(MatrixView,
                            const ConstMatrixView&,
-                           const ConstMatrixView&);
+                           const ConstMatrixView&) ARTS_NOEXCEPT;
   friend void ludcmp(Matrix&, ArrayOfIndex&, ConstMatrixView);
   friend void lubacksub(VectorView,
                         ConstMatrixView,
@@ -1087,12 +1085,12 @@ class ConstMatrixView {
  protected:
   // Constructors:
   ConstMatrixView() = default;
-  ConstMatrixView(Numeric* data, const Range& r, const Range& c);
+  ConstMatrixView(Numeric* data, const Range& r, const Range& c) ARTS_NOEXCEPT;
   ConstMatrixView(Numeric* data,
                   const Range& pr,
                   const Range& pc,
                   const Range& nr,
-                  const Range& nc);
+                  const Range& nc) ARTS_NOEXCEPT;
 
   // Data members:
   // -------------
@@ -1128,55 +1126,55 @@ class MatrixView : public ConstMatrixView {
 
   // Index Operators:
   /** Plain index operator. */
-  Numeric& operator()(Index r, Index c) {  // Check if indices are valid:
-    assert(0 <= r);
-    assert(0 <= c);
-    assert(r < mrr.mextent);
-    assert(c < mcr.mextent);
+  Numeric& operator()(Index r, Index c) ARTS_NOEXCEPT {  // Check if indices are valid:
+    ARTS_ASSERT(0 <= r);
+    ARTS_ASSERT(0 <= c);
+    ARTS_ASSERT(r < mrr.mextent);
+    ARTS_ASSERT(c < mcr.mextent);
 
     return get(r, c);
   }
 
   /** Get element implementation without assertions. */
-  Numeric& get(Index r, Index c) {
+  Numeric& get(Index r, Index c) ARTS_NOEXCEPT {
     return *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart +
              c * mcr.mstride);
   }
 
-  MatrixView operator()(const Range& r, const Range& c);
-  VectorView operator()(const Range& r, Index c);
-  VectorView operator()(Index r, const Range& c);
+  MatrixView operator()(const Range& r, const Range& c) ARTS_NOEXCEPT;
+  VectorView operator()(const Range& r, Index c) ARTS_NOEXCEPT;
+  VectorView operator()(Index r, const Range& c) ARTS_NOEXCEPT;
 
   // Functions returning iterators:
-  Iterator2D begin();
-  Iterator2D end();
+  Iterator2D begin() ARTS_NOEXCEPT;
+  Iterator2D end() ARTS_NOEXCEPT;
 
   // Assignment operators:
-  MatrixView& operator=(const ConstMatrixView& v);
-  MatrixView& operator=(const MatrixView& v);
-  MatrixView& operator=(const Matrix& v);
-  MatrixView& operator=(const ConstVectorView& v);
+  MatrixView& operator=(const ConstMatrixView& m);
+  MatrixView& operator=(const MatrixView& m);
+  MatrixView& operator=(const Matrix& m);
+  MatrixView& operator=(const ConstVectorView& m);
   MatrixView& operator=(Numeric x);
 
   // Other operators:
-  MatrixView& operator*=(Numeric x);
-  MatrixView& operator/=(Numeric x);
-  MatrixView& operator+=(Numeric x);
-  MatrixView& operator-=(Numeric x);
+  MatrixView& operator*=(Numeric x) ARTS_NOEXCEPT;
+  MatrixView& operator/=(Numeric x) ARTS_NOEXCEPT;
+  MatrixView& operator+=(Numeric x) ARTS_NOEXCEPT;
+  MatrixView& operator-=(Numeric x) ARTS_NOEXCEPT;
 
-  MatrixView& operator*=(const ConstMatrixView& x);
-  MatrixView& operator/=(const ConstMatrixView& x);
-  MatrixView& operator+=(const ConstMatrixView& x);
-  MatrixView& operator-=(const ConstMatrixView& x);
+  MatrixView& operator*=(const ConstMatrixView& x) ARTS_NOEXCEPT;
+  MatrixView& operator/=(const ConstMatrixView& x) ARTS_NOEXCEPT;
+  MatrixView& operator+=(const ConstMatrixView& x) ARTS_NOEXCEPT;
+  MatrixView& operator-=(const ConstMatrixView& x) ARTS_NOEXCEPT;
 
-  MatrixView& operator*=(const ConstVectorView& x);
-  MatrixView& operator/=(const ConstVectorView& x);
-  MatrixView& operator+=(const ConstVectorView& x);
-  MatrixView& operator-=(const ConstVectorView& x);
+  MatrixView& operator*=(const ConstVectorView& x) ARTS_NOEXCEPT;
+  MatrixView& operator/=(const ConstVectorView& x) ARTS_NOEXCEPT;
+  MatrixView& operator+=(const ConstVectorView& x) ARTS_NOEXCEPT;
+  MatrixView& operator-=(const ConstVectorView& x) ARTS_NOEXCEPT;
 
   // Conversion to a plain C-array
-  const Numeric* get_c_array() const;
-  Numeric* get_c_array();
+  const Numeric* get_c_array() const ARTS_NOEXCEPT;
+  Numeric* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
   virtual ~MatrixView() = default;
@@ -1190,19 +1188,19 @@ class MatrixView : public ConstMatrixView {
   friend class Tensor6View;
   friend class Tensor7View;
   friend class ComplexMatrixView;
-  friend ConstMatrixView transpose(ConstMatrixView m);
-  friend MatrixView transpose(MatrixView m);
+  friend ConstMatrixView transpose(ConstMatrixView m) ARTS_NOEXCEPT;
+  friend MatrixView transpose(MatrixView m) ARTS_NOEXCEPT;
   friend void mult(MatrixView, const ConstMatrixView&, const ConstMatrixView&);
 
  protected:
   // Constructors:
   MatrixView() = default;
-  MatrixView(Numeric* data, const Range& r, const Range& c);
+  MatrixView(Numeric* data, const Range& rr, const Range& cr) ARTS_NOEXCEPT;
   MatrixView(Numeric* data,
              const Range& pr,
              const Range& pc,
              const Range& nr,
-             const Range& nc);
+             const Range& nc) ARTS_NOEXCEPT;
 };
 
 /** The Matrix class. This is a MatrixView that also allocates storage
@@ -1219,8 +1217,8 @@ class Matrix : public MatrixView {
   Matrix() = default;
   Matrix(Index r, Index c);
   Matrix(Index r, Index c, Numeric fill);
-  Matrix(const ConstMatrixView& v);
-  Matrix(const Matrix& v);
+  Matrix(const ConstMatrixView& m);
+  Matrix(const Matrix& m);
   Matrix(Matrix&& v) noexcept : MatrixView(std::forward<MatrixView>(v)) {
     v.mdata = nullptr;
   }
@@ -1234,15 +1232,15 @@ class Matrix : public MatrixView {
    * @param[in] r0 - The Range along the first dimension
    * @param[in] r1 - The Range along the second dimension
    */
-  Matrix(Numeric* d, const Range& r0, const Range& r1)
+  Matrix(Numeric* d, const Range& r0, const Range& r1) ARTS_NOEXCEPT
   : MatrixView(d, r0, r1) {
-    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
-    if (r1.get_extent() < 0) throw std::runtime_error("Must have size");
+    ARTS_ASSERT(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
+    ARTS_ASSERT(r1.get_extent() >= 0, "Must have size. Has: ", r1.get_extent());
   }
 
   // Assignment operators:
-  Matrix& operator=(const Matrix& x);
-  Matrix& operator=(Matrix&& x) noexcept;
+  Matrix& operator=(const Matrix& m);
+  Matrix& operator=(Matrix&& m) noexcept;
   Matrix& operator=(Numeric x);
   Matrix& operator=(const ConstVectorView& v);
 
@@ -1260,18 +1258,19 @@ class Matrix : public MatrixView {
   
   /*! Reduce a Matrix to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() && {
+  Vector reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim0 < 2, "Bad Dimension, Out-of-Bounds");
     
     Range r0(0, dim0 == 0 ? nrows() : ncols());
     
     Vector out(mdata, r0);
-    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    ARTS_ASSERT(size() == out.size(), "Can only reduce size on same size input. "
+      "The sizes are (input v. output): ", size(), " v. ", out.size());
     mdata = nullptr;
     return out;
   }
 
-  Numeric* get_raw_data() { return mdata; }
+  Numeric* get_raw_data() ARTS_NOEXCEPT { return mdata; }
 };
 
 // Function declarations:
@@ -1282,53 +1281,53 @@ void copy(ConstIterator1D origin,
           Iterator1D target);
 
 /** Copy a scalar to all elements. */
-void copy(Numeric x, Iterator1D target, const Iterator1D& end);
+void copy(Numeric x, Iterator1D target, const Iterator1D& end) ARTS_NOEXCEPT;
 
 void copy(ConstIterator2D origin,
           const ConstIterator2D& end,
           Iterator2D target);
 
-void copy(Numeric x, Iterator2D target, const Iterator2D& end);
+void copy(Numeric x, Iterator2D target, const Iterator2D& end) ARTS_NOEXCEPT;
 
 void mult(VectorView y, const ConstMatrixView& M, const ConstVectorView& x);
 
 void mult_general(MatrixView A,
                   const ConstMatrixView& B,
-                  const ConstMatrixView& C);
+                  const ConstMatrixView& C) ARTS_NOEXCEPT;
 
 void mult(MatrixView A, const ConstMatrixView& B, const ConstMatrixView& C);
 
 void mult_general(MatrixView A,
                   const ConstMatrixView& B,
-                  const ConstMatrixView& C);
+                  const ConstMatrixView& C) ARTS_NOEXCEPT;
 
-void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b);
+void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT;
 
 Numeric vector_angle(ConstVectorView a, ConstVectorView b);
 
-void proj(Vector& c, ConstVectorView a, ConstVectorView b);
+void proj(Vector& c, ConstVectorView a, ConstVectorView b) ARTS_NOEXCEPT;
 
-ConstMatrixView transpose(ConstMatrixView m);
+ConstMatrixView transpose(ConstMatrixView m) ARTS_NOEXCEPT;
 
-MatrixView transpose(MatrixView m);
+MatrixView transpose(MatrixView m) ARTS_NOEXCEPT;
 
 void transform(VectorView y, double (&my_func)(double), ConstVectorView x);
 
 void transform(MatrixView y, double (&my_func)(double), ConstMatrixView x);
 
-Numeric max(const ConstVectorView& x);
+Numeric max(const ConstVectorView& x) ARTS_NOEXCEPT;
 
-Numeric max(const ConstMatrixView& x);
+Numeric max(const ConstMatrixView& x) ARTS_NOEXCEPT;
 
-Numeric min(const ConstVectorView& x);
+Numeric min(const ConstVectorView& x) ARTS_NOEXCEPT;
 
-Numeric min(const ConstMatrixView& x);
+Numeric min(const ConstMatrixView& x) ARTS_NOEXCEPT;
 
-Numeric mean(const ConstVectorView& x);
+Numeric mean(const ConstVectorView& x) ARTS_NOEXCEPT;
 
-Numeric mean(const ConstMatrixView& x);
+Numeric mean(const ConstMatrixView& x) ARTS_NOEXCEPT;
 
-Numeric operator*(const ConstVectorView& a, const ConstVectorView& b);
+Numeric operator*(const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT;
 
 std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
 

@@ -64,7 +64,7 @@ class TransmissionMatrix {
         T3(stokes_dim == 3 ? nf : 0, Eigen::Matrix3d::Identity()),
         T2(stokes_dim == 2 ? nf : 0, Eigen::Matrix2d::Identity()),
         T1(stokes_dim == 1 ? nf : 0, Eigen::Matrix<double, 1, 1>::Identity()) {
-    assert(stokes_dim < 5 and stokes_dim > 0);
+    ARTS_ASSERT(stokes_dim < 5 and stokes_dim > 0);
   }
 
   /** Construct a new Transmission Matrix object
@@ -491,7 +491,7 @@ class RadiationVector {
         R3(stokes_dim == 3 ? nf : 0, Eigen::Vector3d::Zero()),
         R2(stokes_dim == 2 ? nf : 0, Eigen::Vector2d::Zero()),
         R1(stokes_dim == 1 ? nf : 0, Eigen::Matrix<double, 1, 1>::Zero()) {
-    assert(stokes_dim < 5 and stokes_dim > 0);
+    ARTS_ASSERT(stokes_dim < 5 and stokes_dim > 0);
   }
 
   /** Construct a new Radiation Vector object
@@ -859,7 +859,7 @@ class RadiationVector {
    * @return RadiationVector& *this
    */
   RadiationVector& operator=(const ConstMatrixView& M) {
-    assert(M.ncols() == stokes_dim and M.nrows() == Frequencies());
+    ARTS_ASSERT(M.ncols() == stokes_dim and M.nrows() == Frequencies());
     for (size_t i = 0; i < R4.size(); i++) {
       R4[i][0] = M(i, 0);
       R4[i][1] = M(i, 1);
@@ -927,10 +927,10 @@ class RadiationVector {
                  const ConstVectorView& B,
                  const StokesVector& S,
                  Index i) {
-    assert(a.NumberOfAzimuthAngles() == 1);
-    assert(a.NumberOfZenithAngles() == 1);
-    assert(S.NumberOfAzimuthAngles() == 1);
-    assert(S.NumberOfZenithAngles() == 1);
+    ARTS_ASSERT(a.NumberOfAzimuthAngles() == 1);
+    ARTS_ASSERT(a.NumberOfZenithAngles() == 1);
+    ARTS_ASSERT(S.NumberOfAzimuthAngles() == 1);
+    ARTS_ASSERT(S.NumberOfZenithAngles() == 1);
     switch (stokes_dim) {
       case 4:
         if (not S.IsEmpty())

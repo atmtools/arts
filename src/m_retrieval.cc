@@ -28,11 +28,10 @@ void check_and_add_block(CovarianceMatrix& covmat,
       covmat.add_correlation(
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
-      ostringstream os;
-      os << "The matrix in covmat_block was expected to have dimensions ["
-         << n_gps << ", " << n_gps << "] but found  to have dimensions ["
-         << covmat_block.nrows() << ", " << covmat_block.ncols() << "].";
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR (
+        "The matrix in covmat_block was expected to have dimensions [",
+        n_gps, ", ", n_gps, "] but found  to have dimensions [",
+        covmat_block.nrows(), ", ", covmat_block.ncols(), "].")
     }
   }
   if (!covmat_inv_block.empty()) {
@@ -42,11 +41,10 @@ void check_and_add_block(CovarianceMatrix& covmat,
       covmat.add_correlation_inverse(
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
-      ostringstream os;
-      os << "The matrix in covmat_inv_block was expected to have dimensions ["
-         << n_gps << ", " << n_gps << "] but found  to have dimensions ["
-         << covmat_block.nrows() << ", " << covmat_block.ncols() << "].";
-      throw runtime_error(os.str());
+      ARTS_USER_ERROR (
+        "The matrix in covmat_inv_block was expected to have dimensions [",
+        n_gps, ", ", n_gps, "] but found  to have dimensions [",
+        covmat_block.nrows(), ", ", covmat_block.ncols(), "].")
     }
   }
 }
@@ -75,9 +73,8 @@ void ZFromPSimple(Vector& z_grid, const Vector& p_grid, const Verbosity&) {
   z_grid = Vector(p_grid.nelem());
 
   for (Index i = 0; i < p_grid.nelem(); ++i) {
-    if (p_grid[i] < 0.01) {
-      throw runtime_error("Pressures below 0.01 Pa are not accedpted.");
-    }
+    ARTS_USER_ERROR_IF (p_grid[i] < 0.01,
+                        "Pressures below 0.01 Pa are not accedpted.");
   }
 
   for (Index i = 0; i < p_grid.nelem(); ++i) {
@@ -89,9 +86,8 @@ void PFromZSimple(Vector& p_grid, const Vector& z_grid, const Verbosity&) {
   p_grid = Vector(z_grid.nelem());
 
   for (Index i = 0; i < p_grid.nelem(); ++i) {
-    if (z_grid[i] > 120e3) {
-      throw runtime_error("Altitudes above 120 km are not accepted.");
-    }
+    ARTS_USER_ERROR_IF (z_grid[i] > 120e3,
+                        "Altitudes above 120 km are not accepted.");
   }
 
   for (Index i = 0; i < z_grid.nelem(); ++i) {
@@ -121,8 +117,8 @@ void insert_elements(Matrix& matrix,
                      const ArrayOfIndex& row_indices,
                      const ArrayOfIndex& column_indices,
                      const Vector& elements) {
-  assert(row_indices.nelem() == column_indices.nelem());
-  assert(column_indices.nelem() == elements.nelem());
+  ARTS_ASSERT(row_indices.nelem() == column_indices.nelem());
+  ARTS_ASSERT(column_indices.nelem() == elements.nelem());
 
   matrix.resize(m, n);
 
@@ -136,10 +132,8 @@ void covmatDiagonal(MatrixType& block,
                     MatrixType& block_inv,
                     const Vector& vars,
                     const Verbosity&) {
-  if (vars.empty()) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (vars.empty(),
         "Cannot pass empty vector of variances to covmat_blockSetDiagonal");
-  }
   Index n = vars.nelem();
   block = MatrixType(n, n);
   block_inv = MatrixType(n, n);
@@ -177,9 +171,8 @@ void covmat1DMarkov(MatrixType& block,
   ArrayOfIndex row_indices, column_indices;
   Vector elements, elements_inv;
 
-  if (n != sigma.nelem()) {
-    throw runtime_error("Size of grid incompatible with given variances.");
-  }
+  ARTS_USER_ERROR_IF (n != sigma.nelem(),
+                      "Size of grid incompatible with given variances.");
 
   elements = Vector(row_indices.size());
   for (size_t i = 0; i < row_indices.size(); ++i) {
@@ -261,14 +254,14 @@ void covmat1D(MatrixType& block,
   Index m = grid1.nelem();
   Vector sigma1_copy(sigma1), lc1_copy(lc1);
 
-  assert((sigma1.nelem() == m) || (sigma1.nelem() == 1));
+  ARTS_ASSERT((sigma1.nelem() == m) || (sigma1.nelem() == 1));
   if (sigma1.nelem() == 1) {
     Numeric v = sigma1[0];
     sigma1_copy = Vector(m);
     sigma1_copy = v;
   }
 
-  assert((lc1.nelem() == m) || (lc1.nelem() == 1));
+  ARTS_ASSERT((lc1.nelem() == m) || (lc1.nelem() == 1));
   if (lc1.nelem() == 1) {
     Numeric v = lc1[0];
     lc1_copy = Vector(m);
@@ -278,14 +271,14 @@ void covmat1D(MatrixType& block,
   Index n = grid2.nelem();
   Vector sigma2_copy(sigma2), lc2_copy(lc2);
 
-  assert((sigma2.nelem() == n) || (sigma2.nelem() == 1));
+  ARTS_ASSERT((sigma2.nelem() == n) || (sigma2.nelem() == 1));
   if (sigma2.nelem() == 1) {
     Numeric v = sigma2[0];
     sigma2_copy = Vector(n);
     sigma2_copy = v;
   }
 
-  assert((lc2.nelem() == n) || (lc2.nelem() == 1));
+  ARTS_ASSERT((lc2.nelem() == n) || (lc2.nelem() == 1));
   if (lc2.nelem() == 1) {
     Numeric v = lc2[0];
     lc2_copy = Vector(n);
@@ -408,36 +401,29 @@ void covmat_seAddBlock(CovarianceMatrix& covmat_se,
     jj = ii;
   }
 
-  if (j < i) {
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (j < i,
         "The block must be on or above the diagonal, "
         " i.e. *i* <= *j*.");
-  }
 
   Index ndiagblocks = covmat_se.ndiagblocks();
 
   if ((ii >= ndiagblocks)) {
     if (ii > ndiagblocks) {
-      if (jj > ii) {
-        throw std::runtime_error(
+      ARTS_USER_ERROR_IF (jj > ii,
             "Off-diagonal block can only be added to rows that already "
             "have a block on the diagonal.");
-      } else {
-        throw std::runtime_error(
+      ARTS_USER_ERROR (
             "Diagonal block must be added row-by-row starting in the "
             " upper left of the matrix.");
-      }
     }
   }
 
-  if (covmat_se.has_block(ii, jj)) {
-    throw std::runtime_error("Block already present in covariance matrix.");
-  }
+  ARTS_USER_ERROR_IF (covmat_se.has_block(ii, jj),
+                      "Block already present in covariance matrix.");
 
   if (ii == jj) {
-    if (m != n) {
-      throw std::runtime_error("Diagonal blocks must be square.");
-    }
+    ARTS_USER_ERROR_IF (m != n,
+                        "Diagonal blocks must be square.");
     Index start = covmat_se.nrows();
     Range range(start, m);
     std::shared_ptr<MatrixType> mat = std::make_shared<MatrixType>(block);
@@ -445,28 +431,22 @@ void covmat_seAddBlock(CovarianceMatrix& covmat_se,
 
   } else {
     const Block* b = covmat_se.get_block(ii, ii);
-    if (!b) {
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (!b,
           "Trying to add an off-diagonal block that"
           " lacks corresponding diagonal block in the "
           " same row.");
-    }
     Range row_range = b->get_row_range();
 
     b = covmat_se.get_block(jj, jj);
-    if (!b) {
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF (!b,
           "Trying to add an off-diagonal block that"
           " lacks corresponding diagonal block in the "
           " same column.");
-    }
     Range column_range = b->get_column_range();
 
-    if ((row_range.get_extent() != m) || (column_range.get_extent() != n)) {
-      throw std::runtime_error(
+    ARTS_USER_ERROR_IF ((row_range.get_extent() != m) || (column_range.get_extent() != n),
           "The off-diagonal block is inconsistent "
           "with the corresponding diagonal blocks.");
-    }
 
     std::shared_ptr<MatrixType> mat = std::make_shared<MatrixType>(block);
     covmat_se.add_correlation(
@@ -503,17 +483,13 @@ void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
 
   const Block* block = covmat_se.get_block(ii, jj);
 
-  if (!block) {
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF (!block,
         "Cannot add inverse  block to the covariance "
         " without corresponding non-inverse block.");
-  }
 
-  if ((m != inv_block.nrows()) || (n != inv_block.ncols())) {
-    throw std::runtime_error(
+  ARTS_USER_ERROR_IF ((m != inv_block.nrows()) || (n != inv_block.ncols()),
         "Dimensions of block are inconsistent with "
         " non-inverse block.");
-  }
 
   Range row_range = block->get_row_range();
   Range column_range = block->get_column_range();
@@ -540,9 +516,8 @@ void setCovarianceMatrix(CovarianceMatrix& covmat, const MatrixType& block) {
   Index m = block.nrows();
   Index n = block.ncols();
 
-  if (n != m) {
-    throw std::runtime_error("Covariance matrix must be sqare!");
-  }
+  ARTS_USER_ERROR_IF (n != m,
+                      "Covariance matrix must be square!");
 
   covmat = CovarianceMatrix();
   IndexPair indices = std::make_pair(0, 0);
@@ -606,20 +581,17 @@ void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
   if ((ii < 0) && (jj < 0)) {
     ii = covmat_sx.ndiagblocks();
     jj = ii;
-    if ((ii >= jq.nelem()) || (jj >= jq.nelem())) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF ((ii >= jq.nelem()) || (jj >= jq.nelem()),
           "*covmat_sx* already contains more or as many diagonal"
           " blocks as there are retrieval quantities.");
-    }
-  } else if ((ii >= jq.nelem()) || (jj >= jq.nelem())) {
-    throw runtime_error(
+  } else {
+    ARTS_USER_ERROR_IF ((ii >= jq.nelem()) || (jj >= jq.nelem()),
         "The block indices must either be both -1 (default) or\n"
         "non-negative and smaller than the number of retrieval \n"
         "quantities.");
-  } else if (ii > jj) {
-    throw runtime_error(
-        "Only blocks above the diagonal can be set, hence"
-        "*i* must be less than or equal to *j*.");
+    ARTS_USER_ERROR_IF (ii > jj,
+          "Only blocks above the diagonal can be set, hence"
+          "*i* must be less than or equal to *j*.");
   }
 
   Index m = block.nrows();
@@ -634,15 +606,11 @@ void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
     jq_n = jq[jj].TransformationMatrix().ncols();
   }
 
-  if ((m != jq_m) || (n != jq_n)) {
-    ostringstream os;
-    os << "The covariance block for retrieval quantities " << ii << " and "
-       << jj << " was expected to have dimensions [" << jq_m << ", " << jq_n
-       << "] but found to have dimensions "
-       << "[" << m << ", " << n << "].";
-
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF ((m != jq_m) || (n != jq_n),
+      "The covariance block for retrieval quantities ", ii, " and ",
+      jj, " was expected to have dimensions [", jq_m, ", ", jq_n,
+      "] but found to have dimensions "
+      "[", m, ", ", n, "].")
 
   ArrayOfArrayOfIndex ji;
   bool any_affine;
@@ -685,13 +653,12 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
   if ((ii < 0) && (jj < 0)) {
     ii = jq.size() - 1;
     jj = jq.size() - 1;
-  } else if ((ii >= jq.nelem()) || (jj >= jq.nelem())) {
-    throw runtime_error(
+  } else {
+    ARTS_USER_ERROR_IF ((ii >= jq.nelem()) || (jj >= jq.nelem()),
         "The block indices must either be both -1 (default) or\n"
         "non-negative and smaller than the number of retrieval \n"
         "quantities.");
-  } else if (ii > jj) {
-    throw runtime_error(
+    ARTS_USER_ERROR_IF (ii > jj,
         "Only blocks above the diagonal can be set, hence"
         "*i* must be less than or equal to *j*.");
   }
@@ -709,21 +676,15 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
     jq_n = jq[jj].TransformationMatrix().ncols();
   }
 
-  if (!((m == jq_m) && (n == jq_n))) {
-    ostringstream os;
-    os << "The dimensions of the covariance block ( " << m;
-    os << " x " << n << " )"
-       << " with the dimensionality of ";
-    os << " retrieval quantity " << ii << " and " << jj << ", respectively.";
+  ARTS_USER_ERROR_IF (!((m == jq_m) && (n == jq_n)),
+      "The dimensions of the covariance block ( ", m,
+      " x ", n, " )"
+      " with the dimensionality of "
+      " retrieval quantity ", ii, " and ", jj, ", respectively.")
 
-    throw runtime_error(os.str());
-  }
-
-  if (!covmat_sx.has_block(ii, jj)) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!covmat_sx.has_block(ii, jj),
         "To add the inverse of a block the non-inverse"
         " block must be added first.");
-  }
 
   ArrayOfArrayOfIndex ji;
   bool any_affine;
@@ -1214,19 +1175,14 @@ void retrievalDefClose(Workspace& ws,
   ArrayOfArrayOfIndex ji_t;
   bool any_affine;
   jac_ranges_indices(ji_t, any_affine, jacobian_quantities);
-  if (!covmat_sx.has_diagonal_blocks(ji_t)) {
-    std::ostringstream os;
-    os << "*covmat_sx* does not contain a diagonal block for each retrieval"
-          " quantity in the Jacobian.\n";
-    os << " Fails test (!covmat_sx.has_diagonal_blocks(ji_t)) for ji_t " << ji_t
-       << "\n";
-    throw runtime_error(os.str());
-  }
-  if (!covmat_sx.is_consistent(ji_t)) {
-    throw runtime_error(
-        "The blocks in *covmat_sx* are not consistent with the retrieval"
-        " quantities in the Jacobian.");
-  }
+  ARTS_USER_ERROR_IF (!covmat_sx.has_diagonal_blocks(ji_t),
+      "*covmat_sx* does not contain a diagonal block for each retrieval"
+      " quantity in the Jacobian.\n"
+      " Fails test (!covmat_sx.has_diagonal_blocks(ji_t)) for ji_t ", ji_t,
+      "\n")
+  ARTS_USER_ERROR_IF (!covmat_sx.is_consistent(ji_t),
+      "The blocks in *covmat_sx* are not consistent with the retrieval"
+      " quantities in the Jacobian.");
   retrieval_checked = true;
 }
 

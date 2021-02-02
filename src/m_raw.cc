@@ -38,9 +38,8 @@ void yColdAtmHot(Vector& y,
                  const Index& calib,
                  const Verbosity&)
 {
-  if(cold.nelem() not_eq atm.nelem() or atm.nelem() not_eq hot.nelem()) {
-    throw std::runtime_error("Length of vectors must be correct");
-  }
+  ARTS_USER_ERROR_IF (cold.nelem() not_eq atm.nelem() or atm.nelem() not_eq hot.nelem(),
+                      "Length of vectors must be correct");
    
   y.resize(atm.nelem());
   if (calib) {
@@ -66,13 +65,12 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
 {
   // Size of problem
   const Index n=time_grid.nelem();
-  if (time_grid.nelem() not_eq n) {
-    throw std::runtime_error("Time vector length must match input data length");
-  }
+  ARTS_USER_ERROR_IF (time_grid.nelem() not_eq n,
+                      "Time vector length must match input data length");
   
   // Time is not decreasing
-  if (not std::is_sorted(time_grid.cbegin(), time_grid.cend()))
-    throw std::runtime_error("Time vector cannot decrease");
+  ARTS_USER_ERROR_IF (not std::is_sorted(time_grid.cbegin(), time_grid.cend()),
+                      "Time vector cannot decrease");
   
   // Find the limits of the range
   auto lims = time_steps(time_grid, time_step);
@@ -90,14 +88,14 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
     
     // Frequency grids
     const Index k = ybatch[0].nelem();
-    if (not std::all_of(ybatch.cbegin(), ybatch.cend(), [k](auto& x){return x.nelem() == k;})) {
-      throw std::runtime_error("Bad frequency grid size in input data; expects all equal");
-    }
+    ARTS_USER_ERROR_IF (not std::all_of(ybatch.cbegin(), ybatch.cend(),
+                                        [k](auto& x){return x.nelem() == k;}),
+                        "Bad frequency grid size in input data; expects all equal");
     
     // Allocate output
     const Index m = lims.nelem() - 1;
-    if (m < 0)
-      throw std::runtime_error("Must include last if time step covers all of the range");
+    ARTS_USER_ERROR_IF (m < 0,
+                        "Must include last if time step covers all of the range");
     ybatch_out = ArrayOfVector(m, Vector(k));
     time_grid_out = ArrayOfTime(m);
     covmat_sepsbatch = ArrayOfMatrix(m, Matrix(k, k));
@@ -143,11 +141,11 @@ void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
   const Index n=ybatch.nelem();
   
   const Index m=n?ybatch[0].nelem():0;
-  if (std::any_of(ybatch.begin(), ybatch.end(), [m](auto& y){return y.nelem() not_eq m;})) {
-    throw std::runtime_error("Bad input size, all of ybatch must match itself");
-  } else if (trop_temp.nelem() not_eq n) {
-    throw std::runtime_error("Bad input size, trop_temp must match ybatch");
-  }
+  ARTS_USER_ERROR_IF (std::any_of(ybatch.begin(), ybatch.end(),
+                                  [m](auto& y){return y.nelem() not_eq m;}),
+                      "Bad input size, all of ybatch must match itself");
+  ARTS_USER_ERROR_IF (trop_temp.nelem() not_eq n,
+                      "Bad input size, trop_temp must match ybatch");
   
   // This algorithm stores partial transmission and median and tropospheric temperature in the correction terms
   ybatch_corr = ArrayOfVector(n, Vector(3));
@@ -173,9 +171,9 @@ void ybatchTroposphericCorrectionNaiveMedianInverse(ArrayOfVector& ybatch,
 {
   // Size of problem
   const Index n=ybatch.nelem();
-  if ((std::any_of(ybatch_corr.begin(), ybatch_corr.end(), [](auto& corr){return corr.nelem() not_eq 3;})) or ybatch_corr.nelem() not_eq n) {
-    throw std::runtime_error("Bad input size, all of ybatch_corr must match ybatch and have three elements each");
-  }
+  ARTS_USER_ERROR_IF ((std::any_of(ybatch_corr.begin(), ybatch_corr.end(),
+                                   [](auto& corr){return corr.nelem() not_eq 3;})) or ybatch_corr.nelem() not_eq n,
+                      "Bad input size, all of ybatch_corr must match ybatch and have three elements each");
   
   // Apply inverse of correction
   for (Index i=0; i<n; i++) {

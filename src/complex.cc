@@ -29,9 +29,6 @@
 #include "blas.h"
 #include "exceptions.h"
 
-using std::runtime_error;
-using std::setw;
-
 // Functions for ConstComplexVectorView:
 // ------------------------------
 
@@ -136,11 +133,11 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v) {
   const ConstComplexIterator1D end = v.end();
 
   if (i != end) {
-    os << setw(3) << *i;
+    os << std::setw(3) << *i;
     ++i;
   }
   for (; i != end; ++i) {
-    os << " " << setw(3) << *i;
+    os << " " << std::setw(3) << *i;
   }
 
   return os;
@@ -152,13 +149,13 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v) {
 /** Bail out immediately if somebody tries to create a ComplexVectorView from
  a const Complex*Vector. */
 ComplexVectorView::ComplexVectorView(const ComplexVector&) {
-  throw runtime_error(
-      "Creating a ComplexVectorView from a const ComplexVector is not allowed.");
-  // This is not really a runtime error, but I don't want to start
-  // producing direct output from inside matpack. And just exiting is
-  // not so nice.
-  // If you see this error, there is a bug in the code, not in the
-  // ARTS input.
+  ARTS_ASSERT (false,
+      "Creating a ComplexVectorView from a const ComplexVector is not allowed.\n"
+      "This is not really a runtime error, but I don't want to start\n"
+      "producing direct output from inside matpack. And just exiting is\n"
+      "not so nice.\n"
+      "If you see this error, there is a bug in the code, not in the\n"
+      "ARTS input.")
 }
 
 /** Create ComplexVectorView from a ComplexVector. */
@@ -195,7 +192,7 @@ ComplexVectorView& ComplexVectorView::operator=(
   //  cout << "Assigning VectorView from ConstVectorView.\n";
 
   // Check that sizes are compatible:
-  assert(mrange.mextent == v.mrange.mextent);
+  ARTS_ASSERT(mrange.mextent == v.mrange.mextent);
 
   copy(v.begin(), v.end(), begin());
 
@@ -211,7 +208,7 @@ ComplexVectorView& ComplexVectorView::operator=(const ComplexVectorView& v) {
   //  cout << "Assigning ComplexVectorView from ComplexVectorView.\n";
 
   // Check that sizes are compatible:
-  assert(mrange.mextent == v.mrange.mextent);
+  ARTS_ASSERT(mrange.mextent == v.mrange.mextent);
 
   copy(v.begin(), v.end(), begin());
 
@@ -224,7 +221,7 @@ ComplexVectorView& ComplexVectorView::operator=(const ComplexVector& v) {
   //  cout << "Assigning ComplexVectorView from Vector.\n";
 
   // Check that sizes are compatible:
-  assert(mrange.mextent == v.mrange.mextent);
+  ARTS_ASSERT(mrange.mextent == v.mrange.mextent);
 
   copy(v.begin(), v.end(), begin());
 
@@ -297,7 +294,7 @@ ComplexVectorView ComplexVectorView::operator-=(Numeric x) {
 /** Element-vise multiplication by another vector. */
 ComplexVectorView ComplexVectorView::operator*=(
     const ConstComplexVectorView& x) {
-  assert(nelem() == x.nelem());
+  ARTS_ASSERT(nelem() == x.nelem());
 
   ConstComplexIterator1D s = x.begin();
 
@@ -310,7 +307,7 @@ ComplexVectorView ComplexVectorView::operator*=(
 
 /** Element-vise multiplication by another vector. */
 ComplexVectorView ComplexVectorView::operator*=(const ConstVectorView& x) {
-  assert(nelem() == x.nelem());
+  ARTS_ASSERT(nelem() == x.nelem());
 
   ConstIterator1D s = x.begin();
 
@@ -324,7 +321,7 @@ ComplexVectorView ComplexVectorView::operator*=(const ConstVectorView& x) {
 /** Element-vise division by another vector. */
 ComplexVectorView ComplexVectorView::operator/=(
     const ConstComplexVectorView& x) {
-  assert(nelem() == x.nelem());
+  ARTS_ASSERT(nelem() == x.nelem());
 
   ConstComplexIterator1D s = x.begin();
 
@@ -337,7 +334,7 @@ ComplexVectorView ComplexVectorView::operator/=(
 
 /** Element-vise division by another vector. */
 ComplexVectorView ComplexVectorView::operator/=(const ConstVectorView& x) {
-  assert(nelem() == x.nelem());
+  ARTS_ASSERT(nelem() == x.nelem());
 
   ConstIterator1D s = x.begin();
 
@@ -351,7 +348,7 @@ ComplexVectorView ComplexVectorView::operator/=(const ConstVectorView& x) {
 /** Element-vise addition of another vector. */
 ComplexVectorView ComplexVectorView::operator+=(
     const ConstComplexVectorView& x) {
-  assert(nelem() == x.nelem());
+  ARTS_ASSERT(nelem() == x.nelem());
 
   ConstComplexIterator1D s = x.begin();
 
@@ -364,7 +361,7 @@ ComplexVectorView ComplexVectorView::operator+=(
 
 /** Element-vise addition of another vector. */
 ComplexVectorView ComplexVectorView::operator+=(const ConstVectorView& x) {
-  assert(nelem() == x.nelem());
+  ARTS_ASSERT(nelem() == x.nelem());
 
   ConstIterator1D s = x.begin();
 
@@ -378,7 +375,7 @@ ComplexVectorView ComplexVectorView::operator+=(const ConstVectorView& x) {
 /** Element-vise subtraction of another vector. */
 ComplexVectorView ComplexVectorView::operator-=(
     const ConstComplexVectorView& x) {
-  assert(nelem() == x.nelem());
+  ARTS_ASSERT(nelem() == x.nelem());
 
   ConstComplexIterator1D s = x.begin();
 
@@ -391,7 +388,7 @@ ComplexVectorView ComplexVectorView::operator-=(
 
 /** Element-vise subtraction of another vector. */
 ComplexVectorView ComplexVectorView::operator-=(const ConstVectorView& x) {
-  assert(nelem() == x.nelem());
+  ARTS_ASSERT(nelem() == x.nelem());
 
   ConstIterator1D s = x.begin();
 
@@ -418,11 +415,9 @@ ComplexVectorView::operator ComplexMatrixView() {
   VectorView is not pointing to the beginning of a Vector or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Complex* ComplexVectorView::get_c_array() const {
-  if (mrange.mstart != 0 || mrange.mstride != 1)
-    throw runtime_error(
+const Complex* ComplexVectorView::get_c_array() const ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mrange.mstart != 0 || mrange.mstride != 1),
         "A ComplexVectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
@@ -432,11 +427,9 @@ const Complex* ComplexVectorView::get_c_array() const {
   VectorView is not pointing to the beginning of a Vector or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Complex* ComplexVectorView::get_c_array() {
-  if (mrange.mstart != 0 || mrange.mstride != 1)
-    throw runtime_error(
-        "A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
+Complex* ComplexVectorView::get_c_array() ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mrange.mstart != 0 || mrange.mstride != 1),
+        "A ComplexVectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
   return mdata;
 }
 
@@ -712,7 +705,7 @@ ComplexVector& ComplexVector::operator=(Complex x) {
 // {
 //   cout << "Assigning Vector from Vector View.\n";
 //  // Check that sizes are compatible:
-//   assert(mrange.mextent==v.mrange.mextent);
+//   ARTS_ASSERT(mrange.mextent==v.mrange.mextent);
 //   VectorView::operator=(v);
 //   return *this;
 // }
@@ -721,7 +714,7 @@ ComplexVector& ComplexVector::operator=(Complex x) {
  *   nothing. All data is lost after resizing! The new Vector is not
  *   initialized, so it will contain random values.  */
 void ComplexVector::resize(Index n) {
-  assert(0 <= n);
+  ARTS_ASSERT(0 <= n);
   if (mrange.mextent != n) {
     delete[] mdata;
     mdata = new Complex[n];
@@ -778,8 +771,8 @@ ConstComplexMatrixView ConstComplexMatrixView::operator()(
 ConstComplexVectorView ConstComplexMatrixView::operator()(const Range& r,
                                                           Index c) const {
   // Check that c is valid:
-  assert(0 <= c);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ConstComplexVectorView(mdata + mcr.mstart + c * mcr.mstride, mrr, r);
 }
@@ -792,8 +785,8 @@ ConstComplexVectorView ConstComplexMatrixView::operator()(const Range& r,
 ConstComplexVectorView ConstComplexMatrixView::operator()(
     Index r, const Range& c) const {
   // Check that r is valid:
-  assert(0 <= r);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ConstComplexVectorView(mdata + mrr.mstart + r * mrr.mstride, mcr, c);
 }
@@ -877,11 +870,11 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v) {
     const ConstComplexIterator1D end_col = ir->end();
 
     if (ic != end_col) {
-      os << setw(3) << *ic;
+      os << std::setw(3) << *ic;
       ++ic;
     }
     for (; ic != end_col; ++ic) {
-      os << " " << setw(3) << *ic;
+      os << " " << std::setw(3) << *ic;
     }
     ++ir;
   }
@@ -891,11 +884,11 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v) {
 
     os << "\n";
     if (ic != end_col) {
-      os << setw(3) << *ic;
+      os << std::setw(3) << *ic;
       ++ic;
     }
     for (; ic != end_col; ++ic) {
-      os << " " << setw(3) << *ic;
+      os << " " << std::setw(3) << *ic;
     }
   }
 
@@ -919,8 +912,8 @@ ComplexMatrixView ComplexMatrixView::operator()(const Range& r,
     \param c Index of selected column */
 ComplexVectorView ComplexMatrixView::operator()(const Range& r, Index c) {
   // Check that c is valid:
-  assert(0 <= c);
-  assert(c < mcr.mextent);
+  ARTS_ASSERT(0 <= c);
+  ARTS_ASSERT(c < mcr.mextent);
 
   return ComplexVectorView(mdata + mcr.mstart + c * mcr.mstride, mrr, r);
 }
@@ -931,8 +924,8 @@ ComplexVectorView ComplexMatrixView::operator()(const Range& r, Index c) {
     \param c Range of columns */
 ComplexVectorView ComplexMatrixView::operator()(Index r, const Range& c) {
   // Check that r is valid:
-  assert(0 <= r);
-  assert(r < mrr.mextent);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(r < mrr.mextent);
 
   return ComplexVectorView(mdata + mrr.mstart + r * mrr.mstride, mcr, c);
 }
@@ -972,8 +965,8 @@ ComplexVectorView ComplexMatrixView::diagonal() {
 ComplexMatrixView& ComplexMatrixView::operator=(
     const ConstComplexMatrixView& m) {
   // Check that sizes are compatible:
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -986,8 +979,8 @@ ComplexMatrixView& ComplexMatrixView::operator=(
     override the default. */
 ComplexMatrixView& ComplexMatrixView::operator=(const ComplexMatrixView& m) {
   // Check that sizes are compatible:
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -998,8 +991,8 @@ ComplexMatrixView& ComplexMatrixView::operator=(const ComplexMatrixView& m) {
     contents! */
 ComplexMatrixView& ComplexMatrixView::operator=(const ComplexMatrix& m) {
   // Check that sizes are compatible:
-  assert(mrr.mextent == m.mrr.mextent);
-  assert(mcr.mextent == m.mcr.mextent);
+  ARTS_ASSERT(mrr.mextent == m.mrr.mextent);
+  ARTS_ASSERT(mcr.mextent == m.mcr.mextent);
 
   copy(m.begin(), m.end(), begin());
   return *this;
@@ -1012,8 +1005,8 @@ ComplexMatrixView& ComplexMatrixView::operator=(const ComplexMatrix& m) {
 ComplexMatrixView& ComplexMatrixView::operator=(
     const ConstComplexVectorView& v) {
   // Check that sizes are compatible:
-  assert(mrr.mextent == v.nelem());
-  assert(mcr.mextent == 1);
+  ARTS_ASSERT(mrr.mextent == v.nelem());
+  ARTS_ASSERT(mcr.mextent == 1);
   //  dummy = ConstComplexMatrixView(v.mdata,v.mrange,Range(v.mrange.mstart,1));;
   ConstComplexMatrixView dummy(v);
   copy(dummy.begin(), dummy.end(), begin());
@@ -1113,12 +1106,10 @@ ComplexMatrixView& ComplexMatrixView::operator-=(Numeric x) {
   MatrixView is not pointing to the beginning of a Matrix or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Complex* ComplexMatrixView::get_c_array() const {
-  if (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+const Complex* ComplexMatrixView::get_c_array() const ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
+      mcr.mstride != 1),
         "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
@@ -1128,20 +1119,18 @@ const Complex* ComplexMatrixView::get_c_array() const {
   MatrixView is not pointing to the beginning of a Matrix or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Complex* ComplexMatrixView::get_c_array() {
-  if (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1)
-    throw std::runtime_error(
+Complex* ComplexMatrixView::get_c_array() ARTS_NOEXCEPT {
+  ARTS_ASSERT (not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
+      mcr.mstride != 1),
         "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-
   return mdata;
 }
 
 /** Element-vise multiplication by another Matrix. */
 ComplexMatrixView& ComplexMatrixView::operator*=(
     const ConstComplexMatrixView& x) {
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstComplexIterator2D sr = x.begin();
   ComplexIterator2D r = begin();
   const ComplexIterator2D er = end();
@@ -1156,8 +1145,8 @@ ComplexMatrixView& ComplexMatrixView::operator*=(
 
 /** Element-vise multiplication by another Matrix. */
 ComplexMatrixView& ComplexMatrixView::operator*=(const ConstMatrixView& x) {
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator2D sr = x.begin();
   ComplexIterator2D r = begin();
   const ComplexIterator2D er = end();
@@ -1173,8 +1162,8 @@ ComplexMatrixView& ComplexMatrixView::operator*=(const ConstMatrixView& x) {
 /** Element-vise division by another Matrix. */
 ComplexMatrixView& ComplexMatrixView::operator/=(
     const ConstComplexMatrixView& x) {
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstComplexIterator2D sr = x.begin();
   ComplexIterator2D r = begin();
   const ComplexIterator2D er = end();
@@ -1189,8 +1178,8 @@ ComplexMatrixView& ComplexMatrixView::operator/=(
 
 /** Element-vise division by another Matrix. */
 ComplexMatrixView& ComplexMatrixView::operator/=(const ConstMatrixView& x) {
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator2D sr = x.begin();
   ComplexIterator2D r = begin();
   const ComplexIterator2D er = end();
@@ -1206,8 +1195,8 @@ ComplexMatrixView& ComplexMatrixView::operator/=(const ConstMatrixView& x) {
 /** Element-vise addition of another Matrix. */
 ComplexMatrixView& ComplexMatrixView::operator+=(
     const ConstComplexMatrixView& x) {
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstComplexIterator2D sr = x.begin();
   ComplexIterator2D r = begin();
   const ComplexIterator2D er = end();
@@ -1222,8 +1211,8 @@ ComplexMatrixView& ComplexMatrixView::operator+=(
 
 /** Element-vise addition of another Matrix. */
 ComplexMatrixView& ComplexMatrixView::operator+=(const ConstMatrixView& x) {
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator2D sr = x.begin();
   ComplexIterator2D r = begin();
   const ComplexIterator2D er = end();
@@ -1239,8 +1228,8 @@ ComplexMatrixView& ComplexMatrixView::operator+=(const ConstMatrixView& x) {
 /** Element-vise subtraction of another Matrix. */
 ComplexMatrixView& ComplexMatrixView::operator-=(
     const ConstComplexMatrixView& x) {
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstComplexIterator2D sr = x.begin();
   ComplexIterator2D r = begin();
   const ComplexIterator2D er = end();
@@ -1255,8 +1244,8 @@ ComplexMatrixView& ComplexMatrixView::operator-=(
 
 /** Element-vise subtraction of another Matrix. */
 ComplexMatrixView& ComplexMatrixView::operator-=(const ConstMatrixView& x) {
-  assert(nrows() == x.nrows());
-  assert(ncols() == x.ncols());
+  ARTS_ASSERT(nrows() == x.nrows());
+  ARTS_ASSERT(ncols() == x.ncols());
   ConstIterator2D sr = x.begin();
   ComplexIterator2D r = begin();
   const ComplexIterator2D er = end();
@@ -1457,8 +1446,8 @@ ComplexMatrix& ComplexMatrix::operator=(const ConstComplexVectorView& v) {
     nothing. All data is lost after resizing! The new Matrix is not
     initialized, so it will contain random values.*/
 void ComplexMatrix::resize(Index r, Index c) {
-  assert(0 <= r);
-  assert(0 <= c);
+  ARTS_ASSERT(0 <= r);
+  ARTS_ASSERT(0 <= c);
 
   if (mrr.mextent != r || mcr.mextent != c) {
     delete[] mdata;
@@ -1491,7 +1480,7 @@ ComplexMatrix::~ComplexMatrix() {
 
 ComplexMatrix& ComplexMatrix::inv(const lapack_help::Inverse<Complex>& help)
 {
-  assert(ncols() == nrows());
+  ARTS_ASSERT(ncols() == nrows());
   
   // help's internal variables are all mutable, so const is just for default parameter and to not use copies
   help.resize_if_smaller(int(ncols()));
@@ -1502,9 +1491,8 @@ ComplexMatrix& ComplexMatrix::inv(const lapack_help::Inverse<Complex>& help)
   lapack::zgetri_(help.size(), mdata, help.size(), help.ipivdata(), help.workdata(), help.lsize(), &info);
   
   // Check for success.
-  if (info not_eq 0) {
-    throw runtime_error("Error inverting matrix: Matrix not of full rank.");
-  }
+  ARTS_USER_ERROR_IF (info not_eq 0,
+    "Error inverting matrix: Matrix not of full rank.");
   
   return *this;
 }
@@ -1539,7 +1527,7 @@ ComplexVectorView& ComplexVectorView::operator=(const Array<Complex>& v) {
   //  cout << "Assigning VectorView from Array<Numeric>.\n";
 
   // Check that sizes are compatible:
-  assert(mrange.mextent == v.nelem());
+  ARTS_ASSERT(mrange.mextent == v.nelem());
 
   // Iterators for Array:
   Array<Complex>::const_iterator i = v.begin();
@@ -1558,7 +1546,7 @@ ComplexVectorView& ComplexVectorView::operator=(const Array<Complex>& v) {
 Complex operator*(const ConstComplexVectorView& a,
                   const ConstComplexVectorView& b) {
   // Check dimensions:
-  assert(a.nelem() == b.nelem());
+  ARTS_ASSERT(a.nelem() == b.nelem());
 
   const ConstComplexIterator1D ae = a.end();
   ConstComplexIterator1D ai = a.begin();
@@ -1583,8 +1571,8 @@ Complex operator*(const ConstComplexVectorView& a,
 void mult(ComplexVectorView y,
           const ConstComplexMatrixView& M,
           const ConstComplexVectorView& x) {
-  assert(x.nelem() == M.nrows());
-  assert(y.nelem() == M.ncols());
+  ARTS_ASSERT(x.nelem() == M.nrows());
+  ARTS_ASSERT(y.nelem() == M.ncols());
 
   ComplexMatrixViewMap eigen_y = MapToEigenRow(y);
   if (y.mdata == x.mdata)
@@ -1608,9 +1596,9 @@ void mult(ComplexVectorView y,
 void mult(ComplexMatrixView A,
           const ConstComplexMatrixView& B,
           const ConstComplexMatrixView& C) {
-  assert(B.nrows() == A.nrows());
-  assert(C.ncols() == A.ncols());
-  assert(B.ncols() == C.nrows());
+  ARTS_ASSERT(B.nrows() == A.nrows());
+  ARTS_ASSERT(C.ncols() == A.ncols());
+  ARTS_ASSERT(B.ncols() == C.nrows());
 
   ComplexMatrixViewMap eigen_A = MapToEigen(A);
   if (A.mdata == B.mdata || A.mdata == C.mdata)
@@ -1621,9 +1609,9 @@ void mult(ComplexMatrixView A,
 void mult(ComplexMatrixView A,
           const ConstComplexMatrixView& B,
           const ConstMatrixView& C) {
-  assert(B.nrows() == A.nrows());
-  assert(C.ncols() == A.ncols());
-  assert(B.ncols() == C.nrows());
+  ARTS_ASSERT(B.nrows() == A.nrows());
+  ARTS_ASSERT(C.ncols() == A.ncols());
+  ARTS_ASSERT(B.ncols() == C.nrows());
 
   ComplexMatrixViewMap eigen_A = MapToEigen(A);
   if (A.mdata == B.mdata)
@@ -1634,9 +1622,9 @@ void mult(ComplexMatrixView A,
 void mult(ComplexMatrixView A,
           const ConstMatrixView& B,
           const ConstComplexMatrixView& C) {
-  assert(B.nrows() == A.nrows());
-  assert(C.ncols() == A.ncols());
-  assert(B.ncols() == C.nrows());
+  ARTS_ASSERT(B.nrows() == A.nrows());
+  ARTS_ASSERT(C.ncols() == A.ncols());
+  ARTS_ASSERT(B.ncols() == C.nrows());
 
   ComplexMatrixViewMap eigen_A = MapToEigen(A);
   if (A.mdata == C.mdata)
@@ -1647,9 +1635,9 @@ void mult(ComplexMatrixView A,
 void mult(ComplexMatrixView A,
           const ConstMatrixView& B,
           const ConstMatrixView& C) {
-  assert(B.nrows() == A.nrows());
-  assert(C.ncols() == A.ncols());
-  assert(B.ncols() == C.nrows());
+  ARTS_ASSERT(B.nrows() == A.nrows());
+  ARTS_ASSERT(C.ncols() == A.ncols());
+  ARTS_ASSERT(B.ncols() == C.nrows());
 
   ComplexMatrixViewMap eigen_A = MapToEigen(A);
   eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);

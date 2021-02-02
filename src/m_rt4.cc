@@ -392,7 +392,7 @@ void RT4Calc(Workspace&,
              const Index&,
              const Numeric&,
              const Verbosity&) {
-  throw runtime_error("This version of ARTS was compiled without RT4 support.");
+  ARTS_USER_ERROR ("This version of ARTS was compiled without RT4 support.");
 }
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RT4CalcWithRT4Surface(Workspace&,
@@ -435,7 +435,7 @@ void RT4CalcWithRT4Surface(Workspace&,
                            const Index&,
                            const Numeric&,
                            const Verbosity&) {
-  throw runtime_error("This version of ARTS was compiled without RT4 support.");
+  ARTS_USER_ERROR ("This version of ARTS was compiled without RT4 support.");
 }
 
 #endif /* ENABLE_RT4 */
@@ -449,6 +449,6 @@ void RT4Test(Tensor4& out_rad,
 }
 #else
 void RT4Test(Tensor4&, const String&, const Verbosity&) {
-  throw runtime_error("This version of ARTS was compiled without RT4 support.");
+  ARTS_USER_ERROR ("This version of ARTS was compiled without RT4 support.");
 }
 #endif

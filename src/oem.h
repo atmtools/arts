@@ -585,15 +585,12 @@ void Tensor4Clip(Tensor4& x,
   // Sizes
   const Index nq = x.nbooks();
 
-  if (iq < -1) throw runtime_error("Argument *iq* must be >= -1.");
-  if (iq >= nq) {
-    ostringstream os;
-    os << "Argument *iq* is too high.\n"
-       << "You have selected index: " << iq << "\n"
-       << "but the number of quantities is only: " << nq << "\n"
-       << "(Note that zero-based indexing is used)\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF (iq < -1, "Argument *iq* must be >= -1.");
+  ARTS_USER_ERROR_IF (iq >= nq,
+      "Argument *iq* is too high.\n"
+      "You have selected index: ", iq, "\n"
+      "but the number of quantities is only: ", nq, "\n"
+      "(Note that zero-based indexing is used)\n")
 
   Index ifirst = 0, ilast = nq - 1;
   if (iq > -1) {
@@ -683,85 +680,68 @@ void OEM_checks(Workspace& ws,
   const Index n = xa.nelem();
   const Index m = y.nelem();
 
-  if ((x.nelem() != n) && (x.nelem() != 0))
-    throw runtime_error(
-        "The length of *x* must be either the same as *xa* or 0.");
-  if (covmat_sx.ncols() != covmat_sx.nrows())
-    throw runtime_error("*covmat_sx* must be a square matrix.");
-  if (covmat_sx.ncols() != n)
-    throw runtime_error("Inconsistency in size between *x* and *covmat_sx*.");
-  if ((yf.nelem() != m) && (yf.nelem() != 0))
-    throw runtime_error(
-        "The length of *yf* must be either the same as *y* or 0.");
-  if (covmat_se.ncols() != covmat_se.nrows())
-    throw runtime_error("*covmat_se* must be a square matrix.");
-  if (covmat_se.ncols() != m)
-    throw runtime_error("Inconsistency in size between *y* and *covmat_se*.");
-  if ((jacobian.nrows() != m) && (!jacobian.empty()))
-    throw runtime_error(
-        "The number of rows of the jacobian must be either the number of elements in *y* or 0.");
-  if ((jacobian.ncols() != n) && (!jacobian.empty()))
-    throw runtime_error(
-        "The number of cols of the jacobian must be either the number of elements in *xa* or 0.");
+  ARTS_USER_ERROR_IF ((x.nelem() != n) && (x.nelem() != 0),
+                      "The length of *x* must be either the same as *xa* or 0.");
+  ARTS_USER_ERROR_IF (covmat_sx.ncols() != covmat_sx.nrows(),
+                      "*covmat_sx* must be a square matrix.");
+  ARTS_USER_ERROR_IF (covmat_sx.ncols() != n,
+                      "Inconsistency in size between *x* and *covmat_sx*.");
+  ARTS_USER_ERROR_IF ((yf.nelem() != m) && (yf.nelem() != 0),
+                      "The length of *yf* must be either the same as *y* or 0.");
+  ARTS_USER_ERROR_IF (covmat_se.ncols() != covmat_se.nrows(),
+                      "*covmat_se* must be a square matrix.");
+  ARTS_USER_ERROR_IF (covmat_se.ncols() != m,
+                      "Inconsistency in size between *y* and *covmat_se*.");
+  ARTS_USER_ERROR_IF ((jacobian.nrows() != m) && (!jacobian.empty()),
+                      "The number of rows of the jacobian must be either the number of elements in *y* or 0.");
+  ARTS_USER_ERROR_IF ((jacobian.ncols() != n) && (!jacobian.empty()),
+                      "The number of cols of the jacobian must be either the number of elements in *xa* or 0.");
 
   ArrayOfArrayOfIndex jacobian_indices;
   bool any_affine;
   jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities);
-  if (jacobian_indices.nelem() != nq)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (jacobian_indices.nelem() != nq,
         "Different number of elements in *jacobian_quantities* "
         "and *jacobian_indices*.");
-  if (nq && jacobian_indices[nq - 1][1] + 1 != n)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (nq && jacobian_indices[nq - 1][1] + 1 != n,
         "Size of *covmat_sx* do not agree with Jacobian "
         "information (*jacobian_indices*).");
 
   // Check GINs
-  if (!(method == "li" || method == "gn" || method == "li_m" ||
-        method == "gn_m" || method == "ml" || method == "lm" ||
-        method == "li_cg" || method == "gn_cg" || method == "li_cg_m" ||
-        method == "gn_cg_m" || method == "lm_cg" || method == "ml_cg")) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!(method == "li" || method == "gn" || method == "li_m" ||
+                        method == "gn_m" || method == "ml" || method == "lm" ||
+                        method == "li_cg" || method == "gn_cg" || method == "li_cg_m" ||
+                        method == "gn_cg_m" || method == "lm_cg" || method == "ml_cg"),
         "Valid options for *method* are \"nl\", \"gn\" and "
         "\"ml\" or \"lm\".");
-  }
 
-  if (!(x_norm.nelem() == 0 || x_norm.nelem() == n)) {
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (!(x_norm.nelem() == 0 || x_norm.nelem() == n),
         "The vector *x_norm* must have length 0 or match "
         "*covmat_sx*.");
-  }
 
-  if (x_norm.nelem() > 0 && min(x_norm) <= 0) {
-    throw runtime_error("All values in *x_norm* must be > 0.");
-  }
+  ARTS_USER_ERROR_IF (x_norm.nelem() > 0 && min(x_norm) <= 0,
+                      "All values in *x_norm* must be > 0.");
 
-  if (max_iter <= 0) {
-    throw runtime_error("The argument *max_iter* must be > 0.");
-  }
+  ARTS_USER_ERROR_IF (max_iter <= 0,
+                      "The argument *max_iter* must be > 0.");
 
-  if (stop_dx <= 0) {
-    throw runtime_error("The argument *stop_dx* must be > 0.");
-  }
+  ARTS_USER_ERROR_IF (stop_dx <= 0,
+                      "The argument *stop_dx* must be > 0.");
 
   if ((method == "ml") || (method == "lm") || (method == "lm_cg") ||
       (method == "ml_cg")) {
-    if (lm_ga_settings.nelem() != 6) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (lm_ga_settings.nelem() != 6,
           "When using \"ml\", *lm_ga_setings* must be a "
           "vector of length 6.");
-    }
-    if (min(lm_ga_settings) < 0) {
-      throw runtime_error(
+    ARTS_USER_ERROR_IF (min(lm_ga_settings) < 0,
           "The vector *lm_ga_setings* can not contain any "
           "negative value.");
-    }
   }
 
-  if (clear_matrices < 0 || clear_matrices > 1)
-    throw runtime_error("Valid options for *clear_matrices* are 0 and 1.");
-  if (display_progress < 0 || display_progress > 1)
-    throw runtime_error("Valid options for *display_progress* are 0 and 1.");
+  ARTS_USER_ERROR_IF (clear_matrices < 0 || clear_matrices > 1,
+                      "Valid options for *clear_matrices* are 0 and 1.");
+  ARTS_USER_ERROR_IF (display_progress < 0 || display_progress > 1,
+                      "Valid options for *display_progress* are 0 and 1.");
 
   // If necessary compute yf and jacobian.
   if (x.nelem() == 0) {

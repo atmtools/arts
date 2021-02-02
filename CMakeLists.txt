@@ -110,9 +110,13 @@ endif (NOT INDEX)
 add_definitions (-DHAVE_CONFIG_H)
 
 if (NO_ASSERT)
-  set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DNDEBUG")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+  add_definitions (-DNDEBUG)
 endif (NO_ASSERT)
+
+if (NO_USER_ERRORS)
+  message(STATUS "Experimental reckless build enabled (-DNO_USER_ERRORS=0 to disable)")
+  add_definitions (-DNO_ARTS_USER_ERRORS)
+endif (NO_USER_ERRORS)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
@@ -312,6 +316,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Native")
     ARTS_ADD_COMPILER_FLAG (DNDEBUG)
 endif ()
 
+if (NO_USER_ERRORS)
+  ARTS_ADD_COMPILER_FLAG (Wno-unused-parameter)
+  ARTS_ADD_COMPILER_FLAG (Wno-unused-variable)
+endif (NO_USER_ERRORS)
+
 if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   ARTS_ADD_COMPILER_FLAG (w1)
   ARTS_ADD_COMPILER_FLAG (diag-disable=383,980,981,1418,1419,1682)
@@ -495,3 +504,4 @@ if (NOT "${NUMERIC}" STREQUAL "double")
   message (WARNING "You chose ${NUMERIC} as the Numeric type. Using anything different than double is completely unsupported, unrecommended and will probably lead to compilation errors, crashes and wrong results. Sorry, you're on your own here. Godspeed!")
 endif()
 
+message(STATUS "Building ARTS in ${CMAKE_BUILD_TYPE} mode")

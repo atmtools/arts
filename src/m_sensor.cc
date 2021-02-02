@@ -2477,8 +2477,8 @@ void sensor_responseMultiMixerBackend(
   for (Index ilo = 0; ilo < nlo; ilo++) {
     const Index nfpolthis = (cumsumf[ilo + 1] - cumsumf[ilo]) * npolnew;
 
-    assert(sr[ilo].nrows() == nlos * nfpolthis);
-    assert(sr[ilo].ncols() == ncols);
+    ARTS_ASSERT(sr[ilo].nrows() == nlos * nfpolthis);
+    ARTS_ASSERT(sr[ilo].ncols() == ncols);
 
     for (Index ilos = 0; ilos < nlos; ilos++) {
       for (Index i = 0; i < nfpolthis; i++) {
@@ -3065,8 +3065,8 @@ void sensor_responseGenericAMSU(  // WS Output:
   for (Index ilo = 0; ilo < numLO; ilo++) {
     const Index nfpolthis = (cumsumf[ilo + 1] - cumsumf[ilo]) * npolnew;
 
-    assert(sr[ilo].nrows() == nlos * nfpolthis);
-    assert(sr[ilo].ncols() == ncols);
+    ARTS_ASSERT(sr[ilo].nrows() == nlos * nfpolthis);
+    ARTS_ASSERT(sr[ilo].ncols() == ncols);
 
     for (Index ilos = 0; ilos < nlos; ilos++) {
       for (Index i = 0; i < nfpolthis; i++) {
@@ -3301,8 +3301,8 @@ void WMRFSelectChannels(  // WS Output:
 
   // Go through f_grid, and check for each frequency whether it is in
   // the set of WMRF frequencies for any of the channels.
-  assert(wmrf_weights.nrows() == f_backend.nelem());
-  assert(wmrf_weights.ncols() == f_grid.nelem());
+  ARTS_ASSERT(wmrf_weights.nrows() == f_backend.nelem());
+  ARTS_ASSERT(wmrf_weights.ncols() == f_grid.nelem());
   for (Index fi = 0; fi < wmrf_weights.ncols(); ++fi) {
     Index i;
     for (i = 0; i < wmrf_weights.nrows(); ++i) {

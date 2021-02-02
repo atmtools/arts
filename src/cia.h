@@ -95,8 +95,8 @@ class CIARecord {
      */
   Index Species(const Index i) const {
     // Assert that i is 0 or 1:
-    assert(i >= 0);
-    assert(i <= 1);
+    ARTS_ASSERT(i >= 0);
+    ARTS_ASSERT(i <= 1);
 
     return mspecies[i];
   }
@@ -108,8 +108,8 @@ class CIARecord {
   /** Return frequency grid for given dataset.
      */
   ConstVectorView FrequencyGrid(Index dataset) const {
-    assert(dataset >= 0);
-    assert(dataset < mdata.nelem());
+    ARTS_ASSERT(dataset >= 0);
+    ARTS_ASSERT(dataset < mdata.nelem());
 
     return mdata[dataset].get_numeric_grid(0);
   }
@@ -117,8 +117,8 @@ class CIARecord {
   /** Return temperatur grid for given dataset.
      */
   ConstVectorView TemperatureGrid(Index dataset) const {
-    assert(dataset >= 0);
-    assert(dataset < mdata.nelem());
+    ARTS_ASSERT(dataset >= 0);
+    ARTS_ASSERT(dataset < mdata.nelem());
 
     return mdata[dataset].get_numeric_grid(1);
   }
@@ -126,8 +126,8 @@ class CIARecord {
   /** Return CIA dataset.
      */
   const GriddedField2& Dataset(Index dataset) const {
-    assert(dataset >= 0);
-    assert(dataset < mdata.nelem());
+    ARTS_ASSERT(dataset >= 0);
+    ARTS_ASSERT(dataset < mdata.nelem());
 
     return mdata[dataset];
   }

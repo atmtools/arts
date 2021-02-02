@@ -45,21 +45,21 @@ void Wigner3Init(Index& wigner_initialized,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void WignerFastInfoPrint(const Index& wigner_initialized, const Verbosity&) {
-  if (not wigner_initialized)
-    throw std::runtime_error("Must first initialize wigner...");
+  ARTS_USER_ERROR_IF (not wigner_initialized,
+                      "Must first initialize wigner...");
 
 #if DO_FAST_WIGNER
   fastwigxj_print_stats();
 #else
-  throw std::runtime_error(
+  ARTS_USER_ERROR (
       "You cannot do this without having compiled with fast wigner.");
 #endif
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner6Unload(Index& wigner_initialized, const Verbosity&) {
-  if (not wigner_initialized)
-    throw std::runtime_error("Must first initialize wigner...");
+  ARTS_USER_ERROR_IF (not wigner_initialized,
+                      "Must first initialize wigner...");
   wigner_initialized = 0;
 
 #if DO_FAST_WIGNER
@@ -71,8 +71,8 @@ void Wigner6Unload(Index& wigner_initialized, const Verbosity&) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner3Unload(Index& wigner_initialized, const Verbosity&) {
-  if (not wigner_initialized)
-    throw std::runtime_error("Must first initialize wigner...");
+  ARTS_USER_ERROR_IF (not wigner_initialized,
+                      "Must first initialize wigner...");
   wigner_initialized = 0;
 
 #if DO_FAST_WIGNER
