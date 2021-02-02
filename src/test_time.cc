@@ -34,7 +34,7 @@ void test01() {
   
   // Find every start of 5 seconds
   auto time_str = "5 seconds";
-  auto limits = time_steps(x, time_str);
+  auto limits = time_steps(x, time_stepper_selection(time_str));
   
   std::cout << "The " << time_str << " intervals are:\n";
   for (Index i=0; i<limits.nelem()-2; i++)

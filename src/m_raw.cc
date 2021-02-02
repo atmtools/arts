@@ -43,14 +43,24 @@ void yColdAtmHot(Vector& y,
    
   y.resize(atm.nelem());
   if (calib) {
-    for (Index i=0; i<y.nelem(); i++) {
-      y[i] = calibration(cold[i], atm[i], hot[i], cold_temp, hot_temp);
-    }
+    y = Raw::Calibration::calibration(cold, atm, hot, cold_temp, hot_temp);
   } else {
-    for (Index i=0; i<y.nelem(); i++) {
-      y[i] = systemtemp(cold[i], hot[i], cold_temp, hot_temp);
-    }
+    y = Raw::Calibration::systemtemp(cold, hot, cold_temp, hot_temp);
   }
+}
+
+
+void ybatchCAHA(ArrayOfVector& ybatch,
+                const ArrayOfVector& data,
+                const Vector& cold_temp,
+                const Vector& hot_temp,
+                const Index& c_offset,
+                const Verbosity&)
+{
+  ARTS_USER_ERROR_IF (data.nelem() not_eq cold_temp.nelem() or data.nelem() not_eq hot_temp.nelem(),
+                      "Length of vectors must be correct");
+  
+  ybatch = Raw::Calibration::caha(data, cold_temp, hot_temp, c_offset);
 }
 
 
@@ -73,7 +83,7 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
                       "Time vector cannot decrease");
   
   // Find the limits of the range
-  auto lims = time_steps(time_grid, time_step);
+  auto lims = time_steps(time_grid, time_stepper_selection(time_step));
   
   // Output variables
   ArrayOfVector ybatch_out;
@@ -106,8 +116,8 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
     for (Index i=0; i<m; i++) {
       counts[i] = lims[i+1] - lims[i];
       time_grid_out[i] = mean_time(time_grid, lims[i], lims[i+1]);
-      linalg::avg(ybatch_out[i], ybatch, lims[i], lims[i+1]);
-      linalg::cov(covmat_sepsbatch[i], ybatch_out[i], ybatch, lims[i], lims[i+1]);
+      Raw::Average::avg(ybatch_out[i], ybatch, lims[i], lims[i+1]);
+      Raw::Average::cov(covmat_sepsbatch[i], ybatch_out[i], ybatch, lims[i], lims[i+1]);
     }
   }
   
@@ -153,7 +163,7 @@ void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
   // Compute tropospheric correction
   for (Index i=0; i<n; i++) {
     ybatch_corr[i][2] = trop_temp[i];
-    ybatch_corr[i][0] = linalg::median(ybatch[i], range);
+    ybatch_corr[i][0] = Raw::Average::median(ybatch[i], range);
     ybatch_corr[i][1] = std::exp(- std::log((ybatch_corr[i][2] - ybatch_corr[i][0])  / (ybatch_corr[i][2] - targ_temp)));
   }
   

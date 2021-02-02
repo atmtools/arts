@@ -1325,6 +1325,8 @@ Numeric min(const ConstMatrixView& x) ARTS_NOEXCEPT;
 
 Numeric mean(const ConstVectorView& x) ARTS_NOEXCEPT;
 
+Numeric nanmean(const ConstVectorView& x) ARTS_NOEXCEPT;
+
 Numeric mean(const ConstMatrixView& x) ARTS_NOEXCEPT;
 
 Numeric operator*(const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT;

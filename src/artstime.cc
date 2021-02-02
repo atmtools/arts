@@ -58,14 +58,13 @@ Time next_even(const Time& t, const TimeStep& dt)
     return t;
 }
 
-ArrayOfIndex time_steps(const ArrayOfTime& times, const String& step)
+ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& dt)
 {
   Index N = times.nelem();
   ARTS_USER_ERROR_IF (N < 2,
     "Can only find time steps for 2-long or longer time grids");
   
-  auto dt = time_stepper_selection(step);
-  ARTS_USER_ERROR_IF (dt < decltype(dt)(0),
+  ARTS_USER_ERROR_IF (dt < TimeStep(0),
     "Must have positive time steps (or 0 for all times)");
   
   ArrayOfIndex time_steps{0};
@@ -149,3 +148,8 @@ Time mean_time(const ArrayOfTime& ts, Index s, Index E)
   return ts[s] + dt;
 }
 
+Vector time_vector(const ArrayOfTime& times) {
+  Vector t(times.nelem());
+  for (Index i=0; i<times.nelem(); i++) t[i] = times[i].Seconds();
+  return t;
+}

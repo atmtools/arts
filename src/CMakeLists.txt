@@ -27,6 +27,10 @@ set (ALL_ARTS_LIBRARIES
   matpack
   cdisort
   )
+  
+if (ENABLE_GUI)
+  list(PREPEND ALL_ARTS_LIBRARIES artsgui)
+endif()
 
 file (GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
@@ -313,12 +317,6 @@ add_dependencies (artscore auto_version_h)
 
 if (ENABLE_GUI)
   add_subdirectory(gui)
-  target_include_directories(artscore PUBLIC ${ARTS_SOURCE_DIR}/src
-                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
-                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/
-                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui-filebrowser/
-                                             ${ARTS_SOURCE_DIR}/3rdparty/)
-  target_link_libraries (artscore artsgui)
 endif()
 
 target_link_libraries (artscore ${ZLIB_LIBRARIES} wigner)
@@ -588,4 +586,10 @@ add_test(NAME "arts.cpp_api.fast.silly_groundbased_water_test" COMMAND test_cpp_
 if (ENABLE_GUI)
   add_executable(test_gui test_gui.cc)
   target_link_libraries(test_gui PUBLIC ${ALL_ARTS_LIBRARIES})
+endif()
+
+# Generate the RAW test file
+if (ENABLE_GUI)
+  add_executable(test_raw test_raw.cc)
+  target_link_libraries(test_raw ${ALL_ARTS_LIBRARIES} public_arts_interface)
 endif()

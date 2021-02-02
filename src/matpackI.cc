@@ -1592,6 +1592,27 @@ Numeric mean(const ConstVectorView& x) ARTS_NOEXCEPT {
   return mean;
 }
 
+/** Mean function, vector version ignoring nans and infs. */
+Numeric nanmean(const ConstVectorView& x) ARTS_NOEXCEPT {
+  // Initial value for mean:
+  Numeric nanmean = 0;
+  
+  // Counter for the number of normal values
+  Index numnormal = 0;
+  
+  const ConstIterator1D xe = x.end();
+  ConstIterator1D xi = x.begin();
+  
+  for (; xi != xe; ++xi) if (std::isnormal(*xi) or (*xi == 0)) {nanmean += *xi; numnormal++;}
+  
+  if (numnormal)
+    nanmean /= Numeric(numnormal);
+  else
+    nanmean = std::numeric_limits<Numeric>::quiet_NaN();
+  
+  return nanmean;
+}
+
 /** Mean function, matrix version. */
 Numeric mean(const ConstMatrixView& x) ARTS_NOEXCEPT {
   // Initial value for mean:

@@ -20658,6 +20658,36 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ybatchCAHA"),
+      DESCRIPTION(
+          "Computes *ybatch* from input using standard calibration scheme of\n"
+          "a cycle through cold-atm-hot-atm-cold-... observations\n"
+          "\n"
+          "Computes for every full cycle reaching a new hot or cold:\n"
+          "    y = cold_temp + (hot_temp - cold_temp) * (atm - cold) / (hot - cold)\n"
+          "\n"
+          "Assumes data is ordered as Cold-Atm-Hot-Atm-Cold-Atm-Hot-Atm-...,\n"
+          "but Cold does not have to be at data[0], instead the first cold\n"
+          "position is set by c_offset, which defaults to 0 but can be any positive\n"
+          "index so that data[c_offset] is a cold-measurements.  Note that if\n"
+          "c_offset is larger than 1, then the first output data will be around the\n"
+          "observation cycle -HAC-, where H is at data[c_offset-2]\n"
+          ),
+      AUTHORS("Richard Larsson"),
+      OUT("ybatch"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("data", "cold_temp", "hot_temp", "c_offset"),
+      GIN_TYPE("ArrayOfVector", "Vector", "Vector", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("N-elem ArrayOfVector containing raw measurements",
+               "N-elem Vector of cold load temperature",
+               "N-elem Vector of hot load temperature",
+               "Index offset of the first cold position")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchCalc"),

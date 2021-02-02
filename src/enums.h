@@ -35,7 +35,8 @@ std::array<std::string_view, size_t(EnumType::FINAL)> enum_strarray(
   // Set all the values
   for (auto& str: out) {
     // Find a comma but never look beyond the end of the string
-    const std::string_view::size_type N1 = std::min(strchars.find(',', N0), strchars.size());
+    const std::string_view::size_type N1 =
+      std::min(strchars.find(',', N0), strchars.size());
     
     // Set the string between start and the length of the string
     str = strchars.substr(N0, N1 - N0);
@@ -116,7 +117,8 @@ void check_enum_error(EnumType type, Messages ... args) {
     std::string val;                                                      \
     is >> val;                                                            \
     x = to##ENUMTYPE(val);                                                \
-    check_enum_error(x, "Cannot understand value: ", val);                \
+    check_enum_error(x, "Cannot understand value: ", val, "\n"            \
+                     "Valid options are: [" #__VA_ARGS__ "]");            \
     return is;                                                            \
   }
 
