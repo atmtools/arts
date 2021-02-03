@@ -103,7 +103,7 @@ lib.getelemLineShapeModel.restype = c.c_void_p
 lib.getelemLineShapeModel.argtypes = [c.c_long, c.c_void_p]
 
 lib.sizeLineShapeModel.restype = c.c_long
-lib.sizeLineShapeModel.argtypes = []
+lib.sizeLineShapeModel.argtypes = [c.c_void_p]
 
 lib.resizeLineShapeModel.restype = None
-lib.resizeLineShapeModel.argtypes = [c.c_long]
+lib.resizeLineShapeModel.argtypes = [c.c_long, c.c_void_p]
