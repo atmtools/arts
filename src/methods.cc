@@ -753,7 +753,7 @@ void define_md_data_raw() {
       GIN_TYPE("ArrayOfAbsorptionLines"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Line-array that removes lines from *abs_lines*.")));
-  
+
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesDeleteBadF0"),
       DESCRIPTION(
@@ -18503,6 +18503,61 @@ where N>=0 and the species name is something line "H2O".
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("rtp_pos", "rtp_los", "atmosphere_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("starBlackbodySimple"),
+      DESCRIPTION("to be done\n"),
+      AUTHORS("Jon Petersen"),
+      OUT("star_spectrum",
+          "star_pos",
+          "star_do"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("star_spectrum",
+         "star_pos",
+         "f_grid",
+         "stokes_dim"),
+      GIN("star_radius",
+          "star_distance",
+          "star_temperature",
+          "star_latitude",
+          "star_longitude"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric"),
+      GIN_DEFAULT("6.963242e8",
+                  "1.495978707e11",
+                  "5772",
+                  "0",
+                  "0"),
+      GIN_DESC("The radius of the star in meter.\n"
+               "Default is the radius of our sun.\n",
+               "The average distance between the star and the planet in meter.\n"
+               "Default value is set to 1 a.u.\n",
+               "The effective temperature of the stars photosphere in Kelvin.\n"
+               "Default is the temperature of our sun - 5772 Kelvin\n",
+               "The latitude or the azimuthal position of the star in the sky.\n",
+               "The longitude or zenith position of the star in the sky.\n")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("starOff"),
+      DESCRIPTION(
+          "tbd \n"),
+      AUTHORS("Jon Petersen"),
+      OUT("star_do",
+          "star_spectrum",
+          "star_pos"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
