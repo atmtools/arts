@@ -34,7 +34,7 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddZeeman(
     ArrayOfPropagationMatrix& propmat_clearsky,
-    ArrayOfStokesVector& nlte_source,
+    StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     ArrayOfStokesVector& dnlte_source_dx,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -50,6 +50,7 @@ void propmat_clearskyAddZeeman(
     const Vector& rtp_mag,
     const Vector& ppath_los,
     const Index& atmosphere_dim,
+    const Index& nlte_do,
     const Index& lbl_checked,
     const Index& manual_zeeman_tag,
     const Numeric& manual_zeeman_magnetic_field_strength,
@@ -88,6 +89,7 @@ void propmat_clearskyAddZeeman(
                     rtp_los,
                     rtp_pressure,
                     rtp_temperature,
+                    nlte_do,
                     manual_zeeman_tag,
                     manual_zeeman_magnetic_field_strength,
                     manual_zeeman_theta,

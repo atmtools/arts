@@ -53,6 +53,7 @@
  * @param[in]  rtp_los as WSV
  * @param[in]  rtp_pressure as WSV
  * @param[in]  rtp_temperature as WSV
+ * @param[in]  nlte_do as WSV
  * @param[in]  manual_zeeman_tag Sets whether the the magnetic field is input manually
  * @param[in]  manual_zeeman_magnetic_field_strength Magnetic field strength
  * @param[in]  manual_zeeman_theta Magnetic field theta angle
@@ -60,7 +61,7 @@
  */
 void zeeman_on_the_fly(
   ArrayOfPropagationMatrix& propmat_clearsky,
-  ArrayOfStokesVector& nlte_source,
+  StokesVector& nlte_source,
   ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
   ArrayOfStokesVector& dnlte_source_dx,
   const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -75,6 +76,7 @@ void zeeman_on_the_fly(
   const Vector& rtp_los,
   const Numeric& rtp_pressure,
   const Numeric& rtp_temperature,
+  const Index& nlte_do,
   const Index& manual_tag,
   const Numeric& H0,
   const Numeric& theta0,

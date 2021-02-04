@@ -1747,7 +1747,7 @@ void OptimizeDoitPressureGrid(
   // Fields for scalar gas absorption
   const Vector rtp_mag_dummy(3, 0);
   const Vector ppath_los_dummy;
-  ArrayOfStokesVector nlte_dummy;
+  StokesVector nlte_dummy;
   ArrayOfPropagationMatrix partial_dummy;
   ArrayOfStokesVector partial_nlte_dummy;
   EnergyLevelMap rtp_nlte_dummy;

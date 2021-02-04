@@ -441,78 +441,42 @@ void abs_xsec_per_speciesInit(  // WS Output:
 
   ARTS_USER_ERROR_IF (!abs_xsec_agenda_checked,
         "You must call *abs_xsec_agenda_checkedCalc* before calling this method.");
+  
+  // Sizes
+  const Index nq = jacobian_quantities.nelem();
+  const Index nf = f_grid.nelem();
+  const Index np = abs_p.nelem();
+  const Index ns = tgs.nelem();
 
   // We need to check that abs_species_active doesn't have more elements than
   // abs_species (abs_xsec_agenda_checkedCalc doesn't know abs_species_active.
   // Usually we come here through an agenda call, where abs_species_active has
   // been properly created somewhere internally. But we might get here by
   // direct call, and then need to be safe!).
-  ARTS_USER_ERROR_IF (tgs.nelem() < abs_species_active.nelem(),
+  ARTS_USER_ERROR_IF (ns < abs_species_active.nelem(),
     "abs_species_active (n=", abs_species_active.nelem(),
     ") not allowed to have more elements than abs_species (n=",
-    tgs.nelem(), ")!\n")
+    ns, ")!\n")
   
-  const Index nq = jacobian_quantities.nelem();
-
-  // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
-  // is the same as that of abs_lines_per_species.
-  abs_xsec_per_species.resize(tgs.nelem());
-  src_xsec_per_species.resize(tgs.nelem());
-  
-  dabs_xsec_per_species_dx.resize(tgs.nelem());
-  dsrc_xsec_per_species_dx.resize(tgs.nelem());
-
   // Loop abs_xsec_per_species and make each matrix the right size,
   // initializing to zero.
   // But skip inactive species, loop only over the active ones.
   for (Index ii = 0; ii < abs_species_active.nelem(); ++ii) {
-    const Index i = abs_species_active[ii];
-    // Check that abs_species_active index is not higher than the number
-    // of species
-    ARTS_USER_ERROR_IF (i >= tgs.nelem(),
+    ARTS_USER_ERROR_IF (abs_species_active[ii] >= ns,
       "*abs_species_active* contains an invalid species index.\n"
-      "Species index must be between 0 and ", tgs.nelem() - 1)
-    
-    // Make this element of abs_xsec_per_species the right size:
-    abs_xsec_per_species[i].resize(f_grid.nelem(), abs_p.nelem());
-    abs_xsec_per_species[i] = 0;  // Matpack can set all elements like this.
-    if (nlte_do) {
-      src_xsec_per_species[i].resize(f_grid.nelem(), abs_p.nelem());
-      src_xsec_per_species[i] = 0;
-    } else {
-      src_xsec_per_species[i].resize(0, 0);
-    }
-
-    // Initialize matrix absorption
-    dabs_xsec_per_species_dx[ii] = ArrayOfMatrix(nq);
-    for (Index iq=0; iq<nq; iq++) {
-      if (propmattype_index(jacobian_quantities, iq)) {
-        dabs_xsec_per_species_dx[ii][iq] = Matrix(f_grid.nelem(), abs_p.nelem(), 0.0);
-      }
-    }
-    
-    // Initialize matrix source
-    if (nlte_do) {
-      dsrc_xsec_per_species_dx[ii] = ArrayOfMatrix(jacobian_quantities.nelem());
-      for (Index iq=0; iq<nq; iq++) {
-        if (propmattype_index(jacobian_quantities, iq)) {
-          dsrc_xsec_per_species_dx[ii][iq] = Matrix(f_grid.nelem(), abs_p.nelem(), 0.0);
-        }
-      }
-    } else {
-      dsrc_xsec_per_species_dx[ii] = ArrayOfMatrix(jacobian_quantities.nelem());
-      for (Index iq=0; iq<nq; iq++) {
-        if (propmattype_index(jacobian_quantities, iq)) {
-          dsrc_xsec_per_species_dx[ii][iq] = Matrix(0, 0, 0.0);
-        }
-      }
-    }
+      "Species index must be between 0 and ", ns - 1)
   }
+  
+  // Make elements the right size
+  abs_xsec_per_species = ArrayOfMatrix(ns, Matrix(nf, np, 0.0));
+  src_xsec_per_species = ArrayOfMatrix(ns, Matrix(nlte_do ? nf : 0, nlte_do ? np : 0, 0.0));
+  dabs_xsec_per_species_dx = ArrayOfArrayOfMatrix(ns, ArrayOfMatrix(nq, Matrix(nf, np, 0.0)));
+  dsrc_xsec_per_species_dx = ArrayOfArrayOfMatrix(ns, ArrayOfMatrix(nq, Matrix(nlte_do ? nf : 0, nlte_do ? np : 0, 0.0)));
 
   ostringstream os;
   os << "  Initialized abs_xsec_per_species.\n"
-     << "  Number of frequencies        : " << f_grid.nelem() << "\n"
-     << "  Number of pressure levels    : " << abs_p.nelem() << "\n";
+     << "  Number of frequencies        : " << nf << "\n"
+     << "  Number of pressure levels    : " << np << "\n";
   out3 << os.str();
 }
 
@@ -837,7 +801,7 @@ void abs_cont_descriptionAppend(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
-    ArrayOfStokesVector& nlte_source,
+    StokesVector& nlte_source,
     ArrayOfStokesVector& dnlte_source_dx,
     // WS Input:
     const ArrayOfMatrix& src_coef_per_species,
@@ -862,26 +826,18 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
   ARTS_USER_ERROR_IF (1 not_eq src_coef_per_species[0].ncols(),
     "Must have exactly one pressure.")
 
-  // Check species dimension of propmat_clearsky
-  ARTS_USER_ERROR_IF (nlte_source.nelem() not_eq n_species,
-    "Species dimension of propmat_clearsky does not\n"
-    "match src_coef_per_species.")
-
   // Check frequency dimension of propmat_clearsky
-  ARTS_USER_ERROR_IF (nlte_source[0].NumberOfFrequencies() not_eq n_f,
-    "Frequency dimension of propmat_clearsky does not\n"
+  ARTS_USER_ERROR_IF (nlte_source.NumberOfFrequencies() not_eq n_f,
+                      "Frequency dimension of nlte_source does not\n"
     "match abs_coef_per_species.")
   
-  Vector B(n_f);
+  const Vector B = planck(f_grid, rtp_temperature);
 
-  for (Index iv = 0; iv < n_f; iv++)
-    B[iv] = planck(f_grid[iv], rtp_temperature);
-
-  StokesVector sv(n_f, nlte_source[0].StokesDimensions());
+  StokesVector sv(n_f, nlte_source.StokesDimensions());
   for (Index si = 0; si < n_species; ++si) {
     sv.Kjj() = src_coef_per_species[si](joker, 0);
     sv *= B;
-    nlte_source[si].Kjj() += sv.Kjj();
+    nlte_source.Kjj() += sv.Kjj();
   }
 
   // Jacobian
@@ -889,9 +845,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
     if (not propmattype_index(jacobian_quantities, ii)) continue;
     
     if (jacobian_quantities[ii] == Jacobian::Atm::Temperature) {
-      Vector dB(n_f);
-      for (Index iv = 0; iv < n_f; iv++)
-        dB[iv] = dplanck_dt(f_grid[iv], rtp_temperature);
+      const Vector dB = dplanck_dt(f_grid, rtp_temperature);
 
       for (Index si = 0; si < n_species; ++si) {
         sv.Kjj() = src_coef_per_species[si](joker, 0);
@@ -903,9 +857,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
       sv *= B;
       dnlte_source_dx[ii].Kjj() += sv.Kjj();
     } else if (is_frequency_parameter(jacobian_quantities[ii])) {
-      Vector dB(n_f);
-      for (Index iv = 0; iv < n_f; iv++)
-        dB[iv] = dplanck_df(f_grid[iv], rtp_temperature);
+      const Vector dB = dplanck_df(f_grid, rtp_temperature);
 
       for (Index si = 0; si < n_species; ++si) {
         sv.Kjj() = src_coef_per_species[si](joker, 0);
@@ -976,7 +928,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyInit(  //WS Output
     ArrayOfPropagationMatrix& propmat_clearsky,
-    ArrayOfStokesVector& nlte_source,
+    StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     ArrayOfStokesVector& dnlte_source_dx,
     //WS Input
@@ -985,7 +937,6 @@ void propmat_clearskyInit(  //WS Output
     const Vector& f_grid,
     const Index& stokes_dim,
     const Index& propmat_clearsky_agenda_checked,
-    const Index& nlte_do,
     const Verbosity&) {
   const Index nf = f_grid.nelem();
   const Index ns = abs_species.nelem();
@@ -1003,8 +954,8 @@ void propmat_clearskyInit(  //WS Output
   // Owerwrite input as output
   propmat_clearsky = ArrayOfPropagationMatrix(ns, PropagationMatrix(nf, stokes_dim));
   dpropmat_clearsky_dx = ArrayOfPropagationMatrix(nq, PropagationMatrix(nf, stokes_dim));
-  nlte_source = ArrayOfStokesVector(nlte_do ? ns : 0, StokesVector(nf, stokes_dim));
-  dnlte_source_dx = ArrayOfStokesVector(nlte_do ? nq : 0, StokesVector(nf, stokes_dim));
+  nlte_source = StokesVector(nf, stokes_dim);
+  dnlte_source_dx = ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim));
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1357,7 +1308,7 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
     Workspace& ws,
     // WS Output:
     ArrayOfPropagationMatrix& propmat_clearsky,
-    ArrayOfStokesVector& nlte_source,
+    StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     ArrayOfStokesVector& dnlte_source_dx,
     // WS Input:
@@ -1368,6 +1319,7 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
     const Numeric& rtp_temperature,
     const EnergyLevelMap& rtp_nlte,
     const Vector& rtp_vmr,
+    const Index& nlte_do,
     const Agenda& abs_xsec_agenda,
     // Verbosity object:
     const Verbosity& verbosity) {
@@ -1442,7 +1394,7 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
                                            verbosity);
 
   // Now turn nlte_source from absorption into a proper source function
-  if (not nlte_source.empty())
+  if (nlte_do)
     nlte_sourceFromTemperatureAndSrcCoefPerSpecies(nlte_source,
                                                    dnlte_source_dx,
                                                    src_coef_per_species,

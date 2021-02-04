@@ -256,27 +256,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("AbsInputFromRteScalars"),
-      DESCRIPTION(
-          "Initialize absorption input WSVs from local atmospheric conditions.\n"
-          "\n"
-          "The purpose of this method is to allow an explicit line-by-line\n"
-          "calculation, e.g., by *abs_coefCalcFromXsec*, to be put inside the\n"
-          "*propmat_clearsky_agenda*. What the method does is to prepare absorption\n"
-          "input parameters (pressure, temperature, VMRs), from the input\n"
-          "parameters to *propmat_clearsky_agenda*.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("abs_p", "abs_t", "abs_vmrs"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("rtp_pressure", "rtp_temperature", "rtp_vmr"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataAddCIARecord"),
       DESCRIPTION(
           "Takes CIARecord as input and appends the results in the appropriate place.\n"
@@ -339,38 +318,6 @@ void define_md_data_raw() {
       GIN_DESC("Name of the XML file.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_coefCalcFromXsec"),
-      DESCRIPTION("Calculate absorption coefficients from cross sections.\n"
-                  "\n"
-                  "This calculates both the total absorption and the\n"
-                  "absorption per species.\n"
-                  "\n"
-                  "Cross sections are multiplied by n*VMR.\n"),
-      AUTHORS("Stefan Buehler", "Axel von Engeln"),
-      OUT("abs_coef",
-          "src_coef",
-          "dabs_coef_dx",
-          "dsrc_coef_dx",
-          "abs_coef_per_species",
-          "src_coef_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "src_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "dsrc_xsec_per_species_dx",
-         "abs_species",
-         "jacobian_quantities",
-         "abs_vmrs",
-         "abs_p",
-         "abs_t"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cont_descriptionAppend"),
       DESCRIPTION(
           "Appends the description of a continuum model or a complete absorption\n"
@@ -408,9 +355,9 @@ void define_md_data_raw() {
           "*abs_cont_descriptionAppend* wants to append to the variables.\n"
           "\n"
           "Formally, the continuum description workspace variables are required\n"
-          "by the absorption calculation methods (e.g., *abs_coefCalcFromXsec*). Therefore you\n"
-          "always have to call at least *abs_cont_descriptionInit*, even if you do\n"
-          "not want to use any continua.\n"),
+          "by the absorption calculation methods (e.g., *abs_xsec_per_speciesAddConts*).\n"
+          "Therefore you always have to call at least *abs_cont_descriptionInit*, even\n"
+          "if you do not want to use any continua.\n"),
       AUTHORS("Thomas Kuhn", "Stefan Buehler"),
       OUT("abs_cont_names", "abs_cont_models", "abs_cont_parameters"),
       GOUT(),
@@ -10745,26 +10692,6 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(create_mdrecord(
-      NAME("nlte_sourceFromTemperatureAndSrcCoefPerSpecies"),
-      DESCRIPTION(
-          "Turn NLTE absorption per species into the source function by multiplying\n"
-          "NLTE absorption per species with the LTE Planck source function.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("nlte_source", "dnlte_source_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("src_coef_per_species",
-         "dsrc_coef_dx",
-         "jacobian_quantities",
-         "f_grid",
-         "rtp_temperature"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
   md_data_raw.push_back(
       create_mdrecord(NAME("nlteOff"),
                DESCRIPTION("Disable Non-LTE calculations.\n"
@@ -12524,26 +12451,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("propmat_clearskyAddFromAbsCoefPerSpecies"),
-      DESCRIPTION(
-          "Copy *propmat_clearsky* from *abs_coef_per_species*. This is handy for putting an\n"
-          "explicit line-by-line calculation into the\n"
-          "*propmat_clearsky_agenda*. This method is also used internally by.\n"
-          "*propmat_clearskyAddOnTheFly*.\n"
-          "Like all other propmat_clearsky methods, this method does not overwrite\n"
-          "prior content of *propmat_clearsky*, but adds to it.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("propmat_clearsky", "abs_coef_per_species", "dabs_coef_dx"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFromLookup"),
       DESCRIPTION(
           "Extract gas absorption coefficients from lookup table.\n"
@@ -12714,16 +12621,12 @@ void define_md_data_raw() {
           "Calculates gas absorption coefficients line-by-line.\n"
           "\n"
           "This method can be used inside *propmat_clearsky_agenda* just like\n"
-          "*propmat_clearskyAddFromLookup*. It is a shortcut for putting in some\n"
-          "other methods explicitly, namely:\n"
-          "\n"
-          "  1. *AbsInputFromRteScalars*\n"
-          "  2. Execute *abs_xsec_agenda*\n"
-          "  3. *abs_coefCalcFromXsec*\n"
-          "  4. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
+          "*propmat_clearskyAddFromLookup*. It is a wrapper for putting the\n"
+          "cross-sections generated by *abs_xsec_agenda* into *propmat_clearsky*,\n"
+          "*nlte_field*, *dpropmat_clearsky_dx*, and *dnlte_source_dx*.\n"
           "\n"
           "The calculation is for one specific atmospheric condition, i.e., a set\n"
-          "of pressure, temperature, and VMR values.\n"),
+          "of pressure, temperature, NLTE, and VMR values.\n"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
       OUT("propmat_clearsky",
           "nlte_source",
@@ -12743,6 +12646,7 @@ void define_md_data_raw() {
          "rtp_temperature",
          "rtp_nlte",
          "rtp_vmr",
+         "nlte_do",
          "abs_xsec_agenda"),
       GIN(),
       GIN_TYPE(),
@@ -12854,6 +12758,7 @@ void define_md_data_raw() {
          "rtp_mag",
          "rtp_los",
          "atmosphere_dim",
+         "nlte_do",
          "lbl_checked"),
       GIN("manual_zeeman_tag",
           "manual_zeeman_magnetic_field_strength",
@@ -12885,8 +12790,7 @@ void define_md_data_raw() {
          "jacobian_quantities",
          "f_grid",
          "stokes_dim",
-         "propmat_clearsky_agenda_checked",
-         "nlte_do"),
+         "propmat_clearsky_agenda_checked"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -12968,7 +12872,7 @@ void define_md_data_raw() {
           "The calculation itself is performed by the\n"
           "*propmat_clearsky_agenda*.\n"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
-      OUT("propmat_clearsky_field", "nlte_source_field"),
+      OUT("propmat_clearsky_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),

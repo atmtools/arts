@@ -258,7 +258,8 @@ void get_gasoptprop(Workspace& ws,
   const EnergyLevelMap rtp_nlte_dummy;
   const Vector rtp_mag_dummy(3, 0);
   const Vector ppath_los_dummy;
-  ArrayOfStokesVector nlte_dummy, partial_nlte_dummy;
+  StokesVector nlte_dummy;
+  ArrayOfStokesVector partial_nlte_dummy;
   ArrayOfPropagationMatrix partial_dummy;
 
   ArrayOfPropagationMatrix propmat_clearsky_local;

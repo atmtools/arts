@@ -1465,6 +1465,16 @@ class StokesVector final : public PropagationMatrix {
                      const Index ia = 0) const {
     return not IsPolarized(iv, iz, ia);
   }
+  
+  bool allZeroes() const {
+    for (Index i=0; i<maa; i++)
+      for (Index j=0; j<mza; j++)
+        for (Index k=0; k<mfreqs; k++)
+          for (Index m=0; m<mstokes_dim; m++)
+            if (mdata(i, j, k, m) not_eq 0)
+              return false;
+    return true;
+  }
 };
 
 typedef Array<StokesVector> ArrayOfStokesVector;

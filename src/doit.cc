@@ -698,9 +698,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       const Vector rtp_mag_dummy(3, 0);
       const Vector ppath_los_dummy;
 
-      ArrayOfStokesVector nlte_dummy;  //FIXME: do this right?
-      ArrayOfPropagationMatrix
-          partial_dummy;  // This is right since there should be only clearsky partials
+      StokesVector nlte_dummy;  //FIXME: do this right?
+      ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
       ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
@@ -823,9 +822,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       const Vector rtp_mag_dummy(3, 0);
       const Vector ppath_los_dummy;
-      ArrayOfStokesVector nlte_dummy;  //FIXME: do this right?
-      ArrayOfPropagationMatrix
-          partial_dummy;  // This is right since there should be only clearsky partials
+      StokesVector nlte_dummy;  //FIXME: do this right?
+      ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
       ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
@@ -1431,9 +1429,8 @@ void cloud_RT_no_background(Workspace& ws,
     const Vector rtp_mag_dummy(3, 0);
     const Vector ppath_los_dummy;
 
-    ArrayOfStokesVector nlte_dummy;  //FIXME: do this right?
-    ArrayOfPropagationMatrix
-        partial_dummy;  // This is right since there should be only clearsky partials
+    StokesVector nlte_dummy;  //FIXME: do this right?
+    ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
     ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
     propmat_clearsky_agendaExecute(ws,
                                    cur_propmat_clearsky,

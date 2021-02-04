@@ -1177,15 +1177,15 @@ void get_stepwise_clearsky_propmat(
   const Index nq = jacobian_quantities.nelem();
 
   // Local variables inside Agenda
-  ArrayOfPropagationMatrix propmat_clearsky, dpropmat_clearsky_dx;
-  ArrayOfStokesVector nlte_source, dnlte_source_dx;
+  ArrayOfPropagationMatrix propmat_clearsky;//, dpropmat_clearsky_dx;
+//   ArrayOfStokesVector dnlte_source_dx;
 
   // Perform the propagation matrix computations
   propmat_clearsky_agendaExecute(ws,
                                  propmat_clearsky,
-                                 nlte_source,
-                                 dpropmat_clearsky_dx,
-                                 dnlte_source_dx,
+                                 S,
+                                 dK_dx,
+                                 dS_dx,
                                  jacobian_do ? jacobian_quantities : ArrayOfRetrievalQuantity(0),
                                  ppath_f_grid,
                                  ppath_magnetic_field,
@@ -1199,21 +1199,12 @@ void get_stepwise_clearsky_propmat(
   // We only now know how large the propagation matrix will be!
   const Index npmat = propmat_clearsky.nelem();
 
-  // If therea re no NLTE elements, then set the LTE flag
-  lte = nlte_source.nelem() ? 0 : 1;
+  // If there are no NLTE values, then set the LTE flag as true
+  lte = S.allZeroes();  // FIXME: Should be nlte_do?
 
   // Sum the propagation matrix
   K = propmat_clearsky[0];
   for (Index i = 1; i < npmat; i++) K += propmat_clearsky[i];
-
-  // Set NLTE source term if applicable
-  if (not lte) {
-    // Add all source terms up
-    S = nlte_source[0];
-    for (Index i = 1; i < npmat; i++) S += nlte_source[i];
-  } else {
-    S.SetZero();
-  }
 
   // Set the partial derivatives
   if (jacobian_do) {
@@ -1223,24 +1214,23 @@ void get_stepwise_clearsky_propmat(
         dK_dx[i].SetZero();
         dS_dx[i].SetZero();
       } else if (jacobian_quantities[i] == Jacobian::Type::Atm or jacobian_quantities[i] == Jacobian::Type::Line) {
-        dK_dx[i] = std::move(dpropmat_clearsky_dx[i]);
-        if (lte) {
-          dS_dx[i].SetZero();
-        } else {
-          dS_dx[i] = std::move(dnlte_source_dx[i]);
-        }
+//         dK_dx[i] = dpropmat_clearsky_dx[i];
+//         if (lte) {
+//           dS_dx[i].SetZero();
+//         } else {
+//           dS_dx[i] = dnlte_source_dx[i];
+//         }
       } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
       {
-        dK_dx[i] = std::move(propmat_clearsky[jacobian_species[i]]);
+        dK_dx[i] = propmat_clearsky[jacobian_species[i]];
 
         // We cannot know the NLTE jacobian if this method was used
         // because that information is thrown away. It is still faster
         // to retain this method since it requires less computations
         // when we do not need NLTE, which is most of the time...
         ARTS_USER_ERROR_IF (not lte,
-          "We do not yet support species"
-          " tag and NLTE Jacobians.\n")
-        dS_dx[i].SetZero();
+          "We will not support species "
+          "tag and NLTE Jacobians.\n")
       }
     }
   }

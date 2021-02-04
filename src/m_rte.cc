@@ -319,7 +319,6 @@ void iyEmissionStandard(
     // Size radiative variables always used
     Vector B(nf);
     StokesVector a(nf, ns), S(nf, ns);
-    ArrayOfIndex lte(np);
 
     // Init variables only used if analytical jacobians done
     Vector dB_dT(0);
@@ -359,10 +358,11 @@ void iyEmissionStandard(
         get_stepwise_blackbody_radiation(
             B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
 
+        Index lte;
         get_stepwise_clearsky_propmat(l_ws,
                                       K[ip],
                                       S,
-                                      lte[ip],
+                                      lte,
                                       dK_dx[ip],
                                       dS_dx,
                                       l_propmat_clearsky_agenda,
@@ -387,7 +387,7 @@ void iyEmissionStandard(
                                              ppvar_t[ip],
                                              ppvar_p[ip],
                                              jac_species_i,
-                                             lte[ip],
+                                             lte,
                                              atmosphere_dim,
                                              j_analytical_do);
 

@@ -75,7 +75,7 @@ bool any_negative(const MatpackType& var) noexcept {
 
 void zeeman_on_the_fly(
     ArrayOfPropagationMatrix& propmat_clearsky,
-    ArrayOfStokesVector& nlte_source,
+    StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     ArrayOfStokesVector& dnlte_source_dx,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -90,6 +90,7 @@ void zeeman_on_the_fly(
     const Vector& rtp_los,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
+    const Index& nlte_do,
     const Index& manual_tag,
     const Numeric& H0,
     const Numeric& theta0,
@@ -99,7 +100,6 @@ void zeeman_on_the_fly(
   const Index nf = f_grid.nelem();
   const Index nq = jacobian_quantities.nelem();
   const Index ns = abs_species.nelem();
-  const Index nn = rtp_nlte.Levels().nelem();
 
   // Possible things that can go wrong in this code (excluding line parameters)
   ARTS_USER_ERROR_IF(bad_abs_species(abs_species),
@@ -112,17 +112,17 @@ void zeeman_on_the_fly(
     "*abs_species* must match *propmat_clearsky*")
   ARTS_USER_ERROR_IF(bad_propmat(propmat_clearsky, f_grid),
     "*propmat_clearsky* must have *stokes_dim* 4 and frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(not nlte_source.empty() and (nlte_source.nelem() not_eq abs_species.nelem()),
-    "*abs_species* must match *nlte_source* when non-LTE is on")
-  ARTS_USER_ERROR_IF(not nlte_source.empty() and bad_propmat(nlte_source, f_grid),
-    "*nlte_source* must have *stokes_dim* 4 and frequency dim same as *f_grid* when non-LTE is on")
+  ARTS_USER_ERROR_IF(nlte_source.NumberOfFrequencies() not_eq nf,
+    "*f_grid* must match *nlte_source*")
+  ARTS_USER_ERROR_IF(nlte_source.StokesDimensions() not_eq 4,
+    "*nlte_source* must have *stokes_dim* 4")
   ARTS_USER_ERROR_IF(not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
     "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
   ARTS_USER_ERROR_IF(not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
     "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq dnlte_source_dx.nelem()),
+  ARTS_USER_ERROR_IF(nlte_do and (nq not_eq dnlte_source_dx.nelem()),
     "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(dnlte_source_dx, f_grid),
+  ARTS_USER_ERROR_IF(nlte_do and bad_propmat(dnlte_source_dx, f_grid),
     "*dnlte_source_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
@@ -158,9 +158,9 @@ void zeeman_on_the_fly(
       Zeeman::AllPolarization_deta(X.theta, X.eta);
       
   // Non-LTE
-  const Vector B = nn ? planck(f_grid, rtp_temperature) : Vector(0);
-  const Vector dBdT = nn ? dplanck_dt(f_grid, rtp_temperature) : Vector(0);
-  const Vector dBdf = nn ? dplanck_df(f_grid, rtp_temperature) : Vector(0);
+  const Vector B = nlte_do ? planck(f_grid, rtp_temperature) : Vector(0);
+  const Vector dBdT = nlte_do ? dplanck_dt(f_grid, rtp_temperature) : Vector(0);
+  const Vector dBdf = nlte_do ? dplanck_df(f_grid, rtp_temperature) : Vector(0);
   const auto eB = MapToEigen(B);
   const auto edBdT = MapToEigen(dBdT);
   const auto edBdf = MapToEigen(dBdf);
@@ -300,9 +300,8 @@ void zeeman_on_the_fly(
         }
 
         // Source vector calculations
-        if (nn) {
-          auto nlte_src =
-              nlte_source[ispecies].Data()(0, 0, joker, joker);
+        if (nlte_do) {
+          auto nlte_src = nlte_source.Data()(0, 0, joker, joker);
 
           MapToEigen(nlte_src)
               .leftCols<4>()

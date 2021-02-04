@@ -87,11 +87,6 @@ void abs_lookupCalc(  // Workspace reference:
   // species. But it means we need local copies of species, line list,
   // and line shapes for agenda communication.
 
-  // 1. Output of absorption calculations:
-
-  // Absorption coefficients:
-  Matrix these_abs_coef;
-
   // Absorption cross sections per tag group.
   ArrayOfMatrix abs_xsec_per_species, src_xsec_per_species;
   ArrayOfArrayOfMatrix dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx;
@@ -2134,7 +2129,6 @@ void propmat_clearskyAddFromLookup(
 void propmat_clearsky_fieldCalc(Workspace& ws,
                                 // WS Output:
                                 Tensor7& propmat_clearsky_field,
-                                Tensor6& nlte_source_field,
                                 // WS Input:
                                 const Index& atmfields_checked,
                                 const Vector& f_grid,
@@ -2165,7 +2159,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   ArrayOfPropagationMatrix partial_abs;
   ArrayOfStokesVector partial_nlte;  // FIXME: This is not stored!
   ArrayOfPropagationMatrix abs;
-  ArrayOfStokesVector nlte;
+  StokesVector nlte;
   Vector a_vmr_list;
   EnergyLevelMap a_nlte_list;
 
@@ -2211,30 +2205,6 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                 n_pressures,
                                 n_latitudes,
                                 n_longitudes);
-  if (nlte_field.Data().empty()) {
-    out2 << "  Creating source field with dimensions:\n"
-         << "    " << n_species << "   gas species,\n"
-         << "    " << n_frequencies << "   frequencies,\n"
-         << "    " << stokes_dim << "   stokes dimension,\n"
-         << "    " << n_pressures << "   pressures,\n"
-         << "    " << n_latitudes << "   latitudes,\n"
-         << "    " << n_longitudes << "   longitudes.\n";
-    nlte_source_field.resize(n_species,
-                             n_frequencies,
-                             stokes_dim,
-                             n_pressures,
-                             n_latitudes,
-                             n_longitudes);
-  } else {
-    out2 << "  Creating source field with dimensions:\n"
-         << "    " << 0 << "   gas species,\n"
-         << "    " << 0 << "   frequencies,\n"
-         << "    " << 0 << "   stokes dimension,\n"
-         << "    " << 0 << "   pressures,\n"
-         << "    " << 0 << "   latitudes,\n"
-         << "    " << 0 << "   longitudes.\n";
-    nlte_source_field.resize(0, 0, 0, 0, 0, 0);
-  }
 
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
@@ -2360,12 +2330,6 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
             for (Index i = 0; i < abs.nelem(); i++) {
               abs[i].GetTensor3(propmat_clearsky_field(
                   i, joker, joker, joker, ipr, ila, ilo));
-
-              if (not nlte_field.Data().empty()) {
-                //If some are NLTE and others not, this might be bad...
-                nlte_source_field(i, joker, joker, ipr, ila, ilo) =
-                nlte[i].Data()(0, 0, joker, joker);
-              }
             }
           }
       } catch (const std::runtime_error& e) {
@@ -2483,7 +2447,7 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
 
   // Variable to hold result of absorption calculation:
   ArrayOfPropagationMatrix propmat_clearsky;
-  ArrayOfStokesVector nlte_source;
+  StokesVector nlte_source;
   ArrayOfPropagationMatrix dpropmat_clearsky_dx;
   ArrayOfStokesVector dnlte_source_dx;
   ArrayOfMatrix d;
@@ -2501,7 +2465,6 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
                        al.f_grid,
                        1,  // Stokes dimension
                        propmat_clearsky_checked,
-                       nlte_do,
                        verbosity);
 
   // Add result of LBL calculation to propmat_clearsky:
@@ -2517,6 +2480,7 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
                               local_t,
                               local_nlte_dummy,
                               local_vmrs,
+                              nlte_do,
                               abs_xsec_agenda,
                               verbosity);
 
