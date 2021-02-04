@@ -1177,8 +1177,7 @@ void get_stepwise_clearsky_propmat(
   const Index nq = jacobian_quantities.nelem();
 
   // Local variables inside Agenda
-  ArrayOfPropagationMatrix propmat_clearsky;//, dpropmat_clearsky_dx;
-//   ArrayOfStokesVector dnlte_source_dx;
+  ArrayOfPropagationMatrix propmat_clearsky;
 
   // Perform the propagation matrix computations
   propmat_clearsky_agendaExecute(ws,
@@ -1211,15 +1210,7 @@ void get_stepwise_clearsky_propmat(
     for (Index i = 0; i < nq; i++) {
       if (not propmattype_index(jacobian_quantities, i)) continue;
       if (jacobian_quantities[i] == Jacobian::Special::ScatteringString) {
-        dK_dx[i].SetZero();
-        dS_dx[i].SetZero();
       } else if (jacobian_quantities[i] == Jacobian::Type::Atm or jacobian_quantities[i] == Jacobian::Type::Line) {
-//         dK_dx[i] = dpropmat_clearsky_dx[i];
-//         if (lte) {
-//           dS_dx[i].SetZero();
-//         } else {
-//           dS_dx[i] = dnlte_source_dx[i];
-//         }
       } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
       {
         dK_dx[i] = propmat_clearsky[jacobian_species[i]];
