@@ -234,6 +234,27 @@ void planck(VectorView b, ConstVectorView f, const Numeric& t) {
   for (Index i = 0; i < f.nelem(); i++) b[i] = planck(f[i], t);
 }
 
+/** planck
+ *
+ * Calculates the Planck function for a single temperature and a vector of
+ * frequencies.
+ *
+ * Note that this expression gives the intensity for both polarisations.
+ *
+ * @param[in]  f  Frequency.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Blackbody radiation.
+ *
+ * @author Patrick Eriksson
+ * @date   2015-12-15
+ */
+Vector planck(ConstVectorView f, const Numeric& t) {
+  Vector b(f.nelem());
+  for (Index i = 0; i < f.nelem(); i++) b[i] = planck(f[i], t);
+  return b;
+}
+
 /** dplanck_dt
  *
  * Calculates the temperature derivative of the Planck function
@@ -279,6 +300,25 @@ void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) {
   for (Index i = 0; i < f.nelem(); i++) dbdt[i] = dplanck_dt(f[i], t);
 }
 
+/** dplanck_dt
+ * 
+ * Calculates the Planck function temperature derivative for a single
+ * temperature and a vector of frequencies.
+ *
+ * @param[in]  f  Frequency.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Blackbody radiation temperature derivative.
+ *
+ * @author Richard Larsson
+ * @date   2019-10-11
+ */
+Vector dplanck_dt(ConstVectorView f, const Numeric& t) {
+  Vector dbdt(f.nelem());
+  for (Index i = 0; i < f.nelem(); i++) dbdt[i] = dplanck_dt(f[i], t);
+  return dbdt;
+}
+
 /** dplanck_df
  *
  * Calculates the frequency derivative of the Planck function
@@ -302,6 +342,25 @@ Numeric dplanck_df(const Numeric& f, const Numeric& t)  {
   const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
   return a * Constant::pow2(f) * (3.0 - (b * f / t) * (1 + inv_exp_t_m1)) * inv_exp_t_m1;
+}
+
+/** dplanck_df
+ * 
+ * Calculates the frequency derivative of the Planck function
+ * for a single temperature and frequency.
+ *
+ * @param[in]  f  Frequency.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Blackbody radiation frequency derivative.
+ *
+ * @author Richard Larsson
+ * @date   2015-09-15
+ */
+Vector dplanck_df(const ConstVectorView f, const Numeric& t)  {
+  Vector dbdf(f.nelem());
+  for (Index i = 0; i < f.nelem(); i++) dbdf[i] = dplanck_df(f[i], t);
+  return dbdf;
 }
 
 /** rayjean

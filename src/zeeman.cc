@@ -158,14 +158,12 @@ void zeeman_on_the_fly(
       Zeeman::AllPolarization_deta(X.theta, X.eta);
       
   // Non-LTE
-  Vector B(nn?nf:0);
-  Vector dBdT(nn?nf:0);
-  if (nn) {
-    planck(B, f_grid, rtp_temperature);
-    dplanck_dt(dBdT, f_grid, rtp_temperature);
-  }
+  const Vector B = nn ? planck(f_grid, rtp_temperature) : Vector(0);
+  const Vector dBdT = nn ? dplanck_dt(f_grid, rtp_temperature) : Vector(0);
+  const Vector dBdf = nn ? dplanck_df(f_grid, rtp_temperature) : Vector(0);
   const auto eB = MapToEigen(B);
   const auto edBdT = MapToEigen(dBdT);
+  const auto edBdf = MapToEigen(dBdf);
 
   for (auto polar : {Zeeman::Polarization::SigmaMinus,
                      Zeeman::Polarization::Pi,
@@ -301,7 +299,7 @@ void zeeman_on_the_fly(
           }
         }
 
-          // Source vector calculations
+        // Source vector calculations
         if (nn) {
           auto nlte_src =
               nlte_source[ispecies].Data()(0, 0, joker, joker);
@@ -328,35 +326,43 @@ void zeeman_on_the_fly(
 
               nlte_dsrc_dx.noalias() +=
                   numdens * edBdT.cwiseProduct(sum.N.real()) * pol_real;
-            } else if (deriv == Jacobian::Atm::MagneticU)
+            } else if (deriv.Target().isWind()) {
+              dnlte_dx_src.noalias() +=
+              dnumdens_dT * eB.cwiseProduct(sum.N.real()) * pol_real +
+              numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
+              
+              nlte_dsrc_dx.noalias() +=
+              numdens * edBdf.cwiseProduct(sum.N.real()) * pol_real;
+            } else if (deriv == Jacobian::Atm::MagneticU) {
               dnlte_dx_src.noalias() +=
                   numdens * X.dH_du * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
                   numdens * X.deta_du * eB.cwiseProduct(sum.N.real()) *
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_du * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            else if (deriv == Jacobian::Atm::MagneticV)
+            } else if (deriv == Jacobian::Atm::MagneticV) {
               dnlte_dx_src.noalias() +=
                   numdens * X.dH_dv * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
                   numdens * X.deta_dv * eB.cwiseProduct(sum.N.real()) *
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_dv * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            else if (deriv == Jacobian::Atm::MagneticW)
+            } else if (deriv == Jacobian::Atm::MagneticW) {
               dnlte_dx_src.noalias() +=
                   numdens * X.dH_dw * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
                   numdens * X.deta_dw * eB.cwiseProduct(sum.N.real()) *
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_dw * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            else if (deriv == Jacobian::Line::VMR and
-                    deriv.QuantumIdentity().In(band.QuantumIdentity()))
+            } else if (deriv == Jacobian::Line::VMR and
+                     deriv.QuantumIdentity().In(band.QuantumIdentity())) {
               dnlte_dx_src.noalias() +=
                   dnumdens_dmvr * eB.cwiseProduct(sum.N.real()) * pol_real +
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
-            else
+            } else {
               dnlte_dx_src.noalias() +=
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
+            }
           }
         }
       }
