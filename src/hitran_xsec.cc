@@ -164,8 +164,10 @@ void XsecRecord::Extract(VectorView result,
                          const Index extrapolate_temperature,
                          const Verbosity& verbosity) const {
   if (mversion == 1) {
+    // Old algorithm
     Extract1(result, f_grid, pressure, temperature, 1, verbosity);
   } else if (mversion == 2) {
+    // New algorithm
     Extract2(result,
              f_grid,
              pressure,
@@ -445,7 +447,11 @@ void XsecRecord::Extract2(VectorView result,
         mfitcoeffs[this_dataset_i].data(active_range, joker);
 
     Vector fit_result(data_f_extent);
-    Vector derivative(data_f_extent);
+    Vector derivative;
+    // Only allocate derivative if extrapolation is enabled
+    if (extrapolate_p || extrapolate_t) {
+      derivative.resize(data_f_extent);
+    }
 
     // We have to create a matching view on the result vector:
     VectorView result_active = result[Range(i_fstart, f_extent)];
