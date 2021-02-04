@@ -934,21 +934,13 @@ void dxdvmrscf(Numeric& x,
 //             Propmat partials descriptions
 //======================================================================
 
-/** Returns a list of positions for the derivatives in Propagation Matrix calculations
- * 
- * @param[in] js As jacobian_quantities WSV
- * @return List of positions
- */
-ArrayOfIndex equivalent_propmattype_indexes(const ArrayOfRetrievalQuantity& js);
-
-/** Returns a list of positions for the derivatives in Propagation Matrix calculations
+/** Returns if the indexed value is a propagation matrix value
  * 
  * @param[in] js As jacobian_quantities WSV
  * @param[in] i A position in jacobian_quantities
- * @return List of position
+ * @return true if this index can be used in propmat calculations
  */
-Index equivalent_propmattype_index(const ArrayOfRetrievalQuantity& js,
-                                  const Index i) noexcept;
+bool propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) ARTS_NOEXCEPT;
 
 /** Returns the temperature perturbation if it exists
  * 

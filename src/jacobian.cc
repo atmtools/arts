@@ -999,18 +999,9 @@ void dxdvmrscf(Numeric& x,
 //             Propmat partials descriptions
 //======================================================================
 
-ArrayOfIndex equivalent_propmattype_indexes(const ArrayOfRetrievalQuantity& js) {
-  ArrayOfIndex pos;
-  pos.reserve(js.nelem());
-  for (Index i = 0; i < js.nelem(); i++)
-    if (not (js[i] == Jacobian::Type::Special or js[i] == Jacobian::Type::Sensor))
-      pos.push_back(i);
-  return pos;
-}
-
-Index equivalent_propmattype_index(const ArrayOfRetrievalQuantity& js,
-                                   const Index i) noexcept {
-  return equivalent_propmattype_indexes(js)[i];
+bool propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) ARTS_NOEXCEPT {
+  ARTS_ASSERT (js.nelem() > i)
+  return (not (js[i] == Jacobian::Type::Special or js[i] == Jacobian::Type::Sensor));
 }
 
 bool is_wind_parameter(const RetrievalQuantity& t) noexcept {

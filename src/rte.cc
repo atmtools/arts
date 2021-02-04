@@ -1186,7 +1186,7 @@ void get_stepwise_clearsky_propmat(
                                  nlte_source,
                                  dpropmat_clearsky_dx,
                                  dnlte_source_dx,
-                                 jacobian_quantities,
+                                 jacobian_do ? jacobian_quantities : ArrayOfRetrievalQuantity(0),
                                  ppath_f_grid,
                                  ppath_magnetic_field,
                                  ppath_line_of_sight,
@@ -1218,22 +1218,20 @@ void get_stepwise_clearsky_propmat(
   // Set the partial derivatives
   if (jacobian_do) {
     for (Index i = 0; i < nq; i++) {
+      if (not propmattype_index(jacobian_quantities, i)) continue;
       if (jacobian_quantities[i] == Jacobian::Special::ScatteringString) {
         dK_dx[i].SetZero();
         dS_dx[i].SetZero();
       } else if (jacobian_quantities[i] == Jacobian::Type::Atm or jacobian_quantities[i] == Jacobian::Type::Line) {
-        // Find position of index in ppd
-        const Index j = equivalent_propmattype_index(jacobian_quantities, i);
-
-        dK_dx[i] = dpropmat_clearsky_dx[j];
+        dK_dx[i] = std::move(dpropmat_clearsky_dx[i]);
         if (lte) {
           dS_dx[i].SetZero();
         } else {
-          dS_dx[i] = dnlte_source_dx[j];
+          dS_dx[i] = std::move(dnlte_source_dx[i]);
         }
       } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
       {
-        dK_dx[i] = propmat_clearsky[jacobian_species[i]];
+        dK_dx[i] = std::move(propmat_clearsky[jacobian_species[i]]);
 
         // We cannot know the NLTE jacobian if this method was used
         // because that information is thrown away. It is still faster

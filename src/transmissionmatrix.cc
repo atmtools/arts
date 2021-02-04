@@ -32,71 +32,101 @@
 
 constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
 
-inline Numeric vector1(const StokesVector& a,
-                       const ConstVectorView& B,
-                       const StokesVector& da,
-                       const ConstVectorView& dB_dT,
-                       const StokesVector& dS,
-                       bool dT,
-                       Index i) noexcept {
-  if (dT)
-    return dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i];
-  else
-    return dS.Kjj()[i] + da.Kjj()[i] * B[i];
+template <int N> constexpr
+Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
+                                           const ConstVectorView& B,
+                                           const StokesVector& da,
+                                           const ConstVectorView& dB_dT,
+                                           const StokesVector& dS,
+                                           bool dT,
+                                           Index i) {
+  if constexpr (N == 1) {
+    if (dT) {
+      return Eigen::Matrix<Numeric, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i]);
+    } else {
+      return Eigen::Matrix<Numeric, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i]);
+    }
+  } else if constexpr (N == 2) {
+    if (dT) {
+      return Eigen::Vector2d(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
+                             dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i]);
+    } else {
+      return Eigen::Vector2d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
+                             dS.K12()[i] + da.K12()[i] * B[i]);
+    }
+  } else if constexpr (N == 3) {
+    if (dT) {
+      return Eigen::Vector3d(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
+                             dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
+                             dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i]);
+    } else {
+      return Eigen::Vector3d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
+                             dS.K12()[i] + da.K12()[i] * B[i],
+                             dS.K13()[i] + da.K13()[i] * B[i]);
+    }
+  } else if constexpr (N == 4) {
+    if (dT) {
+      return Eigen::Vector4d(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
+                             dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
+                             dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i],
+                             dS.K14()[i] + da.K14()[i] * B[i] + a.K14()[i] * dB_dT[i]);
+    } else {
+      return Eigen::Vector4d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
+                             dS.K12()[i] + da.K12()[i] * B[i],
+                             dS.K13()[i] + da.K13()[i] * B[i],
+                             dS.K14()[i] + da.K14()[i] * B[i]);
+    }
+  } else {
+    static_assert(N>0 and N<5, "Bad stokes dimensions");
+  }
 }
 
-inline Eigen::Vector2d vector2(const StokesVector& a,
-                               const ConstVectorView& B,
-                               const StokesVector& da,
-                               const ConstVectorView& dB_dT,
-                               const StokesVector& dS,
-                               bool dT,
-                               Index i) noexcept {
-  if (dT)
-    return Eigen::Vector2d(
-        dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
-        dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i]);
-  else
-    return Eigen::Vector2d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
-                           dS.K12()[i] + da.K12()[i] * B[i]);
-}
-
-inline Eigen::Vector3d vector3(const StokesVector& a,
-                               const ConstVectorView& B,
-                               const StokesVector& da,
-                               const ConstVectorView& dB_dT,
-                               const StokesVector& dS,
-                               bool dT,
-                               Index i) noexcept {
-  if (dT)
-    return Eigen::Vector3d(
-        dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
-        dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
-        dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i]);
-  else
-    return Eigen::Vector3d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
-                           dS.K12()[i] + da.K12()[i] * B[i],
-                           dS.K13()[i] + da.K13()[i] * B[i]);
-}
-
-inline Eigen::Vector4d vector4(const StokesVector& a,
-                               const ConstVectorView& B,
-                               const StokesVector& da,
-                               const ConstVectorView& dB_dT,
-                               const StokesVector& dS,
-                               bool dT,
-                               Index i) noexcept {
-  if (dT)
-    return Eigen::Vector4d(
-        dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
-        dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
-        dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i],
-        dS.K14()[i] + da.K14()[i] * B[i] + a.K14()[i] * dB_dT[i]);
-  else
-    return Eigen::Vector4d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
-                           dS.K12()[i] + da.K12()[i] * B[i],
-                           dS.K13()[i] + da.K13()[i] * B[i],
-                           dS.K14()[i] + da.K14()[i] * B[i]);
+template <int N> constexpr
+Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
+                                           const ConstVectorView& B,
+                                           const StokesVector& da,
+                                           const ConstVectorView& dB_dT,
+                                           bool dT,
+                                           Index i) {
+  if constexpr (N == 1) {
+    if (dT) {
+      return Eigen::Matrix<Numeric, 1, 1>(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i]);
+    } else {
+      return Eigen::Matrix<Numeric, 1, 1>(da.Kjj()[i] * B[i]);
+    }
+  } else if constexpr (N == 2) {
+    if (dT) {
+      return Eigen::Vector2d(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
+                             da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i]);
+    } else {
+      return Eigen::Vector2d(da.Kjj()[i] * B[i],
+                             da.K12()[i] * B[i]);
+    }
+  } else if constexpr (N == 3) {
+    if (dT) {
+      return Eigen::Vector3d(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
+                             da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
+                             da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i]);
+    } else {
+      return Eigen::Vector3d(da.Kjj()[i] * B[i],
+                             da.K12()[i] * B[i],
+                             da.K13()[i] * B[i]);
+    }
+  } else if constexpr (N == 4) {
+    if (dT) {
+      return Eigen::Vector4d(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
+                             da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
+                             da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i],
+                             da.K14()[i] * B[i] + a.K14()[i] * dB_dT[i]);
+    } else {
+      return Eigen::Vector4d(da.Kjj()[i] * B[i],
+                             da.K12()[i] * B[i],
+                             da.K13()[i] * B[i],
+                             da.K14()[i] * B[i]);
+    }
+  } else {
+    static_assert(N>0 and N<5, "Bad stokes dimensions");
+  }
 }
 
 inline void transmat1(TransmissionMatrix& T,
@@ -1244,92 +1274,66 @@ void stepwise_source(RadiationVector& J,
       }
     } else {
       J.setSource(a, B, S, i);
+      
       switch (J.StokesDim()) {
         case 4: {
-          const auto invK = inv4(K.Kjj()[i],
-                                 K.K12()[i],
-                                 K.K13()[i],
-                                 K.K14()[i],
-                                 K.K23()[i],
-                                 K.K24()[i],
-                                 K.K34()[i]);
+          const auto invK = inv_prop_matrix<4>(K.Data()(0, 0, i, joker));
           J.Vec4(i) = invK * J.Vec4(i);
-          if (jacobian_do)
-            for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies())
-                dJ[j].Vec4(i).noalias() =
-                    0.5 * invK *
-                    (vector4(a,
-                             B,
-                             da[j],
-                             dB_dT,
-                             dS[j],
-                             jacobian_quantities[j] == Jacobian::Atm::Temperature,
-                             i) -
-                     matrix4(dK[j].Kjj()[i],
-                             dK[j].K12()[i],
-                             dK[j].K13()[i],
-                             dK[j].K14()[i],
-                             dK[j].K23()[i],
-                             dK[j].K24()[i],
-                             dK[j].K34()[i]) *
-                         J.Vec4(i));
+          if (jacobian_do) {
+            for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+                dJ[j].Vec4(i).noalias() = 0.5 * invK *
+                    (source_vector<4>(a, B, da[j], dB_dT, dS[j],
+                            jacobian_quantities[j] == Jacobian::Atm::Temperature, i) -
+                    prop_matrix<4>(dK[j].Data()(0, 0, i, joker)) * J.Vec4(i));
+              }
+            }
+          }
         } break;
         case 3: {
-          const auto invK =
-              inv3(K.Kjj()[i], K.K12()[i], K.K13()[i], K.K23()[i]);
+          const auto invK = inv_prop_matrix<3>(K.Data()(0, 0, i, joker));
           J.Vec3(i) = invK * J.Vec3(i);
-          if (jacobian_do)
-            for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies())
-                dJ[j].Vec3(i).noalias() =
-                    0.5 * invK *
-                    (vector3(a,
-                             B,
-                             da[j],
-                             dB_dT,
-                             dS[j],
-                             jacobian_quantities[j] == Jacobian::Atm::Temperature,
-                             i) -
-                     matrix3(dK[j].Kjj()[i],
-                             dK[j].K12()[i],
-                             dK[j].K13()[i],
-                             dK[j].K23()[i]) *
-                         J.Vec3(i));
+          if (jacobian_do) {
+            for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
+              // Skip others!
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+                dJ[j].Vec3(i).noalias() = 0.5 * invK *
+                    (source_vector<3>(a, B, da[j], dB_dT, dS[j],
+                            jacobian_quantities[j] == Jacobian::Atm::Temperature, i) -
+                    prop_matrix<3>(dK[j].Data()(0, 0, i, joker)) * J.Vec3(i));
+              }
+            }
+          }
         } break;
         case 2: {
-          const auto invK = inv2(K.Kjj()[i], K.K12()[i]);
+          const auto invK = inv_prop_matrix<2>(K.Data()(0, 0, i, joker));
           J.Vec2(i) = invK * J.Vec2(i);
-          if (jacobian_do)
-            for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies())
-                dJ[j].Vec2(i).noalias() =
-                    0.5 * invK *
-                    (vector2(a,
-                             B,
-                             da[j],
-                             dB_dT,
-                             dS[j],
-                             jacobian_quantities[j] == Jacobian::Atm::Temperature,
-                             i) -
-                     matrix2(dK[j].Kjj()[i], dK[j].K12()[i]) * J.Vec2(i));
+          if (jacobian_do) {
+            for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
+              // Skip others!
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+                dJ[j].Vec2(i).noalias() = 0.5 * invK *
+                    (source_vector<2>(a, B, da[j], dB_dT, dS[j],
+                            jacobian_quantities[j] == Jacobian::Atm::Temperature, i) -
+                    prop_matrix<2>(dK[j].Data()(0, 0, i, joker)) * J.Vec2(i));
+              }
+            }
+          }
         } break;
         default: {
-          const auto invK = 1 / K.Kjj()[i];
-          J.Vec1(i)[0] *= invK;
-          if (jacobian_do)
-            for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies())
-                dJ[j].Vec1(i)[0] =
-                    0.5 * invK *
-                    (vector1(a,
-                             B,
-                             da[j],
-                             dB_dT,
-                             dS[j],
-                             jacobian_quantities[j] == Jacobian::Atm::Temperature,
-                             i) -
-                     dK[j].Kjj()[i] * J.Vec1(i)[0]);
+          const auto invK = inv_prop_matrix<1>(K.Data()(0, 0, i, joker));
+          J.Vec1(i) = invK * J.Vec1(i);
+          if (jacobian_do) {
+            for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
+              // Skip others!
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+                dJ[j].Vec1(i).noalias() = 0.5 * invK *
+                    (source_vector<1>(a, B, da[j], dB_dT, dS[j],
+                            jacobian_quantities[j] == Jacobian::Atm::Temperature, i) -
+                    prop_matrix<1>(dK[j].Data()(0, 0, i, joker)) * J.Vec1(i));
+              }
+            }
+          }
         } break;
       }
     }
@@ -1592,25 +1596,25 @@ ArrayOfTransmissionMatrix bulk_backscatter(ConstTensor5View Pe,
         for (Index iv = 0; iv < nv; iv++)
           for (Index ie = 0; ie < ne; ie++)
             aotm[ip].Mat4(iv).noalias() +=
-                pnd(ie, ip) * matrix4(Pe(ie, ip, iv, joker, joker));
+                pnd(ie, ip) * prop_matrix<4>(Pe(ie, ip, iv, joker, joker));
         break;
       case 3:
         for (Index iv = 0; iv < nv; iv++)
           for (Index ie = 0; ie < ne; ie++)
             aotm[ip].Mat3(iv).noalias() +=
-                pnd(ie, ip) * matrix3(Pe(ie, ip, iv, joker, joker));
+                pnd(ie, ip) * prop_matrix<3>(Pe(ie, ip, iv, joker, joker));
         break;
       case 2:
         for (Index iv = 0; iv < nv; iv++)
           for (Index ie = 0; ie < ne; ie++)
             aotm[ip].Mat2(iv).noalias() +=
-                pnd(ie, ip) * matrix2(Pe(ie, ip, iv, joker, joker));
+                pnd(ie, ip) * prop_matrix<2>(Pe(ie, ip, iv, joker, joker));
         break;
       case 1:
         for (Index iv = 0; iv < nv; iv++)
           for (Index ie = 0; ie < ne; ie++)
             aotm[ip].Mat1(iv).noalias() +=
-                pnd(ie, ip) * matrix1(Pe(ie, ip, iv, joker, joker));
+                pnd(ie, ip) * prop_matrix<1>(Pe(ie, ip, iv, joker, joker));
         break;
     }
   }
@@ -1639,25 +1643,25 @@ ArrayOfArrayOfTransmissionMatrix bulk_backscatter_derivative(
             for (Index iv = 0; iv < nv; iv++)
               for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat4(iv).noalias() +=
-                    dpnd_dx[iq](ie, ip) * matrix4(Pe(ie, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) * prop_matrix<4>(Pe(ie, ip, iv, joker, joker));
             break;
           case 3:
             for (Index iv = 0; iv < nv; iv++)
               for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat3(iv).noalias() +=
-                    dpnd_dx[iq](ie, ip) * matrix3(Pe(ie, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) * prop_matrix<3>(Pe(ie, ip, iv, joker, joker));
             break;
           case 2:
             for (Index iv = 0; iv < nv; iv++)
               for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat2(iv).noalias() +=
-                    dpnd_dx[iq](ie, ip) * matrix2(Pe(ie, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) * prop_matrix<2>(Pe(ie, ip, iv, joker, joker));
             break;
           case 1:
             for (Index iv = 0; iv < nv; iv++)
               for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat1(iv).noalias() +=
-                    dpnd_dx[iq](ie, ip) * matrix1(Pe(ie, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) * prop_matrix<1>(Pe(ie, ip, iv, joker, joker));
             break;
         }
       }

@@ -681,16 +681,16 @@ class RadiationVector {
   void add_weighted(const TransmissionMatrix& T, const RadiationVector& far, const RadiationVector& close, 
                     const ConstMatrixView Kfar, const ConstMatrixView Kclose, const Numeric r) {
     for (size_t i = 0; i < R4.size(); i++) {
-      R4[i].noalias() += T.second_order_integration_source<4>(T.TraMat<4>(i), far.R4[i], close.R4[i], matrix_from_vectorview<4>(Kfar(i, joker)), matrix_from_vectorview<4>(Kclose(i, joker)), r);
+      R4[i].noalias() += T.second_order_integration_source<4>(T.TraMat<4>(i), far.R4[i], close.R4[i], prop_matrix<4>(Kfar(i, joker)), prop_matrix<4>(Kclose(i, joker)), r);
     }
     for (size_t i = 0; i < R3.size(); i++) {
-      R3[i].noalias() += T.second_order_integration_source<3>(T.TraMat<3>(i), far.R3[i], close.R3[i], matrix_from_vectorview<3>(Kfar(i, joker)), matrix_from_vectorview<3>(Kclose(i, joker)), r);
+      R3[i].noalias() += T.second_order_integration_source<3>(T.TraMat<3>(i), far.R3[i], close.R3[i], prop_matrix<3>(Kfar(i, joker)), prop_matrix<3>(Kclose(i, joker)), r);
     }
     for (size_t i = 0; i < R2.size(); i++) {
-      R2[i].noalias() += T.second_order_integration_source<2>(T.TraMat<2>(i), far.R2[i], close.R2[i], matrix_from_vectorview<2>(Kfar(i, joker)), matrix_from_vectorview<2>(Kclose(i, joker)), r);
+      R2[i].noalias() += T.second_order_integration_source<2>(T.TraMat<2>(i), far.R2[i], close.R2[i], prop_matrix<2>(Kfar(i, joker)), prop_matrix<2>(Kclose(i, joker)), r);
     }
     for (size_t i = 0; i < R1.size(); i++) {
-      R1[i].noalias() += T.second_order_integration_source<1>(T.TraMat<1>(i), far.R1[i], close.R1[i], matrix_from_vectorview<1>(Kfar(i, joker)), matrix_from_vectorview<1>(Kclose(i, joker)), r);
+      R1[i].noalias() += T.second_order_integration_source<1>(T.TraMat<1>(i), far.R1[i], close.R1[i], prop_matrix<1>(Kfar(i, joker)), prop_matrix<1>(Kclose(i, joker)), r);
     }
   }
 

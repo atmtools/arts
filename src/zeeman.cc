@@ -94,13 +94,10 @@ void zeeman_on_the_fly(
     const Numeric& H0,
     const Numeric& theta0,
     const Numeric& eta0) {
-  // Find relevant derivatives in retrieval quantities positions
-  const ArrayOfIndex jacobian_quantities_positions =
-      equivalent_propmattype_indexes(jacobian_quantities);
 
   // Size of problem
   const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities_positions.nelem();
+  const Index nq = jacobian_quantities.nelem();
   const Index ns = abs_species.nelem();
   const Index nn = rtp_nlte.Levels().nelem();
 
@@ -209,7 +206,6 @@ void zeeman_on_the_fly(
           f_grid,
           band,
           jacobian_quantities,
-          jacobian_quantities_positions,
           line_shape_vmr,
           rtp_nlte,  // This must be turned into a map of some kind...
           rtp_pressure,
@@ -235,7 +231,8 @@ void zeeman_on_the_fly(
 
         if (nq) {
           for (Index j = 0; j < nq; j++) {
-            const auto& deriv = jacobian_quantities[jacobian_quantities_positions[j]];
+            if (not propmattype_index(jacobian_quantities, j)) continue;
+            const auto& deriv = jacobian_quantities[j];
             Eigen::Map<
                 Eigen::Matrix<Numeric, Eigen::Dynamic, 7, Eigen::RowMajor>>
                 dabs(dpropmat_clearsky_dx[j].Data().get_c_array(),
@@ -314,8 +311,8 @@ void zeeman_on_the_fly(
               .noalias() += numdens * eB.cwiseProduct(sum.N.real()) * pol_real;
 
           for (Index j = 0; j < nq; j++) {
-            const auto& deriv =
-                jacobian_quantities[jacobian_quantities_positions[j]];
+            if (not propmattype_index(jacobian_quantities, j)) continue;
+            const auto& deriv = jacobian_quantities[j];
 
             Eigen::Map<
                 Eigen::Matrix<Numeric, Eigen::Dynamic, 4, Eigen::RowMajor>>

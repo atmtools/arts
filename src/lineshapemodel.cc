@@ -38,14 +38,10 @@
 Jacobian::Line select_derivativeLineShape(const String& var,
                                           const String& coeff) {
   // Test viability of model variables
-  const auto var_type = LineShape::toVariable(var);
-  check_enum_error(var_type,
-                   "The var: \"", var, "\" is not good");
+  const auto var_type = LineShape::toVariableOrThrow(var);
 
   // Test viability of model coefficients
-  const auto coeff_type = Options::toLineShapeCoeff(coeff);
-  check_enum_error(coeff_type,
-                   "The coeff: \"", coeff, "\" is not good");
+  const auto coeff_type = Options::toLineShapeCoeffOrThrow(coeff);
 
 // Define a repetitive pattern.  Update if/when there are more coefficients in the future
 #define ReturnJacPropMatType(ID)              \

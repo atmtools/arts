@@ -156,9 +156,6 @@ void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_cle
   ARTS_USER_ERROR_IF (not lbl_checked,
                       "Please set lbl_checked true to use this function");
   
-  // Meta variables that explain the calculations required
-  const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
-  
   for (Index i=0; i<abs_species.nelem(); i++) {
     for (auto& band: abs_lines_per_species[i]) {
       if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat and band.DoLineMixing(rtp_pressure)) {
@@ -179,8 +176,9 @@ void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_cle
         propmat_clearsky[i].Kjj() += abs.real();
         
         // Sum up the resorted Jacobian
-        for (Index j=0; j<jac_pos.nelem(); j++) {
-          dpropmat_clearsky_dx[j].Kjj() += dabs[jac_pos[j]].real();
+        for (Index j=0; j<jacobian_quantities.nelem(); j++) {
+          if (not propmattype_index(jacobian_quantities, j)) continue;
+          dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();
         }
       }
     }
@@ -211,9 +209,6 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
                       "Bad size of input species+vmrs");
   ARTS_USER_ERROR_IF (not lbl_checked,
                       "Please set lbl_checked true to use this function");
-  
-  // Meta variables that explain the calculations required
-  const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
   
   // Polarization
   const auto Z = Zeeman::FromGrids(rtp_mag[0], rtp_mag[1], rtp_mag[2], Conversion::deg2rad(rtp_los[0]), Conversion::deg2rad(rtp_los[1]));
@@ -246,27 +241,28 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
           Zeeman::sum(propmat_clearsky[i], abs, Zeeman::SelectPolarization(polarization_scale_data, polarization));
           
           // Sum up the resorted Jacobian
-          for (Index j=0; j<jac_pos.nelem(); j++) {
-            if (jacobian_quantities[jac_pos[j]] == Jacobian::Atm::MagneticU) {
-              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[jac_pos[j]],
+          for (Index j=0; j<jacobian_quantities.nelem(); j++) {
+            if (not propmattype_index(jacobian_quantities, j)) continue;
+            if (jacobian_quantities[j] == Jacobian::Atm::MagneticU) {
+              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[j],
                            Zeeman::SelectPolarization(polarization_scale_data, polarization),
                            Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
                            Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
                            Z.dH_du, Z.dtheta_du, Z.deta_du);
-            } else if (jacobian_quantities[jac_pos[j]] == Jacobian::Atm::MagneticV) {
-              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[jac_pos[j]],
+            } else if (jacobian_quantities[j] == Jacobian::Atm::MagneticV) {
+              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[j],
                            Zeeman::SelectPolarization(polarization_scale_data, polarization),
                            Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
                            Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
                            Z.dH_dv, Z.dtheta_dv, Z.deta_dv);
-            } else if (jacobian_quantities[jac_pos[j]] == Jacobian::Atm::MagneticW) {
-              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[jac_pos[j]],
+            } else if (jacobian_quantities[j] == Jacobian::Atm::MagneticW) {
+              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[j],
                            Zeeman::SelectPolarization(polarization_scale_data, polarization),
                            Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
                            Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
                            Z.dH_dw, Z.dtheta_dw, Z.deta_dw);
             } else {
-              dpropmat_clearsky_dx[j].Kjj() += dabs[jac_pos[j]].real();
+              dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();
             }
           }
         }

@@ -18,8 +18,8 @@
  * @return Whether the enum is good
  */
 template <typename EnumType>
-constexpr bool good_enum(EnumType x) {
-  return long(x) < long(EnumType::FINAL) and long(x) >= 0;
+constexpr bool good_enum(EnumType x) noexcept {
+  return std::size_t(x) < std::size_t(EnumType::FINAL);
 }
 
 /** Returns true if x is a standard space-character
@@ -27,7 +27,7 @@ constexpr bool good_enum(EnumType x) {
  * @param[in] x a character
  * @return true if x is a space
  */
-constexpr bool is_space_char(char x) {
+constexpr bool is_space_char(char x) noexcept {
   return x == ' '  or
          x == '\n' or
          x == '\r' or
@@ -46,7 +46,7 @@ constexpr bool is_space_char(char x) {
  */
 template <typename EnumType> constexpr
 std::array<std::string_view, size_t(EnumType::FINAL)> enum_strarray(
-  const std::string_view strchars) {
+  const std::string_view strchars) noexcept {
   std::array<std::string_view, size_t(EnumType::FINAL)> out;
   
   // Find the start
@@ -168,6 +168,14 @@ void check_enum_error(EnumType type, Messages ... args) {
     return ENUMTYPE::FINAL;                                               \
   }                                                                       \
                                                                           \
+  inline ENUMTYPE to##ENUMTYPE##OrThrow(const std::string_view x) {       \
+    ENUMTYPE out = to##ENUMTYPE(x);                                       \
+    check_enum_error(out, "Cannot understand argument: \"", x, "\"\n"     \
+                     "Valid " #ENUMTYPE " options are: ["                 \
+                     #__VA_ARGS__ "]");                                   \
+    return out;                                                           \
+  }                                                                       \
+                                                                          \
   inline std::ostream &operator<<(std::ostream &os, const ENUMTYPE x) {   \
     return os << toString(x);                                             \
   }                                                                       \
@@ -176,8 +184,9 @@ void check_enum_error(EnumType type, Messages ... args) {
     std::string val;                                                      \
     is >> val;                                                            \
     x = to##ENUMTYPE(val);                                                \
-    check_enum_error(x, "Cannot understand value: ", val, "\n"            \
-                     "Valid options are: [" #__VA_ARGS__ "]");            \
+    check_enum_error(x, "Cannot understand argument: \"", val, "\"\n"     \
+                     "Valid " #ENUMTYPE " options are: ["                 \
+                     #__VA_ARGS__ "]");                                   \
     return is;                                                            \
   }
 

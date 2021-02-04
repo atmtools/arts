@@ -598,7 +598,6 @@ void xsec_species(Matrix& xsec,
                   ArrayOfMatrix& dsource_dx,
                   ArrayOfMatrix& dphase_dx,
                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                  const ArrayOfIndex& jacobian_propmat_positions,
                   const Vector& f_grid,
                   const Vector& abs_p,
                   const Vector& abs_t,
@@ -613,8 +612,7 @@ void xsec_species(Matrix& xsec,
   const Index np = abs_p.nelem();      // number of pressure levels
   const Index nf = f_grid.nelem();     // number of Dirac frequencies
   const Index nl = band.NumLines();  // number of lines in the catalog
-  const Index nj =
-      jacobian_propmat_positions.nelem();  // number of partial derivatives
+  const Index nj = jacobian_quantities.nelem();  // number of partial derivatives
   const Index nt = source.nrows();         // number of energy levels in NLTE
 
   // Type of problem
@@ -659,7 +657,6 @@ void xsec_species(Matrix& xsec,
                                                f_grid,
                                                band,
                                                jacobian_quantities,
-                                               jacobian_propmat_positions,
                                                line_shape_vmr,
                                                abs_nlte[ip],
                                                pressure,
@@ -675,21 +672,27 @@ void xsec_species(Matrix& xsec,
 
       // absorption cross-section
       MapToEigen(xsec).col(ip).noalias() += sum.F.real();
-      for (Index j = 0; j < nj; j++)
+      for (Index j = 0; j < nj; j++) {
+        if (not propmattype_index(jacobian_quantities, j)) continue;
         MapToEigen(dxsec_dx[j]).col(ip).noalias() += sum.dF.col(j).real();
+      }
 
       // phase cross-section
       if (not phase.empty()) {
         MapToEigen(phase).col(ip).noalias() += sum.F.imag();
-        for (Index j = 0; j < nj; j++)
+        for (Index j = 0; j < nj; j++) {
+          if (not propmattype_index(jacobian_quantities, j)) continue;
           MapToEigen(dphase_dx[j]).col(ip).noalias() += sum.dF.col(j).imag();
+        }
       }
 
       // source ratio cross-section
       if (do_nonlte) {
         MapToEigen(source).col(ip).noalias() += sum.N.real();
-        for (Index j = 0; j < nj; j++)
+        for (Index j = 0; j < nj; j++) {
+          if (not propmattype_index(jacobian_quantities, j)) continue;
           MapToEigen(dsource_dx[j]).col(ip).noalias() += sum.dN.col(j).real();
+        }
       }
     } catch (const std::runtime_error& e) {
       ostringstream os;

@@ -2043,8 +2043,6 @@ void propmat_clearskyAddFromLookup(
   const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
   const Numeric df = frequency_perturbation(jacobian_quantities);
   const Numeric dt = temperature_perturbation(jacobian_quantities);
-  const ArrayOfIndex jacobian_quantities_position =
-      equivalent_propmattype_indexes(jacobian_quantities);
 
   // The combination of doing frequency jacobian together with an
   // absorption lookup table is quite dangerous. If the frequency
@@ -2109,21 +2107,17 @@ void propmat_clearskyAddFromLookup(
 
       for (Index iv = 0; iv < propmat_clearsky[isp].NumberOfFrequencies();
            iv++) {
-        for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
-          if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-              Jacobian::Atm::Temperature) {
+        for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+          if (not propmattype_index(jacobian_quantities, iq)) continue;
+          
+          if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                 (dabs_scalar_gas_dt(isp, iv) - abs_scalar_gas(isp, iv)) / dt;
-          } else if (is_frequency_parameter(
-                         jacobian_quantities
-                             [jacobian_quantities_position[iq]])) {
+          } else if (is_frequency_parameter(jacobian_quantities[iq])) {
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                 (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
-          } else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-            Jacobian::Special::ArrayOfSpeciesTagVMR) {
-            if (jacobian_quantities[jacobian_quantities_position[iq]]
-                    .QuantumIdentity()
-                    .Species() not_eq abs_lookup.GetSpeciesIndex(isp))
+          } else if (jacobian_quantities[iq] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+            if (jacobian_quantities[iq].QuantumIdentity().Species() not_eq abs_lookup.GetSpeciesIndex(isp))
               continue;
 
             // WARNING:  If CIA in list, this scales wrong by factor 2

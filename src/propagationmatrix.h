@@ -37,115 +37,70 @@
 #include "complex.h"
 #include "matpackIV.h"
 
-inline Eigen::Matrix<double, 1, 1> matrix1(const Numeric& a) noexcept {
-  return Eigen::Matrix<double, 1, 1>(a);
-}
-
-inline Eigen::Matrix2d matrix2(const Numeric& a, const Numeric& b) noexcept {
-  return (Eigen::Matrix2d() << a, b, b, a).finished();
-}
-
-inline Eigen::Matrix3d matrix3(const Numeric& a,
-                               const Numeric& b,
-                               const Numeric& c,
-                               const Numeric& u) noexcept {
-                                 return (Eigen::Matrix3d() << a, b, c, b, a, u, c, -u, a).finished();
-                               }
-
-inline Eigen::Matrix4d matrix4(const Numeric& a,
-                               const Numeric& b,
-                               const Numeric& c,
-                               const Numeric& d,
-                               const Numeric& u,
-                               const Numeric& v,
-                               const Numeric& w) noexcept {
-  return (Eigen::Matrix4d() << a,
-          b,
-          c,
-          d,
-          b,
-          a,
-          u,
-          v,
-          c,
-          -u,
-          a,
-          w,
-          d,
-          -v,
-          -w,
-          a)
-      .finished();
+template <int N>
+Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstVectorView vec) {
+#define a vec[0]
+#define b vec[1]
+#define c vec[2]
+#define d vec[3]
+#define u vec[N]
+#define v vec[5]
+#define w vec[6]
+  static_assert (N>0 and N<5, "Bad size N");
+  if constexpr (N == 1) {
+    return Eigen::Matrix<Numeric, 1, 1>(a);
+  } else if constexpr (N==2) {
+    return (Eigen::Matrix2d() << a, b, b, a).finished();
+  } else if constexpr (N==3) {
+    return (Eigen::Matrix3d() << a, b, c, b, a, u, c, -u, a).finished();
+  } else if constexpr (N==4) {
+    return (Eigen::Matrix4d() << a, b, c, d, b, a, u, v, c, -u, a, w, d, -v, -w, a).finished();
+  }
+#undef a
+#undef b
+#undef c
+#undef d
+#undef u
+#undef v
+#undef w
 }
 
 template <int N>
-Eigen::Matrix<double, N, N> matrix_from_vectorview(const ConstVectorView vec) {
+Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstMatrixView m) {
   static_assert (N>0 and N<5, "Bad size N");
   if constexpr (N == 1) {
-    return matrix1(vec[0]);
-  } else if constexpr (N==2) {
-    return matrix2(vec[0], vec[1]);
-  } else if constexpr (N==3) {
-    return matrix3(vec[0], vec[1], vec[2], vec[3]);
-  } else if constexpr (N==4) {
-    return matrix4(vec[0], vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+    return Eigen::Matrix<Numeric, 1, 1>(m(0, 0));
+  } else if constexpr (N == 2) {
+    return (Eigen::Matrix2d() << m(0, 0), m(0, 1),
+                                 m(1, 0), m(1, 1)).finished();
+  } else if constexpr (N == 3) {
+    return (Eigen::Matrix3d() << m(0, 0), m(0, 1), m(0, 2),
+                                 m(1, 0), m(1, 1), m(1, 2),
+                                 m(2, 0), m(2, 1), m(2, 2)) .finished();
+  } else if constexpr (N == 4) {
+    return (Eigen::Matrix4d() << m(0, 0), m(0, 1), m(0, 2), m(0, 3),
+                                 m(1, 0), m(1, 1), m(1, 2), m(1, 3),
+                                 m(2, 0), m(2, 1), m(2, 2), m(2, 3),
+                                 m(3, 0), m(3, 1), m(3, 2), m(3, 3)) .finished();
   }
 }
 
-inline Eigen::Matrix<double, 1, 1> matrix1(const ConstMatrixView m) noexcept {
-  return Eigen::Matrix<double, 1, 1>(m(0, 0));
-}
-
-inline Eigen::Matrix2d matrix2(const ConstMatrixView m) noexcept {
-  return (Eigen::Matrix2d() << m(0, 0), m(0, 1), m(1, 0), m(1, 1)).finished();
-}
-
-inline Eigen::Matrix3d matrix3(const ConstMatrixView m) noexcept {
-  return (Eigen::Matrix3d() << m(0, 0),
-          m(0, 1),
-          m(0, 2),
-          m(1, 0),
-          m(1, 1),
-          m(1, 2),
-          m(2, 0),
-          m(2, 1),
-          m(2, 2))
-      .finished();
-}
-
-inline Eigen::Matrix4d matrix4(const ConstMatrixView m) noexcept {
-  return (Eigen::Matrix4d() << m(0, 0),
-          m(0, 1),
-          m(0, 2),
-          m(0, 3),
-          m(1, 0),
-          m(1, 1),
-          m(1, 2),
-          m(1, 3),
-          m(2, 0),
-          m(2, 1),
-          m(2, 2),
-          m(2, 3),
-          m(3, 0),
-          m(3, 1),
-          m(3, 2),
-          m(3, 3))
-      .finished();
-}
-
-inline Eigen::Matrix<double, 1, 1> inv1(const Numeric& a) noexcept {
-  return Eigen::Matrix<double, 1, 1>(1 / a);
-}
-
-inline Eigen::Matrix2d inv2(const Numeric& a, const Numeric& b) noexcept {
-  return (Eigen::Matrix2d() << a, -b, -b, a).finished() / (a * a - b * b);
-}
-
-inline Eigen::Matrix3d inv3(const Numeric& a,
-                            const Numeric& b,
-                            const Numeric& c,
-                            const Numeric& u) noexcept {
-  return (Eigen::Matrix3d() << a * a + u * u,
+template <int N>
+Eigen::Matrix<Numeric, N, N> inv_prop_matrix(const ConstVectorView vec) {
+#define a vec[0]
+#define b vec[1]
+#define c vec[2]
+#define d vec[3]
+#define u vec[N]
+#define v vec[5]
+#define w vec[6]
+  static_assert (N>0 and N<5, "Bad size N");
+  if constexpr (N == 1) {
+    return Eigen::Matrix<double, 1, 1>(1 / a);
+  } else if constexpr (N==2) {
+    return (Eigen::Matrix2d() << a, -b, -b, a).finished() / (a * a - b * b);
+  } else if constexpr (N==3) {
+    return (Eigen::Matrix3d() << a * a + u * u,
           -a * b - c * u,
           -a * c + b * u,
           -a * b + c * u,
@@ -156,16 +111,8 @@ inline Eigen::Matrix3d inv3(const Numeric& a,
           a * a - b * b)
              .finished() /
          (a * a * a - a * b * b - a * c * c + a * u * u);
-}
-
-inline Eigen::Matrix4d inv4(const Numeric& a,
-                            const Numeric& b,
-                            const Numeric& c,
-                            const Numeric& d,
-                            const Numeric& u,
-                            const Numeric& v,
-                            const Numeric& w) noexcept {
-  return (Eigen::Matrix4d() << a * a * a + a * u * u + a * v * v + a * w * w,
+  } else if constexpr (N==4) {
+    return (Eigen::Matrix4d() << a * a * a + a * u * u + a * v * v + a * w * w,
           -a * a * b - a * c * u - a * d * v - b * w * w + c * v * w -
               d * u * w,
           -a * a * c + a * b * u - a * d * w + b * v * w - c * v * v +
@@ -195,6 +142,14 @@ inline Eigen::Matrix4d inv4(const Numeric& a,
           a * a * u * u + a * a * v * v + a * a * w * w - b * b * w * w +
           2 * b * c * v * w - 2 * b * d * u * w - c * c * v * v +
           2 * c * d * u * v - d * d * u * u);
+  }
+#undef a
+#undef b
+#undef c
+#undef d
+#undef u
+#undef v
+#undef w
 }
 
 /** Class to help with hidden temporary variables for operations of type Numeric times Class

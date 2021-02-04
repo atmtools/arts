@@ -916,6 +916,16 @@ constexpr Rational max(const Rational a, const Rational b) noexcept {
   return a < b ? b : a;
 }  // Let other operators find out if this is allowed instead
 
+/** Minimum
+ * 
+ * @param[in] a Any Rational
+ * @param[in] b Any Rational
+ * @return constexpr Rational Smallest of a and b
+ */
+constexpr Rational min(const Rational a, const Rational b) noexcept {
+  return a < b ? a : b;
+}  // Let other operators find out if this is allowed instead
+
 typedef Array<Rational> ArrayOfRational;
 
 /** Returns common operator n/2

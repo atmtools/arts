@@ -74,12 +74,8 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
               return the derivatives as well. */
   const bool do_jac = supports_hitran_xsec(jacobian_quantities);
   const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
-  //    const bool do_temp_jac = ppd.do_temperature();
   Vector dfreq, dabs_t;
   const Numeric df = frequency_perturbation(jacobian_quantities);
-  //    const Numeric dt = ppd.Temperature_Perturbation();
-  const ArrayOfIndex jac_pos =
-      equivalent_propmattype_indexes(jacobian_quantities);
   if (do_freq_jac) {
     dfreq.resize(f_grid.nelem());
     dfreq = f_grid;
@@ -192,13 +188,14 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
         } else {
           for (Index iv = 0; iv < xsec_temp.nelem(); iv++) {
             this_xsec(iv, ip) += xsec_temp[iv];
-            for (Index iq = 0; iq < jac_pos.nelem(); iq++) {
-              if (is_frequency_parameter(jacobian_quantities[jac_pos[iq]]))
+            for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+              if (not propmattype_index(jacobian_quantities, iq)) continue;
+              
+              if (is_frequency_parameter(jacobian_quantities[iq]))
                 this_dxsec[iq](iv, ip) +=
                     (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
-              else if (jacobian_quantities[jac_pos[iq]] == Jacobian::Line::VMR) {
-                if (species_match(jacobian_quantities[jac_pos[iq]],
-                                  abs_species[i])) {
+              else if (jacobian_quantities[iq] == Jacobian::Line::VMR) {
+                if (species_match(jacobian_quantities[iq], abs_species[i])) {
                   this_dxsec[iq](iv, ip) += xsec_temp[iv];
                 }
               }

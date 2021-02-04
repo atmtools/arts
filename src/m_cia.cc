@@ -82,8 +82,6 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
   Vector dfreq, dabs_t;
   const Numeric df = frequency_perturbation(jacobian_quantities);
   const Numeric dt = temperature_perturbation(jacobian_quantities);
-  const ArrayOfIndex jacobian_quantities_position =
-      equivalent_propmattype_indexes(jacobian_quantities);
 
   if (do_freq_jac) {
     dfreq = f_grid;
@@ -226,20 +224,18 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
 
           for (Index iv = 0; iv < xsec_temp.nelem(); iv++) {
             this_xsec(iv, ip) += n * xsec_temp[iv];
-            for (Index iq = 0; iq < jacobian_quantities_position.nelem();
+            for (Index iq = 0; iq < jacobian_quantities.nelem();
                  iq++) {
-              if (is_frequency_parameter(
-                      jacobian_quantities[jacobian_quantities_position[iq]]))
+              if (not propmattype_index(jacobian_quantities, iq)) continue;
+              
+              if (is_frequency_parameter(jacobian_quantities[iq]))
                 dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                     n * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
-              else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                       Jacobian::Atm::Temperature)
+              else if (jacobian_quantities[iq] == Jacobian::Atm::Temperature)
                 dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                     n * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
                     xsec_temp[iv] * dn_dT;
-              else if (species_match(jacobian_quantities
-                                         [jacobian_quantities_position[iq]],
-                                     this_species.BathSpecies()))
+              else if (species_match(jacobian_quantities[iq], this_species.BathSpecies()))
                 dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                     number_density(abs_p[ip], abs_t[ip]) * xsec_temp[iv];
             }

@@ -249,14 +249,13 @@ void Linefunctions::set_lorentz(
     const AbsorptionLines& band,
     const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
     const LineShape::Output& dT,
     const LineShape::Output& dVMR) {
   constexpr Complex cpi(0, Constant::pi);
   constexpr Complex iz(0.0, 1.0);
 
   // Size of the problem
-  auto nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data.nelem();
 
   // The central frequency
   const Numeric F0 = F0_noshift + lso.D0 + zeeman_df * magnetic_magnitude + lso.DV;
@@ -273,7 +272,8 @@ void Linefunctions::set_lorentz(
     dw.noalias() = -Constant::pi * F.array().square().matrix();
 
     for (auto iq = 0; iq < nppd; iq++) {
-      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      if (not propmattype_index(derivatives_data, iq)) continue;
+      const auto& deriv = derivatives_data[iq];
 
       if (deriv == Jacobian::Atm::Temperature)
         dF.col(iq).noalias() = Complex(dT.G0, dT.D0 + dT.DV) * dw;
@@ -314,14 +314,13 @@ void Linefunctions::set_voigt(
     const AbsorptionLines& band,
     const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
     const Numeric& dGD_div_F0_dT,
     const LineShape::Output& dT,
     const LineShape::Output& dVMR) {
   constexpr Complex iz(0.0, 1.0);
 
   // Size of problem
-  auto nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data.nelem();
 
   // Doppler broadening and line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + lso.D0 + lso.DV;
@@ -348,7 +347,8 @@ void Linefunctions::set_voigt(
                            .matrix();
 
     for (auto iq = 0; iq < nppd; iq++) {
-      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      if (not propmattype_index(derivatives_data, iq)) continue;
+      const auto& deriv = derivatives_data[iq];
 
       if (is_frequency_parameter(deriv))
         dF.col(iq).noalias() = invGD * dw;
@@ -390,9 +390,8 @@ void Linefunctions::set_doppler(
     const AbsorptionLines& band,
     const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
     const Numeric& dGD_div_F0_dT) {
-  auto nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data.nelem();
 
   // Doppler broadening and line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude;
@@ -407,7 +406,8 @@ void Linefunctions::set_doppler(
   F.noalias() = invGD * Constant::inv_sqrt_pi * mx2.array().exp().matrix();
 
   for (auto iq = 0; iq < nppd; iq++) {
-    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    if (not propmattype_index(derivatives_data, iq)) continue;
+    const auto& deriv = derivatives_data[iq];
 
     if (is_frequency_parameter(deriv))
       dF.col(iq).noalias() = -2 * invGD * F.cwiseProduct(x);
@@ -433,10 +433,9 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
     const AbsorptionLines& band,
     const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
     const LineShape::Output& dT,
     const LineShape::Output& dVMR) {
-  auto nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data.nelem();
 
   const Complex LM = Complex(1.0 + X.G, -X.Y);
 
@@ -445,7 +444,8 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
     dF.noalias() += dFm * conj(LM);
     
     for (auto iq = 0; iq < nppd; iq++) {
-      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      if (not propmattype_index(derivatives_data, iq)) continue;
+      const auto& deriv = derivatives_data[iq];
 
       if (deriv == Jacobian::Atm::Temperature) {
         const auto c = Complex(dT.G, -dT.Y);
@@ -464,7 +464,8 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
     }
   } else {
     for (auto iq = 0; iq < nppd; iq++) {
-      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      if (not propmattype_index(derivatives_data, iq)) continue;
+      const auto& deriv = derivatives_data[iq];
 
       if (deriv == Jacobian::Atm::Temperature)
         dF.col(iq).noalias() += F * Complex(dT.G, -dT.Y);
@@ -492,9 +493,8 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(
     const Numeric& T,
     const AbsorptionLines& band,
     const Index& line_ind,
-    const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position) {
-  auto nf = f_grid.size(), nppd = derivatives_data_position.nelem();
+    const ArrayOfRetrievalQuantity& derivatives_data) {
+  auto nf = f_grid.size(), nppd = derivatives_data.nelem();
 
   const Numeric invF0 = 1.0 / F0;
   const Numeric mafac =
@@ -516,7 +516,8 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(
     F[iv] *= fun;
 
     for (auto iq = 0; iq < nppd; iq++) {
-      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      if (not propmattype_index(derivatives_data, iq)) continue;
+      const auto& deriv = derivatives_data[iq];
 
       dF(iv, iq) *= fun;
       if (deriv == Jacobian::Atm::Temperature)
@@ -543,9 +544,8 @@ void Linefunctions::apply_VVH_scaling(
     const Numeric& T,
     const AbsorptionLines& band,
     const Index& line_ind,
-    const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position) {
-  auto nppd = derivatives_data_position.nelem();
+    const ArrayOfRetrievalQuantity& derivatives_data) {
+  auto nppd = derivatives_data.nelem();
 
   // 2kT is constant for the loop
   const Numeric kT = 2.0 * Constant::k * T;
@@ -565,7 +565,8 @@ void Linefunctions::apply_VVH_scaling(
 
   dF.array().colwise() *= ftanh_f.array();
   for (auto iq = 0; iq < nppd; iq++) {
-    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    if (not propmattype_index(derivatives_data, iq)) continue;
+    const auto& deriv = derivatives_data[iq];
 
     if (deriv == Jacobian::Atm::Temperature)
       dF.col(iq).noalias() +=
@@ -590,9 +591,8 @@ void Linefunctions::apply_VVW_scaling(
     const Numeric& F0,
     const AbsorptionLines& band,
     const Index& line_ind,
-    const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position) {
-  auto nf = f_grid.size(), nppd = derivatives_data_position.nelem();
+    const ArrayOfRetrievalQuantity& derivatives_data) {
+  auto nf = f_grid.size(), nppd = derivatives_data.nelem();
 
   // denominator is constant for the loop
   const Numeric invF0 = 1.0 / F0;
@@ -606,7 +606,8 @@ void Linefunctions::apply_VVW_scaling(
     F[iv] *= fac;
 
     for (auto iq = 0; iq < nppd; iq++) {
-      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      if (not propmattype_index(derivatives_data, iq)) continue;
+      const auto& deriv = derivatives_data[iq];
 
       // The factor is applied to all partial derivatives
       dF(iv, iq) *= fac;
@@ -649,9 +650,8 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
     const AbsorptionLines& band,
     const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
     const Numeric& dQT_dT) {
-  auto nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data.nelem();
 
   const Numeric gamma = stimulated_emission(T, line.F0());
   const Numeric gamma_ref = stimulated_emission(T0, line.F0());
@@ -664,7 +664,8 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
   F *= S;
   dF *= S;
   for (auto iq = 0; iq < nppd; iq++) {
-    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    if (not propmattype_index(derivatives_data, iq)) continue;
+    const auto& deriv = derivatives_data[iq];
 
     if (deriv == Jacobian::Atm::Temperature)
       dF.col(iq).noalias() +=
@@ -705,9 +706,8 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
     const AbsorptionLines& band,
     const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
     const Numeric& dQT_dT) {
-  auto nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data.nelem();
 
   const Numeric gamma = stimulated_emission(T,line.F0());
   const Numeric gamma_ref = stimulated_emission(T0,line.F0());
@@ -730,7 +730,8 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
   dN.noalias() = dF * (S_src - S_abs);
   dF *= S_abs;
   for (auto iq = 0; iq < nppd; iq++) {
-    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    if (not propmattype_index(derivatives_data, iq)) continue;
+    const auto& deriv = derivatives_data[iq];
 
     if (deriv == Jacobian::Atm::Temperature) {
       const Numeric dS_dT_abs =
@@ -795,15 +796,15 @@ void Linefunctions::apply_lineshapemodel_jacobian_scaling(
     const AbsorptionLines& band,
     const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
     const Numeric& T,
     const Numeric& P,
     const Vector& vmrs) {
-  auto nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data.nelem();
 
   for (auto iq = 0; iq < nppd; iq++) {
+    if (not propmattype_index(derivatives_data, iq)) continue;
     const RetrievalQuantity& rt =
-        derivatives_data[derivatives_data_position[iq]];
+        derivatives_data[iq];
     if (is_lineshape_parameter(rt) and
         Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
       dF.col(iq) *= band.ShapeParameter_dInternal(line_ind, T, P, vmrs, rt);
@@ -861,10 +862,9 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
     const Numeric& T,
     const AbsorptionLines& band,
     const Index& line_ind,
-    const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position) {
+    const ArrayOfRetrievalQuantity& derivatives_data) {
   // Size of the problem
-  auto nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data.nelem();
 
   // Physical constants
   constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
@@ -900,7 +900,8 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
 
   // Partial derivatives
   for (auto iq = 0; iq < nppd; iq++) {
-    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    if (not propmattype_index(derivatives_data, iq)) continue;
+    const auto& deriv = derivatives_data[iq];
 
     if (deriv == Jacobian::Atm::Temperature)
       dN.col(iq).noalias() +=
@@ -945,7 +946,6 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
                             const AbsorptionLines& band,
                             const Index& line_ind,
                             const ArrayOfRetrievalQuantity& derivatives_data,
-                            const ArrayOfIndex& derivatives_data_position,
                             const Numeric& dGD_div_F0_dT_si,
                             const LineShape::Output& dT_si,
                             const LineShape::Output& dVMR_si) {
@@ -1055,9 +1055,9 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
     F(iv) = Aterm / (pi * (((c0 - 1.5 * c2) * lso.ETA - lso.FVC) * Aterm +
                            Bterm * c2 * lso.ETA + 1));
 
-    for (auto iq = 0; iq < derivatives_data_position.nelem(); iq++) {
-      const RetrievalQuantity& rt =
-          derivatives_data[derivatives_data_position[iq]];
+    for (auto iq = 0; iq < derivatives_data.nelem(); iq++) {
+      if (not propmattype_index(derivatives_data, iq)) continue;
+      const RetrievalQuantity& rt = derivatives_data[iq];
 
       Numeric dcte = 0;
       Complex dc0 = 0, dc2 = 0, dc0t = 0, dc2t = 0;
@@ -1277,9 +1277,9 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
 
   // Convert back to ARTS
   F = F.unaryExpr(&pCqSDHC_to_arts);
-  for (auto iq = 0; iq < derivatives_data_position.nelem(); iq++) {
-    const RetrievalQuantity& rt =
-        derivatives_data[derivatives_data_position[iq]];
+  for (auto iq = 0; iq < derivatives_data.nelem(); iq++) {
+    if (not propmattype_index(derivatives_data, iq)) continue;
+    const RetrievalQuantity& rt = derivatives_data[iq];
 
     if (rt == Jacobian::Line::Center or is_frequency_parameter(rt) or
         is_pressure_broadening_G0(rt) or is_pressure_broadening_D0(rt) or
@@ -1300,7 +1300,6 @@ void Linefunctions::set_cross_section_of_band(
     const ConstVectorView& f_grid,
     const AbsorptionLines& band,
     const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_active,
     const Vector& vmrs,
     const EnergyLevelMap& nlte,
     const Numeric& P,
@@ -1316,7 +1315,7 @@ void Linefunctions::set_cross_section_of_band(
     const bool zeeman,
     const Zeeman::Polarization zeeman_polarization)
 {
-  const Index nj = derivatives_data_active.nelem();
+  const Index nj = derivatives_data.nelem();
   const bool do_temperature = do_temperature_jacobian(derivatives_data);
   
   // Sum up variable reset
@@ -1396,25 +1395,25 @@ void Linefunctions::set_cross_section_of_band(
       // Set the line shape and its derivatives
       switch (band.LineShapeType()) {
         case LineShape::Type::DP:
-          set_doppler(F, dF, data, f, dfdH, H, band.F0(i), DC, band, i, derivatives_data, derivatives_data_active, dDCdT);
+          set_doppler(F, dF, data, f, dfdH, H, band.F0(i), DC, band, i, derivatives_data, dDCdT);
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
-            set_doppler(Fc, dFc, datac, fc, dfdH, H, band.F0(i), DC, band, i, derivatives_data, derivatives_data_active, dDCdT);
+            set_doppler(Fc, dFc, datac, fc, dfdH, H, band.F0(i), DC, band, i, derivatives_data, dDCdT);
           break;
         case LineShape::Type::HTP:
         case LineShape::Type::SDVP:
-          set_htp(F, dF, f, dfdH, H, band.F0(i), DC, X, band, i, derivatives_data, derivatives_data_active, dDCdT, dXdT, dXdVMR);
+          set_htp(F, dF, f, dfdH, H, band.F0(i), DC, X, band, i, derivatives_data, dDCdT, dXdT, dXdVMR);
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
-            set_htp(Fc, dFc, fc, dfdH, H, band.F0(i), DC, X, band, i, derivatives_data, derivatives_data_active, dDCdT, dXdT, dXdVMR);
+            set_htp(Fc, dFc, fc, dfdH, H, band.F0(i), DC, X, band, i, derivatives_data, dDCdT, dXdT, dXdVMR);
           break;
         case LineShape::Type::LP:
-          set_lorentz(F, dF, data, f, dfdH, H, band.F0(i), X, band, i, derivatives_data, derivatives_data_active, dXdT, dXdVMR);
+          set_lorentz(F, dF, data, f, dfdH, H, band.F0(i), X, band, i, derivatives_data, dXdT, dXdVMR);
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
-            set_lorentz(Fc, dFc, datac, fc, dfdH, H, band.F0(i), X, band, i, derivatives_data, derivatives_data_active, dXdT, dXdVMR);
+            set_lorentz(Fc, dFc, datac, fc, dfdH, H, band.F0(i), X, band, i, derivatives_data, dXdT, dXdVMR);
           break;
         case LineShape::Type::VP:
-          set_voigt(F, dF, data, f, dfdH, H, band.F0(i), DC, X, band, i, derivatives_data, derivatives_data_active, dDCdT, dXdT, dXdVMR);
+          set_voigt(F, dF, data, f, dfdH, H, band.F0(i), DC, X, band, i, derivatives_data, dDCdT, dXdT, dXdVMR);
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
-            set_voigt(Fc, dFc, datac, fc, dfdH, H, band.F0(i), DC, X, band, i, derivatives_data, derivatives_data_active, dDCdT, dXdT, dXdVMR);
+            set_voigt(Fc, dFc, datac, fc, dfdH, H, band.F0(i), DC, X, band, i, derivatives_data, dDCdT, dXdT, dXdVMR);
           break;
         case LineShape::Type::FINAL: break;
       }
@@ -1423,6 +1422,7 @@ void Linefunctions::set_cross_section_of_band(
       if (band.Cutoff() not_eq Absorption::CutoffType::None) {
         F.array() -= Fc[0];
         for (Index ij = 0; ij < nj; ij++) {
+          if (not propmattype_index(derivatives_data, ij)) continue;
           dF.col(ij).array() -= dFc[ij];
         }
       }
@@ -1436,33 +1436,33 @@ void Linefunctions::set_cross_section_of_band(
         case Absorption::MirroringType::Manual:
           break;
         case Absorption::MirroringType::Lorentz:
-          set_lorentz(N, dN, data, f, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, derivatives_data_active, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+          set_lorentz(N, dN, data, f, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
-            set_lorentz(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, derivatives_data_active, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+            set_lorentz(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
           break;
         case Absorption::MirroringType::SameAsLineShape:
           switch (band.LineShapeType()) {
             case LineShape::Type::DP:
-              set_doppler(N, dN, data, f, -dfdH, H, -band.F0(i), -DC, band, i, derivatives_data, derivatives_data_active, -dDCdT);
+              set_doppler(N, dN, data, f, -dfdH, H, -band.F0(i), -DC, band, i, derivatives_data, -dDCdT);
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
-                set_doppler(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), -DC, band, i, derivatives_data, derivatives_data_active, -dDCdT);
+                set_doppler(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), -DC, band, i, derivatives_data, -dDCdT);
               break;
             case LineShape::Type::LP:
-              set_lorentz(N, dN, data, f, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, derivatives_data_active, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+              set_lorentz(N, dN, data, f, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
-                set_lorentz(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, derivatives_data_active, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+                set_lorentz(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
               break;
             case LineShape::Type::VP:
-              set_voigt(N, dN, data, f, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, derivatives_data_active, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+              set_voigt(N, dN, data, f, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
-                set_voigt(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, derivatives_data_active, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+                set_voigt(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
               break;
             case LineShape::Type::HTP:
             case LineShape::Type::SDVP:
               // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-              set_htp(N, dN, f, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, derivatives_data_active, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+              set_htp(N, dN, f, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
-                set_htp(Nc, dNc, fc, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, derivatives_data_active, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+                set_htp(Nc, dNc, fc, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
               break;
             case LineShape::Type::FINAL: break;
           }
@@ -1474,16 +1474,17 @@ void Linefunctions::set_cross_section_of_band(
       if (band.Cutoff() not_eq Absorption::CutoffType::None and with_mirroring) {
         N.array() -= Nc[0];
         for (Index ij = 0; ij < nj; ij++) {
+          if (not propmattype_index(derivatives_data, ij)) continue;
           dN.col(ij).array() -= dNc[ij];
         }
       }
 
       // Mirror and and line mixing is added together (because of conjugate)
       if (band.LineShapeType() not_eq LineShape::Type::DP) {
-        apply_linemixing_scaling_and_mirroring(F, dF, N, dN, X, with_mirroring, band, i, derivatives_data, derivatives_data_active, dXdT, dXdVMR);
+        apply_linemixing_scaling_and_mirroring(F, dF, N, dN, X, with_mirroring, band, i, derivatives_data, dXdT, dXdVMR);
 
         // Apply line mixing and pressure broadening partial derivatives
-        apply_lineshapemodel_jacobian_scaling(dF, band, i, derivatives_data, derivatives_data_active, T, P, vmrs);
+        apply_lineshapemodel_jacobian_scaling(dF, band, i, derivatives_data, T, P, vmrs);
       }
 
       // Normalize the lines
@@ -1491,13 +1492,13 @@ void Linefunctions::set_cross_section_of_band(
         case Absorption::NormalizationType::None:
           break;
         case Absorption::NormalizationType::VVH:
-          apply_VVH_scaling(F, dF, data, f, band.F0(i), T, band, i, derivatives_data, derivatives_data_active);
+          apply_VVH_scaling(F, dF, data, f, band.F0(i), T, band, i, derivatives_data);
           break;
         case Absorption::NormalizationType::VVW:
-          apply_VVW_scaling(F, dF, f, band.F0(i), band, i, derivatives_data, derivatives_data_active);
+          apply_VVW_scaling(F, dF, f, band.F0(i), band, i, derivatives_data);
           break;
         case Absorption::NormalizationType::RQ:
-          apply_rosenkranz_quadratic_scaling(F, dF, f, band.F0(i), T, band, i, derivatives_data, derivatives_data_active);
+          apply_rosenkranz_quadratic_scaling(F, dF, f, band.F0(i), T, band, i, derivatives_data);
           break;
         case Absorption::NormalizationType::FINAL: break;
       }
@@ -1508,15 +1509,15 @@ void Linefunctions::set_cross_section_of_band(
         case Absorption::PopulationType::ByMakarovFullRelmat:
         case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
         case Absorption::PopulationType::LTE:
-          apply_linestrength_scaling_by_lte(F, dF, N, dN, band.Line(i), T, band.T0(), isot_ratio, QT, QT0, band, i, derivatives_data, derivatives_data_active, dQTdT);
+          apply_linestrength_scaling_by_lte(F, dF, N, dN, band.Line(i), T, band.T0(), isot_ratio, QT, QT0, band, i, derivatives_data, dQTdT);
           break;
         case Absorption::PopulationType::VibTemps: {
           auto nlte_data = nlte.get_vibtemp_params(band, i, T);
-          apply_linestrength_scaling_by_vibrational_nlte(F, dF, N, dN, band.Line(i), T, band.T0(), nlte_data.T_upp, nlte_data.T_low, nlte_data.E_upp, nlte_data.E_low, isot_ratio, QT, QT0, band, i, derivatives_data, derivatives_data_active, dQTdT);
+          apply_linestrength_scaling_by_vibrational_nlte(F, dF, N, dN, band.Line(i), T, band.T0(), nlte_data.T_upp, nlte_data.T_low, nlte_data.E_upp, nlte_data.E_low, isot_ratio, QT, QT0, band, i, derivatives_data, dQTdT);
         } break;
         case Absorption::PopulationType::NLTE: {
           auto nlte_data = nlte.get_ratio_params(band, i);
-          apply_linestrength_from_nlte_level_distributions(F, dF, N, dN, nlte_data.r_low, nlte_data.r_upp, band.g_low(i), band.g_upp(i), band.A(i), band.F0(i), T, band, i, derivatives_data, derivatives_data_active);
+          apply_linestrength_from_nlte_level_distributions(F, dF, N, dN, nlte_data.r_low, nlte_data.r_upp, band.g_low(i), band.g_upp(i), band.A(i), band.F0(i), T, band, i, derivatives_data);
         } break;
         case Absorption::PopulationType::FINAL: break;
       }
@@ -1542,10 +1543,14 @@ void Linefunctions::set_cross_section_of_band(
     auto reset_zeroes = (sum.F.array().real() < 0);
     
     sum.N = reset_zeroes.select(Complex(0, 0), sum.N);
-    for (Index ij=0; ij<nj; ij++)
+    for (Index ij=0; ij<nj; ij++) {
+      if (not propmattype_index(derivatives_data, ij)) continue;
       sum.dF.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dF.col(ij));
-    for (Index ij=0; ij<nj; ij++)
+    }
+    for (Index ij=0; ij<nj; ij++) {
+      if (not propmattype_index(derivatives_data, ij)) continue;
       sum.dN.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dN.col(ij));
+    }
     sum.F = reset_zeroes.select(Complex(0, 0), sum.F);
   }
 }
