@@ -176,11 +176,6 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
       // Check if this is a HITRAN cross section tag
       if (this_species.Type() != Species::TagType::HitranXsec) continue;
 
-#ifndef ENABLE_FFTW
-      out0 << "HITRAN XSEC Warning: No FFTW library support enabled, "
-           << "convolution will be extremely slow\n";
-#endif
-
       Index this_xdata_index =
           hitran_xsec_get_index(hitran_xsec_data, this_species.Spec());
       ARTS_USER_ERROR_IF (this_xdata_index < 0,
@@ -189,6 +184,12 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
       const XsecRecord& this_xdata = hitran_xsec_data[this_xdata_index];
       Matrix& this_xsec = abs_xsec_per_species[i];
       ArrayOfMatrix& this_dxsec = do_jac ? dabs_xsec_per_species_dx[i] : empty;
+
+#ifndef ENABLE_FFTW
+      if (this_xdata.Version() == 1)
+        out0 << "HITRAN XSEC Warning: No FFTW library support enabled, "
+             << "convolution will be extremely slow\n";
+#endif
 
       // Loop over pressure:
 #pragma omp parallel for if (!arts_omp_in_parallel() && abs_p.nelem() >= 1) \
