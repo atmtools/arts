@@ -864,7 +864,7 @@ void x2artsSensor(Workspace& ws,
                   const Vector& x,
                   const Agenda& sensor_response_agenda,
                   const Index& sensor_checked,
-                  const Vector& sensor_time,
+                  const ArrayOfTime& sensor_time,
                   const Verbosity&) {
   // Basics
   //
@@ -920,7 +920,7 @@ void x2artsSensor(Workspace& ws,
               "Sizes of *sensor_los* and *sensor_time* do not match.");
         Vector w;
         for (Index c = 0; c < np; c++) {
-          polynomial_basis_func(w, sensor_time, c);
+          polynomial_basis_func(w, time_vector(sensor_time), c);
           for (Index i = 0; i < w.nelem(); i++) {
             sensor_los(i, 0) += w[i] * x_t[ji[q][0] + c];
           }
@@ -928,7 +928,7 @@ void x2artsSensor(Workspace& ws,
       }
     }
 
-    // Frequncy shift or stretch
+    // Frequency shift or stretch
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q].Target().isFrequency()) {
       if (jacobian_quantities[q] == Jacobian::Sensor::FrequencyShift) {

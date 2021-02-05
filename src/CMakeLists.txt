@@ -591,5 +591,5 @@ endif()
 # Generate the RAW test file
 if (ENABLE_GUI)
   add_executable(test_raw test_raw.cc)
-  target_link_libraries(test_raw ${ALL_ARTS_LIBRARIES} public_arts_interface)
+  target_link_libraries(test_raw ${ALL_ARTS_LIBRARIES} public_arts_interface test_utils)
 endif()

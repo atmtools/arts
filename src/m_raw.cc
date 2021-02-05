@@ -51,59 +51,60 @@ void yColdAtmHot(Vector& y,
 
 
 void ybatchCAHA(ArrayOfVector& ybatch,
-                ArrayOfTime& time_grid,
-                const ArrayOfVector& rawdata,
-                const ArrayOfTime& timedata,
-                const Vector& cold_temp,
-                const Vector& hot_temp,
-                const Index& c_offset,
+                ArrayOfTime& sensor_time,
+                const ArrayOfVector& level0_data,
+                const ArrayOfTime& level0_time,
+                const Vector& level0_cold_temp,
+                const Vector& level0_hot_temp,
+                const Index& first_c_index,
                 const Verbosity&)
 {
-  ARTS_USER_ERROR_IF(rawdata.nelem() not_eq cold_temp.nelem() or
-                     rawdata.nelem() not_eq hot_temp.nelem(),
+  ARTS_USER_ERROR_IF(level0_data.nelem() not_eq level0_cold_temp.nelem() or
+                     level0_data.nelem() not_eq level0_hot_temp.nelem(),
                      "Length of vectors must be correct");
-  ARTS_USER_ERROR_IF (timedata.nelem() not_eq rawdata.nelem() and timedata.nelem() not_eq 0,
-                      "Bad timedata length, must be empty of same as data");
+  ARTS_USER_ERROR_IF (level0_time.nelem() not_eq level0_data.nelem() and
+                      level0_time.nelem() not_eq 0,
+                      "Bad level0_time length, must be empty of same as level0_data");
   
-  ybatch = Raw::Calibration::caha(rawdata, cold_temp, hot_temp, c_offset);
+  ybatch = Raw::Calibration::caha(level0_data, level0_cold_temp, level0_hot_temp, first_c_index);
   
   // Fix time using the same method as CAHA
-  if (timedata.nelem()) {
-    time_grid.resize(ybatch.nelem());
-    const Index pos = c_offset - ((c_offset > 1) ? 2 : 0);
-    for (Index i=0; i<time_grid.nelem(); i++) {
-      time_grid[i] = timedata[pos + 2*i];
+  if (level0_time.nelem()) {
+    sensor_time.resize(ybatch.nelem());
+    const Index pos = first_c_index - ((first_c_index > 1) ? 2 : 0);
+    for (Index i=0; i<sensor_time.nelem(); i++) {
+      sensor_time[i] = level0_time[pos + 2*i];
     }
   }
 }
 
 
 void ybatchTimeAveraging(ArrayOfVector& ybatch,
-                         ArrayOfTime& time_grid,
+                         ArrayOfTime& sensor_time,
                          const String& time_step,
                          const Index& disregard_first,
                          const Index& disregard_last,
                          const Verbosity&)
 {
   // Size of problem
-  const Index n=time_grid.nelem();
-  ARTS_USER_ERROR_IF (time_grid.nelem() not_eq n,
+  const Index n=sensor_time.nelem();
+  ARTS_USER_ERROR_IF (sensor_time.nelem() not_eq n,
                       "Time vector length must match input data length");
   
   // Time is not decreasing
-  ARTS_USER_ERROR_IF (not std::is_sorted(time_grid.cbegin(), time_grid.cend()),
+  ARTS_USER_ERROR_IF (not std::is_sorted(sensor_time.cbegin(), sensor_time.cend()),
                       "Time vector cannot decrease");
   
   // Find the limits of the range
-  auto lims = time_steps(time_grid, time_stepper_selection(time_step));
+  auto lims = time_steps(sensor_time, time_stepper_selection(time_step));
   
   // Output variables
   ArrayOfVector ybatch_out;
-  ArrayOfTime time_grid_out;
+  ArrayOfTime sensor_time_out;
   
   if (lims.front() == n) {
     ybatch_out.resize(0);
-    time_grid_out.resize(0);
+    sensor_time_out.resize(0);
   } else {
     
     // Frequency grids
@@ -117,28 +118,28 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
     ARTS_USER_ERROR_IF (m < 0,
                         "Must include last if time step covers all of the range");
     ybatch_out = ArrayOfVector(m, Vector(k));
-    time_grid_out = ArrayOfTime(m);
+    sensor_time_out = ArrayOfTime(m);
     
     // Fill output
     #pragma omp parallel for if (not arts_omp_in_parallel()) schedule(guided)
     for (Index i=0; i<m; i++) {
-      time_grid_out[i] = mean_time(time_grid, lims[i], lims[i+1]);
+      sensor_time_out[i] = mean_time(sensor_time, lims[i], lims[i+1]);
       Raw::Average::nanavg(ybatch_out[i], ybatch, lims[i], lims[i+1]);
     }
   }
   
   if (disregard_first) {
     ybatch_out.erase(ybatch_out.begin());
-    time_grid_out.erase(time_grid_out.begin());
+    sensor_time_out.erase(sensor_time_out.begin());
   }
   
   if (disregard_last) {
     ybatch_out.pop_back();
-    time_grid_out.pop_back();
+    sensor_time_out.pop_back();
   }
   
   ybatch = ybatch_out;
-  time_grid = time_grid_out;
+  sensor_time = sensor_time_out;
 }
 
 
@@ -151,14 +152,18 @@ void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
 {
   // Size of problem
   const Index n=ybatch.nelem();
+  const Index m=n ? ybatch[0].nelem() : 0;
   
-  const Index m=n?ybatch[0].nelem():0;
+  ARTS_USER_ERROR_IF (m == 0, "A frequency range is required")
   
   ARTS_USER_ERROR_IF (std::any_of(ybatch.begin(), ybatch.end(),
                                   [m](auto& y){return y.nelem() not_eq m;}),
                       "Bad input size, all of ybatch must match itself");
-  ARTS_USER_ERROR_IF (trop_temp.nelem() not_eq n,
-                      "Bad input size, trop_temp must match ybatch");
+  
+  ARTS_USER_ERROR_IF (trop_temp.nelem() not_eq n and trop_temp.nelem() not_eq 1,
+                      "Bad input size, trop_temp must match ybatch or be 1-long,\n"
+                      "trop_temp: [", trop_temp, "]\ntrop_temp.nelem(): ",
+                      trop_temp.nelem(), "\nybatch.nelem(): ", n);
   
   // This algorithm stores partial transmission and median and tropospheric temperature in the correction terms
   ybatch_corr = ArrayOfVector(n, Vector(3));

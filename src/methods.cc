@@ -19562,6 +19562,24 @@ void define_md_data_raw() {
       GIN_DESC("Start value.", "End value.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ArrayOfTimeNLinSpace"),
+      DESCRIPTION(
+          "Creates a time array with length *nelem*, equally spaced between the\n"
+          "given end values.\n"
+          "\n"
+          "The length (*nelem*) must be larger than 1.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("ArrayOfTime"),
+      GOUT_DESC("Variable to initialize."),
+      IN("nelem"),
+      GIN("start", "stop"),
+      GIN_TYPE("String", "String"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Start value.", "End value.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLogSpace"),
       DESCRIPTION(
           "Creates a vector with length *nelem*, equally logarithmically\n"
@@ -19648,6 +19666,23 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vector value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("ArrayOfTimeSetConstant"),
+      DESCRIPTION(
+          "Creates an ArrayOfTime and sets all elements to the specified value.\n"
+          "\n"
+          "The vector length is determined by *nelem*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("ArrayOfTime"),
+      GOUT_DESC("Variable to initialize."),
+      IN("nelem"),
+      GIN("value"),
+      GIN_TYPE("Time"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Time value.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorSet"),
@@ -20654,23 +20689,19 @@ void define_md_data_raw() {
           "c_offset is larger than 1, then the first output data will be around the\n"
           "observation cycle -HAC-, where H is at data[c_offset-2]\n"
           "\n"
-          "Also returns the times of the Atm measurements in *time_grid*\n"
+          "Also returns the times of the Atm measurements in *sensor_time*\n"
           "if the measurement's time data is provided\n"
           ),
       AUTHORS("Richard Larsson"),
-      OUT("ybatch", "time_grid"),
+      OUT("ybatch", "sensor_time"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN(),
-      GIN("data", "time_data", "cold_temp", "hot_temp", "c_offset"),
-      GIN_TYPE("ArrayOfVector", "ArrayOfTime", "Vector", "Vector", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("N-elem ArrayOfVector containing raw measurements",
-               "N-elem or 0-elem ArrayOfTime for the raw measurement times",
-               "N-elem Vector of cold load temperature",
-               "N-elem Vector of hot load temperature",
-               "Index offset of the first cold position")));
+      IN("level0_data", "level0_time", "level0_cold_temperature", "level0_hot_temperature"),
+      GIN("first_c_index"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Index offset of the first cold position")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchCalc"),
@@ -20844,13 +20875,13 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTimeAveraging"),
       DESCRIPTION(
-          "Time average of *ybatch* and *time_grid*\n"),
+          "Time average of *ybatch* and *sensor_time*\n"),
       AUTHORS("Richard Larsson"),
-      OUT("ybatch", "time_grid"),
+      OUT("ybatch", "sensor_time"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("ybatch", "time_grid"),
+      IN("ybatch", "sensor_time"),
       GIN("time_step", "disregard_first", "disregard_last"),
       GIN_TYPE("String", "Index", "Index"),
       GIN_DEFAULT(NODEF, "0", "0"),

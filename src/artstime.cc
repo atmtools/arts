@@ -30,6 +30,11 @@
 #include "artstime.h"
 #include "constants.h"
 
+Time::Time(const String& t) {
+  auto s = std::istringstream(t);
+  s >> *this;
+}
+
 TimeStep time_stepper_selection(const String& time_step)
 {
   std::istringstream x(time_step);
@@ -164,5 +169,11 @@ Time mean_time(const ArrayOfTime& ts, Index s, Index E)
 Vector time_vector(const ArrayOfTime& times) {
   Vector t(times.nelem());
   for (Index i=0; i<times.nelem(); i++) t[i] = Numeric(times[i]);
+  return t;
+}
+
+ArrayOfTime time_vector(const Vector& times) {
+  ArrayOfTime t(times.nelem());
+  for (Index i=0; i<times.nelem(); i++) t[i].Seconds(times[i]);
   return t;
 }

@@ -45,6 +45,7 @@
 #include <cmath>
 #include "array.h"
 #include "arts.h"
+#include "artstime.h"
 #include "energylevelmap.h"
 #include "exceptions.h"
 #include "gridded_fields.h"
@@ -1335,6 +1336,21 @@ void VectorNLinSpace(Vector& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfTimeNLinSpace(ArrayOfTime& x,
+                          const Index& n,
+                          const String& start,
+                          const String& stop,
+                          const Verbosity&) {
+  Vector seconds;
+  Time t0(start), t1(stop);
+
+  ARTS_USER_ERROR_IF (n < 2, "The number of points must be > 1.");
+  nlinspace(seconds, t0.Seconds(), t1.Seconds(), n);
+  
+  x = time_vector(seconds);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLogSpace(Vector& x,
                      const Index& n,
                      const Numeric& start,
@@ -1430,6 +1446,22 @@ void VectorScale(Vector& out,
 void VectorSetConstant(Vector& x,
                        const Index& n,
                        const Numeric& value,
+                       const Verbosity& verbosity) {
+  CREATE_OUT2;
+  CREATE_OUT3;
+
+  x.resize(n);
+  x = value;
+
+  out2 << "  Creating a constant vector.\n";
+  out3 << "            length : " << n << "\n";
+  out3 << "             value : " << value << "\n";
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfTimeSetConstant(ArrayOfTime& x,
+                       const Index& n,
+                       const Time& value,
                        const Verbosity& verbosity) {
   CREATE_OUT2;
   CREATE_OUT3;

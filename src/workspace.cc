@@ -2636,6 +2636,30 @@ void Workspace::define_wsv_data() {
                 GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("level0_cold_temperature"),
+      DESCRIPTION("List of L0 cold temperature data.  Can be of any type.  It is method dependent how\n"
+                 "this is calibrated to L1\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("level0_data"),
+      DESCRIPTION("List of L0 data.  Can be of any type.  It is method dependent how\n"
+                 "this is calibrated to L1\n"),
+      GROUP("ArrayOfVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("level0_hot_temperature"),
+      DESCRIPTION("List of L0 hot temperature data.  Can be of any type.  It is method dependent how\n"
+                 "this is calibrated to L1\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("level0_time"),
+      DESCRIPTION("List of L0 times.  It is method dependent how\n"
+                 "this is calibrated to L1\n"),
+      GROUP("ArrayOfTime")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("lm_ga_history"),
       DESCRIPTION(
           "The series of gamma values for a Marquardt-levenberg inversion.\n"
@@ -4459,14 +4483,13 @@ void Workspace::define_wsv_data() {
           "The time for each measurement block.\n"
           "\n"
           "This WSV is used when a time must be assigned to the measurements.\n"
-          "No specific time format has (yet) been specified.\n"
           "\n"
           "Usage: Set by the user.\n"
           "\n"
-          "Unit:  [ arbitrary ]\n"
+          "Unit:  [ UTC date and time ]\n"
           "\n"
           "Size:  [ number of measurement blocks ]\n"),
-      GROUP("Vector")));
+      GROUP("ArrayOfTime")));
 
   wsv_data.push_back(WsvRecord(
       NAME("sideband_mode"),
@@ -4947,7 +4970,7 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("time"),
-      DESCRIPTION("A time point.\n"),
+      DESCRIPTION("A UTC time point.\n"),
       GROUP("Time")));
 
   wsv_data.push_back(WsvRecord(

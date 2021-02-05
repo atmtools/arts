@@ -52,6 +52,7 @@ public:
   Time() : mtime(std::chrono::system_clock::now()) {}
   explicit Time(std::time_t t) : mtime(std::chrono::system_clock::from_time_t(t)) {}
   explicit Time(std::tm t) : Time(std::mktime(&t)) {}
+  explicit Time(const String& t);
   
   // Data
   const std::chrono::system_clock::time_point& Data() const {return mtime;}
@@ -140,11 +141,18 @@ ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& dt);
  */
 Time mean_time(const ArrayOfTime& ts, Index s=0, Index e=-1);
 
-/** Converts from each time to seconds and returns as Vector
+/** Converts from each Time to seconds and returns as Vector
  * 
  * @param[in] times Times
  * @return Vector of Time->Seconds() calls
  */
 Vector time_vector(const ArrayOfTime& times);
+
+/** Converts from each Vector entry by seconds and returns as ArrayOfTime
+ * 
+ * @param[in] times Times
+ * @return ArrayOfTime from seconds
+ */
+ArrayOfTime time_vector(const Vector& times);
 
 #endif  // ARTSTIME_H
