@@ -150,7 +150,7 @@ void fftconvolve(VectorView& result,
 
 void XsecRecord::SetVersion(const Index version) {
   if (version < 1 || version > 2) {
-    throw std::runtime_error("Invalid version, only 1/2 supported");
+    ARTS_USER_ERROR("Invalid version, only 1/2 supported");
   }
 
   mversion = version;
@@ -176,7 +176,7 @@ void XsecRecord::Extract(VectorView result,
              extrapolate_temperature,
              verbosity);
   } else {
-    throw std::runtime_error("Unsupported XsecRecord version");
+    ARTS_USER_ERROR("Unsupported XsecRecord version");
   }
 }
 
@@ -291,14 +291,16 @@ void XsecRecord::Extract1(VectorView result,
 
     // The frequency grid has to have enough points for this interpolation
     // order, otherwise throw a runtime error.
-    if (data_f_grid.nelem() < f_order + 1) {
-      ostringstream os;
-      os << "Not enough frequency grid points in Hitran Xsec data.\n"
-         << "You have only " << data_f_grid.nelem() << " grid points.\n"
-         << "But need at least " << f_order + 1 << ".";
-      throw runtime_error(os.str());
-    }
-    
+    ARTS_USER_ERROR_IF(
+        data_f_grid.nelem() < f_order + 1,
+        "Not enough frequency grid points in Hitran Xsec data.\n",
+        "You have only ",
+        data_f_grid.nelem(),
+        " grid points.\n",
+        "But need at least ",
+        f_order + 1,
+        ".");
+
     // Find frequency grid positions:
     const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid_active);
 
@@ -365,7 +367,7 @@ void XsecRecord::Extract2(VectorView result,
   const Index nf = f_grid.nelem();
 
   // Assert that result vector has right size:
-  assert(result.nelem() == nf);
+  ARTS_ASSERT(result.nelem() == nf);
 
   // Initialize result to zero (important for those frequencies outside the data grid).
   result = 0.;
