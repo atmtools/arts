@@ -71,11 +71,8 @@ void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
 
       hitran_xsec_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {
-      std::ostringstream os;
-      os << "Error reading coefficients file:\n";
-      os << filename << "\n";
-      os << e.what();
-      throw std::runtime_error(os.str());
+      ARTS_USER_ERROR(
+          "Error reading coefficients file:\n", filename, "\n", e.what());
     }
   }
 }
@@ -225,7 +222,7 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
           os << "Problem with HITRAN cross section species "
              << this_species.Name() << " at pressure level " << ip << " ("
              << abs_p[ip] / 100. << " hPa):\n"
-             << e.what();
+             << e.what() << "\n";
 #pragma omp critical(abs_xsec_per_speciesAddHitranXsec)
           {
             do_abort = true;
@@ -260,11 +257,6 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
   }
 
   if (do_abort) {
-    std::ostringstream os;
-    os << "Error messages from failures:\n";
-    for (const auto& msg : fail_msg) {
-      os << msg << '\n';
-    }
-    ARTS_USER_ERROR (os.str());
+    ARTS_USER_ERROR(fail_msg);
   }
 }
