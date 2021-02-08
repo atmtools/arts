@@ -1618,6 +1618,24 @@ void define_wsv_data() {
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_do"),
+      DESCRIPTION(
+          "Flag to activate gas scattering.\n"
+          "\n"
+          "If this variable is set to 0, no gas scattering will be considered,\n"
+          "even if the gas_scattering_agenda is set.\n"
+          "\n"),
+      GROUP("Index")));
+
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_agenda"),
+      DESCRIPTION(
+          "Agenda calculating gas scattering extinction and phase matrix.\n"
+          "\n"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("geo_pos"),
       DESCRIPTION(
           "Geo-position of a measurement.\n"
@@ -1774,6 +1792,23 @@ void define_wsv_data() {
       DESCRIPTION(
           "Agenda recalculating spectra and Jacobian for iterative inversion methods.\n"),
       GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("in_los"),
+      DESCRIPTION(
+          "Incoming line-of-sight.\n"
+          "\n"
+          "This variable holds a local line-of-sight. The angles of this\n"
+          "vector are defined as for *rte_los*.\n"
+          "\n"
+          "The WSV is used as input in *gas_scattering_agenda*\n"
+          "\n"
+          "Usage: Communication variable.\n"
+          "\n"
+          "Units: [ degree, degree ]\n"
+          "\n"
+          "Size:  [ 2 ]\n"),
+      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("irradiance_field"),
@@ -1977,6 +2012,19 @@ void define_wsv_data() {
           "\n"
           "Dimensions: [ f_grid, stokes_dim, stokes_dim ]\n"),
       GROUP("Tensor3")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("iy_transmitter"),
+      DESCRIPTION(
+          "Monochromatic pencil beam radiance spectrum of transmitter signal.\n"
+          "\n"
+          "This variable holds a single spectrum, with values corresponding\n"
+          "to infinite frequency and spatial resolution (compare to *y*).\n"
+          "\n"
+          "Unit:       Depend on the transmitted signal\n"
+          "\n"
+          "Dimensions: [ f_grid, stokes_dim ]\n"),
+      GROUP("Matrix")));
 
   wsv_data.push_back(
       WsvRecord(NAME("iy_transmitter_agenda"),
@@ -2745,6 +2793,23 @@ void define_wsv_data() {
           "*output_file_formatSetAscii*, *output_file_formatSetZippedAscii*, and\n"
           "*output_file_formatSetBinary*\n"),
       GROUP("String"), String{"ascii"}));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("out_los"),
+      DESCRIPTION(
+          "Incoming line-of-sight.\n"
+          "\n"
+          "This variable holds a local line-of-sight. The angles of this\n"
+          "vector are defined as for *rte_los*.\n"
+          "\n"
+          "The WSV is used as input in *gas_scattering_agenda*\n"
+          "\n"
+          "Usage: Communication variable.\n"
+          "\n"
+          "Units: [ degree, degree ]\n"
+          "\n"
+          "Size:  [ 2 ]\n"),
+      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("particle_bulkprop_field"),
@@ -3750,6 +3815,36 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "Size:  Should match abs_species.nelem()\n"),
       GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("sca_xsec"),
+      DESCRIPTION(
+          "Array of spectra of scattering extinction cross section matrices.\n"
+          "\n"
+          "This variable contains the elements of the extinction matrix solely\n"
+          "due to scattering.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ m^2. ]\n"
+          "\n"
+          "Size:  [number of spectra][fgrid, stokes_dim, stokes_dim]\n"),
+      GROUP("ArrayOfPropagationMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("sca_mat"),
+      DESCRIPTION(
+          "Spectrum of normalized phase matrices.\n"
+          "\n"
+          "This variable contains the elements of the normalized phase matrix\n"
+          "for a specific incoming and outgoing direction.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ 1 ]\n"
+          "\n"
+          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
+      GROUP("PropagationMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("scat_data"),

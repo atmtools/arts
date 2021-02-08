@@ -222,6 +222,28 @@ void define_agenda_data() {
   */
 
   agenda_data.push_back(
+      AgRecord(NAME("gas_scattering_agenda"),
+               DESCRIPTION("Calculation of the gas scattering extinction and phase matrix.\n"
+                           "\n"
+                           "This agenda calculates the gas scattering cross\n"
+                           "section and the normalized phase matrix for a specific\n"
+                           "incoming ( *in_los* ) and outgoing (*out_los*) direction.\n"
+                           "The scattering cross section is calculated along a\n"
+                           "propagtion path given by the propagation path variables\n"
+                           "*ppvar_p*, *ppvar_t*, and *ppvar_vmr*."
+                           "If *in_los* and *out_los* are empty vectors, then\n"
+                           "*sca_mat* is set empty. If *in_los* and *out_los*\n"
+                           "are not empty, then the phase matrix is calculated\n"
+                           "for the define incoming and outgoing direction.\n"),
+               OUTPUT("sca_xsec","sca_mat"),
+               INPUT("f_grid",
+                     "ppvar_p",
+                     "ppvar_t",
+                     "ppvar_vmr",
+                     "in_los",
+                     "out_los")));
+
+  agenda_data.push_back(
       AgRecord(NAME("g0_agenda"),
                DESCRIPTION("Calculation of the gravity at zero altitude.\n"
                            "\n"

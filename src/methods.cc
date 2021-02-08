@@ -8863,7 +8863,7 @@ Possible models:
           "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
           "\n"
           "The transmitter is assumed to be placed at the end of provided *ppath*.\n"
-          "The transmitted signal is taken from *iy_transmitter_agenda*. This\n"
+          "The transmitted signal is taken from *iy_transmitter*. This\n"
           "signal is propagated along the path, considering attenuation alone.\n"
           "That is, the result of the method (*iy*) is the output of\n"
           "*iy_transmitter_agenda* multiplied with the transmittance along the\n"
@@ -8924,6 +8924,7 @@ Possible models:
          "mag_w_field",
          "cloudbox_on",
          "cloudbox_limits",
+         "gas_scattering_do",
          "pnd_field",
          "dpnd_field_dx",
          "scat_species",
@@ -8932,9 +8933,10 @@ Possible models:
          "jacobian_do",
          "jacobian_quantities",
          "ppath",
+         "iy_transmitter",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
-         "iy_transmitter_agenda",
+         "gas_scattering_agenda",
          "iy_agenda_call1",
          "iy_transmittance",
          "rte_alonglos_v"),

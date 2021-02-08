@@ -683,6 +683,7 @@ void iyTransmissionStandard(Workspace& ws,
                             const Tensor3& mag_w_field,
                             const Index& cloudbox_on,
                             const ArrayOfIndex& cloudbox_limits,
+                            const Index& gas_scattering_do,
                             const Tensor4& pnd_field,
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfString& scat_species,
@@ -691,9 +692,10 @@ void iyTransmissionStandard(Workspace& ws,
                             const Index& jacobian_do,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                             const Ppath& ppath,
+                            const Matrix& iy_transmitter,
                             const Agenda& propmat_clearsky_agenda,
                             const Agenda& water_p_eq_agenda,
-                            const Agenda& iy_transmitter_agenda,
+                            const Agenda& gas_scattering_agenda,
                             const Index& iy_agenda_call1,
                             const Tensor3& iy_transmittance,
                             const Numeric& rte_alonglos_v,
@@ -732,12 +734,7 @@ void iyTransmissionStandard(Workspace& ws,
   // iy_aux_vars checked below
 
   // Transmitted signal
-  iy_transmitter_agendaExecute(ws,
-                               iy,
-                               f_grid,
-                               ppath.pos(np - 1, Range(0, atmosphere_dim)),
-                               ppath.los(np - 1, joker),
-                               iy_transmitter_agenda);
+  iy=iy_transmitter;
   if (iy.ncols() != ns || iy.nrows() != nf) {
     ostringstream os;
     os << "The size of *iy* returned from *iy_transmitter_agenda* is\n"
