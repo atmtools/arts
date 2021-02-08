@@ -76,12 +76,14 @@ AgendaSet( iy_transmitter_agenda ){
   Ignore( rtp_pos )
   Ignore( rtp_los )
   iy_transmitterSinglePol
+  Copy(iy,iy_transmitter)
 }
 ArrayOfIndexSet( instrument_pol, [ 5 ] )
 Append( instrument_pol_array, instrument_pol )
 #
 AgendaSet( iy_radar_agenda ){
   Ignore( iy_id )
+  iy_transmitterSinglePol
   ppathPlaneParallel( cloudbox_on = 0 )
   iyRadarSingleScat( pext_scaling = weight_ext )
   VectorSet(geo_pos, [])

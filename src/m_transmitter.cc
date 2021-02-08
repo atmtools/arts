@@ -1036,7 +1036,7 @@ void iyTransmissionStandard(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iy_transmitterMultiplePol(Matrix& iy,
+void iy_transmitterMultiplePol(Matrix& iy_transmitter,
                                const Index& stokes_dim,
                                const Vector& f_grid,
                                const ArrayOfIndex& instrument_pol,
@@ -1048,15 +1048,15 @@ void iy_transmitterMultiplePol(Matrix& iy,
         "The length of *f_grid* and the number of elements "
         "in *instrument_pol* must be equal.");
 
-  iy.resize(nf, stokes_dim);
+  iy_transmitter.resize(nf, stokes_dim);
 
   for (Index i = 0; i < nf; i++) {
-    stokes2pol(iy(i, joker), stokes_dim, instrument_pol[i], 1);
+    stokes2pol(iy_transmitter(i, joker), stokes_dim, instrument_pol[i], 1);
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iy_transmitterSinglePol(Matrix& iy,
+void iy_transmitterSinglePol(Matrix& iy_transmitter,
                              const Index& stokes_dim,
                              const Vector& f_grid,
                              const ArrayOfIndex& instrument_pol,
@@ -1067,11 +1067,11 @@ void iy_transmitterSinglePol(Matrix& iy,
     throw runtime_error(
         "The number of elements in *instrument_pol* must be 1.");
 
-  iy.resize(nf, stokes_dim);
+  iy_transmitter.resize(nf, stokes_dim);
 
-  stokes2pol(iy(0, joker), stokes_dim, instrument_pol[0], 1);
+  stokes2pol(iy_transmitter(0, joker), stokes_dim, instrument_pol[0], 1);
 
   for (Index i = 1; i < nf; i++) {
-    iy(i, joker) = iy(0, joker);
+    iy_transmitter(i, joker) = iy_transmitter(0, joker);
   }
 }

@@ -67,6 +67,8 @@ AgendaSet( iy_transmitter_agenda ){
   Ignore( rtp_pos )
   Ignore( rtp_los )
   iy_transmitterSinglePol
+  Copy(iy,iy_transmitter)
+  
 }
 ArrayOfIndexSet( instrument_pol, [ 5 ] )
 Append( instrument_pol_array, instrument_pol )
