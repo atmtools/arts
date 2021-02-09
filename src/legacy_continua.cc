@@ -5527,27 +5527,15 @@ void MPM87H2OAbsModel(MatrixView pxsec,
                                 {970.315022, 9.1600, 1.842, 24.00e-3},
                                 {987.926764, 138.0000, 0.178, 28.60e-3}};
 
-  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
-  // standard values for the MPM87 model (Radio Science, 20(5), 1985, 1069):
-  const Numeric CC_MPM87 = 1.00000;
-  const Numeric CL_MPM87 = 1.00000;
-  const Numeric CW_MPM87 = 1.00000;
-  // ---------------------------------------------------------------------------------------
-
   // select the parameter set (!!model dominates values!!):
-  Numeric CC, CL, CW;
+  Numeric CC = 1.0, CL = 1.0, CW = 1.0;
+  bool do_lines = true;
   if (model == "MPM87") {
-    CC = CC_MPM87;
-    CL = CL_MPM87;
-    CW = CW_MPM87;
+    //
   } else if (model == "MPM87Lines") {
     CC = 0.000;
-    CL = CL_MPM87;
-    CW = CW_MPM87;
   } else if (model == "MPM87Continuum") {
-    CC = CC_MPM87;
-    CL = 0.000;
-    CW = 0.000;
+    do_lines = false;
   } else if (model == "user") {
     CC = CCin;
     CL = CLin;
@@ -5602,20 +5590,18 @@ void MPM87H2OAbsModel(MatrixView pxsec,
       // H2O line contribution at position f
       Numeric Nppl = 0.000;
 
-      // Loop over MPM89 H2O spectral lines
-      for (Index l = i_first; l <= i_last; ++l) {
-        // line strength [kHz]
-        Numeric strength = CL * pwv_dummy * mpm87[l][1] *
-                           pow(theta, (Numeric)3.5) *
-                           exp(mpm87[l][2] * (1.000 - theta));
-        // line broadening parameter [GHz]
-        Numeric gam = CW * mpm87[l][3] *
-                      ((4.80 * pwv * pow(theta, (Numeric)1.1)) +
-                       (pda * pow(theta, (Numeric)0.6)));
-        // effective line width with Doppler broadening [GHz]
-        // gam              = sqrt(gam*gam + (2.14e-12 * mpm87[l][0] * mpm87[l][0] / theta));
-        // H2O line absorption [dB/km/GHz] like in the original MPM87
+      // Loop over MPM87 H2O spectral lines
+      if (do_lines) {
+        for (Index l = i_first; l <= i_last; ++l) {
+          // line strength [kHz]
+          Numeric strength = CL * pwv_dummy * mpm87[l][1] *
+            pow(theta, (Numeric)3.5) * exp(mpm87[l][2] * (1.000 - theta));
+          // line broadening parameter [GHz]
+          Numeric gam = CW * mpm87[l][3] *
+            ((4.80 * pwv * pow(theta, (Numeric)1.1)) +
+             (pda * pow(theta, (Numeric)0.6)));
         Nppl += strength * MPMLineShapeFunction(gam, mpm87[l][0], ff);
+        }
       }
       // pxsec = abs/vmr [1/m] but MPM87 is in [dB/km] --> conversion necessary
       pxsec(s, i) += dB_km_to_1_m * 0.1820 * ff * (Nppl + (Nppc * ff));
@@ -5700,28 +5686,15 @@ void MPM89H2OAbsModel(MatrixView pxsec,
       {970.315022, 9.1600, 1.920, 25.50, 0.64, 4.94, 0.67},
       {987.926764, 138.0000, 0.258, 29.85, 0.68, 4.55, 0.90}};
 
-  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
-  // standard values for the MPM89 model
-  // (Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631):
-  const Numeric CC_MPM89 = 1.00000;
-  const Numeric CL_MPM89 = 1.00000;
-  const Numeric CW_MPM89 = 1.00000;
-  // ---------------------------------------------------------------------------------------
-
   // select the parameter set (!!model goes for values!!):
-  Numeric CC, CL, CW;
+  Numeric CC = 1.0, CL = 1.0, CW = 1.0;
+  bool do_lines = true;
   if (model == "MPM89") {
-    CC = CC_MPM89;
-    CL = CL_MPM89;
-    CW = CW_MPM89;
+    //
   } else if (model == "MPM89Lines") {
     CC = 0.000;
-    CL = CL_MPM89;
-    CW = CW_MPM89;
   } else if (model == "MPM89Continuum") {
-    CC = CC_MPM89;
-    CL = 0.000;
-    CW = 0.000;
+    do_lines = false;
   } else if (model == "user") {
     CC = CCin;
     CL = CLin;
@@ -5777,21 +5750,17 @@ void MPM89H2OAbsModel(MatrixView pxsec,
       Numeric Nppl = 0.000;
 
       // Loop over MPM89 spectral lines:
-      for (Index l = i_first; l <= i_last; ++l) {
-        // line strength [kHz]
-        Numeric strength = CL * pwv_dummy * mpm89[l][1] *
-                           pow(theta, (Numeric)3.5) *
-                           exp(mpm89[l][2] * (1.000 - theta));
-        // line broadening parameter [GHz]
-        Numeric gam = CW * mpm89[l][3] * 0.001 *
-                      (mpm89[l][5] * pwv * pow(theta, mpm89[l][6]) +
-                       pda * pow(theta, mpm89[l][4]));
-        // Doppler line width [GHz]
-        // Numeric gamd     = 1.46e-6 * mpm89[l][0] / sqrt(theta);
-        // effective line width [GHz]
-        // gam              = 0.535 * gam + sqrt(0.217*gam*gam + gamd*gamd);
-        // H2O line absorption [dB/km/GHz] like in the original MPM89
-        Nppl += strength * MPMLineShapeFunction(gam, mpm89[l][0], ff);
+      if (do_lines) {
+        for (Index l = i_first; l <= i_last; ++l) {
+          // line strength [kHz]
+          Numeric strength = CL * pwv_dummy * mpm89[l][1] *
+            pow(theta, (Numeric)3.5) * exp(mpm89[l][2] * (1.000 - theta));
+          // line broadening parameter [GHz]
+          Numeric gam = CW * mpm89[l][3] * 0.001 *
+            (mpm89[l][5] * pwv * pow(theta, mpm89[l][6]) +
+             pda * pow(theta, mpm89[l][4]));
+          Nppl += strength * MPMLineShapeFunction(gam, mpm89[l][0], ff);
+        }
       }
       // pxsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
       pxsec(s, i) += dB_km_to_1_m * 0.1820 * ff * (Nppl + (Nppc * ff));
@@ -6468,27 +6437,15 @@ void PWR98H2OAbsModel(MatrixView pxsec,
                              0.84,
                              0.78};
 
-  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
-  // standard values for the MPM87 model (P. W. Rosenkranz., Radio Science, 33(4), 919, 1998):
-  const Numeric CC_PWR98 = 1.00000;
-  const Numeric CL_PWR98 = 1.00000;
-  const Numeric CW_PWR98 = 1.00000;
-  // ---------------------------------------------------------------------------------------
-
   // select the parameter set (!!model dominates values!!):
-  Numeric CC, CL, CW;
+  Numeric CC = 1.0, CL = 1.0, CW = 1.0;
+  bool do_lines = true;
   if (model == "Rosenkranz") {
-    CC = CC_PWR98;
-    CL = CL_PWR98;
-    CW = CW_PWR98;
+    //
   } else if (model == "RosenkranzLines") {
     CC = 0.000;
-    CL = CL_PWR98;
-    CW = CW_PWR98;
   } else if (model == "RosenkranzContinuum") {
-    CC = CC_PWR98;
-    CL = 0.000;
-    CW = 0.000;
+    do_lines = false;
   } else if (model == "user") {
     CC = CCin;
     CL = CLin;
@@ -6551,23 +6508,25 @@ void PWR98H2OAbsModel(MatrixView pxsec,
       Numeric sum = 0.000;
 
       // Loop over spectral lines
-      for (Index l = 0; l < 15; l++) {
-        Numeric width = (CW * PWRw3[l] * pda * pow(ti, PWRx[l])) +
-                        (PWRws[l] * pvap * pow(ti, PWRxs[l]));
-        //        Numeric width    = CW * ( PWRw3[l] * pda  * pow(ti, PWRx[l]) +
-        //          PWRws[l] * pvap * pow(ti, PWRxs[l]) );
-        Numeric wsq = width * width;
-        Numeric strength = CL * PWRs1[l] * ti2 * exp(PWRb2[l] * (1.0 - ti));
-        // frequency differences
-        Numeric df0 = ff - PWRfl[l];
-        Numeric df1 = ff + PWRfl[l];
-        // use Clough's definition of local line contribution
-        Numeric base = width / (wsq + 562500.000);
-        // positive and negative resonances
-        Numeric res = 0.000;
-        if (fabs(df0) < 750.0) res += width / (df0 * df0 + wsq) - base;
-        if (fabs(df1) < 750.0) res += width / (df1 * df1 + wsq) - base;
-        sum += strength * res * pow((ff / PWRfl[l]), (Numeric)2.0);
+      if (do_lines) {
+        for (Index l = 0; l < 15; l++) {
+          Numeric width = (CW * PWRw3[l] * pda * pow(ti, PWRx[l])) +
+                          (PWRws[l] * pvap * pow(ti, PWRxs[l]));
+          //        Numeric width    = CW * ( PWRw3[l] * pda  * pow(ti, PWRx[l]) +
+          //          PWRws[l] * pvap * pow(ti, PWRxs[l]) );
+          Numeric wsq = width * width;
+          Numeric strength = CL * PWRs1[l] * ti2 * exp(PWRb2[l] * (1.0 - ti));
+          // frequency differences
+          Numeric df0 = ff - PWRfl[l];
+          Numeric df1 = ff + PWRfl[l];
+          // use Clough's definition of local line contribution
+          Numeric base = width / (wsq + 562500.000);
+          // positive and negative resonances
+          Numeric res = 0.000;
+          if (fabs(df0) < 750.0) res += width / (df0 * df0 + wsq) - base;
+          if (fabs(df1) < 750.0) res += width / (df1 * df1 + wsq) - base;
+          sum += strength * res * pow((ff / PWRfl[l]), (Numeric)2.0);
+        }
       }
       // line term [Np/km]
       Numeric absl = 0.3183e-4 * den_dummy * sum;
@@ -6639,7 +6598,7 @@ void CP98H2OAbsModel(MatrixView pxsec,
   } else if (model == "CruzPolContinuum") {
     CC = CC_CP98;
     CL = 0.000;
-    CW = 0.000;
+    CW = CW_CP98;
   } else if (model == "user") {
     CC = CCin;
     CL = CLin;
@@ -12243,6 +12202,7 @@ void MPM85O2AbsModel(MatrixView pxsec,
 
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CL, CW, CO;
+  bool do_lines = true;
   if (model == "MPM85") {
     CC = CC_MPM85;
     CL = CL_MPM85;
@@ -12254,6 +12214,7 @@ void MPM85O2AbsModel(MatrixView pxsec,
     CW = CW_MPM85;
     CO = CO_MPM85;
   } else if (model == "MPM85Continuum") {
+    do_lines = false;
     CC = CC_MPM85;
     CL = 0.000;
     CW = 0.000;
@@ -12360,20 +12321,22 @@ void MPM85O2AbsModel(MatrixView pxsec,
 
       // Loop over MPM85 O2 spectral lines:
       Numeric Nppl = 0.0;
-      for (Index l = i_first; l <= i_last; ++l) {
-        // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
-        Numeric strength = CL * mpm85[l][1] * 1.000e-6 * pda_dummy *
-                           pow(theta, (Numeric)3.) *
-                           exp(mpm85[l][2] * (1.000 - theta)) / mpm85[l][0];
-        // line broadening parameter [GHz]
-        Numeric gam = CW * (mpm85[l][3] * 1.000e-3 *
-                            ((pda * pow(theta, ((Numeric)0.80 - mpm85[l][4]))) +
-                             (1.10 * pwv * theta)));
-        // line mixing parameter [1]
-        Numeric delta =
-            CO * mpm85[l][5] * 1.000e-3 * pda * pow(theta, mpm85[l][6]);
-        // absorption [dB/km] like in the original MPM92
-        Nppl += strength * MPMLineShapeO2Function(gam, mpm85[l][0], ff, delta);
+      if (do_lines) {
+        for (Index l = i_first; l <= i_last; ++l) {
+          // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+          Numeric strength = CL * mpm85[l][1] * 1.000e-6 * pda_dummy *
+                             pow(theta, (Numeric)3.) *
+                             exp(mpm85[l][2] * (1.000 - theta)) / mpm85[l][0];
+          // line broadening parameter [GHz]
+          Numeric gam = CW * (mpm85[l][3] * 1.000e-3 *
+                              ((pda * pow(theta, ((Numeric)0.80 - mpm85[l][4]))) +
+                               (1.10 * pwv * theta)));
+          // line mixing parameter [1]
+          Numeric delta =
+              CO * mpm85[l][5] * 1.000e-3 * pda * pow(theta, mpm85[l][6]);
+          // absorption [dB/km] like in the original MPM92
+          Nppl += strength * MPMLineShapeO2Function(gam, mpm85[l][0], ff, delta);
+        }
       }
       // in MPM85 there is a cutoff for O2 line absorption if abs_l < 0
       // absorption cannot be less than 0 according to MPM87 philosophy.
@@ -12513,6 +12476,7 @@ void MPM87O2AbsModel(MatrixView pxsec,
 
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CL, CW, CO;
+  bool do_lines = true;
   if (model == "MPM87") {
     CC = CC_MPM87;
     CL = CL_MPM87;
@@ -12524,6 +12488,7 @@ void MPM87O2AbsModel(MatrixView pxsec,
     CW = CW_MPM87;
     CO = CO_MPM87;
   } else if (model == "MPM87Continuum") {
+    do_lines = false;
     CC = CC_MPM87;
     CL = 0.000;
     CW = 0.000;
@@ -12629,20 +12594,22 @@ void MPM87O2AbsModel(MatrixView pxsec,
 
       // Loop over MPM87 O2 spectral lines:
       Numeric Nppl = 0.0;
-      for (Index l = i_first; l <= i_last; ++l) {
-        // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
-        Numeric strength = CL * mpm87[l][1] * 1.000e-6 * pda_dummy *
-                           pow(theta, (Numeric)3.) *
-                           exp(mpm87[l][2] * (1.000 - theta)) / mpm87[l][0];
-        // line broadening parameter [GHz]
-        Numeric gam = CW * (mpm87[l][3] * 1.000e-3 *
-                            ((pda * pow(theta, ((Numeric)0.80 - mpm87[l][4]))) +
-                             (1.10 * pwv * theta)));
-        // line mixing parameter [1]
-        Numeric delta =
-            CO * mpm87[l][5] * 1.000e-3 * pda * pow(theta, mpm87[l][6]);
-        // absorption [dB/km] like in the original MPM92
-        Nppl += strength * MPMLineShapeO2Function(gam, mpm87[l][0], ff, delta);
+      if (do_lines) {
+        for (Index l = i_first; l <= i_last; ++l) {
+          // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+          Numeric strength = CL * mpm87[l][1] * 1.000e-6 * pda_dummy *
+                             pow(theta, (Numeric)3.) *
+                             exp(mpm87[l][2] * (1.000 - theta)) / mpm87[l][0];
+          // line broadening parameter [GHz]
+          Numeric gam = CW * (mpm87[l][3] * 1.000e-3 *
+                              ((pda * pow(theta, ((Numeric)0.80 - mpm87[l][4]))) +
+                               (1.10 * pwv * theta)));
+          // line mixing parameter [1]
+          Numeric delta =
+              CO * mpm87[l][5] * 1.000e-3 * pda * pow(theta, mpm87[l][6]);
+          // absorption [dB/km] like in the original MPM92
+          Nppl += strength * MPMLineShapeO2Function(gam, mpm87[l][0], ff, delta);
+        }
       }
       // in MPM87 there is a cutoff for O2 line absorption if abs_l < 0
       // absorption cannot be less than 0 according to MPM87 source code.
@@ -12772,6 +12739,7 @@ void MPM89O2AbsModel(MatrixView pxsec,
 
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CL, CW, CO;
+  bool do_lines = true;
   if (model == "MPM89") {
     CC = CC_MPM89;
     CL = CL_MPM89;
@@ -12783,6 +12751,7 @@ void MPM89O2AbsModel(MatrixView pxsec,
     CW = CW_MPM89;
     CO = CO_MPM89;
   } else if (model == "MPM89Continuum") {
+    do_lines = false;
     CC = CC_MPM89;
     CL = 0.000;
     CW = 0.000;
@@ -12884,20 +12853,22 @@ void MPM89O2AbsModel(MatrixView pxsec,
 
       // Loop over MPM89 O2 spectral lines:
       Numeric Nppl = 0.0;
-      for (Index l = i_first; l <= i_last; ++l) {
-        // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
-        Numeric strength = CL * mpm89[l][1] * 1.000e-6 * pda_dummy *
-                           pow(theta, (Numeric)3.) *
-                           exp(mpm89[l][2] * (1.000 - theta)) / mpm89[l][0];
-        // line broadening parameter [GHz]
-        Numeric gam = CW * (mpm89[l][3] * 1.000e-3 *
-                            ((pda * pow(theta, ((Numeric)0.80 - mpm89[l][4]))) +
-                             (1.10 * pwv * theta)));
-        // line mixing parameter [1]
-        Numeric delta = CO * ((mpm89[l][5] + mpm89[l][6] * theta) * 1.000e-3 *
-                              pda * pow(theta, (Numeric)0.8));
-        // absorption [dB/km] like in the original MPM92
-        Nppl += strength * MPMLineShapeO2Function(gam, mpm89[l][0], ff, delta);
+      if (do_lines) {
+        for (Index l = i_first; l <= i_last; ++l) {
+          // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+          Numeric strength = CL * mpm89[l][1] * 1.000e-6 * pda_dummy *
+                             pow(theta, (Numeric)3.) *
+                             exp(mpm89[l][2] * (1.000 - theta)) / mpm89[l][0];
+          // line broadening parameter [GHz]
+          Numeric gam = CW * (mpm89[l][3] * 1.000e-3 *
+                              ((pda * pow(theta, ((Numeric)0.80 - mpm89[l][4]))) +
+                               (1.10 * pwv * theta)));
+          // line mixing parameter [1]
+          Numeric delta = CO * ((mpm89[l][5] + mpm89[l][6] * theta) * 1.000e-3 *
+                                pda * pow(theta, (Numeric)0.8));
+          // absorption [dB/km] like in the original MPM92
+          Nppl += strength * MPMLineShapeO2Function(gam, mpm89[l][0], ff, delta);
+        }
       }
       // in MPM89 we adopt the cutoff for O2 line absorption if abs_l < 0
       // absorption cannot be less than 0 according to MPM87 source code.
@@ -13028,6 +12999,7 @@ void MPM92O2AbsModel(MatrixView pxsec,
 
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CL, CW, CO;
+  bool do_lines = true;
   if (model == "MPM92") {
     CC = CC_MPM92;
     CL = CL_MPM92;
@@ -13039,6 +13011,7 @@ void MPM92O2AbsModel(MatrixView pxsec,
     CW = CW_MPM92;
     CO = CO_MPM92;
   } else if (model == "MPM92Continuum") {
+    do_lines = false;
     CC = CC_MPM92;
     CL = 0.000;
     CW = 0.000;
@@ -13141,21 +13114,23 @@ void MPM92O2AbsModel(MatrixView pxsec,
 
       // Loop over MPM92 O2 spectral lines:
       Numeric Nppl = 0.0;
-      for (Index l = i_first; l <= i_last; ++l) {
-        // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
-        Numeric strength = CL * 1.000e-6 * pda_dummy * mpm92[l][1] /
-                           mpm92[l][0] * pow(theta, (Numeric)3.) *
-                           exp(mpm92[l][2] * (1.0 - theta));
-        // line broadening parameter [GHz]
-        Numeric gam = CW * (mpm92[l][3] * 0.001 *
-                            ((pda * pow(theta, ((Numeric)0.8 - mpm92[l][4]))) +
-                             (1.10 * pwv * theta)));
-        // line mixing parameter [1]
-        //      if (l < 11) CD = 1.1000;
-        Numeric delta = CO * ((mpm92[l][5] + mpm92[l][6] * theta) *
-                              (pda + pwv) * 0.001 * pow(theta, (Numeric)0.8));
-        // absorption [dB/km] like in the original MPM92
-        Nppl += strength * MPMLineShapeO2Function(gam, mpm92[l][0], ff, delta);
+      if (do_lines) {
+        for (Index l = i_first; l <= i_last; ++l) {
+          // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+          Numeric strength = CL * 1.000e-6 * pda_dummy * mpm92[l][1] /
+                             mpm92[l][0] * pow(theta, (Numeric)3.) *
+                             exp(mpm92[l][2] * (1.0 - theta));
+          // line broadening parameter [GHz]
+          Numeric gam = CW * (mpm92[l][3] * 0.001 *
+                              ((pda * pow(theta, ((Numeric)0.8 - mpm92[l][4]))) +
+                               (1.10 * pwv * theta)));
+          // line mixing parameter [1]
+          //      if (l < 11) CD = 1.1000;
+          Numeric delta = CO * ((mpm92[l][5] + mpm92[l][6] * theta) *
+                                (pda + pwv) * 0.001 * pow(theta, (Numeric)0.8));
+          // absorption [dB/km] like in the original MPM92
+          Nppl += strength * MPMLineShapeO2Function(gam, mpm92[l][0], ff, delta);
+        }
       }
       // in MPM92 we adopt the cutoff for O2 line absorption if abs_l < 0
       // absorption cannot be less than 0 according to MPM87 and MPM93 source code.
@@ -13294,6 +13269,7 @@ void TRE05O2AbsModel(MatrixView pxsec,
 
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CL, CW, CO;
+  bool do_lines = true;
   if (model == "TRE05") {
     CC = CC_TRE05;
     CL = CL_TRE05;
@@ -13305,6 +13281,7 @@ void TRE05O2AbsModel(MatrixView pxsec,
     CW = CW_TRE05;
     CO = CO_TRE05;
   } else if (model == "TRE05Continuum") {
+    do_lines = false;
     CC = CC_TRE05;
     CL = 0.000;
     CW = 0.000;
@@ -13411,22 +13388,24 @@ void TRE05O2AbsModel(MatrixView pxsec,
 
       // Loop over TRE05 O2 spectral lines:
       Numeric Nppl = 0.0;
-      for (Index l = i_first; l <= i_last; ++l) {
-        // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
-        Numeric strength = CL * 1.000e-6 * pda_dummy * tre05[l][1] /
-                           tre05[l][0] * pow(theta, (Numeric)3.) *
-                           exp(tre05[l][2] * (1.0 - theta));
-        // line broadening parameter [GHz]
-        Numeric gam = CW * (tre05[l][3] * 0.001 *
-                            ((pda * pow(theta, ((Numeric)0.8 - tre05[l][4]))) +
-                             (1.10 * pwv * theta)));
-        // line mixing parameter [1]
-        //      if (l < 11) CD = 1.1000;
-        Numeric delta =
-            CO * ((tre05[l][5] + tre05[l][6] * theta) * (pda + pwv) *
-                  pow(theta, (Numeric)0.8) * (Numeric)0.001);
-        // absorption [dB/km] like in the original TRE05
-        Nppl += strength * MPMLineShapeO2Function(gam, tre05[l][0], ff, delta);
+      if (do_lines) {
+        for (Index l = i_first; l <= i_last; ++l) {
+          // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+          Numeric strength = CL * 1.000e-6 * pda_dummy * tre05[l][1] /
+                             tre05[l][0] * pow(theta, (Numeric)3.) *
+                             exp(tre05[l][2] * (1.0 - theta));
+          // line broadening parameter [GHz]
+          Numeric gam = CW * (tre05[l][3] * 0.001 *
+                              ((pda * pow(theta, ((Numeric)0.8 - tre05[l][4]))) +
+                               (1.10 * pwv * theta)));
+          // line mixing parameter [1]
+          //      if (l < 11) CD = 1.1000;
+          Numeric delta =
+              CO * ((tre05[l][5] + tre05[l][6] * theta) * (pda + pwv) *
+                    pow(theta, (Numeric)0.8) * (Numeric)0.001);
+          // absorption [dB/km] like in the original TRE05
+          Nppl += strength * MPMLineShapeO2Function(gam, tre05[l][0], ff, delta);
+        }
       }
       // in TRE05 there is a cutoff for O2 line absorption if abs_l < 0
       // absorption cannot be less than 0 according to TRE05 philosophy.
@@ -13556,6 +13535,7 @@ void MPM93O2AbsModel(MatrixView pxsec,
 
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CL, CW, CO;
+  bool do_lines = true;
   if (model == "MPM93") {
     CC = CC_MPM93;
     CL = CL_MPM93;
@@ -13567,6 +13547,7 @@ void MPM93O2AbsModel(MatrixView pxsec,
     CW = CW_MPM93;
     CO = CO_MPM93;
   } else if (model == "MPM93Continuum") {
+    do_lines = false;
     CC = CC_MPM93;
     CL = 0.000;
     CW = 0.000;
@@ -13673,22 +13654,24 @@ void MPM93O2AbsModel(MatrixView pxsec,
 
       // Loop over MPM93 O2 spectral lines:
       Numeric Nppl = 0.0;
-      for (Index l = i_first; l <= i_last; ++l) {
-        // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
-        Numeric strength = CL * 1.000e-6 * pda_dummy * mpm93[l][1] /
-                           mpm93[l][0] * pow(theta, (Numeric)3.) *
-                           exp(mpm93[l][2] * (1.0 - theta));
-        // line broadening parameter [GHz]
-        Numeric gam = CW * (mpm93[l][3] * 0.001 *
-                            ((pda * pow(theta, ((Numeric)0.8 - mpm93[l][4]))) +
-                             (1.10 * pwv * theta)));
-        // line mixing parameter [1]
-        //      if (l < 11) CD = 1.1000;
-        Numeric delta =
-            CO * ((mpm93[l][5] + mpm93[l][6] * theta) * (pda + pwv) *
-                  pow(theta, (Numeric)0.8) * (Numeric)0.001);
-        // absorption [dB/km] like in the original MPM93
-        Nppl += strength * MPMLineShapeO2Function(gam, mpm93[l][0], ff, delta);
+      if (do_lines) {
+        for (Index l = i_first; l <= i_last; ++l) {
+          // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+          Numeric strength = CL * 1.000e-6 * pda_dummy * mpm93[l][1] /
+                             mpm93[l][0] * pow(theta, (Numeric)3.) *
+                             exp(mpm93[l][2] * (1.0 - theta));
+          // line broadening parameter [GHz]
+          Numeric gam = CW * (mpm93[l][3] * 0.001 *
+                              ((pda * pow(theta, ((Numeric)0.8 - mpm93[l][4]))) +
+                               (1.10 * pwv * theta)));
+          // line mixing parameter [1]
+          //      if (l < 11) CD = 1.1000;
+          Numeric delta =
+              CO * ((mpm93[l][5] + mpm93[l][6] * theta) * (pda + pwv) *
+                    pow(theta, (Numeric)0.8) * (Numeric)0.001);
+          // absorption [dB/km] like in the original MPM93
+          Nppl += strength * MPMLineShapeO2Function(gam, mpm93[l][0], ff, delta);
+        }
       }
       // in MPM93 there is a cutoff for O2 line absorption if abs_l < 0
       // absorption cannot be less than 0 according to MPM93 philosophy.
@@ -13878,6 +13861,7 @@ void PWR93O2AbsModel(MatrixView pxsec,
 
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CL, CW, CO, Y300[n_lines], S300[n_lines], F[n_lines];
+  bool do_lines = true;
   // FIXME int oldnewflag = 0;
 
   if (model == "Rosenkranz") {
@@ -13891,6 +13875,7 @@ void PWR93O2AbsModel(MatrixView pxsec,
     CW = CW_PWR93;
     CO = CO_PWR93;
   } else if (model == "RosenkranzContinuum") {
+    do_lines = false;
     CC = CC_PWR93;
     CL = 0.000;
     CW = 0.000;
@@ -14020,19 +14005,21 @@ void PWR93O2AbsModel(MatrixView pxsec,
 
       // Loop over Rosnekranz '93 spectral line frequency:
       Numeric SUM = 0.000e0;
-      for (Index l = first_line; l <= last_line; ++l) {
-        Numeric DF = CW * W300[l] * DEN;  // [hPa]
-        // 118 line update according to M. J. Schwartz, MIT, 1997
-        if ((version == "PWR98") && (fabs((F[l] - 118.75)) < 0.10)) {
-          DF = CW * W300[l] * DENS;  // [hPa]
+      if (do_lines) {
+        for (Index l = first_line; l <= last_line; ++l) {
+          Numeric DF = CW * W300[l] * DEN;  // [hPa]
+          // 118 line update according to M. J. Schwartz, MIT, 1997
+          if ((version == "PWR98") && (fabs((F[l] - 118.75)) < 0.10)) {
+            DF = CW * W300[l] * DENS;  // [hPa]
+          }
+          Numeric Y = CO * 0.001 * 0.01 * abs_p[i] * B * (Y300[l] + V[l] * TH1);
+          Numeric STR = CL * S300[l] * exp(-BE[l] * TH1);
+          Numeric SF1 =
+              (DF + (ff - F[l]) * Y) / ((ff - F[l]) * (ff - F[l]) + DF * DF);
+          Numeric SF2 =
+              (DF - (ff + F[l]) * Y) / ((ff + F[l]) * (ff + F[l]) + DF * DF);
+          SUM += STR * (SF1 + SF2) * (ff / F[l]) * (ff / F[l]);
         }
-        Numeric Y = CO * 0.001 * 0.01 * abs_p[i] * B * (Y300[l] + V[l] * TH1);
-        Numeric STR = CL * S300[l] * exp(-BE[l] * TH1);
-        Numeric SF1 =
-            (DF + (ff - F[l]) * Y) / ((ff - F[l]) * (ff - F[l]) + DF * DF);
-        Numeric SF2 =
-            (DF - (ff + F[l]) * Y) / ((ff + F[l]) * (ff + F[l]) + DF * DF);
-        SUM += STR * (SF1 + SF2) * (ff / F[l]) * (ff / F[l]);
       }
       // O2 absorption [Neper/km]
       // Rosenkranz uses the factor 0.5034e12 in the calculation of the abs coeff.
