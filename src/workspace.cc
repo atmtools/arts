@@ -3488,12 +3488,6 @@ void Workspace::define_wsv_data() {
           "\n"
           "Unit: m or s\n"),
       GROUP("Vector")));
-  
-
-  wsv_data.push_back(WsvRecord(
-      NAME("raw_agenda"),
-      DESCRIPTION("Agenda that supplies raw data to calculations"),
-      GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("refr_index_air"),
