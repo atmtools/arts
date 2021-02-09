@@ -5,6 +5,7 @@
 .svnignore
 /*.code-workspace
 /*.kdev4
+/.cache
 /.idea
 /.mailmap
 /.vscode
