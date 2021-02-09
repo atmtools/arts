@@ -373,6 +373,7 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
                          const Matrix& z_surface,
                          const Vector& lat_true,
                          const Vector& lon_true,
+                         const Numeric& max500hpa_gradient,
                          const Verbosity&) {
   // A repetition from atmfields_checked, but we do this to make the two parts
   // independent (the other option would be to demand atmfields_checkec == 1)
@@ -425,6 +426,41 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
     }
   }
 
+  // A rough check of gradients in the 500 hPa level (or closest pressure level)
+  // This check is just run in the latitude direction, along some longitudes to
+  // save time
+  if (atmosphere_dim > 1) {
+    // Find 500 hPa
+    Index ip = -1; Numeric dpmin = 99e99;
+    for (Index i=0; i<p_grid.nelem(); i++) {
+      const Numeric dp = abs(p_grid[i] - 500e2);
+      if (dp < dpmin) {
+        ip = i;
+        dpmin = dp; 
+      }
+    }
+    Numeric maxgrad = -1;
+    for (Index ilon=0; ilon<max(1,lon_grid.nelem()); ilon += 10) {
+      for (Index ilat=1; ilat<lat_grid.nelem(); ilat++) {
+        const Numeric grad = abs((z_field(ip,ilat,ilon)-z_field(ip,ilat-1,ilon)) /
+                                 (lat_grid[ilat]-lat_grid[ilat-1]));
+        if (grad > maxgrad)
+          maxgrad = grad;
+      }
+    }
+    // Scale to change over 100 km
+    maxgrad *= 100.0/111.0;
+    if (maxgrad > max500hpa_gradient) {
+      ostringstream os;
+      os << "A check of the altitude of the " << p_grid[ip]/100
+         << " hPa level has been made.\nThe maximum gradient found matches "
+         << maxgrad << " m/100km, that exceeds\nthe set limit of "
+         << max500hpa_gradient << " m/100km (by GIN *max500hpa_gradient*).\n"
+         << "Please check the smoothness of *z_field*.";
+      throw runtime_error(os.str());
+    }
+  }
+  
   // lat/lon true
   if (atmosphere_dim < 3 && (lat_true.nelem() || lon_true.nelem())) {
     if (atmosphere_dim == 1) {

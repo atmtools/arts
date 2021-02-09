@@ -3536,6 +3536,11 @@ void define_md_data_raw() {
           " 2. *z_field* and *z_surface* have sizes consistent with the\n"
           "    atmospheric grids.\n"
           " 3. There is no gap between *z_surface* and *z_field*.\n"
+          " 4. A rough search of maximum gradient of the altitude of the pressure\n"
+          "    level closest to 500 hPa is made. If this value exceeds the GIN\n"
+          "    *max500hpa_gradient* an error is issued. Please note that the unit\n"
+          "    of this GIN is m per 100km. For normal conditions on Earth, large\n"
+          "    scale gradients of the 500 hPa level is in the order of 20m/100km.\n"
           "\n"
           "*lat_true* and *lon_true* are allowed to be empty.\n"
           "\n"
@@ -3557,10 +3562,10 @@ void define_md_data_raw() {
          "z_surface",
          "lat_true",
          "lon_true"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("max500hpa_gradient"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("100"),
+      GIN_DESC("The maximum allowed gradient of 500 hPa pressure level [m/100km].")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AtmosphereSet1D"),
@@ -10380,6 +10385,28 @@ void define_md_data_raw() {
       GIN_DESC("Input numeric.", "Value to add.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("NumericClip"),
+      DESCRIPTION(
+          "Clipping of a numeric.\n"
+          "\n"
+          "The input value is copied to the output one (that can be same WSV)\n"
+          "but ensures that *out* is inside the range [limit_low,limit_high].\n"
+          "When the input value is below *limit_low*, *out* is set to *limit_low*.\n"
+          "And the same is performed with respect to *limit_high*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Numeric"),
+      GOUT_DESC("Output numeric."),
+      IN(),
+      GIN("in", "limit_low", "limit_high"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "-Inf", "Inf"),
+      GIN_DESC("Input numeric.",
+               "Lower limit for clipping.",
+               "Upper limit for clipping.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("NumericFromVector"),
       DESCRIPTION(
           "Derivs a numeric from a vector, following selected operation.\n"
@@ -11221,6 +11248,11 @@ void define_md_data_raw() {
           "valid also below and is copied to all altitudes below (also for\n"
           "altitudes below the surface).\n"
           "\n"
+          "Unfiltered clutter can cause extremely high retrived water contents.\n"
+          "The GIN *wc_max* defines an upper limit for reasonable water contents.\n"
+          "Retrievals ending up above this value are set to zero. Values below\n"
+          "*wc_max* but above *wc_clip*, are set to *wc_clip*.\n"
+          "\n"
           "Significant radar echos (>dbze_noise and above clutter zone) are\n"
           "assumed to match liquid hydrometeors for temperatures >= *t_phase*\n"
           "and ice ones for lower temperatures.\n"
@@ -11257,10 +11289,14 @@ void define_md_data_raw() {
           "t_phase",
           "do_atten_abs",
           "do_atten_hyd",
-          "dbze_max_corr"),
+          "dbze_max_corr",
+          "wc_max",
+          "wc_clip"),
       GIN_TYPE("ArrayOfGriddedField3", "Matrix", "Tensor3", "Numeric",
-               "Numeric", "Index", "Numeric", "Index", "Index", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", "0", "0", "273.15", "1", "1", "10"),
+               "Numeric", "Index", "Numeric", "Index", "Index", "Numeric",
+               "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", "0", "0", "273.15",
+                  "1", "1", "10", "10e-3", "5e-3"),
       GIN_DESC("Inversion table, see above.",
                "Incidence angles.",
                "Field of radar reflectivities, in dBZe.",
@@ -11271,7 +11307,9 @@ void define_md_data_raw() {
                "Flag to consider attenuation due to hydrometeors.",
                "Flag to consider attenuation due to absorption species.",
                "Max allowed change of measured dBZe to approx. correct "
-               "for attenuation.")));
+               "for attenuation.",
+               "Max reasonable water content",
+               "Clip value for water content retrievals.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldClip"),
@@ -19334,6 +19372,32 @@ void define_md_data_raw() {
       GIN_TYPE("Vector", "Vector"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "Vector to be added.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorClip"),
+      DESCRIPTION(
+          "Clipping of a vector.\n"
+          "\n"
+          "The input vector is copied to the output one (that can be same WSV)\n"
+          "but ensures that all values in *out* are inside the range [limit_low,\n"
+          "limit_high]. Where the input vector is below *limit_low*, *out* is set\n"
+          "to *limit_low*. And the same is performed with respect to *limit_high*.\n"
+          "That is, the method works as *NumericClip* for each element of the\n"
+          "vector.\n"
+          "\n"
+          "The method adopts the length of *out* when needed.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output vector."),
+      IN(),
+      GIN("in", "limit_low", "limit_high"),
+      GIN_TYPE("Vector", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "-Inf", "Inf"),
+      GIN_DESC("Input vector.",
+               "Lower limit for clipping.",
+               "Upper limit for clipping.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorCrop"),

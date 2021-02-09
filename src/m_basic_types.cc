@@ -425,6 +425,20 @@ void NumericAdd(Numeric& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void NumericClip(Numeric& out,
+                 const Numeric& in,
+                 const Numeric& limit_low,
+                 const Numeric& limit_high,
+                 const Verbosity&) {
+  if (in < limit_low)
+    out = limit_low;
+  else if (in > limit_high)
+    out = limit_high;
+  else
+    out = in;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericFromVector(Numeric& out,
                        const Vector& in,
                        const String& op,
@@ -648,6 +662,65 @@ void Tensor3SetConstant(Tensor3& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Tensor3ExtractFromTensor4(
+    // WS Generic Output:
+    Tensor3& t3,
+    // WS Input:
+    // WS Generic Input:
+    const Tensor4& t4,
+    const Index& index,
+    // Control Parameters:
+    const String& direction,
+    const Verbosity&) {
+  if (direction == "book") {
+    if (index >= t4.nbooks()) {
+      ostringstream os;
+      os << "The index " << index
+         << " is outside the book range of the Tensor4.";
+      throw runtime_error(os.str());
+    }
+
+    t3.resize(t4.npages(), t4.nrows(), t4.ncols());
+    t3 = t4(index, joker, joker, joker);
+  } else if (direction == "page") {
+    if (index >= t4.npages()) {
+      ostringstream os;
+      os << "The index " << index
+         << " is outside the pages range of the Tensor4.";
+      throw runtime_error(os.str());
+    }
+
+    t3.resize(t4.nbooks(), t4.nrows(), t4.ncols());
+    t3 = t4(joker, index, joker, joker);
+  } else if (direction == "row") {
+    if (index >= t4.nrows()) {
+      ostringstream os;
+      os << "The index " << index
+         << " is outside the row range of the Tensor4.";
+      throw runtime_error(os.str());
+    }
+
+    t3.resize(t4.npages(), t4.nbooks(), t4.ncols());
+    t3 = t4(joker, joker, index, joker);
+  } else if (direction == "column") {
+    if (index >= t4.ncols()) {
+      ostringstream os;
+      os << "The index " << index
+         << " is outside the column range of the Tensor4.";
+      throw runtime_error(os.str());
+    }
+
+    t3.resize(t4.npages(), t4.nbooks(), t4.nrows());
+    t3 = t4(joker, joker, joker, index);
+  } else {
+    ostringstream os;
+    os << "Keyword *direction* must be either *page*, *book*, *row* or *column*,"
+       << "but you gave: " << direction << ".";
+    throw runtime_error(os.str());
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor4AddScalar(Tensor4& out,
                       const Tensor4& in,
                       const Numeric& value,
@@ -844,6 +917,21 @@ void Tensor7SetConstant(Tensor7& x,
   out3 << "             ncols : " << ncols << "\n";
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated  */
+void Trapz(
+    Numeric& out,
+    const Vector& x,
+    const Vector& y,
+    const Verbosity&) {
+  const Index n = x.nelem();
+  if (y.nelem() != n) 
+    throw runtime_error("The vectors *x* and *y* must have the same length.");
+    
+  out = 0;
+  for (Index i=1; i<n; i++)
+    out += 0.5*(y[i-1]+y[i]) * (x[i]-x[i-1]);
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorAddScalar(Vector& out,
                      const Vector& in,
@@ -941,6 +1029,26 @@ void VectorSubtractVector(Vector& c,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void VectorClip(Vector& out,
+                const Vector& in,
+                const Numeric& limit_low,
+                const Numeric& limit_high,
+                const Verbosity&) {
+  const Index l = in.nelem();
+  if (out.nelem() != l)
+    out.resize(l);
+  
+  for (Index i=0; i<l; i++) {
+    if (in[i] < limit_low)
+      out[i] = limit_low;
+   else if (in[i] > limit_high)
+     out[i] = limit_high;
+   else
+     out[i] = in[i];
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorCrop(Vector& out,
                 const Vector& in,
                 const Numeric& min_value,
@@ -1010,82 +1118,6 @@ void VectorExtractFromMatrix(
   } else {
     ostringstream os;
     os << "Keyword *direction* must be either *row* or *column*,"
-       << "but you gave: " << direction << ".";
-    throw runtime_error(os.str());
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated  */
-void Trapz(
-    Numeric& out,
-    const Vector& x,
-    const Vector& y,
-    const Verbosity&) {
-  const Index n = x.nelem();
-  if (y.nelem() != n) 
-    throw runtime_error("The vectors *x* and *y* must have the same length.");
-    
-  out = 0;
-  for (Index i=1; i<n; i++)
-    out += 0.5*(y[i-1]+y[i]) * (x[i]-x[i-1]);
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3ExtractFromTensor4(
-    // WS Generic Output:
-    Tensor3& t3,
-    // WS Input:
-    // WS Generic Input:
-    const Tensor4& t4,
-    const Index& index,
-    // Control Parameters:
-    const String& direction,
-    const Verbosity&) {
-  if (direction == "book") {
-    if (index >= t4.nbooks()) {
-      ostringstream os;
-      os << "The index " << index
-         << " is outside the book range of the Tensor4.";
-      throw runtime_error(os.str());
-    }
-
-    t3.resize(t4.npages(), t4.nrows(), t4.ncols());
-    t3 = t4(index, joker, joker, joker);
-  } else if (direction == "page") {
-    if (index >= t4.npages()) {
-      ostringstream os;
-      os << "The index " << index
-         << " is outside the pages range of the Tensor4.";
-      throw runtime_error(os.str());
-    }
-
-    t3.resize(t4.nbooks(), t4.nrows(), t4.ncols());
-    t3 = t4(joker, index, joker, joker);
-  } else if (direction == "row") {
-    if (index >= t4.nrows()) {
-      ostringstream os;
-      os << "The index " << index
-         << " is outside the row range of the Tensor4.";
-      throw runtime_error(os.str());
-    }
-
-    t3.resize(t4.npages(), t4.nbooks(), t4.ncols());
-    t3 = t4(joker, joker, index, joker);
-  } else if (direction == "column") {
-    if (index >= t4.ncols()) {
-      ostringstream os;
-      os << "The index " << index
-         << " is outside the column range of the Tensor4.";
-      throw runtime_error(os.str());
-    }
-
-    t3.resize(t4.npages(), t4.nbooks(), t4.nrows());
-    t3 = t4(joker, joker, joker, index);
-  } else {
-    ostringstream os;
-    os << "Keyword *direction* must be either *page*, *book*, *row* or *column*,"
        << "but you gave: " << direction << ".";
     throw runtime_error(os.str());
   }

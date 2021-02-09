@@ -640,7 +640,6 @@ bool is_los_downwards(const Numeric& za, const Numeric& tilt) {
  
    LAT_NOT_FOUND and L_NOT_FOUND are returned if no solution is found.
 
-   @param[out]  r         Radius of found crossing.
    @param[out]  lat       Latitude of found crossing.
    @param[out]  l         Length along the path to the crossing.
    @param[in]   r_hit     Radius of the level
@@ -4724,7 +4723,7 @@ void ppath_start_stepping(Ppath& ppath,
           r_toa_max = r_toa[ilat];
         }
       }
-      ARTS_USER_ERROR_IF (r_p <= r_toa_max,
+      ARTS_USER_ERROR_IF (!islatin && r_p <= r_toa_max,
           "The sensor is horizontally outside (or at the limit) of "
           "the model\natmosphere, but is at a radius smaller than "
           "the maximum value of\nthe top-of-the-atmosphere radii. "
@@ -4744,7 +4743,7 @@ void ppath_start_stepping(Ppath& ppath,
       }
 
       // Downward:
-      else {
+      else {        
         bool above = false, ready = false, failed = false;
         Numeric rt = -1, latt, lt, lt_old = L_NOT_FOUND;
         GridPos gp_latt;
@@ -4763,6 +4762,8 @@ void ppath_start_stepping(Ppath& ppath,
         }
 
         // Iterate until solution found or moving out from model atm.
+        //
+        Index ntries = 0;        
         //
         while (!ready && !failed) {
           // If rt < ppath.constant, ppath above atmosphere
@@ -4785,7 +4786,7 @@ void ppath_start_stepping(Ppath& ppath,
             // OK iteration
             else {
               // Converged?
-              if (abs(lt - lt_old) < LACC) {
+              if (abs(lt - lt_old) < LACC  ||  ntries == 10000) {
                 ready = true;
               }
 
@@ -4795,6 +4796,13 @@ void ppath_start_stepping(Ppath& ppath,
               interpweights(itwt, gp_latt);
               rt = interp(itwt, r_toa, gp_latt);
             }
+          }
+          ntries++;
+          // For a case with dense lat_grid the calculations here ended up in
+          // an endless loop, jumping between two lt. Tried different things,
+          // but nothing worked besides this hard stop of the iteration.
+          if (ntries == 10000) {
+            ready = true;
           }
         }  // while
 
@@ -4816,8 +4824,9 @@ void ppath_start_stepping(Ppath& ppath,
           ppath.pos(0, 0) = interp(itwt, z_field(lp, joker, 0), gp_latt);
           // Calculate za first and use to determine lat
           ppath.los(0, 0) = geompath_za_at_r(ppath.constant, rte_los[0], rt);
-          ppath.pos(0, 1) =
-              geompath_lat_at_za(rte_los[0], rte_pos[1], ppath.los(0, 0));
+          ppath.pos(0, 1) = interp(itwt, lat_grid, gp_latt);
+          // This was used before, but replaced when inroduced ntries
+          //geompath_lat_at_za(rte_los[0], rte_pos[1], ppath.los(0, 0));
           ppath.end_lstep = lt;
 
           // Here we know the pressure grid position exactly
@@ -5266,7 +5275,7 @@ void ppath_calc(Workspace& ws,
     // Increase the total number
     np += n - 1;
 
-    ARTS_USER_ERROR_IF (istep > 10'000,
+    ARTS_USER_ERROR_IF (istep > 10000,
           "10 000 path points have been reached. Is this an infinite loop?");
 
     //----------------------------------------------------------------------

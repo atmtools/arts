@@ -405,7 +405,7 @@ bool is_los_downwards(const Numeric& za, const Numeric& tilt);
    @param[in]    r    The radius for the level at the point of interest.
    @param[in]    c1   The radial slope, as returned by e.g. plevel_slope_2d.
 
-   @return   The angular tilt.
+   @return   The angular tilt [deg].
 
    @author Patrick Eriksson
    @date   2002-06-03
