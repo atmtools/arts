@@ -18,7 +18,7 @@ def f(sec: float, n: int):
     return 30*np.exp(-(np.linspace(-3, 3, n))**2) + off + eps
 
 # Help to access
-tg = pyarts.classes.from_workspace(ws.time_grid)
+st = pyarts.classes.from_workspace(ws.sensor_time)
 ts = pyarts.classes.from_workspace(ws.time_stamps)
 ys = pyarts.classes.from_workspace(ws.ybatch)
 
@@ -34,7 +34,7 @@ for i in range(N):
     ys.append(f(sec, n))
 
 # Sort the time and signal
-ws.time_stampsSort(ws.time_grid, ws.time_stamps, ws.time_stamps)
+ws.time_stampsSort(ws.sensor_time, ws.time_stamps, ws.time_stamps)
 ws.time_stampsSort(ws.ybatch, ws.time_stamps, ws.ybatch)
 ws.time_stampsSort(ws.time_stamps, ws.time_stamps, ws.time_stamps)  # Must be last...
 

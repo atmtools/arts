@@ -54,19 +54,19 @@ void ybatchCAHA(ArrayOfVector& ybatch,
                 ArrayOfTime& sensor_time,
                 const ArrayOfVector& level0_data,
                 const ArrayOfTime& level0_time,
-                const Vector& level0_cold_temp,
-                const Vector& level0_hot_temp,
+                const Vector& cold_temp,
+                const Vector& hot_temp,
                 const Index& first_c_index,
                 const Verbosity&)
 {
-  ARTS_USER_ERROR_IF(level0_data.nelem() not_eq level0_cold_temp.nelem() or
-                     level0_data.nelem() not_eq level0_hot_temp.nelem(),
+  ARTS_USER_ERROR_IF(level0_data.nelem() not_eq cold_temp.nelem() or
+                     level0_data.nelem() not_eq hot_temp.nelem(),
                      "Length of vectors must be correct");
   ARTS_USER_ERROR_IF (level0_time.nelem() not_eq level0_data.nelem() and
                       level0_time.nelem() not_eq 0,
                       "Bad level0_time length, must be empty of same as level0_data");
   
-  ybatch = Raw::Calibration::caha(level0_data, level0_cold_temp, level0_hot_temp, first_c_index);
+  ybatch = Raw::Calibration::caha(level0_data, cold_temp, hot_temp, first_c_index);
   
   // Fix time using the same method as CAHA
   if (level0_time.nelem()) {

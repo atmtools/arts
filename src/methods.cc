@@ -20684,10 +20684,10 @@ void define_md_data_raw() {
           "\n"
           "Assumes data is ordered as Cold-Atm-Hot-Atm-Cold-Atm-Hot-Atm-...,\n"
           "but Cold does not have to be at data[0], instead the first cold\n"
-          "position is set by c_offset, which defaults to 0 but can be any positive\n"
-          "index so that data[c_offset] is a cold-measurements.  Note that if\n"
-          "c_offset is larger than 1, then the first output data will be around the\n"
-          "observation cycle -HAC-, where H is at data[c_offset-2]\n"
+          "position is set by first_c_index, which defaults to 0 but can be any positive\n"
+          "index so that level0_data[first_c_index] is a cold-measurements.  Note that if\n"
+          "first_c_index is larger than 1, then the first output data will be around the\n"
+          "observation cycle -HAC-, where H is at data[first_c_index-2]\n"
           "\n"
           "Also returns the times of the Atm measurements in *sensor_time*\n"
           "if the measurement's time data is provided\n"
@@ -20697,11 +20697,14 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("level0_data", "level0_time", "level0_cold_temperature", "level0_hot_temperature"),
-      GIN("first_c_index"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Index offset of the first cold position")));
+      IN("level0_data", "level0_time"),
+      GIN("cold_temp", "hot_temp", "first_c_index"),
+      GIN_TYPE("Vector", "Vector", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "0"),
+      GIN_DESC(
+        "Cold load calibration temperature (must match level0_data length)",
+        "Hot load calibration temperature (must match level0_data length)",
+        "Index offset of the first cold position")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchCalc"),
@@ -20763,7 +20766,8 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("yColdAtmHot"),
       DESCRIPTION(
-          "Computes *y* from input using standard calibration scheme of cold-atm-hot observations\n"
+          "Computes *y* from input using standard calibration scheme of\n"
+          "cold-atm-hot observations\n"
           "\n"
           "If calib evaluates as true:\n"
           "    y = cold_temp + (hot_temp - cold_temp) * (atm - cold) / (hot - cold)\n"

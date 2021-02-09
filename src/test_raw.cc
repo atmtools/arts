@@ -82,13 +82,11 @@ int main() {
   
   // This is the ARTS interface to use the raw data 
   auto ws = ARTS::init();
-  ARTS::Var::level0_cold_temperature(ws).value() = tc;
   ARTS::Var::level0_data(ws).value() = rawdata;
-  ARTS::Var::level0_hot_temperature(ws).value() = th;
   ARTS::Var::level0_time(ws).value() = times;
   
   // Do CAHA
-  ARTS::Method::ybatchCAHA(ws, 0);
+  ARTS::Method::ybatchCAHA(ws, tc, th);
   std::cout << "Plotting first, central and last CAHA calibrated data on averaged sensor_time\n";
   ARTSGUI::plot(f_grid_raw, ARTS::Var::ybatch(ws).value()[0],
                 f_grid_raw, ARTS::Var::ybatch(ws).value()[ARTS::Var::ybatch(ws).value().nelem()/2],

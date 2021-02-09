@@ -2636,27 +2636,15 @@ void Workspace::define_wsv_data() {
                 GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("level0_cold_temperature"),
-      DESCRIPTION("List of L0 cold temperature data.  Can be of any type.  It is method dependent how\n"
-                 "this is calibrated to L1\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("level0_data"),
-      DESCRIPTION("List of L0 data.  Can be of any type.  It is method dependent how\n"
-                 "this is calibrated to L1\n"),
+      DESCRIPTION("List of L0 data.  Can be of any type.\n"
+                  "It is method-dependent how this is used to calibrated to L1\n"),
       GROUP("ArrayOfVector")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("level0_hot_temperature"),
-      DESCRIPTION("List of L0 hot temperature data.  Can be of any type.  It is method dependent how\n"
-                 "this is calibrated to L1\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("level0_time"),
-      DESCRIPTION("List of L0 times.  It is method dependent how\n"
-                 "this is calibrated to L1\n"),
+      DESCRIPTION("List of L0 times.  Should be in UTC.\n"
+                  "It is method-dependent how this is used to calibrated to L1\n"),
       GROUP("ArrayOfTime")));
 
   wsv_data.push_back(WsvRecord(
