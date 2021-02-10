@@ -832,7 +832,7 @@ void gas_optpropCalc(Workspace& ws,
   // Local variables to be used in agendas
   Numeric rtp_temperature_local;
   Numeric rtp_pressure_local;
-  ArrayOfPropagationMatrix propmat_clearsky_local;
+  PropagationMatrix propmat_clearsky_local;
   Vector rtp_vmr_local(vmr_profiles.nrows());
 
   const EnergyLevelMap rtp_nlte_local_dummy;
@@ -870,11 +870,8 @@ void gas_optpropCalc(Workspace& ws,
                                    propmat_clearsky_agenda);
 
     //Assuming non-polarized light and only one frequency
-    if (propmat_clearsky_local.nelem()) {
-      gas_extinct[Np - 2 - i] = propmat_clearsky_local[0].Kjj()[0];
-      for (Index j = 1; j < propmat_clearsky_local.nelem(); j++) {
-        gas_extinct[Np - 2 - i] += propmat_clearsky_local[j].Kjj()[0];
-      }
+    if (propmat_clearsky_local.NumberOfFrequencies()) {
+      gas_extinct[Np - 2 - i] += propmat_clearsky_local.Kjj()[0];
     }
   }
 }
