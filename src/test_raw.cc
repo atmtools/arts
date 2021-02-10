@@ -86,7 +86,7 @@ int main() {
   ARTS::Var::level0_time(ws).value() = times;
   
   // Do CAHA
-  ARTS::Method::ybatchCAHA(ws, tc, th);
+  ARTS::Method::ybatchColdAtmHotAtmCycle(ws, tc, th);
   std::cout << "Plotting first, central and last CAHA calibrated data on averaged sensor_time\n";
   ARTSGUI::plot(f_grid_raw, ARTS::Var::ybatch(ws).value()[0],
                 f_grid_raw, ARTS::Var::ybatch(ws).value()[ARTS::Var::ybatch(ws).value().nelem()/2],

@@ -50,14 +50,14 @@ void yColdAtmHot(Vector& y,
 }
 
 
-void ybatchCAHA(ArrayOfVector& ybatch,
-                ArrayOfTime& sensor_time,
-                const ArrayOfVector& level0_data,
-                const ArrayOfTime& level0_time,
-                const Vector& cold_temp,
-                const Vector& hot_temp,
-                const Index& first_c_index,
-                const Verbosity&)
+void ybatchColdAtmHotAtmCycle(ArrayOfVector& ybatch,
+                              ArrayOfTime& sensor_time,
+                              const ArrayOfVector& level0_data,
+                              const ArrayOfTime& level0_time,
+                              const Vector& cold_temp,
+                              const Vector& hot_temp,
+                              const Index& first_c_index,
+                              const Verbosity&)
 {
   ARTS_USER_ERROR_IF(level0_data.nelem() not_eq cold_temp.nelem() or
                      level0_data.nelem() not_eq hot_temp.nelem(),
@@ -71,6 +71,7 @@ void ybatchCAHA(ArrayOfVector& ybatch,
   // Fix time using the same method as CAHA
   if (level0_time.nelem()) {
     sensor_time.resize(ybatch.nelem());
+    // First position as described by method is at H if this index is too large
     const Index pos = first_c_index - ((first_c_index > 1) ? 2 : 0);
     for (Index i=0; i<sensor_time.nelem(); i++) {
       sensor_time[i] = level0_time[pos + 2*i];

@@ -151,7 +151,9 @@ void check_enum_error(EnumType type, Messages ... args) {
   namespace enumstrs {                                                    \
   constexpr auto ENUMTYPE##Names = enum_strarray<ENUMTYPE>(#__VA_ARGS__); \
   }                                                                       \
+                                                                          \
   namespace enumtyps {                                                    \
+  [[maybe_unused]]                                                        \
   constexpr auto ENUMTYPE##Types = enum_typarray<ENUMTYPE>();             \
   }                                                                       \
                                                                           \

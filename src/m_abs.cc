@@ -458,20 +458,26 @@ void abs_xsec_per_speciesInit(  // WS Output:
     ") not allowed to have more elements than abs_species (n=",
     ns, ")!\n")
   
+  // Make elements the right size
+  abs_xsec_per_species = ArrayOfMatrix(ns);
+  src_xsec_per_species = ArrayOfMatrix(ns);
+  dabs_xsec_per_species_dx = ArrayOfArrayOfMatrix(ns);
+  dsrc_xsec_per_species_dx = ArrayOfArrayOfMatrix(ns);
+  
   // Loop abs_xsec_per_species and make each matrix the right size,
   // initializing to zero.
   // But skip inactive species, loop only over the active ones.
-  for (Index ii = 0; ii < abs_species_active.nelem(); ++ii) {
-    ARTS_USER_ERROR_IF (abs_species_active[ii] >= ns,
+  for (auto&i : abs_species_active) {
+    ARTS_USER_ERROR_IF (i >= ns,
       "*abs_species_active* contains an invalid species index.\n"
       "Species index must be between 0 and ", ns - 1)
+    abs_xsec_per_species[i] = Matrix(nf, np, 0.0);
+    dabs_xsec_per_species_dx[i] = ArrayOfMatrix(nq, Matrix(nf, np, 0.0));
+    if (nlte_do) {
+      src_xsec_per_species[i] = Matrix(nf, np, 0.0);
+      dsrc_xsec_per_species_dx[i] = ArrayOfMatrix(nq, Matrix(nf, np, 0.0));
+    }
   }
-  
-  // Make elements the right size
-  abs_xsec_per_species = ArrayOfMatrix(ns, Matrix(nf, np, 0.0));
-  src_xsec_per_species = ArrayOfMatrix(ns, Matrix(nlte_do ? nf : 0, nlte_do ? np : 0, 0.0));
-  dabs_xsec_per_species_dx = ArrayOfArrayOfMatrix(ns, ArrayOfMatrix(nq, Matrix(nf, np, 0.0)));
-  dsrc_xsec_per_species_dx = ArrayOfArrayOfMatrix(ns, ArrayOfMatrix(nq, Matrix(nlte_do ? nf : 0, nlte_do ? np : 0, 0.0)));
 
   ostringstream os;
   os << "  Initialized abs_xsec_per_species.\n"

@@ -1185,7 +1185,7 @@ void get_stepwise_clearsky_propmat(
                                  S,
                                  dK_dx,
                                  dS_dx,
-                                 jacobian_do ? jacobian_quantities : ArrayOfRetrievalQuantity(0),
+                                 jacobian_quantities,
                                  ppath_f_grid,
                                  ppath_magnetic_field,
                                  ppath_line_of_sight,
@@ -1208,13 +1208,11 @@ void get_stepwise_clearsky_propmat(
   // Set the partial derivatives
   if (jacobian_do) {
     for (Index i = 0; i < nq; i++) {
-      if (not propmattype_index(jacobian_quantities, i)) continue;
       if (jacobian_quantities[i] == Jacobian::Special::ScatteringString) {
       } else if (jacobian_quantities[i] == Jacobian::Type::Atm or jacobian_quantities[i] == Jacobian::Type::Line) {
       } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
       {
         dK_dx[i] = propmat_clearsky[jacobian_species[i]];
-
         // We cannot know the NLTE jacobian if this method was used
         // because that information is thrown away. It is still faster
         // to retain this method since it requires less computations
