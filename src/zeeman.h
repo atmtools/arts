@@ -60,7 +60,7 @@
  * @param[in]  manual_zeeman_eta Magnetic field eta angle
  */
 void zeeman_on_the_fly(
-  ArrayOfPropagationMatrix& propmat_clearsky,
+  PropagationMatrix& propmat_clearsky,
   StokesVector& nlte_source,
   ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
   ArrayOfStokesVector& dnlte_source_dx,

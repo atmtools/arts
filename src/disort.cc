@@ -262,14 +262,8 @@ void get_gasoptprop(Workspace& ws,
   ArrayOfStokesVector partial_nlte_dummy;
   ArrayOfPropagationMatrix partial_dummy;
 
-  ArrayOfPropagationMatrix propmat_clearsky_local;
-
+  PropagationMatrix propmat_clearsky_local;
   for (Index ip = 0; ip < Np; ip++) {
-    // is that needed? if so, then it should be in here, shouldn't it? not
-    // outside the Np-loop as was before.
-    for (auto& pm : propmat_clearsky_local) {
-      pm.SetZero();
-    }
     propmat_clearsky_agendaExecute(ws,
                                    propmat_clearsky_local,
                                    nlte_dummy,
@@ -284,11 +278,7 @@ void get_gasoptprop(Workspace& ws,
                                    rtp_nlte_dummy,
                                    vmr_profiles(joker, ip),
                                    propmat_clearsky_agenda);
-
-    PropagationMatrix propmat_bulk = propmat_clearsky_local[0];
-    for (Index ias = 1; ias < propmat_clearsky_local.nelem(); ias++)
-      propmat_bulk += propmat_clearsky_local[ias];
-    ext_bulk_gas(joker, ip) += propmat_bulk.Kjj();
+    ext_bulk_gas(joker, ip) += propmat_clearsky_local.Kjj();
   }
 }
 

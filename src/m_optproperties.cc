@@ -916,15 +916,14 @@ void opt_prop_bulkCalc(  // Output and Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ext_matAddGas(PropagationMatrix& ext_mat,
-                   const ArrayOfPropagationMatrix& propmat_clearsky,
+                   const PropagationMatrix& propmat_clearsky,
                    const Verbosity&) {
   // Number of Stokes parameters:
   const Index stokes_dim = ext_mat.StokesDimensions();
 
   // The second dimension of ext_mat must also match the number of
   // Stokes parameters:
-  if (stokes_dim != propmat_clearsky[0].StokesDimensions())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (stokes_dim != propmat_clearsky.StokesDimensions(),
         "Col dimension of propmat_clearsky "
         "inconsistent with col dimension in ext_mat.");
 
@@ -933,17 +932,16 @@ void ext_matAddGas(PropagationMatrix& ext_mat,
 
   // This must be consistent with the second dimension of
   // propmat_clearsky. Check this:
-  if (f_dim != propmat_clearsky[0].NumberOfFrequencies())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.NumberOfFrequencies(),
         "Frequency dimension of ext_mat and propmat_clearsky\n"
         "are inconsistent in ext_matAddGas.");
 
-  for (auto& pm : propmat_clearsky) ext_mat += pm;
+  ext_mat += propmat_clearsky;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_vecAddGas(StokesVector& abs_vec,
-                   const ArrayOfPropagationMatrix& propmat_clearsky,
+                   const PropagationMatrix& propmat_clearsky,
                    const Verbosity&) {
   // Number of frequencies:
   const Index f_dim = abs_vec.NumberOfFrequencies();
@@ -951,19 +949,16 @@ void abs_vecAddGas(StokesVector& abs_vec,
 
   // This must be consistent with the second dimension of
   // propmat_clearsky. Check this:
-  if (f_dim != propmat_clearsky[0].NumberOfFrequencies())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.NumberOfFrequencies(),
         "Frequency dimension of abs_vec and propmat_clearsky\n"
         "are inconsistent in abs_vecAddGas.");
-  if (stokes_dim != propmat_clearsky[0].StokesDimensions())
-    throw runtime_error(
+  ARTS_USER_ERROR_IF (stokes_dim != propmat_clearsky.StokesDimensions(),
         "Stokes dimension of abs_vec and propmat_clearsky\n"
         "are inconsistent in abs_vecAddGas.");
 
   // Loop all frequencies. Of course this includes the special case
   // that there is only one frequency.
-  for (auto& pm : propmat_clearsky)
-    abs_vec += pm;  // Defined to only add to the
+  abs_vec += propmat_clearsky;  // Defined to only add to the
 
   // We don't have to do anything about higher elements of abs_vec,
   // since scalar gas absorption only influences the first element.

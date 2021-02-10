@@ -94,7 +94,7 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
   }
 }
 
-void propmat_clearskyAddHitranLineMixingLines(ArrayOfPropagationMatrix& propmat_clearsky,
+void propmat_clearskyAddHitranLineMixingLines(PropagationMatrix& propmat_clearsky,
                                               const HitranRelaxationMatrixData& abs_hitran_relmat_data,
                                               const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                               const Vector& f_grid,
@@ -132,11 +132,11 @@ void propmat_clearskyAddHitranLineMixingLines(ArrayOfPropagationMatrix& propmat_
     if (abs_lines_per_species[i].nelem() and 
        (abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANFullRelmat or
         abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat))
-      propmat_clearsky[i].Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], rtp_pressure, rtp_temperature, vmrs, f_grid, partition_functions);
+      propmat_clearsky.Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], rtp_pressure, rtp_temperature, vmrs, f_grid, partition_functions);
   }
 }
 
-void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_clearsky,
+void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
                                            ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                            const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                            const Vector& f_grid,
@@ -173,19 +173,23 @@ void propmat_clearskyAddOnTheFlyLineMixing(ArrayOfPropagationMatrix& propmat_cle
                                                                         partition_functions.getParamType(band.QuantumIdentity()),
                                                                         partition_functions.getParam(band.QuantumIdentity()),
                                                                         jacobian_quantities);
-        propmat_clearsky[i].Kjj() += abs.real();
+        propmat_clearsky.Kjj() += abs.real();
         
         // Sum up the resorted Jacobian
         for (Index j=0; j<jacobian_quantities.nelem(); j++) {
           if (not propmattype_index(jacobian_quantities, j)) continue;
-          dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();
+          if (is_special_vmr(jacobian_quantities[j], abs_species[i])) {
+            dpropmat_clearsky_dx[j].Kjj() += abs.real();
+          } else {
+            dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();
+          }
         }
       }
     }
   }
 }
 
-void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& propmat_clearsky,
+void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_clearsky,
                                                      ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                                      const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                                      const Vector& f_grid,
@@ -200,8 +204,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
                                                      const Index& lbl_checked,
                                                      const Verbosity&)
 {
-  ARTS_USER_ERROR_IF (std::any_of(propmat_clearsky.begin(), propmat_clearsky.end(),
-                                  [](auto& pm){return pm.StokesDimensions() not_eq 4;}),
+  ARTS_USER_ERROR_IF (propmat_clearsky.StokesDimensions() not_eq 4,
                       "Only for stokes dim 4");
   ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_lines_per_species.nelem(),
                       "Bad size of input species+lines");
@@ -238,7 +241,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
                                                                                  jacobian_quantities);
           
           // Sum up the propagation matrix
-          Zeeman::sum(propmat_clearsky[i], abs, Zeeman::SelectPolarization(polarization_scale_data, polarization));
+          Zeeman::sum(propmat_clearsky, abs, Zeeman::SelectPolarization(polarization_scale_data, polarization));
           
           // Sum up the resorted Jacobian
           for (Index j=0; j<jacobian_quantities.nelem(); j++) {
@@ -261,6 +264,8 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(ArrayOfPropagationMatrix& p
                            Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
                            Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
                            Z.dH_dw, Z.dtheta_dw, Z.deta_dw);
+            } else if (is_special_vmr(jacobian_quantities[j], abs_species[i])) {
+              Zeeman::sum(dpropmat_clearsky_dx[j], abs, Zeeman::SelectPolarization(polarization_scale_data, polarization));
             } else {
               dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();
             }

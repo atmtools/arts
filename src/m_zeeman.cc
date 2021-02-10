@@ -33,7 +33,7 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddZeeman(
-    ArrayOfPropagationMatrix& propmat_clearsky,
+    PropagationMatrix& propmat_clearsky,
     StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     ArrayOfStokesVector& dnlte_source_dx,

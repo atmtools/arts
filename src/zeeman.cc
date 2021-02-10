@@ -74,7 +74,7 @@ bool any_negative(const MatpackType& var) noexcept {
 }
 
 void zeeman_on_the_fly(
-    ArrayOfPropagationMatrix& propmat_clearsky,
+    PropagationMatrix& propmat_clearsky,
     StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     ArrayOfStokesVector& dnlte_source_dx,
@@ -108,10 +108,10 @@ void zeeman_on_the_fly(
     "Only for 3D *rtp_mag* or a manual magnetic field")
   ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
     "*rtp_vmr* must match *abs_species*")
-  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq propmat_clearsky.nelem(),
-    "*abs_species* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(bad_propmat(propmat_clearsky, f_grid),
-    "*propmat_clearsky* must have *stokes_dim* 4 and frequency dim same as *f_grid*")
+  ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
+    "*f_grid* must match *propmat_clearsky*")
+  ARTS_USER_ERROR_IF(propmat_clearsky.StokesDimensions() not_eq 4,
+    "*propmat_clearsky* must have *stokes_dim* 4")
   ARTS_USER_ERROR_IF(nlte_source.NumberOfFrequencies() not_eq nf,
     "*f_grid* must match *nlte_source*")
   ARTS_USER_ERROR_IF(nlte_source.StokesDimensions() not_eq 4,
@@ -221,7 +221,7 @@ void zeeman_on_the_fly(
         
         auto pol_real = pol.attenuation();
         auto pol_imag = pol.dispersion();
-        auto abs = propmat_clearsky[ispecies].Data()(0, 0, joker, joker);
+        auto abs = propmat_clearsky.Data()(0, 0, joker, joker);
 
         // Propagation matrix calculations
         MapToEigen(abs).leftCols<4>().noalias() += numdens * sum.F.real() * pol_real;
@@ -290,6 +290,10 @@ void zeeman_on_the_fly(
               dabs.rightCols<3>().noalias() +=
                   numdens * sum.dF.col(j).imag() * pol_imag +
                   dnumdens_dmvr * sum.F.imag() * pol_imag;
+            } else if (is_special_vmr(deriv, abs_species[ispecies])) {
+              dabs.leftCols<4>().noalias() += numdens * sum.F.real() * pol_real;
+              dabs.rightCols<3>().noalias() += numdens * sum.F.imag() * pol_imag;
+              
             } else {
               dabs.leftCols<4>().noalias() +=
                   numdens * sum.dF.col(j).real() * pol_real;
@@ -358,6 +362,8 @@ void zeeman_on_the_fly(
               dnlte_dx_src.noalias() +=
                   dnumdens_dmvr * eB.cwiseProduct(sum.N.real()) * pol_real +
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
+            } else if (is_special_vmr(deriv, abs_species[ispecies])) {
+              dnlte_dx_src.noalias() += numdens * eB.cwiseProduct(sum.N.real()) * pol_real;
             } else {
               dnlte_dx_src.noalias() +=
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;

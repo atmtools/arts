@@ -3345,10 +3345,10 @@ void Workspace::define_wsv_data() {
           "atmosphere (one set of pressure, temperature, magnetic field, and\n"
           "VMR values).\n"
           "\n"
-          "Dimensions: [ abs_species ] [naa, nza, nf, f(stokes_dim)]\n"
+          "Dimensions: [naa, nza, nf, f(stokes_dim)]\n"
           "\n"
           "Unit: 1/m\n"),
-      GROUP("ArrayOfPropagationMatrix")));
+      GROUP("PropagationMatrix")));
 
   wsv_data.push_back(
       WsvRecord(NAME("propmat_clearsky_agenda_checked"),

@@ -312,7 +312,7 @@ void opt_prop_sum_propmat_clearsky(  //Output:
     PropagationMatrix& ext_mat,
     StokesVector& abs_vec,
     //Input:
-    const ArrayOfPropagationMatrix& propmat_clearsky);
+    const PropagationMatrix& propmat_clearsky);
 
 PType PTypeFromString(const String& ptype_string);
 PType PType2FromString(const String& ptype_string);

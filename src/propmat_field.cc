@@ -60,7 +60,6 @@ void field_of_propagation(Workspace& ws,
   // Compute variables
   const Vector mag_field = Vector(3, 0);
   const Vector los = Vector(2, 0);
-  const ArrayOfIndex spec_jac(nq);
   const Vector tmp(0);
   ArrayOfStokesVector dS_dx(nq);
   ArrayOfPropagationMatrix dK_dx(nq);
@@ -97,7 +96,6 @@ void field_of_propagation(Workspace& ws,
             vmr_field(joker, i, j, k),
             t_field(i, j, k),
             p_grid[i],
-            spec_jac,
             0);
         absorption_field(i, j, k) = propmat_field(i, j, k);
       }

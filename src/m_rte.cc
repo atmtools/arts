@@ -374,7 +374,6 @@ void iyEmissionStandard(
                                       ppvar_vmr(joker, ip),
                                       ppvar_t[ip],
                                       ppvar_p[ip],
-                                      jac_species_i,
                                       j_analytical_do);
 
         if (j_analytical_do)

@@ -942,6 +942,14 @@ void dxdvmrscf(Numeric& x,
  */
 bool propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) ARTS_NOEXCEPT;
 
+/** Returns if the indexed value is a propagation matrix value
+ * 
+ * @param[in] t A retrieval quantity
+ * @param[in] species_list A list of species
+ * @return true if this index is a special VMR derivative
+ */
+bool is_special_vmr(const RetrievalQuantity& t, const ArrayOfSpeciesTag& species_list);
+
 /** Returns the temperature perturbation if it exists
  * 
  * @param[in] js As jacobian_quantities WSV
@@ -1217,14 +1225,6 @@ bool supports_zeeman(const ArrayOfRetrievalQuantity& js);
  * @return false if it does not
  */
 bool supports_faraday(const ArrayOfRetrievalQuantity& js);
-
-/** Returns if the array supports particulate derivatives
- * 
- * @param[in] js As jacobian_quantities WSV
- * @return true if it does
- * @return false if it does not
- */
-bool supports_particles(const ArrayOfRetrievalQuantity& js);
 
 /** Returns if the array supports propagation matrix derivatives
  * 

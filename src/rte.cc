@@ -1171,17 +1171,10 @@ void get_stepwise_clearsky_propmat(
     ConstVectorView ppath_vmrs,
     const Numeric& ppath_temperature,
     const Numeric& ppath_pressure,
-    const ArrayOfIndex& jacobian_species,
     const bool& jacobian_do) {
-  // All relevant quantities are extracted first
-  const Index nq = jacobian_quantities.nelem();
-
-  // Local variables inside Agenda
-  ArrayOfPropagationMatrix propmat_clearsky;
-
   // Perform the propagation matrix computations
   propmat_clearsky_agendaExecute(ws,
-                                 propmat_clearsky,
+                                 K,
                                  S,
                                  dK_dx,
                                  dS_dx,
@@ -1195,34 +1188,8 @@ void get_stepwise_clearsky_propmat(
                                  ppath_vmrs,
                                  propmat_clearsky_agenda);
 
-  // We only now know how large the propagation matrix will be!
-  const Index npmat = propmat_clearsky.nelem();
-
   // If there are no NLTE values, then set the LTE flag as true
   lte = S.allZeroes();  // FIXME: Should be nlte_do?
-
-  // Sum the propagation matrix
-  K = propmat_clearsky[0];
-  for (Index i = 1; i < npmat; i++) K += propmat_clearsky[i];
-
-  // Set the partial derivatives
-  if (jacobian_do) {
-    for (Index i = 0; i < nq; i++) {
-      if (jacobian_quantities[i] == Jacobian::Special::ScatteringString) {
-      } else if (jacobian_quantities[i] == Jacobian::Type::Atm or jacobian_quantities[i] == Jacobian::Type::Line) {
-      } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
-      {
-        dK_dx[i] = propmat_clearsky[jacobian_species[i]];
-        // We cannot know the NLTE jacobian if this method was used
-        // because that information is thrown away. It is still faster
-        // to retain this method since it requires less computations
-        // when we do not need NLTE, which is most of the time...
-        ARTS_USER_ERROR_IF (not lte,
-          "We will not support species "
-          "tag and NLTE Jacobians.\n")
-      }
-    }
-  }
 }
 
 void get_stepwise_effective_source(

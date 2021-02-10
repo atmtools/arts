@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<Array type="PropagationMatrix" nelem="1">
 <PropagationMatrix>
 <Tensor4 nbooks="1" npages="1" nrows="101" ncols="1">
 0.000442255989601867
@@ -106,5 +105,4 @@
 0.000548532592748672
 </Tensor4>
 </PropagationMatrix>
-</Array>
 </arts>

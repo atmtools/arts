@@ -638,7 +638,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   const Index N_species = vmr_field.nbooks();
   const Index stokes_dim = cloudbox_field_mono.ncols();
   const Index atmosphere_dim = 1;
-  ArrayOfPropagationMatrix propmat_clearsky;
+  PropagationMatrix propmat_clearsky;
   PropagationMatrix ext_mat;
   StokesVector abs_vec;
   Matrix matrix_tmp(stokes_dim, stokes_dim);
@@ -1407,8 +1407,8 @@ void cloud_RT_no_background(Workspace& ws,
   Vector rtp_vmr_local(N_species, 0.);
 
   // Two propmat_clearsky to average between
-  ArrayOfPropagationMatrix cur_propmat_clearsky;
-  ArrayOfPropagationMatrix prev_propmat_clearsky;
+  PropagationMatrix cur_propmat_clearsky;
+  PropagationMatrix prev_propmat_clearsky;
 
   PropagationMatrix ext_mat_local;
   StokesVector abs_vec_local;
@@ -1452,10 +1452,8 @@ void cloud_RT_no_background(Workspace& ws,
     if (k == ppath_step.np - 1) continue;
 
     // Average prev_propmat_clearsky with cur_propmat_clearsky
-    for (Index i = 0; i < prev_propmat_clearsky.nelem(); i++) {
-      prev_propmat_clearsky[i] += cur_propmat_clearsky[i];
-      prev_propmat_clearsky[i] *= 0.5;
-    }
+    prev_propmat_clearsky += cur_propmat_clearsky;
+    prev_propmat_clearsky *= 0.5;
 
     opt_prop_sum_propmat_clearsky(
         ext_mat_local, abs_vec_local, prev_propmat_clearsky);

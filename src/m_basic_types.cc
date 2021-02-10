@@ -2953,6 +2953,26 @@ void CompareRelative(const ArrayOfArrayOfTensor7& var1,
                 verbosity);
 }
 
+void CompareRelative(const PropagationMatrix& var1,
+                     const PropagationMatrix& var2,
+                     const Numeric& maxabsreldiff,
+                     const String& error_message,
+                     const String& var1name,
+                     const String& var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity) {
+  _cr_internal_(var1,
+                var2,
+                maxabsreldiff,
+                error_message,
+                var1name,
+                var2name,
+                "",
+                "",
+                verbosity);
+}
+
 void CompareRelative(const ArrayOfPropagationMatrix& var1,
                      const ArrayOfPropagationMatrix& var2,
                      const Numeric& maxabsreldiff,
@@ -2975,6 +2995,26 @@ void CompareRelative(const ArrayOfPropagationMatrix& var1,
 
 void CompareRelative(const ArrayOfArrayOfPropagationMatrix& var1,
                      const ArrayOfArrayOfPropagationMatrix& var2,
+                     const Numeric& maxabsreldiff,
+                     const String& error_message,
+                     const String& var1name,
+                     const String& var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity) {
+  _cr_internal_(var1,
+                var2,
+                maxabsreldiff,
+                error_message,
+                var1name,
+                var2name,
+                "",
+                "",
+                verbosity);
+}
+
+void CompareRelative(const StokesVector& var1,
+                     const StokesVector& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message,
                      const String& var1name,

@@ -4672,13 +4672,15 @@ void define_md_data_raw() {
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
           "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
           "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,",
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,"
+          "PropagationMatrix, StokesVector",
           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
           "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
           "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
           "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,",
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,"
+          "PropagationMatrix, StokesVector",
           "Numeric",
           "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, ""),
@@ -12504,7 +12506,8 @@ void define_md_data_raw() {
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr",
-         "jacobian_quantities"),
+         "jacobian_quantities",
+         "abs_species"),
       GIN("extpolfac"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0.5"),
@@ -12786,8 +12789,7 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_species",
-         "jacobian_quantities",
+      IN("jacobian_quantities",
          "f_grid",
          "stokes_dim",
          "propmat_clearsky_agenda_checked"),
@@ -12888,6 +12890,7 @@ void define_md_data_raw() {
          "mag_u_field",
          "mag_v_field",
          "mag_w_field",
+         "abs_species",
          "propmat_clearsky_agenda"),
       GIN("doppler", "los"),
       GIN_TYPE("Vector", "Vector"),

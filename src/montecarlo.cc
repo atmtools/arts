@@ -264,7 +264,7 @@ void clear_rt_vars_at_gp(Workspace& ws,
   StokesVector local_abs_vec;
   StokesVector local_nlte_source_dummy;
   PropagationMatrix local_ext_mat;
-  ArrayOfPropagationMatrix local_propmat_clearsky;
+  PropagationMatrix local_propmat_clearsky;
   ArrayOfPropagationMatrix
       local_partial_dummy;  // This is right since there should be only clearsky partials
   ArrayOfStokesVector local_dnlte_source_dx_dummy;
@@ -357,7 +357,7 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   ArrayOfPropagationMatrix
       local_partial_dummy;  // This is right since there should be only clearsky partials
   ArrayOfStokesVector local_dnlte_source_dx_dummy;  // This is right since there should be only clearsky partials
-  ArrayOfPropagationMatrix local_propmat_clearsky;
+  PropagationMatrix local_propmat_clearsky;
   StokesVector local_nlte_source_dummy;  //FIXME: Do this right?
   StokesVector local_abs_vec;
   PropagationMatrix local_ext_mat;
