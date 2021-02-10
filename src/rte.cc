@@ -1185,7 +1185,7 @@ void get_stepwise_clearsky_propmat(
                                  S,
                                  dK_dx,
                                  dS_dx,
-                                 jacobian_quantities,
+                                 jacobian_do ? jacobian_quantities : ArrayOfRetrievalQuantity(0),
                                  ppath_f_grid,
                                  ppath_magnetic_field,
                                  ppath_line_of_sight,
