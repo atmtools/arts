@@ -458,24 +458,60 @@ void abs_xsec_per_speciesInit(  // WS Output:
     ") not allowed to have more elements than abs_species (n=",
     ns, ")!\n")
   
-  // Make elements the right size
-  abs_xsec_per_species = ArrayOfMatrix(ns);
-  src_xsec_per_species = ArrayOfMatrix(ns);
-  dabs_xsec_per_species_dx = ArrayOfArrayOfMatrix(ns);
-  dsrc_xsec_per_species_dx = ArrayOfArrayOfMatrix(ns);
+  // Make elements the right size if they are not already the right size
+  if (abs_xsec_per_species.nelem() not_eq ns) abs_xsec_per_species.resize(ns);
+  if (src_xsec_per_species.nelem() not_eq ns) src_xsec_per_species.resize(ns);
+  if (dabs_xsec_per_species_dx.nelem() not_eq ns) dabs_xsec_per_species_dx.resize(ns);
+  if (dsrc_xsec_per_species_dx.nelem() not_eq ns) dsrc_xsec_per_species_dx.resize(ns);
   
   // Loop abs_xsec_per_species and make each matrix the right size,
   // initializing to zero.
   // But skip inactive species, loop only over the active ones.
-  for (auto&i : abs_species_active) {
+  for (auto& i: abs_species_active) {
     ARTS_USER_ERROR_IF (i >= ns,
       "*abs_species_active* contains an invalid species index.\n"
       "Species index must be between 0 and ", ns - 1)
-    abs_xsec_per_species[i] = Matrix(nf, np, 0.0);
-    dabs_xsec_per_species_dx[i] = ArrayOfMatrix(nq, Matrix(nf, np, 0.0));
+    
+    // Make elements the right size if they are not already the right size, then reset them
+    if (abs_xsec_per_species[i].nrows() == nf and abs_xsec_per_species[i].ncols() == np) {
+      abs_xsec_per_species[i] = 0.0;
+    } else {
+      abs_xsec_per_species[i] = Matrix(nf, np, 0.0);
+    }
+    
+    // Make elements the right size if they are not already the right size, then reset them
+    if (dabs_xsec_per_species_dx[i].nelem() not_eq nq) {
+      dabs_xsec_per_species_dx[i] = ArrayOfMatrix(nq, Matrix(nf, np, 0.0));
+    } else {
+      for (Index j=0; j<nq; j++) {
+        if (dabs_xsec_per_species_dx[i][j].nrows() == nf and dabs_xsec_per_species_dx[i][j].ncols() == np) {
+          dabs_xsec_per_species_dx[i][j] = 0.0;
+        } else {
+          dabs_xsec_per_species_dx[i][j] = Matrix(nf, np, 0.0);
+        }
+      }
+    }
+    
     if (nlte_do) {
-      src_xsec_per_species[i] = Matrix(nf, np, 0.0);
-      dsrc_xsec_per_species_dx[i] = ArrayOfMatrix(nq, Matrix(nf, np, 0.0));
+      // Make elements the right size if they are not already the right size, then reset them
+      if (src_xsec_per_species[i].nrows() == nf and src_xsec_per_species[i].ncols() == np) {
+        src_xsec_per_species[i] = 0.0;
+      } else {
+        src_xsec_per_species[i] = Matrix(nf, np, 0.0);
+      }
+      
+      // Make elements the right size if they are not already the right size, then reset them
+      if (dsrc_xsec_per_species_dx[i].nelem() not_eq nq) {
+        dsrc_xsec_per_species_dx[i] = ArrayOfMatrix(nq, Matrix(nf, np, 0.0));
+      } else {
+        for (Index j=0; j<nq; j++) {
+          if (dsrc_xsec_per_species_dx[i][j].nrows() == nf and dsrc_xsec_per_species_dx[i][j].ncols() == np) {
+            dsrc_xsec_per_species_dx[i][j] = 0.0;
+          } else {
+            dsrc_xsec_per_species_dx[i][j] = Matrix(nf, np, 0.0);
+          }
+        }
+      }
     }
   }
 
@@ -957,11 +993,51 @@ void propmat_clearskyInit(  //WS Output
 
   ARTS_USER_ERROR_IF (stokes_dim < 1 or stokes_dim > 4, "stokes_dim not in [1, 2, 3, 4]");
   
-  // Owerwrite input as output
-  propmat_clearsky = ArrayOfPropagationMatrix(ns, PropagationMatrix(nf, stokes_dim));
-  dpropmat_clearsky_dx = ArrayOfPropagationMatrix(nq, PropagationMatrix(nf, stokes_dim));
-  nlte_source = StokesVector(nf, stokes_dim);
-  dnlte_source_dx = ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim));
+  // Set size of propmat_clearsky or reset it's values
+  if (propmat_clearsky.nelem() not_eq ns) {
+    propmat_clearsky = ArrayOfPropagationMatrix(ns, PropagationMatrix(nf, stokes_dim));
+  } else {
+    for (auto& pm: propmat_clearsky) {
+      if (pm.StokesDimensions() == stokes_dim and pm.NumberOfFrequencies() == nf) {
+        pm.SetZero();
+      } else {
+        pm = PropagationMatrix(nf, stokes_dim);
+      }
+    }
+  }
+  
+  // Set size of dpropmat_clearsky_dx or reset it's values
+  if (dpropmat_clearsky_dx.nelem() not_eq nq) {
+    dpropmat_clearsky_dx = ArrayOfPropagationMatrix(nq, PropagationMatrix(nf, stokes_dim));
+  } else {
+    for (auto& pm: dpropmat_clearsky_dx) {
+      if (pm.StokesDimensions() == stokes_dim and pm.NumberOfFrequencies() == nf) {
+        pm.SetZero();
+      } else {
+        pm = PropagationMatrix(nf, stokes_dim);
+      }
+    }
+  }
+  
+  // Set size of nlte_source or reset it's values
+  if (nlte_source.StokesDimensions() == stokes_dim and nlte_source.NumberOfFrequencies() == nf) {
+    nlte_source.SetZero();
+  } else {
+    nlte_source = StokesVector(nf, stokes_dim);
+  }
+  
+  // Set size of dnlte_source_dx or reset it's values
+  if (dnlte_source_dx.nelem() not_eq nq) {
+    dnlte_source_dx = ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim));
+  } else {
+    for (auto& pm: dnlte_source_dx) {
+      if (pm.StokesDimensions() == stokes_dim and pm.NumberOfFrequencies() == nf) {
+        pm.SetZero();
+      } else {
+        pm = StokesVector(nf, stokes_dim);
+      }
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
