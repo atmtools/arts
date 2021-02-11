@@ -8415,10 +8415,10 @@ void define_md_data_raw() {
           "The *catalog_identity* should be able to identify one or many\n"
           "lines in the catalog used for calculating the spectral absorption.\n"
           "Note that partial matching for energy levels are allowed but not\n"
-          "recommended, as it is somewhat nonsensical to add multiple parameters\n"
+          "recommended, as it is somewhat nonsensical to add multiple parameters.\n"
           "\n"
           "Also note *jacobianAddShapeCatalogParameter* as this allows addition\n"
-          "of shape parameters, e.g., pressure broadening coefficients\n"
+          "of shape parameters, e.g., pressure broadening coefficients.\n"
           "\n"
           "Each call to this function adds just a single value to *x*.\n"
           "\n"
@@ -8444,9 +8444,10 @@ void define_md_data_raw() {
       DESCRIPTION(
           "See *jacobianAddBasicCatalogParameter*.\n"
           "\n"
-          "This adds a multiple of parameters for first each catalog_identity in\n"
-          "catalog_identities and then for each catalog_parameter in catalog_parameters\n"
-          "by looping calls to *jacobianAddBasicCatalogParameter* over these input\n"),
+          "This adds a multiple of parameters for first each catalog identity in\n"
+          "*catalog_identities* and then for each catalog parameter in\n"
+          "*catalog_parameters* by looping calls to *jacobianAddBasicCatalogParameter*\n"
+          "over these input.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -8509,37 +8510,35 @@ void define_md_data_raw() {
           "Adds a line shape parameter to the Jacobian calculations. These\n"
           "are constant over all levels so only a single *x*-value is added\n"
           "\n"
-          "Line function parameter assume the derivatives\n"
-          "of internal pressure broadening and line mixing\n"
-          "functionality follows a simply f(T, T0, X0, X1, X2)\n"
-          "format.  The shape of the function f() is determined by\n"
-          "input catalog; please see the ARTS documentation for more\n"
-          "details\n"
+          "Line function parameter assume the derivatives of internal pressure\n"
+          "broadening and line mixing functionality follows a f(T, T0, X0, X1, X2)\n"
+          "format. The shape of the function f() is determined by input\n"
+          "catalog; please see the ARTS documentation for more details.\n"
           "\n"
           "The input are as follows:\n"
-          "    line_identity: Identifier of preferably a single line\n"
-          "    species:       A SpeciesTag, e.g., \"O2\" or \"H2O\" for common species.\n"
-          "                   Note that \"SELF\" and \"AIR\" tags are used for shape parameters\n"
-          "                   affected by self and air-broadening, respectively.\n"
-          "    variable:      A variable supported by the line, these can be\n"
-          "                      \"G0\":  Speed-independent pressure broadening\n"
-          "                      \"G2\":  Speed-dependent pressure broadening\n"
-          "                      \"D0\":  Speed-independent pressure shift\n"
-          "                      \"D2\":  Speed-dependent pressure shift\n"
-          "                      \"FVC\": Frequency of velocity changing collisions\n"
-          "                      \"ETA\": partial correlation between velocity and\n"
-          "                               rotational state changes due to collisions\n"
-          "                      \"Y\":   First order line-mixing parameter\n"
-          "                      \"G\":   Second order line-mixing parameter for strength\n"
-          "                      \"DV\":  Second order line-mixing parameter for shifting\n"
-          "    coefficient:   A coefficient in the model to compute the above parameters.\n"
+          "  line_identity: Identifier of preferably a single line\n"
+          "  species:       A SpeciesTag, e.g., \"O2\" or \"H2O\" for common species.\n"
+          "                 Note that \"SELF\" and \"AIR\" tags are used for shape parameters\n"
+          "                 affected by self and air-broadening, respectively.\n"
+          "  variable:      A variable supported by the line, these can be\n"
+          "                    \"G0\":  Speed-independent pressure broadening\n"
+          "                    \"G2\":  Speed-dependent pressure broadening\n"
+          "                    \"D0\":  Speed-independent pressure shift\n"
+          "                    \"D2\":  Speed-dependent pressure shift\n"
+          "                    \"FVC\": Frequency of velocity changing collisions\n"
+          "                    \"ETA\": partial correlation between velocity and\n"
+          "                             rotational state changes due to collisions\n"
+          "                    \"Y\":   First order line-mixing parameter\n"
+          "                    \"G\":   Second order line-mixing parameter for strength\n"
+          "                    \"DV\":  Second order line-mixing parameter for shifting\n"
+          "  coefficient:   A coefficient in the model to compute the above parameters.\n"
           "\n"
           "Note that we cannot test if the line in question supports the variable and\n"
           "coefficient at the level of this function, so many errors will only be reported\n"
-          "at a later stage\n"
+          "at a later stage.\n"
           "\n"
           "For other spectroscopic parameters, see *jacobianAddBasicCatalogParameter*.\n"
-          "Also see said function for an example of how to set the QuantumIdentifier\n"),
+          "Also see said function for an example of how to set the QuantumIdentifier.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -8566,7 +8565,7 @@ void define_md_data_raw() {
           "\n"
           "Special \"ALL\" for 1 length *variables* and *coefficients* are\n"
           "allowed to compute all variables/coefficients in the order described\n"
-          "in the description of *jacobianAddShapeCatalogParameter*\n"
+          "in the description of *jacobianAddShapeCatalogParameter*.\n"
           "\n"
           "For example, if *line_identities* have length 5, *species* length 4,\n"
           "*variables* length 3, and *coefficients* length 2, there will be\n"
@@ -8619,7 +8618,7 @@ void define_md_data_raw() {
           "The elements are sorted with pressure as innermost loop, followed by\n"
           "latitude and longitude as outermost loop.\n"
           "\n"
-          "The dB-parameter is only used for Faraday rotation\n"),
+          "The dB-parameter is only used for Faraday rotation.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -8661,7 +8660,7 @@ void define_md_data_raw() {
           "best practice, as the quantum identifiers of the levels have to be known\n"
           "at an early stage in NLTE calculations, and will usually populate the\n"
           "*nlte_level_identifiers* variable, meaning it is better to use *jacobianAddNLTE*\n"
-          "directly than to individually call this function\n"),
+          "directly than to individually call this function.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -8692,7 +8691,7 @@ void define_md_data_raw() {
           "as *jacobianAddNLTE*, ordered as energy_level_identities describes\n"
           "\n"
           "This method is preferred to *jacobianAddNLTE*, since *energy_level_identities*\n"
-          "is conveniently almost always the same as *nlte_level_identifiers*\n"),
+          "is conveniently almost always the same as *nlte_level_identifiers*.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
