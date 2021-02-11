@@ -313,19 +313,6 @@ cmake -DENABLE_CCACHE=1 ..
 For details see https://ccache.samba.org/
 
 
-Intel compiler
---------------
-
-If you want to compile with the Intel compiler[1], start with an empty build
-directory and run:
-
-```
-cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc ..
-```
-
-[1] http://software.intel.com/c-compilers
-
-
 LLVM/Clang compiler
 -------------------
 
@@ -351,6 +338,31 @@ support OpenMP. Other versions of Clang support it via libomp.
 [2] http://libcxx.llvm.org
 
 
+Intel compiler (DPC++)
+----------------------
+
+If you want to compile with the Intel compiler[1], start with an empty build
+directory and run:
+
+```
+cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx ..
+```
+
+With Intel Fortran:
+
+```
+cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
+-DCMAKE_Fortran_COMPILER=ifort -DENABLE_FORTRAN=1 ..
+```
+
+Compilation has only been tested with
+Intel(R) oneAPI DPC++/IFORT Compiler 2021.1.
+
+Note that the Intel C++ Classic Compiler (icc/icpc) is not supported by ARTS.
+
+[1] http://software.intel.com/c-compilers
+
+
 macOS / Xcode
 -----------
 
@@ -361,6 +373,15 @@ you can generate a project file and use Xcode to build ARTS:
 cmake -G Xcode ..
 open ARTS.xcodeproj
 ```
+
+
+Custom Python Interpreter
+-------------------------
+
+A Python interpreter different from the default one found in PATH can be
+selected by:
+
+cmake -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python3 ..
 
 
 Experimental features (ONLY USE IF YOU KNOW WHAT YOU'RE DOING)
