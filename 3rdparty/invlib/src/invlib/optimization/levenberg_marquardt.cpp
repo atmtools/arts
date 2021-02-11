@@ -277,7 +277,8 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
         VectorType xnew = x + dx;
 
         // Compute model accuracy.
-        new_cost = J.cost_function(xnew, true);
+        bool robust = lambda < lambda_maximum;
+        new_cost = J.cost_function(xnew, robust);
 
         RealType dxBdx = dot(dx, B * dx);
         c = (new_cost - current_cost) / (dot(g,dx) + 0.5 * dxBdx);

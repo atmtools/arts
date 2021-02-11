@@ -520,7 +520,7 @@ class AgendaWrapper {
   MatrixReference Jacobian(const Vector &xi, Vector &yi) {
     if (!reuse_jacobian_) {
       inversion_iterate_agendaExecute(
-          *ws_, yi_, jacobian_, xi, 1, 0, *inversion_iterate_agenda_);
+          *ws_, yi_, jacobian_, xi, 1, iteration_counter_, *inversion_iterate_agenda_);
       yi = yi_;
       iteration_counter_ += 1;
     } else {
