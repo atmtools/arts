@@ -1173,11 +1173,11 @@ void OEM(Workspace& ws,
     Vector dy = y;
     dy -= yf;
     Vector sdy = y;
-    mult(sdy, covmat_se, dy);
+    mult_inv(sdy, covmat_se, dy);
     Vector dx = x;
     dx -= xa;
     Vector sdx = x;
-    mult(sdx, covmat_sx, dx);
+    mult_inv(sdx, covmat_sx, dx);
     cost_start = dx * sdx + dy * sdy;
     cost_start /= static_cast<Numeric>(m);
   }
