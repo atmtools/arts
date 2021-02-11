@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2017
    Simon Pfreundschuh <simonpf@chalmers.se>
 
@@ -129,7 +130,7 @@ class Block {
   Range get_row_range() const { return row_range_; }
   /*! The column range of this block*/
   Range get_column_range() const { return column_range_; }
-  
+
   /*! The row range of this block*/
   Range& get_row_range() { return row_range_; }
   /*! The column range of this block*/
@@ -149,10 +150,10 @@ class Block {
 
   /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
   IndexPair get_indices() const { return indices_; }
-  
+
   /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
   void set_indices(Index f, Index s) { indices_ = {f, s}; }
-  
+
   /*! Return the type of the matrix holding the correlation coefficients. */
   MatrixType get_matrix_type() const { return matrix_type_; }
 
@@ -241,6 +242,9 @@ class CovarianceMatrix {
 
   /**! The number of diagonal blocks in the matrix excluding inverses.*/
   Index ndiagblocks() const;
+
+  /**! The number of inverse diagonal blocks in the matrix.*/
+  Index ninvdiagblocks() const;
 
   /**! The number of blocks in the matrix excluding inverses.*/
   Index nblocks() const;

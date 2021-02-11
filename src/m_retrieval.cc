@@ -492,6 +492,11 @@ void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
                               const Index& i,
                               const Index& j,
                               const Verbosity&) {
+  if (covmat_se.ndiagblocks() == 0) {
+    throw std::runtime_error(
+        "Need at least one non-inverse block in the matrix"
+        " before an inverse block can be added.");
+  }
   Index ii(i), jj(j);
   if ((ii < 0) && (jj < 0)) {
     ii = covmat_se.ndiagblocks() - 1;
@@ -681,10 +686,15 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
                               const Index& i,
                               const Index& j,
                               const Verbosity& /*v*/) {
+  if (covmat_sx.ndiagblocks() == 0) {
+    throw std::runtime_error(
+        "Need at least one non-inverse block in the matrix"
+        " before an inverse block can be added.");
+  }
   Index ii(i), jj(j);
   if ((ii < 0) && (jj < 0)) {
-    ii = jq.size() - 1;
-    jj = jq.size() - 1;
+    ii = covmat_sx.ndiagblocks() - 1;
+    jj = ii;
   } else if ((ii >= jq.nelem()) || (jj >= jq.nelem())) {
     throw runtime_error(
         "The block indices must either be both -1 (default) or\n"

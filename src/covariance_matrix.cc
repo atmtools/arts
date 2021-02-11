@@ -234,6 +234,19 @@ Index CovarianceMatrix::ndiagblocks() const {
   return m;
 }
 
+Index CovarianceMatrix::ninvdiagblocks() const {
+    Index m = 0;
+
+    for (const Block &c : inverses_) {
+        Index i, j;
+        std::tie(i, j) = c.get_indices();
+        if (i == j) {
+            ++m;
+        }
+    }
+    return m;
+}
+
 Index CovarianceMatrix::nblocks() const { return correlations_.size(); }
 
 bool CovarianceMatrix::has_block(Index i, Index j) {
