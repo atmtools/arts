@@ -56,12 +56,11 @@ void abs_xsec_per_speciesAddPredefinedO2MPM2020(ArrayOfMatrix& abs_xsec_per_spec
     "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
-  const auto jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
   if (dabs_xsec_per_species_dx.nelem()) {
     ARTS_USER_ERROR_IF(dabs_xsec_per_species_dx.nelem() not_eq abs_species.nelem(),
       "Mismatch dimensions on species inputs and xsec derivatives");
     ARTS_USER_ERROR_IF (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(), 
-      [&jac_pos](auto x){return x.nelem() not_eq jac_pos.nelem();}),
+      [&jacobian_quantities](auto x){return x.nelem() not_eq jacobian_quantities.nelem();}),
       "Mismatch dimensions on xsec derivatives and Jacobian grids");
     ARTS_USER_ERROR_IF (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
       [&abs_p](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
@@ -83,6 +82,6 @@ void abs_xsec_per_speciesAddPredefinedO2MPM2020(ArrayOfMatrix& abs_xsec_per_spec
   if (o2_mpm2020 >= 0 and o2_mpm2020 < abs_xsec_per_species.nelem()) {
     Absorption::PredefinedModel::makarov2020_o2_lines_mpm(abs_xsec_per_species[o2_mpm2020], 
                                                           dabs_xsec_per_species_dx.nelem() ? dabs_xsec_per_species_dx[o2_mpm2020] : empty,
-                                                          f_grid, abs_p, abs_t, h2o_vmr, jacobian_quantities, jac_pos);
+                                                          f_grid, abs_p, abs_t, h2o_vmr, jacobian_quantities);
   }
 }

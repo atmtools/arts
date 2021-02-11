@@ -638,7 +638,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   const Index N_species = vmr_field.nbooks();
   const Index stokes_dim = cloudbox_field_mono.ncols();
   const Index atmosphere_dim = 1;
-  ArrayOfPropagationMatrix propmat_clearsky;
+  PropagationMatrix propmat_clearsky;
   PropagationMatrix ext_mat;
   StokesVector abs_vec;
   Matrix matrix_tmp(stokes_dim, stokes_dim);
@@ -698,16 +698,13 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       const Vector rtp_mag_dummy(3, 0);
       const Vector ppath_los_dummy;
 
-      ArrayOfStokesVector nlte_dummy;  //FIXME: do this right?
-      ArrayOfPropagationMatrix
-          partial_dummy;  // This is right since there should be only clearsky partials
-      ArrayOfStokesVector partial_source_dummy,
-          partial_nlte_dummy;  // This is right since there should be only clearsky partials
+      StokesVector nlte_dummy;  //FIXME: do this right?
+      ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
+      ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
                                      nlte_dummy,
                                      partial_dummy,
-                                     partial_source_dummy,
                                      partial_nlte_dummy,
                                      ArrayOfRetrievalQuantity(0),
                                      f_grid[Range(f_index, 1)],
@@ -825,16 +822,13 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       const Vector rtp_mag_dummy(3, 0);
       const Vector ppath_los_dummy;
-      ArrayOfStokesVector nlte_dummy;  //FIXME: do this right?
-      ArrayOfPropagationMatrix
-          partial_dummy;  // This is right since there should be only clearsky partials
-      ArrayOfStokesVector partial_source_dummy,
-          partial_nlte_dummy;  // This is right since there should be only clearsky partials
+      StokesVector nlte_dummy;  //FIXME: do this right?
+      ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
+      ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
                                      nlte_dummy,
                                      partial_dummy,
-                                     partial_source_dummy,
                                      partial_nlte_dummy,
                                      ArrayOfRetrievalQuantity(0),
                                      f_grid[Range(f_index, 1)],
@@ -1413,8 +1407,8 @@ void cloud_RT_no_background(Workspace& ws,
   Vector rtp_vmr_local(N_species, 0.);
 
   // Two propmat_clearsky to average between
-  ArrayOfPropagationMatrix cur_propmat_clearsky;
-  ArrayOfPropagationMatrix prev_propmat_clearsky;
+  PropagationMatrix cur_propmat_clearsky;
+  PropagationMatrix prev_propmat_clearsky;
 
   PropagationMatrix ext_mat_local;
   StokesVector abs_vec_local;
@@ -1435,16 +1429,13 @@ void cloud_RT_no_background(Workspace& ws,
     const Vector rtp_mag_dummy(3, 0);
     const Vector ppath_los_dummy;
 
-    ArrayOfStokesVector nlte_dummy;  //FIXME: do this right?
-    ArrayOfPropagationMatrix
-        partial_dummy;  // This is right since there should be only clearsky partials
-    ArrayOfStokesVector partial_source_dummy,
-        partial_nlte_dummy;  // This is right since there should be only clearsky partials
+    StokesVector nlte_dummy;  //FIXME: do this right?
+    ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
+    ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
     propmat_clearsky_agendaExecute(ws,
                                    cur_propmat_clearsky,
                                    nlte_dummy,
                                    partial_dummy,
-                                   partial_source_dummy,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    f_grid[Range(f_index, 1)],
@@ -1461,10 +1452,8 @@ void cloud_RT_no_background(Workspace& ws,
     if (k == ppath_step.np - 1) continue;
 
     // Average prev_propmat_clearsky with cur_propmat_clearsky
-    for (Index i = 0; i < prev_propmat_clearsky.nelem(); i++) {
-      prev_propmat_clearsky[i] += cur_propmat_clearsky[i];
-      prev_propmat_clearsky[i] *= 0.5;
-    }
+    prev_propmat_clearsky += cur_propmat_clearsky;
+    prev_propmat_clearsky *= 0.5;
 
     opt_prop_sum_propmat_clearsky(
         ext_mat_local, abs_vec_local, prev_propmat_clearsky);

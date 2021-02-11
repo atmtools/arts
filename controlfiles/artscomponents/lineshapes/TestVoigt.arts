@@ -21,7 +21,8 @@ Arts2{
   nlteOff
   
   ## Comparative parameter
-  ArrayOfPropagationMatrixCreate(testdata)
+  PropagationMatrixCreate(testdata)
+  ArrayOfPropagationMatrixCreate(dtestdata)
   
   ## Absorption lines (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
   ReadXML(abs_lines, "testdata/vp-line.xml")
@@ -65,8 +66,8 @@ Arts2{
   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-vp/dpropmat.xml")
   ReadXML(testdata, "testdata/test-vp/propmat.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
-  ReadXML(testdata, "testdata/test-vp/dpropmat.xml")
-  CompareRelative(testdata, dpropmat_clearsky_dx, 1e-4)
+  ReadXML(dtestdata, "testdata/test-vp/dpropmat.xml")
+  CompareRelative(dtestdata, dpropmat_clearsky_dx, 1e-4)
   
   # Turn off the jacobian to make for faster calculations for perturbations below
   jacobianOff

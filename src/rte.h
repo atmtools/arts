@@ -522,7 +522,6 @@ void get_stepwise_blackbody_radiation(VectorView B,
  * @param[in] ppath_vmrs Volume mixing ratio of atmospheric species at propagation path point
  * @param[in] ppath_temperature Temperature of atmosphere at propagation path point
  * @param[in] ppath_pressure Pressure of atmosphere at propagation path point
- * @param[in] jacobian_species Index list showing where and how the Jacobian needs to compute VMRs
  * @param[in] jacobian_do As WSV
  * 
  * @author Richard Larsson 
@@ -544,7 +543,6 @@ void get_stepwise_clearsky_propmat(
   ConstVectorView ppath_vmrs,
   const Numeric& ppath_temperature,
   const Numeric& ppath_pressure,
-  const ArrayOfIndex& jacobian_species,
   const bool& jacobian_do);
 
 /** Gets the effective source at propagation path point

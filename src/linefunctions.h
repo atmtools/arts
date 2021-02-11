@@ -81,7 +81,6 @@ void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     dT Temperature derivatives of line shape parameters
  * @param[in]     dVMR VMR derivatives of line shape parameters
  */
@@ -98,7 +97,6 @@ void set_lorentz(
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
         ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const LineShape::Output& dT = {0, 0, 0, 0, 0, 0, 0, 0, 0},
     const LineShape::Output& dVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
 
@@ -119,7 +117,6 @@ void set_lorentz(
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     dGD_div_F0_dT Temperature derivative of GD_div_F0
  * @param[in]     dT Temperature derivatives of line shape parameters
  * @param[in]     dVMR VMR derivatives of line shape parameters
@@ -136,7 +133,6 @@ void set_htp(Eigen::Ref<Eigen::VectorXcd> F,
              const Index& line_ind=0,
              const ArrayOfRetrievalQuantity& derivatives_data =
                  ArrayOfRetrievalQuantity(),
-             const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
              const Numeric& dGD_div_F0_dT = 0.0,
              const LineShape::Output& dT = {0, 0, 0, 0, 0, 0, 0, 0, 0},
              const LineShape::Output& dVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
@@ -155,7 +151,6 @@ void set_htp(Eigen::Ref<Eigen::VectorXcd> F,
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     dGD_div_F0_dT Temperature derivative of GD_div_F0
  * @param[in]     dT Temperature derivatives of line shape parameters
  * @param[in]     dVMR VMR derivatives of line shape parameters
@@ -174,7 +169,6 @@ void set_voigt(
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
         ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const Numeric& dGD_div_F0_dT = 0.0,
     const LineShape::Output& dT = {0, 0, 0, 0, 0, 0, 0, 0, 0},
     const LineShape::Output& dVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
@@ -192,7 +186,6 @@ void set_voigt(
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     dGD_div_F0_dT Temperature derivative of GD_div_F0
  */
 void set_doppler(
@@ -208,7 +201,6 @@ void set_doppler(
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
         ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const Numeric& dGD_div_F0_dT = 0.0);
 
 /** Applies line mixing scaling to already set lineshape and line mirror
@@ -230,7 +222,6 @@ void set_doppler(
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     dT Temperature derivatives of line shape parameters
  * @param[in]     dVMR VMR derivatives of line shape parameters
  */
@@ -245,7 +236,6 @@ void apply_linemixing_scaling_and_mirroring(
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
         ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const LineShape::Output& dT = {0, 0, 0, 0, 0, 0, 0, 0, 0},
     const LineShape::Output& dVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
 
@@ -259,7 +249,6 @@ void apply_linemixing_scaling_and_mirroring(
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  */
 void apply_rosenkranz_quadratic_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
@@ -270,8 +259,7 @@ void apply_rosenkranz_quadratic_scaling(
     const AbsorptionLines& band=AbsorptionLines(),
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
-        ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex());
+        ArrayOfRetrievalQuantity());
 
 /** Applies Van Vleck and Huber normalization to already set line shape
  * 
@@ -284,7 +272,6 @@ void apply_rosenkranz_quadratic_scaling(
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  */
 void apply_VVH_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
@@ -296,8 +283,7 @@ void apply_VVH_scaling(
     const AbsorptionLines& band=AbsorptionLines(),
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
-        ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex());
+        ArrayOfRetrievalQuantity());
 
 /** Applies Van Vleck and Weiskopf normalization to already set line shape
  * 
@@ -308,7 +294,6 @@ void apply_VVH_scaling(
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  */
 void apply_VVW_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
@@ -318,8 +303,7 @@ void apply_VVW_scaling(
     const AbsorptionLines& band=AbsorptionLines(),
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
-        ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex());
+        ArrayOfRetrievalQuantity());
 
 /** Gets the local thermodynamic equilibrium line strength
  * 
@@ -356,7 +340,6 @@ Numeric lte_linestrength(Numeric S0,
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     dQT_dT Temperature derivative of QT
  */
 void apply_linestrength_scaling_by_lte(
@@ -374,7 +357,6 @@ void apply_linestrength_scaling_by_lte(
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
         ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const Numeric& dQT_dT = 0.0);
 
 /** Applies linestrength to already set line shape by vibrational level temperatures
@@ -396,7 +378,6 @@ void apply_linestrength_scaling_by_lte(
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     dQT_dT Temperature derivative of QT
  */
 void apply_linestrength_scaling_by_vibrational_nlte(
@@ -418,7 +399,6 @@ void apply_linestrength_scaling_by_vibrational_nlte(
   const Index& line_ind=0,
   const ArrayOfRetrievalQuantity& derivatives_data =
       ArrayOfRetrievalQuantity(),
-  const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
   const Numeric& dQT_dT = 0.0);
 
 /** Applies the line-by-line pressure broadening jacobian for the matching lines
@@ -427,7 +407,6 @@ void apply_linestrength_scaling_by_vibrational_nlte(
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     T Atmospheric temperature
  * @param[in]     P Atmospheric pressure
  * @param[in]     vmrs VMRs for line shape broadeners
@@ -437,7 +416,6 @@ void apply_lineshapemodel_jacobian_scaling(
   const AbsorptionLines& band,
   const Index& line_ind,
   const ArrayOfRetrievalQuantity& derivatives_data,
-  const ArrayOfIndex& derivatives_data_position,
   const Numeric& T,
   const Numeric& P,
   const Vector& vmrs);
@@ -495,7 +473,6 @@ void find_cutoff_ranges(Index& start_cutoff,
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
  */
 void apply_linestrength_from_nlte_level_distributions(
     Eigen::Ref<Eigen::VectorXcd> F,
@@ -512,8 +489,7 @@ void apply_linestrength_from_nlte_level_distributions(
     const AbsorptionLines& band=AbsorptionLines(),
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
-        ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex());
+        ArrayOfRetrievalQuantity());
 
 class InternalData {
 public:
@@ -559,7 +535,6 @@ public:
  * @param[in] f_grid As WSV
  * @param[in] band The absorption band
  * @param[in] derivatives_data Derivatives
- * @param[in] derivatives_data_active Derivatives that are active
  * @param[in] vmrs The VMRs of this band's broadening species
  * @param[in] nlte A map of NLTE energy levels
  * @param[in] P The pressure
@@ -578,10 +553,9 @@ public:
 void set_cross_section_of_band(
   InternalData& scratch,
   InternalData& sum,
-  const ConstVectorView f_grid,
+  const ConstVectorView& f_grid,
   const AbsorptionLines& band,
   const ArrayOfRetrievalQuantity& derivatives_data,
-  const ArrayOfIndex& derivatives_data_active,
   const Vector& vmrs,
   const EnergyLevelMap& nlte,  // This must be turned into a map of some kind...
   const Numeric& P,

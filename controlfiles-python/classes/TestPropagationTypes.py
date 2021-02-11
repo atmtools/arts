@@ -8,8 +8,8 @@ from pyarts.classes import from_workspace
 ws = Workspace()
 
 # Get the agenda
-apm = from_workspace(ws.propmat_clearsky)
-asv = from_workspace(ws.nlte_source)
+apm = from_workspace(ws.dpropmat_clearsky_dx)
+asv = from_workspace(ws.dnlte_source_dx)
 pm = PropagationMatrix(1.0, 4, 4, 4, 4)
 sv = StokesVector(1.0, 4, 4, 4, 4)
 

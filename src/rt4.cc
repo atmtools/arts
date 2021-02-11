@@ -832,7 +832,7 @@ void gas_optpropCalc(Workspace& ws,
   // Local variables to be used in agendas
   Numeric rtp_temperature_local;
   Numeric rtp_pressure_local;
-  ArrayOfPropagationMatrix propmat_clearsky_local;
+  PropagationMatrix propmat_clearsky_local;
   Vector rtp_vmr_local(vmr_profiles.nrows());
 
   const EnergyLevelMap rtp_nlte_local_dummy;
@@ -850,15 +850,14 @@ void gas_optpropCalc(Workspace& ws,
     const Vector ppath_los_dummy;
 
     //FIXME: do this right?
-    ArrayOfStokesVector nlte_dummy;
+    StokesVector nlte_dummy;
     // This is right since there should be only clearsky partials
     ArrayOfPropagationMatrix partial_dummy;
-    ArrayOfStokesVector partial_source_dummy, partial_nlte_dummy;
+    ArrayOfStokesVector partial_nlte_dummy;
     propmat_clearsky_agendaExecute(ws,
                                    propmat_clearsky_local,
                                    nlte_dummy,
                                    partial_dummy,
-                                   partial_source_dummy,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    f_mono,  // monochromatic calculation
@@ -871,11 +870,8 @@ void gas_optpropCalc(Workspace& ws,
                                    propmat_clearsky_agenda);
 
     //Assuming non-polarized light and only one frequency
-    if (propmat_clearsky_local.nelem()) {
-      gas_extinct[Np - 2 - i] = propmat_clearsky_local[0].Kjj()[0];
-      for (Index j = 1; j < propmat_clearsky_local.nelem(); j++) {
-        gas_extinct[Np - 2 - i] += propmat_clearsky_local[j].Kjj()[0];
-      }
+    if (propmat_clearsky_local.NumberOfFrequencies()) {
+      gas_extinct[Np - 2 - i] += propmat_clearsky_local.Kjj()[0];
     }
   }
 }

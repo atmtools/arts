@@ -1747,11 +1747,11 @@ void OptimizeDoitPressureGrid(
   // Fields for scalar gas absorption
   const Vector rtp_mag_dummy(3, 0);
   const Vector ppath_los_dummy;
-  ArrayOfStokesVector nlte_dummy;
+  StokesVector nlte_dummy;
   ArrayOfPropagationMatrix partial_dummy;
-  ArrayOfStokesVector partial_source_dummy, partial_nlte_dummy;
+  ArrayOfStokesVector partial_nlte_dummy;
   EnergyLevelMap rtp_nlte_dummy;
-  ArrayOfPropagationMatrix cur_propmat_clearsky;
+  PropagationMatrix cur_propmat_clearsky;
 
   Index scat_data_insert_offset = 0;
   Vector single_scattering_albedo(cloudbox_limits[1] - cloudbox_limits[0] + 1,
@@ -1771,7 +1771,6 @@ void OptimizeDoitPressureGrid(
                                    cur_propmat_clearsky,
                                    nlte_dummy,
                                    partial_dummy,
-                                   partial_source_dummy,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    f_grid[Range(f_index, 1)],
@@ -1782,10 +1781,8 @@ void OptimizeDoitPressureGrid(
                                    rtp_nlte_dummy,
                                    vmr_field(joker, k, 0, 0),
                                    propmat_clearsky_agenda);
-    for (auto& pm : cur_propmat_clearsky) {
-      abs_coeff += pm.Kjj()[0];
-    }
-    abs_coeff /= (Numeric)cur_propmat_clearsky.nelem();
+    abs_coeff += cur_propmat_clearsky.Kjj()[0];
+    abs_coeff /= (Numeric)vmr_field.nbooks();  // FIXME: Is this really as intended???
     single_scattering_albedo[cloudbox_index] =
         scat_vec[cloudbox_index] / (ext_mat[cloudbox_index] + abs_coeff);
   }

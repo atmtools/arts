@@ -85,7 +85,7 @@ constexpr Rational start(Rational Ju, Rational Jl, Polarization type) noexcept {
       else
         return -Ju + 2;
     case Polarization::Pi:
-      return -std::min(Ju, Jl);
+      return -min(Ju, Jl);
     case Polarization::SigmaPlus:
       return -Ju;
   }
@@ -111,7 +111,7 @@ constexpr Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
     case Polarization::SigmaMinus:
       return Ju + 1;
     case Polarization::Pi:
-      return std::min(Ju, Jl);
+      return min(Ju, Jl);
     case Polarization::SigmaPlus:
       if (Ju < Jl)
         return Ju + 1;

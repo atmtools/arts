@@ -386,7 +386,6 @@ void set_vmr_from_first_species(Vector& vmr,
  *  @param[in,out] dsource Partial derivatives of source.
  *  @param[in,out] dphase Partial derivatives of phase.
  *  @param[in] jacobian_quantities As WSV
- *  @param[in] jacobian_propmat_positions Positions in jacobian_quantities affected by propmat calculations
  *  @param[in] f_grid As WSV
  *  @param[in] abs_p As WSV
  *  @param[in] abs_t As WSV
@@ -408,7 +407,6 @@ void xsec_species(Matrix& xsec,
                   ArrayOfMatrix& dsource_dx,
                   ArrayOfMatrix& dphase_dx,
                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                  const ArrayOfIndex& jacobian_propmat_positions,
                   const Vector& f_grid,
                   const Vector& abs_p,
                   const Vector& abs_t,

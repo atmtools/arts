@@ -315,14 +315,16 @@ void iyEmissionStandard(
 
     get_ppath_f(
         ppvar_f, ppath, f_grid, atmosphere_dim, rte_alonglos_v, ppvar_wind);
+    
+    const bool temperature_jacobian =
+        j_analytical_do and do_temperature_jacobian(jacobian_quantities);
 
     // Size radiative variables always used
     Vector B(nf);
     StokesVector a(nf, ns), S(nf, ns);
-    ArrayOfIndex lte(np);
 
     // Init variables only used if analytical jacobians done
-    Vector dB_dT(0);
+    Vector dB_dT(temperature_jacobian ? nf : 0);
     ArrayOfStokesVector da_dx(nq), dS_dx(nq);
 
     // HSE variables
@@ -330,7 +332,6 @@ void iyEmissionStandard(
     bool do_hse = false;
 
     if (j_analytical_do) {
-      dB_dT.resize(nf);
       for (Index ip = 0; ip < np; ip++) {
         dK_dx[ip].resize(nq);
         FOR_ANALYTICAL_JACOBIANS_DO(dK_dx[ip][iq] = PropagationMatrix(nf, ns);)
@@ -342,8 +343,6 @@ void iyEmissionStandard(
             do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
           })
     }
-    const bool temperature_jacobian =
-        j_analytical_do and do_temperature_jacobian(jacobian_quantities);
 
     Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
     Workspace l_ws(ws);
@@ -359,10 +358,11 @@ void iyEmissionStandard(
         get_stepwise_blackbody_radiation(
             B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
 
+        Index lte;
         get_stepwise_clearsky_propmat(l_ws,
                                       K[ip],
                                       S,
-                                      lte[ip],
+                                      lte,
                                       dK_dx[ip],
                                       dS_dx,
                                       l_propmat_clearsky_agenda,
@@ -374,7 +374,6 @@ void iyEmissionStandard(
                                       ppvar_vmr(joker, ip),
                                       ppvar_t[ip],
                                       ppvar_p[ip],
-                                      jac_species_i,
                                       j_analytical_do);
 
         if (j_analytical_do)
@@ -387,7 +386,7 @@ void iyEmissionStandard(
                                              ppvar_t[ip],
                                              ppvar_p[ip],
                                              jac_species_i,
-                                             lte[ip],
+                                             lte,
                                              atmosphere_dim,
                                              j_analytical_do);
 

@@ -74,11 +74,10 @@ bool any_negative(const MatpackType& var) noexcept {
 }
 
 void zeeman_on_the_fly(
-    ArrayOfPropagationMatrix& propmat_clearsky,
-    ArrayOfStokesVector& nlte_source,
+    PropagationMatrix& propmat_clearsky,
+    StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_dx_source,
-    ArrayOfStokesVector& nlte_dsource_dx,
+    ArrayOfStokesVector& dnlte_source_dx,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -91,19 +90,16 @@ void zeeman_on_the_fly(
     const Vector& rtp_los,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
+    const Index& nlte_do,
     const Index& manual_tag,
     const Numeric& H0,
     const Numeric& theta0,
     const Numeric& eta0) {
-  // Find relevant derivatives in retrieval quantities positions
-  const ArrayOfIndex jacobian_quantities_positions =
-      equivalent_propmattype_indexes(jacobian_quantities);
 
   // Size of problem
   const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities_positions.nelem();
+  const Index nq = jacobian_quantities.nelem();
   const Index ns = abs_species.nelem();
-  const Index nn = rtp_nlte.Levels().nelem();
 
   // Possible things that can go wrong in this code (excluding line parameters)
   ARTS_USER_ERROR_IF(bad_abs_species(abs_species),
@@ -112,26 +108,22 @@ void zeeman_on_the_fly(
     "Only for 3D *rtp_mag* or a manual magnetic field")
   ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
     "*rtp_vmr* must match *abs_species*")
-  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq propmat_clearsky.nelem(),
-    "*abs_species* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(bad_propmat(propmat_clearsky, f_grid),
-    "*propmat_clearsky* must have *stokes_dim* 4 and frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(not nlte_source.empty() and (nlte_source.nelem() not_eq abs_species.nelem()),
-    "*abs_species* must match *nlte_source* when non-LTE is on")
-  ARTS_USER_ERROR_IF(not nlte_source.empty() and bad_propmat(nlte_source, f_grid),
-    "*nlte_source* must have *stokes_dim* 4 and frequency dim same as *f_grid* when non-LTE is on")
+  ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
+    "*f_grid* must match *propmat_clearsky*")
+  ARTS_USER_ERROR_IF(propmat_clearsky.StokesDimensions() not_eq 4,
+    "*propmat_clearsky* must have *stokes_dim* 4")
+  ARTS_USER_ERROR_IF(nlte_source.NumberOfFrequencies() not_eq nf,
+    "*f_grid* must match *nlte_source*")
+  ARTS_USER_ERROR_IF(nlte_source.StokesDimensions() not_eq 4,
+    "*nlte_source* must have *stokes_dim* 4")
   ARTS_USER_ERROR_IF(not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
     "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
   ARTS_USER_ERROR_IF(not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
     "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq dnlte_dx_source.nelem()),
-    "*dnlte_dx_source* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(dnlte_dx_source, f_grid),
-    "*dnlte_dx_source* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and (nq not_eq nlte_dsource_dx.nelem()),
-    "*nlte_dsource_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(not nq and not nlte_source.empty() and bad_propmat(nlte_dsource_dx, f_grid),
-    "*nlte_dsource_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
+  ARTS_USER_ERROR_IF(nlte_do and (nq not_eq dnlte_source_dx.nelem()),
+    "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
+  ARTS_USER_ERROR_IF(nlte_do and bad_propmat(dnlte_source_dx, f_grid),
+    "*dnlte_source_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_nlte.Data()), "Negative NLTE (at least one value).")
@@ -166,14 +158,12 @@ void zeeman_on_the_fly(
       Zeeman::AllPolarization_deta(X.theta, X.eta);
       
   // Non-LTE
-  Vector B(nn?nf:0);
-  Vector dBdT(nn?nf:0);
-  if (nn) {
-    planck(B, f_grid, rtp_temperature);
-    dplanck_dt(dBdT, f_grid, rtp_temperature);
-  }
+  const Vector B = nlte_do ? planck(f_grid, rtp_temperature) : Vector(0);
+  const Vector dBdT = nlte_do ? dplanck_dt(f_grid, rtp_temperature) : Vector(0);
+  const Vector dBdf = nlte_do ? dplanck_df(f_grid, rtp_temperature) : Vector(0);
   const auto eB = MapToEigen(B);
   const auto edBdT = MapToEigen(dBdT);
+  const auto edBdf = MapToEigen(dBdf);
 
   for (auto polar : {Zeeman::Polarization::SigmaMinus,
                      Zeeman::Polarization::Pi,
@@ -214,7 +204,6 @@ void zeeman_on_the_fly(
           f_grid,
           band,
           jacobian_quantities,
-          jacobian_quantities_positions,
           line_shape_vmr,
           rtp_nlte,  // This must be turned into a map of some kind...
           rtp_pressure,
@@ -232,7 +221,7 @@ void zeeman_on_the_fly(
         
         auto pol_real = pol.attenuation();
         auto pol_imag = pol.dispersion();
-        auto abs = propmat_clearsky[ispecies].Data()(0, 0, joker, joker);
+        auto abs = propmat_clearsky.Data()(0, 0, joker, joker);
 
         // Propagation matrix calculations
         MapToEigen(abs).leftCols<4>().noalias() += numdens * sum.F.real() * pol_real;
@@ -240,7 +229,8 @@ void zeeman_on_the_fly(
 
         if (nq) {
           for (Index j = 0; j < nq; j++) {
-            const auto& deriv = jacobian_quantities[jacobian_quantities_positions[j]];
+            if (not propmattype_index(jacobian_quantities, j)) continue;
+            const auto& deriv = jacobian_quantities[j];
             Eigen::Map<
                 Eigen::Matrix<Numeric, Eigen::Dynamic, 7, Eigen::RowMajor>>
                 dabs(dpropmat_clearsky_dx[j].Data().get_c_array(),
@@ -300,6 +290,10 @@ void zeeman_on_the_fly(
               dabs.rightCols<3>().noalias() +=
                   numdens * sum.dF.col(j).imag() * pol_imag +
                   dnumdens_dmvr * sum.F.imag() * pol_imag;
+            } else if (is_special_vmr(deriv, abs_species[ispecies])) {
+              dabs.leftCols<4>().noalias() += numdens * sum.F.real() * pol_real;
+              dabs.rightCols<3>().noalias() += numdens * sum.F.imag() * pol_imag;
+              
             } else {
               dabs.leftCols<4>().noalias() +=
                   numdens * sum.dF.col(j).real() * pol_real;
@@ -309,24 +303,23 @@ void zeeman_on_the_fly(
           }
         }
 
-          // Source vector calculations
-        if (nn) {
-          auto nlte_src =
-              nlte_source[ispecies].Data()(0, 0, joker, joker);
+        // Source vector calculations
+        if (nlte_do) {
+          auto nlte_src = nlte_source.Data()(0, 0, joker, joker);
 
           MapToEigen(nlte_src)
               .leftCols<4>()
               .noalias() += numdens * eB.cwiseProduct(sum.N.real()) * pol_real;
 
           for (Index j = 0; j < nq; j++) {
-            const auto& deriv =
-                jacobian_quantities[jacobian_quantities_positions[j]];
+            if (not propmattype_index(jacobian_quantities, j)) continue;
+            const auto& deriv = jacobian_quantities[j];
 
             Eigen::Map<
                 Eigen::Matrix<Numeric, Eigen::Dynamic, 4, Eigen::RowMajor>>
-                dnlte_dx_src(dnlte_dx_source[j].Data().get_c_array(),
+                dnlte_dx_src(dnlte_source_dx[j].Data().get_c_array(),
                             f_grid.nelem(), 4),
-                nlte_dsrc_dx(nlte_dsource_dx[j].Data().get_c_array(),
+                nlte_dsrc_dx(dnlte_source_dx[j].Data().get_c_array(),
                             f_grid.nelem(), 4);
 
             if (deriv == Jacobian::Atm::Temperature) {
@@ -336,35 +329,45 @@ void zeeman_on_the_fly(
 
               nlte_dsrc_dx.noalias() +=
                   numdens * edBdT.cwiseProduct(sum.N.real()) * pol_real;
-            } else if (deriv == Jacobian::Atm::MagneticU)
+            } else if (deriv.Target().isWind()) {
+              dnlte_dx_src.noalias() +=
+              dnumdens_dT * eB.cwiseProduct(sum.N.real()) * pol_real +
+              numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
+              
+              nlte_dsrc_dx.noalias() +=
+              numdens * edBdf.cwiseProduct(sum.N.real()) * pol_real;
+            } else if (deriv == Jacobian::Atm::MagneticU) {
               dnlte_dx_src.noalias() +=
                   numdens * X.dH_du * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
                   numdens * X.deta_du * eB.cwiseProduct(sum.N.real()) *
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_du * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            else if (deriv == Jacobian::Atm::MagneticV)
+            } else if (deriv == Jacobian::Atm::MagneticV) {
               dnlte_dx_src.noalias() +=
                   numdens * X.dH_dv * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
                   numdens * X.deta_dv * eB.cwiseProduct(sum.N.real()) *
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_dv * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            else if (deriv == Jacobian::Atm::MagneticW)
+            } else if (deriv == Jacobian::Atm::MagneticW) {
               dnlte_dx_src.noalias() +=
                   numdens * X.dH_dw * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
                   numdens * X.deta_dw * eB.cwiseProduct(sum.N.real()) *
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_dw * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            else if (deriv == Jacobian::Line::VMR and
-                    deriv.QuantumIdentity().In(band.QuantumIdentity()))
+            } else if (deriv == Jacobian::Line::VMR and
+                     deriv.QuantumIdentity().In(band.QuantumIdentity())) {
               dnlte_dx_src.noalias() +=
                   dnumdens_dmvr * eB.cwiseProduct(sum.N.real()) * pol_real +
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
-            else
+            } else if (is_special_vmr(deriv, abs_species[ispecies])) {
+              dnlte_dx_src.noalias() += numdens * eB.cwiseProduct(sum.N.real()) * pol_real;
+            } else {
               dnlte_dx_src.noalias() +=
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
+            }
           }
         }
       }

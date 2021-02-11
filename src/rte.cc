@@ -1171,23 +1171,14 @@ void get_stepwise_clearsky_propmat(
     ConstVectorView ppath_vmrs,
     const Numeric& ppath_temperature,
     const Numeric& ppath_pressure,
-    const ArrayOfIndex& jacobian_species,
     const bool& jacobian_do) {
-  // All relevant quantities are extracted first
-  const Index nq = jacobian_quantities.nelem();
-
-  // Local variables inside Agenda
-  ArrayOfPropagationMatrix propmat_clearsky, dpropmat_clearsky_dx;
-  ArrayOfStokesVector nlte_source, dnlte_dx_source, nlte_dx_dsource_dx;
-
   // Perform the propagation matrix computations
   propmat_clearsky_agendaExecute(ws,
-                                 propmat_clearsky,
-                                 nlte_source,
-                                 dpropmat_clearsky_dx,
-                                 dnlte_dx_source,
-                                 nlte_dx_dsource_dx,
-                                 jacobian_quantities,
+                                 K,
+                                 S,
+                                 dK_dx,
+                                 dS_dx,
+                                 jacobian_do ? jacobian_quantities : ArrayOfRetrievalQuantity(0),
                                  ppath_f_grid,
                                  ppath_magnetic_field,
                                  ppath_line_of_sight,
@@ -1197,63 +1188,8 @@ void get_stepwise_clearsky_propmat(
                                  ppath_vmrs,
                                  propmat_clearsky_agenda);
 
-  // We only now know how large the propagation matrix will be!
-  const Index npmat = propmat_clearsky.nelem();
-
-  // If therea re no NLTE elements, then set the LTE flag
-  lte = nlte_source.nelem() ? 0 : 1;
-
-  // Sum the propagation matrix
-  K = propmat_clearsky[0];
-  for (Index i = 1; i < npmat; i++) K += propmat_clearsky[i];
-
-  // Set NLTE source term if applicable
-  if (not lte) {
-    // Add all source terms up
-    S = nlte_source[0];
-    for (Index i = 1; i < npmat; i++) S += nlte_source[i];
-  } else {
-    S.SetZero();
-  }
-
-  // Set the partial derivatives
-  if (jacobian_do) {
-    for (Index i = 0; i < nq; i++) {
-      if (jacobian_quantities[i] == Jacobian::Special::ScatteringString) {
-        dK_dx[i].SetZero();
-        dS_dx[i].SetZero();
-      } else if (jacobian_quantities[i] == Jacobian::Type::Atm or jacobian_quantities[i] == Jacobian::Type::Line) {
-        // Find position of index in ppd
-        const Index j = equivalent_propmattype_index(jacobian_quantities, i);
-
-        dK_dx[i] = dpropmat_clearsky_dx[j];
-        if (lte) {
-          dS_dx[i].SetZero();
-        } else {
-          dS_dx[i] = dnlte_dx_source[j];
-          dS_dx[i] += nlte_dx_dsource_dx[j];
-
-          // TEST:  Old routine applied unit conversion on only the last
-          // part of the equation. Was this correct or wrong?  If correct,
-          // this is an issue.  Otherwise, the old version was incorrect.
-          // Have to setup perturbation test-case to study which is most
-          // reasonable...
-        }
-      } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
-      {
-        dK_dx[i] = propmat_clearsky[jacobian_species[i]];
-
-        // We cannot know the NLTE jacobian if this method was used
-        // because that information is thrown away. It is still faster
-        // to retain this method since it requires less computations
-        // when we do not need NLTE, which is most of the time...
-        ARTS_USER_ERROR_IF (not lte,
-          "We do not yet support species"
-          " tag and NLTE Jacobians.\n")
-        dS_dx[i].SetZero();
-      }
-    }
-  }
+  // If there are no NLTE values, then set the LTE flag as true
+  lte = S.allZeroes();  // FIXME: Should be nlte_do?
 }
 
 void get_stepwise_effective_source(

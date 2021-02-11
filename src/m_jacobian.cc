@@ -521,7 +521,7 @@ void jacobianAddPointingZa(Workspace& ws _U_,
                            ArrayOfRetrievalQuantity& jacobian_quantities,
                            Agenda& jacobian_agenda,
                            const Matrix& sensor_pos,
-                           const Vector& sensor_time,
+                           const ArrayOfTime& sensor_time,
                            const Index& poly_order,
                            const String& calcmode,
                            const Numeric& dza,
@@ -599,7 +599,7 @@ void jacobianCalcPointingZaInterp(
     const Matrix& DEBUG_ONLY(sensor_los),
     const Matrix& mblock_dlos_grid,
     const Sparse& sensor_response,
-    const Vector& sensor_time,
+    const ArrayOfTime& sensor_time,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity&) {
   if (mblock_dlos_grid.nrows() < 2)
@@ -708,7 +708,7 @@ void jacobianCalcPointingZaInterp(
     for (Index c = 0; c < lg; c++) {
       ARTS_ASSERT(Numeric(c) == rq.Grids()[0][c]);
       //
-      polynomial_basis_func(w, sensor_time, c);
+      polynomial_basis_func(w, time_vector(sensor_time), c);
       //
       for (Index i = 0; i < n1y; i++) {
         jacobian(row0 + i, it + c) = w[mblock_index] * dy[i];
@@ -734,7 +734,7 @@ void jacobianCalcPointingZaRecalc(
     const Matrix& transmitter_pos,
     const Matrix& mblock_dlos_grid,
     const Sparse& sensor_response,
-    const Vector& sensor_time,
+    const ArrayOfTime& sensor_time,
     const String& iy_unit,
     const Agenda& iy_main_agenda,
     const Agenda& geo_pos_agenda,
@@ -831,7 +831,7 @@ void jacobianCalcPointingZaRecalc(
     for (Index c = 0; c < lg; c++) {
       ARTS_ASSERT(Numeric(c) == rq.Grids()[0][c]);
       //
-      polynomial_basis_func(w, sensor_time, c);
+      polynomial_basis_func(w, time_vector(sensor_time), c);
       //
       for (Index i = 0; i < n1y; i++) {
         jacobian(row0 + i, it + c) = w[mblock_index] * dy[i];
@@ -1592,13 +1592,13 @@ void jacobianAddShapeCatalogParameters(
 
   ArrayOfString vars;
   if (variables[0] == "ALL")
-    vars = AllLineShapeVars();
+    vars = ArrayOfString(LineShape::enumstrs::VariableNames);
   else
     vars = variables;
 
   ArrayOfString coeffs;
   if (coefficients[0] == "ALL")
-    coeffs = AllLineShapeCoeffs();
+    coeffs = ArrayOfString(Options::enumstrs::LineShapeCoeffNames);
   else
     coeffs = coefficients;
 

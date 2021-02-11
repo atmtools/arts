@@ -49,7 +49,6 @@ namespace Absorption:: PredefinedModel {
  * @param[in]     t Temperature grid of computations (size: [p])
  * @param[in]     water_vmr Water volume mixing ratio (size: [p])
  * @param[in]     jacs The Jacobian descriptions (size: [greater than max(jacs_pos)])
- * @param[in]     jacs_pos The Jacobian matrix positions in dxsec (size: [jacs_pos])
  */
 void makarov2020_o2_lines_mpm(Matrix& xsec,
                               ArrayOfMatrix& dxsec,
@@ -57,8 +56,7 @@ void makarov2020_o2_lines_mpm(Matrix& xsec,
                               const Vector& p,
                               const Vector& t,
                               const Vector& water_vmr,
-                              const ArrayOfRetrievalQuantity& jacs,
-                              const ArrayOfIndex& jacs_pos);
+                              const ArrayOfRetrievalQuantity& jacs);
 }  //Absorption::PredefinedModel
 
 #endif  // fullmodel_h

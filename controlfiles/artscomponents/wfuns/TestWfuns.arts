@@ -251,7 +251,7 @@ Compare( Ja, Jp, 0.001 )
 
 # Sensor time must be specified here
 nrowsGet( nrows, sensor_pos )
-VectorNLinSpace( sensor_time, nrows, 0, 1 )
+ArrayOfTimeNLinSpace( sensor_time, nrows, "2021-01-01 00:00:00.0", "2021-01-01 00:00:01.0")
 
 StringSet( info, "Pointing recalc" )
 Print( info, 0 )

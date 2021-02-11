@@ -551,7 +551,7 @@ void test_mpm20()
   ArrayOfRetrievalQuantity jacs(2);
   jacs[0].Target(Jacobian::Target(Jacobian::Atm::Temperature));
   jacs[1].Target(Jacobian::Target(Jacobian::Atm::WindU));
-  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs, {0, 1});
+  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs);
   
   constexpr auto df = 1000;
   constexpr auto dt = 0.1;

@@ -25,7 +25,8 @@ Arts2 {
   VectorSet(rtp_los, [60, 50])
   
   # Test variables
-  ArrayOfPropagationMatrixCreate(test)
+  PropagationMatrixCreate(test)
+  ArrayOfPropagationMatrixCreate(dtest)
   
   ## Silly parameters that have to be set by agendas and ARTS in general but are completely useless for these calculations
   VectorSet(p_grid, [150])          # We have no grid
@@ -54,8 +55,8 @@ Arts2 {
   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/zeeman/dpropmat.xml")
   ReadXML(test, "testdata/zeeman/propmat.xml")
   CompareRelative(test, propmat_clearsky, 1e-6)
-  ReadXML(test, "testdata/zeeman/dpropmat.xml")
-  CompareRelative(test, dpropmat_clearsky_dx, 1e-6)
+  ReadXML(dtest, "testdata/zeeman/dpropmat.xml")
+  CompareRelative(dtest, dpropmat_clearsky_dx, 1e-6)
   jacobianOff
   
   NumericSet(rtp_temperature, 215.01)

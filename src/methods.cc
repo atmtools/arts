@@ -256,27 +256,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("AbsInputFromRteScalars"),
-      DESCRIPTION(
-          "Initialize absorption input WSVs from local atmospheric conditions.\n"
-          "\n"
-          "The purpose of this method is to allow an explicit line-by-line\n"
-          "calculation, e.g., by *abs_coefCalcFromXsec*, to be put inside the\n"
-          "*propmat_clearsky_agenda*. What the method does is to prepare absorption\n"
-          "input parameters (pressure, temperature, VMRs), from the input\n"
-          "parameters to *propmat_clearsky_agenda*.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("abs_p", "abs_t", "abs_vmrs"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("rtp_pressure", "rtp_temperature", "rtp_vmr"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataAddCIARecord"),
       DESCRIPTION(
           "Takes CIARecord as input and appends the results in the appropriate place.\n"
@@ -339,38 +318,6 @@ void define_md_data_raw() {
       GIN_DESC("Name of the XML file.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_coefCalcFromXsec"),
-      DESCRIPTION("Calculate absorption coefficients from cross sections.\n"
-                  "\n"
-                  "This calculates both the total absorption and the\n"
-                  "absorption per species.\n"
-                  "\n"
-                  "Cross sections are multiplied by n*VMR.\n"),
-      AUTHORS("Stefan Buehler", "Axel von Engeln"),
-      OUT("abs_coef",
-          "src_coef",
-          "dabs_coef_dx",
-          "dsrc_coef_dx",
-          "abs_coef_per_species",
-          "src_coef_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "src_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "dsrc_xsec_per_species_dx",
-         "abs_species",
-         "jacobian_quantities",
-         "abs_vmrs",
-         "abs_p",
-         "abs_t"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cont_descriptionAppend"),
       DESCRIPTION(
           "Appends the description of a continuum model or a complete absorption\n"
@@ -408,9 +355,9 @@ void define_md_data_raw() {
           "*abs_cont_descriptionAppend* wants to append to the variables.\n"
           "\n"
           "Formally, the continuum description workspace variables are required\n"
-          "by the absorption calculation methods (e.g., *abs_coefCalcFromXsec*). Therefore you\n"
-          "always have to call at least *abs_cont_descriptionInit*, even if you do\n"
-          "not want to use any continua.\n"),
+          "by the absorption calculation methods (e.g., *abs_xsec_per_speciesAddConts*).\n"
+          "Therefore you always have to call at least *abs_cont_descriptionInit*, even\n"
+          "if you do not want to use any continua.\n"),
       AUTHORS("Thomas Kuhn", "Stefan Buehler"),
       OUT("abs_cont_names", "abs_cont_models", "abs_cont_parameters"),
       GOUT(),
@@ -4725,13 +4672,15 @@ void define_md_data_raw() {
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
           "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
           "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,",
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,"
+          "PropagationMatrix, StokesVector",
           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
           "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
           "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
           "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,",
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,"
+          "PropagationMatrix, StokesVector",
           "Numeric",
           "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, ""),
@@ -6576,6 +6525,86 @@ void define_md_data_raw() {
       GIN_DESC("Desired grid spacing in Hz.",
                "Number of frequencies per passband for each channel.",
                "Merge frequencies that are closer than this value in Hz.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("yMaskOutsideMedianRange"),
+      DESCRIPTION("Masks values not within the range as NaN:\n"
+        "\t[median(y) - dx, median(y) + dx]\n"
+        "Ignores NaNs in median calculations.\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("y"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y"),
+      GIN("dx"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Range plus-minus the median of unmasked values")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ybatchMaskOutsideMedianRange"),
+      DESCRIPTION("Apply *yMaskOutsideMedianRange* for each *y* in *ybatch*\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("ybatch"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ybatch"),
+      GIN("dx"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Range plus-minus the median of unmasked values")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("yDoublingMeanFocus"),
+      DESCRIPTION("Focus in on *y* around some *f_grid*, then sets *f_grid* to\n"
+                  "same focus\n"
+                  "\n"
+                  "The algorithm will double the frequency spacing DF\n"
+                  "steps away from F0, doubling it again DF steps away\n"
+                  "from F0+DF, and so on until the end of the range.\n"
+                  "The same happens but reversely towards F0-DF, ...\n"
+                  "\n"
+                  "Inside these ranges, the values will be averaged\n"
+                  "so that there's one value per original input\n"
+                  "between F0-DF and F0+DF, 1 value per 2 original values\n"
+                  "between F0+DF and F0+2*DF, and so on ever doubling the\n"
+                  "number of original values per output value\n"
+                  "\n"
+                  "F0 and DF are set inside the function to either the values\n"
+                  "given by the user, or if they are non-positive as mean(f_grid)\n"
+                  "and 10 * (f_grid[1] - f_grid[0]), respectively\n"
+                  "\n"
+                  "Ignores NaNs and infinities in averaging calculations.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("f_grid", "y"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid", "y"),
+      GIN("f0", "df"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1"),
+      GIN_DESC("User input for F0 [see description for default]",
+               "User input for DF [see description for default]")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ybatchDoublingMeanFocus"),
+      DESCRIPTION("See *yDoublingMeanFocus*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("f_grid", "ybatch"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid", "ybatch"),
+      GIN("f0", "df"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1"),
+      GIN_DESC("User input for F0 [see description for default]",
+               "User input for DF [see description for default]")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("g0Earth"),
@@ -10665,26 +10694,6 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(create_mdrecord(
-      NAME("nlte_sourceFromTemperatureAndSrcCoefPerSpecies"),
-      DESCRIPTION(
-          "Turn NLTE absorption per species into the source function by multiplying\n"
-          "NLTE absorption per species with the LTE Planck source function.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("nlte_source", "dnlte_dx_source", "nlte_dsource_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("src_coef_per_species",
-         "dsrc_coef_dx",
-         "jacobian_quantities",
-         "f_grid",
-         "rtp_temperature"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
   md_data_raw.push_back(
       create_mdrecord(NAME("nlteOff"),
                DESCRIPTION("Disable Non-LTE calculations.\n"
@@ -12444,26 +12453,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("propmat_clearskyAddFromAbsCoefPerSpecies"),
-      DESCRIPTION(
-          "Copy *propmat_clearsky* from *abs_coef_per_species*. This is handy for putting an\n"
-          "explicit line-by-line calculation into the\n"
-          "*propmat_clearsky_agenda*. This method is also used internally by.\n"
-          "*propmat_clearskyAddOnTheFly*.\n"
-          "Like all other propmat_clearsky methods, this method does not overwrite\n"
-          "prior content of *propmat_clearsky*, but adds to it.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("propmat_clearsky", "abs_coef_per_species", "dabs_coef_dx"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFromLookup"),
       DESCRIPTION(
           "Extract gas absorption coefficients from lookup table.\n"
@@ -12517,7 +12506,8 @@ void define_md_data_raw() {
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr",
-         "jacobian_quantities"),
+         "jacobian_quantities",
+         "abs_species"),
       GIN("extpolfac"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0.5"),
@@ -12634,30 +12624,24 @@ void define_md_data_raw() {
           "Calculates gas absorption coefficients line-by-line.\n"
           "\n"
           "This method can be used inside *propmat_clearsky_agenda* just like\n"
-          "*propmat_clearskyAddFromLookup*. It is a shortcut for putting in some\n"
-          "other methods explicitly, namely:\n"
-          "\n"
-          "  1. *AbsInputFromRteScalars*\n"
-          "  2. Execute *abs_xsec_agenda*\n"
-          "  3. *abs_coefCalcFromXsec*\n"
-          "  4. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
+          "*propmat_clearskyAddFromLookup*. It is a wrapper for putting the\n"
+          "cross-sections generated by *abs_xsec_agenda* into *propmat_clearsky*,\n"
+          "*nlte_field*, *dpropmat_clearsky_dx*, and *dnlte_source_dx*.\n"
           "\n"
           "The calculation is for one specific atmospheric condition, i.e., a set\n"
-          "of pressure, temperature, and VMR values.\n"),
+          "of pressure, temperature, NLTE, and VMR values.\n"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
       OUT("propmat_clearsky",
           "nlte_source",
           "dpropmat_clearsky_dx",
-          "dnlte_dx_source",
-          "nlte_dsource_dx"),
+          "dnlte_source_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("propmat_clearsky",
          "nlte_source",
          "dpropmat_clearsky_dx",
-         "dnlte_dx_source",
-         "nlte_dsource_dx",
+         "dnlte_source_dx",
          "f_grid",
          "abs_species",
          "jacobian_quantities",
@@ -12665,6 +12649,7 @@ void define_md_data_raw() {
          "rtp_temperature",
          "rtp_nlte",
          "rtp_vmr",
+         "nlte_do",
          "abs_xsec_agenda"),
       GIN(),
       GIN_TYPE(),
@@ -12755,16 +12740,14 @@ void define_md_data_raw() {
       OUT("propmat_clearsky",
           "nlte_source",
           "dpropmat_clearsky_dx",
-          "dnlte_dx_source",
-          "nlte_dsource_dx"),
+          "dnlte_source_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("propmat_clearsky",
          "nlte_source",
          "dpropmat_clearsky_dx",
-         "dnlte_dx_source",
-         "nlte_dsource_dx",
+         "dnlte_source_dx",
          "abs_lines_per_species",
          "f_grid",
          "abs_species",
@@ -12778,6 +12761,7 @@ void define_md_data_raw() {
          "rtp_mag",
          "rtp_los",
          "atmosphere_dim",
+         "nlte_do",
          "lbl_checked"),
       GIN("manual_zeeman_tag",
           "manual_zeeman_magnetic_field_strength",
@@ -12801,17 +12785,14 @@ void define_md_data_raw() {
       OUT("propmat_clearsky",
           "nlte_source",
           "dpropmat_clearsky_dx",
-          "dnlte_dx_source",
-          "nlte_dsource_dx"),
+          "dnlte_source_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_species",
-         "jacobian_quantities",
+      IN("jacobian_quantities",
          "f_grid",
          "stokes_dim",
-         "propmat_clearsky_agenda_checked",
-         "nlte_do"),
+         "propmat_clearsky_agenda_checked"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -12893,7 +12874,7 @@ void define_md_data_raw() {
           "The calculation itself is performed by the\n"
           "*propmat_clearsky_agenda*.\n"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
-      OUT("propmat_clearsky_field", "nlte_source_field"),
+      OUT("propmat_clearsky_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -12909,6 +12890,7 @@ void define_md_data_raw() {
          "mag_u_field",
          "mag_v_field",
          "mag_w_field",
+         "abs_species",
          "propmat_clearsky_agenda"),
       GIN("doppler", "los"),
       GIN_TYPE("Vector", "Vector"),
@@ -19583,6 +19565,24 @@ void define_md_data_raw() {
       GIN_DESC("Start value.", "End value.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ArrayOfTimeNLinSpace"),
+      DESCRIPTION(
+          "Creates a time array with length *nelem*, equally spaced between the\n"
+          "given end values.\n"
+          "\n"
+          "The length (*nelem*) must be larger than 1.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("ArrayOfTime"),
+      GOUT_DESC("Variable to initialize."),
+      IN("nelem"),
+      GIN("start", "stop"),
+      GIN_TYPE("String", "String"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Start value.", "End value.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLogSpace"),
       DESCRIPTION(
           "Creates a vector with length *nelem*, equally logarithmically\n"
@@ -19669,6 +19669,23 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vector value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("ArrayOfTimeSetConstant"),
+      DESCRIPTION(
+          "Creates an ArrayOfTime and sets all elements to the specified value.\n"
+          "\n"
+          "The vector length is determined by *nelem*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("ArrayOfTime"),
+      GOUT_DESC("Variable to initialize."),
+      IN("nelem"),
+      GIN("value"),
+      GIN_TYPE("Time"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Time value.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorSet"),
@@ -20658,6 +20675,39 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ybatchColdAtmHotAtmCycle"),
+      DESCRIPTION(
+          "Computes *ybatch* from input using standard calibration scheme of\n"
+          "a cycle through cold-atm-hot-atm-cold-... observations\n"
+          "\n"
+          "Computes for every full cycle reaching a new hot or cold:\n"
+          "    y = cold_temp + (hot_temp - cold_temp) * (atm - cold) / (hot - cold)\n"
+          "\n"
+          "Assumes data is ordered as Cold-Atm-Hot-Atm-Cold-Atm-Hot-Atm-...,\n"
+          "but Cold does not have to be at data[0], instead the first cold\n"
+          "position is set by *first_c_index*, which defaults to 0 but can be any positive\n"
+          "index so that *level0_data*[*first_c_index*] is a cold-measurements.  Note that if\n"
+          "*first_c_index* is larger than 1, then the first output data will be around the\n"
+          "observation cycle -HAC-, where H is at *first_c_index*-2\n"
+          "\n"
+          "Also returns the times of the Atm measurements in *sensor_time*\n"
+          "if the measurement's time data is provided\n"
+          ),
+      AUTHORS("Richard Larsson"),
+      OUT("ybatch", "sensor_time"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("level0_data", "level0_time"),
+      GIN("cold_temp", "hot_temp", "first_c_index"),
+      GIN_TYPE("Vector", "Vector", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "0"),
+      GIN_DESC(
+        "Cold load calibration temperature (must match level0_data length)",
+        "Hot load calibration temperature (must match level0_data length)",
+        "Index offset of the first cold position")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchCalc"),
@@ -20719,7 +20769,8 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("yColdAtmHot"),
       DESCRIPTION(
-          "Computes *y* from input using standard calibration scheme of cold-atm-hot observations\n"
+          "Computes *y* from input using standard calibration scheme of\n"
+          "cold-atm-hot observations\n"
           "\n"
           "If calib evaluates as true:\n"
           "    y = cold_temp + (hot_temp - cold_temp) * (atm - cold) / (hot - cold)\n"
@@ -20831,16 +20882,13 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTimeAveraging"),
       DESCRIPTION(
-          "Time average of *ybatch* and *time_grid*\n"
-          "\n"
-          "Computes the internal covariance matrix in *covmat_sepsbatch*, and\n"
-          "stores the number of elements per averaging in *counts*\n"),
+          "Time average of *ybatch* and *sensor_time*\n"),
       AUTHORS("Richard Larsson"),
-      OUT("ybatch", "time_grid", "covmat_sepsbatch", "counts"),
+      OUT("ybatch", "sensor_time"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("ybatch", "time_grid"),
+      IN("ybatch", "sensor_time"),
       GIN("time_step", "disregard_first", "disregard_last"),
       GIN_TYPE("String", "Index", "Index"),
       GIN_DEFAULT(NODEF, "0", "0"),
@@ -20854,7 +20902,9 @@ void define_md_data_raw() {
           "Performs naive tropospheric corrections on *ybatch*\n"
           "\n"
           "Sets *ybatch_corr* to be able to perform the inverse of the corrections,\n"
-          "each array-element with 3 entries as [median, part_trans, trop_temp]\n"),
+          "each array-element with 3 entries as [median, part_trans, trop_temp]\n"
+          "\n"
+          "Uses the same tropospheric temperature for all values if trop_temp.nelem()==1\n"),
       AUTHORS("Richard Larsson"),
       OUT("ybatch_corr", "ybatch"),
       GOUT(),
@@ -20863,9 +20913,9 @@ void define_md_data_raw() {
       IN("ybatch"),
       GIN("range", "trop_temp", "targ_temp"),
       GIN_TYPE("ArrayOfIndex", "Vector", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, "2.73"),
+      GIN_DEFAULT("ArrayOfIndex(0)", NODEF, "2.73"),
       GIN_DESC("Positions where the median of the baseline is computed, if empty all is used",
-               "Radiative temperature of the troposphere",
+               "Radiative temperature of the troposphere [dim: 1 or ybatch.nelem()]",
                "Temperature target of the baseline")));
 
   md_data_raw.push_back(create_mdrecord(

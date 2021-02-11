@@ -31,6 +31,7 @@
 #include <cmath>
 
 #include "array.h"
+#include "matpackI.h"
 #include "mystring.h"
 
 /** A duration of time, 1 full tick should be 1 second */
@@ -51,6 +52,7 @@ public:
   Time() : mtime(std::chrono::system_clock::now()) {}
   explicit Time(std::time_t t) : mtime(std::chrono::system_clock::from_time_t(t)) {}
   explicit Time(std::tm t) : Time(std::mktime(&t)) {}
+  explicit Time(const String& t);
   
   // Data
   const std::chrono::system_clock::time_point& Data() const {return mtime;}
@@ -75,6 +77,9 @@ public:
   Numeric Seconds() const {return std::chrono::duration_cast<TimeStep>(mtime.time_since_epoch()).count();}
   void Seconds(Numeric x) {operator+=(TimeStep(x - Seconds()));}
   Numeric PartOfSecond() const {return std::fmod(Seconds(), 1.0);}
+  
+  // Conversion
+  explicit operator Numeric() const { return Seconds(); }
 }; // Time
 
 /** List of times */
@@ -92,6 +97,20 @@ std::istream& operator>>(std::istream& is, Time& t);
 /** Debug output for duration */
 inline std::ostream& operator<<(std::ostream& os, const TimeStep& dt) {return os << dt.count() << " seconds";}
 
+/** Returns a time step from valid string
+ * 
+ * The string should look like: "X type".
+ * where X is parsed as a double and where
+ * valid string type(s) are:
+ * "hour", "hours", "h": Returns a X hour time step
+ * "minute", "minutes", "min": Returns a X minute time step
+ * "second", "seconds", "s": Returns a X seconds time step
+ * 
+ * @param[in] time_step A time step of format "X type"
+ * @return The time step as TimeStep
+ */
+TimeStep time_stepper_selection(const String& time_step);
+
 /** Returns the next time after t with an even time-step
  * 
  * @param[in] t A time
@@ -102,17 +121,17 @@ Time next_even(const Time& t, const TimeStep& dt);
 
 /** Finds the index matching demands in a list of times
  * 
- * The first index is 0 and the second index is the start of the first even period of
- * the given stepsize
+ * The first index is 0 and the second index is the start of
+ * the first even period of the given stepsize
  * 
- * The last index is times.nelem().  If output has 1 element, no range was found matching the
- * criteria.
+ * The last index is times.nelem().  If output has 1 element,
+ * no range was found matching the criteria.
  * 
  * @param[in] times Times sorted in ascending order
- * @param[in] step A duration of time
+ * @param[in] dt A duration of time
  * @return Starting index of the time-series
  */
-ArrayOfIndex time_steps(const ArrayOfTime& times, const String& step);
+ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& dt);
 
 /** Computes the average time in a list
  * 
@@ -121,5 +140,19 @@ ArrayOfIndex time_steps(const ArrayOfTime& times, const String& step);
  * @param[in] e The end+1 index; valid range [-1, ts.nelem()]; -1 is treated as ts.nelem()
  */
 Time mean_time(const ArrayOfTime& ts, Index s=0, Index e=-1);
+
+/** Converts from each Time to seconds and returns as Vector
+ * 
+ * @param[in] times Times
+ * @return Vector of Time->Seconds() calls
+ */
+Vector time_vector(const ArrayOfTime& times);
+
+/** Converts from each Vector entry by seconds and returns as ArrayOfTime
+ * 
+ * @param[in] times Times
+ * @return ArrayOfTime from seconds
+ */
+ArrayOfTime time_vector(const Vector& times);
 
 #endif  // ARTSTIME_H

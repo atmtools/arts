@@ -18,10 +18,9 @@ def f(sec: float, n: int):
     return 30*np.exp(-(np.linspace(-3, 3, n))**2) + off + eps
 
 # Help to access
-tg = pyarts.classes.from_workspace(ws.time_grid)
+st = pyarts.classes.from_workspace(ws.sensor_time)
 ts = pyarts.classes.from_workspace(ws.time_stamps)
 ys = pyarts.classes.from_workspace(ws.ybatch)
-ceps = pyarts.classes.from_workspace(ws.covmat_sepsbatch)
 
 # Current time
 some_time = pyarts.classes.Time()
@@ -35,7 +34,7 @@ for i in range(N):
     ys.append(f(sec, n))
 
 # Sort the time and signal
-ws.time_stampsSort(ws.time_grid, ws.time_stamps, ws.time_stamps)
+ws.time_stampsSort(ws.sensor_time, ws.time_stamps, ws.time_stamps)
 ws.time_stampsSort(ws.ybatch, ws.time_stamps, ws.ybatch)
 ws.time_stampsSort(ws.time_stamps, ws.time_stamps, ws.time_stamps)  # Must be last...
 
@@ -56,7 +55,3 @@ rang.set(trp_range)
 ws.ybatchTroposphericCorrectionNaiveMedianForward(ws.ybatch_corr, ws.ybatch, ws.range, ws.trop_temp, ws.targ_temp)
 ws.ybatchTimeAveraging(time_step="24 h", disregard_first=1, disregard_last=1)
 
-# A simple
-ncfn = os.path.splitext(__file__)[0]+'_ref.nc'
-# pyarts.classes.netcdf.save(ncfn, [ws.covmat_sepsbatch, ws.ybatch])
-refs = pyarts.classes.netcdf.load(ncfn)

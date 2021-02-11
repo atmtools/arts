@@ -116,7 +116,8 @@ z_fieldFromHSE
 MatrixSetConstant( sensor_pos, 1, 1, 15e3 )
 MatrixSetConstant( sensor_los, 1, 1, 60 )
 #
-VectorSetConstant( sensor_time, 1, 0 )
+timeNow
+ArrayOfTimeSetConstant( sensor_time, 1, time )
 
 
 # True f_backend

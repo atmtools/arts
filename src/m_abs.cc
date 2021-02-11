@@ -307,13 +307,13 @@ void abs_coefCalcFromXsec(  // WS Output:
   abs_coef = 0;
   src_coef.resize(src_rows, src_xsec_per_species[0].ncols());
   src_coef = 0;
+  
+  dabs_coef_dx.resize(jacobian_quantities.nelem());
+  dsrc_coef_dx.resize(do_src ? jacobian_quantities.nelem() : 0);
 
-  const ArrayOfIndex jacobian_quantities_position =
-      equivalent_propmattype_indexes(jacobian_quantities);
-  dabs_coef_dx.resize(jacobian_quantities_position.nelem());
-  dsrc_coef_dx.resize(do_src ? jacobian_quantities_position.nelem() : 0);
-
-  for (Index ii = 0; ii < jacobian_quantities_position.nelem(); ii++) {
+  for (Index ii = 0; ii < jacobian_quantities.nelem(); ii++) {
+    if (not propmattype_index(jacobian_quantities, ii)) continue;
+    
     dabs_coef_dx[ii].resize(abs_xsec_per_species[0].nrows(),
                             abs_xsec_per_species[0].ncols());
     dabs_coef_dx[ii] = 0.0;
@@ -358,9 +358,10 @@ void abs_coefCalcFromXsec(  // WS Output:
           src_coef_per_species[i](k, j) =
               src_xsec_per_species[i](k, j) * n * abs_vmrs(i, j);
 
-        for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
-          if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-              Jacobian::Atm::Temperature) {
+        for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+          if (not propmattype_index(jacobian_quantities, iq)) continue;
+          
+          if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
             dabs_coef_dx[iq](k, j) +=
                 (dabs_xsec_per_species_dx[i][iq](k, j) * n +
                  abs_xsec_per_species[i](k, j) * dn_dT) *
@@ -370,18 +371,15 @@ void abs_coefCalcFromXsec(  // WS Output:
                   (dsrc_xsec_per_species_dx[i][iq](k, j) * n +
                    src_xsec_per_species[i](k, j) * dn_dT) *
                   abs_vmrs(i, j);
-          } else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                     Jacobian::Line::VMR) {
+          } else if (jacobian_quantities[iq] == Jacobian::Line::VMR) {
             bool seco = false, main = false;
             for (const auto& s : abs_species[i]) {
               if (species_match(
-                      jacobian_quantities[jacobian_quantities_position[iq]],
-                      s.BathSpecies()) or
+                      jacobian_quantities[iq], s.BathSpecies()) or
                   s.Type() not_eq SpeciesTag::TYPE_CIA)
                 seco = true;
               if (species_iso_match(
-                      jacobian_quantities[jacobian_quantities_position[iq]],
-                      s.Species(),
+                      jacobian_quantities[iq], s.Species(),
                       s.Isotopologue()))
                 main = true;
             }
@@ -443,66 +441,84 @@ void abs_xsec_per_speciesInit(  // WS Output:
 
   ARTS_USER_ERROR_IF (!abs_xsec_agenda_checked,
         "You must call *abs_xsec_agenda_checkedCalc* before calling this method.");
+  
+  // Sizes
+  const Index nq = jacobian_quantities.nelem();
+  const Index nf = f_grid.nelem();
+  const Index np = abs_p.nelem();
+  const Index ns = tgs.nelem();
 
   // We need to check that abs_species_active doesn't have more elements than
   // abs_species (abs_xsec_agenda_checkedCalc doesn't know abs_species_active.
   // Usually we come here through an agenda call, where abs_species_active has
   // been properly created somewhere internally. But we might get here by
   // direct call, and then need to be safe!).
-  ARTS_USER_ERROR_IF (tgs.nelem() < abs_species_active.nelem(),
+  ARTS_USER_ERROR_IF (ns < abs_species_active.nelem(),
     "abs_species_active (n=", abs_species_active.nelem(),
     ") not allowed to have more elements than abs_species (n=",
-    tgs.nelem(), ")!\n")
-
-  // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
-  // is the same as that of abs_lines_per_species.
-  abs_xsec_per_species.resize(tgs.nelem());
-  src_xsec_per_species.resize(tgs.nelem());
+    ns, ")!\n")
   
-  const ArrayOfIndex jacobian_quantities_position =
-      equivalent_propmattype_indexes(jacobian_quantities);
-
-  dabs_xsec_per_species_dx.resize(tgs.nelem());
-  dsrc_xsec_per_species_dx.resize(tgs.nelem());
-
+  // Make elements the right size if they are not already the right size
+  if (abs_xsec_per_species.nelem() not_eq ns) abs_xsec_per_species.resize(ns);
+  if (src_xsec_per_species.nelem() not_eq ns) src_xsec_per_species.resize(ns);
+  if (dabs_xsec_per_species_dx.nelem() not_eq ns) dabs_xsec_per_species_dx.resize(ns);
+  if (dsrc_xsec_per_species_dx.nelem() not_eq ns) dsrc_xsec_per_species_dx.resize(ns);
+  
   // Loop abs_xsec_per_species and make each matrix the right size,
   // initializing to zero.
   // But skip inactive species, loop only over the active ones.
-  for (Index ii = 0; ii < abs_species_active.nelem(); ++ii) {
-    const Index i = abs_species_active[ii];
-    // Check that abs_species_active index is not higher than the number
-    // of species
-    ARTS_USER_ERROR_IF (i >= tgs.nelem(),
+  for (auto& i: abs_species_active) {
+    ARTS_USER_ERROR_IF (i >= ns,
       "*abs_species_active* contains an invalid species index.\n"
-      "Species index must be between 0 and ", tgs.nelem() - 1)
+      "Species index must be between 0 and ", ns - 1)
     
-    // Make this element of abs_xsec_per_species the right size:
-    abs_xsec_per_species[i].resize(f_grid.nelem(), abs_p.nelem());
-    abs_xsec_per_species[i] = 0;  // Matpack can set all elements like this.
-    if (nlte_do) {
-      src_xsec_per_species[i].resize(f_grid.nelem(), abs_p.nelem());
-      src_xsec_per_species[i] = 0;
+    // Make elements the right size if they are not already the right size, then reset them
+    if (abs_xsec_per_species[i].nrows() == nf and abs_xsec_per_species[i].ncols() == np) {
+      abs_xsec_per_species[i] = 0.0;
     } else {
-      src_xsec_per_species[i].resize(0, 0);
+      abs_xsec_per_species[i] = Matrix(nf, np, 0.0);
     }
-
-    dabs_xsec_per_species_dx[ii] =
-        ArrayOfMatrix(jacobian_quantities_position.nelem(),
-                      Matrix(f_grid.nelem(), abs_p.nelem(), 0.0));
-    if (nlte_do)
-      dsrc_xsec_per_species_dx[ii] =
-          ArrayOfMatrix(jacobian_quantities_position.nelem(),
-                        Matrix(f_grid.nelem(), abs_p.nelem(), 0.0));
-    else
-      dsrc_xsec_per_species_dx[ii] =
-          ArrayOfMatrix(jacobian_quantities_position.nelem(),
-                        Matrix(0, 0));
+    
+    // Make elements the right size if they are not already the right size, then reset them
+    if (dabs_xsec_per_species_dx[i].nelem() not_eq nq) {
+      dabs_xsec_per_species_dx[i] = ArrayOfMatrix(nq, Matrix(nf, np, 0.0));
+    } else {
+      for (Index j=0; j<nq; j++) {
+        if (dabs_xsec_per_species_dx[i][j].nrows() == nf and dabs_xsec_per_species_dx[i][j].ncols() == np) {
+          dabs_xsec_per_species_dx[i][j] = 0.0;
+        } else {
+          dabs_xsec_per_species_dx[i][j] = Matrix(nf, np, 0.0);
+        }
+      }
+    }
+    
+    if (nlte_do) {
+      // Make elements the right size if they are not already the right size, then reset them
+      if (src_xsec_per_species[i].nrows() == nf and src_xsec_per_species[i].ncols() == np) {
+        src_xsec_per_species[i] = 0.0;
+      } else {
+        src_xsec_per_species[i] = Matrix(nf, np, 0.0);
+      }
+      
+      // Make elements the right size if they are not already the right size, then reset them
+      if (dsrc_xsec_per_species_dx[i].nelem() not_eq nq) {
+        dsrc_xsec_per_species_dx[i] = ArrayOfMatrix(nq, Matrix(nf, np, 0.0));
+      } else {
+        for (Index j=0; j<nq; j++) {
+          if (dsrc_xsec_per_species_dx[i][j].nrows() == nf and dsrc_xsec_per_species_dx[i][j].ncols() == np) {
+            dsrc_xsec_per_species_dx[i][j] = 0.0;
+          } else {
+            dsrc_xsec_per_species_dx[i][j] = Matrix(nf, np, 0.0);
+          }
+        }
+      }
+    }
   }
 
   ostringstream os;
   os << "  Initialized abs_xsec_per_species.\n"
-     << "  Number of frequencies        : " << f_grid.nelem() << "\n"
-     << "  Number of pressure levels    : " << abs_p.nelem() << "\n";
+     << "  Number of frequencies        : " << nf << "\n"
+     << "  Number of pressure levels    : " << np << "\n";
   out3 << os.str();
 }
 
@@ -574,8 +590,6 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
   Vector dfreq, dabs_t;
   const Numeric df = frequency_perturbation(jacobian_quantities);
   const Numeric dt = temperature_perturbation(jacobian_quantities);
-  const ArrayOfIndex jacobian_quantities_position =
-      equivalent_propmattype_indexes(jacobian_quantities);
 
   if (do_freq_jac) {
     dfreq.resize(f_grid.nelem());
@@ -763,15 +777,14 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
           for (Index iv = 0; iv < f_grid.nelem(); iv++) {
             for (Index ip = 0; ip < abs_p.nelem(); ip++) {
               abs_xsec_per_species[i](iv, ip) += normal(iv, ip);
-              for (Index iq = 0; iq < jacobian_quantities_position.nelem();
+              for (Index iq = 0; iq < jacobian_quantities.nelem();
                    iq++) {
-                if (is_frequency_parameter(
-                        jacobian_quantities[jacobian_quantities_position[iq]]))
+                if (not propmattype_index(jacobian_quantities, iq)) continue;
+                
+                if (is_frequency_parameter(jacobian_quantities[iq]))
                   dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                       (jacs_df(iv, ip) - normal(iv, ip)) * (1. / df);
-                else if (jacobian_quantities
-                             [jacobian_quantities_position[iq]] ==
-                         Jacobian::Atm::Temperature)
+                else if (jacobian_quantities[iq] == Jacobian::Atm::Temperature)
                   dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                       (jacs_dt(iv, ip) - normal(iv, ip)) * (1. / dt);
               }
@@ -830,9 +843,8 @@ void abs_cont_descriptionAppend(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
-    ArrayOfStokesVector& nlte_source,
-    ArrayOfStokesVector& dnlte_dx_source,
-    ArrayOfStokesVector& nlte_dsource_dx,
+    StokesVector& nlte_source,
+    ArrayOfStokesVector& dnlte_source_dx,
     // WS Input:
     const ArrayOfMatrix& src_coef_per_species,
     const ArrayOfMatrix& dsrc_coef_dx,
@@ -856,78 +868,65 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
   ARTS_USER_ERROR_IF (1 not_eq src_coef_per_species[0].ncols(),
     "Must have exactly one pressure.")
 
-  // Check species dimension of propmat_clearsky
-  ARTS_USER_ERROR_IF (nlte_source.nelem() not_eq n_species,
-    "Species dimension of propmat_clearsky does not\n"
-    "match src_coef_per_species.")
-
   // Check frequency dimension of propmat_clearsky
-  ARTS_USER_ERROR_IF (nlte_source[0].NumberOfFrequencies() not_eq n_f,
-    "Frequency dimension of propmat_clearsky does not\n"
+  ARTS_USER_ERROR_IF (nlte_source.NumberOfFrequencies() not_eq n_f,
+                      "Frequency dimension of nlte_source does not\n"
     "match abs_coef_per_species.")
+  
+  const Vector B = planck(f_grid, rtp_temperature);
 
-  const ArrayOfIndex jacobian_quantities_position =
-      equivalent_propmattype_indexes(jacobian_quantities);
-  Vector B(n_f);
-
-  for (Index iv = 0; iv < n_f; iv++)
-    B[iv] = planck(f_grid[iv], rtp_temperature);
-
-  StokesVector sv(n_f, nlte_source[0].StokesDimensions());
+  StokesVector sv(n_f, nlte_source.StokesDimensions());
   for (Index si = 0; si < n_species; ++si) {
     sv.Kjj() = src_coef_per_species[si](joker, 0);
     sv *= B;
-    nlte_source[si].Kjj() += sv.Kjj();
+    nlte_source.Kjj() += sv.Kjj();
   }
 
   // Jacobian
-  for (Index ii = 0; ii < jacobian_quantities_position.nelem(); ii++) {
-    if (jacobian_quantities[jacobian_quantities_position[ii]] ==
-        Jacobian::Atm::Temperature) {
-      Vector dB(n_f);
-      for (Index iv = 0; iv < n_f; iv++)
-        dB[iv] = dplanck_dt(f_grid[iv], rtp_temperature);
+  for (Index ii = 0; ii < jacobian_quantities.nelem(); ii++) {
+    if (not propmattype_index(jacobian_quantities, ii)) continue;
+    
+    if (jacobian_quantities[ii] == Jacobian::Atm::Temperature) {
+      const Vector dB = dplanck_dt(f_grid, rtp_temperature);
 
       for (Index si = 0; si < n_species; ++si) {
         sv.Kjj() = src_coef_per_species[si](joker, 0);
         sv *= dB;
-        nlte_dsource_dx[ii].Kjj() += sv.Kjj();
+        dnlte_source_dx[ii].Kjj() += sv.Kjj();
       }
 
       sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
       sv *= B;
-      dnlte_dx_source[ii].Kjj() += sv.Kjj();
-    } else if (is_frequency_parameter(
-                   jacobian_quantities[jacobian_quantities_position[ii]])) {
-      Vector dB(n_f);
-      for (Index iv = 0; iv < n_f; iv++)
-        dB[iv] = dplanck_df(f_grid[iv], rtp_temperature);
+      dnlte_source_dx[ii].Kjj() += sv.Kjj();
+    } else if (is_frequency_parameter(jacobian_quantities[ii])) {
+      const Vector dB = dplanck_df(f_grid, rtp_temperature);
 
       for (Index si = 0; si < n_species; ++si) {
         sv.Kjj() = src_coef_per_species[si](joker, 0);
         sv *= dB;
-        nlte_dsource_dx[ii].Kjj() += sv.Kjj();
+        dnlte_source_dx[ii].Kjj() += sv.Kjj();
       }
 
       sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
       sv *= B;
-      dnlte_dx_source[ii].Kjj() += sv.Kjj();
+      dnlte_source_dx[ii].Kjj() += sv.Kjj();
     } else {
       sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
       sv *= B;
-      dnlte_dx_source[ii].Kjj() += sv.Kjj();
+      dnlte_source_dx[ii].Kjj() += sv.Kjj();
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
-    ArrayOfPropagationMatrix& propmat_clearsky,
+    PropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const ArrayOfMatrix& abs_coef_per_species,
     const ArrayOfMatrix& dabs_coef_dx,
-    const Verbosity&) {
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfArrayOfSpeciesTag& abs_species) {
   // propmat_clearsky has format
   // [ abs_species, f_grid, stokes_dim, stokes_dim ].
   // abs_coef_per_species has format ArrayOfMatrix (over species),
@@ -944,26 +943,32 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
   ARTS_USER_ERROR_IF (1 not_eq abs_coef_per_species[0].ncols(),
     "Must have exactly one pressure.")
 
-  // Check species dimension of propmat_clearsky
-  ARTS_USER_ERROR_IF (propmat_clearsky.nelem() not_eq n_species,
-    "Species dimension of propmat_clearsky does not\n"
-    "match abs_coef_per_species.")
-
   // Check frequency dimension of propmat_clearsky
-  ARTS_USER_ERROR_IF (propmat_clearsky[0].NumberOfFrequencies() not_eq n_f,
+  ARTS_USER_ERROR_IF (propmat_clearsky.NumberOfFrequencies() not_eq n_f,
     "Frequency dimension of propmat_clearsky does not\n"
     "match abs_coef_per_species.")
 
   // Loop species and stokes dimensions, and add to propmat_clearsky:
   for (Index si = 0; si < n_species; ++si)
-    propmat_clearsky[si].Kjj() += abs_coef_per_species[si](joker, 0);
+    propmat_clearsky.Kjj() += abs_coef_per_species[si](joker, 0);
 
   for (Index iqn = 0; iqn < dabs_coef_dx.nelem(); iqn++) {
-    if (dabs_coef_dx[iqn].nrows() == n_f) {
-      if (dabs_coef_dx[iqn].ncols() == 1) {
-        dpropmat_clearsky_dx[iqn].Kjj() += dabs_coef_dx[iqn](joker, 0);
-      } else {
-        ARTS_USER_ERROR_IF(true, "Must have exactly one pressure.");
+    bool found_special = false;
+    for (Index isp=0; isp<abs_species.nelem(); isp++) {
+      if (is_special_vmr(jacobian_quantities[iqn], abs_species[isp])) {
+        dpropmat_clearsky_dx[iqn].Kjj() += abs_coef_per_species[isp](joker, 0);
+        found_special = true;
+        break;
+      }
+    }
+    
+    if (not found_special) {
+      if (dabs_coef_dx[iqn].nrows() == n_f) {
+        if (dabs_coef_dx[iqn].ncols() == 1) {
+          dpropmat_clearsky_dx[iqn].Kjj() += dabs_coef_dx[iqn](joker, 0);
+        } else {
+          ARTS_USER_ERROR("Must have exactly one pressure.");
+        }
       }
     }
   }
@@ -971,52 +976,70 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyInit(  //WS Output
-    ArrayOfPropagationMatrix& propmat_clearsky,
-    ArrayOfStokesVector& nlte_source,
+    PropagationMatrix& propmat_clearsky,
+    StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_dx_source,
-    ArrayOfStokesVector& nlte_dsource_dx,
+    ArrayOfStokesVector& dnlte_source_dx,
     //WS Input
-    const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
     const Index& stokes_dim,
     const Index& propmat_clearsky_agenda_checked,
-    const Index& nlte_do,
     const Verbosity&) {
+  const Index nf = f_grid.nelem();
+  const Index nq = jacobian_quantities.nelem();
+  
   ARTS_USER_ERROR_IF (!propmat_clearsky_agenda_checked,
         "You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.")
 
-  Index nf = f_grid.nelem();
+  ARTS_USER_ERROR_IF (not nf, "No frequencies");
 
-  ARTS_USER_ERROR_IF (not abs_species.nelem(),
-    "abs_species.nelem() = 0")
-
-  ARTS_USER_ERROR_IF (not nf, "nf = 0");
-
-  ARTS_USER_ERROR_IF (not stokes_dim, "stokes_dim = 0");
-
-  const Index nq = equivalent_propmattype_indexes(jacobian_quantities).nelem();
-
-  propmat_clearsky = ArrayOfPropagationMatrix(
-      abs_species.nelem(), PropagationMatrix(nf, stokes_dim));
-  dpropmat_clearsky_dx =
-      ArrayOfPropagationMatrix(nq, PropagationMatrix(nf, stokes_dim));
-
-  nlte_source = nlte_do ? ArrayOfStokesVector(abs_species.nelem(),
-                                              StokesVector(nf, stokes_dim))
-                        : ArrayOfStokesVector(0);
-  dnlte_dx_source = nlte_do
-                        ? ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim))
-                        : ArrayOfStokesVector(0);
-  nlte_dsource_dx = nlte_do
-                        ? ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim))
-                        : ArrayOfStokesVector(0);
+  ARTS_USER_ERROR_IF (stokes_dim < 1 or stokes_dim > 4, "stokes_dim not in [1, 2, 3, 4]");
+  
+  // Set size of propmat_clearsky or reset it's values
+  if (propmat_clearsky.StokesDimensions() == stokes_dim and propmat_clearsky.NumberOfFrequencies() == nf) {
+    propmat_clearsky.SetZero();
+  } else {
+    propmat_clearsky = PropagationMatrix(nf, stokes_dim);
+  }
+  
+  // Set size of dpropmat_clearsky_dx or reset it's values
+  if (dpropmat_clearsky_dx.nelem() not_eq nq) {
+    dpropmat_clearsky_dx = ArrayOfPropagationMatrix(nq, PropagationMatrix(nf, stokes_dim));
+  } else {
+    for (auto& pm: dpropmat_clearsky_dx) {
+      if (pm.StokesDimensions() == stokes_dim and pm.NumberOfFrequencies() == nf) {
+        pm.SetZero();
+      } else {
+        pm = PropagationMatrix(nf, stokes_dim);
+      }
+    }
+  }
+  
+  // Set size of nlte_source or reset it's values
+  if (nlte_source.StokesDimensions() == stokes_dim and nlte_source.NumberOfFrequencies() == nf) {
+    nlte_source.SetZero();
+  } else {
+    nlte_source = StokesVector(nf, stokes_dim);
+  }
+  
+  // Set size of dnlte_source_dx or reset it's values
+  if (dnlte_source_dx.nelem() not_eq nq) {
+    dnlte_source_dx = ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim));
+  } else {
+    for (auto& pm: dnlte_source_dx) {
+      if (pm.StokesDimensions() == stokes_dim and pm.NumberOfFrequencies() == nf) {
+        pm.SetZero();
+      } else {
+        pm = StokesVector(nf, stokes_dim);
+      }
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFaraday(
-    ArrayOfPropagationMatrix& propmat_clearsky,
+    PropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     const Index& stokes_dim,
     const Index& atmosphere_dim,
@@ -1045,11 +1068,8 @@ void propmat_clearskyAddFaraday(
     "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
     "but it is not.\n")
 
-  const bool do_jac = supports_faraday(jacobian_quantities);
   const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
   const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
-  const ArrayOfIndex jacobian_quantities_position =
-      equivalent_propmattype_indexes(jacobian_quantities);
 
   Index ife = -1;
   for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
@@ -1099,35 +1119,25 @@ void propmat_clearskyAddFaraday(
               dmag;
     }
 
-    if (not do_jac) {
-      for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-        const Numeric r = c1 / (f_grid[iv] * f_grid[iv]);
-        propmat_clearsky[ife].SetFaraday(r, iv);
-      }
-    } else {
-      for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-        const Numeric f2 = f_grid[iv] * f_grid[iv];
-        const Numeric r = c1 / f2;
-        propmat_clearsky[ife].SetFaraday(r, iv);
+    for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+      const Numeric f2 = f_grid[iv] * f_grid[iv];
+      const Numeric r = c1 / f2;
+      propmat_clearsky.AddFaraday(r, iv);
 
-        // The Jacobian loop
-        for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
-          if (is_frequency_parameter(
-                  jacobian_quantities[jacobian_quantities_position[iq]]))
-            dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
-          else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                   Jacobian::Atm::MagneticU)
-            dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
-          else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                   Jacobian::Atm::MagneticV)
-            dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
-          else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                   Jacobian::Atm::MagneticW)
-            dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
-          else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                   Jacobian::Atm::Electrons)
-            dpropmat_clearsky_dx[iq].AddFaraday(r / ne, iv);
-        }
+      // The Jacobian loop
+      for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+        if (is_frequency_parameter(jacobian_quantities[iq]))
+          dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
+        else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticU)
+          dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
+        else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticV)
+          dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
+        else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticW)
+          dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
+        else if (jacobian_quantities[iq] == Jacobian::Atm::Electrons)
+          dpropmat_clearsky_dx[iq].AddFaraday(r / ne, iv);
+        else if (is_special_vmr(jacobian_quantities[iq], abs_species[ife]))
+          dpropmat_clearsky_dx[iq].AddFaraday(r, iv);
       }
     }
   }
@@ -1136,7 +1146,7 @@ void propmat_clearskyAddFaraday(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddParticles(
     // WS Output:
-    ArrayOfPropagationMatrix& propmat_clearsky,
+    PropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const Index& stokes_dim,
@@ -1196,11 +1206,8 @@ void propmat_clearskyAddParticles(
   Numeric rtp_vmr_sum = 0.0;
 
   // Tests and setup partial derivatives
-  const bool do_jac = supports_particles(jacobian_quantities);
   const bool do_jac_temperature = do_temperature_jacobian(jacobian_quantities);
   const bool do_jac_frequencies = do_frequency_jacobian(jacobian_quantities);
-  const ArrayOfIndex jacobian_quantities_position =
-      equivalent_propmattype_indexes(jacobian_quantities);
   const Numeric dT = temperature_perturbation(jacobian_quantities);
 
   const Index na = abs_species.nelem();
@@ -1249,6 +1256,9 @@ void propmat_clearskyAddParticles(
   const Index nf = abs_vec_Nse[0][0].nbooks();
   Tensor3 tmp(nf, stokes_dim, stokes_dim);
 
+  // Internal computations necessary since it relies on zero start
+  PropagationMatrix internal_propmat(propmat_clearsky.NumberOfFrequencies(), propmat_clearsky.StokesDimensions());
+  
   // loop over the scat_data and link them with correct vmr_field entry according
   // to the position of the particle type entries in abs_species.
   Index sp = 0;
@@ -1258,6 +1268,7 @@ void propmat_clearskyAddParticles(
       // forward to next particle entry in abs_species
       while (sp < na && abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES)
         sp++;
+      internal_propmat.SetZero();
 
       // running beyond number of abs_species entries when looking for next
       // particle entry. shouldn't happen, though.
@@ -1275,23 +1286,24 @@ void propmat_clearskyAddParticles(
         if (use_abs_as_ext) {
           if (nf > 1)
             for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              propmat_clearsky[sp].AddAbsorptionVectorAtPosition(
+              internal_propmat.AddAbsorptionVectorAtPosition(
                   abs_vec_Nse[i_ss][i_se](iv, 0, 0, joker), iv);
           else
             for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              propmat_clearsky[sp].AddAbsorptionVectorAtPosition(
+              internal_propmat.AddAbsorptionVectorAtPosition(
                   abs_vec_Nse[i_ss][i_se](0, 0, 0, joker), iv);
         } else {
           if (nf > 1)
             for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              propmat_clearsky[sp].SetAtPosition(
+              internal_propmat.SetAtPosition(
                   ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker), iv);
           else
             for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              propmat_clearsky[sp].SetAtPosition(
+              internal_propmat.SetAtPosition(
                   ext_mat_Nse[i_ss][i_se](0, 0, 0, joker, joker), iv);
         }
-        propmat_clearsky[sp] *= rtp_vmr[sp];
+        internal_propmat *= rtp_vmr[sp];
+        propmat_clearsky += internal_propmat;
       }
 
       // For temperature derivatives (so we don't need to check it in jac loop)
@@ -1302,12 +1314,12 @@ void propmat_clearskyAddParticles(
       }
 
       // For number density derivatives
-      if (do_jac) rtp_vmr_sum += rtp_vmr[sp];
+      if (jacobian_quantities.nelem()) rtp_vmr_sum += rtp_vmr[sp];
 
-      for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
+      for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+        if (not propmattype_index(jacobian_quantities, iq)) continue;
         
-        if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-            Jacobian::Atm::Temperature) {
+        if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
           if (use_abs_as_ext) {
             tmp(joker, joker, 0) =
                 abs_vec_Nse[i_ss][i_se](joker, 1, 0, joker);
@@ -1339,10 +1351,13 @@ void propmat_clearskyAddParticles(
                                                         iv);
         }
 
-        else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                 Jacobian::Atm::Particulates) {
+        else if (jacobian_quantities[iq] == Jacobian::Atm::Particulates) {
           for (Index iv = 0; iv < f_grid.nelem(); iv++)
-            dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
+            dpropmat_clearsky_dx[iq].AddAtPosition(internal_propmat, iv);
+        }
+        
+        else if (is_special_vmr(jacobian_quantities[iq], abs_species[sp])) {
+          dpropmat_clearsky_dx[iq] += internal_propmat;
         }
       }
       sp++;
@@ -1359,9 +1374,9 @@ void propmat_clearskyAddParticles(
   }
 
   if (rtp_vmr_sum != 0.0) {
-    for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
-      if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-          Jacobian::Atm::Particulates) {
+    for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+      if (not propmattype_index(jacobian_quantities, iq)) continue;
+      if (jacobian_quantities[iq] == Jacobian::Atm::Particulates) {
         dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
       }
     }
@@ -1372,11 +1387,10 @@ void propmat_clearskyAddParticles(
 void propmat_clearskyAddOnTheFly(  // Workspace reference:
     Workspace& ws,
     // WS Output:
-    ArrayOfPropagationMatrix& propmat_clearsky,
-    ArrayOfStokesVector& nlte_source,
+    PropagationMatrix& propmat_clearsky,
+    StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_dx_source,
-    ArrayOfStokesVector& nlte_dsource_dx,
+    ArrayOfStokesVector& dnlte_source_dx,
     // WS Input:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -1385,6 +1399,7 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
     const Numeric& rtp_temperature,
     const EnergyLevelMap& rtp_nlte,
     const Vector& rtp_vmr,
+    const Index& nlte_do,
     const Agenda& abs_xsec_agenda,
     // Verbosity object:
     const Verbosity& verbosity) {
@@ -1456,13 +1471,12 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
                                            dpropmat_clearsky_dx,
                                            abs_coef_per_species,
                                            dabs_coef_dx,
-                                           verbosity);
+                                           jacobian_quantities, abs_species);
 
   // Now turn nlte_source from absorption into a proper source function
-  if (not nlte_source.empty())
+  if (nlte_do)
     nlte_sourceFromTemperatureAndSrcCoefPerSpecies(nlte_source,
-                                                   dnlte_dx_source,
-                                                   nlte_dsource_dx,
+                                                   dnlte_source_dx,
                                                    src_coef_per_species,
                                                    dsrc_coef_dx,
                                                    jacobian_quantities,
@@ -1472,21 +1486,18 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyZero(ArrayOfPropagationMatrix& propmat_clearsky,
+void propmat_clearskyZero(PropagationMatrix& propmat_clearsky,
                           const Vector& f_grid,
                           const Index& stokes_dim,
                           const Verbosity&) {
-  propmat_clearsky.resize(1);
-  propmat_clearsky[0] = PropagationMatrix(f_grid.nelem(), stokes_dim);
-  propmat_clearsky[0].SetZero();
+  propmat_clearsky = PropagationMatrix(f_grid.nelem(), stokes_dim);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyForceNegativeToZero(
-    ArrayOfPropagationMatrix& propmat_clearsky, const Verbosity&) {
-  for (auto& pm : propmat_clearsky)
-    for (Index i = 0; i < pm.NumberOfFrequencies(); i++)
-      if (pm.Kjj()[i] < 0.0) pm.SetAtPosition(0.0, i);
+    PropagationMatrix& propmat_clearsky, const Verbosity&) {
+  for (Index i = 0; i < propmat_clearsky.NumberOfFrequencies(); i++)
+    if (propmat_clearsky.Kjj()[i] < 0.0) propmat_clearsky.SetAtPosition(0.0, i);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1715,9 +1726,6 @@ void abs_xsec_per_speciesAddLines(
     "abs_vmrs:              ", abs_vmrs.nrows(), '\n',
     "abs_lines_per_species: ", abs_lines_per_species.nelem(), '\n')
 
-  // Meta variables that explain the calculations required
-  const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
-
   // Skipping uninteresting data
   static Matrix dummy1(0, 0);
   static ArrayOfMatrix dummy2(0);
@@ -1738,7 +1746,6 @@ void abs_xsec_per_speciesAddLines(
           dsrc_xsec_per_species_dx[i],
           dummy2,
           jacobian_quantities,
-          jac_pos,
           f_grid,
           abs_p,
           abs_t,

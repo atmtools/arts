@@ -128,13 +128,12 @@ int main() {
   // Line Mixing reimplementation of MPM19
   Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec,
                                                         f_grid, {P}, {T}, {0},
-                                                        ArrayOfRetrievalQuantity(0),
-                                                        ArrayOfIndex(0));
+                                                        ArrayOfRetrievalQuantity(0));
   
   // Line by line calculations
   band.Population(Absorption::PopulationType::LTE);
   xsec_species(xsec2, source, phase, dxsec, dsource, dphase,
-               ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
+               ArrayOfRetrievalQuantity(0),
                f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1, 
                partition_functions.getParamType(band.QuantumIdentity()),
                partition_functions.getParam(band.QuantumIdentity()));
@@ -148,7 +147,7 @@ int main() {
                                                     partition_functions.getParamType(band.QuantumIdentity()),
                                                     partition_functions.getParam(band.QuantumIdentity()));
   xsec_species(xsec3, source, phase, dxsec, dsource, dphase,
-               ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
+               ArrayOfRetrievalQuantity(0),
                f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1, 
                partition_functions.getParamType(band.QuantumIdentity()),
                partition_functions.getParam(band.QuantumIdentity()));

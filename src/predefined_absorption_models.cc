@@ -285,8 +285,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                                                            const Vector& p,
                                                            const Vector& t,
                                                            const Vector& water_vmr,
-                                                           const ArrayOfRetrievalQuantity& jacs,
-                                                           const ArrayOfIndex& jacs_pos)
+                                                           const ArrayOfRetrievalQuantity& jacs)
 {
   using Constant::pi;
   using Constant::sqrt_pi;
@@ -378,12 +377,14 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
         
         xsec(j, ip) += ST * pow2(f[j]) * abs.real();
         
-        if (jacs_pos.nelem()) {
+        if (jacs.nelem()) {
           const Complex dw = 2 * (Complex(0, fac * inv_sqrt_pi) - z * Fv);
           const Complex dm = - pi * pow2(Flm);
           
-          for (Index iq=0; iq<jacs_pos.nelem(); iq++) {
-            const auto& deriv = jacs[jacs_pos[iq]];
+          for (Index iq=0; iq<jacs.nelem(); iq++) {
+            if (not propmattype_index(jacs, iq)) continue;
+            
+            const auto& deriv = jacs[iq];
             
             if (deriv == Jacobian::Atm::Temperature) {
               const Complex dFv = dw * (invGD * Complex(dDV_dT, dG0_dT) - dinvGD_dT) + Fv * dinvGD_dT;

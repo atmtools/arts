@@ -999,18 +999,21 @@ void dxdvmrscf(Numeric& x,
 //             Propmat partials descriptions
 //======================================================================
 
-ArrayOfIndex equivalent_propmattype_indexes(const ArrayOfRetrievalQuantity& js) {
-  ArrayOfIndex pos;
-  pos.reserve(js.nelem());
-  for (Index i = 0; i < js.nelem(); i++)
-    if (not (js[i] == Jacobian::Type::Special or js[i] == Jacobian::Type::Sensor))
-      pos.push_back(i);
-  return pos;
+bool propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) ARTS_NOEXCEPT {
+  ARTS_ASSERT (js.nelem() > i)
+  return js[i] == Jacobian::Type::Line or
+         js[i] == Jacobian::Type::Atm or
+         js[i].Target() == Jacobian::Special::ArrayOfSpeciesTagVMR
+         ;
 }
 
-Index equivalent_propmattype_index(const ArrayOfRetrievalQuantity& js,
-                                   const Index i) noexcept {
-  return equivalent_propmattype_indexes(js)[i];
+bool is_special_vmr(const RetrievalQuantity& t, const ArrayOfSpeciesTag& species_list) {
+  if (t == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+    ArrayOfSpeciesTag atag;
+    array_species_tag_from_string(atag, t.Subtag());
+    return species_list == atag;
+  }
+  return false;
 }
 
 bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
@@ -1128,16 +1131,6 @@ bool supports_lookup(const ArrayOfRetrievalQuantity& js) {
   ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
     "Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n")
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or is_frequency_parameter(j));});
-}
-
-bool supports_faraday(const ArrayOfRetrievalQuantity& js) {
-  ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_derived_magnetic_parameter(j);}),
-    "This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n")
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::MagneticU or j == Jacobian::Atm::MagneticV or j == Jacobian::Atm::MagneticW or j == Jacobian::Atm::Electrons or is_frequency_parameter(j);});
-}
-
-bool supports_particles(const ArrayOfRetrievalQuantity& js) {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::Temperature or j == Jacobian::Atm::Particulates;});
 }
 
 bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js) {

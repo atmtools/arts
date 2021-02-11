@@ -343,7 +343,6 @@ void iyRadarSingleScat(Workspace& ws,
                                     ppvar_vmr(joker, ip),
                                     ppvar_t[ip],
                                     ppvar_p[ip],
-                                    jac_species_i,
                                     trans_in_jacobian && j_analytical_do);
 
       if (trans_in_jacobian && j_analytical_do)
@@ -1019,14 +1018,15 @@ void particle_bulkpropRadarOnionPeeling(
               if (do_atten_abs) {
                 // Calculate local attenuation
                 Numeric k_this;
-                ArrayOfPropagationMatrix propmat, partial_dummy;
-                ArrayOfStokesVector nlte_dummy, partial_s_dummy, partial_nlte_dummy;
+                PropagationMatrix propmat;
+                ArrayOfPropagationMatrix  partial_dummy;
+                StokesVector nlte_dummy;
+                ArrayOfStokesVector partial_nlte_dummy;
                 EnergyLevelMap rtp_nlte_local_dummy;
                 propmat_clearsky_agendaExecute(ws,
                                                propmat,
                                                nlte_dummy,
                                                partial_dummy,
-                                               partial_s_dummy,
                                                partial_nlte_dummy,
                                                ArrayOfRetrievalQuantity(0),
                                                f_grid,
@@ -1037,9 +1037,7 @@ void particle_bulkpropRadarOnionPeeling(
                                                rtp_nlte_local_dummy,
                                                vmr_field(joker,ip,ilat,ilon),
                                                propmat_clearsky_agenda);
-                k_this = propmat[0].Kjj()[0];
-                for (Index i=1; i < propmat.nelem(); i++)
-                  k_this += propmat[i].Kjj()[0];
+                k_this = propmat.Kjj()[0];
                 // Optical thickness
                 Numeric tau = 0.5 * hfac * (k_abs_above + k_this) *
                   (z_field(ip+1,ilat,ilon) - z_field(ip,ilat,ilon));

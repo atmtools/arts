@@ -27,7 +27,8 @@ Arts2{
   nlteOff
   
   # Comparative parameter
-  ArrayOfPropagationMatrixCreate(testdata)
+  PropagationMatrixCreate(testdata)
+  ArrayOfPropagationMatrixCreate(dtestdata)
   
   # CIA catalog from arts-xml-data
   ReadXML(abs_cia_data, "spectroscopy/cia/borysow/Borysow_CIA_JUICE_SWI.xml")
@@ -62,8 +63,8 @@ Arts2{
 #   WriteXML("ascii", dpropmat_clearsky_dx, "tests/dpropmat.xml")
   ReadXML(testdata, "tests/propmat.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
-  ReadXML(testdata, "tests/dpropmat.xml")
-  CompareRelative(testdata, dpropmat_clearsky_dx, 1e-4)
+  ReadXML(dtestdata, "tests/dpropmat.xml")
+  CompareRelative(dtestdata, dpropmat_clearsky_dx, 1e-4)
   
   # Turn off the jacobian to make for faster calculations for perturbations below
   jacobianOff

@@ -2391,16 +2391,9 @@ void opt_prop_sum_propmat_clearsky(  //Output:
     PropagationMatrix& ext_mat,
     StokesVector& abs_vec,
     //Input:
-    const ArrayOfPropagationMatrix& propmat_clearsky) {
-  Index stokes_dim, freq_dim;
-
-  if (propmat_clearsky.nelem() > 1) {
-    stokes_dim = propmat_clearsky[0].StokesDimensions();
-    freq_dim = propmat_clearsky[0].NumberOfFrequencies();
-  } else {
-    stokes_dim = 0;
-    freq_dim = 0;
-  }
+    const PropagationMatrix& propmat_clearsky) {
+   const Index stokes_dim = propmat_clearsky.StokesDimensions();
+   const Index freq_dim = propmat_clearsky.NumberOfFrequencies();
 
   // old abs_vecInit
   abs_vec = StokesVector(freq_dim, stokes_dim);
@@ -2410,10 +2403,8 @@ void opt_prop_sum_propmat_clearsky(  //Output:
   ext_mat.SetZero();
 
   // old ext_matAddGas and abs_vecAddGas for 0 vector and matrix
-  for (auto& pm : propmat_clearsky) {
-    abs_vec += pm;
-    ext_mat += pm;
-  }
+  abs_vec += propmat_clearsky;
+  ext_mat += propmat_clearsky;
 }
 
 //! Convert ptype name to enum value
