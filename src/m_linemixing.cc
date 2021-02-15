@@ -178,7 +178,7 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
         // Sum up the resorted Jacobian
         for (Index j=0; j<jacobian_quantities.nelem(); j++) {
           if (not propmattype_index(jacobian_quantities, j)) continue;
-          if (is_special_vmr(jacobian_quantities[j], abs_species[i])) {
+          if (jacobian_quantities[j] == abs_species[i]) {
             dpropmat_clearsky_dx[j].Kjj() += abs.real();
           } else {
             dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();
@@ -264,7 +264,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
                            Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
                            Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
                            Z.dH_dw, Z.dtheta_dw, Z.deta_dw);
-            } else if (is_special_vmr(jacobian_quantities[j], abs_species[i])) {
+            } else if (jacobian_quantities[j] == abs_species[i]) {
               Zeeman::sum(dpropmat_clearsky_dx[j], abs, Zeeman::SelectPolarization(polarization_scale_data, polarization));
             } else {
               dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();

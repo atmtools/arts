@@ -1007,15 +1007,6 @@ bool propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) ARTS_N
          ;
 }
 
-bool is_special_vmr(const RetrievalQuantity& t, const ArrayOfSpeciesTag& species_list) {
-  if (t == Jacobian::Special::ArrayOfSpeciesTagVMR) {
-    ArrayOfSpeciesTag atag;
-    array_species_tag_from_string(atag, t.Subtag());
-    return species_list == atag;
-  }
-  return false;
-}
-
 bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
   return t.Target().isWind();
 }
@@ -1222,5 +1213,18 @@ Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
 }
 
 std::ostream& Jacobian::operator<<(std::ostream& os, const Target& x) {
-  return os << x.TargetType() << " " << x.TargetSubType() << " " << x.Perturbation() << " " << x.QuantumIdentity();
+  os << x.TargetType() << ' ';
+  switch (toType(x.TargetType())) {
+    case Type::Atm: os << x.AtmType(); break;
+    case Type::Line: os << x.LineType(); break;
+    case Type::Sensor: os << x.SensorType(); break;
+    case Type::Special: os << x.SpecialType(); break;
+    case Type::FINAL: os << "FINAL"; break;
+  }
+  if (x.needQuantumIdentity()) os << ' ' << x.QuantumIdentity();
+  if (x.needArrayOfSpeciesTag()) os << ' ' << x.SpeciesList();
+  if (x.needString()) os << ' ' << x.StringKey();
+  os << ' ' << x.Perturbation() << " " << x.QuantumIdentity();
+  
+  return os;
 }

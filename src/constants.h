@@ -547,6 +547,15 @@ namespace Options {
             X1,
             X2,
             X3)
+  
+  /** Possible Jacobian for Wind and Magnetic field */
+  ENUMCLASS(WindMagJacobian, char,
+            u, v, w, strength)
+  
+  /** Possible Jacobian for basic line parameters */
+  ENUMCLASS(BasicCatParamJacobian, char,
+            LineStrength,
+            LineCenter)
 }
 
 #endif

@@ -290,7 +290,7 @@ void zeeman_on_the_fly(
               dabs.rightCols<3>().noalias() +=
                   numdens * sum.dF.col(j).imag() * pol_imag +
                   dnumdens_dmvr * sum.F.imag() * pol_imag;
-            } else if (is_special_vmr(deriv, abs_species[ispecies])) {
+            } else if (deriv == abs_species[ispecies]) {
               dabs.leftCols<4>().noalias() += numdens * sum.F.real() * pol_real;
               dabs.rightCols<3>().noalias() += numdens * sum.F.imag() * pol_imag;
               
@@ -362,7 +362,7 @@ void zeeman_on_the_fly(
               dnlte_dx_src.noalias() +=
                   dnumdens_dmvr * eB.cwiseProduct(sum.N.real()) * pol_real +
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
-            } else if (is_special_vmr(deriv, abs_species[ispecies])) {
+            } else if (deriv == abs_species[ispecies]) {
               dnlte_dx_src.noalias() += numdens * eB.cwiseProduct(sum.N.real()) * pol_real;
             } else {
               dnlte_dx_src.noalias() +=

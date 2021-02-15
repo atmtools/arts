@@ -52,7 +52,7 @@ Arts2{
   jacobianAddTemperature(g1=p_grid, g2=[0], g3=[0])
   jacobianAddWind(g1=p_grid, g2=[0], g3=[0], dfrequency=0.1)
   jacobianAddAbsSpecies(g1=p_grid, g2=[0], g3=[0], species="O2-66", for_species_tag=0)
-  jacobianAddBasicCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["Line Strength", "Line Center"])
+  jacobianAddBasicCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["LineStrength", "LineCenter"])
   jacobianClose
   
   # Perform calculations for analytical propagation matrix and derivatives

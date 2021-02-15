@@ -68,7 +68,7 @@ Arts2{
   
   ## Set up partial derivatives
   jacobianInit
-  jacobianAddBasicCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["Line Strength", "Line Center"])
+  jacobianAddBasicCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["LineStrength", "LineCenter"])
   jacobianAddShapeCatalogParameter(line_identity=QI, variable="G0", coefficient="X0", species="AIR")
   jacobianAddShapeCatalogParameter(line_identity=QI, variable="G0", coefficient="X1", species="AIR")
   jacobianAddShapeCatalogParameter(line_identity=QI, variable="D0", coefficient="X0", species="AIR")

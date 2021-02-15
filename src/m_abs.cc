@@ -955,7 +955,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
   for (Index iqn = 0; iqn < dabs_coef_dx.nelem(); iqn++) {
     bool found_special = false;
     for (Index isp=0; isp<abs_species.nelem(); isp++) {
-      if (is_special_vmr(jacobian_quantities[iqn], abs_species[isp])) {
+      if (jacobian_quantities[iqn] == abs_species[isp]) {
         dpropmat_clearsky_dx[iqn].Kjj() += abs_coef_per_species[isp](joker, 0);
         found_special = true;
         break;
@@ -1136,7 +1136,7 @@ void propmat_clearskyAddFaraday(
           dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
         else if (jacobian_quantities[iq] == Jacobian::Atm::Electrons)
           dpropmat_clearsky_dx[iq].AddFaraday(r / ne, iv);
-        else if (is_special_vmr(jacobian_quantities[iq], abs_species[ife]))
+        else if (jacobian_quantities[iq] == abs_species[ife])
           dpropmat_clearsky_dx[iq].AddFaraday(r, iv);
       }
     }
@@ -1356,7 +1356,7 @@ void propmat_clearskyAddParticles(
             dpropmat_clearsky_dx[iq].AddAtPosition(internal_propmat, iv);
         }
         
-        else if (is_special_vmr(jacobian_quantities[iq], abs_species[sp])) {
+        else if (jacobian_quantities[iq] == abs_species[sp]) {
           dpropmat_clearsky_dx[iq] += internal_propmat;
         }
       }
