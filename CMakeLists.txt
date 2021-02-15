@@ -23,6 +23,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}"
 endif ()
 
 # User options (auto-complete and cmake gui works better like this)
+include(CMakeDependentOption)
 option (ENABLE_ALLPATHS "Turn off pathing guards" OFF)
 option (ENABLE_CCACHE "Turn on CCACHE" OFF)
 option (ENABLE_CXX20 "Turn on C++20 (experimental)" OFF)
@@ -32,10 +33,14 @@ option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
 option (NO_DOCSERVER "Turn off the document server" OFF)
-option (NO_FASTEM "Turn off FASTEM even if Fortran is enabled" OFF)
-option (NO_REFICE "Turn off REFICE even if Fortran is enabled" OFF)
-option (NO_RT4 "Turn off RT4 even if Fortran is enabled" OFF)
-option (NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF)
+cmake_dependent_option(
+    NO_FASTEM "Turn off FASTEM even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
+cmake_dependent_option(
+    NO_REFICE "Turn off REFICE even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
+cmake_dependent_option(
+    NO_RT4 "Turn off RT4 even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
+cmake_dependent_option(
+    NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
 option (WITH_HITRAN2008 "Change to use HITRAN 2008 definition of catalog species" OFF)
 
