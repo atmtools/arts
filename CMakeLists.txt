@@ -414,27 +414,42 @@ endif (CMAKE_GENERATOR STREQUAL "Xcode")
 add_custom_target(check-deps)
 
 add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(python.|.pyarts.|.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS check-deps)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -E '\(python\\.|\\.pyarts\\.|\\.nocheck\\.|\\.slow\\.|\\.xmldata\\.|\\.planettoolbox\\.\)'
+  DEPENDS check-deps)
 
 add_custom_target(check-python
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.pyarts.|.cmdline.|.doc.\)' -E '\(.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS check-deps python_tests)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -R '\(python\\.|\\.pyarts\\.|\\.cmdline\\.|.doc.\)'
+    -E '\(\\.nocheck\\.|\\.slow\\.|\\.xmldata\\.|\\.planettoolbox\\.\)'
+  DEPENDS check-deps python_tests)
 
 add_custom_target(check-xmldata
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.xmldata.\)' DEPENDS check-deps)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -R '\(\\.xmldata\\.\)'
+  DEPENDS check-deps)
 
 add_dependencies(check-xmldata mkdir-arts-results)
 
 add_custom_target(check-planettoolbox
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.planettoolbox.\)' DEPENDS check-deps)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -R '\(\\.planettoolbox\\.\)'
+  DEPENDS check-deps)
 
 add_custom_target(check-all
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '.nocheck.' DEPENDS check-deps pyarts python_tests)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -E '\\.nocheck\\.'
+  DEPENDS check-deps pyarts python_tests)
 
 add_custom_target(check-all-controlfiles
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '^python.|.pyarts.|.nocheck.' DEPENDS check-deps)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -E '^python\\.|\\.pyarts\\.|\\.nocheck\\.'
+  DEPENDS check-deps)
 
 add_custom_target(check-pyarts-only
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\.pyarts\.' DEPENDS pyarts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -R '\\.pyarts\\.'
+  DEPENDS pyarts)
 
 add_dependencies(check-all mkdir-arts-results)
 

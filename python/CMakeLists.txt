@@ -56,3 +56,9 @@ add_custom_target(python_tests
 file(COPY test/reference DESTINATION test/)
 file(COPY test/xml/reference DESTINATION test/xml/)
 file(COPY test/test_files DESTINATION test/)
+
+#
+# Clean
+#
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+  build pyarts/workspace/libarts_api.so)

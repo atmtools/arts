@@ -19,16 +19,17 @@ ws.timeNow(ws.start)
 ws.Sleep(1)
 ws.timeNow(ws.end)
 ws.Duration(ws.dt, ws.start, ws.end)
-assert isclose(dt, 1, abs_tol=1e-3), \
-    "Slept for one second but time differs by more than 1 ms"
+assert dt >= 1, \
+    f"Slept for one second but duration was less: {float(dt):.3f} s"
 
 # Test SleepUntil
 ws.timeNow(ws.start)
 end_time.sec = start_time.sec + 1
 ws.timeSleep(ws.end)
 ws.timeNow(ws.time)
-assert isclose(cur_time.sec - start_time.sec, 1, abs_tol=1e-3), \
-    "Slept for what should be one second but is off by more than 1 ms..."
+duration = cur_time.sec - start_time.sec
+assert duration >= 1, \
+    f"Slept for what should be one second but was less: {duration:.3f} s"
 
 # Test set and equality
 t = Time()
