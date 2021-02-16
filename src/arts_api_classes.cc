@@ -1274,6 +1274,14 @@ BasicInputOutputCAPI(ArrayOfTime)
 VoidArrayCAPI(ArrayOfArrayOfTime)
 BasicInterfaceCAPI(ArrayOfArrayOfTime)
 BasicInputOutputCAPI(ArrayOfArrayOfTime)
+Index setTimeFromString(void * data, char * newdata) {
+  try {
+    *static_cast<Time *>(data) = Time(newdata);
+    return EXIT_SUCCESS;
+  } catch(...) {
+    return EXIT_FAILURE;
+  }
+}
 void setTime(void * data, void * newdata) {*static_cast<Time *>(data) = *static_cast<Time *>(newdata);}
 bool equalTime(void * data, void * otherdata) {return *static_cast<Time *>(data) == *static_cast<Time *>(otherdata);}
 bool lessTime(void * data, void * otherdata) {return *static_cast<Time *>(data) < *static_cast<Time *>(otherdata);}

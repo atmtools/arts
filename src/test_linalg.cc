@@ -36,6 +36,10 @@
 #include "lin_alg.h"
 #include "test_utils.h"
 
+#include "minimize.h"
+
+// #include "gui/plot.h"
+
 using std::abs;
 using std::cout;
 using std::endl;
@@ -621,6 +625,30 @@ void test_matrix_exp_propmat(Index nruns, Index ndiffs) {
   }
 }
 
+void test_minimize_wave() {
+  constexpr Index N = 1000;
+  const Vector x(3, N, 0.01);
+  Vector y(N);
+  for (Index i=0; i<N; i++) {
+    y[i] = 5 + 3 * std::sin(3.14*x[i] + 0.1);
+  }
+  
+  Minimize::Wave wav(x.get_c_array(), y.get_c_array(), 3.14, N);
+  Eigen::VectorXd in = wav.x0();
+  Eigen::VectorXd start(wav.m_values);
+  Eigen::VectorXd res(wav.m_values);
+  wav(in, start);
+  
+  auto [s, v] = Minimize::curve_fit(wav);
+  wav(v, res);
+  Vector y2(N);
+  for (Index i=0; i<N; i++) {
+    y2[i] = v[0] + v[1] * std::sin(3.14*x[i]) + v[2] * std::cos(3.14*x[i]);
+  }
+  
+  // ARTSGUI::plot(x, y, x, start, x, res, x, y2);
+}
+
 int main(void) {
   // test_lusolve4D();
   // test_inv( 20, 1000 );
@@ -628,6 +656,7 @@ int main(void) {
   // test_matrix_exp1D();
   //  test_real_diagonalize(20,100);
   //  test_complex_diagonalize(20,100);
-  test_matrix_exp_propmat(100000, 10);
+//   test_matrix_exp_propmat(100000, 10);
+  test_minimize_wave();
   return (0);
 }

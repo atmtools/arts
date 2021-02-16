@@ -3,6 +3,7 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
+from pyarts.classes.BasicTypes import String
 
 from datetime import datetime
 import numpy as np
@@ -34,7 +35,11 @@ class Time:
             self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createTime())
             if data is not None:
-                self.sec = data
+                if isinstance(data, str) or isinstance(data, String):
+                    if lib.setTimeFromString(self.__data__, str(data).encode("utf-8")):
+                        raise RuntimeError('Cannot understand "{}"'.format(data))
+                else:
+                    self.sec = data
 
     @staticmethod
     def name():
@@ -69,7 +74,7 @@ class Time:
         if isinstance(other, Time):
             lib.setTime(self.__data__, other.__data__)  # Workaround that "sec" is not exact
         else:
-            raise TypeError("Expects Time")
+            self.set(Time(other))
 
     def readxml(self, file):
         """ Reads the XML file
@@ -209,6 +214,9 @@ lib.getSecondsTime.argtypes = [c.c_void_p]
 
 lib.setSecondsTime.restype = None
 lib.setSecondsTime.argtypes = [c.c_void_p, c.c_double]
+
+lib.setTimeFromString.restype = c.c_long
+lib.setTimeFromString.argtypes = [c.c_void_p, c.c_char_p]
 
 lib.setTime.restype = None
 lib.setTime.argtypes = [c.c_void_p, c.c_void_p]

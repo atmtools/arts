@@ -872,6 +872,9 @@ class Vector : public VectorView {
 
   /** Initialization list constructor. */
   Vector(std::initializer_list<Numeric> init);
+  
+  /** Initialization from an Eigen vector. */
+  Vector(const Eigen::VectorXd& init);
 
   /** Constructor setting size. */
   explicit Vector(Index n);

@@ -884,6 +884,7 @@ extern "C" {
     VoidArrayCAPI(ArrayOfArrayOfTime)
     BasicInterfaceCAPI(ArrayOfArrayOfTime)
     BasicInputOutputCAPI(ArrayOfArrayOfTime)
+    DLL_PUBLIC Index setTimeFromString(void *, char *);
     DLL_PUBLIC void setTime(void *, void *);
     DLL_PUBLIC bool equalTime(void *, void *);
     DLL_PUBLIC bool lessTime(void *, void *);
