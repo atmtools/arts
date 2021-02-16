@@ -2112,7 +2112,7 @@ void propmat_clearskyAddFromLookup(
           } else if (is_frequency_parameter(jacobian_quantities[iq])) {
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                 (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
-          } else if (is_special_vmr(jacobian_quantities[iq], abs_species[isp])) {
+          } else if (jacobian_quantities[iq] == abs_species[isp]) {
             // WARNING:  If CIA in list, this scales wrong by factor 2
             dpropmat_clearsky_dx[iq].Kjj()[iv] += abs_scalar_gas(isp, iv);
           }
@@ -2209,8 +2209,8 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   for (auto& species_list: abs_species) {
     jacobian_quantities.emplace_back();
     auto& rq = jacobian_quantities.back();
-    rq.Subtag(get_species_name(species_list));
-    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, {}));
+    rq.Subtag(get_tag_group_name(species_list));
+    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, species_list));
     rq.Target().Perturbation(0.001);
   }
 

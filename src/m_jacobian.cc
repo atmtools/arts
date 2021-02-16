@@ -190,7 +190,9 @@ void jacobianAddAbsSpecies(Workspace&,
   if (for_species_tag == 0) {
     rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi));
   } else {
-    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, {}));
+    ArrayOfSpeciesTag test;
+    array_species_tag_from_string(test, species);
+    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, test));
   }
   rq.Target().Perturbation(0.001);
 
@@ -1057,7 +1059,7 @@ void jacobianAddScatSpecies(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.Target() = Jacobian::Target(Jacobian::Special::ScatteringString, {});
+  rq.Target() = Jacobian::Target(Jacobian::Special::ScatteringString, species);
   rq.Subtag(species);
   rq.SubSubtag(quantity);
   rq.Grids(grids);
@@ -1285,7 +1287,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.Target() = Jacobian::Target(Jacobian::Special::SurfaceString, {});
+  rq.Target() = Jacobian::Target(Jacobian::Special::SurfaceString, quantity);
   rq.Subtag(quantity);
   rq.Grids(grids);
 
@@ -1393,28 +1395,30 @@ void jacobianAddWind(Workspace&,
   CREATE_OUT3;
   
   // Create the new retrieval quantity
+  const auto opt = Options::toWindMagJacobianOrThrow(component);
   RetrievalQuantity rq;
-  if (component == "u")
-    rq.Target(Jacobian::Target(Jacobian::Atm::WindU));
-  else if (component == "v")
-    rq.Target(Jacobian::Target(Jacobian::Atm::WindV));
-  else if (component == "w")
-    rq.Target(Jacobian::Target(Jacobian::Atm::WindW));
-  else if (component == "strength")
-    rq.Target(Jacobian::Target(Jacobian::Atm::WindMagnitude));
-  else
-    throw std::runtime_error(
-      "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\".");
+  switch (opt) {
+    case Options::WindMagJacobian::u:
+      rq.Target(Jacobian::Target(Jacobian::Atm::WindU));
+      break;
+    case Options::WindMagJacobian::v:
+      rq.Target(Jacobian::Target(Jacobian::Atm::WindV));
+      break;
+    case Options::WindMagJacobian::w:
+      rq.Target(Jacobian::Target(Jacobian::Atm::WindW));
+      break;
+    case Options::WindMagJacobian::strength:
+      rq.Target(Jacobian::Target(Jacobian::Atm::WindMagnitude));
+      break;
+    case Options::WindMagJacobian::FINAL:
+      ARTS_ASSERT(false, "This error should be caught earlier")
+  }
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it] == rq.Target()) {
-      ostringstream os;
-      os << "The wind component:\n"
-         << component << "\nis already included "
-         << "in *jacobian_quantities*.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (jq[it].Target().sameTargetType(rq.Target()),
+      "The wind component:\n", component, "\n"
+      "is already included in *jacobian_quantities*.")
   }
 
   // Check retrieval grids, here we just check the length of the grids
@@ -1470,28 +1474,30 @@ void jacobianAddMagField(Workspace&,
   CREATE_OUT3;
   
   // Create the new retrieval quantity
+  const auto opt = Options::toWindMagJacobianOrThrow(component);
   RetrievalQuantity rq;
-  if (component == "u")
-    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticU));
-  else if (component == "v")
-    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticV));
-  else if (component == "w")
-    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticW));
-  else if (component == "strength")
-    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticMagnitude));
-  else
-    throw runtime_error(
-      "The selection for *component* can only be \"u\", \"v\", \"w\", or \"strength\".");
-
+  switch (opt) {
+    case Options::WindMagJacobian::u:
+      rq.Target(Jacobian::Target(Jacobian::Atm::MagneticU));
+      break;
+    case Options::WindMagJacobian::v:
+      rq.Target(Jacobian::Target(Jacobian::Atm::MagneticV));
+      break;
+    case Options::WindMagJacobian::w:
+      rq.Target(Jacobian::Target(Jacobian::Atm::MagneticW));
+      break;
+    case Options::WindMagJacobian::strength:
+      rq.Target(Jacobian::Target(Jacobian::Atm::MagneticMagnitude));
+      break;
+    case Options::WindMagJacobian::FINAL:
+      ARTS_ASSERT(false, "This error should be caught earlier")
+  }
+  
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it] == rq.Target()) {
-      ostringstream os;
-      os << "The magnetic field component:\n"
-         << component << "\nis already "
-         << "included in *jacobian_quantities*.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (jq[it].Target().sameTargetType(rq.Target()),
+                        "The magnetic component:\n", component, "\n"
+                        "is already included in *jacobian_quantities*.")
   }
 
   // Check retrieval grids, here we just check the length of the grids
@@ -1620,29 +1626,25 @@ void jacobianAddBasicCatalogParameter(Workspace&,
   CREATE_OUT3;
 
   // Create the new retrieval quantity
+  const auto opt = Options::toBasicCatParamJacobianOrThrow(catalog_parameter);
   RetrievalQuantity rq;
-  if ("Line Strength" == catalog_parameter)
-    rq.Target(Jacobian::Target(Jacobian::Line::Strength, catalog_identity));
-  else if ("Line Center" == catalog_parameter)
-    rq.Target(Jacobian::Target(Jacobian::Line::Center, catalog_identity));
-  else {
-    ostringstream os;
-    os << "You have selected:\n"
-       << catalog_parameter
-       << "\nas your catalog parameter. This is not supported.\n"
-       << "Please see user guide for supported parameters.\n";
-    throw std::runtime_error(os.str());
+  switch (opt) {
+    case Options::BasicCatParamJacobian::LineCenter:
+      rq.Target(Jacobian::Target(Jacobian::Line::Center, catalog_identity));
+      break;
+    case Options::BasicCatParamJacobian::LineStrength:
+      rq.Target(Jacobian::Target(Jacobian::Line::Strength, catalog_identity));
+      break;
+    case Options::BasicCatParamJacobian::FINAL:
+      ARTS_ASSERT(false, "This error should be caught earlier")
   }
   
   // Check that this is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (rq == jq[it].Target()) {
-      ostringstream os;
-    os << "The catalog identifier:\n"
-    << catalog_identity << " for ID: " << catalog_identity << "\nis already included in "
-    << "*jacobian_quantities*.";
-    throw std::runtime_error(os.str());
-      }
+    ARTS_USER_ERROR_IF (rq.Target().sameTargetType(jq[it].Target()),
+      "The catalog identifier:\n",
+      catalog_identity, " for ID: ", catalog_identity, "\n"
+      "is already included in jacobian_quantities*.")
   }
 
   rq.Grids(ArrayOfVector(0, Vector(0)));

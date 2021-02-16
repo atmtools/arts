@@ -830,6 +830,8 @@ extern "C" {
     BasicInputOutputCAPI(JacobianTarget)
     VoidGetterCAPI(JacobianTarget, Perturbation)
     VoidGetterCAPI(JacobianTarget, QuantumIdentity)
+    VoidGetterCAPI(JacobianTarget, StringKey)
+    VoidGetterCAPI(JacobianTarget, SpeciesList)
     StringEnumGetterSetterCAPI(JacobianTarget, TargetType)
     StringEnumGetterSetterCAPI(JacobianTarget, TargetSubType)
     VoidArrayCAPI(ArrayOfJacobianTarget)

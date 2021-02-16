@@ -2,6 +2,7 @@ import ctypes as c
 from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
+from pyarts.classes.SpeciesTag import ArrayOfSpeciesTag
 from pyarts.classes.BasicTypes import Numeric, String
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
@@ -67,6 +68,24 @@ class JacobianTarget:
         self.quantumidentity.set(val)
 
     @property
+    def specieslist(self):
+        """ Identifier of the Jacobian line parameter (ArrayOfSpeciesTag) """
+        return ArrayOfSpeciesTag(c.c_void_p(lib.getSpeciesListJacobianTarget(self.__data__)))
+
+    @specieslist.setter
+    def specieslist(self, val):
+        self.specieslist.set(val)
+
+    @property
+    def string_key(self):
+        """ Identifier of the Jacobian line parameter (String) """
+        return String(c.c_void_p(lib.getStringKeyJacobianTarget(self.__data__)))
+
+    @string_key.setter
+    def string_key(self, val):
+        self.string_key.set(val)
+
+    @property
     def perturbation(self):
         """ Perturbation for some calculations (Numeric) """
         return Numeric(c.c_void_p(lib.getPerturbationJacobianTarget(self.__data__)))
@@ -97,6 +116,8 @@ class JacobianTarget:
             self.subtype = other.subtype
             self.perturbation = other.perturbation
             self.quantumidentity = other.quantumidentity
+            self.string_key = other.string_key
+            self.specieslist = other.specieslist
         else:
             raise TypeError("Expects JacobianTarget")
 
@@ -131,7 +152,9 @@ class JacobianTarget:
                 self.type == other.type and\
                 self.subtype == other.subtype and \
                 (self.perturbation == other.perturbation or (isnan(self.perturbation) and isnan(other.perturbation))) and \
-                self.quantumidentity == other.quantumidentity:
+                self.quantumidentity == other.quantumidentity and \
+                self.string_key == other.string_key and \
+                self.specieslist == other.specieslist:
             return True
         else:
             return False
@@ -172,3 +195,9 @@ lib.getPerturbationJacobianTarget.argtypes = [c.c_void_p]
 
 lib.getQuantumIdentityJacobianTarget.restype = c.c_void_p
 lib.getQuantumIdentityJacobianTarget.argtypes = [c.c_void_p]
+
+lib.getSpeciesListJacobianTarget.restype = c.c_void_p
+lib.getSpeciesListJacobianTarget.argtypes = [c.c_void_p]
+
+lib.getStringKeyJacobianTarget.restype = c.c_void_p
+lib.getStringKeyJacobianTarget.argtypes = [c.c_void_p]

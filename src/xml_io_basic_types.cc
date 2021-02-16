@@ -146,6 +146,16 @@ void xml_read_from_stream(istream& is_xml,
       jt.QuantumIdentity().SetTransition(upperglobalquanta, lowerglobalquanta);
     }
   }
+
+  if (jt.needArrayOfSpeciesTag()) {
+    String key;
+    tag.get_attribute_value("species", key);
+    array_species_tag_from_string(jt.SpeciesList(), key);
+  }
+
+  if (jt.needString()) {
+    tag.get_attribute_value("string_key", jt.StringKey());
+  }
   
   if (pbifs) {
     *pbifs >> jt.Perturbation();
@@ -181,6 +191,7 @@ void xml_write_to_stream(ostream& os_xml,
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
+  os_xml << '\n';
   open_tag.set_name("JacobianTarget");
   if (name.length()) open_tag.add_attribute("name", name);
   
@@ -199,6 +210,14 @@ void xml_write_to_stream(ostream& os_xml,
       open_tag.add_attribute("upperglobalquanta", jt.QuantumIdentity().UpperQuantumNumbers().toString());
       open_tag.add_attribute("lowerglobalquanta", jt.QuantumIdentity().LowerQuantumNumbers().toString());
     }
+  }
+
+  if (jt.needArrayOfSpeciesTag()) {
+    open_tag.add_attribute("species", get_tag_group_name(jt.SpeciesList()));
+  }
+
+  if (jt.needString()) {
+    open_tag.add_attribute("string_key", jt.StringKey());
   }
   open_tag.write_to_stream(os_xml);
 
