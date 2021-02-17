@@ -411,6 +411,8 @@ class WorkspaceVariable:
             workspace.
         """
         from pyarts.xml import load
+        from pyarts.types import classes as arts_classes
+        from pyarts import classes as native_classes
 
         if not self.ws:
             raise Exception("Cannot retrieve the value of a variable without "
@@ -418,7 +420,12 @@ class WorkspaceVariable:
         with tempfile.TemporaryDirectory() as tmpdir:
             tfile = os.path.join(tmpdir, 'wsv.xml')
             self.ws.WriteXML("binary", self, tfile)
-            v = load(tfile)
+            if self.group in arts_classes:
+                v = load(tfile)
+            else:
+                cls = getattr(native_classes, self.group)
+                v = cls()
+                v.readxml(tfile)
 
         return v
 
