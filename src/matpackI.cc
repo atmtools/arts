@@ -322,6 +322,13 @@ Vector::Vector(std::initializer_list<Numeric> init)
   std::copy(init.begin(), init.end(), begin());
 }
 
+Vector::Vector(const Eigen::VectorXd& init)
+    : VectorView(new Numeric[init.size()], Range(0, init.size()))
+{
+  for (Index i=0; i<size(); i++) operator[](i) = init[i];
+}
+
+
 Vector::Vector(Index n) : VectorView(new Numeric[n], Range(0, n)) {
   // Nothing to do here.
 }
