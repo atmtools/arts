@@ -1587,7 +1587,7 @@ void xml_write_to_stream(ostream& os_xml,
  */
 void xml_read_from_stream(istream& is_xml,
                           Time& t,
-                          bifstream* pbifs,
+                          bifstream* pbifs [[maybe_unused]],
                           const Verbosity& verbosity) {
   ArtsXMLTag tag(verbosity);
   
@@ -1598,8 +1598,6 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("version", version);
   ARTS_USER_ERROR_IF (version not_eq 1,
                       "Your version of ARTS can only handle version 1 of Time");
-  
-  ARTS_USER_ERROR_IF (pbifs, "Cannot read binary Time");
   
   is_xml >> t;
   if (is_xml.fail()) {
@@ -1619,7 +1617,7 @@ void xml_read_from_stream(istream& is_xml,
  */
 void xml_write_to_stream(ostream& os_xml,
                          const Time& t,
-                         bofstream* pbofs,
+                         bofstream* pbofs [[maybe_unused]],
                          const String&,
                          const Verbosity& verbosity) {
   ArtsXMLTag open_tag(verbosity);
@@ -1630,7 +1628,6 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.write_to_stream(os_xml);
 
   xml_set_stream_precision(os_xml);
-  ARTS_USER_ERROR_IF (pbofs, "Cannot write binary time");
   
   os_xml << ' ' << t << ' ';
 
