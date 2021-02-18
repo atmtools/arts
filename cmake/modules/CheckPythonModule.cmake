@@ -11,7 +11,8 @@ macro (CHECK_PYTHON_MODULES)
     numpy
     pytest
     scipy
-    setuptools)
+    setuptools
+    xarray)
 
   set(PYPI_NAMES
     docutils
@@ -21,7 +22,8 @@ macro (CHECK_PYTHON_MODULES)
     numpy
     pytest
     scipy
-    setuptools)
+    setuptools
+    xarray)
 
   list(LENGTH REQUIRED_MODULES len1)
   math(EXPR len2 "${len1} - 1")
