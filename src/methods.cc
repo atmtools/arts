@@ -8882,7 +8882,7 @@ Possible models:
           "The transmitted signal is taken from *iy_transmitter*. This\n"
           "signal is propagated along the path, considering attenuation alone.\n"
           "That is, the result of the method (*iy*) is the output of\n"
-          "*iy_transmitter_agenda* multiplied with the transmittance along the\n"
+          "*iy_transmitter* multiplied with the transmittance along the\n"
           "propagation path.\n"
           "\n"
           "As mentioned, the given *ppath* determines the position of the\n"

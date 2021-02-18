@@ -2026,11 +2026,6 @@ void define_wsv_data() {
           "Dimensions: [ f_grid, stokes_dim ]\n"),
       GROUP("Matrix")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("iy_transmitter_agenda"),
-                DESCRIPTION("Agenda providing a transmitter signal.\n"),
-                GROUP("Agenda")));
-
   wsv_data.push_back(WsvRecord(
       NAME("iy_unit"),
       DESCRIPTION(

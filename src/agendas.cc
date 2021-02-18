@@ -465,21 +465,6 @@ void define_agenda_data() {
             "surface_type_aux")));
 
   agenda_data.push_back(AgRecord(
-      NAME("iy_transmitter_agenda"),
-      DESCRIPTION(
-          "Transmitter signal.\n"
-          "\n"
-          "This agenda describes the signal at the start of the propagation\n"
-          "path for calculations of transmission type. That is, the agenda\n"
-          "describes a transmitter, which either can be a natural source or\n"
-          "an artificial device.\n"
-          "\n"
-          "The include-file 'agendas.arts' defines an example agenda that\n"
-          "can be used for transmission calculations\n"),
-      OUTPUT("iy"),
-      INPUT("f_grid", "rtp_pos", "rtp_los")));
-
-  agenda_data.push_back(AgRecord(
       NAME("jacobian_agenda"),
       DESCRIPTION(
           "Pure numerical Jacobian calculations.\n"
