@@ -152,6 +152,18 @@ class TestVariables:
         self.ws.tensor_7 = t_0
         assert np.all(t_0 == self.ws.tensor_7.value)
 
+    def test_time(self):
+        """
+        Create and set Time variable.
+        """
+        times = ["2020-01-02 03:04:05", "2021-02-03 04:05:06"]
+        self.ws.ArrayOfTimeCreate("time_1")
+        self.ws.ArrayOfTimeNLinSpace(self.ws.time_1, 2, times[0], times[1])
+        assert (
+                times[0] == str(self.ws.time_1.value[0])[0:19]
+                and times[1] == str(self.ws.time_1.value[1])[0:19]
+        )
+
     def test_creation(self):
         """
         Test creation of WSVs.
