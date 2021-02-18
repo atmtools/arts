@@ -88,9 +88,9 @@ void iyRadarSingleScat(Workspace& ws,
                        const Index& jacobian_do,
                        const ArrayOfRetrievalQuantity& jacobian_quantities,
                        const Ppath& ppath,
+                       const Matrix& iy_transmitter,
                        const Agenda& propmat_clearsky_agenda,
                        const Agenda& water_p_eq_agenda,
-                       const Agenda& iy_transmitter_agenda,
                        const Numeric& rte_alonglos_v,
                        const Index& trans_in_jacobian,
                        const Numeric& pext_scaling,
@@ -142,24 +142,14 @@ void iyRadarSingleScat(Workspace& ws,
   // iy_aux_vars checked below
   chk_if_in_range("pext_scaling", pext_scaling, 0, 2);
 
-  // Transmitted signal
-  //
-  Matrix iy0;
-  //
-  iy_transmitter_agendaExecute(ws,
-                               iy0,
-                               f_grid,
-                               ppath.pos(np - 1, Range(0, atmosphere_dim)),
-                               ppath.los(np - 1, joker),
-                               iy_transmitter_agenda);
-  //
-  ARTS_USER_ERROR_IF (iy0.ncols() != ns || iy0.nrows() != nf,
+  //Check transmitter input
+  ARTS_USER_ERROR_IF (iy_transmitter.ncols() != ns || iy_transmitter.nrows() != nf,
     "The size of *iy* returned from *iy_transmitter_agenda* is\n"
     "not correct:\n"
     "  expected size = [", nf, ",", stokes_dim, "]\n"
-    "  size of iy    = [", iy0.nrows(), ",", iy0.ncols(), "]\n")
+    "  size of iy    = [", iy_transmitter.nrows(), ",", iy_transmitter.ncols(), "]\n")
   for (Index iv = 0; iv < nf; iv++)
-    ARTS_USER_ERROR_IF (iy0(iv, 0) != 1,
+    ARTS_USER_ERROR_IF (iy_transmitter(iv, 0) != 1,
           "The *iy* returned from *iy_transmitter_agenda* "
           "must have the value 1 in the first column.");
 
@@ -490,9 +480,9 @@ void iyRadarSingleScat(Workspace& ws,
   const ArrayOfArrayOfTransmissionMatrix dreflect_matrix =
       bulk_backscatter_derivative(Pe, ppvar_dpnd_dx);
 
-  lvl_rad[0] = iy0;
+  lvl_rad[0] = iy_transmitter;
   RadiationVector rad_inc = RadiationVector(nf, ns);
-  rad_inc = iy0;
+  rad_inc = iy_transmitter;
   set_backscatter_radiation_vector(lvl_rad,
                                    dlvl_rad,
                                    rad_inc,

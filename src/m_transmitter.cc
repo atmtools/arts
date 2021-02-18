@@ -734,13 +734,13 @@ void iyTransmissionStandard(Workspace& ws,
   // iy_aux_vars checked below
 
   // Transmitted signal
-  iy=iy_transmitter;
-  if (iy.ncols() != ns || iy.nrows() != nf) {
+//  iy_transmitter=iy_transmitter;
+  if (iy_transmitter.ncols() != ns || iy_transmitter.nrows() != nf) {
     ostringstream os;
-    os << "The size of *iy* returned from *iy_transmitter_agenda* is\n"
+    os << "The size of *iy_transmitter* returned from *iy_transmitter_agenda* is\n"
        << "not correct:\n"
        << "  expected size = [" << nf << "," << stokes_dim << "]\n"
-       << "  size of iy    = [" << iy.nrows() << "," << iy.ncols() << "]\n";
+       << "  size of iy_transmitter    = [" << iy_transmitter.nrows() << "," << iy_transmitter.ncols() << "]\n";
     throw runtime_error(os.str());
   }
   
@@ -818,7 +818,7 @@ void iyTransmissionStandard(Workspace& ws,
   } else {
     // ppvar_iy
     ppvar_iy.resize(nf, ns, np);
-    ppvar_iy(joker, joker, np - 1) = iy;
+    ppvar_iy(joker, joker, np - 1) = iy_transmitter;
 
     // Basic atmospheric variables
     get_ppath_atmvars(ppvar_p,
@@ -972,7 +972,7 @@ void iyTransmissionStandard(Workspace& ws,
       iy_aux[auxOptDepth](iv, 0) = -std::log(tot_tra[np - 1](iv, 0, 0));
   }
 
-  lvl_rad[np - 1] = iy;
+  lvl_rad[np - 1] = iy_transmitter;
 
   // Radiative transfer calculations
   for (Index ip = np - 2; ip >= 0; ip--) {

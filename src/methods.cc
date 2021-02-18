@@ -8590,9 +8590,9 @@ Possible models:
           "frequency occupy the np first rows of *iy* etc.\n"
           "\n"
           "The polarisation state of the transmitted pulse is taken from\n"
-          "*iy_transmitter_agenda*. If the radar transmits several\n"
-          "polarisations at the same frequency, you need to handle this by\n"
-          "using two frequencies in *f_grid*, but these can be almost identical.\n"
+          "*iy_transmitter*. If the radar transmits several polarisations at\n"
+          "the same frequency, you need to handle this by using two frequencies\n"
+          "in *f_grid*, but these can be almost identical.\n"
           "\n"
           "This method does not consider *iy_unit_radar*. Unit changes are instead\n"
           "applied in *yRadar. The output of this method matches the option \"1\".\n"
@@ -8663,9 +8663,9 @@ Possible models:
          "jacobian_do",
          "jacobian_quantities",
          "ppath",
+         "iy_transmitter",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
-         "iy_transmitter_agenda",
          "rte_alonglos_v"),
       GIN("trans_in_jacobian", "pext_scaling", "t_interp_order"),
       GIN_TYPE("Index", "Numeric", "Index"),

@@ -39,6 +39,26 @@ AgendaSet( iy_main_agenda__Transmission ){
   VectorSet(geo_pos, [])
 }
 
+
+AgendaCreate( iy_main_agenda__TransmissionUnitUnpolIntensity )
+AgendaSet( iy_main_agenda__TransmissionUnitUnpolIntensity ){
+  Ignore( iy_unit )
+  Ignore( iy_id )
+  MatrixUnitIntensity( iy_transmitter, stokes_dim, f_grid )
+  ppathCalc( cloudbox_on=0 )
+  iyTransmissionStandard
+}
+
+###
+AgendaCreate( iy_main_agenda__TransmissionUnitPolIntensity )
+AgendaSet( iy_main_agenda__TransmissionUnitPolIntensity ){
+  Ignore( iy_unit )
+  Ignore( iy_id )
+  iy_transmitterSinglePol
+  ppathCalc( cloudbox_on=0 )
+  iyTransmissionStandard
+}
+
 ###
 AgendaCreate( iy_main_agenda__Freqloop )
 AgendaSet( iy_main_agenda__Freqloop ){
@@ -100,30 +120,6 @@ AgendaSet( iy_space_agenda__CosmicBackground ){
   MatrixCBR( iy, stokes_dim, f_grid )
 }
 
-
-##################################
-#    iy_transmitter_agenda
-##################################
-
-###
-# Unit (unpolarised) intensity
-#
-AgendaCreate( iy_transmitter_agenda__UnitUnpolIntensity )
-AgendaSet( iy_transmitter_agenda__UnitUnpolIntensity ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  MatrixUnitIntensity( iy, stokes_dim, f_grid )
-}
-
-###
-# Unit polarised intensity
-#
-AgendaCreate( iy_transmitter_agenda__UnitPolIntensity )
-AgendaSet( iy_transmitter_agenda__UnitPolIntensity ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  iy_transmitterSinglePol
-}
 
 
 ##################################

@@ -115,13 +115,7 @@ VectorSet( rte_pos2, [] )                  # No transmitter position defined
 
 # Radiative transfer agendas
 #
-AgendaSet( iy_main_agenda){
-  Ignore( iy_unit )
-  Ignore( iy_id )
-  MatrixUnitIntensity( iy_transmitter, stokes_dim, f_grid )
-  ppathCalc( cloudbox_on=0 )
-  iyTransmissionStandard
-}
+Copy( iy_main_agenda , iy_main_agenda__TransmissionUnitUnpolIntensity )
 
 
 # Auxiliary variables
