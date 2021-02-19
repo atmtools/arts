@@ -860,6 +860,23 @@ void iyTransmissionStandard(Workspace& ws,
       for (Index ip = 0; ip < np; ip++) clear2cloudy[ip] = -1;
     }
 
+    // get Extinction from gas scattering
+    ArrayOfPropagationMatrix sca_xsec;
+    if (gas_scattering_do) {
+      PropagationMatrix sca_mat;
+      Vector in_los, out_los;
+      gas_scattering_agendaExecute(ws,
+                                   sca_xsec,
+                                   sca_mat,
+                                   f_grid,
+                                   ppvar_p,
+                                   ppvar_t,
+                                   ppvar_vmr,
+                                   in_los,
+                                   out_los,
+                                   gas_scattering_agenda);
+    }
+
     // Size radiative variables always used
     PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
     StokesVector a(nf, ns), S(nf, ns), Sp(nf, ns);
@@ -906,6 +923,10 @@ void iyTransmissionStandard(Workspace& ws,
                                     ppvar_t[ip],
                                     ppvar_p[ip],
                                     j_analytical_do);
+
+      if (gas_scattering_do){
+        K_this+=sca_xsec[ip];
+      }
 
       if (j_analytical_do) {
         adapt_stepwise_partial_derivatives(dK_this_dx,

@@ -21,9 +21,9 @@
   ===  File description
   ===========================================================================*/
 
-
-#include "arts.h"
 #include "agenda_class.h"
+#include "arts.h"
+#include "rte.h"
 
 
 /*!
@@ -40,6 +40,7 @@
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
+extern const Numeric BOLTZMAN_CONST;
 
 /*===========================================================================
   === The functions
@@ -47,12 +48,43 @@ extern const Numeric DEG2RAD;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringOff(Index& gas_scattering_do,
-             Agenda& gas_scattering_agenda,
-             const Verbosity &){
-
+                       Agenda& gas_scattering_agenda,
+                       const Verbosity&) {
   // set flag to False (default)
   gas_scattering_do = 0;
 
   gas_scattering_agenda = Agenda();
   gas_scattering_agenda.set_name("gas_scattering_agenda");
+}
+
+void gas_scatteringXsecConst(ArrayOfPropagationMatrix& sca_xsec,
+                             const Vector& f_grid,
+                             const Index& stokes_dim,
+                             const Vector& ppvar_p,
+                             const Vector& ppvar_t,
+                             const Numeric& ConstXsec,
+                             const Verbosity&) {
+  // Some basic sizes
+  const Index nf = f_grid.nelem();
+  const Index ns = stokes_dim;
+  const Index np = ppvar_p.nelem();
+
+  ArrayOfPropagationMatrix dummy(np, PropagationMatrix(nf, ns));
+
+
+  Vector Xsec(nf,ConstXsec);
+
+  // Number density
+  Numeric N;
+
+
+  for (Index ip = 0; ip < np; ++ip) {
+
+    N=ppvar_p[ip] / ppvar_t[ip] /  BOLTZMAN_CONST;
+
+    dummy[ip].Kjj() += Xsec;
+    dummy[ip].Kjj() *= N;
+  }
+
+  sca_xsec = dummy;
 }
