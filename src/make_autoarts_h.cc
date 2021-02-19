@@ -891,10 +891,13 @@ void print_full_methods(const NameMaps& artsname) {
 }
 
 void print_methods(const NameMaps& artsname) {
+  std::cout << "#pragma clang diagnostic push\n";
+  std::cout << "#pragma clang diagnostic ignored \"-Wbraced-scalar-init\"\n";
   std::cout << "namespace Method {\n";
   print_gin_methods(artsname);
   print_full_methods(artsname);
   std::cout << "}  // namespace Method \n\n";
+  std::cout << "#pragma clang diagnostic pop\n";
 }
 
 void print_agenda_methods(const NameMaps& artsname) {
