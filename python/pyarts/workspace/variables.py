@@ -305,6 +305,7 @@ class WorkspaceVariable:
 
         """
         from pyarts.types import classes as arts_classes
+        from pyarts import classes as native_classes
 
 
         if (self.ws):
@@ -360,11 +361,14 @@ class WorkspaceVariable:
             else:
                 return np.zeros(shape)
         else:
-            try:
-                return self.to_arts()
-            except:
-                raise Exception("Type of workspace variable is not supported "
-                                + " by the interface.")
+            if self.group in arts_classes:
+                try:
+                    return self.to_arts()
+                except:
+                    raise Exception("Type of workspace variable is not supported "
+                                    + " by the interface.")
+            else:
+                return native_classes.from_workspace(self)
 
     def update(self):
         """ Update data references of the object.
