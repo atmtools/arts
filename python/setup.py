@@ -18,7 +18,7 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import remove
-from os.path import abspath, dirname, join
+from os.path import abspath, dirname, isfile, join
 
 import builtins
 
@@ -33,7 +33,8 @@ here = abspath(dirname(__file__))
 try:
     arts_libname = "libarts_api.so"
     lib_path = join("@ARTS_BINARY_DIR@", "src", arts_libname)
-    remove(join("pyarts", "workspace", arts_libname))
+    if isfile(join("pyarts", "workspace", arts_libname)):
+        remove(join("pyarts", "workspace", arts_libname))
     shutil.copy(lib_path, join("pyarts", "workspace"))
 except:
     raise Exception(
