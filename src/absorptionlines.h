@@ -1556,20 +1556,24 @@ Numeric reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rati
 Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
 
 //! Keep track of the target type and position in Lines of a Jacobian Target
-ENUMCLASS(LineTargetType, char,
+ENUMCLASS(QuantumIdentifierLineTargetType, char,
           None,
           Species,
-          SpeciesAndIsotopologue,
+          Isotopologue,
           Band,
           Line,
-          LineshapeParameter,
           Level
 )
-
-struct LineTarget {
-  LineTargetType found;
-  std::array<Index, 2> pos;
-  LineTarget(const Jacobian::Target&, const Lines&);
+          
+struct QuantumIdentifierLineTarget {
+  QuantumIdentifierLineTargetType found;
+  bool lower;
+  bool upper;
+  //! Species/Isotopologue/Band match constructor
+  QuantumIdentifierLineTarget(const QuantumIdentifier&, const Lines&) noexcept;
+  
+  //! Line/Level match constructor (calls the Species/Isotopologue/Band match constructor)
+  QuantumIdentifierLineTarget(const QuantumIdentifier&, const Lines&, const Index) noexcept;
 };
 };  // Absorption
 
