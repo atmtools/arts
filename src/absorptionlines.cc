@@ -3625,24 +3625,25 @@ QuantumIdentifier Lines::QuantumIdentityOfLine(Index k) const noexcept {
   return qid_copy;
 }
 
-QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier& qt, const Absorption::Lines& lines) noexcept :
-  found(QuantumIdentifierLineTargetType::None), lower(false), upper(false)
+QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier& qt,
+                                                         const Absorption::Lines& lines) noexcept :
+  QuantumIdentifierLineTarget()
 {
   // We have no match if we do not match the species
   if (qt.Species() == lines.Species()) found = QuantumIdentifierLineTargetType::Species;
   
   // We can only match the isotopologue if we match the species
-  if (found == QuantumIdentifierLineTargetType::Species) if (qt.Isotopologue() == lines.Isotopologue()) found = QuantumIdentifierLineTargetType::Isotopologue;
+  if (found == QuantumIdentifierLineTargetType::Species and qt.Isotopologue() == lines.Isotopologue()) found = QuantumIdentifierLineTargetType::Isotopologue;
   
   // We do cannot match the band if we do not match the isotopologue
   if (found == QuantumIdentifierLineTargetType::Isotopologue) {
     if (qt.Type() == QuantumIdentifier::ALL) {
       
-      // This is only for species match, so we do nothing
+      // Nothing to do here
       
     } else if (qt.Type() == QuantumIdentifier::NONE) {
       
-      found = QuantumIdentifierLineTargetType::None;  // We turned this off?  Don't know why...
+      found = QuantumIdentifierLineTargetType::None;  // We turned this off!
       
     } else if (qt.Type() == QuantumIdentifier::TRANSITION) {
       
@@ -3650,10 +3651,10 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
       bool all_good = true;
       for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
         if (qn not_eq QuantumNumberType::FINAL) {
-          const Rational low_band = lines.QuantumIdentity().LowerQuantumNumber(qn);
-          const Rational low_targ = qt.LowerQuantumNumber(qn);
-          const Rational upp_band = lines.QuantumIdentity().UpperQuantumNumber(qn);
-          const Rational upp_targ = qt.UpperQuantumNumber(qn);
+          const Rational& low_band = lines.QuantumIdentity().LowerQuantumNumbers()[qn];
+          const Rational& low_targ = qt.LowerQuantumNumbers()[qn];
+          const Rational& upp_band = lines.QuantumIdentity().UpperQuantumNumbers()[qn];
+          const Rational& upp_targ = qt.UpperQuantumNumbers()[qn];
           all_good = all_good
             and (low_band.isUndefined() or low_band == low_targ)
             and (upp_band.isUndefined() or upp_band == upp_targ);
@@ -3665,7 +3666,24 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
       
     } else if (qt.Type() == QuantumIdentifier::ENERGY_LEVEL) {
       
-      // We are already an isotopologue, that's all we can possibly know about ourselves
+      // We are the right species, are we a level?
+      bool low_lvl = true;
+      bool upp_lvl = true;
+      for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
+        if (qn not_eq QuantumNumberType::FINAL) {
+          // Check only numbers in the energy levels
+          const Rational& low_band = lines.QuantumIdentity().LowerQuantumNumbers()[qn];
+          const Rational& upp_band = lines.QuantumIdentity().UpperQuantumNumbers()[qn];
+          const Rational& lvl_targ = qt.EnergyLevelQuantumNumbers()[qn];
+          low_lvl = low_lvl and (low_band.isUndefined() or low_band == lvl_targ);
+          upp_lvl = upp_lvl and (upp_band.isUndefined() or upp_band == lvl_targ);
+        }
+      }
+      
+      // We are a level?
+      if (low_lvl or upp_lvl) found = QuantumIdentifierLineTargetType::Level;
+      lower = low_lvl;
+      upper = upp_lvl;
       
     }
   }
@@ -3677,30 +3695,27 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
                                                          const Index line_id) noexcept :
   QuantumIdentifierLineTarget(qt, lines)
 {
-  if (qt.Type() == QuantumIdentifier::ALL) {
+  if (qt.Type() == QuantumIdentifier::ALL or qt.Type() == QuantumIdentifier::NONE) {
     
-    // This should be debug mode!  We are fine here to say we found a line:
-    found = QuantumIdentifierLineTargetType::Line;
-    
-  } else if (qt.Type() == QuantumIdentifier::NONE) {
-    
-    // I don't know how this could happen but we have to say we are not going bother
-    found = QuantumIdentifierLineTargetType::None;
+    // Nothing to do here
     
   } else if (qt.Type() == QuantumIdentifier::TRANSITION) {
     if (found == QuantumIdentifierLineTargetType::Band) {
-      // We are a transition, so all of the band must match all of the target
+      
+      // Look at the current line (the levels should already match)
+      const SingleLine& line = lines.AllLines()[line_id];
+      
+      // We are a transition, so all of the band must match all of the target to be a line
       bool all_good = true;
-      for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
-        if (qn not_eq QuantumNumberType::FINAL) {
-          const Rational low_band = lines.LowerQuantumNumber(line_id, qn);
-          const Rational low_targ = qt.LowerQuantumNumber(qn);
-          const Rational upp_band = lines.UpperQuantumNumber(line_id, qn);
-          const Rational upp_targ = qt.UpperQuantumNumber(qn);
-          all_good = all_good
-            and (low_band.isUndefined() or low_band == low_targ)
-            and (upp_band.isUndefined() or upp_band == upp_targ);
-        }
+      for (Index iq=0; iq<lines.NumLocalQuanta(); iq++) {
+        const QuantumNumberType qn = lines.LocalQuanta()[iq];
+        const Rational& low_band = line.LowerQuantumNumbers()[iq];
+        const Rational& upp_band = line.UpperQuantumNumbers()[iq];
+        const Rational& low_targ = qt.LowerQuantumNumbers()[qn];
+        const Rational& upp_targ = qt.UpperQuantumNumbers()[qn];
+        all_good = all_good
+          and (low_band.isUndefined() or low_band == low_targ)
+          and (upp_band.isUndefined() or upp_band == upp_targ);
       }
       
       // We are a line?
@@ -3708,25 +3723,9 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
       
     }
   } else if (qt.Type() == QuantumIdentifier::ENERGY_LEVEL) {
-    if (found == QuantumIdentifierLineTargetType::Isotopologue) {
-      // We are a transition, so all of the band must match all of the target
-      lower = true;
-      upper = true;
-      for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
-        if (qn not_eq QuantumNumberType::FINAL) {
-          const Rational low_band = lines.LowerQuantumNumber(line_id, qn);
-          const Rational low_targ = qt.LowerQuantumNumber(qn);
-          const Rational upp_band = lines.UpperQuantumNumber(line_id, qn);
-          const Rational upp_targ = qt.UpperQuantumNumber(qn);
-          lower = lower and (low_band.isUndefined() or low_band == low_targ);
-          upper = upper and (upp_band.isUndefined() or upp_band == upp_targ);
-        }
-      }
-      
-      // We are a level?
-      if (lower or upper) found = QuantumIdentifierLineTargetType::Level;
-      
-    }
+    
+    // Nothing to do here
+    
   }
 }
 

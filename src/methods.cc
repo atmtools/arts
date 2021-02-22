@@ -1472,7 +1472,7 @@ void define_md_data_raw() {
           "parameter_name = \"Upper Zeeman Coefficient\"\n"
           "\n"
           "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
-          "otherwise the numbers in QI must just be contained in the line identifier\n"),
+          "otherwise the numbers in QI must just be contained in the band identifier\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),

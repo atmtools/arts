@@ -1569,11 +1569,22 @@ struct QuantumIdentifierLineTarget {
   QuantumIdentifierLineTargetType found;
   bool lower;
   bool upper;
+  
+  //! Default constexpr like constructor for "nothing"
+  constexpr QuantumIdentifierLineTarget() noexcept :
+    found(QuantumIdentifierLineTargetType::None), lower(false), upper(false) {}
+  
   //! Species/Isotopologue/Band match constructor
   QuantumIdentifierLineTarget(const QuantumIdentifier&, const Lines&) noexcept;
   
   //! Line/Level match constructor (calls the Species/Isotopologue/Band match constructor)
   QuantumIdentifierLineTarget(const QuantumIdentifier&, const Lines&, const Index) noexcept;
+  
+  //! Check if this is a positive match
+  constexpr bool operator==(QuantumIdentifierLineTargetType x) const noexcept {return x == found;}
+  
+  //! Check if this is not a match
+  constexpr bool operator!=(QuantumIdentifierLineTargetType x) const noexcept {return x != found;}
 };
 };  // Absorption
 

@@ -562,7 +562,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
       f_grid_copy += df;
       vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid_copy, band, partition_type, partition_data);
     } else if (target == Jacobian::Line::VMR) {
-      if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band).found == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
+      if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
         Vector vmrs_copy = vmrs;
         Numeric this_vmr_copy = this_vmr;
         const Numeric dvmr = target.Perturbation();
@@ -590,7 +590,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
       
       for (Index iline=0; iline<band.NumLines(); iline++) {
         const Absorption::QuantumIdentifierLineTarget qlt(target.QuantumIdentity(), band, iline);
-        if (qlt.found == Absorption::QuantumIdentifierLineTargetType::Line) {
+        if (qlt == Absorption::QuantumIdentifierLineTargetType::Line) {
           AbsorptionLines band_copy = band;
           
           switch (target.LineType()) {
@@ -723,7 +723,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
           // Perform calculations and estimate derivative
           vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid, band_copy, partition_type, partition_data);
           vec /= -d;
-        } else if (qlt.found == Absorption::QuantumIdentifierLineTargetType::Band) {
+        } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
           if (target == Jacobian::Line::SpecialParameter1) {
             if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
               d = Conversion::angstrom2meter(1e-6);
@@ -849,7 +849,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
       f_grid_copy += df;
       vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid_copy, zeeman_polarization, band, partition_type, partition_data);
     } else if (target == Jacobian::Line::VMR) {
-      if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band).found == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
+      if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
         Vector vmrs_copy = vmrs;
         Numeric this_vmr_copy = this_vmr;
         const Numeric dvmr = target.Perturbation();
@@ -877,7 +877,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
       
       for (Index iline=0; iline<band.NumLines(); iline++) {
         const Absorption::QuantumIdentifierLineTarget qlt(target.QuantumIdentity(), band, iline);
-        if (qlt.found == Absorption::QuantumIdentifierLineTargetType::Line) {
+        if (qlt == Absorption::QuantumIdentifierLineTargetType::Line) {
           AbsorptionLines band_copy = band;
           
           switch (target.LineType()) {
@@ -1010,7 +1010,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
           // Perform calculations and estimate derivative
           vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band_copy, partition_type, partition_data);
           vec /= -d;
-        } else if (qlt.found == Absorption::QuantumIdentifierLineTargetType::Band) {
+        } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
           if (target == Jacobian::Line::SpecialParameter1) {
             if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
               d = Conversion::angstrom2meter(1e-6);

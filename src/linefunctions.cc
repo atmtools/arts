@@ -275,27 +275,27 @@ void Linefunctions::set_lorentz(
       if (not propmattype_index(derivatives_data, iq)) continue;
       const auto& deriv = derivatives_data[iq];
 
-      if (deriv == Jacobian::Atm::Temperature)
+      if (deriv == Jacobian::Atm::Temperature) {
         dF.col(iq).noalias() = Complex(dT.G0, dT.D0 + dT.DV) * dw;
-      else if (is_frequency_parameter(deriv))
+      } else if (is_frequency_parameter(deriv)) {
         dF.col(iq).noalias() = -iz * dw;
-      else if ((deriv == Jacobian::Line::Center or
-                is_pressure_broadening_DV(deriv)) and
-                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = iz * dw;
-      else if (is_pressure_broadening_G0(deriv) and
-        Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = dw;
-      else if (is_pressure_broadening_D0(deriv) and
-        Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = iz * dw;
-      else if (is_magnetic_parameter(deriv))
+      } else if (is_magnetic_parameter(deriv)) {
         dF.col(iq).noalias() = iz * zeeman_df * dw;
-      else if (deriv == Jacobian::Line::VMR) {
-        if (Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-          dF.col(iq).noalias() = Complex(dVMR.G0, dVMR.D0 + dVMR.DV) * dw;
-        else
-          dF.col(iq).setZero();
+      } else if (deriv.Target().needQuantumIdentity()) {
+        const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+        if (lt.found not_eq Absorption::QuantumIdentifierLineTargetType::None) {
+          if (deriv == Jacobian::Line::VMR and lt == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
+            dF.col(iq).noalias() = Complex(dVMR.G0, dVMR.D0 + dVMR.DV) * dw;
+          } else if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = iz * dw;
+          } else if (is_pressure_broadening_G0(deriv) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = dw;
+          } else if (is_pressure_broadening_D0(deriv) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = iz * dw;
+          } else {
+            dF.col(iq).setZero();
+          }
+        }
       }
     }
   }
@@ -350,30 +350,30 @@ void Linefunctions::set_voigt(
       if (not propmattype_index(derivatives_data, iq)) continue;
       const auto& deriv = derivatives_data[iq];
 
-      if (is_frequency_parameter(deriv))
+      if (is_frequency_parameter(deriv)) {
         dF.col(iq).noalias() = invGD * dw;
-      else if (deriv == Jacobian::Atm::Temperature)
+      } else if (deriv == Jacobian::Atm::Temperature) {
         dF.col(iq).noalias() =
             dw * Complex(-dT.D0 - dT.DV, dT.G0) * invGD -
             F * dGD_dT * invGD - dw.cwiseProduct(z) * dGD_dT * invGD;
-      else if ((deriv == Jacobian::Line::Center or
-                is_pressure_broadening_DV(deriv)) and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = -F / F0 - dw * invGD - dw.cwiseProduct(z) / F0;
-      else if (is_pressure_broadening_G0(deriv) and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = iz * dw * invGD;
-      else if (is_pressure_broadening_D0(deriv) and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = -dw * invGD;
-      else if (is_magnetic_parameter(deriv))
+      } else if (is_magnetic_parameter(deriv)) {
         dF.col(iq).noalias() = dw * (-zeeman_df * invGD);
-      else if (deriv == Jacobian::Line::VMR and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() =
-            dw * Complex(-dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
-      else
-        dF.col(iq).setZero();
+      } else if (deriv.Target().needQuantumIdentity()) {
+        const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+        if (lt.found not_eq Absorption::QuantumIdentifierLineTargetType::None) {
+          if (deriv == Jacobian::Line::VMR and lt == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
+            dF.col(iq).noalias() = dw * Complex(-dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
+          } else if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = -F / F0 - dw * invGD - dw.cwiseProduct(z) / F0;
+          } else if (is_pressure_broadening_G0(deriv) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = iz * dw * invGD;
+          } else if (is_pressure_broadening_D0(deriv) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = -dw * invGD;
+          } else {
+            dF.col(iq).setZero();
+          }
+        }
+      }
     }
   }
 }
@@ -409,17 +409,19 @@ void Linefunctions::set_doppler(
     if (not propmattype_index(derivatives_data, iq)) continue;
     const auto& deriv = derivatives_data[iq];
 
-    if (is_frequency_parameter(deriv))
+    if (is_frequency_parameter(deriv)) {
       dF.col(iq).noalias() = -2 * invGD * F.cwiseProduct(x);
-    else if (deriv == Jacobian::Atm::Temperature)
+    } else if (deriv == Jacobian::Atm::Temperature) {
       dF.col(iq).noalias() =
           -dGD_div_F0_dT * F0 * invGD * (2.0 * F.cwiseProduct(mx2) + F);
-    else if (deriv == Jacobian::Line::Center and
-             Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-      dF.col(iq).noalias() = -F.cwiseProduct(mx2) * (2 / F0) +
-                             F.cwiseProduct(x) * 2 * (invGD - 1 / F0);
-    else if (deriv == Jacobian::Line::VMR)
-      dF.col(iq).setZero();  // Must reset incase other lineshapes are mixed in
+    } else if (deriv.Target().needQuantumIdentity()) {
+      const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+      if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+        dF.col(iq).noalias() = -F.cwiseProduct(mx2) * (2 / F0) + F.cwiseProduct(x) * 2 * (invGD - 1 / F0);
+      } else {
+        dF.col(iq).setZero();
+      }
+    }
   }
 }
 
@@ -450,16 +452,18 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
       if (deriv == Jacobian::Atm::Temperature) {
         const auto c = Complex(dT.G, -dT.Y);
         dF.col(iq).noalias() += F * c + Fm * conj(c);
-      } else if (is_pressure_broadening_G(deriv) and
-                 Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = F + Fm;
-      else if (is_pressure_broadening_Y(deriv) and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = Complex(0, -1) * (F - Fm);
-      else if (deriv == Jacobian::Line::VMR and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
-        const auto c = Complex(dVMR.G, -dVMR.Y);
-        dF.col(iq).noalias() += F * c + Fm * conj(c);
+      } else if (deriv.Target().needQuantumIdentity()) {
+        const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+        if (lt.found not_eq Absorption::QuantumIdentifierLineTargetType::None) {
+          if (deriv == Jacobian::Line::VMR and lt == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
+            const auto c = Complex(dVMR.G, -dVMR.Y);
+            dF.col(iq).noalias() += F * c + Fm * conj(c);
+          } else if (is_pressure_broadening_G(deriv) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = F + Fm;
+          } else if (is_pressure_broadening_Y(deriv) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = Complex(0, -1) * (F - Fm);
+          }
+        }
       }
     }
   } else {
@@ -467,17 +471,20 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
       if (not propmattype_index(derivatives_data, iq)) continue;
       const auto& deriv = derivatives_data[iq];
 
-      if (deriv == Jacobian::Atm::Temperature)
+      if (deriv == Jacobian::Atm::Temperature) {
         dF.col(iq).noalias() += F * Complex(dT.G, -dT.Y);
-      else if (is_pressure_broadening_G(deriv) and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = F;
-      else if (is_pressure_broadening_Y(deriv) and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = Complex(0, -1) * F;
-      else if (deriv == Jacobian::Line::VMR and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() += F * Complex(dVMR.G, -dVMR.Y);
+      } else if (deriv.Target().needQuantumIdentity()) {
+        const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+        if (lt.found not_eq Absorption::QuantumIdentifierLineTargetType::None) {
+          if (deriv == Jacobian::Line::VMR and lt == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
+            dF.col(iq).noalias() += F * Complex(dVMR.G, -dVMR.Y);
+          } else if (is_pressure_broadening_G(deriv) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = F;
+          } else if (is_pressure_broadening_Y(deriv) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            dF.col(iq).noalias() = Complex(0, -1) * F;
+          }
+        }
+      }
     }
   }
 
@@ -520,17 +527,20 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(
       const auto& deriv = derivatives_data[iq];
 
       dF(iv, iq) *= fun;
-      if (deriv == Jacobian::Atm::Temperature)
+      if (deriv == Jacobian::Atm::Temperature) {
         dF(iv, iq) += dmafac_dT_div_fun * F[iv];
-      else if (deriv == Jacobian::Line::Center and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF(iv, iq) +=
+      } else if (is_frequency_parameter(deriv)) {
+        dF(iv, iq) += (2.0 / f_grid[iv]) * F[iv];
+      } else if (deriv.Target().needQuantumIdentity()) {
+        const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+        if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+          dF(iv, iq) +=
             (-invF0 - Constant::h / (2.0 * Constant::k * T *
                                      std::tanh(F0 * Constant::h /
                                                (2.0 * Constant::k * T)))) *
             F[iv];
-      else if (is_frequency_parameter(deriv))
-        dF(iv, iq) += (2.0 / f_grid[iv]) * F[iv];
+        }
+      }
     }
   }
 }
@@ -568,19 +578,21 @@ void Linefunctions::apply_VVH_scaling(
     if (not propmattype_index(derivatives_data, iq)) continue;
     const auto& deriv = derivatives_data[iq];
 
-    if (deriv == Jacobian::Atm::Temperature)
+    if (deriv == Jacobian::Atm::Temperature) {
       dF.col(iq).noalias() +=
           -c1 / T *
           ((denom - F0 / tanh_f0part) * F - denom * ftanh_f.cwiseProduct(F) +
            f_grid.cwiseProduct(F).cwiseQuotient(tanh_f));
-    else if (is_frequency_parameter(deriv))
+    } else if (is_frequency_parameter(deriv)) {
       dF.col(iq).noalias() +=
           F.cwiseQuotient(f_grid) +
           c1 * (F.cwiseQuotient(tanh_f) - F.cwiseProduct(tanh_f));
-    else if (deriv == Jacobian::Line::Center and
-             Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-      dF.col(iq).noalias() +=
-          (-1.0 / F0 + c1 * tanh_f0part - c1 / tanh_f0part) * F;
+    } else if (deriv.Target().needQuantumIdentity()) {
+      const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+      if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+        dF.col(iq).noalias() += (-1.0 / F0 + c1 * tanh_f0part - c1 / tanh_f0part) * F;
+      }
+    }
   }
 }
 
@@ -613,11 +625,14 @@ void Linefunctions::apply_VVW_scaling(
       dF(iv, iq) *= fac;
 
       // These partial derivatives are special
-      if (deriv == Jacobian::Line::Center and
-          Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF(iv, iq) -= 2.0 * invF0 * F[iv];
-      else if (is_frequency_parameter(deriv))
+      if (is_frequency_parameter(deriv)) {
         dF(iv, iq) += 2.0 / f_grid[iv] * F[iv];
+      } else if (deriv.Target().needQuantumIdentity()) {
+        const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+        if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+          dF(iv, iq) -= 2.0 * invF0 * F[iv];
+        }
+      }
     }
   }
 }
@@ -667,20 +682,19 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
     if (not propmattype_index(derivatives_data, iq)) continue;
     const auto& deriv = derivatives_data[iq];
 
-    if (deriv == Jacobian::Atm::Temperature)
+    if (deriv == Jacobian::Atm::Temperature) {
       dF.col(iq).noalias() +=
       F * (dstimulated_relative_emission_dT(gamma, gamma_ref, line.F0(), T) /
                    K2 +
                    dboltzman_ratio_dT_div_boltzmann_ratio(T, line.E0()) - invQT * dQT_dT);
-    else if (deriv == Jacobian::Line::Strength and
-             Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-      dF.col(iq).noalias() = F / line.I0();  //nb. overwrite
-    else if (deriv == Jacobian::Line::Center and
-             Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-      dF.col(iq).noalias() +=
-          F *
-          dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0) /
-          K2;
+    } else if (deriv.Target().needQuantumIdentity()) {
+      const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+      if (deriv == Jacobian::Line::Strength and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+        dF.col(iq).noalias() = F / line.I0();  //nb. overwrite
+      } else if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+        dF.col(iq).noalias() += F * dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0) / K2;
+      }
+    } 
   }
 
   // No NLTE variables
@@ -751,38 +765,32 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
 
       dN.col(iq).noalias() += F * (dS_dT_src - dS_dT_abs);
       dF.col(iq).noalias() += F * dS_dT_abs;
-    } else if (deriv == Jacobian::Line::Strength and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
-      dF.col(iq).noalias() = F * dS_dS0_abs;
-      dN.col(iq).noalias() = F * (dS_dS0_src - dS_dS0_abs);
-    } else if (deriv == Jacobian::Line::Center and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
-      const Numeric dS_dF0_abs =
-          S_abs *
-          (dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0) /
-               K2 +
-           dabsorption_nlte_rate_dF0(gamma, T, K4, r_low) / K3);
-      const Numeric dS_dF0_src =
-          S_src *
-          dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0) /
-          K2;
-
-      dN.col(iq).noalias() += F * (dS_dF0_src - dS_dF0_abs);
-      dF.col(iq).noalias() += F * dS_dF0_abs;
-    } else if (deriv == Jacobian::Line::NLTE) {
-      if (Absorption::id_in_line_lower(band, deriv.QuantumIdentity(), line_ind)) {
-        const Numeric dS_dTl_abs =
-            S_abs * dabsorption_nlte_rate_dTl(gamma, T, Tl, Evl, r_low) / K3;
-
-        dN.col(iq).noalias() = -F * dS_dTl_abs;
-        dF.col(iq).noalias() = -dN.col(iq);
-      } else if (Absorption::id_in_line_upper(band, deriv.QuantumIdentity(), line_ind)) {
-        const Numeric dS_dTu_abs =
-            S_abs * dabsorption_nlte_rate_dTu(gamma, T, Tu, Evu, K4) / K3;
-        const Numeric dS_dTu_src = S_src * dboltzman_ratio_dT(K4, Tu, Evu) / K4;
-
-        dN.col(iq).noalias() = F * (dS_dTu_src - dS_dTu_abs);
-        dF.col(iq).noalias() = F * dS_dTu_abs;
+    } else if (deriv.Target().needQuantumIdentity()) {
+      const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+      if (deriv == Jacobian::Line::Strength and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+        dF.col(iq).noalias() = F * dS_dS0_abs;
+        dN.col(iq).noalias() = F * (dS_dS0_src - dS_dS0_abs);
+      } else if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+        const Numeric dS_dF0_abs = S_abs * (dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0) / K2 + dabsorption_nlte_rate_dF0(gamma, T, K4, r_low) / K3);
+        const Numeric dS_dF0_src = S_src * dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0) / K2;
+        
+        dN.col(iq).noalias() += F * (dS_dF0_src - dS_dF0_abs);
+        dF.col(iq).noalias() += F * dS_dF0_abs;
+      } else if (deriv == Jacobian::Line::NLTE  and lt == Absorption::QuantumIdentifierLineTargetType::Level) {
+        if (lt.lower) {
+          const Numeric dS_dTl_abs = S_abs * dabsorption_nlte_rate_dTl(gamma, T, Tl, Evl, r_low) / K3;
+          
+          dN.col(iq).noalias() = -F * dS_dTl_abs;
+          dF.col(iq).noalias() = -dN.col(iq);
+        }
+        
+        if (lt.upper) {
+          const Numeric dS_dTu_abs = S_abs * dabsorption_nlte_rate_dTu(gamma, T, Tu, Evu, K4) / K3;
+          const Numeric dS_dTu_src = S_src * dboltzman_ratio_dT(K4, Tu, Evu) / K4;
+          
+          dN.col(iq).noalias() = F * (dS_dTu_src - dS_dTu_abs);
+          dF.col(iq).noalias() = F * dS_dTu_abs;
+        }
       }
     }
   }
@@ -803,11 +811,13 @@ void Linefunctions::apply_lineshapemodel_jacobian_scaling(
 
   for (auto iq = 0; iq < nppd; iq++) {
     if (not propmattype_index(derivatives_data, iq)) continue;
-    const RetrievalQuantity& rt =
-        derivatives_data[iq];
-    if (is_lineshape_parameter(rt) and
-        Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
-      dF.col(iq) *= band.ShapeParameter_dInternal(line_ind, T, P, vmrs, rt);
+    const RetrievalQuantity& rt = derivatives_data[iq];
+    if (is_lineshape_parameter(rt)) {
+      const Absorption::QuantumIdentifierLineTarget lt(rt.Target().QuantumIdentity(), band, line_ind);
+      if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+        dF.col(iq) *= band.ShapeParameter_dInternal(line_ind, T, P, vmrs, rt);
+      }
+    }
   }
 }
 
@@ -903,27 +913,26 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
     if (not propmattype_index(derivatives_data, iq)) continue;
     const auto& deriv = derivatives_data[iq];
 
-    if (deriv == Jacobian::Atm::Temperature)
-      dN.col(iq).noalias() +=
-          F * e * Constant::h * F0 * exp_T / (c2 * Constant::k * T * T);
-    else if (deriv == Jacobian::Line::Center and
-             Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
-      Numeric done_over_b_df0 =
-          Constant::h * exp_T / (c2 * Constant::k * T) - 3.0 * b / F0;
-      Numeric de_df0 = c1 * r2 * A21;
-      Numeric dk_df0 = c1 * (r1 * x - r2) * (A21 / c2) - 3.0 * k / F0;
+    if (deriv == Jacobian::Atm::Temperature) {
+      dN.col(iq).noalias() += F * e * Constant::h * F0 * exp_T / (c2 * Constant::k * T * T);
+    } else if (deriv.Target().needQuantumIdentity()) {
+      const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
+      if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+        Numeric done_over_b_df0 = Constant::h * exp_T / (c2 * Constant::k * T) - 3.0 * b / F0;
+        Numeric de_df0 = c1 * r2 * A21;
+        Numeric dk_df0 = c1 * (r1 * x - r2) * (A21 / c2) - 3.0 * k / F0;
 
-      dN.col(iq).noalias() += F * (e * done_over_b_df0 + de_df0 / b - dk_df0);
-      dF.col(iq).noalias() += F * dk_df0;
-    } else if (deriv == Jacobian::Line::NLTE) {
-      if (Absorption::id_in_line_lower(band, deriv.QuantumIdentity(), line_ind)) {
-        const Numeric dk_dr2 = -c3 * A21 / c2, de_dr2 = c3 * A21,
-                      dratio_dr2 = de_dr2 / b - dk_dr2;
-        dN.col(iq).noalias() = F * dratio_dr2;
-        dF.col(iq).noalias() = F * dk_dr2;
-      } else if (Absorption::id_in_line_upper(band, deriv.QuantumIdentity(), line_ind)) {
-        const Numeric dk_dr1 = c3 * x * A21 / c2;
-        dF.col(iq).noalias() = F * dk_dr1;
+        dN.col(iq).noalias() += F * (e * done_over_b_df0 + de_df0 / b - dk_df0);
+        dF.col(iq).noalias() += F * dk_df0;
+      } else if (deriv == Jacobian::Line::NLTE and lt == Absorption::QuantumIdentifierLineTargetType::Level) {
+        if (lt.lower) {
+          const Numeric dk_dr2 = -c3 * A21 / c2, de_dr2 = c3 * A21, dratio_dr2 = de_dr2 / b - dk_dr2;
+          dN.col(iq).noalias() = F * dratio_dr2;
+          dF.col(iq).noalias() = F * dk_dr2;
+        } else if (lt.upper) {
+          const Numeric dk_dr1 = c3 * x * A21 / c2;
+          dF.col(iq).noalias() = F * dk_dr1;
+        }
       }
     }
   }
@@ -1058,6 +1067,9 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
     for (auto iq = 0; iq < derivatives_data.nelem(); iq++) {
       if (not propmattype_index(derivatives_data, iq)) continue;
       const RetrievalQuantity& rt = derivatives_data[iq];
+      const Absorption::QuantumIdentifierLineTarget lt = rt.Target().needQuantumIdentity() ?
+        Absorption::QuantumIdentifierLineTarget(rt.Target().QuantumIdentity(), band, line_ind) :
+        Absorption::QuantumIdentifierLineTarget();
 
       Numeric dcte = 0;
       Complex dc0 = 0, dc2 = 0, dc0t = 0, dc2t = 0;
@@ -1069,40 +1081,33 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         dc0t = (-(c0 - 1.5 * c2) * dT.ETA + dT.FVC) +
                ((1 - lso.ETA) * (dc0 - 1.5 * dc2));     // for T
         dc2t = (-c2 * dT.ETA) + ((1 - lso.ETA) * dc2);  // for T
-      } else if (rt == Jacobian::Line::VMR and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
+      } else if (rt == Jacobian::Line::VMR and lt == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
         dc0 = Complex(dV.G0, -dV.D0);  // for VMR
         dc2 = Complex(dV.G2, -dV.D2);  // for VMR
         dc0t = (-(c0 - 1.5 * c2) * dV.ETA + dV.FVC) +
                ((1 - lso.ETA) * (dc0 - 1.5 * dc2));     // for VMR
         dc2t = (-c2 * dV.ETA) + ((1 - lso.ETA) * dc2);  // for VMR
-      } else if (is_pressure_broadening_G2(rt) and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
+      } else if (is_pressure_broadening_G2(rt) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
         dc2 =
             1;  // for Gam2(T, VMR) and for Shift2(T, VMR), the derivative is wrt c2 for later computations
         dc0t = ((1 - lso.ETA) * (dc0 - 1.5 * dc2));
         dc2t = ((1 - lso.ETA) * dc2);
-      } else if (is_pressure_broadening_D2(rt) and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
+      } else if (is_pressure_broadening_D2(rt) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
         dc2 =
             -iz;  // for Gam2(T, VMR) and for Shift2(T, VMR), the derivative is wrt c2 for later computations
         dc0t = ((1 - lso.ETA) * (dc0 - 1.5 * dc2));
         dc2t = ((1 - lso.ETA) * dc2);
-      } else if (is_pressure_broadening_G0(rt) and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
+      } else if (is_pressure_broadening_G0(rt) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
         dc0 =
             1;  // for Gam0(T, VMR) and for Shift0(T, VMR), the derivative is wrt c0 for later computations
         dc0t = ((1 - lso.ETA) * (dc0 - 1.5 * dc2));
-      } else if (is_pressure_broadening_D0(rt) and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
+      } else if (is_pressure_broadening_D0(rt) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
         dc0 =
             -iz;  // for Gam0(T, VMR) and for Shift0(T, VMR), the derivative is wrt c0 for later computations
         dc0t = ((1 - lso.ETA) * (dc0 - 1.5 * dc2));
-      } else if (is_pressure_broadening_FVC(rt) and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
+      } else if (is_pressure_broadening_FVC(rt) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
         dc0t = (1);  // for FVC(T, VMR)
-      } else if (is_pressure_broadening_ETA(rt) and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
+      } else if (is_pressure_broadening_ETA(rt) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
         dc0t = (-c0 + 1.5 * c2);  // for eta(T, VMR)
         dc2t = (-c2);             // for eta(T, VMR)
       }
@@ -1112,8 +1117,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
       Complex dX;
       if (is_magnetic_parameter(rt))
         dX = -iz * freq2kaycm(zeeman_df_si) / c2t;  // for H
-      else if (rt == Jacobian::Line::Center and
-               Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
+      else if (rt == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line)
         dX = -iz / c2t;  // for sg0
       else if (is_frequency_parameter(rt))
         dX = iz / c2t;  // for sg
@@ -1127,8 +1131,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         Complex dZ1;
         if (is_magnetic_parameter(rt))
           dZ1 = -iz * cte * freq2kaycm(zeeman_df_si);  // for H
-        else if (rt == Jacobian::Line::Center and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
+        else if (rt == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line)
           dZ1 = -iz * cte;  // for sg0
         else if (is_frequency_parameter(rt))
           dZ1 = iz * cte;  // for sg
@@ -1155,8 +1158,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         Complex dZ1;
         if (is_magnetic_parameter(rt))
           dZ1 = -iz * cte * freq2kaycm(zeeman_df_si);  // for H
-        else if (rt == Jacobian::Line::Center and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
+        else if (rt == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line)
           dZ1 = -iz * cte;  // for sg0
         else if (is_frequency_parameter(rt))
           dZ1 = iz * cte;  // for sg
@@ -1254,11 +1256,9 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
       } else if (rt == Jacobian::Line::VMR) {
         dETA = dV.ETA;
         dFVC = dV.FVC;
-      } else if (is_pressure_broadening_ETA(rt) and
-                 Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
+      } else if (is_pressure_broadening_ETA(rt) and lt == Absorption::QuantumIdentifierLineTargetType::Line)
         dETA = 1;
-      else if (is_pressure_broadening_FVC(rt) and
-               Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
+      else if (is_pressure_broadening_FVC(rt) and lt == Absorption::QuantumIdentifierLineTargetType::Line)
         dFVC = 1;
 
       dF.col(iq)(iv) =

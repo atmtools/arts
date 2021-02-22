@@ -39,12 +39,13 @@ Output2 EnergyLevelMap::get_ratio_params(
   bool found1=false;
   bool found2=false;
   for (size_t i=0; i<mlevels.size(); i++) {
-    if (Absorption::id_in_line_lower(band, mlevels[i], line_index)) {
+    const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(mlevels[i], band, line_index);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
       found1 = true;
       x.r_low = mvalue(i, 0, 0, 0);
     }
     
-    if (Absorption::id_in_line_upper(band, mlevels[i], line_index)) {
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
       found2 = true;
       x.r_upp = mvalue(i, 0, 0, 0);
     }
@@ -68,13 +69,15 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   bool found1=false;
   bool found2=false;
   for (Index i=0; i<mlevels.nelem(); i++) {
-    if (Absorption::id_in_line_lower(band, mlevels[i], line_index)) {
+    const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(mlevels[i], band, line_index);
+    
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
       found1 = true;
       x.T_low = mvalue(i, 0, 0, 0);
       x.E_low = mvib_energy[i];
     }
     
-    if (Absorption::id_in_line_upper(band, mlevels[i], line_index)) {
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
       found2 = true;
       x.T_upp = mvalue(i, 0, 0, 0);
       x.E_upp = mvib_energy[i];

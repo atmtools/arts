@@ -967,9 +967,10 @@ void abs_linesSetQuantumNumberForMatch(ArrayOfAbsorptionLines& abs_lines,
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
-      if (Absorption::id_in_line_lower(band, QI, k)) {
+      const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(QI, band, k);
+      if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
         band.LowerQuantumNumber(k, QN) = x;
-      } else if (Absorption::id_in_line_upper(band, QI, k)) {
+      } else if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
         band.UpperQuantumNumber(k, QN) = x;
       }
     }
@@ -1805,8 +1806,9 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_li
 
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
-      if (loose_matching ? Absorption::id_in_line(band, QI, k)
-                         : Absorption::line_is_id(band, QI, k)) {
+      const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(QI, band, k);
+      if (loose_matching ? lt == Absorption::QuantumIdentifierLineTargetType::Band
+                         : lt == Absorption::QuantumIdentifierLineTargetType::Line) {
         switch (parameter_switch) {
           case 0:  // "Central Frequency":
             if (relative == 0)

@@ -218,8 +218,9 @@ void nlte_collision_factorsCalcFromCoeffs(
             
             const auto& transition = collision_line_identifiers[j];
             const auto& gf1 = collision_coefficients[i][j];
+            const Absorption::QuantumIdentifierLineTarget lt(transition, band, k);
             
-            if (Absorption::id_in_line(band, transition, k)) {
+            if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
               // Standard linear ARTS interpolation
               const FixedLagrangeInterpolation<1> lag(0, T, gf1.get_numeric_grid(0), false);
               const auto itw = interpweights(lag);
@@ -248,15 +249,16 @@ void nlte_positions_in_statistical_equilibrium_matrix(
 
   upper = ArrayOfIndex(nl, -1);
   lower = ArrayOfIndex(nl, -1);
-
+  
   Index i=0;
   for (auto& lines: abs_lines) {
     for (const AbsorptionLines& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
         for (Index iq = 0; iq < nq; iq++) {
-          if (Absorption::id_in_line_lower(band, nlte_field.Levels()[iq], i))
+          const Absorption::QuantumIdentifierLineTarget lt(nlte_field.Levels()[iq], band, k);
+          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower)
             lower[i] = iq;
-          if (Absorption::id_in_line_upper(band, nlte_field.Levels()[iq], i))
+          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper)
             upper[i] = iq;
         }
         i++;
