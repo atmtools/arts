@@ -17,7 +17,8 @@ from setuptools import setup, find_packages
 
 # To use a consistent encoding
 from codecs import open
-from os.path import abspath, dirname, join
+from os import remove
+from os.path import abspath, dirname, isfile, join
 
 import builtins
 
@@ -30,8 +31,11 @@ STABLE = int(VERSION_TUPLE[1]) % 2 == 0
 here = abspath(dirname(__file__))
 
 try:
-    lib_path = join("@ARTS_BINARY_DIR@", "src", "libarts_api.so")
-    shutil.copy(lib_path, "pyarts/workspace")
+    arts_libname = "libarts_api.so"
+    lib_path = join("@ARTS_BINARY_DIR@", "src", arts_libname)
+    if isfile(join("pyarts", "workspace", arts_libname)):
+        remove(join("pyarts", "workspace", arts_libname))
+    shutil.copy(lib_path, join("pyarts", "workspace"))
 except:
     raise Exception(
         "Could not find ARTS API, which is required for the Python "
