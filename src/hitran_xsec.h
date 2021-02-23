@@ -37,62 +37,19 @@
 class XsecRecord {
  public:
   /** Return species index */
-  Species::Species Species() const { return mspecies; };
+  [[nodiscard]] Index Species() const { return mspecies; };
 
   /** Return species name */
-  String SpeciesName() const;
+  [[nodiscard]] String SpeciesName() const;
 
   /** Set species name */
   void SetSpecies(const Species::Species species) { mspecies = species; };
 
   /** Return species index */
-  Index Version() const { return mversion; };
+  [[nodiscard]] Index Version() const { return mversion; };
 
   /** Set species name */
-  void SetVersion(const Index version);
-
-  /************ VERSION 1 *************/
-  /** Get coefficients */
-  ConstVectorView Coeffs() const { return mcoeffs; };
-
-  /** Get reference pressures */
-  ConstVectorView RefPressure() const { return mrefpressure; };
-
-  /** Get reference temperatures */
-  ConstVectorView RefTemperature() const { return mreftemperature; };
-
-  /** Get frequency grids of cross sections */
-  const ArrayOfVector& Fgrids() const { return mfgrids; };
-
-  /** Get cross sections */
-  const ArrayOfVector& Xsecs() const { return mxsecs; };
-
-  /** Get slope of temperature fit */
-  const ArrayOfVector& TemperatureSlope() const { return mtslope; };
-
-  /** Get intersect of temperature fit */
-  const ArrayOfVector& TemperatureIntersect() const { return mtintersect; };
-
-  /** Get coefficients */
-  Vector& Coeffs() { return mcoeffs; };
-
-  /** Get reference pressures */
-  Vector& RefPressure() { return mrefpressure; };
-
-  /** Get reference temperatures */
-  Vector& RefTemperature() { return mreftemperature; };
-
-  /** Get frequency grids of cross sections */
-  ArrayOfVector& Fgrids() { return mfgrids; };
-
-  /** Get cross sections */
-  ArrayOfVector& Xsecs() { return mxsecs; };
-
-  /** Get slope of temperature fit */
-  ArrayOfVector& TemperatureSlope() { return mtslope; };
-
-  /** Get intersect of temperature fit */
-  ArrayOfVector& TemperatureIntersect() { return mtintersect; };
+  void SetVersion(Index version);
 
   /** Interpolate cross section data.
 
@@ -108,77 +65,72 @@ class XsecRecord {
      \param[in] verbosity   Standard verbosity object.
      */
   void Extract(VectorView result,
-               ConstVectorView f_grid,
-               const Numeric pressure,
-               const Numeric temperature,
-               const Index extrapolate_pressure,
-               const Index extrapolate_temperature,
+               const ConstVectorView& f_grid,
+               Numeric pressure,
+               Numeric temperature,
+               Index extrapolate_pressure,
+               Index extrapolate_temperature,
                const Verbosity& verbosity) const;
 
   /************ VERSION 2 *************/
   /** Get mininum pressures from fit */
-  const Vector& FitMinPressures() const { return mfitminpressures; };
+  [[nodiscard]] const Vector& FitMinPressures() const {
+    return mfitminpressures;
+  };
 
   /** Get maximum pressures from fit */
-  const Vector& FitMaxPressures() const { return mfitmaxpressures; };
+  [[nodiscard]] const Vector& FitMaxPressures() const {
+    return mfitmaxpressures;
+  };
 
   /** Get mininum temperatures from fit */
-  const Vector& FitMinTemperatures() const { return mfitmintemperatures; };
+  [[nodiscard]] const Vector& FitMinTemperatures() const {
+    return mfitmintemperatures;
+  };
 
   /** Get maximum temperatures */
-  const Vector& FitMaxTemperatures() const { return mfitmaxtemperatures; };
+  [[nodiscard]] const Vector& FitMaxTemperatures() const {
+    return mfitmaxtemperatures;
+  };
 
   /** Get coefficients */
-  const ArrayOfGriddedField2& FitCoeffs() const { return mfitcoeffs; };
+  [[nodiscard]] const ArrayOfGriddedField2& FitCoeffs() const {
+    return mfitcoeffs;
+  };
 
   /** Get mininum pressures from fit */
-  Vector& FitMinPressures() { return mfitminpressures; };
+  [[nodiscard]] Vector& FitMinPressures() { return mfitminpressures; };
 
   /** Get maximum pressures from fit */
-  Vector& FitMaxPressures() { return mfitmaxpressures; };
+  [[nodiscard]] Vector& FitMaxPressures() { return mfitmaxpressures; };
 
   /** Get mininum temperatures from fit */
-  Vector& FitMinTemperatures() { return mfitmintemperatures; };
+  [[nodiscard]] Vector& FitMinTemperatures() { return mfitmintemperatures; };
 
   /** Get maximum temperatures */
-  Vector& FitMaxTemperatures() { return mfitmaxtemperatures; };
+  [[nodiscard]] Vector& FitMaxTemperatures() { return mfitmaxtemperatures; };
 
   /** Get coefficients */
-  ArrayOfGriddedField2& FitCoeffs() { return mfitcoeffs; };
+  [[nodiscard]] ArrayOfGriddedField2& FitCoeffs() { return mfitcoeffs; };
 
  private:
-  void Extract1(VectorView result,
-                ConstVectorView f_grid,
-                const Numeric pressure,
-                const Numeric temperature,
-                const Index apply_tfit,
-                const Verbosity& verbosity) const;
-
-  void Extract2(VectorView result,
-                ConstVectorView f_grid,
-                const Numeric pressure,
-                const Numeric temperature,
-                const Index extrapolate_pressure,
-                const Index extrapolate_temperature,
-                const Verbosity& verbosity) const;
-
   void CalcXsec(VectorView& xsec,
-                const Index dataset,
-                const Range range,
-                const Numeric pressure,
-                const Numeric temperature) const;
+                Index dataset,
+                Range range,
+                Numeric pressure,
+                Numeric temperature) const;
 
   void CalcDT(VectorView& xsec_dt,
-              const Index dataset,
-              const Range range,
-              const Numeric pressure,
-              const Numeric temperature) const;
+              Index dataset,
+              Range range,
+              Numeric pressure,
+              Numeric temperature) const;
 
   void CalcDP(VectorView& xsec_dp,
-              const Index dataset,
-              const Range range,
-              const Numeric pressure,
-              const Numeric temperature) const;
+              Index dataset,
+              Range range,
+              Numeric pressure,
+              Numeric temperature) const;
 
   static const Index P00 = 0;
   static const Index P10 = 1;
@@ -189,14 +141,6 @@ class XsecRecord {
 
   Index mversion;
   Index mspecies;
-  /* VERSION 1 */
-  Vector mcoeffs;
-  Vector mrefpressure;
-  Vector mreftemperature;
-  ArrayOfVector mfgrids;
-  ArrayOfVector mxsecs;
-  ArrayOfVector mtslope;
-  ArrayOfVector mtintersect;
   /* VERSION 2 */
   Vector mfitminpressures;
   Vector mfitmaxpressures;
@@ -205,10 +149,9 @@ class XsecRecord {
   ArrayOfGriddedField2 mfitcoeffs;
 };
 
-typedef Array<XsecRecord> ArrayOfXsecRecord;
+using ArrayOfXsecRecord = Array<XsecRecord>;
 
-Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
-                            const Species::Species species);
+Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data, Index species);
 
 std::ostream& operator<<(std::ostream& os, const XsecRecord& xd);
 
