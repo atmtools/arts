@@ -721,14 +721,7 @@ int main(int argc, char** argv) {
 #else
                << "disabled" << endl
 #endif
-               << "   Hitran Xsec support:  "
-#ifdef ENABLE_FFTW
-               << "enabled (experimental)" << endl
-#else
-               << "enabled (experimental, no FFTW support, using slow convolution method)"
-               << endl
-#endif
-               << "";
+               << endl;
 
     osfeatures << "Include search paths: " << endl;
     for (auto& path : parameters.includepath) {

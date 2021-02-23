@@ -323,11 +323,6 @@ endif()
 
 target_link_libraries (artscore xmliobase wigner)
 
-if (FFTW_FOUND)
-  include_directories (${FFTW_INCLUDE_DIR})
-  target_link_libraries (artscore ${FFTW_LIBRARIES})
-endif()
-
 if (NETCDF_FOUND)
   target_link_libraries (artscore ${NETCDF_LIBRARIES})
 endif (NETCDF_FOUND)
