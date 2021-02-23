@@ -8,26 +8,6 @@ from pyarts.classes import from_workspace
 xr = XsecRecord()
 xr2 = XsecRecord()
 
-# VERSION 1
-xr.version = 1
-xr.spec = 1
-xr.coeffs = 2
-xr.ref_pressure = 3
-xr.ref_temperature = 4
-xr.fgrids = ArrayOfVector([Vector([5,6])])
-xr.xsecs = ArrayOfVector([Vector([7,8])])
-xr.temperature_slope = ArrayOfVector([Vector([9,10])])
-xr.temperature_intersect = ArrayOfVector([Vector([11,12])])
-xr.fitminpressures = Vector([2,3])
-
-xr2.set(xr)
-assert xr == xr2
-
-xr3 = XsecRecord()
-xr.savexml("tmp1.xr.xml", "ascii")
-xr3.readxml("tmp1.xr.xml")
-
-
 # VERSION 2
 xr = XsecRecord()
 xr.version = 2

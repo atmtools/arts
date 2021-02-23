@@ -19,23 +19,19 @@
 /*!
   \file   m_hitran_xsec.cc
   \author Oliver Lemke <oliver.lemke@uni-hamburg.de>
-  \author Stefan Buehler
-  \date   2018-01-08
+  \date   2021-02-23
 
   \brief  Workspace methods for HITRAN absorption cross section data.
 
 */
 
-#include "absorption.h"
+#include "abs_species_tags.h"
 #include "arts.h"
-#include "auto_md.h"
 #include "global_data.h"
 #include "hitran_xsec.h"
+#include "jacobian.h"
 #include "m_xml.h"
 #include "messages.h"
-#include "physics_funcs.h"
-
-extern const Numeric SPEED_OF_LIGHT;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
@@ -103,10 +99,14 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
     const Index n_tgs = abs_species.nelem();
     const Index n_xsec = abs_xsec_per_species.nelem();
 
-    ARTS_USER_ERROR_IF (n_tgs != n_xsec,
+    ARTS_USER_ERROR_IF(
+        n_tgs != n_xsec,
         "The following variables must all have the same dimension:\n"
-        "abs_species:          ", n_tgs, "\n"
-        "abs_xsec_per_species: ", n_xsec)
+        "abs_species:          ",
+        n_tgs,
+        "\n"
+        "abs_xsec_per_species: ",
+        n_xsec)
   }
 
   // Jacobian overhead START
@@ -139,10 +139,14 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
     const Index n_p = abs_p.nelem();
     const Index n_t = abs_t.nelem();
 
-    ARTS_USER_ERROR_IF (n_p != n_t,
+    ARTS_USER_ERROR_IF(
+        n_p != n_t,
         "The following variables must all have the same dimension:\n"
-        "abs_p:          ", n_p, "\n"
-        "abs_t:          ", n_t)
+        "abs_p:          ",
+        n_p,
+        "\n"
+        "abs_t:          ",
+        n_t)
   }
 
   // Allocate a vector with dimension frequencies for constructing our
@@ -175,18 +179,13 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
 
       Index this_xdata_index =
           hitran_xsec_get_index(hitran_xsec_data, this_species.Spec());
-      ARTS_USER_ERROR_IF (this_xdata_index < 0,
-          "Cross-section species ", this_species.Name(),
-          " not found in *hitran_xsec_data*.")
+      ARTS_USER_ERROR_IF(this_xdata_index < 0,
+                         "Cross-section species ",
+                         this_species.Name(),
+                         " not found in *hitran_xsec_data*.")
       const XsecRecord& this_xdata = hitran_xsec_data[this_xdata_index];
       Matrix& this_xsec = abs_xsec_per_species[i];
       ArrayOfMatrix& this_dxsec = do_jac ? dabs_xsec_per_species_dx[i] : empty;
-
-#ifndef ENABLE_FFTW
-      if (this_xdata.Version() == 1)
-        out0 << "HITRAN XSEC Warning: No FFTW library support enabled, "
-             << "convolution will be extremely slow\n";
-#endif
 
       // Loop over pressure:
 #pragma omp parallel for if (!arts_omp_in_parallel() && abs_p.nelem() >= 1) \

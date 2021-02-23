@@ -18,27 +18,6 @@ class XsecRecord:
         spec:
             Species (Species)
 
-        coeffs:
-            Coefficients (Vector)
-
-        ref_pressure:
-            Reference pressure (Vector)
-
-        ref_temperature:
-            Reference temperature (Vector)
-
-        fgrids:
-            Frequency grids (ArrayOfVector)
-
-        xsecs:
-            Cross-sections (ArrayOfVector)
-
-        temperature_slope:
-            Slope of temperature fits (ArrayOfVector)
-
-        temperature_intersect:
-            Intersect of temperature fits (ArrayOfVector)
-
         fitminpressures:
             Mininum pressures of fit
 
@@ -83,69 +62,6 @@ class XsecRecord:
     def spec(self, val):
         spec = val if isinstance(val, Species) else Species(val)
         lib.setSpeciesXsecRecord(self.__data__, spec.__data__)
-
-    @property
-    def coeffs(self):
-        """ Coefficients (Vector) """
-        return Vector(c.c_void_p(lib.getCoeffsXsecRecord(self.__data__)))
-
-    @coeffs.setter
-    def coeffs(self, val):
-        self.coeffs.set(val)
-
-    @property
-    def ref_pressure(self):
-        """ Reference pressure (Vector) """
-        return Vector(c.c_void_p(lib.getRefPressureXsecRecord(self.__data__)))
-
-    @ref_pressure.setter
-    def ref_pressure(self, val):
-        self.ref_pressure.set(val)
-
-    @property
-    def ref_temperature(self):
-        """ Reference temperature (Vector) """
-        return Vector(c.c_void_p(lib.getRefTemperatureXsecRecord(self.__data__)))
-
-    @ref_temperature.setter
-    def ref_temperature(self, val):
-        self.ref_temperature.set(val)
-
-    @property
-    def fgrids(self):
-        """ Frequency grids (ArrayOfVector) """
-        return ArrayOfVector(c.c_void_p(lib.getFgridsXsecRecord(self.__data__)))
-
-    @fgrids.setter
-    def fgrids(self, val):
-        self.fgrids.set(val)
-
-    @property
-    def xsecs(self):
-        """ Cross-sections (ArrayOfVector) """
-        return ArrayOfVector(c.c_void_p(lib.getXsecsXsecRecord(self.__data__)))
-
-    @xsecs.setter
-    def xsecs(self, val):
-        self.xsecs.set(val)
-
-    @property
-    def temperature_slope(self):
-        """ Slope of temperature fits (ArrayOfVector) """
-        return ArrayOfVector(c.c_void_p(lib.getTemperatureSlopeXsecRecord(self.__data__)))
-
-    @temperature_slope.setter
-    def temperature_slope(self, val):
-        self.temperature_slope.set(val)
-
-    @property
-    def temperature_intersect(self):
-        """ Intersect of temperature fits (ArrayOfVector) """
-        return ArrayOfVector(c.c_void_p(lib.getTemperatureIntersectXsecRecord(self.__data__)))
-
-    @temperature_intersect.setter
-    def temperature_intersect(self, val):
-        self.temperature_intersect.set(val)
 
     @property
     def fitminpressures(self):
@@ -212,13 +128,6 @@ class XsecRecord:
         if isinstance(other, XsecRecord):
             lib.setVersionXsecRecord(self.__data__, int(other.version))
             lib.setSpeciesXsecRecord(self.__data__, int(other.spec))
-            self.coeffs = other.coeffs
-            self.ref_pressure = other.ref_pressure
-            self.ref_temperature = other.ref_temperature
-            self.fgrids = other.fgrids
-            self.xsecs = other.xsecs
-            self.temperature_slope = other.temperature_slope
-            self.temperature_intersect = other.temperature_intersect
             self.fitminpressures = other.fitminpressures
             self.fitmaxpressures = other.fitmaxpressures
             self.fitmintemperatures = other.fitmintemperatures
@@ -257,13 +166,6 @@ class XsecRecord:
         if isinstance(other, XsecRecord) and \
                 self.version == other.version and \
                 self.spec == other.spec and \
-                self.coeffs == other.coeffs and \
-                self.ref_pressure == other.ref_pressure and \
-                self.ref_temperature == other.ref_temperature and \
-                self.fgrids == other.fgrids and \
-                self.xsecs == other.xsecs and \
-                self.temperature_slope == other.temperature_slope and \
-                self.temperature_intersect == other.temperature_intersect and \
                 self.fitminpressures == other.fitminpressures and \
                 self.fitmaxpressures == other.fitmaxpressures and \
                 self.fitmintemperatures == other.fitmintemperatures and \
@@ -300,27 +202,6 @@ lib.getSpeciesXsecRecord.argtypes = [c.c_void_p]
 
 lib.setSpeciesXsecRecord.restype = None
 lib.setSpeciesXsecRecord.argtypes = [c.c_void_p, c.c_void_p]
-
-lib.getCoeffsXsecRecord.restype = c.c_void_p
-lib.getCoeffsXsecRecord.argtypes = [c.c_void_p]
-
-lib.getRefPressureXsecRecord.restype = c.c_void_p
-lib.getRefPressureXsecRecord.argtypes = [c.c_void_p]
-
-lib.getRefTemperatureXsecRecord.restype = c.c_void_p
-lib.getRefTemperatureXsecRecord.argtypes = [c.c_void_p]
-
-lib.getFgridsXsecRecord.restype = c.c_void_p
-lib.getFgridsXsecRecord.argtypes = [c.c_void_p]
-
-lib.getXsecsXsecRecord.restype = c.c_void_p
-lib.getXsecsXsecRecord.argtypes = [c.c_void_p]
-
-lib.getTemperatureSlopeXsecRecord.restype = c.c_void_p
-lib.getTemperatureSlopeXsecRecord.argtypes = [c.c_void_p]
-
-lib.getTemperatureIntersectXsecRecord.restype = c.c_void_p
-lib.getTemperatureIntersectXsecRecord.argtypes = [c.c_void_p]
 
 lib.getFitMinPressuresXsecRecord.restype = c.c_void_p
 lib.getFitMinPressuresXsecRecord.argtypes = [c.c_void_p]

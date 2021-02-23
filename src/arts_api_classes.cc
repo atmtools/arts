@@ -1329,19 +1329,6 @@ VoidGetterCAPI(GasAbsLookup, Xsec)
 // XsecRecord
 BasicInterfaceCAPI(XsecRecord)
 BasicInputOutputCAPI(XsecRecord)
-void * getSpeciesXsecRecord(void * data) {
-  return new Species::Species(static_cast<XsecRecord *>(data) -> Species());
-}
-void setSpeciesXsecRecord(void * data, void * val) {
-  static_cast<XsecRecord *>(data) -> SetSpecies(*static_cast<Species::Species *>(val));
-}
-VoidGetterCAPI(XsecRecord, Coeffs)
-VoidGetterCAPI(XsecRecord, RefPressure)
-VoidGetterCAPI(XsecRecord, RefTemperature)
-VoidGetterCAPI(XsecRecord, Fgrids)
-VoidGetterCAPI(XsecRecord, Xsecs)
-VoidGetterCAPI(XsecRecord, TemperatureSlope)
-VoidGetterCAPI(XsecRecord, TemperatureIntersect)
 VoidGetterCAPI(XsecRecord, FitMinPressures)
 VoidGetterCAPI(XsecRecord, FitMaxPressures)
 VoidGetterCAPI(XsecRecord, FitMinTemperatures)
