@@ -12,8 +12,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-ReadXML(hitran_xsec_data, "CFC11.xml.gz")
-
 # Agenda for scalar gas absorption calculation
 AgendaSet( abs_xsec_agenda ){
   Ignore(abs_vmrs)
@@ -69,6 +67,8 @@ VectorNLogSpace( p_grid, 20, 1000e2, 1 )
 # Definition of species
 # ---
 abs_speciesSet(species=["CFC11-HXSEC"])
+
+ReadXsecData(basename="Xsec-coeffs")
 
 # Atmospheric scenario
 # ---
