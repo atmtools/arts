@@ -290,11 +290,6 @@ if (ENABLE_NETCDF)
   endif()
 endif (ENABLE_NETCDF)
 
-########## FFTW support #########
-if (NOT NO_FFTW)
-  include (FindFFTW)
-endif (NOT NO_FFTW)
-
 ########## OpenMP support #########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
   include (FindOpenMP)
@@ -533,13 +528,6 @@ get_directory_property(ENABLE_WIGNER DIRECTORY
 if(FASTWIGNER)
   add_definitions( "-DFAST_WIGNER_PATH_3J=\"${ARTS_BINARY_DIR}/3rdparty/wigner/fastwigxj/fasttable.3j\"")
   add_definitions( "-DFAST_WIGNER_PATH_6J=\"${ARTS_BINARY_DIR}/3rdparty/wigner/fastwigxj/fasttable.6j\"")
-endif()
-
-if (FFTW_FOUND)
-  message (STATUS "HITRAN XSEC enabled (experimental)")
-else()
-  message (STATUS "HITRAN XSEC enabled (experimental, "
-                  "FFTW library not available, using slow convolution method)")
 endif()
 
 if (OEM_SUPPORT)
