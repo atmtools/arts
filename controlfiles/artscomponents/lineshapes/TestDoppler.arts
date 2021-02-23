@@ -101,7 +101,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed line strength derivative
-  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-17, relative=0, loose_matching=0)
+  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-17, relative=0, band_matching=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -112,7 +112,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed line center derivative
-  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Center", change=1e1, relative=0, loose_matching=0)
+  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Center", change=1e1, relative=0, band_matching=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit

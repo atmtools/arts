@@ -1169,7 +1169,11 @@ bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
 
 jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
                                  const QuantumIdentifier& line_qid) noexcept {
-  auto p = std::find_if(js.cbegin(), js.cend(), [&line_qid](auto& j){return j == Jacobian::Line::VMR and j.QuantumIdentity().In(line_qid);});
+  auto p = std::find_if(js.cbegin(), js.cend(), [&line_qid](auto& j) {
+    return j == Jacobian::Line::VMR
+      and j.QuantumIdentity().Species()      == line_qid.Species()
+      and j.QuantumIdentity().Isotopologue() == line_qid.Isotopologue();}
+  );
   if (p not_eq js.cend())
     return {true, p -> QuantumIdentity()};
   else

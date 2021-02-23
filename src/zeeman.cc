@@ -282,8 +282,7 @@ void zeeman_on_the_fly(
                       dpol_deta.dispersion() +
                   numdens * X.dtheta_dw * sum.F.imag() *
                       dpol_dtheta.dispersion();
-            } else if (deriv == Jacobian::Line::VMR and
-                      deriv.QuantumIdentity().In(band.QuantumIdentity())) {
+            } else if (deriv == Jacobian::Line::VMR and Absorption::QuantumIdentifierLineTarget(deriv.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
               dabs.leftCols<4>().noalias() +=
                   numdens * sum.dF.col(j).real() * pol_real +
                   dnumdens_dmvr * sum.F.real() * pol_real;
@@ -357,8 +356,7 @@ void zeeman_on_the_fly(
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_dw * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            } else if (deriv == Jacobian::Line::VMR and
-                     deriv.QuantumIdentity().In(band.QuantumIdentity())) {
+            } else if (deriv == Jacobian::Line::VMR and Absorption::QuantumIdentifierLineTarget(deriv.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
               dnlte_dx_src.noalias() +=
                   dnumdens_dmvr * eB.cwiseProduct(sum.N.real()) * pol_real +
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;

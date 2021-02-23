@@ -283,7 +283,7 @@ void Linefunctions::set_lorentz(
         dF.col(iq).noalias() = iz * zeeman_df * dw;
       } else if (deriv.Target().needQuantumIdentity()) {
         const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
-        if (lt.found not_eq Absorption::QuantumIdentifierLineTargetType::None) {
+        if (lt not_eq Absorption::QuantumIdentifierLineTargetType::None) {
           if (deriv == Jacobian::Line::VMR and lt == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
             dF.col(iq).noalias() = Complex(dVMR.G0, dVMR.D0 + dVMR.DV) * dw;
           } else if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
@@ -360,7 +360,7 @@ void Linefunctions::set_voigt(
         dF.col(iq).noalias() = dw * (-zeeman_df * invGD);
       } else if (deriv.Target().needQuantumIdentity()) {
         const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
-        if (lt.found not_eq Absorption::QuantumIdentifierLineTargetType::None) {
+        if (lt not_eq Absorption::QuantumIdentifierLineTargetType::None) {
           if (deriv == Jacobian::Line::VMR and lt == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
             dF.col(iq).noalias() = dw * Complex(-dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
           } else if (deriv == Jacobian::Line::Center and lt == Absorption::QuantumIdentifierLineTargetType::Line) {
@@ -454,7 +454,7 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
         dF.col(iq).noalias() += F * c + Fm * conj(c);
       } else if (deriv.Target().needQuantumIdentity()) {
         const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
-        if (lt.found not_eq Absorption::QuantumIdentifierLineTargetType::None) {
+        if (lt not_eq Absorption::QuantumIdentifierLineTargetType::None) {
           if (deriv == Jacobian::Line::VMR and lt == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
             const auto c = Complex(dVMR.G, -dVMR.Y);
             dF.col(iq).noalias() += F * c + Fm * conj(c);
@@ -475,7 +475,7 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
         dF.col(iq).noalias() += F * Complex(dT.G, -dT.Y);
       } else if (deriv.Target().needQuantumIdentity()) {
         const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, line_ind);
-        if (lt.found not_eq Absorption::QuantumIdentifierLineTargetType::None) {
+        if (lt not_eq Absorption::QuantumIdentifierLineTargetType::None) {
           if (deriv == Jacobian::Line::VMR and lt == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
             dF.col(iq).noalias() += F * Complex(dVMR.G, -dVMR.Y);
           } else if (is_pressure_broadening_G(deriv) and lt == Absorption::QuantumIdentifierLineTargetType::Line) {

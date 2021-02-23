@@ -1331,6 +1331,8 @@ struct jacobianVMRcheck {
 
 /** Returns the required info for VMR Jacobian
  * 
+ * FIXME: The entire existence of this function is a logical error of the programmer...
+ * 
  * @param[in] js As jacobian_quantities WSV
  * @param[in] line_qid A line identifier
  * @return true and retrieval quantity quantum identity pointer if available

@@ -160,7 +160,7 @@ class QuantumNumbers {
    * @param[in] qn Index Pos to access
    * @return constexpr Rational Copy of value at pos
    */
-  constexpr Rational operator[](const Index qn) const noexcept {
+  constexpr const Rational& operator[](const Index qn) const noexcept {
     return mqnumbers[qn];
   }
 
@@ -169,7 +169,7 @@ class QuantumNumbers {
    * @param qn[in] Index Pos to access
    * @return constexpr Rational Copy of value at pos
    */
-  constexpr Rational operator[](const QuantumNumberType qn) const noexcept {
+  constexpr const Rational& operator[](const QuantumNumberType qn) const noexcept {
     return mqnumbers[Index(qn)];
   }
   
@@ -232,27 +232,6 @@ class QuantumNumbers {
     Index out=0;
     for (auto& qn: mqnumbers) if (qn.isDefined()) out++;
     return out;
-  }
-
-  /** Compare Quantum Numbers
-   * 
-   * Compare all quantum numbers in mqnumbers and qn.mqnumbers
-   * Both numbers must be defined or the comparison is ignored
-   *
-   * @param[in] qn  Quantum Numbers to compare to
-   *
-   * @return true For a match
-   * @return false Otherwise
-   */
-  constexpr bool Compare(const QuantumNumbers& qn) const {
-    for (Index i=0; i<Index(QuantumNumberType::FINAL); i++) {
-      if (mqnumbers[i].isDefined() and
-       qn.mqnumbers[i].isDefined() and
-       qn.mqnumbers[i] not_eq mqnumbers[i]) {
-        return false;
-      }
-    }
-    return true;
   }
   
   /** Returns this as a string */
@@ -558,145 +537,6 @@ class QuantumIdentifier {
   constexpr QuantumNumbers& EnergyLevelQuantumNumbers() ARTS_NOEXCEPT {
     ARTS_ASSERT(mtype == ENERGY_LEVEL);
     return mqm[ENERGY_LEVEL_INDEX];
-  }
-
-  /** Return if this is in other
-   * 
-   * All quantum numbers defined in *this must be the
-   * same as the quantum numbers in other for a call
-   * to In() to return true.  All numbers in other
-   * must not be defined in *this.
-   * 
-   * @param[in] other Another quantum identifier
-   * @return true If the above description holds
-   * @return false Otherwise
-   */
-  constexpr bool In(const QuantumIdentifier& other) const  {
-    if (mspecies not_eq other.mspecies) return false;
-    if (miso not_eq other.miso) return false;
-
-    if (mqtype == QuantumIdentifier::NONE or other.mqtype == QuantumIdentifier::NONE) {
-      return false;
-    } else if (mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {
-    } else if (mqtype not_eq other.mqtype) {
-      ARTS_USER_ERROR ( "Can never compare different types of identifiers with "
-        "QID.In(QID), one of your inputs is of wrong QuantumIdentifier type");
-    } else if (mqtype == QuantumIdentifier::TRANSITION) {
-      auto& other_low = other.mqm[TRANSITION_LOWER_INDEX];
-      auto& other_upp = other.mqm[TRANSITION_UPPER_INDEX];
-      auto& this_low = mqm[TRANSITION_LOWER_INDEX];
-      auto& this_upp = mqm[TRANSITION_UPPER_INDEX];
-
-      for (Index i = 0; i < Index(QuantumNumberType::FINAL); i++) {
-        if (other_low[i].isUndefined()) {
-        } else if (this_low[i].isUndefined()) {
-          return false;
-        } else if (this_low[i] not_eq other_low[i]) {
-          return false;
-        }
-
-        if (other_upp[i].isUndefined()) {
-        } else if (this_upp[i].isUndefined()) {
-          return false;
-        } else if (this_upp[i] not_eq other_upp[i]) {
-          return false;
-        }
-      }
-    } else {
-      auto& other_qn = other.mqm[ENERGY_LEVEL_INDEX];
-      auto& this_qn = mqm[ENERGY_LEVEL_INDEX];
-
-      for (Index i = 0; i < Index(QuantumNumberType::FINAL); i++) {
-        if (other_qn[i].isUndefined()) {
-        } else if (this_qn[i].isUndefined()) {
-          return false;
-        } else if (this_qn[i] not_eq other_qn[i]) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }
-
-  /** Return if this is in other's lower energy state
-   * 
-   * All quantum numbers defined in *this must be the
-   * same as the quantum numbers in other for a call
-   * to In() to return true.  All numbers in other
-   * must not be defined in *this.
-   * 
-   * @param[in] other Another quantum identifier
-   * @return true If the above description holds
-   * @return false Otherwise
-   */
-  constexpr bool InLower(const QuantumIdentifier& other) const  {
-    if (mspecies not_eq other.mspecies) return false;
-    if (miso not_eq other.miso) return false;
-    
-    if (mqtype == QuantumIdentifier::NONE or other.mqtype == QuantumIdentifier::NONE) {
-      return false;
-    } else if (mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {
-      return true;
-    } else if (mqtype not_eq QuantumIdentifier::ENERGY_LEVEL or other.mqtype not_eq QuantumIdentifier::TRANSITION) {
-      ARTS_USER_ERROR (
-        "One of your inputs is bad.  You are using function comparing energy "
-        "levels to the lower state of lines, but the types mismatch");
-    }
-     
-    Index qnri = 0;
-    while (qnri not_eq Index(QuantumNumberType::FINAL)) {
-      if (other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined()) {
-        if (not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) return false;
-      } else {
-        if (other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri]) {
-          return false;
-        }
-      }
-      qnri++;
-    }
-    
-    return true;
-  }
-
-  /** Return if this is in other's upper energy state
-   * 
-   * All quantum numbers defined in *this must be the
-   * same as the quantum numbers in other for a call
-   * to In() to return true.  All numbers in other
-   * must not be defined in *this.
-   * 
-   * @param[in] other Another quantum identifier
-   * @return true If the above description holds
-   * @return false Otherwise
-   */
-  constexpr bool InUpper(const QuantumIdentifier& other) const {
-    if (mspecies not_eq other.mspecies) return false;
-    if (miso not_eq other.miso) return false;
-    
-    if (mqtype == QuantumIdentifier::NONE or other.mqtype == QuantumIdentifier::NONE) {
-      return false;
-    } else if (mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {
-      return true;
-    } else if (mqtype not_eq QuantumIdentifier::ENERGY_LEVEL or other.mqtype not_eq QuantumIdentifier::TRANSITION) {
-      ARTS_USER_ERROR (
-        "One of your inputs is bad.  You are using function comparing energy "
-        "levels to the upper state of lines, but the types mismatch");
-    }
-    
-    Index qnri = 0;
-    while (qnri not_eq Index(QuantumNumberType::FINAL)) {
-      if (other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined()) {
-        if (not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) return false;
-      } else {
-        if (other.mqm[TRANSITION_UPPER_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri]) {
-          return false;
-        }
-      }
-      qnri++;
-    }
-    
-    return true;
   }
 
   /** Check if there are any quantum numbers defined */

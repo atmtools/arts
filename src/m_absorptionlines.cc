@@ -1265,28 +1265,11 @@ void abs_linesSetEmptyBroadeningParametersToEmpty(ArrayOfAbsorptionLines& abs_li
   }
 }
 
-void abs_linesKeepBands(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifier& qid, const Index& ignore_spec, const Index& ignore_isot, const Verbosity&)
+void abs_linesKeepBand(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifier& qid, const Verbosity&)
 {
-  // Invalid setting
-  ARTS_USER_ERROR_IF (ignore_spec and not ignore_isot,
-                      "Cannot ignore the species and not ignore the isotopologue");
-  
-  // local ID is a transition even if an energy level is given
-  QuantumIdentifier this_id=qid;
-  if (QuantumIdentifier::ENERGY_LEVEL == this_id.Type()) {
-    this_id.SetTransition();
-    this_id.UpperQuantumNumbers() = qid.EnergyLevelQuantumNumbers();
-    this_id.LowerQuantumNumbers() = qid.EnergyLevelQuantumNumbers();
-  }
-  
   for (auto& band: abs_lines) {
-    if (ignore_spec)
-      this_id.Species() = band.Species();
-    if (ignore_isot)
-      this_id.Isotopologue() = band.Isotopologue();
-    
-    const bool in_lines = band.QuantumIdentity().In(this_id);
-    while (not in_lines and band.NumLines()) {
+    const Absorption::QuantumIdentifierLineTarget lt(qid, band);
+    while (lt not_eq Absorption::QuantumIdentifierLineTargetType::Band and band.NumLines()) {
       band.RemoveLine(0);
     }
   }
@@ -1316,8 +1299,7 @@ void abs_linesSetCutoff(ArrayOfAbsorptionLines& abs_lines,
                         const Numeric& x,
                         const Verbosity&) 
 {
-  auto t = Absorption::toCutoffType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
+  auto t = Absorption::toCutoffTypeOrThrow(type);
   for (auto& lines: abs_lines) {
     lines.Cutoff(t);
     lines.CutoffFreqValue(x);
@@ -1342,10 +1324,10 @@ void abs_linesSetCutoffForMatch(
   const QuantumIdentifier& QI,
   const Verbosity&)
 {
-  auto t = Absorption::toCutoffType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
+  auto t = Absorption::toCutoffTypeOrThrow(type);
   for (auto& band: abs_lines) {
-    if (QI.In(band.QuantumIdentity())) {
+    const Absorption::QuantumIdentifierLineTarget lt(QI, band);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Band) {
       band.Cutoff(t);
       band.CutoffFreqValue(x);
     }
@@ -1393,8 +1375,7 @@ void abs_linesSetMirroring(ArrayOfAbsorptionLines& abs_lines,
                            const String& type,
                            const Verbosity&) 
 {
-  auto t = Absorption::toMirroringType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
+  auto t = Absorption::toMirroringTypeOrThrow(type);
   for (auto& lines: abs_lines)
     lines.Mirroring(t);
 }
@@ -1414,10 +1395,10 @@ void abs_linesSetMirroringForMatch(ArrayOfAbsorptionLines& abs_lines,
                                    const QuantumIdentifier& QI,
                                    const Verbosity&) 
 {
-  auto t = Absorption::toMirroringType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
+  auto t = Absorption::toMirroringTypeOrThrow(type);
   for (auto& band: abs_lines) {
-    if (QI.In(band.QuantumIdentity())) {
+    const Absorption::QuantumIdentifierLineTarget lt(QI, band);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Band) {
       band.Mirroring(t);
     }
   }
@@ -1460,8 +1441,7 @@ void abs_linesSetPopulation(ArrayOfAbsorptionLines& abs_lines,
                             const String& type,
                             const Verbosity&) 
 {
-  auto t = Absorption::toPopulationType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
+  auto t = Absorption::toPopulationTypeOrThrow(type);
   for (auto& lines: abs_lines)
     lines.Population(t);
 }
@@ -1481,11 +1461,13 @@ void abs_linesSetPopulationForMatch(ArrayOfAbsorptionLines& abs_lines,
                                     const QuantumIdentifier& QI,
                                     const Verbosity&) 
 {
-  auto t = Absorption::toPopulationType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
-  for (auto& lines: abs_lines)
-    if (QI.In(lines.QuantumIdentity()))
+  auto t = Absorption::toPopulationTypeOrThrow(type);
+  for (auto& lines: abs_lines) {
+    const Absorption::QuantumIdentifierLineTarget lt(QI, lines);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Band) {
       lines.Population(t);
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1525,8 +1507,7 @@ void abs_linesSetNormalization(ArrayOfAbsorptionLines& abs_lines,
                            const String& type,
                            const Verbosity&) 
 {
-  auto t = Absorption::toNormalizationType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
+  auto t = Absorption::toNormalizationTypeOrThrow(type);
   for (auto& lines: abs_lines)
     lines.Normalization(t);
 }
@@ -1546,11 +1527,13 @@ void abs_linesSetNormalizationForMatch(ArrayOfAbsorptionLines& abs_lines,
                                        const QuantumIdentifier& QI,
                                        const Verbosity&) 
 {
-  auto t = Absorption::toNormalizationType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
-  for (auto& lines: abs_lines)
-    if (QI.In(lines.QuantumIdentity()))
+  auto t = Absorption::toNormalizationTypeOrThrow(type);
+  for (auto& lines: abs_lines) {
+    const Absorption::QuantumIdentifierLineTarget lt(QI, lines);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Band) {
       lines.Normalization(t);
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1611,11 +1594,13 @@ void abs_linesSetLineShapeTypeForMatch(ArrayOfAbsorptionLines& abs_lines,
                                        const QuantumIdentifier& QI,
                                        const Verbosity&) 
 {
-  auto t = LineShape::toType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
-  for (auto& lines: abs_lines)
-    if (QI.In(lines.QuantumIdentity()))
+  auto t = LineShape::toTypeOrThrow(type);
+  for (auto& lines: abs_lines) {
+    const Absorption::QuantumIdentifierLineTarget lt(QI, lines);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Band) {
       lines.LineShapeType(t);
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1674,9 +1659,12 @@ void abs_linesSetLinemixingLimitForMatch(ArrayOfAbsorptionLines& abs_lines,
                                          const QuantumIdentifier& QI,
                                          const Verbosity&) 
 {
-  for (auto& lines: abs_lines)
-    if (QI.In(lines.QuantumIdentity()))
+  for (auto& lines: abs_lines) {
+    const Absorption::QuantumIdentifierLineTarget lt(QI, lines);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Band) {
       lines.LinemixingLimit(x);
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1735,9 +1723,12 @@ void abs_linesSetT0ForMatch(ArrayOfAbsorptionLines& abs_lines,
                             const QuantumIdentifier& QI,
                             const Verbosity&) 
 {
-  for (auto& lines: abs_lines)
-    if (QI.In(lines.QuantumIdentity()))
+  for (auto& lines: abs_lines) {
+    const Absorption::QuantumIdentifierLineTarget lt(QI, lines);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Band) {
       lines.T0(x);
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1937,8 +1928,9 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
-      if (loose_matching ? Absorption::id_in_line(band, QI, k)
-        : Absorption::line_is_id(band, QI, k)) {
+      const Absorption::QuantumIdentifierLineTarget lt(QI, band, k);
+      if (loose_matching ? lt == Absorption::QuantumIdentifierLineTargetType::Line
+                         : lt == Absorption::QuantumIdentifierLineTargetType::Band) {
         switch (parameter_switch) {
           case 0:  // "Central Frequency":
             band.F0(k) = x;
@@ -2043,7 +2035,8 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
-      if (Absorption::id_in_line(band, QI, k)) {
+      const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(QI, band, k);
+      if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
         if (do_self and band.Self()) {
           out3 << "Changing self\n";
           band.Line(k).LineShape().Data().front().Data()[Index(var)] = newdata;
@@ -2104,7 +2097,8 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
-      if (Absorption::id_in_line_lower(band, QI, k)) {
+      const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(QI, band, k);
+      if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
         switch (parameter_switch) {
           case 1:  // "Statistical Weight":
             if (relative == 0)
@@ -2124,7 +2118,9 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
                                 "\nSee method description for supported parameter names.\n")
           }
         }
-      } else if (Absorption::id_in_line_upper(band, QI, k)) {
+      }
+      
+      if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
         switch (parameter_switch) {
           case 1:  // "Statistical Weight":
             if (relative == 0)
@@ -2213,7 +2209,8 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
-      if (Absorption::id_in_line_lower(band, QI, k)) {
+      const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(QI, band, k);
+      if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
         switch (parameter_switch) {
           case 1:  // "Statistical Weight":
             band.g_low(k) = x;
@@ -2227,7 +2224,9 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
                                 "\nSee method description for supported parameter names.\n")
           }
         }
-      } else if (Absorption::id_in_line_upper(band, QI, k)) {
+      }
+      
+      if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
         switch (parameter_switch) {
           case 1:  // "Statistical Weight":
             band.g_upp(k) = x;
@@ -2313,8 +2312,8 @@ void nlteSetByQuantumIdentifiers(
   for (auto& spec_lines: abs_lines_per_species) {
     for (auto& band: spec_lines) {
       for (auto& id: nlte_field.Levels()) {
-        if (band.QuantumIdentity().UpperQuantumId().In(id) or
-            band.QuantumIdentity().LowerQuantumId().In(id)) {
+        const Absorption::QuantumIdentifierLineTarget lt(id, band);
+        if (lt == Absorption::QuantumIdentifierLineTargetType::Level) {
           for (Index k=0; k<band.NumLines(); k++) {
             ARTS_USER_ERROR_IF (poptyp==Absorption::PopulationType::NLTE and
                 (not std::isnormal(band.A(k)) or band.A(k) < 0),
@@ -2373,11 +2372,12 @@ void abs_lines_per_speciesCompact(ArrayOfArrayOfAbsorptionLines& abs_lines_per_s
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesRemoveBand(ArrayOfAbsorptionLines& abs_lines,
-                                     const QuantumIdentifier& qid,
-                                     const Verbosity&)
+                         const QuantumIdentifier& qid,
+                         const Verbosity&)
 {
   for (Index i=0; i<abs_lines.nelem(); i++) {
-    if (qid.In(abs_lines[i].QuantumIdentity())) {
+    const Absorption::QuantumIdentifierLineTarget lt(qid, abs_lines[i]);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Band) {
       abs_lines.erase(abs_lines.begin()+i);
       break;
     }

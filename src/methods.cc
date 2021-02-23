@@ -420,21 +420,20 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-    NAME("abs_linesKeepBands"),
-      DESCRIPTION("Keep only *qid*-matches in *abs_lines*\n"
-        "\n"
-        "The ignore values will ignore isotopologue and/or species.\n"
-        "The latter means the isotopologue has to be ignores.\n"),
+    NAME("abs_linesKeepBand"),
+      DESCRIPTION("Keep only *qid*-match band lines in *abs_lines*\n"
+      "\n"
+      "Note that other bands are technically kept but have zero lines\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("qid", "ignore_spec", "ignore_isot"),
-      GIN_TYPE("QuantumIdentifier", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "1", "1"),
-      GIN_DESC("Band ID", "If species is to be ignores", "If isotopologue is to be ignored")));
+      GIN("qid"),
+      GIN_TYPE("QuantumIdentifier"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Band ID")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveBand"),
@@ -1471,7 +1470,7 @@ void define_md_data_raw() {
           "parameter_name = \"Lower Zeeman Coefficient\"\n"
           "parameter_name = \"Upper Zeeman Coefficient\"\n"
           "\n"
-          "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
+          "Note that band_matching:=0 means only identical quantum identifiers are accepted,\n"
           "otherwise the numbers in QI must just be contained in the band identifier\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
@@ -1479,14 +1478,14 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("QI", "parameter_name", "change", "relative", "loose_matching"),
+      GIN("QI", "parameter_name", "change", "relative", "band_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
-      GIN_DESC("Information to match the line.",
+      GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
                "Flag for relative change (0 is absolute change)",
-               "Flag for loose match (0 means only complete matches)")));
+               "Flag for band match (0 means only line matches)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLines"),
@@ -1497,14 +1496,14 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species"),
-      GIN("QI", "parameter_name", "change", "relative", "loose_matching"),
+      GIN("QI", "parameter_name", "change", "relative", "band_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
-      GIN_DESC("Information to match the line.",
+      GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
                "Flag for relative change (0 is absolute change)",
-               "Flag for loose match (0 means only complete matches)")));
+               "Flag for band match (0 means only line matches)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForSpecies"),
@@ -1515,14 +1514,14 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "abs_species"),
-      GIN("QI", "parameter_name", "change", "relative", "loose_matching", "species_tag"),
+      GIN("QI", "parameter_name", "change", "relative", "band_matching", "species_tag"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0", NODEF),
-      GIN_DESC("Information to match the line.",
+      GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
                "Flag for relative change (0 is absolute change)",
-               "Flag for loose match (0 means only complete matches)",
+               "Flag for band match (0 means only band matches)",
                "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -1539,7 +1538,7 @@ void define_md_data_raw() {
           "parameter_name = \"Lower Zeeman Coefficient\"\n"
           "parameter_name = \"Upper Zeeman Coefficient\"\n"
           "\n"
-          "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
+          "Note that band_matching:=0 means only identical quantum identifiers are accepted,\n"
           "otherwise the numbers in QI must just be contained in the line identifier\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
@@ -1547,13 +1546,13 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("QI", "parameter_name", "change", "loose_matching"),
+      GIN("QI", "parameter_name", "change", "band_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Information to match the line.",
+      GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
-               "Flag for loose match (0 means only complete matches)")));
+               "Flag for band match (0 means only line matches)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesSetLineShapeModelParametersForMatchingLines"),

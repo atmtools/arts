@@ -1452,80 +1452,6 @@ std::vector<Lines> split_list_of_external_lines(std::vector<SingleLineExternal>&
  */
 Lines createEmptyCopy(const Lines& al) noexcept;
 
-/** Checks if the external quantum identifier match a line's ID
- * 
- * The check demands that all defined quantum numbers for the line
- * are the same as for the id
- * 
- * @param[in] band The band of lines
- * @param[in] id An identifier
- * @param[in] line_index The local line
- */
-bool line_in_id(const Lines& band, const QuantumIdentifier& id, size_t line_index);
-
-/** Checks if the external quantum identifier is equal to a line's identifier
- * 
- * @param[in] band The band of lines
- * @param[in] id An identifier
- * @param[in] line_index The local line
- */
-bool line_is_id(const Lines& band, const QuantumIdentifier& id, size_t line_index);
-
-/** Checks if the external quantum identifier match a line's ID
- * 
- * The check demands that all defined quantum numbers for the id
- * are the same as for the line
- * 
- * @param[in] band The band of lines
- * @param[in] id An identifier
- * @param[in] line_index The local line
- */
-bool id_in_line(const Lines& band, const QuantumIdentifier& id, size_t line_index);
-
-/** Checks if the external quantum identifier match a line's ID
- * 
- * The check demands that all defined upper quantum numbers for the line
- * are the same as for the id
- * 
- * @param[in] band The band of lines
- * @param[in] id An identifier
- * @param[in] line_index The local line
- */
-bool line_upper_in_id(const Lines& band, const QuantumIdentifier& id, size_t line_index);
-
-/** Checks if the external quantum identifier match a line's ID
- * 
- * The check demands that all defined lower quantum numbers for the line
- * are the same as for the id
- * 
- * @param[in] band The band of lines
- * @param[in] id An identifier
- * @param[in] line_index The local line
- */
-bool line_lower_in_id(const Lines& band, const QuantumIdentifier& id, size_t line_index);
-
-/** Checks if the external quantum identifier match a line's ID
- * 
- * The check demands that all defined quantum numbers for the id
- * are the same as for the line's upper numbers
- * 
- * @param[in] band The band of lines
- * @param[in] id An identifier
- * @param[in] line_index The local line
- */
-bool id_in_line_upper(const Lines& band, const QuantumIdentifier& id, size_t line_index);
-
-/** Checks if the external quantum identifier match a line's ID
- * 
- * The check demands that all defined quantum numbers for the id
- * are the same as for the line's lower numbers
- * 
- * @param[in] band The band of lines
- * @param[in] id An identifier
- * @param[in] line_index The local line
- */
-bool id_in_line_lower(const Lines& band, const QuantumIdentifier& id, size_t line_index);
-
 /** Number of lines */
 inline Index nelem(const Lines& l) {return l.NumLines();}
 
@@ -1571,14 +1497,79 @@ struct QuantumIdentifierLineTarget {
   bool upper;
   
   //! Default constexpr like constructor for "nothing"
-  constexpr QuantumIdentifierLineTarget() noexcept :
-    found(QuantumIdentifierLineTargetType::None), lower(false), upper(false) {}
+  constexpr QuantumIdentifierLineTarget() noexcept : found(QuantumIdentifierLineTargetType::None), lower(false), upper(false) {}
   
-  //! Species/Isotopologue/Band match constructor
-  QuantumIdentifierLineTarget(const QuantumIdentifier&, const Lines&) noexcept;
+  //! Species/Isotopologue/Band match constructor from ID
+  constexpr QuantumIdentifierLineTarget(const QuantumIdentifier& qt, const QuantumIdentifier& qid) ARTS_NOEXCEPT : QuantumIdentifierLineTarget()
+  {
+    ARTS_ASSERT(qid.Type() == QuantumIdentifier::TRANSITION);
+    
+    // We have no match if we do not match the species
+    if (qt.Species() == qid.Species()) found = QuantumIdentifierLineTargetType::Species;
+    
+    // We can only match the isotopologue if we match the species
+    if (found == QuantumIdentifierLineTargetType::Species and qt.Isotopologue() == qid.Isotopologue()) found = QuantumIdentifierLineTargetType::Isotopologue;
+    
+    // We do cannot match the band if we do not match the isotopologue
+    if (found == QuantumIdentifierLineTargetType::Isotopologue) {
+      if (qt.Type() == QuantumIdentifier::ALL) {
+        
+        // Nothing to do here
+        
+      } else if (qt.Type() == QuantumIdentifier::NONE) {
+        
+        found = QuantumIdentifierLineTargetType::None;  // We turned this off!
+        
+      } else if (qt.Type() == QuantumIdentifier::TRANSITION) {
+        
+        // We are band specific values
+        bool all_good = true;
+        for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
+          if (qn not_eq QuantumNumberType::FINAL) {
+            const Rational& low_band = qid.LowerQuantumNumbers()[qn];
+            const Rational& low_targ = qt.LowerQuantumNumbers()[qn];
+            const Rational& upp_band = qid.UpperQuantumNumbers()[qn];
+            const Rational& upp_targ = qt.UpperQuantumNumbers()[qn];
+            all_good = all_good
+            and (low_band.isUndefined() or low_band == low_targ)
+            and (upp_band.isUndefined() or upp_band == upp_targ);
+          }
+        }
+        
+        // We are a band?
+        if (all_good) found = QuantumIdentifierLineTargetType::Band;
+        
+      } else if (qt.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+        
+        // We are the right species, are we a level?
+        bool low_lvl = true;
+        bool upp_lvl = true;
+        for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
+          if (qn not_eq QuantumNumberType::FINAL) {
+            // Check only numbers in the energy levels
+            const Rational& low_band = qid.LowerQuantumNumbers()[qn];
+            const Rational& upp_band = qid.UpperQuantumNumbers()[qn];
+            const Rational& lvl_targ = qt.EnergyLevelQuantumNumbers()[qn];
+            low_lvl = low_lvl and (low_band.isUndefined() or low_band == lvl_targ);
+            upp_lvl = upp_lvl and (upp_band.isUndefined() or upp_band == lvl_targ);
+          }
+        }
+        
+        // We are a level?
+        if (low_lvl or upp_lvl) found = QuantumIdentifierLineTargetType::Level;
+        lower = low_lvl;
+        upper = upp_lvl;
+        
+      }
+    }
+  }
+  
+  //! Species/Isotopologue/Band match constructor from band
+  QuantumIdentifierLineTarget(const QuantumIdentifier& qt, const Lines& lines) ARTS_NOEXCEPT :
+    QuantumIdentifierLineTarget(qt, lines.QuantumIdentity()) {}
   
   //! Line/Level match constructor (calls the Species/Isotopologue/Band match constructor)
-  QuantumIdentifierLineTarget(const QuantumIdentifier&, const Lines&, const Index) noexcept;
+  QuantumIdentifierLineTarget(const QuantumIdentifier&, const Lines&, const Index) ARTS_NOEXCEPT;
   
   //! Check if this is a positive match
   constexpr bool operator==(QuantumIdentifierLineTargetType x) const noexcept {return x == found;}
