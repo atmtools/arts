@@ -237,6 +237,7 @@ void define_agenda_data() {
                            "for the define incoming and outgoing direction.\n"),
                OUTPUT("sca_coef","sca_mat"),
                INPUT("sca_coef",
+                     "sca_mat",
                      "f_grid",
                      "rtp_pressure",
                      "rtp_temperature",
