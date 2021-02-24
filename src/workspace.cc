@@ -3812,19 +3812,19 @@ Can currently only contain data for new MT CKD models of water.
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("sca_xsec"),
+      NAME("sca_coef"),
       DESCRIPTION(
-          "Array of spectra of scattering extinction cross section matrices.\n"
+          "Spectrum of scattering coefficient matrices.\n"
           "\n"
           "This variable contains the elements of the extinction matrix solely\n"
           "due to scattering.\n"
           "\n"
           "Usage: Output of *gas_scattering_agenda*.\n"
           "\n"
-          "Units: [ m^2. ]\n"
+          "Units: [ m^-1. ]\n"
           "\n"
-          "Size:  [number of spectra][fgrid, stokes_dim, stokes_dim]\n"),
-      GROUP("ArrayOfPropagationMatrix")));
+          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
+      GROUP("PropagationMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("sca_mat"),

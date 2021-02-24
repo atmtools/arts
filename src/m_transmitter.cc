@@ -860,27 +860,22 @@ void iyTransmissionStandard(Workspace& ws,
       for (Index ip = 0; ip < np; ip++) clear2cloudy[ip] = -1;
     }
 
-    // get Extinction from gas scattering
-    ArrayOfPropagationMatrix sca_xsec;
-    if (gas_scattering_do) {
-      PropagationMatrix sca_mat;
-      Vector in_los, out_los;
-      gas_scattering_agendaExecute(ws,
-                                   sca_xsec,
-                                   sca_mat,
-                                   f_grid,
-                                   ppvar_p,
-                                   ppvar_t,
-                                   ppvar_vmr,
-                                   in_los,
-                                   out_los,
-                                   gas_scattering_agenda);
-    }
+
+
 
     // Size radiative variables always used
     PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
     StokesVector a(nf, ns), S(nf, ns), Sp(nf, ns);
     ArrayOfIndex lte(np);
+
+    // size gas scattering variables
+    PropagationMatrix sca_mat;
+    PropagationMatrix K_sca;
+    if (gas_scattering_do) {
+      K_sca = PropagationMatrix(nf, ns);
+    }
+
+    Vector in_los, out_los;
 
     // Init variables only used if analytical jacobians done
     Vector dB_dT(0);
@@ -924,8 +919,20 @@ void iyTransmissionStandard(Workspace& ws,
                                     ppvar_p[ip],
                                     j_analytical_do);
 
-      if (gas_scattering_do){
-        K_this+=sca_xsec[ip];
+      // get Extinction from gas scattering
+      if (gas_scattering_do) {
+        gas_scattering_agendaExecute(ws,
+                                     K_sca,
+                                     sca_mat,
+                                     f_grid,
+                                     ppvar_p[ip],
+                                     ppvar_t[ip],
+                                     ppvar_vmr(joker, ip),
+                                     in_los,
+                                     out_los,
+                                     gas_scattering_agenda);
+
+        K_this += K_sca;
       }
 
       if (j_analytical_do) {

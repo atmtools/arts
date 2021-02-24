@@ -7123,18 +7123,26 @@ Possible models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("gas_scatteringXsecConst"),
+      NAME("gas_scatteringCoefXsecConst"),
       DESCRIPTION(
-          "Sets gas scattering cross section to a constant value .\n"),
+          "Calculates the spectrum of scattering coefficient matrices.\n"
+          "\n"
+          "It calculates the spectrum of scattering coefficient matrices from \n"
+          "constant spectrum of scattering cross section matrices, atmospheric pressure,\n"
+          "temperature for one point in the atmosphere. Basically, it multiplies\n"
+          "the cross sections with the number density of gas molecules under the\n"
+          "assumption of an ideal gas. The result is returned in *sca_coef*. The\n"
+          "atmospheric  pressure  and  temperature  state  has  to  be  specified\n"
+          "by  *rtp_pressure*, *rtp_temperature*.\n"),
       AUTHORS("Manfred Brath"),
-      OUT("sca_xsec"),
+      OUT("sca_coef"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("f_grid",
-         "stokes_dim",
-         "ppvar_p",
-         "ppvar_t"),
+      IN("sca_coef",
+         "f_grid",
+         "rtp_pressure",
+         "rtp_temperature"),
       GIN("ConstXsec"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0."),

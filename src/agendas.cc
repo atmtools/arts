@@ -230,16 +230,17 @@ void define_agenda_data() {
                            "incoming ( *in_los* ) and outgoing (*out_los*) direction.\n"
                            "The scattering cross section is calculated along a\n"
                            "propagtion path given by the propagation path variables\n"
-                           "*ppvar_p*, *ppvar_t*, and *ppvar_vmr*."
+                           "*rtp_pressure*, *rtp_temperature*, and *rtp_vmr*."
                            "If *in_los* and *out_los* are empty vectors, then\n"
                            "*sca_mat* is set empty. If *in_los* and *out_los*\n"
                            "are not empty, then the phase matrix is calculated\n"
                            "for the define incoming and outgoing direction.\n"),
-               OUTPUT("sca_xsec","sca_mat"),
-               INPUT("f_grid",
-                     "ppvar_p",
-                     "ppvar_t",
-                     "ppvar_vmr",
+               OUTPUT("sca_coef","sca_mat"),
+               INPUT("sca_coef",
+                     "f_grid",
+                     "rtp_pressure",
+                     "rtp_temperature",
+                     "rtp_vmr",
                      "in_los",
                      "out_los")));
 

@@ -25,7 +25,6 @@
 #include "arts.h"
 #include "rte.h"
 
-
 /*!
   \file   m_gas_scattering.cc
   \author Jon Petersen  <jon.petersen@studium.uni-hamburg.de>,
@@ -57,34 +56,24 @@ void gas_scatteringOff(Index& gas_scattering_do,
   gas_scattering_agenda.set_name("gas_scattering_agenda");
 }
 
-void gas_scatteringXsecConst(ArrayOfPropagationMatrix& sca_xsec,
-                             const Vector& f_grid,
-                             const Index& stokes_dim,
-                             const Vector& ppvar_p,
-                             const Vector& ppvar_t,
-                             const Numeric& ConstXsec,
-                             const Verbosity&) {
+void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
+                                 const Vector& f_grid,
+                                 const Numeric& rtp_pressure,
+                                 const Numeric& rtp_temperature,
+                                 const Numeric& ConstXsec,
+                                 const Verbosity&) {
   // Some basic sizes
   const Index nf = f_grid.nelem();
-  const Index ns = stokes_dim;
-  const Index np = ppvar_p.nelem();
-
-  ArrayOfPropagationMatrix dummy(np, PropagationMatrix(nf, ns));
-
-
-  Vector Xsec(nf,ConstXsec);
 
   // Number density
   Numeric N;
+  N = rtp_pressure / rtp_temperature / BOLTZMAN_CONST;
 
+  //Vector of constant cross sections
+  Vector Xsec(nf, ConstXsec);
 
-  for (Index ip = 0; ip < np; ++ip) {
-
-    N=ppvar_p[ip] / ppvar_t[ip] /  BOLTZMAN_CONST;
-
-    dummy[ip].Kjj() += Xsec;
-    dummy[ip].Kjj() *= N;
-  }
-
-  sca_xsec = dummy;
+  // set coefficients
+  sca_coef.SetZero();
+  sca_coef.Kjj() += Xsec;
+  sca_coef.Kjj() *= N;
 }
