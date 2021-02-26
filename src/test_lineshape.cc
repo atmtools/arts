@@ -374,7 +374,7 @@ int main() try {
 //   test_ls<LineShape::Type::DP>();
 //   test_ls<LineShape::Type::LP>();
 //   test_ls<LineShape::Type::VP>();
-//   test_ls<LineShape::Type::SDVP>();
+  test_ls<LineShape::Type::SDVP>();
   test_ls<LineShape::Type::HTP>();
   
   return EXIT_SUCCESS;

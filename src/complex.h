@@ -105,6 +105,7 @@ constexpr Complex operator*(Complex c, Complex z) {
 constexpr Complex operator/(Complex c, Complex z) {
   return Complex(a1 * a2 + b1 * b2, -a1 * b2 + b1 * a2) / abs2(z);
 }
+constexpr Complex operator-(Complex c) { return Complex(-a1, -b1); }
 
 // Remove helpers to keep global namespace usable
 #undef a1
