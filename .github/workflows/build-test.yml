@@ -114,12 +114,12 @@ jobs:
           fi
 
           sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libfftw3-dev
-          sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy
+          sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
 
       - name: Setup (macOS)
         if: runner.os == 'macOS'
         run: |
-          sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy
+          sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             brew install gcc@${{ matrix.version }}
             echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
