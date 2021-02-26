@@ -463,79 +463,79 @@ class QuantumIdentifier {
 
   /** Return a quantum identifer as if it wants to match to upper energy level */
   constexpr QuantumIdentifier UpperQuantumId() const ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return QuantumIdentifier(mspecies, miso, mqm[TRANSITION_UPPER_INDEX]);
   };
 
   /** Return a quantum identifer as if it wants to match to lower energy level */
   constexpr QuantumIdentifier LowerQuantumId() const ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return QuantumIdentifier(mspecies, miso, mqm[TRANSITION_LOWER_INDEX]);
   };
 
   /** Return the upper quantum numbers by const reference */
   constexpr const QuantumNumbers& UpperQuantumNumbers() const ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return mqm[TRANSITION_UPPER_INDEX];
   };
 
   /** Return the lower quantum numbers by const reference */
   constexpr const QuantumNumbers& LowerQuantumNumbers() const ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return mqm[TRANSITION_LOWER_INDEX];
   };
 
   /** Return a upper quantum number by copy */
   constexpr Rational UpperQuantumNumber(QuantumNumberType X) const ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return mqm[TRANSITION_UPPER_INDEX][X];
   };
 
   /** Return a lower quantum number by copy */
   constexpr Rational LowerQuantumNumber(QuantumNumberType X) const ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return mqm[TRANSITION_LOWER_INDEX][X];
   };
   
   /** Return a upper quantum number by copy */
   constexpr Rational& UpperQuantumNumber(QuantumNumberType X) ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return mqm[TRANSITION_UPPER_INDEX][X];
   };
   
   /** Return a lower quantum number by copy */
   constexpr Rational& LowerQuantumNumber(QuantumNumberType X) ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return mqm[TRANSITION_LOWER_INDEX][X];
   };
 
   /** Return the energy level quantum numbers by const reference */
   constexpr const QuantumNumbers& EnergyLevelQuantumNumbers() const ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == ENERGY_LEVEL);
+    ARTS_ASSERT(mqtype == ENERGY_LEVEL);
     return mqm[ENERGY_LEVEL_INDEX];
   }
   
   /** Return a energy level quantum number by copy */
   constexpr Rational EnergyLevelQuantumNumber(QuantumNumberType X) const ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == ENERGY_LEVEL);
+    ARTS_ASSERT(mqtype == ENERGY_LEVEL);
     return mqm[ENERGY_LEVEL_INDEX][X];
   };
 
   /** Return the upper quantum numbers by reference */
   constexpr QuantumNumbers& UpperQuantumNumbers() ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return mqm[TRANSITION_UPPER_INDEX];
   };
 
   /** Return the lower quantum numbers by reference */
   constexpr QuantumNumbers& LowerQuantumNumbers() ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == TRANSITION);
+    ARTS_ASSERT(mqtype == TRANSITION);
     return mqm[TRANSITION_LOWER_INDEX];
   };
 
   /** Return the energy level quantum numbers by reference */
   constexpr QuantumNumbers& EnergyLevelQuantumNumbers() ARTS_NOEXCEPT {
-    ARTS_ASSERT(mtype == ENERGY_LEVEL);
+    ARTS_ASSERT(mqtype == ENERGY_LEVEL);
     return mqm[ENERGY_LEVEL_INDEX];
   }
 

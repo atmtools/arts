@@ -210,12 +210,12 @@ class SingleSpeciesModel {
    * @return The broadening parameter at temperature
    */
   constexpr Numeric special_linemixing_aer(Numeric T, ModelParameters mp) const noexcept {
-    if (T < 250)
-      return mp.X0 + (T - 200) * (mp.X1 - mp.X0) / (250 - 200);
-    else if (T > 296)
-      return mp.X2 + (T - 296) * (mp.X3 - mp.X2) / (340 - 296);
+    if (T < 250.0)
+      return mp.X0 + (T - 200.0) * (mp.X1 - mp.X0) / (250.0 - 200.0);
+    else if (T > 296.0)
+      return mp.X2 + (T - 296.0) * (mp.X3 - mp.X2) / (340.0 - 296.0);
     else
-      return mp.X1 + (T - 250) * (mp.X2 - mp.X1) / (296 - 250);
+      return mp.X1 + (T - 250.0) * (mp.X2 - mp.X1) / (296.0 - 250.0);
   }
   
   /** The temperature derivative of special_linemixing_aer
@@ -226,12 +226,72 @@ class SingleSpeciesModel {
    * @return The temperature derivative of the broadening parameter at temperature
    */
   constexpr Numeric special_linemixing_aer_dT(Numeric T, ModelParameters mp) const noexcept {
-    if (T < 250)
-      return (mp.X1 - mp.X0) / (250 - 200);
-    else if (T > 296)
-      return (mp.X3 - mp.X2) / (340 - 296);
+    if (T < 250.0)
+      return (mp.X1 - mp.X0) / (250.0 - 200.0);
+    else if (T > 296.0)
+      return (mp.X3 - mp.X2) / (340.0 - 296.0);
     else
-      return (mp.X2 - mp.X1) / (296 - 250);
+      return (mp.X2 - mp.X1) / (296.0 - 250.0);
+  }
+  
+  /** The derivative of special_linemixing_aer wrt X0
+   * 
+   * @param[in] T The temperature
+   * 
+   * @return The temperature derivative of the broadening parameter at temperature
+   */
+  constexpr Numeric special_linemixing_aer_dX0(Numeric T) const noexcept {
+    if (T < 250.0)
+      return 1 - (T - 200.0) / (250.0 - 200.0);
+    else if (T > 296.0)
+      return 0;
+    else
+      return 0;
+  }
+  
+  /** The derivative of special_linemixing_aer wrt X1
+   * 
+   * @param[in] T The temperature
+   * 
+   * @return The temperature derivative of the broadening parameter at temperature
+   */
+  constexpr Numeric special_linemixing_aer_dX1(Numeric T) const noexcept {
+    if (T < 250.0)
+      return     (T - 200.0) / (250.0 - 200.0);
+    else if (T > 296.0)
+      return 0;
+    else
+      return 1 - (T - 250.0) / (296.0 - 250.0);
+  }
+  
+  /** The derivative of special_linemixing_aer wrt X2
+   * 
+   * @param[in] T The temperature
+   * 
+   * @return The temperature derivative of the broadening parameter at temperature
+   */
+  constexpr Numeric special_linemixing_aer_dX2(Numeric T) const noexcept {
+    if (T < 250.0)
+      return 0;
+    else if (T > 296.0)
+      return 1 - (T - 296.0)  / (340.0 - 296.0);
+    else
+      return     (T - 250.0) / (296.0 - 250.0);
+  }
+  
+  /** The derivative of special_linemixing_aer wrt X3
+   * 
+   * @param[in] T The temperature
+   * 
+   * @return The temperature derivative of the broadening parameter at temperature
+   */
+  constexpr Numeric special_linemixing_aer_dX3(Numeric T) const noexcept {
+    if (T < 250.0)
+      return 0;
+    else if (T > 296.0)
+      return (T - 296.0) / (340.0 - 296.0);
+    else
+      return 0;
   }
 
  public:
@@ -452,6 +512,16 @@ struct Output {
       Y,       // First order line mixing coefficient
       G,       // Second order line mixing coefficient
       DV;      // Second order line mixing f-shifting
+  constexpr Output() noexcept :
+    G0(0), D0(0), G2(0), D2(0), FVC(0), ETA(0), Y(0), G(0), DV(0) {}
+  constexpr Output(Numeric g0, Numeric d0, Numeric g2,
+                   Numeric d2, Numeric fvc, Numeric eta,
+                   Numeric y, Numeric g, Numeric dv) noexcept :
+    G0(g0), D0(d0), G2(g2), D2(d2), FVC(fvc), ETA(eta), Y(y), G(g), DV(dv) {}
+  constexpr Output(const Output&) noexcept = default;
+  constexpr Output(Output&&) noexcept = default;
+  constexpr Output& operator=(const Output&) noexcept = default;
+  constexpr Output& operator=(Output&&) noexcept = default;
 };
 
 /** Output operator for LineShape::Output */

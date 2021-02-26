@@ -1348,9 +1348,6 @@ void Linefunctions::set_cross_section_of_band(
   // VMR Jacobian check
   auto do_vmr = do_vmr_jacobian(derivatives_data, band.QuantumIdentity());
   
-  // Placeholder nothingness
-  constexpr LineShape::Output empty_output = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-  
   for (Index i=0; i<band.NumLines(); i++) {
     
     // Select the range of cutoff if different for each line
@@ -1370,15 +1367,13 @@ void Linefunctions::set_cross_section_of_band(
     const auto f = f_full.middleRows(start, nelem);
     
     // Pressure broadening and line mixing terms
-    const auto X = band.ShapeParameters(i, T, P, vmrs);
+    const LineShape::Output X = band.ShapeParameters(i, T, P, vmrs);
     
     // Partial derivatives for temperature
-    const auto dXdT = do_temperature ?
-      band.ShapeParameters_dT(i, T, P, vmrs) : empty_output;
+    const LineShape::Output dXdT = do_temperature ? band.ShapeParameters_dT(i, T, P, vmrs) : LineShape::Output{};
     
     // Partial derivatives for VMR of self (function works for any species but only do self for now)
-    const auto dXdVMR = do_vmr.test ?
-      band.ShapeParameters_dVMR(i, T, P, do_vmr.qid) : empty_output;
+    const LineShape::Output dXdVMR = do_vmr.test ? band.ShapeParameters_dVMR(i, T, P, do_vmr.qid) : LineShape::Output{};
     
     // Zeeman lines if necessary
     const Index nz = zeeman ?
@@ -1436,9 +1431,9 @@ void Linefunctions::set_cross_section_of_band(
         case Absorption::MirroringType::Manual:
           break;
         case Absorption::MirroringType::Lorentz:
-          set_lorentz(N, dN, data, f, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+          set_lorentz(N, dN, data, f, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : LineShape::Output{}, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : LineShape::Output{});
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
-            set_lorentz(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+            set_lorentz(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : LineShape::Output{}, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : LineShape::Output{});
           break;
         case Absorption::MirroringType::SameAsLineShape:
           switch (band.LineShapeType()) {
@@ -1448,21 +1443,21 @@ void Linefunctions::set_cross_section_of_band(
                 set_doppler(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), -DC, band, i, derivatives_data, -dDCdT);
               break;
             case LineShape::Type::LP:
-              set_lorentz(N, dN, data, f, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+              set_lorentz(N, dN, data, f, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : LineShape::Output{}, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : LineShape::Output{});
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
-                set_lorentz(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+                set_lorentz(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), LineShape::mirroredOutput(X), band, i, derivatives_data, do_temperature ? LineShape::mirroredOutput(dXdT) : LineShape::Output{}, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : LineShape::Output{});
               break;
             case LineShape::Type::VP:
-              set_voigt(N, dN, data, f, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+              set_voigt(N, dN, data, f, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : LineShape::Output{}, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : LineShape::Output{});
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
-                set_voigt(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+                set_voigt(Nc, dNc, datac, fc, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : LineShape::Output{}, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : LineShape::Output{});
               break;
             case LineShape::Type::HTP:
             case LineShape::Type::SDVP:
               // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-              set_htp(N, dN, f, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+              set_htp(N, dN, f, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : LineShape::Output{}, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : LineShape::Output{});
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
-                set_htp(Nc, dNc, fc, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : empty_output, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : empty_output);
+                set_htp(Nc, dNc, fc, -dfdH, H, -band.F0(i), -DC, LineShape::mirroredOutput(X), band, i, derivatives_data, -dDCdT, do_temperature ? LineShape::mirroredOutput(dXdT) : LineShape::Output{}, do_vmr.test ? LineShape::mirroredOutput(dXdVMR) : LineShape::Output{});
               break;
             case LineShape::Type::FINAL: break;
           }

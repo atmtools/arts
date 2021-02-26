@@ -1103,6 +1103,8 @@ public:
   bofstream& write(bofstream& os) const;
   
   bool OK() const noexcept;
+  
+  Numeric DopplerConstant(Numeric T) const noexcept;
 };  // Lines
 
 std::ostream& operator<<(std::ostream&, const Lines&);

@@ -35,7 +35,7 @@ Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) noexcept {
   const Numeric GL = get_lande_lambda_constant();
   const Numeric gu = SimpleG(qid.UpperQuantumNumbers(), GS, GL);
   const Numeric gl = SimpleG(qid.LowerQuantumNumbers(), GS, GL);
-  return Model({gu, gl});
+  return Model(gu, gl);
 }
 
 Numeric case_b_g_coefficient_o2(Rational j,
@@ -128,7 +128,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
         auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
         Numeric gl = case_b_g_coefficient_o2(
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        return Model({gu, gl});
+        return Model(gu, gl);
       }
     } else if (name == "O2-68") {
     if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
@@ -154,12 +154,12 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
       auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
       Numeric gl = case_b_g_coefficient_o2(
           JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      return Model({gu, gl});
+      return Model(gu, gl);
     }
   } else if (name == "CO-26") {
       Numeric gperp = -0.2689 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
       
-      return Model({gperp, gperp});
+      return Model(gperp, gperp);
   } else if (name == "OCS-622") {
       Numeric gperp = -.02889 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
       Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -169,8 +169,8 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
       auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
       auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
       
-      return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
-                    closed_shell_trilinear(KL, JL, gperp, gpara)});
+      return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
+                   closed_shell_trilinear(KL, JL, gperp, gpara));
   } else if (name == "OCS-624") {
     Numeric gperp = -.0285 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
     Numeric gpara = -.061 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -180,8 +180,8 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
     auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
     auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
     
-    return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
-                  closed_shell_trilinear(KL, JL, gperp, gpara)});
+    return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
+                 closed_shell_trilinear(KL, JL, gperp, gpara));
   } else if (name == "CO2-626") {
     Numeric gperp = -.05508 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
     Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -191,14 +191,14 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
     auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
     auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
     
-    return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
-                  closed_shell_trilinear(KL, JL, gperp, gpara)});
+    return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
+                 closed_shell_trilinear(KL, JL, gperp, gpara));
   }
   
   // Take care of zeroes since they do not show up in replacement databases
   const bool upperzero = qid.UpperQuantumNumber(QuantumNumberType::J) == 0 or qid.UpperQuantumNumber(QuantumNumberType::F) == 0;
   const bool lowerzero = qid.LowerQuantumNumber(QuantumNumberType::J) == 0 or qid.LowerQuantumNumber(QuantumNumberType::F) == 0;
-  return Model({upperzero ? 0 : NAN, lowerzero ? 0 : NAN});
+  return Model(upperzero ? 0 : NAN, lowerzero ? 0 : NAN);
 }
 
 Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {

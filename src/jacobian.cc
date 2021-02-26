@@ -1223,12 +1223,12 @@ std::ostream& Jacobian::operator<<(std::ostream& os, const Target& x) {
     case Type::Line: os << x.LineType(); break;
     case Type::Sensor: os << x.SensorType(); break;
     case Type::Special: os << x.SpecialType(); break;
-    case Type::FINAL: os << "FINAL"; break;
+    case Type::FINAL: os << "BAD STATE"; break;
   }
   if (x.needQuantumIdentity()) os << ' ' << x.QuantumIdentity();
   if (x.needArrayOfSpeciesTag()) os << ' ' << x.SpeciesList();
   if (x.needString()) os << ' ' << x.StringKey();
-  os << ' ' << x.Perturbation() << " " << x.QuantumIdentity();
+  if (std::isnormal(x.Perturbation())) os << ' ' << x.Perturbation();
   
   return os;
 }

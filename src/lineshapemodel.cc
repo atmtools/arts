@@ -788,7 +788,7 @@ Numeric SingleSpeciesModel::compute_dX0(Numeric T, Numeric T0, Variable var) con
     case TemperatureModel::T5:
       out = pow(T0 / T, 1.5 * x1 + 0.25); break;
     case TemperatureModel::LM_AER:
-      out = 0; break;
+      out = special_linemixing_aer_dX0(T); break;
     case TemperatureModel::DPL:
       out = pow(T0 / T, x1); break;
     case TemperatureModel::FINAL: break;
@@ -817,7 +817,7 @@ Numeric SingleSpeciesModel::compute_dX1(Numeric T, Numeric T0, Variable var) con
     case TemperatureModel::T5:
       out = 1.5 * x0 * pow(T0 / T, 1.5 * x1 + 0.25) * log(T0 / T); break;
     case TemperatureModel::LM_AER:
-      out = 0; break;
+      out = special_linemixing_aer_dX1(T); break;
     case TemperatureModel::DPL:
       out = x0 * pow(T0 / T, x1) * log(T0 / T); break;
     case TemperatureModel::FINAL: break;
@@ -846,7 +846,7 @@ Numeric SingleSpeciesModel::compute_dX2(Numeric T, Numeric T0, Variable var) con
     case TemperatureModel::T5:
       out = 0; break;
     case TemperatureModel::LM_AER:
-      out = 0; break;
+      out = special_linemixing_aer_dX2(T); break;
     case TemperatureModel::DPL:
       out = pow(T0 / T, x3); break;
     case TemperatureModel::FINAL: break;
@@ -875,7 +875,7 @@ Numeric SingleSpeciesModel::compute_dX3(Numeric T, Numeric T0, Variable var) con
     case TemperatureModel::T5:
       out = 0; break;
     case TemperatureModel::LM_AER:
-      out = 0; break;
+      out = special_linemixing_aer_dX3(T); break;
     case TemperatureModel::DPL:
       out = x2 * pow(T0 / T, x3) * log(T0 / T); break;
     case TemperatureModel::FINAL: break;

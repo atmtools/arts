@@ -96,7 +96,7 @@ constexpr auto pow4(T x) -> decltype(pow2(pow2(x))) {
     print('euler =', one.exp())
     print('inv_euler =', 1/one.exp())
     print('log10_euler =', one.exp().log10())
-    print('ln_10 =', ten.log())
+    print('ln_10 =', ten.ln())
     print('sqrt_2 =', two.sqrt())
     print('inv_sqrt_2 =', 1/two.sqrt())
     print('ln_2 = ', two.ln())

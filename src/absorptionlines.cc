@@ -88,48 +88,32 @@ LineShape::Output Absorption::Lines::ShapeParameters_dT(size_t k, Numeric T, Num
 
 Index Absorption::Lines::LineShapePos(const Index& spec) const noexcept {
   // Is always first if this is self and self broadening exists
-  if(mselfbroadening and spec == mquantumidentity.Species())
+  if(mselfbroadening and spec == mquantumidentity.Species()) {
     return 0;
+  }
   
   // First and last might be artificial so they should not be checked
-  for(Index i=Index(mselfbroadening); i<Index(mbroadeningspecies.size())-Index(mbathbroadening); i++) {
-    if(spec == mbroadeningspecies[i].Species())
-      return Index(i);
+  const Index s = mselfbroadening;
+  const Index e = mbroadeningspecies.nelem() - mbathbroadening;
+  for(Index i=s; i<e; i++) {
+    if(spec == mbroadeningspecies[i].Species()) {
+      return i;
+    }
   }
   
   // At this point, the ID is not explicitly among the broadeners, but bath broadening means its VMR still might matter
   if(mbathbroadening)
-    return Index(mbroadeningspecies.size())-Index(mbathbroadening);
+    return mbroadeningspecies.nelem()-1;
   else
     return -1;
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dVMR(size_t k, Numeric T, Numeric P, const QuantumIdentifier& vmr_qid) const noexcept {
-  const auto self = vmr_qid.Species() == mquantumidentity.Species();
-  const auto& ls = mlines[k].LineShape();
-  
-  if (mselfbroadening and self) {
-    auto x = ls.GetVMRDerivs(T, mT0, P, 0);
-    
-    if (mbathbroadening)
-      x = LineShape::differenceOutput(x, ls.GetVMRDerivs(
-          T, mT0, P, ls.nelem() - 1));
-    
-    if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-    
-    return x;
-  } else if (mbathbroadening and self)
-    return {0, 0, 0, 0, 0, 0, 0, 0, 0};
-  else {
-    auto x = ls.GetVMRDerivs(T, mT0, P, LineShapePos(vmr_qid));
-    
-    if (mbathbroadening)
-      x = LineShape::differenceOutput(x, ls.GetVMRDerivs(
-          T, mT0, P, ls.nelem() - 1));
-    
-    if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-    
-    return x;
+  const Index pos=LineShapePos(vmr_qid);
+  if (pos >= 0) {
+    return mlines[k].LineShape().GetVMRDerivs(T, mT0, P, pos);
+  } else {
+    return LineShape::Output{};
   }
 }
 
@@ -3111,7 +3095,6 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
 }
 
 
-
 bool Absorption::Lines::OK() const noexcept
 {
   const Index nq = mlocalquanta.size();
@@ -3136,6 +3119,12 @@ bool Absorption::Lines::OK() const noexcept
   // Otherwise everything is fine!
   return true;
 }
+
+Numeric Absorption::Lines::DopplerConstant(Numeric T) const noexcept
+{
+  return std::sqrt(Constant::doppler_broadening_const_squared * T / SpeciesMass());
+}
+
 
 
 namespace Absorption {

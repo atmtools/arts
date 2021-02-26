@@ -276,8 +276,8 @@ class ConstComplexVectorView {
   typedef ConstComplexIterator1D const_iterator;
 
   // Member functions:
-  bool empty() const { return (nelem() == 0); }
-  Index nelem() const { return mrange.mextent; }
+  bool empty() const noexcept { return (nelem() == 0); }
+  Index nelem() const noexcept { return mrange.mextent; }
   Complex sum() const;
 
   // Const index operators:
@@ -600,6 +600,9 @@ class ComplexVector : public ComplexVectorView {
 
   // Destructor:
   virtual ~ComplexVector();
+  
+  // Total size
+  Index size() const noexcept {return nelem();}
 };
 
 // Declare class ComplexMatrix:
@@ -626,9 +629,9 @@ class ConstComplexMatrixView {
   typedef ConstComplexIterator2D const_iterator;
 
   // Member functions:
-  bool empty() const { return not nrows() or not ncols(); }
-  Index nrows() const { return mrr.mextent; }
-  Index ncols() const { return mcr.mextent; }
+  Index nrows() const noexcept { return mrr.mextent; }
+  Index ncols() const noexcept { return mcr.mextent; }
+  bool empty() const noexcept { return not nrows() or not ncols(); }
 
   // Const index operators:
   /** Plain const index operator. */
@@ -881,6 +884,9 @@ class ComplexMatrix : public ComplexMatrixView {
 
   // Destructor:
   virtual ~ComplexMatrix();
+  
+  // Total size
+  Index size() const noexcept {return nrows() * ncols();}
 
   Complex* get_raw_data() { return mdata; }
 };
