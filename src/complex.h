@@ -587,6 +587,10 @@ class ComplexVector : public ComplexVectorView {
   ComplexVector(const Vector& v);
   ComplexVector(const std::vector<Complex>&);
   ComplexVector(const std::vector<Numeric>&);
+  ComplexVector(Complex* c, const Range& r0) ARTS_NOEXCEPT
+  : ComplexVectorView(c, r0) {
+    ARTS_ASSERT(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
+  }
 
   // Assignment operators:
   ComplexVector& operator=(ComplexVector v);

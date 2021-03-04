@@ -110,6 +110,21 @@ Numeric dstimulated_emissiondF0(Numeric T, Numeric F0) {
   return c1 * std::exp(F0 * c1 / T) / T;
 }
 
+Numeric stimulated_relative_emission(const Numeric F0, const Numeric T0, const Numeric T) noexcept {
+  return std::expm1(-Conversion::hz2joule(F0) / Conversion::kelvin2joule(T)) / std::expm1(-Conversion::hz2joule(F0) / Conversion::kelvin2joule(T0));
+}
+
+Numeric dstimulated_relative_emission_dT(const Numeric F0, const Numeric T0, const Numeric T) noexcept {
+  return Conversion::hz2joule(F0) * std::exp(-Conversion::hz2joule(F0) / Conversion::kelvin2joule(T)) /
+  (T * Conversion::kelvin2joule(T) * std::expm1(-Conversion::hz2joule(F0) / Conversion::kelvin2joule(T0)));
+}
+
+Numeric dstimulated_relative_emission_dF0(const Numeric F0, const Numeric T0, const Numeric T) noexcept {
+  const Numeric exp0m1 = std::expm1(-Conversion::hz2joule(F0) / Conversion::kelvin2joule(T0));
+  const Numeric exptm1 = std::expm1(-Conversion::hz2joule(F0) / Conversion::kelvin2joule(T));
+  return Constant::h * (T * exptm1 * (1 + exp0m1) - T0 * exp0m1 * (1 + exptm1)) / (Constant::k * T * T0 * Constant::pow2(exp0m1));
+}
+
 Numeric stimulated_relative_emission(const Numeric& gamma,
                                      const Numeric& gamma_ref) {
   return (1. - gamma) / (1. - gamma_ref);

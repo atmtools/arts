@@ -499,8 +499,14 @@ constexpr auto kaycm2joule(T x) -> decltype(x * kaycm2freq(h)) {
 
 /** Conversion from MHz to Joule **/
 template <class T>
-constexpr auto mhz2joule(T x) -> decltype(x * h * 1e6) {
-  return x * h * 1e6;
+constexpr auto hz2joule(T x) -> decltype(x * h) {
+  return x * h;
+}
+
+/** Conversion from MHz to Joule **/
+template <class T>
+constexpr auto mhz2joule(T x) -> decltype(hz2joule(x) * 1e6) {
+  return hz2joule(x) * 1e6;
 }
 
 /** Conversion from Kelvin to Joule **/
