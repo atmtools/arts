@@ -78,7 +78,7 @@ Append( instrument_pol_array, instrument_pol )
 AgendaSet( iy_radar_agenda ){
   Ignore( iy_id )
   ppathPlaneParallel( cloudbox_on = 0 )
-  iyRadarSingleScat
+  iyRadarSingleScat( pext_scaling = 0.5 )
 }
 IndexSet( stokes_dim, 2 )
 sensorOff
@@ -129,7 +129,7 @@ scat_dataCalc
 # Mass contents
 #
 NumericCreate( iwc )
-NumericSet( iwc, 1e-5 )
+NumericSet( iwc, 1e-4 )
 ArrayOfStringSet( particle_bulkprop_names, [ "RWC", "IWC" ] )
 Tensor4SetConstant( particle_bulkprop_field, 1, np, 1, 1, 0 )
 VectorSetConstant( v_tmp, np, iwc )
@@ -206,7 +206,7 @@ particle_bulkpropRadarOnionPeeling( particle_bulkprop_field = retrieved,
 
 # Compare to "true". Deviation should be below 2%
 #
-NumericScale( iwc, iwc, 0.02 )
+NumericScale( iwc, iwc, 0.05 )
 #
 Compare( retrieved, particle_bulkprop_field, iwc )
 

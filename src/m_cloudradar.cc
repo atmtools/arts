@@ -913,11 +913,12 @@ void particle_bulkpropRadarOnionPeeling(
     const Numeric& h_clutter,
     const Index& fill_clutter,
     const Numeric& t_phase,
-    const Index& do_atten_abs,
-    const Index& do_atten_hyd,
-    const Numeric& dbze_max_corr,
     const Numeric& wc_max,
     const Numeric& wc_clip,
+    const Index& do_atten_abs,
+    const Index& do_atten_hyd,
+    const Numeric& atten_hyd_scaling,
+    const Numeric& atten_hyd_max,
     const Verbosity&)
 {
   // Checks of input
@@ -937,6 +938,7 @@ void particle_bulkpropRadarOnionPeeling(
                 lat_grid, lon_grid);
   chk_atm_surface("GIN incangles", incangles, atmosphere_dim, lat_grid,
                   lon_grid);
+  chk_if_in_range("atten_hyd_scaling", atten_hyd_scaling, 0, 2);
 
   // Init output
   const Index np = t_field.npages();
@@ -958,7 +960,8 @@ void particle_bulkpropRadarOnionPeeling(
       // Check if any significant reflectivity at all in profile
       if (max(dBZe(joker,ilat,ilon)) > dbze_noise) {
 
-        Numeric dbze_corr = 0;   // Correction for 2-way attenuation
+        Numeric dbze_corr_abs = 0;   // Corrections for 2-way attenuation
+        Numeric dbze_corr_hyd = 0;  
         Numeric k_part_above = 0, k_abs_above = 0;
         const Numeric hfac = 1 / cos( DEG2RAD*incangles(ilat,ilon) );
         
@@ -968,7 +971,7 @@ void particle_bulkpropRadarOnionPeeling(
           if (z_field(ip,ilat,ilon) >= z_surface(ilat,ilon) + h_clutter) {
 
             // Local dBZe, roughly corrected with attenuation for previos point
-            Numeric dbze = dBZe(ip,ilat,ilon) + min(dbze_corr, dbze_max_corr);
+            Numeric dbze = dBZe(ip,ilat,ilon) + dbze_corr_abs + dbze_corr_hyd;
             // Local temperature
             const Numeric t = t_field(ip,ilat,ilon);
 
@@ -991,13 +994,12 @@ void particle_bulkpropRadarOnionPeeling(
             }
             
             // Calculate attenuation from previous point
-            //
-            // For simplicity, extinction estimated using "roughly" corrected dBZe
-            //
-            if (ip < np-1 && dbze_corr < dbze_max_corr) {
+            if (ip < np-1) {
 
               // Attenuation due particles
-              if (do_atten_hyd && dBZe(ip,ilat,ilon) > dbze_noise) {
+              if (dBZe(ip,ilat,ilon) > dbze_noise &&
+                  do_atten_hyd &&
+                  dbze_corr_hyd < atten_hyd_max ) {
                 // Extinction
                 GridPos gp;
                 gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
@@ -1009,9 +1011,14 @@ void particle_bulkpropRadarOnionPeeling(
                 Numeric tau = 0.5 * hfac * (k_part_above + k_this) *
                   (z_field(ip+1,ilat,ilon) - z_field(ip,ilat,ilon));
                 // This equals -10*log10(exp(-tau)^2)
-                dbze_corr += 20 * LOG10_EULER_NUMBER * tau;
-                // k_this can ne be shifted to be "above value"
+                dbze_corr_hyd += 20 * LOG10_EULER_NUMBER * (atten_hyd_scaling*tau);
+                // Make sure we don't pass max value
+                dbze_corr_hyd = min(dbze_corr_hyd, atten_hyd_max);
+                // k_this can now be shifted to be "above value"
                 k_part_above = k_this;
+              }
+              else {  // To handle case: dBZe(ip,ilat,ilon) <= dbze_noise
+                k_part_above = 0;  
               }
               
               // Attenuation due to abs_species
@@ -1042,8 +1049,8 @@ void particle_bulkpropRadarOnionPeeling(
                 Numeric tau = 0.5 * hfac * (k_abs_above + k_this) *
                   (z_field(ip+1,ilat,ilon) - z_field(ip,ilat,ilon));
                 // This equals -10*log10(exp(-tau)^2)
-                dbze_corr += 20 * LOG10_EULER_NUMBER * tau;
-                // k_this can ne be shifted to be "above value"
+                dbze_corr_abs += 20 * LOG10_EULER_NUMBER * tau;
+                // k_this can now be shifted to be "above value"
                 k_abs_above = k_this;
               }
             } 
@@ -1051,7 +1058,8 @@ void particle_bulkpropRadarOnionPeeling(
             // Invert
             if (dBZe(ip,ilat,ilon) > dbze_noise) {
               // Correct reflectivity with (updated) attenuation
-              dbze = dBZe(ip,ilat,ilon) + min(dbze_corr, dbze_max_corr);
+              dbze = dBZe(ip,ilat,ilon) + dbze_corr_abs + dbze_corr_hyd;
+
               // Interpolate inversion table (table holds log10 of water content)
               GridPos gp;
               gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
