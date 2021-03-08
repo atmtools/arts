@@ -2717,16 +2717,9 @@ void SurfaceBlackbody(Matrix& surface_los,
                        skin_t[0] + dd,
                        verbosity);
 
-//      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
-//      dsurface_rmatrix_dx[irq] /= dd;
-//      dsurface_emission_dx[irq] -= surface_emission;
-//      dsurface_emission_dx[irq] /= dd;
-//      DEBUG_VAR(dsurface_emission_dx)
-
       Matrix dbdt(f_grid.nelem(), 1);
       dplanck_dt(dbdt(joker, 0), f_grid, skin_t[0]);
       dsurface_emission_dx[irq] = dbdt;
-//      DEBUG_VAR(dsurface_emission_dx)
 
       dsurface_rmatrix_dx[irq].resize(surface_rmatrix.nbooks(),
                                       surface_rmatrix.npages(),
