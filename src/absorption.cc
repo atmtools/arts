@@ -40,6 +40,7 @@
 #include "auto_md.h"
 #include "file.h"
 #include "linescaling.h"
+#include "lineshape.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "messages.h"
@@ -714,4 +715,78 @@ void xsec_species(Matrix& xsec,
 
   ARTS_USER_ERROR_IF (do_abort,
     "Error messages from failed cases:\n", fail_msg)
+}
+
+void xsec_species2(Matrix& xsec,
+                   Matrix& source,
+                   Matrix& phase,
+                   ArrayOfMatrix& dxsec_dx,
+                   ArrayOfMatrix& dsource_dx,
+                   ArrayOfMatrix& dphase_dx,
+                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                   const Vector& f_grid,
+                   const Vector& abs_p,
+                   const Vector& abs_t,
+                   const EnergyLevelMap& abs_nlte,
+                   const Matrix& abs_vmrs,
+                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                   const AbsorptionLines& band,
+                   const Numeric& isot_ratio,
+                   const SpeciesAuxData::AuxType& partfun_type,
+                   const ArrayOfGriddedField1& partfun_data) {
+  // Size of problem
+  const Index np = abs_p.nelem();      // number of pressure levels
+  const Index nf = f_grid.nelem();     // number of Dirac frequencies
+  const Index nl = band.NumLines();  // number of lines in the catalog
+  const Index nj = jacobian_quantities.nelem();  // number of partial derivatives
+  const Index nt = source.nrows();         // number of energy levels in NLTE
+  
+  // Test if the size of the problem is 0
+  if (not np or not nf or not nl) return;
+  
+  // Type of problem
+  const bool do_nonlte = nt;
+
+  for (Index ip = 0; ip < np; ip++) {
+    // Pre-allocations of data
+    ComplexVector F(nf, 0);
+    ComplexVector N(do_nonlte ? nf : 0, 0);
+    ArrayOfComplexVector dF(nj, F);
+    ArrayOfComplexVector dN(nj, N);
+    
+    // Constants for this level
+    const Numeric& T = abs_t[ip];
+    const Numeric& P = abs_p[ip];
+    const Vector line_shape_vmr = band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species);
+    
+    LineShape::compute(F, dF, N, dN, f_grid,
+                       band, jacobian_quantities,
+                       abs_nlte, partfun_type, partfun_data, line_shape_vmr,
+                       isot_ratio, P, T, do_nonlte);
+    
+    // Sum up cross-section
+    xsec(joker, ip) += F.real();
+    for (Index ij=0; ij<nj; ij++) {
+      if (not propmattype_index(jacobian_quantities, ij)) continue;
+      dxsec_dx[ij](joker, ip) += dF[ij].real();
+    }
+    
+    // phase cross-section
+    if (not phase.empty()) {
+      phase(joker, ip) += F.imag();
+      for (Index ij = 0; ij < nj; ij++) {
+        if (not propmattype_index(jacobian_quantities, ij)) continue;
+        dphase_dx[ij](joker, ip) += dF[ij].imag();
+      }
+    }
+    
+    // source ratio cross-section
+    if (do_nonlte) {
+      source(joker, ip) += N.real();
+      for (Index ij = 0; ij < nj; ij++) {
+        if (not propmattype_index(jacobian_quantities, ij)) continue;
+        dsource_dx[ij](joker, ip) += dN[ij].real();
+      }
+    }
+  }
 }

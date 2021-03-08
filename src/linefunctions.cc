@@ -325,7 +325,7 @@ void Linefunctions::set_voigt(
   // Doppler broadening and line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + lso.D0 + lso.DV;
   const Numeric GD = GD_div_F0 * F0;
-  const Numeric invGD = 1.0 / GD;
+  const Numeric invGD = 1.0 / std::abs(GD);
   const Numeric dGD_dT = dGD_div_F0_dT * F0 - GD_div_F0 * (dT.D0 + dT.DV);
 
   // constant normalization factor for Voigt
@@ -395,7 +395,7 @@ void Linefunctions::set_doppler(
 
   // Doppler broadening and line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude;
-  const Numeric invGD = 1.0 / (GD_div_F0 * F0);
+  const Numeric invGD = 1.0 / std::abs(GD_div_F0 * F0);
 
   // Naming data blocks
   auto x = data.col(0);
@@ -974,7 +974,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
   // Convert to CGS for using original function
   const Numeric sg0 =
       freq2kaycm(F0_noshift_si + zeeman_df_si * magnetic_magnitude_si);
-  const Numeric GamD = GD_div_F0_si * sg0 / sqrt_ln_2;
+  const Numeric GamD = std::abs(GD_div_F0_si * sg0 / sqrt_ln_2);
   const auto lso = si2cgs(lso_si);
   const auto dT = si2cgs(dT_si);
   const auto dV = si2cgs(dVMR_si);

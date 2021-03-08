@@ -18,7 +18,7 @@ constexpr Numeric ln_16 =
 
 namespace LineShape {
 Doppler::Doppler(Numeric F0_noshift, Numeric DC, Numeric dZ) noexcept
-    : mF0(F0_noshift + dZ), invGD(sqrt_ln_2 / (DC * mF0)) {}
+    : mF0(F0_noshift + dZ), invGD(sqrt_ln_2 / std::abs(DC * mF0)) {}
 
 Complex Doppler::dFdT(const Output &, Numeric T) const noexcept {
   return F * (2 * pow2(x) - 1) / (2 * T);
@@ -42,7 +42,7 @@ Complex Doppler::operator()(Numeric f) noexcept {
 
 Voigt::Voigt(Numeric F0_noshift, const Output &ls, Numeric DC,
              Numeric dZ) noexcept
-    : mF0(F0_noshift + dZ + ls.D0 + ls.DV), invGD(sqrt_ln_2 / (DC * mF0)),
+    : mF0(F0_noshift + dZ + ls.D0 + ls.DV), invGD(sqrt_ln_2 / std::abs(DC * mF0)),
       z(invGD * Complex(-mF0, ls.G0)) {}
 
 Complex Voigt::dFdf() const noexcept { return dF; }
@@ -77,7 +77,7 @@ Complex Voigt::operator()(Numeric f) noexcept {
 SpeedDependentVoigt::SpeedDependentVoigt(Numeric F0_noshift, const Output &ls,
                                          Numeric GD_div_F0, Numeric dZ) noexcept
     : mF0(F0_noshift + dZ + ls.D0 - 1.5 * ls.D2),
-      invGD(sqrt_ln_2 / (GD_div_F0 * mF0)), invc2(1.0 / Complex(ls.G2, ls.D2)),
+      invGD(sqrt_ln_2 / std::abs(GD_div_F0 * mF0)), invc2(1.0 / Complex(ls.G2, ls.D2)),
       dx(Complex(ls.G0 - 1.5 * ls.G2, mF0)), x(dx * invc2),
       sqrty(invc2 / (2 * invGD)), calcs(init(Complex(ls.G2, ls.D2))) {
   calc();
@@ -510,7 +510,7 @@ HartmannTran::HartmannTran(Numeric F0_noshift, const Output &ls,
                            Numeric GD_div_F0, Numeric dZ) noexcept
     : G0(ls.G0), D0(ls.D0), G2(ls.G2), D2(ls.D2), FVC(ls.FVC), ETA(ls.ETA),
       mF0(F0_noshift + dZ + (1 - ls.ETA) * (ls.D0 - 1.5 * ls.D2)),
-      invGD(sqrt_ln_2 / (GD_div_F0 * mF0)),
+      invGD(sqrt_ln_2 / std::abs(GD_div_F0 * mF0)),
       deltax(ls.FVC + (1 - ls.ETA) * (ls.G0 - 3 * ls.G2 / 2), mF0),
       sqrty(1 / (2 * (1 - ls.ETA) * Complex(ls.G2, ls.D2) * invGD)) {
   calc();
@@ -2022,11 +2022,7 @@ Calculator line_shape_selection(const Type type, const Numeric F0,
   case Type::LP:
     return Lorentz(F0, X);
   case Type::VP:
-    if (Voigt v(F0, X, DC, DZ); v.OK()) {
-      return v;
-    } else {
-      return Lorentz(F0, X);
-    }
+    return Voigt(F0, X, DC, DZ);
   case Type::SDVP:
     return SpeedDependentVoigt(F0, X, DC, DZ);
   case Type::HTP:
@@ -2174,8 +2170,9 @@ void frequency_loop(ComplexVector &F, ArrayOfComplexVector &dF,
                     const Index &nj, const Index &nv) ARTS_NOEXCEPT {
   for (Index iv = 0; iv < nv; iv++) {
     const Numeric f = f_grid[iv];
-    if (f > fu or f < fl)
+    if (f > fu or f < fl) {
       continue;
+    }
 
     const Numeric Sn = std::visit([f](auto &&LSN) { return LSN(f); }, ls_norm);
     const Numeric S = Sz * Sn * Si;
@@ -2184,45 +2181,43 @@ void frequency_loop(ComplexVector &F, ArrayOfComplexVector &dF,
         std::visit([f](auto &&LS) { return std::conj(LS(f)); }, ls_mirr);
     const Complex Fls = std::visit([f](auto &&LS) { return LS(f); }, ls) + Fm;
     F[iv] += S * LM * Fls;
-    if constexpr (do_nlte)
+    if constexpr (do_nlte) {
       N[iv] += DS * LM * Fls;
+    }
 
     for (Index ij = 0; ij < nj; ij++) {
-      if (not propmattype_index(jacobian_quantities, ij))
+      if (not propmattype_index(jacobian_quantities, ij)) {
         continue;
+      }
+      
       const auto &deriv = jacobian_quantities[ij];
       ARTS_ASSERT(dF[ij].size() == nv,
                   "Must have same freq count as main output for derivatives\n"
                   "Should have: ",
                   nv, "Has instead: ", dF[ij].size(),
                   "\nFor derivative type: ", deriv.Target())
-      ARTS_ASSERT(dN[ij].size() == nv,
-                  "Must have same freq count as nlte output for derivatives\n"
-                  "Should have: ",
-                  nv, "Has instead: ", dN[ij].size(),
-                  "\nFor derivative type: ", deriv.Target())
+      if constexpr (do_nlte) {
+        ARTS_ASSERT(dN[ij].size() == nv,
+                    "Must have same freq count as nlte output for derivatives\n"
+                    "Should have: ",
+                    nv, "Has instead: ", dN[ij].size(),
+                    "\nFor derivative type: ", deriv.Target())
+      }
 
       if (deriv == Jacobian::Atm::Temperature) {
         if (iz == 0 and iv == 0) {
           lsmp_derivs[ij] = band.ShapeParameters_dT(i, T, P, vmrs);
         }
-        const Numeric dSn =
-            std::visit([T, f](auto &&LSN) { return LSN.dNdT(T, f); }, ls_norm);
-        const Numeric dSi =
-            std::visit([T, f](auto &&LSN) { return LSN.dSdT(); }, ls_str);
+        const Numeric dSn = std::visit([T, f](auto &&LSN) { return LSN.dNdT(T, f); }, ls_norm);
+        const Numeric dSi = std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str);
         const Complex dLM(lsmp_derivs[ij].G, -lsmp_derivs[ij].Y);
-        const Complex dFm = std::visit(
-            [dXdT = lsmp_derivs[ij], T](auto &&LS) {
-              return std::conj(LS.dFdT(mirroredOutput(dXdT), T));
-            },
-            ls_mirr);
-        const Complex dFls =
-            std::visit([dXdT = lsmp_derivs[ij],
-                        T](auto &&LS) { return LS.dFdT(dXdT, T); },
-                       ls) +
-            dFm;
-        dF[ij][iv] +=
-            S * (LM * dFls + dLM * Fls) + Sz * (dSn * Si + Sn * dSi) * LM * Fls;
+        const Complex dFm = std::visit([dXdT = lsmp_derivs[ij], T](auto &&LS) { return std::conj(LS.dFdT(mirroredOutput(dXdT), T)); }, ls_mirr);
+        const Complex dFls = std::visit([dXdT = lsmp_derivs[ij], T](auto &&LS) { return LS.dFdT(dXdT, T); }, ls) + dFm;
+        dF[ij][iv] += S * (LM * dFls + dLM * Fls) + Sz * (dSn * Si + Sn * dSi) * LM * Fls;
+        if constexpr (do_nlte) {
+          const Numeric dDSi = std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str);
+          dN[ij][iv] += DS * (LM * dFls + dLM * Fls) + Sz * (dSn * Si + Sn * dDSi) * LM * Fls;
+        }
       } else if (is_wind_parameter(deriv)) {
         const Complex dFm =
             std::visit([](auto &&LS) { return std::conj(LS.dFdf()); }, ls_mirr);
@@ -2470,7 +2465,7 @@ void compute(ComplexVector &F, ArrayOfComplexVector &dF, ComplexVector &N,
              const SpeciesAuxData::AuxType &partfun_type,
              const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
              const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
-             const Numeric &H, const bool do_nlte, const bool do_zeeman,
+             const bool do_nlte, const Numeric &H, const bool do_zeeman,
              const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   // Programming trickery (sets pre-allocated size limits)
   constexpr std::size_t preallocated_count = 8;
@@ -2494,7 +2489,7 @@ void compute(ComplexVector &F, ArrayOfComplexVector &dF, ComplexVector &N,
 
   // Tests that must be true while calling this function
   ARTS_ASSERT(H >= 0, "Only for positive H.  You provided: ", H)
-  ARTS_ASSERT(P >= 0, "Only for positive P.  You provided: ", P)
+  ARTS_ASSERT(P > 0, "Only for abs positive P.  You provided: ", P)
   ARTS_ASSERT(T > 0, "Only for abs positive T.  You provided: ", T)
   ARTS_ASSERT(band.OK(), "Band is poorly constructed.  You need to use "
                          "a detailed debugger to find out why.")
@@ -2516,14 +2511,6 @@ void compute(ComplexVector &F, ArrayOfComplexVector &dF, ComplexVector &N,
               "You have: ",
               nj, "-sized jacobian_quantities and ", dN.size(),
               "-sized nlte derivative output")
-
-  // Reset all to zero (is this really needed?):
-  F = 0;
-  if (do_nlte)
-    N = 0;
-  dF = F;
-  if (do_nlte)
-    dN = N;
 
   // Early return test
   if (nl == 0 or (Absorption::relaxationtype_relmat(band.Population()) and

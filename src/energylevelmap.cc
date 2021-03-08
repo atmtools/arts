@@ -28,6 +28,32 @@
 #include "special_interp.h"
 
 
+bool EnergyLevelMap::OK() const noexcept {
+  if (not (mvalue.nbooks() == mlevels.nelem() and 
+          (mvib_energy.nelem() == mlevels.nelem() or mvib_energy.nelem() == 0))) {
+    return false;  // Bad dimensions, vibrational energies and IDs and data of strange size
+  }
+  
+  std::cout << "OI\n";
+  
+  if (mtype == EnergyLevelMapType::Tensor3_t) {
+  } else if (mtype == EnergyLevelMapType::Vector_t) {
+    if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1)
+      return false;  // Bad dimensions for vector type
+  } else if (mtype == EnergyLevelMapType::Numeric_t) {
+    if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1 or mvalue.ncols() not_eq 1)
+      return false;  // Bad dimensions for numeric type
+  } else if (mtype == EnergyLevelMapType::None_t) {
+    if (mvalue.npages() not_eq 0 or mvalue.nrows() not_eq 0 or mvalue.ncols() not_eq 0)
+      return false;  // Bad dimensions for none type
+  }
+  
+  for (auto& e: mvib_energy) if (e < 0) return false;  // Bad energies
+  
+  return true;
+}
+
+
 Output2 EnergyLevelMap::get_ratio_params(
   const AbsorptionLines& band, const Index& line_index) const
 {

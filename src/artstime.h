@@ -88,6 +88,9 @@ using ArrayOfTime = Array<Time>;
 /** List of times */
 using ArrayOfArrayOfTime = Array<ArrayOfTime>;
 
+/** List of time steps */
+using ArrayOfTimeStep = Array<TimeStep>;
+
 /** Output for Time */
 std::ostream& operator<<(std::ostream& os, const Time& t);
 
@@ -154,5 +157,21 @@ Vector time_vector(const ArrayOfTime& times);
  * @return ArrayOfTime from seconds
  */
 ArrayOfTime time_vector(const Vector& times);
+
+/** Returns the median time step
+ * 
+ * Takes vector by copy to sort
+ * 
+ * @param[in] times Times
+ * @return median time step
+ */
+TimeStep median(ArrayOfTimeStep);
+
+/** Returns the mean time step
+ * 
+ * @param[in] times Times
+ * @return mean time step
+ */
+TimeStep mean(const ArrayOfTimeStep&);
 
 #endif  // ARTSTIME_H
