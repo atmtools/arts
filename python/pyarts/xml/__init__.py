@@ -54,6 +54,13 @@ def save(var, filename, precision='.7e', format='ascii', comment=None,
         xmlopen = gzip.open
     else:
         xmlopen = open
+
+    if hasattr(var, "savexml"):
+        if format == "ascii" and filename.endswith('.gz'):
+            format = "zascii"
+        var.savexml(filename, format)
+        return
+
     with xmlopen(filename, mode='wt', encoding='UTF-8') as fp:
         if format == 'binary':
             with open(filename + '.bin', mode='wb') as binaryfp:
@@ -105,12 +112,26 @@ def load(filename):
         xmlopen = open
 
     binaryfilename = filename + '.bin'
-    with xmlopen(filename, 'rb') as fp:
-        if isfile(binaryfilename):
-            with open(binaryfilename, 'rb',) as binaryfp:
-                return read.parse(fp, binaryfp).getroot().value()
-        else:
-            return read.parse(fp).getroot().value()
+    artstag = None
+    try:
+        with xmlopen(filename, 'rb') as fp:
+            if isfile(binaryfilename):
+                with open(binaryfilename, 'rb',) as binaryfp:
+                    root = read.parse(fp, binaryfp).getroot()
+                    artstag = root[0].tag
+                    return root.value()
+            else:
+                root = read.parse(fp).getroot()
+                artstag = root[0].tag
+                return root.value()
+    except RuntimeError:
+        import pyarts.classes as native_classes
+        if hasattr(native_classes, artstag) and hasattr(
+                getattr(native_classes, artstag), "readxml"):
+            ret = getattr(native_classes, artstag)()
+            ret.readxml(filename)
+            return ret
+        raise
 
 
 def load_directory(directory, exclude=None):

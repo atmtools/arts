@@ -47,7 +47,7 @@ from pyarts.classes.Timer import Timer
 from pyarts.classes.TransmissionMatrix import TransmissionMatrix, ArrayOfTransmissionMatrix, ArrayOfArrayOfTransmissionMatrix
 from pyarts.classes.Vector import Vector, ArrayOfVector, ArrayOfArrayOfVector
 from pyarts.classes.Verbosity import Verbosity
-from pyarts.classes.XsecRecord import ArrayOfXsecRecord
+from pyarts.classes.XsecRecord import XsecRecord, ArrayOfXsecRecord
 
 
 # Attempt at conversions
