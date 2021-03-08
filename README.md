@@ -38,6 +38,7 @@ Build Prerequisites:
     pytest
     scipy
     setuptools
+    xarray
 
 To build the documentation you also need:
 
