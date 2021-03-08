@@ -4,7 +4,7 @@ if(FASTWIGNER LESS 0)
 endif()
 
 add_custom_target(automatic_fastwigxj
-    COMMAND $(MAKE) gen/fastwigxj_auto_config.h
+    COMMAND ${LEGACY_MAKE} -s gen/fastwigxj_auto_config.h
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     
 include_directories(inc/ cfg/ gen/ src/ ../wigxjpf/inc/ ../wigxjpf/cfg/ ../wigxjpf/gen/ ../wigxjpf/src/)
