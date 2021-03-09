@@ -9,6 +9,7 @@ add_custom_command (
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
   )
 
+file(GLOB ARTS_SOURCE_FILES ${ARTS_SOURCE_DIR}/src/*.h ${ARTS_SOURCE_DIR}/src/*.cc)
 add_custom_command (
   OUTPUT doxified
   COMMAND ${CMAKE_COMMAND} -E echo_append "Building API Documentation..."
@@ -18,7 +19,7 @@ add_custom_command (
                            ${CMAKE_CURRENT_SOURCE_DIR}/../arts-splash.png html/
   COMMAND ${CMAKE_COMMAND} -E touch doxified
   COMMAND ${CMAKE_COMMAND} -E echo "Done."
-  DEPENDS Doxyfile ${ARTS_BINARY_DIR}/auto_version.txt ${ARTS_SOURCE_DIR}/src/*.h ${ARTS_SOURCE_DIR}/src/*.cc
+  DEPENDS Doxyfile ${ARTS_BINARY_DIR}/auto_version.txt ${ARTS_SOURCE_FILES}
 )
 
 add_custom_target (apidoc ALL DEPENDS doxified)
