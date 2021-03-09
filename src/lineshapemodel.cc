@@ -1027,6 +1027,63 @@ Model::Model(Numeric sgam,
   }
 }
 
+Model hitran_model(Numeric sgam,
+                   Numeric nself,
+                   Numeric agam,
+                   Numeric nair,
+                   Numeric psf) {
+  Model m(2);
+  
+  m.Data().front().G0() = {TemperatureModel::T1, sgam, nself, 0, 0};
+  m.Data().front().D0() = {TemperatureModel::T0, psf, 0, 0, 0};
+
+  m.Data().back().G0() = {TemperatureModel::T1, agam, nair, 0, 0};
+  m.Data().back().D0() = {TemperatureModel::T0, psf, 0, 0, 0};
+  
+  return m;
+}
+
+Model lblrtm_model(Numeric sgam,
+                   Numeric nself,
+                   Numeric agam,
+                   Numeric nair,
+                   Numeric psf,
+                   std::array<Numeric, 12> aer_interp) {
+  Model m(2);
+  
+  m.Data().front().G0() = {TemperatureModel::T1, sgam, nself, 0, 0};
+  m.Data().front().D0() = {TemperatureModel::T0, psf, 0, 0, 0};
+
+  m.Data().back().G0() = {TemperatureModel::T1, agam, nair, 0, 0};
+  m.Data().back().D0() = {TemperatureModel::T0, psf, 0, 0, 0};
+  
+  if (std::any_of(aer_interp.cbegin(), aer_interp.cend(), [](auto x){return x not_eq 0;})) {
+    m.Data().front().Y().type = TemperatureModel::LM_AER;
+    m.Data().front().Y().X0 = aer_interp[4];
+    m.Data().front().Y().X1 = aer_interp[5];
+    m.Data().front().Y().X2 = aer_interp[6];
+    m.Data().front().Y().X3 = aer_interp[7];
+    m.Data().front().G().type = TemperatureModel::LM_AER;
+    m.Data().front().G().X0 = aer_interp[8];
+    m.Data().front().G().X1 = aer_interp[9];
+    m.Data().front().G().X2 = aer_interp[10];
+    m.Data().front().G().X3 = aer_interp[11];
+    
+    m.Data().back().Y().type = TemperatureModel::LM_AER;
+    m.Data().back().Y().X0 = aer_interp[4];
+    m.Data().back().Y().X1 = aer_interp[5];
+    m.Data().back().Y().X2 = aer_interp[6];
+    m.Data().back().Y().X3 = aer_interp[7];
+    m.Data().back().G().type = TemperatureModel::LM_AER;
+    m.Data().back().G().X0 = aer_interp[8];
+    m.Data().back().G().X1 = aer_interp[9];
+    m.Data().back().G().X2 = aer_interp[10];
+    m.Data().back().G().X3 = aer_interp[11];
+  }
+  
+  return m;
+}
+
 bool Model::OK(Type type, bool self, bool bath,
                const std::vector<SpeciesTag>& species) const noexcept {
   Index n = mdata.size();

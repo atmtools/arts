@@ -245,17 +245,11 @@ void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >
   for (auto& keyval: upper_list) {
     auto key = string2quantumnumbertype(keyval[0]);
     if (key == QuantumNumberType::FINAL) {
-      std::ostringstream os;
-      os << "The key \"" << keyval[0] << "\" is an invalid input as a quantum number key";
-      std::cout << "WARNING: " << os.str() << '\n';
     } else {
       auto val = interpret_stringdata(key, keyval[1]);
       if (val != RATIONAL_UNDEFINED) {
         qid.UpperQuantumNumber(key) = val;
       } else {
-        std::ostringstream os;
-        os << "The key \"" << keyval[0] << "\" and value \"" << keyval[1] << "\" are invalid input as a quantum number key and value pair";
-        std::cout << "WARNING: " << os.str() << '\n';
       }
     }
   }
@@ -263,17 +257,11 @@ void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >
   for (auto& keyval: lower_list) {
     auto key = string2quantumnumbertype(keyval[0]);
     if (key == QuantumNumberType::FINAL) {
-      std::ostringstream os;
-      os << "The key \"" << keyval[0] << "\" is an invalid input as a quantum number key";
-      std::cout << "WARNING: " << os.str() << '\n';
     } else {
       auto val = interpret_stringdata(key, keyval[1]);
       if (val != RATIONAL_UNDEFINED) {
         qid.LowerQuantumNumber(key) = val;
       } else {
-        std::ostringstream os;
-        os << "The key \"" << keyval[0] << "\" and value \"" << keyval[1] << "\" are invalid input as a quantum number key and value pair";
-        std::cout << "WARNING: " << os.str() << '\n';
       }
     }
   }

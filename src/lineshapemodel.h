@@ -868,6 +868,20 @@ class Model {
   bofstream& write(bofstream& bof) const;
 };  // Model;
 
+
+Model hitran_model(Numeric sgam,
+                   Numeric nself,
+                   Numeric agam,
+                   Numeric nair,
+                   Numeric psf);
+
+Model lblrtm_model(Numeric sgam,
+                   Numeric nself,
+                   Numeric agam,
+                   Numeric nair,
+                   Numeric psf,
+                   std::array<Numeric, 12> aer_interp = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+
 std::ostream& operator<<(std::ostream&, const Model&);
 
 std::istream& operator>>(std::istream&, Model&);

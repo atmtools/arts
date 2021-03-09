@@ -278,6 +278,7 @@ void define_basic_species_data() {
           REC("838", 4.44600E-08, 49.001675, -1, 20, TAGS()),
 #endif
           REC("837", 1.65354E-08, 48.001646, -1, -1, TAGS()),
+          REC("737", 1.537500E-08, 47.0016182378, -1, -1, TAGS()),
           REC("CKD241", NAN, NAN, -1, -1, TAGS()),
           REC("CKDMT100", NAN, NAN, -1, -1, TAGS()),
           REC("CKDMT252", NAN, NAN, -1, -1, TAGS()),
@@ -408,7 +409,9 @@ void define_basic_species_data() {
       DEGFR(3),
       ISOTOPOLOGUES(  //  Name,      Isotop. Ratio,     Mass,         MY-tag, HI-tag, JPL-tag
           //             |                  |             |       |       |
-          REC("646", .991616E+00, 45.992904, 101, 101, TAGS(46006)))));
+          REC("646", .991616E+00, 45.992904, 101, 101, TAGS(46006)),
+          REC("656", 3.64564E-030, 46.989938, -1, -1, TAGS())
+                   )));
 
   // NH3
   // Isotopologue Ratios: 1 1 3
@@ -525,7 +528,8 @@ void define_basic_species_data() {
           REC("624", 4.15828E-02, 61.962780, 192, 192, TAGS(62001)),
           REC("632", 1.05315E-02, 60.970341, 193, 193, TAGS(61001)),
           REC("623", 7.39908E-03, 60.966371, 194, 194, TAGS()),
-          REC("822", 1.87967E-03, 61.971231, 195, 195, TAGS(62002)))));
+          REC("822", 1.87967E-03, 61.971231, 195, 195, TAGS(62002)),
+          REC("634", 4.67508E-04, 62.966137, -1, -1, TAGS()))));
 
   // H2CO
   // Isotopologue Ratios: 1 1 1 3 3
@@ -1017,6 +1021,37 @@ void define_basic_species_data() {
       ISOTOPOLOGUES(  //  Name,      Isotop. Ratio,       Mass,         MY-tag, HI-tag, JPL-tag
           //             |                    |             |       |       |
           REC("26", .943400E+00, 79.956820, -1, 471, TAGS()))));
+
+  // CS2
+  species_data.push_back(SpeciesRecord(
+      NAME("CS2"),
+      DEGFR(3),  // FIXME: not checked
+      ISOTOPOLOGUES(  //  Name,      Isotop. Ratio,       Mass,         MY-tag, HI-tag, JPL-tag
+          //             |                    |             |       |       |
+          REC("222", 8.92811E-01, 75.944140, -1, -1, TAGS()),
+          REC("224", 7.92600E-02, 77.939940, -1, -1, TAGS()),
+          REC("223", 1.40940E-02, 76.943256, -1, -1, TAGS()),
+          REC("232", 1.03100E-02, 76.947495, -1, -1, TAGS()),
+      )));
+
+  // C2N2
+  species_data.push_back(SpeciesRecord(
+    NAME("C2N2"),
+      DEGFR(3), // FIXME: not checked
+      ISOTOPOLOGUES(  //  Name,      Isotop. Ratio,       Mass,         MY-tag, HI-tag, JPL-tag
+          //             |                    |             |       |       |
+          REC("4224", 9.70752E-01, 52.006148 , -1, -1, TAGS())
+      )));
+
+  // COCl2
+  species_data.push_back(SpeciesRecord(
+    NAME("COCl2"),
+      DEGFR(3), // FIXME: not checked
+      ISOTOPOLOGUES(  //  Name,      Isotop. Ratio,       Mass,         MY-tag, HI-tag, JPL-tag
+          //             |                    |             |       |       |
+          REC("2655", 5.66392E-01, 97.932620 , -1, -1, TAGS()),
+          REC("2657", 5.66392E-01, 97.932620 , -1, -1, TAGS())
+      )));
 
   species_data.push_back(SpeciesRecord(
       NAME("liquidcloud"),

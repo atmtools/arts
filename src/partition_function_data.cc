@@ -409,6 +409,11 @@ void define_partition_species_data() {
       Qcoeff(150.0, 300.0),
       IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,
+      "737",
+      Qcoeff(0,0,0,0),
+      Qcoeff(150.0, 300.0),
+      IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,
       "CKD241",
       Qcoeff(0, 0, 0, 0),
       Qcoeff(150.0, 300.0),
@@ -731,6 +736,11 @@ void define_partition_species_data() {
       Qcoeff(-8.761726e+02, 2.829842e+01, 5.398242e-02, 5.194329e-05),
       Qcoeff(150.0, 300.0),
       IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,
+      "656",
+      Qcoeff(0,0,0,0),
+      Qcoeff(150.0, 300.0),
+      IsotopologueRecord::PF_FROMCOEFF);
 
   // NH3
   // Coeff: 1 1 2
@@ -919,6 +929,11 @@ void define_partition_species_data() {
       "822",
       Qcoeff(1.444298e+01, 3.686311e+00, -3.307686e-03, 1.920205e-05),
       Qcoeff(150.0, 300.0),
+      IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,
+      "634",
+      Qcoeff(0,0,0,0),
+      Qcoeff(1, 2),
       IsotopologueRecord::PF_FROMCOEFF);
 
   // H2CO
@@ -1656,6 +1671,56 @@ void define_partition_species_data() {
       "26",
       Qcoeff(-76.2339, 6.95356, 1.30510e-07, -1.17068e-11),
       Qcoeff(150.0, 300.0),
+      IsotopologueRecord::PF_FROMCOEFF);
+
+  // CS2
+  next_species(it_species, it_isotopologue, "CS2");
+  //                    Name            c0              c1              c2              c3
+  //                    |               |               |               |               |
+  iso(it_isotopologue,
+      "222",
+      Qcoeff(0, 0, 0, 0),
+      Qcoeff(1, 2),
+      IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,
+      "224",
+      Qcoeff(0, 0, 0, 0),
+      Qcoeff(1, 2),
+      IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,
+      "223",
+      Qcoeff(0, 0, 0, 0),
+      Qcoeff(1, 2),
+      IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,
+      "232",
+      Qcoeff(0, 0, 0, 0),
+      Qcoeff(1, 2),
+      IsotopologueRecord::PF_FROMCOEFF);
+  
+  // C2N2
+  next_species(it_species, it_isotopologue, "C2N2");
+  //                    Name            c0              c1              c2              c3
+  //                    |               |               |               |               |
+  iso(it_isotopologue,
+      "4224",
+      Qcoeff(0, 0, 0, 0),
+      Qcoeff(1, 2),
+      IsotopologueRecord::PF_FROMCOEFF);
+  
+  //  
+  next_species(it_species, it_isotopologue, "COCl2");
+  //                    Name            c0              c1              c2              c3
+  //                    |               |               |               |               |
+  iso(it_isotopologue,
+      "2655",
+      Qcoeff(0, 0, 0, 0),
+      Qcoeff(1, 2),
+      IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,
+      "2657",
+      Qcoeff(0, 0, 0, 0),
+      Qcoeff(1, 2),
       IsotopologueRecord::PF_FROMCOEFF);
 
   // liquid cloud particles
