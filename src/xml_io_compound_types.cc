@@ -1038,7 +1038,6 @@ void xml_read_from_stream(istream& is_xml,
   Numeric abundance;
   Numeric mass;
   Index mytrantag;
-  Index hitrantag;
   ArrayOfIndex jpltags;
 
   tag.read_from_stream(is_xml);
@@ -1048,14 +1047,13 @@ void xml_read_from_stream(istream& is_xml,
   xml_read_from_stream(is_xml, abundance, pbifs, verbosity);
   xml_read_from_stream(is_xml, mass, pbifs, verbosity);
   xml_read_from_stream(is_xml, mytrantag, pbifs, verbosity);
-  xml_read_from_stream(is_xml, hitrantag, pbifs, verbosity);
   xml_read_from_stream(is_xml, jpltags, pbifs, verbosity);
 
   tag.read_from_stream(is_xml);
   tag.check_name("/IsotopologueRecord");
 
   irecord =
-      IsotopologueRecord(name, abundance, mass, mytrantag, hitrantag, jpltags);
+      IsotopologueRecord(name, abundance, mass, mytrantag, jpltags);
 }
 
 //! Writes IsotopologueRecord to XML output stream
@@ -1084,8 +1082,6 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, irecord.Mass(), pbofs, "Mass", verbosity);
   xml_write_to_stream(
       os_xml, irecord.MytranTag(), pbofs, "MytranTag", verbosity);
-  xml_write_to_stream(
-      os_xml, irecord.HitranTag(), pbofs, "HitranTag", verbosity);
   xml_write_to_stream(os_xml, irecord.JplTags(), pbofs, "JplTags", verbosity);
 
   close_tag.set_name("/IsotopologueRecord");

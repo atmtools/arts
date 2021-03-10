@@ -8,6 +8,7 @@ from pyarts import xml  # noqa
 from pyarts import classes  # noqa
 from pyarts import workspace  # noqa
 from pyarts.common import *  # noqa
+from pyarts import hitran  # noqa
 
 __all__ = [s for s in dir() if not s.startswith('_')]
 __version__ = "@ARTS_VERSION@"

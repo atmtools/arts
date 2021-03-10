@@ -14248,8 +14248,9 @@ void define_md_data_raw() {
                   "\n"
                   "The HITRAN type switch can be:\n"
                   "\t\"Pre2004\"\t-\tfor old format\n"
-                  "\t\"Post2004\"\t-\tfor new format\n"
-                  "\t\"Online\"\t-\tfor the online format with quantum numbers (highly experimental)\n"
+                  "\t\"From2004To2012\"\t-\tfor new format but old isotopologue order\n"
+                  "\t\"Post2012\"\t-\tfor new format and new isotopologue order\n"
+                  "\t\"Online\"\t-\tfor the online format with quantum numbers (recommended)\n"
                   "\n"
                   "Be careful setting the options!\n"
       ),
@@ -14265,7 +14266,7 @@ void define_md_data_raw() {
           "cutoff_value", "linemixinglimit_value"),
       GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String", "String",
                "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "Post2004", "None", "None", "LTE", "VP",
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "Online", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
       GIN_DESC("Name of the HITRAN file",
                "Minimum frequency of read lines",

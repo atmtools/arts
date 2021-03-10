@@ -407,12 +407,6 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
-ENUMCLASS(HitranType, char,
-  Pre2004,
-  Post2004,
-  Online
-)
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const String& hitran_file,
@@ -439,7 +433,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   // HITRAN type
-  const HitranType hitran_version = toHitranTypeOrThrow(hitran_type);
+  const Options::HitranType hitran_version = Options::toHitranTypeOrThrow(hitran_type);
   
   // Hitran data
   ifstream is;
@@ -449,13 +443,16 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   while (go_on) {
     Absorption::SingleLineExternal sline;
     switch (hitran_version) {
-      case HitranType::Post2004:
+      case Options::HitranType::Post2012:
+        sline = Absorption::ReadFromHitran2012Stream(is);
+        break;
+      case Options::HitranType::From2004To2012:
         sline = Absorption::ReadFromHitran2004Stream(is);
         break;
-      case HitranType::Pre2004:
+      case Options::HitranType::Pre2004:
         sline = Absorption::ReadFromHitran2001Stream(is);
         break;
-      case HitranType::Online:
+      case Options::HitranType::Online:
         sline = Absorption::ReadFromHitranOnlineStream(is);
         break;
       default:
