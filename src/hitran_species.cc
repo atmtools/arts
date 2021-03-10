@@ -495,6 +495,8 @@ const std::map<Index, std::map<char, const char * const>> latest_molparam_map{
 std::map<Index, std::map<char, SpeciesTag>> to_species_map(const std::map<Index, std::map<char, const char * const>>& string_map) {
   std::map<Index, std::map<char, SpeciesTag>> species_map;
   for (auto& specs: string_map) {
+    ARTS_ASSERT(specs.second.find('1') not_eq specs.second.cend(),
+                "Must have species '1' in map")
     for (auto& isot: specs.second) {
       species_map[specs.first][isot.first] = SpeciesTag(isot.second);
     }
@@ -547,7 +549,7 @@ template <Type t> QuantumIdentifier from_mol_iso(Index molnum, char isonum) {
     } else {
       ARTS_USER_ERROR("Species ", molnum, " has no isotopologue ", isonum,
                       " in ARTS' HITRAN implementation.\n",
-                      "(This species's first entry is \'", from_mol_iso<t>(molnum, '1').SpeciesName(), "\')\n"
+                      "(Species is ", hitmap.at(molnum).at('1').SpeciesNameMain(), ")\n"
                       "If you are using a new version of HITRAN that has added the isotopologue, please consider\n"
                       "contacting the ARTS developers so we can append the species to our list and make this work.\n"
                       "Note that you are calling this templated function as the ", t, " template")
