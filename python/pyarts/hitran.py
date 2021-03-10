@@ -1,14 +1,24 @@
 from urllib.request import urlopen
 
+# Map Hitran to ARTS species names
+_HITRAN_TO_ARTS_NAMES = {
+    "CH3CN-2124": "CH3CN-211124",
+    "CO2-827": "CO2-728",
+    "H2CO-126": "H2CO-1126",
+    "H2CO-128": "H2CO-1128",
+    "H2CO-136": "H2CO-1136",
+    "HC3N-1224": "HC3N-12224",
+    "HCOOH-126": "HCOOH-1261",
+}
+
 
 def gen_latest_molparam_map(molparam_txt_file=None):
     """ Generates a version of latest_molparam_map used in hitran_species.cc
 
     The variable is simply printed to stream with print() as the intent is
-    to use this output in ARTS directly.  Note, to keep this simple, however,
-    that since HITRAN does not know about ARTS tags, the species name is
-    given as Species-AFGL.  ARTS does not use AFGL notation internally so
-    some of these have to be manually changed.
+    to use this output in ARTS directly.  ARTS does not use AFGL notation
+    internally, but species names that are different from Hitran are mapped to
+    ARTS names in the output.
     """
     def pos2char(ind):
         """ Convert an isotoplogue index to a HITRAN char for that index """
@@ -47,6 +57,9 @@ def gen_latest_molparam_map(molparam_txt_file=None):
     for spec in out:
         print ('{',out[spec][0][0], ', {  // ', spec, sep='')
         for isot in out[spec]:
-            print ('{', pos2char(isot[1]), ', "{}-{}"'.format(spec, isot[2]), '},', sep='')
+            isoname = f"{spec}-{isot[2]}"
+            if isoname in _HITRAN_TO_ARTS_NAMES:
+                isoname = _HITRAN_TO_ARTS_NAMES[isoname]
+            print ('{', pos2char(isot[1]), ', "', isoname, '"},', sep='')
         print ('}},')
     print ('};')
