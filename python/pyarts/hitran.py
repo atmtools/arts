@@ -1,4 +1,7 @@
-def gen_latest_molparam_map(molparam_txt_file):
+from urllib.request import urlopen
+
+
+def gen_latest_molparam_map(molparam_txt_file=None):
     """ Generates a version of latest_molparam_map used in hitran_species.cc
 
     The variable is simply printed to stream with print() as the intent is
@@ -17,8 +20,12 @@ def gen_latest_molparam_map(molparam_txt_file):
             return "'A'"
         elif ind == 12:
             return "'B'"
-    
-    molparam_txt = open(molparam_txt_file, 'r').read().split('\n')
+
+    if molparam_txt_file:
+        molparam_txt = open(molparam_txt_file, 'r').read().split('\n')
+    else:
+        molparam_txt = urlopen("https://hitran.org/media/molparam.txt").read(
+        ).decode("utf-8").split('\n')
     molparam_txt.pop(0)  # erase header
 
     out = {}
