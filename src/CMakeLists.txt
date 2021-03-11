@@ -201,6 +201,7 @@ add_library (artscore STATIC
   geodetic.cc
   gridded_fields.cc
   gzstream.cc
+  hitran_species.cc
   hitran_xsec.cc
   interpolation.cc
   interpolation_lagrange.cc
@@ -530,6 +531,11 @@ target_link_libraries(test_covariance_matrix test_utils ${ALL_ARTS_LIBRARIES})
 
 add_executable (test_telsem test_telsem.cc)
 target_link_libraries(test_telsem ${ALL_ARTS_LIBRARIES})
+
+########### next testcase ###############
+
+add_executable (test_hitran test_hitran.cc)
+target_link_libraries(test_hitran ${ALL_ARTS_LIBRARIES})
 
 ########### subdirs ###############
 

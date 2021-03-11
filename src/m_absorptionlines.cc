@@ -407,12 +407,6 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
-ENUMCLASS(HitranType, char,
-  Pre2004,
-  Post2004,
-  Online
-)
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const String& hitran_file,
@@ -430,6 +424,8 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const Numeric& linemixinglimit_value,
                 const Verbosity& verbosity)
 {
+  abs_lines.resize(0);
+  
   // Global numbers
   const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
@@ -437,52 +433,73 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   // HITRAN type
-  const HitranType hitran_version = toHitranType(hitran_type);
-  check_enum_error(hitran_version, "Cannot understand hitran_type: ", hitran_type);
+  const Options::HitranType hitran_version = Options::toHitranTypeOrThrow(hitran_type);
   
   // Hitran data
   ifstream is;
   open_input_file(is, hitran_file);
   
-  std::vector<Absorption::SingleLineExternal> v(0);
-  
   bool go_on = true;
   while (go_on) {
+    Absorption::SingleLineExternal sline;
     switch (hitran_version) {
-      case HitranType::Post2004:
-        v.push_back(Absorption::ReadFromHitran2004Stream(is));
+      case Options::HitranType::Post2012:
+        sline = Absorption::ReadFromHitran2012Stream(is);
         break;
-      case HitranType::Pre2004:
-        v.push_back(Absorption::ReadFromHitran2001Stream(is));
+      case Options::HitranType::From2004To2012:
+        sline = Absorption::ReadFromHitran2004Stream(is);
         break;
-      case HitranType::Online:
-        v.push_back(Absorption::ReadFromHitranOnlineStream(is));
+      case Options::HitranType::Pre2004:
+        sline = Absorption::ReadFromHitran2001Stream(is);
+        break;
+      case Options::HitranType::Online:
+        sline = Absorption::ReadFromHitranOnlineStream(is);
         break;
       default:
-        ARTS_ASSERT(false, "[DEV error] The HitranType enum class has to be fully updated!\n");
+        ARTS_ASSERT(false, "The HitranType enum class has to be fully updated!\n");
     }
     
-    if (v.back().bad) {
-      v.pop_back();
-      go_on = false;
-    } else if (v.back().line.F0() < fmin) {
-        v.pop_back();
-    } else if (v.back().line.F0() > fmax) {
-      v.pop_back();
-      go_on = false;
+    if (sline.bad) {
+      if (is.eof()) {
+        break;
+      } else {
+        ARTS_USER_ERROR("Cannot read line ", nelem(abs_lines) + 1);
+      }
+    } else if (sline.line.F0() < fmin) {
+      continue; // Skip this line
+    } else if (sline.line.F0() > fmax) {
+      break;  // We assume sorted so quit here
     }
-  }
-  
-  for (auto& x: v)
-    x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
-  
-  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
-  abs_lines.resize(0);
-  abs_lines.reserve(x.size());
-  while (x.size()) {
-    abs_lines.push_back(x.back());
-    abs_lines.back().sort_by_frequency();
-    x.pop_back();
+    
+    // Set Zeeman if implemented
+    sline.line.Zeeman() = Zeeman::GetAdvancedModel(sline.quantumidentity);
+    
+    // Get the global quantum number identifier
+    QuantumIdentifier global_qid(QuantumIdentifier::TRANSITION, sline.quantumidentity.Species(), sline.quantumidentity.Isotopologue());
+    for(auto qn: global_nums) {
+      global_qid.LowerQuantumNumber(qn) = sline.quantumidentity.LowerQuantumNumber(qn);
+      global_qid.UpperQuantumNumber(qn) = sline.quantumidentity.UpperQuantumNumber(qn);
+    }
+    
+    // Get local quantum numbers into the line
+    sline.line.LowerQuantumNumbers().reserve(local_nums.size());
+    sline.line.UpperQuantumNumbers().reserve(local_nums.size());
+    for(auto qn: local_nums) {
+      sline.line.LowerQuantumNumbers().emplace_back(sline.quantumidentity.LowerQuantumNumber(qn));
+      sline.line.UpperQuantumNumbers().emplace_back(sline.quantumidentity.UpperQuantumNumber(qn));
+    }
+    
+    // Either find a line like this in the list of lines or start a new Lines
+    auto band = std::find_if(abs_lines.begin(), abs_lines.end(), [&](const auto& li){return li.MatchWithExternal(sline, global_qid);});
+    if (band not_eq abs_lines.end()) {
+      band -> AppendSingleLine(sline.line);
+    } else {
+      abs_lines.emplace_back(sline.selfbroadening, sline.bathbroadening, sline.cutoff,
+                             sline.mirroring, sline.population, sline.normalization,
+                             sline.lineshapetype, sline.T0, sline.cutofffreq,
+                             sline.linemixinglimit, global_qid, local_nums, sline.species,
+                             std::vector<AbsorptionSingleLine>{sline.line});
+    }
   }
   
   abs_linesSetNormalization(abs_lines, normalization_option, verbosity);

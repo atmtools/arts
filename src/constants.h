@@ -556,6 +556,14 @@ namespace Options {
   ENUMCLASS(BasicCatParamJacobian, char,
             LineStrength,
             LineCenter)
+  
+  /** Possible HITRAN types of catalogs */
+  ENUMCLASS(HitranType, char,
+            Pre2004,  // 2004 version changed the .par-length
+            From2004To2012, // New par length but old isotopologues order
+            Post2012, // 2012 version changed the order of isotopologues
+            Online    // Onine expects a modern .par line followed by Upper then Lower quantum numbers
+  )
 }
 
 #endif

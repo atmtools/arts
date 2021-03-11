@@ -723,11 +723,12 @@ class QuantumIdentifier {
  */
 constexpr bool operator==(const QuantumNumbers& a, const QuantumNumbers& b) {
   for (Index i=0; i<Index(QuantumNumberType::FINAL); i++) {
-    if (a.GetNumbers()[i].isDefined() and b.GetNumbers()[i].isDefined() and
-        a.GetNumbers()[i] not_eq b.GetNumbers()[i]) {
-      return false;
-    } else if (a.GetNumbers()[i].isDefined() or b.GetNumbers()[i].isDefined()) {
-      return false;
+    Rational ra = a.GetNumbers()[i];
+    Rational rb = b.GetNumbers()[i];
+    if (ra.isDefined() or rb.isDefined()) {
+      if (ra not_eq rb) {
+        return false;
+      }
     }
   }
   return true;
@@ -748,7 +749,7 @@ constexpr bool operator==(const QuantumIdentifier& a, const QuantumIdentifier& b
   if (!(a.Isotopologue() == b.Isotopologue() && a.Species() == b.Species() &&
         a.Type() == b.Type()))
     return false;
-
+  
   if (a.Type() == QuantumIdentifier::ENERGY_LEVEL)
     return a.QuantumMatch()[a.ENERGY_LEVEL_INDEX] == b.QuantumMatch()[b.ENERGY_LEVEL_INDEX];
   else if (a.Type() == QuantumIdentifier::TRANSITION)

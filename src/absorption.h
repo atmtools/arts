@@ -56,13 +56,11 @@ class IsotopologueRecord {
                      const Numeric& abundance,
                      const Numeric& mass,
                      const Index& mytrantag,
-                     const Index& hitrantag,
                      const ArrayOfIndex& jpltags)
       : mname(name),
         mabundance(abundance),
         mmass(mass),
         mmytrantag(mytrantag),
-        mhitrantag(hitrantag),
         mjpltags(jpltags),
         mqcoeff(),
         mqcoefftype(PF_NOTHING),
@@ -74,7 +72,6 @@ class IsotopologueRecord {
     {
       /* 1. All the tags must be positive or -1 */
       ARTS_ASSERT((0 < mmytrantag) || (-1 == mmytrantag));
-      ARTS_ASSERT((0 < mhitrantag) || (-1 == mhitrantag));
       for (Index i = 0; i < mjpltags.nelem(); ++i)
         ARTS_ASSERT((0 < mjpltags[i]) || (-1 == mjpltags[i]));
     }
@@ -90,8 +87,6 @@ class IsotopologueRecord {
   const Numeric& Mass() const { return mmass; }
   /** MYTRAN2 tag numbers for all isotopologues. -1 means not included. */
   const Index& MytranTag() const { return mmytrantag; }
-  /** HITRAN-96 tag numbers for all isotopologues. -1 means not included. */
-  const Index& HitranTag() const { return mhitrantag; }
   /** JPL tag numbers for all isotopologues. Empty array means not included. There
       can be more than one JPL tag for an isotopologue species, because in
       JPL different vibrational states have different tags. */
@@ -131,7 +126,6 @@ class IsotopologueRecord {
   Numeric mabundance;
   Numeric mmass;
   Index mmytrantag;
-  Index mhitrantag;
   ArrayOfIndex mjpltags;
   Vector mqcoeff;
   Index mqcoefftype;
@@ -176,18 +170,6 @@ class SpeciesRecord {
           // Also check that the tags have the same base number:
           ARTS_ASSERT(misotopologue[i].MytranTag() / 10 ==
                  misotopologue[i].MytranTag() / 10);
-        }
-      }
-
-      /* Check that the Hitran tags are correctly sorted. */
-      for (Index i = 0; i < misotopologue.nelem() - 1; ++i) {
-        if ((0 < misotopologue[i].HitranTag()) &&
-            (0 < misotopologue[i + 1].HitranTag())) {
-          //                ARTS_ASSERT( misotopologue[i].HitranTag() < misotopologue[i+1].HitranTag() );
-
-          // Also check that the tags have the same base number:
-          ARTS_ASSERT(misotopologue[i].HitranTag() / 10 ==
-                 misotopologue[i + 1].HitranTag() / 10);
         }
       }
     }
