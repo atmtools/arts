@@ -42,7 +42,6 @@ cmake_dependent_option(
 cmake_dependent_option(
     NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
-option (WITH_HITRAN2008 "Change to use HITRAN 2008 definition of catalog species" OFF)
 
 if (ENABLE_CXX20)
   cmake_minimum_required (VERSION 3.12)
@@ -399,10 +398,6 @@ elseif (WIN)
 endif (APPLE)
 
 set (ARTS_DEFAULT_INCLUDE_DIR "${ARTS_SOURCE_DIR}/controlfiles")
-
-if (WITH_HITRAN2008)
-  set (USE_HITRAN2008 true)
-endif (WITH_HITRAN2008)
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")

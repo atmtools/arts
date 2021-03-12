@@ -201,27 +201,6 @@ export CTEST_OUTPUT_ON_FAILURE=1
 ```
 
 
-HITRAN catalog support
-----------------------
-
-By default, ARTS only supports the latest HITRAN 2012 catalog version. Because
-isotopologues have been renamed between different catalog versions, ARTS needs
-to be compiled for one specific HITRAN version. If you want to use HITRAN 2008,
-you have to recompile ARTS with:
-
-```
-cmake -DWITH_HITRAN2008=1 ..
-make arts
-```
-
-To switch back to HITRAN 2012, run:
-
-```
-cmake -DWITH_HITRAN2008=0 ..
-make arts
-```
-
-
 Optional features
 -----------------
 
