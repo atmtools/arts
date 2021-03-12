@@ -751,8 +751,8 @@ void xsec_species2(Matrix& xsec,
     // Pre-allocations of data
     ComplexVector F(nf, 0);
     ComplexVector N(do_nonlte ? nf : 0, 0);
-    ArrayOfComplexVector dF(nj, F);
-    ArrayOfComplexVector dN(nj, N);
+    ComplexMatrix dF(nf, nj, 0);
+    ComplexMatrix dN(do_nonlte ? nf : 0, nj, 0);
     
     // Constants for this level
     const Numeric& T = abs_t[ip];
@@ -768,7 +768,7 @@ void xsec_species2(Matrix& xsec,
     xsec(joker, ip) += F.real();
     for (Index ij=0; ij<nj; ij++) {
       if (not propmattype_index(jacobian_quantities, ij)) continue;
-      dxsec_dx[ij](joker, ip) += dF[ij].real();
+      dxsec_dx[ij](joker, ip) += dF(joker, ij).real();
     }
     
     // phase cross-section
@@ -776,7 +776,7 @@ void xsec_species2(Matrix& xsec,
       phase(joker, ip) += F.imag();
       for (Index ij = 0; ij < nj; ij++) {
         if (not propmattype_index(jacobian_quantities, ij)) continue;
-        dphase_dx[ij](joker, ip) += dF[ij].imag();
+        dphase_dx[ij](joker, ip) += dF(joker, ij).imag();
       }
     }
     
@@ -785,7 +785,7 @@ void xsec_species2(Matrix& xsec,
       source(joker, ip) += N.real();
       for (Index ij = 0; ij < nj; ij++) {
         if (not propmattype_index(jacobian_quantities, ij)) continue;
-        dsource_dx[ij](joker, ip) += dN[ij].real();
+        dsource_dx[ij](joker, ip) += dN(joker, ij).real();
       }
     }
   }

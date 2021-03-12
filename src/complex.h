@@ -64,6 +64,12 @@ constexpr Numeric abs2(Complex c) { return a1 * a1 + b1 * b1; }
 /** the conjugate of c */
 constexpr Complex conj(Complex c) { return Complex(a1, -b1); }
 
+/** real */
+constexpr Numeric real(Complex c) { return a1; }
+
+/** imag */
+constexpr Numeric imag(Complex c) { return b1; }
+
 // Basic constexpr operations for Complex that don't exist in the standard yet (C++11)
 // NOTE: Remove these if there is ever an overload warning updating the C++ compiler version
 

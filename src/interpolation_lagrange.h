@@ -12,6 +12,7 @@
 
 #include "constants.h"
 #include "enums.h"
+#include "nonstd.h"
 #include "matpackVII.h"
 
 namespace Interpolation {
@@ -238,12 +239,6 @@ constexpr Numeric cyclic_clamp(const Numeric x,
   else
     return x;
 }
-
-/*! For std functions that are not constexpr */
-namespace nonstd {
-/*! abs(x) returns |x| using -x if x < 0 or x otherwise */
-template <class T> constexpr T abs(T x) {return x < 0 ? - x : x;}
-}  // nonstd
 
 /*! Find the absolute minimum in a cycle
  *

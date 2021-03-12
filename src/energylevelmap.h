@@ -67,10 +67,10 @@ private:
 public:
   bool OK() const noexcept;
   
-  void ThrowIfNotOK() const ARTS_NOEXCEPT {ARTS_ASSERT (not OK(), "Class in bad state");}
+  void ThrowIfNotOK() const ARTS_NOEXCEPT {ARTS_ASSERT (OK(), "Class in bad state");}
   
   EnergyLevelMap() : mtype(EnergyLevelMapType::None_t), mlevels(0),
-  mvib_energy(0), mvalue(0, 0, 0, 0) {ThrowIfNotOK();}
+  mvib_energy(0), mvalue(0, 0, 0, 0) {}
   
   EnergyLevelMap(EnergyLevelMapType new_type, Index pages, Index rows,
                  Index cols, const EnergyLevelMap& old) : 

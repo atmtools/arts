@@ -438,8 +438,8 @@ typedef std::variant<Nostrength, LocalThermodynamicEquilibrium,
                      VibrationalTemperaturesNonLocalThermodynamicEquilibrium>
     IntensityCalculator;
 
-void compute(ComplexVector &F, ArrayOfComplexVector &dF, ComplexVector &N,
-             ArrayOfComplexVector &dN, const Vector &f_grid,
+void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
+             ComplexMatrix &dN, const Vector &f_grid,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
              const EnergyLevelMap &nlte,
