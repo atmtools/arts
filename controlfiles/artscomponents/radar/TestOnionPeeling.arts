@@ -60,7 +60,7 @@ Extract( z_toa, v_tmp, ilast )
 VectorSet( f_grid, [94e9] )
 #
 Copy( range_bins, v_tmp )
-VectorAddScalar( range_bins, range_bins, -250 )
+VectorAddScalar( range_bins, range_bins, -25 )
 Append( range_bins, z_toa )
 Print(range_bins)
 #
