@@ -3118,7 +3118,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));
@@ -11327,15 +11327,16 @@ void define_md_data_raw() {
           "atten_hyd_scaling",
           "atten_hyd_max"),
       GIN_TYPE("ArrayOfGriddedField3", "Matrix", "Tensor3", "Numeric",
-               "Numeric", "Index", "Numeric", "Numeric", "Numeric",
+               "Matrix", "Index", "Numeric", "Numeric", "Numeric",
                "Index", "Index", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", "0", "0", "273.15",
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", NODEF, "0", "273.15",
                   "10e-3", "5e-3", "1", "1", "0.5", "3"),
       GIN_DESC("Inversion table, see above.",
                "Incidence angles.",
                "Field of radar reflectivities, in dBZe.",
                "Noise level. See above.",
-               "Height of clutter zone.",
+               "Height of clutter zone. Either same size as *z_surface* or a single "
+               "value. In the later case, that value is applied at all positions.",
                "Flag to fill clutter zone, by copying retrieval just above it.",
                "Phase boundary temperature. See above.",
                "Max reasonable water content",
@@ -11408,7 +11409,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));
@@ -11439,7 +11440,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));
@@ -19968,7 +19969,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));
@@ -19997,7 +19998,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));

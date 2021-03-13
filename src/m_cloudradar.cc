@@ -911,7 +911,7 @@ void particle_bulkpropRadarOnionPeeling(
     const Matrix& incangles,
     const Tensor3& dBZe,
     const Numeric& dbze_noise,
-    const Numeric& h_clutter,
+    const Matrix& h_clutter,
     const Index& fill_clutter,
     const Numeric& t_phase,
     const Numeric& wc_max,
@@ -922,6 +922,10 @@ void particle_bulkpropRadarOnionPeeling(
     const Numeric& atten_hyd_max,
     const Verbosity&)
 {
+  const Index np = t_field.npages();
+  const Index nlat = t_field.nrows();
+  const Index nlon = t_field.ncols();
+
   // Checks of input
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have\n"
@@ -941,10 +945,18 @@ void particle_bulkpropRadarOnionPeeling(
                   lon_grid);
   chk_if_in_range("atten_hyd_scaling", atten_hyd_scaling, 0, 2);
 
+  // h_clutter needs special attention as it is allowed to have size 1x1.
+  // And to make the code simpler below, we always switch to matrix
+  Matrix hclutterm;
+  if (h_clutter.nrows() > 1  || h_clutter.ncols() > 1) {
+    chk_atm_surface("GIN h_clutter", h_clutter, atmosphere_dim, lat_grid, lon_grid);
+    hclutterm = h_clutter;
+  } else {
+    hclutterm.resize(nlat, nlon);
+    hclutterm = h_clutter(0,0);
+  }
+  
   // Init output
-  const Index np = t_field.npages();
-  const Index nlat = t_field.nrows();
-  const Index nlon = t_field.ncols();
   particle_bulkprop_field.resize(2, np, nlat, nlon);
   particle_bulkprop_field = 0;
   particle_bulkprop_names = scat_species;
@@ -974,7 +986,8 @@ void particle_bulkpropRadarOnionPeeling(
 
           for (Index ip = np - 1; ip >= 0; ip--) {
             // Above clutter zone
-            if (z_field(ip, ilat, ilon) >= z_surface(ilat, ilon) + h_clutter) {
+            if (z_field(ip, ilat, ilon) >= z_surface(ilat, ilon) +
+                                           hclutterm(ilat, ilon)) {
               // Local dBZe, roughly corrected with attenuation for previos point
               Numeric dbze =
                   dBZe(ip, ilat, ilon) + dbze_corr_abs + dbze_corr_hyd;
