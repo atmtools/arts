@@ -3118,7 +3118,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));
@@ -7952,7 +7952,9 @@ void define_md_data_raw() {
           "applied in *yRadar. The output of this method matches the option \"1\".\n"
           "\n"
           "The extinction due to particles can be scaled (by *pext_scaling*),\n"
-          "which could be of interest when e.g. characterising inversions.\n"
+          "which could be of interest when e.g. characterising inversions or\n"
+          "trying to compensate for ignored multiple scattering. The later is\n"
+          "commented further for *particle_bulkpropRadarOnionPeeling*.\n"
           "\n"
           "For Jacobian calculations the default is to assume that the\n"
           "transmittance is unaffected by the retrieval quantities. This is\n"
@@ -8415,10 +8417,10 @@ void define_md_data_raw() {
           "The *catalog_identity* should be able to identify one or many\n"
           "lines in the catalog used for calculating the spectral absorption.\n"
           "Note that partial matching for energy levels are allowed but not\n"
-          "recommended, as it is somewhat nonsensical to add multiple parameters\n"
+          "recommended, as it is somewhat nonsensical to add multiple parameters.\n"
           "\n"
           "Also note *jacobianAddShapeCatalogParameter* as this allows addition\n"
-          "of shape parameters, e.g., pressure broadening coefficients\n"
+          "of shape parameters, e.g., pressure broadening coefficients.\n"
           "\n"
           "Each call to this function adds just a single value to *x*.\n"
           "\n"
@@ -8444,9 +8446,10 @@ void define_md_data_raw() {
       DESCRIPTION(
           "See *jacobianAddBasicCatalogParameter*.\n"
           "\n"
-          "This adds a multiple of parameters for first each catalog_identity in\n"
-          "catalog_identities and then for each catalog_parameter in catalog_parameters\n"
-          "by looping calls to *jacobianAddBasicCatalogParameter* over these input\n"),
+          "This adds a multiple of parameters for first each catalog identity in\n"
+          "*catalog_identities* and then for each catalog parameter in\n"
+          "*catalog_parameters* by looping calls to *jacobianAddBasicCatalogParameter*\n"
+          "over these input.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -8509,37 +8512,35 @@ void define_md_data_raw() {
           "Adds a line shape parameter to the Jacobian calculations. These\n"
           "are constant over all levels so only a single *x*-value is added\n"
           "\n"
-          "Line function parameter assume the derivatives\n"
-          "of internal pressure broadening and line mixing\n"
-          "functionality follows a simply f(T, T0, X0, X1, X2)\n"
-          "format.  The shape of the function f() is determined by\n"
-          "input catalog; please see the ARTS documentation for more\n"
-          "details\n"
+          "Line function parameter assume the derivatives of internal pressure\n"
+          "broadening and line mixing functionality follows a f(T, T0, X0, X1, X2)\n"
+          "format. The shape of the function f() is determined by input\n"
+          "catalog; please see the ARTS documentation for more details.\n"
           "\n"
           "The input are as follows:\n"
-          "    line_identity: Identifier of preferably a single line\n"
-          "    species:       A SpeciesTag, e.g., \"O2\" or \"H2O\" for common species.\n"
-          "                   Note that \"SELF\" and \"AIR\" tags are used for shape parameters\n"
-          "                   affected by self and air-broadening, respectively.\n"
-          "    variable:      A variable supported by the line, these can be\n"
-          "                      \"G0\":  Speed-independent pressure broadening\n"
-          "                      \"G2\":  Speed-dependent pressure broadening\n"
-          "                      \"D0\":  Speed-independent pressure shift\n"
-          "                      \"D2\":  Speed-dependent pressure shift\n"
-          "                      \"FVC\": Frequency of velocity changing collisions\n"
-          "                      \"ETA\": partial correlation between velocity and\n"
-          "                               rotational state changes due to collisions\n"
-          "                      \"Y\":   First order line-mixing parameter\n"
-          "                      \"G\":   Second order line-mixing parameter for strength\n"
-          "                      \"DV\":  Second order line-mixing parameter for shifting\n"
-          "    coefficient:   A coefficient in the model to compute the above parameters.\n"
+          "  line_identity: Identifier of preferably a single line\n"
+          "  species:       A SpeciesTag, e.g., \"O2\" or \"H2O\" for common species.\n"
+          "                 Note that \"SELF\" and \"AIR\" tags are used for shape parameters\n"
+          "                 affected by self and air-broadening, respectively.\n"
+          "  variable:      A variable supported by the line, these can be\n"
+          "                    \"G0\":  Speed-independent pressure broadening\n"
+          "                    \"G2\":  Speed-dependent pressure broadening\n"
+          "                    \"D0\":  Speed-independent pressure shift\n"
+          "                    \"D2\":  Speed-dependent pressure shift\n"
+          "                    \"FVC\": Frequency of velocity changing collisions\n"
+          "                    \"ETA\": partial correlation between velocity and\n"
+          "                             rotational state changes due to collisions\n"
+          "                    \"Y\":   First order line-mixing parameter\n"
+          "                    \"G\":   Second order line-mixing parameter for strength\n"
+          "                    \"DV\":  Second order line-mixing parameter for shifting\n"
+          "  coefficient:   A coefficient in the model to compute the above parameters.\n"
           "\n"
           "Note that we cannot test if the line in question supports the variable and\n"
           "coefficient at the level of this function, so many errors will only be reported\n"
-          "at a later stage\n"
+          "at a later stage.\n"
           "\n"
           "For other spectroscopic parameters, see *jacobianAddBasicCatalogParameter*.\n"
-          "Also see said function for an example of how to set the QuantumIdentifier\n"),
+          "Also see said function for an example of how to set the QuantumIdentifier.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -8566,7 +8567,7 @@ void define_md_data_raw() {
           "\n"
           "Special \"ALL\" for 1 length *variables* and *coefficients* are\n"
           "allowed to compute all variables/coefficients in the order described\n"
-          "in the description of *jacobianAddShapeCatalogParameter*\n"
+          "in the description of *jacobianAddShapeCatalogParameter*.\n"
           "\n"
           "For example, if *line_identities* have length 5, *species* length 4,\n"
           "*variables* length 3, and *coefficients* length 2, there will be\n"
@@ -8619,7 +8620,7 @@ void define_md_data_raw() {
           "The elements are sorted with pressure as innermost loop, followed by\n"
           "latitude and longitude as outermost loop.\n"
           "\n"
-          "The dB-parameter is only used for Faraday rotation\n"),
+          "The dB-parameter is only used for Faraday rotation.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -8661,7 +8662,7 @@ void define_md_data_raw() {
           "best practice, as the quantum identifiers of the levels have to be known\n"
           "at an early stage in NLTE calculations, and will usually populate the\n"
           "*nlte_level_identifiers* variable, meaning it is better to use *jacobianAddNLTE*\n"
-          "directly than to individually call this function\n"),
+          "directly than to individually call this function.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -8692,7 +8693,7 @@ void define_md_data_raw() {
           "as *jacobianAddNLTE*, ordered as energy_level_identities describes\n"
           "\n"
           "This method is preferred to *jacobianAddNLTE*, since *energy_level_identities*\n"
-          "is conveniently almost always the same as *nlte_level_identifiers*\n"),
+          "is conveniently almost always the same as *nlte_level_identifiers*.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -11277,9 +11278,23 @@ void define_md_data_raw() {
           "\n"
           "Default is to consider attenuation of both hydrometeors and absorption\n"
           "species. These two sources to attenuation can be ignored by setting\n"
-          "*do_atten_hyd* and *do_atten_abs* to zero, respectively. To avoid\n"
-          "\"run away\" in attenuation, a maximum value to attenuation correction\n"
-          "can be set by *dbze_max_corr*.\n"),
+          "*do_atten_hyd* and *do_atten_abs* to zero, respectively.\n"
+          "\n"
+          "Default is to consider hydrometeor attenuation, but there could be\n"
+          "two reasons to ignore it. It can cause a \"run away\" effect in the\n"
+          "retrievals. Ignoring it can also compensate for impact of multiple\n"
+          "scattering in space-based observations, as shown by: Matrosov and\n"
+          "Battaglia, GRL, 2009. However, ignoring the hydrometeor attenuation\n"
+          "totally gives a too high compensating effect and the GIN\n"
+          "*atten_hyd_scaling* allows to test intermediate compensations. This\n"
+          "GIN matches the GIN pext_scaling of *iyRadarSingleScat*, but they\n"
+          "have different default values. The default in this method follows the\n"
+          "results for CloudSat in Matrosov and Battaglia. Please note that\n"
+          "*do_atten_hyd* must be true to apply *atten_hyd_scaling*.\n"
+          "\n"
+          "Even with *atten_hyd_scaling* below 1, there could be a run-away in\n"
+          "the estimated attenuation, and *atten_hyd_max* stops this by setting\n"
+          "a maximum value to the hydrometeor attenuation.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("particle_bulkprop_field", "particle_bulkprop_names"),
       GOUT(),
@@ -11305,29 +11320,31 @@ void define_md_data_raw() {
           "h_clutter",
           "fill_clutter",
           "t_phase",
+          "wc_max",
+          "wc_clip",
           "do_atten_abs",
           "do_atten_hyd",
-          "dbze_max_corr",
-          "wc_max",
-          "wc_clip"),
+          "atten_hyd_scaling",
+          "atten_hyd_max"),
       GIN_TYPE("ArrayOfGriddedField3", "Matrix", "Tensor3", "Numeric",
-               "Numeric", "Index", "Numeric", "Index", "Index", "Numeric",
-               "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", "0", "0", "273.15",
-                  "1", "1", "10", "10e-3", "5e-3"),
+               "Matrix", "Index", "Numeric", "Numeric", "Numeric",
+               "Index", "Index", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "-99", NODEF, "0", "273.15",
+                  "10e-3", "5e-3", "1", "1", "0.5", "3"),
       GIN_DESC("Inversion table, see above.",
                "Incidence angles.",
                "Field of radar reflectivities, in dBZe.",
                "Noise level. See above.",
-               "Height of clutter zone.",
-               "Flag to fill clutter zone, by copuyting retrieval just above it.",
+               "Height of clutter zone. Either same size as *z_surface* or a single "
+               "value. In the later case, that value is applied at all positions.",
+               "Flag to fill clutter zone, by copying retrieval just above it.",
                "Phase boundary temperature. See above.",
+               "Max reasonable water content",
+               "Clip value for water content retrievals.",
                "Flag to consider attenuation due to hydrometeors.",
                "Flag to consider attenuation due to absorption species.",
-               "Max allowed change of measured dBZe to approx. correct "
-               "for attenuation.",
-               "Max reasonable water content",
-               "Clip value for water content retrievals.")));
+               "Hydrometeor attenuation scaling factor.",
+               "Hydrometeor attenuation not allowed to pass this value [dB].")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldClip"),
@@ -11392,7 +11409,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));
@@ -11423,7 +11440,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));
@@ -19952,7 +19969,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));
@@ -19981,7 +19998,7 @@ void define_md_data_raw() {
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
                "Type of perturbation, "
-               "ansolute"
+               "absolute"
                " or "
                "relative"
                ".")));

@@ -60,7 +60,7 @@ Extract( z_toa, v_tmp, ilast )
 VectorSet( f_grid, [94e9] )
 #
 Copy( range_bins, v_tmp )
-VectorAddScalar( range_bins, range_bins, -250 )
+VectorAddScalar( range_bins, range_bins, -25 )
 Append( range_bins, z_toa )
 Print(range_bins)
 #
@@ -78,7 +78,7 @@ Append( instrument_pol_array, instrument_pol )
 AgendaSet( iy_radar_agenda ){
   Ignore( iy_id )
   ppathPlaneParallel( cloudbox_on = 0 )
-  iyRadarSingleScat
+  iyRadarSingleScat( pext_scaling = 0.5 )
 }
 IndexSet( stokes_dim, 2 )
 sensorOff
@@ -129,7 +129,7 @@ scat_dataCalc
 # Mass contents
 #
 NumericCreate( iwc )
-NumericSet( iwc, 1e-5 )
+NumericSet( iwc, 1e-4 )
 ArrayOfStringSet( particle_bulkprop_names, [ "RWC", "IWC" ] )
 Tensor4SetConstant( particle_bulkprop_field, 1, np, 1, 1, 0 )
 VectorSetConstant( v_tmp, np, iwc )
@@ -192,13 +192,14 @@ RadarOnionPeelingTableCalc( invtable = invtable,
 # Run onion peeling
 #
 Tensor4Create( retrieved )
-MatrixCreate( incangles )
-MatrixSetConstant( incangles, 1, 1, 0 )
+MatrixCreate( mzero )
+MatrixSetConstant( mzero, 1, 1, 0 )
 #
 particle_bulkpropRadarOnionPeeling( particle_bulkprop_field = retrieved,
                                     invtable = invtable,
                                     dBZe = dBZe,
-                                    incangles = incangles,
+                                    incangles = mzero,
+                                    h_clutter = mzero,
                                     dbze_noise = -30,
                                     do_atten_abs = 1,
                                     do_atten_hyd = 1 )
@@ -206,7 +207,7 @@ particle_bulkpropRadarOnionPeeling( particle_bulkprop_field = retrieved,
 
 # Compare to "true". Deviation should be below 2%
 #
-NumericScale( iwc, iwc, 0.02 )
+NumericScale( iwc, iwc, 0.05 )
 #
 Compare( retrieved, particle_bulkprop_field, iwc )
 

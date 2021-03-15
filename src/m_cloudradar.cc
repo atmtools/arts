@@ -33,6 +33,7 @@
 #include <stdexcept>
 
 #include "arts.h"
+#include "arts_omp.h"
 #include "auto_md.h"
 #include "logic.h"
 #include "messages.h"
@@ -910,16 +911,21 @@ void particle_bulkpropRadarOnionPeeling(
     const Matrix& incangles,
     const Tensor3& dBZe,
     const Numeric& dbze_noise,
-    const Numeric& h_clutter,
+    const Matrix& h_clutter,
     const Index& fill_clutter,
     const Numeric& t_phase,
-    const Index& do_atten_abs,
-    const Index& do_atten_hyd,
-    const Numeric& dbze_max_corr,
     const Numeric& wc_max,
     const Numeric& wc_clip,
+    const Index& do_atten_abs,
+    const Index& do_atten_hyd,
+    const Numeric& atten_hyd_scaling,
+    const Numeric& atten_hyd_max,
     const Verbosity&)
 {
+  const Index np = t_field.npages();
+  const Index nlat = t_field.nrows();
+  const Index nlon = t_field.ncols();
+
   // Checks of input
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have\n"
@@ -937,11 +943,20 @@ void particle_bulkpropRadarOnionPeeling(
                 lat_grid, lon_grid);
   chk_atm_surface("GIN incangles", incangles, atmosphere_dim, lat_grid,
                   lon_grid);
+  chk_if_in_range("atten_hyd_scaling", atten_hyd_scaling, 0, 2);
 
+  // h_clutter needs special attention as it is allowed to have size 1x1.
+  // And to make the code simpler below, we always switch to matrix
+  Matrix hclutterm;
+  if (h_clutter.nrows() > 1  || h_clutter.ncols() > 1) {
+    chk_atm_surface("GIN h_clutter", h_clutter, atmosphere_dim, lat_grid, lon_grid);
+    hclutterm = h_clutter;
+  } else {
+    hclutterm.resize(nlat, nlon);
+    hclutterm = h_clutter(0,0);
+  }
+  
   // Init output
-  const Index np = t_field.npages();
-  const Index nlat = t_field.nrows();
-  const Index nlon = t_field.ncols();
   particle_bulkprop_field.resize(2, np, nlat, nlon);
   particle_bulkprop_field = 0;
   particle_bulkprop_names = scat_species;
@@ -951,140 +966,173 @@ void particle_bulkpropRadarOnionPeeling(
   // relationship. 
   const Numeric extrap_fac = 100;
   
+  Workspace l_ws(ws);
+  Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
+  ArrayOfString fail_msg;
+
   // Loop all profiles
-  for (Index ilat=0; ilat<nlat; ilat++) {
-    for (Index ilon=0; ilon<nlon; ilon++) {
+#pragma omp parallel for if (!arts_omp_in_parallel() && nlat + nlon > 2) \
+    firstprivate(l_ws, l_propmat_clearsky_agenda) collapse(2)
+  for (Index ilat = 0; ilat < nlat; ilat++) {
+    for (Index ilon = 0; ilon < nlon; ilon++) {
+      if (fail_msg.nelem() != 0) continue;
+      try {
+        // Check if any significant reflectivity at all in profile
+        if (max(dBZe(joker, ilat, ilon)) > dbze_noise) {
+          Numeric dbze_corr_abs = 0;  // Corrections for 2-way attenuation
+          Numeric dbze_corr_hyd = 0;
+          Numeric k_part_above = 0, k_abs_above = 0;
+          const Numeric hfac = 1 / cos(DEG2RAD * incangles(ilat, ilon));
 
-      // Check if any significant reflectivity at all in profile
-      if (max(dBZe(joker,ilat,ilon)) > dbze_noise) {
+          for (Index ip = np - 1; ip >= 0; ip--) {
+            // Above clutter zone
+            if (z_field(ip, ilat, ilon) >= z_surface(ilat, ilon) +
+                                           hclutterm(ilat, ilon)) {
+              // Local dBZe, roughly corrected with attenuation for previos point
+              Numeric dbze =
+                  dBZe(ip, ilat, ilon) + dbze_corr_abs + dbze_corr_hyd;
+              // Local temperature
+              const Numeric t = t_field(ip, ilat, ilon);
 
-        Numeric dbze_corr = 0;   // Correction for 2-way attenuation
-        Numeric k_part_above = 0, k_abs_above = 0;
-        const Numeric hfac = 1 / cos( DEG2RAD*incangles(ilat,ilon) );
-        
-        for (Index ip=np-1; ip>=0; ip--) {
-
-          // Above clutter zone
-          if (z_field(ip,ilat,ilon) >= z_surface(ilat,ilon) + h_clutter) {
-
-            // Local dBZe, roughly corrected with attenuation for previos point
-            Numeric dbze = dBZe(ip,ilat,ilon) + min(dbze_corr, dbze_max_corr);
-            // Local temperature
-            const Numeric t = t_field(ip,ilat,ilon);
-
-            // Prepare for interpolation of invtable, when needed
-            Index phase = -1, it = -1;  // Dummy values
-            if (dbze > dbze_noise) {
-              phase = t >= t_phase ? 0 : 1;
-              // Find closest temperature
-              const Index tlast =
-                invtable[phase].get_numeric_grid(GFIELD3_T_GRID).nelem() - 1;
-              if (t <= invtable[phase].get_numeric_grid(GFIELD3_T_GRID)[0])
-                it = 0;
-              else if (t >= invtable[phase].get_numeric_grid(GFIELD3_T_GRID)[tlast])
-                it = tlast;
-              else {
-                GridPos gp;
-                gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_T_GRID), t);
-                it = gp.fd[0] < 0.5 ? gp.idx : gp.idx+1;
+              // Prepare for interpolation of invtable, when needed
+              Index phase = -1, it = -1;  // Dummy values
+              if (dbze > dbze_noise) {
+                phase = t >= t_phase ? 0 : 1;
+                // Find closest temperature
+                const Index tlast =
+                    invtable[phase].get_numeric_grid(GFIELD3_T_GRID).nelem() -
+                    1;
+                if (t <= invtable[phase].get_numeric_grid(GFIELD3_T_GRID)[0])
+                  it = 0;
+                else if (t >= invtable[phase].get_numeric_grid(
+                                  GFIELD3_T_GRID)[tlast])
+                  it = tlast;
+                else {
+                  GridPos gp;
+                  gridpos(
+                      gp, invtable[phase].get_numeric_grid(GFIELD3_T_GRID), t);
+                  it = gp.fd[0] < 0.5 ? gp.idx : gp.idx + 1;
+                }
               }
-            }
-            
-            // Calculate attenuation from previous point
-            //
-            // For simplicity, extinction estimated using "roughly" corrected dBZe
-            //
-            if (ip < np-1 && dbze_corr < dbze_max_corr) {
 
-              // Attenuation due particles
-              if (do_atten_hyd && dBZe(ip,ilat,ilon) > dbze_noise) {
-                // Extinction
+              // Calculate attenuation from previous point
+              if (ip < np - 1) {
+                // Attenuation due particles
+                if (dBZe(ip, ilat, ilon) > dbze_noise && do_atten_hyd &&
+                    dbze_corr_hyd < atten_hyd_max) {
+                  // Extinction
+                  GridPos gp;
+                  gridpos(gp,
+                          invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
+                          dbze,
+                          extrap_fac);
+                  Vector itw(2);
+                  interpweights(itw, gp);
+                  Numeric k_this =
+                      interp(itw, invtable[phase].data(1, joker, it), gp);
+                  // Optical thickness
+                  Numeric tau =
+                      0.5 * hfac * (k_part_above + k_this) *
+                      (z_field(ip + 1, ilat, ilon) - z_field(ip, ilat, ilon));
+                  // This equals -10*log10(exp(-tau)^2)
+                  dbze_corr_hyd +=
+                      20 * LOG10_EULER_NUMBER * (atten_hyd_scaling * tau);
+                  // Make sure we don't pass max value
+                  dbze_corr_hyd = min(dbze_corr_hyd, atten_hyd_max);
+                  // k_this can now be shifted to be "above value"
+                  k_part_above = k_this;
+                } else {  // To handle case: dBZe(ip,ilat,ilon) <= dbze_noise
+                  k_part_above = 0;
+                }
+
+                // Attenuation due to abs_species
+                if (do_atten_abs) {
+                  // Calculate local attenuation
+                  Numeric k_this;
+                  PropagationMatrix propmat;
+                  ArrayOfPropagationMatrix partial_dummy;
+                  StokesVector nlte_dummy;
+                  ArrayOfStokesVector partial_nlte_dummy;
+                  EnergyLevelMap rtp_nlte_local_dummy;
+                  propmat_clearsky_agendaExecute(
+                      l_ws,
+                      propmat,
+                      nlte_dummy,
+                      partial_dummy,
+                      partial_nlte_dummy,
+                      ArrayOfRetrievalQuantity(0),
+                      f_grid,
+                      Vector(3, 0),
+                      Vector(0),
+                      p_grid[ip],
+                      t_field(ip, ilat, ilon),
+                      rtp_nlte_local_dummy,
+                      vmr_field(joker, ip, ilat, ilon),
+                      l_propmat_clearsky_agenda);
+                  k_this = propmat.Kjj()[0];
+                  // Optical thickness
+                  Numeric tau =
+                      0.5 * hfac * (k_abs_above + k_this) *
+                      (z_field(ip + 1, ilat, ilon) - z_field(ip, ilat, ilon));
+                  // This equals -10*log10(exp(-tau)^2)
+                  dbze_corr_abs += 20 * LOG10_EULER_NUMBER * tau;
+                  // k_this can now be shifted to be "above value"
+                  k_abs_above = k_this;
+                }
+              }
+
+              // Invert
+              if (dBZe(ip, ilat, ilon) > dbze_noise) {
+                // Correct reflectivity with (updated) attenuation
+                dbze = dBZe(ip, ilat, ilon) + dbze_corr_abs + dbze_corr_hyd;
+
+                // Interpolate inversion table (table holds log10 of water content)
                 GridPos gp;
-                gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
-                        dbze, extrap_fac);
+                gridpos(gp,
+                        invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
+                        dbze,
+                        extrap_fac);
                 Vector itw(2);
                 interpweights(itw, gp);
-                Numeric k_this= interp(itw, invtable[phase].data(1,joker,it), gp);
-                // Optical thickness
-                Numeric tau = 0.5 * hfac * (k_part_above + k_this) *
-                  (z_field(ip+1,ilat,ilon) - z_field(ip,ilat,ilon));
-                // This equals -10*log10(exp(-tau)^2)
-                dbze_corr += 20 * LOG10_EULER_NUMBER * tau;
-                // k_this can ne be shifted to be "above value"
-                k_part_above = k_this;
+                Numeric wc =
+                    pow(10.0,
+                        (interp(itw, invtable[phase].data(0, joker, it), gp)));
+                // Apply max and clip values
+                if (wc > wc_max)
+                  wc = 0;
+                else if (wc > wc_clip)
+                  wc = wc_clip;
+                particle_bulkprop_field(phase, ip, ilat, ilon) = wc;
               }
-              
-              // Attenuation due to abs_species
-              if (do_atten_abs) {
-                // Calculate local attenuation
-                Numeric k_this;
-                PropagationMatrix propmat;
-                ArrayOfPropagationMatrix  partial_dummy;
-                StokesVector nlte_dummy;
-                ArrayOfStokesVector partial_nlte_dummy;
-                EnergyLevelMap rtp_nlte_local_dummy;
-                propmat_clearsky_agendaExecute(ws,
-                                               propmat,
-                                               nlte_dummy,
-                                               partial_dummy,
-                                               partial_nlte_dummy,
-                                               ArrayOfRetrievalQuantity(0),
-                                               f_grid,
-                                               Vector(3,0),
-                                               Vector(0),
-                                               p_grid[ip],
-                                               t_field(ip,ilat,ilon),
-                                               rtp_nlte_local_dummy,
-                                               vmr_field(joker,ip,ilat,ilon),
-                                               propmat_clearsky_agenda);
-                k_this = propmat.Kjj()[0];
-                // Optical thickness
-                Numeric tau = 0.5 * hfac * (k_abs_above + k_this) *
-                  (z_field(ip+1,ilat,ilon) - z_field(ip,ilat,ilon));
-                // This equals -10*log10(exp(-tau)^2)
-                dbze_corr += 20 * LOG10_EULER_NUMBER * tau;
-                // k_this can ne be shifted to be "above value"
-                k_abs_above = k_this;
+
+              // In clutter zone or below surface
+            } else {
+              if (fill_clutter) {
+                particle_bulkprop_field(0, ip, ilat, ilon) =
+                    particle_bulkprop_field(0, ip + 1, ilat, ilon);
+                particle_bulkprop_field(1, ip, ilat, ilon) =
+                    particle_bulkprop_field(1, ip + 1, ilat, ilon);
               }
-            } 
-            
-            // Invert
-            if (dBZe(ip,ilat,ilon) > dbze_noise) {
-              // Correct reflectivity with (updated) attenuation
-              dbze = dBZe(ip,ilat,ilon) + min(dbze_corr, dbze_max_corr);
-              // Interpolate inversion table (table holds log10 of water content)
-              GridPos gp;
-              gridpos(gp, invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
-                      dbze, extrap_fac);
-              Vector itw(2);
-              interpweights(itw, gp);
-              Numeric wc = pow(10.0,
-                               (interp(itw, invtable[phase].data(0,joker,it), gp)));
-              // Apply max and clip values
-              if (wc > wc_max)
-                wc = 0;
-              else if (wc > wc_clip)
-                wc = wc_clip;
-              particle_bulkprop_field(phase,ip,ilat,ilon) = wc;
             }
-            
-          // In clutter zone or below surface
-          } else {
-            if (fill_clutter) {
-              particle_bulkprop_field(0,ip,ilat,ilon) =
-                particle_bulkprop_field(0,ip+1,ilat,ilon);
-              particle_bulkprop_field(1,ip,ilat,ilon) =
-                particle_bulkprop_field(1,ip+1,ilat,ilon);
-            }
-          }
-          
-        } // presuure
-      } // R > 0
-    } // lon
-  } // lat
+
+          }  // presuure
+        }    // R > 0
+      } catch (const std::exception& e) {
+        ostringstream os;
+        os << "Run-time error at ilat: " << ilat << " ilon: " << ilon << ":\n"
+           << e.what();
+#pragma omp critical(particle_bulkpropRadarOnionPeeling_latlon)
+        fail_msg.push_back(os.str());
+      }
+    }  // lon
+  }    // lat
+
+  if (fail_msg.nelem()) {
+    ostringstream os;
+    for (const auto& msg : fail_msg) os << msg << '\n';
+    ARTS_USER_ERROR(os.str());
+  }
 }
-
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RadarOnionPeelingTableCalc(
