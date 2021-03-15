@@ -1,9 +1,6 @@
-#include <memory_resource>
-
 #include "lineshape.h"
 
 #include <Faddeeva/Faddeeva.hh>
-// #include "faddeeva_port.h"
 
 using Constant::inv_pi;
 using Constant::inv_sqrt_pi;
@@ -43,8 +40,8 @@ Complex Doppler::operator()(Numeric f) noexcept {
 
 Voigt::Voigt(Numeric F0_noshift, const Output &ls, Numeric DC,
              Numeric dZ) noexcept
-    : mF0(F0_noshift + dZ + ls.D0 + ls.DV), invGD(sqrt_ln_2 / std::abs(DC * mF0)),
-      z(invGD * Complex(-mF0, ls.G0)) {}
+    : mF0(F0_noshift + dZ + ls.D0 + ls.DV),
+      invGD(sqrt_ln_2 / std::abs(DC * mF0)), z(invGD * Complex(-mF0, ls.G0)) {}
 
 Complex Voigt::dFdf() const noexcept { return dF; }
 
@@ -78,9 +75,10 @@ Complex Voigt::operator()(Numeric f) noexcept {
 SpeedDependentVoigt::SpeedDependentVoigt(Numeric F0_noshift, const Output &ls,
                                          Numeric GD_div_F0, Numeric dZ) noexcept
     : mF0(F0_noshift + dZ + ls.D0 - 1.5 * ls.D2),
-      invGD(sqrt_ln_2 / std::abs(GD_div_F0 * mF0)), invc2(1.0 / Complex(ls.G2, ls.D2)),
-      dx(Complex(ls.G0 - 1.5 * ls.G2, mF0)), x(dx * invc2),
-      sqrty(invc2 / (2 * invGD)), calcs(init(Complex(ls.G2, ls.D2))) {
+      invGD(sqrt_ln_2 / std::abs(GD_div_F0 * mF0)),
+      invc2(1.0 / Complex(ls.G2, ls.D2)), dx(Complex(ls.G0 - 1.5 * ls.G2, mF0)),
+      x(dx * invc2), sqrty(invc2 / (2 * invGD)),
+      calcs(init(Complex(ls.G2, ls.D2))) {
   calc();
 }
 
@@ -2108,14 +2106,11 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
 
 #define InternalDerivativesImpl(X, Y)                                          \
   else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
-    const Numeric d = line_derivs[iline_derivs++];                             \
+    const Numeric d = derivs[ij].value.n;                                      \
     const Complex dFm = std::visit(                                            \
-        [d](auto &&LS) { return std::conj(LS.dFd##X(d)); },                    \
-        ls_mirr);                                                              \
+        [d](auto &&LS) { return std::conj(LS.dFd##X(d)); }, ls_mirr);          \
     const Complex dFls =                                                       \
-        std::visit([d](auto &&LS) { return LS.dFd##X(d); },                    \
-                   ls) +                                                       \
-        dFm;                                                                   \
+        std::visit([d](auto &&LS) { return LS.dFd##X(d); }, ls) + dFm;         \
     dF(iv, ij) += S * LM * dFls;                                               \
   }
 
@@ -2123,20 +2118,19 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
   InternalDerivativesImpl(X, X0) InternalDerivativesImpl(X, X1)                \
       InternalDerivativesImpl(X, X2) InternalDerivativesImpl(X, X3)
 
-
 #define InternalDerivativesSetupImpl(X, Y)                                     \
   else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
-      line_derivs.emplace_back(band.Line(i).LineShape().d##X##_d##Y(           \
-          T, band.T0(), P, deriv.Target().Position(), vmrs));                  \
+    derivs[ij].value.n = band.Line(i).LineShape().d##X##_d##Y(                 \
+        T, band.T0(), P, deriv.Target().Position(), vmrs);                     \
   }
-  
+
 #define InternalDerivativesSetup(X)                                            \
   InternalDerivativesSetupImpl(X, X0) InternalDerivativesSetupImpl(X, X1)      \
-  InternalDerivativesSetupImpl(X, X2) InternalDerivativesSetupImpl(X, X3)
+      InternalDerivativesSetupImpl(X, X2) InternalDerivativesSetupImpl(X, X3)
 
 #define InternalDerivativesGImpl(X)                                            \
   else if (deriv == Jacobian::Line::ShapeG##X) {                               \
-    const Numeric dLM = line_derivs[iline_derivs++];                           \
+    const Numeric dLM = derivs[ij].value.n;                                    \
     dF(iv, ij) += dLM * S * Fls;                                               \
   }
 
@@ -2146,7 +2140,7 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
 
 #define InternalDerivativesYImpl(X)                                            \
   else if (deriv == Jacobian::Line::ShapeY##X) {                               \
-    const Complex dLM = Complex(0, -line_derivs[iline_derivs++]);             \
+    const Complex dLM = Complex(0, -derivs[ij].value.n);                       \
     dF(iv, ij) += dLM * S * Fls;                                               \
   }
 
@@ -2154,37 +2148,130 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
   InternalDerivativesYImpl(X0) InternalDerivativesYImpl(X1)                    \
       InternalDerivativesYImpl(X2) InternalDerivativesYImpl(X3)
 
-
-Range limited_range(const Numeric lo, const Numeric hi, const Vector& v) noexcept {
-  ARTS_ASSERT(hi >= lo);
-  Index s=0;
-  Index e=v.size();
-  for (; s<e; s++) if (v[s] >= lo) break;
-  for (; e>s; e--) if (v[s] <= hi) break;
-  return Range(s, e);
+/** Gets a limited range of the vector so that only values
+ * at index i such that
+ *
+ * \f[ l <= v_i <= u \f]
+ *
+ * are inside the view returned by v[r].
+ *
+ * @param[in] l Lower limit
+ * @param[in] u Upper limit
+ * @param[in] v Vector of sorted values so v[i] <= v[i+1]
+ * @return r to fulfill description above
+ */
+Range limited_range(const Numeric l, const Numeric h,
+                    const Vector &v) ARTS_NOEXCEPT {
+  ARTS_ASSERT(h >= l);
+  Index s = -1;
+  Index e = v.size();
+  while (++s)
+    if (v[s] >= l)
+      break;
+  while (--e)
+    if (v[s] <= h)
+      break;
+  return Range(s, e - s);
 }
 
+/** Data struct for keeping derivative keys and values
+ *
+ * If ever more types of values are necessary, please
+ * add the type to the Values union
+ */
+struct Derivatives {
+  Absorption::QuantumIdentifierLineTarget target;
+  union Values {
+    Output o;
+    Numeric n;
+    constexpr Values() noexcept : n() {}
+  } value;
+  constexpr Derivatives() noexcept : target(), value() {}
+};
 
-inline
-void frequency_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N, ComplexMatrix &dN,
-                    const Vector &f_grid, const ArrayOfRetrievalQuantity &jacobian_quantities,
-                    const Numeric& T, const bool do_nlte, const Index& nj, const Index& nv,
-                    const Complex &LM,IntensityCalculator &ls_str,Normalizer &ls_norm, const std::pmr::vector<Numeric> &line_derivs,
-                    const std::pmr::vector<Absorption::QuantumIdentifierLineTarget> &line_derivs_target,
-                    const std::pmr::vector<Output> &lsmp_derivs, 
-                    const Numeric &fu, const Numeric &fl, const Numeric &Si,
-                    const Numeric &DNi, const Numeric &dfdH, const Numeric &Sz,
-                    Calculator &ls, Calculator &ls_mirr) ARTS_NOEXCEPT {
+//! Helper to keep function signature clean
+typedef Array<Derivatives> ArrayOfDerivatives;
+
+/** Frequency loop of the line shape call
+ *
+ * This simply adds to the four output vectors/matrices for
+ * each frequency grid.
+ *
+ * The equation solved is the inner part of
+ *
+ * \f[
+ * F(f) = \sum_i S_{lm} S_n(f) S_z S_i \left[F_i\left(f\right) +
+ * F^M_i\left(f\right)\right], \f]
+ *
+ * where \f$ f \f$ is the frequency, \f$ i \f$ is the line index,
+ * \f$ S_{lm} \f$ is the line mixing scaling,
+ * \f$ S_n(f) \f$ is the line normalization at \f$ f \f$, \f$ S_z \f$
+ * is the Zeeman line strength scaling, \f$ S_i \f$ is the line strength,
+ * \f$ F_i\left(f\right) \f$ is the line shape at \f$ f \f$, and
+ * \f$ F^M_i\left(f\right) \f$ is the mirrored line shape at \f$ f \f$.
+ *
+ * Each of \f$ S_n \f$, \f$ S_i \f$, \f$ F_i\left(f\right) \f$, and
+ * \f$ F^M_i\left(f\right) \f$ are setup to work as functional classes.
+ * They each define a set of possible derivatives and these possible
+ * derivatives are used to setup the chain rules required to computed
+ * \f$ \partial F(f) / \partial x \f$.  Also, \f$ S_i \f$ is setup so
+ * to return the NLTE ratios required for computing
+ *
+ * \f[
+ * N(f) = \sum_i S_{lm} S_n(f) S_z N_i \left[F_i\left(f\right) +
+ * F^M_i\left(f\right)\right], \f]
+ *
+ * with the same rules applied to \f$ \partial N(f) / \partial x \f$ as on
+ * \f$ \partial F(f) / \partial x \f$.
+ *
+ * Note that even though not directly implied by this notation, most of the
+ * variables used in these two equations depends on some line parameters.  Also
+ * note that the idea is to add full cross-section at once so as to limit the
+ * number of allocations in nested runs, so the calculations must happen in
+ * the inner most loop.
+ *
+ * This function is not possible to run on multiple cores.  Such parallelisms
+ * must happen at a much higher level.
+ *
+ * @param[in] jacobian_quantities As WSV
+ * @param[in] T The atmospheric temperature
+ * @param[in] do_nlte Flag for whether or not NLTE will be computed
+ * @param[in] LM The line mixing scaling. \f$ S_{lm} \f$
+ * @param[in] ls_str The line strength calculator. \f$ S_i \f$
+ * @param[in,out] ls_norm The normalization calculator. \f$ S_n \f$
+ * @param[in] derivs A list of pre-computed derivative values and keys
+ * @param[in,out] F The cross-section. \f$ F \f$
+ * @param[in,out] dF The cross-section's derivatives. \f$ \partial F / \partial
+ * x \f$
+ * @param[in,out] N The cross-section ratio of the NLTE source. \f$ N \f$
+ * @param[in,out] dN The cross-section ratio of the NLTE source's derivatives.
+ * \f$ \partial N / \partial x \f$
+ * @param[in] f_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
+ * @param[in] dfdH The derivative of the change of frequency w.r.t. magnetic
+ * field strength
+ * @param[in] Sz The relative Zeeman strength. \f$ S_z \f$
+ * @param[in] ls The line shape calculator. \f$ F_i \f$
+ * @param[in] ls_mirr The mirrored line shape calculator. \f$ F^M_i \f$
+ */
+void frequency_loop(const ArrayOfRetrievalQuantity &jacobian_quantities,
+                    const Numeric &T, const bool do_nlte, const Complex LM,
+                    const IntensityCalculator &ls_str, Normalizer &ls_norm,
+                    const ArrayOfDerivatives &derivs, ComplexVectorView &F,
+                    ComplexMatrixView &dF, ComplexVectorView &N,
+                    ComplexMatrixView &dN, const ConstVectorView &f_grid,
+                    const Numeric &dfdH, const Numeric &Sz, Calculator ls,
+                    Calculator ls_mirr) ARTS_NOEXCEPT {
+  const Numeric Si = std::visit([](auto &&S) { return S.S; }, ls_str);
+  const Numeric DNi = std::visit([](auto &&S) { return S.N; }, ls_str);
+  const std::size_t nj = jacobian_quantities.size();
+  const Index nv = f_grid.size();
+
   for (Index iv = 0; iv < nv; iv++) {
     const Numeric f = f_grid[iv];
-    if (f > fu or f < fl) {
-      // NOTE: f > fu means that fu might be computed twice for cutoff
-      continue;
-    }
 
     const Numeric Sn = std::visit([f](auto &&LSN) { return LSN(f); }, ls_norm);
     const Numeric S = Sz * Sn * Si;
-    [[maybe_unused]] const Numeric DS = Sz * Sn * DNi;
+    const Numeric DS = Sz * Sn * DNi;
     const Complex Fm =
         std::visit([f](auto &&LS) { return std::conj(LS(f)); }, ls_mirr);
     const Complex Fls = std::visit([f](auto &&LS) { return LS(f); }, ls) + Fm;
@@ -2193,25 +2280,34 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N, Compl
       N[iv] += DS * LM * Fls;
     }
 
-    Index ilsmp_derivs=0, iline_derivs=0, iline_derivs_target=0;
-    for (Index ij = 0; ij < nj; ij++) {
+    for (std::size_t ij = 0; ij < nj; ij++) {
       if (not propmattype_index(jacobian_quantities, ij)) {
         continue;
       }
-      
+
       const auto &deriv = jacobian_quantities[ij];
 
       if (deriv == Jacobian::Atm::Temperature) {
-        const auto& dXdT = lsmp_derivs[ilsmp_derivs++];
-        const Numeric dSn = std::visit([T, f](auto &&LSN) { return LSN.dNdT(T, f); }, ls_norm);
-        const Numeric dSi = std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str);
+        const auto &dXdT = derivs[ij].value.o;
+        const Numeric dSn =
+            std::visit([T, f](auto &&LSN) { return LSN.dNdT(T, f); }, ls_norm);
+        const Numeric dSi =
+            std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str);
         const Complex dLM(dXdT.G, -dXdT.Y);
-        const Complex dFm = std::visit([&](auto &&LS) { return std::conj(LS.dFdT(mirroredOutput(dXdT), T)); }, ls_mirr);
-        const Complex dFls = std::visit([&](auto &&LS) { return LS.dFdT(dXdT, T); }, ls) + dFm;
-        dF(iv, ij) += S * (LM * dFls + dLM * Fls) + Sz * (dSn * Si + Sn * dSi) * LM * Fls;
+        const Complex dFm = std::visit(
+            [&](auto &&LS) {
+              return std::conj(LS.dFdT(mirroredOutput(dXdT), T));
+            },
+            ls_mirr);
+        const Complex dFls =
+            std::visit([&](auto &&LS) { return LS.dFdT(dXdT, T); }, ls) + dFm;
+        dF(iv, ij) +=
+            S * (LM * dFls + dLM * Fls) + Sz * (dSn * Si + Sn * dSi) * LM * Fls;
         if (do_nlte) {
-          const Numeric dDSi = std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str);
-          dN(iv, ij) += DS * (LM * dFls + dLM * Fls) + Sz * (dSn * Si + Sn * dDSi) * LM * Fls;
+          const Numeric dDSi =
+              std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str);
+          dN(iv, ij) += DS * (LM * dFls + dLM * Fls) +
+                        Sz * (dSn * Si + Sn * dDSi) * LM * Fls;
         }
       } else if (is_wind_parameter(deriv)) {
         const Complex dFm =
@@ -2227,7 +2323,7 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N, Compl
         dF(iv, ij) += S * LM * dFls;
       } else if (deriv.Target().needQuantumIdentity()) {
         if (deriv == Jacobian::Line::VMR) {
-          const auto& dXdVMR = lsmp_derivs[ilsmp_derivs++];
+          const auto &dXdVMR = derivs[ij].value.o;
           const Complex dFm = std::visit(
               [&](auto &&LS) {
                 return std::conj(LS.dFdVMR(mirroredOutput(dXdVMR)));
@@ -2235,18 +2331,17 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N, Compl
               ls_mirr);
           const Complex dLM(dXdVMR.G, -dXdVMR.Y);
           const Complex dFls =
-              std::visit([&](
-                             auto &&LS) { return LS.dFdVMR(dXdVMR); },
-                         ls) +
+              std::visit([&](auto &&LS) { return LS.dFdVMR(dXdVMR); }, ls) +
               dFm;
           dF(iv, ij) += S * LM * dFls + dLM * S * Fls;
         } else {
-          const Absorption::QuantumIdentifierLineTarget lt = line_derivs_target[iline_derivs_target++];
+          const Absorption::QuantumIdentifierLineTarget lt = derivs[ij].target;
           if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
             if (deriv == Jacobian::Line::Center) {
               const Numeric d =
-                  std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_norm) * Si +
-                  std::visit([](auto &&LS) { return LS.dSdF0(); }, ls_str) *  Sn;
+                  std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_norm) *
+                      Si +
+                  std::visit([](auto &&LS) { return LS.dSdF0(); }, ls_str) * Sn;
               const Complex dFm = std::visit(
                   [](auto &&LS) { return std::conj(LS.dFdF0()); }, ls_mirr);
               const Complex dFls =
@@ -2254,7 +2349,7 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N, Compl
               const Numeric dS = Sz * d;
               dF(iv, ij) += S * LM * dFls + dS * LM * Fls;
             } else if (deriv == Jacobian::Line::Strength) {
-              const Numeric dS = Sz * Sn * line_derivs[iline_derivs++];
+              const Numeric dS = Sz * Sn * derivs[ij].value.n;
               dF(iv, ij) += dS * LM * Fls;
             }
             // All line shape derivatives
@@ -2266,12 +2361,14 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N, Compl
           } else if (lt == Absorption::QuantumIdentifierLineTargetType::Level) {
             if (deriv == Jacobian::Line::NLTE) {
               if (lt.upper) {
-                const Numeric dS = Sz * Sn * line_derivs[iline_derivs++];;
+                const Numeric dS = Sz * Sn * derivs[ij].value.n;
+                ;
                 dF(iv, ij) += dS * LM * Fls;
               }
 
               if (lt.lower) {
-                const Numeric dS = Sz * Sn * line_derivs[iline_derivs++];;
+                const Numeric dS = Sz * Sn * derivs[ij].value.n;
+                ;
                 dF(iv, ij) += dS * LM * Fls;
               }
             }
@@ -2282,76 +2379,92 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N, Compl
   }
 }
 
-inline
-void zeeman_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
+/** Cutoff considerations of the line shape
+ *
+ * This function takes care of setting up cutoff and line shape considerations
+ * for the frequency loop function it wraps.  Internally, the cutoff is
+ * calculated from the band information and a view of the correct data is sent
+ * on.
+ *
+ * The Zeeman effect is also considered internally if applicable (or ignored
+ * otherwise)
+ *
+ * This function is not possible to run on multiple cores.  Such parallelisms
+ * must happen at a much higher level.
+ *
+ * @param[in,out] F The cross-section. \f$ F \f$
+ * @param[in,out] dF The cross-section's derivatives. \f$ \partial F / \partial
+ * x \f$
+ * @param[in,out] N The cross-section ratio of the NLTE source. \f$ N \f$
+ * @param[in,out] dN The cross-section ratio of the NLTE source's derivatives.
+ * \f$ \partial N / \partial x \f$
+ * @param[in] f_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
+ * @param[in] band The absorption band
+ * @param[in] jacobian_quantities As WSV
+ * @param[in] T The atmospheric temperature
+ * @param[in] do_nlte Flag for whether or not NLTE will be computed
+ * @param[in] H The magnetic field magnitude
+ * @param[in] do_zeeman Flag for whether this is part of some Zeeman
+ * calculations
+ * @param[in] zeeman_polarization The type of Zeeman polarization to consider
+ * (if any)
+ * @param[in] f_mean The mean frequency of the absorption band
+ * @param[in] DC The Doppler broadening constant of the band
+ * @param[in] i The line index
+ * @param[in] X The line shape model parameters of the atmosphere
+ * @param[in] LM The line mixing scaling. \f$ S_{lm} \f$
+ * @param[in] ls_str The line strength calculator. \f$ S_i \f$
+ * @param[in] ls_norm The normalization calculator. \f$ S_n \f$
+ * @param[in] derivs A list of pre-computed derivative values and keys
+ */
+void cutoff_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
                  ComplexMatrix &dN, const Vector &f_grid,
                  const AbsorptionLines &band,
                  const ArrayOfRetrievalQuantity &jacobian_quantities,
-                 const Numeric &T, 
-                 const bool do_nlte, 
-                 const Numeric &H, 
+                 const Numeric &T, const bool do_nlte, const Numeric &H,
                  const bool do_zeeman,
-                 const Zeeman::Polarization &zeeman_polarization,
-                 const Index &nj, const Index &nv,
-                 const Numeric &f_mean,
-                 const Numeric &DC,
-                 const Index &i, const Index &nz,
-                 const Output &X, 
-                 const Complex &LM,
-                 IntensityCalculator &ls_str,
-                 Normalizer &ls_norm,
-                 const std::pmr::vector<Numeric> &line_derivs,
-                 const std::pmr::vector<Absorption::QuantumIdentifierLineTarget> &line_derivs_target,
-                 const std::pmr::vector<Output> &lsmp_derivs) ARTS_NOEXCEPT {
-  const Numeric fu = band.CutoffFreq(i);
-  const Numeric fl = band.CutoffFreqMinus(i, f_mean);
-  const Numeric Si = std::visit([](auto &&S) { return S.S; }, ls_str);
-  const Numeric DSi = std::visit([](auto &&S) { return S.N; }, ls_str);
+                 const Zeeman::Polarization zeeman_polarization,
+                 const Numeric &f_mean, const Numeric &DC, const Index &i,
+                 const Output X, const IntensityCalculator ls_str,
+                 Normalizer ls_norm,
+                 const ArrayOfDerivatives &derivs) ARTS_NOEXCEPT {
+  Numeric fu = band.CutoffFreq(i);
 
-// FIXME: TEST USING VIEWS NOW THAT EVERYTHING'S A BLOCK OF MEMORY
+  // Only for the cutoff-range
+  const Range f_range =
+      limited_range(band.CutoffFreqMinus(i, f_mean), fu, f_grid);
+  ComplexVectorView F_lim = F[f_range];
+  ComplexMatrixView dF_lim = dF(f_range, joker);
+  ComplexVectorView N_lim = N[f_range];
+  ComplexMatrixView dN_lim = dN(f_range, joker);
+  const ConstVectorView f_grid_lim = f_grid[f_range];
 
+  const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
   for (Index iz = 0; iz < nz; iz++) {
     const Numeric dfdH =
         do_zeeman ? band.ZeemanSplitting(i, zeeman_polarization, iz) : 0;
     const Numeric Sz =
         do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
 
-    // Line shape
-    Calculator ls =
-        line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
-
-    // Line mirroring around F0 = 0
-    Calculator ls_mirr = mirror_line_shape_selection(
-        band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
-
     frequency_loop(
-      F, dF, N, dN, f_grid, jacobian_quantities,
-      T, do_nlte, 
-      nj, nv, LM, ls_str,
-      ls_norm,
-      line_derivs,
-      line_derivs_target,
-      lsmp_derivs,
-      fu, fl,
-      Si,
-      DSi,
-      dfdH,
-      Sz,
-      ls, ls_mirr);
+        jacobian_quantities, T, do_nlte, Complex(1 + X.G, -X.Y), ls_str,
+        ls_norm, derivs, F_lim, dF_lim, N_lim, dN_lim, f_grid_lim, dfdH, Sz,
+        line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H),
+        mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(),
+                                    band.F0(i), X, DC, dfdH * H));
   }
 
-  // Deal with cutoff if necessary (on stack unless there's a derivative)
-  // Added limitation of function: f_grid must be sorted from low-to-high
-  if (nv and f_grid[0] not_eq fu and
-      fu not_eq std::numeric_limits<Numeric>::max()) {
-    Numeric f = fu;
+  // Deal with cutoff if necessary
+  if (band.Cutoff() not_eq Absorption::CutoffType::None) {
+    const Index nj = jacobian_quantities.nelem();
+
     Complex Fc(0, 0);
     Complex Nc(0, 0);
-    Vector f_grid_cut(&f, Range(0, 1));
     ComplexVector F_cut(&Fc, Range(0, 1));
-    ComplexVector N_cut(&Nc, Range(0, 1));
     ComplexMatrix dF_cut(1, nj, 0);
+    ComplexVector N_cut(&Nc, Range(0, 1));
     ComplexMatrix dN_cut(1, nj, 0);
+    Vector f_grid_cut(&fu, Range(0, 1));
 
     // Compute the cutoff
     for (Index iz = 0; iz < nz; iz++) {
@@ -2360,131 +2473,121 @@ void zeeman_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
       const Numeric Sz =
           do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
 
-      // Line shape
-      Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(i), X,
-                                           DC, dfdH * H);
-
-      // Line mirroring around F0 = 0
-      Calculator ls_mirr = mirror_line_shape_selection(
-          band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
-
       // Call for just 1 freq...
-/*      frequency_loop(F_cut, dF_cut, N_cut, dN_cut, line_derivs, line_derivs_target,
-                     lsmp_derivs, ls, ls_mirr, ls_norm, ls_str,
-                     f_grid_cut, jacobian_quantities, LM,
-                     Si, DSi, Sz, T, fu, fl, dfdH, nj, nv, do_nlte);*/
-
-    frequency_loop(
-      F_cut, dF_cut, N_cut, dN_cut, f_grid_cut, jacobian_quantities,
-      T, do_nlte, 
-      nj, nv, LM, ls_str,
-      ls_norm,
-      line_derivs,
-      line_derivs_target,
-      lsmp_derivs,
-      fu, fl,
-      Si,
-      DSi,
-      dfdH,
-      Sz,
-      ls, ls_mirr);
+      frequency_loop(
+          jacobian_quantities, T, do_nlte, Complex(1 + X.G, -X.Y), ls_str,
+          ls_norm, derivs, F_cut, dF_cut, N_cut, dN_cut, f_grid_cut, dfdH, Sz,
+          line_shape_selection(band.LineShapeType(), band.F0(i), X, DC,
+                               dfdH * H),
+          mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(),
+                                      band.F0(i), X, DC, dfdH * H));
     }
 
     // Remove the cutoff
-    for (Index iv = 0; iv < nv; iv++) {
-      if (f_grid[iv] > fu or f_grid[iv] < fl)
-        continue;
-      F[iv] -= Fc;
-      N[iv] -= Nc;
-      
-      for (Index ij = 0; ij < nj; ij++) {
-        if (not propmattype_index(jacobian_quantities, ij))
-          continue;
-        dF(iv, ij) -= dF_cut(0, ij);
-        dN(iv, ij) -= dN_cut(0, ij);
-      }
+    F_lim -= Fc;
+    N_lim -= Nc;
+    for (Index ij = 0; ij < nj; ij++) {
+      dF_lim(joker, ij) -= dF_cut(0, ij);
+      dN_lim(joker, ij) -= dN_cut(0, ij);
     }
   }
 }
 
-inline
+/** Loop all the lines of the band
+ *
+ * This function is not possible to run on multiple cores.  Such parallelisms
+ * must happen at a much higher level.
+ *
+ * @param[in,out] F The cross-section. \f$ F \f$
+ * @param[in,out] dF The cross-section's derivatives. \f$ \partial F / \partial
+ * x \f$
+ * @param[in,out] N The cross-section ratio of the NLTE source. \f$ N \f$
+ * @param[in,out] dN The cross-section ratio of the NLTE source's derivatives.
+ * \f$ \partial N / \partial x \f$
+ * @param[in] f_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
+ * @param[in] band The absorption band
+ * @param[in] jacobian_quantities As WSV
+ * @param[in] nlte A map of NLTE data
+ * @param[in] vmrs The band volume mixing ratio
+ * @param[in] isot_ratio The isotopic ratio of the isotopologue
+ * @param[in] P The atmospheric pressure
+ * @param[in] T The atmospheric temperature
+ * @param[in] do_nlte Flag for whether or not NLTE will be computed
+ * @param[in] H The magnetic field magnitude
+ * @param[in] do_zeeman Flag for whether this is part of some Zeeman
+ * calculations
+ * @param[in] zeeman_polarization The type of Zeeman polarization to consider
+ * (if any)
+ * @param[in] f_mean The mean frequency of the absorption band
+ * @param[in] QT The partition function at the temperature
+ * @param[in] QT0 The partition function at the reference temperature
+ * @param[in] dQTdT The derivative of the partition function at the temperature
+ * wrt temperature
+ */
 void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
                ComplexMatrix &dN, const Vector &f_grid,
                const AbsorptionLines &band,
                const ArrayOfRetrievalQuantity &jacobian_quantities,
                const EnergyLevelMap &nlte, const Vector &vmrs,
-               const Numeric &isot_ratio,
-               const Numeric &P, const Numeric &T,
-               const bool do_nlte, const Numeric &H, const bool do_zeeman, 
-               const Zeeman::Polarization &zeeman_polarization,
-               const Index &nj, const Index &nl, const Index &nv,
-               const Numeric &f_mean, const Numeric &DC, const Numeric &QT, const Numeric &QT0, const Numeric &dQTdT) ARTS_NOEXCEPT {
-  // Programming trickery (sets pre-allocated size limits)
-  constexpr std::size_t preallocated_count_lsmp = 4;
-  constexpr std::size_t preallocated_count_line = 16;
-  constexpr std::size_t preallocated_count_line_target = 32;
-  static_assert(preallocated_count_lsmp and preallocated_count_line and preallocated_count_line_target, "Must be above 0");
-  using Preallocator = std::pmr::monotonic_buffer_resource;
-  
+               const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
+               const bool do_nlte, const Numeric &H, const bool do_zeeman,
+               const Zeeman::Polarization zeeman_polarization, const Numeric QT,
+               const Numeric QT0, const Numeric dQTdT) ARTS_NOEXCEPT {
+  const Index nj = jacobian_quantities.nelem();
+  const Index nl = band.NumLines();
+
+  // Derivatives are allocated ahead of all loops
+  ArrayOfDerivatives derivs(nj);
+
+  // Mean averaged frequency
+  const Numeric f_mean = band.F_mean();
+
+  // Doppler constant
+  const Numeric DC = band.DopplerConstant(T);
+
   for (Index i = 0; i < nl; i++) {
-    const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
-    
-    const Output X = band.ShapeParameters(i, T, P, vmrs);
-    const Complex LM(1 + X.G, -X.Y);
-    
     // Line strength value
-    IntensityCalculator ls_str = linestrength_selection(T, QT, QT0, dQTdT, isot_ratio, nlte, band, i);
-    
-    // Line shape normalization
-    Normalizer ls_norm = normalizer_selection(band.Normalization(), band.F0(i), T);
-    
-    // Derivatives
-    std::array<Output, preallocated_count_lsmp> lsmp_mem;
-    std::array<Numeric, preallocated_count_line> line_mem;
-    std::array<Absorption::QuantumIdentifierLineTarget, preallocated_count_line_target> line_target_mem;
-    Preallocator lsmp_alloc(lsmp_mem.data(), sizeof(lsmp_mem));
-    Preallocator line_alloc(line_mem.data(), sizeof(line_mem));
-    Preallocator line_target_alloc(line_target_mem.data(), sizeof(line_target_mem));
-    std::pmr::vector<Absorption::QuantumIdentifierLineTarget> line_derivs_target(&line_target_alloc);
-    std::pmr::vector<Numeric> line_derivs(&line_alloc);
-    std::pmr::vector<Output> lsmp_derivs(&lsmp_alloc);
-    line_derivs_target.reserve(preallocated_count_line_target);
-    line_derivs.reserve(preallocated_count_line);
-    lsmp_derivs.reserve(preallocated_count_lsmp);
-    
+    IntensityCalculator ls_str =
+        linestrength_selection(T, QT, QT0, dQTdT, isot_ratio, nlte, band, i);
+
     // Pre-compute the derivatives
     for (Index ij = 0; ij < nj; ij++) {
       if (not propmattype_index(jacobian_quantities, ij)) {
         continue;
       }
-      
+
       const auto &deriv = jacobian_quantities[ij];
-      
+
       if (deriv == Jacobian::Atm::Temperature) {
-        lsmp_derivs.emplace_back(band.ShapeParameters_dT(i, T, P, vmrs));
+        derivs[ij].value.o = (band.ShapeParameters_dT(i, T, P, vmrs));
       } else if (deriv.Target().needQuantumIdentity()) {
         if (deriv == Jacobian::Line::VMR) {
-          lsmp_derivs.emplace_back(band.ShapeParameters_dVMR(i, T, P, deriv.QuantumIdentity()));
+          derivs[ij].value.o =
+              (band.ShapeParameters_dVMR(i, T, P, deriv.QuantumIdentity()));
         } else {
-          auto& lt = line_derivs_target.emplace_back(deriv.Target().QuantumIdentity(), band, i);
+          auto &lt =
+              derivs[ij].target = {deriv.Target().QuantumIdentity(), band, i};
           if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
             if (deriv == Jacobian::Line::Strength) {
-              line_derivs.emplace_back(std::visit([](auto &&LS) { return LS.dSdI0(); }, ls_str));
+              derivs[ij].value.n =
+                  (std::visit([](auto &&LS) { return LS.dSdI0(); }, ls_str));
             }
             // All line shape derivatives
             InternalDerivativesSetup(G0) InternalDerivativesSetup(D0)
-            InternalDerivativesSetup(G2) InternalDerivativesSetup(D2)
-            InternalDerivativesSetup(ETA) InternalDerivativesSetup(FVC)
-            InternalDerivativesSetup(Y) InternalDerivativesSetup(G)
-            InternalDerivativesSetup(DV)
+                InternalDerivativesSetup(G2) InternalDerivativesSetup(D2)
+                    InternalDerivativesSetup(ETA) InternalDerivativesSetup(FVC)
+                        InternalDerivativesSetup(Y) InternalDerivativesSetup(G)
+                            InternalDerivativesSetup(DV)
           } else if (lt == Absorption::QuantumIdentifierLineTargetType::Level) {
             if (deriv == Jacobian::Line::NLTE) {
               if (lt.upper) {
-                line_derivs.emplace_back(std::visit([](auto &&LS) { return LS.dSdNLTEu(); }, ls_str));
+                derivs[ij].value.n = (std::visit(
+                    [](auto &&LS) { return LS.dSdNLTEu(); }, ls_str));
               }
-              
+
               if (lt.lower) {
-                line_derivs.emplace_back(std::visit([](auto &&LS) { return LS.dSdNLTEl(); }, ls_str));
+                derivs[ij].value.n = (std::visit(
+                    [](auto &&LS) { return LS.dSdNLTEl(); }, ls_str));
               }
             }
           }
@@ -2492,13 +2595,12 @@ void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
       }
     }
 
-    zeeman_loop(
-      F, dF, N, dN, f_grid, band, jacobian_quantities,
-      T, do_nlte, H, do_zeeman, zeeman_polarization,
-      nj, nv, f_mean, DC,
-      i, nz, X, LM, ls_str, ls_norm,
-      line_derivs, line_derivs_target, lsmp_derivs);
-      
+    // Call cut off loop.  Note that moved values cannot be used again
+    cutoff_loop(F, dF, N, dN, f_grid, band, jacobian_quantities, T, do_nlte, H,
+                do_zeeman, zeeman_polarization, f_mean, DC, i,
+                band.ShapeParameters(i, T, P, vmrs), std::move(ls_str),
+                normalizer_selection(band.Normalization(), band.F0(i), T),
+                derivs);
   }
 }
 
@@ -2534,9 +2636,9 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
              const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
              const bool do_nlte, const Numeric &H, const bool do_zeeman,
              const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
-  const Index nj = jacobian_quantities.nelem();
+  [[maybe_unused]] const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
-  const Index nv = f_grid.nelem();
+  [[maybe_unused]] const Index nv = f_grid.nelem();
 
   // Tests that must be true while calling this function
   ARTS_ASSERT(H >= 0, "Only for positive H.  You provided: ", H)
@@ -2544,15 +2646,17 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
   ARTS_ASSERT(T > 0, "Only for abs positive T.  You provided: ", T)
   ARTS_ASSERT(band.OK(), "Band is poorly constructed.  You need to use "
                          "a detailed debugger to find out why.")
-  ARTS_ASSERT(F.size() == nv,
-              "F is wrong size.  Size is (", F.size(), ") but should be: (", nv, ')')
-  ARTS_ASSERT(not do_nlte or N.size() == nv,
-              "N is wrong size.  Size is (", N.size(), ") but should be (", nv, ')')
+  ARTS_ASSERT(F.size() == nv, "F is wrong size.  Size is (", F.size(),
+              ") but should be: (", nv, ')')
+  ARTS_ASSERT(not do_nlte or N.size() == nv, "N is wrong size.  Size is (",
+              N.size(), ") but should be (", nv, ')')
   ARTS_ASSERT(nj == 0 or (dF.nrows() == nv and dF.ncols() == nj),
-              "dF is wrong size.  Size is (", dF.nrows(), " x ", dF.ncols(), ") but should be: (", nv, " x ", nj, ")")
+              "dF is wrong size.  Size is (", dF.nrows(), " x ", dF.ncols(),
+              ") but should be: (", nv, " x ", nj, ")")
   ARTS_ASSERT(nj == 0 or not do_nlte or (dN.nrows() == nv and dN.ncols() == nj),
-              "dN is wrong size.  Size is (", dN.nrows(), " x ", dN.ncols(), ") but should be: (", nv, " x ", nj, ")")
-  
+              "dN is wrong size.  Size is (", dN.nrows(), " x ", dN.ncols(),
+              ") but should be: (", nv, " x ", nj, ")")
+
   // Implementation error
   ARTS_ASSERT(do_nlte and nj, "Still no support for Non-LTE derivatives")
 
@@ -2562,27 +2666,11 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
     return; // No line-by-line computations required/wanted
   }
 
-  // Mean averaged frequency
-  const Numeric f_mean = band.F_mean();
-  
-  // Doppler constant
-  const Numeric DC = band.DopplerConstant(T);
-
-  // Partition function at T
-  const Numeric QT = single_partition_function(T, partfun_type, partfun_data);
-  
-  // Partition function at T0
-  const Numeric QT0 =
-  single_partition_function(band.T0(), partfun_type, partfun_data);
-
-  // Partition function derivative wrt T at T
-  const Numeric dQTdT =
-      dsingle_partition_function_dT(T, partfun_type, partfun_data);
-      
-  line_loop(
-    F, dF, N, dN, f_grid, band, jacobian_quantities, nlte, vmrs,
-    isot_ratio, P, T, do_nlte, H, do_zeeman, zeeman_polarization,
-    nj, nl, nv, f_mean, DC, QT, QT0, dQTdT);
+  line_loop(F, dF, N, dN, f_grid, band, jacobian_quantities, nlte, vmrs,
+            isot_ratio, P, T, do_nlte, H, do_zeeman, zeeman_polarization,
+            single_partition_function(T, partfun_type, partfun_data),
+            single_partition_function(band.T0(), partfun_type, partfun_data),
+            dsingle_partition_function_dT(T, partfun_type, partfun_data));
 }
 
 #undef InternalDerivatives

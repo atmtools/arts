@@ -746,6 +746,11 @@ void xsec_species2(Matrix& xsec,
   
   // Type of problem
   const bool do_nonlte = nt;
+  
+  // Interpret as Eigen data for faster additions
+  MatrixViewMap xsece = MapToEigen(xsec);
+  MatrixViewMap sourcee = MapToEigen(source);
+  MatrixViewMap phasee = MapToEigen(phase);
 
   for (Index ip = 0; ip < np; ip++) {
     // Pre-allocations of data
@@ -764,28 +769,34 @@ void xsec_species2(Matrix& xsec,
                        abs_nlte, partfun_type, partfun_data, line_shape_vmr,
                        isot_ratio, P, T, do_nonlte);
     
+    // Interpret as Eigen data for faster additions
+    const ComplexMatrixViewMap Fe=MapToEigen(F);
+    const ComplexMatrixViewMap dFe=MapToEigen(dF);
+    const ComplexMatrixViewMap Ne=MapToEigen(N);
+    const ComplexMatrixViewMap dNe=MapToEigen(dN);
+    
     // Sum up cross-section
-    xsec(joker, ip) += F.real();
+    xsece.col(ip).noalias() += Fe.real();
     for (Index ij=0; ij<nj; ij++) {
       if (not propmattype_index(jacobian_quantities, ij)) continue;
-      dxsec_dx[ij](joker, ip) += dF(joker, ij).real();
+      MapToEigen(dxsec_dx[ij]).col(ip).noalias() += dFe.col(ij).real();
     }
     
-    // phase cross-section
+    // Sum up phase cross-section
     if (not phase.empty()) {
-      phase(joker, ip) += F.imag();
+      phasee.col(ip).noalias() += Fe.imag();
       for (Index ij = 0; ij < nj; ij++) {
         if (not propmattype_index(jacobian_quantities, ij)) continue;
-        dphase_dx[ij](joker, ip) += dF(joker, ij).imag();
+        MapToEigen(dphase_dx[ij]).col(ip).noalias() += dFe.col(ij).imag();
       }
     }
     
-    // source ratio cross-section
+    // Sum up source ratio cross-section
     if (do_nonlte) {
-      source(joker, ip) += N.real();
+      sourcee.col(ip).noalias() += Ne.real();
       for (Index ij = 0; ij < nj; ij++) {
         if (not propmattype_index(jacobian_quantities, ij)) continue;
-        dsource_dx[ij](joker, ip) += dN(joker, ij).real();
+        MapToEigen(dsource_dx[ij]).col(ip).noalias() += dNe.col(ij).real();
       }
     }
   }

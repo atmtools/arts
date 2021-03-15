@@ -170,13 +170,9 @@ class ConstComplexVectorView;
 class ConstComplexMatrixView;
 
 // Eigen library interactions:
-typedef Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-    ComplexMatrixType;
-typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> ComplexStrideType;
-typedef Eigen::Map<ComplexMatrixType, 0, ComplexStrideType>
-    ComplexMatrixViewMap;
-typedef Eigen::Map<const ComplexMatrixType, 0, ComplexStrideType>
-    ComplexConstMatrixViewMap;
+typedef Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> ComplexMatrixType;
+typedef Eigen::Map<ComplexMatrixType, 0, StrideType> ComplexMatrixViewMap;
+typedef Eigen::Map<const ComplexMatrixType, 0, StrideType> ConstComplexMatrixViewMap;
 
 /** The iterator class for sub vectors. This takes into account the
  *  defined stride. */
@@ -338,8 +334,8 @@ class ConstComplexVectorView {
                    const ConstComplexMatrixView&,
                    const ConstComplexVectorView&);
 
-  friend ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView&);
-  friend ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView&);
+  friend ConstComplexMatrixViewMap MapToEigen(const ConstComplexVectorView&);
+  friend ConstComplexMatrixViewMap MapToEigenCol(const ConstComplexVectorView&);
   friend ComplexMatrixViewMap MapToEigen(ComplexVectorView&);
   friend ComplexMatrixViewMap MapToEigenCol(ComplexVectorView&);
 
@@ -710,7 +706,7 @@ class ConstComplexMatrixView {
                    const ConstMatrixView&);
   
 
-  friend ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView&);
+  friend ConstComplexMatrixViewMap MapToEigen(const ConstComplexMatrixView&);
   friend ComplexMatrixViewMap MapToEigen(ComplexMatrixView&);
 
  protected:
@@ -946,13 +942,13 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v);
 std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v);
 
 // Converts constant matrix to constant eigen map
-ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView& A);
+ConstComplexMatrixViewMap MapToEigen(const ConstComplexMatrixView& A);
 // Converts constant vector to constant eigen row-view
-ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView& A);
+ConstComplexMatrixViewMap MapToEigen(const ConstComplexVectorView& A);
 // Converts constant vector to constant eigen row-view
-ComplexConstMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A);
+ConstComplexMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A);
 // Converts constant vector to constant eigen column-view
-ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A);
+ConstComplexMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A);
 // Converts matrix to eigen map
 ComplexMatrixViewMap MapToEigen(ComplexMatrixView& A);
 // Converts vector to eigen map row-view

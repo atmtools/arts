@@ -162,7 +162,7 @@ void test_ls() {
   SpeciesAuxData partition_functions;
   fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(partition_functions);
   
-  constexpr Index TN = 100;
+  constexpr Index TN = 1;
   
   // Compute
   {
@@ -670,7 +670,7 @@ void test_voigt_xsec_species() {
   std::sort(dt.begin(), dt.end());
   std::cerr << "COMPUTE OLD:\n" << "Slow: " << dt[TN-1] << '\n' << "Med.: " << dt[TN/2] << '\n' << "Fast: " << dt[0] << '\n';
   
-//   // PLOT STUFF
+  // PLOT STUFF
 //   ARTSGUI::plot(f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0));
 //   for (Index i=0; i<NJAC; i++) {
 //     std::cout << jacobian_quantities[i].Target() << '\n';
