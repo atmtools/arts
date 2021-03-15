@@ -3,6 +3,7 @@
 #include "lineshape.h"
 
 #include <Faddeeva/Faddeeva.hh>
+// #include "faddeeva_port.h"
 
 using Constant::inv_pi;
 using Constant::inv_sqrt_pi;
@@ -2153,21 +2154,27 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
   InternalDerivativesYImpl(X0) InternalDerivativesYImpl(X1)                    \
       InternalDerivativesYImpl(X2) InternalDerivativesYImpl(X3)
 
+
+Range limited_range(const Numeric lo, const Numeric hi, const Vector& v) noexcept {
+  ARTS_ASSERT(hi >= lo);
+  Index s=0;
+  Index e=v.size();
+  for (; s<e; s++) if (v[s] >= lo) break;
+  for (; e>s; e--) if (v[s] <= hi) break;
+  return Range(s, e);
+}
+
+
 inline
-void frequency_loop(ComplexVector &F, ComplexMatrix &dF,
-                    ComplexVector &N [[maybe_unused]],
-                    ComplexMatrix &dN [[maybe_unused]],
-                    const std::pmr::vector<Numeric> &line_derivs,
-                    const std::pmr::vector<Output> &lsmp_derivs, Calculator &ls,
-                    Calculator &ls_mirr, Normalizer &ls_norm,
-                    IntensityCalculator &ls_str, const Vector &f_grid,
-                    const AbsorptionLines &band,
-                    const ArrayOfRetrievalQuantity &jacobian_quantities,
-                    const Complex &LM, const Numeric &Si,
-                    const Numeric &DNi, const Numeric &Sz,
-                    const Numeric &T, const Numeric &fu, const Numeric &fl,
-                    const Numeric &dfdH, const Index &i,
-                    const Index &nj, const Index &nv, bool do_nlte) ARTS_NOEXCEPT {
+void frequency_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N, ComplexMatrix &dN,
+                    const Vector &f_grid, const ArrayOfRetrievalQuantity &jacobian_quantities,
+                    const Numeric& T, const bool do_nlte, const Index& nj, const Index& nv,
+                    const Complex &LM,IntensityCalculator &ls_str,Normalizer &ls_norm, const std::pmr::vector<Numeric> &line_derivs,
+                    const std::pmr::vector<Absorption::QuantumIdentifierLineTarget> &line_derivs_target,
+                    const std::pmr::vector<Output> &lsmp_derivs, 
+                    const Numeric &fu, const Numeric &fl, const Numeric &Si,
+                    const Numeric &DNi, const Numeric &dfdH, const Numeric &Sz,
+                    Calculator &ls, Calculator &ls_mirr) ARTS_NOEXCEPT {
   for (Index iv = 0; iv < nv; iv++) {
     const Numeric f = f_grid[iv];
     if (f > fu or f < fl) {
@@ -2186,7 +2193,7 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF,
       N[iv] += DS * LM * Fls;
     }
 
-    Index ilsmp_derivs=0, iline_derivs=0;
+    Index ilsmp_derivs=0, iline_derivs=0, iline_derivs_target=0;
     for (Index ij = 0; ij < nj; ij++) {
       if (not propmattype_index(jacobian_quantities, ij)) {
         continue;
@@ -2199,8 +2206,8 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF,
         const Numeric dSn = std::visit([T, f](auto &&LSN) { return LSN.dNdT(T, f); }, ls_norm);
         const Numeric dSi = std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str);
         const Complex dLM(dXdT.G, -dXdT.Y);
-        const Complex dFm = std::visit([dXdT, T](auto &&LS) { return std::conj(LS.dFdT(mirroredOutput(dXdT), T)); }, ls_mirr);
-        const Complex dFls = std::visit([dXdT, T](auto &&LS) { return LS.dFdT(dXdT, T); }, ls) + dFm;
+        const Complex dFm = std::visit([&](auto &&LS) { return std::conj(LS.dFdT(mirroredOutput(dXdT), T)); }, ls_mirr);
+        const Complex dFls = std::visit([&](auto &&LS) { return LS.dFdT(dXdT, T); }, ls) + dFm;
         dF(iv, ij) += S * (LM * dFls + dLM * Fls) + Sz * (dSn * Si + Sn * dSi) * LM * Fls;
         if (do_nlte) {
           const Numeric dDSi = std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str);
@@ -2222,20 +2229,19 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF,
         if (deriv == Jacobian::Line::VMR) {
           const auto& dXdVMR = lsmp_derivs[ilsmp_derivs++];
           const Complex dFm = std::visit(
-              [dXdVMR](auto &&LS) {
+              [&](auto &&LS) {
                 return std::conj(LS.dFdVMR(mirroredOutput(dXdVMR)));
               },
               ls_mirr);
           const Complex dLM(dXdVMR.G, -dXdVMR.Y);
           const Complex dFls =
-              std::visit([dXdVMR](
+              std::visit([&](
                              auto &&LS) { return LS.dFdVMR(dXdVMR); },
                          ls) +
               dFm;
           dF(iv, ij) += S * LM * dFls + dLM * S * Fls;
         } else {
-          const Absorption::QuantumIdentifierLineTarget lt(
-              deriv.Target().QuantumIdentity(), band, i);
+          const Absorption::QuantumIdentifierLineTarget lt = line_derivs_target[iline_derivs_target++];
           if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
             if (deriv == Jacobian::Line::Center) {
               const Numeric d =
@@ -2278,21 +2284,31 @@ void frequency_loop(ComplexVector &F, ComplexMatrix &dF,
 
 inline
 void zeeman_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
-                 ComplexMatrix &dN,
-                 const std::pmr::vector<Numeric> &line_derivs,
-                 const std::pmr::vector<Output> &lsmp_derivs, Normalizer &ls_norm,
-                 IntensityCalculator &ls_str, const Vector &f_grid,
+                 ComplexMatrix &dN, const Vector &f_grid,
                  const AbsorptionLines &band,
                  const ArrayOfRetrievalQuantity &jacobian_quantities,
-                 const Output &X, const Complex &LM,
-                 const Numeric &Si, const Numeric &DSi, const Numeric &f_mean,
-                 const Numeric &T, const Numeric &DC,
-                 const Numeric &H, const Index &i, const Index &nz,
+                 const Numeric &T, 
+                 const bool do_nlte, 
+                 const Numeric &H, 
+                 const bool do_zeeman,
+                 const Zeeman::Polarization &zeeman_polarization,
                  const Index &nj, const Index &nv,
-                 bool do_nlte, bool do_zeeman,
-                 const Zeeman::Polarization &zeeman_polarization
-                 [[maybe_unused]]) ARTS_NOEXCEPT {
-  const Numeric fu = band.CutoffFreq(i), fl = band.CutoffFreqMinus(i, f_mean);
+                 const Numeric &f_mean,
+                 const Numeric &DC,
+                 const Index &i, const Index &nz,
+                 const Output &X, 
+                 const Complex &LM,
+                 IntensityCalculator &ls_str,
+                 Normalizer &ls_norm,
+                 const std::pmr::vector<Numeric> &line_derivs,
+                 const std::pmr::vector<Absorption::QuantumIdentifierLineTarget> &line_derivs_target,
+                 const std::pmr::vector<Output> &lsmp_derivs) ARTS_NOEXCEPT {
+  const Numeric fu = band.CutoffFreq(i);
+  const Numeric fl = band.CutoffFreqMinus(i, f_mean);
+  const Numeric Si = std::visit([](auto &&S) { return S.S; }, ls_str);
+  const Numeric DSi = std::visit([](auto &&S) { return S.N; }, ls_str);
+
+// FIXME: TEST USING VIEWS NOW THAT EVERYTHING'S A BLOCK OF MEMORY
 
   for (Index iz = 0; iz < nz; iz++) {
     const Numeric dfdH =
@@ -2308,10 +2324,20 @@ void zeeman_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
     Calculator ls_mirr = mirror_line_shape_selection(
         band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
 
-    frequency_loop(F, dF, N, dN, line_derivs, lsmp_derivs, ls, ls_mirr,
-                   ls_norm, ls_str, f_grid, band, jacobian_quantities,
-                   LM, Si, DSi, Sz, T, fu, fl, dfdH, i,
-                   nj, nv, do_nlte);
+    frequency_loop(
+      F, dF, N, dN, f_grid, jacobian_quantities,
+      T, do_nlte, 
+      nj, nv, LM, ls_str,
+      ls_norm,
+      line_derivs,
+      line_derivs_target,
+      lsmp_derivs,
+      fu, fl,
+      Si,
+      DSi,
+      dfdH,
+      Sz,
+      ls, ls_mirr);
   }
 
   // Deal with cutoff if necessary (on stack unless there's a derivative)
@@ -2343,10 +2369,25 @@ void zeeman_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
           band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
 
       // Call for just 1 freq...
-      frequency_loop(F_cut, dF_cut, N_cut, dN_cut, line_derivs,
+/*      frequency_loop(F_cut, dF_cut, N_cut, dN_cut, line_derivs, line_derivs_target,
                      lsmp_derivs, ls, ls_mirr, ls_norm, ls_str,
-                     f_grid_cut, band, jacobian_quantities, LM,
-                     Si, DSi, Sz, T, fu, fl, dfdH, i, nj, nv, do_nlte);
+                     f_grid_cut, jacobian_quantities, LM,
+                     Si, DSi, Sz, T, fu, fl, dfdH, nj, nv, do_nlte);*/
+
+    frequency_loop(
+      F_cut, dF_cut, N_cut, dN_cut, f_grid_cut, jacobian_quantities,
+      T, do_nlte, 
+      nj, nv, LM, ls_str,
+      ls_norm,
+      line_derivs,
+      line_derivs_target,
+      lsmp_derivs,
+      fu, fl,
+      Si,
+      DSi,
+      dfdH,
+      Sz,
+      ls, ls_mirr);
     }
 
     // Remove the cutoff
@@ -2372,16 +2413,17 @@ void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
                const AbsorptionLines &band,
                const ArrayOfRetrievalQuantity &jacobian_quantities,
                const EnergyLevelMap &nlte, const Vector &vmrs,
-               const Numeric &f_mean, const Numeric &isot_ratio,
-               const Numeric &P, const Numeric &T, const Numeric &DC,
-               const Numeric &QT, const Numeric &QT0, const Numeric &dQTdT,
-               const Numeric &H, const Index &nj, const Index &nl,
-               const Index &nv, bool do_nlte, bool do_zeeman,
-               const Zeeman::Polarization &zeeman_polarization) ARTS_NOEXCEPT {
+               const Numeric &isot_ratio,
+               const Numeric &P, const Numeric &T,
+               const bool do_nlte, const Numeric &H, const bool do_zeeman, 
+               const Zeeman::Polarization &zeeman_polarization,
+               const Index &nj, const Index &nl, const Index &nv,
+               const Numeric &f_mean, const Numeric &DC, const Numeric &QT, const Numeric &QT0, const Numeric &dQTdT) ARTS_NOEXCEPT {
   // Programming trickery (sets pre-allocated size limits)
-  constexpr std::size_t preallocated_count_lsmp = 4;  // Temperature and two VMR
+  constexpr std::size_t preallocated_count_lsmp = 4;
   constexpr std::size_t preallocated_count_line = 16;
-  static_assert(preallocated_count_lsmp and preallocated_count_line, "Must be above 0");
+  constexpr std::size_t preallocated_count_line_target = 32;
+  static_assert(preallocated_count_lsmp and preallocated_count_line and preallocated_count_line_target, "Must be above 0");
   using Preallocator = std::pmr::monotonic_buffer_resource;
   
   for (Index i = 0; i < nl; i++) {
@@ -2391,22 +2433,24 @@ void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
     const Complex LM(1 + X.G, -X.Y);
     
     // Line strength value
-    IntensityCalculator ls_str =
-    linestrength_selection(T, QT, QT0, dQTdT, isot_ratio, nlte, band, i);
-    const Numeric Si = std::visit([](auto &&S) { return S.S; }, ls_str);
-    const Numeric DSi = std::visit([](auto &&S) { return S.N; }, ls_str);
+    IntensityCalculator ls_str = linestrength_selection(T, QT, QT0, dQTdT, isot_ratio, nlte, band, i);
     
     // Line shape normalization
-    Normalizer ls_norm =
-    normalizer_selection(band.Normalization(), band.F0(i), T);
+    Normalizer ls_norm = normalizer_selection(band.Normalization(), band.F0(i), T);
     
     // Derivatives
     std::array<Output, preallocated_count_lsmp> lsmp_mem;
     std::array<Numeric, preallocated_count_line> line_mem;
+    std::array<Absorption::QuantumIdentifierLineTarget, preallocated_count_line_target> line_target_mem;
     Preallocator lsmp_alloc(lsmp_mem.data(), sizeof(lsmp_mem));
     Preallocator line_alloc(line_mem.data(), sizeof(line_mem));
+    Preallocator line_target_alloc(line_target_mem.data(), sizeof(line_target_mem));
+    std::pmr::vector<Absorption::QuantumIdentifierLineTarget> line_derivs_target(&line_target_alloc);
     std::pmr::vector<Numeric> line_derivs(&line_alloc);
     std::pmr::vector<Output> lsmp_derivs(&lsmp_alloc);
+    line_derivs_target.reserve(preallocated_count_line_target);
+    line_derivs.reserve(preallocated_count_line);
+    lsmp_derivs.reserve(preallocated_count_lsmp);
     
     // Pre-compute the derivatives
     for (Index ij = 0; ij < nj; ij++) {
@@ -2422,7 +2466,7 @@ void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
         if (deriv == Jacobian::Line::VMR) {
           lsmp_derivs.emplace_back(band.ShapeParameters_dVMR(i, T, P, deriv.QuantumIdentity()));
         } else {
-          const Absorption::QuantumIdentifierLineTarget lt(deriv.Target().QuantumIdentity(), band, i);
+          auto& lt = line_derivs_target.emplace_back(deriv.Target().QuantumIdentity(), band, i);
           if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
             if (deriv == Jacobian::Line::Strength) {
               line_derivs.emplace_back(std::visit([](auto &&LS) { return LS.dSdI0(); }, ls_str));
@@ -2449,9 +2493,12 @@ void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
     }
 
     zeeman_loop(
-        F, dF, N, dN, line_derivs, lsmp_derivs, ls_norm, ls_str, f_grid, band,
-        jacobian_quantities, X, LM, Si, DSi, f_mean, T, DC, H, i, nz,
-        nj, nv, do_nlte, do_zeeman, zeeman_polarization);
+      F, dF, N, dN, f_grid, band, jacobian_quantities,
+      T, do_nlte, H, do_zeeman, zeeman_polarization,
+      nj, nv, f_mean, DC,
+      i, nz, X, LM, ls_str, ls_norm,
+      line_derivs, line_derivs_target, lsmp_derivs);
+      
   }
 }
 
@@ -2487,13 +2534,9 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
              const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
              const bool do_nlte, const Numeric &H, const bool do_zeeman,
              const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
-
-  // Get sizes
   const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
   const Index nv = f_grid.nelem();
-
-  const Numeric DC = band.DopplerConstant(T);
 
   // Tests that must be true while calling this function
   ARTS_ASSERT(H >= 0, "Only for positive H.  You provided: ", H)
@@ -2521,22 +2564,25 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
 
   // Mean averaged frequency
   const Numeric f_mean = band.F_mean();
+  
+  // Doppler constant
+  const Numeric DC = band.DopplerConstant(T);
 
   // Partition function at T
   const Numeric QT = single_partition_function(T, partfun_type, partfun_data);
+  
+  // Partition function at T0
+  const Numeric QT0 =
+  single_partition_function(band.T0(), partfun_type, partfun_data);
 
   // Partition function derivative wrt T at T
   const Numeric dQTdT =
       dsingle_partition_function_dT(T, partfun_type, partfun_data);
-
-  // Partition function at T0
-  const Numeric QT0 =
-      single_partition_function(band.T0(), partfun_type, partfun_data);
       
-  line_loop(F, dF, N, dN, f_grid,
-            band, jacobian_quantities, nlte, vmrs, f_mean,
-            isot_ratio, P, T, DC, QT, QT0, dQTdT, H, nj, nl,
-            nv, do_nlte, do_zeeman,zeeman_polarization);
+  line_loop(
+    F, dF, N, dN, f_grid, band, jacobian_quantities, nlte, vmrs,
+    isot_ratio, P, T, do_nlte, H, do_zeeman, zeeman_polarization,
+    nj, nl, nv, f_mean, DC, QT, QT0, dQTdT);
 }
 
 #undef InternalDerivatives

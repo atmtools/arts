@@ -153,9 +153,9 @@ void test_ls() {
   
   Vector f_grid(::N);
   ComplexVector F(::N), N(::N);
-  ArrayOfComplexVector dF(::M, ComplexVector(::N, 0)), dN(::M, ComplexVector(::N, 0));
+  ComplexMatrix dF(::N, ::M, 0), dN(::N, ::M, 0);
   ArrayOfComplexVector dF_mod(::M, ComplexVector(::N, 0)), dN_mod(::M, ComplexVector(::N, 0));
-  ArrayOfComplexVector dFnull(0, ComplexVector(::N, 0)), dNnull(0, ComplexVector(::N, 0));
+  ComplexMatrix dFnull(0, 0), dNnull(0, 0);
   ArrayOfRetrievalQuantity jacobian_quantities(::M);
   ArrayOfRetrievalQuantity jacobian_quantities_null(0);
   EnergyLevelMap nlte;
@@ -205,9 +205,9 @@ void test_ls() {
     std::cerr << "Slow: " << dt[TN-1] << '\n' << "Mean: " << mean(dt) << '\n' << "Med.: " << median(dt) << '\n' << "Fast: " << dt[0] << '\n';
     
     F=0;
-    dF=F;
+    dF=0;
     N=0;
-    dN=N;
+    dN=0;
     LineShape::compute(F, dF, N, dN, f_g, band, jacobian_quantities, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi);
   }
   {
@@ -403,11 +403,11 @@ void test_ls() {
   ARTSGUI::plot(f_grid, F.real(), f_grid, F.imag());
   for (Index i=0; i<::M; i++) {
     bool all_zero = true;
-    for (Index iv=0; iv<::N; iv++) all_zero = all_zero and dF[i][iv] == Complex(0, 0) and dF_mod[i][iv] == Complex(0, 0);
+    for (Index iv=0; iv<::N; iv++) all_zero = all_zero and dF(iv, i) == Complex(0, 0) and dF_mod[i][iv] == Complex(0, 0);
     if (all_zero) continue;  // plot only if some are non-zero
     
     std::cout << jacobian_quantities[i].Target() << '\n';
-    ARTSGUI::plot(f_grid, dF[i].real(), f_grid, dF[i].imag(), f_grid, dF_mod[i].real(), f_grid, dF_mod[i].imag());
+    ARTSGUI::plot(f_grid, dF(joker, i).real(), f_grid, dF(joker, i).imag(), f_grid, dF_mod[i].real(), f_grid, dF_mod[i].imag());
   }
   std::cout << '\n';
 }
@@ -617,7 +617,7 @@ void test_voigt_xsec_species() {
   ArrayOfArrayOfSpeciesTag abs_species(1, ArrayOfSpeciesTag(1, SpeciesTag("H2O-161")));
   std::cout << abs_species << '\n';
   
-  constexpr Index TN = (do_jac_type == 1) ? 100 : (do_jac_type == 2) ? 1'000 : 10'000;
+  constexpr Index TN = do_jac_type == 1 ? 1'000 : 10'000;
   
   std::array<TimeStep, TN> dt;
   for (Index i=0; i<TN; i++) {
@@ -687,7 +687,7 @@ int main() try {
   
   std::cout << "\nAll Jacobian:\n";
   test_voigt_xsec_species<1>();
-  std::cout << "\nBoth Support Jacobian:\n";
+  std::cout << "\nSome Jacobian:\n";
   test_voigt_xsec_species<2>();
   std::cout << "\nNo Jacobian:\n";
   test_voigt_xsec_species<0>();

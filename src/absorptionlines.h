@@ -1578,6 +1578,11 @@ struct QuantumIdentifierLineTarget {
   
   //! Check if this is not a match
   constexpr bool operator!=(QuantumIdentifierLineTargetType x) const noexcept {return x != found;}
+  
+  //! Debug output
+  friend std::ostream& operator<<(std::ostream& os, QuantumIdentifierLineTarget qlt) {
+    return os << qlt.found << ' ' << qlt.lower << ' ' << qlt.upper;
+  }
 };
 };  // Absorption
 
