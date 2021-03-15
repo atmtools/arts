@@ -2704,23 +2704,9 @@ void SurfaceBlackbody(Matrix& surface_los,
     // Skin temperature
     irq = find_first(dsurface_names, String("Skin temperature"));
     if (irq >= 0) {
-      const Numeric dd = 0.01;
-      Matrix surface_los2;
-      surfaceBlackbody(surface_los2,
-                       dsurface_rmatrix_dx[irq],
-                       dsurface_emission_dx[irq],
-                       atmosphere_dim,
-                       f_grid,
-                       stokes_dim,
-                       rtp_pos,
-                       rtp_los,
-                       skin_t[0] + dd,
-                       verbosity);
-
       Matrix dbdt(f_grid.nelem(), 1);
       dplanck_dt(dbdt(joker, 0), f_grid, skin_t[0]);
       dsurface_emission_dx[irq] = dbdt;
-
       dsurface_rmatrix_dx[irq].resize(surface_rmatrix.nbooks(),
                                       surface_rmatrix.npages(),
                                       surface_rmatrix.nrows(),
