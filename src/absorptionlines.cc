@@ -3458,4 +3458,49 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
   }
 }
 
+Index line_shape_position(const Lines& band, const Index catalog_parameter_position) ARTS_NOEXCEPT
+{
+  ARTS_ASSERT(catalog_parameter_position > -2, "Only -1 and max() are special values")
+  
+  // Special parameter for self broadening
+  if (catalog_parameter_position == -1) {
+    
+    // If we are explicitly self-broadened then this is easy
+    if (band.Self()) {
+      return 0;
+    } 
+    
+    // Otherwise we have to look through to be sure we haven't defined self broadening via an explicitly named broadener
+    else {
+      for (Index i=0; i<band.NumBroadeners()-band.Bath(); i++) {
+        if (band.BroadeningSpecies()[i].Species() == band.Species()) {
+          return i;
+        }
+      }
+    }
+  }
+  
+  // Special parameter for bath broadening
+  else if (catalog_parameter_position == std::numeric_limits<Index>::max() and band.Bath()) {
+    return band.NumBroadeners() - 1;
+  } 
+  
+  // Nothing special so the parameter is a species?
+  else {
+    
+    // Look through all species for a match and return its position
+    for (Index i=band.Self(); i<band.NumBroadeners()-band.Bath(); i++) {
+      if (band.BroadeningSpecies()[i].Species() == catalog_parameter_position) {
+        return i;
+      }
+    }
+    
+    // If we found nothing but this band has bath-broadening, then this is technically a bath species
+    if (band.Bath()) {
+      return band.NumBroadeners() - 1;
+    }
+  }
+  
+  return -1;
+}
 }  // Absorption

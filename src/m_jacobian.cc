@@ -1561,7 +1561,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
   // Map the species
   if (species == LineShape::self_broadening) {
     out3 << species << "\n";
-    rq.Target(Jacobian::Target(jpt, line_identity, 0));
+    rq.Target(Jacobian::Target(jpt, line_identity, -1));
   } else if (species == LineShape::bath_broadening) {
     out3 << species << "\n";
     rq.Target(Jacobian::Target(jpt, line_identity, std::numeric_limits<Index>::max()));

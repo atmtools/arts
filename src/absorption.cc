@@ -739,13 +739,17 @@ void xsec_species2(Matrix& xsec,
   const Index nf = f_grid.nelem();     // number of Dirac frequencies
   const Index nl = band.NumLines();  // number of lines in the catalog
   const Index nj = jacobian_quantities.nelem();  // number of partial derivatives
-  const Index nt = source.nrows();         // number of energy levels in NLTE
   
   // Test if the size of the problem is 0
   if (not np or not nf or not nl) return;
   
   // Type of problem
-  const bool do_nonlte = nt;
+  const bool do_nonlte = source.nrows();         // number of energy levels in NLTE
+  const bool do_phase = not phase.empty();
+  
+  ARTS_ASSERT(is_size(xsec, nf, np))
+  ARTS_ASSERT(not do_nonlte or is_size(source, nf, np))
+  ARTS_ASSERT(not do_phase or is_size(phase, nf, np))
   
   // Interpret as Eigen data for faster additions
   MatrixViewMap xsece = MapToEigen(xsec);
@@ -757,7 +761,7 @@ void xsec_species2(Matrix& xsec,
     ComplexVector F(nf, 0);
     ComplexVector N(do_nonlte ? nf : 0, 0);
     ComplexMatrix dF(nf, nj, 0);
-    ComplexMatrix dN(do_nonlte ? nf : 0, nj, 0);
+    ComplexMatrix dN(do_nonlte ? nf : 0, do_nonlte ? nj : 0, 0);
     
     // Constants for this level
     const Numeric& T = abs_t[ip];
@@ -783,7 +787,7 @@ void xsec_species2(Matrix& xsec,
     }
     
     // Sum up phase cross-section
-    if (not phase.empty()) {
+    if (do_phase) {
       phasee.col(ip).noalias() += Fe.imag();
       for (Index ij = 0; ij < nj; ij++) {
         if (not propmattype_index(jacobian_quantities, ij)) continue;

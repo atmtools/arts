@@ -250,7 +250,7 @@ class Range {
     // p.mstride: Previous stride
     // n.mstride: New stride (as specified)
     // mstride:   Resulting stride (old*new)
-
+          
     // Get the previous final element:
     Index prev_fin = p.mstart + (p.mextent - 1) * p.mstride;
 
@@ -260,7 +260,7 @@ class Range {
     ARTS_ASSERT(mstart <= prev_fin || mextent == -1);
 
     // Resulting stride must be != 0:
-    ARTS_ASSERT(0 != mstride);
+    ARTS_ASSERT(0 != mstride, "Problem: mstride==", mstride, " for mstart==",mstart, " and mextent==", mextent);
 
     // Convert negative extent (joker) to explicit extent
     if (mextent < 0) {

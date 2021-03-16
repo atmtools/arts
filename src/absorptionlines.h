@@ -1584,6 +1584,20 @@ struct QuantumIdentifierLineTarget {
     return os << qlt.found << ' ' << qlt.lower << ' ' << qlt.upper;
   }
 };
+
+/** Find the line_shape_position of the catalog parameter
+ * 
+ * catalog_parameter_position has four type of values:
+ * -2...:  No catalog parameter position.  A bug.
+ * std::numeric_limits<Index>::max(): This means bath broadening
+ * -1: This means that self-broadening has been selected
+ * N: This is simply the species value
+ * 
+ * @param[in] band An absorption band
+ * @param[in] catalog_parameter_position A catalog parameter position
+ * @return -1 on bad value, or a value otherwise
+ */
+Index line_shape_position(const Lines& band, const Index catalog_parameter_position) ARTS_NOEXCEPT;
 };  // Absorption
 
 typedef Absorption::SingleLine AbsorptionSingleLine;
