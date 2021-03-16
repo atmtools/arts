@@ -8151,7 +8151,12 @@ void define_md_data_raw() {
           "That is, this WSM uses the output from *surface_rtprop_agenda*\n"
           "in a straightforward fashion.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("iy", "diy_dx"),
+      OUT("iy",
+          "diy_dx",
+          "surface_skin_t",
+          "surface_los",
+          "surface_rmatrix",
+          "surface_emission"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
