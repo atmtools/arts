@@ -48,8 +48,6 @@ cmake_dependent_option(
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
 option (WITH_HITRAN2008 "Change to use HITRAN 2008 definition of catalog species" OFF)
 
-set (CMAKE_LEGACY_CYGWIN_WIN32 0)
-
 if (NOT ENABLE_ALLPATHS)
   # Avoid possible linker incompatibilities for
   # libstdc++ and libgomp on Linux if anaconda is installed
