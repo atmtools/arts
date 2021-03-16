@@ -6,8 +6,8 @@ from pyarts.classes.AbsorptionLines import AbsorptionLines, ArrayOfAbsorptionLin
 
 ws = Workspace()
 datapath = "../../arts-xml-data/" if not os.getenv("ARTS_XML_DATA_DIR") else os.getenv("ARTS_XML_DATA_DIR")
-fn1 = os.path.join(datapath, 'spectroscopy/cat/')
-fn2 = os.path.join(datapath, 'spectroscopy/cat/O2-66.xml')
+fn1 = os.path.join(datapath, 'spectroscopy/Artscat/')
+fn2 = os.path.join(datapath, 'spectroscopy/Artscat/O2-66.xml')
 
 # Init
 al = AbsorptionLines()
