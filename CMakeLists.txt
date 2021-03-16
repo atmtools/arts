@@ -1,6 +1,4 @@
 project (ARTS C CXX)
-enable_language(C)
-enable_language(CXX)
 
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message (FATAL_ERROR
