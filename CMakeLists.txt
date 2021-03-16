@@ -1,3 +1,9 @@
+if (ENABLE_CXX20)
+  cmake_minimum_required (VERSION 3.12)
+else ()
+  cmake_minimum_required (VERSION 3.9)
+endif ()
+
 project (ARTS C CXX)
 
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -41,12 +47,6 @@ cmake_dependent_option(
     NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
 option (WITH_HITRAN2008 "Change to use HITRAN 2008 definition of catalog species" OFF)
-
-if (ENABLE_CXX20)
-  cmake_minimum_required (VERSION 3.12)
-else ()
-  cmake_minimum_required (VERSION 3.9)
-endif ()
 
 set (CMAKE_LEGACY_CYGWIN_WIN32 0)
 
