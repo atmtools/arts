@@ -12576,6 +12576,36 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddLines"),
+      DESCRIPTION(
+          "Computes the line-by-line absorption ignoring polarization and\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("propmat_clearsky", "nlte_source", "dpropmat_clearsky_dx", "dnlte_source_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "nlte_source",
+         "dpropmat_clearsky_dx",
+         "dnlte_source_dx",
+         "f_grid",
+         "abs_species",
+         "jacobian_quantities",
+         "abs_lines_per_species",
+         "isotopologue_ratios",
+         "partition_functions",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_nlte",
+         "rtp_vmr",
+         "nlte_do",
+         "lbl_checked"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddOnTheFlyLineMixing"),
       DESCRIPTION(
           "Compute the line mixing of matching lines and add it to the propagation matrix\n"
@@ -12649,9 +12679,9 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("propmat_clearskyAddOnTheFly"),
+      NAME("propmat_clearskyAddXsecAgenda"),
       DESCRIPTION(
-          "Calculates gas absorption coefficients line-by-line.\n"
+          "Calculates gas absorption coefficients from cross-sections.\n"
           "\n"
           "This method can be used inside *propmat_clearsky_agenda* just like\n"
           "*propmat_clearskyAddFromLookup*. It is a wrapper for putting the\n"

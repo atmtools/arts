@@ -304,9 +304,10 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
           const Complex dm = - pi * pow2(Flm);
           
           for (Index iq=0; iq<jacs.nelem(); iq++) {
-            if (not propmattype_index(jacs, iq)) continue;
-            
             const auto& deriv = jacs[iq];
+            
+            if (not propmattype(deriv)) continue;
+            
             
             if (deriv == Jacobian::Atm::Temperature) {
               const Complex dFv = dw * (invGD * Complex(dDV_dT, dG0_dT) - dinvGD_dT) + Fv * dinvGD_dT;

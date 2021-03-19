@@ -310,55 +310,58 @@ struct Nostrength {
   static constexpr Numeric dSdF0() noexcept { return 0; }
   static constexpr Numeric dSdNLTEu() noexcept { return 0; }
   static constexpr Numeric dSdNLTEl() noexcept { return 0; }
+  static constexpr Numeric dSdSELFVMR() noexcept { return 0; }
 
   static constexpr Numeric dNdT() noexcept { return 0; }
   static constexpr Numeric dNdI0() noexcept { return 0; }
   static constexpr Numeric dNdF0() noexcept { return 0; }
   static constexpr Numeric dNdNLTEu() noexcept { return 0; }
   static constexpr Numeric dNdNLTEl() noexcept { return 0; }
+  static constexpr Numeric dNdSELFVMR() noexcept { return 0; }
 }; // Nostrength
 
 class LocalThermodynamicEquilibrium {
   Numeric dSdI0val;
   Numeric dSdTval;
   Numeric dSdF0val;
+  Numeric dSdSELFVMRval;
 
 public:
   Numeric S;
   static constexpr Numeric N = 0.0;
 
-  constexpr LocalThermodynamicEquilibrium(Numeric I0, Numeric r, Numeric QT0,
+  constexpr LocalThermodynamicEquilibrium(Numeric I0, Numeric r, Numeric drdSELFVMR, const Numeric drdT, Numeric QT0,
                                           Numeric QT, Numeric dQTdT, Numeric br,
                                           Numeric dbr_dF0_rat, Numeric stim,
-                                          Numeric dstim_dT,
-                                          Numeric dstim_dF0) noexcept
+                                          Numeric dstim_dT, Numeric dstim_dF0) noexcept
       : dSdI0val(r * br * stim * QT0 / QT),
-        dSdTval(r * I0 * br * dstim_dT * QT0 / QT +
-                I0 * dSdI0val * (dbr_dF0_rat - dQTdT / QT)),
-        dSdF0val(r * I0 * br * dstim_dF0 * QT0 / QT), S(I0 * dSdI0val) {}
+        dSdTval(I0 * (r * br * dstim_dT * QT0 / QT + dSdI0val * (dbr_dF0_rat - dQTdT / QT) + drdT * br * stim * QT0 / QT)),
+        dSdF0val(r * I0 * br * dstim_dF0 * QT0 / QT), dSdSELFVMRval(drdSELFVMR * I0 * br * stim * QT0 / QT), S(I0 * dSdI0val) {}
 
-public:
   LocalThermodynamicEquilibrium(Numeric I0, Numeric T0, Numeric T, Numeric F0,
                                 Numeric E0, Numeric QT, Numeric QT0,
-                                Numeric dQTdT, Numeric r) noexcept;
+                                Numeric dQTdT, Numeric r, Numeric drdSELFVMR, const Numeric drdT) noexcept;
 
-  Numeric dSdT() const noexcept { return dSdTval; }
-  Numeric dSdI0() const noexcept { return dSdI0val; }
-  Numeric dSdF0() const noexcept { return dSdF0val; }
+  constexpr Numeric dSdT() const noexcept { return dSdTval; }
+  constexpr Numeric dSdI0() const noexcept { return dSdI0val; }
+  constexpr Numeric dSdF0() const noexcept { return dSdF0val; }
   static constexpr Numeric dSdNLTEu() noexcept { return 0; }
   static constexpr Numeric dSdNLTEl() noexcept { return 0; }
+  constexpr Numeric dSdSELFVMR() const noexcept { return dSdSELFVMRval; }
 
   static constexpr Numeric dNdT() noexcept { return 0; }
   static constexpr Numeric dNdI0() noexcept { return 0; }
   static constexpr Numeric dNdF0() noexcept { return 0; }
   static constexpr Numeric dNdNLTEu() noexcept { return 0; }
   static constexpr Numeric dNdNLTEl() noexcept { return 0; }
+  static constexpr Numeric dNdSELFVMR() noexcept { return 0; }
 }; // LocalThermodynamicEquilibrium
 
 class FullNonLocalThermodynamicEquilibrium {
   static constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
   static constexpr Numeric c1 = Constant::h / (4 * Constant::pi);
-
+  
+  Numeric dSdTval;
   Numeric dNdTval;
 
   Numeric dSdF0val;
@@ -367,26 +370,52 @@ class FullNonLocalThermodynamicEquilibrium {
   Numeric dSdr2;
   Numeric dNdr2;
   Numeric dSdr1;
-
+  
+  Numeric dSdSELFVMRval;
+  Numeric dNdSELFVMRval;
+  
 public:
   Numeric S;
   Numeric N;
-
+  
+  constexpr FullNonLocalThermodynamicEquilibrium(Numeric F0, Numeric A21, Numeric T, Numeric r, Numeric drdSELFVMR, Numeric drdT,
+                                                 Numeric x, Numeric c2, Numeric c3, Numeric expval, Numeric b, Numeric k, Numeric e) noexcept :
+  dSdTval(drdT * k),
+  dNdTval(drdT * e / b - r * expval * e * Conversion::hz2joule(F0) / (c2 * T * Conversion::kelvin2joule(T)) - dSdTval),
+  dSdF0val(- 2 * r * k / F0),
+  dNdF0val(Constant::h * r * e * expval / (c2 * Conversion::kelvin2joule(T)) - 2 * r * e / (F0 * b) - dSdF0val),
+  dSdr2(- r * c3 * A21 / c2),
+  dNdr2(r * c3 * A21 / b - dSdr2),
+  dSdr1(r * c3 * x * (A21 / c2)),
+  dSdSELFVMRval(drdSELFVMR * k),
+  dNdSELFVMRval(drdSELFVMR * e / b -dSdSELFVMRval),
+  S(r * k),
+  N(r * e / b - S)
+  {}
+  
   FullNonLocalThermodynamicEquilibrium(Numeric F0, Numeric A21, Numeric T,
                                        Numeric g1, Numeric g2, Numeric r1,
-                                       Numeric r2, Numeric r) noexcept;
+                                       Numeric r2, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept :
+    FullNonLocalThermodynamicEquilibrium(F0, A21, T, r, drdSELFVMR, drdT, g2 / g1, c0 * F0 * F0 * F0, c1 * F0,
+                                         std::exp(Conversion::hz2joule(F0) / Conversion::kelvin2joule(T)),
+                                         c0 * F0 * F0 * F0 / std::expm1(Conversion::hz2joule(F0) / Conversion::kelvin2joule(T)),
+                                         c1 * F0 * (r1 * g2 / g1 - r2) * (A21 / (c0 * F0 * F0 * F0)),
+                                         c1 * F0 * r2 * A21) {}
+                                         
 
-  Numeric dSdT() const noexcept { return 0; }
+  constexpr Numeric dSdT() const noexcept { return 0; }
   static constexpr Numeric dSdI0() noexcept { return 0; }
-  Numeric dSdF0() const noexcept { return dSdF0val; }
-  Numeric dSdNLTEu() const noexcept { return dSdr1; }
-  Numeric dSdNLTEl() const noexcept { return dSdr2; }
+  constexpr Numeric dSdF0() const noexcept { return dSdF0val; }
+  constexpr Numeric dSdNLTEu() const noexcept { return dSdr1; }
+  constexpr Numeric dSdNLTEl() const noexcept { return dSdr2; }
+  constexpr Numeric dSdSELFVMR() const noexcept { return dSdSELFVMRval; }
 
-  Numeric dNdT() const noexcept { return dNdTval; }
+  constexpr Numeric dNdT() const noexcept { return dNdTval; }
   static constexpr Numeric dNdI0() noexcept { return 0; }
-  Numeric dNdF0() const noexcept { return dNdF0val - dSdF0val; }
-  Numeric dNdNLTEu() const noexcept { return -dSdr1; }
-  Numeric dNdNLTEl() const noexcept { return dNdr2 - dSdr2; }
+  constexpr Numeric dNdF0() const noexcept { return dNdF0val; }
+  constexpr Numeric dNdNLTEu() const noexcept { return -dSdr1; }
+  constexpr Numeric dNdNLTEl() const noexcept { return dNdr2; }
+  constexpr Numeric dNdSELFVMR() const noexcept { return dNdSELFVMRval; }
 }; // FullNonLocalThermodynamicEquilibrium
 
 class VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
@@ -402,27 +431,73 @@ class VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
   Numeric dSdTl;
   Numeric dSdTu;
   Numeric dNdTu;
+  
+  Numeric dSdSELFVMRval;
+  Numeric dNdSELFVMRval;
 
 public:
   Numeric S;
   Numeric N;
+  
+  constexpr VibrationalTemperaturesNonLocalThermodynamicEquilibrium(Numeric I0, Numeric T, Numeric Tl, Numeric Tu, Numeric F0,
+                                                                    Numeric E0, Numeric Evl, Numeric Evu, Numeric QT, Numeric QT0,
+                                                                    Numeric dQTdT, Numeric r, Numeric drdSELFVMR, Numeric drdT,
+                                                                    Numeric gamma, Numeric gamma_ref, Numeric r_low, Numeric r_upp, 
+                                                                    Numeric K1, Numeric K2, Numeric K3) noexcept
+      : 
+      dSdI0val(r * QT0 / QT * K1 * K2 * K3),
+      dNdI0val(r * QT0 / QT * K1 * K2 * r_upp - dSdI0val),
+      dSdTval(
+        I0 * (drdT / r + 
+          E0 / (T * Conversion::kelvin2joule(T)) +
+          - gamma * Conversion::kelvin2joule(F0) / (T * Conversion::kelvin2joule(T) * (1 - gamma)) -
+          dQTdT / QT +
+          (r_low * Evl / (T * Conversion::kelvin2joule(T) * (1 - gamma)) -
+            gamma * r_upp * Evu / (T * Conversion::kelvin2joule(T) * (1 - gamma)) -
+            gamma * r_upp * Conversion::kelvin2joule(F0) / (T * Conversion::kelvin2joule(T) * (1 - gamma)) +
+            gamma * Conversion::kelvin2joule(F0) / (T * Conversion::kelvin2joule(T) * (1 - gamma))
+        ) / K3
+        ) * dSdI0val
+      ),
+      dNdTval(
+        I0 * (drdT / r + 
+        E0 / (T * Conversion::kelvin2joule(T)) +
+          - gamma * Conversion::kelvin2joule(F0) / (T * Conversion::kelvin2joule(T) * (1 - gamma)) -
+          dQTdT / QT +
+          Evu / (T * Conversion::kelvin2joule(T))
+        ) * (dNdI0val + dSdI0val) - dSdTval
+      ),
+      dSdF0val(- I0 * dSdI0val * Constant::h / Conversion::kelvin2joule(T) * gamma_ref / (1 - gamma_ref) +
+                 I0 * dSdI0val * Constant::h / Conversion::kelvin2joule(T) * r_upp * gamma / (r_low - r_upp * gamma)),
+      dNdF0val(I0 * (dNdI0val + dSdI0val) * gamma / (1 - gamma) * Constant::h / Conversion::kelvin2joule(T) -
+               I0 * (dNdI0val + dSdI0val) * gamma_ref / (1 - gamma_ref) * Constant::h / Conversion::kelvin2joule(T) - dSdF0val),
+      dSdTl(- Evl / (Tl * Conversion::kelvin2joule(Tl)) * I0 * dSdI0val * r_low / (r_low - r_upp * gamma)),
+      dSdTu(Evu / (Tu * Conversion::kelvin2joule(Tu)) * I0 * dSdI0val * r_upp * gamma / (r_low - r_upp * gamma)),
+      dNdTu(- Evu / (Tu * Conversion::kelvin2joule(Tu)) * I0 * (dNdI0val + dSdI0val) - dSdTu),
+      dSdSELFVMRval(I0 * drdSELFVMR * QT0 / QT * K1 * K2 * K3),
+      dNdSELFVMRval(I0 * drdSELFVMR * QT0 / QT * K1 * K2 * r_upp - dSdSELFVMRval),
+      S(I0 * dSdI0val),
+      N(I0 * dNdI0val)
+      {}
 
   VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
       Numeric I0, Numeric T0, Numeric T, Numeric Tl, Numeric Tu, Numeric F0,
       Numeric E0, Numeric Evl, Numeric Evu, Numeric QT, Numeric QT0,
-      Numeric dQTdT, Numeric r) noexcept;
+      Numeric dQTdT, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept;
 
-  Numeric dSdT() const noexcept { return dSdTval; }
-  Numeric dSdI0() const noexcept { return dSdI0val; }
-  Numeric dSdF0() const noexcept { return dSdF0val; }
-  Numeric dSdNLTEu() const noexcept { return dSdTl; }
-  Numeric dSdNLTEl() const noexcept { return dSdTu; }
+      constexpr Numeric dSdT() const noexcept { return dSdTval; }
+  constexpr Numeric dSdI0() const noexcept { return dSdI0val; }
+  constexpr Numeric dSdF0() const noexcept { return dSdF0val; }
+  constexpr Numeric dSdNLTEu() const noexcept { return dSdTl; }
+  constexpr Numeric dSdNLTEl() const noexcept { return dSdTu; }
+  constexpr Numeric dSdSELFVMR() const noexcept { return dSdSELFVMRval; }
 
-  Numeric dNdT() const noexcept { return dNdTval - dSdTval; }
-  Numeric dNdI0() const noexcept { return dNdI0val - dSdI0val; }
-  Numeric dNdF0() const noexcept { return dNdF0val - dSdF0val; }
-  Numeric dNdNLTEu() const noexcept { return -dSdTl; }
-  Numeric dNdNLTEl() const noexcept { return dNdTu - dSdTu; }
+  constexpr Numeric dNdT() const noexcept { return dNdTval; }
+  constexpr Numeric dNdI0() const noexcept { return dNdI0val; }
+  constexpr Numeric dNdF0() const noexcept { return dNdF0val; }
+  constexpr Numeric dNdNLTEu() const noexcept { return -dSdTl; }
+  constexpr Numeric dNdNLTEl() const noexcept { return dNdTu; }
+  constexpr Numeric dNdSELFVMR() const noexcept { return dNdSELFVMRval; }
 }; // VibrationalTemperaturesNonLocalThermodynamicEquilibrium
 
 typedef std::variant<Noshape, Doppler, Lorentz, Voigt, SpeedDependentVoigt,
@@ -449,7 +524,7 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
              const bool do_nlte = false, const Numeric &H = 0,
              const bool do_zeeman = false,
              const Zeeman::Polarization zeeman_polarization =
-                 Zeeman::Polarization::Pi) ARTS_NOEXCEPT;
+                 Zeeman::Polarization::Pi, const Numeric& self_vmr=std::numeric_limits<Numeric>::quiet_NaN(), const bool do_numden=false) ARTS_NOEXCEPT;
 
 } // namespace LineShape
 

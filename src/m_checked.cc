@@ -943,11 +943,12 @@ void propmat_clearsky_agenda_checkedCalc(
 
   ARTS_USER_ERROR_IF ((needs_lines || needs_continua || needs_cia || needs_hxsec) &&
       !(propmat_clearsky_agenda.has_method("propmat_clearskyAddOnTheFly") ||
-        propmat_clearsky_agenda.has_method("propmat_clearskyAddFromLookup")),
+      propmat_clearsky_agenda.has_method("propmat_clearskyAddFromLookup") ||
+      propmat_clearsky_agenda.has_method("propmat_clearskyAddLines")),
         "*abs_species* contains line species, CIA species, "
         "hitran xsec species or continua but *propmat_clearsky_agenda*\n"
-        "does not contain *propmat_clearskyAddOnTheFly* nor "
-        "*propmat_clearskyAddFromLookup*.");
+        "does not contain *propmat_clearskyAddOnTheFly* "
+        "*propmat_clearskyAddFromLookup*, or propmat_clearskyAddLines.");
 
   ARTS_USER_ERROR_IF (needs_zeeman and
       not propmat_clearsky_agenda.has_method("propmat_clearskyAddZeeman"),

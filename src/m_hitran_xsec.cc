@@ -189,13 +189,15 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
           for (Index iv = 0; iv < xsec_temp.nelem(); iv++) {
             this_xsec(iv, ip) += xsec_temp[iv];
             for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
-              if (not propmattype_index(jacobian_quantities, iq)) continue;
+              const auto& deriv = jacobian_quantities[ii];
               
-              if (is_frequency_parameter(jacobian_quantities[iq]))
+              if (not propmattype(deriv)) continue;
+              
+              if (is_frequency_parameter(deriv))
                 this_dxsec[iq](iv, ip) +=
                     (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
-              else if (jacobian_quantities[iq] == Jacobian::Line::VMR) {
-                if (species_match(jacobian_quantities[iq], abs_species[i])) {
+              else if (deriv == Jacobian::Line::VMR) {
+                if (species_match(deriv, abs_species[i])) {
                   this_dxsec[iq](iv, ip) += xsec_temp[iv];
                 }
               }

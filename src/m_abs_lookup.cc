@@ -2104,15 +2104,17 @@ void propmat_clearskyAddFromLookup(
       for (Index iv = 0; iv < propmat_clearsky.NumberOfFrequencies();
            iv++) {
         for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
-          if (not propmattype_index(jacobian_quantities, iq)) continue;
+          const auto& deriv = jacobian_quantities[iq];
           
-          if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
+          if (not propmattype(deriv)) continue;
+          
+          if (deriv == Jacobian::Atm::Temperature) {
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                 (dabs_scalar_gas_dt(isp, iv) - abs_scalar_gas(isp, iv)) / dt;
-          } else if (is_frequency_parameter(jacobian_quantities[iq])) {
+          } else if (is_frequency_parameter(deriv)) {
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                 (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
-          } else if (jacobian_quantities[iq] == abs_species[isp]) {
+          } else if (deriv == abs_species[isp]) {
             // WARNING:  If CIA in list, this scales wrong by factor 2
             dpropmat_clearsky_dx[iq].Kjj()[iv] += abs_scalar_gas(isp, iv);
           }
@@ -2462,21 +2464,21 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
                        verbosity);
 
   // Add result of LBL calculation to propmat_clearsky:
-  propmat_clearskyAddOnTheFly(ws,
-                              propmat_clearsky,
-                              nlte_source,
-                              dpropmat_clearsky_dx,
-                              dnlte_source_dx,
-                              al.f_grid,
-                              al.species,
-                              jacobian_quantities,
-                              local_p,
-                              local_t,
-                              local_nlte_dummy,
-                              local_vmrs,
-                              nlte_do,
-                              abs_xsec_agenda,
-                              verbosity);
+  propmat_clearskyAddXsecAgenda(ws,
+                                propmat_clearsky,
+                                nlte_source,
+                                dpropmat_clearsky_dx,
+                                dnlte_source_dx,
+                                al.f_grid,
+                                al.species,
+                                jacobian_quantities,
+                                local_p,
+                                local_t,
+                                local_nlte_dummy,
+                                local_vmrs,
+                                nlte_do,
+                                abs_xsec_agenda,
+                                verbosity);
 
   // Argument 0 above is the Doppler shift (usually
   // rtp_doppler). Should be zero in this case.

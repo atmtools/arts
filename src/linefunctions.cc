@@ -272,8 +272,9 @@ void Linefunctions::set_lorentz(
     dw.noalias() = -Constant::pi * F.array().square().matrix();
 
     for (auto iq = 0; iq < nppd; iq++) {
-      if (not propmattype_index(derivatives_data, iq)) continue;
       const auto& deriv = derivatives_data[iq];
+      
+      if (not propmattype(deriv)) continue;
 
       if (deriv == Jacobian::Atm::Temperature) {
         dF.col(iq).noalias() = Complex(dT.G0, dT.D0 + dT.DV) * dw;
@@ -347,8 +348,9 @@ void Linefunctions::set_voigt(
                            .matrix();
 
     for (auto iq = 0; iq < nppd; iq++) {
-      if (not propmattype_index(derivatives_data, iq)) continue;
       const auto& deriv = derivatives_data[iq];
+      
+      if (not propmattype(deriv)) continue;
 
       if (is_frequency_parameter(deriv)) {
         dF.col(iq).noalias() = invGD * dw;
@@ -406,8 +408,9 @@ void Linefunctions::set_doppler(
   F.noalias() = invGD * Constant::inv_sqrt_pi * mx2.array().exp().matrix();
 
   for (auto iq = 0; iq < nppd; iq++) {
-    if (not propmattype_index(derivatives_data, iq)) continue;
     const auto& deriv = derivatives_data[iq];
+    
+    if (not propmattype(deriv)) continue;
 
     if (is_frequency_parameter(deriv)) {
       dF.col(iq).noalias() = -2 * invGD * F.cwiseProduct(x);
@@ -446,8 +449,9 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
     dF.noalias() += dFm * conj(LM);
     
     for (auto iq = 0; iq < nppd; iq++) {
-      if (not propmattype_index(derivatives_data, iq)) continue;
       const auto& deriv = derivatives_data[iq];
+      
+      if (not propmattype(deriv)) continue;
 
       if (deriv == Jacobian::Atm::Temperature) {
         const auto c = Complex(dT.G, -dT.Y);
@@ -468,8 +472,9 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
     }
   } else {
     for (auto iq = 0; iq < nppd; iq++) {
-      if (not propmattype_index(derivatives_data, iq)) continue;
       const auto& deriv = derivatives_data[iq];
+      
+      if (not propmattype(deriv)) continue;
 
       if (deriv == Jacobian::Atm::Temperature) {
         dF.col(iq).noalias() += F * Complex(dT.G, -dT.Y);
@@ -523,8 +528,9 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(
     F[iv] *= fun;
 
     for (auto iq = 0; iq < nppd; iq++) {
-      if (not propmattype_index(derivatives_data, iq)) continue;
       const auto& deriv = derivatives_data[iq];
+      
+      if (not propmattype(deriv)) continue;
 
       dF(iv, iq) *= fun;
       if (deriv == Jacobian::Atm::Temperature) {
@@ -575,8 +581,9 @@ void Linefunctions::apply_VVH_scaling(
 
   dF.array().colwise() *= ftanh_f.array();
   for (auto iq = 0; iq < nppd; iq++) {
-    if (not propmattype_index(derivatives_data, iq)) continue;
     const auto& deriv = derivatives_data[iq];
+    
+    if (not propmattype(deriv)) continue;
 
     if (deriv == Jacobian::Atm::Temperature) {
       dF.col(iq).noalias() +=
@@ -618,8 +625,9 @@ void Linefunctions::apply_VVW_scaling(
     F[iv] *= fac;
 
     for (auto iq = 0; iq < nppd; iq++) {
-      if (not propmattype_index(derivatives_data, iq)) continue;
       const auto& deriv = derivatives_data[iq];
+      
+      if (not propmattype(deriv)) continue;
 
       // The factor is applied to all partial derivatives
       dF(iv, iq) *= fac;
@@ -679,8 +687,9 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
   F *= S;
   dF *= S;
   for (auto iq = 0; iq < nppd; iq++) {
-    if (not propmattype_index(derivatives_data, iq)) continue;
     const auto& deriv = derivatives_data[iq];
+    
+    if (not propmattype(deriv)) continue;
 
     if (deriv == Jacobian::Atm::Temperature) {
       dF.col(iq).noalias() +=
@@ -744,8 +753,9 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
   dN.noalias() = dF * (S_src - S_abs);
   dF *= S_abs;
   for (auto iq = 0; iq < nppd; iq++) {
-    if (not propmattype_index(derivatives_data, iq)) continue;
     const auto& deriv = derivatives_data[iq];
+    
+    if (not propmattype(deriv)) continue;
 
     if (deriv == Jacobian::Atm::Temperature) {
       const Numeric dS_dT_abs =
@@ -810,8 +820,10 @@ void Linefunctions::apply_lineshapemodel_jacobian_scaling(
   auto nppd = derivatives_data.nelem();
 
   for (auto iq = 0; iq < nppd; iq++) {
-    if (not propmattype_index(derivatives_data, iq)) continue;
-    const RetrievalQuantity& rt = derivatives_data[iq];
+    const auto& rt = derivatives_data[iq];
+    
+    if (not propmattype(rt)) continue;
+    
     if (is_lineshape_parameter(rt)) {
       const Absorption::QuantumIdentifierLineTarget lt(rt.Target().QuantumIdentity(), band, line_ind);
       if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
@@ -910,8 +922,9 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
 
   // Partial derivatives
   for (auto iq = 0; iq < nppd; iq++) {
-    if (not propmattype_index(derivatives_data, iq)) continue;
     const auto& deriv = derivatives_data[iq];
+    
+    if (not propmattype(deriv)) continue;
 
     if (deriv == Jacobian::Atm::Temperature) {
       dN.col(iq).noalias() += F * e * Constant::h * F0 * exp_T / (c2 * Constant::k * T * T);
@@ -1065,8 +1078,10 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
                            Bterm * c2 * lso.ETA + 1));
 
     for (auto iq = 0; iq < derivatives_data.nelem(); iq++) {
-      if (not propmattype_index(derivatives_data, iq)) continue;
-      const RetrievalQuantity& rt = derivatives_data[iq];
+      const auto& rt = derivatives_data[iq];
+      
+      if (not propmattype(rt)) continue;
+      
       const Absorption::QuantumIdentifierLineTarget lt = rt.Target().needQuantumIdentity() ?
         Absorption::QuantumIdentifierLineTarget(rt.Target().QuantumIdentity(), band, line_ind) :
         Absorption::QuantumIdentifierLineTarget();
@@ -1278,8 +1293,9 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
   // Convert back to ARTS
   F = F.unaryExpr(&pCqSDHC_to_arts);
   for (auto iq = 0; iq < derivatives_data.nelem(); iq++) {
-    if (not propmattype_index(derivatives_data, iq)) continue;
-    const RetrievalQuantity& rt = derivatives_data[iq];
+    const auto& rt = derivatives_data[iq];
+    
+    if (not propmattype(rt)) continue;
 
     if (rt == Jacobian::Line::Center or is_frequency_parameter(rt) or
         is_pressure_broadening_G0(rt) or is_pressure_broadening_D0(rt) or
@@ -1417,7 +1433,9 @@ void Linefunctions::set_cross_section_of_band(
       if (band.Cutoff() not_eq Absorption::CutoffType::None) {
         F.array() -= Fc[0];
         for (Index ij = 0; ij < nj; ij++) {
-          if (not propmattype_index(derivatives_data, ij)) continue;
+          const auto& deriv = derivatives_data[ij];
+          
+          if (not propmattype(deriv)) continue;
           dF.col(ij).array() -= dFc[ij];
         }
       }
@@ -1469,7 +1487,9 @@ void Linefunctions::set_cross_section_of_band(
       if (band.Cutoff() not_eq Absorption::CutoffType::None and with_mirroring) {
         N.array() -= Nc[0];
         for (Index ij = 0; ij < nj; ij++) {
-          if (not propmattype_index(derivatives_data, ij)) continue;
+          const auto& deriv = derivatives_data[ij];
+          
+          if (not propmattype(deriv)) continue;
           dN.col(ij).array() -= dNc[ij];
         }
       }
@@ -1539,11 +1559,15 @@ void Linefunctions::set_cross_section_of_band(
     
     sum.N = reset_zeroes.select(Complex(0, 0), sum.N);
     for (Index ij=0; ij<nj; ij++) {
-      if (not propmattype_index(derivatives_data, ij)) continue;
+      const auto& deriv = derivatives_data[ij];
+      
+      if (not propmattype(deriv)) continue;
       sum.dF.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dF.col(ij));
     }
     for (Index ij=0; ij<nj; ij++) {
-      if (not propmattype_index(derivatives_data, ij)) continue;
+      const auto& deriv = derivatives_data[ij];
+      
+      if (not propmattype(deriv)) continue;
       sum.dN.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dN.col(ij));
     }
     sum.F = reset_zeroes.select(Complex(0, 0), sum.F);

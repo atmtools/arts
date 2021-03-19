@@ -679,7 +679,7 @@ void xsec_species(Matrix& xsec,
       // absorption cross-section
       MapToEigen(xsec).col(ip).noalias() += sum.F.real();
       for (Index j = 0; j < nj; j++) {
-        if (not propmattype_index(jacobian_quantities, j)) continue;
+        if (not propmattype(jacobian_quantities[j])) continue;
         MapToEigen(dxsec_dx[j]).col(ip).noalias() += sum.dF.col(j).real();
       }
 
@@ -687,7 +687,7 @@ void xsec_species(Matrix& xsec,
       if (not phase.empty()) {
         MapToEigen(phase).col(ip).noalias() += sum.F.imag();
         for (Index j = 0; j < nj; j++) {
-          if (not propmattype_index(jacobian_quantities, j)) continue;
+          if (not propmattype(jacobian_quantities[j])) continue;
           MapToEigen(dphase_dx[j]).col(ip).noalias() += sum.dF.col(j).imag();
         }
       }
@@ -696,7 +696,7 @@ void xsec_species(Matrix& xsec,
       if (do_nonlte) {
         MapToEigen(source).col(ip).noalias() += sum.N.real();
         for (Index j = 0; j < nj; j++) {
-          if (not propmattype_index(jacobian_quantities, j)) continue;
+          if (not propmattype(jacobian_quantities[j])) continue;
           MapToEigen(dsource_dx[j]).col(ip).noalias() += sum.dN.col(j).real();
         }
       }
@@ -782,7 +782,9 @@ void xsec_species2(Matrix& xsec,
     // Sum up cross-section
     xsece.col(ip).noalias() += Fe.real();
     for (Index ij=0; ij<nj; ij++) {
-      if (not propmattype_index(jacobian_quantities, ij)) continue;
+      const auto& deriv = jacobian_quantities[ij];
+      
+      if (not propmattype(deriv)) continue;
       MapToEigen(dxsec_dx[ij]).col(ip).noalias() += dFe.col(ij).real();
     }
     
@@ -790,7 +792,9 @@ void xsec_species2(Matrix& xsec,
     if (do_phase) {
       phasee.col(ip).noalias() += Fe.imag();
       for (Index ij = 0; ij < nj; ij++) {
-        if (not propmattype_index(jacobian_quantities, ij)) continue;
+        const auto& deriv = jacobian_quantities[ij];
+        
+        if (not propmattype(deriv)) continue;
         MapToEigen(dphase_dx[ij]).col(ip).noalias() += dFe.col(ij).imag();
       }
     }
@@ -799,7 +803,9 @@ void xsec_species2(Matrix& xsec,
     if (do_nonlte) {
       sourcee.col(ip).noalias() += Ne.real();
       for (Index ij = 0; ij < nj; ij++) {
-        if (not propmattype_index(jacobian_quantities, ij)) continue;
+        const auto& deriv = jacobian_quantities[ij];
+        
+        if (not propmattype(deriv)) continue;
         MapToEigen(dsource_dx[ij]).col(ip).noalias() += dNe.col(ij).real();
       }
     }

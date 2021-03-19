@@ -319,6 +319,14 @@ add_dependencies (artscore auto_version_h)
 
 if (ENABLE_GUI)
   add_subdirectory(gui)
+  
+  target_include_directories(artscore PUBLIC ${ARTS_SOURCE_DIR}/src
+                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
+                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/
+                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui-filebrowser/
+                                             ${ARTS_SOURCE_DIR}/3rdparty/)
+  
+  target_link_libraries (artscore artsgui)
 endif()
 
 target_link_libraries (artscore ${ZLIB_LIBRARIES} wigner)

@@ -999,11 +999,10 @@ void dxdvmrscf(Numeric& x,
 //             Propmat partials descriptions
 //======================================================================
 
-bool propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) ARTS_NOEXCEPT {
-  ARTS_ASSERT (js.nelem() > i)
-  return js[i] == Jacobian::Type::Line or
-         js[i] == Jacobian::Type::Atm or
-         js[i].Target() == Jacobian::Special::ArrayOfSpeciesTagVMR
+bool propmattype(const RetrievalQuantity& rt) noexcept {
+  return rt == Jacobian::Type::Line or
+         rt == Jacobian::Type::Atm or
+         rt.Target() == Jacobian::Special::ArrayOfSpeciesTagVMR
          ;
 }
 

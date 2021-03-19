@@ -33,6 +33,8 @@
 #include "linescaling.h"
 #include "species_info.h"
 
+#include "lineshape.h"
+
 /** Checks if a Propagation Matrix or something similar has good grids */
 template <class T>
 bool bad_propmat(const Array<T>& main,
@@ -47,21 +49,6 @@ bool bad_propmat(const Array<T>& main,
   return false;
 }
 
-/** Checks if abs_species is acceptable */
-bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) noexcept {
-  for (auto& species : abs_species) {
-    if (species.nelem()) {
-      for (auto& spec : species)
-        if (species[0].Species() not_eq spec.Species() or
-            species[0].Isotopologue() not_eq spec.Isotopologue() or
-            species[0].Type() not_eq spec.Type())
-          return true;
-    } else
-      return true;
-  }
-  return false;
-}
-
 /** Checks for negative values */
 template <typename MatpackType> constexpr
 bool any_negative(const MatpackType& var) noexcept {
@@ -72,6 +59,7 @@ bool any_negative(const MatpackType& var) noexcept {
   else
     return false;
 }
+
 
 void zeeman_on_the_fly(
     PropagationMatrix& propmat_clearsky,
@@ -102,8 +90,7 @@ void zeeman_on_the_fly(
   const Index ns = abs_species.nelem();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  ARTS_USER_ERROR_IF(bad_abs_species(abs_species),
-    "*abs_species* sub-arrays must have the same species, isotopologue, and type as first sub-array.")
+  check_abs_species(abs_species);
   ARTS_USER_ERROR_IF((rtp_mag.nelem() not_eq 3) and (not manual_tag),
     "Only for 3D *rtp_mag* or a manual magnetic field")
   ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
@@ -131,14 +118,6 @@ void zeeman_on_the_fly(
   ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
   ARTS_USER_ERROR_IF(manual_tag and H0 < 0, "Negative manual magnetic field strength")
 
-  // Pressure information
-  const Numeric dnumdens_dmvr = number_density(rtp_pressure, rtp_temperature);
-  const Numeric dnumdens_dt_dmvr =
-      dnumber_density_dt(rtp_pressure, rtp_temperature);
-
-  // Main compute vectors
-  Linefunctions::InternalData scratch(nf, nq), sum(nf, nq);
-
   // Magnetic field internals and derivatives...
   const auto X =
       manual_tag
@@ -156,18 +135,17 @@ void zeeman_on_the_fly(
       Zeeman::AllPolarization_dtheta(X.theta, X.eta);
   const auto polarization_scale_deta_data =
       Zeeman::AllPolarization_deta(X.theta, X.eta);
-      
-  // Non-LTE
-  const Vector B = nlte_do ? planck(f_grid, rtp_temperature) : Vector(0);
-  const Vector dBdT = nlte_do ? dplanck_dt(f_grid, rtp_temperature) : Vector(0);
-  const Vector dBdf = nlte_do ? dplanck_df(f_grid, rtp_temperature) : Vector(0);
-  const auto eB = MapToEigen(B);
-  const auto edBdT = MapToEigen(dBdT);
-  const auto edBdf = MapToEigen(dBdf);
 
+  // Calculations data
+  ComplexVector F(nf);
+  ComplexVector N(nlte_do ? nf : 0);
+  ComplexMatrix dF(nf, nq);
+  ComplexMatrix dN(nlte_do ? nf : 0, nlte_do ? nq : 0);
+  
   for (auto polar : {Zeeman::Polarization::SigmaMinus,
                      Zeeman::Polarization::Pi,
                      Zeeman::Polarization::SigmaPlus}) {
+    
     auto& pol = Zeeman::SelectPolarization(polarization_scale_data, polar);
     auto& dpol_dtheta =
         Zeeman::SelectPolarization(polarization_scale_dtheta_data, polar);
@@ -175,197 +153,81 @@ void zeeman_on_the_fly(
         Zeeman::SelectPolarization(polarization_scale_deta_data, polar);
 
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
-      
       // Skip it if there are no species or there is no Zeeman
       if (not abs_species[ispecies].nelem() or not is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
         continue;
       
+      // Reset
+      F = 0;
+      dF = 0;
+      N = 0;
+      dN = 0;
+      
       for (auto& band : abs_lines_per_species[ispecies]) {
-        // Constants for these lines
-        const Numeric QT0 = single_partition_function(band.T0(),
-                                                      partition_functions.getParamType(band.QuantumIdentity()),
-                                                      partition_functions.getParam(band.QuantumIdentity()));
-        const Numeric QT = single_partition_function(rtp_temperature,
-                                                     partition_functions.getParamType(band.QuantumIdentity()),
-                                                     partition_functions.getParam(band.QuantumIdentity()));
-        const Numeric dQTdT = dsingle_partition_function_dT(rtp_temperature,
-                                                            partition_functions.getParamType(band.QuantumIdentity()),
-                                                            partition_functions.getParam(band.QuantumIdentity()));
-        const Numeric DC = Linefunctions::DopplerConstant(rtp_temperature, band.SpeciesMass());
-        const Numeric dDCdT = Linefunctions::dDopplerConstant_dT(rtp_temperature, DC);
-        const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
-        const Numeric numdens = rtp_vmr[ispecies] * dnumdens_dmvr;
-        const Numeric dnumdens_dT = rtp_vmr[ispecies] * dnumdens_dt_dmvr;
-        const Numeric isotop_ratio = isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity());
-          
-        Linefunctions::set_cross_section_of_band(
-          scratch,
-          sum,
-          f_grid,
-          band,
-          jacobian_quantities,
-          line_shape_vmr,
-          rtp_nlte,  // This must be turned into a map of some kind...
-          rtp_pressure,
-          rtp_temperature,
-          isotop_ratio,
-          X.H,
-          DC,
-          dDCdT,
-          QT,
-          dQTdT,
-          QT0,
-          false,
-          true,
-          polar);
+        LineShape::compute(F, dF, N, dN, f_grid,
+                           band, jacobian_quantities,
+                           rtp_nlte,
+                           partition_functions.getParamType(band.QuantumIdentity()),
+                           partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species),
+                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, nlte_do,
+                           X.H, true, polar, rtp_vmr[ispecies], true);
         
-        auto pol_real = pol.attenuation();
-        auto pol_imag = pol.dispersion();
-        auto abs = propmat_clearsky.Data()(0, 0, joker, joker);
-
-        // Propagation matrix calculations
-        MapToEigen(abs).leftCols<4>().noalias() += numdens * sum.F.real() * pol_real;
-        MapToEigen(abs).rightCols<3>().noalias() += numdens * sum.F.imag() * pol_imag;
-
-        if (nq) {
-          for (Index j = 0; j < nq; j++) {
-            if (not propmattype_index(jacobian_quantities, j)) continue;
-            const auto& deriv = jacobian_quantities[j];
-            Eigen::Map<
-                Eigen::Matrix<Numeric, Eigen::Dynamic, 7, Eigen::RowMajor>>
-                dabs(dpropmat_clearsky_dx[j].Data().get_c_array(),
-                    f_grid.nelem(), 7);
-
-            if (deriv == Jacobian::Atm::Temperature) {
-              dabs.leftCols<4>().noalias() +=
-                  numdens * sum.dF.col(j).real() * pol_real +
-                  dnumdens_dT * sum.F.real() * pol_real;
-              dabs.rightCols<3>().noalias() +=
-                  numdens * sum.dF.col(j).imag() * pol_imag +
-                  dnumdens_dT * sum.F.imag() * pol_imag;
-            } else if (deriv == Jacobian::Atm::MagneticU) {
-              dabs.leftCols<4>().noalias() +=
-                  numdens * X.dH_du * sum.dF.col(j).real() * pol_real +
-                  numdens * X.deta_du * sum.F.real() *
-                      dpol_deta.attenuation() +
-                  numdens * X.dtheta_du * sum.F.real() *
-                      dpol_dtheta.attenuation();
-              dabs.rightCols<3>().noalias() +=
-                  numdens * X.dH_du * sum.dF.col(j).imag() * pol_imag +
-                  numdens * X.deta_du * sum.F.imag() *
-                      dpol_deta.dispersion() +
-                  numdens * X.dtheta_du * sum.F.imag() *
-                      dpol_dtheta.dispersion();
-            } else if (deriv == Jacobian::Atm::MagneticV) {
-              dabs.leftCols<4>().noalias() +=
-                  numdens * X.dH_dv * sum.dF.col(j).real() * pol_real +
-                  numdens * X.deta_dv * sum.F.real() *
-                      dpol_deta.attenuation() +
-                  numdens * X.dtheta_dv * sum.F.real() *
-                      dpol_dtheta.attenuation();
-              dabs.rightCols<3>().noalias() +=
-                  numdens * X.dH_dv * sum.dF.col(j).imag() * pol_imag +
-                  numdens * X.deta_dv * sum.F.imag() *
-                      dpol_deta.dispersion() +
-                  numdens * X.dtheta_dv * sum.F.imag() *
-                      dpol_dtheta.dispersion();
-            } else if (deriv == Jacobian::Atm::MagneticW) {
-              dabs.leftCols<4>().noalias() +=
-                  numdens * X.dH_dw * sum.dF.col(j).real() * pol_real +
-                  numdens * X.deta_dw * sum.F.real() *
-                      dpol_deta.attenuation() +
-                  numdens * X.dtheta_dw * sum.F.real() *
-                      dpol_dtheta.attenuation();
-              dabs.rightCols<3>().noalias() +=
-                  numdens * X.dH_dw * sum.dF.col(j).imag() * pol_imag +
-                  numdens * X.deta_dw * sum.F.imag() *
-                      dpol_deta.dispersion() +
-                  numdens * X.dtheta_dw * sum.F.imag() *
-                      dpol_dtheta.dispersion();
-            } else if (deriv == Jacobian::Line::VMR and Absorption::QuantumIdentifierLineTarget(deriv.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
-              dabs.leftCols<4>().noalias() +=
-                  numdens * sum.dF.col(j).real() * pol_real +
-                  dnumdens_dmvr * sum.F.real() * pol_real;
-              dabs.rightCols<3>().noalias() +=
-                  numdens * sum.dF.col(j).imag() * pol_imag +
-                  dnumdens_dmvr * sum.F.imag() * pol_imag;
-            } else if (deriv == abs_species[ispecies]) {
-              dabs.leftCols<4>().noalias() += numdens * sum.F.real() * pol_real;
-              dabs.rightCols<3>().noalias() += numdens * sum.F.imag() * pol_imag;
-              
-            } else {
-              dabs.leftCols<4>().noalias() +=
-                  numdens * sum.dF.col(j).real() * pol_real;
-              dabs.rightCols<3>().noalias() +=
-                  numdens * sum.dF.col(j).imag() * pol_imag;
-            }
-          }
+      }
+      
+      // Sum up the propagation matrix
+      Zeeman::sum(propmat_clearsky, F, pol);
+      
+      // Sum up the Jacobian
+      for (Index j=0; j<nq; j++) {
+        auto& deriv = jacobian_quantities[j];
+        
+        if (not propmattype(deriv)) continue;
+        
+        if (deriv == Jacobian::Atm::MagneticU) {
+          Zeeman::dsum(dpropmat_clearsky_dx[j], F, dF(joker, j),
+                       pol, dpol_dtheta, dpol_deta,
+                       X.dH_du, X.dtheta_du, X.deta_du);
+        } else if (deriv == Jacobian::Atm::MagneticV) {
+          Zeeman::dsum(dpropmat_clearsky_dx[j], F, dF(joker, j),
+                      pol, dpol_dtheta, dpol_deta,
+                      X.dH_dv, X.dtheta_dv, X.deta_dv);
+        } else if (deriv == Jacobian::Atm::MagneticW) {
+          Zeeman::dsum(dpropmat_clearsky_dx[j], F, dF(joker, j),
+                      pol, dpol_dtheta, dpol_deta,
+                      X.dH_dw, X.dtheta_dw, X.deta_dw);
+        } else if (deriv == abs_species[ispecies]) {
+          Zeeman::sum(dpropmat_clearsky_dx[j], F, pol);
+        } else {
+          Zeeman::sum(dpropmat_clearsky_dx[j], dF(joker, j), pol);
         }
-
-        // Source vector calculations
-        if (nlte_do) {
-          auto nlte_src = nlte_source.Data()(0, 0, joker, joker);
-
-          MapToEigen(nlte_src)
-              .leftCols<4>()
-              .noalias() += numdens * eB.cwiseProduct(sum.N.real()) * pol_real;
-
-          for (Index j = 0; j < nq; j++) {
-            if (not propmattype_index(jacobian_quantities, j)) continue;
-            const auto& deriv = jacobian_quantities[j];
-
-            Eigen::Map<
-                Eigen::Matrix<Numeric, Eigen::Dynamic, 4, Eigen::RowMajor>>
-                dnlte_dx_src(dnlte_source_dx[j].Data().get_c_array(),
-                            f_grid.nelem(), 4),
-                nlte_dsrc_dx(dnlte_source_dx[j].Data().get_c_array(),
-                            f_grid.nelem(), 4);
-
-            if (deriv == Jacobian::Atm::Temperature) {
-              dnlte_dx_src.noalias() +=
-                  dnumdens_dT * eB.cwiseProduct(sum.N.real()) * pol_real +
-                  numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
-
-              nlte_dsrc_dx.noalias() +=
-                  numdens * edBdT.cwiseProduct(sum.N.real()) * pol_real;
-            } else if (deriv.Target().isWind()) {
-              dnlte_dx_src.noalias() +=
-              dnumdens_dT * eB.cwiseProduct(sum.N.real()) * pol_real +
-              numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
-              
-              nlte_dsrc_dx.noalias() +=
-              numdens * edBdf.cwiseProduct(sum.N.real()) * pol_real;
-            } else if (deriv == Jacobian::Atm::MagneticU) {
-              dnlte_dx_src.noalias() +=
-                  numdens * X.dH_du * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
-                  numdens * X.deta_du * eB.cwiseProduct(sum.N.real()) *
-                      dpol_deta.attenuation() +
-                  numdens * X.dtheta_du * eB.cwiseProduct(sum.N.real()) *
-                      dpol_dtheta.attenuation();
-            } else if (deriv == Jacobian::Atm::MagneticV) {
-              dnlte_dx_src.noalias() +=
-                  numdens * X.dH_dv * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
-                  numdens * X.deta_dv * eB.cwiseProduct(sum.N.real()) *
-                      dpol_deta.attenuation() +
-                  numdens * X.dtheta_dv * eB.cwiseProduct(sum.N.real()) *
-                      dpol_dtheta.attenuation();
-            } else if (deriv == Jacobian::Atm::MagneticW) {
-              dnlte_dx_src.noalias() +=
-                  numdens * X.dH_dw * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
-                  numdens * X.deta_dw * eB.cwiseProduct(sum.N.real()) *
-                      dpol_deta.attenuation() +
-                  numdens * X.dtheta_dw * eB.cwiseProduct(sum.N.real()) *
-                      dpol_dtheta.attenuation();
-            } else if (deriv == Jacobian::Line::VMR and Absorption::QuantumIdentifierLineTarget(deriv.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
-              dnlte_dx_src.noalias() +=
-                  dnumdens_dmvr * eB.cwiseProduct(sum.N.real()) * pol_real +
-                  numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
-            } else if (deriv == abs_species[ispecies]) {
-              dnlte_dx_src.noalias() += numdens * eB.cwiseProduct(sum.N.real()) * pol_real;
-            } else {
-              dnlte_dx_src.noalias() +=
-                  numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
-            }
+      }
+      
+      if (nlte_do) {
+        // Sum up the source vector
+        Zeeman::sum(nlte_source, N, pol, false);
+        
+        // Sum up the Jacobian
+        for (Index j=0; j<nq; j++) {
+          auto& deriv = jacobian_quantities[j];
+          
+          if (not propmattype(deriv)) continue;
+          
+          if (deriv == Jacobian::Atm::MagneticU) {
+            Zeeman::dsum(dnlte_source_dx[j], N, dN(joker, j),
+                         pol, dpol_dtheta, dpol_deta,
+                         X.dH_du, X.dtheta_du, X.deta_du, false);
+          } else if (deriv == Jacobian::Atm::MagneticV) {
+            Zeeman::dsum(dnlte_source_dx[j], N, dN(joker, j),
+                         pol, dpol_dtheta, dpol_deta,
+                         X.dH_dv, X.dtheta_dv, X.deta_dv, false);
+          } else if (deriv == Jacobian::Atm::MagneticW) {
+            Zeeman::dsum(dnlte_source_dx[j], N, dN(joker, j),
+                         pol, dpol_dtheta, dpol_deta,
+                         X.dH_dw, X.dtheta_dw, X.deta_dw, false);
+          } else if (deriv == abs_species[ispecies]) {
+            Zeeman::sum(dnlte_source_dx[j], N, pol, false);
+          } else {
+            Zeeman::sum(dnlte_source_dx[j], dN(joker, j), pol, false);
           }
         }
       }

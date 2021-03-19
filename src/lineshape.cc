@@ -1,4 +1,5 @@
 #include "lineshape.h"
+#include "physics_funcs.h"
 
 #include <Faddeeva/Faddeeva.hh>
 
@@ -1865,152 +1866,31 @@ Numeric RosenkranzQuadratic::operator()(Numeric f) noexcept {
 
 LocalThermodynamicEquilibrium::LocalThermodynamicEquilibrium(
     Numeric I0, Numeric T0, Numeric T, Numeric F0, Numeric E0, Numeric QT,
-    Numeric QT0, Numeric dQTdT, Numeric r) noexcept
+    Numeric QT0, Numeric dQTdT, Numeric r, Numeric drdSELFVMR, const Numeric drdT) noexcept
     : LocalThermodynamicEquilibrium(
-          I0, r, QT0, QT, dQTdT, boltzman_ratio(T, T0, E0),
+          I0, r, drdSELFVMR, drdT, QT0, QT, dQTdT, boltzman_ratio(T, T0, E0),
           dboltzman_ratio_dT_div_boltzmann_ratio(T, E0),
           stimulated_relative_emission(F0, T0, T),
           dstimulated_relative_emission_dT(F0, T0, T),
-          dstimulated_relative_emission_dF0(F0, T0, T)) {}
-
-FullNonLocalThermodynamicEquilibrium::FullNonLocalThermodynamicEquilibrium(
-    Numeric F0, Numeric A21, Numeric T, Numeric g1, Numeric g2, Numeric r1,
-    Numeric r2, Numeric r) noexcept
-    : dNdTval(
-          ((c1 * F0) * r2 * A21) * Conversion::hz2joule(F0) *
-          (std::exp(Conversion::hz2joule(F0) / Conversion::kelvin2joule(T))) /
-          ((c0 * F0 * F0 * F0) * Conversion::kelvin2joule(T) * T)),
-
-      dSdF0val(c1 * (r1 * (g2 / g1) - r2) * (A21 / (c0 * F0 * F0 * F0)) -
-               3.0 *
-                   ((c1 * F0) * (r1 * (g2 / g1) - r2) *
-                    (A21 / (c0 * F0 * F0 * F0))) /
-                   F0),
-      dNdF0val(
-          ((c1 * F0) * r2 * A21) *
-              (Constant::h *
-                   (std::exp(Conversion::hz2joule(F0) /
-                             Conversion::kelvin2joule(T))) /
-                   ((c0 * F0 * F0 * F0) * Conversion::kelvin2joule(T)) -
-               3.0 *
-                   ((c0 * F0 * F0 * F0) /
-                    std::expm1(Conversion::hz2joule(F0) /
-                               Conversion::kelvin2joule(T))) /
-                   F0) +
-          c1 * r2 * A21 /
-              ((c0 * F0 * F0 * F0) / std::expm1(Conversion::hz2joule(F0) /
-                                                Conversion::kelvin2joule(T)))),
-
-      dSdr2(-(c1 * F0) * A21 / (c0 * F0 * F0 * F0)),
-      dNdr2((c1 * F0) * A21 /
-            ((c0 * F0 * F0 * F0) / std::expm1(Conversion::hz2joule(F0) /
-                                              Conversion::kelvin2joule(T)))),
-      dSdr1((c1 * F0) * (g2 / g1) * A21 / (c0 * F0 * F0 * F0)),
-
-      S(r * ((c1 * F0) * (r1 * (g2 / g1) - r2) * (A21 / (c0 * F0 * F0 * F0)))),
-      N(r *
-        (((c1 * F0) * r2 * A21) /
-             ((c0 * F0 * F0 * F0) / std::expm1(Conversion::hz2joule(F0) /
-                                               Conversion::kelvin2joule(T))) -
-         ((c1 * F0) * (r1 * (g2 / g1) - r2) * (A21 / (c0 * F0 * F0 * F0))))) {}
+          dstimulated_relative_emission_dF0(F0, T0, T)) {
+          }
 
 VibrationalTemperaturesNonLocalThermodynamicEquilibrium::
     VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
         Numeric I0, Numeric T0, Numeric T, Numeric Tl, Numeric Tu, Numeric F0,
         Numeric E0, Numeric Evl, Numeric Evu, Numeric QT, Numeric QT0,
-        Numeric dQTdT, Numeric r) noexcept
+        Numeric dQTdT, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept
     :
-
-      dSdI0val(r * boltzman_ratio(T, T0, E0) *
-               stimulated_relative_emission(stimulated_emission(T, F0),
-                                            stimulated_emission(T0, F0)) *
-               absorption_nlte_ratio(stimulated_emission(T, F0),
-                                     boltzman_ratio(Tu, T, Evu),
-                                     boltzman_ratio(Tl, T, Evl)) *
-               QT0 / QT),
-      dNdI0val(r * boltzman_ratio(T, T0, E0) *
-               stimulated_relative_emission(stimulated_emission(T, F0),
-                                            stimulated_emission(T0, F0)) *
-               boltzman_ratio(Tu, T, Evu) * QT0 / QT),
-
-      dSdTval(I0 * r * boltzman_ratio(T, T0, E0) *
-                  dstimulated_relative_emission_dT(stimulated_emission(T, F0),
-                                                   stimulated_emission(T0, F0),
-                                                   F0, T) *
-                  absorption_nlte_ratio(stimulated_emission(T, F0),
-                                        boltzman_ratio(Tu, T, Evu),
-                                        boltzman_ratio(Tl, T, Evl)) *
-                  QT0 / QT +
-              I0 * r * dboltzman_ratio_dT(boltzman_ratio(T, T0, E0), T, E0) *
-                  stimulated_relative_emission(stimulated_emission(T, F0),
-                                               stimulated_emission(T0, F0)) *
-                  absorption_nlte_ratio(stimulated_emission(T, F0),
-                                        boltzman_ratio(Tu, T, Evu),
-                                        boltzman_ratio(Tl, T, Evl)) *
-                  QT0 / QT +
-              I0 * r * boltzman_ratio(T, T0, E0) *
-                  stimulated_relative_emission(stimulated_emission(T, F0),
-                                               stimulated_emission(T0, F0)) *
-                  dabsorption_nlte_rate_dT(stimulated_emission(T, F0), T, F0,
-                                           Evl, Evu, boltzman_ratio(Tu, T, Evu),
-                                           boltzman_ratio(Tl, T, Evl)) *
-                  QT0 / QT -
-              I0 * dSdI0val * dQTdT / QT),
-      dNdTval(I0 * r * boltzman_ratio(T, T0, E0) *
-                  dstimulated_relative_emission_dT(stimulated_emission(T, F0),
-                                                   stimulated_emission(T0, F0),
-                                                   F0, T) *
-                  boltzman_ratio(Tu, T, Evu) * QT0 / QT +
-              I0 * r * dboltzman_ratio_dT(boltzman_ratio(T, T0, E0), T, E0) *
-                  stimulated_relative_emission(stimulated_emission(T, F0),
-                                               stimulated_emission(T0, F0)) *
-                  boltzman_ratio(Tu, T, Evu) * QT0 / QT +
-              I0 * r * boltzman_ratio(T, T0, E0) *
-                  stimulated_relative_emission(stimulated_emission(T, F0),
-                                               stimulated_emission(T0, F0)) *
-                  dboltzman_ratio_dT(boltzman_ratio(Tu, T, Evu), T, Evu) * QT0 /
-                  QT -
-              I0 * dSdI0val * dQTdT / QT),
-
-      dSdF0val(I0 * r * boltzman_ratio(T, T0, E0) *
-                   dstimulated_relative_emission_dF0(
-                       stimulated_emission(T, F0), stimulated_emission(T0, F0),
-                       T, T0) *
-                   absorption_nlte_ratio(stimulated_emission(T, F0),
-                                         boltzman_ratio(Tu, T, Evu),
-                                         boltzman_ratio(Tl, T, Evl)) *
-                   QT0 / QT +
-               I0 * r * boltzman_ratio(T, T0, E0) *
-                   stimulated_relative_emission(stimulated_emission(T, F0),
-                                                stimulated_emission(T0, F0)) *
-                   dabsorption_nlte_rate_dF0(stimulated_emission(T, F0), T,
-                                             boltzman_ratio(Tu, T, Evu),
-                                             boltzman_ratio(Tl, T, Evl)) *
-                   QT0 / QT),
-      dNdF0val(I0 * r * boltzman_ratio(T, T0, E0) *
-               dstimulated_relative_emission_dF0(stimulated_emission(T, F0),
-                                                 stimulated_emission(T0, F0), T,
-                                                 T0) *
-               boltzman_ratio(Tu, T, Evu) * QT0 / QT),
-
-      dSdTl(I0 * r * boltzman_ratio(T, T0, E0) *
-            stimulated_relative_emission(stimulated_emission(T, F0),
-                                         stimulated_emission(T0, F0)) *
-            dabsorption_nlte_rate_dTl(stimulated_emission(T, F0), T, Tl, Evl,
-                                      boltzman_ratio(Tl, T, Evl)) *
-            QT0 / QT),
-      dSdTu(I0 * r * boltzman_ratio(T, T0, E0) *
-            stimulated_relative_emission(stimulated_emission(T, F0),
-                                         stimulated_emission(T0, F0)) *
-            dabsorption_nlte_rate_dTu(stimulated_emission(T, F0), T, Tu, Evu,
-                                      boltzman_ratio(Tu, T, Evu)) *
-            QT0 / QT),
-      dNdTu(I0 * r * boltzman_ratio(T, T0, E0) *
-            stimulated_relative_emission(stimulated_emission(T, F0),
-                                         stimulated_emission(T0, F0)) *
-            dboltzman_ratio_dT(boltzman_ratio(Tu, T, Evu), Tu, Evu) * QT0 / QT),
-
-      S(I0 * dSdI0val), N(I0 * dNdI0val - I0 * dSdI0val) {}
+    VibrationalTemperaturesNonLocalThermodynamicEquilibrium(I0, T, Tl, Tu, F0,
+                                                            E0, Evl, Evu, QT, QT0,
+                                                            dQTdT, r, drdSELFVMR, drdT,
+                                                            stimulated_emission(T, F0),
+                                                            stimulated_emission(T0, F0),
+                                                            boltzman_ratio(Tl, T, Evl),
+                                                            boltzman_ratio(Tu, T, Evu),
+                                                            boltzman_ratio(T, T0, E0),
+                                                            (1 - stimulated_emission(T, F0)) / (1 - stimulated_emission(T0, F0)),
+                                                            (boltzman_ratio(Tl, T, Evl) - boltzman_ratio(Tu, T, Evu) * stimulated_emission(T, F0)) / (1 - stimulated_emission(T, F0))) {}
 
 Calculator line_shape_selection(const Type type, const Numeric F0,
                                 const Output &X, const Numeric DC,
@@ -2074,6 +1954,8 @@ Normalizer normalizer_selection(const Absorption::NormalizationType type,
 IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
                                            const Numeric QT0,
                                            const Numeric dQTdT, const Numeric r,
+                                           const Numeric drdSELFVMR,
+                                           const Numeric drdT,
                                            const EnergyLevelMap &nlte,
                                            const Absorption::Lines &band,
                                            const Index line_index) {
@@ -2084,18 +1966,18 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
   case Absorption::PopulationType::ByMakarovFullRelmat:
   case Absorption::PopulationType::LTE:
     return LocalThermodynamicEquilibrium(line.I0(), band.T0(), T, line.F0(),
-                                         line.E0(), QT, QT0, dQTdT, r);
+                                         line.E0(), QT, QT0, dQTdT, r, drdSELFVMR, drdT);
   case Absorption::PopulationType::NLTE: {
     const auto [r_low, r_upp] = nlte.get_ratio_params(band, line_index);
     return FullNonLocalThermodynamicEquilibrium(
-        line.F0(), line.A(), T, line.g_low(), line.g_upp(), r_low, r_upp, r);
+      line.F0(), line.A(), T, line.g_low(), line.g_upp(), r_low, r_upp, r, drdSELFVMR, drdT);
   }
   case Absorption::PopulationType::VibTemps: {
     const auto [E_low, E_upp, T_low, T_upp] =
         nlte.get_vibtemp_params(band, line_index, T);
     return VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
         line.I0(), band.T0(), T, T_low, T_upp, line.F0(), line.E0(), E_low,
-        E_upp, QT, QT0, dQTdT, r);
+        E_upp, QT, QT0, dQTdT, r, drdSELFVMR, drdT);
   }
   case Absorption::PopulationType::FINAL: { /*leave last*/
   }
@@ -2270,7 +2152,7 @@ void frequency_loop(const ArrayOfRetrievalQuantity &jacobian_quantities,
                     ComplexMatrixView &dF, ComplexVectorView &N,
                     ComplexMatrixView &dN, const ConstVectorView &f_grid,
                     const Numeric &dfdH, const Numeric &Sz, Calculator ls,
-                    Calculator ls_mirr) ARTS_NOEXCEPT {
+                    Calculator ls_mirr, const Index self_species) ARTS_NOEXCEPT {
   const Numeric Si = std::visit([](auto &&S) { return S.S; }, ls_str);
   const Numeric DNi = std::visit([](auto &&S) { return S.N; }, ls_str);
   const std::size_t nj = jacobian_quantities.size();
@@ -2291,11 +2173,9 @@ void frequency_loop(const ArrayOfRetrievalQuantity &jacobian_quantities,
     }
 
     for (std::size_t ij = 0; ij < nj; ij++) {
-      if (not propmattype_index(jacobian_quantities, ij)) {
-        continue;
-      }
-
-      const auto &deriv = jacobian_quantities[ij];
+      const auto& deriv = jacobian_quantities[ij];
+      
+      if (not propmattype(deriv)) continue;
 
       if (deriv == Jacobian::Atm::Temperature) {
         const auto &dXdT = derivs[ij].value.o;
@@ -2346,8 +2226,14 @@ void frequency_loop(const ArrayOfRetrievalQuantity &jacobian_quantities,
               std::visit([&](auto &&LS) { return LS.dFdVMR(dXdVMR); }, ls) +
               dFm;
           dF(iv, ij) += S * LM * dFls + dLM * S * Fls;
+          if (self_species == deriv.QuantumIdentity().Species()) {
+            dF(iv, ij) += std::visit([](auto&&LS){return LS.dSdSELFVMR();}, ls_str) * LM * Fls;
+          }
           if (do_nlte) {
             dN(iv, ij) += DS * LM * dFls + dLM * DS * Fls;
+            if (self_species == deriv.QuantumIdentity().Species()) {
+              dF(iv, ij) += std::visit([](auto&&LS){return LS.dNdSELFVMR();}, ls_str) * LM * Fls;
+            }
           }
         } else {
           const Absorption::QuantumIdentifierLineTarget lt = derivs[ij].target;
@@ -2479,11 +2365,11 @@ void cutoff_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
         do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
 
     frequency_loop(
-        jacobian_quantities, T, do_nlte, Complex(1 + X.G, -X.Y), ls_str,
+      jacobian_quantities, T, do_nlte, Complex(1 + X.G, -X.Y), ls_str,
         ls_norm, derivs, F_lim, dF_lim, N_lim, dN_lim, f_grid_lim, dfdH, Sz,
         line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H),
         mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(),
-                                    band.F0(i), X, DC, dfdH * H));
+                                    band.F0(i), X, DC, dfdH * H), band.Species());
   }
 
   // Deal with cutoff if necessary
@@ -2505,12 +2391,12 @@ void cutoff_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
 
       // Call for just 1 freq...
       frequency_loop(
-          jacobian_quantities, T, do_nlte, Complex(1 + X.G, -X.Y), ls_str,
+        jacobian_quantities, T, do_nlte, Complex(1 + X.G, -X.Y), ls_str,
           ls_norm, derivs, F_cut, dF_cut, N_cut, dN_cut, f_grid_cut, dfdH, Sz,
           line_shape_selection(band.LineShapeType(), band.F0(i), X, DC,
                                dfdH * H),
           mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(),
-                                      band.F0(i), X, DC, dfdH * H));
+                                      band.F0(i), X, DC, dfdH * H), band.Species());
     }
 
     // Remove the cutoff
@@ -2559,10 +2445,10 @@ void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
                const AbsorptionLines &band,
                const ArrayOfRetrievalQuantity &jacobian_quantities,
                const EnergyLevelMap &nlte, const Vector &vmrs,
-               const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
+               const Numeric &r, const Numeric &P, const Numeric &T,
                const bool do_nlte, const Numeric &H, const bool do_zeeman,
                const Zeeman::Polarization zeeman_polarization, const Numeric QT,
-               const Numeric QT0, const Numeric dQTdT) ARTS_NOEXCEPT {
+               const Numeric QT0, const Numeric dQTdT, const Numeric drdSELFVMR, const Numeric drdT) ARTS_NOEXCEPT {
   const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
   
@@ -2578,15 +2464,13 @@ void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
   for (Index i = 0; i < nl; i++) {
     // Line strength value
     IntensityCalculator ls_str =
-        linestrength_selection(T, QT, QT0, dQTdT, isot_ratio, nlte, band, i);
+    linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i);
 
     // Pre-compute the derivatives
     for (Index ij = 0; ij < nj; ij++) {
-      if (not propmattype_index(jacobian_quantities, ij)) {
-        continue;
-      }
-
-      const auto &deriv = jacobian_quantities[ij];
+      const auto& deriv = jacobian_quantities[ij];
+      
+      if (not propmattype(deriv)) continue;
 
       if (deriv == Jacobian::Atm::Temperature) {
         derivs[ij].value.o = band.ShapeParameters_dT(i, T, P, vmrs);
@@ -2649,7 +2533,7 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
              const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
              const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
              const bool do_nlte, const Numeric &H, const bool do_zeeman,
-             const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
+             const Zeeman::Polarization zeeman_polarization, const Numeric& self_vmr, const bool do_numden) ARTS_NOEXCEPT {
   [[maybe_unused]] const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
   [[maybe_unused]] const Index nv = f_grid.nelem();
@@ -2675,12 +2559,24 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
   if (nv == 0 or nl == 0 or (Absorption::relaxationtype_relmat(band.Population()) and band.DoLineMixing(P))) {
     return; // No line-by-line computations required/wanted
   }
-
-  line_loop(F, dF, N, dN, f_grid, band, jacobian_quantities, nlte, vmrs,
-            isot_ratio, P, T, do_nlte, H, do_zeeman, zeeman_polarization,
-            single_partition_function(T, partfun_type, partfun_data),
-            single_partition_function(band.T0(), partfun_type, partfun_data),
-            dsingle_partition_function_dT(T, partfun_type, partfun_data));
+  
+  if (do_numden) {
+    const Numeric dnumdensdVMR = isot_ratio * number_density(P, T);
+    const Numeric numdens = self_vmr * dnumdensdVMR;
+    const Numeric dnumdensdT = self_vmr * isot_ratio * dnumber_density_dt(P, T);
+    line_loop(F, dF, N, dN, f_grid, band, jacobian_quantities, nlte, vmrs,
+              numdens, P, T, do_nlte, H, do_zeeman, zeeman_polarization,
+              single_partition_function(T, partfun_type, partfun_data),
+              single_partition_function(band.T0(), partfun_type, partfun_data),
+              dsingle_partition_function_dT(T, partfun_type, partfun_data),
+              dnumdensdVMR, dnumdensdT);
+  } else {
+    line_loop(F, dF, N, dN, f_grid, band, jacobian_quantities, nlte, vmrs,
+              isot_ratio, P, T, do_nlte, H, do_zeeman, zeeman_polarization,
+              single_partition_function(T, partfun_type, partfun_data),
+              single_partition_function(band.T0(), partfun_type, partfun_data),
+              dsingle_partition_function_dT(T, partfun_type, partfun_data), 0, 0);
+  }
 }
 
 #undef InternalDerivatives
