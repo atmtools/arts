@@ -70,7 +70,7 @@ Arts2{
   abs_xsec_agenda_checkedCalc
   lbl_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   #WriteXML("ascii", propmat_clearsky, "testdata/test-lm-vp/propmat.xml")
   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-lm-vp/dpropmat.xml")
   ReadXML(testdata, "testdata/test-lm-vp/propmat.xml")
@@ -85,7 +85,7 @@ Arts2{
   NumericSet(rtp_temperature, 250.0001)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   NumericSet(rtp_temperature, 250)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-lm-vp/propmat-dT.xml")
   ReadXML(testdata, "testdata/test-lm-vp/propmat-dT.xml")
@@ -95,7 +95,7 @@ Arts2{
   VectorNLinSpace(f_grid, 101, 90000000100, 110000000100)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   VectorNLinSpace(f_grid, 101, 90e9, 110e9)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-lm-vp/propmat-df.xml")
   ReadXML(testdata, "testdata/test-lm-vp/propmat-df.xml")
@@ -105,7 +105,7 @@ Arts2{
   VectorSet(rtp_vmr, [0.2101])
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   VectorSet(rtp_vmr, [0.21])
   #WriteXML("ascii", propmat_clearsky, "testdata/test-lm-vp/propmat-dvmr.xml")
   ReadXML(testdata, "testdata/test-lm-vp/propmat-dvmr.xml")
@@ -116,7 +116,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-lm-vp/propmat-ds0.xml")
   ReadXML(testdata, "testdata/test-lm-vp/propmat-ds0.xml")
@@ -127,7 +127,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-lm-vp/propmat-df0.xml")
   ReadXML(testdata, "testdata/test-lm-vp/propmat-df0.xml")

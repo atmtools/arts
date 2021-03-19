@@ -12,7 +12,7 @@ Arts2{
 
     AgendaSet(ppath_step_agenda) { Ignore(f_grid) Ignore(ppath_lraytrace) ppath_stepGeometric }
 
-    AgendaSet(propmat_clearsky_agenda) { Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddOnTheFly }
+    AgendaSet(propmat_clearsky_agenda) { Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddXsecAgenda }
 
     AgendaSet(abs_xsec_agenda) { abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines }
 

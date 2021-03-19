@@ -69,7 +69,7 @@ Arts2{
   abs_xsec_agenda_checkedCalc
   lbl_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat.xml")
   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-htp/dpropmat.xml")
   ReadXML(testdata, "testdata/test-htp/propmat.xml")
@@ -84,7 +84,7 @@ Arts2{
   NumericSet(rtp_temperature, 250.0001)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   NumericSet(rtp_temperature, 250)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-dT.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-dT.xml")
@@ -94,7 +94,7 @@ Arts2{
   VectorNLinSpace(f_grid, 101, 90000000100, 110000000100)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   VectorNLinSpace(f_grid, 101, 90e9, 110e9)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-df.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-df.xml")
@@ -104,7 +104,7 @@ Arts2{
   VectorSet(rtp_vmr, [0.2101])
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   VectorSet(rtp_vmr, [0.21])
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-dvmr.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-dvmr.xml")
@@ -115,7 +115,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-ds0.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-ds0.xml")
@@ -126,7 +126,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-df0.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-df0.xml")
@@ -137,7 +137,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-G0-X0.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-G0-X0.xml")
@@ -148,7 +148,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-G0-X1.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-G0-X1.xml")
@@ -159,7 +159,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-D0-X0.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-D0-X0.xml")
@@ -170,7 +170,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-D0-X1.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-D0-X1.xml")
@@ -181,7 +181,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-G2-X0.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-G2-X0.xml")
@@ -192,7 +192,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-G2-X1.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-G2-X1.xml")
@@ -203,7 +203,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-D2-X0.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-D2-X0.xml")
@@ -214,7 +214,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-D2-X1.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-D2-X1.xml")
@@ -225,7 +225,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-FVC-X0.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-FVC-X0.xml")
@@ -236,7 +236,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-FVC-X1.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-FVC-X1.xml")
@@ -247,7 +247,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-ETA-X0.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-ETA-X0.xml")
@@ -258,7 +258,7 @@ Arts2{
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-htp/propmat-ETA-X1.xml")
   ReadXML(testdata, "testdata/test-htp/propmat-ETA-X1.xml")

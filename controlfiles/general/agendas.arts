@@ -241,7 +241,7 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
 }
 
 ###
@@ -250,7 +250,7 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly ){
 AgendaCreate( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc )
 AgendaSet( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc ){
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   propmat_clearskyAddZeeman
 }
 
@@ -260,7 +260,7 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc ){
 AgendaCreate( propmat_clearsky_agenda__OnTheFly_Faraday )
 AgendaSet( propmat_clearsky_agenda__OnTheFly_Faraday ){
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   propmat_clearskyAddFaraday
 }
 

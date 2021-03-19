@@ -12518,7 +12518,7 @@ void define_md_data_raw() {
           "default for temperature and VMR interpolation, but the extrapolation\n"
           "limit can here be adjusted by the *extpolfac* argument.\n"
           "\n"
-          "See also: *propmat_clearskyAddOnTheFly*.\n"),
+          "See also: *propmat_clearskyAddXsecAgenda*.\n"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -12617,7 +12617,7 @@ void define_md_data_raw() {
           "\n"
           "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
           "\n"
-          "Note that you need to have propmat_clearskyAddOnTheFly in addition to this method\n"
+          "Note that you need to have *propmat_clearskyAddLines* addition to this method\n"
           "to compensate the calculations for the pressure limit\n"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
@@ -12653,7 +12653,7 @@ void define_md_data_raw() {
           "\n"
           "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
           "\n"
-          "Note that you need to have propmat_clearskyAddOnTheFly in addition to this method\n"
+          "Note that you need to have *propmat_clearskyAddLines* in addition to this method\n"
           "to compensate the calculations for the pressure limit\n"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),

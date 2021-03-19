@@ -58,7 +58,7 @@ Arts2{
   abs_xsec_agenda_checkedCalc
   lbl_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat.xml")
 #   WriteXML("ascii", dpropmat_clearsky_dx, "tests/dpropmat.xml")
   ReadXML(testdata, "tests/propmat.xml")
@@ -73,7 +73,7 @@ Arts2{
   NumericSet(rtp_temperature, 250.0001)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   NumericSet(rtp_temperature, 250)
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat-dT.xml")
   ReadXML(testdata, "tests/propmat-dT.xml")
@@ -83,7 +83,7 @@ Arts2{
   VectorSet(rtp_vmr, [0.10001, 0.2])
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   VectorSet(rtp_vmr, [0.1, 0.2])
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat-dvmr-H2.xml")
   ReadXML(testdata, "tests/propmat-dvmr-H2.xml")
@@ -93,7 +93,7 @@ Arts2{
   VectorSet(rtp_vmr, [0.1, 0.20001])
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   VectorSet(rtp_vmr, [0.1, 0.2])
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat-dvmr-He.xml")
   ReadXML(testdata, "tests/propmat-dvmr-He.xml")
@@ -103,7 +103,7 @@ Arts2{
   VectorNLinSpace(f_grid, 11, 3000001000, 30000000001000)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   VectorNLinSpace(f_grid, 11, 3e9, 30e12)
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat-df.xml")
   ReadXML(testdata, "tests/propmat-df.xml")

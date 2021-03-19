@@ -9,7 +9,7 @@ AgendaSet(propmat_clearsky_agenda)
 Ignore(rtp_mag)
 Ignore(rtp_los)
 propmat_clearskyInit
-propmat_clearskyAddOnTheFly
+propmat_clearskyAddXsecAgenda
 }
 
 AgendaSet(abs_xsec_agenda)

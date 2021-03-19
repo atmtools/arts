@@ -61,7 +61,7 @@ Arts2 {
   abs_xsec_agenda_checkedCalc
   lbl_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   lbl_checkedCalc
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat.xml")
   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-nlte/dpropmat.xml")
@@ -77,7 +77,7 @@ Arts2 {
   NumericSet(rtp_temperature, 250.0001)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   NumericSet(rtp_temperature, 250)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dT.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-dT.xml")
@@ -87,7 +87,7 @@ Arts2 {
   VectorSet(rtp_vmr, [0.2101])
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   VectorSet(rtp_vmr, [0.21])
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dvmr.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-dvmr.xml")
@@ -97,7 +97,7 @@ Arts2 {
   VectorNLinSpace(f_grid, 101, 999900001e2, 1000100001e2)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   VectorNLinSpace(f_grid, 101, 99.99e9, 100.01e9)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-df.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-df.xml")
@@ -109,7 +109,7 @@ Arts2 {
   nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-ds0.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-ds0.xml")
@@ -121,7 +121,7 @@ Arts2 {
   nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-df0.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-df0.xml")
@@ -131,7 +131,7 @@ Arts2 {
 rtp_nlteFromRaw(data=[0.7, 0.40001])
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
-propmat_clearskyAddOnTheFly
+propmat_clearskyAddXsecAgenda
 rtp_nlteFromRaw(data=[0.7, 0.4])
 Copy(abs_lines, aolr)
 #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dlow.xml")
@@ -142,7 +142,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 rtp_nlteFromRaw(data=[0.70001, 0.4])
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
-propmat_clearskyAddOnTheFly
+propmat_clearskyAddXsecAgenda
 rtp_nlteFromRaw(data=[0.7, 0.4])
 Copy(abs_lines, aolr)
 #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dupp.xml")

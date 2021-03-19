@@ -67,13 +67,13 @@ namespace ARTS::Agenda {
     return ws;
   }
   
-  Workspace& propmat_clearsky_agenda_on_the_fly(Workspace& ws) {
+  Workspace& propmat_clearsky_agenda_xsec_agenda(Workspace& ws) {
     using namespace Agenda::Method;
     using namespace Agenda::Define;
     using namespace Var;
     propmat_clearsky_agenda(ws, Ignore(ws, rtp_mag(ws)), Ignore(ws, rtp_los(ws)),
                             propmat_clearskyInit(ws),
-                            propmat_clearskyAddOnTheFly(ws));
+                            propmat_clearskyAddXsecAgenda(ws));
     return ws;
   }
   
@@ -81,7 +81,7 @@ namespace ARTS::Agenda {
     using namespace Agenda::Method;
     using namespace Agenda::Define;
     propmat_clearsky_agenda(ws, propmat_clearskyInit(ws),
-                            propmat_clearskyAddOnTheFly(ws),
+                            propmat_clearskyAddXsecAgenda(ws),
                             propmat_clearskyAddZeeman(ws));
     return ws;
   }
@@ -164,7 +164,7 @@ int main() try {
   
   ARTS::Agenda::ppath_step_agenda_geometric_path(ws);
   
-  ARTS::Agenda::propmat_clearsky_agenda_on_the_fly(ws);
+  ARTS::Agenda::propmat_clearsky_agenda_xsec_agenda(ws);
   
   ARTS::Agenda::abs_xsec_agenda_standard(ws);
   
