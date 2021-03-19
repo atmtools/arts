@@ -400,24 +400,6 @@ void xsec_species(Matrix& xsec,
                   const SpeciesAuxData::AuxType& partfun_type,
                   const ArrayOfGriddedField1& partfun_data);
 
-void xsec_species2(Matrix& xsec,
-                  Matrix& source,
-                  Matrix& phase,
-                  ArrayOfMatrix& dxsec_dx,
-                  ArrayOfMatrix& dsource_dx,
-                  ArrayOfMatrix& dphase_dx,
-                  const ArrayOfRetrievalQuantity& jacobian_quantities,
-                  const Vector& f_grid,
-                  const Vector& abs_p,
-                  const Vector& abs_t,
-                  const EnergyLevelMap& abs_nlte,
-                  const Matrix& abs_vmrs,
-                  const ArrayOfArrayOfSpeciesTag& abs_species,
-                  const AbsorptionLines& band,
-                  const Numeric& isot_ratio,
-                  const SpeciesAuxData::AuxType& partfun_type,
-                  const ArrayOfGriddedField1& partfun_data);
-
 /** Returns the species data
  * 
  * @param band An absorption band

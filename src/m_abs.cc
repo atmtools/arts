@@ -1480,10 +1480,10 @@ void propmat_clearskyAddLines(  // Workspace reference:
   ComplexMatrix dN(nlte_do ? nf : 0, nlte_do ? nq : 0);
   
   // Real view of the data as only the real parts matter here
-  VectorView Fr = F.real();
-  MatrixView dFr = dF.real();
-  VectorView Nr = N.real();
-  MatrixView dNr = dN.real();
+  const ConstVectorView Fr = F.real();
+  const ConstMatrixView dFr = dF.real();
+  const ConstVectorView Nr = N.real();
+  const ConstMatrixView dNr = dN.real();
 
   for (Index ispecies = 0; ispecies < ns; ispecies++) {
     // Skip it if there are no species or there is Zeeman requested
@@ -1491,10 +1491,10 @@ void propmat_clearskyAddLines(  // Workspace reference:
       continue;
     
     // Reset (only real part)
-    Fr = 0;
-    dFr = 0;
-    Nr = 0;
-    dNr = 0;
+    F = 0;
+    dF = 0;
+    N = 0;
+    dN = 0;
     
     for (auto& band : abs_lines_per_species[ispecies]) {
       LineShape::compute(F, dF, N, dN, f_grid,
@@ -1517,7 +1517,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
       if (not propmattype(deriv)) continue;
       
       if (deriv == abs_species[ispecies]) {
-        dpropmat_clearsky_dx[j].Kjj() += Fr;
+        dpropmat_clearsky_dx[j].Kjj() += Fr;  // FIXME: Without this, the complex-variables would never need reset
       } else {
         dpropmat_clearsky_dx[j].Kjj() += dFr(joker, j);
       }
@@ -1534,7 +1534,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
         if (not propmattype(deriv)) continue;
         
         if (deriv == abs_species[ispecies]) {
-          dnlte_source_dx[j].Kjj() += Nr;
+          dnlte_source_dx[j].Kjj() += Nr;  // FIXME: Without this, the complex-variables would never need reset
         } else {
           dnlte_source_dx[j].Kjj() += dNr(joker, j);
         }
@@ -1898,7 +1898,7 @@ void abs_xsec_per_speciesAddLines(
       continue;
     
     for (auto& lines: abs_lines_per_species[i]) {
-      xsec_species2(
+      xsec_species(
           abs_xsec_per_species[i],
           src_xsec_per_species[i],
           dummy1,

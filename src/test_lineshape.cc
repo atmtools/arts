@@ -545,139 +545,6 @@ void test_lte_strength() {
   std::cout << x.dSdF0() << ' ' << 'v' << 's' << ' ' << (dxdF0.S - x.S) / 100e3 << '\n';
 }
 
-template <int do_jac_type>
-void test_voigt_xsec_species() {
-  constexpr Index NJAC = (do_jac_type == 1) ? (::M) : (do_jac_type == 2) ? 5 : 0;
-  
-  Matrix xsec(::N, 1, 0);
-  Matrix xsec2(::N, 1, 0);
-  Matrix source, phase, source2, phase2;
-  ArrayOfMatrix dxsec(NJAC, xsec);
-  ArrayOfMatrix dxsec2(NJAC, xsec2);
-  ArrayOfMatrix dsource, dphase, dsource2, dphase2;
-  
-  EnergyLevelMap nlte;
-  SpeciesAuxData partition_functions;
-  fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(partition_functions);
-  
-  ArrayOfRetrievalQuantity jacobian_quantities(NJAC);
-  auto [qid, band, f_grid, vmr, P, T, H] = line_model<ModificationInternal::None, LineShape::Type::VP>();
-  
-  if (do_jac_type == 1) {
-    jacobian_quantities[0].Target() = JacobianTarget(Jacobian::Atm::Temperature);
-    jacobian_quantities[1].Target() = JacobianTarget(Jacobian::Atm::WindMagnitude);
-    jacobian_quantities[2].Target() = JacobianTarget(Jacobian::Atm::MagneticMagnitude);
-    jacobian_quantities[3].Target() = JacobianTarget(Jacobian::Line::Center, qid);
-    jacobian_quantities[4].Target() = JacobianTarget(Jacobian::Line::Strength, qid);
-    jacobian_quantities[5].Target() = JacobianTarget(Jacobian::Line::ShapeG0X0, qid, -1);
-    jacobian_quantities[6].Target() = JacobianTarget(Jacobian::Line::ShapeD0X0, qid, -1);
-    jacobian_quantities[7].Target() = JacobianTarget(Jacobian::Line::ShapeG2X0, qid, -1);
-    jacobian_quantities[8].Target() = JacobianTarget(Jacobian::Line::ShapeD2X0, qid, -1);
-    jacobian_quantities[9].Target() = JacobianTarget(Jacobian::Line::ShapeETAX0, qid, -1);
-    jacobian_quantities[10].Target() = JacobianTarget(Jacobian::Line::ShapeFVCX0, qid, -1);
-    jacobian_quantities[11].Target() = JacobianTarget(Jacobian::Line::ShapeYX1, qid, -1);
-    jacobian_quantities[12].Target() = JacobianTarget(Jacobian::Line::ShapeGX1, qid, -1);
-    jacobian_quantities[13].Target() = JacobianTarget(Jacobian::Line::ShapeDVX0, qid, -1);
-    jacobian_quantities[14].Target() = JacobianTarget(Jacobian::Line::ShapeG0X0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[15].Target() = JacobianTarget(Jacobian::Line::ShapeD0X0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[16].Target() = JacobianTarget(Jacobian::Line::ShapeG2X0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[17].Target() = JacobianTarget(Jacobian::Line::ShapeD2X0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[18].Target() = JacobianTarget(Jacobian::Line::ShapeETAX0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[19].Target() = JacobianTarget(Jacobian::Line::ShapeFVCX0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[20].Target() = JacobianTarget(Jacobian::Line::ShapeYX1, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[21].Target() = JacobianTarget(Jacobian::Line::ShapeGX1, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[22].Target() = JacobianTarget(Jacobian::Line::ShapeDVX0, qid, std::numeric_limits<Index>::max());
-    qid.SetAll();
-    jacobian_quantities[23].Target() = JacobianTarget(Jacobian::Line::VMR, qid);  // Self is increasing
-    jacobian_quantities[24].Target() = JacobianTarget(Jacobian::Line::VMR, QuantumIdentifier(QuantumIdentifier::ALL, 1, 0));  // Another species... main point: it's air
-    
-    
-    for (auto& deriv: jacobian_quantities) {
-      if (deriv == Jacobian::Type::Line) {
-        deriv.Mode() = deriv.QuantumIdentity().SpeciesName();
-      }
-    }
-  } else if (do_jac_type == 2) {
-    jacobian_quantities[0].Target() = JacobianTarget(Jacobian::Atm::Temperature);
-    jacobian_quantities[1].Target() = JacobianTarget(Jacobian::Atm::WindMagnitude);
-    jacobian_quantities[2].Target() = JacobianTarget(Jacobian::Line::Center, qid);
-    jacobian_quantities[3].Target() = JacobianTarget(Jacobian::Line::Strength, qid);
-    qid.SetAll();
-    jacobian_quantities[4].Target() = JacobianTarget(Jacobian::Line::VMR, qid);  // Self is increasing
-    
-    
-    for (auto& deriv: jacobian_quantities) {
-      if (deriv == Jacobian::Type::Line) {
-        deriv.Mode() = deriv.QuantumIdentity().SpeciesName();
-      }
-    }
-  }
-  
-  Matrix vmrs(1, 1, vmr[0]);
-  ArrayOfArrayOfSpeciesTag abs_species(1, ArrayOfSpeciesTag(1, SpeciesTag("H2O-161")));
-  std::cout << abs_species << '\n';
-  
-  constexpr Index TN = do_jac_type == 1 ? 1'000 : 10'000;
-  
-  std::array<TimeStep, TN> dt;
-  for (Index i=0; i<TN; i++) {
-    Time start;
-    xsec_species2(xsec2,
-                  source2,
-                  phase2,
-                  dxsec2,
-                  dsource2,
-                  dphase2,
-                  jacobian_quantities,
-                  f_grid,
-                  {P},
-                  {T},
-                  nlte,
-                  vmrs,
-                  abs_species,
-                  band,
-                  1,
-                  partition_functions.getParamType(band.QuantumIdentity()),
-                  partition_functions.getParam(band.QuantumIdentity()));
-    dt[i] = Time() - start;
-  }
-  std::sort(dt.begin(), dt.end());
-  std::cerr << "COMPUTE NEW:\n" << "Slow: " << dt[TN-1] << '\n' << "Med.: " << dt[TN/2] << '\n' << "Fast: " << dt[0] << '\n';
-  
-  std::cout << "Done 2\n";
-  
-  for (Index i=0; i<TN; i++) {
-    Time start;
-    xsec_species(xsec,
-                source,
-                phase,
-                dxsec,
-                dsource,
-                dphase,
-                jacobian_quantities,
-                f_grid,
-                {P},
-                {T},
-                nlte,
-                vmrs,
-                abs_species,
-                band,
-                1,
-                partition_functions.getParamType(band.QuantumIdentity()),
-                partition_functions.getParam(band.QuantumIdentity()));
-    dt[i] = Time() - start;
-  }
-  std::sort(dt.begin(), dt.end());
-  std::cerr << "COMPUTE OLD:\n" << "Slow: " << dt[TN-1] << '\n' << "Med.: " << dt[TN/2] << '\n' << "Fast: " << dt[0] << '\n';
-  
-  // PLOT STUFF
-//   ARTSGUI::plot(f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0));
-//   for (Index i=0; i<NJAC; i++) {
-//     std::cout << jacobian_quantities[i].Target() << '\n';
-//     ARTSGUI::plot(f_grid, dxsec[i](joker, 0), f_grid, dxsec2[i](joker, 0));
-//   }
-}
-
 int main() try {
   define_species_data();
   define_species_map();
@@ -685,22 +552,15 @@ int main() try {
   make_wigner_ready(20, 30, 6);
   std::cout << std::setprecision(15);
   
-  std::cout << "\nAll Jacobian:\n";
-  test_voigt_xsec_species<1>();
-  std::cout << "\nSome Jacobian:\n";
-  test_voigt_xsec_species<2>();
-  std::cout << "\nNo Jacobian:\n";
-  test_voigt_xsec_species<0>();
-  
-//   test_ls<LineShape::Type::DP>();
-//   test_ls<LineShape::Type::LP>();
-//   test_ls<LineShape::Type::VP>();
-//   test_ls<LineShape::Type::SDVP>();
+  test_ls<LineShape::Type::DP>();
+  test_ls<LineShape::Type::LP>();
+  test_ls<LineShape::Type::VP>();
+  test_ls<LineShape::Type::SDVP>();
   test_ls<LineShape::Type::HTP>();
-// 
-//   test_norm();
-//   
-//   test_lte_strength();
+
+  test_norm();
+  
+  test_lte_strength();
   
   return EXIT_SUCCESS;
 } catch (std::exception& e) {

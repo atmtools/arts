@@ -49,6 +49,7 @@ bool bad_propmat(const Array<T>& main,
   return false;
 }
 
+
 /** Checks for negative values */
 template <typename MatpackType> constexpr
 bool any_negative(const MatpackType& var) noexcept {
@@ -196,7 +197,7 @@ void zeeman_on_the_fly(
                       pol, dpol_dtheta, dpol_deta,
                       X.dH_dw, X.dtheta_dw, X.deta_dw);
         } else if (deriv == abs_species[ispecies]) {
-          Zeeman::sum(dpropmat_clearsky_dx[j], F, pol);
+          Zeeman::sum(dpropmat_clearsky_dx[j], F, pol);  // FIXME: Without this, the complex-variables would never need reset
         } else {
           Zeeman::sum(dpropmat_clearsky_dx[j], dF(joker, j), pol);
         }
@@ -225,7 +226,7 @@ void zeeman_on_the_fly(
                          pol, dpol_dtheta, dpol_deta,
                          X.dH_dw, X.dtheta_dw, X.deta_dw, false);
           } else if (deriv == abs_species[ispecies]) {
-            Zeeman::sum(dnlte_source_dx[j], N, pol, false);
+            Zeeman::sum(dnlte_source_dx[j], N, pol, false);  // FIXME: Without this, the complex-variables would never need reset
           } else {
             Zeeman::sum(dnlte_source_dx[j], dN(joker, j), pol, false);
           }

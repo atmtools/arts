@@ -175,6 +175,38 @@ class LazyScale {
   const Numeric& scale;
 };
 
+template<bool matrix>
+constexpr Index need2stokes(Index nstokes_needed) {
+  if constexpr (matrix) {
+    if (nstokes_needed == 7) return 4;
+    else if (nstokes_needed == 4) return 3;
+    else if (nstokes_needed == 2) return 2;
+    else if (nstokes_needed == 1) return 1;
+  } else {
+    if (nstokes_needed < 5 and nstokes_needed > 0) return nstokes_needed;
+  }
+  
+  ARTS_ASSERT (false,
+               "Cannot understand the input Stokes dimensions");
+  return std::numeric_limits<Index>::max();
+}
+
+template<bool matrix>
+constexpr Index stokes2need(Index nstokes) {
+  if constexpr (matrix) {
+      if (nstokes == 4) return 7;
+      else if (nstokes == 3) return 4;
+      else if (nstokes == 2) return 2;
+      else if (nstokes == 1) return 1;
+  } else {
+    if (nstokes < 5 and nstokes > 0) return nstokes;
+  }
+  
+  ARTS_ASSERT (false,
+               "Cannot understand the input Stokes dimensions");
+  return std::numeric_limits<Index>::max();
+}
+
 /*! Propagation Matrix Holder Class With Some Computational Capabilities
  * 
  * The idea comes from the fact that the propagation matrix has the looks
@@ -324,12 +356,6 @@ class PropagationMatrix {
   
   bool OK() const {return mdata.ncols() == NumberOfNeededVectors() and mdata.nrows() == mfreqs and mdata.npages() == mza and mdata.nbooks() == maa;}
 
-  /** Set the Vector Type object
-   * 
-   * @param[in] vectortype True if this is a vector false if not
-   */
-  void SetVectorType(bool vectortype) { mvectortype = vectortype; }
-
   /** Asks if the class is empty */
   bool IsEmpty() const { return not mfreqs or not mza or not maa; };
 
@@ -371,25 +397,9 @@ class PropagationMatrix {
   #pragma GCC diagnostic ignored "-Wreturn-type"
   Index NumberOfNeededVectors() const {
     if (not mvectortype) {
-      switch (mstokes_dim) {
-        case 1:
-          return 1;
-          break;
-        case 2:
-          return 2;
-          break;
-        case 3:
-          return 4;
-          break;
-        case 4:
-          return 7;
-          break;
-        default:
-          ARTS_ASSERT (false,
-              "Cannot understand the input in PropagationMatrix");
-      }
+      return stokes2need<true>(mstokes_dim);
     } else {
-      return mstokes_dim;
+      return stokes2need<false>(mstokes_dim);
     }
   }
   #pragma GCC diagnostic pop
