@@ -47,7 +47,6 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
                                  const ArrayOfArrayOfSpeciesTag& abs_species,
                                  const Agenda& abs_xsec_agenda,
                                  const Verbosity&) {
-  bool needs_lines = false;
   bool needs_continua = false;
   bool needs_cia = false;
   bool needs_hxsec = false;
@@ -56,7 +55,6 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
     for (Index tgs = 0; tgs < abs_species[sp].nelem(); tgs++) {
       switch (abs_species[sp][tgs].Type()) {
         case SpeciesTag::TYPE_PLAIN:
-          needs_lines = true;
           break;
         case SpeciesTag::TYPE_ZEEMAN:
           break;
@@ -74,17 +72,11 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
           needs_hxsec = true;
           break;
         default:
-          ARTS_USER_ERROR (
-                              "Unknown species type: ", abs_species[sp][tgs].Type())
+          ARTS_USER_ERROR ("Unknown species type: ", abs_species[sp][tgs].Type())
           break;
       }
     }
   }
-
-  ARTS_USER_ERROR_IF (needs_lines and
-      not(abs_xsec_agenda.has_method("abs_xsec_per_speciesAddLines")),
-        "*abs_species* contains line species but *abs_xsec_agenda*\n"
-        "does not contain *abs_xsec_per_speciesAddLines*.");
 
   ARTS_USER_ERROR_IF (needs_continua &&
       !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddConts"),
@@ -942,12 +934,12 @@ void propmat_clearsky_agenda_checkedCalc(
   }
 
   ARTS_USER_ERROR_IF ((needs_lines || needs_continua || needs_cia || needs_hxsec) &&
-      !(propmat_clearsky_agenda.has_method("propmat_clearskyAddOnTheFly") ||
+      !(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") ||
       propmat_clearsky_agenda.has_method("propmat_clearskyAddFromLookup") ||
       propmat_clearsky_agenda.has_method("propmat_clearskyAddLines")),
         "*abs_species* contains line species, CIA species, "
         "hitran xsec species or continua but *propmat_clearsky_agenda*\n"
-        "does not contain *propmat_clearskyAddOnTheFly* "
+        "does not contain *propmat_clearskyAddXsecAgenda* "
         "*propmat_clearskyAddFromLookup*, or propmat_clearskyAddLines.");
 
   ARTS_USER_ERROR_IF (needs_zeeman and

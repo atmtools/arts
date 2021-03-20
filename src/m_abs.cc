@@ -1400,13 +1400,10 @@ void propmat_clearskyAddParticles(
 /** Checks if a Propagation Matrix or something similar has good grids */
 template <class T>
 bool bad_propmat(const Array<T>& main,
-                 const Vector& f_grid,
-                 const Index sd = 4) noexcept {
+                 const Vector& f_grid) noexcept {
   const Index nf = f_grid.nelem();
   for (auto& var : main) {
-    const bool bad_stokes = sd not_eq var.StokesDimensions();
-    const bool bad_freq = nf not_eq var.NumberOfFrequencies();
-    if (bad_freq or bad_stokes) return true;
+    if (nf not_eq var.NumberOfFrequencies()) return true;
   }
   return false;
 }
@@ -1462,11 +1459,11 @@ void propmat_clearskyAddLines(  // Workspace reference:
   ARTS_USER_ERROR_IF(not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
                      "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
   ARTS_USER_ERROR_IF(not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
-                     "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*")
+                     "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(nlte_do and (nq not_eq dnlte_source_dx.nelem()),
                      "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
   ARTS_USER_ERROR_IF(nlte_do and bad_propmat(dnlte_source_dx, f_grid),
-                     "*dnlte_source_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
+                     "*dnlte_source_dx* must have frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_nlte.Data()), "Negative NLTE (at least one value).")
@@ -1478,12 +1475,6 @@ void propmat_clearskyAddLines(  // Workspace reference:
   ComplexVector N(nlte_do ? nf : 0);
   ComplexMatrix dF(nf, nq);
   ComplexMatrix dN(nlte_do ? nf : 0, nlte_do ? nq : 0);
-  
-  // Real view of the data as only the real parts matter here
-  const ConstVectorView Fr = F.real();
-  const ConstMatrixView dFr = dF.real();
-  const ConstVectorView Nr = N.real();
-  const ConstMatrixView dNr = dN.real();
 
   for (Index ispecies = 0; ispecies < ns; ispecies++) {
     // Skip it if there are no species or there is Zeeman requested
@@ -1508,7 +1499,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     }
     
     // Sum up the propagation matrix
-    propmat_clearsky.Kjj() += Fr;
+    propmat_clearsky.Kjj() += F.real();
     
     // Sum up the Jacobian
     for (Index j=0; j<nq; j++) {
@@ -1517,15 +1508,15 @@ void propmat_clearskyAddLines(  // Workspace reference:
       if (not propmattype(deriv)) continue;
       
       if (deriv == abs_species[ispecies]) {
-        dpropmat_clearsky_dx[j].Kjj() += Fr;  // FIXME: Without this, the complex-variables would never need reset
+        dpropmat_clearsky_dx[j].Kjj() += F.real();  // FIXME: Without this, the complex-variables would never need reset
       } else {
-        dpropmat_clearsky_dx[j].Kjj() += dFr(joker, j);
+        dpropmat_clearsky_dx[j].Kjj() += dF.real()(joker, j);
       }
     }
     
     if (nlte_do) {
       // Sum up the source vector
-      nlte_source.Kjj() += Nr;
+      nlte_source.Kjj() += N.real();
       
       // Sum up the Jacobian
       for (Index j=0; j<nq; j++) {
@@ -1534,9 +1525,9 @@ void propmat_clearskyAddLines(  // Workspace reference:
         if (not propmattype(deriv)) continue;
         
         if (deriv == abs_species[ispecies]) {
-          dnlte_source_dx[j].Kjj() += Nr;  // FIXME: Without this, the complex-variables would never need reset
+          dnlte_source_dx[j].Kjj() += N.real();  // FIXME: Without this, the complex-variables would never need reset
         } else {
-          dnlte_source_dx[j].Kjj() += dNr(joker, j);
+          dnlte_source_dx[j].Kjj() += dN.real()(joker, j);
         }
       }
     }

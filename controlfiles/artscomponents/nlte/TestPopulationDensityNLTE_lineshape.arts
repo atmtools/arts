@@ -1,10 +1,4 @@
 Arts2 {
-
-  AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines}
-
-#   Can run with abs_xsec_per_speciesAddLines by uncommenting:
-#   abs_lineshapeDefine(abs_lineshape, "Faddeeva_Algorithm_916", "no_norm", -1)
-#   Will fail at first derivatives...
   
   # Constants (changes here might require changes in perturbations to match)
   isotopologue_ratiosInitFromBuiltin
@@ -58,10 +52,9 @@ Arts2 {
   jacobianClose
   
   # Perform calculations for analytical propagation matrix and derivatives
-  abs_xsec_agenda_checkedCalc
   lbl_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddLines
   lbl_checkedCalc
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat.xml")
   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-nlte/dpropmat.xml")
@@ -75,9 +68,8 @@ Arts2 {
   
   # Perform calculations for perturbed temperature derivative
   NumericSet(rtp_temperature, 250.0001)
-  abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddLines
   NumericSet(rtp_temperature, 250)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dT.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-dT.xml")
@@ -85,9 +77,8 @@ Arts2 {
   
   # Perform calculations for perturbed VMR derivative
   VectorSet(rtp_vmr, [0.2101])
-  abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddLines
   VectorSet(rtp_vmr, [0.21])
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dvmr.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-dvmr.xml")
@@ -95,9 +86,8 @@ Arts2 {
   
   # Perform calculations for perturbed frequency derivative
   VectorNLinSpace(f_grid, 101, 999900001e2, 1000100001e2)
-  abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddLines
   VectorNLinSpace(f_grid, 101, 99.99e9, 100.01e9)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-df.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-df.xml")
@@ -107,9 +97,8 @@ Arts2 {
   abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-30, relative=0, band_matching=0)
   abs_lines_per_speciesCreateFromLines
   nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
-  abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddLines
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-ds0.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-ds0.xml")
@@ -119,33 +108,30 @@ Arts2 {
   abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Center", change=1e1, relative=0, band_matching=0)
   abs_lines_per_speciesCreateFromLines
   nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
-  abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddLines
   Copy(abs_lines, aolr)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-df0.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat-df0.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
 
-# Perform calculations for perturbed lower levels derivative
-rtp_nlteFromRaw(data=[0.7, 0.40001])
-abs_xsec_agenda_checkedCalc
-propmat_clearskyInit
-propmat_clearskyAddXsecAgenda
-rtp_nlteFromRaw(data=[0.7, 0.4])
-Copy(abs_lines, aolr)
-#WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dlow.xml")
-ReadXML(testdata, "testdata/test-nlte/propmat-dlow.xml")
-CompareRelative(testdata, propmat_clearsky, 1e-6)
+  # Perform calculations for perturbed lower levels derivative
+  rtp_nlteFromRaw(data=[0.7, 0.40001])
+  propmat_clearskyInit
+  propmat_clearskyAddLines
+  rtp_nlteFromRaw(data=[0.7, 0.4])
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dlow.xml")
+  ReadXML(testdata, "testdata/test-nlte/propmat-dlow.xml")
+  CompareRelative(testdata, propmat_clearsky, 1e-6)
 
-# Perform calculations for perturbed lower levels derivative
-rtp_nlteFromRaw(data=[0.70001, 0.4])
-abs_xsec_agenda_checkedCalc
-propmat_clearskyInit
-propmat_clearskyAddXsecAgenda
-rtp_nlteFromRaw(data=[0.7, 0.4])
-Copy(abs_lines, aolr)
-#WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dupp.xml")
-ReadXML(testdata, "testdata/test-nlte/propmat-dupp.xml")
-CompareRelative(testdata, propmat_clearsky, 1e-6)
+  # Perform calculations for perturbed lower levels derivative
+  rtp_nlteFromRaw(data=[0.70001, 0.4])
+  propmat_clearskyInit
+  propmat_clearskyAddLines
+  rtp_nlteFromRaw(data=[0.7, 0.4])
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dupp.xml")
+  ReadXML(testdata, "testdata/test-nlte/propmat-dupp.xml")
+  CompareRelative(testdata, propmat_clearsky, 1e-6)
 }

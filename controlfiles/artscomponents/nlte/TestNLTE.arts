@@ -9,13 +9,7 @@ AgendaSet(propmat_clearsky_agenda)
 Ignore(rtp_mag)
 Ignore(rtp_los)
 propmat_clearskyInit
-propmat_clearskyAddXsecAgenda
-}
-
-AgendaSet(abs_xsec_agenda)
-{
-abs_xsec_per_speciesInit
-abs_xsec_per_speciesAddLines
+propmat_clearskyAddLines
 }
 
 Copy( iy_main_agenda, iy_main_agenda__Emission )
@@ -65,8 +59,6 @@ ReadXML(ev,"testdata/tropical.ev.xml")
 nlteSetByQuantumIdentifiers
 
 #NumericSet(ppath_lmax,5e3)
-
-abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
@@ -87,7 +79,6 @@ Copy(tmp_aoqi, nlte_level_identifiers)
 nlteOff
 abs_lines_per_speciesSetPopulation(option="LTE")
 
-abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc

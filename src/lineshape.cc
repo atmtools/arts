@@ -1874,6 +1874,48 @@ LocalThermodynamicEquilibrium::LocalThermodynamicEquilibrium(
           dstimulated_relative_emission_dT(F0, T0, T),
           dstimulated_relative_emission_dF0(F0, T0, T)) {
           }
+          
+          
+struct VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer {
+  Numeric K1, dK1dT, 
+          K2, dK2dT, dK2dF0, 
+          K3, dK3dT, dK3dF0, dK3dTl, dK3dTu,
+          K4, dK4dT, dK4dTu,
+          B, dBdT, dBdF0;
+  
+  VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer(Numeric T, Numeric T0, Numeric F0, Numeric E0, Numeric Tl, Numeric Evl, Numeric Tu, Numeric Evu, Numeric gamma, Numeric gamma_ref, Numeric r_low, Numeric r_upp
+  ) noexcept :
+  K1(boltzman_ratio(T, T0, E0)),
+  dK1dT(dboltzman_ratio_dT(K1, T, E0)),
+  K2(stimulated_relative_emission(gamma, gamma_ref)),
+  dK2dT(dstimulated_relative_emission_dT(gamma, gamma_ref, F0, T)),
+  dK2dF0(dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0)),
+  K3(absorption_nlte_ratio(gamma, r_upp, r_low)),
+  dK3dT(dabsorption_nlte_rate_dT(gamma, T, F0, Evl, Evu, K4, r_low)),
+  dK3dF0(dabsorption_nlte_rate_dF0(gamma, T, K4, r_low)),
+  dK3dTl(dabsorption_nlte_rate_dTl(gamma, T, Tl, Evl, r_low)),
+  dK3dTu(dabsorption_nlte_rate_dTu(gamma, T, Tu, Evu, K4)),
+  K4(boltzman_ratio(Tu, T, Evu)),
+  dK4dT(dboltzman_ratio_dT(K4, T, Evu)),
+  dK4dTu(dboltzman_ratio_dT(K4, Tu, Evu)),
+  B(2 * Constant::h / Constant::pow2(Constant::c) * Constant::pow3(F0) / std::expm1((Constant::h / Constant::k * F0) / T)),
+  dBdT(Constant::pow2(B) * Constant::pow2(Constant::c) * std::exp((Constant::h / Constant::k * F0) / T) / (2*Constant::k*Constant::pow2(F0*T))),
+  dBdF0(3 * B / F0 - Constant::pow2(B) * Constant::pow2(Constant::c) * std::exp((Constant::h / Constant::k * F0) / T) / (2*Constant::k*T*Constant::pow3(F0)))
+  {}
+  
+  constexpr VibrationalTemperaturesNonLocalThermodynamicEquilibrium operator()(Numeric I0,
+                                                                               Numeric QT0, Numeric QT, Numeric dQTdT,
+                                                                               Numeric r, Numeric drdSELFVMR, Numeric drdT) const noexcept {
+    return VibrationalTemperaturesNonLocalThermodynamicEquilibrium(I0,
+                                                                   QT0, QT, dQTdT,
+                                                                   r, drdSELFVMR, drdT,
+                                                                   K1, dK1dT, 
+                                                                   K2, dK2dT, dK2dF0, 
+                                                                   K3, dK3dT, dK3dF0, dK3dTl, dK3dTu,
+                                                                   K4, dK4dT, dK4dTu,
+                                                                   B, dBdT, dBdF0);
+  }
+};
 
 VibrationalTemperaturesNonLocalThermodynamicEquilibrium::
     VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
@@ -1881,16 +1923,41 @@ VibrationalTemperaturesNonLocalThermodynamicEquilibrium::
         Numeric E0, Numeric Evl, Numeric Evu, Numeric QT, Numeric QT0,
         Numeric dQTdT, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept
     :
-    VibrationalTemperaturesNonLocalThermodynamicEquilibrium(I0, T, Tl, Tu, F0,
-                                                            E0, Evl, Evu, QT, QT0,
-                                                            dQTdT, r, drdSELFVMR, drdT,
-                                                            stimulated_emission(T, F0),
-                                                            stimulated_emission(T0, F0),
-                                                            boltzman_ratio(Tl, T, Evl),
-                                                            boltzman_ratio(Tu, T, Evu),
-                                                            boltzman_ratio(T, T0, E0),
-                                                            (1 - stimulated_emission(T, F0)) / (1 - stimulated_emission(T0, F0)),
-                                                            (boltzman_ratio(Tl, T, Evl) - boltzman_ratio(Tu, T, Evu) * stimulated_emission(T, F0)) / (1 - stimulated_emission(T, F0))) {}
+    VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
+      VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer(T, T0, F0, E0, Tl, Evl, Tu, Evu,
+                                                                         stimulated_emission(T, F0),
+                                                                         stimulated_emission(T0, F0),
+                                                                         boltzman_ratio(Tl, T, Evl),
+                                                                         boltzman_ratio(Tu, T, Evu)
+      )(I0, QT0, QT, dQTdT, r, drdSELFVMR, drdT)
+    ) {}
+    
+struct FullNonLocalThermodynamicEquilibriumInitialization {
+  static constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
+  static constexpr Numeric c1 = Constant::h / (4 * Constant::pi);
+  
+  Numeric k, dkdF0, dkdr1, dkdr2,
+          e, dedF0, dedr2,
+          B, dBdT, dBdF0;
+          
+  FullNonLocalThermodynamicEquilibriumInitialization(Numeric F0,
+    Numeric A21, Numeric r1, Numeric r2, Numeric c3, Numeric c2, Numeric x
+  ) noexcept :
+  k(c3 * (r1 * x - r2) * (A21 / c2)),
+  dkdF0(c1 * (r1 * x - r2) * (A21 / c2) - 3.0 * k / F0)
+  {}
+};
+    
+FullNonLocalThermodynamicEquilibrium::FullNonLocalThermodynamicEquilibrium(
+  Numeric F0, Numeric A21, Numeric T,
+  Numeric g1, Numeric g2, Numeric r1,
+  Numeric r2, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept :
+  FullNonLocalThermodynamicEquilibrium(F0, A21, T, r, drdSELFVMR, drdT,
+                                       g2 / g1, c0 * F0 * F0 * F0, c1 * F0,
+                                       std::exp(Conversion::hz2joule(F0) / Conversion::kelvin2joule(T)),
+                                       c0 * F0 * F0 * F0 / std::expm1(Conversion::hz2joule(F0) / Conversion::kelvin2joule(T)),
+                                       c1 * F0 * (r1 * g2 / g1 - r2) * (A21 / (c0 * F0 * F0 * F0)),
+                                       c1 * F0 * r2 * A21) {}
 
 Calculator line_shape_selection(const Type type, const Numeric F0,
                                 const Output &X, const Numeric DC,

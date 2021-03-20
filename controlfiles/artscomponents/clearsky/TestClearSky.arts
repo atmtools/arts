@@ -22,7 +22,11 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 # Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+AgendaSet( abs_xsec_agenda ){
+  Ignore(abs_nlte)
+  abs_xsec_per_speciesInit
+  abs_xsec_per_speciesAddConts
+}
 
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
@@ -33,8 +37,13 @@ Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+AgendaSet( propmat_clearsky_agenda ){
+  Ignore(rtp_mag)
+  Ignore(rtp_los)
+  propmat_clearskyInit
+  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddLines
+}
 
 # sensor-only path
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )

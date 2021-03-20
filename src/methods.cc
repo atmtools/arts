@@ -12550,7 +12550,7 @@ void define_md_data_raw() {
           "\n"
           "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
           "\n"
-          "Note that you need to have propmat_clearskyAddOnTheFly in addition to this method\n"
+          "Note that you need to have *propmat_clearskyAddLines* in addition to this method\n"
           "to compensate the calculations for the pressure limit\n"
           "\n"
           "Please ensure you cite the original authors when you use this function:\n"
