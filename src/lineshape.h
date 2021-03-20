@@ -3,6 +3,7 @@
 
 #include <variant>
 
+#include "constants.h"
 #include "energylevelmap.h"
 #include "linescaling.h"
 
@@ -330,7 +331,7 @@ public:
   Numeric S;
   static constexpr Numeric N = 0.0;
 
-  constexpr LocalThermodynamicEquilibrium(Numeric I0, Numeric r, Numeric drdSELFVMR, const Numeric drdT, Numeric QT0,
+  constexpr LocalThermodynamicEquilibrium(Numeric I0, Numeric r, Numeric drdSELFVMR, Numeric drdT, Numeric QT0,
                                           Numeric QT, Numeric dQTdT, Numeric br,
                                           Numeric dbr_dF0_rat, Numeric stim,
                                           Numeric dstim_dT, Numeric dstim_dF0) noexcept
@@ -340,7 +341,7 @@ public:
 
   LocalThermodynamicEquilibrium(Numeric I0, Numeric T0, Numeric T, Numeric F0,
                                 Numeric E0, Numeric QT, Numeric QT0,
-                                Numeric dQTdT, Numeric r, Numeric drdSELFVMR, const Numeric drdT) noexcept;
+                                Numeric dQTdT, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept;
 
   constexpr Numeric dSdT() const noexcept { return dSdTval; }
   constexpr Numeric dSdI0() const noexcept { return dSdI0val; }
@@ -378,12 +379,11 @@ public:
   Numeric S;
   Numeric N;
   
-  FullNonLocalThermodynamicEquilibrium(
+  constexpr FullNonLocalThermodynamicEquilibrium(
     Numeric r, Numeric drdSELFVMR, Numeric drdt,
     Numeric k, Numeric dkdF0, Numeric dkdr1, Numeric dkdr2,
     Numeric e, Numeric dedF0, Numeric dedr2,
-    Numeric B, Numeric dBdT, Numeric dBdF0, Numeric non
-  ) noexcept :
+    Numeric B, Numeric dBdT, Numeric dBdF0) noexcept :
   dSdTval(drdt * k),
   dNdTval(drdt * (e - k * B) - r * k * dBdT),
   dSdF0val(r * dkdF0),
@@ -395,24 +395,6 @@ public:
   dNdSELFVMRval(drdSELFVMR * (e - k * B)),
   S(r * k),
   N(r * (e - k * B))
-  {}
-  
-  constexpr FullNonLocalThermodynamicEquilibrium(
-    Numeric F0, Numeric A21, Numeric T,
-    Numeric r, Numeric drdSELFVMR, Numeric drdT,
-    Numeric x, Numeric c2, Numeric c3, Numeric expval,
-    Numeric b, Numeric k, Numeric e) noexcept :
-  dSdTval(drdT * k),
-  dNdTval(drdT * e / b - r * expval * e * Conversion::hz2joule(F0) / (c2 * T * Conversion::kelvin2joule(T)) - dSdTval),
-  dSdF0val(- 2 * r * k / F0),
-  dNdF0val(Constant::h * r * e * expval / (c2 * Conversion::kelvin2joule(T)) - 2 * r * e / (F0 * b) - dSdF0val),
-  dSdr1(r * c3 * x * (A21 / c2)),
-  dSdr2(- r * c3 * A21 / c2),
-  dNdr2(r * c3 * A21 / b - dSdr2),
-  dSdSELFVMRval(drdSELFVMR * k),
-  dNdSELFVMRval(drdSELFVMR * e / b -dSdSELFVMRval),
-  S(r * k),
-  N(r * e / b - S)
   {}
   
   FullNonLocalThermodynamicEquilibrium(Numeric F0, Numeric A21, Numeric T,

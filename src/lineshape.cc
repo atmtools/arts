@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "lineshape.h"
 #include "physics_funcs.h"
 
@@ -1874,8 +1876,41 @@ LocalThermodynamicEquilibrium::LocalThermodynamicEquilibrium(
           dstimulated_relative_emission_dT(F0, T0, T),
           dstimulated_relative_emission_dF0(F0, T0, T)) {
           }
+    
+struct FullNonLocalThermodynamicEquilibriumInitialization {
+  Numeric k, dkdF0, dkdr1, dkdr2,
+          e, dedF0, dedr2,
+          B, dBdT, dBdF0;
           
-          
+  FullNonLocalThermodynamicEquilibriumInitialization(Numeric F0, Numeric A21, Numeric T, Numeric r1, Numeric r2, Numeric c2, Numeric c3, Numeric x) noexcept :
+  k(c3 * (r1 * x - r2) * (A21 / c2)),
+  dkdF0(- 2.0 * k / F0),
+  dkdr1(c3 * x * (A21 / c2)),
+  dkdr2(- c3 * (A21 / c2)),
+  e(c3 * r2 * A21),
+  dedF0(e / F0),
+  dedr2(c3 * A21),
+  B(2 * Constant::h / Constant::pow2(Constant::c) * Constant::pow3(F0) / std::expm1((Constant::h / Constant::k * F0) / T)),
+  dBdT(Constant::pow2(B) * Constant::pow2(Constant::c) * std::exp((Constant::h / Constant::k * F0) / T) / (2*Constant::k*Constant::pow2(F0*T))),
+  dBdF0(3 * B / F0 - Constant::pow2(B) * Constant::pow2(Constant::c) * std::exp((Constant::h / Constant::k * F0) / T) / (2*Constant::k*T*Constant::pow3(F0)))
+  {}
+  
+  constexpr FullNonLocalThermodynamicEquilibrium operator()(
+    Numeric r, Numeric drdSELFVMR, Numeric drdT
+  ) && noexcept {
+    return FullNonLocalThermodynamicEquilibrium(r, drdSELFVMR, drdT,
+                                                k, dkdF0, dkdr1, dkdr2,
+                                                e, dedF0, dedr2,
+                                                B, dBdT, dBdF0);
+  }
+};
+    
+FullNonLocalThermodynamicEquilibrium::FullNonLocalThermodynamicEquilibrium(
+  Numeric F0, Numeric A21, Numeric T,
+  Numeric g1, Numeric g2, Numeric r1,
+  Numeric r2, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept :
+  FullNonLocalThermodynamicEquilibrium(FullNonLocalThermodynamicEquilibriumInitialization(F0, A21, T, r1, r2, c0 * F0 * F0 * F0, c1 * F0, g2 / g1)(r, drdSELFVMR, drdT)) {}
+
 struct VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer {
   Numeric K1, dK1dT, 
           K2, dK2dT, dK2dF0, 
@@ -1905,7 +1940,7 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer {
   
   constexpr VibrationalTemperaturesNonLocalThermodynamicEquilibrium operator()(Numeric I0,
                                                                                Numeric QT0, Numeric QT, Numeric dQTdT,
-                                                                               Numeric r, Numeric drdSELFVMR, Numeric drdT) const noexcept {
+                                                                               Numeric r, Numeric drdSELFVMR, Numeric drdT) && noexcept {
     return VibrationalTemperaturesNonLocalThermodynamicEquilibrium(I0,
                                                                    QT0, QT, dQTdT,
                                                                    r, drdSELFVMR, drdT,
@@ -1931,33 +1966,6 @@ VibrationalTemperaturesNonLocalThermodynamicEquilibrium::
                                                                          boltzman_ratio(Tu, T, Evu)
       )(I0, QT0, QT, dQTdT, r, drdSELFVMR, drdT)
     ) {}
-    
-struct FullNonLocalThermodynamicEquilibriumInitialization {
-  static constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
-  static constexpr Numeric c1 = Constant::h / (4 * Constant::pi);
-  
-  Numeric k, dkdF0, dkdr1, dkdr2,
-          e, dedF0, dedr2,
-          B, dBdT, dBdF0;
-          
-  FullNonLocalThermodynamicEquilibriumInitialization(Numeric F0,
-    Numeric A21, Numeric r1, Numeric r2, Numeric c3, Numeric c2, Numeric x
-  ) noexcept :
-  k(c3 * (r1 * x - r2) * (A21 / c2)),
-  dkdF0(c1 * (r1 * x - r2) * (A21 / c2) - 3.0 * k / F0)
-  {}
-};
-    
-FullNonLocalThermodynamicEquilibrium::FullNonLocalThermodynamicEquilibrium(
-  Numeric F0, Numeric A21, Numeric T,
-  Numeric g1, Numeric g2, Numeric r1,
-  Numeric r2, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept :
-  FullNonLocalThermodynamicEquilibrium(F0, A21, T, r, drdSELFVMR, drdT,
-                                       g2 / g1, c0 * F0 * F0 * F0, c1 * F0,
-                                       std::exp(Conversion::hz2joule(F0) / Conversion::kelvin2joule(T)),
-                                       c0 * F0 * F0 * F0 / std::expm1(Conversion::hz2joule(F0) / Conversion::kelvin2joule(T)),
-                                       c1 * F0 * (r1 * g2 / g1 - r2) * (A21 / (c0 * F0 * F0 * F0)),
-                                       c1 * F0 * r2 * A21) {}
 
 Calculator line_shape_selection(const Type type, const Numeric F0,
                                 const Output &X, const Numeric DC,
