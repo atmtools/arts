@@ -1471,10 +1471,10 @@ void propmat_clearskyAddLines(  // Workspace reference:
   ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
   
   // Calculations data
-  ComplexVector F(nf);
-  ComplexVector N(nlte_do ? nf : 0);
-  ComplexMatrix dF(nf, nq);
-  ComplexMatrix dN(nlte_do ? nf : 0, nlte_do ? nq : 0);
+  ComplexVector F(nf, 0);
+  ComplexVector N(nlte_do ? nf : 0, 0);
+  ComplexMatrix dF(nf, nq, 0);
+  ComplexMatrix dN(nlte_do ? nf : 0, nlte_do ? nq : 0, 0);
   
   // Need to do more complicated calculations if legacy_vmr is true
   const bool legacy_vmr=std::any_of(jacobian_quantities.cbegin(), jacobian_quantities.cend(),
