@@ -41,7 +41,7 @@ constexpr LineShape::SingleSpeciesModel init_mpm2020_slsm(Numeric g00,
                                                           Numeric dv1,
                                                           Numeric x) noexcept
 {
-  LineShape::SingleSpeciesModel ssm{};
+  LineShape::SingleSpeciesModel ssm;
   ssm.G0() = {LineShape::TemperatureModel::T1, g00, x,   NAN, NAN};
   ssm.Y()  = {LineShape::TemperatureModel::T4, y0,  y1,    x, NAN};
   ssm.G()  = {LineShape::TemperatureModel::T4, g0,  g1,  2*x, NAN};
@@ -140,7 +140,7 @@ constexpr std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> init_mpm2020
   constexpr Numeric x = 0.754;
   
   // Init all the values
-  std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> out{};
+  std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> out;
   for (std::size_t i=0; i<nlines_mpm2020; i++) {
     out[i] = init_mpm2020_slsm(g00[i], y0[i], y1[i], g0[i], g1[i], dv0[i], dv1[i], x);
   }
@@ -150,8 +150,8 @@ constexpr std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> init_mpm2020
 
 constexpr QuantumIdentifier init_mpm2020_qid(Index species, Index isot, Rational Jup, Rational Jlow, Rational Nup, Rational Nlow) noexcept
 {
-  QuantumNumbers upp{};
-  QuantumNumbers low{};
+  QuantumNumbers upp;
+  QuantumNumbers low;
   upp[QuantumNumberType::J] = Jup;
   upp[QuantumNumberType::N] = Nup;
   upp[QuantumNumberType::v1] = 0;
@@ -197,7 +197,7 @@ constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids(const 
     34, 36, 36, 38, 2, 2, 3, 4, 4, 5};
   
   // Init all the values
-  std::array<QuantumIdentifier, nlines_mpm2020> out {};
+  std::array<QuantumIdentifier, nlines_mpm2020> out;
   for (std::size_t i=0; i<nlines_mpm2020; i++) {
     out[i] = init_mpm2020_qid(species, isot, Rational(Jp[i]), Rational(Np[i]), Rational(Jpp[i]), Rational(Npp[i]));
   }
