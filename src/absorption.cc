@@ -326,6 +326,11 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
       // For "real" species (not representing continau) the isotopologue
       // ratio must not be NAN or below zero.
       if (!this_sd.Isotopologue()[iso].isContinuum()) {
+        ARTS_USER_ERROR_IF(isoratios.getParam(sp, iso).nelem() == 0,
+                           "No isotopologue ratio found for ",
+                           this_sd.Name(),
+                           "-",
+                           this_sd.Isotopologue()[iso].Name())
         ARTS_USER_ERROR_IF (std::isnan(isoratios.getParam(sp, iso)[0].data[0]) ||
                             isoratios.getParam(sp, iso)[0].data[0] < 0.,
             "Invalid isotopologue ratio.\n"
