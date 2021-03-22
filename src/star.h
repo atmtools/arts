@@ -1,6 +1,6 @@
 /* Copyright (C) 2021
-      Jon Petersen <jon.petersen@studium.uni-hamburg.de>
-      Manfred Brath  <manfred.brath@uni-hamburg.de>
+   Jon Petersen <jon.petersen@studium.uni-hamburg.de>
+   Manfred Brath  <manfred.brath@uni-hamburg.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -20,12 +20,57 @@
 
 /*!
   \file   star.h
+  \author Jon Petersen <jon.petersen@studium.uni-hamburg.de>
+          Manfred Brath  <manfred.brath@uni-hamburg.de>
+  \date   2021-02-22
 
-  \brief  This file contains functions that are adapted from TESSEM
-  code which is used to calculate surface emissivity.
+  \brief  Declaration of functions in star.cc.
 */
 
 #ifndef star_h
 #define star_h
+
+/*===========================================================================
+  === External declarations
+  ===========================================================================*/
+
+#include "agenda_class.h"
+#include "propagationmatrix.h"
+
+
+/*===========================================================================
+  === Functions in star.cc
+  ===========================================================================*/
+
+/**
+ *
+ * @param[out] scattered_starlight StokesVector scattered monochromatic radiance
+ *             spectrum of star.
+ * @param[in] f_grid Vector frequency grid.
+ * @param[in] p Numeric pressure at location of scattering.
+ * @param[in] T Numeric temperature at location of scattering.
+ * @param[in] vmr Vector volume mixing ratios of absorption species at location
+ *            of scattering.
+ * @param[in] transmitted_starlight StokesVector transmitted monochromatic radiance
+ *             spectrum of star at location of scattering.
+ * @param[in] in_los Vector incoming direction of the transmitted star irradiance
+ *            spectrum.
+ * @param[in] out_los outgoing direction of the transmitted star irradiance
+ *            spectrum.
+ * @param[in] gas_scattering_agenda Agenda agenda calculating the gas scattering
+ *            cross sectionand matrix.
+ */
+void get_scattered_starsource(
+    StokesVector& scattered_starlight,
+    const Vector& f_grid,
+    const Numeric& p,
+    const Numeric& T,
+    const Vector& vmr,
+    const StokesVector& transmitted_starlight,
+    const Vector& in_los,
+    const Vector& out_los,
+    const Agenda& gas_scattering_agenda
+);
+
 
 #endif /* star_h */

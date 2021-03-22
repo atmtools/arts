@@ -1,6 +1,6 @@
 /* Copyright (C) 2021
-      Jon Petersen <jon.petersen@studium.uni-hamburg.de>
-      Manfred Brath  <manfred.brath@uni-hamburg.de>
+   Jon Petersen <jon.petersen@studium.uni-hamburg.de>
+   Manfred Brath  <manfred.brath@uni-hamburg.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -20,13 +20,29 @@
 
 /*!
   \file   star.cc
+  \author Jon Petersen <jon.petersen@studium.uni-hamburg.de>
+          Manfred Brath  <manfred.brath@uni-hamburg.de>
+  \date   2021-02-22
 
-  \brief  This file contains functions that are adapted from TESSEM2
-  code which is used to calculate surface emissivity.
-
-  The implementation is based on the Fortran code v1.0 developed by Catherine
-  Prigent and Filipe Aires in the EUMETSAT Study on surface emissivity at
-  microwave and sub-millimeter frequencies project EUM/CO/14/4600001473/CJA
+  \brief  Functions needed for radiative transfer with direct sources.
 */
 
 #include "star.h"
+#include "agenda_class.h"
+#include "propagationmatrix.h"
+
+void get_scattered_starsource(
+    StokesVector& scattered_starlight,
+    const Vector& f_grid,
+    const Numeric& p,
+    const Numeric& T,
+    const Vector& vmr,
+    const StokesVector& transmitted_starlight,
+    const Vector& in_los,
+    const Vector& out_los,
+    const Agenda& gas_scattering_agenda
+    ){
+
+
+
+}

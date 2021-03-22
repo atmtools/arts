@@ -397,10 +397,129 @@ void iyClearsky(
                                              atmosphere_dim,
                                              j_analytical_do);
 
-        // Here absorption equals extinction
-        a = K[ip];
-        if (j_analytical_do)
-          FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
+        if (gas_scattering_do) {
+          if (star_do) {
+
+
+
+            for (Index i_star = 0; i_star < star_spectrum.nelem(); i_star++) {
+              // get the line of sight direction from star i_star to ppath point
+              rte_losGeometricFromRtePosToRtePos2(rte_los,
+                                                  atmosphere_dim,
+                                                  lat_grid,
+                                                  lon_grid,
+                                                  refellipsoid,
+                                                  rte_pos,
+                                                  rte_pos2,
+                                                  verbosity);
+
+              // calculate ppath (star path) from star to ppath point
+              ppathFromRtePos2(ws,
+                               star_ppath,
+                               rte_los,
+                               ppath_lraytrace,
+                               ppath_step_agenda,
+                               atmosphere_dim,
+                               p_grid,
+                               lat_grid,
+                               lon_grid,
+                               z_field,
+                               f_grid,
+                               refellipsoid,
+                               z_surface,
+                               rte_pos,
+                               rte_pos2,
+                               ppath_lmax,
+                               za_accuracy,
+                               pplrt_factor,
+                               pplrt_lowest,
+                               verbosity);
+
+              // calculate transmission through atmosphere
+              iyTransmissionStandard(ws,
+                                     transmitted_starlight,
+                                     iy_aux,
+                                     diy_dx,
+                                     ppvar_p,
+                                     ppvar_t,
+                                     ppvar_nlte,
+                                     ppvar_vmr,
+                                     ppvar_wind,
+                                     ppvar_mag,
+                                     ppvar_pnd,
+                                     ppvar_f,
+                                     ppvar_iy,
+                                     ppvar_trans_cumulat,
+                                     stokes_dim,
+                                     f_grid,
+                                     atmosphere_dim,
+                                     p_grid,
+                                     t_field,
+                                     nlte_field,
+                                     vmr_field,
+                                     abs_species,
+                                     wind_u_field,
+                                     wind_v_field,
+                                     wind_w_field,
+                                     mag_u_field,
+                                     mag_v_field,
+                                     mag_w_field,
+                                     cloudbox_on,
+                                     cloudbox_limits,
+                                     gas_scattering_do,
+                                     pnd_field,
+                                     dpnd_field_dx,
+                                     scat_species,
+                                     scat_data,
+                                     iy_aux_vars,
+                                     jacobian_do,
+                                     jacobian_quantities,
+                                     star_ppath,
+                                     star_spectrum[i_star],
+                                     propmat_clearsky_agenda,
+                                     water_p_eq_agenda,
+                                     gas_scattering_agenda,
+                                     iy_agenda_call1,
+                                     iy_transmittance,
+                                     rte_alonglos_v,
+                                     verbosity);
+
+              //add here get_scattered_directsource
+              get_scattered_starsource(scattered_starlight,
+                                       f_grid,
+                                       p,
+                                       T,
+                                       vmr,
+                                       transmitted_starlight,
+                                       in_los,
+                                       out_los,
+                                       gas_scattering_agenda);
+            }
+          }
+
+          // add gas scattering extiction
+          gas_scattering_agendaExecute(ws,
+                                       K_sca,
+                                       sca_mat,
+                                       f_grid,
+                                       ppvar_p[ip],
+                                       ppvar_t[ip],
+                                       ppvar_vmr(joker, ip),
+                                       in_los,
+                                       out_los,
+                                       gas_scattering_agenda);
+
+          // absorption equals extinction only for the gas absorption part.
+          a = K[ip];
+          K[ip] += K_sca;
+
+
+        } else {
+          // Here absorption equals extinction
+          a = K[ip];
+          if (j_analytical_do)
+            FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
+        }
 
         stepwise_source(src_rad[ip],
                         dsrc_rad[ip],
