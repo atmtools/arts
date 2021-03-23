@@ -441,7 +441,6 @@ void iyClearsky(
 
         if (gas_scattering_do) {
           if (star_do) {
-
             for (Index i_star = 0; i_star < star_spectrum.nelem(); i_star++) {
               // get the line of sight direction from star i_star to ppath point
               rte_losGeometricFromRtePosToRtePos2(star_rte_los,
@@ -450,7 +449,7 @@ void iyClearsky(
                                                   lon_grid,
                                                   refellipsoid,
                                                   star_pos[i_star],
-                                                  ppath.pos(ip,joker),
+                                                  ppath.pos(ip, joker),
                                                   verbosity);
 
               // calculate ppath (star path) from star to ppath point
@@ -468,7 +467,7 @@ void iyClearsky(
                                refellipsoid,
                                z_surface,
                                star_pos[i_star],
-                               ppath.pos(ip,joker),
+                               ppath.pos(ip, joker),
                                ppath_lmax,
                                2e-5,
                                5.,
@@ -525,20 +524,20 @@ void iyClearsky(
                                      verbosity);
 
               //add here get_scattered_directsource
-//              StokesVector test = StokesVector(transmitted_starlight);
+              //              StokesVector test = StokesVector(transmitted_starlight);
 
-              get_scattered_starsource(scattered_starlight,
+              get_scattered_starsource(ws,
+                                       scattered_starlight,
                                        f_grid,
                                        ppvar_p[ip],
                                        ppvar_t[ip],
-                                       ppvar_vmr(joker,ip),
+                                       ppvar_vmr(joker, ip),
                                        StokesVector(transmitted_starlight),
                                        star_rte_los,
-                                       ppath.los(ip,joker),
+                                       ppath.los(ip, joker),
                                        gas_scattering_agenda);
 
-              S+=scattered_starlight;
-
+              S += scattered_starlight;
             }
           }
 

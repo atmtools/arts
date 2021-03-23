@@ -44,6 +44,7 @@
 
 /**
  *
+ * @param[in,out] ws ARTS workspace.
  * @param[out] scattered_starlight StokesVector scattered monochromatic radiance
  *             spectrum of star.
  * @param[in] f_grid Vector frequency grid.
@@ -61,6 +62,7 @@
  *            cross sectionand matrix.
  */
 void get_scattered_starsource(
+    Workspace& ws,
     StokesVector& scattered_starlight,
     const Vector& f_grid,
     const Numeric& p,

@@ -56,6 +56,7 @@ void gas_scatteringOff(Index& gas_scattering_do,
   gas_scattering_agenda.set_name("gas_scattering_agenda");
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
                                  const Vector& f_grid,
                                  const Numeric& rtp_pressure,
@@ -76,4 +77,14 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
   sca_coef.SetZero();
   sca_coef.Kjj() += Xsec;
   sca_coef.Kjj() *= N;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void gas_scatteringMatrixIsotropic(PropagationMatrix& sca_mat,
+                                   const Vector& f_grid,
+                                   const Index& stokes_dim,
+                                   const Verbosity&) {
+  sca_mat(f_grid.nelem(), stokes_dim, stokes_dim);
+  sca_mat.SetZero();
+  sca_mat.Kjj() += 1 / (4 * PI);
 }

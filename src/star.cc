@@ -28,21 +28,55 @@
 */
 
 #include "star.h"
+#include "auto_md.h"
 #include "agenda_class.h"
 #include "propagationmatrix.h"
 
-void get_scattered_starsource(
-    StokesVector& scattered_starlight,
-    const Vector& f_grid,
-    const Numeric& p,
-    const Numeric& T,
-    const Vector& vmr,
-    const StokesVector& transmitted_starlight,
-    const Vector& in_los,
-    const Vector& out_los,
-    const Agenda& gas_scattering_agenda
-    ){
+void get_scattered_starsource(Workspace& ws,
+                              StokesVector& scattered_starlight,
+                              const Vector& f_grid,
+                              const Numeric& p,
+                              const Numeric& T,
+                              const Vector& vmr,
+                              const StokesVector& transmitted_starlight,
+                              const Vector& in_los,
+                              const Vector& out_los,
+                              const Agenda& gas_scattering_agenda) {
+  PropagationMatrix K_sca;
+  PropagationMatrix sca_mat;
+
+  gas_scattering_agendaExecute(ws,
+                               K_sca,
+                               sca_mat,
+                               f_grid,
+                               p,
+                               T,
+                               vmr,
+                               in_los,
+                               out_los,
+                               gas_scattering_agenda);
 
 
+  Index ns = transmitted_starlight.StokesDimensions();
+  Index nf = f_grid.nelem();
 
+  Vector I_in(ns, 0);
+  Matrix Z(ns, ns, 0);
+
+  Vector temp(ns, 0);
+
+  for (Index i_f = 0; i_f < nf; i_f++) {
+    I_in = transmitted_starlight.VectorAtPosition(i_f);
+
+    sca_mat.MatrixAtPosition(Z, i_f);
+
+    temp *= 0;
+
+    for (Index i_s = 0; i_s < ns; i_s++) {
+      for (Index j_s = 0; j_s < ns; j_s++) {
+        temp[i_s] += Z(i_s, j_s) * I_in[j_s];
+      }
+    }
+    scattered_starlight.SetAtPosition(temp, i_f);
+  }
 }
