@@ -43,6 +43,7 @@
 #include "ppath.h"
 #include "rte.h"
 #include "special_interp.h"
+#include "star.h"
 #include "transmissionmatrix.h"
 #include <cmath>
 #include <stdexcept>
@@ -179,6 +180,9 @@ void iyClearsky(
     const Vector& f_grid,
     const Index& atmosphere_dim,
     const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Tensor3& z_field,
     const Tensor3& t_field,
     const EnergyLevelMap& nlte_field,
     const Tensor4& vmr_field,
@@ -189,6 +193,10 @@ void iyClearsky(
     const Tensor3& mag_u_field,
     const Tensor3& mag_v_field,
     const Tensor3& mag_w_field,
+    const Matrix& z_surface,
+    const Vector& refellipsoid,
+    const Numeric& ppath_lmax,
+    const Numeric& ppath_lraytrace,
     const Index& cloudbox_on,
     const Index& gas_scattering_do,
     const Index& star_do,
@@ -208,6 +216,7 @@ void iyClearsky(
     const Agenda& iy_surface_agenda,
     const Agenda& iy_cloudbox_agenda,
     const Agenda& gas_scattering_agenda,
+    const Agenda& ppath_step_agenda,
     const Index& iy_agenda_call1,
     const Tensor3& iy_transmittance,
     const Numeric& rte_alonglos_v,
@@ -351,6 +360,39 @@ void iyClearsky(
           })
     }
 
+
+    //allocate Varibale for direct (star) source
+    Vector star_rte_los;
+    Ppath star_ppath;
+    Matrix transmitted_starlight;
+    Numeric ppath_lraytrace2=ppath_lraytrace;
+    StokesVector scattered_starlight(nf, ns);
+    PropagationMatrix K_sca;
+
+    //dummy variables needed for the output and input of iyTransmission and
+    // gas_scattering_agenda
+    ArrayOfMatrix iy_aux_dummy;
+    ArrayOfTensor3 diy_dx_dummy;
+    Vector ppvar_p_dummy;
+    Vector ppvar_t_dummy;
+    EnergyLevelMap ppvar_nlte_dummy;
+    Matrix ppvar_vmr_dummy;
+    Matrix ppvar_wind_dummy;
+    Matrix ppvar_mag_dummy;
+    Matrix ppvar_pnd_dummy;
+    Matrix ppvar_f_dummy;
+    Tensor3 ppvar_iy_dummy;
+    Tensor4 ppvar_trans_cumulat_dummy;
+    ArrayOfIndex cloudbox_limits_dummy;
+    Tensor4 pnd_field_dummy;
+    ArrayOfTensor4 dpnd_field_dx_dummy;
+    ArrayOfString scat_species_dummy;
+    ArrayOfArrayOfSingleScatteringData scat_data_dummy;
+    PropagationMatrix sca_mat_dummy;
+    Vector in_los_dummy;
+    Vector out_los_dummy;
+
+
     Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
     Workspace l_ws(ws);
     ArrayOfString fail_msg;
@@ -400,24 +442,22 @@ void iyClearsky(
         if (gas_scattering_do) {
           if (star_do) {
 
-
-
             for (Index i_star = 0; i_star < star_spectrum.nelem(); i_star++) {
               // get the line of sight direction from star i_star to ppath point
-              rte_losGeometricFromRtePosToRtePos2(rte_los,
+              rte_losGeometricFromRtePosToRtePos2(star_rte_los,
                                                   atmosphere_dim,
                                                   lat_grid,
                                                   lon_grid,
                                                   refellipsoid,
-                                                  rte_pos,
-                                                  rte_pos2,
+                                                  star_pos[i_star],
+                                                  ppath.pos(ip,joker),
                                                   verbosity);
 
               // calculate ppath (star path) from star to ppath point
               ppathFromRtePos2(ws,
                                star_ppath,
-                               rte_los,
-                               ppath_lraytrace,
+                               star_rte_los,
+                               ppath_lraytrace2,
                                ppath_step_agenda,
                                atmosphere_dim,
                                p_grid,
@@ -427,29 +467,29 @@ void iyClearsky(
                                f_grid,
                                refellipsoid,
                                z_surface,
-                               rte_pos,
-                               rte_pos2,
+                               star_pos[i_star],
+                               ppath.pos(ip,joker),
                                ppath_lmax,
-                               za_accuracy,
-                               pplrt_factor,
-                               pplrt_lowest,
+                               2e-5,
+                               5.,
+                               0.5,
                                verbosity);
 
               // calculate transmission through atmosphere
               iyTransmissionStandard(ws,
                                      transmitted_starlight,
-                                     iy_aux,
-                                     diy_dx,
-                                     ppvar_p,
-                                     ppvar_t,
-                                     ppvar_nlte,
-                                     ppvar_vmr,
-                                     ppvar_wind,
-                                     ppvar_mag,
-                                     ppvar_pnd,
-                                     ppvar_f,
-                                     ppvar_iy,
-                                     ppvar_trans_cumulat,
+                                     iy_aux_dummy,
+                                     diy_dx_dummy,
+                                     ppvar_p_dummy,
+                                     ppvar_t_dummy,
+                                     ppvar_nlte_dummy,
+                                     ppvar_vmr_dummy,
+                                     ppvar_wind_dummy,
+                                     ppvar_mag_dummy,
+                                     ppvar_pnd_dummy,
+                                     ppvar_f_dummy,
+                                     ppvar_iy_dummy,
+                                     ppvar_trans_cumulat_dummy,
                                      stokes_dim,
                                      f_grid,
                                      atmosphere_dim,
@@ -464,13 +504,13 @@ void iyClearsky(
                                      mag_u_field,
                                      mag_v_field,
                                      mag_w_field,
-                                     cloudbox_on,
-                                     cloudbox_limits,
+                                     0,
+                                     cloudbox_limits_dummy,
                                      gas_scattering_do,
-                                     pnd_field,
-                                     dpnd_field_dx,
-                                     scat_species,
-                                     scat_data,
+                                     pnd_field_dummy,
+                                     dpnd_field_dx_dummy,
+                                     scat_species_dummy,
+                                     scat_data_dummy,
                                      iy_aux_vars,
                                      jacobian_do,
                                      jacobian_quantities,
@@ -485,28 +525,33 @@ void iyClearsky(
                                      verbosity);
 
               //add here get_scattered_directsource
+//              StokesVector test = StokesVector(transmitted_starlight);
+
               get_scattered_starsource(scattered_starlight,
                                        f_grid,
-                                       p,
-                                       T,
-                                       vmr,
-                                       transmitted_starlight,
-                                       in_los,
-                                       out_los,
+                                       ppvar_p[ip],
+                                       ppvar_t[ip],
+                                       ppvar_vmr(joker,ip),
+                                       StokesVector(transmitted_starlight),
+                                       star_rte_los,
+                                       ppath.los(ip,joker),
                                        gas_scattering_agenda);
+
+              S+=scattered_starlight;
+
             }
           }
 
           // add gas scattering extiction
           gas_scattering_agendaExecute(ws,
                                        K_sca,
-                                       sca_mat,
+                                       sca_mat_dummy,
                                        f_grid,
                                        ppvar_p[ip],
                                        ppvar_t[ip],
                                        ppvar_vmr(joker, ip),
-                                       in_los,
-                                       out_los,
+                                       in_los_dummy,
+                                       out_los_dummy,
                                        gas_scattering_agenda);
 
           // absorption equals extinction only for the gas absorption part.
@@ -1414,7 +1459,7 @@ void iyEmissionStandard(
         ppvar_trans_partial(0,iv,is,is) = 1;
       }
     }
-    
+
   } else {
     // Basic atmospheric variables
     get_ppath_atmvars(ppvar_p,

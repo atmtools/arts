@@ -1228,6 +1228,26 @@ class StokesVector final : public PropagationMatrix {
     for (Index i = 0; i < mstokes_dim; i++) mdata(0, 0, 0, i) = x[i];
   };
 
+  /** Construct a new Stokes Vector object
+   *
+   * @param x Single Stokes vector
+   */
+    explicit StokesVector(ConstMatrixView x) {
+      mfreqs = x.nrows();
+      mstokes_dim = x.ncols();
+      mza = 1;
+      maa = 1;
+      ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
+      mvectortype = true;
+      mdata.resize(1, 1, mfreqs, mstokes_dim);
+      for (Index j = 0; j < mstokes_dim; j++){
+        for (Index i = 0; i < mstokes_dim; i++){
+          mdata(0, 0, j, i) = x(j,i);
+        }
+      }
+    };
+
+
   /** Construct a new Stokes Vector as a scale between two others
    * 
    * @param a input 1
