@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "energylevelmap.h"
 #include "linescaling.h"
+#include "nonstd.h"
 
 namespace LineShape {
 struct Noshape {
@@ -27,20 +28,26 @@ struct Noshape {
   constexpr Complex operator()(Numeric) const noexcept { return F; }
 }; // Noshape
 
-class Doppler {
+struct Doppler {
   Numeric mF0;
   Numeric invGD;
   Numeric x;
 
-public:
   Complex F;
 
-  Doppler(Numeric F0_noshift, Numeric DC, Numeric dZ) noexcept;
+  constexpr Doppler(Numeric F0_noshift, Numeric DC, Numeric dZ) noexcept
+  : mF0(F0_noshift + dZ), invGD(1.0 / nonstd::abs(DC * mF0)), x(), F() {}
 
-  Complex dFdT(const Output &, Numeric T) const noexcept;
-  Complex dFdf() const noexcept;
-  Complex dFdF0() const noexcept;
-  Complex dFdH(Numeric dZ) const noexcept;
+  constexpr Complex dFdT(const Output &, Numeric T) const noexcept {
+    return F * (2 * Constant::pow2(x) - 1) / (2 * T);
+  }
+  constexpr Complex dFdf() const noexcept { return -2 * invGD * F * x; }
+  constexpr Complex dFdF0() const noexcept {
+    return F * (2 * x * (invGD * mF0 + x) - 1) / mF0;
+  }
+  constexpr Complex dFdH(Numeric dZ) const noexcept {
+    return dZ * (F * (2 * x * (invGD * mF0 + x) - 1) / mF0);
+  }
   static constexpr Complex dFdFVC(Numeric) noexcept { return 0; }
   static constexpr Complex dFdETA(Numeric) noexcept { return 0; }
   static constexpr Complex dFdVMR(const Output &) noexcept { return 0; }
@@ -53,17 +60,14 @@ public:
   Complex operator()(Numeric f) noexcept;
 }; // Doppler
 
-class Lorentz {
+struct Lorentz {
   Numeric mF0;
   Numeric G0;
 
-public:
   Complex F;
 
-private:
   Complex dF;
 
-public:
   constexpr Lorentz(Numeric F0_noshift, const Output &ls) noexcept
       : mF0(F0_noshift + ls.D0 + ls.DV), G0(ls.G0) {}
 
@@ -91,28 +95,33 @@ public:
   }
 }; // Lorentz
 
-class Voigt {
+struct Voigt {
   Numeric mF0;
   Numeric invGD;
   Complex z;
 
-public:
   Complex F;
 
-private:
   Complex dF;
 
-public:
-  Voigt(Numeric F0_noshift, const Output &ls, Numeric DC, Numeric dZ) noexcept;
+  constexpr Voigt(Numeric F0_noshift, const Output &ls, Numeric DC, Numeric dZ) noexcept
+  : mF0(F0_noshift + dZ + ls.D0 + ls.DV),
+  invGD(1.0 / std::abs(DC * mF0)), z(invGD * Complex(-mF0, ls.G0)), F(), dF() {}
 
-  Complex dFdf() const noexcept;
-  Complex dFdF0() const noexcept;
-  Complex dFdDV(Numeric d) const noexcept;
-  Complex dFdD0(Numeric d) const noexcept;
-  Complex dFdG0(Numeric d) const noexcept;
-  Complex dFdH(Numeric dZ) const noexcept;
-  Complex dFdVMR(const Output &d) const noexcept;
-  Complex dFdT(const Output &d, Numeric T) const noexcept;
+  constexpr Complex dFdf() const noexcept { return dF; }
+  constexpr Complex dFdF0() const noexcept { return -dF; }
+  constexpr Complex dFdDV(Numeric d) const noexcept { return -d * dF; }
+  constexpr Complex dFdD0(Numeric d) const noexcept { return -d * dF; }
+  constexpr Complex dFdG0(Numeric d) const noexcept { return Complex(0, d) * dF; }
+  constexpr Complex dFdH(Numeric dZ) const noexcept { return -dZ * dF; }
+  constexpr Complex dFdVMR(const Output &d) const noexcept {
+    return Complex(-d.D0 - d.DV, d.G0) * dF;
+  }
+  constexpr Complex dFdT(const Output &d, Numeric T) const noexcept {
+    return -(F * invGD + dF * z) * (2 * T * (d.D0 + d.DV) + mF0) /
+    (2 * T * invGD * mF0) +
+    Complex(-d.D0 - d.DV, d.G0) * dF;
+  }
   static constexpr Complex dFdETA(Numeric) noexcept { return 0; }
   static constexpr Complex dFdFVC(Numeric) noexcept { return 0; }
   static constexpr Complex dFdD2(Numeric) noexcept { return 0; }
@@ -123,8 +132,8 @@ public:
   bool OK() const noexcept { return invGD > 0; }
 }; // Voigt
 
-class SpeedDependentVoigt {
-  enum class CalcType : char {
+struct SpeedDependentVoigt {
+  enum struct CalcType : char {
     Voigt,
     LowXandHighY,
     LowYandLowX,
@@ -145,7 +154,6 @@ class SpeedDependentVoigt {
   Complex dw1;
   Complex dw2;
 
-public:
   Complex F;
 
   SpeedDependentVoigt(Numeric F0_noshift, const Output &ls, Numeric GD_div_F0,
@@ -166,14 +174,13 @@ public:
 
   Complex operator()(Numeric f) noexcept;
 
-private:
   CalcType init(const Complex c2) const noexcept;
   void update_calcs() noexcept;
   void calc() noexcept;
 }; // SpeedDependentVoigt
 
-class HartmannTran {
-  enum class CalcType : char {
+struct HartmannTran {
+  enum struct CalcType : char {
     Noc2tLowZ,
     Noc2tHighZ,
     LowXandHighY,
@@ -207,8 +214,7 @@ class HartmannTran {
   Complex K;
   Complex dw1;
   Complex dw2;
-
-public:
+  
   Complex F;
 
   HartmannTran(Numeric F0_noshift, const Output &ls, Numeric GD_div_F0,
@@ -229,7 +235,6 @@ public:
 
   Complex operator()(Numeric f) noexcept;
 
-private:
   CalcType init(const Complex c2t) const noexcept;
   void update_calcs() noexcept;
   void calc() noexcept;
@@ -247,13 +252,12 @@ struct Nonorm {
   constexpr Numeric operator()(Numeric) noexcept { return N; }
 }; // Nonorm
 
-class VanVleckHuber {
+struct VanVleckHuber {
   Numeric c1;
   Numeric tanh_c1f0;
   Numeric inv_denom;
   Numeric tanh_c1f;
 
-public:
   Numeric N;
 
   VanVleckHuber(Numeric F0, Numeric T) noexcept;
@@ -265,10 +269,9 @@ public:
   Numeric operator()(Numeric f) noexcept;
 }; // VanVleckHuber
 
-class VanVleckWeisskopf {
+struct VanVleckWeisskopf {
   Numeric invF0;
 
-public:
   Numeric N;
 
   constexpr VanVleckWeisskopf(Numeric F0) noexcept : invF0(1.0 / F0), N(1) {}
@@ -285,12 +288,11 @@ public:
   }
 }; // VanVleckWeisskopf
 
-class RosenkranzQuadratic {
+struct RosenkranzQuadratic {
   Numeric fac;
   Numeric dfacdT;
   Numeric dfacdF0;
 
-public:
   Numeric N;
 
   RosenkranzQuadratic(Numeric F0, Numeric T) noexcept;
@@ -319,15 +321,16 @@ struct Nostrength {
   static constexpr Numeric dNdNLTEu() noexcept { return 0; }
   static constexpr Numeric dNdNLTEl() noexcept { return 0; }
   static constexpr Numeric dNdSELFVMR() noexcept { return 0; }
+  
+  static constexpr bool do_nlte() noexcept {return false;}
 }; // Nostrength
 
-class LocalThermodynamicEquilibrium {
+struct LocalThermodynamicEquilibrium {
   Numeric dSdI0val;
   Numeric dSdTval;
   Numeric dSdF0val;
   Numeric dSdSELFVMRval;
 
-public:
   Numeric S;
   static constexpr Numeric N = 0.0;
 
@@ -356,9 +359,11 @@ public:
   static constexpr Numeric dNdNLTEu() noexcept { return 0; }
   static constexpr Numeric dNdNLTEl() noexcept { return 0; }
   static constexpr Numeric dNdSELFVMR() noexcept { return 0; }
+  
+  static constexpr bool do_nlte() noexcept {return false;}
 }; // LocalThermodynamicEquilibrium
 
-class FullNonLocalThermodynamicEquilibrium {
+struct FullNonLocalThermodynamicEquilibrium {
   static constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
   static constexpr Numeric c1 = Constant::h / (4 * Constant::pi);
   
@@ -375,7 +380,6 @@ class FullNonLocalThermodynamicEquilibrium {
   Numeric dSdSELFVMRval;
   Numeric dNdSELFVMRval;
   
-public:
   Numeric S;
   Numeric N;
   
@@ -415,9 +419,11 @@ public:
   constexpr Numeric dNdNLTEu() const noexcept { return -dSdr1; }
   constexpr Numeric dNdNLTEl() const noexcept { return dNdr2; }
   constexpr Numeric dNdSELFVMR() const noexcept { return dNdSELFVMRval; }
+  
+  static constexpr bool do_nlte() noexcept {return true;}
 }; // FullNonLocalThermodynamicEquilibrium
 
-class VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
+struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
   Numeric dSdI0val;
   Numeric dNdI0val;
 
@@ -434,7 +440,6 @@ class VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
   Numeric dSdSELFVMRval;
   Numeric dNdSELFVMRval;
 
-public:
   Numeric S;
   Numeric N;
   
@@ -491,6 +496,8 @@ public:
   constexpr Numeric dNdNLTEu() const noexcept { return -dSdTl; }
   constexpr Numeric dNdNLTEl() const noexcept { return dNdTu; }
   constexpr Numeric dNdSELFVMR() const noexcept { return dNdSELFVMRval; }
+  
+  static constexpr bool do_nlte() noexcept {return true;}
 }; // VibrationalTemperaturesNonLocalThermodynamicEquilibrium
 
 typedef std::variant<Noshape, Doppler, Lorentz, Voigt, SpeedDependentVoigt,
@@ -513,11 +520,10 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
              const EnergyLevelMap &nlte,
              const SpeciesAuxData::AuxType &partfun_type,
              const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
-             const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
-             const bool do_nlte = false, const Numeric &H = 0,
+             const Numeric &self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H,
+             const bool do_nlte = false,
              const bool do_zeeman = false,
-             const Zeeman::Polarization zeeman_polarization =
-                 Zeeman::Polarization::Pi, const Numeric& self_vmr=std::numeric_limits<Numeric>::quiet_NaN(), const bool do_numden=false) ARTS_NOEXCEPT;
+             const Zeeman::Polarization zeeman_polarization = Zeeman::Polarization::Pi) ARTS_NOEXCEPT;
 
 } // namespace LineShape
 

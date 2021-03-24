@@ -1005,17 +1005,44 @@ void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
       }
     }
     
-    if (match < 0)
+    if (match < 0) {
       x.push_back(lines);
-    else {
-      for (auto& line: lines.AllLines())
+    } else {
+      for (auto& line: lines.AllLines()) {
         x[match].AppendSingleLine(line);
+      }
     }
   }
   
   abs_lines = std::move(x);
-  for (auto& lines: abs_lines)
+  for (auto& lines: abs_lines) {
     lines.sort_by_frequency();
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesTruncateQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
+                                     const Verbosity& verbosity) {
+  for (auto& band: abs_lines) {
+    band.truncate_local_quantum_numbers();
+  }
+  
+  abs_linesTruncateGlobalQuantumNumbers(abs_lines, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesTruncateQuantumNumbers(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                 const Index& pos,
+                                                 const Verbosity& verbosity) {
+  if (pos == -1) {
+    for (auto& abs_lines: abs_lines_per_species) {
+      abs_linesTruncateQuantumNumbers(abs_lines, verbosity);
+    }
+  } else {
+    ARTS_USER_ERROR_IF(pos < 0 or pos >= abs_lines_per_species.nelem(),
+                       "Not a valid position for current line lists")
+    abs_linesTruncateQuantumNumbers(abs_lines_per_species[pos], verbosity);
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2018,16 +2045,14 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   // Set the spec index if possible
   const Index spec = (do_self or do_bath) ? -1 : SpeciesTag(species).Species();
   
-  const LineShape::Variable var = LineShape::toVariable(parameter);
-  check_enum_error(var, "Cannot understand parameter: ", parameter);
+  const LineShape::Variable var = LineShape::toVariableOrThrow(parameter);
   
   ARTS_USER_ERROR_IF (new_values.nelem() not_eq LineShape::nmaxTempModelParams,
     "Mismatch between input and expected number of variables\n"
     "\tInput is: ", new_values.nelem(), " long but expects: ", LineShape::nmaxTempModelParams, " values\n")
   
   LineShape::ModelParameters newdata;
-  newdata.type = LineShape::toTemperatureModel(temperaturemodel);
-  check_enum_error(newdata.type, "Cannot understand temperaturemodel: ", temperaturemodel);
+  newdata.type = LineShape::toTemperatureModelOrThrow(temperaturemodel);
   newdata.X0 = new_values[0];
   newdata.X1 = new_values[1];
   newdata.X2 = new_values[2];

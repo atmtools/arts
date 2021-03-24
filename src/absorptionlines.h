@@ -598,6 +598,9 @@ public:
   /** Removes all global quantum numbers */
   void truncate_global_quantum_numbers();
   
+  /** Removes all local quantum numbers */
+  void truncate_local_quantum_numbers();
+  
   /** Species Name */
   String SpeciesName() const noexcept;
   

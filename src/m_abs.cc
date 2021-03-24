@@ -1494,12 +1494,11 @@ void propmat_clearskyAddLines(  // Workspace reference:
       
       for (auto& band : abs_lines_per_species[ispecies]) {
         LineShape::compute(F, dF, N, dN, f_grid,
-                          band, jacobian_quantities,
-                          rtp_nlte,
-                          partition_functions.getParamType(band.QuantumIdentity()),
-                          partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species),
-                          isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, nlte_do,
-                          0, false, Zeeman::Polarization::Pi, rtp_vmr[ispecies], true);
+                           band, jacobian_quantities,
+                           rtp_nlte,
+                           partition_functions.getParamType(band.QuantumIdentity()),
+                           partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, nlte_do);
         
       }
       
@@ -1548,9 +1547,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
                            band, jacobian_quantities,
                            rtp_nlte,
                            partition_functions.getParamType(band.QuantumIdentity()),
-                           partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species),
-                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, nlte_do,
-                           0, false, Zeeman::Polarization::Pi, rtp_vmr[ispecies], true);
+                           partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, nlte_do);
         
       }
     }

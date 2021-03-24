@@ -3304,6 +3304,14 @@ void Lines::truncate_global_quantum_numbers() {
   mquantumidentity.SetTransition(QuantumNumbers(), QuantumNumbers());
 }
 
+void Lines::truncate_local_quantum_numbers() {
+  mlocalquanta.resize(0);
+  for (auto& line: mlines) {
+    line.LowerQuantumNumbers().resize(0);
+    line.UpperQuantumNumbers().resize(0);
+  }
+}
+
 String Lines::LineShapeMetaData() const noexcept {
   return NumLines() ?
   LineShape::ModelShape2MetaData(mlines[0].LineShape()) :

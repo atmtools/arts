@@ -198,7 +198,7 @@ void test_ls() {
     std::cout << "all derivs...\n";
     for (Index i=0; i<TN; i++) {
       Time start;
-      LineShape::compute(F, dF, N, dN, f_g, band, jacobian_quantities, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+      LineShape::compute(F, dF, N, dN, f_g, band, jacobian_quantities, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
       dt[i] = Time() - start;
     }
     std::sort(dt.begin(), dt.end());
@@ -208,7 +208,7 @@ void test_ls() {
     dF=0;
     N=0;
     dN=0;
-    LineShape::compute(F, dF, N, dN, f_g, band, jacobian_quantities, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(F, dF, N, dN, f_g, band, jacobian_quantities, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::T, ls_type>();
@@ -217,7 +217,7 @@ void test_ls() {
     std::cout << "\njust forward calcs...\n";
     for (Index i=0; i<TN; i++) {
       Time start;
-      LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+      LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
       dt[i] = Time() - start;
     }
     std::sort(dt.begin(), dt.end());
@@ -225,7 +225,7 @@ void test_ls() {
     
     dF_mod[j]=0;
     dN_mod[j]=0;
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     
     dF_mod[j] -= F;
     dF_mod[j] /= ::dT;
@@ -233,168 +233,168 @@ void test_ls() {
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::f, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::df;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::H, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dH;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::F0, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dF0;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::I0, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dI0;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfG0, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dG0;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfD0, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dD0;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfG2, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dG2;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfD2, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dD2;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfETA, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dETA;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfFVC, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dFVC;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfY, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dY;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfG, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dG;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfDV, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dDV;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirG0, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dG0;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirD0, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dD0;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirG2, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dG2;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirD2, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dD2;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirETA, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dETA;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirFVC, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dFVC;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirY, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dY;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirG, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dG;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirDV, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dDV;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfVMR, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dVMR;
     j++;
   }
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirVMR, ls_type>();
-    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, P, T, false, H, true, Zeeman::Polarization::Pi, 1, 1);
+    LineShape::compute(dF_mod[j], dFnull, dN_mod[j], dNnull, f_g, band, jacobian_quantities_null, nlte,  partition_functions.getParamType(band.QuantumIdentity()), partition_functions.getParam(band.QuantumIdentity()), vmr, 1, 1, P, T, H, false, true, Zeeman::Polarization::Pi);
     dF_mod[j] -= F;
     dF_mod[j] /= ::dVMR;
     j++;

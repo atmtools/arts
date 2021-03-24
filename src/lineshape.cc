@@ -18,54 +18,10 @@ constexpr Numeric ln_16 =
     2.772588722239781237668928485832706272302000537441021016482720037973574487879;
 
 namespace LineShape {
-Doppler::Doppler(Numeric F0_noshift, Numeric DC, Numeric dZ) noexcept
-    : mF0(F0_noshift + dZ), invGD(1.0 / std::abs(DC * mF0)) {}
-
-Complex Doppler::dFdT(const Output &, Numeric T) const noexcept {
-  return F * (2 * pow2(x) - 1) / (2 * T);
-}
-
-Complex Doppler::dFdf() const noexcept { return -2 * invGD * F * x; }
-
-Complex Doppler::dFdF0() const noexcept {
-  return F * (2 * x * (invGD * mF0 + x) - 1) / mF0;
-}
-
-Complex Doppler::dFdH(Numeric dZ) const noexcept {
-  return dZ * (F * (2 * x * (invGD * mF0 + x) - 1) / mF0);
-}
-
 Complex Doppler::operator()(Numeric f) noexcept {
   x = (f - mF0) * invGD;
   F = invGD * inv_sqrt_pi * std::exp(-pow2(x));
   return F;
-}
-
-Voigt::Voigt(Numeric F0_noshift, const Output &ls, Numeric DC,
-             Numeric dZ) noexcept
-    : mF0(F0_noshift + dZ + ls.D0 + ls.DV),
-      invGD(1.0 / std::abs(DC * mF0)), z(invGD * Complex(-mF0, ls.G0)) {}
-
-Complex Voigt::dFdf() const noexcept { return dF; }
-
-Complex Voigt::dFdF0() const noexcept { return -dF; }
-
-Complex Voigt::dFdDV(Numeric d) const noexcept { return -d * dF; }
-
-Complex Voigt::dFdD0(Numeric d) const noexcept { return -d * dF; }
-
-Complex Voigt::dFdG0(Numeric d) const noexcept { return Complex(0, d) * dF; }
-
-Complex Voigt::dFdH(Numeric dZ) const noexcept { return -dZ * dF; }
-
-Complex Voigt::dFdVMR(const Output &d) const noexcept {
-  return Complex(-d.D0 - d.DV, d.G0) * dF;
-}
-
-Complex Voigt::dFdT(const Output &d, Numeric T) const noexcept {
-  return -(F * invGD + dF * z) * (2 * T * (d.D0 + d.DV) + mF0) /
-             (2 * T * invGD * mF0) +
-         Complex(-d.D0 - d.DV, d.G0) * dF;
 }
 
 Complex Voigt::operator()(Numeric f) noexcept {
@@ -442,7 +398,7 @@ Complex SpeedDependentVoigt::dFdT(const Output &d, Numeric T) const noexcept {
 }
 
 Complex SpeedDependentVoigt::operator()(Numeric f) noexcept {
-  reinterpret_cast<Numeric(&)[2]>(dx)[1] = mF0 - f;
+  imag_val(dx) = mF0 - f;
   x = dx * invc2;
   update_calcs();
   calc();
@@ -1721,7 +1677,7 @@ Complex HartmannTran::dFdT(const Output &d, Numeric T) const noexcept {
 }
 
 Complex HartmannTran::operator()(Numeric f) noexcept {
-  reinterpret_cast<Numeric(&)[2]>(deltax)[1] = mF0 - f;
+  imag_val(deltax) = mF0 - f;
   x = deltax / ((1 - ETA) * Complex(G2, D2));
   sqrtxy = std::sqrt(x + sqrty * sqrty);
   update_calcs();
@@ -2220,21 +2176,31 @@ typedef Array<Derivatives> ArrayOfDerivatives;
  * @param[in] ls The line shape calculator. \f$ F_i \f$
  * @param[in] ls_mirr The mirrored line shape calculator. \f$ F^M_i \f$
  */
-void frequency_loop(const ArrayOfRetrievalQuantity &jacobian_quantities,
-                    const Numeric &T, const bool do_nlte, const Complex LM,
-                    const IntensityCalculator &ls_str, Normalizer &ls_norm,
-                    const ArrayOfDerivatives &derivs, ComplexVectorView &F,
-                    ComplexMatrixView &dF, ComplexVectorView &N,
-                    ComplexMatrixView &dN, const ConstVectorView &f_grid,
-                    const Numeric &dfdH, const Numeric &Sz, Calculator ls,
-                    Calculator ls_mirr, const Index self_species) ARTS_NOEXCEPT {
-  const Numeric Si = std::visit([](auto &&S) { return S.S; }, ls_str);
-  const Numeric DNi = std::visit([](auto &&S) { return S.N; }, ls_str);
+void frequency_loop(ComplexVectorView &F,
+                    ComplexMatrixView &dF,
+                    ComplexVectorView &N,
+                    ComplexMatrixView &dN,
+                    Calculator ls,
+                    Calculator ls_mirr,
+                    Normalizer &ls_norm,
+                    const IntensityCalculator &ls_str, 
+                    const ConstVectorView &f_grid,
+                    const ArrayOfRetrievalQuantity &jacobian_quantities,
+                    const ArrayOfDerivatives &derivs, 
+                    const Complex& LM,
+                    const Numeric &T, 
+                    const Numeric &dfdH,
+                    const Numeric &Sz, 
+                    const Index self_species) ARTS_NOEXCEPT {
+  const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
+  
+  const Numeric &Si = std::visit([](auto &&S) { return S.S; }, ls_str);
+  const Numeric &DNi = std::visit([](auto &&S) { return S.N; }, ls_str);
   const std::size_t nj = jacobian_quantities.size();
   const Index nv = f_grid.size();
 
   for (Index iv = 0; iv < nv; iv++) {
-    const Numeric f = f_grid[iv];
+    const Numeric &f = f_grid[iv];
 
     const Numeric Sn = std::visit([f](auto &&LSN) { return LSN(f); }, ls_norm);
     const Numeric S = Sz * Sn * Si;
@@ -2335,11 +2301,15 @@ void frequency_loop(const ArrayOfRetrievalQuantity &jacobian_quantities,
               }
             }
             // All line shape derivatives
-            InternalDerivatives(G0) InternalDerivatives(D0)
-                InternalDerivatives(G2) InternalDerivatives(D2)
-                    InternalDerivatives(ETA) InternalDerivatives(FVC)
-                        InternalDerivativesY InternalDerivativesG
-                            InternalDerivatives(DV)
+            InternalDerivatives(G0)
+            InternalDerivatives(D0)
+            InternalDerivatives(G2)
+            InternalDerivatives(D2)
+            InternalDerivatives(ETA)
+            InternalDerivatives(FVC)
+            InternalDerivativesY
+            InternalDerivativesG
+            InternalDerivatives(DV)
           } else if (lt == Absorption::QuantumIdentifierLineTargetType::Level) {
             if (deriv == Jacobian::Line::NLTE) {
               if (lt.upper) {
@@ -2407,17 +2377,25 @@ void frequency_loop(const ArrayOfRetrievalQuantity &jacobian_quantities,
  * @param[in] ls_norm The normalization calculator. \f$ S_n \f$
  * @param[in] derivs A list of pre-computed derivative values and keys
  */
-void cutoff_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
-                 ComplexMatrix &dN, const Vector &f_grid,
+void cutoff_loop(ComplexVector &F,
+                 ComplexMatrix &dF,
+                 ComplexVector &N,
+                 ComplexMatrix &dN,
+                 Normalizer ls_norm,
+                 const IntensityCalculator ls_str,
+                 const Vector &f_grid,
                  const AbsorptionLines &band,
                  const ArrayOfRetrievalQuantity &jacobian_quantities,
-                 const Numeric &T, const bool do_nlte, const Numeric &H,
+                 const ArrayOfDerivatives &derivs,
+                 const Output X,
+                 const Numeric &T,
+                 const Numeric &H,
+                 const Numeric &f_mean,
+                 const Numeric &DC,
+                 const Index i,
                  const bool do_zeeman,
-                 const Zeeman::Polarization zeeman_polarization,
-                 const Numeric &f_mean, const Numeric &DC, const Index &i,
-                 const Output X, const IntensityCalculator ls_str,
-                 Normalizer ls_norm,
-                 const ArrayOfDerivatives &derivs) ARTS_NOEXCEPT {
+                 const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
+                   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const Index nj = jacobian_quantities.nelem();
   const Numeric fu = band.CutoffFreq(i);
 
@@ -2439,12 +2417,22 @@ void cutoff_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
     const Numeric Sz =
         do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
 
-    frequency_loop(
-      jacobian_quantities, T, do_nlte, Complex(1 + X.G, -X.Y), ls_str,
-        ls_norm, derivs, F_lim, dF_lim, N_lim, dN_lim, f_grid_lim, dfdH, Sz,
-        line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H),
-        mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(),
-                                    band.F0(i), X, DC, dfdH * H), band.Species());
+    frequency_loop(F_lim,
+                   dF_lim,
+                   N_lim,
+                   dN_lim,
+                   line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H),
+                   mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H),
+                   ls_norm,
+                   ls_str, 
+                   f_grid_lim,
+                   jacobian_quantities,
+                   derivs, 
+                   Complex(1 + X.G, -X.Y),
+                   T, 
+                   dfdH,
+                   Sz, 
+                   band.Species());
   }
 
   // Deal with cutoff if necessary
@@ -2465,13 +2453,23 @@ void cutoff_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
           do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
 
       // Call for just 1 freq...
-      frequency_loop(
-        jacobian_quantities, T, do_nlte, Complex(1 + X.G, -X.Y), ls_str,
-          ls_norm, derivs, F_cut, dF_cut, N_cut, dN_cut, f_grid_cut, dfdH, Sz,
-          line_shape_selection(band.LineShapeType(), band.F0(i), X, DC,
-                               dfdH * H),
-          mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(),
-                                      band.F0(i), X, DC, dfdH * H), band.Species());
+
+      frequency_loop(F_cut,
+                     dF_cut,
+                     N_cut,
+                     dN_cut,
+                     line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H),
+                     mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H),
+                     ls_norm,
+                     ls_str, 
+                     f_grid_cut,
+                     jacobian_quantities,
+                     derivs, 
+                     Complex(1 + X.G, -X.Y),
+                     T, 
+                     dfdH,
+                     Sz, 
+                     band.Species());
     }
 
     // Remove the cutoff
@@ -2515,15 +2513,26 @@ void cutoff_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
  * @param[in] dQTdT The derivative of the partition function at the temperature
  * wrt temperature
  */
-void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
-               ComplexMatrix &dN, const Vector &f_grid,
+void line_loop(ComplexVector &F,
+               ComplexMatrix &dF,
+               ComplexVector &N,
+               ComplexMatrix &dN,
+               const Vector &f_grid,
                const AbsorptionLines &band,
                const ArrayOfRetrievalQuantity &jacobian_quantities,
-               const EnergyLevelMap &nlte, const Vector &vmrs,
-               const Numeric &r, const Numeric &P, const Numeric &T,
-               const bool do_nlte, const Numeric &H, const bool do_zeeman,
-               const Zeeman::Polarization zeeman_polarization, const Numeric QT,
-               const Numeric QT0, const Numeric dQTdT, const Numeric drdSELFVMR, const Numeric drdT) ARTS_NOEXCEPT {
+               const EnergyLevelMap &nlte,
+               const Vector &vmrs,
+               const Numeric &P,
+               const Numeric &T,
+               const Numeric &H,
+               const Numeric QT,
+               const Numeric QT0,
+               const Numeric dQTdT,
+               const Numeric r,
+               const Numeric drdSELFVMR,
+               const Numeric drdT,
+               const bool do_zeeman,
+               const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
   
@@ -2537,10 +2546,6 @@ void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
   const Numeric DC = band.DopplerConstant(T);
 
   for (Index i = 0; i < nl; i++) {
-    // Line strength value
-    IntensityCalculator ls_str =
-    linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i);
-
     // Pre-compute the derivatives
     for (Index ij = 0; ij < nj; ij++) {
       const auto& deriv = jacobian_quantities[ij];
@@ -2558,22 +2563,39 @@ void line_loop(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
           if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
             if constexpr (false) {/*skip so the rest can be a else-if block*/}
             // All line shape derivatives
-            InternalDerivativesSetup(G0) InternalDerivativesSetup(D0)
-                InternalDerivativesSetup(G2) InternalDerivativesSetup(D2)
-                    InternalDerivativesSetup(ETA) InternalDerivativesSetup(FVC)
-                        InternalDerivativesSetup(Y) InternalDerivativesSetup(G)
-                            InternalDerivativesSetup(DV)
+            InternalDerivativesSetup(G0)
+            InternalDerivativesSetup(D0)
+            InternalDerivativesSetup(G2)
+            InternalDerivativesSetup(D2)
+            InternalDerivativesSetup(ETA)
+            InternalDerivativesSetup(FVC)
+            InternalDerivativesSetup(Y)
+            InternalDerivativesSetup(G)
+            InternalDerivativesSetup(DV)
           }
         }
       }
     }
 
     // Call cut off loop.  Note that moved values cannot be used again
-    cutoff_loop(F, dF, N, dN, f_grid, band, jacobian_quantities, T, do_nlte, H,
-                do_zeeman, zeeman_polarization, f_mean, DC, i,
-                band.ShapeParameters(i, T, P, vmrs), std::move(ls_str),
+    cutoff_loop(F,
+                dF,
+                N,
+                dN,
                 normalizer_selection(band.Normalization(), band.F0(i), T),
-                derivs);
+                linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
+                f_grid,
+                band,
+                jacobian_quantities,
+                derivs,
+                band.ShapeParameters(i, T, P, vmrs),
+                T,
+                H,
+                f_mean,
+                DC,
+                i,
+                do_zeeman,
+                zeeman_polarization);
   }
 }
 
@@ -2606,9 +2628,9 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
              const EnergyLevelMap &nlte,
              const SpeciesAuxData::AuxType &partfun_type,
              const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
-             const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
-             const bool do_nlte, const Numeric &H, const bool do_zeeman,
-             const Zeeman::Polarization zeeman_polarization, const Numeric& self_vmr, const bool do_numden) ARTS_NOEXCEPT {
+             const Numeric& self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H,
+             [[maybe_unused]] const bool do_nlte,
+             const bool do_zeeman, const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   [[maybe_unused]] const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
   [[maybe_unused]] const Index nv = f_grid.nelem();
@@ -2635,23 +2657,27 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
     return; // No line-by-line computations required/wanted
   }
   
-  if (do_numden) {
-    const Numeric dnumdensdVMR = isot_ratio * number_density(P, T);
-    const Numeric numdens = self_vmr * dnumdensdVMR;
-    const Numeric dnumdensdT = self_vmr * isot_ratio * dnumber_density_dt(P, T);
-    line_loop(F, dF, N, dN, f_grid, band, jacobian_quantities, nlte, vmrs,
-              numdens, P, T, do_nlte, H, do_zeeman, zeeman_polarization,
-              single_partition_function(T, partfun_type, partfun_data),
-              single_partition_function(band.T0(), partfun_type, partfun_data),
-              dsingle_partition_function_dT(T, partfun_type, partfun_data),
-              dnumdensdVMR, dnumdensdT);
-  } else {
-    line_loop(F, dF, N, dN, f_grid, band, jacobian_quantities, nlte, vmrs,
-              isot_ratio, P, T, do_nlte, H, do_zeeman, zeeman_polarization,
-              single_partition_function(T, partfun_type, partfun_data),
-              single_partition_function(band.T0(), partfun_type, partfun_data),
-              dsingle_partition_function_dT(T, partfun_type, partfun_data), 0, 0);
-  }
+  const Numeric dnumdensdVMR = isot_ratio * number_density(P, T);
+  line_loop(F,
+            dF,
+            N,
+            dN,
+            f_grid,
+            band,
+            jacobian_quantities,
+            nlte,
+            vmrs,
+            P,
+            T,
+            H,
+            single_partition_function(T, partfun_type, partfun_data),
+            single_partition_function(band.T0(), partfun_type, partfun_data),
+            dsingle_partition_function_dT(T, partfun_type, partfun_data),
+            self_vmr * dnumdensdVMR,
+            dnumdensdVMR,
+            self_vmr * isot_ratio * dnumber_density_dt(P, T),
+            do_zeeman,
+            zeeman_polarization);
 }
 
 #undef InternalDerivatives

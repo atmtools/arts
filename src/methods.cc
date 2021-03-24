@@ -14430,6 +14430,40 @@ void define_md_data_raw() {
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("abs_linesTruncateQuantumNumbers"),
+      DESCRIPTION("Truncates all quantum numbers\n"
+                  "and then recombine the line list.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("abs_lines_per_speciesTruncateQuantumNumbers"),
+      DESCRIPTION("Truncates all quantum numbers\n"
+                  "and then recombine the internal line lists.\n"
+                  "\n"
+                  "Effectively wraps abs_linesTruncateQuantumNumbers for each species.\n"
+                  "\n"
+                  "If pos is given, selects only that species in abs_lines_per_species\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN("pos"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("-1"),
+      GIN_DESC("Position to manipulate")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesTruncateGlobalQuantumNumbers"),
       DESCRIPTION("Truncates all global quantum numbers\n"
                   "and then recombine the line list.\n"),

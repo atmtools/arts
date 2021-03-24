@@ -7,7 +7,7 @@ namespace nonstd {
  * 
  * Reason to re-implement:  std::abs(x) is not constexpr
  * 
- * @param[in] x Any value type
+ * @param[in] x Any real value type
  * @return |x|
  */
 template <class T> constexpr T abs(T x) noexcept {return x < 0 ? - x : x;}
