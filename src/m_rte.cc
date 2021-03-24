@@ -383,15 +383,14 @@ void iyClearsky(
     Matrix ppvar_f_dummy;
     Tensor3 ppvar_iy_dummy;
     Tensor4 ppvar_trans_cumulat_dummy;
-    ArrayOfIndex cloudbox_limits_dummy;
-    Tensor4 pnd_field_dummy;
-    ArrayOfTensor4 dpnd_field_dx_dummy;
-    ArrayOfString scat_species_dummy;
-    ArrayOfArrayOfSingleScatteringData scat_data_dummy;
-    PropagationMatrix sca_mat_dummy;
-    Vector in_los_dummy;
-    Vector out_los_dummy;
-
+    const ArrayOfIndex cloudbox_limits_dummy;
+    const Tensor4 pnd_field_dummy;
+    const ArrayOfTensor4 dpnd_field_dx_dummy;
+    const ArrayOfString scat_species_dummy;
+    const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
+    TransmissionMatrix sca_mat_dummy;
+    const Vector in_los_dummy;
+    const Vector out_los_dummy;
 
     Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
     Workspace l_ws(ws);
@@ -532,11 +531,14 @@ void iyClearsky(
                                        ppvar_p[ip],
                                        ppvar_t[ip],
                                        ppvar_vmr(joker, ip),
-                                       StokesVector(transmitted_starlight),
+                                       transmitted_starlight,
                                        star_rte_los,
                                        ppath.los(ip, joker),
                                        gas_scattering_agenda);
 
+
+              // Richard will change the type of S to RadiationVector,
+              //but for now we have to convert it, within get_scattered_starsource
               S += scattered_starlight;
             }
           }

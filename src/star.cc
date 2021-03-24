@@ -38,13 +38,15 @@ void get_scattered_starsource(Workspace& ws,
                               const Numeric& p,
                               const Numeric& T,
                               const Vector& vmr,
-                              const StokesVector& transmitted_starlight,
+                              const Matrix& transmitted_starlight,
                               const Vector& in_los,
                               const Vector& out_los,
                               const Agenda& gas_scattering_agenda) {
   PropagationMatrix K_sca;
-  PropagationMatrix sca_mat;
+  TransmissionMatrix sca_mat;
+  RadiationVector scattered_starlight_temp;
 
+  // calculate gas scattering properties
   gas_scattering_agendaExecute(ws,
                                K_sca,
                                sca_mat,
@@ -56,27 +58,24 @@ void get_scattered_starsource(Workspace& ws,
                                out_los,
                                gas_scattering_agenda);
 
-
-  Index ns = transmitted_starlight.StokesDimensions();
+  //some basic quantities
+  Index ns = transmitted_starlight.ncols();
   Index nf = f_grid.nelem();
 
-  Vector I_in(ns, 0);
-  Matrix Z(ns, ns, 0);
+  //allocate and resize
+  Vector temp(ns);
+//  Matrix Z(ns, ns);
+//  Vector temp(ns);
 
-  Vector temp(ns, 0);
+  // Calculate the scattered radiation
+  scattered_starlight_temp=transmitted_starlight;
+  scattered_starlight_temp.leftMul(sca_mat);
 
+  // Richard will change the type of S to RadiationVector in iyClearsky
+  //but for now we have to convert it
   for (Index i_f = 0; i_f < nf; i_f++) {
-    I_in = transmitted_starlight.VectorAtPosition(i_f);
 
-    sca_mat.MatrixAtPosition(Z, i_f);
-
-    temp *= 0;
-
-    for (Index i_s = 0; i_s < ns; i_s++) {
-      for (Index j_s = 0; j_s < ns; j_s++) {
-        temp[i_s] += Z(i_s, j_s) * I_in[j_s];
-      }
-    }
-    scattered_starlight.SetAtPosition(temp, i_f);
+      temp=scattered_starlight_temp.Vec(i_f);
+      scattered_starlight.SetAtPosition(temp,i_f);
   }
 }

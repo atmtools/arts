@@ -35,7 +35,7 @@
   ===========================================================================*/
 
 #include "agenda_class.h"
-#include "propagationmatrix.h"
+#include "transmissionmatrix.h"
 
 
 /*===========================================================================
@@ -52,7 +52,7 @@
  * @param[in] T Numeric temperature at location of scattering.
  * @param[in] vmr Vector volume mixing ratios of absorption species at location
  *            of scattering.
- * @param[in] transmitted_starlight StokesVector transmitted monochromatic radiance
+ * @param[in] transmitted_starlight Matrix transmitted monochromatic radiance
  *             spectrum of star at location of scattering.
  * @param[in] in_los Vector incoming direction of the transmitted star irradiance
  *            spectrum.
@@ -68,7 +68,7 @@ void get_scattered_starsource(
     const Numeric& p,
     const Numeric& T,
     const Vector& vmr,
-    const StokesVector& transmitted_starlight,
+    const Matrix& transmitted_starlight,
     const Vector& in_los,
     const Vector& out_los,
     const Agenda& gas_scattering_agenda
