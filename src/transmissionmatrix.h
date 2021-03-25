@@ -336,7 +336,7 @@ class TransmissionMatrix {
   
   /** Simple template access for the transmission */
   template <int N> auto& TraMat(size_t i) noexcept {
-    static_assert (N > 0 or N < 5, "Bad size N");
+    static_assert (N > 0 and N < 5, "Bad size N");
     if constexpr (N == 1) return T1[i];
     else if constexpr (N == 2) return T2[i];
     else if constexpr (N == 3) return T3[i];
@@ -345,7 +345,7 @@ class TransmissionMatrix {
   
   /** Simple template access for the transmission */
   template <int N> auto& TraMat(size_t i) const noexcept {
-    static_assert (N > 0 or N < 5, "Bad size N");
+    static_assert (N > 0 and N < 5, "Bad size N");
     if constexpr (N == 1) return T1[i];
     else if constexpr (N == 2) return T2[i];
     else if constexpr (N == 3) return T3[i];
@@ -413,7 +413,7 @@ class TransmissionMatrix {
                                                                 const Eigen::Matrix<Numeric, N, 1> close,
                                                                 const Eigen::Matrix<Numeric, N, 1> d,
                                                                 bool isfar) const noexcept {
-    static_assert (N > 0 or N < 5, "Bad size N");
+    static_assert (N > 0 and N < 5, "Bad size N");
     
     const auto I = Eigen::Matrix<Numeric, N, N>::Identity();
     const auto T = TraMat<N>(i);
