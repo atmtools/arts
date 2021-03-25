@@ -398,8 +398,8 @@ void iyClearsky(
     bool do_abort = false;
 
     // Loop ppath points and determine radiative properties
-#pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(l_ws, l_propmat_clearsky_agenda, a, B, dB_dT, S, da_dx, dS_dx)
+//#pragma omp parallel for if (!arts_omp_in_parallel()) \
+//    firstprivate(l_ws, l_propmat_clearsky_agenda, a, B, dB_dT, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
       if (do_abort) continue;
       try {
@@ -584,7 +584,7 @@ void iyClearsky(
         os << "Runtime-error in source calculation at index " << ip
            << ": \n";
         os << e.what();
-#pragma omp critical(iyEmissionStandard_source)
+//#pragma omp critical(iyEmissionStandard_source)
         {
           do_abort = true;
           fail_msg.push_back(os.str());

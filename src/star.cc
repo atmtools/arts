@@ -44,7 +44,7 @@ void get_scattered_starsource(Workspace& ws,
                               const Agenda& gas_scattering_agenda) {
   PropagationMatrix K_sca;
   TransmissionMatrix sca_mat;
-  RadiationVector scattered_starlight_temp;
+
 
   // calculate gas scattering properties
   gas_scattering_agendaExecute(ws,
@@ -68,6 +68,7 @@ void get_scattered_starsource(Workspace& ws,
 //  Vector temp(ns);
 
   // Calculate the scattered radiation
+  RadiationVector scattered_starlight_temp(nf,ns);
   scattered_starlight_temp=transmitted_starlight;
   scattered_starlight_temp.leftMul(sca_mat);
 

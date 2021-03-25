@@ -61,6 +61,7 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
                                  const Vector& f_grid,
                                  const Numeric& rtp_pressure,
                                  const Numeric& rtp_temperature,
+                                 const Index& stokes_dim,
                                  const Numeric& ConstXsec,
                                  const Verbosity&) {
   // Some basic sizes
@@ -74,9 +75,12 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
   Vector Xsec(nf, ConstXsec);
 
   // set coefficients
-  sca_coef.SetZero();
-  sca_coef.Kjj() += Xsec;
-  sca_coef.Kjj() *= N;
+  PropagationMatrix sca_coef_temp(nf, stokes_dim);
+  sca_coef_temp.SetZero();
+  sca_coef_temp.Kjj() += Xsec;
+  sca_coef_temp.Kjj() *= N;
+
+  sca_coef=sca_coef_temp;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -84,7 +88,10 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
                                    const Vector& f_grid,
                                    const Index& stokes_dim,
                                    const Verbosity&) {
-  sca_mat(f_grid.nelem(), stokes_dim, stokes_dim);
-  sca_mat.setIdentity();
-  sca_mat *= 1 / (4 * PI);
+
+  TransmissionMatrix sca_mat_temp(f_grid.nelem(), stokes_dim);
+  sca_mat_temp.setIdentity();
+  sca_mat_temp *= 1 / (4 * PI);
+
+  sca_mat=sca_mat_temp;
 }
