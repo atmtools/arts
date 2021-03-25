@@ -18547,6 +18547,42 @@ void define_md_data_raw() {
       GIN_DESC("Interpolation method (see above).")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("SurfaceBlackbody"),
+      DESCRIPTION(
+          "Blackbody surface emission and emission derivative. Currently calculated numerically. \n"
+          "\n"
+          "The variable *surface_props_data* must contain these data:\n"
+          "  \"Skin temperature\"\n"
+          "\n"
+          "*surface_rmatrix* and *dsurface_rmatrix_dx* are set to 0.\n"),
+      AUTHORS("Marc Prange"),
+      OUT("surface_los",
+          "surface_rmatrix",
+          "dsurface_rmatrix_dx",
+          "surface_emission",
+          "dsurface_emission_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("dsurface_rmatrix_dx",
+         "dsurface_emission_dx",
+         "stokes_dim",
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid",
+         "f_grid",
+         "rtp_pos",
+         "rtp_los",
+         "surface_props_data",
+         "surface_props_names",
+         "dsurface_names",
+         "jacobian_do"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceDummy"),
       DESCRIPTION(
           "Dummy method for *iy_surface_agenda*.\n"
