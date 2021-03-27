@@ -998,12 +998,15 @@ void iyTransmissionStandard(Workspace& ws,
 
   // Copy back to ARTS external style
   iy = lvl_rad[0];
-  for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
-    ppvar_trans_cumulat(ip, joker, joker, joker) = tot_tra[ip];
-    ppvar_iy(joker, joker, ip) = lvl_rad[ip];
-    if (j_analytical_do)
-      FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq](ip, joker, joker) =
-                                      dlvl_rad[ip][iq];);
+  //
+  if (np > 1) {
+    for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
+      ppvar_trans_cumulat(ip, joker, joker, joker) = tot_tra[ip];
+      ppvar_iy(joker, joker, ip) = lvl_rad[ip];
+      if (j_analytical_do)
+        FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq](ip, joker, joker) =
+                                        dlvl_rad[ip][iq];);
+    }
   }
 
   // Finalize analytical Jacobians
