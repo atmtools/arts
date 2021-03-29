@@ -34,7 +34,7 @@ Complex Voigt::operator()(Numeric f) noexcept {
 SpeedDependentVoigt::SpeedDependentVoigt(Numeric F0_noshift, const Output &ls,
                                          Numeric GD_div_F0, Numeric dZ) noexcept
     : mF0(F0_noshift + dZ + ls.D0 - 1.5 * ls.D2),
-      invGD(sqrt_ln_2 / std::abs(GD_div_F0 * mF0)),
+      invGD(sqrt_ln_2 / nonstd::abs(GD_div_F0 * mF0)),
       invc2(1.0 / Complex(ls.G2, ls.D2)), dx(Complex(ls.G0 - 1.5 * ls.G2, mF0)),
       x(dx * invc2), sqrty(invc2 / (2 * invGD)),
       calcs(init(Complex(ls.G2, ls.D2))) {
@@ -468,7 +468,7 @@ HartmannTran::HartmannTran(Numeric F0_noshift, const Output &ls,
                            Numeric GD_div_F0, Numeric dZ) noexcept
     : G0(ls.G0), D0(ls.D0), G2(ls.G2), D2(ls.D2), FVC(ls.FVC), ETA(ls.ETA),
       mF0(F0_noshift + dZ + (1 - ls.ETA) * (ls.D0 - 1.5 * ls.D2)),
-      invGD(sqrt_ln_2 / std::abs(GD_div_F0 * mF0)),
+      invGD(sqrt_ln_2 / nonstd::abs(GD_div_F0 * mF0)),
       deltax(ls.FVC + (1 - ls.ETA) * (ls.G0 - 3 * ls.G2 / 2), mF0),
       sqrty(1 / (2 * (1 - ls.ETA) * Complex(ls.G2, ls.D2) * invGD)) {
   calc();

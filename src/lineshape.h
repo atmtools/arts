@@ -29,14 +29,14 @@ struct Noshape {
 }; // Noshape
 
 struct Doppler {
+  Complex F;
+  Numeric x;
+  
   Numeric mF0;
   Numeric invGD;
-  Numeric x;
-
-  Complex F;
 
   constexpr Doppler(Numeric F0_noshift, Numeric DC, Numeric dZ) noexcept
-  : mF0(F0_noshift + dZ), invGD(1.0 / nonstd::abs(DC * mF0)), x(), F() {}
+  : F(), x(), mF0(F0_noshift + dZ), invGD(1.0 / nonstd::abs(DC * mF0)) {}
 
   constexpr Complex dFdT(const Output &, Numeric T) const noexcept {
     return F * (2 * Constant::pow2(x) - 1) / (2 * T);
@@ -61,12 +61,11 @@ struct Doppler {
 }; // Doppler
 
 struct Lorentz {
+  Complex F;
+  Complex dF;
+  
   Numeric mF0;
   Numeric G0;
-
-  Complex F;
-
-  Complex dF;
 
   constexpr Lorentz(Numeric F0_noshift, const Output &ls) noexcept
       : mF0(F0_noshift + ls.D0 + ls.DV), G0(ls.G0) {}
@@ -96,17 +95,16 @@ struct Lorentz {
 }; // Lorentz
 
 struct Voigt {
+  Complex F;
+  Complex dF;
+  
   Numeric mF0;
   Numeric invGD;
   Complex z;
 
-  Complex F;
-
-  Complex dF;
-
   constexpr Voigt(Numeric F0_noshift, const Output &ls, Numeric DC, Numeric dZ) noexcept
-  : mF0(F0_noshift + dZ + ls.D0 + ls.DV),
-  invGD(1.0 / std::abs(DC * mF0)), z(invGD * Complex(-mF0, ls.G0)), F(), dF() {}
+  : F(), dF(), mF0(F0_noshift + dZ + ls.D0 + ls.DV),
+  invGD(1.0 / nonstd::abs(DC * mF0)), z(invGD * Complex(-mF0, ls.G0)) {}
 
   constexpr Complex dFdf() const noexcept { return dF; }
   constexpr Complex dFdF0() const noexcept { return -dF; }
@@ -141,6 +139,8 @@ struct SpeedDependentVoigt {
     Full
   };
 
+  Complex F;
+  
   Numeric mF0;
   Numeric invGD;
   Complex invc2;
@@ -153,8 +153,6 @@ struct SpeedDependentVoigt {
   Complex w2;
   Complex dw1;
   Complex dw2;
-
-  Complex F;
 
   SpeedDependentVoigt(Numeric F0_noshift, const Output &ls, Numeric GD_div_F0,
                       Numeric dZ) noexcept;
@@ -189,6 +187,8 @@ struct HartmannTran {
     Full
   };
 
+  Complex F;
+  
   Numeric G0;
   Numeric D0;
   Numeric G2;
@@ -214,8 +214,6 @@ struct HartmannTran {
   Complex K;
   Complex dw1;
   Complex dw2;
-  
-  Complex F;
 
   HartmannTran(Numeric F0_noshift, const Output &ls, Numeric GD_div_F0,
                Numeric dZ) noexcept;
@@ -253,12 +251,12 @@ struct Nonorm {
 }; // Nonorm
 
 struct VanVleckHuber {
+  Numeric N;
+  
   Numeric c1;
   Numeric tanh_c1f0;
   Numeric inv_denom;
   Numeric tanh_c1f;
-
-  Numeric N;
 
   VanVleckHuber(Numeric F0, Numeric T) noexcept;
 
@@ -270,11 +268,11 @@ struct VanVleckHuber {
 }; // VanVleckHuber
 
 struct VanVleckWeisskopf {
+  Numeric N;
+  
   Numeric invF0;
 
-  Numeric N;
-
-  constexpr VanVleckWeisskopf(Numeric F0) noexcept : invF0(1.0 / F0), N(1) {}
+  constexpr VanVleckWeisskopf(Numeric F0) noexcept : N(1), invF0(1.0 / F0) {}
 
   static constexpr Numeric dNdT(Numeric, Numeric) noexcept { return 0; }
   constexpr Numeric dNdf(Numeric f) const noexcept {
@@ -289,11 +287,11 @@ struct VanVleckWeisskopf {
 }; // VanVleckWeisskopf
 
 struct RosenkranzQuadratic {
+  Numeric N;
+  
   Numeric fac;
   Numeric dfacdT;
   Numeric dfacdF0;
-
-  Numeric N;
 
   RosenkranzQuadratic(Numeric F0, Numeric T) noexcept;
 
@@ -326,21 +324,25 @@ struct Nostrength {
 }; // Nostrength
 
 struct LocalThermodynamicEquilibrium {
+  Numeric S;
+  static constexpr Numeric N = 0.0;
+  
   Numeric dSdI0val;
   Numeric dSdTval;
   Numeric dSdF0val;
   Numeric dSdSELFVMRval;
 
-  Numeric S;
-  static constexpr Numeric N = 0.0;
-
   constexpr LocalThermodynamicEquilibrium(Numeric I0, Numeric r, Numeric drdSELFVMR, Numeric drdT, Numeric QT0,
                                           Numeric QT, Numeric dQTdT, Numeric br,
-                                          Numeric dbr_dF0_rat, Numeric stim,
+                                          Numeric dbr_dT_rat, Numeric stim,
                                           Numeric dstim_dT, Numeric dstim_dF0) noexcept
-      : dSdI0val(r * br * stim * QT0 / QT),
-        dSdTval(I0 * (r * br * dstim_dT * QT0 / QT + dSdI0val * (dbr_dF0_rat - dQTdT / QT) + drdT * br * stim * QT0 / QT)),
-        dSdF0val(r * I0 * br * dstim_dF0 * QT0 / QT), dSdSELFVMRval(drdSELFVMR * I0 * br * stim * QT0 / QT), S(I0 * dSdI0val) {}
+      : S(), dSdI0val(r * br * stim * QT0 / QT),
+        dSdTval(I0 * (r * br * dstim_dT * QT0 / QT + dSdI0val * (dbr_dT_rat - dQTdT / QT) + drdT * br * stim * QT0 / QT)),
+        dSdF0val(r * I0 * br * dstim_dF0 * QT0 / QT),
+        dSdSELFVMRval(drdSELFVMR * I0 * br * stim * QT0 / QT)
+  {
+    S = I0 * dSdI0val;
+  }
 
   LocalThermodynamicEquilibrium(Numeric I0, Numeric T0, Numeric T, Numeric F0,
                                 Numeric E0, Numeric QT, Numeric QT0,
@@ -364,6 +366,9 @@ struct LocalThermodynamicEquilibrium {
 }; // LocalThermodynamicEquilibrium
 
 struct FullNonLocalThermodynamicEquilibrium {
+  Numeric S;
+  Numeric N;
+  
   static constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
   static constexpr Numeric c1 = Constant::h / (4 * Constant::pi);
   
@@ -380,14 +385,12 @@ struct FullNonLocalThermodynamicEquilibrium {
   Numeric dSdSELFVMRval;
   Numeric dNdSELFVMRval;
   
-  Numeric S;
-  Numeric N;
-  
   constexpr FullNonLocalThermodynamicEquilibrium(
     Numeric r, Numeric drdSELFVMR, Numeric drdt,
     Numeric k, Numeric dkdF0, Numeric dkdr1, Numeric dkdr2,
     Numeric e, Numeric dedF0, Numeric dedr2,
     Numeric B, Numeric dBdT, Numeric dBdF0) noexcept :
+  S(), N(),
   dSdTval(drdt * k),
   dNdTval(drdt * (e - k * B) - r * k * dBdT),
   dSdF0val(r * dkdF0),
@@ -396,10 +399,11 @@ struct FullNonLocalThermodynamicEquilibrium {
   dSdr2(r * dkdr2),
   dNdr2(r * (dedr2 - dkdr2 * B)),
   dSdSELFVMRval(drdSELFVMR * k),
-  dNdSELFVMRval(drdSELFVMR * (e - k * B)),
-  S(r * k),
-  N(r * (e - k * B))
-  {}
+  dNdSELFVMRval(drdSELFVMR * (e - k * B))
+  {
+    S = r * k;
+    N = r * (e - k * B);
+  }
   
   FullNonLocalThermodynamicEquilibrium(Numeric F0, Numeric A21, Numeric T,
                                        Numeric g1, Numeric g2, Numeric r1,
@@ -424,6 +428,9 @@ struct FullNonLocalThermodynamicEquilibrium {
 }; // FullNonLocalThermodynamicEquilibrium
 
 struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
+  Numeric S;
+  Numeric N;
+  
   Numeric dSdI0val;
   Numeric dNdI0val;
 
@@ -440,9 +447,6 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
   Numeric dSdSELFVMRval;
   Numeric dNdSELFVMRval;
 
-  Numeric S;
-  Numeric N;
-  
   constexpr VibrationalTemperaturesNonLocalThermodynamicEquilibrium(Numeric I0,
                                                                     Numeric QT0, Numeric QT, Numeric dQTdT,
                                                                     Numeric r, Numeric drdSELFVMR, Numeric drdT,
@@ -451,6 +455,7 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
                                                                     Numeric K3, Numeric dK3dT, Numeric dK3dF0, Numeric dK3dTl, Numeric dK3dTu,
                                                                     Numeric K4, Numeric dK4dT, Numeric dK4dTu,
                                                                     Numeric B, Numeric dBdT, Numeric dBdF0) noexcept :
+  S(), N(),
   dSdI0val(    r * QT0 / QT * K1 * K2 * K3),
   dNdI0val(B * r * QT0 / QT * K1 * K2 * (K4 - K3)),
   dSdTval(I0 * (drdT * QT0 / QT * K1 * K2 * K3 -
@@ -473,10 +478,11 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
   dSdTu(I0 * r * QT0 / QT * K1 * K2 * dK3dTu),
   dNdTu(B * r * QT0 / QT * K1 * K2 * (dK4dTu - dK3dTu)),
   dSdSELFVMRval(I0 * drdSELFVMR * QT0 / QT * K1 * K2 * K3),
-  dNdSELFVMRval(I0 * B * drdSELFVMR * QT0 / QT * K1 * K2 * (K4 - K3)),
-  S(I0 * dSdI0val),
-  N(I0 * dNdI0val)
-  {}
+  dNdSELFVMRval(I0 * B * drdSELFVMR * QT0 / QT * K1 * K2 * (K4 - K3))
+  {
+    S = I0 * dSdI0val;
+    N = I0 * dNdI0val;
+  }
 
   VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
       Numeric I0, Numeric T0, Numeric T, Numeric Tl, Numeric Tu, Numeric F0,
