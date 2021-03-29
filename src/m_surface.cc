@@ -443,6 +443,10 @@ void iySurfaceFastem(Workspace& ws,
 void iySurfaceRtpropAgenda(Workspace& ws,
                            Matrix& iy,
                            ArrayOfTensor3& diy_dx,
+                           Numeric& surface_skin_t,
+                           Matrix& surface_los,
+                           Tensor4& surface_rmatrix,
+                           Matrix& surface_emission,
                            const Tensor3& iy_transmittance,
                            const Index& iy_id,
                            const Index& jacobian_do,
@@ -464,11 +468,6 @@ void iySurfaceRtpropAgenda(Workspace& ws,
   chk_rte_los(atmosphere_dim, rtp_los);
 
   // Call *surface_rtprop_agenda*
-  Numeric surface_skin_t;
-  Matrix surface_los;
-  Tensor4 surface_rmatrix;
-  Matrix surface_emission;
-  //
   surface_rtprop_agendaExecute(ws,
                                surface_skin_t,
                                surface_emission,

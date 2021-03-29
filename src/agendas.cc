@@ -718,7 +718,7 @@ void define_agenda_data() {
           "(see user guide for closer definitions of the respective variables\n"
           "*surface_emission*, *surface_los*, and *surface_rmatrix*) according\n"
           "to the characteristics of the surface specified by the methods called\n"
-          "within the agenda. Typical meyhods include *surfaceBlackbody*,\n"
+          "within the agenda. Typical methods include *surfaceBlackbody*,\n"
           "*surfaceFlatScalarReflectivity*, *surfaceFlatReflectivity*,\n"
           "*surfaceFlatRefractiveIndex*, and *surfaceLambertianSimple*.\n"),
       OUTPUT("surface_skin_t",
