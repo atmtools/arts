@@ -28,6 +28,7 @@ jobs:
             arts: "no"
             fortran: "no"
             check: "no"
+            libcxx: "no"
 
           - name: ubuntu-gcc-8
             os: ubuntu-18.04
@@ -37,6 +38,7 @@ jobs:
             arts: "yes"
             fortran: "yes"
             check: "yes"
+            libcxx: "no"
 
           - name: ubuntu-gcc-9
             os: ubuntu-18.04
@@ -46,6 +48,7 @@ jobs:
             arts: "yes"
             fortran: "yes"
             check: "yes"
+            libcxx: "no"
 
           - name: ubuntu-gcc-10
             os: ubuntu-18.04
@@ -55,6 +58,7 @@ jobs:
             arts: "yes"
             fortran: "yes"
             check: "yes"
+            libcxx: "no"
 
           - name: ubuntu-clang-11-nofortran
             os: ubuntu-18.04
@@ -64,6 +68,7 @@ jobs:
             arts: "yes"
             fortran: "no"
             check: "yes"
+            libcxx: "yes"
 
           - name: macos-gcc-10
             os: macos-latest
@@ -73,6 +78,7 @@ jobs:
             arts: "yes"
             fortran: "yes"
             check: "yes"
+            libcxx: "no"
 
     steps:
       - uses: actions/checkout@v1
@@ -113,6 +119,10 @@ jobs:
             sudo apt-get install -y texlive
           fi
 
+          if [ "${{ matrix.libcxx }}" = "yes" ]; then
+            sudo apt-get install -y libc++-dev
+            echo "CXXFLAGS=-stdlib=libc++" >> $GITHUB_ENV
+          fi
           sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libfftw3-dev
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
 
