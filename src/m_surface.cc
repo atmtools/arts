@@ -1032,6 +1032,7 @@ void surfaceTelsem(Matrix& surface_los,
                    const Vector& lon_true,
                    const Vector& rtp_pos,
                    const Vector& rtp_los,
+                   const Vector& specular_los,
                    const Numeric& surface_skin_t,
                    const TelsemAtlas& atlas,
                    const Numeric& r_min,
@@ -1042,17 +1043,9 @@ void surfaceTelsem(Matrix& surface_los,
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_rte_pos(atmosphere_dim, rtp_pos);
   chk_rte_los(atmosphere_dim, rtp_los);
+  chk_rte_los(atmosphere_dim, specular_los);
   chk_if_in_range_exclude(
       "surface skin temperature", surface_skin_t, 190.0, 373.0);
-
-  // Determine specular direction
-  Vector specular_los, surface_normal;
-  specular_losCalcNoTopography(specular_los,
-                               surface_normal,
-                               rtp_pos,
-                               rtp_los,
-                               atmosphere_dim,
-                               verbosity);
 
   const Index nf = f_grid.nelem();
   Matrix surface_rv_rh(nf, 2);
@@ -1076,7 +1069,7 @@ void surfaceTelsem(Matrix& surface_los,
     if (d_max <= 0.0) {
       throw std::runtime_error(
           "Given coordinates are not contained in "
-          " TELSEM atlas. To enable nearest neighbor"
+          " TELSEM atlas. To enable nearest neighbour"
           "interpolation set *d_max* to a positive "
           "value.");
     } else {
@@ -1086,7 +1079,7 @@ void surfaceTelsem(Matrix& surface_los,
       Numeric d = sphdist(lat, lon, lat_nn, lon_nn);
       if (d > d_max) {
         std::ostringstream out{};
-        out << "Distance of nearest neighbor exceeds provided limit (";
+        out << "Distance of nearest neighbour exceeds provided limit (";
         out << d << " > " << d_max << ").";
         throw std::runtime_error(out.str());
       }
@@ -1098,8 +1091,11 @@ void surfaceTelsem(Matrix& surface_los,
 
   Vector emis_h = atlas.get_emis_h(cellnumber);
   Vector emis_v = atlas.get_emis_v(cellnumber);
-  Numeric e_v, e_h, theta;
-  theta = 180.0 - abs(rtp_los[0]);
+  Numeric e_v, e_h;
+
+  // Incidence angle
+  const Numeric theta = calc_incang(rtp_los, specular_los);
+  ARTS_ASSERT(theta <= 90);
 
   for (Index i = 0; i < nf; ++i) {
     if (f_grid[i] < 5e9)
@@ -2222,30 +2218,6 @@ void surface_scalar_reflectivityFromSurface_rmatrix(
     }
   }
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void surface_reflectivityFromSurface_rmatrix(
-          Tensor3&         surface_reflectivity,
-    const Tensor4&         surface_rmatrix,
-    const Verbosity&)
-{
-  const Index nf   = surface_rmatrix.npages();
-  const Index nlos = surface_rmatrix.nbooks();
-  const Index nst  = surface_rmatrix.ncols();
-
-  surface_reflectivity.resize( nf, nst, nst );
-  surface_reflectivity = 0;
-
-  for( Index i=0; i<nf; i++)
-    for( Index j=0; j<nst; j++)
-      for( Index k=0; k<nst; k++)
-        for( Index l=0; l<nlos; l++)
-        {
-          surface_reflectivity(i,j,k) += surface_rmatrix(l,i,j,k);
-        }
-}
-*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_typeInterpTypeMask(ArrayOfIndex& surface_types,

@@ -17994,6 +17994,7 @@ void define_md_data_raw() {
           "Meteorological Society, vol. 137, (656), pp. 690-699, 2011.)\n"
           "This methods computes land surface emissivities for a given pencil beam\n"
           "using a given TELSEM2 atlas.\n"
+          "\n"
           "The input must satisfy the following conditions, otherwise an error is thrown:\n"
           " - The input frequencies (*f_grid*) must be within the range [5 GHz, 900 GHz]\n"
           " - The skin temperature (*surface_skin_t*) must be within the range\n"
@@ -18027,6 +18028,7 @@ void define_md_data_raw() {
          "lon_true",
          "rtp_pos",
          "rtp_los",
+         "specular_los",
          "surface_skin_t"),
       GIN("atlas", "r_min", "r_max", "d_max"),
       GIN_TYPE("TelsemAtlas", "Numeric", "Numeric", "Numeric"),
@@ -18465,32 +18467,6 @@ void define_md_data_raw() {
       GIN_TYPE("GriddedField4"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("A field of scalar surface reflectivities")));
-
-  /*
-  md_data_raw.push_back
-    ( create_mdrecord
-      ( NAME( "surface_reflectivityFromSurface_rmatrix" ),
-        DESCRIPTION
-        (
-         "As *surface_scalar_reflectivityFromSurface_rmatrix*, but for (vectorRT)"
-         "*surface_reflectivity*.\n"
-         "\n"
-         "For each frequency f and stokes parameter combi st_in and st_out,"
-         "*surface_reflectivity* is set to the sum of"
-         "surface_rmatrix(joker,f,st_in,st_out).\n"
-        ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT( "surface_reflectivity" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "surface_rmatrix" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromSurface_rmatrix"),
