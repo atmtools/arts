@@ -2076,28 +2076,24 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
   InternalDerivativesYImpl(X0) InternalDerivativesYImpl(X1)                    \
       InternalDerivativesYImpl(X2) InternalDerivativesYImpl(X3)
 
-/** Gets a limited range of the vector so that only values
- * at index i such that
+/** Gets the start and size of a range such that
  *
- * \f[ l <= v_i <= u \f]
+ * \f[ fl \leq f_grid[i] \leq fu \f]
  *
- * are inside the view returned by v[r].
+ * for i such that all fl <= f_grid[Range(out.first, out.second, 1)] <= fu
  *
- * @param[in] l Lower limit
- * @param[in] u Upper limit
- * @param[in] v Vector of sorted values so v[i] <= v[i+1]
- * @return r to fulfill description above
+ * @param[in] fl Lower frequency limit
+ * @param[in] fu Upper frequency limit
+ * @param[in] f_grid As WSV, must be sorted
+ * @return out so that the Range above can be formed
  */
 std::pair<Index, Index> limited_range(const Numeric fl, const Numeric fu, const Vector &f_grid) ARTS_NOEXCEPT {
-  ARTS_ASSERT(fh >= fl);
-  const Index n = f_grid.size();
-  Index s = Interpolation::start_pos_finder(fl, f_grid);
-  Index e = Interpolation::start_pos_finder(fu, f_grid);
-  while (s not_eq 0 and f_grid[s - 1] >  fl) --s;
-  while (s not_eq e and f_grid[s    ] <= fl) ++s;
-  while (e not_eq n and f_grid[e    ] <  fu) ++e;
-  while (e not_eq s and f_grid[e - 1] >= fu) --e;
-  return {s, e - s};
+  ARTS_ASSERT(fu > fl);
+  const Numeric * it0 = f_grid.get_c_array();
+  const Numeric * itn = it0 + f_grid.size();
+  const Numeric * itl = std::lower_bound(it0, itn, fl);
+  const Numeric * itu = std::upper_bound(itl, itn, fu);
+  return {std::distance(it0, itl), std::distance(itl, itu)};
 }
 
 /** Data struct for keeping derivative keys and values
@@ -2460,11 +2456,11 @@ void cutoff_loop(ComplexVector &F,
   const Numeric fu = band.CutoffFreq(i);
 
   // Only for the cutoff-range
-  const auto range = limited_range(band.CutoffFreqMinus(i, f_mean), fu, f_grid);
-  if (not range.second) return;
+  const auto [cutstart, cutsize] = limited_range(band.CutoffFreqMinus(i, f_mean), fu, f_grid);
+  if (not cutsize) return;
   
   // Get the compute data view
-  ComputeValues com(F, dF, N, dN, f_grid, range.first, range.second, nj, do_nlte);
+  ComputeValues com(F, dF, N, dN, f_grid, cutstart, cutsize, nj, do_nlte);
   
   // Get the cutoff data view
   Complex Fc=0, Nc=0;
