@@ -2431,13 +2431,9 @@ void frequency_loop(ComputeValues &com,
  * @param[in] ls_norm The normalization calculator. \f$ S_n \f$
  * @param[in] derivs A list of pre-computed derivative values and keys
  */
-void cutoff_loop(ComplexVector &F,
-                 ComplexMatrix &dF,
-                 ComplexVector &N,
-                 ComplexMatrix &dN,
+void cutoff_loop(ComputeData &com,
                  Normalizer ls_norm,
                  const IntensityCalculator ls_str,
-                 const Vector &f_grid,
                  const AbsorptionLines &band,
                  const ArrayOfRetrievalQuantity &jacobian_quantities,
                  const ArrayOfDerivatives &derivs,
@@ -2456,11 +2452,11 @@ void cutoff_loop(ComplexVector &F,
   const Numeric fu = band.CutoffFreq(i);
 
   // Only for the cutoff-range
-  const auto [cutstart, cutsize] = limited_range(band.CutoffFreqMinus(i, f_mean), fu, f_grid);
+  const auto [cutstart, cutsize] = limited_range(band.CutoffFreqMinus(i, f_mean), fu, com.f_grid);
   if (not cutsize) return;
   
   // Get the compute data view
-  ComputeValues com(F, dF, N, dN, f_grid, cutstart, cutsize, nj, do_nlte);
+  ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, cutstart, cutsize, nj, do_nlte);
   
   // Get the cutoff data view
   Complex Fc=0, Nc=0;
@@ -2474,7 +2470,7 @@ void cutoff_loop(ComplexVector &F,
     Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
     Calculator ls_mirr = mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
 
-    frequency_loop(com, ls, ls_mirr, ls_norm, ls_str, 
+    frequency_loop(comval, ls, ls_mirr, ls_norm, ls_str, 
                    jacobian_quantities, derivs,  Complex(1 + X.G, -X.Y), T,  dfdH, Sz,  band.Species());
     
     if (do_cutoff) {
@@ -2485,7 +2481,7 @@ void cutoff_loop(ComplexVector &F,
 
   // Deal with cutoff if necessary
   if (do_cutoff) {
-    com -= cut;
+    comval -= cut;
   }
 }
 
@@ -2520,11 +2516,7 @@ void cutoff_loop(ComplexVector &F,
  * @param[in] dQTdT The derivative of the partition function at the temperature
  * wrt temperature
  */
-void line_loop(ComplexVector &F,
-               ComplexMatrix &dF,
-               ComplexVector &N,
-               ComplexMatrix &dN,
-               const Vector &f_grid,
+void line_loop(ComputeData &com,
                const AbsorptionLines &band,
                const ArrayOfRetrievalQuantity &jacobian_quantities,
                const EnergyLevelMap &nlte,
@@ -2585,13 +2577,9 @@ void line_loop(ComplexVector &F,
     }
 
     // Call cut off loop.  Note that moved values cannot be used again
-    cutoff_loop(F,
-                dF,
-                N,
-                dN,
+    cutoff_loop(com,
                 normalizer_selection(band.Normalization(), band.F0(i), T),
                 linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
-                f_grid,
                 band,
                 jacobian_quantities,
                 derivs,
@@ -2628,19 +2616,17 @@ void line_loop(ComplexVector &F,
  *
  * where \f$ t \f$ is some arbitrary variable.
  */
-void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
-             ComplexMatrix &dN, const Vector &f_grid,
+void compute(ComputeData &com,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
              const EnergyLevelMap &nlte,
              const SpeciesAuxData::AuxType &partfun_type,
              const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
              const Numeric& self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H,
-             [[maybe_unused]] const bool do_nlte,
              const bool do_zeeman, const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   [[maybe_unused]] const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
-  [[maybe_unused]] const Index nv = f_grid.nelem();
+  [[maybe_unused]] const Index nv = com.f_grid.nelem();
 
   // Tests that must be true while calling this function
   ARTS_ASSERT(H >= 0, "Only for positive H.  You provided: ", H)
@@ -2648,15 +2634,15 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
   ARTS_ASSERT(T > 0, "Only for abs positive T.  You provided: ", T)
   ARTS_ASSERT(band.OK(), "Band is poorly constructed.  You need to use "
                          "a detailed debugger to find out why.")
-  ARTS_ASSERT(F.size() == nv, "F is wrong size.  Size is (", F.size(),
+  ARTS_ASSERT(com.F.size() == nv, "F is wrong size.  Size is (", com.F.size(),
               ") but should be: (", nv, ')')
-  ARTS_ASSERT(not do_nlte or N.size() == nv, "N is wrong size.  Size is (",
-              N.size(), ") but should be (", nv, ')')
-  ARTS_ASSERT(nj == 0 or (dF.nrows() == nv and dF.ncols() == nj),
-              "dF is wrong size.  Size is (", dF.nrows(), " x ", dF.ncols(),
+  ARTS_ASSERT(not com.do_nlte or com.N.size() == nv, "N is wrong size.  Size is (",
+              com.N.size(), ") but should be (", nv, ')')
+  ARTS_ASSERT(nj == 0 or (com.dF.nrows() == nv and com.dF.ncols() == nj),
+              "dF is wrong size.  Size is (", com.dF.nrows(), " x ", com.dF.ncols(),
               ") but should be: (", nv, " x ", nj, ")")
-  ARTS_ASSERT(nj == 0 or not do_nlte or (dN.nrows() == nv and dN.ncols() == nj),
-              "dN is wrong size.  Size is (", dN.nrows(), " x ", dN.ncols(),
+  ARTS_ASSERT(nj == 0 or not com.do_nlte or (com.dN.nrows() == nv and com.dN.ncols() == nj),
+              "dN is wrong size.  Size is (", com.dN.nrows(), " x ", com.dN.ncols(),
               ") but should be: (", nv, " x ", nj, ")")
 
   // Early return test
@@ -2665,26 +2651,12 @@ void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
   }
   
   const Numeric dnumdensdVMR = isot_ratio * number_density(P, T);
-  line_loop(F,
-            dF,
-            N,
-            dN,
-            f_grid,
-            band,
-            jacobian_quantities,
-            nlte,
-            vmrs,
-            P,
-            T,
-            H,
+  line_loop(com, band, jacobian_quantities, nlte, vmrs, P, T, H,
             single_partition_function(T, partfun_type, partfun_data),
             single_partition_function(band.T0(), partfun_type, partfun_data),
             dsingle_partition_function_dT(T, partfun_type, partfun_data),
-            self_vmr * dnumdensdVMR,
-            dnumdensdVMR,
-            self_vmr * isot_ratio * dnumber_density_dt(P, T),
-            do_zeeman,
-            zeeman_polarization);
+            self_vmr * dnumdensdVMR, dnumdensdVMR, self_vmr * isot_ratio * dnumber_density_dt(P, T),
+            do_zeeman, zeeman_polarization);
 }
 
 #undef InternalDerivatives

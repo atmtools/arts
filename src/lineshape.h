@@ -519,15 +519,35 @@ typedef std::variant<Nostrength, LocalThermodynamicEquilibrium,
                      VibrationalTemperaturesNonLocalThermodynamicEquilibrium>
     IntensityCalculator;
 
-void compute(ComplexVector &F, ComplexMatrix &dF, ComplexVector &N,
-             ComplexMatrix &dN, const Vector &f_grid,
+struct ComputeData {
+  ComplexVector F, N;
+  ComplexMatrix dF, dN;
+  const Vector& f_grid;
+  const bool do_nlte;
+  
+  ComputeData(const Vector& f_grid_, const ArrayOfRetrievalQuantity &jacobian_quantities, const bool do_nlte_) noexcept : 
+  F(f_grid_.size(), 0),
+  N(do_nlte_ ? f_grid_.size() : 0, 0),
+  dF(f_grid_.size(), jacobian_quantities.size(), 0),
+  dN(do_nlte_ ? f_grid_.size() : 0, do_nlte_ ? jacobian_quantities.size() : 0, 0),
+  f_grid(f_grid_),
+  do_nlte(do_nlte_) {}
+  
+  void reset() noexcept {
+    F = 0;
+    N = 0;
+    dF = 0;
+    dN = 0;
+  }
+};
+
+void compute(ComputeData &com,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
              const EnergyLevelMap &nlte,
              const SpeciesAuxData::AuxType &partfun_type,
              const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
-             const Numeric &self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H,
-             const bool do_nlte = false,
+             const Numeric &self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H = 0,
              const bool do_zeeman = false,
              const Zeeman::Polarization zeeman_polarization = Zeeman::Polarization::Pi) ARTS_NOEXCEPT;
 

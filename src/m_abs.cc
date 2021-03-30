@@ -1471,10 +1471,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
   ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
   
   // Calculations data
-  ComplexVector F(nf, 0);
-  ComplexVector N(nlte_do ? nf : 0, 0);
-  ComplexMatrix dF(nf, nq, 0);
-  ComplexMatrix dN(nlte_do ? nf : 0, nlte_do ? nq : 0, 0);
+  LineShape::ComputeData com(f_grid, jacobian_quantities, nlte_do);
   
   // Need to do more complicated calculations if legacy_vmr is true
   const bool legacy_vmr=std::any_of(jacobian_quantities.cbegin(), jacobian_quantities.cend(),
@@ -1487,23 +1484,17 @@ void propmat_clearskyAddLines(  // Workspace reference:
         continue;
       
       // Reset for legacy VMR jacobian
-      F = 0;
-      dF = 0;
-      N = 0;
-      dN = 0;
+      com.reset();
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(F, dF, N, dN, f_grid,
-                           band, jacobian_quantities,
-                           rtp_nlte,
-                           partition_functions.getParamType(band.QuantumIdentity()),
+        LineShape::compute(com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
                            partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, nlte_do);
+                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature);
         
       }
       
       // Sum up the propagation matrix
-      propmat_clearsky.Kjj() += F.real();
+      propmat_clearsky.Kjj() += com.F.real();
       
       // Sum up the Jacobian
       for (Index j=0; j<nq; j++) {
@@ -1512,15 +1503,15 @@ void propmat_clearskyAddLines(  // Workspace reference:
         if (not propmattype(deriv)) continue;
         
         if (deriv == abs_species[ispecies]) {
-          dpropmat_clearsky_dx[j].Kjj() += F.real();  // FIXME: Without this, the complex-variables would never need reset
+          dpropmat_clearsky_dx[j].Kjj() += com.F.real();  // FIXME: Without this, the complex-variables would never need reset
         } else {
-          dpropmat_clearsky_dx[j].Kjj() += dF.real()(joker, j);
+          dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
         }
       }
       
       if (nlte_do) {
         // Sum up the source vector
-        nlte_source.Kjj() += N.real();
+        nlte_source.Kjj() += com.N.real();
         
         // Sum up the Jacobian
         for (Index j=0; j<nq; j++) {
@@ -1529,9 +1520,9 @@ void propmat_clearskyAddLines(  // Workspace reference:
           if (not propmattype(deriv)) continue;
           
           if (deriv == abs_species[ispecies]) {
-            dnlte_source_dx[j].Kjj() += N.real();  // FIXME: Without this, the complex-variables would never need reset
+            dnlte_source_dx[j].Kjj() += com.N.real();  // FIXME: Without this, the complex-variables would never need reset
           } else {
-            dnlte_source_dx[j].Kjj() += dN.real()(joker, j);
+            dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
           }
         }
       }
@@ -1543,33 +1534,30 @@ void propmat_clearskyAddLines(  // Workspace reference:
         continue;
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(F, dF, N, dN, f_grid,
-                           band, jacobian_quantities,
-                           rtp_nlte,
-                           partition_functions.getParamType(band.QuantumIdentity()),
+        LineShape::compute(com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
                            partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, nlte_do);
+                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature);
         
       }
     }
       
     // Sum up the propagation matrix
-    propmat_clearsky.Kjj() += F.real();
+    propmat_clearsky.Kjj() += com.F.real();
     
     // Sum up the Jacobian
     for (Index j=0; j<nq; j++) {
       if (not propmattype(jacobian_quantities[j])) continue;
-      dpropmat_clearsky_dx[j].Kjj() += dF.real()(joker, j);
+      dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
     }
     
     if (nlte_do) {
       // Sum up the source vector
-      nlte_source.Kjj() += N.real();
+      nlte_source.Kjj() += com.N.real();
       
       // Sum up the Jacobian
       for (Index j=0; j<nq; j++) {
         if (not propmattype(jacobian_quantities[j])) continue;
-        dnlte_source_dx[j].Kjj() += dN.real()(joker, j);
+        dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
       }
     }
   }

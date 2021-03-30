@@ -147,10 +147,7 @@ void zeeman_on_the_fly(
                      Zeeman::Polarization::SigmaPlus}) {
 
     // Calculations data
-    ComplexVector F(nf, 0);
-    ComplexVector N(nlte_do ? nf : 0, 0);
-    ComplexMatrix dF(nf, nq, 0);
-    ComplexMatrix dN(nlte_do ? nf : 0, nlte_do ? nq : 0, 0);
+    LineShape::ComputeData com(f_grid, jacobian_quantities, nlte_do);
     
     auto& pol = Zeeman::SelectPolarization(polarization_scale_data, polar);
     auto& dpol_dtheta =
@@ -165,24 +162,21 @@ void zeeman_on_the_fly(
           continue;
         
         // Reset
-        F = 0;
-        dF = 0;
-        N = 0;
-        dN = 0;
+        com.reset();
         
         for (auto& band : abs_lines_per_species[ispecies]) {
-          LineShape::compute(F, dF, N, dN, f_grid,
+          LineShape::compute(com,
                             band, jacobian_quantities,
                             rtp_nlte,
                             partition_functions.getParamType(band.QuantumIdentity()),
                             partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                            isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H, nlte_do,
+                            isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H,
                             true, polar);
           
         }
         
         // Sum up the propagation matrix
-        Zeeman::sum(propmat_clearsky, F, pol);
+        Zeeman::sum(propmat_clearsky, com.F, pol);
         
         // Sum up the Jacobian
         for (Index j=0; j<nq; j++) {
@@ -191,27 +185,27 @@ void zeeman_on_the_fly(
           if (not propmattype(deriv)) continue;
           
           if (deriv == Jacobian::Atm::MagneticU) {
-            Zeeman::dsum(dpropmat_clearsky_dx[j], F, dF(joker, j),
+            Zeeman::dsum(dpropmat_clearsky_dx[j], com.F, com.dF(joker, j),
                         pol, dpol_dtheta, dpol_deta,
                         X.dH_du, X.dtheta_du, X.deta_du);
           } else if (deriv == Jacobian::Atm::MagneticV) {
-            Zeeman::dsum(dpropmat_clearsky_dx[j], F, dF(joker, j),
+            Zeeman::dsum(dpropmat_clearsky_dx[j], com.F, com.dF(joker, j),
                         pol, dpol_dtheta, dpol_deta,
                         X.dH_dv, X.dtheta_dv, X.deta_dv);
           } else if (deriv == Jacobian::Atm::MagneticW) {
-            Zeeman::dsum(dpropmat_clearsky_dx[j], F, dF(joker, j),
+            Zeeman::dsum(dpropmat_clearsky_dx[j], com.F, com.dF(joker, j),
                         pol, dpol_dtheta, dpol_deta,
                         X.dH_dw, X.dtheta_dw, X.deta_dw);
           } else if (deriv == abs_species[ispecies]) {
-            Zeeman::sum(dpropmat_clearsky_dx[j], F, pol);  // FIXME: Without this, the complex-variables would never need reset
+            Zeeman::sum(dpropmat_clearsky_dx[j], com.F, pol);  // FIXME: Without this, the complex-variables would never need reset
           } else {
-            Zeeman::sum(dpropmat_clearsky_dx[j], dF(joker, j), pol);
+            Zeeman::sum(dpropmat_clearsky_dx[j], com.dF(joker, j), pol);
           }
         }
         
         if (nlte_do) {
           // Sum up the source vector
-          Zeeman::sum(nlte_source, N, pol, false);
+          Zeeman::sum(nlte_source, com.N, pol, false);
           
           // Sum up the Jacobian
           for (Index j=0; j<nq; j++) {
@@ -220,21 +214,21 @@ void zeeman_on_the_fly(
             if (not propmattype(deriv)) continue;
             
             if (deriv == Jacobian::Atm::MagneticU) {
-              Zeeman::dsum(dnlte_source_dx[j], N, dN(joker, j),
+              Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
                           pol, dpol_dtheta, dpol_deta,
                           X.dH_du, X.dtheta_du, X.deta_du, false);
             } else if (deriv == Jacobian::Atm::MagneticV) {
-              Zeeman::dsum(dnlte_source_dx[j], N, dN(joker, j),
+              Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
                           pol, dpol_dtheta, dpol_deta,
                           X.dH_dv, X.dtheta_dv, X.deta_dv, false);
             } else if (deriv == Jacobian::Atm::MagneticW) {
-              Zeeman::dsum(dnlte_source_dx[j], N, dN(joker, j),
+              Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
                           pol, dpol_dtheta, dpol_deta,
                           X.dH_dw, X.dtheta_dw, X.deta_dw, false);
             } else if (deriv == abs_species[ispecies]) {
-              Zeeman::sum(dnlte_source_dx[j], N, pol, false);  // FIXME: Without this, the complex-variables would never need reset
+              Zeeman::sum(dnlte_source_dx[j], com.N, pol, false);  // FIXME: Without this, the complex-variables would never need reset
             } else {
-              Zeeman::sum(dnlte_source_dx[j], dN(joker, j), pol, false);
+              Zeeman::sum(dnlte_source_dx[j], com.dN(joker, j), pol, false);
             }
           }
         }
@@ -246,19 +240,19 @@ void zeeman_on_the_fly(
           continue;
         
         for (auto& band : abs_lines_per_species[ispecies]) {
-          LineShape::compute(F, dF, N, dN, f_grid,
+          LineShape::compute(com,
                              band, jacobian_quantities,
                              rtp_nlte,
                              partition_functions.getParamType(band.QuantumIdentity()),
                              partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                             isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H, nlte_do,
+                             isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H,
                              true, polar);
           
         }
       }
         
       // Sum up the propagation matrix
-      Zeeman::sum(propmat_clearsky, F, pol);
+      Zeeman::sum(propmat_clearsky, com.F, pol);
       
       // Sum up the Jacobian
       for (Index j=0; j<nq; j++) {
@@ -267,25 +261,25 @@ void zeeman_on_the_fly(
         if (not propmattype(deriv)) continue;
         
         if (deriv == Jacobian::Atm::MagneticU) {
-          Zeeman::dsum(dpropmat_clearsky_dx[j], F, dF(joker, j),
+          Zeeman::dsum(dpropmat_clearsky_dx[j], com.F, com.dF(joker, j),
                         pol, dpol_dtheta, dpol_deta,
                         X.dH_du, X.dtheta_du, X.deta_du);
         } else if (deriv == Jacobian::Atm::MagneticV) {
-          Zeeman::dsum(dpropmat_clearsky_dx[j], F, dF(joker, j),
+          Zeeman::dsum(dpropmat_clearsky_dx[j], com.F, com.dF(joker, j),
                         pol, dpol_dtheta, dpol_deta,
                         X.dH_dv, X.dtheta_dv, X.deta_dv);
         } else if (deriv == Jacobian::Atm::MagneticW) {
-          Zeeman::dsum(dpropmat_clearsky_dx[j], F, dF(joker, j),
+          Zeeman::dsum(dpropmat_clearsky_dx[j], com.F, com.dF(joker, j),
                         pol, dpol_dtheta, dpol_deta,
                         X.dH_dw, X.dtheta_dw, X.deta_dw);
         } else {
-          Zeeman::sum(dpropmat_clearsky_dx[j], dF(joker, j), pol);
+          Zeeman::sum(dpropmat_clearsky_dx[j], com.dF(joker, j), pol);
         }
       }
       
       if (nlte_do) {
         // Sum up the source vector
-        Zeeman::sum(nlte_source, N, pol, false);
+        Zeeman::sum(nlte_source, com.N, pol, false);
         
         // Sum up the Jacobian
         for (Index j=0; j<nq; j++) {
@@ -294,19 +288,19 @@ void zeeman_on_the_fly(
           if (not propmattype(deriv)) continue;
           
           if (deriv == Jacobian::Atm::MagneticU) {
-            Zeeman::dsum(dnlte_source_dx[j], N, dN(joker, j),
+            Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
                           pol, dpol_dtheta, dpol_deta,
                           X.dH_du, X.dtheta_du, X.deta_du, false);
           } else if (deriv == Jacobian::Atm::MagneticV) {
-            Zeeman::dsum(dnlte_source_dx[j], N, dN(joker, j),
+            Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
                           pol, dpol_dtheta, dpol_deta,
                           X.dH_dv, X.dtheta_dv, X.deta_dv, false);
           } else if (deriv == Jacobian::Atm::MagneticW) {
-            Zeeman::dsum(dnlte_source_dx[j], N, dN(joker, j),
+            Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
                           pol, dpol_dtheta, dpol_deta,
                           X.dH_dw, X.dtheta_dw, X.deta_dw, false);
           } else {
-            Zeeman::sum(dnlte_source_dx[j], dN(joker, j), pol, false);
+            Zeeman::sum(dnlte_source_dx[j], com.dN(joker, j), pol, false);
           }
         }
       }
