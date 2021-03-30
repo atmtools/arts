@@ -89,15 +89,11 @@ make -jX pyarts
 
 Build configurations
 --------------------
-To build a release version without assertions or debugging symbols use:
 
-```
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make clean
-make
-```
+By default, ARTS is built in release mode with optimizations enabled and
+assertions and debugging symbols turned off.
 
-To switch back to the debug version use:
+To build with assertions and debugging symbols use:
 
 ```
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
@@ -105,13 +101,31 @@ make clean
 make
 ```
 
-This is also the default configuration if you run cmake without
-options in an empty build directory.
+This configuration offers a good balance between performance and debugging
+capabilities. Since this still optimizes out many variables, it can be
+necessary for some debugging cases to turn off all optimizations. For those
+cases, the full debug configuration can be enabled. Note that ARTS runs a lot
+slower in this configuration:
 
-Native build (EXPERIMENTAL)
----------------------------
+```
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+make clean
+make
+```
 
-Finally, an experimental build type for Native infrastructures exists on GCC:
+The following commands can be used to switch back to release configuration:
+
+```
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make clean
+make
+```
+
+Native build
+------------
+
+To squeeze out every last drop of performance, you can also build a version
+specifically optimized for your machine's processor:
 
 ```
 cmake -DCMAKE_BUILD_TYPE=Native ..
