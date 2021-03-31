@@ -522,16 +522,16 @@ typedef std::variant<Nostrength, LocalThermodynamicEquilibrium,
 struct ComputeData {
   ComplexVector F, N;
   ComplexMatrix dF, dN;
-  const Vector& f_grid;
+  const Vector & f_grid;
   const bool do_nlte;
   
-  ComputeData(const Vector& f_grid_, const ArrayOfRetrievalQuantity &jacobian_quantities, const bool do_nlte_) noexcept : 
-  F(f_grid_.size(), 0),
-  N(do_nlte_ ? f_grid_.size() : 0, 0),
-  dF(f_grid_.size(), jacobian_quantities.size(), 0),
-  dN(do_nlte_ ? f_grid_.size() : 0, do_nlte_ ? jacobian_quantities.size() : 0, 0),
-  f_grid(f_grid_),
-  do_nlte(do_nlte_) {}
+  ComputeData(const Vector& f, const ArrayOfRetrievalQuantity &jacobian_quantities, const bool nlte) noexcept : 
+  F(f.nelem(), 0),
+  N(nlte ? f.nelem() : 0, 0),
+  dF(f.nelem(), jacobian_quantities.nelem(), 0),
+  dN(nlte ? f.nelem() : 0, nlte ? jacobian_quantities.nelem() : 0, 0),
+  f_grid(f),
+  do_nlte(nlte) {}
   
   void reset() noexcept {
     F = 0;
@@ -539,17 +539,47 @@ struct ComputeData {
     dF = 0;
     dN = 0;
   }
+  
+  void interp_add_even(const ComputeData& sparse) ARTS_NOEXCEPT {
+    const Index nv = f_grid.nelem();
+    const Index nj = dF.ncols();
+    
+    ARTS_ASSERT(do_nlte == sparse.do_nlte, "Must have the same NLTE status")
+    ARTS_ASSERT(sparse.f_grid.nelem() > 1, "Must have at least two sparse grid-points")
+    ARTS_ASSERT(nv == 0 or (f_grid[0] >= sparse.f_grid[0] and f_grid[nv - 1] <= sparse.f_grid[sparse.f_grid.nelem() - 1]),
+                "If there are any dense frequency points, then the sparse frequency points must fully cover them")
+    
+    Index sparse_iv=1;
+    const Numeric invdf = 1.0 / (sparse.f_grid[sparse_iv] - sparse.f_grid[sparse_iv-1]);
+    for (Index iv=0; iv<nv; iv++) {
+      while (sparse.f_grid[sparse_iv] < f_grid[iv]) sparse_iv++;  // sparse_iv cannot exceed sparse_nv by assert
+      
+      // Interpolation weight
+      const Numeric x = (f_grid[iv] - sparse.f_grid[sparse_iv-1]) * invdf;
+      
+      F[iv] += sparse.F[sparse_iv-1] + x * (sparse.F[sparse_iv] - sparse.F[sparse_iv-1]);
+      for (Index ij=0; ij<nj; ij++) {
+        dF(iv, ij) += sparse.dF(sparse_iv-1, ij) + x * (sparse.dF(sparse_iv, ij) - sparse.dF(sparse_iv-1, ij));
+      }
+      if (do_nlte) {
+        N[iv] += sparse.N[sparse_iv-1] + x * (sparse.N[sparse_iv] - sparse.N[sparse_iv-1]);
+        for (Index ij=0; ij<nj; ij++) {
+          dN(iv, ij) += sparse.dN(sparse_iv-1, ij) + x * (sparse.dN(sparse_iv, ij) - sparse.dN(sparse_iv-1, ij));
+        }
+      }
+    }
+  }
 };
 
 void compute(ComputeData &com,
+             ComputeData &sparse_com,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
              const EnergyLevelMap &nlte,
              const SpeciesAuxData::AuxType &partfun_type,
              const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
-             const Numeric &self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H = 0,
-             const bool do_zeeman = false,
-             const Zeeman::Polarization zeeman_polarization = Zeeman::Polarization::Pi) ARTS_NOEXCEPT;
+             const Numeric &self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H, const Numeric &sparse_lim,
+             const bool do_zeeman, const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT;
 
 } // namespace LineShape
 

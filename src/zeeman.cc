@@ -137,6 +137,9 @@ void zeeman_on_the_fly(
   const auto polarization_scale_deta_data =
       Zeeman::AllPolarization_deta(X.theta, X.eta);
   
+  // Deal with sparse computational grid
+  const Vector f_grid_sparse(0);
+  const Numeric sparse_limit = 0;
   
   // Need to do more complicated calculations if legacy_vmr is true
   const bool legacy_vmr=std::any_of(jacobian_quantities.cbegin(), jacobian_quantities.cend(),
@@ -148,6 +151,7 @@ void zeeman_on_the_fly(
 
     // Calculations data
     LineShape::ComputeData com(f_grid, jacobian_quantities, nlte_do);
+    LineShape::ComputeData sparse_com(f_grid_sparse, jacobian_quantities, nlte_do);
     
     auto& pol = Zeeman::SelectPolarization(polarization_scale_data, polar);
     auto& dpol_dtheta =
@@ -163,14 +167,15 @@ void zeeman_on_the_fly(
         
         // Reset
         com.reset();
+        sparse_com.reset();
         
         for (auto& band : abs_lines_per_species[ispecies]) {
-          LineShape::compute(com,
+          LineShape::compute(com, sparse_com, 
                             band, jacobian_quantities,
                             rtp_nlte,
                             partition_functions.getParamType(band.QuantumIdentity()),
                             partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                            isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H,
+                            isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H, sparse_limit,
                             true, polar);
           
         }
@@ -240,12 +245,12 @@ void zeeman_on_the_fly(
           continue;
         
         for (auto& band : abs_lines_per_species[ispecies]) {
-          LineShape::compute(com,
+          LineShape::compute(com, sparse_com,
                              band, jacobian_quantities,
                              rtp_nlte,
                              partition_functions.getParamType(band.QuantumIdentity()),
                              partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                             isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H,
+                             isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H, sparse_limit,
                              true, polar);
           
         }

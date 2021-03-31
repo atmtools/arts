@@ -1419,6 +1419,33 @@ bool any_negative(const MatpackType& var) noexcept {
     return false;
 }
 
+Vector sparse_frequency_grid(const Vector& f_grid, const Numeric& sparse_df, const Numeric& sparse_lim) ARTS_NOEXCEPT {
+  if (const Index nf = f_grid.nelem(); nf and sparse_lim > 0) {
+    ARTS_ASSERT(sparse_df > 0)
+    const Index n = Index((f_grid[nf-1] - f_grid[0]) / sparse_df);
+    ARTS_ASSERT(n >= 0)
+    const Numeric f0 = f_grid[0];
+    ARTS_ASSERT(f0 > 0)
+    return Vector(f0, 2 + n, sparse_df);
+  } else {
+    return Vector(0);
+  }
+}
+
+bool good_sparse_frequency_grid(const Vector& f_grid_dense, const Vector& f_grid_sparse) noexcept {
+  if (const Index nf_sparse=f_grid_sparse.nelem(); nf_sparse==1) {
+      return false;
+  } else if(nf_sparse) {
+    if (const Index nf_dense=f_grid_dense.nelem(); nf_dense) {
+      return f_grid_dense[0] >= f_grid_sparse[0] and f_grid_dense[nf_dense-1] <= f_grid_sparse[nf_sparse-1];
+    } else {
+      return true;
+    }
+  } else {
+    return true;
+  }
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddLines(  // Workspace reference:
     // WS Output:
@@ -1439,6 +1466,9 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const Vector& rtp_vmr,
     const Index& nlte_do,
     const Index& lbl_checked,
+    // WS User Generic inputs
+    const Numeric& sparse_df,
+    const Numeric& sparse_lim,
     // Verbosity object:
     const Verbosity&) {
   
@@ -1465,19 +1495,30 @@ void propmat_clearskyAddLines(  // Workspace reference:
   ARTS_USER_ERROR_IF(nlte_do and bad_propmat(dnlte_source_dx, f_grid),
                      "*dnlte_source_dx* must have frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
+  ARTS_USER_ERROR_IF(not is_increasing(f_grid), "Must be sorted and increasing.")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_nlte.Data()), "Negative NLTE (at least one value).")
   ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
+  ARTS_USER_ERROR_IF(sparse_lim > 0 and sparse_df > sparse_lim, 
+                    "If sparse grids are to be used, the limit must be larger than the grid-spacing.\n"
+                    "The limit is ", sparse_lim, " Hz and the grid_spacing is ", sparse_df, " Hz")
+  
+  if (not nf) return;
+  
+  // Deal with sparse computational grid
+  const Vector f_grid_sparse = sparse_frequency_grid(f_grid, sparse_df, sparse_lim);
+  ARTS_ASSERT(good_sparse_frequency_grid(f_grid, f_grid_sparse))
   
   // Calculations data
   LineShape::ComputeData com(f_grid, jacobian_quantities, nlte_do);
+  LineShape::ComputeData sparse_com(f_grid_sparse, jacobian_quantities, nlte_do);
   
-  // Need to do more complicated calculations if legacy_vmr is true
-  const bool legacy_vmr=std::any_of(jacobian_quantities.cbegin(), jacobian_quantities.cend(),
-                                    [](auto& deriv){return deriv == Jacobian::Special::ArrayOfSpeciesTagVMR;});
+  // Need to do more complicated calculations if this is true
+  const bool legacy_vmr_derivative=std::any_of(jacobian_quantities.cbegin(), jacobian_quantities.cend(),
+                                               [](auto& deriv){return deriv == Jacobian::Special::ArrayOfSpeciesTagVMR;});
 
-  if (legacy_vmr) {
+  if (legacy_vmr_derivative) {
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
       // Skip it if there are no species or there is Zeeman requested
       if (not abs_species[ispecies].nelem() or is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
@@ -1485,11 +1526,13 @@ void propmat_clearskyAddLines(  // Workspace reference:
       
       // Reset for legacy VMR jacobian
       com.reset();
+      sparse_com.reset();
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
                            partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature);
+                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, sparse_lim,
+                           false, Zeeman::Polarization::Pi);
         
       }
       
@@ -1534,9 +1577,10 @@ void propmat_clearskyAddLines(  // Workspace reference:
         continue;
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
                            partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature);
+                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, sparse_lim,
+                           false, Zeeman::Polarization::Pi);
         
       }
     }

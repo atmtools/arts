@@ -12600,10 +12600,13 @@ void define_md_data_raw() {
          "rtp_vmr",
          "nlte_do",
          "lbl_checked"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("sparse_df", "sparse_lim"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("0", "0"),
+      GIN_DESC(
+        "The grid separation",
+        "The dense-to-sparse limit"
+      )));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddOnTheFlyLineMixing"),
