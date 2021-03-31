@@ -18530,11 +18530,15 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceBlackbody"),
       DESCRIPTION(
-          "Blackbody surface emission and emission derivative. Currently calculated numerically. \n"
+          "Blackbody surface, with support for Jacobian calculations.\n"
           "\n"
-          "The variable *surface_props_data* must contain these data:\n"
+          "See *surfaceBlackbody* and *SurfaceFastem* for complementary\n"
+          "information.\n"
+          "\n"
+          "For this method, *surface_props_data* must contain these data:\n"
           "  \"Skin temperature\"\n"
           "\n"
+          "*dsurface_emission_dx* is calculated analytically.\n"
           "*surface_rmatrix* and *dsurface_rmatrix_dx* are set to 0.\n"),
       AUTHORS("Marc Prange"),
       OUT("surface_los",
@@ -18572,7 +18576,10 @@ void define_md_data_raw() {
           "variables, include this method *iy_surface_agenda*. The method\n"
           "just checks that the variables of concern are set to be empty,\n"
           "and you don't need to include calls of *Ignore* and *Touch* in\n"
-          "the agenda.\n"),
+          "the agenda.\n"
+          "\n"
+          "If you use a method of SurfaceSomething type, you don't need\n"
+          "this one.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("dsurface_rmatrix_dx", "dsurface_emission_dx"),
       GOUT(),
@@ -18597,13 +18604,23 @@ void define_md_data_raw() {
       DESCRIPTION(
           "FASTEM sea surface microwave emissivity parametrization.\n"
           "\n"
-          "The variable *surface_props_data* must contain these data:\n"
+          "This method allows to use FASTEM in retrievals requiring the\n"
+          "Jacobian. Otherwise as *surfaceFastem*. See *SurfaceBlackbody\n"
+          "for general remarks about methods of SurfaceSomething type.\n"
+          "\n"
+          "This is an example on a surface method starting with a capital S,\n"
+          "e.g. SurfaceSomething. These methods differ from the methods\n"
+          "named as surfaceSomething in two ways:\n"
+          "  1. The surface properties to apply are taken directly from\n"
+          "     *surface_props_data*.\n"
+          "  2. The Jacobian with respect to the surface properties can be\n"
+          "     obtained.\n"
+          "\n"
+          "For this method, *surface_props_data* must contain these data:\n"
           "  \"Water skin temperature\"\n"
           "  \"Wind speed\"\n"
           "  \"Wind direction\"\n"
-          "  \"Salinity\"\n"
-          "\n"
-          "For some details and comments see *FastemStandAlone* and *surfaceFastem*.\n"),
+          "  \"Salinity\"\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los",
           "surface_rmatrix",
@@ -18638,24 +18655,14 @@ void define_md_data_raw() {
       DESCRIPTION(
           "TESSEM sea surface microwave emissivity parametrization.\n"
           "\n"
-          "The variable *surface_props_data* must contain these data:\n"
+          "This method allows to use TESSEM in retrievals requiring the\n"
+          "Jacobian. Otherwise as *surfaceTessem*. See *SurfaceBlackbody\n"
+          "for general remarks about methods of SurfaceSomething type.\n"
+          "\n"
+          "For this method, *surface_props_data* must contain these data:\n"
           "  \"Water skin temperature\"\n"
           "  \"Wind speed\"\n"
-          "  \"Salinity\"\n"
-          "\n"
-          "This method computes surface emissivity and reflectivity matrices for\n"
-          "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
-          "Sea-surface emissivity parametrization from microwaves to millimetre\n"
-          "waves, QJRMS, 2017, 143.702: 596-605.\n"
-          "\n"
-          "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
-          "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
-          "The accepted temperaute range for water skin temperature is\n"
-          "[260.0 K, 373.0 K]. Salinity shall be in the range [0,1]. That is, a\n"
-          "salinity of 3% is given as 0.03.\n"
-          "\n"
-          "The model itself is represented by the neural networks in\n"
-          "*tessem_neth* and *tessem_netv*.\n"),
+          "  \"Salinity\"\n"),
       AUTHORS("Simon Pfreundschuh", "Patrick Eriksson"),
       OUT("surface_los",
           "surface_rmatrix",

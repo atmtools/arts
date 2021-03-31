@@ -113,6 +113,7 @@ arts_test_ctlfile_depends(fast.artscomponents.montecarlo.TestRteCalcMC
 arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1.arts)
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4_transmission.arts)
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfuns.arts)
+arts_test_run_ctlfile(fast artscomponents/wfuns/TestSurfaceBlackbody.arts)
 
 arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive.arts)
 # arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
