@@ -1536,6 +1536,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
         
       }
       
+      if (sparse_lim > 0) com.interp_add_even(sparse_com);
+      
       // Sum up the propagation matrix
       propmat_clearsky.Kjj() += com.F.real();
       
@@ -1584,6 +1586,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
         
       }
     }
+    
+    if (sparse_lim > 0) com.interp_add_even(sparse_com);
       
     // Sum up the propagation matrix
     propmat_clearsky.Kjj() += com.F.real();

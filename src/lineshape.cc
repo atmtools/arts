@@ -2901,8 +2901,6 @@ void compute(ComputeData &com,
             dsingle_partition_function_dT(T, partfun_type, partfun_data),
             self_vmr * dnumdensdVMR, dnumdensdVMR, self_vmr * isot_ratio * dnumber_density_dt(P, T),
             do_zeeman, zeeman_polarization);
-  
-  if (sparse_lim > 0) com.interp_add_even(sparse_com);
 }
 
 #undef InternalDerivatives
