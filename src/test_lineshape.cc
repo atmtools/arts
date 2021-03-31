@@ -520,10 +520,10 @@ void test_norm() {
     N_vvh[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvh);
     N_vvw[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvw);
     N_rq[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_rq);
-    dN_nonorm[0][i] = std::visit([T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_nonorm);
-    dN_vvh[0][i] = std::visit([T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_vvh);
-    dN_vvw[0][i] = std::visit([T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_vvw);
-    dN_rq[0][i] = std::visit([T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_rq);
+    dN_nonorm[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_nonorm);
+    dN_vvh[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_vvh);
+    dN_vvw[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_vvw);
+    dN_rq[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_rq);
     dN_nonorm[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_nonorm);
     dN_vvh[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_vvh);
     dN_vvw[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_vvw);
