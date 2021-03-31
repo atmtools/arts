@@ -2406,207 +2406,6 @@ void surface_rtpropCallAgendaX(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
-                  ArrayOfMatrix& dsurface_emission_dx,
-                  const Index& atmosphere_dim,
-                  const Vector& lat_grid,
-                  const Vector& lon_grid,
-                  const Tensor3& surface_props_data,
-                  const ArrayOfString& surface_props_names,
-                  const ArrayOfString& dsurface_names,
-                  const Index& jacobian_do,
-                  const Verbosity&) {
-  if (surface_props_names.nelem())
-    throw runtime_error(
-        "When calling this method, *surface_props_names* should be empty.");
-
-  surface_props_check(atmosphere_dim,
-                      lat_grid,
-                      lon_grid,
-                      surface_props_data,
-                      surface_props_names);
-
-  if (jacobian_do) {
-    dsurface_check(surface_props_names,
-                   dsurface_names,
-                   dsurface_rmatrix_dx,
-                   dsurface_emission_dx);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void SurfaceTessem(Matrix& surface_los,
-                   Tensor4& surface_rmatrix,
-                   ArrayOfTensor4& dsurface_rmatrix_dx,
-                   Matrix& surface_emission,
-                   ArrayOfMatrix& dsurface_emission_dx,
-                   const Index& stokes_dim,
-                   const Index& atmosphere_dim,
-                   const Vector& lat_grid,
-                   const Vector& lon_grid,
-                   const Vector& f_grid,
-                   const Vector& rtp_pos,
-                   const Vector& rtp_los,
-                   const TessemNN& net_h,
-                   const TessemNN& net_v,
-                   const Tensor3& surface_props_data,
-                   const ArrayOfString& surface_props_names,
-                   const ArrayOfString& dsurface_names,
-                   const Index& jacobian_do,
-                   const Verbosity& verbosity) {
-  // Check surface_data
-  surface_props_check(atmosphere_dim,
-                      lat_grid,
-                      lon_grid,
-                      surface_props_data,
-                      surface_props_names);
-
-  // Interplation grid positions and weights
-  ArrayOfGridPos gp_lat(1), gp_lon(1);
-  Matrix itw;
-  rte_pos2gridpos(
-      gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos);
-  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
-
-  // Skin temperature
-  Vector skin_t(1);
-  surface_props_interp(skin_t,
-                       "Water skin temperature",
-                       atmosphere_dim,
-                       gp_lat,
-                       gp_lon,
-                       itw,
-                       surface_props_data,
-                       surface_props_names);
-
-  // Wind speed
-  Vector wind_speed(1);
-  surface_props_interp(wind_speed,
-                       "Wind speed",
-                       atmosphere_dim,
-                       gp_lat,
-                       gp_lon,
-                       itw,
-                       surface_props_data,
-                       surface_props_names);
-
-  // Salinity
-  Vector salinity(1);
-  surface_props_interp(salinity,
-                       "Salinity",
-                       atmosphere_dim,
-                       gp_lat,
-                       gp_lon,
-                       itw,
-                       surface_props_data,
-                       surface_props_names);
-
-  // Call TESSEM
-  surfaceTessem(surface_los,
-                surface_rmatrix,
-                surface_emission,
-                atmosphere_dim,
-                stokes_dim,
-                f_grid,
-                rtp_pos,
-                rtp_los,
-                skin_t[0],
-                net_h,
-                net_v,
-                salinity[0],
-                wind_speed[0],
-                verbosity);
-
-  // Jacobian part
-  if (jacobian_do) {
-    dsurface_check(surface_props_names,
-                   dsurface_names,
-                   dsurface_rmatrix_dx,
-                   dsurface_emission_dx);
-
-    Index irq;
-
-    // Skin temperature
-    irq = find_first(dsurface_names, String("Water skin temperature"));
-    if (irq >= 0) {
-      const Numeric dd = 0.1;
-      Matrix surface_los2;
-      surfaceTessem(surface_los2,
-                    dsurface_rmatrix_dx[irq],
-                    dsurface_emission_dx[irq],
-                    atmosphere_dim,
-                    stokes_dim,
-                    f_grid,
-                    rtp_pos,
-                    rtp_los,
-                    skin_t[0] + dd,
-                    net_h,
-                    net_v,
-                    salinity[0],
-                    wind_speed[0],
-                    verbosity);
-      //
-      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
-      dsurface_rmatrix_dx[irq] /= dd;
-      dsurface_emission_dx[irq] -= surface_emission;
-      dsurface_emission_dx[irq] /= dd;
-    }
-
-    // Wind speed
-    irq = find_first(dsurface_names, String("Wind speed"));
-    if (irq >= 0) {
-      const Numeric dd = 0.1;
-      Matrix surface_los2;
-      surfaceTessem(surface_los2,
-                    dsurface_rmatrix_dx[irq],
-                    dsurface_emission_dx[irq],
-                    atmosphere_dim,
-                    stokes_dim,
-                    f_grid,
-                    rtp_pos,
-                    rtp_los,
-                    skin_t[0],
-                    net_h,
-                    net_v,
-                    salinity[0],
-                    wind_speed[0] + dd,
-                    verbosity);
-      //
-      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
-      dsurface_rmatrix_dx[irq] /= dd;
-      dsurface_emission_dx[irq] -= surface_emission;
-      dsurface_emission_dx[irq] /= dd;
-    }
-
-    // Salinity
-    irq = find_first(dsurface_names, String("Salinity"));
-    if (irq >= 0) {
-      const Numeric dd = 0.0005;
-      Matrix surface_los2;
-      surfaceTessem(surface_los2,
-                    dsurface_rmatrix_dx[irq],
-                    dsurface_emission_dx[irq],
-                    atmosphere_dim,
-                    stokes_dim,
-                    f_grid,
-                    rtp_pos,
-                    rtp_los,
-                    skin_t[0],
-                    net_h,
-                    net_v,
-                    salinity[0] + dd,
-                    wind_speed[0],
-                    verbosity);
-      //
-      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
-      dsurface_rmatrix_dx[irq] /= dd;
-      dsurface_emission_dx[irq] -= surface_emission;
-      dsurface_emission_dx[irq] /= dd;
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void SurfaceBlackbody(Matrix& surface_los,
                       Tensor4& surface_rmatrix,
                       ArrayOfTensor4& dsurface_rmatrix_dx,
@@ -2684,6 +2483,35 @@ void SurfaceBlackbody(Matrix& surface_los,
                                       surface_rmatrix.ncols());
       dsurface_rmatrix_dx[irq] = 0;
     }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
+                  ArrayOfMatrix& dsurface_emission_dx,
+                  const Index& atmosphere_dim,
+                  const Vector& lat_grid,
+                  const Vector& lon_grid,
+                  const Tensor3& surface_props_data,
+                  const ArrayOfString& surface_props_names,
+                  const ArrayOfString& dsurface_names,
+                  const Index& jacobian_do,
+                  const Verbosity&) {
+  if (surface_props_names.nelem())
+    throw runtime_error(
+        "When calling this method, *surface_props_names* should be empty.");
+
+  surface_props_check(atmosphere_dim,
+                      lat_grid,
+                      lon_grid,
+                      surface_props_data,
+                      surface_props_names);
+
+  if (jacobian_do) {
+    dsurface_check(surface_props_names,
+                   dsurface_names,
+                   dsurface_rmatrix_dx,
+                   dsurface_emission_dx);
   }
 }
 
@@ -2891,6 +2719,341 @@ void SurfaceFastem(Matrix& surface_los,
                     wind_direction[0],
                     transmittance,
                     fastem_version,
+                    verbosity);
+      //
+      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+      dsurface_rmatrix_dx[irq] /= dd;
+      dsurface_emission_dx[irq] -= surface_emission;
+      dsurface_emission_dx[irq] /= dd;
+    }
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void SurfaceFlatScalarReflectivity(Matrix& surface_los,
+                                   Tensor4& surface_rmatrix,
+                                   ArrayOfTensor4& dsurface_rmatrix_dx,
+                                   Matrix& surface_emission,
+                                   ArrayOfMatrix& dsurface_emission_dx,
+                                   const Index& stokes_dim,
+                                   const Index& atmosphere_dim,
+                                   const Vector& lat_grid,
+                                   const Vector& lon_grid,
+                                   const Vector& f_grid,
+                                   const Vector& rtp_pos,
+                                   const Vector& rtp_los,
+                                   const Vector& specular_los,
+                                   const Tensor3& surface_props_data,
+                                   const ArrayOfString& surface_props_names,
+                                   const ArrayOfString& dsurface_names,
+                                   const Index& jacobian_do,
+                                   const Vector& f_reflectivities,
+                                   const Verbosity& verbosity) {
+  // Check surface_data
+  surface_props_check(atmosphere_dim,
+                      lat_grid,
+                      lon_grid,
+                      surface_props_data,
+                      surface_props_names);
+
+  // Check of GINs
+  chk_if_increasing("GIN *f_reflectivities*", f_reflectivities);
+
+  // Sizes
+  const Index nr = f_reflectivities.nelem();
+  const Index nf = f_grid.nelem();
+
+  // Interplation grid positions and weights
+  ArrayOfGridPos gp_lat(1), gp_lon(1);
+  Matrix itw;
+  rte_pos2gridpos(
+      gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos);
+  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
+
+  // Skin temperature
+  Vector surface_skin_t(1);
+  surface_props_interp(surface_skin_t,
+                       "Skin temperature",
+                       atmosphere_dim,
+                       gp_lat,
+                       gp_lon,
+                       itw,
+                       surface_props_data,
+                       surface_props_names);
+
+  // Reflectivities
+  Vector reflectivities(nr);
+  //
+  for (Index i=0; i<nr; i++) {
+    Vector rv(1);
+    ostringstream sstr;
+    sstr << "Scalar reflectivity " << i;
+    surface_props_interp(rv,
+                         sstr.str(),
+                         atmosphere_dim,
+                         gp_lat,
+                         gp_lon,
+                         itw,
+                         surface_props_data,
+                         surface_props_names);
+    reflectivities[i] = rv[0];
+  }
+
+  // Create surface_scalar_reflectivity
+  Vector surface_scalar_reflectivity(nf);
+  ArrayOfGridPos gp(nf);
+  if (nr==1) {
+    gp4length1grid(gp);
+  } else {
+    gridpos(gp, f_reflectivities, f_grid, 1e99);
+    jacobian_type_extrapol(gp);
+  }
+  Matrix itw2(nf, 2);
+  interpweights(itw2, gp);
+  interp( surface_scalar_reflectivity, itw2, reflectivities, gp);
+
+  // Call non-Jacobian method
+  surfaceFlatScalarReflectivity(surface_los,
+                                surface_rmatrix,
+                                surface_emission,
+                                f_grid,
+                                stokes_dim,
+                                atmosphere_dim,
+                                rtp_pos,
+                                rtp_los,
+                                specular_los,
+                                surface_skin_t[0],
+                                surface_scalar_reflectivity,
+                                verbosity);
+  
+  // Jacobian part
+  if (jacobian_do) {
+    dsurface_check(surface_props_names,
+                   dsurface_names,
+                   dsurface_rmatrix_dx,
+                   dsurface_emission_dx);
+
+    Index irq;
+
+    // Skin temperature
+    irq = find_first(dsurface_names, String("Skin temperature"));
+    if (irq >= 0) {
+      const Numeric dd = 0.1;
+      Matrix surface_los2;
+      surfaceFlatScalarReflectivity(surface_los2,
+                                    dsurface_rmatrix_dx[irq],
+                                    dsurface_emission_dx[irq],
+                                    f_grid,
+                                    stokes_dim,
+                                    atmosphere_dim,
+                                    rtp_pos,
+                                    rtp_los,
+                                    specular_los,
+                                    surface_skin_t[0]+dd,
+                                    surface_scalar_reflectivity,
+                                    verbosity);
+      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+      dsurface_rmatrix_dx[irq] /= dd;
+      dsurface_emission_dx[irq] -= surface_emission;
+      dsurface_emission_dx[irq] /= dd;
+    }
+
+    // Reflectivities
+    for (Index i=0; i<nr; i++) {
+      ostringstream sstr;
+      sstr << "Scalar reflectivity " << i;
+      irq = find_first(dsurface_names, String(sstr.str()));
+      if (irq >= 0) {
+        const Numeric dd = 1e-4;
+        Vector rpert = reflectivities;
+        rpert[i] += dd;
+        interp( surface_scalar_reflectivity, itw2, rpert, gp);
+        //
+        Matrix surface_los2;
+        surfaceFlatScalarReflectivity(surface_los2,
+                                      dsurface_rmatrix_dx[irq],
+                                      dsurface_emission_dx[irq],
+                                      f_grid,
+                                      stokes_dim,
+                                      atmosphere_dim,
+                                      rtp_pos,
+                                      rtp_los,
+                                      specular_los,
+                                      surface_skin_t[0],
+                                      surface_scalar_reflectivity,
+                                      verbosity);
+        dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+        dsurface_rmatrix_dx[irq] /= dd;
+        dsurface_emission_dx[irq] -= surface_emission;
+        dsurface_emission_dx[irq] /= dd;
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void SurfaceTessem(Matrix& surface_los,
+                   Tensor4& surface_rmatrix,
+                   ArrayOfTensor4& dsurface_rmatrix_dx,
+                   Matrix& surface_emission,
+                   ArrayOfMatrix& dsurface_emission_dx,
+                   const Index& stokes_dim,
+                   const Index& atmosphere_dim,
+                   const Vector& lat_grid,
+                   const Vector& lon_grid,
+                   const Vector& f_grid,
+                   const Vector& rtp_pos,
+                   const Vector& rtp_los,
+                   const TessemNN& net_h,
+                   const TessemNN& net_v,
+                   const Tensor3& surface_props_data,
+                   const ArrayOfString& surface_props_names,
+                   const ArrayOfString& dsurface_names,
+                   const Index& jacobian_do,
+                   const Verbosity& verbosity) {
+  // Check surface_data
+  surface_props_check(atmosphere_dim,
+                      lat_grid,
+                      lon_grid,
+                      surface_props_data,
+                      surface_props_names);
+
+  // Interplation grid positions and weights
+  ArrayOfGridPos gp_lat(1), gp_lon(1);
+  Matrix itw;
+  rte_pos2gridpos(
+      gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos);
+  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
+
+  // Skin temperature
+  Vector skin_t(1);
+  surface_props_interp(skin_t,
+                       "Water skin temperature",
+                       atmosphere_dim,
+                       gp_lat,
+                       gp_lon,
+                       itw,
+                       surface_props_data,
+                       surface_props_names);
+
+  // Wind speed
+  Vector wind_speed(1);
+  surface_props_interp(wind_speed,
+                       "Wind speed",
+                       atmosphere_dim,
+                       gp_lat,
+                       gp_lon,
+                       itw,
+                       surface_props_data,
+                       surface_props_names);
+
+  // Salinity
+  Vector salinity(1);
+  surface_props_interp(salinity,
+                       "Salinity",
+                       atmosphere_dim,
+                       gp_lat,
+                       gp_lon,
+                       itw,
+                       surface_props_data,
+                       surface_props_names);
+
+  // Call TESSEM
+  surfaceTessem(surface_los,
+                surface_rmatrix,
+                surface_emission,
+                atmosphere_dim,
+                stokes_dim,
+                f_grid,
+                rtp_pos,
+                rtp_los,
+                skin_t[0],
+                net_h,
+                net_v,
+                salinity[0],
+                wind_speed[0],
+                verbosity);
+
+  // Jacobian part
+  if (jacobian_do) {
+    dsurface_check(surface_props_names,
+                   dsurface_names,
+                   dsurface_rmatrix_dx,
+                   dsurface_emission_dx);
+
+    Index irq;
+
+    // Skin temperature
+    irq = find_first(dsurface_names, String("Water skin temperature"));
+    if (irq >= 0) {
+      const Numeric dd = 0.1;
+      Matrix surface_los2;
+      surfaceTessem(surface_los2,
+                    dsurface_rmatrix_dx[irq],
+                    dsurface_emission_dx[irq],
+                    atmosphere_dim,
+                    stokes_dim,
+                    f_grid,
+                    rtp_pos,
+                    rtp_los,
+                    skin_t[0] + dd,
+                    net_h,
+                    net_v,
+                    salinity[0],
+                    wind_speed[0],
+                    verbosity);
+      //
+      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+      dsurface_rmatrix_dx[irq] /= dd;
+      dsurface_emission_dx[irq] -= surface_emission;
+      dsurface_emission_dx[irq] /= dd;
+    }
+
+    // Wind speed
+    irq = find_first(dsurface_names, String("Wind speed"));
+    if (irq >= 0) {
+      const Numeric dd = 0.1;
+      Matrix surface_los2;
+      surfaceTessem(surface_los2,
+                    dsurface_rmatrix_dx[irq],
+                    dsurface_emission_dx[irq],
+                    atmosphere_dim,
+                    stokes_dim,
+                    f_grid,
+                    rtp_pos,
+                    rtp_los,
+                    skin_t[0],
+                    net_h,
+                    net_v,
+                    salinity[0],
+                    wind_speed[0] + dd,
+                    verbosity);
+      //
+      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+      dsurface_rmatrix_dx[irq] /= dd;
+      dsurface_emission_dx[irq] -= surface_emission;
+      dsurface_emission_dx[irq] /= dd;
+    }
+
+    // Salinity
+    irq = find_first(dsurface_names, String("Salinity"));
+    if (irq >= 0) {
+      const Numeric dd = 0.0005;
+      Matrix surface_los2;
+      surfaceTessem(surface_los2,
+                    dsurface_rmatrix_dx[irq],
+                    dsurface_emission_dx[irq],
+                    atmosphere_dim,
+                    stokes_dim,
+                    f_grid,
+                    rtp_pos,
+                    rtp_los,
+                    skin_t[0],
+                    net_h,
+                    net_v,
+                    salinity[0] + dd,
+                    wind_speed[0],
                     verbosity);
       //
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;

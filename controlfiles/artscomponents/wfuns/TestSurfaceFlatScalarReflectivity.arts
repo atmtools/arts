@@ -74,13 +74,22 @@ ArrayOfStringSet( iy_aux_vars, [] )
 
 # "surface_props"
 #
-ArrayOfStringSet( surface_props_names, [ "Skin temperature" ] )
-Tensor3SetConstant( surface_props_data, 1, 1, 1, 275 )
+VectorCreate( f_reflectivities )
+VectorSet( f_reflectivities, [20e9,60e9,100e9] )
+#
+VectorCreate( spdata0 )
+VectorSet( spdata0, [278,0.25,0.2,0.1]  )
+Tensor3FromVector( surface_props_data, spdata0 )
+ArrayOfStringSet( surface_props_names, [ "Skin temperature",
+                                         "Scalar reflectivity 0",
+                                         "Scalar reflectivity 1",
+                                         "Scalar reflectivity 2"] )
 
 # Surface agenda
 #
 AgendaSet( iy_surface_agenda ){
-  SurfaceBlackbody
+  specular_losCalc
+  SurfaceFlatScalarReflectivity(f_reflectivities=f_reflectivities)
   iySurfaceRtpropCalc
 }
 
@@ -89,6 +98,12 @@ AgendaSet( iy_surface_agenda ){
 jacobianInit
 jacobianAddSurfaceQuantity( g1 = lat_grid, g2 = lon_grid, 
     quantity = "Skin temperature" )
+jacobianAddSurfaceQuantity( g1 = lat_grid, g2 = lon_grid, 
+    quantity = "Scalar reflectivity 0" )
+jacobianAddSurfaceQuantity( g1 = lat_grid, g2 = lon_grid, 
+    quantity = "Scalar reflectivity 1" )
+jacobianAddSurfaceQuantity( g1 = lat_grid, g2 = lon_grid, 
+    quantity = "Scalar reflectivity 2" )
 jacobianClose
 
 # No scattering nor sensor
@@ -110,7 +125,6 @@ StringSet( iy_unit, "RJBT" )
 #
 yCalc
 
-
 # To save calculated spectrum and transmission
 #
 #output_file_formatSetAscii
@@ -125,19 +139,58 @@ Copy( y0, y )
 MatrixCreate( j0 )
 Copy( j0, jacobian )
 
-
-# Perturb  with 0.01K to check Jacobian
-#
+# Prepare for perturbation calculations
+VectorCreate( spdata )
+VectorCreate( dsp )
 jacobianOff
-Tensor3AddScalar( surface_props_data, surface_props_data, 0.01 )
+VectorCreate( jvec )
+
+# Disturb skin temperature to test that Jacobian
+#
+VectorSet( dsp, [0.01,0,0,0] )
+VectorAddVector( spdata, spdata0, dsp )
+Tensor3FromVector( surface_props_data, spdata )
 #
 yCalc
 VectorSubtractVector( y, y, y0 )
 VectorScale( y, y, 100 )
-#
-VectorCreate( jvec )
 VectorExtractFromMatrix( jvec, j0, 0, "column" )
+Compare( y, jvec, 1e-6 )
+
+# Disturb reflectivity 0 to test that Jacobian
 #
+VectorSet( dsp, [0,1e-4,0,0] )
+VectorAddVector( spdata, spdata0, dsp )
+Tensor3FromVector( surface_props_data, spdata )
+#
+yCalc
+VectorSubtractVector( y, y, y0 )
+VectorScale( y, y, 1e4 )
+VectorExtractFromMatrix( jvec, j0, 1, "column" )
+Compare( y, jvec, 1e-6 )
+
+# Disturb reflectivity 1 to test that Jacobian
+#
+VectorSet( dsp, [0,0,1e-4,0] )
+VectorAddVector( spdata, spdata0, dsp )
+Tensor3FromVector( surface_props_data, spdata )
+#
+yCalc
+VectorSubtractVector( y, y, y0 )
+VectorScale( y, y, 1e4 )
+VectorExtractFromMatrix( jvec, j0, 2, "column" )
+Compare( y, jvec, 1e-6 )
+
+# Disturb reflectivity 2 to test that Jacobian
+#
+VectorSet( dsp, [0,0,0,1e-4] )
+VectorAddVector( spdata, spdata0, dsp )
+Tensor3FromVector( surface_props_data, spdata )
+#
+yCalc
+VectorSubtractVector( y, y, y0 )
+VectorScale( y, y, 1e4 )
+VectorExtractFromMatrix( jvec, j0, 3, "column" )
 Compare( y, jvec, 1e-6 )
 
 }
