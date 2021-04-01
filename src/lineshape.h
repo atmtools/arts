@@ -652,6 +652,15 @@ void compute(ComputeData &com,
              const Numeric &self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H, const Numeric &sparse_lim,
              const bool do_zeeman, const Zeeman::Polarization zeeman_polarization, const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT;
 
+Vector sparse_frequency_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS_NOEXCEPT;
+
+bool good_sparse_frequency_grid(const Vector& f_grid_dense, const Vector& f_grid_sparse) noexcept;
+
+Index triple_sparse_f_grid_red(const Vector& f_grid,
+                               const Numeric& sparse_df) noexcept;
+
+Vector triple_sparse_f_grid(const Vector& f_grid, const Index n) noexcept;
+             
 } // namespace LineShape
 
 #endif // lineshapes_h

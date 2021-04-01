@@ -1419,80 +1419,6 @@ bool any_negative(const MatpackType& var) noexcept {
     return false;
 }
 
-Vector sparse_frequency_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS_NOEXCEPT {
-  if (const Index nf = f_grid.nelem(); nf) {
-    ARTS_ASSERT(sparse_df > 0)
-    const Index n = Index((f_grid[nf-1] - f_grid[0]) / sparse_df);
-    ARTS_ASSERT(n >= 0)
-    const Numeric f0 = f_grid[0];
-    ARTS_ASSERT(f0 > 0)
-    return Vector(f0, 2 + n, sparse_df);
-  } else {
-    return Vector(0);
-  }
-}
-
-bool good_sparse_frequency_grid(const Vector& f_grid_dense, const Vector& f_grid_sparse) noexcept {
-  if (const Index nf_sparse=f_grid_sparse.nelem(); nf_sparse==1) {
-      return false;
-  } else if(nf_sparse) {
-    if (const Index nf_dense=f_grid_dense.nelem(); nf_dense) {
-      return f_grid_dense[0] >= f_grid_sparse[0] and f_grid_dense[nf_dense-1] <= f_grid_sparse[nf_sparse-1];
-    } else {
-      return true;
-    }
-  } else {
-    return true;
-  }
-}
-
-Index triple_sparse_f_grid_red(const Vector& f_grid,
-                               const Numeric& sparse_df) noexcept {
-  if (f_grid.nelem() > 1) {
-    return Index(sparse_df / (f_grid[1] - f_grid[0]));
-  } else {
-    return 1;
-  }
-}
-
-Vector triple_sparse_f_grid(const Vector& f_grid, const Index n) noexcept {
-  const Index nv = f_grid.nelem();
-  
-  if (nv > 1 and n > 2) {
-    const Index rem = (nv - 1) % n;  // Exact spacing if 0
-    
-    // nv ==  6 and n == 5 means 3*1 sparse
-    // nv ==  7 and n == 5 means 3*2 sparse
-    // nv == 11 and n == 5 means 3*2 sparse
-    // nv == 16 and n == 5 means 3*3 sparse
-    // nv == 17 and n == 5 means 3*4 sparse
-    // So three x [nv / n + (1 if rem else 0)]
-    const Index nv_sparse = 3 * (nv / n) + (rem ? 3 : 0);
-    Vector sparse_f_grid(nv_sparse);
-    for(Index iv=0; iv<nv-n; iv+=n) {
-      const Numeric f0 = f_grid[iv + 0];
-      const Numeric f1 = f_grid[iv + n];
-      const Index sparse_iv = iv / n;
-      sparse_f_grid[3 * sparse_iv + 0] = f0;
-      sparse_f_grid[3 * sparse_iv + 1] = f0 + 0.5 * (f1 - f0);
-      sparse_f_grid[3 * sparse_iv + 2] = f1;
-    }
-    
-    // Fix last point
-    if (rem) {
-      const Numeric f0 = sparse_f_grid[nv_sparse - 4];
-      const Numeric f1 = f_grid[nv - 1];
-      sparse_f_grid[nv_sparse - 3] = f0;
-      sparse_f_grid[nv_sparse - 2] = f0 + 0.5 * (f1 - f0);
-      sparse_f_grid[nv_sparse - 1] = f1;
-    }
-    
-    return sparse_f_grid;
-  } else {
-    return Vector(0);
-  }
-}
-
 void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
                                     const Vector& f_grid,
                                     const Numeric& sparse_df,
@@ -1510,11 +1436,11 @@ void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
   
   switch (speedup_type) {
     case Options::LblSpeedup::LinearEven:
-      sparse_f_grid = sparse_frequency_grid(f_grid, sparse_df);
-      ARTS_ASSERT(good_sparse_frequency_grid(f_grid, sparse_f_grid))
+      sparse_f_grid = LineShape::sparse_frequency_grid(f_grid, sparse_df);
+      ARTS_ASSERT(LineShape::good_sparse_frequency_grid(f_grid, sparse_f_grid))
       break;
     case Options::LblSpeedup::QuadraticIndependent:
-      sparse_f_grid = triple_sparse_f_grid(f_grid, triple_sparse_f_grid_red(f_grid, sparse_df));
+      sparse_f_grid = LineShape::triple_sparse_f_grid(f_grid, LineShape::triple_sparse_f_grid_red(f_grid, sparse_df));
       break;
     case Options::LblSpeedup::None:
       sparse_f_grid.resize(0);
