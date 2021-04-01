@@ -1419,8 +1419,8 @@ bool any_negative(const MatpackType& var) noexcept {
     return false;
 }
 
-Vector sparse_frequency_grid(const Vector& f_grid, const Numeric& sparse_df, const Numeric& sparse_lim) ARTS_NOEXCEPT {
-  if (const Index nf = f_grid.nelem(); nf and sparse_lim > 0) {
+Vector sparse_frequency_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS_NOEXCEPT {
+  if (const Index nf = f_grid.nelem(); nf) {
     ARTS_ASSERT(sparse_df > 0)
     const Index n = Index((f_grid[nf-1] - f_grid[0]) / sparse_df);
     ARTS_ASSERT(n >= 0)
@@ -1446,6 +1446,94 @@ bool good_sparse_frequency_grid(const Vector& f_grid_dense, const Vector& f_grid
   }
 }
 
+Index triple_sparse_f_grid_red(const Vector& f_grid,
+                               const Numeric& sparse_df) noexcept {
+  if (f_grid.nelem() > 1) {
+    return Index(sparse_df / (f_grid[1] - f_grid[0]));
+  } else {
+    return 1;
+  }
+}
+
+Vector triple_sparse_f_grid(const Vector& f_grid, const Index n) noexcept {
+  const Index nv = f_grid.nelem();
+  
+  if (nv > 1 and n > 2) {
+    const Index rem = (nv - 1) % n;  // Exact spacing if 0
+    
+    // nv ==  6 and n == 5 means 3*1 sparse
+    // nv ==  7 and n == 5 means 3*2 sparse
+    // nv == 11 and n == 5 means 3*2 sparse
+    // nv == 16 and n == 5 means 3*3 sparse
+    // nv == 17 and n == 5 means 3*4 sparse
+    // So three x [nv / n + (1 if rem else 0)]
+    const Index nv_sparse = 3 * (nv / n) + (rem ? 3 : 0);
+    Vector sparse_f_grid(nv_sparse);
+    for(Index iv=0; iv<nv-n; iv+=n) {
+      const Numeric f0 = f_grid[iv + 0];
+      const Numeric f1 = f_grid[iv + n];
+      const Index sparse_iv = iv / n;
+      sparse_f_grid[3 * sparse_iv + 0] = f0;
+      sparse_f_grid[3 * sparse_iv + 1] = f0 + 0.5 * (f1 - f0);
+      sparse_f_grid[3 * sparse_iv + 2] = f1;
+    }
+    
+    // Fix last point
+    if (rem) {
+      const Numeric f0 = sparse_f_grid[nv_sparse - 4];
+      const Numeric f1 = f_grid[nv - 1];
+      sparse_f_grid[nv_sparse - 3] = f0;
+      sparse_f_grid[nv_sparse - 2] = f0 + 0.5 * (f1 - f0);
+      sparse_f_grid[nv_sparse - 1] = f1;
+    }
+    
+    return sparse_f_grid;
+  } else {
+    return Vector(0);
+  }
+}
+
+void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
+                                    const Vector& f_grid,
+                                    const Numeric& sparse_df,
+                                    const String& speedup_option,
+                                    // Verbosity object:
+                                    const Verbosity&)
+{
+  const Options::LblSpeedup speedup_type = Options::toLblSpeedupOrThrow(speedup_option);
+  
+  // Return empty for nothing
+  if (not f_grid.nelem()) {
+    sparse_f_grid.resize(0);
+    return;
+  };
+  
+  switch (speedup_type) {
+    case Options::LblSpeedup::LinearEven:
+      sparse_f_grid = sparse_frequency_grid(f_grid, sparse_df);
+      ARTS_ASSERT(good_sparse_frequency_grid(f_grid, sparse_f_grid))
+      break;
+    case Options::LblSpeedup::QuadraticIndependent:
+      sparse_f_grid = triple_sparse_f_grid(f_grid, triple_sparse_f_grid_red(f_grid, sparse_df));
+      break;
+    case Options::LblSpeedup::None:
+      sparse_f_grid.resize(0);
+      break;
+    case Options::LblSpeedup::FINAL: { /* Leave last */ }
+  }
+}
+
+Vector create_sparse_f_grid_internal(const Vector& f_grid,
+                                     const Numeric& sparse_df,
+                                     const String& speedup_option,
+                                     // Verbosity object:
+                                     const Verbosity& verbosity)
+{
+  Vector sparse_f_grid;
+  sparse_f_gridFromFrequencyGrid(sparse_f_grid, f_grid, sparse_df, speedup_option, verbosity);
+  return sparse_f_grid;
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddLines(  // Workspace reference:
     // WS Output:
@@ -1469,8 +1557,9 @@ void propmat_clearskyAddLines(  // Workspace reference:
     // WS User Generic inputs
     const Numeric& sparse_df,
     const Numeric& sparse_lim,
+    const String& speedup_option,
     // Verbosity object:
-    const Verbosity&) {
+    const Verbosity& verbosity) {
   
   // Size of problem
   const Index nf = f_grid.nelem();
@@ -1503,12 +1592,14 @@ void propmat_clearskyAddLines(  // Workspace reference:
   ARTS_USER_ERROR_IF(sparse_lim > 0 and sparse_df > sparse_lim, 
                     "If sparse grids are to be used, the limit must be larger than the grid-spacing.\n"
                     "The limit is ", sparse_lim, " Hz and the grid_spacing is ", sparse_df, " Hz")
+  const Options::LblSpeedup speedup_type = Options::toLblSpeedupOrThrow(speedup_option);
+  ARTS_USER_ERROR_IF(sparse_lim <= 0 and speedup_type not_eq Options::LblSpeedup::None,
+                     "Must have a sparse limit if you set speedup_option")
   
   if (not nf) return;
   
   // Deal with sparse computational grid
-  const Vector f_grid_sparse = sparse_frequency_grid(f_grid, sparse_df, sparse_lim);
-  ARTS_ASSERT(good_sparse_frequency_grid(f_grid, f_grid_sparse))
+  const Vector f_grid_sparse = create_sparse_f_grid_internal(f_grid, sparse_df, speedup_option, verbosity);
   
   // Calculations data
   LineShape::ComputeData com(f_grid, jacobian_quantities, nlte_do);
@@ -1532,11 +1623,16 @@ void propmat_clearskyAddLines(  // Workspace reference:
         LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
                            partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
                            isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, sparse_lim,
-                           false, Zeeman::Polarization::Pi);
+                           false, Zeeman::Polarization::Pi, speedup_type);
         
       }
       
-      if (sparse_lim > 0) com.interp_add_even(sparse_com);
+      switch (speedup_type) {
+        case Options::LblSpeedup::LinearEven: com.interp_add_even(sparse_com); break;
+        case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
+        case Options::LblSpeedup::None: /* Do nothing */ break;
+        case Options::LblSpeedup::FINAL: { /* Leave last */ }
+      }
       
       // Sum up the propagation matrix
       propmat_clearsky.Kjj() += com.F.real();
@@ -1582,12 +1678,17 @@ void propmat_clearskyAddLines(  // Workspace reference:
         LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
                            partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
                            isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, sparse_lim,
-                           false, Zeeman::Polarization::Pi);
+                           false, Zeeman::Polarization::Pi, speedup_type);
         
       }
     }
     
-    if (sparse_lim > 0) com.interp_add_even(sparse_com);
+    switch (speedup_type) {
+      case Options::LblSpeedup::LinearEven: com.interp_add_even(sparse_com); break;
+      case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
+      case Options::LblSpeedup::None: /* Do nothing */ break;
+      case Options::LblSpeedup::FINAL: { /* Leave last */ }
+    }
       
     // Sum up the propagation matrix
     propmat_clearsky.Kjj() += com.F.real();

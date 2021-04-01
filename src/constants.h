@@ -570,6 +570,12 @@ namespace Options {
             Post2012, // 2012 version changed the order of isotopologues
             Online    // Onine expects a modern .par line followed by Upper then Lower quantum numbers
   )
+  
+  /** Possible AddLines Speedups */
+  ENUMCLASS(LblSpeedup, char,
+            None,
+            QuadraticIndependent,
+            LinearEven)
 }
 
 #endif

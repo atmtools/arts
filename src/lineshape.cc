@@ -2120,6 +2120,55 @@ LimitRange limited_range(const Numeric fl, const Numeric fu, const Vector &f_gri
   return LimitRange{std::distance(it0, itl), std::distance(itl, std::upper_bound(itl, itn, fu))};
 }
 
+//! Struct to keep the cutoff limited range values and the sparse limits
+struct TripleSparseLimitRange {
+  Index start, size;
+  Index start_low, size_low;
+  Index start_upp, size_upp;
+};
+
+TripleSparseLimitRange sparse_limited_range(const Numeric flc,
+                                            const Numeric fuc,
+                                            const Numeric fls,
+                                            const Numeric fus,
+                                            const Vector& f_grid,
+                                            const Vector& sparse_f_grid) ARTS_NOEXCEPT {
+  ARTS_ASSERT(fls > flc);
+  ARTS_ASSERT(fus > fls);
+  ARTS_ASSERT(fuc > fus);
+  
+  // Find bounds in sparse
+  const Numeric * it0s = sparse_f_grid.get_c_array();
+  const Numeric * itns = it0s + sparse_f_grid.size();
+  const Numeric * itlc = std::lower_bound(it0s, itns, flc);  // lower cutoff
+  const Numeric * ituc = std::upper_bound(itlc, itns, fuc);  // upper cutoff
+  const Numeric * itls = std::upper_bound(itlc, ituc, fls);  // lower sparse
+  const Numeric * itus = std::lower_bound(itls, ituc, fus);  // upper sparse
+  
+  // Start and size of sparse adjusted to the 3-grid
+  const Index start_lr = std::distance(it0s, itlc) + (3 - std::distance(it0s, itlc)) % 3;
+  const Index start_ur = std::distance(it0s, itus) + (3 - std::distance(it0s, itus)) % 3;
+  const Index size_lr = std::distance(itlc, itls) - std::distance(itlc, itls) % 3;
+  const Index size_ur = std::distance(itus, ituc) - std::distance(itus, ituc) % 3;
+  
+  // Actual dense cut off values (if no sizes, use cutoff)
+  const Numeric fl = size_lr ? sparse_f_grid[start_lr + size_lr - 1] : flc;
+  const Numeric fu = size_ur ? sparse_f_grid[start_ur] : fuc;
+  ARTS_ASSERT(fu > fl);
+  
+  // Find bounds in dense
+  const Numeric * it0 = f_grid.get_c_array();
+  const Numeric * itn = it0 + f_grid.size();
+  const Numeric * itl = std::lower_bound(it0, itn, fl);
+  const Numeric * itu = std::upper_bound(itl, itn, fu);
+  
+  return {
+    std::distance(it0, itl), std::distance(itl, itu),
+    start_lr, size_lr,
+    start_ur, size_ur
+  };
+}
+
 /** Data struct for keeping derivative keys and values
  *
  * If ever more types of values are necessary, please
@@ -2521,22 +2570,22 @@ void frequency_loop(ComputeValues &com,
  * @param[in] ls_norm The normalization calculator. \f$ S_n \f$
  * @param[in] derivs A list of pre-computed derivative values and keys
  */
-void cutoff_loop_sparse(ComputeData &com,
-                        ComputeData &sparse_com,
-                        Normalizer ls_norm,
-                        const IntensityCalculator ls_str,
-                        const AbsorptionLines &band,
-                        const ArrayOfRetrievalQuantity &jacobian_quantities,
-                        const ArrayOfDerivatives &derivs,
-                        const Output X,
-                        const Numeric &T,
-                        const Numeric &H,
-                        const Numeric &sparse_lim,
-                        const Numeric &f_mean,
-                        const Numeric &DC,
-                        const Index i,
-                        const bool do_zeeman,
-                        const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
+void cutoff_loop_sparse_linear(ComputeData &com,
+                               ComputeData &sparse_com,
+                               Normalizer ls_norm,
+                               const IntensityCalculator ls_str,
+                               const AbsorptionLines &band,
+                               const ArrayOfRetrievalQuantity &jacobian_quantities,
+                               const ArrayOfDerivatives &derivs,
+                               const Output X,
+                               const Numeric &T,
+                               const Numeric &H,
+                               const Numeric &sparse_lim,
+                               const Numeric &f_mean,
+                               const Numeric &DC,
+                               const Index i,
+                               const bool do_zeeman,
+                               const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   // Basic settings
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
@@ -2621,13 +2670,96 @@ void cutoff_loop_sparse(ComputeData &com,
   
   // Deal with the sparsity to remove overlaps
   if (sparse_low_size) {
-//     comval.remove_sparse_low_interp(sparse_low, sparse_com.f_grid[1] - sparse_com.f_grid[0]);
+    comval.remove_sparse_low_interp(sparse_low, sparse_com.f_grid[1] - sparse_com.f_grid[0]);
     sparse_low_range.add_beyond(sparse_low);
   }
   
   if (sparse_upp_size) {
-//     comval.remove_sparse_upp_interp(sparse_upp, sparse_com.f_grid[1] - sparse_com.f_grid[0]);
+    comval.remove_sparse_upp_interp(sparse_upp, sparse_com.f_grid[1] - sparse_com.f_grid[0]);
     sparse_upp_range.add_before(sparse_upp);
+  }
+}
+
+void cutoff_loop_sparse_triple(ComputeData &com,
+                               ComputeData &sparse_com,
+                               Normalizer ls_norm,
+                               const IntensityCalculator ls_str,
+                               const AbsorptionLines &band,
+                               const ArrayOfRetrievalQuantity &jacobian_quantities,
+                               const ArrayOfDerivatives &derivs,
+                               const Output X,
+                               const Numeric &T,
+                               const Numeric &H,
+                               const Numeric &sparse_lim,
+                               const Numeric &f_mean,
+                               const Numeric &DC,
+                               const Index i,
+                               const bool do_zeeman,
+                               const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
+  // Basic settings
+  const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
+  const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
+  const Index nj = jacobian_quantities.nelem();
+  const Numeric fu = band.CutoffFreq(i);
+  const Numeric fl = band.CutoffFreqMinus(i, f_mean);
+  const Numeric fus = band.F0(i) + sparse_lim;
+  const Numeric fls = band.F0(i) - sparse_lim;
+
+  // Find sparse and dense ranges
+  const auto [dense_start, dense_size,
+              sparse_low_start, sparse_low_size,
+              sparse_upp_start, sparse_upp_size] = sparse_limited_range(fl, fu, fls, fus,
+                                                                        com.f_grid,
+                                                                        sparse_com.f_grid);
+  if ((dense_size + sparse_low_size + sparse_upp_size) == 0) return;
+  
+  // Get the compute data view
+  ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, dense_start, dense_size, nj, do_nlte);
+  
+  // Define the cutoff
+  Complex Fc=0, Nc=0;
+  std::vector<Complex> dFc(do_cutoff ? nj : 0, 0), dNc((do_cutoff and do_nlte) ? nj : 0, 0);
+  ComputeValues cut(Fc, dFc, Nc, dNc, fu, nj, do_nlte);
+  
+  // Get views of the sparse data
+  ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, nj, do_nlte);
+  ComputeValues sparse_upp_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_upp_start, sparse_upp_size, nj, do_nlte);
+  
+  const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
+  for (Index iz = 0; iz < nz; iz++) {
+    const Numeric dfdH = do_zeeman ? band.ZeemanSplitting(i, zeeman_polarization, iz) : 0;
+    const Numeric Sz = do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
+    const Complex LM = Complex(1 + X.G, -X.Y);
+    Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
+    Calculator ls_mirr = mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
+
+    frequency_loop(comval, ls, ls_mirr, ls_norm, ls_str,
+                   jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+    
+    if (sparse_low_size)
+    frequency_loop(sparse_low_range, ls, ls_mirr, ls_norm, ls_str,
+                  jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+    if (sparse_upp_size)
+    frequency_loop(sparse_upp_range, ls, ls_mirr, ls_norm, ls_str,
+                  jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+    
+    if (do_cutoff) {
+      frequency_loop(cut, ls, ls_mirr, ls_norm, ls_str,
+                     jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+    }
+  }
+  
+  // Deal with cutoff if necessary
+  if (do_cutoff) {
+    comval -= cut;
+    
+    if (sparse_low_size) {
+      sparse_low_range -= cut;
+    }
+    
+    if (sparse_upp_size) {
+      sparse_upp_range -= cut;
+    }
   }
 }
 
@@ -2773,7 +2905,8 @@ void line_loop(ComputeData &com,
                const Numeric drdSELFVMR,
                const Numeric drdT,
                const bool do_zeeman,
-               const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
+               const Zeeman::Polarization zeeman_polarization,
+               const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT {
   const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
   
@@ -2819,18 +2952,29 @@ void line_loop(ComputeData &com,
     }
 
     // Call cut off loop with or without sparsity
-    if (sparse_lim > 0) {
-      cutoff_loop_sparse(com, sparse_com,
-                  normalizer_selection(band.Normalization(), band.F0(i), T),
-                  linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
-                  band, jacobian_quantities, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
-                  f_mean, DC, i, do_zeeman, zeeman_polarization);
-    } else {
-      cutoff_loop(com,
-                  normalizer_selection(band.Normalization(), band.F0(i), T),
-                  linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
-                  band, jacobian_quantities, derivs, band.ShapeParameters(i, T, P, vmrs), T, H,
-                  f_mean, DC, i, do_zeeman, zeeman_polarization);
+    switch (speedup_type) {
+      case Options::LblSpeedup::None:
+        cutoff_loop(com,
+                    normalizer_selection(band.Normalization(), band.F0(i), T),
+                    linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
+                    band, jacobian_quantities, derivs, band.ShapeParameters(i, T, P, vmrs), T, H,
+                    f_mean, DC, i, do_zeeman, zeeman_polarization);
+        break;
+      case Options::LblSpeedup::QuadraticIndependent:
+        cutoff_loop_sparse_triple(com, sparse_com,
+                    normalizer_selection(band.Normalization(), band.F0(i), T),
+                    linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
+                    band, jacobian_quantities, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
+                    f_mean, DC, i, do_zeeman, zeeman_polarization);
+        break;
+      case Options::LblSpeedup::LinearEven:
+        cutoff_loop_sparse_linear(com, sparse_com,
+                                  normalizer_selection(band.Normalization(), band.F0(i), T),
+                                  linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
+                                  band, jacobian_quantities, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
+                                  f_mean, DC, i, do_zeeman, zeeman_polarization);
+        break;
+      case Options::LblSpeedup::FINAL: { /* Leave last */ }
     }
   }
 }
@@ -2866,7 +3010,8 @@ void compute(ComputeData &com,
              const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
              const Numeric& self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H,
              const Numeric &sparse_lim,
-             const bool do_zeeman, const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
+             const bool do_zeeman, const Zeeman::Polarization zeeman_polarization,
+             const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT {
   [[maybe_unused]] const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
   [[maybe_unused]] const Index nv = com.f_grid.nelem();
@@ -2900,7 +3045,7 @@ void compute(ComputeData &com,
             single_partition_function(band.T0(), partfun_type, partfun_data),
             dsingle_partition_function_dT(T, partfun_type, partfun_data),
             self_vmr * dnumdensdVMR, dnumdensdVMR, self_vmr * isot_ratio * dnumber_density_dt(P, T),
-            do_zeeman, zeeman_polarization);
+            do_zeeman, zeeman_polarization, speedup_type);
 }
 
 #undef InternalDerivatives

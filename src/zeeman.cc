@@ -176,7 +176,7 @@ void zeeman_on_the_fly(
                             partition_functions.getParamType(band.QuantumIdentity()),
                             partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
                             isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H, sparse_limit,
-                            true, polar);
+                             true, polar, Options::LblSpeedup::None);
           
         }
         
@@ -251,7 +251,7 @@ void zeeman_on_the_fly(
                              partition_functions.getParamType(band.QuantumIdentity()),
                              partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
                              isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H, sparse_limit,
-                             true, polar);
+                             true, polar, Options::LblSpeedup::None);
           
         }
       }

@@ -12600,12 +12600,13 @@ void define_md_data_raw() {
          "rtp_vmr",
          "nlte_do",
          "lbl_checked"),
-      GIN("sparse_df", "sparse_lim"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT("0", "0"),
+      GIN("sparse_df", "sparse_lim", "speedup_option"),
+      GIN_TYPE("Numeric", "Numeric", "String"),
+      GIN_DEFAULT("0", "0", "None"),
       GIN_DESC(
         "The grid separation",
-        "The dense-to-sparse limit"
+        "The dense-to-sparse limit",
+        "Speedup logic.  Valid options are: None, QuadraticIndependent, LinearEven"
       )));
 
   md_data_raw.push_back(create_mdrecord(
