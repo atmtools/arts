@@ -17994,6 +17994,7 @@ void define_md_data_raw() {
           "Meteorological Society, vol. 137, (656), pp. 690-699, 2011.)\n"
           "This methods computes land surface emissivities for a given pencil beam\n"
           "using a given TELSEM2 atlas.\n"
+          "\n"
           "The input must satisfy the following conditions, otherwise an error is thrown:\n"
           " - The input frequencies (*f_grid*) must be within the range [5 GHz, 900 GHz]\n"
           " - The skin temperature (*surface_skin_t*) must be within the range\n"
@@ -18027,6 +18028,7 @@ void define_md_data_raw() {
          "lon_true",
          "rtp_pos",
          "rtp_los",
+         "specular_los",
          "surface_skin_t"),
       GIN("atlas", "r_min", "r_max", "d_max"),
       GIN_TYPE("TelsemAtlas", "Numeric", "Numeric", "Numeric"),
@@ -18466,32 +18468,6 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("A field of scalar surface reflectivities")));
 
-  /*
-  md_data_raw.push_back
-    ( create_mdrecord
-      ( NAME( "surface_reflectivityFromSurface_rmatrix" ),
-        DESCRIPTION
-        (
-         "As *surface_scalar_reflectivityFromSurface_rmatrix*, but for (vectorRT)"
-         "*surface_reflectivity*.\n"
-         "\n"
-         "For each frequency f and stokes parameter combi st_in and st_out,"
-         "*surface_reflectivity* is set to the sum of"
-         "surface_rmatrix(joker,f,st_in,st_out).\n"
-        ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT( "surface_reflectivity" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "surface_rmatrix" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-*/
-
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromSurface_rmatrix"),
       DESCRIPTION(
@@ -18554,11 +18530,15 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceBlackbody"),
       DESCRIPTION(
-          "Blackbody surface emission and emission derivative. Currently calculated numerically. \n"
+          "Blackbody surface, with support for Jacobian calculations.\n"
           "\n"
-          "The variable *surface_props_data* must contain these data:\n"
+          "See *surfaceBlackbody* and *SurfaceFastem* for complementary\n"
+          "information.\n"
+          "\n"
+          "For this method, *surface_props_data* must contain these data:\n"
           "  \"Skin temperature\"\n"
           "\n"
+          "*dsurface_emission_dx* is calculated analytically.\n"
           "*surface_rmatrix* and *dsurface_rmatrix_dx* are set to 0.\n"),
       AUTHORS("Marc Prange"),
       OUT("surface_los",
@@ -18596,7 +18576,10 @@ void define_md_data_raw() {
           "variables, include this method *iy_surface_agenda*. The method\n"
           "just checks that the variables of concern are set to be empty,\n"
           "and you don't need to include calls of *Ignore* and *Touch* in\n"
-          "the agenda.\n"),
+          "the agenda.\n"
+          "\n"
+          "If you use a method of SurfaceSomething type, you don't need\n"
+          "this one.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("dsurface_rmatrix_dx", "dsurface_emission_dx"),
       GOUT(),
@@ -18621,13 +18604,25 @@ void define_md_data_raw() {
       DESCRIPTION(
           "FASTEM sea surface microwave emissivity parametrization.\n"
           "\n"
-          "The variable *surface_props_data* must contain these data:\n"
+          "This method allows to use FASTEM in retrievals requiring the\n"
+          "Jacobian. Otherwise as *surfaceFastem*. See *SurfaceBlackbody\n"
+          "for general remarks about methods of SurfaceSomething type.\n"
+          "\n"
+          "This is an example on a surface method starting with a capital S,\n"
+          "e.g. SurfaceSomething. These methods differ from the methods\n"
+          "named as surfaceSomething in two ways:\n"
+          "  1. The surface properties to apply are taken directly from\n"
+          "     *surface_props_data*.\n"
+          "  2. The Jacobian with respect to the surface properties can be\n"
+          "     obtained.\n"
+          "The Jacobian can be obtained for all variables in *surface_props_data*\n"
+          "that the method of concern is using.\n"
+          "\n"
+          "For this method, *surface_props_data* must contain these data:\n"
           "  \"Water skin temperature\"\n"
           "  \"Wind speed\"\n"
           "  \"Wind direction\"\n"
-          "  \"Salinity\"\n"
-          "\n"
-          "For some details and comments see *FastemStandAlone* and *surfaceFastem*.\n"),
+          "  \"Salinity\"\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los",
           "surface_rmatrix",
@@ -18658,28 +18653,75 @@ void define_md_data_raw() {
                "The version of FASTEM to use.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("SurfaceFlatScalarReflectivity"),
+      DESCRIPTION(
+          "Piecewise linear scalar surface reflectivity.\n"
+          "\n"
+          "This method is similar to *surfaceFlatScalarReflectivity* but the\n"
+          "reflectivities are specified differently and Jacobian calculations\n"
+          "are supported. See *SurfaceFastem* for general remarks about\n"
+          "methods of SurfaceSomething type.\n"
+          "\n"
+          "The method works with scalar reflectivies, i.e. it is assumed that\n"
+          "the reflection at vertical and horizontal polarisation is identical.\n"
+          "The scalar reflectivity is given at a number of frequencies,\n"
+          "specified by the GIN *f_reflectivities*. The reflectivity at the\n"
+          "first frequency is denoted as \"Scalar reflectivity 0\" etc. Between\n"
+          "the frequencies in *f_reflectivities*, the reflectivity is treated\n"
+          "to vary linearly. The reflectivity is assumed to be constant outside\n"
+          "of *f_reflectivities*, and the end points in *f_reflectivities* can be\n"
+          "both inside and outside of the range of *f_grid*. Setting\n"
+          "*f_reflectivities* to have a single value, implies that the reflectivity\n"
+          "is constant over *f_grid*.\n"
+          "\n"
+          "For this method, *surface_props_data* must contain these data:\n"
+          "  \"Skin temperature\"\n"
+          "  \"Scalar reflectivity 0\"\n"
+          "  \"Scalar reflectivity 1\"\n"
+          "  ...\n"
+          "  \"Scalar reflectivity N\"\n"
+          "where N is the length of *f_reflectivities*-1.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("surface_los",
+          "surface_rmatrix",
+          "dsurface_rmatrix_dx",
+          "surface_emission",
+          "dsurface_emission_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("dsurface_rmatrix_dx",
+         "dsurface_emission_dx",
+         "stokes_dim",
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid",
+         "f_grid",
+         "rtp_pos",
+         "rtp_los",
+         "specular_los",
+         "surface_props_data",
+         "surface_props_names",
+         "dsurface_names",
+         "jacobian_do"),
+      GIN("f_reflectivities"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Frequency retrieval grid, see above.")));
+  
+  md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceTessem"),
       DESCRIPTION(
           "TESSEM sea surface microwave emissivity parametrization.\n"
           "\n"
-          "The variable *surface_props_data* must contain these data:\n"
+          "This method allows to use TESSEM in retrievals requiring the\n"
+          "Jacobian. Otherwise as *surfaceTessem*. See *SurfaceFastem*\n"
+          "for general remarks about methods of SurfaceSomething type.\n"
+          "\n"
+          "For this method, *surface_props_data* must contain these data:\n"
           "  \"Water skin temperature\"\n"
           "  \"Wind speed\"\n"
-          "  \"Salinity\"\n"
-          "\n"
-          "This method computes surface emissivity and reflectivity matrices for\n"
-          "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
-          "Sea-surface emissivity parametrization from microwaves to millimetre\n"
-          "waves, QJRMS, 2017, 143.702: 596-605.\n"
-          "\n"
-          "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
-          "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
-          "The accepted temperaute range for water skin temperature is\n"
-          "[260.0 K, 373.0 K]. Salinity shall be in the range [0,1]. That is, a\n"
-          "salinity of 3% is given as 0.03.\n"
-          "\n"
-          "The model itself is represented by the neural networks in\n"
-          "*tessem_neth* and *tessem_netv*.\n"),
+          "  \"Salinity\"\n"),
       AUTHORS("Simon Pfreundschuh", "Patrick Eriksson"),
       OUT("surface_los",
           "surface_rmatrix",

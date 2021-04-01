@@ -47,6 +47,7 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+// Expression double-checked 210330 (PE)
 Numeric calc_incang(ConstVectorView rte_los, ConstVectorView specular_los) {
   return (180 - abs(rte_los[0]) + abs(specular_los[0])) / 2;
 }
