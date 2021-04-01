@@ -657,11 +657,13 @@ void test_vp_sparse() {
   LineShape::compute(coml, sparse_coml, band, {}, nlte,
                      partition_functions.getParamType(band.QuantumIdentity()),
                      partition_functions.getParam(band.QuantumIdentity()),
-                     vmr, 1, 1, P, T, H, df, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
+                     vmr, 1, 1, P, T, H, df, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearEven);
   
   ARTSGUI::plot(com_full.f_grid, com_full.F.real(), com_full.f_grid, com_full.F.imag(),
                 com3.f_grid, com3.F.real(), com3.f_grid, com3.F.imag(),
                 coml.f_grid, coml.F.real(), coml.f_grid, coml.F.imag());
+  
+  ARTSGUI::plot(sparse_com3.f_grid, sparse_com3.F.real(), sparse_com3.f_grid, sparse_com3.F.imag());
   
   com3.interp_add_triplequad(sparse_com3);
   coml.interp_add_even(sparse_coml);
