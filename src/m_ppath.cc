@@ -1158,7 +1158,8 @@ void ppathFromRtePos2(Workspace& ws,
 
       // n by linear interpolation
       // Gets tripped when ll is very close to (slightly greater than) lstep (ISA)
-      ARTS_ASSERT(ll < ppt.lstep[i - 1]);
+      //TODO: Check if this assertion is really needed!
+//      ARTS_ASSERT(ll < ppt.lstep[i - 1]);
       const Numeric w = ll / ppt.lstep[i - 1];
       ppath.nreal[i] = (1 - w) * ppt.nreal[i - 1] + w * ppt.nreal[i];
       ppath.ngroup[i] = (1 - w) * ppt.ngroup[i - 1] + w * ppt.ngroup[i];

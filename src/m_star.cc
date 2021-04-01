@@ -58,7 +58,7 @@ void starBlackbodySimple(ArrayOfMatrix &star_spectrum,
 
   // spectrum
   const Numeric atan1 = std::atan(star_radius / star_distance);
-  Matrix star_spec(f_grid.nelem(), stokes_dim);
+  Matrix star_spec(f_grid.nelem(), stokes_dim,0. );
 
   planck(star_spec(joker,0), f_grid, star_temperature);
   star_spec *= PI * Constant::pow2(std::sin(atan1)); // calc flux of incoming rad at TOA

@@ -72,11 +72,15 @@ void get_scattered_starsource(Workspace& ws,
   scattered_starlight_temp=transmitted_starlight;
   scattered_starlight_temp.leftMul(sca_mat);
 
+
   // Richard will change the type of S to RadiationVector in iyClearsky
   //but for now we have to convert it
   for (Index i_f = 0; i_f < nf; i_f++) {
 
       temp=scattered_starlight_temp.Vec(i_f);
+      temp*=K_sca.Kjj(0,0)[i_f];
       scattered_starlight.SetAtPosition(temp,i_f);
   }
+
+
 }

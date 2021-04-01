@@ -439,7 +439,7 @@ void iyClearsky(
                                              j_analytical_do);
 
         if (gas_scattering_do) {
-          if (star_do) {
+          if (star_do && iy_agenda_call1) {
             for (Index i_star = 0; i_star < star_spectrum.nelem(); i_star++) {
               // get the line of sight direction from star i_star to ppath point
               rte_losGeometricFromRtePosToRtePos2(star_rte_los,
@@ -517,8 +517,8 @@ void iyClearsky(
                                      propmat_clearsky_agenda,
                                      water_p_eq_agenda,
                                      gas_scattering_agenda,
-                                     iy_agenda_call1,
-                                     iy_transmittance,
+                                     1,
+                                     Tensor3(),
                                      rte_alonglos_v,
                                      verbosity);
 
@@ -592,7 +592,7 @@ void iyClearsky(
       }
     }
 
-#pragma omp parallel for if (!arts_omp_in_parallel())
+//#pragma omp parallel for if (!arts_omp_in_parallel())
     for (Index ip = 1; ip < np; ip++) {
       if (do_abort) continue;
       try {
@@ -622,7 +622,7 @@ void iyClearsky(
         os << "Runtime-error in transmission calculation at index " << ip
            << ": \n";
         os << e.what();
-#pragma omp critical(iyEmissionStandard_transmission)
+//#pragma omp critical(iyEmissionStandard_transmission)
         {
           do_abort = true;
           fail_msg.push_back(os.str());
