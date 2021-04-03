@@ -626,51 +626,82 @@ void test_lte_strength() {
 }
 
 void test_vp_sparse() {
-  auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::None, LineShape::Type::HTP>();
+  auto [qid, band, f_gp, vmr, P, T, H] = line_model<ModificationInternal::None, LineShape::Type::HTP>();
+  P *= 1000;
+  band.F0(0) = 1500e9;
+  const Vector f_g(700e9, 20001, 10e7);
+  auto band2 = band;
+  band2.Cutoff(Absorption::CutoffType::ByLine);
+  band2.CutoffFreqValue(750e9);
+  auto band3 = band2;
+  band3.CutoffFreqValue(333.33e9);
   
   EnergyLevelMap nlte;
   SpeciesAuxData partition_functions;
   fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(partition_functions);
   
-  std::cout << f_g[0]/1e9 << ' ' << f_g[10000]/1e9 << '\n';
-  
-  const Numeric df = 50e6;
+  const Numeric dfreq = 45e9;
   
   LineShape::ComputeData com_full(f_g, {}, false);
   LineShape::ComputeData sparse_com_full(Vector(0), {}, false);
   LineShape::compute(com_full, sparse_com_full, band, {}, nlte,
                      partition_functions.getParamType(band.QuantumIdentity()),
                      partition_functions.getParam(band.QuantumIdentity()),
-                     vmr, 1, 1, P, T, H, df, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+  LineShape::compute(com_full, sparse_com_full, band2, {}, nlte,
+                     partition_functions.getParamType(band.QuantumIdentity()),
+                     partition_functions.getParam(band.QuantumIdentity()),
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+  LineShape::compute(com_full, sparse_com_full, band3, {}, nlte,
+                     partition_functions.getParamType(band.QuantumIdentity()),
+                     partition_functions.getParam(band.QuantumIdentity()),
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
   
-  Vector sparse3_f_grid = LineShape::triple_sparse_f_grid(f_g, 11);
+  Vector sparse3_f_grid = LineShape::triple_sparse_f_grid(f_g, 30e9);
   LineShape::ComputeData com3(f_g, {}, false);
   LineShape::ComputeData sparse_com3(sparse3_f_grid, {}, false);
   LineShape::compute(com3, sparse_com3, band, {}, nlte,
                      partition_functions.getParamType(band.QuantumIdentity()),
                      partition_functions.getParam(band.QuantumIdentity()),
-                     vmr, 1, 1, P, T, H, df, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
+  LineShape::compute(com3, sparse_com3, band2, {}, nlte,
+                     partition_functions.getParamType(band.QuantumIdentity()),
+                     partition_functions.getParam(band.QuantumIdentity()),
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
+  LineShape::compute(com3, sparse_com3, band3, {}, nlte,
+                     partition_functions.getParamType(band.QuantumIdentity()),
+                     partition_functions.getParam(band.QuantumIdentity()),
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
   
-  Vector sparsel_f_grid = LineShape::sparse_frequency_grid(f_g, df);
+  Vector sparsel_f_grid = LineShape::linear_sparse_f_grid(f_g, 10e9);
   LineShape::ComputeData coml(f_g, {}, false);
   LineShape::ComputeData sparse_coml(sparsel_f_grid, {}, false);
   LineShape::compute(coml, sparse_coml, band, {}, nlte,
                      partition_functions.getParamType(band.QuantumIdentity()),
                      partition_functions.getParam(band.QuantumIdentity()),
-                     vmr, 1, 1, P, T, H, df, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearEven);
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearEven);
+  LineShape::compute(coml, sparse_coml, band2, {}, nlte,
+                     partition_functions.getParamType(band.QuantumIdentity()),
+                     partition_functions.getParam(band.QuantumIdentity()),
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearEven);
+  LineShape::compute(coml, sparse_coml, band3, {}, nlte,
+                     partition_functions.getParamType(band.QuantumIdentity()),
+                     partition_functions.getParam(band.QuantumIdentity()),
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearEven);
   
-  ARTSGUI::plot(com_full.f_grid, com_full.F.real(), com_full.f_grid, com_full.F.imag(),
-                com3.f_grid, com3.F.real(), com3.f_grid, com3.F.imag(),
-                coml.f_grid, coml.F.real(), coml.f_grid, coml.F.imag());
+  std::cout << f_g[0]/1e9 << ' ' << f_g[10000]/1e9 << '\n';
+  std::cout << com_full.f_grid.nelem()<< ' ' << sparse_com3.f_grid.nelem()<< ' ' << sparse_coml.f_grid.nelem() << '\n';
   
-  ARTSGUI::plot(sparse_com3.f_grid, sparse_com3.F.real(), sparse_com3.f_grid, sparse_com3.F.imag());
+//   ARTSGUI::plot(com_full.f_grid, com_full.F.real(), com3.f_grid, com3.F.real(), coml.f_grid, coml.F.real());
+  
+//   ARTSGUI::plot(sparse_com3.f_grid, sparse_com3.F.real());
   
   com3.interp_add_triplequad(sparse_com3);
   coml.interp_add_even(sparse_coml);
   
-  ARTSGUI::plot(com_full.f_grid, com_full.F.real(), com_full.f_grid, com_full.F.imag(),
-                com3.f_grid, com3.F.real(), com3.f_grid, com3.F.imag(),
-                coml.f_grid, coml.F.real(), coml.f_grid, coml.F.imag());
+  ARTSGUI::plot(com_full.f_grid, com_full.F.real(),
+                com3.f_grid, com3.F.real(),
+                coml.f_grid, coml.F.real());
 }
 
 int main() try {

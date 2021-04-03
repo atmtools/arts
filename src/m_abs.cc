@@ -1426,21 +1426,19 @@ void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
                                     // Verbosity object:
                                     const Verbosity&)
 {
-  const Options::LblSpeedup speedup_type = Options::toLblSpeedupOrThrow(speedup_option);
-  
   // Return empty for nothing
   if (not f_grid.nelem()) {
     sparse_f_grid.resize(0);
     return;
   };
   
-  switch (speedup_type) {
+  switch (Options::toLblSpeedupOrThrow(speedup_option)) {
     case Options::LblSpeedup::LinearEven:
-      sparse_f_grid = LineShape::sparse_frequency_grid(f_grid, sparse_df);
-      ARTS_ASSERT(LineShape::good_sparse_frequency_grid(f_grid, sparse_f_grid))
+      sparse_f_grid = LineShape::linear_sparse_f_grid(f_grid, sparse_df);
+      ARTS_ASSERT(LineShape::good_linear_sparse_f_grid(f_grid, sparse_f_grid))
       break;
     case Options::LblSpeedup::QuadraticIndependent:
-      sparse_f_grid = LineShape::triple_sparse_f_grid(f_grid, LineShape::triple_sparse_f_grid_red(f_grid, sparse_df));
+      sparse_f_grid = LineShape::triple_sparse_f_grid(f_grid, sparse_df);
       break;
     case Options::LblSpeedup::None:
       sparse_f_grid.resize(0);

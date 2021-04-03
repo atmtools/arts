@@ -2124,9 +2124,14 @@ SparseLimitRange linear_sparse_limited_range(const Numeric flc,
   const Numeric * itls = std::upper_bound(itlc, ituc, fls);  // lower sparse
   const Numeric * itus = std::lower_bound(itls, ituc, fus);  // upper sparse
   
-  const auto [s, e] = limited_range(fls, fus, f_grid);
+  // Find bounds in dense
+  const Numeric * it0 = f_grid.get_c_array();
+  const Numeric * itn = it0 + f_grid.size();
+  const Numeric * itl = std::lower_bound(it0, itn, fls);  // include boundary
+  const Numeric * itu = std::upper_bound(itl, itn, std::nextafter(fus, fls));  // dismiss boundary
   
-  return {s, e,
+  return {
+    std::distance(it0, itl), std::distance(itl, itu),
     std::distance(it0s, itlc), std::distance(itlc, itls),
     std::distance(it0s, itus), std::distance(itus, ituc)
   };
@@ -2142,35 +2147,42 @@ SparseLimitRange quad_sparse_limited_range(const Numeric flc,
   ARTS_ASSERT(fus > fls);
   ARTS_ASSERT(fuc > fus);
   
+  const Index nvs = sparse_f_grid.size();
+  
   // Find bounds in sparse
   const Numeric * it0s = sparse_f_grid.get_c_array();
-  const Numeric * itns = it0s + sparse_f_grid.size();
-  const Numeric * itlc = std::lower_bound(it0s, itns, flc);  // lower cutoff
-  const Numeric * ituc = std::upper_bound(itlc, itns, fuc);  // upper cutoff
+  const Numeric * itns = it0s + nvs;
+  const Numeric * itlc = std::lower_bound(it0s, itns, std::nextafter(flc, fuc));  // lower cutoff
+  const Numeric * ituc = std::upper_bound(itlc, itns, std::nextafter(fuc, flc));  // upper cutoff
   const Numeric * itls = std::upper_bound(itlc, ituc, fls);  // lower sparse
   const Numeric * itus = std::lower_bound(itls, ituc, fus);  // upper sparse
   
-  // Start and size of sparse adjusted to the 3-grid
-  const Index start_lr = std::distance(it0s, itlc) + (3 - std::distance(it0s, itlc)) % 3;
-  const Index start_ur = std::distance(it0s, itus) + (3 - std::distance(it0s, itus)) % 3;
-  const Index size_lr = std::distance(itlc, itls) - std::distance(itlc, itls) % 3;
-  const Index size_ur = std::distance(itus, ituc) - std::distance(itus, ituc) % 3;
+  /* Start and size of sparse adjusted to the 3-grid
+   * 
+   * The interface to the dense grid is altered slightly so that
+   * a complete set-of-3 quadratic interopolation points becomes
+   * a guarantee.  Their start/end points ignore this restriction
+   * but have been defined to not contain anything extra
+   */
+  Index beg_lr = std::distance(it0s, itlc); /*while (beg_lr % 3) --beg_lr;*/
+  Index end_lr = std::distance(it0s, itls); while (end_lr % 3) --end_lr;
+  Index beg_ur = std::distance(it0s, itus); while (beg_ur % 3) ++beg_ur;
+  Index end_ur = std::distance(it0s, ituc); /*while (end_ur % 3) ++end_ur;*/
   
-  // Actual dense cut off values (if no sizes, use cutoff)
-  const Numeric fl = size_lr ? sparse_f_grid[start_lr + size_lr - 1] : flc;
-  const Numeric fu = size_ur ? sparse_f_grid[start_ur] : fuc;
-  ARTS_ASSERT(fu > fl);
+  // Find new limits
+  const Numeric fl = (end_lr <= 0 or end_lr >= nvs) ? flc : sparse_f_grid[end_lr];
+  const Numeric fu = (beg_ur <= 0 or beg_ur >= nvs) ? fuc : sparse_f_grid[beg_ur];
   
   // Find bounds in dense
   const Numeric * it0 = f_grid.get_c_array();
   const Numeric * itn = it0 + f_grid.size();
-  const Numeric * itl = std::lower_bound(it0, itn, fl);
+  const Numeric * itl = std::lower_bound(it0, itn, fl);  // include boundary
   const Numeric * itu = std::upper_bound(itl, itn, std::nextafter(fu, fl));  // dismiss boundary
   
   return {
     std::distance(it0, itl), std::distance(itl, itu),
-    start_lr, size_lr,
-    start_ur, size_ur
+    beg_lr, end_lr - beg_lr,
+    beg_ur, end_ur - beg_ur
   };
 }
 
@@ -3058,20 +3070,30 @@ void compute(ComputeData &com,
 #undef InternalDerivativesG
 #undef InternalDerivativesY
 
-Vector sparse_frequency_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS_NOEXCEPT {
-  if (const Index nf = f_grid.nelem(); nf) {
-    ARTS_ASSERT(sparse_df > 0)
-    const Index n = Index((f_grid[nf-1] - f_grid[0]) / sparse_df);
-    ARTS_ASSERT(n >= 0)
-    const Numeric f0 = f_grid[0];
-    ARTS_ASSERT(f0 > 0)
-    return Vector(f0, 2 + n, sparse_df);
+
+Index sparse_f_grid_red(const Vector& f_grid, const Numeric& sparse_df) noexcept {
+  if (f_grid.nelem() > 1) {
+    return f_grid.nelem() / Index((f_grid[f_grid.nelem() - 1] - f_grid[0]) / sparse_df);
   } else {
-    return Vector(0);
+    return 1;
   }
 }
 
-bool good_sparse_frequency_grid(const Vector& f_grid_dense, const Vector& f_grid_sparse) noexcept {
+Vector linear_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS_NOEXCEPT {
+  const Index n = sparse_f_grid_red(f_grid, sparse_df);
+  const Index nv = f_grid.nelem();
+  
+  if (nv and n) {
+    std::vector<Numeric> sparse_f_grid;
+    for (Index iv=0; iv<nv; iv+=n) sparse_f_grid.emplace_back(f_grid[iv]);
+    if (sparse_f_grid.back() not_eq f_grid[nv-1]) sparse_f_grid.emplace_back(f_grid[nv-1]);
+    return sparse_f_grid;
+  } else {
+    return f_grid;
+  }
+}
+
+bool good_linear_sparse_f_grid(const Vector& f_grid_dense, const Vector& f_grid_sparse) noexcept {
   if (const Index nf_sparse=f_grid_sparse.nelem(); nf_sparse==1) {
     return false;
   } else if(nf_sparse) {
@@ -3085,16 +3107,8 @@ bool good_sparse_frequency_grid(const Vector& f_grid_dense, const Vector& f_grid
   }
 }
 
-Index triple_sparse_f_grid_red(const Vector& f_grid,
-                               const Numeric& sparse_df) noexcept {
-  if (f_grid.nelem() > 1) {
-    return Index(sparse_df / (f_grid[1] - f_grid[0]));
-  } else {
-    return 1;
-  }
-}
-
-Vector triple_sparse_f_grid(const Vector& f_grid, const Index n) noexcept {
+Vector triple_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) noexcept {
+  const Index n = sparse_f_grid_red(f_grid, sparse_df);
   const Index nv = f_grid.nelem();
   
   if (nv > 1 and n > 2) {
