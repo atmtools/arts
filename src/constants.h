@@ -575,7 +575,7 @@ namespace Options {
   ENUMCLASS(LblSpeedup, char,
             None,
             QuadraticIndependent,
-            LinearEven)
+            LinearIndependent)
 }
 
 #endif

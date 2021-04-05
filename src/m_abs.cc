@@ -1433,7 +1433,7 @@ void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
   };
   
   switch (Options::toLblSpeedupOrThrow(speedup_option)) {
-    case Options::LblSpeedup::LinearEven:
+    case Options::LblSpeedup::LinearIndependent:
       sparse_f_grid = LineShape::linear_sparse_f_grid(f_grid, sparse_df);
       ARTS_ASSERT(LineShape::good_linear_sparse_f_grid(f_grid, sparse_f_grid))
       break;
@@ -1552,7 +1552,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
       }
       
       switch (speedup_type) {
-        case Options::LblSpeedup::LinearEven: com.interp_add_even(sparse_com); break;
+        case Options::LblSpeedup::LinearIndependent: com.interp_add_even(sparse_com); break;
         case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
         case Options::LblSpeedup::None: /* Do nothing */ break;
         case Options::LblSpeedup::FINAL: { /* Leave last */ }
@@ -1608,7 +1608,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     }
     
     switch (speedup_type) {
-      case Options::LblSpeedup::LinearEven: com.interp_add_even(sparse_com); break;
+      case Options::LblSpeedup::LinearIndependent: com.interp_add_even(sparse_com); break;
       case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
       case Options::LblSpeedup::None: /* Do nothing */ break;
       case Options::LblSpeedup::FINAL: { /* Leave last */ }

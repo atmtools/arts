@@ -12606,7 +12606,7 @@ void define_md_data_raw() {
       GIN_DESC(
         "The grid separation",
         "The dense-to-sparse limit",
-        "Speedup logic.  Valid options are: None, QuadraticIndependent, LinearEven"
+        "Speedup logic.  Valid options are: None, QuadraticIndependent, LinearIndependent"
       )));
 
   md_data_raw.push_back(create_mdrecord(

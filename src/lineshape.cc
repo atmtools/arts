@@ -2116,24 +2116,42 @@ SparseLimitRange linear_sparse_limited_range(const Numeric flc,
   ARTS_ASSERT(fus > fls);
   ARTS_ASSERT(fuc > fus);
   
+  const Index nvs = sparse_f_grid.size();
+  
   // Find bounds in sparse
   const Numeric * it0s = sparse_f_grid.get_c_array();
-  const Numeric * itns = it0s + sparse_f_grid.size();
-  const Numeric * itlc = std::lower_bound(it0s, itns, flc);  // lower cutoff
-  const Numeric * ituc = std::upper_bound(itlc, itns, fuc);  // upper cutoff
+  const Numeric * itns = it0s + nvs;
+  const Numeric * itlc = std::lower_bound(it0s, itns, std::nextafter(flc, fuc));  // lower cutoff
+  const Numeric * ituc = std::upper_bound(itlc, itns, std::nextafter(fuc, flc));  // upper cutoff
   const Numeric * itls = std::upper_bound(itlc, ituc, fls);  // lower sparse
   const Numeric * itus = std::lower_bound(itls, ituc, fus);  // upper sparse
+  
+  /* Start and size of sparse adjusted to the 2-grid
+   * 
+   * The interface to the dense grid is altered slightly so that
+   * a complete set-of-2 quadratic interopolation points becomes
+   * a guarantee.  Their start/end points ignore this restriction
+   * but have been defined to not contain anything extra
+   */
+  Index beg_lr = std::distance(it0s, itlc); /*while (beg_lr % 2) --beg_lr;*/
+  Index end_lr = std::distance(it0s, itls); while (end_lr % 2) --end_lr;
+  Index beg_ur = std::distance(it0s, itus); while (beg_ur % 2) ++beg_ur;
+  Index end_ur = std::distance(it0s, ituc); /*while (end_ur % 2) ++end_ur;*/
+  
+  // Find new limits
+  const Numeric fl = (end_lr <= 0 or end_lr >= nvs) ? flc : sparse_f_grid[end_lr];
+  const Numeric fu = (beg_ur <= 0 or beg_ur >= nvs) ? fuc : sparse_f_grid[beg_ur];
   
   // Find bounds in dense
   const Numeric * it0 = f_grid.get_c_array();
   const Numeric * itn = it0 + f_grid.size();
-  const Numeric * itl = std::lower_bound(it0, itn, fls);  // include boundary
-  const Numeric * itu = std::upper_bound(itl, itn, std::nextafter(fus, fls));  // dismiss boundary
+  const Numeric * itl = std::lower_bound(it0, itn, fl);  // include boundary
+  const Numeric * itu = std::upper_bound(itl, itn, std::nextafter(fu, fl));  // dismiss boundary
   
   return {
     std::distance(it0, itl), std::distance(itl, itu),
-    std::distance(it0s, itlc), std::distance(itlc, itls),
-    std::distance(it0s, itus), std::distance(itus, ituc)
+    beg_lr, end_lr - beg_lr,
+    beg_ur, end_ur - beg_ur
   };
 }
 
@@ -2258,72 +2276,6 @@ struct ComputeValues {
       }
     }
     return *this;
-  }
-  
-  void remove_sparse_low_interp(const ComputeValues& lowval, const Numeric df) ARTS_NOEXCEPT {
-    ARTS_ASSERT(lowval.size == 1, "Not a sparse limit")
-    ARTS_ASSERT(lowval.jac_size == jac_size, "Not from the same Jacobian type")
-    
-    const Numeric f_ls = *lowval.f;
-    const Index lower_vals = std::distance(f, std::lower_bound(f, f+size, f_ls + df));
-    const Numeric invdf = 1.0 / df;
-    
-    for (Index iv=0; iv<lower_vals; iv++ ) {
-      const Numeric x = 1 - (f[iv] - f_ls) * invdf;
-      F[iv] -= x * lowval.F[0];
-      if (do_nlte) N[iv] -= x * lowval.N[0];
-      for (Index ij=0; ij<jac_size; ij++) {
-        const Index p = jac_pos(iv, ij);
-        dF[p] -= x * lowval.dF[ij];
-        if (do_nlte) dN[p] -= x * lowval.dN[ij];
-      }
-    }
-  }
-  
-  void remove_sparse_upp_interp(const ComputeValues& uppval, const Numeric df) ARTS_NOEXCEPT {
-    ARTS_ASSERT(uppval.size == 1, "Not a sparse limit")
-    ARTS_ASSERT(uppval.jac_size == jac_size, "Not from the same Jacobian type")
-    
-    const Numeric f_us = *uppval.f;
-    const Index upper_vals = std::distance(f, std::upper_bound(f, f+size, f_us - df));
-    const Numeric invdf = 1.0 / df;
-    
-    for (Index iv=upper_vals; iv<size; iv++) {
-      const Numeric x = 1 + (f[iv] - f_us) * invdf;
-      F[iv] -= x * uppval.F[0];
-      if (do_nlte) N[iv] -= x * uppval.N[0];
-      for (Index ij=0; ij<jac_size; ij++) {
-        const Index p = jac_pos(iv, ij);
-        dF[p] -= x * uppval.dF[ij];
-        if (do_nlte) dN[p] -= x * uppval.dN[ij];
-      }
-    }
-  }
-  
-  void add_beyond(const ComputeValues& lowval) ARTS_NOEXCEPT {
-    ARTS_ASSERT(lowval.size == 1, "Not a sparse limit")
-    ARTS_ASSERT(lowval.jac_size == jac_size, "Not from the same Jacobian type")
-    ARTS_ASSERT(f[size] == lowval.f[0], "Not the same frequency")
-    
-    F[size] += lowval.F[0];
-    for (Index ij=0; ij<jac_size; ij++) dF[jac_pos(size, ij)] += lowval.dF[ij];
-    if (do_nlte) {
-      N[size] += lowval.N[0];
-      for (Index ij=0; ij<jac_size; ij++) dN[jac_pos(size, ij)] += lowval.dN[ij];
-    }
-  }
-  
-  void add_before(const ComputeValues& uppval) ARTS_NOEXCEPT {
-    ARTS_ASSERT(uppval.size == 1, "Not a sparse limit")
-    ARTS_ASSERT(uppval.jac_size == jac_size, "Not from the same Jacobian type")
-    ARTS_ASSERT(f[-1] == uppval.f[0], "Not the same frequency")
-    
-    F[-1] += uppval.F[0];
-    for (Index ij=0; ij<jac_size; ij++) dF[jac_pos(-1, ij)] += uppval.dF[ij];
-    if (do_nlte) {
-      N[-1] += uppval.N[0];
-      for (Index ij=0; ij<jac_size; ij++) dN[jac_pos(-1, ij)] += uppval.dN[ij];
-    }
   }
 };
 
@@ -2621,24 +2573,14 @@ void cutoff_loop_sparse_linear(ComputeData &com,
   // Get the compute data view
   ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, dense_start, dense_size, nj, do_nlte);
   
-  // Define local variables
+  // Define the cutoff
   Complex Fc=0, Nc=0;
-  Complex Fls=0, Nls=0;
-  Complex Fus=0, Nus=0;
-  const Numeric fls_val = sparse_com.f_grid[std::max(std::min(sparse_low_start + sparse_low_size - 1, sparse_com.f_grid.nelem() - 1), Index(0))];
-  const Numeric fus_val = sparse_com.f_grid[std::max(std::min(sparse_upp_start, sparse_com.f_grid.nelem() - 1), Index(0))];
   std::vector<Complex> dFc(do_cutoff ? nj : 0, 0), dNc((do_cutoff and do_nlte) ? nj : 0, 0);
-  std::vector<Complex> dFls(sparse_low_size ? nj : 0, 0), dNls((sparse_low_size and do_nlte) ? nj : 0, 0);
-  std::vector<Complex> dFus(sparse_upp_size ? nj : 0, 0), dNus((sparse_upp_size and do_nlte) ? nj : 0, 0);
-  
-  // Get a view of the cutoff
   ComputeValues cut(Fc, dFc, Nc, dNc, fu, nj, do_nlte);
   
   // Get views of the sparse data
-  ComputeValues sparse_low(Fls, dFls, Nls, dNls, fls_val, nj, do_nlte);
-  ComputeValues sparse_upp(Fus, dFus, Nus, dNus, fus_val, nj, do_nlte);
-  ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size - 1, nj, do_nlte);
-  ComputeValues sparse_upp_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_upp_start + 1, sparse_upp_size - 1, nj, do_nlte);
+  ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, nj, do_nlte);
+  ComputeValues sparse_upp_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_upp_start, sparse_upp_size, nj, do_nlte);
   
   const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
   for (Index iz = 0; iz < nz; iz++) {
@@ -2654,13 +2596,9 @@ void cutoff_loop_sparse_linear(ComputeData &com,
     if (sparse_low_size) {
       frequency_loop(sparse_low_range, ls, ls_mirr, ls_norm, ls_str,
                     jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
-      frequency_loop(sparse_low, ls, ls_mirr, ls_norm, ls_str,
-                    jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
     }
     
     if (sparse_upp_size) {
-      frequency_loop(sparse_upp, ls, ls_mirr, ls_norm, ls_str,
-                    jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
       frequency_loop(sparse_upp_range, ls, ls_mirr, ls_norm, ls_str,
                     jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
     }
@@ -2676,25 +2614,12 @@ void cutoff_loop_sparse_linear(ComputeData &com,
     comval -= cut;
     
     if (sparse_low_size) {
-      sparse_low -= cut;
       sparse_low_range -= cut;
     }
     
     if (sparse_upp_size) {
       sparse_upp_range -= cut;
-      sparse_upp -= cut;
     }
-  }
-  
-  // Deal with the sparsity to remove overlaps
-  if (sparse_low_size) {
-    comval.remove_sparse_low_interp(sparse_low, sparse_com.f_grid[1] - sparse_com.f_grid[0]);
-    sparse_low_range.add_beyond(sparse_low);
-  }
-  
-  if (sparse_upp_size) {
-    comval.remove_sparse_upp_interp(sparse_upp, sparse_com.f_grid[1] - sparse_com.f_grid[0]);
-    sparse_upp_range.add_before(sparse_upp);
   }
 }
 
@@ -2754,12 +2679,15 @@ void cutoff_loop_sparse_triple(ComputeData &com,
     frequency_loop(comval, ls, ls_mirr, ls_norm, ls_str,
                    jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
     
-    if (sparse_low_size)
-    frequency_loop(sparse_low_range, ls, ls_mirr, ls_norm, ls_str,
-                  jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
-    if (sparse_upp_size)
-    frequency_loop(sparse_upp_range, ls, ls_mirr, ls_norm, ls_str,
-                  jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+    if (sparse_low_size) {
+      frequency_loop(sparse_low_range, ls, ls_mirr, ls_norm, ls_str,
+                    jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+    }
+    
+    if (sparse_upp_size) {
+      frequency_loop(sparse_upp_range, ls, ls_mirr, ls_norm, ls_str,
+                    jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+    }
     
     if (do_cutoff) {
       frequency_loop(cut, ls, ls_mirr, ls_norm, ls_str,
@@ -2985,7 +2913,7 @@ void line_loop(ComputeData &com,
                     band, jacobian_quantities, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
                     f_mean, DC, i, do_zeeman, zeeman_polarization);
         break;
-      case Options::LblSpeedup::LinearEven:
+      case Options::LblSpeedup::LinearIndependent:
         cutoff_loop_sparse_linear(com, sparse_com,
                                   normalizer_selection(band.Normalization(), band.F0(i), T),
                                   linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
@@ -3085,11 +3013,18 @@ Vector linear_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS
   
   if (nv and n) {
     std::vector<Numeric> sparse_f_grid;
-    for (Index iv=0; iv<nv; iv+=n) sparse_f_grid.emplace_back(f_grid[iv]);
-    if (sparse_f_grid.back() not_eq f_grid[nv-1]) sparse_f_grid.emplace_back(f_grid[nv-1]);
+    for (Index iv=0; iv<nv; iv+=n) {
+      if (iv) sparse_f_grid.emplace_back(f_grid[iv]);
+      sparse_f_grid.emplace_back(f_grid[iv]);
+    }
+    if (sparse_f_grid.back() not_eq f_grid[nv-1]) {
+      sparse_f_grid.emplace_back(f_grid[nv-1]);
+    } else {
+      sparse_f_grid.pop_back();
+    }
     return sparse_f_grid;
   } else {
-    return f_grid;
+    return Vector(0);
   }
 }
 
@@ -3148,29 +3083,54 @@ Vector triple_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) noex
 
 void ComputeData::interp_add_even(const ComputeData& sparse) ARTS_NOEXCEPT {
   const Index nv = f_grid.nelem();
+  const Index sparse_nv = sparse.f_grid.nelem();
   const Index nj = dF.ncols();
   
   ARTS_ASSERT(do_nlte == sparse.do_nlte, "Must have the same NLTE status")
-  ARTS_ASSERT(sparse.f_grid.nelem() > 1, "Must have at least two sparse grid-points")
-  ARTS_ASSERT(nv == 0 or (f_grid[0] >= sparse.f_grid[0] and f_grid[nv - 1] <= sparse.f_grid[sparse.f_grid.nelem() - 1]),
+  ARTS_ASSERT(sparse_nv > 1, "Must have at least two sparse grid-points")
+  ARTS_ASSERT(nv == 0 or (f_grid[0] == sparse.f_grid[0] and f_grid[nv - 1] >= sparse.f_grid[sparse_nv - 1]),
               "If there are any dense frequency points, then the sparse frequency points must fully cover them")
+  ARTS_ASSERT(not (sparse_nv % 2), "Must be multiple of to")
   
-  Index sparse_iv=1;
-  const Numeric invdf = 1.0 / (sparse.f_grid[sparse_iv] - sparse.f_grid[sparse_iv-1]);
+  Index sparse_iv=0;
+  const Numeric invdf = 1.0 / (sparse.f_grid[sparse_iv + 1] - sparse.f_grid[sparse_iv]);
+  const Numeric invdf_last = 1.0 / (sparse.f_grid[sparse_nv - 1] - sparse.f_grid[sparse_nv - 2]);
   for (Index iv=0; iv<nv; iv++) {
-    while (sparse.f_grid[sparse_iv] < f_grid[iv]) sparse_iv++;  // sparse_iv cannot exceed sparse_nv by assert
-    
-    // Interpolation weight
-    const Numeric x = (f_grid[iv] - sparse.f_grid[sparse_iv-1]) * invdf;
-    
-    F[iv] += sparse.F[sparse_iv-1] + x * (sparse.F[sparse_iv] - sparse.F[sparse_iv-1]);
-    for (Index ij=0; ij<nj; ij++) {
-      dF(iv, ij) += sparse.dF(sparse_iv-1, ij) + x * (sparse.dF(sparse_iv, ij) - sparse.dF(sparse_iv-1, ij));
+    if (sparse.f_grid[sparse_iv + 1] == f_grid[iv] and sparse_iv + 2 not_eq sparse_nv) {
+      sparse_iv += 2;
     }
-    if (do_nlte) {
-      N[iv] += sparse.N[sparse_iv-1] + x * (sparse.N[sparse_iv] - sparse.N[sparse_iv-1]);
+    
+    if (sparse_iv == sparse_nv - 2) {
+      const Numeric xm0 = f_grid[iv] - sparse.f_grid[sparse_nv - 2];
+      const Numeric xm1 = f_grid[iv] - sparse.f_grid[sparse_nv - 1];
+      const Numeric l0 = - xm1 * invdf_last;
+      const Numeric l1 =   xm0 * invdf_last;
+      
+      F[iv] += l0 * sparse.F[sparse_nv - 2] + l1 * sparse.F[sparse_nv - 1];
       for (Index ij=0; ij<nj; ij++) {
-        dN(iv, ij) += sparse.dN(sparse_iv-1, ij) + x * (sparse.dN(sparse_iv, ij) - sparse.dN(sparse_iv-1, ij));
+        dF(iv, ij) += l0 * sparse.dF(sparse_nv-2, ij) + l1 * sparse.dF(sparse_nv - 1, ij);
+      }
+      if (do_nlte) {
+        N[iv] += l0 * sparse.N[sparse_nv - 2] + l1 * sparse.N[sparse_nv - 1];
+        for (Index ij=0; ij<nj; ij++) {
+          dN(iv, ij) += l0 * sparse.dN(sparse_nv - 2, ij) + l1 * sparse.dN(sparse_nv - 1, ij);
+        }
+      }
+    } else {
+      const Numeric xm0 = f_grid[iv] - sparse.f_grid[sparse_iv];
+      const Numeric xm1 = f_grid[iv] - sparse.f_grid[sparse_iv + 1];
+      const Numeric l0 = - xm1 * invdf;
+      const Numeric l1 = + xm0 * invdf;
+      
+      F[iv] += l0 * sparse.F[sparse_iv] + l1 * sparse.F[sparse_iv + 1];
+      for (Index ij=0; ij<nj; ij++) {
+        dF(iv, ij) += l0 * sparse.dF(sparse_iv, ij) + l1 * sparse.dF(sparse_iv + 1, ij);
+      }
+      if (do_nlte) {
+        N[iv] += l0 * sparse.N[sparse_iv] + l1 * sparse.N[sparse_iv + 1];
+        for (Index ij=0; ij<nj; ij++) {
+          dN(iv, ij) += l0 * sparse.dN(sparse_iv, ij) + l1 * sparse.dN(sparse_iv + 1, ij);
+        }
       }
     }
   }
@@ -3196,14 +3156,6 @@ void ComputeData::interp_add_triplequad(const ComputeData& sparse) ARTS_NOEXCEPT
     }
     
     if (sparse_iv == sparse_nv - 3) {
-      
-      // Interpolation weights
-      // l0 is ((f - f1) / (f0 - f1)) * ((f - f2) / (f0 - f2))
-      // f0 - f2 == 2 * (f0 - f1)
-      // l0 is ((f - f1) / (f0 - f1)) * 0.5 * ((f - f2) / (f0 - f1))
-      // 1.0 / (f0 - f1) == - 1 / df
-      // l0 = 0.5 * ((f - f1) / -df) * ((f - f2) / -df)
-      // l0 = 0.5 * (f - f1) * (f - f2) / df^2
       const Numeric xm0 = f_grid[iv] - sparse.f_grid[sparse_nv - 3];
       const Numeric xm1 = f_grid[iv] - sparse.f_grid[sparse_nv - 2];
       const Numeric xm2 = f_grid[iv] - sparse.f_grid[sparse_nv - 1];
@@ -3222,8 +3174,6 @@ void ComputeData::interp_add_triplequad(const ComputeData& sparse) ARTS_NOEXCEPT
         }
       }
     } else {
-      
-      // Interpolation weight
       const Numeric xm0 = f_grid[iv] - sparse.f_grid[sparse_iv + 0];
       const Numeric xm1 = f_grid[iv] - sparse.f_grid[sparse_iv + 1];
       const Numeric xm2 = f_grid[iv] - sparse.f_grid[sparse_iv + 2];

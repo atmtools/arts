@@ -625,11 +625,11 @@ void test_lte_strength() {
   std::cout << x.dSdF0() << ' ' << 'v' << 's' << ' ' << (dxdF0.S - x.S) / 100e3 << '\n';
 }
 
-void test_vp_sparse() {
+void test_sparse() {
   auto [qid, band, f_gp, vmr, P, T, H] = line_model<ModificationInternal::None, LineShape::Type::HTP>();
   P *= 1000;
   band.F0(0) = 1500e9;
-  const Vector f_g(700e9, 20001, 10e7);
+  Vector f_g(500e9, 20001, 10e7);
   auto band2 = band;
   band2.Cutoff(Absorption::CutoffType::ByLine);
   band2.CutoffFreqValue(750e9);
@@ -674,34 +674,35 @@ void test_vp_sparse() {
                      vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
   
   Vector sparsel_f_grid = LineShape::linear_sparse_f_grid(f_g, 10e9);
+  std::cout << sparsel_f_grid <<'\n';
   LineShape::ComputeData coml(f_g, {}, false);
   LineShape::ComputeData sparse_coml(sparsel_f_grid, {}, false);
   LineShape::compute(coml, sparse_coml, band, {}, nlte,
                      partition_functions.getParamType(band.QuantumIdentity()),
                      partition_functions.getParam(band.QuantumIdentity()),
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearEven);
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearIndependent);
   LineShape::compute(coml, sparse_coml, band2, {}, nlte,
                      partition_functions.getParamType(band.QuantumIdentity()),
                      partition_functions.getParam(band.QuantumIdentity()),
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearEven);
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearIndependent);
   LineShape::compute(coml, sparse_coml, band3, {}, nlte,
                      partition_functions.getParamType(band.QuantumIdentity()),
                      partition_functions.getParam(band.QuantumIdentity()),
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearEven);
+                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearIndependent);
+  Vector f = f_g;
+  f /= 1e9;
   
-  std::cout << f_g[0]/1e9 << ' ' << f_g[10000]/1e9 << '\n';
+  std::cout << f[0] << ' ' << f[f_g.nelem() - 1] << '\n';
   std::cout << com_full.f_grid.nelem()<< ' ' << sparse_com3.f_grid.nelem()<< ' ' << sparse_coml.f_grid.nelem() << '\n';
   
-//   ARTSGUI::plot(com_full.f_grid, com_full.F.real(), com3.f_grid, com3.F.real(), coml.f_grid, coml.F.real());
-  
-//   ARTSGUI::plot(sparse_com3.f_grid, sparse_com3.F.real());
+  ARTSGUI::plot(f, com_full.F.real(), f, com3.F.real(), f, coml.F.real());
   
   com3.interp_add_triplequad(sparse_com3);
   coml.interp_add_even(sparse_coml);
   
-  ARTSGUI::plot(com_full.f_grid, com_full.F.real(),
-                com3.f_grid, com3.F.real(),
-                coml.f_grid, coml.F.real());
+  ARTSGUI::plot(f, com_full.F.real(),
+                f, com3.F.real(),
+                f, coml.F.real());
 }
 
 int main() try {
@@ -721,8 +722,7 @@ int main() try {
 //   
 //   test_lte_strength();
   
-  
-  test_vp_sparse();
+  test_sparse();
   
   return EXIT_SUCCESS;
 } catch (std::exception& e) {
