@@ -991,13 +991,16 @@ void particle_bulkpropRadarOnionPeeling(
               // Local dBZe, roughly corrected with attenuation for previos point
               Numeric dbze =
                   dBZe(ip, ilat, ilon) + dbze_corr_abs + dbze_corr_hyd;
+                                
               // Local temperature
               const Numeric t = t_field(ip, ilat, ilon);
 
               // Prepare for interpolation of invtable, when needed
               Index phase = -1, it = -1;  // Dummy values
               if (dbze > dbze_noise) {
+                // Liquid or ice?
                 phase = t >= t_phase ? 0 : 1;
+                
                 // Find closest temperature
                 const Index tlast =
                     invtable[phase].get_numeric_grid(GFIELD3_T_GRID).nelem() -
@@ -1020,7 +1023,11 @@ void particle_bulkpropRadarOnionPeeling(
                 // Attenuation due particles
                 if (dBZe(ip, ilat, ilon) > dbze_noise && do_atten_hyd &&
                     dbze_corr_hyd < atten_hyd_max) {
-                  // Extinction
+                  // Get extinction
+                  ARTS_USER_ERROR_IF ( dbze - 20 >
+                    last(invtable[phase].get_numeric_grid(GFIELD3_DB_GRID)),
+                    "Max 20 dB extrapolation allowed. Found a value\n"
+                    "exceeding this limit.");                  
                   GridPos gp;
                   gridpos(gp,
                           invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
@@ -1087,6 +1094,10 @@ void particle_bulkpropRadarOnionPeeling(
                 dbze = dBZe(ip, ilat, ilon) + dbze_corr_abs + dbze_corr_hyd;
 
                 // Interpolate inversion table (table holds log10 of water content)
+                ARTS_USER_ERROR_IF ( dbze - 20 >
+                    last(invtable[phase].get_numeric_grid(GFIELD3_DB_GRID)),
+                    "Max 20 dB extrapolation allowed. Found a value\n"
+                    "exceeding this limit.");                  
                 GridPos gp;
                 gridpos(gp,
                         invtable[phase].get_numeric_grid(GFIELD3_DB_GRID),
