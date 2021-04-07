@@ -1516,14 +1516,14 @@ void propmat_clearskyAddLines(  // Workspace reference:
   ARTS_USER_ERROR_IF(sparse_lim > 0 and sparse_df > sparse_lim, 
                     "If sparse grids are to be used, the limit must be larger than the grid-spacing.\n"
                     "The limit is ", sparse_lim, " Hz and the grid_spacing is ", sparse_df, " Hz")
-  const Options::LblSpeedup speedup_type = Options::toLblSpeedupOrThrow(speedup_option);
-  ARTS_USER_ERROR_IF(sparse_lim <= 0 and speedup_type not_eq Options::LblSpeedup::None,
-                     "Must have a sparse limit if you set speedup_option")
   
   if (not nf) return;
   
   // Deal with sparse computational grid
   const Vector f_grid_sparse = create_sparse_f_grid_internal(f_grid, sparse_df, speedup_option, verbosity);
+  const Options::LblSpeedup speedup_type = f_grid_sparse.nelem() ? Options::toLblSpeedupOrThrow(speedup_option) : Options::LblSpeedup::None;
+  ARTS_USER_ERROR_IF(sparse_lim <= 0 and speedup_type not_eq Options::LblSpeedup::None,
+                     "Must have a sparse limit if you set speedup_option")
   
   // Calculations data
   LineShape::ComputeData com(f_grid, jacobian_quantities, nlte_do);

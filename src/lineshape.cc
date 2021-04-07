@@ -3093,44 +3093,30 @@ void ComputeData::interp_add_even(const ComputeData& sparse) ARTS_NOEXCEPT {
   ARTS_ASSERT(not (sparse_nv % 2), "Must be multiple of to")
   
   Index sparse_iv=0;
-  const Numeric invdf = 1.0 / (sparse.f_grid[sparse_iv + 1] - sparse.f_grid[sparse_iv]);
-  const Numeric invdf_last = 1.0 / (sparse.f_grid[sparse_nv - 1] - sparse.f_grid[sparse_nv - 2]);
+  Numeric f1 = sparse.f_grid[sparse_iv + 1];
+  Numeric f0 = sparse.f_grid[sparse_iv];
+  Numeric inv = 1.0 / (f1 - f0);
   for (Index iv=0; iv<nv; iv++) {
-    if (sparse.f_grid[sparse_iv + 1] == f_grid[iv] and sparse_iv + 2 not_eq sparse_nv) {
+    if (sparse_iv < (sparse_nv - 2) and f1 == f_grid[iv]) {
       sparse_iv += 2;
+      f1 = sparse.f_grid[sparse_iv + 1];
+      f0 = sparse.f_grid[sparse_iv];
+      inv = 1.0 / (f1 - f0);
     }
     
-    if (sparse_iv == sparse_nv - 2) {
-      const Numeric xm0 = f_grid[iv] - sparse.f_grid[sparse_nv - 2];
-      const Numeric xm1 = f_grid[iv] - sparse.f_grid[sparse_nv - 1];
-      const Numeric l0 = - xm1 * invdf_last;
-      const Numeric l1 =   xm0 * invdf_last;
-      
-      F[iv] += l0 * sparse.F[sparse_nv - 2] + l1 * sparse.F[sparse_nv - 1];
+    const Numeric xm0 = f_grid[iv] - f0;
+    const Numeric xm1 = f_grid[iv] - f1;
+    const Numeric l0 = - xm1 * inv;
+    const Numeric l1 = xm0 * inv;
+    
+    F[iv] += l0 * sparse.F[sparse_iv] + l1 * sparse.F[sparse_iv + 1];
+    for (Index ij=0; ij<nj; ij++) {
+      dF(iv, ij) += l0 * sparse.dF(sparse_iv, ij) + l1 * sparse.dF(sparse_iv + 1, ij);
+    }
+    if (do_nlte) {
+      N[iv] += l0 * sparse.N[sparse_iv] + l1 * sparse.N[sparse_iv + 1];
       for (Index ij=0; ij<nj; ij++) {
-        dF(iv, ij) += l0 * sparse.dF(sparse_nv-2, ij) + l1 * sparse.dF(sparse_nv - 1, ij);
-      }
-      if (do_nlte) {
-        N[iv] += l0 * sparse.N[sparse_nv - 2] + l1 * sparse.N[sparse_nv - 1];
-        for (Index ij=0; ij<nj; ij++) {
-          dN(iv, ij) += l0 * sparse.dN(sparse_nv - 2, ij) + l1 * sparse.dN(sparse_nv - 1, ij);
-        }
-      }
-    } else {
-      const Numeric xm0 = f_grid[iv] - sparse.f_grid[sparse_iv];
-      const Numeric xm1 = f_grid[iv] - sparse.f_grid[sparse_iv + 1];
-      const Numeric l0 = - xm1 * invdf;
-      const Numeric l1 = + xm0 * invdf;
-      
-      F[iv] += l0 * sparse.F[sparse_iv] + l1 * sparse.F[sparse_iv + 1];
-      for (Index ij=0; ij<nj; ij++) {
-        dF(iv, ij) += l0 * sparse.dF(sparse_iv, ij) + l1 * sparse.dF(sparse_iv + 1, ij);
-      }
-      if (do_nlte) {
-        N[iv] += l0 * sparse.N[sparse_iv] + l1 * sparse.N[sparse_iv + 1];
-        for (Index ij=0; ij<nj; ij++) {
-          dN(iv, ij) += l0 * sparse.dN(sparse_iv, ij) + l1 * sparse.dN(sparse_iv + 1, ij);
-        }
+        dN(iv, ij) += l0 * sparse.dN(sparse_iv, ij) + l1 * sparse.dN(sparse_iv + 1, ij);
       }
     }
   }
@@ -3148,48 +3134,34 @@ void ComputeData::interp_add_triplequad(const ComputeData& sparse) ARTS_NOEXCEPT
   ARTS_ASSERT(not (sparse_nv % 3), "Must be multiple of three")
   
   Index sparse_iv=0;
-  const Numeric invdf2 = 1.0 / Constant::pow2(sparse.f_grid[sparse_iv+1] - sparse.f_grid[sparse_iv]);
-  const Numeric invdf2_last = 1.0 / Constant::pow2(sparse.f_grid[sparse_nv - 1] - sparse.f_grid[sparse_nv - 2]);
+  Numeric f2 = sparse.f_grid[sparse_iv + 2];
+  Numeric f1 = sparse.f_grid[sparse_iv + 1];
+  Numeric f0 = sparse.f_grid[sparse_iv];
+  Numeric inv = 1.0 / Constant::pow2(f1 - f0);
   for (Index iv = 0; iv < nv; iv++) {
-    if ((sparse_iv not_eq sparse_nv - 3) and (sparse.f_grid[sparse_iv + 2] == f_grid[iv])) {
+    if (sparse_iv < (sparse_nv - 3) and f2 == f_grid[iv]) {
       sparse_iv += 3;
+      f2 = sparse.f_grid[sparse_iv + 2];
+      f1 = sparse.f_grid[sparse_iv + 1];
+      f0 = sparse.f_grid[sparse_iv];
+      inv = 1.0 / Constant::pow2(f1 - f0);
     }
     
-    if (sparse_iv == sparse_nv - 3) {
-      const Numeric xm0 = f_grid[iv] - sparse.f_grid[sparse_nv - 3];
-      const Numeric xm1 = f_grid[iv] - sparse.f_grid[sparse_nv - 2];
-      const Numeric xm2 = f_grid[iv] - sparse.f_grid[sparse_nv - 1];
-      const Numeric l0 = 0.5 * xm1 * xm2 * invdf2_last;  // --
-      const Numeric l1 = - xm0 * xm2 * invdf2_last;      // +-
-      const Numeric l2 = 0.5 * xm0 * xm1 * invdf2_last;  // ++
-      
-      F[iv] += l0 * sparse.F[sparse_nv - 3] + l1 * sparse.F[sparse_nv - 2] + l2 * sparse.F[sparse_nv - 1];
+    const Numeric xm0 = f_grid[iv] - f0;
+    const Numeric xm1 = f_grid[iv] - f1;
+    const Numeric xm2 = f_grid[iv] - f2;
+    const Numeric l0 = 0.5 * xm1 * xm2 * inv;  // --
+    const Numeric l1 = - xm0 * xm2 * inv;      // +-
+    const Numeric l2 = 0.5 * xm0 * xm1 * inv;  // ++
+    
+    F[iv] += l0 * sparse.F[sparse_iv] + l1 * sparse.F[sparse_iv + 1] + l2 * sparse.F[sparse_iv + 2];
+    for (Index ij=0; ij<nj; ij++) {
+      dF(iv, ij) += l0 * sparse.dF(sparse_iv, ij) + l1 * sparse.dF(sparse_iv + 1, ij) + l2 * sparse.dF(sparse_iv + 2, ij);
+    }
+    if (do_nlte) {
+      N[iv] += l0 * sparse.N[sparse_iv] + l1 * sparse.N[sparse_iv + 1] + l2 * sparse.N[sparse_iv + 2];
       for (Index ij=0; ij<nj; ij++) {
-        dF(iv, ij) += l0 * sparse.dF(sparse_nv - 3, ij) + l1 * sparse.dF(sparse_nv - 2, ij) + l2 * sparse.dF(sparse_nv - 1, ij);
-      }
-      if (do_nlte) {
-        N[iv] += l0 * sparse.N[sparse_nv - 3] + l1 * sparse.N[sparse_nv - 2] + l2 * sparse.N[sparse_nv - 1];
-        for (Index ij=0; ij<nj; ij++) {
-          dN(iv, ij) += l0 * sparse.dN(sparse_nv - 3, ij) + l1 * sparse.dN(sparse_nv - 2, ij) + l2 * sparse.dN(sparse_nv - 1, ij);
-        }
-      }
-    } else {
-      const Numeric xm0 = f_grid[iv] - sparse.f_grid[sparse_iv + 0];
-      const Numeric xm1 = f_grid[iv] - sparse.f_grid[sparse_iv + 1];
-      const Numeric xm2 = f_grid[iv] - sparse.f_grid[sparse_iv + 2];
-      const Numeric l0 = 0.5 * xm1 * xm2 * invdf2;  // --
-      const Numeric l1 = - xm0 * xm2 * invdf2;      // +-
-      const Numeric l2 = 0.5 * xm0 * xm1 * invdf2;  // ++
-      
-      F[iv] += l0 * sparse.F[sparse_iv + 0] + l1 * sparse.F[sparse_iv + 1] + l2 * sparse.F[sparse_iv + 2];
-      for (Index ij=0; ij<nj; ij++) {
-        dF(iv, ij) += l0 * sparse.dF(sparse_iv + 0, ij) + l1 * sparse.dF(sparse_iv + 1, ij) + l2 * sparse.dF(sparse_iv + 2, ij);
-      }
-      if (do_nlte) {
-        N[iv] += l0 * sparse.N[sparse_iv + 0] + l1 * sparse.N[sparse_iv + 1] + l2 * sparse.N[sparse_iv + 2];
-        for (Index ij=0; ij<nj; ij++) {
-          dN(iv, ij) += l0 * sparse.dN(sparse_iv + 0, ij) + l1 * sparse.dN(sparse_iv + 1, ij) + l2 * sparse.dN(sparse_iv + 2, ij);
-        }
+        dN(iv, ij) += l0 * sparse.dN(sparse_iv, ij) + l1 * sparse.dN(sparse_iv + 1, ij) + l2 * sparse.dN(sparse_iv + 2, ij);
       }
     }
   }
