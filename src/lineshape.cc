@@ -3000,10 +3000,10 @@ void compute(ComputeData &com,
 
 
 Index sparse_f_grid_red(const Vector& f_grid, const Numeric& sparse_df) noexcept {
-  if (f_grid.nelem() > 1) {
-    return f_grid.nelem() / Index((f_grid[f_grid.nelem() - 1] - f_grid[0]) / sparse_df);
+  if (f_grid.nelem()) {
+    return f_grid.nelem() / Index(1 + std::abs(f_grid[f_grid.nelem() - 1] - f_grid[0]) / sparse_df);
   } else {
-    return 1;
+    return 0;
   }
 }
 
