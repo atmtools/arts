@@ -2179,12 +2179,22 @@ SparseLimitRange quad_sparse_limited_range(const Numeric flc,
   /* Start and size of sparse adjusted to the 3-grid
    * 
    * The interface to the dense grid is altered slightly so that
-   * a complete set-of-3 quadratic interopolation points becomes
-   * a guarantee.  Their start/end points ignore this restriction
-   * but have been defined to not contain anything extra
+   * a complete set-of-3 quadratic interpolation points becomes
+   * a guarantee.  Their end points are modified to contain
+   * only set-of-3.  If the range is not modified correctly,
+   * you risk having negative interpolation out of your range.
+   * 
+   * To avoid negative absorption entirely, the range between
+   * the true cutoff and the outer-most sparse grid point must
+   * have at least two values.  If they have only one value,
+   * the quadratic interpolation will lead to negative values
+   * in the outer range.  So there's a small range that has to
+   * be ignored
    */
   while (std::distance(it0s, itls) % 3) --itls;
+  while (std::distance(itlc, itls) % 3 == 1) ++itlc;  // skip some cutoff
   while (std::distance(it0s, itus) % 3) ++itus;
+  while (std::distance(itus, ituc) % 3 == 1) --ituc;  // skip some cutoff
   
   // Find bounds in dense
   const Numeric * const it0 = f_grid.get_c_array();
