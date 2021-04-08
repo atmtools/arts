@@ -2166,14 +2166,15 @@ SparseLimitRange quad_sparse_limited_range(const Numeric flc,
   ARTS_ASSERT(fuc > fus);
   
   const Index nvs = sparse_f_grid.size();
+  const Index nv = f_grid.size();
   
   // Find bounds in sparse
-  const Numeric * it0s = sparse_f_grid.get_c_array();
-  const Numeric * itns = it0s + nvs;
+  const Numeric * const it0s = sparse_f_grid.get_c_array();
+  const Numeric * const itns = it0s + nvs;
   const Numeric * itlc = std::lower_bound(it0s, itns, std::nextafter(flc, fuc));  // lower cutoff
   const Numeric * ituc = std::upper_bound(itlc, itns, std::nextafter(fuc, flc));  // upper cutoff
-  const Numeric * itls = std::upper_bound(itlc, ituc, fls);  // lower sparse
-  const Numeric * itus = std::lower_bound(itls, ituc, fus);  // upper sparse
+  const Numeric * itls = std::upper_bound(itlc, ituc, std::nextafter(fls, flc));  // lower sparse
+  const Numeric * itus = std::lower_bound(itls, ituc, std::nextafter(fus, fuc));  // upper sparse
   
   /* Start and size of sparse adjusted to the 3-grid
    * 
@@ -2182,25 +2183,31 @@ SparseLimitRange quad_sparse_limited_range(const Numeric flc,
    * a guarantee.  Their start/end points ignore this restriction
    * but have been defined to not contain anything extra
    */
-  Index beg_lr = std::distance(it0s, itlc); /*while (beg_lr % 3) --beg_lr;*/
-  Index end_lr = std::distance(it0s, itls); while (end_lr % 3) --end_lr;
-  Index beg_ur = std::distance(it0s, itus); while (beg_ur % 3) ++beg_ur;
-  Index end_ur = std::distance(it0s, ituc); /*while (end_ur % 3) ++end_ur;*/
-  
-  // Find new limits
-  const Numeric fl = (end_lr <= 0 or end_lr >= nvs) ? flc : sparse_f_grid[end_lr];
-  const Numeric fu = (beg_ur <= 0 or beg_ur >= nvs) ? fuc : sparse_f_grid[beg_ur];
+  while (std::distance(it0s, itls) % 3) --itls;
+  while (std::distance(it0s, itus) % 3) ++itus;
   
   // Find bounds in dense
-  const Numeric * it0 = f_grid.get_c_array();
-  const Numeric * itn = it0 + f_grid.size();
-  const Numeric * itl = std::lower_bound(it0, itn, fl);  // include boundary
-  const Numeric * itu = std::upper_bound(itl, itn, std::nextafter(fu, fl));  // dismiss boundary
+  const Numeric * const it0 = f_grid.get_c_array();
+  const Numeric * const itn = it0 + nv;
+  const Numeric * itl;
+  const Numeric * itu;
+  
+  if (itls not_eq itns) {
+    itl = std::lower_bound(it0, itn, *itls);  // include boundary
+  } else {
+    itl = std::lower_bound(it0, itn, flc);  // include boundary
+  }
+  
+  if (itus not_eq itns and itl not_eq itn) {
+    itu = std::upper_bound(itl, itn, std::nextafter(*itus, *itl));  // dismiss boundary
+  } else {
+    itu = std::lower_bound(itl, itn, std::nextafter(fuc, flc));  // include boundary
+  }
   
   return {
     std::distance(it0, itl), std::distance(itl, itu),
-    beg_lr, end_lr - beg_lr,
-    beg_ur, end_ur - beg_ur
+    std::distance(it0s, itlc), std::distance(itlc, itls),
+    std::distance(it0s, itus), std::distance(itus, ituc)
   };
 }
 
@@ -3013,15 +3020,17 @@ Vector linear_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS
   
   if (nv and n) {
     std::vector<Numeric> sparse_f_grid;
-    for (Index iv=0; iv<nv; iv+=n) {
-      if (iv) sparse_f_grid.emplace_back(f_grid[iv]);
+    for (Index iv=0; iv<nv-n; iv+=n) {
       sparse_f_grid.emplace_back(f_grid[iv]);
+      sparse_f_grid.emplace_back(f_grid[iv + n]);
     }
-    if (sparse_f_grid.back() not_eq f_grid[nv-1]) {
+    
+    const Numeric f0 = sparse_f_grid.back();
+    if (f0 not_eq f_grid[nv-1]) {
+      sparse_f_grid.emplace_back(f0);
       sparse_f_grid.emplace_back(f_grid[nv-1]);
-    } else {
-      sparse_f_grid.pop_back();
     }
+    
     return sparse_f_grid;
   } else {
     return Vector(0);
@@ -3046,33 +3055,19 @@ Vector triple_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) noex
   const Index n = sparse_f_grid_red(f_grid, sparse_df);
   const Index nv = f_grid.nelem();
   
-  if (nv > 1 and n > 2) {
-    const Index rem = (nv - 1) % n;  // Exact spacing if 0
-    
-    // nv ==  6 and n == 5 means 3*1 sparse
-    // nv ==  7 and n == 5 means 3*2 sparse
-    // nv == 11 and n == 5 means 3*2 sparse
-    // nv == 16 and n == 5 means 3*3 sparse
-    // nv == 17 and n == 5 means 3*4 sparse
-    // So three x [nv / n + (1 if rem else 0)]
-    const Index nv_sparse = 3 * (nv / n) + (rem ? 3 : 0);
-    Vector sparse_f_grid(nv_sparse);
-    for(Index iv=0; iv<nv-n; iv+=n) {
-      const Numeric f0 = f_grid[iv + 0];
-      const Numeric f1 = f_grid[iv + n];
-      const Index sparse_iv = iv / n;
-      sparse_f_grid[3 * sparse_iv + 0] = f0;
-      sparse_f_grid[3 * sparse_iv + 1] = f0 + 0.5 * (f1 - f0);
-      sparse_f_grid[3 * sparse_iv + 2] = f1;
+  if (nv and n > 2) {
+    std::vector<Numeric> sparse_f_grid;
+    for (Index iv=0; iv<nv-n; iv+=n) {
+      sparse_f_grid.emplace_back(f_grid[iv]);
+      sparse_f_grid.emplace_back(f_grid[iv] + 0.5 * (f_grid[iv+n] - f_grid[iv]));
+      sparse_f_grid.emplace_back(f_grid[iv+n]);
     }
     
-    // Fix last point
-    if (rem) {
-      const Numeric f0 = sparse_f_grid[nv_sparse - 4];
-      const Numeric f1 = f_grid[nv - 1];
-      sparse_f_grid[nv_sparse - 3] = f0;
-      sparse_f_grid[nv_sparse - 2] = f0 + 0.5 * (f1 - f0);
-      sparse_f_grid[nv_sparse - 1] = f1;
+    const Numeric f0 = sparse_f_grid.back();
+    if (f0 not_eq f_grid[nv-1]) {
+      sparse_f_grid.emplace_back(f0);
+      sparse_f_grid.emplace_back(f0 + 0.5 * (f_grid[nv-1] - f0));
+      sparse_f_grid.emplace_back(f_grid[nv-1]);
     }
     
     return sparse_f_grid;
@@ -3146,6 +3141,10 @@ void ComputeData::interp_add_triplequad(const ComputeData& sparse) ARTS_NOEXCEPT
       f0 = sparse.f_grid[sparse_iv];
       inv = 1.0 / Constant::pow2(f1 - f0);
     }
+    ARTS_ASSERT (f_grid[iv] >= f0 and (f_grid[iv] < f2 or (f2 == f_grid[iv] and sparse_iv == sparse_nv - 3)),
+                 "Out of range frequency grid.  Must be caught earlier.\n"
+                 "The sparse range is from: ", f0, " to ", f2, " with ", f1, " as the half-way grid point.\n"
+                 "The dense frequency is ", f_grid[iv], " and the indices are: sparse_iv=", sparse_iv, "; iv=", iv)
     
     const Numeric xm0 = f_grid[iv] - f0;
     const Numeric xm1 = f_grid[iv] - f1;
