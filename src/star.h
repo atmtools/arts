@@ -42,7 +42,7 @@
   === Functions in star.cc
   ===========================================================================*/
 
-/**
+/** Calculates the radiance spectrum of star which is scattered by the atmospheric gases.
  *
  * @param[in,out] ws ARTS workspace.
  * @param[out] scattered_starlight StokesVector scattered monochromatic radiance
@@ -52,7 +52,7 @@
  * @param[in] T Numeric temperature at location of scattering.
  * @param[in] vmr Vector volume mixing ratios of absorption species at location
  *            of scattering.
- * @param[in] transmitted_starlight Matrix transmitted monochromatic radiance
+ * @param[in] transmitted_starlight Matrix transmitted monochromatic irradiance
  *             spectrum of star at location of scattering.
  * @param[in] in_los Vector incoming direction of the transmitted star irradiance
  *            spectrum.
@@ -73,6 +73,27 @@ void get_scattered_starsource(
     const Vector& out_los,
     const Agenda& gas_scattering_agenda
 );
+
+/** Checks and adds star radiance to background if star is in line of sight.
+ *
+ * @param[in, out] iy Matrix of star background
+ * @param[in] star_pos Position of star in geographical coordinate
+ * @param[in] star_radius Radius of star
+ * @param[in] star_spectrum Monochromatic irradiance
+ *             spectrum of star
+ * @param[in] rte_pos The position of the ppath point.
+ * @param[in] rte_los The line of sight of the ppath.
+ * @param[in] refellipsoid As the WSV with the same name.
+  */
+void get_star_background(Matrix& iy,
+                         const Vector& star_pos,
+                         const Numeric& star_radius,
+                         const Matrix& star_spectrum,
+                         const Vector& rte_pos,
+                         const Vector& rte_los,
+                         const Vector& refellipsoid,
+                         const Index& atmosphere_dim);
+
 
 
 #endif /* star_h */

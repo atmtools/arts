@@ -4666,26 +4666,36 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
                 GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("star_spectrum"),
-      DESCRIPTION(
-          "Monochromatic irradiance spectra in each dimension.\n"
-          "\n"
-          "The Dimensions are the number of frequencies and the stokes dim.\n"),
-      GROUP("ArrayOfMatrix")));
+      NAME("star_do"),
+      DESCRIPTION("Flag to activate the star(s).\n"),
+      GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
       NAME("star_pos"),
       DESCRIPTION(
-        "Geographical positions of the star(s)\n"
+          "Geographical positions of the star(s)\n"
           "\n"
           "The components are altitude/distance in meter,\n"
           "latitude in deg and longitude in deg.\n"),
       GROUP("ArrayOfVector")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("star_do"),
-      DESCRIPTION("Flag to activate the star(s).\n"),
-      GROUP("Index")));
+      NAME("star_radius"),
+      DESCRIPTION(
+          "Radius (radii) of the star(s)\n"
+          "\n"
+          "Dimensions: [number of stars](1)\n"
+          "\n"
+          "Unit: [m],\n"),
+      GROUP("ArrayOfVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("star_spectrum"),
+      DESCRIPTION(
+          "Monochromatic irradiance spectra in each dimension.\n"
+          "\n"
+          "The Dimensions are the number of frequencies and the stokes dim.\n"),
+      GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("stokes_rotation"),

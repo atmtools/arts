@@ -17,6 +17,9 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA.
 */
+/*===========================================================================
+  ===  File description
+  ===========================================================================*/
 
 /*!
   \file   star.cc
@@ -31,6 +34,13 @@
 #include "auto_md.h"
 #include "agenda_class.h"
 #include "propagationmatrix.h"
+#include "geodetic.h"
+
+extern const Numeric PI;
+
+/*===========================================================================
+  === The functions
+  ===========================================================================*/
 
 void get_scattered_starsource(Workspace& ws,
                               StokesVector& scattered_starlight,
@@ -83,4 +93,74 @@ void get_scattered_starsource(Workspace& ws,
   }
 
 
+}
+
+void get_star_background(Matrix& iy,
+                         const Vector& star_pos,
+                         const Numeric& star_radius,
+                         const Matrix& star_spectrum,
+                         const Vector& rte_pos,
+                         const Vector& rte_los,
+                         const Vector& refellipsoid,
+                         const Index& atmosphere_dim) {
+
+  //Calculate earth centric radial component of star_pos and rte_pos.
+  const Numeric R_star = refell2r(refellipsoid, star_pos[1]) + star_pos[0];
+  const Numeric R_rte = refell2r(refellipsoid, rte_pos[1]) + rte_pos[0];
+
+  //Transform to cartesian coordinate system
+  Numeric r_star_x, r_star_y, r_star_z;
+  Numeric r_rte_x, r_rte_y, r_rte_z;
+  Numeric r_los_x, r_los_y, r_los_z;
+
+  // r_star
+  sph2cart(r_star_x, r_star_y, r_star_z, R_star, star_pos[1], star_pos[2]);
+
+  // r_rte, r_los
+  poslos2cart(r_rte_x,
+              r_rte_y,
+              r_rte_z,
+              r_los_x,
+              r_los_y,
+              r_los_z,
+              R_rte,
+              rte_pos[1],
+              rte_pos[2],
+              rte_los[0],
+              rte_los[1]);
+
+  //Calculate vector of line of sight and unit vector pointing from
+  //ppath point to the star.
+  const Numeric r_ps_x = r_star_x - r_rte_x;
+  const Numeric r_ps_y = r_star_y - r_rte_y;
+  const Numeric r_ps_z = r_star_z - r_rte_z;
+
+  //abs value of r_ps
+  const Numeric r_ps =
+      sqrt(r_ps_x * r_ps_x + r_ps_y * r_ps_y + r_ps_z * r_ps_z);
+
+  //abs value of r_los
+  const Numeric r_los =
+      sqrt(r_los_x * r_los_x + r_los_y * r_los_y + r_los_z * r_los_z);
+
+  //Calculate angle beta between line of sight and the line between ppath point and the star
+  //using scalar product
+  const Numeric cos_beta =
+      (r_ps_x * r_los_x + r_ps_y * r_los_y + r_ps_z * r_los_z) / (r_ps * r_los);
+  const Numeric beta = acos(cos_beta);
+
+  // angular diameter of star
+  const Numeric alpha = atan(star_radius / r_ps);
+
+  //Check if we see the star. We see the star if the angle beta is smaller than
+  // the angular diameter alpha of the star.
+  if (beta <= alpha) {
+    const Numeric sin_alpha=sin(alpha);
+    //Here we assume that the star radiates isotropically.
+    Matrix star_radiance = star_spectrum;
+    star_radiance /= sin_alpha*sin_alpha*PI;
+
+
+    iy += star_radiance;
+  }
 }

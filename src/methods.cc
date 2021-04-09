@@ -5243,6 +5243,47 @@ Possible models:
       PASSWSVNAMES(true)));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("CosmicMicrowaveAndStarBackground"),
+      DESCRIPTION(
+          "Sets combined background of cosmic background radiation and stars.\n"
+          "\n"
+          "The CBR is assumed to be un-polarized and Stokes components 2-4\n"
+          "are zero. Number of Stokes components, that equals the number\n"
+          "of columns in the created matrix, is determined by *stokes_dim*.\n"
+          "The number of rows in the created matrix equals the length of the\n"
+          "given frequency vector.\n"
+          "\n"
+          "The cosmic radiation is modelled as blackbody radiation for the\n"
+          "temperature given by the global constant COSMIC_BG_TEMP, set in\n"
+          "the file constants.cc. The frequencies are taken from the generic\n"
+          "input vector. \n"
+          "Furthermore the method adds the radiation of stars in the line of sight,\n"
+          "if *star_do* is 1."
+          "\n"
+          "The standard definition, in ARTS, of the Planck function is\n"
+          "followed and the unit of the returned data is W/(m3 * Hz * sr).\n"
+          "The method is intended to be used within the *iy_space_agenda*.\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "rtp_pos",
+         "rtp_los",
+         "star_spectrum",
+         "star_pos",
+         "star_radius",
+         "refellipsoid",
+         "star_do",
+         "stokes_dim",
+         "atmosphere_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat1D"),
       DESCRIPTION(
           "Create 1D covariance matrix.\n"
@@ -18692,6 +18733,7 @@ where N>=0 and the species name is something line "H2O".
       AUTHORS("Jon Petersen"),
       OUT("star_spectrum",
           "star_pos",
+          "star_radius",
           "star_do"),
       GOUT(),
       GOUT_TYPE(),
@@ -18700,11 +18742,11 @@ where N>=0 and the species name is something line "H2O".
          "star_pos",
          "f_grid",
          "stokes_dim"),
-      GIN("star_radius",
-          "star_distance",
-          "star_temperature",
-          "star_latitude",
-          "star_longitude"),
+      GIN("radius",
+          "distance",
+          "temperature",
+          "latitude",
+          "longitude"),
       GIN_TYPE("Numeric",
                "Numeric",
                "Numeric",

@@ -439,7 +439,9 @@ void iyClearsky(
                                              j_analytical_do);
 
         if (gas_scattering_do) {
-          if (star_do && iy_agenda_call1) {
+          if (star_do && iy_agenda_call1) { // iy_agenda_call1 is used as additional
+                                            // flag to ensure that the single scattering
+                                            // calculation is not called recursively.
             for (Index i_star = 0; i_star < star_spectrum.nelem(); i_star++) {
               // get the line of sight direction from star i_star to ppath point
               rte_losGeometricFromRtePosToRtePos2(star_rte_los,
@@ -452,6 +454,8 @@ void iyClearsky(
                                                   verbosity);
 
               // calculate ppath (star path) from star to ppath point
+              //TODO: There are some numerical issues when calculationg the ppath from the star
+              //Maybe I should play a litle bit with the GINs
               ppathFromRtePos2(ws,
                                star_ppath,
                                star_rte_los,
