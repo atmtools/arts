@@ -12578,7 +12578,27 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddLines"),
       DESCRIPTION(
-          "Computes the line-by-line absorption ignoring polarization and\n"),
+        "Computes the line-by-line unpolarized absorption and adds\n"
+        "it to the diagonal of *propmat_clearsky* and derivates to other variables.\n"
+        "Does the same for NLTE variables if required.\n"
+        "\n"
+        "If *speedup_option* is not \"None\", then some speed-up logic is applied.\n"
+        "Valid speed-up logic other than \"None\" includes:\n"
+        "\tLinearIndependent:\n"
+        "\t\tUsing a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]\n"
+        "\t\tuntil the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.\n"
+        "\t\tA linear interpolation scheme is used between the bins to fill up the dense\n"
+        "\t\tabsorption.  The maximum of df[n] is given by *sparse_df* and the minimum\n"
+        "\t\ttransition between dense-to-sparse grid calculations are given by *sparse_lim*.\n"
+        "\tQuadraticIndependent:\n"
+        "\t\tUsing a sparse-grid, the points are separated as [f0, f0+0.5*df[0], f0+df[0], f0+df[0], f0+0.5*df[1], f0+df[1]...]\n"
+        "\t\tuntil the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.\n"
+        "\t\tA quadratic interpolation scheme is used between the bins to fill up the dense\n"
+        "\t\tabsorption.  The maximum of df[n] is given by *sparse_df* and the minimum\n"
+        "\t\ttransition between dense-to-sparse grid calculations are given by *sparse_lim*.\n"
+        "\n"
+        "Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid\n"
+      ),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky", "nlte_source", "dpropmat_clearsky_dx", "dnlte_source_dx"),
       GOUT(),
@@ -12604,9 +12624,9 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric", "Numeric", "String"),
       GIN_DEFAULT("0", "0", "None"),
       GIN_DESC(
-        "The grid separation",
+        "The grid sparse separation",
         "The dense-to-sparse limit",
-        "Speedup logic.  Valid options are: None, QuadraticIndependent, LinearIndependent"
+        "Speedup logic"
       )));
 
   md_data_raw.push_back(create_mdrecord(
@@ -17599,6 +17619,21 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sparse_f_gridFromFrequencyGrid"),
+      DESCRIPTION(
+          "Outputs the sparse frequency grid in *propmat_clearskyAddLines*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("sparse_f_grid"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("A sparse frequency grid."),
+      IN("f_grid"),
+      GIN("sparse_df", "speedup_option"),
+      GIN_TYPE("Numeric", "String"),
+      GIN_DEFAULT("0", "None"),
+      GIN_DESC("The grid sparse separation", "Speedup logic")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SparseSparseMultiply"),
