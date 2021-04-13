@@ -322,13 +322,14 @@ void xml_read_from_file(const String& filename,
   out2 << "  Reading " + xml_file + '\n';
 
   // Open input stream:
-  istream* ifs;
+  std::unique_ptr<istream> ifs;
   if (xml_file.nelem() > 2 &&
       xml_file.substr(xml_file.length() - 3, 3) == ".gz")
 #ifdef ENABLE_ZLIB
   {
-    ifs = new igzstream();
-    xml_open_input_file(*(igzstream*)ifs, xml_file, verbosity);
+    ifs = std::make_unique<igzstream>();
+    xml_open_input_file(
+        *static_cast<igzstream*>(ifs.get()), xml_file, verbosity);
   }
 #else
   {
@@ -338,8 +339,9 @@ void xml_read_from_file(const String& filename,
   }
 #endif /* ENABLE_ZLIB */
   else {
-    ifs = new ifstream();
-    xml_open_input_file(*(ifstream*)ifs, xml_file, verbosity);
+    ifs = std::make_unique<ifstream>();
+    xml_open_input_file(
+        *static_cast<ifstream*>(ifs.get()), xml_file, verbosity);
   }
 
   // No need to check for error, because xml_open_input_file throws a
@@ -363,13 +365,10 @@ void xml_read_from_file(const String& filename,
     }
     xml_read_footer_from_stream(*ifs, verbosity);
   } catch (const std::runtime_error& e) {
-    delete ifs;
     ostringstream os;
     os << "Error reading file: " << xml_file << '\n' << e.what();
     throw runtime_error(os.str());
   }
-
-  delete ifs;
 }
 
 //! Write data to XML file
@@ -392,7 +391,7 @@ void xml_write_to_file(const String& filename,
 
   String efilename = add_basedir(filename);
 
-  ostream* ofs;
+  std::unique_ptr<ostream> ofs;
 
   if (no_clobber) make_filename_unique(efilename, ".xml");
 
@@ -400,8 +399,8 @@ void xml_write_to_file(const String& filename,
   if (ftype == FILE_TYPE_ZIPPED_ASCII)
 #ifdef ENABLE_ZLIB
   {
-    ofs = new ogzstream();
-    xml_open_output_file(*(ogzstream*)ofs, efilename);
+    ofs = std::make_unique<ogzstream>();
+    xml_open_output_file(*static_cast<ogzstream*>(ofs.get()), efilename);
   }
 #else
   {
@@ -411,8 +410,8 @@ void xml_write_to_file(const String& filename,
   }
 #endif /* ENABLE_ZLIB */
   else {
-    ofs = new ofstream();
-    xml_open_output_file(*(ofstream*)ofs, efilename);
+    ofs = std::make_unique<ofstream>();
+    xml_open_output_file(*static_cast<ofstream*>(ofs.get()), efilename);
   }
 
   try {
@@ -427,13 +426,10 @@ void xml_write_to_file(const String& filename,
 
     xml_write_footer_to_stream(*ofs, verbosity);
   } catch (const std::runtime_error& e) {
-    delete ofs;
     ostringstream os;
     os << "Error writing file: " << efilename << '\n' << e.what();
     throw runtime_error(os.str());
   }
-
-  delete ofs;
 }
 
 #endif
