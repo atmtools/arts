@@ -28,10 +28,7 @@
 */
 
 #include "arts.h"
-#include "file.h"
 #include "xml_io.h"
-#include "xml_io_private.h"
-#include "xml_io_types.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream

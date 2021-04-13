@@ -58,7 +58,7 @@
 #include "telsem.h"
 #include "tessem.h"
 #include "transmissionmatrix.h"
-#include "xml_io_private.h"
+#include "hitran_xsec.h"
 #include "absorptionlines.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                  \
@@ -191,11 +191,5 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfXsecRecord)
 
 // Undefine the macro to avoid it being used anywhere else
 #undef TMPL_XML_READ_WRITE_STREAM
-
-void xml_parse_from_stream(
-    istream &, Vector &, bifstream *, ArtsXMLTag &, const Verbosity &verbosity);
-
-void xml_parse_from_stream(
-    istream &, ArrayOfString &, bifstream *, ArtsXMLTag &, const Verbosity &);
 
 #endif /* xml_io_types_h */

@@ -52,7 +52,6 @@
 #include "rng.h"
 #include "rte.h"
 #include "special_interp.h"
-#include "xml_io.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;

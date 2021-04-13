@@ -33,12 +33,8 @@
 #include "bofstream.h"
 #include "file.h"
 #include "parameters.h"
-#include "xml_io_private.h"
 #include "xml_io_types.h"
 
-#ifdef ENABLE_ZLIB
-#include "gzstream.h"
-#endif
 
 ////////////////////////////////////////////////////////////////////////////
 //   ArtsXMLTag implementation
@@ -465,6 +461,19 @@ void filename_xml_with_index(String& filename,
   }
 }
 
+FileType string2filetype(const String& file_format) {
+  if (file_format == "ascii") return FILE_TYPE_ASCII;
+  if (file_format == "zascii") return FILE_TYPE_ZIPPED_ASCII;
+  if (file_format == "binary") return FILE_TYPE_BINARY;
+
+  throw std::runtime_error(
+      "file_format contains illegal string. "
+      "Valid values are:\n"
+      "  ascii:  XML output\n"
+      "  zascii: Zipped XML output\n"
+      "  binary: XML + binary output");
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read XML files
 ////////////////////////////////////////////////////////////////////////////
@@ -884,145 +893,3 @@ void parse_xml_tag_content_as_string(std::istream& is_xml, String& content) {
 
   if (!is_xml) throw std::runtime_error("Unexpected end of file.");
 }
-
-////////////////////////////////////////////////////////////////////////////
-//   Generic IO routines for XML files
-////////////////////////////////////////////////////////////////////////////
-
-//! Reads data from XML file
-/*!
-  This is a generic functions that is used to read the XML header and
-  footer info and calls the overloaded functions to read the data.
-
-  \param filename XML filename
-  \param type Generic return value
-*/
-template <typename T>
-void xml_read_from_file(const String& filename,
-                        T& type,
-                        const Verbosity& verbosity) {
-  CREATE_OUT2;
-
-  String xml_file = filename;
-  find_xml_file(xml_file, verbosity);
-  out2 << "  Reading " + xml_file + '\n';
-
-  // Open input stream:
-  istream* ifs;
-  if (xml_file.nelem() > 2 &&
-      xml_file.substr(xml_file.length() - 3, 3) == ".gz")
-#ifdef ENABLE_ZLIB
-  {
-    ifs = new igzstream();
-    xml_open_input_file(*(igzstream*)ifs, xml_file, verbosity);
-  }
-#else
-  {
-    throw runtime_error(
-        "This arts version was compiled without zlib support.\n"
-        "Thus zipped xml files cannot be read.");
-  }
-#endif /* ENABLE_ZLIB */
-  else {
-    ifs = new ifstream();
-    xml_open_input_file(*(ifstream*)ifs, xml_file, verbosity);
-  }
-
-  // No need to check for error, because xml_open_input_file throws a
-  // runtime_error with an appropriate error message.
-
-  // Read the matrix from the stream. Here we catch the exception,
-  // because then we can issue a nicer error message that includes the
-  // filename.
-  try {
-    FileType ftype;
-    NumericType ntype;
-    EndianType etype;
-
-    xml_read_header_from_stream(*ifs, ftype, ntype, etype, verbosity);
-    if (ftype == FILE_TYPE_ASCII) {
-      xml_read_from_stream(*ifs, type, NULL, verbosity);
-    } else {
-      String bfilename = xml_file + ".bin";
-      bifstream bifs(bfilename.c_str());
-      xml_read_from_stream(*ifs, type, &bifs, verbosity);
-    }
-    xml_read_footer_from_stream(*ifs, verbosity);
-  } catch (const std::runtime_error& e) {
-    delete ifs;
-    ostringstream os;
-    os << "Error reading file: " << xml_file << '\n' << e.what();
-    throw runtime_error(os.str());
-  }
-
-  delete ifs;
-}
-
-//! Write data to XML file
-/*!
-  This is a generic functions that is used to write the XML header and
-  footer info and calls the overloaded functions to write the data.
-
-  \param filename   XML filename
-  \param type       Generic input value
-  \param no_clobber 0: Overwrite, 1: Use unique filename
-  \param ftype      File type
-*/
-template <typename T>
-void xml_write_to_file(const String& filename,
-                       const T& type,
-                       const FileType ftype,
-                       const Index no_clobber,
-                       const Verbosity& verbosity) {
-  CREATE_OUT2;
-
-  String efilename = add_basedir(filename);
-
-  ostream* ofs;
-
-  if (no_clobber) make_filename_unique(efilename, ".xml");
-
-  out2 << "  Writing " << efilename << '\n';
-  if (ftype == FILE_TYPE_ZIPPED_ASCII)
-#ifdef ENABLE_ZLIB
-  {
-    ofs = new ogzstream();
-    xml_open_output_file(*(ogzstream*)ofs, efilename);
-  }
-#else
-  {
-    throw runtime_error(
-        "This arts version was compiled without zlib support.\n"
-        "Thus zipped xml files cannot be written.");
-  }
-#endif /* ENABLE_ZLIB */
-  else {
-    ofs = new ofstream();
-    xml_open_output_file(*(ofstream*)ofs, efilename);
-  }
-
-  try {
-    xml_write_header_to_stream(*ofs, ftype, verbosity);
-    if (ftype == FILE_TYPE_ASCII || ftype == FILE_TYPE_ZIPPED_ASCII) {
-      xml_write_to_stream(*ofs, type, NULL, "", verbosity);
-    } else {
-      String bfilename = efilename + ".bin";
-      bofstream bofs(bfilename.c_str());
-      xml_write_to_stream(*ofs, type, &bofs, "", verbosity);
-    }
-
-    xml_write_footer_to_stream(*ofs, verbosity);
-  } catch (const std::runtime_error& e) {
-    delete ofs;
-    ostringstream os;
-    os << "Error writing file: " << efilename << '\n' << e.what();
-    throw runtime_error(os.str());
-  }
-
-  delete ofs;
-}
-
-// We can't do the instantiation at the beginning of this file, because the
-// implementation of xml_write_to_file and xml_read_from_file have to be known.
-
-#include "xml_io_instantiation.h"

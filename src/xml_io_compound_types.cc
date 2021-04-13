@@ -28,18 +28,8 @@
 
 #include "arts.h"
 #include "cloudbox.h"
+#include "xml_io.h"
 #include "global_data.h"
-#include "gridded_fields.h"
-#include "jacobian.h"
-#include "matpackI.h"
-#include "matpackII.h"
-#include "matpackIII.h"
-#include "matpackIV.h"
-#include "matpackV.h"
-#include "matpackVI.h"
-#include "matpackVII.h"
-#include "xml_io_private.h"
-#include "xml_io_types.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -2224,13 +2214,13 @@ void xml_write_to_stream(ostream& os_xml,
   }
 
   xml_write_to_stream(os_xml, xd.SpeciesName(), pbofs, "species", verbosity);
-  xml_write_to_stream(os_xml, xd.Coeffs(), pbofs, "coefs", verbosity);
+  xml_write_to_stream(os_xml, (Vector)xd.Coeffs(), pbofs, "coefs", verbosity);
   xml_write_to_stream(os_xml, fmin, pbofs, "fmin", verbosity);
   xml_write_to_stream(os_xml, fmax, pbofs, "fmax", verbosity);
   xml_write_to_stream(
-      os_xml, xd.RefPressure(), pbofs, "refpressure", verbosity);
+      os_xml, (Vector)xd.RefPressure(), pbofs, "refpressure", verbosity);
   xml_write_to_stream(
-      os_xml, xd.RefTemperature(), pbofs, "reftemperature", verbosity);
+      os_xml, (Vector)xd.RefTemperature(), pbofs, "reftemperature", verbosity);
   xml_write_to_stream(os_xml, xd.Xsecs(), pbofs, "xsec", verbosity);
   xml_write_to_stream(os_xml, xd.TemperatureSlope(), pbofs, "xsec", verbosity);
   xml_write_to_stream(

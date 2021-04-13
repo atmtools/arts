@@ -29,6 +29,7 @@
 #include "auto_md.h"
 #include "lin_alg.h"
 #include "nlte.h"
+#include "xml_io.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfQuantumIdentifierFromLines(
