@@ -123,6 +123,9 @@ void CosmicMicrowaveAndStarBackground(Matrix &iy,
 
   // Star background
   if (star_do) {
+
+    //TODO: add check if star_* have the same length.
+
     for (Index i_star = 0; i_star < star_pos.nelem(); i_star++) {
       get_star_background(iy,
                           star_pos[i_star],

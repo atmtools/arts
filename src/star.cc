@@ -42,6 +42,13 @@ extern const Numeric PI;
   === The functions
   ===========================================================================*/
 
+std::ostream& operator<<(std::ostream& os, const Star& star) {
+  os << "Star: " << star.description;
+  os << " Radius: " << star.radius << "K ";
+  os << " Distance: " << star.distance << "m ";
+  return os;
+}
+
 void get_scattered_starsource(Workspace& ws,
                               StokesVector& scattered_starlight,
                               const Vector& f_grid,
@@ -99,14 +106,14 @@ void get_star_background(Matrix& iy,
                          const Vector& star_pos,
                          const Numeric& star_radius,
                          const Matrix& star_spectrum,
-                         const Vector& rte_pos,
-                         const Vector& rte_los,
+                         const Vector& rtp_pos,
+                         const Vector& rtp_los,
                          const Vector& refellipsoid,
                          const Index& atmosphere_dim) {
 
-  //Calculate earth centric radial component of star_pos and rte_pos.
+  //Calculate earth centric radial component of star_pos and rtp_pos.
   const Numeric R_star = refell2r(refellipsoid, star_pos[1]) + star_pos[0];
-  const Numeric R_rte = refell2r(refellipsoid, rte_pos[1]) + rte_pos[0];
+  const Numeric R_rte = refell2r(refellipsoid, rtp_pos[1]) + rtp_pos[0];
 
   //Transform to cartesian coordinate system
   Numeric r_star_x, r_star_y, r_star_z;
@@ -124,10 +131,10 @@ void get_star_background(Matrix& iy,
               r_los_y,
               r_los_z,
               R_rte,
-              rte_pos[1],
-              rte_pos[2],
-              rte_los[0],
-              rte_los[1]);
+              rtp_pos[1],
+              rtp_pos[2],
+              rtp_los[0],
+              rtp_los[1]);
 
   //Calculate vector of line of sight and unit vector pointing from
   //ppath point to the star.

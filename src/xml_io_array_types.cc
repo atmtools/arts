@@ -2703,6 +2703,79 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== ArrayOfStar =========================================================
+
+//! Reads ArrayOfStar from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param astar   astar return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfStar& astar,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "Star");
+
+  tag.get_attribute_value("nelem", nelem);
+  astar.resize(nelem);
+
+  Index n;
+  try {
+    for (n = 0; n < nelem; n++) {
+      xml_read_from_stream(is_xml, astar[n], pbifs, verbosity);
+    }
+  } catch (const std::runtime_error& e) {
+    ostringstream os;
+    os << "Error reading ArrayOfStar: "
+       << "\n Element: " << n << "\n"
+       << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+//! Writes ArrayOfStar to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param astar   ArrayOfPpath
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const ArrayOfStar& astar,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "Astar");
+  open_tag.add_attribute("nelem", astar.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < astar.nelem(); n++) {
+    xml_write_to_stream(os_xml, astar[n], pbofs, "", verbosity);
+  }
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
 //=== ArrayOfString ==========================================================
 
 //! Parse ArrayOfString from XML input stream

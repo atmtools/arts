@@ -37,9 +37,40 @@
 #include "agenda_class.h"
 #include "transmissionmatrix.h"
 
+/*===========================================================================
+  === structs/classes  in star.h
+  ===========================================================================*/
+
+/** The structure to describe a propagation path and releated quantities.
+ *
+ *  The fields of the structure are described more in detail inside the ARTS
+ *  user guide (AUG).
+ */
+struct Star {
+  /** star description */
+  String description;
+  /** Star spectrum, monochrmatic radiance spectrum at the surface of the star*/
+  Matrix spectrum;
+  /** Star radius */
+  Numeric radius;
+  /** star distance from center of planet to center of star*/
+  Numeric distance;
+//  /** surface temperature of star */
+//  Numeric temperature;
+  /** latitude of the star in the sky of the planet */
+  Numeric latitude;
+  /** longitude of the star in the sky of the planet */
+  Numeric longitude;
+};
+
+std::ostream& operator<<(std::ostream& os, const Star& star);
+
+/** An array of star. */
+using ArrayOfStar = Array<Star>;
+
 
 /*===========================================================================
-  === Functions in star.cc
+  === Functions in star.h
   ===========================================================================*/
 
 /** Calculates the radiance spectrum of star which is scattered by the atmospheric gases.
@@ -81,16 +112,16 @@ void get_scattered_starsource(
  * @param[in] star_radius Radius of star
  * @param[in] star_spectrum Monochromatic irradiance
  *             spectrum of star
- * @param[in] rte_pos The position of the ppath point.
- * @param[in] rte_los The line of sight of the ppath.
+ * @param[in] rtp_pos The position of the ppath point.
+ * @param[in] rtp_los The line of sight of the ppath.
  * @param[in] refellipsoid As the WSV with the same name.
   */
 void get_star_background(Matrix& iy,
                          const Vector& star_pos,
                          const Numeric& star_radius,
                          const Matrix& star_spectrum,
-                         const Vector& rte_pos,
-                         const Vector& rte_los,
+                         const Vector& rtp_pos,
+                         const Vector& rtp_los,
                          const Vector& refellipsoid,
                          const Index& atmosphere_dim);
 

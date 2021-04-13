@@ -615,6 +615,7 @@ int main() {
         << "#include \"propagationmatrix.h\"\n"
         << "#include <predefined/predef_data.h>\n"
         << "#include \"transmissionmatrix.h\"\n"
+        << "#include \"star.h\"\n"
         << "#include \"telsem.h\"\n"
         << "#include \"tessem.h\"\n"
         << "#include \"xsec_fit.h\"\n"

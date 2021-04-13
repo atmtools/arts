@@ -89,6 +89,9 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
                                    const Index& stokes_dim,
                                    const Verbosity&) {
 
+  //TODO add in_los,out_los as input for the machanism that if in_los or out_los
+  // is empty then sca_mat is empty.
+
   TransmissionMatrix sca_mat_temp(f_grid.nelem(), stokes_dim);
   sca_mat_temp.setIdentity();
   sca_mat_temp *= 1 / (4 * PI);
