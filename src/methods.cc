@@ -396,7 +396,7 @@ void define_md_data_raw() {
       IN("abs_lines_per_species", "abs_species"),
       GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode"),
       GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String"),
-      GIN_DEFAULT(NODEF, "-1", "0", "1e99", "0", "VP_W"),
+      GIN_DEFAULT(NODEF, "-1", "-1e99", "1e99", "0", "VP_W"),
       GIN_DESC("Direcory where the linemixing data is to be found",
                "Line mixing limit as defined by *AbsorptionLines*",
                "Minimum frequency to read from",
@@ -420,21 +420,20 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-    NAME("abs_linesKeepBands"),
-      DESCRIPTION("Keep only *qid*-matches in *abs_lines*\n"
-        "\n"
-        "The ignore values will ignore isotopologue and/or species.\n"
-        "The latter means the isotopologue has to be ignores.\n"),
+    NAME("abs_linesKeepBand"),
+      DESCRIPTION("Keep only *qid*-match band lines in *abs_lines*\n"
+      "\n"
+      "Note that other bands are technically kept but have zero lines\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("qid", "ignore_spec", "ignore_isot"),
-      GIN_TYPE("QuantumIdentifier", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "1", "1"),
-      GIN_DESC("Band ID", "If species is to be ignores", "If isotopologue is to be ignored")));
+      GIN("qid"),
+      GIN_TYPE("QuantumIdentifier"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Band ID")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveBand"),
@@ -1471,22 +1470,22 @@ void define_md_data_raw() {
           "parameter_name = \"Lower Zeeman Coefficient\"\n"
           "parameter_name = \"Upper Zeeman Coefficient\"\n"
           "\n"
-          "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
-          "otherwise the numbers in QI must just be contained in the line identifier\n"),
+          "Note that band_matching:=0 means only identical quantum identifiers are accepted,\n"
+          "otherwise the numbers in QI must just be contained in the band identifier\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("QI", "parameter_name", "change", "relative", "loose_matching"),
+      GIN("QI", "parameter_name", "change", "relative", "band_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
-      GIN_DESC("Information to match the line.",
+      GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
                "Flag for relative change (0 is absolute change)",
-               "Flag for loose match (0 means only complete matches)")));
+               "Flag for band match (0 means only line matches)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLines"),
@@ -1497,14 +1496,14 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species"),
-      GIN("QI", "parameter_name", "change", "relative", "loose_matching"),
+      GIN("QI", "parameter_name", "change", "relative", "band_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
-      GIN_DESC("Information to match the line.",
+      GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
                "Flag for relative change (0 is absolute change)",
-               "Flag for loose match (0 means only complete matches)")));
+               "Flag for band match (0 means only line matches)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForSpecies"),
@@ -1515,14 +1514,14 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "abs_species"),
-      GIN("QI", "parameter_name", "change", "relative", "loose_matching", "species_tag"),
+      GIN("QI", "parameter_name", "change", "relative", "band_matching", "species_tag"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0", NODEF),
-      GIN_DESC("Information to match the line.",
+      GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
                "Flag for relative change (0 is absolute change)",
-               "Flag for loose match (0 means only complete matches)",
+               "Flag for band match (0 means only band matches)",
                "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -1539,7 +1538,7 @@ void define_md_data_raw() {
           "parameter_name = \"Lower Zeeman Coefficient\"\n"
           "parameter_name = \"Upper Zeeman Coefficient\"\n"
           "\n"
-          "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
+          "Note that band_matching:=0 means only identical quantum identifiers are accepted,\n"
           "otherwise the numbers in QI must just be contained in the line identifier\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
@@ -1547,13 +1546,13 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("QI", "parameter_name", "change", "loose_matching"),
+      GIN("QI", "parameter_name", "change", "band_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Information to match the line.",
+      GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
-               "Flag for loose match (0 means only complete matches)")));
+               "Flag for band match (0 means only line matches)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesSetLineShapeModelParametersForMatchingLines"),
@@ -12519,7 +12518,7 @@ void define_md_data_raw() {
           "default for temperature and VMR interpolation, but the extrapolation\n"
           "limit can here be adjusted by the *extpolfac* argument.\n"
           "\n"
-          "See also: *propmat_clearskyAddOnTheFly*.\n"),
+          "See also: *propmat_clearskyAddXsecAgenda*.\n"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -12551,7 +12550,7 @@ void define_md_data_raw() {
           "\n"
           "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
           "\n"
-          "Note that you need to have propmat_clearskyAddOnTheFly in addition to this method\n"
+          "Note that you need to have *propmat_clearskyAddLines* in addition to this method\n"
           "to compensate the calculations for the pressure limit\n"
           "\n"
           "Please ensure you cite the original authors when you use this function:\n"
@@ -12577,6 +12576,60 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddLines"),
+      DESCRIPTION(
+        "Computes the line-by-line unpolarized absorption and adds\n"
+        "it to the diagonal of *propmat_clearsky* and derivates to other variables.\n"
+        "Does the same for NLTE variables if required.\n"
+        "\n"
+        "If *speedup_option* is not \"None\", then some speed-up logic is applied.\n"
+        "Valid speed-up logic other than \"None\" includes:\n"
+        "\tLinearIndependent:\n"
+        "\t\tUsing a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]\n"
+        "\t\tuntil the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.\n"
+        "\t\tA linear interpolation scheme is used between the bins to fill up the dense\n"
+        "\t\tabsorption.  The maximum of df[n] is given by *sparse_df* and the minimum\n"
+        "\t\ttransition between dense-to-sparse grid calculations are given by *sparse_lim*.\n"
+        "\tQuadraticIndependent:\n"
+        "\t\tUsing a sparse-grid, the points are separated as [f0, f0+0.5*df[0], f0+df[0], f0+df[0], f0+0.5*df[1], f0+df[1]...]\n"
+        "\t\tuntil the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.\n"
+        "\t\tA quadratic interpolation scheme is used between the bins to fill up the dense\n"
+        "\t\tabsorption.  The maximum of df[n] is given by *sparse_df* and the minimum\n"
+        "\t\ttransition between dense-to-sparse grid calculations are given by *sparse_lim*.\n"
+        "\n"
+        "Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("propmat_clearsky", "nlte_source", "dpropmat_clearsky_dx", "dnlte_source_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "nlte_source",
+         "dpropmat_clearsky_dx",
+         "dnlte_source_dx",
+         "f_grid",
+         "abs_species",
+         "jacobian_quantities",
+         "abs_lines_per_species",
+         "isotopologue_ratios",
+         "partition_functions",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_nlte",
+         "rtp_vmr",
+         "nlte_do",
+         "lbl_checked"),
+      GIN("sparse_df", "sparse_lim", "speedup_option"),
+      GIN_TYPE("Numeric", "Numeric", "String"),
+      GIN_DEFAULT("0", "0", "None"),
+      GIN_DESC(
+        "The grid sparse separation",
+        "The dense-to-sparse limit",
+        "Speedup logic"
+      )));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddOnTheFlyLineMixing"),
       DESCRIPTION(
           "Compute the line mixing of matching lines and add it to the propagation matrix\n"
@@ -12588,7 +12641,7 @@ void define_md_data_raw() {
           "\n"
           "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
           "\n"
-          "Note that you need to have propmat_clearskyAddOnTheFly in addition to this method\n"
+          "Note that you need to have *propmat_clearskyAddLines* addition to this method\n"
           "to compensate the calculations for the pressure limit\n"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
@@ -12624,7 +12677,7 @@ void define_md_data_raw() {
           "\n"
           "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
           "\n"
-          "Note that you need to have propmat_clearskyAddOnTheFly in addition to this method\n"
+          "Note that you need to have *propmat_clearskyAddLines* in addition to this method\n"
           "to compensate the calculations for the pressure limit\n"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
@@ -12650,9 +12703,9 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("propmat_clearskyAddOnTheFly"),
+      NAME("propmat_clearskyAddXsecAgenda"),
       DESCRIPTION(
-          "Calculates gas absorption coefficients line-by-line.\n"
+          "Calculates gas absorption coefficients from cross-sections.\n"
           "\n"
           "This method can be used inside *propmat_clearsky_agenda* just like\n"
           "*propmat_clearskyAddFromLookup*. It is a wrapper for putting the\n"
@@ -14180,7 +14233,7 @@ void define_md_data_raw() {
           "cutoff_value", "linemixinglimit_value"),
       GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
                "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
       GIN_DESC("Name of the ARTSCAT file",
                "Minimum frequency of read lines",
@@ -14214,7 +14267,7 @@ void define_md_data_raw() {
           "cutoff_value", "linemixinglimit_value"),
       GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "Index", "String",
                "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "0", "None", "None", "LTE", "VP",
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "0", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
       GIN_DESC("Path to the files",
                "Minimum frequency of read lines",
@@ -14249,7 +14302,7 @@ void define_md_data_raw() {
           "cutoff_value", "linemixinglimit_value"),
       GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
                "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
       GIN_DESC("Name of the ARTSCAT file",
                "Minimum frequency of read lines",
@@ -14288,7 +14341,7 @@ void define_md_data_raw() {
           "cutoff_value", "linemixinglimit_value"),
       GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String", "String",
                "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "Online", "None", "None", "LTE", "VP",
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "Online", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
       GIN_DESC("Name of the HITRAN file",
                "Minimum frequency of read lines",
@@ -14321,7 +14374,7 @@ void define_md_data_raw() {
           "cutoff_value", "linemixinglimit_value"),
       GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
                "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
       GIN_DESC("Name of the LBLRTM file",
                "Minimum frequency of read lines",
@@ -14353,7 +14406,7 @@ void define_md_data_raw() {
           "cutoff_value", "linemixinglimit_value"),
       GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
                "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
       GIN_DESC("Name of the Mytran2 file",
                "Minimum frequency of read lines",
@@ -14385,7 +14438,7 @@ void define_md_data_raw() {
           "cutoff_value", "linemixinglimit_value"),
       GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
                "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
       GIN_DESC("Name of the JPL file",
                "Minimum frequency of read lines",
@@ -14399,6 +14452,40 @@ void define_md_data_raw() {
                "Cutoff option, see *abs_linesSetCutoff*",
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("abs_linesTruncateQuantumNumbers"),
+      DESCRIPTION("Truncates all quantum numbers\n"
+                  "and then recombine the line list.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("abs_lines_per_speciesTruncateQuantumNumbers"),
+      DESCRIPTION("Truncates all quantum numbers\n"
+                  "and then recombine the internal line lists.\n"
+                  "\n"
+                  "Effectively wraps abs_linesTruncateQuantumNumbers for each species.\n"
+                  "\n"
+                  "If pos is given, selects only that species in abs_lines_per_species\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN("pos"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("-1"),
+      GIN_DESC("Position to manipulate")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesTruncateGlobalQuantumNumbers"),
@@ -17532,6 +17619,21 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sparse_f_gridFromFrequencyGrid"),
+      DESCRIPTION(
+          "Outputs the sparse frequency grid in *propmat_clearskyAddLines*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("sparse_f_grid"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("A sparse frequency grid."),
+      IN("f_grid"),
+      GIN("sparse_df", "speedup_option"),
+      GIN_TYPE("Numeric", "String"),
+      GIN_DEFAULT("0", "None"),
+      GIN_DESC("The grid sparse separation", "Speedup logic")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SparseSparseMultiply"),

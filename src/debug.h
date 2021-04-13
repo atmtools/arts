@@ -77,7 +77,7 @@ std::string var_string(Args&& ... args) {
   }
 
 /*! Turn off noexcept */
-#define ARTS_NOEXCEPT
+#define ARTS_NOEXCEPT noexcept(false)
 
 /*! Condition should be true to pass internal check */
 #define ARTS_ASSERT(condition, ...) {     \
@@ -107,7 +107,7 @@ std::string var_string(Args&& ... args) {
 #define DEBUG_VAR_FLT(p, e)
 
 /*! Turn on noexcept explicitly */
-#define ARTS_NOEXCEPT noexcept
+#define ARTS_NOEXCEPT noexcept(true)
 
 /*! Condition should be true to pass internal check, lets hope it is! */
 #define ARTS_ASSERT(condition, ...) {}
@@ -117,7 +117,7 @@ std::string var_string(Args&& ... args) {
 #ifdef NO_ARTS_USER_ERRORS
 
 /*! Turn on noexcept for user-facing functions */
-#define ARTS_USER_NOEXCEPT noexcept
+#define ARTS_USER_NOEXCEPT noexcept(true)
 
 /*! Condition should be false to pass external check, lets hope it is!  */
 #define ARTS_USER_ERROR_IF(condition, ...) {}
@@ -128,7 +128,7 @@ std::string var_string(Args&& ... args) {
 #else  // NO_ARTS_USER_ERRORS == 0
 
 /*! Turn off noexcept for user-facing functions */
-#define ARTS_USER_NOEXCEPT
+#define ARTS_USER_NOEXCEPT noexcept(false)
 
 /*! Condition should be false to pass external check */
 #define ARTS_USER_ERROR_IF(condition, ...) {  \

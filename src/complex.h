@@ -32,6 +32,18 @@
 
 typedef std::complex<Numeric> Complex;
 
+/** Return a reference to the real value of c */
+inline Numeric& real_val(Complex& c) noexcept {return reinterpret_cast<Numeric(&)[2]>(c)[0];}
+
+/** Return a reference to the imaginary value of c */
+inline Numeric& imag_val(Complex& c) noexcept {return reinterpret_cast<Numeric(&)[2]>(c)[1];}
+
+/** Return a const reference to the real value of c */
+inline const Numeric& real_val(const Complex& c) noexcept {return reinterpret_cast<const Numeric(&)[2]>(c)[0];}
+
+/** Return a const reference to the imaginary value of c */
+inline const Numeric& imag_val(const Complex& c) noexcept {return reinterpret_cast<const Numeric(&)[2]>(c)[1];}
+
 inline std::complex<float> operator+(const double& d,
                                      const std::complex<float>& c) {
   return (float(d) + c);
@@ -59,52 +71,59 @@ inline std::complex<float> operator*(const std::complex<float>& c,
 #define b2 z.imag()
 
 /** squared magnitude of c */
-constexpr Numeric abs2(Complex c) { return a1 * a1 + b1 * b1; }
+constexpr Numeric abs2(Complex c) noexcept { return a1 * a1 + b1 * b1; }
 
 /** the conjugate of c */
-constexpr Complex conj(Complex c) { return Complex(a1, -b1); }
+constexpr Complex conj(Complex c) noexcept { return Complex(a1, -b1); }
+
+/** real */
+constexpr Numeric real(Complex c) noexcept { return a1; }
+
+/** imag */
+constexpr Numeric imag(Complex c) noexcept { return b1; }
 
 // Basic constexpr operations for Complex that don't exist in the standard yet (C++11)
 // NOTE: Remove these if there is ever an overload warning updating the C++ compiler version
 
-constexpr Complex operator+(Complex c, Numeric n) {
+constexpr Complex operator+(Complex c, Numeric n) noexcept {
   return Complex(a1 + n, b1);
 }
-constexpr Complex operator-(Complex c, Numeric n) {
+constexpr Complex operator-(Complex c, Numeric n) noexcept {
   return Complex(a1 - n, b1);
 }
-constexpr Complex operator*(Complex c, Numeric n) {
+constexpr Complex operator*(Complex c, Numeric n) noexcept {
   return Complex(a1 * n, b1 * n);
 }
-constexpr Complex operator/(Complex c, Numeric n) {
+constexpr Complex operator/(Complex c, Numeric n) noexcept {
   return Complex(a1 / n, b1 / n);
 }
 
-constexpr Complex operator+(Numeric n, Complex c) {
+constexpr Complex operator+(Numeric n, Complex c) noexcept {
   return Complex(n + a1, b1);
 }
-constexpr Complex operator-(Numeric n, Complex c) {
+constexpr Complex operator-(Numeric n, Complex c) noexcept {
   return Complex(n - a1, -b1);
 }
-constexpr Complex operator*(Numeric n, Complex c) {
+constexpr Complex operator*(Numeric n, Complex c) noexcept {
   return Complex(n * a1, n * b1);
 }
-constexpr Complex operator/(Numeric n, Complex c) {
+constexpr Complex operator/(Numeric n, Complex c) noexcept {
   return Complex(n * a1, -n * b1) / abs2(c);
 }
 
-constexpr Complex operator+(Complex c, Complex z) {
+constexpr Complex operator+(Complex c, Complex z) noexcept {
   return Complex(a1 + a2, b1 + b2);
 }
-constexpr Complex operator-(Complex c, Complex z) {
+constexpr Complex operator-(Complex c, Complex z) noexcept {
   return Complex(a1 - a2, b1 - b2);
 }
-constexpr Complex operator*(Complex c, Complex z) {
+constexpr Complex operator*(Complex c, Complex z) noexcept {
   return Complex(a1 * a2 - b1 * b2, a1 * b2 + b1 * a2);
 }
-constexpr Complex operator/(Complex c, Complex z) {
+constexpr Complex operator/(Complex c, Complex z) noexcept {
   return Complex(a1 * a2 + b1 * b2, -a1 * b2 + b1 * a2) / abs2(z);
 }
+constexpr Complex operator-(Complex c) noexcept { return Complex(-a1, -b1); }
 
 // Remove helpers to keep global namespace usable
 #undef a1
@@ -116,34 +135,35 @@ constexpr Complex operator/(Complex c, Complex z) {
 // FIXME: Cannot be template because Eigen interferes, so explicit copies are required for operations
 // NOTE: Remove these if there is ever an overload warning updating the C++ compiler version
 #define _complex_operations_(T)                   \
-  constexpr Complex operator+(Complex c, T x) {   \
+  constexpr Complex operator+(Complex c, T x) noexcept {   \
     return operator+(c, static_cast<Numeric>(x)); \
   }                                               \
-  constexpr Complex operator-(Complex c, T x) {   \
+  constexpr Complex operator-(Complex c, T x) noexcept {   \
     return operator-(c, static_cast<Numeric>(x)); \
   }                                               \
-  constexpr Complex operator*(Complex c, T x) {   \
+  constexpr Complex operator*(Complex c, T x) noexcept {   \
     return operator*(c, static_cast<Numeric>(x)); \
   }                                               \
-  constexpr Complex operator/(Complex c, T x) {   \
+  constexpr Complex operator/(Complex c, T x) noexcept {   \
     return operator/(c, static_cast<Numeric>(x)); \
   }                                               \
                                                   \
-  constexpr Complex operator+(T x, Complex c) {   \
+  constexpr Complex operator+(T x, Complex c) noexcept {   \
     return operator+(static_cast<Numeric>(x), c); \
   }                                               \
-  constexpr Complex operator-(T x, Complex c) {   \
+  constexpr Complex operator-(T x, Complex c) noexcept {   \
     return operator-(static_cast<Numeric>(x), c); \
   }                                               \
-  constexpr Complex operator*(T x, Complex c) {   \
+  constexpr Complex operator*(T x, Complex c) noexcept {   \
     return operator*(static_cast<Numeric>(x), c); \
   }                                               \
-  constexpr Complex operator/(T x, Complex c) {   \
+  constexpr Complex operator/(T x, Complex c) noexcept {   \
     return operator/(static_cast<Numeric>(x), c); \
   }
 
-_complex_operations_(int) _complex_operations_(float)
-    _complex_operations_(Index)
+_complex_operations_(int)
+_complex_operations_(float)
+_complex_operations_(Index)
 
 #undef _complex_operations_
 
@@ -163,13 +183,9 @@ class ConstComplexVectorView;
 class ConstComplexMatrixView;
 
 // Eigen library interactions:
-typedef Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-    ComplexMatrixType;
-typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> ComplexStrideType;
-typedef Eigen::Map<ComplexMatrixType, 0, ComplexStrideType>
-    ComplexMatrixViewMap;
-typedef Eigen::Map<const ComplexMatrixType, 0, ComplexStrideType>
-    ComplexConstMatrixViewMap;
+typedef Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> ComplexMatrixType;
+typedef Eigen::Map<ComplexMatrixType, 0, StrideType> ComplexMatrixViewMap;
+typedef Eigen::Map<const ComplexMatrixType, 0, StrideType> ConstComplexMatrixViewMap;
 
 /** The iterator class for sub vectors. This takes into account the
  *  defined stride. */
@@ -276,8 +292,8 @@ class ConstComplexVectorView {
   typedef ConstComplexIterator1D const_iterator;
 
   // Member functions:
-  bool empty() const { return (nelem() == 0); }
-  Index nelem() const { return mrange.mextent; }
+  bool empty() const noexcept { return (nelem() == 0); }
+  Index nelem() const noexcept { return mrange.mextent; }
   Complex sum() const;
 
   // Const index operators:
@@ -331,8 +347,8 @@ class ConstComplexVectorView {
                    const ConstComplexMatrixView&,
                    const ConstComplexVectorView&);
 
-  friend ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView&);
-  friend ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView&);
+  friend ConstComplexMatrixViewMap MapToEigen(const ConstComplexVectorView&);
+  friend ConstComplexMatrixViewMap MapToEigenCol(const ConstComplexVectorView&);
   friend ComplexMatrixViewMap MapToEigen(ComplexVectorView&);
   friend ComplexMatrixViewMap MapToEigenCol(ComplexVectorView&);
 
@@ -586,6 +602,10 @@ class ComplexVector : public ComplexVectorView {
   ComplexVector(const Vector& v);
   ComplexVector(const std::vector<Complex>&);
   ComplexVector(const std::vector<Numeric>&);
+  ComplexVector(Complex* c, const Range& r0) ARTS_NOEXCEPT
+  : ComplexVectorView(c, r0) {
+    ARTS_ASSERT(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
+  }
 
   // Assignment operators:
   ComplexVector& operator=(ComplexVector v);
@@ -600,6 +620,9 @@ class ComplexVector : public ComplexVectorView {
 
   // Destructor:
   virtual ~ComplexVector();
+  
+  // Total size
+  Index size() const noexcept {return nelem();}
 };
 
 // Declare class ComplexMatrix:
@@ -626,9 +649,9 @@ class ConstComplexMatrixView {
   typedef ConstComplexIterator2D const_iterator;
 
   // Member functions:
-  bool empty() const { return not nrows() or not ncols(); }
-  Index nrows() const { return mrr.mextent; }
-  Index ncols() const { return mcr.mextent; }
+  Index nrows() const noexcept { return mrr.mextent; }
+  Index ncols() const noexcept { return mcr.mextent; }
+  bool empty() const noexcept { return not nrows() or not ncols(); }
 
   // Const index operators:
   /** Plain const index operator. */
@@ -696,7 +719,7 @@ class ConstComplexMatrixView {
                    const ConstMatrixView&);
   
 
-  friend ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView&);
+  friend ConstComplexMatrixViewMap MapToEigen(const ConstComplexMatrixView&);
   friend ComplexMatrixViewMap MapToEigen(ComplexMatrixView&);
 
  protected:
@@ -881,6 +904,9 @@ class ComplexMatrix : public ComplexMatrixView {
 
   // Destructor:
   virtual ~ComplexMatrix();
+  
+  // Total size
+  Index size() const noexcept {return nrows() * ncols();}
 
   Complex* get_raw_data() { return mdata; }
 };
@@ -929,13 +955,13 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v);
 std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v);
 
 // Converts constant matrix to constant eigen map
-ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView& A);
+ConstComplexMatrixViewMap MapToEigen(const ConstComplexMatrixView& A);
 // Converts constant vector to constant eigen row-view
-ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView& A);
+ConstComplexMatrixViewMap MapToEigen(const ConstComplexVectorView& A);
 // Converts constant vector to constant eigen row-view
-ComplexConstMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A);
+ConstComplexMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A);
 // Converts constant vector to constant eigen column-view
-ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A);
+ConstComplexMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A);
 // Converts matrix to eigen map
 ComplexMatrixViewMap MapToEigen(ComplexMatrixView& A);
 // Converts vector to eigen map row-view

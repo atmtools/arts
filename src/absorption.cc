@@ -40,6 +40,7 @@
 #include "auto_md.h"
 #include "file.h"
 #include "linescaling.h"
+#include "lineshape.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "messages.h"
@@ -678,7 +679,7 @@ void xsec_species(Matrix& xsec,
       // absorption cross-section
       MapToEigen(xsec).col(ip).noalias() += sum.F.real();
       for (Index j = 0; j < nj; j++) {
-        if (not propmattype_index(jacobian_quantities, j)) continue;
+        if (not propmattype(jacobian_quantities[j])) continue;
         MapToEigen(dxsec_dx[j]).col(ip).noalias() += sum.dF.col(j).real();
       }
 
@@ -686,7 +687,7 @@ void xsec_species(Matrix& xsec,
       if (not phase.empty()) {
         MapToEigen(phase).col(ip).noalias() += sum.F.imag();
         for (Index j = 0; j < nj; j++) {
-          if (not propmattype_index(jacobian_quantities, j)) continue;
+          if (not propmattype(jacobian_quantities[j])) continue;
           MapToEigen(dphase_dx[j]).col(ip).noalias() += sum.dF.col(j).imag();
         }
       }
@@ -695,7 +696,7 @@ void xsec_species(Matrix& xsec,
       if (do_nonlte) {
         MapToEigen(source).col(ip).noalias() += sum.N.real();
         for (Index j = 0; j < nj; j++) {
-          if (not propmattype_index(jacobian_quantities, j)) continue;
+          if (not propmattype(jacobian_quantities[j])) continue;
           MapToEigen(dsource_dx[j]).col(ip).noalias() += sum.dN.col(j).real();
         }
       }

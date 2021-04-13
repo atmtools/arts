@@ -999,11 +999,10 @@ void dxdvmrscf(Numeric& x,
 //             Propmat partials descriptions
 //======================================================================
 
-bool propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) ARTS_NOEXCEPT {
-  ARTS_ASSERT (js.nelem() > i)
-  return js[i] == Jacobian::Type::Line or
-         js[i] == Jacobian::Type::Atm or
-         js[i].Target() == Jacobian::Special::ArrayOfSpeciesTagVMR
+bool propmattype(const RetrievalQuantity& rt) noexcept {
+  return rt == Jacobian::Type::Line or
+         rt == Jacobian::Type::Atm or
+         rt.Target() == Jacobian::Special::ArrayOfSpeciesTagVMR
          ;
 }
 
@@ -1169,7 +1168,11 @@ bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
 
 jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
                                  const QuantumIdentifier& line_qid) noexcept {
-  auto p = std::find_if(js.cbegin(), js.cend(), [&line_qid](auto& j){return j == Jacobian::Line::VMR and j.QuantumIdentity().In(line_qid);});
+  auto p = std::find_if(js.cbegin(), js.cend(), [&line_qid](auto& j) {
+    return j == Jacobian::Line::VMR
+      and j.QuantumIdentity().Species()      == line_qid.Species()
+      and j.QuantumIdentity().Isotopologue() == line_qid.Isotopologue();}
+  );
   if (p not_eq js.cend())
     return {true, p -> QuantumIdentity()};
   else
@@ -1219,12 +1222,12 @@ std::ostream& Jacobian::operator<<(std::ostream& os, const Target& x) {
     case Type::Line: os << x.LineType(); break;
     case Type::Sensor: os << x.SensorType(); break;
     case Type::Special: os << x.SpecialType(); break;
-    case Type::FINAL: os << "FINAL"; break;
+    case Type::FINAL: os << "BAD STATE"; break;
   }
   if (x.needQuantumIdentity()) os << ' ' << x.QuantumIdentity();
   if (x.needArrayOfSpeciesTag()) os << ' ' << x.SpeciesList();
   if (x.needString()) os << ' ' << x.StringKey();
-  os << ' ' << x.Perturbation() << " " << x.QuantumIdentity();
+  if (std::isnormal(x.Perturbation())) os << ' ' << x.Perturbation();
   
   return os;
 }

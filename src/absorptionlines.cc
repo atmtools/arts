@@ -88,48 +88,32 @@ LineShape::Output Absorption::Lines::ShapeParameters_dT(size_t k, Numeric T, Num
 
 Index Absorption::Lines::LineShapePos(const Index& spec) const noexcept {
   // Is always first if this is self and self broadening exists
-  if(mselfbroadening and spec == mquantumidentity.Species())
+  if(mselfbroadening and spec == mquantumidentity.Species()) {
     return 0;
+  }
   
   // First and last might be artificial so they should not be checked
-  for(Index i=Index(mselfbroadening); i<Index(mbroadeningspecies.size())-Index(mbathbroadening); i++) {
-    if(spec == mbroadeningspecies[i].Species())
-      return Index(i);
+  const Index s = mselfbroadening;
+  const Index e = mbroadeningspecies.nelem() - mbathbroadening;
+  for(Index i=s; i<e; i++) {
+    if(spec == mbroadeningspecies[i].Species()) {
+      return i;
+    }
   }
   
   // At this point, the ID is not explicitly among the broadeners, but bath broadening means its VMR still might matter
   if(mbathbroadening)
-    return Index(mbroadeningspecies.size())-Index(mbathbroadening);
+    return mbroadeningspecies.nelem()-1;
   else
     return -1;
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dVMR(size_t k, Numeric T, Numeric P, const QuantumIdentifier& vmr_qid) const noexcept {
-  const auto self = vmr_qid.Species() == mquantumidentity.Species();
-  const auto& ls = mlines[k].LineShape();
-  
-  if (mselfbroadening and self) {
-    auto x = ls.GetVMRDerivs(T, mT0, P, 0);
-    
-    if (mbathbroadening)
-      x = LineShape::differenceOutput(x, ls.GetVMRDerivs(
-          T, mT0, P, ls.nelem() - 1));
-    
-    if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-    
-    return x;
-  } else if (mbathbroadening and self)
-    return {0, 0, 0, 0, 0, 0, 0, 0, 0};
-  else {
-    auto x = ls.GetVMRDerivs(T, mT0, P, LineShapePos(vmr_qid));
-    
-    if (mbathbroadening)
-      x = LineShape::differenceOutput(x, ls.GetVMRDerivs(
-          T, mT0, P, ls.nelem() - 1));
-    
-    if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-    
-    return x;
+  const Index pos=LineShapePos(vmr_qid);
+  if (pos >= 0) {
+    return mlines[k].LineShape().GetVMRDerivs(T, mT0, P, pos);
+  } else {
+    return LineShape::Output{};
   }
 }
 
@@ -2530,201 +2514,6 @@ Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,
   return 0;
 }
 
-bool Absorption::line_in_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
-{
-  if (band.Species() != id.Species())
-    return false;
-  else if (band.Isotopologue() != id.Isotopologue())
-    return false;
-  else if (id.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if (id.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL) {
-    ARTS_USER_ERROR ("Cannot match energy level to line");
-  } else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
-      auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
-      auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
-      
-      if (qn_line.isDefined() and qn_line not_eq qn_id) {
-        return false;
-      } else if (qn_id.isUndefined() and qn_line.isDefined()) {
-        return false;
-      }
-    }
-    
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
-      auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
-      auto qn_id = id.UpperQuantumNumber(QuantumNumberType(iq));
-      
-      if (qn_line.isDefined() and qn_line not_eq qn_id) {
-        return false;
-      } else if (qn_id.isUndefined() and qn_line.isDefined()) {
-        return false;
-      }
-    }
-  }
-  
-  return true;
-}
-
-bool Absorption::line_upper_in_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
-{
-  if (band.Species() != id.Species())
-    return false;
-  else if (band.Isotopologue() != id.Isotopologue())
-    return false;
-  else if (id.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if (id.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if (id.Type() == QuantumIdentifier::TRANSITION) {
-    ARTS_USER_ERROR ("Cannot match transition level to energy level");
-  } else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
-      auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
-      auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
-      
-      if (qn_line.isDefined() and qn_line not_eq qn_id) {
-        return false;
-      } else if (qn_id.isUndefined() and qn_line.isDefined()) {
-        return false;
-      }
-    }
-  }
-  
-  return true;
-}
-
-bool Absorption::line_lower_in_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
-{
-  if (band.Species() != id.Species())
-    return false;
-  else if (band.Isotopologue() != id.Isotopologue())
-    return false;
-  else if (id.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if (id.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if (id.Type() == QuantumIdentifier::TRANSITION) {
-    ARTS_USER_ERROR ("Cannot match transition level to energy level");
-  } else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
-      auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
-      auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
-      
-      if (qn_line.isDefined() and qn_line not_eq qn_id) {
-        return false;
-      } else if (qn_id.isUndefined() and qn_line.isDefined()){
-        return false;
-      }
-    }
-  }
-  
-  return true;
-}
-
-bool Absorption::id_in_line(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
-{
-  if (band.Species() != id.Species())
-    return false;
-  else if (band.Isotopologue() != id.Isotopologue())
-    return false;
-  else if (id.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if (id.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if (id.Type() == QuantumIdentifier::ENERGY_LEVEL) {
-    ARTS_USER_ERROR ("Cannot match energy level to line");
-  } else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
-      auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
-      auto qn_id = id.LowerQuantumNumber(QuantumNumberType(iq));
-      
-      if (qn_id.isDefined() and qn_id not_eq qn_line) {
-        return false;
-      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
-        return false;
-      }
-    }
-    
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
-      auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
-      auto qn_id = id.UpperQuantumNumber(QuantumNumberType(iq));
-      
-      if (qn_id.isDefined() and qn_id not_eq qn_line) {
-        return false;
-      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
-        return false;
-      }
-    }
-  }
-  
-  return true;
-}
-
-bool Absorption::id_in_line_upper(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
-{
-  if (band.Species() != id.Species())
-    return false;
-  else if (band.Isotopologue() != id.Isotopologue())
-    return false;
-  else if (id.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if (id.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if (id.Type() == QuantumIdentifier::TRANSITION) {
-    ARTS_USER_ERROR ("Cannot match transition level to energy level");
-  } else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
-      auto qn_line = band.UpperQuantumNumber(line_index, QuantumNumberType(iq));
-      auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
-      
-      if (qn_id.isDefined() and qn_id not_eq qn_line) {
-        return false;
-      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
-        return false;
-      }
-    }
-  }
-  
-  return true;
-}
-
-bool Absorption::id_in_line_lower(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
-{
-  if (band.Species() != id.Species())
-    return false;
-  else if (band.Isotopologue() != id.Isotopologue())
-    return false;
-  else if (id.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if (id.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if (id.Type() == QuantumIdentifier::TRANSITION) {
-    ARTS_USER_ERROR ("Cannot match transition level to energy level");
-  } else {
-    for (Index iq=0; iq<Index(QuantumNumberType::FINAL); iq++) {
-      auto qn_line = band.LowerQuantumNumber(line_index, QuantumNumberType(iq));
-      auto qn_id = id.EnergyLevelQuantumNumber(QuantumNumberType(iq));
-      
-      if (qn_id.isDefined() and qn_id not_eq qn_line) {
-        return false;
-      } else if (qn_line.isUndefined() and qn_id.isDefined()) {
-        return false;
-      }
-    }
-  }
-  
-  return true;
-}
-
-bool Absorption::line_is_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
-{
-  return (line_in_id(band, id, line_index) and id_in_line(band, id, line_index));
-}
-
 Numeric Absorption::reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k) {
   if (not iseven(Jf + lf + 1))
     return - sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
@@ -3306,7 +3095,6 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
 }
 
 
-
 bool Absorption::Lines::OK() const noexcept
 {
   const Index nq = mlocalquanta.size();
@@ -3331,6 +3119,12 @@ bool Absorption::Lines::OK() const noexcept
   // Otherwise everything is fine!
   return true;
 }
+
+Numeric Absorption::Lines::DopplerConstant(Numeric T) const noexcept
+{
+  return std::sqrt(Constant::doppler_broadening_const_squared * T / SpeciesMass());
+}
+
 
 
 namespace Absorption {
@@ -3510,6 +3304,14 @@ void Lines::truncate_global_quantum_numbers() {
   mquantumidentity.SetTransition(QuantumNumbers(), QuantumNumbers());
 }
 
+void Lines::truncate_local_quantum_numbers() {
+  mlocalquanta.resize(0);
+  for (auto& line: mlines) {
+    line.LowerQuantumNumbers().resize(0);
+    line.UpperQuantumNumbers().resize(0);
+  }
+}
+
 String Lines::LineShapeMetaData() const noexcept {
   return NumLines() ?
   LineShape::ModelShape2MetaData(mlines[0].LineShape()) :
@@ -3625,93 +3427,88 @@ QuantumIdentifier Lines::QuantumIdentityOfLine(Index k) const noexcept {
   return qid_copy;
 }
 
-LineTarget::LineTarget(const Jacobian::Target& target, const Lines& band) :
-  found(LineTargetType::None), pos({-1, -1})
+QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier& qt,
+                                                         const Lines& lines,
+                                                         const Index line_id) ARTS_NOEXCEPT :
+  QuantumIdentifierLineTarget(qt, lines)
 {
-  if (target.needQuantumIdentity()) {
-    // We need to look at these things
+  if (qt.Type() == QuantumIdentifier::ALL or qt.Type() == QuantumIdentifier::NONE) {
     
-    // First check if we are a transition or energy level
-    if (target.QuantumIdentity().Type() == QuantumIdentifier::TRANSITION) {
-      // OK, we are a transition
+    // Nothing to do here
+    
+  } else if (qt.Type() == QuantumIdentifier::TRANSITION) {
+    if (found == QuantumIdentifierLineTargetType::Band) {
       
-      if (band.QuantumIdentity().In(target.QuantumIdentity())) {
-        // OK, we will be either a band or a line parameter or a shape parameter but we belong to this band
-        found = LineTargetType::Band;
-        
-        // Which line do we match?
-        for (Index i=0; i<band.NumLines(); i++) {
-          if (id_in_line(band, target.QuantumIdentity(), i)) {
-            // We match this line!
-            found = LineTargetType::Line;
-            pos[0] = i;
-            
-            // Now for complicated logic.
-            // A position other than the smallest possible
-            // position is considered a good position
-            if (target.Position() not_eq -std::numeric_limits<Index>::max()) {
-              // OK, we actually match a line shape parameter
-              found = LineTargetType::LineshapeParameter;
-              
-              // -1 means we are Self
-              // max() means we are Bath
-              // Else means we are a specific species and must look through all of them
-              if (target.Position() == -1) {
-                pos[1] = 0;
-              } else if (target.Position() == std::numeric_limits<Index>::max()) {
-                pos[1] = band.BroadeningSpecies().nelem() - 1;
-              } else {
-                for (Index j=band.Self(); j<band.BroadeningSpecies().nelem()-band.Bath(); j++) {
-                  if (target.Position() == band.BroadeningSpecies()[j].Species()) {
-                    pos[1] = j;
-                    return;
-                  }
-                }
-              }
-            }
-            return;
-          }
-        }
-        return;
+      // Look at the current line (the levels should already match)
+      const SingleLine& line = lines.AllLines()[line_id];
+      
+      // We are a transition, so all of the band must match all of the target to be a line
+      bool all_good = true;
+      for (Index iq=0; iq<lines.NumLocalQuanta(); iq++) {
+        const QuantumNumberType qn = lines.LocalQuanta()[iq];
+        const Rational& low_band = line.LowerQuantumNumbers()[iq];
+        const Rational& upp_band = line.UpperQuantumNumbers()[iq];
+        const Rational& low_targ = qt.LowerQuantumNumbers()[qn];
+        const Rational& upp_targ = qt.UpperQuantumNumbers()[qn];
+        all_good = all_good
+          and (low_band.isUndefined() or low_band == low_targ)
+          and (upp_band.isUndefined() or upp_band == upp_targ);
       }
-    } else if (target.QuantumIdentity().Type() == QuantumIdentifier::ENERGY_LEVEL) {
-      // OK, we are an energy level, we must look at the lines to see which energy level we are
-      for (Index i=0; i<band.NumLines(); i++) {
-        const bool upper = id_in_line_upper(band, target.QuantumIdentity(), i);
-        const bool lower = id_in_line_lower(band, target.QuantumIdentity(), i);
-        if (upper and lower) {
-          // We are actually both energy levels!
-          pos[1] = 2;
-        } else if (upper) {
-          // We are the upper energy level!
-          pos[1] = 0;
-        } else if (lower) {
-          // We are the lower energy level!
-          pos[1] = 1;
+      
+      // We are a line?
+      if (all_good) found = QuantumIdentifierLineTargetType::Line;
+      
+    }
+  } else if (qt.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+    
+    // Nothing to do here
+    
+  }
+}
+
+Index line_shape_position(const Lines& band, const Index catalog_parameter_position) ARTS_NOEXCEPT
+{
+  ARTS_ASSERT(catalog_parameter_position > -2, "Only -1 and max() are special values")
+  
+  // Special parameter for self broadening
+  if (catalog_parameter_position == -1) {
+    
+    // If we are explicitly self-broadened then this is easy
+    if (band.Self()) {
+      return 0;
+    } 
+    
+    // Otherwise we have to look through to be sure we haven't defined self broadening via an explicitly named broadener
+    else {
+      for (Index i=0; i<band.NumBroadeners()-band.Bath(); i++) {
+        if (band.BroadeningSpecies()[i].Species() == band.Species()) {
+          return i;
         }
-        
-        // We should return if we found anything
-        if (upper or lower) {
-          found = LineTargetType::Level;
-          pos[0] = i;
-          return;
-        }
+      }
+    }
+  }
+  
+  // Special parameter for bath broadening
+  else if (catalog_parameter_position == std::numeric_limits<Index>::max() and band.Bath()) {
+    return band.NumBroadeners() - 1;
+  } 
+  
+  // Nothing special so the parameter is a species?
+  else {
+    
+    // Look through all species for a match and return its position
+    for (Index i=band.Self(); i<band.NumBroadeners()-band.Bath(); i++) {
+      if (band.BroadeningSpecies()[i].Species() == catalog_parameter_position) {
+        return i;
       }
     }
     
-    // In case we didn't change anything but still entered one of the two above
-    if (found == LineTargetType::None and band.Species() == target.QuantumIdentity().Species()) {
-      // OK, We are the correct species!
-      if (band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
-        // OK, we are also the right isotopologue
-        found = LineTargetType::SpeciesAndIsotopologue;
-      } else {
-        // We are a different isotopologue so we are just a species
-        found = LineTargetType::Species;
-      }
+    // If we found nothing but this band has bath-broadening, then this is technically a bath species
+    if (band.Bath()) {
+      return band.NumBroadeners() - 1;
     }
-  } else {
-    /* We don't have to do anything! */
   }
+  
+  return -1;
 }
 }  // Absorption

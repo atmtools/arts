@@ -869,9 +869,9 @@ where $N$ can be found in table~\ref{tab:abs_theory:lineshape:normalizationtype}
  \begin{tabular}{lll}
   Key&Name&Normalization factor\\
   None&&$N=1$\\[5pt]
-  VVH&Van Vleck and Huber& $N = \frac{\nu}{\nu_0}\frac{\tanh \left( h\nu \; \middle/ 2kT \right)}{\tanh \left( h\nu_0 \middle/ 2kT \right)} $ \\[5pt]
+  VVH&Van Vleck and Huber& $N = \frac{\nu}{\nu_0}\frac{\tanh \left( \frac{h\nu} {2kT} \right)}{\tanh \left( \frac{h\nu_0} {2kT} \right)} $ \\[5pt]
   VVW&Van Vleck and Weiskopf&$N = \frac{\nu^2}{\nu^2_0}$\\[5pt]
-  RQ&Rosenkranz quadratic& $N = \frac{\nu^2 }{\left. h\nu_0 \sinh\left( h\nu_0 \middle/ 2kT \right) \middle/ 2kT \right.} $
+  RQ&Rosenkranz quadratic& $N = \frac{\nu}{\nu_0} \frac{h\nu}{2kT} \frac{1}{\left. \sinh\left( \frac{h\nu_0} {2kT} \right) \right.} $
  \end{tabular}
  \caption{Normalization types, where $h$ is Planck's constant, $\nu$ is the frequency, $k$ is Boltzmann's constant,
  $T$ is the temperature, and $\nu_0$ is the central frequency.  These factors are applied on a line-by-line basis.}

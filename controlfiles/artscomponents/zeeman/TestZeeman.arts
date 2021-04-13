@@ -56,7 +56,7 @@ Arts2 {
   ReadXML(test, "testdata/zeeman/propmat.xml")
   CompareRelative(test, propmat_clearsky, 1e-6)
   ReadXML(dtest, "testdata/zeeman/dpropmat.xml")
-  CompareRelative(dtest, dpropmat_clearsky_dx, 1e-6)
+  CompareRelative(dtest, dpropmat_clearsky_dx, 1e-5)
   jacobianOff
   
   NumericSet(rtp_temperature, 215.01)

@@ -212,6 +212,7 @@ add_library (artscore STATIC
   linemixing.cc
   linemixing_hitran.cc
   linescaling.cc
+  lineshape.cc
   lineshapemodel.cc
   linefunctions.cc
   m_abs.cc
@@ -318,6 +319,14 @@ add_dependencies (artscore auto_version_h)
 
 if (ENABLE_GUI)
   add_subdirectory(gui)
+  
+  target_include_directories(artscore PUBLIC ${ARTS_SOURCE_DIR}/src
+                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
+                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/
+                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui-filebrowser/
+                                             ${ARTS_SOURCE_DIR}/3rdparty/)
+  
+  target_link_libraries (artscore artsgui)
 endif()
 
 target_link_libraries (artscore ${ZLIB_LIBRARIES} wigner)
@@ -536,6 +545,13 @@ target_link_libraries(test_telsem ${ALL_ARTS_LIBRARIES})
 
 add_executable (test_hitran test_hitran.cc)
 target_link_libraries(test_hitran ${ALL_ARTS_LIBRARIES})
+
+########### next testcase ###############
+
+if (ENABLE_GUI)
+  add_executable (test_lineshape test_lineshape.cc)
+  target_link_libraries (test_lineshape ${ALL_ARTS_LIBRARIES})
+endif ()
 
 ########### subdirs ###############
 

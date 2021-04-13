@@ -226,18 +226,20 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
             this_xsec(iv, ip) += n * xsec_temp[iv];
             for (Index iq = 0; iq < jacobian_quantities.nelem();
                  iq++) {
-              if (not propmattype_index(jacobian_quantities, iq)) continue;
+              const auto& deriv = jacobian_quantities[iq];
+            
+            if (not propmattype(deriv)) continue;
               
-              if (is_frequency_parameter(jacobian_quantities[iq]))
+            if (is_frequency_parameter(deriv))
                 dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                     n * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
-              else if (jacobian_quantities[iq] == Jacobian::Atm::Temperature)
-                dabs_xsec_per_species_dx[i][iq](iv, ip) +=
-                    n * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
-                    xsec_temp[iv] * dn_dT;
-              else if (species_match(jacobian_quantities[iq], this_species.BathSpecies()))
-                dabs_xsec_per_species_dx[i][iq](iv, ip) +=
-                    number_density(abs_p[ip], abs_t[ip]) * xsec_temp[iv];
+            else if (deriv == Jacobian::Atm::Temperature)
+              dabs_xsec_per_species_dx[i][iq](iv, ip) +=
+                  n * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
+                  xsec_temp[iv] * dn_dT;
+                  else if (species_match(deriv, this_species.BathSpecies()))
+              dabs_xsec_per_species_dx[i][iq](iv, ip) +=
+                  number_density(abs_p[ip], abs_t[ip]) * xsec_temp[iv];
             }
           }
         }

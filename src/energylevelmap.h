@@ -65,35 +65,12 @@ private:
   Tensor4 mvalue;
   
 public:
-  bool OK() const {
-    if (not (mvalue.nbooks() == mlevels.nelem() and 
-      (mvib_energy.nelem() == mlevels.nelem() or mvib_energy.nelem() == 0)))
-      return false;  // Bad dimensions, vibrational energies and IDs and data of strange size
-    
-    if (mtype == EnergyLevelMapType::Tensor3_t) {
-    } else if (mtype == EnergyLevelMapType::Vector_t) {
-      if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1)
-        return false;  // Bad dimensions for vector type
-    } else if (mtype == EnergyLevelMapType::Numeric_t) {
-      if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1 or mvalue.ncols() not_eq 1)
-        return false;  // Bad dimensions for numeric type
-    } else if (mtype == EnergyLevelMapType::None_t) {
-      if (mvalue.npages() not_eq 0 or mvalue.nrows() not_eq 0 or mvalue.ncols() not_eq 0)
-        return false;  // Bad dimensions for none type
-    }
-    
-    // FIXME: matpack does not do pointers in a clear manner
-    // return not std::any_of(mvib_energy.begin(), mvib_energy.end(), [](auto& x){return x < 0;});
-    
-    for (auto& e: mvib_energy) if (e < 0) return false;  // Bad energies
-    
-    return true;
-  }
+  bool OK() const noexcept;
   
-  void ThrowIfNotOK() const {ARTS_USER_ERROR_IF (not OK(), "Class in bad state");}
+  void ThrowIfNotOK() const ARTS_NOEXCEPT {ARTS_ASSERT (OK(), "Class in bad state");}
   
   EnergyLevelMap() : mtype(EnergyLevelMapType::None_t), mlevels(0),
-  mvib_energy(0), mvalue(0, 0, 0, 0) {ThrowIfNotOK();}
+  mvib_energy(0), mvalue(0, 0, 0, 0) {}
   
   EnergyLevelMap(EnergyLevelMapType new_type, Index pages, Index rows,
                  Index cols, const EnergyLevelMap& old) : 

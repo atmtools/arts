@@ -159,7 +159,7 @@ how propmat\_clearsky\_agenda can be set for different purposes.
   \includegraphics[scale=0.7]{propmat_clearsky_agenda_detail}
   \caption{An inside view of propmat\_clearsky\_agenda. At the same
     time, this gives an outside view of abs\_xsec\_agenda, as input to
-    \wsmindex{propmat\_clearskyAddOnTheFly} in the context of
+    \wsmindex{propmat\_clearskyAddXsecAgenda} in the context of
     on-the-fly absorption generation.
     %FIXME:  propmat_clearskyAddZeeman does not use
     % abs_lineshape line_mixing_data line_mixing_data_lut
@@ -187,7 +187,7 @@ or when the user is only interested in the absorption itself (see Section
 In all these cases, the same agenda is used to actually calculate
 absorption: abs\_xsec\_agenda. Outside views of this agenda are shown
 in Figure \ref{fig:absorption:pmat_inside} (as input to
-\wsmindex{propmat\_clearskyAddOnTheFly} in the context of on-the-fly
+\wsmindex{propmat\_clearskyAddXsecAgenda} in the context of on-the-fly
 absorption generation) and Figure \ref{fig:absorption:xsec_in_lookup}
 (as input to \wsmindex{abs\_lookupCalc} in the context of absorption
 lookup table generation).
@@ -352,13 +352,13 @@ Chapter \ref{T-sec:abs_theory}). \\
 Calculate absorption on-the-fly. &
 Agenda: \wsaindex{propmat\_clearsky\_agenda}. \newline
 Variable: \wsvindex{propmat\_clearsky}, which is nitialized in \wsmindex{propmat\_clearskyInit}.\newline
-Methods: \wsmindex{propmat\_clearskyAddOnTheFly} (the core method for on-the-fly
+Methods: \wsmindex{propmat\_clearskyAddXsecAgenda} (the core method for on-the-fly
 absoprtion calculation inlcuding line-by-line and continuum absorption), \newline
 \wsmindex{propmat\_clearskyAddZeeman} (see Sec.~\ref{sec:absorption:zeeman}), \newline
 \wsmindex{propmat\_clearskyAddFaraday} (see Sec.~\ref{sec:absorption:faraday}), \newline
 \wsmindex{propmat\_clearskyAddParticles} (see Sec.~\ref{sec:absorption:particles}). \newline
 Alternative:
-\wsmindex{propmat\_clearskyAddFromLookup} instead of \wsmindex{propmat\_clearskyAddOnTheFly}
+\wsmindex{propmat\_clearskyAddFromLookup} instead of \wsmindex{propmat\_clearskyAddXsecAgenda}
 (extract absorption from pre-calculated lookup table, see
 Sec.~\ref{sec:absorption:lookup}). Note that the lookup
 table cannot contain absorption for Zeeman tagged species, Faraday rotation, and
@@ -525,7 +525,7 @@ should never have to modify these default settings.
 The core method to calculate continua and complete absorption models
 is \wsmindex{abs\_xsec\_per\_speciesAddConts}.  Users normally do not
 have to call this method explicitly, since it is used implicitly by
-higher level methods, such as \wsmindex{propmat\_clearskyAddOnTheFly} and
+higher level methods, such as \wsmindex{propmat\_clearskyAddXsecAgenda} and
 \wsmindex{propmat\_clearsky\_fieldCalc}.
 
 \subsection{Collision-induced absorption}

@@ -1218,7 +1218,12 @@ void xml_read_from_stream(istream& is_xml,
   try {
     Tensor4 d;
     xml_read_from_stream(is_xml, d, pbifs, verbosity);
-    pm = PropagationMatrix(d);
+    Index naa = d.nbooks();
+    Index nza = d.npages();
+    Index nf = d.nrows();
+    Index nstokes_needed = d.ncols();
+    pm = PropagationMatrix(nf, need2stokes<true>(nstokes_needed), nza, naa);
+    pm.Data() = std::move(d); // destructive takeover
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading PropagationMatrix: "
@@ -1978,7 +1983,7 @@ void xml_write_to_stream(ostream& os_xml,
 //! Reads StokesVector from XML input stream
 /*!
  * \param is_xml     XML Input stream
- * \param pm         StokesVector return value
+ * \param sv         StokesVector return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
 void xml_read_from_stream(istream& is_xml,
@@ -1993,7 +1998,12 @@ void xml_read_from_stream(istream& is_xml,
   try {
     Tensor4 d;
     xml_read_from_stream(is_xml, d, pbifs, verbosity);
-    sv = StokesVector(d);
+    Index naa = d.nbooks();
+    Index nza = d.npages();
+    Index nf = d.nrows();
+    Index nstokes_needed = d.ncols();
+    sv = PropagationMatrix(nf, need2stokes<false>(nstokes_needed), nza, naa);
+    sv.Data() = std::move(d); // destructive takeover
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading StokesVector: "
@@ -2009,7 +2019,7 @@ void xml_read_from_stream(istream& is_xml,
 //! Writes StokesVector to XML output stream
 /*!
  * \param os_xml     XML Output stream
- * \param pm         StokesVector
+ * \param sv         StokesVector
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */

@@ -1,7 +1,7 @@
 Arts2{
   
-  AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines}
-  AgendaSet(propmat_clearsky_agenda) {Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddOnTheFly}
+#   AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines}
+  AgendaSet(propmat_clearsky_agenda) {Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddLines}
   AgendaSet(iy_main_agenda){ppathCalc  iyEmissionStandard}
   AgendaSet(geo_pos_agenda){Ignore(ppath) VectorSet(geo_pos, [])}
   AgendaSet(ppath_agenda){Ignore(rte_pos2) ppathStepByStep}
@@ -95,7 +95,7 @@ Arts2{
   cloudboxOff
   
   # Perform calculations for analytical propagation matrix and derivatives
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   propmat_clearsky_agenda_checkedCalc
   atmfields_checkedCalc
   atmgeom_checkedCalc
@@ -115,9 +115,9 @@ Arts2{
   cloudboxOff
   
   # Perform calculations for perturbed line strength derivative
-  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-17, relative=0, loose_matching=0)
+  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-17, relative=0, band_matching=0)
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-ds0.xml")
@@ -125,9 +125,9 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed line center derivative
-  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Center", change=1e1, relative=0, loose_matching=0)
+  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Center", change=1e1, relative=0, band_matching=0)
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-df0.xml")
@@ -137,7 +137,7 @@ Arts2{
   # Perform calculations for perturbed AIR-G0-X0 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G0", species="AIR", temperaturemodel="T1", new_values=[10020, 0.7, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G0-X0.xml")
@@ -147,7 +147,7 @@ Arts2{
   # Perform calculations for perturbed AIR-G0-X1 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G0", species="AIR", temperaturemodel="T1", new_values=[10000, 0.7008, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G0-X1.xml")
@@ -157,7 +157,7 @@ Arts2{
   # Perform calculations for perturbed AIR-D0-X0 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="D0", species="AIR", temperaturemodel="T5", new_values=[1001, 0.7, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-D0-X0.xml")
@@ -167,7 +167,7 @@ Arts2{
   # Perform calculations for perturbed AIR-D0-X1 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="D0", species="AIR", temperaturemodel="T5", new_values=[1000, 0.7008, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-D0-X1.xml")
@@ -177,7 +177,7 @@ Arts2{
   # Perform calculations for perturbed AIR-G2-X0 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G2", species="AIR", temperaturemodel="T3", new_values=[154, 0.1, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G2-X0.xml")
@@ -187,7 +187,7 @@ Arts2{
   # Perform calculations for perturbed AIR-G2-X1 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G2", species="AIR", temperaturemodel="T3", new_values=[150, 0.11, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G2-X1.xml")
@@ -197,7 +197,7 @@ Arts2{
   # Perform calculations for perturbed AIR-D2-X0 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="D2", species="AIR", temperaturemodel="T2", new_values=[100.5, 1, 0.1, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-D2-X0.xml")
@@ -207,7 +207,7 @@ Arts2{
   # Perform calculations for perturbed AIR-D2-X1 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="D2", species="AIR", temperaturemodel="T2", new_values=[100, 1.01, 0.1, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-D2-X1.xml")
@@ -217,7 +217,7 @@ Arts2{
   # Perform calculations for perturbed AIR-FVC-X0 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="FVC", species="AIR", temperaturemodel="T3", new_values=[820, 250, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-FVC-X0.xml")
@@ -227,7 +227,7 @@ Arts2{
   # Perform calculations for perturbed AIR-FVC-X1 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="FVC", species="AIR", temperaturemodel="T3", new_values=[800, 252, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-FVC-X1.xml")
@@ -237,7 +237,7 @@ Arts2{
   # Perform calculations for perturbed AIR-ETA-X0 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="ETA", species="AIR", temperaturemodel="T3", new_values=[0.500001, 0.001, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-ETA-X0.xml")
@@ -247,7 +247,7 @@ Arts2{
   # Perform calculations for perturbed AIR-ETA-X1 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="ETA", species="AIR", temperaturemodel="T3", new_values=[0.5, 0.0010001, 0, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-ETA-X1.xml")
@@ -257,7 +257,7 @@ Arts2{
   # Perform calculations for perturbed AIR-Y-X0 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="Y", species="AIR", temperaturemodel="T4", new_values=[1.0001e-07, 1e-09, 0.8, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-Y-X0.xml")
@@ -267,7 +267,7 @@ Arts2{
   # Perform calculations for perturbed AIR-Y-X1 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="Y", species="AIR", temperaturemodel="T4", new_values=[1e-07, 1.0001e-09, 0.8, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-Y-X1.xml")
@@ -277,7 +277,7 @@ Arts2{
   # Perform calculations for perturbed AIR-Y-X2 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="Y", species="AIR", temperaturemodel="T4", new_values=[1e-07, 1e-09, 0.81, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-Y-X2.xml")
@@ -287,7 +287,7 @@ Arts2{
   # Perform calculations for perturbed AIR-G-X0 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G", species="AIR", temperaturemodel="T4", new_values=[1.0001e-11, 1e-13, 1.6, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G-X0.xml")
@@ -297,7 +297,7 @@ Arts2{
   # Perform calculations for perturbed AIR-G-X1 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G", species="AIR", temperaturemodel="T4", new_values=[1e-11, 1.0001e-13, 1.6, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G-X1.xml")
@@ -307,7 +307,7 @@ Arts2{
   # Perform calculations for perturbed AIR-G-X2 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G", species="AIR", temperaturemodel="T4", new_values=[1e-11, 1e-13, 1.61, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G-X2.xml")
@@ -317,7 +317,7 @@ Arts2{
   # Perform calculations for perturbed AIR-DV-X0 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="DV", species="AIR", temperaturemodel="T4", new_values=[0.0001001, 1e-06, 1.6, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-DV-X0.xml")
@@ -327,7 +327,7 @@ Arts2{
   # Perform calculations for perturbed AIR-DV-X1 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="DV", species="AIR", temperaturemodel="T4", new_values=[0.0001, 1.001e-06, 1.6, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-DV-X1.xml")
@@ -337,7 +337,7 @@ Arts2{
   # Perform calculations for perturbed AIR-DV-X2 derivative
   abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="DV", species="AIR", temperaturemodel="T4", new_values=[0.0001, 1e-06, 1.61, 0])
   abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
+  #abs_xsec_agenda_checkedCalc
   yCalc
   Copy(abs_lines, aolr)
   #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-DV-X2.xml")

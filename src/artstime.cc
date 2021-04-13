@@ -177,3 +177,26 @@ ArrayOfTime time_vector(const Vector& times) {
   for (Index i=0; i<times.nelem(); i++) t[i].Seconds(times[i]);
   return t;
 }
+
+TimeStep median(ArrayOfTimeStep dt) {
+  const auto n = dt.size();
+  if (n) {
+    std::sort(dt.begin(), dt.end());
+    if (n % 2) {
+      return dt[n / 2];
+    } else {
+      return (dt[(n-1)/2] + dt[n/2]) / 2;
+    }
+  } else {
+    return TimeStep(0);
+  }
+}
+
+TimeStep mean(const ArrayOfTimeStep& dt) {
+  TimeStep t(0);
+  const auto n = dt.size();
+  for (std::size_t i=0; i<n; i++) {
+    t += dt[i] / n;
+  }
+  return t;
+}

@@ -993,11 +993,10 @@ void dxdvmrscf(Numeric& x,
 
 /** Returns if the indexed value is a propagation matrix value
  * 
- * @param[in] js As jacobian_quantities WSV
- * @param[in] i A position in jacobian_quantities
- * @return true if this index can be used in propmat calculations
+ * @param[in] rt A retrieval quantitiy
+ * @return true if rt can be used in propmat calculations
  */
-bool propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) ARTS_NOEXCEPT;
+bool propmattype(const RetrievalQuantity& rt) noexcept;
 
 /** Returns the temperature perturbation if it exists
  * 
@@ -1330,6 +1329,8 @@ struct jacobianVMRcheck {
 };
 
 /** Returns the required info for VMR Jacobian
+ * 
+ * FIXME: The entire existence of this function is a logical error of the programmer...
  * 
  * @param[in] js As jacobian_quantities WSV
  * @param[in] line_qid A line identifier

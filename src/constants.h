@@ -96,7 +96,7 @@ constexpr auto pow4(T x) -> decltype(pow2(pow2(x))) {
     print('euler =', one.exp())
     print('inv_euler =', 1/one.exp())
     print('log10_euler =', one.exp().log10())
-    print('ln_10 =', ten.log())
+    print('ln_10 =', ten.ln())
     print('sqrt_2 =', two.sqrt())
     print('inv_sqrt_2 =', 1/two.sqrt())
     print('ln_2 = ', two.ln())
@@ -499,8 +499,14 @@ constexpr auto kaycm2joule(T x) -> decltype(x * kaycm2freq(h)) {
 
 /** Conversion from MHz to Joule **/
 template <class T>
-constexpr auto mhz2joule(T x) -> decltype(x * h * 1e6) {
-  return x * h * 1e6;
+constexpr auto hz2joule(T x) -> decltype(x * h) {
+  return x * h;
+}
+
+/** Conversion from MHz to Joule **/
+template <class T>
+constexpr auto mhz2joule(T x) -> decltype(hz2joule(x) * 1e6) {
+  return hz2joule(x) * 1e6;
 }
 
 /** Conversion from Kelvin to Joule **/
@@ -564,6 +570,12 @@ namespace Options {
             Post2012, // 2012 version changed the order of isotopologues
             Online    // Onine expects a modern .par line followed by Upper then Lower quantum numbers
   )
+  
+  /** Possible AddLines Speedups */
+  ENUMCLASS(LblSpeedup, char,
+            None,
+            QuadraticIndependent,
+            LinearIndependent)
 }
 
 #endif

@@ -84,6 +84,45 @@ Numeric dstimulated_emissiondT(Numeric T, Numeric F0);
  */
 Numeric dstimulated_emissiondF0(Numeric T, Numeric F0);
 
+/** Computes
+ * 
+ * \f[ \frac{1 - e^{h f_0/k T}}{1 - e^{h f_0 / k T_0}} \f]
+ * 
+ * using std::expm1 for increased low number accuracies
+ * 
+ * @param[in] gamma Stimulated emission at temperature
+ * @param[in] gamma_ref Stimulated emission at reference temperature
+ * 
+ * @return \f$ \frac{1 - e^{h f_0/k T}}{1 - e^{h f_0 / k T_0}} \f$
+ */
+Numeric stimulated_relative_emission(const Numeric F0, const Numeric T0, const Numeric T) noexcept ;
+
+/** Computes
+ * 
+ * \f[ \frac{1}{T} \frac{h f_0}{k T} \frac{e^{h f_0/k T}}{1 - e^{h f_0 / k T_0}} \f]
+ * 
+ * using std::expm1 for increased low number accuracies
+ * 
+ * @param[in] gamma Stimulated emission at temperature
+ * @param[in] gamma_ref Stimulated emission at reference temperature
+ * 
+ * @return  \f$ \frac{1}{T} \frac{h f_0}{k T} \frac{e^{h f_0/k T}}{1 - e^{h f_0 / k T_0}} \f$
+ */
+Numeric dstimulated_relative_emission_dT(const Numeric F0, const Numeric T0, const Numeric T) noexcept;
+
+/** Computes
+ * 
+ * \f[ \frac{h\left(T\left[1 -e^{h f_0/k T}\right] e^{h f_0 / k T_0} - T_0 \left[1 -e^{h f_0/k T_0}\right] e^{h f_0 / k T} \right)}{kTT_0 \left(1 -e^{h f_0/k T_0}\right)^2} \f]
+ * 
+ * using std::expm1 for increased low number accuracies
+ * 
+ * @param[in] gamma Stimulated emission at temperature
+ * @param[in] gamma_ref Stimulated emission at reference temperature
+ * 
+ * @return  \f$ \frac{h\left(T\left[1 -e^{h f_0/k T}\right] e^{h f_0 / k T_0} - T_0 \left[1 -e^{h f_0/k T_0}\right] e^{h f_0 / k T} \right)}{kTT_0 \left(1 -e^{h f_0/k T_0}\right)^2} \f$
+ */
+Numeric dstimulated_relative_emission_dF0(const Numeric F0, const Numeric T0, const Numeric T) noexcept;
+
 /** Computes (1 - gamma) / (1 - gamma_ref)
  * 
  * @param[in] gamma Stimulated emission at temperature

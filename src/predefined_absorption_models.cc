@@ -29,9 +29,7 @@
 #include "linescaling.h"
 #include "wigner_functions.h"
 
-
-constexpr auto necs2020 = 38;
-constexpr auto nlines_mpm2020 = necs2020 + 6;
+constexpr std::size_t nlines_mpm2020 = 44;
 
 
 constexpr LineShape::SingleSpeciesModel init_mpm2020_slsm(Numeric g00,
@@ -41,22 +39,18 @@ constexpr LineShape::SingleSpeciesModel init_mpm2020_slsm(Numeric g00,
                                                           Numeric g1,
                                                           Numeric dv0,
                                                           Numeric dv1,
-                                                          Numeric x)
+                                                          Numeric x) noexcept
 {
-  return LineShape::SingleSpeciesModel(
-  {LineShape::TemperatureModel::T1, g00, x, NAN, NAN},
-  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
-  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
-  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
-  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
-  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
-  {LineShape::TemperatureModel::T4, y0, y1, x, NAN},
-  {LineShape::TemperatureModel::T4, g0, g1, 2*x, NAN},
-  {LineShape::TemperatureModel::T4, dv0, dv1, 2*x, NAN});
+  LineShape::SingleSpeciesModel ssm;
+  ssm.G0() = {LineShape::TemperatureModel::T1, g00, x,   NAN, NAN};
+  ssm.Y()  = {LineShape::TemperatureModel::T4, y0,  y1,    x, NAN};
+  ssm.G()  = {LineShape::TemperatureModel::T4, g0,  g1,  2*x, NAN};
+  ssm.DV() = {LineShape::TemperatureModel::T4, dv0, dv1, 2*x, NAN};
+  return ssm;
 }
 
 
-constexpr std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> init_mpm2020_lsm()
+constexpr std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> init_mpm2020_lsm() noexcept
 {
   // Pressure broadening [1/Pa] at reference temperature
   constexpr std::array<Numeric, nlines_mpm2020> g00 =
@@ -145,60 +139,30 @@ constexpr std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> init_mpm2020
   // Temperature scaling exponent [-]
   constexpr Numeric x = 0.754;
   
-  return {init_mpm2020_slsm(g00[0], y0[0], y1[0], g0[0], g1[0], dv0[0], dv1[0], x),
-          init_mpm2020_slsm(g00[1], y0[1], y1[1], g0[1], g1[1], dv0[1], dv1[1], x),
-          init_mpm2020_slsm(g00[2], y0[2], y1[2], g0[2], g1[2], dv0[2], dv1[2], x),
-          init_mpm2020_slsm(g00[3], y0[3], y1[3], g0[3], g1[3], dv0[3], dv1[3], x),
-          init_mpm2020_slsm(g00[4], y0[4], y1[4], g0[4], g1[4], dv0[4], dv1[4], x),
-          init_mpm2020_slsm(g00[5], y0[5], y1[5], g0[5], g1[5], dv0[5], dv1[5], x),
-          init_mpm2020_slsm(g00[6], y0[6], y1[6], g0[6], g1[6], dv0[6], dv1[6], x),
-          init_mpm2020_slsm(g00[7], y0[7], y1[7], g0[7], g1[7], dv0[7], dv1[7], x),
-          init_mpm2020_slsm(g00[8], y0[8], y1[8], g0[8], g1[8], dv0[8], dv1[8], x),
-          init_mpm2020_slsm(g00[9], y0[9], y1[9], g0[9], g1[9], dv0[9], dv1[9], x),
-          init_mpm2020_slsm(g00[10], y0[10], y1[10], g0[10], g1[10], dv0[10], dv1[10], x),
-          init_mpm2020_slsm(g00[11], y0[11], y1[11], g0[11], g1[11], dv0[11], dv1[11], x),
-          init_mpm2020_slsm(g00[12], y0[12], y1[12], g0[12], g1[12], dv0[12], dv1[12], x),
-          init_mpm2020_slsm(g00[13], y0[13], y1[13], g0[13], g1[13], dv0[13], dv1[13], x),
-          init_mpm2020_slsm(g00[14], y0[14], y1[14], g0[14], g1[14], dv0[14], dv1[14], x),
-          init_mpm2020_slsm(g00[15], y0[15], y1[15], g0[15], g1[15], dv0[15], dv1[15], x),
-          init_mpm2020_slsm(g00[16], y0[16], y1[16], g0[16], g1[16], dv0[16], dv1[16], x),
-          init_mpm2020_slsm(g00[17], y0[17], y1[17], g0[17], g1[17], dv0[17], dv1[17], x),
-          init_mpm2020_slsm(g00[18], y0[18], y1[18], g0[18], g1[18], dv0[18], dv1[18], x),
-          init_mpm2020_slsm(g00[19], y0[19], y1[19], g0[19], g1[19], dv0[19], dv1[19], x),
-          init_mpm2020_slsm(g00[20], y0[20], y1[20], g0[20], g1[20], dv0[20], dv1[20], x),
-          init_mpm2020_slsm(g00[21], y0[21], y1[21], g0[21], g1[21], dv0[21], dv1[21], x),
-          init_mpm2020_slsm(g00[22], y0[22], y1[22], g0[22], g1[22], dv0[22], dv1[22], x),
-          init_mpm2020_slsm(g00[23], y0[23], y1[23], g0[23], g1[23], dv0[23], dv1[23], x),
-          init_mpm2020_slsm(g00[24], y0[24], y1[24], g0[24], g1[24], dv0[24], dv1[24], x),
-          init_mpm2020_slsm(g00[25], y0[25], y1[25], g0[25], g1[25], dv0[25], dv1[25], x),
-          init_mpm2020_slsm(g00[26], y0[26], y1[26], g0[26], g1[26], dv0[26], dv1[26], x),
-          init_mpm2020_slsm(g00[27], y0[27], y1[27], g0[27], g1[27], dv0[27], dv1[27], x),
-          init_mpm2020_slsm(g00[28], y0[28], y1[28], g0[28], g1[28], dv0[28], dv1[28], x),
-          init_mpm2020_slsm(g00[29], y0[29], y1[29], g0[29], g1[29], dv0[29], dv1[29], x),
-          init_mpm2020_slsm(g00[30], y0[30], y1[30], g0[30], g1[30], dv0[30], dv1[30], x),
-          init_mpm2020_slsm(g00[31], y0[31], y1[31], g0[31], g1[31], dv0[31], dv1[31], x),
-          init_mpm2020_slsm(g00[32], y0[32], y1[32], g0[32], g1[32], dv0[32], dv1[32], x),
-          init_mpm2020_slsm(g00[33], y0[33], y1[33], g0[33], g1[33], dv0[33], dv1[33], x),
-          init_mpm2020_slsm(g00[34], y0[34], y1[34], g0[34], g1[34], dv0[34], dv1[34], x),
-          init_mpm2020_slsm(g00[35], y0[35], y1[35], g0[35], g1[35], dv0[35], dv1[35], x),
-          init_mpm2020_slsm(g00[36], y0[36], y1[36], g0[36], g1[36], dv0[36], dv1[36], x),
-          init_mpm2020_slsm(g00[37], y0[37], y1[37], g0[37], g1[37], dv0[37], dv1[37], x),
-          init_mpm2020_slsm(g00[38], y0[38], y1[38], g0[38], g1[38], dv0[38], dv1[38], x),
-          init_mpm2020_slsm(g00[39], y0[39], y1[39], g0[39], g1[39], dv0[39], dv1[39], x),
-          init_mpm2020_slsm(g00[40], y0[40], y1[40], g0[40], g1[40], dv0[40], dv1[40], x),
-          init_mpm2020_slsm(g00[41], y0[41], y1[41], g0[41], g1[41], dv0[41], dv1[41], x),
-          init_mpm2020_slsm(g00[42], y0[42], y1[42], g0[42], g1[42], dv0[42], dv1[42], x),
-          init_mpm2020_slsm(g00[43], y0[43], y1[43], g0[43], g1[43], dv0[43], dv1[43], x),};
+  // Init all the values
+  std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> out;
+  for (std::size_t i=0; i<nlines_mpm2020; i++) {
+    out[i] = init_mpm2020_slsm(g00[i], y0[i], y1[i], g0[i], g1[i], dv0[i], dv1[i], x);
+  }
+  return out;
 }
 
 
-constexpr QuantumIdentifier init_mpm2020_qid(Index species, Index isot, Rational Jup, Rational Jlow, Rational Nup, Rational Nlow)
+constexpr QuantumIdentifier init_mpm2020_qid(Index species, Index isot, Rational Jup, Rational Jlow, Rational Nup, Rational Nlow) noexcept
 {
-  return QuantumIdentifier(species, isot, QuantumNumbers(Jup, Nup, 0_rat), QuantumNumbers(Jlow, Nlow, 0_rat));
+  QuantumNumbers upp;
+  QuantumNumbers low;
+  upp[QuantumNumberType::J] = Jup;
+  upp[QuantumNumberType::N] = Nup;
+  upp[QuantumNumberType::v1] = 0;
+  low[QuantumNumberType::J] = Jlow;
+  low[QuantumNumberType::N] = Nlow;
+  low[QuantumNumberType::v1] = 0;
+  return QuantumIdentifier(species, isot, upp, low);
 }
 
 
-constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids(const Index& species, const Index& isot)
+constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids(const Index& species, const Index& isot) noexcept
 {
   // N of upper level
   constexpr std::array<Index, nlines_mpm2020> Np = {
@@ -232,50 +196,12 @@ constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids(const 
     26, 28, 28, 30, 30, 32, 32, 34,
     34, 36, 36, 38, 2, 2, 3, 4, 4, 5};
   
-    return {QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[0]), Rational(Np[0]), 0_rat), QuantumNumbers(Rational(Jpp[0]), Rational(Npp[0]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[1]), Rational(Np[1]), 0_rat), QuantumNumbers(Rational(Jpp[1]), Rational(Npp[1]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[2]), Rational(Np[2]), 0_rat), QuantumNumbers(Rational(Jpp[2]), Rational(Npp[2]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[3]), Rational(Np[3]), 0_rat), QuantumNumbers(Rational(Jpp[3]), Rational(Npp[3]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[4]), Rational(Np[4]), 0_rat), QuantumNumbers(Rational(Jpp[4]), Rational(Npp[4]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[5]), Rational(Np[5]), 0_rat), QuantumNumbers(Rational(Jpp[5]), Rational(Npp[5]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[6]), Rational(Np[6]), 0_rat), QuantumNumbers(Rational(Jpp[6]), Rational(Npp[6]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[7]), Rational(Np[7]), 0_rat), QuantumNumbers(Rational(Jpp[7]), Rational(Npp[7]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[8]), Rational(Np[8]), 0_rat), QuantumNumbers(Rational(Jpp[8]), Rational(Npp[8]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[9]), Rational(Np[9]), 0_rat), QuantumNumbers(Rational(Jpp[9]), Rational(Npp[9]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[10]), Rational(Np[10]), 0_rat), QuantumNumbers(Rational(Jpp[10]), Rational(Npp[10]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[11]), Rational(Np[11]), 0_rat), QuantumNumbers(Rational(Jpp[11]), Rational(Npp[11]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[12]), Rational(Np[12]), 0_rat), QuantumNumbers(Rational(Jpp[12]), Rational(Npp[12]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[13]), Rational(Np[13]), 0_rat), QuantumNumbers(Rational(Jpp[13]), Rational(Npp[13]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[14]), Rational(Np[14]), 0_rat), QuantumNumbers(Rational(Jpp[14]), Rational(Npp[14]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[15]), Rational(Np[15]), 0_rat), QuantumNumbers(Rational(Jpp[15]), Rational(Npp[15]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[16]), Rational(Np[16]), 0_rat), QuantumNumbers(Rational(Jpp[16]), Rational(Npp[16]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[17]), Rational(Np[17]), 0_rat), QuantumNumbers(Rational(Jpp[17]), Rational(Npp[17]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[18]), Rational(Np[18]), 0_rat), QuantumNumbers(Rational(Jpp[18]), Rational(Npp[18]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[19]), Rational(Np[19]), 0_rat), QuantumNumbers(Rational(Jpp[19]), Rational(Npp[19]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[20]), Rational(Np[20]), 0_rat), QuantumNumbers(Rational(Jpp[20]), Rational(Npp[20]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[21]), Rational(Np[21]), 0_rat), QuantumNumbers(Rational(Jpp[21]), Rational(Npp[21]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[22]), Rational(Np[22]), 0_rat), QuantumNumbers(Rational(Jpp[22]), Rational(Npp[22]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[23]), Rational(Np[23]), 0_rat), QuantumNumbers(Rational(Jpp[23]), Rational(Npp[23]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[24]), Rational(Np[24]), 0_rat), QuantumNumbers(Rational(Jpp[24]), Rational(Npp[24]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[25]), Rational(Np[25]), 0_rat), QuantumNumbers(Rational(Jpp[25]), Rational(Npp[25]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[26]), Rational(Np[26]), 0_rat), QuantumNumbers(Rational(Jpp[26]), Rational(Npp[26]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[27]), Rational(Np[27]), 0_rat), QuantumNumbers(Rational(Jpp[27]), Rational(Npp[27]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[28]), Rational(Np[28]), 0_rat), QuantumNumbers(Rational(Jpp[28]), Rational(Npp[28]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[29]), Rational(Np[29]), 0_rat), QuantumNumbers(Rational(Jpp[29]), Rational(Npp[29]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[30]), Rational(Np[30]), 0_rat), QuantumNumbers(Rational(Jpp[30]), Rational(Npp[30]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[31]), Rational(Np[31]), 0_rat), QuantumNumbers(Rational(Jpp[31]), Rational(Npp[31]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[32]), Rational(Np[32]), 0_rat), QuantumNumbers(Rational(Jpp[32]), Rational(Npp[32]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[33]), Rational(Np[33]), 0_rat), QuantumNumbers(Rational(Jpp[33]), Rational(Npp[33]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[34]), Rational(Np[34]), 0_rat), QuantumNumbers(Rational(Jpp[34]), Rational(Npp[34]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[35]), Rational(Np[35]), 0_rat), QuantumNumbers(Rational(Jpp[35]), Rational(Npp[35]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[36]), Rational(Np[36]), 0_rat), QuantumNumbers(Rational(Jpp[36]), Rational(Npp[36]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[37]), Rational(Np[37]), 0_rat), QuantumNumbers(Rational(Jpp[37]), Rational(Npp[37]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[38]), Rational(Np[38]), 0_rat), QuantumNumbers(Rational(Jpp[38]), Rational(Npp[38]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[39]), Rational(Np[39]), 0_rat), QuantumNumbers(Rational(Jpp[39]), Rational(Npp[39]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[40]), Rational(Np[40]), 0_rat), QuantumNumbers(Rational(Jpp[40]), Rational(Npp[40]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[41]), Rational(Np[41]), 0_rat), QuantumNumbers(Rational(Jpp[41]), Rational(Npp[41]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[42]), Rational(Np[42]), 0_rat), QuantumNumbers(Rational(Jpp[42]), Rational(Npp[42]), 0_rat)),
-      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[43]), Rational(Np[43]), 0_rat), QuantumNumbers(Rational(Jpp[43]), Rational(Npp[43]), 0_rat)),};
+  // Init all the values
+  std::array<QuantumIdentifier, nlines_mpm2020> out;
+  for (std::size_t i=0; i<nlines_mpm2020; i++) {
+    out[i] = init_mpm2020_qid(species, isot, Rational(Jp[i]), Rational(Np[i]), Rational(Jpp[i]), Rational(Npp[i]));
+  }
+  return out;
 }
 
 
@@ -332,23 +258,21 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
   // Reference temperature [K]
   constexpr Numeric t0 = 300;
   
-  // FIXME: Can be constexpr when SpeciesTag is constexpr 
+  // QuantumIdentifier if we need it
   auto species = SpeciesTag("O2-66");
-  const std::array<QuantumIdentifier, nlines_mpm2020> qids = 
-    init_mpm2020_qids(species.Species(), species.Isotopologue());
+  const std::array<QuantumIdentifier, nlines_mpm2020> qids = init_mpm2020_qids(species.Species(), species.Isotopologue());
   
   // Model setting
   const bool do_temp_deriv = do_temperature_jacobian(jacs);
   
   // Per pressure level
-  #pragma omp parallel for if (not arts_omp_in_parallel() and p.nelem() >= arts_omp_get_max_threads()) schedule(guided) 
   for (Index ip=0; ip<p.nelem(); ip++) {
     const Numeric theta = t0 / t[ip];
     const Numeric theta_m1 = theta - 1;
     const Numeric theta_3 = pow3(theta);
     const Numeric GD_div_F0 = Linefunctions::DopplerConstant(t[ip], species.SpeciesMass());
     
-    for (Index i=0; i<nlines_mpm2020; i++) {
+    for (std::size_t i=0; i<nlines_mpm2020; i++) {
       const Numeric invGD = 1 / (GD_div_F0 * f0[i]);
       const Numeric fac = sqrt_pi * invGD;
       const Numeric ST = theta_3 * p[ip] * intens[i] * std::exp(-a2[i] * theta_m1);
@@ -370,9 +294,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
         const Complex Flm = 1 / Complex(G0, f[j] + f0[i] + DV);
         
         const Complex abs = std::real(
-          /* around line center */
           Complex(1 + G, Y) * Fv +
-          /* mirrored line far from line center */
           Complex(1 + G, -Y) * Flm);
         
         xsec(j, ip) += ST * pow2(f[j]) * abs.real();
@@ -382,117 +304,85 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
           const Complex dm = - pi * pow2(Flm);
           
           for (Index iq=0; iq<jacs.nelem(); iq++) {
-            if (not propmattype_index(jacs, iq)) continue;
-            
             const auto& deriv = jacs[iq];
+            
+            if (not propmattype(deriv)) continue;
+            
             
             if (deriv == Jacobian::Atm::Temperature) {
               const Complex dFv = dw * (invGD * Complex(dDV_dT, dG0_dT) - dinvGD_dT) + Fv * dinvGD_dT;
               const Complex dFlm = dm * Complex(dG0_dT, dDV_dT);
               dxsec[iq](j, ip) += pow2(f[j]) * (ST * std::real(
-                /* around line center */
                 Complex(1 + G, Y) * dFv + Complex(dG_dT, dY_dT) * Fv +
-                /* mirrored line far from line center */
                 Complex(1 + G, -Y) * dFlm + Complex(G, -dY_dT) * Flm) + abs.real() * dST_dT);
             } else if (is_frequency_parameter(deriv)) {
               const Complex dFv = - dw * invGD;
               const Complex dFlm = Complex(0, 1) * dm;
               dxsec[iq](j, ip) += ST * (pow2(f[j]) * std::real(
-                /* around line center */
                 Complex(1 + G, Y) * dFv +
-                /* mirrored line far from line center */
                 Complex(1 + G, -Y) * dFlm) + 2 * abs.real() * f[j]);
-            } else if (deriv.QuantumIdentity().In(qids[i])) {
+            } else if (deriv.Target().needQuantumIdentity()) {
+              const Absorption::QuantumIdentifierLineTarget lt(deriv.QuantumIdentity(), qids[i]);
+              
+              //NOTE: This is a special case where each line must be seen as a "Band" by themselves.
+              //NOTE: (cont) This is because we never check for "Line" unless a full Absorption::Lines
+              //NOTE: (cont) is used in the QuantumIdentifierLineTarget struct.
+              if (lt not_eq Absorption::QuantumIdentifierLineTargetType::Band) continue;
+              
               if (deriv == Jacobian::Line::ShapeG0X0) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
                   Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
-                  /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dm) * 
-                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G0);
+                  lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G0);
               } else if (deriv == Jacobian::Line::ShapeG0X1) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
                   Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
-                  /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dm) * 
-                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);
+                  lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);
               } else if (deriv == Jacobian::Line::ShapeDVX0) {
                 const Complex dFv = dw * invGD;
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
                   Complex(1 + G, Y) * dFv +
-                  /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dFlm) * 
-                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::DV);
+                  lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::DV);
               } else if (deriv == Jacobian::Line::ShapeDVX1) {
                 const Complex dFv = dw * invGD;
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
                   Complex(1 + G, Y) * dFv +
-                  /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dFlm) * 
-                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);
+                  lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);
               } else if (deriv == Jacobian::Line::ShapeDVX2) {
                 const Complex dFv = dw * invGD;
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
                   Complex(1 + G, Y) * dFv +
-                  /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dFlm) * 
-                    lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::DV);
+                  lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::DV);
               } else if (deriv == Jacobian::Line::ShapeGX0) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
-                  Fv +
-                  /* mirrored line far from line center */
-                  Flm) * 
-                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G);
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv + Flm) * 
+                  lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G);
               } else if (deriv == Jacobian::Line::ShapeYX0) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
-                  Fv +
-                  /* mirrored line far from line center */
-                  Flm) * 
-                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::Y);
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv + Flm) * 
+                  lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::Y);
               } else if (deriv == Jacobian::Line::ShapeGX1) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
-                  Fv -
-                  /* mirrored line far from line center */
-                  Flm) * 
-                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::G);
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv - Flm) * 
+                  lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::G);
               } else if (deriv == Jacobian::Line::ShapeYX1) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
-                  Fv +
-                  /* mirrored line far from line center */
-                  Flm) * 
-                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::Y);
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv + Flm) * 
+                  lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::Y);
               } else if (deriv == Jacobian::Line::ShapeGX2) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
-                  Fv -
-                  /* mirrored line far from line center */
-                  Flm) * 
-                    lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::G);
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv - Flm) * 
+                  lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::G);
               } else if (deriv == Jacobian::Line::ShapeYX2) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
-                  Fv -
-                  /* mirrored line far from line center */
-                  Flm) * 
-                    lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::Y);
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv - Flm) * 
+                  lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::Y);
               } else if (deriv == Jacobian::Line::Center) {
                 const Complex dFv = Fv / f0[i] - dw * invGD + dw * z / f0[i];
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  /* around line center */
                   Complex(1 + G, Y) * dFv +
-                  /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dFlm);
               } else if (deriv == Jacobian::Line::Strength) {
                 dxsec[iq](j, ip) += theta_3 * p[ip] * std::exp(-a2[i] * theta_m1) * pow2(f[j]) * abs.real();

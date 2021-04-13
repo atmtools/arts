@@ -35,7 +35,7 @@ Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) noexcept {
   const Numeric GL = get_lande_lambda_constant();
   const Numeric gu = SimpleG(qid.UpperQuantumNumbers(), GS, GL);
   const Numeric gl = SimpleG(qid.LowerQuantumNumbers(), GS, GL);
-  return Model({gu, gl});
+  return Model(gu, gl);
 }
 
 Numeric case_b_g_coefficient_o2(Rational j,
@@ -128,7 +128,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
         auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
         Numeric gl = case_b_g_coefficient_o2(
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        return Model({gu, gl});
+        return Model(gu, gl);
       }
     } else if (name == "O2-68") {
     if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
@@ -154,12 +154,12 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
       auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
       Numeric gl = case_b_g_coefficient_o2(
           JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      return Model({gu, gl});
+      return Model(gu, gl);
     }
   } else if (name == "CO-26") {
       Numeric gperp = -0.2689 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
       
-      return Model({gperp, gperp});
+      return Model(gperp, gperp);
   } else if (name == "OCS-622") {
       Numeric gperp = -.02889 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
       Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -169,8 +169,8 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
       auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
       auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
       
-      return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
-                    closed_shell_trilinear(KL, JL, gperp, gpara)});
+      return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
+                   closed_shell_trilinear(KL, JL, gperp, gpara));
   } else if (name == "OCS-624") {
     Numeric gperp = -.0285 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
     Numeric gpara = -.061 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -180,8 +180,8 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
     auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
     auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
     
-    return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
-                  closed_shell_trilinear(KL, JL, gperp, gpara)});
+    return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
+                 closed_shell_trilinear(KL, JL, gperp, gpara));
   } else if (name == "CO2-626") {
     Numeric gperp = -.05508 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
     Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -191,14 +191,14 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
     auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
     auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
     
-    return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
-                  closed_shell_trilinear(KL, JL, gperp, gpara)});
+    return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
+                 closed_shell_trilinear(KL, JL, gperp, gpara));
   }
   
   // Take care of zeroes since they do not show up in replacement databases
   const bool upperzero = qid.UpperQuantumNumber(QuantumNumberType::J) == 0 or qid.UpperQuantumNumber(QuantumNumberType::F) == 0;
   const bool lowerzero = qid.LowerQuantumNumber(QuantumNumberType::J) == 0 or qid.LowerQuantumNumber(QuantumNumberType::F) == 0;
-  return Model({upperzero ? 0 : NAN, lowerzero ? 0 : NAN});
+  return Model(upperzero ? 0 : NAN, lowerzero ? 0 : NAN);
 }
 
 Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {
@@ -374,47 +374,41 @@ const PolarizationVector& SelectPolarization(
 }
 #pragma GCC diagnostic pop
 
-void sum(PropagationMatrix& pm, const ComplexVector& abs, const PolarizationVector& polvec) {
+void sum(PropagationMatrix& pm, const ComplexVectorView& abs, const PolarizationVector& polvec, const bool do_phase) ARTS_NOEXCEPT {
+  ARTS_ASSERT(pm.NumberOfZenithAngles() == 1)
+  ARTS_ASSERT(pm.NumberOfAzimuthAngles() == 1)
+  ARTS_ASSERT(pm.NumberOfFrequencies() == abs.nelem())
+  ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7 : pm.NumberOfNeededVectors() == 4)
+  
   auto pol_real = polvec.attenuation();
   auto pol_imag = polvec.dispersion();
   
-  for (Index iv=0; iv<pm.NumberOfFrequencies(); iv++) {
-    pm.Kjj()[iv] += abs[iv].real() * pol_real[0];
-    pm.K12()[iv] += abs[iv].real() * pol_real[1];
-    pm.K13()[iv] += abs[iv].real() * pol_real[2];
-    pm.K14()[iv] += abs[iv].real() * pol_real[3];
-    pm.K23()[iv] += abs[iv].imag() * pol_imag[0];
-    pm.K24()[iv] += abs[iv].imag() * pol_imag[1];
-    pm.K34()[iv] += abs[iv].imag() * pol_imag[2];
-  }
+  MatrixView out = pm.Data()(0, 0, joker, joker);
+  MapToEigen(out).leftCols<4>().noalias() += MapToEigen(abs.real()) * pol_real;
+  if (do_phase) MapToEigen(out).rightCols<3>().noalias() += MapToEigen(abs.imag()) * pol_imag;
 }
 
 void dsum(PropagationMatrix& pm,
-          const ComplexVector& abs,
-          const ComplexVector& dabs,
+          const ComplexVectorView& abs,
+          const ComplexVectorView& dabs,
           const PolarizationVector& polvec,
           const PolarizationVector& dpolvec_dtheta,
           const PolarizationVector& dpolvec_deta,
           const Numeric dH,
           const Numeric dt,
-          const Numeric de) {
+          const Numeric de, const bool do_phase) ARTS_NOEXCEPT {
+  ARTS_ASSERT(pm.NumberOfZenithAngles() == 1)
+  ARTS_ASSERT(pm.NumberOfAzimuthAngles() == 1)
+  ARTS_ASSERT(pm.NumberOfFrequencies() == abs.nelem())
+  ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7 : pm.NumberOfNeededVectors() == 4)
+  
   auto pol_real = polvec.attenuation();
   auto pol_imag = polvec.dispersion();
-  auto dp_dt_r = dpolvec_dtheta.attenuation();
-  auto dp_dt_i = dpolvec_dtheta.dispersion();
-  auto dp_de_r = dpolvec_deta.attenuation();
-  auto dp_de_i = dpolvec_deta.dispersion();
+  auto da_r = (dt * dpolvec_dtheta.attenuation() + de * dpolvec_deta.attenuation());
+  auto da_i = (dt * dpolvec_dtheta.dispersion() + de * dpolvec_deta.dispersion());
   
-  for (Index iv=0; iv<pm.NumberOfFrequencies(); iv++) {
-    const auto da_r = (dt * dp_dt_r + de * dp_de_r);
-    const auto da_i = (dt * dp_dt_i + de * dp_de_i);
-    pm.Kjj()[iv] += dabs[iv].real() * dH * pol_real[0] + abs[iv].real() * da_r[0];
-    pm.K12()[iv] += dabs[iv].real() * dH * pol_real[1] + abs[iv].real() * da_r[1];
-    pm.K13()[iv] += dabs[iv].real() * dH * pol_real[2] + abs[iv].real() * da_r[2];
-    pm.K14()[iv] += dabs[iv].real() * dH * pol_real[3] + abs[iv].real() * da_r[3];
-    pm.K23()[iv] += dabs[iv].imag() * dH * pol_imag[0] + abs[iv].imag() * da_i[0];
-    pm.K24()[iv] += dabs[iv].imag() * dH * pol_imag[1] + abs[iv].imag() * da_i[1];
-    pm.K34()[iv] += dabs[iv].imag() * dH * pol_imag[2] + abs[iv].imag() * da_i[2];;
-  }
+  MatrixView out = pm.Data()(0, 0, joker, joker);
+  MapToEigen(out).leftCols<4>().noalias() += dH * MapToEigen(dabs.real()) * pol_real + MapToEigen(abs.real()) * da_r;
+  if (do_phase) MapToEigen(out).rightCols<3>().noalias() += dH * MapToEigen(dabs.imag()) * pol_imag + MapToEigen(abs.imag()) * da_i;
 }
 }  // Zeeman

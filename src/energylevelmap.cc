@@ -28,6 +28,33 @@
 #include "special_interp.h"
 
 
+bool EnergyLevelMap::OK() const noexcept {
+  if (not (mvalue.nbooks() == mlevels.nelem() and 
+          (mvib_energy.nelem() == mlevels.nelem() or mvib_energy.nelem() == 0))) {
+    return false;  // Bad dimensions, vibrational energies and IDs and data of strange size
+  }
+  
+  if (mtype == EnergyLevelMapType::Tensor3_t) {
+  } else if (mtype == EnergyLevelMapType::Vector_t) {
+    if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1) {
+      return false;  // Bad dimensions for vector type
+    }
+  } else if (mtype == EnergyLevelMapType::Numeric_t) {
+    if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1 or mvalue.ncols() not_eq 1) {
+      return false;  // Bad dimensions for numeric type
+    }
+  } else if (mtype == EnergyLevelMapType::None_t) {
+    if (mvalue.npages() not_eq 0 or mvalue.nrows() not_eq 0 or mvalue.ncols() not_eq 0) {
+      return false;  // Bad dimensions for none type
+    }
+  }
+  
+  for (auto& e: mvib_energy) if (e < 0) return false;  // Bad energies
+  
+  return true;
+}
+
+
 Output2 EnergyLevelMap::get_ratio_params(
   const AbsorptionLines& band, const Index& line_index) const
 {
@@ -39,12 +66,13 @@ Output2 EnergyLevelMap::get_ratio_params(
   bool found1=false;
   bool found2=false;
   for (size_t i=0; i<mlevels.size(); i++) {
-    if (Absorption::id_in_line_lower(band, mlevels[i], line_index)) {
+    const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(mlevels[i], band, line_index);
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
       found1 = true;
       x.r_low = mvalue(i, 0, 0, 0);
     }
     
-    if (Absorption::id_in_line_upper(band, mlevels[i], line_index)) {
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
       found2 = true;
       x.r_upp = mvalue(i, 0, 0, 0);
     }
@@ -68,13 +96,15 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   bool found1=false;
   bool found2=false;
   for (Index i=0; i<mlevels.nelem(); i++) {
-    if (Absorption::id_in_line_lower(band, mlevels[i], line_index)) {
+    const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(mlevels[i], band, line_index);
+    
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
       found1 = true;
       x.T_low = mvalue(i, 0, 0, 0);
       x.E_low = mvib_energy[i];
     }
     
-    if (Absorption::id_in_line_upper(band, mlevels[i], line_index)) {
+    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
       found2 = true;
       x.T_upp = mvalue(i, 0, 0, 0);
       x.E_upp = mvib_energy[i];

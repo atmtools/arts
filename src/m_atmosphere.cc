@@ -4001,7 +4001,8 @@ void nlte_fieldSetLteExternalPartitionFunction(
     for (auto& abs_lines : abs_lines_per_species) {
       for (auto& band : abs_lines) {
         for (Index k=0; k<band.NumLines(); k++) {
-          if (Absorption::id_in_line_lower(band, qi, k)) {
+          const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(qi, band, k);
+          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
             band.Population(Absorption::PopulationType::NLTE);
             
             if (not checked[in]) {
@@ -4023,7 +4024,7 @@ void nlte_fieldSetLteExternalPartitionFunction(
             }
           }
           
-          if (Absorption::id_in_line_upper(band, qi, k)) {
+          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
             band.Population(Absorption::PopulationType::NLTE);
             
             if (not checked[in]) {
@@ -4106,7 +4107,8 @@ void nlte_fieldSetLteInternalPartitionFunction(
     for (auto& abs_lines : abs_lines_per_species) {
       for (auto& band : abs_lines) {
         for (Index k=0; k<band.NumLines(); k++) {
-          if (Absorption::id_in_line_lower(band, qi, k)) {
+          const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(qi, band, k);
+          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
             band.Population(Absorption::PopulationType::NLTE);
             
             if (not checked[in]) {
@@ -4126,7 +4128,7 @@ void nlte_fieldSetLteInternalPartitionFunction(
             }
           }
           
-          if (Absorption::id_in_line_upper(band, qi, k)) {
+          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
             band.Population(Absorption::PopulationType::NLTE);
             
             if (not checked[in]) {

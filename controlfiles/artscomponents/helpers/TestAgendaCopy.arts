@@ -11,7 +11,7 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly ){
   Ignore( rtp_los )
   Ignore( rtp_nlte )
   propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddXsecAgenda
 }
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
