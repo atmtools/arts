@@ -10,16 +10,7 @@ pyarts.catalogues
 .. autosummary::
    :toctree: generated
 
-   ArrayOfLineRecord
-   CIARecord
-   GasAbsLookup
-   LineMixingRecord
-   QuantumIdentifier
-   QuantumNumberRecord
-   QuantumNumbers
    Sparse
-   SpeciesAuxData
-   SpeciesTag
 
 pyarts.covariancematrix
 =======================
@@ -53,34 +44,6 @@ pyarts.griddedfield
    griddedfield_from_netcdf
    griddedfield_from_xarray
 
-pyarts.internals
-================
-
-.. automodule:: pyarts.internals
-
-.. currentmodule:: pyarts.internals
-
-.. autosummary::
-   :toctree: generated
-
-   LineMixing
-   ARTSCAT5
-   Rational
-   PartitionFunctions
-   PressureBroadening
-
-pyarts.retrieval
-================
-
-.. automodule:: pyarts.retrieval
-
-.. currentmodule:: pyarts.retrieval
-
-.. autosummary::
-   :toctree: generated
-
-   RetrievalQuantity
-
 pyarts.scattering
 =================
 
@@ -108,15 +71,3 @@ pyarts.sensor
    get_f_backend_rel_width
    get_f_backend_const_width
 
-
-pyarts.xsec
-===========
-
-.. automodule:: pyarts.xsec
-
-.. currentmodule:: pyarts.xsec
-
-.. autosummary::
-   :toctree: generated
-
-   XsecRecord
