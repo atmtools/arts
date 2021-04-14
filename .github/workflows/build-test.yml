@@ -115,16 +115,18 @@ jobs:
             echo "CXX=clang++-${{ matrix.version }}" >> $GITHUB_ENV
           fi
 
-          if [ "${{ matrix.doc }}" = "yes" ]; then
-            sudo apt-get install -y texlive
-          fi
-
           if [ "${{ matrix.libcxx }}" = "yes" ]; then
             sudo apt-get install -y libc++-dev
             echo "CXXFLAGS=-stdlib=libc++" >> $GITHUB_ENV
           fi
           sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libfftw3-dev
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
+
+          if [ "${{ matrix.doc }}" = "yes" ]; then
+            sudo apt-get install -y texlive doxygen
+            sudo pip3 install sphinx sphinx_rtd_theme
+          fi
+
 
       - name: Setup (macOS)
         if: runner.os == 'macOS'
@@ -163,6 +165,8 @@ jobs:
         run: |
           cd cmake-build
           make -j2 -C doc/uguide
+          make -j2 -C doc/doxygen
+          make -j2 sphinx
 
       - name: Check (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
