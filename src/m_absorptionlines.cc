@@ -32,7 +32,6 @@
 #include "enums.h"
 #include "file.h"
 #include "global_data.h"
-#include "xml_io_private.h"
 #include "m_xml.h"
 
 /////////////////////////////////////////////////////////////////////////////////////

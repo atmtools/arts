@@ -36,10 +36,12 @@
 #define telsem_h
 
 #include <array>
+#include <iostream>
 #include "array.h"
 #include "matpackIII.h"
+#include "bifstream.h"
 #include "mystring.h"
-#include "xml_io.h"
+#include "messages.h"
 
 /** A telsem atlas
  *
