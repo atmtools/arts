@@ -10,6 +10,7 @@ if (SPHINX_FOUND)
     ${SPHINX_SOURCE} ${SPHINX_BUILD}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating documentation with Sphinx")
+  add_dependencies (sphinx pyarts)
 
   file(GLOB_RECURSE PYTHON_SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.py")
   foreach(file ${PYTHON_SOURCE_FILES})
