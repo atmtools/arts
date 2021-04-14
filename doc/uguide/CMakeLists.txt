@@ -1,4 +1,3 @@
-project (arts_docs)
 find_package (LATEX)
 
 if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
