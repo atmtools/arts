@@ -55,8 +55,6 @@ struct Star {
   Numeric radius;
   /** star distance from center of planet to center of star*/
   Numeric distance;
-//  /** surface temperature of star */
-//  Numeric temperature;
   /** latitude of the star in the sky of the planet */
   Numeric latitude;
   /** longitude of the star in the sky of the planet */
@@ -107,23 +105,17 @@ void get_scattered_starsource(
 
 /** Checks and adds star radiance to background if star is in line of sight.
  *
- * @param[in, out] iy Matrix of star background
- * @param[in] star_pos Position of star in geographical coordinate
- * @param[in] star_radius Radius of star
- * @param[in] star_spectrum Monochromatic irradiance
- *             spectrum of star
+ * @param[in, out] iy Matrix of star background.
+ * @param[in] star Star-structure.
  * @param[in] rtp_pos The position of the ppath point.
  * @param[in] rtp_los The line of sight of the ppath.
  * @param[in] refellipsoid As the WSV with the same name.
   */
 void get_star_background(Matrix& iy,
-                         const Vector& star_pos,
-                         const Numeric& star_radius,
-                         const Matrix& star_spectrum,
+                         const Star& stars,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
-                         const Vector& refellipsoid,
-                         const Index& atmosphere_dim);
+                         const Vector& refellipsoid);
 
 
 

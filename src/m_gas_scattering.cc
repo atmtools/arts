@@ -86,15 +86,17 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
                                    const Vector& f_grid,
+                                   const Vector& in_los,
+                                   const Vector& out_los,
                                    const Index& stokes_dim,
                                    const Verbosity&) {
 
-  //TODO add in_los,out_los as input for the machanism that if in_los or out_los
-  // is empty then sca_mat is empty.
+  //if in_los or out_los is empty then sca_mat is empty.
+  if (in_los.nelem()>0 && out_los.nelem()>0){
+    TransmissionMatrix sca_mat_temp(f_grid.nelem(), stokes_dim);
+    sca_mat_temp.setIdentity();
+    sca_mat_temp *= 1 / (4 * PI);
 
-  TransmissionMatrix sca_mat_temp(f_grid.nelem(), stokes_dim);
-  sca_mat_temp.setIdentity();
-  sca_mat_temp *= 1 / (4 * PI);
-
-  sca_mat=sca_mat_temp;
+    sca_mat=sca_mat_temp;
+  }
 }

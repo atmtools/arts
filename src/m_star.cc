@@ -47,9 +47,7 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void starBlackbodySimple(ArrayOfMatrix &star_spectrum,
-                         ArrayOfVector &star_pos,
-                         ArrayOfVector &star_radius,
+void starBlackbodySimple(ArrayOfStar &star,
                          Index &star_do,
                          // Inputs:
                          const Vector &f_grid,
@@ -66,56 +64,51 @@ void starBlackbodySimple(ArrayOfMatrix &star_spectrum,
                       "The distance to the center of the star (",distance," m) \n"
                      " is smaller than the radius of the star (", radius," m )")
 
+  Star star_temp;
 
   // spectrum
   const Numeric atan1 = std::atan(radius / distance);
-  Matrix star_spec(f_grid.nelem(), stokes_dim,0. );
+  star_temp.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
 
-  planck(star_spec(joker,0), f_grid, temperature);
-  star_spec *= PI * Constant::pow2(std::sin(atan1)); // calc flux of incoming rad at TOA
-  star_spectrum.push_back(star_spec);
+  planck(star_temp.spectrum(joker,0), f_grid, temperature);
+  star_temp.spectrum *= PI ; // outgoing flux at the surface of the star.
+
+
+  star_temp.description = "Blackbody star" ;
+  star_temp.radius = radius;
+  star_temp.distance = distance;
+  star_temp.latitude = latitude;
+  star_temp.longitude = longitude;
 
   // set flag
   star_do = 1;
 
-  // set the position
-  Vector pos{distance, latitude, longitude};
-  star_pos.push_back(pos);
-
-  // set the radius
-  star_radius.push_back(Vector(1,radius));
+  //append
+  star.push_back(star_temp);
 
 }
 
 void starOff(Index &star_do,
-             ArrayOfMatrix &star_spectrum,
-             ArrayOfVector &star_pos,
+             ArrayOfStar &star,
              const Verbosity &){
 
   // set flag to False (default)
   star_do = 0;
 
   // create empty Array of Matrix for the star_spectrum
-  star_spectrum.resize(0);
+  star.resize(0);
 
-  // create empty Array of Vector for the star_pos
-  star_pos.resize(0);
 }
-
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void CosmicMicrowaveAndStarBackground(Matrix &iy,
                                       const Vector &f_grid,
                                       const Vector &rtp_pos,
                                       const Vector &rtp_los,
-                                      const ArrayOfMatrix &star_spectrum,
-                                      const ArrayOfVector &star_pos,
-                                      const ArrayOfVector &star_radius,
+                                      const ArrayOfStar &stars,
                                       const Vector &refellipsoid,
                                       const Index &star_do,
                                       const Index &stokes_dim,
-                                      const Index &atmosphere_dim,
                                       const Verbosity &verbosity) {
 
   // Cosmic microwave background
@@ -126,15 +119,12 @@ void CosmicMicrowaveAndStarBackground(Matrix &iy,
 
     //TODO: add check if star_* have the same length.
 
-    for (Index i_star = 0; i_star < star_pos.nelem(); i_star++) {
+    for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
       get_star_background(iy,
-                          star_pos[i_star],
-                          star_radius[i_star][0],
-                          star_spectrum[i_star],
+                          stars[i_star],
                           rtp_pos,
                           rtp_los,
-                          refellipsoid,
-                          atmosphere_dim);
+                          refellipsoid);
     }
   }
 }

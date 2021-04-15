@@ -206,8 +206,7 @@ void iyClearsky(
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Ppath& ppath,
     const Vector& rte_pos2,
-    const ArrayOfMatrix& star_spectrum,
-    const ArrayOfVector& star_pos,
+    const ArrayOfStar& stars,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
     const String& rt_integration_option,
@@ -442,20 +441,24 @@ void iyClearsky(
           if (star_do && iy_agenda_call1) { // iy_agenda_call1 is used as additional
                                             // flag to ensure that the single scattering
                                             // calculation is not called recursively.
-            for (Index i_star = 0; i_star < star_spectrum.nelem(); i_star++) {
+
+            Vector star_pos(3);
+
+            for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
+
+              star_pos={stars[i_star].distance,stars[i_star].latitude,stars[i_star].longitude};
+
               // get the line of sight direction from star i_star to ppath point
               rte_losGeometricFromRtePosToRtePos2(star_rte_los,
                                                   atmosphere_dim,
                                                   lat_grid,
                                                   lon_grid,
                                                   refellipsoid,
-                                                  star_pos[i_star],
                                                   ppath.pos(ip, joker),
+                                                  star_pos,
                                                   verbosity);
 
               // calculate ppath (star path) from star to ppath point
-              //TODO: There are some numerical issues when calculationg the ppath from the star
-              //Maybe I should play a litle bit with the GINs
               ppathFromRtePos2(ws,
                                star_ppath,
                                star_rte_los,
@@ -469,81 +472,104 @@ void iyClearsky(
                                f_grid,
                                refellipsoid,
                                z_surface,
-                               star_pos[i_star],
                                ppath.pos(ip, joker),
+                               star_pos,
                                ppath_lmax,
                                2e-5,
                                5.,
                                0.5,
                                verbosity);
 
-              // calculate transmission through atmosphere
-              iyTransmissionStandard(ws,
-                                     transmitted_starlight,
-                                     iy_aux_dummy,
-                                     diy_dx_dummy,
-                                     ppvar_p_dummy,
-                                     ppvar_t_dummy,
-                                     ppvar_nlte_dummy,
-                                     ppvar_vmr_dummy,
-                                     ppvar_wind_dummy,
-                                     ppvar_mag_dummy,
-                                     ppvar_pnd_dummy,
-                                     ppvar_f_dummy,
-                                     ppvar_iy_dummy,
-                                     ppvar_trans_cumulat_dummy,
-                                     stokes_dim,
-                                     f_grid,
-                                     atmosphere_dim,
-                                     p_grid,
-                                     t_field,
-                                     nlte_field,
-                                     vmr_field,
-                                     abs_species,
-                                     wind_u_field,
-                                     wind_v_field,
-                                     wind_w_field,
-                                     mag_u_field,
-                                     mag_v_field,
-                                     mag_w_field,
-                                     0,
-                                     cloudbox_limits_dummy,
-                                     gas_scattering_do,
-                                     pnd_field_dummy,
-                                     dpnd_field_dx_dummy,
-                                     scat_species_dummy,
-                                     scat_data_dummy,
-                                     iy_aux_vars,
-                                     jacobian_do,
-                                     jacobian_quantities,
-                                     star_ppath,
-                                     star_spectrum[i_star],
-                                     propmat_clearsky_agenda,
-                                     water_p_eq_agenda,
-                                     gas_scattering_agenda,
-                                     1,
-                                     Tensor3(),
-                                     rte_alonglos_v,
-                                     verbosity);
+              if (star_ppath.np > 1 && ppath_what_background(star_ppath) == 9) {
 
-              //add here get_scattered_directsource
-              //              StokesVector test = StokesVector(transmitted_starlight);
+                //get the TOA distance to earth center.
+                Numeric R_TOA = refell2r(refellipsoid,
+                                         star_ppath.pos(star_ppath.np - 1, 1)) +
+                                star_ppath.pos(star_ppath.np - 1, 0);
 
-              get_scattered_starsource(ws,
-                                       scattered_starlight,
-                                       f_grid,
-                                       ppvar_p[ip],
-                                       ppvar_t[ip],
-                                       ppvar_vmr(joker, ip),
+                //get the distance between sun and star_ppath at TOA
+                Numeric R_Star2Toa;
+                distance3D(R_Star2Toa,
+                           R_TOA,
+                           star_ppath.pos(star_ppath.np - 1, 1),
+                           star_ppath.pos(star_ppath.np - 1, 2),
+                           star_pos[0],
+                           star_pos[1],
+                           star_pos[2]);
+
+                // Scale the incoming star_radiance spectrum
+                Matrix star_spectrum=stars[i_star].spectrum;
+                star_spectrum*=stars[i_star].radius*stars[i_star].radius;
+                star_spectrum/=(stars[i_star].radius*stars[i_star].radius+R_Star2Toa*R_Star2Toa);
+
+                // calculate transmission through atmosphere
+                iyTransmissionStandard(ws,
                                        transmitted_starlight,
-                                       star_rte_los,
-                                       ppath.los(ip, joker),
-                                       gas_scattering_agenda);
+                                       iy_aux_dummy,
+                                       diy_dx_dummy,
+                                       ppvar_p_dummy,
+                                       ppvar_t_dummy,
+                                       ppvar_nlte_dummy,
+                                       ppvar_vmr_dummy,
+                                       ppvar_wind_dummy,
+                                       ppvar_mag_dummy,
+                                       ppvar_pnd_dummy,
+                                       ppvar_f_dummy,
+                                       ppvar_iy_dummy,
+                                       ppvar_trans_cumulat_dummy,
+                                       stokes_dim,
+                                       f_grid,
+                                       atmosphere_dim,
+                                       p_grid,
+                                       t_field,
+                                       nlte_field,
+                                       vmr_field,
+                                       abs_species,
+                                       wind_u_field,
+                                       wind_v_field,
+                                       wind_w_field,
+                                       mag_u_field,
+                                       mag_v_field,
+                                       mag_w_field,
+                                       0,
+                                       cloudbox_limits_dummy,
+                                       gas_scattering_do,
+                                       pnd_field_dummy,
+                                       dpnd_field_dx_dummy,
+                                       scat_species_dummy,
+                                       scat_data_dummy,
+                                       iy_aux_vars,
+                                       jacobian_do,
+                                       jacobian_quantities,
+                                       star_ppath,
+                                       star_spectrum,
+                                       propmat_clearsky_agenda,
+                                       water_p_eq_agenda,
+                                       gas_scattering_agenda,
+                                       1,
+                                       Tensor3(),
+                                       rte_alonglos_v,
+                                       verbosity);
+
+                //add here get_scattered_directsource
+                //              StokesVector test = StokesVector(transmitted_starlight);
+
+                get_scattered_starsource(ws,
+                                         scattered_starlight,
+                                         f_grid,
+                                         ppvar_p[ip],
+                                         ppvar_t[ip],
+                                         ppvar_vmr(joker, ip),
+                                         transmitted_starlight,
+                                         star_rte_los,
+                                         ppath.los(ip, joker),
+                                         gas_scattering_agenda);
 
 
-              // Richard will change the type of S to RadiationVector,
-              //but for now we have to convert it, within get_scattered_starsource
-              S += scattered_starlight;
+                // Richard will change the type of S to RadiationVector,
+                //but for now we have to convert it, within get_scattered_starsource
+                S += scattered_starlight;
+              }
             }
           }
 

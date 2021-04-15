@@ -37,6 +37,7 @@
 #include "geodetic.h"
 
 extern const Numeric PI;
+extern const Numeric DEG2RAD;
 
 /*===========================================================================
   === The functions
@@ -44,8 +45,9 @@ extern const Numeric PI;
 
 std::ostream& operator<<(std::ostream& os, const Star& star) {
   os << "Star: " << star.description;
-  os << " Radius: " << star.radius << "K ";
-  os << " Distance: " << star.distance << "m ";
+  os << " Radius: " << star.radius << "m ";
+  os << " Distance: " << star.distance << "m \n";
+  os << " Spectrum [W/m2/Hz]: \n" << star.spectrum ;
   return os;
 }
 
@@ -103,16 +105,13 @@ void get_scattered_starsource(Workspace& ws,
 }
 
 void get_star_background(Matrix& iy,
-                         const Vector& star_pos,
-                         const Numeric& star_radius,
-                         const Matrix& star_spectrum,
+                         const Star& star,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
-                         const Vector& refellipsoid,
-                         const Index& atmosphere_dim) {
+                         const Vector& refellipsoid) {
 
   //Calculate earth centric radial component of star_pos and rtp_pos.
-  const Numeric R_star = refell2r(refellipsoid, star_pos[1]) + star_pos[0];
+  const Numeric R_star = star.distance;
   const Numeric R_rte = refell2r(refellipsoid, rtp_pos[1]) + rtp_pos[0];
 
   //Transform to cartesian coordinate system
@@ -121,7 +120,7 @@ void get_star_background(Matrix& iy,
   Numeric r_los_x, r_los_y, r_los_z;
 
   // r_star
-  sph2cart(r_star_x, r_star_y, r_star_z, R_star, star_pos[1], star_pos[2]);
+  sph2cart(r_star_x, r_star_y, r_star_z, R_star, star.latitude, star.longitude);
 
   // r_rte, r_los
   poslos2cart(r_rte_x,
@@ -147,26 +146,24 @@ void get_star_background(Matrix& iy,
       sqrt(r_ps_x * r_ps_x + r_ps_y * r_ps_y + r_ps_z * r_ps_z);
 
   //abs value of r_los
-  const Numeric r_los =
+  const Numeric r_glos =
       sqrt(r_los_x * r_los_x + r_los_y * r_los_y + r_los_z * r_los_z);
 
   //Calculate angle beta between line of sight and the line between ppath point and the star
   //using scalar product
   const Numeric cos_beta =
-      (r_ps_x * r_los_x + r_ps_y * r_los_y + r_ps_z * r_los_z) / (r_ps * r_los);
+      (r_ps_x * r_los_x + r_ps_y * r_los_y + r_ps_z * r_los_z) / (r_ps * r_glos);
   const Numeric beta = acos(cos_beta);
 
   // angular diameter of star
-  const Numeric alpha = atan(star_radius / r_ps);
+  const Numeric alpha = atan(star.radius / r_ps);
 
   //Check if we see the star. We see the star if the angle beta is smaller than
   // the angular diameter alpha of the star.
   if (beta <= alpha) {
-    const Numeric sin_alpha=sin(alpha);
     //Here we assume that the star radiates isotropically.
-    Matrix star_radiance = star_spectrum;
-    star_radiance /= sin_alpha*sin_alpha*PI;
-
+    Matrix star_radiance = star.spectrum;
+    star_radiance /= PI;
 
     iy += star_radiance;
   }
