@@ -34,6 +34,11 @@
 #include "messages.h"
 #include "mystring.h"
 
+/** Hitran crosssection class.
+ *
+ * Stores the coefficients from our model for hitran crosssection data and
+ * applies them to calculate the crossections.
+ */
 class XsecRecord {
  public:
   /** Return species index */
@@ -51,18 +56,22 @@ class XsecRecord {
   /** Set species name */
   void SetVersion(Index version);
 
-  /** Interpolate cross section data.
+  /** Calculate hitran cross section data.
 
-     Interpolate Xsec data to given frequency vector and given scalar pressure.
-     Uses third order interpolation in both coordinates, if grid length allows,
-     otherwise lower order or no interpolation.
+     Calculate crosssections at each frequency for given pressure and
+     temperature.
 
-     \param[out] result     Xsec value for given frequency grid and temperature.
+     The extrapolation for temperatures and pressures values that lie outside
+     the fit data of the model can optionally be turned off. It is
+     recommended to leave these on.
+
+     \param[out] result     Crosssections for given frequency grid.
      \param[in] f_grid      Frequency grid.
      \param[in] pressure    Scalar pressure.
      \param[in] temperature Scalar temperature.
-     \param[in] apply_tfit  Set to 0 to not apply the temperature fit
-     \param[in] verbosity   Standard verbosity object.
+     \param[in] extrapolate_pressure     Extrapolate data outside model fit.
+     \param[in] extrapolate_temperature  Extrapolate data outside model fit.
+     \param[in] verbosity   Verbosity.
      */
   void Extract(VectorView result,
                const ConstVectorView& f_grid,
@@ -114,18 +123,21 @@ class XsecRecord {
   [[nodiscard]] ArrayOfGriddedField2& FitCoeffs() { return mfitcoeffs; };
 
  private:
+  /** Calculate crosssections */
   void CalcXsec(VectorView& xsec,
                 Index dataset,
                 Range range,
                 Numeric pressure,
                 Numeric temperature) const;
 
+  /** Calculate temperature derivative of crosssections */
   void CalcDT(VectorView& xsec_dt,
               Index dataset,
               Range range,
               Numeric pressure,
               Numeric temperature) const;
 
+  /** Calculate pressure derivative of crosssections */
   void CalcDP(VectorView& xsec_dp,
               Index dataset,
               Range range,
