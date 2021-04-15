@@ -14694,23 +14694,6 @@ void define_md_data_raw() {
       GIN_DESC("Position to manipulate")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("ReadXsecData"),
-      DESCRIPTION("Reads HITRAN Crosssection coefficients\n"
-                  "\n"
-                  "Reads coefficient files for HITRAN Xsec species defined\n"
-                  "in *abs_species*.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT("hitran_xsec_data"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species"),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Basepath to the files")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesTruncateGlobalQuantumNumbers"),
       DESCRIPTION("Truncates all global quantum numbers\n"
                   "and then recombine the line list.\n"),
@@ -14793,6 +14776,23 @@ void define_md_data_raw() {
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Path to store the files at")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ReadXsecData"),
+      DESCRIPTION("Reads HITRAN Crosssection coefficients\n"
+                  "\n"
+                  "Reads coefficient files for HITRAN Xsec species defined\n"
+                  "in *abs_species*.\n"),
+      AUTHORS("Oliver Lemke"),
+      OUT("hitran_xsec_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_species"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Basepath to the files")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadNetCDF"),
