@@ -2745,7 +2745,7 @@ void xml_read_from_stream(istream& is_xml,
 //! Writes ArrayOfStar to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param astar   ArrayOfPpath
+  \param astar   ArrayOfStar
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
@@ -2760,7 +2760,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "Astar");
+  open_tag.add_attribute("type", "Star");
   open_tag.add_attribute("nelem", astar.nelem());
 
   open_tag.write_to_stream(os_xml);
