@@ -47,6 +47,8 @@ std::ostream& operator<<(std::ostream& os, const Star& star) {
   os << "Star: " << star.description;
   os << " Radius: " << star.radius << "m ";
   os << " Distance: " << star.distance << "m \n";
+  os << " Latitude: " << star.latitude << "° \n";
+  os << " Longitude: " << star.longitude << "° \n";
   os << " Spectrum [W/m2/Hz]: \n" << star.spectrum ;
   return os;
 }
