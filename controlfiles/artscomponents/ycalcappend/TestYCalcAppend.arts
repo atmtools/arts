@@ -94,6 +94,7 @@ jacobianInit
 jacobianAddAbsSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
                        species="O3", unit="rel" )
 jacobianAddPolyfit( poly_order=1 )
+jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid )
 jacobianClose
 
 # No cloudbox
@@ -130,6 +131,7 @@ Copy( rgrid, p_grid )
 jacobianAddAbsSpecies( g1=rgrid, g2=lat_grid, g3=lon_grid,
                        species="O3", unit="rel" )
 jacobianAddPolyfit( poly_order=0 )
+jacobianAddTemperature( g1=rgrid, g2=lat_grid, g3=lon_grid )
 jacobianClose
 
 # No cloudbox

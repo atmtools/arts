@@ -1797,51 +1797,45 @@ void yCalcAppend(Workspace& ws,
           jacobian_quantities2[q2] == Jacobian::Special::SurfaceString ||
           append_instrument_wfs) {
         for (Index q1 = 0; q1 < nrq1; q1++ && pos < 0) {  // FIXME: What is with this "&& pos < 0"
-          
-          // Absorption species
-          if (jacobian_quantities2[q2].Target().isSpeciesVMR()) {
-            if (jacobian_quantities2[q2].Subtag() ==
-                jacobian_quantities_copy[q1].Subtag()) {
-              if (jacobian_quantities2[q2].Mode() ==
-                  jacobian_quantities_copy[q1].Mode()) {
+          if (jacobian_quantities2[q2].Target().sameTargetType(jacobian_quantities_copy[q1].Target())) {
+            if (jacobian_quantities2[q2].Target().isSpeciesVMR()) {
+              if (jacobian_quantities2[q2].Subtag() ==
+                  jacobian_quantities_copy[q1].Subtag()) {
+                if (jacobian_quantities2[q2].Mode() ==
+                    jacobian_quantities_copy[q1].Mode()) {
+                  pos = q1;
+                } else {
+                  ARTS_USER_ERROR (
+                    "Jacobians for ", jacobian_quantities2[q2],
+                    " shall be appended.\nThis requires "
+                    "that the same retrieval unit is used "
+                    "but it seems that this requirement is "
+                    "not met.")
+                }
+              }
+            } else if (jacobian_quantities2[q2] == Jacobian::Atm::Temperature) {
+              if (jacobian_quantities2[q2].Subtag() ==
+                  jacobian_quantities_copy[q1].Subtag()) {
                 pos = q1;
               } else {
                 ARTS_USER_ERROR (
                   "Jacobians for ", jacobian_quantities2[q2],
                   " shall be appended.\nThis requires "
-                  "that the same retrieval unit is used "
-                  "but it seems that this requirement is "
-                  "not met.")
+                  "that HSE is either ON or OFF for both "
+                  "parts but it seems that this requirement "
+                  "is not met.")
               }
-            }
-          }
-          // Temperature
-          else if (jacobian_quantities2[q2] == Jacobian::Atm::Temperature) {
-            if (jacobian_quantities2[q2].Subtag() ==
-                jacobian_quantities_copy[q1].Subtag()) {
-              pos = q1;
-            } else {
-              ARTS_USER_ERROR (
-                "Jacobians for ", jacobian_quantities2[q2],
-                " shall be appended.\nThis requires "
-                "that HSE is either ON or OFF for both "
-                "parts but it seems that this requirement "
-                "is not met.")
-            }
-          } else if (jacobian_quantities[q2] == Jacobian::Special::ScatteringString) {
-            if ((jacobian_quantities2[q2].Subtag() ==
-                  jacobian_quantities_copy[q1].Subtag()) &&
-                (jacobian_quantities2[q2].SubSubtag() ==
-                  jacobian_quantities_copy[q1].SubSubtag())) {
+            } else if (jacobian_quantities[q2] == Jacobian::Special::ScatteringString) {
+              if ((jacobian_quantities2[q2].Subtag() ==
+                    jacobian_quantities_copy[q1].Subtag()) &&
+                  (jacobian_quantities2[q2].SubSubtag() ==
+                    jacobian_quantities_copy[q1].SubSubtag())) {
+                pos = q1;
+              }
+            } else if (jacobian_quantities2[q2].Subtag() == jacobian_quantities_copy[q1].Subtag()) {
               pos = q1;
             }
           }
-          // Other
-          else if (jacobian_quantities2[q2].Subtag() ==
-                    jacobian_quantities_copy[q1].Subtag()) {
-            pos = q1;
-          }
-        
         }
       }
 
