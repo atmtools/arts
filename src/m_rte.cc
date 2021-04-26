@@ -438,15 +438,29 @@ void iyClearsky(
                                              j_analytical_do);
 
         if (gas_scattering_do) {
-          if (star_do && iy_agenda_call1) { // iy_agenda_call1 is used as additional
+
+          Numeric minP = min(ppvar_p);
+
+          if (star_do && iy_agenda_call1 && ppvar_p[ip] > minP ){
+                                            // iy_agenda_call1 is used as additional
                                             // flag to ensure that the single scattering
                                             // calculation is not called recursively.
+                                            // Furthermore we skip the uppermost altitude
+                                            // level as there can be sometimes issue due
+                                            // to the finite precision when calculating
+                                            // the (star-)ppath. The influence of the
+                                            // uppermost level in view of scattering
+                                            // is negligible due to the low density.
+
 
             Vector star_pos(3);
 
             for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
 
               star_pos={stars[i_star].distance,stars[i_star].latitude,stars[i_star].longitude};
+
+              // we need the distance to the star relative to the surface
+              star_pos[0]=star_pos[0]-pos2refell_r(atmosphere_dim, refellipsoid, lat_grid, lon_grid, star_pos);
 
               // get the line of sight direction from star i_star to ppath point
               rte_losGeometricFromRtePosToRtePos2(star_rte_los,
