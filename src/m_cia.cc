@@ -228,7 +228,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
                  iq++) {
               const auto& deriv = jacobian_quantities[iq];
             
-            if (not propmattype(deriv)) continue;
+            if (not deriv.propmattype()) continue;
               
             if (is_frequency_parameter(deriv))
                 dabs_xsec_per_species_dx[i][iq](iv, ip) +=

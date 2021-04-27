@@ -2106,7 +2106,7 @@ void propmat_clearskyAddFromLookup(
         for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
           
-          if (not propmattype(deriv)) continue;
+          if (not deriv.propmattype()) continue;
           
           if (deriv == Jacobian::Atm::Temperature) {
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=

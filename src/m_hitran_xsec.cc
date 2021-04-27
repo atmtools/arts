@@ -191,7 +191,7 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
             for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
               const auto& deriv = jacobian_quantities[ii];
               
-              if (not propmattype(deriv)) continue;
+              if (not deriv.propmattype()) continue;
               
               if (is_frequency_parameter(deriv))
                 this_dxsec[iq](iv, ip) +=

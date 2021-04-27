@@ -187,7 +187,7 @@ void zeeman_on_the_fly(
         for (Index j=0; j<nq; j++) {
           auto& deriv = jacobian_quantities[j];
           
-          if (not propmattype(deriv)) continue;
+          if (not deriv.propmattype()) continue;
           
           if (deriv == Jacobian::Atm::MagneticU) {
             Zeeman::dsum(dpropmat_clearsky_dx[j], com.F, com.dF(joker, j),
@@ -216,7 +216,7 @@ void zeeman_on_the_fly(
           for (Index j=0; j<nq; j++) {
             auto& deriv = jacobian_quantities[j];
             
-            if (not propmattype(deriv)) continue;
+            if (not deriv.propmattype()) continue;
             
             if (deriv == Jacobian::Atm::MagneticU) {
               Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
@@ -263,7 +263,7 @@ void zeeman_on_the_fly(
       for (Index j=0; j<nq; j++) {
         auto& deriv = jacobian_quantities[j];
         
-        if (not propmattype(deriv)) continue;
+        if (not deriv.propmattype()) continue;
         
         if (deriv == Jacobian::Atm::MagneticU) {
           Zeeman::dsum(dpropmat_clearsky_dx[j], com.F, com.dF(joker, j),
@@ -290,7 +290,7 @@ void zeeman_on_the_fly(
         for (Index j=0; j<nq; j++) {
           auto& deriv = jacobian_quantities[j];
           
-          if (not propmattype(deriv)) continue;
+          if (not deriv.propmattype()) continue;
           
           if (deriv == Jacobian::Atm::MagneticU) {
             Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),

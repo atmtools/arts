@@ -520,7 +520,18 @@ class RetrievalQuantity {
    * @param[in] qi The identity of this Jacobian
    */
   void QuantumIdentity(const QuantumIdentifier& qi) { mjac.QuantumIdentity() = qi; }
-
+  
+  /** Returns if this is a propagation matrix type */
+  bool propmattype() const noexcept {
+    return mjac == Jacobian::Type::Line or 
+           mjac == Jacobian::Type::Atm or 
+           mjac == Jacobian::Special::ArrayOfSpeciesTagVMR;
+  }
+  
+  bool is_wind() const noexcept {return mjac.isWind();}
+  
+  bool is_mag() const noexcept {return mjac.isMagnetic();}
+  
   /** Transformation
    * 
    * FIXMEDOC@Simon The transformations are yours to fix and document
@@ -991,13 +1002,6 @@ void dxdvmrscf(Numeric& x,
 //             Propmat partials descriptions
 //======================================================================
 
-/** Returns if the indexed value is a propagation matrix value
- * 
- * @param[in] rt A retrieval quantitiy
- * @return true if rt can be used in propmat calculations
- */
-bool propmattype(const RetrievalQuantity& rt) noexcept;
-
 /** Returns the temperature perturbation if it exists
  * 
  * @param[in] js As jacobian_quantities WSV
@@ -1033,14 +1037,6 @@ String propmattype_string(const RetrievalQuantity& rq);
 //             Propmat partials boolean functions
 //======================================================================
 
-/** Returns if the Retrieval quantity is a wind parameter
- * 
- * @param[in] t A retrieval quantity
- * @return true if it is
- * @return false if it is not
- */
-bool is_wind_parameter(const RetrievalQuantity& t) noexcept;
-
 /** Returns if the Retrieval quantity is a frequency parameter in propagation matrix calculations
  * 
  * @param[in] t A retrieval quantity
@@ -1056,14 +1052,6 @@ bool is_frequency_parameter(const RetrievalQuantity& t) noexcept;
  * @return false if it is not
  */
 bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept;
-
-/** Returns if the Retrieval quantity is a magnetic parameter
- * 
- * @param[in] t A retrieval quantity
- * @return true if it is
- * @return false if it is not
- */
-bool is_magnetic_parameter(const RetrievalQuantity& t) noexcept;
 
 /** Returns if the Retrieval quantity is a NLTE parameter
  * 

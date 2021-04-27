@@ -306,7 +306,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
           for (Index iq=0; iq<jacs.nelem(); iq++) {
             const auto& deriv = jacs[iq];
             
-            if (not propmattype(deriv)) continue;
+            if (not deriv.propmattype()) continue;
             
             
             if (deriv == Jacobian::Atm::Temperature) {

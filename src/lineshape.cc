@@ -2393,7 +2393,7 @@ void frequency_loop(ComputeValues &com,
     for (Index ij = 0; ij < nj; ij++) {
       const auto& deriv = jacobian_quantities[ij];
       
-      if (not propmattype(deriv)) continue;
+      if (not deriv.propmattype()) continue;
 
       if (deriv == Jacobian::Atm::Temperature) {
         const auto &dXdT = derivs[ij].value.o;
@@ -2417,14 +2417,14 @@ void frequency_loop(ComputeValues &com,
           com.dN[com.jac_pos(iv, ij)] += DS * (LM * dFls + dLM * Fls) +
                         Sz * (dSn * Si + Sn * dDSi) * LM * Fls;
         }
-      } else if (is_wind_parameter(deriv)) {
+      } else if (deriv.is_wind()) {
         const Complex dFm = std::visit([](auto &&LS) { return std::conj(LS.dFdf()); }, ls_mirr);
         const Complex dFls = std::visit([](auto &&LS) { return LS.dFdf(); }, ls) + dFm;
         com.dF[com.jac_pos(iv, ij)] += S * LM * dFls;
         if (do_nlte) {
           com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;
         }
-      } else if (is_magnetic_parameter(deriv)) {
+      } else if (deriv.is_mag()) {
         const Complex dFm = std::visit([dfdH](auto &&LS) { return std::conj(LS.dFdH(-dfdH)); }, ls_mirr);
         const Complex dFls = std::visit([dfdH](auto &&LS) { return LS.dFdH(dfdH); }, ls) + dFm;
         com.dF[com.jac_pos(iv, ij)] += S * LM * dFls;
@@ -2887,7 +2887,7 @@ void line_loop(ComputeData &com,
     for (Index ij = 0; ij < nj; ij++) {
       const auto& deriv = jacobian_quantities[ij];
       
-      if (not propmattype(deriv)) continue;
+      if (not deriv.propmattype()) continue;
 
       if (deriv == Jacobian::Atm::Temperature) {
         derivs[ij].value.o = band.ShapeParameters_dT(i, T, P, vmrs);

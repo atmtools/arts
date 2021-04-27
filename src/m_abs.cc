@@ -315,7 +315,7 @@ void abs_coefCalcFromXsec(  // WS Output:
   for (Index ii = 0; ii < jacobian_quantities.nelem(); ii++) {
     const auto& deriv = jacobian_quantities[ii];
     
-    if (not propmattype(deriv)) continue;
+    if (not deriv.propmattype()) continue;
     
     dabs_coef_dx[ii].resize(abs_xsec_per_species[0].nrows(),
                             abs_xsec_per_species[0].ncols());
@@ -364,7 +364,7 @@ void abs_coefCalcFromXsec(  // WS Output:
         for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
           
-          if (not propmattype(deriv)) continue;
+          if (not deriv.propmattype()) continue;
           
           if (deriv == Jacobian::Atm::Temperature) {
             dabs_coef_dx[iq](k, j) +=
@@ -786,7 +786,7 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
                    iq++) {
                 const auto& deriv = jacobian_quantities[iq];
                 
-                if (not propmattype(deriv)) continue;
+                if (not deriv.propmattype()) continue;
                 
                 if (is_frequency_parameter(deriv))
                   dabs_xsec_per_species_dx[i][iq](iv, ip) +=
@@ -893,7 +893,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
   for (Index ii = 0; ii < jacobian_quantities.nelem(); ii++) {
     const auto& deriv = jacobian_quantities[ii];
     
-    if (not propmattype(deriv)) continue;
+    if (not deriv.propmattype()) continue;
     
     if (deriv == Jacobian::Atm::Temperature) {
       const Vector dB = dplanck_dt(f_grid, rtp_temperature);
@@ -1328,7 +1328,7 @@ void propmat_clearskyAddParticles(
       for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
         const auto& deriv = jacobian_quantities[iq];
         
-        if (not propmattype(deriv)) continue;
+        if (not deriv.propmattype()) continue;
         
         if (deriv == Jacobian::Atm::Temperature) {
           if (use_abs_as_ext) {
@@ -1388,7 +1388,7 @@ void propmat_clearskyAddParticles(
     for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
       const auto& deriv = jacobian_quantities[iq];
       
-      if (not propmattype(deriv)) continue;
+      if (not deriv.propmattype()) continue;
       
       if (deriv == Jacobian::Atm::Particulates) {
         dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
@@ -1565,7 +1565,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
       for (Index j=0; j<nq; j++) {
         auto& deriv = jacobian_quantities[j];
         
-        if (not propmattype(deriv)) continue;
+        if (not deriv.propmattype()) continue;
         
         if (deriv == abs_species[ispecies]) {
           dpropmat_clearsky_dx[j].Kjj() += com.F.real();  // FIXME: Without this, the complex-variables would never need reset
@@ -1582,7 +1582,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
         for (Index j=0; j<nq; j++) {
           auto& deriv = jacobian_quantities[j];
           
-          if (not propmattype(deriv)) continue;
+          if (not deriv.propmattype()) continue;
           
           if (deriv == abs_species[ispecies]) {
             dnlte_source_dx[j].Kjj() += com.N.real();  // FIXME: Without this, the complex-variables would never need reset
@@ -1619,7 +1619,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     
     // Sum up the Jacobian
     for (Index j=0; j<nq; j++) {
-      if (not propmattype(jacobian_quantities[j])) continue;
+      if (not jacobian_quantities[j].propmattype()) continue;
       dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
     }
     
@@ -1629,7 +1629,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
       
       // Sum up the Jacobian
       for (Index j=0; j<nq; j++) {
-        if (not propmattype(jacobian_quantities[j])) continue;
+        if (not jacobian_quantities[j].propmattype()) continue;
         dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
       }
     }
