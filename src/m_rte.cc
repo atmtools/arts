@@ -441,7 +441,7 @@ void iyClearsky(
 
           Numeric minP = min(ppvar_p);
 
-          if (star_do && iy_agenda_call1 && ppvar_p[ip] > minP ){
+          if (star_do && ppvar_p[ip] > minP ){
                                             // iy_agenda_call1 is used as additional
                                             // flag to ensure that the single scattering
                                             // calculation is not called recursively.
