@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 
 #include "lineshape.h"
@@ -2019,7 +2020,7 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
 
 #define InternalDerivativesImpl(X, Y)                                          \
   else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
-    const Numeric d = derivs[ij].value.n;                                      \
+    const Numeric d = value.n;                                      \
     const Complex dFm = std::visit(                                            \
         [d](auto &&LS) { return std::conj(LS.dFd##X(d)); }, ls_mirr);          \
     const Complex dFls =                                                       \
@@ -2051,7 +2052,7 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
 
 #define InternalDerivativesGImpl(X)                                            \
   else if (deriv == Jacobian::Line::ShapeG##X) {                               \
-    const Numeric dLM = derivs[ij].value.n;                                    \
+    const Numeric dLM = value.n;                                    \
     com.dF[com.jac_pos(iv, ij)] += dLM * S * Fls;                                               \
     if (do_nlte) { \
       com.dN[com.jac_pos(iv, ij)] += dLM * DS * Fls;                                               \
@@ -2064,7 +2065,7 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
 
 #define InternalDerivativesYImpl(X)                                            \
   else if (deriv == Jacobian::Line::ShapeY##X) {                               \
-    const Complex dLM = Complex(0, -derivs[ij].value.n);                       \
+    const Complex dLM = Complex(0, -value.n);                       \
     com.dF[com.jac_pos(iv, ij)] += dLM * S * Fls;                                               \
     if (do_nlte) { \
       com.dN[com.jac_pos(iv, ij)] += dLM * DS * Fls;                                               \
@@ -2233,11 +2234,22 @@ struct Derivatives {
     Numeric n;
     constexpr Values() noexcept : n() {}
   } value;
-  constexpr Derivatives() noexcept : target(), value() {}
+  Index jac_pos;
+  const RetrievalQuantity * deriv;
+  Derivatives() noexcept : target(), value(), jac_pos(), deriv(nullptr) {}
 };
 
 //! Helper to keep function signature clean
 typedef Array<Derivatives> ArrayOfDerivatives;
+
+//! Helper function to find the last relevant derivative
+Index active_nelem(const ArrayOfDerivatives& derivs) noexcept {
+  return std::distance(derivs.cbegin(),
+                      std::find_if(derivs.cbegin(), derivs.cend(),
+                                    [](auto& deriv) {
+                                      return deriv.deriv == nullptr;
+                                    }));
+}
 
 struct ComputeValues {
   Complex * const F;
@@ -2246,7 +2258,9 @@ struct ComputeValues {
   Complex * const dN;
   const Numeric * const f;
   const Index size;
+  const ArrayOfDerivatives& derivs;
   const Index jac_size;
+  const Index max_jac_size;
   const bool do_nlte;
   
   Index jac_pos(Index iv, Index ij) const noexcept {return jac_size * iv + ij;}
@@ -2258,21 +2272,23 @@ struct ComputeValues {
                 const Vector &f_grid,
                 const Index start,
                 const Index nv,
-                const Index nj,
+                const ArrayOfDerivatives& derivs_,
                 const bool do_nlte_) noexcept :
   F(F_.get_c_array()+start),
-  dF(nj ? dF_.get_c_array()+start*nj : nullptr),
-  N(do_nlte_ ? N_.get_c_array()+start : nullptr),
-  dN((nj and  do_nlte_) ? dN_.get_c_array()+start*nj : nullptr),
+  dF(dF_.get_c_array()+start*derivs_.size()),
+  N(N_.get_c_array()+start),
+  dN(dN_.get_c_array()+start*derivs_.size()),
   f(f_grid.get_c_array()+start),
-  size(nv), jac_size(nj), do_nlte(do_nlte_) {}
+  size(nv), derivs(derivs_), jac_size(derivs_.size()), max_jac_size(active_nelem(derivs)), do_nlte(do_nlte_) {
+  }
   
   ComputeValues(Complex &F_, std::vector<Complex> &dF_,
                 Complex &N_, std::vector<Complex> &dN_,
                 const Numeric &f_lim,
-                const Index nj, const bool do_nlte_) noexcept :
-  F(&F_), dF(dF_.data()), N(&N_), dN(dN_.data()),
-  f(&f_lim), size(1), jac_size(nj), do_nlte(do_nlte_) {}
+                const ArrayOfDerivatives& derivs_, const bool do_nlte_) noexcept :
+  F(&F_), dF(dF_.data()), N(&N_), dN(dN_.data()), f(&f_lim), size(1),
+  derivs(derivs_), jac_size(derivs.nelem()), max_jac_size(active_nelem(derivs)), do_nlte(do_nlte_) {
+  }
   
   ComputeValues& operator-=(const ComputeValues& cut) ARTS_NOEXCEPT {
     ARTS_ASSERT(cut.size == 1, "Not a cutoff limit")
@@ -2280,15 +2296,15 @@ struct ComputeValues {
     
     for (Index iv=0; iv<size; iv++) {
       F[iv] -= *cut.F;
-      for (Index ij=0; ij<jac_size; ij++) {
-        dF[jac_pos(iv, ij)] -= cut.dF[ij];
+      for (Index ij=0; ij<max_jac_size; ij++) {
+        dF[jac_pos(iv, derivs[ij].jac_pos)] -= cut.dF[derivs[ij].jac_pos];
       }
     }
     if (do_nlte) {
       for (Index iv=0; iv<size; iv++) {
         N[iv] -= *cut.N;
-        for (Index ij=0; ij<jac_size; ij++) {
-          dN[jac_pos(iv, ij)] -= cut.dN[ij];
+        for (Index ij=0; ij<max_jac_size; ij++) {
+          dN[jac_pos(iv, derivs[ij].jac_pos)] -= cut.dN[derivs[ij].jac_pos];
         }
       }
     }
@@ -2362,7 +2378,6 @@ void frequency_loop(ComputeValues &com,
                     Calculator &ls_mirr,
                     Normalizer &ls_norm,
                     const IntensityCalculator &ls_str, 
-                    const ArrayOfRetrievalQuantity &jacobian_quantities,
                     const ArrayOfDerivatives &derivs, 
                     const Complex LM,
                     const Numeric &T, 
@@ -2370,7 +2385,6 @@ void frequency_loop(ComputeValues &com,
                     const Numeric &Sz, 
                     const Index self_species) ARTS_NOEXCEPT {
   const Index nv = com.size;
-  const Index nj = com.jac_size;
   const bool do_nlte = com.do_nlte;
   
   const Numeric Si = std::visit([](auto &&S) { return S.S; }, ls_str);
@@ -2390,13 +2404,12 @@ void frequency_loop(ComputeValues &com,
       com.N[iv] += DS * LM * Fls;
     }
     
-    for (Index ij = 0; ij < nj; ij++) {
-      const auto& deriv = jacobian_quantities[ij];
-      
-      if (not propmattype(deriv)) continue;
+    for (const auto& [lt, value, ij, deriv_ptr]: derivs) {
+      if (not deriv_ptr) break;
+      const auto& deriv = *deriv_ptr;
 
       if (deriv == Jacobian::Atm::Temperature) {
-        const auto &dXdT = derivs[ij].value.o;
+        const auto &dXdT = value.o;
         const Numeric dSn =
             std::visit([T, f](auto &&LSN) { return LSN.dNdT(T, f); }, ls_norm);
         const Numeric dSi =
@@ -2417,14 +2430,14 @@ void frequency_loop(ComputeValues &com,
           com.dN[com.jac_pos(iv, ij)] += DS * (LM * dFls + dLM * Fls) +
                         Sz * (dSn * Si + Sn * dDSi) * LM * Fls;
         }
-      } else if (is_wind_parameter(deriv)) {
+      } else if (deriv.is_wind()) {
         const Complex dFm = std::visit([](auto &&LS) { return std::conj(LS.dFdf()); }, ls_mirr);
         const Complex dFls = std::visit([](auto &&LS) { return LS.dFdf(); }, ls) + dFm;
         com.dF[com.jac_pos(iv, ij)] += S * LM * dFls;
         if (do_nlte) {
           com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;
         }
-      } else if (is_magnetic_parameter(deriv)) {
+      } else if (deriv.is_mag()) {
         const Complex dFm = std::visit([dfdH](auto &&LS) { return std::conj(LS.dFdH(-dfdH)); }, ls_mirr);
         const Complex dFls = std::visit([dfdH](auto &&LS) { return LS.dFdH(dfdH); }, ls) + dFm;
         com.dF[com.jac_pos(iv, ij)] += S * LM * dFls;
@@ -2433,7 +2446,7 @@ void frequency_loop(ComputeValues &com,
         }
       } else if (deriv.Target().needQuantumIdentity()) {
         if (deriv == Jacobian::Line::VMR) {
-          const auto &dXdVMR = derivs[ij].value.o;
+          const auto &dXdVMR = value.o;
           const Complex dFm = std::visit(
               [&](auto &&LS) {
                 return std::conj(LS.dFdVMR(mirroredOutput(dXdVMR)));
@@ -2454,7 +2467,6 @@ void frequency_loop(ComputeValues &com,
             }
           }
         } else {
-          const Absorption::QuantumIdentifierLineTarget lt = derivs[ij].target;
           if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
             if (deriv == Jacobian::Line::Center) {
               const Numeric d = std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_norm) * Si + std::visit([](auto &&LS) { return LS.dSdF0(); }, ls_str) * Sn;
@@ -2559,7 +2571,6 @@ void cutoff_loop_sparse_linear(ComputeData &com,
                                Normalizer ls_norm,
                                const IntensityCalculator ls_str,
                                const AbsorptionLines &band,
-                               const ArrayOfRetrievalQuantity &jacobian_quantities,
                                const ArrayOfDerivatives &derivs,
                                const Output X,
                                const Numeric &T,
@@ -2573,7 +2584,7 @@ void cutoff_loop_sparse_linear(ComputeData &com,
   // Basic settings
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
-  const Index nj = jacobian_quantities.nelem();
+  const Index nj = derivs.nelem();
   const Numeric fu = band.CutoffFreq(i);
   const Numeric fl = band.CutoffFreqMinus(i, f_mean);
   const Numeric fus = band.F0(i) + sparse_lim;
@@ -2588,16 +2599,16 @@ void cutoff_loop_sparse_linear(ComputeData &com,
   if ((dense_size + sparse_low_size + sparse_upp_size) == 0) return;
   
   // Get the compute data view
-  ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, dense_start, dense_size, nj, do_nlte);
+  ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, dense_start, dense_size, derivs, do_nlte);
   
   // Define the cutoff
   Complex Fc=0, Nc=0;
   std::vector<Complex> dFc(do_cutoff ? nj : 0, 0), dNc((do_cutoff and do_nlte) ? nj : 0, 0);
-  ComputeValues cut(Fc, dFc, Nc, dNc, fu, nj, do_nlte);
+  ComputeValues cut(Fc, dFc, Nc, dNc, fu, derivs, do_nlte);
   
   // Get views of the sparse data
-  ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, nj, do_nlte);
-  ComputeValues sparse_upp_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_upp_start, sparse_upp_size, nj, do_nlte);
+  ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, derivs, do_nlte);
+  ComputeValues sparse_upp_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_upp_start, sparse_upp_size, derivs, do_nlte);
   
   const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
   for (Index iz = 0; iz < nz; iz++) {
@@ -2608,21 +2619,21 @@ void cutoff_loop_sparse_linear(ComputeData &com,
     Calculator ls_mirr = mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
 
     frequency_loop(comval, ls, ls_mirr, ls_norm, ls_str,
-                   jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                   derivs, LM, T, dfdH, Sz, band.Species());
     
     if (sparse_low_size) {
       frequency_loop(sparse_low_range, ls, ls_mirr, ls_norm, ls_str,
-                    jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                     derivs, LM, T, dfdH, Sz, band.Species());
     }
     
     if (sparse_upp_size) {
       frequency_loop(sparse_upp_range, ls, ls_mirr, ls_norm, ls_str,
-                    jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                     derivs, LM, T, dfdH, Sz, band.Species());
     }
     
     if (do_cutoff) {
       frequency_loop(cut, ls, ls_mirr, ls_norm, ls_str,
-                     jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                     derivs, LM, T, dfdH, Sz, band.Species());
     }
   }
   
@@ -2645,7 +2656,6 @@ void cutoff_loop_sparse_triple(ComputeData &com,
                                Normalizer ls_norm,
                                const IntensityCalculator ls_str,
                                const AbsorptionLines &band,
-                               const ArrayOfRetrievalQuantity &jacobian_quantities,
                                const ArrayOfDerivatives &derivs,
                                const Output X,
                                const Numeric &T,
@@ -2659,7 +2669,7 @@ void cutoff_loop_sparse_triple(ComputeData &com,
   // Basic settings
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
-  const Index nj = jacobian_quantities.nelem();
+  const Index nj = derivs.nelem();
   const Numeric fu = band.CutoffFreq(i);
   const Numeric fl = band.CutoffFreqMinus(i, f_mean);
   const Numeric fus = band.F0(i) + sparse_lim;
@@ -2674,16 +2684,16 @@ void cutoff_loop_sparse_triple(ComputeData &com,
   if ((dense_size + sparse_low_size + sparse_upp_size) == 0) return;
   
   // Get the compute data view
-  ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, dense_start, dense_size, nj, do_nlte);
+  ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, dense_start, dense_size, derivs, do_nlte);
   
   // Define the cutoff
   Complex Fc=0, Nc=0;
   std::vector<Complex> dFc(do_cutoff ? nj : 0, 0), dNc((do_cutoff and do_nlte) ? nj : 0, 0);
-  ComputeValues cut(Fc, dFc, Nc, dNc, fu, nj, do_nlte);
+  ComputeValues cut(Fc, dFc, Nc, dNc, fu, derivs, do_nlte);
   
   // Get views of the sparse data
-  ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, nj, do_nlte);
-  ComputeValues sparse_upp_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_upp_start, sparse_upp_size, nj, do_nlte);
+  ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, derivs, do_nlte);
+  ComputeValues sparse_upp_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_upp_start, sparse_upp_size, derivs, do_nlte);
   
   const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
   for (Index iz = 0; iz < nz; iz++) {
@@ -2694,21 +2704,21 @@ void cutoff_loop_sparse_triple(ComputeData &com,
     Calculator ls_mirr = mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
 
     frequency_loop(comval, ls, ls_mirr, ls_norm, ls_str,
-                   jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                   derivs, LM, T, dfdH, Sz, band.Species());
     
     if (sparse_low_size) {
       frequency_loop(sparse_low_range, ls, ls_mirr, ls_norm, ls_str,
-                    jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                     derivs, LM, T, dfdH, Sz, band.Species());
     }
     
     if (sparse_upp_size) {
       frequency_loop(sparse_upp_range, ls, ls_mirr, ls_norm, ls_str,
-                    jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                     derivs, LM, T, dfdH, Sz, band.Species());
     }
     
     if (do_cutoff) {
       frequency_loop(cut, ls, ls_mirr, ls_norm, ls_str,
-                     jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                     derivs, LM, T, dfdH, Sz, band.Species());
     }
   }
   
@@ -2768,7 +2778,6 @@ void cutoff_loop(ComputeData &com,
                  Normalizer ls_norm,
                  const IntensityCalculator ls_str,
                  const AbsorptionLines &band,
-                 const ArrayOfRetrievalQuantity &jacobian_quantities,
                  const ArrayOfDerivatives &derivs,
                  const Output X,
                  const Numeric &T,
@@ -2781,7 +2790,7 @@ void cutoff_loop(ComputeData &com,
   // Basic settings
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
-  const Index nj = jacobian_quantities.nelem();
+  const Index nj = derivs.nelem();
   const Numeric fu = band.CutoffFreq(i);
   const Numeric fl = band.CutoffFreqMinus(i, f_mean);
 
@@ -2790,13 +2799,13 @@ void cutoff_loop(ComputeData &com,
   if (not cutsize) return;
   
   // Get the compute data view
-  ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, cutstart, cutsize, nj, do_nlte);
+  ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, cutstart, cutsize, derivs, do_nlte);
   
   // Get the cutoff data view
   Complex Fc=0, Nc=0;
   std::vector<Complex> dFc(do_cutoff ? nj : 0, 0), dNc((do_cutoff and do_nlte) ? nj : 0, 0);
-  ComputeValues cut(Fc, dFc, Nc, dNc, fu, nj, do_nlte);
-
+  ComputeValues cut(Fc, dFc, Nc, dNc, fu, derivs, do_nlte);
+  
   const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
   for (Index iz = 0; iz < nz; iz++) {
     const Numeric dfdH = do_zeeman ? band.ZeemanSplitting(i, zeeman_polarization, iz) : 0;
@@ -2806,11 +2815,11 @@ void cutoff_loop(ComputeData &com,
     Calculator ls_mirr = mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
 
     frequency_loop(comval, ls, ls_mirr, ls_norm, ls_str,
-                   jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                   derivs, LM, T, dfdH, Sz, band.Species());
     
     if (do_cutoff) {
       frequency_loop(cut, ls, ls_mirr, ls_norm, ls_str,
-                     jacobian_quantities, derivs, LM, T, dfdH, Sz, band.Species());
+                     derivs, LM, T, dfdH, Sz, band.Species());
     }
   }
 
@@ -2886,8 +2895,12 @@ void line_loop(ComputeData &com,
     // Pre-compute the derivatives
     for (Index ij = 0; ij < nj; ij++) {
       const auto& deriv = jacobian_quantities[ij];
+      derivs[ij].jac_pos = -1;
+      derivs[ij].deriv = nullptr;
       
-      if (not propmattype(deriv)) continue;
+      if (not deriv.propmattype() or deriv.Target() == Jacobian::Special::ArrayOfSpeciesTagVMR) continue;
+      derivs[ij].jac_pos = ij;
+      derivs[ij].deriv = &deriv;
 
       if (deriv == Jacobian::Atm::Temperature) {
         derivs[ij].value.o = band.ShapeParameters_dT(i, T, P, vmrs);
@@ -2913,6 +2926,7 @@ void line_loop(ComputeData &com,
         }
       }
     }
+    std::remove_if(derivs.begin(), derivs.end(), [](Derivatives& dd) { return dd.deriv == nullptr; });
 
     // Call cut off loop with or without sparsity
     switch (speedup_type) {
@@ -2920,21 +2934,21 @@ void line_loop(ComputeData &com,
         cutoff_loop(com,
                     normalizer_selection(band.Normalization(), band.F0(i), T),
                     linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
-                    band, jacobian_quantities, derivs, band.ShapeParameters(i, T, P, vmrs), T, H,
+                    band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H,
                     f_mean, DC, i, do_zeeman, zeeman_polarization);
         break;
       case Options::LblSpeedup::QuadraticIndependent:
         cutoff_loop_sparse_triple(com, sparse_com,
                     normalizer_selection(band.Normalization(), band.F0(i), T),
                     linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
-                    band, jacobian_quantities, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
+                    band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
                     f_mean, DC, i, do_zeeman, zeeman_polarization);
         break;
       case Options::LblSpeedup::LinearIndependent:
         cutoff_loop_sparse_linear(com, sparse_com,
                                   normalizer_selection(band.Normalization(), band.F0(i), T),
                                   linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
-                                  band, jacobian_quantities, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
+                                  band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
                                   f_mean, DC, i, do_zeeman, zeeman_polarization);
         break;
       case Options::LblSpeedup::FINAL: { /* Leave last */ }
@@ -2977,7 +2991,7 @@ void compute(ComputeData &com,
              const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT {
   [[maybe_unused]] const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
-  [[maybe_unused]] const Index nv = com.f_grid.nelem();
+  const Index nv = com.f_grid.nelem();
 
   // Tests that must be true while calling this function
   ARTS_ASSERT(H >= 0, "Only for positive H.  You provided: ", H)

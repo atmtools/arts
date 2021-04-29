@@ -999,27 +999,12 @@ void dxdvmrscf(Numeric& x,
 //             Propmat partials descriptions
 //======================================================================
 
-bool propmattype(const RetrievalQuantity& rt) noexcept {
-  return rt == Jacobian::Type::Line or
-         rt == Jacobian::Type::Atm or
-         rt.Target() == Jacobian::Special::ArrayOfSpeciesTagVMR
-         ;
-}
-
-bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
-  return t.Target().isWind();
-}
-
 bool is_frequency_parameter(const RetrievalQuantity& t) noexcept {
   return t.Target().isWind() or t.Target().isFrequency();
 }
 
 bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept {
   return t == Jacobian::Atm::MagneticMagnitude;
-}
-
-bool is_magnetic_parameter(const RetrievalQuantity& t) noexcept {
-  return t.Target().isMagnetic();
 }
 
 bool is_nlte_parameter(const RetrievalQuantity& t) noexcept {
@@ -1188,7 +1173,7 @@ bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
 }
 
 bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_magnetic_parameter(j);});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j.is_mag();});
 }
 
 Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
@@ -1208,7 +1193,7 @@ Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
 }
 
 Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
-  auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return is_magnetic_parameter(j);});
+  auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return j.is_mag();});
   if (p not_eq js.cend())
     return p -> Target().Perturbation();
   else

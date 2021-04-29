@@ -179,7 +179,7 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
         for (Index j=0; j<jacobian_quantities.nelem(); j++) {
           const auto& deriv = jacobian_quantities[j];
           
-          if (not propmattype(deriv)) continue;
+          if (not deriv.propmattype()) continue;
           
           if (deriv == abs_species[i]) {
             dpropmat_clearsky_dx[j].Kjj() += abs.real();
@@ -250,7 +250,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
           for (Index j=0; j<jacobian_quantities.nelem(); j++) {
             const auto& deriv = jacobian_quantities[j];
             
-            if (not propmattype(deriv)) continue;
+            if (not deriv.propmattype()) continue;
             
             if (deriv == Jacobian::Atm::MagneticU) {
               Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[j],
