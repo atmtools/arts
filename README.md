@@ -431,7 +431,7 @@ Linux perf profiling
 The [Performance Counters for Linux](https://perf.wiki.kernel.org/) offer a
 convenient way to profile any program with basically no runtime overhead.
 Profiling works for all configurations (Debug, RelWithDebInfo and Release). To
-ensure that the calltree can be analyzed correctly, compile ARTS without frame
+ensure that the calltree can be analyzed correctly, compile ARTS with frame
 pointers. This has minimal impact on performance:
 
 ```
