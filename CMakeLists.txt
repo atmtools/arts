@@ -136,6 +136,7 @@ if (NOT INDEX)
 endif (NOT INDEX)
 
 add_definitions (-DHAVE_CONFIG_H)
+add_definitions (-DEIGEN_DONT_PARALLELIZE)
 
 if (NO_ASSERT)
   add_definitions (-DNDEBUG)
