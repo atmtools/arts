@@ -9619,6 +9619,31 @@ void define_md_data_raw() {
       GIN_DESC("Interpolation order (1=linear interpolation).")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("MagFieldsCalcIGRF"),
+      DESCRIPTION(
+          "Computes the magnetic field from part of the IGRF13 magnetic field model\n"
+          "\n"
+          "Only accounts for period 2000-2020. Other times uses the limits.\n"
+          "If within the select time period, linear interpolation in time is used\n"
+          "\n"
+          "Latitude cutoff very near the poles using only a single value\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("mag_u_field", "mag_v_field", "mag_w_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("z_field",
+         "lat_grid",
+         "lon_grid",
+         "refellipsoid",
+         "time"
+        ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("MagFieldsCalcExpand1D"),
       DESCRIPTION(
           "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"

@@ -65,9 +65,12 @@ public:
   InternalTimeStep EpochTime() const {return mtime.time_since_epoch();}
   
   // Operations
-  InternalTimeStep operator-(const Time& t) const {return mtime - t.mtime;}
-  bool operator<(const Time& t) const {return mtime < t.mtime;}
-  bool operator==(const Time& t) const {return mtime == t.mtime;}
+  InternalTimeStep operator-(const Time& t) const noexcept {return mtime - t.mtime;}
+  bool operator<(const Time& t) const noexcept {return mtime < t.mtime;}
+  bool operator==(const Time& t) const noexcept {return mtime == t.mtime;}
+  bool operator<=(const Time& t) const noexcept {return this -> operator<(t) or this -> operator==(t);}
+  bool operator>(const Time& t) const noexcept {return not this -> operator<=(t);}
+  bool operator>=(const Time& t) const noexcept {return this -> operator>(t) or this -> operator==(t);}
   template <typename T, typename R> Time& operator+=(const std::chrono::duration<T, R>& dt) {mtime += std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
   template <typename T, typename R> Time& operator-=(const std::chrono::duration<T, R>& dt) {mtime -= std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
   template <typename T, typename R> Time operator+(const std::chrono::duration<T, R>& dt) const {return (Time(*this) += dt);}

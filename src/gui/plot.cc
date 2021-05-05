@@ -1,3 +1,5 @@
+#include <mutex>
+
 #include "plot.h"
 
 namespace ARTSGUI {
@@ -8,8 +10,11 @@ bool same_lengths(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   return true;
 }
 
+std::mutex mtx;
 
 void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
+  auto one_at_a_time = std::lock_guard(mtx);
+  
   // Get Graphics data
   InitializeGUI("Plot");
   

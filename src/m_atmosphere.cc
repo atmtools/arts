@@ -49,6 +49,7 @@
 #include "geodetic.h"
 #include "global_data.h"
 #include "gridded_fields.h"
+#include "igrf13.h"
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
 #include "linescaling.h"
@@ -2317,6 +2318,30 @@ void AtmFieldsCalc(  //WS Output:
   }
   
   nlte_field.ThrowIfNotOK();
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MagFieldsCalcIGRF (  //WS Output:
+    Tensor3& mag_u_field,
+    Tensor3& mag_v_field,
+    Tensor3& mag_w_field,
+    //WS Input
+    const Tensor3& z_field,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Vector& refellipsoid,
+    const Time& time,
+    const Verbosity&) {
+  ARTS_USER_ERROR_IF(z_field.npages() < 1, "Must have altitude size")
+  ARTS_USER_ERROR_IF(z_field.nrows() not_eq lat_grid.nelem(), "Must have same lat_grid.nelem() [", lat_grid.nelem(), "] as z_field.nrows() [", z_field.nrows(), ']')
+  ARTS_USER_ERROR_IF(z_field.ncols() not_eq lon_grid.nelem(), "Must have same lon_grid.nelem() [", lon_grid.nelem(), "] as z_field.ncols() [", z_field.ncols(), ']')
+  ARTS_USER_ERROR_IF(refellipsoid.nelem() not_eq 2 or refellipsoid[0] < 1 or refellipsoid[1] >= 1 or refellipsoid[1] < 0, "Bad refellipsoid: ", refellipsoid)
+  
+  // Perform all computations
+  const IGRF::MagneticField mag { IGRF::compute(z_field, lat_grid, lon_grid, time, refellipsoid) };
+  mag_u_field = mag.u;
+  mag_v_field = mag.v;
+  mag_w_field = mag.w;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -203,11 +203,13 @@ add_library (artscore STATIC
   gzstream.cc
   hitran_species.cc
   hitran_xsec.cc
+  igrf13.cc
   interpolation.cc
   interpolation_lagrange.cc
   jacobian.cc
   legacy_continua.cc
   legendre.cc
+  legendre2.cc
   lin_alg.cc
   linemixing.cc
   linemixing_hitran.cc
@@ -552,6 +554,11 @@ if (ENABLE_GUI)
   add_executable (test_lineshape test_lineshape.cc)
   target_link_libraries (test_lineshape ${ALL_ARTS_LIBRARIES})
 endif ()
+
+########### next testcase ###############
+
+add_executable (test_magfield test_magfield.cc)
+target_link_libraries (test_magfield ${ALL_ARTS_LIBRARIES})
 
 ########### subdirs ###############
 
