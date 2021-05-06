@@ -203,6 +203,7 @@ add_library (artscore STATIC
   gzstream.cc
   hitran_species.cc
   hitran_xsec.cc
+  igrf13.cc
   interpolation.cc
   interpolation_lagrange.cc
   jacobian.cc
@@ -405,16 +406,6 @@ target_link_libraries (test_interpolation ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 
-add_executable (test_legendre
-  constants.cc
-  math_funcs.cc
-  legendre.cc
-  test_legendre.cc)
-
-target_link_libraries (test_legendre matpack)
-
-########### next testcase ###############
-
 add_executable (test_linalg
   constants.cc
   lin_alg.cc
@@ -552,6 +543,11 @@ if (ENABLE_GUI)
   add_executable (test_lineshape test_lineshape.cc)
   target_link_libraries (test_lineshape ${ALL_ARTS_LIBRARIES})
 endif ()
+
+########### next testcase ###############
+
+add_executable (test_magfield test_magfield.cc)
+target_link_libraries (test_magfield ${ALL_ARTS_LIBRARIES})
 
 ########### subdirs ###############
 
