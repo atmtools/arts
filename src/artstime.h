@@ -68,6 +68,7 @@ public:
   InternalTimeStep operator-(const Time& t) const noexcept {return mtime - t.mtime;}
   bool operator<(const Time& t) const noexcept {return mtime < t.mtime;}
   bool operator==(const Time& t) const noexcept {return mtime == t.mtime;}
+  bool operator!=(const Time& t) const noexcept {return not this -> operator==(t);}
   bool operator<=(const Time& t) const noexcept {return this -> operator<(t) or this -> operator==(t);}
   bool operator>(const Time& t) const noexcept {return not this -> operator<=(t);}
   bool operator>=(const Time& t) const noexcept {return this -> operator>(t) or this -> operator==(t);}
