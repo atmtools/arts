@@ -194,7 +194,7 @@ if DO_SAVE:
 
 if CF_SAVE:
     arts.VectorCreate("yref")
-    arts.ReadXML(arts.yref, os.path.join(testdir, "refdata.xml"))
+    arts.ReadXML(arts.yref, "refdata.xml")
     
     if SHOW_PLOTS:
         f = (arts.f_grid.value - CENTRAL_LINE_FREQ) / 1e6  # MHz
