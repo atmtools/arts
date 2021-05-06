@@ -14,6 +14,6 @@ class TestARTS:
 
         Note: This test is only run, if ARTS is found in PATH.
         """
-        arts_out = arts.run_arts(help=True)
+        arts_out = pyarts.run_arts(help=True)
 
         assert arts_out.retcode == 0
