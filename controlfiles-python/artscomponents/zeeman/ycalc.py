@@ -10,6 +10,8 @@ import pyarts
 import os
 import numpy as np
 
+testdir = os.path.dirname(__file__)
+
 arts = pyarts.workspace.Workspace()
 arts.verbosityInit()
 
@@ -188,10 +190,10 @@ arts.yCalc()
 # %% Save and compare data
 
 if DO_SAVE:
-    pyarts.xml.save(arts.y.value, "refdata.xml", precision='g')
+    pyarts.xml.save(arts.y.value, os.path.join(testdir, "refdata.xml"), precision='g')
 
 if CF_SAVE:
-    y = pyarts.xml.load("refdata.xml")
+    y = pyarts.xml.load(os.path.join(testdir, "refdata.xml"))
     
     if SHOW_PLOTS:
         f = (arts.f_grid.value - CENTRAL_LINE_FREQ) / 1e6  # MHz
