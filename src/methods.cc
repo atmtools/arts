@@ -9626,7 +9626,12 @@ void define_md_data_raw() {
           "Only accounts for period 2000-2020. Other times uses the limits.\n"
           "If within the select time period, linear interpolation in time is used\n"
           "\n"
-          "Latitude cutoff very near the poles using only a single value\n"),
+          "Latitude cutoff very near the poles using only a single value\n"
+          "\n"
+          "Note that no conversion from geocentric uvw to geodetic uvw is performed,\n"
+          "so some small artifacts are to be expected\n"
+          "\n"
+          "Also note that positions close to the poles are given the same field-values\n"),
       AUTHORS("Richard Larsson"),
       OUT("mag_u_field", "mag_v_field", "mag_w_field"),
       GOUT(),

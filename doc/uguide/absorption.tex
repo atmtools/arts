@@ -662,82 +662,35 @@ For other states, more appropriate expressions should be used.  Also note that t
 additional error in \citet{larsson14:_treatment_jqsrt}, where the table representing the relative line strengths is
 incorrectly normalized to 2 rather than 1 for $\Delta J = 0$.
 
-In order to calculate Zeeman splitting, additional line parameters are necessary. 
-These include $g_s$ and $g_l$, the relative Land\'{e} factors, and their values must be provided in code for particular species.
-It is also necessary that the line defines its Hund-case state simplification, and that it provides the relevant quantum numbers
-for the provided Hund case.  To set the HUnd-case, use ARTSCAT-5 and set ``Hund'' for each level.  The code will report what 
-quantum numbers it expects for these cases if you allow output on 3rd-level (e.g., by using the command ``-r333'' when calling ARTS).
+In order to calculate Zeeman splitting, additional line parameters are necessary. These are attached to the
+line-by-line.  There are many ways to compute these.  An update from \citet{larsson14:_treatment_jqsrt}
+for O$_2$ is available in \citet{larsson19:_updated_jqsrt}, and precise calculations for {ClO}, {OH} and {NO} is
+available in \citet{larsson20:_zeeman_jqsrt}.
 
 Beside the additional line parameters, it is also necessary to input the magnetic
-field into the model. This can be done following:
-\begin{code}
-GriddedField3Create(B)
-  ReadXML(B,"B_1comp.xml.gz")
-  GriddedFieldLatLonRegrid( B, lat_grid, lon_grid, B )
-  GriddedFieldPRegrid( B, p_grid, B )
-  FieldFromGriddedField( mag_w_field, p_grid, lat_grid, 
-                         lon_grid, B )
-\end{code}
-where \verb|B_1comp.xml.gz| contains the (atmospheric) profile or field for one
-components of the magnetic field. 
-Since the magnetic field is usually not dependent on the pressure,
-it is also possible to use the  
-\begin{code}
- GriddedFieldZToPRegrid(*)
-\end{code}
-functionality to input altitude-gridded magnetism.
-Input needs to be provided for each non-zero
-magnetic field component separately into the respective WSVs \wsvindex{mag\_w\_field}, 
-\wsvindex{mag\_v\_field}, and \wsvindex{mag\_u\_field}. For more information on
-magnetic field format in ARTS see Section~\ref{sec:atm:vecfields}.
+field into the model. This can be done either by calling \wsmindex{MagFieldsCalcIGRF} (earth only model),
+or by manually supplying raw magnetic field measurements on a gridded field and use
+the combination of \wsmindex{MagRawRead} and one of \wsmindex{MagFieldsCalc}, \wsmindex{MagFieldsCalcExpand1D},
+or \wsmindex{MagFieldsFromAltitudeRawCalc}.  Since altitude and not pressure is the natural coordinate for magnetic fields,
+it is required that \wsvindex{z\_field} and/or the \wsvindex{refellipsoid} are defined.  Note that it is possible but absolutely
+not recommended to use pressure as your altitude coordinate.
 
 \subsection{Internal line-mixing}
 \label{sec:absorption:line-mixing}
 
-Line mixing is implemented as the \verb|-LM-| species tag.  Added to 
-a species, ARTS knows that it should look for lines with
-line mixing data attached to them when it calculates the spectral cross sections.
-Note that each line is initialized without any line mixing data, and with a tag 
-state that says they are not to be line mixed.  If this is not changed before the
-absorption calculations are performed, the line will regardless of species tag still
-act like if it were not line mixed.  Also note that it is possible to calculate line mixing
-in conjuncture with the Zeeman effect, but that it is not possible to calculate the line mixing
-of individual Zeeman lines, which as far as we know when writing this is unimportant.
+Line mixing is provided together with the line-by-line data and is then computed naturally during line-by-line
+calculations.  If no such data is provided, line mixing is not computed.
 
-The possible tags on species \verb|X| that activates the line mixing module are thus
-\verb|X-LM-*|, and \verb|X-Z-LM-*|.
-The supported ways to ensure that the line record contains information on
-how to calculate line mixing, thus not ignoring it, are 
-\begin{itemize}
- \item Read an ARTS catalogue file with line mixing parameters.
- \item Read LBLRTM line catalogue containing line mixing parameters using 
- \verb|abs_linesReadFromLBLRTM(*)|.
-\end{itemize}
-There is no preferred method in ARTS --- each work the same when they reach the absorption
-calculations --- but we urge the user to be sure that line mixing data and the line database
-are of the same origin, as the calculations will be of poor quality if this is not the case.
-
-Example control file meta flow for code calculating line mixing using \verb|abs_linesReadFromLBLRTM|:
-\begin{code}
-# Define your atmospheric species,
-abs_speciesSet(species=["O2-Z-LM","CO2-LM"])
-
-# read from a line database,
-abs_linesReadFromLBLRTM(filename="aer", 
-    fmin=1e1,fmax=1e20)
-\end{code}
-Note that this meta flow is very similar to using an ARTS catalogue with line mixing.
-These methods are easy, because they identity what line mixing method will be used 
-directly from the catalogue.
-It should be noted that LBLRTM also gives the non-resonant term of the molecular oxygen
-spectra as a low frequency line.  If it is desired to calculate this term, the lower
-frequency range must contain the line as per the definition of our reading routines.
+You can deactivate line mixing calculations manually using one of the methods that sets the line mixing limit.
+As an example, \wsmindex{abs\_linesSetLinemixingLimit} sets the line mixing limit for all lines in \wsvindex{abs\_lines}.
+Only at pressures higher than this line mixing limit will the line mixing calculations be available, so setting this
+much higher than the pressure will ensure that no line mixing is computed.
 
 \subsection{Faraday rotation}
 \label{sec:absorption:faraday}
 
 Faraday rotation is a change of polarization state of radiation in interaction
-with (free) electrons in presence of a static magnatic field. For further
+with (free) electrons in presence of a static magnetic field. For further
 details on theory and usage in ARTS see Section~\ref{sec:faraday}.
 Here we only give a short summary how to setup the calculation of Faraday
 contribution to the absorption (or better: propagation) matrix

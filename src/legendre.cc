@@ -1983,9 +1983,11 @@ namespace Legendre {
 //! Converts latitude to co-latitude with a small distance from the poles and flags if this was activated
 struct ColatitudeConversion {
   static constexpr Numeric dlat_lim = 1e-4;
+
   const bool high;
   const bool low;
   const Numeric theta;
+
   constexpr ColatitudeConversion(const Numeric latitude) noexcept :
   high(latitude > (90.0 - dlat_lim)), low(latitude < (dlat_lim - 90.0)),
   theta(high ? Conversion::deg2rad(dlat_lim) : (low ? Conversion::deg2rad(180.0 - dlat_lim) : Conversion::deg2rad(90.0 - latitude))) {}
@@ -2010,9 +2012,14 @@ constexpr Numeric longitude_clamp(const Numeric lon) {
  * The derivative is undefined if theta is 0 or pi, so the function cannot
  * be called with these values
  * 
+ * This function is taken from the implementation by Isabela de Oliveira Martins
+ * at https://github.com/de-oliveira/IsabelaFunctions/blob/master/IsabelaFunctions/fieldmodel.py
+ * (2021-05-06).  It implements the calculations step-by-step, updating both main and derivative
+ * based on previous values.
+ * 
  * @param[in] theta Colatitude in radians
  * @param[in] nmax Max number of n
- * @return The pair of (nmax+1) x (nmax+1) matrices
+ * @return The pair of (nmax+1) x (nmax+1) matrices, order: main and derivative
  */
 std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax) ARTS_NOEXCEPT {
   ARTS_ASSERT(theta > 0 and theta < Constant::pi)
@@ -2073,24 +2080,6 @@ std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax) ARTS_NO
 }
 
 
-/** Computes the spherical field
- * 
- * If latitude is beyond a limit, the longitude is set to zero
- * and the latitude at the limit away from the pole is used.
- * 
- * The latitude limit is defined in the ColatitudeConversion struct.
- * 
- * The longitude is constrained to the range [-180, 180) to have consistent
- * behavior at the daytime border
- * 
- * @param[in] g A N x N matrix of g-coefficients
- * @param[in] h A N x N matrix of h-coefficients
- * @param[in] r0 The reference radius (spherical)
- * @param[in] r The actual radius (spherical)
- * @param[in] lat The latitude (spherical)
- * @param[in] lon The longitude (spherical)
- * @return A spherical field
- */
 SphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric r0,
                                  const Numeric r, const Numeric lat, const Numeric lon) ARTS_NOEXCEPT {
   ARTS_ASSERT(lat >= -90 and lat <= 90, "Latitude is ", lat, " should be in [-90, 90]")
@@ -2135,7 +2124,7 @@ SphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric
   
   // Adjust by theta (nb. can be nan when undefined, but set to zero instead)
   if (high_lat or low_lat) {
-    F.S = std::hypot(F.S, F.E);  // FIXME: Should I care about the sign?
+    F.S = F.total_horizontal();
     F.E = 0;
   }
   
@@ -2143,18 +2132,6 @@ SphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric
 }
 
 
-/** Computes the spherical field for many radius and longitudes
- * 
- * See purely Numeric implementation for more information
- * 
- * @param[in] g A N x N matrix of g-coefficients
- * @param[in] h A N x N matrix of h-coefficients
- * @param[in] r0 The reference radius (spherical)
- * @param[in] r The actual radius (spherical)
- * @param[in] lat The latitude (spherical)
- * @param[in] lon The longitude (spherical)
- * @return A spherical field
- */
 MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric r0, const Vector& rv, const Numeric lat, const Vector& lonv) ARTS_NOEXCEPT {
   ARTS_ASSERT(lat >= -90 and lat <= 90, "Latitude is ", lat, " should be in [-90, 90]")
   
@@ -2213,7 +2190,7 @@ MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const
       
       // Adjust by theta (nb. can be nan when undefined, but set to zero instead)
       if (high_lat or low_lat) {
-        F.S = std::hypot(F.S, F.E);  // FIXME: Should I care about the sign?
+        F.S = F.total_horizontal();
         F.E = 0;
       }
     }
@@ -2223,7 +2200,7 @@ MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const
 }
 #pragma GCC diagnostic pop
 
-
+//! Computes the altitude, latitude and longitude in relation to the ellopsiod using non-iterative method
 std::array<Numeric, 3> to_geodetic(const std::array<Numeric, 3> xyz, const std::array<Numeric, 2> ell) noexcept {
   using Constant::pow2;
   using Constant::pow3;

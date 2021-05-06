@@ -4,7 +4,22 @@
 #include "igrf13.h"
 #include "legendre.h"
 
+/** International Geomagnetic Reference Field version 13
+ * 
+ * The data from the years 2000-2020 inclusive is available below
+ * 
+ * The IGRF model provides model data for \f$g\f$ and \f$h\f$ in the spherical harmonics
+ * 
+ * \f[
+ * V(r, \theta, \phi, t) = a \sum_{n=1}^N\sum_{m=0}^n\left(\frac{a}{r}\right)^{n+1}\left[g_n^m\left(t\right)\cos\left(m\phi\right) + h_n^m\left(t\right)\sin\left(m\phi\right)\right] P_n^m\left(\cos\theta\right),
+ * \f]
+ * 
+ * where \f$r\f$ is the radius, \f$\theta\f$ is the colatitude, \f$\phi\f$ is the longitude, \f$t\f$ is the time, \f$a\f$ is the reference radius at 6371.2 km, and \f$P_n^m\left(\cos\theta\right)\f$ are the Schmidth normalized Legendre polynominal.
+ * 
+ * The magnetic field itself is computed from the gradients of \f$ V(r, \theta, \phi, t) \f$
+ */
 namespace IGRF {
+//! g-coefficients for 2020 (14x14 matrix)
 constexpr std::array<Numeric, 196> g2020{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29404.8, -1450.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -22,6 +37,7 @@ constexpr std::array<Numeric, 196> g2020{
   0.1, -0.9, 0.5, 0.7, -0.3, 0.8, 0.0, 0.8, 0.0, 0.4, 0.1, 0.5, -0.5, -0.4, 
 };
 
+//! h-coefficients for 2020 (14x14 matrix)
 constexpr std::array<Numeric, 196> h2020{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 4652.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -39,6 +55,7 @@ constexpr std::array<Numeric, 196> h2020{
   0.0, -0.9, 0.6, 1.4, -0.4, -1.3, -0.1, 0.3, -0.1, 0.5, 0.5, -0.4, -0.4, -0.6, 
 };
 
+//! g-coefficients for 2015 (14x14 matrix)
 constexpr std::array<Numeric, 196> g2015{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29441.46, -1501.77, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -56,6 +73,7 @@ constexpr std::array<Numeric, 196> g2015{
   -0.02, -0.92, 0.42, 0.63, -0.42, 0.96, -0.19, 0.81, -0.13, 0.38, 0.08, 0.46, -0.35, -0.36, 
 };
 
+//! h-coefficients for 2015 (14x14 matrix)
 constexpr std::array<Numeric, 196> h2015{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 4795.99, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -73,6 +91,7 @@ constexpr std::array<Numeric, 196> h2015{
   0.0, -0.88, 0.49, 1.56, -0.5, -1.24, -0.1, 0.42, -0.04, 0.48, 0.48, -0.3, -0.43, -0.71, 
 };
 
+//! g-coefficients for 2010 (14x14 matrix)
 constexpr std::array<Numeric, 196> g2010{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29496.57, -1586.42, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -90,6 +109,7 @@ constexpr std::array<Numeric, 196> g2010{
   -0.09, -0.89, 0.31, 0.42, -0.45, 1.08, -0.31, 0.78, -0.18, 0.38, 0.02, 0.42, -0.26, -0.26, 
 };
 
+//! h-coefficients for 2010 (14x14 matrix)
 constexpr std::array<Numeric, 196> h2010{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 4944.26, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -107,6 +127,7 @@ constexpr std::array<Numeric, 196> h2010{
   0.0, -0.87, 0.3, 1.66, -0.59, -1.14, -0.07, 0.54, 0.1, 0.49, 0.44, -0.25, -0.53, -0.79, 
 };
 
+//! g-coefficients for 2005 (14x14 matrix)
 constexpr std::array<Numeric, 196> g2005{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29554.63, -1669.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -124,6 +145,7 @@ constexpr std::array<Numeric, 196> g2005{
   -0.16, -0.88, 0.3, 0.28, -0.43, 1.18, -0.37, 0.75, -0.26, 0.35, -0.05, 0.41, -0.1, -0.18, 
 };
 
+//! h-coefficients for 2005 (14x14 matrix)
 constexpr std::array<Numeric, 196> h2005{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 5077.99, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -141,6 +163,7 @@ constexpr std::array<Numeric, 196> h2005{
   0.0, -0.76, 0.33, 1.72, -0.54, -1.07, -0.04, 0.63, 0.21, 0.53, 0.38, -0.22, -0.57, -0.82, 
 };
 
+//! g-coefficients for 2000 (14x14 matrix)
 constexpr std::array<Numeric, 196> g2000{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29619.4, -1728.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -158,6 +181,7 @@ constexpr std::array<Numeric, 196> g2000{
   -0.2, -0.9, 0.3, 0.1, -0.4, 1.3, -0.4, 0.7, -0.4, 0.3, -0.1, 0.4, 0.0, 0.1, 
 };
 
+//! h-coefficients for 2000 (14x14 matrix)
 constexpr std::array<Numeric, 196> h2000{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 5186.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -175,8 +199,10 @@ constexpr std::array<Numeric, 196> h2000{
   0.0, -0.9, 0.2, 1.8, -0.4, -1.0, -0.1, 0.7, 0.3, 0.6, 0.3, -0.2, -0.5, -0.9, 
 };
 
+//! The reference radius in IGRF13
 constexpr Numeric r0{6371.2e3};
 
+//! Create the square matrix from the static data
 Matrix matrix(const std::array<Numeric, 196> data) {
   Matrix m(14, 14);
   Index k = 0;
@@ -184,6 +210,15 @@ Matrix matrix(const std::array<Numeric, 196> data) {
   return m;
 }
 
+/** Get the radius from ellipsoidal coordinates
+ * 
+ * @param[in] h Altitude [m]
+ * @param[in] lat Latitude [deg]
+ * @param[in] lon Longitude [deg]
+ * @param[in] a Semi-major axis [m]
+ * @param[in] e Eccentricity [-]
+ * @return Radius [m]
+ */
 Numeric radius(const Numeric h, const Numeric lat, const Numeric lon, const Numeric a, const Numeric e) ARTS_NOEXCEPT {
   using std::sqrt;
   using Conversion::pow2;
@@ -199,6 +234,18 @@ Numeric radius(const Numeric h, const Numeric lat, const Numeric lon, const Nume
                      (N * (1 - pow2(e)) + h) * sind(lat));
 }
 
+/** Perform all computations on pre-allocated local data
+ * 
+ * \param[in,out] out Size-initialized output data
+ * \param[in] r Pre-allocated radius vector to be filled-up internally
+ * \param[in] g The g-coefficients for the Legendre calculations
+ * \param[in] h The h-coefficients for the Legendre calculations
+ * \param[in] z_field As WSV
+ * \param[in] lat_grid As WSV
+ * \param[in] lon_grid As WSV
+ * \param[in] ell As WSV called refellipsoid
+ * \param[in] scale the addition scales with this, set to 1.0 for complete calculations
+ */
 void compute_impl(MagneticField& out,
                   Vector& r,
                   const Matrix& g,
