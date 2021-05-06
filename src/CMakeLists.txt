@@ -209,7 +209,6 @@ add_library (artscore STATIC
   jacobian.cc
   legacy_continua.cc
   legendre.cc
-  legendre2.cc
   lin_alg.cc
   linemixing.cc
   linemixing_hitran.cc
@@ -404,16 +403,6 @@ target_link_libraries (test_gridded_fields matpack)
 
 add_executable (test_interpolation test_interpolation.cc)
 target_link_libraries (test_interpolation ${ALL_ARTS_LIBRARIES})
-
-########### next testcase ###############
-
-add_executable (test_legendre
-  constants.cc
-  math_funcs.cc
-  legendre.cc
-  test_legendre.cc)
-
-target_link_libraries (test_legendre matpack)
 
 ########### next testcase ###############
 

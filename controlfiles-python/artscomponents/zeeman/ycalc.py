@@ -193,10 +193,13 @@ if DO_SAVE:
     pyarts.xml.save(arts.y.value, os.path.join(testdir, "refdata.xml"), precision='g')
 
 if CF_SAVE:
-    y = pyarts.xml.load(os.path.join(testdir, "refdata.xml"))
+    arts.VectorCreate("yref")
+    arts.ReadXML(arts.yref, os.path.join(testdir, "refdata.xml"))
     
     if SHOW_PLOTS:
         f = (arts.f_grid.value - CENTRAL_LINE_FREQ) / 1e6  # MHz
+        y = arts.yref.value
+        
         plt.plot(f, y[::4].reshape(NR, NF).T)
         plt.xlabel("Freq offset [MHz]")
         plt.ylabel("I [K]")
@@ -225,7 +228,7 @@ if CF_SAVE:
         plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
         plt.show()
     
-    assert np.isclose(y, arts.y.value).all(), "Bad values in comparison"
+    arts.CompareRelative(arts.yref, arts.y, 1e-5, "y reference validation failed")
 
 #%% Plot current
 

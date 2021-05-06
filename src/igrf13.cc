@@ -2,7 +2,7 @@
 
 #include "constants.h"
 #include "igrf13.h"
-#include "legendre2.h"
+#include "legendre.h"
 
 namespace IGRF {
 constexpr std::array<Numeric, 196> g2020{

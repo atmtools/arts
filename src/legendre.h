@@ -32,6 +32,7 @@
 #define legendre_h
 
 #include "arts.h"
+#include "grids.h"
 #include "matpackI.h"
 
 typedef struct {
@@ -41,30 +42,22 @@ typedef struct {
   int precomputed; /* high precision abscissae/weights precomputed? */
 } gsl_integration_glfixed_table;
 
-Numeric legendre_poly(Index l, Index m, Numeric x);
-
-Numeric legendre_poly_norm_schmidt(Index l, Index m, Numeric x);
-
-Numeric legendre_poly_deriv(Index l, Index m, Numeric x);
-
-Numeric legendre_poly_norm_schmidt_deriv(Index l, Index m, Numeric x);
-
-Numeric g_legendre_poly(Index l, Index m, Numeric x);
-
-Numeric g_legendre_poly_norm_schmidt(Index l, Index m, Numeric x);
-
-Numeric g_legendre_poly_deriv(Index l, Index m, Numeric x);
-
-Numeric g_legendre_poly_norm_schmidt_deriv(Index l, Index m, Numeric x);
-
-Numeric g_legendre_poly_norm_schmidt_deriv1(Index l, Index m, Numeric x);
-
-Numeric g_legendre_poly_norm_schmidt_deriv2(Index l, Index m, Numeric x);
-
-Numeric g_legendre_poly_norm_schmidt_deriv3(Index l, Index m, Numeric x);
-
-Numeric g_legendre_poly_norm_schmidt_deriv4(Index l, Index m, Numeric x);
-
 bool gsl_integration_glfixed_table_alloc(Vector& x, Vector& w, Index n);
+
+namespace Legendre {
+  struct SphericalField {
+    Numeric U;
+    Numeric S;
+    Numeric E;
+    Numeric total() const noexcept {return std::hypot(U, S, E);}
+    constexpr SphericalField() noexcept : U(0), S(0), E(0) {}
+  };
+  
+  using MatrixOfSphericalField = Grid<SphericalField, 2>;
+  
+  SphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric r0, const Numeric r, const Numeric lat, const Numeric lon) ARTS_NOEXCEPT;
+  
+  MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric r0, const Vector& r, const Numeric lat, const Vector& lon) ARTS_NOEXCEPT;
+}
 
 #endif /* legendre_h */

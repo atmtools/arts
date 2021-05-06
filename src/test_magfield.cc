@@ -1,4 +1,4 @@
-#include "legendre2.h"
+#include "legendre.h"
 
 std::string gstr =
 " 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
