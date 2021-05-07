@@ -5,6 +5,8 @@
 This package contains the internal implementation for writing ARTS XML files.
 """
 
+import numbers
+
 import numpy as np
 
 from .names import dimension_names
@@ -121,7 +123,7 @@ class ARTSXMLWriter:
             var.write_xml(self, attr)
         elif isinstance(var, np.ndarray):
             self.write_ndarray(var, attr)
-        elif isinstance(var, int):
+        elif isinstance(var, numbers.Integral):
             self.write_basic_type('Index', var, attr)
         elif isinstance(var, float):
             self.write_basic_type('Numeric', var, attr, self.precision)
