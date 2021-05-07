@@ -82,13 +82,18 @@ def save(var, filename, precision='.7e', format='ascii', comment=None,
             raise RuntimeError('Unknown output format "{}".'.format(format))
 
 
-def load(filename):
+def load(filename, search_arts_path=True):
     """Load a variable from an ARTS XML file.
 
-    The input file can be either a plain or gzipped XML file
+    The input file can be either a plain or gzipped XML file.
+
+    By default, the current directory, ARTS_INCLUDE_PATH and ARTS_DATA_PATH
+    environment variables are searched (in that order) if the passed filename is
+    a relative path.
 
     Args:
         filename (str): Name of ARTS XML file.
+        search_arts_path (bool): Set to False to ignore ARTS search paths.
 
     Returns:
         Data from the XML file. Type depends on data in file.
@@ -99,6 +104,17 @@ def load(filename):
                [ 2.,  3.]])
 
     """
+
+    if search_arts_path and not os.path.isabs(filename):
+        # Use dict to remove duplicate paths from list and preserve order
+        for path in dict.fromkeys(
+            [""] + os.environ.get("ARTS_INCLUDE_PATH", "").split(":") +
+                os.environ.get("ARTS_DATA_PATH", "").split(":")).keys():
+            checkfile = os.path.join(path, filename)
+            if isfile(checkfile) or isfile(checkfile + ".gz"):
+                filename = checkfile
+                break
+
     # If file is not found, try the gzipped version.
     if not isfile(filename):
         if not isfile(filename + '.gz'):
