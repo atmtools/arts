@@ -188,9 +188,10 @@ class TestSave:
             if os.path.isfile(f):
                 os.remove(f)
 
-    def test_save_index(self):
+    @pytest.mark.parametrize("inttype", (int, np.int32, np.int64))
+    def test_save_index(self, inttype):
         """Save Index to file, read it and compare the results."""
-        reference = 0
+        reference = inttype(0)
         xml.save(reference, self.f)
         test_data = xml.load(self.f)
         assert test_data == reference
@@ -273,16 +274,18 @@ class TestSave:
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
 
-    def test_save_arrayofindex(self):
+    @pytest.mark.parametrize("inttype", (int, np.int32, np.int64))
+    def test_save_arrayofindex(self, inttype):
         """Save ArrayOfIndex to file, read it and compare the results."""
-        reference = [1., 2., 3.]
+        reference = [inttype(i) for i in [1., 2., 3.]]
         xml.save(reference, self.f)
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
 
-    def test_save_arrayofindex_binary(self):
+    @pytest.mark.parametrize("inttype", (int, np.int32, np.int64))
+    def test_save_arrayofindex_binary(self, inttype):
         """Save ArrayOfIndex to binary file, read it and compare the result."""
-        reference = [1., 2., 3.]
+        reference = [inttype(i) for i in [1., 2., 3.]]
         xml.save(reference, self.f, format='binary')
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
