@@ -119,6 +119,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfRetrievalQuantity");
   wsv_group_names.push_back("ArrayOfScatteringMetaData");
   wsv_group_names.push_back("ArrayOfSingleScatteringData");
+  wsv_group_names.push_back("ArrayOfSpeciesTag");
   wsv_group_names.push_back("ArrayOfSparse");
   wsv_group_names.push_back("ArrayOfStokesVector");
   wsv_group_names.push_back("ArrayOfString");

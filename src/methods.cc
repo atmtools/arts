@@ -12650,13 +12650,14 @@ void define_md_data_raw() {
          "rtp_vmr",
          "nlte_do",
          "lbl_checked"),
-      GIN("sparse_df", "sparse_lim", "speedup_option"),
-      GIN_TYPE("Numeric", "Numeric", "String"),
-      GIN_DEFAULT("0", "0", "None"),
+      GIN("sparse_df", "sparse_lim", "speedup_option", "select_species"),
+      GIN_TYPE("Numeric", "Numeric", "String", "ArrayOfSpeciesTag"),
+      GIN_DEFAULT("0", "0", "None", NODEF),
       GIN_DESC(
         "The grid sparse separation",
         "The dense-to-sparse limit",
-        "Speedup logic"
+        "Speedup logic",
+        "Species selection (will only compute for the select species in *abs_species*)"
       )));
 
   md_data_raw.push_back(create_mdrecord(

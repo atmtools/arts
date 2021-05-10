@@ -1482,6 +1482,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const Numeric& sparse_df,
     const Numeric& sparse_lim,
     const String& speedup_option,
+    const ArrayOfSpeciesTag& select_species,
     // Verbosity object:
     const Verbosity& verbosity) {
   
