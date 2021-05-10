@@ -59,6 +59,11 @@ TokVal::operator ArrayOfIndex() const {
   return mnv;
 }
 
+TokVal::operator ArrayOfSpeciesTag() const {
+  ARTS_ASSERT(mtype == Array_SpeciesTa_t);
+  return mnst;
+}
+
 TokVal::operator Vector() const {
   ARTS_ASSERT(mtype == Vector_t);
   return mxv;

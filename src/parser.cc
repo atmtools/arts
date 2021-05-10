@@ -670,6 +670,19 @@ String ArtsParser::set_gin_to_default(const MdRecord* mdd,
         throw ParseError(os.str(), p.file(), p.line(), p.column());
       }
       tv = v;
+    } else if (mdd->GInType()[gin_index] == get_wsv_group_id("ArrayOfSpeciesTag")) {
+      ArrayOfSpeciesTag v;
+      String s = mdd->GInDefault()[gin_index];
+      if (s.nelem()) {
+        try {
+          array_species_tag_from_string(v, s);
+        } catch (std::exception& e) {
+          std::ostringstream os;
+          os << e.what() << os_default_error.str();
+          throw ParseError(os.str(), msource.File(), msource.Line(), msource.Column());
+        }
+      }
+      tv = v;
     } else {
       using global_data::wsv_group_names;
       ostringstream os;
@@ -1585,6 +1598,7 @@ void ArtsParser::tasklist_insert_set_delete(
         auto_group != get_wsv_group_id("Numeric") &&
         auto_group != get_wsv_group_id("ArrayOfIndex") &&
         auto_group != get_wsv_group_id("ArrayOfString") &&
+        auto_group != get_wsv_group_id("ArrayOfSpeciesTag") &&
         auto_group != get_wsv_group_id("String") &&
         auto_group != get_wsv_group_id("Vector") &&
         auto_group != get_wsv_group_id("Matrix")) {
