@@ -1824,6 +1824,14 @@ Index ArtsParser::read_name_or_value(String& name,
     ArrayOfIndex dummy;
     parse_intvector(dummy);
     auto_vars_values.push_back(dummy);
+  } else if (group == get_wsv_group_id("ArrayOfSpeciesTag")) {
+    String dummy;
+    parse_String(dummy);
+    ArrayOfSpeciesTag aost;
+    if (dummy.nelem()) {
+      array_species_tag_from_string(aost, dummy);
+    }
+    auto_vars_values.push_back(aost);
   } else if (group == get_wsv_group_id("Vector")) {
     Vector dummy;
     parse_numvector(dummy);

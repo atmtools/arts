@@ -68,7 +68,7 @@ Arts2{
   # Perform calculations for analytical propagation matrix and derivatives
   lbl_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddLines
+  propmat_clearskyAddLines(select_speciestags="O2-66")
   #WriteXML("ascii", propmat_clearsky, "testdata/test-lm-lp/propmat.xml")
   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-lm-lp/dpropmat.xml")
   ReadXML(testdata, "testdata/test-lm-lp/propmat.xml")
