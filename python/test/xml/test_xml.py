@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Testing high-level functionality in arts.xml.
 """
+from os import environ
 from os.path import (dirname, join)
 
 import numpy as np
@@ -26,3 +27,15 @@ class TestXML:
 
         with pytest.raises(KeyError):
             t['vector']
+
+    def test_load_xml_search_arts_path(self):
+        """Test loading file from ARTS_DATA_PATH"""
+        backup_path = environ.get("ARTS_DATA_PATH")
+        environ["ARTS_DATA_PATH"] = self.ref_dir
+
+        xml.load("vector.xml")
+
+        if backup_path:
+            environ["ARTS_DATA_PATH"] = backup_path
+        else:
+            environ.pop("ARTS_DATA_PATH")
