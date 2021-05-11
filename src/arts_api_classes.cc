@@ -289,6 +289,11 @@ VoidArrayCAPI(ArrayOfArrayOfSpeciesTag)
 BasicInterfaceCAPI(ArrayOfArrayOfSpeciesTag)
 BasicInputOutputCAPI(ArrayOfArrayOfSpeciesTag)
 
+void * getNameSpeciesTag(void * data)
+{
+  return new String(static_cast<SpeciesTag *>(data) -> Name());
+}
+
 Index setSpeciesTag(void * data, char * newdata)
 {
   try {

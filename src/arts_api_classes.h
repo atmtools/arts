@@ -209,6 +209,7 @@ extern "C" {
     VoidArrayCAPI(ArrayOfArrayOfSpeciesTag)
     BasicInterfaceCAPI(ArrayOfArrayOfSpeciesTag)
     BasicInputOutputCAPI(ArrayOfArrayOfSpeciesTag)
+    DLL_PUBLIC void * getNameSpeciesTag(void *);
     DLL_PUBLIC Index setSpeciesTag(void *, char *);
     DLL_PUBLIC Index validSpecies(Index);
     DLL_PUBLIC Index validAllIsotopologues(Index, Index);

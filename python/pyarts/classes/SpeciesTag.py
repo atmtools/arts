@@ -4,6 +4,7 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
+from pyarts.classes.BasicTypes import String
 
 
 class SpeciesTag:
@@ -197,6 +198,11 @@ class SpeciesTag:
     def cia_type(self):
         """ Returns the CIA type """
         return lib.string2indexTypeSpeciesTag(self.__data__, "TYPE_CIA".encode("ascii"))
+    
+    @property
+    def as_string(self):
+        """ Returns the name as a String """
+        return String(c.c_void_p(lib.getNameSpeciesTag(self.__data__)), delete=True)
 
     def validCIASpecies(self):
         """ Returns whether cia species is a valid species according to ARTS
@@ -396,6 +402,9 @@ lib.setTypeSpeciesTag.argtypes = [c.c_void_p, c.c_long]
 
 lib.setCIASecondSpeciesTag.restype = None
 lib.setCIASecondSpeciesTag.argtypes = [c.c_void_p, c.c_long]
+
+lib.getNameSpeciesTag.restype = c.c_void_p
+lib.getNameSpeciesTag.argtypes = [c.c_void_p]
 
 lib.setCIADatasetSpeciesTag.restype = None
 lib.setCIADatasetSpeciesTag.argtypes = [c.c_void_p, c.c_long]
