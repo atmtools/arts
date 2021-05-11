@@ -2528,18 +2528,6 @@ void frequency_loop(ComputeValues &com,
   }
 }
 
-
-/** Select cutoff as the positive value closes to the line center
- * 
- * @param[in] f0 Line center
- * @param[in] fu Upper cutoff
- * @param[in] fl Lower cutoff
- * @return A cutoff frequency
- */
-constexpr Numeric select_cutoff(Numeric f0, Numeric fu, Numeric fl) noexcept {
-  return (fl <= 0) ? fu : ((fu - f0) < (f0 - fl)) ? fu : fl;
-}
-
 /** Cutoff considerations of the line shape
  *
  * This function takes care of setting up cutoff and line shape considerations
@@ -2597,8 +2585,8 @@ void cutoff_loop_sparse_linear(ComputeData &com,
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
   const Index nj = derivs.nelem();
-  const Numeric fu = band.CutoffFreq(i);
-  const Numeric fl = band.CutoffFreqMinus(i, f_mean);
+  const Numeric fu = band.CutoffFreq(i, X.D0);
+  const Numeric fl = band.CutoffFreqMinus(i, f_mean, X.D0);
   const Numeric fus = band.F0(i) + sparse_lim;
   const Numeric fls = band.F0(i) - sparse_lim;
 
@@ -2616,7 +2604,7 @@ void cutoff_loop_sparse_linear(ComputeData &com,
   // Define the cutoff
   Complex Fc=0, Nc=0;
   std::vector<Complex> dFc(do_cutoff ? nj : 0, 0), dNc((do_cutoff and do_nlte) ? nj : 0, 0);
-  ComputeValues cut(Fc, dFc, Nc, dNc, select_cutoff(band.F0(i), fu, fl), derivs, do_nlte);
+  ComputeValues cut(Fc, dFc, Nc, dNc, fu, derivs, do_nlte);
   
   // Get views of the sparse data
   ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, derivs, do_nlte);
@@ -2682,8 +2670,8 @@ void cutoff_loop_sparse_triple(ComputeData &com,
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
   const Index nj = derivs.nelem();
-  const Numeric fu = band.CutoffFreq(i);
-  const Numeric fl = band.CutoffFreqMinus(i, f_mean);
+  const Numeric fu = band.CutoffFreq(i, X.D0);
+  const Numeric fl = band.CutoffFreqMinus(i, f_mean, X.D0);
   const Numeric fus = band.F0(i) + sparse_lim;
   const Numeric fls = band.F0(i) - sparse_lim;
 
@@ -2701,7 +2689,7 @@ void cutoff_loop_sparse_triple(ComputeData &com,
   // Define the cutoff
   Complex Fc=0, Nc=0;
   std::vector<Complex> dFc(do_cutoff ? nj : 0, 0), dNc((do_cutoff and do_nlte) ? nj : 0, 0);
-  ComputeValues cut(Fc, dFc, Nc, dNc, select_cutoff(band.F0(i), fu, fl), derivs, do_nlte);
+  ComputeValues cut(Fc, dFc, Nc, dNc, fu, derivs, do_nlte);
   
   // Get views of the sparse data
   ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, derivs, do_nlte);
@@ -2803,8 +2791,8 @@ void cutoff_loop(ComputeData &com,
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
   const Index nj = derivs.nelem();
-  const Numeric fu = band.CutoffFreq(i);
-  const Numeric fl = band.CutoffFreqMinus(i, f_mean);
+  const Numeric fu = band.CutoffFreq(i, X.D0);
+  const Numeric fl = band.CutoffFreqMinus(i, f_mean, X.D0);
 
   // Only for the cutoff-range
   const auto [cutstart, cutsize] = limited_range(fl, fu, com.f_grid);
@@ -2816,7 +2804,7 @@ void cutoff_loop(ComputeData &com,
   // Get the cutoff data view
   Complex Fc=0, Nc=0;
   std::vector<Complex> dFc(do_cutoff ? nj : 0, 0), dNc((do_cutoff and do_nlte) ? nj : 0, 0);
-  ComputeValues cut(Fc, dFc, Nc, dNc, select_cutoff(band.F0(i), fu, fl), derivs, do_nlte);
+  ComputeValues cut(Fc, dFc, Nc, dNc, fu, derivs, do_nlte);
   
   const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
   for (Index iz = 0; iz < nz; iz++) {

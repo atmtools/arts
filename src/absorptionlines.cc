@@ -3135,6 +3135,8 @@ String cutofftype2metadatastring(CutoffType in, Numeric cutoff) {
       os << "No cut-off will be applied.\n"; break;
     case CutoffType::ByLine:
       os << "The lines will be cut-off " << cutoff << " Hz from the line center.\n"; break;
+    case CutoffType::SpeedIndependentSymmetricByLine:
+      os << "The lines will be cut-off " << cutoff << " Hz from the line center + D0.\n"; break;
     case CutoffType::ByBand:
       os << "All lines are cut-off at " << cutoff << " Hz.\n"; break;
     case CutoffType::FINAL: break;
@@ -3378,10 +3380,12 @@ Numeric Lines::F_mean(const ConstVectorView wgts) const noexcept {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
-Numeric Lines::CutoffFreq(size_t k) const noexcept {
+Numeric Lines::CutoffFreq(size_t k, Numeric shift) const noexcept {
   switch(mcutoff) {
     case CutoffType::ByLine:
       return F0(k) + mcutofffreq;
+    case CutoffType::SpeedIndependentSymmetricByLine:
+      return F0(k) + shift + mcutofffreq;
     case CutoffType::ByBand:
       return mcutofffreq;
     case CutoffType::None:
@@ -3393,10 +3397,12 @@ Numeric Lines::CutoffFreq(size_t k) const noexcept {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
-Numeric Lines::CutoffFreqMinus(size_t k, Numeric fmean) const noexcept {
+Numeric Lines::CutoffFreqMinus(size_t k, Numeric fmean, Numeric shift) const noexcept {
   switch(mcutoff) {
     case CutoffType::ByLine:
       return F0(k) - mcutofffreq;
+    case CutoffType::SpeedIndependentSymmetricByLine:
+      return F0(k) + shift - mcutofffreq;
     case CutoffType::ByBand:
       return mcutofffreq - 2*fmean;
     case CutoffType::None:
