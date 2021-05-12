@@ -349,6 +349,26 @@ exec(array_base(SpeciesTag))
 exec(array_base(ArrayOfSpeciesTag))
 
 
+class ArrayOfSpeciesTagAdapted(ArrayOfSpeciesTag):
+    @property
+    def data(self):
+        return super().data
+
+    @data.setter
+    def data(self, val):
+        if isinstance(val, str) and val == "":
+            return
+        if isinstance(val, str):
+            val = [s.strip() for s in val.split(",")]
+        super(self.__class__, self.__class__).data.fset(self, val)
+
+    def __str__(self):
+        return '"' + ", ".join([str(s.as_string) for s in self.data]) + '"'
+
+
+ArrayOfSpeciesTag = ArrayOfSpeciesTagAdapted
+ArrayOfSpeciesTag.__name__ = "ArrayOfSpeciesTag"
+
 lib.createSpeciesTag.restype = c.c_void_p
 lib.createSpeciesTag.argtypes = []
 
