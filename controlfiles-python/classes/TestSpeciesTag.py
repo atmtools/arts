@@ -42,3 +42,6 @@ assert str(ws.ast.value) == '""'
 
 ws.ArrayOfSpeciesTagSet(ws.ast, ArrayOfSpeciesTag([SpeciesTag("O2-66")]))
 assert str(ws.ast.value) == '"O2-66-*-*"'
+
+ws.ArrayOfSpeciesTagSet(ws.ast, [SpeciesTag("O2-66"), SpeciesTag("O2-68")])
+assert str(ws.ast.value) == '"O2-66-*-*, O2-68-*-*"'
