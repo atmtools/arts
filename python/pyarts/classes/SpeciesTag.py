@@ -4,6 +4,7 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
+from pyarts.classes.BasicTypes import String
 
 
 class SpeciesTag:
@@ -197,6 +198,11 @@ class SpeciesTag:
     def cia_type(self):
         """ Returns the CIA type """
         return lib.string2indexTypeSpeciesTag(self.__data__, "TYPE_CIA".encode("ascii"))
+    
+    @property
+    def as_string(self):
+        """ Returns the name as a String """
+        return String(c.c_void_p(lib.getNameSpeciesTag(self.__data__)), delete=True)
 
     def validCIASpecies(self):
         """ Returns whether cia species is a valid species according to ARTS
@@ -343,6 +349,26 @@ exec(array_base(SpeciesTag))
 exec(array_base(ArrayOfSpeciesTag))
 
 
+class ArrayOfSpeciesTagAdapted(ArrayOfSpeciesTag):
+    @property
+    def data(self):
+        return super().data
+
+    @data.setter
+    def data(self, val):
+        if isinstance(val, str) and val == "":
+            return
+        if isinstance(val, str):
+            val = [s.strip() for s in val.split(",")]
+        super(self.__class__, self.__class__).data.fset(self, val)
+
+    def __str__(self):
+        return '"' + ", ".join([str(s.as_string) for s in self.data]) + '"'
+
+
+ArrayOfSpeciesTag = ArrayOfSpeciesTagAdapted
+ArrayOfSpeciesTag.__name__ = "ArrayOfSpeciesTag"
+
 lib.createSpeciesTag.restype = c.c_void_p
 lib.createSpeciesTag.argtypes = []
 
@@ -396,6 +422,9 @@ lib.setTypeSpeciesTag.argtypes = [c.c_void_p, c.c_long]
 
 lib.setCIASecondSpeciesTag.restype = None
 lib.setCIASecondSpeciesTag.argtypes = [c.c_void_p, c.c_long]
+
+lib.getNameSpeciesTag.restype = c.c_void_p
+lib.getNameSpeciesTag.argtypes = [c.c_void_p]
 
 lib.setCIADatasetSpeciesTag.restype = None
 lib.setCIADatasetSpeciesTag.argtypes = [c.c_void_p, c.c_long]

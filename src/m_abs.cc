@@ -1482,6 +1482,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const Numeric& sparse_df,
     const Numeric& sparse_lim,
     const String& speedup_option,
+    const ArrayOfSpeciesTag& select_speciestags,
     // Verbosity object:
     const Verbosity& verbosity) {
   
@@ -1535,6 +1536,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
 
   if (legacy_vmr_derivative) {
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
+      if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
+      
       // Skip it if there are no species or there is Zeeman requested
       if (not abs_species[ispecies].nelem() or is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
         continue;
@@ -1594,6 +1597,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
     }
   } else {
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
+      if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
+      
       // Skip it if there are no species or there is Zeeman requested
       if (not abs_species[ispecies].nelem() or is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
         continue;

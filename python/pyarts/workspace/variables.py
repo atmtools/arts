@@ -152,6 +152,7 @@ class WorkspaceVariable:
                  or None if the type is not supported.
         """
         import numpy as np
+        from pyarts import classes as native_classes
         if isinstance(value, WorkspaceVariable):
             return group_ids[value.group]
         elif isinstance(value, Agenda):
@@ -214,6 +215,9 @@ class WorkspaceVariable:
                         f"{type(nested_value)} not supported.")
         elif hasattr(value, 'write_xml') and type(value).__name__ in group_names:
             return group_ids[type(value).__name__]
+        elif hasattr(value, 'savexml') and hasattr(native_classes,
+                                                   type(value).__name__):
+            return group_ids[type(value).__name__]
         else:
             raise ValueError(f"Type {type(value)} currently not supported.")
 
@@ -230,6 +234,7 @@ class WorkspaceVariable:
             (any): The converted object or None is conversion was unsuccessful.
         """
         import numpy as np
+        from pyarts import classes as native_classes
 
         try:
             gid = cls.get_group_id(value)
@@ -255,6 +260,10 @@ class WorkspaceVariable:
         if (group[:6] == "Tensor"):
             dim = int(group[6])
             return np.array(value, dtype=np.float64, order='C', ndmin=dim)
+        if (group == "ArrayOfSpeciesTag"):
+            if isinstance(value, native_classes.ArrayOfSpeciesTag):
+                return value
+            return native_classes.ArrayOfSpeciesTag(value)
         if group.startswith("ArrayOf"):
             subgroup = group[7:]
             if hasattr(value, "__iter__"):

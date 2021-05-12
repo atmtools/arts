@@ -19,6 +19,7 @@
 #define token_h
 
 #include "array.h"
+#include "abs_species_tags.h"
 #include "matpackI.h"
 #include "mystring.h"
 
@@ -30,6 +31,7 @@ enum TokValType {
   Numeric_t,
   Array_String_t,
   Array_Index_t,
+  Array_SpeciesTag_t,
   Vector_t,
   Matrix_t,
   undefined_t
@@ -41,23 +43,23 @@ class TokVal {
  public:
   /** Default Constructor. (Sets type to undefined_t) */
   TokVal()
-      : mtype(undefined_t), ms(), mn(-1), mx(0.), msv(), mnv(), mxv(), mm() {}
+      : mtype(undefined_t), ms(), mn(-1), mx(0.), msv(), mnv(), mnst(), mxv(), mm() {}
 
   /** To set TokVal from String (C - style). */
   TokVal(const char s[])
-      : mtype(String_t), ms(s), mn(-1), mx(0.), msv(), mnv(), mxv(), mm() {}
+      : mtype(String_t), ms(s), mn(-1), mx(0.), msv(), mnv(), mnst(), mxv(), mm() {}
 
   /** To set TokVal from String (C++ - style). */
   TokVal(const String& s)
-      : mtype(String_t), ms(s), mn(-1), mx(0.), msv(), mnv(), mxv(), mm() {}
+      : mtype(String_t), ms(s), mn(-1), mx(0.), msv(), mnv(), mnst(), mxv(), mm() {}
 
   /** To set TokVal from an integer. */
   TokVal(Index n)
-      : mtype(Index_t), ms(), mn(n), mx(0.), msv(), mnv(), mxv(), mm() {}
+      : mtype(Index_t), ms(), mn(n), mx(0.), msv(), mnv(), mnst(), mxv(), mm() {}
 
   /** To set TokVal from a Numeric. */
   TokVal(Numeric x)
-      : mtype(Numeric_t), ms(), mn(-1), mx(x), msv(), mnv(), mxv(), mm() {}
+      : mtype(Numeric_t), ms(), mn(-1), mx(x), msv(), mnv(), mnst(), mxv(), mm() {}
 
   /** To set TokVal from an array of Strings. */
   TokVal(ArrayOfString sv)
@@ -67,6 +69,7 @@ class TokVal {
         mx(0.),
         msv(sv),
         mnv(),
+        mnst(),
         mxv(),
         mm() {}
 
@@ -78,16 +81,29 @@ class TokVal {
         mx(0.),
         msv(),
         mnv(nv),
+        mnst(),
+        mxv(),
+        mm() {}
+
+  /** To set TokVal from an array of species tags. */
+  TokVal(ArrayOfSpeciesTag nst)
+      : mtype(Array_SpeciesTag_t),
+        ms(),
+        mn(-1),
+        mx(0.),
+        msv(),
+        mnv(),
+        mnst(nst),
         mxv(),
         mm() {}
 
   /** To set TokVal from a Vector. */
   TokVal(Vector xv)
-      : mtype(Vector_t), ms(), mn(-1), mx(0.), msv(), mnv(), mxv(xv), mm() {}
+      : mtype(Vector_t), ms(), mn(-1), mx(0.), msv(), mnv(), mnst(), mxv(xv), mm() {}
 
   /** To set TokVal from a Matrix. */
   TokVal(Matrix m)
-      : mtype(Matrix_t), ms(), mn(-1), mx(0.), msv(), mnv(), mxv(), mm(m) {}
+      : mtype(Matrix_t), ms(), mn(-1), mx(0.), msv(), mnv(), mnst(), mxv(), mm(m) {}
 
   // Conversion functions to return TokVal for the 6 different types:
 
@@ -102,6 +118,8 @@ class TokVal {
   operator ArrayOfString() const;
   /** Return array of integers. */
   operator ArrayOfIndex() const;
+  /** Return array of integers. */
+  operator ArrayOfSpeciesTag() const;
   /** Return Vector. */
   operator Vector() const;
   /** Return Matrix. */
@@ -117,6 +135,7 @@ class TokVal {
   Numeric mx;
   ArrayOfString msv;
   ArrayOfIndex mnv;
+  ArrayOfSpeciesTag mnst;
   Vector mxv;
   Matrix mm;
 };

@@ -2972,6 +2972,21 @@ void define_md_data_raw() {
       SETMETHOD(true)));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ArrayOfSpeciesTagSet"),
+      DESCRIPTION("Creates an ArrayOfSpeciesTag from the given ArrayOfSpeciesTag.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("ArrayOfSpeciesTag"),
+      GOUT_DESC("Variable to initialize."),
+      IN(),
+      GIN("value"),
+      GIN_TYPE("ArrayOfSpeciesTag"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("List of SpeciesTag for initializiation."),
+      SETMETHOD(true)));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfIndexSetConstant"),
       DESCRIPTION("Creates an ArrayOfIndex of length *nelem*, with all values\n"
                   "identical.\n"),
@@ -12650,13 +12665,14 @@ void define_md_data_raw() {
          "rtp_vmr",
          "nlte_do",
          "lbl_checked"),
-      GIN("sparse_df", "sparse_lim", "speedup_option"),
-      GIN_TYPE("Numeric", "Numeric", "String"),
-      GIN_DEFAULT("0", "0", "None"),
+      GIN("sparse_df", "sparse_lim", "speedup_option", "select_speciestags"),
+      GIN_TYPE("Numeric", "Numeric", "String", "ArrayOfSpeciesTag"),
+      GIN_DEFAULT("0", "0", "None", ""),
       GIN_DESC(
         "The grid sparse separation",
         "The dense-to-sparse limit",
-        "Speedup logic"
+        "Speedup logic",
+        "Species selection (will only compute for the select species in *abs_species*)"
       )));
 
   md_data_raw.push_back(create_mdrecord(

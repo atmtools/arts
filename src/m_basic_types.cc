@@ -3132,3 +3132,13 @@ void PrintPhysicalConstants(const Verbosity& verbosity) {
        << "Doppler constant:       \t " << DOPPLER_CONST << '\n'
        << "---------------------------------------------------------\n";
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfSpeciesTagSet(ArrayOfSpeciesTag& sst,
+                          const ArrayOfSpeciesTag& sst2,
+                          const Verbosity&) {
+  sst = sst2;
+}
+

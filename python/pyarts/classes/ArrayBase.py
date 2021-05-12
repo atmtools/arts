@@ -119,7 +119,10 @@ def array_base(var):
                 self.size = len(val)
                 n = self.size
                 for i in range(n):
-                    self[i] = val[i]
+                    try:
+                        self[i] = val[i]
+                    except:
+                        self[i] = BASENAME(val[i])
             else:
                 raise TypeError("Expects list of values")
 
