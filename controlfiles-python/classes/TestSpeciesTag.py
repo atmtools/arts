@@ -1,5 +1,6 @@
 from pyarts.workspace import Workspace
-from pyarts.classes.SpeciesTag import SpeciesTag, ArrayOfArrayOfSpeciesTag
+from pyarts.classes.SpeciesTag import (SpeciesTag, ArrayOfSpeciesTag,
+                                       ArrayOfArrayOfSpeciesTag)
 from pyarts.classes import from_workspace
 
 
@@ -20,3 +21,24 @@ aast.savexml("tmp.aast.xml", "binary")
 aast2 = ArrayOfArrayOfSpeciesTag()
 aast2.readxml("tmp.aast.xml")
 assert aast == aast2
+
+# Test ArrayOfSpeciesTag
+ws.ArrayOfSpeciesTagCreate("ast")
+
+ws.ArrayOfSpeciesTagSet(ws.ast, "O2-66, O2-68")
+assert str(ws.ast.value) == '"O2-66-*-*, O2-68-*-*"'
+
+ws.ArrayOfSpeciesTagSet(ws.ast, ["O2-66", "O2-68"])
+assert str(ws.ast.value) == '"O2-66-*-*, O2-68-*-*"'
+
+ws.ArrayOfSpeciesTagSet(ws.ast, "O2-66")
+assert str(ws.ast.value) == '"O2-66-*-*"'
+
+ws.ArrayOfSpeciesTagSet(ws.ast, "")
+assert str(ws.ast.value) == '""'
+
+ws.ArrayOfSpeciesTagSet(ws.ast, None)
+assert str(ws.ast.value) == '""'
+
+ws.ArrayOfSpeciesTagSet(ws.ast, ArrayOfSpeciesTag([SpeciesTag("O2-66")]))
+assert str(ws.ast.value) == '"O2-66-*-*"'
