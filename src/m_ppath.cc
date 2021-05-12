@@ -1002,7 +1002,16 @@ void ppathFromRtePos2(Workspace& ws,
     if (std::isinf(za_new) || std::isnan(za_new) ||
         abs(za_new - rte_los[0]) < 0.99 * za_accuracy ||
         za_new <= za_low_limit || za_new >= za_upp_limit) {
+
+      //Additional exit condition to avoid endless loop.
+      if (abs(za_upp_limit-za_low_limit)<za_upp_limit*1e-15){
+        ppath_init_structure(ppath, atmosphere_dim, 1);
+        ppath_set_background(ppath, 0);
+        return;
+      }
+
       rte_los[0] = (za_low_limit + za_upp_limit) / 2;
+
     } else {
       rte_los[0] = za_new;
       if (atmosphere_dim == 3) {
