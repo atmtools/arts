@@ -1,6 +1,7 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
+from pyarts.classes.BasicTypes import String
 from pyarts.classes.GriddedField1 import ArrayOfGriddedField1
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 
@@ -50,6 +51,20 @@ class SpeciesAuxData:
         for s in range(len(x)):
             for i in range(len(x[s])):
                 x[s][i].set(other[s][i])
+
+    @property
+    def species(self):
+        x = []
+        s = 0
+        while len(x) == 0 or len(x[-1]) != 0:
+            i = 0
+            x.append([])
+            while lib.validindexSpeciesAuxData(self.__data__, int(s), int(i)):
+                x[-1].append(String(c.c_void_p(lib.getDataSpeciesAuxSpeciesName(self.__data__, int(s), int(i))), delete=True))
+                i += 1
+            s += 1
+        x.pop()
+        return x
 
     @property
     def types(self):
@@ -178,3 +193,6 @@ lib.setTypeFromIndexSpeciesAuxData.argtypes = [c.c_void_p, c.c_long, c.c_long, c
 
 lib.getTypeSpeciesAuxData.restype = c.c_long
 lib.getTypeSpeciesAuxData.argtypes = [c.c_void_p, c.c_long, c.c_long]
+
+lib.getDataSpeciesAuxSpeciesName.restype = c.c_void_p
+lib.getDataSpeciesAuxSpeciesName.argtypes = [c.c_void_p, c.c_long, c.c_long]

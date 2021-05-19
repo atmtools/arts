@@ -295,6 +295,9 @@ class SpeciesAuxData {
       return false;
   }
   
+  /** Returns full name of species */
+  String getParamSpecies(Index species, Index isotopologue) const;
+  
  private:
   ArrayOfArrayOfAuxData mparams;
   ArrayOfArrayOfAuxType mparam_type;

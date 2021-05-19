@@ -616,6 +616,7 @@ extern "C" {
     DLL_PUBLIC void * getDataSpeciesAuxData(void * data, Index s, Index i);
     DLL_PUBLIC Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t);
     DLL_PUBLIC Index getTypeSpeciesAuxData(void * data, Index s, Index i);
+    DLL_PUBLIC void * getDataSpeciesAuxSpeciesName(void * data, Index s, Index i);
     
     // CIARecord
     BasicInterfaceCAPI(CIARecord)

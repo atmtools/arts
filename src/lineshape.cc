@@ -1,3 +1,5 @@
+#include "partfun.h"
+
 #include <algorithm>
 #include <cmath>
 

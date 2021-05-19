@@ -169,7 +169,6 @@ if (NOT HAVE_GETOPT_H)
     arts_getopt.c arts_getopt1.c)
 endif (NOT HAVE_GETOPT_H)
 
-
 add_library (artscore STATIC
         auto_md.h
         auto_md.cc
@@ -182,6 +181,7 @@ add_library (artscore STATIC
   arts.cc
   arts_omp.cc
   artstime.cc
+  auto_partfun.h
   bifstream.cc
   binio.cc
   bofstream.cc
@@ -189,6 +189,7 @@ add_library (artscore STATIC
   cia.cc
   cloudbox.cc
   constants.cc
+  compile_time_tests.cc
   covariance_matrix.cc
   disort.cc
   docserver.cc
@@ -206,6 +207,7 @@ add_library (artscore STATIC
   igrf13.cc
   interpolation.cc
   interpolation_lagrange.cc
+  isotopologues.cc
   jacobian.cc
   legacy_continua.cc
   legendre.cc
@@ -297,6 +299,7 @@ add_library (artscore STATIC
   special_interp.cc
   species_data.cc
   species_info.cc
+  species_tags.cc
   surface.cc
   telsem.cc
   tessem.cc
@@ -593,7 +596,7 @@ add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts
 ########################################################################################
 
 ########################################################################################
-# Generate autoarts.h for the ARTS interface
+# Test that the autoarts.h linking can be understood by running a simple test
 add_executable(test_cpp_api test_cpp_api.cc)
 target_link_libraries(test_cpp_api public_arts_interface)
 add_dependencies(check-deps test_cpp_api)
@@ -611,3 +614,26 @@ if (ENABLE_GUI)
   add_executable(test_raw test_raw.cc)
   target_link_libraries(test_raw ${ALL_ARTS_LIBRARIES} public_arts_interface test_utils)
 endif()
+
+########################################################################################
+add_executable(gen_auto_partfun gen_auto_partfun.cc)
+target_link_libraries (gen_auto_partfun PRIVATE matpack xml)
+target_include_directories (gen_auto_partfun PRIVATE ../3rdparty/pugixml/)
+########################################################################################
+
+########################################################################################
+# Generate auto_partfun.h for the ARTS interface
+add_custom_command(OUTPUT auto_partfun.h
+                    COMMAND gen_auto_partfun ${ARTS_PARTFUN_DATA_PATH} > ${ARTS_BINARY_DIR}/src/auto_partfun.h
+                    DEPENDS gen_auto_partfun)
+########################################################################################
+
+########################################################################################
+add_executable(partfun partfun.cc auto_partfun.h)
+target_link_libraries (partfun PRIVATE matpack)
+########################################################################################
+
+########################################################################################
+add_executable(test_species_tags test_species_tags.cc)
+target_link_libraries (test_species_tags PRIVATE ${ALL_ARTS_LIBRARIES})
+########################################################################################

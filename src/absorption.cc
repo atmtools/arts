@@ -716,3 +716,9 @@ void xsec_species(Matrix& xsec,
   ARTS_USER_ERROR_IF (do_abort,
     "Error messages from failed cases:\n", fail_msg)
 }
+
+
+String SpeciesAuxData::getParamSpecies(Index species, Index isotopologue) const
+{
+  return global_data::species_data[species].FullName(isotopologue);
+}

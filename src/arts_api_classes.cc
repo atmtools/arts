@@ -823,6 +823,7 @@ bool validindexSpeciesAuxData(void * data, Index s, Index i) {return static_cast
 void * getDataSpeciesAuxData(void * data, Index s, Index i) {return &static_cast<SpeciesAuxData *>(data) -> Data(s, i);}
 Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t) {return static_cast<SpeciesAuxData *>(data) -> setParamType(s, i, t);}
 Index getTypeSpeciesAuxData(void * data, Index s, Index i) {return Index(static_cast<SpeciesAuxData *>(data) -> getParamType(s, i));}
+void * getDataSpeciesAuxSpeciesName(void * data, Index s, Index i) {return new String{static_cast<SpeciesAuxData *>(data) -> getParamSpecies(s, i)};}
 
 
 // CIARecord

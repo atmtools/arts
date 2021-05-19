@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<GriddedField1 name="Coeff">
+<Vector name="Coeff" nelem="4">
+0
+1
+2
+3
+</Vector>
+<Vector name="Data" nelem="4">
+-386.1117
+16.54635
+0.0763825
+-3.776153e-05
+</Vector>
+</GriddedField1>
+</arts>

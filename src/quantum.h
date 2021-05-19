@@ -38,6 +38,7 @@
 #include "matpack.h"
 #include "mystring.h"
 #include "rational.h"
+#include "species.h"
 
 /** Enum for Quantum Numbers used for indexing */
 ENUMCLASS(QuantumNumberType, char,
@@ -558,6 +559,7 @@ class QuantumIdentifier {
   QType mqtype;
   Index mspecies;
   Index miso;
+//   Index misotopologue_index;
   std::array<QuantumNumbers, 2> mqm;
 };
 
