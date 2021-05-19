@@ -1,6 +1,7 @@
 #ifndef species_tags_h
 #define species_tags_h
 
+#include "array.h"
 #include "mystring.h"
 #include "partfun.h"
 
@@ -61,8 +62,21 @@ struct Tag {
   
   String SpeciesName() const noexcept {return Isotopologues[spec_ind].FullName();}
   
+  const IsotopeRecord& Isotopologue() const noexcept {return Isotopologues[spec_ind];}
+  
   friend std::ostream& operator<<(std::ostream& os, const Tag& ot) {return os << ot.Name();}
 };
 }  // Species
+
+struct ArrayOfSpeciesTag2 : Array<Species::Tag> {
+  ArrayOfSpeciesTag2(String names);
+  friend std::ostream& operator<<(std::ostream& os, const ArrayOfSpeciesTag2& ot) {
+    bool first = true;
+    for (auto& x: ot) {if(not first) os << ' '; os << x; first = false;}
+    return os;
+  }
+};
+
+using ArrayOfArrayOfSpeciesTag2 = Array<ArrayOfSpeciesTag2>;
 
 #endif  // species_tags_h

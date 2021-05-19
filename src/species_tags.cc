@@ -296,3 +296,52 @@ String Tag::Name() const {
   return os.str();
 }
 }
+
+ArrayOfSpeciesTag2::ArrayOfSpeciesTag2(String names) {
+  // There can be a comma separated list of tag definitions, so we
+  // need to break the String apart at the commas.
+  ArrayOfString tag_def;
+  
+  bool go_on = true;
+  String these_names = names;
+  while (go_on) {
+    //          Index n = find_first( these_names, ',' );
+    Index n = these_names.find(',');
+    if (n == these_names.npos)  // Value npos indicates not found.
+    {
+      // There are no more commas.
+      //              cout << "these_names: (" << these_names << ")\n";
+      tag_def.push_back(these_names);
+      go_on = false;
+    } else {
+      tag_def.push_back(these_names.substr(0, n));
+      these_names.erase(0, n + 1);
+    }
+  }
+  // tag_def now holds the different tag Strings for this group.
+  
+  // Set size to zero, in case the method has been called before.
+  resize(0);
+
+  for (Index s = 0; s < tag_def.nelem(); ++s) {
+    Species::Tag this_tag(tag_def[s]);
+    
+    // Safety checks:
+    if (s > 0) {
+      // Tags inside a group must belong to the same species.
+      ARTS_USER_ERROR_IF (front().Isotopologue().spec != this_tag.Isotopologue().spec,
+                          "Tags in a tag group must belong to the same species.");
+      
+      // Zeeman tags and plain line by line tags must not be mixed. (Because
+      // there can be only one line list per tag group.)
+      ARTS_USER_ERROR_IF (((front().type == Species::TagType::Zeeman) &&
+                          (this_tag.type == Species::TagType::Plain)) ||
+                          ((front().type == Species::TagType::Plain) &&
+                          (this_tag.type == Species::TagType::Zeeman)),
+                                              "Zeeman tags and plain line-by-line tags must "
+                                              "not be mixed in the same tag group.");
+    }
+    
+    push_back(this_tag);
+  }
+}
