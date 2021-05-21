@@ -2417,7 +2417,6 @@ void define_md_data_raw() {
          "abs_vmrs",
          "abs_lines_per_species",
          "isotopologue_ratios",
-         "partition_functions",
          "lbl_checked"),
       GIN(),
       GIN_TYPE(),
@@ -3446,12 +3445,7 @@ void define_md_data_raw() {
           "*atmfields_checked* is set to 1.\n"
           "\n"
           "The cloudbox is covered by *cloudbox_checked*, *z_field* is\n"
-          "part of the checks done around *atmgeom_checked*.\n"
-          "\n"
-          "If you choose to use *bad_partition_functions_ok* please note that\n"
-          "this is done on your own risk and that it could introduce hard-to-\n"
-          "track errors into your calculations.  Do not use this for anything\n"
-          "important.\n"),
+          "part of the checks done around *atmgeom_checked*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("atmfields_checked"),
       GOUT(),
@@ -3470,14 +3464,12 @@ void define_md_data_raw() {
          "mag_u_field",
          "mag_v_field",
          "mag_w_field",
-         "partition_functions",
          "abs_f_interp_order"),
-      GIN("negative_vmr_ok", "bad_partition_functions_ok"),
-      GIN_TYPE("Index", "Index"),
-      GIN_DEFAULT("0", "0"),
-      GIN_DESC("Flag whether to accept vmr_field < 0.",
-               "Flag whether to accept partition functions not covering"
-               " *t_field* range.")));
+      GIN("negative_vmr_ok"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Flag whether to accept vmr_field < 0."
+               )));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atmgeom_checkedCalc"),
@@ -9568,7 +9560,7 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species", "abs_species", "isotopologue_ratios", "partition_functions"),
+      IN("abs_lines_per_species", "abs_species", "isotopologue_ratios"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -10841,7 +10833,6 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("abs_lines_per_species",
          "nlte_level_identifiers",
-         "partition_functions",
          "t_field"),
       GIN(),
       GIN_TYPE(),
@@ -11535,22 +11526,6 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("scat_meta"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("partition_functionsInitFromBuiltin"),
-      DESCRIPTION(
-          "Initialize partition functions with default values from built-in\n"
-          "species data.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT("partition_functions"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -12609,7 +12584,6 @@ void define_md_data_raw() {
          "f_grid",
          "abs_species",
          "jacobian_quantities",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr"),
@@ -12656,7 +12630,6 @@ void define_md_data_raw() {
          "jacobian_quantities",
          "abs_lines_per_species",
          "isotopologue_ratios",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_nlte",
@@ -12698,7 +12671,6 @@ void define_md_data_raw() {
          "f_grid",
          "abs_species",
          "jacobian_quantities",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr",
@@ -12734,7 +12706,6 @@ void define_md_data_raw() {
          "f_grid",
          "abs_species",
          "jacobian_quantities",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr",
@@ -12881,7 +12852,6 @@ void define_md_data_raw() {
          "abs_species",
          "jacobian_quantities",
          "isotopologue_ratios",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_nlte",

@@ -173,7 +173,6 @@ add_library (artscore STATIC
         auto_md.h
         auto_md.cc
   ${ARTSCORE_EXTRA_SOURCES}
-  abs_species_tags.cc
   absorption.cc
   absorptionlines.cc
   agenda_class.cc
@@ -278,7 +277,6 @@ add_library (artscore STATIC
   optproperties.cc
   parameters.cc
   parser.cc
-  partition_function_data.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
@@ -297,7 +295,6 @@ add_library (artscore STATIC
   sensor.cc
   sourcetext.cc
   special_interp.cc
-  species_data.cc
   species_info.cc
   species_tags.cc
   surface.cc

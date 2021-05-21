@@ -47,16 +47,16 @@ void ArrayOfQuantumIdentifierFromLines(
     for (const auto& band: lines) {
       for (Index k=0; k<band.NumLines() and (global ? (k==0) : false); k++) {
         if (global) {
-          lower = band.QuantumIdentity().LowerQuantumId();
-          upper = band.QuantumIdentity().UpperQuantumId();
+          lower = band.QuantumIdentity().LowerId();
+          upper = band.QuantumIdentity().UpperId();
         } else {
           auto x = band.QuantumIdentityOfLine(k);
-          lower = x.LowerQuantumId();
-          upper = x.UpperQuantumId();
+          lower = x.LowerId();
+          upper = x.UpperId();
         }
         
-        const bool canbeinlower = lower.any_quantumnumbers(),
-                   canbeinupper = upper.any_quantumnumbers();
+        const bool canbeinlower = lower.Level().Any(),
+                   canbeinupper = upper.Level().Any();
 
         // Test if the level has already been treated
         const Index n = qid.nelem();
@@ -92,7 +92,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfGriddedField1& collision_coefficients,
     const ArrayOfQuantumIdentifier& collision_line_identifiers,
-    const SpeciesAuxData& isotopologue_ratios,
+    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Agenda& iy_main_agenda,
     const Agenda& ppath_agenda,
     const Agenda& iy_space_agenda,
@@ -267,7 +267,7 @@ void collision_coefficientsFromSplitFiles(
     ArrayOfGriddedField1 aogf1;
 
     // Read the file for a species and check that the size is correct of the array
-    filename = tmp_basename + abs_species[i][0].SpeciesNameMain() + ".xml";
+    filename = tmp_basename + String(Species::toShortName(abs_species[i].Species())) + ".xml";
     xml_read_from_file(filename, aogf1, verbosity);
     ARTS_USER_ERROR_IF (aogf1.nelem() not_eq n,
           "Mismatch between collision_line_identifiers and some collision_coefficients");

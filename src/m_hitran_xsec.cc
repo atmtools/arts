@@ -130,7 +130,7 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a HITRAN cross section tag
-      if (this_species.Type() != SpeciesTag::TYPE_HITRAN_XSEC) continue;
+      if (this_species.Type() != Species::TagType::HitranXsec) continue;
 
 #ifndef ENABLE_FFTW
       out0 << "HITRAN XSEC Warning: No FFTW library support enabled, "
@@ -138,7 +138,7 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
 #endif
 
       Index this_xdata_index =
-          hitran_xsec_get_index(hitran_xsec_data, this_species.Species());
+          hitran_xsec_get_index(hitran_xsec_data, this_species.Spec());
       ARTS_USER_ERROR_IF (this_xdata_index < 0,
           "Cross-section species ", this_species.Name(),
           " not found in *hitran_xsec_data*.")

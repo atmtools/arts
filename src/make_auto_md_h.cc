@@ -598,7 +598,7 @@ int main() {
 
     ofs << "#include \"matpackI.h\"\n"
         << "#include \"matpackII.h\"\n"
-        << "#include \"abs_species_tags.h\"\n"
+        << "#include \"species_tags.h\"\n"
         << "#include \"artstime.h\"\n"
         << "#include \"gas_abs_lookup.h\"\n"
         << "#include \"gridded_fields.h\"\n"

@@ -30,7 +30,7 @@
 
 #include "cia.h"
 #include <cmath>
-#include "abs_species_tags.h"
+#include "species_tags.h"
 #include "absorption.h"
 #include "file.h"
 #include "interpolation_lagrange.h"
@@ -223,8 +223,8 @@ void cia_interpolation(VectorView result,
  \returns Index of this species combination in cia_data. -1 if not found.
  */
 Index cia_get_index(const ArrayOfCIARecord& cia_data,
-                    const Index sp1,
-                    const Index sp2) {
+                    const Species::Species sp1,
+                    const Species::Species sp2) {
   for (Index i = 0; i < cia_data.nelem(); i++)
     if ((cia_data[i].Species(0) == sp1 && cia_data[i].Species(1) == sp2) ||
         (cia_data[i].Species(0) == sp2 && cia_data[i].Species(1) == sp1))
@@ -269,7 +269,7 @@ String CIARecord::MoleculeName(const Index i) const {
 
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
-  return species_name_from_species_index(mspecies[i]);
+  return Species::toShortName(mspecies[i]);
 }
 
 // Documentation in header file.
@@ -279,15 +279,12 @@ void CIARecord::SetMoleculeName(const Index i, const String& name) {
   ARTS_ASSERT(i <= 1);
 
   // Find out the species index for name:
-  Index spec_ind = species_index_from_species_name(name);
+  Species::Species spec_ind = Species::fromShortName(name);
 
   // Function species_index_from_species_name returns -1 if the species does
   // not exist. Check this:
-  if (spec_ind < 0) {
-    ostringstream os;
-    os << "Species does not exist in ARTS: " << name;
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF(not good_enum(spec_ind),
+      "Species does not exist in ARTS: ", name)
 
   // Assign species:
   mspecies[i] = spec_ind;

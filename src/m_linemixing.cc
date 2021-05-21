@@ -28,7 +28,6 @@
  * compute the relaxation, not simply use the relaxation
  */
 
-#include "global_data.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
 #include "propagationmatrix.h"
@@ -45,8 +44,6 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
                                                         const String& mode,
                                                         const Verbosity&)
 {
-  using global_data::species_data;
-  
   lm_hitran_2017::ModeOfLineMixing intmode;
   if (mode == "VP") intmode = lm_hitran_2017::ModeOfLineMixing::VP;
   else if (mode == "VP_Y") intmode = lm_hitran_2017::ModeOfLineMixing::VP_Y;
@@ -68,7 +65,7 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
   for (Index i=0; i<abs_species.nelem(); i++) {
     
     for (Index j=0; j<abs_species[i].nelem(); j++) {
-      if (abs_species[i][j].Species() not_eq SpeciesTag("CO2").Species()) 
+      if (abs_species[i][j].Spec() not_eq Species::fromShortName("CO2")) 
         continue;
       
       if (not emptied) {
@@ -79,12 +76,12 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
       for (Index k=0; k<lines.nelem(); k++) {
         if (used[k]) continue;
         
-        const Numeric lf{abs_species[i][j].Lf() > 0 ? abs_species[i][j].Lf() : -std::numeric_limits<Numeric>::max()};
-        const Numeric uf{abs_species[i][j].Uf() > 0 ? abs_species[i][j].Uf() : std::numeric_limits<Numeric>::max()};
+        const Numeric lf{abs_species[i][j].lower_freq > 0 ? abs_species[i][j].lower_freq : -std::numeric_limits<Numeric>::max()};
+        const Numeric uf{abs_species[i][j].upper_freq > 0 ? abs_species[i][j].upper_freq : std::numeric_limits<Numeric>::max()};
         
         // Select lines with correct Isotopologue and one line center within the range
         if ((abs_species[i][j].Isotopologue() == lines[k].Isotopologue() or 
-             abs_species[i][j].Isotopologue() == species_data[SpeciesTag("CO2").Species()].Isotopologue().nelem()) and 
+             abs_species[i][j].Isotopologue() == Species::select_joker("CO2")) and 
              (lines[k].AllLines().front().F0() <= uf and lines[k].AllLines().back().F0() >= lf)) {
           used[k] = true;  // The lines should not be copied into other places
           abs_lines_per_species[i].push_back(lines[k]);
@@ -100,7 +97,6 @@ void propmat_clearskyAddHitranLineMixingLines(PropagationMatrix& propmat_clearsk
                                               const Vector& f_grid,
                                               const ArrayOfArrayOfSpeciesTag& abs_species,
                                               const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                              const SpeciesAuxData& partition_functions,
                                               const Numeric& rtp_pressure,
                                               const Numeric& rtp_temperature,
                                               const Vector& rtp_vmr,
@@ -118,10 +114,10 @@ void propmat_clearskyAddHitranLineMixingLines(PropagationMatrix& propmat_clearsk
   for (Index i=0; i<abs_species.nelem(); i++) {
     auto& specs = abs_species[i];
     for (auto& spec: specs) {
-      if (SpeciesTag("H2O").Species() == spec.Species()) {
+      if (Species::fromShortName("H2O") == spec.Spec()) {
         vmrs[1] = rtp_vmr[i];
       }
-      else if (SpeciesTag("CO2").Species() == spec.Species()) {
+      else if (Species::fromShortName("CO2") == spec.Spec()) {
         vmrs[2] = rtp_vmr[i];
       }
     }
@@ -132,7 +128,7 @@ void propmat_clearskyAddHitranLineMixingLines(PropagationMatrix& propmat_clearsk
     if (abs_lines_per_species[i].nelem() and 
        (abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANFullRelmat or
         abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat))
-      propmat_clearsky.Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], rtp_pressure, rtp_temperature, vmrs, f_grid, partition_functions);
+      propmat_clearsky.Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], rtp_pressure, rtp_temperature, vmrs, f_grid);
   }
 }
 
@@ -142,7 +138,6 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
                                            const Vector& f_grid,
                                            const ArrayOfArrayOfSpeciesTag& abs_species,
                                            const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                           const SpeciesAuxData& partition_functions,
                                            const Numeric& rtp_pressure,
                                            const Numeric& rtp_temperature,
                                            const Vector& rtp_vmr,
@@ -170,8 +165,6 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
                                                                         line_shape_mass,
                                                                         f_grid,
                                                                         band,
-                                                                        partition_functions.getParamType(band.QuantumIdentity()),
-                                                                        partition_functions.getParam(band.QuantumIdentity()),
                                                                         jacobian_quantities);
         propmat_clearsky.Kjj() += abs.real();
         
@@ -198,7 +191,6 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
                                                      const Vector& f_grid,
                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
                                                      const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                                     const SpeciesAuxData& partition_functions,
                                                      const Numeric& rtp_pressure,
                                                      const Numeric& rtp_temperature,
                                                      const Vector& rtp_vmr,
@@ -239,8 +231,6 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
                                                                                  f_grid,
                                                                                  polarization,
                                                                                  band,
-                                                                                 partition_functions.getParamType(band.QuantumIdentity()),
-                                                                                 partition_functions.getParam(band.QuantumIdentity()),
                                                                                  jacobian_quantities);
           
           // Sum up the propagation matrix

@@ -29,7 +29,7 @@
 #include <iostream>
 #include <map>
 #include <stdexcept>
-#include "abs_species_tags.h"
+#include "species_tags.h"
 #include "agenda_class.h"
 #include "array.h"
 #include "bifstream.h"
@@ -128,26 +128,24 @@ private:
   /** ID for some of the Special types of partial derivatives */
   String msid;
   
-  /** A position for a Target that requires it */
-  Index position;
-  
+  /** Species ID for line parameters */
+  Species::Species mspecid;
 public:
   /** Atmospheric type */
   explicit Target (Atm type) :
   mtype(Type::Atm), matm(type), mline(Line::FINAL),
   msensor(Sensor::FINAL), mspecial(Special::FINAL),
   mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(0), msid(), position(-std::numeric_limits<Index>::max()) {
+  mqid(), maostid(0), msid(), mspecid(Species::Species::FINAL) {
     ARTS_ASSERT(good_enum(type))
   }
   
   /** Line type */
-  explicit Target (Line type, const QuantumIdentifier& qid,
-                   const Index pos=-std::numeric_limits<Index>::max()) :
+  explicit Target (Line type, const QuantumIdentifier& qid, Species::Species specid) :
   mtype(Type::Line), matm(Atm::FINAL), mline(type),
   msensor(Sensor::FINAL), mspecial(Special::FINAL),
   mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(qid), maostid(0), msid(), position(pos) {
+  mqid(qid), maostid(0), msid(), mspecid(specid) {
     ARTS_ASSERT(good_enum(type))
   }
   
@@ -156,7 +154,7 @@ public:
   mtype(Type::Sensor), matm(Atm::FINAL), mline(Line::FINAL),
   msensor(type), mspecial(Special::FINAL),
   mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(0), msid(), position(-std::numeric_limits<Index>::max()) {
+  mqid(), maostid(0), msid(), mspecid(Species::Species::FINAL) {
     ARTS_ASSERT(good_enum(type))
   }
   
@@ -165,7 +163,7 @@ public:
   mtype(Type::Special), matm(Atm::FINAL), mline(Line::FINAL),
   msensor(Sensor::FINAL), mspecial(type),
   mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(aostid), msid(), position(-std::numeric_limits<Index>::max()) {
+  mqid(), maostid(aostid), msid(), mspecid(Species::Species::FINAL) {
     ARTS_ASSERT (type == Special::ArrayOfSpeciesTagVMR,
       "Only for Special::ArrayOfSpeciesTagVMR, but you fed: ", mspecial)
   }
@@ -175,7 +173,7 @@ public:
   mtype(Type::Special), matm(Atm::FINAL), mline(Line::FINAL),
   msensor(Sensor::FINAL), mspecial(type),
   mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(0), msid(sid), position(-std::numeric_limits<Index>::max()) {
+  mqid(), maostid(0), msid(sid), mspecid(Species::Species::FINAL) {
     ARTS_ASSERT (type == Special::SurfaceString or type == Special::ScatteringString,
       "Only for Special::ScatteringString or Special::SurfaceString, but you fed: ", mspecial)
   }
@@ -185,7 +183,7 @@ public:
   mtype(Type::FINAL), matm(Atm::FINAL), mline(Line::FINAL),
   msensor(Sensor::FINAL), mspecial(Special::FINAL),
   mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(0), msid(), position(-std::numeric_limits<Index>::max()) {}
+  mqid(), maostid(0), msid(), mspecid(Species::Species::FINAL) {}
   
   /** Perturbation */
   void Perturbation(Numeric x) noexcept {mperturbation=x;}
@@ -347,14 +345,9 @@ public:
            mspecial == Special::SurfaceString;
   }
   
-  /** Position for cases that requires it */
-  Index Position() const noexcept {return position;}
-  
-  /** Position for cases that requires it */
-  Index& Position() noexcept {return position;}
-  
-  /** Position for cases that requires it */
-  void Position(Index pos) noexcept {position=pos;}
+  const Species::Species& LineSpecies() const noexcept {return mspecid;}
+  Species::Species& LineSpecies() noexcept {return mspecid;}
+  void LineSpecies(Species::Species x) noexcept {mspecid = x;}
 };  // Target
 
 /** Output operator 
@@ -1288,7 +1281,7 @@ bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast);
  * @return true the species match the species in the retrieval quantity
  * @return false otherwise
  */
-bool species_match(const RetrievalQuantity& rq, const Index species);
+bool species_match(const RetrievalQuantity& rq, const Species::Species species);
 
 /** Returns if the Retrieval quantity is VMR derivative for all the species in the species tags
  * 
@@ -1299,8 +1292,7 @@ bool species_match(const RetrievalQuantity& rq, const Index species);
  * @return false otherwise
  */
 bool species_iso_match(const RetrievalQuantity& rq,
-                       const Index species,
-                       const Index iso);
+                       const Species::IsotopeRecord& ir);
 
 /** Returns if the array wants the temperature derivative
  * 

@@ -120,16 +120,13 @@ void jacobianAddAbsSpecies(Workspace&,
 
   QuantumIdentifier qi;
   if (not for_species_tag) {
-    ArrayOfSpeciesTag test;
-    array_species_tag_from_string(test, species);
+    ArrayOfSpeciesTag test(species);
     if (test.nelem() not_eq 1)
       throw std::runtime_error(
           "Trying to add a species as a species tag of multiple species.\n"
           "This is not supported.  Please give just a single species instead.\n"
           "Otherwise consider if you intended for_species_tag to be evaluated true.\n");
-    qi.SetAll();
-    qi.Isotopologue(test[0].Isotopologue());
-    qi.Species(test[0].Species());
+    qi = QuantumIdentifier(test[0].Isotopologue(), Quantum::IdentifierType::All);
   }
 
   // Check that this species is not already included in the jacobian.
@@ -188,10 +185,9 @@ void jacobianAddAbsSpecies(Workspace&,
   rq.Mode(mode);
   rq.Grids(grids);
   if (for_species_tag == 0) {
-    rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi));
+    rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi, qi.Species()));
   } else {
-    ArrayOfSpeciesTag test;
-    array_species_tag_from_string(test, species);
+    ArrayOfSpeciesTag test(species);
     rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, test));
   }
   rq.Target().Perturbation(0.001);
@@ -1545,7 +1541,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
                                       const Verbosity& verbosity) {
   CREATE_OUT3;
 
-  if (line_identity.Type() not_eq QuantumIdentifier::TRANSITION)
+  if (line_identity.Type() not_eq Quantum::IdentifierType::Transition)
     throw std::runtime_error("Identity has to identify a line");
 
   const auto jpt = select_derivativeLineShape(variable, coefficient);
@@ -1560,15 +1556,13 @@ void jacobianAddShapeCatalogParameter(Workspace&,
   
   // Map the species
   if (species == LineShape::self_broadening) {
-    out3 << species << "\n";
-    rq.Target(Jacobian::Target(jpt, line_identity, -1));
+    rq.Target(Jacobian::Target(jpt, line_identity, line_identity.Species()));
   } else if (species == LineShape::bath_broadening) {
-    out3 << species << "\n";
-    rq.Target(Jacobian::Target(jpt, line_identity, std::numeric_limits<Index>::max()));
+    rq.Target(Jacobian::Target(jpt, line_identity, Species::Species::Bath));
   } else {
-    out3 << SpeciesTag(species).SpeciesNameMain() << "\n";
-    rq.Target(Jacobian::Target(jpt, line_identity, SpeciesTag(species).Species()));
+    rq.Target(Jacobian::Target(jpt, line_identity, SpeciesTag(species).Spec()));
   }
+  out3 << species << ' ' << rq.Target().LineSpecies() << "\n";
 
   // Test this is not a copy
   for (auto& q : jq)
@@ -1630,10 +1624,10 @@ void jacobianAddBasicCatalogParameter(Workspace&,
   RetrievalQuantity rq;
   switch (opt) {
     case Options::BasicCatParamJacobian::LineCenter:
-      rq.Target(Jacobian::Target(Jacobian::Line::Center, catalog_identity));
+      rq.Target(Jacobian::Target(Jacobian::Line::Center, catalog_identity, catalog_identity.Species()));
       break;
     case Options::BasicCatParamJacobian::LineStrength:
-      rq.Target(Jacobian::Target(Jacobian::Line::Strength, catalog_identity));
+      rq.Target(Jacobian::Target(Jacobian::Line::Strength, catalog_identity, catalog_identity.Species()));
       break;
     case Options::BasicCatParamJacobian::FINAL:
       ARTS_ASSERT(false, "This error should be caught earlier")
@@ -1730,7 +1724,7 @@ void jacobianAddNLTE(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity));
+  rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity, energy_level_identity.Species()));
   rq.Target().Perturbation(dx);
   rq.Grids(grids);
   
@@ -2260,7 +2254,7 @@ void vmr_fieldPerturb(Tensor4& vmr_field,
   // Locate vmr_species among abs_species
   Index iq = -1;
   for (Index i = 0; i < abs_species.nelem(); i++) {
-    if (abs_species[i][0].Species() == SpeciesTag(species).Species()) {
+    if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
       iq = i;
       break;
     }

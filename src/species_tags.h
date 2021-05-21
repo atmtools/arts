@@ -1,6 +1,8 @@
 #ifndef species_tags_h
 #define species_tags_h
 
+#include <algorithm>
+
 #include "array.h"
 #include "mystring.h"
 #include "partfun.h"
@@ -54,29 +56,87 @@ struct Tag {
   // Documentation is with implementation.
   String Name() const;
   
-  constexpr Numeric Mass() const noexcept {return Isotopologues[spec_ind].mass;}
+  constexpr const IsotopeRecord& Isotopologue() const noexcept {return Isotopologues[spec_ind];}
   
-  constexpr Numeric Q(Numeric T) const {return PartitionFunctions::Q(T, Isotopologues[spec_ind]);}
+  constexpr Numeric Mass() const noexcept {return Isotopologue().mass;}
   
-  constexpr Numeric dQdT(Numeric T) const {return PartitionFunctions::dQdT(T, Isotopologues[spec_ind]);}
+  constexpr Numeric Q(Numeric T) const {return PartitionFunctions::Q(T, Isotopologue());}
   
-  String SpeciesName() const noexcept {return Isotopologues[spec_ind].FullName();}
+  constexpr Numeric dQdT(Numeric T) const {return PartitionFunctions::dQdT(T, Isotopologue());}
   
-  const IsotopeRecord& Isotopologue() const noexcept {return Isotopologues[spec_ind];}
+  String FullName() const noexcept {return Isotopologue().FullName();}
+  
+  constexpr Species Spec() const noexcept {return Isotopologue().spec;}
+  
+  constexpr TagType Type() const noexcept {return type;}
   
   friend std::ostream& operator<<(std::ostream& os, const Tag& ot) {return os << ot.Name();}
+  
+  constexpr bool operator==(const Tag& other) const noexcept {
+    return  other.spec_ind == spec_ind and
+            other.lower_freq == lower_freq and
+            other.upper_freq == upper_freq and
+            other.type == type and
+            other.cia_2nd_species == cia_2nd_species and
+            other.cia_dataset_index == cia_dataset_index;
+  }
+  
+  constexpr bool operator!=(const Tag& other) const noexcept {
+    return not operator==(other);
+  }
 };
 }  // Species
 
-struct ArrayOfSpeciesTag2 : Array<Species::Tag> {
-  ArrayOfSpeciesTag2(String names);
-  friend std::ostream& operator<<(std::ostream& os, const ArrayOfSpeciesTag2& ot) {
+using SpeciesTag = Species::Tag;
+
+class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
+public:
+  ArrayOfSpeciesTag() noexcept : Array<SpeciesTag>() {}
+  ArrayOfSpeciesTag(String names);
+  
+  friend std::ostream& operator<<(std::ostream& os, const ArrayOfSpeciesTag& ot) {
     bool first = true;
-    for (auto& x: ot) {if(not first) os << ' '; os << x; first = false;}
+    for (auto& x: ot) {if (not first) os << ' '; else first = false; os << x;}
     return os;
+  }
+  
+  /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
+  Species::Species Species() const ARTS_NOEXCEPT {
+    ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
+    return operator[](0).Spec();
+  }
+  
+  /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
+  Species::TagType Type() const ARTS_NOEXCEPT {
+    ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
+    return operator[](0).Type();
+  }
+  
+  String Name() const {
+    String out="";
+    for (auto& x: *this) out += x.Name();
+    return out;
+  }
+  
+  bool Zeeman() const noexcept {
+    return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::Zeeman;});
+  }
+  
+  bool FreeElectrons() const noexcept {
+    return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::FreeElectrons;});
+  }
+  
+  bool Particles() const noexcept {
+    return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::Particles;});
   }
 };
 
-using ArrayOfArrayOfSpeciesTag2 = Array<ArrayOfSpeciesTag2>;
+using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
+
+Index find_next_species(const ArrayOfArrayOfSpeciesTag&, Species::Species, Index) noexcept;
+
+Index find_first_species(const ArrayOfArrayOfSpeciesTag&, Species::Species) noexcept;
+
+Index find_first_species_tag(const ArrayOfArrayOfSpeciesTag& specs, const SpeciesTag& tag) noexcept;
 
 #endif  // species_tags_h

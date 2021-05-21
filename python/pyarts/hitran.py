@@ -50,7 +50,7 @@ def gen_latest_molparam_map(molparam_txt_file=None):
             pos = 1
             out [spec] = []
         else:
-            out[spec].append([specnum, pos, vec[0]])
+            out[spec].append([specnum, pos, vec[0], vec[1]])
             pos += 1
 
     print ('static const std::map<Index, std::map<char, const char * const>> latest_molparam_map{')
@@ -60,7 +60,8 @@ def gen_latest_molparam_map(molparam_txt_file=None):
             isoname = f"{spec}-{isot[2]}"
             if isoname in _HITRAN_TO_ARTS_NAMES:
                 isoname = _HITRAN_TO_ARTS_NAMES[isoname]
-            print ('{', pos2char(isot[1]), ', "', isoname, '"},', sep='')
+            s,i = isoname.split('-')
+            print ('{', pos2char(isot[1]), ', {Species::find_species_index("', s, '", "', i, '"), ', isot[3], '}},', sep='')
         print ('}},')
     print ('};')
 

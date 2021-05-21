@@ -39,7 +39,7 @@
 
 #include <cfloat>
 #include <cmath>
-#include "abs_species_tags.h"
+#include "species_tags.h"
 #include "absorption.h"
 #include "agenda_class.h"
 #include "arts.h"
@@ -1856,8 +1856,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 
   vmr_field.resize(nsa, npn, nlat, nlon);
   for (Index j = 0; j < nsa; ++j) {
-    using global_data::species_data;  // The species lookup data:
-    const String as_name = species_data[abs_species[j][0].Species()].Name();
+    const String as_name = Species::toShortName(abs_species[j][0].Spec());
     found = false;
     Index i = 0;
     String species_type;
@@ -3260,14 +3259,11 @@ void AtmRawRead(  //WS Output:
   // Clear out vmr_field_raw
   vmr_field_raw.resize(0);
 
-  // The species lookup data:
-  using global_data::species_data;
-
   // We need to read one profile for each tag group.
   for (Index i = 0; i < abs_species.nelem(); i++) {
     // Determine the name.
     file_name = tmp_basename +
-                species_data[abs_species[i][0].Species()].Name() + ".xml";
+                String(Species::toShortName(abs_species[i].Species())) + ".xml";
 
     // Add an element for this tag group to the vmr profiles:
     GriddedField3 vmr_field_data;
@@ -3278,7 +3274,7 @@ void AtmRawRead(  //WS Output:
         file_name, vmr_field_raw[vmr_field_raw.nelem() - 1], verbosity);
 
     // state the source of profile.
-    out3 << "  " << species_data[abs_species[i][0].Species()].Name()
+    out3 << "  " << Species::toShortName(abs_species[i].Species())
          << " profile read from file: " << file_name << "\n";
   }
 
@@ -3389,14 +3385,11 @@ void AtmWithNLTERawRead(  //WS Output:
   // Clear out vmr_field_raw
   vmr_field_raw.resize(0);
 
-  // The species lookup data:
-  using global_data::species_data;
-
   // We need to read one profile for each tag group.
   for (Index i = 0; i < abs_species.nelem(); i++) {
     // Determine the name.
     file_name = tmp_basename +
-                species_data[abs_species[i][0].Species()].Name() + ".xml";
+                String(Species::toShortName(abs_species[i].Species())) + ".xml";
 
     // Add an element for this tag group to the vmr profiles:
     GriddedField3 vmr_field_data;
@@ -3407,7 +3400,7 @@ void AtmWithNLTERawRead(  //WS Output:
         file_name, vmr_field_raw[vmr_field_raw.nelem() - 1], verbosity);
 
     // state the source of profile.
-    out3 << "  " << species_data[abs_species[i][0].Species()].Name()
+    out3 << "  " << Species::toShortName(abs_species[i].Species())
          << " profile read from file: " << file_name << "\n";
   }
 
@@ -3819,8 +3812,8 @@ void z_fieldFromHSE(Workspace& ws,
   const Index nlat = t_field.nrows();
   const Index nlon = t_field.ncols();
   //
-  const Index firstH2O = find_first_species_tg(
-      abs_species, species_index_from_species_name("H2O"));
+  const Index firstH2O = find_first_species(
+      abs_species, Species::fromShortName("H2O"));
 
   if (firstH2O < 0) {
     CREATE_OUT1;

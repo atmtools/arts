@@ -5,13 +5,15 @@
 #include "species.h"
 
 namespace Species {
+constexpr std::string_view Joker = "*";
+
 /** Struct containing all information needed about one isotope */
 struct IsotopeRecord {
   Species spec;
   std::string_view isotname;
   Numeric mass;
   Index gi;
-  constexpr IsotopeRecord(Species spec_, const std::string_view isotname_, Numeric mass_=std::numeric_limits<Numeric>::signaling_NaN(), Index gi_=-1) noexcept
+  constexpr IsotopeRecord(Species spec_, const std::string_view isotname_=Joker, Numeric mass_=std::numeric_limits<Numeric>::signaling_NaN(), Index gi_=-1) noexcept
   : spec(spec_), isotname(isotname_), mass(mass_), gi(gi_) {}
   constexpr IsotopeRecord() noexcept : spec(Species::FINAL), isotname(""), mass(std::numeric_limits<Numeric>::signaling_NaN()), gi(-1) {}
   friend std::ostream& operator<<(std::ostream& os, const IsotopeRecord& ir) {
@@ -20,10 +22,20 @@ struct IsotopeRecord {
   constexpr bool operator==(const IsotopeRecord& that) const noexcept {
     return that.spec == spec and that.isotname == isotname;
   }
+  
+  //! A comparison with pure named string (this is not an exact comparison)
+  constexpr bool operator==(const std::string_view specstr) const noexcept {
+    auto namepos = specstr.find(toShortName(spec));
+    auto isotpos = specstr.find(isotname);
+    return isotpos not_eq specstr.npos and namepos not_eq specstr.npos;
+  }
+  
+  template <typename T> constexpr bool operator!=(T x)const noexcept {return not operator==(x);}
+  
   String FullName() const noexcept {return String(toShortName(spec)) + String("-") + String(isotname);}
 };
 
-#define deal_with_spec(SPEC) IsotopeRecord(Species::SPEC, "*"),
+#define deal_with_spec(SPEC) IsotopeRecord(Species::SPEC),
 
 constexpr std::array Isotopologues {
   /** Water species **/
@@ -579,10 +591,6 @@ constexpr std::array Isotopologues {
 
 #undef deal_with_spec
 
-namespace CompileTimeShenanigans {
-
-}
-
 template <Species spec>
 constexpr std::size_t count_isotopologues() noexcept {
   std::size_t n=0;
@@ -599,19 +607,53 @@ constexpr std::array<IsotopeRecord, count_isotopologues<spec>()> isotopologues()
   return isots;
 }
 
-using ArrayOfIsotopeRecord = Array<IsotopeRecord>;
+Array<IsotopeRecord> isotopologues(Species spec);
 
-ArrayOfIsotopeRecord isotopologues(Species spec);
-
-constexpr Index find_species_index(Species spec, const std::string_view isotname="*") noexcept {
-  const IsotopeRecord this_spec(spec, isotname);
+constexpr Index find_species_index(const IsotopeRecord& ir) noexcept {
   for (std::size_t i=0; i<Isotopologues.size(); i++) {
-    if (this_spec == Isotopologues[i]) return Index(i);
+    if (ir == Isotopologues[i]) return Index(i);
   }
   return -1;
 }
 
+constexpr Index find_species_index(const Species spec,
+                                   const std::string_view isot) noexcept {
+  return find_species_index(IsotopeRecord(spec, isot));
+}
+
+constexpr Index find_species_index(const std::string_view spec,
+                                   const std::string_view isot) noexcept {
+  return find_species_index(fromShortName(spec), isot);
+}
+
+constexpr Numeric first_mass(Species spec) noexcept {
+  for (auto& x: Isotopologues) {
+    if (spec == x.spec) return x.mass;
+  }
+  return 0 * std::numeric_limits<Numeric>::signaling_NaN();
+}
+
+constexpr const IsotopeRecord& select(Species spec, const std::string_view isotname) noexcept {
+  return Isotopologues[find_species_index({spec, isotname})];
+}
+
+constexpr const IsotopeRecord& select_joker(Species spec) noexcept {
+  return select(spec, Joker);
+}
+
+constexpr const IsotopeRecord& select_joker(std::string_view spec) noexcept {
+  return select(fromShortName(spec), Joker);
+}
+
 String isotopologues_names(Species spec);
+
+bool is_predefined_model(const IsotopeRecord& ir) noexcept;
+
+String predefined_model_names() noexcept;
 }  // Species
+
+using ArrayOfIsotopeRecord = Array<Species::IsotopeRecord>;
+
+using ArrayOfSpecies = Array<Species::Species>;
 
 #endif  // isotopologues_h

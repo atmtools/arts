@@ -120,9 +120,7 @@ void abs_lookupCalc(  // Workspace reference:
   Vector these_t_pert;    // Is resized later on
 
   // 4. Checks of input parameter correctness:
-
-  const Index h2o_index = find_first_species_tg(
-      abs_species, species_index_from_species_name("H2O"));
+  const Index h2o_index = find_first_species(abs_species, Species::fromShortName("H2O"));
 
   if (h2o_index < 0) {
     // If there are nonlinear species, then at least one species must be
@@ -164,7 +162,7 @@ void abs_lookupCalc(  // Workspace reference:
     if (s == n_species) {
       ostringstream os;
       os << "Did not find *abs_nls* tag group \""
-         << get_tag_group_name(abs_nls[i]) << "\" in *abs_species*.";
+         << abs_nls[i] << "\" in *abs_species*.";
       throw runtime_error(os.str());
     }
   }
@@ -260,9 +258,7 @@ void abs_lookupCalc(  // Workspace reference:
   for (Index i = 0, spec = 0; i < n_species; ++i) {
     // Skipping Zeeman and free_electrons species.
     // (Mixed tag groups between those and other species are not allowed.)
-    if (is_zeeman(abs_species[i]) ||
-        abs_species[i][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS ||
-        abs_species[i][0].Type() == SpeciesTag::TYPE_PARTICLES) {
+    if (abs_species[i].Zeeman() || abs_species[i].FreeElectrons() || abs_species[i].Particles()) {
       spec++;
       continue;
     }
@@ -478,8 +474,8 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
     // Loop tags in tag group
     for (Index s = 0; s < abs_species[i].nelem(); ++s) {
       // Check for continuum tags
-      if (abs_species[i][s].Type() == SpeciesTag::TYPE_PREDEF ||
-          abs_species[i][s].Type() == SpeciesTag::TYPE_CIA) {
+      if (abs_species[i][s].type == Species::TagType::Predefined ||
+          abs_species[i][s].type == Species::TagType::Cia) {
         const String thisname = abs_species[i][s].Name();
         // Ok, now we know this is a continuum tag.
         out3 << "  Continuum tag: " << thisname;
@@ -497,8 +493,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
         // 1. Continua known to not use h2o_abs
         // We take also H2O itself here, since this is
         // handled separately
-        if (species_index_from_species_name("H2O") ==
-                abs_species[i][s].Species() ||
+        if (Species::fromShortName("H2O") == abs_species[i][s].Spec() ||
             "N2-" == thisname.substr(0, 3) || "CO2-" == thisname.substr(0, 4) ||
             "O2-CIA" == thisname.substr(0, 6) ||
             "O2-v0v" == thisname.substr(0, 6) ||
@@ -562,8 +557,8 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
   // Add all H2O species as non-linear:
   Index next_h2o = 0;
   while (-1 !=
-         (next_h2o = find_next_species_tg(
-              abs_species, species_index_from_species_name("H2O"), next_h2o))) {
+         (next_h2o = find_next_species(
+              abs_species, Species::fromShortName("H2O"), next_h2o))) {
     abs_nls.push_back(abs_species[next_h2o]);
     ++next_h2o;
   }
@@ -984,8 +979,7 @@ void abs_lookupSetup(  // WS Output:
     // we need the values later.
     Vector h2omin(p_grid.nelem());
     Vector h2omax(p_grid.nelem());
-    const Index h2o_index = find_first_species_tg(
-        abs_species, species_index_from_species_name("H2O"));
+    const Index h2o_index = find_first_species(abs_species, Species::fromShortName("H2O"));
     // We need this inside the if clauses for nonlinear species
     // treatment. The function returns "-1" if there is no H2O
     // species. There is a check for that in the next if block, with
@@ -1086,8 +1080,7 @@ void abs_lookupSetupBatch(  // WS Output:
 
   // Derive which abs_species is H2O (required for nonlinear species handling)
   // returns -1 if no H2O present
-  const Index h2o_index = find_first_species_tg(
-      abs_species, species_index_from_species_name("H2O"));
+  const Index h2o_index = find_first_species(abs_species, Species::fromShortName("H2O"));
   //  cout << "The " << h2o_index+1 << ". species in abs_species is H2O\n";
   //  cout << "That is, H2O is expected to be the " << indoff+h2o_index
   //       << ". column of the atmospheric fields\n";
@@ -1098,7 +1091,7 @@ void abs_lookupSetupBatch(  // WS Output:
 
   ArrayOfString species_names(abs_species.nelem());
   for (Index i = 0; i < abs_species.nelem(); ++i)
-    species_names[i] = get_species_name(abs_species[i]);
+    species_names[i] = Species::toShortName(abs_species[i].Species());
 
   const ArrayOfString field_names = batch_fields[0].get_string_grid(0);
 
@@ -1239,7 +1232,6 @@ void abs_lookupSetupBatch(  // WS Output:
     Tensor4 particle_bulkprop_field;
     ArrayOfString particle_bulkprop_names;
     GriddedField4 atm_fields_compact;
-    SpeciesAuxData partition_functions;
     Index abs_f_interp_order{0};
 
     // Extract fields from atmfield and check their validity.
@@ -1277,7 +1269,6 @@ void abs_lookupSetupBatch(  // WS Output:
                             t3_dummy,
                             t3_dummy,
                             t3_dummy,
-                            partition_functions,
                             abs_f_interp_order,
                             0,
                             0,
@@ -2544,8 +2535,7 @@ void abs_lookupTestAccuracy(  // Workspace reference:
   // species.
   Index h2o_index = -1;
   if (n_nls > 0) {
-    h2o_index = find_first_species_tg(al.species,
-                                      species_index_from_species_name("H2O"));
+    h2o_index = find_first_species(al.species, Species::fromShortName("H2O"));
 
     // This is a runtime error, even though it would be more logical
     // for it to be an assertion, since it is an internal check on
@@ -2857,8 +2847,7 @@ void abs_lookupTestAccMC(  // Workspace reference:
   // species.
   Index h2o_index = -1;
   if (n_nls > 0) {
-    h2o_index = find_first_species_tg(al.species,
-                                      species_index_from_species_name("H2O"));
+    h2o_index = find_first_species(al.species, Species::fromShortName("H2O"));
 
     // This is a runtime error, even though it would be more logical
     // for it to be an assertion, since it is an internal check on

@@ -34,7 +34,6 @@
 #include "absorption.h"
 #include "constants.h"
 #include "file.h"
-#include "global_data.h"
 #include "hitran_species.h"
 #include "quantum_parser_hitran.h"
 
@@ -42,28 +41,28 @@ Rational Absorption::Lines::LowerQuantumNumber(size_t k, QuantumNumberType qnt) 
   for(size_t i=0; i<mlocalquanta.size(); i++)
     if(mlocalquanta[i] == qnt)
       return mlines[k].LowerQuantumNumber(i);
-  return mquantumidentity.LowerQuantumNumber(qnt);
+  return mquantumidentity.Lower()[qnt];
 }
 
 Rational Absorption::Lines::UpperQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept {
   for(size_t i=0; i<mlocalquanta.size(); i++)
     if(mlocalquanta[i] == qnt)
       return mlines[k].UpperQuantumNumber(i);
-  return mquantumidentity.UpperQuantumNumber(qnt);
+  return mquantumidentity.Upper()[qnt];
 }
 
 Rational& Absorption::Lines::LowerQuantumNumber(size_t k, QuantumNumberType qnt) noexcept {
   for(size_t i=0; i<mlocalquanta.size(); i++)
     if(mlocalquanta[i] == qnt)
       return mlines[k].LowerQuantumNumber(i);  
-  return mquantumidentity.LowerQuantumNumber(qnt);
+  return mquantumidentity.Lower()[qnt];
 }
 
 Rational& Absorption::Lines::UpperQuantumNumber(size_t k, QuantumNumberType qnt) noexcept {
   for(size_t i=0; i<mlocalquanta.size(); i++)
     if(mlocalquanta[i] == qnt)
       return mlines[k].UpperQuantumNumber(i);
-  return mquantumidentity.UpperQuantumNumber(qnt);
+  return mquantumidentity.Upper()[qnt];
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
@@ -86,7 +85,7 @@ LineShape::Output Absorption::Lines::ShapeParameters_dT(size_t k, Numeric T, Num
   return x;
 }
 
-Index Absorption::Lines::LineShapePos(const Index& spec) const noexcept {
+Index Absorption::Lines::LineShapePos(const Species::Species spec) const noexcept {
   // Is always first if this is self and self broadening exists
   if(mselfbroadening and spec == mquantumidentity.Species()) {
     return 0;
@@ -96,7 +95,7 @@ Index Absorption::Lines::LineShapePos(const Index& spec) const noexcept {
   const Index s = mselfbroadening;
   const Index e = mbroadeningspecies.nelem() - mbathbroadening;
   for(Index i=s; i<e; i++) {
-    if(spec == mbroadeningspecies[i].Species()) {
+    if(spec == mbroadeningspecies[i]) {
       return i;
     }
   }
@@ -130,7 +129,7 @@ Numeric Absorption::Lines::ShapeParameter_dInternal(size_t k, Numeric T, Numeric
       T, mT0, P, 0, vmrs, derivative.LineType());
   else if(self)
     return ls.GetInternalDeriv(
-      T, mT0, P, LineShapePos(SpeciesTag(derivative.Mode()).Species()), vmrs, derivative.LineType());
+      T, mT0, P, LineShapePos(derivative.QuantumIdentity().Species()), vmrs, derivative.LineType());
   else if(bath and mbathbroadening)
     return ls.GetInternalDeriv(
       T, mT0, P, ls.nelem() - 1, vmrs, derivative.LineType());
@@ -138,7 +137,7 @@ Numeric Absorption::Lines::ShapeParameter_dInternal(size_t k, Numeric T, Numeric
     return 0;
   else
     return ls.GetInternalDeriv(
-      T, mT0, P, LineShapePos(SpeciesTag(derivative.Mode()).Species()), vmrs, derivative.LineType());
+      T, mT0, P, LineShapePos(derivative.QuantumIdentity().Species()), vmrs, derivative.LineType());
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
@@ -148,30 +147,6 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
   data.bathbroadening = true;
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
-  
-  // Global species lookup data:
-  using global_data::species_data;
-
-  // We need a species index sorted by Arts identifier. Keep this in a
-  // static variable, so that we have to do this only once.  The ARTS
-  // species index is ArtsMap[<Arts String>].
-  static map<String, SpecIsoMap> ArtsMap;
-
-  // Remember if this stuff has already been initialized:
-  static bool hinit = false;
-
-  if (!hinit) {
-    for (Index i = 0; i < species_data.nelem(); ++i) {
-      const SpeciesRecord& sr = species_data[i];
-
-      for (Index j = 0; j < sr.Isotopologue().nelem(); ++j) {
-        SpecIsoMap indicies(i, j);
-        String buf = sr.Name() + "-" + sr.Isotopologue()[j].Name();
-        ArtsMap[buf] = indicies;
-      }
-    }
-    hinit = true;
-  }
 
   // This always contains the rest of the line to parse. At the
   // beginning the entire line. Line gets shorter and shorter as we
@@ -214,19 +189,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
   icecream >> artsid;
 
   if (artsid.length() != 0) {
-    // ok, now for the cool index map:
-    // is this arts identifier valid?
-    const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
-    ARTS_USER_ERROR_IF (i == ArtsMap.end(),
-      "ARTS Tag: ", artsid, " is unknown.")
-
-    SpecIsoMap id = i->second;
-
     // Set mspecies:
-    data.quantumidentity.Species(id.Speciesindex());
-
-    // Set misotopologue:
-    data.quantumidentity.Isotopologue(id.Isotopologueindex());
+    data.quantumidentity.Isotopologue(SpeciesTag(artsid).Isotopologue());
 
     // Extract center frequency:
     icecream >> double_imanip() >> data.line.F0();
@@ -306,31 +270,6 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
   data.selfbroadening = true;
   data.bathbroadening = false;
   data.lineshapetype = LineShape::Type::VP;
-  
-  // Global species lookup data:
-  using global_data::species_data;
-
-  // We need a species index sorted by Arts identifier. Keep this in a
-  // static variable, so that we have to do this only once.  The ARTS
-  // species index is ArtsMap[<Arts String>].
-  static map<String, SpecIsoMap> ArtsMap;
-
-  // Remember if this stuff has already been initialized:
-  static bool hinit = false;
-
-  if (!hinit) {
-    for (Index i = 0; i < species_data.nelem(); ++i) {
-      const SpeciesRecord& sr = species_data[i];
-
-      for (Index j = 0; j < sr.Isotopologue().nelem(); ++j) {
-        SpecIsoMap indicies(i, j);
-        String buf = sr.Name() + "-" + sr.Isotopologue()[j].Name();
-
-        ArtsMap[buf] = indicies;
-      }
-    }
-    hinit = true;
-  }
 
   // This always contains the rest of the line to parse. At the
   // beginning the entire line. Line gets shorter and shorter as we
@@ -373,17 +312,9 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
   icecream >> artsid;
 
   if (artsid.length() != 0) {
-    // ok, now for the cool index map:
-    // is this arts identifier valid?
-    const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
-    ARTS_USER_ERROR_IF (i == ArtsMap.end(),
-                        "ARTS Tag: ", artsid, " is unknown.")
-
-    SpecIsoMap id = i->second;
 
     // Set line ID
-    data.quantumidentity.Species(id.Speciesindex());
-    data.quantumidentity.Isotopologue(id.Isotopologueindex());
+    data.quantumidentity.Isotopologue(Species::Tag(artsid).Isotopologue());
 
     // Extract center frequency:
     icecream >> double_imanip() >> data.line.F0();
@@ -424,24 +355,24 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
     // only read the n and j for Zeeman species, but we don't have that
     // information here
 
-    if (species_data[data.quantumidentity.Species()].Name() == "SO") {
+    if (data.quantumidentity.Species() == Species::fromShortName("SO")) {
       // Note that atoi converts *** to 0.
-      data.quantumidentity.UpperQuantumNumbers().Set(
+      data.quantumidentity.Upper().Set(
           QuantumNumberType::N,
           Rational(atoi(mquantum_numbers_str.substr(0, 3).c_str())));
-      data.quantumidentity.LowerQuantumNumbers().Set(
+      data.quantumidentity.Lower().Set(
           QuantumNumberType::N,
           Rational(atoi(mquantum_numbers_str.substr(6, 3).c_str())));
-      data.quantumidentity.UpperQuantumNumbers().Set(
+      data.quantumidentity.Upper().Set(
           QuantumNumberType::J,
           Rational(atoi(mquantum_numbers_str.substr(3, 3).c_str())));
-      data.quantumidentity.LowerQuantumNumbers().Set(
+      data.quantumidentity.Lower().Set(
           QuantumNumberType::J,
           Rational(atoi(mquantum_numbers_str.substr(9, 3).c_str())));
     }
 
     if (mquantum_numbers_str.nelem() >= 25) {
-      if (species_data[data.quantumidentity.Species()].Name() == "O2") {
+      if (data.quantumidentity.Species() == Species::fromShortName("O2")) {
         String vstr = mquantum_numbers_str.substr(0, 3);
         ArrayOfIndex v(3);
         for (Index vi = 0; vi < 3; vi++) {
@@ -452,8 +383,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
         }
 
         if (v[2] > -1) {
-          data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::v1, Rational(v[2]));
-          data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::v1, Rational(v[2]));
+          data.quantumidentity.Upper().Set(QuantumNumberType::v1, Rational(v[2]));
+          data.quantumidentity.Lower().Set(QuantumNumberType::v1, Rational(v[2]));
         }
 
         String qstr1 = mquantum_numbers_str.substr(4, 12);
@@ -473,17 +404,17 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
         }
 
         if (q[0] > -1)
-          data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::N, Rational(q[0]));
+          data.quantumidentity.Upper().Set(QuantumNumberType::N, Rational(q[0]));
         if (q[1] > -1)
-          data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::J, Rational(q[1]));
+          data.quantumidentity.Upper().Set(QuantumNumberType::J, Rational(q[1]));
         if (q[2] > -1)
-          data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::F, q[2] - 1_2);
+          data.quantumidentity.Upper().Set(QuantumNumberType::F, q[2] - 1_2);
         if (q[3] > -1)
-          data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::N, Rational(q[3]));
+          data.quantumidentity.Lower().Set(QuantumNumberType::N, Rational(q[3]));
         if (q[4] > -1)
-          data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::J, Rational(q[4]));
+          data.quantumidentity.Lower().Set(QuantumNumberType::J, Rational(q[4]));
         if (q[5] > -1)
-          data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::F, q[5] - 1_2);
+          data.quantumidentity.Lower().Set(QuantumNumberType::F, q[5] - 1_2);
       }
     }
   }
@@ -496,34 +427,9 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
 Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
-  
-  // Global species lookup data:
-  using global_data::species_data;
-
-  // We need a species index sorted by Arts identifier. Keep this in a
-  // static variable, so that we have to do this only once.  The ARTS
-  // species index is ArtsMap[<Arts String>].
-  static map<String, SpecIsoMap> ArtsMap;
-
-  // Remember if this stuff has already been initialized:
-  static bool hinit = false;
 
   LineShape::Model line_mixing_model;
   bool lmd_found = false;
-
-  if (!hinit) {
-    for (Index i = 0; i < species_data.nelem(); ++i) {
-      const SpeciesRecord& sr = species_data[i];
-
-      for (Index j = 0; j < sr.Isotopologue().nelem(); ++j) {
-        SpecIsoMap indicies(i, j);
-        String buf = sr.Name() + "-" + sr.Isotopologue()[j].Name();
-
-        ArtsMap[buf] = indicies;
-      }
-    }
-    hinit = true;
-  }
 
   // This always contains the rest of the line to parse. At the
   // beginning the entire line. Line gets shorter and shorter as we
@@ -567,17 +473,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
     icecream >> artsid;
 
     if (artsid.length() != 0) {
-      // ok, now for the cool index map:
-      // is this arts identifier valid?
-      const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
-      ARTS_USER_ERROR_IF (i == ArtsMap.end(),
-                          "ARTS Tag: ", artsid, " is unknown.")
-
-      SpecIsoMap id = i->second;
-
       // Set line ID:
-      data.quantumidentity.Species(id.Speciesindex());
-      data.quantumidentity.Isotopologue(id.Isotopologueindex());
+      data.quantumidentity.Isotopologue(Species::Tag(artsid).Isotopologue());
 
       // Extract center frequency:
       icecream >> double_imanip() >> data.line.F0();
@@ -628,7 +525,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
           while (icecream) {
             ThrowIfQuantumNumberNameInvalid(token);
             icecream >> r;
-            data.quantumidentity.UpperQuantumNumbers().Set(token, r);
+            data.quantumidentity.Upper().Set(token, r);
             icecream >> token;
             if (token == "LO") break;
           }
@@ -639,7 +536,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
           icecream >> token;
           while (icecream && IsValidQuantumNumberName(token)) {
             icecream >> r;
-            data.quantumidentity.LowerQuantumNumbers().Set(token, r);
+            data.quantumidentity.Lower().Set(token, r);
             icecream >> token;
           }
         } else if (token == "LM") { // LEGACY
@@ -653,6 +550,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
                                            data.bathbroadening,
                                            data.line.LineShape(),
                                            data.species);
+          // if (data.selfbroadening) data.species[0] = data.quantumidentity.Species();
           icecream >> token;
         } else if (token == "ZM") {
           // Zeeman effect
@@ -719,9 +617,6 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2012Stream(istream& is)
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
   
-  // Global species lookup data:
-  using global_data::species_data;
-  
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
   // extract stuff from the beginning.
@@ -767,7 +662,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2012Stream(istream& is)
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::from_lookup(mo, iso);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
   
   // Position.
   {
@@ -806,9 +701,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2012Stream(istream& is)
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= species_data[data.quantumidentity.Species()]
-    .Isotopologue()[data.quantumidentity.Isotopologue()]
-    .Abundance();
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Newest);
   }
   
   // Einstein coefficient
@@ -995,9 +888,6 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
 
-  // Global species lookup data:
-  using global_data::species_data;
-
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
   // extract stuff from the beginning.
@@ -1043,7 +933,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
 
   // Position.
   {
@@ -1082,9 +972,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= species_data[data.quantumidentity.Species()]
-               .Isotopologue()[data.quantumidentity.Isotopologue()]
-               .Abundance();
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
   }
 
   // Einstein coefficient
@@ -1293,9 +1181,6 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
 
-  // Global species lookup data:
-  using global_data::species_data;
-
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
   // extract stuff from the beginning.
@@ -1341,7 +1226,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::from_lookup(mo, iso);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
 
   // Position.
   {
@@ -1380,9 +1265,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= species_data[data.quantumidentity.Species()]
-               .Isotopologue()[data.quantumidentity.Isotopologue()]
-               .Abundance();
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Newest);
   }
 
   // Einstein coefficient
@@ -1572,9 +1455,6 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
 
-  // Global species lookup data:
-  using global_data::species_data;
-
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
   // extract stuff from the beginning.
@@ -1620,7 +1500,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
 
   // Position.
   {
@@ -1660,9 +1540,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= species_data[data.quantumidentity.Species()]
-    .Isotopologue()[data.quantumidentity.Isotopologue()]
-               .Abundance();
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
   }
 
   // Skip transition probability:
@@ -1813,9 +1691,6 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
 
-  // Global species lookup data:
-  using global_data::species_data;
-
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
   // extract stuff from the beginning.
@@ -1861,7 +1736,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::from_lookup(mo, iso);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
 
   // Position.
   {
@@ -1903,9 +1778,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= species_data[data.quantumidentity.Species()]
-               .Isotopologue()[data.quantumidentity.Isotopologue()]
-               .Abundance();
+    data.line.I0() /=  Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Newest);
   }
 
   // Skip transition probability:
@@ -2009,17 +1882,17 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   //Skip lower state local quanta
   {
     Index ell;
-    if (species_data[data.quantumidentity.Species()].Name() == "O2") {
+    if (data.quantumidentity.Species() == Species::fromShortName("O2")) {
       String helper = line.substr(0, 9);
       Index DJ = -helper.compare(3, 1, "Q");
       Index DN = -helper.compare(0, 1, "Q");
       Index N = atoi(helper.substr(1, 2).c_str());
       Index J = atoi(helper.substr(4, 2).c_str());
 
-      data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::N, Rational(N));
-      data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::J, Rational(J));
-      data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::N, Rational(N - DN));
-      data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::J, Rational(J - DJ));
+      data.quantumidentity.Lower().Set(QuantumNumberType::N, Rational(N));
+      data.quantumidentity.Lower().Set(QuantumNumberType::J, Rational(J));
+      data.quantumidentity.Upper().Set(QuantumNumberType::N, Rational(N - DN));
+      data.quantumidentity.Upper().Set(QuantumNumberType::J, Rational(J - DJ));
     }
 
     extract(ell, line, 9);
@@ -2217,13 +2090,13 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(std::vec
     
     // Set the quantum numbers
     std::transform(localquantas.cbegin(), localquantas.cend(), lowerquanta_local.begin(),
-                   [&](auto qn){return sle.quantumidentity.LowerQuantumNumber(qn);});
+                   [&](auto qn){return sle.quantumidentity.Lower()[qn];});
     std::transform(localquantas.cbegin(), localquantas.cend(), upperquanta_local.begin(),
-                   [&](auto qn){return sle.quantumidentity.UpperQuantumNumber(qn);});
+                   [&](auto qn){return sle.quantumidentity.Upper()[qn];});
     std::transform(globalquantas.cbegin(), globalquantas.cend(), lowerquanta_global.begin(),
-                   [&](auto qn){return sle.quantumidentity.LowerQuantumNumber(qn);});
+                   [&](auto qn){return sle.quantumidentity.Lower()[qn];});
     std::transform(globalquantas.cbegin(), globalquantas.cend(), upperquanta_global.begin(),
-                   [&](auto qn){return sle.quantumidentity.UpperQuantumNumber(qn);});
+                   [&](auto qn){return sle.quantumidentity.Upper()[qn];});
     
     // Set the line
     auto line = sle.line;
@@ -2231,7 +2104,7 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(std::vec
     line.UpperQuantumNumbers() = upperquanta_local;
     
     // Set the global quantum numbers
-    const QuantumIdentifier qid(sle.quantumidentity.Species(), sle.quantumidentity.Isotopologue(),
+    const QuantumIdentifier qid(sle.quantumidentity.Isotopologue(),
                                 globalquantas, upperquanta_global, lowerquanta_global);
     
     // Either find a line like this in the list of lines or start a new Lines
@@ -2315,25 +2188,17 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfAbsorptionLines& 
 
 String Absorption::Lines::SpeciesName() const noexcept
 {
-  // Species lookup data:
-  using global_data::species_data;
-  
-  // A reference to the relevant record of the species data:
-  const SpeciesRecord& spr = species_data[Species()];
-  
-  // First the species name:
-  return spr.Name() + "-" +
-  spr.Isotopologue()[Isotopologue()].Name();
+  return mquantumidentity.Isotopologue().FullName();
 }
 
 String Absorption::Lines::UpperQuantumNumbers() const noexcept
 {
-  return mquantumidentity.UpperQuantumNumbers().toString();
+  return mquantumidentity.Upper().toString();
 }
 
 String Absorption::Lines::LowerQuantumNumbers() const noexcept
 {
-  return mquantumidentity.LowerQuantumNumbers().toString();
+  return mquantumidentity.Lower().toString();
 }
 
 String Absorption::Lines::MetaData() const
@@ -2386,7 +2251,6 @@ String Absorption::Lines::MetaData() const
     os << "\n";
     ArrayOfString ls_meta = LineShape::ModelMetaDataArray(line.LineShape(),
                                                           mselfbroadening,
-                                                          mbathbroadening, 
                                                           mbroadeningspecies,
                                                           mT0);
     os << "\t\t" << "Line shape parameters (are normalized by sum(VMR)):\n";
@@ -2483,21 +2347,20 @@ void Absorption::Lines::ReverseLines() noexcept
 
 Numeric Absorption::Lines::SpeciesMass() const noexcept
 {
-  return global_data::species_data[Species()].Isotopologue()[Isotopologue()].Mass();
+  return mquantumidentity.Isotopologue().mass;
 }
 
 Vector Absorption::Lines::BroadeningSpeciesVMR(const ConstVectorView atm_vmrs,
                                                const ArrayOfArrayOfSpeciesTag& atm_spec) const
 {
-  return LineShape::vmrs(atm_vmrs, atm_spec, QuantumIdentity(),
-                         BroadeningSpecies(), Self(), Bath(), LineShapeType());
+  return LineShape::vmrs(atm_vmrs, atm_spec, BroadeningSpecies());
 }
 
 Vector Absorption::Lines::BroadeningSpeciesMass(const ConstVectorView atm_vmrs,
                                                 const ArrayOfArrayOfSpeciesTag& atm_spec,
                                                 const Numeric& bath_mass) const
 {
-  Vector mass = LineShape::mass(atm_vmrs, atm_spec, QuantumIdentity(), BroadeningSpecies(), Self(), Bath());
+  Vector mass = LineShape::mass(atm_vmrs, atm_spec, BroadeningSpecies());
   if (Bath() and bath_mass > 0) mass[mass.nelem()-1] = bath_mass;
   return mass;
 }
@@ -2509,7 +2372,7 @@ Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,
                       "Bad species and vmr lists");
     
   for (Index i=0; i<atm_spec.nelem(); i++)
-    if (atm_spec[i].nelem() and atm_spec[i][0].Species() == Species())
+    if (atm_spec[i].nelem() and atm_spec[i].Species() == Species())
       return atm_vmrs[i];
   return 0;
 }
@@ -2528,6 +2391,7 @@ Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Ration
     return + sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1_rat, 1_rat, 1_rat, Ji, Jf, N);
 }
 
+/*
 Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
 {
   // Default data and values for this type
@@ -3093,7 +2957,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
   data.bad = false;
   return data;
 }
-
+*/
 
 bool Absorption::Lines::OK() const noexcept
 {
@@ -3140,10 +3004,10 @@ String cutofftype2metadatastring(CutoffType in, Numeric cutoff) {
   return os.str();
 }
 
-void SingleLine::SetAutomaticZeeman(const QuantumIdentifier& qid, const std::vector<QuantumNumberType>& keys) {
+void SingleLine::SetAutomaticZeeman(QuantumIdentifier qid, const std::vector<QuantumNumberType>& keys) {
   for(size_t i=0; i<keys.size(); i++) {
-    qid.LowerQuantumNumber(keys[i]) = mlowerquanta[i];
-    qid.UpperQuantumNumber(keys[i]) = mupperquanta[i];
+    qid.Lower()[keys[i]] = mlowerquanta[i];
+    qid.Upper()[keys[i]] = mupperquanta[i];
   }
   
   mzeeman = Zeeman::Model(qid);
@@ -3299,7 +3163,8 @@ void Lines::sort_by_einstein() {
 }
 
 void Lines::truncate_global_quantum_numbers() {
-  mquantumidentity.SetTransition(QuantumNumbers(), QuantumNumbers());
+  mquantumidentity.Lower() = {};
+  mquantumidentity.Upper() = {};
 }
 
 void Lines::truncate_local_quantum_numbers() {
@@ -3415,8 +3280,8 @@ bofstream& Lines::write(bofstream& os) const {
 QuantumIdentifier Lines::QuantumIdentityOfLine(Index k) const noexcept {
   QuantumIdentifier qid_copy(mquantumidentity);
   for (size_t i=0; i<mlocalquanta.size(); i++) {
-    qid_copy.UpperQuantumNumber(mlocalquanta[i]) = mlines[k].UpperQuantumNumber(i);
-    qid_copy.LowerQuantumNumber(mlocalquanta[i]) = mlines[k].LowerQuantumNumber(i);
+    qid_copy.Upper()[mlocalquanta[i]] = mlines[k].UpperQuantumNumber(i);
+    qid_copy.Lower()[mlocalquanta[i]] = mlines[k].LowerQuantumNumber(i);
   }
   return qid_copy;
 }
@@ -3426,11 +3291,11 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
                                                          const Index line_id) ARTS_NOEXCEPT :
   QuantumIdentifierLineTarget(qt, lines)
 {
-  if (qt.Type() == QuantumIdentifier::ALL or qt.Type() == QuantumIdentifier::NONE) {
+  if (qt.Type() == Quantum::IdentifierType::All or qt.Type() == Quantum::IdentifierType::None) {
     
     // Nothing to do here
     
-  } else if (qt.Type() == QuantumIdentifier::TRANSITION) {
+  } else if (qt.Type() == Quantum::IdentifierType::Transition) {
     if (found == QuantumIdentifierLineTargetType::Band) {
       
       // Look at the current line (the levels should already match)
@@ -3442,8 +3307,8 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
         const QuantumNumberType qn = lines.LocalQuanta()[iq];
         const Rational& low_band = line.LowerQuantumNumbers()[iq];
         const Rational& upp_band = line.UpperQuantumNumbers()[iq];
-        const Rational& low_targ = qt.LowerQuantumNumbers()[qn];
-        const Rational& upp_targ = qt.UpperQuantumNumbers()[qn];
+        const Rational& low_targ = qt.Lower()[qn];
+        const Rational& upp_targ = qt.Upper()[qn];
         all_good = all_good
           and (low_band.isUndefined() or low_band == low_targ)
           and (upp_band.isUndefined() or upp_band == upp_targ);
@@ -3453,56 +3318,10 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
       if (all_good) found = QuantumIdentifierLineTargetType::Line;
       
     }
-  } else if (qt.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+  } else if (qt.Type() == Quantum::IdentifierType::EnergyLevel) {
     
     // Nothing to do here
     
   }
-}
-
-Index line_shape_position(const Lines& band, const Index catalog_parameter_position) ARTS_NOEXCEPT
-{
-  ARTS_ASSERT(catalog_parameter_position > -2, "Only -1 and max() are special values")
-  
-  // Special parameter for self broadening
-  if (catalog_parameter_position == -1) {
-    
-    // If we are explicitly self-broadened then this is easy
-    if (band.Self()) {
-      return 0;
-    } 
-    
-    // Otherwise we have to look through to be sure we haven't defined self broadening via an explicitly named broadener
-    else {
-      for (Index i=0; i<band.NumBroadeners()-band.Bath(); i++) {
-        if (band.BroadeningSpecies()[i].Species() == band.Species()) {
-          return i;
-        }
-      }
-    }
-  }
-  
-  // Special parameter for bath broadening
-  else if (catalog_parameter_position == std::numeric_limits<Index>::max() and band.Bath()) {
-    return band.NumBroadeners() - 1;
-  } 
-  
-  // Nothing special so the parameter is a species?
-  else {
-    
-    // Look through all species for a match and return its position
-    for (Index i=band.Self(); i<band.NumBroadeners()-band.Bath(); i++) {
-      if (band.BroadeningSpecies()[i].Species() == catalog_parameter_position) {
-        return i;
-      }
-    }
-    
-    // If we found nothing but this band has bath-broadening, then this is technically a bath species
-    if (band.Bath()) {
-      return band.NumBroadeners() - 1;
-    }
-  }
-  
-  return -1;
 }
 }  // Absorption

@@ -28,6 +28,7 @@ static_assert(testShortNames(), "Error!\n\n"
 
 //! Don't call this manually, it only exists to catch a developer error
 constexpr bool testIsotopologuesNotRepeating() noexcept {
+  using namespace Species;
   for (std::size_t i=0; i<Isotopologues.size(); i++) {
     for (std::size_t j=i+1; j<Isotopologues.size(); j++) {
       if (Isotopologues[i] == Isotopologues[j]) {
@@ -45,6 +46,7 @@ static_assert(testIsotopologuesNotRepeating(), "Error!\n\n"
 
 //! Don't call this manually, it only exists to catch a developer error
 constexpr bool testIsotopologuesAllValid() noexcept {
+  using namespace Species;
   for (auto& x: Isotopologues) if (not good_enum(x.spec)) return false;
   return true;
 }

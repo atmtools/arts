@@ -1,3 +1,5 @@
+#include <cctype>
+
 #include "isotopologues.h"
 
 namespace Species {
@@ -119,6 +121,20 @@ String isotopologues_names(Species spec) {
   auto x = isotopologues(spec);
   std::ostringstream os;
   for(auto& s: x) os << s.FullName() << '\n';
+  return os.str();
+}
+
+bool is_predefined_model(const IsotopeRecord& ir) noexcept {
+  return not (std::isdigit(ir.isotname[0]) or ir.isotname == Joker);
+}
+
+String predefined_model_names() noexcept {
+  std::ostringstream os;
+  for (auto& x: Isotopologues) {
+    if (is_predefined_model(x)) {
+      os << x.FullName() << '\n';
+    }
+  }
   return os.str();
 }
 }

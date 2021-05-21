@@ -16,6 +16,7 @@
  */
 
 #include "matpack.h"
+#include "species.h"
 
 /**
  * @file species_info.h
@@ -36,7 +37,7 @@
  * @param species Index-mapped specie
  * @return Numeric Lande spin constant
  */
-Numeric get_lande_spin_constant(const Index species) noexcept;
+Numeric get_lande_spin_constant(const Species::Species species) noexcept;
 
 /** Get the Lande Lambda constant
  * 

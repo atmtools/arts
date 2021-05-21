@@ -148,7 +148,7 @@ constexpr std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> init_mpm2020
 }
 
 
-constexpr QuantumIdentifier init_mpm2020_qid(Index species, Index isot, Rational Jup, Rational Jlow, Rational Nup, Rational Nlow) noexcept
+constexpr QuantumIdentifier init_mpm2020_qid(Rational Jup, Rational Jlow, Rational Nup, Rational Nlow) noexcept
 {
   QuantumNumbers upp;
   QuantumNumbers low;
@@ -158,11 +158,11 @@ constexpr QuantumIdentifier init_mpm2020_qid(Index species, Index isot, Rational
   low[QuantumNumberType::J] = Jlow;
   low[QuantumNumberType::N] = Nlow;
   low[QuantumNumberType::v1] = 0;
-  return QuantumIdentifier(species, isot, upp, low);
+  return QuantumIdentifier(Species::select(Species::Species::Oxygen, "66"), upp, low);
 }
 
 
-constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids(const Index& species, const Index& isot) noexcept
+constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids() noexcept
 {
   // N of upper level
   constexpr std::array<Index, nlines_mpm2020> Np = {
@@ -199,7 +199,7 @@ constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids(const 
   // Init all the values
   std::array<QuantumIdentifier, nlines_mpm2020> out;
   for (std::size_t i=0; i<nlines_mpm2020; i++) {
-    out[i] = init_mpm2020_qid(species, isot, Rational(Jp[i]), Rational(Np[i]), Rational(Jpp[i]), Rational(Npp[i]));
+    out[i] = init_mpm2020_qid(Rational(Jp[i]), Rational(Np[i]), Rational(Jpp[i]), Rational(Npp[i]));
   }
   return out;
 }
@@ -259,8 +259,8 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
   constexpr Numeric t0 = 300;
   
   // QuantumIdentifier if we need it
-  auto species = SpeciesTag("O2-66");
-  const std::array<QuantumIdentifier, nlines_mpm2020> qids = init_mpm2020_qids(species.Species(), species.Isotopologue());
+  constexpr std::array<QuantumIdentifier, nlines_mpm2020> qids = init_mpm2020_qids();
+  constexpr Numeric mass = qids.front().Isotopologue().mass;
   
   // Model setting
   const bool do_temp_deriv = do_temperature_jacobian(jacs);
@@ -270,7 +270,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
     const Numeric theta = t0 / t[ip];
     const Numeric theta_m1 = theta - 1;
     const Numeric theta_3 = pow3(theta);
-    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(t[ip], species.SpeciesMass());
+    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(t[ip], mass);
     
     for (std::size_t i=0; i<nlines_mpm2020; i++) {
       const Numeric invGD = 1 / (GD_div_F0 * f0[i]);

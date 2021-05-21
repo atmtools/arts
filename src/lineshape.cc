@@ -2059,7 +2059,7 @@ CutInternalDerivativesImpl(X, X2) CutInternalDerivativesImpl(X, X3)
 
 #define InternalDerivativesSetupImpl(X, Y)                                     \
   else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
-    const Index pos = line_shape_position(band, deriv.Target().Position());    \
+    const Index pos = band.BroadeningSpeciesPosition(deriv.Target().LineSpecies());    \
     if (pos >= 0) {                                                            \
     derivs[ij].value.n = band.Line(i).LineShape().d##X##_d##Y(                 \
         T, band.T0(), P, pos, vmrs);                                           \
@@ -2634,7 +2634,7 @@ void frequency_loop(ComputeValues &com,
                     const Numeric &T, 
                     const Numeric &dfdH,
                     const Numeric &Sz, 
-                    const Index self_species) ARTS_NOEXCEPT {
+                    const Species::Species self_species) ARTS_NOEXCEPT {
   const Index nv = com.size;
   const bool do_nlte = com.do_nlte;
   
@@ -3220,8 +3220,7 @@ void compute(ComputeData &com,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
              const EnergyLevelMap &nlte,
-             const SpeciesAuxData::AuxType &partfun_type,
-             const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
+             const Vector &vmrs,
              const Numeric& self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H,
              const Numeric &sparse_lim,
              const bool do_zeeman, const Zeeman::Polarization zeeman_polarization,
@@ -3255,9 +3254,9 @@ void compute(ComputeData &com,
   
   const Numeric dnumdensdVMR = isot_ratio * number_density(P, T);
   line_loop(com, sparse_com, band, jacobian_quantities, nlte, vmrs, P, T, H, sparse_lim,
-            single_partition_function(T, partfun_type, partfun_data),
-            single_partition_function(band.T0(), partfun_type, partfun_data),
-            dsingle_partition_function_dT(T, partfun_type, partfun_data),
+            single_partition_function(T, band.Isotopologue()),
+            single_partition_function(band.T0(), band.Isotopologue()),
+            dsingle_partition_function_dT(T, band.Isotopologue()),
             self_vmr * dnumdensdVMR, dnumdensdVMR, self_vmr * isot_ratio * dnumber_density_dt(P, T),
             do_zeeman, zeeman_polarization, speedup_type);
 }

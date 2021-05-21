@@ -675,7 +675,7 @@ String ArtsParser::set_gin_to_default(const MdRecord* mdd,
       String s = mdd->GInDefault()[gin_index];
       if (s.nelem()) {
         try {
-          array_species_tag_from_string(v, s);
+          v = ArrayOfSpeciesTag(s);
         } catch (std::exception& e) {
           std::ostringstream os;
           os << e.what() << os_default_error.str();
@@ -1829,7 +1829,7 @@ Index ArtsParser::read_name_or_value(String& name,
     parse_String(dummy);
     ArrayOfSpeciesTag aost;
     if (dummy.nelem()) {
-      array_species_tag_from_string(aost, dummy);
+      aost = ArrayOfSpeciesTag(dummy);
     }
     auto_vars_values.push_back(aost);
   } else if (group == get_wsv_group_id("Vector")) {

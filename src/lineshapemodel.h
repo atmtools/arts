@@ -36,11 +36,11 @@
 
 #include <numeric>
 #include <algorithm>
-#include "abs_species_tags.h"
 #include "constants.h"
 #include "enums.h"
 #include "file.h"
 #include "jacobian.h"
+#include "species_tags.h"
 
 /** Return the derivative type based on string input 
  * 
@@ -578,19 +578,11 @@ constexpr Output differenceOutput(Output y, Output x) noexcept {
  * 
  * @param[in] atmospheric_vmrs VMRS in atmosphere
  * @param[in] atmospheric_species Species in atmosphere
- * @param[in] self An ID of whichever species is self
  * @param[in] lineshape_species Species affecting lineshape
- * @param[in] self_in_list Affects lineshape by itself?
- * @param[in] bath_in_list Affected lineshape by environment?
- * @param[in] type The type of line shape
  */
 Vector vmrs(const ConstVectorView& atmospheric_vmrs,
             const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-            const QuantumIdentifier& self,
-            const ArrayOfSpeciesTag& lineshape_species,
-            bool self_in_list,
-            bool bath_in_list,
-            Type type);
+            const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT;
 
 /** Returns a mass vector for this model's main calculations
  * 
@@ -604,18 +596,11 @@ Vector vmrs(const ConstVectorView& atmospheric_vmrs,
  * 
  * @param[in] atmospheric_vmrs VMRS in atmosphere
  * @param[in] atmospheric_species Species in atmosphere
- * @param[in] self An ID of whichever species is self
  * @param[in] lineshape_species Species affecting lineshape
- * @param[in] self_in_list Affects lineshape by itself?
- * @param[in] bath_in_list Affected lineshape by environment?
- * @param[in] type The type of line shape
  */
 Vector mass(const ConstVectorView& atmospheric_vmrs,
             const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-            const QuantumIdentifier& self,
-            const ArrayOfSpeciesTag& lineshape_species,
-            bool self_in_list,
-            bool bath_in_list);
+            const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT;
 
 /** Name for bath broadening in printing and reading user input */
 static constexpr std::string_view bath_broadening = "AIR";
@@ -674,7 +659,7 @@ class Model {
    * @return true/false
    */
   bool OK(Type type, bool self, bool bath,
-          const std::vector<SpeciesTag>& species) const noexcept;
+          const std::size_t nspecies) const noexcept;
 
 #define LSPC(XVAR, PVAR)                                                       \
   Numeric XVAR(                                                                \
@@ -898,6 +883,7 @@ class Model {
    * @param[in] i Index of position to remove
    */
   void Remove(Index i, ArrayOfSpeciesTag& specs);
+  void Remove(Index i, ArrayOfSpecies& specs);
 
   /** Sets the same line mixing model to all species
    * 
@@ -919,7 +905,7 @@ class Model {
                                       bool& self,
                                       bool& bath,
                                       Model& m,
-                                      ArrayOfSpeciesTag& species);
+                                      ArrayOfSpecies& species);
   
   friend
   std::istream& from_artscat4(std::istream& is,
@@ -927,7 +913,7 @@ class Model {
                               bool& self,
                               bool& bath,
                               Model& m,
-                              ArrayOfSpeciesTag& species,
+                              ArrayOfSpecies& species,
                               const QuantumIdentifier& qid);
   
   
@@ -957,16 +943,17 @@ std::ostream& operator<<(std::ostream&, const Model&);
 std::istream& operator>>(std::istream&, Model&);
 
 String ModelShape2MetaData(const Model& m);
+
 Model MetaData2ModelShape(const String& s);
 
-ArrayOfString ModelMetaDataArray(const Model& m, const bool self, const bool bath, const ArrayOfSpeciesTag& sts, const Numeric T0);
+ArrayOfString ModelMetaDataArray(const Model& m, const bool self, const ArrayOfSpecies& sts, const Numeric T0);
 
 std::istream& from_artscat4(std::istream& is,
                             Type& type,
                             bool& self,
                             bool& bath,
                             Model& m,
-                            ArrayOfSpeciesTag& species,
+                            ArrayOfSpecies& species,
                             const QuantumIdentifier& qid);
 
 std::istream& from_linefunctiondata(std::istream& data,
@@ -974,7 +961,7 @@ std::istream& from_linefunctiondata(std::istream& data,
                                     bool& self,
                                     bool& bath,
                                     Model& m,
-                                    ArrayOfSpeciesTag& species);
+                                    ArrayOfSpecies& species);
 
 /** Legacy reading of old deprecated LineMixingData class */
 std::istream& from_linemixingdata(std::istream& data, Model& lsc);
@@ -985,7 +972,7 @@ std::istream& from_pressurebroadeningdata(std::istream& data,
                                           bool& self,
                                           bool& bath,
                                           Model& m,
-                                          ArrayOfSpeciesTag& species,
+                                          ArrayOfSpecies& species,
                                           const QuantumIdentifier& qid);
 
 /** Legacy dealing with reading old LineFunctionData */
@@ -1113,6 +1100,15 @@ void vector2modelpb(LineShape::Type& mtype,
                     Vector x,
                     LegacyPressureBroadeningData::TypePB type,
                     bool self_in_list);
+void vector2modelpb(LineShape::Type& mtype,
+                    bool& self,
+                    bool& bath,
+                    Model& m,
+                    ArrayOfSpecies& species,
+                    Vector x,
+                    LegacyPressureBroadeningData::TypePB type,
+                    bool self_in_list,
+                    Species::Species self_spec);
 };  // namespace LegacyPressureBroadeningData
 };  // namespace LineShape
 

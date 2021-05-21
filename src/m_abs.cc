@@ -112,17 +112,16 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
     for (Index i=0; i<tgs.nelem() and lines.NumLines(); i++) {
       for (auto& this_tag: tgs[i]) {
         // Test species first, we might leave as we leave
-        if (this_tag.Species() not_eq lines.Species()) break;
+        if (this_tag.Spec() not_eq lines.Species()) break;
         
         // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
-        if (this_tag.Isotopologue() not_eq SpeciesDataOfBand(lines).Isotopologue().nelem() and
-            this_tag.Isotopologue() not_eq lines.Isotopologue())
+        if (this_tag.Isotopologue() not_eq lines.Isotopologue())
           continue;
         
         // If there is a frequency range, we have to check so that only selected lines are included
-        if (this_tag.Lf() >= 0 or this_tag.Uf() >= 0) {
-          const Numeric low = (this_tag.Lf() >= 0) ? this_tag.Lf() : std::numeric_limits<Numeric>::lowest();
-          const Numeric upp = (this_tag.Uf() >= 0) ? this_tag.Uf() : std::numeric_limits<Numeric>::max();
+        if (this_tag.lower_freq >= 0 or this_tag.upper_freq >= 0) {
+          const Numeric low = (this_tag.lower_freq >= 0) ? this_tag.lower_freq : std::numeric_limits<Numeric>::lowest();
+          const Numeric upp = (this_tag.upper_freq >= 0) ? this_tag.upper_freq : std::numeric_limits<Numeric>::max();
           
           // Fill up a copy of the line record to match with the wished frequency criteria
           AbsorptionLines these_lines = createEmptyCopy(lines);
@@ -164,16 +163,13 @@ void abs_speciesDefineAllInScenario(  // WS Output:
   propmat_clearsky_agenda_checked = false;
   abs_xsec_agenda_checked = false;
 
-  // Species lookup data:
-  using global_data::species_data;
-
   // We want to make lists of included and excluded species:
   ArrayOfString included(0), excluded(0);
 
   tgs.resize(0);
 
-  for (Index i = 0; i < species_data.nelem(); ++i) {
-    const String specname = species_data[i].Name();
+  for (Index i = 0; i < Index(Species::Species::FINAL); ++i) {
+    const String specname = Species::toShortName(Species::Species(i));
 
     String filename = basename;
     if (basename.length() && basename[basename.length() - 1] != '/')
@@ -184,17 +180,9 @@ void abs_speciesDefineAllInScenario(  // WS Output:
       find_xml_file(filename, verbosity);
       // Add to included list:
       included.push_back(specname);
-
-      // Convert name of species to a SpeciesTag object:
-      SpeciesTag this_tag(specname);
-
-      // Create Array of SpeciesTags with length 1
-      // (our tag group has only one tag):
-      ArrayOfSpeciesTag this_group(1);
-      this_group[0] = this_tag;
-
+      
       // Add this tag group to tgs:
-      tgs.push_back(this_group);
+      tgs.emplace_back(ArrayOfSpeciesTag(specname));
     } catch (const std::runtime_error& e) {
       // The file for the species could not be found.
       excluded.push_back(specname);
@@ -219,12 +207,13 @@ void abs_speciesDefineAll(  // WS Output:
     // Control Parameters:
     const Verbosity& verbosity) {
   // Species lookup data:
-  using global_data::species_data;
 
   // We want to make lists of all species
   ArrayOfString specs(0);
-  for (auto& spec: species_data) {
-    specs.push_back(spec.Name());
+  for (Index i = 0; i < Index(Species::Species::FINAL); ++i) {
+    if (Species::Species(i) not_eq Species::Species::Bath) {
+      specs.emplace_back(Species::toShortName(Species::Species(i)));
+    }
   }
 
   // Set the values
@@ -380,8 +369,8 @@ void abs_coefCalcFromXsec(  // WS Output:
             bool seco = false, main = false;
             for (const auto& s : abs_species[i]) {
               if (species_match(
-                      deriv, s.BathSpecies()) or
-                  s.Type() not_eq SpeciesTag::TYPE_CIA)
+                      deriv, s.cia_2nd_species) or
+                  s.type not_eq Species::TagType::Cia)
                 seco = true;
               if (species_iso_match(
                       deriv, s.Species(),

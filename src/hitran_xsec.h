@@ -37,13 +37,13 @@
 class XsecRecord {
  public:
   /** Return species index */
-  Index Species() const { return mspecies; };
+  Species::Species Species() const { return mspecies; };
 
   /** Return species name */
   String SpeciesName() const;
 
   /** Set species name */
-  void SetSpecies(const Index species) { mspecies = species; };
+  void SetSpecies(const Species::Species species) { mspecies = species; };
 
   /** Get coefficients */
   ConstVectorView Coeffs() const { return mcoeffs; };
@@ -113,7 +113,7 @@ class XsecRecord {
                                    const Verbosity& verbosity);
 
  private:
-  Index mspecies;
+  Species::Species mspecies;
   Vector mcoeffs;
   Vector mrefpressure;
   Vector mreftemperature;
@@ -126,7 +126,7 @@ class XsecRecord {
 typedef Array<XsecRecord> ArrayOfXsecRecord;
 
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
-                            const Index species);
+                            const Species::Species species);
 
 std::ostream& operator<<(std::ostream& os, const XsecRecord& xd);
 

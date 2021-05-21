@@ -24,7 +24,7 @@
  * @brief Header of Zeeman propagation matrix calculations
  */
 
-#include "abs_species_tags.h"
+#include "species_tags.h"
 #include "global_data.h"
 #include "physics_funcs.h"
 #include "quantum.h"

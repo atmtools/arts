@@ -1674,156 +1674,84 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== SpeciesAuxData ===========================================
+//=== SpeciesIsotopologueRatios ===========================================
 
-//! Reads SpeciesAuxData from XML input stream
+//! Reads SpeciesIsotopologueRatios from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param sap      SpeciesAuxData return value
+  \param sap      SpeciesIsotopologueRatios return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void xml_read_from_stream(istream& is_xml,
-                          SpeciesAuxData& sad,
-                          bifstream* pbifs _U_,
+                          SpeciesIsotopologueRatios& iso_rat,
+                          bifstream*,
                           const Verbosity& verbosity) {
   CREATE_OUT2;
+  
+  iso_rat = SpeciesIsotopologueRatios{};
 
   ArtsXMLTag tag(verbosity);
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("SpeciesIsotopologueRatios");
+  
   Index nelem;
-  Index nparam;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("SpeciesAuxData");
-
-  Index version;
-  tag.get_attribute_value("version", version);
-
-  if (version == 1) {
-    tag.get_attribute_value("nelem", nelem);
-    tag.get_attribute_value("nparam", nparam);
-
-    Index n = 0;
-    try {
-      ArrayOfString artstags;
-      sad.InitFromSpeciesData();
-      for (n = 0; n < nelem; n++) {
-        String artstag;
-        sad.ReadFromStream(artstag, is_xml, nparam, verbosity);
-
-        if (find_first(artstags, artstag) == -1)
-          artstags.push_back(artstag);
-        else {
-          ostringstream os;
-          os << "SpeciesAuxData for " << artstag << " already defined.\n"
-             << "Duplicates are not allowed in input file.";
-          throw runtime_error(os.str());
-        }
-      }
-    } catch (const std::runtime_error& e) {
+  tag.get_attribute_value("nelem", nelem);
+  
+  String name;
+  Numeric val;
+  for (Index n = 0; n < nelem; n++) {
+    is_xml >> name >> double_imanip() >> val;
+    
+    if (is_xml.fail()) {
       ostringstream os;
-      os << "Error reading SpeciesAuxData: "
-         << "\n Element: " << n << "\n"
-         << e.what();
-      throw runtime_error(os.str());
+      os << " near "
+      << "\n  Element: " << n;
+      xml_data_parse_error(tag, os.str());
     }
-  } else if (version == 2) {
-    tag.get_attribute_value("nelem", nelem);
-    Index n = 0;
-    try {
-      ArrayOfString artstags;
-      sad.InitFromSpeciesData();
-      for (n = 0; n < nelem; n++) {
-        String artstag;
-        String auxtype;
-        ArrayOfGriddedField1 auxdata;
-
-        xml_read_from_stream(is_xml, artstag, pbifs, verbosity);
-        xml_read_from_stream(is_xml, auxtype, pbifs, verbosity);
-        xml_read_from_stream(is_xml, auxdata, pbifs, verbosity);
-
-        sad.setParam(artstag, auxtype, auxdata);
-
-        if (find_first(artstags, artstag) == -1)
-          artstags.push_back(artstag);
-        else {
-          ostringstream os;
-          os << "SpeciesAuxData for " << artstag << " already defined.\n"
-             << "Duplicates are not allowed in input file.";
-          throw runtime_error(os.str());
-        }
-      }
-    } catch (const std::runtime_error& e) {
-      ostringstream os;
-      os << "Error reading SpeciesAuxData: "
-         << "\n Element: " << n << "\n"
-         << e.what();
-      throw runtime_error(os.str());
-    }
-  } else {
-    ostringstream os;
-    os << "Unsupported SpeciesAuxData version number: " << version
-       << ", expected 1 or 2.";
-    throw std::runtime_error(os.str());
+    
+    const Index i = Species::find_species_index(Species::Tag(name).Isotopologue());
+    ARTS_USER_ERROR_IF(i < 0 or i >= iso_rat.maxsize,
+                       "Species: ", name, " cannot be understood as a species by your compiled version of ARTS")
+    
+    iso_rat.data[i] = val;
   }
-
+  
   tag.read_from_stream(is_xml);
-  tag.check_name("/SpeciesAuxData");
+  tag.check_name("/SpeciesIsotopologueRatios");
 }
 
-//! Writes SpeciesAuxData to XML output stream
+//! Writes SpeciesIsotopologueRatios to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param sap      SpeciesAuxData
+  \param sap      SpeciesIsotopologueRatios
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
 void xml_write_to_stream(ostream& os_xml,
-                         const SpeciesAuxData& sad,
-                         bofstream* pbofs _U_,
+                         const SpeciesIsotopologueRatios& iso_rat,
+                         bofstream*,
                          const String& name,
                          const Verbosity& verbosity)
 
 {
-  using global_data::species_data;
-
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
-
-  Index nelem = 0;
-  for (Index isp = 0; isp < sad.nspecies(); isp++)
-    for (Index iso = 0; iso < sad.nisotopologues(isp); iso++)
-      if (sad.getParam(isp, iso).nelem()) nelem++;
-
-  open_tag.set_name("SpeciesAuxData");
+  
+  
+  open_tag.set_name("SpeciesIsotopologueRatios");
   if (name.length()) open_tag.add_attribute("name", name);
-
-  open_tag.add_attribute("version", Index(2));
-  open_tag.add_attribute("nelem", nelem);
-
+  open_tag.add_attribute("nelem", iso_rat.maxsize);
+  
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
-
+  
   xml_set_stream_precision(os_xml);
-
-  for (Index isp = 0; isp < sad.nspecies(); isp++) {
-    const String spname = species_data[isp].Name();
-    for (Index iso = 0; iso < sad.nisotopologues(isp); iso++) {
-      if (sad.getParam(isp, iso).nelem()) {
-        const String artstag =
-            spname + "-" + species_data[isp].Isotopologue()[iso].Name();
-
-        xml_write_to_stream(os_xml, artstag, pbofs, "", verbosity);
-        xml_write_to_stream(
-            os_xml, sad.getTypeString(isp, iso), pbofs, "", verbosity);
-        xml_write_to_stream(
-            os_xml, sad.getParam(isp, iso), pbofs, "", verbosity);
-      }
-    }
-  }
-
-  close_tag.set_name("/SpeciesAuxData");
+  os_xml << iso_rat << '\n';
+  
+  close_tag.set_name("/SpeciesIsotopologueRatios");
   close_tag.write_to_stream(os_xml);
-
+  
   os_xml << '\n';
 }
 

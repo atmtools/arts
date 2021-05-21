@@ -99,8 +99,7 @@ Vector compute(const HitranRelaxationMatrixData& hitran,
                const Numeric P,
                const Numeric T,
                const ConstVectorView vmrs,
-               const ConstVectorView f_grid,
-               const SpeciesAuxData& partition_functions);
+               const ConstVectorView f_grid);
 
 /** Class that controls ReadFromLineMixingStream output */
 enum class ModeOfLineMixing {

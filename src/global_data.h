@@ -98,18 +98,6 @@ extern const ArrayOfString wsv_group_names;
  */
 extern const map<String, Index> WsvGroupMap;
 
-//! Species Data
-/**
- Defined in species_data.cc.
- */
-extern const Array<SpeciesRecord> species_data;
-
-/** The map associated with species_data. */
-/**
- Defined in absorption.cc.
- */
-extern const map<String, Index> SpeciesMap;
-
 /** The workspace memory handler
  * Defined in workspace_ng.cc.
  */

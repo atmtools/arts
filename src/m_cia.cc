@@ -133,12 +133,12 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a CIA tag
-      if (this_species.Type() != SpeciesTag::TYPE_CIA) continue;
+      if (this_species.Type() != Species::TagType::Cia) continue;
 
       // Get convenient references of this CIA data record and this
       // absorption cross-section record:
       Index this_cia_index = cia_get_index(
-          abs_cia_data, this_species.Species(), this_species.CIASecond());
+          abs_cia_data, this_species.Spec(), this_species.cia_2nd_species);
 
       ARTS_ASSERT(this_cia_index != -1);
 
@@ -165,7 +165,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
 
       // Find out index of VMR for the second CIA species.
       // (The index for the first species is simply i.)
-      Index i_sec = find_first_species_tg(abs_species, this_cia.Species(1));
+      Index i_sec = find_first_species(abs_species, this_cia.Species(1));
 
       // Catch the case that the VMR for the second species does not exist:
       ARTS_USER_ERROR_IF (i_sec < 0,
@@ -180,7 +180,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
           this_cia.Extract(xsec_temp,
                            f_grid,
                            abs_t[ip],
-                           this_species.CIADataset(),
+                           this_species.cia_dataset_index,
                            T_extrapolfac,
                            robust,
                            verbosity);
@@ -188,7 +188,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
             this_cia.Extract(dxsec_temp_dF,
                              dfreq,
                              abs_t[ip],
-                             this_species.CIADataset(),
+                             this_species.cia_dataset_index,
                              T_extrapolfac,
                              robust,
                              verbosity);
@@ -196,7 +196,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
             this_cia.Extract(dxsec_temp_dT,
                              f_grid,
                              dabs_t[ip],
-                             this_species.CIADataset(),
+                             this_species.cia_dataset_index,
                              T_extrapolfac,
                              robust,
                              verbosity);
@@ -237,7 +237,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
               dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                   n * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
                   xsec_temp[iv] * dn_dT;
-                  else if (species_match(deriv, this_species.BathSpecies()))
+                  else if (species_match(deriv, this_species.cia_2nd_species))
               dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                   number_density(abs_p[ip], abs_t[ip]) * xsec_temp[iv];
             }
@@ -258,11 +258,11 @@ void CIARecordReadFromFile(  // WS GOutput:
     const Verbosity& verbosity) {
   SpeciesTag species(species_tag);
 
-  ARTS_USER_ERROR_IF (species.Type() != SpeciesTag::TYPE_CIA,
+  ARTS_USER_ERROR_IF (species.Type() != Species::TagType::Cia,
       "Invalid species tag ", species_tag, ".\n"
       "This is not recognized as a CIA type.\n")
 
-  cia_record.SetSpecies(species.Species(), species.CIASecond());
+  cia_record.SetSpecies(species.Spec(), species.cia_2nd_species);
   cia_record.ReadFromCIA(filename, verbosity);
 }
 
@@ -302,26 +302,25 @@ void abs_cia_dataReadFromCIA(  // WS Output:
   // each group. Despite the name, iso does not denote the isotope!
   for (Index sp = 0; sp < abs_species.nelem(); sp++) {
     for (Index iso = 0; iso < abs_species[sp].nelem(); iso++) {
-      if (abs_species[sp][iso].Type() != SpeciesTag::TYPE_CIA) continue;
+      if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
 
       ArrayOfString cia_names;
 
       Index cia_index = cia_get_index(abs_cia_data,
-                                      abs_species[sp][iso].Species(),
-                                      abs_species[sp][iso].CIASecond());
+                                      abs_species[sp][iso].Spec(),
+                                      abs_species[sp][iso].cia_2nd_species);
 
       // If cia_index is not -1, we have already read this datafile earlier
       if (cia_index != -1) continue;
 
-      cia_names.push_back(
-          species_name_from_species_index(abs_species[sp][iso].Species()) +
+      cia_names.push_back(String(Species::toShortName(abs_species[sp][iso].Spec())) +
           "-" +
-          species_name_from_species_index(abs_species[sp][iso].CIASecond()));
+          String(Species::toShortName(abs_species[sp][iso].cia_2nd_species)));
 
       cia_names.push_back(
-          species_name_from_species_index(abs_species[sp][iso].CIASecond()) +
+          String(Species::toShortName(abs_species[sp][iso].cia_2nd_species)) +
           "-" +
-          species_name_from_species_index(abs_species[sp][iso].Species()));
+          String(Species::toShortName(abs_species[sp][iso].Spec())));
 
       ArrayOfString checked_dirs;
 
@@ -351,8 +350,8 @@ void abs_cia_dataReadFromCIA(  // WS Output:
             found = true;
             String catfile = *(checked_dirs.end() - 1) + files[0];
 
-            ciar.SetSpecies(abs_species[sp][iso].Species(),
-                            abs_species[sp][iso].CIASecond());
+            ciar.SetSpecies(abs_species[sp][iso].Spec(),
+                            abs_species[sp][iso].cia_2nd_species);
             ciar.ReadFromCIA(catfile, verbosity);
 
             abs_cia_data.push_back(ciar);
@@ -387,18 +386,18 @@ void abs_cia_dataReadFromXML(  // WS Output:
   // each group. Despite the name, iso does not denote the isotope!
   for (Index sp = 0; sp < abs_species.nelem(); sp++) {
     for (Index iso = 0; iso < abs_species[sp].nelem(); iso++) {
-      if (abs_species[sp][iso].Type() != SpeciesTag::TYPE_CIA) continue;
+      if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
 
       Index cia_index = cia_get_index(abs_cia_data,
-                                      abs_species[sp][iso].Species(),
-                                      abs_species[sp][iso].CIASecond());
+                                      abs_species[sp][iso].Spec(),
+                                      abs_species[sp][iso].cia_2nd_species);
 
       // If cia_index is -1, this CIA tag was not present in the input file
       if (cia_index == -1) {
         missing_tags.push_back(
-            species_name_from_species_index(abs_species[sp][iso].Species()) +
+            String(Species::toShortName(abs_species[sp][iso].Spec())) +
             "-" +
-            species_name_from_species_index(abs_species[sp][iso].CIASecond()));
+            String(Species::toShortName(abs_species[sp][iso].cia_2nd_species)));
       }
     }
   }

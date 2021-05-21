@@ -18,78 +18,16 @@
 
 #include "linescaling.h"
 #include "interpolation_lagrange.h"
-
-Numeric SingleCalculatePartitionFctFromCoeff(const Numeric& T,
-                                             ConstVectorView q_grid) noexcept {
-  Numeric result = 0.;
-  Numeric TN = 1;
-
-  for (Index i = 0; i < q_grid.nelem(); i++) {
-    result += TN * q_grid[i];
-    TN *= T;
-  }
-
-  return result;
-}
-
-Numeric SingleCalculatePartitionFctFromCoeff_dT(const Numeric& T,
-                                                ConstVectorView q_grid) noexcept {
-  Numeric result = 0;
-  Numeric TN = 1;
-
-  for (Index i = 1; i < q_grid.nelem(); i++) {
-    result += Numeric(i) * TN * q_grid[i];
-    TN *= T;
-  }
-
-  return result;
-}
-
-Numeric SingleCalculatePartitionFctFromData(const Numeric& T,
-                                            ConstVectorView t_grid,
-                                            ConstVectorView q_grid) noexcept {
-  const Interpolation::FixedLagrange<1> lag(0, T, t_grid);
-  const auto lag_iw = interpweights(lag);
-  return interp(q_grid, lag_iw, lag);
-}
-
-Numeric SingleCalculatePartitionFctFromData_dT(const Numeric& T,
-                                               ConstVectorView t_grid,
-                                               ConstVectorView q_grid) noexcept {
-  const Interpolation::FixedLagrange<1> lag(0, T, t_grid);
-  const auto dlag_iw = dinterpweights(lag);
-  return interp(q_grid, dlag_iw, lag);
-}
+#include "partfun.h"
 
 Numeric single_partition_function(const Numeric& T,
-                                  const SpeciesAuxData::AuxType& partition_type,
-                                  const ArrayOfGriddedField1& partition_data) noexcept {
-  switch (partition_type) {
-    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
-      return SingleCalculatePartitionFctFromCoeff(T, partition_data[0].data);
-    case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
-      return SingleCalculatePartitionFctFromData(
-          T, partition_data[0].get_numeric_grid(0), partition_data[0].data);
-    default:
-      return std::numeric_limits<Numeric>::quiet_NaN();
-  }
+                                  const Species::IsotopeRecord& ir) {
+  return PartitionFunctions::Q(T, ir);
 }
 
-Numeric dsingle_partition_function_dT(
-    const Numeric& T,
-    const SpeciesAuxData::AuxType& partition_type,
-    const ArrayOfGriddedField1& partition_data) noexcept {
-  switch (partition_type) {
-    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
-      return SingleCalculatePartitionFctFromCoeff_dT(T, partition_data[0].data);
-    case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
-      return SingleCalculatePartitionFctFromData_dT(
-          T,
-          partition_data[0].get_numeric_grid(0),
-          partition_data[0].data);
-    default:
-      return std::numeric_limits<Numeric>::quiet_NaN();
-  }
+Numeric dsingle_partition_function_dT(const Numeric& T,
+                                      const Species::IsotopeRecord& ir) {
+  return PartitionFunctions::dQdT(T, ir);
 }
 
 Numeric stimulated_emission(Numeric T, Numeric F0) {

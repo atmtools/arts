@@ -18,7 +18,15 @@ namespace Hitran {
             Pre2012CO2Change,
             Newest)
   
-  QuantumIdentifier from_lookup(Index mol, char isochar, Type type=Type::Newest);
+  /** Finds the ID of the ARTS species from HITRAN */
+  QuantumIdentifier id_from_lookup(Index mol, char isochar, Type type);
+  
+  /** Finds the isotopologue ratio of the species from HITRAN
+   * 
+   * Requires that id_from_lookup is called first for any error handling
+   * to happen...
+   */
+  Numeric ratio_from_lookup(Index mol, char isochar, Type type);
 }
 
 #endif

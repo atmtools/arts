@@ -328,14 +328,12 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                       const Numeric& linemixinglimit_value,
                       const Verbosity& verbosity)
 {
-  using global_data::species_data;
-  
   // Build a set of species indices. Duplicates are ignored.
-  std::set<Index> unique_species;
+  std::set<Species::Species> unique_species;
   for (auto asp = abs_species.begin(); asp != abs_species.end(); asp++) {
-    for (ArrayOfSpeciesTag::const_iterator sp = asp->begin(); sp != asp->end(); sp++) {
-      if (sp->Type() == SpeciesTag::TYPE_PLAIN || sp->Type() == SpeciesTag::TYPE_ZEEMAN) {
-        unique_species.insert(sp->Species());
+    for (auto& specs: abs_species) {
+      for (auto& spec: specs) {
+        unique_species.insert(spec.Spec());
       }
     }
   }
@@ -348,12 +346,12 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   // Read catalogs for each identified species and put them all into
   // abs_lines.
   abs_lines.resize(0);
-  for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
+  for (auto& spec: unique_species) {
     ArrayOfAbsorptionLines more_abs_lines;
     
     try {
       ReadARTSCAT(more_abs_lines,
-                  tmpbasename + (species_data[*it].Name()) + ".xml",
+                  tmpbasename + String(Species::toShortName(spec)) + ".xml",
                   fmin,
                   fmax,
                   globalquantumnumbers,
@@ -474,18 +472,18 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
     sline.line.Zeeman() = Zeeman::GetAdvancedModel(sline.quantumidentity);
     
     // Get the global quantum number identifier
-    QuantumIdentifier global_qid(QuantumIdentifier::TRANSITION, sline.quantumidentity.Species(), sline.quantumidentity.Isotopologue());
+    QuantumIdentifier global_qid(sline.quantumidentity.Isotopologue(), Quantum::IdentifierType::Transition);
     for(auto qn: global_nums) {
-      global_qid.LowerQuantumNumber(qn) = sline.quantumidentity.LowerQuantumNumber(qn);
-      global_qid.UpperQuantumNumber(qn) = sline.quantumidentity.UpperQuantumNumber(qn);
+      global_qid.Lower()[qn] = sline.quantumidentity.Lower()[qn];
+      global_qid.Upper()[qn] = sline.quantumidentity.Upper()[qn];
     }
     
     // Get local quantum numbers into the line
     sline.line.LowerQuantumNumbers().reserve(local_nums.size());
     sline.line.UpperQuantumNumbers().reserve(local_nums.size());
     for(auto qn: local_nums) {
-      sline.line.LowerQuantumNumbers().emplace_back(sline.quantumidentity.LowerQuantumNumber(qn));
-      sline.line.UpperQuantumNumbers().emplace_back(sline.quantumidentity.UpperQuantumNumber(qn));
+      sline.line.LowerQuantumNumbers().emplace_back(sline.quantumidentity.Lower()[qn]);
+      sline.line.UpperQuantumNumbers().emplace_back(sline.quantumidentity.Upper()[qn]);
     }
     
     // Either find a line like this in the list of lines or start a new Lines
@@ -572,131 +570,131 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
-                 const String& mytran2_file,
-                 const Numeric& fmin,
-                 const Numeric& fmax,
-                 const String& globalquantumnumbers,
-                 const String& localquantumnumbers,
-                 const String& normalization_option,
-                 const String& mirroring_option,
-                 const String& population_option,
-                 const String& lineshapetype_option,
-                 const String& cutoff_option,
-                 const Numeric& cutoff_value,
-                 const Numeric& linemixinglimit_value,
-                 const Verbosity& verbosity)
-{
-  // Global numbers
-  const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
-  
-  // Local numbers
-  const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
-  
-  // LBLRTM data
-  ifstream is;
-  open_input_file(is, mytran2_file);
-  
-  std::vector<Absorption::SingleLineExternal> v(0);
-  
-  bool go_on = true;
-  while (go_on) {
-    v.push_back(Absorption::ReadFromMytran2Stream(is));
-    
-    if (v.back().bad) {
-      v.pop_back();
-      go_on = false;
-    } else if (v.back().line.F0() < fmin) {
-      v.pop_back();
-    } else if (v.back().line.F0() > fmax) {
-      v.pop_back();
-      go_on = false;
-    }
-  }
-  
-  for (auto& x: v)
-    x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
-  
-  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
-  abs_lines.resize(0);
-  abs_lines.reserve(x.size());
-  while (x.size()) {
-    abs_lines.push_back(x.back());
-    abs_lines.back().sort_by_frequency();
-    x.pop_back();
-  }
-  
-  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesSetPopulation(abs_lines, population_option, verbosity);
-  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
-             const String& jpl_file,
-             const Numeric& fmin,
-             const Numeric& fmax,
-             const String& globalquantumnumbers,
-             const String& localquantumnumbers,
-             const String& normalization_option,
-             const String& mirroring_option,
-             const String& population_option,
-             const String& lineshapetype_option,
-             const String& cutoff_option,
-             const Numeric& cutoff_value,
-             const Numeric& linemixinglimit_value,
-             const Verbosity& verbosity)
-{
-  // Global numbers
-  const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
-  
-  // Local numbers
-  const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
-  
-  // LBLRTM data
-  ifstream is;
-  open_input_file(is, jpl_file);
-  
-  std::vector<Absorption::SingleLineExternal> v(0);
-  
-  bool go_on = true;
-  while (go_on) {
-    v.push_back(Absorption::ReadFromJplStream(is));
-    
-    if (v.back().bad) {
-      v.pop_back();
-      go_on = false;
-    } else if (v.back().line.F0() < fmin) {
-      v.pop_back();
-    } else if (v.back().line.F0() > fmax) {
-      v.pop_back();
-      go_on = false;
-    }
-  }
-  
-  for (auto& x: v)
-    x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
-  
-  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
-  abs_lines.resize(0);
-  abs_lines.reserve(x.size());
-  while (x.size()) {
-    abs_lines.push_back(x.back());
-    abs_lines.back().sort_by_frequency();
-    x.pop_back();
-  }
-  
-  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesSetPopulation(abs_lines, population_option, verbosity);
-  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
-}
+// /* Workspace method: Doxygen documentation will be auto-generated */
+// void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
+//                  const String& mytran2_file,
+//                  const Numeric& fmin,
+//                  const Numeric& fmax,
+//                  const String& globalquantumnumbers,
+//                  const String& localquantumnumbers,
+//                  const String& normalization_option,
+//                  const String& mirroring_option,
+//                  const String& population_option,
+//                  const String& lineshapetype_option,
+//                  const String& cutoff_option,
+//                  const Numeric& cutoff_value,
+//                  const Numeric& linemixinglimit_value,
+//                  const Verbosity& verbosity)
+// {
+//   // Global numbers
+//   const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
+//   
+//   // Local numbers
+//   const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
+//   
+//   // LBLRTM data
+//   ifstream is;
+//   open_input_file(is, mytran2_file);
+//   
+//   std::vector<Absorption::SingleLineExternal> v(0);
+//   
+//   bool go_on = true;
+//   while (go_on) {
+//     v.push_back(Absorption::ReadFromMytran2Stream(is));
+//     
+//     if (v.back().bad) {
+//       v.pop_back();
+//       go_on = false;
+//     } else if (v.back().line.F0() < fmin) {
+//       v.pop_back();
+//     } else if (v.back().line.F0() > fmax) {
+//       v.pop_back();
+//       go_on = false;
+//     }
+//   }
+//   
+//   for (auto& x: v)
+//     x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
+//   
+//   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
+//   abs_lines.resize(0);
+//   abs_lines.reserve(x.size());
+//   while (x.size()) {
+//     abs_lines.push_back(x.back());
+//     abs_lines.back().sort_by_frequency();
+//     x.pop_back();
+//   }
+//   
+//   abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+//   abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+//   abs_linesSetPopulation(abs_lines, population_option, verbosity);
+//   abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+//   abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+//   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+// }
+// 
+// /* Workspace method: Doxygen documentation will be auto-generated */
+// void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
+//              const String& jpl_file,
+//              const Numeric& fmin,
+//              const Numeric& fmax,
+//              const String& globalquantumnumbers,
+//              const String& localquantumnumbers,
+//              const String& normalization_option,
+//              const String& mirroring_option,
+//              const String& population_option,
+//              const String& lineshapetype_option,
+//              const String& cutoff_option,
+//              const Numeric& cutoff_value,
+//              const Numeric& linemixinglimit_value,
+//              const Verbosity& verbosity)
+// {
+//   // Global numbers
+//   const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
+//   
+//   // Local numbers
+//   const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
+//   
+//   // LBLRTM data
+//   ifstream is;
+//   open_input_file(is, jpl_file);
+//   
+//   std::vector<Absorption::SingleLineExternal> v(0);
+//   
+//   bool go_on = true;
+//   while (go_on) {
+//     v.push_back(Absorption::ReadFromJplStream(is));
+//     
+//     if (v.back().bad) {
+//       v.pop_back();
+//       go_on = false;
+//     } else if (v.back().line.F0() < fmin) {
+//       v.pop_back();
+//     } else if (v.back().line.F0() > fmax) {
+//       v.pop_back();
+//       go_on = false;
+//     }
+//   }
+//   
+//   for (auto& x: v)
+//     x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
+//   
+//   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
+//   abs_lines.resize(0);
+//   abs_lines.reserve(x.size());
+//   while (x.size()) {
+//     abs_lines.push_back(x.back());
+//     abs_lines.back().sort_by_frequency();
+//     x.pop_back();
+//   }
+//   
+//   abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+//   abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+//   abs_linesSetPopulation(abs_lines, population_option, verbosity);
+//   abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+//   abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+//   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+// }
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////// IO of AbsorptionLines
@@ -818,13 +816,11 @@ void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_li
                                            const String& basename,
                                            const Verbosity& verbosity)
 {
-  using global_data::species_data;
-  
   // Build a set of species indices. Duplicates are ignored.
-  std::set<Index> unique_species;
-  for (auto asp = abs_species.begin(); asp != abs_species.end(); asp++) {
-    for (ArrayOfSpeciesTag::const_iterator sp = asp->begin(); sp != asp->end(); sp++) {
-      if (sp->Type() == SpeciesTag::TYPE_PLAIN || sp->Type() == SpeciesTag::TYPE_ZEEMAN) {
+  std::set<Species::Species> unique_species;
+  for (auto& specs: abs_species) {
+    for (auto& sp: specs) {
+      if (sp.type == Species::TagType::Plain or sp.type == Species::TagType::Zeeman) {
         unique_species.insert(sp->Species());
       }
     }
@@ -838,12 +834,12 @@ void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_li
   // Read catalogs for each identified species and put them all into
   // abs_lines
   ArrayOfAbsorptionLines abs_lines(0);
-  for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
-    for (Index k=0; k<species_data[*it].Isotopologue().nelem(); k++) {
-      String filename;
-      Index i = 0;
+  for (auto& spec: unique_species) {
+    ArrayOfIsotopeRecord specs = Species::isotopologues(spec);
+    for (auto& ir: specs) {
+      Index i=0;
       do {
-        filename = tmpbasename + species_data[*it].FullName(k) + '.' + std::to_string(i) + ".xml";
+        const String filename = tmpbasename + ir.FullName() + '.' + std::to_string(i) + ".xml";
         if (find_xml_file_existence(filename)) {
           abs_lines.push_back(AbsorptionLines());
           xml_read_from_file(filename, abs_lines.back(), verbosity);

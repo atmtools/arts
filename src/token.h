@@ -19,7 +19,7 @@
 #define token_h
 
 #include "array.h"
-#include "abs_species_tags.h"
+#include "species_tags.h"
 #include "matpackI.h"
 #include "mystring.h"
 

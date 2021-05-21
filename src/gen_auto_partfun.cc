@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <vector>
 
@@ -170,7 +171,7 @@ void print_auto_partfun_h(const std::map<Species::Species, std::vector<Partition
 
 template <std::size_t N>
 std::string column_string(const std::array<std::string_view, N>& list) {
-  if constexpr (N) {
+  if constexpr (static_cast<bool>(N)) {
     std::ostringstream os;
     for (auto& x: list) os << x << '\n';
     return os.str();
@@ -179,7 +180,7 @@ std::string column_string(const std::array<std::string_view, N>& list) {
 
 namespace PartitionFunctions {)AUTO_PARTFUN");
   
-  std::cout << std::setprecision(15);
+  std::cout << std::setprecision(std::numeric_limits<Numeric>::digits10 + 1);
   for (auto& [spec, vec_data]: data) {
     
     std::cout << "constexpr std::array<std::string_view, " << vec_data.size() << "> has"<<spec<<"{\n";

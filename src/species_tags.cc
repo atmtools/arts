@@ -154,7 +154,7 @@ Tag::Tag(String def) : spec_ind(-1), lower_freq(-1), upper_freq(-1), type(TagTyp
 
     def = "";
   } else {
-    spec_ind = find_species_index(spec, isoname);
+    spec_ind = find_species_index(IsotopeRecord(spec, isoname));
 
     // Check if we found a matching isotopologue:
     ARTS_USER_ERROR_IF (spec_ind < 0,
@@ -164,7 +164,7 @@ Tag::Tag(String def) : spec_ind(-1), lower_freq(-1), upper_freq(-1), type(TagTyp
 
     // Check if the found isotopologue represents a predefined model
     // (continuum or full absorption model) and set the type accordingly:
-    if (!isdigit(isoname[0])) type = TagType::Predefined;
+    if (! is_predefined_model(Isotopologue())) type = TagType::Predefined;
   }
 
   if (0 == def.nelem()) {
@@ -297,7 +297,7 @@ String Tag::Name() const {
 }
 }
 
-ArrayOfSpeciesTag2::ArrayOfSpeciesTag2(String names) {
+ArrayOfSpeciesTag::ArrayOfSpeciesTag(String names) {
   // There can be a comma separated list of tag definitions, so we
   // need to break the String apart at the commas.
   ArrayOfString tag_def;
@@ -344,4 +344,22 @@ ArrayOfSpeciesTag2::ArrayOfSpeciesTag2(String names) {
     
     push_back(this_tag);
   }
+}
+
+Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs, Species::Species spec, Index i) noexcept {
+  const Index n=specs.nelem();
+  for (; i<n; i++) if(specs[i].Species() == spec) return i;
+  return -1;
+}
+
+Index find_first_species(const ArrayOfArrayOfSpeciesTag& specs, Species::Species spec) noexcept {
+  return find_next_species(specs, spec, 0);
+}
+
+Index find_first_species_tag(const ArrayOfArrayOfSpeciesTag& specs, const SpeciesTag& tag) noexcept {
+  for (Index i=0; i<specs.nelem(); i++) {
+    if (auto ptr = std::find(specs[i].cbegin(), specs[i].cend(), tag); ptr not_eq specs[i].cend())
+      return std::distance(specs[i].cbegin(), ptr);
+  }
+  return -1;
 }
