@@ -43,6 +43,9 @@
 #include "mystring.h"
 #include "absorptionlines.h"
 
+/** Check that ARTS was compiled for all requested species tags */
+void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species);
+
 namespace Species {
 struct IsotopologueRatios {
   static constexpr Index maxsize = Index(Isotopologues.size());

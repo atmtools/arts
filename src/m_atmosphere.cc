@@ -3962,8 +3962,7 @@ void vmr_fieldSetConstant(Tensor4& vmr_field,
         "Size of *vmr_field* and length of *abs_species* do not agree.");
 
   // Find position for this species.
-  ArrayOfSpeciesTag tag;
-  array_species_tag_from_string(tag, species);
+  const ArrayOfSpeciesTag tag(species);
   Index si = chk_contains("species", abs_species, tag);
 
   // Apply value
@@ -3986,7 +3985,7 @@ void vmr_fieldSetAllConstant(Tensor4& vmr_field,
 
   for (Index i = 0; i < nspecies; i++) {
     const ArrayOfSpeciesTag& a_abs_species = abs_species[i];
-    const String species_tag_name = get_tag_group_name(a_abs_species);
+    const String species_tag_name = a_abs_species.Name();
     vmr_fieldSetConstant(
         vmr_field, abs_species, species_tag_name, vmr_values[i], verbosity);
   }
@@ -3998,7 +3997,6 @@ void nlte_fieldSetLteExternalPartitionFunction(
     EnergyLevelMap& nlte_field,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-    const SpeciesAuxData& partition_functions,
     const Tensor3& t_field,
     const Verbosity& verbosity) {
   using Constant::h;
@@ -4032,10 +4030,7 @@ void nlte_fieldSetLteExternalPartitionFunction(
                     lte(ip, ilat, ilon) =
                     boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
                     band.g_low(k) / single_partition_function(
-                      t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
-                                                                                band.Isotopologue()),
-                                                partition_functions.getParam(band.Species(),
-                                                                            band.Isotopologue()));
+                      t_field(ip, ilat, ilon), band.Isotopologue());
                   }
                 }
               }
@@ -4053,10 +4048,7 @@ void nlte_fieldSetLteExternalPartitionFunction(
                     lte(ip, ilat, ilon) =
                     boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
                     band.g_upp(k) / single_partition_function(
-                      t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
-                                                                                band.Isotopologue()),
-                                                partition_functions.getParam(band.Species(),
-                                                                            band.Isotopologue()));
+                      t_field(ip, ilat, ilon), band.Isotopologue());
                   }
                 }
               }

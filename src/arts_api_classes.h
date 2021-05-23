@@ -181,12 +181,9 @@ extern "C" {
     // QuantumIdentifier
     BasicInterfaceCAPI(QuantumIdentifier)
     BasicInputOutputCAPI(QuantumIdentifier)
-    EnumGetterSetterCAPI(QuantumIdentifier, Type, QuantumIdentifier::QType)
-    GetterSetterCAPI(QuantumIdentifier, Species, Index)
-    GetterSetterCAPI(QuantumIdentifier, Isotopologue, Index)
-    VoidGetterCAPI(QuantumIdentifier, EnergyLevelQuantumNumbers)
-    VoidGetterCAPI(QuantumIdentifier, LowerQuantumNumbers)
-    VoidGetterCAPI(QuantumIdentifier, UpperQuantumNumbers)
+    VoidGetterCAPI(QuantumIdentifier, Level)
+    VoidGetterCAPI(QuantumIdentifier, Lower)
+    VoidGetterCAPI(QuantumIdentifier, Upper)
     
     // ArrayOfQuantumIdentifier
     BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
@@ -196,13 +193,6 @@ extern "C" {
     // SpeciesTag
     BasicInterfaceCAPI(SpeciesTag)
     BasicInputOutputCAPI(SpeciesTag)
-    GetterSetterCAPI(SpeciesTag, Species, Index)
-    GetterSetterCAPI(SpeciesTag, Isotopologue, Index)
-    GetterSetterCAPI(SpeciesTag, Uf, Numeric)
-    GetterSetterCAPI(SpeciesTag, Lf, Numeric)
-    GetterSetterCAPI(SpeciesTag, CIASecond, Index)
-    GetterSetterCAPI(SpeciesTag, CIADataset, Index)
-    EnumGetterSetterCAPI(SpeciesTag, Type, Index)
     VoidArrayCAPI(ArrayOfSpeciesTag)
     BasicInterfaceCAPI(ArrayOfSpeciesTag)
     BasicInputOutputCAPI(ArrayOfSpeciesTag)
@@ -211,10 +201,6 @@ extern "C" {
     BasicInputOutputCAPI(ArrayOfArrayOfSpeciesTag)
     DLL_PUBLIC void * getNameSpeciesTag(void *);
     DLL_PUBLIC Index setSpeciesTag(void *, char *);
-    DLL_PUBLIC Index validSpecies(Index);
-    DLL_PUBLIC Index validAllIsotopologues(Index, Index);
-    DLL_PUBLIC Index validIsotopologue(Index, Index);
-    DLL_PUBLIC Index validContinuum(Index, Index);
   
     // AbsorptionLines
     BasicInterfaceCAPI(AbsorptionLines)
@@ -607,16 +593,6 @@ extern "C" {
     DLL_PUBLIC void set_gridGriddedField6(Index i, void * data, void * newdata, bool NumericType);
     DLL_PUBLIC void * dataGriddedField6(void * data);
     DLL_PUBLIC bool checksizeGriddedField6(void * data);
-  
-    // SpeciesAuxData
-    BasicInterfaceCAPI(SpeciesAuxData)
-    BasicInputOutputCAPI(SpeciesAuxData)
-    DLL_PUBLIC void initSpeciesAuxData(void * data);
-    DLL_PUBLIC bool validindexSpeciesAuxData(void * data, Index s, Index i);
-    DLL_PUBLIC void * getDataSpeciesAuxData(void * data, Index s, Index i);
-    DLL_PUBLIC Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t);
-    DLL_PUBLIC Index getTypeSpeciesAuxData(void * data, Index s, Index i);
-    DLL_PUBLIC void * getDataSpeciesAuxSpeciesName(void * data, Index s, Index i);
     
     // CIARecord
     BasicInterfaceCAPI(CIARecord)
@@ -625,9 +601,6 @@ extern "C" {
     VoidArrayCAPI(ArrayOfCIARecord)
     BasicInterfaceCAPI(ArrayOfCIARecord)
     BasicInputOutputCAPI(ArrayOfCIARecord)
-    DLL_PUBLIC Index getSpecies1CIARecord(void *);
-    DLL_PUBLIC Index getSpecies2CIARecord(void *);
-    DLL_PUBLIC void setSpeciesCIARecord(void *, Index, Index);
     
     // Verbosity
     BasicInterfaceCAPI(Verbosity)
@@ -792,8 +765,6 @@ extern "C" {
     VoidArrayCAPI(ArrayOfXsecRecord)
     BasicInterfaceCAPI(ArrayOfXsecRecord)
     BasicInputOutputCAPI(ArrayOfXsecRecord)
-    DLL_PUBLIC Index getSpeciesXsecRecord(void *);
-    DLL_PUBLIC void setSpeciesXsecRecord(void *, Index);
     
     // Sparse
     BasicInterfaceCAPI(Sparse)

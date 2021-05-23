@@ -15,8 +15,6 @@ int main() {
   define_species_map();
   
   constexpr Index nfreq = 100000;
-  SpeciesAuxData partition_functions;
-  partition_functionsInitFromBuiltin(partition_functions, Verbosity{});
   
   std::stringstream ss("47929387875.2229 3.76825765434629e-25 6.39288315401667e-20 93 95 4.417e-10 0.00100339716312057 -0.0425337497440969 10059.6531675302 0.72 0 0 0 0.72 0 0 10237.1764587219 0.72 0 0 0 0.72 0 0 46 47 47 47 \n"
                        "48435909117.8633 1.3274749386654e-24 5.86939467999304e-20 89 91 4.56e-10 0.00108313429951691 -0.0444288681399483 10059.6531675302 0.72 0 0 0 0.72 0 0 10237.1764587219 0.72 0 0 0 0.72 0 0 44 45 45 45 \n"
@@ -69,14 +67,14 @@ int main() {
                        "118750348044.712 3.01219636638393e-19 0 1 3 4.48e-09 1.0011 0 16864.7126632124 0.97 0 0 0 0.97 0 0 16864.7126632124 0.97 0 0 0 0.97 0 0 0 1 1 1");
   
   const SpeciesTag sp("O2-66");
-  const QuantumIdentifier qid(sp.Species(), sp.Isotopologue(),
+  const QuantumIdentifier qid(sp.Isotopologue(),
                               {QuantumNumberType::S, QuantumNumberType::Lambda, QuantumNumberType::v1, QuantumNumberType::ElectronState},
                               {Rational(1), Rational(0), Rational(0), Rational(88)}, {Rational(1), Rational(0), Rational(0), Rational(88)});
   const LineShape::Model metamodel = LineShape::MetaData2ModelShape("G0 T1 T1 D0 T5 T5");
   AbsorptionLines band(true, true, 49, Absorption::CutoffType::None,
                        Absorption::MirroringType::None, Absorption::PopulationType::ByMakarovFullRelmat,
                        Absorption::NormalizationType::None, LineShape::Type::VP, 296, 750e9, -1, qid, 
-                       {QuantumNumberType::J, QuantumNumberType::N}, ArrayOfSpeciesTag(2), metamodel);
+                       {QuantumNumberType::J, QuantumNumberType::N}, {Species::Species::Oxygen, Species::Species::Bath}, metamodel);
   ss >> band;
   
   // Initializing values
@@ -102,28 +100,18 @@ int main() {
   
   // Line Mixing full calculations
   const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
-                                                                  partition_functions.getParamType(band.QuantumIdentity()),
-                                                                  partition_functions.getParam(band.QuantumIdentity()),
                                                                   {rq});
   
   // Line Mixing full calculations
-  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
-                                                               partition_functions.getParamType(band.QuantumIdentity()),
-                                                               partition_functions.getParam(band.QuantumIdentity())).first;
+  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, {31.989830, 28.97}, f_grid, band).first;
   
   // Line Mixing full calculations with Zeeman (ignoring polarization...)
   auto [absZ, dabsZ] = Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
-                                                                     Zeeman::Polarization::Pi, band,
-                                                                     partition_functions.getParamType(band.QuantumIdentity()),
-                                                                     partition_functions.getParam(band.QuantumIdentity()));
+                                                                     Zeeman::Polarization::Pi, band);
   absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
-                                                        Zeeman::Polarization::SigmaMinus, band,
-                                                        partition_functions.getParamType(band.QuantumIdentity()),
-                                                        partition_functions.getParam(band.QuantumIdentity())).first;
+                                                        Zeeman::Polarization::SigmaMinus, band).first;
   absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
-                                                        Zeeman::Polarization::SigmaPlus, band,
-                                                        partition_functions.getParamType(band.QuantumIdentity()),
-                                                        partition_functions.getParam(band.QuantumIdentity())).first;
+                                                        Zeeman::Polarization::SigmaPlus, band).first;
   
   // Line Mixing reimplementation of MPM19
   Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec,
@@ -134,23 +122,17 @@ int main() {
   band.Population(Absorption::PopulationType::LTE);
   xsec_species(xsec2, source, phase, dxsec, dsource, dphase,
                ArrayOfRetrievalQuantity(0),
-               f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1, 
-               partition_functions.getParamType(band.QuantumIdentity()),
-               partition_functions.getParam(band.QuantumIdentity()));
+               f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1);
   xsec2 *= number_density(P, T);
   
   // Rosenkranz adapted calculations (This gives nonsense at the time of writing)
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
   Absorption::LineMixing::ecs_rosenkranz_adaptation(band,
                                                     VectorNLinSpaceConst(150, 350, 51),
-                                                    {31.989830, 28.97}, 
-                                                    partition_functions.getParamType(band.QuantumIdentity()),
-                                                    partition_functions.getParam(band.QuantumIdentity()));
+                                                    {31.989830, 28.97});
   xsec_species(xsec3, source, phase, dxsec, dsource, dphase,
                ArrayOfRetrievalQuantity(0),
-               f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1, 
-               partition_functions.getParamType(band.QuantumIdentity()),
-               partition_functions.getParam(band.QuantumIdentity()));
+               f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1);
   xsec3 *= number_density(P, T);
   
   // Plot it all

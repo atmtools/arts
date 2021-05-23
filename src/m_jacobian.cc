@@ -2298,7 +2298,7 @@ void vmr_fieldPerturbAtmGrids(Tensor4& vmr_field,
   // Locate vmr_species among abs_species
   Index iq = -1;
   for (Index i = 0; i < abs_species.nelem(); i++) {
-    if (abs_species[i][0].Species() == SpeciesTag(species).Species()) {
+    if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
       iq = i;
       break;
     }

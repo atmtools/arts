@@ -1271,7 +1271,6 @@ void abs_lookupSetupBatch(  // WS Output:
                             t3_dummy,
                             abs_f_interp_order,
                             0,
-                            0,
                             verbosity);
     } catch (const std::exception& e) {
       // If `robust`, skip field and continue, ...
@@ -1791,20 +1790,20 @@ void abs_lookupSetupWide(  // WS Output:
   // The values are from Wallace&Hobbs, 2nd edition.
 
   const Index o2_index =
-      find_first_species_tg(abs_species, species_index_from_species_name("O2"));
+      find_first_species(abs_species, Species::fromShortName("O2"));
   if (o2_index >= 0) {
     abs_vmrs(o2_index, joker) = 0.2095;
   }
 
   const Index n2_index =
-      find_first_species_tg(abs_species, species_index_from_species_name("N2"));
+      find_first_species(abs_species, Species::fromShortName("N2"));
   if (n2_index >= 0) {
     abs_vmrs(n2_index, joker) = 0.7808;
   }
 
   // Which species is H2O?
-  const Index h2o_index = find_first_species_tg(
-      abs_species, species_index_from_species_name("H2O"));
+  const Index h2o_index = find_first_species(
+      abs_species, Species::fromShortName("H2O"));
 
   // The function returns "-1" if there is no H2O
   // species.
@@ -1867,8 +1866,7 @@ void abs_speciesAdd(  // WS Output:
   // Each element of the array of Strings names defines one tag
   // group. Let's work through them one by one.
   for (Index i = 0; i < names.nelem(); ++i) {
-    array_species_tag_from_string(temp, names[i]);
-    abs_species.push_back(temp);
+    abs_species.emplace_back(names[i]);
   }
 
   check_abs_species(abs_species);
@@ -1912,17 +1910,15 @@ void abs_speciesAdd2(  // WS Output:
   abs_xsec_agenda_checked = false;
 
   // Add species to *abs_species*
-  ArrayOfSpeciesTag tags;
-  array_species_tag_from_string(tags, species);
-  abs_species.push_back(tags);
+  abs_species.emplace_back(species);
 
   check_abs_species(abs_species);
 
   // Print list of added tag group to the most verbose output stream:
   out3 << "  Appended tag group:";
   out3 << "\n  " << abs_species.nelem() - 1 << ":";
-  for (Index s = 0; s < tags.nelem(); ++s) {
-    out3 << " " << tags[s].Name();
+  for (Index s = 0; s < abs_species.back().nelem(); ++s) {
+    out3 << " " << abs_species.back()[s].Name();
   }
   out3 << '\n';
 
@@ -1971,7 +1967,7 @@ void abs_speciesSet(  // WS Output:
   for (Index i = 0; i < names.nelem(); ++i) {
     // This part has now been moved to array_species_tag_from_string.
     // Call this function.
-    array_species_tag_from_string(abs_species[i], names[i]);
+    abs_species[i] = ArrayOfSpeciesTag(names[i]);
   }
 
   check_abs_species(abs_species);
@@ -2202,7 +2198,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   for (auto& species_list: abs_species) {
     jacobian_quantities.emplace_back();
     auto& rq = jacobian_quantities.back();
-    rq.Subtag(get_tag_group_name(species_list));
+    rq.Subtag(species_list.Name());
     rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, species_list));
     rq.Target().Perturbation(0.001);
   }

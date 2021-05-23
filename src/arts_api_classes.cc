@@ -260,12 +260,9 @@ Index string2quantumnumbersindex(char * str) { return Index(string2quantumnumber
 // QuantumIdentifier
 BasicInterfaceCAPI(QuantumIdentifier)
 BasicInputOutputCAPI(QuantumIdentifier)
-EnumGetterSetterCAPI(QuantumIdentifier, Type, QuantumIdentifier::QType)
-GetterSetterCAPI(QuantumIdentifier, Species, Index)
-GetterSetterCAPI(QuantumIdentifier, Isotopologue, Index)
-VoidGetterCAPI(QuantumIdentifier, EnergyLevelQuantumNumbers)
-VoidGetterCAPI(QuantumIdentifier, LowerQuantumNumbers)
-VoidGetterCAPI(QuantumIdentifier, UpperQuantumNumbers)
+VoidGetterCAPI(QuantumIdentifier, Level)
+VoidGetterCAPI(QuantumIdentifier, Lower)
+VoidGetterCAPI(QuantumIdentifier, Upper)
 
 // ArrayOfQuantumIdentifier
 BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
@@ -275,13 +272,6 @@ VoidArrayCAPI(ArrayOfQuantumIdentifier)
 // SpeciesTag
 BasicInterfaceCAPI(SpeciesTag)
 BasicInputOutputCAPI(SpeciesTag)
-GetterSetterCAPI(SpeciesTag, Species, Index)
-GetterSetterCAPI(SpeciesTag, Isotopologue, Index)
-GetterSetterCAPI(SpeciesTag, Uf, Numeric)
-GetterSetterCAPI(SpeciesTag, Lf, Numeric)
-GetterSetterCAPI(SpeciesTag, CIASecond, Index)
-GetterSetterCAPI(SpeciesTag, CIADataset, Index)
-EnumGetterSetterCAPI(SpeciesTag, Type, Index)
 VoidArrayCAPI(ArrayOfSpeciesTag)
 BasicInterfaceCAPI(ArrayOfSpeciesTag)
 BasicInputOutputCAPI(ArrayOfSpeciesTag)
@@ -302,41 +292,6 @@ Index setSpeciesTag(void * data, char * newdata)
   } catch(std::exception& e) {
     return EXIT_FAILURE;
   }
-}
-
-Index validSpecies(Index spec)
-{
-  if (spec >= 0 and spec < global_data::species_data.nelem())
-    return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
-}
-
-Index validAllIsotopologues(Index spec, Index isot)
-{
-  auto& species = global_data::species_data[spec];
-  if (isot == species.Isotopologue().nelem())
-    return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
-}
-
-Index validIsotopologue(Index spec, Index isot)
-{
-  auto& species = global_data::species_data[spec];
-  if (isot >= 0 and isot < species.Isotopologue().nelem() and not species.Isotopologue()[isot].isContinuum())
-    return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
-}
-
-Index validContinuum(Index spec, Index isot)
-{
-  auto& species = global_data::species_data[spec];
-  if (isot >= 0 and isot < species.Isotopologue().nelem() and species.Isotopologue()[isot].isContinuum())
-    return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
 }
 
 
@@ -815,17 +770,6 @@ void * dataGriddedField6(void * data) {return &static_cast<GriddedField6 *>(data
 bool checksizeGriddedField6(void * data) {return static_cast<GriddedField6 *>(data) -> checksize();}
 
 
-// SpeciesAuxData
-BasicInterfaceCAPI(SpeciesAuxData)
-BasicInputOutputCAPI(SpeciesAuxData)
-void initSpeciesAuxData(void * data) {static_cast<SpeciesAuxData *>(data) -> InitFromSpeciesData();}
-bool validindexSpeciesAuxData(void * data, Index s, Index i) {return static_cast<SpeciesAuxData *>(data) -> validIndex(s, i);}
-void * getDataSpeciesAuxData(void * data, Index s, Index i) {return &static_cast<SpeciesAuxData *>(data) -> Data(s, i);}
-Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t) {return static_cast<SpeciesAuxData *>(data) -> setParamType(s, i, t);}
-Index getTypeSpeciesAuxData(void * data, Index s, Index i) {return Index(static_cast<SpeciesAuxData *>(data) -> getParamType(s, i));}
-void * getDataSpeciesAuxSpeciesName(void * data, Index s, Index i) {return new String{static_cast<SpeciesAuxData *>(data) -> getParamSpecies(s, i)};}
-
-
 // CIARecord
 BasicInterfaceCAPI(CIARecord)
 BasicInputOutputCAPI(CIARecord)
@@ -833,9 +777,6 @@ VoidGetterCAPI(CIARecord, Data)
 VoidArrayCAPI(ArrayOfCIARecord)
 BasicInterfaceCAPI(ArrayOfCIARecord)
 BasicInputOutputCAPI(ArrayOfCIARecord)
-Index getSpecies1CIARecord(void * data) {return static_cast<CIARecord *>(data) -> Species(0);}
-Index getSpecies2CIARecord(void * data) {return static_cast<CIARecord *>(data) -> Species(1);}
-void setSpeciesCIARecord(void * data, Index newval1, Index newval2) {return static_cast<CIARecord *>(data) -> SetSpecies(newval1, newval2);}
 
 
 // Verbosity
@@ -1153,8 +1094,6 @@ VoidGetterCAPI(XsecRecord, TemperatureIntersect)
 VoidArrayCAPI(ArrayOfXsecRecord)
 BasicInterfaceCAPI(ArrayOfXsecRecord)
 BasicInputOutputCAPI(ArrayOfXsecRecord)
-Index getSpeciesXsecRecord(void * data) {return static_cast<XsecRecord *>(data) -> Species();}
-void setSpeciesXsecRecord(void * data, Index newdata) {static_cast<XsecRecord *>(data) -> SetSpecies(newdata);}
 
 
 // Sparse

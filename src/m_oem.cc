@@ -95,7 +95,7 @@ void vmr_fieldClip(Tensor4& vmr_field,
 
   else {
     for (Index i = 0; i < abs_species.nelem(); i++) {
-      if (abs_species[i][0].Species() == SpeciesTag(species).Species()) {
+      if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
         iq = i;
         break;
       }
@@ -226,8 +226,7 @@ void xaStandard(Workspace& ws,
     // Abs species
     else if (jacobian_quantities[q].Target().isSpeciesVMR()) {
       // Index position of species
-      ArrayOfSpeciesTag atag;
-      array_species_tag_from_string(atag, jacobian_quantities[q].Subtag());
+      ArrayOfSpeciesTag atag(jacobian_quantities[q].Subtag());
       const Index isp = chk_contains("abs_species", abs_species, atag);
 
       if (jacobian_quantities[q].Mode() == "rel") {
@@ -592,8 +591,7 @@ void x2artsAtmAndSurf(Workspace& ws,
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q].Target().isSpeciesVMR()) {
       // Index position of species
-      ArrayOfSpeciesTag atag;
-      array_species_tag_from_string(atag, jacobian_quantities[q].Subtag());
+      ArrayOfSpeciesTag atag(jacobian_quantities[q].Subtag());
       const Index isp = chk_contains("abs_species", abs_species, atag);
 
       // Map part of x to a full atmospheric field

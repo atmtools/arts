@@ -373,7 +373,7 @@ void abs_coefCalcFromXsec(  // WS Output:
                   s.type not_eq Species::TagType::Cia)
                 seco = true;
               if (species_iso_match(
-                      deriv, s.Species(),
+                      deriv,
                       s.Isotopologue()))
                 main = true;
             }
@@ -633,22 +633,17 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
   for (Index ii = 0; ii < abs_species_active.nelem(); ++ii) {
     const Index i = abs_species_active[ii];
 
-    using global_data::species_data;
-
     // Go through the tags in the current tag group to see if they
     // are continuum tags:
     for (Index s = 0; s < tgs[i].nelem(); ++s) {
       // Continuum tags in the sense that we talk about here
       // (including complete absorption models) are marked by a special type.
-      if (tgs[i][s].Type() == SpeciesTag::TYPE_PREDEF) {
+      if (tgs[i][s].Type() == Species::TagType::Predefined) {
         // We have identified a continuum tag!
 
         // Get only the continuum name. The full tag name is something like:
         // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
-        const String name = species_data[tgs[i][s].Species()].Name() + "-" +
-                            species_data[tgs[i][s].Species()]
-                                .Isotopologue()[tgs[i][s].Isotopologue()]
-                                .Name();
+        const String name = tgs[i][s].Isotopologue().FullName();
 
         if (name == "O2-MPM2020") continue;
                                 
@@ -1071,7 +1066,7 @@ void propmat_clearskyAddFaraday(
 
   Index ife = -1;
   for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
-    if (abs_species[sp][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS) {
+    if (abs_species[sp].FreeElectrons()) {
       ife = sp;
     }
   }
@@ -1176,7 +1171,7 @@ void propmat_clearskyAddParticles(
   const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
   for (Index sp = 0; sp < abs_species.nelem(); sp++) {
-    if (abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES) {
+    if (abs_species[sp].Particles()) {
       np++;
     }
   }
@@ -1264,7 +1259,7 @@ void propmat_clearskyAddParticles(
   for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
     for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
       // forward to next particle entry in abs_species
-      while (sp < na && abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES)
+      while (sp < na && not abs_species[sp].Particles())
         sp++;
       internal_propmat.SetZero();
 
@@ -1459,8 +1454,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const SpeciesAuxData& isotopologue_ratios,
-    const SpeciesAuxData& partition_functions,
+    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
     const EnergyLevelMap& rtp_nlte,
@@ -1528,7 +1522,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
       if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
       
       // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
+      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
         continue;
       
       // Reset for legacy VMR jacobian
@@ -1536,9 +1530,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
       sparse_com.reset();
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
-                           partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, sparse_lim,
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                           isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
                            false, Zeeman::Polarization::Pi, speedup_type);
         
       }
@@ -1589,13 +1582,12 @@ void propmat_clearskyAddLines(  // Workspace reference:
       if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
       
       // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
+      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
         continue;
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
-                           partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, sparse_lim,
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                           isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
                            false, Zeeman::Polarization::Pi, speedup_type);
         
       }
@@ -1748,15 +1740,359 @@ void propmat_clearskyForceNegativeToZero(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void isotopologue_ratiosInitFromBuiltin(SpeciesAuxData& isotopologue_ratios,
-                                        const Verbosity&) {
-  fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(isotopologue_ratios);
-}
+void isotopologue_ratiosInitFromBuiltin(SpeciesIsotopologueRatios& isotopologue_ratios,
+                                       const Verbosity&) {
+  isotopologue_ratios = SpeciesIsotopologueRatios();
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void partition_functionsInitFromBuiltin(SpeciesAuxData& partition_functions,
-                                        const Verbosity&) {
-  fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(partition_functions);
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("H2O" "-" ISOT).spec_ind] = VAL
+  set_isot_val("161", .997317E+00);
+  set_isot_val("161", .997317E+00);
+  set_isot_val("181", 1.99983E-03);
+  set_isot_val("171", 3.71884E-04);
+  set_isot_val("162", 3.10693E-04);
+  set_isot_val("182", 6.23003E-07);
+  set_isot_val("172", 1.15853E-07);
+  set_isot_val("262", 2.41970E-08);
+#undef set_isot_val
+
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CO2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("626", .984204E+00);
+  set_isot_val("636", 1.10574E-02);
+  set_isot_val("628", 3.94707E-03);
+  set_isot_val("627", 7.33989E-04);
+  set_isot_val("638", 4.43446E-05);
+  set_isot_val("637", 8.24623E-06);
+  set_isot_val("828", 3.95734E-06);
+  set_isot_val("728", 1.47180E-06);
+  set_isot_val("727", 1.36847E-07);
+  set_isot_val("838", 4.44600E-08);
+  set_isot_val("837", 1.65354E-08);
+  set_isot_val("737", 1.537500E-08);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("O3" "-" ISOT).spec_ind] = VAL
+  set_isot_val("666", .992901E+00);
+  set_isot_val("668", 3.98194E-03);
+  set_isot_val("686", 1.99097E-03);
+  set_isot_val("667", 7.40475E-04);
+  set_isot_val("676", 3.70237E-04);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("N2O" "-" ISOT).spec_ind] = VAL
+  set_isot_val("446", .990333E+00);
+  set_isot_val("456", 3.64093E-03);
+  set_isot_val("546", 3.64093E-03);
+  set_isot_val("448", 1.98582E-03);
+  set_isot_val("447", 3.69280E-04);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CO" "-" ISOT).spec_ind] = VAL
+  set_isot_val("26", .986544E+00);
+  set_isot_val("36", 1.10836E-02);
+  set_isot_val("28", 1.97822E-03);
+  set_isot_val("27", 3.67867E-04);
+  set_isot_val("38", 2.22250E-05);
+  set_isot_val("37", 4.13292E-06);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CH4" "-" ISOT).spec_ind] = VAL
+  set_isot_val("211", .988274E+00);
+  set_isot_val("311", 1.11031E-02);
+  set_isot_val("212", 6.15751E-04);
+  set_isot_val("312", 6.91785E-06);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("O2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("66", .995262E+00);
+  set_isot_val("68", 3.99141E-03);
+  set_isot_val("67", 7.42235E-04);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("NO" "-" ISOT).spec_ind] = VAL
+  set_isot_val("46", .993974E+00);
+  set_isot_val("56", 3.65431E-03);
+  set_isot_val("48", 1.99312E-03);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("SO2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("626", .945678E+00);
+  set_isot_val("646", 4.19503E-02);
+  set_isot_val("636", 0.0074989421);
+  set_isot_val("628", 0.0020417379);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("NO2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("646", .991616E+00);
+  set_isot_val("656", 3.64564E-030);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("NH3" "-" ISOT).spec_ind] = VAL
+  set_isot_val("4111", .995872E+00);
+  set_isot_val("5111", 3.66129E-03);
+  set_isot_val("4112", 0.00044792294);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HNO3" "-" ISOT).spec_ind] = VAL
+  set_isot_val("146", .989110E+00);
+  set_isot_val("156", 3.63600E-03);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("OH" "-" ISOT).spec_ind] = VAL
+  set_isot_val("61", .997473E+00);
+  set_isot_val("81", 2.00014E-03);
+  set_isot_val("62", 1.55371E-04);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HF" "-" ISOT).spec_ind] = VAL
+  set_isot_val("19", .999844E+00);
+  set_isot_val("29", 1.55741E-04);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HCl" "-" ISOT).spec_ind] = VAL
+  set_isot_val("15", .757587E+00);
+  set_isot_val("17", .242257E+00);
+  set_isot_val("25", 1.18005E-04);
+  set_isot_val("27", 3.77350E-05);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HBr" "-" ISOT).spec_ind] = VAL
+  set_isot_val("19", .506781E+00);
+  set_isot_val("11", .493063E+00);
+  set_isot_val("29", 7.89384E-05);
+  set_isot_val("21", 7.68016E-05);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HI" "-" ISOT).spec_ind] = VAL
+  set_isot_val("17", .999844E+00);
+  set_isot_val("27", 1.55741E-04);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("ClO" "-" ISOT).spec_ind] = VAL
+  set_isot_val("56", .755908E+00);
+  set_isot_val("76", .241720E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("OCS" "-" ISOT).spec_ind] = VAL
+  set_isot_val("622", .937395E+00);
+  set_isot_val("624", 4.15828E-02);
+  set_isot_val("632", 1.05315E-02);
+  set_isot_val("623", 7.39908E-03);
+  set_isot_val("822", 1.87967E-03);
+  set_isot_val("634", 4.67508E-04);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("H2CO" "-" ISOT).spec_ind] = VAL
+  set_isot_val("1126", .986237E+00);
+  set_isot_val("1136", 1.10802E-02);
+  set_isot_val("1128", 1.97761E-03);
+  set_isot_val("1226", 0.00029578940);
+  set_isot_val("2226", 2.2181076E-08);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HOCl" "-" ISOT).spec_ind] = VAL
+  set_isot_val("165", .755790E+00);
+  set_isot_val("167", .241683E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("N2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("44", .992687E+00);
+  set_isot_val("45", 7.47809E-03);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HCN" "-" ISOT).spec_ind] = VAL
+  set_isot_val("124", .985114E+00);
+  set_isot_val("134", 1.10676E-02);
+  set_isot_val("125", 3.62174E-03);
+  set_isot_val("224", 0.00014773545);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CH3Cl" "-" ISOT).spec_ind] = VAL
+  set_isot_val("215", .748937E+00);
+  set_isot_val("217", .239491E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("H2O2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("1661", .994952E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("C2H2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("1221", .977599E+00);
+  set_isot_val("1231", 2.19663E-02);
+  set_isot_val("1222", 3.04550E-04);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("C2H6" "-" ISOT).spec_ind] = VAL
+  set_isot_val("1221", .976990E+00);
+  set_isot_val("1231", 2.19526E-02);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("PH3" "-" ISOT).spec_ind] = VAL
+  set_isot_val("1111", .999533E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("COF2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("269", .986544E+00);
+  set_isot_val("369", 1.10834E-02);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("SF6" "-" ISOT).spec_ind] = VAL
+  set_isot_val("29", .950180E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("H2S" "-" ISOT).spec_ind] = VAL
+  set_isot_val("121", .949884E+00);
+  set_isot_val("141", 4.21369E-02);
+  set_isot_val("131", 7.49766E-03);
+  set_isot_val("122", 0.00029991625);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HCOOH" "-" ISOT).spec_ind] = VAL
+  set_isot_val("1261", .983898E+00);
+  set_isot_val("1361", 0.010913149);
+  set_isot_val("2261", 0.00014755369);
+  set_isot_val("1262", 0.00014755369);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HO2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("166", .995107E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("O" "-" ISOT).spec_ind] = VAL
+  set_isot_val("6", .997628E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("ClONO2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("5646", .749570E+00);
+  set_isot_val("7646", .239694E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("NO+" "-" ISOT).spec_ind] = VAL
+  set_isot_val("46", .993974E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("OClO" "-" ISOT).spec_ind] = VAL
+  set_isot_val("656", 0.75509223);
+  set_isot_val("676", 0.24490632);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("BrO" "-" ISOT).spec_ind] = VAL
+  set_isot_val("96", 0.50582466);
+  set_isot_val("16", 0.49431069);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("H2SO4" "-" ISOT).spec_ind] = VAL
+  set_isot_val("126", 0.95060479);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("Cl2O2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("565", 0.57016427);
+  set_isot_val("765", 0.36982818);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HOBr" "-" ISOT).spec_ind] = VAL
+  set_isot_val("169", .505579E+00);
+  set_isot_val("161", .491894E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("C2H4" "-" ISOT).spec_ind] = VAL
+  set_isot_val("221", .977294E+00);
+  set_isot_val("231", .219595E-01);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CH3OH" "-" ISOT).spec_ind] = VAL
+  set_isot_val("2161", .985930E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CH3Br" "-" ISOT).spec_ind] = VAL
+  set_isot_val("219", .500995E+00);
+  set_isot_val("211", .487433E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CH3CN" "-" ISOT).spec_ind] = VAL
+  set_isot_val("211124", .973866E+00);
+  set_isot_val("311124", .102683e-01);
+  set_isot_val("211134", .102683e-01);
+  set_isot_val("211125", .347136e-02);
+  set_isot_val("211224", .441185e-03);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CF4" "-" ISOT).spec_ind] = VAL
+  set_isot_val("29", .988890E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HC3N" "-" ISOT).spec_ind] = VAL
+  set_isot_val("12224", .963346E+00);
+  set_isot_val("12234", .106852e-01);
+  set_isot_val("12324", .106852e-01);
+  set_isot_val("13224", .106852e-01);
+  set_isot_val("12225", .356272e-02);
+  set_isot_val("22224", .144472e-03);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CS" "-" ISOT).spec_ind] = VAL
+  set_isot_val("22", .939624E+00);
+  set_isot_val("24", .416817E-01);
+  set_isot_val("32", .105565E-01);
+  set_isot_val("23", .741668E-02);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("HNC" "-" ISOT).spec_ind] = VAL
+  set_isot_val("142", .985280e+00);
+  set_isot_val("143", .109285e-01);
+  set_isot_val("152", .364384e-02);
+  set_isot_val("242", .147761e-03);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("SO" "-" ISOT).spec_ind] = VAL
+  set_isot_val("26", .950605e+00);
+  set_isot_val("46", .420727e-01);
+  set_isot_val("28", .194089e-02);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("C3H8" "-" ISOT).spec_ind] = VAL
+  set_isot_val("21", 9.66290e-01);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("H2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("11", .999688E+00);
+  set_isot_val("12", 3.11432E-04);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("H" "-" ISOT).spec_ind] = VAL
+  set_isot_val("1", 1.00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("He" "-" ISOT).spec_ind] = VAL
+  set_isot_val("4", 1.00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("Ar" "-" ISOT).spec_ind] = VAL
+  set_isot_val("8", 1.00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("C4H2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("2211", .955998E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("SO3" "-" ISOT).spec_ind] = VAL
+  set_isot_val("26", .943400E+00);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("CS2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("222", 8.92811E-01);
+  set_isot_val("224", 7.92600E-02);
+  set_isot_val("223", 1.40940E-02);
+  set_isot_val("232", 1.03100E-02);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("C2N2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("4224", 9.70752E-01);
+#undef set_isot_val
+  
+#define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("COCl2" "-" ISOT).spec_ind] = VAL
+  set_isot_val("2655", 5.66392E-01);
+  set_isot_val("2657", 5.66392E-01);
+#undef set_isot_val
 }
 
 #ifdef ENABLE_NETCDF
@@ -1948,8 +2284,7 @@ void abs_xsec_per_speciesAddLines(
     const EnergyLevelMap& abs_nlte,
     const Matrix& abs_vmrs,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const SpeciesAuxData& isotopologue_ratios,
-    const SpeciesAuxData& partition_functions,
+    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Index& lbl_checked,
     const Verbosity&) {
   if (not abs_lines_per_species.nelem()) return;
@@ -1981,7 +2316,7 @@ void abs_xsec_per_speciesAddLines(
   for (Index ii = 0; ii < abs_species_active.nelem(); ++ii) {
     const Index i = abs_species_active[ii];
     
-    if (not abs_species[i].nelem() or is_zeeman(abs_species[i]))
+    if (not abs_species[i].nelem() or abs_species[i].Zeeman())
       continue;
     
     for (auto& lines: abs_lines_per_species[i]) {
@@ -2000,9 +2335,7 @@ void abs_xsec_per_speciesAddLines(
           abs_vmrs,
           abs_species,
           lines,
-          isotopologue_ratios.getIsotopologueRatio(lines.QuantumIdentity()),
-          partition_functions.getParamType(lines.QuantumIdentity()),
-          partition_functions.getParam(lines.QuantumIdentity()));
+          isotopologue_ratios[lines.Isotopologue()]);
     }
   }  // End of species for loop.
 }

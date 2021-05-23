@@ -27,22 +27,13 @@
  */
 
 #include "zeemandata.h"
-#include "abs_species_tags.h"
 #include "species_info.h"
-
-Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier2& qid) noexcept {
-  const Numeric GS = get_lande_spin_constant(qid.Species());
-  const Numeric GL = get_lande_lambda_constant();
-  const Numeric gu = SimpleG(qid.Upper(), GS, GL);
-  const Numeric gl = SimpleG(qid.Lower(), GS, GL);
-  return Model(gu, gl);
-}
 
 Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) noexcept {
   const Numeric GS = get_lande_spin_constant(qid.Species());
   const Numeric GL = get_lande_lambda_constant();
-  const Numeric gu = SimpleG(qid.UpperQuantumNumbers(), GS, GL);
-  const Numeric gl = SimpleG(qid.LowerQuantumNumbers(), GS, GL);
+  const Numeric gu = SimpleG(qid.Upper(), GS, GL);
+  const Numeric gl = SimpleG(qid.Lower(), GS, GL);
   return Model(gu, gl);
 }
 
@@ -110,107 +101,8 @@ constexpr Numeric closed_shell_trilinear(Rational k,
     return gperp + (gperp + gpara) * Numeric(k*k / (j*(j+1)));
 }
 
+
 Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
-  const auto name = qid.SpeciesName();
-  if (name == "O2-66") {
-    if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
-        qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
-        Numeric GS = 2.002084;
-        Numeric GLE = 2.77e-3;
-        Numeric GR = -1.16e-4;
-        Numeric B = 43100.44276e6;
-        Numeric D = 145.1271e3;
-        Numeric H = 49e-3;
-        Numeric lB = 59501.3438e6;
-        Numeric lD = 58.3680e3;
-        Numeric lH = 290.8e-3;
-        Numeric gB = -252.58634e6;
-        Numeric gD = -243.42;
-        Numeric gH = -1.46e-3;
-
-        auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
-        auto NU = qid.UpperQuantumNumber(QuantumNumberType::N);
-        Numeric gu = case_b_g_coefficient_o2(
-            JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
-        auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
-        Numeric gl = case_b_g_coefficient_o2(
-            JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        return Model(gu, gl);
-      }
-    } else if (name == "O2-68") {
-    if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
-        qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
-      Numeric GS = 2.002025;
-      Numeric GLE = 2.813e-3;
-      Numeric GR = -1.26e-4;
-      Numeric B = 40707.38657e6;
-      Numeric D = 129.4142e3;
-      Numeric H = 0;
-      Numeric lB = 59499.0375e6;
-      Numeric lD = 54.9777e3;
-      Numeric lH = 272.1e-3;
-      Numeric gB = -238.51530e6;
-      Numeric gD = -217.77;
-      Numeric gH = -1.305e-3;
-
-      auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
-      auto NU = qid.UpperQuantumNumber(QuantumNumberType::N);
-      Numeric gu = case_b_g_coefficient_o2(
-          JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
-      auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
-      Numeric gl = case_b_g_coefficient_o2(
-          JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      return Model(gu, gl);
-    }
-  } else if (name == "CO-26") {
-      Numeric gperp = -0.2689 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-      
-      return Model(gperp, gperp);
-  } else if (name == "OCS-622") {
-      Numeric gperp = -.02889 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-      Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-      
-      auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
-      auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
-      auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
-      auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
-      
-      return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara));
-  } else if (name == "OCS-624") {
-    Numeric gperp = -.0285 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-    Numeric gpara = -.061 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-    
-    auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
-    auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
-    auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
-    auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
-    
-    return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
-                 closed_shell_trilinear(KL, JL, gperp, gpara));
-  } else if (name == "CO2-626") {
-    Numeric gperp = -.05508 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-    Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-    
-    auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
-    auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
-    auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
-    auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
-    
-    return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
-                 closed_shell_trilinear(KL, JL, gperp, gpara));
-  }
-  
-  // Take care of zeroes since they do not show up in replacement databases
-  const bool upperzero = qid.UpperQuantumNumber(QuantumNumberType::J) == 0 or qid.UpperQuantumNumber(QuantumNumberType::F) == 0;
-  const bool lowerzero = qid.LowerQuantumNumber(QuantumNumberType::J) == 0 or qid.LowerQuantumNumber(QuantumNumberType::F) == 0;
-  return Model(upperzero ? 0 : NAN, lowerzero ? 0 : NAN);
-}
-
-
-Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier2& qid) noexcept {
   if (qid.Isotopologue() == "O2-66") {
     if (qid.Lower()[QuantumNumberType::v1] == 0 and qid.Upper()[QuantumNumberType::v1] == 0) {
       Numeric GS = 2.002084;
@@ -307,12 +199,6 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier2& qid) noexcept {
 }
 
 Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {
-  Model m = GetAdvancedModel(qid);
-  if (m.empty()) m = GetSimpleModel(qid);
-  *this = m;
-}
-
-Zeeman::Model::Model(const QuantumIdentifier2& qid) noexcept {
   Model m = GetAdvancedModel(qid);
   if (m.empty()) m = GetSimpleModel(qid);
   *this = m;

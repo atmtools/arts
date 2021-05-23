@@ -139,7 +139,7 @@ constexpr Numeric dQdT(Numeric T, const Species::IsotopeRecord& ir) {
 constexpr bool has_partfun(const Species::IsotopeRecord& ir) noexcept {
   using Species::Species;
   
-  #define deal_with_spec(SPEC) case Species::SPEC: for (auto& x: has##SPEC) if (x == ir.isotname) return true;
+  #define deal_with_spec(SPEC) case Species::SPEC: for (auto& x: has##SPEC) if (x == ir.isotname) return true; break;
   
   switch (ir.spec) {
     case Species::Bath: break;

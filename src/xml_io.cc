@@ -101,13 +101,13 @@ void ArtsXMLTag::add_attribute(const String& aname, const std::vector<QuantumNum
   add_attribute(aname, v.str());
 }
 
-void ArtsXMLTag::add_attribute(const String& aname, const ArrayOfSpeciesTag& value, const bool self, const bool bath) {
+void ArtsXMLTag::add_attribute(const String& aname, const ArrayOfSpecies& value, const bool self, const bool bath) {
   ostringstream v;
   
   if(self)
     v << LineShape::self_broadening;
   for(Index i=Index(self); i<value.nelem()-Index(bath); i++)
-    v << ' ' << value[i].SpeciesNameMain();
+    v << ' ' << Species::toShortName(value[i]);
   if(bath) {
     v << ' ' << LineShape::bath_broadening;
   }
@@ -202,7 +202,7 @@ void ArtsXMLTag::get_attribute_value(const String& aname, SpeciesTag& value) {
   value = SpeciesTag(attribute_value);
 }
 
-void ArtsXMLTag::get_attribute_value(const String& aname, ArrayOfSpeciesTag& value, bool& self, bool& bath) {
+void ArtsXMLTag::get_attribute_value(const String& aname, ArrayOfSpecies& value, bool& self, bool& bath) {
   value.resize(0);
   self=false;
   bath=false;
@@ -224,15 +224,18 @@ void ArtsXMLTag::get_attribute_value(const String& aname, ArrayOfSpeciesTag& val
     }
     
     if(val == LineShape::self_broadening) {
-      value.push_back(SpeciesTag());
+      value.push_back(Species::Species::FINAL);
       self = true;
     }
     else if(val == LineShape::bath_broadening) {
-      value.push_back(SpeciesTag());
+      value.push_back(Species::Species::Bath);
       bath = true;
     }
-    else
-      value.push_back(SpeciesTag(val));
+    else {
+      Species::Species x = Species::fromShortName(val);
+      ARTS_USER_ERROR_IF(not good_enum(x), "Species: ", val, " cannot be understood")
+      value.push_back(x);
+    }
   }
 }
 

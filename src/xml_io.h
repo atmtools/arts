@@ -100,7 +100,7 @@ class ArtsXMLTag {
    * @param[in] self True if LineShape::self_broadening in list
    * @param[in] bath True if LineShape::bath_broadening in list
    */
-  void add_attribute(const String& aname, const ArrayOfSpeciesTag& value, const bool self, const bool bath);
+  void add_attribute(const String& aname, const ArrayOfSpecies& value, const bool self, const bool bath);
 
   void check_attribute(const String& aname, const String& value);
 
@@ -139,7 +139,7 @@ class ArtsXMLTag {
    * @param[out] self True if LineShape::self_broadening in list
    * @param[out] bath True if LineShape::bath_broadening in list
    */
-  void get_attribute_value(const String& aname, ArrayOfSpeciesTag& value, bool& self, bool& bath);
+  void get_attribute_value(const String& aname, ArrayOfSpecies& value, bool& self, bool& bath);
   
   /** Returns value of attribute as type ArrayOfSpeciesTag
    * 

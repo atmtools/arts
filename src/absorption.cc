@@ -48,6 +48,33 @@
 #include "global_data.h"
 #include "linefunctions.h"
 
+
+void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species) {
+  for (auto& specs: abs_species) {
+    for (auto& spec: specs) {
+      if (spec.type == Species::TagType::Plain or spec.type == Species::TagType::Zeeman) {
+        if (spec.Isotopologue().isotname not_eq Species::Joker) {
+          ARTS_USER_ERROR_IF (not PartitionFunctions::has_partfun(spec.Isotopologue()),
+            "Species: ", spec.Isotopologue().FullName(), " has no partition function\n",
+            "You must recompile ARTS partition functions with data for this species to continue your calculations,\n"
+            "or exclude the species from your computation setup")
+        } else {
+          auto all_isots = Species::isotopologues(spec.Isotopologue().spec);
+          for (auto& isot: all_isots) {
+            if (not Species::is_predefined_model(isot)) {
+              ARTS_USER_ERROR_IF (not PartitionFunctions::has_partfun(isot),
+                                  "Species: ", isot.FullName(), " has no partition function\n",
+                                  "You must recompiler ARTS partition functions with data for this species to continue your calculations,\n"
+                                  "or exclude the species from your computation setup.  Note that it is part a joker-species, so the\n"
+                                  "troubling isotopologue is not directly defined in its name")
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
                              const Species::IsotopologueRatios& isoratios) {
   // For the selected species, we check all isotopes by looping over the

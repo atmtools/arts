@@ -125,29 +125,25 @@ void xml_read_from_stream(istream& is_xml,
   if (jt.needQuantumIdentity()) {
     SpeciesTag spec;
     tag.get_attribute_value("species", spec);
-    jt.QuantumIdentity().Species() = spec.Species();
-    jt.QuantumIdentity().Isotopologue() = spec.Isotopologue();
     
     if (jt == Jacobian::Line::VMR) {
-      jt.QuantumIdentity().SetAll();
-      jt.QuantumIdentity().Species() = spec.Species();
-      jt.QuantumIdentity().Isotopologue() = spec.Isotopologue();
+      jt.QuantumIdentity() = QuantumIdentifier(spec.Isotopologue(), Quantum::IdentifierType::All);
     } else if (jt == Jacobian::Line::NLTE) {
       QuantumNumbers levelquanta;
       tag.get_attribute_value("levelquanta", levelquanta);
-      jt.QuantumIdentity().SetEnergyLevel(levelquanta);
+      jt.QuantumIdentity() = QuantumIdentifier(spec.Isotopologue(), levelquanta);
     } else {
       QuantumNumbers upperglobalquanta, lowerglobalquanta;
       tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
       tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
-      jt.QuantumIdentity().SetTransition(upperglobalquanta, lowerglobalquanta);
+      jt.QuantumIdentity() = QuantumIdentifier(spec.Isotopologue(), upperglobalquanta, lowerglobalquanta);
     }
   }
 
   if (jt.needArrayOfSpeciesTag()) {
     String key;
     tag.get_attribute_value("species", key);
-    array_species_tag_from_string(jt.SpeciesList(), key);
+    jt.SpeciesList() = ArrayOfSpeciesTag(key);
   }
 
   if (jt.needString()) {
@@ -198,19 +194,19 @@ void xml_write_to_stream(ostream& os_xml,
   
   /** Catalog ID */
   if (jt.needQuantumIdentity()) {
-    open_tag.add_attribute("species", jt.QuantumIdentity().SpeciesName());
+    open_tag.add_attribute("species", String(Species::toShortName(jt.QuantumIdentity().Species())));
     
     if (jt == Jacobian::Line::VMR) {
     } else if (jt == Jacobian::Line::NLTE) {
-      open_tag.add_attribute("levelquanta", jt.QuantumIdentity().EnergyLevelQuantumNumbers().toString());
+      open_tag.add_attribute("levelquanta", jt.QuantumIdentity().Level().toString());
     } else {
-      open_tag.add_attribute("upperglobalquanta", jt.QuantumIdentity().UpperQuantumNumbers().toString());
-      open_tag.add_attribute("lowerglobalquanta", jt.QuantumIdentity().LowerQuantumNumbers().toString());
+      open_tag.add_attribute("upperglobalquanta", jt.QuantumIdentity().Upper().toString());
+      open_tag.add_attribute("lowerglobalquanta", jt.QuantumIdentity().Lower().toString());
     }
   }
 
   if (jt.needArrayOfSpeciesTag()) {
-    open_tag.add_attribute("species", get_tag_group_name(jt.SpeciesList()));
+    open_tag.add_attribute("species", jt.SpeciesList().Name());
   }
 
   if (jt.needString()) {
@@ -1706,10 +1702,11 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
   
   /** A list of broadening species */
-  ArrayOfSpeciesTag broadeningspecies;
+  ArrayOfSpecies broadeningspecies;
   bool selfbroadening;
   bool bathbroadening;
   tag.get_attribute_value("broadeningspecies", broadeningspecies, selfbroadening, bathbroadening);
+  if (selfbroadening) broadeningspecies.front() = spec.Spec();
   
   String temperaturemodes;
   tag.get_attribute_value("temperaturemodes", temperaturemodes);
@@ -1719,8 +1716,8 @@ void xml_read_from_stream(istream& is_xml,
                        nlines, cutoff, mirroring,
                        population, normalization,
                        lineshapetype, T0, cutofffreq,
-                       linemixinglimit, QuantumIdentifier(spec.Species(),
-                       spec.Isotopologue(), upperglobalquanta, lowerglobalquanta),
+                       linemixinglimit, QuantumIdentifier(
+                         spec.Isotopologue(), upperglobalquanta, lowerglobalquanta),
                        localquanta, broadeningspecies, metamodel);
   
   if (pbifs) {

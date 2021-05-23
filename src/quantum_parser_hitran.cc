@@ -476,18 +476,18 @@ void QuantumParserHITRAN2004::SetClassGroup(const String& species_name,
 /// Parsing functions
 /////////////////////
 
-void parse_space(Rational& qn, String& s, const Index /* species */) {
+void parse_space(Rational& qn, String& s, const Species::Species /* species */) {
   s.erase(0, 1);
   qn = RATIONAL_UNDEFINED;
 }
 
-void parse_a1_br_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_a1_br_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   qn = Rational('Q' - s[0]);
   if (abs(qn) > 4) qn = RATIONAL_UNDEFINED;
   s.erase(0, 1);
 }
 
-void parse_a1_pm_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_a1_pm_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   // FIXME: How to handle plus/minus?
   s.erase(0, 1);
   qn = RATIONAL_UNDEFINED;
@@ -522,7 +522,7 @@ void parse_a1_sym_hitran(Rational& qn, String& s, const Species::Species species
   s.erase(0, 1);
 }
 
-void parse_a1_s_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_a1_s_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   // FIXME: How to handle S?
   s.erase(0, 1);
   qn = RATIONAL_UNDEFINED;
@@ -566,23 +566,23 @@ void parse_a1_x_hitran(Rational& qn, String& s, const Species::Species species) 
   s.erase(0, 1);
 }
 
-void parse_a2_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_a2_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   // FIXME OLE
   s.erase(0, 2);
   qn = RATIONAL_UNDEFINED;
 }
 
-void parse_a3_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_a3_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   extract(qn, s, 3);
 }
 
-void parse_a4_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_a4_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   // FIXME OLE
   s.erase(0, 4);
   qn = RATIONAL_UNDEFINED;
 }
 
-void parse_a5_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_a5_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   String qnf = s.substr(0, 5);
   qn = RATIONAL_UNDEFINED;
 
@@ -611,25 +611,25 @@ void parse_a5_hitran(Rational& qn, String& s, const Index /* species */) {
   s.erase(0, 5);
 }
 
-void parse_i1_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_i1_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   Index i;
   extract(i, s, 1);
   qn = Rational(i);
 }
 
-void parse_i2_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_i2_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   Index i;
   extract(i, s, 2);
   qn = Rational(i);
 }
 
-void parse_i3_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_i3_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   Index i;
   extract(i, s, 3);
   qn = Rational(i);
 }
 
-void parse_f51_hitran(Rational& qn, String& s, const Index /* species */) {
+void parse_f51_hitran(Rational& qn, String& s, const Species::Species /* species */) {
   String qnf = s.substr(0, 5);
   qn = RATIONAL_UNDEFINED;
 

@@ -92,6 +92,26 @@ using SpeciesTag = Species::Tag;
 class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
 public:
   ArrayOfSpeciesTag() noexcept : Array<SpeciesTag>() {}
+  explicit ArrayOfSpeciesTag(Index n) :  Array<SpeciesTag>(n) {}
+  ArrayOfSpeciesTag(Index n, const SpeciesTag& fillvalue) : Array<SpeciesTag>(n, fillvalue) {}
+  ArrayOfSpeciesTag(const ArrayOfSpeciesTag& A) : Array<SpeciesTag>(A) {}
+  ArrayOfSpeciesTag(ArrayOfSpeciesTag&& A) noexcept : Array<SpeciesTag>(std::move(A)) {}
+  
+  // Assignment operators:
+  ArrayOfSpeciesTag& operator=(SpeciesTag x) {
+    std::fill(this->begin(), this->end(), x);
+    return *this;
+  }
+  ArrayOfSpeciesTag& operator=(const ArrayOfSpeciesTag& A) {
+    this->resize(A.size());
+    std::copy(A.begin(), A.end(), this->begin());
+    return *this;
+  }
+  ArrayOfSpeciesTag& operator=(ArrayOfSpeciesTag&& A) noexcept {
+    Array<SpeciesTag>::operator=(std::move(A));
+    return *this;
+  }
+  
   ArrayOfSpeciesTag(String names);
   
   friend std::ostream& operator<<(std::ostream& os, const ArrayOfSpeciesTag& ot) {
@@ -138,5 +158,15 @@ Index find_next_species(const ArrayOfArrayOfSpeciesTag&, Species::Species, Index
 Index find_first_species(const ArrayOfArrayOfSpeciesTag&, Species::Species) noexcept;
 
 Index find_first_species_tag(const ArrayOfArrayOfSpeciesTag& specs, const SpeciesTag& tag) noexcept;
+
+/*!
+ *  Checks on the correctness of the tags will be performed,
+ *  e.g. free_electrons and particles species are only allowed once in
+ *  abs_species.
+ *  \param tags  Array of Array of SpeciesTag.
+ *  \author Oliver Lemke
+ *  \date   2013-04-23
+ */
+void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species);
 
 #endif  // species_tags_h

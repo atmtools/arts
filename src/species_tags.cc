@@ -363,3 +363,42 @@ Index find_first_species_tag(const ArrayOfArrayOfSpeciesTag& specs, const Specie
   }
   return -1;
 }
+
+
+void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
+  Index num_free_electrons = 0;
+  for (Index i = 0; i < abs_species.nelem(); ++i) {
+    bool has_free_electrons = false;
+    bool has_particles = false;
+    bool has_hitran_xsec = false;
+    for (Index s = 0; s < abs_species[i].nelem(); ++s) {
+      if (abs_species[i][s].Type() == Species::TagType::FreeElectrons) {
+        num_free_electrons++;
+        has_free_electrons = true;
+      }
+      
+      if (abs_species[i][s].Type() == Species::TagType::Particles) {
+        has_particles = true;
+      }
+      
+      if (abs_species[i][s].Type() == Species::TagType::HitranXsec) {
+        has_hitran_xsec = true;
+      }
+    }
+    
+    ARTS_USER_ERROR_IF (abs_species[i].nelem() > 1 && has_free_electrons,
+                        "'free_electrons' must not be combined "
+                        "with other tags in the same group.");
+    ARTS_USER_ERROR_IF (num_free_electrons > 1,
+                        "'free_electrons' must not be defined "
+                        "more than once.");
+    
+    ARTS_USER_ERROR_IF (abs_species[i].nelem() > 1 && has_particles,
+                        "'particles' must not be combined "
+                        "with other tags in the same group.");
+    
+    ARTS_USER_ERROR_IF (abs_species[i].nelem() > 1 && has_hitran_xsec,
+                        "'hitran_xsec' must not be combined "
+                        "with other tags in the same group.");
+  }
+}

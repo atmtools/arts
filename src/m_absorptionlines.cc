@@ -821,7 +821,7 @@ void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_li
   for (auto& specs: abs_species) {
     for (auto& sp: specs) {
       if (sp.type == Species::TagType::Plain or sp.type == Species::TagType::Zeeman) {
-        unique_species.insert(sp->Species());
+        unique_species.insert(sp.Spec());
       }
     }
   }
@@ -839,7 +839,7 @@ void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_li
     for (auto& ir: specs) {
       Index i=0;
       do {
-        const String filename = tmpbasename + ir.FullName() + '.' + std::to_string(i) + ".xml";
+        String filename = tmpbasename + ir.FullName() + '.' + std::to_string(i) + ".xml";
         if (find_xml_file_existence(filename)) {
           abs_lines.push_back(AbsorptionLines());
           xml_read_from_file(filename, abs_lines.back(), verbosity);
@@ -860,8 +860,6 @@ void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
                                       const Index& robust,
                                       const Verbosity& verbosity)
 {
-  using global_data::species_data;
-  
   CREATE_OUT3;
   std::size_t bands_found{0};
   
@@ -873,17 +871,14 @@ void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
   // Read catalogs for each identified species and put them all into
   // abs_lines
   abs_lines.resize(0);
-  for (auto it = species_data.begin(); it != species_data.end(); it++) {
-    for (Index k=0; k<(*it).Isotopologue().nelem(); k++) {
-      String filename;
-      filename = tmpbasename + (*it).FullName(k) + ".xml";
-      if (find_xml_file_existence(filename)) {
-        ArrayOfAbsorptionLines speclines;
-        xml_read_from_file(filename, speclines, verbosity);
-        for (auto& band: speclines) {
-          abs_lines.push_back(band);
-          bands_found++;
-        }
+  for (auto& ir: Species::Isotopologues) {
+    String filename = tmpbasename + ir.FullName() + ".xml";
+    if (find_xml_file_existence(filename)) {
+      ArrayOfAbsorptionLines speclines;
+      xml_read_from_file(filename, speclines, verbosity);
+      for (auto& band: speclines) {
+        abs_lines.push_back(band);
+        bands_found++;
       }
     }
   }
@@ -900,17 +895,15 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
                                                   const Index& robust,
                                                   const Verbosity& verbosity)
 {
-  using global_data::species_data;
-  
   CREATE_OUT3;
   std::size_t bands_found{0};
   
   // Build a set of species indices. Duplicates are ignored.
-  std::set<Index> unique_species;
-  for (auto asp = abs_species.begin(); asp != abs_species.end(); asp++) {
-    for (ArrayOfSpeciesTag::const_iterator sp = asp->begin(); sp != asp->end(); sp++) {
-      if (sp->Type() == SpeciesTag::TYPE_PLAIN || sp->Type() == SpeciesTag::TYPE_ZEEMAN) {
-        unique_species.insert(sp->Species());
+  std::set<Species::Species> unique_species;
+  for (auto& specs: abs_species) {
+    for (auto& sp: specs) {
+      if (sp.type == Species::TagType::Plain or sp.type == Species::TagType::Zeeman) {
+        unique_species.insert(sp.Spec());
       }
     }
   }
@@ -923,10 +916,10 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
   // Read catalogs for each identified species and put them all into
   // abs_lines
   ArrayOfAbsorptionLines abs_lines(0);
-  for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
-    for (Index k=0; k<species_data[*it].Isotopologue().nelem(); k++) {
-      String filename;
-      filename = tmpbasename + species_data[*it].FullName(k) + ".xml";
+  for (auto spec: unique_species) {
+    auto isots = Species::isotopologues(spec);
+    for (auto& isot: isots) {
+      String filename = tmpbasename + isot.FullName() + ".xml";
       if (find_xml_file_existence(filename)) {
         ArrayOfAbsorptionLines speclines;
         xml_read_from_file(filename, speclines, verbosity);
@@ -2038,7 +2031,7 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   const bool do_bath = species == LineShape::bath_broadening;
   
   // Set the spec index if possible
-  const Index spec = (do_self or do_bath) ? -1 : SpeciesTag(species).Species();
+  const Species::Species spec = do_self ? Species::Species::FINAL : do_bath ? Species::Species::Bath : SpeciesTag(species).Spec();
   
   const LineShape::Variable var = LineShape::toVariableOrThrow(parameter);
   
@@ -2065,8 +2058,8 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
           band.Line(k).LineShape().Data().back().Data()[Index(var)] = newdata;
         } else {
           for (Index i=band.Self(); i<band.BroadeningSpecies().nelem()-band.Bath(); i++) {
-            if (spec == band.BroadeningSpecies()[i].Species()) {
-              out3 << "Changing species: " << spec << '\n';
+            if (spec == band.BroadeningSpecies()[i]) {
+              out3 << "Changing species: " << Species::toShortName(spec) << '\n';
               band.Line(k).LineShape().Data()[i].Data()[Index(var)] = newdata;
             }
           }
@@ -2103,7 +2096,7 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
                                                   const Index& relative,
                                                   const Verbosity&)
 {
-  ARTS_USER_ERROR_IF (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL,
+  ARTS_USER_ERROR_IF (QI.Type() not_eq Quantum::IdentifierType::EnergyLevel,
     "Bad input.  Must be energy level.  Is: ", QI, '\n')
   
   Index parameter_switch = -1;
@@ -2215,7 +2208,7 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
                                                const Numeric& x,
                                                const Verbosity&)
 {
-  ARTS_USER_ERROR_IF (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL,
+  ARTS_USER_ERROR_IF (QI.Type() not_eq Quantum::IdentifierType::EnergyLevel,
     "Bad input.  Must be energy level.  Is: ", QI, '\n')
   
   Index parameter_switch = -1;

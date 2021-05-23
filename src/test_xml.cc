@@ -24,25 +24,5 @@
 #include "xml_io.h"
 
 int main(int /*argc*/, char * /*argv*/[]) {
-  using global_data::species_data;
-
-  define_species_data();
-  try {
-    xml_write_to_file(
-        "sdata1.xml", species_data, FILE_TYPE_ASCII, 0, Verbosity());
-    cout << "Wrote species_data: " << endl;
-
-    Array<SpeciesRecord> my_species_data;
-
-    xml_read_from_file("sdata1.xml", my_species_data, Verbosity());
-    cout << "Read species_data: " << endl;
-
-    xml_write_to_file(
-        "sdata2.xml", my_species_data, FILE_TYPE_ASCII, 0, Verbosity());
-    cout << "Wrote species_data: " << endl;
-  } catch (const std::runtime_error &e) {
-    cerr << e.what();
-  }
-
   return (0);
 }
