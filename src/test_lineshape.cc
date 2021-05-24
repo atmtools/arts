@@ -681,9 +681,6 @@ void test_sparse() {
 }
 
 int main() try {
-  define_species_data();
-  define_species_map();
-  
   make_wigner_ready(20, 30, 6);
   std::cout << std::setprecision(15);
   

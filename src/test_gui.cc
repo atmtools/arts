@@ -11,9 +11,6 @@ Vector VectorNLinSpaceConst(Numeric f0, Numeric f1, Index n) {
 }
   
 int main() {
-  define_species_data();
-  define_species_map();
-  
   constexpr Index nfreq = 100000;
   
   std::stringstream ss("47929387875.2229 3.76825765434629e-25 6.39288315401667e-20 93 95 4.417e-10 0.00100339716312057 -0.0425337497440969 10059.6531675302 0.72 0 0 0 0.72 0 0 10237.1764587219 0.72 0 0 0 0.72 0 0 46 47 47 47 \n"

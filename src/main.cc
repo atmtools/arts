@@ -792,14 +792,6 @@ int main(int argc, char** argv) {
   // Initialize memory handler.
   global_data::workspace_memory_handler.initialize();
 
-  // While we are at it, we can also initialize the molecular data and
-  // the coefficients of the partition function that we need for the
-  // absorption part, and check that the inputs are sorted the same way:
-  define_species_data();
-
-  // And also the species map:
-  define_species_map();
-
   // Make all global data visible:
   using global_data::wsv_group_names;
 

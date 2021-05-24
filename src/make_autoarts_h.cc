@@ -62,12 +62,6 @@ struct AgendaData {
   std::vector<std::string> outs;
 };
 
-struct SpeciesData {
-  std::size_t spec;
-  std::string name;
-  std::vector<std::string> isoname;
-};
-
 std::map<std::string, Group> groups() {
   std::map<std::string, std::size_t> group;
   for (auto& x : global_data::WsvGroupMap) group[x.first] = x.second;
@@ -349,34 +343,17 @@ std::map<std::string, AgendaData> agendas() {
   return out;
 }
 
-std::vector<SpeciesData> all_species() {
-  std::vector<SpeciesData> out(0);
-  for (auto& s : global_data::species_data) {
-    SpeciesData sd;
-    sd.spec = global_data::SpeciesMap.at(s.Name());
-    sd.name = s.Name();
-    sd.isoname.resize(0);
-    for (auto& iso : s.Isotopologue()) {
-      sd.isoname.push_back(iso.Name());
-    }
-    out.push_back(sd);
-  }
-  return out;
-}
-
 struct NameMaps {
   std::map<std::string, AgendaData> agendaname_agenda;
   std::vector<Method> methodname_method;
   std::map<std::string, Group> varname_group;
   std::map<std::string, std::size_t> group;
-  std::vector<SpeciesData> specdata;
 
   NameMaps() {
     for (auto& x : global_data::WsvGroupMap) group[x.first] = x.second;
     varname_group = groups();
     methodname_method = methods();
     agendaname_agenda = agendas();
-    specdata = all_species();
   }
 };
 
@@ -397,6 +374,7 @@ void print_include_and_external() {
             << "#include <m_delete.h>" << '\n'
             << "#include <m_extract.h>" << '\n'
             << "#include <m_ignore.h>" << '\n'
+            << "#include <isotopologues.h>" << '\n'
             << '\n'
             << '\n';
 
@@ -1114,58 +1092,10 @@ void print_agendas(const NameMaps& artsname) {
   std::cout << "}  // namespace Agenda\n";
 }
 
-void print_species_identification(const NameMaps& artsname) {
-  const std::string plus = "+";
-  const std::string mins = "-";
-
+void print_species_identification() {
   std::cout << "namespace Species {\n";
-  for (auto& s : artsname.specdata) {
-    auto name = s.name;
-    std::size_t pos;
-    while ((pos = name.find(plus)) != std::string::npos)
-      name.replace(pos, 1, "_plus");
-    while ((pos = name.find(mins)) != std::string::npos)
-      name.replace(pos, 1, "_minus");
-    std::cout << "/*! ARTS Index for species: " << name << ' ';
-    if (s.isoname.size()) {
-      std::cout << "with subspecies: ";
-      for (auto iso : s.isoname) std::cout << iso << ' ';
-    }
-    std::cout << "*/\n";
-    std::cout << "constexpr Group::Index " << name << '=' << s.spec << ';'
-              << '\n'
-              << '\n';
-    std::cout << "/*! Check whether this Index represents ARTS species " << name
-              << '\n'
-              << '\n'
-              << "  @param[in] spec The species Index\n  @return true if "
-                 "match\n  @return false if no match\n"
-              << " */\n";
-    std::cout << "constexpr bool is" << name
-              << "(Group::Index spec) { return spec == " << name << "; }"
-              << '\n'
-              << '\n';
-    for (std::size_t i = 0; i < s.isoname.size(); i++) {
-      auto isoname = s.isoname[i];
-      std::cout
-          << "/*! Check whether this combination of indices represents "
-             "ARTS isotopologue "
-          << name << '-' << s.isoname[i] << '\n'
-          << '\n'
-          << "  @param[in] spec The species Index\n  @param[in] iso The isotope "
-             "Index\n  @return true if match\n  @return false if no match\n"
-          << "*/\n";
-      while ((pos = isoname.find(plus)) != std::string::npos)
-        isoname.replace(pos, 1, "_plus_");
-      while ((pos = isoname.find(mins)) != std::string::npos)
-        isoname.replace(pos, 1, "_minus_");
-      std::cout << "constexpr bool is" << name << '_' << isoname
-                << "(Group::Index spec, Group::Index iso) { return spec == "
-                << name << " and iso == " << i << "; }" << '\n'
-                << '\n';
-    }
-  }
-  std::cout << "}  // Species \n\n";
+  std::cout << "  using namespace ::Species;\n";
+  std::cout << "}  // namespace Species \n\n";
 }
 
 void print_startup() {
@@ -1196,8 +1126,6 @@ void print_startup() {
          "  define_md_map();\n"
          "  define_agenda_data();\n"
          "  define_agenda_map();\n"
-         "  define_species_data();\n"
-         "  define_species_map();\n"
          "  global_data::workspace_memory_handler.initialize();\n"
          "\n"
          "  Workspace ws;\n"
@@ -1226,8 +1154,6 @@ int main() {
   define_md_map();
   define_agenda_data();
   define_agenda_map();
-  define_species_data();
-  define_species_map();
 
   const auto artsname = NameMaps();
 
@@ -1247,7 +1173,7 @@ int main() {
 
   print_agendas(artsname);
 
-  print_species_identification(artsname);
+  print_species_identification();
 
   print_startup();
 

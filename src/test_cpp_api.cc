@@ -186,7 +186,6 @@ int main() try {
   
   Method::abs_speciesSet(ws, ArrayOfString{"H2O-PWR98", "O2-PWR98"});
   
-  Method::partition_functionsInitFromBuiltin(ws);
   Method::isotopologue_ratiosInitFromBuiltin(ws);
   Method::VectorNLogSpace(ws, Var::p_grid(ws).value(), 51, 1e+05, 1e-4);
   

@@ -66,6 +66,32 @@ void Append(  // WS Generic Output:
   for (Index i = 0; i < in_ref.nelem(); ++i) out.push_back(in_ref[i]);
 }
 
+inline void Append(  // WS Generic Output:
+    ArrayOfSpeciesTag& out,
+    const String& /* out_name */,
+    // WS Generic Input:
+    ArrayOfSpeciesTag& in,
+    const String& direction _U_,
+    const String& /* in_name */,
+    const String& /* direction_name */,
+    const Verbosity&) {
+  ArrayOfSpeciesTag* in_pnt;
+  ArrayOfSpeciesTag in_copy;
+
+  if (&in == &out) {
+    in_copy = in;
+    in_pnt = &in_copy;
+  } else
+    in_pnt = &in;
+
+  const ArrayOfSpeciesTag& in_ref = *in_pnt;
+
+  // Reserve memory in advance to avoid reallocations:
+  out.reserve(out.nelem() + in_ref.nelem());
+  // Append in to end of out:
+  for (Index i = 0; i < in_ref.nelem(); ++i) out.push_back(in_ref[i]);
+}
+
 /* Implementation for array types to append single element */
 template <class T>
 void Append(  // WS Generic Output:
@@ -73,6 +99,20 @@ void Append(  // WS Generic Output:
     const String& /* out_name */,
     // WS Generic Input:
     const T& in,
+    const String& direction _U_,
+    const String& /* in_name */,
+    const String& /* direction_name */,
+    const Verbosity&) {
+  // Append in to end of out:
+  out.push_back(in);
+}
+
+/* Implementation for array types to append single element */
+inline void Append(  // WS Generic Output:
+    ArrayOfSpeciesTag& out,
+    const String& /* out_name */,
+    // WS Generic Input:
+    const SpeciesTag& in,
     const String& direction _U_,
     const String& /* in_name */,
     const String& /* direction_name */,

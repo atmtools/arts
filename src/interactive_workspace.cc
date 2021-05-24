@@ -87,8 +87,6 @@ void InteractiveWorkspace::initialize() {
   define_agenda_data();
   define_agenda_map();
   ARTS_ASSERT(check_agenda_data());
-  define_species_data();
-  define_species_map();
   workspace_memory_handler.initialize();
 
   // Add getaway for callbacks.

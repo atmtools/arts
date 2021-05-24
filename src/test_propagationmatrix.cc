@@ -445,9 +445,6 @@ void test_sinc_likes_0limit() {
 }
 
 void test_zeeman() {
-  define_species_data();
-  define_species_map();
-
   auto o266 = SpeciesTag("O2-66");
   auto o268 = SpeciesTag("O2-68");
 
@@ -466,17 +463,17 @@ void test_zeeman() {
     std::cout << i << "_" << i - 1;
 
     g = Zeeman::GetAdvancedModel(
-            QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn))
+            QuantumIdentifier(o266.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
     g = Zeeman::GetAdvancedModel(
-            QuantumIdentifier(o268.Species(), o268.Isotopologue(), qn, qn))
+            QuantumIdentifier(o268.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
     g = Zeeman::GetSimpleModel(
-            QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn))
+            QuantumIdentifier(o266.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
@@ -484,7 +481,7 @@ void test_zeeman() {
     std::cout << '\t' << i << "_" << i;
 
     g = Zeeman::GetAdvancedModel(
-            QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn))
+            QuantumIdentifier(o266.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
