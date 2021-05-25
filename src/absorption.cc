@@ -61,7 +61,7 @@ void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species) {
         } else {
           auto all_isots = Species::isotopologues(spec.Isotopologue().spec);
           for (auto& isot: all_isots) {
-            if (not Species::is_predefined_model(isot)) {
+            if (not isot.joker() and not Species::is_predefined_model(isot)) {
               ARTS_USER_ERROR_IF (not PartitionFunctions::has_partfun(isot),
                                   "Species: ", isot.FullName(), " has no partition function\n",
                                   "You must recompiler ARTS partition functions with data for this species to continue your calculations,\n"
@@ -84,9 +84,12 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
   // Loop over the absorption species:
   for (auto& specs: abs_species) {
     for (auto& spec: specs) {
-      const Index i = Species::find_species_index(spec.Isotopologue());
+      auto& isot = spec.Isotopologue();
+      const Index i = Species::find_species_index(isot);
       ARTS_USER_ERROR_IF(i < 0 or i >= Species::IsotopologueRatios::maxsize, "Cannot find species: ", spec)
-      ARTS_USER_ERROR_IF(std::isnan(isoratios[i]), "Chosen species: ", spec, " has no isotopologue ratio")
+      if (spec.type == Species::TagType::Plain or spec.type == Species::TagType::Zeeman) {
+        ARTS_USER_ERROR_IF(not isot.joker() and std::isnan(isoratios[i]), "Chosen species: ", spec, " has no isotopologue ratio")
+      }
     }
   }
 }

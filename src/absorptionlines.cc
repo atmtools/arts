@@ -438,7 +438,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
 
   // Look for more comments?
   bool comment = true;
-
+  
   while (comment) {
     // Return true if eof is reached:
     if (is.eof()) return data;
@@ -471,10 +471,14 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
   try {
     String artsid;
     icecream >> artsid;
-
+    
     if (artsid.length() != 0) {
       // Set line ID:
-      data.quantumidentity.Isotopologue(Species::Tag(artsid).Isotopologue());
+      const auto isotopologue = Species::Tag(artsid);
+      ARTS_USER_ERROR_IF (isotopologue.is_joker() or isotopologue.type not_eq Species::TagType::Plain,
+        "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
+        "Your input contains: ", artsid, ". which we cannot interpret as a plain species")
+      data.quantumidentity = Quantum::Identifier(isotopologue.Isotopologue(), Quantum::IdentifierType::Transition);
 
       // Extract center frequency:
       icecream >> double_imanip() >> data.line.F0();
@@ -2353,16 +2357,24 @@ Numeric Absorption::Lines::SpeciesMass() const noexcept
 Vector Absorption::Lines::BroadeningSpeciesVMR(const ConstVectorView atm_vmrs,
                                                const ArrayOfArrayOfSpeciesTag& atm_spec) const
 {
-  return LineShape::vmrs(atm_vmrs, atm_spec, BroadeningSpecies());
+  if (mlineshapetype == LineShape::Type::DP) {
+    return Vector(mbroadeningspecies.nelem(), std::numeric_limits<Numeric>::quiet_NaN());
+  } else {
+    return LineShape::vmrs(atm_vmrs, atm_spec, mbroadeningspecies);
+  }
 }
 
 Vector Absorption::Lines::BroadeningSpeciesMass(const ConstVectorView atm_vmrs,
                                                 const ArrayOfArrayOfSpeciesTag& atm_spec,
                                                 const Numeric& bath_mass) const
 {
-  Vector mass = LineShape::mass(atm_vmrs, atm_spec, BroadeningSpecies());
-  if (Bath() and bath_mass > 0) mass[mass.nelem()-1] = bath_mass;
-  return mass;
+  if (mlineshapetype == LineShape::Type::DP) {
+    return Vector(mbroadeningspecies.nelem(), std::numeric_limits<Numeric>::quiet_NaN());
+  } else {
+    Vector mass = LineShape::mass(atm_vmrs, atm_spec, mbroadeningspecies);
+    if (Bath() and bath_mass > 0) mass[mass.nelem()-1] = bath_mass;
+    return mass;
+  }
 }
 
 Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,

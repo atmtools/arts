@@ -131,19 +131,11 @@ void jacobianAddAbsSpecies(Workspace&,
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it] == Jacobian::Special::ArrayOfSpeciesTagVMR && jq[it].Subtag() == species) {
-      ostringstream os;
-      os << "The gas species:\n"
-         << species << "\nis already included in "
-         << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
-    } else if (jq[it] == Jacobian::Line::VMR and jq[it].QuantumIdentity() == qi) {
-      ostringstream os;
-      os << "The atmospheric species of:\n"
-          << species << "\nis already included in "
-          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF (jq[it] == Jacobian::Special::ArrayOfSpeciesTagVMR && jq[it].Subtag() == species,
+      "The gas species:\n", species, "\nis already included in *jacobian_quantities*.")
+    ARTS_USER_ERROR_IF (jq[it] == Jacobian::Line::VMR and jq[it].QuantumIdentity() == qi,
+      "The atmospheric species of:\n", species, "\nis already included in *jacobian_quantities*\n"
+      "as: ", jq[it])
   }
 
   // Check retrieval grids, here we just check the length of the grids

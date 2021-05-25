@@ -400,7 +400,7 @@ struct SingleLineExternal {
   Numeric T0=0;
   Numeric cutofffreq=0;
   Numeric linemixinglimit=-1;
-  QuantumIdentifier quantumidentity=QuantumIdentifier(Species::IsotopeRecord(Species::Species::FINAL), {}, {});
+  QuantumIdentifier quantumidentity;
   ArrayOfSpecies species;
   SingleLine line;
 };
@@ -494,7 +494,10 @@ public:
         mquantumidentity(quantumidentity),
         mlocalquanta(localquanta),
         mbroadeningspecies(broadeningspecies),
-        mlines(lines) {};
+        mlines(lines) {
+    if (selfbroadening) mbroadeningspecies.front() = quantumidentity.Species();
+    if (bathbroadening) mbroadeningspecies.back() = Species::Species::Bath;
+  }
   
   /** XML-tag initialization
    * 
@@ -544,7 +547,10 @@ public:
         mbroadeningspecies(broadeningspecies),
         mlines(nlines,
                SingleLine(broadeningspecies.size(),
-               localquanta.size(), metamodel)) {};
+               localquanta.size(), metamodel)) {
+    if (selfbroadening) mbroadeningspecies.front() = quantumidentity.Species();
+    if (bathbroadening) mbroadeningspecies.back() = Species::Species::Bath;
+  }
   
   /** Appends a single line to the absorption lines
    * 
@@ -1515,7 +1521,7 @@ struct QuantumIdentifierLineTarget {
   //! Species/Isotopologue/Band match constructor from ID
   constexpr QuantumIdentifierLineTarget(const QuantumIdentifier& qt, const QuantumIdentifier& qid) ARTS_NOEXCEPT : QuantumIdentifierLineTarget()
   {
-    ARTS_ASSERT(qid.Type() == QuantumIdentifier::TRANSITION);
+    ARTS_ASSERT(qid.Type() == Quantum::IdentifierType::Transition);
     
     // We have no match if we do not match the species
     if (qt.Species() == qid.Species()) found = QuantumIdentifierLineTargetType::Species;

@@ -1364,7 +1364,7 @@ void propmat_clearskyAddParticles(
   //are processes. this is basically not necessary. but checking it anyway to
   //really be safe. remove later, when more extensively tested.
   while (sp < na) {
-    ARTS_ASSERT(abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES);
+    ARTS_ASSERT(abs_species[sp][0].Type() != Species::TagType::Particles);
     sp++;
   }
 

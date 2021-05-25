@@ -326,8 +326,8 @@ class Identifier {
   
   constexpr Index SpecInd(const Species::IsotopeRecord& ir) const ARTS_NOEXCEPT {
     Index ind = Species::find_species_index(ir);
-    ARTS_ASSERT(ind >= 0 and ir.isotname not_eq Species::Joker,
-                "Must be valid, non-joker, isotopologue")
+    ARTS_ASSERT(ind >= 0 and not Species::is_predefined_model(ir),
+                "Must be valid, non-joker, isotopologue.  Is: ", ir)
     return ind;
   }
 public:
@@ -410,7 +410,7 @@ public:
   
   constexpr bool operator==(const Identifier& other) const noexcept {
     if (other.type not_eq type) return false;
-    if (other.spec_ind not_eq spec_ind) return false;
+    if (not Species::same_or_joker(other.Isotopologue(), Isotopologue())) return false;
     if (other.upp not_eq upp) return false;
     if (other.low not_eq low) return false;
     return true;

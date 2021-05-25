@@ -84,6 +84,8 @@ struct Tag {
   constexpr bool operator!=(const Tag& other) const noexcept {
     return not operator==(other);
   }
+  
+  constexpr bool is_joker() const ARTS_NOEXCEPT {ARTS_ASSERT(spec_ind >= 0) return Joker == Isotopologue().isotname;}
 };
 }  // Species
 

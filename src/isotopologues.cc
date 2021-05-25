@@ -124,10 +124,6 @@ String isotopologues_names(Species spec) {
   return os.str();
 }
 
-bool is_predefined_model(const IsotopeRecord& ir) noexcept {
-  return not (std::isdigit(ir.isotname[0]) or ir.isotname == Joker);
-}
-
 String predefined_model_names() noexcept {
   std::ostringstream os;
   for (auto& x: Isotopologues) {

@@ -40,7 +40,7 @@ Tag::Tag(String def) : spec_ind(-1), lower_freq(-1), upper_freq(-1), type(TagTyp
   // Check if species name contains the special tag for
   // Faraday Rotation
   if (spec == Species::free_electrons) {
-    constexpr Index ind = find_species_index(Species::free_electrons);
+    constexpr Index ind = find_species_index(IsotopeRecord(Species::free_electrons));
     spec_ind = ind;
     type = TagType::FreeElectrons;
     return;
@@ -49,14 +49,14 @@ Tag::Tag(String def) : spec_ind(-1), lower_freq(-1), upper_freq(-1), type(TagTyp
   // Check if species name contains the special tag for
   // Particles
   if (spec == Species::particles) {
-    constexpr Index ind = find_species_index(Species::particles);
+    constexpr Index ind = find_species_index(IsotopeRecord(Species::particles));
     spec_ind = ind;
     type = TagType::Particles;
     return;
   }
 
   // Set "all" species per default by leaving the joker in
-  spec_ind = find_species_index(spec);
+  spec_ind = find_species_index(IsotopeRecord(spec));
   ARTS_USER_ERROR_IF(spec_ind < 0, "Bad species extracted: ", spec, " from ", def_original)
   if (0 == def.nelem()) {
     return;
@@ -164,7 +164,7 @@ Tag::Tag(String def) : spec_ind(-1), lower_freq(-1), upper_freq(-1), type(TagTyp
 
     // Check if the found isotopologue represents a predefined model
     // (continuum or full absorption model) and set the type accordingly:
-    if (! is_predefined_model(Isotopologue())) type = TagType::Predefined;
+    if (is_predefined_model(Isotopologue())) type = TagType::Predefined;
   }
 
   if (0 == def.nelem()) {

@@ -20393,10 +20393,10 @@ void xsec_continuum_tag(MatrixView xsec,
 void check_continuum_model(const String &name) {
   try {
     ARTS_USER_ERROR_IF(Species::Tag(name).type not_eq Species::TagType::Predefined,
-      "The model: ", name, " is not a predefined model but a true isotope");
+      "The model: ", name, " is not a predefined model, it is: ", Species::Tag(name));
   } catch (std::runtime_error& e) {
     ARTS_USER_ERROR("Cannot recognize ", name, " as a continuum species with error:\n", e.what(), '\n',
-      "Valid continuum models are:\n", Species::predefined_model_names())
+      "Valid pre-defined models are:\n", Species::predefined_model_names())
   }
 }
 //

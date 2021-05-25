@@ -2,6 +2,7 @@
 #define isotopologues_h
 
 #include "mystring.h"
+#include "nonstd.h"
 #include "species.h"
 
 namespace Species {
@@ -13,7 +14,7 @@ struct IsotopeRecord {
   std::string_view isotname;
   Numeric mass;
   Index gi;
-  constexpr IsotopeRecord(Species spec_, const std::string_view isotname_=Joker, Numeric mass_=std::numeric_limits<Numeric>::signaling_NaN(), Index gi_=-1) noexcept
+  constexpr explicit IsotopeRecord(Species spec_, const std::string_view isotname_=Joker, Numeric mass_=std::numeric_limits<Numeric>::quiet_NaN(), Index gi_=-1) noexcept
   : spec(spec_), isotname(isotname_), mass(mass_), gi(gi_) {}
   constexpr IsotopeRecord() noexcept : spec(Species::FINAL), isotname(""), mass(std::numeric_limits<Numeric>::signaling_NaN()), gi(-1) {}
   friend std::ostream& operator<<(std::ostream& os, const IsotopeRecord& ir) {
@@ -33,6 +34,7 @@ struct IsotopeRecord {
   template <typename T> constexpr bool operator!=(T x)const noexcept {return not operator==(x);}
   
   String FullName() const noexcept {return String(toShortName(spec)) + String("-") + String(isotname);}
+  constexpr bool joker() const noexcept {return isotname == Joker;}
 };
 
 #define deal_with_spec(SPEC) IsotopeRecord(Species::SPEC),
@@ -449,42 +451,6 @@ constexpr std::array Isotopologues {
   IsotopeRecord(Species::rain, "MPM93"),
   /** Model species **/
   
-  /** HITRAN XSEC **/
-  IsotopeRecord(Species::Hexafluoroethane, "XSEC"),
-  IsotopeRecord(Species::Perfluoropropane, "XSEC"),
-  IsotopeRecord(Species::Perfluorobutane, "XSEC"),
-  IsotopeRecord(Species::Perfluoropentane, "XSEC"),
-  IsotopeRecord(Species::Perfluorohexane, "XSEC"),
-  IsotopeRecord(Species::Perfluorooctane, "XSEC"),
-  IsotopeRecord(Species::Perfluorocyclobutane, "XSEC"),
-  IsotopeRecord(Species::CarbonTetrachloride, "XSEC"),
-  IsotopeRecord(Species::CFC11, "XSEC"),
-  IsotopeRecord(Species::CFC113, "XSEC"),
-  IsotopeRecord(Species::CFC114, "XSEC"),
-  IsotopeRecord(Species::CFC115, "XSEC"),
-  IsotopeRecord(Species::CFC12, "XSEC"),
-  IsotopeRecord(Species::Dichloromethane, "XSEC"),
-  IsotopeRecord(Species::Trichloroethane, "XSEC"),
-  IsotopeRecord(Species::Trichloromethane, "XSEC"),
-  IsotopeRecord(Species::Bromochlorodifluoromethane, "XSEC"),
-  IsotopeRecord(Species::Bromotrifluoromethane, "XSEC"),
-  IsotopeRecord(Species::Dibromotetrafluoroethane, "XSEC"),
-  IsotopeRecord(Species::HCFC141b, "XSEC"),
-  IsotopeRecord(Species::HCFC142b, "XSEC"),
-  IsotopeRecord(Species::HCFC22, "XSEC"),
-  IsotopeRecord(Species::HFC125, "XSEC"),
-  IsotopeRecord(Species::HFC134a, "XSEC"),
-  IsotopeRecord(Species::HFC143a, "XSEC"),
-  IsotopeRecord(Species::HFC152a, "XSEC"),
-  IsotopeRecord(Species::HFC227ea, "XSEC"),
-  IsotopeRecord(Species::HFC23, "XSEC"),
-  IsotopeRecord(Species::HFC245fa, "XSEC"),
-  IsotopeRecord(Species::HFC32, "XSEC"),
-  IsotopeRecord(Species::NitrogenTrifluoride, "XSEC"),
-  IsotopeRecord(Species::SulfurylFluoride, "XSEC"),
-  IsotopeRecord(Species::HFC4310mee, "XSEC"),
-  /** HITRAN XSEC **/
-  
   /** All species need a default joker **/
   deal_with_spec(Water)
   deal_with_spec(CarbonDioxide)
@@ -634,7 +600,7 @@ constexpr Numeric first_mass(Species spec) noexcept {
 }
 
 constexpr const IsotopeRecord& select(Species spec, const std::string_view isotname) noexcept {
-  return Isotopologues[find_species_index({spec, isotname})];
+  return Isotopologues[find_species_index(IsotopeRecord(spec, isotname))];
 }
 
 constexpr const IsotopeRecord& select_joker(Species spec) noexcept {
@@ -647,9 +613,17 @@ constexpr const IsotopeRecord& select_joker(std::string_view spec) noexcept {
 
 String isotopologues_names(Species spec);
 
-bool is_predefined_model(const IsotopeRecord& ir) noexcept;
+constexpr bool is_predefined_model(const IsotopeRecord& ir) noexcept {
+  return not (nonstd::isdigit(ir.isotname[0]) or ir.isotname == Joker);
+}
 
 String predefined_model_names() noexcept;
+
+constexpr bool same_or_joker(const IsotopeRecord& ir1, const IsotopeRecord& ir2) noexcept {
+  if (ir1.spec not_eq ir2.spec) return false;
+  if (ir1.joker() or ir2.joker()) return true;
+  else return ir1.isotname == ir2.isotname;
+}
 }  // Species
 
 using ArrayOfIsotopeRecord = Array<Species::IsotopeRecord>;
