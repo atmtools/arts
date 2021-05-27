@@ -60,7 +60,7 @@ TokVal::operator ArrayOfIndex() const {
 }
 
 TokVal::operator ArrayOfSpeciesTag() const {
-  ARTS_ASSERT(mtype == Array_SpeciesTa_t);
+  ARTS_ASSERT(mtype == Array_SpeciesTag_t);
   return mnst;
 }
 
