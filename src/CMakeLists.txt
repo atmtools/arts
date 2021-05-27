@@ -634,3 +634,7 @@ target_link_libraries (partfun PRIVATE matpack)
 add_executable(test_species_tags test_species_tags.cc)
 target_link_libraries (test_species_tags PRIVATE ${ALL_ARTS_LIBRARIES})
 ########################################################################################
+
+########################################################################################
+add_executable(test_isotope test_isotope.cc isotopologues.cc)
+########################################################################################

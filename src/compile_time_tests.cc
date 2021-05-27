@@ -4,6 +4,18 @@
 
 namespace CompileTimeTests {
 //! Don't call this manually, it only exists to catch a developer error
+constexpr bool testIsotopologuesAllValid() noexcept {
+  using namespace Species;
+  for (auto& x: Isotopologues) if (not good_enum(x.spec)) return false;
+  return true;
+}
+
+static_assert(testIsotopologuesAllValid(), "Error!\n\n"
+              "Cannot have invalid species in the isotopologues list.\n"
+              "One of your newly added or modified species cannot be understood\n");
+}
+
+//! Don't call this manually, it only exists to catch a developer error
 constexpr bool testShortNames() noexcept {
   for (Index i=0; i<Index(Species::Species::FINAL); i++) {
     auto a = Species::Species(i);
@@ -27,11 +39,34 @@ static_assert(testShortNames(), "Error!\n\n"
               "and in all functions that makes use of a Species-switch.\n");
 
 //! Don't call this manually, it only exists to catch a developer error
-constexpr bool testIsotopologuesNotRepeating() noexcept {
+constexpr bool testSpeciesIncreasing() noexcept {
   using namespace Species;
-  for (std::size_t i=0; i<Isotopologues.size(); i++) {
-    for (std::size_t j=i+1; j<Isotopologues.size(); j++) {
-      if (Isotopologues[i] == Isotopologues[j]) {
+  static_assert(Isotopologues.size() not_eq 0);
+  for (std::size_t i=0; i<Isotopologues.size()-1; i++) {
+    auto& a = Isotopologues[i];
+    auto& b = Isotopologues[i+1];
+    if (std::size_t(a.spec) > std::size_t(b.spec)) {
+      //! First Species Must Be Lower Than Second
+      return false;
+    }
+  }
+  return true;
+}
+
+static_assert(testSpeciesIncreasing(), "Error!\n\n"
+"Species in Isotopologues must be increasing.\n"
+"One of your newly added isotopologues is not in increasing order\n");
+
+//! Don't call this manually, it only exists to catch a developer error
+constexpr bool testIsotopologuesIncreasing() noexcept {
+  using namespace Species;
+  static_assert(Isotopologues.size() not_eq 0);
+  for (std::size_t i=0; i<Isotopologues.size()-1; i++) {
+    auto& a = Isotopologues[i];
+    auto& b = Isotopologues[i+1];
+    if (a.spec == b.spec) {
+      if (a.isotname.compare(b.isotname) >= 0) {
+        //! First isotope Of A Species Must Be Different And Lower
         return false;
       }
     }
@@ -39,21 +74,8 @@ constexpr bool testIsotopologuesNotRepeating() noexcept {
   return true;
 }
 
-static_assert(testIsotopologuesNotRepeating(), "Error!\n\n"
-              "Cannot have repeating isotopologues in the isotopologues list.\n"
-              "One of your newly added or modified species already exists.\n"
-              "Ensure that there's no repetition!\n");
-
-//! Don't call this manually, it only exists to catch a developer error
-constexpr bool testIsotopologuesAllValid() noexcept {
-  using namespace Species;
-  for (auto& x: Isotopologues) if (not good_enum(x.spec)) return false;
-  return true;
-}
-
-static_assert(testIsotopologuesAllValid(), "Error!\n\n"
-              "Cannot have invalid species in the isotopologues list.\n"
-              "One of your newly added or modified species cannot be understood\n");
-}
+static_assert(testIsotopologuesIncreasing(), "Error!\n\n"
+              "Isotopologues must be increasing.\n"
+              "One of your newly added isotopologues is not in increasing order\n");
 
 #endif
