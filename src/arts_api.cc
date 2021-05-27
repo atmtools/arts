@@ -141,6 +141,10 @@ void agenda_insert_set(InteractiveWorkspace *workspace,
     if (wsv_group_names[group_id] == "Matrix") {
       t = TokVal(*reinterpret_cast<Matrix *>(workspace->operator[](id)));
     }
+    // ArrayOfSpeciesTag
+    if (wsv_group_names[group_id] == "ArrayOfSpeciesTag") {
+      t = TokVal(*reinterpret_cast<ArrayOfSpeciesTag *>(workspace->operator[](id)));
+    }
     mr = MRecord(m_id, output, input, t, Agenda{});
   }
   a->push_back(mr);
