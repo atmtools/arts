@@ -15,6 +15,7 @@ jobs:
           ubuntu-gcc-8,
           ubuntu-gcc-9,
           ubuntu-gcc-10,
+          ubuntu-gcc-10-debug,
           ubuntu-clang-11-nofortran,
           macos-gcc-10,
         ]
@@ -29,6 +30,7 @@ jobs:
             fortran: "no"
             check: "no"
             libcxx: "no"
+            buildtype: "Release"
 
           - name: ubuntu-gcc-8
             os: ubuntu-18.04
@@ -39,6 +41,7 @@ jobs:
             fortran: "yes"
             check: "yes"
             libcxx: "no"
+            buildtype: "Release"
 
           - name: ubuntu-gcc-9
             os: ubuntu-18.04
@@ -49,6 +52,7 @@ jobs:
             fortran: "yes"
             check: "yes"
             libcxx: "no"
+            buildtype: "Release"
 
           - name: ubuntu-gcc-10
             os: ubuntu-18.04
@@ -59,6 +63,18 @@ jobs:
             fortran: "yes"
             check: "yes"
             libcxx: "no"
+            buildtype: "Release"
+
+          - name: ubuntu-gcc-10-debug
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "10"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            check: "yes"
+            libcxx: "no"
+            buildtype: "RelWithDebInfo"
 
           - name: ubuntu-clang-11-nofortran
             os: ubuntu-18.04
@@ -69,6 +85,7 @@ jobs:
             fortran: "no"
             check: "yes"
             libcxx: "yes"
+            buildtype: "Release"
 
           - name: macos-gcc-10
             os: macos-latest
@@ -79,6 +96,7 @@ jobs:
             fortran: "yes"
             check: "yes"
             libcxx: "no"
+            buildtype: "Release"
 
     steps:
       - uses: actions/checkout@v1
@@ -151,7 +169,7 @@ jobs:
         run: |
           mkdir cmake-build
           cd cmake-build
-          cmake -DENABLE_FORTRAN=$USEFORTRAN ..
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_FORTRAN=$USEFORTRAN ..
 
       - name: Build (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.arts == 'yes'
