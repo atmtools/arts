@@ -189,8 +189,12 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
   icecream >> artsid;
 
   if (artsid.length() != 0) {
-    // Set mspecies:
-    data.quantumidentity.Isotopologue(SpeciesTag(artsid).Isotopologue());
+    // Set the species
+    const auto isotopologue = Species::Tag(artsid);
+    ARTS_USER_ERROR_IF (isotopologue.is_joker() or isotopologue.type not_eq Species::TagType::Plain,
+                        "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
+                        "Your input contains: ", artsid, ". which we cannot interpret as a plain species")
+    data.quantumidentity = Quantum::Identifier(isotopologue.Isotopologue(), Quantum::IdentifierType::Transition);
 
     // Extract center frequency:
     icecream >> double_imanip() >> data.line.F0();
@@ -314,7 +318,11 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
   if (artsid.length() != 0) {
 
     // Set line ID
-    data.quantumidentity.Isotopologue(Species::Tag(artsid).Isotopologue());
+    const auto isotopologue = Species::Tag(artsid);
+    ARTS_USER_ERROR_IF (isotopologue.is_joker() or isotopologue.type not_eq Species::TagType::Plain,
+      "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
+      "Your input contains: ", artsid, ". which we cannot interpret as a plain species")
+    data.quantumidentity = Quantum::Identifier(isotopologue.Isotopologue(), Quantum::IdentifierType::Transition);
 
     // Extract center frequency:
     icecream >> double_imanip() >> data.line.F0();
@@ -2091,6 +2099,9 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(std::vec
   // Loop but make copies because we will need to modify some of the data
   while(external_lines.size()) {
     auto& sle = external_lines.back();
+    ARTS_ASSERT(sle.quantumidentity.type == Quantum::IdentifierType::Transition,
+      "Not a transition"
+    )
     
     // Set the quantum numbers
     std::transform(localquantas.cbegin(), localquantas.cend(), lowerquanta_local.begin(),
@@ -3097,7 +3108,10 @@ void Lines::AppendSingleLine(const SingleLine& sl) {
   mlines.push_back(sl);
 }
 
-bool Lines::MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const noexcept {
+bool Lines::MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const ARTS_NOEXCEPT {
+  ARTS_ASSERT(sle.quantumidentity.type == Quantum::IdentifierType::Transition,
+    "Not a transition"
+  )
   if(sle.bad) {
     return false;
   } else if(sle.selfbroadening not_eq mselfbroadening) {
@@ -3303,11 +3317,11 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
                                                          const Index line_id) ARTS_NOEXCEPT :
   QuantumIdentifierLineTarget(qt, lines)
 {
-  if (qt.Type() == Quantum::IdentifierType::All or qt.Type() == Quantum::IdentifierType::None) {
+  if (qt.type == Quantum::IdentifierType::All or qt.type == Quantum::IdentifierType::None) {
     
     // Nothing to do here
     
-  } else if (qt.Type() == Quantum::IdentifierType::Transition) {
+  } else if (qt.type == Quantum::IdentifierType::Transition) {
     if (found == QuantumIdentifierLineTargetType::Band) {
       
       // Look at the current line (the levels should already match)
@@ -3330,7 +3344,7 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
       if (all_good) found = QuantumIdentifierLineTargetType::Line;
       
     }
-  } else if (qt.Type() == Quantum::IdentifierType::EnergyLevel) {
+  } else if (qt.type == Quantum::IdentifierType::EnergyLevel) {
     
     // Nothing to do here
     

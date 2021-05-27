@@ -58,6 +58,12 @@ struct Tag {
   
   constexpr const IsotopeRecord& Isotopologue() const noexcept {return Isotopologues[spec_ind];}
   
+  constexpr void Isotopologue(const IsotopeRecord& ir) ARTS_NOEXCEPT {
+    Index ind = find_species_index(ir);
+    ARTS_ASSERT(ind < 0, "Bad species extracted from: ", ir)
+    spec_ind = ind;
+  }
+  
   constexpr Numeric Mass() const noexcept {return Isotopologue().mass;}
   
   constexpr Numeric Q(Numeric T) const {return PartitionFunctions::Q(T, Isotopologue());}
@@ -88,6 +94,8 @@ struct Tag {
   constexpr bool is_joker() const ARTS_NOEXCEPT {ARTS_ASSERT(spec_ind >= 0) return Joker == Isotopologue().isotname;}
 };
 }  // Species
+
+using SpeciesTagType = Species::TagType;
 
 using SpeciesTag = Species::Tag;
 

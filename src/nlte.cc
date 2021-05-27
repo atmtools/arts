@@ -284,7 +284,7 @@ void check_collision_line_identifiers(const ArrayOfQuantumIdentifier& collision_
                         (auto& x) {
                           return
                           isot not_eq x.Isotopologue() or 
-                          x.Type() not_eq Quantum::IdentifierType::Transition;});
+                          x.type not_eq Quantum::IdentifierType::Transition;});
   ARTS_USER_ERROR_IF (p not_eq collision_line_identifiers.cend(),
     *p, "\n"
     "does not match the requirements for a line identifier\n"

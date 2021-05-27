@@ -318,7 +318,7 @@ ENUMCLASS (IdentifierType, unsigned char,
  *   H2O-161 ALL
  *   H2O-161 NONE
  */
-class Identifier {
+struct Identifier {
   IdentifierType type;  // Type of ID
   Index spec_ind;       // Index to valid IsotopeRecord in Isotopologues, or -1
   QuantumNumbers upp;   // Upper quantum numbers, or energy level quantum numbers
@@ -330,7 +330,7 @@ class Identifier {
                 "Must be valid, non-joker, isotopologue.  Is: ", ir)
     return ind;
   }
-public:
+  
   //! Default to nothing
   constexpr Identifier() noexcept :
     type(IdentifierType::None), spec_ind(-1), upp(), low() {}
@@ -362,9 +362,8 @@ public:
   }
   
   void SetFromString(String str);
-  explicit Identifier(String x) { SetFromString(x); }
   
-  constexpr IdentifierType Type() const noexcept {return type;}
+  explicit Identifier(String x) { SetFromString(x); }
   
   constexpr const Species::IsotopeRecord& Isotopologue() const noexcept {
     return Species::Isotopologues[spec_ind];
@@ -424,11 +423,11 @@ public:
     switch (id.type) {
       case IdentifierType::None: return os << "NONE"; break;
       case IdentifierType::All:
-        return os << Species::Isotopologues[id.spec_ind] << " ALL";
+        return os << Species::Isotopologues[id.spec_ind].FullName() << " ALL";
       case IdentifierType::EnergyLevel:
-        return os << Species::Isotopologues[id.spec_ind] << " EN " << id.upp;
+        return os << Species::Isotopologues[id.spec_ind].FullName() << " EN " << id.upp;
       case IdentifierType::Transition:
-        return os << Species::Isotopologues[id.spec_ind] << " TR"
+        return os << Species::Isotopologues[id.spec_ind].FullName() << " TR"
                      " UP " << id.upp <<
                      " LO " << id.low;
       case IdentifierType::FINAL: { /* Leave last */
@@ -449,6 +448,8 @@ public:
   };
 };
 }
+
+using QuantumIdentifierType = Quantum::IdentifierType;
 
 /*! Identifier for species, energy levels, or transitions */
 using QuantumIdentifier = Quantum::Identifier;

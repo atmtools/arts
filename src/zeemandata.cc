@@ -29,7 +29,7 @@
 #include "zeemandata.h"
 #include "species_info.h"
 
-Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) noexcept {
+Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT {
   const Numeric GS = get_lande_spin_constant(qid.Species());
   const Numeric GL = get_lande_lambda_constant();
   const Numeric gu = SimpleG(qid.Upper(), GS, GL);
@@ -102,7 +102,10 @@ constexpr Numeric closed_shell_trilinear(Rational k,
 }
 
 
-Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
+Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT {
+  ARTS_ASSERT(qid.type == Quantum::IdentifierType::Transition, 
+              "Not a transition"
+  )
   if (qid.Isotopologue() == "O2-66") {
     if (qid.Lower()[QuantumNumberType::v1] == 0 and qid.Upper()[QuantumNumberType::v1] == 0) {
       Numeric GS = 2.002084;

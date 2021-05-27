@@ -16,7 +16,7 @@ struct IsotopeRecord {
   Index gi;
   constexpr explicit IsotopeRecord(Species spec_, const std::string_view isotname_=Joker, Numeric mass_=std::numeric_limits<Numeric>::quiet_NaN(), Index gi_=-1) noexcept
   : spec(spec_), isotname(isotname_), mass(mass_), gi(gi_) {}
-  constexpr IsotopeRecord() noexcept : spec(Species::FINAL), isotname(""), mass(std::numeric_limits<Numeric>::signaling_NaN()), gi(-1) {}
+  constexpr IsotopeRecord() noexcept : IsotopeRecord(Species::FINAL) {}
   friend std::ostream& operator<<(std::ostream& os, const IsotopeRecord& ir) {
     return os << ir.spec << ' ' << ir.isotname << ' ' << ir.mass << ' ' << ir.gi;
   }
@@ -626,7 +626,9 @@ constexpr bool same_or_joker(const IsotopeRecord& ir1, const IsotopeRecord& ir2)
 }
 }  // Species
 
-using ArrayOfIsotopeRecord = Array<Species::IsotopeRecord>;
+using SpeciesIsotopeRecord = Species::IsotopeRecord;
+
+using ArrayOfIsotopeRecord = Array<SpeciesIsotopeRecord>;
 
 using ArrayOfSpecies = Array<Species::Species>;
 

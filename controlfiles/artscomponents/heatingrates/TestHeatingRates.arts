@@ -152,7 +152,7 @@ Arts2 {
 
     # Consistency checks
     atmgeom_checkedCalc
-    atmfields_checkedCalc(bad_partition_functions_ok=1)
+    atmfields_checkedCalc
     cloudbox_checkedCalc
     propmat_clearsky_agenda_checkedCalc
 	

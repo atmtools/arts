@@ -2,6 +2,7 @@ import ctypes as c
 from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
+from pyarts.classes.SpeciesIsotopeRecord import Species
 from pyarts.classes.Vector import Vector, ArrayOfVector
 from pyarts.classes.SpeciesTag import SpeciesTag
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
@@ -50,14 +51,12 @@ class XsecRecord:
     @property
     def spec(self):
         """ Species (Index) """
-        return lib.getSpeciesXsecRecord(self.__data__)
+        return Species(c.c_void_p(lib.getSpeciesXsecRecord(self.__data__)))
 
     @spec.setter
     def spec(self, val):
-        if SpeciesTag.validSpecies(val):
-            lib.setSpeciesXsecRecord(self.__data__, int(val))
-        else:
-            raise RuntimeError("Invalid species")
+        spec = val if isinstance(val, Species) else Species(val)
+        lib.setSpeciesXsecRecord(self.__data__, spec.__data__)
 
     @property
     def coeffs(self):
@@ -210,11 +209,11 @@ lib.xmlreadXsecRecord.argtypes = [c.c_void_p, c.c_char_p]
 lib.xmlsaveXsecRecord.restype = c.c_long
 lib.xmlsaveXsecRecord.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
-lib.getSpeciesXsecRecord.restype = c.c_long
+lib.getSpeciesXsecRecord.restype = c.c_void_p
 lib.getSpeciesXsecRecord.argtypes = [c.c_void_p]
 
 lib.setSpeciesXsecRecord.restype = None
-lib.setSpeciesXsecRecord.argtypes = [c.c_void_p, c.c_long]
+lib.setSpeciesXsecRecord.argtypes = [c.c_void_p, c.c_void_p]
 
 lib.getCoeffsXsecRecord.restype = c.c_void_p
 lib.getCoeffsXsecRecord.argtypes = [c.c_void_p]

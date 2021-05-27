@@ -1533,7 +1533,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
                                       const Verbosity& verbosity) {
   CREATE_OUT3;
 
-  if (line_identity.Type() not_eq Quantum::IdentifierType::Transition)
+  if (line_identity.type not_eq Quantum::IdentifierType::Transition)
     throw std::runtime_error("Identity has to identify a line");
 
   const auto jpt = select_derivativeLineShape(variable, coefficient);

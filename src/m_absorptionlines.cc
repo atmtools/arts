@@ -2096,7 +2096,7 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
                                                   const Index& relative,
                                                   const Verbosity&)
 {
-  ARTS_USER_ERROR_IF (QI.Type() not_eq Quantum::IdentifierType::EnergyLevel,
+  ARTS_USER_ERROR_IF (QI.type not_eq Quantum::IdentifierType::EnergyLevel,
     "Bad input.  Must be energy level.  Is: ", QI, '\n')
   
   Index parameter_switch = -1;
@@ -2208,7 +2208,7 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
                                                const Numeric& x,
                                                const Verbosity&)
 {
-  ARTS_USER_ERROR_IF (QI.Type() not_eq Quantum::IdentifierType::EnergyLevel,
+  ARTS_USER_ERROR_IF (QI.type not_eq Quantum::IdentifierType::EnergyLevel,
     "Bad input.  Must be energy level.  Is: ", QI, '\n')
   
   Index parameter_switch = -1;

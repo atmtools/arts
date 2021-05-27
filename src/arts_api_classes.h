@@ -104,6 +104,12 @@ void resize##ELEM##TYPE(Index n, void * data);  \
 __attribute__((visibility("default")))          \
 void * getelem##ELEM##TYPE(Index i, void * data);
 
+#define StringEnumPointersCAPI(ENUM)            \
+__attribute__((visibility("default")))          \
+void * get##ENUM##String(void *);               \
+__attribute__((visibility("default")))          \
+int set##ENUM##String(void *, char *);
+
 
 extern "C" {
     // Index
@@ -171,28 +177,68 @@ extern "C" {
     VoidGetterCAPI(AbsorptionSingleLine, LineShape)
     VoidArrayElemCAPI(AbsorptionSingleLine, LowerQuantumNumbers)
     VoidArrayElemCAPI(AbsorptionSingleLine, UpperQuantumNumbers)
+    
+    // QuantumNumbers
+    BasicInterfaceCAPI(QuantumNumberType)
+    StringEnumPointersCAPI(QuantumNumberType)
   
     // QuantumNumbers
     BasicInterfaceCAPI(QuantumNumbers)
     DLL_PUBLIC void * getelemQuantumNumbers(Index, void *);
     DLL_PUBLIC Index sizeQuantumNumbers();
     DLL_PUBLIC Index string2quantumnumbersindex(char *);
+    DLL_PUBLIC void * getQuantumNumbersString(void *);
+    
+    // Species::Species
+    DLL_PUBLIC void * createSpecies();
+    DLL_PUBLIC void deleteSpecies(void *);
+    DLL_PUBLIC void printSpecies(void *);
+    DLL_PUBLIC int setSpeciesLongName(void *, char *);
+    DLL_PUBLIC int setSpeciesShortName(void *, char *);
+    DLL_PUBLIC void * getSpeciesLongName(void *);
+    DLL_PUBLIC void * getSpeciesShortName(void *);
+    
+    // SpeciesIsotopeRecord
+    BasicInterfaceCAPI(SpeciesIsotopeRecord)
+    DLL_PUBLIC Index getIndexSpeciesIsotopeRecordFromNames(char * spec, char * isot);
+    DLL_PUBLIC Index getIndexSpeciesIsotopeRecordFromData(void *);
+    DLL_PUBLIC int setSpeciesIsotopeRecordToIndex(void *, Index);
+    DLL_PUBLIC void * getSpeciesSpeciesIsotopeRecord(void *);
+    DLL_PUBLIC void * getIsotnameSpeciesIsotopeRecord(void *);
+    DLL_PUBLIC Numeric getMassSpeciesIsotopeRecord(void *);
+    DLL_PUBLIC Index getGSpeciesIsotopeRecord(void *);
+    DLL_PUBLIC Index nelemSpeciesIsotopeRecordDefined();
+    
+    // QuantumIdentifierType
+    BasicInterfaceCAPI(QuantumIdentifierType)
+    StringEnumPointersCAPI(QuantumIdentifierType)
   
     // QuantumIdentifier
     BasicInterfaceCAPI(QuantumIdentifier)
     BasicInputOutputCAPI(QuantumIdentifier)
-    VoidGetterCAPI(QuantumIdentifier, Level)
-    VoidGetterCAPI(QuantumIdentifier, Lower)
-    VoidGetterCAPI(QuantumIdentifier, Upper)
+    VoidStructGetterCAPI(QuantumIdentifier, type)
+    VoidStructGetterCAPI(QuantumIdentifier, spec_ind)
+    VoidStructGetterCAPI(QuantumIdentifier, upp)
+    VoidStructGetterCAPI(QuantumIdentifier, low)
     
     // ArrayOfQuantumIdentifier
     BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
     BasicInputOutputCAPI(ArrayOfQuantumIdentifier)
     VoidArrayCAPI(ArrayOfQuantumIdentifier)
   
+    // SpeciesTagType
+    BasicInterfaceCAPI(SpeciesTagType)
+    StringEnumPointersCAPI(SpeciesTagType)
+    
     // SpeciesTag
     BasicInterfaceCAPI(SpeciesTag)
     BasicInputOutputCAPI(SpeciesTag)
+    VoidStructGetterCAPI(SpeciesTag, spec_ind)
+    VoidStructGetterCAPI(SpeciesTag, lower_freq)
+    VoidStructGetterCAPI(SpeciesTag, upper_freq)
+    VoidStructGetterCAPI(SpeciesTag, type)
+    VoidStructGetterCAPI(SpeciesTag, cia_2nd_species)
+    VoidStructGetterCAPI(SpeciesTag, cia_dataset_index)
     VoidArrayCAPI(ArrayOfSpeciesTag)
     BasicInterfaceCAPI(ArrayOfSpeciesTag)
     BasicInputOutputCAPI(ArrayOfSpeciesTag)
@@ -601,6 +647,9 @@ extern "C" {
     VoidArrayCAPI(ArrayOfCIARecord)
     BasicInterfaceCAPI(ArrayOfCIARecord)
     BasicInputOutputCAPI(ArrayOfCIARecord)
+    DLL_PUBLIC void * getSpecies1CIARecord(void *);
+    DLL_PUBLIC void * getSpecies2CIARecord(void *);
+    DLL_PUBLIC void setSpeciesCIARecord(void *, void *, void *);
     
     // Verbosity
     BasicInterfaceCAPI(Verbosity)
@@ -755,6 +804,8 @@ extern "C" {
     // XsecRecord
     BasicInterfaceCAPI(XsecRecord)
     BasicInputOutputCAPI(XsecRecord)
+    DLL_PUBLIC void * getSpeciesXsecRecord(void *);
+    DLL_PUBLIC void setSpeciesXsecRecord(void *, void *);
     VoidGetterCAPI(XsecRecord, Coeffs)
     VoidGetterCAPI(XsecRecord, RefPressure)
     VoidGetterCAPI(XsecRecord, RefTemperature)
@@ -899,6 +950,7 @@ extern "C" {
 #undef BasicInputOutputCAPI
 #undef VoidArrayCAPI
 #undef VoidArrayElemCAPI
+#undef StringEnumPointersCAPI
 
 
 #if REMOVE_DLL_PUBLIC

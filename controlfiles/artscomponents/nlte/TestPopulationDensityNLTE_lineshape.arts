@@ -2,7 +2,6 @@ Arts2 {
   
   # Constants (changes here might require changes in perturbations to match)
   isotopologue_ratiosInitFromBuiltin
-  partition_functionsInitFromBuiltin
   abs_speciesSet(species=["O2-66"])
   VectorNLinSpace(f_grid, 101, 99.99e9, 100.01e9)
   VectorSet(rtp_vmr, [0.21])

@@ -1112,7 +1112,7 @@ bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js) {
 }
 
 bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
-  if (rq.QuantumIdentity().Type() == Quantum::IdentifierType::All) {  // Single tag
+  if (rq.QuantumIdentity().type == Quantum::IdentifierType::All) {  // Single tag
     for (const auto& s : ast) {
       if (rq.QuantumIdentity().Species() not_eq s.Spec())
         return false;  // Species must match

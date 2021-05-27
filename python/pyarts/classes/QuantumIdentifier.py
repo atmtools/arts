@@ -3,9 +3,72 @@ from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.QuantumNumbers import QuantumNumbers
-from pyarts.classes.SpeciesTag import SpeciesTag
+from pyarts.classes.SpeciesIsotopeRecord import SpeciesIsotopeRecord
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
+from pyarts.classes.BasicTypes import Index, String
+
+
+class QuantumIdentifierType:
+    """ ARTS QuantumIdentifier type data
+    
+    Properties:
+        name:
+            Name of type (String)
+    """
+    def __init__(self, data):
+        if isinstance(data, c.c_void_p):
+            self.__delete__ = False
+            self.__data__ = data
+        else:
+            self.__delete__ = True
+            self.__data__ = c.c_void_p(lib.createQuantumIdentifierType())
+            self.name = data
+    
+    @property
+    def name(self):
+        return String(c.c_void_p(lib.getQuantumIdentifierTypeString(self.__data__)),
+                      delete=True)
+    
+    @name.setter
+    def name(self, x):
+        if lib.setQuantumIdentifierTypeString(self.__data__, str(x).encode('utf-8')):
+            raise RuntimeError(f"Bad QuantumIdentifierType: {x}")
+
+    def print(self):
+        """ Print to cout the ARTS representation of the class """
+        lib.printQuantumIdentifierType(self.__data__)
+
+    def __del__(self):
+        if self.__delete__:
+            lib.deleteQuantumIdentifierType(self.__data__)
+            
+    def set(self, other):
+        s = other.name if isinstance(other, QuantumIdentifierType) else other
+        self.name = s
+    
+    def __eq__(self, other):
+        s = other.name if isinstance(other, QuantumIdentifierType) else other
+        return self.name == s
+    
+    def __repr__(self):
+        return f"{self.name}"
+
+
+lib.createQuantumIdentifierType.restype = c.c_void_p
+lib.createQuantumIdentifierType.argtypes = []
+
+lib.deleteQuantumIdentifierType.restype = None
+lib.deleteQuantumIdentifierType.argtypes = [c.c_void_p]
+
+lib.printQuantumIdentifierType.restype = None
+lib.printQuantumIdentifierType.argtypes = [c.c_void_p]
+
+lib.getQuantumIdentifierTypeString.restype = c.c_void_p
+lib.getQuantumIdentifierTypeString.argtypes = [c.c_void_p]
+
+lib.setQuantumIdentifierTypeString.restype = c.c_int
+lib.setQuantumIdentifierTypeString.argtypes = [c.c_void_p, c.c_char_p]
 
 
 class QuantumIdentifier:
@@ -13,24 +76,24 @@ class QuantumIdentifier:
 
     Properties:
         type:
-            Type of identifier (get: Index; set: Index or str)
-
-        spec:
-            Species of the identifier (Index)
-
+            The type of identifier (QuantumIdentifierType)
+            
+        spec_ind:
+            The index of the isotopologue (Index)
+        
+        upp:
+            The upper quantum numbers (QuantumNumbers)
+            
+        low:
+            The lower quantum numbers (QuantumNumbers)
+            
+        lvl:
+            The level quantum numbers (QuantumNumbers)
+            
         isot:
-            Isotopologue of the identifier (Index)
-
-        lowerqn:
-            Lower state quantum numbers of the identifier (QuantumNumbers)
-
-        upperqn:
-            Upper state quantum numbers of the identifier (QuantumNumbers)
-
-        levelqn:
-            State quantum numbers of the identifier (QuantumNumbers)
+            The ARTS isotopologue (const SpeciesIsotopeRecord)
     """
-    def __init__(self, type="NONE", spec=0, isot=0, qns1=QuantumNumbers(), qns2=QuantumNumbers()):
+    def __init__(self, type="None", spec_ind=0, isot=0, qns1=QuantumNumbers(), qns2=QuantumNumbers()):
         if isinstance(type, c.c_void_p):
             self.__delete__ = False
             self.__data__ = type
@@ -38,73 +101,61 @@ class QuantumIdentifier:
             self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createQuantumIdentifier())
             self.type = type
-            self.spec = spec
-            self.isot = isot
-            self.upperqn = qns1
-            self.lowerqn = qns2
-
+            self.spec_ind = spec_ind
+            if type == "Transtition" or type == "EnergyLevel":
+                self.upp = qns1
+            if type == "Transtition":
+                self.low = qns2
+    
     @property
     def type(self):
-        """ Type of identifier (get: Index; set: Index or str) """
-        return lib.getTypeQuantumIdentifier(self.__data__)
-
+        return QuantumIdentifierType(c.c_void_p(lib.gettypeQuantumIdentifier(self.__data__)))
+    
     @type.setter
-    def type(self, type):
-        if isinstance(type, str):
-            self.type = int(lib.string2indexTypeQuantumIdentifier(self.__data__, type.encode("ascii")))
-        else:
-            type = int(type)
-            if lib.setTypeQuantumIdentifier(self.__data__, type):
-                raise ValueError("Invalid type")
-
+    def type(self, x):
+        self.type.set(x)
+    
     @property
-    def spec(self):
-        """ Species of the identifier (Index) """
-        return lib.getSpeciesQuantumIdentifier(self.__data__)
-
-    @spec.setter
-    def spec(self, val):
-        if not SpeciesTag.validSpecies(int(val)):
-            raise ValueError("Invalid species")
-        lib.setSpeciesQuantumIdentifier(self.__data__, int(val))
-
+    def spec_ind(self):
+        return Index(c.c_void_p(lib.getspec_indQuantumIdentifier(self.__data__)))
+    
+    @spec_ind.setter
+    def spec_ind(self, x):
+        self.spec_ind.set(x)
+    
+    @property
+    def upp(self):
+        if self.type != "Transition":
+            raise RuntimeError(f"Bad state, {self.type} should be Transition")
+        return QuantumNumbers(c.c_void_p(lib.getuppQuantumIdentifier(self.__data__)))
+    
+    @upp.setter
+    def upp(self, x):
+        self.upp.set(x)
+    
+    @property
+    def lvl(self):
+        if self.type != "EnergyLevel":
+            raise RuntimeError(f"Bad state, {self.type} should be EnergyLevel")
+        return QuantumNumbers(c.c_void_p(lib.getuppQuantumIdentifier(self.__data__)))
+    
+    @lvl.setter
+    def lvl(self, x):
+        self.lvl.set(x)
+    
+    @property
+    def low(self):
+        if self.type != "Transition":
+            raise RuntimeError(f"Bad state, {self.type} should be Transition")
+        return QuantumNumbers(c.c_void_p(lib.getlowQuantumIdentifier(self.__data__)))
+    
+    @low.setter
+    def low(self, x):
+        self.low.set(x)
+    
     @property
     def isot(self):
-        """ Isotopologue of the identifier (Index) """
-        return lib.getIsotopologueQuantumIdentifier(self.__data__)
-
-    @isot.setter
-    def isot(self, val):
-        if not SpeciesTag.validIsotopologue(self.spec, int(val)):
-            raise ValueError("Invalid isotopologue")
-        lib.setIsotopologueQuantumIdentifier(self.__data__, int(val))
-
-    @property
-    def lowerqn(self):
-        """ Lower state quantum numbers of the identifier (QuantumNumbers) """
-        return QuantumNumbers(c.c_void_p(lib.getLowerQuantumNumbersQuantumIdentifier(self.__data__)))
-
-    @lowerqn.setter
-    def lowerqn(self, val):
-        self.lowerqn.set(val)
-
-    @property
-    def upperqn(self):
-        """ Upper state quantum numbers of the identifier (QuantumNumbers) """
-        return QuantumNumbers(c.c_void_p(lib.getUpperQuantumNumbersQuantumIdentifier(self.__data__)))
-
-    @upperqn.setter
-    def upperqn(self, val):
-        self.upperqn.set(val)
-
-    @property
-    def levelqn(self):
-        return QuantumNumbers(c.c_void_p(lib.getEnergyLevelQuantumNumbersQuantumIdentifier(self.__data__)))
-
-    @levelqn.setter
-    def levelqn(self, val):
-        """ State quantum numbers of the identifier (QuantumNumbers) """
-        self.levelqn.set(val)
+        return SpeciesIsotopeRecord.from_index(self.spec_ind)
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
@@ -113,9 +164,16 @@ class QuantumIdentifier:
     def __del__(self):
         if self.__delete__:
             lib.deleteQuantumIdentifier(self.__data__)
-
+    
     def __repr__(self):
-        return "ARTS QuantumIdentifier"
+        if self.type == "Transition":
+            return f"{self.isot} TR UP {self.upp} LO {self.low}"
+        elif self.type == "EnergyLevel":
+            return f"{self.isot} EN {self.lvl}"
+        elif self.type == "All":
+            return f"{self.isot} ALL"
+        else:
+            return "NONE"
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
@@ -191,32 +249,14 @@ lib.xmlreadQuantumIdentifier.argtypes = [c.c_void_p, c.c_char_p]
 lib.xmlsaveQuantumIdentifier.restype = c.c_long
 lib.xmlsaveQuantumIdentifier.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
-lib.getTypeQuantumIdentifier.restype = c.c_long
-lib.getTypeQuantumIdentifier.argtypes = [c.c_void_p]
+lib.gettypeQuantumIdentifier.restype = c.c_void_p
+lib.gettypeQuantumIdentifier.argtypes = [c.c_void_p]
 
-lib.setTypeQuantumIdentifier.restype = c.c_long
-lib.setTypeQuantumIdentifier.argtypes = [c.c_void_p, c.c_long]
+lib.getspec_indQuantumIdentifier.restype = c.c_void_p
+lib.getspec_indQuantumIdentifier.argtypes = [c.c_void_p]
 
-lib.string2indexTypeQuantumIdentifier.restype = c.c_long
-lib.string2indexTypeQuantumIdentifier.argtypes = [c.c_void_p, c.c_char_p]
+lib.getuppQuantumIdentifier.restype = c.c_void_p
+lib.getuppQuantumIdentifier.argtypes = [c.c_void_p]
 
-lib.getSpeciesQuantumIdentifier.restype = c.c_long
-lib.getSpeciesQuantumIdentifier.argtypes = [c.c_void_p]
-
-lib.setSpeciesQuantumIdentifier.restype = None
-lib.setSpeciesQuantumIdentifier.argtypes = [c.c_void_p, c.c_long]
-
-lib.getIsotopologueQuantumIdentifier.restype = c.c_long
-lib.getIsotopologueQuantumIdentifier.argtypes = [c.c_void_p]
-
-lib.setIsotopologueQuantumIdentifier.restype = None
-lib.setIsotopologueQuantumIdentifier.argtypes = [c.c_void_p, c.c_long]
-
-lib.getEnergyLevelQuantumNumbersQuantumIdentifier.restype = c.c_void_p
-lib.getEnergyLevelQuantumNumbersQuantumIdentifier.argtypes = [c.c_void_p]
-
-lib.getLowerQuantumNumbersQuantumIdentifier.restype = c.c_void_p
-lib.getLowerQuantumNumbersQuantumIdentifier.argtypes = [c.c_void_p]
-
-lib.getUpperQuantumNumbersQuantumIdentifier.restype = c.c_void_p
-lib.getUpperQuantumNumbersQuantumIdentifier.argtypes = [c.c_void_p]
+lib.getlowQuantumIdentifier.restype = c.c_void_p
+lib.getlowQuantumIdentifier.argtypes = [c.c_void_p]

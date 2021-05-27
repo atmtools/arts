@@ -462,7 +462,7 @@ class Model {
  * 
  * @return Zeeman model
  */
-Model GetSimpleModel(const QuantumIdentifier& qid) noexcept;
+Model GetSimpleModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
 
 /** Returns an advanced Zeeman model 
  * 
@@ -475,7 +475,7 @@ Model GetSimpleModel(const QuantumIdentifier& qid) noexcept;
  * 
  * @return Zeeman model
  */
-Model GetAdvancedModel(const QuantumIdentifier& qid) noexcept;
+Model GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
 
 std::ostream& operator<<(std::ostream& os, const Model& m);
 

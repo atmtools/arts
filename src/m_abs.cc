@@ -111,11 +111,8 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
     // Loop all the tags
     for (Index i=0; i<tgs.nelem() and lines.NumLines(); i++) {
       for (auto& this_tag: tgs[i]) {
-        // Test species first, we might leave as we leave
-        if (this_tag.Spec() not_eq lines.Species()) break;
-        
         // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
-        if (this_tag.Isotopologue() not_eq lines.Isotopologue())
+        if (not same_or_joker(this_tag.Isotopologue(), lines.Isotopologue()))
           continue;
         
         // If there is a frequency range, we have to check so that only selected lines are included
@@ -1516,7 +1513,6 @@ void propmat_clearskyAddLines(  // Workspace reference:
   // Need to do more complicated calculations if this is true
   const bool legacy_vmr_derivative=std::any_of(jacobian_quantities.cbegin(), jacobian_quantities.cend(),
                                                [](auto& deriv){return deriv == Jacobian::Special::ArrayOfSpeciesTagVMR;});
-
   if (legacy_vmr_derivative) {
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
       if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
@@ -1745,7 +1741,6 @@ void isotopologue_ratiosInitFromBuiltin(SpeciesIsotopologueRatios& isotopologue_
   isotopologue_ratios = SpeciesIsotopologueRatios();
 
 #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[SpeciesTag("H2O" "-" ISOT).spec_ind] = VAL
-  set_isot_val("161", .997317E+00);
   set_isot_val("161", .997317E+00);
   set_isot_val("181", 1.99983E-03);
   set_isot_val("171", 3.71884E-04);

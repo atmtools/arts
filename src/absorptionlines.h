@@ -585,7 +585,7 @@ public:
    * @param[in] sle Full external lines
    * @param[in] quantumidentity Expected global quantum id of the line
    */
-  bool MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const noexcept;
+  bool MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const ARTS_NOEXCEPT;
   
   /** Checks if another line list matches this structure
    * 
@@ -1521,7 +1521,7 @@ struct QuantumIdentifierLineTarget {
   //! Species/Isotopologue/Band match constructor from ID
   constexpr QuantumIdentifierLineTarget(const QuantumIdentifier& qt, const QuantumIdentifier& qid) ARTS_NOEXCEPT : QuantumIdentifierLineTarget()
   {
-    ARTS_ASSERT(qid.Type() == Quantum::IdentifierType::Transition);
+    ARTS_ASSERT(qid.type == Quantum::IdentifierType::Transition);
     
     // We have no match if we do not match the species
     if (qt.Species() == qid.Species()) found = QuantumIdentifierLineTargetType::Species;
@@ -1531,15 +1531,15 @@ struct QuantumIdentifierLineTarget {
     
     // We do cannot match the band if we do not match the isotopologue
     if (found == QuantumIdentifierLineTargetType::Isotopologue) {
-      if (qt.Type() == Quantum::IdentifierType::All) {
+      if (qt.type == Quantum::IdentifierType::All) {
         
         // Nothing to do here
         
-      } else if (qt.Type() == Quantum::IdentifierType::None) {
+      } else if (qt.type == Quantum::IdentifierType::None) {
         
         found = QuantumIdentifierLineTargetType::None;  // We turned this off!
         
-      } else if (qt.Type() == Quantum::IdentifierType::Transition) {
+      } else if (qt.type == Quantum::IdentifierType::Transition) {
         
         // We are band specific values
         bool all_good = true;
@@ -1558,7 +1558,7 @@ struct QuantumIdentifierLineTarget {
         // We are a band?
         if (all_good) found = QuantumIdentifierLineTargetType::Band;
         
-      } else if (qt.Type() == Quantum::IdentifierType::EnergyLevel) {
+      } else if (qt.type == Quantum::IdentifierType::EnergyLevel) {
         
         // We are the right species, are we a level?
         bool low_lvl = true;
