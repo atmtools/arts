@@ -37,3 +37,11 @@ ARTS Class Interface
    pyarts_classes
 
 
+ARTS Plotting
+-------------
+
+.. toctree::
+   :maxdepth: 2
+
+   pyarts_plots
+

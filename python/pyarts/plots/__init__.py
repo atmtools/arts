@@ -1,4 +1,4 @@
-"""This module provides functions related to plot or to plot data. """
+"""This module provides functions related to plotting ARTS data."""
 
 from pyarts.plots.arts_lookup import *  # noqa
 
