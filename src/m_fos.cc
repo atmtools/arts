@@ -869,6 +869,7 @@ void iyHybrid(Workspace& ws,
               Matrix& ppvar_f,
               Tensor3& ppvar_iy,
               Tensor4& ppvar_trans_cumulat,
+              Tensor4& ppvar_trans_partial,
               const Index& iy_id,
               const Index& stokes_dim,
               const Vector& f_grid,
@@ -928,7 +929,7 @@ void iyHybrid(Workspace& ws,
                        ppvar_f,
                        ppvar_iy,
                        ppvar_trans_cumulat,
-                       dummy,
+                       ppvar_trans_partial,
                        iy_id,
                        stokes_dim,
                        f_grid,
@@ -1061,6 +1062,7 @@ void iyHybrid(Workspace& ws,
 
   // Get atmospheric and radiative variables along the propagation path
   ppvar_trans_cumulat.resize(np, nf, ns, ns);
+  ppvar_trans_partial.resize(np, nf, ns, ns);
   ppvar_iy.resize(nf, ns, np);
 
   ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
@@ -1085,7 +1087,14 @@ void iyHybrid(Workspace& ws,
     ppvar_wind.resize(0, 0);
     ppvar_mag.resize(0, 0);
     ppvar_f.resize(0, 0);
-    ppvar_trans_cumulat = 1;
+    ppvar_trans_cumulat = 0;
+    ppvar_trans_partial = 0;
+    for (Index iv = 0; iv < nf; iv++) {
+      for (Index is = 0; is < ns; is++) {
+        ppvar_trans_cumulat(0,iv,is,is) = 1;
+        ppvar_trans_partial(0,iv,is,is) = 1;
+      }
+    }
   } else {
     // Basic atmospheric variables
     get_ppath_atmvars(ppvar_p,
@@ -1349,6 +1358,7 @@ void iyHybrid(Workspace& ws,
   iy = lvl_rad[0];
   for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
     ppvar_trans_cumulat(ip, joker, joker, joker) = tot_tra[ip];
+    ppvar_trans_partial(ip, joker, joker, joker) = lyr_tra[ip];
     ppvar_iy(joker, joker, ip) = lvl_rad[ip];
     if (j_analytical_do)
       FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq](ip, joker, joker) =
