@@ -80,11 +80,11 @@ void Quantum::Identifier::SetFromString(String str) {
     is >> token;
     Rational r;
     while (is) {
+      if (token == "LO") break;
       ThrowIfQuantumNumberNameInvalid(token);
       is >> r;
       Upper().Set(token, r);
       is >> token;
-      if (token == "LO") break;
     }
 
     ARTS_USER_ERROR_IF (!is,

@@ -197,6 +197,9 @@ extern "C" {
     DLL_PUBLIC int setSpeciesShortName(void *, char *);
     DLL_PUBLIC void * getSpeciesLongName(void *);
     DLL_PUBLIC void * getSpeciesShortName(void *);
+    VoidArrayCAPI(ArrayOfSpecies)
+    BasicInputOutputCAPI(ArrayOfSpecies)
+    BasicInterfaceCAPI(ArrayOfSpecies)
     
     // SpeciesIsotopeRecord
     BasicInterfaceCAPI(SpeciesIsotopeRecord)
@@ -208,6 +211,10 @@ extern "C" {
     DLL_PUBLIC Numeric getMassSpeciesIsotopeRecord(void *);
     DLL_PUBLIC Index getGSpeciesIsotopeRecord(void *);
     DLL_PUBLIC Index nelemSpeciesIsotopeRecordDefined();
+    
+    // SpeciesIsotopologueRatios
+    BasicInterfaceCAPI(SpeciesIsotopologueRatios)
+    DLL_PUBLIC Numeric * getdataSpeciesIsotopologueRatios(void *);
     
     // QuantumIdentifierType
     BasicInterfaceCAPI(QuantumIdentifierType)

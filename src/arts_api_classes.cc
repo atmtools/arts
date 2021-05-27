@@ -305,6 +305,10 @@ void * getSpeciesLongName(void * data) {
 void * getSpeciesShortName(void * data) {
   return new String(Species::toShortName(*static_cast<Species::Species *>(data)));
 }
+VoidArrayCAPI(ArrayOfSpecies)
+Index xmlreadArrayOfSpecies(void *, char *) {return 1;}
+Index xmlsaveArrayOfSpecies (void *, char *, Index, Index) {return 1;}
+BasicInterfaceCAPI(ArrayOfSpecies)
 
 // SpeciesIsotopeRecord
 BasicInterfaceCAPI(SpeciesIsotopeRecord)
@@ -339,6 +343,10 @@ Numeric getMassSpeciesIsotopeRecord(void * data) {
 Index getGSpeciesIsotopeRecord(void * data) {
   return static_cast<SpeciesIsotopeRecord *>(data) -> gi;
 }
+
+// SpeciesIsotopologueRatios
+BasicInterfaceCAPI(SpeciesIsotopologueRatios)
+Numeric * getdataSpeciesIsotopologueRatios(void * data) {return static_cast<SpeciesIsotopologueRatios *>(data) -> data.begin();}
 
 // QuantumIdentifierType
 BasicInterfaceCAPI(QuantumIdentifierType)

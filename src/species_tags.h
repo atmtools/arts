@@ -142,11 +142,7 @@ public:
     return operator[](0).Type();
   }
   
-  String Name() const {
-    String out="";
-    for (auto& x: *this) out += x.Name();
-    return out;
-  }
+  String Name() const;
   
   bool Zeeman() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::Zeeman;});

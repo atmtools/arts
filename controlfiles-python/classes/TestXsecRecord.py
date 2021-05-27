@@ -6,7 +6,7 @@ from pyarts.classes import from_workspace
 xr = XsecRecord()
 xr2 = XsecRecord()
 
-xr.spec = 1
+xr.spec = "H2O"
 xr.coeffs = 2
 xr.ref_pressure = 3
 xr.ref_temperature = 4

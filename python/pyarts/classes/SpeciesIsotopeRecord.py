@@ -1,5 +1,6 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
+from pyarts.classes.ArrayBase import array_base
 
 from pyarts.classes.BasicTypes import String
 
@@ -67,6 +68,10 @@ class Species:
     def __eq__(self, other):
         return self.short_name == other.short_name
     
+    @staticmethod
+    def name():
+        return "Species"
+    
 
 lib.createSpecies.restype = c.c_void_p
 lib.createSpecies.argtypes = []
@@ -88,6 +93,10 @@ lib.getSpeciesLongName.argtypes = [c.c_void_p]
 
 lib.setSpeciesLongName.restype = c.c_int
 lib.setSpeciesLongName.argtypes = [c.c_void_p, c.c_void_p]
+
+
+# Generate ArrayOfSpecies
+exec(array_base(Species))
 
 
 class SpeciesIsotopeRecord:

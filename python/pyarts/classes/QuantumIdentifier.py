@@ -179,11 +179,12 @@ class QuantumIdentifier:
         """ Sets this class according to another python instance of itself """
         if isinstance(other, QuantumIdentifier):
             self.type = other.type
-            lib.setSpeciesQuantumIdentifier(self.__data__, other.spec)
-            lib.setIsotopologueQuantumIdentifier(self.__data__, other.isot)
-            self.lowerqn = other.lowerqn
-            self.upperqn = other.upperqn
-            self.levelqn = other.levelqn  # repeat but for now keep...
+            self.spec_ind = other.spec_ind
+            if type == "EnergyLevel":
+                self.lvl = other.lvl
+            elif type == "Transtition":
+                self.upp = other.upp
+                self.low = other.low
         else:
             raise TypeError("Expects QuantumIdentifier")
 
@@ -218,14 +219,15 @@ class QuantumIdentifier:
             raise OSError("Cannot save {}".format(file))
 
     def __eq__(self, other):
-        if isinstance(other, QuantumIdentifier) and \
-                self.type == other.type and \
-                self.spec == other.spec and \
-                self.isot == other.isot and \
-                self.lowerqn == other.lowerqn and \
-                self.upperqn == other.upperqn and \
-                self.levelqn == other.levelqn:
-            return True
+        if isinstance(other, QuantumIdentifier):
+            if self.type == "Transition":
+                return self.type == other.type and self.isot == other.isot and other.upp == self.upp and other.low == self.low
+            elif self.type == "EnergyLevel":
+                return self.type == other.type and self.isot == other.isot and other.lvl == self.lvl
+            elif self.type == "All":
+                return self.type == other.type and self.isot == other.isot
+            else:
+                return self.type == other.type
         else:
             return False
 

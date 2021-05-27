@@ -194,11 +194,13 @@ class SpeciesTag:
         """ Sets this class according to another python instance of itself """
         if isinstance(other, SpeciesTag):
             self.spec_ind = other.spec_ind
+            self.type = other.type
             self.lower_freq = other.lower_freq
             self.upper_freq = other.upper_freq
             self.type = other.type
-            self.cia_2nd_species = other.cia_2nd_species
-            self.cia_dataset_index = other.cia_dataset_index
+            if self.type == "Cia":
+                self.cia_2nd_species = other.cia_2nd_species
+                self.cia_dataset_index = other.cia_dataset_index
         else:
             raise TypeError("Expects SpeciesTag")
     

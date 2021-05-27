@@ -402,3 +402,15 @@ void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
                         "with other tags in the same group.");
   }
 }
+
+String ArrayOfSpeciesTag::Name() const
+{
+  String out="";
+  bool first = true;
+  for (auto& x: *this) {
+    if (not first) out += ", ";
+    out += x.Name();
+    first = false;
+  }
+  return out;
+}

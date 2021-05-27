@@ -4,7 +4,6 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.SpeciesIsotopeRecord import Species
 from pyarts.classes.Vector import Vector, ArrayOfVector
-from pyarts.classes.SpeciesTag import SpeciesTag
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
@@ -14,7 +13,7 @@ class XsecRecord:
 
     Properties:
         spec:
-            Species (Index)
+            Species (Species)
 
         coeffs:
             Coefficients (Vector)
@@ -50,7 +49,7 @@ class XsecRecord:
 
     @property
     def spec(self):
-        """ Species (Index) """
+        """ Species (Species) """
         return Species(c.c_void_p(lib.getSpeciesXsecRecord(self.__data__)))
 
     @spec.setter
@@ -139,7 +138,7 @@ class XsecRecord:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, XsecRecord):
-            lib.setSpeciesXsecRecord(self.__data__, int(other.spec))
+            self.spec = other.spec
             self.coeffs = other.coeffs
             self.ref_pressure = other.ref_pressure
             self.ref_temperature = other.ref_temperature

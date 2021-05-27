@@ -79,7 +79,7 @@ def setup_testcase(ws):
         ws.jacobianAddSurfaceQuantity(
             g1=ws.lat_grid, g2=ws.lon_grid, quantity="Skin temperature")
         ws.jacobianClose()
-        ws.atmfields_checkedCalc(bad_partition_functions_ok=1)
+        ws.atmfields_checkedCalc()
         ws.atmgeom_checkedCalc()
         ws.cloudbox_checkedCalc()
         ws.sensor_checkedCalc()
