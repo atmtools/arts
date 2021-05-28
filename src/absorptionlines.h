@@ -1386,7 +1386,7 @@ SingleLineExternal ReadFromHitran2001Stream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-// SingleLineExternal ReadFromJplStream(istream& is);
+SingleLineExternal ReadFromJplStream(istream& is);
 
 /** Splits a list of lines into proper Lines
  * 

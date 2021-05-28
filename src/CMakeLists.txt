@@ -206,6 +206,7 @@ add_library (artscore STATIC
   interpolation.cc
   interpolation_lagrange.cc
   jacobian.cc
+  jpl_species.cc
   legacy_continua.cc
   legendre.cc
   lin_alg.cc

@@ -35,6 +35,7 @@
 #include "constants.h"
 #include "file.h"
 #include "hitran_species.h"
+#include "jpl_species.h"
 #include "quantum_parser_hitran.h"
 
 Rational Absorption::Lines::LowerQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept {
@@ -2421,7 +2422,6 @@ Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Ration
     return + sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1_rat, 1_rat, 1_rat, Ji, Jf, N);
 }
 
-/*
 Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
 {
   // Default data and values for this type
@@ -2430,33 +2430,6 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
   data.bathbroadening = true;
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
-
-  // Global species lookup data:
-  using global_data::species_data;
-
-  // We need a species index sorted by JPL tag. Keep this in a
-  // static variable, so that we have to do this only once.  The ARTS
-  // species index is JplMap[<JPL tag>]. We need Index in this map,
-  // because the tag array within the species data is an Index array.
-  static map<Index, SpecIsoMap> JplMap;
-
-  // Remember if this stuff has already been initialized:
-  static bool hinit = false;
-
-  if (!hinit) {
-    for (Index i = 0; i < species_data.nelem(); ++i) {
-      const SpeciesRecord& sr = species_data[i];
-
-      for (Index j = 0; j < sr.Isotopologue().nelem(); ++j) {
-        for (Index k = 0; k < sr.Isotopologue()[j].JplTags().nelem(); ++k) {
-          SpecIsoMap indicies(i, j);
-
-          JplMap[sr.Isotopologue()[j].JplTags()[k]] = indicies;
-        }
-      }
-    }
-    hinit = true;
-  }
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -2569,18 +2542,8 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
     tag = tag > 0 ? tag : -tag;
   }
 
-  // ok, now for the cool index map:
-
-  // is this tag valid?
-  const map<Index, SpecIsoMap>::const_iterator i = JplMap.find(tag);
-  ARTS_USER_ERROR_IF (i == JplMap.end(),
-    "JPL Tag: ", tag, " is unknown.")
-
-  SpecIsoMap id = i->second;
-
   // Set line ID
-  data.quantumidentity.Species(id.Speciesindex());
-  data.quantumidentity.Isotopologue(id.Isotopologueindex());
+  data.quantumidentity = Jpl::id_from_lookup(tag);
 
   // Air broadening parameters: unknown to jpl, use old iup forward
   // model default values, which is mostly set to 0.0025 GHz/hPa, even
@@ -2633,7 +2596,6 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
   data.bad = false;
   return data;
 }
-*/
 
 bool Absorption::Lines::OK() const noexcept
 {

@@ -570,131 +570,68 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
-// /* Workspace method: Doxygen documentation will be auto-generated */
-// void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
-//                  const String& mytran2_file,
-//                  const Numeric& fmin,
-//                  const Numeric& fmax,
-//                  const String& globalquantumnumbers,
-//                  const String& localquantumnumbers,
-//                  const String& normalization_option,
-//                  const String& mirroring_option,
-//                  const String& population_option,
-//                  const String& lineshapetype_option,
-//                  const String& cutoff_option,
-//                  const Numeric& cutoff_value,
-//                  const Numeric& linemixinglimit_value,
-//                  const Verbosity& verbosity)
-// {
-//   // Global numbers
-//   const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
-//   
-//   // Local numbers
-//   const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
-//   
-//   // LBLRTM data
-//   ifstream is;
-//   open_input_file(is, mytran2_file);
-//   
-//   std::vector<Absorption::SingleLineExternal> v(0);
-//   
-//   bool go_on = true;
-//   while (go_on) {
-//     v.push_back(Absorption::ReadFromMytran2Stream(is));
-//     
-//     if (v.back().bad) {
-//       v.pop_back();
-//       go_on = false;
-//     } else if (v.back().line.F0() < fmin) {
-//       v.pop_back();
-//     } else if (v.back().line.F0() > fmax) {
-//       v.pop_back();
-//       go_on = false;
-//     }
-//   }
-//   
-//   for (auto& x: v)
-//     x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
-//   
-//   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
-//   abs_lines.resize(0);
-//   abs_lines.reserve(x.size());
-//   while (x.size()) {
-//     abs_lines.push_back(x.back());
-//     abs_lines.back().sort_by_frequency();
-//     x.pop_back();
-//   }
-//   
-//   abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-//   abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-//   abs_linesSetPopulation(abs_lines, population_option, verbosity);
-//   abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-//   abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-//   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
-// }
-// 
-// /* Workspace method: Doxygen documentation will be auto-generated */
-// void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
-//              const String& jpl_file,
-//              const Numeric& fmin,
-//              const Numeric& fmax,
-//              const String& globalquantumnumbers,
-//              const String& localquantumnumbers,
-//              const String& normalization_option,
-//              const String& mirroring_option,
-//              const String& population_option,
-//              const String& lineshapetype_option,
-//              const String& cutoff_option,
-//              const Numeric& cutoff_value,
-//              const Numeric& linemixinglimit_value,
-//              const Verbosity& verbosity)
-// {
-//   // Global numbers
-//   const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
-//   
-//   // Local numbers
-//   const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
-//   
-//   // LBLRTM data
-//   ifstream is;
-//   open_input_file(is, jpl_file);
-//   
-//   std::vector<Absorption::SingleLineExternal> v(0);
-//   
-//   bool go_on = true;
-//   while (go_on) {
-//     v.push_back(Absorption::ReadFromJplStream(is));
-//     
-//     if (v.back().bad) {
-//       v.pop_back();
-//       go_on = false;
-//     } else if (v.back().line.F0() < fmin) {
-//       v.pop_back();
-//     } else if (v.back().line.F0() > fmax) {
-//       v.pop_back();
-//       go_on = false;
-//     }
-//   }
-//   
-//   for (auto& x: v)
-//     x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
-//   
-//   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
-//   abs_lines.resize(0);
-//   abs_lines.reserve(x.size());
-//   while (x.size()) {
-//     abs_lines.push_back(x.back());
-//     abs_lines.back().sort_by_frequency();
-//     x.pop_back();
-//   }
-//   
-//   abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-//   abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-//   abs_linesSetPopulation(abs_lines, population_option, verbosity);
-//   abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-//   abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-//   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
-// }
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
+             const String& jpl_file,
+             const Numeric& fmin,
+             const Numeric& fmax,
+             const String& globalquantumnumbers,
+             const String& localquantumnumbers,
+             const String& normalization_option,
+             const String& mirroring_option,
+             const String& population_option,
+             const String& lineshapetype_option,
+             const String& cutoff_option,
+             const Numeric& cutoff_value,
+             const Numeric& linemixinglimit_value,
+             const Verbosity& verbosity)
+{
+  // Global numbers
+  const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
+  
+  // Local numbers
+  const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
+  
+  // LBLRTM data
+  ifstream is;
+  open_input_file(is, jpl_file);
+  
+  std::vector<Absorption::SingleLineExternal> v(0);
+  
+  bool go_on = true;
+  while (go_on) {
+    v.push_back(Absorption::ReadFromJplStream(is));
+    
+    if (v.back().bad) {
+      v.pop_back();
+      go_on = false;
+    } else if (v.back().line.F0() < fmin) {
+      v.pop_back();
+    } else if (v.back().line.F0() > fmax) {
+      v.pop_back();
+      go_on = false;
+    }
+  }
+  
+  for (auto& x: v)
+    x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
+  
+  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
+  abs_lines.resize(0);
+  abs_lines.reserve(x.size());
+  while (x.size()) {
+    abs_lines.push_back(x.back());
+    abs_lines.back().sort_by_frequency();
+    x.pop_back();
+  }
+  
+  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesSetPopulation(abs_lines, population_option, verbosity);
+  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+}
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////// IO of AbsorptionLines
