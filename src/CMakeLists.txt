@@ -180,7 +180,6 @@ add_library (artscore STATIC
   arts.cc
   arts_omp.cc
   artstime.cc
-  auto_partfun.h
   bifstream.cc
   binio.cc
   bofstream.cc
