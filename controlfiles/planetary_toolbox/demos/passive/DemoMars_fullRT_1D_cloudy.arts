@@ -125,12 +125,6 @@ WriteXML( in=f_grid )
 # number of Stokes parameters to consider ( 1: scalarRT, 4: fully polarised )
 IndexSet( stokes_dim, 4 )
 
-# ok to use extrapolation of partition functions (i.e. fitting range of
-#  partition function paameterization does not cover the actual atmospheric
-#  temperatures)?
-# ( 0: not ok, 1: ok )
-IndexSet( bad_partition_functions_ok, 1 )
-
 
 # ---
 # Definition of atmosphere

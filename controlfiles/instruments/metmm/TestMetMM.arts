@@ -125,7 +125,7 @@ INCLUDE "general/planet_earth.arts"
     Extract( t_surface, t_field, 0 )
 
 # Checks
-    atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+    atmfields_checkedCalc
     atmgeom_checkedCalc
     cloudbox_checkedCalc
     sensor_checkedCalc

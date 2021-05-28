@@ -97,7 +97,7 @@ AgendaSet( forloop_agenda_Ne ){
   # eventually: extract the data Tensor from the regridded GriddedField
   FieldFromGriddedField( edensity_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+  atmfields_checkedCalc
   atmgeom_checkedCalc
   #WriteXML( "ascii", p_grid )
   #WriteXML( "ascii", z_field )
@@ -150,7 +150,7 @@ AgendaSet( forloop_agenda_solar ){
   GriddedFieldPRegrid( gf3tmp, p_grid, gf3tmp, interp_order, 1 )
   GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
   FieldFromGriddedField( edensity_field, p_grid, lat_grid, lon_grid, gf3tmp )
-  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+  atmfields_checkedCalc
   atmgeom_checkedCalc
 
   # and eventually the winds - here we the two horizontal components (u&v), and
@@ -198,7 +198,7 @@ AgendaSet( forloop_agenda_solar ){
   # last, extract the data Tensor from the regridded GriddedField
   FieldFromGriddedField( wind_v_field, p_grid, lat_grid, lon_grid, gf3tmp )
 
-  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+  atmfields_checkedCalc
   atmgeom_checkedCalc
 }
 
