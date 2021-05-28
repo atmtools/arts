@@ -26,9 +26,8 @@ struct IsotopeRecord {
   
   //! A comparison with pure named string (this is not an exact comparison)
   constexpr bool operator==(const std::string_view specstr) const noexcept {
-    auto namepos = specstr.find(toShortName(spec));
-    auto isotpos = specstr.find(isotname);
-    return isotpos not_eq specstr.npos and namepos not_eq specstr.npos;
+    auto lim = specstr.find('-');
+    return (lim not_eq specstr.npos) and (fromShortName(specstr.substr(0, lim)) == spec) and (specstr.substr(lim+1) == isotname);
   }
   
   template <typename T> constexpr bool operator!=(T x)const noexcept {return not operator==(x);}

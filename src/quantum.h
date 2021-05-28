@@ -408,11 +408,18 @@ struct Identifier {
   }
   
   constexpr bool operator==(const Identifier& other) const noexcept {
-    if (other.type not_eq type) return false;
-    if (not Species::same_or_joker(other.Isotopologue(), Isotopologue())) return false;
-    if (other.upp not_eq upp) return false;
-    if (other.low not_eq low) return false;
-    return true;
+    if (other.type not_eq type) {return false;}
+    if (other.spec_ind not_eq spec_ind) return false;
+    
+    switch (type) {
+      case IdentifierType::None: return false;
+      case IdentifierType::All: return true;
+      case IdentifierType::EnergyLevel: return upp == other.upp;
+      case IdentifierType::Transition: return upp == other.upp and low == other.low;
+      case IdentifierType::FINAL: {/* Leave last */
+      }
+    }
+    return false;
   }
   
   constexpr bool operator!=(const Identifier& other) const noexcept {

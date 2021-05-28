@@ -2099,6 +2099,11 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(std::vec
   // Loop but make copies because we will need to modify some of the data
   while(external_lines.size()) {
     auto& sle = external_lines.back();
+    
+    // Adapt broadening to fit with line catalog
+    if (sle.selfbroadening) sle.species.front() = sle.quantumidentity.Species();
+    if (sle.bathbroadening) sle.species.back() = Species::Species::Bath;
+    
     ARTS_ASSERT(sle.quantumidentity.type == Quantum::IdentifierType::Transition,
       "Not a transition"
     )
