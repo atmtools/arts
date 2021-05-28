@@ -11,11 +11,11 @@ int main() {
     }
   }
   
-  std::cout << "Test correctness of Species short-name conversion fails here:\n";
+  std::cout << "\n\nTest correctness of Species short-name conversion fails here:\n";
   for (Index i=0; i<Index(Species::Species::FINAL); i++) {
     auto a = Species::Species(i);
-    auto b = Species::toShortName(a);
-    auto c = Species::fromShortName(b);
+    auto b = toShortName(a);
+    auto c = fromShortName(b);
     if (not good_enum(c) or c not_eq a) {
       std::cout << i << ' ' << a << ' ' << b << ' ' << c << '\n';
     }
@@ -26,18 +26,26 @@ int main() {
     auto& a = Isotopologues[i];
     auto& b = Isotopologues[i+1];
     if (std::size_t(a.spec) > std::size_t(b.spec)) {
-      std::cout << a << ' ' << b << '\n';
+      std::cout << a.FullName() << ' ' << b.FullName() << '\n';
     }
   }
   
-  std::cout << "\n\nTest of order of Isotopes fails for these pairs:\n";
+  std::cout << "\n\nTest of order of Isotopologues fails for these pairs:\n";
   for (std::size_t i=0; i<Isotopologues.size()-1; i++) {
     auto& a = Isotopologues[i];
     auto& b = Isotopologues[i+1];
     if (a.spec == b.spec) {
       if (a.isotname.compare(b.isotname) >= 0) {
-        std::cout << a << ' ' << b << '\n';
+        std::cout << a.FullName() << ' ' << b.FullName() << '\n';
       }
+    }
+  }
+  
+  std::cout << "\n\nTest that all Isotopologues (that are explicit isotopes) has a ratio in the builtin IsotopologueRatios fails here:\n";
+  auto iso_rat = isotopologue_ratiosInitFromBuiltin();
+  for (Index i=0; i<iso_rat.maxsize; i++) {
+    if (not is_predefined_model(Isotopologues[i]) and not Isotopologues[i].joker() and nonstd::isnan(iso_rat.data[i])) {
+      std::cout << Isotopologues[i].FullName() << " has no isotopologue ratio by default: " << iso_rat.data[i] << '\n';
     }
   }
 }

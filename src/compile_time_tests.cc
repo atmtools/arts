@@ -78,4 +78,9 @@ static_assert(testIsotopologuesIncreasing(), "Error!\n\n"
               "Isotopologues must be increasing.\n"
               "One of your newly added isotopologues is not in increasing order\n");
 
+
+static_assert(Species::isotopologue_ratiosInitFromBuiltin().all_isotopes_have_a_value(),
+              "There's a missing value in the default isotopologue_ratiosInitFromBuiltin()"
+);
+
 #endif
