@@ -600,7 +600,8 @@ Vector vmrs(const ConstVectorView& atmospheric_vmrs,
  */
 Vector mass(const ConstVectorView& atmospheric_vmrs,
             const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-            const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT;
+            const ArrayOfSpecies& lineshape_species,
+            const SpeciesIsotopologueRatios& ir) ARTS_NOEXCEPT;
 
 /** Name for bath broadening in printing and reading user input */
 static constexpr std::string_view bath_broadening = "AIR";

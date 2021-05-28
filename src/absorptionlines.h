@@ -1103,7 +1103,7 @@ public:
    * @param[in] bath_mass Mass of Bath/Air (optional, will compute it if <=0)
    * @return Mass list of the species
    */
-  Vector BroadeningSpeciesMass(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&, const Numeric& bath_mass=0) const;
+  Vector BroadeningSpeciesMass(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&, const SpeciesIsotopologueRatios&, const Numeric& bath_mass=0) const;
   
   /** Returns the VMR of the species
    * 

@@ -46,40 +46,6 @@
 /** Check that ARTS was compiled for all requested species tags */
 void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species);
 
-namespace Species {
-struct IsotopologueRatios {
-  static constexpr Index maxsize = Index(Isotopologues.size());
-  std::array<Numeric, maxsize> data;
-  
-  constexpr IsotopologueRatios() noexcept : data() {
-    for (auto& x: data) x = std::numeric_limits<Numeric>::quiet_NaN();
-  }
-  
-  constexpr Numeric operator[](const Index spec_ind) const ARTS_NOEXCEPT {
-    ARTS_ASSERT(spec_ind < maxsize and spec_ind >= 0)
-    return data[spec_ind];
-  }
-  
-  constexpr Numeric operator[](const IsotopeRecord& ir) const {
-    const Index spec_ind = find_species_index(ir);
-    ARTS_USER_ERROR_IF(spec_ind >= maxsize and spec_ind < 0,
-      "Cannot understand: ", ir.FullName(), " as a valid species")
-    return data[spec_ind];
-  }
-  
-  friend std::ostream& operator<<(std::ostream& os, const IsotopologueRatios& iso_rat) {
-    for (size_t i=0; i<iso_rat.maxsize; i++) {
-      if (i not_eq 0)
-        os << '\n';
-      os << Isotopologues[i].FullName() << ' ' << iso_rat.data[i];
-    }
-    return os;
-  }
-};
-}
-
-using SpeciesIsotopologueRatios = Species::IsotopologueRatios;
-
 /** Check that isotopologue ratios for the given species are correctly defined. */
 void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
                              const Species::IsotopologueRatios& isoratios);

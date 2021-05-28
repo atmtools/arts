@@ -206,7 +206,6 @@ add_library (artscore STATIC
   igrf13.cc
   interpolation.cc
   interpolation_lagrange.cc
-  isotopologues.cc
   jacobian.cc
   legacy_continua.cc
   legendre.cc
@@ -316,7 +315,7 @@ add_library (artscore STATIC
   zeemandata.cc
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
-add_dependencies (artscore auto_version_h)
+add_dependencies (artscore auto_version_h species)
 
 if (ENABLE_GUI)
   add_subdirectory(gui)
@@ -621,13 +620,20 @@ target_include_directories (gen_auto_partfun PRIVATE ../3rdparty/pugixml/)
 ########################################################################################
 # Generate auto_partfun.h for the ARTS interface
 add_custom_command(OUTPUT auto_partfun.h
-                    COMMAND gen_auto_partfun ${ARTS_PARTFUN_DATA_PATH} > ${ARTS_BINARY_DIR}/src/auto_partfun.h
-                    DEPENDS gen_auto_partfun)
+                   COMMAND gen_auto_partfun ${ARTS_PARTFUN_DATA_PATH} > ${ARTS_BINARY_DIR}/src/auto_partfun.h
+                   DEPENDS gen_auto_partfun)
 ########################################################################################
 
 ########################################################################################
-add_executable(partfun partfun.cc auto_partfun.h)
-target_link_libraries (partfun PRIVATE matpack)
+add_library(species STATIC
+            auto_partfun.h
+            partfun.cc
+            isotopologues.cc)
+########################################################################################
+
+########################################################################################
+add_executable(partfun partfun.cc)
+target_link_libraries (partfun PRIVATE species matpack)
 ########################################################################################
 
 ########################################################################################
@@ -636,5 +642,6 @@ target_link_libraries (test_species_tags PRIVATE ${ALL_ARTS_LIBRARIES})
 ########################################################################################
 
 ########################################################################################
-add_executable(test_isotope test_isotope.cc isotopologues.cc)
+add_executable(test_isotope test_isotope.cc)
+target_link_libraries (partfun PRIVATE species matpack)
 ########################################################################################

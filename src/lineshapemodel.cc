@@ -497,7 +497,8 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
 
 Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-                       const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT {
+                       const ArrayOfSpecies& lineshape_species,
+                       const SpeciesIsotopologueRatios& ir) ARTS_NOEXCEPT {
   ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(),
                "Bad atmospheric inputs");
   
@@ -527,7 +528,7 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
     // Set to non-zero in-case species exists
     if (this_species_index not_eq -1) {
       line_vmrs[i] = atmospheric_vmrs[this_species_index];
-      line_mass[i] = Species::first_mass(target);
+      line_mass[i] = Species::mean_mass(target, ir);
     }
   }
   

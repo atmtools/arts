@@ -92,7 +92,7 @@ AtmFieldsCalc
 MatrixSet( sensor_pos, [ 800e3] )
 MatrixSet( sensor_los, [ 130] )
 # 
-atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
@@ -120,7 +120,7 @@ AtmFieldsCalcExpand1D
 MatrixSet( sensor_pos, [ 800e3,0] )
 MatrixSet( sensor_los, [ 130] )
 # 
-atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc

@@ -2377,12 +2377,14 @@ Vector Absorption::Lines::BroadeningSpeciesVMR(const ConstVectorView atm_vmrs,
 
 Vector Absorption::Lines::BroadeningSpeciesMass(const ConstVectorView atm_vmrs,
                                                 const ArrayOfArrayOfSpeciesTag& atm_spec,
-                                                const Numeric& bath_mass) const
+                                                const SpeciesIsotopologueRatios& ir,
+                                                const Numeric& bath_mass
+                                               ) const
 {
   if (mlineshapetype == LineShape::Type::DP) {
     return Vector(mbroadeningspecies.nelem(), std::numeric_limits<Numeric>::quiet_NaN());
   } else {
-    Vector mass = LineShape::mass(atm_vmrs, atm_spec, mbroadeningspecies);
+    Vector mass = LineShape::mass(atm_vmrs, atm_spec, mbroadeningspecies, ir);
     if (Bath() and bath_mass > 0) mass[mass.nelem()-1] = bath_mass;
     return mass;
   }

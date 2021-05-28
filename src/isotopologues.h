@@ -557,34 +557,55 @@ constexpr std::array Isotopologues {
 
 #undef deal_with_spec
 
+constexpr std::array<std::size_t, std::size_t(Species::FINAL)+1> start_positions() noexcept {
+  std::array<bool, std::size_t(Species::FINAL)> found{};
+  for (auto& x: found) x = false;
+  
+  std::array<std::size_t, std::size_t(Species::FINAL)+1> out{};
+  for (auto& x: out) x = Isotopologues.size();
+  
+  for (std::size_t i=0; i<Isotopologues.size(); i++) {
+    const std::size_t ind = std::size_t(Isotopologues[i].spec);
+    if (not found[ind]) {
+      found[ind] = true;
+      out[ind] = i;
+    }
+  }
+  return out;
+}
+
+constexpr auto IsotopologuesStart = start_positions();
+
 template <Species spec>
 constexpr std::size_t count_isotopologues() noexcept {
-  std::size_t n=0;
-  for (auto& x: Isotopologues) if (x.spec == spec) ++n;
-  return n;
+  return IsotopologuesStart[std::size_t(spec) + 1] - IsotopologuesStart[std::size_t(spec)];
 }
 
 template <Species spec>
 constexpr std::array<IsotopeRecord, count_isotopologues<spec>()> isotopologues() noexcept {
   static_assert(count_isotopologues<spec>() not_eq 0, "All species must be defined in the Isotopologues!");
   std::array<IsotopeRecord, count_isotopologues<spec>()> isots;
-  std::size_t i=0;
-  for (auto& x: Isotopologues) if (x.spec == spec) isots[i++] = x;
+  for (std::size_t i=0; i<count_isotopologues<spec>(); i++) {
+    isots[i] = Isotopologues[i + IsotopologuesStart[std::size_t(spec)]];
+  }
   return isots;
 }
 
 Array<IsotopeRecord> isotopologues(Species spec);
 
-constexpr Index find_species_index(const IsotopeRecord& ir) noexcept {
-  for (std::size_t i=0; i<Isotopologues.size(); i++) {
-    if (ir == Isotopologues[i]) return Index(i);
+constexpr Index find_species_index(const Species spec,
+                                   const std::string_view isot) noexcept {
+  for (std::size_t i=IsotopologuesStart[std::size_t(spec)]; i<IsotopologuesStart[std::size_t(spec) + 1]; i++) {
+    if (isot == Isotopologues[i].isotname) {
+      return i;
+    }
   }
   return -1;
 }
 
-constexpr Index find_species_index(const Species spec,
-                                   const std::string_view isot) noexcept {
-  return find_species_index(IsotopeRecord(spec, isot));
+
+constexpr Index find_species_index(const IsotopeRecord ir) noexcept {
+  return find_species_index(ir.spec, ir.isotname);
 }
 
 constexpr Index find_species_index(const std::string_view spec,
@@ -592,15 +613,8 @@ constexpr Index find_species_index(const std::string_view spec,
   return find_species_index(fromShortName(spec), isot);
 }
 
-constexpr Numeric first_mass(Species spec) noexcept {
-  for (auto& x: Isotopologues) {
-    if (spec == x.spec) return x.mass;
-  }
-  return 0 * std::numeric_limits<Numeric>::signaling_NaN();
-}
-
 constexpr const IsotopeRecord& select(Species spec, const std::string_view isotname) noexcept {
-  return Isotopologues[find_species_index(IsotopeRecord(spec, isotname))];
+  return Isotopologues[find_species_index(spec, isotname)];
 }
 
 constexpr const IsotopeRecord& select_joker(Species spec) noexcept {
@@ -624,6 +638,59 @@ constexpr bool same_or_joker(const IsotopeRecord& ir1, const IsotopeRecord& ir2)
   if (ir1.joker() or ir2.joker()) return true;
   else return ir1.isotname == ir2.isotname;
 }
+
+struct IsotopologueRatios {
+  static constexpr Index maxsize = Index(Isotopologues.size());
+  std::array<Numeric, maxsize> data;
+  
+  constexpr IsotopologueRatios() noexcept : data() {
+    for (auto& x: data) x = std::numeric_limits<Numeric>::quiet_NaN();
+  }
+  
+  constexpr Numeric operator[](const Index spec_ind) const ARTS_NOEXCEPT {
+    ARTS_ASSERT(spec_ind < maxsize and spec_ind >= 0)
+    return data[spec_ind];
+  }
+  
+  constexpr Numeric operator[](const IsotopeRecord& ir) const {
+    const Index spec_ind = find_species_index(ir);
+    ARTS_USER_ERROR_IF(spec_ind >= maxsize and spec_ind < 0,
+                       "Cannot understand: ", ir.FullName(), " as a valid species")
+    return data[spec_ind];
+  }
+  
+  friend std::ostream& operator<<(std::ostream& os, const IsotopologueRatios& iso_rat) {
+    for (size_t i=0; i<iso_rat.maxsize; i++) {
+      if (i not_eq 0)
+        os << '\n';
+      os << Isotopologues[i].FullName() << ' ' << iso_rat.data[i];
+    }
+    return os;
+  }
+};
+
+/*! Computes the mean mass for all defined isotopes of the species with mass and isotopologue ratio
+ * 
+ * \f[ 
+ * m = \frac{ \sum_i r_i m_i }{ \sum_i r_i }
+ * \f]
+ * 
+ * @param[in] spec A species
+ * @param[in] ir All isotopologue ratios
+ * @return mean mass
+ */
+constexpr Numeric mean_mass(Species spec, const IsotopologueRatios& ir) noexcept {
+  Numeric sum_rm=0;
+  Numeric sum_r =0;
+  for (std::size_t i=IsotopologuesStart[std::size_t(spec)]; i <IsotopologuesStart[std::size_t(spec) + 1]; i++) {
+    if (not nonstd::isnan(Isotopologues[i].mass) and not nonstd::isnan(ir[i])) {
+      sum_rm += ir[i] * Isotopologues[i].mass;
+      sum_r += ir[i];
+    }
+  }
+  if (sum_r not_eq 0) return sum_rm / sum_r;
+  else return 0 * std::numeric_limits<Numeric>::signaling_NaN();
+}
 }  // Species
 
 using SpeciesIsotopeRecord = Species::IsotopeRecord;
@@ -631,5 +698,7 @@ using SpeciesIsotopeRecord = Species::IsotopeRecord;
 using ArrayOfIsotopeRecord = Array<SpeciesIsotopeRecord>;
 
 using ArrayOfSpecies = Array<Species::Species>;
+
+using SpeciesIsotopologueRatios = Species::IsotopologueRatios;
 
 #endif  // isotopologues_h
