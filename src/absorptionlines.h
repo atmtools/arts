@@ -1342,67 +1342,6 @@ SingleLineExternal ReadFromHitranOnlineStream(istream& is);
  */
 SingleLineExternal ReadFromHitran2001Stream(istream& is);
 
-/** Read from Mytran2
- * The MYTRAN2
- * format is as follows (directly taken from the abs_my.c documentation):
- *
- * @verbatim
-  The MYTRAN format is as follows (FORTRAN notation):
-  FORMAT(I2,I1,F13.4,1PE10.3,0P2F5.2,F10.4,2F4.2,F8.6,F6.4,2I3,2A9,4I1,3I2)
-  
-  Each item is defined below, with its FORMAT String shown in
-  parenthesis.
-  
-      MO  (I2)      = molecule number
-      ISO (I1)      = isotopologue number (1 = most abundant, 2 = second, etc)
-  *  F (F13.4)     = frequency of transition in MHz
-  *  errf (F8.4)   = error in f in MHz
-      S (E10.3)     = intensity in cm-1/(molec * cm-2) at 296 K
-  *  AGAM (F5.4)   = air-broadened halfwidth (HWHM) in MHz/Torr at Tref
-  *  SGAM (F5.4)   = self-broadened halfwidth (HWHM) in MHz/Torr at Tref
-      E (F10.4)     = lower state energy in wavenumbers (cm-1)
-      N (F4.2)      = coefficient of temperature dependence of 
-                      air-broadened halfwidth
-  *  N_self (F4.2) = coefficient of temperature dependence of 
-                      self-broadened halfwidth
-  *  Tref (F7.2)   = reference temperature for AGAM and SGAM 
-  *  d (F9.7)      = shift of transition due to pressure (MHz/Torr)
-      V1 (I3)       = upper state global quanta index
-      V2 (I3)       = lower state global quanta index
-      Q1 (A9)       = upper state local quanta
-      Q2 (A9)       = lower state local quanta
-      IERS (I1)     = accuracy index for S
-      IERH (I1)     = accuracy index for AGAM
-  *  IERN (I1)     = accuracy index for N
-
-  
-  The asterisks mark entries that are different from HITRAN.
-
-  Note that AGAM and SGAM are for the temperature Tref, while S is
-  still for 296 K!
-  
-  The molecule numbers are encoded as shown in the table below:
-  
-     0= Null    1=  H2O    2=  CO2    3=   O3    4=  N2O    5=   CO
-     6=  CH4    7=   O2    8=   NO    9=  SO2   10=  NO2   11=  NH3
-    12= HNO3   13=   OH   14=   HF   15=  HCl   16=  HBr   17=   HI
-    18=  ClO   19=  OCS   20= H2CO   21= HOCl   22=   N2   23=  HCN
-    24=CH3Cl   25= H2O2   26= C2H2   27= C2H6   28=  PH3   29= COF2
-    30=  SF6   31=  H2S   32=HCOOH   33= HO2    34=    O   35= CLONO2
-    36=  NO+   37= Null   38= Null   39= Null   40=H2O_L   41= Null
-    42= Null   43= OCLO   44= Null   45= Null   46=BRO     47= Null
-    48= H2SO4  49=CL2O2
-
-  All molecule numbers are from HITRAN, except for species with id's
-  greater or equals 40, which are not included in HITRAN.
-  (E.g.: For BrO, iso=1 is Br-79-O,iso=2 is  Br-81-O.)
- * @endverbatim
- * 
- * @param[in] is Input stream
- * @return SingleLineExternal 
- */
-// SingleLineExternal ReadFromMytran2Stream(istream& is);
-
 /** Read from JPL
  * 
  *  The JPL format is as follows (directly taken from the JPL documentation):
