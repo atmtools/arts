@@ -94,13 +94,13 @@ def setup_testcase(ws):
 
 # test for ybatch
 def test_ybatch(ws):
-    ybatch_ref = np.array([256.96294508])
+    ybatch_ref = np.array([256.9629541])
     assert np.allclose(ws.ybatch.value[0], ybatch_ref)
 
 
 # test for ybatch_jacobians
 def test_ybatch_jacobians(ws):
-    ybatch_jacobians_ref = np.array([[3.38698132e-6]])
+    ybatch_jacobians_ref = np.array([[3.38652849e-6]])
     assert np.allclose(ws.ybatch_jacobians.value[0], ybatch_jacobians_ref, atol=1e-12)
 
 
