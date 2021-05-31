@@ -1353,11 +1353,10 @@ void Linefunctions::set_cross_section_of_band(
   const auto f_full = MapToEigen(f_grid);
   
   // Cut off range
-  const Numeric fmean = (band.Cutoff() == Absorption::CutoffType::ByBand) ? band.F_mean() : 0;
   Numeric fcut_upp, fcut_low;
   Index start, nelem;
   fcut_upp = band.CutoffFreq(0);
-  fcut_low = band.CutoffFreqMinus(0, fmean);
+  fcut_low = band.CutoffFreqMinus(0);
   find_cutoff_ranges(start, nelem, f_full, fcut_low, fcut_upp);
   fc[0] = fcut_upp;
   
@@ -1369,7 +1368,7 @@ void Linefunctions::set_cross_section_of_band(
     // Select the range of cutoff if different for each line
     if (band.Cutoff() == Absorption::CutoffType::ByLine and i>0) {
       fcut_upp = band.CutoffFreq(i);
-      fcut_low = band.CutoffFreqMinus(i, fmean);
+      fcut_low = band.CutoffFreqMinus(i);
       find_cutoff_ranges(start, nelem, f_full, fcut_low, fcut_upp);
       fc[0] = fcut_upp;
     }

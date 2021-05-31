@@ -2825,7 +2825,6 @@ void cutoff_loop_sparse_linear(ComputeData &com,
                                const Numeric &T,
                                const Numeric &H,
                                const Numeric &sparse_lim,
-                               const Numeric &f_mean,
                                const Numeric &DC,
                                const Index i,
                                const bool do_zeeman,
@@ -2834,7 +2833,7 @@ void cutoff_loop_sparse_linear(ComputeData &com,
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
   const Numeric fu = band.CutoffFreq(i, X.D0);
-  const Numeric fl = band.CutoffFreqMinus(i, f_mean, X.D0);
+  const Numeric fl = band.CutoffFreqMinus(i, X.D0);
   const Numeric fus = band.F0(i) + sparse_lim;
   const Numeric fls = band.F0(i) - sparse_lim;
 
@@ -2908,7 +2907,6 @@ void cutoff_loop_sparse_triple(ComputeData &com,
                                const Numeric &T,
                                const Numeric &H,
                                const Numeric &sparse_lim,
-                               const Numeric &f_mean,
                                const Numeric &DC,
                                const Index i,
                                const bool do_zeeman,
@@ -2917,7 +2915,7 @@ void cutoff_loop_sparse_triple(ComputeData &com,
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
   const Numeric fu = band.CutoffFreq(i, X.D0);
-  const Numeric fl = band.CutoffFreqMinus(i, f_mean, X.D0);
+  const Numeric fl = band.CutoffFreqMinus(i, X.D0);
   const Numeric fus = band.F0(i) + sparse_lim;
   const Numeric fls = band.F0(i) - sparse_lim;
 
@@ -3027,7 +3025,6 @@ void cutoff_loop(ComputeData &com,
                  const Output X,
                  const Numeric &T,
                  const Numeric &H,
-                 const Numeric &f_mean,
                  const Numeric &DC,
                  const Index i,
                  const bool do_zeeman,
@@ -3036,7 +3033,7 @@ void cutoff_loop(ComputeData &com,
   const bool do_nlte = std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
   const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
   const Numeric fu = band.CutoffFreq(i, X.D0);
-  const Numeric fl = band.CutoffFreqMinus(i, f_mean, X.D0);
+  const Numeric fl = band.CutoffFreqMinus(i, X.D0);
 
   // Only for the cutoff-range
   const auto [cutstart, cutsize] = limited_range(fl, fu, com.f_grid);
@@ -3126,9 +3123,6 @@ void line_loop(ComputeData &com,
   // Derivatives are allocated ahead of all loops
   ArrayOfDerivatives derivs(nj);
 
-  // Mean averaged frequency
-  const Numeric f_mean = band.F_mean();
-
   // Doppler constant
   const Numeric DC = band.DopplerConstant(T);
 
@@ -3176,21 +3170,21 @@ void line_loop(ComputeData &com,
                     normalizer_selection(band.Normalization(), band.F0(i), T),
                     linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
                     band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H,
-                    f_mean, DC, i, do_zeeman, zeeman_polarization);
+                    DC, i, do_zeeman, zeeman_polarization);
         break;
       case Options::LblSpeedup::QuadraticIndependent:
         cutoff_loop_sparse_triple(com, sparse_com,
                     normalizer_selection(band.Normalization(), band.F0(i), T),
                     linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
                     band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
-                    f_mean, DC, i, do_zeeman, zeeman_polarization);
+                    DC, i, do_zeeman, zeeman_polarization);
         break;
       case Options::LblSpeedup::LinearIndependent:
         cutoff_loop_sparse_linear(com, sparse_com,
                                   normalizer_selection(band.Normalization(), band.F0(i), T),
                                   linestrength_selection(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
                                   band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
-                                  f_mean, DC, i, do_zeeman, zeeman_polarization);
+                                  DC, i, do_zeeman, zeeman_polarization);
         break;
       case Options::LblSpeedup::FINAL: { /* Leave last */ }
     }

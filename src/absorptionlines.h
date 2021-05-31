@@ -145,9 +145,7 @@ constexpr bool relaxationtype_relmat(PopulationType in) noexcept {
 /** Describes the type of cutoff calculations */
 ENUMCLASS(CutoffType, char,
   None,                             // No cutoff frequency at all
-  ByLine,                           // The cutoff frequency is at SingleLine::F0 plus the cutoff frequency
-  SpeedIndependentSymmetricByLine,  // The cutoff frequency is at SingleLine::F0 plus the cutoff frequency plus the speed independent pressure shift
-  ByBand                            // The curoff frequency is the cutoff frequency for all SingleLine(s)
+  ByLine                            // The cutoff frequency is at SingleLine::F0 plus the cutoff frequency plus the speed independent pressure shift
 )  // CutoffType
 
 String cutofftype2metadatastring(CutoffType in, Numeric cutoff);
@@ -969,7 +967,7 @@ public:
    * @param[in] k Line number (less than NumLines())
    * @returns Negative cutoff frequency or the lowest value
    */
-  Numeric CutoffFreqMinus(size_t k, Numeric fmean, Numeric shift=0) const noexcept;
+  Numeric CutoffFreqMinus(size_t k, Numeric shift=0) const noexcept;
   
   /** Returns reference temperature */
   Numeric T0() const noexcept {
