@@ -16,6 +16,7 @@ jobs:
           ubuntu-gcc-9,
           ubuntu-gcc-10,
           ubuntu-gcc-10-debug,
+          ubuntu-gcc-11,
           ubuntu-clang-11-nofortran,
           macos-gcc-10,
         ]
@@ -75,6 +76,17 @@ jobs:
             check: "yes"
             libcxx: "no"
             buildtype: "RelWithDebInfo"
+
+          - name: ubuntu-gcc-11
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "11"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            check: "yes"
+            libcxx: "no"
+            buildtype: "Release"
 
           - name: ubuntu-clang-11-nofortran
             os: ubuntu-18.04
