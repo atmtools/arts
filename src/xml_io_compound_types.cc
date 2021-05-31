@@ -1616,8 +1616,10 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           SpeciesIsotopologueRatios& iso_rat,
-                          bifstream*,
+                          bifstream* pbifs,
                           const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbifs, "No support for binary IO for (SpeciesIsotopologueRatios)")
+  
   CREATE_OUT2;
   
   iso_rat = SpeciesIsotopologueRatios{};
@@ -1662,14 +1664,15 @@ void xml_read_from_stream(istream& is_xml,
 */
 void xml_write_to_stream(ostream& os_xml,
                          const SpeciesIsotopologueRatios& iso_rat,
-                         bofstream*,
+                         bofstream* pbofs,
                          const String& name,
                          const Verbosity& verbosity)
 
 {
+  ARTS_USER_ERROR_IF(pbofs, "No support for binary IO for (SpeciesIsotopologueRatios)")
+  
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
-  
   
   open_tag.set_name("SpeciesIsotopologueRatios");
   if (name.length()) open_tag.add_attribute("name", name);
