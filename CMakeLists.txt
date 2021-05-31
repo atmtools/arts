@@ -337,6 +337,8 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wno-strict-overflow)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
+######## Need to link to filesystem ########
+ARTS_ADD_COMPILER_FLAG (lstdc++fs)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Native")
     ARTS_ADD_COMPILER_FLAG (O3)
