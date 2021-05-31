@@ -68,7 +68,7 @@ lbl_checkedCalc
 yCalc
 
 VectorCreate(y_nlte_ref)
-WriteXML("ascii",y,"TestNLTE_NLTE.xml")
+# WriteXML("ascii",y,"TestNLTE_NLTE_REFERENCE.xml")
 ReadXML(y_nlte_ref,"TestNLTE_NLTE_REFERENCE.xml")
 CompareRelative(y,y_nlte_ref,1e-5, "NLTE old method")
 
@@ -87,7 +87,7 @@ sensor_checkedCalc
 yCalc
 
 VectorCreate(y_lte_ref)
-WriteXML("ascii",y,"TestNLTE_LTE.xml")
+# WriteXML("ascii",y,"TestNLTE_LTE_REFERENCE.xml")
 ReadXML(y_lte_ref, "TestNLTE_LTE_REFERENCE.xml")
 CompareRelative(y,y_lte_ref,1e-5, "LTE old method")
 }
