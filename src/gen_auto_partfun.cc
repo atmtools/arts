@@ -166,6 +166,8 @@ void print_auto_partfun_h(const std::map<Species::Species, std::vector<Partition
 #ifndef auto_partfun_h
 #define auto_partfun_h
 
+#include <limits>
+
 #include "template_partfun.h"
 #include "debug.h"
 

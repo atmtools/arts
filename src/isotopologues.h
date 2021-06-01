@@ -1,6 +1,8 @@
 #ifndef isotopologues_h
 #define isotopologues_h
 
+#include <limits>
+
 #include "mystring.h"
 #include "nonstd.h"
 #include "species.h"
