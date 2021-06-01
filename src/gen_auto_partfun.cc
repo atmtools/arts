@@ -11,12 +11,12 @@
 #include "species.h"
 #include "template_partfun.h"
 
+#include "xml_io_partfun.h"
+
 //! Contains the partition function data in a simple format
-struct PartitionFunctionData {
-  PartitionFunctions::Type typ;
+struct PrintData {
   String name;
-  Vector T;
-  Vector Q;
+  PartitionFunctions::Data data;
 };
 
 
@@ -27,12 +27,12 @@ std::pair<std::string_view, std::string_view> split_filename_species(const std::
 }
 
 
-std::pair<Species::Species, PartitionFunctionData> gen_fil(std::filesystem::path fil) {
+std::pair<Species::Species, PrintData> gen_fil(std::filesystem::path fil) {
   if (not std::filesystem::exists(fil)) {
     ARTS_USER_ERROR("file does not exist: ", fil)
   }
   
-  PartitionFunctionData out;
+  PrintData out;
   
   auto filname_no_ext = fil.filename().replace_extension().native();
   const auto [specname, isotname] = split_filename_species(filname_no_ext);
@@ -40,61 +40,19 @@ std::pair<Species::Species, PartitionFunctionData> gen_fil(std::filesystem::path
   out.name = isotname;
   ARTS_USER_ERROR_IF(not good_enum(spec), "Got Species: ", spec, "\nFrom isotope: ", out.name, "\nIn filename of: ", fil)
   
-  pugi::xml_document doc;
-  doc.load_file(fil.c_str());
-  pugi::xml_node root = doc.document_element();
-  ARTS_USER_ERROR_IF(std::string_view(root.name()) not_eq "arts", "Expects \"arts\" as root of XML document, got: ", root.name())
-  
-  pugi::xml_node gf1 = root.first_child();
-  ARTS_USER_ERROR_IF(std::string_view(gf1.name()) not_eq "GriddedField1", "Expects \"GriddedField1\" as first type of arts-xml, got: ", root.name())
-  out.typ = PartitionFunctions::toTypeOrThrow(std::string_view(gf1.attribute("name").as_string()));
-  
-  pugi::xml_node grid = gf1.first_child();
-  ARTS_USER_ERROR_IF(std::string_view(grid.name()) not_eq "Vector", "Expects \"Vector\" as first type of GriddedField1 document, got: ", grid.name())
-  
-  pugi::xml_node data = grid.next_sibling();
-  ARTS_USER_ERROR_IF(std::string_view(data.name()) not_eq "Vector", "Expects \"Vector\" as second type of GriddedField1 document, got: ", data.name())
-  ARTS_USER_ERROR_IF(std::string_view(data.attribute("name").as_string()) not_eq "Data", "Expects name=\"Data\", got: ", data.attribute("name").as_string())
-  
-  const Index ng = grid.attribute("nelem").as_llong();
-  const Index nd = data.attribute("nelem").as_llong();
-  switch (out.typ) {
-    case PartitionFunctions::Type::Interp:
-      ARTS_USER_ERROR_IF(nd not_eq ng or nd < 2, "Expects the two vectors to have the same length")
-      ARTS_USER_ERROR_IF(std::string_view(grid.attribute("name").as_string()) not_eq "Temperature", "Expects name=\"Temperature\", got: ", grid.attribute("name").as_string())
-      break;
-    case PartitionFunctions::Type::Coeff:
-      ARTS_USER_ERROR_IF(nd < 1, "Expects the some values")
-      ARTS_USER_ERROR_IF(ng not_eq nd, "Expects the same values")
-      ARTS_USER_ERROR_IF(std::string_view(grid.attribute("name").as_string()) not_eq "Coeff", "Expects name=\"Coeff\", got: ", grid.attribute("name").as_string())
-      break;
-    case PartitionFunctions::Type::FINAL: {/* leave last
-      */ }
-  }
-  
-  out.Q.resize(nd);
-  std::istringstream is_data{data.text().as_string()};
-  for (Index i=0; i<nd; i++) {
-    is_data >> out.Q[i];
-  }
-  
-  out.T.resize(ng);
-  std::istringstream is_grid{grid.text().as_string()};
-  for (Index i=0; i<ng; i++) {
-    is_grid >> out.T[i];
-  }
+  out.data = PartitionFunctions::data_read_file(fil);
   
   return {spec, out};
 }
 
 
-std::map<Species::Species, std::vector<PartitionFunctionData>> gen_dir(std::filesystem::path dir) {
+std::map<Species::Species, std::vector<PrintData>> gen_dir(std::filesystem::path dir) {
   if (not std::filesystem::is_directory(dir)) {
     ARTS_USER_ERROR("not a directory: ", dir)
   }
   
   // Make sure all species exists in the data-map
-  std::map<Species::Species, std::vector<PartitionFunctionData>> out;
+  std::map<Species::Species, std::vector<PrintData>> out;
   for (auto spec: Species::enumtyps::SpeciesTypes) {
     out[spec] = {};
   }
@@ -114,54 +72,17 @@ std::map<Species::Species, std::vector<PartitionFunctionData>> gen_dir(std::file
 }
 
 
-void print_data(const PartitionFunctionData& data) {
-  constexpr int cutline = 10;
-  
-  switch (data.typ) {
-    case PartitionFunctions::Type::Interp:
-      std::cout << "constexpr std::array<Numeric, " << data.T.nelem() << "> data{";
-      for (Index i=0; i<data.T.nelem(); i++) {
-        if (i % cutline == 0) std::puts("");
-        std::cout << data.Q[i] <<','<<' ';
-      }
-      std::puts("};");
-      
-      std::cout << "constexpr std::array<Numeric, " << data.T.nelem() << "> grid{";
-      for (Index i=0; i<data.T.nelem(); i++) {
-        if (i % cutline == 0) std::puts("");
-        std::cout << data.T[i] <<','<<' ';
-      }
-      std::puts("};");
-      break;
-    case PartitionFunctions::Type::Coeff:
-      std::cout << "constexpr std::array<Numeric, " << data.T.nelem() << "> coeff{";
-      for (Index i=0; i<data.T.nelem(); i++) {
-        if (i % cutline == 0) std::puts("");
-        std::cout << data.Q[i] <<','<<' ';
-      }
-      std::puts("};");
-      break;
-    case PartitionFunctions::Type::FINAL: {/* leave last
-      */ }
-  }
+void print_data(const PrintData& data) {
+  data.data.print_data();
 }
 
 
-void print_method(const PartitionFunctionData& data) {
-  switch (data.typ) {
-    case PartitionFunctions::Type::Interp:
-      std::cout << "return linterp<derivative>(grid, data, T);\n";
-      break;
-    case PartitionFunctions::Type::Coeff:
-      std::cout << "return polynom<derivative>(coeff, T);\n";
-      break;
-    case PartitionFunctions::Type::FINAL: {/* leave last
-      */ }
-  }
+void print_method(const PrintData& data) {
+  data.data.print_method();
 }
 
 
-void print_auto_partfun_h(const std::map<Species::Species, std::vector<PartitionFunctionData>>& data) {
+void print_auto_partfun_h(const std::map<Species::Species, std::vector<PrintData>>& data) {
   std::puts(R"AUTO_PARTFUN(//! Auto-generated partition function data
 #ifndef auto_partfun_h
 #define auto_partfun_h

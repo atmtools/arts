@@ -613,7 +613,7 @@ if (ENABLE_GUI)
 endif()
 
 ########################################################################################
-add_executable(gen_auto_partfun gen_auto_partfun.cc)
+add_executable(gen_auto_partfun gen_auto_partfun.cc xml_io_partfun.cc)
 target_link_libraries (gen_auto_partfun PRIVATE matpack xml)
 target_include_directories (gen_auto_partfun PRIVATE ../3rdparty/pugixml/)
 ########################################################################################
@@ -629,7 +629,8 @@ add_custom_command(OUTPUT auto_partfun.h
 add_library(species STATIC
             auto_partfun.h
             partfun.cc
-            isotopologues.cc)
+            isotopologues.cc
+            )
 ########################################################################################
 
 ########################################################################################

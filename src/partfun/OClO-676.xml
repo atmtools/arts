@@ -1,17 +1,11 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<GriddedField1 name="Coeff">
-<Vector name="Coeff" nelem="4">
-0
-1
-2
-3
-</Vector>
-<Vector name="Data" nelem="4">
+<PartitionFunctionsData type="Coeff">
+<Matrix nrows="4" ncols="1">
 796.4396
 47.68587
 0.5283347
 -8.232128e-05
-</Vector>
-</GriddedField1>
+</Matrix>
+</PartitionFunctionsData>
 </arts>
