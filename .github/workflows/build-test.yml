@@ -16,7 +16,8 @@ jobs:
           ubuntu-gcc-9,
           ubuntu-gcc-10,
           ubuntu-gcc-10-debug,
-          ubuntu-clang-11-nofortran,
+          ubuntu-gcc-11,
+          ubuntu-clang-12-nofortran,
           macos-gcc-10,
         ]
 
@@ -76,10 +77,21 @@ jobs:
             libcxx: "no"
             buildtype: "RelWithDebInfo"
 
-          - name: ubuntu-clang-11-nofortran
+          - name: ubuntu-gcc-11
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "11"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            check: "yes"
+            libcxx: "no"
+            buildtype: "Release"
+
+          - name: ubuntu-clang-12-nofortran
             os: ubuntu-18.04
             compiler: clang
-            version: "11"
+            version: "12"
             doc: "no"
             arts: "yes"
             fortran: "no"
@@ -106,9 +118,9 @@ jobs:
       - name: Setup (Linux)
         if: runner.os == 'Linux'
         run: |
-          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "11" ]; then
+          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "12" ]; then
              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main"
+             sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-12 main"
           fi
 
           sudo apt-get update
