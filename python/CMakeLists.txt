@@ -58,6 +58,7 @@ add_test(
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+file(COPY test/plots/reference DESTINATION test/plots/)
 file(COPY test/reference DESTINATION test/)
 file(COPY test/xml/reference DESTINATION test/xml/)
 file(COPY test/test_files DESTINATION test/)
