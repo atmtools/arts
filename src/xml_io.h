@@ -162,6 +162,13 @@ class ArtsXMLTag {
   void read_from_stream(istream& is);
 
   void write_to_stream(ostream& os);
+  
+  /** Returns if the attribut exists or not
+   * 
+   * @param[in] aname Attribute name
+   * @return bool Does this attribute exist?
+   */
+  bool has_attribute(const String& aname) const;
 
  private:
   String name;                 /*!< Tag name */

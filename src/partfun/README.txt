@@ -1,20 +1,6 @@
 This data consists of all of TIPS 2017 and all of ARTS
 builtin partition functions not in TIPS 2017
 
-Note that species in TIPS with different names than those
-in ARTS have been translated to use ARTS names.  These
-species have had their partition function data re-named
-as follows:
-
-HCOOH-126.xml   →  HCOOH-1261.xml
-H2CO-126.xml    →  H2CO-1126.xml
-H2CO-128.xml    →  H2CO-1128.xml
-H2CO-136.xml    →  H2CO-1136.xml
-CO2-827.xml     →  CO2-728.xml
-CH3CN-2124.xml  →  CH3CN-211124.xml
-CH3CN-2134.xml  →  CH3CN-211134.xml
-CH3CN-3124.xml  →  CH3CN-311124.xml
-
 Cite this if you use the files here:
 
 Robert R. Gamache, Christopher Roller, Eldon Lopes, 

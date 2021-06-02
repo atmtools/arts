@@ -137,6 +137,11 @@ void ArtsXMLTag::check_attribute(const String& aname, const String& value) {
   }
 }
 
+
+bool ArtsXMLTag::has_attribute(const String& aname) const {
+  return std::any_of(attribs.cbegin(), attribs.cend(), [&](auto& attr){return attr.name == aname;});
+}
+
 //! Returns value of attribute as String
 /*!
   Searches for the matching attribute and returns it value. If no

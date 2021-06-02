@@ -83,7 +83,7 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("CO2"), "637", 45.997400, 12),
   IsotopeRecord(fromShortName("CO2"), "638", 46.997431, 2),
   IsotopeRecord(fromShortName("CO2"), "727", 45.998262, 1),
-  IsotopeRecord(fromShortName("CO2"), "728", 46.998291, 6),
+  IsotopeRecord(fromShortName("CO2"), "827", 46.998291, 6),
   IsotopeRecord(fromShortName("CO2"), "737", 47.001618, 2),
   IsotopeRecord(fromShortName("CO2"), "828", 47.998322, 1),
   IsotopeRecord(fromShortName("CO2"), "837", 48.001646, 12),
@@ -244,12 +244,20 @@ constexpr std::array Isotopologues {
   
   /** H2CO species **/
   deal_with_spec(Formaldehyde)
-  IsotopeRecord(fromShortName("H2CO"), "1126", 30.010565, 1),
-  IsotopeRecord(fromShortName("H2CO"), "1128", 32.014811, 1),
-  IsotopeRecord(fromShortName("H2CO"), "1136", 31.013920, 2),
-  IsotopeRecord(fromShortName("H2CO"), "1226", 31),  // FIXME: Better mass and some gj?
-  IsotopeRecord(fromShortName("H2CO"), "2226", 32),  // FIXME: Better mass and some gj?
+  IsotopeRecord(fromShortName("H2CO"), "126", 30.010565, 1),
+  IsotopeRecord(fromShortName("H2CO"), "128", 32.014811, 1),
+  IsotopeRecord(fromShortName("H2CO"), "136", 31.013920, 2),
   /** H2CO species **/
+  
+  /** HDCO species nb. If the order D matters, rename this to indicate how **/
+  deal_with_spec(HeavyFormaldehyde)
+  IsotopeRecord(fromShortName("HDCO"), "26", 31),  // FIXME: Better mass and some gj?  What is the AFGL code???
+  /** HDCO species **/
+  
+  /** D2CO species **/
+  deal_with_spec(VeryHeavyFormaldehyde)
+  IsotopeRecord(fromShortName("D2CO"), "26", 32),  // FIXME: Better mass and some gj?  What is the AFGL code???
+  /** D2CO species **/
   
   /** HOCl species **/
   deal_with_spec(HypochlorousAcid)
@@ -330,11 +338,19 @@ constexpr std::array Isotopologues {
   
   /** HCOOH species **/
   deal_with_spec(FormicAcid)
-  IsotopeRecord(fromShortName("HCOOH"), "1261", 46.005480, 4),
-  IsotopeRecord(fromShortName("HCOOH"), "1262", 47),  // FIXME: Better mass and some gj?
-  IsotopeRecord(fromShortName("HCOOH"), "1361", 47),  // FIXME: Better mass and some gj?
-  IsotopeRecord(fromShortName("HCOOH"), "2261", 47),  // FIXME: Better mass and some gj?
+  IsotopeRecord(fromShortName("HCOOH"), "126", 46.005480, 4),
+  IsotopeRecord(fromShortName("HCOOH"), "136", 47),  // FIXME: Better mass and some gj?
   /** HCOOH species **/
+  
+  /** DCOOH species **/
+  deal_with_spec(LeftHeavyFormicAcid)
+  IsotopeRecord(fromShortName("DCOOH"), "266", 47),  // FIXME: Better mass and some gj?  What is the AFGL code???
+  /** DCOOH species **/
+  
+  /** HCOOD species **/
+  deal_with_spec(RightHeavyFormicAcid)
+  IsotopeRecord(fromShortName("HCOOD"), "266", 47),  // FIXME: Better mass and some gj?  What is the AFGL code???
+  /** HCOOD species **/
   
   /** HO2 species **/
   deal_with_spec(Hydroperoxyl)
@@ -405,12 +421,16 @@ constexpr std::array Isotopologues {
   
   /** CH3CN species **/
   deal_with_spec(Acetonitrile)
-  IsotopeRecord(fromShortName("CH3CN"), "211124", 41.026549, 3),
-  IsotopeRecord(fromShortName("CH3CN"), "211125", 42),  // FIXME: Better mass and some gj?
-  IsotopeRecord(fromShortName("CH3CN"), "211134", 42),  // FIXME: Better mass and some gj?
-  IsotopeRecord(fromShortName("CH3CN"), "211224", 42),  // FIXME: Better mass and some gj?
-  IsotopeRecord(fromShortName("CH3CN"), "311124", 42),  // FIXME: Better mass and some gj?
+  IsotopeRecord(fromShortName("CH3CN"), "2124", 41.026549, 3),
+  IsotopeRecord(fromShortName("CH3CN"), "2125", 42),  // FIXME: Better mass and some gj?
+  IsotopeRecord(fromShortName("CH3CN"), "2134", 42),  // FIXME: Better mass and some gj?
+  IsotopeRecord(fromShortName("CH3CN"), "3124", 42),  // FIXME: Better mass and some gj?
   /** CH3CN species **/
+  
+  /** CH2DCN species nb. If the order D matters, rename this to indicate how **/
+  deal_with_spec(HeavyAcetonitrile)
+  IsotopeRecord(fromShortName("CH2DCN"), "224", 42),  // FIXME: Better mass and some gj?  What is the AFGL code???
+  /** CH2DCN species **/
   
   /** CF4 species **/
   deal_with_spec(CarbonTetrafluoride)
@@ -700,7 +720,7 @@ constexpr IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   set_isot_val("638", 4.43446E-05);
   set_isot_val("637", 8.24623E-06);
   set_isot_val("828", 3.95734E-06);
-  set_isot_val("728", 1.47180E-06);
+  set_isot_val("827", 1.47180E-06);
   set_isot_val("727", 1.36847E-07);
   set_isot_val("838", 4.44600E-08);
   set_isot_val("837", 1.65354E-08);
@@ -819,11 +839,17 @@ constexpr IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   #undef set_isot_val
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("H2CO", ISOT)] = VAL
-  set_isot_val("1126", .986237E+00);
-  set_isot_val("1136", 1.10802E-02);
-  set_isot_val("1128", 1.97761E-03);
-  set_isot_val("1226", 0.00029578940);
-  set_isot_val("2226", 2.2181076E-08);
+  set_isot_val("126", .986237E+00);
+  set_isot_val("136", 1.10802E-02);
+  set_isot_val("128", 1.97761E-03);
+  #undef set_isot_val
+  
+  #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("HDCO", ISOT)] = VAL
+  set_isot_val("26", 0.00029578940);
+  #undef set_isot_val
+  
+  #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("D2CO", ISOT)] = VAL
+  set_isot_val("26", 2.2181076E-08);
   #undef set_isot_val
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("HOCl", ISOT)] = VAL
@@ -884,10 +910,16 @@ constexpr IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   #undef set_isot_val
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("HCOOH", ISOT)] = VAL
-  set_isot_val("1261", .983898E+00);
-  set_isot_val("1361", 0.010913149);
-  set_isot_val("2261", 0.00014755369);
-  set_isot_val("1262", 0.00014755369);
+  set_isot_val("126", .983898E+00);
+  set_isot_val("136", 0.010913149);
+  #undef set_isot_val
+  
+  #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("DCOOH", ISOT)] = VAL
+  set_isot_val("266", 0.00014755369);
+  #undef set_isot_val
+  
+  #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("HCOOD", ISOT)] = VAL
+  set_isot_val("266", 0.00014755369);
   #undef set_isot_val
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("HO2", ISOT)] = VAL
@@ -946,11 +978,14 @@ constexpr IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   #undef set_isot_val
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("CH3CN", ISOT)] = VAL
-  set_isot_val("211124", .973866E+00);
-  set_isot_val("311124", .102683e-01);
-  set_isot_val("211134", .102683e-01);
-  set_isot_val("211125", .347136e-02);
-  set_isot_val("211224", .441185e-03);
+  set_isot_val("2124", .973866E+00);
+  set_isot_val("3124", .102683e-01);
+  set_isot_val("2134", .102683e-01);
+  set_isot_val("2125", .347136e-02);
+  #undef set_isot_val
+  
+  #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("CH2DCN", ISOT)] = VAL
+  set_isot_val("224", .441185e-03);
   #undef set_isot_val
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("CF4", ISOT)] = VAL
@@ -1056,6 +1091,17 @@ constexpr Numeric mean_mass(Species spec, const IsotopologueRatios& ir) noexcept
   if (sum_r not_eq 0) return sum_rm / sum_r;
   else return 0 * std::numeric_limits<Numeric>::signaling_NaN();
 }
+
+/** Updates the name of the isotopologue based on
+ * updates of the isotopologues.
+ * 
+ * This should only be invoked by versioned code as it is
+ * not very efficient.
+ * 
+ * @param[in] old_name A valid isotopologue name in any version of ARTS
+ * @return A name that is valid and equivalent in ARTS today (or a copy of old_name)
+ */
+String update_isot_name(const String& old_name);
 }  // Species
 
 using SpeciesIsotopeRecord = Species::IsotopeRecord;

@@ -406,6 +406,8 @@ struct SingleLineExternal {
 };
 
 class Lines {
+public:
+  static constexpr Index version = 1;
 private:
   /** Does the line broadening have self broadening */
   bool mselfbroadening;

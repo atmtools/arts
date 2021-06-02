@@ -28,6 +28,8 @@ ArrayOfIsotopeRecord isotopologues(Species spec) {
     deal_with_spec(ChlorineMonoxide)
     deal_with_spec(CarbonylSulfide)
     deal_with_spec(Formaldehyde)
+    deal_with_spec(HeavyFormaldehyde)
+    deal_with_spec(VeryHeavyFormaldehyde)
     deal_with_spec(HypochlorousAcid)
     deal_with_spec(Nitrogen)
     deal_with_spec(HydrogenCyanide)
@@ -40,6 +42,8 @@ ArrayOfIsotopeRecord isotopologues(Species spec) {
     deal_with_spec(SulfurHexafluoride)
     deal_with_spec(HydrogenSulfide)
     deal_with_spec(FormicAcid)
+    deal_with_spec(LeftHeavyFormicAcid)
+    deal_with_spec(RightHeavyFormicAcid)
     deal_with_spec(Hydroperoxyl)
     deal_with_spec(OxygenAtom)
     deal_with_spec(ChlorineNitrate)
@@ -49,6 +53,7 @@ ArrayOfIsotopeRecord isotopologues(Species spec) {
     deal_with_spec(Methanol)
     deal_with_spec(MethylBromide)
     deal_with_spec(Acetonitrile)
+    deal_with_spec(HeavyAcetonitrile)
     deal_with_spec(CarbonTetrafluoride)
     deal_with_spec(Diacetylene)
     deal_with_spec(Cyanoacetylene)
@@ -132,5 +137,24 @@ String predefined_model_names() noexcept {
     }
   }
   return os.str();
+}
+
+String update_isot_name(const String& old_name) {
+  if (     old_name == "CH3CN-211224") return "CH2DCN-224";
+  else if (old_name == "CH3CN-211124") return "CH3CN-2124";
+  else if (old_name == "CH3CN-211125") return "CH3CN-2125";
+  else if (old_name == "CH3CN-211134") return "CH3CN-2134";
+  else if (old_name == "CH3CN-311124") return "CH3CN-3124";
+  else if (old_name == "CO2-728")      return "CO2-827";
+  else if (old_name == "HCOOH-2261")   return "DCOOH-266";
+  else if (old_name == "HCOOH-1262")   return "HCOOD-266";
+  else if (old_name == "HCOOH-1261")   return "HCOOH-126";
+  else if (old_name == "HCOOH-1361")   return "HCOOH-136";
+  else if (old_name == "H2CO-1126")    return "H2CO-126";
+  else if (old_name == "H2CO-1128")    return "H2CO-128";
+  else if (old_name == "H2CO-1136")    return "H2CO-136";
+  else if (old_name == "H2CO-1226")    return "HDCO-26";
+  else if (old_name == "H2CO-2226")    return "D2CO-26";
+  else                                 return old_name;
 }
 }

@@ -33,7 +33,7 @@ const HitranMap pre2012co2change_molparam_map{
       {'5', {Species::find_species_index("CO2", "638"), 4.43446E-05}},
       {'6', {Species::find_species_index("CO2", "637"), 8.24623E-06}},
       {'7', {Species::find_species_index("CO2", "828"), 3.95734E-06}},
-      {'8', {Species::find_species_index("CO2", "728"), 1.47180E-06}},  // Modified from HITRAN because ARTS does not use AFGL notation
+      {'8', {Species::find_species_index("CO2", "827"), 1.47180E-06}},
       {'9', {Species::find_species_index("CO2", "838"), 4.44600E-08}},  // This is different for HITRAN2008 and earlier cf original map
     }},
     {3, {  // O3
@@ -128,9 +128,9 @@ const HitranMap pre2012co2change_molparam_map{
       {'6', {Species::find_species_index("OCS", "634"), 4.67508E-04}},
     }},
     {20, {  // H2CO
-      {'1', {Species::find_species_index("H2CO", "1126"), 9.86237E-01}},  // Modified from HITRAN because ARTS does not use AFGL notation
-      {'2', {Species::find_species_index("H2CO", "1136"), 1.10802E-02}},  // Modified from HITRAN because ARTS does not use AFGL notation
-      {'3', {Species::find_species_index("H2CO", "1128"), 1.97761E-03}},  // Modified from HITRAN because ARTS does not use AFGL notation
+      {'1', {Species::find_species_index("H2CO", "126"), 9.86237E-01}},
+      {'2', {Species::find_species_index("H2CO", "136"), 1.10802E-02}},
+      {'3', {Species::find_species_index("H2CO", "128"), 1.97761E-03}},
     }},
     {21, {  // HOCl
       {'1', {Species::find_species_index("HOCl", "165"), 7.55790E-01}},
@@ -177,7 +177,7 @@ const HitranMap pre2012co2change_molparam_map{
       {'3', {Species::find_species_index("H2S", "131"), 7.49766E-03}},
     }},
     {32, {  // HCOOH
-      {'1', {Species::find_species_index("HCOOH", "1261"), 9.83898E-01}},  // Modified from HITRAN because ARTS does not use AFGL notation
+      {'1', {Species::find_species_index("HCOOH", "126"), 9.83898E-01}},
     }},
     {33, {  // HO2
       {'1', {Species::find_species_index("HO2", "166"), 9.95107E-01}},
@@ -208,7 +208,7 @@ const HitranMap pre2012co2change_molparam_map{
       {'2', {Species::find_species_index("CH3Br", "211"), 4.87433E-01}},
     }},
     {41, {  // CH3CN
-      {'1', {Species::find_species_index("CH3CN", "211124"), 9.73866E-01}},  // Modified from HITRAN because ARTS does not use AFGL notation
+      {'1', {Species::find_species_index("CH3CN", "2124"), 9.73866E-01}},
     }},
     {42, {  // CF4
       {'1', {Species::find_species_index("CF4", "29"), 9.88890E-01}},
@@ -217,7 +217,7 @@ const HitranMap pre2012co2change_molparam_map{
       {'1', {Species::find_species_index("C4H2", "2211"), 9.55998E-01}},
     }},
     {44, {  // HC3N
-      {'1', {Species::find_species_index("HC3N", "12224"), 9.63346E-01}},  // Modified from HITRAN because ARTS does not use AFGL notation
+      {'1', {Species::find_species_index("HC3N", "12224"), 9.63346E-01}},
     }},
     {45, {  // H2
       {'1', {Species::find_species_index("H2", "11"), 9.99688E-01}},
@@ -275,7 +275,7 @@ const HitranMap latest_molparam_map{
     {'5', {Species::find_species_index("CO2", "638"), 4.43446E-05}},
     {'6', {Species::find_species_index("CO2", "637"), 8.24623E-06}},
     {'7', {Species::find_species_index("CO2", "828"), 3.95734E-06}},
-    {'8', {Species::find_species_index("CO2", "728"), 1.47180E-06}},  // Modified from HITRAN because ARTS does not use AFGL notation
+    {'8', {Species::find_species_index("CO2", "827"), 1.47180E-06}},
     {'9', {Species::find_species_index("CO2", "727"), 1.36847E-07}},
     {'0', {Species::find_species_index("CO2", "838"), 4.44600E-08}},
     {'A', {Species::find_species_index("CO2", "837"), 1.65354E-08}},
@@ -373,9 +373,9 @@ const HitranMap latest_molparam_map{
     {'6', {Species::find_species_index("OCS", "634"), 4.67508E-04}},
   }},
   {20, {  // H2CO
-    {'1', {Species::find_species_index("H2CO", "1126"), 9.86237E-01}},  // Modified from HITRAN because ARTS does not use AFGL notation
-    {'2', {Species::find_species_index("H2CO", "1136"), 1.10802E-02}},  // Modified from HITRAN because ARTS does not use AFGL notation
-    {'3', {Species::find_species_index("H2CO", "1128"), 1.97761E-03}},  // Modified from HITRAN because ARTS does not use AFGL notation
+    {'1', {Species::find_species_index("H2CO", "126"), 9.86237E-01}},
+    {'2', {Species::find_species_index("H2CO", "136"), 1.10802E-02}},
+    {'3', {Species::find_species_index("H2CO", "128"), 1.97761E-03}},
   }},
   {21, {  // HOCl
     {'1', {Species::find_species_index("HOCl", "165"), 7.55790E-01}},
@@ -422,7 +422,7 @@ const HitranMap latest_molparam_map{
     {'3', {Species::find_species_index("H2S", "131"), 7.49766E-03}},
   }},
   {32, {  // HCOOH
-    {'1', {Species::find_species_index("HCOOH", "1261"), 9.83898E-01}},  // Modified from HITRAN because ARTS does not use AFGL notation
+    {'1', {Species::find_species_index("HCOOH", "126"), 9.83898E-01}},
   }},
   {33, {  // HO2
     {'1', {Species::find_species_index("HO2", "166"), 9.95107E-01}},
@@ -453,7 +453,7 @@ const HitranMap latest_molparam_map{
     {'2', {Species::find_species_index("CH3Br", "211"), 4.87433E-01}},
   }},
   {41, {  // CH3CN
-    {'1', {Species::find_species_index("CH3CN", "211124"), 9.73866E-01}},  // Modified from HITRAN because ARTS does not use AFGL notation
+    {'1', {Species::find_species_index("CH3CN", "2124"), 9.73866E-01}},
   }},
   {42, {  // CF4
     {'1', {Species::find_species_index("CF4", "29"), 9.88890E-01}},
@@ -462,7 +462,7 @@ const HitranMap latest_molparam_map{
     {'1', {Species::find_species_index("C4H2", "2211"), 9.55998E-01}},
   }},
   {44, {  // HC3N
-    {'1', {Species::find_species_index("HC3N", "12224"), 9.63346E-01}},  // Modified from HITRAN because ARTS does not use AFGL notation
+    {'1', {Species::find_species_index("HC3N", "12224"), 9.63346E-01}},
   }},
   {45, {  // H2
     {'1', {Species::find_species_index("H2", "11"), 9.99688E-01}},

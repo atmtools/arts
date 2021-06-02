@@ -1641,10 +1641,19 @@ void xml_read_from_stream(istream& is_xml,
                           AbsorptionLines& al,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
+  static_assert(al.version == 1, "The reading routine expects version 1 of the absorption lines data type to work");
+  
   ArtsXMLTag tag(verbosity);
   
   tag.read_from_stream(is_xml);
   tag.check_name("AbsorptionLines");
+  
+  Index version;
+  if (tag.has_attribute("version")) {
+    tag.get_attribute_value("version", version);
+  } else {
+    version = 0;
+  }
   
   // Number of lines
   Index nlines;
@@ -1652,7 +1661,15 @@ void xml_read_from_stream(istream& is_xml,
   
   // Species of the lines
   SpeciesTag spec;
-  tag.get_attribute_value("species", spec);
+  if (version == 1) {
+    tag.get_attribute_value("species", spec);
+  } else {
+    String specname;
+    tag.get_attribute_value("species", specname);
+    specname = Species::update_isot_name(specname);
+    
+    spec = SpeciesTag(specname);
+  }
   
   // Cutoff type
   String s_cutoff;
@@ -1765,6 +1782,7 @@ void xml_write_to_stream(ostream& os_xml,
   ArtsXMLTag close_tag(verbosity);
 
   open_tag.set_name("AbsorptionLines");
+  open_tag.add_attribute("version", al.version);
   open_tag.add_attribute("nlines", al.NumLines());
   open_tag.add_attribute("species", al.SpeciesName());
   open_tag.add_attribute("cutofftype", Absorption::toString(al.Cutoff()));

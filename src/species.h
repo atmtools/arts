@@ -28,6 +28,8 @@ ENUMCLASS(Species, unsigned char,
           ChlorineMonoxide,
           CarbonylSulfide,
           Formaldehyde,
+          HeavyFormaldehyde,
+          VeryHeavyFormaldehyde,
           HypochlorousAcid,
           Nitrogen,
           HydrogenCyanide,
@@ -40,6 +42,8 @@ ENUMCLASS(Species, unsigned char,
           SulfurHexafluoride,
           HydrogenSulfide,
           FormicAcid,
+          LeftHeavyFormicAcid,
+          RightHeavyFormicAcid,
           Hydroperoxyl,
           OxygenAtom,
           ChlorineNitrate,
@@ -53,6 +57,7 @@ ENUMCLASS(Species, unsigned char,
           Methanol,
           MethylBromide,
           Acetonitrile,
+          HeavyAcetonitrile,
           CarbonTetrafluoride,
           Diacetylene,
           Cyanoacetylene,
@@ -154,6 +159,10 @@ constexpr std::string_view toShortName(Species x) noexcept {
       return "OCS";
     case Species::Formaldehyde:
       return "H2CO";
+    case Species::HeavyFormaldehyde:
+      return "HDCO";
+    case Species::VeryHeavyFormaldehyde:
+      return "D2CO";
     case Species::HypochlorousAcid:
       return "HOCl";
     case Species::Nitrogen:
@@ -178,6 +187,10 @@ constexpr std::string_view toShortName(Species x) noexcept {
       return "H2S";
     case Species::FormicAcid:
       return "HCOOH";
+    case Species::LeftHeavyFormicAcid:
+      return "DCOOH";
+    case Species::RightHeavyFormicAcid:
+      return "HCOOD";
     case Species::Hydroperoxyl:
       return "HO2";
     case Species::OxygenAtom:
@@ -196,6 +209,8 @@ constexpr std::string_view toShortName(Species x) noexcept {
       return "CH3Br";
     case Species::Acetonitrile:
       return "CH3CN";
+    case Species::HeavyAcetonitrile:
+      return "CH2DCN";
     case Species::CarbonTetrafluoride:
       return "CF4";
     case Species::Diacetylene:
@@ -330,6 +345,10 @@ constexpr Species fromShortName(const std::string_view x) noexcept {
     return Species::CarbonylSulfide;
   else if (x == "H2CO")
     return Species::Formaldehyde;
+  else if (x == "HDCO")
+    return Species::HeavyFormaldehyde;
+  else if (x == "D2CO")
+    return Species::VeryHeavyFormaldehyde;
   else if (x == "HOCl")
     return Species::HypochlorousAcid;
   else if (x == "N2")
@@ -354,6 +373,10 @@ constexpr Species fromShortName(const std::string_view x) noexcept {
     return Species::HydrogenSulfide;
   else if (x == "HCOOH")
     return Species::FormicAcid;
+  else if (x == "DCOOH")
+    return Species::LeftHeavyFormicAcid;
+  else if (x == "HCOOD")
+    return Species::RightHeavyFormicAcid;
   else if (x == "HO2")
     return Species::Hydroperoxyl;
   else if (x == "O")
@@ -372,6 +395,8 @@ constexpr Species fromShortName(const std::string_view x) noexcept {
     return Species::MethylBromide;
   else if (x == "CH3CN")
     return Species::Acetonitrile;
+  else if (x == "CH2DCN")
+    return Species::HeavyAcetonitrile;
   else if (x == "CF4")
     return Species::CarbonTetrafluoride;
   else if (x == "C4H2")
