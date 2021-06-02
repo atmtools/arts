@@ -15,7 +15,7 @@ void Data::print_data() const {
         if (i % cutline == 0) {
           std::cout << '\n';
         }
-        std::cout << data(i, 0) << ',' << ' ';
+        std::cout << data(i, 1) << ',' << ' ';
       }
       std::cout << "};\n";
       
@@ -24,7 +24,7 @@ void Data::print_data() const {
         if (i % cutline == 0)  {
           std::cout << '\n';
         }
-        std::cout << data(i, 1) << ',' << ' ';
+        std::cout << data(i, 0) << ',' << ' ';
       }
       std::cout << "};\n";
       break;
