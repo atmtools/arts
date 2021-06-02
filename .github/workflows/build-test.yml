@@ -96,7 +96,7 @@ jobs:
             arts: "yes"
             fortran: "no"
             check: "yes"
-            libcxx: "no"
+            libcxx: "yes"
             buildtype: "Release"
 
           - name: macos-gcc-10
