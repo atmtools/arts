@@ -38,7 +38,7 @@ std::pair<Species::Species, PrintData> gen_fil(std::filesystem::path fil) {
   const auto [specname, isotname] = split_filename_species(filname_no_ext);
   const Species::Species spec = Species::fromShortName(specname);
   out.name = isotname;
-  ARTS_USER_ERROR_IF(not good_enum(spec), "Got Species: ", spec, "\nFrom isotope: ", out.name, "\nIn filename of: ", fil)
+  ARTS_USER_ERROR_IF(not good_enum(spec), "Got Species: ", specname, "\nFrom isotope: ", out.name, "\nIn filename of: ", fil)
   
   out.data = PartitionFunctions::data_read_file(fil);
   

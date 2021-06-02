@@ -1641,7 +1641,7 @@ void xml_read_from_stream(istream& is_xml,
                           AbsorptionLines& al,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
-  static_assert(al.version == 1, "The reading routine expects version 1 of the absorption lines data type to work");
+  static_assert(AbsorptionLines::version == 1, "The reading routine expects version 1 of the absorption lines data type to work");
   
   ArtsXMLTag tag(verbosity);
   

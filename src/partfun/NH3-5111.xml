@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
 <PartitionFunctionsData type="Interp">
-<Matrix nrows="5999" ncols="2">
+<Matrix nrows="6000" ncols="2">
 1 2.68936
 2 4.6386
 3 5.57316
@@ -6001,6 +6001,7 @@
 5997 5418617.11059
 5998 5421674.75016
 5999 5424733.33394
+6000 5427792.86184
 </Matrix>
 </PartitionFunctionsData>
 </arts>

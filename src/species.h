@@ -33,7 +33,7 @@ ENUMCLASS(Species, unsigned char,
           HypochlorousAcid,
           Nitrogen,
           HydrogenCyanide,
-          MethylChloride,
+          Chloromethane,
           HydrogenPeroxide,
           Acetylene,
           Ethane,
@@ -55,7 +55,7 @@ ENUMCLASS(Species, unsigned char,
           HypobromousAcid,
           Ethylene,
           Methanol,
-          MethylBromide,
+          Bromomethane,
           Acetonitrile,
           HeavyAcetonitrile,
           CarbonTetrafluoride,
@@ -108,6 +108,9 @@ ENUMCLASS(Species, unsigned char,
           NitrogenTrifluoride,
           SulfurylFluoride,
           HFC4310mee,
+          Germane,
+          Iodomethane,
+          Fluoromethane,
           liquidcloud,
           icecloud,
           rain,
@@ -169,7 +172,7 @@ constexpr std::string_view toShortName(Species x) noexcept {
       return "N2";
     case Species::HydrogenCyanide:
       return "HCN";
-    case Species::MethylChloride:
+    case Species::Chloromethane:
       return "CH3Cl";
     case Species::HydrogenPeroxide:
       return "H2O2";
@@ -205,7 +208,7 @@ constexpr std::string_view toShortName(Species x) noexcept {
       return "C2H4";
     case Species::Methanol:
       return "CH3OH";
-    case Species::MethylBromide:
+    case Species::Bromomethane:
       return "CH3Br";
     case Species::Acetonitrile:
       return "CH3CN";
@@ -286,6 +289,9 @@ constexpr std::string_view toShortName(Species x) noexcept {
     case Species::NitrogenTrifluoride: return "NF3";
     case Species::SulfurylFluoride: return "SO2F2";
     case Species::HFC4310mee: return "HFC4310mee";
+    case Species::Germane: return "GeH4";
+    case Species::Iodomethane: return "CH3I";
+    case Species::Fluoromethane: return "CH3F";
     case Species::liquidcloud:
       return "liquidcloud";
     case Species::icecloud:
@@ -356,7 +362,7 @@ constexpr Species fromShortName(const std::string_view x) noexcept {
   else if (x == "HCN")
     return Species::HydrogenCyanide;
   else if (x == "CH3Cl")
-    return Species::MethylChloride;
+    return Species::Chloromethane;
   else if (x == "H2O2")
     return Species::HydrogenPeroxide;
   else if (x == "C2H2")
@@ -392,7 +398,7 @@ constexpr Species fromShortName(const std::string_view x) noexcept {
   else if (x == "CH3OH")
     return Species::Methanol;
   else if (x == "CH3Br")
-    return Species::MethylBromide;
+    return Species::Bromomethane;
   else if (x == "CH3CN")
     return Species::Acetonitrile;
   else if (x == "CH2DCN")
@@ -472,6 +478,9 @@ constexpr Species fromShortName(const std::string_view x) noexcept {
   else if (x == "NF3") return Species::NitrogenTrifluoride;
   else if (x == "SO2F2") return Species::SulfurylFluoride;
   else if (x == "HFC4310mee") return Species::HFC4310mee;
+  else if (x == "GeH4") return Species::Germane;
+  else if (x == "CH3I") return Species::Iodomethane;
+  else if (x == "CH3F") return Species::Fluoromethane;
   else if (x == "liquidcloud")
     return Species::liquidcloud;
   else if (x == "icecloud")

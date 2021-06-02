@@ -1,19 +1,8 @@
-This data consists of all of TIPS 2017 and all of ARTS
-builtin partition functions not in TIPS 2017
+This data consists of all of TIPS 2021 and all of ARTS
+builtin partition functions not in TIPS 2021
 
-Cite this if you use the files here:
+Data source are added in this order, later numbers overwriting the new ones.
 
-Robert R. Gamache, Christopher Roller, Eldon Lopes, 
-Iouli E. Gordon, Laurence S. Rothman, Oleg L. Polyansky, 
-Nikolai F. Zobov, Aleksandra A. Kyuberis, Jonathan Tennyson, 
-Sergei N. Yurchenko, Attila G. Csaszar, Tibor Furtenbacher, Xinchuan Huang, 
-David W. Schwenke, Timothy J. Lee, Brian J. Drouin, Sergei A. Tashkun, 
-Valery I. Perevalov, Roman V. Kochanov, 
-Total internal partition sums for 166 isotopologues of 51 molecules 
-important in planetary atmospheres: Application to HITRAN2016 and beyond, 
-Journal of Quantitative Spectroscopy and Radiative Transfer, 2017.
-ISSN 0022-4073
-DOI 10.1016/j.jqsrt.2017.03.045
-http://www.sciencedirect.com/science/article/pii/S0022407317301516
+1) ARTS internal partition functions
 
-Data source updates are:
+2) Robert R. Gamache, Bastien Vispoel, Michaël Rey, Andrei Nikitin, Vladimir Tyuterev, Oleg Egorov, Iouli E. Gordon, Vincent Boudon, Total internal partition sums for the HITRAN2020 database, Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 271, 2021, 107713, ISSN 0022-4073, https://doi.org/10.1016/j.jqsrt.2021.107713.

@@ -83,8 +83,8 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("CO2"), "637", 45.997400, 12),
   IsotopeRecord(fromShortName("CO2"), "638", 46.997431, 2),
   IsotopeRecord(fromShortName("CO2"), "727", 45.998262, 1),
-  IsotopeRecord(fromShortName("CO2"), "827", 46.998291, 6),
   IsotopeRecord(fromShortName("CO2"), "737", 47.001618, 2),
+  IsotopeRecord(fromShortName("CO2"), "827", 46.998291, 6),
   IsotopeRecord(fromShortName("CO2"), "828", 47.998322, 1),
   IsotopeRecord(fromShortName("CO2"), "837", 48.001646, 12),
   IsotopeRecord(fromShortName("CO2"), "838", 49.001675, 2),
@@ -289,7 +289,7 @@ constexpr std::array Isotopologues {
   /** HCN species **/
   
   /** CH3Cl species **/
-  deal_with_spec(MethylChloride)
+  deal_with_spec(Chloromethane)
   IsotopeRecord(fromShortName("CH3Cl"), "215", 49.992328, 4),
   IsotopeRecord(fromShortName("CH3Cl"), "217", 51.989379, 4),
   /** CH3Cl species **/
@@ -414,7 +414,7 @@ constexpr std::array Isotopologues {
   /** CH3OH species **/
   
   /** CH3Br species **/
-  deal_with_spec(MethylBromide)
+  deal_with_spec(Bromomethane)
   IsotopeRecord(fromShortName("CH3Br"), "211", 95.939764, 4),
   IsotopeRecord(fromShortName("CH3Br"), "219", 93.941811, 4),
   /** CH3Br species **/
@@ -561,6 +561,9 @@ constexpr std::array Isotopologues {
   deal_with_spec(NitrogenTrifluoride)
   deal_with_spec(SulfurylFluoride)
   deal_with_spec(HFC4310mee)
+  deal_with_spec(Germane)
+  deal_with_spec(Iodomethane)
+  deal_with_spec(Fluoromethane)
   /** All species need a default joker **/
   
   /** Model species **/

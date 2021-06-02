@@ -628,7 +628,6 @@ add_custom_command(OUTPUT auto_partfun.h
 ########################################################################################
 add_library(species STATIC
             auto_partfun.h
-            partfun.cc
             isotopologues.cc
             )
 ########################################################################################
