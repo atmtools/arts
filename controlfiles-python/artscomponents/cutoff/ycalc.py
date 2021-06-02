@@ -187,7 +187,7 @@ if SHOW_PLOTS:
     plt.title("Weirdly shifted absorption line")
     plt.semilogy(arts.f_grid.value / 1e9, y.T)
     plt.ylabel("Radiance [W/(m$^2$ Hz sr)]")
-    plt.ylabel("Frequency [GHz]")
+    plt.xlabel("Frequency [GHz]")
     plt.legend([f"Cutoff at {c/1e9} GHz" for c in cutoffs])
     plt.show()
     
