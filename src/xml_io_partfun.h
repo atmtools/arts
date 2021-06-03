@@ -19,4 +19,6 @@ struct Data {
 Data data_read_file(const std::filesystem::path& path);
 }
 
+using PartitionFunctionsData = PartitionFunctions::Data;
+
 #endif  // xml_io_partfun_h

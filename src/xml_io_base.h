@@ -107,7 +107,7 @@ class XMLTag {
 
   void write_to_stream(ostream& os);
   
-  /** Returns if the attribut exists or not
+  /** Returns if the attribute exists or not
    * 
    * @param[in] aname Attribute name
    * @return bool Does this attribute exist?

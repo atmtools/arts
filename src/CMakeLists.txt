@@ -632,8 +632,7 @@ endif()
 
 ########################################################################################
 add_executable(gen_auto_partfun gen_auto_partfun.cc xml_io_partfun.cc)
-target_link_libraries (gen_auto_partfun PRIVATE matpack xml)
-target_include_directories (gen_auto_partfun PRIVATE ../3rdparty/pugixml/)
+target_link_libraries (gen_auto_partfun PRIVATE matpack xmliobase)
 ########################################################################################
 
 ########################################################################################

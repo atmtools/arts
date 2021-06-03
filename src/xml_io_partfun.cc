@@ -1,7 +1,60 @@
 #include "debug.h"
 #include "xml_io_partfun.h"
 
-#include <pugixml.hpp>
+#include "xml_io_base.h"
+
+//! Reads Data from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param data    PartitionFunctions::Data return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          PartitionFunctions::Data& data,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  XMLTag tag(verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("PartitionFunctionsData");
+
+  String type;
+  tag.get_attribute_value("type", type);
+  data.type = PartitionFunctions::toTypeOrThrow(type);
+  
+  xml_read_from_stream(is_xml, data.data, pbifs, verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/PartitionFunctionsData");
+}
+
+//! Writes PartitionFunctions::Data to XML output stream
+/*!
+ * \param os_xml  XML Output stream
+ * \param data    PartitionFunctions::Data
+ * \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ * \param name    Optional name attribute
+ */
+void xml_write_to_stream(std::ostream& os_xml,
+                         const PartitionFunctions::Data& data,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  XMLTag open_tag(verbosity);
+  XMLTag close_tag(verbosity);
+  std::ostringstream v;
+  
+  open_tag.set_name("PartitionFunctionsData");
+  open_tag.add_attribute("name", name);
+  open_tag.add_attribute("type", String(toString(data.type)));
+  
+  xml_write_to_stream(os_xml, data.data, pbofs, "Data", verbosity);
+  
+  close_tag.set_name("/PartitionFunctionsData");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}
 
 namespace PartitionFunctions {
 void Data::print_data() const {
@@ -55,51 +108,11 @@ void Data::print_method() const {
       */ }
   }
 }
-  
+
 Data data_read_file(const std::filesystem::path& path) {
   Data out;
   
-  pugi::xml_document doc;
-  
-  // Must start with ARTS tag
-  doc.load_file(path.c_str());
-  pugi::xml_node root = doc.document_element();
-  ARTS_USER_ERROR_IF(std::string_view(root.name()) not_eq "arts", "Expects \"arts\" as root of XML document, got: ", root.name(), " in file: ", path)
-  
-  // Must continue with partition functions data, this must have a type understandable by ARTS
-  pugi::xml_node pfd = root.first_child();
-  ARTS_USER_ERROR_IF(std::string_view(pfd.name()) not_eq "PartitionFunctionsData", "Expects \"PartitionFunctionsData\" as first type of arts-xml, got: ", root.name(), " in file: ", path)
-  out.type = toTypeOrThrow(std::string_view(pfd.attribute("type").as_string()));
-  
-  // FIXME: from here, this should use a proper matrix-reader
-  
-  // Must continue with partition functions data
-  pugi::xml_node mat = pfd.first_child();
-  ARTS_USER_ERROR_IF(std::string_view(mat.name()) not_eq "Matrix", "Expects \"Matrix\" as first type of arts-xml, got: ", root.name(), " in file: ", path)
-  const Index nr = Index(mat.attribute("nrows").as_llong());
-  const Index nc = Index(mat.attribute("ncols").as_llong());
-  
-  switch (out.type) {
-    case PartitionFunctions::Type::Interp:
-      ARTS_USER_ERROR_IF(nc not_eq 2, "Must have form: TEMP DATA", " in file: ", path)
-      ARTS_USER_ERROR_IF(nr < 2, "Must have some data", " in file: ", path)
-      break;
-    case PartitionFunctions::Type::Coeff:
-      ARTS_USER_ERROR_IF(nc not_eq 1, "Must have form: COEFF", " in file: ", path)
-      ARTS_USER_ERROR_IF(nr < 1, "Must have some data", " in file: ", path)
-      break;
-    case PartitionFunctions::Type::FINAL: {/* leave last
-      */ }
-  }
-  
-  // Read all the data
-  out.data.resize(nr, nc);
-  std::istringstream is_data{mat.text().as_string()};
-  for (Index i=0; i<nr; i++) {
-    for (Index j=0; j<nc; j++) {
-      is_data >> out.data(i, j);
-    }
-  }
+  xml_read_from_file_base(String(path.native()), out, Verbosity());
   
   return out;
 }

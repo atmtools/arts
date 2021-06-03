@@ -4,12 +4,9 @@
 #include <map>
 #include <vector>
 
-#include <pugixml.hpp>
-
 #include "debug.h"
 #include "gridded_fields.h"
 #include "species.h"
-#include "template_partfun.h"
 
 #include "xml_io_partfun.h"
 
