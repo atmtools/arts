@@ -20369,8 +20369,7 @@ void xsec_continuum_tag(MatrixView xsec,
 
 /**
    An auxiliary functions that checks if a given continuum model is
-   listed in species_data.cc. This is just in order to verify that this
-   really represents a valid continuum model.
+   listed in Species::Isotopologues
 
    The given name should be something like
    'H2O-ContStandardSelf'. The function simply checks if there is a

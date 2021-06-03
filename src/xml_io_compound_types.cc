@@ -40,7 +40,7 @@
 //! Reads CIARecord from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param irecord  SpeciesRecord return value
+  \param irecord  CIARecord return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void xml_read_from_stream(istream& is_xml,

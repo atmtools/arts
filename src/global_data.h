@@ -31,9 +31,6 @@
 #include "methods.h"
 #include "workspace_memory_handler.h"
 
-// Needed for global_data::species_data
-class SpeciesRecord;
-
 namespace global_data {
 
 //                     ---------------
