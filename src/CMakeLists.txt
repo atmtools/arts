@@ -181,9 +181,6 @@ add_library (artscore STATIC
   arts.cc
   arts_omp.cc
   artstime.cc
-  bifstream.cc
-  binio.cc
-  bofstream.cc
   check_input.cc
   cia.cc
   cloudbox.cc
@@ -330,7 +327,7 @@ if (ENABLE_GUI)
   target_link_libraries (artscore artsgui)
 endif()
 
-target_link_libraries (artscore ${ZLIB_LIBRARIES} wigner)
+target_link_libraries (artscore ${ZLIB_LIBRARIES} binio wigner)
 
 if (FFTW_FOUND)
   include_directories (${FFTW_INCLUDE_DIR})
@@ -367,6 +364,14 @@ add_library (matpack STATIC
         
 include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
 target_link_libraries( matpack ${LAPACK_LIBRARIES} )
+
+########### next target ###############
+
+add_library (binio STATIC
+        bifstream.cc
+        bofstream.cc
+        binio.cc
+        )
 
 ########### next target ###############
 
