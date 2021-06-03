@@ -847,8 +847,16 @@ ARTS) with species not given in the input data set to \verb|NaN|.
 \subsubsection{Partition functions}
 \label{sec:absorption:partition}
 
-Partition functions are currently still hard-coded into ARTS. That is, no
-settings related to those have to be or can be done on the user level. For more
+Partition functions are compiled into ARTS from our distributed partition functions
+by default.  Users also have the option to select their own partition functions via
+CMake build options.  It is possible to check the partition functions that have been
+used by storing all of the data to a directory using \wsmindex{WriteBuiltinPartitionFunctionsXML}
+(note that many files will likely be generated, so it is advised to write to an empty directory).
+
+It is also possible to directly check the computed partition function values using the
+executable \verb|partfun| that is generated as part of the standard build.
+
+For more
 information on theoretical background as well as the source and implementation
 in ARTS see Section \ref{T-sec:abs_theory:species_data} of \theory.
 

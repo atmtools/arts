@@ -1652,42 +1652,40 @@ particular molecule.  Quantities such as the molecular mass and the
 isotopologue ratio are specific and constant for each species.  Here is a
 list of all species-specific information that is needed:
 \begin{itemize}
-\item Molecule name
 \item Isotopologue name
-\item Isotopologue ratio
-\item Molecular mass
-\item Corresponding tag in different catalogues (MYTRAN, HITRAN, JPL)
+\item Isotopologue mass
 \item Partition function data
+\item Isotopologue ratio
 \end{itemize}
 
-These data are currently stored in two source code files,
-\fileindex{species\_data.cc} and \fileindex{partition\_function\_data.cc}. 
-That is, these values are basically hard-coded.
-However, at present at least isotopologue ratios can be replaced via controlfile
-settings, which is useful, e.g., for calculations for other planets.
-% In order to allow calculations for other planets, we are going to change this
-% in the not too far future, at least for the isotopologue ratios. It is
-% planned, that the data will then be read from include files instead.
+The isotopologue name and isotopologue mass data is stored in \fileindex{isotopolgues.h},
+and the partition function data is compiled into ARTS during the course of a normal build.
+To work with external definitions of species data, we maintain (currently)
+two files \fileindex{hitran\_species.cc} and \fileindex{jpl\_species.cc}.  These
+keep track of all HITRAN and JPL specific data, respectively, required to translate
+these data-bases into ARTS formats.
+Isotopologue ratios must be input by the user during the course of running ARTS.
+As a convenience that should mostly work on Earth, we provide 
+\wsmindex{isotopologue\_ratiosInitFromBuiltin}, which is guaranteed to provide some
+value to all valid isotopologue in ARTS.
 
 \citet{buehler:artst:05} contains an explicit list of species that
 were implemented at the time of writing of that article.  We do not include
 such a list here, because it is hard to maintain. Instead, we directly refer
 the user to check for the implemented species directly in file
-\shortcode{species\_data.cc}. There, also the different sources of data
+\shortcode{isotopolgues.h}. There, also the different sources of data
 are documented.
 
 \subsubsection{Partition function data}
 
-ARTS uses third order polynomials to approximate partition functions,
-so four polynomial coefficients have to be stored for each isotopologue
-species. These data are stored in file
-\fileindex{partition\_function\_data.cc}. The file also contains
-documentation, including the source of the data for the different species.
+ARTS uses linear interpolation from larger datasets or polynomials
+to approximate partition functions.
 
 The consistency of partition function data from different sources, and
 the impact of partition function errors on sub-millimeter wave limb
 sounder retrievals, was studied in detail in \citet{cverdes:05}. The
-partition function data collection in ARTS is based on that study.
+partition function data collection in ARTS is based on that study but updated
+by the latest total partition functions from \citet{gamache:21}.
 
 In general, the data in general are derived from the following sources:
 \begin{description}
@@ -1711,9 +1709,6 @@ Newer versions (from at latest 2003) provide partition
 functions for a specific molecule and isotopologue at a specific temperature,
 and tabulated values can be obtained through successive runs of the program.
 Polynomial coefficients then need to be derived by a fit to the TIPS output.
-Here, partition functions were calculated on a 1K-step grid, and the polynomial
-coefficients derived by a least-square fit between 150\,--\,300\,K (unless
-otherwise noted in \fileindex{partition\_function\_data.cc}).
 
 The coefficients for the few species which are not covered in
 TIPS are calculated from JPL values. The JPL catalogue has a
