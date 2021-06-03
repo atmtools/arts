@@ -2408,7 +2408,7 @@ void cutoff_frequency_loop(ComputeValues &com,
                            const Numeric &T, 
                            const Numeric &dfdH,
                            const Numeric &Sz, 
-                           const Index self_species) ARTS_NOEXCEPT {
+                           const Species::Species self_species) ARTS_NOEXCEPT {
   const Index nv = com.size;
   const bool do_nlte = com.do_nlte;
   
