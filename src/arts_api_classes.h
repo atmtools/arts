@@ -942,6 +942,16 @@ extern "C" {
     VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pp)
     VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pp)
     
+    // PartitionFunctionsType
+    BasicInterfaceCAPI(PartitionFunctionsType)
+    StringEnumPointersCAPI(PartitionFunctionsType)
+    
+    // PartitionFunctionsData
+    BasicInterfaceCAPI(PartitionFunctionsData)
+    BasicInputOutputCAPI(PartitionFunctionsData)
+    VoidStructGetterCAPI(PartitionFunctionsData, type)
+    VoidStructGetterCAPI(PartitionFunctionsData, data)
+    
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
     DLL_PUBLIC void * get_list_of_all_workspace_classes();

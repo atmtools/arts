@@ -1399,6 +1399,28 @@ VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pp)
 VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pp)
 
 
+// PartitionFunctionsType
+BasicInterfaceCAPI(PartitionFunctionsType)
+void * getPartitionFunctionsTypeString(void * data) {
+  return new String(toString(*static_cast<PartitionFunctionsType *>(data)));
+}
+int setPartitionFunctionsTypeString(void * data, char * val) {
+  auto x = PartitionFunctions::toType(val);
+  if (good_enum(x)) {
+    *static_cast<PartitionFunctionsType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
+// PartitionFunctionsData
+BasicInterfaceCAPI(PartitionFunctionsData)
+BasicInputOutputCAPI(PartitionFunctionsData)
+VoidStructGetterCAPI(PartitionFunctionsData, type)
+VoidStructGetterCAPI(PartitionFunctionsData, data)
+
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 void * get_list_of_all_workspace_classes() { return new ArrayOfString{global_data::wsv_group_names}; }

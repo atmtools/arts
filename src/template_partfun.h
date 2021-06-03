@@ -17,6 +17,10 @@ struct Data {
   void print_data() const;
   
   void print_method() const;
+  
+  friend std::ostream& operator<<(std::ostream& os, const Data& d) {
+    return os << d.data << '\n';
+  }
 };
 
 enum class Derivatives : bool {No, Yes};
@@ -61,6 +65,7 @@ Numeric polynom(const std::array<Numeric, N>& coeffs, const Numeric T) noexcept 
 }
 }
 
+using PartitionFunctionsType = PartitionFunctions::Type;
 using PartitionFunctionsData = PartitionFunctions::Data;
 
 #endif  // template_partfun_h
