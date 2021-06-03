@@ -851,6 +851,8 @@ void lbl_checkedCalc(Index& lbl_checked,
     
     if (any_zeeman) {
       for (auto& band: lines) {
+        ARTS_USER_ERROR_IF (band.Cutoff() not_eq Absorption::CutoffType::None,
+                            "Zeeman effects are not symmetric, you cannot use cutoff.\n");
         for (Index k=0; k<band.NumLines(); k++) {
           auto Fu = band.UpperQuantumNumber(k, QuantumNumberType::F);
           auto Fl = band.LowerQuantumNumber(k, QuantumNumberType::F);
@@ -880,6 +882,35 @@ void lbl_checkedCalc(Index& lbl_checked,
                           std::any_of(band.AllLines().cbegin(), band.AllLines().cend(),
                                       [](auto& x){return x.F0() <= 0;}),
                           "Negative or zero frequency in non-Manual mirrored band.\n");
+    }
+  }
+  
+  for (auto& lines: abs_lines_per_species) {
+    for (auto& band: lines) {
+      
+      // Cutoff checks
+      switch (band.Cutoff()) {
+        case Absorption::CutoffType::None: break;
+        case Absorption::CutoffType::ByLine: {
+          ARTS_USER_ERROR_IF(Absorption::relaxationtype_relmat(band.Population()),
+                             "Cannot have relaxation matrix line mixing with cutoff calculations")
+          ARTS_USER_ERROR_IF (not (band.LineShapeType() == LineShape::Type::DP or
+                                   band.LineShapeType() == LineShape::Type::LP or
+                                   band.LineShapeType() == LineShape::Type::VP),
+                              "Cutoff only possible with symmetric line shape types")
+          for (auto& line: band.AllLines()) {
+            for (auto& single_data: line.LineShape().Data()) {
+              // Skipping G() intentionally, since the calculations technically works with it
+              ARTS_USER_ERROR_IF(
+                single_data.Y().type not_eq LineShape::TemperatureModel::None or
+                single_data.DV().type not_eq LineShape::TemperatureModel::None,
+                                 "Cannot have Rosenkranz-style line mixing with cutoff calculations"
+              )
+            }
+          }
+        } break;
+        case Absorption::CutoffType::FINAL: ARTS_USER_ERROR("You have a band with undefined cutoff type.")
+      }
     }
   }
   

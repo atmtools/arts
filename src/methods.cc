@@ -1041,11 +1041,9 @@ void define_md_data_raw() {
                            "\n"
                            "Available options:\n"
                            "\t\"None\"   \t - \t No cutoff\n"
-                           "\t\"ByLine\" \t - \t Cutoff relative line center, highest frequency: F0+cutoff\n"
-                           "\t\"ByBand\" \t - \t Absolute frequency, highest frequency: cutoff\n"
+                           "\t\"ByLine\" \t - \t Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0\n"
                            "\n"
-                           "For \"ByLine\", the negative frequency is at F0-cutoff\n"
-                           "For \"ByBand\", the negative frequency is at cutoff minus twice the average band frequency\n"),
+                           "For \"ByLine\", the negative frequency is at F0-cutoff-D0\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),

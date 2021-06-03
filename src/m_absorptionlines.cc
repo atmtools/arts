@@ -2372,10 +2372,9 @@ void abs_linesCompact(ArrayOfAbsorptionLines& abs_lines,
   const Numeric fmin = min(f_grid);
   
   for (auto& band: abs_lines) {
-    const Numeric fmean = (band.Cutoff() == Absorption::CutoffType::ByBand) ? band.F_mean() : 0;
     for (Index k=band.NumLines()-1; k>=0; k--) {
       const Numeric fcut_upp = band.CutoffFreq(k);
-      const Numeric fcut_low = band.CutoffFreqMinus(k, fmean);
+      const Numeric fcut_low = band.CutoffFreqMinus(k);
       
       if (fmax < fcut_low or fmin > fcut_upp) {
         band.RemoveLine(k);
