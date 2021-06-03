@@ -199,9 +199,9 @@ int main() try {
   Method::Touch(ws, Var::mag_v_field(ws));
   Method::Touch(ws, Var::mag_w_field(ws));
   Method::Touch(ws, Var::nlte_field(ws));
-  Method::Touch(ws, Var::rte_alonglos_v(ws));
   Method::Touch(ws, Var::surface_props_data(ws));
   
+  Var::rte_alonglos_v(ws) = 0;
   Var::p_hse(ws) = 1e5;
   Var::t_field(ws) = Tensor3(51, 1, 1, 250.0);
   Var::vmr_field(ws) = Tensor4(2, 51, 1, 1, 1e-2);
