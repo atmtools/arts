@@ -81,8 +81,6 @@ install (TARGETS arts RUNTIME DESTINATION bin)
 
 set_source_files_properties (legacy_continua.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
-set_source_files_properties (binio.cc PROPERTIES
-                             COMPILE_FLAGS "-fno-strict-aliasing")
 
 # Reduce compile time for very large initialization functions
 set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
@@ -197,7 +195,6 @@ add_library (artscore STATIC
   gas_abs_lookup.cc
   geodetic.cc
   gridded_fields.cc
-  gzstream.cc
   hitran_species.cc
   hitran_xsec.cc
   igrf13.cc
@@ -327,7 +324,7 @@ if (ENABLE_GUI)
   target_link_libraries (artscore artsgui)
 endif()
 
-target_link_libraries (artscore ${ZLIB_LIBRARIES} binio wigner)
+target_link_libraries (artscore xmliobase wigner)
 
 if (FFTW_FOUND)
   include_directories (${FFTW_INCLUDE_DIR})
@@ -367,11 +364,27 @@ target_link_libraries( matpack ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
 
+add_library (xmliobase STATIC
+        messages.cc
+        xml_io_base.cc
+        xml_io_general_types.cc
+        )
+
+target_link_libraries (xmliobase binio matpack)
+
+########### next target ###############
+
 add_library (binio STATIC
         bifstream.cc
         bofstream.cc
         binio.cc
+        double_imanip.cc
+        gzstream.cc 
         )
+
+set_source_files_properties (binio.cc PROPERTIES
+                             COMPILE_FLAGS "-fno-strict-aliasing")
+target_link_libraries (binio ${ZLIB_LIBRARIES})
 
 ########### next target ###############
 
@@ -495,7 +508,7 @@ target_link_libraries (test_sparse ${ALL_ARTS_LIBRARIES} test_utils)
 ########### next testcase ###############
 
 add_executable (test_xml test_xml.cc)
-target_link_libraries (test_xml ${ALL_ARTS_LIBRARIES})
+target_link_libraries (test_xml xmliobase)
 
 ########### next testcase ###############
 

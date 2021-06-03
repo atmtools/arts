@@ -37,7 +37,6 @@
 #include "quantum.h"
 #include "supergeneric.h"
 #include "xml_io.h"
-#include "xml_io_types.h"
 #include "zeemandata.h"
 
 #ifdef TIME_SUPPORT

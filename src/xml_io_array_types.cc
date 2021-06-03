@@ -2715,7 +2715,7 @@ void xml_write_to_stream(ostream& os_xml,
 void xml_parse_from_stream(istream& is_xml,
                            ArrayOfString& astring,
                            bifstream* pbifs,
-                           ArtsXMLTag& tag,
+                           XMLTag& tag,
                            const Verbosity& verbosity) {
   Index nelem;
 
@@ -2747,7 +2747,7 @@ void xml_read_from_stream(istream& is_xml,
                           ArrayOfString& astring,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+  XMLTag tag(verbosity);
 
   tag.read_from_stream(is_xml);
   tag.check_name("Array");

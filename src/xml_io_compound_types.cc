@@ -421,7 +421,7 @@ void xml_read_from_stream(istream& is_xml,
                           GriddedField& gfield,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+  XMLTag tag(verbosity);
 
   for (Index i = 0; i < gfield.get_dim(); i++) {
     tag.read_from_stream(is_xml);
