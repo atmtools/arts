@@ -20525,6 +20525,29 @@ void define_md_data_raw() {
       PASSWSVNAMES(true)));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("WriteBuiltinPartitionFunctionsXML"),
+      DESCRIPTION("Writes all the builtin partition functions to file.\n"
+        "\n"
+        "All available partition functions are written to files in the select format\n"
+        "in the select directory\n"
+        "\n"
+        "The temperature will be linearly spaced between [Tlow, Tupp] with N values\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("output_file_format"),
+      GIN("dir", "Tlow", "Tupp", "N"),
+      GIN_TYPE("String", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("The directory to write the data towards",
+               "The lowest temperature",
+               "The highest temperature",
+               "The number of temperature points")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("WriteXML"),
       DESCRIPTION("Writes a workspace variable to an XML file.\n"
                   "\n"

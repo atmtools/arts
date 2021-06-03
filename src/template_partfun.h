@@ -5,10 +5,19 @@
 #include <array>
 
 #include "enums.h"
-#include "matpack.h"
+#include "matpackI.h"
 
 namespace PartitionFunctions {
 ENUMCLASS(Type, Index, Interp, Coeff)
+
+struct Data {
+  Type type;
+  Matrix data;
+  
+  void print_data() const;
+  
+  void print_method() const;
+};
 
 enum class Derivatives : bool {No, Yes};
 
@@ -51,5 +60,7 @@ Numeric polynom(const std::array<Numeric, N>& coeffs, const Numeric T) noexcept 
   return result;
 }
 }
+
+using PartitionFunctionsData = PartitionFunctions::Data;
 
 #endif  // template_partfun_h

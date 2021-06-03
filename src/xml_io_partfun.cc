@@ -45,8 +45,10 @@ void xml_write_to_stream(std::ostream& os_xml,
   std::ostringstream v;
   
   open_tag.set_name("PartitionFunctionsData");
-  open_tag.add_attribute("name", name);
+  if (name not_eq "") open_tag.add_attribute("name", name);
   open_tag.add_attribute("type", String(toString(data.type)));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
   
   xml_write_to_stream(os_xml, data.data, pbofs, "Data", verbosity);
   

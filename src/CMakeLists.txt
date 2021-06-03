@@ -239,6 +239,7 @@ add_library (artscore STATIC
   m_nlte.cc
   m_oem.cc
   m_optproperties.cc
+  m_partfun.cc
   m_physics.cc
   m_planets.cc
   m_ppath.cc
@@ -646,6 +647,7 @@ add_custom_command(OUTPUT auto_partfun.h
 add_library(species STATIC
             auto_partfun.h
             isotopologues.cc
+            xml_io_partfun.cc
             )
 ########################################################################################
 

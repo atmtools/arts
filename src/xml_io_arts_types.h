@@ -54,6 +54,7 @@
 #include "mc_interp.h"
 #include "messages.h"
 #include "optproperties.h"
+#include "template_partfun.h"
 #include "ppath.h"
 #include "propagationmatrix.h"
 #include "telsem.h"
@@ -77,6 +78,7 @@
 
 //=== Basic Types ==========================================================
 
+TMPL_XML_READ_WRITE_STREAM(PartitionFunctionsData)
 TMPL_XML_READ_WRITE_STREAM(JacobianTarget)
 TMPL_XML_READ_WRITE_STREAM(Rational)
 TMPL_XML_READ_WRITE_STREAM(Timer)
