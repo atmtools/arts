@@ -1105,6 +1105,17 @@ constexpr Numeric mean_mass(Species spec, const IsotopologueRatios& ir) noexcept
  * @return A name that is valid and equivalent in ARTS today (or a copy of old_name)
  */
 String update_isot_name(const String& old_name);
+
+constexpr bool all_have_ratio(const Species spec, const IsotopologueRatios& ir) noexcept {
+  for (std::size_t i=IsotopologuesStart[std::size_t(spec)]; i<IsotopologuesStart[std::size_t(spec) + 1]; i++) {
+    if (not Isotopologues[i].joker() and not is_predefined_model(Isotopologues[i]) and nonstd::isnan(ir[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(const Species spec, const IsotopologueRatios& ir) noexcept;
 }  // Species
 
 using SpeciesIsotopeRecord = Species::IsotopeRecord;

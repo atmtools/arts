@@ -160,4 +160,18 @@ String update_isot_name(const String& old_name) {
   else if (old_name == "H2CO-2226")    return "D2CO-26";
   else                                 return old_name;
 }
+
+std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(const Species spec, const IsotopologueRatios& ir) noexcept {
+  ArrayOfString h, hnot;
+  for (std::size_t i=IsotopologuesStart[std::size_t(spec)]; i<IsotopologuesStart[std::size_t(spec) + 1]; i++) {
+    if (not Isotopologues[i].joker() and not is_predefined_model(Isotopologues[i])) {
+      if (nonstd::isnan(ir[i])) {
+        hnot.emplace_back(Isotopologues[i].FullName());
+      } else {
+        h.emplace_back(Isotopologues[i].FullName());
+      }
+    }
+  }
+  return {h, hnot};
+}
 }

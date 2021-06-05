@@ -87,8 +87,19 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
       auto& isot = spec.Isotopologue();
       const Index i = Species::find_species_index(isot);
       ARTS_USER_ERROR_IF(i < 0 or i >= Species::IsotopologueRatios::maxsize, "Cannot find species: ", spec)
-      if (spec.type == Species::TagType::Plain or spec.type == Species::TagType::Zeeman) {
-        ARTS_USER_ERROR_IF(not isot.joker() and std::isnan(isoratios[i]), "Chosen species: ", spec, " has no isotopologue ratio")
+      
+      ARTS_USER_ERROR_IF(not Species::is_predefined_model(isot) and
+                         not isot.joker() and
+                         std::isnan(isoratios[i]), "Chosen species: ", spec, " has no defined isotopologue ratio")
+      
+      if (isot.joker() and not Species::all_have_ratio(isot.spec, isoratios)) {
+        const auto [have, havenot] = Species::names_of_have_and_havenot_ratio(isot.spec, isoratios);
+        ARTS_USER_ERROR(
+          "Chosen joker species: ", spec, " have missing isotopologue ratio.\n"
+          "The following species have isotopologue ratios:\n[", have, "],\n"
+          "and the following species do not:\n[", havenot, "]\n"
+          "One way to continue your simulations is to exclude the species missing isotoplogue ratios,\n"
+          "another is to add the missing ratio(s) to your data file")
       }
     }
   }
