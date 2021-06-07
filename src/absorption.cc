@@ -48,59 +48,26 @@
 #include "global_data.h"
 #include "linefunctions.h"
 
-
-void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species) {
-  for (auto& specs: abs_species) {
-    for (auto& spec: specs) {
-      if (spec.type == Species::TagType::Plain or spec.type == Species::TagType::Zeeman) {
-        if (spec.Isotopologue().isotname not_eq Species::Joker) {
-          ARTS_USER_ERROR_IF (not PartitionFunctions::has_partfun(spec.Isotopologue()),
-            "Species: ", spec.Isotopologue().FullName(), " has no partition function\n",
-            "You must recompile ARTS partition functions with data for this species to continue your calculations,\n"
-            "or exclude the species from your computation setup")
-        } else {
-          auto all_isots = Species::isotopologues(spec.Isotopologue().spec);
-          for (auto& isot: all_isots) {
-            if (not isot.joker() and not Species::is_predefined_model(isot)) {
-              ARTS_USER_ERROR_IF (not PartitionFunctions::has_partfun(isot),
-                                  "Species: ", isot.FullName(), " has no partition function\n",
-                                  "You must recompiler ARTS partition functions with data for this species to continue your calculations,\n"
-                                  "or exclude the species from your computation setup.  Note that it is part a joker-species, so the\n"
-                                  "troubling isotopologue is not directly defined in its name")
-            }
-          }
-        }
-      }
+void checkPartitionFunctions(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
+  for (auto& abs_lines: abs_lines_per_species) {
+    for (auto& band: abs_lines) {
+      ARTS_USER_ERROR_IF (not PartitionFunctions::has_partfun(band.Isotopologue()),
+                          "Species: ", band.Isotopologue().FullName(), " has no partition function\n",
+                          "You must recompile ARTS partition functions with data for this species to continue your calculations,\n"
+                          "or exclude the species from your computation setup")
     }
   }
 }
 
-void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
+void checkIsotopologueRatios(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                              const Species::IsotopologueRatios& isoratios) {
-  // For the selected species, we check all isotopes by looping over the
-  // species data. (Trying to check only the isotopes actually used gets
-  // quite complicated, actually, so we do the simple thing here.)
-
-  // Loop over the absorption species:
-  for (auto& specs: abs_species) {
-    for (auto& spec: specs) {
-      auto& isot = spec.Isotopologue();
-      const Index i = Species::find_species_index(isot);
-      ARTS_USER_ERROR_IF(i < 0 or i >= Species::IsotopologueRatios::maxsize, "Cannot find species: ", spec)
-      
-      ARTS_USER_ERROR_IF(not Species::is_predefined_model(isot) and
-                         not isot.joker() and
-                         std::isnan(isoratios[i]), "Chosen species: ", spec, " has no defined isotopologue ratio")
-      
-      if (isot.joker() and not Species::all_have_ratio(isot.spec, isoratios)) {
-        const auto [have, havenot] = Species::names_of_have_and_havenot_ratio(isot.spec, isoratios);
-        ARTS_USER_ERROR(
-          "Chosen joker species: ", spec, " have missing isotopologue ratio.\n"
-          "The following species have isotopologue ratios:\n[", have, "],\n"
-          "and the following species do not:\n[", havenot, "]\n"
-          "One way to continue your simulations is to exclude the species missing isotoplogue ratios,\n"
-          "another is to add the missing ratio(s) to your data file")
-      }
+  
+  for (auto& abs_lines: abs_lines_per_species) {
+    for (auto& band: abs_lines) {
+      ARTS_USER_ERROR_IF (std::isnan(isoratios[band.Isotopologue()]),
+                          "Species: ", band.Isotopologue().FullName(), " has no isotopologue ratios\n",
+                          "You must add its isotopologue ratios to your included data or\n"
+                          "exclude the species from your computation setup")
     }
   }
 }

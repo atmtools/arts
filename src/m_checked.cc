@@ -731,8 +731,8 @@ void lbl_checkedCalc(Index& lbl_checked,
                      const SpeciesIsotopologueRatios& isotopologue_ratios,
                      const Verbosity&)
 {
-  checkIsotopologueRatios(abs_species, isotopologue_ratios);
-  checkPartitionFunctions(abs_species);
+  checkIsotopologueRatios(abs_lines_per_species, isotopologue_ratios);
+  checkPartitionFunctions(abs_lines_per_species);
   
   lbl_checked = false;
   

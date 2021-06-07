@@ -44,10 +44,10 @@
 #include "absorptionlines.h"
 
 /** Check that ARTS was compiled for all requested species tags */
-void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species);
+void checkPartitionFunctions(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species);
 
 /** Check that isotopologue ratios for the given species are correctly defined. */
-void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
+void checkIsotopologueRatios(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                              const Species::IsotopologueRatios& isoratios);
 
 // A helper function for energy conversion:
