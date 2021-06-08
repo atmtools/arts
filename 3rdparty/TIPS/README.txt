@@ -6,3 +6,4 @@ This will output data in the form expected by ARTS partition function pre-proces
 
 It is only valid for TIPS2021 data
 
+See python script section and "ADAPTED FOR ARTS" for more information
