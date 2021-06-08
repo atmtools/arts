@@ -12,9 +12,16 @@ constexpr std::string_view Joker = "*";
 
 /** Struct containing all information needed about one isotope */
 struct IsotopeRecord {
+  //! Species type as defined in species.h
   Species spec;
+  
+  //! A custom name that is unique for this Species type
   std::string_view isotname;
+  
+  //! The mass of the isotope in units of grams per mol.  It is Nan if not defined
   Numeric mass;
+  
+  //! The degeneracy of states of the molecule.  It is -1 if not defined.
   Index gi;
   constexpr explicit IsotopeRecord(Species spec_, const std::string_view isotname_=Joker, Numeric mass_=std::numeric_limits<Numeric>::quiet_NaN(), Index gi_=-1) noexcept
   : spec(spec_), isotname(isotname_), mass(mass_), gi(gi_) {}
