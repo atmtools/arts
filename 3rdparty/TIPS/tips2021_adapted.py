@@ -42,6 +42,11 @@ import sys
 #
 # To use:
 # python THIS_FILE INPUT_DATA_DIRECTORY OUTPUT_DATA_DIRECTORY
+#
+# The INPUT_DATA_DIRECTORY must be a directory that contains all of the *.QTpy
+# files associated with the TIPS2021 data.
+#
+# The OUTPUT_DATA_DIRECTORY must exist and will have many XML-files written to it
 
 mol_id = ['1 = H2O','2 = CO2','3 = O3','4 = N2O','5 = CO','6 = CH4','7 = O2',
 '8 = NO','9 = SO2','10 = NO2','11 = NH3','12 = HNO3','13 = OH','14 = HF','15 = HCl',
