@@ -892,6 +892,20 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(
+      create_mdrecord(NAME("abs_lines_per_speciesMakeManualMirroringSpecies"),
+               DESCRIPTION("Calls *abs_linesMakeManualMirroring* for given species in *abs_species*\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species", "abs_species"),
+               GIN("species"),
+               GIN_TYPE("ArrayOfSpeciesTag"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Species to mirror")));
+
+  md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesSetPopulation"),
                DESCRIPTION("Sets population type for all lines.\n"
                            "\n"
