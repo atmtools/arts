@@ -790,7 +790,7 @@ constexpr IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("NO2", ISOT)] = VAL
   set_isot_val("646", .991616E+00);
-  set_isot_val("656", 3.64564E-030);
+  set_isot_val("656", 3.64564E-03);
   #undef set_isot_val
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("NH3", ISOT)] = VAL
