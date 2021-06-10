@@ -589,4 +589,24 @@ Numeric ratio_from_lookup(Index mol, char isochar, Type type) {
   return {};
 }
 
+SpeciesIsotopologueRatios isotopologue_ratios_impl(const HitranMap& data) {
+  SpeciesIsotopologueRatios out;
+  for (auto& x: data) {
+    for (auto& y: x.second) {
+      out.data[y.second.first] = y.second.second;
+    }
+  }
+  return out;
+}
+
+SpeciesIsotopologueRatios isotopologue_ratios(Type type) {
+  switch (type) {
+    case Type::Pre2012CO2Change:
+      return isotopologue_ratios_impl(pre2012co2change_molparam_map);
+    case Type::Newest:
+      return isotopologue_ratios_impl(latest_molparam_map);
+    case Type::FINAL: {/* leave last */}
+  }
+  return {};
+}
 }  // namespace Hitran

@@ -40,6 +40,7 @@
 #include "legacy_continua.h"
 #include "file.h"
 #include "global_data.h"
+#include "hitran_species.h"
 #include "jacobian.h"
 #include "lineshape.h"
 #include "m_xml.h"
@@ -1739,6 +1740,13 @@ void propmat_clearskyForceNegativeToZero(
 void isotopologue_ratiosInitFromBuiltin(SpeciesIsotopologueRatios& isotopologue_ratios,
                                        const Verbosity&) {
   isotopologue_ratios = Species::isotopologue_ratiosInitFromBuiltin();
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void isotopologue_ratiosInitFromHitran(SpeciesIsotopologueRatios& isotopologue_ratios,
+                                       const String& option,
+                                       const Verbosity&) {
+  isotopologue_ratios = Hitran::isotopologue_ratios(Hitran::toTypeOrThrow(option));
 }
 
 #ifdef ENABLE_NETCDF

@@ -27,6 +27,8 @@ namespace Hitran {
    * to happen...
    */
   Numeric ratio_from_lookup(Index mol, char isochar, Type type);
+  
+  SpeciesIsotopologueRatios isotopologue_ratios(Type);
 }
 
 #endif

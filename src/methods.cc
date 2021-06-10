@@ -7226,6 +7226,22 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("isotopologue_ratiosInitFromHitran"),
+      DESCRIPTION(
+          "Initialize isotopologue ratios with default values from built-in\n"
+          "Hitran species data.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("isotopologue_ratios"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("option"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("Newest"),
+      GIN_DESC("Version of HITRAN catalog")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
       DESCRIPTION(
           "Conversion of *iy* to other spectral units (for passive observations).\n"
