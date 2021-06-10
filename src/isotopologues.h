@@ -734,7 +734,7 @@ constexpr IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   set_isot_val("727", 1.36847E-07);
   set_isot_val("838", 4.44600E-08);
   set_isot_val("837", 1.65354E-08);
-  set_isot_val("737", 1.537500E-08);
+  set_isot_val("737", 1.53750E-09);
   #undef set_isot_val
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("O3", ISOT)] = VAL
@@ -1073,7 +1073,7 @@ constexpr IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("COCl2", ISOT)] = VAL
   set_isot_val("2655", 5.66392E-01);
-  set_isot_val("2657", 5.66392E-01);
+  set_isot_val("2657", 3.62235E-01);
   #undef set_isot_val
   
   return isotopologue_ratios;
