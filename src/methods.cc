@@ -863,6 +863,35 @@ void define_md_data_raw() {
                       "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
+      create_mdrecord(NAME("abs_linesMakeManualMirroring"),
+               DESCRIPTION("Makes a copy of all lines at negative frequency setting them.\n"
+                           "to manual mirroring mode\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines"),
+               GIN(),
+               GIN_TYPE(),
+               GIN_DEFAULT(),
+               GIN_DESC()));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("abs_lines_per_speciesMakeManualMirroring"),
+               DESCRIPTION("See *abs_linesMakeManualMirroring*\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species"),
+               GIN(),
+               GIN_TYPE(),
+               GIN_DEFAULT(),
+               GIN_DESC()));
+
+  md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesSetPopulation"),
                DESCRIPTION("Sets population type for all lines.\n"
                            "\n"

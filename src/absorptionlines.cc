@@ -3379,7 +3379,7 @@ Numeric Lines::F_mean(const ConstVectorView wgts) const noexcept {
 Numeric Lines::CutoffFreq(size_t k, Numeric shift) const noexcept {
   switch(mcutoff) {
     case CutoffType::ByLine:
-      return F0(k) + shift + mcutofffreq;
+      return F0(k) + mcutofffreq + (mmirroring == MirroringType::Manual ? - shift : shift);
     case CutoffType::None:
       return std::numeric_limits<Numeric>::max();
     case CutoffType::FINAL: break;
@@ -3392,7 +3392,7 @@ Numeric Lines::CutoffFreq(size_t k, Numeric shift) const noexcept {
 Numeric Lines::CutoffFreqMinus(size_t k, Numeric shift) const noexcept {
   switch(mcutoff) {
     case CutoffType::ByLine:
-      return F0(k) + shift - mcutofffreq;
+      return F0(k) - mcutofffreq + (mmirroring == MirroringType::Manual ? - shift : shift);
     case CutoffType::None:
       return std::numeric_limits<Numeric>::lowest();
     case CutoffType::FINAL: break;
