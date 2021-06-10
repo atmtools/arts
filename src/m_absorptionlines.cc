@@ -1498,7 +1498,8 @@ void abs_lines_per_speciesMakeManualMirroringSpecies(ArrayOfArrayOfAbsorptionLin
 {
   ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
     "Mismatch abs_species and abs_lines_per_species sizes [",
-    abs_species.size(), " vs ", abs_lines_per_species.size())
+    abs_species.size(), " vs ", abs_lines_per_species.size(),
+    ", respectively]")
   
   if (auto ind = std::distance(abs_species.cbegin(), std::find(abs_species.cbegin(), abs_species.cend(), species)); ind not_eq abs_species.nelem()) {
     abs_linesMakeManualMirroring(abs_lines_per_species[ind], verbosity);
