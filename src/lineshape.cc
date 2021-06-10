@@ -1926,7 +1926,9 @@ VibrationalTemperaturesNonLocalThermodynamicEquilibrium::
 
 Calculator line_shape_selection(const Type type, const Numeric F0,
                                 const Output &X, const Numeric DC,
-                                const Numeric DZ) {
+                                const Numeric DZ, bool manually_mirrored) {
+  if (manually_mirrored) return Noshape{};
+  
   switch (type) {
   case Type::DP:
     return Doppler(F0, DC, DZ);
@@ -1953,9 +1955,9 @@ Calculator mirror_line_shape_selection(const Absorption::MirroringType mirror,
   case Absorption::MirroringType::Lorentz:
     return Lorentz(-F0, mirroredOutput(X));
   case Absorption::MirroringType::SameAsLineShape:
-    return line_shape_selection(type, -F0, mirroredOutput(X), -DC, -DZ);
+    return line_shape_selection(type, -F0, mirroredOutput(X), -DC, -DZ, false);
   case Absorption::MirroringType::Manual:
-    return Noshape{};
+    return line_shape_selection(type, F0, mirroredOutput(X), -DC, -DZ, false);
   case Absorption::MirroringType::None:
     return Noshape{};
   case Absorption::MirroringType::FINAL: { /*leave last*/
@@ -2857,7 +2859,7 @@ void cutoff_loop_sparse_linear(ComputeData &com,
     const Numeric dfdH = do_zeeman ? band.ZeemanSplitting(i, zeeman_polarization, iz) : 0;
     const Numeric Sz = do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
     const Complex LM = Complex(1 + X.G, -X.Y);
-    Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
+    Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H, band.Mirroring() == Absorption::MirroringType::Manual);
     Calculator ls_mirr = mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
     
     if (do_cutoff) {
@@ -2939,7 +2941,7 @@ void cutoff_loop_sparse_triple(ComputeData &com,
     const Numeric dfdH = do_zeeman ? band.ZeemanSplitting(i, zeeman_polarization, iz) : 0;
     const Numeric Sz = do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
     const Complex LM = Complex(1 + X.G, -X.Y);
-    Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
+    Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H, band.Mirroring() == Absorption::MirroringType::Manual);
     Calculator ls_mirr = mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
     
     if (do_cutoff) {
@@ -3047,7 +3049,7 @@ void cutoff_loop(ComputeData &com,
     const Numeric dfdH = do_zeeman ? band.ZeemanSplitting(i, zeeman_polarization, iz) : 0;
     const Numeric Sz = do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
     const Complex LM = Complex(1 + X.G, -X.Y);
-    Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
+    Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(i), X, DC, dfdH * H, band.Mirroring() == Absorption::MirroringType::Manual);
     Calculator ls_mirr = mirror_line_shape_selection(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
     
     if (do_cutoff) {

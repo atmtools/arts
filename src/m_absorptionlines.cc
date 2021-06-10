@@ -1458,6 +1458,39 @@ void abs_lines_per_speciesSetMirroringForSpecies(
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesMakeManualMirroring(ArrayOfAbsorptionLines& abs_lines,
+                                  const Verbosity&) 
+{
+  const ArrayOfAbsorptionLines abs_lines_copy = abs_lines;
+  for (AbsorptionLines band: abs_lines_copy) {
+    band.Mirroring(Absorption::MirroringType::Manual);
+    
+    //! Don't allow running this function twice
+    ARTS_USER_ERROR_IF(
+      std::find_if(abs_lines_copy.cbegin(), abs_lines_copy.cend(),
+                   [&band](const AbsorptionLines& li){
+                     return band.Match(li);
+                   }) not_eq abs_lines_copy.cend(),
+      "Dual bands with same setup is not allowed for mirroring of band:\n",
+      band, '\n')
+    
+    for (auto& line: band.AllLines()) {
+      line.F0() *= -1;
+    }
+    
+    abs_lines.emplace_back(std::move(band));
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesMakeManualMirroring(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                              const Verbosity& verbosity) 
+{
+  for (auto& abs_lines: abs_lines_per_species) abs_linesMakeManualMirroring(abs_lines, verbosity);
+}
+
+
 /////////////////////////////////////////////////////////
 ///////////////////////////////// Change Population Style
 /////////////////////////////////////////////////////////

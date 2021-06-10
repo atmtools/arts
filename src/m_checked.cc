@@ -888,10 +888,24 @@ void lbl_checkedCalc(Index& lbl_checked,
   for (auto& lines: abs_lines_per_species) {
     for (auto& band: lines) {
       
+      // Mirroring checks
+      for (auto& line: band.AllLines()) {
+        if (band.Mirroring() == Absorption::MirroringType::Manual) {
+          ARTS_USER_ERROR_IF(line.F0() >= 0,
+                             "Must have negative frequency, finds " , line.F0())
+        } else {
+          ARTS_USER_ERROR_IF(line.F0() <= 0,
+                             "Must have positive frequency, finds " , line.F0())
+        }
+      }
+      
       // Cutoff checks
       switch (band.Cutoff()) {
         case Absorption::CutoffType::None: break;
         case Absorption::CutoffType::ByLine: {
+          ARTS_USER_ERROR_IF (not (band.Mirroring() == Absorption::MirroringType::None or
+                                   band.Mirroring() == Absorption::MirroringType::Manual),
+                              "Cutoff only possible with symmetric mirroring types")
           ARTS_USER_ERROR_IF(Absorption::relaxationtype_relmat(band.Population()),
                              "Cannot have relaxation matrix line mixing with cutoff calculations")
           ARTS_USER_ERROR_IF (not (band.LineShapeType() == LineShape::Type::DP or
