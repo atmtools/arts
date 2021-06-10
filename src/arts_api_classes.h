@@ -214,6 +214,7 @@ extern "C" {
     
     // SpeciesIsotopologueRatios
     BasicInterfaceCAPI(SpeciesIsotopologueRatios)
+    BasicInputOutputCAPI(SpeciesIsotopologueRatios)
     DLL_PUBLIC Numeric * getdataSpeciesIsotopologueRatios(void *);
     
     // QuantumIdentifierType

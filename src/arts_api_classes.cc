@@ -345,6 +345,7 @@ Index getGSpeciesIsotopeRecord(void * data) {
 
 // SpeciesIsotopologueRatios
 BasicInterfaceCAPI(SpeciesIsotopologueRatios)
+BasicInputOutputCAPI(SpeciesIsotopologueRatios)
 Numeric * getdataSpeciesIsotopologueRatios(void * data) {return static_cast<SpeciesIsotopologueRatios *>(data) -> data.begin();}
 
 // QuantumIdentifierType

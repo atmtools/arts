@@ -2,6 +2,7 @@ import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.SpeciesIsotopeRecord import SpeciesIsotopeRecord
+from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 
 import numpy as np
 
@@ -40,6 +41,32 @@ class SpeciesIsotopologueRatios:
     def __repr__(self):
         return f"{self.data}"
 
+    def readxml(self, file):
+        """ Reads the XML file
+
+        Input:
+            file:
+                Filename to valid class-file (str)
+        """
+        if lib.xmlreadSpeciesIsotopologueRatios(self.__data__, correct_read_arguments(file)):
+            raise OSError("Cannot read {}".format(file))
+
+    def savexml(self, file, type="ascii", clobber=True):
+        """ Saves the class to XML file
+
+        Input:
+            file:
+                Filename to writable file (str)
+
+            type:
+                Filetype (str)
+
+            clobber:
+                Allow clobbering files? (any boolean)
+        """
+        if lib.xmlsaveSpeciesIsotopologueRatios(self.__data__, *correct_save_arguments(file, type, clobber)):
+            raise OSError("Cannot save {}".format(file))
+
 lib.createSpeciesIsotopologueRatios.restype = c.c_void_p
 lib.createSpeciesIsotopologueRatios.argtypes = []
 
@@ -51,3 +78,9 @@ lib.printSpeciesIsotopologueRatios.argtypes = [c.c_void_p]
 
 lib.getdataSpeciesIsotopologueRatios.restype = c.POINTER(c.c_double)
 lib.getdataSpeciesIsotopologueRatios.argtypes = [c.c_void_p]
+
+lib.xmlreadSpeciesIsotopologueRatios.restype = c.c_long
+lib.xmlreadSpeciesIsotopologueRatios.argtypes = [c.c_void_p, c.c_char_p]
+
+lib.xmlsaveSpeciesIsotopologueRatios.restype = c.c_long
+lib.xmlsaveSpeciesIsotopologueRatios.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
