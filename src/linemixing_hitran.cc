@@ -667,7 +667,7 @@ void qt_co2(const Numeric& t,
      + 0.95799E+05, 0.99242E+05, 0.10278E+06, 0.10643E+06, 0.11018E+06,
      + 0.11403E+06, 0.11799E+06, 0.12206E+06, 0.12625E+06, 0.13055E+06,
      + 0.13497E+06),
-// c...        --       728
+// c...        --       827
       stdarrayify( 0.70354E+03, 0.99615E+03, 0.12893E+04,
      + 0.15846E+04, 0.18848E+04, 0.21940E+04, 0.25162E+04, 0.28554E+04,
      + 0.32152E+04, 0.35991E+04, 0.40099E+04, 0.44507E+04, 0.49242E+04,
@@ -1960,7 +1960,7 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
     SpeciesTag("CO2-638"),
     SpeciesTag("CO2-637"),
     SpeciesTag("CO2-828"),
-    SpeciesTag("CO2-728"),
+    SpeciesTag("CO2-827"),
     SpeciesTag("CO2-727"),
     SpeciesTag("CO2-838"),
     SpeciesTag("CO2-837"));
