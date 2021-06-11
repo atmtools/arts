@@ -208,7 +208,7 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Perform RT calculations
   # ---
-  atmfields_checkedCalc(bad_partition_functions_ok=1)
+  atmfields_checkedCalc
   atmgeom_checkedCalc
   cloudbox_checkedCalc
   sensor_checkedCalc

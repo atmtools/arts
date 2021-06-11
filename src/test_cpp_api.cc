@@ -186,7 +186,6 @@ int main() try {
   
   Method::abs_speciesSet(ws, ArrayOfString{"H2O-PWR98", "O2-PWR98"});
   
-  Method::partition_functionsInitFromBuiltin(ws);
   Method::isotopologue_ratiosInitFromBuiltin(ws);
   Method::VectorNLogSpace(ws, Var::p_grid(ws).value(), 51, 1e+05, 1e-4);
   
@@ -200,9 +199,9 @@ int main() try {
   Method::Touch(ws, Var::mag_v_field(ws));
   Method::Touch(ws, Var::mag_w_field(ws));
   Method::Touch(ws, Var::nlte_field(ws));
-  Method::Touch(ws, Var::rte_alonglos_v(ws));
   Method::Touch(ws, Var::surface_props_data(ws));
   
+  Var::rte_alonglos_v(ws) = 0;
   Var::p_hse(ws) = 1e5;
   Var::t_field(ws) = Tensor3(51, 1, 1, 250.0);
   Var::vmr_field(ws) = Tensor4(2, 51, 1, 1, 1e-2);

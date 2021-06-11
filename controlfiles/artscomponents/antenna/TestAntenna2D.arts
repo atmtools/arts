@@ -104,7 +104,7 @@ AgendaSet( surface_rtprop_agenda ){
 # 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 lbl_checkedCalc

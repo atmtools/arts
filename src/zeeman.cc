@@ -70,8 +70,7 @@ void zeeman_on_the_fly(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const SpeciesAuxData& isotopologue_ratios,
-    const SpeciesAuxData& partition_functions,
+    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Vector& f_grid,
     const Vector& rtp_vmr,
     const EnergyLevelMap& rtp_nlte,
@@ -162,7 +161,7 @@ void zeeman_on_the_fly(
     if (legacy_vmr) {
       for (Index ispecies = 0; ispecies < ns; ispecies++) {
         // Skip it if there are no species or there is no Zeeman
-        if (not abs_species[ispecies].nelem() or not is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
+        if (not abs_species[ispecies].nelem() or not abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
           continue;
         
         // Reset
@@ -171,11 +170,9 @@ void zeeman_on_the_fly(
         
         for (auto& band : abs_lines_per_species[ispecies]) {
           LineShape::compute(com, sparse_com, 
-                            band, jacobian_quantities,
-                            rtp_nlte,
-                            partition_functions.getParamType(band.QuantumIdentity()),
-                            partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                            isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H, sparse_limit,
+                             band, jacobian_quantities, rtp_nlte,
+                             band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                             isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, X.H, sparse_limit,
                              true, polar, Options::LblSpeedup::None);
           
         }
@@ -241,16 +238,14 @@ void zeeman_on_the_fly(
     } else {
       for (Index ispecies = 0; ispecies < ns; ispecies++) {
         // Skip it if there are no species or there is no Zeeman
-        if (not abs_species[ispecies].nelem() or not is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
+        if (not abs_species[ispecies].nelem() or not abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
           continue;
         
         for (auto& band : abs_lines_per_species[ispecies]) {
           LineShape::compute(com, sparse_com,
-                             band, jacobian_quantities,
-                             rtp_nlte,
-                             partition_functions.getParamType(band.QuantumIdentity()),
-                             partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                             isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, X.H, sparse_limit,
+                             band, jacobian_quantities, rtp_nlte,
+                             band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                             isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, X.H, sparse_limit,
                              true, polar, Options::LblSpeedup::None);
           
         }

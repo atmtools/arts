@@ -37,7 +37,6 @@
 #include "quantum.h"
 #include "supergeneric.h"
 #include "xml_io.h"
-#include "xml_io_types.h"
 #include "zeemandata.h"
 
 #ifdef TIME_SUPPORT
@@ -249,39 +248,158 @@ VoidGetterCAPI(AbsorptionSingleLine, LineShape)
 VoidArrayElemCAPI(AbsorptionSingleLine, LowerQuantumNumbers)
 VoidArrayElemCAPI(AbsorptionSingleLine, UpperQuantumNumbers)
 
+// QuantumNumberType
+BasicInterfaceCAPI(QuantumNumberType)
+void * getQuantumNumberTypeString(void * data) {
+  return new String(toString(*static_cast<QuantumNumberType *>(data)));
+}
+int setQuantumNumberTypeString(void * data, char * val) {
+  auto x = string2quantumnumbertype(val);
+  if (good_enum(x)) {
+    *static_cast<QuantumNumberType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
 
 // QuantumNumbers
 BasicInterfaceCAPI(QuantumNumbers)
 void * getelemQuantumNumbers(Index i, void * data) { return &static_cast<QuantumNumbers *>(data)->operator[](i); }
 Index sizeQuantumNumbers() { return Index(QuantumNumberType::FINAL); }
 Index string2quantumnumbersindex(char * str) { return Index(string2quantumnumbertype(str)); }
+void * getQuantumNumbersString(void * data) { return new String(static_cast<QuantumNumbers *>(data) -> toString()); }
 
+// Species::Species
+void * createSpecies() {
+  return new Species::Species(Species::Species::FINAL);
+}
+void deleteSpecies(void * data) {
+  delete static_cast<Species::Species *>(data);
+}
+void printSpecies(void * data) {
+  std::cout << *static_cast<Species::Species *>(data);
+}
+int setSpeciesLongName(void * data, char * spec) {
+  Species::Species x = Species::toSpecies(spec);
+  if (good_enum(x)) {
+    *static_cast<Species::Species *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+int setSpeciesShortName(void * data, char * spec) {
+  Species::Species x = Species::fromShortName(spec);
+  if (good_enum(x)) {
+    *static_cast<Species::Species *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+void * getSpeciesLongName(void * data) {
+  return new String(Species::toString(*static_cast<Species::Species *>(data)));
+}
+void * getSpeciesShortName(void * data) {
+  return new String(Species::toShortName(*static_cast<Species::Species *>(data)));
+}
+VoidArrayCAPI(ArrayOfSpecies)
+Index xmlreadArrayOfSpecies(void *, char *) {return 1;}
+Index xmlsaveArrayOfSpecies (void *, char *, Index, Index) {return 1;}
+BasicInterfaceCAPI(ArrayOfSpecies)
+
+// SpeciesIsotopeRecord
+BasicInterfaceCAPI(SpeciesIsotopeRecord)
+Index getIndexSpeciesIsotopeRecordFromNames(char * spec, char * isot) {
+  return Species::find_species_index(spec, isot);
+}
+void * getIsotnameSpeciesIsotopeRecord(void *);
+Index getIndexSpeciesIsotopeRecordFromData(void * data) {
+  return Species::find_species_index(*static_cast<SpeciesIsotopeRecord *>(data));
+}
+Index nelemSpeciesIsotopeRecordDefined() {
+  return Index(Species::Isotopologues.size());
+}
+int setSpeciesIsotopeRecordToIndex(void * data, Index i) {
+  if (i < 0 or i >= nelemSpeciesIsotopeRecordDefined()) {
+    return EXIT_FAILURE;
+  } else {
+    *static_cast<SpeciesIsotopeRecord *>(data) = Species::Isotopologues[i];
+    return EXIT_SUCCESS;
+  }
+}
+
+void * getSpeciesSpeciesIsotopeRecord(void * data) {
+  return new Species::Species(static_cast<SpeciesIsotopeRecord *>(data) -> spec);
+}
+void * getIsotnameSpeciesIsotopeRecord(void * data) {
+  return new String(static_cast<SpeciesIsotopeRecord *>(data) -> isotname);
+}
+Numeric getMassSpeciesIsotopeRecord(void * data) {
+  return static_cast<SpeciesIsotopeRecord *>(data) -> mass;
+}
+Index getGSpeciesIsotopeRecord(void * data) {
+  return static_cast<SpeciesIsotopeRecord *>(data) -> gi;
+}
+
+// SpeciesIsotopologueRatios
+BasicInterfaceCAPI(SpeciesIsotopologueRatios)
+BasicInputOutputCAPI(SpeciesIsotopologueRatios)
+Numeric * getdataSpeciesIsotopologueRatios(void * data) {return static_cast<SpeciesIsotopologueRatios *>(data) -> data.begin();}
+
+// QuantumIdentifierType
+BasicInterfaceCAPI(QuantumIdentifierType)
+void * getQuantumIdentifierTypeString(void * data) {
+  return new String(toString(*static_cast<QuantumIdentifierType *>(data)));
+}
+int setQuantumIdentifierTypeString(void * data, char * val) {
+  auto x = Quantum::toIdentifierType(val);
+  if (good_enum(x)) {
+    *static_cast<QuantumIdentifierType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
 
 // QuantumIdentifier
 BasicInterfaceCAPI(QuantumIdentifier)
 BasicInputOutputCAPI(QuantumIdentifier)
-EnumGetterSetterCAPI(QuantumIdentifier, Type, QuantumIdentifier::QType)
-GetterSetterCAPI(QuantumIdentifier, Species, Index)
-GetterSetterCAPI(QuantumIdentifier, Isotopologue, Index)
-VoidGetterCAPI(QuantumIdentifier, EnergyLevelQuantumNumbers)
-VoidGetterCAPI(QuantumIdentifier, LowerQuantumNumbers)
-VoidGetterCAPI(QuantumIdentifier, UpperQuantumNumbers)
+VoidStructGetterCAPI(QuantumIdentifier, type)
+VoidStructGetterCAPI(QuantumIdentifier, spec_ind)
+VoidStructGetterCAPI(QuantumIdentifier, upp)
+VoidStructGetterCAPI(QuantumIdentifier, low)
 
 // ArrayOfQuantumIdentifier
 BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
 BasicInputOutputCAPI(ArrayOfQuantumIdentifier)
 VoidArrayCAPI(ArrayOfQuantumIdentifier)
 
+// SpeciesTagType
+BasicInterfaceCAPI(SpeciesTagType)
+void * getSpeciesTagTypeString(void * data) {
+  return new String(toString(*static_cast<SpeciesTagType *>(data)));
+}
+int setSpeciesTagTypeString(void * data, char * val) {
+  auto x = Species::toTagType(val);
+  if (good_enum(x)) {
+    *static_cast<SpeciesTagType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
 // SpeciesTag
 BasicInterfaceCAPI(SpeciesTag)
 BasicInputOutputCAPI(SpeciesTag)
-GetterSetterCAPI(SpeciesTag, Species, Index)
-GetterSetterCAPI(SpeciesTag, Isotopologue, Index)
-GetterSetterCAPI(SpeciesTag, Uf, Numeric)
-GetterSetterCAPI(SpeciesTag, Lf, Numeric)
-GetterSetterCAPI(SpeciesTag, CIASecond, Index)
-GetterSetterCAPI(SpeciesTag, CIADataset, Index)
-EnumGetterSetterCAPI(SpeciesTag, Type, Index)
+VoidStructGetterCAPI(SpeciesTag, spec_ind)
+VoidStructGetterCAPI(SpeciesTag, lower_freq)
+VoidStructGetterCAPI(SpeciesTag, upper_freq)
+VoidStructGetterCAPI(SpeciesTag, type)
+VoidStructGetterCAPI(SpeciesTag, cia_2nd_species)
+VoidStructGetterCAPI(SpeciesTag, cia_dataset_index)
 VoidArrayCAPI(ArrayOfSpeciesTag)
 BasicInterfaceCAPI(ArrayOfSpeciesTag)
 BasicInputOutputCAPI(ArrayOfSpeciesTag)
@@ -302,41 +420,6 @@ Index setSpeciesTag(void * data, char * newdata)
   } catch(std::exception& e) {
     return EXIT_FAILURE;
   }
-}
-
-Index validSpecies(Index spec)
-{
-  if (spec >= 0 and spec < global_data::species_data.nelem())
-    return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
-}
-
-Index validAllIsotopologues(Index spec, Index isot)
-{
-  auto& species = global_data::species_data[spec];
-  if (isot == species.Isotopologue().nelem())
-    return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
-}
-
-Index validIsotopologue(Index spec, Index isot)
-{
-  auto& species = global_data::species_data[spec];
-  if (isot >= 0 and isot < species.Isotopologue().nelem() and not species.Isotopologue()[isot].isContinuum())
-    return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
-}
-
-Index validContinuum(Index spec, Index isot)
-{
-  auto& species = global_data::species_data[spec];
-  if (isot >= 0 and isot < species.Isotopologue().nelem() and species.Isotopologue()[isot].isContinuum())
-    return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
 }
 
 
@@ -815,26 +898,24 @@ void * dataGriddedField6(void * data) {return &static_cast<GriddedField6 *>(data
 bool checksizeGriddedField6(void * data) {return static_cast<GriddedField6 *>(data) -> checksize();}
 
 
-// SpeciesAuxData
-BasicInterfaceCAPI(SpeciesAuxData)
-BasicInputOutputCAPI(SpeciesAuxData)
-void initSpeciesAuxData(void * data) {static_cast<SpeciesAuxData *>(data) -> InitFromSpeciesData();}
-bool validindexSpeciesAuxData(void * data, Index s, Index i) {return static_cast<SpeciesAuxData *>(data) -> validIndex(s, i);}
-void * getDataSpeciesAuxData(void * data, Index s, Index i) {return &static_cast<SpeciesAuxData *>(data) -> Data(s, i);}
-Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t) {return static_cast<SpeciesAuxData *>(data) -> setParamType(s, i, t);}
-Index getTypeSpeciesAuxData(void * data, Index s, Index i) {return Index(static_cast<SpeciesAuxData *>(data) -> getParamType(s, i));}
-
-
 // CIARecord
 BasicInterfaceCAPI(CIARecord)
 BasicInputOutputCAPI(CIARecord)
 VoidGetterCAPI(CIARecord, Data)
+void * getSpecies1CIARecord(void * data) {
+  return new Species::Species(static_cast<CIARecord *>(data) -> Species(0));
+}
+void * getSpecies2CIARecord(void * data) {
+  return new Species::Species(static_cast<CIARecord *>(data) -> Species(1));
+}
+void setSpeciesCIARecord(void * data, void * s1, void * s2) {
+  static_cast<CIARecord *>(data) -> SetSpecies(
+    *static_cast<Species::Species *>(s1),
+    *static_cast<Species::Species *>(s2));
+}
 VoidArrayCAPI(ArrayOfCIARecord)
 BasicInterfaceCAPI(ArrayOfCIARecord)
 BasicInputOutputCAPI(ArrayOfCIARecord)
-Index getSpecies1CIARecord(void * data) {return static_cast<CIARecord *>(data) -> Species(0);}
-Index getSpecies2CIARecord(void * data) {return static_cast<CIARecord *>(data) -> Species(1);}
-void setSpeciesCIARecord(void * data, Index newval1, Index newval2) {return static_cast<CIARecord *>(data) -> SetSpecies(newval1, newval2);}
 
 
 // Verbosity
@@ -1142,6 +1223,12 @@ VoidGetterCAPI(GasAbsLookup, Xsec)
 // XsecRecord
 BasicInterfaceCAPI(XsecRecord)
 BasicInputOutputCAPI(XsecRecord)
+void * getSpeciesXsecRecord(void * data) {
+  return new Species::Species(static_cast<XsecRecord *>(data) -> Species());
+}
+void setSpeciesXsecRecord(void * data, void * val) {
+  static_cast<XsecRecord *>(data) -> SetSpecies(*static_cast<Species::Species *>(val));
+}
 VoidGetterCAPI(XsecRecord, Coeffs)
 VoidGetterCAPI(XsecRecord, RefPressure)
 VoidGetterCAPI(XsecRecord, RefTemperature)
@@ -1152,8 +1239,6 @@ VoidGetterCAPI(XsecRecord, TemperatureIntersect)
 VoidArrayCAPI(ArrayOfXsecRecord)
 BasicInterfaceCAPI(ArrayOfXsecRecord)
 BasicInputOutputCAPI(ArrayOfXsecRecord)
-Index getSpeciesXsecRecord(void * data) {return static_cast<XsecRecord *>(data) -> Species();}
-void setSpeciesXsecRecord(void * data, Index newdata) {static_cast<XsecRecord *>(data) -> SetSpecies(newdata);}
 
 
 // Sparse
@@ -1314,6 +1399,28 @@ VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pq)
 VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pp)
 VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pp)
 
+
+// PartitionFunctionsType
+BasicInterfaceCAPI(PartitionFunctionsType)
+void * getPartitionFunctionsTypeString(void * data) {
+  return new String(toString(*static_cast<PartitionFunctionsType *>(data)));
+}
+int setPartitionFunctionsTypeString(void * data, char * val) {
+  auto x = PartitionFunctions::toType(val);
+  if (good_enum(x)) {
+    *static_cast<PartitionFunctionsType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
+// PartitionFunctionsData
+BasicInterfaceCAPI(PartitionFunctionsData)
+BasicInputOutputCAPI(PartitionFunctionsData)
+VoidStructGetterCAPI(PartitionFunctionsData, type)
+VoidStructGetterCAPI(PartitionFunctionsData, data)
 
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }

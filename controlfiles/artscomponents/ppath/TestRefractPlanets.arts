@@ -188,7 +188,7 @@ AtmRawRead( basename = "planets/Venus/MPS/Venus.vira.day/Venus.vira.day" )
 AtmFieldsCalc( vmr_zeropadding=1 )
 Extract( z_surface, z_field, 0 )
 
-atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 
@@ -214,7 +214,7 @@ AtmRawRead( basename = "planets/Jupiter/MPS/Jupiter.mean/Jupiter.mean" )
 AtmFieldsCalc( vmr_zeropadding=1 )
 Extract( z_surface, z_field, 0 )
 
-atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 

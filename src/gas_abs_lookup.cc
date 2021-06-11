@@ -280,7 +280,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   ArrayOfIndex i_current_species(n_current_species);
   out3 << "  Looking for species in lookup table:\n";
   for (Index i = 0; i < n_current_species; ++i) {
-    out3 << "  " << get_tag_group_name(current_species[i]) << ": ";
+    out3 << "  " << current_species[i].Name() << ": ";
 
     try {
       i_current_species[i] =
@@ -288,15 +288,15 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
 
     } catch (const runtime_error_not_found&) {
       // Is this one of the trivial species?
-      const Index spec_type = current_species[i][0].Type();
-      if (spec_type == SpeciesTag::TYPE_ZEEMAN ||
-          spec_type == SpeciesTag::TYPE_FREE_ELECTRONS ||
-          spec_type == SpeciesTag::TYPE_PARTICLES) {
+      const auto spec_type = current_species[i].Type();
+      if (spec_type == Species::TagType::Zeeman ||
+          spec_type == Species::TagType::FreeElectrons ||
+          spec_type == Species::TagType::Particles) {
         // Set to -1 to flag that this needs special handling later on.
         i_current_species[i] = -1;
       } else {
         ostringstream os;
-        os << "Species " << get_tag_group_name(current_species[i])
+        os << "Species " << current_species[i].Name()
            << " is missing in absorption lookup table.";
         throw runtime_error(os.str());
       }
@@ -318,7 +318,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
     {
       // Check if this is a nonlinear species:
       if (non_linear[i_current_species[i]]) {
-        out3 << "  " << get_tag_group_name(current_species[i]) << "\n";
+        out3 << "  " << current_species[i] << "\n";
 
         current_non_linear[i] = 1;
         ++n_current_nonlinear_species;
@@ -555,8 +555,7 @@ void GasAbsLookup::Extract(Matrix& sga,
   // species.
   Index h2o_index = -1;
   if (n_nls > 0) {
-    h2o_index =
-        find_first_species_tg(species, species_index_from_species_name("H2O"));
+    h2o_index = find_first_species(species, Species::Species::Water);
 
     // This is a runtime error, even though it would be more logical
     // for it to be an assertion, since it is an internal check on
@@ -1018,9 +1017,7 @@ void GasAbsLookup::Extract(Matrix& sga,
 
       // Ignore species such as Zeeman and free_electrons which are not
       // stored in the lookup table. For those the result is set to 0.
-      if (is_zeeman(species[si]) ||
-          species[si][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS ||
-          species[si][0].Type() == SpeciesTag::TYPE_PARTICLES) {
+      if (species[si].Zeeman() or species[si].FreeElectrons() or species[si].Particles()) {
         if (do_VMR) {
           ostringstream os;
           os << "Problem with gas absorption lookup table.\n"

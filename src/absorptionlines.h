@@ -362,7 +362,7 @@ public:
    * @param[in] qid Copy of the global identifier to fill by local numbers
    * @param[in] keys List of quantum number keys in this line's local quantum number lists
    */
-  void SetAutomaticZeeman(const QuantumIdentifier& qid, const std::vector<QuantumNumberType>& keys);
+  void SetAutomaticZeeman(QuantumIdentifier qid, const std::vector<QuantumNumberType>& keys);
   
   /** Set the line mixing model to 2nd order
    * 
@@ -400,12 +400,14 @@ struct SingleLineExternal {
   Numeric T0=0;
   Numeric cutofffreq=0;
   Numeric linemixinglimit=-1;
-  QuantumIdentifier quantumidentity=QuantumIdentifier(QuantumIdentifier::TRANSITION, -1, -1);
-  ArrayOfSpeciesTag species;
+  QuantumIdentifier quantumidentity;
+  ArrayOfSpecies species;
   SingleLine line;
 };
 
 class Lines {
+public:
+  static constexpr Index version = 1;
 private:
   /** Does the line broadening have self broadening */
   bool mselfbroadening;
@@ -444,7 +446,7 @@ private:
   std::vector<QuantumNumberType> mlocalquanta;
   
   /** A list of broadening species */
-  ArrayOfSpeciesTag mbroadeningspecies;
+  ArrayOfSpecies mbroadeningspecies;
   
   /** A list of individual lines */
   std::vector<SingleLine> mlines;
@@ -479,7 +481,7 @@ public:
         Numeric linemixinglimit=-1,
         const QuantumIdentifier& quantumidentity=QuantumIdentifier(),
         const std::vector<QuantumNumberType>& localquanta={},
-        const ArrayOfSpeciesTag& broadeningspecies={},
+        const ArrayOfSpecies& broadeningspecies={},
         const std::vector<SingleLine>& lines={}) :
         mselfbroadening(selfbroadening),
         mbathbroadening(bathbroadening),
@@ -494,7 +496,10 @@ public:
         mquantumidentity(quantumidentity),
         mlocalquanta(localquanta),
         mbroadeningspecies(broadeningspecies),
-        mlines(lines) {};
+        mlines(lines) {
+    if (selfbroadening) mbroadeningspecies.front() = quantumidentity.Species();
+    if (bathbroadening) mbroadeningspecies.back() = Species::Species::Bath;
+  }
   
   /** XML-tag initialization
    * 
@@ -527,7 +532,7 @@ public:
         Numeric linemixinglimit,
         const QuantumIdentifier& quantumidentity,
         const std::vector<QuantumNumberType>& localquanta,
-        const ArrayOfSpeciesTag& broadeningspecies,
+        const ArrayOfSpecies& broadeningspecies,
         const LineShape::Model& metamodel) :
         mselfbroadening(selfbroadening),
         mbathbroadening(bathbroadening),
@@ -544,7 +549,10 @@ public:
         mbroadeningspecies(broadeningspecies),
         mlines(nlines,
                SingleLine(broadeningspecies.size(),
-               localquanta.size(), metamodel)) {};
+               localquanta.size(), metamodel)) {
+    if (selfbroadening) mbroadeningspecies.front() = quantumidentity.Species();
+    if (bathbroadening) mbroadeningspecies.back() = Species::Species::Bath;
+  }
   
   /** Appends a single line to the absorption lines
    * 
@@ -579,7 +587,7 @@ public:
    * @param[in] sle Full external lines
    * @param[in] quantumidentity Expected global quantum id of the line
    */
-  bool MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const noexcept;
+  bool MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const ARTS_NOEXCEPT;
   
   /** Checks if another line list matches this structure
    * 
@@ -613,10 +621,10 @@ public:
   String LineShapeMetaData() const noexcept;
   
   /** Species Index */
-  Index Species() const noexcept {return mquantumidentity.Species();}
+  Species::Species Species() const noexcept {return mquantumidentity.Species();}
   
   /** Isotopologue Index */
-  Index Isotopologue() const noexcept {return mquantumidentity.Isotopologue();}
+  const Species::IsotopeRecord& Isotopologue() const noexcept {return mquantumidentity.Isotopologue();}
   
   /** Number of lines */
   Index NumLines() const noexcept {return Index(mlines.size());}
@@ -920,7 +928,7 @@ public:
    * @param[in] A species index that might be among the broadener species
    * @return Position among broadening species or -1
    */
-  Index LineShapePos(const Index& spec) const noexcept;
+  Index LineShapePos(const Species::Species spec) const noexcept;
   
   /** Position among broadening species or -1
    * 
@@ -1010,13 +1018,22 @@ public:
   }
   
   /** Returns the broadening species */
-  const ArrayOfSpeciesTag& BroadeningSpecies() const noexcept {
+  const ArrayOfSpecies& BroadeningSpecies() const noexcept {
     return mbroadeningspecies;
   }
   
   /** Returns the broadening species */
-  ArrayOfSpeciesTag& BroadeningSpecies() noexcept {
+  ArrayOfSpecies& BroadeningSpecies() noexcept {
     return mbroadeningspecies;
+  }
+  
+  /** Position of species if available or -1 else */
+  Index BroadeningSpeciesPosition(Species::Species spec) const noexcept {
+    if (auto ptr = std::find(mbroadeningspecies.cbegin(),
+      mbroadeningspecies.cend(), spec); ptr not_eq mbroadeningspecies.cend())
+      return std::distance(mbroadeningspecies.cbegin(), ptr);
+    else
+      return -1;
   }
   
   /** Returns self broadening status */
@@ -1088,7 +1105,7 @@ public:
    * @param[in] bath_mass Mass of Bath/Air (optional, will compute it if <=0)
    * @return Mass list of the species
    */
-  Vector BroadeningSpeciesMass(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&, const Numeric& bath_mass=0) const;
+  Vector BroadeningSpeciesMass(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&, const SpeciesIsotopologueRatios&, const Numeric& bath_mass=0) const;
   
   /** Returns the VMR of the species
    * 
@@ -1327,67 +1344,6 @@ SingleLineExternal ReadFromHitranOnlineStream(istream& is);
  */
 SingleLineExternal ReadFromHitran2001Stream(istream& is);
 
-/** Read from Mytran2
- * The MYTRAN2
- * format is as follows (directly taken from the abs_my.c documentation):
- *
- * @verbatim
-  The MYTRAN format is as follows (FORTRAN notation):
-  FORMAT(I2,I1,F13.4,1PE10.3,0P2F5.2,F10.4,2F4.2,F8.6,F6.4,2I3,2A9,4I1,3I2)
-  
-  Each item is defined below, with its FORMAT String shown in
-  parenthesis.
-  
-      MO  (I2)      = molecule number
-      ISO (I1)      = isotopologue number (1 = most abundant, 2 = second, etc)
-  *  F (F13.4)     = frequency of transition in MHz
-  *  errf (F8.4)   = error in f in MHz
-      S (E10.3)     = intensity in cm-1/(molec * cm-2) at 296 K
-  *  AGAM (F5.4)   = air-broadened halfwidth (HWHM) in MHz/Torr at Tref
-  *  SGAM (F5.4)   = self-broadened halfwidth (HWHM) in MHz/Torr at Tref
-      E (F10.4)     = lower state energy in wavenumbers (cm-1)
-      N (F4.2)      = coefficient of temperature dependence of 
-                      air-broadened halfwidth
-  *  N_self (F4.2) = coefficient of temperature dependence of 
-                      self-broadened halfwidth
-  *  Tref (F7.2)   = reference temperature for AGAM and SGAM 
-  *  d (F9.7)      = shift of transition due to pressure (MHz/Torr)
-      V1 (I3)       = upper state global quanta index
-      V2 (I3)       = lower state global quanta index
-      Q1 (A9)       = upper state local quanta
-      Q2 (A9)       = lower state local quanta
-      IERS (I1)     = accuracy index for S
-      IERH (I1)     = accuracy index for AGAM
-  *  IERN (I1)     = accuracy index for N
-
-  
-  The asterisks mark entries that are different from HITRAN.
-
-  Note that AGAM and SGAM are for the temperature Tref, while S is
-  still for 296 K!
-  
-  The molecule numbers are encoded as shown in the table below:
-  
-     0= Null    1=  H2O    2=  CO2    3=   O3    4=  N2O    5=   CO
-     6=  CH4    7=   O2    8=   NO    9=  SO2   10=  NO2   11=  NH3
-    12= HNO3   13=   OH   14=   HF   15=  HCl   16=  HBr   17=   HI
-    18=  ClO   19=  OCS   20= H2CO   21= HOCl   22=   N2   23=  HCN
-    24=CH3Cl   25= H2O2   26= C2H2   27= C2H6   28=  PH3   29= COF2
-    30=  SF6   31=  H2S   32=HCOOH   33= HO2    34=    O   35= CLONO2
-    36=  NO+   37= Null   38= Null   39= Null   40=H2O_L   41= Null
-    42= Null   43= OCLO   44= Null   45= Null   46=BRO     47= Null
-    48= H2SO4  49=CL2O2
-
-  All molecule numbers are from HITRAN, except for species with id's
-  greater or equals 40, which are not included in HITRAN.
-  (E.g.: For BrO, iso=1 is Br-79-O,iso=2 is  Br-81-O.)
- * @endverbatim
- * 
- * @param[in] is Input stream
- * @return SingleLineExternal 
- */
-SingleLineExternal ReadFromMytran2Stream(istream& is);
-
 /** Read from JPL
  * 
  *  The JPL format is as follows (directly taken from the JPL documentation):
@@ -1506,7 +1462,7 @@ struct QuantumIdentifierLineTarget {
   //! Species/Isotopologue/Band match constructor from ID
   constexpr QuantumIdentifierLineTarget(const QuantumIdentifier& qt, const QuantumIdentifier& qid) ARTS_NOEXCEPT : QuantumIdentifierLineTarget()
   {
-    ARTS_ASSERT(qid.Type() == QuantumIdentifier::TRANSITION);
+    ARTS_ASSERT(qid.type == Quantum::IdentifierType::Transition);
     
     // We have no match if we do not match the species
     if (qt.Species() == qid.Species()) found = QuantumIdentifierLineTargetType::Species;
@@ -1516,24 +1472,24 @@ struct QuantumIdentifierLineTarget {
     
     // We do cannot match the band if we do not match the isotopologue
     if (found == QuantumIdentifierLineTargetType::Isotopologue) {
-      if (qt.Type() == QuantumIdentifier::ALL) {
+      if (qt.type == Quantum::IdentifierType::All) {
         
         // Nothing to do here
         
-      } else if (qt.Type() == QuantumIdentifier::NONE) {
+      } else if (qt.type == Quantum::IdentifierType::None) {
         
         found = QuantumIdentifierLineTargetType::None;  // We turned this off!
         
-      } else if (qt.Type() == QuantumIdentifier::TRANSITION) {
+      } else if (qt.type == Quantum::IdentifierType::Transition) {
         
         // We are band specific values
         bool all_good = true;
         for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
           if (qn not_eq QuantumNumberType::FINAL) {
-            const Rational& low_band = qid.LowerQuantumNumbers()[qn];
-            const Rational& low_targ = qt.LowerQuantumNumbers()[qn];
-            const Rational& upp_band = qid.UpperQuantumNumbers()[qn];
-            const Rational& upp_targ = qt.UpperQuantumNumbers()[qn];
+            const Rational& low_band = qid.Lower()[qn];
+            const Rational& low_targ = qt.Lower()[qn];
+            const Rational& upp_band = qid.Upper()[qn];
+            const Rational& upp_targ = qt.Upper()[qn];
             all_good = all_good
             and (low_band.isUndefined() or low_band == low_targ)
             and (upp_band.isUndefined() or upp_band == upp_targ);
@@ -1543,7 +1499,7 @@ struct QuantumIdentifierLineTarget {
         // We are a band?
         if (all_good) found = QuantumIdentifierLineTargetType::Band;
         
-      } else if (qt.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+      } else if (qt.type == Quantum::IdentifierType::EnergyLevel) {
         
         // We are the right species, are we a level?
         bool low_lvl = true;
@@ -1551,9 +1507,9 @@ struct QuantumIdentifierLineTarget {
         for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
           if (qn not_eq QuantumNumberType::FINAL) {
             // Check only numbers in the energy levels
-            const Rational& low_band = qid.LowerQuantumNumbers()[qn];
-            const Rational& upp_band = qid.UpperQuantumNumbers()[qn];
-            const Rational& lvl_targ = qt.EnergyLevelQuantumNumbers()[qn];
+            const Rational& low_band = qid.Lower()[qn];
+            const Rational& upp_band = qid.Upper()[qn];
+            const Rational& lvl_targ = qt.Level()[qn];
             low_lvl = low_lvl and (low_band.isUndefined() or low_band == lvl_targ);
             upp_lvl = upp_lvl and (upp_band.isUndefined() or upp_band == lvl_targ);
           }
@@ -1586,20 +1542,6 @@ struct QuantumIdentifierLineTarget {
     return os << qlt.found << ' ' << qlt.lower << ' ' << qlt.upper;
   }
 };
-
-/** Find the line_shape_position of the catalog parameter
- * 
- * catalog_parameter_position has four type of values:
- * -2...:  No catalog parameter position.  A bug.
- * std::numeric_limits<Index>::max(): This means bath broadening
- * -1: This means that self-broadening has been selected
- * N: This is simply the species value
- * 
- * @param[in] band An absorption band
- * @param[in] catalog_parameter_position A catalog parameter position
- * @return -1 on bad value, or a value otherwise
- */
-Index line_shape_position(const Lines& band, const Index catalog_parameter_position) ARTS_NOEXCEPT;
 };  // Absorption
 
 typedef Absorption::SingleLine AbsorptionSingleLine;

@@ -337,6 +337,12 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wno-strict-overflow)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
+######## Need to link to filesystem ########
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+    message (STATUS "Linking against stdc++fs")
+    link_libraries (stdc++fs)
+endif()
+
 
 if(CMAKE_BUILD_TYPE STREQUAL "Native")
     ARTS_ADD_COMPILER_FLAG (O3)
@@ -440,6 +446,16 @@ cmake -DARTS_XML_DATA_PATH=PATH_TO_ARTS_XML_DATA ..")
 else (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
   message(STATUS "Found arts-xml-data in ${ARTS_XML_DATA_DIR}")
 endif (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
+
+########### Path to partition functions data ##########
+if (ARTS_PARTFUN_DATA_PATH)
+  get_filename_component (ARTS_PARTFUN_DATA_PATH "${ARTS_PARTFUN_DATA_PATH}" ABSOLUTE)
+    message(STATUS "Using manual partition functions data (unset ARTS_PARTFUN_DATA_PATH to switch to built-in options)")
+else (ARTS_PARTFUN_DATA_PATH)
+  get_filename_component (ARTS_PARTFUN_DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/partfun/" ABSOLUTE)
+  message(STATUS "Using built-in partition functions data (use -DARTS_PARTFUN_DATA_PATH=/path/to/data/ to use other partition functions)")
+endif (ARTS_PARTFUN_DATA_PATH)
+message(STATUS "The partition functions data is at ${ARTS_PARTFUN_DATA_PATH}")
 
 if (CMAKE_GENERATOR STREQUAL "Xcode")
   set (CTEST_MISC_OPTIONS -C \${CONFIGURATION})

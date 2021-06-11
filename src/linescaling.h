@@ -41,8 +41,7 @@
  * @return partition function
  */
 Numeric single_partition_function(const Numeric& T,
-                                  const SpeciesAuxData::AuxType& partition_type,
-                                  const ArrayOfGriddedField1& partition_data) noexcept;
+                                  const Species::IsotopeRecord& ir);
 
 /** Computes the partition function temperature derivative
  * 
@@ -52,10 +51,8 @@ Numeric single_partition_function(const Numeric& T,
  * 
  * @return partition function derivative wrt temperature
  */
-Numeric dsingle_partition_function_dT(
-    const Numeric& T,
-    const SpeciesAuxData::AuxType& partition_type,
-    const ArrayOfGriddedField1& partition_data) noexcept;
+Numeric dsingle_partition_function_dT(const Numeric& T,
+                                      const Species::IsotopeRecord& ir);
 
 /** Computes exp(-hf/kT)
  * 

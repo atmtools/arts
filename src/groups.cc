@@ -158,7 +158,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ScatteringMetaData");
   wsv_group_names.push_back("SingleScatteringData");
   wsv_group_names.push_back("Sparse");
-  wsv_group_names.push_back("SpeciesAuxData");
+  wsv_group_names.push_back("SpeciesIsotopologueRatios");
   wsv_group_names.push_back("StokesVector");
   wsv_group_names.push_back("String");
   wsv_group_names.push_back("TelsemAtlas");

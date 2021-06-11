@@ -1840,7 +1840,7 @@ void Workspace::define_wsv_data() {
                             "\n"
                             "This variable can be set to default values by\n"
                             "calling *isotopologue_ratiosInitFromBuiltin*\n"),
-                GROUP("SpeciesAuxData")));
+                GROUP("SpeciesIsotopologueRatios")));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy"),
@@ -2840,14 +2840,6 @@ void Workspace::define_wsv_data() {
           "\n"
           "Dimensions: [number of scattering elements, number of mass categories]\n"),
       GROUP("Matrix")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("partition_functions"),
-                DESCRIPTION("Partition functions.\n"
-                            "\n"
-                            "This variable can be set to default values by\n"
-                            "calling *partition_functionsInitFromBuiltin*\n"),
-                GROUP("SpeciesAuxData")));
 
   wsv_data.push_back(WsvRecord(
       NAME("pha_mat"),

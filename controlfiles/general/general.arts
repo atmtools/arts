@@ -179,11 +179,6 @@ NumericSet( mc_taustep_limit, 0.1 )
 #
 nlteOff
 
-#
-# Use built-in Partition functions per default
-#
-partition_functionsInitFromBuiltin
-
 
 #
 # Only one option so far for water_p_eq_agenda 

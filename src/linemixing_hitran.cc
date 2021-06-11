@@ -1050,9 +1050,10 @@ void calcw(ConvTPOut& out,
         if (jjip > jji) continue;
         
         // nb. FIX THIS FOR ARTS SPECIFIC Isotopologue
-        const bool skip = band.Isotopologue() > 2 and
-                          band.Isotopologue() not_eq 7 and 
-                          band.Isotopologue() not_eq 10 and 
+        const bool skip = not (band.Isotopologue().isotname == "626" or
+                               band.Isotopologue().isotname == "636" or
+                               band.Isotopologue().isotname == "828" or
+                               band.Isotopologue().isotname == "838") and
                           (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
         
         if(skip) continue;
@@ -1116,9 +1117,10 @@ void calcw(ConvTPOut& out,
       for (Index j=0; j<n; j++) {
         
         // nb. FIX THIS FOR ARTS SPECIFIC Isotopologue
-        const bool skip = band.Isotopologue() > 2 and
-                          band.Isotopologue() not_eq 7 and 
-                          band.Isotopologue() not_eq 10 and 
+        const bool skip = not (band.Isotopologue().isotname == "626" or
+                               band.Isotopologue().isotname == "636" or
+                               band.Isotopologue().isotname == "828" or
+                               band.Isotopologue().isotname == "838") and
                           (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
                 
         if (skip) continue;
@@ -1148,9 +1150,10 @@ void calcw(ConvTPOut& out,
         if (i == j) continue;
         
         // nb. FIX THIS FOR ARTS SPECIFIC Isotopologue
-        const bool skip = band.Isotopologue() > 2 and
-                          band.Isotopologue() not_eq 7 and 
-                          band.Isotopologue() not_eq 10 and 
+        const bool skip = not (band.Isotopologue().isotname == "626" or
+                               band.Isotopologue().isotname == "636" or
+                               band.Isotopologue().isotname == "828" or
+                               band.Isotopologue().isotname == "838") and
                           (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
                 
         if (skip) continue;
@@ -1317,14 +1320,12 @@ ConvTPOut convtp(const ConstVectorView vmrs,
                  const HitranRelaxationMatrixData& hitran,
                  const AbsorptionLines& band,
                  const Numeric T,
-                 const Numeric P,
-                 const SpeciesAuxData::AuxType& partition_type,
-                 const ArrayOfGriddedField1& partition_data)
+                 const Numeric P)
 {
   const Index n = band.NumLines();
   
-  const Numeric QT = single_partition_function(T, partition_type, partition_data);
-  const Numeric QT0 = single_partition_function(band.T0(), partition_type, partition_data);
+  const Numeric QT = single_partition_function(T, band.Isotopologue());
+  const Numeric QT0 = single_partition_function(band.T0(), band.Isotopologue());
   const Numeric ratiopart = QT0 / QT;
   
   ConvTPOut out(n);
@@ -1654,8 +1655,7 @@ Vector compabs(
   const HitranRelaxationMatrixData& hitran,
   const ArrayOfAbsorptionLines& bands,
   const ConstVectorView vmrs,
-  const ConstVectorView f_grid,
-  const SpeciesAuxData& partition_functions)
+  const ConstVectorView f_grid)
 {
   using Constant::pow2;
   using Constant::pow3;
@@ -1675,7 +1675,7 @@ Vector compabs(
   for (Index iband=0; iband<bands.nelem(); iband++) {
     if (not bands[iband].DoLineMixing(P)) continue;
     
-    auto tp = convtp(vmrs, hitran, bands[iband], T, P, partition_functions.getParamType(bands[iband].QuantumIdentity()), partition_functions.getParam(bands[iband].QuantumIdentity()));
+    auto tp = convtp(vmrs, hitran, bands[iband], T, P);
     const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, bands[iband].SpeciesMass());
     
     const bool sdvp = bands[iband].LineShapeType() == LineShape::Type::SDVP;
@@ -1916,10 +1916,9 @@ Vector compute(const HitranRelaxationMatrixData& hitran,
                const Numeric P,
                const Numeric T,
                const ConstVectorView vmrs,
-               const ConstVectorView f_grid,
-               const SpeciesAuxData& partition_functions)
+               const ConstVectorView f_grid)
 {
-  return f_grid.nelem() ? compabs(T, P, hitran, bands, vmrs, f_grid, partition_functions) : Vector(0);
+  return f_grid.nelem() ? compabs(T, P, hitran, bands, vmrs, f_grid) : Vector(0);
 }
 
 void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, const String& basedir, const Numeric linemixinglimit, const Numeric fmin, const Numeric fmax, const Numeric stot, const ModeOfLineMixing mode)
@@ -2014,11 +2013,9 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
                 296,
                 -1,
                 linemixinglimit_internal,
-                {specs[cmn.Bands.Isot[i]-1].Species(),
-                specs[cmn.Bands.Isot[i]-1].Isotopologue(),
-                outer_upper, outer_lower},
+                {specs[cmn.Bands.Isot[i]-1].Isotopologue(), outer_upper, outer_lower},
                 {QuantumNumberType::J},
-                {SpeciesTag("N2"), SpeciesTag("H2O"), specs[cmn.Bands.Isot[i]-1]}};
+                {Species::fromShortName("N2"), Species::fromShortName("H2O"), specs[cmn.Bands.Isot[i]-1].Spec()}};
                        
     bands[i].AllLines().resize(cmn.Bands.nLines[i]);
     for (Index j{0}; j<cmn.Bands.nLines[i]; j++) {

@@ -27,16 +27,16 @@
 #include "absorption.h"
 #include "wigner_functions.h"
 
-Numeric get_lande_spin_constant(const Index species) noexcept {
-  if (species_index_from_species_name("O2") == species)
+Numeric get_lande_spin_constant(const Species::Species species) noexcept {
+  if (Species::fromShortName("O2") == species)
     return 2.002064;
-  else if (species_index_from_species_name("NO") == species)
+  else if (Species::fromShortName("NO") == species)
     return 2.00071;
-  else if (species_index_from_species_name("OH") == species)
+  else if (Species::fromShortName("OH") == species)
     return 2.00089;
-  else if (species_index_from_species_name("ClO") == species)
+  else if (Species::fromShortName("ClO") == species)
     return 2.00072;
-  else if (species_index_from_species_name("SO") == species)
+  else if (Species::fromShortName("SO") == species)
     return 2.002106;
   else
     return 2.00231930436182;

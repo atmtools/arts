@@ -52,13 +52,9 @@ struct PopulationAndDipole {
    * 
    * @param[in] T The temperature
    * @param[in] band The absorption band
-   * @param[in] partition_type The type of partition function data
-   * @param[in] partition_data The partition function data
    */
   PopulationAndDipole(const Numeric T,
-                      const AbsorptionLines& band,
-                      const SpeciesAuxData::AuxType& partition_type,
-                      const ArrayOfGriddedField1& partition_data) noexcept;
+                      const AbsorptionLines& band) noexcept;
   
   /*! Sort self by f0*pop*dip^2 and returns positions of sorted values in the original
    * 
@@ -84,8 +80,6 @@ struct PopulationAndDipole {
  * @param[in] mass The mass of all broadeners of the absorption band
  * @param[in] f_grid The grid of frequencies
  * @param[in] band The absorption band
- * @param[in] partition_type The type of partition function data
- * @param[in] partition_data The partition function data
  * @param[in] jacobian_quantities As WSV
  * @return Complex absorption and list of Complex absorption partial derivatives
  */
@@ -96,8 +90,6 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
                                                               const Vector& mass,
                                                               const Vector& f_grid,
                                                               const AbsorptionLines& band,
-                                                              const SpeciesAuxData::AuxType& partition_type,
-                                                              const ArrayOfGriddedField1& partition_data,
                                                               const ArrayOfRetrievalQuantity& jacobian_quantities={});
 
 
@@ -113,8 +105,6 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
  * @param[in] f_grid The grid of frequencies
  * @param[in] zeeman_polarization The Zeeman polarization to consider
  * @param[in] band The absorption band
- * @param[in] partition_type The type of partition function data
- * @param[in] partition_data The partition function data
  * @return Complex absorption of the Zeeman component
  */
 std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numeric T,
@@ -126,8 +116,6 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
                                                                      const Vector& f_grid,
                                                                      const Zeeman::Polarization zeeman_polarization,
                                                                      const AbsorptionLines& band,
-                                                                     const SpeciesAuxData::AuxType& partition_type,
-                                                                     const ArrayOfGriddedField1& partition_data,
                                                                      const ArrayOfRetrievalQuantity& jacobian_quantities={});
 
 
@@ -139,16 +127,12 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
  * @param[in] band The absorption band
  * @param[in] temperatures The temperature grid for fitting parameters upon
  * @param[in] mass The mass of all broadeners of the absorption band
- * @param[in] partition_type The type of partition function data
- * @param[in] partition_data The partition function data
  * @return EXIT_FAILURE when some parameterization fit fails
  * @return EXIT_SUCCESS if all algorithms worked (independent of if the absorption will be reasonable)
  */
 Index ecs_rosenkranz_adaptation(AbsorptionLines& band,
                                 const Vector& temperatures,
-                                const Vector& mass,
-                                const SpeciesAuxData::AuxType& partition_type,
-                                const ArrayOfGriddedField1& partition_data);
+                                const Vector& mass);
 }  // LineMixing
 
 #endif  // linemixing_h

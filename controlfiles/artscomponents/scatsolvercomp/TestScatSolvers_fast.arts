@@ -122,7 +122,7 @@ StringCreate( message )
 abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmfields_checkedCalc
 
 
 # Intitial settings for tests

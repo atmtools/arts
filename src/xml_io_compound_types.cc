@@ -40,7 +40,7 @@
 //! Reads CIARecord from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param irecord  SpeciesRecord return value
+  \param irecord  CIARecord return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void xml_read_from_stream(istream& is_xml,
@@ -51,23 +51,23 @@ void xml_read_from_stream(istream& is_xml,
   String name;
   String molecule1;
   String molecule2;
-  Index species1;
-  Index species2;
+  Species::Species species1;
+  Species::Species species2;
 
   tag.read_from_stream(is_xml);
   tag.check_name("CIARecord");
   tag.get_attribute_value("molecule1", molecule1);
   tag.get_attribute_value("molecule2", molecule2);
 
-  species1 = species_index_from_species_name(molecule1);
-  species2 = species_index_from_species_name(molecule2);
+  species1 = Species::fromShortName(molecule1);
+  species2 = Species::fromShortName(molecule2);
 
-  if (species1 == -1) {
+  if (not good_enum(species1)) {
     ostringstream os;
     os << "Unknown species (1st molecule) in CIARecord: " << molecule1;
     throw runtime_error(os.str());
   }
-  if (species2 == -1) {
+  if (not good_enum(species2)) {
     ostringstream os;
     os << "Unknown species (2nd molecule) in CIARecord: " << molecule2;
     throw runtime_error(os.str());
@@ -421,7 +421,7 @@ void xml_read_from_stream(istream& is_xml,
                           GriddedField& gfield,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+  XMLTag tag(verbosity);
 
   for (Index i = 0; i < gfield.get_dim(); i++) {
     tag.read_from_stream(is_xml);
@@ -1007,74 +1007,6 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, hitran.B0qq, pbofs, "B0qq", verbosity);
 
   close_tag.set_name("/HitranRelaxationMatrixData");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
-//=== IsotopologueRecord ================================================
-
-//! Reads IsotopologueRecord from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param irecord  SpeciesRecord return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(istream& is_xml,
-                          IsotopologueRecord& irecord,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
-  String name;
-  Numeric abundance;
-  Numeric mass;
-  Index mytrantag;
-  ArrayOfIndex jpltags;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("IsotopologueRecord");
-
-  xml_read_from_stream(is_xml, name, pbifs, verbosity);
-  xml_read_from_stream(is_xml, abundance, pbifs, verbosity);
-  xml_read_from_stream(is_xml, mass, pbifs, verbosity);
-  xml_read_from_stream(is_xml, mytrantag, pbifs, verbosity);
-  xml_read_from_stream(is_xml, jpltags, pbifs, verbosity);
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/IsotopologueRecord");
-
-  irecord =
-      IsotopologueRecord(name, abundance, mass, mytrantag, jpltags);
-}
-
-//! Writes IsotopologueRecord to XML output stream
-/*!
-  \param os_xml   XML Output stream
-  \param irecord  IsotopologueRecord
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
-  \param name     Optional name attribute
-*/
-void xml_write_to_stream(ostream& os_xml,
-                         const IsotopologueRecord& irecord,
-                         bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
-
-  open_tag.set_name("IsotopologueRecord");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_write_to_stream(os_xml, irecord.Name(), pbofs, "Name", verbosity);
-  xml_write_to_stream(
-      os_xml, irecord.Abundance(), pbofs, "Abundance", verbosity);
-  xml_write_to_stream(os_xml, irecord.Mass(), pbofs, "Mass", verbosity);
-  xml_write_to_stream(
-      os_xml, irecord.MytranTag(), pbofs, "MytranTag", verbosity);
-  xml_write_to_stream(os_xml, irecord.JplTags(), pbofs, "JplTags", verbosity);
-
-  close_tag.set_name("/IsotopologueRecord");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
@@ -1674,215 +1606,87 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== SpeciesAuxData ===========================================
+//=== SpeciesIsotopologueRatios ===========================================
 
-//! Reads SpeciesAuxData from XML input stream
+//! Reads SpeciesIsotopologueRatios from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param sap      SpeciesAuxData return value
+  \param sap      SpeciesIsotopologueRatios return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void xml_read_from_stream(istream& is_xml,
-                          SpeciesAuxData& sad,
-                          bifstream* pbifs _U_,
+                          SpeciesIsotopologueRatios& iso_rat,
+                          bifstream* pbifs,
                           const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbifs, "No support for binary IO for (SpeciesIsotopologueRatios)")
+  
   CREATE_OUT2;
+  
+  iso_rat = SpeciesIsotopologueRatios{};
 
   ArtsXMLTag tag(verbosity);
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("SpeciesIsotopologueRatios");
+  
   Index nelem;
-  Index nparam;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("SpeciesAuxData");
-
-  Index version;
-  tag.get_attribute_value("version", version);
-
-  if (version == 1) {
-    tag.get_attribute_value("nelem", nelem);
-    tag.get_attribute_value("nparam", nparam);
-
-    Index n = 0;
-    try {
-      ArrayOfString artstags;
-      sad.InitFromSpeciesData();
-      for (n = 0; n < nelem; n++) {
-        String artstag;
-        sad.ReadFromStream(artstag, is_xml, nparam, verbosity);
-
-        if (find_first(artstags, artstag) == -1)
-          artstags.push_back(artstag);
-        else {
-          ostringstream os;
-          os << "SpeciesAuxData for " << artstag << " already defined.\n"
-             << "Duplicates are not allowed in input file.";
-          throw runtime_error(os.str());
-        }
-      }
-    } catch (const std::runtime_error& e) {
+  tag.get_attribute_value("nelem", nelem);
+  
+  String name;
+  Numeric val;
+  for (Index n = 0; n < nelem; n++) {
+    is_xml >> name >> double_imanip() >> val;
+    
+    if (is_xml.fail()) {
       ostringstream os;
-      os << "Error reading SpeciesAuxData: "
-         << "\n Element: " << n << "\n"
-         << e.what();
-      throw runtime_error(os.str());
+      os << " near "
+      << "\n  Element: " << n;
+      xml_data_parse_error(tag, os.str());
     }
-  } else if (version == 2) {
-    tag.get_attribute_value("nelem", nelem);
-    Index n = 0;
-    try {
-      ArrayOfString artstags;
-      sad.InitFromSpeciesData();
-      for (n = 0; n < nelem; n++) {
-        String artstag;
-        String auxtype;
-        ArrayOfGriddedField1 auxdata;
-
-        xml_read_from_stream(is_xml, artstag, pbifs, verbosity);
-        xml_read_from_stream(is_xml, auxtype, pbifs, verbosity);
-        xml_read_from_stream(is_xml, auxdata, pbifs, verbosity);
-
-        sad.setParam(artstag, auxtype, auxdata);
-
-        if (find_first(artstags, artstag) == -1)
-          artstags.push_back(artstag);
-        else {
-          ostringstream os;
-          os << "SpeciesAuxData for " << artstag << " already defined.\n"
-             << "Duplicates are not allowed in input file.";
-          throw runtime_error(os.str());
-        }
-      }
-    } catch (const std::runtime_error& e) {
-      ostringstream os;
-      os << "Error reading SpeciesAuxData: "
-         << "\n Element: " << n << "\n"
-         << e.what();
-      throw runtime_error(os.str());
-    }
-  } else {
-    ostringstream os;
-    os << "Unsupported SpeciesAuxData version number: " << version
-       << ", expected 1 or 2.";
-    throw std::runtime_error(os.str());
+    
+    const Index i = Species::find_species_index(Species::Tag(name).Isotopologue());
+    ARTS_USER_ERROR_IF(i < 0 or i >= iso_rat.maxsize,
+                       "Species: ", name, " cannot be understood as a species by your compiled version of ARTS")
+    
+    iso_rat.data[i] = val;
   }
-
+  
   tag.read_from_stream(is_xml);
-  tag.check_name("/SpeciesAuxData");
+  tag.check_name("/SpeciesIsotopologueRatios");
 }
 
-//! Writes SpeciesAuxData to XML output stream
+//! Writes SpeciesIsotopologueRatios to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param sap      SpeciesAuxData
+  \param sap      SpeciesIsotopologueRatios
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
 void xml_write_to_stream(ostream& os_xml,
-                         const SpeciesAuxData& sad,
-                         bofstream* pbofs _U_,
+                         const SpeciesIsotopologueRatios& iso_rat,
+                         bofstream* pbofs,
                          const String& name,
                          const Verbosity& verbosity)
 
 {
-  using global_data::species_data;
-
+  ARTS_USER_ERROR_IF(pbofs, "No support for binary IO for (SpeciesIsotopologueRatios)")
+  
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
-
-  Index nelem = 0;
-  for (Index isp = 0; isp < sad.nspecies(); isp++)
-    for (Index iso = 0; iso < sad.nisotopologues(isp); iso++)
-      if (sad.getParam(isp, iso).nelem()) nelem++;
-
-  open_tag.set_name("SpeciesAuxData");
+  
+  open_tag.set_name("SpeciesIsotopologueRatios");
   if (name.length()) open_tag.add_attribute("name", name);
-
-  open_tag.add_attribute("version", Index(2));
-  open_tag.add_attribute("nelem", nelem);
-
+  open_tag.add_attribute("nelem", iso_rat.maxsize);
+  
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
-
+  
   xml_set_stream_precision(os_xml);
-
-  for (Index isp = 0; isp < sad.nspecies(); isp++) {
-    const String spname = species_data[isp].Name();
-    for (Index iso = 0; iso < sad.nisotopologues(isp); iso++) {
-      if (sad.getParam(isp, iso).nelem()) {
-        const String artstag =
-            spname + "-" + species_data[isp].Isotopologue()[iso].Name();
-
-        xml_write_to_stream(os_xml, artstag, pbofs, "", verbosity);
-        xml_write_to_stream(
-            os_xml, sad.getTypeString(isp, iso), pbofs, "", verbosity);
-        xml_write_to_stream(
-            os_xml, sad.getParam(isp, iso), pbofs, "", verbosity);
-      }
-    }
-  }
-
-  close_tag.set_name("/SpeciesAuxData");
+  os_xml << iso_rat << '\n';
+  
+  close_tag.set_name("/SpeciesIsotopologueRatios");
   close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
-//=== SpeciesRecord ================================================
-
-//! Reads SpeciesRecord from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param srecord  SpeciesRecord return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(istream& is_xml,
-                          SpeciesRecord& srecord,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
-  String sname;
-  Index degfr;
-  Array<IsotopologueRecord> airecord;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("SpeciesRecord");
-
-  xml_read_from_stream(is_xml, sname, pbifs, verbosity);
-  xml_read_from_stream(is_xml, degfr, pbifs, verbosity);
-  xml_read_from_stream(is_xml, airecord, pbifs, verbosity);
-
-  srecord = SpeciesRecord(sname.c_str(), degfr, airecord);
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/SpeciesRecord");
-}
-
-//! Writes SpeciesRecord to XML output stream
-/*!
-  \param os_xml   XML Output stream
-  \param srecord  SpeciesRecord
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
-  \param name     Optional name attribute
-*/
-void xml_write_to_stream(ostream& os_xml,
-                         const SpeciesRecord& srecord,
-                         bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
-
-  open_tag.set_name("SpeciesRecord");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_write_to_stream(os_xml, srecord.Name(), pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, srecord.Degfr(), pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, srecord.Isotopologue(), pbofs, "", verbosity);
-
-  close_tag.set_name("/SpeciesRecord");
-  close_tag.write_to_stream(os_xml);
+  
   os_xml << '\n';
 }
 
@@ -2126,8 +1930,8 @@ void xml_read_from_stream(istream& is_xml,
   String species_name;
   xml_read_from_stream(is_xml, species_name, pbifs, verbosity);
 
-  const Index species = species_index_from_species_name(species_name);
-  if (species == -1) {
+  const Species::Species species = Species::fromShortName(species_name);
+  if (not good_enum(species)) {
     ostringstream os;
     os << "  Unknown species in XsecRecord: " << species_name;
     throw std::runtime_error(os.str());

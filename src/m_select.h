@@ -74,6 +74,44 @@ void Select(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+inline void Select(  // WS Generic Output:
+ArrayOfSpeciesTag& needles,
+// WS Generic Input:
+const ArrayOfSpeciesTag& haystack,
+const ArrayOfIndex& needleind,
+const Verbosity&) {
+  // We construct the output in this dummy variable, so that the
+  // method also works properly if needles and haystack are the same
+  // variable.
+  ArrayOfSpeciesTag dummy(needleind.nelem());
+  
+  // If needleind only contains -1 as the only element, copy the whole thing
+  if (needleind.nelem() == 1 && needleind[0] == -1) {
+    needles = haystack;
+    return;
+  }
+  
+  for (Index i = 0; i < needleind.nelem(); i++) {
+    if (haystack.nelem() <= needleind[i]) {
+      ostringstream os;
+      os << "The input vector only has " << haystack.nelem()
+      << " elements. But one of the needle indexes is " << needleind[i]
+      << "." << endl;
+      os << "The indexes must be between 0 and " << haystack.nelem() - 1;
+      throw runtime_error(os.str());
+    } else if (needleind[i] < 0) {
+      ostringstream os;
+      os << "One of the needle indexes is " << needleind[i] << "." << endl;
+      os << "The indexes must be between 0 and " << haystack.nelem() - 1;
+      throw runtime_error(os.str());
+    } else
+      dummy[i] = haystack[needleind[i]];
+  }
+  
+  needles = dummy;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 inline void Select(Workspace& /* ws */,
             // WS Generic Output:
             ArrayOfAgenda& needles,

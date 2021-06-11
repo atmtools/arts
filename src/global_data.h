@@ -31,9 +31,6 @@
 #include "methods.h"
 #include "workspace_memory_handler.h"
 
-// Needed for global_data::species_data
-class SpeciesRecord;
-
 namespace global_data {
 
 //                     ---------------
@@ -97,18 +94,6 @@ extern const ArrayOfString wsv_group_names;
  Defined in groups.cc.
  */
 extern const map<String, Index> WsvGroupMap;
-
-//! Species Data
-/**
- Defined in species_data.cc.
- */
-extern const Array<SpeciesRecord> species_data;
-
-/** The map associated with species_data. */
-/**
- Defined in absorption.cc.
- */
-extern const map<String, Index> SpeciesMap;
 
 /** The workspace memory handler
  * Defined in workspace_ng.cc.

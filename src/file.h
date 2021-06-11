@@ -31,6 +31,7 @@
 #define file_h
 
 #include <fstream>
+#include "double_imanip.h"
 #include "messages.h"
 #include "mystring.h"
 
@@ -80,55 +81,5 @@ void get_dirname(String& dirname, const String& path);
 void list_directory(ArrayOfString& files, String dirname);
 
 void make_filename_unique(String& filename, const String& extension = "");
-
-////////////////////////////////////////////////////////////////////////////
-//   IO manipulation classes for parsing nan and inf
-////////////////////////////////////////////////////////////////////////////
-
-// Not all compilers do support parsing of nan and inf.
-// The code below is taken (and slightly modified) from the discussion at:
-// http://stackoverflow.com/questions/11420263/is-it-possible-to-read-infinity-or-nan-values-using-input-streams
-
-/** Input stream class for doubles that correctly handles nan and inf. */
-class double_istream {
- public:
-  double_istream(std::istream& i) : in(i) {}
-
-  double_istream& parse_on_fail(double& x, bool neg);
-
-  double_istream& operator>>(double& x) {
-    bool neg = false;
-    char c;
-    if (!in.good()) return *this;
-    while (isspace(c = (char)in.peek())) in.get();
-    if (c == '-') {
-      neg = true;
-    }
-    in >> x;
-    if (!in.fail()) return *this;
-    return parse_on_fail(x, neg);
-  }
-
- private:
-  std::istream& in;
-};
-
-/** Input manipulator class for doubles to enable nan and inf parsing. */
-class double_imanip {
- public:
-  const double_imanip& operator>>(double& x) const {
-    double_istream(*in) >> x;
-    return *this;
-  }
-  std::istream& operator>>(const double_imanip&) const { return *in; }
-
-  friend const double_imanip& operator>>(std::istream& in,
-                                         const double_imanip& dm);
-
- private:
-  mutable std::istream* in;
-};
-
-const double_imanip& operator>>(std::istream& in, const double_imanip& dm);
 
 #endif

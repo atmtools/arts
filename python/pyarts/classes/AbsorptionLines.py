@@ -7,10 +7,10 @@ from pyarts.classes.LineShapeModel import LineShapeModel
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier
 from pyarts.classes.QuantumNumbers import QuantumNumbers
 from pyarts.classes.Rational import Rational
-from pyarts.classes.SpeciesTag import ArrayOfSpeciesTag
 from pyarts.classes.BasicTypes import Index, String
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
+from pyarts.classes.SpeciesIsotopeRecord import ArrayOfSpecies
 
 
 class AbsorptionLines:
@@ -63,7 +63,7 @@ class AbsorptionLines:
             Number of broadening species (Index)
 
         broadeningspecies:
-            Broadening species (list of SpeciesTag)
+            Broadening species (list of Species)
 
         sizelines:
             Number of absorption lines (Index)
@@ -75,7 +75,7 @@ class AbsorptionLines:
                  cutoff="None", mirroring="None", population="LTE", normalization="None",
                  lineshapetype="VP", t0=296, cutofffreq=-1, linemixinglimit=-1,
                  quantumidentity=QuantumIdentifier(), localquantumnumbers=[],
-                 broadeningspecies=ArrayOfSpeciesTag(), lsm=LineShapeModel()):
+                 broadeningspecies=ArrayOfSpecies(), lsm=LineShapeModel()):
         if isinstance(selfbroadening, c.c_void_p):
             self.__delete__ = False
             self.__data__ = selfbroadening
@@ -275,8 +275,8 @@ class AbsorptionLines:
 
     @property
     def broadeningspecies(self):
-        """ Broadening species (ArrayOfSpeciesTag) """
-        return ArrayOfSpeciesTag(c.c_void_p(
+        """ Broadening species (ArrayOfSpecies) """
+        return ArrayOfSpecies(c.c_void_p(
                 lib.getBroadeningSpeciesAbsorptionLines(self.__data__)))
 
     @broadeningspecies.setter

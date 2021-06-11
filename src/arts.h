@@ -122,8 +122,6 @@ void define_wsv_group_names();
 Index get_wsv_id(const String& name);
 Index get_wsv_id(const char* name);
 bool is_valid_keyword_group(const Index name);
-void define_species_data();
-void define_species_map();
 
 void arts_exit(int status = EXIT_FAILURE);
 void arts_exit_with_error_message(const String& m, ArtsOut& os);

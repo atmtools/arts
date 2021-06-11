@@ -26,6 +26,7 @@ set (ALL_ARTS_LIBRARIES
   methods
   matpack
   cdisort
+  species
   )
   
 if (ENABLE_GUI)
@@ -80,14 +81,9 @@ install (TARGETS arts RUNTIME DESTINATION bin)
 
 set_source_files_properties (legacy_continua.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
-set_source_files_properties (binio.cc PROPERTIES
-                             COMPILE_FLAGS "-fno-strict-aliasing")
 
 # Reduce compile time for very large initialization functions
 set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
-set_source_files_properties (partition_function_data.cc PROPERTIES
-                             COMPILE_FLAGS "-O0")
-set_source_files_properties (species_data.cc PROPERTIES COMPILE_FLAGS "-O0")
 
 # Silence invlib warning spam
 set_source_files_properties (m_oem.cc PROPERTIES
@@ -169,12 +165,10 @@ if (NOT HAVE_GETOPT_H)
     arts_getopt.c arts_getopt1.c)
 endif (NOT HAVE_GETOPT_H)
 
-
 add_library (artscore STATIC
         auto_md.h
         auto_md.cc
   ${ARTSCORE_EXTRA_SOURCES}
-  abs_species_tags.cc
   absorption.cc
   absorptionlines.cc
   agenda_class.cc
@@ -182,13 +176,11 @@ add_library (artscore STATIC
   arts.cc
   arts_omp.cc
   artstime.cc
-  bifstream.cc
-  binio.cc
-  bofstream.cc
   check_input.cc
   cia.cc
   cloudbox.cc
   constants.cc
+  compile_time_tests.cc
   covariance_matrix.cc
   disort.cc
   docserver.cc
@@ -200,13 +192,13 @@ add_library (artscore STATIC
   gas_abs_lookup.cc
   geodetic.cc
   gridded_fields.cc
-  gzstream.cc
   hitran_species.cc
   hitran_xsec.cc
   igrf13.cc
   interpolation.cc
   interpolation_lagrange.cc
   jacobian.cc
+  jpl_species.cc
   legacy_continua.cc
   legendre.cc
   lin_alg.cc
@@ -244,6 +236,7 @@ add_library (artscore STATIC
   m_nlte.cc
   m_oem.cc
   m_optproperties.cc
+  m_partfun.cc
   m_physics.cc
   m_planets.cc
   m_ppath.cc
@@ -276,7 +269,6 @@ add_library (artscore STATIC
   optproperties.cc
   parameters.cc
   parser.cc
-  partition_function_data.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
@@ -295,8 +287,8 @@ add_library (artscore STATIC
   sensor.cc
   sourcetext.cc
   special_interp.cc
-  species_data.cc
   species_info.cc
+  species_tags.cc
   surface.cc
   telsem.cc
   tessem.cc
@@ -316,7 +308,7 @@ add_library (artscore STATIC
   zeemandata.cc
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
-add_dependencies (artscore auto_version_h)
+add_dependencies (artscore auto_version_h species)
 
 if (ENABLE_GUI)
   add_subdirectory(gui)
@@ -330,7 +322,7 @@ if (ENABLE_GUI)
   target_link_libraries (artscore artsgui)
 endif()
 
-target_link_libraries (artscore ${ZLIB_LIBRARIES} wigner)
+target_link_libraries (artscore xmliobase wigner)
 
 if (FFTW_FOUND)
   include_directories (${FFTW_INCLUDE_DIR})
@@ -367,6 +359,30 @@ add_library (matpack STATIC
         
 include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
 target_link_libraries( matpack ${LAPACK_LIBRARIES} )
+
+########### next target ###############
+
+add_library (xmliobase STATIC
+        messages.cc
+        xml_io_base.cc
+        xml_io_general_types.cc
+        )
+
+target_link_libraries (xmliobase binio matpack)
+
+########### next target ###############
+
+add_library (binio STATIC
+        bifstream.cc
+        bofstream.cc
+        binio.cc
+        double_imanip.cc
+        gzstream.cc 
+        )
+
+set_source_files_properties (binio.cc PROPERTIES
+                             COMPILE_FLAGS "-fno-strict-aliasing")
+target_link_libraries (binio ${ZLIB_LIBRARIES})
 
 ########### next target ###############
 
@@ -490,7 +506,7 @@ target_link_libraries (test_sparse ${ALL_ARTS_LIBRARIES} test_utils)
 ########### next testcase ###############
 
 add_executable (test_xml test_xml.cc)
-target_link_libraries (test_xml ${ALL_ARTS_LIBRARIES})
+target_link_libraries (test_xml xmliobase)
 
 ########### next testcase ###############
 
@@ -593,7 +609,7 @@ add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts
 ########################################################################################
 
 ########################################################################################
-# Generate autoarts.h for the ARTS interface
+# Test that the autoarts.h linking can be understood by running a simple test
 add_executable(test_cpp_api test_cpp_api.cc)
 target_link_libraries(test_cpp_api public_arts_interface)
 add_dependencies(check-deps test_cpp_api)
@@ -611,3 +627,46 @@ if (ENABLE_GUI)
   add_executable(test_raw test_raw.cc)
   target_link_libraries(test_raw ${ALL_ARTS_LIBRARIES} public_arts_interface test_utils)
 endif()
+
+########################################################################################
+add_executable(gen_auto_partfun gen_auto_partfun.cc xml_io_partfun.cc)
+target_link_libraries (gen_auto_partfun PRIVATE matpack xmliobase)
+########################################################################################
+
+########################################################################################
+# Generate auto_partfun.h for the ARTS interface
+add_custom_command(OUTPUT auto_partfun.h
+                   COMMAND gen_auto_partfun ${ARTS_PARTFUN_DATA_PATH} > ${ARTS_BINARY_DIR}/src/auto_partfun.h
+                   DEPENDS gen_auto_partfun)
+########################################################################################
+
+########################################################################################
+add_library(species STATIC
+            auto_partfun.h
+            isotopologues.cc
+            xml_io_partfun.cc
+            )
+########################################################################################
+
+########################################################################################
+add_executable(partfun partfun.cc)
+target_link_libraries (partfun species matpack)
+########################################################################################
+
+########################################################################################
+add_executable(test_species_tags test_species_tags.cc)
+target_link_libraries (test_species_tags ${ALL_ARTS_LIBRARIES})
+########################################################################################
+
+########################################################################################
+add_executable(test_isotope test_isotope.cc)
+target_link_libraries (test_isotope species matpack)
+########################################################################################
+
+########################################################################################
+# Test that the builtin partition functions are complete
+add_executable(test_partfun test_partfun.cc)
+target_link_libraries(test_partfun ${ALL_ARTS_LIBRARIES})
+add_dependencies(check-deps test_partfun)
+add_test(NAME "arts.cpp.fast.test_partfun" COMMAND test_partfun)
+########################################################################################

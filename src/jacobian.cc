@@ -570,7 +570,7 @@ ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity&
       auto p = std::find_if(abs_species.cbegin(), abs_species.cend(),
                             [qid=jacobian_quantities[iq].QuantumIdentity()](auto& specs){
                               return std::any_of(specs.cbegin(), specs.cend(),
-                                                 [qid](auto& spec){return spec.Species() == qid.Species() and qid.Isotopologue() == spec.Isotopologue();});
+                                                 [qid](auto& spec){return qid.Isotopologue() == spec.Isotopologue();});
                             });
       if (p not_eq abs_species.cend()) {
         aoi[iq] = Index(abs_species.cend() - p);
@@ -581,8 +581,7 @@ ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity&
                             " in species of abs_species.\n")
       }
     } else if (jacobian_quantities[iq] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
-      ArrayOfSpeciesTag atag;
-      array_species_tag_from_string(atag, jacobian_quantities[iq].Subtag());
+      ArrayOfSpeciesTag atag(jacobian_quantities[iq].Subtag());
       aoi[iq] = chk_contains("abs_species", abs_species, atag);
     } else if (jacobian_quantities[iq] == Jacobian::Atm::Particulates) {
       aoi[iq] = -9999;
@@ -1113,38 +1112,36 @@ bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js) {
 }
 
 bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
-  if (rq.QuantumIdentity().Type() == QuantumIdentifier::ALL) {  // Single tag
+  if (rq.QuantumIdentity().type == Quantum::IdentifierType::All) {  // Single tag
     for (const auto& s : ast) {
-      if (rq.QuantumIdentity().Species() not_eq s.Species())
+      if (rq.QuantumIdentity().Species() not_eq s.Spec())
         return false;  // Species must match
-      if (rq.QuantumIdentity().Isotopologue() >= 0 and s.Isotopologue() >= 0 and
+      if (rq.QuantumIdentity().Isotopologue().isotname not_eq Species::Joker and
+          s.Isotopologue().isotname not_eq Species::Joker and
           rq.QuantumIdentity().Isotopologue() not_eq s.Isotopologue())
-        return false;  // Isotopologue must match or be undefined
+        return false;  // Isotopologue must match or be either one be a joker
     }
   } else {
-    ArrayOfSpeciesTag test;
-    array_species_tag_from_string(test, rq.Subtag());
+    ArrayOfSpeciesTag test(rq.Subtag());
     if (ast not_eq test)
       return false;  // Match single tag perfectly or throw out
   }
   return true;
 }
 
-bool species_match(const RetrievalQuantity& rq, const Index species) {
+bool species_match(const RetrievalQuantity& rq, const Species::Species species) {
   if (rq == Jacobian::Line::VMR and rq.QuantumIdentity().Species() == species)
     return true;
   return false;
 }
 
 bool species_iso_match(const RetrievalQuantity& rq,
-                       const Index species,
-                       const Index iso) {
-  const SpeciesRecord& spr = global_data::species_data[species];
-  if (species_match(rq, species))
-    if (rq.QuantumIdentity().Isotopologue() == iso or
-        spr.Isotopologue().nelem() == iso or iso < 0)
-      return true;
-  return false;
+                       const Species::IsotopeRecord& ir) {
+  auto& ir2 = rq.QuantumIdentity().Isotopologue();
+  if (ir.spec == ir2.spec and (ir.isotname == Species::Joker or ir.isotname == ir2.isotname))
+    return true;
+  else
+    return false;
 }
 
 bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {

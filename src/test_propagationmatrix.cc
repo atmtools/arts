@@ -445,9 +445,6 @@ void test_sinc_likes_0limit() {
 }
 
 void test_zeeman() {
-  define_species_data();
-  define_species_map();
-
   auto o266 = SpeciesTag("O2-66");
   auto o268 = SpeciesTag("O2-68");
 
@@ -466,17 +463,17 @@ void test_zeeman() {
     std::cout << i << "_" << i - 1;
 
     g = Zeeman::GetAdvancedModel(
-            QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn))
+            QuantumIdentifier(o266.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
     g = Zeeman::GetAdvancedModel(
-            QuantumIdentifier(o268.Species(), o268.Isotopologue(), qn, qn))
+            QuantumIdentifier(o268.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
     g = Zeeman::GetSimpleModel(
-            QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn))
+            QuantumIdentifier(o266.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
@@ -484,17 +481,17 @@ void test_zeeman() {
     std::cout << '\t' << i << "_" << i;
 
     g = Zeeman::GetAdvancedModel(
-            QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn))
+            QuantumIdentifier(o266.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
     g = Zeeman::GetAdvancedModel(
-            QuantumIdentifier(o268.Species(), o268.Isotopologue(), qn, qn))
+            QuantumIdentifier(o268.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
     g = Zeeman::GetSimpleModel(
-            QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn))
+            QuantumIdentifier(o266.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
@@ -502,17 +499,17 @@ void test_zeeman() {
     std::cout << '\t' << i << "_" << i + 1;
 
     g = Zeeman::GetAdvancedModel(
-            QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn))
+            QuantumIdentifier(o266.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
     g = Zeeman::GetAdvancedModel(
-            QuantumIdentifier(o268.Species(), o268.Isotopologue(), qn, qn))
+            QuantumIdentifier(o268.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
     g = Zeeman::GetSimpleModel(
-            QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn))
+            QuantumIdentifier(o266.Isotopologue(), qn, qn))
             .gl();
     std::cout << '\t' << g;
 
@@ -534,9 +531,6 @@ void test_quantum()
 
 void test_mpm20()
 {
-  define_species_data();
-  define_species_map();
-  
   // Test constants
   constexpr Index nf = 501;
   constexpr Numeric fstart = 25e9;
@@ -610,8 +604,7 @@ void test_hitran2017(bool newtest = true)
     {lm_hitran_2017::ModeOfLineMixing::VP_Y, lm_hitran_2017::calctype::NoneRosenkranz},
     {lm_hitran_2017::ModeOfLineMixing::SDVP, lm_hitran_2017::calctype::SDVP},
     {lm_hitran_2017::ModeOfLineMixing::SDVP_Y, lm_hitran_2017::calctype::SDRosenkranz}};
-  define_species_data();
-  define_species_map();
+  
   ArrayOfVector absorption(n);
   make_wigner_ready(int(250), int(20000000), 6);
   
@@ -622,13 +615,11 @@ void test_hitran2017(bool newtest = true)
     
     lm_hitran_2017::read(hitran, bands, "data_new", -1, Conversion::kaycm2freq(sigmin), Conversion::kaycm2freq(sigmax), Conversion::kaycm_per_cmsquared2hz_per_msquared(stotmax), type.first);
     Vector vmrs = {1-xco2/100-xh2o/100, xh2o/100, xco2/100};
-    SpeciesAuxData partition_functions;
-    partition_functionsInitFromBuiltin(partition_functions, Verbosity());
     
     if (not newtest)
       absorption[i] = lm_hitran_2017::compute(p, t, xco2, xh2o, invcm_grid, stotmax, type.second);
     else
-      absorption[i] = lm_hitran_2017::compute(hitran, bands, Conversion::atm2pa(p), t, vmrs, f_grid, partition_functions);
+      absorption[i] = lm_hitran_2017::compute(hitran, bands, Conversion::atm2pa(p), t, vmrs, f_grid);
   }
   
   for (Index i=0; i<nsig; i++) {

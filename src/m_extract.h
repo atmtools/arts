@@ -58,6 +58,23 @@ void Extract(
   e = arr[index];
 }
 
+inline void Extract(
+    // WS Generic Output:
+    SpeciesTag& e,
+    // WS Input:
+    // WS Generic Input:
+    const ArrayOfSpeciesTag& arr,
+    const Index& index,
+    const Verbosity&) {
+  if (index >= arr.nelem()) {
+    ostringstream os;
+    os << "The index " << index << " is outside the range of the array.";
+    throw runtime_error(os.str());
+  }
+
+  e = arr[index];
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 inline void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
     // WS Generic Output:

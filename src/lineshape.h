@@ -549,9 +549,7 @@ void compute(ComputeData &com,
              ComputeData &sparse_com,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
-             const EnergyLevelMap &nlte,
-             const SpeciesAuxData::AuxType &partfun_type,
-             const ArrayOfGriddedField1 &partfun_data, const Vector &vmrs,
+             const EnergyLevelMap &nlte, const Vector &vmrs,
              const Numeric &self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H, const Numeric &sparse_lim,
              const bool do_zeeman, const Zeeman::Polarization zeeman_polarization, const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT;
                         

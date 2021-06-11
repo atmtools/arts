@@ -186,7 +186,7 @@ void nlte_collision_factorsCalcFromCoeffs(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfGriddedField1& collision_coefficients,
     const ArrayOfQuantumIdentifier& collision_line_identifiers,
-    const SpeciesAuxData& isotopologue_ratios,
+    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const ConstVectorView vmr,
     const Numeric& T,
     const Numeric& P) {
@@ -203,17 +203,13 @@ void nlte_collision_factorsCalcFromCoeffs(
   for (Index i = 0; i < nspec; i++) {
     // Compute the number density noting that free_electrons will behave differently
     const Numeric numden =
-        vmr[i] * (abs_species[i][0].SpeciesNameMain() == "free_electrons"
-                      ? 1.0
-                      : P / (BOLTZMAN_CONST * T));
+        vmr[i] * (abs_species[i].FreeElectrons() ? 1.0 : P / (BOLTZMAN_CONST * T));
     
     for (Index j = 0; j < ntrans; j++) {
       Index iline=0;
       for (auto& lines: abs_lines) {
         for (auto& band: lines) {
-          const Numeric isot_ratio =
-          isotopologue_ratios.getParam(band.Species(), band.Isotopologue())[0]
-          .data[0];
+          const Numeric isot_ratio = isotopologue_ratios[band.Isotopologue()];
           for (Index k=0; k<band.NumLines(); k++) {
             
             const auto& transition = collision_line_identifiers[j];
@@ -284,12 +280,11 @@ Index find_first_unique_in_lower(const ArrayOfIndex& upper,
 
 void check_collision_line_identifiers(const ArrayOfQuantumIdentifier& collision_line_identifiers) {
   auto p = std::find_if(collision_line_identifiers.cbegin(), collision_line_identifiers.cend(), 
-                        [spec=collision_line_identifiers.front().Species(), isot=collision_line_identifiers.front().Isotopologue()]
+                        [isot=collision_line_identifiers.front().Isotopologue()]
                         (auto& x) {
                           return
-                          spec not_eq x.Species() or 
                           isot not_eq x.Isotopologue() or 
-                          x.Type() not_eq QuantumIdentifier::TRANSITION;});
+                          x.type not_eq Quantum::IdentifierType::Transition;});
   ARTS_USER_ERROR_IF (p not_eq collision_line_identifiers.cend(),
     *p, "\n"
     "does not match the requirements for a line identifier\n"

@@ -125,12 +125,6 @@ WriteXML( in=f_grid )
 # number of Stokes parameters to consider ( 1: scalarRT, 4: fully polarised )
 IndexSet( stokes_dim, 1 )
 
-# ok to use extrapolation of partition functions (i.e. fitting range of
-#  partition function paameterization does not cover the actual atmospheric
-#  temperatures)?
-# ( 0: not ok, 1: ok )
-IndexSet( bad_partition_functions_ok, 1 )
-
 
 # ---
 # Definition of atmosphere
@@ -311,7 +305,7 @@ cloudboxOff
 
 # the checks necessary for full RT calc
 #####
-atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
+atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 propmat_clearsky_agenda_checkedCalc 

@@ -10,14 +10,13 @@ ws = Workspace()
 aqi = from_workspace(ws.band_identifiers)
 qi = QuantumIdentifier()
 
-qi.spec = 0
-qi.isot = 0
-qi.type = 3
-qi.type = 2
-qi.type = 1
-qi.type = 0
-qi.upperqn["J"] = 3
-qi.lowerqn["J"] = 2
+qi.spec_ind = 0
+qi.type = "None"
+qi.type = "All"
+qi.type = "EnergyLevel"
+qi.type = "Transition"
+qi.upp["J"] = 3
+qi.low["J"] = 2
 
 aqi.data = [qi]
 assert qi == aqi[0]
@@ -27,8 +26,11 @@ aqi[1].set(aqi[0])
 assert aqi[0] == aqi[1]
 aqi.append(qi)
 assert aqi[0] == aqi[2]
+for x in aqi:
+    x.upp["J"] = 3
+    x.low["J"] = 2
 
 aqi2 = ArrayOfQuantumIdentifier()
-aqi.savexml("tmp.aqi.xml", "binary")
+aqi.savexml("tmp.aqi.xml", "ascii")
 aqi2.readxml("tmp.aqi.xml")
 assert aqi == aqi2

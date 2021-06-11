@@ -54,21 +54,21 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
   for (Index sp = 0; sp < abs_species.nelem(); sp++) {
     for (Index tgs = 0; tgs < abs_species[sp].nelem(); tgs++) {
       switch (abs_species[sp][tgs].Type()) {
-        case SpeciesTag::TYPE_PLAIN:
+        case Species::TagType::Plain:
           break;
-        case SpeciesTag::TYPE_ZEEMAN:
+        case Species::TagType::Zeeman:
           break;
-        case SpeciesTag::TYPE_PREDEF:
+        case Species::TagType::Predefined:
           needs_continua = true;
           break;
-        case SpeciesTag::TYPE_CIA:
+        case Species::TagType::Cia:
           needs_cia = true;
           break;
-        case SpeciesTag::TYPE_FREE_ELECTRONS:
+        case Species::TagType::FreeElectrons:
           break;
-        case SpeciesTag::TYPE_PARTICLES:
+        case Species::TagType::Particles:
           break;
-        case SpeciesTag::TYPE_HITRAN_XSEC:
+        case Species::TagType::HitranXsec:
           needs_hxsec = true;
           break;
         default:
@@ -92,7 +92,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
         "*abs_species* contains HITRAN xsec species but *abs_xsec_agenda*\n"
         "does not contain *abs_xsec_per_speciesAddHitranXsec*.");
   
-  if (find_first_species_tg(abs_species, SpeciesTag("O2-MPM2020")) >= 0) {
+  if (find_first_species_tag(abs_species, SpeciesTag("O2-MPM2020")) >= 0) {
     ARTS_USER_ERROR_IF (not abs_xsec_agenda.has_method("abs_xsec_per_speciesAddPredefinedO2MPM2020"),
         "*abs_species contains \"O2-MPM2020\" but *abs_xsec_agenda*\n"
         "does not contain *abs_xsec_per_speciesAddPredefinedO2MPM2020*.");
@@ -117,10 +117,8 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                            const Tensor3& mag_u_field,
                            const Tensor3& mag_v_field,
                            const Tensor3& mag_w_field,
-                           const SpeciesAuxData& partition_functions,
                            const Index& abs_f_interp_order,
                            const Index& negative_vmr_ok,
-                           const Index& bad_partition_functions_ok,
                            const Verbosity&) {
   // Consistency between dim, grids and atmospheric fields/surfaces
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
@@ -262,91 +260,6 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                     p_grid,
                     lat_grid,
                     lon_grid);
-    }
-  }
-
-  if (partition_functions.nspecies()) {
-    // Partition functions have partition functions and finding their temperature limits?
-    Numeric min_T = 0, max_T = 1e6;  //1 MK is max tested
-    for (Index ii = 0; ii < partition_functions.nspecies(); ii++)
-      for (Index jj = 0; jj < partition_functions.nisotopologues(ii); jj++) {
-        // Test if species is important at all (maybe, since code is unclear; will at worst cause failures later on in the program)
-        bool test_spec = false;
-        for (auto& as : abs_species)
-          for (auto& s : as)
-            if (s.Species() == ii and s.Isotopologue() == jj) test_spec = true;
-        if (not test_spec) continue;
-
-        ArrayOfGriddedField1 part_fun;
-        switch (partition_functions.getParamType(ii, jj)) {
-          case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
-            part_fun = partition_functions.getParam(ii, jj);
-            if (part_fun.nelem() == 2) {
-              if (part_fun[1].data.nelem() == 2 &&
-                  part_fun[0].data.nelem() > 1) {
-                if (part_fun[1].data[0] > min_T) min_T = part_fun[1].data[0];
-                if (part_fun[1].data[1] < max_T) max_T = part_fun[1].data[1];
-              } else
-                ARTS_USER_ERROR (
-                    "Bad coefficient parameter in partition_function.\n");
-            } else
-              ARTS_USER_ERROR (
-                  "Bad coefficient parameter in partition_function.\n");
-            break;
-
-          case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
-            part_fun = partition_functions.getParam(ii, jj);
-            if (part_fun.nelem() == 3) {
-              if (part_fun[2].data.nelem() == 2 &&
-                  (part_fun[1].data.nelem() == part_fun[0].data.nelem())) {
-                if (part_fun[2].data[0] > min_T) min_T = part_fun[2].data[0];
-                if (part_fun[2].data[1] < max_T) max_T = part_fun[2].data[1];
-              } else
-                ARTS_USER_ERROR (
-                    "Bad coefficient parameter in partition_function.\n");
-            } else
-              ARTS_USER_ERROR (
-                  "Bad coefficient parameter in partition_function.\n");
-            break;
-
-          case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
-            part_fun = partition_functions.getParam(ii, jj);
-            if (part_fun.nelem() == 1) {
-              if (part_fun[0].data.nelem() > 1) {
-                if (part_fun[0].get_numeric_grid(0)[0] > min_T)
-                  min_T = part_fun[0].get_numeric_grid(0)[0];
-                if (part_fun[0].get_numeric_grid(
-                        0)[part_fun[0].data.nelem() - 1] < max_T)
-                  max_T = part_fun[0].get_numeric_grid(
-                      0)[part_fun[0].data.nelem() - 1];
-              } else
-                ARTS_USER_ERROR (
-                    "Bad t_field parameter in partition_function.\n");
-            } else
-              ARTS_USER_ERROR (
-                  "Bad t_field parameter in partition_function.\n");
-            break;
-
-          default:
-            ARTS_USER_ERROR (
-                "Bad parameter type in partition_functions.\n");
-            break;
-        }
-      }
-
-    // Check that partition functions are OK if not explicitly turned off
-    if (!bad_partition_functions_ok) {
-      for (Index ii = 0; ii < t_field.npages(); ii++)
-        for (Index jj = 0; jj < t_field.nrows(); jj++)
-          for (Index kk = 0; kk < t_field.ncols(); kk++) {
-            ARTS_USER_ERROR_IF (min_T > t_field(ii, jj, kk) || max_T < t_field(ii, jj, kk),
-                "There are bad partition functions in your setup.\n"
-                "Minimum temperature for defined partition functions is: ",
-                min_T,
-                " K.\nMaximum temperature for defined partition functions is: ",
-                max_T, " K\nThere is a t_field entry of ",
-                t_field(ii, jj, kk), " K.\n")
-          }
     }
   }
 
@@ -522,7 +435,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
     // abs-only, if we anyway do a scattering calculation.).
     Index has_absparticles = 0;
     for (Index sp = 0; sp < abs_species.nelem() && has_absparticles < 1; sp++) {
-      if (abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES) {
+      if (abs_species[sp].Particles()) {
         has_absparticles = 1;
       }
     }
@@ -815,12 +728,11 @@ void scat_data_checkedCalc(Index& scat_data_checked,
 void lbl_checkedCalc(Index& lbl_checked,
                      const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const SpeciesAuxData& isotopologue_ratios,
-                     const SpeciesAuxData& partition_functions,
+                     const SpeciesIsotopologueRatios& isotopologue_ratios,
                      const Verbosity&)
 {
-  checkIsotopologueRatios(abs_species, isotopologue_ratios);
-  checkPartitionFunctions(abs_species, partition_functions);
+  checkIsotopologueRatios(abs_lines_per_species, isotopologue_ratios);
+  checkPartitionFunctions(abs_lines_per_species);
   
   lbl_checked = false;
   
@@ -844,8 +756,8 @@ void lbl_checkedCalc(Index& lbl_checked,
       }
     }
     
-    const bool any_zeeman = std::any_of(specs.cbegin(), specs.cend(), [](auto& x){return x.Type() == SpeciesTag::TYPE_ZEEMAN;});
-    ARTS_USER_ERROR_IF (any_zeeman and (not std::all_of(specs.cbegin(), specs.cend(), [](auto& x){return x.Type() == SpeciesTag::TYPE_ZEEMAN;})),
+    const bool any_zeeman = std::any_of(specs.cbegin(), specs.cend(), [](auto& x){return x.Type() == Species::TagType::Zeeman;});
+    ARTS_USER_ERROR_IF (any_zeeman and (not std::all_of(specs.cbegin(), specs.cend(), [](auto& x){return x.Type() == Species::TagType::Zeeman;})),
       "Zeeman species found but not all sub-species tags support Zeeman effect.\n"
       "Offending tag: ", specs, '\n')
     
@@ -950,24 +862,24 @@ void propmat_clearsky_agenda_checkedCalc(
   for (Index sp = 0; sp < abs_species.nelem(); sp++) {
     for (Index tgs = 0; tgs < abs_species[sp].nelem(); tgs++) {
       switch (abs_species[sp][tgs].Type()) {
-        case SpeciesTag::TYPE_PLAIN:
+        case Species::TagType::Plain:
           needs_lines = true;
           break;
-        case SpeciesTag::TYPE_ZEEMAN:
+        case Species::TagType::Zeeman:
           needs_zeeman = true;
           break;
-        case SpeciesTag::TYPE_PREDEF:
+        case Species::TagType::Predefined:
           needs_continua = true;
           break;
-        case SpeciesTag::TYPE_CIA:
+        case Species::TagType::Cia:
           needs_cia = true;
           break;
-        case SpeciesTag::TYPE_FREE_ELECTRONS:
+        case Species::TagType::FreeElectrons:
           break;
-        case SpeciesTag::TYPE_PARTICLES:
+        case Species::TagType::Particles:
           needs_particles = true;
           break;
-        case SpeciesTag::TYPE_HITRAN_XSEC:
+        case Species::TagType::HitranXsec:
           needs_hxsec = true;
           break;
         default:

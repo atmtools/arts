@@ -59,14 +59,12 @@ EquivalentLines::EquivalentLines(const ComplexMatrix& W,
 
 
 PopulationAndDipole::PopulationAndDipole(const Numeric T,
-                                         const AbsorptionLines& band,
-                                         const SpeciesAuxData::AuxType& partition_type,
-                                         const ArrayOfGriddedField1& partition_data) noexcept :
+                                         const AbsorptionLines& band) noexcept :
   pop(band.NumLines()), dip(band.NumLines()) {
   const Index N = band.NumLines();
   
-  const Numeric QT = single_partition_function(T, partition_type, partition_data);
-  const Numeric QT0 = single_partition_function(band.T0(), partition_type, partition_data);
+  const Numeric QT = single_partition_function(T, band.Isotopologue());
+  const Numeric QT0 = single_partition_function(band.T0(), band.Isotopologue());
   const Numeric ratiopart = QT0 / QT;
   
   for (Index i=0; i<N; i++) {
@@ -449,15 +447,11 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
  * 
  * @param[in] T The temperature
  * @param[in] band The absorption band
- * @param[in] partition_type The type of partition function data
- * @param[in] partition_data The partition function data
  * @return {sorting, sorted population distribtions and dipoles}
  */
 std::pair<ArrayOfIndex, PopulationAndDipole> sorted_population_and_dipole(const Numeric T,
-                                                                          const AbsorptionLines& band,
-                                                                          const SpeciesAuxData::AuxType& partition_type,
-                                                                          const ArrayOfGriddedField1& partition_data) {
-  PopulationAndDipole tp(T, band, partition_type, partition_data);
+                                                                          const AbsorptionLines& band) {
+  PopulationAndDipole tp(T, band);
   return {tp.sort(band), tp};
 }
 
@@ -467,16 +461,12 @@ std::pair<ArrayOfIndex, PopulationAndDipole> sorted_population_and_dipole(const 
  * @param[in] T The temperature
  * @param[in] presorting Changes positions from [0 ... N-1] to presorting positions
  * @param[in] band The absorption band
- * @param[in] partition_type The type of partition function data
- * @param[in] partition_data The partition function data
  * @return Pre-sorted  population distribtions and dipoles
  */
 PopulationAndDipole presorted_population_and_dipole(const Numeric T,
                                                     const ArrayOfIndex& presorting,
-                                                    const AbsorptionLines& band,
-                                                    const SpeciesAuxData::AuxType& partition_type,
-                                                    const ArrayOfGriddedField1& partition_data) {
-  PopulationAndDipole tp(T, band, partition_type, partition_data);
+                                                    const AbsorptionLines& band) {
+  PopulationAndDipole tp(T, band);
   tp.sort(presorting);
   return tp;
 }
@@ -489,9 +479,7 @@ ComplexVector ecs_absorption_impl(const Numeric T,
                                   const Vector& vmrs,
                                   const Vector& mass,
                                   const Vector& f_grid,
-                                  const AbsorptionLines& band,
-                                  const SpeciesAuxData::AuxType& partition_type,
-                                  const ArrayOfGriddedField1& partition_data) {
+                                  const AbsorptionLines& band) {
   constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
   
   // Weighted center of the band
@@ -501,7 +489,7 @@ ComplexVector ecs_absorption_impl(const Numeric T,
   const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, band.SpeciesMass());
   
   // Sorted population
-  const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
+  const auto [sorting, tp] = sorted_population_and_dipole(T, band);
   
   // Relaxation matrix
   const ComplexMatrix W = ecs_relaxation_matrix<param>(T, P, vmrs, mass, band, sorting, frenorm);
@@ -540,10 +528,8 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
                                                               const Vector& mass,
                                                               const Vector& f_grid,
                                                               const AbsorptionLines& band,
-                                                              const SpeciesAuxData::AuxType& partition_type,
-                                                              const ArrayOfGriddedField1& partition_data,
                                                               const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  const ComplexVector absorption = ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
+  const ComplexVector absorption = ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid, band);
   
   // Start as original, so remove new and divide with the negative to get forward derivative
   ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
@@ -554,13 +540,13 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
     
     if (target == Jacobian::Atm::Temperature) {
       const Numeric dT = target.Perturbation();
-      vec -= ecs_absorption_impl<SpecialParam::None>(T+dT, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
+      vec -= ecs_absorption_impl<SpecialParam::None>(T+dT, P, this_vmr, vmrs, mass, f_grid, band);
       vec /= -dT;
     } else if (target.isWind()) {
       const Numeric df = target.Perturbation();
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
-      vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid_copy, band, partition_type, partition_data);
+      vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid_copy, band);
     } else if (target == Jacobian::Line::VMR) {
       if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
         Vector vmrs_copy = vmrs;
@@ -574,15 +560,14 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
           if (band.Self()) vmrs_copy[0] += dvmr;  // First value is self if band has self broadener
         } else {
           for (Index j=band.Self(); j<band.BroadeningSpecies().nelem()-band.Bath(); j++) {
-            if (band.BroadeningSpecies()[j].Species() == target.QuantumIdentity().Species() and
-                band.BroadeningSpecies()[j].Isotopologue() == target.QuantumIdentity().Isotopologue()) {
+            if (band.BroadeningSpecies()[j] == target.QuantumIdentity().Species()) {
               vmrs_copy[j] += dvmr;
             }
           }
         }
         
         // Computations
-        vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr_copy, vmrs_copy, mass, f_grid, band, partition_type, partition_data);
+        vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr_copy, vmrs_copy, mass, f_grid, band);
         vec /= -dvmr;
       }
     } else if (target.needQuantumIdentity()) {
@@ -593,102 +578,103 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
         if (qlt == Absorption::QuantumIdentifierLineTargetType::Line) {
           AbsorptionLines band_copy = band;
           
+          const Index pos = band.BroadeningSpeciesPosition(target.QuantumIdentity().Species());
           switch (target.LineType()) {
             case Jacobian::Line::ShapeG0X0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G0().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G0().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G0().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].G0().X0 += d;
               break;
             case Jacobian::Line::ShapeG0X1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G0().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G0().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G0().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].G0().X1 += d;
               break;
             case Jacobian::Line::ShapeG0X2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G0().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G0().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G0().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].G0().X2 += d;
               break;
             case Jacobian::Line::ShapeG0X3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G0().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G0().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G0().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].G0().X3 += d;
               break;
             case Jacobian::Line::ShapeD0X0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D0().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D0().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D0().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].D0().X0 += d;
               break;
             case Jacobian::Line::ShapeD0X1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D0().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D0().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D0().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].D0().X1 += d;
               break;
             case Jacobian::Line::ShapeD0X2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D0().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D0().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D0().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].D0().X2 += d;
               break;
             case Jacobian::Line::ShapeD0X3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D0().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D0().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D0().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].D0().X3 += d;
               break;
             case Jacobian::Line::ShapeG2X0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G2().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G2().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G2().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].G2().X0 += d;
               break;
             case Jacobian::Line::ShapeG2X1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G2().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G2().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G2().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].G2().X1 += d;
               break;
             case Jacobian::Line::ShapeG2X2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G2().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G2().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G2().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].G2().X2 += d;
               break;
             case Jacobian::Line::ShapeG2X3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G2().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G2().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G2().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].G2().X3 += d;
               break;
             case Jacobian::Line::ShapeD2X0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D2().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D2().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D2().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].D2().X0 += d;
               break;
             case Jacobian::Line::ShapeD2X1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D2().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D2().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D2().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].D2().X1 += d;
               break;
             case Jacobian::Line::ShapeD2X2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D2().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D2().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D2().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].D2().X2 += d;
               break;
             case Jacobian::Line::ShapeD2X3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D2().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D2().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D2().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].D2().X3 += d;
               break;
             case Jacobian::Line::ShapeFVCX0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].FVC().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].FVC().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].FVC().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].FVC().X0 += d;
               break;
             case Jacobian::Line::ShapeFVCX1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].FVC().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].FVC().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].FVC().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].FVC().X1 += d;
               break;
             case Jacobian::Line::ShapeFVCX2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].FVC().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].FVC().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].FVC().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].FVC().X2 += d;
               break;
             case Jacobian::Line::ShapeFVCX3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].FVC().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].FVC().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].FVC().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].FVC().X3 += d;
               break;
             case Jacobian::Line::ShapeETAX0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].ETA().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].ETA().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].ETA().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].ETA().X0 += d;
               break;
             case Jacobian::Line::ShapeETAX1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].ETA().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].ETA().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].ETA().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].ETA().X1 += d;
               break;
             case Jacobian::Line::ShapeETAX2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].ETA().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].ETA().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].ETA().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].ETA().X2 += d;
               break;
             case Jacobian::Line::ShapeETAX3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].ETA().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].ETA().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].ETA().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].ETA().X3 += d;
               break;
             case Jacobian::Line::Center:
               d *= band.AllLines()[iline].F0();
@@ -721,24 +707,24 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
           }
           
           // Perform calculations and estimate derivative
-          vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid, band_copy, partition_type, partition_data);
+          vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, mass, f_grid, band_copy);
           vec /= -d;
         } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
           if (target == Jacobian::Line::SpecialParameter1) {
             if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
               d = Conversion::angstrom2meter(1e-6);
             }
-            vec -= ecs_absorption_impl<SpecialParam::ModifyParameter1>(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
+            vec -= ecs_absorption_impl<SpecialParam::ModifyParameter1>(T, P, this_vmr, vmrs, mass, f_grid, band);
           } else if (target == Jacobian::Line::SpecialParameter2) {
             if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
               d = 1e-6;
             }
-            vec -= ecs_absorption_impl<SpecialParam::ModifyParameter2>(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
+            vec -= ecs_absorption_impl<SpecialParam::ModifyParameter2>(T, P, this_vmr, vmrs, mass, f_grid, band);
           } else if (target == Jacobian::Line::SpecialParameter3) {
             if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
               d = 1e-6;
             }
-            vec -= ecs_absorption_impl<SpecialParam::ModifyParameter3>(T, P, this_vmr, vmrs, mass, f_grid, band, partition_type, partition_data);
+            vec -= ecs_absorption_impl<SpecialParam::ModifyParameter3>(T, P, this_vmr, vmrs, mass, f_grid, band);
           }
           vec /= -d;
         } else {
@@ -763,9 +749,7 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
                                          const Vector& mass,
                                          const Vector& f_grid,
                                          const Zeeman::Polarization zeeman_polarization,
-                                         const AbsorptionLines& band,
-                                         const SpeciesAuxData::AuxType& partition_type,
-                                         const ArrayOfGriddedField1& partition_data) {
+                                         const AbsorptionLines& band) {
   constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
   
   // Weighted center of the band
@@ -775,7 +759,7 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
   const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, band.SpeciesMass());
   
   // Sorted population
-  const auto [sorting, tp] = sorted_population_and_dipole(T, band, partition_type, partition_data);
+  const auto [sorting, tp] = sorted_population_and_dipole(T, band);
   
   // Relaxation matrix
   const ComplexMatrix W = ecs_relaxation_matrix<param>(T, P, vmrs, mass, band, sorting, frenorm);
@@ -823,10 +807,8 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
                                                                      const Vector& f_grid,
                                                                      const Zeeman::Polarization zeeman_polarization,
                                                                      const AbsorptionLines& band,
-                                                                     const SpeciesAuxData::AuxType& partition_type,
-                                                                     const ArrayOfGriddedField1& partition_data,
                                                                      const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  const ComplexVector absorption = ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+  const ComplexVector absorption = ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band);
   
   // Start as original, so remove new and divide with the negative to get forward derivative
   ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
@@ -837,17 +819,17 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
     
     if (target == Jacobian::Atm::Temperature) {
       const Numeric dT = target.Perturbation();
-      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T+dT, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T+dT, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band);
       vec /= -dT;
     } else if (target.isMagnetic()) {
       const Numeric dH = target.Perturbation();
-      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H+dH, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H+dH, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band);
       vec /= -dH;
     } else if (target.isWind()) {
       const Numeric df = target.Perturbation();
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
-      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid_copy, zeeman_polarization, band, partition_type, partition_data);
+      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid_copy, zeeman_polarization, band);
     } else if (target == Jacobian::Line::VMR) {
       if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
         Vector vmrs_copy = vmrs;
@@ -855,21 +837,19 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
         const Numeric dvmr = target.Perturbation();
         
         // Alter the VMRs for self 
-        if (band.Species() == target.QuantumIdentity().Species() and
-          band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
+        if (band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
           this_vmr_copy += dvmr;
           if (band.Self()) vmrs_copy[0] += dvmr;  // First value is self if band has self broadener
         } else {
           for (Index j=band.Self(); j<band.BroadeningSpecies().nelem()-band.Bath(); j++) {
-            if (band.BroadeningSpecies()[j].Species() == target.QuantumIdentity().Species() and
-                band.BroadeningSpecies()[j].Isotopologue() == target.QuantumIdentity().Isotopologue()) {
+            if (band.BroadeningSpecies()[j] == target.QuantumIdentity().Species()) {
               vmrs_copy[j] += dvmr;
             }
           }
         }
         
         // Computations
-        vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr_copy, vmrs_copy, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+        vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr_copy, vmrs_copy, mass, f_grid, zeeman_polarization, band);
         vec /= -dvmr;
       }
     } else if (target.needQuantumIdentity()) {
@@ -880,102 +860,103 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
         if (qlt == Absorption::QuantumIdentifierLineTargetType::Line) {
           AbsorptionLines band_copy = band;
           
+          const Index pos = band.BroadeningSpeciesPosition(target.QuantumIdentity().Species());
           switch (target.LineType()) {
             case Jacobian::Line::ShapeG0X0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G0().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G0().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G0().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].G0().X0 += d;
               break;
             case Jacobian::Line::ShapeG0X1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G0().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G0().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G0().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].G0().X1 += d;
               break;
             case Jacobian::Line::ShapeG0X2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G0().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G0().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G0().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].G0().X2 += d;
               break;
             case Jacobian::Line::ShapeG0X3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G0().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G0().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G0().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].G0().X3 += d;
               break;
             case Jacobian::Line::ShapeD0X0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D0().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D0().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D0().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].D0().X0 += d;
               break;
             case Jacobian::Line::ShapeD0X1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D0().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D0().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D0().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].D0().X1 += d;
               break;
             case Jacobian::Line::ShapeD0X2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D0().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D0().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D0().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].D0().X2 += d;
               break;
             case Jacobian::Line::ShapeD0X3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D0().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D0().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D0().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].D0().X3 += d;
               break;
             case Jacobian::Line::ShapeG2X0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G2().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G2().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G2().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].G2().X0 += d;
               break;
             case Jacobian::Line::ShapeG2X1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G2().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G2().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G2().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].G2().X1 += d;
               break;
             case Jacobian::Line::ShapeG2X2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G2().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G2().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G2().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].G2().X2 += d;
               break;
             case Jacobian::Line::ShapeG2X3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].G2().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].G2().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].G2().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].G2().X3 += d;
               break;
             case Jacobian::Line::ShapeD2X0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D2().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D2().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D2().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].D2().X0 += d;
               break;
             case Jacobian::Line::ShapeD2X1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D2().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D2().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D2().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].D2().X1 += d;
               break;
             case Jacobian::Line::ShapeD2X2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D2().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D2().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D2().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].D2().X2 += d;
               break;
             case Jacobian::Line::ShapeD2X3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].D2().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].D2().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].D2().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].D2().X3 += d;
               break;
             case Jacobian::Line::ShapeFVCX0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].FVC().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].FVC().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].FVC().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].FVC().X0 += d;
               break;
             case Jacobian::Line::ShapeFVCX1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].FVC().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].FVC().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].FVC().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].FVC().X1 += d;
               break;
             case Jacobian::Line::ShapeFVCX2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].FVC().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].FVC().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].FVC().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].FVC().X2 += d;
               break;
             case Jacobian::Line::ShapeFVCX3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].FVC().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].FVC().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].FVC().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].FVC().X3 += d;
               break;
             case Jacobian::Line::ShapeETAX0:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].ETA().X0;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].ETA().X0 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].ETA().X0;
+              band_copy.AllLines()[iline].LineShape()[pos].ETA().X0 += d;
               break;
             case Jacobian::Line::ShapeETAX1:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].ETA().X1;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].ETA().X1 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].ETA().X1;
+              band_copy.AllLines()[iline].LineShape()[pos].ETA().X1 += d;
               break;
             case Jacobian::Line::ShapeETAX2:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].ETA().X2;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].ETA().X2 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].ETA().X2;
+              band_copy.AllLines()[iline].LineShape()[pos].ETA().X2 += d;
               break;
             case Jacobian::Line::ShapeETAX3:
-              d *= band.AllLines()[iline].LineShape()[target.Position()].ETA().X3;
-              band_copy.AllLines()[iline].LineShape()[target.Position()].ETA().X3 += d;
+              d *= band.AllLines()[iline].LineShape()[pos].ETA().X3;
+              band_copy.AllLines()[iline].LineShape()[pos].ETA().X3 += d;
               break;
             case Jacobian::Line::Center:
               d *= band.AllLines()[iline].F0();
@@ -1008,24 +989,24 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
           }
           
           // Perform calculations and estimate derivative
-          vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band_copy, partition_type, partition_data);
+          vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band_copy);
           vec /= -d;
         } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
           if (target == Jacobian::Line::SpecialParameter1) {
             if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
               d = Conversion::angstrom2meter(1e-6);
             }
-            vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter1>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+            vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter1>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band);
           } else if (target == Jacobian::Line::SpecialParameter2) {
             if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
               d = 1e-6;
             }
-            vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter2>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+            vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter2>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band);
           } else if (target == Jacobian::Line::SpecialParameter3) {
             if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
               d = 1e-6;
             }
-            vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter3>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band, partition_type, partition_data);
+            vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter3>(T, H, P, this_vmr, vmrs, mass, f_grid, zeeman_polarization, band);
           }
           vec /= -d;
         } else {
@@ -1156,21 +1137,17 @@ struct RosenkranzAdaptation {
  * @param[in] band The absorption band
  * @param[in] temperatures The temperature grid for fitting parameters upon
  * @param[in] mass The mass of all broadeners of the absorption band
- * @param[in] partition_type The type of partition function data
- * @param[in] partition_data The partition function data
  * @return Rosenkranz line mixing parameters
  */
 RosenkranzAdaptation ecs_rosenkranz_approximation(const AbsorptionLines& band,
                                                   const Vector& temperatures,
-                                                  const Vector& mass,
-                                                  const SpeciesAuxData::AuxType& partition_type,
-                                                  const ArrayOfGriddedField1& partition_data) {
+                                                  const Vector& mass) {
   const Index N = band.NumLines();
   const Index M = temperatures.nelem();
   const Index S = band.NumBroadeners();
   
   // Need sorting to put weak lines last, but we need the sorting constant or the output jumps
-  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0(), band, partition_type, partition_data).first;
+  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0(), band).first;
   
   RosenkranzAdaptation out(N, M, S);
   
@@ -1180,7 +1157,7 @@ RosenkranzAdaptation ecs_rosenkranz_approximation(const AbsorptionLines& band,
       const Numeric T = temperatures[i];
       
       // Use pre-sort on the population and dipole to make the curves smooth
-      const auto tp = presorted_population_and_dipole(T, sorting, band, partition_type, partition_data);
+      const auto tp = presorted_population_and_dipole(T, sorting, band);
       
       // Relaxation matrix at T0 sorting at T
       const ComplexMatrix W = single_species_ecs_relaxation_matrix<SpecialParam::None>(band, sorting, T, 1, mass[j], j);
@@ -1203,13 +1180,11 @@ RosenkranzAdaptation ecs_rosenkranz_approximation(const AbsorptionLines& band,
 
 Index ecs_rosenkranz_adaptation(AbsorptionLines& band,
                                 const Vector& temperatures,
-                                const Vector& mass,
-                                const SpeciesAuxData::AuxType& partition_type,
-                                const ArrayOfGriddedField1& partition_data) {
+                                const Vector& mass) {
   const Index N = band.NumLines();
   const Index S = band.NumBroadeners();
   
-  const auto lmdata = ecs_rosenkranz_approximation(band, temperatures, mass, partition_type, partition_data);
+  const auto lmdata = ecs_rosenkranz_approximation(band, temperatures, mass);
   
   for (Index iN=0; iN<N; iN++) {
     for (Index iS=0; iS<S; iS++) {

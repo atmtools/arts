@@ -26,7 +26,7 @@
 #ifndef gas_abs_lookup_h
 #define gas_abs_lookup_h
 
-#include "abs_species_tags.h"
+#include "species_tags.h"
 #include "absorption.h"
 #include "interpolation_lagrange.h"
 #include "matpackIV.h"
@@ -77,8 +77,8 @@ class GasAbsLookup {
 
   const Vector& GetPgrid() const;
 
-  Index GetSpeciesIndex(const Index& isp) const {
-    return species[isp][0].Species();
+  Species::Species GetSpeciesIndex(const Index& isp) const {
+    return species[isp].Species();
   }
 
   // IO functions must be friends:

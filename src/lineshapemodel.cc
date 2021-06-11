@@ -83,22 +83,22 @@ std::istream& LineShape::from_artscat4(std::istream& is,
                                        bool& self,
                                        bool& bath,
                                        Model& m,
-                                       ArrayOfSpeciesTag& species,
+                                       ArrayOfSpecies& species,
                                        const QuantumIdentifier& qid) {
   // Set or reset variables
   mtype = Type::VP;
   self = true;
   bath = false;
   m.mdata = std::vector<SingleSpeciesModel>(7);
-  species = ArrayOfSpeciesTag(7);
+  species = ArrayOfSpecies(7);
 
   // Set species
-  species[1] = SpeciesTag("N2");
-  species[2] = SpeciesTag("O2");
-  species[3] = SpeciesTag("H2O");
-  species[4] = SpeciesTag("CO2");
-  species[5] = SpeciesTag("H2");
-  species[6] = SpeciesTag("He");
+  species[1] = Species::fromShortName("N2");
+  species[2] = Species::fromShortName("O2");
+  species[3] = Species::fromShortName("H2O");
+  species[4] = Species::fromShortName("CO2");
+  species[5] = Species::fromShortName("H2");
+  species[6] = Species::fromShortName("He");
 
   // Temperature types
   for (auto& v : m.mdata) {
@@ -122,12 +122,12 @@ std::istream& LineShape::from_artscat4(std::istream& is,
 
   // Special case when self is part of this list, it needs to be removed
   for (int k = 1; k < 7; k++) {
-    if (qid.Species() == species[k].Species()) {
+    if (qid.Species() == species[k]) {
       ARTS_USER_ERROR_IF(m.mdata.front().G0().X0 not_eq m.mdata[k].G0().X0 or
                          m.mdata.front().G0().X1 not_eq m.mdata[k].G0().X1 or
                          m.mdata.front().D0().X1 not_eq m.mdata[k].D0().X1,
-          "Species is ", qid.SpeciesName(), " and this is a broadening species in ARTSCAT-4.\n"
-          "Despite this, values representing self and ", qid.SpeciesName(), " does not match "
+          "Species is ", qid.Isotopologue(), " and this is a broadening species in ARTSCAT-4.\n"
+          "Despite this, values representing self and ", qid.Isotopologue(), " does not match "
           "in input string\n")
       m.mdata.front().D0().X0 = m.mdata[k].D0().X0;
       m.Remove(k, species);
@@ -143,7 +143,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
                                                bool& self,
                                                bool& bath,
                                                Model& m,
-                                               ArrayOfSpeciesTag& species) {
+                                               ArrayOfSpecies& species) {
   self = bath = false;
   Index specs;
   String s;
@@ -183,20 +183,16 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
     } else if (s == bath_broadening) {
       // If the species is air, then we need to flag this
       bath = true;
+      species[i] = Species::Species::Bath;
       ARTS_USER_ERROR_IF (i not_eq specs - 1,
             "Air/bath broadening must be last, it is not\n");
     } else {
       // Otherwise, we hope we find a species
-      try {
-        species[i] = SpeciesTag(s);
-      } catch (const std::runtime_error& e) {
-        ARTS_USER_ERROR (
-                            "Encountered ", s,
-                            " in a position where a species should have been "
-                            "defined.\nPlease check your pressure broadening data structure and ensure "
-                            "that it follows the correct conventions.\n"
-                            "SpeciesTag error reads:\n", e.what())
-      }
+      species[i] = Species::fromShortName(s);
+      ARTS_USER_ERROR_IF (not good_enum(species[i]),
+                          "Encountered ", s, " in a position where a species should have been "
+                          "defined.\nPlease check your pressure broadening data structure and ensure "
+                          "that it follows the correct conventions.\n")
     }
 
     // For all parameters
@@ -253,15 +249,14 @@ std::istream& LineShape::from_pressurebroadeningdata(
   bool& self,
   bool& bath,
   Model& m,
-  ArrayOfSpeciesTag& species,
+  ArrayOfSpecies& species,
   const QuantumIdentifier& qid) {
   String s;
   data >> s;
 
   const auto type = LegacyPressureBroadeningData::string2typepb(s);
   const auto n = LegacyPressureBroadeningData::typepb2nelem(type);
-  const auto self_in_list =
-      LegacyPressureBroadeningData::self_listed(qid, type);
+  const auto self_in_list = LegacyPressureBroadeningData::self_listed(qid, type);
 
   Vector x(n);
   for (auto& num : x) data >> num;
@@ -273,7 +268,8 @@ std::istream& LineShape::from_pressurebroadeningdata(
                                                species,
                                                x,
                                                type,
-                                               self_in_list);
+                                               self_in_list,
+                                               qid.Species());
 
   return data;
 }
@@ -301,10 +297,11 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
   bool& self,
   bool& bath,
   Model& m,
-  ArrayOfSpeciesTag& species,
+  ArrayOfSpecies& species,
   Vector x,
   LineShape::LegacyPressureBroadeningData::TypePB type,
-  bool self_in_list) {
+  bool self_in_list,
+  Species::Species self_spec) {
   switch (type) {
     case TypePB::PB_NONE:
       mtype = LineShape::Type::DP;
@@ -317,6 +314,8 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
       self = bath = true;
       m = Model(x[0], x[1], x[2], x[3], x[4]);
       species.resize(2);
+      species[0] = self_spec;
+      species[1] = Species::Species::Bath;
       return;
     case TypePB::PB_AIR_AND_WATER_BROADENING:
       if (self_in_list) {
@@ -329,7 +328,8 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
         m.Data()[1].G0() = {TemperatureModel::T1, x[3], x[4], 0, 0};
         m.Data()[1].D0() = {TemperatureModel::T5, x[5], x[4], 0, 0};
         species.resize(2);
-        species[0] = SpeciesTag("H2O");
+        species[0] = Species::fromShortName("H2O");
+        species[1] = Species::Species::Bath;
         return;
       } else {
         mtype = LineShape::Type::VP;
@@ -342,7 +342,9 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
         m.Data()[1].G0() = {TemperatureModel::T1, x[6], x[7], 0, 0};
         m.Data()[1].D0() = {TemperatureModel::T5, x[8], x[7], 0, 0};
         species.resize(3);
-        species[1] = SpeciesTag("H2O");
+        species[0] = self_spec;
+        species[1] = Species::fromShortName("H2O");
+        species[2] = Species::Species::Bath;
         return;
       }
     case TypePB::PB_PLANETARY_BROADENING:
@@ -362,12 +364,12 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
         m.Data()[4].D0() = {TemperatureModel::T5, x[18], x[12], 0, 0};
         m.Data()[5].G0() = {TemperatureModel::T1, x[6], x[13], 0, 0};
         m.Data()[5].D0() = {TemperatureModel::T5, x[19], x[13], 0, 0};
-        species = {SpeciesTag(String("N2")),
-                   SpeciesTag(String("O2")),
-                   SpeciesTag(String("H2O")),
-                   SpeciesTag(String("CO2")),
-                   SpeciesTag(String("H2")),
-                   SpeciesTag(String("He"))};
+        species = {Species::fromShortName("N2"),
+                   Species::fromShortName("O2"),
+                   Species::fromShortName("H2O"),
+                   Species::fromShortName("CO2"),
+                   Species::fromShortName("H2"),
+                   Species::fromShortName("He")};
         return;
       } else {
         mtype = LineShape::Type::VP;
@@ -389,12 +391,13 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
         m.Data()[6].G0() = {TemperatureModel::T1, x[6], x[13], 0, 0};
         m.Data()[6].D0() = {TemperatureModel::T5, x[19], x[13], 0, 0};
         species.resize(7);
-        species[1] = SpeciesTag(String("N2"));
-        species[2] = SpeciesTag(String("O2"));
-        species[3] = SpeciesTag(String("H2O"));
-        species[4] = SpeciesTag(String("CO2"));
-        species[5] = SpeciesTag(String("H2"));
-        species[6] = SpeciesTag(String("He"));
+        species[0] = self_spec;
+        species[1] = Species::fromShortName("N2");
+        species[2] = Species::fromShortName("O2");
+        species[3] = Species::fromShortName("H2O");
+        species[4] = Species::fromShortName("CO2");
+        species[5] = Species::fromShortName("H2");
+        species[6] = Species::fromShortName("He");
         return;
       }
   }
@@ -448,104 +451,94 @@ LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
   return y;
 }
 
+
 Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-                       const QuantumIdentifier& self,
-                       const ArrayOfSpeciesTag& lineshape_species,
-                       bool self_in_list,
-                       bool bath_in_list,
-                       Type type) {
-  ARTS_USER_ERROR_IF (atmospheric_species.nelem() != atmospheric_vmrs.nelem(),
-                      "Bad atmospheric inputs");
+                       const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT {
+  ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(), "Bad atmospheric inputs");
+  
+  const Index n = lineshape_species.nelem();
+  const Index back = n - 1;  // Last index
   
   // Initialize list of VMRS to 0
-  Vector line_vmrs(lineshape_species.nelem(), 0);
-  const Index back = lineshape_species.nelem() - 1;  // Last index
+  Vector line_vmrs(n, 0);
   
-  // DP is the only style that allows no species
-  if (type == Type::DP) return line_vmrs;
+  // We need to know if bath is an actual species
+  const bool bath = lineshape_species.back() == Species::Species::Bath;
   
-  // Loop species ignoring self and bath
-  for (Index i = 0; i < lineshape_species.nelem()-bath_in_list; i++) {
-    // Select target in-case this is self-broadening
-    const Index target =
-    (self_in_list and  &lineshape_species[i] == &lineshape_species.front()) ? self.Species() : lineshape_species[i].Species();
+  // Loop species
+  for (Index i = 0; i < n - bath; i++) {
+    const Species::Species target = lineshape_species[i];
     
     // Find species in list or do nothing at all
     Index this_species_index = -1;
-    for (Index j = 0; j < atmospheric_species.nelem(); j++)
-      if (atmospheric_species[j][0].Species() == target)
+    for (Index j = 0; j < atmospheric_species.nelem(); j++) {
+      if (atmospheric_species[j].Species() == target) {
         this_species_index = j;
+      }
+    }
       
     // Set to non-zero in-case species exists
-    if (this_species_index not_eq -1)
+    if (this_species_index not_eq -1) {
       line_vmrs[i] = atmospheric_vmrs[this_species_index];
+    }
   }
   
   // Renormalize, if bath-species exist this is automatic.
-  if (bath_in_list)
+  if (bath) {
     line_vmrs[back] = 1.0 - line_vmrs.sum();
-  else if(line_vmrs.sum() == 0)  // Special case, there should be no atmosphere if this happens???
-    return line_vmrs;
-  else
+  } else if(line_vmrs.sum() == 0) {  // Special case
+  } else {
     line_vmrs /= line_vmrs.sum();
-  
-  // The result must be non-zero, a real number, and finite
-  ARTS_USER_ERROR_IF (not std::isnormal(line_vmrs.sum()),
-      "Bad VMRs, your atmosphere does not support the line of interest");
+  }
     
   return line_vmrs;
 }
 
 Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-                       const QuantumIdentifier& self,
-                       const ArrayOfSpeciesTag& lineshape_species,
-                       bool self_in_list,
-                       bool bath_in_list) {
-  ARTS_USER_ERROR_IF (atmospheric_species.nelem() != atmospheric_vmrs.nelem(),
-                      "Bad atmospheric inputs");
+                       const ArrayOfSpecies& lineshape_species,
+                       const SpeciesIsotopologueRatios& ir) ARTS_NOEXCEPT {
+  ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(),
+               "Bad atmospheric inputs");
+  
+  const Index n = lineshape_species.nelem();
+  const Index back = n - 1;  // Last index
   
   // Initialize list of VMRS to 0
   Vector line_vmrs(lineshape_species.nelem(), 0);
   Vector line_mass(lineshape_species.nelem(), 0);
-  const Index back = lineshape_species.nelem() - 1;  // Last index
+  
+  // We need to know if bath is an actual species
+  const bool bath = lineshape_species.back() == Species::Species::Bath;
   
   // Loop species ignoring self and bath
-  for (Index i = 0; i < lineshape_species.nelem()-bath_in_list; i++) {
+  for (Index i = 0; i < n - bath; i++) {
     // Select target in-case this is self-broadening
-    const auto target =
-    (self_in_list and  &lineshape_species[i] == &lineshape_species.front()) ? self.Species() : lineshape_species[i].Species();
+    const Species::Species target = lineshape_species[i];
     
     // Find species in list or do nothing at all
     Index this_species_index = -1;
-    for (Index j = 0; j < atmospheric_species.nelem(); j++)
-      if (atmospheric_species[j][0].Species() == target)
+    for (Index j = 0; j < atmospheric_species.nelem(); j++) {
+      if (atmospheric_species[j].Species() == target) {
         this_species_index = j;
+      }
+    }
       
     // Set to non-zero in-case species exists
     if (this_species_index not_eq -1) {
       line_vmrs[i] = atmospheric_vmrs[this_species_index];
-      line_mass[i] = atmospheric_species[this_species_index][0].SpeciesMass();
+      line_mass[i] = Species::mean_mass(target, ir);
     }
   }
   
   // Renormalize, if bath-species exist this is automatic.
-  if(line_vmrs.sum() == 0) {  // Special case, there should be no atmosphere if this happens???
-    return line_mass;
-  } else if (bath_in_list) {
+  if(line_vmrs.sum() == 0) {  // Special case
+  } else if (bath) {
     line_mass[back] = (line_vmrs * line_mass) / line_vmrs.sum();
   }
-  
-  if (self_in_list) {
-    line_mass[0] = self.SpeciesMass();
-  }
-  
-  // The result must be non-zero, a real number, and finite
-  ARTS_USER_ERROR_IF (not std::isnormal(line_mass.sum()),
-      "Bad VMRs, your atmosphere does not support the line of interest");
     
-  return line_vmrs;
+  return line_mass;
 }
 
 std::ostream& LineShape::operator<<(std::ostream& os, const LineShape::Model& m)
@@ -664,10 +657,9 @@ String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, 
 }
 
 ArrayOfString LineShape::ModelMetaDataArray(const LineShape::Model& m,
-                                const bool self,
-                                const bool bath,
-                                const ArrayOfSpeciesTag& sts,
-                                const Numeric T0)
+                                            const bool self,
+                                            const ArrayOfSpecies& sts,
+                                            const Numeric T0)
 {
   const auto& vars = enumtyps::VariableTypes;
   ArrayOfString as(0);
@@ -678,23 +670,17 @@ ArrayOfString LineShape::ModelMetaDataArray(const LineShape::Model& m,
     if (std::any_of(m.Data().cbegin(), m.Data().cend(),
       [var](auto& x){return x.Get(var).type not_eq TemperatureModel::None;})) {
       
-      std::ostringstream os;
-      os << var << " ~ ";
-      for (Index j=0; j<sts.nelem(); j++) {
-        if (&sts[j] == &sts.front() and self)
-          os << "VMR(" << self_broadening << ") * "
-             << modelparameters2metadata(m.Data().front().Get(var), T0);
-        else if (&sts[j] == &sts.back() and bath)
-          os << "VMR(" << bath_broadening << ") * "
-             << modelparameters2metadata(m.Data().back().Get(var), T0);
-        else 
-          os << "VMR(" << sts[j].SpeciesNameMain() << ") * "
-             << modelparameters2metadata(m.Data()[j].Get(var), T0);
-             
-        if (&sts[j] not_eq &sts.back())
-          os << " + ";
-      }
-      as.push_back(os.str());
+    std::ostringstream os;
+    os << var << " ~ ";
+    for (Index j=0; j<sts.nelem(); j++) {
+      if (j == 0 and self)
+        os << "VMR(" << self_broadening << ") * " << modelparameters2metadata(m.Data().front().Get(var), T0);
+      else 
+        os << "VMR(" << toShortName(sts[j]) << ") * " << modelparameters2metadata(m.Data()[j].Get(var), T0);
+      
+      if (sts[j] not_eq sts.back()) os << " + ";
+    }
+    as.push_back(os.str());
     }
   }
   
@@ -1085,15 +1071,11 @@ Model lblrtm_model(Numeric sgam,
 }
 
 bool Model::OK(Type type, bool self, bool bath,
-               const std::vector<SpeciesTag>& species) const noexcept {
+               const std::size_t nspecies) const noexcept {
   Index n = mdata.size();
-  Index k = species.size();
   Index m = Index(self) + Index(bath);
   bool needs_any = type not_eq Type::DP;
-  if (n not_eq k or m > n or (needs_any and not n))
-    return false;
-  else
-    return true;
+  return not (n not_eq Index(nspecies) or m > n or (needs_any and not n));
 }
 
 #define LSPC(XVAR, PVAR)                                                       \
@@ -1323,6 +1305,11 @@ void Model::Remove(Index i, ArrayOfSpeciesTag& specs) {
   specs.erase(specs.begin() + i);
 }
 
+void Model::Remove(Index i, ArrayOfSpecies& specs) {
+  mdata.erase(mdata.begin() + i);
+  specs.erase(specs.begin() + i);
+}
+
 void Model::SetLineMixingModel(SingleSpeciesModel x) {
   for (auto& ssm : mdata) {
     ssm.Y() = x.Y();
@@ -1433,15 +1420,14 @@ LegacyPressureBroadeningData::TypePB string2typepb(String type) {
 Index self_listed(const QuantumIdentifier& qid,
                   LegacyPressureBroadeningData::TypePB t) {
   if (t == TypePB::PB_PLANETARY_BROADENING and
-      (qid.Species() == SpeciesTag(String("N2")).Species() or
-       qid.Species() == SpeciesTag(String("O2")).Species() or
-       qid.Species() == SpeciesTag(String("H2O")).Species() or
-       qid.Species() == SpeciesTag(String("CO2")).Species() or
-       qid.Species() == SpeciesTag(String("H2")).Species() or
-       qid.Species() == SpeciesTag(String("He")).Species()))
+      (qid.Species() == Species::fromShortName("N2") or
+       qid.Species() == Species::fromShortName("O2") or
+       qid.Species() == Species::fromShortName("H2O") or
+       qid.Species() == Species::fromShortName("CO2") or
+       qid.Species() == Species::fromShortName("H2") or
+       qid.Species() == Species::fromShortName("He")))
     return true;
-  else if (t == TypePB::PB_AIR_AND_WATER_BROADENING and
-           qid.Species() == SpeciesTag(String("H2O")).Species())
+  else if (t == TypePB::PB_AIR_AND_WATER_BROADENING and qid.Species() == Species::fromShortName("H2O"))
     return true;
   else
     return false;

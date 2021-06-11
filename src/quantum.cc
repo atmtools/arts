@@ -62,73 +62,17 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn) {
   return os;
 }
 
-String QuantumIdentifier::SpeciesName() const {
-  // Species lookup data:
-  using global_data::species_data;
-  
-  // A reference to the relevant record of the species data:
-  const SpeciesRecord& spr = species_data[Species()];
-  
-  // First the species name:
-  return spr.Name() + "-" +
-  spr.Isotopologue()[Isotopologue()].Name();
-}
-
-Numeric QuantumIdentifier::SpeciesMass() const {
-  // Species lookup data:
-  using global_data::species_data;
-  
-  // A reference to the relevant record of the species data:
-  const SpeciesRecord& spr = species_data[Species()];
-  
-  // First the species name:
-  return spr.Isotopologue()[Isotopologue()].Mass();
-}
-
-void QuantumIdentifier::SetFromString(String str) {
-  // Global species lookup data:
-  using global_data::species_data;
-
-  // We need a species index sorted by Arts identifier. Keep this in a
-  // static variable, so that we have to do this only once.  The ARTS
-  // species index is ArtsMap[<Arts String>].
-  static map<String, SpecIsoMap> ArtsMap;
-
-  // Remember if this stuff has already been initialized:
-  static bool hinit = false;
-
-  if (!hinit) {
-    for (Index i = 0; i < species_data.nelem(); ++i) {
-      const SpeciesRecord& sr = species_data[i];
-
-      for (Index j = 0; j < sr.Isotopologue().nelem(); ++j) {
-        SpecIsoMap indicies(i, j);
-        String buf = sr.Name() + "-" + sr.Isotopologue()[j].Name();
-
-        ArtsMap[buf] = indicies;
-      }
-    }
-    hinit = true;
-  }
-
+void Quantum::Identifier::SetFromString(String str) {
   std::istringstream is(str);
   String token;
 
   is >> token;
 
-  // ok, now for the cool index map:
-  // is this arts identifier valid?
-  const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(token);
-  ARTS_USER_ERROR_IF (i == ArtsMap.end(),
-    "ARTS Tag: ", token, " is unknown.")
-
-  SpecIsoMap id = i->second;
-  Species(id.Speciesindex());
-  Isotopologue(id.Isotopologueindex());
+  spec_ind = Species::Tag(token).spec_ind;
 
   is >> token;
   if (token == "TR") {
-    mqtype = QuantumIdentifier::TRANSITION;
+    type = Quantum::IdentifierType::Transition;
     is >> token;
     ARTS_USER_ERROR_IF (token != "UP",
       "Expected 'UP', but got: ", token)
@@ -136,11 +80,11 @@ void QuantumIdentifier::SetFromString(String str) {
     is >> token;
     Rational r;
     while (is) {
+      if (token == "LO") break;
       ThrowIfQuantumNumberNameInvalid(token);
       is >> r;
-      QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX].Set(token, r);
+      Upper().Set(token, r);
       is >> token;
-      if (token == "LO") break;
     }
 
     ARTS_USER_ERROR_IF (!is,
@@ -149,74 +93,30 @@ void QuantumIdentifier::SetFromString(String str) {
     while (is) {
       ThrowIfQuantumNumberNameInvalid(token);
       is >> r;
-      QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX].Set(token, r);
+      Lower().Set(token, r);
       is >> token;
     }
   } else if (token == "EN") {
-    mqtype = QuantumIdentifier::ENERGY_LEVEL;
+    type = Quantum::IdentifierType::EnergyLevel;
 
     is >> token;
     Rational r;
     while (is) {
       ThrowIfQuantumNumberNameInvalid(token);
       is >> r;
-      QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX].Set(token, r);
+      Level().Set(token, r);
       is >> token;
     }
   } else if (token == "ALL") {
-    mqtype = QuantumIdentifier::ALL;
+    type = Quantum::IdentifierType::All;
   } else if (token == "NONE") {
-    mqtype = QuantumIdentifier::NONE;
+    type = Quantum::IdentifierType::None;
   } else {
     ARTS_USER_ERROR (
       "Error parsing QuantumIdentifier. Expected TR or EN, but got: ",
       token, "\n"
       "QI: ", str)
   }
-}
-
-void QuantumIdentifier::SetFromStringForCO2Band(String upper,
-                                                String lower,
-                                                String iso) {
-  ARTS_ASSERT(upper.nelem() == 5);
-  ARTS_ASSERT(lower.nelem() == 5);
-  ARTS_ASSERT(iso.nelem() == 3);
-
-  std::ostringstream os;
-
-  os << "CO2-" << iso << " TR "
-     << "UP "
-     << "v1 " << upper[0] << " v2 " << upper[1] << " l2 " << upper[2] << " v3 "
-     << upper[3] << " r " << upper[4] << " "
-     << "LO "
-     << "v1 " << lower[0] << " v2 " << lower[1] << " l2 " << lower[2] << " v3 "
-     << lower[3] << " r " << lower[4];
-
-  SetFromString(os.str());
-}
-
-std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi) {
-  using global_data::species_data;
-
-  if (qi.Species() < 0 || qi.Isotopologue() < 0)
-    return os;
-
-  os << qi.SpeciesName() << ' ';
-
-  if (qi.Type() == QuantumIdentifier::TRANSITION)
-    os << "TR UP "
-       << qi.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX] << " LO "
-       << qi.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX];
-  else if (qi.Type() == QuantumIdentifier::ENERGY_LEVEL)
-    os << "EN " << qi.QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL_INDEX];
-  else if (qi.Type() == QuantumIdentifier::ALL)
-    os << "ALL";
-  else if (qi.Type() == QuantumIdentifier::NONE)
-    os << "NONE";
-  else
-    ARTS_ASSERT(0);
-
-  return os;
 }
 
 Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
@@ -248,7 +148,7 @@ void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >
     } else {
       auto val = interpret_stringdata(key, keyval[1]);
       if (val != RATIONAL_UNDEFINED) {
-        qid.UpperQuantumNumber(key) = val;
+        qid.Upper()[key] = val;
       } else {
       }
     }
@@ -260,7 +160,7 @@ void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >
     } else {
       auto val = interpret_stringdata(key, keyval[1]);
       if (val != RATIONAL_UNDEFINED) {
-        qid.LowerQuantumNumber(key) = val;
+        qid.Lower()[key] = val;
       } else {
       }
     }
@@ -275,18 +175,4 @@ String QuantumNumbers::toString() const
   if(s.back() == ' ')
     s.pop_back();
   return s;
-}
-
-QuantumIdentifier::QuantumIdentifier(const Index spec,
-                                     const Index isot,
-                                     const std::vector<QuantumNumberType>& keys,
-                                     const std::vector<Rational>& upper,
-                                     const std::vector<Rational>& lower) :
-mqtype(QuantumIdentifier::TRANSITION),
-mspecies(spec),
-miso(isot) {
-  for(size_t i=0; i<keys.size(); i++) {
-    mqm[TRANSITION_UPPER_INDEX][keys[i]] = upper[i];
-    mqm[TRANSITION_LOWER_INDEX][keys[i]] = lower[i];
-  }
 }

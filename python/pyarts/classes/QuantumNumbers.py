@@ -3,6 +3,68 @@ from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.Rational import Rational
+from pyarts.classes.BasicTypes import String
+
+class QuantumNumberType:
+    """ ARTS QuantumNumberType type data
+    
+    Properties:
+        name:
+            Name of type (String)
+    """
+    def __init__(self, data):
+        if isinstance(data, c.c_void_p):
+            self.__delete__ = False
+            self.__data__ = data
+        else:
+            self.__delete__ = True
+            self.__data__ = c.c_void_p(lib.createQuantumNumberType())
+            self.name = data
+    
+    @property
+    def name(self):
+        return String(c.c_void_p(lib.getQuantumNumberTypeString(self.__data__)),
+                      delete=True)
+    
+    @name.setter
+    def name(self, x):
+        if lib.setQuantumNumberTypeString(self.__data__, str(x).encode('utf-8')):
+            raise RuntimeError(f"Bad QuantumNumberType: {x}")
+
+    def print(self):
+        """ Print to cout the ARTS representation of the class """
+        lib.printQuantumNumberType(self.__data__)
+
+    def __del__(self):
+        if self.__delete__:
+            lib.deleteQuantumNumberType(self.__data__)
+            
+    def set(self, other):
+        s = other.name if isinstance(other, QuantumNumberType) else other
+        self.name = s
+    
+    def __eq__(self, other):
+        s = other.name if isinstance(other, QuantumNumberType) else other
+        return self.name == s
+    
+    def __repr__(self):
+        return f"{self.name}"
+
+
+lib.createQuantumNumberType.restype = c.c_void_p
+lib.createQuantumNumberType.argtypes = []
+
+lib.deleteQuantumNumberType.restype = None
+lib.deleteQuantumNumberType.argtypes = [c.c_void_p]
+
+lib.printQuantumNumberType.restype = None
+lib.printQuantumNumberType.argtypes = [c.c_void_p]
+
+lib.getQuantumNumberTypeString.restype = c.c_void_p
+lib.getQuantumNumberTypeString.argtypes = [c.c_void_p]
+
+lib.setQuantumNumberTypeString.restype = c.c_int
+lib.setQuantumNumberTypeString.argtypes = [c.c_void_p, c.c_char_p]
 
 
 class QuantumNumbers:
@@ -78,8 +140,13 @@ class QuantumNumbers:
         if self.__delete__:
             lib.deleteQuantumNumbers(self.__data__)
 
+    @property
+    def as_string(self):
+        return String(c.c_void_p(lib.getQuantumNumbersString(self.__data__)),
+                      delete=True)
+
     def __repr__(self):
-        return "ARTS QuantumNumbers"
+        return f"{self.as_string}"
 
     def __len__(self):
         return self.size
@@ -121,7 +188,6 @@ class QuantumNumbers:
         else:
             return False
 
-
 lib.createQuantumNumbers.restype = c.c_void_p
 lib.createQuantumNumbers.argtypes = []
 
@@ -139,3 +205,6 @@ lib.sizeQuantumNumbers.argtypes = []
 
 lib.string2quantumnumbersindex.restype = c.c_long
 lib.string2quantumnumbersindex.argtypes = [c.c_char_p]
+
+lib.getQuantumNumbersString.restype = c.c_void_p
+lib.getQuantumNumbersString.argtypes = [c.c_void_p]

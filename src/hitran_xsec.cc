@@ -53,7 +53,7 @@ Numeric lorentz_pdf(const Numeric x, const Numeric x0, const Numeric gamma) {
 String XsecRecord::SpeciesName() const {
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
-  return species_name_from_species_index(mspecies);
+  return Species::toShortName(mspecies);
 }
 
 void convolve(Vector& result,
@@ -329,7 +329,7 @@ void XsecRecord::Extract(VectorView result,
  \returns Index of this species in hitran_xsec_data. -1 if not found.
  */
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
-                            const Index species) {
+                            const Species::Species species) {
   for (Index i = 0; i < xsec_data.nelem(); i++)
     if (xsec_data[i].Species() == species) return i;
 

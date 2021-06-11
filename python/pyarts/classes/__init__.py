@@ -32,8 +32,9 @@ from pyarts.classes.RetrievalQuantity import ArrayOfRetrievalQuantity
 from pyarts.classes.ScatteringMetaData import ScatteringMetaData, ArrayOfScatteringMetaData, ArrayOfArrayOfScatteringMetaData
 from pyarts.classes.SingleScatteringData import SingleScatteringData, ArrayOfSingleScatteringData, ArrayOfArrayOfSingleScatteringData
 from pyarts.classes.Sparse import Sparse, ArrayOfSparse
-from pyarts.classes.SpeciesAuxData import SpeciesAuxData
 from pyarts.classes.SpeciesTag import SpeciesTag, ArrayOfSpeciesTag, ArrayOfArrayOfSpeciesTag
+from pyarts.classes.SpeciesIsotopeRecord import SpeciesIsotopeRecord
+from pyarts.classes.SpeciesIsotopologueRatios import SpeciesIsotopologueRatios
 from pyarts.classes.StokesVector import StokesVector, ArrayOfStokesVector, ArrayOfArrayOfStokesVector
 from pyarts.classes.TelsemAtlas import TelsemAtlas, ArrayOfTelsemAtlas
 from pyarts.classes.Tensor3 import Tensor3, ArrayOfTensor3, ArrayOfArrayOfTensor3

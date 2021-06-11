@@ -3,7 +3,7 @@ add_library (artsgui STATIC
             gui.cc
             plot.cc
             )
-target_link_libraries(artsgui PUBLIC imgui implot matpack artscore)
+target_link_libraries(artsgui PUBLIC imgui implot matpack artscore species)
 target_include_directories(artsgui PUBLIC ${ARTS_SOURCE_DIR}/src
                                           ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
                                           ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/

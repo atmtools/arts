@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<PartitionFunctionsData type="Coeff">
+<Matrix nrows="4" ncols="1">
+-15.12671
+0.6851018
+0.00315808
+-1.563931e-06
+</Matrix>
+</PartitionFunctionsData>
+</arts>

@@ -95,7 +95,7 @@ AgendaSet( forloop_agenda_solar ){
 
   Extract( z_surface, z_field, 0 )
 
-  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+  atmfields_checkedCalc
   atmgeom_checkedCalc
   #WriteXML( "ascii", p_grid )
   #WriteXML( "ascii", z_field )

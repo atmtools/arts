@@ -16,33 +16,19 @@
    USA. */
 
 #include <iostream>
-#include "absorption.h"
-#include "arts.h"
-#include "exceptions.h"
-#include "global_data.h"
-#include "matpackII.h"
-#include "xml_io.h"
+#include "matpackI.h"
+#include "xml_io_base.h"
 
 int main(int /*argc*/, char * /*argv*/[]) {
-  using global_data::species_data;
 
-  define_species_data();
-  try {
-    xml_write_to_file(
-        "sdata1.xml", species_data, FILE_TYPE_ASCII, 0, Verbosity());
-    cout << "Wrote species_data: " << endl;
+  Vector v1{1, 2, 3, 4, 5};
+  String filename{"test.xml"};
+  xml_write_to_file_base(filename, v1, FILE_TYPE_ASCII, Verbosity());
+  std::cout << v1 << '\n';
 
-    Array<SpeciesRecord> my_species_data;
-
-    xml_read_from_file("sdata1.xml", my_species_data, Verbosity());
-    cout << "Read species_data: " << endl;
-
-    xml_write_to_file(
-        "sdata2.xml", my_species_data, FILE_TYPE_ASCII, 0, Verbosity());
-    cout << "Wrote species_data: " << endl;
-  } catch (const std::runtime_error &e) {
-    cerr << e.what();
-  }
+  Vector v2;
+  xml_read_from_file_base(filename, v2, Verbosity());
+  std::cout << v2 << '\n';
 
   return (0);
 }

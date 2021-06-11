@@ -53,8 +53,6 @@ ArrayOfIndexCreate( aoitmp )
 GriddedField3Create( gf3tmp )
 ArrayOfGriddedField3Create( aogf3tmp )
 
-IndexCreate( bad_partition_functions_ok )
-
 GriddedField3Create( wind_u_raw )
 GriddedField3Create( wind_v_raw )
 GriddedField3Create( wind_w_raw )

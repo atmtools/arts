@@ -14,7 +14,6 @@ Arts2{
   
   ## Constants (changes here might require changes in perturbations to match)
   isotopologue_ratiosInitFromBuiltin
-  ReadXML( partition_functions, "spectroscopy/PartitionSums/TIPS/tips.xml" )
   abs_speciesSet(species=["O2-66"])
   VectorNLinSpace(f_grid, 100, 85e9, 115e9)  #FIXME: 101 freqs fail because HTP fails
   VectorNLogSpace( p_grid, 51, 1030e2, 1 )

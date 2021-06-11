@@ -40,6 +40,7 @@
 #include "legacy_continua.h"
 #include "file.h"
 #include "global_data.h"
+#include "hitran_species.h"
 #include "jacobian.h"
 #include "lineshape.h"
 #include "m_xml.h"
@@ -111,18 +112,14 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
     // Loop all the tags
     for (Index i=0; i<tgs.nelem() and lines.NumLines(); i++) {
       for (auto& this_tag: tgs[i]) {
-        // Test species first, we might leave as we leave
-        if (this_tag.Species() not_eq lines.Species()) break;
-        
         // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
-        if (this_tag.Isotopologue() not_eq SpeciesDataOfBand(lines).Isotopologue().nelem() and
-            this_tag.Isotopologue() not_eq lines.Isotopologue())
+        if (not same_or_joker(this_tag.Isotopologue(), lines.Isotopologue()))
           continue;
         
         // If there is a frequency range, we have to check so that only selected lines are included
-        if (this_tag.Lf() >= 0 or this_tag.Uf() >= 0) {
-          const Numeric low = (this_tag.Lf() >= 0) ? this_tag.Lf() : std::numeric_limits<Numeric>::lowest();
-          const Numeric upp = (this_tag.Uf() >= 0) ? this_tag.Uf() : std::numeric_limits<Numeric>::max();
+        if (this_tag.lower_freq >= 0 or this_tag.upper_freq >= 0) {
+          const Numeric low = (this_tag.lower_freq >= 0) ? this_tag.lower_freq : std::numeric_limits<Numeric>::lowest();
+          const Numeric upp = (this_tag.upper_freq >= 0) ? this_tag.upper_freq : std::numeric_limits<Numeric>::max();
           
           // Fill up a copy of the line record to match with the wished frequency criteria
           AbsorptionLines these_lines = createEmptyCopy(lines);
@@ -164,16 +161,13 @@ void abs_speciesDefineAllInScenario(  // WS Output:
   propmat_clearsky_agenda_checked = false;
   abs_xsec_agenda_checked = false;
 
-  // Species lookup data:
-  using global_data::species_data;
-
   // We want to make lists of included and excluded species:
   ArrayOfString included(0), excluded(0);
 
   tgs.resize(0);
 
-  for (Index i = 0; i < species_data.nelem(); ++i) {
-    const String specname = species_data[i].Name();
+  for (Index i = 0; i < Index(Species::Species::FINAL); ++i) {
+    const String specname = Species::toShortName(Species::Species(i));
 
     String filename = basename;
     if (basename.length() && basename[basename.length() - 1] != '/')
@@ -184,17 +178,9 @@ void abs_speciesDefineAllInScenario(  // WS Output:
       find_xml_file(filename, verbosity);
       // Add to included list:
       included.push_back(specname);
-
-      // Convert name of species to a SpeciesTag object:
-      SpeciesTag this_tag(specname);
-
-      // Create Array of SpeciesTags with length 1
-      // (our tag group has only one tag):
-      ArrayOfSpeciesTag this_group(1);
-      this_group[0] = this_tag;
-
+      
       // Add this tag group to tgs:
-      tgs.push_back(this_group);
+      tgs.emplace_back(ArrayOfSpeciesTag(specname));
     } catch (const std::runtime_error& e) {
       // The file for the species could not be found.
       excluded.push_back(specname);
@@ -219,12 +205,13 @@ void abs_speciesDefineAll(  // WS Output:
     // Control Parameters:
     const Verbosity& verbosity) {
   // Species lookup data:
-  using global_data::species_data;
 
   // We want to make lists of all species
   ArrayOfString specs(0);
-  for (auto& spec: species_data) {
-    specs.push_back(spec.Name());
+  for (Index i = 0; i < Index(Species::Species::FINAL); ++i) {
+    if (Species::Species(i) not_eq Species::Species::Bath) {
+      specs.emplace_back(Species::toShortName(Species::Species(i)));
+    }
   }
 
   // Set the values
@@ -380,11 +367,11 @@ void abs_coefCalcFromXsec(  // WS Output:
             bool seco = false, main = false;
             for (const auto& s : abs_species[i]) {
               if (species_match(
-                      deriv, s.BathSpecies()) or
-                  s.Type() not_eq SpeciesTag::TYPE_CIA)
+                      deriv, s.cia_2nd_species) or
+                  s.type not_eq Species::TagType::Cia)
                 seco = true;
               if (species_iso_match(
-                      deriv, s.Species(),
+                      deriv,
                       s.Isotopologue()))
                 main = true;
             }
@@ -644,22 +631,17 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
   for (Index ii = 0; ii < abs_species_active.nelem(); ++ii) {
     const Index i = abs_species_active[ii];
 
-    using global_data::species_data;
-
     // Go through the tags in the current tag group to see if they
     // are continuum tags:
     for (Index s = 0; s < tgs[i].nelem(); ++s) {
       // Continuum tags in the sense that we talk about here
       // (including complete absorption models) are marked by a special type.
-      if (tgs[i][s].Type() == SpeciesTag::TYPE_PREDEF) {
+      if (tgs[i][s].Type() == Species::TagType::Predefined) {
         // We have identified a continuum tag!
 
         // Get only the continuum name. The full tag name is something like:
         // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
-        const String name = species_data[tgs[i][s].Species()].Name() + "-" +
-                            species_data[tgs[i][s].Species()]
-                                .Isotopologue()[tgs[i][s].Isotopologue()]
-                                .Name();
+        const String name = tgs[i][s].Isotopologue().FullName();
 
         if (name == "O2-MPM2020") continue;
                                 
@@ -1082,7 +1064,7 @@ void propmat_clearskyAddFaraday(
 
   Index ife = -1;
   for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
-    if (abs_species[sp][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS) {
+    if (abs_species[sp].FreeElectrons()) {
       ife = sp;
     }
   }
@@ -1187,7 +1169,7 @@ void propmat_clearskyAddParticles(
   const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
   for (Index sp = 0; sp < abs_species.nelem(); sp++) {
-    if (abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES) {
+    if (abs_species[sp].Particles()) {
       np++;
     }
   }
@@ -1275,7 +1257,7 @@ void propmat_clearskyAddParticles(
   for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
     for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
       // forward to next particle entry in abs_species
-      while (sp < na && abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES)
+      while (sp < na && not abs_species[sp].Particles())
         sp++;
       internal_propmat.SetZero();
 
@@ -1380,7 +1362,7 @@ void propmat_clearskyAddParticles(
   //are processes. this is basically not necessary. but checking it anyway to
   //really be safe. remove later, when more extensively tested.
   while (sp < na) {
-    ARTS_ASSERT(abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES);
+    ARTS_ASSERT(abs_species[sp][0].Type() != Species::TagType::Particles);
     sp++;
   }
 
@@ -1470,8 +1452,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const SpeciesAuxData& isotopologue_ratios,
-    const SpeciesAuxData& partition_functions,
+    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
     const EnergyLevelMap& rtp_nlte,
@@ -1533,13 +1514,12 @@ void propmat_clearskyAddLines(  // Workspace reference:
   // Need to do more complicated calculations if this is true
   const bool legacy_vmr_derivative=std::any_of(jacobian_quantities.cbegin(), jacobian_quantities.cend(),
                                                [](auto& deriv){return deriv == Jacobian::Special::ArrayOfSpeciesTagVMR;});
-
   if (legacy_vmr_derivative) {
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
       if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
       
       // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
+      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
         continue;
       
       // Reset for legacy VMR jacobian
@@ -1547,9 +1527,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
       sparse_com.reset();
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
-                           partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, sparse_lim,
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                           isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
                            false, Zeeman::Polarization::Pi, speedup_type);
         
       }
@@ -1600,13 +1579,12 @@ void propmat_clearskyAddLines(  // Workspace reference:
       if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
       
       // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
+      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
         continue;
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, partition_functions.getParamType(band.QuantumIdentity()),
-                           partition_functions.getParam(band.QuantumIdentity()), band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity()), rtp_pressure, rtp_temperature, 0, sparse_lim,
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                           isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
                            false, Zeeman::Polarization::Pi, speedup_type);
         
       }
@@ -1759,15 +1737,16 @@ void propmat_clearskyForceNegativeToZero(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void isotopologue_ratiosInitFromBuiltin(SpeciesAuxData& isotopologue_ratios,
-                                        const Verbosity&) {
-  fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(isotopologue_ratios);
+void isotopologue_ratiosInitFromBuiltin(SpeciesIsotopologueRatios& isotopologue_ratios,
+                                       const Verbosity&) {
+  isotopologue_ratios = Species::isotopologue_ratiosInitFromBuiltin();
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void partition_functionsInitFromBuiltin(SpeciesAuxData& partition_functions,
-                                        const Verbosity&) {
-  fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(partition_functions);
+void isotopologue_ratiosInitFromHitran(SpeciesIsotopologueRatios& isotopologue_ratios,
+                                       const String& option,
+                                       const Verbosity&) {
+  isotopologue_ratios = Hitran::isotopologue_ratios(Hitran::toTypeOrThrow(option));
 }
 
 #ifdef ENABLE_NETCDF
@@ -1959,8 +1938,7 @@ void abs_xsec_per_speciesAddLines(
     const EnergyLevelMap& abs_nlte,
     const Matrix& abs_vmrs,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const SpeciesAuxData& isotopologue_ratios,
-    const SpeciesAuxData& partition_functions,
+    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Index& lbl_checked,
     const Verbosity&) {
   if (not abs_lines_per_species.nelem()) return;
@@ -1992,7 +1970,7 @@ void abs_xsec_per_speciesAddLines(
   for (Index ii = 0; ii < abs_species_active.nelem(); ++ii) {
     const Index i = abs_species_active[ii];
     
-    if (not abs_species[i].nelem() or is_zeeman(abs_species[i]))
+    if (not abs_species[i].nelem() or abs_species[i].Zeeman())
       continue;
     
     for (auto& lines: abs_lines_per_species[i]) {
@@ -2011,9 +1989,7 @@ void abs_xsec_per_speciesAddLines(
           abs_vmrs,
           abs_species,
           lines,
-          isotopologue_ratios.getIsotopologueRatio(lines.QuantumIdentity()),
-          partition_functions.getParamType(lines.QuantumIdentity()),
-          partition_functions.getParam(lines.QuantumIdentity()));
+          isotopologue_ratios[lines.Isotopologue()]);
     }
   }  // End of species for loop.
 }

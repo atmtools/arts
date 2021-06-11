@@ -36,6 +36,7 @@
 #include "gridded_fields.h"
 #include "matpackI.h"
 #include "mystring.h"
+#include "species.h"
 
 // Declare existance of some classes:
 class bifstream;
@@ -53,8 +54,8 @@ void cia_interpolation(VectorView result,
                        const Verbosity& verbosity);
 
 Index cia_get_index(const ArrayOfCIARecord& cia_data,
-                    const Index sp1,
-                    const Index sp2);
+                    const Species::Species sp1,
+                    const Species::Species sp2);
 
 /** CIA data for a single pair of molecules.
  
@@ -93,7 +94,7 @@ class CIARecord {
      \param[in] i Must be either 0 or 1. Then the first or second species index
      is returned.
      */
-  Index Species(const Index i) const {
+  Species::Species Species(const Index i) const {
     // Assert that i is 0 or 1:
     ARTS_ASSERT(i >= 0);
     ARTS_ASSERT(i <= 1);
@@ -144,7 +145,7 @@ class CIARecord {
      \param[in] first CIA Species.
      \param[in] second CIA Species.
      */
-  void SetSpecies(const Index first, const Index second) {
+  void SetSpecies(const Species::Species first, const Species::Species second) {
     mspecies[0] = first;
     mspecies[1] = second;
   }
@@ -239,7 +240,7 @@ class CIARecord {
      
      We use a plain C array here, since the length of this is always 2.
      */
-  Index mspecies[2];
+  Species::Species mspecies[2];
 };
 
 ostream& operator<<(ostream& os, const CIARecord& cr);

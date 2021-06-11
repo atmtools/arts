@@ -104,6 +104,12 @@ void resize##ELEM##TYPE(Index n, void * data);  \
 __attribute__((visibility("default")))          \
 void * getelem##ELEM##TYPE(Index i, void * data);
 
+#define StringEnumPointersCAPI(ENUM)            \
+__attribute__((visibility("default")))          \
+void * get##ENUM##String(void *);               \
+__attribute__((visibility("default")))          \
+int set##ENUM##String(void *, char *);
+
 
 extern "C" {
     // Index
@@ -171,38 +177,76 @@ extern "C" {
     VoidGetterCAPI(AbsorptionSingleLine, LineShape)
     VoidArrayElemCAPI(AbsorptionSingleLine, LowerQuantumNumbers)
     VoidArrayElemCAPI(AbsorptionSingleLine, UpperQuantumNumbers)
+    
+    // QuantumNumbers
+    BasicInterfaceCAPI(QuantumNumberType)
+    StringEnumPointersCAPI(QuantumNumberType)
   
     // QuantumNumbers
     BasicInterfaceCAPI(QuantumNumbers)
     DLL_PUBLIC void * getelemQuantumNumbers(Index, void *);
     DLL_PUBLIC Index sizeQuantumNumbers();
     DLL_PUBLIC Index string2quantumnumbersindex(char *);
+    DLL_PUBLIC void * getQuantumNumbersString(void *);
+    
+    // Species::Species
+    DLL_PUBLIC void * createSpecies();
+    DLL_PUBLIC void deleteSpecies(void *);
+    DLL_PUBLIC void printSpecies(void *);
+    DLL_PUBLIC int setSpeciesLongName(void *, char *);
+    DLL_PUBLIC int setSpeciesShortName(void *, char *);
+    DLL_PUBLIC void * getSpeciesLongName(void *);
+    DLL_PUBLIC void * getSpeciesShortName(void *);
+    VoidArrayCAPI(ArrayOfSpecies)
+    BasicInputOutputCAPI(ArrayOfSpecies)
+    BasicInterfaceCAPI(ArrayOfSpecies)
+    
+    // SpeciesIsotopeRecord
+    BasicInterfaceCAPI(SpeciesIsotopeRecord)
+    DLL_PUBLIC Index getIndexSpeciesIsotopeRecordFromNames(char * spec, char * isot);
+    DLL_PUBLIC Index getIndexSpeciesIsotopeRecordFromData(void *);
+    DLL_PUBLIC int setSpeciesIsotopeRecordToIndex(void *, Index);
+    DLL_PUBLIC void * getSpeciesSpeciesIsotopeRecord(void *);
+    DLL_PUBLIC void * getIsotnameSpeciesIsotopeRecord(void *);
+    DLL_PUBLIC Numeric getMassSpeciesIsotopeRecord(void *);
+    DLL_PUBLIC Index getGSpeciesIsotopeRecord(void *);
+    DLL_PUBLIC Index nelemSpeciesIsotopeRecordDefined();
+    
+    // SpeciesIsotopologueRatios
+    BasicInterfaceCAPI(SpeciesIsotopologueRatios)
+    BasicInputOutputCAPI(SpeciesIsotopologueRatios)
+    DLL_PUBLIC Numeric * getdataSpeciesIsotopologueRatios(void *);
+    
+    // QuantumIdentifierType
+    BasicInterfaceCAPI(QuantumIdentifierType)
+    StringEnumPointersCAPI(QuantumIdentifierType)
   
     // QuantumIdentifier
     BasicInterfaceCAPI(QuantumIdentifier)
     BasicInputOutputCAPI(QuantumIdentifier)
-    EnumGetterSetterCAPI(QuantumIdentifier, Type, QuantumIdentifier::QType)
-    GetterSetterCAPI(QuantumIdentifier, Species, Index)
-    GetterSetterCAPI(QuantumIdentifier, Isotopologue, Index)
-    VoidGetterCAPI(QuantumIdentifier, EnergyLevelQuantumNumbers)
-    VoidGetterCAPI(QuantumIdentifier, LowerQuantumNumbers)
-    VoidGetterCAPI(QuantumIdentifier, UpperQuantumNumbers)
+    VoidStructGetterCAPI(QuantumIdentifier, type)
+    VoidStructGetterCAPI(QuantumIdentifier, spec_ind)
+    VoidStructGetterCAPI(QuantumIdentifier, upp)
+    VoidStructGetterCAPI(QuantumIdentifier, low)
     
     // ArrayOfQuantumIdentifier
     BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
     BasicInputOutputCAPI(ArrayOfQuantumIdentifier)
     VoidArrayCAPI(ArrayOfQuantumIdentifier)
   
+    // SpeciesTagType
+    BasicInterfaceCAPI(SpeciesTagType)
+    StringEnumPointersCAPI(SpeciesTagType)
+    
     // SpeciesTag
     BasicInterfaceCAPI(SpeciesTag)
     BasicInputOutputCAPI(SpeciesTag)
-    GetterSetterCAPI(SpeciesTag, Species, Index)
-    GetterSetterCAPI(SpeciesTag, Isotopologue, Index)
-    GetterSetterCAPI(SpeciesTag, Uf, Numeric)
-    GetterSetterCAPI(SpeciesTag, Lf, Numeric)
-    GetterSetterCAPI(SpeciesTag, CIASecond, Index)
-    GetterSetterCAPI(SpeciesTag, CIADataset, Index)
-    EnumGetterSetterCAPI(SpeciesTag, Type, Index)
+    VoidStructGetterCAPI(SpeciesTag, spec_ind)
+    VoidStructGetterCAPI(SpeciesTag, lower_freq)
+    VoidStructGetterCAPI(SpeciesTag, upper_freq)
+    VoidStructGetterCAPI(SpeciesTag, type)
+    VoidStructGetterCAPI(SpeciesTag, cia_2nd_species)
+    VoidStructGetterCAPI(SpeciesTag, cia_dataset_index)
     VoidArrayCAPI(ArrayOfSpeciesTag)
     BasicInterfaceCAPI(ArrayOfSpeciesTag)
     BasicInputOutputCAPI(ArrayOfSpeciesTag)
@@ -211,10 +255,6 @@ extern "C" {
     BasicInputOutputCAPI(ArrayOfArrayOfSpeciesTag)
     DLL_PUBLIC void * getNameSpeciesTag(void *);
     DLL_PUBLIC Index setSpeciesTag(void *, char *);
-    DLL_PUBLIC Index validSpecies(Index);
-    DLL_PUBLIC Index validAllIsotopologues(Index, Index);
-    DLL_PUBLIC Index validIsotopologue(Index, Index);
-    DLL_PUBLIC Index validContinuum(Index, Index);
   
     // AbsorptionLines
     BasicInterfaceCAPI(AbsorptionLines)
@@ -607,15 +647,6 @@ extern "C" {
     DLL_PUBLIC void set_gridGriddedField6(Index i, void * data, void * newdata, bool NumericType);
     DLL_PUBLIC void * dataGriddedField6(void * data);
     DLL_PUBLIC bool checksizeGriddedField6(void * data);
-  
-    // SpeciesAuxData
-    BasicInterfaceCAPI(SpeciesAuxData)
-    BasicInputOutputCAPI(SpeciesAuxData)
-    DLL_PUBLIC void initSpeciesAuxData(void * data);
-    DLL_PUBLIC bool validindexSpeciesAuxData(void * data, Index s, Index i);
-    DLL_PUBLIC void * getDataSpeciesAuxData(void * data, Index s, Index i);
-    DLL_PUBLIC Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t);
-    DLL_PUBLIC Index getTypeSpeciesAuxData(void * data, Index s, Index i);
     
     // CIARecord
     BasicInterfaceCAPI(CIARecord)
@@ -624,9 +655,9 @@ extern "C" {
     VoidArrayCAPI(ArrayOfCIARecord)
     BasicInterfaceCAPI(ArrayOfCIARecord)
     BasicInputOutputCAPI(ArrayOfCIARecord)
-    DLL_PUBLIC Index getSpecies1CIARecord(void *);
-    DLL_PUBLIC Index getSpecies2CIARecord(void *);
-    DLL_PUBLIC void setSpeciesCIARecord(void *, Index, Index);
+    DLL_PUBLIC void * getSpecies1CIARecord(void *);
+    DLL_PUBLIC void * getSpecies2CIARecord(void *);
+    DLL_PUBLIC void setSpeciesCIARecord(void *, void *, void *);
     
     // Verbosity
     BasicInterfaceCAPI(Verbosity)
@@ -781,6 +812,8 @@ extern "C" {
     // XsecRecord
     BasicInterfaceCAPI(XsecRecord)
     BasicInputOutputCAPI(XsecRecord)
+    DLL_PUBLIC void * getSpeciesXsecRecord(void *);
+    DLL_PUBLIC void setSpeciesXsecRecord(void *, void *);
     VoidGetterCAPI(XsecRecord, Coeffs)
     VoidGetterCAPI(XsecRecord, RefPressure)
     VoidGetterCAPI(XsecRecord, RefTemperature)
@@ -791,8 +824,6 @@ extern "C" {
     VoidArrayCAPI(ArrayOfXsecRecord)
     BasicInterfaceCAPI(ArrayOfXsecRecord)
     BasicInputOutputCAPI(ArrayOfXsecRecord)
-    DLL_PUBLIC Index getSpeciesXsecRecord(void *);
-    DLL_PUBLIC void setSpeciesXsecRecord(void *, Index);
     
     // Sparse
     BasicInterfaceCAPI(Sparse)
@@ -912,6 +943,16 @@ extern "C" {
     VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pp)
     VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pp)
     
+    // PartitionFunctionsType
+    BasicInterfaceCAPI(PartitionFunctionsType)
+    StringEnumPointersCAPI(PartitionFunctionsType)
+    
+    // PartitionFunctionsData
+    BasicInterfaceCAPI(PartitionFunctionsData)
+    BasicInputOutputCAPI(PartitionFunctionsData)
+    VoidStructGetterCAPI(PartitionFunctionsData, type)
+    VoidStructGetterCAPI(PartitionFunctionsData, data)
+    
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
     DLL_PUBLIC void * get_list_of_all_workspace_classes();
@@ -927,6 +968,7 @@ extern "C" {
 #undef BasicInputOutputCAPI
 #undef VoidArrayCAPI
 #undef VoidArrayElemCAPI
+#undef StringEnumPointersCAPI
 
 
 #if REMOVE_DLL_PUBLIC

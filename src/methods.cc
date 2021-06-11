@@ -2460,7 +2460,6 @@ void define_md_data_raw() {
          "abs_vmrs",
          "abs_lines_per_species",
          "isotopologue_ratios",
-         "partition_functions",
          "lbl_checked"),
       GIN(),
       GIN_TYPE(),
@@ -3489,12 +3488,7 @@ void define_md_data_raw() {
           "*atmfields_checked* is set to 1.\n"
           "\n"
           "The cloudbox is covered by *cloudbox_checked*, *z_field* is\n"
-          "part of the checks done around *atmgeom_checked*.\n"
-          "\n"
-          "If you choose to use *bad_partition_functions_ok* please note that\n"
-          "this is done on your own risk and that it could introduce hard-to-\n"
-          "track errors into your calculations.  Do not use this for anything\n"
-          "important.\n"),
+          "part of the checks done around *atmgeom_checked*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("atmfields_checked"),
       GOUT(),
@@ -3513,14 +3507,12 @@ void define_md_data_raw() {
          "mag_u_field",
          "mag_v_field",
          "mag_w_field",
-         "partition_functions",
          "abs_f_interp_order"),
-      GIN("negative_vmr_ok", "bad_partition_functions_ok"),
-      GIN_TYPE("Index", "Index"),
-      GIN_DEFAULT("0", "0"),
-      GIN_DESC("Flag whether to accept vmr_field < 0.",
-               "Flag whether to accept partition functions not covering"
-               " *t_field* range.")));
+      GIN("negative_vmr_ok"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Flag whether to accept vmr_field < 0."
+               )));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atmgeom_checkedCalc"),
@@ -7277,6 +7269,22 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("isotopologue_ratiosInitFromHitran"),
+      DESCRIPTION(
+          "Initialize isotopologue ratios with default values from built-in\n"
+          "Hitran species data.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("isotopologue_ratios"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("option"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("Newest"),
+      GIN_DESC("Version of HITRAN catalog")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
       DESCRIPTION(
           "Conversion of *iy* to other spectral units (for passive observations).\n"
@@ -9611,7 +9619,7 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species", "abs_species", "isotopologue_ratios", "partition_functions"),
+      IN("abs_lines_per_species", "abs_species", "isotopologue_ratios"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -10884,7 +10892,6 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("abs_lines_per_species",
          "nlte_level_identifiers",
-         "partition_functions",
          "t_field"),
       GIN(),
       GIN_TYPE(),
@@ -11578,22 +11585,6 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("scat_meta"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("partition_functionsInitFromBuiltin"),
-      DESCRIPTION(
-          "Initialize partition functions with default values from built-in\n"
-          "species data.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT("partition_functions"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -12652,7 +12643,6 @@ void define_md_data_raw() {
          "f_grid",
          "abs_species",
          "jacobian_quantities",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr"),
@@ -12699,7 +12689,6 @@ void define_md_data_raw() {
          "jacobian_quantities",
          "abs_lines_per_species",
          "isotopologue_ratios",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_nlte",
@@ -12738,10 +12727,10 @@ void define_md_data_raw() {
       IN("propmat_clearsky",
          "dpropmat_clearsky_dx",
          "abs_lines_per_species",
+         "isotopologue_ratios",
          "f_grid",
          "abs_species",
          "jacobian_quantities",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr",
@@ -12774,10 +12763,10 @@ void define_md_data_raw() {
       IN("propmat_clearsky",
          "dpropmat_clearsky_dx",
          "abs_lines_per_species",
+         "isotopologue_ratios",
          "f_grid",
          "abs_species",
          "jacobian_quantities",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr",
@@ -12924,7 +12913,6 @@ void define_md_data_raw() {
          "abs_species",
          "jacobian_quantities",
          "isotopologue_ratios",
-         "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
          "rtp_nlte",
@@ -14475,39 +14463,7 @@ void define_md_data_raw() {
                "Cutoff option, see *abs_linesSetCutoff*",
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ReadMytran2"),
-      DESCRIPTION("Reads a Mytran2 file.\n"
-                  "\n"
-                  "Be careful setting the options!\n"),
-      AUTHORS("Axel von Engeln", "Stefan Buehler", "Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("filename", "fmin", "fmax", "globalquantumnumbers",
-          "localquantumnumbers", "normalization_option", "mirroring_option",
-          "population_option", "lineshapetype_option", "cutoff_option",
-          "cutoff_value", "linemixinglimit_value"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
-               "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "None", "None", "LTE", "VP",
-                 "None", "750e9", "-1"),
-      GIN_DESC("Name of the Mytran2 file",
-               "Minimum frequency of read lines",
-               "Maximum frequency of read lines",
-               "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)",
-               "Normalization option, see *abs_linesSetNormalization*",
-               "Mirroring option, see *abs_linesSetMirroring*",
-               "Population option, see *abs_linesSetPopulation*",
-               "Lineshape option, see *abs_linesSetLineShapeType*",
-               "Cutoff option, see *abs_linesSetCutoff*",
-               "Cutoff value, see *abs_linesSetCutoff*",
-               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
-
+  
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadJPL"),
       DESCRIPTION("Reads a JPL file.\n"
@@ -20626,6 +20582,29 @@ void define_md_data_raw() {
       USES_TEMPLATES(true),
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("WriteBuiltinPartitionFunctionsXML"),
+      DESCRIPTION("Writes all the builtin partition functions to file.\n"
+        "\n"
+        "All available partition functions are written to files in the select format\n"
+        "in the select directory\n"
+        "\n"
+        "The temperature will be linearly spaced between [Tlow, Tupp] with N values\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("output_file_format"),
+      GIN("dir", "Tlow", "Tupp", "N"),
+      GIN_TYPE("String", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("The directory to write the data towards",
+               "The lowest temperature",
+               "The highest temperature",
+               "The number of temperature points")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteXML"),

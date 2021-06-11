@@ -4,33 +4,95 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
-from pyarts.classes.BasicTypes import String
+from pyarts.classes.BasicTypes import Index, Numeric, String
+from pyarts.classes.SpeciesIsotopeRecord import Species, SpeciesIsotopeRecord
 
+
+class SpeciesTagType:
+    """ ARTS SpeciesTagType data
+    
+    Properties:
+        name:
+            Name of type (String)
+    """
+    def __init__(self, data):
+        if isinstance(data, c.c_void_p):
+            self.__delete__ = False
+            self.__data__ = data
+        else:
+            self.__delete__ = True
+            self.__data__ = c.c_void_p(lib.createSpeciesTagType())
+            self.name = data
+    
+    @property
+    def name(self):
+        return String(c.c_void_p(lib.getSpeciesTagTypeString(self.__data__)),
+                      delete=True)
+    
+    @name.setter
+    def name(self, x):
+        if lib.setSpeciesTagTypeString(self.__data__, str(x).encode('utf-8')):
+            raise RuntimeError(f"Bad SpeciesTagType: {x}")
+
+    def print(self):
+        """ Print to cout the ARTS representation of the class """
+        lib.printSpeciesTagType(self.__data__)
+
+    def __del__(self):
+        if self.__delete__:
+            lib.deleteSpeciesTagType(self.__data__)
+            
+    def set(self, other):
+        s = other.name if isinstance(other, SpeciesTagType) else other
+        self.name = s
+    
+    def __eq__(self, other):
+        s = other.name if isinstance(other, SpeciesTagType) else other
+        return self.name == s
+    
+    def __repr__(self):
+        return f"{self.name}"
+
+
+lib.createSpeciesTagType.restype = c.c_void_p
+lib.createSpeciesTagType.argtypes = []
+
+lib.deleteSpeciesTagType.restype = None
+lib.deleteSpeciesTagType.argtypes = [c.c_void_p]
+
+lib.printSpeciesTagType.restype = None
+lib.printSpeciesTagType.argtypes = [c.c_void_p]
+
+lib.getSpeciesTagTypeString.restype = c.c_void_p
+lib.getSpeciesTagTypeString.argtypes = [c.c_void_p]
+
+lib.setSpeciesTagTypeString.restype = c.c_int
+lib.setSpeciesTagTypeString.argtypes = [c.c_void_p, c.c_char_p]
 
 class SpeciesTag:
     """ ARTS SpeciesTag data
 
     Properties:
-        spec:
+        spec_ind:
             Species of tag (Index)
-
-        isot:
-            Isotopologue of tag (Index)
-
-        type:
-            Type of tag (Index)
-
-        cia_second:
-            Secondary species when CIA mode (Index)
-
-        cia_dataset:
-            CIA dataset when CIA mode (Index)
-
-        lf:
+            
+        lower_freq:
             Lower frequency range (Numeric)
 
-        uf:
+        upper_freq:
             Upper frequency range (Numeric)
+        
+        type:
+            Tag type (SpeciesTagType)
+        
+        cia_2nd_species:
+            Second species of CIA broadening (Species; if defined)
+        
+        cia_dataset_index:
+            CIA model flag (Index)
+            
+        isot:
+            The ARTS isotopologue (const SpeciesIsotopeRecord)
     """
     def __init__(self, data=None):
         if isinstance(data, c.c_void_p):
@@ -51,98 +113,71 @@ class SpeciesTag:
                 Species tag data (str)
         """
         if isinstance(data, str):
-            data = data.encode("ascii")
+            data = data.encode("utf-8")
             if lib.setSpeciesTag(self.__data__, data):
-                raise ValueError("Invalid species tag")
+                raise ValueError(f"Invalid species tag {data}")
         else:
             raise TypeError("Expects str input")
-
+    
     @property
-    def spec(self):
-        """ Species of tag (Index) """
-        return lib.getSpeciesSpeciesTag(self.__data__)
-
-    @spec.setter
-    def spec(self, spec):
-        if self.validSpecies(spec):
-            return lib.setSpeciesSpeciesTag(self.__data__, int(spec))
-        else:
-            raise ValueError("Invalid species")
-
+    def OK(self):
+        if self.spec_ind < 0: return False
+        if self.spec_ind >= SpeciesIsotopeRecord.max_len(): return False
+        return True
+    
     @property
-    def isot(self):
-        """ Isotopologue of tag (Index) """
-        return lib.getIsotopologueSpeciesTag(self.__data__)
-
-    @isot.setter
-    def isot(self, isot):
-        if self.validIsotopologue(self.spec, isot) or self.validContinuum(self.spec, isot) or self.validAllIsotopologues(self.spec, isot):
-            return lib.setIsotopologueSpeciesTag(self.__data__, int(isot))
-        else:
-            raise ValueError("Invalid isotopologue")
-
+    def spec_ind(self):
+        return Index(c.c_void_p(lib.getspec_indSpeciesTag(self.__data__)))
+    
+    @spec_ind.setter
+    def spec_ind(self, x):
+        x = int(x)
+        if x >= 0 and x < SpeciesIsotopeRecord.max_len():
+            self.spec_ind.set(x)
+    
+    @property
+    def lower_freq(self):
+        return Numeric(c.c_void_p(lib.getlower_freqSpeciesTag(self.__data__)))
+    
+    @lower_freq.setter
+    def lower_freq(self, x):
+        self.lower_freq.set(x)
+    
+    @property
+    def upper_freq(self):
+        return Numeric(c.c_void_p(lib.getupper_freqSpeciesTag(self.__data__)))
+    
+    @upper_freq.setter
+    def upper_freq(self, x):
+        self.upper_freq.set(x)
+    
     @property
     def type(self):
-        """ Type of tag (Index) """
-        return lib.getTypeSpeciesTag(self.__data__)
-
+        return SpeciesTagType(c.c_void_p(lib.gettypeSpeciesTag(self.__data__)))
+    
     @type.setter
-    def type(self, type):
-        if isinstance(type, str):
-            self.type = int(lib.string2indexTypeSpeciesTag(self.__data__, type.encode("ascii")))
-        else:
-            type = int(type)
-            if lib.setTypeSpeciesTag(self.__data__, type):
-                raise ValueError("Invalid type")
-
+    def type(self, x):
+        self.type.set(x)
+    
     @property
-    def cia_second(self):
-        """ Secondary species when CIA mode (Index) """
-        return lib.getCIASecondSpeciesTag(self.__data__)
-
-    @cia_second.setter
-    def cia_second(self, spec):
-        if self.validSpecies(spec):
-            lib.setCIASecondSpeciesTag(self.__data__, int(spec))
-        elif self.cia_type != self.type:
-            lib.setCIASecondSpeciesTag(self.__data__, int(spec))
-        else:
-            raise ValueError("Invalid species")
-
+    def cia_2nd_species(self):
+        return Species(c.c_void_p(lib.getcia_2nd_speciesSpeciesTag(self.__data__)))
+    
+    @cia_2nd_species.setter
+    def cia_2nd_species(self, x):
+        self.cia_2nd_species.set(x)
+    
     @property
-    def cia_dataset(self):
-        """ CIA dataset when CIA mode (Index) """
-        return lib.getCIADatasetSpeciesTag(self.__data__)
-
-    @cia_dataset.setter
-    def cia_dataset(self, data):
-        lib.setCIADatasetSpeciesTag(self.__data__, int(data))
-
+    def cia_dataset_index(self):
+        return Index(c.c_void_p(lib.getcia_dataset_indexSpeciesTag(self.__data__)))
+    
+    @cia_dataset_index.setter
+    def cia_dataset_index(self, x):
+        self.cia_dataset_index.set(x)
+    
     @property
-    def lf(self):
-        """ Lower frequency range (Numeric) """
-        return lib.getLfSpeciesTag(self.__data__)
-
-    @lf.setter
-    def lf(self, x):
-        x = float(x)
-        if x <= self.uf:
-            lib.setLfSpeciesTag(self.__data__, x)
-        else:
-            raise ValueError("Too high cf upper frequency")
-
-    @property
-    def uf(self):
-        """ Upper frequency range (Numeric) """
-        return lib.getLfSpeciesTag(self.__data__)
-
-    @uf.setter
-    def uf(self, x):
-        x = float(x)
-        if x >= self.lf:
-            lib.setUfSpeciesTag(self.__data__, x)
-        else:
-            raise ValueError("Too low cf lower frequency")
+    def isot(self):
+        return SpeciesIsotopeRecord.from_index(self.spec_ind)
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
@@ -155,144 +190,30 @@ class SpeciesTag:
         if self.__delete__:
             lib.deleteSpeciesTag(self.__data__)
 
-    def __repr__(self):
-        return "ARTS SpeciesTag"
-
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, SpeciesTag):
-            lib.setTypeSpeciesTag(self.__data__, int(other.type))
-            lib.setSpeciesSpeciesTag(self.__data__, int(other.spec))
-            lib.setIsotopologueSpeciesTag(self.__data__, int(other.isot))
-            self.cia_second = other.cia_second
-            self.cia_dataset = other.cia_dataset
-            self.uf = float("inf")
-            self.lf = other.lf
-            self.uf = other.uf
+            self.spec_ind = other.spec_ind
+            self.type = other.type
+            self.lower_freq = other.lower_freq
+            self.upper_freq = other.upper_freq
+            self.type = other.type
+            if self.type == "Cia":
+                self.cia_2nd_species = other.cia_2nd_species
+                self.cia_dataset_index = other.cia_dataset_index
         else:
             raise TypeError("Expects SpeciesTag")
-
-    @property
-    def OK(self):
-        """ Returns true if the class is OK """
-        return self.validCIASpecies() and (self.validIsotopologue(self.spec, self.isot) or self.validContinuum(self.spec, self.isot) or self.validAllIsotopologues(self.spec, self.isot))
-
-    @staticmethod
-    def validSpecies(spec):
-        """ Returns whether species is a valid species according to ARTS
-
-        Input:
-            spec:
-                Species (Index)
-
-        Output:
-            Boolean True or False
-        """
-        spec = int(spec)
-        if lib.validSpecies(spec) == 0:
-            return True
-        else:
-            return False
-
-    @property
-    def cia_type(self):
-        """ Returns the CIA type """
-        return lib.string2indexTypeSpeciesTag(self.__data__, "TYPE_CIA".encode("ascii"))
     
     @property
     def as_string(self):
         """ Returns the name as a String """
-        return String(c.c_void_p(lib.getNameSpeciesTag(self.__data__)), delete=True)
-
-    def validCIASpecies(self):
-        """ Returns whether cia species is a valid species according to ARTS
-
-        Input:
-            spec:
-                Species (Index)
-
-        Output:
-            Boolean True or False
-        """
-        if self.cia_type != self.type or lib.validSpecies(self.cia_second) == 0:
-            return True
+        if self.OK:
+            return String(c.c_void_p(lib.getNameSpeciesTag(self.__data__)), delete=True)
         else:
-            return False
+            return String("Tag is in bad shape")
 
-    @staticmethod
-    def validAllIsotopologues(spec, isot):
-        """ Returns whether species is a valid species and an isotopologue
-        is a valid isotopologue to ARTS
-
-        Input:
-            spec:
-                Species (Index)
-
-            isot:
-                Isotopologue (Index)
-
-        Output:
-            Boolean True or False
-        """
-        spec = int(spec)
-        isot = int(isot)
-        if SpeciesTag.validSpecies(spec):
-            if lib.validAllIsotopologues(spec, isot) == 0:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    @staticmethod
-    def validIsotopologue(spec, isot):
-        """ Returns whether species is a valid species and an isotopologue
-        is a valid isotopologue to ARTS
-
-        Input:
-            spec:
-                Species (Index)
-
-            isot:
-                Isotopologue (Index)
-
-        Output:
-            Boolean True or False
-        """
-        spec = int(spec)
-        isot = int(isot)
-        if SpeciesTag.validSpecies(spec):
-            if lib.validIsotopologue(spec, isot) == 0:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    @staticmethod
-    def validContinuum(spec, isot):
-        """ Returns whether species is a valid species and an isotopologue
-        is a valid isotopologue to ARTS
-
-        Input:
-            spec:
-                Species (Index)
-
-            isot:
-                Isotopologue (Index)
-
-        Output:
-            Boolean True or False
-        """
-        spec = int(spec)
-        isot = int(isot)
-        if SpeciesTag.validSpecies(spec):
-            if lib.validContinuum(spec, isot) == 0:
-                return True
-            else:
-                return False
-        else:
-            return False
+    def __repr__(self):
+        return f"{self.as_string}"
 
     @staticmethod
     def name():
@@ -329,13 +250,12 @@ class SpeciesTag:
 
     def __eq__(self, other):
         if isinstance(other, SpeciesTag) and \
-                self.type == other.type and \
-                self.spec == other.spec and \
-                self.isot == other.isot and \
-                self.cia_second == other.cia_second and \
-                self.cia_dataset == other.cia_dataset and \
-                self.lf == other.lf and \
-                self.uf == other.uf:
+            self.spec_ind == other.spec_ind and \
+            self.lower_freq == other.lower_freq and \
+            self.upper_freq == other.upper_freq and \
+            self.type == other.type and \
+            self.cia_2nd_species == other.cia_2nd_species and \
+            self.cia_dataset_index == other.cia_dataset_index:
             return True
         else:
             return False
@@ -387,62 +307,23 @@ lib.xmlsaveSpeciesTag.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 lib.setSpeciesTag.restype = c.c_long
 lib.setSpeciesTag.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.getSpeciesSpeciesTag.restype = c.c_long
-lib.getSpeciesSpeciesTag.argtypes = [c.c_void_p]
-
-lib.getIsotopologueSpeciesTag.restype = c.c_long
-lib.getIsotopologueSpeciesTag.argtypes = [c.c_void_p]
-
-lib.getTypeSpeciesTag.restype = c.c_long
-lib.getTypeSpeciesTag.argtypes = [c.c_void_p]
-
-lib.string2indexTypeSpeciesTag.restype = c.c_long
-lib.string2indexTypeSpeciesTag.argtypes = [c.c_void_p, c.c_char_p]
-
-lib.getCIASecondSpeciesTag.restype = c.c_long
-lib.getCIASecondSpeciesTag.argtypes = [c.c_void_p]
-
-lib.getCIADatasetSpeciesTag.restype = c.c_long
-lib.getCIADatasetSpeciesTag.argtypes = [c.c_void_p]
-
-lib.getLfSpeciesTag.restype = c.c_double
-lib.getLfSpeciesTag.argtypes = [c.c_void_p]
-
-lib.getUfSpeciesTag.restype = c.c_double
-lib.getUfSpeciesTag.argtypes = [c.c_void_p]
-
-lib.setSpeciesSpeciesTag.restype = None
-lib.setSpeciesSpeciesTag.argtypes = [c.c_void_p, c.c_long]
-
-lib.setIsotopologueSpeciesTag.restype = None
-lib.setIsotopologueSpeciesTag.argtypes = [c.c_void_p, c.c_long]
-
-lib.setTypeSpeciesTag.restype = c.c_long
-lib.setTypeSpeciesTag.argtypes = [c.c_void_p, c.c_long]
-
-lib.setCIASecondSpeciesTag.restype = None
-lib.setCIASecondSpeciesTag.argtypes = [c.c_void_p, c.c_long]
-
 lib.getNameSpeciesTag.restype = c.c_void_p
 lib.getNameSpeciesTag.argtypes = [c.c_void_p]
 
-lib.setCIADatasetSpeciesTag.restype = None
-lib.setCIADatasetSpeciesTag.argtypes = [c.c_void_p, c.c_long]
+lib.getspec_indSpeciesTag.restype = c.c_void_p
+lib.getspec_indSpeciesTag.argtypes = [c.c_void_p]
 
-lib.setLfSpeciesTag.restype = None
-lib.setLfSpeciesTag.argtypes = [c.c_void_p, c.c_double]
+lib.getlower_freqSpeciesTag.restype = c.c_void_p
+lib.getlower_freqSpeciesTag.argtypes = [c.c_void_p]
 
-lib.setUfSpeciesTag.restype = None
-lib.setUfSpeciesTag.argtypes = [c.c_void_p, c.c_double]
+lib.getupper_freqSpeciesTag.restype = c.c_void_p
+lib.getupper_freqSpeciesTag.argtypes = [c.c_void_p]
 
-lib.validSpecies.restype = c.c_long
-lib.validSpecies.argtypes = [c.c_long]
+lib.gettypeSpeciesTag.restype = c.c_void_p
+lib.gettypeSpeciesTag.argtypes = [c.c_void_p]
 
-lib.validIsotopologue.restype = c.c_long
-lib.validIsotopologue.argtypes = [c.c_long, c.c_long]
+lib.getcia_2nd_speciesSpeciesTag.restype = c.c_void_p
+lib.getcia_2nd_speciesSpeciesTag.argtypes = [c.c_void_p]
 
-lib.validContinuum.restype = c.c_long
-lib.validContinuum.argtypes = [c.c_long, c.c_long]
-
-lib.validAllIsotopologues.restype = c.c_long
-lib.validAllIsotopologues.argtypes = [c.c_long, c.c_long]
+lib.getcia_dataset_indexSpeciesTag.restype = c.c_void_p
+lib.getcia_dataset_indexSpeciesTag.argtypes = [c.c_void_p]

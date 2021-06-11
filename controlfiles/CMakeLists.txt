@@ -194,8 +194,6 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts)
 
-  arts_test_run_ctlfile(xmldata artscomponents/clearsky/TestClearSkyTips.arts)
-
 #  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Mars.arts)
 #  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Venus.arts)
 

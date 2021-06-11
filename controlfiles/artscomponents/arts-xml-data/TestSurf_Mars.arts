@@ -199,7 +199,7 @@ FieldFromGriddedField( z_surface, p_grid, lat_grid, lon_grid, gf2tmp )
 abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 propmat_clearsky_agenda_checkedCalc
-atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmfields_checkedCalc
 atmgeom_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data
@@ -304,7 +304,7 @@ AgendaSet( forloop_agenda_dust ){
   Extract( z_surface, z_field, 0 )
   FieldFromGriddedField( t_surface, p_grid, lat_grid, lon_grid, gf2tmp )
 
-  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+  atmfields_checkedCalc
   atmgeom_checkedCalc
   cloudbox_checkedCalc
   sensor_checkedCalc

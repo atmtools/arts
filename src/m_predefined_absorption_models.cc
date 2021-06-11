@@ -73,8 +73,8 @@ void abs_xsec_per_speciesAddPredefinedO2MPM2020(ArrayOfMatrix& abs_xsec_per_spec
   }
   
   // Positions of important species and VMR of water
-  auto o2_mpm2020 =  find_first_species_tg(abs_species, SpeciesTag("O2-MPM2020"));
-  auto h2o = find_first_species_tg(abs_species, SpeciesTag("H2O").Species());
+  auto o2_mpm2020 =  find_first_species_tag(abs_species, SpeciesTag("O2-MPM2020"));
+  auto h2o = find_first_species(abs_species, Species::fromShortName("H2O"));
   auto h2o_vmr = h2o == -1 ? Vector(abs_p.nelem(), 0) : abs_vmrs(h2o, joker);
   ArrayOfMatrix empty(0);
   

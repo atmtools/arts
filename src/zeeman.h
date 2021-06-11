@@ -24,7 +24,7 @@
  * @brief Header of Zeeman propagation matrix calculations
  */
 
-#include "abs_species_tags.h"
+#include "species_tags.h"
 #include "global_data.h"
 #include "physics_funcs.h"
 #include "quantum.h"
@@ -67,8 +67,7 @@ void zeeman_on_the_fly(
   const ArrayOfArrayOfSpeciesTag& abs_species,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const SpeciesAuxData& isotopologue_ratios,
-  const SpeciesAuxData& partition_functions,
+  const SpeciesIsotopologueRatios& isotopologue_ratios,
   const Vector& f_grid,
   const Vector& rtp_vmr,
   const EnergyLevelMap& rtp_nlte,

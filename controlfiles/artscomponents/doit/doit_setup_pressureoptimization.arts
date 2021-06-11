@@ -20,7 +20,7 @@ pnd_fieldCalcFrompnd_field_raw
 Tensor4Scale( out=pnd_field, in=pnd_field, value=0.01 )
 
 # Consistency checks needed for running merge
-atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc

@@ -20369,8 +20369,7 @@ void xsec_continuum_tag(MatrixView xsec,
 
 /**
    An auxiliary functions that checks if a given continuum model is
-   listed in species_data.cc. This is just in order to verify that this
-   really represents a valid continuum model.
+   listed in Species::Isotopologues
 
    The given name should be something like
    'H2O-ContStandardSelf'. The function simply checks if there is a
@@ -20391,59 +20390,12 @@ void xsec_continuum_tag(MatrixView xsec,
    \date   2001-03-12
 */
 void check_continuum_model(const String &name) {
-  // The species lookup data:
-  using global_data::species_data;
-
-  // For the list of valid continuum models:
-  ArrayOfString valid_models;
-
-  bool found = false;
-
-  // Loop all species:
-  for (Array<SpeciesRecord>::const_iterator i = species_data.begin();
-       i < species_data.end();
-       ++i) {
-    String specnam = i->Name();
-
-    // Loop all isotopologues:
-    for (Array<IsotopologueRecord>::const_iterator j =
-             i->Isotopologue().begin();
-         j < i->Isotopologue().end();
-         ++j) {
-      String isonam = j->Name();
-
-      // The specified name consists of a species part and an
-      // isotopologue part, e.g., H2O-ContStandardSelf. We need to
-      // construct a similar String from the species lookup data
-      // by concatenating species name and isotopologue name.
-
-      String fullnam = specnam + "-" + isonam;
-      //    cout << fullnam << "\n";
-
-      // See if this is a continuum tag, so that we can add it to
-      // the list:
-      if (j->isContinuum()) {
-        valid_models.push_back(fullnam);
-      }
-
-      if (name == fullnam) {
-        found = true;
-      }
-    }
-  }
-
-  // ----------------------------------------------------------------------
-  // Have we found it?
-  if (!found) {
-    ostringstream os;
-    os << "The String `" << name << "' matches none of the known\n"
-       << "continuum models. Known continuum models are:";
-    for (ArrayOfString::const_iterator i = valid_models.begin();
-         i < valid_models.end();
-         ++i) {
-      os << "\n" << *i;
-    }
-    throw runtime_error(os.str());
+  try {
+    ARTS_USER_ERROR_IF(Species::Tag(name).type not_eq Species::TagType::Predefined,
+      "The model: ", name, " is not a predefined model, it is: ", Species::Tag(name));
+  } catch (std::runtime_error& e) {
+    ARTS_USER_ERROR("Cannot recognize ", name, " as a continuum species with error:\n", e.what(), '\n',
+      "Valid pre-defined models are:\n", Species::predefined_model_names())
   }
 }
 //

@@ -156,7 +156,7 @@ void nlte_collision_factorsCalcFromCoeffs(
   const ArrayOfArrayOfSpeciesTag& abs_species,
   const ArrayOfArrayOfGriddedField1& collision_coefficients,
   const ArrayOfQuantumIdentifier& collision_line_identifiers,
-  const SpeciesAuxData& isotopologue_ratios,
+  const SpeciesIsotopologueRatios& isotopologue_ratios,
   const ConstVectorView vmr,
   const Numeric& T,
   const Numeric& P);
