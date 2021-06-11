@@ -414,3 +414,12 @@ String ArrayOfSpeciesTag::Name() const
   }
   return out;
 }
+
+std::set<Species::Species> lbl_species(const ArrayOfArrayOfSpeciesTag& abs_species) noexcept {
+  std::set<Species::Species> unique_species;
+  for (auto& specs: abs_species) {
+    if (specs.RequireLines()) unique_species.insert(specs.front().Spec());
+  }
+  return unique_species;
+}
+

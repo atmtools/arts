@@ -2,6 +2,7 @@
 #define species_tags_h
 
 #include <algorithm>
+#include <set>
 
 #include "array.h"
 #include "mystring.h"
@@ -136,7 +137,7 @@ public:
     return operator[](0).Spec();
   }
   
-  /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
+//   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
   Species::TagType Type() const ARTS_NOEXCEPT {
     ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
     return operator[](0).Type();
@@ -144,8 +145,16 @@ public:
   
   String Name() const;
   
+  bool Plain() const noexcept {
+    return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::Plain;});
+  }
+  
   bool Zeeman() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::Zeeman;});
+  }
+  
+  bool RequireLines() const noexcept {
+    return Plain() or Zeeman();
   }
   
   bool FreeElectrons() const noexcept {
@@ -174,5 +183,12 @@ Index find_first_species_tag(const ArrayOfArrayOfSpeciesTag& specs, const Specie
  *  \date   2013-04-23
  */
 void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species);
+
+/*! Find species that requires line-by-line calculations
+ * 
+ * @param abs_species  As WSV
+ * @return The set of unique species that requires line-by-line calculations
+ */
+std::set<Species::Species> lbl_species(const ArrayOfArrayOfSpeciesTag&) noexcept;
 
 #endif  // species_tags_h

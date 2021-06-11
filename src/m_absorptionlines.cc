@@ -329,14 +329,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                       const Verbosity& verbosity)
 {
   // Build a set of species indices. Duplicates are ignored.
-  std::set<Species::Species> unique_species;
-  for (auto asp = abs_species.begin(); asp != abs_species.end(); asp++) {
-    for (auto& specs: abs_species) {
-      for (auto& spec: specs) {
-        unique_species.insert(spec.Spec());
-      }
-    }
-  }
+  const std::set<Species::Species> unique_species = lbl_species(abs_species);
   
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
@@ -754,14 +747,7 @@ void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_li
                                            const Verbosity& verbosity)
 {
   // Build a set of species indices. Duplicates are ignored.
-  std::set<Species::Species> unique_species;
-  for (auto& specs: abs_species) {
-    for (auto& sp: specs) {
-      if (sp.type == Species::TagType::Plain or sp.type == Species::TagType::Zeeman) {
-        unique_species.insert(sp.Spec());
-      }
-    }
-  }
+  const std::set<Species::Species> unique_species = lbl_species(abs_species);
   
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
@@ -836,14 +822,7 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
   std::size_t bands_found{0};
   
   // Build a set of species indices. Duplicates are ignored.
-  std::set<Species::Species> unique_species;
-  for (auto& specs: abs_species) {
-    for (auto& sp: specs) {
-      if (sp.type == Species::TagType::Plain or sp.type == Species::TagType::Zeeman) {
-        unique_species.insert(sp.Spec());
-      }
-    }
-  }
+  const std::set<Species::Species> unique_species = lbl_species(abs_species);
   
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
