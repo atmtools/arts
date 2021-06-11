@@ -1490,6 +1490,24 @@ void abs_lines_per_speciesMakeManualMirroring(ArrayOfArrayOfAbsorptionLines& abs
   for (auto& abs_lines: abs_lines_per_species) abs_linesMakeManualMirroring(abs_lines, verbosity);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesMakeManualMirroringSpecies(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                     const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                     const ArrayOfSpeciesTag& species,
+                                                     const Verbosity& verbosity) 
+{
+  ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
+    "Mismatch abs_species and abs_lines_per_species sizes [",
+    abs_species.size(), " vs ", abs_lines_per_species.size(),
+    ", respectively]")
+  
+  if (auto ind = std::distance(abs_species.cbegin(), std::find(abs_species.cbegin(), abs_species.cend(), species)); ind not_eq abs_species.nelem()) {
+    abs_linesMakeManualMirroring(abs_lines_per_species[ind], verbosity);
+  } else {
+    ARTS_USER_ERROR("Cannot find species: ", species, "\nIn abs_species: [", abs_species, ']')
+  }
+}
+
 
 /////////////////////////////////////////////////////////
 ///////////////////////////////// Change Population Style
