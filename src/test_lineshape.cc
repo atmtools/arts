@@ -58,11 +58,11 @@ LineShape::Model lineshape_model() {
   LineShape::Model model(2);
   model[0].G0() = LineShape::ModelParameters(LineShape::TemperatureModel::T1, 20e3, 0.8);
   model[0].D0() = LineShape::ModelParameters(LineShape::TemperatureModel::T5, 200, 0.8);
-  model[0].G2() = LineShape::ModelParameters(LineShape::TemperatureModel::T3, 200, 20);
-  model[0].D2() = LineShape::ModelParameters(LineShape::TemperatureModel::T0, 20);
-  model[0].G2() = LineShape::ModelParameters(LineShape::TemperatureModel::T3, 200, 20);
+  model[0].G2() = LineShape::ModelParameters(LineShape::TemperatureModel::T3, 200, 20.);
+  model[0].D2() = LineShape::ModelParameters(LineShape::TemperatureModel::T0, 20.);
+  model[0].G2() = LineShape::ModelParameters(LineShape::TemperatureModel::T3, 200., 20.);
   model[0].ETA() = LineShape::ModelParameters(LineShape::TemperatureModel::T0, 0.1);
-  model[0].FVC() = LineShape::ModelParameters(LineShape::TemperatureModel::T2, 1e2, .2, 1);
+  model[0].FVC() = LineShape::ModelParameters(LineShape::TemperatureModel::T2, 1e2, .2, 1.);
   model[0].Y() = LineShape::ModelParameters(LineShape::TemperatureModel::LM_AER, 1e-6, 1e-7, 1e-8, 1e-9);
   model[0].G() = LineShape::ModelParameters(LineShape::TemperatureModel::LM_AER, 1e-12, 1e-11, 1e-10, 1e-9);
   model[0].DV() = LineShape::ModelParameters(LineShape::TemperatureModel::DPL, 1e2, 0.8, -1e1, 0.3);
