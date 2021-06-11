@@ -205,7 +205,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
             LegacyLineFunctionData::temperaturemodel2legacynelem(type);
 
         m.mdata[i].Data()[Index(param)].type = type;
-        if (ntemp <= nmaxTempModelParams) {
+        if (ntemp <= ModelParameters::N) {
           switch (ntemp) {
             case 1:
               data >> m.mdata[i].Data()[Index(param)].X0;
@@ -650,6 +650,8 @@ String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, 
     case TemperatureModel::DPL:
       os << '(' << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " + "  << mp.X2 << " * (" << T0 << "/T)^" << mp.X3 << ')';
       break;
+    case TemperatureModel::POLY:
+      os << mp.X0 << " + " << mp.X1 << " * T  + " << mp.X2 << " * T * T + "  << mp.X3 << " * T * T * T";
     case TemperatureModel::FINAL: break;
   }
   
@@ -728,207 +730,214 @@ Numeric SingleSpeciesModel::compute(Numeric T, Numeric T0, Variable var) const n
   using std::log;
   using std::pow;
   
-  Numeric out=std::numeric_limits<Numeric>::quiet_NaN();
   switch (X[Index(var)].type) {
     case TemperatureModel::None:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T0:
-      out = x0; break;
+      return x0;
     case TemperatureModel::T1:
-      out = x0 * pow(T0 / T, x1); break;
+      return x0 * pow(T0 / T, x1);
     case TemperatureModel::T2:
-      out = x0 * pow(T0 / T, x1) * (1 + x2 * log(T / T0)); break;
+      return x0 * pow(T0 / T, x1) * (1 + x2 * log(T / T0));
     case TemperatureModel::T3:
-      out = x0 + x1 * (T - T0); break;
+      return x0 + x1 * (T - T0);
     case TemperatureModel::T4:
-      out = (x0 + x1 * (T0 / T - 1.)) * pow(T0 / T, x2); break;
+      return (x0 + x1 * (T0 / T - 1.)) * pow(T0 / T, x2);
     case TemperatureModel::T5:
-      out = x0 * pow(T0 / T, 0.25 + 1.5 * x1); break;
+      return x0 * pow(T0 / T, 0.25 + 1.5 * x1);
     case TemperatureModel::LM_AER:
-      out = special_linemixing_aer(T, X[Index(var)]); break;
+      return special_linemixing_aer(T, X[Index(var)]);
     case TemperatureModel::DPL:
-      out = x0 * pow(T0 / T, x1) + x2 * pow(T0 / T, x3); break;
-    case TemperatureModel::FINAL: break;
+      return x0 * pow(T0 / T, x1) + x2 * pow(T0 / T, x3);
+    case TemperatureModel::POLY:
+      return x0 + x1 * T + x2 * T * T + x3 * T * T * T;
+    case TemperatureModel::FINAL: { /* Leave last */ }
   }
-  return out;
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric SingleSpeciesModel::compute_dX0(Numeric T, Numeric T0, Variable var) const noexcept {
   using std::log;
   using std::pow;
   
-  Numeric out=std::numeric_limits<Numeric>::quiet_NaN();
   switch (X[Index(var)].type) {
     case TemperatureModel::None:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T0:
-      out = 1; break;
+      return 1;
     case TemperatureModel::T1:
-      out = pow(T0 / T, x1); break;
+      return pow(T0 / T, x1);
     case TemperatureModel::T2:
-      out = pow(T0 / T, x1) * (1 + x2 * log(T / T0)); break;
+      return pow(T0 / T, x1) * (1 + x2 * log(T / T0));
     case TemperatureModel::T3:
-      out = 1; break;
+      return 1;
     case TemperatureModel::T4:
-      out = pow(T0 / T, x2); break;
+      return pow(T0 / T, x2);
     case TemperatureModel::T5:
-      out = pow(T0 / T, 1.5 * x1 + 0.25); break;
+      return pow(T0 / T, 1.5 * x1 + 0.25);
     case TemperatureModel::LM_AER:
-      out = special_linemixing_aer_dX0(T); break;
+      return special_linemixing_aer_dX0(T);
     case TemperatureModel::DPL:
-      out = pow(T0 / T, x1); break;
-    case TemperatureModel::FINAL: break;
+      return pow(T0 / T, x1);
+    case TemperatureModel::POLY:
+      return 1;
+    case TemperatureModel::FINAL: { /* Leave last */ }
   }
-  return out;
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric SingleSpeciesModel::compute_dX1(Numeric T, Numeric T0, Variable var) const noexcept {
   using std::log;
   using std::pow;
   
-  Numeric out=std::numeric_limits<Numeric>::quiet_NaN();
   switch (X[Index(var)].type) {
     case TemperatureModel::None:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T0:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T1:
-      out = x0 * pow(T0 / T, x1) * log(T0 / T); break;
+      return x0 * pow(T0 / T, x1) * log(T0 / T);
     case TemperatureModel::T2:
-      out = x0 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) * log(T0 / T); break;
+      return x0 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) * log(T0 / T);
     case TemperatureModel::T3:
-      out = (T - T0); break;
+      return (T - T0);
     case TemperatureModel::T4:
-      out = pow(T0 / T, x2) * (T0 / T - 1.); break;
+      return pow(T0 / T, x2) * (T0 / T - 1.);
     case TemperatureModel::T5:
-      out = 1.5 * x0 * pow(T0 / T, 1.5 * x1 + 0.25) * log(T0 / T); break;
+      return 1.5 * x0 * pow(T0 / T, 1.5 * x1 + 0.25) * log(T0 / T);
     case TemperatureModel::LM_AER:
-      out = special_linemixing_aer_dX1(T); break;
+      return special_linemixing_aer_dX1(T);
     case TemperatureModel::DPL:
-      out = x0 * pow(T0 / T, x1) * log(T0 / T); break;
-    case TemperatureModel::FINAL: break;
+      return x0 * pow(T0 / T, x1) * log(T0 / T);
+    case TemperatureModel::POLY:
+      return T;
+    case TemperatureModel::FINAL: {/* Leave last */ }
   }
-  return out;
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric SingleSpeciesModel::compute_dX2(Numeric T, Numeric T0, Variable var) const noexcept {
   using std::log;
   using std::pow;
   
-  Numeric out=std::numeric_limits<Numeric>::quiet_NaN();
   switch (X[Index(var)].type) {
     case TemperatureModel::None:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T0:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T1:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T2:
-      out = x0 * pow(T0 / T, x1) * log(T / T0); break;
+      return x0 * pow(T0 / T, x1) * log(T / T0);
     case TemperatureModel::T3:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T4:
-      out = pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1)) * log(T0 / T); break;
+      return pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1)) * log(T0 / T);
     case TemperatureModel::T5:
-      out = 0; break;
+      return 0;
     case TemperatureModel::LM_AER:
-      out = special_linemixing_aer_dX2(T); break;
+      return special_linemixing_aer_dX2(T);
     case TemperatureModel::DPL:
-      out = pow(T0 / T, x3); break;
-    case TemperatureModel::FINAL: break;
+      return pow(T0 / T, x3);
+    case TemperatureModel::POLY:
+      return T * T;
+    case TemperatureModel::FINAL: {/* Leave last */ }
   }
-  return out;
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric SingleSpeciesModel::compute_dX3(Numeric T, Numeric T0, Variable var) const noexcept {
   using std::log;
   using std::pow;
   
-  Numeric out=std::numeric_limits<Numeric>::quiet_NaN();
   switch (X[Index(var)].type) {
     case TemperatureModel::None:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T0:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T1:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T2:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T3:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T4:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T5:
-      out = 0; break;
+      return 0;
     case TemperatureModel::LM_AER:
-      out = special_linemixing_aer_dX3(T); break;
+      return special_linemixing_aer_dX3(T);
     case TemperatureModel::DPL:
-      out = x2 * pow(T0 / T, x3) * log(T0 / T); break;
-    case TemperatureModel::FINAL: break;
+      return x2 * pow(T0 / T, x3) * log(T0 / T);
+    case TemperatureModel::POLY:
+      return T * T * T;
+    case TemperatureModel::FINAL: {/* Leave last */ }
   }
-  return out;
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric SingleSpeciesModel::compute_dT(Numeric T, Numeric T0, Variable var) const noexcept {
   using std::log;
   using std::pow;
   
-  Numeric out=std::numeric_limits<Numeric>::quiet_NaN();
   switch (X[Index(var)].type) {
     case TemperatureModel::None:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T0:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T1:
-      out = -x0 * x1 * pow(T0 / T, x1) / T; break;
+      return -x0 * x1 * pow(T0 / T, x1) / T;
     case TemperatureModel::T2:
-      out = -x0 * x1 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) / T +
-      x0 * x2 * pow(T0 / T, x1) / T; break;
+      return -x0 * x1 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) / T +
+      x0 * x2 * pow(T0 / T, x1) / T;
     case TemperatureModel::T3:
-      out = x1; break;
+      return x1;
     case TemperatureModel::T4:
-      out = -x2 * pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1.)) / T -
-      T0 * x1 * pow(T0 / T, x2) / pow(T, 2); break;
+      return -x2 * pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1.)) / T -
+      T0 * x1 * pow(T0 / T, x2) / pow(T, 2);
     case TemperatureModel::T5:
-      out = -x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T; break;
+      return -x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T;
     case TemperatureModel::LM_AER:
-      out = special_linemixing_aer_dT(T, X[Index(var)]); break;
+      return special_linemixing_aer_dT(T, X[Index(var)]);
     case TemperatureModel::DPL:
-      out = -x0 * x1 * pow(T0 / T, x1) / T + -x2 * x3 * pow(T0 / T, x3) / T; break;
-    case TemperatureModel::FINAL: break;
+      return -x0 * x1 * pow(T0 / T, x1) / T + -x2 * x3 * pow(T0 / T, x3) / T;
+    case TemperatureModel::POLY:
+      return x1 + 2 * x2 * T + 3 * x3 * T * T;
+    case TemperatureModel::FINAL: {/* Leave last */ }
   }
-  return out;
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric SingleSpeciesModel::compute_dT0(Numeric T, Numeric T0, Variable var) const noexcept {
   using std::log;
   using std::pow;
   
-  Numeric out=std::numeric_limits<Numeric>::quiet_NaN();
   switch (X[Index(var)].type) {
     case TemperatureModel::None:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T0:
-      out = 0; break;
+      return 0;
     case TemperatureModel::T1:
-      out = x0 * x1 * pow(T0 / T, x1) / T0; break;
+      return x0 * x1 * pow(T0 / T, x1) / T0;
     case TemperatureModel::T2:
-      out = x0 * x1 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) / T0 -
-      x0 * x2 * pow(T0 / T, x1) / T0; break;
+      return x0 * x1 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) / T0 -
+      x0 * x2 * pow(T0 / T, x1) / T0;
     case TemperatureModel::T3:
-      out = -x1; break;
+      return -x1;
     case TemperatureModel::T4:
-      out = x2 * pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1.)) / T0 +
-      x1 * pow(T0 / T, x2) / T; break;
+      return x2 * pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1.)) / T0 +
+      x1 * pow(T0 / T, x2) / T;
     case TemperatureModel::T5:
-      out = x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T0; break;
+      return x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T0;
     case TemperatureModel::LM_AER:
-      out = 0; break;
+      return 0;
     case TemperatureModel::DPL:
-      out = x0 * x1 * pow(T0 / T, x1) / T0 + x2 * x3 * pow(T0 / T, x3) / T0; break;
-    case TemperatureModel::FINAL: break;
+      return x0 * x1 * pow(T0 / T, x1) / T0 + x2 * x3 * pow(T0 / T, x3) / T0;
+    case TemperatureModel::POLY:
+      return 0;
+    case TemperatureModel::FINAL: {/* Leave last */ }
   }
-  return out;
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 #undef x0

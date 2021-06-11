@@ -79,7 +79,8 @@ ENUMCLASS(TemperatureModel, char,
   T4,     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
   T5,     // X0 * (T0/T)^(0.25 + 1.5*X1)
   LM_AER, // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
-  DPL     // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+  DPL,    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+  POLY    // X0 + X1 * T + X2 * T ^ 2 + X3 * T ^ 3
 )
 
 /** List of possible shape variables
@@ -103,6 +104,7 @@ ENUMCLASS(Variable, char,
  * NOTE: Developer should always add new coefficients at the end
  */
 struct ModelParameters {
+  static constexpr Index N = 4;
   TemperatureModel type;
   Numeric X0;
   Numeric X1;
@@ -114,6 +116,18 @@ struct ModelParameters {
                             Numeric inX2=std::numeric_limits<Numeric>::quiet_NaN(),
                             Numeric inX3=std::numeric_limits<Numeric>::quiet_NaN())
   noexcept : type(intype), X0(inX0), X1(inX1), X2(inX2), X3(inX3) {}
+  template <typename VectorType> constexpr
+  ModelParameters(TemperatureModel intype, VectorType&& v) ARTS_NOEXCEPT :
+  ModelParameters(intype) {
+    const auto n = std::size(v);
+    ARTS_ASSERT(n <= N, "Must have at most ", N, " inputs, got: ", n)
+    switch (n) {
+      case 4: X3 = v[3]; [[fallthrough]];
+      case 3: X2 = v[2]; [[fallthrough]];
+      case 2: X1 = v[1]; [[fallthrough]];
+      case 1: X0 = v[0];
+    }
+  }
 };
 
 String modelparameters2metadata(const ModelParameters mp, const Numeric T0);
@@ -149,6 +163,8 @@ constexpr bool modelparameterEmpty(const ModelParameters mp) noexcept {
       return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
     case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
       return (mp.X0 == 0 and mp.X2 == 0);
+    case TemperatureModel::POLY:
+      return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
     case TemperatureModel::FINAL:
       return true;
   }
@@ -175,6 +191,8 @@ constexpr Numeric modelparameterFirstExponent(const ModelParameters mp) noexcept
       return 0;
     case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
       return mp.X1;
+    case TemperatureModel::POLY:
+      return 0;
     case TemperatureModel::FINAL:
       return std::numeric_limits<Numeric>::quiet_NaN();
   }
@@ -186,9 +204,6 @@ std::ostream& operator<<(std::ostream& os, const ModelParameters& mp);
 
 /** Input operator for ModelParameters */
 std::istream& operator>>(std::istream& is, ModelParameters& mp);
-
-/** Current max number of coefficients */
-constexpr Index nmaxTempModelParams = 4;
 
 /** Current max number of line shape variables */
 constexpr Index nVars = Index(Variable::FINAL);
@@ -1000,6 +1015,8 @@ constexpr Index temperaturemodel2legacynelem(TemperatureModel type) noexcept {
     case TemperatureModel::LM_AER:
       return 12;
     case TemperatureModel::DPL:
+      return 4;
+    case TemperatureModel::POLY:
       return 4;
     case TemperatureModel::FINAL: break;
   }

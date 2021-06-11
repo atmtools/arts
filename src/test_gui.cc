@@ -3,16 +3,21 @@
 #include "gui/plot.h"
 #include "auto_md.h"
 #include "physics_funcs.h"
+#include "lineshape.h"
 
 Vector VectorNLinSpaceConst(Numeric f0, Numeric f1, Index n) {
   Vector x;
   VectorNLinSpace(x, n, f0, f1, Verbosity{});
   return x;
 }
+
+Vector VectorNLogSpaceConst(Numeric f0, Numeric f1, Index n) {
+  Vector x;
+  VectorNLogSpace(x, n, f0, f1, Verbosity{});
+  return x;
+}
   
 int main() {
-  constexpr Index nfreq = 100000;
-  
   std::stringstream ss("47929387875.2229 3.76825765434629e-25 6.39288315401667e-20 93 95 4.417e-10 0.00100339716312057 -0.0425337497440969 10059.6531675302 0.72 0 0 0 0.72 0 0 10237.1764587219 0.72 0 0 0 0.72 0 0 46 47 47 47 \n"
                        "48435909117.8633 1.3274749386654e-24 5.86939467999304e-20 89 91 4.56e-10 0.00108313429951691 -0.0444288681399483 10059.6531675302 0.72 0 0 0 0.72 0 0 10237.1764587219 0.72 0 0 0 0.72 0 0 44 45 45 45 \n"
                        "48943503017.9185 4.42190426585161e-24 5.36779723660436e-20 85 87 4.705e-10 0.00117412262156448 -0.0465002101505717 10059.6531675302 0.72 0 0 0 0.72 0 0 10237.1764587219 0.72 0 0 0 0.72 0 0 42 43 43 43 \n"
@@ -29,7 +34,7 @@ int main() {
                        "54671168637.5202 5.50629495774982e-20 1.31589304918172e-20 41 43 6.549e-10 0.00444926406926407 -0.0952954158056413 11539.0139274611 0.72 0 0 0 0.72 0 0 10533.0486107081 0.72 0 0 0 0.72 0 0 20 21 21 21 \n"
                        "55221376536.5177 9.02152811731986e-20 1.08233925990705e-20 37 39 6.748e-10 0.00538433684210526 -0.105325006369713 11834.8860794473 0.72 0 0 0 0.72 0 0 10947.2696234888 0.72 0 0 0 0.72 0 0 18 19 19 19 \n"
                        "55783810271.745 1.38350179108014e-19 8.71455783977092e-21 33 35 6.953e-10 0.00665837908496732 -0.117708429714795 12130.7582314335 0.72 0 0 0 0.72 0 0 11509.4267122625 0.72 0 0 0 0.72 0 0 16 17 17 17 \n"
-                       "56264781402.3599 8.25040584752558e-20 4.14034910005551e-23 5 3 5.844e-10 1.0011 0.970122237409002 16864.7126632124 0.97 0 0 0 0.97 0 0 16864.7126632124 0.97 0 0 0 0.97 0 0 2 1 1 1 \n"
+                       "56264781402.3599 8.25040584752558e-20 4.14034910005551e-23 5 3 5.844e-10 1.0011 0.970122237409002 16864.7126632124 0.72 0 0 0 0.97 0 0 16864.7126632124 0.72 0 0 0 0.97 0 0 2 1 1 1 \n"
                        "56363396632.4567 1.98112155017071e-19 6.83276589616003e-21 29 31 7.167e-10 0.00845753333333333 -0.133383069062231 12426.6303834197 0.72 0 0 0 0.72 0 0 11953.2349402418 0.72 0 0 0 0.72 0 0 14 15 15 15 \n"
                        "56968211727.679 2.63988889549887e-19 5.1783147351164e-21 25 27 7.394e-10 0.0111158241758242 -0.153858929609147 12722.5025354059 0.72 0 0 0 0.72 0 0 12337.8687378238 0.72 0 0 0 0.72 0 0 12 13 13 13 \n"
                        "57612488204.3553 3.25618427206103e-19 3.75146458104732e-21 21 23 7.637e-10 0.0152824242424242 -0.181732800635926 13018.3746873921 0.72 0 0 0 0.72 0 0 12752.0897506045 0.72 0 0 0 0.72 0 0 10 11 11 11 \n"
@@ -61,7 +66,7 @@ int main() {
                        "71073487948.1458 2.86339386588456e-24 5.86789471472631e-20 93 91 1.441e-09 0.00108313429951691 0.0436917293925705 10059.6531675302 0.72 0 0 0 0.72 0 0 10237.1764587219 0.72 0 0 0 0.72 0 0 46 45 45 45 \n"
                        "71601561570.3843 8.42812543314223e-25 6.39131465636786e-20 97 95 1.473e-09 0.00100339716312057 0.0418764629973242 10059.6531675302 0.72 0 0 0 0.72 0 0 10237.1764587219 0.72 0 0 0 0.72 0 0 48 47 47 47 \n"
                        "72129782990.3046 2.34770584795963e-25 6.93654021147252e-20 101 99 1.506e-09 0.000933129795918367 0.040206375484934 10059.6531675302 0.72 0 0 0 0.72 0 0 10237.1764587219 0.72 0 0 0 0.72 0 0 50 49 49 49 \n"
-                       "118750348044.712 3.01219636638393e-19 0 1 3 4.48e-09 1.0011 0 16864.7126632124 0.97 0 0 0 0.97 0 0 16864.7126632124 0.97 0 0 0 0.97 0 0 0 1 1 1");
+                       "118750348044.712 3.01219636638393e-19 0 1 3 4.48e-09 1.0011 0 16864.7126632124 0.72 0 0 0 0.97 0 0 16864.7126632124 0.72 0 0 0 0.97 0 0 0 1 1 1");
   
   const SpeciesTag sp("O2-66");
   const QuantumIdentifier qid(sp.Isotopologue(),
@@ -73,15 +78,16 @@ int main() {
                        Absorption::NormalizationType::None, LineShape::Type::VP, 296, 750e9, -1, qid, 
                        {QuantumNumberType::J, QuantumNumberType::N}, {Species::Species::Oxygen, Species::Species::Bath}, metamodel);
   ss >> band;
+  Index wigner_initialized;
+  Wigner6Init(wigner_initialized, 20000000, 250, Verbosity{});
   
   // Initializing values
+  constexpr Index nfreq = 100000;
   const Vector f_grid = VectorNLinSpaceConst(50e9, 70e9, nfreq);
-  const Numeric P=5e4;
+  const Numeric P=Conversion::atm2pa(0.5);
   const Numeric T=296;
   const Numeric H=50e-6;
   const Vector VMR = {0.21, 0.79};
-  Index wigner_initialized;
-  Wigner6Init(wigner_initialized, 20000000, 250, Verbosity{});
   Matrix xsec(nfreq, 1, 0);
   ArrayOfMatrix dxsec, dsource, dphase;
   ArrayOfArrayOfSpeciesTag specs(2, ArrayOfSpeciesTag(1));
@@ -122,20 +128,32 @@ int main() {
                f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1);
   xsec2 *= number_density(P, T);
   
-  // Rosenkranz adapted calculations (This gives nonsense at the time of writing)
+// Rosenkranz adapted calculations (This gives nonsense at the time of writing)
+//   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
+//   Absorption::LineMixing::ecs_rosenkranz_adaptation(band,
+//                                                     VectorNLinSpaceConst(150, 350, 51),
+//                                                     {31.989830, 28.97});
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
-  Absorption::LineMixing::ecs_rosenkranz_adaptation(band,
-                                                    VectorNLinSpaceConst(150, 350, 51),
-                                                    {31.989830, 28.97});
-  xsec_species(xsec3, source, phase, dxsec, dsource, dphase,
-               ArrayOfRetrievalQuantity(0),
-               f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1);
-  xsec3 *= number_density(P, T);
+//   auto data = Absorption::LineMixing::ecs_eigenvalue_adaptation_test(band,
+//     VectorNLinSpaceConst(200, 350, 76), {31.989830, 28.97},
+//     VectorNLogSpaceConst(1, 1'000'000'000'000, 101));
+//   WriteXML("ascii", data, "prestemp.xml", 0, "", "", "", Verbosity());
+//   std::cout <<
+  Absorption::LineMixing::ecs_eigenvalue_adaptation(band,
+                                                    VectorNLinSpaceConst(200, 350, 76),
+                                                    {31.989830, 28.97},
+                                                    Conversion::atm2pa(1), 2
+  ) /*<< '\n'*/;
+//   std::cout << band << '\n';
+  LineShape::ComputeData com(f_grid, {rq}, 0);
+  LineShape::ComputeData sparse_com(Vector(0), {rq}, 0);
+  LineShape::compute(com, sparse_com, 
+                     band, {rq}, {},
+                     band.BroadeningSpeciesVMR(VMR, specs), VMR[0],
+                     1.0, P, T, 0, 0,
+                     false, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+  com.F /= VMR[0];
   
   // Plot it all
-  ARTSGUI::plot(f_grid, abs.real(), f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0), f_grid, absZ.real(), f_grid, xsec3(joker, 0));
-  
-  absdT -= abs;
-  absdT /= 0.1;
-  ARTSGUI::plot(f_grid, dabs[0].real(), f_grid, absdT.real());
+  ARTSGUI::plot(f_grid, abs.real(), f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0), f_grid, absZ.real(), f_grid, com.F.real());
 }

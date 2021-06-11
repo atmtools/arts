@@ -8,7 +8,6 @@
 #include "minimize.h"
 #include "physics_funcs.h"
 
-
 namespace Absorption::LineMixing {
 EquivalentLines::EquivalentLines(const ComplexMatrix& W,
                                  const Vector& pop,
@@ -58,6 +57,19 @@ EquivalentLines::EquivalentLines(const ComplexMatrix& W,
 }
 
 
+void EquivalentLines::sort_by_frequency() {
+  const Index N = val.nelem();
+  for (Index i=0; i<N; i++) {
+    for (Index j=i+1; j<N; j++) {
+      if (val.real()[j] < val.real()[i]) {
+        std::swap(val[i], val[j]);
+        std::swap(str[i], str[j]);
+      }
+    }
+  }
+}
+
+
 PopulationAndDipole::PopulationAndDipole(const Numeric T,
                                          const AbsorptionLines& band) noexcept :
   pop(band.NumLines()), dip(band.NumLines()) {
@@ -70,7 +82,7 @@ PopulationAndDipole::PopulationAndDipole(const Numeric T,
   for (Index i=0; i<N; i++) {
     const Numeric pop0 = (band.g_upp(i) / QT0) * boltzman_factor(band.T0(), band.E0(i));
     pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
-    dip[i] = std::sqrt(band.I0(i)/(pop0 * band.F0(i) * (1-stimulated_emission(band.T0(), band.F0(i)))));
+    dip[i] = std::sqrt(band.I0(i)/(pop0 * band.F0(i) * (1.0-stimulated_emission(band.T0(), band.F0(i)))));
   }
 }
 
@@ -388,7 +400,8 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
       Makarov2020etal::relaxation_matrix_offdiagonal<param>(W.imag(), T, band, sorting, band.SpeciesMass(), species_mass);
       break;
     default:
-      ARTS_ASSERT (false, "Bad type");
+      ARTS_ASSERT ("Bad type, we don't support band population type: ", band.Population(),
+                   "\nin this code.  It must either be added or computations aborted earlier");
       break;
   }
   
@@ -513,7 +526,7 @@ ComplexVector ecs_absorption_impl(const Numeric T,
   const Numeric numdens = this_vmr * number_density(P, T);
   for (Index iv=0; iv<f_grid.nelem(); iv++) {
     const Numeric f = f_grid[iv];
-    const Numeric fact = f * (1 - stimulated_emission(T, f));
+    const Numeric fact = f * (1.0 - stimulated_emission(T, f));
     absorption[iv] *= fact * numdens * sq_ln2pi;
   }
   
@@ -790,7 +803,7 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
   const Numeric numdens = this_vmr * number_density(P, T);
   for (Index iv=0; iv<f_grid.nelem(); iv++) {
     const Numeric f = f_grid[iv];
-    const Numeric fact = f * (1 - stimulated_emission(T, f));
+    const Numeric fact = f * (1.0 - stimulated_emission(T, f));
     absorption[iv] *= fact * numdens * sq_ln2pi;
   }
   
@@ -1203,9 +1216,9 @@ Index ecs_rosenkranz_adaptation(AbsorptionLines& band,
       if (not (found_d and found_g and found_y)) return EXIT_FAILURE;
       
       // Update parameters
-      lineshapemodel.Y()  = LineShape::ModelParameters(LineShape::TemperatureModel::T4, yc[0], yc[1], yc[2]);
-      lineshapemodel.G()  = LineShape::ModelParameters(LineShape::TemperatureModel::T4, gc[0], gc[1], gc[2]);
-      lineshapemodel.DV() = LineShape::ModelParameters(LineShape::TemperatureModel::T4, dc[0], dc[1], dc[2]);
+      lineshapemodel.Y()  = LineShape::ModelParameters(LineShape::TemperatureModel::T4, yc);
+      lineshapemodel.G()  = LineShape::ModelParameters(LineShape::TemperatureModel::T4, gc);
+      lineshapemodel.DV() = LineShape::ModelParameters(LineShape::TemperatureModel::T4, dc);
     }
   }
   
@@ -1213,6 +1226,198 @@ Index ecs_rosenkranz_adaptation(AbsorptionLines& band,
   band.Population(Absorption::PopulationType::LTE);
   
   return EXIT_SUCCESS;
+}
+
+
+/*! Computes the Eigenvalue adaptation values
+ * 
+ * The output is sorted based on frequency.  If pressure shifts
+ * moves one line's frequency past another, this introduces errors.
+ * This is uncommon but happens more easily at higher pressures.
+ * 
+ * If this happens, the output of this function is not usable, but no
+ * safe-guards are in place to guard against this.
+ * 
+ * @param[in] band The absorption band [N lines]
+ * @param[in] temperatures The temperature grid for fitting parameters upon [K temperatures]
+ * @param[in] mass The mass of all broadeners of the absorption band [M broadeners]
+ * @return Eigenvalue line mixing parameters
+ */
+Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
+                                     const Vector& temperatures,
+                                     const Vector& mass,
+                                     const Numeric P) {
+  const Index N = band.NumLines();
+  const Index M = band.NumBroadeners();
+  const Index K = temperatures.nelem();
+  
+  // Weighted center of the band
+  const Numeric frenorm = band.F_mean();
+  
+  // Need sorting to put weak lines last, but we need the sorting constant or the output jumps
+  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0(), band).first;
+  const Numeric QT0 = single_partition_function(band.T0(), band.Isotopologue());
+  
+  // Output
+  Tensor4 out(4, N, M, K);
+  
+  #pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Index m=0; m<M; m++) {
+    for (Index k=0; k<K; k++) {
+      const Numeric T = temperatures[k];
+      const Numeric QT = single_partition_function(T, band.Isotopologue());
+      
+      // Relaxation matrix of T0 sorting at T
+      ComplexMatrix W = single_species_ecs_relaxation_matrix<SpecialParam::None>(band, sorting, T, P, mass[m], m);
+      for (Index n=0; n<N; n++) {
+        W(n, n) += band.F0(sorting[n]) - frenorm;
+      }
+      
+      // Populations and dipoles of T0 sorting at T
+      const auto [pop, dip] = presorted_population_and_dipole(T, sorting, band);
+      
+      // Compute and adapt values for the Voigt adaptation
+      EquivalentLines eig(W, pop, dip);
+      eig.val += frenorm;
+      for (Index n=0; n<N; n++) {
+        const Numeric f0 = eig.val[n].real();
+        eig.str[n] *= f0 * (1.0 - stimulated_emission(T, f0));
+      }
+      
+      // Sort the values so the greatest frequency is first
+      eig.sort_by_frequency();
+      
+      // Adjust strength and value to remove known line parameters
+      for (Index n=0; n<N; n++) {
+        eig.val[n] -= Complex(band.F0(n) +
+          P * band.Line(n).LineShape()[m].compute(T, band.T0(), LineShape::Variable::D0),
+          P * band.Line(n).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G0));
+        
+        const Numeric Si = Linefunctions::lte_linestrength(
+          band.I0(n), band.E0(n), band.F0(n),
+          QT0, band.T0(), QT, T);
+        eig.str[n] -= Si;
+        eig.str[n] /= Si; 
+      }
+      
+      out(0, joker, m, k) = eig.str.real();
+      out(1, joker, m, k) = eig.str.imag();
+      out(2, joker, m, k) = eig.val.real();
+      out(3, joker, m, k) = eig.val.imag();
+    }
+  }
+  
+  return out;
+}
+
+Index ecs_eigenvalue_adaptation(AbsorptionLines& band,
+                                const Vector& temperatures,
+                                const Vector& mass,
+                                const Numeric P0,
+                                const Index ord
+                               ) {
+  ARTS_USER_ERROR_IF (P0 <= 0, P0, " Pa is not possible")
+  
+  ARTS_USER_ERROR_IF(
+    not is_sorted(temperatures),
+  "The temperature list [", temperatures,  "] K\n"
+  "must be fully sorted from low to high"
+  )
+  
+  ARTS_USER_ERROR_IF (ord < 1 or ord > 3, "Order not in list [1, 2, 3], is: ", ord)
+  
+  // Temperature data to get temperature dependency
+  const auto tempdata = ecs_eigenvalue_approximation(band, temperatures, mass, P0);
+  
+  // Sizes
+  const Index S = band.NumBroadeners();
+  const Index N = band.NumLines();
+  
+  for (Index i=0; i<S; i++) {
+    // Allocate Vector for fitting the data
+    Vector targ(N);
+    
+    // Rosenkranz 1st order parameter
+    for (Index j=0; j<N; j++) {
+      targ = tempdata(1, j, i, joker);  // Get values
+      
+      // Assume linear pressure dependency
+      targ /= P0;
+      
+      // Fit to a polynomial
+      auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
+      if (not fit) return EXIT_FAILURE;
+      band.Line(j).LineShape()[i].Y() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+    }
+    
+    // Rosenkranz 2nd order frequency parameter
+    if (ord > 1) {
+      for (Index j=0; j<N; j++) {
+        targ = tempdata(2, j, i, joker);  // Get values
+        
+        // Assume squared pressure dependency
+        targ /= P0 * P0;
+        
+        // Fit to a polynomial
+        auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
+        if (not fit) return EXIT_FAILURE;
+        band.Line(j).LineShape()[i].DV() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+      }
+    }
+    
+    // Rosenkranz 2nd order strength parameter
+    if (ord > 1) {
+      for (Index j=0; j<N; j++) {
+        targ = tempdata(0, j, i, joker);  // Get values
+        
+        // Assume squared pressure dependency
+        targ /= P0 * P0;
+        
+        // Fit to a polynomial
+        auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
+        if (not fit) return EXIT_FAILURE;
+        band.Line(j).LineShape()[i].G() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+      }
+    }
+    
+    // 3rd order broadening parameter  [[FIXME: UNTESTED]]
+    if (ord > 2) {
+      for (Index j=0; j<N; j++) {
+        targ = tempdata(3, j, i, joker);
+        
+        // Assume cubic pressure dependency
+        targ /= P0 * P0 * P0;
+        
+        // Fit to a polynomial
+        auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
+        if (not fit) return EXIT_FAILURE;
+        ARTS_USER_ERROR("Not yet implemented: 3rd order line mixing")
+//         band.Line(j).LineShape()[i].DG() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+      }
+    }
+  }
+  
+  // If we reach here, we have to set the band population type to LTE
+  band.Population(Absorption::PopulationType::LTE);
+  
+  return EXIT_SUCCESS;
+}
+
+
+Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
+                                       const Vector& temperatures,
+                                       const Vector& mass,
+                                       const Vector& pressures) {
+  const Index N = band.NumLines();
+  const Index M = band.NumBroadeners();
+  const Index K = temperatures.nelem();
+  const Index L = pressures.size();
+  
+  Tensor5 out(4, N, M, K, L);
+  for (Index l=0; l<L; l++) {
+    out(joker, joker, joker, joker, l) = ecs_eigenvalue_approximation(band, temperatures, mass, pressures[l]);
+  }
+  return out;
 }
 }  // Absorption::LineMixing
 

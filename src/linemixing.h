@@ -41,6 +41,8 @@ struct EquivalentLines {
   
   //! Explicitly defaulted
   EquivalentLines& operator=(EquivalentLines&&) = default;
+  
+  void sort_by_frequency();
 };  // EquivalentLines
 
 //! Contains the population distribution and dipole
@@ -133,6 +135,50 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
 Index ecs_rosenkranz_adaptation(AbsorptionLines& band,
                                 const Vector& temperatures,
                                 const Vector& mass);
+
+
+/*! Adapts the band to use Rosenkranz parameters from Eigenvalue decomposition
+ * 
+ * Fits will be of form:
+ * 
+ * Y  ~ P      * polyfit(x, y,  LineShape::ModelParameters::N - 1)
+ * DV ~ P ** 2 * polyfit(x, dv, LineShape::ModelParameters::N - 1)
+ * G  ~ P ** 2 * polyfit(x, g,  LineShape::ModelParameters::N - 1)
+ * DG ~ P ** 3 * polyfit(x, dg, LineShape::ModelParameters::N - 1)
+ * 
+ * where all the values are computed at P0 but re-normalized by the order above
+ * 
+ * Note that these parameters will fail at high pressures
+ * 
+ * @param[in] band The absorption band
+ * @param[in] temperatures The temperature grid for fitting parameters upon
+ * @param[in] mass The mass of all broadeners of the absorption band
+ * @param[in] P0 The pressure at which temperature dependencies are computed at
+ * @param[in] ord The order of the parameters [1: Y; 2: Y, DF, G; 3: Y, DF, G, DG]
+ * @return EXIT_FAILURE when some parameterization fit fails
+ * @return EXIT_SUCCESS if all algorithms worked (independent of if the absorption will be reasonable)
+ */
+Index ecs_eigenvalue_adaptation(AbsorptionLines& band,
+                                const Vector& temperatures,
+                                const Vector& mass,
+                                const Numeric P0,
+                                const Index ord);
+
+/*! Outputs the adaptation values used for ecs_eigenvalue_adaptation but as 
+ * a function of pressure.  ecs_eigenvalue_adaptation makes strong assumptions
+ * about the pressure order of the outputs used, and if this work for a given
+ * band can be found out using this data
+ * 
+ * @param[in] band The absorption band [N lines]
+ * @param[in] temperatures The temperature grid for fitting parameters upon [K temperatures]
+ * @param[in] mass The mass of all broadeners of the absorption band [M broadeners]
+ * @param[in] pressures The pressures for testing [L pressures]
+ * @return Tensor with size [4, N, M, K, L]
+ */
+Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
+                                       const Vector& temperatures,
+                                       const Vector& mass,
+                                       const Vector& pressures);
 }  // LineMixing
 
 #endif  // linemixing_h

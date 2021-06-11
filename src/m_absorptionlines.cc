@@ -2002,9 +2002,9 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
   
   const LineShape::Variable var = LineShape::toVariableOrThrow(parameter);
   
-  ARTS_USER_ERROR_IF (new_values.nelem() not_eq LineShape::nmaxTempModelParams,
+  ARTS_USER_ERROR_IF (new_values.nelem() not_eq LineShape::ModelParameters::N,
     "Mismatch between input and expected number of variables\n"
-    "\tInput is: ", new_values.nelem(), " long but expects: ", LineShape::nmaxTempModelParams, " values\n")
+    "\tInput is: ", new_values.nelem(), " long but expects: ", LineShape::ModelParameters::N, " values\n")
   
   LineShape::ModelParameters newdata;
   newdata.type = LineShape::toTemperatureModelOrThrow(temperaturemodel);
@@ -2411,7 +2411,7 @@ std::vector<T> linspace(T s, T e, typename std::vector<T>::size_type count) noex
     return ls;
   }
 }
-                        
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromAbsorptionLines(Vector& f_grid,
                                const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
