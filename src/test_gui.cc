@@ -128,23 +128,16 @@ int main() {
                f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1);
   xsec2 *= number_density(P, T);
   
-// Rosenkranz adapted calculations (This gives nonsense at the time of writing)
-//   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
-//   Absorption::LineMixing::ecs_rosenkranz_adaptation(band,
-//                                                     VectorNLinSpaceConst(150, 350, 51),
-//                                                     {31.989830, 28.97});
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
 //   auto data = Absorption::LineMixing::ecs_eigenvalue_adaptation_test(band,
 //     VectorNLinSpaceConst(200, 350, 76), {31.989830, 28.97},
 //     VectorNLogSpaceConst(1, 1'000'000'000'000, 101));
 //   WriteXML("ascii", data, "prestemp.xml", 0, "", "", "", Verbosity());
-//   std::cout <<
+  
   Absorption::LineMixing::ecs_eigenvalue_adaptation(band,
                                                     VectorNLinSpaceConst(200, 350, 76),
                                                     {31.989830, 28.97},
-                                                    Conversion::atm2pa(1), 2
-  ) /*<< '\n'*/;
-//   std::cout << band << '\n';
+                                                    Conversion::atm2pa(1), 2);
   LineShape::ComputeData com(f_grid, {rq}, 0);
   LineShape::ComputeData sparse_com(Vector(0), {rq}, 0);
   LineShape::compute(com, sparse_com, 

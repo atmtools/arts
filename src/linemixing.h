@@ -120,21 +120,49 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
                                                                      const AbsorptionLines& band,
                                                                      const ArrayOfRetrievalQuantity& jacobian_quantities={});
 
-
-/*! Adapts the band to use Rosenkranz parameters
+/**  Adapts the band to the temperature data
  * 
- * This function does not work properly and using it will result in
- * bad parameters
- * 
- * @param[in] band The absorption band
- * @param[in] temperatures The temperature grid for fitting parameters upon
- * @param[in] mass The mass of all broadeners of the absorption band
- * @return EXIT_FAILURE when some parameterization fit fails
- * @return EXIT_SUCCESS if all algorithms worked (independent of if the absorption will be reasonable)
+ * @return EXIT_FAILURE on failure
+ * @return EXIT_SUCCESS on success
  */
-Index ecs_rosenkranz_adaptation(AbsorptionLines& band,
-                                const Vector& temperatures,
-                                const Vector& mass);
+Index band_eigenvalue_adaptation(
+  AbsorptionLines& band,
+  const Tensor4& tempdata,
+  const Vector& temperatures,
+  const Numeric P0,
+  const Index ord);
+
+/** Adapts the relaxation matrix eigenvalues to a form
+ * where they represent additions towards the three
+ * Rosenkranz parameters and the 3rd order pressure
+ * broadening term.
+ * 
+ * The EquivalentLines are sorted by the real part of the
+ * val-component.  At a sufficiently small pressure, this
+ * is equivalent to sorting by line frequency.  At higher
+ * pressures, the sorting might be wrong
+ * 
+ * The output is adapted to fit into standard LBL calculations
+ * assuming that the pressure-sorting works.  This happens via
+ * an adaptation so that
+ * 
+ * X = val - Complex(F0 + D0(T), G0(T))
+ * Y  = str / I(T) - 1
+ * 
+ * are the two return values, where val and str are the output of
+ * the standard constructor of EquivalentLines.
+ */
+EquivalentLines eigenvalue_adaptation_of_relmat(
+  const ComplexMatrix& W,
+  const Vector& pop,
+  const Vector& dip,
+  const AbsorptionLines& band,
+  const Numeric frenorm,
+  const Numeric T,
+  const Numeric P,
+  const Numeric QT,
+  const Numeric QT0,
+  const Index broadener);
 
 
 /*! Adapts the band to use Rosenkranz parameters from Eigenvalue decomposition
@@ -158,11 +186,11 @@ Index ecs_rosenkranz_adaptation(AbsorptionLines& band,
  * @return EXIT_FAILURE when some parameterization fit fails
  * @return EXIT_SUCCESS if all algorithms worked (independent of if the absorption will be reasonable)
  */
-Index ecs_eigenvalue_adaptation(AbsorptionLines& band,
-                                const Vector& temperatures,
-                                const Vector& mass,
-                                const Numeric P0,
-                                const Index ord);
+void ecs_eigenvalue_adaptation(AbsorptionLines& band,
+                               const Vector& temperatures,
+                               const Vector& mass,
+                               const Numeric P0,
+                               const Index ord);
 
 /*! Outputs the adaptation values used for ecs_eigenvalue_adaptation but as 
  * a function of pressure.  ecs_eigenvalue_adaptation makes strong assumptions

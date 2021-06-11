@@ -1034,6 +1034,87 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
   return {absorption, jacobian};
 }
 
+Index band_eigenvalue_adaptation(
+  AbsorptionLines& band,
+  const Tensor4& tempdata,
+  const Vector& temperatures,
+  const Numeric P0,
+  const Index ord)
+{
+  // Sizes
+  const Index S = band.NumBroadeners();
+  const Index N = band.NumLines();
+  
+  for (Index i=0; i<S; i++) {
+    // Allocate Vector for fitting the data
+    Vector targ(N);
+    
+    // Rosenkranz 1st order parameter
+    for (Index j=0; j<N; j++) {
+      targ = tempdata(1, j, i, joker);  // Get values
+      
+      // Assume linear pressure dependency
+      targ /= P0;
+      
+      // Fit to a polynomial
+      auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
+      if (not fit) return EXIT_FAILURE;
+      band.Line(j).LineShape()[i].Y() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+    }
+    
+    // Rosenkranz 2nd order frequency parameter
+    if (ord > 1) {
+      for (Index j=0; j<N; j++) {
+        targ = tempdata(2, j, i, joker);  // Get values
+        
+        // Assume squared pressure dependency
+        targ /= P0 * P0;
+        
+        // Fit to a polynomial
+        auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
+        if (not fit) return EXIT_FAILURE;
+        band.Line(j).LineShape()[i].DV() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+      }
+    }
+    
+    // Rosenkranz 2nd order strength parameter
+    if (ord > 1) {
+      for (Index j=0; j<N; j++) {
+        targ = tempdata(0, j, i, joker);  // Get values
+        
+        // Assume squared pressure dependency
+        targ /= P0 * P0;
+        
+        // Fit to a polynomial
+        auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
+        if (not fit) return EXIT_FAILURE;
+        band.Line(j).LineShape()[i].G() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+      }
+    }
+    
+    // 3rd order broadening parameter  [[FIXME: UNTESTED]]
+    if (ord > 2) {
+      for (Index j=0; j<N; j++) {
+        targ = tempdata(3, j, i, joker);
+        
+        // Assume cubic pressure dependency
+        targ /= P0 * P0 * P0;
+        
+        // Fit to a polynomial
+        auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
+        if (not fit) return EXIT_FAILURE;
+        ARTS_USER_ERROR("Not yet implemented: 3rd order line mixing")
+        //         band.Line(j).LineShape()[i].DG() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+      }
+    }
+  }
+  
+  // If we reach here, we have to set the band population type to LTE
+  band.Population(Absorption::PopulationType::LTE);
+  
+  return EXIT_SUCCESS;
+}
+
 
 /*! Computes the Rosenkranz first order perturbation
  * 
@@ -1126,106 +1207,35 @@ Vector RosenkranzDV(const Vector& dip,
 }
 
 
-//! Class to order the data of linemixing
-struct RosenkranzAdaptation {
-  ArrayOfMatrix Y;   // size N, M ; Y  per species for lines at temperatures
-  ArrayOfMatrix G;   // size N, M ; G  per species for lines at temperatures
-  ArrayOfMatrix DV;  // size N, M ; DV per species for lines at temperatures
+EquivalentLines eigenvalue_adaptation_of_relmat(
+  const ComplexMatrix& W,
+  const Vector& pop,
+  const Vector& dip,
+  const AbsorptionLines& band,
+  const Numeric frenorm,
+  const Numeric T,
+  const Numeric P,
+  const Numeric QT,
+  const Numeric QT0,
+  const Index broadener) {
+  // Compute and adapt values for the Voigt adaptation
+  EquivalentLines eig(W, pop, dip);
   
-  /*! Initialization by sizes
-   * 
-   * @param[in] N Number of lines
-   * @param[in] M Number of temperatures
-   * @param[in] S Number of broadening species
-   */
-  RosenkranzAdaptation(Index N, Index M, Index S) : Y(S, Matrix(N, M)), G(S, Matrix(N, M)), DV(S, Matrix(N, M)) {}
-};
-
-
-/*! Computes the Rosenkranz adaptation
- * 
- * This function does not work properly and using it will result in
- * bad parameters
- * 
- * @param[in] band The absorption band
- * @param[in] temperatures The temperature grid for fitting parameters upon
- * @param[in] mass The mass of all broadeners of the absorption band
- * @return Rosenkranz line mixing parameters
- */
-RosenkranzAdaptation ecs_rosenkranz_approximation(const AbsorptionLines& band,
-                                                  const Vector& temperatures,
-                                                  const Vector& mass) {
-  const Index N = band.NumLines();
-  const Index M = temperatures.nelem();
-  const Index S = band.NumBroadeners();
+  // Sort the values so the greatest frequency is first
+  eig.sort_by_frequency();
   
-  // Need sorting to put weak lines last, but we need the sorting constant or the output jumps
-  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0(), band).first;
-  
-  RosenkranzAdaptation out(N, M, S);
-  
-  #pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Index i=0; i<M; i++) {
-    for (Index j=0; j<S; j++) {
-      const Numeric T = temperatures[i];
-      
-      // Use pre-sort on the population and dipole to make the curves smooth
-      const auto tp = presorted_population_and_dipole(T, sorting, band);
-      
-      // Relaxation matrix at T0 sorting at T
-      const ComplexMatrix W = single_species_ecs_relaxation_matrix<SpecialParam::None>(band, sorting, T, 1, mass[j], j);
-      
-      // Unsort the output
-      const Vector Y = RosenkranzY(tp.dip, W.imag(), band);
-      const Vector G = RosenkranzG(tp.dip, W.imag(), band);
-      const Vector DV = RosenkranzDV(tp.dip, W.imag(), band);
-      for (Index k=0; k<N; k++) {
-        out.Y[j](sorting[k], i) = Y[k];
-        out.G[j](sorting[k], i) = G[k];
-        out.DV[j](sorting[k], i) = DV[k];
-      }
-    }
+  // Adjust strength and value to remove known line parameters
+  for (Index i=0; i<pop.size(); i++) {
+    eig.val[i] -= Complex(band.F0(i) - frenorm +
+      P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::D0),
+      P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::G0));
   }
-  
-  return out;
-}
-
-
-Index ecs_rosenkranz_adaptation(AbsorptionLines& band,
-                                const Vector& temperatures,
-                                const Vector& mass) {
-  const Index N = band.NumLines();
-  const Index S = band.NumBroadeners();
-  
-  const auto lmdata = ecs_rosenkranz_approximation(band, temperatures, mass);
-  
-  for (Index iN=0; iN<N; iN++) {
-    for (Index iS=0; iS<S; iS++) {
-      auto& lineshapemodel = band.AllLines()[iN].LineShape()[iS];
-      const ConstVectorView Y  = lmdata.Y[ iS](iN, joker);
-      const ConstVectorView G  = lmdata.G[ iS](iN, joker);
-      const ConstVectorView D = lmdata.DV[iS](iN, joker);
-      const Numeric sX2 = modelparameterFirstExponent(lineshapemodel.G0());
-      
-      // Best fits and success status
-      auto [found_y, yc] = Minimize::curve_fit<Minimize::T4>(temperatures, Y, band.T0(), 1 * sX2);
-      auto [found_g, gc] = Minimize::curve_fit<Minimize::T4>(temperatures, G, band.T0(), 2 * sX2);
-      auto [found_d, dc] = Minimize::curve_fit<Minimize::T4>(temperatures, D, band.T0(), 2 * sX2);
-      
-      // Any false in any loop and the function fails so it must leave because we cannot set LTE population type
-      if (not (found_d and found_g and found_y)) return EXIT_FAILURE;
-      
-      // Update parameters
-      lineshapemodel.Y()  = LineShape::ModelParameters(LineShape::TemperatureModel::T4, yc);
-      lineshapemodel.G()  = LineShape::ModelParameters(LineShape::TemperatureModel::T4, gc);
-      lineshapemodel.DV() = LineShape::ModelParameters(LineShape::TemperatureModel::T4, dc);
-    }
+  for (Index i=0; i<pop.size(); i++) {
+    eig.str[i] *= band.F0(i) * (1.0 - stimulated_emission(T, band.F0(i))) / Linefunctions::lte_linestrength(band.I0(i), band.E0(i), band.F0(i), QT0, band.T0(), QT, T);
   }
+  eig.str -= 1;
   
-  // If we reach here, we have to set the band population type to LTE
-  band.Population(Absorption::PopulationType::LTE);
-  
-  return EXIT_SUCCESS;
+  return eig;
 }
 
 
@@ -1276,29 +1286,7 @@ Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
       // Populations and dipoles of T0 sorting at T
       const auto [pop, dip] = presorted_population_and_dipole(T, sorting, band);
       
-      // Compute and adapt values for the Voigt adaptation
-      EquivalentLines eig(W, pop, dip);
-      eig.val += frenorm;
-      for (Index n=0; n<N; n++) {
-        const Numeric f0 = eig.val[n].real();
-        eig.str[n] *= f0 * (1.0 - stimulated_emission(T, f0));
-      }
-      
-      // Sort the values so the greatest frequency is first
-      eig.sort_by_frequency();
-      
-      // Adjust strength and value to remove known line parameters
-      for (Index n=0; n<N; n++) {
-        eig.val[n] -= Complex(band.F0(n) +
-          P * band.Line(n).LineShape()[m].compute(T, band.T0(), LineShape::Variable::D0),
-          P * band.Line(n).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G0));
-        
-        const Numeric Si = Linefunctions::lte_linestrength(
-          band.I0(n), band.E0(n), band.F0(n),
-          QT0, band.T0(), QT, T);
-        eig.str[n] -= Si;
-        eig.str[n] /= Si; 
-      }
+      const auto eig = eigenvalue_adaptation_of_relmat(W, pop, dip, band, frenorm, T, P, QT, QT0, m);
       
       out(0, joker, m, k) = eig.str.real();
       out(1, joker, m, k) = eig.str.imag();
@@ -1310,11 +1298,11 @@ Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
   return out;
 }
 
-Index ecs_eigenvalue_adaptation(AbsorptionLines& band,
-                                const Vector& temperatures,
-                                const Vector& mass,
-                                const Numeric P0,
-                                const Index ord
+void ecs_eigenvalue_adaptation(AbsorptionLines& band,
+                               const Vector& temperatures,
+                               const Vector& mass,
+                               const Numeric P0,
+                               const Index ord
                                ) {
   ARTS_USER_ERROR_IF (P0 <= 0, P0, " Pa is not possible")
   
@@ -1326,81 +1314,11 @@ Index ecs_eigenvalue_adaptation(AbsorptionLines& band,
   
   ARTS_USER_ERROR_IF (ord < 1 or ord > 3, "Order not in list [1, 2, 3], is: ", ord)
   
-  // Temperature data to get temperature dependency
-  const auto tempdata = ecs_eigenvalue_approximation(band, temperatures, mass, P0);
-  
-  // Sizes
-  const Index S = band.NumBroadeners();
-  const Index N = band.NumLines();
-  
-  for (Index i=0; i<S; i++) {
-    // Allocate Vector for fitting the data
-    Vector targ(N);
-    
-    // Rosenkranz 1st order parameter
-    for (Index j=0; j<N; j++) {
-      targ = tempdata(1, j, i, joker);  // Get values
-      
-      // Assume linear pressure dependency
-      targ /= P0;
-      
-      // Fit to a polynomial
-      auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
-      if (not fit) return EXIT_FAILURE;
-      band.Line(j).LineShape()[i].Y() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
-    }
-    
-    // Rosenkranz 2nd order frequency parameter
-    if (ord > 1) {
-      for (Index j=0; j<N; j++) {
-        targ = tempdata(2, j, i, joker);  // Get values
-        
-        // Assume squared pressure dependency
-        targ /= P0 * P0;
-        
-        // Fit to a polynomial
-        auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
-        if (not fit) return EXIT_FAILURE;
-        band.Line(j).LineShape()[i].DV() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
-      }
-    }
-    
-    // Rosenkranz 2nd order strength parameter
-    if (ord > 1) {
-      for (Index j=0; j<N; j++) {
-        targ = tempdata(0, j, i, joker);  // Get values
-        
-        // Assume squared pressure dependency
-        targ /= P0 * P0;
-        
-        // Fit to a polynomial
-        auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
-        if (not fit) return EXIT_FAILURE;
-        band.Line(j).LineShape()[i].G() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
-      }
-    }
-    
-    // 3rd order broadening parameter  [[FIXME: UNTESTED]]
-    if (ord > 2) {
-      for (Index j=0; j<N; j++) {
-        targ = tempdata(3, j, i, joker);
-        
-        // Assume cubic pressure dependency
-        targ /= P0 * P0 * P0;
-        
-        // Fit to a polynomial
-        auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
-        if (not fit) return EXIT_FAILURE;
-        ARTS_USER_ERROR("Not yet implemented: 3rd order line mixing")
-//         band.Line(j).LineShape()[i].DG() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
-      }
-    }
+  if (band_eigenvalue_adaptation(band,
+    ecs_eigenvalue_approximation(band, temperatures, mass, P0),
+    temperatures, P0, ord)) {
+    ARTS_USER_ERROR("Bad eigenvalue adaptation")
   }
-  
-  // If we reach here, we have to set the band population type to LTE
-  band.Population(Absorption::PopulationType::LTE);
-  
-  return EXIT_SUCCESS;
 }
 
 

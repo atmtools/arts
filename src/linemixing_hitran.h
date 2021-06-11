@@ -139,6 +139,11 @@ constexpr bool typeFull(ModeOfLineMixing x)
  */ 
 void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, const String& basedir, const Numeric linemixinglimit, const Numeric fmin, const Numeric fmax, const Numeric stot, const ModeOfLineMixing mode);
 
+void hitran_lm_eigenvalue_adaptation(AbsorptionLines& band,
+                                     const Vector& temperatures,
+                                     const HitranRelaxationMatrixData& hitran,
+                                     const Numeric P0,
+                                     const Index ord);
 };  // lm_hitran_2017
 
 #endif  // LINEMIXING_HITRAN_H

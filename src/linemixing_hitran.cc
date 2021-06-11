@@ -2075,5 +2075,92 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
     }
   }
 }
+
+Tensor4 hitran_lm_eigenvalue_approximation(const AbsorptionLines& band,
+                                           const Vector& temperatures,
+                                           const HitranRelaxationMatrixData& hitran,
+                                           const Numeric P) {
+  const Index N = band.NumLines();
+  const Index M = band.NumBroadeners();
+  const Index K = temperatures.nelem();
+  
+  // Need sorting to put weak lines last, but we need the sorting constant or the output jumps
+  const Numeric QT0 = single_partition_function(band.T0(), band.Isotopologue());
+  
+  // Output
+  Tensor4 out(4, N, M, K, 0);
+  
+  #pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Index m=0; m<M; m++) {
+    for (Index k=0; k<K; k++) {
+      ConvTPOut calc(N);
+      
+      const Numeric T = temperatures[k];
+      
+      const Numeric QT = single_partition_function(T, band.Isotopologue());
+      const Numeric ratiopart = QT0 / QT;
+      
+      Vector wgt(N);
+      for (Index i=0; i<N; i++) {
+        const Numeric pop0 = (band.g_upp(i) / QT0) * boltzman_factor(band.T0(), band.E0(i));
+        
+        calc.f0[i] = band.F0(i);
+        calc.pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
+        calc.hwt[i] = band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G0);
+        calc.shft[i] = band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::D0);
+        calc.dip[i] = std::sqrt(band.I0(i)/(pop0 * band.F0(i) * (1-stimulated_emission(band.T0(), band.F0(i)))));
+        calc.hwt2[i] = band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G2);
+        wgt[i] = calc.pop[i] * Constant::pow2(calc.dip[i]);
+      }
+      
+      // Calculate the relaxation matrix
+      calcw(calc, hitran, band, T);
+      
+      // Select types depending on population tag
+      if (Absorption::PopulationType::ByHITRANRosenkranzRelmat == band.Population()) {
+        calc.Y *= P;
+        out(0, joker, m, k) = calc.Y;
+      } else if (Absorption::PopulationType::ByHITRANFullRelmat == band.Population()) {
+        const Numeric fmean = band.F_mean(wgt);
+        calc.W.diagonal().real() = calc.f0;
+        calc.W.diagonal().real() += calc.shft;
+        calc.W.diagonal().real() -= fmean;
+        calc.W.imag() *= P;
+        
+        const auto eig = Absorption::LineMixing::eigenvalue_adaptation_of_relmat(
+          calc.W, calc.pop, calc.dip, band,
+          fmean, T, P, QT, QT0, m);
+        
+        out(0, joker, m, k) = eig.str.real();
+        out(1, joker, m, k) = eig.str.imag();
+        out(2, joker, m, k) = eig.val.real();
+        out(3, joker, m, k) = eig.val.imag();
+      }
+    }
+  }
+  
+  return out;
+}
+
+void hitran_lm_eigenvalue_adaptation(AbsorptionLines& band,
+                                     const Vector& temperatures,
+                                     const HitranRelaxationMatrixData& hitran,
+                                     const Numeric P0,
+                                     const Index ord)
+{
+  ARTS_USER_ERROR_IF (P0 <= 0, P0, " Pa is not possible")
+  
+  ARTS_USER_ERROR_IF(
+    not is_sorted(temperatures),
+  "The temperature list [", temperatures,  "] K\n"
+  "must be fully sorted from low to high"
+  )
+  
+  if (Absorption::LineMixing::band_eigenvalue_adaptation(band,
+        hitran_lm_eigenvalue_approximation(band, temperatures, hitran, P0),
+        temperatures, P0, ord)) {
+    ARTS_USER_ERROR("Bad eigenvalue adaptation")
+  }
+}
 };
 
