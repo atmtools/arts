@@ -33,6 +33,7 @@
 #include "matpackI.h"
 #include "messages.h"
 #include "mystring.h"
+#include "species.h"
 
 /** Hitran crosssection class.
  *
@@ -42,7 +43,7 @@
 class XsecRecord {
  public:
   /** Return species index */
-  [[nodiscard]] Index Species() const { return mspecies; };
+  [[nodiscard]] const Species::Species& Species() const { return mspecies; };
 
   /** Return species name */
   [[nodiscard]] String SpeciesName() const;
@@ -152,7 +153,7 @@ class XsecRecord {
   static const Index P02 = 5;
 
   Index mversion;
-  Index mspecies;
+  Species::Species mspecies;
   /* VERSION 2 */
   Vector mfitminpressures;
   Vector mfitmaxpressures;
@@ -163,7 +164,8 @@ class XsecRecord {
 
 using ArrayOfXsecRecord = Array<XsecRecord>;
 
-Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data, Index species);
+Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
+                            Species::Species species);
 
 std::ostream& operator<<(std::ostream& os, const XsecRecord& xd);
 

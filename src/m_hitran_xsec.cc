@@ -25,7 +25,6 @@
 
 */
 
-#include "abs_species_tags.h"
 #include "arts.h"
 #include "global_data.h"
 #include "hitran_xsec.h"
@@ -38,14 +37,12 @@ void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
                   const String& basename,
                   const Verbosity& verbosity) {
-  using global_data::species_data;
-
   // Build a set of species indices. Duplicates are ignored.
-  std::set<Index> unique_species;
+  std::set<Species::Species> unique_species;
   for (auto& asp : abs_species) {
     for (auto& sp : asp) {
-      if (sp.Type() == SpeciesTag::TYPE_HITRAN_XSEC) {
-        unique_species.insert(sp.Species());
+      if (sp.Type() == Species::TagType::HitranXsec) {
+        unique_species.insert(sp.Spec());
       }
     }
   }
@@ -59,7 +56,7 @@ void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
   hitran_xsec_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
-    const String filename{tmpbasename + (species_data[species_name].Name()) +
+    const String filename{tmpbasename + String(Species::toShortName(species_name)) +
                           ".xml"};
 
     try {

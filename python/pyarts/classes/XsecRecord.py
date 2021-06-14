@@ -2,6 +2,7 @@ import ctypes as c
 from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
+from pyarts.classes.SpeciesIsotopeRecord import Species
 from pyarts.classes.GriddedField2 import ArrayOfGriddedField2
 from pyarts.classes.Vector import Vector, ArrayOfVector
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
@@ -126,8 +127,8 @@ class XsecRecord:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, XsecRecord):
-            lib.setVersionXsecRecord(self.__data__, int(other.version))
-            lib.setSpeciesXsecRecord(self.__data__, int(other.spec))
+            self.version = other.version
+            self.spec = other.spec
             self.fitminpressures = other.fitminpressures
             self.fitmaxpressures = other.fitmaxpressures
             self.fitmintemperatures = other.fitmintemperatures
@@ -197,7 +198,7 @@ lib.xmlsaveXsecRecord.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 lib.getVersionXsecRecord.restype = c.c_long
 lib.getVersionXsecRecord.argtypes = [c.c_void_p]
 
-lib.getSpeciesXsecRecord.restype = c.c_long
+lib.getSpeciesXsecRecord.restype = c.c_void_p
 lib.getSpeciesXsecRecord.argtypes = [c.c_void_p]
 
 lib.setSpeciesXsecRecord.restype = None
