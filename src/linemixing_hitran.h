@@ -144,6 +144,11 @@ void hitran_lm_eigenvalue_adaptation(AbsorptionLines& band,
                                      const HitranRelaxationMatrixData& hitran,
                                      const Numeric P0,
                                      const Index ord);
+
+Tensor5 hitran_lm_eigenvalue_adaptation_test(const AbsorptionLines& band,
+                                             const Vector& temperatures,
+                                             const HitranRelaxationMatrixData& hitran,
+                                             const Vector& pressures);
 };  // lm_hitran_2017
 
 #endif  // LINEMIXING_HITRAN_H

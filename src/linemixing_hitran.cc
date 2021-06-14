@@ -964,11 +964,16 @@ struct ConvTPOut {
 };
 
 
-void calcw(ConvTPOut& out,
-           const HitranRelaxationMatrixData& hitran,
-           const AbsorptionLines& band,
-           const Numeric T)
-{
+struct Sorter {
+  Vector dop0;
+  std::vector<Rational> Ji;
+  std::vector<Rational> Ju;
+};
+
+
+Sorter sorter_calcw(ConvTPOut& out,
+                    const AbsorptionLines& band,
+                    const bool at_t0) {
   Vector& Y = out.Y;
   Vector& g0 = out.hwt;
   Vector& g2 = out.hwt2;
@@ -976,7 +981,6 @@ void calcw(ConvTPOut& out,
   Vector& f0 = out.f0;
   Vector& pop = out.pop;
   Vector& dip = out.dip;
-  MatrixView W = transpose(out.W.imag());  // Transpose to fit Fortran-code
   
   // Size of problem
   const Index n=Y.nelem();
@@ -984,6 +988,7 @@ void calcw(ConvTPOut& out,
   // Copies for local variables
   const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l1);
   const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l1);
+  
   Vector dip0(n);
   std::vector<Rational> Ji(n), Jf(n);
   for (Index i=0; i<n; i++) {
@@ -993,35 +998,66 @@ void calcw(ConvTPOut& out,
   }
   
   Vector s(n);
+  for (Index i=0; i<n; i++) {
+    if (at_t0) {
+      s[i] = band.I0(i);
+    } else {
+      s[i] = f0[i] * pop[i] * Constant::pow2(dip[i]);
+    }
+  }
+  
+  for (Index i=0; i<n; i++) {
+    for (Index j=i+1; j<n; j++) {
+      if (s[j] > s[i]) {
+        // Switch switches 2 elements in a vector :: std::swap(A(i), A(j));
+        // SwitchTwo switches two elements in a Matrix :: std::swap(A(i, k), A(j, k));
+        // SwitchInt is as SwitchTwo but for Integers :: std::swap(A(i, k), A(j, k));
+        std::swap(Ji[i], Ji[j]);
+        std::swap(Jf[i], Jf[j]);
+        std::swap(g0[i], g0[j]);
+        std::swap(d0[i], d0[j]);
+        std::swap(g2[i], g2[j]);
+        std::swap(f0[i], f0[j]);
+        std::swap(dip[i], dip[j]);
+        std::swap(pop[i], pop[j]);
+        std::swap(dip0[i], dip0[j]);
+        std::swap(s[i], s[j]);
+      }
+    }
+  }
+  
+  return {dip0, Ji, Jf};
+}
+
+
+void calcw(ConvTPOut& out,
+           const HitranRelaxationMatrixData& hitran,
+           const AbsorptionLines& band,
+           const Numeric T,
+           const bool at_t0=false) {
+  Vector& Y = out.Y;
+  Vector& g0 = out.hwt;
+  Vector& f0 = out.f0;
+  Vector& pop = out.pop;
+  Vector& dip = out.dip;
+  MatrixView W = transpose(out.W.imag());  // Transpose to fit Fortran-code
+  
+  // Size of problem
+  const Index n=Y.nelem();
+  
+  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l1);
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l1);
+  
+  // Sort before the if-statement.  This technicalyl goes awa from how
+  // HITRAN code does it.  It is however required for other line mixing
+  // setup that we can select the cut off reliably
+  const auto [dip0, Ji, Jf] = sorter_calcw(out, band, at_t0);
+  
   if (li > 8 or  abs(li - lf) > 1) {
     for (Index i=0; i<n; i++) {
       W(i, i) = g0[i];  // nb... units Hz/Pa
     }
   } else {
-    for (Index i=0; i<n; i++) {
-      s[i] = f0[i] * pop[i] * Constant::pow2(dip[i]);
-    }
-    
-    for (Index i=0; i<n; i++) {
-      for (Index j=i+1; j<n; j++) {
-        if (s[j] > s[i]) {
-          // Switch switches 2 elements in a vector :: std::swap(A(i), A(j));
-          // SwitchTwo switches two elements in a Matrix :: std::swap(A(i, k), A(j, k));
-          // SwitchInt is as SwitchTwo but for Integers :: std::swap(A(i, k), A(j, k));
-          std::swap(Ji[i], Ji[j]);
-          std::swap(Jf[i], Jf[j]);
-          std::swap(g0[i], g0[j]);
-          std::swap(d0[i], d0[j]);
-          std::swap(g2[i], g2[j]);
-          std::swap(f0[i], f0[j]);
-          std::swap(dip[i], dip[j]);
-          std::swap(pop[i], pop[j]);
-          std::swap(dip0[i], dip0[j]);
-          std::swap(s[i], s[j]);
-        }
-      }
-    }
-    
     const Numeric dlgt0t = std::log(band.T0() / T);
     const Rational lli = std::min(li, lf);
     const Rational llf = std::max(li, lf);
@@ -1051,10 +1087,10 @@ void calcw(ConvTPOut& out,
         
         // nb. FIX THIS FOR ARTS SPECIFIC Isotopologue
         const bool skip = not (band.Isotopologue().isotname == "626" or
-                               band.Isotopologue().isotname == "636" or
-                               band.Isotopologue().isotname == "828" or
-                               band.Isotopologue().isotname == "838") and
-                          (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
+        band.Isotopologue().isotname == "636" or
+        band.Isotopologue().isotname == "828" or
+        band.Isotopologue().isotname == "838") and
+        (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
         
         if(skip) continue;
         
@@ -1118,11 +1154,11 @@ void calcw(ConvTPOut& out,
         
         // nb. FIX THIS FOR ARTS SPECIFIC Isotopologue
         const bool skip = not (band.Isotopologue().isotname == "626" or
-                               band.Isotopologue().isotname == "636" or
-                               band.Isotopologue().isotname == "828" or
-                               band.Isotopologue().isotname == "838") and
-                          (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
-                
+        band.Isotopologue().isotname == "636" or
+        band.Isotopologue().isotname == "828" or
+        band.Isotopologue().isotname == "838") and
+        (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
+        
         if (skip) continue;
         
         if (j > i) {
@@ -1151,11 +1187,11 @@ void calcw(ConvTPOut& out,
         
         // nb. FIX THIS FOR ARTS SPECIFIC Isotopologue
         const bool skip = not (band.Isotopologue().isotname == "626" or
-                               band.Isotopologue().isotname == "636" or
-                               band.Isotopologue().isotname == "828" or
-                               band.Isotopologue().isotname == "838") and
-                          (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
-                
+        band.Isotopologue().isotname == "636" or
+        band.Isotopologue().isotname == "828" or
+        band.Isotopologue().isotname == "838") and
+        (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
+        
         if (skip) continue;
         
         Numeric deltasig = f0[i] - f0[j];
@@ -1167,7 +1203,6 @@ void calcw(ConvTPOut& out,
       
       Y[i] = sum0;
     }
-    
   }
 }
 
@@ -2090,7 +2125,7 @@ Tensor4 hitran_lm_eigenvalue_approximation(const AbsorptionLines& band,
   // Output
   Tensor4 out(4, N, M, K, 0);
   
-  #pragma omp parallel for if (!arts_omp_in_parallel())
+  #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Index m=0; m<M; m++) {
     for (Index k=0; k<K; k++) {
       ConvTPOut calc(N);
@@ -2119,7 +2154,18 @@ Tensor4 hitran_lm_eigenvalue_approximation(const AbsorptionLines& band,
       // Select types depending on population tag
       if (Absorption::PopulationType::ByHITRANRosenkranzRelmat == band.Population()) {
         calc.Y *= P;
-        out(0, joker, m, k) = calc.Y;
+        
+        // Sort the values
+        for (Index i=0; i<calc.Y.nelem(); i++) {
+          for (Index j=i+1; j<calc.Y.nelem(); j++) {
+            if (calc.f0[j] < calc.f0[i]) {
+              std::swap(calc.f0[i], calc.f0[j]);
+              std::swap(calc.Y[i], calc.Y[j]);
+            }
+          }
+        }
+        
+        out(1, joker, m, k) = calc.Y;
       } else if (Absorption::PopulationType::ByHITRANFullRelmat == band.Population()) {
         const Numeric fmean = band.F_mean(wgt);
         calc.W.diagonal().real() = calc.f0;
@@ -2161,6 +2207,22 @@ void hitran_lm_eigenvalue_adaptation(AbsorptionLines& band,
         temperatures, P0, ord)) {
     ARTS_USER_ERROR("Bad eigenvalue adaptation")
   }
+}
+
+Tensor5 hitran_lm_eigenvalue_adaptation_test(const AbsorptionLines& band,
+                                             const Vector& temperatures,
+                                             const HitranRelaxationMatrixData& hitran,
+                                             const Vector& pressures) {
+  const Index N = band.NumLines();
+  const Index M = band.NumBroadeners();
+  const Index K = temperatures.nelem();
+  const Index L = pressures.size();
+  
+  Tensor5 out(4, N, M, K, L);
+  for (Index l=0; l<L; l++) {
+    out(joker, joker, joker, joker, l) = hitran_lm_eigenvalue_approximation(band, temperatures, hitran, pressures[l]);
+  }
+  return out;
 }
 };
 

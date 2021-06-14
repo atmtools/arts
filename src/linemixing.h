@@ -42,7 +42,7 @@ struct EquivalentLines {
   //! Explicitly defaulted
   EquivalentLines& operator=(EquivalentLines&&) = default;
   
-  void sort_by_frequency();
+  void sort_by_frequency(Vector& f, const ArrayOfIndex& sorting);
 };  // EquivalentLines
 
 //! Contains the population distribution and dipole
@@ -131,6 +131,7 @@ Index band_eigenvalue_adaptation(
   const Vector& temperatures,
   const Numeric P0,
   const Index ord);
+
 
 /** Adapts the relaxation matrix eigenvalues to a form
  * where they represent additions towards the three

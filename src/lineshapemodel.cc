@@ -651,7 +651,7 @@ String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, 
       os << '(' << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " + "  << mp.X2 << " * (" << T0 << "/T)^" << mp.X3 << ')';
       break;
     case TemperatureModel::POLY:
-      os << mp.X0 << " + " << mp.X1 << " * T  + " << mp.X2 << " * T * T + "  << mp.X3 << " * T * T * T";
+      os << '(' << mp.X0 << " + " << mp.X1 << " * T  + " << mp.X2 << " * T * T + "  << mp.X3 << " * T * T * T)";
     case TemperatureModel::FINAL: break;
   }
   

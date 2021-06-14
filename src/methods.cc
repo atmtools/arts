@@ -406,6 +406,44 @@ void define_md_data_raw() {
               )));
 
   md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesAdaptHitranLineMixing"),
+      DESCRIPTION("Adapts the line-catalog from using HITRAN data to.\n"
+        "instead fit ordered parameters to imitate the line mxixing\n"
+        "\n"
+        "The order should be 1 or 2.  It will compute at 3 as well, but\n"
+        "there's no support in current ARTS LBL to make use of it so it\n"
+        "will crash at some point\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "abs_hitran_relmat_data"),
+      GIN("t_grid", "pressure", "order"),
+      GIN_TYPE("Vector", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("The sorted temperature grid",
+               "The pressure at which the adaptation is made",
+               "The order of the parameters in adaptation")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesHitranLineMixingAdaptationData"),
+      DESCRIPTION("Calls underlying functions to get adaptation data\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("lm_data"),
+      GOUT_TYPE("ArrayOfTensor5"),
+      GOUT_DESC("Underlying LM data in order of appearance"),
+      IN("abs_lines_per_species", "abs_hitran_relmat_data"),
+      GIN("t_grid", "p_grid"),
+      GIN_TYPE("Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("The temperature grid",
+               "The pressure grid")));
+
+  md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesCleanupEmpty"),
       DESCRIPTION("Removes empty bands from *abs_lines*.\n"),
       AUTHORS("Richard Larsson"),

@@ -132,6 +132,39 @@ void propmat_clearskyAddHitranLineMixingLines(PropagationMatrix& propmat_clearsk
   }
 }
 
+void abs_lines_per_speciesAdaptHitranLineMixing(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                const HitranRelaxationMatrixData& abs_hitran_relmat_data,
+                                                const Vector& t_grid,
+                                                const Numeric& pressure,
+                                                const Index& order,
+                                                const Verbosity&) 
+{
+  for (auto& abs_lines: abs_lines_per_species) {
+    for (auto& band: abs_lines) {
+      if (band.Population() == Absorption::PopulationType::ByHITRANFullRelmat or band.Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat) {
+        lm_hitran_2017::hitran_lm_eigenvalue_adaptation(band, t_grid, abs_hitran_relmat_data, pressure, order);
+      }
+    }
+  }
+}
+
+void abs_lines_per_speciesHitranLineMixingAdaptationData(ArrayOfTensor5& lm_data,
+                                                         const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                         const HitranRelaxationMatrixData& abs_hitran_relmat_data,
+                                                         const Vector& t_grid,
+                                                         const Vector& p_grid,
+                                                         const Verbosity&) 
+{
+  lm_data.resize(0);
+  for (auto& abs_lines: abs_lines_per_species) {
+    for (auto& band: abs_lines) {
+      if (band.Population() == Absorption::PopulationType::ByHITRANFullRelmat or band.Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat) {
+        lm_data.emplace_back(lm_hitran_2017::hitran_lm_eigenvalue_adaptation_test(band, t_grid, abs_hitran_relmat_data, p_grid));
+      }
+    }
+  }
+}
+
 void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
                                            ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                            const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,

@@ -57,8 +57,11 @@ EquivalentLines::EquivalentLines(const ComplexMatrix& W,
 }
 
 
-void EquivalentLines::sort_by_frequency() {
+void EquivalentLines::sort_by_frequency(Vector& f, const ArrayOfIndex& sorting) {
   const Index N = val.nelem();
+  
+  // First sort by frequency and assume this sorting
+  // is a shifted version of the line centers
   for (Index i=0; i<N; i++) {
     for (Index j=i+1; j<N; j++) {
       if (val.real()[j] < val.real()[i]) {
@@ -66,6 +69,15 @@ void EquivalentLines::sort_by_frequency() {
         std::swap(str[i], str[j]);
       }
     }
+  }
+  
+  const Vector fc = f;
+  const ComplexVector strc = str;
+  const ComplexVector valc = val;
+  for (Index i=0; i<N; i++) {
+    f[i] = fc[sorting[i]];
+    str[i] = strc[sorting[i]];
+    val[i] = valc[sorting[i]];
   }
 }
 
@@ -1221,13 +1233,28 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
   // Compute and adapt values for the Voigt adaptation
   EquivalentLines eig(W, pop, dip);
   
+  // Sort by shifts
+  Vector f0(band.NumLines());
+  ArrayOfIndex sorting(band.NumLines());
+  std::iota(sorting.begin(), sorting.end(), 0);
+  for (Index i=0; i<pop.size(); i++) {
+    f0[i] = band.F0(i) - frenorm + P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::D0);
+  }
+  for (Index i=0; i<band.NumLines(); i++) {
+    for (Index j=i+1; j<band.NumLines(); j++) {
+      if (f0[j] < f0[i]) {
+        std::swap(sorting[i], sorting[j]);
+        std::swap(f0[i], f0[j]);
+      }
+    }
+  }
+  
   // Sort the values so the greatest frequency is first
-  eig.sort_by_frequency();
+  eig.sort_by_frequency(f0, sorting);
   
   // Adjust strength and value to remove known line parameters
   for (Index i=0; i<pop.size(); i++) {
-    eig.val[i] -= Complex(band.F0(i) - frenorm +
-      P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::D0),
+    eig.val[i] -= Complex(f0[i],
       P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::G0));
   }
   for (Index i=0; i<pop.size(); i++) {
@@ -1271,7 +1298,7 @@ Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
   // Output
   Tensor4 out(4, N, M, K);
   
-  #pragma omp parallel for if (!arts_omp_in_parallel())
+  #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Index m=0; m<M; m++) {
     for (Index k=0; k<K; k++) {
       const Numeric T = temperatures[k];
