@@ -394,15 +394,16 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "abs_species"),
-      GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode"),
-      GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String"),
-      GIN_DEFAULT(NODEF, "-1", "-1e99", "1e99", "0", "VP_W"),
+      GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode", "hitran_type"),
+      GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, "-1", "-1e99", "1e99", "0", "VP_W", "Newest"),
       GIN_DESC("Direcory where the linemixing data is to be found",
                "Line mixing limit as defined by *AbsorptionLines*",
                "Minimum frequency to read from",
                "Maximum frequency to read until",
                "Minimum integrated band strength to consider",
-               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\""
+               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\"",
+               "Type of HITRAN catalog used (to scale line strengths)"
               )));
 
   md_data_raw.push_back(create_mdrecord(
@@ -12678,6 +12679,7 @@ void define_md_data_raw() {
       IN("propmat_clearsky",
          "abs_hitran_relmat_data",
          "abs_lines_per_species",
+         "isotopologue_ratios",
          "f_grid",
          "abs_species",
          "jacobian_quantities",

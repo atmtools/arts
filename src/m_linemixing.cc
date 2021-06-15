@@ -28,6 +28,7 @@
  * compute the relaxation, not simply use the relaxation
  */
 
+#include "hitran_species.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
 #include "propagationmatrix.h"
@@ -42,8 +43,11 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
                                                         const Numeric& fmax,
                                                         const Numeric& stot,
                                                         const String& mode,
+                                                        const String& hitran_type,
                                                         const Verbosity&)
 {
+  const SpeciesIsotopologueRatios isotopologue_ratios = Hitran::isotopologue_ratios(Hitran::toTypeOrThrow(hitran_type));
+  
   lm_hitran_2017::ModeOfLineMixing intmode;
   if (mode == "VP") intmode = lm_hitran_2017::ModeOfLineMixing::VP;
   else if (mode == "VP_Y") intmode = lm_hitran_2017::ModeOfLineMixing::VP_Y;
@@ -57,7 +61,7 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
                       "Bad size of input species+lines");
   
   ArrayOfAbsorptionLines lines;
-  lm_hitran_2017::read(abs_hitran_relmat_data, lines, basedir, linemixinglimit, fmin, fmax, stot, intmode);
+  lm_hitran_2017::read(abs_hitran_relmat_data, lines, isotopologue_ratios, basedir, linemixinglimit, fmin, fmax, stot, intmode);
   std::for_each(lines.begin(), lines.end(), [](auto& band){band.sort_by_frequency();});  // Sort so largest frequency is last
   ArrayOfIndex used(lines.nelem(), false);
   
@@ -94,6 +98,7 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
 void propmat_clearskyAddHitranLineMixingLines(PropagationMatrix& propmat_clearsky,
                                               const HitranRelaxationMatrixData& abs_hitran_relmat_data,
                                               const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                              const SpeciesIsotopologueRatios& isotopologue_ratios,
                                               const Vector& f_grid,
                                               const ArrayOfArrayOfSpeciesTag& abs_species,
                                               const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -128,7 +133,7 @@ void propmat_clearskyAddHitranLineMixingLines(PropagationMatrix& propmat_clearsk
     if (abs_lines_per_species[i].nelem() and 
        (abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANFullRelmat or
         abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat))
-      propmat_clearsky.Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], rtp_pressure, rtp_temperature, vmrs, f_grid);
+      propmat_clearsky.Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], isotopologue_ratios, rtp_pressure, rtp_temperature, vmrs, f_grid);
   }
 }
 

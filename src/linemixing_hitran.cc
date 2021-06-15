@@ -1689,6 +1689,7 @@ Vector compabs(
   const Numeric P,
   const HitranRelaxationMatrixData& hitran,
   const ArrayOfAbsorptionLines& bands,
+  const SpeciesIsotopologueRatios& isotopologue_ratio,
   const ConstVectorView vmrs,
   const ConstVectorView f_grid)
 {
@@ -1709,6 +1710,8 @@ Vector compabs(
   
   for (Index iband=0; iband<bands.nelem(); iband++) {
     if (not bands[iband].DoLineMixing(P)) continue;
+    
+    const Numeric rat_isot = isotopologue_ratio[bands[iband].Isotopologue()];
     
     auto tp = convtp(vmrs, hitran, bands[iband], T, P);
     const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, bands[iband].SpeciesMass());
@@ -1750,7 +1753,7 @@ Vector compabs(
       
       // Guard to not allow negative absorption inside a band
       if (a > 0)
-        absorption[iv] += a;
+        absorption[iv] += rat_isot * a;
     }
   }
   
@@ -1948,15 +1951,24 @@ Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numer
 
 Vector compute(const HitranRelaxationMatrixData& hitran,
                const ArrayOfAbsorptionLines& bands,
+               const SpeciesIsotopologueRatios& isotopologue_ratio,
                const Numeric P,
                const Numeric T,
                const ConstVectorView vmrs,
                const ConstVectorView f_grid)
 {
-  return f_grid.nelem() ? compabs(T, P, hitran, bands, vmrs, f_grid) : Vector(0);
+  return f_grid.nelem() ? compabs(T, P, hitran, bands, isotopologue_ratio, vmrs, f_grid) : Vector(0);
 }
 
-void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, const String& basedir, const Numeric linemixinglimit, const Numeric fmin, const Numeric fmax, const Numeric stot, const ModeOfLineMixing mode)
+void read(HitranRelaxationMatrixData& hitran,
+          ArrayOfAbsorptionLines& bands,
+          const SpeciesIsotopologueRatios& isotopologue_ratio,
+          const String& basedir,
+          const Numeric linemixinglimit,
+          const Numeric fmin,
+          const Numeric fmax,
+          const Numeric stot,
+          const ModeOfLineMixing mode)
 {
   String newbase = basedir;
   if (newbase.nelem() == 0)
@@ -2051,7 +2063,9 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
                 {specs[cmn.Bands.Isot[i]-1].Isotopologue(), outer_upper, outer_lower},
                 {QuantumNumberType::J},
                 {Species::fromShortName("N2"), Species::fromShortName("H2O"), specs[cmn.Bands.Isot[i]-1].Spec()}};
-                       
+    
+    const Numeric rat_isot = isotopologue_ratio[bands[i].Isotopologue()];
+    
     bands[i].AllLines().resize(cmn.Bands.nLines[i]);
     for (Index j{0}; j<cmn.Bands.nLines[i]; j++) {
       const std::vector<Rational> inner_upper{Rational(cmn.Jiln.Ji(j, i))};
@@ -2098,7 +2112,7 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
       
       // Should probably use the isotopologue ratio
       bands[i].Line(j) = {Conversion::kaycm2freq(cmn.LineSg.Sig(j, i)),
-                          Conversion::kaycm_per_cmsquared2hz_per_msquared(cmn.UnusedBandParams.intens(j, i)),
+                          Conversion::kaycm_per_cmsquared2hz_per_msquared(cmn.UnusedBandParams.intens(j, i)) / rat_isot,
                           Conversion::kaycm2joule(cmn.Energy.E(j, i)),
                           gsi0*Numeric(cmn.Jfln.Jf(j, i) * 2 + 1),
                           gsi0*Numeric(cmn.Jiln.Ji(j, i) * 2 + 1),
