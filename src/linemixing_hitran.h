@@ -104,14 +104,14 @@ Vector compute(const HitranRelaxationMatrixData& hitran,
                const ConstVectorView f_grid);
 
 /** Class that controls ReadFromLineMixingStream output */
-enum class ModeOfLineMixing {
+ENUMCLASS(ModeOfLineMixing, unsigned char,
   VP,  // Sets LineShape::VP, will not use LineMixing code; Sets ByLTE mode
   VP_Y,  // Sets LineShape::VP, will use LineMixing code with pressure > linemixinglimit;  Sets ByRosenkranzRelmatLTE mode
   SDVP,  // Sets LineShape::SDVP, will not use LineMixing code; Sets ByLTE mode
   SDVP_Y,  // Sets LineShape::SDVP, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANRosenkranzRelmat mode
   FullW, // Sets LineShape::Lorentz, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANFullRelmat mode
   VP_W  // Sets LineShape::Voigt, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANFullRelmat mode
-};
+)
 
 constexpr bool typeVP(ModeOfLineMixing x)
 {

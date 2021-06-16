@@ -46,16 +46,9 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
                                                         const String& hitran_type,
                                                         const Verbosity&)
 {
-  const SpeciesIsotopologueRatios isotopologue_ratios = Hitran::isotopologue_ratios(Hitran::toTypeOrThrow(hitran_type));
+  const lm_hitran_2017::ModeOfLineMixing intmode = lm_hitran_2017::toModeOfLineMixingOrThrow(mode);
   
-  lm_hitran_2017::ModeOfLineMixing intmode;
-  if (mode == "VP") intmode = lm_hitran_2017::ModeOfLineMixing::VP;
-  else if (mode == "VP_Y") intmode = lm_hitran_2017::ModeOfLineMixing::VP_Y;
-  else if (mode == "SDVP") intmode = lm_hitran_2017::ModeOfLineMixing::SDVP;
-  else if (mode == "SDVP_Y") intmode = lm_hitran_2017::ModeOfLineMixing::SDVP_Y;
-  else if (mode == "FullW") intmode = lm_hitran_2017::ModeOfLineMixing::FullW;
-  else if (mode == "VP_W") intmode = lm_hitran_2017::ModeOfLineMixing::VP_W;
-  else ARTS_USER_ERROR ("Bad mode, see method instruction for valid arguments");
+  const SpeciesIsotopologueRatios isotopologue_ratios = Hitran::isotopologue_ratios(Hitran::toTypeOrThrow(hitran_type));
   
   ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_lines_per_species.nelem(),
                       "Bad size of input species+lines");

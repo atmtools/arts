@@ -83,7 +83,7 @@ int main() {
   
   // Initializing values
   constexpr Index nfreq = 100000;
-  const Vector f_grid = VectorNLinSpaceConst(50e9, 70e9, nfreq);
+  Vector f_grid = VectorNLinSpaceConst(50e9, 70e9, nfreq);
   const Numeric P=Conversion::atm2pa(0.5);
   const Numeric T=296;
   const Numeric H=50e-6;
@@ -102,18 +102,18 @@ int main() {
   rq.Target().Perturbation(0.1);
   
   // Line Mixing full calculations
-  const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, {31.989830, 28.97}, f_grid, band,
+  const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, {31.989830, 28.006148}, f_grid, band,
                                                                   {rq});
   
   // Line Mixing full calculations
-  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, {31.989830, 28.97}, f_grid, band).first;
+  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, {31.989830, 28.006148}, f_grid, band).first;
   
   // Line Mixing full calculations with Zeeman (ignoring polarization...)
-  auto [absZ, dabsZ] = Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
+  auto [absZ, dabsZ] = Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.006148}, f_grid, 
                                                                      Zeeman::Polarization::Pi, band);
-  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
+  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.006148}, f_grid, 
                                                         Zeeman::Polarization::SigmaMinus, band).first;
-  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.97}, f_grid, 
+  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.006148}, f_grid, 
                                                         Zeeman::Polarization::SigmaPlus, band).first;
   
   // Line Mixing reimplementation of MPM19
@@ -130,23 +130,24 @@ int main() {
   
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
 //   auto data = Absorption::LineMixing::ecs_eigenvalue_adaptation_test(band,
-//     VectorNLinSpaceConst(200, 350, 76), {31.989830, 28.97},
+//     VectorNLinSpaceConst(200, 350, 76), {31.989830, 28.006148},
 //     VectorNLogSpaceConst(1, 1'000'000'000'000, 101));
 //   WriteXML("ascii", data, "prestemp.xml", 0, "", "", "", Verbosity());
   
   Absorption::LineMixing::ecs_eigenvalue_adaptation(band,
                                                     VectorNLinSpaceConst(200, 350, 76),
-                                                    {31.989830, 28.97},
+                                                    {31.989830, 28.006148},
                                                     Conversion::atm2pa(1), 2);
   LineShape::ComputeData com(f_grid, {rq}, 0);
   LineShape::ComputeData sparse_com(Vector(0), {rq}, 0);
-  LineShape::compute(com, sparse_com, 
-                     band, {rq}, {},
-                     band.BroadeningSpeciesVMR(VMR, specs), VMR[0],
-                     1.0, P, T, 0, 0,
+  LineShape::compute(com, sparse_com, band, {rq}, {},
+                     band.BroadeningSpeciesVMR(VMR, specs), 1.0, 1.0, P, T, 0, 0,
                      false, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
-  com.F /= VMR[0];
   
   // Plot it all
+  f_grid /= 1e9;  // Rescale for easier axis
+  ARTSGUI::PlotConfig::Legend = {"Full", "MPM2020", "LBL", "FullZeeman", "Adapted"};
+  ARTSGUI::PlotConfig::X = "Frequency [GHz]";
+  ARTSGUI::PlotConfig::Y = "Absorption [1/m]";
   ARTSGUI::plot(f_grid, abs.real(), f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0), f_grid, absZ.real(), f_grid, com.F.real());
 }

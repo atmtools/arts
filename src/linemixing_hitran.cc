@@ -1373,7 +1373,7 @@ ConvTPOut convtp(const ConstVectorView vmrs,
     out.pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
     out.hwt[i] = band.Line(i).LineShape().G0(T, band.T0(), 1, vmrs);
     out.shft[i] = band.Line(i).LineShape().D0(T, band.T0(), 1, vmrs);
-    out.dip[i] = std::sqrt(band.I0(i)/(pop0 * band.F0(i) * (1-stimulated_emission(band.T0(), band.F0(i)))));
+    out.dip[i] = std::sqrt(- band.I0(i)/(pop0 * band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * band.T0()))));
     out.hwt2[i] = band.Line(i).LineShape().G2(T, band.T0(), 1, vmrs);
     wgt[i] = out.pop[i] * Constant::pow2(out.dip[i]);
   }
@@ -1759,7 +1759,7 @@ Vector compabs(
   
   for (Index iv=0; iv<nf; iv++) {
     const Numeric f = f_grid[iv];
-    const Numeric fact = f * (1 - stimulated_emission(T, f));
+    const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * dens * sq_ln2pi;
   }
   
@@ -1987,7 +1987,7 @@ void read(HitranRelaxationMatrixData& hitran,
     case ModeOfLineMixing::VP_W:
     case ModeOfLineMixing::VP_Y:
     case ModeOfLineMixing::SDVP_Y: linemixinglimit_internal=linemixinglimit; break;
-    default: ARTS_ASSERT(true, "Bad mode input.  Must update function.");
+    case ModeOfLineMixing::FINAL: ARTS_ASSERT(true, "Bad mode input.  Must update function.");
   }
   
   const auto lstype = typeLP(mode) ? 
@@ -2155,19 +2155,17 @@ Tensor4 hitran_lm_eigenvalue_approximation(const AbsorptionLines& band,
         
         calc.f0[i] = band.F0(i);
         calc.pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
-        calc.hwt[i] = band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G0);
-        calc.shft[i] = band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::D0);
-        calc.dip[i] = std::sqrt(band.I0(i)/(pop0 * band.F0(i) * (1-stimulated_emission(band.T0(), band.F0(i)))));
-        calc.hwt2[i] = band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G2);
+        calc.hwt[i] = P * band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G0);
+        calc.shft[i] = P * band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::D0);
+        calc.dip[i] = std::sqrt(- band.I0(i)/(pop0 * band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * band.T0()))));
+        calc.hwt2[i] = P * band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G2);
       }
       
       // Calculate the relaxation matrix
-      calcw(calc, hitran, band, T);
+      calcw(calc, hitran, band, T, true);
       
       // Select types depending on population tag
       if (Absorption::PopulationType::ByHITRANRosenkranzRelmat == band.Population()) {
-        calc.Y *= P;
-        
         // Sort the values
         for (Index i=0; i<calc.Y.nelem(); i++) {
           for (Index j=i+1; j<calc.Y.nelem(); j++) {
@@ -2177,14 +2175,12 @@ Tensor4 hitran_lm_eigenvalue_approximation(const AbsorptionLines& band,
             }
           }
         }
-        
+
         out(1, joker, m, k) = calc.Y;
       } else if (Absorption::PopulationType::ByHITRANFullRelmat == band.Population()) {
         calc.W.diagonal().real() = calc.f0;
-        calc.shft *= P;
         calc.W.diagonal().real() += calc.shft;
         calc.W.diagonal().real() -= fmean;
-        calc.W.imag() *= P;
         
         const auto eig = Absorption::LineMixing::eigenvalue_adaptation_of_relmat(
           calc.W, calc.pop, calc.dip, band, fmean, T, P, QT, QT0, m);

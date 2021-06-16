@@ -82,6 +82,21 @@ void EquivalentLines::sort_by_frequency(Vector& f, const ArrayOfIndex& sorting) 
 }
 
 
+
+namespace Makarov2020etal {
+/*! Returns the reduced dipole
+ * 
+ * @param[in] Ju Main rotational number with spin of the upper level
+ * @param[in] Jl Main rotational number with spin of the lower level
+ * @param[in] N Main rotational number of both levels
+ * @return The reduced dipole
+ */
+Numeric zero_dipole(const Rational Ju, const Rational Jl, const Rational N) {
+  return (iseven(Jl + N) ? 1 : -1) * sqrt(6 * (2*Jl + 1) * (2*Ju + 1)) * wigner6j(1, 1, 1, Jl, Ju, N);
+};
+}
+
+
 PopulationAndDipole::PopulationAndDipole(const Numeric T,
                                          const AbsorptionLines& band) noexcept :
   pop(band.NumLines()), dip(band.NumLines()) {
@@ -94,7 +109,14 @@ PopulationAndDipole::PopulationAndDipole(const Numeric T,
   for (Index i=0; i<N; i++) {
     const Numeric pop0 = (band.g_upp(i) / QT0) * boltzman_factor(band.T0(), band.E0(i));
     pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
-    dip[i] = std::sqrt(band.I0(i)/(pop0 * band.F0(i) * (1.0-stimulated_emission(band.T0(), band.F0(i)))));
+    dip[i] = std::sqrt(- band.I0(i)/(pop0 * band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * band.T0()))));
+    
+    // Adjust the sign depending on type
+    if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+        dip[i] *= std::signbit(Makarov2020etal::zero_dipole(band.UpperQuantumNumber(i, QuantumNumberType::J),
+                                                            band.LowerQuantumNumber(i, QuantumNumberType::J),
+                                                            band.UpperQuantumNumber(i, QuantumNumberType::N))) ? - 1 : 1;
+    }
   }
 }
 
@@ -257,18 +279,6 @@ Numeric Q(const Rational N, const Numeric T) {
   return Numeric(2*N + 1) / pow(N * (N+1), lambda) * std::exp(-beta * erot(N) / kelvin2joule(T));
 };
 
-
-/*! Returns the reduced dipole
- * 
- * @param[in] Ju Main rotational number with spin of the upper level
- * @param[in] Jl Main rotational number with spin of the lower level
- * @param[in] N Main rotational number of both levels
- * @return The reduced dipole
- */
-Numeric zero_dipole(const Rational Ju, const Rational Jl, const Rational N) {
-  return (iseven(Jl + N) ? 1 : -1) * sqrt(6 * (2*Jl + 1) * (2*Ju + 1)) * wigner6j(1, 1, 1, Ju, Jl, N);
-};
-
 /*! Computes the off-diagonal elements of the relaxation matrix
  * following Makarov etal 2020.
  * 
@@ -293,9 +303,9 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   
   Vector dip0(n);
   for (Index i=0; i<n; i++) {
-    dip0[i] = std::abs(zero_dipole(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
-                                   band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
-                                   band.UpperQuantumNumber(sorting[i], QuantumNumberType::N)));
+    dip0[i] = zero_dipole(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
+                          band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
+                          band.UpperQuantumNumber(sorting[i], QuantumNumberType::N));
     
     for (Index j=0; j<n; j++) {
       if (i == j) continue;
@@ -317,11 +327,12 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       //    1) Squared scale
       //    2) Squared 3J-symbol
       //    3) Using the updated 2020 constants
+      //    4) Use wigner6j(1, 1, 1, Jf, Ji, N) instead of wigner6j(1, 1, 1, Ji, Jf, N), which is in the paper
       // These are modified after reading the original code
       Numeric sum = 0;
       const Numeric scale = Numeric((2*Nk + 1) * (2*Nl + 1)) * sqrt((2*Jk + 1) * (2*Jl + 1) * (2*Jk_p + 1) * (2* Jl_p + 1));
       const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Nl, Nk), {Rational(2), 100000});
-      for (Rational L=L0; L<L1; L+=2) {
+      for (Rational L=L0; L<=L1; L+=2) {
         const Numeric sgn = iseven(Jk + Jl + L + 1) ? 1 : -1;
         const Numeric a = Constant::pow2(wigner3j(Nl, Nk, L, 0, 0, 0));
         const Numeric b = wigner6j(L, Jk, Jl, 1, Nl, Nk);
@@ -351,9 +362,9 @@ void relaxation_matrix_offdiagonal(MatrixView W,
     
     for (Index j=0; j<n; j++) {
       if (j > i) {
-        sumlw += std::abs(dip0[j]) * W(j, i);
+        sumlw += dip0[j] * W(j, i);
       } else {
-        sumup += std::abs(dip0[j]) * W(j, i);
+        sumup += dip0[j] * W(j, i);
       }
     }
     
@@ -367,7 +378,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
         W(i, j) = 0.0;
       } else {
         W(j, i) *= - sumup / sumlw;
-        W(i, j) = W(j, i) * std::exp((erot(Ni, Ji) - erot(Nj, Jj)) / Conversion::kelvin2joule(T));
+        W(i, j) = W(j, i) * std::exp((erot(Ni, Ji) - erot(Nj, Jj)) / Conversion::kelvin2joule(T));  // This gives LTE
       }
     }
   }
@@ -514,7 +525,7 @@ ComplexVector ecs_absorption_impl(const Numeric T,
   const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, band.SpeciesMass());
   
   // Sorted population
-  const auto [sorting, tp] = sorted_population_and_dipole(T, band);
+  auto [sorting, tp] = sorted_population_and_dipole(T, band);
   
   // Relaxation matrix
   const ComplexMatrix W = ecs_relaxation_matrix<param>(T, P, vmrs, mass, band, sorting, frenorm);
@@ -538,7 +549,7 @@ ComplexVector ecs_absorption_impl(const Numeric T,
   const Numeric numdens = this_vmr * number_density(P, T);
   for (Index iv=0; iv<f_grid.nelem(); iv++) {
     const Numeric f = f_grid[iv];
-    const Numeric fact = f * (1.0 - stimulated_emission(T, f));
+    const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
   }
   
@@ -815,7 +826,7 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
   const Numeric numdens = this_vmr * number_density(P, T);
   for (Index iv=0; iv<f_grid.nelem(); iv++) {
     const Numeric f = f_grid[iv];
-    const Numeric fact = f * (1.0 - stimulated_emission(T, f));
+    const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
   }
   
@@ -1233,13 +1244,15 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
   // Compute and adapt values for the Voigt adaptation
   EquivalentLines eig(W, pop, dip);
   
-  // Sort by shifts
+  // Compute all the shifted line centers in band-order
   Vector f0(band.NumLines());
-  ArrayOfIndex sorting(band.NumLines());
-  std::iota(sorting.begin(), sorting.end(), 0);
   for (Index i=0; i<pop.size(); i++) {
     f0[i] = band.F0(i) - frenorm + P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::D0);
   }
+  
+  // Find how the band-orders have shifted line order at the current temp/pres
+  ArrayOfIndex sorting(band.NumLines());
+  std::iota(sorting.begin(), sorting.end(), 0);
   for (Index i=0; i<band.NumLines(); i++) {
     for (Index j=i+1; j<band.NumLines(); j++) {
       if (f0[j] < f0[i]) {
@@ -1249,16 +1262,22 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
     }
   }
   
-  // Sort the values so the greatest frequency is first
+  // Sort the eigen-values and strengths in the same order as the band
   eig.sort_by_frequency(f0, sorting);
   
-  // Adjust strength and value to remove known line parameters
+  // Eigenvalue should now be (F0 + P * D0(T) + i * P * G0(T)) + (P * P * DV(T) + i * P * P * P * DG(T)),
+  // or in form (1) + (2).  We only want to keep (2), since it is new from the line mixing
   for (Index i=0; i<pop.size(); i++) {
-    eig.val[i] -= Complex(f0[i],
-      P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::G0));
+    eig.val[i] -= Complex(f0[i], P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::G0));
   }
+  
+  // The strength term should now be (1 + y(T) + i * g(T)) * d**2 * rho(T)
+  // d**2 * rho(T) * F0 * (1 - exp(-hF0/kT)) should be I0(T)
+  // We only want to keep (y(T) + i * g(T)).
+  // So we divide by d**2 * rho(T) through the use of I0(T) and remove 1 from the real component
   for (Index i=0; i<pop.size(); i++) {
-    eig.str[i] *= band.F0(i) * (1.0 - stimulated_emission(T, band.F0(i))) / Linefunctions::lte_linestrength(band.I0(i), band.E0(i), band.F0(i), QT0, band.T0(), QT, T);
+    const Numeric i0 = Linefunctions::lte_linestrength(band.I0(i), band.E0(i), band.F0(i), QT0, band.T0(), QT, T);
+    eig.str[i] *= - band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * T)) / i0;
   }
   eig.str -= 1;
   
