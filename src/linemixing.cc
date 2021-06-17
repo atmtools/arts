@@ -91,7 +91,7 @@ namespace Makarov2020etal {
  * @param[in] N Main rotational number of both levels
  * @return The reduced dipole
  */
-Numeric zero_dipole(const Rational Ju, const Rational Jl, const Rational N) {
+Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N) {
   return (iseven(Jl + N) ? 1 : -1) * sqrt(6 * (2*Jl + 1) * (2*Ju + 1)) * wigner6j(1, 1, 1, Jl, Ju, N);
 };
 }
@@ -113,9 +113,9 @@ PopulationAndDipole::PopulationAndDipole(const Numeric T,
     
     // Adjust the sign depending on type
     if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-        dip[i] *= std::signbit(Makarov2020etal::zero_dipole(band.UpperQuantumNumber(i, QuantumNumberType::J),
-                                                            band.LowerQuantumNumber(i, QuantumNumberType::J),
-                                                            band.UpperQuantumNumber(i, QuantumNumberType::N))) ? - 1 : 1;
+      dip[i] *= std::signbit(Makarov2020etal::reduced_dipole(band.UpperQuantumNumber(i, QuantumNumberType::J),
+                                                             band.LowerQuantumNumber(i, QuantumNumberType::J),
+                                                             band.UpperQuantumNumber(i, QuantumNumberType::N))) ? - 1 : 1;
     }
   }
 }
@@ -301,11 +301,11 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   
   const Index n = band.NumLines();
   
-  Vector dip0(n);
+  Vector dipr(n);
   for (Index i=0; i<n; i++) {
-    dip0[i] = zero_dipole(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
-                          band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
-                          band.UpperQuantumNumber(sorting[i], QuantumNumberType::N));
+    dipr[i] = reduced_dipole(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
+                             band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
+                             band.UpperQuantumNumber(sorting[i], QuantumNumberType::N));
     
     for (Index j=0; j<n; j++) {
       if (i == j) continue;
@@ -362,9 +362,9 @@ void relaxation_matrix_offdiagonal(MatrixView W,
     
     for (Index j=0; j<n; j++) {
       if (j > i) {
-        sumlw += dip0[j] * W(j, i);
+        sumlw += dipr[j] * W(j, i);
       } else {
-        sumup += dip0[j] * W(j, i);
+        sumup += dipr[j] * W(j, i);
       }
     }
     
@@ -1132,7 +1132,9 @@ Index band_eigenvalue_adaptation(
     }
   }
   
-  // If we reach here, we have to set the band population type to LTE
+  // If we reach here, we have to set the band population type
+  // to LTE and renormalize the strength to physical frequency
+  band.Normalization(Absorption::NormalizationType::VVW);
   band.Population(Absorption::PopulationType::LTE);
   
   return EXIT_SUCCESS;
