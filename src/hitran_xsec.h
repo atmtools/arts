@@ -75,7 +75,7 @@ class XsecRecord {
      \param[in] verbosity   Verbosity.
      */
   void Extract(VectorView result,
-               const ConstVectorView& f_grid,
+               const Vector& f_grid,
                Numeric pressure,
                Numeric temperature,
                Index extrapolate_pressure,
@@ -152,7 +152,7 @@ class XsecRecord {
   static const Index P11 = 4;
   static const Index P02 = 5;
 
-  Index mversion;
+  Index mversion{2};
   Species::Species mspecies;
   /* VERSION 2 */
   Vector mfitminpressures;

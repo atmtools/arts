@@ -25,9 +25,12 @@
 
 #include "hitran_xsec.h"
 
+#include <algorithm>
+
 #include "absorption.h"
 #include "arts.h"
 #include "check_input.h"
+#include "debug.h"
 #include "interpolation.h"
 
 String XsecRecord::SpeciesName() const {
@@ -45,7 +48,7 @@ void XsecRecord::SetVersion(const Index version) {
 }
 
 void XsecRecord::Extract(VectorView result,
-                         const ConstVectorView& f_grid,
+                         const Vector& f_grid,
                          const Numeric pressure,
                          const Numeric temperature,
                          const Index extrapolate_p,
@@ -55,25 +58,21 @@ void XsecRecord::Extract(VectorView result,
 
   const Index nf = f_grid.nelem();
 
-  // Assert that result vector has right size:
   ARTS_ASSERT(result.nelem() == nf)
 
-  // Initialize result to zero (important for those frequencies outside the data grid).
   result = 0.;
 
   const Index ndatasets = mfitcoeffs.nelem();
   for (Index this_dataset_i = 0; this_dataset_i < ndatasets; this_dataset_i++) {
     const Vector& data_f_grid = mfitcoeffs[this_dataset_i].get_numeric_grid(0);
-    const Numeric fmin = data_f_grid[0];
-    const Numeric fmax = data_f_grid[data_f_grid.nelem() - 1];
-    const Index data_nf = data_f_grid.nelem();
+    const Numeric data_fmin = data_f_grid[0];
+    const Numeric data_fmax = data_f_grid[data_f_grid.nelem() - 1];
 
     if (out3.sufficient_priority()) {
-      // Some detailed information to the most verbose output stream:
       ostringstream os;
       os << "    f_grid:      " << f_grid[0] << " - " << f_grid[nf - 1]
          << " Hz\n"
-         << "    data_f_grid: " << fmin << " - " << fmax << " Hz\n"
+         << "    data_f_grid: " << data_fmin << " - " << data_fmax << " Hz\n"
          << "    pressure: " << pressure << " K\n";
       out3 << os.str();
     }
@@ -82,21 +81,19 @@ void XsecRecord::Extract(VectorView result,
     // data_f_grid, because xsec datasets are defined only where the absorption
     // was measured. So, we have to find out which part of f_grid is inside
     // data_f_grid.
-    Index i_fstart, i_fstop;
+    const Numeric* f_grid_begin = f_grid.get_c_array();
+    const Numeric* f_grid_end = f_grid_begin + f_grid.nelem();
+    const Index i_fstart = std::distance(
+        f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
+    const Index i_fstop =
+        std::distance(
+            f_grid_begin,
+            std::upper_bound(f_grid_begin + i_fstart, f_grid_end, data_fmax)) -
+        1;
 
-    for (i_fstart = 0; i_fstart < nf; ++i_fstart)
-      if (f_grid[i_fstart] >= fmin) break;
+    // Ignore band if all frequencies are below or above data_f_grid:
+    if (i_fstart == nf || i_fstop == -1) continue;
 
-    // Return immediately if all frequencies are below data_f_grid:
-    if (i_fstart == nf) continue;
-
-    for (i_fstop = nf - 1; i_fstop >= 0; --i_fstop)
-      if (f_grid[i_fstop] <= fmax) break;
-
-    // Return immediately if all frequencies are above data_f_grid:
-    if (i_fstop == -1) continue;
-
-    // Extent for active frequency vector:
     const Index f_extent = i_fstop - i_fstart + 1;
 
     if (out3.sufficient_priority()) {
@@ -111,31 +108,40 @@ void XsecRecord::Extract(VectorView result,
     // data_f_grid.) Return also in this case.
     if (f_extent < 1) continue;
 
-    // This is the part of f_grid for which we have to do the interpolation.
-    ConstVectorView f_grid_active = f_grid[Range(i_fstart, f_extent)];
+    // This is the part of f_grid that lies inside the xsec band
+    const ConstVectorView f_grid_active = f_grid[Range(i_fstart, f_extent)];
 
-    // We also need to determine the range in the xsec dataset that's inside
-    // f_grid. We can ignore the remaining data.
-    Index i_data_fstart, i_data_fstop;
+    // Determine the index of the first grid points in the xsec band that lie
+    // outside or on the boundary of the part of f_grid that lies inside the
+    // xsec band. We can ignore the remaining data.
+    const Numeric f_grid_fmin = f_grid[i_fstart];
+    const Numeric f_grid_fmax = f_grid[i_fstop];
 
-    for (i_data_fstart = 0; i_data_fstart < data_nf; ++i_data_fstart)
-      if (data_f_grid[i_data_fstart] >= fmin) break;
+    const Numeric* data_f_grid_begin = data_f_grid.get_c_array();
+    const Numeric* data_f_grid_end = data_f_grid_begin + data_f_grid.size() - 1;
+    const Index i_data_fstart =
+        std::distance(
+            data_f_grid_begin,
+            std::upper_bound(data_f_grid_begin, data_f_grid_end, f_grid_fmin)) -
+        1;
+    const Index i_data_fstop = std::distance(
+        data_f_grid_begin,
+        std::upper_bound(
+            data_f_grid_begin + i_data_fstart, data_f_grid_end, f_grid_fmax));
 
-    for (i_data_fstop = data_nf - 1; i_data_fstop >= 0; --i_data_fstop)
-      if (data_f_grid[i_data_fstop] <= fmax) break;
+    ARTS_ASSERT(i_data_fstart >= 0)
+    ARTS_ASSERT(f_grid[i_fstart] > data_f_grid[i_data_fstart])
+    ARTS_ASSERT(f_grid[i_fstart] < data_f_grid[i_data_fstart + 1])
+    ARTS_ASSERT(f_grid[i_fstop] < data_f_grid[i_data_fstop])
+    ARTS_ASSERT(f_grid[i_fstop] > data_f_grid[i_data_fstop - 1])
 
     // Extent for active data frequency vector:
     const Index data_f_extent = i_data_fstop - i_data_fstart + 1;
 
-    // This is the part of f_grid for which we have to do the interpolation.
-    ConstVectorView data_f_grid_active =
-        data_f_grid[Range(i_data_fstart, data_f_extent)];
-
     // This is the part of the xsec dataset for which we have to do the
     // interpolation.
-    Range active_range(i_data_fstart, data_f_extent);
-    const ConstMatrixView coeffs_active =
-        mfitcoeffs[this_dataset_i].data(active_range, joker);
+    const Range active_range(i_data_fstart, data_f_extent);
+    const ConstVectorView data_f_grid_active = data_f_grid[active_range];
 
     Vector fit_result(data_f_extent);
     Vector derivative;
@@ -211,10 +217,9 @@ void XsecRecord::CalcXsec(VectorView& xsec,
                           const Numeric pressure,
                           const Numeric temperature) const {
   const Numeric logp = log10(pressure);
-  for (Index i = range.get_start();
-       i <= range.get_start() + range.get_extent() - 1;
-       i++) {
-    const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
+  for (Index i = 0; i < range.get_extent(); i++) {
+    const ConstVectorView coeffs =
+        mfitcoeffs[dataset].data(range.get_start() + i, joker);
     xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * logp +
               coeffs[P20] * temperature * temperature +
               coeffs[P11] * temperature * logp + coeffs[P02] * logp * logp;
@@ -228,10 +233,9 @@ void XsecRecord::CalcDT(VectorView& xsec_dt,
                         const Numeric pressure,
                         const Numeric temperature) const {
   const Numeric logp = log10(pressure);
-  for (Index i = range.get_start();
-       i <= range.get_start() + range.get_extent() - 1;
-       i++) {
-    const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
+  for (Index i = 0; i < range.get_extent(); i++) {
+    const ConstVectorView coeffs =
+        mfitcoeffs[dataset].data(range.get_start() + i, joker);
     xsec_dt[i] =
         2. *
         (coeffs[P10] + 2. * coeffs[P20] * temperature + coeffs[P11] * logp) *
@@ -249,10 +253,9 @@ void XsecRecord::CalcDP(VectorView& xsec_dp,
   const Numeric logp = log10(pressure);
   const Numeric plog = pressure * log(10);
 
-  for (Index i = range.get_start();
-       i <= range.get_start() + range.get_extent() - 1;
-       i++) {
-    const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
+  for (Index i = 0; i < range.get_extent(); i++) {
+    const ConstVectorView coeffs =
+        mfitcoeffs[dataset].data(range.get_start() + i, joker);
     xsec_dp[i] = 2. *
                  (coeffs[P01] / plog + coeffs[P11] * temperature / plog +
                   2. * coeffs[P02] * logp / plog) *
