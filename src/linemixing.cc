@@ -267,7 +267,7 @@ constexpr Numeric Omega(const Rational N,
  * @param[in] T The temperature
  * @return The basis rate
  */
-template <SpecialParam param>
+template <SpecialParam param> constexpr
 Numeric Q(const Rational N, const Numeric T) {
   using Conversion::kelvin2joule;
   
@@ -385,6 +385,162 @@ void relaxation_matrix_offdiagonal(MatrixView W,
 }
 }  // Makarov2020etal
 
+
+/** Generic interface for ECS calculations
+ * 
+ * Based on Collisional Effects On Molecular Spectra by
+ * J.-M. Hartmann, C. Boulet, and D. Robert,
+ * equation (IV.109; 1st edition)
+ * 
+ * It requires inputs for each of the internal components
+ */
+namespace ErrorCorrectedSudden {
+Numeric wigner_sum_symbol(const Rational Ji,
+                          const Rational Ji_p,
+                          const Rational Jf,
+                          const Rational Jf_p,
+                          const Rational k,
+                          const Rational L) noexcept
+{
+  return wigner3j(Ji_p, L, Ji, 0, 0, 0) *
+         wigner3j(Jf_p, L, Jf, 0, 0, 0) *
+         wigner6j(Ji, Jf, k, Jf_p, Ji_p, L);
+}
+
+template <typename QFunction, typename OmegaFunction> constexpr
+Numeric sum_symbol(const Rational Ji,
+                   const Rational Ji_p,
+                   const Rational Jf,
+                   const Rational Jf_p,
+                   const Rational k,
+                   const Rational L,
+                   QFunction&& Q,
+                   OmegaFunction&& Omega) noexcept
+{
+  return wigner_sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L) * Numeric(2 * L + 1) * Q(L) / Omega(L);
+}
+
+template <typename QFunction, typename OmegaFunction> constexpr
+Numeric upper_offdiagonal_element(const Rational Ji,
+                                  const Rational Ji_p,
+                                  const Rational Jf,
+                                  const Rational Jf_p,
+                                  const Rational k,
+                                  QFunction&& Q,
+                                  OmegaFunction&& Omega) ARTS_NOEXCEPT
+{
+  ARTS_ASSERT(Ji >= Ji_p, "Ji is selected as the upper state in our formalism")
+  
+  Numeric x = 0;
+  const auto [Ls, Lf] = wigner_limits(wigner3j_limits<2>(Ji_p, Ji),
+                        wigner_limits(wigner3j_limits<2>(Jf_p, Jf),
+                                      {Rational(2), 100000}));
+  for (Index L=Ls; L<=Lf; L+=2) {
+    x += sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L,
+                    std::forward<QFunction>(Q),
+                    std::forward<OmegaFunction>(Omega));
+  }
+  return (iseven(k) ? -1 : 1) * Omega(Ji) * Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * x;
+}
+
+template <typename QFunction, typename OmegaFunction> constexpr
+std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
+                                                 const Rational Ji2,
+                                                 const Rational Jf1,
+                                                 const Rational Jf2,
+                                                 const Rational k,
+                                                 const Numeric pop1,
+                                                 const Numeric pop2,
+                                                 QFunction&& Q,
+                                                 OmegaFunction&& Omega) ARTS_NOEXCEPT
+{
+  if (Ji1 >= Ji2) {
+    const Numeric W = sum_symbol(Ji1, Ji2, Jf1, Jf2, k,
+                                 std::forward<QFunction>(Q),
+                                 std::forward<OmegaFunction>(Omega));
+    return {W, W * pop2 / pop1};
+  } else {
+    const Numeric W = sum_symbol(Ji2, Ji1, Jf2, Jf1, k,
+                                 std::forward<QFunction>(Q),
+                                 std::forward<OmegaFunction>(Omega));
+    return {W * pop1 / pop2, W};
+  }
+}
+
+template <typename QFunction, typename OmegaFunction>
+ComplexMatrix real_relaxation_matrix(const AbsorptionLines& band,
+                                     const Vector& pop,
+                                     const ArrayOfIndex& sorting,
+                                     const Numeric T,
+                                     const Index broadener,
+                                     QFunction&& Q,
+                                     OmegaFunction&& Omega) ARTS_NOEXCEPT
+{
+  const Index N = band.NumLines();
+  ARTS_ASSERT(pop.nelem() == N, "Inconsistent populations and lines count")
+  ARTS_ASSERT(sorting.nelem() == N, "Inconsistent sorting and lines count")
+  
+  ComplexMatrix W(N, N, 0);
+  for (Index i=0; i<N; i++) {
+    // Diagonal element
+    W(i, i) = band.AllLines()[sorting[i]].LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::G0);
+    
+    // Off-diagonal elements up and down
+    for (Index j=0; j<i; j++) {
+      const auto [W12, W21] = offdiagonal_elements(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
+                                                   band.UpperQuantumNumber(sorting[j], QuantumNumberType::J),
+                                                   band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
+                                                   band.LowerQuantumNumber(sorting[j], QuantumNumberType::J),
+                                                   1,  // FIXME: Means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
+                                                   pop[i], pop[j], std::forward<QFunction>(Q), std::forward<OmegaFunction>(Omega));
+      W(i, j) = W12;
+      W(j, i) = W21;
+    }
+  }
+  
+  // Transpose?  Why is this transpose required?
+  for (Index i=0; i<N; i++) {
+    for (Index j=0; j<i; j++) {
+      swap(W(i, j), W(j, i));
+    }
+  }
+  
+  return W;
+}
+
+void sum_rule(MatrixView W,
+              const Vector& popr,
+              const Vector& dipr) ARTS_NOEXCEPT
+{
+  const Index N = popr.nelem();
+  ARTS_ASSERT(dipr.nelem() == N, "Inconsistent reduced dipoles and lines count")
+  ARTS_ASSERT(W.size() == N*N and W.nrows() == W.ncols(), "Bad lines count and matrix size")
+  
+  // Sum rule correction
+  for (Index i=0; i<N; i++) {
+    Numeric sumlw = 0.0;
+    Numeric sumup = 0.0;
+    
+    for (Index j=0; j<N; j++) {
+      if (j > i) {
+        sumlw += dipr[j] * W(j, i);
+      } else {
+        sumup += dipr[j] * W(j, i);
+      }
+    }
+    
+    for (Index j=i+1; j<N; j++) {
+      if (sumlw == 0) {
+        W(j, i) = 0.0;
+        W(i, j) = 0.0;
+      } else {
+        W(j, i) *= - sumup / sumlw;
+        W(i, j) = W(j, i) * popr[j] / popr[i];
+      }
+    }
+  }
+}
+}
 
 /*! Computes the Error Corrected Sudden relaxation matrix for a single species
  * 

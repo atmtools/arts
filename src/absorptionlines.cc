@@ -1724,6 +1724,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     
     // Read line from file into linebuffer:
     getline(is, line);
+    if (line[0] == '>' or line[0] == '%') continue;
     
     // It is possible that we were exactly at the end of the file before
     // calling getline. In that case the previous eof() was still false
