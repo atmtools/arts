@@ -160,6 +160,10 @@ extern "C" {
     VoidGetterCAPI(LineShapeSingleSpeciesModel, Y)
     VoidGetterCAPI(LineShapeSingleSpeciesModel, G)
     VoidGetterCAPI(LineShapeSingleSpeciesModel, DV)
+    
+    // LineShapeType
+    BasicInterfaceCAPI(LineShapeType)
+    StringEnumPointersCAPI(LineShapeType)
   
     // LineShape::Model
     BasicInterfaceCAPI(LineShapeModel)
@@ -255,17 +259,33 @@ extern "C" {
     BasicInputOutputCAPI(ArrayOfArrayOfSpeciesTag)
     DLL_PUBLIC void * getNameSpeciesTag(void *);
     DLL_PUBLIC Index setSpeciesTag(void *, char *);
-  
+    
+    // AbsorptionNormalizationType
+    BasicInterfaceCAPI(AbsorptionNormalizationType)
+    StringEnumPointersCAPI(AbsorptionNormalizationType)
+    
+    // AbsorptionPopulationType
+    BasicInterfaceCAPI(AbsorptionPopulationType)
+    StringEnumPointersCAPI(AbsorptionPopulationType)
+    
+    // AbsorptionMirroringType
+    BasicInterfaceCAPI(AbsorptionMirroringType)
+    StringEnumPointersCAPI(AbsorptionMirroringType)
+    
+    // AbsorptionCutoffType
+    BasicInterfaceCAPI(AbsorptionCutoffType)
+    StringEnumPointersCAPI(AbsorptionCutoffType)
+    
     // AbsorptionLines
     BasicInterfaceCAPI(AbsorptionLines)
     BasicInputOutputCAPI(AbsorptionLines)
     GetterSetterCAPI(AbsorptionLines, Self, bool)
     GetterSetterCAPI(AbsorptionLines, Bath, bool)
-    EnumGetterSetterCAPI(AbsorptionLines, Cutoff, Absorption::CutoffType)
-    EnumGetterSetterCAPI(AbsorptionLines, LineShapeType, LineShape::Type)
-    EnumGetterSetterCAPI(AbsorptionLines, Mirroring, Absorption::MirroringType)
-    EnumGetterSetterCAPI(AbsorptionLines, Population, Absorption::PopulationType)
-    EnumGetterSetterCAPI(AbsorptionLines, Normalization, Absorption::NormalizationType)
+    VoidGetterCAPI(AbsorptionLines, Cutoff)
+    VoidGetterCAPI(AbsorptionLines, LineShapeType)
+    VoidGetterCAPI(AbsorptionLines, Mirroring)
+    VoidGetterCAPI(AbsorptionLines, Population)
+    VoidGetterCAPI(AbsorptionLines, Normalization)
     GetterSetterCAPI(AbsorptionLines, T0, Numeric)
     GetterSetterCAPI(AbsorptionLines, CutoffFreqValue, Numeric)
     GetterSetterCAPI(AbsorptionLines, LinemixingLimit, Numeric)

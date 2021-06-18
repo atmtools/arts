@@ -1133,5 +1133,9 @@ void vector2modelpb(LineShape::Type& mtype,
 typedef LineShape::Model LineShapeModel;
 typedef LineShape::SingleSpeciesModel LineShapeSingleSpeciesModel;
 
+using LineShapeType = LineShape::Type;
+using LineShapeVariable = LineShape::Variable;
+using LineShapeTemperatureModel = LineShape::TemperatureModel;
+
 #endif  // lineshapemodel_h
 

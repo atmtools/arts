@@ -82,7 +82,6 @@ void EquivalentLines::sort_by_frequency(Vector& f, const ArrayOfIndex& sorting) 
 }
 
 
-
 namespace Makarov2020etal {
 /*! Returns the reduced dipole
  * 
@@ -157,6 +156,35 @@ void PopulationAndDipole::sort(const ArrayOfIndex& presorting) noexcept {
     dip[i] = dipcopy[presorting[i]];
     pop[i] = popcopy[presorting[i]];
   }
+}
+
+
+/*! Returns sorted population distribtions and dipoles and the original sorting
+ * 
+ * @param[in] T The temperature
+ * @param[in] band The absorption band
+ * @return {sorting, sorted population distribtions and dipoles}
+ */
+std::pair<ArrayOfIndex, PopulationAndDipole> sorted_population_and_dipole(const Numeric T,
+                                                                          const AbsorptionLines& band) {
+  PopulationAndDipole tp(T, band);
+  return {tp.sort(band), tp};
+}
+
+
+/*! Returns pre-sorted population distribtions and dipoles
+ * 
+ * @param[in] T The temperature
+ * @param[in] presorting Changes positions from [0 ... N-1] to presorting positions
+ * @param[in] band The absorption band
+ * @return Pre-sorted  population distribtions and dipoles
+ */
+PopulationAndDipole presorted_population_and_dipole(const Numeric T,
+                                                    const ArrayOfIndex& presorting,
+                                                    const AbsorptionLines& band) {
+  PopulationAndDipole tp(T, band);
+  tp.sort(presorting);
+  return tp;
 }
 
 
@@ -395,6 +423,20 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  * It requires inputs for each of the internal components
  */
 namespace ErrorCorrectedSudden {
+/** Returns the standard ECS / IOS Wigner symbol for
+ * linear molecules
+ * 
+ * The main transition is Jf   ← Ji
+ * The virt transition is Jf_p ← Ji_p
+ * 
+ * @param[in] Ji Main upper state angular momentum quantum number
+ * @param[in] Ji_p Virtual upper state angular momentum quantum number
+ * @param[in] Jf Main lower state angular momentum quantum number
+ * @param[in] Jf_p Virtual lower state angular momentum quantum number
+ * @param[in] k 1 means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
+ * @param[in] L ??? Path value possible for main upp → virt upp → virt low → main low transition ???
+ * @return The wigner symbol
+ */
 Numeric wigner_sum_symbol(const Rational Ji,
                           const Rational Ji_p,
                           const Rational Jf,
@@ -407,6 +449,21 @@ Numeric wigner_sum_symbol(const Rational Ji,
          wigner6j(Ji, Jf, k, Jf_p, Ji_p, L);
 }
 
+/** The entire "sum over L" internal expression
+ * 
+ * The main transition is Jf   ← Ji
+ * The virt transition is Jf_p ← Ji_p
+ * 
+ * @param[in] Ji Main upper state angular momentum quantum number
+ * @param[in] Ji_p Virtual upper state angular momentum quantum number
+ * @param[in] Jf Main lower state angular momentum quantum number
+ * @param[in] Jf_p Virtual lower state angular momentum quantum number
+ * @param[in] k 1 means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
+ * @param[in] L ??? Path value possible for main upp → virt upp → virt low → main low transition ???
+ * @param[in] Q The Q function, must accept Q(L) and return a Numeric
+ * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
+ * @return partial sum result
+ */
 template <typename QFunction, typename OmegaFunction> constexpr
 Numeric sum_symbol(const Rational Ji,
                    const Rational Ji_p,
@@ -420,6 +477,20 @@ Numeric sum_symbol(const Rational Ji,
   return wigner_sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L) * Numeric(2 * L + 1) * Q(L) / Omega(L);
 }
 
+/** The entire "sum over L" full expression
+ * 
+ * The main transition is Jf   ← Ji
+ * The virt transition is Jf_p ← Ji_p
+ * 
+ * @param[in] Ji Main upper state angular momentum quantum number
+ * @param[in] Ji_p Virtual upper state angular momentum quantum number
+ * @param[in] Jf Main lower state angular momentum quantum number
+ * @param[in] Jf_p Virtual lower state angular momentum quantum number
+ * @param[in] k 1 means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
+ * @param[in] Q The Q function, must accept Q(L) and return a Numeric
+ * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
+ * @return full sum result
+ */
 template <typename QFunction, typename OmegaFunction> constexpr
 Numeric upper_offdiagonal_element(const Rational Ji,
                                   const Rational Ji_p,
@@ -443,6 +514,26 @@ Numeric upper_offdiagonal_element(const Rational Ji,
   return (iseven(k) ? -1 : 1) * Omega(Ji) * Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * x;
 }
 
+/** Compute off-diagonal elements for a pair of quantum numbers
+ * 
+ * One transition is Jf1 ← Ji1, and
+ * one transition is Jf2 ← Ji2
+ * 
+ * Selects the largest Ji* (or Ji1 if both are equal) to be the 
+ *'reference' off-diagonal element.  The other is going to be a
+ * scale of the population ratios of the reference element
+ * 
+ * @param[in] Ji1 First transition's upper state angular momentum quantum number
+ * @param[in] Ji2 Second transition's upper state angular momentum quantum number
+ * @param[in] Jf1 First transition's lower state angular momentum quantum number
+ * @param[in] Jf2 Second transition's lower state angular momentum quantum number
+ * @param[in] k 1 means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
+ * @param[in] pop1 First transition's population ratio
+ * @param[in] pop2 Second transition's population ratio
+ * @param[in] Q The Q function, must accept Q(L) and return a Numeric
+ * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
+ * @return The pair of off-diagonal elements W12 and W21 in that order
+ */
 template <typename QFunction, typename OmegaFunction> constexpr
 std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
                                                  const Rational Ji2,
@@ -455,26 +546,33 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
                                                  OmegaFunction&& Omega) ARTS_NOEXCEPT
 {
   if (Ji1 >= Ji2) {
-    const Numeric W = sum_symbol(Ji1, Ji2, Jf1, Jf2, k,
-                                 std::forward<QFunction>(Q),
-                                 std::forward<OmegaFunction>(Omega));
-    return {W, W * pop2 / pop1};
+    const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2, k,
+                                                std::forward<QFunction>(Q),
+                                                std::forward<OmegaFunction>(Omega));
+    return {W, W * pop2 / pop1};  // FIXME: order
   } else {
-    const Numeric W = sum_symbol(Ji2, Ji1, Jf2, Jf1, k,
-                                 std::forward<QFunction>(Q),
-                                 std::forward<OmegaFunction>(Omega));
-    return {W * pop1 / pop2, W};
+    const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1, k,
+                                                std::forward<QFunction>(Q),
+                                                std::forward<OmegaFunction>(Omega));
+    return {W * pop1 / pop2, W};  // FIXME: order
   }
 }
 
+/** Returns the off-diagonal relaxation matrix if full
+ * 
+ * @param[in] band The absorption band
+ * @param[in] pop The population level distribtion
+ * @param[in] sorting pop[i] corresponds to absorption line band.Lines(sorting[i])
+ * @param[in] Q The Q function, must accept Q(L) and return a Numeric
+ * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
+ * @return W but imaginary parts and diagonal elements are zero
+ */
 template <typename QFunction, typename OmegaFunction>
-ComplexMatrix real_relaxation_matrix(const AbsorptionLines& band,
-                                     const Vector& pop,
-                                     const ArrayOfIndex& sorting,
-                                     const Numeric T,
-                                     const Index broadener,
-                                     QFunction&& Q,
-                                     OmegaFunction&& Omega) ARTS_NOEXCEPT
+ComplexMatrix real_offdiagonal_relaxation_matrix(const AbsorptionLines& band,
+                                                 const Vector& pop,
+                                                 const ArrayOfIndex& sorting,
+                                                 QFunction&& Q,
+                                                 OmegaFunction&& Omega) ARTS_NOEXCEPT
 {
   const Index N = band.NumLines();
   ARTS_ASSERT(pop.nelem() == N, "Inconsistent populations and lines count")
@@ -482,10 +580,6 @@ ComplexMatrix real_relaxation_matrix(const AbsorptionLines& band,
   
   ComplexMatrix W(N, N, 0);
   for (Index i=0; i<N; i++) {
-    // Diagonal element
-    W(i, i) = band.AllLines()[sorting[i]].LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::G0);
-    
-    // Off-diagonal elements up and down
     for (Index j=0; j<i; j++) {
       const auto [W12, W21] = offdiagonal_elements(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
                                                    band.UpperQuantumNumber(sorting[j], QuantumNumberType::J),
@@ -508,13 +602,20 @@ ComplexMatrix real_relaxation_matrix(const AbsorptionLines& band,
   return W;
 }
 
-void sum_rule(MatrixView W,
-              const Vector& popr,
-              const Vector& dipr) ARTS_NOEXCEPT
+/** Readjust the real part of the relaxation matrix
+ * to fulfill the sum rule
+ * 
+ * @param[in,out] W The real part of the relaxation matrix
+ * @param[in] popr The relative population ratios
+ * @param[in] dipr The reduced dipole moments
+ */
+void verify_sum_rule(MatrixView W,
+                     const Vector& popr,
+                     const Vector& dipr) ARTS_NOEXCEPT
 {
   const Index N = popr.nelem();
   ARTS_ASSERT(dipr.nelem() == N, "Inconsistent reduced dipoles and lines count")
-  ARTS_ASSERT(W.size() == N*N and W.nrows() == W.ncols(), "Bad lines count and matrix size")
+  ARTS_ASSERT(W.nrows() == N and W.nrows() == W.ncols(), "Bad lines count and matrix size")
   
   // Sum rule correction
   for (Index i=0; i<N; i++) {
@@ -539,6 +640,55 @@ void sum_rule(MatrixView W,
       }
     }
   }
+}
+
+ComplexMatrix single_species_relaxation_matrix(const AbsorptionLines& band,
+                                               const Vector& pop,
+                                               const Vector& dip,
+                                               const ArrayOfIndex& sorting,
+                                               const Numeric T,
+                                               const Numeric P,
+                                               const Numeric broadener_mass,
+                                               const Index broadener_pos,
+                                               const Numeric alpha,
+                                               const Numeric beta,
+                                               const Numeric gamma,
+                                               const Numeric col_dist) ARTS_NOEXCEPT
+{
+  const auto energy_fun = [](const Rational L) -> Numeric {return Numeric(L*L);};  // FIXME: How to select this????
+  
+  auto Q = [T,alpha,beta,gamma,energy_fun](const Rational L) -> Numeric {
+    const Numeric el = energy_fun(L);
+    return alpha * std::exp(-beta * el / (Constant::k * T)) / std::pow(el, gamma);
+  };
+  
+  auto Omega = [T,m1=band.SpeciesMass(),m2=broadener_mass,erot=energy_fun,dc=col_dist](const Rational L) -> Numeric {
+    // Constants for the expression
+    constexpr Numeric fac = 8 * Constant::k / (Constant::m_u * Constant::pi);
+    
+    // nb. Only N=J considered???
+    const Numeric en = erot(L);
+    const Numeric enm2 = erot(L-2);
+    const Numeric wnnm2 = (en - enm2) / Constant::h_bar;
+    
+    const Numeric mu = 1 / m1 + 1 / m2;
+    const Numeric v_bar_pow2 = fac*T*mu;
+    const Numeric tauc_pow2 = Constant::pow2(dc) / v_bar_pow2;
+    
+    return 1.0 / Constant::pow2(1 + 1.0/24.0 * Constant::pow2(wnnm2) * tauc_pow2);
+  };
+  
+  ComplexMatrix W = real_offdiagonal_relaxation_matrix(band, pop, sorting, Q, Omega);
+  
+  const Index N = band.NumLines();
+  for (Index i=0; i<N; i++) {
+    W(i, i) = Complex(P * band.Line(sorting[i]).LineShape()[broadener_pos].compute(T, band.T0(), LineShape::Variable::G0),
+                      P * band.Line(sorting[i]).LineShape()[broadener_pos].compute(T, band.T0(), LineShape::Variable::D0));
+  }
+  
+  verify_sum_rule(W.real(), pop, dip);  // FIXME: make this use local ratio?
+  
+  return W;
 }
 }
 
@@ -632,35 +782,6 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
   }
   
   return W;
-}
-
-
-/*! Returns sorted population distribtions and dipoles and the original sorting
- * 
- * @param[in] T The temperature
- * @param[in] band The absorption band
- * @return {sorting, sorted population distribtions and dipoles}
- */
-std::pair<ArrayOfIndex, PopulationAndDipole> sorted_population_and_dipole(const Numeric T,
-                                                                          const AbsorptionLines& band) {
-  PopulationAndDipole tp(T, band);
-  return {tp.sort(band), tp};
-}
-
-
-/*! Returns pre-sorted population distribtions and dipoles
- * 
- * @param[in] T The temperature
- * @param[in] presorting Changes positions from [0 ... N-1] to presorting positions
- * @param[in] band The absorption band
- * @return Pre-sorted  population distribtions and dipoles
- */
-PopulationAndDipole presorted_population_and_dipole(const Numeric T,
-                                                    const ArrayOfIndex& presorting,
-                                                    const AbsorptionLines& band) {
-  PopulationAndDipole tp(T, band);
-  tp.sort(presorting);
-  return tp;
 }
 
 

@@ -3,7 +3,7 @@ from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.AbsorptionSingleLine import AbsorptionSingleLine
-from pyarts.classes.LineShapeModel import LineShapeModel
+from pyarts.classes.LineShapeModel import LineShapeModel, LineShapeType
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier
 from pyarts.classes.QuantumNumbers import QuantumNumbers
 from pyarts.classes.Rational import Rational
@@ -11,6 +11,254 @@ from pyarts.classes.BasicTypes import Index, String
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 from pyarts.classes.SpeciesIsotopeRecord import ArrayOfSpecies
+
+
+class AbsorptionPopulationType:
+    """ ARTS AbsorptionPopulationType type data
+    
+    Properties:
+        name:
+            Name of type (String)
+    """
+    def __init__(self, data):
+        if isinstance(data, c.c_void_p):
+            self.__delete__ = False
+            self.__data__ = data
+        else:
+            self.__delete__ = True
+            self.__data__ = c.c_void_p(lib.createAbsorptionPopulationType())
+            self.name = data
+    
+    @property
+    def name(self):
+        return String(c.c_void_p(lib.getAbsorptionPopulationTypeString(self.__data__)),
+                      delete=True)
+    
+    @name.setter
+    def name(self, x):
+        if lib.setAbsorptionPopulationTypeString(self.__data__, str(x).encode('utf-8')):
+            raise RuntimeError(f"Bad AbsorptionPopulationType: {x}")
+
+    def print(self):
+        """ Print to cout the ARTS representation of the class """
+        lib.printAbsorptionPopulationType(self.__data__)
+
+    def __del__(self):
+        if self.__delete__:
+            lib.deleteAbsorptionPopulationType(self.__data__)
+            
+    def set(self, other):
+        s = other.name if isinstance(other, AbsorptionPopulationType) else other
+        self.name = s
+    
+    def __eq__(self, other):
+        s = other.name if isinstance(other, AbsorptionPopulationType) else other
+        return self.name == s
+    
+    def __repr__(self):
+        return f"{self.name}"
+
+
+lib.createAbsorptionPopulationType.restype = c.c_void_p
+lib.createAbsorptionPopulationType.argtypes = []
+
+lib.deleteAbsorptionPopulationType.restype = None
+lib.deleteAbsorptionPopulationType.argtypes = [c.c_void_p]
+
+lib.printAbsorptionPopulationType.restype = None
+lib.printAbsorptionPopulationType.argtypes = [c.c_void_p]
+
+lib.getAbsorptionPopulationTypeString.restype = c.c_void_p
+lib.getAbsorptionPopulationTypeString.argtypes = [c.c_void_p]
+
+lib.setAbsorptionPopulationTypeString.restype = c.c_int
+lib.setAbsorptionPopulationTypeString.argtypes = [c.c_void_p, c.c_char_p]
+
+
+class AbsorptionNormalizationType:
+    """ ARTS AbsorptionNormalizationType data
+    
+    Properties:
+        name:
+            Name of type (String)
+    """
+    def __init__(self, data):
+        if isinstance(data, c.c_void_p):
+            self.__delete__ = False
+            self.__data__ = data
+        else:
+            self.__delete__ = True
+            self.__data__ = c.c_void_p(lib.createAbsorptionNormalizationType())
+            self.name = data
+    
+    @property
+    def name(self):
+        return String(c.c_void_p(lib.getAbsorptionNormalizationTypeString(self.__data__)),
+                      delete=True)
+    
+    @name.setter
+    def name(self, x):
+        if lib.setAbsorptionNormalizationTypeString(self.__data__, str(x).encode('utf-8')):
+            raise RuntimeError(f"Bad AbsorptionNormalizationType: {x}")
+
+    def print(self):
+        """ Print to cout the ARTS representation of the class """
+        lib.printAbsorptionNormalizationType(self.__data__)
+
+    def __del__(self):
+        if self.__delete__:
+            lib.deleteAbsorptionNormalizationType(self.__data__)
+            
+    def set(self, other):
+        s = other.name if isinstance(other, AbsorptionNormalizationType) else other
+        self.name = s
+    
+    def __eq__(self, other):
+        s = other.name if isinstance(other, AbsorptionNormalizationType) else other
+        return self.name == s
+    
+    def __repr__(self):
+        return f"{self.name}"
+
+
+lib.createAbsorptionNormalizationType.restype = c.c_void_p
+lib.createAbsorptionNormalizationType.argtypes = []
+
+lib.deleteAbsorptionNormalizationType.restype = None
+lib.deleteAbsorptionNormalizationType.argtypes = [c.c_void_p]
+
+lib.printAbsorptionNormalizationType.restype = None
+lib.printAbsorptionNormalizationType.argtypes = [c.c_void_p]
+
+lib.getAbsorptionNormalizationTypeString.restype = c.c_void_p
+lib.getAbsorptionNormalizationTypeString.argtypes = [c.c_void_p]
+
+lib.setAbsorptionNormalizationTypeString.restype = c.c_int
+lib.setAbsorptionNormalizationTypeString.argtypes = [c.c_void_p, c.c_char_p]
+
+
+class AbsorptionMirroringType:
+    """ ARTS AbsorptionMirroringType data
+    
+    Properties:
+        name:
+            Name of type (String)
+    """
+    def __init__(self, data):
+        if isinstance(data, c.c_void_p):
+            self.__delete__ = False
+            self.__data__ = data
+        else:
+            self.__delete__ = True
+            self.__data__ = c.c_void_p(lib.createAbsorptionMirroringType())
+            self.name = data
+    
+    @property
+    def name(self):
+        return String(c.c_void_p(lib.getAbsorptionMirroringTypeString(self.__data__)),
+                      delete=True)
+    
+    @name.setter
+    def name(self, x):
+        if lib.setAbsorptionMirroringTypeString(self.__data__, str(x).encode('utf-8')):
+            raise RuntimeError(f"Bad AbsorptionMirroringType: {x}")
+
+    def print(self):
+        """ Print to cout the ARTS representation of the class """
+        lib.printAbsorptionMirroringType(self.__data__)
+
+    def __del__(self):
+        if self.__delete__:
+            lib.deleteAbsorptionMirroringType(self.__data__)
+            
+    def set(self, other):
+        s = other.name if isinstance(other, AbsorptionMirroringType) else other
+        self.name = s
+    
+    def __eq__(self, other):
+        s = other.name if isinstance(other, AbsorptionMirroringType) else other
+        return self.name == s
+    
+    def __repr__(self):
+        return f"{self.name}"
+
+
+lib.createAbsorptionMirroringType.restype = c.c_void_p
+lib.createAbsorptionMirroringType.argtypes = []
+
+lib.deleteAbsorptionMirroringType.restype = None
+lib.deleteAbsorptionMirroringType.argtypes = [c.c_void_p]
+
+lib.printAbsorptionMirroringType.restype = None
+lib.printAbsorptionMirroringType.argtypes = [c.c_void_p]
+
+lib.getAbsorptionMirroringTypeString.restype = c.c_void_p
+lib.getAbsorptionMirroringTypeString.argtypes = [c.c_void_p]
+
+lib.setAbsorptionMirroringTypeString.restype = c.c_int
+lib.setAbsorptionMirroringTypeString.argtypes = [c.c_void_p, c.c_char_p]
+
+
+class AbsorptionCutoffType:
+    """ ARTS AbsorptionCutoffType data
+    
+    Properties:
+        name:
+            Name of type (String)
+    """
+    def __init__(self, data):
+        if isinstance(data, c.c_void_p):
+            self.__delete__ = False
+            self.__data__ = data
+        else:
+            self.__delete__ = True
+            self.__data__ = c.c_void_p(lib.createAbsorptionCutoffType())
+            self.name = data
+    
+    @property
+    def name(self):
+        return String(c.c_void_p(lib.getAbsorptionCutoffTypeString(self.__data__)),
+                      delete=True)
+    
+    @name.setter
+    def name(self, x):
+        if lib.setAbsorptionCutoffTypeString(self.__data__, str(x).encode('utf-8')):
+            raise RuntimeError(f"Bad AbsorptionCutoffType: {x}")
+
+    def print(self):
+        """ Print to cout the ARTS representation of the class """
+        lib.printAbsorptionCutoffType(self.__data__)
+
+    def __del__(self):
+        if self.__delete__:
+            lib.deleteAbsorptionCutoffType(self.__data__)
+            
+    def set(self, other):
+        s = other.name if isinstance(other, AbsorptionCutoffType) else other
+        self.name = s
+    
+    def __eq__(self, other):
+        s = other.name if isinstance(other, AbsorptionCutoffType) else other
+        return self.name == s
+    
+    def __repr__(self):
+        return f"{self.name}"
+
+
+lib.createAbsorptionCutoffType.restype = c.c_void_p
+lib.createAbsorptionCutoffType.argtypes = []
+
+lib.deleteAbsorptionCutoffType.restype = None
+lib.deleteAbsorptionCutoffType.argtypes = [c.c_void_p]
+
+lib.printAbsorptionCutoffType.restype = None
+lib.printAbsorptionCutoffType.argtypes = [c.c_void_p]
+
+lib.getAbsorptionCutoffTypeString.restype = c.c_void_p
+lib.getAbsorptionCutoffTypeString.argtypes = [c.c_void_p]
+
+lib.setAbsorptionCutoffTypeString.restype = c.c_int
+lib.setAbsorptionCutoffTypeString.argtypes = [c.c_void_p, c.c_char_p]
 
 
 class AbsorptionLines:
@@ -27,19 +275,19 @@ class AbsorptionLines:
             Air broadening (bool)
 
         cutoff:
-            Type of cutoff (get: Index; set: str)
+            Type of cutoff (str)
 
         mirroring:
-            Type of mirroring (get: Index; set: str)
+            Type of mirroring (str)
 
         population:
-            Type of population (get: Index; set: str)
+            Type of population (str)
 
         normalization:
-            Type of normalization (get: Index; set: str)
+            Type of normalization (str)
 
         lineshapetype:
-            Type of lineshapetype (get: Index; set: str)
+            Type of lineshapetype (str)
 
         t0:
             Reference temperature (Numeric)
@@ -140,68 +388,48 @@ class AbsorptionLines:
 
     @property
     def cutoff(self):
-        """ Type of cutoff (get: Index; set: str) """
-        return lib.getCutoffAbsorptionLines(self.__data__)
+        """ Type of cutoff """
+        return AbsorptionCutoffType(c.c_void_p(lib.getCutoffAbsorptionLines(self.__data__)))
 
     @cutoff.setter
     def cutoff(self, type):
-        if isinstance(type, str):
-            self.type = int(lib.string2indexCutoffAbsorptionLines(self.__data__, type.encode("ascii")))
-        else:
-            if lib.setCutoffAbsorptionLines(self.__data__, int(type)):
-                raise ValueError("Invalid type")
+        self.cutoff.set(type)
 
     @property
     def mirroring(self):
-        """ Type of mirroring (get: Index; set: str) """
-        return lib.getMirroringAbsorptionLines(self.__data__)
+        """ Type of mirroring """
+        return AbsorptionMirroringType(c.c_void_p(lib.getMirroringAbsorptionLines(self.__data__)))
 
     @mirroring.setter
     def mirroring(self, type):
-        if isinstance(type, str):
-            self.type = int(lib.string2indexMirroringAbsorptionLines(self.__data__, type.encode("ascii")))
-        else:
-            if lib.setMirroringAbsorptionLines(self.__data__, int(type)):
-                raise ValueError("Invalid type")
+        self.mirroring.set(type)
 
     @property
     def population(self):
-        """ Type of population (get: Index; set: str) """
-        return lib.getPopulationAbsorptionLines(self.__data__)
+        """ Type of population """
+        return AbsorptionPopulationType(c.c_void_p(lib.getPopulationAbsorptionLines(self.__data__)))
 
     @population.setter
     def population(self, type):
-        if isinstance(type, str):
-            self.type = int(lib.string2indexPopulationAbsorptionLines(self.__data__, type.encode("ascii")))
-        else:
-            if lib.setPopulationAbsorptionLines(self.__data__, int(type)):
-                raise ValueError("Invalid type")
+        self.population.set(type)
 
     @property
     def normalization(self):
-        """ Type of normalization (get: Index; set: str) """
-        return lib.getNormalizationAbsorptionLines(self.__data__)
+        """ Type of normalization """
+        return AbsorptionNormalizationType(c.c_void_p(lib.getNormalizationAbsorptionLines(self.__data__)))
 
     @normalization.setter
     def normalization(self, type):
-        if isinstance(type, str):
-            self.type = int(lib.string2indexPopulationAbsorptionLines(self.__data__, type.encode("ascii")))
-        else:
-            if lib.setNormalizationAbsorptionLines(self.__data__, int(type)):
-                raise ValueError("Invalid type")
+        self.normalization.set(type)
 
     @property
     def lineshapetype(self):
-        """ Type of lineshapetype (get: Index; set: str) """
-        return lib.getLineShapeTypeAbsorptionLines(self.__data__)
+        """ Type of lineshapetype """
+        return LineShapeType(c.c_void_p(lib.getLineShapeTypeAbsorptionLines(self.__data__)))
 
     @lineshapetype.setter
     def lineshapetype(self, type):
-        if isinstance(type, str):
-            self.type = int(lib.string2indexLineShapeTypeAbsorptionLines(self.__data__, type.encode("ascii")))
-        else:
-            if lib.setLineShapeTypeAbsorptionLines(self.__data__, int(type)):
-                raise ValueError("Invalid type")
+        self.lineshapetype.set(type)
 
     @property
     def t0(self):
@@ -454,50 +682,20 @@ lib.getBathAbsorptionLines.argtypes = [c.c_void_p]
 lib.setBathAbsorptionLines.restype = None
 lib.setBathAbsorptionLines.argtypes = [c.c_void_p, c.c_bool]
 
-lib.getCutoffAbsorptionLines.restype = c.c_long
+lib.getCutoffAbsorptionLines.restype = c.c_void_p
 lib.getCutoffAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.setCutoffAbsorptionLines.restype = c.c_long
-lib.setCutoffAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
-
-lib.string2indexCutoffAbsorptionLines.restype = c.c_long
-lib.string2indexCutoffAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
-
-lib.getMirroringAbsorptionLines.restype = c.c_long
+lib.getMirroringAbsorptionLines.restype = c.c_void_p
 lib.getMirroringAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.setMirroringAbsorptionLines.restype = c.c_long
-lib.setMirroringAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
-
-lib.string2indexMirroringAbsorptionLines.restype = c.c_long
-lib.string2indexMirroringAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
-
-lib.getLineShapeTypeAbsorptionLines.restype = c.c_long
+lib.getLineShapeTypeAbsorptionLines.restype = c.c_void_p
 lib.getLineShapeTypeAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.setLineShapeTypeAbsorptionLines.restype = c.c_long
-lib.setLineShapeTypeAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
-
-lib.string2indexLineShapeTypeAbsorptionLines.restype = c.c_long
-lib.string2indexLineShapeTypeAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
-
-lib.getPopulationAbsorptionLines.restype = c.c_long
+lib.getPopulationAbsorptionLines.restype = c.c_void_p
 lib.getPopulationAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.setPopulationAbsorptionLines.restype = c.c_long
-lib.setPopulationAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
-
-lib.string2indexPopulationAbsorptionLines.restype = c.c_long
-lib.string2indexPopulationAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
-
-lib.getNormalizationAbsorptionLines.restype = c.c_long
+lib.getNormalizationAbsorptionLines.restype = c.c_void_p
 lib.getNormalizationAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.setNormalizationAbsorptionLines.restype = c.c_long
-lib.setNormalizationAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
-
-lib.string2indexNormalizationAbsorptionLines.restype = c.c_long
-lib.string2indexPopulationAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
 
 lib.getT0AbsorptionLines.restype = c.c_double
 lib.getT0AbsorptionLines.argtypes = [c.c_void_p]

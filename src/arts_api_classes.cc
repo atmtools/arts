@@ -230,6 +230,21 @@ VoidGetterCAPI(LineShapeSingleSpeciesModel, G)
 VoidGetterCAPI(LineShapeSingleSpeciesModel, DV)
 
 
+// LineShapeType
+BasicInterfaceCAPI(LineShapeType)
+void * getLineShapeTypeString(void * data) {
+  return new String(toString(*static_cast<LineShapeType *>(data)));
+}
+int setLineShapeTypeString(void * data, char * val) {
+  auto x = LineShape::toType(val);
+  if (good_enum(x)) {
+    *static_cast<LineShapeType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
 // LineShape::Model
 BasicInterfaceCAPI(LineShapeModel)
 VoidArrayCAPI(LineShapeModel)
@@ -423,16 +438,79 @@ Index setSpeciesTag(void * data, char * newdata)
 }
 
 
+// AbsorptionNormalizationType
+BasicInterfaceCAPI(AbsorptionNormalizationType)
+void * getAbsorptionNormalizationTypeString(void * data) {
+  return new String(toString(*static_cast<AbsorptionNormalizationType *>(data)));
+}
+int setAbsorptionNormalizationTypeString(void * data, char * val) {
+  auto x = Absorption::toNormalizationType(val);
+  if (good_enum(x)) {
+    *static_cast<AbsorptionNormalizationType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
+// AbsorptionPopulationType
+BasicInterfaceCAPI(AbsorptionPopulationType)
+void * getAbsorptionPopulationTypeString(void * data) {
+  return new String(toString(*static_cast<AbsorptionPopulationType *>(data)));
+}
+int setAbsorptionPopulationTypeString(void * data, char * val) {
+  auto x = Absorption::toPopulationType(val);
+  if (good_enum(x)) {
+    *static_cast<AbsorptionPopulationType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
+// AbsorptionMirroringType
+BasicInterfaceCAPI(AbsorptionMirroringType)
+void * getAbsorptionMirroringTypeString(void * data) {
+  return new String(toString(*static_cast<AbsorptionMirroringType *>(data)));
+}
+int setAbsorptionMirroringTypeString(void * data, char * val) {
+  auto x = Absorption::toMirroringType(val);
+  if (good_enum(x)) {
+    *static_cast<AbsorptionMirroringType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
+// AbsorptionCutoffType
+BasicInterfaceCAPI(AbsorptionCutoffType)
+void * getAbsorptionCutoffTypeString(void * data) {
+  return new String(toString(*static_cast<AbsorptionCutoffType *>(data)));
+}
+int setAbsorptionCutoffTypeString(void * data, char * val) {
+  auto x = Absorption::toCutoffType(val);
+  if (good_enum(x)) {
+    *static_cast<AbsorptionCutoffType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
 // AbsorptionLines
 BasicInterfaceCAPI(AbsorptionLines)
 BasicInputOutputCAPI(AbsorptionLines)
 GetterSetterCAPI(AbsorptionLines, Self, bool)
 GetterSetterCAPI(AbsorptionLines, Bath, bool)
-EnumGetterSetterCAPI(AbsorptionLines, Cutoff, Absorption::CutoffType)
-EnumGetterSetterCAPI(AbsorptionLines, LineShapeType, LineShape::Type)
-EnumGetterSetterCAPI(AbsorptionLines, Mirroring, Absorption::MirroringType)
-EnumGetterSetterCAPI(AbsorptionLines, Population, Absorption::PopulationType)
-EnumGetterSetterCAPI(AbsorptionLines, Normalization, Absorption::NormalizationType)
+VoidGetterCAPI(AbsorptionLines, Cutoff)
+VoidGetterCAPI(AbsorptionLines, LineShapeType)
+VoidGetterCAPI(AbsorptionLines, Mirroring)
+VoidGetterCAPI(AbsorptionLines, Population)
+VoidGetterCAPI(AbsorptionLines, Normalization)
 GetterSetterCAPI(AbsorptionLines, T0, Numeric)
 GetterSetterCAPI(AbsorptionLines, CutoffFreqValue, Numeric)
 GetterSetterCAPI(AbsorptionLines, LinemixingLimit, Numeric)

@@ -807,6 +807,9 @@ public:
   /** Returns mirroring style */
   MirroringType Mirroring() const noexcept {return mmirroring;}
   
+  /** Returns mirroring style reference */
+  MirroringType& Mirroring() noexcept {return mmirroring;}
+  
   /** Returns mirroring style */
   void Mirroring(MirroringType x) noexcept {mmirroring = x;}
   
@@ -822,6 +825,9 @@ public:
   
   /** Returns normalization style */
   NormalizationType Normalization() const noexcept {return mnormalization;}
+  
+  /** Returns normalization style reference */
+  NormalizationType& Normalization() noexcept {return mnormalization;}
   
   /** Returns normalization style */
   void Normalization(NormalizationType x) noexcept {mnormalization = x;}
@@ -839,6 +845,9 @@ public:
   /** Returns cutoff style */
   CutoffType Cutoff() const noexcept {return mcutoff;}
   
+  /** Returns cutoff style reference */
+  CutoffType& Cutoff() noexcept {return mcutoff;}
+  
   /** Sets cutoff style */
   void Cutoff(CutoffType x) noexcept {mcutoff = x;}
   
@@ -855,6 +864,9 @@ public:
   /** Returns population style */
   PopulationType Population() const noexcept {return mpopulation;}
   
+  /** Returns population style reference */
+  PopulationType& Population() noexcept {return mpopulation;}
+  
   /** Sets population style */
   void Population(PopulationType x) noexcept {mpopulation = x;}
   
@@ -870,6 +882,9 @@ public:
   
   /** Returns lineshapetype style */
   LineShape::Type LineShapeType() const noexcept {return mlineshapetype;}
+  
+  /** Returns lineshapetype style reference */
+  LineShape::Type& LineShapeType() noexcept {return mlineshapetype;}
   
   /** Sets lineshapetype style */
   void LineShapeType(LineShape::Type x) noexcept {mlineshapetype = x;}
@@ -1552,5 +1567,10 @@ typedef Array<ArrayOfAbsorptionLines> ArrayOfArrayOfAbsorptionLines;
 std::ostream& operator<<(std::ostream&, const ArrayOfAbsorptionLines&);
 
 std::ostream& operator<<(std::ostream&, const ArrayOfArrayOfAbsorptionLines&);
+
+using AbsorptionNormalizationType = Absorption::NormalizationType;
+using AbsorptionPopulationType = Absorption::PopulationType;
+using AbsorptionMirroringType = Absorption::MirroringType;
+using AbsorptionCutoffType = Absorption::CutoffType;
 
 #endif  // absorptionlines_h
