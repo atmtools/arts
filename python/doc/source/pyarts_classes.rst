@@ -23,6 +23,7 @@ pyarts.classes
     ArrayOfArrayOfRadiationVector
     ArrayOfArrayOfScatteringMetaData
     ArrayOfArrayOfSingleScatteringData
+    ArrayOfArrayOfSpeciesTag
     ArrayOfArrayOfStokesVector
     ArrayOfArrayOfString
     ArrayOfArrayOfTensor3
@@ -45,6 +46,7 @@ pyarts.classes
     ArrayOfScatteringMetaData
     ArrayOfSingleScatteringData
     ArrayOfSparse
+    ArrayOfSpeciesTag
     ArrayOfStokesVector
     ArrayOfString
     ArrayOfTelsemAtlas
@@ -83,7 +85,8 @@ pyarts.classes
     ScatteringMetaData
     SingleScatteringData
     Sparse
-    SpeciesAuxData
+    SpeciesIsotopeRecord
+    SpeciesIsotopologueRatios
     SpeciesTag
     StokesVector
     String
