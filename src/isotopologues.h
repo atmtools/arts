@@ -565,8 +565,10 @@ constexpr std::array Isotopologues {
   deal_with_spec(HFC152a)
   deal_with_spec(HFC227ea)
   deal_with_spec(HFC23)
+  deal_with_spec(HFC236fa)
   deal_with_spec(HFC245fa)
   deal_with_spec(HFC32)
+  deal_with_spec(HFC365mfc)
 
   /** NF3 species **/
   deal_with_spec(NitrogenTrifluoride)
