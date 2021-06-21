@@ -302,6 +302,31 @@ struct RosenkranzQuadratic {
   Numeric operator()(Numeric f) noexcept;
 }; // RosenkranzQuadratic
 
+struct SimpleFrequencyScaling {
+  Numeric N;
+  
+  Numeric T;
+  Numeric F0;
+  Numeric expF0;
+  Numeric expm1F0;
+  
+  constexpr SimpleFrequencyScaling(Numeric exp, Numeric expm1, Numeric F0_, Numeric T_) :
+  N(1.0), T(T_), F0(F0_), expF0(exp), expm1F0(expm1) {}
+  
+  SimpleFrequencyScaling(Numeric F0_, Numeric T_) noexcept :
+    SimpleFrequencyScaling(std::exp(- (Constant::h * F0_) / (Constant::k * T_)),
+                         std::expm1(- (Constant::h * F0_) / (Constant::k * T_)),
+                           F0_, T_) {}
+  
+  Numeric dNdT(Numeric t_ [[maybe_unused]], Numeric f) const ARTS_NOEXCEPT;
+  Numeric dNdf(Numeric f) const noexcept;
+  constexpr Numeric dNdF0() const noexcept {
+    return - N / F0 + N * Constant::h * expF0 / (Constant::k * T * expm1F0);
+  }
+  
+  Numeric operator()(Numeric f) noexcept;
+};  // SimpleFrequencyScaling
+
 struct Nostrength {
   static constexpr Numeric S = 1.0;
   static constexpr Numeric N = 0.0;
@@ -511,7 +536,7 @@ typedef std::variant<Noshape, Doppler, Lorentz, Voigt, SpeedDependentVoigt,
     Calculator;
 
 typedef std::variant<Nonorm, VanVleckHuber, VanVleckWeisskopf,
-                     RosenkranzQuadratic>
+                     RosenkranzQuadratic, SimpleFrequencyScaling>
     Normalizer;
 
 typedef std::variant<Nostrength, LocalThermodynamicEquilibrium,

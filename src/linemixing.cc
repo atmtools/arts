@@ -1,3 +1,4 @@
+#include <functional>
 #include <numeric>
 
 #include <Faddeeva/Faddeeva.hh>
@@ -422,7 +423,42 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  * 
  * It requires inputs for each of the internal components
  */
-namespace ErrorCorrectedSudden {
+namespace LinearRovibErrorCorrectedSudden {
+using EnergyFunction = std::function<Numeric (const Rational)>;
+
+Numeric Omega(const Rational J,
+              const Numeric T,
+              const Numeric m1,
+              const Numeric m2,
+              const Numeric dc,
+              const EnergyFunction& erot) noexcept
+{
+  // Constants for the expression
+  constexpr Numeric fac = 8 * Constant::k / (Constant::m_u * Constant::pi);
+  
+  // nb. Only N=J considered???
+  const Numeric en = erot(J);
+  const Numeric enm2 = erot(J-2);
+  const Numeric wnnm2 = (en - enm2) / Constant::h_bar;
+  
+  const Numeric mu = 1 / m1 + 1 / m2;
+  const Numeric v_bar_pow2 = fac*T*mu;
+  const Numeric tauc_pow2 = Constant::pow2(dc) / v_bar_pow2;
+  
+  return 1.0 / Constant::pow2(1 + 1.0/24.0 * Constant::pow2(wnnm2) * tauc_pow2);
+}
+
+Numeric Q(const Rational J,
+          const Numeric T,
+          const Numeric A,
+          const Numeric g,
+          const Numeric b,
+          const EnergyFunction& erot) noexcept
+{
+  const Numeric el = erot(J);
+  return std::exp(- b * el / (Constant::k * T)) * A / std::pow(el, g);
+}
+
 /** Returns the standard ECS / IOS Wigner symbol for
  * linear molecules
  * 
@@ -460,21 +496,25 @@ Numeric wigner_sum_symbol(const Rational Ji,
  * @param[in] Jf_p Virtual lower state angular momentum quantum number
  * @param[in] k 1 means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
  * @param[in] L ??? Path value possible for main upp → virt upp → virt low → main low transition ???
- * @param[in] Q The Q function, must accept Q(L) and return a Numeric
- * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
  * @return partial sum result
  */
-template <typename QFunction, typename OmegaFunction> constexpr
 Numeric sum_symbol(const Rational Ji,
                    const Rational Ji_p,
                    const Rational Jf,
                    const Rational Jf_p,
                    const Rational k,
                    const Rational L,
-                   QFunction&& Q,
-                   OmegaFunction&& Omega) noexcept
+                   const Numeric T,
+                   const Numeric m1,
+                   const Numeric m2,
+                   const Numeric dc,
+                   const Numeric A,
+                   const Numeric g,
+                   const Numeric b,
+                   const EnergyFunction& erot) noexcept
 {
-  return wigner_sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L) * Numeric(2 * L + 1) * Q(L) / Omega(L);
+  return wigner_sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L) * Numeric(2 * L + 1) * 
+         Q(L, T, A, g, b, erot) / Omega(L, T, m1, m2, dc, erot);
 }
 
 /** The entire "sum over L" full expression
@@ -491,14 +531,19 @@ Numeric sum_symbol(const Rational Ji,
  * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
  * @return full sum result
  */
-template <typename QFunction, typename OmegaFunction> constexpr
 Numeric upper_offdiagonal_element(const Rational Ji,
                                   const Rational Ji_p,
                                   const Rational Jf,
                                   const Rational Jf_p,
                                   const Rational k,
-                                  QFunction&& Q,
-                                  OmegaFunction&& Omega) ARTS_NOEXCEPT
+                                  const Numeric T,
+                                  const Numeric m1,
+                                  const Numeric m2,
+                                  const Numeric dc,
+                                  const Numeric A,
+                                  const Numeric g,
+                                  const Numeric b,
+                                  const EnergyFunction& erot) ARTS_NOEXCEPT
 {
   ARTS_ASSERT(Ji >= Ji_p, "Ji is selected as the upper state in our formalism")
   
@@ -506,12 +551,12 @@ Numeric upper_offdiagonal_element(const Rational Ji,
   const auto [Ls, Lf] = wigner_limits(wigner3j_limits<2>(Ji_p, Ji),
                         wigner_limits(wigner3j_limits<2>(Jf_p, Jf),
                                       {Rational(2), 100000}));
-  for (Index L=Ls; L<=Lf; L+=2) {
+  for (Rational L=Ls; L<=Lf; L+=2) {
     x += sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L,
-                    std::forward<QFunction>(Q),
-                    std::forward<OmegaFunction>(Omega));
+                    T, m1, m2, dc, A, g, b, erot);
   }
-  return (iseven(k) ? -1 : 1) * Omega(Ji) * Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * x;
+  return (iseven(k) ? -1 : 1) * Omega(Ji, T, m1, m2, dc, erot) *
+          Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * x;
 }
 
 /** Compute off-diagonal elements for a pair of quantum numbers
@@ -534,7 +579,6 @@ Numeric upper_offdiagonal_element(const Rational Ji,
  * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
  * @return The pair of off-diagonal elements W12 and W21 in that order
  */
-template <typename QFunction, typename OmegaFunction> constexpr
 std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
                                                  const Rational Ji2,
                                                  const Rational Jf1,
@@ -542,18 +586,22 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
                                                  const Rational k,
                                                  const Numeric pop1,
                                                  const Numeric pop2,
-                                                 QFunction&& Q,
-                                                 OmegaFunction&& Omega) ARTS_NOEXCEPT
+                                                 const Numeric T,
+                                                 const Numeric m1,
+                                                 const Numeric m2,
+                                                 const Numeric dc,
+                                                 const Numeric A,
+                                                 const Numeric g,
+                                                 const Numeric b,
+                                                 const EnergyFunction& erot) ARTS_NOEXCEPT
 {
   if (Ji1 >= Ji2) {
     const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2, k,
-                                                std::forward<QFunction>(Q),
-                                                std::forward<OmegaFunction>(Omega));
+                                                T, m1, m2, dc, A, g, b, erot);
     return {W, W * pop2 / pop1};  // FIXME: order
   } else {
     const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1, k,
-                                                std::forward<QFunction>(Q),
-                                                std::forward<OmegaFunction>(Omega));
+                                                T, m1, m2, dc, A, g, b, erot);
     return {W * pop1 / pop2, W};  // FIXME: order
   }
 }
@@ -567,12 +615,18 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
  * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
  * @return W but imaginary parts and diagonal elements are zero
  */
-template <typename QFunction, typename OmegaFunction>
 ComplexMatrix real_offdiagonal_relaxation_matrix(const AbsorptionLines& band,
                                                  const Vector& pop,
                                                  const ArrayOfIndex& sorting,
-                                                 QFunction&& Q,
-                                                 OmegaFunction&& Omega) ARTS_NOEXCEPT
+                                                 const Rational k,
+                                                 const Numeric T,
+                                                 const Numeric m1,
+                                                 const Numeric m2,
+                                                 const Numeric dc,
+                                                 const Numeric A,
+                                                 const Numeric g,
+                                                 const Numeric b,
+                                                 const EnergyFunction erot) ARTS_NOEXCEPT
 {
   const Index N = band.NumLines();
   ARTS_ASSERT(pop.nelem() == N, "Inconsistent populations and lines count")
@@ -585,8 +639,8 @@ ComplexMatrix real_offdiagonal_relaxation_matrix(const AbsorptionLines& band,
                                                    band.UpperQuantumNumber(sorting[j], QuantumNumberType::J),
                                                    band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
                                                    band.LowerQuantumNumber(sorting[j], QuantumNumberType::J),
-                                                   1,  // FIXME: Means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
-                                                   pop[i], pop[j], std::forward<QFunction>(Q), std::forward<OmegaFunction>(Omega));
+                                                   k,
+                                                   pop[i], pop[j], T, m1, m2, dc, A, g, b, erot);
       W(i, j) = W12;
       W(j, i) = W21;
     }
@@ -642,9 +696,27 @@ void verify_sum_rule(MatrixView W,
   }
 }
 
+EnergyFunction erot_selection(const SpeciesIsotopeRecord& isot)
+{
+  if (isot.spec == Species::Species::CarbonDioxide and isot.isotname == "626") {
+    return [](const Rational J) -> Numeric {return Constant::h * Conversion::kaycm2freq(0.39021) * Numeric(J * (J + 1));};
+  } else {
+    return [](const Rational J) -> Numeric {return Numeric(J) * std::numeric_limits<Numeric>::signaling_NaN();};
+  }
+}
+
+ENUMCLASS(TypeOfTransition, unsigned char, RamanIsotropic, Dipole, RamanAnisotropic)
+Rational getTypeOfTransition(TypeOfTransition t) noexcept {
+  switch(t) {
+    case TypeOfTransition::RamanIsotropic: return 0;
+    case TypeOfTransition::Dipole: return 1;
+    case TypeOfTransition::RamanAnisotropic: return 2;
+    case TypeOfTransition::FINAL: {/* leave last */}
+  }
+  return -1;
+}
+
 ComplexMatrix single_species_relaxation_matrix(const AbsorptionLines& band,
-                                               const Vector& pop,
-                                               const Vector& dip,
                                                const ArrayOfIndex& sorting,
                                                const Numeric T,
                                                const Numeric P,
@@ -653,39 +725,32 @@ ComplexMatrix single_species_relaxation_matrix(const AbsorptionLines& band,
                                                const Numeric alpha,
                                                const Numeric beta,
                                                const Numeric gamma,
-                                               const Numeric col_dist) ARTS_NOEXCEPT
+                                               const Numeric col_dist,
+                                               const TypeOfTransition type) ARTS_NOEXCEPT
 {
-  const auto energy_fun = [](const Rational L) -> Numeric {return Numeric(L*L);};  // FIXME: How to select this????
-  
-  auto Q = [T,alpha,beta,gamma,energy_fun](const Rational L) -> Numeric {
-    const Numeric el = energy_fun(L);
-    return alpha * std::exp(-beta * el / (Constant::k * T)) / std::pow(el, gamma);
-  };
-  
-  auto Omega = [T,m1=band.SpeciesMass(),m2=broadener_mass,erot=energy_fun,dc=col_dist](const Rational L) -> Numeric {
-    // Constants for the expression
-    constexpr Numeric fac = 8 * Constant::k / (Constant::m_u * Constant::pi);
-    
-    // nb. Only N=J considered???
-    const Numeric en = erot(L);
-    const Numeric enm2 = erot(L-2);
-    const Numeric wnnm2 = (en - enm2) / Constant::h_bar;
-    
-    const Numeric mu = 1 / m1 + 1 / m2;
-    const Numeric v_bar_pow2 = fac*T*mu;
-    const Numeric tauc_pow2 = Constant::pow2(dc) / v_bar_pow2;
-    
-    return 1.0 / Constant::pow2(1 + 1.0/24.0 * Constant::pow2(wnnm2) * tauc_pow2);
-  };
-  
-  ComplexMatrix W = real_offdiagonal_relaxation_matrix(band, pop, sorting, Q, Omega);
+  const Rational k = getTypeOfTransition(type);
   
   const Index N = band.NumLines();
+  Vector pop(N), dip(N);
+  for (Index i=0; i<N; i++) {
+    const Rational Ji = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
+    const Rational li = band.UpperQuantumNumber(sorting[i], QuantumNumberType::l2);
+    const Rational Jf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
+    const Rational lf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::l2);
+    pop[i] = std::exp(-erot_selection(band.Isotopologue())(Ji) / (Constant::k * T));
+    dip[i] = (iseven(lf + Jf) ? 1 : -1) * sqrt(2* Jf + 1) * wigner3j(Ji, k, Jf, li, lf-li, lf);
+  }
+  
+  ComplexMatrix W = real_offdiagonal_relaxation_matrix(band, pop, sorting, k, 
+                                                       T, band.SpeciesMass(), broadener_mass, col_dist, alpha, gamma, beta,
+                                                       erot_selection(band.Isotopologue()));
+  
   for (Index i=0; i<N; i++) {
     W(i, i) = Complex(P * band.Line(sorting[i]).LineShape()[broadener_pos].compute(T, band.T0(), LineShape::Variable::G0),
                       P * band.Line(sorting[i]).LineShape()[broadener_pos].compute(T, band.T0(), LineShape::Variable::D0));
   }
   
+  // FIXME: Use local pop and dip instead?
   verify_sum_rule(W.real(), pop, dip);  // FIXME: make this use local ratio?
   
   return W;
@@ -1411,7 +1476,7 @@ Index band_eigenvalue_adaptation(
   
   // If we reach here, we have to set the band population type
   // to LTE and renormalize the strength to physical frequency
-  band.Normalization(Absorption::NormalizationType::VVW);
+  band.Normalization(Absorption::NormalizationType::SFS);
   band.Population(Absorption::PopulationType::LTE);
   
   return EXIT_SUCCESS;

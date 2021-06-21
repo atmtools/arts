@@ -79,7 +79,8 @@ ENUMCLASS(NormalizationType, char,
   None,                // Do not renormalize the line shape
   VVH,                 // Renormalize with Van Vleck and Huber specifications
   VVW,                 // Renormalize with Van Vleck and Weiskopf specifications
-  RQ                   // Renormalize using Rosenkranz's quadratic specifications
+  RQ,                  // Renormalize using Rosenkranz's quadratic specifications
+  SFS                  // Renormalize using simple frequency scaling of the line strength
 )  // NormalizationType
 
 #pragma GCC diagnostic push
@@ -97,6 +98,9 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
     case NormalizationType::RQ:
       return "Rosenkranz quadratic far-wing renormalization will be applied, "
         "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
+    case NormalizationType::SFS:
+      return "Simple frequency scaling of the far-wings will be applied, "
+        "i.e. F ~ (f / f0) * ((1 - exp(hf / kT)) / 1 - exp(hf0 / kT))\n";
     case NormalizationType::FINAL: break;
   }
 }

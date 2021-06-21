@@ -493,71 +493,93 @@ void test_ls() {
 void test_norm() {
   
   [[maybe_unused]]
-  auto [qid, band, f_grid, vmr, P, T, H] = line_model<ModificationInternal::None, LineShape::Type::VP>();
+  auto [qid, band, f_grid2, vmr, P, T, H] = line_model<ModificationInternal::None, LineShape::Type::VP>();
+  Vector f_grid(::N);
+  Numeric f0 = f_grid2[0];
+  for (Index i=0; i<::N; i++) {
+    f_grid[i] = f0;
+    f0 += 3 * (f_grid2[1] - f_grid2[0]);
+  }
   Vector N_nonorm(::N);
   Vector N_vvh(::N);
   Vector N_vvw(::N);
   Vector N_rq(::N);
+  Vector N_sfs(::N);
   
   ArrayOfVector dN_nonorm(3, Vector(::N));
   ArrayOfVector dN_vvh(3, Vector(::N));
   ArrayOfVector dN_vvw(3, Vector(::N));
   ArrayOfVector dN_rq(3, Vector(::N));
+  ArrayOfVector dN_sfs(3, Vector(::N));
   
   ArrayOfVector dN_nonorm_mod(3, Vector(::N));
   ArrayOfVector dN_vvh_mod(3, Vector(::N));
   ArrayOfVector dN_vvw_mod(3, Vector(::N));
   ArrayOfVector dN_rq_mod(3, Vector(::N));
+  ArrayOfVector dN_sfs_mod(3, Vector(::N));
   
   LineShape::Normalizer lsn_nonorm = LineShape::Nonorm{};
   LineShape::Normalizer lsn_vvh = LineShape::VanVleckHuber(band.Line(0).F0(), T);
   LineShape::Normalizer lsn_vvw = LineShape::VanVleckWeisskopf(band.Line(0).F0());
   LineShape::Normalizer lsn_rq = LineShape::RosenkranzQuadratic(band.Line(0).F0(), T);
+  LineShape::Normalizer lsn_sfs = LineShape::SimpleFrequencyScaling(band.Line(0).F0(), T);
   for (Index i=0; i<::N; i++) {
     N_nonorm[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_nonorm);
     N_vvh[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvh);
     N_vvw[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvw);
     N_rq[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_rq);
+    N_sfs[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_sfs);
+    
     dN_nonorm[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_nonorm);
     dN_vvh[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_vvh);
     dN_vvw[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_vvw);
     dN_rq[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_rq);
+    dN_sfs[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_sfs);
+    
     dN_nonorm[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_nonorm);
     dN_vvh[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_vvh);
     dN_vvw[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_vvw);
     dN_rq[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_rq);
+    dN_sfs[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_sfs);
+    
     dN_nonorm[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_nonorm);
     dN_vvh[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_vvh);
     dN_vvw[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_vvw);
     dN_rq[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_rq);
+    dN_sfs[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_sfs);
     
     // Do derivatives last...
     dN_nonorm_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_nonorm);
     dN_vvh_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_vvh);
     dN_vvw_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_vvw);
     dN_rq_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_rq);
+    dN_sfs_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_sfs);
   }
   
   LineShape::Normalizer lsn_nonormdT = LineShape::Nonorm{};
   LineShape::Normalizer lsn_vvhdT = LineShape::VanVleckHuber(band.Line(0).F0(), T+::dT);
   LineShape::Normalizer lsn_vvwdT = LineShape::VanVleckWeisskopf(band.Line(0).F0());
   LineShape::Normalizer lsn_rqdT = LineShape::RosenkranzQuadratic(band.Line(0).F0(), T+::dT);
+  LineShape::Normalizer lsn_sfsdT = LineShape::SimpleFrequencyScaling(band.Line(0).F0(), T+::dT);
   for (Index i=0; i<::N; i++) {
     dN_nonorm_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_nonormdT);
     dN_vvh_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvhdT);
     dN_vvw_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvwdT);
     dN_rq_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_rqdT);
+    dN_sfs_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_sfsdT);
   }
   
   LineShape::Normalizer lsn_nonormdF0 = LineShape::Nonorm{};
   LineShape::Normalizer lsn_vvhdF0 = LineShape::VanVleckHuber(band.Line(0).F0()+::dF0, T);
   LineShape::Normalizer lsn_vvwdF0 = LineShape::VanVleckWeisskopf(band.Line(0).F0()+::dF0);
   LineShape::Normalizer lsn_rqdF0 = LineShape::RosenkranzQuadratic(band.Line(0).F0()+::dF0, T);
+  LineShape::Normalizer lsn_sfsdF0 = LineShape::SimpleFrequencyScaling(band.Line(0).F0()+::dF0, T);
   for (Index i=0; i<::N; i++) {
     dN_nonorm_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_nonormdF0);
     dN_vvh_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvhdF0);
     dN_vvw_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvwdF0);
     dN_rq_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_rqdF0);
+    dN_sfs_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_sfsdF0);
   }
   
   dN_nonorm_mod[0] -= N_nonorm; dN_nonorm_mod[0] /= ::dT;
@@ -572,25 +594,54 @@ void test_norm() {
   dN_rq_mod[0] -= N_rq; dN_rq_mod[0] /= ::dT;
   dN_rq_mod[1] -= N_rq; dN_rq_mod[1] /= ::df;
   dN_rq_mod[2] -= N_rq; dN_rq_mod[2] /= ::dF0;
+  dN_sfs_mod[0] -= N_sfs; dN_sfs_mod[0] /= ::dT;
+  dN_sfs_mod[1] -= N_sfs; dN_sfs_mod[1] /= ::df;
+  dN_sfs_mod[2] -= N_sfs; dN_sfs_mod[2] /= ::dF0;
   
-  ARTSGUI::plot(f_grid, N_nonorm, f_grid, N_vvh, f_grid, N_vvw, f_grid, N_rq);
+  //! Plot results, so modify frequency to be readable
+  f_grid /= band.F0(0);
+  
+  ARTSGUI::PlotConfig::X = "Frequency [line center]";
+  ARTSGUI::PlotConfig::Y = "Norm";
+  ARTSGUI::PlotConfig::Legend = {"None", "VVH", "VVW", "RQ", "SFS"};
+  ARTSGUI::PlotConfig::Title = "Normalizers";
+  ARTSGUI::plot(f_grid, N_nonorm, f_grid, N_vvh, f_grid, N_vvw, f_grid, N_rq, f_grid, N_sfs);
+  
+  ARTSGUI::PlotConfig::Legend = {"Analytical", "Perturbed"};
   for (Index i=0; i<3; i++) {
-    std::cout << i << '\n';
+    if (i == 0) {
+      ARTSGUI::PlotConfig::Y = "Temperature Derivative";
+    } else if (i == 1) {
+      ARTSGUI::PlotConfig::Y = "Frequency Derivative";
+    } else if (i == 2) {
+      ARTSGUI::PlotConfig::Y = "Line Center Derivative";
+    } else {
+      ARTSGUI::PlotConfig::Y = "Unknown Derivative";
+    }
+    
     if (max(dN_nonorm[i]) not_eq 0 or min(dN_nonorm[i]) not_eq 0 or max(dN_nonorm_mod[i]) not_eq 0 or min(dN_nonorm_mod[i]) not_eq 0) {
-      std::cout << "NONORM" << '\n';
+      ARTSGUI::PlotConfig::Title = "No Normalizer";
       ARTSGUI::plot(f_grid, dN_nonorm[i], f_grid, dN_nonorm_mod[i]);
     }
+    
     if (max(dN_vvh[i]) not_eq 0 or min(dN_vvh[i]) not_eq 0 or max(dN_vvh_mod[i]) not_eq 0 or min(dN_vvh_mod[i]) not_eq 0) {
-      std::cout << "VVH" << '\n';
+      ARTSGUI::PlotConfig::Title = "VVH Normalizer";
       ARTSGUI::plot(f_grid, dN_vvh[i], f_grid, dN_vvh_mod[i]);
     }
+    
     if (max(dN_vvw[i]) not_eq 0 or min(dN_vvw[i]) not_eq 0 or max(dN_vvw_mod[i]) not_eq 0 or min(dN_vvw_mod[i]) not_eq 0) {
-      std::cout << "VVW" << '\n';
+      ARTSGUI::PlotConfig::Title = "VVW Normalizer";
       ARTSGUI::plot(f_grid, dN_vvw[i], f_grid, dN_vvw_mod[i]);
     }
+    
     if (max(dN_rq[i]) not_eq 0 or min(dN_rq[i]) not_eq 0 or max(dN_rq_mod[i]) not_eq 0 or min(dN_rq_mod[i]) not_eq 0) {
-      std::cout << "RQ" << '\n';
+      ARTSGUI::PlotConfig::Title = "RQ Normalizer";
       ARTSGUI::plot(f_grid, dN_rq[i], f_grid, dN_rq_mod[i]);
+    }
+    
+    if (max(dN_sfs[i]) not_eq 0 or min(dN_sfs[i]) not_eq 0 or max(dN_sfs_mod[i]) not_eq 0 or min(dN_sfs_mod[i]) not_eq 0) {
+      ARTSGUI::PlotConfig::Title = "SFS Normalizer";
+      ARTSGUI::plot(f_grid, dN_sfs[i], f_grid, dN_sfs_mod[i]);
     }
   }
 }
@@ -690,12 +741,12 @@ int main() try {
 //   test_ls<LineShape::Type::SDVP>();
 //   test_ls<LineShape::Type::HTP>();
 // 
-//   test_norm();
+  test_norm();
 //   
 //   test_lte_strength();
-  
-  test_sparse();
-  
+//   
+//   test_sparse();
+//   
   return EXIT_SUCCESS;
 } catch (std::exception& e) {
   std::cerr << e.what() << '\n';
