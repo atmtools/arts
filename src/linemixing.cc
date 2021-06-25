@@ -187,16 +187,6 @@ PopulationAndDipole presorted_population_and_dipole(const Numeric T,
   return tp;
 }
 
-
-//! Special parameter modifications
-ENUMCLASS(SpecialParam, char,
-          None,
-          ModifyParameter1,
-          ModifyParameter2,
-          ModifyParameter3
-)
-
-
 namespace Makarov2020etal {
 /*! Compute the rotational energy of ground-state O2 at N and J
  * 
@@ -248,66 +238,6 @@ Numeric erot(const Rational N, const Rational j=-1) {
   }
 }
 
-
-/*! Returns the adiabatic factor
- * 
- * @param[in] N Main rotational number
- * @param[in] T The temperature
- * @param[in] m1 Mass of one species in atomic mass units
- * @param[in] m2 Mass of the other species in atomic mass units
- * @return The adiabatic factor
- */
-template <SpecialParam param>
-constexpr Numeric Omega(const Rational N,
-                        const Numeric T,
-                        const Numeric m1,
-                        const Numeric m2) {
-  using Constant::h;
-  using Constant::k;
-  using Constant::pi;
-  using Constant::m_u;
-  using Constant::h_bar;
-  using Constant::pow2;
-  
-  // Constant from Makarov etal 2020 (modified by 1e-6 in special Jacobian case)
-  constexpr Numeric dc = param == SpecialParam::ModifyParameter1 ?
-    Conversion::angstrom2meter(0.61 + 1e-6) :
-    Conversion::angstrom2meter(0.61);
-  
-  // Constants for the expression
-  constexpr Numeric fac = 8 * k / (m_u * pi);
-  
-  // nb. Only N=J considered???
-  const Numeric en = erot(N);
-  const Numeric enm2 = erot(N-2);
-  const Numeric wnnm2 = (en - enm2) / h_bar;
-  
-  const Numeric mu = 1 / m1 + 1 / m2;
-  const Numeric v_bar_pow2 = fac*T*mu;
-  const Numeric tauc_pow2 = pow2(dc) / v_bar_pow2;
-  
-  return 1.0 / pow2(1 + 1.0/24.0 * pow2(wnnm2) * tauc_pow2);
-};
-
-
-/*! Returns the basis rate
- * 
- * @param[in] N Main rotational number
- * @param[in] T The temperature
- * @return The basis rate
- */
-template <SpecialParam param> constexpr
-Numeric Q(const Rational N, const Numeric T) {
-  using Conversion::kelvin2joule;
-  
-  // Constants from Makarov etal 2020 (modified by 1e-6 in special Jacobian case)
-  constexpr Numeric lambda = param == SpecialParam::ModifyParameter2 ? 0.39 + 1e-6 : 0.39;
-  constexpr Numeric beta = param == SpecialParam::ModifyParameter3 ? 0.567 + 1e-6 : 0.567;
-  
-  // nb. Only N=J considered???
-  return Numeric(2*N + 1) / pow(N * (N+1), lambda) * std::exp(-beta * erot(N) / kelvin2joule(T));
-};
-
 /*! Computes the off-diagonal elements of the relaxation matrix
  * following Makarov etal 2020.
  * 
@@ -318,13 +248,11 @@ Numeric Q(const Rational N, const Numeric T) {
  * @param[in] mass_self The mass of the self-species
  * @param[in] mass_other The mass of the colliding species
  */
-template <SpecialParam param>
 void relaxation_matrix_offdiagonal(MatrixView W,
-                                   const Numeric T,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
-                                   const Numeric& mass_self,
-                                   const Numeric& mass_other)
+                                   const SpeciesErrorCorrectedSuddenData& rovib_data,
+                                   const Numeric T)
 {
   using Conversion::kelvin2joule;
   
@@ -360,16 +288,16 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       // These are modified after reading the original code
       Numeric sum = 0;
       const Numeric scale = Numeric(2*Nk + 1) * Numeric(2*Nl + 1) * sqrt(2*Jk + 1) * sqrt(2*Jl + 1) * sqrt(2*Jk_p + 1) * sqrt(2* Jl_p + 1);
-      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Nl, Nk), {Rational(2), 100000});
+      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Nl, Nk), {Rational(2), std::numeric_limits<Index>::max()});
       for (Rational L=L0; L<=L1; L+=2) {
         const Numeric sgn = iseven(Jk + Jl + L + 1) ? 1 : -1;
         const Numeric a = Constant::pow2(wigner3j(Nl, Nk, L, 0, 0, 0));
         const Numeric b = wigner6j(L, Jk, Jl, 1, Nl, Nk);
         const Numeric c = wigner6j(L, Jk_p, Jl_p, 1, Nl, Nk);
         const Numeric d = wigner6j(L, Jk, Jl, 1, Jl_p, Jk_p);
-        sum += sgn * a * b * c * d * Q<param>(L, T) / Omega<param>(L, T, mass_self, mass_other);
+        sum += sgn * a * b * c * d * rovib_data.Q(L, T, erot(L)) / rovib_data.Omega(T, band.SpeciesMass(), erot(L), erot(L-2));
       }
-      sum *= scale * Omega<param>(Nk, T, mass_self, mass_other);
+      sum *= scale * rovib_data.Omega(T, band.SpeciesMass(), erot(Nk), erot(Nk - 2));
       
       // Add to W and rescale to upwards element by the populations
       W(l, k) = sum;
@@ -424,40 +352,6 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  * It requires inputs for each of the internal components
  */
 namespace LinearRovibErrorCorrectedSudden {
-
-Numeric Omega(const Rational J,
-              const Numeric T,
-              const Numeric m1,
-              const Numeric m2,
-              const Numeric dc,
-              const EnergyFunction& erot) noexcept
-{
-  // Constants for the expression
-  constexpr Numeric fac = 8 * Constant::k / (Constant::m_u * Constant::pi);
-  
-  // nb. Only N=J considered???
-  const Numeric en = erot(J);
-  const Numeric enm2 = erot(J-2);
-  const Numeric wnnm2 = (en - enm2) / Constant::h_bar;
-  
-  const Numeric mu = 1 / m1 + 1 / m2;
-  const Numeric v_bar_pow2 = fac*T*mu;
-  const Numeric tauc_pow2 = Constant::pow2(dc) / v_bar_pow2;
-  
-  return 1.0 / Constant::pow2(1 + 1.0/24.0 * Constant::pow2(wnnm2) * tauc_pow2);
-}
-
-Numeric Q(const Rational J,
-          const Numeric T,
-          const Numeric A,
-          const Numeric g,
-          const Numeric b,
-          const EnergyFunction& erot) noexcept
-{
-  const Numeric el = erot(J);
-  return std::exp(- b * el / (Constant::k * T)) * A / std::pow(el, g);
-}
-
 /** Returns the standard ECS / IOS Wigner symbol for
  * linear molecules
  * 
@@ -509,7 +403,7 @@ Numeric sum_symbol(const Rational Ji,
                    const EnergyFunction& erot) noexcept
 {
   return wigner_sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L) * Numeric(2 * L + 1) * 
-  rovib_data.Q(L, T, erot) / rovib_data.Omega(L, T, self_mass, erot);
+  rovib_data.Q(L, T, erot(L)) / rovib_data.Omega(T, self_mass, erot(L), erot(L-2));
 }
 
 /** The entire "sum over L" full expression
@@ -541,12 +435,12 @@ Numeric upper_offdiagonal_element(const Rational Ji,
   Numeric x = 0;
   const auto [Ls, Lf] = wigner_limits(wigner3j_limits<2>(Ji_p, Ji),
                         wigner_limits(wigner3j_limits<2>(Jf_p, Jf),
-                                      {Rational(2), 100000}));
+                                      {Rational(2), std::numeric_limits<Index>::max()}));
   for (Rational L=Ls; L<=Lf; L+=2) {
     x += sum_symbol(Ji, Ji_p, Jf, Jf_p, rovib_data, k, L,
                     T, self_mass, erot);
   }
-  return (iseven(k) ? -1 : 1) * rovib_data.Omega(Ji, T, self_mass, erot) *
+  return (iseven(k) ? -1 : 1) * rovib_data.Omega(T, self_mass, erot(Ji), erot(Ji-2)) *
           Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * x;
 }
 
@@ -737,7 +631,6 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  * @param[in] species_pos The index position of the colliding species among the band broadeners
  * @return The single species relaxation matrix
  */
-template <SpecialParam param>
 ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
                                                    const ArrayOfIndex& sorting,
                                                    const Numeric T,
@@ -759,7 +652,7 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
   // Set the off-diagonal part of the matrix for this broadener
   switch (band.Population()) {
     case PopulationType::ByMakarovFullRelmat:
-      Makarov2020etal::relaxation_matrix_offdiagonal<param>(W.imag(), T, band, sorting, band.SpeciesMass(), species_ecs_data.mass);
+      Makarov2020etal::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
       break;
     case PopulationType::ByRovibLinearDipoleLineMixing: {
       LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
@@ -785,7 +678,6 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
  * @param[in] frenorm The renormalization of frequency
  * @return The relaxation matrix
  */
-template <SpecialParam param>
 ComplexMatrix ecs_relaxation_matrix(const Numeric T,
                                     const Numeric P,
                                     const Vector& vmrs,
@@ -802,7 +694,7 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
   // Loop over all the broadeners
   for (Index k=0; k<M; k++) {
     // Create temporary
-    const ComplexMatrix Wtmp = single_species_ecs_relaxation_matrix<param>(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[k]], k);
+    const ComplexMatrix Wtmp = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[k]], k);
     
     // Sum up all atmospheric components
     for (Index i=0; i<N; i++) {
@@ -821,7 +713,6 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
 }
 
 
-template <SpecialParam param>
 ComplexVector ecs_absorption_impl(const Numeric T,
                                   const Numeric P,
                                   const Numeric this_vmr,
@@ -841,7 +732,7 @@ ComplexVector ecs_absorption_impl(const Numeric T,
   auto [sorting, tp] = sorted_population_and_dipole(T, band);
   
   // Relaxation matrix
-  const ComplexMatrix W = ecs_relaxation_matrix<param>(T, P, vmrs, ecs_data, band, sorting, frenorm);
+  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, frenorm);
   
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
@@ -878,7 +769,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
                                                               const Vector& f_grid,
                                                               const AbsorptionLines& band,
                                                               const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  const ComplexVector absorption = ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
+  const ComplexVector absorption = ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
   
   // Start as original, so remove new and divide with the negative to get forward derivative
   ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
@@ -889,13 +780,13 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
     
     if (target == Jacobian::Atm::Temperature) {
       const Numeric dT = target.Perturbation();
-      vec -= ecs_absorption_impl<SpecialParam::None>(T+dT, P, this_vmr, vmrs, ecs_data, f_grid, band);
+      vec -= ecs_absorption_impl(T+dT, P, this_vmr, vmrs, ecs_data, f_grid, band);
       vec /= -dT;
     } else if (target.isWind()) {
       const Numeric df = target.Perturbation();
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
-      vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, ecs_data, f_grid_copy, band);
+      vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid_copy, band);
     } else if (target == Jacobian::Line::VMR) {
       if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
         Vector vmrs_copy = vmrs;
@@ -916,7 +807,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
         }
         
         // Computations
-        vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, band);
+        vec -= ecs_absorption_impl(T, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, band);
         vec /= -dvmr;
       }
     } else if (target.needQuantumIdentity()) {
@@ -1047,33 +938,34 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
             case Jacobian::Line::ShapeDVX3:
             case Jacobian::Line::NLTE:
             case Jacobian::Line::VMR:
-            case Jacobian::Line::SpecialParameter1:
-            case Jacobian::Line::SpecialParameter2:
-            case Jacobian::Line::SpecialParameter3:
+            case Jacobian::Line::ECS_A:
+            case Jacobian::Line::ECS_B:
+            case Jacobian::Line::ECS_GAMMA:
+            case Jacobian::Line::ECS_DC:
             case Jacobian::Line::FINAL: {
               /* do nothing */
             }
           }
           
           // Perform calculations and estimate derivative
-          vec -= ecs_absorption_impl<SpecialParam::None>(T, P, this_vmr, vmrs, ecs_data, f_grid, band_copy);
+          vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band_copy);
           vec /= -d;
         } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
-          if (target == Jacobian::Line::SpecialParameter1) {
-            if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-              d = Conversion::angstrom2meter(1e-6);
-            }
-            vec -= ecs_absorption_impl<SpecialParam::ModifyParameter1>(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
-          } else if (target == Jacobian::Line::SpecialParameter2) {
-            if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-              d = 1e-6;
-            }
-            vec -= ecs_absorption_impl<SpecialParam::ModifyParameter2>(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
-          } else if (target == Jacobian::Line::SpecialParameter3) {
-            if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-              d = 1e-6;
-            }
-            vec -= ecs_absorption_impl<SpecialParam::ModifyParameter3>(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
+          d = target.Perturbation();
+          ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
+          
+          if (target == Jacobian::Line::ECS_A) {
+            ecs_data_copy[target.LineSpecies()].a += d;
+            vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data_copy, f_grid, band);
+          } else if (target == Jacobian::Line::ECS_B) {
+            ecs_data_copy[target.LineSpecies()].b += d;
+            vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
+          } else if (target == Jacobian::Line::ECS_GAMMA) {
+            ecs_data_copy[target.LineSpecies()].gamma += d;
+            vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
+          } else if (target == Jacobian::Line::ECS_DC) {
+            ecs_data_copy[target.LineSpecies()].dc += d;
+            vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
           }
           vec /= -d;
         } else {
@@ -1088,8 +980,6 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
   return {absorption, jacobian};
 }
 
-
-template <SpecialParam param>
 ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
                                          const Numeric H,
                                          const Numeric P,
@@ -1111,7 +1001,7 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
   const auto [sorting, tp] = sorted_population_and_dipole(T, band);
   
   // Relaxation matrix
-  const ComplexMatrix W = ecs_relaxation_matrix<param>(T, P, vmrs, ecs_data, band, sorting, frenorm);
+  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, frenorm);
   
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
@@ -1157,7 +1047,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
                                                                      const Zeeman::Polarization zeeman_polarization,
                                                                      const AbsorptionLines& band,
                                                                      const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  const ComplexVector absorption = ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+  const ComplexVector absorption = ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
   
   // Start as original, so remove new and divide with the negative to get forward derivative
   ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
@@ -1168,17 +1058,17 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
     
     if (target == Jacobian::Atm::Temperature) {
       const Numeric dT = target.Perturbation();
-      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T+dT, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+      vec -= ecs_absorption_zeeman_impl(T+dT, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
       vec /= -dT;
     } else if (target.isMagnetic()) {
       const Numeric dH = target.Perturbation();
-      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H+dH, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+      vec -= ecs_absorption_zeeman_impl(T, H+dH, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
       vec /= -dH;
     } else if (target.isWind()) {
       const Numeric df = target.Perturbation();
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
-      vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, ecs_data, f_grid_copy, zeeman_polarization, band);
+      vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid_copy, zeeman_polarization, band);
     } else if (target == Jacobian::Line::VMR) {
       if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
         Vector vmrs_copy = vmrs;
@@ -1198,7 +1088,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
         }
         
         // Computations
-        vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, zeeman_polarization, band);
+        vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, zeeman_polarization, band);
         vec /= -dvmr;
       }
     } else if (target.needQuantumIdentity()) {
@@ -1329,34 +1219,36 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
             case Jacobian::Line::ShapeDVX3:
             case Jacobian::Line::NLTE:
             case Jacobian::Line::VMR:
-            case Jacobian::Line::SpecialParameter1:
-            case Jacobian::Line::SpecialParameter2:
-            case Jacobian::Line::SpecialParameter3:
+            case Jacobian::Line::ECS_A:
+            case Jacobian::Line::ECS_B:
+            case Jacobian::Line::ECS_GAMMA:
+            case Jacobian::Line::ECS_DC:
             case Jacobian::Line::FINAL: {
               /* do nothing */
             }
           }
           
           // Perform calculations and estimate derivative
-          vec -= ecs_absorption_zeeman_impl<SpecialParam::None>(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band_copy);
+          vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band_copy);
           vec /= -d;
         } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
-          if (target == Jacobian::Line::SpecialParameter1) {
-            if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-              d = Conversion::angstrom2meter(1e-6);
-            }
-            vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter1>(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
-          } else if (target == Jacobian::Line::SpecialParameter2) {
-            if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-              d = 1e-6;
-            }
-            vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter2>(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
-          } else if (target == Jacobian::Line::SpecialParameter3) {
-            if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-              d = 1e-6;
-            }
-            vec -= ecs_absorption_zeeman_impl<SpecialParam::ModifyParameter3>(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+          d = target.Perturbation();
+          ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
+          
+          if (target == Jacobian::Line::ECS_A) {
+            ecs_data_copy[target.LineSpecies()].a += d;
+            vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+          } else if (target == Jacobian::Line::ECS_B) {
+            ecs_data_copy[target.LineSpecies()].b += d;
+            vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+          } else if (target == Jacobian::Line::ECS_GAMMA) {
+            ecs_data_copy[target.LineSpecies()].gamma += d;
+            vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+          } else if (target == Jacobian::Line::ECS_DC) {
+            ecs_data_copy[target.LineSpecies()].dc += d;
+            vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
           }
+          
           vec /= -d;
         } else {
           ARTS_ASSERT (false, "Missing Line Derivative");
@@ -1639,7 +1531,7 @@ Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
       const Numeric QT = single_partition_function(T, band.Isotopologue());
       
       // Relaxation matrix of T0 sorting at T
-      ComplexMatrix W = single_species_ecs_relaxation_matrix<SpecialParam::None>(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[m]], m);
+      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[m]], m);
       for (Index n=0; n<N; n++) {
         W(n, n) += band.F0(sorting[n]) - frenorm;
       }

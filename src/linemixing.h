@@ -85,42 +85,45 @@ struct SpeciesErrorCorrectedSuddenData {
   Numeric dc;
   Numeric mass;
   
-  constexpr SpeciesErrorCorrectedSuddenData() noexcept : spec(Species::Species::Bath),
-    a(0), b(0), gamma(0),
+  constexpr SpeciesErrorCorrectedSuddenData() noexcept :
+    spec(Species::Species::Bath), a(0), b(0), gamma(0),
     dc(std::numeric_limits<Numeric>::infinity()),
     mass(std::numeric_limits<Numeric>::infinity()) {}
   
-  constexpr SpeciesErrorCorrectedSuddenData(Species::Species inspec) noexcept : spec(inspec),
-    a(0), b(0), gamma(0),
+  constexpr SpeciesErrorCorrectedSuddenData(Species::Species inspec) noexcept :
+    spec(inspec), a(0), b(0), gamma(0),
     dc(std::numeric_limits<Numeric>::infinity()),
     mass(std::numeric_limits<Numeric>::infinity()) {}
   
   Numeric Q(const Rational J,
             const Numeric T,
-            const EnergyFunction& erot) const noexcept
+            const Numeric energy) const noexcept
   {
-    const Numeric el = erot(J);
-    return std::exp(- b * el / (Constant::k * T)) * a / std::pow(el, gamma);
+    return std::exp(- b * energy / (Constant::k * T)) * a * Numeric(2*J + 1) / pow(J * (J+1), gamma);
   }
   
-  Numeric Omega(const Rational J,
-                const Numeric T,
-                const Numeric other_mass,
-                const EnergyFunction& erot) const noexcept
+  constexpr Numeric Omega(const Numeric T,
+                          const Numeric other_mass,
+                          const Numeric energy_x,
+                          const Numeric energy_xm2) const noexcept
   {
+    using Constant::h;
+    using Constant::k;
+    using Constant::pi;
+    using Constant::m_u;
+    using Constant::h_bar;
+    using Constant::pow2;
+    
     // Constants for the expression
-    constexpr Numeric fac = 8 * Constant::k / (Constant::m_u * Constant::pi);
+    constexpr Numeric fac = 8 * k / (m_u * pi);
     
-    // nb. Only N=J considered???
-    const Numeric en = erot(J);
-    const Numeric enm2 = erot(J-2);
-    const Numeric wnnm2 = (en - enm2) / Constant::h_bar;
+    const Numeric wnnm2 = (energy_x - energy_xm2) / h_bar;
     
-    const Numeric mu = 1 / other_mass + 1 / mass;
+    const Numeric mu = 1 / mass + 1 / other_mass;
     const Numeric v_bar_pow2 = fac*T*mu;
-    const Numeric tauc_pow2 = Constant::pow2(dc) / v_bar_pow2;
+    const Numeric tauc_pow2 = pow2(dc) / v_bar_pow2;
     
-    return 1.0 / Constant::pow2(1 + 1.0/24.0 * Constant::pow2(wnnm2) * tauc_pow2);
+    return 1.0 / pow2(1 + 1.0/24.0 * pow2(wnnm2) * tauc_pow2);
   }
   
   friend std::ostream& operator<<(std::ostream& os, const SpeciesErrorCorrectedSuddenData& srbd) {
@@ -187,7 +190,7 @@ struct ErrorCorrectedSuddenData {
     }
   }
   
-  SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) {
+  SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) noexcept {
     if(auto ptr = std::find(data.begin(), data.end(), spec); ptr not_eq data.end()) {
       return *ptr;
     } else {

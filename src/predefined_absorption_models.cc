@@ -386,8 +386,6 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                   Complex(1 + G, -Y) * dFlm);
               } else if (deriv == Jacobian::Line::Strength) {
                 dxsec[iq](j, ip) += theta_3 * p[ip] * std::exp(-a2[i] * theta_m1) * pow2(f[j]) * abs.real();
-              } else if (deriv == Jacobian::Line::SpecialParameter1) {
-                dxsec[iq](j, ip) += -theta_m1 * ST * pow2(f[j]) * abs.real();
               }
             }
           }

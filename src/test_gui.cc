@@ -92,13 +92,15 @@ int main() {
   rq.Target().Perturbation(0.1);
   
   Absorption::LineMixing::ErrorCorrectedSuddenData ecs_data;
-  auto& species_ecs_data = ecs_data[Species::Species::Oxygen];
-  species_ecs_data.a = 1.0;
-  species_ecs_data.dc = Conversion::angstrom2meter(0.61);
-  species_ecs_data.gamma = 0.39;
-  species_ecs_data.b = 0.567;
-  species_ecs_data.mass = 31.989830;
-  ecs_data[Species::Species::Nitrogen] = ecs_data[Species::Species::Oxygen];
+  ecs_data[Species::Species::Oxygen].a = 1.0;
+  ecs_data[Species::Species::Oxygen].dc = Conversion::angstrom2meter(0.61);
+  ecs_data[Species::Species::Oxygen].gamma = 0.39;
+  ecs_data[Species::Species::Oxygen].b = 0.567;
+  ecs_data[Species::Species::Oxygen].mass = 31.989830;
+  ecs_data[Species::Species::Nitrogen].a = 1.0;
+  ecs_data[Species::Species::Nitrogen].dc = Conversion::angstrom2meter(0.61);
+  ecs_data[Species::Species::Nitrogen].gamma = 0.39;
+  ecs_data[Species::Species::Nitrogen].b = 0.567;
   ecs_data[Species::Species::Nitrogen].mass = 28.006148;
   
   // Line Mixing full calculations
