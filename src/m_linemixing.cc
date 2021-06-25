@@ -166,6 +166,7 @@ void abs_lines_per_speciesHitranLineMixingAdaptationData(ArrayOfTensor5& lm_data
 void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
                                            ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                            const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                           const MapOfErrorCorrectedSuddenData& ecs_data,
                                            const SpeciesIsotopologueRatios& isotopologue_ratios,
                                            const Vector& f_grid,
                                            const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -188,13 +189,12 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
       if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat and band.DoLineMixing(rtp_pressure)) {
         // vmrs should be for the line
         const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
-        const Vector line_shape_mass = band.BroadeningSpeciesMass(rtp_vmr, abs_species, isotopologue_ratios);
-        const Numeric this_vmr = rtp_vmr[i];
+        const Numeric this_vmr = rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
         const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(rtp_temperature,
                                                                         rtp_pressure,
                                                                         this_vmr,
                                                                         line_shape_vmr,
-                                                                        line_shape_mass,
+                                                                        ecs_data[band.QuantumIdentity()],
                                                                         f_grid,
                                                                         band,
                                                                         jacobian_quantities);
@@ -220,6 +220,7 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
 void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_clearsky,
                                                      ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                                      const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                     const MapOfErrorCorrectedSuddenData& ecs_data,
                                                      const SpeciesIsotopologueRatios& isotopologue_ratios,
                                                      const Vector& f_grid,
                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -252,15 +253,14 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
       if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat and band.DoLineMixing(rtp_pressure)) {
         // vmrs should be for the line
         const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
-        const Vector line_shape_mass = band.BroadeningSpeciesMass(rtp_vmr, abs_species, isotopologue_ratios);
-        const Numeric this_vmr = rtp_vmr[i];
+        const Numeric this_vmr = rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
         for (Zeeman::Polarization polarization : {Zeeman::Polarization::Pi, Zeeman::Polarization::SigmaMinus, Zeeman::Polarization::SigmaPlus}) {
           const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption_zeeman(rtp_temperature,
                                                                                  Z.H,
                                                                                  rtp_pressure,
                                                                                  this_vmr,
                                                                                  line_shape_vmr,
-                                                                                 line_shape_mass,
+                                                                                 ecs_data[band.QuantumIdentity()],
                                                                                  f_grid,
                                                                                  polarization,
                                                                                  band,

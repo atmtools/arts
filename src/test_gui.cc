@@ -91,19 +91,29 @@ int main() {
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
   rq.Target().Perturbation(0.1);
   
+  Absorption::LineMixing::ErrorCorrectedSuddenData ecs_data;
+  auto& species_ecs_data = ecs_data[Species::Species::Oxygen];
+  species_ecs_data.a = 1.0;
+  species_ecs_data.dc = Conversion::angstrom2meter(0.61);
+  species_ecs_data.gamma = 0.39;
+  species_ecs_data.b = 0.567;
+  species_ecs_data.mass = 31.989830;
+  ecs_data[Species::Species::Nitrogen] = ecs_data[Species::Species::Oxygen];
+  ecs_data[Species::Species::Nitrogen].mass = 28.006148;
+  
   // Line Mixing full calculations
-  const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, {31.989830, 28.006148}, f_grid, band,
+  const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, ecs_data, f_grid, band,
                                                                   {rq});
   
   // Line Mixing full calculations
-  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, {31.989830, 28.006148}, f_grid, band).first;
+  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, ecs_data, f_grid, band).first;
   
   // Line Mixing full calculations with Zeeman (ignoring polarization...)
-  auto [absZ, dabsZ] = Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.006148}, f_grid, 
+  auto [absZ, dabsZ] = Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid, 
                                                                      Zeeman::Polarization::Pi, band);
-  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.006148}, f_grid, 
+  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid, 
                                                         Zeeman::Polarization::SigmaMinus, band).first;
-  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, {31.989830, 28.006148}, f_grid, 
+  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid, 
                                                         Zeeman::Polarization::SigmaPlus, band).first;
   
   // Line Mixing reimplementation of MPM19
@@ -120,13 +130,13 @@ int main() {
   
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
 //   auto data = Absorption::LineMixing::ecs_eigenvalue_adaptation_test(band,
-//     VectorNLinSpaceConst(200, 350, 76), {31.989830, 28.006148},
+//     VectorNLinSpaceConst(200, 350, 76), ecs_data,
 //     VectorNLogSpaceConst(1, 1'000'000'000'000, 101));
 //   WriteXML("ascii", data, "prestemp.xml", 0, "", "", "", Verbosity());
   
   Absorption::LineMixing::ecs_eigenvalue_adaptation(band,
                                                     VectorNLinSpaceConst(200, 350, 76),
-                                                    {31.989830, 28.006148},
+                                                    ecs_data,
                                                     Conversion::atm2pa(1), 2);
   LineShape::ComputeData com(f_grid, {rq}, 0);
   LineShape::ComputeData sparse_com(Vector(0), {rq}, 0);

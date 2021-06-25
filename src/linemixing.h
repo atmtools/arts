@@ -75,146 +75,9 @@ struct PopulationAndDipole {
   void sort(const ArrayOfIndex& presorting) noexcept;
 };  // PopulationAndDipole
 
-
-/*! Computed the Error Corrected Sudden Complex absorption
- * 
- * @param[in] T The temperature
- * @param[in] P The pressure
- * @param[in] this_vmr The VMR of this species
- * @param[in] vmrs The VMRs of all broadeners of the absorption band
- * @param[in] mass The mass of all broadeners of the absorption band
- * @param[in] f_grid The grid of frequencies
- * @param[in] band The absorption band
- * @param[in] jacobian_quantities As WSV
- * @return Complex absorption and list of Complex absorption partial derivatives
- */
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
-                                                              const Numeric P,
-                                                              const Numeric this_vmr,
-                                                              const Vector& vmrs,
-                                                              const Vector& mass,
-                                                              const Vector& f_grid,
-                                                              const AbsorptionLines& band,
-                                                              const ArrayOfRetrievalQuantity& jacobian_quantities={});
-
-
-/*! Computed the Error Corrected Sudden Complex absorption with Zeeman effect perturbations
- * 
- * Note that Zeeman perturbations are only applied after the ECS computations
- * 
- * @param[in] T The temperature
- * @param[in] P The pressure
- * @param[in] this_vmr The VMR of this species
- * @param[in] vmrs The VMRs of all broadeners of the absorption band
- * @param[in] mass The mass of all broadeners of the absorption band
- * @param[in] f_grid The grid of frequencies
- * @param[in] zeeman_polarization The Zeeman polarization to consider
- * @param[in] band The absorption band
- * @return Complex absorption of the Zeeman component
- */
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numeric T,
-                                                                     const Numeric H,
-                                                                     const Numeric P,
-                                                                     const Numeric this_vmr,
-                                                                     const Vector& vmrs,
-                                                                     const Vector& mass,
-                                                                     const Vector& f_grid,
-                                                                     const Zeeman::Polarization zeeman_polarization,
-                                                                     const AbsorptionLines& band,
-                                                                     const ArrayOfRetrievalQuantity& jacobian_quantities={});
-
-/**  Adapts the band to the temperature data
- * 
- * @return EXIT_FAILURE on failure
- * @return EXIT_SUCCESS on success
- */
-Index band_eigenvalue_adaptation(
-  AbsorptionLines& band,
-  const Tensor4& tempdata,
-  const Vector& temperatures,
-  const Numeric P0,
-  const Index ord);
-
-
-/** Adapts the relaxation matrix eigenvalues to a form
- * where they represent additions towards the three
- * Rosenkranz parameters and the 3rd order pressure
- * broadening term.
- * 
- * The EquivalentLines are sorted by the real part of the
- * val-component.  At a sufficiently small pressure, this
- * is equivalent to sorting by line frequency.  At higher
- * pressures, the sorting might be wrong
- * 
- * The output is adapted to fit into standard LBL calculations
- * assuming that the pressure-sorting works.  This happens via
- * an adaptation so that
- * 
- * X = val - Complex(F0 + D0(T), G0(T))
- * Y  = str / I(T) - 1
- * 
- * are the two return values, where val and str are the output of
- * the standard constructor of EquivalentLines.
- */
-EquivalentLines eigenvalue_adaptation_of_relmat(
-  const ComplexMatrix& W,
-  const Vector& pop,
-  const Vector& dip,
-  const AbsorptionLines& band,
-  const Numeric frenorm,
-  const Numeric T,
-  const Numeric P,
-  const Numeric QT,
-  const Numeric QT0,
-  const Index broadener);
-
-
-/*! Adapts the band to use Rosenkranz parameters from Eigenvalue decomposition
- * 
- * Fits will be of form:
- * 
- * Y  ~ P      * polyfit(x, y,  LineShape::ModelParameters::N - 1)
- * DV ~ P ** 2 * polyfit(x, dv, LineShape::ModelParameters::N - 1)
- * G  ~ P ** 2 * polyfit(x, g,  LineShape::ModelParameters::N - 1)
- * DG ~ P ** 3 * polyfit(x, dg, LineShape::ModelParameters::N - 1)
- * 
- * where all the values are computed at P0 but re-normalized by the order above
- * 
- * Note that these parameters will fail at high pressures
- * 
- * @param[in] band The absorption band
- * @param[in] temperatures The temperature grid for fitting parameters upon
- * @param[in] mass The mass of all broadeners of the absorption band
- * @param[in] P0 The pressure at which temperature dependencies are computed at
- * @param[in] ord The order of the parameters [1: Y; 2: Y, DF, G; 3: Y, DF, G, DG]
- * @return EXIT_FAILURE when some parameterization fit fails
- * @return EXIT_SUCCESS if all algorithms worked (independent of if the absorption will be reasonable)
- */
-void ecs_eigenvalue_adaptation(AbsorptionLines& band,
-                               const Vector& temperatures,
-                               const Vector& mass,
-                               const Numeric P0,
-                               const Index ord);
-
-/*! Outputs the adaptation values used for ecs_eigenvalue_adaptation but as 
- * a function of pressure.  ecs_eigenvalue_adaptation makes strong assumptions
- * about the pressure order of the outputs used, and if this work for a given
- * band can be found out using this data
- * 
- * @param[in] band The absorption band [N lines]
- * @param[in] temperatures The temperature grid for fitting parameters upon [K temperatures]
- * @param[in] mass The mass of all broadeners of the absorption band [M broadeners]
- * @param[in] pressures The pressures for testing [L pressures]
- * @return Tensor with size [4, N, M, K, L]
- */
-Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
-                                       const Vector& temperatures,
-                                       const Vector& mass,
-                                       const Vector& pressures);
-
 using EnergyFunction = std::function<Numeric (const Rational)>;
 
-struct SpeciesRovibBandData {
+struct SpeciesErrorCorrectedSuddenData {
   Species::Species spec;
   Numeric a;
   Numeric b;
@@ -222,12 +85,12 @@ struct SpeciesRovibBandData {
   Numeric dc;
   Numeric mass;
   
-  constexpr SpeciesRovibBandData() noexcept : spec(Species::Species::Bath),
+  constexpr SpeciesErrorCorrectedSuddenData() noexcept : spec(Species::Species::Bath),
     a(0), b(0), gamma(0),
     dc(std::numeric_limits<Numeric>::infinity()),
     mass(std::numeric_limits<Numeric>::infinity()) {}
   
-  constexpr SpeciesRovibBandData(Species::Species inspec) noexcept : spec(inspec),
+  constexpr SpeciesErrorCorrectedSuddenData(Species::Species inspec) noexcept : spec(inspec),
     a(0), b(0), gamma(0),
     dc(std::numeric_limits<Numeric>::infinity()),
     mass(std::numeric_limits<Numeric>::infinity()) {}
@@ -260,13 +123,13 @@ struct SpeciesRovibBandData {
     return 1.0 / Constant::pow2(1 + 1.0/24.0 * Constant::pow2(wnnm2) * tauc_pow2);
   }
   
-  friend std::ostream& operator<<(std::ostream& os, const SpeciesRovibBandData& srbd) {
+  friend std::ostream& operator<<(std::ostream& os, const SpeciesErrorCorrectedSuddenData& srbd) {
     return os << Species::toShortName(srbd.spec) << ' '
               << srbd.a << ' ' << srbd.b << ' '
               << srbd.gamma << ' ' << srbd.dc << ' ' << srbd.mass;
   }
   
-  friend std::istream& operator>>(std::istream& is, SpeciesRovibBandData& srbd) {
+  friend std::istream& operator>>(std::istream& is, SpeciesErrorCorrectedSuddenData& srbd) {
     String spec_name;
     is >> spec_name >> srbd.a >> srbd.b >> srbd.gamma >> srbd.dc >> srbd.mass;
     srbd.spec = Species::fromShortName(spec_name);
@@ -276,7 +139,7 @@ struct SpeciesRovibBandData {
   constexpr bool operator==(Species::Species species) const noexcept {
     return species == spec;
   }
-};
+};  // SpeciesErrorCorrectedSuddenData
 
 /** Rovibrational line mixing data following
  * the ideas of Collisional Effects On
@@ -288,18 +151,18 @@ struct SpeciesRovibBandData {
  * of rotational energy calculations, Wigner symbols,
  * adiabatic factors and so on should be added here
  */
-struct RovibBandData {
+struct ErrorCorrectedSuddenData {
   Quantum::Identifier id;
   
   /** Data of species data
    * The program is considered ill-formed if data does not
    * contain a Bath-species, either the default one or modified */
-  Array<SpeciesRovibBandData> data;
+  Array<SpeciesErrorCorrectedSuddenData> data;
   
-  explicit RovibBandData(const Quantum::Identifier& qid={}) noexcept :
-    id(qid), data({SpeciesRovibBandData()}) {}
+  explicit ErrorCorrectedSuddenData(const Quantum::Identifier& qid={}) noexcept :
+  id(qid), data({SpeciesErrorCorrectedSuddenData()}) {}
   
-  friend std::ostream& operator<<(std::ostream& os, const RovibBandData& rbd) {
+  friend std::ostream& operator<<(std::ostream& os, const ErrorCorrectedSuddenData& rbd) {
     for (Index i=0; i<rbd.data.nelem(); i++) {
       if (i) os << '\n';
       os << rbd.data[i];
@@ -307,7 +170,7 @@ struct RovibBandData {
     return os;
   }
   
-  friend std::istream& operator>>(std::istream& is, RovibBandData& rbd) {
+  friend std::istream& operator>>(std::istream& is, ErrorCorrectedSuddenData& rbd) {
     for (auto& data: rbd.data) is >> data;
     return is;
   }
@@ -316,7 +179,7 @@ struct RovibBandData {
     return id == band_id;
   }
   
-  const SpeciesRovibBandData& operator[](Species::Species spec) const noexcept {
+  const SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) const noexcept {
     if(auto ptr = std::find(data.cbegin(), data.cend(), spec); ptr not_eq data.cend()) {
       return *ptr;
     } else {
@@ -324,17 +187,17 @@ struct RovibBandData {
     }
   }
   
-  SpeciesRovibBandData& operator[](Species::Species spec) {
+  SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) {
     if(auto ptr = std::find(data.begin(), data.end(), spec); ptr not_eq data.end()) {
       return *ptr;
     } else {
       return data.emplace_back(spec);
     }
   }
-};
+};  // ErrorCorrectedSuddenData
 
-struct MapOfRovibBandData : public Array<RovibBandData> {
-  RovibBandData& operator[](const Quantum::Identifier& id) {
+struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
+  ErrorCorrectedSuddenData& operator[](const Quantum::Identifier& id) {
     if(auto ptr = std::find(begin(), end(), id); ptr not_eq end()) {
       return *ptr;
     } else {
@@ -342,16 +205,150 @@ struct MapOfRovibBandData : public Array<RovibBandData> {
     }
   }
   
-  const RovibBandData& operator[](const Quantum::Identifier& id) const {
+  const ErrorCorrectedSuddenData& operator[](const Quantum::Identifier& id) const {
     if(auto ptr = std::find(cbegin(), cend(), id); ptr not_eq cend()) {
       return *ptr;
     }
     ARTS_USER_ERROR("Cannot find data for QuantumIdentifier\n", id, '\n');
     return front(); // To get rid of potential warnings...
   }
-};
+};  // MapOfErrorCorrectedSuddenData
+
+/*! Computed the Error Corrected Sudden Complex absorption
+ * 
+ * @param[in] T The temperature
+ * @param[in] P The pressure
+ * @param[in] this_vmr The VMR of this species
+ * @param[in] vmrs The VMRs of all broadeners of the absorption band
+ * @param[in] mass The mass of all broadeners of the absorption band
+ * @param[in] f_grid The grid of frequencies
+ * @param[in] band The absorption band
+ * @param[in] jacobian_quantities As WSV
+ * @return Complex absorption and list of Complex absorption partial derivatives
+ */
+std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
+                                                              const Numeric P,
+                                                              const Numeric this_vmr,
+                                                              const Vector& vmrs,
+                                                              const ErrorCorrectedSuddenData& ecs_data,
+                                                              const Vector& f_grid,
+                                                              const AbsorptionLines& band,
+                                                              const ArrayOfRetrievalQuantity& jacobian_quantities={});
+
+
+/*! Computed the Error Corrected Sudden Complex absorption with Zeeman effect perturbations
+ * 
+ * Note that Zeeman perturbations are only applied after the ECS computations
+ * 
+ * @param[in] T The temperature
+ * @param[in] P The pressure
+ * @param[in] this_vmr The VMR of this species
+ * @param[in] vmrs The VMRs of all broadeners of the absorption band
+ * @param[in] mass The mass of all broadeners of the absorption band
+ * @param[in] f_grid The grid of frequencies
+ * @param[in] zeeman_polarization The Zeeman polarization to consider
+ * @param[in] band The absorption band
+ * @return Complex absorption of the Zeeman component
+ */
+std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numeric T,
+                                                                     const Numeric H,
+                                                                     const Numeric P,
+                                                                     const Numeric this_vmr,
+                                                                     const Vector& vmrs,
+                                                                     const ErrorCorrectedSuddenData& ecs_data,
+                                                                     const Vector& f_grid,
+                                                                     const Zeeman::Polarization zeeman_polarization,
+                                                                     const AbsorptionLines& band,
+                                                                     const ArrayOfRetrievalQuantity& jacobian_quantities={});
+
+/**  Adapts the band to the temperature data
+ * 
+ * @return EXIT_FAILURE on failure
+ * @return EXIT_SUCCESS on success
+ */
+Index band_eigenvalue_adaptation(AbsorptionLines& band,
+                                 const Tensor4& tempdata,
+                                 const Vector& temperatures,
+                                 const Numeric P0,
+                                 const Index ord);
+
+
+/** Adapts the relaxation matrix eigenvalues to a form
+ * where they represent additions towards the three
+ * Rosenkranz parameters and the 3rd order pressure
+ * broadening term.
+ * 
+ * The EquivalentLines are sorted by the real part of the
+ * val-component.  At a sufficiently small pressure, this
+ * is equivalent to sorting by line frequency.  At higher
+ * pressures, the sorting might be wrong
+ * 
+ * The output is adapted to fit into standard LBL calculations
+ * assuming that the pressure-sorting works.  This happens via
+ * an adaptation so that
+ * 
+ * X = val - Complex(F0 + D0(T), G0(T))
+ * Y  = str / I(T) - 1
+ * 
+ * are the two return values, where val and str are the output of
+ * the standard constructor of EquivalentLines.
+ */
+EquivalentLines eigenvalue_adaptation_of_relmat(const ComplexMatrix& W,
+                                                const Vector& pop,
+                                                const Vector& dip,
+                                                const AbsorptionLines& band,
+                                                const Numeric frenorm,
+                                                const Numeric T,
+                                                const Numeric P,
+                                                const Numeric QT,
+                                                const Numeric QT0,
+                                                const Index broadener);
+
+
+/*! Adapts the band to use Rosenkranz parameters from Eigenvalue decomposition
+ * 
+ * Fits will be of form:
+ * 
+ * Y  ~ P      * polyfit(x, y,  LineShape::ModelParameters::N - 1)
+ * DV ~ P ** 2 * polyfit(x, dv, LineShape::ModelParameters::N - 1)
+ * G  ~ P ** 2 * polyfit(x, g,  LineShape::ModelParameters::N - 1)
+ * DG ~ P ** 3 * polyfit(x, dg, LineShape::ModelParameters::N - 1)
+ * 
+ * where all the values are computed at P0 but re-normalized by the order above
+ * 
+ * Note that these parameters will fail at high pressures
+ * 
+ * @param[in] band The absorption band
+ * @param[in] temperatures The temperature grid for fitting parameters upon
+ * @param[in] mass The mass of all broadeners of the absorption band
+ * @param[in] P0 The pressure at which temperature dependencies are computed at
+ * @param[in] ord The order of the parameters [1: Y; 2: Y, DF, G; 3: Y, DF, G, DG]
+ * @return EXIT_FAILURE when some parameterization fit fails
+ * @return EXIT_SUCCESS if all algorithms worked (independent of if the absorption will be reasonable)
+ */
+void ecs_eigenvalue_adaptation(AbsorptionLines& band,
+                               const Vector& temperatures,
+                               const ErrorCorrectedSuddenData& ecs_data,
+                               const Numeric P0,
+                               const Index ord);
+
+/*! Outputs the adaptation values used for ecs_eigenvalue_adaptation but as 
+ * a function of pressure.  ecs_eigenvalue_adaptation makes strong assumptions
+ * about the pressure order of the outputs used, and if this work for a given
+ * band can be found out using this data
+ * 
+ * @param[in] band The absorption band [N lines]
+ * @param[in] temperatures The temperature grid for fitting parameters upon [K temperatures]
+ * @param[in] mass The mass of all broadeners of the absorption band [M broadeners]
+ * @param[in] pressures The pressures for testing [L pressures]
+ * @return Tensor with size [4, N, M, K, L]
+ */
+Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
+                                       const Vector& temperatures,
+                                       const ErrorCorrectedSuddenData& ecs_data,
+                                       const Vector& pressures);
 }  // LineMixing
 
-using MapOfRovibBandData = Absorption::LineMixing::MapOfRovibBandData;
+using MapOfErrorCorrectedSuddenData = Absorption::LineMixing::MapOfErrorCorrectedSuddenData;
 
 #endif  // linemixing_h

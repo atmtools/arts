@@ -2035,16 +2035,16 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== MapOfRovibBandData ======================================================
+//=== MapOfErrorCorrectedSuddenData ======================================================
 
-//! Reads MapOfRovibBandData from XML input stream
+//! Reads MapOfErrorCorrectedSuddenData from XML input stream
 /*!
  * \param is_xml     XML Input stream
- * \param rvb        MapOfRovibBandData return value
+ * \param rvb        MapOfErrorCorrectedSuddenData return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
 void xml_read_from_stream(istream& is_xml,
-                          MapOfRovibBandData& rvb,
+                          MapOfErrorCorrectedSuddenData& rvb,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
   ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
@@ -2053,7 +2053,7 @@ void xml_read_from_stream(istream& is_xml,
   ArtsXMLTag tag(verbosity);
 
   tag.read_from_stream(is_xml);
-  tag.check_name("MapOfRovibBandData");
+  tag.check_name("MapOfErrorCorrectedSuddenData");
   
   Index nelem;
   tag.get_attribute_value("nelem", nelem);
@@ -2062,31 +2062,36 @@ void xml_read_from_stream(istream& is_xml,
   for (auto& r: rvb) {
     ArtsXMLTag internal_tag(verbosity);
     internal_tag.read_from_stream(is_xml);
-    internal_tag.check_name("RovibBandData");
+    internal_tag.check_name("ErrorCorrectedSuddenData");
     
     // Get key
     String val;
     internal_tag.get_attribute_value("key", val);
     r.id.SetFromString(val);
     
+    // Get size
+    Index nelem_specs;
+    internal_tag.get_attribute_value("nelem", nelem_specs);
+    r.data.resize(nelem_specs);
+    
     // Get values
     is_xml >> r;
     
-    internal_tag.check_name("/RovibBandData");
+    internal_tag.check_name("/ErrorCorrectedSuddenData");
   }
 
-  tag.check_name("/MapOfRovibBandData");
+  tag.check_name("/MapOfErrorCorrectedSuddenData");
 }
 
-//! Writes MapOfRovibBandData to XML output stream
+//! Writes MapOfErrorCorrectedSuddenData to XML output stream
 /*!
  * \param os_xml     XML Output stream
- * \param rvb        MapOfRovibBandData
+ * \param rvb        MapOfErrorCorrectedSuddenData
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
 void xml_write_to_stream(ostream& os_xml,
-                         const MapOfRovibBandData& rvb,
+                         const MapOfErrorCorrectedSuddenData& rvb,
                          bofstream* pbofs,
                          const String& name,
                          const Verbosity& verbosity) {
@@ -2095,27 +2100,29 @@ void xml_write_to_stream(ostream& os_xml,
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name("MapOfRovibBandData");
+  open_tag.set_name("MapOfErrorCorrectedSuddenData");
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.add_attribute("nelem", rvb.nelem());
   
   
   for (auto& r: rvb) {
     ArtsXMLTag internal_tag(verbosity);
-    internal_tag.set_name("RovibBandData");
+    internal_tag.set_name("ErrorCorrectedSuddenData");
     
     // Set key
-    String val;
     internal_tag.add_attribute("key", r.id.GetString());
     
-    // Get values
+    // Set nelem
+    internal_tag.add_attribute("nelem", r.data.nelem());
+    
+    // Set values
     os_xml << r;
     
-    close_tag.set_name("/XsecRecord");
+    close_tag.set_name("/ErrorCorrectedSuddenData");
     os_xml << '\n';
   }
   
-  close_tag.set_name("/MapOfRovibBandData");
+  close_tag.set_name("/MapOfErrorCorrectedSuddenData");
   close_tag.write_to_stream(os_xml);
 
   os_xml << '\n';
