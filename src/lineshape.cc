@@ -2026,6 +2026,7 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
   case Absorption::PopulationType::ByHITRANFullRelmat:
   case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
   case Absorption::PopulationType::ByMakarovFullRelmat:
+  case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
   case Absorption::PopulationType::LTE:
     return LocalThermodynamicEquilibrium(line.I0(), band.T0(), T, line.F0(),
                                          line.E0(), QT, QT0, dQTdT, r, drdSELFVMR, drdT);

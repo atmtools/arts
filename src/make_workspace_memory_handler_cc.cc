@@ -63,6 +63,7 @@ int main() {
         << "#include \"tessem.h\"\n"
         << "#include \"hitran_xsec.h\"\n"
         << "#include \"absorptionlines.h\"\n"
+        << "#include \"linemixing.h\"\n"
         << "\n";
 
     ofs << "// Allocation and deallocation routines for workspace groups\n";

@@ -1,6 +1,8 @@
 #ifndef linemixing_h
 #define linemixing_h
 
+#include <functional>
+
 #include "absorption.h"
 #include "complex.h"
 #include "constants.h"
@@ -9,6 +11,7 @@
 #include "zeemandata.h"
 
 namespace Absorption::LineMixing {
+
 //! Contains recomputed equivalent lines (sorting is unknown)
 struct EquivalentLines {
   ComplexVector val;
@@ -208,6 +211,147 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
                                        const Vector& temperatures,
                                        const Vector& mass,
                                        const Vector& pressures);
+
+using EnergyFunction = std::function<Numeric (const Rational)>;
+
+struct SpeciesRovibBandData {
+  Species::Species spec;
+  Numeric a;
+  Numeric b;
+  Numeric gamma;
+  Numeric dc;
+  Numeric mass;
+  
+  constexpr SpeciesRovibBandData() noexcept : spec(Species::Species::Bath),
+    a(0), b(0), gamma(0),
+    dc(std::numeric_limits<Numeric>::infinity()),
+    mass(std::numeric_limits<Numeric>::infinity()) {}
+  
+  constexpr SpeciesRovibBandData(Species::Species inspec) noexcept : spec(inspec),
+    a(0), b(0), gamma(0),
+    dc(std::numeric_limits<Numeric>::infinity()),
+    mass(std::numeric_limits<Numeric>::infinity()) {}
+  
+  Numeric Q(const Rational J,
+            const Numeric T,
+            const EnergyFunction& erot) const noexcept
+  {
+    const Numeric el = erot(J);
+    return std::exp(- b * el / (Constant::k * T)) * a / std::pow(el, gamma);
+  }
+  
+  Numeric Omega(const Rational J,
+                const Numeric T,
+                const Numeric other_mass,
+                const EnergyFunction& erot) const noexcept
+  {
+    // Constants for the expression
+    constexpr Numeric fac = 8 * Constant::k / (Constant::m_u * Constant::pi);
+    
+    // nb. Only N=J considered???
+    const Numeric en = erot(J);
+    const Numeric enm2 = erot(J-2);
+    const Numeric wnnm2 = (en - enm2) / Constant::h_bar;
+    
+    const Numeric mu = 1 / other_mass + 1 / mass;
+    const Numeric v_bar_pow2 = fac*T*mu;
+    const Numeric tauc_pow2 = Constant::pow2(dc) / v_bar_pow2;
+    
+    return 1.0 / Constant::pow2(1 + 1.0/24.0 * Constant::pow2(wnnm2) * tauc_pow2);
+  }
+  
+  friend std::ostream& operator<<(std::ostream& os, const SpeciesRovibBandData& srbd) {
+    return os << Species::toShortName(srbd.spec) << ' '
+              << srbd.a << ' ' << srbd.b << ' '
+              << srbd.gamma << ' ' << srbd.dc << ' ' << srbd.mass;
+  }
+  
+  friend std::istream& operator>>(std::istream& is, SpeciesRovibBandData& srbd) {
+    String spec_name;
+    is >> spec_name >> srbd.a >> srbd.b >> srbd.gamma >> srbd.dc >> srbd.mass;
+    srbd.spec = Species::fromShortName(spec_name);
+    return is;
+  }
+  
+  constexpr bool operator==(Species::Species species) const noexcept {
+    return species == spec;
+  }
+};
+
+/** Rovibrational line mixing data following
+ * the ideas of Collisional Effects On
+ * Molecular Spectra by J.-M. Hartmann, C. Boulet,
+ * and D. Robert, 1st edition, 2008.
+ * 
+ * This is for now a purely "data" struct, without
+ * any logic.  If necessary, logic for the selection
+ * of rotational energy calculations, Wigner symbols,
+ * adiabatic factors and so on should be added here
+ */
+struct RovibBandData {
+  Quantum::Identifier id;
+  
+  /** Data of species data
+   * The program is considered ill-formed if data does not
+   * contain a Bath-species, either the default one or modified */
+  Array<SpeciesRovibBandData> data;
+  
+  explicit RovibBandData(const Quantum::Identifier& qid={}) noexcept :
+    id(qid), data({SpeciesRovibBandData()}) {}
+  
+  friend std::ostream& operator<<(std::ostream& os, const RovibBandData& rbd) {
+    for (Index i=0; i<rbd.data.nelem(); i++) {
+      if (i) os << '\n';
+      os << rbd.data[i];
+    }
+    return os;
+  }
+  
+  friend std::istream& operator>>(std::istream& is, RovibBandData& rbd) {
+    for (auto& data: rbd.data) is >> data;
+    return is;
+  }
+  
+  bool operator==(const Quantum::Identifier& band_id) const noexcept {
+    return id == band_id;
+  }
+  
+  const SpeciesRovibBandData& operator[](Species::Species spec) const noexcept {
+    if(auto ptr = std::find(data.cbegin(), data.cend(), spec); ptr not_eq data.cend()) {
+      return *ptr;
+    } else {
+      return *std::find(data.cbegin(), data.cend(), Species::Species::Bath);
+    }
+  }
+  
+  SpeciesRovibBandData& operator[](Species::Species spec) {
+    if(auto ptr = std::find(data.begin(), data.end(), spec); ptr not_eq data.end()) {
+      return *ptr;
+    } else {
+      return data.emplace_back(spec);
+    }
+  }
+};
+
+struct MapOfRovibBandData : public Array<RovibBandData> {
+  RovibBandData& operator[](const Quantum::Identifier& id) {
+    if(auto ptr = std::find(begin(), end(), id); ptr not_eq end()) {
+      return *ptr;
+    } else {
+      return emplace_back(id);
+    }
+  }
+  
+  const RovibBandData& operator[](const Quantum::Identifier& id) const {
+    if(auto ptr = std::find(cbegin(), cend(), id); ptr not_eq cend()) {
+      return *ptr;
+    }
+    ARTS_USER_ERROR("Cannot find data for QuantumIdentifier\n", id, '\n');
+    return front(); // To get rid of potential warnings...
+  }
+};
 }  // LineMixing
+
+using MapOfRovibBandData = Absorption::LineMixing::MapOfRovibBandData;
 
 #endif  // linemixing_h

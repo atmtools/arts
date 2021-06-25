@@ -2,7 +2,6 @@ import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.LineShapeModelParameters import LineShapeModelParameters
-from pyarts.classes.LineShapeModelParameters import InternalLineShapeModelParameters
 
 
 class LineShapeSingleSpeciesModel:
@@ -60,7 +59,7 @@ class LineShapeSingleSpeciesModel:
     @property
     def g0(self):
         """ Speed independent broadening model (LineShapeModelParameters) """
-        return LineShapeModelParameters(lib.getG0LineShapeSingleSpeciesModel(self.__data__).contents)
+        return LineShapeModelParameters(c.c_void_p(lib.getG0LineShapeSingleSpeciesModel(self.__data__)))
 
     @g0.setter
     def g0(self, x):
@@ -69,7 +68,7 @@ class LineShapeSingleSpeciesModel:
     @property
     def d0(self):
         """ Speed independent shifting model (LineShapeModelParameters) """
-        return LineShapeModelParameters(lib.getD0LineShapeSingleSpeciesModel(self.__data__).contents)
+        return LineShapeModelParameters(c.c_void_p(lib.getD0LineShapeSingleSpeciesModel(self.__data__)))
 
     @d0.setter
     def d0(self, x):
@@ -78,7 +77,7 @@ class LineShapeSingleSpeciesModel:
     @property
     def g2(self):
         """ Speed dependent broadening model (LineShapeModelParameters) """
-        return LineShapeModelParameters(lib.getG2LineShapeSingleSpeciesModel(self.__data__).contents)
+        return LineShapeModelParameters(c.c_void_p(lib.getG2LineShapeSingleSpeciesModel(self.__data__)))
 
     @g2.setter
     def g2(self, x):
@@ -87,7 +86,7 @@ class LineShapeSingleSpeciesModel:
     @property
     def d2(self):
         """ Speed dependent shifting model (LineShapeModelParameters) """
-        return LineShapeModelParameters(lib.getD2LineShapeSingleSpeciesModel(self.__data__).contents)
+        return LineShapeModelParameters(c.c_void_p(lib.getD2LineShapeSingleSpeciesModel(self.__data__)))
 
     @d2.setter
     def d2(self, x):
@@ -96,7 +95,7 @@ class LineShapeSingleSpeciesModel:
     @property
     def fvc(self):
         """ Frequency velocity changing model (LineShapeModelParameters) """
-        return LineShapeModelParameters(lib.getFVCLineShapeSingleSpeciesModel(self.__data__).contents)
+        return LineShapeModelParameters(c.c_void_p(lib.getFVCLineShapeSingleSpeciesModel(self.__data__)))
 
     @fvc.setter
     def fvc(self, x):
@@ -105,7 +104,7 @@ class LineShapeSingleSpeciesModel:
     @property
     def eta(self):
         """ Correlation model (LineShapeModelParameters) """
-        return LineShapeModelParameters(lib.getETALineShapeSingleSpeciesModel(self.__data__).contents)
+        return LineShapeModelParameters(c.c_void_p(lib.getETALineShapeSingleSpeciesModel(self.__data__)))
 
     @eta.setter
     def eta(self, x):
@@ -114,7 +113,7 @@ class LineShapeSingleSpeciesModel:
     @property
     def y(self):
         """ 1st order line mixing model (LineShapeModelParameters) """
-        return LineShapeModelParameters(lib.getYLineShapeSingleSpeciesModel(self.__data__).contents)
+        return LineShapeModelParameters(c.c_void_p(lib.getYLineShapeSingleSpeciesModel(self.__data__)))
 
     @y.setter
     def y(self, x):
@@ -123,7 +122,7 @@ class LineShapeSingleSpeciesModel:
     @property
     def g(self):
         """ 2nd order strength line mixing model (LineShapeModelParameters) """
-        return LineShapeModelParameters(lib.getGLineShapeSingleSpeciesModel(self.__data__).contents)
+        return LineShapeModelParameters(c.c_void_p(lib.getGLineShapeSingleSpeciesModel(self.__data__)))
 
     @g.setter
     def g(self, x):
@@ -132,7 +131,7 @@ class LineShapeSingleSpeciesModel:
     @property
     def dv(self):
         """ 2nd order shift line mixing model (LineShapeModelParameters) """
-        return LineShapeModelParameters(lib.getDVLineShapeSingleSpeciesModel(self.__data__).contents)
+        return LineShapeModelParameters(c.c_void_p(lib.getDVLineShapeSingleSpeciesModel(self.__data__)))
 
     @dv.setter
     def dv(self, x):
@@ -147,7 +146,35 @@ class LineShapeSingleSpeciesModel:
             lib.deleteLineShapeSingleSpeciesModel(self.__data__)
 
     def __repr__(self):
-        return "ARTS LineShape::SingleSpeciesModel"
+        out = ""
+        if self.g0.type != "None":
+            if len(out): out += ' '
+            out += f"G0 {self.g0}"
+        if self.d0.type != "None":
+            if len(out): out += ' '
+            out += f"D0 {self.d0}"
+        if self.g2.type != "None":
+            if len(out): out += ' '
+            out += f"G2 {self.g2}"
+        if self.d2.type != "None":
+            if len(out): out += ' '
+            out += f"D2 {self.d2}"
+        if self.fvc.type != "None":
+            if len(out): out += ' '
+            out += f"FVC {self.fvc}"
+        if self.eta.type != "None":
+            if len(out): out += ' '
+            out += f"ETA {self.eta}"
+        if self.y.type != "None":
+            if len(out): out += ' '
+            out += f"Y {self.y}"
+        if self.g.type != "None":
+            if len(out): out += ' '
+            out += f"G {self.g}"
+        if self.dv.type != "None":
+            if len(out): out += ' '
+            out += f"DV {self.dv}"
+        return out
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
@@ -189,29 +216,29 @@ lib.deleteLineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 lib.printLineShapeSingleSpeciesModel.restype = None
 lib.printLineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 
-lib.getG0LineShapeSingleSpeciesModel.restype = c.POINTER(InternalLineShapeModelParameters)
+lib.getG0LineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.getG0LineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 
-lib.getD0LineShapeSingleSpeciesModel.restype = c.POINTER(InternalLineShapeModelParameters)
+lib.getD0LineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.getD0LineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 
-lib.getG2LineShapeSingleSpeciesModel.restype = c.POINTER(InternalLineShapeModelParameters)
+lib.getG2LineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.getG2LineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 
-lib.getD2LineShapeSingleSpeciesModel.restype = c.POINTER(InternalLineShapeModelParameters)
+lib.getD2LineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.getD2LineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 
-lib.getFVCLineShapeSingleSpeciesModel.restype = c.POINTER(InternalLineShapeModelParameters)
+lib.getFVCLineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.getFVCLineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 
-lib.getETALineShapeSingleSpeciesModel.restype = c.POINTER(InternalLineShapeModelParameters)
+lib.getETALineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.getETALineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 
-lib.getYLineShapeSingleSpeciesModel.restype = c.POINTER(InternalLineShapeModelParameters)
+lib.getYLineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.getYLineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 
-lib.getGLineShapeSingleSpeciesModel.restype = c.POINTER(InternalLineShapeModelParameters)
+lib.getGLineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.getGLineShapeSingleSpeciesModel.argtypes = [c.c_void_p]
 
-lib.getDVLineShapeSingleSpeciesModel.restype = c.POINTER(InternalLineShapeModelParameters)
+lib.getDVLineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.getDVLineShapeSingleSpeciesModel.argtypes = [c.c_void_p]

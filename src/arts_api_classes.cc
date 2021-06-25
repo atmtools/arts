@@ -206,15 +206,29 @@ GetterSetterCAPI(Rational, Nom, Index)
 GetterSetterCAPI(Rational, Denom, Index)
 void simplifyRational(void * data) { static_cast<Rational *>(data)->simplify_in_place(); }
 
+// LineShapeTemperatureModel
+BasicInterfaceCAPI(LineShapeTemperatureModel)
+void * getLineShapeTemperatureModelString(void * data) {
+  return new String(toString(*static_cast<LineShapeTemperatureModel *>(data)));
+}
+int setLineShapeTemperatureModelString(void * data, char * val) {
+  auto x = LineShape::toTemperatureModel(val);
+  if (good_enum(x)) {
+    *static_cast<LineShapeTemperatureModel *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
 
 // LineShape::ModelParameters
-void printLineShapeModelParameters(void * data) { std::cout << (*static_cast<LineShape::ModelParameters *>(data)) << std::endl; }
-Index getLineShapeModelParametersType(char * data) {
-  if (const LineShape::TemperatureModel val = LineShape::toTemperatureModel(data); good_enum(val))
-    return Index(val);
-  else
-    return -1;
-}
+BasicInterfaceCAPI(LineShapeModelParameters)
+VoidStructGetterCAPI(LineShapeModelParameters, type)
+VoidStructGetterCAPI(LineShapeModelParameters, X0)
+VoidStructGetterCAPI(LineShapeModelParameters, X1)
+VoidStructGetterCAPI(LineShapeModelParameters, X2)
+VoidStructGetterCAPI(LineShapeModelParameters, X3)
 
 
 // LineShape::SingleSpeciesModel

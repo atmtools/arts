@@ -233,6 +233,9 @@ void Linefunctions::set_lineshape(
     case Absorption::NormalizationType::RQ:
       apply_rosenkranz_quadratic_scaling(F, dF, f_grid, line.F0(), temperature);
       break;
+    case Absorption::NormalizationType::SFS:
+      ARTS_USER_ERROR("Not supported in old XSEC calculations: SFS normalization type")
+      break;
     case Absorption::NormalizationType::FINAL: break;
   }
 }
@@ -1514,6 +1517,9 @@ void Linefunctions::set_cross_section_of_band(
         case Absorption::NormalizationType::RQ:
           apply_rosenkranz_quadratic_scaling(F, dF, f, band.F0(i), T, band, i, derivatives_data);
           break;
+        case Absorption::NormalizationType::SFS:
+          ARTS_USER_ERROR("Not supported in old XSEC calculations: SFS normalization type")
+          break;
         case Absorption::NormalizationType::FINAL: break;
       }
 
@@ -1522,6 +1528,7 @@ void Linefunctions::set_cross_section_of_band(
         case Absorption::PopulationType::ByHITRANFullRelmat:
         case Absorption::PopulationType::ByMakarovFullRelmat:
         case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
+        case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
         case Absorption::PopulationType::LTE:
           apply_linestrength_scaling_by_lte(F, dF, N, dN, band.Line(i), T, band.T0(), isot_ratio, QT, QT0, band, i, derivatives_data, dQTdT);
           break;

@@ -144,10 +144,18 @@ extern "C" {
     GetterSetterCAPI(Rational, Nom, Index)
     GetterSetterCAPI(Rational, Denom, Index)
     DLL_PUBLIC void simplifyRational(void *);
+    
+    // LineShapeTemperatureModel
+    BasicInterfaceCAPI(LineShapeTemperatureModel)
+    StringEnumPointersCAPI(LineShapeTemperatureModel)
   
     // LineShape::ModelParameters
-    DLL_PUBLIC void printLineShapeModelParameters(void *);
-    DLL_PUBLIC Index getLineShapeModelParametersType(char *);
+    BasicInterfaceCAPI(LineShapeModelParameters)
+    VoidStructGetterCAPI(LineShapeModelParameters, type)
+    VoidStructGetterCAPI(LineShapeModelParameters, X0)
+    VoidStructGetterCAPI(LineShapeModelParameters, X1)
+    VoidStructGetterCAPI(LineShapeModelParameters, X2)
+    VoidStructGetterCAPI(LineShapeModelParameters, X3)
   
     // LineShape::SingleSpeciesModel
     BasicInterfaceCAPI(LineShapeSingleSpeciesModel)

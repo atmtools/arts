@@ -2035,6 +2035,92 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== MapOfRovibBandData ======================================================
+
+//! Reads MapOfRovibBandData from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param rvb        MapOfRovibBandData return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          MapOfRovibBandData& rvb,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
+  
+  CREATE_OUT2;
+  ArtsXMLTag tag(verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("MapOfRovibBandData");
+  
+  Index nelem;
+  tag.get_attribute_value("nelem", nelem);
+  rvb.resize(nelem);
+  
+  for (auto& r: rvb) {
+    ArtsXMLTag internal_tag(verbosity);
+    internal_tag.read_from_stream(is_xml);
+    internal_tag.check_name("RovibBandData");
+    
+    // Get key
+    String val;
+    internal_tag.get_attribute_value("key", val);
+    r.id.SetFromString(val);
+    
+    // Get values
+    is_xml >> r;
+    
+    internal_tag.check_name("/RovibBandData");
+  }
+
+  tag.check_name("/MapOfRovibBandData");
+}
+
+//! Writes MapOfRovibBandData to XML output stream
+/*!
+ * \param os_xml     XML Output stream
+ * \param rvb        MapOfRovibBandData
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const MapOfRovibBandData& rvb,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
+  
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("MapOfRovibBandData");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("nelem", rvb.nelem());
+  
+  
+  for (auto& r: rvb) {
+    ArtsXMLTag internal_tag(verbosity);
+    internal_tag.set_name("RovibBandData");
+    
+    // Set key
+    String val;
+    internal_tag.add_attribute("key", r.id.GetString());
+    
+    // Get values
+    os_xml << r;
+    
+    close_tag.set_name("/XsecRecord");
+    os_xml << '\n';
+  }
+  
+  close_tag.set_name("/MapOfRovibBandData");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented

@@ -363,6 +363,8 @@ struct Identifier {
   
   void SetFromString(String str);
   
+  String GetString() const;
+  
   explicit Identifier(String x) { SetFromString(x); }
   
   constexpr const Species::IsotopeRecord& Isotopologue() const noexcept {

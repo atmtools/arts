@@ -617,6 +617,7 @@ int main() {
         << "#include \"tessem.h\"\n"
         << "#include \"hitran_xsec.h\"\n"
         << "#include \"absorptionlines.h\"\n"
+        << "#include \"linemixing.h\"\n"
         << "\n";
 
     ofs << "// This is only used for a consistency check. You can get the\n"

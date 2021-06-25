@@ -1,4 +1,3 @@
-#include <functional>
 #include <numeric>
 
 #include <Faddeeva/Faddeeva.hh>
@@ -266,6 +265,7 @@ constexpr Numeric Omega(const Rational N,
   using Constant::h;
   using Constant::k;
   using Constant::pi;
+  using Constant::m_u;
   using Constant::h_bar;
   using Constant::pow2;
   
@@ -275,7 +275,7 @@ constexpr Numeric Omega(const Rational N,
     Conversion::angstrom2meter(0.61);
   
   // Constants for the expression
-  constexpr Numeric fac = 8 * k / (Constant::m_u * pi);
+  constexpr Numeric fac = 8 * k / (m_u * pi);
   
   // nb. Only N=J considered???
   const Numeric en = erot(N);
@@ -359,7 +359,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       //    4) Use wigner6j(1, 1, 1, Jf, Ji, N) instead of wigner6j(1, 1, 1, Ji, Jf, N), which is in the paper
       // These are modified after reading the original code
       Numeric sum = 0;
-      const Numeric scale = Numeric((2*Nk + 1) * (2*Nl + 1)) * sqrt((2*Jk + 1) * (2*Jl + 1) * (2*Jk_p + 1) * (2* Jl_p + 1));
+      const Numeric scale = Numeric(2*Nk + 1) * Numeric(2*Nl + 1) * sqrt(2*Jk + 1) * sqrt(2*Jl + 1) * sqrt(2*Jk_p + 1) * sqrt(2* Jl_p + 1);
       const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Nl, Nk), {Rational(2), 100000});
       for (Rational L=L0; L<=L1; L+=2) {
         const Numeric sgn = iseven(Jk + Jl + L + 1) ? 1 : -1;
@@ -424,7 +424,6 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  * It requires inputs for each of the internal components
  */
 namespace LinearRovibErrorCorrectedSudden {
-using EnergyFunction = std::function<Numeric (const Rational)>;
 
 Numeric Omega(const Rational J,
               const Numeric T,
@@ -502,19 +501,15 @@ Numeric sum_symbol(const Rational Ji,
                    const Rational Ji_p,
                    const Rational Jf,
                    const Rational Jf_p,
+                   const SpeciesRovibBandData& rovib_data,
                    const Rational k,
                    const Rational L,
                    const Numeric T,
-                   const Numeric m1,
-                   const Numeric m2,
-                   const Numeric dc,
-                   const Numeric A,
-                   const Numeric g,
-                   const Numeric b,
+                   const Numeric self_mass,
                    const EnergyFunction& erot) noexcept
 {
   return wigner_sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L) * Numeric(2 * L + 1) * 
-         Q(L, T, A, g, b, erot) / Omega(L, T, m1, m2, dc, erot);
+  rovib_data.Q(L, T, erot) / rovib_data.Omega(L, T, self_mass, erot);
 }
 
 /** The entire "sum over L" full expression
@@ -535,14 +530,10 @@ Numeric upper_offdiagonal_element(const Rational Ji,
                                   const Rational Ji_p,
                                   const Rational Jf,
                                   const Rational Jf_p,
+                                  const SpeciesRovibBandData& rovib_data,
                                   const Rational k,
                                   const Numeric T,
-                                  const Numeric m1,
-                                  const Numeric m2,
-                                  const Numeric dc,
-                                  const Numeric A,
-                                  const Numeric g,
-                                  const Numeric b,
+                                  const Numeric self_mass,
                                   const EnergyFunction& erot) ARTS_NOEXCEPT
 {
   ARTS_ASSERT(Ji >= Ji_p, "Ji is selected as the upper state in our formalism")
@@ -552,10 +543,10 @@ Numeric upper_offdiagonal_element(const Rational Ji,
                         wigner_limits(wigner3j_limits<2>(Jf_p, Jf),
                                       {Rational(2), 100000}));
   for (Rational L=Ls; L<=Lf; L+=2) {
-    x += sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L,
-                    T, m1, m2, dc, A, g, b, erot);
+    x += sum_symbol(Ji, Ji_p, Jf, Jf_p, rovib_data, k, L,
+                    T, self_mass, erot);
   }
-  return (iseven(k) ? -1 : 1) * Omega(Ji, T, m1, m2, dc, erot) *
+  return (iseven(k) ? -1 : 1) * rovib_data.Omega(Ji, T, self_mass, erot) *
           Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * x;
 }
 
@@ -583,26 +574,24 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
                                                  const Rational Ji2,
                                                  const Rational Jf1,
                                                  const Rational Jf2,
+                                                 const SpeciesRovibBandData& rovib_data,
                                                  const Rational k,
                                                  const Numeric pop1,
                                                  const Numeric pop2,
                                                  const Numeric T,
-                                                 const Numeric m1,
-                                                 const Numeric m2,
-                                                 const Numeric dc,
-                                                 const Numeric A,
-                                                 const Numeric g,
-                                                 const Numeric b,
+                                                 const Numeric self_mass,
                                                  const EnergyFunction& erot) ARTS_NOEXCEPT
 {
   if (Ji1 >= Ji2) {
-    const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2, k,
-                                                T, m1, m2, dc, A, g, b, erot);
-    return {W, W * pop2 / pop1};  // FIXME: order
+    const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2,
+                                                rovib_data,
+                                                k, T, self_mass, erot);
+    return {W, W * pop2 / pop1};  // FIXME: order???
   } else {
-    const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1, k,
-                                                T, m1, m2, dc, A, g, b, erot);
-    return {W * pop1 / pop2, W};  // FIXME: order
+    const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1,
+                                                rovib_data,
+                                                k, T, self_mass, erot);
+    return {W * pop1 / pop2, W};  // FIXME: order???
   }
 }
 
@@ -615,32 +604,26 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
  * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
  * @return W but imaginary parts and diagonal elements are zero
  */
-ComplexMatrix real_offdiagonal_relaxation_matrix(const AbsorptionLines& band,
-                                                 const Vector& pop,
-                                                 const ArrayOfIndex& sorting,
-                                                 const Rational k,
-                                                 const Numeric T,
-                                                 const Numeric m1,
-                                                 const Numeric m2,
-                                                 const Numeric dc,
-                                                 const Numeric A,
-                                                 const Numeric g,
-                                                 const Numeric b,
-                                                 const EnergyFunction erot) ARTS_NOEXCEPT
+void real_offdiagonal_relaxation_matrix(MatrixView W,
+                                        const AbsorptionLines& band,
+                                        const Vector& pop,
+                                        const ArrayOfIndex& sorting,
+                                        const SpeciesRovibBandData& rovib_data,
+                                        const Rational k,
+                                        const Numeric T,
+                                        const EnergyFunction erot) ARTS_NOEXCEPT
 {
   const Index N = band.NumLines();
   ARTS_ASSERT(pop.nelem() == N, "Inconsistent populations and lines count")
   ARTS_ASSERT(sorting.nelem() == N, "Inconsistent sorting and lines count")
   
-  ComplexMatrix W(N, N, 0);
   for (Index i=0; i<N; i++) {
     for (Index j=0; j<i; j++) {
       const auto [W12, W21] = offdiagonal_elements(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
                                                    band.UpperQuantumNumber(sorting[j], QuantumNumberType::J),
                                                    band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
                                                    band.LowerQuantumNumber(sorting[j], QuantumNumberType::J),
-                                                   k,
-                                                   pop[i], pop[j], T, m1, m2, dc, A, g, b, erot);
+                                                   rovib_data, k, pop[i], pop[j], T, band.SpeciesMass(), erot);
       W(i, j) = W12;
       W(j, i) = W21;
     }
@@ -652,8 +635,6 @@ ComplexMatrix real_offdiagonal_relaxation_matrix(const AbsorptionLines& band,
       swap(W(i, j), W(j, i));
     }
   }
-  
-  return W;
 }
 
 /** Readjust the real part of the relaxation matrix
@@ -700,13 +681,14 @@ EnergyFunction erot_selection(const SpeciesIsotopeRecord& isot)
 {
   if (isot.spec == Species::Species::CarbonDioxide and isot.isotname == "626") {
     return [](const Rational J) -> Numeric {return Constant::h * Conversion::kaycm2freq(0.39021) * Numeric(J * (J + 1));};
-  } else {
-    return [](const Rational J) -> Numeric {return Numeric(J) * std::numeric_limits<Numeric>::signaling_NaN();};
   }
+  
+  ARTS_USER_ERROR(isot.FullName(), " has no rotational energies in ARTS")
+  return [](const Rational J) -> Numeric {return Numeric(J) * std::numeric_limits<Numeric>::signaling_NaN();};
 }
 
 ENUMCLASS(TypeOfTransition, unsigned char, RamanIsotropic, Dipole, RamanAnisotropic)
-Rational getTypeOfTransition(TypeOfTransition t) noexcept {
+constexpr Rational getTypeOfTransition(TypeOfTransition t) noexcept {
   switch(t) {
     case TypeOfTransition::RamanIsotropic: return 0;
     case TypeOfTransition::Dipole: return 1;
@@ -716,19 +698,14 @@ Rational getTypeOfTransition(TypeOfTransition t) noexcept {
   return -1;
 }
 
-ComplexMatrix single_species_relaxation_matrix(const AbsorptionLines& band,
-                                               const ArrayOfIndex& sorting,
-                                               const Numeric T,
-                                               const Numeric P,
-                                               const Numeric broadener_mass,
-                                               const Index broadener_pos,
-                                               const Numeric alpha,
-                                               const Numeric beta,
-                                               const Numeric gamma,
-                                               const Numeric col_dist,
-                                               const TypeOfTransition type) ARTS_NOEXCEPT
+void relaxation_matrix_offdiagonal(MatrixView W,
+                                   const AbsorptionLines& band,
+                                   const ArrayOfIndex& sorting,
+                                   const SpeciesRovibBandData& rovib_data,
+                                   const Numeric T) ARTS_NOEXCEPT
 {
-  const Rational k = getTypeOfTransition(type);
+  constexpr Rational k = getTypeOfTransition(TypeOfTransition::Dipole);
+  const EnergyFunction erot = erot_selection(band.Isotopologue());
   
   const Index N = band.NumLines();
   Vector pop(N), dip(N);
@@ -737,23 +714,14 @@ ComplexMatrix single_species_relaxation_matrix(const AbsorptionLines& band,
     const Rational li = band.UpperQuantumNumber(sorting[i], QuantumNumberType::l2);
     const Rational Jf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
     const Rational lf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::l2);
-    pop[i] = std::exp(-erot_selection(band.Isotopologue())(Ji) / (Constant::k * T));
+    pop[i] = std::exp(-erot(Ji) / (Constant::k * T));
     dip[i] = (iseven(lf + Jf) ? 1 : -1) * sqrt(2* Jf + 1) * wigner3j(Ji, k, Jf, li, lf-li, lf);
   }
   
-  ComplexMatrix W = real_offdiagonal_relaxation_matrix(band, pop, sorting, k, 
-                                                       T, band.SpeciesMass(), broadener_mass, col_dist, alpha, gamma, beta,
-                                                       erot_selection(band.Isotopologue()));
-  
-  for (Index i=0; i<N; i++) {
-    W(i, i) = Complex(P * band.Line(sorting[i]).LineShape()[broadener_pos].compute(T, band.T0(), LineShape::Variable::G0),
-                      P * band.Line(sorting[i]).LineShape()[broadener_pos].compute(T, band.T0(), LineShape::Variable::D0));
-  }
+  real_offdiagonal_relaxation_matrix(W, band, pop, sorting, rovib_data, k,  T, erot);
   
   // FIXME: Use local pop and dip instead?
-  verify_sum_rule(W.real(), pop, dip);  // FIXME: make this use local ratio?
-  
-  return W;
+  verify_sum_rule(W, pop, dip);  // FIXME: make this use local ratio?
 }
 }
 
@@ -793,6 +761,10 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
     case PopulationType::ByMakarovFullRelmat:
       Makarov2020etal::relaxation_matrix_offdiagonal<param>(W.imag(), T, band, sorting, band.SpeciesMass(), species_mass);
       break;
+    case PopulationType::ByRovibLinearDipoleLineMixing: {
+      SpeciesRovibBandData rovib_data{};
+      LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, rovib_data, T);
+    } break;
     default:
       ARTS_ASSERT ("Bad type, we don't support band population type: ", band.Population(),
                    "\nin this code.  It must either be added or computations aborted earlier");
@@ -1615,9 +1587,9 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
     eig.val[i] -= Complex(f0[i], P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::G0));
   }
   
-  // The strength term should now be (1 + y(T) + i * g(T)) * d**2 * rho(T)
+  // The strength term should now be (1 + i y(T) + g(T)) * d**2 * rho(T)
   // d**2 * rho(T) * F0 * (1 - exp(-hF0/kT)) should be I0(T)
-  // We only want to keep (y(T) + i * g(T)).
+  // We only want to keep (i y(T) + g(T)).
   // So we divide by d**2 * rho(T) through the use of I0(T) and remove 1 from the real component
   for (Index i=0; i<pop.size(); i++) {
     const Numeric i0 = Linefunctions::lte_linestrength(band.I0(i), band.E0(i), band.F0(i), QT0, band.T0(), QT, T);

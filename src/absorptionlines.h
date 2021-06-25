@@ -100,7 +100,7 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
         "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
     case NormalizationType::SFS:
       return "Simple frequency scaling of the far-wings will be applied, "
-        "i.e. F ~ (f / f0) * ((1 - exp(hf / kT)) / 1 - exp(hf0 / kT))\n";
+        "i.e. F ~ (f / f0) * ((1 - exp(- hf / kT)) / (1 - exp(- hf0 / kT)))\n";
     case NormalizationType::FINAL: break;
   }
 }
@@ -111,12 +111,13 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
  * The types here might require that different data is available at runtime absorption calculations
  */
 ENUMCLASS(PopulationType, char,
-  LTE,                       // Assume band is in LTE
-  NLTE,                      // Assume band is in NLTE and the upper-to-lower ratio is known
-  VibTemps,                  // Assume band is in NLTE described by vibrational temperatures and LTE at other levels
-  ByHITRANRosenkranzRelmat,  // Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-  ByHITRANFullRelmat,        // Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-  ByMakarovFullRelmat        // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+  LTE,                            // Assume band is in LTE
+  NLTE,                           // Assume band is in NLTE and the upper-to-lower ratio is known
+  VibTemps,                       // Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+  ByHITRANRosenkranzRelmat,       // Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+  ByHITRANFullRelmat,             // Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+  ByMakarovFullRelmat,            // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+  ByRovibLinearDipoleLineMixing   // Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
 )  // PopulationType
 
 #pragma GCC diagnostic push
@@ -127,6 +128,8 @@ constexpr std::string_view populationtype2metadatastring(PopulationType in) {
       return "The lines are considered as in pure LTE.\n";
     case PopulationType::ByMakarovFullRelmat:
       return "The lines requires relaxation matrix calculations in LTE - Makarov et al 2020 full method.\n";
+    case PopulationType::ByRovibLinearDipoleLineMixing:
+      return "The lines requires relaxation matrix calculations in LTE - Hartmann, Boulet, Robert, 2008, 1st edition method.\n";
     case PopulationType::ByHITRANFullRelmat:
       return "The lines requires relaxation matrix calculations in LTE - HITRAN full method.\n";
     case PopulationType::ByHITRANRosenkranzRelmat:
@@ -143,7 +146,8 @@ constexpr std::string_view populationtype2metadatastring(PopulationType in) {
 constexpr bool relaxationtype_relmat(PopulationType in) noexcept {
   return in == PopulationType::ByHITRANFullRelmat or
          in == PopulationType::ByMakarovFullRelmat or
-         in == PopulationType::ByHITRANRosenkranzRelmat;
+         in == PopulationType::ByHITRANRosenkranzRelmat or
+         in == PopulationType::ByRovibLinearDipoleLineMixing;
 }
 
 /** Describes the type of cutoff calculations */

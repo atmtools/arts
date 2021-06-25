@@ -119,6 +119,14 @@ void Quantum::Identifier::SetFromString(String str) {
   }
 }
 
+String Quantum::Identifier::GetString() const
+{
+  std::ostringstream os;
+  os << *this;
+  return os.str();
+}
+
+
 Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
   if (key == QuantumNumberType::parity) {
     if (val == "+")

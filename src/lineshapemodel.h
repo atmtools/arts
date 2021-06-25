@@ -1130,6 +1130,7 @@ void vector2modelpb(LineShape::Type& mtype,
 };  // namespace LegacyPressureBroadeningData
 };  // namespace LineShape
 
+using LineShapeModelParameters = LineShape::ModelParameters;
 typedef LineShape::Model LineShapeModel;
 typedef LineShape::SingleSpeciesModel LineShapeSingleSpeciesModel;
 
