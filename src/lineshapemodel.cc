@@ -935,34 +935,6 @@ Numeric ModelParameters::dT0(Numeric T, Numeric T0) const noexcept {
   return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
-Numeric SingleSpeciesModel::compute(Numeric T, Numeric T0, Variable var) const noexcept {
-  return X[Index(var)].at(T, T0);
-}
-
-Numeric SingleSpeciesModel::compute_dX0(Numeric T, Numeric T0, Variable var) const noexcept {
-  return X[Index(var)].dX0(T, T0);
-}
-
-Numeric SingleSpeciesModel::compute_dX1(Numeric T, Numeric T0, Variable var) const noexcept {
-  return X[Index(var)].dX1(T, T0);
-}
-
-Numeric SingleSpeciesModel::compute_dX2(Numeric T, Numeric T0, Variable var) const noexcept {
-  return X[Index(var)].dX2(T, T0);
-}
-
-Numeric SingleSpeciesModel::compute_dX3(Numeric T, Numeric T0, Variable var) const noexcept {
-  return X[Index(var)].dX3(T, T0);
-}
-
-Numeric SingleSpeciesModel::compute_dT(Numeric T, Numeric T0, Variable var) const noexcept {
-  return X[Index(var)].dT(T, T0);
-}
-
-Numeric SingleSpeciesModel::compute_dT0(Numeric T, Numeric T0, Variable var) const noexcept {
-  return X[Index(var)].dT0(T, T0);
-}
-
 bifstream & SingleSpeciesModel::read(bifstream& bif) {
   for (auto& data: X) {
     Index x;
@@ -1117,7 +1089,7 @@ bool Model::OK(Type type, bool self, bool bath,
                0.0,                                                            \
                std::plus<Numeric>(),                                           \
                [=](auto& x, auto vmr) -> Numeric {                             \
-                 return vmr * x.compute(T, T0, Variable::XVAR);                \
+                 return vmr * x.XVAR().at(T, T0);                              \
                });                                                             \
   }
   LSPC(G0, P)
@@ -1131,15 +1103,15 @@ bool Model::OK(Type type, bool self, bool bath,
   LSPC(DV, P* P)
 #undef LSPC
 
-#define LSPCV(XVAR, PVAR)                                            \
-  Numeric Model::d##XVAR##_dVMR(Numeric T,                           \
-                         Numeric T0,                                 \
-                         Numeric P [[maybe_unused]],                 \
-                         const Index deriv_pos) const noexcept {     \
-    if (deriv_pos not_eq -1)                                         \
-      return PVAR * mdata[deriv_pos].compute(T, T0, Variable::XVAR); \
-    else                                                             \
-      return 0;                                                      \
+#define LSPCV(XVAR, PVAR)                                         \
+  Numeric Model::d##XVAR##_dVMR(Numeric T,                        \
+                         Numeric T0,                              \
+                         Numeric P [[maybe_unused]],              \
+                         const Index deriv_pos) const noexcept {  \
+    if (deriv_pos not_eq -1)                                      \
+      return PVAR * mdata[deriv_pos].XVAR().at(T, T0);            \
+    else                                                          \
+      return 0;                                                   \
   }
   LSPCV(G0, P)
   LSPCV(D0, P)
@@ -1164,7 +1136,7 @@ bool Model::OK(Type type, bool self, bool bath,
                0.0,                                                             \
                std::plus<Numeric>(),                                            \
                [=](auto& x, auto vmr) -> Numeric {                              \
-                 return vmr * x.compute_dT(T, T0, Variable::XVAR);              \
+                 return vmr * x.XVAR().dT(T, T0);                               \
                });                                                              \
   }
   LSPCT(G0, P)
@@ -1178,63 +1150,63 @@ bool Model::OK(Type type, bool self, bool bath,
   LSPCT(DV, P* P)
 #undef LSPCT
 
-#define LSPDC(XVAR, DERIV, PVAR)                                     \
-  Numeric Model::d##XVAR##DERIV(Numeric T,                           \
-                         Numeric T0,                                 \
-                         Numeric P [[maybe_unused]],                 \
-                         Index deriv_pos,                            \
-                         ConstVectorView vmrs) const noexcept {      \
-    if (deriv_pos not_eq -1)                                         \
-      return vmrs[deriv_pos] * PVAR *                                \
-             mdata[deriv_pos].compute##DERIV(T, T0, Variable::XVAR); \
-    else                                                             \
-      return 0;                                                      \
+#define LSPDC(XVAR, DERIV, PVAR)                                \
+  Numeric Model::d##XVAR##_##DERIV(Numeric T,                   \
+                         Numeric T0,                            \
+                         Numeric P [[maybe_unused]],            \
+                         Index deriv_pos,                       \
+                         ConstVectorView vmrs) const noexcept { \
+    if (deriv_pos not_eq -1)                                    \
+      return vmrs[deriv_pos] * PVAR *                           \
+             mdata[deriv_pos].XVAR().DERIV(T, T0);              \
+    else                                                        \
+      return 0;                                                 \
   }
-  LSPDC(G0, _dT0, P)
-  LSPDC(G0, _dX0, P)
-  LSPDC(G0, _dX1, P)
-  LSPDC(G0, _dX2, P)
-  LSPDC(G0, _dX3, P)
-  LSPDC(D0, _dT0, P)
-  LSPDC(D0, _dX0, P)
-  LSPDC(D0, _dX1, P)
-  LSPDC(D0, _dX2, P)
-  LSPDC(D0, _dX3, P)
-  LSPDC(G2, _dT0, P)
-  LSPDC(G2, _dX0, P)
-  LSPDC(G2, _dX1, P)
-  LSPDC(G2, _dX2, P)
-  LSPDC(G2, _dX3, P)
-  LSPDC(D2, _dT0, P)
-  LSPDC(D2, _dX0, P)
-  LSPDC(D2, _dX1, P)
-  LSPDC(D2, _dX2, P)
-  LSPDC(D2, _dX3, P)
-  LSPDC(FVC, _dT0, P)
-  LSPDC(FVC, _dX0, P)
-  LSPDC(FVC, _dX1, P)
-  LSPDC(FVC, _dX2, P)
-  LSPDC(FVC, _dX3, P)
-  LSPDC(ETA, _dT0, 1)
-  LSPDC(ETA, _dX0, 1)
-  LSPDC(ETA, _dX1, 1)
-  LSPDC(ETA, _dX2, 1)
-  LSPDC(ETA, _dX3, 1)
-  LSPDC(Y, _dT0, P)
-  LSPDC(Y, _dX0, P)
-  LSPDC(Y, _dX1, P)
-  LSPDC(Y, _dX2, P)
-  LSPDC(Y, _dX3, P)
-  LSPDC(G, _dT0, P* P)
-  LSPDC(G, _dX0, P* P)
-  LSPDC(G, _dX1, P* P)
-  LSPDC(G, _dX2, P* P)
-  LSPDC(G, _dX3, P* P)
-  LSPDC(DV, _dT0, P* P)
-  LSPDC(DV, _dX0, P* P)
-  LSPDC(DV, _dX1, P* P)
-  LSPDC(DV, _dX2, P* P)
-  LSPDC(DV, _dX3, P* P)
+  LSPDC(G0, dT0, P)
+  LSPDC(G0, dX0, P)
+  LSPDC(G0, dX1, P)
+  LSPDC(G0, dX2, P)
+  LSPDC(G0, dX3, P)
+  LSPDC(D0, dT0, P)
+  LSPDC(D0, dX0, P)
+  LSPDC(D0, dX1, P)
+  LSPDC(D0, dX2, P)
+  LSPDC(D0, dX3, P)
+  LSPDC(G2, dT0, P)
+  LSPDC(G2, dX0, P)
+  LSPDC(G2, dX1, P)
+  LSPDC(G2, dX2, P)
+  LSPDC(G2, dX3, P)
+  LSPDC(D2, dT0, P)
+  LSPDC(D2, dX0, P)
+  LSPDC(D2, dX1, P)
+  LSPDC(D2, dX2, P)
+  LSPDC(D2, dX3, P)
+  LSPDC(FVC, dT0, P)
+  LSPDC(FVC, dX0, P)
+  LSPDC(FVC, dX1, P)
+  LSPDC(FVC, dX2, P)
+  LSPDC(FVC, dX3, P)
+  LSPDC(ETA, dT0, 1)
+  LSPDC(ETA, dX0, 1)
+  LSPDC(ETA, dX1, 1)
+  LSPDC(ETA, dX2, 1)
+  LSPDC(ETA, dX3, 1)
+  LSPDC(Y, dT0, P)
+  LSPDC(Y, dX0, P)
+  LSPDC(Y, dX1, P)
+  LSPDC(Y, dX2, P)
+  LSPDC(Y, dX3, P)
+  LSPDC(G, dT0, P* P)
+  LSPDC(G, dX0, P* P)
+  LSPDC(G, dX1, P* P)
+  LSPDC(G, dX2, P* P)
+  LSPDC(G, dX3, P* P)
+  LSPDC(DV, dT0, P* P)
+  LSPDC(DV, dX0, P* P)
+  LSPDC(DV, dX1, P* P)
+  LSPDC(DV, dX2, P* P)
+  LSPDC(DV, dX3, P* P)
 #undef LSPDC
 
 Output Model::GetParams(Numeric T,
@@ -1256,15 +1228,15 @@ Output Model::GetParams(Numeric T,
                         Numeric T0,
                         Numeric P,
                         size_t k) const noexcept {
-  return {P * mdata[k].compute(T, T0, Variable::G0),
-          P * mdata[k].compute(T, T0, Variable::D0),
-          P * mdata[k].compute(T, T0, Variable::G2),
-          P * mdata[k].compute(T, T0, Variable::D2),
-          P * mdata[k].compute(T, T0, Variable::FVC),
-          mdata[k].compute(T, T0, Variable::ETA),
-          P * mdata[k].compute(T, T0, Variable::Y),
-          P * P * mdata[k].compute(T, T0, Variable::G),
-          P * P * mdata[k].compute(T, T0, Variable::DV)};
+  return {P * mdata[k].G0().at(T, T0),
+          P * mdata[k].D0().at(T, T0),
+          P * mdata[k].G2().at(T, T0),
+          P * mdata[k].D2().at(T, T0),
+          P * mdata[k].FVC().at(T, T0),
+          mdata[k].ETA().at(T, T0),
+          P * mdata[k].Y().at(T, T0),
+          P * P * mdata[k].G().at(T, T0),
+          P * P * mdata[k].DV().at(T, T0)};
 }
 
 Output Model::GetTemperatureDerivs(Numeric T,

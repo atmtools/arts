@@ -276,17 +276,17 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
       const Numeric invGD = 1 / (GD_div_F0 * f0[i]);
       const Numeric fac = sqrt_pi * invGD;
       const Numeric ST = theta_3 * p[ip] * intens[i] * std::exp(-a2[i] * theta_m1);
-      const Numeric G0 = (1 + 0.1*water_vmr[ip]) * p[ip] * lsm[i].compute(t[ip], t0, LineShape::Variable::G0);
-      const Numeric Y = p[ip] * lsm[i].compute(t[ip], t0, LineShape::Variable::Y);
-      const Numeric G = pow2( p[ip]) * lsm[i].compute(t[ip], t0, LineShape::Variable::G);
-      const Numeric DV = pow2(p[ip]) * lsm[i].compute(t[ip], t0, LineShape::Variable::DV);
+      const Numeric G0 = (1 + 0.1*water_vmr[ip]) * p[ip] * lsm[i].G0().at(t[ip], t0);
+      const Numeric Y = p[ip] * lsm[i].Y().at(t[ip], t0);
+      const Numeric G = pow2( p[ip]) * lsm[i].G().at(t[ip], t0);
+      const Numeric DV = pow2(p[ip]) * lsm[i].DV().at(t[ip], t0);
       
       const Numeric dinvGD_dT = do_temp_deriv ? - invGD * Linefunctions::dDopplerConstant_dT(t[ip], GD_div_F0) : 0;
       const Numeric dST_dT = do_temp_deriv ? (a2[i]*t0 - 3*t[ip]) / pow2(t[ip]) * ST : 0;
-      const Numeric dG0_dT = do_temp_deriv ? (1 + 0.1*water_vmr[ip]) * p[ip] * lsm[i].compute_dT(t[ip], t0, LineShape::Variable::G0) : 0;
-      const Numeric dY_dT = do_temp_deriv ? p[ip] * lsm[i].compute_dT(t[ip], t0, LineShape::Variable::Y) : 0;
-      const Numeric dG_dT = do_temp_deriv ? pow2(p[ip]) * lsm[i].compute_dT(t[ip], t0, LineShape::Variable::G) : 0;
-      const Numeric dDV_dT = do_temp_deriv ? pow2(p[ip]) * lsm[i].compute_dT(t[ip], t0, LineShape::Variable::DV) : 0;
+      const Numeric dG0_dT = do_temp_deriv ? (1 + 0.1*water_vmr[ip]) * p[ip] * lsm[i].G0().dT(t[ip], t0) : 0;
+      const Numeric dY_dT = do_temp_deriv ? p[ip] * lsm[i].Y().dT(t[ip], t0) : 0;
+      const Numeric dG_dT = do_temp_deriv ? pow2(p[ip]) * lsm[i].G().dT(t[ip], t0) : 0;
+      const Numeric dDV_dT = do_temp_deriv ? pow2(p[ip]) * lsm[i].DV().dT(t[ip], t0) : 0;
       
       for (Index j=0; j<f.nelem(); j++) {
         const Complex z = Complex(f0[i] + DV - f[j], G0) * invGD;
@@ -333,51 +333,51 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
                   Complex(1 + G, -Y) * dm) * 
-                  lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G0);
+                  lsm[i].G0().dX0(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeG0X1) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
                   Complex(1 + G, -Y) * dm) * 
-                  lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);
+                  lsm[i].G0().dX1(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeDVX0) {
                 const Complex dFv = dw * invGD;
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   Complex(1 + G, Y) * dFv +
                   Complex(1 + G, -Y) * dFlm) * 
-                  lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::DV);
+                  lsm[i].DV().dX0(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeDVX1) {
                 const Complex dFv = dw * invGD;
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   Complex(1 + G, Y) * dFv +
                   Complex(1 + G, -Y) * dFlm) * 
-                  lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);
+                  lsm[i].DV().dX1(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeDVX2) {
                 const Complex dFv = dw * invGD;
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   Complex(1 + G, Y) * dFv +
                   Complex(1 + G, -Y) * dFlm) * 
-                  lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::DV);
+                  lsm[i].DV().dX2(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeGX0) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv + Flm) * 
-                  lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G);
+                lsm[i].G().dX0(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeYX0) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv + Flm) * 
-                  lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::Y);
+                  lsm[i].Y().dX0(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeGX1) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv - Flm) * 
-                  lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::G);
+                lsm[i].G().dX1(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeYX1) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv + Flm) * 
-                  lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::Y);
+                lsm[i].Y().dX1(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeGX2) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv - Flm) * 
-                  lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::G);
+                  lsm[i].G().dX2(t[ip], t0);
               } else if (deriv == Jacobian::Line::ShapeYX2) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv - Flm) * 
-                  lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::Y);
+                  lsm[i].Y().dX2(t[ip], t0);
               } else if (deriv == Jacobian::Line::Center) {
                 const Complex dFv = Fv / f0[i] - dw * invGD + dw * z / f0[i];
                 const Complex dFlm = Complex(0, 1) * dm;

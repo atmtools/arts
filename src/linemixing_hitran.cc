@@ -2155,10 +2155,10 @@ Tensor4 hitran_lm_eigenvalue_approximation(const AbsorptionLines& band,
         
         calc.f0[i] = band.F0(i);
         calc.pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
-        calc.hwt[i] = P * band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G0);
-        calc.shft[i] = P * band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::D0);
+        calc.hwt[i] = P * band.Line(i).LineShape()[m].G0().at(T, band.T0());
+        calc.shft[i] = P * band.Line(i).LineShape()[m].D0().at(T, band.T0());
         calc.dip[i] = std::sqrt(- band.I0(i)/(pop0 * band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * band.T0()))));
-        calc.hwt2[i] = P * band.Line(i).LineShape()[m].compute(T, band.T0(), LineShape::Variable::G2);
+        calc.hwt2[i] = P * band.Line(i).LineShape()[m].G2().at(T, band.T0());
       }
       
       // Calculate the relaxation matrix

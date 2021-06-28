@@ -339,79 +339,9 @@ class SingleSpeciesModel {
     ModelParameters DV=ModelParameters{})
       : X({G0, D0, G2, D2, FVC, ETA, Y, G, DV}) {}
 
-/** Compute the broadening parameter at the input
- * 
- * @param[in] T The temperature
- * @param[in] T0 The temperature used to derive the coefficients
- * @param[in] var The variable
- * 
- * @return The broadening parameter at temperature
- */
-Numeric compute(Numeric T, Numeric T0, Variable var) const noexcept;
-
-/** Derivative of compute(...) wrt x0
- * 
- * @param[in] T The temperature
- * @param[in] T0 The temperature used to derive the coefficients
- * @param[in] var The variable
- * 
- * @return Derivative of compute(...) wrt x0
- */
-Numeric compute_dX0(Numeric T, Numeric T0, Variable var) const noexcept;
-
-/** Derivative of compute(...) wrt x1
- * 
- * @param[in] T The temperature
- * @param[in] T0 The temperature used to derive the coefficients
- * @param[in] var The variable
- * 
- * @return Derivative of compute(...) wrt x1
- */
-Numeric compute_dX1(Numeric T, Numeric T0, Variable var) const noexcept;
-
-/** Derivative of compute(...) wrt x2
- * 
- * @param[in] T The temperature
- * @param[in] T0 The temperature used to derive the coefficients
- * @param[in] var The variable
- * 
- * @return Derivative of compute(...) wrt x2
- */
-Numeric compute_dX2(Numeric T, Numeric T0, Variable var) const noexcept;
-
-/** Derivative of compute(...) wrt x3
- * 
- * @param[in] T The temperature
- * @param[in] T0 The temperature used to derive the coefficients
- * @param[in] var The variable
- * 
- * @return Derivative of compute(...) wrt x3
- */
-Numeric compute_dX3(Numeric T, Numeric T0, Variable var) const noexcept;
-
-/** Derivative of compute(...) wrt T
- * 
- * @param[in] T The temperature
- * @param[in] T0 The temperature used to derive the coefficients
- * @param[in] var The variable
- * 
- * @return Derivative of compute(...) wrt T
- */
-Numeric compute_dT(Numeric T, Numeric T0, Variable var) const noexcept;
-
-/** Derivative of compute(...) wrt T0
- * 
- * @param[in] T The temperature
- * @param[in] T0 The temperature used to derive the coefficients
- * @param[in] var The variable
- * 
- * @return Derivative of compute(...) wrt T0
- */
-Numeric compute_dT0(Numeric T, Numeric T0, Variable var) const noexcept;
-
 #define ACCESS_INTERNAL(VARPOS)                                             \
-  constexpr ModelParameters& VARPOS() noexcept { return X[Index(Variable::VARPOS)]; } \
-  constexpr ModelParameters VARPOS() const noexcept { return X[Index(Variable::VARPOS)]; }
+  constexpr ModelParameters& VARPOS() noexcept { return std::get<Index(Variable::VARPOS)>(X); } \
+  constexpr ModelParameters VARPOS() const noexcept { return std::get<Index(Variable::VARPOS)>(X); }
   ACCESS_INTERNAL(G0);
   ACCESS_INTERNAL(D0);
   ACCESS_INTERNAL(G2);

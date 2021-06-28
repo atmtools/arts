@@ -1454,7 +1454,7 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
   // Compute all the shifted line centers in band-order
   Vector f0(band.NumLines());
   for (Index i=0; i<pop.size(); i++) {
-    f0[i] = band.F0(i) - frenorm + P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::D0);
+    f0[i] = band.F0(i) - frenorm + P * band.Line(i).LineShape()[broadener].D0().at(T, band.T0());
   }
   
   // Find how the band-orders have shifted line order at the current temp/pres
@@ -1475,7 +1475,7 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
   // Eigenvalue should now be (F0 + P * D0(T) + i * P * G0(T)) + (P * P * DV(T) + i * P * P * P * DG(T)),
   // or in form (1) + (2).  We only want to keep (2), since it is new from the line mixing
   for (Index i=0; i<pop.size(); i++) {
-    eig.val[i] -= Complex(f0[i], P * band.Line(i).LineShape()[broadener].compute(T, band.T0(), LineShape::Variable::G0));
+    eig.val[i] -= Complex(f0[i], P * band.Line(i).LineShape()[broadener].G0().at(T, band.T0()));
   }
   
   // The strength term should now be (1 + i y(T) + g(T)) * d**2 * rho(T)
