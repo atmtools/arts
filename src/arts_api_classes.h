@@ -240,6 +240,7 @@ extern "C" {
     VoidStructGetterCAPI(QuantumIdentifier, spec_ind)
     VoidStructGetterCAPI(QuantumIdentifier, upp)
     VoidStructGetterCAPI(QuantumIdentifier, low)
+    DLL_PUBLIC Index fromstringQuantumIdentifier(void *, char *);
     
     // ArrayOfQuantumIdentifier
     BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
@@ -980,6 +981,29 @@ extern "C" {
     BasicInputOutputCAPI(PartitionFunctionsData)
     VoidStructGetterCAPI(PartitionFunctionsData, type)
     VoidStructGetterCAPI(PartitionFunctionsData, data)
+    
+    // SpeciesErrorCorrectedSuddenData
+    BasicInterfaceCAPI(SpeciesErrorCorrectedSuddenData)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, spec)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, a)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, b)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, gamma)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, dc)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, mass)
+    
+    // ErrorCorrectedSuddenData
+    BasicInterfaceCAPI(ErrorCorrectedSuddenData)
+    VoidStructGetterCAPI(ErrorCorrectedSuddenData, id)
+    DLL_PUBLIC void * getErrorCorrectedSuddenData(void *, void *);
+    DLL_PUBLIC Index getnelemErrorCorrectedSuddenData(void *);
+    DLL_PUBLIC void * getSpeciesErrorCorrectedSuddenDataAtErrorCorrectedSuddenData(void *, Index);
+    
+    // MapOfErrorCorrectedSuddenData
+    BasicInterfaceCAPI(MapOfErrorCorrectedSuddenData)
+    BasicInputOutputCAPI(MapOfErrorCorrectedSuddenData)
+    DLL_PUBLIC void * getMapOfErrorCorrectedSuddenData(void *, void *);
+    DLL_PUBLIC Index getnelemMapOfErrorCorrectedSuddenData(void *);
+    DLL_PUBLIC void * getErrorCorrectedSuddenDataAtMapOfErrorCorrectedSuddenData(void *, Index);
     
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);

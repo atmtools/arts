@@ -6095,6 +6095,40 @@ void define_md_data_raw() {
       GIN_TYPE("Time", "Time"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Start time", "End time")));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataInit"),
+      DESCRIPTION("Resets/initializes the ECS data.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataSetSpeciesData"),
+      DESCRIPTION("Sets ECS data for one set of species and quantum identifiers.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data", "isotopologue_ratios"),
+      GIN("qid", "species", "a", "b", "gamma", "dc"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC(
+        "Band identifier",
+        "Species identifier",
+        "Main scaling coefficient for Q",
+        "Energy scaling coefficient for Q",
+        "Energy exponent for Q",
+        "Mean collision interaction distance")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("EnergyLevelMapSet"),

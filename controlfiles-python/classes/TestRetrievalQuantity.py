@@ -37,7 +37,7 @@ assert arq[1] == arq[0]
 arq.append(rq)
 assert arq[1] == arq[2]
 
-qn = QuantumIdentifier("Transition")
+qn = QuantumIdentifier("H2O TR UP LO")
 aost = [SpeciesTag(), SpeciesTag()]
 aost[0].setFromString("H2O-161")
 aost[1].setFromString("H2O-MPM89")

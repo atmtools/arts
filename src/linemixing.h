@@ -212,8 +212,23 @@ struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
     if(auto ptr = std::find(cbegin(), cend(), id); ptr not_eq cend()) {
       return *ptr;
     }
-    ARTS_USER_ERROR("Cannot find data for QuantumIdentifier\n", id, '\n');
+    ARTS_USER_ERROR("Cannot find data for QuantumIdentifier:\n", id, '\n');
     return front(); // To get rid of potential warnings...
+  }
+  
+  const ErrorCorrectedSuddenData& operator[](Index i) const ARTS_NOEXCEPT {
+    ARTS_ASSERT(i >= 0 and i < nelem())
+    return * (begin() + i);
+  }
+  
+  ErrorCorrectedSuddenData& operator[](Index i) ARTS_NOEXCEPT {
+    ARTS_ASSERT(i >= 0 and i < nelem())
+    return * (begin() + i);
+  }
+  
+  friend std::ostream& operator<<(std::ostream& os, const MapOfErrorCorrectedSuddenData& m) {
+    std::for_each(m.cbegin(), m.cend(), [&](auto& x){os << x << '\n';});
+    return os;
   }
 };  // MapOfErrorCorrectedSuddenData
 
@@ -352,6 +367,8 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
                                        const Vector& pressures);
 }  // LineMixing
 
+using ErrorCorrectedSuddenData = Absorption::LineMixing::ErrorCorrectedSuddenData;
 using MapOfErrorCorrectedSuddenData = Absorption::LineMixing::MapOfErrorCorrectedSuddenData;
+using SpeciesErrorCorrectedSuddenData = Absorption::LineMixing::SpeciesErrorCorrectedSuddenData;
 
 #endif  // linemixing_h

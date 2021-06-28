@@ -304,3 +304,30 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
     }
   }
 }
+
+void ecs_dataInit(MapOfErrorCorrectedSuddenData& ecs_data,
+                  const Verbosity&)
+{
+  ecs_data.resize(0);
+}
+
+void ecs_dataSetSpeciesData(
+  MapOfErrorCorrectedSuddenData& ecs_data,
+  const SpeciesIsotopologueRatios& isotopologue_ratios,
+  const Quantum::Identifier& qid,
+  const String& species,
+  const Numeric& a,
+  const Numeric& b,
+  const Numeric& gamma,
+  const Numeric& dc,
+  const Verbosity&)
+{
+  const Species::Species spec = Species::fromShortName(species);
+  ARTS_USER_ERROR_IF(not good_enum(spec), "Invalid species: ", species)
+  auto& data = ecs_data[qid][spec];
+  data.a = a;
+  data.b = b;
+  data.gamma = gamma;
+  data.dc = dc;
+  data.mass = Species::mean_mass(spec, isotopologue_ratios);
+}

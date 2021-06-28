@@ -399,6 +399,14 @@ VoidStructGetterCAPI(QuantumIdentifier, type)
 VoidStructGetterCAPI(QuantumIdentifier, spec_ind)
 VoidStructGetterCAPI(QuantumIdentifier, upp)
 VoidStructGetterCAPI(QuantumIdentifier, low)
+Index fromstringQuantumIdentifier(void * data, char * str) {
+  try {
+    static_cast<QuantumIdentifier *>(data) -> SetFromString(str);
+    return EXIT_SUCCESS;
+  } catch(...) {
+  }
+  return EXIT_FAILURE;
+}
 
 // ArrayOfQuantumIdentifier
 BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
@@ -1513,6 +1521,47 @@ BasicInterfaceCAPI(PartitionFunctionsData)
 BasicInputOutputCAPI(PartitionFunctionsData)
 VoidStructGetterCAPI(PartitionFunctionsData, type)
 VoidStructGetterCAPI(PartitionFunctionsData, data)
+
+// SpeciesErrorCorrectedSuddenData
+BasicInterfaceCAPI(SpeciesErrorCorrectedSuddenData)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, spec)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, a)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, b)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, gamma)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, dc)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, mass)
+
+// ErrorCorrectedSuddenData
+BasicInterfaceCAPI(ErrorCorrectedSuddenData)
+VoidStructGetterCAPI(ErrorCorrectedSuddenData, id)
+void * getErrorCorrectedSuddenData(void * data, void * id) {
+  return & static_cast<ErrorCorrectedSuddenData *>(data) -> operator[](*static_cast<Species::Species *>(id));
+}
+Index getnelemErrorCorrectedSuddenData(void * data) {return static_cast<ErrorCorrectedSuddenData *>(data) -> data.nelem();}
+void * getSpeciesErrorCorrectedSuddenDataAtErrorCorrectedSuddenData(void * data, Index i)
+{
+  if (i < static_cast<ErrorCorrectedSuddenData *>(data) -> data.nelem() and i >= 0) {
+    return & static_cast<ErrorCorrectedSuddenData *>(data) -> data[i];
+  } else {
+    return nullptr;
+  }
+}
+
+// MapOfErrorCorrectedSuddenData
+BasicInterfaceCAPI(MapOfErrorCorrectedSuddenData)
+BasicInputOutputCAPI(MapOfErrorCorrectedSuddenData)
+void * getMapOfErrorCorrectedSuddenData(void * data, void * id) {
+  return & static_cast<MapOfErrorCorrectedSuddenData *>(data) -> operator[](*static_cast<QuantumIdentifier *>(id));
+}
+Index getnelemMapOfErrorCorrectedSuddenData(void * data) {return static_cast<MapOfErrorCorrectedSuddenData *>(data) -> nelem();}
+void * getErrorCorrectedSuddenDataAtMapOfErrorCorrectedSuddenData(void * data, Index i)
+{
+  if (i < static_cast<MapOfErrorCorrectedSuddenData *>(data) -> nelem() and i >= 0) {
+    return & static_cast<MapOfErrorCorrectedSuddenData *>(data) -> operator[](i);
+  } else {
+    return nullptr;
+  }
+}
 
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }

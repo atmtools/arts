@@ -2103,22 +2103,23 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("MapOfErrorCorrectedSuddenData");
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.add_attribute("nelem", rvb.nelem());
-  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
   
   for (auto& r: rvb) {
-    ArtsXMLTag internal_tag(verbosity);
-    internal_tag.set_name("ErrorCorrectedSuddenData");
-    
-    // Set key
-    internal_tag.add_attribute("key", r.id.GetString());
-    
-    // Set nelem
-    internal_tag.add_attribute("nelem", r.data.nelem());
+    ArtsXMLTag internal_open_tag(verbosity);
+    internal_open_tag.set_name("ErrorCorrectedSuddenData");
+    internal_open_tag.add_attribute("key", r.id.GetString());
+    internal_open_tag.add_attribute("nelem", r.data.nelem());
+    internal_open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
     
     // Set values
-    os_xml << r;
+    os_xml << r << '\n';
     
-    close_tag.set_name("/ErrorCorrectedSuddenData");
+    ArtsXMLTag internal_close_tag(verbosity);
+    internal_close_tag.set_name("/ErrorCorrectedSuddenData");
+    internal_close_tag.write_to_stream(os_xml);
     os_xml << '\n';
   }
   

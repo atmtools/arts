@@ -91,7 +91,7 @@ int main() {
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
   rq.Target().Perturbation(0.1);
   
-  Absorption::LineMixing::ErrorCorrectedSuddenData ecs_data;
+  Absorption::LineMixing::ErrorCorrectedSuddenData ecs_data{QuantumIdentifier("O2-66 ALL")};
   ecs_data[Species::Species::Oxygen].a = 1.0;
   ecs_data[Species::Species::Oxygen].dc = Conversion::angstrom2meter(0.61);
   ecs_data[Species::Species::Oxygen].gamma = 0.39;
@@ -102,6 +102,7 @@ int main() {
   ecs_data[Species::Species::Nitrogen].gamma = 0.39;
   ecs_data[Species::Species::Nitrogen].b = 0.567;
   ecs_data[Species::Species::Nitrogen].mass = 28.006148;
+  
   
   // Line Mixing full calculations
   const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, ecs_data, f_grid, band,
@@ -153,4 +154,7 @@ int main() {
   ARTSGUI::PlotConfig::Y = "Absorption [1/m]";
   ARTSGUI::plot(f_grid, abs.real(), f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0), f_grid, absZ.real(), f_grid, com.F.real());
   WriteXML("ascii", band, "band.xml", 0, "", "", "", Verbosity());
+  MapOfErrorCorrectedSuddenData x;
+  x.push_back(ecs_data);
+  WriteXML("ascii", x, "ecs_data.xml", 0, "", "", "", Verbosity());
 }
