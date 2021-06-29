@@ -92,15 +92,15 @@ int main() {
   rq.Target().Perturbation(0.1);
   
   Absorption::LineMixing::ErrorCorrectedSuddenData ecs_data{QuantumIdentifier("O2-66 ALL")};
-  ecs_data[Species::Species::Oxygen].a = 1.0;
-  ecs_data[Species::Species::Oxygen].dc = Conversion::angstrom2meter(0.61);
-  ecs_data[Species::Species::Oxygen].gamma = 0.39;
-  ecs_data[Species::Species::Oxygen].b = 0.567;
+  ecs_data[Species::Species::Oxygen].a = LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
+  ecs_data[Species::Species::Oxygen].dc = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(0.61), 0, 0, 0);
+  ecs_data[Species::Species::Oxygen].gamma = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
+  ecs_data[Species::Species::Oxygen].b = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.567, 0, 0, 0);
   ecs_data[Species::Species::Oxygen].mass = 31.989830;
-  ecs_data[Species::Species::Nitrogen].a = 1.0;
-  ecs_data[Species::Species::Nitrogen].dc = Conversion::angstrom2meter(0.61);
-  ecs_data[Species::Species::Nitrogen].gamma = 0.39;
-  ecs_data[Species::Species::Nitrogen].b = 0.567;
+  ecs_data[Species::Species::Nitrogen].a = LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
+  ecs_data[Species::Species::Nitrogen].dc = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(0.61), 0, 0, 0);
+  ecs_data[Species::Species::Nitrogen].gamma = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
+  ecs_data[Species::Species::Nitrogen].b = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.567, 0, 0, 0);
   ecs_data[Species::Species::Nitrogen].mass = 28.006148;
   
   

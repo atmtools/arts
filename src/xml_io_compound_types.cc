@@ -2050,37 +2050,54 @@ void xml_read_from_stream(istream& is_xml,
   ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
   
   CREATE_OUT2;
-  ArtsXMLTag tag(verbosity);
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("MapOfErrorCorrectedSuddenData");
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("MapOfErrorCorrectedSuddenData");
   
   Index nelem;
-  tag.get_attribute_value("nelem", nelem);
-  rvb.resize(nelem);
+  open_tag.get_attribute_value("nelem", nelem);
   
-  for (auto& r: rvb) {
-    ArtsXMLTag internal_tag(verbosity);
-    internal_tag.read_from_stream(is_xml);
-    internal_tag.check_name("ErrorCorrectedSuddenData");
+  for (Index i=0; i<nelem; i++) {
+    ArtsXMLTag internal_open_tag(verbosity);
+    internal_open_tag.read_from_stream(is_xml);
+    internal_open_tag.check_name("ErrorCorrectedSuddenData");
     
     // Get key
     String val;
-    internal_tag.get_attribute_value("key", val);
-    r.id.SetFromString(val);
+    internal_open_tag.get_attribute_value("key", val);
+    auto& data = rvb[QuantumIdentifier(val)];
     
     // Get size
     Index nelem_specs;
-    internal_tag.get_attribute_value("nelem", nelem_specs);
-    r.data.resize(nelem_specs);
+    internal_open_tag.get_attribute_value("nelem", nelem_specs);
     
     // Get values
-    is_xml >> r;
+    for (Index j=0; j<nelem_specs; j++) {
+      SpeciesErrorCorrectedSuddenData secds;
+      is_xml >> secds;
+      data[secds.spec] = secds;
+    }
     
-    internal_tag.check_name("/ErrorCorrectedSuddenData");
+    ArtsXMLTag internal_close_tag(verbosity);
+    internal_close_tag.read_from_stream(is_xml);
+    internal_close_tag.check_name("/ErrorCorrectedSuddenData");
+    
   }
-
-  tag.check_name("/MapOfErrorCorrectedSuddenData");
+  
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/MapOfErrorCorrectedSuddenData");
+  
+  // Sanity check, it is not OK to not have AIR as catch-all broadener
+  for (auto& x: rvb) {
+    bool found_air=false;
+    for (auto& y: x.data) {
+      found_air = found_air or (y.spec == Species::Species::Bath);
+    }
+    ARTS_USER_ERROR_IF(not found_air,
+      "Incomplete ErrorCorrectedSuddenData, must contain air, contains:\n",
+      x)
+  }
 }
 
 //! Writes MapOfErrorCorrectedSuddenData to XML output stream
@@ -2105,6 +2122,8 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.add_attribute("nelem", rvb.nelem());
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
+  
+  xml_set_stream_precision(os_xml);
   
   for (auto& r: rvb) {
     ArtsXMLTag internal_open_tag(verbosity);

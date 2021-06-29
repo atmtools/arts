@@ -81,6 +81,28 @@ void EquivalentLines::sort_by_frequency(Vector& f, const ArrayOfIndex& sorting) 
   }
 }
 
+std::ostream& operator<<(std::ostream& os, const SpeciesErrorCorrectedSuddenData& srbd) {
+  os << Species::toShortName(srbd.spec);
+  os << ' ' << srbd.a;
+  os << ' ' << srbd.b;
+  os << ' ' << srbd.gamma;
+  os << ' ' << srbd.dc;
+  os << ' ' << srbd.mass;
+  return os;
+}
+
+std::istream& operator>>(std::istream& is, SpeciesErrorCorrectedSuddenData& srbd) {
+  std::string spec_name;
+  is >> spec_name;
+  is >> srbd.a;
+  is >> srbd.b;
+  is >> srbd.gamma;
+  is >> srbd.dc;
+  is >> double_imanip() >> srbd.mass;
+  srbd.spec = Species::fromShortName(spec_name);
+  ARTS_USER_ERROR_IF(not good_enum(srbd.spec), "Cannot recognize species: ", spec_name)
+  return is;
+}
 
 namespace Makarov2020etal {
 /*! Returns the reduced dipole
@@ -185,6 +207,39 @@ PopulationAndDipole presorted_population_and_dipole(const Numeric T,
   PopulationAndDipole tp(T, band);
   tp.sort(presorting);
   return tp;
+}
+
+Numeric SpeciesErrorCorrectedSuddenData::Q(const Rational J,
+                                           const Numeric T,
+                                           const Numeric T0,
+                                           const Numeric energy) const noexcept
+{
+  return std::exp(- b.at(T, T0) * energy / (Constant::k * T)) * a.at(T, T0) * Numeric(2*J + 1) / pow(J * (J+1), gamma.at(T, T0));
+}
+
+Numeric SpeciesErrorCorrectedSuddenData::Omega(const Numeric T,
+                                               const Numeric T0,
+                                               const Numeric other_mass,
+                                               const Numeric energy_x,
+                                               const Numeric energy_xm2) const noexcept
+{
+  using Constant::h;
+  using Constant::k;
+  using Constant::pi;
+  using Constant::m_u;
+  using Constant::h_bar;
+  using Constant::pow2;
+  
+  // Constants for the expression
+  constexpr Numeric fac = 8 * k / (m_u * pi);
+  
+  const Numeric wnnm2 = (energy_x - energy_xm2) / h_bar;
+  
+  const Numeric mu = 1 / mass + 1 / other_mass;
+  const Numeric v_bar_pow2 = fac*T*mu;
+  const Numeric tauc_pow2 = pow2(dc.at(T, T0)) / v_bar_pow2;
+  
+  return 1.0 / pow2(1 + 1.0/24.0 * pow2(wnnm2) * tauc_pow2);
 }
 
 namespace Makarov2020etal {
@@ -295,9 +350,9 @@ void relaxation_matrix_offdiagonal(MatrixView W,
         const Numeric b = wigner6j(L, Jk, Jl, 1, Nl, Nk);
         const Numeric c = wigner6j(L, Jk_p, Jl_p, 1, Nl, Nk);
         const Numeric d = wigner6j(L, Jk, Jl, 1, Jl_p, Jk_p);
-        sum += sgn * a * b * c * d * rovib_data.Q(L, T, erot(L)) / rovib_data.Omega(T, band.SpeciesMass(), erot(L), erot(L-2));
+        sum += sgn * a * b * c * d * rovib_data.Q(L, T, band.T0(), erot(L)) / rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(L), erot(L-2));
       }
-      sum *= scale * rovib_data.Omega(T, band.SpeciesMass(), erot(Nk), erot(Nk - 2));
+      sum *= scale * rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(Nk), erot(Nk - 2));
       
       // Add to W and rescale to upwards element by the populations
       W(l, k) = sum;
@@ -399,11 +454,12 @@ Numeric sum_symbol(const Rational Ji,
                    const Rational k,
                    const Rational L,
                    const Numeric T,
+                   const Numeric T0,
                    const Numeric self_mass,
                    const EnergyFunction& erot) noexcept
 {
   return wigner_sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L) * Numeric(2 * L + 1) * 
-  rovib_data.Q(L, T, erot(L)) / rovib_data.Omega(T, self_mass, erot(L), erot(L-2));
+  rovib_data.Q(L, T, T0, erot(L)) / rovib_data.Omega(T, T0, self_mass, erot(L), erot(L-2));
 }
 
 /** The entire "sum over L" full expression
@@ -427,6 +483,7 @@ Numeric upper_offdiagonal_element(const Rational Ji,
                                   const SpeciesErrorCorrectedSuddenData& rovib_data,
                                   const Rational k,
                                   const Numeric T,
+                                  const Numeric T0,
                                   const Numeric self_mass,
                                   const EnergyFunction& erot) ARTS_NOEXCEPT
 {
@@ -438,9 +495,9 @@ Numeric upper_offdiagonal_element(const Rational Ji,
                                       {Rational(2), std::numeric_limits<Index>::max()}));
   for (Rational L=Ls; L<=Lf; L+=2) {
     x += sum_symbol(Ji, Ji_p, Jf, Jf_p, rovib_data, k, L,
-                    T, self_mass, erot);
+                    T, T0, self_mass, erot);
   }
-  return (iseven(k) ? -1 : 1) * rovib_data.Omega(T, self_mass, erot(Ji), erot(Ji-2)) *
+  return (iseven(k) ? -1 : 1) * rovib_data.Omega(T, T0, self_mass, erot(Ji), erot(Ji-2)) *
           Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * x;
 }
 
@@ -473,18 +530,19 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
                                                  const Numeric pop1,
                                                  const Numeric pop2,
                                                  const Numeric T,
+                                                 const Numeric T0,
                                                  const Numeric self_mass,
                                                  const EnergyFunction& erot) ARTS_NOEXCEPT
 {
   if (Ji1 >= Ji2) {
     const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2,
                                                 rovib_data,
-                                                k, T, self_mass, erot);
+                                                k, T, T0, self_mass, erot);
     return {W, W * pop2 / pop1};  // FIXME: order???
   } else {
     const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1,
                                                 rovib_data,
-                                                k, T, self_mass, erot);
+                                                k, T, T0, self_mass, erot);
     return {W * pop1 / pop2, W};  // FIXME: order???
   }
 }
@@ -517,7 +575,7 @@ void real_offdiagonal_relaxation_matrix(MatrixView W,
                                                    band.UpperQuantumNumber(sorting[j], QuantumNumberType::J),
                                                    band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
                                                    band.LowerQuantumNumber(sorting[j], QuantumNumberType::J),
-                                                   rovib_data, k, pop[i], pop[j], T, band.SpeciesMass(), erot);
+                                                   rovib_data, k, pop[i], pop[j], T, band.T0(), band.SpeciesMass(), erot);
       W(i, j) = W12;
       W(j, i) = W21;
     }
@@ -655,6 +713,7 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
       Makarov2020etal::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
       break;
     case PopulationType::ByRovibLinearDipoleLineMixing: {
+      std::cerr << "THIS CODE IS NOT TESTED!\n";
       LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
     } break;
     default:
@@ -951,6 +1010,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
           vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band_copy);
           vec /= -d;
         } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
+          /*
           d = target.Perturbation();
           ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
           
@@ -968,6 +1028,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
             vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
           }
           vec /= -d;
+          */
         } else {
           ARTS_ASSERT (false, "Missing Line Derivative");
         }
@@ -1232,6 +1293,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
           vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band_copy);
           vec /= -d;
         } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
+          /*
           d = target.Perturbation();
           ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
           
@@ -1250,6 +1312,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
           }
           
           vec /= -d;
+          */
         } else {
           ARTS_ASSERT (false, "Missing Line Derivative");
         }

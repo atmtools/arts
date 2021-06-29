@@ -154,7 +154,7 @@ class LineShapeModelParameters:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, LineShapeModelParameters):
-            self.__data__.type = other.type
+            self.type = other.type
             self.x0 = other.x0
             self.x1 = other.x1
             self.x2 = other.x2

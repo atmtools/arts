@@ -3,6 +3,7 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier
+from pyarts.classes.LineShapeModelParameters import LineShapeModelParameters
 from pyarts.classes.BasicTypes import Numeric
 from pyarts.classes.SpeciesIsotopeRecord import Species
 
@@ -46,15 +47,20 @@ class SpeciesErrorCorrectedSuddenData:
         if self.__delete__:
             lib.deleteSpeciesErrorCorrectedSuddenData(self.__data__)
 
-    def set(self, other):
+    def set(self, _):
         """ Sets this class according to another python instance of itself """
-        raise RuntimeError("Not implemented")
+        raise RuntimeError("Cannot be set from another copy")
 
     def __repr__(self):
         return f"{self.spec} {self.a} {self.b} {self.gamma} {self.dc} {self.mass}"
 
     def __eq__(self, other):
-        raise RuntimeError("Not implemented")
+        return self.spec == other.spec and \
+        self.a == other.a and \
+        self.b == other.b and \
+        self.gamma == other.gamma and \
+        self.dc == other.dc and \
+        self.mass == other.mass
         
     @property
     def spec(self):
@@ -66,7 +72,7 @@ class SpeciesErrorCorrectedSuddenData:
         
     @property
     def a(self):
-        return Numeric(c.c_void_p(lib.getaSpeciesErrorCorrectedSuddenData(self.__data__)))
+        return LineShapeModelParameters(c.c_void_p(lib.getaSpeciesErrorCorrectedSuddenData(self.__data__)))
     
     @a.setter
     def a(self, val):
@@ -74,7 +80,7 @@ class SpeciesErrorCorrectedSuddenData:
         
     @property
     def gamma(self):
-        return Numeric(c.c_void_p(lib.getgammaSpeciesErrorCorrectedSuddenData(self.__data__)))
+        return LineShapeModelParameters(c.c_void_p(lib.getgammaSpeciesErrorCorrectedSuddenData(self.__data__)))
     
     @gamma.setter
     def gamma(self, val):
@@ -82,7 +88,7 @@ class SpeciesErrorCorrectedSuddenData:
         
     @property
     def b(self):
-        return Numeric(c.c_void_p(lib.getbSpeciesErrorCorrectedSuddenData(self.__data__)))
+        return LineShapeModelParameters(c.c_void_p(lib.getbSpeciesErrorCorrectedSuddenData(self.__data__)))
     
     @b.setter
     def b(self, val):
@@ -90,7 +96,7 @@ class SpeciesErrorCorrectedSuddenData:
         
     @property
     def dc(self):
-        return Numeric(c.c_void_p(lib.getdcSpeciesErrorCorrectedSuddenData(self.__data__)))
+        return LineShapeModelParameters(c.c_void_p(lib.getdcSpeciesErrorCorrectedSuddenData(self.__data__)))
     
     @dc.setter
     def dc(self, val):
@@ -160,7 +166,7 @@ class ErrorCorrectedSuddenData:
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
-        raise RuntimeError("Not implemented")
+        raise RuntimeError("Cannot be set from another copy")
 
     def __repr__(self):
         x = ""
@@ -171,7 +177,17 @@ class ErrorCorrectedSuddenData:
         return x
 
     def __eq__(self, other):
-        raise RuntimeError("Not implemented")
+        n1 = lib.getnelemErrorCorrectedSuddenData(self.__data__)
+        n2 = lib.getnelemErrorCorrectedSuddenData(other.__data__)
+        if n1 != n2:
+            return False
+        
+        for i in range(n1):
+            ptr1 = lib.getSpeciesErrorCorrectedSuddenDataAtErrorCorrectedSuddenData(self.__data__, i)
+            ptr2 = lib.getSpeciesErrorCorrectedSuddenDataAtErrorCorrectedSuddenData(other.__data__, i)
+            if not (SpeciesErrorCorrectedSuddenData(c.c_void_p(ptr1)) == SpeciesErrorCorrectedSuddenData(c.c_void_p(ptr2))):
+                return False
+        return True
         
     @property
     def id(self):
@@ -237,7 +253,7 @@ class MapOfErrorCorrectedSuddenData:
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
-        raise RuntimeError("Not implemented")
+        raise RuntimeError("Cannot be set from another copy")
 
     @staticmethod
     def name():
@@ -270,7 +286,17 @@ class MapOfErrorCorrectedSuddenData:
             raise OSError("Cannot save {}".format(file))
 
     def __eq__(self, other):
-        raise RuntimeError("Not implemented")
+        n1 = lib.getnelemMapOfErrorCorrectedSuddenData(self.__data__)
+        n2 = lib.getnelemMapOfErrorCorrectedSuddenData(other.__data__)
+        if n1 != n2:
+            return False
+        
+        for i in range(n1):
+            ptr1 = lib.getErrorCorrectedSuddenDataAtMapOfErrorCorrectedSuddenData(self.__data__, i)
+            ptr2 = lib.getErrorCorrectedSuddenDataAtMapOfErrorCorrectedSuddenData(other.__data__, i)
+            if not (ErrorCorrectedSuddenData(c.c_void_p(ptr1)) == ErrorCorrectedSuddenData(c.c_void_p(ptr2))):
+                return False
+        return True
         
     def __getitem__(self, key):
         if not isinstance(key, QuantumIdentifier):

@@ -717,7 +717,7 @@ std::ostream& operator<<(std::ostream& os, const ModelParameters& mp) {
 }
 
 std::istream& operator>>(std::istream& is, ModelParameters& mp) {
-  is >> mp.type >> mp.X0 >> mp.X1 >> mp.X2 >> mp.X3;
+  is >> mp.type >> double_imanip() >> mp.X0 >> mp.X1 >> mp.X2 >> mp.X3;
   return is;
 }
 

@@ -79,65 +79,38 @@ using EnergyFunction = std::function<Numeric (const Rational)>;
 
 struct SpeciesErrorCorrectedSuddenData {
   Species::Species spec;
-  Numeric a;
-  Numeric b;
-  Numeric gamma;
-  Numeric dc;
+  LineShapeModelParameters a;
+  LineShapeModelParameters b;
+  LineShapeModelParameters gamma;
+  LineShapeModelParameters dc;
   Numeric mass;
   
   constexpr SpeciesErrorCorrectedSuddenData() noexcept :
-    spec(Species::Species::Bath), a(0), b(0), gamma(0),
-    dc(std::numeric_limits<Numeric>::infinity()),
+    spec(Species::Species::Bath), a(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
+    b(LineShapeTemperatureModel::T0, 0, 0, 0, 0), gamma(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
+    dc(LineShapeTemperatureModel::T0, std::numeric_limits<Numeric>::infinity(), 0, 0, 0),
     mass(std::numeric_limits<Numeric>::infinity()) {}
   
   constexpr SpeciesErrorCorrectedSuddenData(Species::Species inspec) noexcept :
-    spec(inspec), a(0), b(0), gamma(0),
-    dc(std::numeric_limits<Numeric>::infinity()),
+    spec(inspec), a(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
+    b(LineShapeTemperatureModel::T0, 0, 0, 0, 0), gamma(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
+    dc(LineShapeTemperatureModel::T0, std::numeric_limits<Numeric>::infinity(), 0, 0, 0),
     mass(std::numeric_limits<Numeric>::infinity()) {}
   
   Numeric Q(const Rational J,
             const Numeric T,
-            const Numeric energy) const noexcept
-  {
-    return std::exp(- b * energy / (Constant::k * T)) * a * Numeric(2*J + 1) / pow(J * (J+1), gamma);
-  }
+            const Numeric T0,
+            const Numeric energy) const noexcept;
   
-  constexpr Numeric Omega(const Numeric T,
-                          const Numeric other_mass,
-                          const Numeric energy_x,
-                          const Numeric energy_xm2) const noexcept
-  {
-    using Constant::h;
-    using Constant::k;
-    using Constant::pi;
-    using Constant::m_u;
-    using Constant::h_bar;
-    using Constant::pow2;
-    
-    // Constants for the expression
-    constexpr Numeric fac = 8 * k / (m_u * pi);
-    
-    const Numeric wnnm2 = (energy_x - energy_xm2) / h_bar;
-    
-    const Numeric mu = 1 / mass + 1 / other_mass;
-    const Numeric v_bar_pow2 = fac*T*mu;
-    const Numeric tauc_pow2 = pow2(dc) / v_bar_pow2;
-    
-    return 1.0 / pow2(1 + 1.0/24.0 * pow2(wnnm2) * tauc_pow2);
-  }
+  Numeric Omega(const Numeric T,
+                const Numeric T0,
+                const Numeric other_mass,
+                const Numeric energy_x,
+                const Numeric energy_xm2) const noexcept;
   
-  friend std::ostream& operator<<(std::ostream& os, const SpeciesErrorCorrectedSuddenData& srbd) {
-    return os << Species::toShortName(srbd.spec) << ' '
-              << srbd.a << ' ' << srbd.b << ' '
-              << srbd.gamma << ' ' << srbd.dc << ' ' << srbd.mass;
-  }
+  friend std::ostream& operator<<(std::ostream& os, const SpeciesErrorCorrectedSuddenData& srbd);
   
-  friend std::istream& operator>>(std::istream& is, SpeciesErrorCorrectedSuddenData& srbd) {
-    String spec_name;
-    is >> spec_name >> srbd.a >> srbd.b >> srbd.gamma >> srbd.dc >> srbd.mass;
-    srbd.spec = Species::fromShortName(spec_name);
-    return is;
-  }
+  friend std::istream& operator>>(std::istream& is, SpeciesErrorCorrectedSuddenData& srbd);
   
   constexpr bool operator==(Species::Species species) const noexcept {
     return species == spec;
@@ -174,7 +147,7 @@ struct ErrorCorrectedSuddenData {
   }
   
   friend std::istream& operator>>(std::istream& is, ErrorCorrectedSuddenData& rbd) {
-    for (auto& data: rbd.data) is >> data;
+    for (auto& x: rbd.data) is >> x;
     return is;
   }
   
@@ -200,7 +173,7 @@ struct ErrorCorrectedSuddenData {
 };  // ErrorCorrectedSuddenData
 
 struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
-  ErrorCorrectedSuddenData& operator[](const Quantum::Identifier& id) {
+  ErrorCorrectedSuddenData& operator[](const Quantum::Identifier& id) noexcept {
     if(auto ptr = std::find(begin(), end(), id); ptr not_eq end()) {
       return *ptr;
     } else {

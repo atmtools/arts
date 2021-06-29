@@ -6097,6 +6097,37 @@ void define_md_data_raw() {
       GIN_DESC("Start time", "End time")));
   
   md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataAddMakarov2020"),
+      DESCRIPTION("Sets the O2-66 microwave band data for ECS.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data", "isotopologue_ratios"),
+      GIN("air_mass"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("-1"),
+      GIN_DESC("Mass of air in g/mol, computed if 0 or lower")));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataAddRodrigues1997"),
+      DESCRIPTION("Sets the CO2-626, CO2-636, and CO2-628 IR band data for ECS.\n"
+        "\n"
+        "Note that the broadening species has to be N2 and not AIR for the band,\n"
+        "and that N2 VMR must be present\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data", "isotopologue_ratios"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataInit"),
       DESCRIPTION("Resets/initializes the ECS data.\n"),
       AUTHORS("Richard Larsson"),
@@ -6119,15 +6150,19 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("ecs_data", "isotopologue_ratios"),
-      GIN("qid", "species", "a", "b", "gamma", "dc"),
-      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Numeric", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF),
+      GIN("qid", "species", "atype", "a", "btype", "b", "gammatype", "gamma", "dctype", "dc"),
+      GIN_TYPE("QuantumIdentifier", "String", "String", "Vector", "String", "Vector", "String", "Vector", "String", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF, "T0", NODEF, "T0", NODEF, "T0", NODEF, "T0", NODEF),
       GIN_DESC(
         "Band identifier",
         "Species identifier",
-        "Main scaling coefficient for Q",
+        "Temperature model for the main scaling coefficients for Q",
+        "Main scaling coefficients for Q",
+        "Temperature model for the energy scaling coefficient for Q",
         "Energy scaling coefficient for Q",
+        "Temperature model for the energy exponent for Q",
         "Energy exponent for Q",
+        "Temperature model for the mean collision interaction distance",
         "Mean collision interaction distance")));
 
   md_data_raw.push_back(create_mdrecord(

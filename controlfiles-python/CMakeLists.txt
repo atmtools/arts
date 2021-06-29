@@ -22,6 +22,7 @@ arts_test_run_pyfile(fast classes/TestTime.py)
 arts_test_run_pyfile(fast classes/TestTimer.py)
 arts_test_run_pyfile(fast classes/TestXsecRecord.py)
 arts_test_run_pyfile(fast classes/TestSpeciesIsotopologueRatios.py)
+arts_test_run_pyfile(fast classes/TestMapOfErrorCorrectedSuddenData.py)
 
 arts_test_run_pyfile(fast raw/calib.py)
 arts_test_run_pyfile(fast raw/corr.py)
