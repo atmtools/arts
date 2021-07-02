@@ -1525,10 +1525,10 @@ VoidStructGetterCAPI(PartitionFunctionsData, data)
 // SpeciesErrorCorrectedSuddenData
 BasicInterfaceCAPI(SpeciesErrorCorrectedSuddenData)
 VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, spec)
-VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, a)
-VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, b)
-VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, gamma)
-VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, dc)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, scaling)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, beta)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, lambda)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, collisional_distance)
 VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, mass)
 
 // ErrorCorrectedSuddenData

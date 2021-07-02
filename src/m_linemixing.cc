@@ -316,29 +316,90 @@ void ecs_dataSetSpeciesData(
   const SpeciesIsotopologueRatios& isotopologue_ratios,
   const Quantum::Identifier& qid,
   const String& species,
-  const String& atype,
-  const Vector& a,
-  const String& btype,
-  const Vector& b,
-  const String& gammatype,
-  const Vector& gamma,
-  const String& dctype,
-  const Vector& dc,
+  const String& scaling_type,
+  const Vector& scaling,
+  const String& beta_type,
+  const Vector& beta,
+  const String& lambda_type,
+  const Vector& lambda,
+  const String& collisional_distance_type,
+  const Vector& collisional_distance,
   const Verbosity&)
 {
   const Species::Species spec = Species::fromShortName(species);
   ARTS_USER_ERROR_IF(not good_enum(spec), "Invalid species: ", species)
   auto& data = ecs_data[qid][spec];
-  data.a = LineShapeModelParameters(LineShape::toTemperatureModelOrThrow(atype), a);
-  data.b = LineShapeModelParameters(LineShape::toTemperatureModelOrThrow(btype), b);
-  data.gamma = LineShapeModelParameters(LineShape::toTemperatureModelOrThrow(gammatype), gamma);
-  data.dc = LineShapeModelParameters(LineShape::toTemperatureModelOrThrow(dctype), dc);
+  data.scaling = LineShapeModelParameters(LineShape::toTemperatureModelOrThrow(scaling_type), scaling);
+  data.beta = LineShapeModelParameters(LineShape::toTemperatureModelOrThrow(beta_type), beta);
+  data.lambda = LineShapeModelParameters(LineShape::toTemperatureModelOrThrow(lambda_type), lambda);
+  data.collisional_distance = LineShapeModelParameters(LineShape::toTemperatureModelOrThrow(collisional_distance_type), collisional_distance);
   data.mass = Species::mean_mass(spec, isotopologue_ratios);
 }
 
+/*
+void ecs_dataSetMeanAir(
+  MapOfErrorCorrectedSuddenData& ecs_data,
+  const Vector& vmrs,
+  const ArrayOfSpecies& specs,
+  const Quantum::Identifier& qid,
+  const Verbosity&)
+{
+  auto& ecs = ecs_data[qid];
+  
+  ARTS_USER_ERROR_IF(std::find(specs.begin(), specs.end(), Species::Species::Bath) not_eq specs.end(),
+    "Cannot have AIR in list of species: [", specs, "]")
+  ARTS_USER_ERROR_IF(specs.nelem() not_eq vmrs.nelem(), "Bad sizes of specs and vmrs\nspecs: [", specs, "]\nvmrs: [", vmrs, "]")
+  
+  SpeciesErrorCorrectedSuddenData airdata;
+  static_assert(LineShapeModelParameters::N == 4);
+  const auto scale = [](LineShapeModelParameters& mp, Numeric x){mp.X0 *= x; mp.X1 *= x; mp.X2 *= x; mp.X3 *= x;};
+  const auto scale_and_add_or_throw = [](LineShapeModelParameters& mp1, const LineShapeModelParameters& mp2, Numeric x) {
+    ARTS_USER_ERROR_IF(mp1.type not_eq mp2.type, "Can only scale and add same type\nmp1: ", mp1, "\nmp2: ", mp2)
+    mp1.X0 += mp2.X0 * x;
+    mp1.X1 += mp2.X1 * x;
+    mp1.X2 += mp2.X2 * x;
+    mp1.X3 += mp2.X3 * x;
+  };
+  
+  bool found=false;
+  Numeric sumvmr = 0;
+  for (Index i=0; i<specs.nelem(); i++) {
+    auto& data = ecs[specs[i]];
+    
+    // This means we never had the data so we should skip
+    if (std::isinf(data.mass)) {
+      continue;
+    }
+    
+    const Numeric vmr = vmrs[i];
+    if (not found) {
+      airdata.scaling = data.scaling;
+      airdata.beta = data.beta;
+      airdata.lambda = data.lambda;
+      airdata.collisional_distance = data.collisional_distance;
+      airdata.mass = data.mass * vmr;
+      scale(airdata.scaling, vmr);
+      scale(airdata.beta, vmr);
+      scale(airdata.lambda, vmr);
+      scale(airdata.collisional_distance, vmr);
+      found = true;
+    } else {
+      scale_and_add_or_throw(airdata.scaling, data.scaling, vmr);
+      scale_and_add_or_throw(airdata.beta, data.beta, vmr);
+      scale_and_add_or_throw(airdata.lambda, data.lambda, vmr);
+      scale_and_add_or_throw(airdata.collisional_distance, data.collisional_distance, vmr);
+      airdata.mass += data.mass * vmr;
+    }
+    
+    sumvmr += vmrs[i];
+  }
+  
+  ecs[Species::Species::Bath] = airdata;
+}
+*/
+
 void ecs_dataAddMakarov2020(MapOfErrorCorrectedSuddenData& ecs_data,
                             const SpeciesIsotopologueRatios& isotopologue_ratios,
-                            const Numeric& air_mass,
                             const Verbosity&)
 {
   // The band is ignored
@@ -346,26 +407,17 @@ void ecs_dataAddMakarov2020(MapOfErrorCorrectedSuddenData& ecs_data,
   
   // All species have the same effect, so just copy the values but change the mass (allow new mass for Air)
   
-  ecs[Species::Species::Oxygen].a = LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
-  ecs[Species::Species::Oxygen].dc = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(0.61), 0, 0, 0);
-  ecs[Species::Species::Oxygen].gamma = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
-  ecs[Species::Species::Oxygen].b = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.567, 0, 0, 0);
+  ecs[Species::Species::Oxygen].scaling = LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
+  ecs[Species::Species::Oxygen].collisional_distance = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(0.61), 0, 0, 0);
+  ecs[Species::Species::Oxygen].lambda = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
+  ecs[Species::Species::Oxygen].beta = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.567, 0, 0, 0);
   ecs[Species::Species::Oxygen].mass = Species::mean_mass(Species::Species::Oxygen, isotopologue_ratios);
   
-  ecs[Species::Species::Nitrogen].a = LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
-  ecs[Species::Species::Nitrogen].dc = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(0.61), 0, 0, 0);
-  ecs[Species::Species::Nitrogen].gamma = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
-  ecs[Species::Species::Nitrogen].b = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.567, 0, 0, 0);
+  ecs[Species::Species::Nitrogen].scaling = LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
+  ecs[Species::Species::Nitrogen].collisional_distance = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(0.61), 0, 0, 0);
+  ecs[Species::Species::Nitrogen].lambda = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
+  ecs[Species::Species::Nitrogen].beta = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.567, 0, 0, 0);
   ecs[Species::Species::Nitrogen].mass = Species::mean_mass(Species::Species::Nitrogen, isotopologue_ratios);
-  
-  ecs[Species::Species::Bath].a = LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
-  ecs[Species::Species::Bath].dc = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(0.61), 0, 0, 0);
-  ecs[Species::Species::Bath].gamma = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
-  ecs[Species::Species::Bath].b = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.567, 0, 0, 0);
-  if (air_mass <= 0)
-    ecs[Species::Species::Bath].mass = ecs[Species::Species::Oxygen].mass * 0.21 + ecs[Species::Species::Nitrogen].mass * 0.79;
-  else 
-    ecs[Species::Species::Bath].mass = air_mass;
 }
 
 void ecs_dataAddRodrigues1997(MapOfErrorCorrectedSuddenData& ecs_data,
@@ -375,16 +427,31 @@ void ecs_dataAddRodrigues1997(MapOfErrorCorrectedSuddenData& ecs_data,
   for (auto key: {"CO2-626 ALL", "CO2-628 ALL", "CO2-636 ALL"}) {
     auto& ecs = ecs_data[QuantumIdentifier(key)];
     
-    ecs[Species::Species::Nitrogen].a        = LineShapeModelParameters(LineShapeTemperatureModel::T1, Conversion::kaycm_per_atm2hz_per_pa(0.0180), 0.85, 0, 0);
-    ecs[Species::Species::Nitrogen].gamma    = LineShapeModelParameters(LineShapeTemperatureModel::T1, 0.81, 0.0152, 0, 0);
-    ecs[Species::Species::Nitrogen].b        = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.008, 0, 0, 0);
-    ecs[Species::Species::Nitrogen].dc       = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(2.2), 0, 0, 0);
-    ecs[Species::Species::Nitrogen].mass     = Species::mean_mass(Species::Species::Nitrogen, isotopologue_ratios);
+    ecs[Species::Species::Nitrogen].scaling = LineShapeModelParameters(LineShapeTemperatureModel::T1, Conversion::kaycm_per_atm2hz_per_pa(0.0180), 0.85, 0, 0);
+    ecs[Species::Species::Nitrogen].lambda = LineShapeModelParameters(LineShapeTemperatureModel::T1, 0.81, 0.0152, 0, 0);
+    ecs[Species::Species::Nitrogen].beta = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.008, 0, 0, 0);
+    ecs[Species::Species::Nitrogen].collisional_distance = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(2.2), 0, 0, 0);
+    ecs[Species::Species::Nitrogen].mass = Species::mean_mass(Species::Species::Nitrogen, isotopologue_ratios);
     
-    ecs[Species::Species::Oxygen].a          = LineShapeModelParameters(LineShapeTemperatureModel::T1, Conversion::kaycm_per_atm2hz_per_pa(0.0168), 0.5, 0, 0);
-    ecs[Species::Species::Oxygen].gamma      = LineShapeModelParameters(LineShapeTemperatureModel::T1, 0.82, -0.091, 0, 0);
-    ecs[Species::Species::Oxygen].b          = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.007, 0, 0, 0);
-    ecs[Species::Species::Oxygen].dc         = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(2.4), 0, 0, 0);
-    ecs[Species::Species::Oxygen].mass       = Species::mean_mass(Species::Species::Oxygen, isotopologue_ratios);
+    ecs[Species::Species::Oxygen].scaling = LineShapeModelParameters(LineShapeTemperatureModel::T1, Conversion::kaycm_per_atm2hz_per_pa(0.0168), 0.5, 0, 0);
+    ecs[Species::Species::Oxygen].lambda = LineShapeModelParameters(LineShapeTemperatureModel::T1, 0.82, -0.091, 0, 0);
+    ecs[Species::Species::Oxygen].beta = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.007, 0, 0, 0);
+    ecs[Species::Species::Oxygen].collisional_distance = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(2.4), 0, 0, 0);
+    ecs[Species::Species::Oxygen].mass = Species::mean_mass(Species::Species::Oxygen, isotopologue_ratios);
+  }
+}
+
+void ecs_dataAddTran2011(MapOfErrorCorrectedSuddenData& ecs_data,
+                              const SpeciesIsotopologueRatios& isotopologue_ratios,
+                              const Verbosity&)
+{
+  for (auto key: {"CO2-626 ALL", "CO2-628 ALL", "CO2-636 ALL"}) {
+    auto& ecs = ecs_data[QuantumIdentifier(key)];
+    
+    ecs[Species::Species::CarbonDioxide].scaling = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::kaycm_per_atm2hz_per_pa(0.019), 0, 0, 0);
+    ecs[Species::Species::CarbonDioxide].lambda = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.61, 0, 0, 0);
+    ecs[Species::Species::CarbonDioxide].beta = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.052, 0, 0, 0);
+    ecs[Species::Species::CarbonDioxide].collisional_distance = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(5.5), 0, 0, 0);
+    ecs[Species::Species::CarbonDioxide].mass = Species::mean_mass(Species::Species::CarbonDioxide, isotopologue_ratios);
   }
 }

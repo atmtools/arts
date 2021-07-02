@@ -79,22 +79,22 @@ using EnergyFunction = std::function<Numeric (const Rational)>;
 
 struct SpeciesErrorCorrectedSuddenData {
   Species::Species spec;
-  LineShapeModelParameters a;
-  LineShapeModelParameters b;
-  LineShapeModelParameters gamma;
-  LineShapeModelParameters dc;
+  LineShapeModelParameters scaling;
+  LineShapeModelParameters beta;
+  LineShapeModelParameters lambda;
+  LineShapeModelParameters collisional_distance;
   Numeric mass;
   
   constexpr SpeciesErrorCorrectedSuddenData() noexcept :
-    spec(Species::Species::Bath), a(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    b(LineShapeTemperatureModel::T0, 0, 0, 0, 0), gamma(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    dc(LineShapeTemperatureModel::T0, std::numeric_limits<Numeric>::infinity(), 0, 0, 0),
+    spec(Species::Species::Bath), scaling(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
+    beta(LineShapeTemperatureModel::T0, 0, 0, 0, 0), lambda(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
+    collisional_distance(LineShapeTemperatureModel::T0, std::numeric_limits<Numeric>::infinity(), 0, 0, 0),
     mass(std::numeric_limits<Numeric>::infinity()) {}
   
   constexpr SpeciesErrorCorrectedSuddenData(Species::Species inspec) noexcept :
-    spec(inspec), a(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    b(LineShapeTemperatureModel::T0, 0, 0, 0, 0), gamma(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    dc(LineShapeTemperatureModel::T0, std::numeric_limits<Numeric>::infinity(), 0, 0, 0),
+    spec(inspec), scaling(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
+    beta(LineShapeTemperatureModel::T0, 0, 0, 0, 0), lambda(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
+    collisional_distance(LineShapeTemperatureModel::T0, std::numeric_limits<Numeric>::infinity(), 0, 0, 0),
     mass(std::numeric_limits<Numeric>::infinity()) {}
   
   Numeric Q(const Rational J,

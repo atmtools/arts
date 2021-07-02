@@ -83,10 +83,10 @@ void EquivalentLines::sort_by_frequency(Vector& f, const ArrayOfIndex& sorting) 
 
 std::ostream& operator<<(std::ostream& os, const SpeciesErrorCorrectedSuddenData& srbd) {
   os << Species::toShortName(srbd.spec);
-  os << ' ' << srbd.a;
-  os << ' ' << srbd.b;
-  os << ' ' << srbd.gamma;
-  os << ' ' << srbd.dc;
+  os << ' ' << srbd.scaling;
+  os << ' ' << srbd.beta;
+  os << ' ' << srbd.lambda;
+  os << ' ' << srbd.collisional_distance;
   os << ' ' << srbd.mass;
   return os;
 }
@@ -94,10 +94,10 @@ std::ostream& operator<<(std::ostream& os, const SpeciesErrorCorrectedSuddenData
 std::istream& operator>>(std::istream& is, SpeciesErrorCorrectedSuddenData& srbd) {
   std::string spec_name;
   is >> spec_name;
-  is >> srbd.a;
-  is >> srbd.b;
-  is >> srbd.gamma;
-  is >> srbd.dc;
+  is >> srbd.scaling;
+  is >> srbd.beta;
+  is >> srbd.lambda;
+  is >> srbd.collisional_distance;
   is >> double_imanip() >> srbd.mass;
   srbd.spec = Species::fromShortName(spec_name);
   ARTS_USER_ERROR_IF(not good_enum(srbd.spec), "Cannot recognize species: ", spec_name)
@@ -214,7 +214,7 @@ Numeric SpeciesErrorCorrectedSuddenData::Q(const Rational J,
                                            const Numeric T0,
                                            const Numeric energy) const noexcept
 {
-  return std::exp(- b.at(T, T0) * energy / (Constant::k * T)) * a.at(T, T0) * Numeric(2*J + 1) / pow(J * (J+1), gamma.at(T, T0));
+  return std::exp(- beta.at(T, T0) * energy / (Constant::k * T)) * scaling.at(T, T0) / pow(J * (J+1), lambda.at(T, T0));
 }
 
 Numeric SpeciesErrorCorrectedSuddenData::Omega(const Numeric T,
@@ -235,9 +235,9 @@ Numeric SpeciesErrorCorrectedSuddenData::Omega(const Numeric T,
   
   const Numeric wnnm2 = (energy_x - energy_xm2) / h_bar;
   
-  const Numeric mu = 1 / mass + 1 / other_mass;
-  const Numeric v_bar_pow2 = fac*T*mu;
-  const Numeric tauc_pow2 = pow2(dc.at(T, T0)) / v_bar_pow2;
+  const Numeric inv_eff_mass = 1 / mass + 1 / other_mass;
+  const Numeric v_bar_pow2 = fac*T*inv_eff_mass;
+  const Numeric tauc_pow2 = pow2(collisional_distance.at(T, T0)) / v_bar_pow2;
   
   return 1.0 / pow2(1 + 1.0/24.0 * pow2(wnnm2) * tauc_pow2);
 }
@@ -311,6 +311,8 @@ void relaxation_matrix_offdiagonal(MatrixView W,
 {
   using Conversion::kelvin2joule;
   
+  const auto bk = [](const Rational& r) -> Numeric {return sqrt(2*r + 1);};
+  
   const Index n = band.NumLines();
   
   Vector dipr(n);
@@ -328,42 +330,35 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       const Index l = ihigh ? j : i;
       
       // Quantum numbers
-      const Rational Jk = band.UpperQuantumNumber(sorting[k], QuantumNumberType::J);
-      const Rational Jl = band.UpperQuantumNumber(sorting[l], QuantumNumberType::J);
-      const Rational Nk = band.UpperQuantumNumber(sorting[k], QuantumNumberType::N);
-      const Rational Nl = band.UpperQuantumNumber(sorting[l], QuantumNumberType::N);
-      const Rational Jk_p = band.LowerQuantumNumber(sorting[k], QuantumNumberType::J);
-      const Rational Jl_p = band.LowerQuantumNumber(sorting[l], QuantumNumberType::J);
+      const Rational Ji = band.UpperQuantumNumber(sorting[k], QuantumNumberType::J);
+      const Rational Jf = band.LowerQuantumNumber(sorting[k], QuantumNumberType::J);
+      const Rational Ni = band.UpperQuantumNumber(sorting[k], QuantumNumberType::N);
+      const Rational Nf = band.LowerQuantumNumber(sorting[k], QuantumNumberType::N);
+      const Rational Si = band.UpperQuantumNumber(sorting[k], QuantumNumberType::S);
+      const Rational Sf = band.LowerQuantumNumber(sorting[k], QuantumNumberType::S);
+      const Rational Ji_p = band.UpperQuantumNumber(sorting[l], QuantumNumberType::J);
+      const Rational Jf_p = band.LowerQuantumNumber(sorting[l], QuantumNumberType::J);
+      const Rational Ni_p = band.UpperQuantumNumber(sorting[l], QuantumNumberType::N);
+      const Rational Nf_p = band.LowerQuantumNumber(sorting[l], QuantumNumberType::N);
       
-      // Makarov 2013 symbol with modifications:
-      //    1) Squared scale
-      //    2) Squared 3J-symbol
-      //    3) Using the updated 2020 constants
-      //    4) Use wigner6j(1, 1, 1, Jf, Ji, N) instead of wigner6j(1, 1, 1, Ji, Jf, N), which is in the paper
-      // These are modified after reading the original code
-      Numeric sum = 0;
-      const Numeric scale = Numeric(2*Nk + 1) * Numeric(2*Nl + 1) * sqrt(2*Jk + 1) * sqrt(2*Jl + 1) * sqrt(2*Jk_p + 1) * sqrt(2* Jl_p + 1);
-      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Nl, Nk), {Rational(2), std::numeric_limits<Index>::max()});
+      // Tran etal 2006 symbol with modifications:
+      //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
+      Numeric sum=0;
+      const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) * bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) * bk(Ji_p);
+      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Ni_p, Ni), {Rational(2), std::numeric_limits<Index>::max()});
       for (Rational L=L0; L<=L1; L+=2) {
-        const Numeric sgn = iseven(Jk + Jl + L + 1) ? 1 : -1;
-        const Numeric a = Constant::pow2(wigner3j(Nl, Nk, L, 0, 0, 0));
-        const Numeric b = wigner6j(L, Jk, Jl, 1, Nl, Nk);
-        const Numeric c = wigner6j(L, Jk_p, Jl_p, 1, Nl, Nk);
-        const Numeric d = wigner6j(L, Jk, Jl, 1, Jl_p, Jk_p);
-        sum += sgn * a * b * c * d * rovib_data.Q(L, T, band.T0(), erot(L)) / rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(L), erot(L-2));
+        const Numeric a = wigner3j(Ni_p, Ni, L, 0, 0, 0);
+        const Numeric b = wigner3j(Nf_p, Nf, L, 0, 0, 0);
+        const Numeric c = wigner6j(L, Ji, Ji_p, Si, Ni_p, Ni);
+        const Numeric d = wigner6j(L, Jf, Jf_p, Sf, Nf_p, Nf);
+        const Numeric e = wigner6j(L, Ji, Ji_p, 1, Jf_p, Jf);
+        sum += a * b * c * d * e * Numeric(2*L + 1) * rovib_data.Q(L, T, band.T0(), erot(L)) / rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(L), erot(L-2));
       }
-      sum *= scale * rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(Nk), erot(Nk - 2));
+      sum *= scl * rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(Ni), erot(Ni - 2));
       
       // Add to W and rescale to upwards element by the populations
-      W(l, k) = sum;
-      W(k, l) = sum * std::exp((erot(Nl, Jl) - erot(Nk, Jk)) / Conversion::kelvin2joule(T));
-    }
-  }
-  
-  // Transpose?  Why is this transpose required?
-  for (Index i=0; i<n; i++) {
-    for (Index j=0; j<i; j++) {
-      swap(W(i, j), W(j, i));
+      W(k, l) = sum;
+      W(l, k) = sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / Conversion::kelvin2joule(T));
     }
   }
   
@@ -380,11 +375,11 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       }
     }
     
-    const Rational Ji = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
-    const Rational Ni = band.UpperQuantumNumber(sorting[i], QuantumNumberType::N);
+    const Rational Ji = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
+    const Rational Ni = band.LowerQuantumNumber(sorting[i], QuantumNumberType::N);
     for (Index j=i+1; j<n; j++) {
-      const Rational Jj = band.UpperQuantumNumber(sorting[j], QuantumNumberType::J);
-      const Rational Nj = band.UpperQuantumNumber(sorting[j], QuantumNumberType::N);
+      const Rational Jj = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
+      const Rational Nj = band.LowerQuantumNumber(sorting[j], QuantumNumberType::N);
       if (sumlw == 0) {
         W(j, i) = 0.0;
         W(i, j) = 0.0;
@@ -717,8 +712,8 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
       LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
     } break;
     default:
-      ARTS_ASSERT ("Bad type, we don't support band population type: ", band.Population(),
-                   "\nin this code.  It must either be added or computations aborted earlier");
+      ARTS_ASSERT(false, "Bad type, we don't support band population type: ", band.Population(),
+                  "\nin this code.  It must either be added or computations aborted earlier");
       break;
   }
   

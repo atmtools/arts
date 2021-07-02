@@ -6105,10 +6105,10 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("ecs_data", "isotopologue_ratios"),
-      GIN("air_mass"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("-1"),
-      GIN_DESC("Mass of air in g/mol, computed if 0 or lower")));
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataAddRodrigues1997"),
@@ -6150,7 +6150,7 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("ecs_data", "isotopologue_ratios"),
-      GIN("qid", "species", "atype", "a", "btype", "b", "gammatype", "gamma", "dctype", "dc"),
+      GIN("qid", "species", "scaling_type", "scaling", "beta_type", "beta", "lambda_type", "lambda", "collisional_distance_type", "collisional_distance"),
       GIN_TYPE("QuantumIdentifier", "String", "String", "Vector", "String", "Vector", "String", "Vector", "String", "Vector"),
       GIN_DEFAULT(NODEF, NODEF, "T0", NODEF, "T0", NODEF, "T0", NODEF, "T0", NODEF),
       GIN_DESC(

@@ -15,16 +15,16 @@ class SpeciesErrorCorrectedSuddenData:
         spec:
             Species
         
-        a:
+        scaling:
             Constant 1
         
-        b:
+        beta:
             Constant 2
         
-        gamma:
+        lambda_value:
             Constant 3
         
-        dc:
+        collisional_distance:
             Constant 4
         
         mass:
@@ -71,36 +71,36 @@ class SpeciesErrorCorrectedSuddenData:
         self.spec.set(val)
         
     @property
-    def a(self):
-        return LineShapeModelParameters(c.c_void_p(lib.getaSpeciesErrorCorrectedSuddenData(self.__data__)))
+    def scaling(self):
+        return LineShapeModelParameters(c.c_void_p(lib.getscalingSpeciesErrorCorrectedSuddenData(self.__data__)))
     
-    @a.setter
-    def a(self, val):
-        self.a.set(val)
+    @scaling.setter
+    def scaling(self, val):
+        self.scaling.set(val)
         
     @property
-    def gamma(self):
-        return LineShapeModelParameters(c.c_void_p(lib.getgammaSpeciesErrorCorrectedSuddenData(self.__data__)))
+    def lambda_value(self):
+        return LineShapeModelParameters(c.c_void_p(lib.getlambdaSpeciesErrorCorrectedSuddenData(self.__data__)))
     
-    @gamma.setter
-    def gamma(self, val):
-        self.gamma.set(val)
+    @lambda_value.setter
+    def lambda_value(self, val):
+        self.lambda_value.set(val)
         
     @property
-    def b(self):
-        return LineShapeModelParameters(c.c_void_p(lib.getbSpeciesErrorCorrectedSuddenData(self.__data__)))
+    def beta(self):
+        return LineShapeModelParameters(c.c_void_p(lib.getbetaSpeciesErrorCorrectedSuddenData(self.__data__)))
     
-    @b.setter
-    def b(self, val):
-        self.b.set(val)
+    @beta.setter
+    def beta(self, val):
+        self.beta.set(val)
         
     @property
-    def dc(self):
-        return LineShapeModelParameters(c.c_void_p(lib.getdcSpeciesErrorCorrectedSuddenData(self.__data__)))
+    def collisional_distance(self):
+        return LineShapeModelParameters(c.c_void_p(lib.getcollisional_distanceSpeciesErrorCorrectedSuddenData(self.__data__)))
     
-    @dc.setter
-    def dc(self, val):
-        self.dc.set(val)
+    @collisional_distance.setter
+    def collisional_distance(self, val):
+        self.collisional_distance.set(val)
         
     @property
     def mass(self):
@@ -122,17 +122,17 @@ lib.printSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
 lib.getspecSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
 lib.getspecSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
 
-lib.getaSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
-lib.getaSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
+lib.getscalingSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
+lib.getscalingSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
 
-lib.getgammaSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
-lib.getgammaSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
+lib.getlambdaSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
+lib.getlambdaSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
 
-lib.getbSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
-lib.getbSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
+lib.getbetaSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
+lib.getbetaSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
 
-lib.getdcSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
-lib.getdcSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
+lib.getcollisional_distanceSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
+lib.getcollisional_distanceSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
 
 lib.getmassSpeciesErrorCorrectedSuddenData.restype = c.c_void_p
 lib.getmassSpeciesErrorCorrectedSuddenData.argtypes = [c.c_void_p]
