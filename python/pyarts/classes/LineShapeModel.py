@@ -3,6 +3,69 @@ from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.LineShapeSingleSpeciesModel import LineShapeSingleSpeciesModel
+from pyarts.classes.BasicTypes import String
+
+
+class LineShapeType:
+    """ ARTS LineShapeType data
+    
+    Properties:
+        name:
+            Name of type (String)
+    """
+    def __init__(self, data):
+        if isinstance(data, c.c_void_p):
+            self.__delete__ = False
+            self.__data__ = data
+        else:
+            self.__delete__ = True
+            self.__data__ = c.c_void_p(lib.createLineShapeType())
+            self.name = data
+    
+    @property
+    def name(self):
+        return String(c.c_void_p(lib.getLineShapeTypeString(self.__data__)),
+                      delete=True)
+    
+    @name.setter
+    def name(self, x):
+        if lib.setLineShapeTypeString(self.__data__, str(x).encode('utf-8')):
+            raise RuntimeError(f"Bad LineShapeType: {x}")
+
+    def print(self):
+        """ Print to cout the ARTS representation of the class """
+        lib.printLineShapeType(self.__data__)
+
+    def __del__(self):
+        if self.__delete__:
+            lib.deleteLineShapeType(self.__data__)
+            
+    def set(self, other):
+        s = other.name if isinstance(other, LineShapeType) else other
+        self.name = s
+    
+    def __eq__(self, other):
+        s = other.name if isinstance(other, LineShapeType) else other
+        return self.name == s
+    
+    def __repr__(self):
+        return f"{self.name}"
+
+
+lib.createLineShapeType.restype = c.c_void_p
+lib.createLineShapeType.argtypes = []
+
+lib.deleteLineShapeType.restype = None
+lib.deleteLineShapeType.argtypes = [c.c_void_p]
+
+lib.printLineShapeType.restype = None
+lib.printLineShapeType.argtypes = [c.c_void_p]
+
+lib.getLineShapeTypeString.restype = c.c_void_p
+lib.getLineShapeTypeString.argtypes = [c.c_void_p]
+
+lib.setLineShapeTypeString.restype = c.c_int
+lib.setLineShapeTypeString.argtypes = [c.c_void_p, c.c_char_p]
 
 
 class LineShapeModel:

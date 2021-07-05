@@ -394,16 +394,55 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "abs_species"),
-      GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode"),
-      GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String"),
-      GIN_DEFAULT(NODEF, "-1", "-1e99", "1e99", "0", "VP_W"),
+      GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode", "hitran_type"),
+      GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, "-1", "-1e99", "1e99", "0", "VP_W", "Newest"),
       GIN_DESC("Direcory where the linemixing data is to be found",
                "Line mixing limit as defined by *AbsorptionLines*",
                "Minimum frequency to read from",
                "Maximum frequency to read until",
                "Minimum integrated band strength to consider",
-               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\""
+               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\"",
+               "Type of HITRAN catalog used (to scale line strengths)"
               )));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesAdaptHitranLineMixing"),
+      DESCRIPTION("Adapts the line-catalog from using HITRAN data to.\n"
+        "instead fit ordered parameters to imitate the line mxixing\n"
+        "\n"
+        "The order should be 1 or 2.  It will compute at 3 as well, but\n"
+        "there's no support in current ARTS LBL to make use of it so it\n"
+        "will crash at some point\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "abs_hitran_relmat_data"),
+      GIN("t_grid", "pressure", "order"),
+      GIN_TYPE("Vector", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("The sorted temperature grid",
+               "The pressure at which the adaptation is made",
+               "The order of the parameters in adaptation")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesHitranLineMixingAdaptationData"),
+      DESCRIPTION("Calls underlying functions to get adaptation data\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("lm_data"),
+      GOUT_TYPE("ArrayOfTensor5"),
+      GOUT_DESC("Underlying LM data in order of appearance"),
+      IN("abs_lines_per_species", "abs_hitran_relmat_data"),
+      GIN("t_grid", "p_grid"),
+      GIN_TYPE("Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("The temperature grid",
+               "The pressure grid")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesCleanupEmpty"),
@@ -6056,6 +6095,105 @@ void define_md_data_raw() {
       GIN_TYPE("Time", "Time"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Start time", "End time")));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataAddMakarov2020"),
+      DESCRIPTION("Sets the O2-66 microwave band data for ECS.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data", "isotopologue_ratios"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataAddRodrigues1997"),
+      DESCRIPTION("Sets the CO2-626, CO2-636, and CO2-628 IR band data for ECS.\n"
+        "\n"
+        "Note that the broadening species has to be N2 and not AIR for the band,\n"
+        "and that N2 VMR must be present\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data", "isotopologue_ratios"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataAddTran2011"),
+      DESCRIPTION("Sets the CO2-626, CO2-636, and CO2-628 IR band data for ECS.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data", "isotopologue_ratios"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataInit"),
+      DESCRIPTION("Resets/initializes the ECS data.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataSetMeanAir"),
+      DESCRIPTION("Sets ECS data for air from other data if available.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data"),
+      GIN("vmrs", "specs"),
+      GIN_TYPE("Vector", "ArrayOfSpeciesTag"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC(
+        "VMRs of air species",
+        "Air species")));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataSetSpeciesData"),
+      DESCRIPTION("Sets ECS data for one set of species and quantum identifiers.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data", "isotopologue_ratios"),
+      GIN("qid", "species", "scaling_type", "scaling", "beta_type", "beta", "lambda_type", "lambda", "collisional_distance_type", "collisional_distance"),
+      GIN_TYPE("QuantumIdentifier", "String", "String", "Vector", "String", "Vector", "String", "Vector", "String", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF, "T0", NODEF, "T0", NODEF, "T0", NODEF, "T0", NODEF),
+      GIN_DESC(
+        "Band identifier",
+        "Species identifier",
+        "Temperature model for the main scaling coefficients for Q",
+        "Main scaling coefficients for Q",
+        "Temperature model for the energy scaling coefficient for Q",
+        "Energy scaling coefficient for Q",
+        "Temperature model for the energy exponent for Q",
+        "Energy exponent for Q",
+        "Temperature model for the mean collision interaction distance",
+        "Mean collision interaction distance")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("EnergyLevelMapSet"),
@@ -12640,6 +12778,7 @@ void define_md_data_raw() {
       IN("propmat_clearsky",
          "abs_hitran_relmat_data",
          "abs_lines_per_species",
+         "isotopologue_ratios",
          "f_grid",
          "abs_species",
          "jacobian_quantities",
@@ -12727,6 +12866,7 @@ void define_md_data_raw() {
       IN("propmat_clearsky",
          "dpropmat_clearsky_dx",
          "abs_lines_per_species",
+         "ecs_data",
          "isotopologue_ratios",
          "f_grid",
          "abs_species",
@@ -12763,6 +12903,7 @@ void define_md_data_raw() {
       IN("propmat_clearsky",
          "dpropmat_clearsky_dx",
          "abs_lines_per_species",
+         "ecs_data",
          "isotopologue_ratios",
          "f_grid",
          "abs_species",

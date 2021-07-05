@@ -680,7 +680,7 @@ constexpr bool operator==(const Rational a, const Rational b) noexcept {
  * @return false Otherwise
  */
 constexpr bool operator!=(const Rational a, const Rational b) noexcept {
-  return not operator==(a, b);
+  return not (a.isDefined() and b.isDefined() and operator==(a, b));
 }
 
 /** Less than
@@ -702,7 +702,7 @@ constexpr bool operator<(const Rational a, const Rational b) noexcept {
  * @return true If a > b
  * @return false Otherwise
  */
-constexpr bool operator>(const Rational a, const Rational b) noexcept { return operator<(b, a); }
+constexpr bool operator>(const Rational a, const Rational b) noexcept { return operator<(b, a) and a.isDefined() and b.isDefined(); }
 
 /** Less than or equal to
  * 
@@ -712,7 +712,7 @@ constexpr bool operator>(const Rational a, const Rational b) noexcept { return o
  * @return false Otherwise
  */
 constexpr bool operator<=(const Rational a, const Rational b) noexcept {
-  return not operator>(a, b);
+  return not operator>(a, b) and a.isDefined() and b.isDefined();
 }
 
 /** More than or equal to
@@ -723,7 +723,7 @@ constexpr bool operator<=(const Rational a, const Rational b) noexcept {
  * @return false Otherwise
  */
 constexpr bool operator>=(const Rational a, const Rational b) noexcept {
-  return not operator<(a, b);
+  return not operator<(a, b) and a.isDefined() and b.isDefined();
 }
 
 /** Not
@@ -784,7 +784,7 @@ std::istream& operator>>(std::istream& is, Rational& a);
  * @return True if a is less than b
  */
 constexpr bool operator<(const Index a, const Rational b) noexcept {
-  return Rational(a, 1) < b;
+  return Rational(a, 1) < b and b.isDefined();
 }
 
 /** less
@@ -794,7 +794,7 @@ constexpr bool operator<(const Index a, const Rational b) noexcept {
  * @return True if a is less than b
  */
 constexpr bool operator<(const int a, const Rational b) noexcept {
-  return Rational(a, 1) < b;
+  return Rational(a, 1) < b and b.isDefined();
 }
 
 /** less
@@ -804,7 +804,7 @@ constexpr bool operator<(const int a, const Rational b) noexcept {
  * @return True if a is less than b
  */
 constexpr bool operator<(const Rational a, const Index b) noexcept {
-  return a < Rational(b, 1);
+  return a < Rational(b, 1) and a.isDefined();
 }
 
 /** less
@@ -814,7 +814,7 @@ constexpr bool operator<(const Rational a, const Index b) noexcept {
  * @return True if a is less than b
  */
 constexpr bool operator<(const Rational a, const int b) noexcept {
-  return a < Rational(b, 1);
+  return a < Rational(b, 1) and a.isDefined();
 }
 
 /** more
@@ -824,7 +824,7 @@ constexpr bool operator<(const Rational a, const int b) noexcept {
  * @return True if a is more than b
  */
 constexpr bool operator>(const Index a, const Rational b) noexcept {
-  return Rational(a, 1) > b;
+  return Rational(a, 1) > b and b.isDefined();
 }
 
 /** more
@@ -834,7 +834,7 @@ constexpr bool operator>(const Index a, const Rational b) noexcept {
  * @return True if a is more than b
  */
 constexpr bool operator>(const int a, const Rational b) noexcept {
-  return Rational(a, 1) > b;
+  return Rational(a, 1) > b and b.isDefined();
 }
 
 /** more
@@ -844,7 +844,7 @@ constexpr bool operator>(const int a, const Rational b) noexcept {
  * @return True if a is more than b
  */
 constexpr bool operator>(const Rational a, const Index b) noexcept {
-  return a > Rational(b, 1);
+  return a > Rational(b, 1) and a.isDefined();
 }
 
 /** more
@@ -854,7 +854,7 @@ constexpr bool operator>(const Rational a, const Index b) noexcept {
  * @return True if a is more than b
  */
 constexpr bool operator>(const Rational a, const int b) noexcept {
-  return a > Rational(b, 1);
+  return a > Rational(b, 1) and a.isDefined();
 }
 
 /** equal
@@ -864,7 +864,7 @@ constexpr bool operator>(const Rational a, const int b) noexcept {
  * @return True if a is equal to b
  */
 constexpr bool operator==(const Rational a, const Index b) noexcept {
-  return a == Rational(b, 1);
+  return a == Rational(b, 1) and a.isDefined();
 }
 
 /** equal
@@ -874,7 +874,7 @@ constexpr bool operator==(const Rational a, const Index b) noexcept {
  * @return True if a is equal to b
  */
 constexpr bool operator==(const Rational a, const int b) noexcept {
-  return a == Rational(b, 1);
+  return a == Rational(b, 1) and a.isDefined();
 }
 
 /** not equal
@@ -884,7 +884,7 @@ constexpr bool operator==(const Rational a, const int b) noexcept {
  * @return True if a is not equal to b
  */
 constexpr bool operator!=(const Rational a, const Index b) noexcept {
-  return not(a == b);
+  return not(a == b) and a.isDefined();
 }
 
 /** not equal
@@ -894,7 +894,7 @@ constexpr bool operator!=(const Rational a, const Index b) noexcept {
  * @return True if a is not equal to b
  */
 constexpr bool operator!=(const Rational a, const int b) noexcept {
-  return not(a == b);
+  return not(a == b) and a.isDefined();
 }
 
 /** Absolute
@@ -935,15 +935,6 @@ typedef Array<Rational> ArrayOfRational;
  */
 constexpr Rational operator ""_2(unsigned long long int n) noexcept {
   return Rational(n, 2);
-};
-
-/** Returns common operator n/1
- * 
- * @param[in] n Any positive integer
- * @return Rational(n, 1)
- */
-constexpr Rational operator ""_rat(unsigned long long int n) noexcept {
-  return Rational(n, 1);
 };
 
 /** Returns true if even integer

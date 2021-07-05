@@ -144,10 +144,18 @@ extern "C" {
     GetterSetterCAPI(Rational, Nom, Index)
     GetterSetterCAPI(Rational, Denom, Index)
     DLL_PUBLIC void simplifyRational(void *);
+    
+    // LineShapeTemperatureModel
+    BasicInterfaceCAPI(LineShapeTemperatureModel)
+    StringEnumPointersCAPI(LineShapeTemperatureModel)
   
     // LineShape::ModelParameters
-    DLL_PUBLIC void printLineShapeModelParameters(void *);
-    DLL_PUBLIC Index getLineShapeModelParametersType(char *);
+    BasicInterfaceCAPI(LineShapeModelParameters)
+    VoidStructGetterCAPI(LineShapeModelParameters, type)
+    VoidStructGetterCAPI(LineShapeModelParameters, X0)
+    VoidStructGetterCAPI(LineShapeModelParameters, X1)
+    VoidStructGetterCAPI(LineShapeModelParameters, X2)
+    VoidStructGetterCAPI(LineShapeModelParameters, X3)
   
     // LineShape::SingleSpeciesModel
     BasicInterfaceCAPI(LineShapeSingleSpeciesModel)
@@ -160,6 +168,10 @@ extern "C" {
     VoidGetterCAPI(LineShapeSingleSpeciesModel, Y)
     VoidGetterCAPI(LineShapeSingleSpeciesModel, G)
     VoidGetterCAPI(LineShapeSingleSpeciesModel, DV)
+    
+    // LineShapeType
+    BasicInterfaceCAPI(LineShapeType)
+    StringEnumPointersCAPI(LineShapeType)
   
     // LineShape::Model
     BasicInterfaceCAPI(LineShapeModel)
@@ -228,6 +240,7 @@ extern "C" {
     VoidStructGetterCAPI(QuantumIdentifier, spec_ind)
     VoidStructGetterCAPI(QuantumIdentifier, upp)
     VoidStructGetterCAPI(QuantumIdentifier, low)
+    DLL_PUBLIC Index fromstringQuantumIdentifier(void *, char *);
     
     // ArrayOfQuantumIdentifier
     BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
@@ -255,17 +268,33 @@ extern "C" {
     BasicInputOutputCAPI(ArrayOfArrayOfSpeciesTag)
     DLL_PUBLIC void * getNameSpeciesTag(void *);
     DLL_PUBLIC Index setSpeciesTag(void *, char *);
-  
+    
+    // AbsorptionNormalizationType
+    BasicInterfaceCAPI(AbsorptionNormalizationType)
+    StringEnumPointersCAPI(AbsorptionNormalizationType)
+    
+    // AbsorptionPopulationType
+    BasicInterfaceCAPI(AbsorptionPopulationType)
+    StringEnumPointersCAPI(AbsorptionPopulationType)
+    
+    // AbsorptionMirroringType
+    BasicInterfaceCAPI(AbsorptionMirroringType)
+    StringEnumPointersCAPI(AbsorptionMirroringType)
+    
+    // AbsorptionCutoffType
+    BasicInterfaceCAPI(AbsorptionCutoffType)
+    StringEnumPointersCAPI(AbsorptionCutoffType)
+    
     // AbsorptionLines
     BasicInterfaceCAPI(AbsorptionLines)
     BasicInputOutputCAPI(AbsorptionLines)
     GetterSetterCAPI(AbsorptionLines, Self, bool)
     GetterSetterCAPI(AbsorptionLines, Bath, bool)
-    EnumGetterSetterCAPI(AbsorptionLines, Cutoff, Absorption::CutoffType)
-    EnumGetterSetterCAPI(AbsorptionLines, LineShapeType, LineShape::Type)
-    EnumGetterSetterCAPI(AbsorptionLines, Mirroring, Absorption::MirroringType)
-    EnumGetterSetterCAPI(AbsorptionLines, Population, Absorption::PopulationType)
-    EnumGetterSetterCAPI(AbsorptionLines, Normalization, Absorption::NormalizationType)
+    VoidGetterCAPI(AbsorptionLines, Cutoff)
+    VoidGetterCAPI(AbsorptionLines, LineShapeType)
+    VoidGetterCAPI(AbsorptionLines, Mirroring)
+    VoidGetterCAPI(AbsorptionLines, Population)
+    VoidGetterCAPI(AbsorptionLines, Normalization)
     GetterSetterCAPI(AbsorptionLines, T0, Numeric)
     GetterSetterCAPI(AbsorptionLines, CutoffFreqValue, Numeric)
     GetterSetterCAPI(AbsorptionLines, LinemixingLimit, Numeric)
@@ -952,6 +981,29 @@ extern "C" {
     BasicInputOutputCAPI(PartitionFunctionsData)
     VoidStructGetterCAPI(PartitionFunctionsData, type)
     VoidStructGetterCAPI(PartitionFunctionsData, data)
+    
+    // SpeciesErrorCorrectedSuddenData
+    BasicInterfaceCAPI(SpeciesErrorCorrectedSuddenData)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, spec)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, scaling)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, beta)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, lambda)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, collisional_distance)
+    VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, mass)
+    
+    // ErrorCorrectedSuddenData
+    BasicInterfaceCAPI(ErrorCorrectedSuddenData)
+    VoidStructGetterCAPI(ErrorCorrectedSuddenData, id)
+    DLL_PUBLIC void * getErrorCorrectedSuddenData(void *, void *);
+    DLL_PUBLIC Index getnelemErrorCorrectedSuddenData(void *);
+    DLL_PUBLIC void * getSpeciesErrorCorrectedSuddenDataAtErrorCorrectedSuddenData(void *, Index);
+    
+    // MapOfErrorCorrectedSuddenData
+    BasicInterfaceCAPI(MapOfErrorCorrectedSuddenData)
+    BasicInputOutputCAPI(MapOfErrorCorrectedSuddenData)
+    DLL_PUBLIC void * getMapOfErrorCorrectedSuddenData(void *, void *);
+    DLL_PUBLIC Index getnelemMapOfErrorCorrectedSuddenData(void *);
+    DLL_PUBLIC void * getErrorCorrectedSuddenDataAtMapOfErrorCorrectedSuddenData(void *, Index);
     
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);

@@ -62,6 +62,7 @@
 #include "transmissionmatrix.h"
 #include "hitran_xsec.h"
 #include "absorptionlines.h"
+#include "linemixing.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                  \
   void xml_read_from_stream(                              \
@@ -102,6 +103,7 @@ TMPL_XML_READ_WRITE_STREAM(GriddedField6)
 TMPL_XML_READ_WRITE_STREAM(GridPos)
 TMPL_XML_READ_WRITE_STREAM(HitranRelaxationMatrixData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesIsotopologueRatios)
+TMPL_XML_READ_WRITE_STREAM(MapOfErrorCorrectedSuddenData)
 TMPL_XML_READ_WRITE_STREAM(MCAntenna)
 TMPL_XML_READ_WRITE_STREAM(Ppath)
 TMPL_XML_READ_WRITE_STREAM(QuantumIdentifier)

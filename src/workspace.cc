@@ -1573,6 +1573,14 @@ void Workspace::define_wsv_data() {
       GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("ecs_data"),
+      DESCRIPTION(
+          "Error corrected sudden data\n"
+          "\n"
+          "Dimensions: [num IDs] [num Species]\n"),
+      GROUP("MapOfErrorCorrectedSuddenData")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("ext_mat"),
       DESCRIPTION(
           "Total extinction matrix.\n"

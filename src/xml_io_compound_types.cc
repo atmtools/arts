@@ -2035,6 +2035,119 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== MapOfErrorCorrectedSuddenData ======================================================
+
+//! Reads MapOfErrorCorrectedSuddenData from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param rvb        MapOfErrorCorrectedSuddenData return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          MapOfErrorCorrectedSuddenData& rvb,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
+  
+  CREATE_OUT2;
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("MapOfErrorCorrectedSuddenData");
+  
+  Index nelem;
+  open_tag.get_attribute_value("nelem", nelem);
+  
+  for (Index i=0; i<nelem; i++) {
+    ArtsXMLTag internal_open_tag(verbosity);
+    internal_open_tag.read_from_stream(is_xml);
+    internal_open_tag.check_name("ErrorCorrectedSuddenData");
+    
+    // Get key
+    String val;
+    internal_open_tag.get_attribute_value("key", val);
+    auto& data = rvb[QuantumIdentifier(val)];
+    
+    // Get size
+    Index nelem_specs;
+    internal_open_tag.get_attribute_value("nelem", nelem_specs);
+    
+    // Get values
+    for (Index j=0; j<nelem_specs; j++) {
+      SpeciesErrorCorrectedSuddenData secds;
+      is_xml >> secds;
+      data[secds.spec] = secds;
+    }
+    
+    ArtsXMLTag internal_close_tag(verbosity);
+    internal_close_tag.read_from_stream(is_xml);
+    internal_close_tag.check_name("/ErrorCorrectedSuddenData");
+    
+  }
+  
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/MapOfErrorCorrectedSuddenData");
+  
+  // Sanity check, it is not OK to not have AIR as catch-all broadener
+  for (auto& x: rvb) {
+    bool found_air=false;
+    for (auto& y: x.data) {
+      found_air = found_air or (y.spec == Species::Species::Bath);
+    }
+    ARTS_USER_ERROR_IF(not found_air,
+      "Incomplete ErrorCorrectedSuddenData, must contain air, contains:\n",
+      x)
+  }
+}
+
+//! Writes MapOfErrorCorrectedSuddenData to XML output stream
+/*!
+ * \param os_xml     XML Output stream
+ * \param rvb        MapOfErrorCorrectedSuddenData
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const MapOfErrorCorrectedSuddenData& rvb,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
+  
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("MapOfErrorCorrectedSuddenData");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("nelem", rvb.nelem());
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  xml_set_stream_precision(os_xml);
+  
+  for (auto& r: rvb) {
+    ArtsXMLTag internal_open_tag(verbosity);
+    internal_open_tag.set_name("ErrorCorrectedSuddenData");
+    internal_open_tag.add_attribute("key", r.id.GetString());
+    internal_open_tag.add_attribute("nelem", r.data.nelem());
+    internal_open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+    
+    // Set values
+    os_xml << r << '\n';
+    
+    ArtsXMLTag internal_close_tag(verbosity);
+    internal_close_tag.set_name("/ErrorCorrectedSuddenData");
+    internal_close_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+  }
+  
+  close_tag.set_name("/MapOfErrorCorrectedSuddenData");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented

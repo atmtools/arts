@@ -1825,6 +1825,30 @@ Numeric RosenkranzQuadratic::operator()(Numeric f) noexcept {
   return N;
 }
 
+Numeric SimpleFrequencyScaling::dNdT(Numeric t_ [[maybe_unused]], Numeric f) const ARTS_NOEXCEPT {
+  ARTS_ASSERT(t_ == T, "Temperature is stored internally in SimpleFrequencyScaling\n"
+  "but for interface reasons this function nevertheless takes temprature as an input\n"
+  "For some reason, the two temperatures disagree, so regardless, you have encountered\n"
+  "a path of the code that should never be encountered.  The two temperatures are: ",
+  T, " and ", t_, " K")
+  
+  return 
+  - N * Constant::h * F0 * expF0 / (Constant::k * t_ * t_ * expm1F0)
+  + Constant::h * f * f * std::exp(- (Constant::h * f) / (Constant::k * t_)) /
+  (F0 * Constant::k * t_ * t_ * expm1F0);
+}
+
+Numeric SimpleFrequencyScaling::dNdf(Numeric f) const noexcept {
+  return N / f - N * Constant::h *
+  std::exp(- (Constant::h * f) / (Constant::k * T)) / 
+  (Constant::k * T * std::expm1(- (Constant::h * f) / (Constant::k * T)));
+}
+
+Numeric SimpleFrequencyScaling::operator()(Numeric f) noexcept {
+  N = (f / F0) * (std::expm1(- Constant::h * f / (Constant::k * T)) / expm1F0);
+  return N;
+}
+
 LocalThermodynamicEquilibrium::LocalThermodynamicEquilibrium(
     Numeric I0, Numeric T0, Numeric T, Numeric F0, Numeric E0, Numeric QT,
     Numeric QT0, Numeric dQTdT, Numeric r, Numeric drdSELFVMR, const Numeric drdT) noexcept
@@ -1980,6 +2004,8 @@ Normalizer normalizer_selection(const Absorption::NormalizationType type,
     return VanVleckHuber(F0, T);
   case Absorption::NormalizationType::VVW:
     return VanVleckWeisskopf(F0);
+  case Absorption::NormalizationType::SFS:
+    return SimpleFrequencyScaling(F0, T);
   case Absorption::NormalizationType::FINAL: { /*leave last*/
   }
   }
@@ -2000,6 +2026,7 @@ IntensityCalculator linestrength_selection(const Numeric T, const Numeric QT,
   case Absorption::PopulationType::ByHITRANFullRelmat:
   case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
   case Absorption::PopulationType::ByMakarovFullRelmat:
+  case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
   case Absorption::PopulationType::LTE:
     return LocalThermodynamicEquilibrium(line.I0(), band.T0(), T, line.F0(),
                                          line.E0(), QT, QT0, dQTdT, r, drdSELFVMR, drdT);

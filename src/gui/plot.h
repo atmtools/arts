@@ -2,6 +2,7 @@
 #define arts_gui_plot_h
 
 #include <type_traits>
+#include <vector>
 
 #include <matpackI.h>
 #include <complex.h>
@@ -14,6 +15,25 @@
 #pragma GCC diagnostic pop
 
 namespace ARTSGUI {
+
+//! Static data for making the plots nicer to look at
+struct PlotConfig {
+  //! Frame title
+  static std::string Frame;
+  
+  //! X label
+  static std::string X;
+  
+  //! Y label
+  static std::string Y;
+  
+  //! Plot title
+  static std::string Title;
+  
+  //! Line legend (must be exactly the right length, or will default to standard legend)
+  static std::vector<std::string> Legend;
+};
+
 /** Main plotting function
  * 
  * This function is the main plotting function and will

@@ -79,7 +79,8 @@ ENUMCLASS(NormalizationType, char,
   None,                // Do not renormalize the line shape
   VVH,                 // Renormalize with Van Vleck and Huber specifications
   VVW,                 // Renormalize with Van Vleck and Weiskopf specifications
-  RQ                   // Renormalize using Rosenkranz's quadratic specifications
+  RQ,                  // Renormalize using Rosenkranz's quadratic specifications
+  SFS                  // Renormalize using simple frequency scaling of the line strength
 )  // NormalizationType
 
 #pragma GCC diagnostic push
@@ -97,6 +98,9 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
     case NormalizationType::RQ:
       return "Rosenkranz quadratic far-wing renormalization will be applied, "
         "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
+    case NormalizationType::SFS:
+      return "Simple frequency scaling of the far-wings will be applied, "
+        "i.e. F ~ (f / f0) * ((1 - exp(- hf / kT)) / (1 - exp(- hf0 / kT)))\n";
     case NormalizationType::FINAL: break;
   }
 }
@@ -107,12 +111,13 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
  * The types here might require that different data is available at runtime absorption calculations
  */
 ENUMCLASS(PopulationType, char,
-  LTE,                       // Assume band is in LTE
-  NLTE,                      // Assume band is in NLTE and the upper-to-lower ratio is known
-  VibTemps,                  // Assume band is in NLTE described by vibrational temperatures and LTE at other levels
-  ByHITRANRosenkranzRelmat,  // Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-  ByHITRANFullRelmat,        // Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-  ByMakarovFullRelmat        // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+  LTE,                            // Assume band is in LTE
+  NLTE,                           // Assume band is in NLTE and the upper-to-lower ratio is known
+  VibTemps,                       // Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+  ByHITRANRosenkranzRelmat,       // Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+  ByHITRANFullRelmat,             // Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+  ByMakarovFullRelmat,            // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+  ByRovibLinearDipoleLineMixing   // Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
 )  // PopulationType
 
 #pragma GCC diagnostic push
@@ -123,6 +128,8 @@ constexpr std::string_view populationtype2metadatastring(PopulationType in) {
       return "The lines are considered as in pure LTE.\n";
     case PopulationType::ByMakarovFullRelmat:
       return "The lines requires relaxation matrix calculations in LTE - Makarov et al 2020 full method.\n";
+    case PopulationType::ByRovibLinearDipoleLineMixing:
+      return "The lines requires relaxation matrix calculations in LTE - Hartmann, Boulet, Robert, 2008, 1st edition method.\n";
     case PopulationType::ByHITRANFullRelmat:
       return "The lines requires relaxation matrix calculations in LTE - HITRAN full method.\n";
     case PopulationType::ByHITRANRosenkranzRelmat:
@@ -139,7 +146,8 @@ constexpr std::string_view populationtype2metadatastring(PopulationType in) {
 constexpr bool relaxationtype_relmat(PopulationType in) noexcept {
   return in == PopulationType::ByHITRANFullRelmat or
          in == PopulationType::ByMakarovFullRelmat or
-         in == PopulationType::ByHITRANRosenkranzRelmat;
+         in == PopulationType::ByHITRANRosenkranzRelmat or
+         in == PopulationType::ByRovibLinearDipoleLineMixing;
 }
 
 /** Describes the type of cutoff calculations */
@@ -807,6 +815,9 @@ public:
   /** Returns mirroring style */
   MirroringType Mirroring() const noexcept {return mmirroring;}
   
+  /** Returns mirroring style reference */
+  MirroringType& Mirroring() noexcept {return mmirroring;}
+  
   /** Returns mirroring style */
   void Mirroring(MirroringType x) noexcept {mmirroring = x;}
   
@@ -822,6 +833,9 @@ public:
   
   /** Returns normalization style */
   NormalizationType Normalization() const noexcept {return mnormalization;}
+  
+  /** Returns normalization style reference */
+  NormalizationType& Normalization() noexcept {return mnormalization;}
   
   /** Returns normalization style */
   void Normalization(NormalizationType x) noexcept {mnormalization = x;}
@@ -839,6 +853,9 @@ public:
   /** Returns cutoff style */
   CutoffType Cutoff() const noexcept {return mcutoff;}
   
+  /** Returns cutoff style reference */
+  CutoffType& Cutoff() noexcept {return mcutoff;}
+  
   /** Sets cutoff style */
   void Cutoff(CutoffType x) noexcept {mcutoff = x;}
   
@@ -855,6 +872,15 @@ public:
   /** Returns population style */
   PopulationType Population() const noexcept {return mpopulation;}
   
+  /** On-the-fly line mixing */
+  bool OnTheFlyLineMixing() const noexcept {
+    return mpopulation == PopulationType::ByMakarovFullRelmat or
+           mpopulation == PopulationType::ByRovibLinearDipoleLineMixing;
+  }
+  
+  /** Returns population style reference */
+  PopulationType& Population() noexcept {return mpopulation;}
+  
   /** Sets population style */
   void Population(PopulationType x) noexcept {mpopulation = x;}
   
@@ -870,6 +896,9 @@ public:
   
   /** Returns lineshapetype style */
   LineShape::Type LineShapeType() const noexcept {return mlineshapetype;}
+  
+  /** Returns lineshapetype style reference */
+  LineShape::Type& LineShapeType() noexcept {return mlineshapetype;}
   
   /** Sets lineshapetype style */
   void LineShapeType(LineShape::Type x) noexcept {mlineshapetype = x;}
@@ -1552,5 +1581,10 @@ typedef Array<ArrayOfAbsorptionLines> ArrayOfArrayOfAbsorptionLines;
 std::ostream& operator<<(std::ostream&, const ArrayOfAbsorptionLines&);
 
 std::ostream& operator<<(std::ostream&, const ArrayOfArrayOfAbsorptionLines&);
+
+using AbsorptionNormalizationType = Absorption::NormalizationType;
+using AbsorptionPopulationType = Absorption::PopulationType;
+using AbsorptionMirroringType = Absorption::MirroringType;
+using AbsorptionCutoffType = Absorption::CutoffType;
 
 #endif  // absorptionlines_h

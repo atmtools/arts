@@ -36,9 +36,9 @@ constexpr int isdigit(int ch) noexcept {
  * @param[in] d A value
  * @return int from a simple boolean.
  */
-constexpr bool isnan(double d) {return d not_eq d;}
-constexpr bool isnan(long double d) {return d not_eq d;}
-constexpr bool isnan(float d) {return d not_eq d;}
+constexpr bool isnan(double d) noexcept {return d not_eq d;}
+constexpr bool isnan(long double d) noexcept {return d not_eq d;}
+constexpr bool isnan(float d) noexcept {return d not_eq d;}
 }  // nonstd
 
 #endif

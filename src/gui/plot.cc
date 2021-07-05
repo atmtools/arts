@@ -3,6 +3,13 @@
 #include "plot.h"
 
 namespace ARTSGUI {
+// Defaults
+std::string PlotConfig::Frame = "Plot";
+std::string PlotConfig::X = "X";
+std::string PlotConfig::Y = "Y";
+std::string PlotConfig::Title = "Plot Frame";
+std::vector<std::string> PlotConfig::Legend = {};
+  
 bool same_lengths(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   for (std::size_t i=0; i<xdata.size(); i++)
     if (xdata[i].nelem() not_eq ydata[i].nelem())
@@ -16,7 +23,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   auto one_at_a_time = std::lock_guard(mtx);
   
   // Get Graphics data
-  InitializeGUI("Plot");
+  InitializeGUI(PlotConfig::Frame.c_str());
   
   // Our global states are stored in config
   Config config;
@@ -25,15 +32,19 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   LayoutAndStyleSettings();
   
   // Internal states
-  std::string x = "X";
-  std::string y = "Y";
+  std::string x = PlotConfig::X;
+  std::string y = PlotConfig::Y;
   std::vector<std::string> lines(xdata.size());
-  if (lines.size() > 1) {
-    for (std::size_t i=0; i<lines.size(); i++) {
-      lines[i] = std::string("Line ") + std::to_string(i+1);
+  if (lines.size() == PlotConfig::Legend.size()) {
+    lines = PlotConfig::Legend;
+  } else {
+    if (lines.size() > 1) {
+      for (std::size_t i=0; i<lines.size(); i++) {
+        lines[i] = std::string("Line ") + std::to_string(i+1);
+      }
+    } else if (lines.size() == 1) {
+      lines[0] = std::string("Line");
     }
-  } else if (lines.size() == 1) {
-    lines[0] = std::string("Line");
   }
   auto fileBrowser = ARTSGUI::Files::xmlfile_chooser();
   
@@ -51,7 +62,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   // Full screen plot if valid or just a warning if invalid data
   if (Windows::full(window, Windows::CurrentPosition(), "Plot Window")) {
     if (valid) {
-      if (ImPlot::BeginPlot("Plot Frame", x.c_str(), y.c_str(), {-1, -1})) {
+      if (ImPlot::BeginPlot(PlotConfig::Title.c_str(), x.c_str(), y.c_str(), {-1, -1})) {
         for (std::size_t i=0; i<lines.size(); i++) {
           ImPlot::PlotLine(lines[i].c_str(), xdata[i].get_c_array(), ydata[i].get_c_array(), int(ydata[i].nelem()));
         }

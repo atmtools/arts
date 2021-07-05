@@ -13,35 +13,29 @@
 #pragma GCC diagnostic pop
 
 namespace Minimize {
-//! Functor for minimizing X0 + X1 * SIN(S * T) + X2 * COS(S * T) - Y
-template <typename Scalar> struct Wave {
+//! Functor for minimizing X0 + X1 * X + X2 * X**2 + ... XN * X**N - Y
+struct Polynom {
   // typedef needed by the functional-style optimizer
+  typedef Numeric Scalar;
   typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> InputType;
   typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> ValueType;
   typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> JacobianType;
   typedef Eigen::ColPivHouseholderQR<JacobianType> QRSolver;
   
   // Size: The number of parameters to optimize towards
-  static constexpr int m_inputs=3;
+  const int m_inputs;
   
   // Size: The number of inputs required by the 
   const int m_values;
   
   //! Temperature grid
-  const Scalar * const T;
+  const ConstVectorView& X;
   
   //! Spectroscopic values at grid
-  const Scalar * const Y;
-  
-  //! Frequency scaling
-  const Scalar S;
-  
-  //! Save Jacobian
-  mutable bool first_jac;
-  mutable JacobianType internal_jac;
+  const ConstVectorView& Y;
   
   //! Size: The number of inputs required by the 
-  static constexpr int inputs() { return m_inputs; }
+  int inputs() const { return m_inputs; }
   
   //! Size: The number of inputs required by the 
   int values() const { return m_values; }
@@ -50,28 +44,13 @@ template <typename Scalar> struct Wave {
     * 
     * @param[in] x The grid of the problem
     * @param[in] y The measured/simulated values
+    * @param[in] order The max degree of the polynominal (e.g., 3 means x**3 is largest factor)
     */
-  Wave(const std::vector<Scalar>& x,
-       const std::vector<Scalar>& y,
-       Scalar s) :
-       m_values(int(x.size())), T(x.data()), Y(y.data()), S(s), first_jac(true), internal_jac(m_values, m_inputs) {}
-  
-  /*! The only constructor
-    * 
-    * @param[in] x The grid of the problem
-    * @param[in] y The measured/simulated values
-    */
-  Wave(const Scalar * const x,
-       const Scalar * const y,
-       Scalar s,
-       int N) :
-       m_values(N), T(x), Y(y), S(s), first_jac(true), internal_jac(m_values, m_inputs) {}
-       
-  template <std::size_t N>
-  Wave(const std::array<Scalar, N>& x,
-       const std::array<Scalar, N>& y,
-       Scalar s) :
-       m_values(int(N)), T(x.data()), Y(y.data()), S(s), first_jac(true), internal_jac(m_values, m_inputs) {}
+  Polynom(const ConstVectorView& x,
+          const ConstVectorView& y,
+          const Index order
+  ) : m_inputs(int(order + 1)),
+    m_values(int(x.nelem())), X(x), Y(y) {}
   
   /*!  Opeartor evaluating the function
     * 
@@ -79,14 +58,7 @@ template <typename Scalar> struct Wave {
     * @param[in,out] f [values()]-sized Vector for model values
     * @return 0
     */
-  int operator()(const InputType& p, ValueType& f) const {
-    for (int i=0; i<m_values; i++) {
-      const double Sin = p[1] * std::sin(S * T[i]);
-      const double Cos = p[2] * std::cos(S * T[i]);
-      f[i] = p[0] + Sin + Cos - Y[i];
-    }
-    return 0;
-  }
+  int operator()(const InputType& p, ValueType& f) const;
     
   /*!  Opeartor evaluating the function
     * 
@@ -94,30 +66,10 @@ template <typename Scalar> struct Wave {
     * @param[in,out] J [values(), inputs()]-sized Matrix for model Jacobian
     * @return 0
     */
-  int df(const InputType&, JacobianType& J) const {
-    if (first_jac) {
-      for (int i=0; i<m_values; i++) {
-        internal_jac(i, 0) = 1;
-        internal_jac(i, 1) = std::sin(S * T[i]);
-        internal_jac(i, 2) = std::cos(S * T[i]);
-      }
-      first_jac = false;
-    }
-    
-    J = internal_jac;
-    return 0;
-  }
+  int df(const InputType& p, JacobianType& J) const;
   
   //! start values helper function, operator()(...) must be not too bad
-  InputType x0() const {
-    std::vector<Scalar> copyY{Y, Y + m_values};
-    std::sort(copyY.begin(), copyY.end());
-    InputType x(m_inputs);
-    x[0] = copyY[copyY.size() / 2];
-    x[1] = x[0] - copyY[copyY.size() / 4];
-    x[2] = -x[1];
-    return x;
-  }
+  InputType x0() const;
 };
 
 //! Functor for minimizing (X0 + X1 (T0 / T - 1)) * (T0 / T) ** X2 - Y

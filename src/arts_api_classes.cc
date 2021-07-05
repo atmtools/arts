@@ -206,15 +206,29 @@ GetterSetterCAPI(Rational, Nom, Index)
 GetterSetterCAPI(Rational, Denom, Index)
 void simplifyRational(void * data) { static_cast<Rational *>(data)->simplify_in_place(); }
 
+// LineShapeTemperatureModel
+BasicInterfaceCAPI(LineShapeTemperatureModel)
+void * getLineShapeTemperatureModelString(void * data) {
+  return new String(toString(*static_cast<LineShapeTemperatureModel *>(data)));
+}
+int setLineShapeTemperatureModelString(void * data, char * val) {
+  auto x = LineShape::toTemperatureModel(val);
+  if (good_enum(x)) {
+    *static_cast<LineShapeTemperatureModel *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
 
 // LineShape::ModelParameters
-void printLineShapeModelParameters(void * data) { std::cout << (*static_cast<LineShape::ModelParameters *>(data)) << std::endl; }
-Index getLineShapeModelParametersType(char * data) {
-  if (const LineShape::TemperatureModel val = LineShape::toTemperatureModel(data); good_enum(val))
-    return Index(val);
-  else
-    return -1;
-}
+BasicInterfaceCAPI(LineShapeModelParameters)
+VoidStructGetterCAPI(LineShapeModelParameters, type)
+VoidStructGetterCAPI(LineShapeModelParameters, X0)
+VoidStructGetterCAPI(LineShapeModelParameters, X1)
+VoidStructGetterCAPI(LineShapeModelParameters, X2)
+VoidStructGetterCAPI(LineShapeModelParameters, X3)
 
 
 // LineShape::SingleSpeciesModel
@@ -229,6 +243,21 @@ VoidGetterCAPI(LineShapeSingleSpeciesModel, Y)
 VoidGetterCAPI(LineShapeSingleSpeciesModel, G)
 VoidGetterCAPI(LineShapeSingleSpeciesModel, DV)
 
+
+// LineShapeType
+BasicInterfaceCAPI(LineShapeType)
+void * getLineShapeTypeString(void * data) {
+  return new String(toString(*static_cast<LineShapeType *>(data)));
+}
+int setLineShapeTypeString(void * data, char * val) {
+  auto x = LineShape::toType(val);
+  if (good_enum(x)) {
+    *static_cast<LineShapeType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
 
 // LineShape::Model
 BasicInterfaceCAPI(LineShapeModel)
@@ -370,6 +399,14 @@ VoidStructGetterCAPI(QuantumIdentifier, type)
 VoidStructGetterCAPI(QuantumIdentifier, spec_ind)
 VoidStructGetterCAPI(QuantumIdentifier, upp)
 VoidStructGetterCAPI(QuantumIdentifier, low)
+Index fromstringQuantumIdentifier(void * data, char * str) {
+  try {
+    static_cast<QuantumIdentifier *>(data) -> SetFromString(str);
+    return EXIT_SUCCESS;
+  } catch(...) {
+  }
+  return EXIT_FAILURE;
+}
 
 // ArrayOfQuantumIdentifier
 BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
@@ -423,16 +460,79 @@ Index setSpeciesTag(void * data, char * newdata)
 }
 
 
+// AbsorptionNormalizationType
+BasicInterfaceCAPI(AbsorptionNormalizationType)
+void * getAbsorptionNormalizationTypeString(void * data) {
+  return new String(toString(*static_cast<AbsorptionNormalizationType *>(data)));
+}
+int setAbsorptionNormalizationTypeString(void * data, char * val) {
+  auto x = Absorption::toNormalizationType(val);
+  if (good_enum(x)) {
+    *static_cast<AbsorptionNormalizationType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
+// AbsorptionPopulationType
+BasicInterfaceCAPI(AbsorptionPopulationType)
+void * getAbsorptionPopulationTypeString(void * data) {
+  return new String(toString(*static_cast<AbsorptionPopulationType *>(data)));
+}
+int setAbsorptionPopulationTypeString(void * data, char * val) {
+  auto x = Absorption::toPopulationType(val);
+  if (good_enum(x)) {
+    *static_cast<AbsorptionPopulationType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
+// AbsorptionMirroringType
+BasicInterfaceCAPI(AbsorptionMirroringType)
+void * getAbsorptionMirroringTypeString(void * data) {
+  return new String(toString(*static_cast<AbsorptionMirroringType *>(data)));
+}
+int setAbsorptionMirroringTypeString(void * data, char * val) {
+  auto x = Absorption::toMirroringType(val);
+  if (good_enum(x)) {
+    *static_cast<AbsorptionMirroringType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
+// AbsorptionCutoffType
+BasicInterfaceCAPI(AbsorptionCutoffType)
+void * getAbsorptionCutoffTypeString(void * data) {
+  return new String(toString(*static_cast<AbsorptionCutoffType *>(data)));
+}
+int setAbsorptionCutoffTypeString(void * data, char * val) {
+  auto x = Absorption::toCutoffType(val);
+  if (good_enum(x)) {
+    *static_cast<AbsorptionCutoffType *>(data) = x;
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
 // AbsorptionLines
 BasicInterfaceCAPI(AbsorptionLines)
 BasicInputOutputCAPI(AbsorptionLines)
 GetterSetterCAPI(AbsorptionLines, Self, bool)
 GetterSetterCAPI(AbsorptionLines, Bath, bool)
-EnumGetterSetterCAPI(AbsorptionLines, Cutoff, Absorption::CutoffType)
-EnumGetterSetterCAPI(AbsorptionLines, LineShapeType, LineShape::Type)
-EnumGetterSetterCAPI(AbsorptionLines, Mirroring, Absorption::MirroringType)
-EnumGetterSetterCAPI(AbsorptionLines, Population, Absorption::PopulationType)
-EnumGetterSetterCAPI(AbsorptionLines, Normalization, Absorption::NormalizationType)
+VoidGetterCAPI(AbsorptionLines, Cutoff)
+VoidGetterCAPI(AbsorptionLines, LineShapeType)
+VoidGetterCAPI(AbsorptionLines, Mirroring)
+VoidGetterCAPI(AbsorptionLines, Population)
+VoidGetterCAPI(AbsorptionLines, Normalization)
 GetterSetterCAPI(AbsorptionLines, T0, Numeric)
 GetterSetterCAPI(AbsorptionLines, CutoffFreqValue, Numeric)
 GetterSetterCAPI(AbsorptionLines, LinemixingLimit, Numeric)
@@ -1421,6 +1521,47 @@ BasicInterfaceCAPI(PartitionFunctionsData)
 BasicInputOutputCAPI(PartitionFunctionsData)
 VoidStructGetterCAPI(PartitionFunctionsData, type)
 VoidStructGetterCAPI(PartitionFunctionsData, data)
+
+// SpeciesErrorCorrectedSuddenData
+BasicInterfaceCAPI(SpeciesErrorCorrectedSuddenData)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, spec)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, scaling)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, beta)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, lambda)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, collisional_distance)
+VoidStructGetterCAPI(SpeciesErrorCorrectedSuddenData, mass)
+
+// ErrorCorrectedSuddenData
+BasicInterfaceCAPI(ErrorCorrectedSuddenData)
+VoidStructGetterCAPI(ErrorCorrectedSuddenData, id)
+void * getErrorCorrectedSuddenData(void * data, void * id) {
+  return & static_cast<ErrorCorrectedSuddenData *>(data) -> operator[](*static_cast<Species::Species *>(id));
+}
+Index getnelemErrorCorrectedSuddenData(void * data) {return static_cast<ErrorCorrectedSuddenData *>(data) -> data.nelem();}
+void * getSpeciesErrorCorrectedSuddenDataAtErrorCorrectedSuddenData(void * data, Index i)
+{
+  if (i < static_cast<ErrorCorrectedSuddenData *>(data) -> data.nelem() and i >= 0) {
+    return & static_cast<ErrorCorrectedSuddenData *>(data) -> data[i];
+  } else {
+    return nullptr;
+  }
+}
+
+// MapOfErrorCorrectedSuddenData
+BasicInterfaceCAPI(MapOfErrorCorrectedSuddenData)
+BasicInputOutputCAPI(MapOfErrorCorrectedSuddenData)
+void * getMapOfErrorCorrectedSuddenData(void * data, void * id) {
+  return & static_cast<MapOfErrorCorrectedSuddenData *>(data) -> operator[](*static_cast<QuantumIdentifier *>(id));
+}
+Index getnelemMapOfErrorCorrectedSuddenData(void * data) {return static_cast<MapOfErrorCorrectedSuddenData *>(data) -> nelem();}
+void * getErrorCorrectedSuddenDataAtMapOfErrorCorrectedSuddenData(void * data, Index i)
+{
+  if (i < static_cast<MapOfErrorCorrectedSuddenData *>(data) -> nelem() and i >= 0) {
+    return & static_cast<MapOfErrorCorrectedSuddenData *>(data) -> operator[](i);
+  } else {
+    return nullptr;
+  }
+}
 
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }

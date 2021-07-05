@@ -87,6 +87,7 @@ Vector compute(const Numeric p,
  * 
  * @param[in] hitran Hitran data for the relaxation matrix calculations
  * @param[in] bands List of absorption bands
+ * @param[in] isotopologue_ratio As WSV
  * @param[in] P Pressure in Pascal
  * @param[in] T Temperatures in Kelvin
  * @param[in] vmrs VMR ratio.  Must be 3-long containing {air, h2o, co2} vmrs
@@ -96,20 +97,21 @@ Vector compute(const Numeric p,
  */
 Vector compute(const HitranRelaxationMatrixData& hitran,
                const ArrayOfAbsorptionLines& bands,
+               const SpeciesIsotopologueRatios& isotopologue_ratio,
                const Numeric P,
                const Numeric T,
                const ConstVectorView vmrs,
                const ConstVectorView f_grid);
 
 /** Class that controls ReadFromLineMixingStream output */
-enum class ModeOfLineMixing {
+ENUMCLASS(ModeOfLineMixing, unsigned char,
   VP,  // Sets LineShape::VP, will not use LineMixing code; Sets ByLTE mode
   VP_Y,  // Sets LineShape::VP, will use LineMixing code with pressure > linemixinglimit;  Sets ByRosenkranzRelmatLTE mode
   SDVP,  // Sets LineShape::SDVP, will not use LineMixing code; Sets ByLTE mode
   SDVP_Y,  // Sets LineShape::SDVP, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANRosenkranzRelmat mode
   FullW, // Sets LineShape::Lorentz, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANFullRelmat mode
   VP_W  // Sets LineShape::Voigt, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANFullRelmat mode
-};
+)
 
 constexpr bool typeVP(ModeOfLineMixing x)
 {
@@ -130,6 +132,7 @@ constexpr bool typeFull(ModeOfLineMixing x)
  * 
  * @param[out] hitran Hitran data for the relaxation matrix calculations
  * @param[out] bands List of absorption bands
+ * @param[in] isotopologue_ratio As WSV
  * @param[in] basedir The base directory of the HITRAN line mixing files
  * @param[in] linemixinglimit The pressure limit for using line mixing instead of pure Voigt
  * @param[in] fmin Minimum frequency
@@ -137,8 +140,26 @@ constexpr bool typeFull(ModeOfLineMixing x)
  * @param[in] stot Minimum band-strength
  * @param[in] mode The type of calculations
  */ 
-void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, const String& basedir, const Numeric linemixinglimit, const Numeric fmin, const Numeric fmax, const Numeric stot, const ModeOfLineMixing mode);
+void read(HitranRelaxationMatrixData& hitran,
+          ArrayOfAbsorptionLines& bands,
+          const SpeciesIsotopologueRatios& isotopologue_ratio,
+          const String& basedir,
+          const Numeric linemixinglimit,
+          const Numeric fmin,
+          const Numeric fmax,
+          const Numeric stot,
+          const ModeOfLineMixing mode);
 
+void hitran_lm_eigenvalue_adaptation(AbsorptionLines& band,
+                                     const Vector& temperatures,
+                                     const HitranRelaxationMatrixData& hitran,
+                                     const Numeric P0,
+                                     const Index ord);
+
+Tensor5 hitran_lm_eigenvalue_adaptation_test(const AbsorptionLines& band,
+                                             const Vector& temperatures,
+                                             const HitranRelaxationMatrixData& hitran,
+                                             const Vector& pressures);
 };  // lm_hitran_2017
 
 #endif  // LINEMIXING_HITRAN_H

@@ -93,19 +93,16 @@ class QuantumIdentifier:
         isot:
             The ARTS isotopologue (const SpeciesIsotopeRecord)
     """
-    def __init__(self, type="None", spec_ind=0, isot=0, qns1=QuantumNumbers(), qns2=QuantumNumbers()):
+    def __init__(self, type=None):
         if isinstance(type, c.c_void_p):
             self.__delete__ = False
             self.__data__ = type
         else:
             self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createQuantumIdentifier())
-            self.type = type
-            self.spec_ind = spec_ind
-            if type == "Transtition" or type == "EnergyLevel":
-                self.upp = qns1
-            if type == "Transtition":
-                self.low = qns2
+            if type is not None:
+                if lib.fromstringQuantumIdentifier(self.__data__, str(type).encode('utf-8')):
+                    raise RuntimeError(f"Bad QuantumIdentifier: {type}")
     
     @property
     def type(self):
@@ -262,3 +259,6 @@ lib.getuppQuantumIdentifier.argtypes = [c.c_void_p]
 
 lib.getlowQuantumIdentifier.restype = c.c_void_p
 lib.getlowQuantumIdentifier.argtypes = [c.c_void_p]
+
+lib.fromstringQuantumIdentifier.restype = c.c_long
+lib.fromstringQuantumIdentifier.argtypes = [c.c_void_p, c.c_char_p]

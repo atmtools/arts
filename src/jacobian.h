@@ -76,9 +76,7 @@ ENUMCLASS(Line, char,
           ShapeGX0, ShapeGX1, ShapeGX2, ShapeGX3,
           ShapeDVX0, ShapeDVX1, ShapeDVX2, ShapeDVX3,
           NLTE,
-          SpecialParameter1,
-          SpecialParameter2,
-          SpecialParameter3
+          ECS_A, ECS_B, ECS_GAMMA, ECS_DC
           )
 
 /** Holds the Sensor-related targets */

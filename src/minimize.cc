@@ -1,6 +1,38 @@
 #include "minimize.h"
 
 namespace Minimize {
+int Polynom::operator()(const T4::InputType& p, T4::ValueType& f) const {
+  for (Index i=0; i<m_values; i++) {
+    f[i] = p[0] - Y[i];
+    Numeric x = 1;
+    for (int j=1; j<m_inputs; j++) {
+      x *= X[i];
+      f[i] += p[j] * x;
+    }
+  }
+  return 0;
+}
+
+int Polynom::df(const T4::InputType&, T4::JacobianType& J) const {
+  for (Index i=0; i<m_values; i++) {
+    J(i, 0) = 1;
+    Numeric x = 1;
+    for (int j=1; j<m_inputs; j++) {
+      x *= X[i];
+      J(i, j) = x;
+    }
+  }
+  return 0;
+}
+
+Polynom::InputType Polynom::x0() const { 
+  InputType out(m_inputs);
+  for (int j=0; j<m_inputs; j++) {
+    out[j] = 1;
+  }
+  return out;
+}
+
 int T4::operator()(const T4::InputType& p, T4::ValueType& f) const {
   for (Index i=0; i<m_values; i++) {
     const Numeric G = T0 / T[i];
@@ -23,7 +55,7 @@ int T4::df(const T4::InputType& p, T4::JacobianType& J) const {
 
 T4::InputType T4::x0() const { 
   const Numeric mean_y = mean(Y);
-  T4::InputType out(m_inputs);
+  InputType out(m_inputs);
   out << mean_y, -0.01*mean_y, mean_y < 0 ? -EXP0 : EXP0;
   return out;
 }
