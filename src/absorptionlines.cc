@@ -2418,9 +2418,9 @@ Numeric Absorption::reduced_rovibrational_dipole(Rational Jf, Rational Ji, Ratio
 
 Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N) {
   if (not iseven(Jf + N))
-    return - sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1_rat, 1_rat, 1_rat, Ji, Jf, N);
+    return - sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1, 1, 1, Ji, Jf, N);
   else
-    return + sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1_rat, 1_rat, 1_rat, Ji, Jf, N);
+    return + sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1, 1, 1, Ji, Jf, N);
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)

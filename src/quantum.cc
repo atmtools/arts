@@ -130,9 +130,9 @@ String Quantum::Identifier::GetString() const
 Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
   if (key == QuantumNumberType::parity) {
     if (val == "+")
-      return 1_rat;
+      return 1;
     else if (val == "-")
-      return -1_rat;
+      return -1;
   } else if (key == QuantumNumberType::ElectronState) {
     if (val == "X")
       return Rational(int('X'));

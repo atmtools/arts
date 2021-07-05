@@ -81,6 +81,15 @@ void EquivalentLines::sort_by_frequency(Vector& f, const ArrayOfIndex& sorting) 
   }
 }
 
+std::ostream& operator<<(std::ostream& os, const EquivalentLines& eqv) {
+  const Index n = eqv.str.nelem();
+  for (Index i=0; i<n; i++) {
+    if (i) os  << '\n';
+    os << eqv.str[i] << ' ' << eqv.val[i];
+  }
+  return os;
+}
+
 std::ostream& operator<<(std::ostream& os, const SpeciesErrorCorrectedSuddenData& srbd) {
   os << Species::toShortName(srbd.spec);
   os << ' ' << srbd.scaling;
@@ -137,6 +146,12 @@ PopulationAndDipole::PopulationAndDipole(const Numeric T,
       dip[i] *= std::signbit(Makarov2020etal::reduced_dipole(band.UpperQuantumNumber(i, QuantumNumberType::J),
                                                              band.LowerQuantumNumber(i, QuantumNumberType::J),
                                                              band.UpperQuantumNumber(i, QuantumNumberType::N))) ? - 1 : 1;
+    } else if (band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing) {
+      const Rational& Ji = band.UpperQuantumNumber(i, QuantumNumberType::J);
+      const Rational& Jf = band.LowerQuantumNumber(i, QuantumNumberType::J);
+      const Rational& li = band.UpperQuantumNumber(i, QuantumNumberType::l2);
+      const Rational& lf = band.LowerQuantumNumber(i, QuantumNumberType::l2);
+      dip[i] *= std::signbit((iseven(lf + Jf) ? 1 : -1) * sqrt(2* Jf + 1) * wigner3j(Ji, 1, Jf, li, lf-li, lf)) ? -1 : 1;
     }
   }
 }
@@ -402,61 +417,6 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  * It requires inputs for each of the internal components
  */
 namespace LinearRovibErrorCorrectedSudden {
-/** Returns the standard ECS / IOS Wigner symbol for
- * linear molecules
- * 
- * The main transition is Jf   ← Ji
- * The virt transition is Jf_p ← Ji_p
- * 
- * @param[in] Ji Main upper state angular momentum quantum number
- * @param[in] Ji_p Virtual upper state angular momentum quantum number
- * @param[in] Jf Main lower state angular momentum quantum number
- * @param[in] Jf_p Virtual lower state angular momentum quantum number
- * @param[in] k 1 means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
- * @param[in] L ??? Path value possible for main upp → virt upp → virt low → main low transition ???
- * @return The wigner symbol
- */
-Numeric wigner_sum_symbol(const Rational Ji,
-                          const Rational Ji_p,
-                          const Rational Jf,
-                          const Rational Jf_p,
-                          const Rational k,
-                          const Rational L) noexcept
-{
-  return wigner3j(Ji_p, L, Ji, 0, 0, 0) *
-         wigner3j(Jf_p, L, Jf, 0, 0, 0) *
-         wigner6j(Ji, Jf, k, Jf_p, Ji_p, L);
-}
-
-/** The entire "sum over L" internal expression
- * 
- * The main transition is Jf   ← Ji
- * The virt transition is Jf_p ← Ji_p
- * 
- * @param[in] Ji Main upper state angular momentum quantum number
- * @param[in] Ji_p Virtual upper state angular momentum quantum number
- * @param[in] Jf Main lower state angular momentum quantum number
- * @param[in] Jf_p Virtual lower state angular momentum quantum number
- * @param[in] k 1 means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
- * @param[in] L ??? Path value possible for main upp → virt upp → virt low → main low transition ???
- * @return partial sum result
- */
-Numeric sum_symbol(const Rational Ji,
-                   const Rational Ji_p,
-                   const Rational Jf,
-                   const Rational Jf_p,
-                   const SpeciesErrorCorrectedSuddenData& rovib_data,
-                   const Rational k,
-                   const Rational L,
-                   const Numeric T,
-                   const Numeric T0,
-                   const Numeric self_mass,
-                   const EnergyFunction& erot) noexcept
-{
-  return wigner_sum_symbol(Ji, Ji_p, Jf, Jf_p, k, L) * Numeric(2 * L + 1) * 
-  rovib_data.Q(L, T, T0, erot(L)) / rovib_data.Omega(T, T0, self_mass, erot(L), erot(L-2));
-}
-
 /** The entire "sum over L" full expression
  * 
  * The main transition is Jf   ← Ji
@@ -475,6 +435,8 @@ Numeric upper_offdiagonal_element(const Rational Ji,
                                   const Rational Ji_p,
                                   const Rational Jf,
                                   const Rational Jf_p,
+                                  const Rational li,
+                                  const Rational lf,
                                   const SpeciesErrorCorrectedSuddenData& rovib_data,
                                   const Rational k,
                                   const Numeric T,
@@ -484,16 +446,19 @@ Numeric upper_offdiagonal_element(const Rational Ji,
 {
   ARTS_ASSERT(Ji >= Ji_p, "Ji is selected as the upper state in our formalism")
   
-  Numeric x = 0;
-  const auto [Ls, Lf] = wigner_limits(wigner3j_limits<2>(Ji_p, Ji),
-                        wigner_limits(wigner3j_limits<2>(Jf_p, Jf),
-                                      {Rational(2), std::numeric_limits<Index>::max()}));
+  Numeric sum = 0;
+  const auto [Ls, Lf] = wigner_limits(wigner3j_limits<2>(Ji_p, Ji, li, 0, -li),
+                                      {2, std::numeric_limits<Index>::max()});
+  
   for (Rational L=Ls; L<=Lf; L+=2) {
-    x += sum_symbol(Ji, Ji_p, Jf, Jf_p, rovib_data, k, L,
-                    T, T0, self_mass, erot);
+    const Numeric a = wigner3j(Ji_p, L, Ji, li, 0, -li);
+    const Numeric b = wigner3j(Jf_p, L, Jf, -lf, 0, lf);
+    const Numeric c = wigner6j(Ji, Jf, k, Jf_p, Ji_p, L);
+    sum += a * b * c * Numeric(2 * L + 1) * rovib_data.Q(L, T, T0, erot(L)) / rovib_data.Omega(T, T0, self_mass, erot(L), erot(L-2));
   }
-  return (iseven(k) ? -1 : 1) * rovib_data.Omega(T, T0, self_mass, erot(Ji), erot(Ji-2)) *
-          Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * x;
+  
+  return (iseven(li + lf + k) ? -1 : 1) * rovib_data.Omega(T, T0, self_mass, erot(Ji), erot(Ji-2)) *
+          Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * sum;
 }
 
 /** Compute off-diagonal elements for a pair of quantum numbers
@@ -520,6 +485,8 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
                                                  const Rational Ji2,
                                                  const Rational Jf1,
                                                  const Rational Jf2,
+                                                 const Rational li,
+                                                 const Rational lf,
                                                  const SpeciesErrorCorrectedSuddenData& rovib_data,
                                                  const Rational k,
                                                  const Numeric pop1,
@@ -530,13 +497,11 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
                                                  const EnergyFunction& erot) ARTS_NOEXCEPT
 {
   if (Ji1 >= Ji2) {
-    const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2,
-                                                rovib_data,
+    const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2, li, lf, rovib_data,
                                                 k, T, T0, self_mass, erot);
     return {W, W * pop2 / pop1};  // FIXME: order???
   } else {
-    const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1,
-                                                rovib_data,
+    const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1, li, lf, rovib_data,
                                                 k, T, T0, self_mass, erot);
     return {W * pop1 / pop2, W};  // FIXME: order???
   }
@@ -570,16 +535,11 @@ void real_offdiagonal_relaxation_matrix(MatrixView W,
                                                    band.UpperQuantumNumber(sorting[j], QuantumNumberType::J),
                                                    band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
                                                    band.LowerQuantumNumber(sorting[j], QuantumNumberType::J),
+                                                   band.UpperQuantumNumber(sorting[i], QuantumNumberType::l2),
+                                                   band.LowerQuantumNumber(sorting[i], QuantumNumberType::l2),
                                                    rovib_data, k, pop[i], pop[j], T, band.T0(), band.SpeciesMass(), erot);
-      W(i, j) = W12;
-      W(j, i) = W21;
-    }
-  }
-  
-  // Transpose?  Why is this transpose required?
-  for (Index i=0; i<N; i++) {
-    for (Index j=0; j<i; j++) {
-      swap(W(i, j), W(j, i));
+      W(j, i) = W12;
+      W(i, j) = W21;
     }
   }
 }
@@ -627,7 +587,7 @@ void verify_sum_rule(MatrixView W,
 EnergyFunction erot_selection(const SpeciesIsotopeRecord& isot)
 {
   if (isot.spec == Species::Species::CarbonDioxide and isot.isotname == "626") {
-    return [](const Rational J) -> Numeric {return Constant::h * Conversion::kaycm2freq(0.39021) * Numeric(J * (J + 1));};
+    return [](const Rational J) -> Numeric {return Conversion::kaycm2joule(0.39021) * Numeric(J * (J + 1)) - Conversion::kaycm2joule(0.39021);};
   }
   
   ARTS_USER_ERROR(isot.FullName(), " has no rotational energies in ARTS")
@@ -661,7 +621,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
     const Rational li = band.UpperQuantumNumber(sorting[i], QuantumNumberType::l2);
     const Rational Jf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
     const Rational lf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::l2);
-    pop[i] = std::exp(-erot(Ji) / (Constant::k * T));
+    pop[i] = std::exp(-erot(Jf) / (Constant::k * T));
     dip[i] = (iseven(lf + Jf) ? 1 : -1) * sqrt(2* Jf + 1) * wigner3j(Ji, k, Jf, li, lf-li, lf);
   }
   
@@ -708,7 +668,6 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
       Makarov2020etal::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
       break;
     case PopulationType::ByRovibLinearDipoleLineMixing: {
-      std::cerr << "THIS CODE IS NOT TESTED!\n";
       LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
     } break;
     default:
@@ -747,15 +706,13 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
   
   // Loop over all the broadeners
   for (Index k=0; k<M; k++) {
+    if (vmrs[k] == 0) continue;
+    
     // Create temporary
     const ComplexMatrix Wtmp = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[k]], k);
     
     // Sum up all atmospheric components
-    for (Index i=0; i<N; i++) {
-      for (Index j=0; j<N; j++) {
-        W(i, j) += vmrs[k] * Wtmp(i, j);
-      }
-    }
+    MapToEigen(W).noalias() += vmrs[k] * MapToEigen(Wtmp);
   }
   
   // Deal with line frequency and its re-normalization
@@ -809,6 +766,13 @@ ComplexVector ecs_absorption_impl(const Numeric T,
     const Numeric f = f_grid[iv];
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
+    
+    ARTS_USER_ERROR_IF(isnan(absorption[iv]),
+                       "There are NaNs in the absorption profile.  The offending band\n"
+                       "must not be fulfilling some of the conditions associated with\n"
+                       "on-the-fly line mixing,\n\n"
+                       "The full band metadata:\n", band.MetaData(), '\n',
+                       "The full band data:\n", band)
   }
   
   return absorption;
@@ -1087,6 +1051,13 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
     const Numeric f = f_grid[iv];
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
+    
+    ARTS_USER_ERROR_IF(isnan(absorption[iv]),
+                       "There are NaNs in the absorption profile.  The offending band\n"
+                       "must not be fulfilling some of the conditions associated with\n"
+                       "on-the-fly line mixing,\n\n"
+                       "The full band metadata:\n", band.MetaData(), '\n',
+                       "The full band data:\n", band)
   }
   
   return absorption;

@@ -6128,6 +6128,20 @@ void define_md_data_raw() {
       GIN_DESC()));
   
   md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataAddTran2011"),
+      DESCRIPTION("Sets the CO2-626, CO2-636, and CO2-628 IR band data for ECS.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data", "isotopologue_ratios"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataInit"),
       DESCRIPTION("Resets/initializes the ECS data.\n"),
       AUTHORS("Richard Larsson"),
@@ -6140,6 +6154,22 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataSetMeanAir"),
+      DESCRIPTION("Sets ECS data for air from other data if available.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data"),
+      GIN("vmrs", "specs"),
+      GIN_TYPE("Vector", "ArrayOfSpeciesTag"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC(
+        "VMRs of air species",
+        "Air species")));
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataSetSpeciesData"),

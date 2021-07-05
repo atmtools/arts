@@ -872,6 +872,12 @@ public:
   /** Returns population style */
   PopulationType Population() const noexcept {return mpopulation;}
   
+  /** On-the-fly line mixing */
+  bool OnTheFlyLineMixing() const noexcept {
+    return mpopulation == PopulationType::ByMakarovFullRelmat or
+           mpopulation == PopulationType::ByRovibLinearDipoleLineMixing;
+  }
+  
   /** Returns population style reference */
   PopulationType& Population() noexcept {return mpopulation;}
   

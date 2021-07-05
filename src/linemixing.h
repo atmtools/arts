@@ -46,6 +46,8 @@ struct EquivalentLines {
   EquivalentLines& operator=(EquivalentLines&&) = default;
   
   void sort_by_frequency(Vector& f, const ArrayOfIndex& sorting);
+  
+  friend std::ostream& operator<<(std::ostream& os, const EquivalentLines& eqv);
 };  // EquivalentLines
 
 //! Contains the population distribution and dipole
@@ -185,7 +187,8 @@ struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
     if(auto ptr = std::find(cbegin(), cend(), id); ptr not_eq cend()) {
       return *ptr;
     }
-    ARTS_USER_ERROR("Cannot find data for QuantumIdentifier:\n", id, '\n');
+    ARTS_USER_ERROR("Cannot find data for QuantumIdentifier:\n", id, '\n',
+      "Available data:\n", *this);
     return front(); // To get rid of potential warnings...
   }
   

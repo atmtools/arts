@@ -52,7 +52,7 @@ class SpeciesErrorCorrectedSuddenData:
         raise RuntimeError("Cannot be set from another copy")
 
     def __repr__(self):
-        return f"{self.spec} {self.a} {self.b} {self.gamma} {self.dc} {self.mass}"
+        return f"{self.spec} {self.scaling} {self.beta} {self.lambda_value} {self.collisional_distance} {self.mass}"
 
     def __eq__(self, other):
         return self.spec == other.spec and \

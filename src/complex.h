@@ -29,6 +29,7 @@
 #include <complex>
 #include "lapack.h"
 #include "matpackI.h"
+#include "nonstd.h"
 
 typedef std::complex<Numeric> Complex;
 
@@ -166,6 +167,10 @@ _complex_operations_(float)
 _complex_operations_(Index)
 
 #undef _complex_operations_
+
+constexpr bool isnan(Complex c) noexcept {
+  return nonstd::isnan(c.real()) or nonstd::isnan(c.imag());
+}
 
     // Declare existence of the global joker object:
     extern const Joker joker;

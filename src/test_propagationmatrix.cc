@@ -452,9 +452,9 @@ void test_zeeman() {
   Numeric g;
   QuantumNumbers qn;
   qn.Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseB)));
-  qn.Set(QuantumNumberType::Lambda, 0_rat);
-  qn.Set(QuantumNumberType::v1, 0_rat);
-  qn.Set(QuantumNumberType::S, 1_rat);
+  qn.Set(QuantumNumberType::Lambda, 0);
+  qn.Set(QuantumNumberType::v1, 0);
+  qn.Set(QuantumNumberType::S, 1);
 
   std::cout << "Table from Larsson, Lankhaar, Eriksson (2019)\n";
   for (Index i = 1; i < 51; i++) {

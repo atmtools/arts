@@ -410,8 +410,17 @@ struct Identifier {
   }
   
   constexpr bool operator==(const Identifier& other) const noexcept {
-    if (other.type not_eq type) {return false;}
     if (other.spec_ind not_eq spec_ind) return false;
+    
+    // The types must be the same
+    if (other.type not_eq type) {
+      // Except, the joker is a joker for truth
+      if (other.type == IdentifierType::All or type == IdentifierType::All) {
+        return true;
+      } else {
+        return false;
+      }
+    }
     
     switch (type) {
       case IdentifierType::None: return false;

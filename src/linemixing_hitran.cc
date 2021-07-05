@@ -994,7 +994,7 @@ Sorter sorter_calcw(ConvTPOut& out,
   for (Index i=0; i<n; i++) {
     Ji[i] = band.UpperQuantumNumber(i, QuantumNumberType::J);
     Jf[i] = band.LowerQuantumNumber(i, QuantumNumberType::J);
-    dip0[i] = Absorption::reduced_rovibrational_dipole(Jf[i], Ji[i], lf, li, 1_rat);
+    dip0[i] = Absorption::reduced_rovibrational_dipole(Jf[i], Ji[i], lf, li, 1);
   }
   
   Vector s(n);

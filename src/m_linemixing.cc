@@ -186,7 +186,7 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
   
   for (Index i=0; i<abs_species.nelem(); i++) {
     for (auto& band: abs_lines_per_species[i]) {
-      if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat and band.DoLineMixing(rtp_pressure)) {
+      if (band.OnTheFlyLineMixing() and band.DoLineMixing(rtp_pressure)) {
         // vmrs should be for the line
         const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
         const Numeric this_vmr = rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
@@ -250,7 +250,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
   
   for (Index i=0; i<abs_species.nelem(); i++) {
     for (auto& band: abs_lines_per_species[i]) {
-      if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat and band.DoLineMixing(rtp_pressure)) {
+      if (band.OnTheFlyLineMixing() and band.DoLineMixing(rtp_pressure)) {
         // vmrs should be for the line
         const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
         const Numeric this_vmr = rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
@@ -336,21 +336,14 @@ void ecs_dataSetSpeciesData(
   data.mass = Species::mean_mass(spec, isotopologue_ratios);
 }
 
-/*
 void ecs_dataSetMeanAir(
   MapOfErrorCorrectedSuddenData& ecs_data,
   const Vector& vmrs,
-  const ArrayOfSpecies& specs,
-  const Quantum::Identifier& qid,
+  const ArrayOfSpeciesTag& specs,
   const Verbosity&)
 {
-  auto& ecs = ecs_data[qid];
-  
-  ARTS_USER_ERROR_IF(std::find(specs.begin(), specs.end(), Species::Species::Bath) not_eq specs.end(),
-    "Cannot have AIR in list of species: [", specs, "]")
   ARTS_USER_ERROR_IF(specs.nelem() not_eq vmrs.nelem(), "Bad sizes of specs and vmrs\nspecs: [", specs, "]\nvmrs: [", vmrs, "]")
   
-  SpeciesErrorCorrectedSuddenData airdata;
   static_assert(LineShapeModelParameters::N == 4);
   const auto scale = [](LineShapeModelParameters& mp, Numeric x){mp.X0 *= x; mp.X1 *= x; mp.X2 *= x; mp.X3 *= x;};
   const auto scale_and_add_or_throw = [](LineShapeModelParameters& mp1, const LineShapeModelParameters& mp2, Numeric x) {
@@ -361,42 +354,61 @@ void ecs_dataSetMeanAir(
     mp1.X3 += mp2.X3 * x;
   };
   
-  bool found=false;
-  Numeric sumvmr = 0;
-  for (Index i=0; i<specs.nelem(); i++) {
-    auto& data = ecs[specs[i]];
+  for (auto& ecs: ecs_data) {
+    SpeciesErrorCorrectedSuddenData airdata;
     
-    // This means we never had the data so we should skip
-    if (std::isinf(data.mass)) {
-      continue;
+    bool found=false;
+    Numeric sumvmr = 0;
+    for (Index i=0; i<specs.nelem(); i++) {
+      ARTS_USER_ERROR_IF(not specs[i].Isotopologue().joker(),
+                         "Can only have joker species, finds: [", specs, ']')
+      
+      auto spec = specs[i].Spec();
+      
+      if (spec == Species::Species::Bath) continue;
+      
+      auto& data = ecs[spec];
+      
+      // This means we never had the data so we should skip
+      if (std::isinf(data.mass)) {
+        continue;
+      }
+      
+      const Numeric vmr = vmrs[i];
+      if (not found) {
+        airdata.scaling = data.scaling;
+        airdata.beta = data.beta;
+        airdata.lambda = data.lambda;
+        airdata.collisional_distance = data.collisional_distance;
+        airdata.mass = data.mass * vmr;
+        scale(airdata.scaling, vmr);
+        scale(airdata.beta, vmr);
+        scale(airdata.lambda, vmr);
+        scale(airdata.collisional_distance, vmr);
+        
+        found = true;
+      } else {
+        scale_and_add_or_throw(airdata.scaling, data.scaling, vmr);
+        scale_and_add_or_throw(airdata.beta, data.beta, vmr);
+        scale_and_add_or_throw(airdata.lambda, data.lambda, vmr);
+        scale_and_add_or_throw(airdata.collisional_distance, data.collisional_distance, vmr);
+        airdata.mass += data.mass * vmr;
+      }
+      
+      sumvmr += vmrs[i];
     }
     
-    const Numeric vmr = vmrs[i];
-    if (not found) {
-      airdata.scaling = data.scaling;
-      airdata.beta = data.beta;
-      airdata.lambda = data.lambda;
-      airdata.collisional_distance = data.collisional_distance;
-      airdata.mass = data.mass * vmr;
-      scale(airdata.scaling, vmr);
-      scale(airdata.beta, vmr);
-      scale(airdata.lambda, vmr);
-      scale(airdata.collisional_distance, vmr);
-      found = true;
-    } else {
-      scale_and_add_or_throw(airdata.scaling, data.scaling, vmr);
-      scale_and_add_or_throw(airdata.beta, data.beta, vmr);
-      scale_and_add_or_throw(airdata.lambda, data.lambda, vmr);
-      scale_and_add_or_throw(airdata.collisional_distance, data.collisional_distance, vmr);
-      airdata.mass += data.mass * vmr;
+    if (sumvmr not_eq 0 and sumvmr not_eq 1) {
+      scale(airdata.scaling, 1.0 / sumvmr);
+      scale(airdata.beta, 1.0 / sumvmr);
+      scale(airdata.lambda, 1.0 / sumvmr);
+      scale(airdata.collisional_distance, 1.0 / sumvmr);
+      airdata.mass /= sumvmr;
     }
     
-    sumvmr += vmrs[i];
+    ecs[Species::Species::Bath] = airdata;
   }
-  
-  ecs[Species::Species::Bath] = airdata;
 }
-*/
 
 void ecs_dataAddMakarov2020(MapOfErrorCorrectedSuddenData& ecs_data,
                             const SpeciesIsotopologueRatios& isotopologue_ratios,

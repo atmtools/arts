@@ -743,7 +743,7 @@ void test42() {
 
 
 // Test function for internal use, must return 2 as last n2r
-constexpr Rational test_numeric2rational(const Index i, const Index maxi, const Rational r=0_rat, const Rational n2r=0_rat) {
+constexpr Rational test_numeric2rational(const Index i, const Index maxi, const Rational r=0, const Rational n2r=0) {
   if (i > maxi)
     return n2r;
   else {
@@ -770,7 +770,7 @@ void test43() {
   constexpr Rational r3 = r / 0;  // should be undefined
   static_assert(r3.Nom() == 0, "Rational fail to initialize properly");
   static_assert(r3.Denom() == 0, "Rational fail to initialize properly");
-  static_assert(r3 not_eq r3, "Rational fail to initialize properly");
+  static_assert(r3 not_eq r3, "Undefined rational does not equal self");
   static_assert(r3.isUndefined(), "Rational fail to initialize properly");
   
   // Mul-zero gives 0/1
