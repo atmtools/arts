@@ -93,3 +93,48 @@ void propmat_clearskyAddZeeman(
                     manual_zeeman_theta,
                     manual_zeeman_eta);
 }
+
+
+
+void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
+                                    const ArrayOfQuantumIdentifier& qid,
+                                    const Vector& gs,
+                                    const Verbosity&) {
+  ARTS_USER_ERROR_IF (qid.nelem() not_eq gs.nelem(), "Inputs not matching in size");
+  for (Index i=0; i<qid.nelem(); i++) {
+    const QuantumIdentifier& id = qid[i];
+    const Numeric g = gs[i];
+    
+    ARTS_USER_ERROR_IF(id.type not_eq QuantumIdentifierType::EnergyLevel, 
+      "The type of quantum identifier at position ", i, " is wrong.  It reads:\n", qid[i])
+    const QuantumNumbers& level = id.Level();
+    
+    for (AbsorptionLines& band: abs_lines) {
+      if (id.Isotopologue() not_eq band.Isotopologue()) continue;
+      
+      for (Index iline=0; iline<band.NumLines(); iline++) {
+        bool match_upp = true;
+        bool match_low = true;
+        for (const QuantumNumberType qn: enumtyps::QuantumNumberTypeTypes) {
+          if (level[qn].isUndefined()) continue;
+          match_upp = match_upp and level[qn] == band.UpperQuantumNumber(iline, qn);
+          match_low = match_low and level[qn] == band.LowerQuantumNumber(iline, qn);
+          if (not match_low and not match_upp) break;
+        }
+        if (match_upp) band.Line(iline).Zeeman().gu(g);
+        if (match_low) band.Line(iline).Zeeman().gl(g);
+      }
+    }
+  }
+}
+
+void abs_lines_per_speciesSetZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                const ArrayOfQuantumIdentifier& qid,
+                                                const Vector& gs,
+                                                const Verbosity& verbosity) {
+  for (auto& abs_lines: abs_lines_per_species) {
+    for (Index i=0; i<qid.nelem(); i++) {
+      abs_linesSetZeemanCoefficients(abs_lines, qid, gs, verbosity);
+    }
+  }
+}
