@@ -1713,7 +1713,10 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesSetZeemanCoefficients"),
-      DESCRIPTION("Sets the Zeeman coefficients of the lines by user input\n"),
+      DESCRIPTION("Sets the Zeeman coefficients of the lines by user input\n"
+        "\n"
+        "The matching is permissive, all in qid must just match.  If there\n"
+        "are multiple matches, the last match rules\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
