@@ -545,10 +545,15 @@ BasicInputOutputCAPI(ArrayOfAbsorptionLines)
 VoidArrayCAPI(ArrayOfArrayOfAbsorptionLines)
 BasicInterfaceCAPI(ArrayOfArrayOfAbsorptionLines)
 BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
-Index sizeLocalQuantaAbsorptionLines(void * data) { return static_cast<AbsorptionLines *>(data) -> LocalQuanta().size(); }
-void resizeLocalQuantaAbsorptionLines(Index n, void * data) { static_cast<AbsorptionLines *>(data) -> LocalQuanta().resize(n); }
-Index getLocalQuantaAbsorptionLines(Index i, void * data) { return Index(static_cast<AbsorptionLines *>(data) -> LocalQuanta()[i]); }
-void setLocalQuantaAbsorptionLines(Index i, void * data, Index newval) { static_cast<AbsorptionLines *>(data) -> LocalQuanta()[i] = QuantumNumberType(newval); }
+Index sizeLocalQuantaAbsorptionLines(void * data) { return static_cast<std::vector<QuantumNumberType> *>(data) -> size(); }
+void resizeLocalQuantaAbsorptionLines(Index n, void * data) { static_cast<std::vector<QuantumNumberType> *>(data) -> resize(n); }
+void * getQuantumNumberTypeLocalQuantaAbsorptionLines(void * data, Index i) {
+  if (i >= 0 and i < Index(static_cast<std::vector<QuantumNumberType> *>(data) -> size()))
+    return & static_cast<std::vector<QuantumNumberType> *>(data) -> operator[](i);
+  else
+    return nullptr;
+}
+void * getLocalQuantaAbsorptionLines(void * data) { return & static_cast<AbsorptionLines *>(data) -> LocalQuanta(); }
 void printmetaAbsorptionLines(void * data) { std::cout << static_cast<AbsorptionLines *>(data) -> MetaData() << std::endl; }
 Index isAbsorptionLinesOK(void * data) { return Index(static_cast<AbsorptionLines *>(data) -> OK()); }
 void * getSpeciesNameAbsorptionLines(void * data) {
