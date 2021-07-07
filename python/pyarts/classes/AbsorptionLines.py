@@ -5,12 +5,68 @@ from pyarts.workspace.api import arts_api as lib
 from pyarts.classes.AbsorptionSingleLine import AbsorptionSingleLine
 from pyarts.classes.LineShapeModel import LineShapeModel, LineShapeType
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier
-from pyarts.classes.QuantumNumbers import QuantumNumbers
+from pyarts.classes.QuantumNumbers import QuantumNumberType
 from pyarts.classes.Rational import Rational
-from pyarts.classes.BasicTypes import Index, String
+from pyarts.classes.BasicTypes import String
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 from pyarts.classes.SpeciesIsotopeRecord import ArrayOfSpecies
+
+
+class VectorOfQuantumNumberType:
+    def __init__(self, data):
+        assert isinstance(data, c.c_void_p)
+        self.__data__ = data
+    
+    def __getitem__(self, key):
+        x = lib.getQuantumNumberTypeLocalQuantaAbsorptionLines(self.__data__, int(key))
+        if x:
+            return QuantumNumberType(c.c_void_p(x))
+        else:
+            raise IndexError("Out of bounds")
+    
+    def __setitem__(self, key, val):
+        self.__getitem__(key).set(val)
+    
+    def __len__(self):
+        return int(lib.sizeLocalQuantaAbsorptionLines(self.__data__))
+    
+    def resize(self, n):
+        n = int(n)
+        assert n >= 0
+        lib.resizeLocalQuantaAbsorptionLines(n, self.__data__)
+    
+    def __repr__(self):
+        out = "["
+        for i in range(len(self)):
+            out += str(self[i])
+            if (i+1) != len(self):
+                out += ', '
+        return out+ ']'
+    
+    def set(self, other):
+        self.resize(len(other))
+        for i in range(len(self)):
+            self[i] = other[i]
+    
+    def __eq__(self, other):
+        if not len(self) == len(other):
+            return False
+        else:
+            for i in range(len(self)):
+                if not self[i] == other[i]:
+                    return False
+        return True
+            
+
+lib.sizeLocalQuantaAbsorptionLines.restype = c.c_long
+lib.sizeLocalQuantaAbsorptionLines.argtypes = [c.c_void_p]
+
+lib.resizeLocalQuantaAbsorptionLines.restype = None
+lib.resizeLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
+
+lib.getQuantumNumberTypeLocalQuantaAbsorptionLines.restype = c.c_void_p
+lib.getQuantumNumberTypeLocalQuantaAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
 
 
 class AbsorptionPopulationType:
@@ -301,11 +357,8 @@ class AbsorptionLines:
         quantumidentity:
             Quantum identity (QuantumIdentifier)
 
-        sizelocalquantumnumbers:
-            Number of local quantum numbers (Index)
-
         localquantumnumbers:
-            Local quantum numbers (list of Index)
+            Local quantum numbers (list of QuantumNumberType(s))
 
         sizebroadeningspecies:
             Number of broadening species (Index)
@@ -344,7 +397,7 @@ class AbsorptionLines:
             self.localquantumnumbers = localquantumnumbers
             self.broadeningspecies = broadeningspecies
 
-            n = self.sizelocalquantumnumbers
+            n = len(self.localquantumnumbers)
             x = AbsorptionSingleLine(lsm=lsm, qupp=[Rational()]*n, qlow=[Rational()]*n)
             self.sizelines = nlines
             y = self.lines
@@ -468,38 +521,13 @@ class AbsorptionLines:
         self.quantumidentity.set(val)
 
     @property
-    def sizelocalquantumnumbers(self):
-        """ Number of local quantum numbers (Index) """
-        return lib.sizeLocalQuantaAbsorptionLines(self.__data__)
-
-    @sizelocalquantumnumbers.setter
-    def sizelocalquantumnumbers(self, size):
-        size = int(size)
-        if size >= 0:
-            lib.resizeLocalQuantaAbsorptionLines(size, self.__data__)
-        else:
-            raise ValueError("Invalid size")
-
-    @property
     def localquantumnumbers(self):
-        """ Local quantum numbers (list of Index) """
-        n = self.sizelocalquantumnumbers
-        x = []
-        for i in range(n):
-            x.append(Index(QuantumNumbers.to_index(
-                    lib.getLocalQuantaAbsorptionLines(i, self.__data__))))
-        return x
+        """ Local quantum numbers (list of QuantumNumberType(s)) """
+        return VectorOfQuantumNumberType(c.c_void_p(lib.getLocalQuantaAbsorptionLines(self.__data__)))
 
     @localquantumnumbers.setter
     def localquantumnumbers(self, val):
-        if isinstance(val, Sized):
-            self.sizelocalquantumnumbers = len(val)
-            n = self.sizelocalquantumnumbers
-            for i in range(n):
-                lib.setLocalQuantaAbsorptionLines(i, self.__data__,
-                                                  QuantumNumbers.to_index(val[i]))
-        else:
-            raise TypeError("Only accepts array-like input")
+        self.localquantumnumbers.set(val)
 
     @property
     def broadeningspecies(self):
@@ -718,17 +746,8 @@ lib.setLinemixingLimitAbsorptionLines.argtypes = [c.c_void_p, c.c_double]
 lib.getQuantumIdentityAbsorptionLines.restype = c.c_void_p
 lib.getQuantumIdentityAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.sizeLocalQuantaAbsorptionLines.restype = c.c_long
-lib.sizeLocalQuantaAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.resizeLocalQuantaAbsorptionLines.restype = None
-lib.resizeLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
-
-lib.getLocalQuantaAbsorptionLines.restype = c.c_long
-lib.getLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
-
-lib.setLocalQuantaAbsorptionLines.restype = None
-lib.setLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p, c.c_long]
+lib.getLocalQuantaAbsorptionLines.restype = c.c_void_p
+lib.getLocalQuantaAbsorptionLines.argtypes = [c.c_void_p]
 
 lib.getBroadeningSpeciesAbsorptionLines.restype = c.c_void_p
 lib.getBroadeningSpeciesAbsorptionLines.argtypes = [c.c_void_p]

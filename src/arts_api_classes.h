@@ -309,8 +309,8 @@ extern "C" {
     BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
     DLL_PUBLIC Index sizeLocalQuantaAbsorptionLines(void * data);
     DLL_PUBLIC void resizeLocalQuantaAbsorptionLines(Index n, void * data);
-    DLL_PUBLIC Index getLocalQuantaAbsorptionLines(Index i, void * data);
-    DLL_PUBLIC void setLocalQuantaAbsorptionLines(Index i, void * data, Index newval);
+    DLL_PUBLIC void * getQuantumNumberTypeLocalQuantaAbsorptionLines(void * data, Index i);
+    DLL_PUBLIC void * getLocalQuantaAbsorptionLines(void * data);
     DLL_PUBLIC void printmetaAbsorptionLines(void *);
     DLL_PUBLIC Index isAbsorptionLinesOK(void *);
     DLL_PUBLIC void * getSpeciesNameAbsorptionLines(void *);
