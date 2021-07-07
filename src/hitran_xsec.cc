@@ -216,13 +216,13 @@ void XsecRecord::CalcXsec(VectorView& xsec,
                           const Range range,
                           const Numeric pressure,
                           const Numeric temperature) const {
-  const Numeric logp = log10(pressure);
+  const Numeric sqrtP = sqrt(pressure);
   for (Index i = 0; i < range.get_extent(); i++) {
     const ConstVectorView coeffs =
         mfitcoeffs[dataset].data(range.get_start() + i, joker);
-    xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * logp +
+    xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * sqrtP +
               coeffs[P20] * temperature * temperature +
-              coeffs[P11] * temperature * logp + coeffs[P02] * logp * logp;
+              coeffs[P11] * temperature * sqrtP + coeffs[P02] * pressure;
     xsec[i] *= xsec[i];
   }
 }
@@ -232,16 +232,16 @@ void XsecRecord::CalcDT(VectorView& xsec_dt,
                         const Range range,
                         const Numeric pressure,
                         const Numeric temperature) const {
-  const Numeric logp = log10(pressure);
+  const Numeric sqrtP = sqrt(pressure);
   for (Index i = 0; i < range.get_extent(); i++) {
     const ConstVectorView coeffs =
         mfitcoeffs[dataset].data(range.get_start() + i, joker);
     xsec_dt[i] =
         2. *
-        (coeffs[P10] + 2. * coeffs[P20] * temperature + coeffs[P11] * logp) *
+        (coeffs[P10] + 2. * coeffs[P20] * temperature + coeffs[P11] * sqrtP) *
         (coeffs[P00] + coeffs[P10] * temperature +
-         coeffs[P20] * temperature * temperature + coeffs[P01] * logp +
-         coeffs[P11] * temperature * logp + coeffs[P02] * logp * logp);
+         coeffs[P20] * temperature * temperature + coeffs[P01] * sqrtP +
+         coeffs[P11] * temperature * sqrtP + coeffs[P02] * pressure);
   }
 }
 
@@ -250,18 +250,18 @@ void XsecRecord::CalcDP(VectorView& xsec_dp,
                         const Range range,
                         const Numeric pressure,
                         const Numeric temperature) const {
-  const Numeric logp = log10(pressure);
-  const Numeric plog = pressure * log(10);
+  const Numeric sqrtP = sqrt(pressure);
 
   for (Index i = 0; i < range.get_extent(); i++) {
     const ConstVectorView coeffs =
         mfitcoeffs[dataset].data(range.get_start() + i, joker);
-    xsec_dp[i] = 2. *
-                 (coeffs[P01] / plog + coeffs[P11] * temperature / plog +
-                  2. * coeffs[P02] * logp / plog) *
-                 (coeffs[P00] + coeffs[P10] * temperature +
-                  coeffs[P20] * temperature * temperature + coeffs[P01] * logp +
-                  coeffs[P11] * temperature * logp + coeffs[P02] * logp * logp);
+    xsec_dp[i] =
+        2. *
+        (coeffs[P01] / (2 * sqrtP) + coeffs[P11] * temperature / (2 * sqrtP) +
+         coeffs[P02]) *
+        (coeffs[P00] + coeffs[P10] * temperature +
+         coeffs[P20] * temperature * temperature + coeffs[P01] * sqrtP +
+         coeffs[P11] * temperature * sqrtP + coeffs[P02] * pressure);
   }
 }
 
