@@ -1,20 +1,20 @@
 <?xml version="1.0"?>
-<arts version="1" format="binary">
+<arts format="binary" version="1">
 <XsecRecord version="2">
-<String name="Species">"CFC11"</String>
-<Vector name="Minimum pressures from fit" nelem="2">
+<String name="species">"CFC11"</String>
+<Vector name="Mininum pressures from fit" nelem="5">
 </Vector>
-<Vector name="Maximum pressures from fit" nelem="2">
+<Vector name="Maximum pressures from fit" nelem="5">
 </Vector>
-<Vector name="Minimum temperatures from fit" nelem="2">
+<Vector name="Mininum temperatures from fit" nelem="5">
 </Vector>
-<Vector name="Maximum temperatures from fit" nelem="2">
+<Vector name="Maximum temperatures from fit" nelem="5">
 </Vector>
-<Array name="Fit coefficients" nelem="2" type="GriddedField2">
-<GriddedField2 name="CFC-11-band_0">
-<Vector name="fit coefficients [m]" nelem="23232">
+<Array name="Fit coefficients" type="GriddedField2" nelem="5">
+<GriddedField2>
+<Vector name="frequency grid [Hz]" nelem="3983">
 </Vector>
-<Array name="frequency grid [Hz]" nelem="6" type="String">
+<Array name="fit coefficients [m]" type="String" nelem="6">
 <String>"p00"</String>
 <String>"p10"</String>
 <String>"p01"</String>
@@ -22,20 +22,13 @@
 <String>"p11"</String>
 <String>"p02"</String>
 </Array>
-<Matrix name="species: CFC11 
-fit of hitran cross section data 
-version XXX 
-fit model: 
-    xsec=(p00 + p10*x + p01*y + p20*x**2 + p11*x*y + p02*y**2)**2 
-    x=T/T_0, T_0=1K 
-    y=log10(p/p_0]), p_0=1Pa 
-    xsec in m**2" ncols="6" nrows="23232">
+<Matrix name="Data" nrows="3983" ncols="6">
 </Matrix>
 </GriddedField2>
-<GriddedField2 name="CFC-11-band_1">
-<Vector name="fit coefficients [m]" nelem="23232">
+<GriddedField2>
+<Vector name="frequency grid [Hz]" nelem="23231">
 </Vector>
-<Array name="frequency grid [Hz]" nelem="6" type="String">
+<Array name="fit coefficients [m]" type="String" nelem="6">
 <String>"p00"</String>
 <String>"p10"</String>
 <String>"p01"</String>
@@ -43,14 +36,49 @@ fit model:
 <String>"p11"</String>
 <String>"p02"</String>
 </Array>
-<Matrix name="species: CFC11 
-fit of hitran cross section data 
-version XXX 
-fit model: 
-    xsec=(p00 + p10*x + p01*y + p20*x**2 + p11*x*y + p02*y**2)**2 
-    x=T/T_0, T_0=1K 
-    y=log10(p/p_0]), p_0=1Pa 
-    xsec in m**2" ncols="6" nrows="23232">
+<Matrix name="Data" nrows="23231" ncols="6">
+</Matrix>
+</GriddedField2>
+<GriddedField2>
+<Vector name="frequency grid [Hz]" nelem="2820">
+</Vector>
+<Array name="fit coefficients [m]" type="String" nelem="6">
+<String>"p00"</String>
+<String>"p10"</String>
+<String>"p01"</String>
+<String>"p20"</String>
+<String>"p11"</String>
+<String>"p02"</String>
+</Array>
+<Matrix name="Data" nrows="2820" ncols="6">
+</Matrix>
+</GriddedField2>
+<GriddedField2>
+<Vector name="frequency grid [Hz]" nelem="23231">
+</Vector>
+<Array name="fit coefficients [m]" type="String" nelem="6">
+<String>"p00"</String>
+<String>"p10"</String>
+<String>"p01"</String>
+<String>"p20"</String>
+<String>"p11"</String>
+<String>"p02"</String>
+</Array>
+<Matrix name="Data" nrows="23231" ncols="6">
+</Matrix>
+</GriddedField2>
+<GriddedField2>
+<Vector name="frequency grid [Hz]" nelem="89282">
+</Vector>
+<Array name="fit coefficients [m]" type="String" nelem="6">
+<String>"p00"</String>
+<String>"p10"</String>
+<String>"p01"</String>
+<String>"p20"</String>
+<String>"p11"</String>
+<String>"p02"</String>
+</Array>
+<Matrix name="Data" nrows="89282" ncols="6">
 </Matrix>
 </GriddedField2>
 </Array>
