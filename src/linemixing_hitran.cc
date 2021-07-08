@@ -986,8 +986,8 @@ Sorter sorter_calcw(ConvTPOut& out,
   const Index n=Y.nelem();
   
   // Copies for local variables
-  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l1);
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l1);
+  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
   
   Vector dip0(n);
   std::vector<Rational> Ji(n), Jf(n);
@@ -1045,8 +1045,8 @@ void calcw(ConvTPOut& out,
   // Size of problem
   const Index n=Y.nelem();
   
-  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l1);
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l1);
+  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
   
   // Sort before the if-statement.  This technicalyl goes awa from how
   // HITRAN code does it.  It is however required for other line mixing
@@ -2036,17 +2036,15 @@ void read(HitranRelaxationMatrixData& hitran,
   bands.resize(cmn.Bands.nBand);
   for (Index i{0}; i<cmn.Bands.nBand; i++) {
     QuantumNumbers outer_upper;
-    outer_upper[QuantumNumberType::l1] = Rational(cmn.Bands.li[i]);
+    outer_upper[QuantumNumberType::l2] = Rational(cmn.Bands.li[i]);
     outer_upper[QuantumNumberType::v1] = cmn.UnusedBandParams.iv1[i];
     outer_upper[QuantumNumberType::v2] = cmn.UnusedBandParams.iv2[i];
-    outer_upper[QuantumNumberType::l2] = cmn.UnusedBandParams.il2[i];
     outer_upper[QuantumNumberType::v3] = cmn.UnusedBandParams.iv3[i];
     outer_upper[QuantumNumberType::r] = cmn.UnusedBandParams.ir[i];
     QuantumNumbers outer_lower;
-    outer_lower[QuantumNumberType::l1] = Rational(cmn.Bands.lf[i]);
+    outer_lower[QuantumNumberType::l2] = Rational(cmn.Bands.lf[i]);
     outer_lower[QuantumNumberType::v1] = cmn.UnusedBandParams.fv1[i];
     outer_lower[QuantumNumberType::v2] = cmn.UnusedBandParams.fv2[i];
-    outer_lower[QuantumNumberType::l2] = cmn.UnusedBandParams.fl2[i];
     outer_lower[QuantumNumberType::v3] = cmn.UnusedBandParams.fv3[i];
     outer_lower[QuantumNumberType::r] = cmn.UnusedBandParams.fr[i];
     

@@ -118,13 +118,10 @@ class QuantumNumbers:
         return x
 
     @data.setter
-    def data(self, val):
+    def data(self, other):
         n = self.size
-        if isinstance(val, Sized) and len(val) == self.size:
-            for i in range(n):
-                self[i] = val[i]
-        else:
-            raise TypeError("Invalid input")
+        for i in range(n):
+            self[i] = other[i]
 
     def __getitem__(self, ind):
         return Rational(c.c_void_p(lib.getelemQuantumNumbers(self.to_index(ind), self.__data__)))

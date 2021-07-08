@@ -767,10 +767,10 @@ ComplexVector ecs_absorption_impl(const Numeric T,
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
     
-    ARTS_USER_ERROR_IF(isnan(absorption[iv]),
-                       "There are NaNs in the absorption profile.  The offending band\n"
+    ARTS_USER_ERROR_IF(isnan(absorption[iv]) or absorption[iv].real() < 0,
+                       "There's a bad value in the absorption profile.  The offending band\n"
                        "must not be fulfilling some of the conditions associated with\n"
-                       "on-the-fly line mixing,\n\n"
+                       "on-the-fly line mixing, the value is:, ", absorption[iv], "\n\n"
                        "The full band metadata:\n", band.MetaData(), '\n',
                        "The full band data:\n", band)
   }
@@ -1052,10 +1052,10 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
     
-    ARTS_USER_ERROR_IF(isnan(absorption[iv]),
-                       "There are NaNs in the absorption profile.  The offending band\n"
+    ARTS_USER_ERROR_IF(isnan(absorption[iv]) or absorption[iv].real() < 0,
+                       "There's a bad value in the absorption profile.  The offending band\n"
                        "must not be fulfilling some of the conditions associated with\n"
-                       "on-the-fly line mixing,\n\n"
+                       "on-the-fly line mixing, the value is:, ", absorption[iv], "\n\n"
                        "The full band metadata:\n", band.MetaData(), '\n',
                        "The full band data:\n", band)
   }

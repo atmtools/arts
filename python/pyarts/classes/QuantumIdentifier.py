@@ -122,8 +122,6 @@ class QuantumIdentifier:
     
     @property
     def upp(self):
-        if self.type != "Transition":
-            raise RuntimeError(f"Bad state, {self.type} should be Transition")
         return QuantumNumbers(c.c_void_p(lib.getuppQuantumIdentifier(self.__data__)))
     
     @upp.setter
@@ -132,8 +130,6 @@ class QuantumIdentifier:
     
     @property
     def lvl(self):
-        if self.type != "EnergyLevel":
-            raise RuntimeError(f"Bad state, {self.type} should be EnergyLevel")
         return QuantumNumbers(c.c_void_p(lib.getuppQuantumIdentifier(self.__data__)))
     
     @lvl.setter
@@ -142,8 +138,6 @@ class QuantumIdentifier:
     
     @property
     def low(self):
-        if self.type != "Transition":
-            raise RuntimeError(f"Bad state, {self.type} should be Transition")
         return QuantumNumbers(c.c_void_p(lib.getlowQuantumIdentifier(self.__data__)))
     
     @low.setter
@@ -177,11 +171,8 @@ class QuantumIdentifier:
         if isinstance(other, QuantumIdentifier):
             self.type = other.type
             self.spec_ind = other.spec_ind
-            if type == "EnergyLevel":
-                self.lvl = other.lvl
-            elif type == "Transtition":
-                self.upp = other.upp
-                self.low = other.low
+            self.upp = other.upp
+            self.low = other.low
         else:
             raise TypeError("Expects QuantumIdentifier")
 
