@@ -1,5 +1,5 @@
 /* Copyright (C) 2019
- Richard Larsson <larsson@mps.mpg.de>
+ Richard Larsson <ric.larsson@gmail.com>
 
  
  This program is free software; you can redistribute it and/or modify it
