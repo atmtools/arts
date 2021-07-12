@@ -445,20 +445,6 @@ void define_md_data_raw() {
                "The pressure grid")));
 
   md_data_raw.push_back(create_mdrecord(
-    NAME("abs_linesCleanupEmpty"),
-      DESCRIPTION("Removes empty bands from *abs_lines*.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesKeepBand"),
       DESCRIPTION("Keep only *qid*-match band lines in *abs_lines*\n"
       "\n"
@@ -487,6 +473,48 @@ void define_md_data_raw() {
       GIN_TYPE("QuantumIdentifier"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Band ID")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_linesRemoveEmptyBands"),
+      DESCRIPTION("Removes emtpy bands from *abs_lines*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_linesFlatten"),
+      DESCRIPTION("Makes *abs_lines* with the same ID share lines\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesFlatten"),
+      DESCRIPTION("Calls *abs_linesFlatten* per internal set of bands\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveUnusedLocalQuantumNumbers"),

@@ -336,9 +336,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                              band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
                              band.UpperQuantumNumber(sorting[i], QuantumNumberType::N));
     
-    for (Index j=0; j<n; j++) {
-      if (i == j) continue;
-      
+    for (Index j=i+1; j<n; j++) {
       // Select upper quantum number
       const bool ihigh = band.E0(sorting[i]) > band.E0(sorting[j]);
       const Index k = ihigh ? i : j;
@@ -444,7 +442,7 @@ Numeric upper_offdiagonal_element(const Rational Ji,
                                   const Numeric self_mass,
                                   const EnergyFunction& erot) ARTS_NOEXCEPT
 {
-  ARTS_ASSERT(Ji >= Ji_p, "Ji is selected as the upper state in our formalism")
+  ARTS_ASSERT(Ji <= Ji_p, "Ji is selected as the upper state in our formalism")
   
   Numeric sum = 0;
   const auto [Ls, Lf] = wigner_limits(wigner3j_limits<2>(Ji_p, Ji, li, 0, -li),
@@ -489,21 +487,20 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
                                                  const Rational lf,
                                                  const SpeciesErrorCorrectedSuddenData& rovib_data,
                                                  const Rational k,
-                                                 const Numeric pop1,
-                                                 const Numeric pop2,
+                                                 const Numeric pop12,
                                                  const Numeric T,
                                                  const Numeric T0,
                                                  const Numeric self_mass,
                                                  const EnergyFunction& erot) ARTS_NOEXCEPT
 {
-  if (Ji1 >= Ji2) {
+  if (Ji1 <= Ji2) {
     const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2, li, lf, rovib_data,
                                                 k, T, T0, self_mass, erot);
-    return {W, W * pop2 / pop1};  // FIXME: order???
+    return {W, W / pop12};
   } else {
     const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1, li, lf, rovib_data,
                                                 k, T, T0, self_mass, erot);
-    return {W * pop1 / pop2, W};  // FIXME: order???
+    return {W * pop12, W};
   }
 }
 
@@ -518,26 +515,28 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
  */
 void real_offdiagonal_relaxation_matrix(MatrixView W,
                                         const AbsorptionLines& band,
-                                        const Vector& pop,
                                         const ArrayOfIndex& sorting,
                                         const SpeciesErrorCorrectedSuddenData& rovib_data,
                                         const Rational k,
                                         const Numeric T,
-                                        const EnergyFunction erot) ARTS_NOEXCEPT
+                                        const EnergyFunction& erot) ARTS_NOEXCEPT
 {
   const Index N = band.NumLines();
-  ARTS_ASSERT(pop.nelem() == N, "Inconsistent populations and lines count")
   ARTS_ASSERT(sorting.nelem() == N, "Inconsistent sorting and lines count")
+  
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
+  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
   
   for (Index i=0; i<N; i++) {
     for (Index j=0; j<i; j++) {
-      const auto [W12, W21] = offdiagonal_elements(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
-                                                   band.UpperQuantumNumber(sorting[j], QuantumNumberType::J),
-                                                   band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
-                                                   band.LowerQuantumNumber(sorting[j], QuantumNumberType::J),
-                                                   band.UpperQuantumNumber(sorting[i], QuantumNumberType::l2),
-                                                   band.LowerQuantumNumber(sorting[i], QuantumNumberType::l2),
-                                                   rovib_data, k, pop[i], pop[j], T, band.T0(), band.SpeciesMass(), erot);
+      const Rational Jf1 = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
+      const Rational Jf2 = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
+      const Rational Ji1 = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
+      const Rational Ji2 = band.UpperQuantumNumber(sorting[j], QuantumNumberType::J);
+      
+      const auto [W12, W21] = offdiagonal_elements(Ji1, Ji2, Jf1, Jf2, li, lf, rovib_data, k,
+                                                   std::exp((erot(Jf2) - erot(Jf1)) / Conversion::kelvin2joule(T)),
+                                                   T, band.T0(), band.SpeciesMass(), erot);
       W(j, i) = W12;
       W(i, j) = W21;
     }
@@ -552,11 +551,13 @@ void real_offdiagonal_relaxation_matrix(MatrixView W,
  * @param[in] dipr The reduced dipole moments
  */
 void verify_sum_rule(MatrixView W,
-                     const Vector& popr,
-                     const Vector& dipr) ARTS_NOEXCEPT
+                     const AbsorptionLines& band,
+                     const Vector& dipr,
+                     const ArrayOfIndex& sorting,
+                     const Numeric T,
+                     const EnergyFunction& erot) ARTS_NOEXCEPT
 {
-  const Index N = popr.nelem();
-  ARTS_ASSERT(dipr.nelem() == N, "Inconsistent reduced dipoles and lines count")
+  const Index N = dipr.nelem();
   ARTS_ASSERT(W.nrows() == N and W.nrows() == W.ncols(), "Bad lines count and matrix size")
   
   // Sum rule correction
@@ -578,7 +579,7 @@ void verify_sum_rule(MatrixView W,
         W(i, j) = 0.0;
       } else {
         W(j, i) *= - sumup / sumlw;
-        W(i, j) = W(j, i) * popr[j] / popr[i];
+        W(i, j) = W(j, i) * std::exp((erot(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J)) - erot(band.LowerQuantumNumber(sorting[j], QuantumNumberType::J))) / Conversion::kelvin2joule(T));  // This gives LTE
       }
     }
   }
@@ -615,20 +616,19 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   const EnergyFunction erot = erot_selection(band.Isotopologue());
   
   const Index N = band.NumLines();
-  Vector pop(N), dip(N);
+  Vector dip(N);
   for (Index i=0; i<N; i++) {
     const Rational Ji = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
     const Rational li = band.UpperQuantumNumber(sorting[i], QuantumNumberType::l2);
     const Rational Jf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
     const Rational lf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::l2);
-    pop[i] = std::exp(-erot(Jf) / (Constant::k * T));
     dip[i] = (iseven(lf + Jf) ? 1 : -1) * sqrt(2* Jf + 1) * wigner3j(Ji, k, Jf, li, lf-li, lf);
   }
   
-  real_offdiagonal_relaxation_matrix(W, band, pop, sorting, rovib_data, k,  T, erot);
+  real_offdiagonal_relaxation_matrix(W, band, sorting, rovib_data, k,  T, erot);
   
   // FIXME: Use local pop and dip instead?
-  verify_sum_rule(W, pop, dip);  // FIXME: make this use local ratio?
+  verify_sum_rule(W, band, dip, sorting, T, erot);  // FIXME: make this use local ratio?
 }
 }
 
@@ -770,7 +770,7 @@ ComplexVector ecs_absorption_impl(const Numeric T,
     ARTS_USER_ERROR_IF(isnan(absorption[iv]) or absorption[iv].real() < 0,
                        "There's a bad value in the absorption profile.  The offending band\n"
                        "must not be fulfilling some of the conditions associated with\n"
-                       "on-the-fly line mixing, the value is:, ", absorption[iv], "\n\n"
+                       "on-the-fly line mixing, the value is: ", absorption[iv], "\n\n"
                        "The full band metadata:\n", band.MetaData(), '\n',
                        "The full band data:\n", band)
   }
@@ -1055,7 +1055,7 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
     ARTS_USER_ERROR_IF(isnan(absorption[iv]) or absorption[iv].real() < 0,
                        "There's a bad value in the absorption profile.  The offending band\n"
                        "must not be fulfilling some of the conditions associated with\n"
-                       "on-the-fly line mixing, the value is:, ", absorption[iv], "\n\n"
+                       "on-the-fly line mixing, the value is: ", absorption[iv], "\n\n"
                        "The full band metadata:\n", band.MetaData(), '\n',
                        "The full band data:\n", band)
   }

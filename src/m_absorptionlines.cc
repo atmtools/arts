@@ -35,6 +35,46 @@
 #include "m_xml.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////// Basic removal and flattening
+/////////////////////////////////////////////////////////////////////////////////////
+
+void abs_linesRemoveEmptyBands(ArrayOfAbsorptionLines& abs_lines,
+                               const Verbosity&)
+{
+  abs_lines.erase(std::remove_if(abs_lines.begin(), abs_lines.end(),
+                                 [](auto& x){return x.NumLines() == 0;}),
+                  abs_lines.end());
+}
+
+void abs_linesFlatten(ArrayOfAbsorptionLines& abs_lines,
+                      const Verbosity& verbosity)
+{
+  const Index n = abs_lines.nelem();
+  
+  for (Index i=0; i<n; i++) {
+    AbsorptionLines& band = abs_lines[i];
+    if (band.NumLines()) {
+      for (Index j=i+1; j<n; j++) {
+        if (band.Match(abs_lines[j])) {
+          for (auto& line: abs_lines[j].AllLines()) {
+            band.AppendSingleLine(line);
+          }
+          abs_lines[j].AllLines().resize(0);
+        }
+      }
+    }
+  }
+  
+  abs_linesRemoveEmptyBands(abs_lines, verbosity);
+}
+
+void abs_lines_per_speciesFlatten(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                  const Verbosity& verbosity)
+{
+  for (auto& abs_lines: abs_lines_per_species) abs_linesFlatten(abs_lines, verbosity);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////// Reading old/external functions
 /////////////////////////////////////////////////////////////////////////////////////
 
@@ -1202,16 +1242,6 @@ void abs_linesKeepBand(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifie
     const Absorption::QuantumIdentifierLineTarget lt(qid, band);
     while (lt not_eq Absorption::QuantumIdentifierLineTargetType::Band and band.NumLines()) {
       band.RemoveLine(0);
-    }
-  }
-}
-
-
-void abs_linesCleanupEmpty(ArrayOfAbsorptionLines& abs_lines, const Verbosity&)
-{
-  for (Index i=abs_lines.nelem() - 1; i>=0; i--) {
-    if (abs_lines[i].NumLines() == 0) {
-      abs_lines.erase(abs_lines.begin() + i);
     }
   }
 }
