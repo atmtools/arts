@@ -37,6 +37,7 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "depr.h"
 #include "legacy_continua.h"
 #include "file.h"
 #include "global_data.h"
@@ -242,16 +243,11 @@ void AbsInputFromAtmFields(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_coefCalcFromXsec(  // WS Output:
     Matrix& abs_coef,
-    Matrix& src_coef,
     ArrayOfMatrix& dabs_coef_dx,
-    ArrayOfMatrix& dsrc_coef_dx,
     ArrayOfMatrix& abs_coef_per_species,
-    ArrayOfMatrix& src_coef_per_species,
     // WS Input:
     const ArrayOfMatrix& abs_xsec_per_species,
-    const ArrayOfMatrix& src_xsec_per_species,
     const ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
-    const ArrayOfArrayOfMatrix& dsrc_xsec_per_species_dx,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Matrix& abs_vmrs,
@@ -279,13 +275,6 @@ void abs_coefCalcFromXsec(  // WS Output:
   chk_size("abs_p", abs_p, abs_vmrs.ncols());
   chk_size("abs_t", abs_t, abs_vmrs.ncols());
 
-  // Will these calculations deal with nlte?
-  const bool do_src =
-      (src_xsec_per_species.nelem() == abs_xsec_per_species.nelem())
-          ? not src_xsec_per_species[0].empty() ? true : false
-          : false;
-  const Index src_rows = do_src ? src_xsec_per_species[0].nrows() : 0;
-
   // Initialize abs_coef and abs_coef_per_species. The array dimension of abs_coef_per_species
   // is the same as that of abs_xsec_per_species. The dimension of abs_coef should
   // be equal to one of the abs_xsec_per_species enries.
@@ -293,11 +282,8 @@ void abs_coefCalcFromXsec(  // WS Output:
   abs_coef.resize(abs_xsec_per_species[0].nrows(),
                   abs_xsec_per_species[0].ncols());
   abs_coef = 0;
-  src_coef.resize(src_rows, src_xsec_per_species[0].ncols());
-  src_coef = 0;
   
   dabs_coef_dx.resize(jacobian_quantities.nelem());
-  dsrc_coef_dx.resize(do_src ? jacobian_quantities.nelem() : 0);
 
   for (Index ii = 0; ii < jacobian_quantities.nelem(); ii++) {
     const auto& deriv = jacobian_quantities[ii];
@@ -307,14 +293,9 @@ void abs_coefCalcFromXsec(  // WS Output:
     dabs_coef_dx[ii].resize(abs_xsec_per_species[0].nrows(),
                             abs_xsec_per_species[0].ncols());
     dabs_coef_dx[ii] = 0.0;
-    if (do_src) {
-      dsrc_coef_dx[ii].resize(src_rows, src_xsec_per_species[0].ncols());
-      dsrc_coef_dx[ii] = 0.0;
-    }
   }
 
   abs_coef_per_species.resize(abs_xsec_per_species.nelem());
-  src_coef_per_species.resize(src_xsec_per_species.nelem());
 
   out3
       << "  Computing abs_coef and abs_coef_per_species from abs_xsec_per_species.\n";
@@ -326,11 +307,6 @@ void abs_coefCalcFromXsec(  // WS Output:
     abs_coef_per_species[i].resize(abs_xsec_per_species[i].nrows(),
                                    abs_xsec_per_species[i].ncols());
     abs_coef_per_species[i] = 0;  // Initialize all elements to 0.
-
-    if (do_src) {
-      src_coef_per_species[i].resize(src_rows, src_xsec_per_species[i].ncols());
-      src_coef_per_species[i] = 0;  // Initialize all elements to 0.
-    }
 
     // Loop through all altitudes
     for (Index j = 0; j < abs_xsec_per_species[i].ncols(); j++) {
@@ -344,9 +320,6 @@ void abs_coefCalcFromXsec(  // WS Output:
       for (Index k = 0; k < abs_xsec_per_species[i].nrows(); k++) {
         abs_coef_per_species[i](k, j) =
             abs_xsec_per_species[i](k, j) * n * abs_vmrs(i, j);
-        if (do_src)
-          src_coef_per_species[i](k, j) =
-              src_xsec_per_species[i](k, j) * n * abs_vmrs(i, j);
 
         for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
@@ -358,11 +331,6 @@ void abs_coefCalcFromXsec(  // WS Output:
                 (dabs_xsec_per_species_dx[i][iq](k, j) * n +
                  abs_xsec_per_species[i](k, j) * dn_dT) *
                 abs_vmrs(i, j);
-            if (do_src)
-              dsrc_coef_dx[iq](k, j) +=
-                  (dsrc_xsec_per_species_dx[i][iq](k, j) * n +
-                   src_xsec_per_species[i](k, j) * dn_dT) *
-                  abs_vmrs(i, j);
           } else if (deriv == Jacobian::Line::VMR) {
             bool seco = false, main = false;
             for (const auto& s : abs_species[i]) {
@@ -380,28 +348,15 @@ void abs_coefCalcFromXsec(  // WS Output:
                   (dabs_xsec_per_species_dx[i][iq](k, j) * abs_vmrs(i, j) +
                    abs_xsec_per_species[i](k, j)) *
                   n;
-              if (do_src)
-                dsrc_coef_dx[iq](k, j) +=
-                    (dsrc_xsec_per_species_dx[i][iq](k, j) * abs_vmrs(i, j) +
-                     src_xsec_per_species[i](k, j)) *
-                    n;
             } else if (main) {
               dabs_coef_dx[iq](k, j) += abs_xsec_per_species[i](k, j) * n;
-              if (do_src)
-                dsrc_coef_dx[iq](k, j) += src_xsec_per_species[i](k, j) * n;
             } else if (seco) {
               dabs_coef_dx[iq](k, j) +=
                   dabs_xsec_per_species_dx[i][iq](k, j) * abs_vmrs(i, j) * n;
-              if (do_src)
-                dsrc_coef_dx[iq](k, j) +=
-                    dsrc_xsec_per_species_dx[i][iq](k, j) * abs_vmrs(i, j) * n;
             }
           } else {
             dabs_coef_dx[iq](k, j) +=
                 dabs_xsec_per_species_dx[i][iq](k, j) * n * abs_vmrs(i, j);
-            if (do_src)
-              dsrc_coef_dx[iq](k, j) +=
-                  dsrc_xsec_per_species_dx[i][iq](k, j) * n * abs_vmrs(i, j);
           }
         }
       }
@@ -410,16 +365,13 @@ void abs_coefCalcFromXsec(  // WS Output:
     // Add up to the total absorption:
     abs_coef += abs_coef_per_species[i];  // In Matpack you can use the +=
         // operator to do elementwise addition.
-    if (do_src) src_coef += src_coef_per_species[i];
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesInit(  // WS Output:
     ArrayOfMatrix& abs_xsec_per_species,
-    ArrayOfMatrix& src_xsec_per_species,
     ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
-    ArrayOfArrayOfMatrix& dsrc_xsec_per_species_dx,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& tgs,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -427,7 +379,6 @@ void abs_xsec_per_speciesInit(  // WS Output:
     const Vector& f_grid,
     const Vector& abs_p,
     const Index& abs_xsec_agenda_checked,
-    const Index& nlte_do,
     const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -452,9 +403,7 @@ void abs_xsec_per_speciesInit(  // WS Output:
   
   // Make elements the right size if they are not already the right size
   if (abs_xsec_per_species.nelem() not_eq ns) abs_xsec_per_species.resize(ns);
-  if (src_xsec_per_species.nelem() not_eq ns) src_xsec_per_species.resize(ns);
   if (dabs_xsec_per_species_dx.nelem() not_eq ns) dabs_xsec_per_species_dx.resize(ns);
-  if (dsrc_xsec_per_species_dx.nelem() not_eq ns) dsrc_xsec_per_species_dx.resize(ns);
   
   // Loop abs_xsec_per_species and make each matrix the right size,
   // initializing to zero.
@@ -480,28 +429,6 @@ void abs_xsec_per_speciesInit(  // WS Output:
           dabs_xsec_per_species_dx[i][j] = 0.0;
         } else {
           dabs_xsec_per_species_dx[i][j] = Matrix(nf, np, 0.0);
-        }
-      }
-    }
-    
-    if (nlte_do) {
-      // Make elements the right size if they are not already the right size, then reset them
-      if (src_xsec_per_species[i].nrows() == nf and src_xsec_per_species[i].ncols() == np) {
-        src_xsec_per_species[i] = 0.0;
-      } else {
-        src_xsec_per_species[i] = Matrix(nf, np, 0.0);
-      }
-      
-      // Make elements the right size if they are not already the right size, then reset them
-      if (dsrc_xsec_per_species_dx[i].nelem() not_eq nq) {
-        dsrc_xsec_per_species_dx[i] = ArrayOfMatrix(nq, Matrix(nf, np, 0.0));
-      } else {
-        for (Index j=0; j<nq; j++) {
-          if (dsrc_xsec_per_species_dx[i][j].nrows() == nf and dsrc_xsec_per_species_dx[i][j].ncols() == np) {
-            dsrc_xsec_per_species_dx[i][j] = 0.0;
-          } else {
-            dsrc_xsec_per_species_dx[i][j] = Matrix(nf, np, 0.0);
-          }
         }
       }
     }
@@ -1624,18 +1551,14 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
     Workspace& ws,
     // WS Output:
     PropagationMatrix& propmat_clearsky,
-    StokesVector& nlte_source,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_source_dx,
     // WS Input:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
-    const EnergyLevelMap& rtp_nlte,
     const Vector& rtp_vmr,
-    const Index& nlte_do,
     const Agenda& abs_xsec_agenda,
     // Verbosity object:
     const Verbosity& verbosity) {
@@ -1647,9 +1570,8 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
   // Output of abs_h2oSet:
   Vector abs_h2o;
   // Output of abs_coefCalc:
-  Matrix abs_coef, src_coef;
-  ArrayOfMatrix abs_coef_per_species, src_coef_per_species, dabs_coef_dx,
-      dsrc_coef_dx;
+  Matrix abs_coef;
+  ArrayOfMatrix abs_coef_per_species, dabs_coef_dx;
       
   AbsInputFromRteScalars(abs_p,
                          abs_t,
@@ -1661,8 +1583,7 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
 
   // Absorption cross sections per tag group.
   ArrayOfMatrix abs_xsec_per_species;
-  ArrayOfMatrix src_xsec_per_species;
-  ArrayOfArrayOfMatrix dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx;
+  ArrayOfArrayOfMatrix dabs_xsec_per_species_dx;
 
   // Make all species active:
   ArrayOfIndex abs_species_active(abs_species.nelem());
@@ -1671,30 +1592,22 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
   // Call agenda to calculate absorption:
   abs_xsec_agendaExecute(ws,
                          abs_xsec_per_species,
-                         src_xsec_per_species,
                          dabs_xsec_per_species_dx,
-                         dsrc_xsec_per_species_dx,
                          abs_species,
                          jacobian_quantities,
                          abs_species_active,
                          f_grid,
                          abs_p,
                          abs_t,
-                         rtp_nlte,
                          abs_vmrs,
                          abs_xsec_agenda);
   
   // Calculate absorption coefficients from cross sections:
   abs_coefCalcFromXsec(abs_coef,
-                       src_coef,
                        dabs_coef_dx,
-                       dsrc_coef_dx,
                        abs_coef_per_species,
-                       src_coef_per_species,
                        abs_xsec_per_species,
-                       src_xsec_per_species,
                        dabs_xsec_per_species_dx,
-                       dsrc_xsec_per_species_dx,
                        abs_species,
                        jacobian_quantities,
                        abs_vmrs,
@@ -1708,17 +1621,6 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
                                            abs_coef_per_species,
                                            dabs_coef_dx,
                                            jacobian_quantities, abs_species);
-
-  // Now turn nlte_source from absorption into a proper source function
-  if (nlte_do)
-    nlte_sourceFromTemperatureAndSrcCoefPerSpecies(nlte_source,
-                                                   dnlte_source_dx,
-                                                   src_coef_per_species,
-                                                   dsrc_coef_dx,
-                                                   jacobian_quantities,
-                                                   f_grid,
-                                                   rtp_temperature,
-                                                   verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1925,9 +1827,7 @@ void WriteMolTau(  //WS Input
 void abs_xsec_per_speciesAddLines(
     // WS Output:
     ArrayOfMatrix& abs_xsec_per_species,
-    ArrayOfMatrix& src_xsec_per_species,
-    ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
-    ArrayOfArrayOfMatrix& dsrc_xsec_per_species_dx,
+    ArrayOfArrayOfMatrix&,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -1935,24 +1835,19 @@ void abs_xsec_per_speciesAddLines(
     const Vector& f_grid,
     const Vector& abs_p,
     const Vector& abs_t,
-    const EnergyLevelMap& abs_nlte,
     const Matrix& abs_vmrs,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Index& lbl_checked,
     const Verbosity&) {
-  if (not abs_lines_per_species.nelem()) return;
+  DEPRECATED_FUNCTION("abs_xsec_per_speciesAddLines", "2021-07-13",
+             "This function is no longer up to date.  It only exists to satisfy "
+             "lookup table calculations before these are updated.\n"
+             "Once the lookup table calculations are up-to-date, this function "
+             "is fully replaced with propmat_clearskyAddLines, with better functionality\n" )
   
-  ARTS_USER_ERROR_IF (not lbl_checked,
-    "Please set lbl_checked true to use this function");
-
-  // Check that all temperatures are above 0 K
-  ARTS_USER_ERROR_IF (min(abs_t) < 0,
-    "Temperature must be at least 0 K. But you request an absorption\n"
-    "calculation at ", min(abs_t), " K!")
-
-  // Check that all parameters that should have the number of tag
-  // groups as a dimension are consistent.
+  ARTS_USER_ERROR_IF(not lbl_checked, "Must check LBL calculations")
+  ARTS_USER_ERROR_IF(jacobian_quantities.nelem(), "There's a hard deprecation of derivatives using old style lbl-calculations with derivatives, switch to propmat_clearskyAddLines")
   ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_xsec_per_species.nelem() or
                       abs_species.nelem() not_eq abs_vmrs.nrows() or
                       abs_species.nelem() not_eq abs_lines_per_species.nelem(),
@@ -1961,35 +1856,38 @@ void abs_xsec_per_speciesAddLines(
     "abs_xsec_per_species:  ", abs_xsec_per_species.nelem(), '\n',
     "abs_vmrs:              ", abs_vmrs.nrows(), '\n',
     "abs_lines_per_species: ", abs_lines_per_species.nelem(), '\n')
-
-  // Skipping uninteresting data
-  static Matrix dummy1(0, 0);
-  static ArrayOfMatrix dummy2(0);
-
-  // Call xsec_species for each tag group.
-  for (Index ii = 0; ii < abs_species_active.nelem(); ++ii) {
-    const Index i = abs_species_active[ii];
-    
-    if (not abs_species[i].nelem() or abs_species[i].Zeeman())
-      continue;
-    
-    for (auto& lines: abs_lines_per_species[i]) {
-      xsec_species(
-          abs_xsec_per_species[i],
-          src_xsec_per_species[i],
-          dummy1,
-          dabs_xsec_per_species_dx[i],
-          dsrc_xsec_per_species_dx[i],
-          dummy2,
-          jacobian_quantities,
-          f_grid,
-          abs_p,
-          abs_t,
-          abs_nlte,
-          abs_vmrs,
-          abs_species,
-          lines,
-          isotopologue_ratios[lines.Isotopologue()]);
+  ARTS_USER_ERROR_IF (min(abs_t) < 0,
+    "Temperature must be at least 0 K. But you request an absorption\n"
+    "calculation at ", min(abs_t), " K!")
+  
+  // Size of problem
+  const Index np = abs_p.nelem();
+  
+  // Calculations data
+  LineShape::ComputeData com(f_grid, jacobian_quantities, false);
+  LineShape::ComputeData sparse_com(Vector(0), jacobian_quantities, false);
+  constexpr Options::LblSpeedup speedup_type = Options::LblSpeedup::None;
+  const EnergyLevelMap rtp_nlte;
+  
+  for (Index ip=0; ip<np; ip++) {
+    for (Index ispecies: abs_species_active) {
+      // Skip it if there are no species or there is Zeeman requested
+      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
+        continue;
+      
+      // Reset for legacy VMR jacobian
+      com.reset();
+      sparse_com.reset();
+      
+      for (auto& band : abs_lines_per_species[ispecies]) {
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species), abs_vmrs(ispecies, ip),
+                           isotopologue_ratios[band.Isotopologue()], abs_p[ip], abs_t[ip], 0, 0, false, Zeeman::Polarization::Pi, speedup_type);
+        
+      }
+      
+      // Sum up the propagation matrix
+      com.F /= number_density(abs_p[ip], abs_t[ip]) * abs_vmrs(ispecies, ip);
+      abs_xsec_per_species[ispecies](joker, ip) += com.F.real();
     }
-  }  // End of species for loop.
+  }
 }

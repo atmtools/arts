@@ -87,34 +87,25 @@ void define_agenda_data() {
       DESCRIPTION(
           "Calculate scalar gas absorption cross sections.\n"
           "\n"
-          "Basically, this agenda calculates absorption for all the tags defined\n"
+          "Basically, this agenda calculates cross-sections for all the tags defined\n"
           "in abs_species. It is used both in the calculation of an absorption\n"
           "lookup table, and in on-the-fly calculations. Typical effects to\n"
           "include here are:\n"
-          "\n"
-          "Explicit line-by-line calculation (*abs_xsec_per_speciesAddLines*),\n"
           "\n"
           "Continua and complete absorption models (*abs_xsec_per_speciesAddConts*), and\n"
           "\n"
           "HITRAN style CIA continua (*abs_xsec_per_speciesAddCIA*)\n"
           "\n"
-          "The only kind of absorption tag not handled here are Zeeman tags\n"
-          "and free electron density tags, because they need additional input\n"
-          "and because they return an absorption matrix, rather than a scalar.\n"
-          "\n"
           "The include file 'agendas.arts' predefines a number of agendas that\n"
           "should be useful for most users.\n"),
       OUTPUT("abs_xsec_per_species",
-             "src_xsec_per_species",
-             "dabs_xsec_per_species_dx",
-             "dsrc_xsec_per_species_dx"),
+             "dabs_xsec_per_species_dx"),
       INPUT("abs_species",
             "jacobian_quantities",
             "abs_species_active",
             "f_grid",
             "abs_p",
             "abs_t",
-            "abs_nlte",
             "abs_vmrs")));
 
   agenda_data.push_back(

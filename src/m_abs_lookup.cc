@@ -380,16 +380,13 @@ void abs_lookupCalc(  // Workspace reference:
           // Call agenda to calculate absorption:
           abs_xsec_agendaExecute(l_ws,
                                  abs_xsec_per_species,
-                                 src_xsec_per_species,
                                  dabs_xsec_per_species_dx,
-                                 dsrc_xsec_per_species_dx,
                                  abs_species,
                                  ArrayOfRetrievalQuantity(0),
                                  abs_species_active,
                                  f_grid,
                                  abs_p,
                                  this_t,
-                                 this_nlte_dummy,
                                  these_all_vmrs,
                                  l_abs_xsec_agenda);
 
@@ -2436,8 +2433,7 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
   ArrayOfStokesVector dnlte_source_dx;
   ArrayOfMatrix d;
   const ArrayOfRetrievalQuantity jacobian_quantities(0);
-  Index propmat_clearsky_checked = 1,
-        nlte_do = 0;  // FIXME: OLE: Properly pass this through?
+  const Index propmat_clearsky_checked = 1;
 
   // Initialize propmat_clearsky:
   propmat_clearskyInit(propmat_clearsky,
@@ -2453,17 +2449,13 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
   // Add result of LBL calculation to propmat_clearsky:
   propmat_clearskyAddXsecAgenda(ws,
                                 propmat_clearsky,
-                                nlte_source,
                                 dpropmat_clearsky_dx,
-                                dnlte_source_dx,
                                 al.f_grid,
                                 al.species,
                                 jacobian_quantities,
                                 local_p,
                                 local_t,
-                                local_nlte_dummy,
                                 local_vmrs,
-                                nlte_do,
                                 abs_xsec_agenda,
                                 verbosity);
 

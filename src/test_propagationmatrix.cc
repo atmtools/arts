@@ -29,7 +29,6 @@
 #include "global_data.h"
 #include "hitran_species.h"
 #include "lineshapemodel.h"
-#include "linefunctions.h"
 #include "linescaling.h"
 #include "transmissionmatrix.h"
 #include "zeeman.h"

@@ -445,20 +445,6 @@ void define_md_data_raw() {
                "The pressure grid")));
 
   md_data_raw.push_back(create_mdrecord(
-    NAME("abs_linesCleanupEmpty"),
-      DESCRIPTION("Removes empty bands from *abs_lines*.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesKeepBand"),
       DESCRIPTION("Keep only *qid*-match band lines in *abs_lines*\n"
       "\n"
@@ -487,6 +473,48 @@ void define_md_data_raw() {
       GIN_TYPE("QuantumIdentifier"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Band ID")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_linesRemoveEmptyBands"),
+      DESCRIPTION("Removes emtpy bands from *abs_lines*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_linesFlatten"),
+      DESCRIPTION("Makes *abs_lines* with the same ID share lines\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesFlatten"),
+      DESCRIPTION("Calls *abs_linesFlatten* per internal set of bands\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveUnusedLocalQuantumNumbers"),
@@ -2482,23 +2510,18 @@ void define_md_data_raw() {
           "for each tag group and adds it to abs_xsec_per_species.\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_xsec_per_species",
-          "src_xsec_per_species",
-          "dabs_xsec_per_species_dx",
-          "dsrc_xsec_per_species_dx"),
+          "dabs_xsec_per_species_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_xsec_per_species",
-         "src_xsec_per_species",
          "dabs_xsec_per_species_dx",
-         "dsrc_xsec_per_species_dx",
          "abs_species",
          "jacobian_quantities",
          "abs_species_active",
          "f_grid",
          "abs_p",
          "abs_t",
-         "abs_nlte",
          "abs_vmrs",
          "abs_lines_per_species",
          "isotopologue_ratios",
@@ -2543,17 +2566,16 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesInit"),
       DESCRIPTION(
-          "Initialize *abs_xsec_per_species*.\n"
+        "Initialize *abs_xsec_per_species* and *dabs_xsec_per_species_dx*.\n"
           "\n"
-          "The initialization is\n"
-          "necessary, because methods *abs_xsec_per_speciesAddLines*\n"
-          "and *abs_xsec_per_speciesAddConts* just add to *abs_xsec_per_species*.\n"
+          "The initialization is necessary because all computational methods\n"
+          "requires pre-allocated output variables, and they all add to the\n"
+          "output so the 'start'-value has to be zeroes per level\n"
+          "\n"
           "The size is determined from *abs_species*.\n"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_xsec_per_species",
-          "src_xsec_per_species",
-          "dabs_xsec_per_species_dx",
-          "dsrc_xsec_per_species_dx"),
+          "dabs_xsec_per_species_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -2562,8 +2584,7 @@ void define_md_data_raw() {
          "abs_species_active",
          "f_grid",
          "abs_p",
-         "abs_xsec_agenda_checked",
-         "nlte_do"),
+         "abs_xsec_agenda_checked"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -12936,24 +12957,18 @@ void define_md_data_raw() {
           "of pressure, temperature, NLTE, and VMR values.\n"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
       OUT("propmat_clearsky",
-          "nlte_source",
-          "dpropmat_clearsky_dx",
-          "dnlte_source_dx"),
+          "dpropmat_clearsky_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("propmat_clearsky",
-         "nlte_source",
          "dpropmat_clearsky_dx",
-         "dnlte_source_dx",
          "f_grid",
          "abs_species",
          "jacobian_quantities",
          "rtp_pressure",
          "rtp_temperature",
-         "rtp_nlte",
          "rtp_vmr",
-         "nlte_do",
          "abs_xsec_agenda"),
       GIN(),
       GIN_TYPE(),

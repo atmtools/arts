@@ -1,5 +1,5 @@
 /* Copyright (C) 2020
- * Richard Larsson <larsson@mps.mpg.de>
+ * Richard Larsson <ric.larsson@gmail.com>
  * 
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -30,7 +30,6 @@
 
 #include "lin_alg.h"
 #include "linemixing.h"
-#include "linefunctions.h"
 #include "physics_funcs.h"
 
 namespace lm_hitran_2017 {
@@ -986,8 +985,8 @@ Sorter sorter_calcw(ConvTPOut& out,
   const Index n=Y.nelem();
   
   // Copies for local variables
-  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l1);
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l1);
+  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
   
   Vector dip0(n);
   std::vector<Rational> Ji(n), Jf(n);
@@ -1045,8 +1044,8 @@ void calcw(ConvTPOut& out,
   // Size of problem
   const Index n=Y.nelem();
   
-  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l1);
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l1);
+  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
   
   // Sort before the if-statement.  This technicalyl goes awa from how
   // HITRAN code does it.  It is however required for other line mixing
@@ -1714,7 +1713,7 @@ Vector compabs(
     const Numeric rat_isot = isotopologue_ratio[bands[iband].Isotopologue()];
     
     auto tp = convtp(vmrs, hitran, bands[iband], T, P);
-    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, bands[iband].SpeciesMass());
+    const Numeric GD_div_F0 = bands[iband].DopplerConstant(T);
     
     const bool sdvp = bands[iband].LineShapeType() == LineShape::Type::SDVP;
     const bool vp = bands[iband].LineShapeType() == LineShape::Type::VP;
@@ -2036,17 +2035,15 @@ void read(HitranRelaxationMatrixData& hitran,
   bands.resize(cmn.Bands.nBand);
   for (Index i{0}; i<cmn.Bands.nBand; i++) {
     QuantumNumbers outer_upper;
-    outer_upper[QuantumNumberType::l1] = Rational(cmn.Bands.li[i]);
+    outer_upper[QuantumNumberType::l2] = Rational(cmn.Bands.li[i]);
     outer_upper[QuantumNumberType::v1] = cmn.UnusedBandParams.iv1[i];
     outer_upper[QuantumNumberType::v2] = cmn.UnusedBandParams.iv2[i];
-    outer_upper[QuantumNumberType::l2] = cmn.UnusedBandParams.il2[i];
     outer_upper[QuantumNumberType::v3] = cmn.UnusedBandParams.iv3[i];
     outer_upper[QuantumNumberType::r] = cmn.UnusedBandParams.ir[i];
     QuantumNumbers outer_lower;
-    outer_lower[QuantumNumberType::l1] = Rational(cmn.Bands.lf[i]);
+    outer_lower[QuantumNumberType::l2] = Rational(cmn.Bands.lf[i]);
     outer_lower[QuantumNumberType::v1] = cmn.UnusedBandParams.fv1[i];
     outer_lower[QuantumNumberType::v2] = cmn.UnusedBandParams.fv2[i];
-    outer_lower[QuantumNumberType::l2] = cmn.UnusedBandParams.fl2[i];
     outer_lower[QuantumNumberType::v3] = cmn.UnusedBandParams.fv3[i];
     outer_lower[QuantumNumberType::r] = cmn.UnusedBandParams.fr[i];
     

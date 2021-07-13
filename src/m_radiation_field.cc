@@ -28,7 +28,7 @@
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
-#include "linefunctions.h"
+#include "lineshape.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "propmat_field.h"
@@ -132,13 +132,14 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     il=0;
     for (auto& lines: abs_lines_per_species) {
       for (auto& band: lines) {
-        const Numeric doppler_constant = Linefunctions::DopplerConstant(t_field(ip, 0, 0), band.SpeciesMass());
+        const Numeric DC = band.DopplerConstant(t_field(ip, 0, 0));
         const Vector vmrs = band.BroadeningSpeciesVMR(vmr_field(joker, ip, 0, 0), abs_species);
         for (Index k=0; k<band.NumLines(); k++) {
           const auto X = band.ShapeParameters(k, t_field(ip, 0, 0), p_grid[ip], vmrs);
-          Linefunctions::set_lineshape(lineshapes[il][ip], MapToEigen(f_grid),
-                                       band.Line(k), t_field(ip, 0, 0), 0, 0, doppler_constant, X,
-                                       band.LineShapeType(), band.Mirroring(), band.Normalization());
+          LineShape::Calculator ls = line_shape_selection(band.LineShapeType(), band.F0(k), X, DC, 0, false);
+          for (Index iv=0; iv<f_grid.nelem(); iv++) {
+            lineshapes[il][ip][iv] = std::visit([f=f_grid[iv]](auto& F){return F(f);}, ls);
+          }
           il++;
         }
       }

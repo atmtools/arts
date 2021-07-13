@@ -100,7 +100,7 @@ def test_ybatch(ws):
 
 # test for ybatch_jacobians
 def test_ybatch_jacobians(ws):
-    ybatch_jacobians_ref = np.array([[3.38652849e-6]])
+    ybatch_jacobians_ref = np.array([[3.38580056e-06]])
     assert np.allclose(ws.ybatch_jacobians.value[0], ybatch_jacobians_ref, atol=1e-12)
 
 

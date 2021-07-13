@@ -15,7 +15,11 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 # Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+AgendaSet( abs_xsec_agenda ) {
+  abs_xsec_per_speciesInit
+  abs_xsec_per_speciesAddConts
+  abs_xsec_per_speciesAddLines
+}
 
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )

@@ -1,4 +1,4 @@
-/* Copyright (C) 2020 Richard Larsson <larsson@mps.mpg.de>
+/* Copyright (C) 2020 Richard Larsson <ric.larsson@gmail.com>
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -20,7 +20,7 @@
 ////////////////////////////////////////////////////////////////////////////
 /*!
   \file   arts_api_classes.cc
-  \author Richard Larsson <larsson@mps.mpg.de>
+  \author Richard Larsson <ric.larsson@gmail.com>
   \date   2020-03-12
 
   \brief This file contains all declarations of the ARTS C API class interface.

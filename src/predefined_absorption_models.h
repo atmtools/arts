@@ -28,10 +28,11 @@
 #ifndef fullmodel_h
 #define fullmodel_h
 
-#include <Faddeeva/Faddeeva.hh>
-#include "linefunctions.h"
+#include "jacobian.h"
 
-namespace Absorption:: PredefinedModel {
+#include <Faddeeva/Faddeeva.hh>
+
+namespace Absorption::PredefinedModel {
 
 /** Adds Makarov MPM2020 O2 absorption lines to the absorption matrix
  * 

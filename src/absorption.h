@@ -62,43 +62,4 @@ void set_vmr_from_first_species(Vector& vmr,
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
                                 const Matrix& abs_vmrs);
 
-/** Cross-section algorithm
- * 
- *  @param[in,out] xsec Cross section of one tag group. This is now the true attenuation cross section in units of m^2.
- *  @param[in,out] sourceCross section of one tag group. This is now the true source cross section in units of m^2.
- *  @param[in,out] phase Cross section of one tag group. This is now the true phase cross section in units of m^2.
- *  @param[in,out] dxsec Partial derivatives of xsec.
- *  @param[in,out] dsource Partial derivatives of source.
- *  @param[in,out] dphase Partial derivatives of phase.
- *  @param[in] jacobian_quantities As WSV
- *  @param[in] f_grid As WSV
- *  @param[in] abs_p As WSV
- *  @param[in] abs_t As WSV
- *  @param[in] abs_nlte As WSV
- *  @param[in] abs_vmrs As WSV
- *  @param[in] abs_species As WSV
- *  @param[in] band A single absorption band
- *  @param[in] isot_ratio Isotopologue ratio of this species
- *  @param[in] partfun_type Partition function type for this species
- *  @param[in] partfun_data Partition function model data for this species
- * 
- *  @author Richard Larsson
- *  @date   2019-10-10
- */
-void xsec_species(Matrix& xsec,
-                  Matrix& source,
-                  Matrix& phase,
-                  ArrayOfMatrix& dxsec_dx,
-                  ArrayOfMatrix& dsource_dx,
-                  ArrayOfMatrix& dphase_dx,
-                  const ArrayOfRetrievalQuantity& jacobian_quantities,
-                  const Vector& f_grid,
-                  const Vector& abs_p,
-                  const Vector& abs_t,
-                  const EnergyLevelMap& abs_nlte,
-                  const Matrix& abs_vmrs,
-                  const ArrayOfArrayOfSpeciesTag& abs_species,
-                  const AbsorptionLines& band,
-                  const Numeric& isot_ratio);
-
 #endif  // absorption_h
