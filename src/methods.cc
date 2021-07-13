@@ -2470,12 +2470,16 @@ void define_md_data_raw() {
          "abs_p",
          "abs_t",
          "hitran_xsec_data"),
-      GIN("apply_tfit", "force_p", "force_t"),
-      GIN_TYPE("Index", "Numeric", "Numeric"),
-      GIN_DEFAULT("1", "-1", "-1"),
-      GIN_DESC("Apply temperature fit.",
-               "Positive value forces constant pressure [Pa].",
-               "Positive value forces constant temperature [K].")));
+      GIN("force_p",
+          "force_t",
+          "extpol_p",
+          "extpol_t"),
+      GIN_TYPE("Numeric", "Numeric", "Index", "Index"),
+      GIN_DEFAULT("-1", "-1", "1", "1"),
+      GIN_DESC("Positive value forces constant pressure [Pa].",
+               "Positive value forces constant temperature [K].",
+               "Extrapolate pressure outside fit range. Turn off only for debugging.",
+               "Extrapolate temperature outside fit range. Turn off only for debugging.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddConts"),
@@ -14772,6 +14776,23 @@ void define_md_data_raw() {
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Path to store the files at")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ReadXsecData"),
+      DESCRIPTION("Reads HITRAN Crosssection coefficients\n"
+                  "\n"
+                  "Reads coefficient files for HITRAN Xsec species defined\n"
+                  "in *abs_species*.\n"),
+      AUTHORS("Oliver Lemke"),
+      OUT("hitran_xsec_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_species"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Basepath to the files")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadNetCDF"),
