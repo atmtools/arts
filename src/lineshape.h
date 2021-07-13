@@ -534,6 +534,10 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
 typedef std::variant<Noshape, Doppler, Lorentz, Voigt, SpeedDependentVoigt,
                      HartmannTran>
     Calculator;
+    
+Calculator line_shape_selection(const Type type, const Numeric F0,
+                                const Output &X, const Numeric DC,
+                                const Numeric DZ, bool manually_mirrored);
 
 typedef std::variant<Nonorm, VanVleckHuber, VanVleckWeisskopf,
                      RosenkranzQuadratic, SimpleFrequencyScaling>

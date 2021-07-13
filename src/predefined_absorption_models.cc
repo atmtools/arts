@@ -270,7 +270,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
     const Numeric theta = t0 / t[ip];
     const Numeric theta_m1 = theta - 1;
     const Numeric theta_3 = pow3(theta);
-    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(t[ip], mass);
+    const Numeric GD_div_F0 = std::sqrt(Constant::doppler_broadening_const_squared * t[ip] / mass);
     
     for (std::size_t i=0; i<nlines_mpm2020; i++) {
       const Numeric invGD = 1 / (GD_div_F0 * f0[i]);
@@ -281,7 +281,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
       const Numeric G = pow2( p[ip]) * lsm[i].G().at(t[ip], t0);
       const Numeric DV = pow2(p[ip]) * lsm[i].DV().at(t[ip], t0);
       
-      const Numeric dinvGD_dT = do_temp_deriv ? - invGD * Linefunctions::dDopplerConstant_dT(t[ip], GD_div_F0) : 0;
+      const Numeric dinvGD_dT = do_temp_deriv ? - invGD * GD_div_F0 / (2 * t[ip]) : 0;
       const Numeric dST_dT = do_temp_deriv ? (a2[i]*t0 - 3*t[ip]) / pow2(t[ip]) * ST : 0;
       const Numeric dG0_dT = do_temp_deriv ? (1 + 0.1*water_vmr[ip]) * p[ip] * lsm[i].G0().dT(t[ip], t0) : 0;
       const Numeric dY_dT = do_temp_deriv ? p[ip] * lsm[i].Y().dT(t[ip], t0) : 0;

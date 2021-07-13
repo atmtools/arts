@@ -3,8 +3,8 @@
 #include <Faddeeva/Faddeeva.hh>
 
 #include "lin_alg.h"
-#include "linefunctions.h"
 #include "linemixing.h"
+#include "lineshape.h"
 #include "minimize.h"
 #include "physics_funcs.h"
 
@@ -737,7 +737,7 @@ ComplexVector ecs_absorption_impl(const Numeric T,
   const Numeric frenorm = band.F_mean();
   
   // Band Doppler broadening constant
-  const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, band.SpeciesMass());
+  const Numeric GD_div_F0 = band.DopplerConstant(T);
   
   // Sorted population
   auto [sorting, tp] = sorted_population_and_dipole(T, band);
@@ -1015,7 +1015,7 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
   const Numeric frenorm = band.F_mean();
   
   // Band Doppler broadening constant
-  const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, band.SpeciesMass());
+  const Numeric GD_div_F0 = band.DopplerConstant(T);
   
   // Sorted population
   const auto [sorting, tp] = sorted_population_and_dipole(T, band);
@@ -1512,7 +1512,7 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
   // We only want to keep (i y(T) + g(T)).
   // So we divide by d**2 * rho(T) through the use of I0(T) and remove 1 from the real component
   for (Index i=0; i<pop.size(); i++) {
-    const Numeric i0 = Linefunctions::lte_linestrength(band.I0(i), band.E0(i), band.F0(i), QT0, band.T0(), QT, T);
+    const Numeric i0 = LineShape::LocalThermodynamicEquilibrium(band.I0(i), band.T0(), T, band.F0(i), band.E0(i), QT, QT0, 0, 1, 0, 0).S;
     eig.str[i] *= - band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * T)) / i0;
   }
   eig.str -= 1;

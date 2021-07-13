@@ -30,7 +30,6 @@
 
 #include "lin_alg.h"
 #include "linemixing.h"
-#include "linefunctions.h"
 #include "physics_funcs.h"
 
 namespace lm_hitran_2017 {
@@ -1714,7 +1713,7 @@ Vector compabs(
     const Numeric rat_isot = isotopologue_ratio[bands[iband].Isotopologue()];
     
     auto tp = convtp(vmrs, hitran, bands[iband], T, P);
-    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, bands[iband].SpeciesMass());
+    const Numeric GD_div_F0 = bands[iband].DopplerConstant(T);
     
     const bool sdvp = bands[iband].LineShapeType() == LineShape::Type::SDVP;
     const bool vp = bands[iband].LineShapeType() == LineShape::Type::VP;

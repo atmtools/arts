@@ -23,7 +23,6 @@ INCLUDE "general/planet_earth.arts"
 
 # Agenda for scalar gas absorption calculation
 AgendaSet( abs_xsec_agenda ){
-  Ignore(abs_nlte)
   abs_xsec_per_speciesInit
   abs_xsec_per_speciesAddConts
 }

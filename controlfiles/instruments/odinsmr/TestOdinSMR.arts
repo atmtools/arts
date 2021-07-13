@@ -27,7 +27,11 @@ INCLUDE "odinsmr_501.arts"
 #INCLUDE "odinsmr_544.arts"
 
 # Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+AgendaSet( abs_xsec_agenda ) {
+  abs_xsec_per_speciesInit
+  abs_xsec_per_speciesAddConts
+  abs_xsec_per_speciesAddLines
+}
 
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )

@@ -73,7 +73,9 @@ namespace ARTS::Agenda {
     using namespace Var;
     propmat_clearsky_agenda(ws, Ignore(ws, rtp_mag(ws)), Ignore(ws, rtp_los(ws)),
                             propmat_clearskyInit(ws),
-                            propmat_clearskyAddXsecAgenda(ws));
+                            propmat_clearskyAddXsecAgenda(ws),
+                            propmat_clearskyAddLines(ws)
+                           );
     return ws;
   }
   
@@ -82,7 +84,8 @@ namespace ARTS::Agenda {
     using namespace Agenda::Define;
     propmat_clearsky_agenda(ws, propmat_clearskyInit(ws),
                             propmat_clearskyAddXsecAgenda(ws),
-                            propmat_clearskyAddZeeman(ws));
+                            propmat_clearskyAddZeeman(ws),
+                            propmat_clearskyAddLines(ws));
     return ws;
   }
   
@@ -90,7 +93,6 @@ namespace ARTS::Agenda {
     using namespace Agenda::Method;
     using namespace Agenda::Define;
     abs_xsec_agenda(ws, abs_xsec_per_speciesInit(ws),
-                    abs_xsec_per_speciesAddLines(ws),
                     abs_xsec_per_speciesAddConts(ws));
     return ws;
   }
@@ -99,7 +101,7 @@ namespace ARTS::Agenda {
     using namespace Agenda::Method;
     using namespace Agenda::Define;
     abs_xsec_agenda(
-      ws, abs_xsec_per_speciesInit(ws), abs_xsec_per_speciesAddLines(ws),
+      ws, abs_xsec_per_speciesInit(ws),
                     abs_xsec_per_speciesAddConts(ws), abs_xsec_per_speciesAddCIA(ws));
     return ws;
   }

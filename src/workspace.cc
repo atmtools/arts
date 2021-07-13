@@ -1316,23 +1316,6 @@ void Workspace::define_wsv_data() {
       GROUP("ArrayOfTensor5")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("dsrc_xsec_per_species_dx"),
-      DESCRIPTION(
-          "Derivative of *src_xsec_per_species* with respect to retrieval\n"
-          "quantities.\n"
-          "\n"
-          "The variable gives the derivative of *src_xsec_per_species* with\n"
-          "respect to some variables (but not all jacobian variables). Handled\n"
-          "are only variables that are involved in xsec and cannot be\n"
-          "calculated at transmission level\n"
-          "\n"
-          "Usage:      Output of *abs_xsec_agenda*.\n"
-          "\n"
-          "Dimensions: \n"
-          "     [*abs_species*][n_quantities][*f_grid*, *abs_p* ]\n"),
-      GROUP("ArrayOfArrayOfMatrix")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("diy_dx"),
       DESCRIPTION(
           "Derivative of *iy* with respect to retrieval quantities.\n"
@@ -4620,22 +4603,6 @@ void Workspace::define_wsv_data() {
                             "\n"
                             "Usage:      Set by the user.\n"),
                 GROUP("Index")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("src_xsec_per_species"),
-      DESCRIPTION(
-          "Absorption cross sections for the source function for NLTE calculations.\n"
-          "\n"
-          "This variable contains absorption cross section xsec individually for\n"
-          "each tag group. The Array contains one matrix for each tag group, the\n"
-          "matrix format is the same as that of abs_coef.\n"
-          "\n"
-          "Dimensions: [abs_species](f_grid, abs_p), or\n"
-          "                         (0, 0)"
-          "\n"
-          "Unit:       m^2 (alpha = xsec * n * VMR),\n"
-          "            where n is total density.\n"),
-      GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("stokes_rotation"),

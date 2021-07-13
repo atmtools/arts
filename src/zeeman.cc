@@ -29,7 +29,6 @@
 
 #include "zeeman.h"
 #include "constants.h"
-#include "linefunctions.h"
 #include "linescaling.h"
 #include "species_info.h"
 

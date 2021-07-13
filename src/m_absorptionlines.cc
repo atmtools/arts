@@ -59,7 +59,7 @@ void abs_linesFlatten(ArrayOfAbsorptionLines& abs_lines,
           for (auto& line: abs_lines[j].AllLines()) {
             band.AppendSingleLine(line);
           }
-          abs_lines[j].AllLines().resize(0);
+          abs_lines[j].AllLines().clear();
         }
       }
     }

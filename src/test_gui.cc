@@ -125,11 +125,11 @@ int main() {
                                                         ArrayOfRetrievalQuantity(0));
   
   // Line by line calculations
-  band.Population(Absorption::PopulationType::LTE);
-  xsec_species(xsec2, source, phase, dxsec, dsource, dphase,
-               ArrayOfRetrievalQuantity(0),
-               f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1);
-  xsec2 *= number_density(P, T);
+//   band.Population(Absorption::PopulationType::LTE);
+//   xsec_species(xsec2, source, phase, dxsec, dsource, dphase,
+//                ArrayOfRetrievalQuantity(0),
+//                f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1);
+//   xsec2 *= number_density(P, T);
   
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
 //   auto data = Absorption::LineMixing::ecs_eigenvalue_adaptation_test(band,
