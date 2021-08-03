@@ -153,7 +153,7 @@ jobs:
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
 
           if [ "${{ matrix.doc }}" = "yes" ]; then
-            sudo apt-get install -y texlive doxygen
+            sudo apt-get install -y texlive texlive-latex-extra doxygen
             sudo pip3 install sphinx sphinx_rtd_theme
           fi
 
