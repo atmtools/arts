@@ -26,6 +26,7 @@
 #include "hitran_xsec.h"
 
 #include <algorithm>
+#include <numeric>
 
 #include "absorption.h"
 #include "arts.h"
@@ -170,16 +171,18 @@ void XsecRecord::Extract(VectorView result,
     CalcXsec(fit_result, this_dataset_i, active_pressure, active_temperature);
 
     if (extrapolate_p && (pressure < min_p || pressure > max_p)) {
-      CalcDP(derivative, this_dataset_i, active_pressure, active_temperature);
+      CalcDP(derivative, this_dataset_i, active_pressure);
       derivative *= pressure - active_pressure;
       fit_result += derivative;
     }
 
     if (extrapolate_t && (temperature < min_t || temperature > max_t)) {
-      CalcDT(derivative, this_dataset_i, active_pressure, active_temperature);
+      CalcDT(derivative, this_dataset_i, active_temperature);
       derivative *= temperature - active_temperature;
       fit_result += derivative;
     }
+
+    RemoveNegativeXsec(fit_result);
 
     // Check if frequency is inside the range covered by the data:
     chk_interpolation_grids("Frequency interpolation for cross sections",
@@ -204,47 +207,44 @@ void XsecRecord::CalcXsec(VectorView& xsec,
                           const Index dataset,
                           const Numeric pressure,
                           const Numeric temperature) const {
-  const Numeric sqrtP = sqrt(pressure);
   for (Index i = 0; i < xsec.nelem(); i++) {
     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
-    xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * sqrtP +
+    xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * pressure +
               coeffs[P20] * temperature * temperature +
-              coeffs[P11] * temperature * sqrtP + coeffs[P02] * pressure;
-    xsec[i] *= xsec[i];
+              coeffs[P02] * pressure * pressure;
   }
 }
 
 void XsecRecord::CalcDT(VectorView& xsec_dt,
                         const Index dataset,
-                        const Numeric pressure,
                         const Numeric temperature) const {
-  const Numeric sqrtP = sqrt(pressure);
   for (Index i = 0; i < xsec_dt.nelem(); i++) {
     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
-    xsec_dt[i] =
-        2. *
-        (coeffs[P10] + 2. * coeffs[P20] * temperature + coeffs[P11] * sqrtP) *
-        (coeffs[P00] + coeffs[P10] * temperature +
-         coeffs[P20] * temperature * temperature + coeffs[P01] * sqrtP +
-         coeffs[P11] * temperature * sqrtP + coeffs[P02] * pressure);
+    xsec_dt[i] = coeffs[P10] + 2. * coeffs[P20] * temperature;
   }
 }
 
 void XsecRecord::CalcDP(VectorView& xsec_dp,
                         const Index dataset,
-                        const Numeric pressure,
-                        const Numeric temperature) const {
-  const Numeric sqrtP = sqrt(pressure);
-
+                        const Numeric pressure) const {
   for (Index i = 0; i < xsec_dp.nelem(); i++) {
     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
-    xsec_dp[i] =
-        2. *
-        (coeffs[P01] / (2 * sqrtP) + coeffs[P11] * temperature / (2 * sqrtP) +
-         coeffs[P02]) *
-        (coeffs[P00] + coeffs[P10] * temperature +
-         coeffs[P20] * temperature * temperature + coeffs[P01] * sqrtP +
-         coeffs[P11] * temperature * sqrtP + coeffs[P02] * pressure);
+    xsec_dp[i] = coeffs[P01] + 2. * coeffs[P02] * pressure;
+  }
+}
+
+void XsecRecord::RemoveNegativeXsec(VectorView& xsec) const {
+  Numeric sum_xsec{};
+  Numeric sum_xsec_non_negative{};
+  for (auto& x : xsec) {
+    sum_xsec += x;
+    if (x < 0.) x = 0.;
+    sum_xsec_non_negative += x;
+  }
+
+  if (sum_xsec > 0. && sum_xsec != sum_xsec_non_negative) {
+    const Numeric w{sum_xsec / sum_xsec_non_negative};
+    for (auto& x : xsec) x *= w;
   }
 }
 

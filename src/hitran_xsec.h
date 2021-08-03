@@ -133,21 +133,21 @@ class XsecRecord {
   /** Calculate temperature derivative of crosssections */
   void CalcDT(VectorView& xsec_dt,
               Index dataset,
-              Numeric pressure,
               Numeric temperature) const;
 
   /** Calculate pressure derivative of crosssections */
   void CalcDP(VectorView& xsec_dp,
               Index dataset,
-              Numeric pressure,
-              Numeric temperature) const;
+              Numeric pressure) const;
+
+  /** Remove negative cross sections and adjust integral */
+  void RemoveNegativeXsec(VectorView& xsec) const;
 
   static const Index P00 = 0;
   static const Index P10 = 1;
   static const Index P01 = 2;
   static const Index P20 = 3;
-  static const Index P11 = 4;
-  static const Index P02 = 5;
+  static const Index P02 = 4;
 
   Index mversion{2};
   Species::Species mspecies;
