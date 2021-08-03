@@ -127,21 +127,18 @@ class XsecRecord {
   /** Calculate crosssections */
   void CalcXsec(VectorView& xsec,
                 Index dataset,
-                Range range,
                 Numeric pressure,
                 Numeric temperature) const;
 
   /** Calculate temperature derivative of crosssections */
   void CalcDT(VectorView& xsec_dt,
               Index dataset,
-              Range range,
               Numeric pressure,
               Numeric temperature) const;
 
   /** Calculate pressure derivative of crosssections */
   void CalcDP(VectorView& xsec_dp,
               Index dataset,
-              Range range,
               Numeric pressure,
               Numeric temperature) const;
 
