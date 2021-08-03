@@ -23,7 +23,7 @@ jobs:
 
         include:
           - name: ubuntu-doc
-            os: ubuntu-18.04
+            os: ubuntu-20.04
             compiler: gcc
             version: "9"
             doc: "yes"
@@ -34,7 +34,7 @@ jobs:
             buildtype: "Release"
 
           - name: ubuntu-gcc-8
-            os: ubuntu-18.04
+            os: ubuntu-20.04
             compiler: gcc
             version: "8"
             doc: "no"
@@ -45,7 +45,7 @@ jobs:
             buildtype: "Release"
 
           - name: ubuntu-gcc-9
-            os: ubuntu-18.04
+            os: ubuntu-20.04
             compiler: gcc
             version: "9"
             doc: "no"
@@ -56,7 +56,7 @@ jobs:
             buildtype: "Release"
 
           - name: ubuntu-gcc-10
-            os: ubuntu-18.04
+            os: ubuntu-20.04
             compiler: gcc
             version: "10"
             doc: "no"
@@ -67,7 +67,7 @@ jobs:
             buildtype: "Release"
 
           - name: ubuntu-gcc-10-debug
-            os: ubuntu-18.04
+            os: ubuntu-20.04
             compiler: gcc
             version: "10"
             doc: "no"
@@ -78,7 +78,7 @@ jobs:
             buildtype: "RelWithDebInfo"
 
           - name: ubuntu-gcc-11
-            os: ubuntu-18.04
+            os: ubuntu-20.04
             compiler: gcc
             version: "11"
             doc: "no"
@@ -89,7 +89,7 @@ jobs:
             buildtype: "Release"
 
           - name: ubuntu-clang-12-nofortran
-            os: ubuntu-18.04
+            os: ubuntu-20.04
             compiler: clang
             version: "12"
             doc: "no"
@@ -120,7 +120,7 @@ jobs:
         run: |
           if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "12" ]; then
              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-12 main"
+             sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main"
           fi
 
           sudo apt-get update
@@ -140,7 +140,7 @@ jobs:
           fi
 
           if [ "${{ matrix.compiler }}" = "clang" ]; then
-            sudo apt-get install -y clang++-${{ matrix.version }}
+            sudo apt-get install -y libunwind-dev clang++-${{ matrix.version }}
             echo "CC=clang-${{ matrix.version }}" >> $GITHUB_ENV
             echo "CXX=clang++-${{ matrix.version }}" >> $GITHUB_ENV
           fi
@@ -153,7 +153,7 @@ jobs:
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
 
           if [ "${{ matrix.doc }}" = "yes" ]; then
-            sudo apt-get install -y texlive doxygen
+            sudo apt-get install -y texlive texlive-latex-extra doxygen
             sudo pip3 install sphinx sphinx_rtd_theme
           fi
 
