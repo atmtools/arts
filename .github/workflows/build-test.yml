@@ -140,7 +140,7 @@ jobs:
           fi
 
           if [ "${{ matrix.compiler }}" = "clang" ]; then
-            sudo apt-get install -y clang++-${{ matrix.version }}
+            sudo apt-get install -y libunwind-dev clang++-${{ matrix.version }}
             echo "CC=clang-${{ matrix.version }}" >> $GITHUB_ENV
             echo "CXX=clang++-${{ matrix.version }}" >> $GITHUB_ENV
           fi
