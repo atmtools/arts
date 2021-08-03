@@ -243,8 +243,7 @@ void XsecRecord::RemoveNegativeXsec(VectorView& xsec) const {
   }
 
   if (sum_xsec > 0. && sum_xsec != sum_xsec_non_negative) {
-    const Numeric w{sum_xsec / sum_xsec_non_negative};
-    for (auto& x : xsec) x *= w;
+    xsec *= sum_xsec / sum_xsec_non_negative;
   }
 }
 
