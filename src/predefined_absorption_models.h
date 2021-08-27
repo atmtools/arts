@@ -29,12 +29,11 @@
 #define fullmodel_h
 
 #include "jacobian.h"
-
-#include <Faddeeva/Faddeeva.hh>
+#include "propagationmatrix.h"
 
 namespace Absorption::PredefinedModel {
 
-/** Adds Makarov MPM2020 O2 absorption lines to the absorption matrix
+/** Adds Makarov MPM2020 O2 absorption lines to the propagation matrix
  * 
  * Adds negative values outside of bounds.  Works for Earth only
  * 
@@ -43,20 +42,21 @@ namespace Absorption::PredefinedModel {
  * absorption far from the line center (this can be fixed but requires
  * clear-cut motivation)
  * 
- * @param[in,out] xsec Cross-section of oxygen (size: [f x p])
- * @param[in,out] dxsec Cross-section derivatives of oxygen (size: [jacs_pos][f x p])
+ * @param[in,out] propmat_clearsky As WSV
+ * @param[in,out] dpropmat_clearsky_dx As WSV
  * @param[in]     f Frequency grid of computations (size: [f])
- * @param[in]     p Pressure grid of computations (size: [p])
- * @param[in]     t Temperature grid of computations (size: [p])
- * @param[in]     water_vmr Water volume mixing ratio (size: [p])
+ * @param[in]     p Pressure of computations
+ * @param[in]     t Temperature of computations
+ * @param[in]     water_vmr Water volume mixing ratio
+ * @param[in]     self_vmr Molecular oxygen volume mixing ratio
  * @param[in]     jacs The Jacobian descriptions (size: [greater than max(jacs_pos)])
  */
-void makarov2020_o2_lines_mpm(Matrix& xsec,
-                              ArrayOfMatrix& dxsec,
+void makarov2020_o2_lines_mpm(PropagationMatrix& propmat_clearsky,
+                              ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                               const Vector& f,
-                              const Vector& p,
-                              const Vector& t,
-                              const Vector& water_vmr,
+                              const Numeric& p,
+                              const Numeric& t,
+                              const Numeric& water_vmr,
                               const ArrayOfRetrievalQuantity& jacs);
 }  //Absorption::PredefinedModel
 
