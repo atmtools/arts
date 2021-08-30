@@ -122,7 +122,7 @@ int main() {
   
   // Line Mixing reimplementation of MPM19
   Absorption::PredefinedModel::makarov2020_o2_lines_mpm(mpm_abs, dmpm_abs,
-                                                        f_grid, P, T, 0,
+                                                        f_grid, P, T, 1, 0,
                                                         ArrayOfRetrievalQuantity(0));
   
   // Line by line calculations

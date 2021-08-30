@@ -47,6 +47,7 @@ namespace Absorption::PredefinedModel {
  * @param[in]     f Frequency grid of computations (size: [f])
  * @param[in]     p Pressure of computations
  * @param[in]     t Temperature of computations
+ * @param[in]     oxygen_vmr O2 volume mixing ratio (only for strength scaling)
  * @param[in]     water_vmr Water volume mixing ratio
  * @param[in]     self_vmr Molecular oxygen volume mixing ratio
  * @param[in]     jacs The Jacobian descriptions (size: [greater than max(jacs_pos)])
@@ -56,6 +57,7 @@ void makarov2020_o2_lines_mpm(PropagationMatrix& propmat_clearsky,
                               const Vector& f,
                               const Numeric& p,
                               const Numeric& t,
+                              const Numeric& oxygen_vmr,
                               const Numeric& water_vmr,
                               const ArrayOfRetrievalQuantity& jacs);
 }  //Absorption::PredefinedModel

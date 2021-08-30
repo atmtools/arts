@@ -211,6 +211,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(PropagationMatrix& pr
                                                            const Vector& f,
                                                            const Numeric& p,
                                                            const Numeric& t,
+                                                           const Numeric& oxygen_vmr,
                                                            const Numeric& water_vmr,
                                                            const ArrayOfRetrievalQuantity& jacs)
 {
@@ -274,7 +275,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(PropagationMatrix& pr
   for (std::size_t i=0; i<nlines_mpm2020; i++) {
     const Numeric invGD = 1 / (GD_div_F0 * f0[i]);
     const Numeric fac = sqrt_pi * invGD;
-    const Numeric ST = theta_3 * p * intens[i] * std::exp(-a2[i] * theta_m1);
+    const Numeric ST = oxygen_vmr * theta_3 * p * intens[i] * std::exp(-a2[i] * theta_m1);
     const Numeric G0 = (1 + 0.1*water_vmr) * p * lsm[i].G0().at(t, t0);
     const Numeric Y = p * lsm[i].Y().at(t, t0);
     const Numeric G = pow2( p) * lsm[i].G().at(t, t0);

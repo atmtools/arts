@@ -356,12 +356,20 @@ Index find_first_species(const ArrayOfArrayOfSpeciesTag& specs, Species::Species
   return find_next_species(specs, spec, 0);
 }
 
-Index find_first_species_tag(const ArrayOfArrayOfSpeciesTag& specs, const SpeciesTag& tag) noexcept {
+std::pair<Index, Index> find_first_species_tag(const ArrayOfArrayOfSpeciesTag& specs, const SpeciesTag& tag) noexcept {
   for (Index i=0; i<specs.nelem(); i++) {
     if (auto ptr = std::find(specs[i].cbegin(), specs[i].cend(), tag); ptr not_eq specs[i].cend())
-      return std::distance(specs[i].cbegin(), ptr);
+      return {i, std::distance(specs[i].cbegin(), ptr)};
   }
-  return -1;
+  return {-1, -1};
+}
+
+std::pair<Index, Index> find_first_isotologue(const ArrayOfArrayOfSpeciesTag& specs, const SpeciesIsotopeRecord& isot) noexcept {
+  for (Index i=0; i<specs.nelem(); i++) {
+    if (auto ptr = std::find_if(specs[i].cbegin(), specs[i].cend(), [&](auto& tag){return tag.Isotopologue() == isot;}); ptr not_eq specs[i].cend())
+      return {i, std::distance(specs[i].cbegin(), ptr)};
+  }
+  return {-1, -1};
 }
 
 

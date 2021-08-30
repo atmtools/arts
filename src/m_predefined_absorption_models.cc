@@ -56,10 +56,16 @@ void propmat_clearskyAddPredefinedO2MPM2020(PropagationMatrix& propmat_clearsky,
       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
   
+  // We select the model at compile-time
+  constexpr const SpeciesIsotopeRecord& mpm2020 = Species::select("O2", "MPM2020");
+  
   // Perform calculations if there is any oxygen
-  if (find_first_species_tag(abs_species, SpeciesTag("O2-MPM2020")) >= 0) {
+  if (const auto o2 = find_first_isotologue(abs_species, mpm2020).first; o2 not_eq -1) {
     const Index h2o = find_first_species(abs_species, Species::fromShortName("H2O"));
+    const Numeric h2o_vmr = h2o == -1 ? 0.0 : rtp_vmr[h2o];
+    
     Absorption::PredefinedModel::makarov2020_o2_lines_mpm(propmat_clearsky, dpropmat_clearsky_dx,
-                                                          f_grid, rtp_pressure, rtp_temperature, h2o == -1 ? 0.0 : rtp_vmr[h2o], jacobian_quantities);
+                                                          f_grid, rtp_pressure, rtp_temperature,
+                                                          rtp_vmr[o2], h2o_vmr, jacobian_quantities);
   }
 }
