@@ -648,6 +648,11 @@ constexpr const IsotopeRecord& select(Species spec, const std::string_view isotn
   return Isotopologues[find_species_index(spec, isotname)];
 }
 
+constexpr const IsotopeRecord& select(const std::string_view spec,
+                                      const std::string_view isotname) noexcept {
+  return Isotopologues[find_species_index(spec, isotname)];
+}
+
 constexpr const IsotopeRecord& select_joker(Species spec) noexcept {
   return select(spec, Joker);
 }

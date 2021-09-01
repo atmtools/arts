@@ -27,7 +27,8 @@
 #include "predefined_absorption_models.h"
 #include "lin_alg.h"
 #include "linescaling.h"
-#include "wigner_functions.h"
+
+#include <Faddeeva/Faddeeva.hh>
 
 constexpr std::size_t nlines_mpm2020 = 44;
 
@@ -205,12 +206,13 @@ constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids() noex
 }
 
 
-void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
-                                                           ArrayOfMatrix& dxsec,
+void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(PropagationMatrix& propmat_clearsky,
+                                                           ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                                            const Vector& f,
-                                                           const Vector& p,
-                                                           const Vector& t,
-                                                           const Vector& water_vmr,
+                                                           const Numeric& p,
+                                                           const Numeric& t,
+                                                           const Numeric& oxygen_vmr,
+                                                           const Numeric& water_vmr,
                                                            const ArrayOfRetrievalQuantity& jacs)
 {
   using Constant::pi;
@@ -265,128 +267,124 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
   // Model setting
   const bool do_temp_deriv = do_temperature_jacobian(jacs);
   
-  // Per pressure level
-  for (Index ip=0; ip<p.nelem(); ip++) {
-    const Numeric theta = t0 / t[ip];
-    const Numeric theta_m1 = theta - 1;
-    const Numeric theta_3 = pow3(theta);
-    const Numeric GD_div_F0 = std::sqrt(Constant::doppler_broadening_const_squared * t[ip] / mass);
+  const Numeric theta = t0 / t;
+  const Numeric theta_m1 = theta - 1;
+  const Numeric theta_3 = pow3(theta);
+  const Numeric GD_div_F0 = std::sqrt(Constant::doppler_broadening_const_squared * t / mass);
+  
+  for (std::size_t i=0; i<nlines_mpm2020; i++) {
+    const Numeric invGD = 1 / (GD_div_F0 * f0[i]);
+    const Numeric fac = sqrt_pi * invGD;
+    const Numeric ST = oxygen_vmr * theta_3 * p * intens[i] * std::exp(-a2[i] * theta_m1);
+    const Numeric G0 = (1 + 0.1*water_vmr) * p * lsm[i].G0().at(t, t0);
+    const Numeric Y = p * lsm[i].Y().at(t, t0);
+    const Numeric G = pow2( p) * lsm[i].G().at(t, t0);
+    const Numeric DV = pow2(p) * lsm[i].DV().at(t, t0);
     
-    for (std::size_t i=0; i<nlines_mpm2020; i++) {
-      const Numeric invGD = 1 / (GD_div_F0 * f0[i]);
-      const Numeric fac = sqrt_pi * invGD;
-      const Numeric ST = theta_3 * p[ip] * intens[i] * std::exp(-a2[i] * theta_m1);
-      const Numeric G0 = (1 + 0.1*water_vmr[ip]) * p[ip] * lsm[i].G0().at(t[ip], t0);
-      const Numeric Y = p[ip] * lsm[i].Y().at(t[ip], t0);
-      const Numeric G = pow2( p[ip]) * lsm[i].G().at(t[ip], t0);
-      const Numeric DV = pow2(p[ip]) * lsm[i].DV().at(t[ip], t0);
+    const Numeric dinvGD_dT = do_temp_deriv ? - invGD * GD_div_F0 / (2 * t) : 0;
+    const Numeric dST_dT = do_temp_deriv ? (a2[i]*t0 - 3*t) / pow2(t) * ST : 0;
+    const Numeric dG0_dT = do_temp_deriv ? (1 + 0.1*water_vmr) * p * lsm[i].G0().dT(t, t0) : 0;
+    const Numeric dY_dT = do_temp_deriv ? p * lsm[i].Y().dT(t, t0) : 0;
+    const Numeric dG_dT = do_temp_deriv ? pow2(p) * lsm[i].G().dT(t, t0) : 0;
+    const Numeric dDV_dT = do_temp_deriv ? pow2(p) * lsm[i].DV().dT(t, t0) : 0;
+    
+    for (Index j=0; j<f.nelem(); j++) {
+      const Complex z = Complex(f0[i] + DV - f[j], G0) * invGD;
+      const Complex Fv = fac * Faddeeva::w(z);
+      const Complex Flm = 1 / Complex(G0, f[j] + f0[i] + DV);
       
-      const Numeric dinvGD_dT = do_temp_deriv ? - invGD * GD_div_F0 / (2 * t[ip]) : 0;
-      const Numeric dST_dT = do_temp_deriv ? (a2[i]*t0 - 3*t[ip]) / pow2(t[ip]) * ST : 0;
-      const Numeric dG0_dT = do_temp_deriv ? (1 + 0.1*water_vmr[ip]) * p[ip] * lsm[i].G0().dT(t[ip], t0) : 0;
-      const Numeric dY_dT = do_temp_deriv ? p[ip] * lsm[i].Y().dT(t[ip], t0) : 0;
-      const Numeric dG_dT = do_temp_deriv ? pow2(p[ip]) * lsm[i].G().dT(t[ip], t0) : 0;
-      const Numeric dDV_dT = do_temp_deriv ? pow2(p[ip]) * lsm[i].DV().dT(t[ip], t0) : 0;
+      const Complex abs = std::real(
+        Complex(1 + G, Y) * Fv +
+        Complex(1 + G, -Y) * Flm);
       
-      for (Index j=0; j<f.nelem(); j++) {
-        const Complex z = Complex(f0[i] + DV - f[j], G0) * invGD;
-        const Complex Fv = fac * Faddeeva::w(z);
-        const Complex Flm = 1 / Complex(G0, f[j] + f0[i] + DV);
+      propmat_clearsky.Kjj()[j] += ST * pow2(f[j]) * abs.real();
+      
+      if (jacs.nelem()) {
+        const Complex dw = 2 * (Complex(0, fac * inv_sqrt_pi) - z * Fv);
+        const Complex dm = - pi * pow2(Flm);
         
-        const Complex abs = std::real(
-          Complex(1 + G, Y) * Fv +
-          Complex(1 + G, -Y) * Flm);
-        
-        xsec(j, ip) += ST * pow2(f[j]) * abs.real();
-        
-        if (jacs.nelem()) {
-          const Complex dw = 2 * (Complex(0, fac * inv_sqrt_pi) - z * Fv);
-          const Complex dm = - pi * pow2(Flm);
+        for (Index iq=0; iq<jacs.nelem(); iq++) {
+          const auto& deriv = jacs[iq];
           
-          for (Index iq=0; iq<jacs.nelem(); iq++) {
-            const auto& deriv = jacs[iq];
+          if (not deriv.propmattype()) continue;
+          
+          if (deriv == Jacobian::Atm::Temperature) {
+            const Complex dFv = dw * (invGD * Complex(dDV_dT, dG0_dT) - dinvGD_dT) + Fv * dinvGD_dT;
+            const Complex dFlm = dm * Complex(dG0_dT, dDV_dT);
+            dpropmat_clearsky_dx[iq].Kjj()[j] += pow2(f[j]) * (ST * std::real(
+              Complex(1 + G, Y) * dFv + Complex(dG_dT, dY_dT) * Fv +
+              Complex(1 + G, -Y) * dFlm + Complex(G, -dY_dT) * Flm) + abs.real() * dST_dT);
+          } else if (is_frequency_parameter(deriv)) {
+            const Complex dFv = - dw * invGD;
+            const Complex dFlm = Complex(0, 1) * dm;
+            dpropmat_clearsky_dx[iq].Kjj()[j] += ST * (pow2(f[j]) * std::real(
+              Complex(1 + G, Y) * dFv +
+              Complex(1 + G, -Y) * dFlm) + 2 * abs.real() * f[j]);
+          } else if (deriv.Target().needQuantumIdentity()) {
+            const Absorption::QuantumIdentifierLineTarget lt(deriv.QuantumIdentity(), qids[i]);
             
-            if (not deriv.propmattype()) continue;
+            //NOTE: This is a special case where each line must be seen as a "Band" by themselves.
+            //NOTE: (cont) This is because we never check for "Line" unless a full Absorption::Lines
+            //NOTE: (cont) is used in the QuantumIdentifierLineTarget struct.
+            if (lt not_eq Absorption::QuantumIdentifierLineTargetType::Band) continue;
             
-            
-            if (deriv == Jacobian::Atm::Temperature) {
-              const Complex dFv = dw * (invGD * Complex(dDV_dT, dG0_dT) - dinvGD_dT) + Fv * dinvGD_dT;
-              const Complex dFlm = dm * Complex(dG0_dT, dDV_dT);
-              dxsec[iq](j, ip) += pow2(f[j]) * (ST * std::real(
-                Complex(1 + G, Y) * dFv + Complex(dG_dT, dY_dT) * Fv +
-                Complex(1 + G, -Y) * dFlm + Complex(G, -dY_dT) * Flm) + abs.real() * dST_dT);
-            } else if (is_frequency_parameter(deriv)) {
-              const Complex dFv = - dw * invGD;
+            if (deriv == Jacobian::Line::ShapeG0X0) {
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
+                Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
+                Complex(1 + G, -Y) * dm) * 
+                lsm[i].G0().dX0(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeG0X1) {
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
+                Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
+                Complex(1 + G, -Y) * dm) * 
+                lsm[i].G0().dX1(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeDVX0) {
+              const Complex dFv = dw * invGD;
               const Complex dFlm = Complex(0, 1) * dm;
-              dxsec[iq](j, ip) += ST * (pow2(f[j]) * std::real(
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
                 Complex(1 + G, Y) * dFv +
-                Complex(1 + G, -Y) * dFlm) + 2 * abs.real() * f[j]);
-            } else if (deriv.Target().needQuantumIdentity()) {
-              const Absorption::QuantumIdentifierLineTarget lt(deriv.QuantumIdentity(), qids[i]);
-              
-              //NOTE: This is a special case where each line must be seen as a "Band" by themselves.
-              //NOTE: (cont) This is because we never check for "Line" unless a full Absorption::Lines
-              //NOTE: (cont) is used in the QuantumIdentifierLineTarget struct.
-              if (lt not_eq Absorption::QuantumIdentifierLineTargetType::Band) continue;
-              
-              if (deriv == Jacobian::Line::ShapeG0X0) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
-                  Complex(1 + G, -Y) * dm) * 
-                  lsm[i].G0().dX0(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeG0X1) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
-                  Complex(1 + G, -Y) * dm) * 
-                  lsm[i].G0().dX1(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeDVX0) {
-                const Complex dFv = dw * invGD;
-                const Complex dFlm = Complex(0, 1) * dm;
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  Complex(1 + G, Y) * dFv +
-                  Complex(1 + G, -Y) * dFlm) * 
-                  lsm[i].DV().dX0(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeDVX1) {
-                const Complex dFv = dw * invGD;
-                const Complex dFlm = Complex(0, 1) * dm;
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  Complex(1 + G, Y) * dFv +
-                  Complex(1 + G, -Y) * dFlm) * 
-                  lsm[i].DV().dX1(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeDVX2) {
-                const Complex dFv = dw * invGD;
-                const Complex dFlm = Complex(0, 1) * dm;
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  Complex(1 + G, Y) * dFv +
-                  Complex(1 + G, -Y) * dFlm) * 
-                  lsm[i].DV().dX2(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeGX0) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv + Flm) * 
-                lsm[i].G().dX0(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeYX0) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv + Flm) * 
-                  lsm[i].Y().dX0(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeGX1) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv - Flm) * 
-                lsm[i].G().dX1(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeYX1) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv + Flm) * 
-                lsm[i].Y().dX1(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeGX2) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv - Flm) * 
-                  lsm[i].G().dX2(t[ip], t0);
-              } else if (deriv == Jacobian::Line::ShapeYX2) {
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(Fv - Flm) * 
-                  lsm[i].Y().dX2(t[ip], t0);
-              } else if (deriv == Jacobian::Line::Center) {
-                const Complex dFv = Fv / f0[i] - dw * invGD + dw * z / f0[i];
-                const Complex dFlm = Complex(0, 1) * dm;
-                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
-                  Complex(1 + G, Y) * dFv +
-                  Complex(1 + G, -Y) * dFlm);
-              } else if (deriv == Jacobian::Line::Strength) {
-                dxsec[iq](j, ip) += theta_3 * p[ip] * std::exp(-a2[i] * theta_m1) * pow2(f[j]) * abs.real();
-              }
+                Complex(1 + G, -Y) * dFlm) * 
+                lsm[i].DV().dX0(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeDVX1) {
+              const Complex dFv = dw * invGD;
+              const Complex dFlm = Complex(0, 1) * dm;
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
+                Complex(1 + G, Y) * dFv +
+                Complex(1 + G, -Y) * dFlm) * 
+                lsm[i].DV().dX1(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeDVX2) {
+              const Complex dFv = dw * invGD;
+              const Complex dFlm = Complex(0, 1) * dm;
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
+                Complex(1 + G, Y) * dFv +
+                Complex(1 + G, -Y) * dFlm) * 
+                lsm[i].DV().dX2(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeGX0) {
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv + Flm) * 
+              lsm[i].G().dX0(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeYX0) {
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv + Flm) * 
+                lsm[i].Y().dX0(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeGX1) {
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv - Flm) * 
+              lsm[i].G().dX1(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeYX1) {
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv + Flm) * 
+              lsm[i].Y().dX1(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeGX2) {
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv - Flm) * 
+                lsm[i].G().dX2(t, t0);
+            } else if (deriv == Jacobian::Line::ShapeYX2) {
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv - Flm) * 
+                lsm[i].Y().dX2(t, t0);
+            } else if (deriv == Jacobian::Line::Center) {
+              const Complex dFv = Fv / f0[i] - dw * invGD + dw * z / f0[i];
+              const Complex dFlm = Complex(0, 1) * dm;
+              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
+                Complex(1 + G, Y) * dFv +
+                Complex(1 + G, -Y) * dFlm);
+            } else if (deriv == Jacobian::Line::Strength) {
+              dpropmat_clearsky_dx[iq].Kjj()[j] += theta_3 * p * std::exp(-a2[i] * theta_m1) * pow2(f[j]) * abs.real();
             }
           }
         }

@@ -78,7 +78,8 @@ int main() {
   const Numeric T=296;
   const Numeric H=50e-6;
   const Vector VMR = {0.2098, 1 - 0.2098};
-  Matrix xsec(nfreq, 1, 0);
+  PropagationMatrix mpm_abs(nfreq, 1);
+  ArrayOfPropagationMatrix dmpm_abs(0);
   ArrayOfMatrix dxsec, dsource, dphase;
   ArrayOfArrayOfSpeciesTag specs(2, ArrayOfSpeciesTag(1));
   specs[0][0] = SpeciesTag("O2");
@@ -120,8 +121,8 @@ int main() {
                                                         Zeeman::Polarization::SigmaPlus, band).first;
   
   // Line Mixing reimplementation of MPM19
-  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec,
-                                                        f_grid, {P}, {T}, {0},
+  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(mpm_abs, dmpm_abs,
+                                                        f_grid, P, T, 1, 0,
                                                         ArrayOfRetrievalQuantity(0));
   
   // Line by line calculations
@@ -152,7 +153,7 @@ int main() {
   ARTSGUI::PlotConfig::Legend = {"Full", "MPM2020", "LBL", "FullZeeman", "Adapted"};
   ARTSGUI::PlotConfig::X = "Frequency [GHz]";
   ARTSGUI::PlotConfig::Y = "Absorption [1/m]";
-  ARTSGUI::plot(f_grid, abs.real(), f_grid, xsec(joker, 0), f_grid, xsec2(joker, 0), f_grid, absZ.real(), f_grid, com.F.real());
+  ARTSGUI::plot(f_grid, abs.real(), f_grid, mpm_abs.Kjj(), f_grid, xsec2(joker, 0), f_grid, absZ.real(), f_grid, com.F.real());
   WriteXML("ascii", band, "band.xml", 0, "", "", "", Verbosity());
   MapOfErrorCorrectedSuddenData x;
   x.push_back(ecs_data);

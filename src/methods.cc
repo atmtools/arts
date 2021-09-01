@@ -2532,8 +2532,8 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddPredefinedO2MPM2020"),
-      DESCRIPTION("Reimplementation of published O2 absorption line cross-section algorithm\n"
+      NAME("propmat_clearskyAddPredefinedO2MPM2020"),
+      DESCRIPTION("Reimplementation of published O2 absorption algorithm\n"
         "\n"
         "Based on:\n"
         "\tDmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020,\n"
@@ -2541,23 +2541,25 @@ void define_md_data_raw() {
         "\thttps://doi.org/10.1016/j.jqsrt.2019.106798\n"
         "\n"
         "Note that this is only really applicable to Earth and at lower altitudes.\n"
-        "The only two tested derivatives are for frequency and for temperature but\n"
-        "other untested derivatives are available for all model parameters except a2\n"
+        "The only two tested derivatives are for frequency (wind) and for temperature.\n"
+        "Several other derivatives are included and possible by the calculations but they\n"
+        "are not tested, so it is not recommended to use this method with any other type(s)\n"
+        "of derivatives\n"
       ),
       AUTHORS("Richard Larsson"),
-      OUT("abs_xsec_per_species",
-          "dabs_xsec_per_species_dx"),
+      OUT("propmat_clearsky",
+          "dpropmat_clearsky_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "dabs_xsec_per_species_dx",
+      IN("propmat_clearsky",
+         "dpropmat_clearsky_dx",
          "abs_species",
          "jacobian_quantities",
          "f_grid",
-         "abs_p",
-         "abs_t",
-         "abs_vmrs"),
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_vmr"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),

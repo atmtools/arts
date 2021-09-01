@@ -29,59 +29,43 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xsec_per_speciesAddPredefinedO2MPM2020(ArrayOfMatrix& abs_xsec_per_species,
-                                                ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
-                                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                                const Vector& f_grid,
-                                                const Vector& abs_p,
-                                                const Vector& abs_t,
-                                                const Matrix& abs_vmrs,
-                                                const Verbosity&)
+void propmat_clearskyAddPredefinedO2MPM2020(PropagationMatrix& propmat_clearsky,
+                                            ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                                            const ArrayOfArrayOfSpeciesTag& abs_species,
+                                            const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                            const Vector& f_grid,
+                                            const Numeric& rtp_pressure,
+                                            const Numeric& rtp_temperature,
+                                            const Vector& rtp_vmr,
+                                            const Verbosity& verbosity)
 {
+  CREATE_OUT3;
+  
   // Forward simulations and their error handling
-  ARTS_USER_ERROR_IF (abs_vmrs.ncols() not_eq abs_p.nelem(),
-    "Mismatch dimensions on pressure and VMR inputs")
-  ARTS_USER_ERROR_IF (abs_t.nelem() not_eq abs_p.nelem(),
-    "Mismatch dimensions on pressure and temperature inputs");
-  ARTS_USER_ERROR_IF (abs_vmrs.nrows() not_eq abs_species.nelem(),
+  ARTS_USER_ERROR_IF (rtp_vmr.nelem() not_eq abs_species.nelem(),
     "Mismatch dimensions on species and VMR inputs");
-  ARTS_USER_ERROR_IF (abs_xsec_per_species.nelem() not_eq abs_species.nelem(),
-    "Mismatch dimensions on xsec and VMR inputs");
-  ARTS_USER_ERROR_IF (std::any_of(abs_xsec_per_species.cbegin(), abs_xsec_per_species.cend(), 
-    [&abs_p](auto x){return x.ncols() not_eq abs_p.nelem();}),
-    "Mismatch dimensions on internal matrices of xsec and pressure");
-  ARTS_USER_ERROR_IF (std::any_of(abs_xsec_per_species.cbegin(), abs_xsec_per_species.cend(),
-    [&f_grid](auto x){return x.nrows() not_eq f_grid.nelem();}),
+  ARTS_USER_ERROR_IF (propmat_clearsky.NumberOfFrequencies() not_eq f_grid.nelem(),
     "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
-  if (dabs_xsec_per_species_dx.nelem()) {
-    ARTS_USER_ERROR_IF(dabs_xsec_per_species_dx.nelem() not_eq abs_species.nelem(),
-      "Mismatch dimensions on species inputs and xsec derivatives");
-    ARTS_USER_ERROR_IF (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(), 
-      [&jacobian_quantities](auto x){return x.nelem() not_eq jacobian_quantities.nelem();}),
+  if (dpropmat_clearsky_dx.nelem()) {
+    ARTS_USER_ERROR_IF (dpropmat_clearsky_dx.nelem() not_eq jacobian_quantities.nelem(),
       "Mismatch dimensions on xsec derivatives and Jacobian grids");
-    ARTS_USER_ERROR_IF (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
-      [&abs_p](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
-        [&abs_p](auto x2){return x2.ncols() not_eq abs_p.nelem();});}),
-      "Mismatch dimensions on internal matrices of xsec derivatives and pressure");
-    ARTS_USER_ERROR_IF (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
-      [&f_grid](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
-        [&f_grid](auto x2){return x2.nrows() not_eq f_grid.nelem();});}),
+    ARTS_USER_ERROR_IF (std::any_of(dpropmat_clearsky_dx.cbegin(), dpropmat_clearsky_dx.cend(),
+      [&f_grid](auto& x){return x.NumberOfFrequencies() not_eq f_grid.nelem();}),
       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
   
-  // Positions of important species and VMR of water
-  auto o2_mpm2020 =  find_first_species_tag(abs_species, SpeciesTag("O2-MPM2020"));
-  auto h2o = find_first_species(abs_species, Species::fromShortName("H2O"));
-  auto h2o_vmr = h2o == -1 ? Vector(abs_p.nelem(), 0) : abs_vmrs(h2o, joker);
-  ArrayOfMatrix empty(0);
+  // We select the model at compile-time
+  constexpr const SpeciesIsotopeRecord& mpm2020 = Species::select("O2", "MPM2020");
   
   // Perform calculations if there is any oxygen
-  if (o2_mpm2020 >= 0 and o2_mpm2020 < abs_xsec_per_species.nelem()) {
-    Absorption::PredefinedModel::makarov2020_o2_lines_mpm(abs_xsec_per_species[o2_mpm2020], 
-                                                          dabs_xsec_per_species_dx.nelem() ? dabs_xsec_per_species_dx[o2_mpm2020] : empty,
-                                                          f_grid, abs_p, abs_t, h2o_vmr, jacobian_quantities);
+  if (const auto o2 = find_first_isotologue(abs_species, mpm2020).first; o2 not_eq -1) {
+    const Index h2o = find_first_species(abs_species, Species::fromShortName("H2O"));
+    const Numeric h2o_vmr = h2o == -1 ? 0.0 : rtp_vmr[h2o];
+    
+    Absorption::PredefinedModel::makarov2020_o2_lines_mpm(propmat_clearsky, dpropmat_clearsky_dx,
+                                                          f_grid, rtp_pressure, rtp_temperature,
+                                                          rtp_vmr[o2], h2o_vmr, jacobian_quantities);
   }
 }

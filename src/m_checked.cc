@@ -91,12 +91,6 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
       !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddHitranXsec"),
         "*abs_species* contains HITRAN xsec species but *abs_xsec_agenda*\n"
         "does not contain *abs_xsec_per_speciesAddHitranXsec*.");
-  
-  if (find_first_species_tag(abs_species, SpeciesTag("O2-MPM2020")) >= 0) {
-    ARTS_USER_ERROR_IF (not abs_xsec_agenda.has_method("abs_xsec_per_speciesAddPredefinedO2MPM2020"),
-        "*abs_species contains \"O2-MPM2020\" but *abs_xsec_agenda*\n"
-        "does not contain *abs_xsec_per_speciesAddPredefinedO2MPM2020*.");
-  }
 
   // If here, all OK
   abs_xsec_agenda_checked = 1;

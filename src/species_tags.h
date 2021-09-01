@@ -54,6 +54,14 @@ struct Tag {
   // Documentation is with implementation.
   explicit Tag(String def);
   
+  constexpr Tag(const IsotopeRecord& isot) noexcept :
+  spec_ind(find_species_index(isot)),
+  lower_freq(-1), upper_freq(-1),
+  type(is_predefined_model(isot) ? TagType::Predefined : TagType::Plain),
+  cia_2nd_species(Species::FINAL),
+  cia_dataset_index(-1) { /* Nothing to be done here. */
+  }
+  
   // Documentation is with implementation.
   String Name() const;
   
@@ -168,11 +176,38 @@ public:
 
 using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
 
-Index find_next_species(const ArrayOfArrayOfSpeciesTag&, Species::Species, Index) noexcept;
+/*! Find the next species of this type inclusively after the start index
+ * 
+ * @param[in] abs_species As WSV
+ * @param[in] spec A Species
+ * @param[in] i The starting index in the outermost 
+ * @return An index larger or equal to i pointing to the next species, or -1 if there's no next species
+ */
+Index find_next_species(const ArrayOfArrayOfSpeciesTag& abs_species, Species::Species spec, Index i) noexcept;
 
-Index find_first_species(const ArrayOfArrayOfSpeciesTag&, Species::Species) noexcept;
+/*! Find the first species of this type
+ * 
+ * @param[in] abs_species As WSV
+ * @param[in] spec A Species
+ * @return An index larger or equal to 0 pointing to the first species, or -1 if there's no such species
+ */
+Index find_first_species(const ArrayOfArrayOfSpeciesTag& abs_species, Species::Species spec) noexcept;
 
-Index find_first_species_tag(const ArrayOfArrayOfSpeciesTag& specs, const SpeciesTag& tag) noexcept;
+/*! Find the first species tag of this type
+ * 
+ * @param[in] abs_species As WSV
+ * @param[in] tag A Species tag
+ * @return [i, j] so that abs_species[i][j] is tag, or [-1, -1] if there's no such thing
+ */
+std::pair<Index, Index> find_first_species_tag(const ArrayOfArrayOfSpeciesTag& abs_species, const SpeciesTag& tag) noexcept;
+
+/*! Find the first species tag of this type
+ * 
+ * @param[in] abs_species As WSV
+ * @param[in] isot An isotopologue record
+ * @return [i, j] so that abs_species[i][j] is the same isotopologue record as isot, or [-1, -1] if there's no such thing
+ */
+std::pair<Index, Index> find_first_isotologue(const ArrayOfArrayOfSpeciesTag& abs_species, const SpeciesIsotopeRecord& isot) noexcept;
 
 /*!
  *  Checks on the correctness of the tags will be performed,

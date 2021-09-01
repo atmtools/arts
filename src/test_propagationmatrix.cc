@@ -539,13 +539,14 @@ void test_mpm20()
   constexpr Numeric p = 1e4;
   Vector f(nf);
   nlinspace(f, fstart, fend, nf);
-  Matrix xsec(nf, 1, 0);
-  ArrayOfMatrix dxsec(2, Matrix(nf, 1, 0));
+  PropagationMatrix xsec(nf, 1);
+  ArrayOfPropagationMatrix dxsec(2, PropagationMatrix(nf, 1));
+  
   
   ArrayOfRetrievalQuantity jacs(2);
   jacs[0].Target(Jacobian::Target(Jacobian::Atm::Temperature));
   jacs[1].Target(Jacobian::Target(Jacobian::Atm::WindU));
-  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs);
+  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, p, t, 1, 0.5, jacs);
   
   constexpr auto df = 1000;
   constexpr auto dt = 0.1;
