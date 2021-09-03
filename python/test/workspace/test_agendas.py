@@ -23,7 +23,7 @@ class TestAgendas:
         """
         This ensures a new Workspace for every test.
         """
-        self.ws  = Workspace(verbosity = 0)
+        self.ws = Workspace(verbosity = 0)
         self.setup_workspace()
 
     def setup_workspace(self):
@@ -90,7 +90,7 @@ class TestAgendas:
 
         import scipy.constants as c
 
-        @arts_agenda
+        @arts_agenda(allow_callbacks=True)
         def space_agenda(ws):
             # Since everything happens in Python we need
             # to tell ARTS that we are using all in and outputs.
@@ -126,7 +126,7 @@ class TestAgendas:
         Test a very complicated Python callback.
         """
 
-        @arts_agenda
+        @arts_agenda(allow_callbacks=True)
         def agenda(ws):
             """
             This agenda sets a workspace variable in a very
@@ -145,6 +145,18 @@ class TestAgendas:
             foo.ooo()
 
         agenda.execute(self.ws)
+
+    def test_unknown_wsv(self):
+        """
+        Ensure that an exception is thrown when an unknown WSV is
+        used inside an agenda.
+
+        This covers https://github.com/atmtools/arts/issues/368
+        """
+        with pytest.raises(ValueError):
+            @arts_agenda
+            def my_agenda(ws):
+                  ws.UnknownMethod()
 
     def test_starred(self):
         """
@@ -182,7 +194,7 @@ class TestAgendas:
         Ensure that exception is thrown when a agenda
         variable is set to an invalid value.
         """
-        @pyarts.workspace.arts_agenda
+        @arts_agenda(allow_callbacks=True)
         def abs_xsec_agenda(ws):
               pass
         self.ws = pyarts.workspace.Workspace()

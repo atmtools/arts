@@ -17,7 +17,7 @@ import weakref
 
 import ast
 from   ast      import iter_child_nodes, parse, NodeVisitor, Call, Attribute, Name, \
-                       Expression, Expr, FunctionDef, Starred, Module, expr
+                       Expression, Expr, FunctionDef, Starred, Module, expr, Str
 from   inspect  import getsource, getclosurevars
 from contextlib import contextmanager
 from copy       import copy
@@ -72,14 +72,16 @@ class Include:
             raise Exception("agenda argument must be either a controlfile"
             " name or a arts.workspace.agenda.Agenda object.")
 
-def arts_agenda(func):
-    """
-    Parse python method as ARTS agenda
 
-    This decorator can be used to define ARTS agendas using python function syntax.
-    The function should have one arguments which is assumed to be a Workspace instance.
-    All expressions inside the function must be calls to ARTS WSMs. The result is an
-    Agenda object that can be used to copied into a named ARTS agenda
+def arts_agenda(func=None, *, allow_callbacks=False):
+    """
+    Decorator to parse a Python method as ARTS agenda.
+
+    This decorator can be used to define ARTS agendas using python function
+    syntax. The function should have one arguments which is assumed to be a
+    Workspace instance. All expressions inside the function must be calls to
+    ARTS WSMs. The function definition results in an Agenda object that can
+    be copied into an ARTS agenda.
 
     Example:
 
@@ -93,6 +95,38 @@ def arts_agenda(func):
     >>>     ws.jacobianAdjustAfterIteration()
     >>>
     >>> ws.Copy(ws.inversion_iterate_agenda, inversion_iterate_agenda)
+
+    When the decorator is used with the 'allow_callbacks' keyword argument
+    set to True, arbitrary Python code can be executed within the callback.
+    Note, however, that ARTS ignores exceptions occurring within the
+    callback, so care must be taken that potentially silenced errors
+    don't interfere with simulation results.
+
+    Example:
+
+    >>> @arts_agenda(allow_callbacks=True)
+    >>> def python_agenda(ws):
+    >>>     print("Python says 'hi'.)
+    """
+    def agenda_decorator(func):
+        return parse_function(func, allow_callbacks=allow_callbacks)
+
+    if func is None:
+        return agenda_decorator
+    else:
+        return parse_function(func, False)
+
+
+def parse_function(func, allow_callbacks):
+    """
+    Parse python method as ARTS agenda
+
+    Args:
+        func: The function object to parse.
+        allow_callbacks: Whether to allow callbacks in the agenda.
+
+    Return:
+        An 'Agenda' object containing the code in the given function.
     """
 
     source = getsource(func)
@@ -101,7 +135,7 @@ def arts_agenda(func):
 
     func_ast = ast.body[0]
     if not type(func_ast) == FunctionDef:
-        raise Exception("ARTS agenda definition can only decorate function definiitons.")
+        raise Exception("ARTS agenda definition can only decorate function definitions.")
 
     args = func_ast.args.args
 
@@ -158,8 +192,12 @@ def arts_agenda(func):
     agenda = Agenda(a_ptr)
 
     illegal_statement_exception = Exception(
-        "Agenda definitions may only contain calls to WSMs of the"
-        "workspace argument " + arg_name + " or INCLUDE statements.")
+        "Pure ARTS agenda definitions may only contain calls to WSMs of"
+        " the workspace argument '{arg_name}' or INCLUDE statements."
+        " If you want to allow Python callbacks you need to use"
+        " the '@arts_agenda' decorator with the 'allow_callbacks'"
+        " keyword argument set to 'True'."
+    )
 
     #
     # Here the body of the function definition is traversed. Cases
@@ -170,19 +208,30 @@ def arts_agenda(func):
 
     for e in func_ast.body:
         if not isinstance(e, Expr):
-            callback_body += [e]
-            continue
+            if allow_callbacks:
+                callback_body += [e]
+                continue
+            else:
+                raise illegal_statement_exception
         else:
             call = e.value
 
         if not isinstance(call, Call):
-            callback_body += [e]
-            continue
+            if isinstance(call, Str):
+                continue
+            elif allow_callbacks:
+                callback_body += [e]
+                continue
+            else:
+                raise illegal_statement_exception
 
         # Include statement
         if type(call.func) == Name:
-            if not call.func.id == "INCLUDE":
-                callback_body += [e]
+            if call.func.id != "INCLUDE":
+                if allow_callbacks:
+                    callback_body += [e]
+                else:
+                    raise illegal_statement_exception
             else:
                 args = []
                 for a in call.args:
@@ -195,7 +244,7 @@ def arts_agenda(func):
 
                     arts_api.agenda_append(agenda.ptr, include.agenda.ptr)
         else:
-            att  = call.func.value
+            att = call.func.value
             if not att.id == arg_name:
                 callback_body += [e]
                 continue
@@ -204,12 +253,17 @@ def arts_agenda(func):
             name = call.func.attr
 
             # m is not a workspace method
-            if not name in workspace_methods:
-                callback_body += [e]
-                continue
+            if name not in workspace_methods:
+                if allow_callbacks:
+                    callback_body += [e]
+                    continue
+                else:
+                    raise ValueError(
+                        f"{name} is not a know ARTS WSM."
+                    )
 
             # m is a workspace method.
-            m  = workspace_methods[name]
+            m = workspace_methods[name]
 
             args = [ws, m]
             kwargs = dict()
