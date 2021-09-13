@@ -198,7 +198,6 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
 
     // Add to result variable:
     Numeric nd = number_density(rtp_pressure, rtp_temperature);
-    Numeric ndt = dnumber_density_dt(rtp_pressure, rtp_temperature);
     if (!do_jac) {
       xsec_temp *= nd * rtp_vmr[i];
       propmat_clearsky.Kjj() += xsec_temp;
