@@ -31,6 +31,7 @@
 #include "jacobian.h"
 #include "m_xml.h"
 #include "messages.h"
+#include "physics_funcs.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
@@ -56,8 +57,8 @@ void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
   hitran_xsec_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
-    const String filename{tmpbasename + String(Species::toShortName(species_name)) +
-                          ".xml"};
+    const String filename{tmpbasename +
+                          String(Species::toShortName(species_name)) + ".xml"};
 
     try {
       ReadXML(xsec_coeffs, "", filename, "", verbosity);
@@ -71,203 +72,16 @@ void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
-    ArrayOfMatrix& abs_xsec_per_species,
-    ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
-    // WS Input:
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfIndex& abs_species_active,
-    const Vector& f_grid,
-    const Vector& abs_p,
-    const Vector& abs_t,
-    const ArrayOfXsecRecord& hitran_xsec_data,
-    const Numeric& force_p,
-    const Numeric& force_t,
-    const Index& extpol_p,
-    const Index& extpol_t,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUTS;
-
-  {
-    // Check that all parameters that should have the number of tag
-    // groups as a dimension are consistent:
-    const Index n_tgs = abs_species.nelem();
-    const Index n_xsec = abs_xsec_per_species.nelem();
-
-    ARTS_USER_ERROR_IF(
-        n_tgs != n_xsec,
-        "The following variables must all have the same dimension:\n"
-        "abs_species:          ",
-        n_tgs,
-        "\n"
-        "abs_xsec_per_species: ",
-        n_xsec)
-  }
-
-  // Jacobian overhead START
-  /* NOTE:  The calculations below are inefficient and could
-              be made much better by using interp in Extract to
-              return the derivatives as well. */
-  const bool do_jac = supports_hitran_xsec(jacobian_quantities);
-  const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
-  Vector dfreq, dabs_t;
-  const Numeric df = frequency_perturbation(jacobian_quantities);
-  if (do_freq_jac) {
-    dfreq.resize(f_grid.nelem());
-    dfreq = f_grid;
-    dfreq += df;
-  }
-  //    if (do_temp_jac)
-  //    {
-  //        dabs_t.resize(abs_t.nelem());
-  //        dabs_t = abs_t;
-  //        dabs_t += dt;
-  //    }
-  // Jacobian overhead END
-
-  // Useful if there is no Jacobian to calculate
-  ArrayOfMatrix empty;
-
-  {
-    // Check that all parameters that should have the the dimension of p_grid
-    // are consistent:
-    const Index n_p = abs_p.nelem();
-    const Index n_t = abs_t.nelem();
-
-    ARTS_USER_ERROR_IF(
-        n_p != n_t,
-        "The following variables must all have the same dimension:\n"
-        "abs_p:          ",
-        n_p,
-        "\n"
-        "abs_t:          ",
-        n_t)
-  }
-
-  // Allocate a vector with dimension frequencies for constructing our
-  // cross-sections before adding them (more efficient to allocate this here
-  // outside of the loops)
-  Vector xsec_temp(f_grid.nelem(), 0.);
-
-  // Jacobian vectors START
-  //    Vector dxsec_temp_dT;
-  Vector dxsec_temp_dF;
-  if (do_freq_jac) dxsec_temp_dF.resize(f_grid.nelem());
-  //    if (do_temp_jac)
-  //        dxsec_temp_dT.resize(f_grid.nelem());
-  // Jacobian vectors END
-
-  ArrayOfString fail_msg;
-  bool do_abort = false;
-
-  // Loop over Xsec data sets.
-  // Index ii loops through the outer array (different tag groups),
-  // index s through the inner array (different tags within each goup).
-  for (Index ii = 0; ii < abs_species_active.nelem(); ii++) {
-    const Index i = abs_species_active[ii];
-
-    for (Index s = 0; s < abs_species[i].nelem(); s++) {
-      const SpeciesTag& this_species = abs_species[i][s];
-
-      // Check if this is a HITRAN cross section tag
-      if (this_species.Type() != Species::TagType::HitranXsec) continue;
-
-      Index this_xdata_index =
-          hitran_xsec_get_index(hitran_xsec_data, this_species.Spec());
-      ARTS_USER_ERROR_IF(this_xdata_index < 0,
-                         "Cross-section species ",
-                         this_species.Name(),
-                         " not found in *hitran_xsec_data*.")
-      const XsecRecord& this_xdata = hitran_xsec_data[this_xdata_index];
-      Matrix& this_xsec = abs_xsec_per_species[i];
-      ArrayOfMatrix& this_dxsec = do_jac ? dabs_xsec_per_species_dx[i] : empty;
-
-      // Loop over pressure:
-#pragma omp parallel for if (!arts_omp_in_parallel() && abs_p.nelem() >= 1) \
-    firstprivate(xsec_temp, dxsec_temp_dF)
-      for (Index ip = 0; ip < abs_p.nelem(); ip++) {
-        if (do_abort) continue;
-        const Numeric current_p = force_p < 0 ? abs_p[ip] : force_p;
-        const Numeric current_t = force_t < 0 ? abs_t[ip] : force_t;
-
-        // Get the absorption cross sections from the HITRAN data:
-        try {
-          this_xdata.Extract(xsec_temp,
-                             f_grid,
-                             current_p,
-                             current_t,
-                             extpol_p,
-                             extpol_t,
-                             verbosity);
-          if (do_freq_jac)
-            this_xdata.Extract(dxsec_temp_dF,
-                               dfreq,
-                               current_p,
-                               current_t,
-                               extpol_p,
-                               extpol_t,
-                               verbosity);
-          // FIXME: Temperature is not yet taken into account
-          // if(do_temp_jac)
-          //     this_xdata.Extract(dxsec_temp_dT, f_grid, dabs_t[ip],
-          //                        verbosity);
-        } catch (runtime_error& e) {
-          ostringstream os;
-          os << "Problem with HITRAN cross section species "
-             << this_species.Name() << " at pressure level " << ip << " ("
-             << abs_p[ip] / 100. << " hPa):\n"
-             << e.what() << "\n";
-#pragma omp critical(abs_xsec_per_speciesAddHitranXsec)
-          {
-            do_abort = true;
-            fail_msg.push_back(os.str());
-          }
-        }
-
-        if (!do_jac) {
-          // Add to result variable:
-          this_xsec(joker, ip) += xsec_temp;
-        } else {
-          for (Index iv = 0; iv < xsec_temp.nelem(); iv++) {
-            this_xsec(iv, ip) += xsec_temp[iv];
-            for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
-              const auto& deriv = jacobian_quantities[ii];
-              
-              if (not deriv.propmattype()) continue;
-              
-              if (is_frequency_parameter(deriv))
-                this_dxsec[iq](iv, ip) +=
-                    (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
-              else if (deriv == Jacobian::Line::VMR) {
-                if (species_match(deriv, abs_species[i])) {
-                  this_dxsec[iq](iv, ip) += xsec_temp[iv];
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  if (do_abort) {
-    ARTS_USER_ERROR(fail_msg);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddHitranXsec(  // WS Output:
-    ArrayOfMatrix& abs_xsec_per_species,
-    ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
+    PropagationMatrix& propmat_clearsky,
+    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfIndex& abs_species_active,
     const Vector& f_grid,
-    const Vector& abs_p,
-    const Vector& abs_t,
+    const Numeric& rtp_pressure,
+    const Numeric& rtp_temperature,
+    const Vector& rtp_vmr,
     const ArrayOfXsecRecord& hitran_xsec_data,
     const Numeric& force_p,
     const Numeric& force_t,
@@ -277,84 +91,66 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
     const Verbosity& verbosity) {
   CREATE_OUTS;
 
-  {
-    // Check that all parameters that should have the number of tag
-    // groups as a dimension are consistent:
-    const Index n_tgs = abs_species.nelem();
-    const Index n_xsec = abs_xsec_per_species.nelem();
+  // Forward simulations and their error handling
+  ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
+                     "Mismatch dimensions on species and VMR inputs");
+  ARTS_USER_ERROR_IF(
+      propmat_clearsky.NumberOfFrequencies() not_eq f_grid.nelem(),
+      "Mismatch dimensions on internal matrices of xsec and frequency");
 
+  // Derivatives and their error handling
+  if (dpropmat_clearsky_dx.nelem()) {
     ARTS_USER_ERROR_IF(
-        n_tgs != n_xsec,
-        "The following variables must all have the same dimension:\n"
-        "abs_species:          ",
-        n_tgs,
-        "\n"
-        "abs_xsec_per_species: ",
-        n_xsec)
+        dpropmat_clearsky_dx.nelem() not_eq jacobian_quantities.nelem(),
+        "Mismatch dimensions on xsec derivatives and Jacobian grids");
+    ARTS_USER_ERROR_IF(
+        std::any_of(dpropmat_clearsky_dx.cbegin(),
+                    dpropmat_clearsky_dx.cend(),
+                    [&f_grid](auto& x) {
+                      return x.NumberOfFrequencies() not_eq f_grid.nelem();
+                    }),
+        "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
   // Jacobian overhead START
   /* NOTE:  The calculations below are inefficient and could
               be made much better by using interp in Extract to
               return the derivatives as well. */
+  // Jacobian vectors START
+  Vector dxsec_temp_dT;
+  Vector dxsec_temp_dF;
+  Vector dfreq;
+  // Jacobian vectors END
   const bool do_jac = supports_hitran_xsec(jacobian_quantities);
   const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
-  Vector dfreq, dabs_t;
+  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
   const Numeric df = frequency_perturbation(jacobian_quantities);
+  const Numeric dt = temperature_perturbation(jacobian_quantities);
   if (do_freq_jac) {
     dfreq.resize(f_grid.nelem());
     dfreq = f_grid;
     dfreq += df;
+    dxsec_temp_dF.resize(f_grid.nelem());
   }
-  //    if (do_temp_jac)
-  //    {
-  //        dabs_t.resize(abs_t.nelem());
-  //        dabs_t = abs_t;
-  //        dabs_t += dt;
-  //    }
+  if (do_temp_jac) {
+    dxsec_temp_dT.resize(f_grid.nelem());
+  }
   // Jacobian overhead END
 
   // Useful if there is no Jacobian to calculate
   ArrayOfMatrix empty;
-
-  {
-    // Check that all parameters that should have the the dimension of p_grid
-    // are consistent:
-    const Index n_p = abs_p.nelem();
-    const Index n_t = abs_t.nelem();
-
-    ARTS_USER_ERROR_IF(
-        n_p != n_t,
-        "The following variables must all have the same dimension:\n"
-        "abs_p:          ",
-        n_p,
-        "\n"
-        "abs_t:          ",
-        n_t)
-  }
 
   // Allocate a vector with dimension frequencies for constructing our
   // cross-sections before adding them (more efficient to allocate this here
   // outside of the loops)
   Vector xsec_temp(f_grid.nelem(), 0.);
 
-  // Jacobian vectors START
-  //    Vector dxsec_temp_dT;
-  Vector dxsec_temp_dF;
-  if (do_freq_jac) dxsec_temp_dF.resize(f_grid.nelem());
-  //    if (do_temp_jac)
-  //        dxsec_temp_dT.resize(f_grid.nelem());
-  // Jacobian vectors END
-
   ArrayOfString fail_msg;
   bool do_abort = false;
-
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (Index ii = 0; ii < abs_species_active.nelem(); ii++) {
-    const Index i = abs_species_active[ii];
-
+  for (Index i = 0; i < abs_species.nelem(); i++) {
     for (Index s = 0; s < abs_species[i].nelem(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 
@@ -368,78 +164,69 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
                          this_species.Name(),
                          " not found in *hitran_xsec_data*.")
       const XsecRecord& this_xdata = hitran_xsec_data[this_xdata_index];
-      Matrix& this_xsec = abs_xsec_per_species[i];
-      ArrayOfMatrix& this_dxsec = do_jac ? dabs_xsec_per_species_dx[i] : empty;
+      // ArrayOfMatrix& this_dxsec = do_jac ? dpropmat_clearsky_dx[i] : empty;
 
-      // Loop over pressure:
-#pragma omp parallel for if (!arts_omp_in_parallel() && abs_p.nelem() >= 1) \
-    firstprivate(xsec_temp, dxsec_temp_dF)
-      for (Index ip = 0; ip < abs_p.nelem(); ip++) {
-        if (do_abort) continue;
-        const Numeric current_p = force_p < 0 ? abs_p[ip] : force_p;
-        const Numeric current_t = force_t < 0 ? abs_t[ip] : force_t;
+      if (do_abort) continue;
+      const Numeric current_p = force_p < 0 ? rtp_pressure : force_p;
+      const Numeric current_t = force_t < 0 ? rtp_temperature : force_t;
 
-        // Get the absorption cross sections from the HITRAN data:
-        try {
-          this_xdata.Extract(xsec_temp,
-                             f_grid,
-                             current_p,
-                             current_t,
-                             extpol_p,
-                             extpol_t,
-                             verbosity);
-          if (do_freq_jac)
-            this_xdata.Extract(dxsec_temp_dF,
-                               dfreq,
-                               current_p,
-                               current_t,
-                               extpol_p,
-                               extpol_t,
-                               verbosity);
-          // FIXME: Temperature is not yet taken into account
-          // if(do_temp_jac)
-          //     this_xdata.Extract(dxsec_temp_dT, f_grid, dabs_t[ip],
-          //                        verbosity);
-        } catch (runtime_error& e) {
-          ostringstream os;
-          os << "Problem with HITRAN cross section species "
-             << this_species.Name() << " at pressure level " << ip << " ("
-             << abs_p[ip] / 100. << " hPa):\n"
-             << e.what() << "\n";
-#pragma omp critical(abs_xsec_per_speciesAddHitranXsec)
-          {
-            do_abort = true;
-            fail_msg.push_back(os.str());
+      // Get the absorption cross sections from the HITRAN data:
+      this_xdata.Extract(xsec_temp,
+                         f_grid,
+                         current_p,
+                         current_t,
+                         extpol_p,
+                         extpol_t,
+                         verbosity);
+      if (do_freq_jac)
+        this_xdata.Extract(dxsec_temp_dF,
+                           dfreq,
+                           current_p,
+                           current_t,
+                           extpol_p,
+                           extpol_t,
+                           verbosity);
+      if (do_temp_jac)
+        this_xdata.Extract(dxsec_temp_dT,
+                           f_grid,
+                           current_p,
+                           current_t + dt,
+                           extpol_p,
+                           extpol_t,
+                           verbosity);
+    }
+
+    // Add to result variable:
+    Numeric nd = number_density(rtp_pressure, rtp_temperature);
+    Numeric ndt = dnumber_density_dt(rtp_pressure, rtp_temperature);
+    if (!do_jac) {
+      xsec_temp *= nd * rtp_vmr[i];
+      propmat_clearsky.Kjj() += xsec_temp;
+    } else {
+      for (Index f = 0; f < f_grid.nelem(); f++) {
+        propmat_clearsky.Kjj()[f] += xsec_temp[f] * nd * rtp_vmr[i];
+        for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+          const auto& deriv = jacobian_quantities[iq];
+
+          if (is_frequency_parameter(deriv)) {
+            dpropmat_clearsky_dx[iq].Kjj()[f] +=
+                (dxsec_temp_dF[f] - xsec_temp[f]) * nd * rtp_vmr[i] / df;
           }
-        }
 
-        if (!do_jac) {
-          // Add to result variable:
-          this_xsec(joker, ip) += xsec_temp;
-        } else {
-          for (Index iv = 0; iv < xsec_temp.nelem(); iv++) {
-            this_xsec(iv, ip) += xsec_temp[iv];
-            for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
-              const auto& deriv = jacobian_quantities[ii];
-              
-              if (not deriv.propmattype()) continue;
-              
-              if (is_frequency_parameter(deriv))
-                this_dxsec[iq](iv, ip) +=
-                    (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
-              else if (deriv == Jacobian::Line::VMR) {
-                if (species_match(deriv, abs_species[i])) {
-                  this_dxsec[iq](iv, ip) += xsec_temp[iv];
-                }
-              }
+          if (!deriv.propmattype()) continue;
+
+          if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR ||
+              deriv == Jacobian::Line::VMR) {
+            if (species_match(deriv, abs_species[i])) {
+              dpropmat_clearsky_dx[iq].Kjj()[f] +=
+                  xsec_temp[f] * nd * rtp_vmr[i];
             }
+          } else if (deriv == Jacobian::Atm::Temperature) {
+            dpropmat_clearsky_dx[iq].Kjj()[f] +=
+                (dxsec_temp_dT[f] - xsec_temp[f]) * nd * rtp_vmr[i] / dt;
           }
         }
       }
     }
-  }
-
-  if (do_abort) {
-    ARTS_USER_ERROR(fail_msg);
   }
 }
