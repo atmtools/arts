@@ -1,10 +1,12 @@
 import ctypes as c
-from collections.abc import Sized
+from datetime import datetime
+import xarray
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.SpeciesIsotopeRecord import Species
-from pyarts.classes.GriddedField2 import ArrayOfGriddedField2
-from pyarts.classes.Vector import Vector, ArrayOfVector
+from pyarts.classes.GriddedField2 import GriddedField2, ArrayOfGriddedField2
+from pyarts.classes.Vector import Vector
+from pyarts.classes import ArrayOfString
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
@@ -162,6 +164,86 @@ class XsecRecord:
         """
         if lib.xmlsaveXsecRecord(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def to_xarray(self):
+        """Convert XsecRecord to xarray dataset"""
+        attrs = {'creation_date': str(datetime.now())}
+        coords = {
+            "coeffs": ("coeffs", range(4), {
+                "unit": "1",
+                "long_name": "Coefficients p00, p10, p01, p20"
+            }),
+            "bands": ("bands", range(len(self.fitcoeffs)), {
+                "unit": "1",
+                "long_name": "Band indices"
+            })
+        }
+
+        data_vars = {}
+        data_vars["fitminpressures"] = ("bands", self.fitminpressures, {
+            "unit": "Pa",
+            "long_name": "Mininum pressures from fit"
+        })
+        data_vars["fitmaxpressures"] = ("bands", self.fitmaxpressures, {
+            "unit": "Pa",
+            "long_name": "Maximum pressures from fit"
+        })
+        data_vars["fitmintemperatures"] = ("bands", self.fitminpressures, {
+            "unit": "K",
+            "long_name": "Minimum temperatures from fit"
+        })
+        data_vars["fitmaxtemperatures"] = ("bands", self.fitmaxpressures, {
+            "unit": "K",
+            "long_name": "Maximum temperatures from fit"
+        })
+
+        for i, band in enumerate(self.fitcoeffs):
+            coords[f"band{i}_fgrid"] = (f"band{i}_fgrid", band.grids[0], {
+                "unit": "Hz",
+                "long_name": f"Frequency grid for band {i}"
+            })
+            data_vars[f"band{i}_coeffs"] = ([f"band{i}_fgrid", "coeffs"], band.data, {
+                'unit':
+                "m",
+                'long_name':
+                f'Fit coeffiencents for band {i}'
+            })
+
+        attrs["species"] = str(self.spec)
+        attrs["version"] = self.version
+
+        return xarray.Dataset(data_vars, coords, attrs)
+
+    def to_netcdf(self, filename):
+        """Save XsecRecord to NetCDF file"""
+        self.to_xarray().to_netcdf(filename)
+
+    @classmethod
+    def from_xarray(cls, ds):
+        """Set XsecRecord from xarray dataset"""
+        xr = cls()
+        coeff_grid = ArrayOfString(["p00", "p01", "p10", "p20"])
+        gfs = []
+        xr.spec = ds.attrs["species"]
+        xr.version = ds.attrs["version"]
+        xr.fitminpressures = ds["fitminpressures"]
+        xr.fitmaxpressures = ds["fitmaxpressures"]
+        xr.fitmintemperatures = ds["fitmintemperatures"]
+        xr.fitmaxtemperatures = ds["fitmaxtemperatures"]
+        for i in ds["bands"].values:
+            g = GriddedField2()
+            g.gridnames = ["frequency grid [Hz]", "fit coefficients [m]"]
+            g.grids = [Vector(ds[f"band{i}_fgrid"].values), coeff_grid]
+            g.data = ds[f"band{i}_coeffs"].values
+            gfs.append(g)
+        xr.fitcoeffs = ArrayOfGriddedField2(gfs)
+
+        return xr
+
+    @classmethod
+    def from_netcdf(cls, filename):
+        """Read XsecRecord from NetCDF file"""
+        return cls.from_xarray(xarray.load_dataset(filename))
 
     def __eq__(self, other):
         if isinstance(other, XsecRecord) and \
