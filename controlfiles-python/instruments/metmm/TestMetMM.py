@@ -203,8 +203,8 @@ def testmetmm(sensor_name="sensor_amsub"):
     # ====================================================================
 
     # Store results
-    ws.WriteXML("ascii", ws.ybatch, "TestMetMM-typhon.ybatch.xml")
-    ws.WriteXML("ascii", ws.f_grid, "TestMetMM-typhon.f_grid.xml")
+    ws.WriteXML("ascii", ws.ybatch, "TestMetMM-pyarts.ybatch.xml")
+    ws.WriteXML("ascii", ws.f_grid, "TestMetMM-pyarts.f_grid.xml")
 
     # Verify results
     ws.ArrayOfVectorCreate("ybatch_ref")
