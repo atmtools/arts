@@ -33,6 +33,7 @@
 #include "check_input.h"
 #include "debug.h"
 #include "interpolation.h"
+#include "physics_funcs.h"
 
 String XsecRecord::SpeciesName() const {
   // The function species_name_from_species_index internally does an assertion
@@ -52,8 +53,6 @@ void XsecRecord::Extract(VectorView result,
                          const Vector& f_grid,
                          const Numeric pressure,
                          const Numeric temperature,
-                         const Index extrapolate_p,
-                         const Index extrapolate_t,
                          const Verbosity& verbosity) const {
   CREATE_OUTS;
 
@@ -146,41 +145,12 @@ void XsecRecord::Extract(VectorView result,
 
     Vector fit_result(data_f_grid.nelem());
     VectorView fit_result_active = fit_result[active_range];
-    Vector derivative;
-    // Only allocate derivative if extrapolation is enabled
-    if (extrapolate_p || extrapolate_t) {
-      derivative.resize(data_f_grid.nelem());
-    }
 
     // We have to create a matching view on the result vector:
     VectorView result_active = result[Range(i_fstart, f_extent)];
     Vector xsec_interp(f_extent);
 
-    const Numeric min_p = mfitminpressures[this_dataset_i];
-    const Numeric max_p = mfitmaxpressures[this_dataset_i];
-    const Numeric min_t = mfitmintemperatures[this_dataset_i];
-    const Numeric max_t = mfitmaxtemperatures[this_dataset_i];
-
-    const Numeric active_temperature =
-        temperature < min_t ? min_t
-                            : (temperature > max_t ? max_t : temperature);
-
-    const Numeric active_pressure =
-        pressure < min_p ? min_p : (pressure > max_p ? max_p : pressure);
-
-    CalcXsec(fit_result, this_dataset_i, active_pressure, active_temperature);
-
-    if (extrapolate_p && (pressure < min_p || pressure > max_p)) {
-      CalcDP(derivative, this_dataset_i, active_pressure);
-      derivative *= pressure - active_pressure;
-      fit_result += derivative;
-    }
-
-    if (extrapolate_t && (temperature < min_t || temperature > max_t)) {
-      CalcDT(derivative, this_dataset_i, active_temperature);
-      derivative *= temperature - active_temperature;
-      fit_result += derivative;
-    }
+    CalcXsec(fit_result, this_dataset_i, pressure, temperature);
 
     RemoveNegativeXsec(fit_result);
 
@@ -210,28 +180,27 @@ void XsecRecord::CalcXsec(VectorView& xsec,
   for (Index i = 0; i < xsec.nelem(); i++) {
     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
     xsec[i] = coeffs[P00] + coeffs[P10] * temperature + coeffs[P01] * pressure +
-              coeffs[P20] * temperature * temperature +
-              coeffs[P02] * pressure * pressure;
+              coeffs[P20] * temperature * temperature;
   }
 }
 
-void XsecRecord::CalcDT(VectorView& xsec_dt,
-                        const Index dataset,
-                        const Numeric temperature) const {
-  for (Index i = 0; i < xsec_dt.nelem(); i++) {
-    const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
-    xsec_dt[i] = coeffs[P10] + 2. * coeffs[P20] * temperature;
-  }
-}
+// void XsecRecord::CalcDT(VectorView& xsec_dt,
+//                         const Index dataset,
+//                         const Numeric temperature) const {
+//   for (Index i = 0; i < xsec_dt.nelem(); i++) {
+//     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
+//     xsec_dt[i] = coeffs[P10] + 2. * coeffs[P20] * temperature;
+//   }
+// }
 
-void XsecRecord::CalcDP(VectorView& xsec_dp,
-                        const Index dataset,
-                        const Numeric pressure) const {
-  for (Index i = 0; i < xsec_dp.nelem(); i++) {
-    const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
-    xsec_dp[i] = coeffs[P01] + 2. * coeffs[P02] * pressure;
-  }
-}
+// void XsecRecord::CalcDP(VectorView& xsec_dp,
+//                         const Index dataset,
+//                         const Numeric pressure) const {
+//   for (Index i = 0; i < xsec_dp.nelem(); i++) {
+//     const ConstVectorView coeffs = mfitcoeffs[dataset].data(i, joker);
+//     xsec_dp[i] = coeffs[P01] + 2. * coeffs[P02] * pressure;
+//   }
+// }
 
 void XsecRecord::RemoveNegativeXsec(VectorView& xsec) const {
   Numeric sum_xsec{};

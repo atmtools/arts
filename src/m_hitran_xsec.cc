@@ -85,8 +85,6 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
     const ArrayOfXsecRecord& hitran_xsec_data,
     const Numeric& force_p,
     const Numeric& force_t,
-    const Index& extpol_p,
-    const Index& extpol_t,
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUTS;
@@ -175,24 +173,18 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
                          f_grid,
                          current_p,
                          current_t,
-                         extpol_p,
-                         extpol_t,
                          verbosity);
       if (do_freq_jac)
         this_xdata.Extract(dxsec_temp_dF,
                            dfreq,
                            current_p,
                            current_t,
-                           extpol_p,
-                           extpol_t,
                            verbosity);
       if (do_temp_jac)
         this_xdata.Extract(dxsec_temp_dT,
                            f_grid,
                            current_p,
                            current_t + dt,
-                           extpol_p,
-                           extpol_t,
                            verbosity);
     }
 

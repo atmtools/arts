@@ -62,24 +62,16 @@ class XsecRecord {
      Calculate crosssections at each frequency for given pressure and
      temperature.
 
-     The extrapolation for temperatures and pressures values that lie outside
-     the fit data of the model can optionally be turned off. It is
-     recommended to leave these on.
-
      \param[out] result     Crosssections for given frequency grid.
      \param[in] f_grid      Frequency grid.
      \param[in] pressure    Scalar pressure.
      \param[in] temperature Scalar temperature.
-     \param[in] extrapolate_pressure     Extrapolate data outside model fit.
-     \param[in] extrapolate_temperature  Extrapolate data outside model fit.
      \param[in] verbosity   Verbosity.
      */
   void Extract(VectorView result,
                const Vector& f_grid,
                Numeric pressure,
                Numeric temperature,
-               Index extrapolate_pressure,
-               Index extrapolate_temperature,
                const Verbosity& verbosity) const;
 
   /************ VERSION 2 *************/
@@ -130,15 +122,15 @@ class XsecRecord {
                 Numeric pressure,
                 Numeric temperature) const;
 
-  /** Calculate temperature derivative of crosssections */
-  void CalcDT(VectorView& xsec_dt,
-              Index dataset,
-              Numeric temperature) const;
+  // /** Calculate temperature derivative of crosssections */
+  // void CalcDT(VectorView& xsec_dt,
+  //             Index dataset,
+  //             Numeric temperature) const;
 
-  /** Calculate pressure derivative of crosssections */
-  void CalcDP(VectorView& xsec_dp,
-              Index dataset,
-              Numeric pressure) const;
+  // /** Calculate pressure derivative of crosssections */
+  // void CalcDP(VectorView& xsec_dp,
+  //             Index dataset,
+  //             Numeric pressure) const;
 
   /** Remove negative cross sections and adjust integral */
   void RemoveNegativeXsec(VectorView& xsec) const;
@@ -147,7 +139,6 @@ class XsecRecord {
   static const Index P10 = 1;
   static const Index P01 = 2;
   static const Index P20 = 3;
-  static const Index P02 = 4;
 
   Index mversion{2};
   Species::Species mspecies;

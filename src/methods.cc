@@ -12963,12 +12963,7 @@ void define_md_data_raw() {
           "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
           "\n"
           "This broadens the cross section data from *hitran_xsec_data* and\n"
-          "interpolates it onto the current f_grid.\n"
-          "\n"
-          "apply_tfit turns of the temperature fit. It is only meant for testing\n"
-          "and should alwasy be kept on for real calculations.\n"
-          "\n"
-          "This method depends on the FFTW-3 library.\n"),
+          "interpolates it onto the current f_grid.\n"),
       AUTHORS("Oliver Lemke"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -12984,15 +12979,11 @@ void define_md_data_raw() {
          "rtp_vmr",
          "hitran_xsec_data"),
       GIN("force_p",
-          "force_t",
-          "extpol_p",
-          "extpol_t"),
-      GIN_TYPE("Numeric", "Numeric", "Index", "Index"),
-      GIN_DEFAULT("-1", "-1", "1", "1"),
+          "force_t"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1"),
       GIN_DESC("Positive value forces constant pressure [Pa].",
-               "Positive value forces constant temperature [K].",
-               "Extrapolate pressure outside fit range. Turn off only for debugging.",
-               "Extrapolate temperature outside fit range. Turn off only for debugging.")));
+               "Positive value forces constant temperature [K].")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddLines"),
