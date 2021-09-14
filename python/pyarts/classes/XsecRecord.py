@@ -206,7 +206,7 @@ class XsecRecord:
                 'unit':
                 "m",
                 'long_name':
-                f'Fit coeffiencents for band {i}'
+                f'Fit coefficients for band {i}'
             })
 
         attrs["species"] = str(self.spec)
