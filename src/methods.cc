@@ -12958,6 +12958,31 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("abs_xsec_per_speciesAddHitranXsec"),
+      DESCRIPTION(
+          "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"),
+      AUTHORS("Oliver Lemke"),
+      OUT("abs_xsec_per_species", "dabs_xsec_per_species_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_xsec_per_species",
+         "dabs_xsec_per_species_dx",
+         "abs_species",
+         "jacobian_quantities",
+         "abs_species_active",
+         "f_grid",
+         "abs_p",
+         "abs_t",
+         "hitran_xsec_data"),
+      GIN("force_p",
+          "force_t"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1"),
+      GIN_DESC("Positive value forces constant pressure [Pa].",
+               "Positive value forces constant temperature [K].")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddHitranXsec"),
       DESCRIPTION(
           "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"

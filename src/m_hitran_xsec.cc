@@ -221,3 +221,122 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
     }
   }
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
+    ArrayOfMatrix& abs_xsec_per_species,
+    ArrayOfArrayOfMatrix& /* dabs_xsec_per_species_dx */,
+    // WS Input:
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfRetrievalQuantity& /* jacobian_quantities */,
+    const ArrayOfIndex& abs_species_active,
+    const Vector& f_grid,
+    const Vector& abs_p,
+    const Vector& abs_t,
+    const ArrayOfXsecRecord& hitran_xsec_data,
+    const Numeric& force_p,
+    const Numeric& force_t,
+    // Verbosity object:
+    const Verbosity& verbosity) {
+  CREATE_OUTS;
+
+  {
+    // Check that all parameters that should have the number of tag
+    // groups as a dimension are consistent:
+    const Index n_tgs = abs_species.nelem();
+    const Index n_xsec = abs_xsec_per_species.nelem();
+
+    ARTS_USER_ERROR_IF(
+        n_tgs != n_xsec,
+        "The following variables must all have the same dimension:\n"
+        "abs_species:          ",
+        n_tgs,
+        "\n"
+        "abs_xsec_per_species: ",
+        n_xsec)
+  }
+
+  // Useful if there is no Jacobian to calculate
+  ArrayOfMatrix empty;
+
+  {
+    // Check that all parameters that should have the the dimension of p_grid
+    // are consistent:
+    const Index n_p = abs_p.nelem();
+    const Index n_t = abs_t.nelem();
+
+    ARTS_USER_ERROR_IF(
+        n_p != n_t,
+        "The following variables must all have the same dimension:\n"
+        "abs_p:          ",
+        n_p,
+        "\n"
+        "abs_t:          ",
+        n_t)
+  }
+
+  // Allocate a vector with dimension frequencies for constructing our
+  // cross-sections before adding them (more efficient to allocate this here
+  // outside of the loops)
+  Vector xsec_temp(f_grid.nelem(), 0.);
+
+  ArrayOfString fail_msg;
+  bool do_abort = false;
+
+  // Loop over Xsec data sets.
+  // Index ii loops through the outer array (different tag groups),
+  // index s through the inner array (different tags within each goup).
+  for (Index ii = 0; ii < abs_species_active.nelem(); ii++) {
+    const Index i = abs_species_active[ii];
+
+    for (Index s = 0; s < abs_species[i].nelem(); s++) {
+      const SpeciesTag& this_species = abs_species[i][s];
+
+      // Check if this is a HITRAN cross section tag
+      if (this_species.Type() != Species::TagType::HitranXsec) continue;
+
+      Index this_xdata_index =
+          hitran_xsec_get_index(hitran_xsec_data, this_species.Spec());
+      ARTS_USER_ERROR_IF(this_xdata_index < 0,
+                         "Cross-section species ",
+                         this_species.Name(),
+                         " not found in *hitran_xsec_data*.")
+      const XsecRecord& this_xdata = hitran_xsec_data[this_xdata_index];
+      Matrix& this_xsec = abs_xsec_per_species[i];
+
+      // Loop over pressure:
+#pragma omp parallel for if (!arts_omp_in_parallel() && abs_p.nelem() >= 1) \
+    firstprivate(xsec_temp)
+      for (Index ip = 0; ip < abs_p.nelem(); ip++) {
+        if (do_abort) continue;
+        const Numeric current_p = force_p < 0 ? abs_p[ip] : force_p;
+        const Numeric current_t = force_t < 0 ? abs_t[ip] : force_t;
+
+        // Get the absorption cross sections from the HITRAN data:
+        try {
+          this_xdata.Extract(xsec_temp,
+                             f_grid,
+                             current_p,
+                             current_t,
+                             verbosity);
+        } catch (runtime_error& e) {
+          ostringstream os;
+          os << "Problem with HITRAN cross section species "
+             << this_species.Name() << " at pressure level " << ip << " ("
+             << abs_p[ip] / 100. << " hPa):\n"
+             << e.what() << "\n";
+#pragma omp critical(abs_xsec_per_speciesAddHitranXsec)
+          {
+            do_abort = true;
+            fail_msg.push_back(os.str());
+          }
+        }
+        this_xsec(joker, ip) += xsec_temp;
+      }
+    }
+  }
+
+  if (do_abort) {
+    ARTS_USER_ERROR(fail_msg);
+  }
+}
