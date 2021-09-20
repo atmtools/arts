@@ -188,11 +188,11 @@ class XsecRecord:
             "unit": "Pa",
             "long_name": "Maximum pressures from fit"
         })
-        data_vars["fitmintemperatures"] = ("bands", self.fitminpressures, {
+        data_vars["fitmintemperatures"] = ("bands", self.fitmintemperatures, {
             "unit": "K",
             "long_name": "Minimum temperatures from fit"
         })
-        data_vars["fitmaxtemperatures"] = ("bands", self.fitmaxpressures, {
+        data_vars["fitmaxtemperatures"] = ("bands", self.fitmaxtemperatures, {
             "unit": "K",
             "long_name": "Maximum temperatures from fit"
         })
