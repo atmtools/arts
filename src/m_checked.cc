@@ -941,7 +941,8 @@ void propmat_clearsky_agenda_checkedCalc(
         "does not contain *propmat_clearskyAddParticles*.");
 
   ARTS_USER_ERROR_IF (needs_hxsec &&
-      !propmat_clearsky_agenda.has_method("propmat_clearskyAddHitranXsec"),
+      !(propmat_clearsky_agenda.has_method("propmat_clearskyAddFromLookup") ||
+        propmat_clearsky_agenda.has_method("propmat_clearskyAddHitranXsec")),
         "*abs_species* contains HITRAN xsec species but *propmat_clearsky_agenda*\n"
         "does not contain *propmat_clearskyAddHitranXsec*.");
 
