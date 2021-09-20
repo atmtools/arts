@@ -475,6 +475,89 @@ void define_md_data_raw() {
       GIN_DESC("Band ID")));
 
   md_data_raw.push_back(create_mdrecord(
+    NAME("abs_linesRemoveLines"),
+      DESCRIPTION("Remove lines *abs_lines* outside of specifications\n"
+        "\n"
+        "The specifications are:\n"
+        "\tThe lower frequency bound (all lines of this frequency or higher may be kept)\n"
+        "\tThe upper frequency bound (all lines of this frequency or lower may be kept)\n"
+        "\tThe lower intensity bound (all lines with lower intensity may be removed)\n"
+        "\n"
+        "If safe evaluates true, all lines in an absorption band must fail the above tests to be removed\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN("lower_frequency", "upper_frequency", "lower_intensity", "safe"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT("-1e99", "1e99", "0", "1"),
+      GIN_DESC("The lower frequency bound",
+        "The upper frequency bound",
+        "The lower intensity bound",
+        "Remove only lines from a band if all lines of a band fail")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesRemoveLines"),
+      DESCRIPTION("Repeats *abs_linesRemoveLines* for all inner arrays\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN("lower_frequency", "upper_frequency", "lower_intensity", "safe"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT("-1e99", "1e99", "0", "1"),
+      GIN_DESC("The lower frequency bound",
+        "The upper frequency bound",
+        "The lower intensity bound",
+        "Remove only lines from a band if all lines of a band fail")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_linesRemoveLinesFromSpecies"),
+      DESCRIPTION("As *abs_linesRemoveLines* but only for bands of the given species\n"
+      "\n"
+      "speices must be a single entry, and must specify the isotopologue\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN("species", "lower_frequency", "upper_frequency", "lower_intensity", "safe"),
+      GIN_TYPE("ArrayOfSpeciesTag", "Numeric", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "0", "1"),
+      GIN_DESC("Species to be removed",
+        "The lower frequency bound",
+        "The upper frequency bound",
+        "The lower intensity bound",
+        "Remove only lines from a band if all lines of a band fail")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesRemoveLinesFromSpecies"),
+      DESCRIPTION("Repeats *abs_linesRemoveLinesFromSpecies* for all inner arrays\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN("species", "lower_frequency", "upper_frequency", "lower_intensity", "safe"),
+      GIN_TYPE("ArrayOfSpeciesTag", "Numeric", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "0", "1"),
+      GIN_DESC("Species to be removed",
+        "The lower frequency bound",
+        "The upper frequency bound",
+        "The lower intensity bound",
+        "Remove only lines from a band if all lines of a band fail")));
+
+  md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveEmptyBands"),
       DESCRIPTION("Removes emtpy bands from *abs_lines*\n"),
       AUTHORS("Richard Larsson"),
