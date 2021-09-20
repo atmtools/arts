@@ -2522,7 +2522,7 @@ void remove_impl(ArrayOfAbsorptionLines& abs_lines,
       const bool all_upp = std::all_of(lines.begin(), lines.end(),
                                        [upper_frequency] (auto& line) {return line.F0() > upper_frequency;});
       const bool low_int = std::all_of(lines.begin(), lines.end(),
-                                       [lower_intensity] (auto& line) {return line.F0() < lower_intensity;});
+                                       [lower_intensity] (auto& line) {return line.I0() < lower_intensity;});
       if (all_low or all_upp or low_int) lines.resize(0);
     }
   }
