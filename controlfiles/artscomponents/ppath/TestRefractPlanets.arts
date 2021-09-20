@@ -24,7 +24,7 @@ VectorSet( rte_pos2, [] )
 
 IndexCreate( ilast )
 nrowsGet( ilast, sensor_pos )
-IndexStepDown( ilast, ilast )
+IndexSubtract( ilast, ilast, 1 )
 
 
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
@@ -98,7 +98,7 @@ AgendaSet( forloop_agenda ){
   # Print diff of MicrowavesEarth and MicrowavesGeneral
   Extract( tanh1, tp1, 0 )
   Extract( tanh2, tp2, 0 )
-  NumericScale( tanh2, tanh2, -1 )
+  NumericMultiply( tanh2, tanh2, -1 )
   NumericAdd( diff, tanh1, tanh2 )
   StringSet( infostring, "Tangent altitude diff of MicrowavesEarth and MicrowavesGeneral [m]: " )
   Print( infostring, outlev )
@@ -106,7 +106,7 @@ AgendaSet( forloop_agenda ){
 
   #Extract( tanlat1, tp1, 1 )
   #Extract( tanlat2, tp2, 1 )
-  #NumericScale( tanlat2, tanlat2, -1 )
+  #NumericMultiply( tanlat2, tanlat2, -1 )
   #NumericAdd( diff, tanlat1, tanlat2 )
   #StringSet( infostring, "Tangent latitude diff of MicrowavesEarth and MicrowavesGeneral [deg]: " )
   #Print( infostring, outlev )

@@ -196,10 +196,10 @@ AgendaSet( surface_rtprop_agenda ){
    FieldFromGriddedField( mtmp, p_grid, lat_true, lon_true, lsmask )
    VectorExtractFromMatrix( surface_scalar_reflectivity, mtmp, 0, "row" )
    Copy( ntmp, refl_sea )
-   NumericScale( ntmp, ntmp, -1. )
+   NumericMultiply( ntmp, ntmp, -1. )
    NumericAdd( ntmp, ntmp, refl_land )
-   VectorScale( surface_scalar_reflectivity, surface_scalar_reflectivity, ntmp )
-   VectorAddScalar( surface_scalar_reflectivity, surface_scalar_reflectivity, refl_sea )
+   VectorMultiply( surface_scalar_reflectivity, surface_scalar_reflectivity, ntmp )
+   VectorAdd( surface_scalar_reflectivity, surface_scalar_reflectivity, refl_sea )
    #Print( rte_pos, 0 )
    #Print( surface_scalar_reflectivity, 0 )
    surfaceFlatScalarReflectivity
@@ -255,10 +255,10 @@ VectorExtractFromMatrix( surface_scalar_reflectivity, mtmp, 0, "row" )
 
 # converting the land/sea mask value to surface reflectivity
 Copy( ntmp, refl_sea )
-NumericScale( ntmp, ntmp, -1. )
+NumericMultiply( ntmp, ntmp, -1. )
 NumericAdd( ntmp, ntmp, refl_land )
-VectorScale( surface_scalar_reflectivity, surface_scalar_reflectivity, ntmp )
-VectorAddScalar( surface_scalar_reflectivity, surface_scalar_reflectivity, refl_sea )
+VectorMultiply( surface_scalar_reflectivity, surface_scalar_reflectivity, ntmp )
+VectorAdd( surface_scalar_reflectivity, surface_scalar_reflectivity, refl_sea )
 #Print( surface_scalar_reflectivity )
 
 

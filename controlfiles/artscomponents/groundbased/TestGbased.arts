@@ -70,14 +70,14 @@ VectorNLogSpace( flog, nlogpart, f1, f2 )
 
 # First part of f_grid is flog "mirrored"
 VectorFlip( f_grid, flog )
-VectorScale( f_grid, f_grid, -1 )
+VectorMultiply( f_grid, f_grid, -1 )
 
 # Append an equidistant grid between [-fw_fine+df_fine,fw_fine-df_fine]
 VectorCreate( feqd )
 Copy( f1, fw_fine )
-NumericScale( f1, f1, -1 )
+NumericMultiply( f1, f1, -1 )
 NumericAdd( f1, f1, df_fine )
-NumericScale( f2, f1, -1 )
+NumericMultiply( f2, f1, -1 )
 VectorLinSpace( feqd, f1, f2, df_fine )
 Append( f_grid, feqd )
 
@@ -85,7 +85,7 @@ Append( f_grid, feqd )
 Append( f_grid, flog )
 
 # Add v0
-VectorAddScalar( f_grid, f_grid, v0 )
+VectorAdd( f_grid, f_grid, v0 )
 
 
 # ---- Species ---------------------------------------------------------------
@@ -201,14 +201,14 @@ backend_channel_responseGaussian( backend_channel_response, f_resolution_v, [2] 
 # Calculate where first channel can start (considering f_switch and 
 # channel widths)
 Copy( f1, fw )
-NumericScale( f1, f1, -1 )
+NumericMultiply( f1, f1, -1 )
 NumericAdd( f1, f1, f_switch )
 NumericAdd( f1, f1, f_resolution )
 Copy( f2, f1 )
-NumericScale( f2, f2, -1 )
+NumericMultiply( f2, f2, -1 )
 
 VectorLinSpace( f_backend, f1, f2, f_resolution )
-VectorAddScalar( f_backend, f_backend, v0 )
+VectorAdd( f_backend, f_backend, v0 )
 
 
 
@@ -237,7 +237,7 @@ Compare( y, yREFERENCE, 1e-4)
 
 NumericCreate( za_negative )
 Copy( za_negative, za )
-NumericScale( za_negative, za_negative, -1 )
+NumericMultiply( za_negative, za_negative, -1 )
 
 VectorCreate( za_vector )
 VectorNLinSpace( za_vector, 2, za_negative, 0 )
@@ -259,7 +259,7 @@ Compare( y, yREFERENCE, 1e-4)
 # --- Frequency switching -----------------------------------------------------
 
 Copy( f1, f_switch )
-NumericScale( f1, f1, -1 )
+NumericMultiply( f1, f1, -1 )
 
 AntennaOff
 sensor_responseInit

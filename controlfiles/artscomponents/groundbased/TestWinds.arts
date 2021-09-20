@@ -39,7 +39,7 @@ IndexSet( stokes_dim, 1 )
 NumericCreate( v0 )
 NumericSet( v0, 1.108360400e+11 )
 VectorLinSpace( f_grid, -5e6, 5e6, 50e3 )
-VectorAddScalar( f_grid, f_grid, v0 )
+VectorAdd( f_grid, f_grid, v0 )
 
 
 # ---- Species ---------------------------------------------------------------

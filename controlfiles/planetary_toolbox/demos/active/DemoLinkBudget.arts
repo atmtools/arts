@@ -99,9 +99,9 @@ NumericCreate( grid_hwidth )
 NumericCreate( grid_start  )
 NumericCreate( grid_stop   )
 #
-NumericScale( grid_hwidth, f_bwidth,    0.5         )
+NumericMultiply( grid_hwidth, f_bwidth,    0.5         )
 NumericAdd(   grid_stop,   f_centre,    grid_hwidth )
-NumericScale( grid_hwidth, grid_hwidth, -1          )
+NumericMultiply( grid_hwidth, grid_hwidth, -1          )
 NumericAdd(   grid_start,  f_centre,    grid_hwidth )
 #
 VectorNLinSpace( f_grid, 3, grid_start, grid_stop   )
@@ -145,14 +145,14 @@ IndexSet(   grid_length, 21 )   # Total number of grid points
 #
 Extract(      grid0,       reciever,    1           )
 NumericAdd(   grid_stop,   grid0,       grid_hwidth )
-NumericScale( grid_hwidth, grid_hwidth, -1          )
+NumericMultiply( grid_hwidth, grid_hwidth, -1          )
 NumericAdd(   grid_start,  grid0,       grid_hwidth )
 #
 VectorNLinSpace( lat_grid, grid_length, grid_start, grid_stop )
 #
 Extract(      grid0,       reciever,    2           )
 NumericAdd(   grid_start,  grid0,       grid_hwidth )
-NumericScale( grid_hwidth, grid_hwidth, -1          )
+NumericMultiply( grid_hwidth, grid_hwidth, -1          )
 NumericAdd(   grid_stop,   grid0,       grid_hwidth )
 #
 VectorNLinSpace( lon_grid, grid_length, grid_start, grid_stop )
@@ -228,7 +228,7 @@ Print( message, 0 )
 #
 StringSet( message, "Frequencies [GHz]:" )
 VectorCreate( f_ghz )
-VectorScale( f_ghz, f_grid, 1e-9 )
+VectorMultiply( f_ghz, f_grid, 1e-9 )
 Print( empty_line, 0 )
 Print( message, 0 )
 Print( seperator, 0 )

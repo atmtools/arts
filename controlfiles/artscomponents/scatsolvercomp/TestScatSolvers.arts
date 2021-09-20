@@ -211,7 +211,7 @@ Compare( y_hybrid, y_disort, 0.4, "Test2, Hybrid vs. DISORT" )
 
 # Test 3: As 2 but with RWC/IWC increased with a factor of 3
 # ---------------------------------------------------------------------
-Tensor4Scale( particle_bulkprop_field, particle_bulkprop_field, 3 )
+Tensor4Multiply( particle_bulkprop_field, particle_bulkprop_field, 3 )
 pnd_fieldCalcFromParticleBulkProps
 #
 StringSet( message, "Increased RWC/IWC" )
@@ -233,9 +233,9 @@ Compare( y_hybrid, y_disort, 0.4, "Test3, Hybrid vs. DISORT" )
 
 # Test 4: As 2 but with surface moved upwards
 # ---------------------------------------------------------------------
-Tensor4Scale( particle_bulkprop_field, particle_bulkprop_field, 0.3333333 )
+Tensor4Multiply( particle_bulkprop_field, particle_bulkprop_field, 0.3333333 )
 pnd_fieldCalcFromParticleBulkProps
-MatrixAddScalar( z_surface, z_surface, 3000 )
+MatrixAdd( z_surface, z_surface, 3000 )
 VectorExtractFromMatrix( rtp_pos, z_surface, 0, "row" )
 InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
 ##

@@ -104,14 +104,14 @@ VectorNLogSpace( flog, nlogpart, f1, f2 )
 
 # First part of f_grid is flog "mirrored"
 VectorFlip( f_grid, flog )
-VectorScale( f_grid, f_grid, -1 )
+VectorMultiply( f_grid, f_grid, -1 )
 
 # Append an equidistant grid between [-fw_fine+df_fine,fw_fine-df_fine]
 VectorCreate( feqd )
 Copy( f1, fw_fine )
-NumericScale( f1, f1, -1 )
+NumericMultiply( f1, f1, -1 )
 NumericAdd( f1, f1, df_fine )
-NumericScale( f2, f1, -1 )
+NumericMultiply( f2, f1, -1 )
 VectorLinSpace( feqd, f1, f2, df_fine )
 Append( f_grid, feqd )
 
@@ -119,7 +119,7 @@ Append( f_grid, feqd )
 Append( f_grid, flog )
 
 # Add v0
-VectorAddScalar( f_grid, f_grid, v0 )
+VectorAdd( f_grid, f_grid, v0 )
 
 
 #--- Checks & Misc settings --------------------------------------------------
@@ -156,9 +156,9 @@ WriteXML( output_file_format, y1 )
 # ---- Create reference f_grid -----------------------------------------------
 
 Copy( f1, fw )
-NumericScale( f1, f1, -1 )
+NumericMultiply( f1, f1, -1 )
 VectorLinSpace( f_grid, f1, fw, 30e3 )
-VectorAddScalar( f_grid, f_grid, v0 )
+VectorAdd( f_grid, f_grid, v0 )
 
 
 #-- Calculate spectrum for reference grid and store as ye(x2)

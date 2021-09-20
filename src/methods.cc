@@ -7220,20 +7220,55 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexAdd"),
       DESCRIPTION(
-          "Adds a index and a value (out = in+value).\n"
+          "Adds a Index and a value (out = in + value).\n"
           "\n"
-          "The result can either be stored in the same or another index.\n"
-          "(in and out can be the same variable, but not out and value)\n"),
+          "The result can either be stored in the same or another Index.\n"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Index"),
-      GOUT_DESC("Output numeric."),
+      GOUT_DESC("Output Index."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Index.", "Value to add.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("IndexDivide"),
+      DESCRIPTION(
+          "Integer division of a Index and a value (out = in / value).\n"
+          "\n"
+          "Please note that integer divison is applied, and e.g. 5/3=1.\n"
+          "\n"
+          "The result can either be stored in the same or another Index.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Output Index."),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Index (numerator).", "Denominator.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("IndexMultiply"),
+      DESCRIPTION(
+          "Multiplies a Index and a value (out = in * value).\n"
+          "\n"
+          "The result can either be stored in the same or another Index.\n"),
+      AUTHORS("Patrick Eriksson, Oliver Lemke"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Output index."),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Index.", "Multiplier.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexNumberOfAtmosphericPoints"),
@@ -7257,7 +7292,7 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexSet"),
-      DESCRIPTION("Sets an index workspace variable to the given value.\n"),
+      DESCRIPTION("Sets a Index workspace variable to the given value.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
@@ -7291,37 +7326,22 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(
-      create_mdrecord(NAME("IndexStepDown"),
-               DESCRIPTION("Performas: out = in - 1\n"
-                           "\n"
-                           "Input and output can be same variable.\n"),
-               AUTHORS("Patrick Eriksson"),
-               OUT(),
-               GOUT("out"),
-               GOUT_TYPE("Index"),
-               GOUT_DESC("Output index variable."),
-               IN(),
-               GIN("in"),
-               GIN_TYPE("Index"),
-               GIN_DEFAULT(NODEF),
-               GIN_DESC("Input index variable.")));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("IndexStepUp"),
-               DESCRIPTION("Performas: out = in + 1\n"
-                           "\n"
-                           "Input and output can be same variable.\n"),
-               AUTHORS("Patrick Eriksson"),
-               OUT(),
-               GOUT("out"),
-               GOUT_TYPE("Index"),
-               GOUT_DESC("Output index variable."),
-               IN(),
-               GIN("in"),
-               GIN_TYPE("Index"),
-               GIN_DEFAULT(NODEF),
-               GIN_DESC("Input index variable.")));
+  md_data_raw.push_back(create_mdrecord(
+      NAME("IndexSubtract"),
+      DESCRIPTION(
+          "Subtracts a Index value (out = in - value).\n"
+          "\n"
+          "The result can either be stored in the same or another Index.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Output Index."),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Index.", "Subtrahend.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("InterpAtmFieldToPosition"),
@@ -9950,7 +9970,7 @@ void define_md_data_raw() {
                "example: \"/data/magnetic_field\"")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("MatrixAddScalar"),
+      NAME("MatrixAdd"),
       DESCRIPTION(
           "Adds a scalar to all elements of a matrix.\n"
           "\n"
@@ -9959,12 +9979,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Matrix"),
-      GOUT_DESC("Output matrix"),
+      GOUT_DESC("Output Matrix"),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Matrix", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input matrix.", "The value to be added to the matrix.")));
+      GIN_DESC("Input Matrix.", "The value to be added to the matrix.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixCBR"),
@@ -10008,6 +10028,23 @@ void define_md_data_raw() {
       GIN_TYPE("Sparse"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("The sparse matrix to be copied.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("MatrixDivide"),
+      DESCRIPTION("Divides all elements of a matrix with the specified value.\n"
+                  "\n"
+                  "The result can either be stored in the same or another\n"
+                  "variable.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("Output Matrix"),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Matrix", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Matrix.","Denominator.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixExtractFromTensor3"),
@@ -10109,8 +10146,8 @@ void define_md_data_raw() {
       GIN_DESC("Frequency vector.", "Temperature [K].")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("MatrixScale"),
-      DESCRIPTION("Scales all elements of a matrix with the specified value.\n"
+      NAME("MatrixMultiply"),
+      DESCRIPTION("Multiplies all elements of a matrix with the specified value.\n"
                   "\n"
                   "The result can either be stored in the same or another\n"
                   "variable.\n"),
@@ -10118,12 +10155,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Matrix"),
-      GOUT_DESC("Output matrix"),
+      GOUT_DESC("Output Matrix"),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Matrix", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input matrix.",
+      GIN_DESC("Input Matrix.",
                "The value to be multiplied with the matrix.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -10161,6 +10198,23 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Matrix value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("MatrixSubtract"),
+      DESCRIPTION(
+          "Subtracts a scalar from all elements of a matrix.\n"
+          "\n"
+          "The result can either be stored in the same or another matrix.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("Output Matrix"),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Matrix", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Matrix.", "The value to be subtracted from the matrix.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixUnitIntensity"),
@@ -10672,25 +10726,24 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericAdd"),
       DESCRIPTION(
-          "Adds a numeric and a value (out = in+value).\n"
+          "Adds a Numeric and a value (out = in + value).\n"
           "\n"
-          "The result can either be stored in the same or another numeric.\n"
-          "(in and out can be the same varible, but not out and value)\n"),
+          "The result can either be stored in the same or another Numeric.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Numeric"),
-      GOUT_DESC("Output numeric."),
+      GOUT_DESC("Output Numeric."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input numeric.", "Value to add.")));
+      GIN_DESC("Input Numeric.", "Value to add.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericClip"),
       DESCRIPTION(
-          "Clipping of a numeric.\n"
+          "Clipping of a Numeric.\n"
           "\n"
           "The input value is copied to the output one (that can be same WSV)\n"
           "but ensures that *out* is inside the range [limit_low,limit_high].\n"
@@ -10700,19 +10753,36 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Numeric"),
-      GOUT_DESC("Output numeric."),
+      GOUT_DESC("Output Numeric."),
       IN(),
       GIN("in", "limit_low", "limit_high"),
       GIN_TYPE("Numeric", "Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, "-Inf", "Inf"),
-      GIN_DESC("Input numeric.",
+      GIN_DESC("Input Numeric.",
                "Lower limit for clipping.",
                "Upper limit for clipping.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("NumericDivide"),
+      DESCRIPTION(
+          "Divides a Numeric with a value (out = in / value).\n"
+          "\n"
+          "The result can either be stored in the same or another Numeric.\n"),
+      AUTHORS("Jana Mendrok"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Numeric"),
+      GOUT_DESC("Output Numeric."),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Numeric (numerator).", "Denominator.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("NumericFromVector"),
       DESCRIPTION(
-          "Derivs a numeric from a vector, following selected operation.\n"
+          "Derivs a Numeric from a vector, following selected operation.\n"
           "\n"
           "The following operations can be selected:\n"
           "  first : Selects the first element of the vector.\n"
@@ -10724,7 +10794,7 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Numeric"),
-      GOUT_DESC("Output numeric."),
+      GOUT_DESC("Output Numeric."),
       IN(),
       GIN("in", "op"),
       GIN_TYPE("Vector", "String"),
@@ -10732,44 +10802,25 @@ void define_md_data_raw() {
       GIN_DESC("Input vector.", "Selected operation.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("NumericInvScale"),
+      NAME("NumericMultiply"),
       DESCRIPTION(
-          "Inversely scales/divides a numeric with a value (out = in/value).\n"
+          "Multiplies a Numeric with a value (out = in*value).\n"
           "\n"
-          "The result can either be stored in the same or another numeric.\n"
-          "(in and out can be the same varible, but not out and value)\n"),
-      AUTHORS("Jana Mendrok"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Numeric"),
-      GOUT_DESC("Output numeric."),
-      IN(),
-      GIN("in", "value"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input numeric.", "Scaling value.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("NumericScale"),
-      DESCRIPTION(
-          "Scales/multiplies a numeric with a value (out = in*value).\n"
-          "\n"
-          "The result can either be stored in the same or another numeric.\n"
-          "(in and out can be the same varible, but not out and value)\n"),
+          "The result can either be stored in the same or another Numeric.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Numeric"),
-      GOUT_DESC("Output numeric."),
+      GOUT_DESC("Output Numeric."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input numeric.", "Scaling value.")));
+      GIN_DESC("Input Numeric.", "Multiplier.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericSet"),
-      DESCRIPTION("Sets a numeric workspace variable to the given value.\n"),
+      DESCRIPTION("Sets a Numeric workspace variable to the given value.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
@@ -10781,6 +10832,23 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The value."),
       SETMETHOD(true)));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("NumericSubtract"),
+      DESCRIPTION(
+          "Subtracts a Numeric value (out = in - value).\n"
+          "\n"
+          "The result can either be stored in the same or another Numeric.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Numeric"),
+      GOUT_DESC("Output Numeric."),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Numeric.", "Subtrahend.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("QuantumIdentifierSet"),
@@ -14387,10 +14455,9 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("RationalAdd"),
       DESCRIPTION(
-          "Adds a Rational and a value (out = in+value).\n"
+          "Adds a Rational and a value (out = in + value).\n"
           "\n"
-          "The result can either be stored in the same or another Rational.\n"
-          "(in and out can be the same varible, but not out and value)\n"),
+          "The result can either be stored in the same or another Rational.\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("out"),
@@ -14403,12 +14470,11 @@ void define_md_data_raw() {
       GIN_DESC("Input Rational.", "Value to add.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("RationalInvScale"),
+      NAME("RationalDivide"),
       DESCRIPTION(
-          "Inversely scales/divides a Rational with a value (out = in/value).\n"
+          "Divides a Rational with a value (out = in / value).\n"
           "\n"
-          "The result can either be stored in the same or another Rational.\n"
-          "(in and out can be the same varible, but not out and value)\n"),
+          "The result can either be stored in the same or another Rational.\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("out"),
@@ -14418,15 +14484,14 @@ void define_md_data_raw() {
       GIN("in", "value"),
       GIN_TYPE("Rational", "Rational"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input Rational.", "Scaling Rational.")));
+      GIN_DESC("Input Rational.", "Denominator.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("RationalScale"),
+      NAME("RationalMultiply"),
       DESCRIPTION(
-          "Scales/multiplies a Rational with a value (out = in*value).\n"
+          "Multiplies a Rational with a value (out = in * value).\n"
           "\n"
-          "The result can either be stored in the same or another Rational.\n"
-          "(in and out can be the same varible, but not out and value)\n"),
+          "The result can either be stored in the same or another Rational.\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("out"),
@@ -14436,7 +14501,7 @@ void define_md_data_raw() {
       GIN("in", "value"),
       GIN_TYPE("Rational", "Rational"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input Rational.", "Scaling value.")));
+      GIN_DESC("Input Rational.", "Multiplier.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RationalSet"),
@@ -14451,6 +14516,23 @@ void define_md_data_raw() {
       GIN_TYPE("Index", "Index"),
       GIN_DEFAULT(NODEF, "1"),
       GIN_DESC("The numerator.", "The denominator.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("RationalSubtract"),
+      DESCRIPTION(
+          "Subtracts a Rational value (out = in - value).\n"
+          "\n"
+          "The result can either be stored in the same or another Rational.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Rational"),
+      GOUT_DESC("Output Rational."),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Rational", "Rational"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Rational.", "Subtrahend.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadArrayOfARTSCAT"),
@@ -19224,7 +19306,7 @@ void define_md_data_raw() {
                "Filename pattern (@MM@ gets replaced by month number)")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("Tensor3AddScalar"),
+      NAME("Tensor3Add"),
       DESCRIPTION("Adds a scalar value to all elements of a tensor3.\n"
                   "\n"
                   "The result can either be stored in the same or another\n"
@@ -19233,12 +19315,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Tensor3"),
-      GOUT_DESC("Output tensor."),
+      GOUT_DESC("Output Tensor."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Tensor3", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input tensor.", "The value to be added to the tensor.")));
+      GIN_DESC("Input Tensor.", "The value to be added to the tensor.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3ExtractFromTensor4"),
@@ -19276,8 +19358,8 @@ void define_md_data_raw() {
       GIN_DESC("Input vector.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("Tensor3Scale"),
-      DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
+      NAME("Tensor3Multiply"),
+      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
                   "\n"
                   "The result can either be stored in the same or another\n"
                   "variable.\n"),
@@ -19285,12 +19367,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Tensor3"),
-      GOUT_DESC("Output tensor."),
+      GOUT_DESC("Output Tensor."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Tensor3", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input tensor.",
+      GIN_DESC("Input Tensor.",
                "The value to be multiplied with the tensor.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -19311,7 +19393,7 @@ void define_md_data_raw() {
       GIN_DESC("Tensor value.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("Tensor4AddScalar"),
+      NAME("Tensor4Add"),
       DESCRIPTION("Adds a scalar value to all elements of a tensor4.\n"
                   "\n"
                   "The result can either be stored in the same or another\n"
@@ -19320,12 +19402,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Tensor4"),
-      GOUT_DESC("Output tensor."),
+      GOUT_DESC("Output Tensor."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Tensor4", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input tensor.", "The value to be added to the tensor.")));
+      GIN_DESC("Input Tensor.", "The value to be added to the tensor.")));
   /*
   md_data_raw.push_back
     ( create_mdrecord
@@ -19362,8 +19444,8 @@ void define_md_data_raw() {
   */
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("Tensor4Scale"),
-      DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
+      NAME("Tensor4Multiply"),
+      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
                   "\n"
                   "The result can either be stored in the same or another\n"
                   "variable.\n"),
@@ -19371,12 +19453,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Tensor4"),
-      GOUT_DESC("Output tensor."),
+      GOUT_DESC("Output Tensor."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Tensor4", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input tensor.",
+      GIN_DESC("Input Tensor.",
                "The value to be multiplied with the tensor.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -19397,8 +19479,8 @@ void define_md_data_raw() {
       GIN_DESC("Tensor value.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("Tensor5Scale"),
-      DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
+      NAME("Tensor5Multiply"),
+      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
                   "\n"
                   "The result can either be stored in the same or another\n"
                   "variable.\n"),
@@ -19406,12 +19488,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Tensor5"),
-      GOUT_DESC("Output tensor."),
+      GOUT_DESC("Output Tensor."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Tensor5", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input tensor.",
+      GIN_DESC("Input Tensor.",
                "The value to be multiplied with the tensor.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -19432,8 +19514,8 @@ void define_md_data_raw() {
       GIN_DESC("Tensor value.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("Tensor6Scale"),
-      DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
+      NAME("Tensor6Multiply"),
+      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
                   "\n"
                   "The result can either be stored in the same or another\n"
                   "variable.\n"),
@@ -19441,12 +19523,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Tensor6"),
-      GOUT_DESC("Output tensor."),
+      GOUT_DESC("Output Tensor."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Tensor6", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input tensor.",
+      GIN_DESC("Input Tensor.",
                "The value to be multiplied with the tensor.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -19467,8 +19549,8 @@ void define_md_data_raw() {
       GIN_DESC("Tensor value.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("Tensor7Scale"),
-      DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
+      NAME("Tensor7Multiply"),
+      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
                   "\n"
                   "The result can either be stored in the same or another\n"
                   "variable.\n"),
@@ -19476,12 +19558,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Tensor7"),
-      GOUT_DESC("Output tensor."),
+      GOUT_DESC("Output Tensor."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Tensor7", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input tensor.",
+      GIN_DESC("Input Tensor.",
                "The value to be multiplied with the tensor.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -19734,7 +19816,7 @@ void define_md_data_raw() {
       GIN_DESC("Grid.", "Integrand.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("VectorAddScalar"),
+      NAME("VectorAdd"),
       DESCRIPTION(
           "Adds a scalar to all elements of a vector.\n"
           "\n"
@@ -19743,12 +19825,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Vector"),
-      GOUT_DESC("Output vector"),
+      GOUT_DESC("Output Vector"),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Vector", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input vector.", "The value to be added to the vector.")));
+      GIN_DESC("Input Vector.", "The value to be added to the vector.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorAddVector"),
@@ -19820,6 +19902,23 @@ void define_md_data_raw() {
       GIN_DESC("Original vector",
                "Minimum value to keep",
                "Maximum value to keep")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorDivide"),
+      DESCRIPTION(
+          "Divides all elements of a vector with the same value.\n"
+          "\n"
+          "The result can either be stored in the same or another vector.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output Vector."),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Vector", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Vector.", "Denominator.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorExtractFromMatrix"),
@@ -20055,21 +20154,21 @@ void define_md_data_raw() {
       GIN_DESC("Input matrix.", "Direction. \"row\" or \"column\".")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("VectorScale"),
+      NAME("VectorMultiply"),
       DESCRIPTION(
-          "Scales all elements of a vector with the same value.\n"
+          "Multiplies all elements of a vector with the same value.\n"
           "\n"
           "The result can either be stored in the same or another vector.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Vector"),
-      GOUT_DESC("Output vector."),
+      GOUT_DESC("Output Vector."),
       IN(),
       GIN("in", "value"),
       GIN_TYPE("Vector", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input vector.", "Scaling value.")));
+      GIN_DESC("Input Vector.", "Scaling value.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorSetConstant"),
@@ -20087,6 +20186,23 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vector value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorSubtract"),
+      DESCRIPTION(
+          "Subtracts a scalar from all elements of a vector.\n"
+          "\n"
+          "The result can either be stored in the same or another vector.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output Vector"),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Vector", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Vector.", "The value to be subtracted from the vector.")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("ArrayOfTimeSetConstant"),

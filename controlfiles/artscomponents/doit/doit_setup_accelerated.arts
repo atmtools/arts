@@ -39,6 +39,6 @@ AgendaSet( doit_conv_test_agenda ){
 }
 
 # we want a really thick cloud here
-Tensor4Scale( out=pnd_field, in=pnd_field, value=80 )
+Tensor4Multiply( out=pnd_field, in=pnd_field, value=80 )
 
 } # End of Main

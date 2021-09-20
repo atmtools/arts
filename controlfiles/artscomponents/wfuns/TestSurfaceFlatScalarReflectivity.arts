@@ -153,7 +153,7 @@ Tensor3FromVector( surface_props_data, spdata )
 #
 yCalc
 VectorSubtractVector( y, y, y0 )
-VectorScale( y, y, 100 )
+VectorMultiply( y, y, 100 )
 VectorExtractFromMatrix( jvec, j0, 0, "column" )
 Compare( y, jvec, 1e-6 )
 
@@ -165,7 +165,7 @@ Tensor3FromVector( surface_props_data, spdata )
 #
 yCalc
 VectorSubtractVector( y, y, y0 )
-VectorScale( y, y, 1e4 )
+VectorMultiply( y, y, 1e4 )
 VectorExtractFromMatrix( jvec, j0, 1, "column" )
 Compare( y, jvec, 1e-6 )
 
@@ -177,7 +177,7 @@ Tensor3FromVector( surface_props_data, spdata )
 #
 yCalc
 VectorSubtractVector( y, y, y0 )
-VectorScale( y, y, 1e4 )
+VectorMultiply( y, y, 1e4 )
 VectorExtractFromMatrix( jvec, j0, 2, "column" )
 Compare( y, jvec, 1e-6 )
 
@@ -189,7 +189,7 @@ Tensor3FromVector( surface_props_data, spdata )
 #
 yCalc
 VectorSubtractVector( y, y, y0 )
-VectorScale( y, y, 1e4 )
+VectorMultiply( y, y, 1e4 )
 VectorExtractFromMatrix( jvec, j0, 3, "column" )
 Compare( y, jvec, 1e-6 )
 

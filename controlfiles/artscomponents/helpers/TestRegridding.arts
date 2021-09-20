@@ -138,14 +138,14 @@ AgendaSet( forloop_agenda_lat ){
   #Print( lat_true, 0 )
 
   nelemGet( ncases, lon_regrid )
-  IndexStepDown( ncases, ncases )
+  IndexSubtract( ncases, ncases, 1 )
   Copy( forloop_agenda, forloop_agenda_lon )
   ForLoop( forloop_agenda, 0, ncases, 1 )
 }
 
 AtmosphereSet1D
 nelemGet( ncases, lat_regrid )
-IndexStepDown( ncases, ncases )
+IndexSubtract( ncases, ncases, 1 )
 Copy( forloop_agenda, forloop_agenda_lat )
 ForLoop( forloop_agenda, 0, ncases, 1 )
 

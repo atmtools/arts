@@ -75,8 +75,8 @@ AtmFieldsCalcExpand1D
 # Craete a synthetic field, where all componenets have the same value
 #
 Copy( mag_u_field, t_field )
-Tensor3Scale( mag_u_field, mag_u_field, 0 )
-Tensor3AddScalar( mag_u_field, mag_u_field, 25e-6 )
+Tensor3Multiply( mag_u_field, mag_u_field, 0 )
+Tensor3Add( mag_u_field, mag_u_field, 25e-6 )
 Copy( mag_v_field, mag_u_field )
 Copy( mag_w_field, mag_u_field )
 

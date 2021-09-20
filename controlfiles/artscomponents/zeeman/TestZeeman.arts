@@ -101,7 +101,7 @@ Arts2 {
   ReadXML(test, "testdata/zeeman/propmat_dw.xml")
   CompareRelative(test, propmat_clearsky, 1e-6)
   VectorSet(rtp_mag, [25e-6, 60e-6, 10e-6])
-  VectorScale(rtp_mag, rtp_mag, 1.001)
+  VectorMultiply(rtp_mag, rtp_mag, 1.001)
   propmat_clearskyInit
   propmat_clearskyAddZeeman
   #WriteXML("ascii", propmat_clearsky, "testdata/zeeman/propmat_dH.xml")

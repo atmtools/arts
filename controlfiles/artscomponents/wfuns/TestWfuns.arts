@@ -306,7 +306,7 @@ Copy( Ja, jacobian )
 #
 # wind_u_field is [], so we need to reset it to zeros of correct size
 Copy( wind_v_field, t_field )
-Tensor3Scale( wind_v_field,  wind_v_field, 0 )
+Tensor3Multiply( wind_v_field,  wind_v_field, 0 )
 #
 StringSet( info, "Wind/v, perturbation" )
 Print( info, 0 )

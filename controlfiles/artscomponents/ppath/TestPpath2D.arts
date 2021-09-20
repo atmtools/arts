@@ -139,7 +139,7 @@ MatrixSet( sensor_los, [ 45; 95; 113; -113; 0; 34; -156; 90; 0; -112] )
 
 IndexCreate( ilast )
 nrowsGet( ilast, sensor_pos )
-IndexStepDown( ilast, ilast )
+IndexSubtract( ilast, ilast, 1 )
 
 AgendaSet( forloop_agenda ){
   #Print( forloop_index, 0 )

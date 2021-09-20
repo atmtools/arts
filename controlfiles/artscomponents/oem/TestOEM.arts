@@ -51,7 +51,7 @@ VectorNLinSpace( fgrid2, nf, df_start, df_end )
 #
 # Create final f_grid
 VectorInsertGridPoints( f_grid, fgrid1, fgrid2 )
-VectorAddScalar( f_grid, f_grid, f0 )
+VectorAdd( f_grid, f_grid, f0 )
 
 
 # Define spectrometer
@@ -289,17 +289,17 @@ AgendaSet( inversion_iterate_agenda ){
 
 # Let a priori be off with 0.5 ppm
 #
-Tensor4AddScalar( vmr_field, vmr_field, 0.5e-6 )
+Tensor4Add( vmr_field, vmr_field, 0.5e-6 )
 
 
 # Add a baseline
 #
-VectorAddScalar( y, y, 1 )
+VectorAdd( y, y, 1 )
 
 
 # Introduce a frequency error
 #
-VectorAddScalar( f_backend, f_backend, -150e3 )
+VectorAdd( f_backend, f_backend, -150e3 )
 
 
 # Calculate sensor_reponse (this time with assumed f_backend)

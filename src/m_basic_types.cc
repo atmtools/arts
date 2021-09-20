@@ -32,7 +32,7 @@
   This file includes workspace functions for variables of basic types, 
   such as Matrix and ArrayOfIndex. The functions are mainly of two types: <br>
   1. Initiation of variables by keyword arguments, such as *StringSet*. <br>
-  2. Basic math, such as *MatrixVectorMultiply*.
+  2. Basic math, such as *VectorMatrixMultiply*.
 
   These functions are listed in the doxygen documentation as entries of the
   file auto_md.h.
@@ -130,27 +130,41 @@ void IndexAdd(Index& out,
               const Index& in,
               const Index& value,
               const Verbosity&) {
-  out = value + in;
+  out = in + value;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void IndexDivide(Index& out,
+                 const Index& in,
+                 const Index& value,
+                 const Verbosity&) {
+  out = in / value;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void IndexMultiply(Index& out,
+                   const Index& in,
+                   const Index& value,
+                   const Verbosity&) {
+  out = in * value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void IndexSet(Index& x, const Index& value, const Verbosity&) { x = value; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexStepDown(Index& xout, const Index& xin, const Verbosity&) {
-  xout = xin - 1;
+void IndexSubtract(Index& out,
+                   const Index& in,
+                   const Index& value,
+                   const Verbosity&) {
+  out = in - value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexStepUp(Index& xout, const Index& xin, const Verbosity&) {
-  xout = xin + 1;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixAddScalar(Matrix& out,
-                     const Matrix& in,
-                     const Numeric& value,
-                     const Verbosity&) {
+void MatrixAdd(Matrix& out,
+               const Matrix& in,
+               const Numeric& value,
+               const Verbosity&) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just add the scalar value.
@@ -161,6 +175,60 @@ void MatrixAddScalar(Matrix& out,
     out.resize(in.nrows(), in.ncols());
     out = in;
     out += value;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixDivide(Matrix& out,
+                  const Matrix& in,
+                  const Numeric& value,
+                  const Verbosity&) {
+  // Note that in and out can be the same matrix
+  if (&out == &in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out /= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize(in.nrows(), in.ncols());
+    out = in;
+    out /= value;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixMultiply(Matrix& out,
+                    const Matrix& in,
+                    const Numeric& value,
+                    const Verbosity&) {
+  // Note that in and out can be the same matrix
+  if (&out == &in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out *= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize(in.nrows(), in.ncols());
+    out = in;
+    out *= value;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixSubtract(Matrix& out,
+                    const Matrix& in,
+                    const Numeric& value,
+                    const Verbosity&) {
+  // Note that in and out can be the same matrix
+  if (&out == &in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out -= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize(in.nrows(), in.ncols());
+    out = in;
+    out -= value;
   }
 }
 
@@ -385,24 +453,6 @@ void MatrixIdentity(Matrix& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixScale(Matrix& out,
-                 const Matrix& in,
-                 const Numeric& value,
-                 const Verbosity&) {
-  // Note that in and out can be the same matrix
-  if (&out == &in) {
-    // Out and in are the same. Just multiply by the scalar value.
-    out *= value;
-  } else {
-    // Out and in are different. We first have to copy in to out,
-    // then multiply by the scalar value.
-    out.resize(in.nrows(), in.ncols());
-    out = in;
-    out *= value;
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixSet(Matrix& x, const Matrix& values, const Verbosity&) {
   x = values;
 }
@@ -422,7 +472,7 @@ void NumericAdd(Numeric& out,
                 const Numeric& in,
                 const Numeric& value,
                 const Verbosity&) {
-  out = value + in;
+  out = in + value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -437,6 +487,14 @@ void NumericClip(Numeric& out,
     out = limit_high;
   else
     out = in;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void NumericDivide(Numeric& out,
+                   const Numeric& in,
+                   const Numeric& value,
+                   const Verbosity&) {
+  out = in / value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -463,24 +521,24 @@ void NumericFromVector(Numeric& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericInvScale(Numeric& out,
+void NumericMultiply(Numeric& out,
                      const Numeric& in,
                      const Numeric& value,
                      const Verbosity&) {
-  out = in / value;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void NumericScale(Numeric& out,
-                  const Numeric& in,
-                  const Numeric& value,
-                  const Verbosity&) {
-  out = value * in;
+  out = in * value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void NumericSet(Numeric& x, const Numeric& value, const Verbosity&) {
   x = value;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void NumericSubtract(Numeric& out,
+                     const Numeric& in,
+                     const Numeric& value,
+                     const Verbosity&) {
+  out = in - value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -504,23 +562,23 @@ void RationalAdd(Rational& out,
                  const Rational& in,
                  const Rational& value,
                  const Verbosity&) {
-  out = value + in;
+  out = in + value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RationalInvScale(Rational& out,
-                      const Rational& in,
-                      const Rational& value,
-                      const Verbosity&) {
+void RationalDivide(Rational& out,
+                    const Rational& in,
+                    const Rational& value,
+                    const Verbosity&) {
   out = in / value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RationalScale(Rational& out,
-                   const Rational& in,
-                   const Rational& value,
-                   const Verbosity&) {
-  out = value * in;
+void RationalMultiply(Rational& out,
+                      const Rational& in,
+                      const Rational& value,
+                      const Verbosity&) {
+  out = in * value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -530,6 +588,15 @@ void RationalSet(Rational& x,
                  const Verbosity&) {
   x = Rational(numerator, denominator);
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void RationalSubtract(Rational& out,
+                      const Rational& in,
+                      const Rational& value,
+                      const Verbosity&) {
+  out = in - value;
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void SparseSparseMultiply(  // WS Generic Output:
@@ -596,10 +663,10 @@ void DiagonalMatrix(Sparse& X, const Vector& diag, const Verbosity& /*v*/) {
 void StringSet(String& s, const String& s2, const Verbosity&) { s = s2; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3AddScalar(Tensor3& out,
-                      const Tensor3& in,
-                      const Numeric& value,
-                      const Verbosity&) {
+void Tensor3Add(Tensor3& out,
+                const Tensor3& in,
+                const Numeric& value,
+                const Verbosity&) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -626,10 +693,10 @@ void Tensor3FromVector(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3Scale(Tensor3& out,
-                  const Tensor3& in,
-                  const Numeric& value,
-                  const Verbosity&) {
+void Tensor3Multiply(Tensor3& out,
+                     const Tensor3& in,
+                     const Numeric& value,
+                     const Verbosity&) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -722,10 +789,10 @@ void Tensor3ExtractFromTensor4(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor4AddScalar(Tensor4& out,
-                      const Tensor4& in,
-                      const Numeric& value,
-                      const Verbosity&) {
+void Tensor4Add(Tensor4& out,
+                const Tensor4& in,
+                const Numeric& value,
+                const Verbosity&) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -740,10 +807,10 @@ void Tensor4AddScalar(Tensor4& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor4Scale(Tensor4& out,
-                  const Tensor4& in,
-                  const Numeric& value,
-                  const Verbosity&) {
+void Tensor4Multiply(Tensor4& out,
+                     const Tensor4& in,
+                     const Numeric& value,
+                     const Verbosity&) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -779,10 +846,10 @@ void Tensor4SetConstant(Tensor4& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor5Scale(Tensor5& out,
-                  const Tensor5& in,
-                  const Numeric& value,
-                  const Verbosity&) {
+void Tensor5Multiply(Tensor5& out,
+                     const Tensor5& in,
+                     const Numeric& value,
+                     const Verbosity&) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -820,10 +887,10 @@ void Tensor5SetConstant(Tensor5& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor6Scale(Tensor6& out,
-                  const Tensor6& in,
-                  const Numeric& value,
-                  const Verbosity&) {
+void Tensor6Multiply(Tensor6& out,
+                     const Tensor6& in,
+                     const Numeric& value,
+                     const Verbosity&) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -868,10 +935,10 @@ void Tensor6SetConstant(Tensor6& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor7Scale(Tensor7& out,
-                  const Tensor7& in,
-                  const Numeric& value,
-                  const Verbosity&) {
+void Tensor7Multiply(Tensor7& out,
+                     const Tensor7& in,
+                     const Numeric& value,
+                     const Verbosity&) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -934,10 +1001,10 @@ void Trapz(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorAddScalar(Vector& out,
-                     const Vector& in,
-                     const Numeric& value,
-                     const Verbosity&) {
+void VectorAdd(Vector& out,
+               const Vector& in,
+               const Numeric& value,
+               const Verbosity&) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just add the scalar value.
@@ -948,6 +1015,60 @@ void VectorAddScalar(Vector& out,
     out.resize(in.nelem());
     out = in;
     out += value;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorDivide(Vector& out,
+                  const Vector& in,
+                  const Numeric& value,
+                  const Verbosity&) {
+  // Note that in and out can be the same vector
+  if (&out == &in) {
+    // Out and in are the same. Just add the scalar value.
+    out /= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then add the scalar value.
+    out.resize(in.nelem());
+    out = in;
+    out /= value;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorMultiply(Vector& out,
+                    const Vector& in,
+                    const Numeric& value,
+                    const Verbosity&) {
+  // Note that in and out can be the same vector
+  if (&out == &in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out *= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize(in.nelem());
+    out = in;
+    out *= value;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorSubtract(Vector& out,
+                    const Vector& in,
+                    const Numeric& value,
+                    const Verbosity&) {
+  // Note that in and out can be the same vector
+  if (&out == &in) {
+    // Out and in are the same. Just add the scalar value.
+    out -= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then add the scalar value.
+    out.resize(in.nelem());
+    out = in;
+    out -= value;
   }
 }
 
@@ -1421,24 +1542,6 @@ void VectorReshapeMatrix(Vector& v,
     os << "Keyword *direction* must be either *row* or *column*,"
        << "but you gave: " << direction << ".";
     throw runtime_error(os.str());
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void VectorScale(Vector& out,
-                 const Vector& in,
-                 const Numeric& value,
-                 const Verbosity&) {
-  // Note that in and out can be the same vector
-  if (&out == &in) {
-    // Out and in are the same. Just multiply by the scalar value.
-    out *= value;
-  } else {
-    // Out and in are different. We first have to copy in to out,
-    // then multiply by the scalar value.
-    out.resize(in.nelem());
-    out = in;
-    out *= value;
   }
 }
 

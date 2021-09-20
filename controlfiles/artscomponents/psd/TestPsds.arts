@@ -40,7 +40,7 @@ NumericSet( scat_species_a, 523 )
 NumericSet( scat_species_b, 3 )
 VectorCreate( mass )
 VectorPower( mass, psd_size_grid, scat_species_b )
-VectorScale( mass, mass, scat_species_a )
+VectorMultiply( mass, mass, scat_species_a )
 
 #
 # 1-moment PSDs, rain
@@ -69,7 +69,7 @@ CompareRelative( iwc, iwc_test, max_dev, "RWC for Wang 16" )
 NumericSet( scat_species_a, 480 )
 NumericSet( scat_species_b, 3 )
 VectorPower( mass, psd_size_grid, scat_species_b )
-VectorScale( mass, mass, scat_species_a )
+VectorMultiply( mass, mass, scat_species_a )
 
 
 #
@@ -137,7 +137,7 @@ Trapz( iwc_test, psd_size_grid, integrand )
 CompareRelative( iwc, iwc_test, max_dev, "IWC for MGD: mass + dmean" )
 VectorVectorMultiply( integrand, integrand, psd_size_grid )  
 Trapz( dmean_test, psd_size_grid, integrand )
-NumericInvScale( dmean_test, dmean_test, iwc_test )
+NumericDivide( dmean_test, dmean_test, iwc_test )
 CompareRelative( dmean, dmean_test, max_dev, "Dmean for MGD: mass + dmean" )
 
 
