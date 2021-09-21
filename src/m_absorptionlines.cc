@@ -2485,3 +2485,91 @@ void abs_linesPrintDefinedQuantumNumbers(const ArrayOfAbsorptionLines& abs_lines
     out0 << QuantumNumberType(qn.first) << ':' << ' ' << qn.second << '\n';
   }
 }
+
+
+/////////////////////////////////////////////////////////
+//////////////////// Remove lines safely from the catalog
+/////////////////////////////////////////////////////////
+
+void remove_impl(ArrayOfAbsorptionLines& abs_lines,
+                 const ArrayOfSpeciesTag& species,
+                 const Numeric lower_frequency,
+                 const Numeric upper_frequency,
+                 const Numeric lower_intensity,
+                 const Index safe,
+                 const Verbosity& verbosity) {
+  const bool care_about_species = species.nelem();
+  
+  for (auto& band: abs_lines) {
+    if (care_about_species and species[0].Isotopologue() not_eq band.Isotopologue()) continue;
+    
+    auto& lines = band.AllLines();
+    
+    if (not safe) {
+      std::vector<std::size_t> rem;
+      for (std::size_t i=lines.size()-1; i<lines.size(); i--) {
+        auto& line = lines[i];
+        if (line.F0() < lower_frequency or
+            line.F0() > upper_frequency or
+            line.I0() < lower_intensity)
+          rem.push_back(i);
+      }
+      
+      for (auto i: rem) band.RemoveLine(i);
+    } else {
+      const bool all_low = std::all_of(lines.begin(), lines.end(),
+                                       [lower_frequency] (auto& line) {return line.F0() < lower_frequency;});
+      const bool all_upp = std::all_of(lines.begin(), lines.end(),
+                                       [upper_frequency] (auto& line) {return line.F0() > upper_frequency;});
+      const bool low_int = std::all_of(lines.begin(), lines.end(),
+                                       [lower_intensity] (auto& line) {return line.I0() < lower_intensity;});
+      if (all_low or all_upp or low_int) lines.resize(0);
+    }
+  }
+  
+  // Removes empty bands
+  abs_linesRemoveEmptyBands(abs_lines, verbosity);
+}
+
+void abs_linesRemoveLines(ArrayOfAbsorptionLines& abs_lines,
+                          const Numeric& lower_frequency,
+                          const Numeric& upper_frequency,
+                          const Numeric& lower_intensity,
+                          const Index& safe,
+                          const Verbosity& verbosity) {
+  remove_impl(abs_lines, {}, lower_frequency, upper_frequency, lower_intensity, safe, verbosity);
+}
+
+void abs_lines_per_speciesRemoveLines(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                      const Numeric& lower_frequency,
+                                      const Numeric& upper_frequency,
+                                      const Numeric& lower_intensity,
+                                      const Index& safe,
+                                      const Verbosity& verbosity) {
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesRemoveLines(abs_lines, lower_frequency, upper_frequency, lower_intensity, safe, verbosity);
+}
+
+void abs_linesRemoveLinesFromSpecies(ArrayOfAbsorptionLines& abs_lines,
+                                     const ArrayOfSpeciesTag& species,
+                                     const Numeric& lower_frequency,
+                                     const Numeric& upper_frequency,
+                                     const Numeric& lower_intensity,
+                                     const Index& safe,
+                                     const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(species.nelem() not_eq 1, "Must have a single species, got: ", species)
+  ARTS_USER_ERROR_IF(species[0].Isotopologue().joker(), "Cannot give joker species, got: ", species)
+  
+  remove_impl(abs_lines, species, lower_frequency, upper_frequency, lower_intensity, safe, verbosity);
+}
+
+void abs_lines_per_speciesRemoveLinesFromSpecies(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                 const ArrayOfSpeciesTag& species,
+                                                 const Numeric& lower_frequency,
+                                                 const Numeric& upper_frequency,
+                                                 const Numeric& lower_intensity,
+                                                 const Index& safe,
+                                                 const Verbosity& verbosity) {
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesRemoveLinesFromSpecies(abs_lines, species, lower_frequency, upper_frequency, lower_intensity, safe, verbosity);
+}
