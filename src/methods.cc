@@ -521,7 +521,7 @@ void define_md_data_raw() {
     NAME("abs_linesRemoveLinesFromSpecies"),
       DESCRIPTION("As *abs_linesRemoveLines* but only for bands of the given species\n"
       "\n"
-      "speices must be a single entry, and must specify the isotopologue\n"
+      "species must be a single entry, and must specify the isotopologue\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
