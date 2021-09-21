@@ -280,6 +280,24 @@ void CKD_mt_320_foreign_h2o(MatrixView xsec,
                             ConstVectorView vmr,
                             const Verbosity& verbosity);
 
+void CKD_mt_350_self_h2o(MatrixView xsec,
+                         const Numeric Cin,
+                         const String& model,
+                         ConstVectorView f_grid,
+                         ConstVectorView abs_p,
+                         ConstVectorView abs_t,
+                         ConstVectorView vmr,
+                         const Verbosity& verbosity);
+
+void CKD_mt_350_foreign_h2o(MatrixView xsec,
+                            const Numeric Cin,
+                            const String& model,
+                            ConstVectorView f_grid,
+                            ConstVectorView abs_p,
+                            ConstVectorView abs_t,
+                            ConstVectorView vmr,
+                            const Verbosity& verbosity);
+                            
 ////////////////////////////////////////////////////////////////////////////
 // oxygen line+continuum absorption models
 ////////////////////////////////////////////////////////////////////////////
