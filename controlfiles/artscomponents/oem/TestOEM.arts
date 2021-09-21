@@ -279,7 +279,7 @@ AgendaSet( inversion_iterate_agenda ){
   yCalc( y=yf )
 
   # Add baseline term (no need to call this WSM if no sensor variables retrieved)
-  VectorAddVector( yf, yf, y_baseline )
+  VectorAddElementwise( yf, yf, y_baseline )
 
   # This method takes cares of some "fixes" that are needed to get the Jacobian
   # right for iterative solutions. No need to call this WSM for linear inversions.

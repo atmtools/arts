@@ -132,7 +132,7 @@ jacobianOff
 Tensor3Add( surface_props_data, surface_props_data, 0.01 )
 #
 yCalc
-VectorSubtractVector( y, y, y0 )
+VectorSubtractElementwise( y, y, y0 )
 VectorMultiply( y, y, 100 )
 #
 VectorCreate( jvec )

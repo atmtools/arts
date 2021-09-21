@@ -3124,6 +3124,41 @@ void define_md_data_raw() {
       SETMETHOD(true)));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ArrayOfTimeNLinSpace"),
+      DESCRIPTION(
+          "Creates a time array with length *nelem*, equally spaced between the\n"
+          "given end values.\n"
+          "\n"
+          "The length (*nelem*) must be larger than 1.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("ArrayOfTime"),
+      GOUT_DESC("Variable to initialize."),
+      IN("nelem"),
+      GIN("start", "stop"),
+      GIN_TYPE("String", "String"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Start value.", "End value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("ArrayOfTimeSetConstant"),
+      DESCRIPTION(
+          "Creates an ArrayOfTime and sets all elements to the specified value.\n"
+          "\n"
+          "The vector length is determined by *nelem*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("ArrayOfTime"),
+      GOUT_DESC("Variable to initialize."),
+      IN("nelem"),
+      GIN("value"),
+      GIN_TYPE("Time"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Time value.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("Arts"),
       DESCRIPTION(
           "Runs the agenda that is specified inside the curly braces. ARTS\n"
@@ -7327,6 +7362,38 @@ void define_md_data_raw() {
       USES_TEMPLATES(true)));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("IndexStepDown"),
+      DESCRIPTION("Performas: out = in - 1\n"
+                  "\n"
+                  "Input and output can be same variable.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Output index variable."),
+      IN(),
+      GIN("in"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Input index variable.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("IndexStepUp"),
+      DESCRIPTION("Performas: out = in + 1\n"
+                  "\n"
+                  "Input and output can be same variable.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Output index variable."),
+      IN(),
+      GIN("in"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Input index variable.")));
+  
+  md_data_raw.push_back(create_mdrecord(
       NAME("IndexSubtract"),
       DESCRIPTION(
           "Subtracts a Index value (out = in - value).\n"
@@ -10084,7 +10151,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixIdentity"),
       DESCRIPTION(
-          "Returns an identity matrix.\n"
+          "Returns the identity matrix.\n"
           "\n"
           "The size if the matrix created is n x n. Default is to return a\n"
           "true identity matrix (I), but you can also select another value\n"
@@ -10111,15 +10178,15 @@ void define_md_data_raw() {
           "if Y and X are the same Matrix.\n"),
       AUTHORS("Stefan Buehler"),
       OUT(),
-      GOUT("out"),
+      GOUT("Y"),
       GOUT_TYPE("Matrix"),
-      GOUT_DESC("The result of the multiplication (dimension mxc)."),
+      GOUT_DESC("The result of the multiplication (dimension m x c)."),
       IN(),
-      GIN("m", "x"),
+      GIN("M", "X"),
       GIN_TYPE("Matrix", "Matrix"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The Matrix to multiply (dimension mxn).",
-               "The original Matrix (dimension nxc).")));
+      GIN_DESC("The Matrix to multiply (dimension m x n).",
+               "The original Matrix (dimension n x c).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixPlanck"),
@@ -10232,25 +10299,6 @@ void define_md_data_raw() {
       GIN_TYPE("Vector"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Frequency vector.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("MatrixVectorMultiply"),
-      DESCRIPTION(
-          "Multiply a Matrix with a Vector\n"
-          "\n"
-          "Computes the normal Matrix-Vector product, out=m*v. It is ok if out and v\n"
-          "are the same Vector.\n"),
-      AUTHORS("Stefan Buehler and Patrick Eriksson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("The result of the multiplication (length m)."),
-      IN(),
-      GIN("m", "v"),
-      GIN_TYPE("Matrix", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The Matrix to multiply (dimension mxn).",
-               "The original Vector (length n).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Matrix1ColFromVector"),
@@ -17928,20 +17976,21 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Multiplies a Sparse with another Sparse, result stored in Sparse.\n"
           "\n"
-          "Makes the calculation: out = m1 * m2\n"),
+          "Makes the calculation: M = M1 * M2\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
-      GOUT("out"),
+      GOUT("M"),
       GOUT_TYPE("Sparse"),
       GOUT_DESC("Product, can be same variable as any of the inputs."),
       IN(),
-      GIN("m1", "m2"),
+      GIN("M1", "M2"),
       GIN_TYPE("Sparse", "Sparse"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Left sparse matrix.", "Right sparse matrix.")));
+      GIN_DESC("Left sparse matrix (dimension m x n).",
+               "Right sparse matrix (dimension n x p).")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("SparseMatrixIdentity"),
+      NAME("SparseIdentity"),
       DESCRIPTION(
           "Returns a sparse dentity matrix.\n"
           "\n"
@@ -19833,7 +19882,7 @@ void define_md_data_raw() {
       GIN_DESC("Input Vector.", "The value to be added to the vector.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("VectorAddVector"),
+      NAME("VectorAddElementwise"),
       DESCRIPTION(
           "Element-wise addition of two vectors.\n"
           "\n"
@@ -19919,6 +19968,29 @@ void define_md_data_raw() {
       GIN_TYPE("Vector", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Vector.", "Denominator.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorDivideElementwise"),
+      DESCRIPTION(
+          "Element-wise division of two vectors.\n"
+          "\n"
+          "The method calculates c = a / b.\n"
+          "\n"
+          "The variable *b* is allowed to have length 1, for any length of\n"
+          "*a*. This single value in *b* is then applied to every element of *a*.\n"
+          "\n"
+          "The vectors *a* and *c* can be the same WSV, while *b* can not be\n"
+          "the same WSV as any of the the other vector.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("c"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output vector"),
+      IN(),
+      GIN("a", "b"),
+      GIN_TYPE("Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input vector.", "Denominator Vector.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorExtractFromMatrix"),
@@ -20048,20 +20120,60 @@ void define_md_data_raw() {
           "Multiply a Vector with a Matrix and store the result in another\n"
           "Vector.\n"
           "\n"
-          "This just computes the normal Matrix-Vector product, y=M*x. It is ok\n"
-          "if input and output Vector are the same. This function is handy for\n"
-          "multiplying the H Matrix to spectra.\n"),
+          "This just computes the normal matrix-vector product, y=M*x. It is ok\n"
+          "if input and output Vector are the same.\n"),
       AUTHORS("Stefan Buehler"),
       OUT(),
-      GOUT("out"),
+      GOUT("y"),
       GOUT_TYPE("Vector"),
       GOUT_DESC("The result of the multiplication (dimension m)."),
       IN(),
-      GIN("m", "v"),
+      GIN("M", "x"),
       GIN_TYPE("Matrix", "Vector"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The Matrix to multiply (dimension mxn).",
+      GIN_DESC("The Matrix to multiply (dimension m x n).",
                "The original Vector (dimension n).")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorMultiply"),
+      DESCRIPTION(
+          "Multiplies all elements of a vector with the same value.\n"
+          "\n"
+          "The result can either be stored in the same or another vector.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output Vector."),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Vector", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Vector.", "Scaling value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorMultiplyElementwise"),
+      DESCRIPTION(
+          "Element-wise multiplication of two vectors.\n"
+          "\n"
+          "The method calculates c = a * b.\n"
+          "\n"
+          "The variable *b* is allowed to have length 1, for any length of\n"
+          "*a*. This single value in *b* is then multiplied with every element\n"
+          "of *a*.\n"
+          "\n"
+          "The vectors *a* and *c* can be the same WSV, while *b* can not be\n"
+          "the same WSV as any of the the other vector.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("c"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output vector"),
+      IN(),
+      GIN("a", "b"),
+      GIN_TYPE("Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input vector.", "Multiplier.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLinSpace"),
@@ -20078,24 +20190,6 @@ void define_md_data_raw() {
       IN("nelem"),
       GIN("start", "stop"),
       GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Start value.", "End value.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ArrayOfTimeNLinSpace"),
-      DESCRIPTION(
-          "Creates a time array with length *nelem*, equally spaced between the\n"
-          "given end values.\n"
-          "\n"
-          "The length (*nelem*) must be larger than 1.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("ArrayOfTime"),
-      GOUT_DESC("Variable to initialize."),
-      IN("nelem"),
-      GIN("start", "stop"),
-      GIN_TYPE("String", "String"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Start value.", "End value.")));
 
@@ -20127,12 +20221,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Vector"),
-      GOUT_DESC("Output vector."),
+      GOUT_DESC("Output Vector."),
       IN(),
       GIN("in", "power"),
       GIN_TYPE("Vector", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input vector.", "Power (exponent).")));
+      GIN_DESC("Input Vector.", "Power (exponent).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorReshapeMatrix"),
@@ -20154,74 +20248,6 @@ void define_md_data_raw() {
       GIN_DESC("Input matrix.", "Direction. \"row\" or \"column\".")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("VectorMultiply"),
-      DESCRIPTION(
-          "Multiplies all elements of a vector with the same value.\n"
-          "\n"
-          "The result can either be stored in the same or another vector.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("Output Vector."),
-      IN(),
-      GIN("in", "value"),
-      GIN_TYPE("Vector", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input Vector.", "Scaling value.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("VectorSetConstant"),
-      DESCRIPTION(
-          "Creates a vector and sets all elements to the specified value.\n"
-          "\n"
-          "The vector length is determined by *nelem*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("Variable to initialize."),
-      IN("nelem"),
-      GIN("value"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Vector value.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("VectorSubtract"),
-      DESCRIPTION(
-          "Subtracts a scalar from all elements of a vector.\n"
-          "\n"
-          "The result can either be stored in the same or another vector.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("Output Vector"),
-      IN(),
-      GIN("in", "value"),
-      GIN_TYPE("Vector", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Input Vector.", "The value to be subtracted from the vector.")));
-
-  md_data_raw.push_back(create_mdrecord(
-    NAME("ArrayOfTimeSetConstant"),
-      DESCRIPTION(
-          "Creates an ArrayOfTime and sets all elements to the specified value.\n"
-          "\n"
-          "The vector length is determined by *nelem*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("ArrayOfTime"),
-      GOUT_DESC("Variable to initialize."),
-      IN("nelem"),
-      GIN("value"),
-      GIN_TYPE("Time"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Time value.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("VectorSet"),
       DESCRIPTION(
           "Create a vector from the given list of numbers.\n"
@@ -20241,14 +20267,68 @@ void define_md_data_raw() {
       SETMETHOD(true)));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("VectorSubtractVector"),
+      NAME("VectorSetConstant"),
+      DESCRIPTION(
+          "Creates a vector and sets all elements to the specified value.\n"
+          "\n"
+          "The vector length is determined by *nelem*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Variable to initialize."),
+      IN("nelem"),
+      GIN("value"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Vector value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorSparseMultiply"),
+      DESCRIPTION(
+          "Multiply a Vector with a Sparse and store the result in another\n"
+          "Vector.\n"
+          "\n"
+          "This just computes the normal matrix-vector product, y=M*x, with\n"
+          "m being a Sparse. It is ok if input and output Vector are the same.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("y"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("The result of the multiplication (dimension m)."),
+      IN(),
+      GIN("M", "x"),
+      GIN_TYPE("Sparse", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("The Sparse to multiply (dimension m x n).",
+               "The original Vector (dimension n).")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorSubtract"),
+      DESCRIPTION(
+          "Subtracts a scalar from all elements of a vector.\n"
+          "\n"
+          "The result can either be stored in the same or another vector.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output Vector"),
+      IN(),
+      GIN("in", "value"),
+      GIN_TYPE("Vector", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Input Vector.", "The value to be subtracted from the vector.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorSubtractElementwise"),
       DESCRIPTION(
           "Element-wise subtraction of two vectors.\n"
           "\n"
           "The method calculates c = a - b.\n"
           "\n"
           "The variable *b* is allowed to have length 1, for any length of\n"
-          "*a*. This single value in *b* is then added to every element of *a*.\n"
+          "*a*. This single value in *b* is then subtracted to every element of *a*.\n"
           "\n"
           "The vectors *a* and *c* can be the same WSV, while *b* can not be\n"
           "the same WSV as any of the the other vector.\n"),
@@ -20262,25 +20342,6 @@ void define_md_data_raw() {
       GIN_TYPE("Vector", "Vector"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "Vector to be subtracted.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("VectorVectorMultiply"),
-      DESCRIPTION(
-          "Multiply a Vector with another Vector and store result in a third one.\n"
-          "\n"
-          "This is an element-wise multiplication. It is ok if output Vector is\n"
-          "the same as any of the input Vectors.\n"),
-      AUTHORS("Jana Mendrok"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("The result of the multiplication (dimension m)."),
-      IN(),
-      GIN("v1", "v2"),
-      GIN_TYPE("Vector", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Original Vector #1 (dimension m).",
-               "Original Vector #2 (dimension m).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorZtanToZaRefr1D"),

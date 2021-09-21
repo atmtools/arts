@@ -153,6 +153,16 @@ void IndexMultiply(Index& out,
 void IndexSet(Index& x, const Index& value, const Verbosity&) { x = value; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void IndexStepDown(Index& xout, const Index& xin, const Verbosity&) {
+  xout = xin - 1;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void IndexStepUp(Index& xout, const Index& xin, const Verbosity&) {
+  xout = xin + 1;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void IndexSubtract(Index& out,
                    const Index& in,
                    const Index& value,
@@ -316,31 +326,6 @@ void MatrixMatrixMultiply(  // WS Generic Output:
 
   Y.resize(dummy.nrows(), dummy.ncols());
 
-  Y = dummy;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixVectorMultiply(  // WS Generic Output:
-    Vector& Y,
-    // WS Generic Input:
-    const Matrix& M,
-    const Vector& X,
-    const Verbosity&) {
-  // Check that dimensions are right, M.ncols() must match X.nrows():
-  if (M.ncols() != X.nelem()) {
-    ostringstream os;
-    os << "Matrix and vector dimensions must be consistent!\n"
-       << "Matrix.ncols() = " << M.ncols() << "\n"
-       << "Vector.nelem() = " << X.nelem();
-    throw runtime_error(os.str());
-  }
-
-  // Temporary for the result:
-  Vector dummy(M.nrows());
-
-  mult(dummy, M, X);
-
-  // Copy result to Y:
   Y = dummy;
 }
 
@@ -624,10 +609,10 @@ void SparseSparseMultiply(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void SparseMatrixIdentity(Sparse& X,
-                          const Index& n,
-                          const Numeric& value,
-                          const Verbosity&) {
+void SparseIdentity(Sparse& X,
+                    const Index& n,
+                    const Numeric& value,
+                    const Verbosity&) {
   X.resize(n, n);
   id_mat(X);
 
@@ -1073,13 +1058,10 @@ void VectorSubtract(Vector& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorAddVector(Vector& c,
-                     const Vector& a,
-                     const Vector& b,
-                     const Verbosity&) {
-  // If anything is changed in the method, implement the same change in
-  // VectorSubtractVector
-
+void VectorAddElementwise(Vector& c,
+                          const Vector& a,
+                          const Vector& b,
+                          const Verbosity&) {
   // b has length 1. Here we easily can avoid just adding 0.
   if (b.nelem() == 1) {
     // a and c are the same WSV
@@ -1112,13 +1094,10 @@ void VectorAddVector(Vector& c,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSubtractVector(Vector& c,
+void VectorSubtractElementwise(Vector& c,
                           const Vector& a,
                           const Vector& b,
                           const Verbosity&) {
-  // If anything is changed in the method, implement the same change in
-  // VectorAddVector
-
   // b has length 1. Here we easily can avoid just adding 0.
   if (b.nelem() == 1) {
     // a and c are the same WSV
@@ -1142,6 +1121,78 @@ void VectorSubtractVector(Vector& c,
     } else {
       c = a;
       c -= b;
+    }
+  }
+
+  else
+    throw runtime_error(
+        "The vector *b* must have length 1 or match *a* in length.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorMultiplyElementwise(Vector& c,
+                               const Vector& a,
+                               const Vector& b,
+                               const Verbosity&) {
+  // b has length 1. Here we easily can avoid just adding 0.
+  if (b.nelem() == 1) {
+    // a and c are the same WSV
+    if (&c == &a) {
+      if (b[0] != 0) {
+        c *= b[0];
+      }
+    } else {
+      c = a;
+      if (b[0] != 0) {
+        c *= b[0];
+      }
+    }
+  }
+
+  // b is a vector
+  else if (b.nelem() == a.nelem()) {
+    // a and c are the same WSV
+    if (&c == &a) {
+      c *= b;
+    } else {
+      c = a;
+      c *= b;
+    }
+  }
+
+  else
+    throw runtime_error(
+        "The vector *b* must have length 1 or match *a* in length.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorDivideElementwise(Vector& c,
+                             const Vector& a,
+                             const Vector& b,
+                             const Verbosity&) {
+  // b has length 1. Here we easily can avoid just adding 0.
+  if (b.nelem() == 1) {
+    // a and c are the same WSV
+    if (&c == &a) {
+      if (b[0] != 0) {
+        c /= b[0];
+      }
+    } else {
+      c = a;
+      if (b[0] != 0) {
+        c /= b[0];
+      }
+    }
+  }
+
+  // b is a vector
+  else if (b.nelem() == a.nelem()) {
+    // a and c are the same WSV
+    if (&c == &a) {
+      c /= b;
+    } else {
+      c = a;
+      c /= b;
     }
   }
 
@@ -1435,6 +1486,32 @@ void VectorMatrixMultiply(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void VectorSparseMultiply(  // WS Generic Output:
+    Vector& y,
+    // WS Generic Input:
+    const Sparse& M,
+    const Vector& x,
+    const Verbosity&) {
+  // Check that dimensions are right, x must match columns of M:
+  if (M.ncols() != x.nelem()) {
+    ostringstream os;
+    os << "Sparse and vector dimensions must be consistent!\n"
+       << "Sparse.ncols() = " << M.ncols() << "\n"
+       << "Vector.nelem() = " << x.nelem();
+    throw runtime_error(os.str());
+  }
+
+  // Temporary for the result:
+  Vector dummy(M.nrows());
+
+  mult(dummy, M, x);
+
+  y.resize(dummy.nelem());
+
+  y = dummy;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLinSpace(Vector& x,
                      const Index& n,
                      const Numeric& start,
@@ -1580,30 +1657,6 @@ void ArrayOfTimeSetConstant(ArrayOfTime& x,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorSet(Vector& x, const Vector& values, const Verbosity&) {
   x = values;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void VectorVectorMultiply(  // WS Generic Output:
-    Vector& y,
-    // WS Generic Input:
-    const Vector& x1,
-    const Vector& x2,
-    const Verbosity&) {
-  // Check that dimensions are right, x1 must match x2:
-  if (x1.nelem() != x2.nelem()) {
-    ostringstream os;
-    os << "Both vectors have to have identical dimensions!\n"
-       << "Vector1.nelem() = " << x1.nelem() << "\n"
-       << "Vector2.nelem() = " << x2.nelem();
-    throw runtime_error(os.str());
-  }
-
-  Vector dummy;
-  dummy.resize(x1.nelem());
-
-  for (Index i = 0; i < x1.nelem(); i++) dummy[i] = x1[i] * x2[i];
-
-  y = dummy;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3244,4 +3297,3 @@ void ArrayOfSpeciesTagSet(ArrayOfSpeciesTag& sst,
                           const Verbosity&) {
   sst = sst2;
 }
-
