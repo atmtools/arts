@@ -3980,7 +3980,7 @@ const double SL296_ckd_mt_350[SL296_ckd_mt_350_npt + addF77fields] = {
   7.544E-03,  6.603E-03,  5.794E-03,  5.096E-03,  4.495E-03,      
   3.974E-03,  3.523E-03,  3.130E-03,  2.786E-03,  2.485E-03,      
   2.221E-03,  1.987E-03,  1.780E-03,  1.596E-03,  1.433E-03,      
-  1.287E-03,  1.156E-03,  1.040E-03,  9.349E-04,  8.410E-04 
+  1.287E-03,  1.156E-03,  1.040E-03,  9.349E-04,  8.410E-04, 
   7.568E-04,  6.810E-04,  6.130E-04,  5.517E-04,  4.967E-04,  
   4.471E-04,  4.025E-04,  3.624E-04,  3.262E-04,  2.937E-04,  
   2.644E-04,  2.381E-04,  2.143E-04,  1.930E-04,  1.737E-04,  
@@ -11166,7 +11166,7 @@ void CKD_mt_350_foreign_h2o(MatrixView pxsec,
     for (Index s = 0; s < n_f; ++s) {
       // calculate the associated wave number (= 1/wavelength)
       Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2);  // [cm^-1]
-      if ((V >= 0.000e0) && (V < VABS_max)) {
+      if ((V >= 0.000e0) && (V < FH2O_ckd_mt_350_v2)) {
         // arts CKD_MT.100 cross section [1/m]
         // interpolate the k vector on the f_grid grid
         // The factor 100 comes from the conversion from (1/cm) to (1/m)
