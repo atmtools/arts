@@ -138,7 +138,7 @@ VectorCreate( vtmp )
 Extract( vtmp, y_aux, 0 )
 NumericCreate( y_error_0 )
 Extract( y_error_0, vtmp, 0 )
-NumericScale( y_error_0, y_error_0, 4. )
+NumericMultiply( y_error_0, y_error_0, 4. )
 
 
 VectorCreate( y_0 )

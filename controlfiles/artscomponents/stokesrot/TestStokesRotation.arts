@@ -125,7 +125,7 @@ yCalc
 # Perform RT calculations, with rotation following scan angle
 # (rotation angle here set to 50% of angle from nadir!)
 Copy( stokes_rotation, angles )
-VectorScale( stokes_rotation, stokes_rotation, 0.5 )
+VectorMultiply( stokes_rotation, stokes_rotation, 0.5 )
 #
 sensor_responseInit
 sensor_responseStokesRotation

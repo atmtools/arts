@@ -130,7 +130,7 @@ Print( iy_unit, 1 )
 # Radiance test
 NumericCreate( mc_error_0 )
 Extract( mc_error_0, mc_error, 0 )
-NumericScale( mc_error_0, mc_error_0, 4. )
+NumericMultiply( mc_error_0, mc_error_0, 4. )
 
 VectorCreate( y_0 )
 Select( y_0, y, [ 0 ] )
@@ -144,7 +144,7 @@ Compare( y_0, y_ref, mc_error_0,
 # Polarization test
 NumericCreate( mc_error_1 )
 Extract( mc_error_1, mc_error, 1 )
-NumericScale( mc_error_1, mc_error_1, 4. )
+NumericMultiply( mc_error_1, mc_error_1, 4. )
 
 VectorCreate( y_1 )
 Select( y_1, y, [ 1 ] )

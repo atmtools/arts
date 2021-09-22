@@ -148,48 +148,48 @@ VectorCreate( jvec )
 # Disturb skin temperature to test that Jacobian
 #
 VectorSet( dsp, [0.01,0,0,0] )
-VectorAddVector( spdata, spdata0, dsp )
+VectorAddElementwise( spdata, spdata0, dsp )
 Tensor3FromVector( surface_props_data, spdata )
 #
 yCalc
-VectorSubtractVector( y, y, y0 )
-VectorScale( y, y, 100 )
+VectorSubtractElementwise( y, y, y0 )
+VectorMultiply( y, y, 100 )
 VectorExtractFromMatrix( jvec, j0, 0, "column" )
 Compare( y, jvec, 1e-6 )
 
 # Disturb reflectivity 0 to test that Jacobian
 #
 VectorSet( dsp, [0,1e-4,0,0] )
-VectorAddVector( spdata, spdata0, dsp )
+VectorAddElementwise( spdata, spdata0, dsp )
 Tensor3FromVector( surface_props_data, spdata )
 #
 yCalc
-VectorSubtractVector( y, y, y0 )
-VectorScale( y, y, 1e4 )
+VectorSubtractElementwise( y, y, y0 )
+VectorMultiply( y, y, 1e4 )
 VectorExtractFromMatrix( jvec, j0, 1, "column" )
 Compare( y, jvec, 1e-6 )
 
 # Disturb reflectivity 1 to test that Jacobian
 #
 VectorSet( dsp, [0,0,1e-4,0] )
-VectorAddVector( spdata, spdata0, dsp )
+VectorAddElementwise( spdata, spdata0, dsp )
 Tensor3FromVector( surface_props_data, spdata )
 #
 yCalc
-VectorSubtractVector( y, y, y0 )
-VectorScale( y, y, 1e4 )
+VectorSubtractElementwise( y, y, y0 )
+VectorMultiply( y, y, 1e4 )
 VectorExtractFromMatrix( jvec, j0, 2, "column" )
 Compare( y, jvec, 1e-6 )
 
 # Disturb reflectivity 2 to test that Jacobian
 #
 VectorSet( dsp, [0,0,0,1e-4] )
-VectorAddVector( spdata, spdata0, dsp )
+VectorAddElementwise( spdata, spdata0, dsp )
 Tensor3FromVector( surface_props_data, spdata )
 #
 yCalc
-VectorSubtractVector( y, y, y0 )
-VectorScale( y, y, 1e4 )
+VectorSubtractElementwise( y, y, y0 )
+VectorMultiply( y, y, 1e4 )
 VectorExtractFromMatrix( jvec, j0, 3, "column" )
 Compare( y, jvec, 1e-6 )
 

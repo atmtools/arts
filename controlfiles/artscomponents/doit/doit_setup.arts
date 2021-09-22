@@ -157,7 +157,7 @@ scat_dataCalc
 pnd_fieldCalcFrompnd_field_raw
 # rescaling back to pnd equivalent to only one scattering element. in a true
 # case, this is NOT needed!
-Tensor4Scale( out=pnd_field, in=pnd_field, value=0.5 )
+Tensor4Multiply( out=pnd_field, in=pnd_field, value=0.5 )
 
 
 

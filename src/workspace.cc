@@ -3275,9 +3275,6 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "The transmittance between the sensor and each point of the propagation path.\n"
           "\n"
-          "Returned as the one-way transmittance even in the case of radar\n"
-          "simulations.\n"
-          "\n"
           "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
           "\n"
           "Dimension: [ ppath.np, f_grid, stokes_dim, stokes_dim ]\n"
@@ -3288,7 +3285,14 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_trans_partial"),
       DESCRIPTION(
-          "The transmittance between each point along the propagation path.\n"
+          "The transmittance between the points along the propagation path.\n"
+          "\n"
+          "To maintain consistency in size also this variable stores np transmissivities,\n"
+          "while there are only np-1 distances between the points of the ppath. The\n"
+          "extra values placed at index 0 and can be seen as the transmissivities\n"
+          "between the sensor and the start of the ppath. These transmissivities\n"
+          "are always unity. That is, the transmissivities between ppath point i and i+1\n"
+          "are found at index i+1 in *ppvar_trans_partial*.\n"
           "\n"
           "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
           "\n"

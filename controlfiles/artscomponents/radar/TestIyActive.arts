@@ -56,8 +56,8 @@ NumericCreate( weight_ext )
 #
 ReadXML( t_ref, "testdata/t_ref.xml" )
 #
-Tensor3Scale( t_field, t_field, 0 )
-Tensor3AddScalar( t_field, t_field, t_ref )
+Tensor3Multiply( t_field, t_field, 0 )
+Tensor3Add( t_field, t_field, t_ref )
 
 
 # The cloudbox

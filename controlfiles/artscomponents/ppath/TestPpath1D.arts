@@ -132,7 +132,7 @@ MatrixSet( sensor_los, [   45;   95;  113;  180;   0;   90; 100;  45; 100] )
 
 IndexCreate( ilast )
 nrowsGet( ilast, sensor_pos )
-IndexStepDown( ilast, ilast )
+IndexSubtract( ilast, ilast, 1 )
 
 AgendaSet( forloop_agenda ){
   VectorExtractFromMatrix( rte_pos, sensor_pos, forloop_index, "row" )

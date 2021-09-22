@@ -17,7 +17,7 @@ scat_dataCheck
 pnd_fieldCalcFrompnd_field_raw
 
 # here we want a really thin cloud
-Tensor4Scale( out=pnd_field, in=pnd_field, value=0.01 )
+Tensor4Multiply( out=pnd_field, in=pnd_field, value=0.01 )
 
 # Consistency checks needed for running merge
 atmfields_checkedCalc

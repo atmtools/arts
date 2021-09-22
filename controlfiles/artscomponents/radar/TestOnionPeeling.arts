@@ -60,7 +60,7 @@ Extract( z_toa, v_tmp, ilast )
 VectorSet( f_grid, [94e9] )
 #
 Copy( range_bins, v_tmp )
-VectorAddScalar( range_bins, range_bins, -25 )
+VectorAdd( range_bins, range_bins, -25 )
 Append( range_bins, z_toa )
 Print(range_bins)
 #
@@ -207,7 +207,7 @@ particle_bulkpropRadarOnionPeeling( particle_bulkprop_field = retrieved,
 
 # Compare to "true". Deviation should be below 2%
 #
-NumericScale( iwc, iwc, 0.05 )
+NumericMultiply( iwc, iwc, 0.05 )
 #
 Compare( retrieved, particle_bulkprop_field, iwc )
 

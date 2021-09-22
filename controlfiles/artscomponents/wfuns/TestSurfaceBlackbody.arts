@@ -129,11 +129,11 @@ Copy( j0, jacobian )
 # Perturb  with 0.01K to check Jacobian
 #
 jacobianOff
-Tensor3AddScalar( surface_props_data, surface_props_data, 0.01 )
+Tensor3Add( surface_props_data, surface_props_data, 0.01 )
 #
 yCalc
-VectorSubtractVector( y, y, y0 )
-VectorScale( y, y, 100 )
+VectorSubtractElementwise( y, y, y0 )
+VectorMultiply( y, y, 100 )
 #
 VectorCreate( jvec )
 VectorExtractFromMatrix( jvec, j0, 0, "column" )

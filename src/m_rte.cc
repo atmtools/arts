@@ -291,7 +291,15 @@ void iyEmissionStandard(
     ppvar_wind.resize(0, 0);
     ppvar_mag.resize(0, 0);
     ppvar_f.resize(0, 0);
-    ppvar_trans_cumulat = 1;
+    ppvar_trans_cumulat = 0;
+    ppvar_trans_partial = 0;
+    for (Index iv = 0; iv < nf; iv++) {
+      for (Index is = 0; is < ns; is++) {
+        ppvar_trans_cumulat(0,iv,is,is) = 1;
+        ppvar_trans_partial(0,iv,is,is) = 1;
+      }
+    }
+    
   } else {
     // Basic atmospheric variables
     get_ppath_atmvars(ppvar_p,
