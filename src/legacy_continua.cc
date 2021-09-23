@@ -146,6 +146,14 @@
    131 Hartwell Avenue<br>
    Lexington, MA 02421, USA
    </li>
+   <li><b>H2O-H2O (H2O-SelfContCKDMT350)</b>:<br>
+         CKD_MTv3.50 H2O self continuum from the FORTRAN77 code written by<br>
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and
+         Environmental Research Inc. (AER),</a><br>
+   Radiation and Climate Group<br>
+   131 Hartwell Avenue<br>
+   Lexington, MA 02421, USA
+   </li>
    <li><b>H2O-air (H2O-ForeignContStandardType)</b>: <br>
          P. W. Rosenkranz,<br>
          Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and <br>
@@ -186,6 +194,14 @@
    </li>
    <li><b>H2O-air (H2O-foreignContCKDMT320)</b>:<br>
          CKD_MTv3.20 H2O foreign continuum from the FORTRAN77 code written by<br>
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and
+         Environmental Research Inc. (AER),</a><br>
+   Radiation and Climate Group<br>
+   131 Hartwell Avenue<br>
+   Lexington, MA 02421, USA
+   </li>
+   <li><b>H2O-air (H2O-foreignContCKDMT350)</b>:<br>
+         CKD_MTv3.50 H2O foreign continuum from the FORTRAN77 code written by<br>
          <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and
          Environmental Research Inc. (AER),</a><br>
    Radiation and Climate Group<br>
@@ -18850,7 +18866,7 @@ void xsec_continuum_tag(MatrixView xsec,
   else if ("H2O-SelfContCKDMT320" == name) {
     // OUTPUT:
     //   pxsec           cross section (absorption/volume mixing ratio) of
-    //                  H2O self continuum according to CKD MT 2.50    [1/m]
+    //                  H2O self continuum according to CKD MT 3.20    [1/m]
     // INPUT:
     //   parameters[0]  strength scaling factor              [1]
     //   model          allows user defined input parameter set
@@ -18901,7 +18917,7 @@ void xsec_continuum_tag(MatrixView xsec,
   else if ("H2O-ForeignContCKDMT320" == name) {
     // OUTPUT:
     //   pxsec           cross section (absorption/volume mixing ratio) of
-    //                  H2O foreign continuum according to CKD MT 2.50    [1/m]
+    //                  H2O foreign continuum according to CKD MT 3.20    [1/m]
     // INPUT:
     //   parameters[0]  strength scaling factor              [1]
     //   model          allows user defined input parameter set
@@ -18949,6 +18965,109 @@ void xsec_continuum_tag(MatrixView xsec,
     }
   }
 
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ("H2O-SelfContCKDMT350" == name) {
+    // OUTPUT:
+    //   pxsec           cross section (absorption/volume mixing ratio) of
+    //                  H2O self continuum according to CKD MT 3.50    [1/m]
+    // INPUT:
+    //   parameters[0]  strength scaling factor              [1]
+    //   model          allows user defined input parameter set
+    //                  (Cin) or choice of
+    //                  pre-defined parameters of specific models (see note below).
+    //   f_grid         predefined frequency grid            [Hz]
+    //   abs_p          predefined pressure grid             [Pa]
+    //   abs_t          predefined temperature grid          [K]
+    //   vmr            H2O volume mixing ratio profile      [1]
+    //
+    // WWW resource: https://github.com/AER-RC/MT_CKD
+    const int Nparam = 1;
+    if ((model == "user") &&
+        (parameters.nelem() == Nparam))  // -------------------------
+    {
+      out3 << "Continuum model " << name << " is running with \n"
+           << "user defined parameters according to model " << model << ".\n";
+      CKD_mt_350_self_h2o(
+          pxsec, parameters[0], model, f_grid, abs_p, abs_t, vmr, verbosity);
+    } else if ((model == "user") &&
+               (parameters.nelem() != Nparam))  // --------------------
+    {
+      ostringstream os;
+      os << "Continuum model " << name << " requires " << Nparam << " input\n"
+         << "parameters for the model " << model << ",\n"
+         << "but you specified " << parameters.nelem() << " parameters.\n";
+      throw runtime_error(os.str());
+    } else if ((model != "user") &&
+               (parameters.nelem() == 0))  // --------------------
+    {
+      out3 << "Continuum model " << name << " running with \n"
+           << "the parameters for model " << model << ".\n";
+      CKD_mt_350_self_h2o(
+          pxsec, 0.000, model, f_grid, abs_p, abs_t, vmr, verbosity);
+    } else if ((model != "user") &&
+               (parameters.nelem() != 0))  // --------------------
+    {
+      ostringstream os;
+      os << "ERROR: continuum model " << name << " requires NO input\n"
+         << "parameters for the model " << model << ",\n"
+         << "but you specified " << parameters.nelem() << " parameters.\n"
+         << "This ambiguity can not be solved by arts.\n"
+         << "Please see the arts user guide chapter 3.\n";
+      throw runtime_error(os.str());
+    }
+  }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ("H2O-ForeignContCKDMT350" == name) {
+    // OUTPUT:
+    //   pxsec           cross section (absorption/volume mixing ratio) of
+    //                  H2O foreign continuum according to CKD MT 3.50    [1/m]
+    // INPUT:
+    //   parameters[0]  strength scaling factor              [1]
+    //   model          allows user defined input parameter set
+    //                  (Cin) or choice of
+    //                  pre-defined parameters of specific models (see note below).
+    //   f_grid         predefined frequency grid            [Hz]
+    //   abs_p          predefined pressure grid             [Pa]
+    //   abs_t          predefined temperature grid          [K]
+    //   vmr            H2O volume mixing ratio profile      [1]
+    //
+    // WWW resource: https://github.com/AER-RC/MT_CKD
+    const int Nparam = 1;
+    if ((model == "user") &&
+        (parameters.nelem() == Nparam))  // -------------------------
+    {
+      out3 << "Continuum model " << name << " is running with \n"
+           << "user defined parameters according to model " << model << ".\n";
+      CKD_mt_350_foreign_h2o(
+          pxsec, parameters[0], model, f_grid, abs_p, abs_t, vmr, verbosity);
+    } else if ((model == "user") &&
+               (parameters.nelem() != Nparam))  // --------------------
+    {
+      ostringstream os;
+      os << "Continuum model " << name << " requires " << Nparam << " input\n"
+         << "parameters for the model " << model << ",\n"
+         << "but you specified " << parameters.nelem() << " parameters.\n";
+      throw runtime_error(os.str());
+    } else if ((model != "user") &&
+               (parameters.nelem() == 0))  // --------------------
+    {
+      out3 << "Continuum model " << name << " running with \n"
+           << "the parameters for model " << model << ".\n";
+      CKD_mt_350_foreign_h2o(
+          pxsec, 0.000, model, f_grid, abs_p, abs_t, vmr, verbosity);
+    } else if ((model != "user") &&
+               (parameters.nelem() != 0))  // --------------------
+    {
+      ostringstream os;
+      os << "ERROR: continuum model " << name << " requires NO input\n"
+         << "parameters for the model " << model << ",\n"
+         << "but you specified " << parameters.nelem() << " parameters.\n"
+         << "This ambiguity can not be solved by arts.\n"
+         << "Please see the arts user guide chapter 3.\n";
+      throw runtime_error(os.str());
+    }
+  }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   else if ("H2O-SelfContCKD24" == name) {
