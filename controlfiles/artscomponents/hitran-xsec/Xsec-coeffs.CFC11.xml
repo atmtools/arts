@@ -14,66 +14,61 @@
 <GriddedField2>
 <Vector name="frequency grid [Hz]" nelem="3983">
 </Vector>
-<Array name="fit coefficients [m]" type="String" nelem="5">
+<Array name="fit coefficients [m]" type="String" nelem="4">
 <String>"p00"</String>
-<String>"p10"</String>
 <String>"p01"</String>
+<String>"p10"</String>
 <String>"p20"</String>
-<String>"p02"</String>
 </Array>
-<Matrix name="Data" nrows="3983" ncols="5">
+<Matrix name="Data" nrows="3983" ncols="4">
 </Matrix>
 </GriddedField2>
 <GriddedField2>
 <Vector name="frequency grid [Hz]" nelem="23231">
 </Vector>
-<Array name="fit coefficients [m]" type="String" nelem="5">
+<Array name="fit coefficients [m]" type="String" nelem="4">
 <String>"p00"</String>
-<String>"p10"</String>
 <String>"p01"</String>
+<String>"p10"</String>
 <String>"p20"</String>
-<String>"p02"</String>
 </Array>
-<Matrix name="Data" nrows="23231" ncols="5">
+<Matrix name="Data" nrows="23231" ncols="4">
 </Matrix>
 </GriddedField2>
 <GriddedField2>
 <Vector name="frequency grid [Hz]" nelem="2820">
 </Vector>
-<Array name="fit coefficients [m]" type="String" nelem="5">
+<Array name="fit coefficients [m]" type="String" nelem="4">
 <String>"p00"</String>
-<String>"p10"</String>
 <String>"p01"</String>
+<String>"p10"</String>
 <String>"p20"</String>
-<String>"p02"</String>
 </Array>
-<Matrix name="Data" nrows="2820" ncols="5">
+<Matrix name="Data" nrows="2820" ncols="4">
 </Matrix>
 </GriddedField2>
 <GriddedField2>
 <Vector name="frequency grid [Hz]" nelem="23231">
 </Vector>
-<Array name="fit coefficients [m]" type="String" nelem="5">
+<Array name="fit coefficients [m]" type="String" nelem="4">
 <String>"p00"</String>
-<String>"p10"</String>
 <String>"p01"</String>
+<String>"p10"</String>
 <String>"p20"</String>
-<String>"p02"</String>
 </Array>
-<Matrix name="Data" nrows="23231" ncols="5">
+<Matrix name="Data" nrows="23231" ncols="4">
 </Matrix>
 </GriddedField2>
 <GriddedField2>
 <Vector name="frequency grid [Hz]" nelem="89280">
 </Vector>
-<Array name="fit coefficients [m]" type="String" nelem="5">
+<Array name="fit coefficients [m]" type="String" nelem="4">
 <String>"p00"</String>
-<String>"p10"</String>
 <String>"p01"</String>
+<String>"p10"</String>
 <String>"p20"</String>
-<String>"p02"</String>
 </Array>
-<Matrix name="Data" nrows="89280" ncols="5">
+<Matrix name="Data" nrows="89280" ncols="4">
 </Matrix>
 </GriddedField2>
 </Array>
