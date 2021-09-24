@@ -1949,6 +1949,12 @@ void xml_read_from_stream(istream& is_xml,
   xml_read_from_stream(is_xml, xd.FitMaxTemperatures(), pbifs, verbosity);
   xml_read_from_stream(is_xml, xd.FitCoeffs(), pbifs, verbosity);
 
+  for (const auto& fitcoeffs : xd.FitCoeffs()) {
+    const Index ncoeff = fitcoeffs.data.ncols();
+    ARTS_USER_ERROR_IF(
+        ncoeff != 4, "Wrong number of coefficients, expected 4, found ", ncoeff)
+  }
+
   tag.read_from_stream(is_xml);
   tag.check_name("/XsecRecord");
 }
