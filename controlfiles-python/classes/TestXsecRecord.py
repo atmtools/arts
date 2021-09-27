@@ -1,7 +1,5 @@
-from pyarts.classes.XsecRecord import XsecRecord
-from pyarts.classes.Vector import Vector
-from pyarts.classes.Matrix import Matrix
-from pyarts.classes.GriddedField2 import ArrayOfGriddedField2, GriddedField2
+from pyarts.classes import (ArrayOfGriddedField2, ArrayOfString, GriddedField2, Matrix,
+                            Vector, XsecRecord)
 
 xr = XsecRecord()
 xr2 = XsecRecord()
@@ -15,9 +13,9 @@ xr.fitmaxpressures = Vector([4, 5])
 xr.fitmintemperatures = Vector([6, 7])
 xr.fitmaxtemperatures = Vector([8, 9])
 gf = GriddedField2()
-gf.grids = [Vector([10, 11]), Vector([12, 13])]
-gf.data = Matrix([[14, 15], [16, 17]])
-xr.fitcoeffs = ArrayOfGriddedField2([gf])
+gf.grids = [Vector([10, 11]), ArrayOfString(["p00", "p01", "p10", "p20"])]
+gf.data = Matrix([[14, 15, 16, 17], [18, 19, 20, 21]])
+xr.fitcoeffs = ArrayOfGriddedField2([gf, gf])
 
 xr2.set(xr)
 assert xr == xr2
