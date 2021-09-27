@@ -169,23 +169,15 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
       const Numeric current_t = force_t < 0 ? rtp_temperature : force_t;
 
       // Get the absorption cross sections from the HITRAN data:
-      this_xdata.Extract(xsec_temp,
-                         f_grid,
-                         current_p,
-                         current_t,
-                         verbosity);
-      if (do_freq_jac)
-        this_xdata.Extract(dxsec_temp_dF,
-                           dfreq,
-                           current_p,
-                           current_t,
-                           verbosity);
-      if (do_temp_jac)
-        this_xdata.Extract(dxsec_temp_dT,
-                           f_grid,
-                           current_p,
-                           current_t + dt,
-                           verbosity);
+      this_xdata.Extract(xsec_temp, f_grid, current_p, current_t, verbosity);
+      if (do_freq_jac) {
+        this_xdata.Extract(
+            dxsec_temp_dF, dfreq, current_p, current_t, verbosity);
+      }
+      if (do_temp_jac) {
+        this_xdata.Extract(
+            dxsec_temp_dT, f_grid, current_p, current_t + dt, verbosity);
+      }
     }
 
     // Add to result variable:
@@ -194,27 +186,28 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
       xsec_temp *= nd * rtp_vmr[i];
       propmat_clearsky.Kjj() += xsec_temp;
     } else {
+      Numeric dnd_dt = dnumber_density_dt(rtp_pressure, rtp_temperature);
       for (Index f = 0; f < f_grid.nelem(); f++) {
         propmat_clearsky.Kjj()[f] += xsec_temp[f] * nd * rtp_vmr[i];
         for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
 
+          if (!deriv.propmattype()) continue;
+
           if (is_frequency_parameter(deriv)) {
             dpropmat_clearsky_dx[iq].Kjj()[f] +=
                 (dxsec_temp_dF[f] - xsec_temp[f]) * nd * rtp_vmr[i] / df;
-          }
-
-          if (!deriv.propmattype()) continue;
-
-          if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR ||
-              deriv == Jacobian::Line::VMR) {
+          } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR ||
+                     deriv == Jacobian::Line::VMR) {
             if (species_match(deriv, abs_species[i])) {
               dpropmat_clearsky_dx[iq].Kjj()[f] +=
                   xsec_temp[f] * nd * rtp_vmr[i];
             }
           } else if (deriv == Jacobian::Atm::Temperature) {
             dpropmat_clearsky_dx[iq].Kjj()[f] +=
-                (dxsec_temp_dT[f] - xsec_temp[f]) * nd * rtp_vmr[i] / dt;
+                ((dxsec_temp_dT[f] - xsec_temp[f]) / dt * nd +
+                 xsec_temp[f] * dnd_dt) *
+                rtp_vmr[i];
           }
         }
       }
