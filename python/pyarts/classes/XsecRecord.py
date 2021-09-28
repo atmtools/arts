@@ -222,7 +222,7 @@ class XsecRecord:
     def from_xarray(cls, ds):
         """Set XsecRecord from xarray dataset"""
         xr = cls()
-        coeff_grid = ArrayOfString(["p00", "p01", "p10", "p20"])
+        coeff_grid = ArrayOfString(["p00", "p10", "p01", "p20"])
         gfs = []
         xr.spec = ds.attrs["species"]
         xr.version = ds.attrs["version"]
