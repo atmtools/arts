@@ -9093,12 +9093,12 @@ void CKD_mt_320_self_h2o(MatrixView pxsec,
 
   int I1 = (int)((V1C - SL296_ckd_mt_320_v1) / SL296_ckd_mt_320_dv);
   if (V1C < SL296_ckd_mt_320_v1) I1 = -1;
-  V1C = SL296_ckd_mt_320_v1 + (SL296_ckd_mt_320_dv * (Numeric)I1);
+  V1C = SL296_ckd_mt_320_v1 + (SL296_ckd_mt_320_dv * (Numeric)(I1 - 1));
 
   int I2 = (int)((V2C - SL296_ckd_mt_320_v1) / SL296_ckd_mt_320_dv);
 
   int NPTC = I2 - I1 + 3;
-  if (NPTC > SL296_ckd_mt_320_npt) NPTC = SL296_ckd_mt_320_npt + 1;
+  if (NPTC > SL296_ckd_mt_320_npt) NPTC = SL296_ckd_mt_320_npt + 4;
 
   V2C = V1C + SL296_ckd_mt_320_dv * (Numeric)(NPTC - 1);
 
@@ -9116,7 +9116,7 @@ void CKD_mt_320_self_h2o(MatrixView pxsec,
   Vector SH2OT1(NPTC + addF77fields, 0.);  // [cm^3/molecules]
 
   for (Index J = 1; J <= NPTC; ++J) {
-    Index I = I1 + J;
+    Index I = I1 + (J - 1);
     if ((I > 0) && (I <= SL296_ckd_mt_320_npt)) {
       SH2OT0[J] = SL296_ckd_mt_320[I];  // at T=296 K
       SH2OT1[J] = SL260_ckd_mt_320[I];  // at T=260 K
@@ -9332,12 +9332,12 @@ void CKD_mt_320_foreign_h2o(MatrixView pxsec,
 
   int I1 = (int)((V1C - FH2O_ckd_mt_320_v1) / FH2O_ckd_mt_320_dv);
   if (V1C < FH2O_ckd_mt_320_v1) I1 = -1;
-  V1C = FH2O_ckd_mt_320_v1 + (FH2O_ckd_mt_320_dv * (Numeric)I1);
+  V1C = FH2O_ckd_mt_320_v1 + (FH2O_ckd_mt_320_dv * (Numeric)(I1 - 1));
 
   int I2 = (int)((V2C - FH2O_ckd_mt_320_v1) / FH2O_ckd_mt_320_dv);
 
   int NPTC = I2 - I1 + 3;
-  if (NPTC > FH2O_ckd_mt_320_npt) NPTC = FH2O_ckd_mt_320_npt + 1;
+  if (NPTC > FH2O_ckd_mt_320_npt) NPTC = FH2O_ckd_mt_320_npt + 4;
 
   V2C = V1C + FH2O_ckd_mt_320_dv * (Numeric)(NPTC - 1);
 
@@ -9354,7 +9354,7 @@ void CKD_mt_320_foreign_h2o(MatrixView pxsec,
   Vector FH2OT0(NPTC + addF77fields, 0.);  // [cm^3/molecules]
 
   for (Index J = 1; J <= NPTC; ++J) {
-    Index I = I1 + J;
+    Index I = I1 + (J - 1);
     if ((I > 0) && (I <= FH2O_ckd_mt_320_npt)) {
       FH2OT0[J] = FH2O_ckd_mt_320[I];
     }
@@ -9390,7 +9390,9 @@ void CKD_mt_320_foreign_h2o(MatrixView pxsec,
       {
         // Scaling factor below 600cm-1 based on RHUBC-II campaign
         JFAC = (int)((VJ + 10e0) / 10e0 + 0.00001e0);
-        FSCAL = XFAC_RHU[JFAC];
+        FSCAL = XFAC_RHU[JFAC + 1]; // +1 needed as XFAC_RHU is indexed
+                                    // from 0 in C code, but FORTRAN code
+                                    // declares DIMENSION -1, 61
       } else  // same as from version 2.4 apart from the 630e0 in the VF2 equation
       {
         Numeric VDELSQ1 = pow((VJ - 255.67e0), 2e0);
