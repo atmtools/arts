@@ -12772,6 +12772,31 @@ void define_md_data_raw() {
       AGENDAMETHOD(false)));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddConts"),
+      DESCRIPTION("Calculate propmat for continua.\n"),
+      AUTHORS("Stefan Buehler, Oliver Lemke"),
+      OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "dpropmat_clearsky_dx",
+         "abs_species",
+         "jacobian_quantities",
+         "f_grid",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_vmr",
+         "abs_cont_names",
+         "abs_cont_parameters",
+         "abs_cont_models"),
+      GIN("select_speciestags"),
+      GIN_TYPE("ArrayOfSpeciesTag"),
+      GIN_DEFAULT(""),
+      GIN_DESC(
+          "Species selection (will only compute for the select species in *abs_species*)")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFaraday"),
       DESCRIPTION(
           "Calculates absorption matrix describing Faraday rotation.\n"

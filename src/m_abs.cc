@@ -1408,6 +1408,255 @@ Vector create_sparse_f_grid_internal(const Vector& f_grid,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void propmat_clearskyAddConts(  // Workspace reference:
+    // WS Output:
+    PropagationMatrix& propmat_clearsky,
+    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    // WS Input:
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const Vector& f_grid,
+    const Numeric& rtp_pressure,
+    const Numeric& rtp_temperature,
+    const Vector& rtp_vmr,
+    const ArrayOfString& abs_cont_names,
+    const ArrayOfVector& abs_cont_parameters,
+    const ArrayOfString& abs_cont_models,
+    const ArrayOfSpeciesTag& select_speciestags,
+    // Verbosity object:
+    const Verbosity& verbosity) {
+  CREATE_OUT3;
+
+  // Size of problem
+  const Index nf = f_grid.nelem();
+  const Index nq = jacobian_quantities.nelem();
+  const Index ns = abs_species.nelem();
+
+  // Possible things that can go wrong in this code (excluding line parameters)
+  check_abs_species(abs_species);
+  ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
+                     "*rtp_vmr* must match *abs_species*")
+  ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
+                     "*f_grid* must match *propmat_clearsky*")
+  ARTS_USER_ERROR_IF(
+      not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
+      "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
+  ARTS_USER_ERROR_IF(
+      not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
+      "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
+  ARTS_USER_ERROR_IF(any_negative(f_grid),
+                     "Negative frequency (at least one value).")
+  ARTS_USER_ERROR_IF(not is_increasing(f_grid),
+                     "Must be sorted and increasing.")
+  ARTS_USER_ERROR_IF(any_negative(rtp_vmr),
+                     "Negative VMR (at least one value).")
+  ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
+
+  Vector abs_p{rtp_pressure};
+  Vector abs_t{rtp_temperature};
+
+  // Jacobian overhead START
+  /* NOTE: if any of the functions inside continuum tags could 
+           be made to give partial derivatives, then that would 
+           speed things up.  Also be aware that line specific
+           parameters cannot be retrieved while using these 
+           models. */
+  const bool do_jac = supports_continuum(
+      jacobian_quantities);  // Throws runtime error if line parameters are wanted since we cannot know if the line is in the Continuum...
+  const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
+  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
+  const Numeric df = frequency_perturbation(jacobian_quantities);
+  const Numeric dt = temperature_perturbation(jacobian_quantities);
+  Vector dfreq;
+  Vector dabs_t{rtp_temperature + dt};
+
+  if (do_freq_jac) {
+    dfreq.resize(f_grid.nelem());
+    for (Index iv = 0; iv < f_grid.nelem(); iv++) dfreq[iv] = f_grid[iv] + df;
+  }
+
+  Vector normal(f_grid.nelem());
+  Vector jacs_df, jacs_dt;
+  if (do_jac) {
+    if (do_freq_jac) jacs_df.resize(f_grid.nelem());
+    if (do_temp_jac) jacs_dt.resize(f_grid.nelem());
+  }
+  // Jacobian overhead END
+
+  // Check, that dimensions of abs_cont_names and
+  // abs_cont_parameters are consistent...
+  ARTS_USER_ERROR_IF(abs_cont_names.nelem() != abs_cont_parameters.nelem(),
+                     continua_model_error_message(
+                         abs_cont_names, abs_cont_parameters, abs_cont_models))
+
+  // We set abs_h2o, abs_n2, and abs_o2 later, because we only want to
+  // do it if the parameters are really needed.
+
+  out3 << "  Calculating continuum spectra.\n";
+
+  // Loop tag groups:
+  for (Index ispecies = 0; ispecies < ns; ispecies++) {
+    if (select_speciestags.nelem() and
+        select_speciestags not_eq abs_species[ispecies])
+      continue;
+
+    // Skip it if there are no species or there is Zeeman requested
+    if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman())
+      continue;
+
+    // Go through the tags in the current tag group to see if they
+    // are continuum tags:
+    for (Index s = 0; s < abs_species[ispecies].nelem(); ++s) {
+      // Continuum tags in the sense that we talk about here
+      // (including complete absorption models) are marked by a special type.
+      if (abs_species[ispecies][s].Type() == Species::TagType::PredefinedLegacy) {
+        // We have identified a continuum tag!
+
+        // Get only the continuum name. The full tag name is something like:
+        // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
+        const String name = abs_species[ispecies][s].Isotopologue().FullName();
+
+        if (name == "O2-MPM2020") continue;
+
+        // Check, if we have parameters for this model. For
+        // this, the model name must be listed in
+        // abs_cont_names.
+        const Index n =
+            find(abs_cont_names.begin(), abs_cont_names.end(), name) -
+            abs_cont_names.begin();
+
+        // n==abs_cont_names.nelem() indicates that
+        // the name was not found.
+        ARTS_USER_ERROR_IF(n == abs_cont_names.nelem(),
+                           "Cannot find model ",
+                           name,
+                           " in abs_cont_names.")
+
+        // Ok, the tag specifies a valid continuum model and
+        // we have continuum parameters.
+
+        if (out3.sufficient_priority()) {
+          ostringstream os;
+          os << "  Adding " << name << " to tag group " << ispecies << ".\n";
+          out3 << os.str();
+        }
+
+        // Set abs_h2o, abs_n2, and abs_o2 from the first matching species.
+        const Index h2o =
+            find_first_species(abs_species, Species::fromShortName("H2O"));
+        const Vector h2o_vmr{h2o == -1 ? 0.0 : rtp_vmr[h2o]};
+        const Index n2 =
+            find_first_species(abs_species, Species::fromShortName("N2"));
+        const Vector n2_vmr{n2 == -1 ? 0.0 : rtp_vmr[h2o]};
+        const Index o2 =
+            find_first_species(abs_species, Species::fromShortName("O2"));
+        const Vector o2_vmr{o2 == -1 ? 0.0 : rtp_vmr[o2]};
+
+        // Add the continuum for this tag. The parameters in
+        // this call should be clear. The vmr is in
+        // abs_vmrs(i,Range(joker)). The other vmr variables,
+        // abs_h2o, abs_n2, and abs_o2 contains the real vmr of H2O,
+        // N2, nad O2, which are needed as additional information for
+        // certain continua:
+        // abs_h2o for
+        //   O2-PWR88, O2-PWR93, O2-PWR98,
+        //   O2-MPM85, O2-MPM87, O2-MPM89, O2-MPM92, O2-MPM93,
+        //   O2-TRE05,
+        //   O2-SelfContStandardType, O2-SelfContMPM93, O2-SelfContPWR93,
+        //   N2-SelfContMPM93, N2-DryContATM01,
+        //   N2-CIArotCKDMT252, N2-CIAfunCKDMT252
+        // abs_n2 for
+        //   H2O-SelfContCKD24, H2O-ForeignContCKD24,
+        //   O2-v0v0CKDMT100,
+        //   CO2-ForeignContPWR93, CO2-ForeignContHo66
+        // abs_o2 for
+        //   N2-CIArotCKDMT252, N2-CIAfunCKDMT252
+        normal = 0.0;
+        xsec_continuum_tag(normal,
+                           name,
+                           abs_cont_parameters[n],
+                           abs_cont_models[n],
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           n2_vmr,
+                           h2o_vmr,
+                           o2_vmr,
+                           rtp_vmr[ispecies],
+                           verbosity);
+        if (!do_jac) {
+          normal *=
+              number_density(rtp_pressure, rtp_temperature) * rtp_vmr[ispecies];
+          propmat_clearsky.Kjj() += normal;
+        } else  // The Jacobian block
+        {
+          // Needs a reseted block here...
+          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+            if (do_freq_jac) jacs_df[iv] = 0.0;
+            if (do_temp_jac) jacs_dt[iv] = 0.0;
+          }
+
+          // Frequency calculations
+          if (do_freq_jac)
+            xsec_continuum_tag(jacs_df,
+                               name,
+                               abs_cont_parameters[n],
+                               abs_cont_models[n],
+                               dfreq,
+                               abs_p,
+                               abs_t,
+                               n2_vmr,
+                               h2o_vmr,
+                               o2_vmr,
+                               rtp_vmr[ispecies],
+                               verbosity);
+
+          //Temperature calculations
+          if (do_temp_jac)
+            xsec_continuum_tag(jacs_dt,
+                               name,
+                               abs_cont_parameters[n],
+                               abs_cont_models[n],
+                               f_grid,
+                               abs_p,
+                               dabs_t,
+                               n2_vmr,
+                               h2o_vmr,
+                               o2_vmr,
+                               rtp_vmr[ispecies],
+                               verbosity);
+
+          Numeric nd = number_density(rtp_pressure, rtp_temperature);
+          Numeric dnd_dt = dnumber_density_dt(rtp_pressure, rtp_temperature);
+          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+            propmat_clearsky.Kjj()[iv] += normal[iv] * nd * rtp_vmr[ispecies];
+            for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+              const auto& deriv = jacobian_quantities[iq];
+
+              if (not deriv.propmattype()) continue;
+
+              if (is_frequency_parameter(deriv)) {
+                dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+                    (jacs_df[iv] - normal[iv]) / df;
+              } else if (deriv == Jacobian::Atm::Temperature) {
+                dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+                    ((jacs_dt[iv] - normal[iv]) / dt * nd +
+                     normal[iv] * dnd_dt) *
+                    rtp_vmr[ispecies];
+              } else if (deriv == abs_species[ispecies]) {
+                dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+                    normal[iv] * nd * rtp_vmr[ispecies];
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddLines(  // Workspace reference:
     // WS Output:
     PropagationMatrix& propmat_clearsky,

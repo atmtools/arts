@@ -1092,7 +1092,7 @@ bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
 bool supports_continuum(const ArrayOfRetrievalQuantity& js) {
   ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
     "Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n")
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or is_frequency_parameter(j));});
 }
 
 bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
