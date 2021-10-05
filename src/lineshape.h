@@ -528,25 +528,160 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
   constexpr Numeric dNdNLTEl() const noexcept { return dNdTu; }
   constexpr Numeric dNdSELFVMR() const noexcept { return dNdSELFVMRval; }
   
-  static constexpr bool do_nlte() noexcept {return true;}
-}; // VibrationalTemperaturesNonLocalThermodynamicEquilibrium
+  static constexpr bool do_nlte() noexcept {return true;}}
+; // VibrationalTemperaturesNonLocalThermodynamicEquilibrium
 
-typedef std::variant<Noshape, Doppler, Lorentz, Voigt, SpeedDependentVoigt,
-                     HartmannTran>
-    Calculator;
-    
-Calculator line_shape_selection(const Type type, const Numeric F0,
-                                const Output &X, const Numeric DC,
-                                const Numeric DZ, bool manually_mirrored);
+//! Line shape calculator.
+class Calculator {
+  using Variant = std::variant<Noshape, Doppler, Lorentz, Voigt, SpeedDependentVoigt, HartmannTran>;
+  Variant ls;
 
-typedef std::variant<Nonorm, VanVleckHuber, VanVleckWeisskopf,
-                     RosenkranzQuadratic, SimpleFrequencyScaling>
-    Normalizer;
+public:
+  constexpr Complex dFdT(const Output & dXdT, Numeric T) const noexcept {return std::visit([&](auto &&LS) { return LS.dFdT(dXdT, T); }, ls);}
+  constexpr Complex dFdf() const noexcept {return std::visit([](auto &&LS) { return LS.dFdf(); }, ls);}
+  constexpr Complex dFdF0() const noexcept  {return std::visit([](auto &&LS) { return LS.dFdF0(); }, ls);}
+  constexpr Complex dFdH(Numeric dfdH) const noexcept {return std::visit([dfdH](auto &&LS) { return LS.dFdH(dfdH); }, ls);}
+  constexpr Complex dFdVMR(const Output &dXdVMR) const noexcept {return std::visit([&](auto &&LS) { return LS.dFdVMR(dXdVMR); }, ls);}
+  constexpr Complex dFdFVC(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdFVC(d); }, ls);}
+  constexpr Complex dFdETA(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdETA(d); }, ls);}
+  constexpr Complex dFdDV(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdDV(d); }, ls);}
+  constexpr Complex dFdD0(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdD0(d); }, ls);}
+  constexpr Complex dFdG0(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdG0(d); }, ls);}
+  constexpr Complex dFdD2(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdD2(d); }, ls);}
+  constexpr Complex dFdG2(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdG2(d); }, ls);}
+  constexpr Complex F() const noexcept {return std::visit([](auto &&LS) { return LS.F; }, ls);}
 
-typedef std::variant<Nostrength, LocalThermodynamicEquilibrium,
-                     FullNonLocalThermodynamicEquilibrium,
-                     VibrationalTemperaturesNonLocalThermodynamicEquilibrium>
-    IntensityCalculator;
+  //! Call operator on frequency.  Must call this before any of the derivatives
+  constexpr Complex operator()(Numeric f) noexcept {return std::visit([f](auto &&LS) { return LS(f); }, ls);}
+
+  constexpr Calculator(const Type type, const Numeric F0,
+                       const Output &X, const Numeric DC,
+                       const Numeric DZ, bool manually_mirrored) noexcept : ls(Noshape{}) {
+    if (not manually_mirrored) {
+      switch (type) {
+      case Type::DP:
+        ls = Doppler(F0, DC, DZ); break;
+      case Type::LP:
+        ls = Lorentz(F0, X); break;
+      case Type::VP:
+        ls = Voigt(F0, X, DC, DZ); break;
+      case Type::SDVP:
+        ls = SpeedDependentVoigt(F0, X, DC, DZ); break;
+      case Type::HTP:
+        ls = HartmannTran(F0, X, DC, DZ); break;
+      case Type::FINAL: { /*leave last*/
+        }
+      }
+    }
+  }
+
+  constexpr Calculator(const Absorption::MirroringType mirror,
+                       const Type type, const Numeric F0,
+                       const Output &X, const Numeric DC,
+                       const Numeric DZ) : ls(Noshape{}) {
+    switch (mirror) {
+    case Absorption::MirroringType::Lorentz:
+      ls = Lorentz(-F0, mirroredOutput(X)); break;
+    case Absorption::MirroringType::SameAsLineShape:
+      *this = {type, -F0, mirroredOutput(X), -DC, -DZ, false}; break;
+    case Absorption::MirroringType::Manual:
+      *this = {type, F0, mirroredOutput(X), -DC, -DZ, false}; break;
+    case Absorption::MirroringType::None:
+      break;
+    case Absorption::MirroringType::FINAL: { /*leave last*/
+      }
+    }
+  }
+};  // Calculator
+
+class Normalizer {
+  using Variant = std::variant<Nonorm, VanVleckHuber, VanVleckWeisskopf, RosenkranzQuadratic, SimpleFrequencyScaling>;
+  Variant ls_norm;
+
+public:
+  constexpr Numeric dNdT(Numeric T, Numeric f) const noexcept { return std::visit([T, f](auto &&LSN) { return LSN.dNdT(T, f); }, ls_norm); }
+  constexpr Numeric dNdf(Numeric f) const noexcept { return std::visit([f](auto&& LS){return LS.dNdf(f);}, ls_norm); }
+  constexpr Numeric dNdF0() const noexcept { return std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_norm); }
+  constexpr Numeric operator()(Numeric f) noexcept { return std::visit([f](auto &&LSN) { return LSN(f); }, ls_norm); }
+
+  constexpr Normalizer(const Absorption::NormalizationType type,
+                       const Numeric F0, const Numeric T) noexcept : ls_norm(Nonorm{}) {
+    switch (type) {
+    case Absorption::NormalizationType::None:
+      break;
+    case Absorption::NormalizationType::RQ:
+      ls_norm = RosenkranzQuadratic(F0, T); break;
+    case Absorption::NormalizationType::VVH:
+      ls_norm = VanVleckHuber(F0, T); break;
+    case Absorption::NormalizationType::VVW:
+      ls_norm = VanVleckWeisskopf(F0); break;
+    case Absorption::NormalizationType::SFS:
+      ls_norm = SimpleFrequencyScaling(F0, T); break;
+    case Absorption::NormalizationType::FINAL: { /*leave last*/
+      }
+    }
+  }
+};  // Normalizer
+
+class IntensityCalculator {
+  using Variant = std::variant<Nostrength, LocalThermodynamicEquilibrium,
+                               FullNonLocalThermodynamicEquilibrium,
+                               VibrationalTemperaturesNonLocalThermodynamicEquilibrium>;
+  Variant ls_str;
+  
+public:
+  constexpr Numeric S() const noexcept { return std::visit([](auto &&S) { return S.S; }, ls_str); }
+  constexpr Numeric dSdT() const noexcept { return std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str); }
+  constexpr Numeric dSdI0() const noexcept { return std::visit([](auto &&LS) { return LS.dSdI0(); }, ls_str); }
+  constexpr Numeric dSdF0() const noexcept { return std::visit([](auto &&LS) { return LS.dSdF0(); }, ls_str); }
+  constexpr Numeric dSdNLTEu() const noexcept { return std::visit([](auto &&LS) { return LS.dSdNLTEu(); }, ls_str); }
+  constexpr Numeric dSdNLTEl() const noexcept { return std::visit([](auto &&LS) { return LS.dSdNLTEl(); }, ls_str); }
+  constexpr Numeric dSdSELFVMR() const noexcept { return std::visit([](auto&&LS){return LS.dSdSELFVMR();}, ls_str); }
+
+  constexpr Numeric N() const noexcept { return std::visit([](auto &&S) { return S.N; }, ls_str); }
+  constexpr Numeric dNdT() const noexcept { return std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str); }
+  constexpr Numeric dNdI0() const noexcept { return std::visit([](auto &&LS) { return LS.dNdI0(); }, ls_str); }
+  constexpr Numeric dNdF0() const noexcept { return std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_str); }
+  constexpr Numeric dNdNLTEu() const noexcept { return std::visit([](auto &&LS) { return LS.dNdNLTEu(); }, ls_str); }
+  constexpr Numeric dNdNLTEl() const noexcept { return std::visit([](auto &&LS) { return LS.dNdNLTEl(); }, ls_str);; }
+  constexpr Numeric dNdSELFVMR() const noexcept { return std::visit([](auto&&LS){return LS.dNdSELFVMR();}, ls_str); }
+  
+  constexpr bool do_nlte() const noexcept {return std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);}
+
+  IntensityCalculator(const Numeric T, const Numeric QT,
+                                           const Numeric QT0,
+                                           const Numeric dQTdT, const Numeric r,
+                                           const Numeric drdSELFVMR,
+                                           const Numeric drdT,
+                                           const EnergyLevelMap &nlte,
+                                           const Absorption::Lines &band,
+                                           const Index line_index) noexcept : ls_str(Nostrength{})  {
+    const auto &line = band.Line(line_index);
+    switch (band.Population()) {
+    case Absorption::PopulationType::ByHITRANFullRelmat:
+    case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
+    case Absorption::PopulationType::ByMakarovFullRelmat:
+    case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
+    case Absorption::PopulationType::LTE:
+      ls_str = LocalThermodynamicEquilibrium(line.I0(), band.T0(), T, line.F0(),
+                                             line.E0(), QT, QT0, dQTdT, r, drdSELFVMR, drdT); break;
+    case Absorption::PopulationType::NLTE: {
+      const auto [r_low, r_upp] = nlte.get_ratio_params(band, line_index);
+      ls_str = FullNonLocalThermodynamicEquilibrium(
+        line.F0(), line.A(), T, line.g_low(), line.g_upp(), r_low, r_upp, r, drdSELFVMR, drdT);
+      } break;
+    case Absorption::PopulationType::VibTemps: {
+      const auto [E_low, E_upp, T_low, T_upp] =
+          nlte.get_vibtemp_params(band, line_index, T);
+      ls_str = VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
+          line.I0(), band.T0(), T, T_low, T_upp, line.F0(), line.E0(), E_low,
+          E_upp, QT, QT0, dQTdT, r, drdSELFVMR, drdT);
+      } break;
+    case Absorption::PopulationType::FINAL: { /*leave last*/
+      }
+    }
+  }
+};  // IntensityCalculator
 
 struct ComputeData {
   ComplexVector F, N;

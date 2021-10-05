@@ -518,68 +518,74 @@ void test_norm() {
   ArrayOfVector dN_rq_mod(3, Vector(::N));
   ArrayOfVector dN_sfs_mod(3, Vector(::N));
   
-  LineShape::Normalizer lsn_nonorm = LineShape::Nonorm{};
-  LineShape::Normalizer lsn_vvh = LineShape::VanVleckHuber(band.Line(0).F0(), T);
-  LineShape::Normalizer lsn_vvw = LineShape::VanVleckWeisskopf(band.Line(0).F0());
-  LineShape::Normalizer lsn_rq = LineShape::RosenkranzQuadratic(band.Line(0).F0(), T);
-  LineShape::Normalizer lsn_sfs = LineShape::SimpleFrequencyScaling(band.Line(0).F0(), T);
+  LineShape::Normalizer lsn_nonorm(Absorption::NormalizationType::None, band.Line(0).F0(), T);
+  LineShape::Normalizer lsn_vvh(Absorption::NormalizationType::VVH, band.Line(0).F0(), T);
+  LineShape::Normalizer lsn_vvw(Absorption::NormalizationType::VVW, band.Line(0).F0(), T);
+  LineShape::Normalizer lsn_rq(Absorption::NormalizationType::RQ, band.Line(0).F0(), T);
+  LineShape::Normalizer lsn_sfs(Absorption::NormalizationType::SFS, band.Line(0).F0(), T);
   for (Index i=0; i<::N; i++) {
-    N_nonorm[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_nonorm);
-    N_vvh[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvh);
-    N_vvw[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvw);
-    N_rq[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_rq);
-    N_sfs[i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_sfs);
+    const Numeric& f = f_grid[i];
     
-    dN_nonorm[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_nonorm);
-    dN_vvh[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_vvh);
-    dN_vvw[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_vvw);
-    dN_rq[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_rq);
-    dN_sfs[0][i] = std::visit([T=T,f=f_grid[i]](auto&& Norm){ return Norm.dNdT(T, f);}, lsn_sfs);
+    N_nonorm[i] = lsn_nonorm(f);
+    N_vvh[i] = lsn_vvh(f);
+    N_vvw[i] = lsn_vvw(f);
+    N_rq[i] = lsn_rq(f);
+    N_sfs[i] = lsn_sfs(f);
     
-    dN_nonorm[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_nonorm);
-    dN_vvh[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_vvh);
-    dN_vvw[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_vvw);
-    dN_rq[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_rq);
-    dN_sfs[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm.dNdf(f);}, lsn_sfs);
+    dN_nonorm[0][i] = lsn_nonorm.dNdT(T, f);
+    dN_vvh[0][i] = lsn_vvh.dNdT(T, f);
+    dN_vvw[0][i] = lsn_vvw.dNdT(T, f);
+    dN_rq[0][i] = lsn_rq.dNdT(T, f);
+    dN_sfs[0][i] = lsn_sfs.dNdT(T, f);
     
-    dN_nonorm[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_nonorm);
-    dN_vvh[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_vvh);
-    dN_vvw[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_vvw);
-    dN_rq[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_rq);
-    dN_sfs[2][i] = std::visit([](auto&& Norm){ return Norm.dNdF0();}, lsn_sfs);
+    dN_nonorm[1][i] = lsn_nonorm.dNdf(f);
+    dN_vvh[1][i] = lsn_vvh.dNdf(f);
+    dN_vvw[1][i] = lsn_vvw.dNdf(f);
+    dN_rq[1][i] = lsn_rq.dNdf(f);
+    dN_sfs[1][i] = lsn_sfs.dNdf(f);
+    
+    dN_nonorm[2][i] = lsn_nonorm.dNdF0();
+    dN_vvh[2][i] = lsn_vvh.dNdF0();
+    dN_vvw[2][i] = lsn_vvw.dNdF0();
+    dN_rq[2][i] = lsn_rq.dNdF0();
+    dN_sfs[2][i] = lsn_sfs.dNdF0();
     
     // Do derivatives last...
-    dN_nonorm_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_nonorm);
-    dN_vvh_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_vvh);
-    dN_vvw_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_vvw);
-    dN_rq_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_rq);
-    dN_sfs_mod[1][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f+::df);}, lsn_sfs);
+    dN_nonorm_mod[1][i] = lsn_nonorm(f+::df);
+    dN_vvh_mod[1][i] = lsn_vvh(f+::df);
+    dN_vvw_mod[1][i] = lsn_vvw(f+::df);
+    dN_rq_mod[1][i] = lsn_rq(f+::df);
+    dN_sfs_mod[1][i] = lsn_sfs(f+::df);
   }
   
-  LineShape::Normalizer lsn_nonormdT = LineShape::Nonorm{};
-  LineShape::Normalizer lsn_vvhdT = LineShape::VanVleckHuber(band.Line(0).F0(), T+::dT);
-  LineShape::Normalizer lsn_vvwdT = LineShape::VanVleckWeisskopf(band.Line(0).F0());
-  LineShape::Normalizer lsn_rqdT = LineShape::RosenkranzQuadratic(band.Line(0).F0(), T+::dT);
-  LineShape::Normalizer lsn_sfsdT = LineShape::SimpleFrequencyScaling(band.Line(0).F0(), T+::dT);
+  LineShape::Normalizer lsn_nonormdT(Absorption::NormalizationType::None, band.Line(0).F0(), T+::dT);
+  LineShape::Normalizer lsn_vvhdT(Absorption::NormalizationType::VVH, band.Line(0).F0(), T+::dT);
+  LineShape::Normalizer lsn_vvwdT(Absorption::NormalizationType::VVW, band.Line(0).F0(), T+::dT);
+  LineShape::Normalizer lsn_rqdT(Absorption::NormalizationType::RQ, band.Line(0).F0(), T+::dT);
+  LineShape::Normalizer lsn_sfsdT(Absorption::NormalizationType::SFS, band.Line(0).F0(), T+::dT);
   for (Index i=0; i<::N; i++) {
-    dN_nonorm_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_nonormdT);
-    dN_vvh_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvhdT);
-    dN_vvw_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvwdT);
-    dN_rq_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_rqdT);
-    dN_sfs_mod[0][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_sfsdT);
+    const Numeric& f = f_grid[i];
+
+    dN_nonorm_mod[0][i] = lsn_nonormdT(f);
+    dN_vvh_mod[0][i] = lsn_vvhdT(f);
+    dN_vvw_mod[0][i] = lsn_vvwdT(f);
+    dN_rq_mod[0][i] = lsn_rqdT(f);
+    dN_sfs_mod[0][i] = lsn_sfsdT(f);
   }
   
-  LineShape::Normalizer lsn_nonormdF0 = LineShape::Nonorm{};
-  LineShape::Normalizer lsn_vvhdF0 = LineShape::VanVleckHuber(band.Line(0).F0()+::dF0, T);
-  LineShape::Normalizer lsn_vvwdF0 = LineShape::VanVleckWeisskopf(band.Line(0).F0()+::dF0);
-  LineShape::Normalizer lsn_rqdF0 = LineShape::RosenkranzQuadratic(band.Line(0).F0()+::dF0, T);
-  LineShape::Normalizer lsn_sfsdF0 = LineShape::SimpleFrequencyScaling(band.Line(0).F0()+::dF0, T);
+  LineShape::Normalizer lsn_nonormdF0(Absorption::NormalizationType::None, band.Line(0).F0()+::dF0, T);
+  LineShape::Normalizer lsn_vvhdF0(Absorption::NormalizationType::VVH, band.Line(0).F0()+::dF0, T);
+  LineShape::Normalizer lsn_vvwdF0(Absorption::NormalizationType::VVW, band.Line(0).F0()+::dF0, T);
+  LineShape::Normalizer lsn_rqdF0(Absorption::NormalizationType::RQ, band.Line(0).F0()+::dF0, T);
+  LineShape::Normalizer lsn_sfsdF0(Absorption::NormalizationType::SFS, band.Line(0).F0()+::dF0, T);
   for (Index i=0; i<::N; i++) {
-    dN_nonorm_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_nonormdF0);
-    dN_vvh_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvhdF0);
-    dN_vvw_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_vvwdF0);
-    dN_rq_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_rqdF0);
-    dN_sfs_mod[2][i] = std::visit([f=f_grid[i]](auto&& Norm){ return Norm(f);}, lsn_sfsdF0);
+    const Numeric& f = f_grid[i];
+
+    dN_nonorm_mod[2][i] = lsn_nonormdF0(f);
+    dN_vvh_mod[2][i] = lsn_vvhdF0(f);
+    dN_vvw_mod[2][i] = lsn_vvwdF0(f);
+    dN_rq_mod[2][i] = lsn_rqdF0(f);
+    dN_sfs_mod[2][i] = lsn_sfsdF0(f);
   }
   
   dN_nonorm_mod[0] -= N_nonorm; dN_nonorm_mod[0] /= ::dT;

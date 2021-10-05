@@ -154,8 +154,4 @@ int main() {
   ARTSGUI::PlotConfig::X = "Frequency [GHz]";
   ARTSGUI::PlotConfig::Y = "Absorption [1/m]";
   ARTSGUI::plot(f_grid, abs.real(), f_grid, mpm_abs.Kjj(), f_grid, xsec2(joker, 0), f_grid, absZ.real(), f_grid, com.F.real());
-  WriteXML("ascii", band, "band.xml", 0, "", "", "", Verbosity());
-  MapOfErrorCorrectedSuddenData x;
-  x.push_back(ecs_data);
-  WriteXML("ascii", x, "ecs_data.xml", 0, "", "", "", Verbosity());
 }
