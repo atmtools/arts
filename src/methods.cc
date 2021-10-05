@@ -13498,7 +13498,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("NaN",
                   "NaN",
                   "NaN",
-                  "917.6",
+                  "916.7",
                   "-0.237",
                   "1.839",
                   NODEF,
