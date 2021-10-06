@@ -1306,27 +1306,6 @@ void propmat_clearskyAddParticles(
   }
 }
 
-/** Checks if a Propagation Matrix or something similar has good grids */
-template <class T>
-bool bad_propmat(const Array<T>& main,
-                 const Vector& f_grid) noexcept {
-  const Index nf = f_grid.nelem();
-  for (auto& var : main) {
-    if (nf not_eq var.NumberOfFrequencies()) return true;
-  }
-  return false;
-}
-
-/** Checks for negative values */
-template <typename MatpackType> constexpr
-bool any_negative(const MatpackType& var) noexcept {
-  if (var.empty())
-    return false;
-  else if (min(var) < 0)
-    return true;
-  else
-    return false;
-}
 
 void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
                                     const Vector& f_grid,
