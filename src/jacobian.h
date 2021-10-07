@@ -994,6 +994,14 @@ String propmattype_string(const RetrievalQuantity& rq);
 //             Propmat partials boolean functions
 //======================================================================
 
+/** Returns if the Retrieval quantity is a wind parameter in propagation matrix calculations
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
+bool is_wind_parameter(const RetrievalQuantity& t) noexcept;
+
 /** Returns if the Retrieval quantity is a frequency parameter in propagation matrix calculations
  * 
  * @param[in] t A retrieval quantity
@@ -1291,6 +1299,14 @@ jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
  * @return false if it does not
  */
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
+
+/** Returns if the array wants a wind-based frequency derivative derivative
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
+bool do_wind_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
 /** Returns if the array wants a frequency derivative
  * 

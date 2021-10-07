@@ -998,6 +998,10 @@ void dxdvmrscf(Numeric& x,
 //             Propmat partials descriptions
 //======================================================================
 
+bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
+  return t.Target().isWind();
+}
+
 bool is_frequency_parameter(const RetrievalQuantity& t) noexcept {
   return t.Target().isWind() or t.Target().isFrequency();
 }
@@ -1161,6 +1165,10 @@ jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
 
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Line::Center;});
+}
+
+bool do_wind_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_wind_parameter(j);});
 }
 
 bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
