@@ -48,10 +48,10 @@ bool EnergyLevelMap::OK() const noexcept {
       return false;  // Bad dimensions for none type
     }
   }
-  
-  for (auto& e: mvib_energy) if (e < 0) return false;  // Bad energies
-  
-  return true;
+
+  return std::all_of(mvib_energy.begin(),
+                     mvib_energy.end(),
+                     [](const auto& val) { return val >= 0; });
 }
 
 
