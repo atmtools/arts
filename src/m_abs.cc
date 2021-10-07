@@ -1434,6 +1434,11 @@ void propmat_clearskyAddConts(  // Workspace reference:
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
+  // Check, that dimensions of abs_cont_names and
+  // abs_cont_parameters are consistent...
+  ARTS_USER_ERROR_IF(abs_cont_names.nelem() != abs_cont_parameters.nelem(),
+                     continua_model_error_message(
+                         abs_cont_names, abs_cont_parameters, abs_cont_models))
   ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
                      "*rtp_vmr* must match *abs_species*")
   ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
@@ -1453,42 +1458,47 @@ void propmat_clearskyAddConts(  // Workspace reference:
   ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
 
-  Vector abs_p{rtp_pressure};
-  Vector abs_t{rtp_temperature};
-
   // Jacobian overhead START
   /* NOTE: if any of the functions inside continuum tags could 
            be made to give partial derivatives, then that would 
            speed things up.  Also be aware that line specific
            parameters cannot be retrieved while using these 
            models. */
-  const bool do_jac = supports_continuum(
-      jacobian_quantities);  // Throws runtime error if line parameters are wanted since we cannot know if the line is in the Continuum...
-  const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
-  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
   const Numeric df = frequency_perturbation(jacobian_quantities);
   const Numeric dt = temperature_perturbation(jacobian_quantities);
+
+  const bool do_jac = supports_continuum(
+      jacobian_quantities);  // Throws runtime error if line parameters are wanted since we cannot know if the line is in the Continuum...
+  const bool do_wind_jac = do_wind_jacobian(jacobian_quantities);
+  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
+
   Vector dfreq;
   Vector dabs_t{rtp_temperature + dt};
 
-  if (do_freq_jac) {
+  if (do_wind_jac) {
     dfreq.resize(f_grid.nelem());
     for (Index iv = 0; iv < f_grid.nelem(); iv++) dfreq[iv] = f_grid[iv] + df;
   }
 
   Vector normal(f_grid.nelem());
   Vector jacs_df, jacs_dt;
+
   if (do_jac) {
-    if (do_freq_jac) jacs_df.resize(f_grid.nelem());
-    if (do_temp_jac) jacs_dt.resize(f_grid.nelem());
+    if (do_wind_jac) {
+      ARTS_USER_ERROR_IF(
+          !std::isnormal(df), "df must be >0 and not NaN or Inf: ", df)
+      jacs_df.resize(f_grid.nelem());
+    }
+    if (do_temp_jac) {
+      ARTS_USER_ERROR_IF(
+          !std::isnormal(dt), "dt must be >0 and not NaN or Inf: ", dt)
+      jacs_dt.resize(f_grid.nelem());
+    }
   }
   // Jacobian overhead END
 
-  // Check, that dimensions of abs_cont_names and
-  // abs_cont_parameters are consistent...
-  ARTS_USER_ERROR_IF(abs_cont_names.nelem() != abs_cont_parameters.nelem(),
-                     continua_model_error_message(
-                         abs_cont_names, abs_cont_parameters, abs_cont_models))
+  Vector abs_p{rtp_pressure};
+  Vector abs_t{rtp_temperature};
 
   // We set abs_h2o, abs_n2, and abs_o2 later, because we only want to
   // do it if the parameters are really needed.
@@ -1593,12 +1603,12 @@ void propmat_clearskyAddConts(  // Workspace reference:
         {
           // Needs a reseted block here...
           for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-            if (do_freq_jac) jacs_df[iv] = 0.0;
+            if (do_wind_jac) jacs_df[iv] = 0.0;
             if (do_temp_jac) jacs_dt[iv] = 0.0;
           }
 
           // Frequency calculations
-          if (do_freq_jac)
+          if (do_wind_jac)
             xsec_continuum_tag(jacs_df,
                                name,
                                abs_cont_parameters[n],
@@ -1636,7 +1646,7 @@ void propmat_clearskyAddConts(  // Workspace reference:
 
               if (not deriv.propmattype()) continue;
 
-              if (is_frequency_parameter(deriv)) {
+              if (is_wind_parameter(deriv)) {
                 dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                     (jacs_df[iv] - normal[iv]) / df;
               } else if (deriv == Jacobian::Atm::Temperature) {
