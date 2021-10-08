@@ -162,7 +162,7 @@ public:
   }
   
   /** A defaultable none-type */
-  explicit Target () noexcept = default;
+  explicit Target () = default;
   
   /** Perturbation */
   void Perturbation(Numeric x) noexcept {mperturbation=x;}
