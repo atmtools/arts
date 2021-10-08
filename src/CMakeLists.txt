@@ -343,7 +343,6 @@ endif (ENABLE_DOCSERVER)
 ########### next target ###############
 
 add_library (matpack STATIC
-        complex.cc
         lin_alg.cc
         logic.cc
         rational.cc
@@ -354,6 +353,7 @@ add_library (matpack STATIC
         matpackV.cc
         matpackVI.cc
         matpackVII.cc
+        matpack_complex.cc
         )
         
 include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )

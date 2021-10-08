@@ -67,8 +67,7 @@ extern const Index GFIELD4_P_GRID;
 extern const Index GFIELD4_LAT_GRID;
 extern const Index GFIELD4_LON_GRID;
 
-extern const Numeric DEG2RAD;
-extern const Numeric PI;
+
 extern const Numeric GAS_CONSTANT;
 
 //! Data value accuracy requirement for values at 0 and 360 deg if longitudes are cyclic

@@ -24,11 +24,10 @@
  * @brief  Stuff related to time
 */
 
-#include <ctime>
-#include <stdlib.h>
-
 #include "artstime.h"
 #include "constants.h"
+#include <cstdlib>
+#include <ctime>
 
 Time::Time(const String& t) {
   auto s = std::istringstream(t);
@@ -72,8 +71,7 @@ Time next_even(const Time& t, const TimeStep& dt)
   
   if (dt_internal.count())
     return t + dt_internal - t.EpochTime() % dt_internal;
-  else 
-    return t;
+  return t;
 }
 
 ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& DT)
@@ -182,14 +180,11 @@ TimeStep median(ArrayOfTimeStep dt) {
   const auto n = dt.size();
   if (n) {
     std::sort(dt.begin(), dt.end());
-    if (n % 2) {
+    if (n % 2)
       return dt[n / 2];
-    } else {
-      return (dt[(n-1)/2] + dt[n/2]) / 2;
-    }
-  } else {
-    return TimeStep(0);
+    return (dt[(n-1)/2] + dt[n/2]) / 2;
   }
+  return TimeStep(0);
 }
 
 TimeStep mean(const ArrayOfTimeStep& dt) {

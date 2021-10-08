@@ -6,6 +6,6 @@
 namespace Jpl {
 /** Finds the ID of the ARTS species from JPL */
 QuantumIdentifier id_from_lookup(Index tag);
-}  // Jpl
+} // namespace Jpl
 
 #endif  // jpl_species_h

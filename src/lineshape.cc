@@ -28,7 +28,7 @@ Complex Doppler::operator()(Numeric f) noexcept {
 }
 
 Complex Voigt::operator()(Numeric f) noexcept {
-  reinterpret_cast<Numeric(&)[2]>(z)[0] = invGD * (f - mF0);
+  real_val(z) = invGD * (f - mF0);
   F = inv_sqrt_pi * invGD * Faddeeva::w(z);
   dF = 2 * invGD * (Complex(0, inv_pi * invGD) - z * F);
   return F;
@@ -416,15 +416,13 @@ SpeedDependentVoigt::CalcType
 SpeedDependentVoigt::init(const Complex c2) const noexcept {
   if (abs_squared(c2) == 0)
     return CalcType::Voigt;
-  else if (abs_squared(x) <= 9e-16 * abs_squared(sqrty * sqrty))
+  if (abs_squared(x) <= 9e-16 * abs_squared(sqrty * sqrty))
     return CalcType::LowXandHighY;
-  else if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)) and
-           abs_squared(std::sqrt(x)) <= 16.e6)
+  if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)) and abs_squared(std::sqrt(x)) <= 16.e6)
     return CalcType::LowYandLowX; // Weird case, untested
-  else if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)))
+  if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)))
     return CalcType::LowYandHighX;
-  else
-    return CalcType::Full;
+  return CalcType::Full;
 }
 
 void SpeedDependentVoigt::update_calcs() noexcept {
@@ -1691,15 +1689,14 @@ Complex HartmannTran::operator()(Numeric f) noexcept {
 HartmannTran::CalcType HartmannTran::init(const Complex c2t) const noexcept {
   if (abs_squared(c2t) == 0)
     return CalcType::Noc2tHighZ; // nb. Value of high/low changes elsewhere
-  else if (abs_squared(x) <= 9e-16 * abs_squared(sqrty * sqrty))
+  if (abs_squared(x) <= 9e-16 * abs_squared(sqrty * sqrty))
     return CalcType::LowXandHighY;
-  else if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)) and
+  if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)) and
            abs_squared(std::sqrt(x)) <= 16.e6)
     return CalcType::LowYandLowX; // Weird case, untested
-  else if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)))
+  if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)))
     return CalcType::LowYandHighX;
-  else
-    return CalcType::Full;
+  return CalcType::Full;
 }
 
 void HartmannTran::update_calcs() noexcept {
@@ -2181,13 +2178,13 @@ struct Derivatives {
     Numeric n;
     constexpr Values() noexcept : n() {}
   } value;
-  Index jac_pos;
-  const RetrievalQuantity * deriv;
-  Derivatives() noexcept : target(), value(), jac_pos(), deriv(nullptr) {}
+  Index jac_pos{};
+  const RetrievalQuantity * deriv{nullptr};
+  Derivatives() noexcept : target(), value() {}
 };
 
 //! Helper to keep function signature clean
-typedef Array<Derivatives> ArrayOfDerivatives;
+using ArrayOfDerivatives = Array<Derivatives>;
 
 //! Helper function to find the last relevant derivative
 Index active_nelem(const ArrayOfDerivatives& derivs) noexcept {
@@ -2210,7 +2207,7 @@ struct ComputeValues {
   const Index max_jac_size;
   const bool do_nlte;
   
-  Index jac_pos(Index iv, Index ij) const noexcept {return jac_size * iv + ij;}
+  [[nodiscard]] Index jac_pos(Index iv, Index ij) const noexcept {return jac_size * iv + ij;}
   
   ComputeValues(ComplexVector &F_,
                 ComplexMatrix &dF_,
@@ -3152,11 +3149,9 @@ void compute(ComputeData &com,
 
 
 Index sparse_f_grid_red(const Vector& f_grid, const Numeric& sparse_df) noexcept {
-  if (f_grid.nelem()) {
-    return f_grid.nelem() / Index(1 + std::abs(f_grid[f_grid.nelem() - 1] - f_grid[0]) / sparse_df);
-  } else {
-    return 0;
-  }
+  if (f_grid.nelem())
+    return f_grid.nelem() / Index(1 + std::abs(f_grid[f_grid.nelem() - 1] - f_grid[0]) / sparse_df);  
+  return 0;
 }
 
 Vector linear_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS_NOEXCEPT {
@@ -3177,23 +3172,21 @@ Vector linear_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS
     }
     
     return sparse_f_grid;
-  } else {
-    return Vector(0);
   }
+  return Vector(0);
 }
 
 bool good_linear_sparse_f_grid(const Vector& f_grid_dense, const Vector& f_grid_sparse) noexcept {
-  if (const Index nf_sparse=f_grid_sparse.nelem(); nf_sparse==1) {
+  const Index nf_sparse=f_grid_sparse.nelem();
+  const Index nf_dense=f_grid_dense.nelem();
+
+  if (nf_sparse == 1)
     return false;
-  } else if(nf_sparse) {
-    if (const Index nf_dense=f_grid_dense.nelem(); nf_dense) {
-      return f_grid_dense[0] >= f_grid_sparse[0] and f_grid_dense[nf_dense-1] <= f_grid_sparse[nf_sparse-1];
-    } else {
-      return true;
-    }
-  } else {
-    return true;
-  }
+
+  if(nf_sparse and nf_dense)
+    return f_grid_dense[0] >= f_grid_sparse[0] and f_grid_dense[nf_dense-1] <= f_grid_sparse[nf_sparse-1];
+  
+  return true;
 }
 
 Vector triple_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) noexcept {
@@ -3216,9 +3209,8 @@ Vector triple_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) noex
     }
     
     return sparse_f_grid;
-  } else {
-    return Vector(0);
   }
+  return Vector(0);
 }
 
 void ComputeData::interp_add_even(const ComputeData& sparse) ARTS_NOEXCEPT {

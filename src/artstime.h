@@ -46,7 +46,7 @@ public:
   using InternalTimeStep = decltype(mtime)::duration;
   
   // Version will be updated when C++20 datetime is available... Version 1 will still assume local time at that time
-  Index Version() const noexcept {return 1;}
+  [[nodiscard]] Index Version() const noexcept {return 1;}
   
   // Construction
   Time() : mtime(std::chrono::system_clock::now()) {}
@@ -55,14 +55,14 @@ public:
   explicit Time(const String& t);
   
   // Data
-  const std::chrono::system_clock::time_point& Data() const {return mtime;}
+  [[nodiscard]] const std::chrono::system_clock::time_point& Data() const {return mtime;}
   
   // Conversions
-  std::time_t toTimeT() const {return std::chrono::system_clock::to_time_t(mtime);}
-  std::tm toStruct() const {std::time_t x=toTimeT();  std::tm* y = std::localtime(&x); return *y;}
-  std::tm toGMTStruct() const {std::time_t x=toTimeT();  std::tm* y = std::gmtime(&x); return *y;}
-  TimeStep seconds_into_day() const {std::tm x = toStruct(); return TimeStep(x.tm_hour*3600 + x.tm_min*60 + x.tm_sec + PartOfSecond());}
-  InternalTimeStep EpochTime() const {return mtime.time_since_epoch();}
+  [[nodiscard]] std::time_t toTimeT() const {return std::chrono::system_clock::to_time_t(mtime);}
+  [[nodiscard]] std::tm toStruct() const {std::time_t x=toTimeT();  std::tm* y = std::localtime(&x); return *y;}
+  [[nodiscard]] std::tm toGMTStruct() const {std::time_t x=toTimeT();  std::tm* y = std::gmtime(&x); return *y;}
+  [[nodiscard]] TimeStep seconds_into_day() const {std::tm x = toStruct(); return TimeStep(x.tm_hour*3600 + x.tm_min*60 + x.tm_sec + PartOfSecond());}
+  [[nodiscard]] InternalTimeStep EpochTime() const {return mtime.time_since_epoch();}
   
   // Operations
   InternalTimeStep operator-(const Time& t) const noexcept {return mtime - t.mtime;}
@@ -78,9 +78,9 @@ public:
   template <typename T, typename R> Time operator-(const std::chrono::duration<T, R>& dt) const {return (Time(*this) -= dt);}
   
   // helpers
-  Numeric Seconds() const {return std::chrono::duration_cast<TimeStep>(mtime.time_since_epoch()).count();}
+  [[nodiscard]] Numeric Seconds() const {return std::chrono::duration_cast<TimeStep>(mtime.time_since_epoch()).count();}
   void Seconds(Numeric x) {operator+=(TimeStep(x - Seconds()));}
-  Numeric PartOfSecond() const {return std::fmod(Seconds(), 1.0);}
+  [[nodiscard]] Numeric PartOfSecond() const {return std::fmod(Seconds(), 1.0);}
   
   // Conversion
   explicit operator Numeric() const { return Seconds(); }

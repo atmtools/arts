@@ -60,7 +60,7 @@ Numeric case_b_g_coefficient_o2(Rational j,
 
   if (j.isUndefined() or n.isUndefined())
     return NAN;
-  else if (j == 0)
+  if (j == 0)
     return 0;
 
   auto J = j.toNumeric();
@@ -82,12 +82,11 @@ Numeric case_b_g_coefficient_o2(Rational j,
 
   if (j == n)
     return (GS + GR) / (J * (J + 1)) - GR;
-  else if (j < n)
+  if (j < n)
     return (GS + GR) * (pow2(cos(phi)) / J - pow2(sin(phi)) / (J + 1)) +
            2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
-  else /*if(j > n)*/
-    return (GS + GR) * (pow2(sin(phi)) / J - pow2(cos(phi)) / (J + 1)) -
-           2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
+  return (GS + GR) * (pow2(sin(phi)) / J - pow2(cos(phi)) / (J + 1)) -
+          2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
 }
 
 constexpr Numeric closed_shell_trilinear(Rational k,
@@ -97,8 +96,7 @@ constexpr Numeric closed_shell_trilinear(Rational k,
 {
   if (k.isUndefined() or j.isUndefined() or j == 0)
     return 0;
-  else
-    return gperp + (gperp + gpara) * Numeric(k*k / (j*(j+1)));
+  return gperp + (gperp + gpara) * Numeric(k*k / (j*(j+1)));
 }
 
 
@@ -380,8 +378,8 @@ void sum(PropagationMatrix& pm, const ComplexVectorView& abs, const Polarization
   ARTS_ASSERT(pm.NumberOfFrequencies() == abs.nelem())
   ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7 : pm.NumberOfNeededVectors() == 4)
   
-  auto pol_real = polvec.attenuation();
-  auto pol_imag = polvec.dispersion();
+  const auto& pol_real = polvec.attenuation();
+  const auto& pol_imag = polvec.dispersion();
   
   MatrixView out = pm.Data()(0, 0, joker, joker);
   MapToEigen(out).leftCols<4>().noalias() += MapToEigen(abs.real()) * pol_real;
@@ -402,8 +400,8 @@ void dsum(PropagationMatrix& pm,
   ARTS_ASSERT(pm.NumberOfFrequencies() == abs.nelem())
   ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7 : pm.NumberOfNeededVectors() == 4)
   
-  auto pol_real = polvec.attenuation();
-  auto pol_imag = polvec.dispersion();
+  const auto& pol_real = polvec.attenuation();
+  const auto& pol_imag = polvec.dispersion();
   auto da_r = (dt * dpolvec_dtheta.attenuation() + de * dpolvec_deta.attenuation());
   auto da_i = (dt * dpolvec_dtheta.dispersion() + de * dpolvec_deta.dispersion());
   
@@ -411,4 +409,4 @@ void dsum(PropagationMatrix& pm,
   MapToEigen(out).leftCols<4>().noalias() += dH * MapToEigen(dabs.real()) * pol_real + MapToEigen(abs.real()) * da_r;
   if (do_phase) MapToEigen(out).rightCols<3>().noalias() += dH * MapToEigen(dabs.imag()) * pol_imag + MapToEigen(abs.imag()) * da_i;
 }
-}  // Zeeman
+} // namespace Zeeman

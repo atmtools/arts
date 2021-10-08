@@ -28,12 +28,12 @@
 #include "interpolation_lagrange.h"
 
 void statistical_equilibrium_equation(MatrixView A,
-                                      ConstVectorView Aij,
-                                      ConstVectorView Bij,
-                                      ConstVectorView Bji,
-                                      ConstVectorView Cij,
-                                      ConstVectorView Cji,
-                                      ConstVectorView Jij,
+                                      const ConstVectorView& Aij,
+                                      const ConstVectorView& Bij,
+                                      const ConstVectorView& Bji,
+                                      const ConstVectorView& Cij,
+                                      const ConstVectorView& Cji,
+                                      const ConstVectorView& Jij,
                                       const ArrayOfIndex& upper,
                                       const ArrayOfIndex& lower) {
   const Index nlines = Aij.nelem();
@@ -53,14 +53,14 @@ void statistical_equilibrium_equation(MatrixView A,
 
 void dampened_statistical_equilibrium_equation(
     MatrixView A,
-    ConstVectorView x,
-    ConstVectorView Aij,
-    ConstVectorView Bij,
-    ConstVectorView Bji,
-    ConstVectorView Cij,
-    ConstVectorView Cji,
-    ConstVectorView Jij,
-    ConstVectorView Lambda,
+    const ConstVectorView& x,
+    const ConstVectorView& Aij,
+    const ConstVectorView& Bij,
+    const ConstVectorView& Bji,
+    const ConstVectorView& Cij,
+    const ConstVectorView& Cji,
+    const ConstVectorView& Jij,
+    const ConstVectorView& Lambda,
     const ArrayOfIndex& upper,
     const ArrayOfIndex& lower,
     const Numeric& total_number_count) {
@@ -187,7 +187,7 @@ void nlte_collision_factorsCalcFromCoeffs(
     const ArrayOfArrayOfGriddedField1& collision_coefficients,
     const ArrayOfQuantumIdentifier& collision_line_identifiers,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
-    const ConstVectorView vmr,
+    const ConstVectorView& vmr,
     const Numeric& T,
     const Numeric& P) {
   extern const Numeric BOLTZMAN_CONST;

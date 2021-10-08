@@ -30,12 +30,10 @@
   ===========================================================================*/
 
 #include "rte.h"
-#include <cmath>
-#include <stdexcept>
 #include "auto_md.h"
 #include "check_input.h"
-#include "legacy_continua.h"
 #include "geodetic.h"
+#include "legacy_continua.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -44,6 +42,8 @@
 #include "ppath.h"
 #include "refraction.h"
 #include "special_interp.h"
+#include <cmath>
+#include <stdexcept>
 
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric TEMP_0_C;
@@ -56,9 +56,9 @@ void adapt_stepwise_partial_derivatives(
     ArrayOfPropagationMatrix& dK_dx,
     ArrayOfStokesVector& dS_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_f_grid,
-    ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_vmrs,
+    const ConstVectorView& ppath_f_grid,
+    const ConstVectorView& ppath_line_of_sight,
+    const ConstVectorView& ppath_vmrs,
     const Numeric& ppath_temperature,
     const Numeric& ppath_pressure,
     const ArrayOfIndex& jacobian_species,
@@ -132,7 +132,7 @@ void adjust_los(VectorView los, const Index& atmosphere_dim) {
 
 void apply_iy_unit(MatrixView iy,
                    const String& iy_unit,
-                   ConstVectorView f_grid,
+                   const ConstVectorView& f_grid,
                    const Numeric& n,
                    const ArrayOfIndex& i_pol) {
   // The code is largely identical between the two apply_iy_unit functions.
@@ -204,9 +204,9 @@ void apply_iy_unit(MatrixView iy,
 }
 
 void apply_iy_unit2(Tensor3View J,
-                    ConstMatrixView iy,
+                    const ConstMatrixView& iy,
                     const String& iy_unit,
-                    ConstVectorView f_grid,
+                    const ConstVectorView& f_grid,
                     const Numeric& n,
                     const ArrayOfIndex& i_pol) {
   // The code is largely identical between the two apply_iy_unit functions.
@@ -339,19 +339,19 @@ void defocusing_general_sub(Workspace& ws,
                             Vector& pos,
                             Vector& rte_los,
                             Index& background,
-                            ConstVectorView rte_pos,
+                            const ConstVectorView& rte_pos,
                             const Numeric& lo0,
                             const Agenda& ppath_step_agenda,
                             const Numeric& ppath_lmax,
                             const Numeric& ppath_lraytrace,
                             const Index& atmosphere_dim,
-                            ConstVectorView p_grid,
-                            ConstVectorView lat_grid,
-                            ConstVectorView lon_grid,
-                            ConstTensor3View z_field,
-                            ConstVectorView f_grid,
-                            ConstVectorView refellipsoid,
-                            ConstMatrixView z_surface,
+                            const ConstVectorView& p_grid,
+                            const ConstVectorView& lat_grid,
+                            const ConstVectorView& lon_grid,
+                            const ConstTensor3View& z_field,
+                            const ConstVectorView& f_grid,
+                            const ConstVectorView& refellipsoid,
+                            const ConstMatrixView& z_surface,
                             const Verbosity& verbosity) {
   // Special treatment of 1D around zenith/nadir
   // (zenith angles outside [0,180] are changed by *adjust_los*)
@@ -383,7 +383,7 @@ void defocusing_general_sub(Workspace& ws,
              rte_los,
              ppath_lmax,
              ppath_lraytrace,
-             0,
+             false,
              verbosity);
   //
   background = ppath_what_background(ppx);
@@ -461,13 +461,13 @@ void defocusing_general(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
                         const Index& atmosphere_dim,
-                        ConstVectorView p_grid,
-                        ConstVectorView lat_grid,
-                        ConstVectorView lon_grid,
-                        ConstTensor3View z_field,
-                        ConstVectorView f_grid,
-                        ConstVectorView refellipsoid,
-                        ConstMatrixView z_surface,
+                        const ConstVectorView& p_grid,
+                        const ConstVectorView& lat_grid,
+                        const ConstVectorView& lon_grid,
+                        const ConstTensor3View& z_field,
+                        const ConstVectorView& f_grid,
+                        const ConstVectorView& refellipsoid,
+                        const ConstMatrixView& z_surface,
                         const Ppath& ppath,
                         const Numeric& ppath_lmax,
                         const Numeric& ppath_lraytrace,
@@ -580,13 +580,13 @@ void defocusing_sat2sat(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
                         const Index& atmosphere_dim,
-                        ConstVectorView p_grid,
-                        ConstVectorView lat_grid,
-                        ConstVectorView lon_grid,
-                        ConstTensor3View z_field,
-                        ConstVectorView f_grid,
-                        ConstVectorView refellipsoid,
-                        ConstMatrixView z_surface,
+                        const ConstVectorView& p_grid,
+                        const ConstVectorView& lat_grid,
+                        const ConstVectorView& lon_grid,
+                        const ConstTensor3View& z_field,
+                        const ConstVectorView& f_grid,
+                        const ConstVectorView& refellipsoid,
+                        const ConstMatrixView& z_surface,
                         const Ppath& ppath,
                         const Numeric& ppath_lmax,
                         const Numeric& ppath_lraytrace,
@@ -645,7 +645,7 @@ void defocusing_sat2sat(Workspace& ws,
              rte_los,
              ppath_lmax,
              ppath_lraytrace,
-             0,
+             false,
              verbosity);
   bending_angle1d(alpha2, ppt);
   alpha2 *= DEG2RAD;
@@ -670,7 +670,7 @@ void defocusing_sat2sat(Workspace& ws,
              rte_los,
              ppath_lmax,
              ppath_lraytrace,
-             0,
+             false,
              verbosity);
   // This path can hit the surface. And we need to check if ppt is OK.
   // (remember this function only deals with sat-to-sat links and OK
@@ -692,7 +692,7 @@ void defocusing_sat2sat(Workspace& ws,
   dlf = zlt * alt;
 }
 
-Numeric dotprod_with_los(ConstVectorView los,
+Numeric dotprod_with_los(const ConstVectorView& los,
                          const Numeric& u,
                          const Numeric& v,
                          const Numeric& w,
@@ -716,11 +716,11 @@ Numeric dotprod_with_los(ConstVectorView los,
 void get_iy(Workspace& ws,
             Matrix& iy,
             const Index& cloudbox_on,
-            ConstVectorView f_grid,
+            const ConstVectorView& f_grid,
             const EnergyLevelMap& nlte_field,
-            ConstVectorView rte_pos,
-            ConstVectorView rte_los,
-            ConstVectorView rte_pos2,
+            const ConstVectorView& rte_pos,
+            const ConstVectorView& rte_los,
+            const ConstVectorView& rte_pos2,
             const String& iy_unit,
             const Agenda& iy_main_agenda) {
   ArrayOfTensor3 diy_dx;
@@ -755,19 +755,19 @@ void get_iy(Workspace& ws,
 void get_iy_of_background(Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
-                          ConstTensor3View iy_transmittance,
+                          const ConstTensor3View& iy_transmittance,
                           const Index& iy_id,
                           const Index& jacobian_do,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
                           const Ppath& ppath,
-                          ConstVectorView rte_pos2,
+                          const ConstVectorView& rte_pos2,
                           const Index& atmosphere_dim,
                           const EnergyLevelMap& nlte_field,
                           const Index& cloudbox_on,
                           const Index& stokes_dim,
-                          ConstVectorView f_grid,
+                          const ConstVectorView& f_grid,
                           const String& iy_unit,
-                          ConstTensor3View surface_props_data,
+                          const ConstTensor3View& surface_props_data,
                           const Agenda& iy_main_agenda,
                           const Agenda& iy_space_agenda,
                           const Agenda& iy_surface_agenda,
@@ -875,16 +875,16 @@ void get_ppath_atmvars(Vector& ppath_p,
                        Matrix& ppath_mag,
                        const Ppath& ppath,
                        const Index& atmosphere_dim,
-                       ConstVectorView p_grid,
-                       ConstTensor3View t_field,
+                       const ConstVectorView& p_grid,
+                       const ConstTensor3View& t_field,
                        const EnergyLevelMap& nlte_field,
-                       ConstTensor4View vmr_field,
-                       ConstTensor3View wind_u_field,
-                       ConstTensor3View wind_v_field,
-                       ConstTensor3View wind_w_field,
-                       ConstTensor3View mag_u_field,
-                       ConstTensor3View mag_v_field,
-                       ConstTensor3View mag_w_field) {
+                       const ConstTensor4View& vmr_field,
+                       const ConstTensor3View& wind_u_field,
+                       const ConstTensor3View& wind_v_field,
+                       const ConstTensor3View& wind_w_field,
+                       const ConstTensor3View& mag_u_field,
+                       const ConstTensor3View& mag_v_field,
+                       const ConstTensor3View& mag_w_field) {
   const Index np = ppath.np;
   // Pressure:
   ppath_p.resize(np);
@@ -1092,10 +1092,10 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
 
 void get_ppath_f(Matrix& ppath_f,
                  const Ppath& ppath,
-                 ConstVectorView f_grid,
+                 const ConstVectorView& f_grid,
                  const Index& atmosphere_dim,
                  const Numeric& rte_alonglos_v,
-                 ConstMatrixView ppath_wind) {
+                 const ConstMatrixView& ppath_wind) {
   // Sizes
   const Index nf = f_grid.nelem();
   const Index np = ppath.np;
@@ -1142,7 +1142,7 @@ Range get_rowindex_for_mblock(const Sparse& sensor_response,
 
 void get_stepwise_blackbody_radiation(VectorView B,
                                       VectorView dB_dT,
-                                      ConstVectorView ppath_f_grid,
+                                      const ConstVectorView& ppath_f_grid,
                                       const Numeric& ppath_temperature,
                                       const bool& do_temperature_derivative) {
   const Index nf = ppath_f_grid.nelem();
@@ -1164,11 +1164,11 @@ void get_stepwise_clearsky_propmat(
     ArrayOfStokesVector& dS_dx,
     const Agenda& propmat_clearsky_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_f_grid,
-    ConstVectorView ppath_magnetic_field,
-    ConstVectorView ppath_line_of_sight,
+    const ConstVectorView& ppath_f_grid,
+    const ConstVectorView& ppath_magnetic_field,
+    const ConstVectorView& ppath_line_of_sight,
     const EnergyLevelMap& ppath_nlte,
-    ConstVectorView ppath_vmrs,
+    const ConstVectorView& ppath_vmrs,
     const Numeric& ppath_temperature,
     const Numeric& ppath_pressure,
     const bool& jacobian_do) {
@@ -1201,8 +1201,8 @@ void get_stepwise_effective_source(
     const ArrayOfPropagationMatrix& dK_dx,
     const ArrayOfStokesVector& da_dx,
     const ArrayOfStokesVector& dS_dx,
-    ConstVectorView B,
-    ConstVectorView dB_dT,
+    const ConstVectorView& B,
+    const ConstVectorView& dB_dT,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const bool& jacobian_do) {
   const Index nq = jacobian_quantities.nelem();
@@ -1287,9 +1287,9 @@ void get_stepwise_effective_source(
 }
 
 void get_stepwise_frequency_grid(VectorView ppath_f_grid,
-                                 ConstVectorView f_grid,
-                                 ConstVectorView ppath_wind,
-                                 ConstVectorView ppath_line_of_sight,
+                                 const ConstVectorView& f_grid,
+                                 const ConstVectorView& ppath_wind,
+                                 const ConstVectorView& ppath_line_of_sight,
                                  const Numeric& rte_alonglos_v,
                                  const Index& atmosphere_dim) {
   Numeric v_doppler = rte_alonglos_v;
@@ -1346,13 +1346,13 @@ void get_stepwise_scattersky_propmat(
     ArrayOfStokesVector& dap_dx,
     ArrayOfPropagationMatrix& dKp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstMatrixView ppath_1p_pnd,  // the ppath_pnd at this ppath point
+    const ConstMatrixView& ppath_1p_pnd,  // the ppath_pnd at this ppath point
     const ArrayOfMatrix&
         ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
     const Index ppath_1p_id,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_temperature,
+    const ConstVectorView& ppath_line_of_sight,
+    const ConstVectorView& ppath_temperature,
     const Index& atmosphere_dim,
     const bool& jacobian_do) {
   const Index nf = Kp.NumberOfFrequencies(), stokes_dim = Kp.StokesDimensions();
@@ -1461,15 +1461,15 @@ void get_stepwise_scattersky_source(
     StokesVector& Sp,
     ArrayOfStokesVector& dSp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_1p_pnd,  // the ppath_pnd at this ppath point
+    const ConstVectorView& ppath_1p_pnd,  // the ppath_pnd at this ppath point
     const ArrayOfMatrix&
         ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
     const Index ppath_1p_id,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstTensor7View cloudbox_field,
-    ConstVectorView za_grid,
-    ConstVectorView aa_grid,
-    ConstMatrixView ppath_line_of_sight,
+    const ConstTensor7View& cloudbox_field,
+    const ConstVectorView& za_grid,
+    const ConstVectorView& aa_grid,
+    const ConstMatrixView& ppath_line_of_sight,
     const GridPos& ppath_pressure,
     const Vector& temperature,
     const Index& atmosphere_dim,
@@ -1630,7 +1630,7 @@ void get_stepwise_transmission_matrix(
     Tensor3View T,
     Tensor4View dT_close_dx,
     Tensor4View dT_far_dx,
-    ConstTensor3View cumulative_transmission_close,
+    const ConstTensor3View& cumulative_transmission_close,
     const PropagationMatrix& K_close,
     const PropagationMatrix& K_far,
     const ArrayOfPropagationMatrix& dK_close_dx,
@@ -1693,16 +1693,16 @@ void iyb_calc_body(bool& failed,
                    const EnergyLevelMap& nlte_field,
                    const Index& cloudbox_on,
                    const Index& stokes_dim,
-                   ConstMatrixView sensor_pos,
-                   ConstMatrixView sensor_los,
-                   ConstMatrixView transmitter_pos,
-                   ConstMatrixView mblock_dlos_grid,
+                   const ConstMatrixView& sensor_pos,
+                   const ConstMatrixView& sensor_los,
+                   const ConstMatrixView& transmitter_pos,
+                   const ConstMatrixView& mblock_dlos_grid,
                    const String& iy_unit,
                    const Agenda& iy_main_agenda,
                    const Index& j_analytical_do,
                    const ArrayOfRetrievalQuantity& jacobian_quantities,
                    const ArrayOfArrayOfIndex& jacobian_indices,
-                   ConstVectorView f_grid,
+                   const ConstVectorView& f_grid,
                    const ArrayOfString& iy_aux_vars,
                    const Index& ilos,
                    const Index& nf) {
@@ -1807,11 +1807,11 @@ void iyb_calc(Workspace& ws,
               const EnergyLevelMap& nlte_field,
               const Index& cloudbox_on,
               const Index& stokes_dim,
-              ConstVectorView f_grid,
-              ConstMatrixView sensor_pos,
-              ConstMatrixView sensor_los,
-              ConstMatrixView transmitter_pos,
-              ConstMatrixView mblock_dlos_grid,
+              const ConstVectorView& f_grid,
+              const ConstMatrixView& sensor_pos,
+              const ConstMatrixView& sensor_los,
+              const ConstMatrixView& transmitter_pos,
+              const ConstMatrixView& mblock_dlos_grid,
               const String& iy_unit,
               const Agenda& iy_main_agenda,
               const Agenda& geo_pos_agenda,
@@ -1998,8 +1998,8 @@ void iyb_calc(Workspace& ws,
 }
 
 void iy_transmittance_mult(Tensor3& iy_trans_total,
-                          ConstTensor3View iy_trans_old,
-                          ConstTensor3View iy_trans_new) {
+                          const ConstTensor3View& iy_trans_old,
+                          const ConstTensor3View& iy_trans_new) {
   const Index nf = iy_trans_old.npages();
   const Index ns = iy_trans_old.ncols();
 
@@ -2018,8 +2018,8 @@ void iy_transmittance_mult(Tensor3& iy_trans_total,
 }
 
 void iy_transmittance_mult(Matrix& iy_new,
-                          ConstTensor3View iy_trans,
-                          ConstMatrixView iy_old) {
+                          const ConstTensor3View& iy_trans,
+                          const ConstMatrixView& iy_old) {
   const Index nf = iy_trans.npages();
   const Index ns = iy_trans.ncols();
 
@@ -2035,7 +2035,7 @@ void iy_transmittance_mult(Matrix& iy_new,
 }
 
 void mirror_los(Vector& los_mirrored,
-                ConstVectorView los,
+                const ConstVectorView& los,
                 const Index& atmosphere_dim) {
   los_mirrored.resize(2);
   //
@@ -2061,10 +2061,10 @@ void mirror_los(Vector& los_mirrored,
 void pos2true_latlon(Numeric& lat,
                      Numeric& lon,
                      const Index& atmosphere_dim,
-                     ConstVectorView lat_grid,
-                     ConstVectorView lat_true,
-                     ConstVectorView lon_true,
-                     ConstVectorView pos) {
+                     const ConstVectorView& lat_grid,
+                     const ConstVectorView& lat_true,
+                     const ConstVectorView& lon_true,
+                     const ConstVectorView& pos) {
   ARTS_ASSERT(pos.nelem() == atmosphere_dim);
 
   if (atmosphere_dim == 1) {
@@ -2108,7 +2108,7 @@ void rtmethods_jacobian_finalisation(
     const Tensor3& iy_transmittance,
     const Agenda& water_p_eq_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfIndex jac_species_i) {
+    const ArrayOfIndex& jac_species_i) {
   // Weight with iy_transmittance
   if (!iy_agenda_call1) {
     Matrix X, Y;

@@ -41,8 +41,8 @@ struct IsotopeRecord {
   
   template <typename T> constexpr bool operator!=(T x)const noexcept {return not operator==(x);}
   
-  String FullName() const noexcept {return String(toShortName(spec)) + String("-") + String(isotname);}
-  constexpr bool joker() const noexcept {return isotname == Joker;}
+  [[nodiscard]] String FullName() const noexcept {return String(toShortName(spec)) + String("-") + String(isotname);}
+  [[nodiscard]] constexpr bool joker() const noexcept {return isotname == Joker;}
 };
 
 #define deal_with_spec(SPEC) IsotopeRecord(Species::SPEC),
@@ -596,7 +596,7 @@ constexpr std::array<std::size_t, std::size_t(Species::FINAL)+1> start_positions
   for (auto& x: out) x = Isotopologues.size();
   
   for (std::size_t i=0; i<Isotopologues.size(); i++) {
-    const std::size_t ind = std::size_t(Isotopologues[i].spec);
+    const auto ind = std::size_t(Isotopologues[i].spec);
     if (not found[ind]) {
       found[ind] = true;
       out[ind] = i;
@@ -672,7 +672,7 @@ String predefined_model_names() noexcept;
 constexpr bool same_or_joker(const IsotopeRecord& ir1, const IsotopeRecord& ir2) noexcept {
   if (ir1.spec not_eq ir2.spec) return false;
   if (ir1.joker() or ir2.joker()) return true;
-  else return ir1.isotname == ir2.isotname;
+  return ir1.isotname == ir2.isotname;
 }
 
 struct IsotopologueRatios {
@@ -690,7 +690,7 @@ struct IsotopologueRatios {
   
   constexpr Numeric operator[](const IsotopeRecord& ir) const {
     const Index spec_ind = find_species_index(ir);
-    ARTS_USER_ERROR_IF(spec_ind >= maxsize and spec_ind < 0,
+    ARTS_USER_ERROR_IF(spec_ind >= maxsize or spec_ind < 0,
                        "Cannot understand: ", ir.FullName(), " as a valid species")
     return data[spec_ind];
   }
@@ -704,7 +704,7 @@ struct IsotopologueRatios {
     return os;
   }
   
-  constexpr bool all_isotopes_have_a_value() const noexcept {
+  [[nodiscard]] constexpr bool all_isotopes_have_a_value() const noexcept {
     for (Index i=0; i<maxsize; i++) {
       if (not is_predefined_model(Isotopologues[i]) and not Isotopologues[i].joker() and nonstd::isnan(data[i])) {
         return false;
@@ -1104,7 +1104,7 @@ constexpr Numeric mean_mass(Species spec, const IsotopologueRatios& ir) noexcept
     }
   }
   if (sum_r not_eq 0) return sum_rm / sum_r;
-  else return 0 * std::numeric_limits<Numeric>::signaling_NaN();
+  return std::numeric_limits<Numeric>::signaling_NaN();
 }
 
 /** Updates the name of the isotopologue based on
@@ -1128,7 +1128,7 @@ constexpr bool all_have_ratio(const Species spec, const IsotopologueRatios& ir) 
 }
 
 std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(const Species spec, const IsotopologueRatios& ir) noexcept;
-}  // Species
+} // namespace Species
 
 using SpeciesIsotopeRecord = Species::IsotopeRecord;
 

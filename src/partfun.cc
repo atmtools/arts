@@ -1,5 +1,5 @@
-#include <iostream>
 #include "partfun.h"
+#include <iostream>
 
 int main(int argc, char **argv) try {
   ARTS_USER_ERROR_IF(argc not_eq 4, "Call as ", argv[0], " SPECIES ISOTOPE TEMPERATURE");

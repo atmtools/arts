@@ -30,19 +30,17 @@
    \author Stefan Buehler
    \date   2001-03-12
 */
-#include <algorithm>
-#include <cmath>
 #include "absorption.h"
 #include "array.h"
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "depr.h"
-#include "legacy_continua.h"
 #include "file.h"
 #include "global_data.h"
 #include "hitran_species.h"
 #include "jacobian.h"
+#include "legacy_continua.h"
 #include "lineshape.h"
 #include "m_xml.h"
 #include "math_funcs.h"
@@ -54,6 +52,8 @@
 #include "physics_funcs.h"
 #include "rte.h"
 #include "xml_io.h"
+#include <algorithm>
+#include <cmath>
 
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>

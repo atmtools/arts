@@ -41,7 +41,7 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "complex.h"
+#include "matpack_complex.h"
 #include "fastem.h"
 #include "geodetic.h"
 #include "interpolation.h"

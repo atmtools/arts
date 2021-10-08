@@ -23,8 +23,8 @@
   \brief  Test the complex numbers.
 */
 
+#include "matpack_complex.h"
 #include <iostream>
-#include "complex.h"
 
 using std::cout;
 
@@ -335,5 +335,11 @@ void test03()
 int main() {
 //   test01();
   test03();
+
+  Complex a(0, 0);
+  real_val(a) += 1;
+  imag_val(a) -= 2;
+  imag_val(a) *= 2;
+  std::cout << a << '\n';
   return 0;
 }

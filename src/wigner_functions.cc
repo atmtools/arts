@@ -25,9 +25,9 @@
  */
 
 #include "constants.h"
+#include "arts_omp.h"
 #include "wigner_functions.h"
 #include <algorithm>
-#include "arts_omp.h"
 
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6
@@ -90,11 +90,11 @@ std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a, std
   const bool invalid = a.first.isUndefined() or b.first.isUndefined();
   if (invalid) {
     return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
-  } else {
-    std::pair<Rational, Rational> out {max(a.first, b.first), min(a.second, b.second)};
-    if (out.first > out.second) out = {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
-    return out;
   }
+
+  std::pair<Rational, Rational> out {max(a.first, b.first), min(a.second, b.second)};
+  if (out.first > out.second) out = {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
+  return out;
 }
 
 
@@ -114,7 +114,9 @@ Index make_wigner_ready(int largest,
     wig_table_init(largest, 3);
     
     return largest;
-  } else if (size == 6) {
+  }
+  
+  if (size == 6) {
     #if DO_FAST_WIGNER
     fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
     fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
@@ -129,9 +131,9 @@ Index make_wigner_ready(int largest,
     wig_table_init(largest * 2, 6);
     
     return largest;
-  } else {
-    return 0;
   }
+
+  return 0;
 }
 
 

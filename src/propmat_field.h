@@ -34,9 +34,9 @@
 #include "field.h"
 #include "transmissionmatrix.h"
 
-typedef Field3D<TransmissionMatrix> FieldOfTransmissionMatrix;
-typedef Field3D<PropagationMatrix> FieldOfPropagationMatrix;
-typedef Field3D<StokesVector> FieldOfStokesVector;
+using FieldOfTransmissionMatrix = Field3D<TransmissionMatrix>;
+using FieldOfPropagationMatrix = Field3D<PropagationMatrix>;
+using FieldOfStokesVector = Field3D<StokesVector>;
 
 /** Creates a field of propagation matrices, absorption vectors, and source vectors
  * 

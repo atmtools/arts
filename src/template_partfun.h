@@ -63,7 +63,7 @@ Numeric polynom(const std::array<Numeric, N>& coeffs, const Numeric T) noexcept 
   
   return result;
 }
-}
+} // namespace PartitionFunctions
 
 using PartitionFunctionsType = PartitionFunctions::Type;
 using PartitionFunctionsData = PartitionFunctions::Data;

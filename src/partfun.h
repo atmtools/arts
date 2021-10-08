@@ -4,8 +4,8 @@
 #include "auto_partfun.h"
 
 #include "enums.h"
-#include "matpackI.h"
 #include "isotopologues.h"
+#include "matpackI.h"
 
 namespace PartitionFunctions {
 
@@ -134,7 +134,7 @@ constexpr Numeric partfun_impl(Numeric T, const Species::IsotopeRecord& ir) {
   
   ARTS_USER_ERROR("This is not a valid IsotopeRecord:\n", ir)
 }
-}
+} // namespace detail
 
 constexpr Numeric Q(Numeric T, const Species::IsotopeRecord& ir) {
   return detail::partfun_impl<Derivatives::No>(T, ir);
@@ -267,6 +267,6 @@ constexpr bool has_partfun(const Species::IsotopeRecord& ir) noexcept {
   
   return false;
 }
-}
+} // namespace PartitionFunctions
 
 #endif  // partfun_h

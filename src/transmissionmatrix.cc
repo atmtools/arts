@@ -27,8 +27,8 @@
  */
 
 #include "transmissionmatrix.h"
-#include "complex.h"
 #include "constants.h"
+#include "matpack_complex.h"
 
 constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
 
@@ -40,44 +40,42 @@ Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
                                            const StokesVector& dS,
                                            bool dT,
                                            Index i) {
+  static_assert(N>0 and N<5, "Bad stokes dimensions");
+  
   if constexpr (N == 1) {
-    if (dT) {
+    if (dT)
       return Eigen::Matrix<Numeric, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i]);
-    } else {
-      return Eigen::Matrix<Numeric, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i]);
-    }
-  } else if constexpr (N == 2) {
-    if (dT) {
+    return Eigen::Matrix<Numeric, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i]);
+  }
+
+  if constexpr (N == 2) {
+    if (dT) 
       return Eigen::Vector2d(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
                              dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i]);
-    } else {
-      return Eigen::Vector2d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
-                             dS.K12()[i] + da.K12()[i] * B[i]);
-    }
-  } else if constexpr (N == 3) {
-    if (dT) {
+    return Eigen::Vector2d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
+                           dS.K12()[i] + da.K12()[i] * B[i]);
+  }
+
+  if constexpr (N == 3) {
+    if (dT)
       return Eigen::Vector3d(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
                              dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
                              dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i]);
-    } else {
-      return Eigen::Vector3d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
-                             dS.K12()[i] + da.K12()[i] * B[i],
-                             dS.K13()[i] + da.K13()[i] * B[i]);
-    }
-  } else if constexpr (N == 4) {
-    if (dT) {
+    return Eigen::Vector3d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
+                           dS.K12()[i] + da.K12()[i] * B[i],
+                           dS.K13()[i] + da.K13()[i] * B[i]);
+  }
+
+  if constexpr (N == 4) {
+    if (dT)
       return Eigen::Vector4d(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
                              dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
                              dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i],
                              dS.K14()[i] + da.K14()[i] * B[i] + a.K14()[i] * dB_dT[i]);
-    } else {
-      return Eigen::Vector4d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
-                             dS.K12()[i] + da.K12()[i] * B[i],
-                             dS.K13()[i] + da.K13()[i] * B[i],
-                             dS.K14()[i] + da.K14()[i] * B[i]);
-    }
-  } else {
-    static_assert(N>0 and N<5, "Bad stokes dimensions");
+    return Eigen::Vector4d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
+                           dS.K12()[i] + da.K12()[i] * B[i],
+                           dS.K13()[i] + da.K13()[i] * B[i],
+                           dS.K14()[i] + da.K14()[i] * B[i]);
   }
 }
 
@@ -88,44 +86,42 @@ Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
                                            const ConstVectorView& dB_dT,
                                            bool dT,
                                            Index i) {
+  static_assert(N>0 and N<5, "Bad stokes dimensions");
+
   if constexpr (N == 1) {
-    if (dT) {
+    if (dT)
       return Eigen::Matrix<Numeric, 1, 1>(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i]);
-    } else {
-      return Eigen::Matrix<Numeric, 1, 1>(da.Kjj()[i] * B[i]);
-    }
-  } else if constexpr (N == 2) {
-    if (dT) {
+    return Eigen::Matrix<Numeric, 1, 1>(da.Kjj()[i] * B[i]);
+  }
+
+  if constexpr (N == 2) {
+    if (dT)
       return Eigen::Vector2d(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
                              da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i]);
-    } else {
-      return Eigen::Vector2d(da.Kjj()[i] * B[i],
-                             da.K12()[i] * B[i]);
-    }
-  } else if constexpr (N == 3) {
-    if (dT) {
+    return Eigen::Vector2d(da.Kjj()[i] * B[i],
+                           da.K12()[i] * B[i]);
+  }
+
+  if constexpr (N == 3) {
+    if (dT)
       return Eigen::Vector3d(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
                              da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
                              da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i]);
-    } else {
-      return Eigen::Vector3d(da.Kjj()[i] * B[i],
-                             da.K12()[i] * B[i],
-                             da.K13()[i] * B[i]);
-    }
-  } else if constexpr (N == 4) {
-    if (dT) {
+    return Eigen::Vector3d(da.Kjj()[i] * B[i],
+                            da.K12()[i] * B[i],
+                            da.K13()[i] * B[i]);
+  }
+
+  if constexpr (N == 4) {
+    if (dT)
       return Eigen::Vector4d(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
                              da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
                              da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i],
                              da.K14()[i] * B[i] + a.K14()[i] * dB_dT[i]);
-    } else {
-      return Eigen::Vector4d(da.Kjj()[i] * B[i],
-                             da.K12()[i] * B[i],
-                             da.K13()[i] * B[i],
-                             da.K14()[i] * B[i]);
-    }
-  } else {
-    static_assert(N>0 and N<5, "Bad stokes dimensions");
+    return Eigen::Vector4d(da.Kjj()[i] * B[i],
+                            da.K12()[i] * B[i],
+                            da.K13()[i] * B[i],
+                            da.K14()[i] * B[i]);
   }
 }
 
@@ -169,9 +165,9 @@ inline void transmat3(TransmissionMatrix& T,
                   u = -0.5 * r * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]);
     const Numeric exp_a = std::exp(a);
 
-    if (b == 0. and c == 0. and u == 0.)
+    if (b == 0. and c == 0. and u == 0.) {
       T.Mat3(i).noalias() = Eigen::Matrix3d::Identity() * exp_a;
-    else {
+    } else {
       const Numeric a2 = a * a, b2 = b * b, c2 = c * c, u2 = u * u;
       const Numeric Const = b2 + c2 - u2;
 
@@ -725,10 +721,10 @@ inline void dtransmat4(TransmissionMatrix& T,
                               : y_zero ? sx * ix - 1.0 : sx * ix - sy * iy) *
                           inv_x2y2;
 
-      const Numeric& C0 = reinterpret_cast<const Numeric(&)[2]>(C0c)[0];
-      const Numeric& C1 = reinterpret_cast<const Numeric(&)[2]>(C1c)[0];
-      const Numeric& C2 = reinterpret_cast<const Numeric(&)[2]>(C2c)[0];
-      const Numeric& C3 = reinterpret_cast<const Numeric(&)[2]>(C3c)[0];
+      const Numeric& C0 = real_val(C0c);
+      const Numeric& C1 = real_val(C1c);
+      const Numeric& C2 = real_val(C2c);
+      const Numeric& C3 = real_val(C3c);
       T.Mat4(i).noalias() =
           exp_a * (Eigen::Matrix4d() << C0 + C2 * (b2 + c2 + d2),
                    C1 * b + C2 * (-c * u - d * v) +
@@ -859,10 +855,10 @@ inline void dtransmat4(TransmissionMatrix& T,
                            C3c * dx2dy2) *
                               inv_x2y2;
 
-          const Numeric& dC0 = reinterpret_cast<const Numeric(&)[2]>(dC0c)[0];
-          const Numeric& dC1 = reinterpret_cast<const Numeric(&)[2]>(dC1c)[0];
-          const Numeric& dC2 = reinterpret_cast<const Numeric(&)[2]>(dC2c)[0];
-          const Numeric& dC3 = reinterpret_cast<const Numeric(&)[2]>(dC3c)[0];
+          const Numeric& dC0 = real_val(dC0c);
+          const Numeric& dC1 = real_val(dC1c);
+          const Numeric& dC2 = real_val(dC2c);
+          const Numeric& dC3 = real_val(dC3c);
           dT1[j].Mat4(i).noalias() =
               T.Mat4(i) * da +
               exp_a *
@@ -1061,10 +1057,10 @@ inline void dtransmat4(TransmissionMatrix& T,
                            C3c * dx2dy2) *
                               inv_x2y2;
 
-          const Numeric& dC0 = reinterpret_cast<const Numeric(&)[2]>(dC0c)[0];
-          const Numeric& dC1 = reinterpret_cast<const Numeric(&)[2]>(dC1c)[0];
-          const Numeric& dC2 = reinterpret_cast<const Numeric(&)[2]>(dC2c)[0];
-          const Numeric& dC3 = reinterpret_cast<const Numeric(&)[2]>(dC3c)[0];
+          const Numeric& dC0 = real_val(dC0c);
+          const Numeric& dC1 = real_val(dC1c);
+          const Numeric& dC2 = real_val(dC2c);
+          const Numeric& dC3 = real_val(dC3c);
           dT2[j].Mat4(i).noalias() =
               T.Mat4(i) * da +
               exp_a *
@@ -1260,8 +1256,8 @@ void stepwise_source(RadiationVector& J,
                      const ArrayOfPropagationMatrix& dK,
                      const ArrayOfStokesVector& da,
                      const ArrayOfStokesVector& dS,
-                     const ConstVectorView B,
-                     const ConstVectorView dB_dT,
+                     const ConstVectorView& B,
+                     const ConstVectorView& dB_dT,
                      const ArrayOfRetrievalQuantity& jacobian_quantities,
                      const bool& jacobian_do) {
   for (Index i = 0; i < K.NumberOfFrequencies(); i++) {
@@ -1578,8 +1574,8 @@ void set_backscatter_radiation_vector(
   }
 }
 
-ArrayOfTransmissionMatrix bulk_backscatter(ConstTensor5View Pe,
-                                           ConstMatrixView pnd) {
+ArrayOfTransmissionMatrix bulk_backscatter(const ConstTensor5View& Pe,
+                                           const ConstMatrixView& pnd) {
   const Index ns = Pe.ncols();
   const Index nv = Pe.npages();
   const Index np = Pe.nbooks();
@@ -1622,7 +1618,7 @@ ArrayOfTransmissionMatrix bulk_backscatter(ConstTensor5View Pe,
 }
 
 ArrayOfArrayOfTransmissionMatrix bulk_backscatter_derivative(
-    ConstTensor5View Pe, const ArrayOfMatrix& dpnd_dx) {
+    const ConstTensor5View& Pe, const ArrayOfMatrix& dpnd_dx) {
   const Index ns = Pe.ncols();
   const Index nv = Pe.npages();
   const Index np = Pe.nbooks();

@@ -60,6 +60,6 @@ void makarov2020_o2_lines_mpm(PropagationMatrix& propmat_clearsky,
                               const Numeric& oxygen_vmr,
                               const Numeric& water_vmr,
                               const ArrayOfRetrievalQuantity& jacs);
-}  //Absorption::PredefinedModel
+} // namespace Absorption::PredefinedModel
 
 #endif  // fullmodel_h

@@ -36,7 +36,7 @@ namespace Raw {
 namespace Calibration {
 Vector calibration(const Vector& pc, const Vector& pa, const Vector& ph, Numeric tc, Numeric th) noexcept
 {
-  const Index N = Index(pc.size());
+  const auto N = Index(pc.size());
   Vector calib(N);
   for (Index i=0; i<N; i++) calib[i] = calibration(pc[i], pa[i], ph[i], tc, th);
   return calib;
@@ -44,7 +44,7 @@ Vector calibration(const Vector& pc, const Vector& pa, const Vector& ph, Numeric
 
 Vector systemtemp(const Vector& pc, const Vector& ph, Numeric tc, Numeric th) noexcept
 {
-  const Index N = Index(pc.size());
+  const auto N = Index(pc.size());
   Vector systemp(N);
   for (Index i=0; i<N; i++) systemp[i] = systemtemp(Numeric(pc[i]), Numeric(ph[i]), tc, th);
   return systemp;
@@ -106,7 +106,7 @@ ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector&
   
   return out;
 }
-}  // Calibration
+} // namespace Calibration
 
 namespace Average {
 VectorView avg(VectorView y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
@@ -235,7 +235,7 @@ MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const I
   return cov;
 }
 
-Numeric median(const ConstVectorView v, const ArrayOfIndex& pos)
+Numeric median(const ConstVectorView& v, const ArrayOfIndex& pos)
 {
   // Size of problem
   const Index n = pos.nelem() ? pos.nelem() : v.nelem();
@@ -254,11 +254,10 @@ Numeric median(const ConstVectorView v, const ArrayOfIndex& pos)
   // Return the median
   if (n % 2)
     return calc[n/2];
-  else
-    return (calc[(n-1)/2] + calc[n/2]) / 2;
+  return (calc[(n-1)/2] + calc[n/2]) / 2;
 }
 
-Numeric nanmedian(const ConstVectorView v, const ArrayOfIndex& pos)
+Numeric nanmedian(const ConstVectorView& v, const ArrayOfIndex& pos)
 {
   // Size of problem
   const Index n = pos.nelem() ? pos.nelem() : v.nelem();
@@ -282,16 +281,14 @@ Numeric nanmedian(const ConstVectorView v, const ArrayOfIndex& pos)
   
   // Return the median
   if (numnormal) {
-    if (numnormal % 2) {
+    if (numnormal % 2)
       return calc[numnormal/2];
-    } else {
-      return (calc[(numnormal-1)/2] + calc[numnormal/2]) / 2;
-    }
-  } else {
-    return std::numeric_limits<Numeric>::quiet_NaN();
+    return (calc[(numnormal-1)/2] + calc[numnormal/2]) / 2;
   }
+
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
-}  // Average
+} // namespace Average
 
 namespace Reduce {
 ArrayOfIndex focus_doublescaling(const Vector& x, const Numeric x0, const Numeric dx)
@@ -398,7 +395,7 @@ Vector nanfocus(const Vector& x, const ArrayOfIndex& scaling)
   
   return out;
 }
-}  // Reduce
+} // namespace Reduce
 
 namespace Mask {
 std::vector<bool> out_of_bounds(const Vector& x, const Numeric xmin, const Numeric xmax)
@@ -416,10 +413,10 @@ VectorView mask(VectorView x, const std::vector<bool>& masking)
       x[i] = std::numeric_limits<Numeric>::quiet_NaN();
   return x;
 }
-}  // Mask
+} // namespace Mask
 
 namespace Correction {
-  Numeric naive_tropospheric_singletau_median(const ConstVectorView bt, const Numeric trop_bt, const Numeric target_bt) {
+  Numeric naive_tropospheric_singletau_median(const ConstVectorView& bt, const Numeric trop_bt, const Numeric target_bt) {
     return - std::log((trop_bt - Average::nanmedian(bt)) / (trop_bt - target_bt));
 }
 
@@ -431,5 +428,5 @@ VectorView naive_tropospheric(VectorView bt, const Numeric tau, const Numeric tr
   }
   return bt;
 }
-}  // Correction
-}  // Raw
+} // namespace Correction
+} // namespace Raw

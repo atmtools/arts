@@ -21,51 +21,41 @@ ENUMCLASS(TagType, unsigned char,
 
 struct Tag {
   //! Molecular species index in Species::Isotopologues
-  Index spec_ind;
+  Index spec_ind{-1};
 
   //! The lower limit line center frequency in Hz.
   /*! If this is < 0 it means no lower limit. */
-  Numeric lower_freq;
+  Numeric lower_freq{-1};
 
   //! The upper line center frequency in Hz.
   /*! If this is < 0 it means no upper limit. */
-  Numeric upper_freq;
+  Numeric upper_freq{-1};
   
   //! Flag for the type
-  TagType type;
+  TagType type{TagType::FINAL};
 
   //! 2nd CIA species index.
   /*! Contains the second CIA species that should be used for this tag. */
-  Species cia_2nd_species;
+  Species cia_2nd_species{Species::FINAL};
 
   //! CIA dataset index.
   /*! A CIA file contains several datasets. This index specifies which one we want. */
-  Index cia_dataset_index;
+  Index cia_dataset_index{-1};
 
-  constexpr Tag() noexcept
-  : spec_ind(-1),
-    lower_freq(0.),
-    upper_freq(0.),
-    type(TagType::FINAL),
-    cia_2nd_species(Species::FINAL),
-    cia_dataset_index(-1) { /* Nothing to be done here. */
-  }
+  constexpr Tag() noexcept = default;
   
   // Documentation is with implementation.
   explicit Tag(String def);
   
   constexpr Tag(const IsotopeRecord& isot) noexcept :
   spec_ind(find_species_index(isot)),
-  lower_freq(-1), upper_freq(-1),
-  type(is_predefined_model(isot) ? TagType::Predefined : TagType::Plain),
-  cia_2nd_species(Species::FINAL),
-  cia_dataset_index(-1) { /* Nothing to be done here. */
+  type(is_predefined_model(isot) ? TagType::Predefined : TagType::Plain) { /* Nothing to be done here. */
   }
   
   // Documentation is with implementation.
-  String Name() const;
+  [[nodiscard]] String Name() const;
   
-  constexpr const IsotopeRecord& Isotopologue() const noexcept {return Isotopologues[spec_ind];}
+  [[nodiscard]] constexpr const IsotopeRecord& Isotopologue() const noexcept {return Isotopologues[spec_ind];}
   
   constexpr void Isotopologue(const IsotopeRecord& ir) ARTS_NOEXCEPT {
     Index ind = find_species_index(ir);
@@ -73,17 +63,17 @@ struct Tag {
     spec_ind = ind;
   }
   
-  constexpr Numeric Mass() const noexcept {return Isotopologue().mass;}
+  [[nodiscard]] constexpr Numeric Mass() const noexcept {return Isotopologue().mass;}
   
-  constexpr Numeric Q(Numeric T) const {return PartitionFunctions::Q(T, Isotopologue());}
+  [[nodiscard]] constexpr Numeric Q(Numeric T) const {return PartitionFunctions::Q(T, Isotopologue());}
   
-  constexpr Numeric dQdT(Numeric T) const {return PartitionFunctions::dQdT(T, Isotopologue());}
+  [[nodiscard]] constexpr Numeric dQdT(Numeric T) const {return PartitionFunctions::dQdT(T, Isotopologue());}
   
-  String FullName() const noexcept {return Isotopologue().FullName();}
+  [[nodiscard]] String FullName() const noexcept {return Isotopologue().FullName();}
   
-  constexpr Species Spec() const noexcept {return Isotopologue().spec;}
+  [[nodiscard]] constexpr Species Spec() const noexcept {return Isotopologue().spec;}
   
-  constexpr TagType Type() const noexcept {return type;}
+  [[nodiscard]] constexpr TagType Type() const noexcept {return type;}
   
   friend std::ostream& operator<<(std::ostream& os, const Tag& ot) {return os << ot.Name();}
   
@@ -100,9 +90,9 @@ struct Tag {
     return not operator==(other);
   }
   
-  constexpr bool is_joker() const ARTS_NOEXCEPT {ARTS_ASSERT(spec_ind >= 0) return Joker == Isotopologue().isotname;}
+  [[nodiscard]] constexpr bool is_joker() const ARTS_NOEXCEPT {ARTS_ASSERT(spec_ind >= 0) return Joker == Isotopologue().isotname;}
 };
-}  // Species
+} // namespace Species
 
 using SpeciesTagType = Species::TagType;
 
@@ -113,7 +103,7 @@ public:
   ArrayOfSpeciesTag() noexcept : Array<SpeciesTag>() {}
   explicit ArrayOfSpeciesTag(Index n) :  Array<SpeciesTag>(n) {}
   ArrayOfSpeciesTag(Index n, const SpeciesTag& fillvalue) : Array<SpeciesTag>(n, fillvalue) {}
-  ArrayOfSpeciesTag(const ArrayOfSpeciesTag& A) : Array<SpeciesTag>(A) {}
+  ArrayOfSpeciesTag(const ArrayOfSpeciesTag& A) = default;
   ArrayOfSpeciesTag(ArrayOfSpeciesTag&& A) noexcept : Array<SpeciesTag>(std::move(A)) {}
   
   // Assignment operators:
@@ -140,36 +130,36 @@ public:
   }
   
   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  Species::Species Species() const ARTS_NOEXCEPT {
+  [[nodiscard]] Species::Species Species() const ARTS_NOEXCEPT {
     ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
     return operator[](0).Spec();
   }
   
 //   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  Species::TagType Type() const ARTS_NOEXCEPT {
+  [[nodiscard]] Species::TagType Type() const ARTS_NOEXCEPT {
     ARTS_ASSERT(size() not_eq 0, "Invalid ArrayOfSpeciesTag without any species")
     return operator[](0).Type();
   }
   
-  String Name() const;
+  [[nodiscard]] String Name() const;
   
-  bool Plain() const noexcept {
+  [[nodiscard]] bool Plain() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::Plain;});
   }
   
-  bool Zeeman() const noexcept {
+  [[nodiscard]] bool Zeeman() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::Zeeman;});
   }
   
-  bool RequireLines() const noexcept {
+  [[nodiscard]] bool RequireLines() const noexcept {
     return Plain() or Zeeman();
   }
   
-  bool FreeElectrons() const noexcept {
+  [[nodiscard]] bool FreeElectrons() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::FreeElectrons;});
   }
   
-  bool Particles() const noexcept {
+  [[nodiscard]] bool Particles() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::Particles;});
   }
 };

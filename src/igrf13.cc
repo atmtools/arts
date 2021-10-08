@@ -355,4 +355,4 @@ MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vect
   
   return out;
 }
-}
+} // namespace IGRF

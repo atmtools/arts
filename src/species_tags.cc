@@ -295,15 +295,15 @@ String Tag::Name() const {
   }
   return os.str();
 }
-}
+} // namespace Species
 
-ArrayOfSpeciesTag::ArrayOfSpeciesTag(String names) {
+ArrayOfSpeciesTag::ArrayOfSpeciesTag(String these_names) {
   // There can be a comma separated list of tag definitions, so we
   // need to break the String apart at the commas.
   ArrayOfString tag_def;
   
   bool go_on = true;
-  String these_names = names;
+  
   while (go_on) {
     //          Index n = find_first( these_names, ',' );
     Index n = these_names.find(',');

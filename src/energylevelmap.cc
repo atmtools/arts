@@ -117,29 +117,29 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   return x;
 }
 
-EnergyLevelMap::EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies) :
+EnergyLevelMap::EnergyLevelMap(Tensor4 data, ArrayOfQuantumIdentifier levels, Vector energies) :
   mtype(EnergyLevelMapType::Tensor3_t),
-  mlevels(levels),
-  mvib_energy(energies),
-  mvalue(data)
+  mlevels(std::move(levels)),
+  mvib_energy(std::move(energies)),
+  mvalue(std::move(data))
 {
   ThrowIfNotOK();
 }
 
-EnergyLevelMap::EnergyLevelMap(const Matrix& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies) :
+EnergyLevelMap::EnergyLevelMap(const Matrix& data, ArrayOfQuantumIdentifier levels, Vector energies) :
   mtype(EnergyLevelMapType::Vector_t),
-  mlevels(levels),
-  mvib_energy(energies),
+  mlevels(std::move(levels)),
+  mvib_energy(std::move(energies)),
   mvalue(data.nrows(), 1, 1, data.ncols())
 {
   mvalue(joker, 0, 0, joker) = data;
   ThrowIfNotOK();
 }
 
-EnergyLevelMap::EnergyLevelMap(const Vector& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies) :
+EnergyLevelMap::EnergyLevelMap(const Vector& data, ArrayOfQuantumIdentifier levels, Vector energies) :
   mtype(EnergyLevelMapType::Numeric_t),
-  mlevels(levels),
-  mvib_energy(energies),
+  mlevels(std::move(levels)),
+  mvib_energy(std::move(energies)),
   mvalue(data.nelem(), 1, 1, 1)
 {
   mvalue(joker, 0, 0, 0) = data;
@@ -187,16 +187,14 @@ EnergyLevelMap EnergyLevelMap::operator[](Index ip) const
 EnergyLevelMapType string2energylevelmaptype(const String& s) {
   if (s == "Tensor3")
     return EnergyLevelMapType::Tensor3_t;
-  else if (s == "Vector")
+  if (s == "Vector")
     return EnergyLevelMapType::Vector_t;
-  else if (s == "Numeric")
+  if (s == "Numeric")
     return EnergyLevelMapType::Numeric_t;
-  else if (s == "None")
+  if (s == "None")
     return EnergyLevelMapType::None_t;
-  else {
-    ARTS_USER_ERROR ("Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
-                     "You request to have an EnergyLevelMap of type: ", s, '\n')
-  }
+  ARTS_USER_ERROR ("Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
+                    "You request to have an EnergyLevelMap of type: ", s, '\n')
 }
 
 String energylevelmaptype2string(EnergyLevelMapType type)

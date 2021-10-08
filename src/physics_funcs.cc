@@ -32,11 +32,11 @@
   ===========================================================================*/
 
 #include "physics_funcs.h"
-#include <cmath>
-#include <stdexcept>
 #include "messages.h"
 #include "mystring.h"
 #include "physics_funcs.h"
+#include <cmath>
+#include <stdexcept>
 
 extern const Numeric BOLTZMAN_CONST;
 extern const Numeric DEG2RAD;
@@ -228,7 +228,7 @@ Numeric planck(const Numeric& f, const Numeric& t) {
  * @author Patrick Eriksson
  * @date   2015-12-15
  */
-void planck(VectorView b, ConstVectorView f, const Numeric& t) {
+void planck(VectorView b, const ConstVectorView& f, const Numeric& t) {
   ARTS_USER_ERROR_IF (b.nelem() not_eq f.nelem(),
                       "Vector size mismatch: frequency dim is bad")
   for (Index i = 0; i < f.nelem(); i++) b[i] = planck(f[i], t);
@@ -249,7 +249,7 @@ void planck(VectorView b, ConstVectorView f, const Numeric& t) {
  * @author Patrick Eriksson
  * @date   2015-12-15
  */
-Vector planck(ConstVectorView f, const Numeric& t) {
+Vector planck(const ConstVectorView& f, const Numeric& t) {
   Vector b(f.nelem());
   for (Index i = 0; i < f.nelem(); i++) b[i] = planck(f[i], t);
   return b;
@@ -294,7 +294,7 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) {
  * @author Richard Larsson
  * @date   2019-10-11
  */
-void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) {
+void dplanck_dt(VectorView dbdt, const ConstVectorView& f, const Numeric& t) {
   ARTS_USER_ERROR_IF (dbdt.nelem() not_eq f.nelem(),
                       "Vector size mismatch: frequency dim is bad")
   for (Index i = 0; i < f.nelem(); i++) dbdt[i] = dplanck_dt(f[i], t);
@@ -313,7 +313,7 @@ void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) {
  * @author Richard Larsson
  * @date   2019-10-11
  */
-Vector dplanck_dt(ConstVectorView f, const Numeric& t) {
+Vector dplanck_dt(const ConstVectorView& f, const Numeric& t) {
   Vector dbdt(f.nelem());
   for (Index i = 0; i < f.nelem(); i++) dbdt[i] = dplanck_dt(f[i], t);
   return dbdt;
@@ -357,7 +357,7 @@ Numeric dplanck_df(const Numeric& f, const Numeric& t)  {
  * @author Richard Larsson
  * @date   2015-09-15
  */
-Vector dplanck_df(const ConstVectorView f, const Numeric& t)  {
+Vector dplanck_df(const ConstVectorView& f, const Numeric& t)  {
   Vector dbdf(f.nelem());
   for (Index i = 0; i < f.nelem(); i++) dbdf[i] = dplanck_df(f[i], t);
   return dbdf;

@@ -34,6 +34,7 @@
 
 #include "constants.h"
 #include "lineshapemodel.h"
+#include "matpackI.h"
 
 Jacobian::Line select_derivativeLineShape(const String& var,
                                           const String& coeff) {
@@ -605,10 +606,10 @@ LineShape::Model LineShape::MetaData2ModelShape(const String& s)
     
     if (i < 0)
       continue;
-    else if (i < Index(ssms.size()))
+    if (i < Index(ssms.size()))
       goto add_var;
     else {
-      ssms.push_back(SingleSpeciesModel());
+      ssms.emplace_back();
       add_var:
       auto mp = ssms[i].Get(var);
       mp.type = tm;
@@ -616,7 +617,7 @@ LineShape::Model LineShape::MetaData2ModelShape(const String& s)
     }
   }
   
-  return Model(std::move(ssms));
+  return Model(ssms);
 }
 
 String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, const Numeric T0)
@@ -696,17 +697,15 @@ namespace LineShape {
 Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
   if (type == "X0")
     return mp.X0;
-  else if (type == "X1")
+  if (type == "X1")
     return mp.X1;
-  else if (type == "X2")
+  if (type == "X2")
     return mp.X2;
-  else if (type == "X3")
+  if (type == "X3")
     return mp.X3;
-  else {
-    ARTS_USER_ERROR (
-      "Type: ", type, ", is not accepted.  "
-      "See documentation for accepted types\n")
-  }
+  ARTS_USER_ERROR (
+    "Type: ", type, ", is not accepted.  "
+    "See documentation for accepted types\n")
 }
 #pragma GCC diagnostic pop
 
@@ -1077,20 +1076,21 @@ bool Model::OK(Type type, bool self, bool bath,
   return not (n not_eq Index(nspecies) or m > n or (needs_any and not n));
 }
 
-#define LSPC(XVAR, PVAR)                                                       \
-  Numeric Model::XVAR(                                                         \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]], ConstVectorView vmrs) \
-      const noexcept {                                                         \
-    return PVAR *                                                              \
-           std::inner_product(                                                 \
-               mdata.cbegin(),                                                 \
-               mdata.cend(),                                                   \
-               vmrs.begin(),                                                   \
-               0.0,                                                            \
-               std::plus<Numeric>(),                                           \
-               [=](auto& x, auto vmr) -> Numeric {                             \
-                 return vmr * x.XVAR().at(T, T0);                              \
-               });                                                             \
+#define LSPC(XVAR, PVAR)                                  \
+  Numeric Model::XVAR(                                    \
+      Numeric T, Numeric T0, Numeric P [[maybe_unused]],  \
+      const ConstVectorView& vmrs)                        \
+      const noexcept {                                    \
+    return PVAR *                                         \
+           std::inner_product(                            \
+               mdata.cbegin(),                            \
+               mdata.cend(),                              \
+               vmrs.begin(),                              \
+               0.0,                                       \
+               std::plus<>(),                             \
+               [&](auto& x, auto vmr) -> Numeric {        \
+                 return vmr * x.XVAR().at(T, T0);         \
+               });                                        \
   }
   LSPC(G0, P)
   LSPC(D0, P)
@@ -1110,8 +1110,7 @@ bool Model::OK(Type type, bool self, bool bath,
                          const Index deriv_pos) const noexcept {  \
     if (deriv_pos not_eq -1)                                      \
       return PVAR * mdata[deriv_pos].XVAR().at(T, T0);            \
-    else                                                          \
-      return 0;                                                   \
+    return 0;                                                     \
   }
   LSPCV(G0, P)
   LSPCV(D0, P)
@@ -1124,20 +1123,21 @@ bool Model::OK(Type type, bool self, bool bath,
   LSPCV(DV, P* P)
 #undef LSPCV
 
-#define LSPCT(XVAR, PVAR)                                                       \
-  Numeric Model::d##XVAR##_dT(                                                  \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]], ConstVectorView vmrs)  \
-      const noexcept {                                                          \
-    return PVAR *                                                               \
-           std::inner_product(                                                  \
-               mdata.cbegin(),                                                  \
-               mdata.cend(),                                                    \
-               vmrs.begin(),                                                    \
-               0.0,                                                             \
-               std::plus<Numeric>(),                                            \
-               [=](auto& x, auto vmr) -> Numeric {                              \
-                 return vmr * x.XVAR().dT(T, T0);                               \
-               });                                                              \
+#define LSPCT(XVAR, PVAR)                                 \
+  Numeric Model::d##XVAR##_dT(                            \
+      Numeric T, Numeric T0, Numeric P [[maybe_unused]],  \
+      const ConstVectorView& vmrs)                        \
+      const noexcept {                                    \
+    return PVAR *                                         \
+           std::inner_product(                            \
+               mdata.cbegin(),                            \
+               mdata.cend(),                              \
+               vmrs.begin(),                              \
+               0.0,                                       \
+               std::plus<>(),                             \
+               [&](auto& x, auto vmr) -> Numeric {        \
+                 return vmr * x.XVAR().dT(T, T0);         \
+               });                                        \
   }
   LSPCT(G0, P)
   LSPCT(D0, P)
@@ -1150,17 +1150,16 @@ bool Model::OK(Type type, bool self, bool bath,
   LSPCT(DV, P* P)
 #undef LSPCT
 
-#define LSPDC(XVAR, DERIV, PVAR)                                \
-  Numeric Model::d##XVAR##_##DERIV(Numeric T,                   \
-                         Numeric T0,                            \
-                         Numeric P [[maybe_unused]],            \
-                         Index deriv_pos,                       \
-                         ConstVectorView vmrs) const noexcept { \
-    if (deriv_pos not_eq -1)                                    \
-      return vmrs[deriv_pos] * PVAR *                           \
-             mdata[deriv_pos].XVAR().DERIV(T, T0);              \
-    else                                                        \
-      return 0;                                                 \
+#define LSPDC(XVAR, DERIV, PVAR)                                        \
+  Numeric Model::d##XVAR##_##DERIV(Numeric T,                           \
+                         Numeric T0,                                    \
+                         Numeric P [[maybe_unused]],                    \
+                         Index deriv_pos,                               \
+                         const ConstVectorView& vmrs) const noexcept {  \
+    if (deriv_pos not_eq -1)                                            \
+      return vmrs[deriv_pos] * PVAR *                                   \
+             mdata[deriv_pos].XVAR().DERIV(T, T0);                      \
+    return 0;                                                           \
   }
   LSPDC(G0, dT0, P)
   LSPDC(G0, dX0, P)
@@ -1212,7 +1211,7 @@ bool Model::OK(Type type, bool self, bool bath,
 Output Model::GetParams(Numeric T,
                         Numeric T0,
                         Numeric P,
-                        ConstVectorView vmrs) const noexcept {
+                        const ConstVectorView& vmrs) const noexcept {
   return {G0(T, T0, P, vmrs),
           D0(T, T0, P, vmrs),
           G2(T, T0, P, vmrs),
@@ -1337,83 +1336,75 @@ namespace LegacyLineFunctionData {
 std::vector<Variable> lineshapetag2variablesvector(String type) {
   if (type == String("DP"))
     return {};
-  else if (type == String("LP"))
+  if (type == String("LP"))
     return {Variable::G0, Variable::D0};
-  else if (type == String("VP"))
+  if (type == String("VP"))
     return {Variable::G0, Variable::D0};
-  else if (type == String("SDVP"))
+  if (type == String("SDVP"))
     return {Variable::G0, Variable::D0, Variable::G2, Variable::D2};
-  else if (type == String("HTP"))
+  if (type == String("HTP"))
     return {Variable::G0,
       Variable::D0,
       Variable::G2,
       Variable::D2,
       Variable::FVC,
       Variable::ETA};
-      else {
-        ARTS_USER_ERROR (
-          "Type: ", type, ", is not accepted.  "
-          "See documentation for accepted types\n")
-      }
+  ARTS_USER_ERROR (
+    "Type: ", type, ", is not accepted.  "
+    "See documentation for accepted types\n")
 }
 
 std::vector<Variable> linemixingtag2variablesvector(String type) {
   if (type == "#")
     return {};
-  else if (type == "LM1")
+  if (type == "LM1")
     return {Variable::Y};
-  else if (type == "LM2")
+  if (type == "LM2")
     return {Variable::Y, Variable::G, Variable::DV};
-  else if (type == "INT")
+  if (type == "INT")
     return {};
-  else if (type == "ConstG")
+  if (type == "ConstG")
     return {Variable::G};
-  else {
-    ARTS_USER_ERROR (
-      "Type: ", type, ", is not accepted.  "
-      "See documentation for accepted types\n")
-  }
+  ARTS_USER_ERROR (
+    "Type: ", type, ", is not accepted.  "
+    "See documentation for accepted types\n")
 }
-}  // LegacyLineFunctionData
+} // namespace LegacyLineFunctionData
 
 namespace LegacyLineMixingData {
 LegacyLineMixingData::TypeLM string2typelm(String type) {
   if (type == "NA")  // The standard case
     return TypeLM::LM_NONE;
-  else if (type == "LL")  // The LBLRTM case
+  if (type == "LL")  // The LBLRTM case
     return TypeLM::LM_LBLRTM;
-  else if (type == "NR")  // The LBLRTM O2 non-resonant case
+  if (type == "NR")  // The LBLRTM O2 non-resonant case
     return TypeLM::LM_LBLRTM_O2NonResonant;
-  else if (type == "L2")  // The 2nd order case
+  if (type == "L2")  // The 2nd order case
     return TypeLM::LM_2NDORDER;
-  else if (type == "L1")  // The 2nd order case
+  if (type == "L1")  // The 2nd order case
     return TypeLM::LM_1STORDER;
-  else if (type == "BB")  // The band class
+  if (type == "BB")  // The band class
     return TypeLM::LM_BYBAND;
-  else {
-    ARTS_USER_ERROR (
-      "Type: ", type, ", is not accepted.  "
-      "See documentation for accepted types\n")
-  }
+  ARTS_USER_ERROR (
+    "Type: ", type, ", is not accepted.  "
+    "See documentation for accepted types\n")
 }
-}  // LegacyLineMixingData
+} // namespace LegacyLineMixingData
 
 
 namespace LegacyPressureBroadeningData {
 LegacyPressureBroadeningData::TypePB string2typepb(String type) {
   if (type == "NA")  // The none case
     return TypePB::PB_NONE;
-  else if (type == "N2")  // Air Broadening is N2 broadening mostly...
+  if (type == "N2")  // Air Broadening is N2 broadening mostly...
     return TypePB::PB_AIR_BROADENING;
-  else if (type == "WA")  // Water and Air Broadening
+  if (type == "WA")  // Water and Air Broadening
     return TypePB::PB_AIR_AND_WATER_BROADENING;
-  else if (type == "AP")  // Planetary broadening
+  if (type == "AP")  // Planetary broadening
     return TypePB::PB_PLANETARY_BROADENING;
-  else {
-    ARTS_USER_ERROR (
-      "Type: ", type, ", is not accepted.  "
-      "See documentation for accepted types\n")
-  }
+  ARTS_USER_ERROR (
+    "Type: ", type, ", is not accepted.  "
+    "See documentation for accepted types\n")
 }
 
 Index self_listed(const QuantumIdentifier& qid,
@@ -1426,10 +1417,9 @@ Index self_listed(const QuantumIdentifier& qid,
        qid.Species() == Species::fromShortName("H2") or
        qid.Species() == Species::fromShortName("He")))
     return true;
-  else if (t == TypePB::PB_AIR_AND_WATER_BROADENING and qid.Species() == Species::fromShortName("H2O"))
+  if (t == TypePB::PB_AIR_AND_WATER_BROADENING and qid.Species() == Species::fromShortName("H2O"))
     return true;
-  else
-    return false;
+  return false;
 }
-}  // LegacyPressureBroadeningData
-}  // LineShape
+} // namespace LegacyPressureBroadeningData
+} // namespace LineShape

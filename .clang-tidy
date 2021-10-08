@@ -1,4 +1,15 @@
-Checks: '-*,clang-diagnostic-*,llvm-*,misc-*,-misc-non-private-member-variables-in-classes,modernize-*,-modernize-use-trailing-return-type,-readability-identifier-naming'
+Checks: >
+  -*,
+  clang-diagnostic-*,
+  llvm-*,
+  misc-*,
+  -misc-non-private-member-variables-in-classes,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -readability-identifier-naming,
+  performance-*,
+  portability-*
+
 # identifier-naming not turned on, too noisy, too many special cases
 CheckOptions:
   - key:             readability-identifier-naming.ClassCase

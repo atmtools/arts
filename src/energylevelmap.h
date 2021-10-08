@@ -59,17 +59,17 @@ String energylevelmaptype2string(EnergyLevelMapType type);
 
 class EnergyLevelMap {
 private:
-  EnergyLevelMapType mtype;
+  EnergyLevelMapType mtype{EnergyLevelMapType::None_t};
   ArrayOfQuantumIdentifier mlevels;
   Vector mvib_energy;
   Tensor4 mvalue;
   
 public:
-  bool OK() const noexcept;
+  [[nodiscard]] bool OK() const noexcept;
   
   void ThrowIfNotOK() const ARTS_NOEXCEPT {ARTS_ASSERT (OK(), "Class in bad state");}
   
-  EnergyLevelMap() : mtype(EnergyLevelMapType::None_t), mlevels(0),
+  EnergyLevelMap() : mlevels(0),
   mvib_energy(0), mvalue(0, 0, 0, 0) {}
   
   EnergyLevelMap(EnergyLevelMapType new_type, Index pages, Index rows,
@@ -78,34 +78,34 @@ public:
   mvalue(old.mlevels.nelem(), pages, rows, cols) {ThrowIfNotOK();};
   
   // Create Tensor3_t from the raw inputs
-  EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies=Vector(0));
+  EnergyLevelMap(Tensor4 data, ArrayOfQuantumIdentifier levels, Vector energies=Vector(0));
   
   // Create Vector_t from the raw inputs
-  EnergyLevelMap(const Matrix& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies=Vector(0));
+  EnergyLevelMap(const Matrix& data, ArrayOfQuantumIdentifier levels, Vector energies=Vector(0));
   
   // Create Numeric_t from the raw inputs
-  EnergyLevelMap(const Vector& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies=Vector(0));
+  EnergyLevelMap(const Vector& data, ArrayOfQuantumIdentifier levels, Vector energies=Vector(0));
   
   // Create Vector_t from Tensor3_t
-  EnergyLevelMap InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon) const;
+  [[nodiscard]] EnergyLevelMap InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon) const;
   
   // Create Numeric_t from Vector_t
-  EnergyLevelMap operator[](Index ip) const;
+  [[nodiscard]] EnergyLevelMap operator[](Index ip) const;
   
   // Create Numeric_t from Tensor3_t
-  EnergyLevelMap operator()(Index ip, Index ilat, Index ilon) const;
+  [[nodiscard]] EnergyLevelMap operator()(Index ip, Index ilat, Index ilon) const;
   
   /** Energy level type */
-  EnergyLevelMapType Type() const noexcept {return mtype;}
+  [[nodiscard]] EnergyLevelMapType Type() const noexcept {return mtype;}
   
   /** Energy level type */
-  const ArrayOfQuantumIdentifier& Levels() const noexcept {return mlevels;}
+  [[nodiscard]] const ArrayOfQuantumIdentifier& Levels() const noexcept {return mlevels;}
   
   /** Energy level type */
-  const Vector& Energies() const noexcept {return mvib_energy;}
+  [[nodiscard]] const Vector& Energies() const noexcept {return mvib_energy;}
   
   /** Energy level type */
-  const Tensor4& Data() const noexcept {return mvalue;}
+  [[nodiscard]] const Tensor4& Data() const noexcept {return mvalue;}
   
   /** Energy level type */
   EnergyLevelMapType& Type() noexcept {return mtype;}
@@ -136,15 +136,13 @@ public:
   {
     if (s == "Tensor3")
       return EnergyLevelMapType::Tensor3_t;
-    else if (s == "Vector")
+    if (s == "Vector")
       return EnergyLevelMapType::Vector_t;
-    else if (s == "Numeric")
+    if (s == "Numeric")
       return EnergyLevelMapType::Numeric_t;
-    else if (s == "None")
+    if (s == "None")
       return EnergyLevelMapType::None_t;
-    else {
-      return EnergyLevelMapType(-1);
-    }
+    return EnergyLevelMapType(-1);
   }
   
   //////////////////////
@@ -156,14 +154,14 @@ public:
    * @param[in] transition A line-by-line transition
    * @return Upper and lower level distributions
    */
-  Output2 get_ratio_params(const AbsorptionLines& band, const Index& line_index) const;
+  [[nodiscard]] Output2 get_ratio_params(const AbsorptionLines& band, const Index& line_index) const;
   
   /** Get the output required for Population::NLTE-VibrationalTemperatures
    * 
    * @param[in] transition A line-by-line transition
    * @return Upper and lower level distributions and energies
    */
-  Output4 get_vibtemp_params(const AbsorptionLines& band, const Index& line_index, const Numeric T) const;
+  [[nodiscard]] Output4 get_vibtemp_params(const AbsorptionLines& band, const Index& line_index, const Numeric T) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm);

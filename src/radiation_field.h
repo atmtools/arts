@@ -49,7 +49,7 @@ void error_in_integrate(const String& error_msg,
  * @param[in] f Frequency grod
  * @return Numeric Integrated line shape
  */
-Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> F,
+Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd>& F,
                                  const Vector& f);
 
 /** Integrate cos(za) over the angles
@@ -104,7 +104,7 @@ Numeric integrate_convolved(const TransmissionMatrix& T,
  * @param[in] sorted_index Order of zenith angles
  * @return Numeric Integrated source function
  */
-Numeric integrate_zenith(const VectorView j,
+Numeric integrate_zenith(const ConstVectorView& j,
                          const Vector& cosza,
                          const Array<Index>& sorted_index);
 

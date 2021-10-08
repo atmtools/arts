@@ -104,17 +104,14 @@ Index Absorption::Lines::LineShapePos(const Species::Species spec) const noexcep
   // At this point, the ID is not explicitly among the broadeners, but bath broadening means its VMR still might matter
   if(mbathbroadening)
     return mbroadeningspecies.nelem()-1;
-  else
-    return -1;
+  return -1;
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dVMR(size_t k, Numeric T, Numeric P, const QuantumIdentifier& vmr_qid) const noexcept {
   const Index pos=LineShapePos(vmr_qid);
-  if (pos >= 0) {
+  if (pos >= 0)
     return mlines[k].LineShape().GetVMRDerivs(T, mT0, P, pos);
-  } else {
-    return LineShape::Output{};
-  }
+  return LineShape::Output{};
 }
 
 Numeric Absorption::Lines::ShapeParameter_dInternal(size_t k, Numeric T, Numeric P, const Vector& vmrs, const RetrievalQuantity& derivative) const noexcept {
@@ -125,20 +122,19 @@ Numeric Absorption::Lines::ShapeParameter_dInternal(size_t k, Numeric T, Numeric
   if(derivative.QuantumIdentity().Species() not_eq Species() or
       derivative.QuantumIdentity().Isotopologue() not_eq Isotopologue())
     return 0;
-  else if(self and mselfbroadening)
+  if(self and mselfbroadening)
     return ls.GetInternalDeriv(
       T, mT0, P, 0, vmrs, derivative.LineType());
-  else if(self)
+  if(self)
     return ls.GetInternalDeriv(
       T, mT0, P, LineShapePos(derivative.QuantumIdentity().Species()), vmrs, derivative.LineType());
-  else if(bath and mbathbroadening)
+  if(bath and mbathbroadening)
     return ls.GetInternalDeriv(
       T, mT0, P, ls.nelem() - 1, vmrs, derivative.LineType());
-  else if(bath)
+  if(bath)
     return 0;
-  else
-    return ls.GetInternalDeriv(
-      T, mT0, P, LineShapePos(derivative.QuantumIdentity().Species()), vmrs, derivative.LineType());
+  return ls.GetInternalDeriv(
+    T, mT0, P, LineShapePos(derivative.QuantumIdentity().Species()), vmrs, derivative.LineType());
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
@@ -2062,7 +2058,8 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
 
       data.bad = false;
       return data;
-    } else if (test == -3) {
+    }
+    if (test == -3) {
       data.line.LineShape() = LineShape::lblrtm_model(sgam,
                                          nself,
                                          agam,
@@ -2083,8 +2080,8 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
       
       data.bad = false;
       return data;
-    } else
-      return data;
+    }
+    return data;
   }
 }
 
@@ -2372,32 +2369,28 @@ Numeric Absorption::Lines::SpeciesMass() const noexcept
   return mquantumidentity.Isotopologue().mass;
 }
 
-Vector Absorption::Lines::BroadeningSpeciesVMR(const ConstVectorView atm_vmrs,
+Vector Absorption::Lines::BroadeningSpeciesVMR(const ConstVectorView& atm_vmrs,
                                                const ArrayOfArrayOfSpeciesTag& atm_spec) const
 {
-  if (mlineshapetype == LineShape::Type::DP) {
+  if (mlineshapetype == LineShape::Type::DP)
     return Vector(mbroadeningspecies.nelem(), std::numeric_limits<Numeric>::quiet_NaN());
-  } else {
-    return LineShape::vmrs(atm_vmrs, atm_spec, mbroadeningspecies);
-  }
+  return LineShape::vmrs(atm_vmrs, atm_spec, mbroadeningspecies);
 }
 
-Vector Absorption::Lines::BroadeningSpeciesMass(const ConstVectorView atm_vmrs,
+Vector Absorption::Lines::BroadeningSpeciesMass(const ConstVectorView& atm_vmrs,
                                                 const ArrayOfArrayOfSpeciesTag& atm_spec,
                                                 const SpeciesIsotopologueRatios& ir,
                                                 const Numeric& bath_mass
                                                ) const
 {
-  if (mlineshapetype == LineShape::Type::DP) {
+  if (mlineshapetype == LineShape::Type::DP)
     return Vector(mbroadeningspecies.nelem(), std::numeric_limits<Numeric>::quiet_NaN());
-  } else {
-    Vector mass = LineShape::mass(atm_vmrs, atm_spec, mbroadeningspecies, ir);
-    if (Bath() and bath_mass > 0) mass[mass.nelem()-1] = bath_mass;
-    return mass;
-  }
+  Vector mass = LineShape::mass(atm_vmrs, atm_spec, mbroadeningspecies, ir);
+  if (Bath() and bath_mass > 0) mass[mass.nelem()-1] = bath_mass;
+  return mass;
 }
 
-Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,
+Numeric Absorption::Lines::SelfVMR(const ConstVectorView& atm_vmrs,
                                    const ArrayOfArrayOfSpeciesTag& atm_spec) const
 {
   ARTS_USER_ERROR_IF (atm_vmrs.nelem() not_eq atm_spec.nelem(),
@@ -2412,15 +2405,13 @@ Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,
 Numeric Absorption::reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k) {
   if (not iseven(Jf + lf + 1))
     return - sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
-  else
-    return + sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
+  return + sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
 }
 
 Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N) {
   if (not iseven(Jf + N))
     return - sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1, 1, 1, Ji, Jf, N);
-  else
-    return + sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1, 1, 1, Ji, Jf, N);
+  return + sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1, 1, 1, Ji, Jf, N);
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
@@ -2728,70 +2719,67 @@ bool Lines::MatchWithExternal(const SingleLineExternal& sle, const QuantumIdenti
   ARTS_ASSERT(sle.quantumidentity.type == Quantum::IdentifierType::Transition,
     "Not a transition"
   )
-  if(sle.bad) {
+  if(sle.bad)
     return false;
-  } else if(sle.selfbroadening not_eq mselfbroadening) {
+  if(sle.selfbroadening not_eq mselfbroadening)
     return false;
-  } else if(sle.bathbroadening not_eq mbathbroadening) {
+  if(sle.bathbroadening not_eq mbathbroadening)
     return false;
-  } else if(sle.cutoff not_eq mcutoff) {
+  if(sle.cutoff not_eq mcutoff)
     return false;
-  } else if(sle.mirroring not_eq mmirroring) {
+  if(sle.mirroring not_eq mmirroring)
     return false;
-  } else if(sle.population not_eq mpopulation) {
+  if(sle.population not_eq mpopulation)
     return false;
-  } else if(sle.normalization not_eq mnormalization) {
+  if(sle.normalization not_eq mnormalization)
     return false;
-  } else if(sle.lineshapetype not_eq mlineshapetype) {
+  if(sle.lineshapetype not_eq mlineshapetype)
     return false;
-  } else if(sle.T0 not_eq mT0) {
+  if(sle.T0 not_eq mT0)
     return false;
-  } else if(sle.cutofffreq not_eq mcutofffreq) {
+  if(sle.cutofffreq not_eq mcutofffreq)
     return false;
-  } else if(sle.linemixinglimit not_eq mlinemixinglimit) {
+  if(sle.linemixinglimit not_eq mlinemixinglimit)
     return false;
-  } else if(quantumidentity not_eq mquantumidentity) {
+  if(quantumidentity not_eq mquantumidentity)
     return false;
-  } else if(not std::equal(sle.species.cbegin(), sle.species.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend())) {
+  if(not std::equal(sle.species.cbegin(), sle.species.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
     return false;
-  } else if(NumLines() not_eq 0 and not sle.line.LineShape().Match(mlines[0].LineShape())) {
+  if(NumLines() not_eq 0 and not sle.line.LineShape().Match(mlines[0].LineShape()))
     return false;
-  } else {
-    return true;
-  }
+  return true;
 }
 
 bool Lines::Match(const Lines& l) const noexcept {
   if(l.mselfbroadening not_eq mselfbroadening)
     return false;
-  else if(l.mbathbroadening not_eq mbathbroadening)
+  if(l.mbathbroadening not_eq mbathbroadening)
     return false;
-  else if(l.mcutoff not_eq mcutoff)
+  if(l.mcutoff not_eq mcutoff)
     return false;
-  else if(l.mmirroring not_eq mmirroring)
+  if(l.mmirroring not_eq mmirroring)
     return false;
-  else if(l.mpopulation not_eq mpopulation)
+  if(l.mpopulation not_eq mpopulation)
     return false;
-  else if(l.mnormalization not_eq mnormalization)
+  if(l.mnormalization not_eq mnormalization)
     return false;
-  else if(l.mlineshapetype not_eq mlineshapetype)
+  if(l.mlineshapetype not_eq mlineshapetype)
     return false;
-  else if(l.mT0 not_eq mT0)
+  if(l.mT0 not_eq mT0)
     return false;
-  else if(l.mcutofffreq not_eq mcutofffreq)
+  if(l.mcutofffreq not_eq mcutofffreq)
     return false;
-  else if(l.mlinemixinglimit not_eq mlinemixinglimit)
+  if(l.mlinemixinglimit not_eq mlinemixinglimit)
     return false;
-  else if(l.mquantumidentity not_eq mquantumidentity)
+  if(l.mquantumidentity not_eq mquantumidentity)
     return false;
-  else if(not std::equal(l.mbroadeningspecies.cbegin(), l.mbroadeningspecies.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
+  if(not std::equal(l.mbroadeningspecies.cbegin(), l.mbroadeningspecies.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
     return false;
-  else if(not std::equal(l.mlocalquanta.cbegin(), l.mlocalquanta.cend(), mlocalquanta.cbegin(), mlocalquanta.cend()))
+  if(not std::equal(l.mlocalquanta.cbegin(), l.mlocalquanta.cend(), mlocalquanta.cbegin(), mlocalquanta.cend()))
     return false;
-  else if(NumLines() not_eq 0 and l.NumLines() not_eq 0 and not l.mlines[0].LineShape().Match(mlines[0].LineShape()))
+  if(NumLines() not_eq 0 and l.NumLines() not_eq 0 and not l.mlines[0].LineShape().Match(mlines[0].LineShape()))
     return false;
-  else
-    return true;
+  return true;
 }
 
 void Lines::sort_by_frequency() {
@@ -2824,39 +2812,33 @@ String Lines::LineShapeMetaData() const noexcept {
 }
 
 Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
-  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
+  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) 
     return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::F),
                          LowerQuantumNumber(k, QuantumNumberType::F),
                          type);
-  } else {
-    return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::J),
-                         LowerQuantumNumber(k, QuantumNumberType::J),
-                         type);
-  }
+  return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::J),
+                       LowerQuantumNumber(k, QuantumNumberType::J),
+                       type);
 }
 
 Numeric Lines::ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const noexcept {
-  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
+  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined())
     return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::F),
                                        LowerQuantumNumber(k, QuantumNumberType::F),
                                        type, i);
-  } else {
-    return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::J),
-                                       LowerQuantumNumber(k, QuantumNumberType::J),
-                                       type, i);
-  }
+  return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::J),
+                                     LowerQuantumNumber(k, QuantumNumberType::J),
+                                     type, i);
 }
 
 Numeric Lines::ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const noexcept {
-  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
+  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined())
     return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::F),
                                         LowerQuantumNumber(k, QuantumNumberType::F),
                                         type, i);
-  } else {
-    return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::J),
-                                        LowerQuantumNumber(k, QuantumNumberType::J),
-                                        type, i);
-  }
+  return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::J),
+                                      LowerQuantumNumber(k, QuantumNumberType::J),
+                                      type, i);
 }
 
 void Lines::SetAutomaticZeeman() noexcept {
@@ -2866,16 +2848,16 @@ void Lines::SetAutomaticZeeman() noexcept {
 
 Numeric Lines::F_mean() const noexcept {
   const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
-                                         mlines.cbegin(), 0.0, std::plus<Numeric>(),
+                                         mlines.cbegin(), 0.0, std::plus<>(),
                                          [](const auto& a, const auto& b){return a.F0() * b.I0();});
   const Numeric div = std::accumulate(mlines.cbegin(), mlines.cend(), 0.0,
                                       [](const auto& a, const auto& b){return a + b.I0();});
   return  val / div;
 }
 
-Numeric Lines::F_mean(const ConstVectorView wgts) const noexcept {
+Numeric Lines::F_mean(const ConstVectorView& wgts) const noexcept {
   const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
-                                         wgts.begin(), 0.0, std::plus<Numeric>(),
+                                         wgts.begin(), 0.0, std::plus<>(),
                                          [](const auto& a, const auto& b){return a.F0() * b;});
   const Numeric div = wgts.sum();
   return  val / div;
@@ -2966,4 +2948,4 @@ QuantumIdentifierLineTarget::QuantumIdentifierLineTarget(const QuantumIdentifier
     
   }
 }
-}  // Absorption
+} // namespace Absorption

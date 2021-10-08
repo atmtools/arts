@@ -34,7 +34,7 @@
 #include "refraction.h"
 #include <cmath>
 #include "auto_md.h"
-#include "complex.h"
+#include "matpack_complex.h"
 #include "geodetic.h"
 #include "interpolation.h"
 #include "special_interp.h"

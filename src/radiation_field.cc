@@ -33,7 +33,7 @@ void error_in_integrate(const String& error_msg,
     "Failure in normalization:\n", error_msg, "\n")
 }
 
-Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> F,
+Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> &F,
                                  const Vector& f) {
   Numeric val = 0.0;
 
@@ -81,7 +81,7 @@ Numeric integrate_convolved(const TransmissionMatrix& T,
   return 1.0 - val;
 }
 
-Numeric integrate_zenith(const VectorView j,
+Numeric integrate_zenith(const ConstVectorView& j,
                          const Vector& cosza,
                          const Array<Index>& sorted_index) {
   Numeric val = 0.0;
@@ -97,8 +97,7 @@ Numeric integrate_zenith(const VectorView j,
 Index grid_index_from_gp(const GridPos& gp) {
   if (gp.fd[1] == 1.0)
     return gp.idx;
-  else
-    return gp.idx + 1;
+  return gp.idx + 1;
 }
 
 void sorted_index_of_ppath_field(ArrayOfArrayOfIndex& sorted_index,

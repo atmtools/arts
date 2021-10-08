@@ -25,10 +25,10 @@
  */
 
 #include "quantum.h"
-#include <stdexcept>
 #include "absorption.h"
 #include "global_data.h"
 #include "special_interp.h"
+#include <stdexcept>
 
 void ThrowIfQuantumNumberNameInvalid(String name) {
   ARTS_USER_ERROR_IF (!IsValidQuantumNumberName(name),
@@ -131,21 +131,23 @@ Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
   if (key == QuantumNumberType::parity) {
     if (val == "+")
       return 1;
-    else if (val == "-")
+    if (val == "-")
       return -1;
-  } else if (key == QuantumNumberType::ElectronState) {
+  }
+
+  if (key == QuantumNumberType::ElectronState) {
     if (val == "X")
       return Rational(int('X'));
-  } else if (key == QuantumNumberType::kronigParity) {
-    if (val == "f")
-      return Rational(int('f'));
-    else if (val == "e")
-      return Rational(int('e'));
-  } else {
-    return Rational(val);
   }
   
-  return RATIONAL_UNDEFINED;
+  if (key == QuantumNumberType::kronigParity) {
+    if (val == "f")
+      return Rational(int('f'));
+    if (val == "e")
+      return Rational(int('e'));
+  }
+
+  return Rational(val);
 }
 
 void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >& upper_list, const std::vector<std::array<String, 2> >& lower_list)
