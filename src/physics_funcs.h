@@ -34,8 +34,8 @@
 
 #include "arts.h"
 #include "constants.h"
-#include "complex.h"
 #include "matpackI.h"
+#include "matpack_complex.h"
 
 /*===========================================================================
   === Functions in physics_funcs.h
@@ -85,19 +85,19 @@ constexpr Numeric dnumber_density_dt(Numeric p, Numeric t) noexcept {return - p 
 
 Numeric planck(const Numeric& f, const Numeric& t);
 
-void planck(VectorView b, ConstVectorView f, const Numeric& t);
+void planck(VectorView b, const ConstVectorView& f, const Numeric& t);
 
-Vector planck(ConstVectorView f, const Numeric& t);
+Vector planck(const ConstVectorView& f, const Numeric& t);
 
 Numeric dplanck_dt(const Numeric& f, const Numeric& t);
 
-void dplanck_dt(VectorView b, ConstVectorView f, const Numeric& t);
+void dplanck_dt(VectorView b, const ConstVectorView& f, const Numeric& t);
 
-Vector dplanck_dt(ConstVectorView f, const Numeric& t);
+Vector dplanck_dt(const ConstVectorView& f, const Numeric& t);
 
 Numeric dplanck_df(const Numeric& f, const Numeric& t);
 
-Vector dplanck_df(ConstVectorView f, const Numeric& t);
+Vector dplanck_df(const ConstVectorView& f, const Numeric& t);
 
 Numeric rayjean(const Numeric& f, const Numeric& t);
 

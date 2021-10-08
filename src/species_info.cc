@@ -30,16 +30,15 @@
 Numeric get_lande_spin_constant(const Species::Species species) noexcept {
   if (Species::fromShortName("O2") == species)
     return 2.002064;
-  else if (Species::fromShortName("NO") == species)
+  if (Species::fromShortName("NO") == species)
     return 2.00071;
-  else if (Species::fromShortName("OH") == species)
+  if (Species::fromShortName("OH") == species)
     return 2.00089;
-  else if (Species::fromShortName("ClO") == species)
+  if (Species::fromShortName("ClO") == species)
     return 2.00072;
-  else if (Species::fromShortName("SO") == species)
+  if (Species::fromShortName("SO") == species)
     return 2.002106;
-  else
-    return 2.00231930436182;
+  return 2.00231930436182;
 }
 
 Numeric get_lande_lambda_constant() noexcept { return 1.0; }

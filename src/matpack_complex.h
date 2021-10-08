@@ -23,27 +23,29 @@
   \brief  A class implementing complex numbers for ARTS.
 */
 
-#ifndef complex_h
-#define complex_h
+#ifndef matpack_complex_h
+#define matpack_complex_h
 
-#include <complex>
 #include "lapack.h"
 #include "matpackI.h"
 #include "nonstd.h"
+#include <complex>
+#include <utility>
 
-typedef std::complex<Numeric> Complex;
+using Complex = std::complex<Numeric>;
+struct ComplexLayout {Numeric real, imag;};
 
 /** Return a reference to the real value of c */
-inline Numeric& real_val(Complex& c) noexcept {return reinterpret_cast<Numeric(&)[2]>(c)[0];}
+inline Numeric& real_val(Complex& c) noexcept {return reinterpret_cast<ComplexLayout(&)>(c).real;}
 
 /** Return a reference to the imaginary value of c */
-inline Numeric& imag_val(Complex& c) noexcept {return reinterpret_cast<Numeric(&)[2]>(c)[1];}
+inline Numeric& imag_val(Complex& c) noexcept {return reinterpret_cast<ComplexLayout(&)>(c).imag;}
 
 /** Return a const reference to the real value of c */
-inline const Numeric& real_val(const Complex& c) noexcept {return reinterpret_cast<const Numeric(&)[2]>(c)[0];}
+inline const Numeric& real_val(const Complex& c) noexcept {return reinterpret_cast<const ComplexLayout(&)>(c).real;}
 
 /** Return a const reference to the imaginary value of c */
-inline const Numeric& imag_val(const Complex& c) noexcept {return reinterpret_cast<const Numeric(&)[2]>(c)[1];}
+inline const Numeric& imag_val(const Complex& c) noexcept {return reinterpret_cast<const ComplexLayout(&)>(c).imag;}
 
 inline std::complex<float> operator+(const double& d,
                                      const std::complex<float>& c) {
@@ -188,9 +190,9 @@ class ConstComplexVectorView;
 class ConstComplexMatrixView;
 
 // Eigen library interactions:
-typedef Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> ComplexMatrixType;
-typedef Eigen::Map<ComplexMatrixType, 0, StrideType> ComplexMatrixViewMap;
-typedef Eigen::Map<const ComplexMatrixType, 0, StrideType> ConstComplexMatrixViewMap;
+using ComplexMatrixType = Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using ComplexMatrixViewMap = Eigen::Map<ComplexMatrixType, 0, StrideType>;
+using ConstComplexMatrixViewMap = Eigen::Map<const ComplexMatrixType, 0, StrideType>;
 
 /** The iterator class for sub vectors. This takes into account the
  *  defined stride. */
@@ -219,8 +221,7 @@ class ComplexIterator1D {
   bool operator!=(const ComplexIterator1D& other) const {
     if (mx != other.mx)
       return true;
-    else
-      return false;
+    return false;
   }
 
   friend void copy(ConstComplexIterator1D origin,
@@ -260,8 +261,7 @@ class ConstComplexIterator1D {
   bool operator!=(const ConstComplexIterator1D& other) const {
     if (mx != other.mx)
       return true;
-    else
-      return false;
+    return false;
   }
 
   friend void copy(ConstComplexIterator1D origin,
@@ -294,12 +294,12 @@ class ConstComplexVectorView {
   ConstComplexVectorView& operator=(ConstComplexVectorView&&) = default;
 
   // Typedef for compatibility with STL
-  typedef ConstComplexIterator1D const_iterator;
+  using const_iterator = ConstComplexIterator1D;
 
   // Member functions:
-  bool empty() const noexcept { return (nelem() == 0); }
-  Index nelem() const noexcept { return mrange.mextent; }
-  Complex sum() const;
+  [[nodiscard]] bool empty() const noexcept { return (nelem() == 0); }
+  [[nodiscard]] Index nelem() const noexcept { return mrange.mextent; }
+  [[nodiscard]] Complex sum() const;
 
   // Const index operators:
   /** Plain const index operator. */
@@ -310,33 +310,33 @@ class ConstComplexVectorView {
   }
 
   /** Get element implementation without assertions. */
-  const Complex& get(Index n) const {
+  [[nodiscard]] const Complex& get(Index n) const {
     return *(mdata + mrange.mstart + n * mrange.mstride);
   }
 
   /** Get element implementation without assertions. */
-  const Numeric& get_real(Index n) const {
-    return reinterpret_cast<const Numeric(&)[2]>(get(n))[0];
+  [[nodiscard]] const Numeric& get_real(Index n) const {
+    return reinterpret_cast<const ComplexLayout(&)>(get(n)).real;
   }
 
   /** Get element implementation without assertions. */
-  const Numeric& get_imag(Index n) const {
-    return reinterpret_cast<const Numeric(&)[2]>(get(n))[1];
+  [[nodiscard]] const Numeric& get_imag(Index n) const {
+    return reinterpret_cast<const ComplexLayout(&)>(get(n)).imag;
   }
   
   /** Get a view of the real part of the vector */
-  ConstVectorView real() const {return ConstVectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart, mrange.mextent, mrange.mstride*2));}
+  [[nodiscard]] ConstVectorView real() const {return ConstVectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart, mrange.mextent, mrange.mstride*2));}
   
   /** Get a view of the imaginary part of the vector */
-  ConstVectorView imag() const {return ConstVectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart + 1, mrange.mextent, mrange.mstride*2));}
+  [[nodiscard]] ConstVectorView imag() const {return ConstVectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart + 1, mrange.mextent, mrange.mstride*2));}
 
   ConstComplexVectorView operator[](const Range& r) const;
   friend Complex operator*(const ConstComplexVectorView& a,
                            const ConstComplexVectorView& b);
 
   // Functions returning iterators:
-  ConstComplexIterator1D begin() const;
-  ConstComplexIterator1D end() const;
+  [[nodiscard]] ConstComplexIterator1D begin() const;
+  [[nodiscard]] ConstComplexIterator1D end() const;
 
   // Conversion to 1 column matrix:
   operator ConstComplexMatrixView() const;
@@ -402,7 +402,7 @@ class ComplexVectorView : public ConstComplexVectorView {
   ComplexVectorView(ComplexVector& v);
 
   // Typedef for compatibility with STL
-  typedef ComplexIterator1D iterator;
+  using iterator = ComplexIterator1D;
 
   /** Plain Index operator. */
   Complex& operator[](Index n) {  // Check if index is valid:
@@ -418,12 +418,12 @@ class ComplexVectorView : public ConstComplexVectorView {
 
   /** Get element implementation without assertions. */
   Numeric& get_real(Index n) {
-    return reinterpret_cast<Numeric(&)[2]>(get(n))[0];
+    return reinterpret_cast<ComplexLayout(&)>(get(n)).real;
   }
 
   /** Get element implementation without assertions. */
   Numeric& get_imag(Index n) {
-    return reinterpret_cast<Numeric(&)[2]>(get(n))[1];
+    return reinterpret_cast<ComplexLayout(&)>(get(n)).imag;
   }
   
   /** Get a view of the real part of the vector */
@@ -472,11 +472,11 @@ class ComplexVectorView : public ConstComplexVectorView {
   // Conversion to 1 column matrix:
   operator ComplexMatrixView();
   // Conversion to a plain C-array
-  const Complex* get_c_array() const ARTS_NOEXCEPT;
+  [[nodiscard]] const Complex* get_c_array() const ARTS_NOEXCEPT;
   Complex* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
-  virtual ~ComplexVectorView() = default;
+   ~ComplexVectorView() override = default;
 
   // Friends:
   friend class ConstComplexIterator2D;
@@ -519,8 +519,7 @@ class ComplexIterator2D {
     if (msv.mdata + msv.mrange.mstart !=
         other.msv.mdata + other.msv.mrange.mstart)
       return true;
-    else
-      return false;
+    return false;
   }
 
   /** The -> operator is needed, so that we can write i->begin() to get
@@ -547,8 +546,8 @@ class ConstComplexIterator2D {
   ConstComplexIterator2D() = default;
 
   /** Explicit constructor. */
-  ConstComplexIterator2D(const ConstComplexVectorView& x, Index stride)
-      : msv(x), mstride(stride) { /* Nothing to do here. */
+  ConstComplexIterator2D(ConstComplexVectorView x, Index stride)
+      : msv(std::move(x)), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -563,8 +562,7 @@ class ConstComplexIterator2D {
     if (msv.mdata + msv.mrange.mstart !=
         other.msv.mdata + other.msv.mrange.mstart)
       return true;
-    else
-      return false;
+    return false;
   }
 
   /** The -> operator is needed, so that we can write i->begin() to get
@@ -624,10 +622,10 @@ class ComplexVector : public ComplexVectorView {
   friend void swap(ComplexVector& v1, ComplexVector& v2);
 
   // Destructor:
-  virtual ~ComplexVector();
+   ~ComplexVector() override;
   
   // Total size
-  Index size() const noexcept {return nelem();}
+  [[nodiscard]] Index size() const noexcept {return nelem();}
 };
 
 // Declare class ComplexMatrix:
@@ -651,12 +649,12 @@ class ConstComplexMatrixView {
   ConstComplexMatrixView& operator=(ConstComplexMatrixView&&) = default;
 
   // Typedef for compatibility with STL
-  typedef ConstComplexIterator2D const_iterator;
+  using const_iterator = ConstComplexIterator2D;
 
   // Member functions:
-  Index nrows() const noexcept { return mrr.mextent; }
-  Index ncols() const noexcept { return mcr.mextent; }
-  bool empty() const noexcept { return not nrows() or not ncols(); }
+  [[nodiscard]] Index nrows() const noexcept { return mrr.mextent; }
+  [[nodiscard]] Index ncols() const noexcept { return mcr.mextent; }
+  [[nodiscard]] bool empty() const noexcept { return not nrows() or not ncols(); }
 
   // Const index operators:
   /** Plain const index operator. */
@@ -670,38 +668,38 @@ class ConstComplexMatrixView {
   }
 
   /** Get element implementation without assertions. */
-  Complex get(Index r, Index c) const {
+  [[nodiscard]] Complex get(Index r, Index c) const {
     return *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart +
              c * mcr.mstride);
   }
 
   /** Get element implementation without assertions. */
-  Numeric get_real(Index r, Index c) const { return get(r, c).real(); }
+  [[nodiscard]] Numeric get_real(Index r, Index c) const { return get(r, c).real(); }
 
   /** Get element implementation without assertions. */
-  Numeric get_imag(Index r, Index c) const { return get(r, c).imag(); }
+  [[nodiscard]] Numeric get_imag(Index r, Index c) const { return get(r, c).imag(); }
   
   /** Get a view of the real part of the matrix */
-  ConstMatrixView real() const {return ConstMatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2), 
+  [[nodiscard]] ConstMatrixView real() const {return ConstMatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2), 
                                                                                            Range(2*mcr.mstart, mcr.mextent, mcr.mstride*2));}
   
   /** Get a view of the imaginary part of the matrix */
-  ConstMatrixView imag() const {return ConstMatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2),
+  [[nodiscard]] ConstMatrixView imag() const {return ConstMatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2),
                                                                                            Range(2*mcr.mstart + 1, mcr.mextent, mcr.mstride*2));}
   
   /** Get the extent of the underlying data */
-  Index get_column_extent() const {return mcr.get_extent();}
+  [[nodiscard]] Index get_column_extent() const {return mcr.get_extent();}
 
   ConstComplexMatrixView operator()(const Range& r, const Range& c) const;
   ConstComplexVectorView operator()(const Range& r, Index c) const;
   ConstComplexVectorView operator()(Index r, const Range& c) const;
 
   // Functions returning iterators:
-  ConstComplexIterator2D begin() const;
-  ConstComplexIterator2D end() const;
+  [[nodiscard]] ConstComplexIterator2D begin() const;
+  [[nodiscard]] ConstComplexIterator2D end() const;
 
   // View on diagonal complex vector
-  ConstComplexVectorView diagonal() const;
+  [[nodiscard]] ConstComplexVectorView diagonal() const;
 
   //! Destructor
   virtual ~ConstComplexMatrixView() = default;
@@ -772,7 +770,7 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   constexpr ComplexMatrixView(const ComplexMatrixView&) = default;
 
   // Typedef for compatibility with STL
-  typedef ComplexIterator2D iterator;
+  using iterator = ComplexIterator2D;
 
   // Index Operators:
   /** Plain index operator. */
@@ -793,12 +791,12 @@ class ComplexMatrixView : public ConstComplexMatrixView {
 
   /** Get element implementation without assertions. */
   Numeric& get_real(Index r, Index c) {
-    return reinterpret_cast<Numeric(&)[2]>(get(r, c))[0];
+    return reinterpret_cast<ComplexLayout(&)>(get(r, c)).real;
   }
 
   /** Get element implementation without assertions. */
   Numeric& get_imag(Index r, Index c) {
-    return reinterpret_cast<Numeric(&)[2]>(get(r, c))[1];
+    return reinterpret_cast<ComplexLayout(&)>(get(r, c)).imag;
   }
   
   /** Get a view of the real part of the matrix */
@@ -853,11 +851,11 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   ComplexMatrixView& operator-=(const ConstComplexVectorView& x);
 
   // Conversion to a plain C-array
-  const Complex* get_c_array() const ARTS_NOEXCEPT;
+  [[nodiscard]] const Complex* get_c_array() const ARTS_NOEXCEPT;
   Complex* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
-  virtual ~ComplexMatrixView() = default;
+   ~ComplexMatrixView() override = default;
 
   // Friends:
   friend class ComplexVectorView;
@@ -908,10 +906,10 @@ class ComplexMatrix : public ComplexMatrixView {
   friend void swap(ComplexMatrix& m1, ComplexMatrix& m2);
 
   // Destructor:
-  virtual ~ComplexMatrix();
+   ~ComplexMatrix() override;
   
   // Total size
-  Index size() const noexcept {return nrows() * ncols();}
+  [[nodiscard]] Index size() const noexcept {return nrows() * ncols();}
 
   Complex* get_raw_data() { return mdata; }
 };
@@ -976,7 +974,7 @@ ComplexMatrixViewMap MapToEigenRow(ComplexVectorView& A);
 // Converts vector to eigen map column-view
 ComplexMatrixViewMap MapToEigenCol(ComplexVectorView& A);
 
-typedef Array<ComplexVector> ArrayOfComplexVector;
-typedef Array<ComplexMatrix> ArrayOfComplexMatrix;
+using ArrayOfComplexVector = Array<ComplexVector>;
+using ArrayOfComplexMatrix = Array<ComplexMatrix>;
 
 #endif

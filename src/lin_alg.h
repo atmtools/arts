@@ -28,7 +28,7 @@
 #ifndef linalg_h
 #define linalg_h
 
-#include "complex.h"
+#include "matpack_complex.h"
 #include "matpackIII.h"
 
 // LU decomposition

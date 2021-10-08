@@ -24,9 +24,9 @@
  * @brief Namespace and functions to deal with HITRAN linemixing
  */
 
-#include <fstream>
-#include <Faddeeva/Faddeeva.hh>
 #include "linemixing_hitran.h"
+#include <Faddeeva/Faddeeva.hh>
+#include <fstream>
 
 #include "lin_alg.h"
 #include "linemixing.h"
@@ -46,7 +46,7 @@ namespace parameters {
   
   static constexpr auto aMass = stdarrayify(44.e-3,45.e-3,46.e-3,45.e-3,47.e-3,46.e-3,48.e-3,47.e-3,46.e-3,49.e-3);  // Constant
   
-};
+} // namespace parameters
 
 struct CommonBlock {
 struct Bands {
@@ -270,12 +270,11 @@ Rational toRationalSum(char a, char b=' ')
 {
   if (b == ' ' and a == ' ')
     return Rational();
-  else if (b == ' ')
+  if (b == ' ')
     return Rational(a-'0');
-  else if (a == ' ')
+  if (a == ' ')
     return Rational(b-'0');
-  else
-    return Rational(10*(a-'0') + b-'0');
+  return Rational(10*(a-'0') + b-'0');
 }
 
 void readlines(CommonBlock& cmn, const String& basedir="data_new/")
@@ -430,34 +429,33 @@ Numeric atob(const Numeric& aa,
         const Numeric A2=(aa-a[j-2])*(aa-a[j-1])/(A2D1*A2D2);
         
         return A0*b[j-2] + A1*b[j-1] + A2*b[j];
-      } else {
-        size_t j = i;
-        
-        Numeric A0D1=a[j-2]-a[j-1]; if (A0D1 == 0) A0D1=0.0001;
-        Numeric A0D2=a[j-2]-a[j];   if (A0D2 == 0) A0D2=0.0001;
-        Numeric A0D3=a[j-2]-a[j+1]; if (A0D3 == 0) A0D3=0.0001;
-        Numeric A1D1=a[j-1]-a[j-2]; if (A1D1 == 0) A1D1=0.0001;
-        Numeric A1D2=a[j-1]-a[j];   if (A1D2 == 0) A1D2=0.0001;
-        Numeric A1D3=a[j-1]-a[j+1]; if (A1D3 == 0) A1D3=0.0001;
-        Numeric A2D1=a[j]-a[j-2];   if (A2D1 == 0) A2D1=0.0001;
-        Numeric A2D2=a[j]-a[j-1];   if (A2D2 == 0) A2D2=0.0001;
-        Numeric A2D3=a[j]-a[j+1];   if (A2D3 == 0) A2D3=0.0001;
-        Numeric A3D1=a[j+1]-a[j-2]; if (A3D1 == 0) A3D1=0.0001;
-        Numeric A3D2=a[j+1]-a[j-1]; if (A3D2 == 0) A3D2=0.0001;
-        Numeric A3D3=a[j+1]-a[j];   if (A3D3 == 0) A3D3=0.0001;
-        
-        
-        Numeric A0=(aa-a[j-1])*(aa-a[j])*(aa-a[j+1]);
-        A0=A0/(A0D1*A0D2*A0D3);
-        Numeric A1=(aa-a[j-2])*(aa-a[j])*(aa-a[j+1]);
-        A1=A1/(A1D1*A1D2*A1D3);
-        Numeric A2=(aa-a[j-2])*(aa-a[j-1])*(aa-a[j+1]);
-        A2=A2/(A2D1*A2D2*A2D3);
-        Numeric A3=(aa-a[j-2])*(aa-a[j-1])*(aa-a[j]);
-        A3=A3/(A3D1*A3D2*A3D3);
-        
-        return A0*b[j-2] + A1*b[j-1] + A2*b[j] + A3*b[j+1];
       }
+      size_t j = i;
+      
+      Numeric A0D1=a[j-2]-a[j-1]; if (A0D1 == 0) A0D1=0.0001;
+      Numeric A0D2=a[j-2]-a[j];   if (A0D2 == 0) A0D2=0.0001;
+      Numeric A0D3=a[j-2]-a[j+1]; if (A0D3 == 0) A0D3=0.0001;
+      Numeric A1D1=a[j-1]-a[j-2]; if (A1D1 == 0) A1D1=0.0001;
+      Numeric A1D2=a[j-1]-a[j];   if (A1D2 == 0) A1D2=0.0001;
+      Numeric A1D3=a[j-1]-a[j+1]; if (A1D3 == 0) A1D3=0.0001;
+      Numeric A2D1=a[j]-a[j-2];   if (A2D1 == 0) A2D1=0.0001;
+      Numeric A2D2=a[j]-a[j-1];   if (A2D2 == 0) A2D2=0.0001;
+      Numeric A2D3=a[j]-a[j+1];   if (A2D3 == 0) A2D3=0.0001;
+      Numeric A3D1=a[j+1]-a[j-2]; if (A3D1 == 0) A3D1=0.0001;
+      Numeric A3D2=a[j+1]-a[j-1]; if (A3D2 == 0) A3D2=0.0001;
+      Numeric A3D3=a[j+1]-a[j];   if (A3D3 == 0) A3D3=0.0001;
+      
+      
+      Numeric A0=(aa-a[j-1])*(aa-a[j])*(aa-a[j+1]);
+      A0=A0/(A0D1*A0D2*A0D3);
+      Numeric A1=(aa-a[j-2])*(aa-a[j])*(aa-a[j+1]);
+      A1=A1/(A1D1*A1D2*A1D3);
+      Numeric A2=(aa-a[j-2])*(aa-a[j-1])*(aa-a[j+1]);
+      A2=A2/(A2D1*A2D2*A2D3);
+      Numeric A3=(aa-a[j-2])*(aa-a[j-1])*(aa-a[j]);
+      A3=A3/(A3D1*A3D2*A3D3);
+      
+      return A0*b[j-2] + A1*b[j-1] + A2*b[j] + A3*b[j+1];
     }
   }
   
@@ -1238,9 +1236,9 @@ void eqvlines(CommonBlock& cmn,
   }
 }
 
-EqvLinesOut eqvlines(const ConstComplexMatrixView W,
-                     const ConstVectorView pop,
-                     const ConstVectorView dip,
+EqvLinesOut eqvlines(const ConstComplexMatrixView& W,
+                     const ConstVectorView& pop,
+                     const ConstVectorView& dip,
                      const Numeric& fmean)
 {
   // Size of problem
@@ -1350,7 +1348,7 @@ void convtp(CommonBlock& cmn,
   }
 }
 
-ConvTPOut convtp(const ConstVectorView vmrs,
+ConvTPOut convtp(const ConstVectorView& vmrs,
                  const HitranRelaxationMatrixData& hitran,
                  const AbsorptionLines& band,
                  const Numeric T,
@@ -1572,7 +1570,7 @@ void compabs(
   const Numeric& ptot,
   const Numeric& xco2,
   const Numeric& xh2o,
-  const ConstVectorView invcm_grid,
+  const ConstVectorView& invcm_grid,
   const bool mixsdv,
   const bool mixfull,
   VectorView absv,
@@ -1689,8 +1687,8 @@ Vector compabs(
   const HitranRelaxationMatrixData& hitran,
   const ArrayOfAbsorptionLines& bands,
   const SpeciesIsotopologueRatios& isotopologue_ratio,
-  const ConstVectorView vmrs,
-  const ConstVectorView f_grid)
+  const ConstVectorView &vmrs,
+  const ConstVectorView &f_grid)
 {
   using Constant::pow2;
   using Constant::pow3;
@@ -1901,7 +1899,7 @@ void readw(CommonBlock& cmn, const String& basedir="data_new/")
   }
 }
 
-Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const ConstVectorView invcm_grid, const Numeric stotmax, const calctype type)
+Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const ConstVectorView& invcm_grid, const Numeric stotmax, const calctype type)
 {
   const Index n = invcm_grid.nelem();
   Vector absorption(n);
@@ -1953,8 +1951,8 @@ Vector compute(const HitranRelaxationMatrixData& hitran,
                const SpeciesIsotopologueRatios& isotopologue_ratio,
                const Numeric P,
                const Numeric T,
-               const ConstVectorView vmrs,
-               const ConstVectorView f_grid)
+               const ConstVectorView& vmrs,
+               const ConstVectorView& f_grid)
 {
   return f_grid.nelem() ? compabs(T, P, hitran, bands, isotopologue_ratio, vmrs, f_grid) : Vector(0);
 }
@@ -2229,5 +2227,5 @@ Tensor5 hitran_lm_eigenvalue_adaptation_test(const AbsorptionLines& band,
   }
   return out;
 }
-};
+} // namespace lm_hitran_2017
 

@@ -38,14 +38,14 @@ struct Doppler {
   constexpr Doppler(Numeric F0_noshift, Numeric DC, Numeric dZ) noexcept
   : F(), x(), mF0(F0_noshift + dZ), invGD(1.0 / nonstd::abs(DC * mF0)) {}
 
-  constexpr Complex dFdT(const Output &, Numeric T) const noexcept {
+  [[nodiscard]] constexpr Complex dFdT(const Output &, Numeric T) const noexcept {
     return F * (2 * Constant::pow2(x) - 1) / (2 * T);
   }
-  constexpr Complex dFdf() const noexcept { return -2 * invGD * F * x; }
-  constexpr Complex dFdF0() const noexcept {
+  [[nodiscard]] constexpr Complex dFdf() const noexcept { return -2 * invGD * F * x; }
+  [[nodiscard]] constexpr Complex dFdF0() const noexcept {
     return F * (2 * x * (invGD * mF0 + x) - 1) / mF0;
   }
-  constexpr Complex dFdH(Numeric dZ) const noexcept {
+  [[nodiscard]] constexpr Complex dFdH(Numeric dZ) const noexcept {
     return dZ * (F * (2 * x * (invGD * mF0 + x) - 1) / mF0);
   }
   static constexpr Complex dFdFVC(Numeric) noexcept { return 0; }
@@ -70,18 +70,18 @@ struct Lorentz {
   constexpr Lorentz(Numeric F0_noshift, const Output &ls) noexcept
       : mF0(F0_noshift + ls.D0 + ls.DV), G0(ls.G0) {}
 
-  constexpr Complex dFdVMR(const Output &d) const noexcept {
+  [[nodiscard]] constexpr Complex dFdVMR(const Output &d) const noexcept {
     return Complex(d.G0, d.D0 + d.DV) * dF;
   }
-  constexpr Complex dFdT(const Output &d, Numeric) const noexcept {
+  [[nodiscard]] constexpr Complex dFdT(const Output &d, Numeric) const noexcept {
     return dFdVMR(d);
   }
-  constexpr Complex dFdf() const noexcept { return Complex(0, -1) * dF; }
-  constexpr Complex dFdF0() const noexcept { return Complex(0, 1) * dF; }
-  constexpr Complex dFdDV(Numeric d) const noexcept { return d * dFdF0(); }
-  constexpr Complex dFdD0(Numeric d) const noexcept { return d * dFdF0(); }
+  [[nodiscard]] [[nodiscard]] constexpr Complex dFdf() const noexcept { return Complex(0, -1) * dF; }
+  [[nodiscard]] constexpr Complex dFdF0() const noexcept { return Complex(0, 1) * dF; }
+  [[nodiscard]] constexpr Complex dFdDV(Numeric d) const noexcept { return d * dFdF0(); }
+  [[nodiscard]] constexpr Complex dFdD0(Numeric d) const noexcept { return d * dFdF0(); }
   static constexpr Complex dFdH(Numeric) noexcept { return 0; }
-  constexpr Complex dFdG0(Numeric d) const noexcept { return d * dF; }
+  [[nodiscard]] constexpr Complex dFdG0(Numeric d) const noexcept { return d * dF; }
   static constexpr Complex dFdD2(Numeric) noexcept { return 0; }
   static constexpr Complex dFdG2(Numeric) { return 0; }
   static constexpr Complex dFdETA(Numeric) noexcept { return 0; }
@@ -106,16 +106,16 @@ struct Voigt {
   : F(), dF(), mF0(F0_noshift + dZ + ls.D0 + ls.DV),
   invGD(1.0 / nonstd::abs(DC * mF0)), z(invGD * Complex(-mF0, ls.G0)) {}
 
-  constexpr Complex dFdf() const noexcept { return dF; }
-  constexpr Complex dFdF0() const noexcept { return -dF; }
-  constexpr Complex dFdDV(Numeric d) const noexcept { return -d * dF; }
-  constexpr Complex dFdD0(Numeric d) const noexcept { return -d * dF; }
-  constexpr Complex dFdG0(Numeric d) const noexcept { return Complex(0, d) * dF; }
-  constexpr Complex dFdH(Numeric dZ) const noexcept { return -dZ * dF; }
-  constexpr Complex dFdVMR(const Output &d) const noexcept {
+  [[nodiscard]] constexpr Complex dFdf() const noexcept { return dF; }
+  [[nodiscard]] constexpr Complex dFdF0() const noexcept { return -dF; }
+  [[nodiscard]] constexpr Complex dFdDV(Numeric d) const noexcept { return -d * dF; }
+  [[nodiscard]] constexpr Complex dFdD0(Numeric d) const noexcept { return -d * dF; }
+  [[nodiscard]] constexpr Complex dFdG0(Numeric d) const noexcept { return Complex(0, d) * dF; }
+  [[nodiscard]] constexpr Complex dFdH(Numeric dZ) const noexcept { return -dZ * dF; }
+  [[nodiscard]] constexpr Complex dFdVMR(const Output &d) const noexcept {
     return Complex(-d.D0 - d.DV, d.G0) * dF;
   }
-  constexpr Complex dFdT(const Output &d, Numeric T) const noexcept {
+  [[nodiscard]] constexpr Complex dFdT(const Output &d, Numeric T) const noexcept {
     return -(F * invGD + dF * z) * (2 * T * (d.D0 + d.DV) + mF0) /
     (2 * T * invGD * mF0) +
     Complex(-d.D0 - d.DV, d.G0) * dF;
@@ -127,7 +127,7 @@ struct Voigt {
 
   Complex operator()(Numeric f) noexcept;
 
-  bool OK() const noexcept { return invGD > 0; }
+  [[nodiscard]] bool OK() const noexcept { return invGD > 0; }
 }; // Voigt
 
 struct SpeedDependentVoigt {
@@ -157,22 +157,22 @@ struct SpeedDependentVoigt {
   SpeedDependentVoigt(Numeric F0_noshift, const Output &ls, Numeric GD_div_F0,
                       Numeric dZ) noexcept;
 
-  Complex dFdf() const noexcept;
-  Complex dFdF0() const noexcept;
-  Complex dFdD0(Numeric dD0dD0) const noexcept;
-  Complex dFdG0(Numeric dG0dG0) const noexcept;
-  Complex dFdD2(Numeric dD2dD2) const noexcept;
-  Complex dFdG2(Numeric dG2dG2) const noexcept;
-  Complex dFdH(Numeric dZ) const noexcept;
-  Complex dFdVMR(const Output &d) const noexcept;
-  Complex dFdT(const Output &d, Numeric T) const noexcept;
+  [[nodiscard]] Complex dFdf() const noexcept;
+  [[nodiscard]] Complex dFdF0() const noexcept;
+  [[nodiscard]] Complex dFdD0(Numeric dD0dD0) const noexcept;
+  [[nodiscard]] Complex dFdG0(Numeric dG0dG0) const noexcept;
+  [[nodiscard]] Complex dFdD2(Numeric dD2dD2) const noexcept;
+  [[nodiscard]] Complex dFdG2(Numeric dG2dG2) const noexcept;
+  [[nodiscard]] Complex dFdH(Numeric dZ) const noexcept;
+  [[nodiscard]] Complex dFdVMR(const Output &d) const noexcept;
+  [[nodiscard]] Complex dFdT(const Output &d, Numeric T) const noexcept;
   static constexpr Complex dFdETA(Numeric) noexcept { return 0; }
   static constexpr Complex dFdFVC(Numeric) noexcept { return 0; }
   static constexpr Complex dFdDV(Numeric) noexcept { return 0; }
 
   Complex operator()(Numeric f) noexcept;
 
-  CalcType init(const Complex c2) const noexcept;
+  [[nodiscard]] CalcType init(const Complex c2) const noexcept;
   void update_calcs() noexcept;
   void calc() noexcept;
 }; // SpeedDependentVoigt
@@ -218,22 +218,22 @@ struct HartmannTran {
   HartmannTran(Numeric F0_noshift, const Output &ls, Numeric GD_div_F0,
                Numeric dZ) noexcept;
 
-  Complex dFdf() const noexcept;
-  Complex dFdF0() const noexcept;
-  Complex dFdD0(Numeric dD0) const noexcept;
-  Complex dFdG0(Numeric dG0) const noexcept;
-  Complex dFdD2(Numeric dD2) const noexcept;
-  Complex dFdG2(Numeric dG2) const noexcept;
-  Complex dFdFVC(Numeric dFVC) const noexcept;
-  Complex dFdETA(Numeric dETA) const noexcept;
-  Complex dFdH(Numeric dZ) const noexcept;
-  Complex dFdVMR(const Output &d) const noexcept;
-  Complex dFdT(const Output &d, Numeric T) const noexcept;
+  [[nodiscard]] Complex dFdf() const noexcept;
+  [[nodiscard]] Complex dFdF0() const noexcept;
+  [[nodiscard]] Complex dFdD0(Numeric dD0) const noexcept;
+  [[nodiscard]] Complex dFdG0(Numeric dG0) const noexcept;
+  [[nodiscard]] Complex dFdD2(Numeric dD2) const noexcept;
+  [[nodiscard]] Complex dFdG2(Numeric dG2) const noexcept;
+  [[nodiscard]] Complex dFdFVC(Numeric dFVC) const noexcept;
+  [[nodiscard]] Complex dFdETA(Numeric dETA) const noexcept;
+  [[nodiscard]] Complex dFdH(Numeric dZ) const noexcept;
+  [[nodiscard]] Complex dFdVMR(const Output &d) const noexcept;
+  [[nodiscard]] Complex dFdT(const Output &d, Numeric T) const noexcept;
   static constexpr Complex dFdDV(Numeric) noexcept { return 0; }
 
   Complex operator()(Numeric f) noexcept;
 
-  CalcType init(const Complex c2t) const noexcept;
+  [[nodiscard]] CalcType init(const Complex c2t) const noexcept;
   void update_calcs() noexcept;
   void calc() noexcept;
 }; // HartmannTran
@@ -241,11 +241,11 @@ struct HartmannTran {
 struct Nonorm {
   static constexpr Numeric N = 1.0;
 
-  constexpr Nonorm() noexcept {}
+  constexpr Nonorm() noexcept = default;
 
   static constexpr Numeric dNdT(Numeric, Numeric) noexcept { return 0; }
   static constexpr Numeric dNdf(Numeric) noexcept { return 0; }
-  constexpr Numeric dNdF0() const noexcept { return 0; }
+  [[nodiscard]] constexpr Numeric dNdF0() const noexcept { return 0; }
 
   constexpr Numeric operator()(Numeric) noexcept { return N; }
 }; // Nonorm
@@ -260,9 +260,9 @@ struct VanVleckHuber {
 
   VanVleckHuber(Numeric F0, Numeric T) noexcept;
 
-  Numeric dNdT(Numeric T, Numeric f) const noexcept;
-  Numeric dNdf(Numeric f) const noexcept;
-  Numeric dNdF0() const noexcept;
+  [[nodiscard]] Numeric dNdT(Numeric T, Numeric f) const noexcept;
+  [[nodiscard]] Numeric dNdf(Numeric f) const noexcept;
+  [[nodiscard]] Numeric dNdF0() const noexcept;
 
   Numeric operator()(Numeric f) noexcept;
 }; // VanVleckHuber
@@ -275,10 +275,10 @@ struct VanVleckWeisskopf {
   constexpr VanVleckWeisskopf(Numeric F0) noexcept : N(1), invF0(1.0 / F0) {}
 
   static constexpr Numeric dNdT(Numeric, Numeric) noexcept { return 0; }
-  constexpr Numeric dNdf(Numeric f) const noexcept {
+  [[nodiscard]] constexpr Numeric dNdf(Numeric f) const noexcept {
     return 2.0 * f * Constant::pow2(invF0);
   }
-  constexpr Numeric dNdF0() const noexcept { return -2.0 * N * invF0; }
+  [[nodiscard]] constexpr Numeric dNdF0() const noexcept { return -2.0 * N * invF0; }
 
   constexpr Numeric operator()(Numeric f) noexcept {
     N = Constant::pow2(f * invF0);
@@ -295,9 +295,9 @@ struct RosenkranzQuadratic {
 
   RosenkranzQuadratic(Numeric F0, Numeric T) noexcept;
 
-  Numeric dNdT(Numeric, Numeric f) const noexcept;
-  Numeric dNdf(Numeric f) const noexcept;
-  Numeric dNdF0() const noexcept;
+  [[nodiscard]] Numeric dNdT(Numeric, Numeric f) const noexcept;
+  [[nodiscard]] Numeric dNdf(Numeric f) const noexcept;
+  [[nodiscard]] Numeric dNdF0() const noexcept;
 
   Numeric operator()(Numeric f) noexcept;
 }; // RosenkranzQuadratic
@@ -318,9 +318,9 @@ struct SimpleFrequencyScaling {
                          std::expm1(- (Constant::h * F0_) / (Constant::k * T_)),
                            F0_, T_) {}
   
-  Numeric dNdT(Numeric t_ [[maybe_unused]], Numeric f) const ARTS_NOEXCEPT;
-  Numeric dNdf(Numeric f) const noexcept;
-  constexpr Numeric dNdF0() const noexcept {
+  [[nodiscard]] Numeric dNdT(Numeric t_ [[maybe_unused]], Numeric f) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dNdf(Numeric f) const noexcept;
+  [[nodiscard]] constexpr Numeric dNdF0() const noexcept {
     return - N / F0 + N * Constant::h * expF0 / (Constant::k * T * expm1F0);
   }
   
@@ -373,12 +373,12 @@ struct LocalThermodynamicEquilibrium {
                                 Numeric E0, Numeric QT, Numeric QT0,
                                 Numeric dQTdT, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept;
 
-  constexpr Numeric dSdT() const noexcept { return dSdTval; }
-  constexpr Numeric dSdI0() const noexcept { return dSdI0val; }
-  constexpr Numeric dSdF0() const noexcept { return dSdF0val; }
+  [[nodiscard]] constexpr Numeric dSdT() const noexcept { return dSdTval; }
+  [[nodiscard]] constexpr Numeric dSdI0() const noexcept { return dSdI0val; }
+  [[nodiscard]] constexpr Numeric dSdF0() const noexcept { return dSdF0val; }
   static constexpr Numeric dSdNLTEu() noexcept { return 0; }
   static constexpr Numeric dSdNLTEl() noexcept { return 0; }
-  constexpr Numeric dSdSELFVMR() const noexcept { return dSdSELFVMRval; }
+  [[nodiscard]] constexpr Numeric dSdSELFVMR() const noexcept { return dSdSELFVMRval; }
 
   static constexpr Numeric dNdT() noexcept { return 0; }
   static constexpr Numeric dNdI0() noexcept { return 0; }
@@ -435,19 +435,19 @@ struct FullNonLocalThermodynamicEquilibrium {
                                        Numeric r2, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept;
                                          
 
-  constexpr Numeric dSdT() const noexcept { return 0; }
+  [[nodiscard]] constexpr Numeric dSdT() const noexcept { return 0; }
   static constexpr Numeric dSdI0() noexcept { return 0; }
-  constexpr Numeric dSdF0() const noexcept { return dSdF0val; }
-  constexpr Numeric dSdNLTEu() const noexcept { return dSdr1; }
-  constexpr Numeric dSdNLTEl() const noexcept { return dSdr2; }
-  constexpr Numeric dSdSELFVMR() const noexcept { return dSdSELFVMRval; }
+  [[nodiscard]] constexpr Numeric dSdF0() const noexcept { return dSdF0val; }
+  [[nodiscard]] constexpr Numeric dSdNLTEu() const noexcept { return dSdr1; }
+  [[nodiscard]] constexpr Numeric dSdNLTEl() const noexcept { return dSdr2; }
+  [[nodiscard]] constexpr Numeric dSdSELFVMR() const noexcept { return dSdSELFVMRval; }
 
-  constexpr Numeric dNdT() const noexcept { return dNdTval; }
+  [[nodiscard]] constexpr Numeric dNdT() const noexcept { return dNdTval; }
   static constexpr Numeric dNdI0() noexcept { return 0; }
-  constexpr Numeric dNdF0() const noexcept { return dNdF0val; }
-  constexpr Numeric dNdNLTEu() const noexcept { return -dSdr1; }
-  constexpr Numeric dNdNLTEl() const noexcept { return dNdr2; }
-  constexpr Numeric dNdSELFVMR() const noexcept { return dNdSELFVMRval; }
+  [[nodiscard]] constexpr Numeric dNdF0() const noexcept { return dNdF0val; }
+  [[nodiscard]] constexpr Numeric dNdNLTEu() const noexcept { return -dSdr1; }
+  [[nodiscard]] constexpr Numeric dNdNLTEl() const noexcept { return dNdr2; }
+  [[nodiscard]] constexpr Numeric dNdSELFVMR() const noexcept { return dNdSELFVMRval; }
   
   static constexpr bool do_nlte() noexcept {return true;}
 }; // FullNonLocalThermodynamicEquilibrium
@@ -514,39 +514,174 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
       Numeric E0, Numeric Evl, Numeric Evu, Numeric QT, Numeric QT0,
       Numeric dQTdT, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept;
 
-      constexpr Numeric dSdT() const noexcept { return dSdTval; }
-  constexpr Numeric dSdI0() const noexcept { return dSdI0val; }
-  constexpr Numeric dSdF0() const noexcept { return dSdF0val; }
-  constexpr Numeric dSdNLTEu() const noexcept { return dSdTl; }
-  constexpr Numeric dSdNLTEl() const noexcept { return dSdTu; }
-  constexpr Numeric dSdSELFVMR() const noexcept { return dSdSELFVMRval; }
+  [[nodiscard]] constexpr Numeric dSdT() const noexcept { return dSdTval; }
+  [[nodiscard]] constexpr Numeric dSdI0() const noexcept { return dSdI0val; }
+  [[nodiscard]] constexpr Numeric dSdF0() const noexcept { return dSdF0val; }
+  [[nodiscard]] constexpr Numeric dSdNLTEu() const noexcept { return dSdTl; }
+  [[nodiscard]] constexpr Numeric dSdNLTEl() const noexcept { return dSdTu; }
+  [[nodiscard]] constexpr Numeric dSdSELFVMR() const noexcept { return dSdSELFVMRval; }
 
-  constexpr Numeric dNdT() const noexcept { return dNdTval; }
-  constexpr Numeric dNdI0() const noexcept { return dNdI0val; }
-  constexpr Numeric dNdF0() const noexcept { return dNdF0val; }
-  constexpr Numeric dNdNLTEu() const noexcept { return -dSdTl; }
-  constexpr Numeric dNdNLTEl() const noexcept { return dNdTu; }
-  constexpr Numeric dNdSELFVMR() const noexcept { return dNdSELFVMRval; }
+  [[nodiscard]] constexpr Numeric dNdT() const noexcept { return dNdTval; }
+  [[nodiscard]] constexpr Numeric dNdI0() const noexcept { return dNdI0val; }
+  [[nodiscard]] constexpr Numeric dNdF0() const noexcept { return dNdF0val; }
+  [[nodiscard]] constexpr Numeric dNdNLTEu() const noexcept { return -dSdTl; }
+  [[nodiscard]] constexpr Numeric dNdNLTEl() const noexcept { return dNdTu; }
+  [[nodiscard]] constexpr Numeric dNdSELFVMR() const noexcept { return dNdSELFVMRval; }
   
-  static constexpr bool do_nlte() noexcept {return true;}
-}; // VibrationalTemperaturesNonLocalThermodynamicEquilibrium
+  static constexpr bool do_nlte() noexcept {return true;}}
+; // VibrationalTemperaturesNonLocalThermodynamicEquilibrium
 
-typedef std::variant<Noshape, Doppler, Lorentz, Voigt, SpeedDependentVoigt,
-                     HartmannTran>
-    Calculator;
-    
-Calculator line_shape_selection(const Type type, const Numeric F0,
-                                const Output &X, const Numeric DC,
-                                const Numeric DZ, bool manually_mirrored);
+//! Line shape calculator.
+class Calculator {
+  using Variant = std::variant<Noshape, Doppler, Lorentz, Voigt, SpeedDependentVoigt, HartmannTran>;
+  Variant ls;
 
-typedef std::variant<Nonorm, VanVleckHuber, VanVleckWeisskopf,
-                     RosenkranzQuadratic, SimpleFrequencyScaling>
-    Normalizer;
+public:
+  [[nodiscard]] constexpr Complex dFdT(const Output & dXdT, Numeric T) const noexcept {return std::visit([&](auto &&LS) { return LS.dFdT(dXdT, T); }, ls);}
+  [[nodiscard]] constexpr Complex dFdf() const noexcept {return std::visit([](auto &&LS) { return LS.dFdf(); }, ls);}
+  [[nodiscard]] constexpr Complex dFdF0() const noexcept  {return std::visit([](auto &&LS) { return LS.dFdF0(); }, ls);}
+  [[nodiscard]] constexpr Complex dFdH(Numeric dfdH) const noexcept {return std::visit([dfdH](auto &&LS) { return LS.dFdH(dfdH); }, ls);}
+  [[nodiscard]] constexpr Complex dFdVMR(const Output &dXdVMR) const noexcept {return std::visit([&](auto &&LS) { return LS.dFdVMR(dXdVMR); }, ls);}
+  [[nodiscard]] constexpr Complex dFdFVC(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdFVC(d); }, ls);}
+  [[nodiscard]] constexpr Complex dFdETA(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdETA(d); }, ls);}
+  [[nodiscard]] constexpr Complex dFdDV(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdDV(d); }, ls);}
+  [[nodiscard]] constexpr Complex dFdD0(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdD0(d); }, ls);}
+  [[nodiscard]] constexpr Complex dFdG0(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdG0(d); }, ls);}
+  [[nodiscard]] constexpr Complex dFdD2(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdD2(d); }, ls);}
+  [[nodiscard]] constexpr Complex dFdG2(Numeric d) const noexcept {return std::visit([d](auto &&LS) { return LS.dFdG2(d); }, ls);}
+  [[nodiscard]] constexpr Complex F() const noexcept {return std::visit([](auto &&LS) { return LS.F; }, ls);}
 
-typedef std::variant<Nostrength, LocalThermodynamicEquilibrium,
-                     FullNonLocalThermodynamicEquilibrium,
-                     VibrationalTemperaturesNonLocalThermodynamicEquilibrium>
-    IntensityCalculator;
+  //! Call operator on frequency.  Must call this before any of the derivatives
+  constexpr Complex operator()(Numeric f) noexcept {return std::visit([f](auto &&LS) { return LS(f); }, ls);}
+
+  constexpr Calculator(const Type type, const Numeric F0,
+                       const Output &X, const Numeric DC,
+                       const Numeric DZ, bool manually_mirrored) noexcept : ls(Noshape{}) {
+    if (not manually_mirrored) {
+      switch (type) {
+      case Type::DP:
+        ls = Doppler(F0, DC, DZ); break;
+      case Type::LP:
+        ls = Lorentz(F0, X); break;
+      case Type::VP:
+        ls = Voigt(F0, X, DC, DZ); break;
+      case Type::SDVP:
+        ls = SpeedDependentVoigt(F0, X, DC, DZ); break;
+      case Type::HTP:
+        ls = HartmannTran(F0, X, DC, DZ); break;
+      case Type::FINAL: { /*leave last*/
+        }
+      }
+    }
+  }
+
+  constexpr Calculator(const Absorption::MirroringType mirror,
+                       const Type type, const Numeric F0,
+                       const Output &X, const Numeric DC,
+                       const Numeric DZ) : ls(Noshape{}) {
+    switch (mirror) {
+    case Absorption::MirroringType::Lorentz:
+      ls = Lorentz(-F0, mirroredOutput(X)); break;
+    case Absorption::MirroringType::SameAsLineShape:
+      *this = {type, -F0, mirroredOutput(X), -DC, -DZ, false}; break;
+    case Absorption::MirroringType::Manual:
+      *this = {type, F0, mirroredOutput(X), -DC, -DZ, false}; break;
+    case Absorption::MirroringType::None:
+      break;
+    case Absorption::MirroringType::FINAL: { /*leave last*/
+      }
+    }
+  }
+};  // Calculator
+
+class Normalizer {
+  using Variant = std::variant<Nonorm, VanVleckHuber, VanVleckWeisskopf, RosenkranzQuadratic, SimpleFrequencyScaling>;
+  Variant ls_norm;
+
+public:
+  [[nodiscard]] constexpr Numeric dNdT(Numeric T, Numeric f) const noexcept { return std::visit([T, f](auto &&LSN) { return LSN.dNdT(T, f); }, ls_norm); }
+  [[nodiscard]] constexpr Numeric dNdf(Numeric f) const noexcept { return std::visit([f](auto&& LS){return LS.dNdf(f);}, ls_norm); }
+  [[nodiscard]] constexpr Numeric dNdF0() const noexcept { return std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_norm); }
+  constexpr Numeric operator()(Numeric f) noexcept { return std::visit([f](auto &&LSN) { return LSN(f); }, ls_norm); }
+
+  constexpr Normalizer(const Absorption::NormalizationType type,
+                       const Numeric F0, const Numeric T) noexcept : ls_norm(Nonorm{}) {
+    switch (type) {
+    case Absorption::NormalizationType::None:
+      break;
+    case Absorption::NormalizationType::RQ:
+      ls_norm = RosenkranzQuadratic(F0, T); break;
+    case Absorption::NormalizationType::VVH:
+      ls_norm = VanVleckHuber(F0, T); break;
+    case Absorption::NormalizationType::VVW:
+      ls_norm = VanVleckWeisskopf(F0); break;
+    case Absorption::NormalizationType::SFS:
+      ls_norm = SimpleFrequencyScaling(F0, T); break;
+    case Absorption::NormalizationType::FINAL: { /*leave last*/
+      }
+    }
+  }
+};  // Normalizer
+
+class IntensityCalculator {
+  using Variant = std::variant<Nostrength, LocalThermodynamicEquilibrium,
+                               FullNonLocalThermodynamicEquilibrium,
+                               VibrationalTemperaturesNonLocalThermodynamicEquilibrium>;
+  Variant ls_str;
+  
+public:
+  [[nodiscard]] constexpr Numeric S() const noexcept { return std::visit([](auto &&S) { return S.S; }, ls_str); }
+  [[nodiscard]] constexpr Numeric dSdT() const noexcept { return std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str); }
+  [[nodiscard]] constexpr Numeric dSdI0() const noexcept { return std::visit([](auto &&LS) { return LS.dSdI0(); }, ls_str); }
+  [[nodiscard]] constexpr Numeric dSdF0() const noexcept { return std::visit([](auto &&LS) { return LS.dSdF0(); }, ls_str); }
+  [[nodiscard]] constexpr Numeric dSdNLTEu() const noexcept { return std::visit([](auto &&LS) { return LS.dSdNLTEu(); }, ls_str); }
+  [[nodiscard]] constexpr Numeric dSdNLTEl() const noexcept { return std::visit([](auto &&LS) { return LS.dSdNLTEl(); }, ls_str); }
+  [[nodiscard]] constexpr Numeric dSdSELFVMR() const noexcept { return std::visit([](auto&&LS){return LS.dSdSELFVMR();}, ls_str); }
+
+  [[nodiscard]] constexpr Numeric N() const noexcept { return std::visit([](auto &&S) { return S.N; }, ls_str); }
+  [[nodiscard]] constexpr Numeric dNdT() const noexcept { return std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str); }
+  [[nodiscard]] constexpr Numeric dNdI0() const noexcept { return std::visit([](auto &&LS) { return LS.dNdI0(); }, ls_str); }
+  [[nodiscard]] constexpr Numeric dNdF0() const noexcept { return std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_str); }
+  [[nodiscard]] constexpr Numeric dNdNLTEu() const noexcept { return std::visit([](auto &&LS) { return LS.dNdNLTEu(); }, ls_str); }
+  [[nodiscard]] constexpr Numeric dNdNLTEl() const noexcept { return std::visit([](auto &&LS) { return LS.dNdNLTEl(); }, ls_str);; }
+  [[nodiscard]] constexpr Numeric dNdSELFVMR() const noexcept { return std::visit([](auto&&LS){return LS.dNdSELFVMR();}, ls_str); }
+  
+  [[nodiscard]] constexpr bool do_nlte() const noexcept {return std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);}
+
+  IntensityCalculator(const Numeric T, const Numeric QT,
+                                           const Numeric QT0,
+                                           const Numeric dQTdT, const Numeric r,
+                                           const Numeric drdSELFVMR,
+                                           const Numeric drdT,
+                                           const EnergyLevelMap &nlte,
+                                           const Absorption::Lines &band,
+                                           const Index line_index) noexcept : ls_str(Nostrength{})  {
+    const auto &line = band.Line(line_index);
+    switch (band.Population()) {
+    case Absorption::PopulationType::ByHITRANFullRelmat:
+    case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
+    case Absorption::PopulationType::ByMakarovFullRelmat:
+    case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
+    case Absorption::PopulationType::LTE:
+      ls_str = LocalThermodynamicEquilibrium(line.I0(), band.T0(), T, line.F0(),
+                                             line.E0(), QT, QT0, dQTdT, r, drdSELFVMR, drdT); break;
+    case Absorption::PopulationType::NLTE: {
+      const auto [r_low, r_upp] = nlte.get_ratio_params(band, line_index);
+      ls_str = FullNonLocalThermodynamicEquilibrium(
+        line.F0(), line.A(), T, line.g_low(), line.g_upp(), r_low, r_upp, r, drdSELFVMR, drdT);
+      } break;
+    case Absorption::PopulationType::VibTemps: {
+      const auto [E_low, E_upp, T_low, T_upp] =
+          nlte.get_vibtemp_params(band, line_index, T);
+      ls_str = VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
+          line.I0(), band.T0(), T, T_low, T_upp, line.F0(), line.E0(), E_low,
+          E_upp, QT, QT0, dQTdT, r, drdSELFVMR, drdT);
+      } break;
+    case Absorption::PopulationType::FINAL: { /*leave last*/
+      }
+    }
+  }
+};  // IntensityCalculator
 
 struct ComputeData {
   ComplexVector F, N;

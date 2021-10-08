@@ -1607,8 +1607,8 @@ void PropagationMatrix::MatrixInverseAtPosition(MatrixView ret,
   }
 }
 
-void PropagationMatrix::AddAverageAtPosition(ConstMatrixView mat1,
-                                             ConstMatrixView mat2,
+void PropagationMatrix::AddAverageAtPosition(const ConstMatrixView& mat1,
+                                             const ConstMatrixView& mat2,
                                              const Index iv,
                                              const Index iz,
                                              const Index ia) {
@@ -1637,7 +1637,7 @@ void PropagationMatrix::MultiplyAndAdd(const Numeric x,
           mdata(i, j, k, l) += x * y.mdata(i, j, k, l);
 }
 
-bool PropagationMatrix::FittingShape(ConstMatrixView x) const {
+bool PropagationMatrix::FittingShape(const ConstMatrixView& x) const {
   Index nelem = x.nrows();
   if (mstokes_dim == nelem) {
     if (x.ncols() == nelem) {
@@ -1703,7 +1703,7 @@ void PropagationMatrix::GetTensor3(Tensor3View tensor3, Index iz, Index ia) {
 }
 
 void PropagationMatrix::LeftMultiplyAtPosition(MatrixView out,
-                                               ConstMatrixView in,
+                                               const ConstMatrixView& in,
                                                const Index iv,
                                                const Index iz,
                                                const Index ia) const {
@@ -1766,7 +1766,7 @@ void PropagationMatrix::LeftMultiplyAtPosition(MatrixView out,
 }
 
 void PropagationMatrix::RightMultiplyAtPosition(MatrixView out,
-                                                ConstMatrixView in,
+                                                const ConstMatrixView& in,
                                                 const Index iv,
                                                 const Index iz,
                                                 const Index ia) const {
@@ -1828,7 +1828,7 @@ void PropagationMatrix::RightMultiplyAtPosition(MatrixView out,
   }
 }
 
-void PropagationMatrix::RemoveAtPosition(ConstMatrixView x,
+void PropagationMatrix::RemoveAtPosition(const ConstMatrixView& x,
                                          const Index iv,
                                          const Index iz,
                                          const Index ia) {
@@ -1847,7 +1847,7 @@ void PropagationMatrix::RemoveAtPosition(ConstMatrixView x,
   }
 }
 
-void PropagationMatrix::AddAtPosition(ConstMatrixView x,
+void PropagationMatrix::AddAtPosition(const ConstMatrixView& x,
                                       const Index iv,
                                       const Index iz,
                                       const Index ia) {
@@ -1866,7 +1866,7 @@ void PropagationMatrix::AddAtPosition(ConstMatrixView x,
   }
 }
 
-void PropagationMatrix::MultiplyAtPosition(ConstMatrixView x,
+void PropagationMatrix::MultiplyAtPosition(const ConstMatrixView& x,
                                            const Index iv,
                                            const Index iz,
                                            const Index ia) {
@@ -1885,7 +1885,7 @@ void PropagationMatrix::MultiplyAtPosition(ConstMatrixView x,
   }
 }
 
-void PropagationMatrix::DivideAtPosition(ConstMatrixView x,
+void PropagationMatrix::DivideAtPosition(const ConstMatrixView& x,
                                          const Index iv,
                                          const Index iz,
                                          const Index ia) {
@@ -1904,7 +1904,7 @@ void PropagationMatrix::DivideAtPosition(ConstMatrixView x,
   }
 }
 
-void PropagationMatrix::SetAtPosition(ConstMatrixView x,
+void PropagationMatrix::SetAtPosition(const ConstMatrixView& x,
                                       const Index iv,
                                       const Index iz,
                                       const Index ia) {

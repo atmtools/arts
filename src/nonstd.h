@@ -39,6 +39,6 @@ constexpr int isdigit(int ch) noexcept {
 constexpr bool isnan(double d) noexcept {return d not_eq d;}
 constexpr bool isnan(long double d) noexcept {return d not_eq d;}
 constexpr bool isnan(float d) noexcept {return d not_eq d;}
-}  // nonstd
+} // namespace nonstd
 
 #endif

@@ -25,10 +25,10 @@
 #ifndef test_utils_h
 #define test_utils_h
 
+#include "matpack_complex.h"
+#include "matpackI.h"
 #include <stdlib.h>
 #include <time.h>
-#include "complex.h"
-#include "matpackI.h"
 
 /** Random number class.
 

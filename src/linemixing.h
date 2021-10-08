@@ -4,7 +4,7 @@
 #include <functional>
 
 #include "absorption.h"
-#include "complex.h"
+#include "matpack_complex.h"
 #include "constants.h"
 #include "gridded_fields.h"
 #include "linescaling.h"
@@ -80,34 +80,31 @@ struct PopulationAndDipole {
 using EnergyFunction = std::function<Numeric (const Rational)>;
 
 struct SpeciesErrorCorrectedSuddenData {
-  Species::Species spec;
+  Species::Species spec{Species::Species::Bath};
   LineShapeModelParameters scaling;
   LineShapeModelParameters beta;
   LineShapeModelParameters lambda;
   LineShapeModelParameters collisional_distance;
-  Numeric mass;
+  Numeric mass{1};
   
   constexpr SpeciesErrorCorrectedSuddenData() noexcept :
-    spec(Species::Species::Bath),
     scaling(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
     beta(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
     lambda(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    collisional_distance(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    mass(1) {}
+    collisional_distance(LineShapeTemperatureModel::T0, 0, 0, 0, 0) {}
   
   constexpr SpeciesErrorCorrectedSuddenData(Species::Species inspec) noexcept :
     spec(inspec), scaling(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
     beta(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
     lambda(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    collisional_distance(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    mass(1) {}
+    collisional_distance(LineShapeTemperatureModel::T0, 0, 0, 0, 0) {}
   
-  Numeric Q(const Rational J,
+  [[nodiscard]] Numeric Q(const Rational J,
             const Numeric T,
             const Numeric T0,
             const Numeric energy) const noexcept;
   
-  Numeric Omega(const Numeric T,
+  [[nodiscard]] Numeric Omega(const Numeric T,
                 const Numeric T0,
                 const Numeric other_mass,
                 const Numeric energy_x,
@@ -161,29 +158,24 @@ struct ErrorCorrectedSuddenData {
   }
   
   const SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) const noexcept {
-    if(auto ptr = std::find(data.cbegin(), data.cend(), spec); ptr not_eq data.cend()) {
+    if(auto ptr = std::find(data.cbegin(), data.cend(), spec); ptr not_eq data.cend())
       return *ptr;
-    } else {
-      return *std::find(data.cbegin(), data.cend(), Species::Species::Bath);
-    }
+    return *std::find(data.cbegin(), data.cend(), Species::Species::Bath);
   }
   
   SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) noexcept {
-    if(auto ptr = std::find(data.begin(), data.end(), spec); ptr not_eq data.end()) {
+    if(auto ptr = std::find(data.begin(), data.end(), spec); ptr not_eq data.end())
       return *ptr;
-    } else {
-      return data.emplace_back(spec);
-    }
+    return data.emplace_back(spec);
   }
 };  // ErrorCorrectedSuddenData
 
 struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
   ErrorCorrectedSuddenData& operator[](const Quantum::Identifier& id) noexcept {
-    if(auto ptr = std::find(begin(), end(), id); ptr not_eq end()) {
+    if(auto ptr = std::find(begin(), end(), id); ptr not_eq end())
       return *ptr;
-    } else {
-      return emplace_back(id);
-    }
+    return emplace_back(id);
+   
   }
   
   const ErrorCorrectedSuddenData& operator[](const Quantum::Identifier& id) const {
@@ -344,7 +336,7 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
                                        const Vector& temperatures,
                                        const ErrorCorrectedSuddenData& ecs_data,
                                        const Vector& pressures);
-}  // LineMixing
+} // namespace Absorption::LineMixing
 
 using ErrorCorrectedSuddenData = Absorption::LineMixing::ErrorCorrectedSuddenData;
 using MapOfErrorCorrectedSuddenData = Absorption::LineMixing::MapOfErrorCorrectedSuddenData;

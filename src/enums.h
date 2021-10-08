@@ -160,8 +160,7 @@ void check_enum_error(EnumType type, Messages ... args) {
   constexpr std::string_view toString(ENUMTYPE x) noexcept {              \
     if (good_enum(x))                                                     \
       return enumstrs::ENUMTYPE##Names[(TYPE)x];                          \
-    else                                                                  \
-      return "BAD " #ENUMTYPE;                                            \
+    return "BAD " #ENUMTYPE;                                            \
   }                                                                       \
                                                                           \
   constexpr ENUMTYPE to##ENUMTYPE(const std::string_view x) noexcept {    \

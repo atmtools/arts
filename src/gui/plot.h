@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <matpackI.h>
-#include <complex.h>
+#include <matpack_complex.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"

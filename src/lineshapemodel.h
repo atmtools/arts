@@ -34,13 +34,14 @@
 #ifndef lineshapemodel_h
 #define lineshapemodel_h
 
-#include <numeric>
-#include <algorithm>
 #include "constants.h"
 #include "enums.h"
 #include "file.h"
 #include "jacobian.h"
 #include "species_tags.h"
+#include <algorithm>
+#include <numeric>
+#include <utility>
 
 /** Return the derivative type based on string input 
  * 
@@ -142,13 +143,12 @@ struct ModelParameters {
    * 
    * @return The broadening parameter at temperature
    */
-  constexpr Numeric special_linemixing_aer(Numeric T) const noexcept {
+  [[nodiscard]] constexpr Numeric special_linemixing_aer(Numeric T) const noexcept {
     if (T < 250.0)
       return X0 + (T - 200.0) * (X1 - X0) / (250.0 - 200.0);
-    else if (T > 296.0)
+    if (T > 296.0)
       return X2 + (T - 296.0) * (X3 - X2) / (340.0 - 296.0);
-    else
-      return X1 + (T - 250.0) * (X2 - X1) / (296.0 - 250.0);
+    return X1 + (T - 250.0) * (X2 - X1) / (296.0 - 250.0);
   }
   
   /** The temperature derivative of special_linemixing_aer
@@ -158,13 +158,12 @@ struct ModelParameters {
    * 
    * @return The temperature derivative of the broadening parameter at temperature
    */
-  constexpr Numeric special_linemixing_aer_dT(Numeric T) const noexcept {
+  [[nodiscard]] constexpr Numeric special_linemixing_aer_dT(Numeric T) const noexcept {
     if (T < 250.0)
       return (X1 - X0) / (250.0 - 200.0);
-    else if (T > 296.0)
+    if (T > 296.0)
       return (X3 - X2) / (340.0 - 296.0);
-    else
-      return (X2 - X1) / (296.0 - 250.0);
+    return (X2 - X1) / (296.0 - 250.0);
   }
   
   /** The derivative of special_linemixing_aer wrt X0
@@ -176,10 +175,7 @@ struct ModelParameters {
   static constexpr Numeric special_linemixing_aer_dX0(Numeric T) noexcept {
     if (T < 250.0)
       return 1 - (T - 200.0) / (250.0 - 200.0);
-    else if (T > 296.0)
-      return 0;
-    else
-      return 0;
+    return 0;
   }
   
   /** The derivative of special_linemixing_aer wrt X1
@@ -191,10 +187,9 @@ struct ModelParameters {
   static constexpr Numeric special_linemixing_aer_dX1(Numeric T) noexcept {
     if (T < 250.0)
       return (T - 200.0) / (250.0 - 200.0);
-    else if (T > 296.0)
+    if (T > 296.0)
       return 0;
-    else
-      return 1 - (T - 250.0) / (296.0 - 250.0);
+    return 1 - (T - 250.0) / (296.0 - 250.0);
   }
   
   /** The derivative of special_linemixing_aer wrt X2
@@ -206,10 +201,9 @@ struct ModelParameters {
   static constexpr Numeric special_linemixing_aer_dX2(Numeric T) noexcept {
     if (T < 250.0)
       return 0;
-    else if (T > 296.0)
+    if (T > 296.0)
       return 1 - (T - 296.0)  / (340.0 - 296.0);
-    else
-      return (T - 250.0) / (296.0 - 250.0);
+    return (T - 250.0) / (296.0 - 250.0);
   }
   
   /** The derivative of special_linemixing_aer wrt X3
@@ -219,27 +213,24 @@ struct ModelParameters {
    * @return The temperature derivative of the broadening parameter at temperature
    */
   static constexpr Numeric special_linemixing_aer_dX3(Numeric T) noexcept {
-    if (T < 250.0)
-      return 0;
-    else if (T > 296.0)
+    if (T > 296.0)
       return (T - 296.0) / (340.0 - 296.0);
-    else
-      return 0;
+    return 0;
   }
   
-  Numeric at(Numeric T, Numeric T0) const noexcept;
+  [[nodiscard]] Numeric at(Numeric T, Numeric T0) const noexcept;
   
-  Numeric dX0(Numeric T, Numeric T0) const noexcept;
+  [[nodiscard]] [[nodiscard]] Numeric dX0(Numeric T, Numeric T0) const noexcept;
   
-  Numeric dX1(Numeric T, Numeric T0) const noexcept;
+  [[nodiscard]] Numeric dX1(Numeric T, Numeric T0) const noexcept;
   
-  Numeric dX2(Numeric T, Numeric T0) const noexcept;
+  [[nodiscard]] Numeric dX2(Numeric T, Numeric T0) const noexcept;
   
-  Numeric dX3(Numeric T, Numeric T0) const noexcept;
+  [[nodiscard]] Numeric dX3(Numeric T, Numeric T0) const noexcept;
   
-  Numeric dT(Numeric T, Numeric T0) const noexcept;
+  [[nodiscard]] Numeric dT(Numeric T, Numeric T0) const noexcept;
   
-  Numeric dT0(Numeric T, Numeric T0) const noexcept;
+  [[nodiscard]] Numeric dT0(Numeric T, Numeric T0) const noexcept;
 };
 
 String modelparameters2metadata(const ModelParameters mp, const Numeric T0);
@@ -357,7 +348,7 @@ class SingleSpeciesModel {
   constexpr std::array<ModelParameters, nVars>& Data() noexcept { return X; }
   
   /** Get const internal Data reference */
-  constexpr const std::array<ModelParameters, nVars>& Data() const noexcept { return X; }
+  [[nodiscard]] constexpr const std::array<ModelParameters, nVars>& Data() const noexcept { return X; }
 
   /** Set variable to a different ModelParameters
    * 
@@ -390,7 +381,7 @@ class SingleSpeciesModel {
    * 
    * @return ModelParameters copy
    */
-  constexpr ModelParameters Get(Variable var) const noexcept {
+  [[nodiscard]] constexpr ModelParameters Get(Variable var) const noexcept {
   #define MODELPARAMCASEGETTER(X) case Variable::X: out = X(); break;  
   ModelParameters out{};
   switch (var) {
@@ -415,7 +406,7 @@ class SingleSpeciesModel {
   /** Binary write for SingleSpeciesModel */
   bofstream& write(bofstream& bof) const;
   
-  bool MatchTypes(const SingleSpeciesModel& other) const noexcept;
+  [[nodiscard]] bool MatchTypes(const SingleSpeciesModel& other) const noexcept;
 };
 
 /** Output operator for SingleSpeciesModel */
@@ -464,17 +455,16 @@ constexpr std::string_view shapetype2metadatastring(Type type) noexcept {
 
 /** Main output of Model */
 struct Output {
-  Numeric G0,  // Pressure broadening speed-independent
-      D0,      // Pressure f-shifting speed-independent
-      G2,      // Pressure broadening speed-dependent
-      D2,      // Pressure f-shifting speed-dependent
-      FVC,     // Frequency of velocity-changing collisions
-      ETA,     // Correlation
-      Y,       // First order line mixing coefficient
-      G,       // Second order line mixing coefficient
-      DV;      // Second order line mixing f-shifting
-  constexpr Output() noexcept :
-    G0(0), D0(0), G2(0), D2(0), FVC(0), ETA(0), Y(0), G(0), DV(0) {}
+  Numeric G0{0},  // Pressure broadening speed-independent
+      D0{0},      // Pressure f-shifting speed-independent
+      G2{0},      // Pressure broadening speed-dependent
+      D2{0},      // Pressure f-shifting speed-dependent
+      FVC{0},     // Frequency of velocity-changing collisions
+      ETA{0},     // Correlation
+      Y{0},       // First order line mixing coefficient
+      G{0},       // Second order line mixing coefficient
+      DV{0};      // Second order line mixing f-shifting
+  constexpr Output() noexcept = default;
   constexpr Output(Numeric g0, Numeric d0, Numeric g2,
                    Numeric d2, Numeric fvc, Numeric eta,
                    Numeric y, Numeric g, Numeric dv) noexcept :
@@ -620,12 +610,12 @@ class Model {
    * 
    * @return true/false
    */
-  bool OK(Type type, bool self, bool bath,
+  [[nodiscard]] bool OK(Type type, bool self, bool bath,
           const std::size_t nspecies) const noexcept;
 
 #define LSPC(XVAR, PVAR)                                                       \
   Numeric XVAR(                                                                \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]], ConstVectorView vmrs) \
+      Numeric T, Numeric T0, Numeric P [[maybe_unused]], const ConstVectorView& vmrs) \
       const noexcept;
   LSPC(G0, P)
   LSPC(D0, P)
@@ -656,7 +646,7 @@ class Model {
 
 #define LSPCT(XVAR, PVAR)                                                       \
   Numeric d##XVAR##_dT(                                                         \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]], ConstVectorView vmrs)  \
+      Numeric T, Numeric T0, Numeric P [[maybe_unused]], const ConstVectorView& vmrs)  \
       const noexcept;
   LSPCT(G0, P)
   LSPCT(D0, P)
@@ -675,7 +665,7 @@ class Model {
                          Numeric T0,                                 \
                          Numeric P [[maybe_unused]],                 \
                          Index deriv_pos,                            \
-                         ConstVectorView vmrs) const noexcept;
+                         const ConstVectorView& vmrs) const noexcept;
   LSPDC(G0, _dT0, P)
   LSPDC(G0, _dX0, P)
   LSPDC(G0, _dX1, P)
@@ -732,10 +722,10 @@ class Model {
    * 
    * @return Shape parameters
    */
-  Output GetParams(Numeric T,
+  [[nodiscard]] Output GetParams(Numeric T,
                    Numeric T0,
                    Numeric P,
-                   ConstVectorView vmrs) const noexcept;
+                   const ConstVectorView& vmrs) const noexcept;
 
   /** Compute all shape parameters
    * 
@@ -746,7 +736,7 @@ class Model {
    * 
    * @return Shape parameters
    */
-  Output GetParams(Numeric T,
+  [[nodiscard]] Output GetParams(Numeric T,
                    Numeric T0,
                    Numeric P,
                    size_t k) const noexcept;
@@ -760,7 +750,7 @@ class Model {
    * 
    * @return Derivative of GetParams(...) wrt T
    */
-  Output GetTemperatureDerivs(Numeric T,
+  [[nodiscard]] Output GetTemperatureDerivs(Numeric T,
                               Numeric T0,
                               Numeric P,
                               ConstVectorView vmrs) const noexcept;
@@ -774,7 +764,7 @@ class Model {
    * 
    * @return Derivative of GetParams(...) wrt VMR
    */
-  Output GetVMRDerivs(Numeric T, Numeric T0, Numeric P, const Index pos) const noexcept;
+  [[nodiscard]] Output GetVMRDerivs(Numeric T, Numeric T0, Numeric P, const Index pos) const noexcept;
   
   /** Derivative of GetParams(...) wrt Coefficient
    * 
@@ -787,7 +777,7 @@ class Model {
    * 
    * @return Derivative of GetParams(...) wrt Coefficient
    */
-  Numeric GetInternalDeriv(Numeric T,
+  [[nodiscard]] Numeric GetInternalDeriv(Numeric T,
                            Numeric T0,
                            Numeric P,
                            Index pos,
@@ -795,10 +785,10 @@ class Model {
                            Jacobian::Line deriv) const noexcept;
 
   /** Number of species in Model */
-  Index nelem() const { return Index(mdata.size()); }
+  [[nodiscard]] Index nelem() const { return Index(mdata.size()); }
   
   /** Number of species in Model */
-  Index size() const { return Index(mdata.size()); }
+  [[nodiscard]] Index size() const { return Index(mdata.size()); }
   
   /** Resize function for Model 
    * 
@@ -832,7 +822,7 @@ class Model {
   
   
   /** The line shape model data */
-  const std::vector<SingleSpeciesModel>& Data() const noexcept { return mdata; }
+  [[nodiscard]] const std::vector<SingleSpeciesModel>& Data() const noexcept { return mdata; }
   
   /** The line shape model data reference */
   std::vector<SingleSpeciesModel>& Data() noexcept { return mdata; }
@@ -859,7 +849,7 @@ class Model {
    */
   void SetLineMixingModel(SingleSpeciesModel x);
   
-  bool Match(const Model& other) const noexcept;
+  [[nodiscard]] bool Match(const Model& other) const noexcept;
   
   friend
   std::istream& from_linefunctiondata(std::istream& data,
@@ -1069,8 +1059,8 @@ void vector2modelpb(LineShape::Type& mtype,
 };  // namespace LineShape
 
 using LineShapeModelParameters = LineShape::ModelParameters;
-typedef LineShape::Model LineShapeModel;
-typedef LineShape::SingleSpeciesModel LineShapeSingleSpeciesModel;
+using LineShapeModel = LineShape::Model;
+using LineShapeSingleSpeciesModel = LineShape::SingleSpeciesModel;
 
 using LineShapeType = LineShape::Type;
 using LineShapeVariable = LineShape::Variable;

@@ -27,12 +27,12 @@ USA. */
 #ifndef rational_h
 #define rational_h
 
-#include <ostream>
 #include "array.h"
 #include "bifstream.h"
 #include "bofstream.h"
 #include "math_funcs.h"
 #include "matpack.h"
+#include <ostream>
 
 
 /** Returns the greatest common denominator of two numbers
@@ -44,8 +44,7 @@ USA. */
 constexpr Index gcd(Index a, Index b) noexcept {
   if (b == 0)
     return a;
-  else
-    return gcd(b, a%b);
+  return gcd(b, a%b);
 }
 
 
@@ -81,10 +80,10 @@ class Rational {
   explicit Rational(const String& s);
 
   /** Nominator */
-  constexpr Index Nom() const noexcept { return mnom; }
+  [[nodiscard]] constexpr Index Nom() const noexcept { return mnom; }
 
   /** Denominator */
-  constexpr Index Denom() const noexcept { return mdenom; }
+  [[nodiscard]] constexpr Index Denom() const noexcept { return mdenom; }
   
   /** Nominator */
   constexpr Index& Nom() noexcept { return mnom; }
@@ -106,14 +105,14 @@ class Rational {
    * @return true If Denom() is 0
    * @return false Otherwise
    */
-  constexpr bool isUndefined() const noexcept { return (mdenom == 0); }
+  [[nodiscard]] constexpr bool isUndefined() const noexcept { return (mdenom == 0); }
 
   /** Is the object defined
    * 
    * @return true If Denom() is not 0
    * @return false Otherwise
    */
-  constexpr bool isDefined() const noexcept { return not isUndefined(); }
+  [[nodiscard]] constexpr bool isDefined() const noexcept { return not isUndefined(); }
 
   /** Is the object a n-scaled Index
    * 
@@ -121,7 +120,7 @@ class Rational {
    * @return true If n*Nom() % Denom() is 0
    * @return false Otherwise
    */
-  constexpr bool isIndex(int n=1) const noexcept {
+  [[nodiscard]] constexpr bool isIndex(int n=1) const noexcept {
     return isDefined() and not bool((n*mnom) % mdenom);
   }
 
@@ -132,7 +131,7 @@ class Rational {
    * @param[in]  n Scale to *this
    * @return constexpr Index Of *this
    */
-  constexpr Index toIndex(int n=1) const noexcept {
+  [[nodiscard]] constexpr Index toIndex(int n=1) const noexcept {
     return (n*mnom) / mdenom;;
   }
 
@@ -140,7 +139,7 @@ class Rational {
    * 
    * @return constexpr Numeric of *this
    */
-  constexpr Numeric toNumeric() const noexcept {
+  [[nodiscard]] constexpr Numeric toNumeric() const noexcept {
     return Numeric(mnom) / Numeric(mdenom);
   }
   
@@ -151,7 +150,7 @@ class Rational {
    * @param[in]  n Scale to *this
    * @return constexpr int Of *this
    */
-  constexpr int toInt(int n=1) const noexcept { return int(toIndex(n)); }
+  [[nodiscard]] constexpr int toInt(int n=1) const noexcept { return int(toIndex(n)); }
   
   /** Add to this
    * 
@@ -349,8 +348,7 @@ constexpr Rational reduce_by_gcd(const Rational a) noexcept {
   const Index div = gcd(a.Nom(), a.Denom());
   if (div)
     return Rational(a.Nom() / div, a.Denom() / div);
-  else
-    return a;
+  return a;
 }
 
 /** Rational from Numeric
@@ -370,7 +368,7 @@ constexpr Rational numeric2rational(Numeric x, size_t maxdec=4) noexcept {
   // Add numbers by keeping the floor
   size_t i=0;
   do {
-    const Index xi=Index(x);
+    const auto xi=Index(x);
     nom += xi;
     x = 10 * (x - Numeric(xi));
     nom *= 10;
@@ -385,8 +383,7 @@ constexpr Rational numeric2rational(Numeric x, size_t maxdec=4) noexcept {
   // Change sign or not
   if (signchange)
     return Rational(-nom, denom);
-  else
-    return Rational(nom, denom);
+  return Rational(nom, denom);
 }
 
 
@@ -926,7 +923,7 @@ constexpr Rational min(const Rational a, const Rational b) noexcept {
   return a < b ? a : b;
 }  // Let other operators find out if this is allowed instead
 
-typedef Array<Rational> ArrayOfRational;
+using ArrayOfRational = Array<Rational>;
 
 /** Returns common operator n/2
  * 
@@ -943,10 +940,7 @@ constexpr Rational operator ""_2(unsigned long long int n) noexcept {
  * @return  true if r is even, otherwise false
  */
 constexpr bool iseven(const Rational r) noexcept {
-  if (r % 2)
-    return false;
-  else
-    return true;
+  return 0 == (r % 2);
 }
 
 #endif  // rational_h

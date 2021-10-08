@@ -23,11 +23,11 @@
   \brief  A class implementing complex numbers for ARTS.
 */
 
-#include "complex.h"
-#include <cmath>
-#include <cstring>
+#include "matpack_complex.h"
 #include "blas.h"
 #include "exceptions.h"
+#include <cmath>
+#include <cstring>
 
 // Functions for ConstComplexVectorView:
 // ------------------------------
@@ -488,9 +488,7 @@ void copy(Complex x, ComplexIterator1D target, const ComplexIterator1D& end) {
 // ---------------------
 
 /** Default constructor. */
-ComplexVector::ComplexVector() {
-  // Nothing to do here
-}
+ComplexVector::ComplexVector() = default;
 
 /** Constructor setting size. */
 ComplexVector::ComplexVector(Index n)
@@ -620,9 +618,9 @@ ComplexVector::ComplexVector(const Vector& v) : ComplexVectorView(new Complex[v.
 /** Converting constructor from std::vector. */
 ComplexVector::ComplexVector(const std::vector<Complex>& v)
     : ComplexVectorView(new Complex[v.size()], Range(0, v.size())) {
-  std::vector<Complex>::const_iterator vec_it_end = v.end();
+  auto vec_it_end = v.end();
   ComplexIterator1D this_it = this->begin();
-  for (std::vector<Complex>::const_iterator vec_it = v.begin();
+  for (auto vec_it = v.begin();
        vec_it != vec_it_end;
        ++vec_it, ++this_it)
     *this_it = *vec_it;
@@ -631,9 +629,9 @@ ComplexVector::ComplexVector(const std::vector<Complex>& v)
 /** Converting constructor from std::vector. */
 ComplexVector::ComplexVector(const std::vector<Numeric>& v)
     : ComplexVectorView(new Complex[v.size()], Range(0, v.size())) {
-  std::vector<Numeric>::const_iterator vec_it_end = v.end();
+  auto vec_it_end = v.end();
   ComplexIterator1D this_it = this->begin();
-  for (std::vector<Numeric>::const_iterator vec_it = v.begin();
+  for (auto vec_it = v.begin();
        vec_it != vec_it_end;
        ++vec_it, ++this_it)
     *this_it = *vec_it;
@@ -1530,8 +1528,8 @@ ComplexVectorView& ComplexVectorView::operator=(const Array<Complex>& v) {
   ARTS_ASSERT(mrange.mextent == v.nelem());
 
   // Iterators for Array:
-  Array<Complex>::const_iterator i = v.begin();
-  const Array<Complex>::const_iterator e = v.end();
+  auto i = v.begin();
+  const auto e = v.end();
   // Iterator for Vector:
   ComplexIterator1D target = begin();
 

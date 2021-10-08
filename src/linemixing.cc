@@ -124,7 +124,7 @@ namespace Makarov2020etal {
 Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N) {
   return (iseven(Jl + N) ? 1 : -1) * sqrt(6 * (2*Jl + 1) * (2*Ju + 1)) * wigner6j(1, 1, 1, Jl, Ju, N);
 };
-}
+} // namespace Makarov2020etal
 
 
 PopulationAndDipole::PopulationAndDipole(const Numeric T,
@@ -288,23 +288,20 @@ Numeric erot(const Rational N, const Rational j=-1) {
     constexpr Numeric xg1=-2.4344e-04;
     constexpr Numeric xg2=-1.45e-09;
     
-    const Numeric XN = Numeric(N);
+    const auto XN = Numeric(N);
     const Numeric XX = XN * (XN + 1);
     const Numeric xlambda=xl0+xl1*XX+xl2*pow2(XX);
     const Numeric xgama=xg0+xg1*XX+xg2*pow2(XX);
     const Numeric C1=B0*XX-D0*pow2(XX)+H0*pow3(XX);
     
     if (J < N) {
-      if (N == 1) {  // erot<false>(1, 0)
+      if (N == 1)  // erot<false>(1, 0)
         return mhz2joule(C1 - (xlambda+B0*(2.*XN-1.)+xgama*XN));
-      } else {
-        return mhz2joule(C1 - (xlambda+B0*(2.*XN-1.)+xgama*XN) + std::sqrt(pow2(B0*(2.*XN-1.))+pow2(xlambda)-2.*B0*xlambda));
-      }
-    } else if (J > N) {
-      return mhz2joule(C1 - (xlambda-B0*(2.*XN+3.)-xgama*(XN+1.)) - std::sqrt(pow2(B0*(2.*XN+3.))+pow2(xlambda)-2.*B0*xlambda));
-    } else {
-      return mhz2joule(C1);
+      return mhz2joule(C1 - (xlambda+B0*(2.*XN-1.)+xgama*XN) + std::sqrt(pow2(B0*(2.*XN-1.))+pow2(xlambda)-2.*B0*xlambda));
     }
+    if (J > N)
+      return mhz2joule(C1 - (xlambda-B0*(2.*XN+3.)-xgama*(XN+1.)) - std::sqrt(pow2(B0*(2.*XN+3.))+pow2(xlambda)-2.*B0*xlambda));
+    return mhz2joule(C1);
   }
 }
 
@@ -403,7 +400,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
     }
   }
 }
-}  // Makarov2020etal
+} // namespace Makarov2020etal
 
 
 /** Generic interface for ECS calculations
@@ -497,11 +494,10 @@ std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
     const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2, li, lf, rovib_data,
                                                 k, T, T0, self_mass, erot);
     return {W, W / pop12};
-  } else {
-    const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1, li, lf, rovib_data,
-                                                k, T, T0, self_mass, erot);
-    return {W * pop12, W};
   }
+  const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1, li, lf, rovib_data,
+                                              k, T, T0, self_mass, erot);
+  return {W * pop12, W};
 }
 
 /** Returns the off-diagonal relaxation matrix if full
@@ -630,7 +626,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   // FIXME: Use local pop and dip instead?
   verify_sum_rule(W, band, dip, sorting, T, erot);  // FIXME: make this use local ratio?
 }
-}
+} // namespace LinearRovibErrorCorrectedSudden
 
 /*! Computes the Error Corrected Sudden relaxation matrix for a single species
  * 
@@ -1394,7 +1390,7 @@ Vector RosenkranzY(const Vector& dip,
   for (Index k=0; k<N; k++) {
     for (Index j=0; j<N; j++) {
       if (k == j) continue;
-      else Y[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) / (band.F0(k) - band.F0(j));
+      Y[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) / (band.F0(k) - band.F0(j));
     }
   }
   
@@ -1421,16 +1417,13 @@ Vector RosenkranzG(const Vector& dip,
   for (Index k=0; k<N; k++) {
     for (Index j=0; j<N; j++) {
       if (k == j) continue;
-      else {
-        G[k] += W(k, j) * W(j, k) / Constant::pow2(band.F0(j) - band.F0(k));
-        G[k] += Constant::pow2(std::abs(dip[j] / dip[k]) * W(j, k) / (band.F0(j) - band.F0(k)));
-        G[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) * W(k, k) / Constant::pow2(band.F0(j) - band.F0(k));
-        for (Index l=0; l<N; l++) {
-          if (l == k or l == j) continue;
-          else {
-            G[k] -= 2 * std::abs(dip[j] / dip[k]) * W(j, l) * W(l, k) / ((band.F0(j) - band.F0(k)) * (band.F0(l) - band.F0(k)));
-          }
-        }
+      G[k] += W(k, j) * W(j, k) / Constant::pow2(band.F0(j) - band.F0(k));
+      G[k] += Constant::pow2(std::abs(dip[j] / dip[k]) * W(j, k) / (band.F0(j) - band.F0(k)));
+      G[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) * W(k, k) / Constant::pow2(band.F0(j) - band.F0(k));
+      for (Index l=0; l<N; l++) {
+        if (l == k or l == j) continue;
+        G[k] -= 2 * std::abs(dip[j] / dip[k]) * W(j, l) * W(l, k) / ((band.F0(j) - band.F0(k)) * (band.F0(l) - band.F0(k)));
+       
       }
     }
   }
@@ -1458,7 +1451,7 @@ Vector RosenkranzDV(const Vector& dip,
   for (Index k=0; k<N; k++) {
     for (Index j=0; j<N; j++) {
       if (k == j) continue;
-      else DV[k] += W(k, j) * W(j, k) / (band.F0(j) - band.F0(k));
+      DV[k] += W(k, j) * W(j, k) / (band.F0(j) - band.F0(k));
     }
   }
   
@@ -1619,5 +1612,5 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
   }
   return out;
 }
-}  // Absorption::LineMixing
+} // namespace Absorption::LineMixing
 

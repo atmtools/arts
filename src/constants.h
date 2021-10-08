@@ -54,9 +54,9 @@
 #ifndef CONSTANTS_IN_ARTS_H
 #define CONSTANTS_IN_ARTS_H
 
-#include <cmath>
 #include "enums.h"
 #include "matpack.h"
+#include <cmath>
 
 /** Namespace containing several constants, physical and mathematical **/
 namespace Constant {
@@ -576,6 +576,6 @@ namespace Options {
             None,
             QuadraticIndependent,
             LinearIndependent)
-}
+} // namespace Options
 
 #endif

@@ -28,12 +28,8 @@
 #ifndef absorption_h
 #define absorption_h
 
-#include <array>
-#include <map>
-#include <cmath>
-#include <stdexcept>
-#include <limits>
 #include "species_tags.h"
+#include "absorptionlines.h"
 #include "array.h"
 #include "energylevelmap.h"
 #include "gridded_fields.h"
@@ -41,7 +37,11 @@
 #include "matpackI.h"
 #include "messages.h"
 #include "mystring.h"
-#include "absorptionlines.h"
+#include <array>
+#include <cmath>
+#include <limits>
+#include <map>
+#include <stdexcept>
 
 /** Check that ARTS was compiled for all requested species tags */
 void checkPartitionFunctions(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species);

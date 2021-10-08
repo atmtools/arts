@@ -32,6 +32,6 @@ struct MagneticField {
  * @return The magnetic field in ENU as described by the MagneticField struct
  */
 MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vector& lon_grid, const Time& time, const Vector& ell);
-}
+} // namespace IGRF
 
 #endif  // igrf13_h

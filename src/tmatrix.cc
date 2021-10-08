@@ -27,7 +27,7 @@
 #include <cmath>
 #include <cstring>
 #include <stdexcept>
-#include "complex.h"
+#include "matpack_complex.h"
 #include "math_funcs.h"
 #include "matpackI.h"
 #include "messages.h"

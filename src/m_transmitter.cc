@@ -38,7 +38,7 @@
 #include <stdexcept>
 #include "arts.h"
 #include "auto_md.h"
-#include "complex.h"
+#include "matpack_complex.h"
 #include "geodetic.h"
 #include "jacobian.h"
 #include "lin_alg.h"

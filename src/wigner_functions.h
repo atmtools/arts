@@ -27,8 +27,8 @@
 #ifndef wigner_functions_h
 #define wigner_functions_h
 
-#include <wigner/wigxjpf/inc/wigxjpf.h>
 #include "rational.h"
+#include <wigner/wigxjpf/inc/wigxjpf.h>
 
 #ifdef FAST_WIGNER_PATH_3J
 #define DO_FAST_WIGNER 1
@@ -109,14 +109,14 @@ std::pair<Rational, Rational> wigner3j_limits([[maybe_unused]] const Rational a=
     const Rational maxX = a + b;
     const Rational minX = abs(a - b);
     if (maxX >= minX) return {minX, maxX};
-    else return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
+    return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
   } else {
     const Rational lim = pos == 4 ? abs(a) :
                          pos == 5 ? abs(b) :
                        /*pos == 6*/ abs(c);
     const Rational val = - e - d;
     if (-lim <= val and val <= lim) return {val, val};
-    else return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
+    return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
   }
 }
 

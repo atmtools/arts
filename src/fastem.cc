@@ -33,7 +33,7 @@
 
 #include <cmath>
 #include <stdexcept>
-#include "complex.h"
+#include "matpack_complex.h"
 #include "exceptions.h"
 #include "matpackI.h"
 

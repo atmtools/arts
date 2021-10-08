@@ -490,16 +490,14 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
     }
     
     if (sline.bad) {
-      if (is.eof()) {
+      if (is.eof())
         break;
-      } else {
-        ARTS_USER_ERROR("Cannot read line ", nelem(abs_lines) + 1);
-      }
-    } else if (sline.line.F0() < fmin) {
-      continue; // Skip this line
-    } else if (sline.line.F0() > fmax) {
-      break;  // We assume sorted so quit here
+      ARTS_USER_ERROR("Cannot read line ", nelem(abs_lines) + 1);
     }
+    if (sline.line.F0() < fmin)
+      continue; // Skip this line
+    if (sline.line.F0() > fmax)
+      break;  // We assume sorted so quit here
     
     // Set Zeeman if implemented
     sline.line.Zeeman() = Zeeman::GetAdvancedModel(sline.quantumidentity);
@@ -711,7 +709,7 @@ void abs_linesWriteSpeciesSplitXML(const String& output_format,
     bool any = false;
     for (auto& thisname: specs) {
       if (any) break;
-      else if (thisname == specname) any = true;
+      if (thisname == specname) any = true;
     }
     
     if (not any)
@@ -2311,9 +2309,8 @@ void nlteSetByQuantumIdentifiers(
   if (nlte_field.Data().empty()) {
     nlte_do = 0;
     return;
-  } else {
-    nlte_do = 1;
-  }
+  } 
+  nlte_do = 1;
   
   const Absorption::PopulationType poptyp = nlte_field.Energies().empty() ? 
         Absorption::PopulationType::NLTE :
@@ -2401,19 +2398,18 @@ template <class T>
 std::vector<T> linspace(T s, T e, typename std::vector<T>::size_type count) noexcept {
   std::vector<T> ls(count);
   
-  if (count == 0) {
+  if (count == 0)
     return ls;
-  } else if (count == 1) {
+  if (count == 1) {
     ls.front() = (e + s) / 2;
     return ls;
-  } else {
-    const T step = (e - s) / T(count - 1);
-    ls.front() = s;
-    ls.back() = e;
-    for (typename std::vector<T>::size_type i = 1; i < count - 1; ++i)
-      ls[i] = s + step * T(i);
-    return ls;
   }
+  const T step = (e - s) / T(count - 1);
+  ls.front() = s;
+  ls.back() = e;
+  for (typename std::vector<T>::size_type i = 1; i < count - 1; ++i)
+    ls[i] = s + step * T(i);
+  return ls;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

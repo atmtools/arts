@@ -34,11 +34,11 @@
 #ifndef propagationmatrix_h
 #define propagationmatrix_h
 
-#include "complex.h"
+#include "matpack_complex.h"
 #include "matpackIV.h"
 
 template <int N>
-Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstVectorView vec) {
+Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstVectorView& vec) {
 #define a vec[0]
 #define b vec[1]
 #define c vec[2]
@@ -66,7 +66,7 @@ Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstVectorView vec) {
 }
 
 template <int N>
-Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstMatrixView m) {
+Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstMatrixView& m) {
   static_assert (N>0 and N<5, "Bad size N");
   if constexpr (N == 1) {
     return Eigen::Matrix<Numeric, 1, 1>(m(0, 0));
@@ -86,7 +86,7 @@ Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstMatrixView m) {
 }
 
 template <int N>
-Eigen::Matrix<Numeric, N, N> inv_prop_matrix(const ConstVectorView vec) {
+Eigen::Matrix<Numeric, N, N> inv_prop_matrix(const ConstVectorView& vec) {
 #define a vec[0]
 #define b vec[1]
 #define c vec[2]
@@ -179,15 +179,14 @@ template<bool matrix>
 constexpr Index need2stokes(Index nstokes_needed) {
   if constexpr (matrix) {
     if (nstokes_needed == 7) return 4;
-    else if (nstokes_needed == 4) return 3;
-    else if (nstokes_needed == 2) return 2;
-    else if (nstokes_needed == 1) return 1;
-  } else {
-    if (nstokes_needed < 5 and nstokes_needed > 0) return nstokes_needed;
+    if (nstokes_needed == 4) return 3;
+    if (nstokes_needed == 2) return 2;
+    if (nstokes_needed == 1) return 1;
   }
-  
-  ARTS_ASSERT (false,
-               "Cannot understand the input Stokes dimensions");
+
+  if (nstokes_needed < 5 and nstokes_needed > 0) return nstokes_needed;
+
+  ARTS_ASSERT (false, "Cannot understand the input Stokes dimensions");
   return std::numeric_limits<Index>::max();
 }
 
@@ -195,15 +194,14 @@ template<bool matrix>
 constexpr Index stokes2need(Index nstokes) {
   if constexpr (matrix) {
       if (nstokes == 4) return 7;
-      else if (nstokes == 3) return 4;
-      else if (nstokes == 2) return 2;
-      else if (nstokes == 1) return 1;
-  } else {
-    if (nstokes < 5 and nstokes > 0) return nstokes;
+      if (nstokes == 3) return 4;
+      if (nstokes == 2) return 2;
+      if (nstokes == 1) return 1;
   }
   
-  ARTS_ASSERT (false,
-               "Cannot understand the input Stokes dimensions");
+  if (nstokes < 5 and nstokes > 0) return nstokes;
+  
+  ARTS_ASSERT (false, "Cannot understand the input Stokes dimensions");
   return std::numeric_limits<Index>::max();
 }
 
@@ -252,8 +250,7 @@ class PropagationMatrix {
       : mfreqs(nr_frequencies),
         mstokes_dim(stokes_dim),
         mza(nr_za),
-        maa(nr_aa),
-        mvectortype(false) {
+        maa(nr_aa) {
     ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mdata = Tensor4(maa, mza, mfreqs, NumberOfNeededVectors(), v);
   }
@@ -262,36 +259,29 @@ class PropagationMatrix {
    * 
    * @param[in] pm Old propagation matrix object to copy
    */
-  PropagationMatrix(const PropagationMatrix& pm)
-      : mfreqs(pm.mfreqs),
-        mstokes_dim(pm.mstokes_dim),
-        mza(pm.mza),
-        maa(pm.maa),
-        mdata(pm.mdata),
-        mvectortype(pm.mvectortype) {}
+  PropagationMatrix(const PropagationMatrix& pm) = default;
 
   /** Construct a new Propagation Matrix object
    * 
    * @param[in] pm old Propagation Matrix object to move from
    */
   PropagationMatrix(PropagationMatrix&& pm) noexcept
-      : mfreqs(std::move(pm.mfreqs)),
-        mstokes_dim(std::move(pm.mstokes_dim)),
-        mza(std::move(pm.mza)),
-        maa(std::move(pm.maa)),
+      : mfreqs(pm.mfreqs),
+        mstokes_dim(pm.mstokes_dim),
+        mza(pm.mza),
+        maa(pm.maa),
         mdata(std::move(pm.mdata)),
-        mvectortype(std::move(pm.mvectortype)) {}
+        mvectortype(pm.mvectortype) {}
 
   /** Construct a new Propagation Matrix object
    * 
    * @param[in] x Tensor4 object to use to initialize from
    */
-  explicit PropagationMatrix(ConstTensor4View x)
+  explicit PropagationMatrix(Tensor4 x)
       : mfreqs(x.nrows()),
         mza(x.npages()),
         maa(x.nbooks()),
-        mdata(x),
-        mvectortype(false) {
+        mdata(std::move(x)) {
     switch (x.ncols()) {
       case 7:
         mstokes_dim = 4;
@@ -315,7 +305,7 @@ class PropagationMatrix {
    * @param[in] x The matrix
    * @param[in] assume_fit Assume a correct fit?  Do not set this in manual interface
    */
-  explicit PropagationMatrix(ConstMatrixView x, const bool& assume_fit = false)
+  explicit PropagationMatrix(const ConstMatrixView& x, const bool& assume_fit = false)
       : mfreqs(1), mstokes_dim(x.ncols()), mza(1), maa(1) {
     ARTS_ASSERT(mstokes_dim < 5 and mstokes_dim > 0);
     mvectortype = false;
@@ -343,21 +333,21 @@ class PropagationMatrix {
   };
 
   /** The stokes dimension of the propagation matrix */
-  Index StokesDimensions() const { return mstokes_dim; };
+  [[nodiscard]] Index StokesDimensions() const { return mstokes_dim; };
 
   /** The number of frequencies of the propagation matrix */
-  Index NumberOfFrequencies() const { return mfreqs; };
+  [[nodiscard]] Index NumberOfFrequencies() const { return mfreqs; };
 
   /** The number of zenith angles of the propagation matrix */
-  Index NumberOfZenithAngles() const { return mza; };
+  [[nodiscard]] Index NumberOfZenithAngles() const { return mza; };
 
   /** The number of azimuth angles of the propagation matrix */
-  Index NumberOfAzimuthAngles() const { return maa; };
+  [[nodiscard]] Index NumberOfAzimuthAngles() const { return maa; };
   
-  bool OK() const {return mdata.ncols() == NumberOfNeededVectors() and mdata.nrows() == mfreqs and mdata.npages() == mza and mdata.nbooks() == maa;}
+  [[nodiscard]] bool OK() const {return mdata.ncols() == NumberOfNeededVectors() and mdata.nrows() == mfreqs and mdata.npages() == mza and mdata.nbooks() == maa;}
 
   /** Asks if the class is empty */
-  bool IsEmpty() const { return not mfreqs or not mza or not maa; };
+  [[nodiscard]] bool IsEmpty() const { return not mfreqs or not mza or not maa; };
 
   /** False if any non-zeroes in internal Matrix representation
    * 
@@ -366,9 +356,9 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return False if any non-zeroes
    */
-  bool IsZero(const Index iv = 0,
-              const Index iz = 0,
-              const Index ia = 0) const {
+  [[nodiscard]] bool IsZero(const Index iv = 0,
+                            const Index iz = 0,
+                            const Index ia = 0) const {
     // FIXME: matpack does not do pointers in a clear manner
     // return std::any_of(mdata(ia, iz, iv, joker).begin(), mdata(ia, iz, iv, joker).end(), [](auto& x){return x not_eq 0;});
     for (auto& n : mdata(ia, iz, iv, joker))
@@ -383,24 +373,22 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return False if diagonal is non-zero
    */
-  bool IsRotational(const Index iv = 0,
-                    const Index iz = 0,
-                    const Index ia = 0) const {
+  [[nodiscard]] bool IsRotational(const Index iv = 0,
+                                  const Index iz = 0,
+                                  const Index ia = 0) const {
     if (mdata(ia, iz, iv, 0) == 0.0)
       return true;
-    else
-      return false;
+    return false;
   };
 
   /** The number of required vectors to fill this PropagationMatrix */
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wreturn-type"
-  Index NumberOfNeededVectors() const {
+  [[nodiscard]] Index NumberOfNeededVectors() const {
     if (not mvectortype) {
       return stokes2need<true>(mstokes_dim);
-    } else {
-      return stokes2need<false>(mstokes_dim);
     }
+   return stokes2need<false>(mstokes_dim);
   }
   #pragma GCC diagnostic pop
 
@@ -462,12 +450,12 @@ class PropagationMatrix {
    */
   PropagationMatrix& operator=(PropagationMatrix&& pm) noexcept {
     if (this != &pm) {
-      mfreqs = std::move(pm.mfreqs);
-      mstokes_dim = std::move(pm.mstokes_dim);
-      mza = std::move(pm.mza);
-      maa = std::move(pm.maa);
+      mfreqs = pm.mfreqs;
+      mstokes_dim = pm.mstokes_dim;
+      mza = pm.mza;
+      maa = pm.maa;
       mdata = std::move(pm.mdata);
-      mvectortype = std::move(pm.mvectortype);
+      mvectortype = pm.mvectortype;
     }
     return *this;
   }
@@ -488,15 +476,7 @@ class PropagationMatrix {
    * @param[in] other PropagationMatrix to copy
    * @return PropagationMatrix& *this
    */
-  PropagationMatrix& operator=(const PropagationMatrix& other) {
-    mvectortype = other.mvectortype;
-    mstokes_dim = other.mstokes_dim;
-    mfreqs = other.mfreqs;
-    mza = other.mza;
-    maa = other.maa;
-    mdata = other.mdata;
-    return *this;
-  }
+  PropagationMatrix& operator=(const PropagationMatrix& other) = default;
 
   /** Sets all data to constant
    * 
@@ -529,7 +509,7 @@ class PropagationMatrix {
    * @param[in] iz Zenith index
    * @param[in] ia Azimuth index
    */
-  void SetAtPosition(ConstMatrixView x,
+  void SetAtPosition(const ConstMatrixView& x,
                      const Index iv = 0,
                      const Index iz = 0,
                      const Index ia = 0);
@@ -564,7 +544,7 @@ class PropagationMatrix {
    * @param[in] other Divide by other
    * @return PropagationMatrix& *this
    */
-  PropagationMatrix& operator/=(ConstVectorView x) {
+  PropagationMatrix& operator/=(const ConstVectorView& x) {
     for (Index i = 0; i < NumberOfNeededVectors(); i++) {
       for (Index j = 0; j < mza; j++) {
         for (Index k = 0; k < maa; k++) {
@@ -606,7 +586,7 @@ class PropagationMatrix {
    * @param[in] iz Zenith index
    * @param[in] ia Azimuth index
    */
-  void DivideAtPosition(ConstMatrixView x,
+  void DivideAtPosition(const ConstMatrixView& x,
                         const Index iv = 0,
                         const Index iz = 0,
                         const Index ia = 0);
@@ -640,7 +620,7 @@ class PropagationMatrix {
    * @param[in] other Multiply by other
    * @return PropagationMatrix& *this
    */
-  PropagationMatrix& operator*=(ConstVectorView x) {
+  PropagationMatrix& operator*=(const ConstVectorView& x) {
     for (Index i = 0; i < NumberOfNeededVectors(); i++)
       for (Index j = 0; j < mza; j++)
         for (Index k = 0; k < maa; k++) mdata(k, j, joker, i) *= x;
@@ -678,7 +658,7 @@ class PropagationMatrix {
    * @param[in] iz Zenith index
    * @param[in] ia Azimuth index
    */
-  void MultiplyAtPosition(ConstMatrixView x,
+  void MultiplyAtPosition(const ConstMatrixView& x,
                           const Index iv = 0,
                           const Index iz = 0,
                           const Index ia = 0);
@@ -722,7 +702,7 @@ class PropagationMatrix {
    * @param[in] other Addition by other
    * @return PropagationMatrix& *this
    */
-  PropagationMatrix& operator+=(ConstVectorView x) {
+  PropagationMatrix& operator+=(const ConstVectorView& x) {
     for (Index i = 0; i < NumberOfNeededVectors(); i++)
       for (Index j = 0; j < mza; j++)
         for (Index k = 0; k < maa; k++) mdata(k, j, joker, i) += x;
@@ -760,7 +740,7 @@ class PropagationMatrix {
    * @param[in] iz Zenith index
    * @param[in] ia Azimuth index
    */
-  void AddAtPosition(ConstMatrixView x,
+  void AddAtPosition(const ConstMatrixView& x,
                      const Index iv = 0,
                      const Index iz = 0,
                      const Index ia = 0);
@@ -794,7 +774,7 @@ class PropagationMatrix {
    * @param[in] other Subtract by other
    * @return PropagationMatrix& *this
    */
-  PropagationMatrix& operator-=(ConstVectorView x) {
+  PropagationMatrix& operator-=(const ConstVectorView& x) {
     for (Index i = 0; i < NumberOfNeededVectors(); i++) {
       for (Index j = 0; j < mza; j++) {
         for (Index k = 0; k < maa; k++) {
@@ -836,7 +816,7 @@ class PropagationMatrix {
    * @param[in] iz Zenith index
    * @param[in] ia Azimuth index
    */
-  void RemoveAtPosition(ConstMatrixView x,
+  void RemoveAtPosition(const ConstMatrixView& x,
                         const Index iv = 0,
                         const Index iz = 0,
                         const Index ia = 0);
@@ -862,7 +842,7 @@ class PropagationMatrix {
    * @param[in] iz Zenith index
    * @param[in] ia Azimuth index
    */
-  void AddAbsorptionVectorAtPosition(ConstVectorView x,
+  void AddAbsorptionVectorAtPosition(const ConstVectorView& x,
                                      const Index iv = 0,
                                      const Index iz = 0,
                                      const Index ia = 0) {
@@ -877,8 +857,8 @@ class PropagationMatrix {
    * @param[in] iz Zenith index
    * @param[in] ia Azimuth index
    */
-  void AddAverageAtPosition(ConstMatrixView mat1,
-                            ConstMatrixView mat2,
+  void AddAverageAtPosition(const ConstMatrixView& mat1,
+                            const ConstMatrixView& mat2,
                             const Index iv = 0,
                             const Index iz = 0,
                             const Index ia = 0);
@@ -906,7 +886,7 @@ class PropagationMatrix {
    * 
    * @param[in] x Input matrix
    */
-  bool FittingShape(ConstMatrixView x) const;
+  [[nodiscard]] bool FittingShape(const ConstMatrixView& x) const;
 
   /** Get a Tensor3 object from this
    * 
@@ -992,7 +972,7 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView Diagonal elements
    */
-  ConstVectorView Kjj(const Index iz = 0, const Index ia = 0) const {
+  [[nodiscard]] ConstVectorView Kjj(const Index iz = 0, const Index ia = 0) const {
     return mdata(ia, iz, joker, 0);
   }
 
@@ -1002,7 +982,7 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView K(0, 1) elements
    */
-  ConstVectorView K12(const Index iz = 0, const Index ia = 0) const {
+  [[nodiscard]] ConstVectorView K12(const Index iz = 0, const Index ia = 0) const {
     return mdata(ia, iz, joker, 1);
   }
 
@@ -1012,7 +992,7 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView K(0, 2) elements
    */
-  ConstVectorView K13(const Index iz = 0, const Index ia = 0) const {
+  [[nodiscard]] ConstVectorView K13(const Index iz = 0, const Index ia = 0) const {
     return mdata(ia, iz, joker, 2);
   }
 
@@ -1022,7 +1002,7 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView K(0, 3) elements
    */
-  ConstVectorView K14(const Index iz = 0, const Index ia = 0) const {
+  [[nodiscard]] ConstVectorView K14(const Index iz = 0, const Index ia = 0) const {
     return mdata(ia, iz, joker, 3);
   }
 
@@ -1032,7 +1012,7 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView K(1, 3) elements
    */
-  ConstVectorView K23(const Index iz = 0, const Index ia = 0) const {
+  [[nodiscard]] ConstVectorView K23(const Index iz = 0, const Index ia = 0) const {
     return mdata(ia, iz, joker, mstokes_dim);
   }
 
@@ -1042,7 +1022,7 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView K(1, 3) elements
    */
-  ConstVectorView K24(const Index iz = 0, const Index ia = 0) const {
+  [[nodiscard]] ConstVectorView K24(const Index iz = 0, const Index ia = 0) const {
     return mdata(ia, iz, joker, 5);
   }
 
@@ -1052,7 +1032,7 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView Diagonal elements
    */
-  ConstVectorView K34(const Index iz = 0, const Index ia = 0) const {
+  [[nodiscard]] ConstVectorView K34(const Index iz = 0, const Index ia = 0) const {
     return mdata(ia, iz, joker, 6);
   }
 
@@ -1063,7 +1043,7 @@ class PropagationMatrix {
   Tensor4& Data() { return mdata; }
 
   /** Get full const view to data */
-  const Tensor4& Data() const { return mdata; }
+  [[nodiscard]] const Tensor4& Data() const { return mdata; }
 
   /** Multiply the matrix input from the left of this at position
    * 
@@ -1074,7 +1054,7 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    */
   void LeftMultiplyAtPosition(MatrixView out,
-                              ConstMatrixView in,
+                              const ConstMatrixView& in,
                               const Index iv = 0,
                               const Index iz = 0,
                               const Index ia = 0) const;
@@ -1089,7 +1069,7 @@ class PropagationMatrix {
    * @param[in] ia Azimuth index
    */
   void RightMultiplyAtPosition(MatrixView out,
-                               ConstMatrixView in,
+                               const ConstMatrixView& in,
                                const Index iv = 0,
                                const Index iz = 0,
                                const Index ia = 0) const;
@@ -1098,11 +1078,11 @@ class PropagationMatrix {
   Index mfreqs, mstokes_dim;
   Index mza, maa;
   Tensor4 mdata;
-  bool mvectortype;
+  bool mvectortype{false};
 };
 
-typedef Array<PropagationMatrix> ArrayOfPropagationMatrix;
-typedef Array<ArrayOfPropagationMatrix> ArrayOfArrayOfPropagationMatrix;
+using ArrayOfPropagationMatrix = Array<PropagationMatrix>;
+using ArrayOfArrayOfPropagationMatrix = Array<ArrayOfPropagationMatrix>;
 
 /** Compute the matrix exponent as the transmission matrix of this propagation matrix
  * 
@@ -1230,12 +1210,12 @@ class StokesVector final : public PropagationMatrix {
    * 
    * @param[in] x Tensor4 object to use to initialize from
    */
-  explicit StokesVector(ConstTensor4View x) {
+  explicit StokesVector(Tensor4 x) {
     mfreqs = x.nrows();
     mstokes_dim = x.ncols();
     mza = x.npages();
     maa = x.nbooks();
-    mdata = x;
+    mdata = std::move(x);
     mvectortype = true;
     ARTS_ASSERT (not (mstokes_dim > 4 or mstokes_dim < 1),
       "Tensor4 is bad for StokesVector");
@@ -1245,7 +1225,7 @@ class StokesVector final : public PropagationMatrix {
    * 
    * @param x Single Stokes vector
    */
-  explicit StokesVector(ConstVectorView x) {
+  explicit StokesVector(const ConstVectorView& x) {
     mfreqs = 1;
     mstokes_dim = x.nelem();
     mza = 1;
@@ -1293,7 +1273,7 @@ class StokesVector final : public PropagationMatrix {
   };
 
   /** The number of required vectors to fill this StokesVector */
-  Index NumberOfNeededVectors() const { return mstokes_dim; }
+  [[nodiscard]] Index NumberOfNeededVectors() const { return mstokes_dim; }
 
   /** Addition operator
    * 
@@ -1402,13 +1382,13 @@ class StokesVector final : public PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView To StokesVector
    */
-  ConstVectorView VectorAtPosition(const Index iv = 0,
-                                   const Index iz = 0,
-                                   const Index ia = 0) const {
+  [[nodiscard]] ConstVectorView VectorAtPosition(const Index iv = 0,
+                                                 const Index iz = 0,
+                                                 const Index ia = 0) const {
     return mdata(ia, iz, iv, joker);
   }
 
-  void SetAtPosition(ConstVectorView x,
+  void SetAtPosition(const ConstVectorView& x,
                      const Index iv = 0,
                      const Index iz = 0,
                      const Index ia = 0) {
@@ -1423,8 +1403,8 @@ class StokesVector final : public PropagationMatrix {
    * @param[in] iz Zenith index
    * @param[in] ia Azimuth index
    */
-  void AddAverageAtPosition(ConstVectorView vec1,
-                            ConstVectorView vec2,
+  void AddAverageAtPosition(const ConstVectorView& vec1,
+                            const ConstVectorView& vec2,
                             const Index iv = 0,
                             const Index iz = 0,
                             const Index ia = 0) {
@@ -1448,9 +1428,9 @@ class StokesVector final : public PropagationMatrix {
    * @return true if polarized
    * @return false if not polarized
    */
-  bool IsPolarized(const Index iv = 0,
-                   const Index iz = 0,
-                   const Index ia = 0) const {
+  [[nodiscard]] bool IsPolarized(const Index iv = 0,
+                                 const Index iz = 0,
+                                 const Index ia = 0) const {
     switch (mstokes_dim) {
       case 4:
         if (K14(iz, ia)[iv] not_eq 0.0) return true; /* FALLTHROUGH */
@@ -1470,13 +1450,13 @@ class StokesVector final : public PropagationMatrix {
    * @return true if not polarized
    * @return false if polarized
    */
-  bool IsUnpolarized(const Index iv = 0,
-                     const Index iz = 0,
-                     const Index ia = 0) const {
+  [[nodiscard]] bool IsUnpolarized(const Index iv = 0,
+                                   const Index iz = 0,
+                                   const Index ia = 0) const {
     return not IsPolarized(iv, iz, ia);
   }
   
-  bool allZeroes() const {
+  [[nodiscard]] bool allZeroes() const {
     for (Index i=0; i<maa; i++)
       for (Index j=0; j<mza; j++)
         for (Index k=0; k<mfreqs; k++)
@@ -1487,9 +1467,9 @@ class StokesVector final : public PropagationMatrix {
   }
 };
 
-typedef Array<StokesVector> ArrayOfStokesVector;
-typedef Array<ArrayOfStokesVector> ArrayOfArrayOfStokesVector;
-typedef Array<ArrayOfArrayOfStokesVector> ArrayOfArrayOfArrayOfStokesVector;
+using ArrayOfStokesVector = Array<StokesVector>;
+using ArrayOfArrayOfStokesVector = Array<ArrayOfStokesVector>;
+using ArrayOfArrayOfArrayOfStokesVector = Array<ArrayOfArrayOfStokesVector>;
 
 std::ostream& operator<<(std::ostream& os, const StokesVector& pm);
 std::ostream& operator<<(std::ostream& os, const ArrayOfStokesVector& apm);

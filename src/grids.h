@@ -57,7 +57,7 @@ class Grid {
   std::array<std::size_t, n> gridsize;
   
   /*! Number of elements in total */
-  std::size_t size() const noexcept { return ptr.size(); }
+  [[nodiscard]] std::size_t size() const noexcept { return ptr.size(); }
   
 public:
   /*! Number of dimensions */

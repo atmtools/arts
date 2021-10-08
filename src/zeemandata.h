@@ -29,13 +29,13 @@
 #ifndef zeemandata_h
 #define zeemandata_h
 
-#include <limits>
 #include "constants.h"
 #include "file.h"
 #include "mystring.h"
 #include "propagationmatrix.h"
 #include "quantum.h"
 #include "wigner_functions.h"
+#include <limits>
 
 /** Implements Zeeman modeling */
 namespace Zeeman {
@@ -260,14 +260,13 @@ constexpr Numeric SimpleGCaseB(Rational N,
 
   if (JJ == 0)
     return 0.0;
-  else if (NN not_eq 0) {
+  if (NN not_eq 0) {
     auto T1 = ((JJ + SS - NN) / JJ / 2).toNumeric();
     auto T2 = ((JJ - SS + NN) * LL / NN / JJ / 2).toNumeric();
     return GS * T1 + GL * T2;
-  } else {
-    auto T1 = ((JJ + SS - NN) / JJ / 2).toNumeric();
-    return GS * T1;
-  }
+  }      
+  auto T1 = ((JJ + SS - NN) / JJ / 2).toNumeric();
+  return GS * T1;
 }
 
 /** Computes the Zeeman splitting coefficient
@@ -294,12 +293,11 @@ constexpr Numeric SimpleGCaseA(Rational Omega,
 
   if (JJ == Rational(0))
     return 0.0;
-  else {
-    auto DIV = Omega / JJ;
-    auto T1 = (Sigma * DIV).toNumeric();
-    auto T2 = (Lambda * DIV).toNumeric();
-    return GS * T1 + GL * T2;
-  }
+  auto DIV = Omega / JJ;
+  auto T1 = (Sigma * DIV).toNumeric();
+  auto T2 = (Lambda * DIV).toNumeric();
+  return GS * T1 + GL * T2;
+ 
 }
 
 /** Computes the Zeeman splitting coefficient
@@ -380,7 +378,7 @@ class Model {
   explicit Model(const QuantumIdentifier& qid) noexcept;
 
   /** Returns true if the Model represents no Zeeman effect */
-  /* constexpr */ bool empty() const noexcept {
+  [[nodiscard]] /* constexpr */ bool empty() const noexcept {
     return std::isnan(mdata.gu) and std::isnan(mdata.gl);
   }
 
@@ -397,10 +395,10 @@ class Model {
   constexpr void gl(Numeric x) noexcept { mdata.gl = x; }
   
   /** Returns the upper state g */
-  constexpr Numeric gu() const noexcept { return mdata.gu; }
+  [[nodiscard]] constexpr Numeric gu() const noexcept { return mdata.gu; }
   
   /** Returns the lower state g */
-  constexpr Numeric gl() const noexcept { return mdata.gl; }
+  [[nodiscard]] constexpr Numeric gl() const noexcept { return mdata.gl; }
 
   /** Gives the strength of one subline of a given polarization
    * 
@@ -415,7 +413,7 @@ class Model {
    * 
    * @return The relative strength of the Zeeman subline
    */
-  Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const;
+  [[nodiscard]] Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const;
   
   /** Gives the splitting of one subline of a given polarization
    * 
@@ -430,7 +428,7 @@ class Model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  constexpr Numeric Splitting(Rational Ju, Rational Jl, Polarization type, Index n) const
+  [[nodiscard]] constexpr Numeric Splitting(Rational Ju, Rational Jl, Polarization type, Index n) const
       noexcept {
     using Constant::bohr_magneton;
     using Constant::h;
@@ -508,10 +506,10 @@ class PolarizationVector {
       : att(a, b, c, d), dis(u, v, w){};
 
   /** Returns the attenuation vector */
-  const Eigen::RowVector4d& attenuation() const noexcept { return att; }
+  [[nodiscard]] const Eigen::RowVector4d& attenuation() const noexcept { return att; }
   
   /** Returns the dispersion vector */
-  const Eigen::RowVector3d& dispersion() const noexcept { return dis; }
+  [[nodiscard]] const Eigen::RowVector3d& dispersion() const noexcept { return dis; }
   
   /** Returns the attenuation vector */
   Eigen::RowVector4d& attenuation() noexcept { return att; }
@@ -523,7 +521,7 @@ class PolarizationVector {
    * 
    * Use only for debug printing if possible
    */
-  Eigen::Matrix4d matrix() const noexcept {
+  [[nodiscard]] Eigen::Matrix4d matrix() const noexcept {
     return (Eigen::Matrix4d() << att[0],
             att[1],
             att[2],
@@ -683,6 +681,6 @@ constexpr Derived FromPreDerived(Numeric H,
 };  // namespace Zeeman
 
 // Typedef to make it easier to use
-typedef Zeeman::Model ZeemanModel;
+using ZeemanModel = Zeeman::Model;
 
 #endif /* zeemandata_h */

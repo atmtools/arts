@@ -35,12 +35,12 @@
 #include "grids.h"
 #include "matpackI.h"
 
-typedef struct {
+struct gsl_integration_glfixed_table {
   size_t n;        /* number of points */
   double* x;       /* Gauss abscissae/points */
   double* w;       /* Gauss weights for each abscissae */
   int precomputed; /* high precision abscissae/weights precomputed? */
-} gsl_integration_glfixed_table;
+};
 
 bool gsl_integration_glfixed_table_alloc(Vector& x, Vector& w, Index n);
 
@@ -49,9 +49,9 @@ namespace Legendre {
 
 //! Stores the up (U), south (S), east (E) values of a field relative to the sphere
 struct SphericalField {
-  Numeric U;
-  Numeric S;
-  Numeric E;
+  Numeric U{0};
+  Numeric S{0};
+  Numeric E{0};
   
   //! Returns the total strength of the field
   Numeric total() const noexcept {return std::hypot(U, S, E);}
@@ -60,7 +60,7 @@ struct SphericalField {
   Numeric total_horizontal() const noexcept {return std::hypot(S, E);}
   
   //! Always construct to zeroes explicitly
-  constexpr SphericalField() noexcept : U(0), S(0), E(0) {}
+  constexpr SphericalField() noexcept = default;
 };
 
 
@@ -108,6 +108,6 @@ SphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric
  * @return A spherical field
  */
 MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric r0, const Vector& r, const Numeric lat, const Vector& lon) ARTS_NOEXCEPT;
-}
+} // namespace Legendre
 
 #endif /* legendre_h */

@@ -96,7 +96,7 @@ void field_of_propagation(Workspace& ws,
             vmr_field(joker, i, j, k),
             t_field(i, j, k),
             p_grid[i],
-            0);
+            false);
         absorption_field(i, j, k) = propmat_field(i, j, k);
       }
     }
@@ -166,7 +166,7 @@ void emission_from_propmat_field(
   // Loop ppath points and determine radiative properties
   for (Index ip = 0; ip < np; ip++) {
     get_stepwise_blackbody_radiation(
-        B, vtmp, f_grid, interp_atmfield_by_gp(1, t_field, ppath.gp_p[ip]), 0);
+        B, vtmp, f_grid, interp_atmfield_by_gp(1, t_field, ppath.gp_p[ip]), false);
     K_this = propmat_field(ppath.gp_p[ip]);
     const StokesVector S(additional_source_field(ppath.gp_p[ip]));
     const StokesVector a(absorption_field(ppath.gp_p[ip]));
@@ -195,7 +195,7 @@ void emission_from_propmat_field(
                     B,
                     vtmp,
                     rqtmp,
-                    0);
+                    false);
 
     swap(K_past, K_this);
   }

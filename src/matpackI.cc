@@ -27,9 +27,6 @@
 #include "blas.h"
 #include "exceptions.h"
 
-using std::cout;
-using std::endl;
-using std::runtime_error;
 using std::setw;
 
 // Define the global joker object:

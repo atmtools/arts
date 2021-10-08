@@ -1,6 +1,12 @@
 #ifndef interpolation_lagrange_h
 #define interpolation_lagrange_h
 
+#include "constants.h"
+#include "debug.h"
+#include "enums.h"
+#include "grids.h"
+#include "matpackVII.h"
+#include "nonstd.h"
 #include <algorithm>
 #include <array>
 #include <functional>
@@ -9,12 +15,6 @@
 #include <numeric>
 #include <type_traits>
 #include <vector>
-
-#include "constants.h"
-#include "enums.h"
-#include "grids.h"
-#include "nonstd.h"
-#include "matpackVII.h"
 
 namespace Interpolation {
 /*! Cycle once back through a list
@@ -40,10 +40,9 @@ constexpr Numeric cyclic_clamp(const Numeric x,
                                const std::pair<Numeric, Numeric> xlim) noexcept {
   if (x < xlim.first)
     return cyclic_clamp(x + xlim.second - xlim.first, xlim);
-  else if (x >= xlim.second)
+  if (x >= xlim.second)
     return cyclic_clamp(x - xlim.second + xlim.first, xlim);
-  else
-    return x;
+  return x;
 }
 
 /*! Find the absolute minimum in a cycle
@@ -88,11 +87,10 @@ constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec) 
     const Numeric x0 = xvec[    0];
     const Numeric x1 = xvec[n - 1];
     const Numeric frac = (x - x0) / (x1 - x0);
-    const Index start_pos = Index(frac * (Numeric)(n - 2));
+    const auto start_pos = Index(frac * (Numeric)(n - 2));
     return start_pos > 0 ? (start_pos < n ? start_pos : n - 1) : 0;
-  } else {
-    return 0;
   }
+  return 0;
 }
 
 //! Return the maximum of two integer numbers.
@@ -153,38 +151,32 @@ constexpr Index pos_finder(const Index pos0, const Numeric x, const SortedVector
                            const bool ascending,
                            const std::pair<Numeric, Numeric> cycle = {
                                -180, 180}) noexcept {
-  if (cyclic and (x < cycle.first or x > cycle.second)) {
+  if (cyclic and (x < cycle.first or x > cycle.second))
     // We are below or above the cycle so we must redo calculations after clamping x to the cycle
     return pos_finder(pos0, cyclic_clamp(x, cycle), xi, polyorder, cyclic, ascending, cycle);
+  const Index N = xi.size()-1;
+  Index p0=pos0;
+  
+  // Loops to find the first position with a neighbor larger or smaller
+  if (ascending) {
+    while (p0 < N and xi[p0] < x) ++p0;
+    while (p0 > 0 and xi[p0] > x) --p0;
   } else {
-    const Index N = xi.size()-1;
-    Index p0=pos0;
-    
-    // Loops to find the first position with a neighbor larger or smaller
-    if (ascending) {
-      while (p0 < N and xi[p0] < x) ++p0;
-      while (p0 > 0 and xi[p0] > x) --p0;
-    } else {
-      while (p0 < N and xi[p0] > x) ++p0;
-      while (p0 > 0 and xi[p0] < x) --p0;
-    }
-    
-    // Adjustment for higher and lower polynominal orders so that x is in the middle
-    if (polyorder) {
-      if (cyclic) {  // Max N since we can overstep bounds
-        return IMIN(IMAX(p0 - polyorder / 2, 0), N);
-      } else { // Max N-polyorder since we cannot overstep bounds
-        return IMIN(IMAX(p0 - polyorder / 2, 0), N-polyorder);
-      }
-    } else {
-      // In the nearest neighbor case, we mus choose the closest neighbor
-      if (p0 < N and (nonstd::abs(xi[p0] - x) >= nonstd::abs(xi[p0 + 1] - x))) {
-        return p0 + 1;
-      } else {
-        return p0;
-      }
-    }
+    while (p0 < N and xi[p0] > x) ++p0;
+    while (p0 > 0 and xi[p0] < x) --p0;
   }
+  
+  // Adjustment for higher and lower polynominal orders so that x is in the middle
+  if (polyorder) {
+    if (cyclic)  // Max N since we can overstep bounds
+      return IMIN(IMAX(p0 - polyorder / 2, 0), N);
+    // Max N-polyorder since we cannot overstep bounds
+    return IMIN(IMAX(p0 - polyorder / 2, 0), N-polyorder);
+  }
+  // In the nearest neighbor case, we mus choose the closest neighbor
+  if (p0 < N and (nonstd::abs(xi[p0] - x) >= nonstd::abs(xi[p0 + 1] - x))) 
+    return p0 + 1;
+  return p0;
 }
 
 /*! Type of Lagrange interpolation weights
@@ -266,11 +258,10 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
         const Numeric x_val = cyclic_clamp(x, cycle);
         if (full_cycle(xi[0], xi[N-1], cycle)) {
           // We ignore the last point in full cycles
-          if (j_pos == N - 1) {
+          if (j_pos == N - 1)
             return 0;
-          } else if (m_pos not_eq N - 1) {
+          if (m_pos not_eq N - 1)
             val *= min_cyclic(x_val - xi[m_pos], cycle) / min_cyclic(xi[j_pos] - xi[m_pos], cycle);
-          }  // else missing reduces the polyorder
         } else {
           val *= min_cyclic(x_val - xi[m_pos], cycle) / min_cyclic(xi[j_pos] - xi[m_pos], cycle);
         }
@@ -305,16 +296,15 @@ constexpr double dl_dval(
     if (x not_eq xi[i + p0]) {
       // A simple case when x is not on the grid
       return li[j] / (x - xi[i + p0]);
-    } else {
-      // We have to resort to the full recalculations
-      Numeric val = 1.0 / (xi[j + p0] - xi[i + p0]);
-      for (Index m = 0; m < n; m++) {
-        if (m not_eq j and m not_eq i) {
-          val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
-        }
-      }
-      return val;
     }
+    // We have to resort to the full recalculations
+    Numeric val = 1.0 / (xi[j + p0] - xi[i + p0]);
+    for (Index m = 0; m < n; m++) {
+      if (m not_eq j and m not_eq i) {
+        val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
+      }
+    }
+    return val;
   } else if constexpr (type == GridType::Cyclic) {
     // Cyclic weights
     // We have to ensure that all weights are cyclic (e.g., 355 degrees < -6 degrees)
@@ -324,40 +314,36 @@ constexpr double dl_dval(
     const Numeric x_val = cyclic_clamp(x, cycle);
     if (full_cycle(xi[0], xi[N-1], cycle)) {
       // We ignore the last point in full cycles
-      if (i_pos == N - 1 or j_pos == N - 1) {
+      if (i_pos == N - 1 or j_pos == N - 1)
         return 0;
-      } else if (x_val not_eq xi[i_pos]) {
+      if (x_val not_eq xi[i_pos])
         // A simple case when x is not on the grid
         return li[j] / min_cyclic(x_val - xi[i_pos], cycle);
-      } else {
-        // We have to resort to the full recalculations
-        Numeric val = 1.0 / min_cyclic(xi[j_pos] - xi[i_pos], cycle);
-        for (Index m = 0; m < n; m++) {
-          if (m not_eq j and m not_eq i) {
-            const Index m_pos = cycler(m + p0, N);
-            if (m_pos not_eq N - 1)  {
-              val *= min_cyclic(x_val - xi[m_pos], cycle) / min_cyclic(xi[j_pos] - xi[m_pos], cycle);
-            }
-          }
-        }
-        return val;
-      }
-    } else {
-      if (x_val not_eq xi[i_pos]) {
-        // A simple case when x is not on the grid
-        return li[j] / min_cyclic(x_val - xi[i_pos], cycle);
-      } else {
-        // We have to resort to the full recalculations
-        Numeric val = 1.0 / min_cyclic(xi[j_pos] - xi[i_pos], cycle);
-        for (Index m = 0; m < n; m++) {
-          if (m not_eq j and m not_eq i) {
-            const Index m_pos = cycler(m + p0, N);
+      
+      // We have to resort to the full recalculations
+      Numeric val = 1.0 / min_cyclic(xi[j_pos] - xi[i_pos], cycle);
+      for (Index m = 0; m < n; m++) {
+        if (m not_eq j and m not_eq i) {
+          const Index m_pos = cycler(m + p0, N);
+          if (m_pos not_eq N - 1)  {
             val *= min_cyclic(x_val - xi[m_pos], cycle) / min_cyclic(xi[j_pos] - xi[m_pos], cycle);
           }
         }
-        return val;
+      }
+      return val;
+    }
+    if (x_val not_eq xi[i_pos])
+      // A simple case when x is not on the grid
+      return li[j] / min_cyclic(x_val - xi[i_pos], cycle);
+    // We have to resort to the full recalculations
+    Numeric val = 1.0 / min_cyclic(xi[j_pos] - xi[i_pos], cycle);
+    for (Index m = 0; m < n; m++) {
+      if (m not_eq j and m not_eq i) {
+        const Index m_pos = cycler(m + p0, N);
+        val *= min_cyclic(x_val - xi[m_pos], cycle) / min_cyclic(xi[j_pos] - xi[m_pos], cycle);
       }
     }
+    return val;
   } else /*if any other case */ {
     // All other cases have to use full calculations because we need a linear derivative
     Numeric val = 1.0 / (xi[j + p0] - xi[i + p0]);
@@ -401,8 +387,7 @@ template <class SortedVectorType>
 constexpr bool is_ascending(const SortedVectorType& xi) noexcept {
   if (xi.nelem() > 1)
     return xi[0] < xi[1];
-  else
-    return false;
+  return false;
 }
 
 /*! Checks the interpolation grid and throws if it is bad
@@ -423,25 +408,20 @@ void check_lagrange_interpolation([[maybe_unused]] const SortedVectorType& xi,
                                   [[maybe_unused]] const std::pair<Numeric, Numeric> cycle = {-180, 180}) {
   const Index n = Index(xi.size());
   
-  if (polyorder >= n) {
-    throw std::runtime_error("Interpolation setup has failed!\n"
-      "\tRequesting greater interpolation order than possible with given input grid");
-  } else if (type == GridType::Cyclic and cycle.first >= cycle.second) {
-    throw std::runtime_error("Interpolation setup has failed!\n"
-      "\tBad cycle, must be [first, second)");
-  } else if (polyorder and extrapol > 0 and GridType::Cyclic not_eq type) {
+  ARTS_USER_ERROR_IF (polyorder >= n,"Interpolation setup has failed!\n"
+      "\tRequesting greater interpolation order than possible with given input grid")
+  ARTS_USER_ERROR_IF(type == GridType::Cyclic and cycle.first >= cycle.second,
+    "Interpolation setup has failed!\n" "\tBad cycle, must be [first, second)")
+  if (polyorder and extrapol > 0 and GridType::Cyclic not_eq type) {
     const bool ascending = is_ascending(xi);
     const Numeric xmin = ascending ? xi[0  ] - extrapol * nonstd::abs(xi[1  ] - xi[0  ]) :
                                      xi[n-1] - extrapol * nonstd::abs(xi[n-2] - xi[n-1]) ;
     const Numeric xmax = ascending ? xi[n-1] + extrapol * nonstd::abs(xi[n-2] - xi[n-1]) :
                                      xi[0  ] + extrapol * nonstd::abs(xi[1  ] - xi[0  ]) ;
-    if (x.first < xmin or x.second > xmax) {
-      std::ostringstream os;
-      os << "Interpolation setup has failed!\n";
-      os << "\tThe new grid has limits: " << x.first << ' ' << x.second << '\n';
-      os << "\tThe old grid has limits: " << xmin << ' ' << xmax;
-      throw std::runtime_error(os.str());
-    }
+    ARTS_USER_ERROR_IF(x.first < xmin or x.second > xmax,
+      "Interpolation setup has failed!\n"
+      "\tThe new grid has limits: ", x.first, ' ', x.second, '\n',
+      "\tThe old grid has limits: ", xmin, ' ', xmax)
   }
 }
 
@@ -468,7 +448,7 @@ void check_lagrange_interpolation([[maybe_unused]] const SortedVectorType& xi,
 /** A Lagrange interpolation computer */
 struct Lagrange {
   /*! The first position of the Lagrange interpolation grid */
-  Index pos;
+  Index pos{0};
   
   /*! The Lagrange interpolation weights at each point */
   Array<Numeric> lx;
@@ -477,7 +457,7 @@ struct Lagrange {
   Array<Numeric> dlx;
 
   /* Number of weights */
-  Index size() const noexcept { return lx.size(); }
+  [[nodiscard]] Index size() const noexcept { return lx.size(); }
   
   //! Ensure that the move constructor exists
   Lagrange(Lagrange&& l) noexcept : pos(l.pos), lx(std::move(l.lx)), dlx(std::move(l.dlx)) {}
@@ -533,7 +513,7 @@ struct Lagrange {
   }
   
   //! Default constructor for zero-length elements
-  Lagrange() noexcept : pos(0), lx(1, 1), dlx(1, 0) {}
+  Lagrange() noexcept : lx(1, 1), dlx(1, 0) {}
   
   /*! Friendly stream operator */
   friend std::ostream& operator<<(std::ostream& os, const Lagrange& l) {

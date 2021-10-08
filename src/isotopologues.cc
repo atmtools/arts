@@ -143,22 +143,22 @@ String predefined_model_names() noexcept {
 }
 
 String update_isot_name(const String& old_name) {
-  if (     old_name == "CH3CN-211224") return "CH2DCN-224";
-  else if (old_name == "CH3CN-211124") return "CH3CN-2124";
-  else if (old_name == "CH3CN-211125") return "CH3CN-2125";
-  else if (old_name == "CH3CN-211134") return "CH3CN-2134";
-  else if (old_name == "CH3CN-311124") return "CH3CN-3124";
-  else if (old_name == "CO2-728")      return "CO2-827";
-  else if (old_name == "HCOOH-2261")   return "DCOOH-266";
-  else if (old_name == "HCOOH-1262")   return "HCOOD-266";
-  else if (old_name == "HCOOH-1261")   return "HCOOH-126";
-  else if (old_name == "HCOOH-1361")   return "HCOOH-136";
-  else if (old_name == "H2CO-1126")    return "H2CO-126";
-  else if (old_name == "H2CO-1128")    return "H2CO-128";
-  else if (old_name == "H2CO-1136")    return "H2CO-136";
-  else if (old_name == "H2CO-1226")    return "HDCO-26";
-  else if (old_name == "H2CO-2226")    return "D2CO-26";
-  else                                 return old_name;
+  if (old_name == "CH3CN-211224") return "CH2DCN-224";
+  if (old_name == "CH3CN-211124") return "CH3CN-2124";
+  if (old_name == "CH3CN-211125") return "CH3CN-2125";
+  if (old_name == "CH3CN-211134") return "CH3CN-2134";
+  if (old_name == "CH3CN-311124") return "CH3CN-3124";
+  if (old_name == "CO2-728")      return "CO2-827";
+  if (old_name == "HCOOH-2261")   return "DCOOH-266";
+  if (old_name == "HCOOH-1262")   return "HCOOD-266";
+  if (old_name == "HCOOH-1261")   return "HCOOH-126";
+  if (old_name == "HCOOH-1361")   return "HCOOH-136";
+  if (old_name == "H2CO-1126")    return "H2CO-126";
+  if (old_name == "H2CO-1128")    return "H2CO-128";
+  if (old_name == "H2CO-1136")    return "H2CO-136";
+  if (old_name == "H2CO-1226")    return "HDCO-26";
+  if (old_name == "H2CO-2226")    return "D2CO-26";
+  return old_name;
 }
 
 std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(const Species spec, const IsotopologueRatios& ir) noexcept {
@@ -174,4 +174,4 @@ std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(const Sp
   }
   return {h, hnot};
 }
-}
+} // namespace Species

@@ -26,9 +26,6 @@
 #ifndef jacobian_h
 #define jacobian_h
 
-#include <iostream>
-#include <map>
-#include <stdexcept>
 #include "species_tags.h"
 #include "agenda_class.h"
 #include "array.h"
@@ -41,6 +38,9 @@
 #include "mystring.h"
 #include "ppath.h"
 #include "quantum.h"  
+#include <iostream>
+#include <map>
+#include <stdexcept>
 
 namespace Jacobian {
 
@@ -100,103 +100,84 @@ ENUMCLASS(Special, char,
 class Target {
 private:
   /**! Type of quantity, never set manually */
-  Type mtype;
+  Type mtype{Type::FINAL};
   
   /** Type of atm quantity */
-  Atm matm;
+  Atm matm{Atm::FINAL};
   
   /** Type of line quantity */
-  Line mline;
+  Line mline{Line::FINAL};
   
   /** Type of sensor quantity */
-  Sensor msensor;
+  Sensor msensor{Sensor::FINAL};
   
   /** Type of special quantity */
-  Special mspecial;
+  Special mspecial{Special::FINAL};
   
   /** Perturbations for methods where theoretical computations are impossible or plain slow */
-  Numeric mperturbation;
+  Numeric mperturbation{std::numeric_limits<Numeric>::quiet_NaN()};
   
   /** ID for the Line types of partial derivatives */
-  QuantumIdentifier mqid;
+  QuantumIdentifier mqid{};
   
   /** ID for some of the Special types of partial derivatives */
-  ArrayOfSpeciesTag maostid;
+  ArrayOfSpeciesTag maostid{0};
   
   /** ID for some of the Special types of partial derivatives */
-  String msid;
+  String msid{};
   
   /** Species ID for line parameters */
-  Species::Species mspecid;
+  Species::Species mspecid{Species::Species::FINAL};
 public:
   /** Atmospheric type */
   explicit Target (Atm type) :
-  mtype(Type::Atm), matm(type), mline(Line::FINAL),
-  msensor(Sensor::FINAL), mspecial(Special::FINAL),
-  mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(0), msid(), mspecid(Species::Species::FINAL) {
+  mtype(Type::Atm), matm(type) {
     ARTS_ASSERT(good_enum(type))
   }
   
   /** Line type */
   explicit Target (Line type, const QuantumIdentifier& qid, Species::Species specid) :
-  mtype(Type::Line), matm(Atm::FINAL), mline(type),
-  msensor(Sensor::FINAL), mspecial(Special::FINAL),
-  mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(qid), maostid(0), msid(), mspecid(specid) {
+  mtype(Type::Line), mline(type), mqid(qid), mspecid(specid) {
     ARTS_ASSERT(good_enum(type))
   }
   
   /** Sensor type */
   explicit Target (Sensor type) :
-  mtype(Type::Sensor), matm(Atm::FINAL), mline(Line::FINAL),
-  msensor(type), mspecial(Special::FINAL),
-  mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(0), msid(), mspecid(Species::Species::FINAL) {
+  mtype(Type::Sensor), msensor(type) {
     ARTS_ASSERT(good_enum(type))
   }
   
   /** Special type */
   explicit Target (Special type, const ArrayOfSpeciesTag& aostid) :
-  mtype(Type::Special), matm(Atm::FINAL), mline(Line::FINAL),
-  msensor(Sensor::FINAL), mspecial(type),
-  mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(aostid), msid(), mspecid(Species::Species::FINAL) {
+  mtype(Type::Special), mspecial(type), maostid(aostid) {
     ARTS_ASSERT (type == Special::ArrayOfSpeciesTagVMR,
       "Only for Special::ArrayOfSpeciesTagVMR, but you fed: ", mspecial)
   }
   
   /** Special type */
   explicit Target (Special type, const String& sid) :
-  mtype(Type::Special), matm(Atm::FINAL), mline(Line::FINAL),
-  msensor(Sensor::FINAL), mspecial(type),
-  mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(0), msid(sid), mspecid(Species::Species::FINAL) {
+  mtype(Type::Special), mspecial(type), msid(sid) {
     ARTS_ASSERT (type == Special::SurfaceString or type == Special::ScatteringString,
       "Only for Special::ScatteringString or Special::SurfaceString, but you fed: ", mspecial)
   }
   
   /** A defaultable none-type */
-  explicit Target () : 
-  mtype(Type::FINAL), matm(Atm::FINAL), mline(Line::FINAL),
-  msensor(Sensor::FINAL), mspecial(Special::FINAL),
-  mperturbation(std::numeric_limits<Numeric>::quiet_NaN()),
-  mqid(), maostid(0), msid(), mspecid(Species::Species::FINAL) {}
+  explicit Target () = default;
   
   /** Perturbation */
   void Perturbation(Numeric x) noexcept {mperturbation=x;}
   Numeric& Perturbation() noexcept {return mperturbation;}
-  Numeric Perturbation() const noexcept {return mperturbation;}
+  [[nodiscard]] Numeric Perturbation() const noexcept {return mperturbation;}
   
   /** ID */
   void QuantumIdentity(const QuantumIdentifier& x) noexcept {mqid=x;}
   QuantumIdentifier& QuantumIdentity() noexcept {return mqid;}
-  const QuantumIdentifier& QuantumIdentity() const noexcept {return mqid;}
+  [[nodiscard]] const QuantumIdentifier& QuantumIdentity() const noexcept {return mqid;}
   
   /** ID */
   void SpeciesList(const ArrayOfSpeciesTag& x) noexcept {maostid = x;}
   ArrayOfSpeciesTag& SpeciesList() noexcept {return maostid;}
-  const ArrayOfSpeciesTag& SpeciesList() const noexcept {return maostid;}
+  [[nodiscard]] const ArrayOfSpeciesTag& SpeciesList() const noexcept {return maostid;}
   
   /** ID */
   void StringKey(const String& x) noexcept {msid = x;}
@@ -204,16 +185,16 @@ public:
   const String& StringKey() const noexcept {return msid;}
   
   /** Return the atm type */
-  Atm AtmType() const noexcept {return matm;}
+  [[nodiscard]] Atm AtmType() const noexcept {return matm;}
   
   /** Return the line type */
-  Line LineType() const noexcept {return mline;}
+  [[nodiscard]] Line LineType() const noexcept {return mline;}
   
   /** Return the sensor type */
-  Sensor SensorType() const noexcept {return msensor;}
+  [[nodiscard]] Sensor SensorType() const noexcept {return msensor;}
   
   /** Return the special type */
-  Special SpecialType() const noexcept {return mspecial;}
+  [[nodiscard]] Special SpecialType() const noexcept {return mspecial;}
   
   /** Checks if the type of jacobian is the input atmospheric parameter */
   bool operator==(Atm other) const noexcept {return other == matm;}
@@ -230,7 +211,7 @@ public:
   /** Checks if the type is correct */
   bool operator==(Type other) const noexcept {return other == mtype;}
   
-  bool sameTargetType(const Target& other) const noexcept {
+  [[nodiscard]] bool sameTargetType(const Target& other) const noexcept {
     return mtype    == other.mtype    and
            matm     == other.matm     and
            mline    == other.mline    and

@@ -551,20 +551,19 @@ template <Type t> QuantumIdentifier from_mol_iso(Index molnum, char isonum) {
   if (auto species_list = hitmap.find(molnum); species_list not_eq hitmap.cend()) {
     if (auto species_info = species_list -> second.find(isonum); species_info not_eq species_list -> second.cend()) {
       return QuantumIdentifier(species_info -> second, Quantum::IdentifierType::Transition);
-    } else {
-      ARTS_USER_ERROR("Species ", molnum, " has no isotopologue ", isonum,
-                      " in ARTS' HITRAN implementation.\n",
-                      "(Species is ", Species::toShortName(hitmap.at(molnum).at('1').spec), ")\n"
-                      "If you are using a new version of HITRAN that has added the isotopologue, please consider\n"
-                      "contacting the ARTS developers so we can append the species to our list and make this work.\n"
-                      "Note that you are calling this templated function as the ", t, " template")
-    }
-  } else {
-    ARTS_USER_ERROR("Species ", molnum, " does not exist in ARTS' HITRAN implementation\n"
-                    "If you are using a new version of HITRAN that has added the species, please consider\n"
+    } 
+    ARTS_USER_ERROR("Species ", molnum, " has no isotopologue ", isonum,
+                    " in ARTS' HITRAN implementation.\n",
+                    "(Species is ", Species::toShortName(hitmap.at(molnum).at('1').spec), ")\n"
+                    "If you are using a new version of HITRAN that has added the isotopologue, please consider\n"
                     "contacting the ARTS developers so we can append the species to our list and make this work.\n"
-                    "Note that you are calling this templated function as the ", t, " template");
+                    "Note that you are calling this templated function as the ", t, " template")
+  
   }
+  ARTS_USER_ERROR("Species ", molnum, " does not exist in ARTS' HITRAN implementation\n"
+                  "If you are using a new version of HITRAN that has added the species, please consider\n"
+                  "contacting the ARTS developers so we can append the species to our list and make this work.\n"
+                  "Note that you are calling this templated function as the ", t, " template");
 }
 
 QuantumIdentifier id_from_lookup(Index mol, char isochar, Type type) {

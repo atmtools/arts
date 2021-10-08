@@ -36,7 +36,7 @@
 #include <cmath>
 #include "auto_md.h"
 #include "check_input.h"
-#include "complex.h"
+#include "matpack_complex.h"
 #include "geodetic.h"
 #include "math_funcs.h"
 #include "matpackI.h"

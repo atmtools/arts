@@ -31,11 +31,6 @@
 */
 
 #include "absorption.h"
-#include <algorithm>
-#include <cfloat>
-#include <cmath>
-#include <cstdlib>
-#include <map>
 #include "arts.h"
 #include "auto_md.h"
 #include "file.h"
@@ -44,6 +39,11 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "messages.h"
+#include <algorithm>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
+#include <map>
 
 #include "global_data.h"
 

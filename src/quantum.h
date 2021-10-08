@@ -27,18 +27,18 @@
 #ifndef quantum_h
 #define quantum_h
 
+#include "array.h"
+#include "enums.h"
+#include "interpolation.h"
+#include "isotopologues.h"
+#include "matpack.h"
+#include "mystring.h"
+#include "rational.h"
 #include <array>
 #include <iostream>
 #include <map>
 #include <numeric>
 #include <stdexcept>
-#include "array.h"
-#include "enums.h"
-#include "interpolation.h"
-#include "matpack.h"
-#include "mystring.h"
-#include "rational.h"
-#include "isotopologues.h"
 
 /** Enum for Quantum Numbers used for indexing */
 ENUMCLASS(QuantumNumberType, char,
@@ -111,8 +111,7 @@ enum class Hund : Index { CaseA = int('a'), CaseB = int('b') };
 /** Container class for Quantum Numbers */
 class QuantumNumbers {
  public:
-  typedef std::array<Rational, Index(QuantumNumberType::FINAL)>
-      QuantumContainer;
+  using QuantumContainer = std::array<Rational, Index(QuantumNumberType::FINAL)>;
 
   /** Initializer with undefined values */
   constexpr QuantumNumbers() noexcept
@@ -223,26 +222,26 @@ class QuantumNumbers {
    * 
    * @return const QuantumContainer& All the numbers
    */
-  constexpr const QuantumContainer& GetNumbers() const { return mqnumbers; }
+  [[nodiscard]] constexpr const QuantumContainer& GetNumbers() const { return mqnumbers; }
 
   /** The number of defined quantum numbers
    * 
    * @return Index Count of defined numbers
    */
-  constexpr Index nNumbers() const {
+  [[nodiscard]] constexpr Index nNumbers() const {
     Index out=0;
     for (auto& qn: mqnumbers) if (qn.isDefined()) out++;
     return out;
   }
   
   /** Check if there's any quantum numbers defined */
-  constexpr bool Any() const {
+  [[nodiscard]] constexpr bool Any() const {
     for (auto& qn: mqnumbers) if (qn.isDefined()) return true;
     return false;
   }
   
   /** Returns this as a string */
-  String toString() const;
+  [[nodiscard]] String toString() const;
 
  private:
   QuantumContainer mqnumbers;
@@ -285,7 +284,7 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn);
 /** Output operator */
 std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
 
-typedef Array<QuantumNumbers> ArrayOfQuantumNumbers;
+using ArrayOfQuantumNumbers = Array<QuantumNumbers>;
 
 namespace Quantum {
 ENUMCLASS (IdentifierType, unsigned char,
@@ -319,12 +318,12 @@ ENUMCLASS (IdentifierType, unsigned char,
  *   H2O-161 NONE
  */
 struct Identifier {
-  IdentifierType type;  // Type of ID
-  Index spec_ind;       // Index to valid IsotopeRecord in Isotopologues, or -1
-  QuantumNumbers upp;   // Upper quantum numbers, or energy level quantum numbers
-  QuantumNumbers low;   // Lower quantum numbers
+  IdentifierType type{IdentifierType::None};  // Type of ID
+  Index spec_ind{-1};       // Index to valid IsotopeRecord in Isotopologues, or -1
+  QuantumNumbers upp{};   // Upper quantum numbers, or energy level quantum numbers
+  QuantumNumbers low{};   // Lower quantum numbers
   
-  constexpr Index SpecInd(const Species::IsotopeRecord& ir) const ARTS_NOEXCEPT {
+  [[nodiscard]] constexpr Index SpecInd(const Species::IsotopeRecord& ir) const ARTS_NOEXCEPT {
     Index ind = Species::find_species_index(ir);
     ARTS_ASSERT(ind >= 0 and not Species::is_predefined_model(ir),
                 "Must be valid, non-joker, isotopologue.  Is: ", ir)
@@ -332,8 +331,7 @@ struct Identifier {
   }
   
   //! Default to nothing
-  constexpr Identifier() noexcept :
-    type(IdentifierType::None), spec_ind(-1), upp(), low() {}
+  constexpr Identifier() noexcept = default;
   
   constexpr Identifier(const Species::IsotopeRecord& ir, IdentifierType t=IdentifierType::All) ARTS_NOEXCEPT :
     type(t), spec_ind(SpecInd(ir)), upp(), low() {}
@@ -363,11 +361,11 @@ struct Identifier {
   
   void SetFromString(String str);
   
-  String GetString() const;
+  [[nodiscard]] String GetString() const;
   
-  explicit Identifier(String x) { SetFromString(x); }
+  explicit Identifier(String x) { SetFromString(std::move(x)); }
   
-  constexpr const Species::IsotopeRecord& Isotopologue() const noexcept {
+  [[nodiscard]] constexpr const Species::IsotopeRecord& Isotopologue() const noexcept {
     return Species::Isotopologues[spec_ind];
   }
   
@@ -375,11 +373,11 @@ struct Identifier {
     spec_ind = SpecInd(ir);
   }
   
-  constexpr Species::Species Species() const noexcept {
+  [[nodiscard]] constexpr Species::Species Species() const noexcept {
     return Isotopologue().spec;
   }
   
-  constexpr const QuantumNumbers& Upper() const ARTS_NOEXCEPT {
+  [[nodiscard]] constexpr const QuantumNumbers& Upper() const ARTS_NOEXCEPT {
     ARTS_ASSERT(IdentifierType::Transition == type)
     return upp;
   }
@@ -389,7 +387,7 @@ struct Identifier {
     return upp;
   }
   
-  constexpr const QuantumNumbers& Lower() const ARTS_NOEXCEPT {
+  [[nodiscard]] constexpr const QuantumNumbers& Lower() const ARTS_NOEXCEPT {
     ARTS_ASSERT(IdentifierType::Transition == type)
     return low;
   }
@@ -399,7 +397,7 @@ struct Identifier {
     return low;
   }
   
-  constexpr const QuantumNumbers& Level() const ARTS_NOEXCEPT {
+  [[nodiscard]] constexpr const QuantumNumbers& Level() const ARTS_NOEXCEPT {
     ARTS_ASSERT(IdentifierType::EnergyLevel == type)
     return upp;
   }
@@ -417,9 +415,9 @@ struct Identifier {
       // Except, the joker is a joker for truth
       if (other.type == IdentifierType::All or type == IdentifierType::All) {
         return true;
-      } else {
-        return false;
       }
+
+      return false;
     }
     
     switch (type) {
@@ -456,16 +454,16 @@ struct Identifier {
   }
   
   /** Return a quantum identifer as if it wants to match to lower energy level */
-  constexpr Identifier LowerId() const ARTS_NOEXCEPT {
+  [[nodiscard]] constexpr Identifier LowerId() const ARTS_NOEXCEPT {
     return Identifier(Species::Isotopologues[spec_ind], low);
   };
   
   /** Return a quantum identifer as if it wants to match to lower energy level */
-  constexpr Identifier UpperId() const ARTS_NOEXCEPT {
+  [[nodiscard]] constexpr Identifier UpperId() const ARTS_NOEXCEPT {
     return Identifier(Species::Isotopologues[spec_ind], upp);
   };
 };
-}
+} // namespace Quantum
 
 using QuantumIdentifierType = Quantum::IdentifierType;
 
@@ -473,7 +471,7 @@ using QuantumIdentifierType = Quantum::IdentifierType;
 using QuantumIdentifier = Quantum::Identifier;
 
 /** List of QuantumIdentifier */
-typedef Array<QuantumIdentifier> ArrayOfQuantumIdentifier;
+using ArrayOfQuantumIdentifier = Array<QuantumIdentifier>;
 
 /** Check for valid quantum number name
  * 

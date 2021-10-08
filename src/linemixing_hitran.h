@@ -28,7 +28,7 @@
 #define LINEMIXING_HITRAN_H
 
 #include "absorptionlines.h"
-#include "complex.h"
+#include "matpack_complex.h"
 #include "constants.h"
 #include "linescaling.h"
 #include "matpackIV.h"
@@ -47,7 +47,7 @@ struct HitranRelaxationMatrixData {
   Tensor4 W0pq, B0pq;
   Tensor4 W0rq, B0rq;
   Tensor4 W0qq, B0qq;
-  HitranRelaxationMatrixData() {}
+  HitranRelaxationMatrixData() = default;
   friend std::ostream& operator<<(std::ostream& os, const HitranRelaxationMatrixData& hit) {
     return os << hit.W0pp << '\n' << hit.B0pp << '\n'
               << hit.W0rp << '\n' << hit.B0rp << '\n'
@@ -79,7 +79,7 @@ Vector compute(const Numeric p,
                const Numeric t,
                const Numeric xco2,
                const Numeric xh2o,
-               const ConstVectorView invcm_grid,
+               const ConstVectorView& invcm_grid,
                const Numeric stotmax,
                const calctype type=calctype::FullW);
 
@@ -100,8 +100,8 @@ Vector compute(const HitranRelaxationMatrixData& hitran,
                const SpeciesIsotopologueRatios& isotopologue_ratio,
                const Numeric P,
                const Numeric T,
-               const ConstVectorView vmrs,
-               const ConstVectorView f_grid);
+               const ConstVectorView& vmrs,
+               const ConstVectorView& f_grid);
 
 /** Class that controls ReadFromLineMixingStream output */
 ENUMCLASS(ModeOfLineMixing, unsigned char,
@@ -160,6 +160,6 @@ Tensor5 hitran_lm_eigenvalue_adaptation_test(const AbsorptionLines& band,
                                              const Vector& temperatures,
                                              const HitranRelaxationMatrixData& hitran,
                                              const Vector& pressures);
-};  // lm_hitran_2017
+} // namespace lm_hitran_2017
 
 #endif  // LINEMIXING_HITRAN_H

@@ -100,7 +100,7 @@ Vector systemtemp(const Vector& pc, const Vector& ph, Numeric tc, Numeric th) no
  * @return Calibrated values [use calibration() if calib, else use systemtemp()]
  */
 ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector& thvec, const Index first_c_index);
-}  // Calibration
+} // namespace Calibration
 
 namespace Average {
 /** Compute the average of the ranged ys
@@ -206,7 +206,7 @@ MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const I
  * @param[in] pos Positions to use in the vector
  * @return The median
  */
-Numeric median(const ConstVectorView v, const ArrayOfIndex& pos=ArrayOfIndex{});
+Numeric median(const ConstVectorView& v, const ArrayOfIndex& pos=ArrayOfIndex{});
 
 /** Get the median of the vector in the range ignoring all non-normal values
  * 
@@ -216,8 +216,8 @@ Numeric median(const ConstVectorView v, const ArrayOfIndex& pos=ArrayOfIndex{});
  * @param[in] pos Positions to use in the vector
  * @return The median ignoring all non-normal values (or NaN)
  */
-Numeric nanmedian(const ConstVectorView v, const ArrayOfIndex& pos=ArrayOfIndex{});
-};  // Average
+Numeric nanmedian(const ConstVectorView& v, const ArrayOfIndex& pos=ArrayOfIndex{});
+} // namespace Average
 
 namespace Reduce {
 /** Returns the relative position scale for each value in x
@@ -290,7 +290,7 @@ Vector focus(const Vector& x, const ArrayOfIndex& scaling);
  * @return A rescaled and focused x
  */
 Vector nanfocus(const Vector& x, const ArrayOfIndex& scaling);
-} // Reduce
+} // namespace Reduce
 
 namespace Mask {
 /** Masks values that are out of bounds in x
@@ -313,7 +313,7 @@ std::vector<bool> out_of_bounds(const Vector& x, const Numeric xmin, const Numer
  * @return x masked (note, x is masked in-place anyways)
  */
 VectorView mask(VectorView x, const std::vector<bool>& masking);
-}  // Mask
+} // namespace Mask
 
 namespace Correction {
 /** Naive tropospheric correction parameterization
@@ -334,7 +334,7 @@ namespace Correction {
  * @param[in] target_bt \f$ \overline{T_{b, target}(f)} \f$
  * @return \f$ \overline{\tau(f)} \f$ as equations above
  */
-Numeric naive_tropospheric_singletau_median(const ConstVectorView bt, const Numeric trop_bt, const Numeric target_bt);
+Numeric naive_tropospheric_singletau_median(const ConstVectorView& bt, const Numeric trop_bt, const Numeric target_bt);
 
 /** Apply tropospheric correction
  * 
@@ -361,6 +361,6 @@ Numeric naive_tropospheric_singletau_median(const ConstVectorView bt, const Nume
  * @return \f$ T_{b, 1}(f) \f$
  */
 VectorView naive_tropospheric(VectorView bt, const Numeric tau, const Numeric trop_bt);
-}  // Correction
-} // Raw
+} // namespace Correction
+} // namespace Raw
 #endif  // RAW_H

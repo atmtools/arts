@@ -25,8 +25,8 @@
 
 #ifndef FIELD_HEADER
 #define FIELD_HEADER
-#include <vector>
 #include "interpolation.h"
+#include <vector>
 
 /** Creates a 3D field of a base unit */
 template <class base>
@@ -57,14 +57,14 @@ class Field3D {
    * @param[in] g Another field
    * @return Field3D<base>& *this
    */
-  Field3D<base>& operator=(Field3D&& g) = default;
+  Field3D<base>& operator=(Field3D&& g) noexcept = default;
 
   /**
    * @brief Construct a new Field3D object
    * 
    * @param[in] g Another field
    */
-  Field3D(Field3D&& g)
+  Field3D(Field3D&& g) noexcept
       : mpages(std::move(g.mpages)),
         mrows(std::move(g.mrows)),
         mcols(std::move(g.mcols)),
@@ -133,7 +133,7 @@ class Field3D {
   base operator()(const GridPos& page = {0, {0, 1}},
                   const GridPos& row = {0, {0, 1}},
                   const GridPos& col = {0, {0, 1}}) const {
-    const size_t pos[8] = {
+    const std::array pos{
         col.idx + 0 + (row.idx + 0) * mcols + (page.idx + 0) * mrows * mcols,
         col.idx + 1 + (row.idx + 0) * mcols + (page.idx + 0) * mrows * mcols,
         col.idx + 0 + (row.idx + 1) * mcols + (page.idx + 0) * mrows * mcols,
@@ -143,14 +143,14 @@ class Field3D {
         col.idx + 0 + (row.idx + 1) * mcols + (page.idx + 1) * mrows * mcols,
         col.idx + 1 + (row.idx + 1) * mcols + (page.idx + 1) * mrows * mcols};
 
-    const Numeric w[8] = {page.fd[1] * row.fd[1] * col.fd[1],
-                          page.fd[1] * row.fd[1] * col.fd[0],
-                          page.fd[1] * row.fd[0] * col.fd[1],
-                          page.fd[1] * row.fd[0] * col.fd[0],
-                          page.fd[0] * row.fd[1] * col.fd[1],
-                          page.fd[0] * row.fd[1] * col.fd[0],
-                          page.fd[0] * row.fd[0] * col.fd[1],
-                          page.fd[0] * row.fd[0] * col.fd[0]};
+    const std::array w{page.fd[1] * row.fd[1] * col.fd[1],
+                       page.fd[1] * row.fd[1] * col.fd[0],
+                       page.fd[1] * row.fd[0] * col.fd[1],
+                       page.fd[1] * row.fd[0] * col.fd[0],
+                       page.fd[0] * row.fd[1] * col.fd[1],
+                       page.fd[0] * row.fd[1] * col.fd[0],
+                       page.fd[0] * row.fd[0] * col.fd[1],
+                       page.fd[0] * row.fd[0] * col.fd[0]};
 
     bool any_base = false;
     base out;
@@ -167,13 +167,13 @@ class Field3D {
   }
 
   /** Number of pages */
-  size_t npages() const { return mpages; }
+  [[nodiscard]] size_t npages() const { return mpages; }
 
   /** Number of rows */
-  size_t nrows() const { return mrows; }
+  [[nodiscard]] size_t nrows() const { return mrows; }
 
   /** Number of columns */
-  size_t ncols() const { return mcols; }
+  [[nodiscard]] size_t ncols() const { return mcols; }
 };
 
 /** Output operator.  The object must have its own output operator. */

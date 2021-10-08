@@ -26,9 +26,9 @@ USA. */
 
 #include "rational.h"
 
+#include "mystring.h"
 #include <ostream>
 #include <stdexcept>
-#include "mystring.h"
 
 std::ostream& operator<<(std::ostream& os, const Rational& a) {
   Rational r = reduce_by_gcd(a);
