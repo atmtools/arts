@@ -130,4 +130,12 @@ void reshape(Tensor3View X, ConstVectorView x);
 
 void calculate_weights_linear(Vector& x, Vector& w, const Index nph);
 
+/** Checks for negative values */
+template <typename MatpackType>
+constexpr bool any_negative(const MatpackType& var) noexcept {
+  if (var.empty()) return false;
+  if (min(var) < 0) return true;
+  return false;
+}
+
 #endif  // math_funcs_h

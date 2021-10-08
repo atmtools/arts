@@ -34,33 +34,6 @@
 
 #include "lineshape.h"
 
-/** Checks if a Propagation Matrix or something similar has good grids */
-template <class T>
-bool bad_propmat(const Array<T>& main,
-                 const Vector& f_grid,
-                 const Index sd = 4) noexcept {
-  const Index nf = f_grid.nelem();
-  for (auto& var : main) {
-    const bool bad_stokes = sd not_eq var.StokesDimensions();
-    const bool bad_freq = nf not_eq var.NumberOfFrequencies();
-    if (bad_freq or bad_stokes) return true;
-  }
-  return false;
-}
-
-
-/** Checks for negative values */
-template <typename MatpackType> constexpr
-bool any_negative(const MatpackType& var) noexcept {
-  if (var.empty())
-    return false;
-  else if (min(var) < 0)
-    return true;
-  else
-    return false;
-}
-
-
 void zeeman_on_the_fly(
     PropagationMatrix& propmat_clearsky,
     StokesVector& nlte_source,
@@ -104,11 +77,11 @@ void zeeman_on_the_fly(
     "*nlte_source* must have *stokes_dim* 4")
   ARTS_USER_ERROR_IF(not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
     "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
-  ARTS_USER_ERROR_IF(not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
+  ARTS_USER_ERROR_IF(not nq and bad_propmat(dpropmat_clearsky_dx, f_grid, 4),
     "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(nlte_do and (nq not_eq dnlte_source_dx.nelem()),
     "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(nlte_do and bad_propmat(dnlte_source_dx, f_grid),
+  ARTS_USER_ERROR_IF(nlte_do and bad_propmat(dnlte_source_dx, f_grid, 4),
     "*dnlte_source_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")

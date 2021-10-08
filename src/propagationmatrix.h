@@ -1518,4 +1518,20 @@ inline LazyScale<PropagationMatrix> operator*(const Numeric& x,
   return LazyScale<PropagationMatrix>(pm, x);
 }
 
+
+/** Checks if a Propagation Matrix or something similar has good grids */
+template <class T>
+bool bad_propmat(const Array<T>& main,
+                 const Vector& f_grid,
+                 const Index sd = 1) noexcept {
+  const Index nf = f_grid.nelem();
+  for (auto& var : main) {
+    const bool bad_stokes = sd > var.StokesDimensions();
+    const bool bad_freq = nf not_eq var.NumberOfFrequencies();
+    if (bad_freq or bad_stokes) return true;
+  }
+
+  return false;
+}
+
 #endif  //propagationmatrix_h

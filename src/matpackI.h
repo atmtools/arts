@@ -397,13 +397,13 @@ class Iterator1D {
       return false;
   }
 
-#ifdef __GLIBCXX__
-  bool operator==(const Iterator1D& other) const ARTS_NOEXCEPT { return !operator!=(other); }
+  bool operator==(const Iterator1D& other) const ARTS_NOEXCEPT {
+    return !operator!=(other);
+  }
 
   Index operator-(const Iterator1D& other) const ARTS_NOEXCEPT {
     return (Index)(mx - other.mx) / mstride;
   }
-#endif
 
   /** Copy data between begin and end to target. Target must be a valid
     area of memory. Note that the strides in the iterators can be
@@ -454,6 +454,14 @@ class ConstIterator1D {
       return true;
     else
       return false;
+  }
+
+  bool operator==(const ConstIterator1D& other) const ARTS_NOEXCEPT {
+    return !operator!=(other);
+  }
+
+  Index operator-(const ConstIterator1D& other) const ARTS_NOEXCEPT {
+    return (Index)(mx - other.mx) / mstride;
   }
 
   friend void copy(ConstIterator1D origin,
