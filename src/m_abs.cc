@@ -354,6 +354,9 @@ void abs_coefCalcFromXsec(  // WS Output:
               dabs_coef_dx[iq](k, j) +=
                   dabs_xsec_per_species_dx[i][iq](k, j) * abs_vmrs(i, j) * n;
             }
+          } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+            dabs_coef_dx[iq](k, j) +=
+                dabs_xsec_per_species_dx[i][iq](k, j) * n;
           } else {
             dabs_coef_dx[iq](k, j) +=
                 dabs_xsec_per_species_dx[i][iq](k, j) * n * abs_vmrs(i, j);
@@ -1005,13 +1008,13 @@ void propmat_clearskyAddFaraday(
   if (ne != 0 && (rtp_mag[0] != 0 || rtp_mag[1] != 0 || rtp_mag[2] != 0)) {
     // Include remaining terms, beside /f^2
     const Numeric c1 =
-        2 * FRconst * ne *
+        2 * FRconst *
         dotprod_with_los(
             rtp_los, rtp_mag[0], rtp_mag[1], rtp_mag[2], atmosphere_dim);
 
     Numeric dc1_u = 0.0, dc1_v = 0.0, dc1_w = 0.0;
     if (do_magn_jac) {
-      dc1_u = (2 * FRconst * ne *
+      dc1_u = (2 * FRconst *
                     dotprod_with_los(rtp_los,
                                     rtp_mag[0] + dmag,
                                     rtp_mag[1],
@@ -1019,7 +1022,7 @@ void propmat_clearskyAddFaraday(
                                     atmosphere_dim) -
                 c1) /
               dmag;
-      dc1_v = (2 * FRconst * ne *
+      dc1_v = (2 * FRconst *
                     dotprod_with_los(rtp_los,
                                     rtp_mag[0],
                                     rtp_mag[1] + dmag,
@@ -1027,7 +1030,7 @@ void propmat_clearskyAddFaraday(
                                     atmosphere_dim) -
                 c1) /
               dmag;
-      dc1_w = (2 * FRconst * ne *
+      dc1_w = (2 * FRconst *
                     dotprod_with_los(rtp_los,
                                     rtp_mag[0],
                                     rtp_mag[1],
@@ -1039,21 +1042,21 @@ void propmat_clearskyAddFaraday(
 
     for (Index iv = 0; iv < f_grid.nelem(); iv++) {
       const Numeric f2 = f_grid[iv] * f_grid[iv];
-      const Numeric r = c1 / f2;
+      const Numeric r = ne * c1 / f2;
       propmat_clearsky.AddFaraday(r, iv);
 
       // The Jacobian loop
       for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
         if (is_frequency_parameter(jacobian_quantities[iq]))
-          dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * ne * r / f_grid[iv], iv);
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticU)
-          dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(ne * dc1_u / f2, iv);
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticV)
-          dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(ne * dc1_v / f2, iv);
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticW)
-          dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(ne * dc1_w / f2, iv);
         else if (jacobian_quantities[iq] == Jacobian::Atm::Electrons)
-          dpropmat_clearsky_dx[iq].AddFaraday(r / ne, iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(r, iv);
         else if (jacobian_quantities[iq] == abs_species[ife])
           dpropmat_clearsky_dx[iq].AddFaraday(r, iv);
       }
@@ -1220,8 +1223,7 @@ void propmat_clearskyAddParticles(
               internal_propmat.SetAtPosition(
                   ext_mat_Nse[i_ss][i_se](0, 0, 0, joker, joker), iv);
         }
-        internal_propmat *= rtp_vmr[sp];
-        propmat_clearsky += internal_propmat;
+        propmat_clearsky += rtp_vmr[sp] * internal_propmat;
       }
 
       // For temperature derivatives (so we don't need to check it in jac loop)
@@ -1433,7 +1435,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
       sparse_com.reset();
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
                            isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
                            false, Zeeman::Polarization::Pi, speedup_type);
         
@@ -1489,7 +1491,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
         continue;
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
                            isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
                            false, Zeeman::Polarization::Pi, speedup_type);
         
@@ -1859,7 +1861,7 @@ void abs_xsec_per_speciesAddLines(
       sparse_com.reset();
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species), abs_vmrs(ispecies, ip),
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species), abs_species[ispecies], abs_vmrs(ispecies, ip),
                            isotopologue_ratios[band.Isotopologue()], abs_p[ip], abs_t[ip], 0, 0, false, Zeeman::Polarization::Pi, speedup_type);
         
       }

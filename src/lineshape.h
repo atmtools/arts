@@ -714,6 +714,7 @@ void compute(ComputeData &com,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
              const EnergyLevelMap &nlte, const Vector &vmrs,
+             const ArrayOfSpeciesTag& self_tag,
              const Numeric &self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H, const Numeric &sparse_lim,
              const bool do_zeeman, const Zeeman::Polarization zeeman_polarization, const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT;
                         

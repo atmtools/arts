@@ -390,10 +390,6 @@ void iyEmissionStandard(
                                              jacobian_quantities,
                                              ppvar_f(joker, ip),
                                              ppath.los(ip, joker),
-                                             ppvar_vmr(joker, ip),
-                                             ppvar_t[ip],
-                                             ppvar_p[ip],
-                                             jac_species_i,
                                              lte,
                                              atmosphere_dim,
                                              j_analytical_do);

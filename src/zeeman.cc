@@ -143,7 +143,7 @@ void zeeman_on_the_fly(
         for (auto& band : abs_lines_per_species[ispecies]) {
           LineShape::compute(com, sparse_com, 
                              band, jacobian_quantities, rtp_nlte,
-                             band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                             band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
                              isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, X.H, sparse_limit,
                              true, polar, Options::LblSpeedup::None);
           
@@ -216,7 +216,7 @@ void zeeman_on_the_fly(
         for (auto& band : abs_lines_per_species[ispecies]) {
           LineShape::compute(com, sparse_com,
                              band, jacobian_quantities, rtp_nlte,
-                             band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
+                             band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
                              isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, X.H, sparse_limit,
                              true, polar, Options::LblSpeedup::None);
           
