@@ -1,7 +1,7 @@
 #include "absorption.h"
 #include "artstime.h"
-#include "lineshape.h"
 #include "gui/plot.h"
+#include "lineshape.h"
 
 namespace {
   constexpr Index N = 10001;
@@ -22,7 +22,7 @@ namespace {
   constexpr Numeric dF0 = 1e1;
   constexpr Numeric dI0 = 1e1;
   static_assert (N > 1);
-}
+} // namespace
 
 ENUMCLASS (ModificationInternal, char,
            None,
@@ -201,14 +201,14 @@ void test_ls() {
     std::cout << "all derivs...\n";
     for (Index i=0; i<TN; i++) {
       Time start;
-      LineShape::compute(com, sparse_com, band, jacobian_quantities, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+      LineShape::compute(com, sparse_com, band, jacobian_quantities, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
       dt[i] = Time() - start;
     }
     std::sort(dt.begin(), dt.end());
     std::cerr << "Slow: " << dt[TN-1] << '\n' << "Mean: " << mean(dt) << '\n' << "Med.: " << median(dt) << '\n' << "Fast: " << dt[0] << '\n';
     
     LineShape::ComputeData com2(f_g, jacobian_quantities, false);
-    LineShape::compute(com2, sparse_com, band, jacobian_quantities, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com2, sparse_com, band, jacobian_quantities, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     F = com2.F;
     N = com2.N;
     dF = com2.dF;
@@ -222,14 +222,14 @@ void test_ls() {
     std::cout << "\njust forward calcs...\n";
     for (Index i=0; i<TN; i++) {
       Time start;
-      LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+      LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
       dt[i] = Time() - start;
     }
     std::sort(dt.begin(), dt.end());
     std::cerr << "Slow: " << dt[TN-1] << '\n' << "Mean: " << mean(dt) << '\n' << "Med.: " << median(dt) << '\n' << "Fast: " << dt[0] << '\n';
     
     LineShape::ComputeData com2(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com2, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com2, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com2.F;
     dN_mod[j] = com2.N;
     
@@ -240,7 +240,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::f, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -250,7 +250,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::H, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -260,7 +260,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::F0, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -270,7 +270,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::I0, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -280,7 +280,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfG0, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -290,7 +290,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfD0, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -300,7 +300,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfG2, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -310,7 +310,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfD2, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -320,7 +320,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfETA, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -330,7 +330,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfFVC, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -340,7 +340,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfY, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -350,7 +350,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfG, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -360,7 +360,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfDV, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -370,7 +370,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirG0, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -380,7 +380,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirD0, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -390,7 +390,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirG2, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -400,7 +400,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirD2, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -410,7 +410,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirETA, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -420,7 +420,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirFVC, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -430,7 +430,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirY, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -440,7 +440,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirG, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -450,7 +450,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirDV, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -460,7 +460,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::SelfVMR, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -470,7 +470,7 @@ void test_ls() {
   {
     auto [qid, band, f_g, vmr, P, T, H] = line_model<ModificationInternal::AirVMR, ls_type>();
     LineShape::ComputeData com(f_g, jacobian_quantities_null, false);
-    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+    LineShape::compute(com, sparse_com, band, jacobian_quantities_null, nlte, vmr, {}, 1, 1, P, T, H, 0, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
     dF_mod[j] = com.F;
     dN_mod[j] = com.N;
     dF_mod[j] -= F;
@@ -695,32 +695,32 @@ void test_sparse() {
   LineShape::ComputeData com_full(f_g, {}, false);
   LineShape::ComputeData sparse_com_full(Vector(0), {}, false);
   LineShape::compute(com_full, sparse_com_full, band, {}, nlte,
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+                     vmr, {}, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
   LineShape::compute(com_full, sparse_com_full, band2, {}, nlte,
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+                     vmr, {}, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
   LineShape::compute(com_full, sparse_com_full, band3, {}, nlte,
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+                     vmr, {}, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
   
   Vector sparse3_f_grid = LineShape::triple_sparse_f_grid(f_g, 30e9);
   LineShape::ComputeData com3(f_g, {}, false);
   LineShape::ComputeData sparse_com3(sparse3_f_grid, {}, false);
   LineShape::compute(com3, sparse_com3, band, {}, nlte,
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
+                     vmr, {}, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
   LineShape::compute(com3, sparse_com3, band2, {}, nlte,
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
+                     vmr, {}, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
   LineShape::compute(com3, sparse_com3, band3, {}, nlte,
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
+                     vmr, {}, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::QuadraticIndependent);
   
   Vector sparsel_f_grid = LineShape::linear_sparse_f_grid(f_g, 10e9);
   std::cout << sparsel_f_grid <<'\n';
   LineShape::ComputeData coml(f_g, {}, false);
   LineShape::ComputeData sparse_coml(sparsel_f_grid, {}, false);
   LineShape::compute(coml, sparse_coml, band, {}, nlte,
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearIndependent);
+                     vmr, {}, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearIndependent);
   LineShape::compute(coml, sparse_coml, band2, {}, nlte,
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearIndependent);
+                     vmr, {}, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearIndependent);
   LineShape::compute(coml, sparse_coml, band3, {}, nlte,
-                     vmr, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearIndependent);
+                     vmr, {}, 1, 1, P, T, H, dfreq, true, Zeeman::Polarization::Pi, Options::LblSpeedup::LinearIndependent);
   Vector f = f_g;
   f /= 1e9;
   
