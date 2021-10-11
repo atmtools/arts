@@ -2,6 +2,7 @@
 #include "artstime.h"
 #include "gui/plot.h"
 #include "lineshape.h"
+#include "species.h"
 
 namespace {
   constexpr Index N = 10001;
@@ -173,29 +174,29 @@ void test_ls() {
     jacobian_quantities[0].Target() = JacobianTarget(Jacobian::Atm::Temperature);
     jacobian_quantities[1].Target() = JacobianTarget(Jacobian::Atm::WindMagnitude);
     jacobian_quantities[2].Target() = JacobianTarget(Jacobian::Atm::MagneticMagnitude);
-    jacobian_quantities[3].Target() = JacobianTarget(Jacobian::Line::Center, qid);
-    jacobian_quantities[4].Target() = JacobianTarget(Jacobian::Line::Strength, qid);
-    jacobian_quantities[5].Target() = JacobianTarget(Jacobian::Line::ShapeG0X0, qid, -1);
-    jacobian_quantities[6].Target() = JacobianTarget(Jacobian::Line::ShapeD0X0, qid, -1);
-    jacobian_quantities[7].Target() = JacobianTarget(Jacobian::Line::ShapeG2X0, qid, -1);
-    jacobian_quantities[8].Target() = JacobianTarget(Jacobian::Line::ShapeD2X0, qid, -1);
-    jacobian_quantities[9].Target() = JacobianTarget(Jacobian::Line::ShapeETAX0, qid, -1);
-    jacobian_quantities[10].Target() = JacobianTarget(Jacobian::Line::ShapeFVCX0, qid, -1);
-    jacobian_quantities[11].Target() = JacobianTarget(Jacobian::Line::ShapeYX1, qid, -1);
-    jacobian_quantities[12].Target() = JacobianTarget(Jacobian::Line::ShapeGX1, qid, -1);
-    jacobian_quantities[13].Target() = JacobianTarget(Jacobian::Line::ShapeDVX0, qid, -1);
-    jacobian_quantities[14].Target() = JacobianTarget(Jacobian::Line::ShapeG0X0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[15].Target() = JacobianTarget(Jacobian::Line::ShapeD0X0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[16].Target() = JacobianTarget(Jacobian::Line::ShapeG2X0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[17].Target() = JacobianTarget(Jacobian::Line::ShapeD2X0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[18].Target() = JacobianTarget(Jacobian::Line::ShapeETAX0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[19].Target() = JacobianTarget(Jacobian::Line::ShapeFVCX0, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[20].Target() = JacobianTarget(Jacobian::Line::ShapeYX1, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[21].Target() = JacobianTarget(Jacobian::Line::ShapeGX1, qid, std::numeric_limits<Index>::max());
-    jacobian_quantities[22].Target() = JacobianTarget(Jacobian::Line::ShapeDVX0, qid, std::numeric_limits<Index>::max());
-    qid.SetAll();
-    jacobian_quantities[23].Target() = JacobianTarget(Jacobian::Line::VMR, qid);  // Self is increasing
-    jacobian_quantities[24].Target() = JacobianTarget(Jacobian::Line::VMR, QuantumIdentifier(Species::Isotopologues[0], Quantum::IdentifierType::All));  // Another species... main point: it's air
+    jacobian_quantities[3].Target() = JacobianTarget(Jacobian::Line::Center, qid, qid.Species());
+    jacobian_quantities[4].Target() = JacobianTarget(Jacobian::Line::Strength, qid, qid.Species());
+    jacobian_quantities[5].Target() = JacobianTarget(Jacobian::Line::ShapeG0X0, qid, qid.Species());
+    jacobian_quantities[6].Target() = JacobianTarget(Jacobian::Line::ShapeD0X0, qid, qid.Species());
+    jacobian_quantities[7].Target() = JacobianTarget(Jacobian::Line::ShapeG2X0, qid, qid.Species());
+    jacobian_quantities[8].Target() = JacobianTarget(Jacobian::Line::ShapeD2X0, qid, qid.Species());
+    jacobian_quantities[9].Target() = JacobianTarget(Jacobian::Line::ShapeETAX0, qid, qid.Species());
+    jacobian_quantities[10].Target() = JacobianTarget(Jacobian::Line::ShapeFVCX0, qid, qid.Species());
+    jacobian_quantities[11].Target() = JacobianTarget(Jacobian::Line::ShapeYX1, qid, qid.Species());
+    jacobian_quantities[12].Target() = JacobianTarget(Jacobian::Line::ShapeGX1, qid, qid.Species());
+    jacobian_quantities[13].Target() = JacobianTarget(Jacobian::Line::ShapeDVX0, qid, qid.Species());
+    jacobian_quantities[14].Target() = JacobianTarget(Jacobian::Line::ShapeG0X0, qid, Species::Species::Bath);
+    jacobian_quantities[15].Target() = JacobianTarget(Jacobian::Line::ShapeD0X0, qid, Species::Species::Bath);
+    jacobian_quantities[16].Target() = JacobianTarget(Jacobian::Line::ShapeG2X0, qid, Species::Species::Bath);
+    jacobian_quantities[17].Target() = JacobianTarget(Jacobian::Line::ShapeD2X0, qid, Species::Species::Bath);
+    jacobian_quantities[18].Target() = JacobianTarget(Jacobian::Line::ShapeETAX0, qid, Species::Species::Bath);
+    jacobian_quantities[19].Target() = JacobianTarget(Jacobian::Line::ShapeFVCX0, qid, Species::Species::Bath);
+    jacobian_quantities[20].Target() = JacobianTarget(Jacobian::Line::ShapeYX1, qid, Species::Species::Bath);
+    jacobian_quantities[21].Target() = JacobianTarget(Jacobian::Line::ShapeGX1, qid, Species::Species::Bath);
+    jacobian_quantities[22].Target() = JacobianTarget(Jacobian::Line::ShapeDVX0, qid, Species::Species::Bath);
+    qid = QuantumIdentifier(qid.Isotopologue());
+    jacobian_quantities[23].Target() = JacobianTarget(Jacobian::Line::VMR, qid, qid.Species());  // Self is increasing
+    jacobian_quantities[24].Target() = JacobianTarget(Jacobian::Line::VMR, QuantumIdentifier(Species::Isotopologues[0]), Species::Species::Bath);  // Another species... main point: it's air
     LineShape::ComputeData com(f_g, jacobian_quantities, false);
     ArrayOfTimeStep dt(TN);
     std::cout << "all derivs...\n";
@@ -743,15 +744,15 @@ int main() try {
   
 //   test_ls<LineShape::Type::DP>();
 //   test_ls<LineShape::Type::LP>();
-//   test_ls<LineShape::Type::VP>();
+   test_ls<LineShape::Type::VP>();
 //   test_ls<LineShape::Type::SDVP>();
 //   test_ls<LineShape::Type::HTP>();
 // 
   test_norm();
 //   
-//   test_lte_strength();
+   test_lte_strength();
 //   
-//   test_sparse();
+   test_sparse();
 //   
   return EXIT_SUCCESS;
 } catch (std::exception& e) {
