@@ -29,8 +29,6 @@
   === External declarations
   ===========================================================================*/
 
-#include <cmath>
-#include <stdexcept>
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
@@ -46,6 +44,8 @@
 #include "rte.h"
 #include "special_interp.h"
 #include "transmissionmatrix.h"
+#include <cmath>
+#include <stdexcept>
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;

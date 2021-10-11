@@ -35,8 +35,6 @@
   === External declarations
   ===========================================================================*/
 
-#include <cmath>
-#include <stdexcept>
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
@@ -45,6 +43,8 @@
 #include "math_funcs.h"
 #include "montecarlo.h"
 #include "rte.h"
+#include <cmath>
+#include <stdexcept>
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;

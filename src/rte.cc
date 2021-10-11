@@ -2371,7 +2371,7 @@ void yCalc_mblock_loop_body(bool& failed,
             jmax = j;
           }
         }
-        const Index jhit = Index(floor(jmax / nfs));
+        const auto jhit = Index(floor(jmax / nfs));
         y_geo(row0 + i, joker) = geo_pos_matrix(jhit, joker);
       }
     }

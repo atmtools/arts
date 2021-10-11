@@ -1228,7 +1228,7 @@ void RadarOnionPeelingTableCalc(
   //
   Tensor3 D(2, nwc, nt, 0);
   //
-  Vector pnd_agenda_input_t = t_grid;
+  const Vector& pnd_agenda_input_t = t_grid;
   Matrix pnd_agenda_input(nt, 1);
   ArrayOfString dpnd_data_dx_names(0);
   //

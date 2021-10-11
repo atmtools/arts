@@ -1419,110 +1419,45 @@ void propmat_clearskyAddLines(  // Workspace reference:
   LineShape::ComputeData com(f_grid, jacobian_quantities, nlte_do);
   LineShape::ComputeData sparse_com(f_grid_sparse, jacobian_quantities, nlte_do);
   
-  // Need to do more complicated calculations if this is true
-  const bool legacy_vmr_derivative=std::any_of(jacobian_quantities.cbegin(), jacobian_quantities.cend(),
-                                               [](auto& deriv){return deriv == Jacobian::Special::ArrayOfSpeciesTagVMR;});
-  if (legacy_vmr_derivative) {
-    for (Index ispecies = 0; ispecies < ns; ispecies++) {
-      if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
-      
-      // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
-        continue;
-      
-      // Reset for legacy VMR jacobian
-      com.reset();
-      sparse_com.reset();
-      
-      for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
-                           isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
-                           false, Zeeman::Polarization::Pi, speedup_type);
-        
-      }
-      
-      switch (speedup_type) {
-        case Options::LblSpeedup::LinearIndependent: com.interp_add_even(sparse_com); break;
-        case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
-        case Options::LblSpeedup::None: /* Do nothing */ break;
-        case Options::LblSpeedup::FINAL: { /* Leave last */ }
-      }
-      
-      // Sum up the propagation matrix
-      propmat_clearsky.Kjj() += com.F.real();
-      
-      // Sum up the Jacobian
-      for (Index j=0; j<nq; j++) {
-        auto& deriv = jacobian_quantities[j];
-        
-        if (not deriv.propmattype()) continue;
-        
-        if (deriv == abs_species[ispecies]) {
-          dpropmat_clearsky_dx[j].Kjj() += com.F.real();  // FIXME: Without this, the complex-variables would never need reset
-        } else {
-          dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
-        }
-      }
-      
-      if (nlte_do) {
-        // Sum up the source vector
-        nlte_source.Kjj() += com.N.real();
-        
-        // Sum up the Jacobian
-        for (Index j=0; j<nq; j++) {
-          auto& deriv = jacobian_quantities[j];
-          
-          if (not deriv.propmattype()) continue;
-          
-          if (deriv == abs_species[ispecies]) {
-            dnlte_source_dx[j].Kjj() += com.N.real();  // FIXME: Without this, the complex-variables would never need reset
-          } else {
-            dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
-          }
-        }
-      }
-    }
-  } else {
-    for (Index ispecies = 0; ispecies < ns; ispecies++) {
-      if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
-      
-      // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
-        continue;
-      
-      for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
-                           isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
-                           false, Zeeman::Polarization::Pi, speedup_type);
-        
-      }
-    }
+  for (Index ispecies = 0; ispecies < ns; ispecies++) {
+    if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
     
-    switch (speedup_type) {
-      case Options::LblSpeedup::LinearIndependent: com.interp_add_even(sparse_com); break;
-      case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
-      case Options::LblSpeedup::None: /* Do nothing */ break;
-      case Options::LblSpeedup::FINAL: { /* Leave last */ }
-    }
+    // Skip it if there are no species or there is Zeeman requested
+    if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
+      continue;
+    
+    for (auto& band : abs_lines_per_species[ispecies]) {
+      LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
+                          isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
+                          false, Zeeman::Polarization::Pi, speedup_type);
       
-    // Sum up the propagation matrix
-    propmat_clearsky.Kjj() += com.F.real();
+    }
+  }
+  
+  switch (speedup_type) {
+    case Options::LblSpeedup::LinearIndependent: com.interp_add_even(sparse_com); break;
+    case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
+    case Options::LblSpeedup::None: /* Do nothing */ break;
+    case Options::LblSpeedup::FINAL: { /* Leave last */ }
+  }
+    
+  // Sum up the propagation matrix
+  propmat_clearsky.Kjj() += com.F.real();
+  
+  // Sum up the Jacobian
+  for (Index j=0; j<nq; j++) {
+    if (not jacobian_quantities[j].propmattype()) continue;
+    dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
+  }
+  
+  if (nlte_do) {
+    // Sum up the source vector
+    nlte_source.Kjj() += com.N.real();
     
     // Sum up the Jacobian
     for (Index j=0; j<nq; j++) {
       if (not jacobian_quantities[j].propmattype()) continue;
-      dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
-    }
-    
-    if (nlte_do) {
-      // Sum up the source vector
-      nlte_source.Kjj() += com.N.real();
-      
-      // Sum up the Jacobian
-      for (Index j=0; j<nq; j++) {
-        if (not jacobian_quantities[j].propmattype()) continue;
-        dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
-      }
+      dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
     }
   }
 }
