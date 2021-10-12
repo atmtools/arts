@@ -1,16 +1,19 @@
-#include <cstdlib>
-#include <iostream>
 #include "linemixing.h"
 #include "matpackI.h"
 #include "wigner_functions.h"
+#include <cstdlib>
+#include <iostream>
 
 constexpr Numeric FECS(Numeric OMGA, Numeric EC) {return 1./(1.+EC*OMGA*OMGA)/(1.+EC*OMGA*OMGA);}
 
 int main() try {
+    constexpr Index Jmax = 128;
+    constexpr Index nRmx = 4 * Jmax;
+    constexpr Index lmax = 4 * Jmax;
     constexpr std::array typerf{'P', 'Q', 'R'};
     constexpr Numeric T0{296.0};
 
-make_wigner_ready(300, 30000000, 6);
+make_wigner_ready(300, 50000000, 6);
 
     Index saved_nraies=0;
 
@@ -21,15 +24,15 @@ make_wigner_ready(300, 30000000, 6);
             const Index li = ll;
             const Index lf = ll + Deltal;
 
-            Tensor3 W(128, 128, 8, 0.0);
-            ArrayOfIndex ji(128*4, 0), jf(128*4, 0);
+            Tensor3 W(nRmx, nRmx, 8, 0.0);
+            ArrayOfIndex ji(nRmx, 0), jf(nRmx, 0);
             for (Index itemp=0; itemp<8; itemp++) {
                 const auto temp = Numeric(180 + 20 * itemp);
 
-                Tensor3 Wipert(128*4, 128*4, 2, 0.0);
+                Tensor3 Wipert(nRmx, nRmx, 2, 0.0);
 
                 for (Index ipp=0; ipp<2; ipp++) {
-                    Array<char> typeR(128*4, '\0');
+                    Array<char> typeR(nRmx, '\0');
 
                     const Index iPert = 2 + ipp;
                     const std::array amasse{4., 40., 28., 32.};
@@ -40,17 +43,17 @@ make_wigner_ready(300, 30000000, 6);
                     const std::array dx{0.0, aa[iPert], alc[iPert], alp[iPert], bbet[iPert]};
 
                     // QL
-                    Vector QL(4*128 + 1, 0);
-                    Vector ECS(4*128 + 1, 0);
+                    Vector QL(lmax + 1, 0);
+                    Vector ECS(lmax + 1, 0);
                     const Numeric AM = 1./(1./amasse[iPert]+1./44.);
                     const Numeric ECT = 0.0006983*AM*dx[2]*dx[2]/temp;
                     const Numeric AT = dx[1];
                     QL[0] = 0.;
                     ECS[0] = 1;
-                    const Index idl = 2;
+                    constexpr Index idl = 2;
                     const Numeric brot = 0.39;
                     const Numeric betaa = 1.4388 * brot / temp;
-                    for (Index L=1; L<= 4*128; L++) {
+                    for (Index L=1; L <= lmax; L++) {
                         const Numeric QMX = brot * Numeric((L + L + 1 - idl) * idl);
                         ECS[L] = FECS(QMX, ECT);
                         const auto AL2 = Numeric(L*L+L);
@@ -59,11 +62,11 @@ make_wigner_ready(300, 30000000, 6);
                     }
 
                     // ji,jf
-                    Index nraies = 0;
+                    Index nraies = -1;
                     for (Index ibid=3; ibid>0; ibid--) {
                         const Index itypeR = ibid % 3 - 1;
-                        if (li == 0 and lf ==0 and itypeR == 0) continue;
-                        for (Index jji=0; jji<=128; jji++) {
+                        if (li == 0 and lf == 0 and itypeR == 0) continue;
+                        for (Index jji=0; jji<=Jmax; jji++) {
                             Index jjf = jji + itypeR;
                             if (jji >= li and jjf >= lf) {
                                 nraies++;
@@ -75,22 +78,23 @@ make_wigner_ready(300, 30000000, 6);
                     }
 
                     // calculation of W
-                    for (Index iR=0; iR<nraies; iR++) {
+                    for (Index iR=0; iR<=nraies; iR++) {
                         const Index jji = ji[iR];
                         const Index jjf = jf[iR];
-                        for (Index iRp=0; iRp<nraies; iRp++) {
+                        std::cerr << jji << ' ' << jjf << '\n';
+                        for (Index iRp=0; iRp<=nraies; iRp++) {
                             const Index jjip = ji[iRp];
                             const Index jjfp = jf[iRp];
                             if (jjip > jji) continue;
                             Index Ldeb = std::max(std::abs(jji-jjip), std::abs(jjf-jjfp));
-                            if ((Ldeb % 2) not_eq 0) Ldeb += 1;
+                            if ((Ldeb % idl) not_eq 0) Ldeb += 1;
                             const Index Lfin = std::min(jji+jjip, jjf+jjfp);
                             Numeric som=0.0;
-                            for (Index L=Ldeb; L<= Lfin; L+=idl) {
-                                Numeric RJ = wigner3j(jji, jjip, L, li, 0, -li);
+                            for (Index L=Ldeb; L <= Lfin; L+=idl) {
+                                Numeric RJ = wigner3j(jji, jjip, L, li, -li, 0);
                                 const Numeric SS=RJ*QL[L]/ECS[L];
-                                RJ = wigner3j(jjf, jjfp, L, lf, 0, -lf);
-                                som += RJ*SS*wigner6j(jji, jjf, 1, jjip, jjfp, L);
+                                RJ = wigner3j(jjf, jjfp, L, lf, -lf, 0);
+                                som += RJ*SS*wigner6j(jji, jjf, 1, jjfp, jjip, L);
                             }
                             const Numeric ROJ=Numeric(2*jjip+1)*std::sqrt(Numeric((2*jjf+1)*(2*jjfp+1)))*ECS[jji];
 
