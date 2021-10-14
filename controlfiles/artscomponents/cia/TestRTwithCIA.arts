@@ -26,10 +26,14 @@ Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 
 # on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
-# Include CIA in spectroscopy
-Copy( abs_xsec_agenda, abs_xsec_agenda__withCIA )
+AgendaSet( propmat_clearsky_agenda ) {
+      Ignore( rtp_los )
+      Ignore( rtp_mag )
+      propmat_clearskyInit
+      propmat_clearskyAddConts
+      propmat_clearskyAddCIA
+      propmat_clearskyAddLines
+}
 
 # sensor-only path
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
@@ -116,7 +120,6 @@ VectorSet( rte_pos2, [] )     # A dummy value
 
 # Perform RT calculations
 # ---
-abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
@@ -134,9 +137,9 @@ MatrixCreate( iy_reference )
 ReadXML( iy_reference,
          "TestRTwithCIA.iy_reference.xml")
 
-Compare( iy, 
-         iy_reference, 
-         1e-08, 
-	 "Brightness temperature with CIA N2 continuum differs from reference calculation" )
+CompareRelative( iy, 
+                 iy_reference, 
+                 1e-03, 
+	             "Brightness temperature with CIA N2 continuum differs from reference calculation" )
 
 }
