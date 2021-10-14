@@ -1086,7 +1086,7 @@ bool is_line_parameter(const RetrievalQuantity& t) noexcept {
 }
 
 bool supports_CIA(const ArrayOfRetrievalQuantity& js) {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Line::VMR or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or j == Jacobian::Line::VMR or is_frequency_parameter(j));});
 }
 
 bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
