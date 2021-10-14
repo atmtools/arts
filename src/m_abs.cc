@@ -1497,8 +1497,8 @@ void propmat_clearskyAddConts(  // Workspace reference:
   }
   // Jacobian overhead END
 
-  Vector abs_p{rtp_pressure};
-  Vector abs_t{rtp_temperature};
+  const Vector abs_p{rtp_pressure};
+  const Vector abs_t{rtp_temperature};
 
   // We set abs_h2o, abs_n2, and abs_o2 later, because we only want to
   // do it if the parameters are really needed.
