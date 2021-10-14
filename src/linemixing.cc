@@ -322,6 +322,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                                    const Numeric T)
 {
   using Conversion::kelvin2joule;
+  constexpr std::pair<Rational, Rational> compute_limits_L{2, std::numeric_limits<Index>::max()};
   
   const auto bk = [](const Rational& r) -> Numeric {return sqrt(2*r + 1);};
   
@@ -355,7 +356,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
       Numeric sum=0;
       const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) * bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) * bk(Ji_p);
-      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Ni_p, Ni), {Rational(2), std::numeric_limits<Index>::max()});
+      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Ni_p, Ni), wigner3j_limits<3>(Nf_p, Nf), compute_limits_L);
       for (Rational L=L0; L<=L1; L+=2) {
         const Numeric a = wigner3j(Ni_p, Ni, L, 0, 0, 0);
         const Numeric b = wigner3j(Nf_p, Nf, L, 0, 0, 0);
@@ -439,15 +440,17 @@ Numeric upper_offdiagonal_element(const Rational Ji,
                                   const Numeric self_mass,
                                   const EnergyFunction& erot) ARTS_NOEXCEPT
 {
+  constexpr std::pair<Rational, Rational> compute_limits_L{2, std::numeric_limits<Index>::max()};
   ARTS_ASSERT(Ji <= Ji_p, "Ji is selected as the upper state in our formalism")
   
   Numeric sum = 0;
   const auto [Ls, Lf] = wigner_limits(wigner3j_limits<2>(Ji_p, Ji, li, 0, -li),
-                                      {2, std::numeric_limits<Index>::max()});
+                                      compute_limits_L);
+  std::cout << Ls << ' ' << Lf << '\n';
   
   for (Rational L=Ls; L<=Lf; L+=2) {
     const Numeric a = wigner3j(Ji_p, L, Ji, li, 0, -li);
-    const Numeric b = wigner3j(Jf_p, L, Jf, -lf, 0, lf);
+    const Numeric b = wigner3j(Jf_p, L, Jf, lf, 0, -lf);
     const Numeric c = wigner6j(Ji, Jf, k, Jf_p, Ji_p, L);
     sum += a * b * c * Numeric(2 * L + 1) * rovib_data.Q(L, T, T0, erot(L)) / rovib_data.Omega(T, T0, self_mass, erot(L), erot(L-2));
   }
@@ -533,8 +536,8 @@ void real_offdiagonal_relaxation_matrix(MatrixView W,
       const auto [W12, W21] = offdiagonal_elements(Ji1, Ji2, Jf1, Jf2, li, lf, rovib_data, k,
                                                    std::exp((erot(Jf2) - erot(Jf1)) / Conversion::kelvin2joule(T)),
                                                    T, band.T0(), band.SpeciesMass(), erot);
-      W(j, i) = W12;
-      W(i, j) = W21;
+      W(j, i) = - 10'000 * std::abs(W12);
+      W(i, j) = - 10'000 * std::abs(W21);
     }
   }
 }
@@ -563,9 +566,9 @@ void verify_sum_rule(MatrixView W,
     
     for (Index j=0; j<N; j++) {
       if (j > i) {
-        sumlw += dipr[j] * W(j, i);
+        sumlw += std::abs(dipr[j]) * W(j, i);
       } else {
-        sumup += dipr[j] * W(j, i);
+        sumup += std::abs(dipr[j]) * W(j, i);
       }
     }
     
@@ -622,7 +625,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   }
   
   real_offdiagonal_relaxation_matrix(W, band, sorting, rovib_data, k,  T, erot);
-  
+  std::cout << W << '\n';
   // FIXME: Use local pop and dip instead?
   verify_sum_rule(W, band, dip, sorting, T, erot);  // FIXME: make this use local ratio?
 }
