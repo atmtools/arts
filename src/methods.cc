@@ -12772,6 +12772,37 @@ void define_md_data_raw() {
       AGENDAMETHOD(false)));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddCIA"),
+      DESCRIPTION(
+          "Calculate absorption coefficients per tag group for HITRAN CIA continua.\n"
+          "\n"
+          "This interpolates the cross sections from *abs_cia_data*.\n"
+          "\n"
+          "The robust option is intended only for testing. Do not use for normal\n"
+          "runs, since subsequent functions will not be able to deal with NAN values.\n"),
+      AUTHORS("Stefan Buehler, Oliver Lemke"),
+      OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "dpropmat_clearsky_dx",
+         "abs_species",
+         "jacobian_quantities",
+         "f_grid",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_vmr",
+         "abs_cia_data"),
+      GIN("T_extrapolfac", "robust", "select_speciestags"),
+      GIN_TYPE("Numeric", "Index", "ArrayOfSpeciesTag"),
+      GIN_DEFAULT("0.5", "0", ""),
+      GIN_DESC(
+          "Temperature extrapolation factor (relative to grid spacing).",
+          "Set to 1 to suppress runtime errors (and return NAN values instead).",
+          "Species selection (will only compute for the select species in *abs_species*)")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddConts"),
       DESCRIPTION("Calculate propmat for continua.\n"),
       AUTHORS("Stefan Buehler, Oliver Lemke"),
