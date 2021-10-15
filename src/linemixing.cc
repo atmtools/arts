@@ -356,7 +356,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
       Numeric sum=0;
       const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) * bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) * bk(Ji_p);
-      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Ni_p, Ni), wigner3j_limits<3>(Nf_p, Nf), compute_limits_L);
+      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Ni_p, Ni), compute_limits_L);
       for (Rational L=L0; L<=L1; L+=2) {
         const Numeric a = wigner3j(Ni_p, Ni, L, 0, 0, 0);
         const Numeric b = wigner3j(Nf_p, Nf, L, 0, 0, 0);
@@ -440,15 +440,13 @@ Numeric upper_offdiagonal_element(const Rational Ji,
                                   const Numeric self_mass,
                                   const EnergyFunction& erot) ARTS_NOEXCEPT
 {
-  constexpr std::pair<Rational, Rational> compute_limits_L{2, std::numeric_limits<Index>::max()};
   ARTS_ASSERT(Ji <= Ji_p, "Ji is selected as the upper state in our formalism")
   
   Numeric sum = 0;
-  const auto [Ls, Lf] = wigner_limits(wigner3j_limits<2>(Ji_p, Ji, li, 0, -li),
-                                      compute_limits_L);
-  std::cout << Ls << ' ' << Lf << '\n';
+  Index L = std::max(std::abs((Ji-Ji_p).toIndex()), std::abs((Jf-Jf_p).toIndex())); if (L % 2) ++L;
+  const Index Lf = std::min((Ji+Ji_p).toIndex(), (Jf+Jf_p).toIndex());
   
-  for (Rational L=Ls; L<=Lf; L+=2) {
+  for (; L<=Lf; L+=2) {
     const Numeric a = wigner3j(Ji_p, L, Ji, li, 0, -li);
     const Numeric b = wigner3j(Jf_p, L, Jf, lf, 0, -lf);
     const Numeric c = wigner6j(Ji, Jf, k, Jf_p, Ji_p, L);
@@ -536,8 +534,8 @@ void real_offdiagonal_relaxation_matrix(MatrixView W,
       const auto [W12, W21] = offdiagonal_elements(Ji1, Ji2, Jf1, Jf2, li, lf, rovib_data, k,
                                                    std::exp((erot(Jf2) - erot(Jf1)) / Conversion::kelvin2joule(T)),
                                                    T, band.T0(), band.SpeciesMass(), erot);
-      W(j, i) = - 10'000 * std::abs(W12);
-      W(i, j) = - 10'000 * std::abs(W21);
+      W(j, i) = - std::abs(W12);
+      W(i, j) = - std::abs(W21);
     }
   }
 }
@@ -550,21 +548,18 @@ void real_offdiagonal_relaxation_matrix(MatrixView W,
  * @param[in] dipr The reduced dipole moments
  */
 void verify_sum_rule(MatrixView W,
-                     const AbsorptionLines& band,
                      const Vector& dipr,
-                     const ArrayOfIndex& sorting,
-                     const Numeric T,
-                     const EnergyFunction& erot) ARTS_NOEXCEPT
+                     const Vector& pop) ARTS_NOEXCEPT
 {
-  const Index N = dipr.nelem();
-  ARTS_ASSERT(W.nrows() == N and W.nrows() == W.ncols(), "Bad lines count and matrix size")
+  const Index n = dipr.nelem();
+  ARTS_ASSERT(W.nrows() == n and W.nrows() == W.ncols(), "Bad lines count and matrix size")
   
   // Sum rule correction
-  for (Index i=0; i<N; i++) {
+  for (Index i=0; i<n; i++) {
     Numeric sumlw = 0.0;
     Numeric sumup = 0.0;
     
-    for (Index j=0; j<N; j++) {
+    for (Index j=0; j<n; j++) {
       if (j > i) {
         sumlw += std::abs(dipr[j]) * W(j, i);
       } else {
@@ -572,13 +567,13 @@ void verify_sum_rule(MatrixView W,
       }
     }
     
-    for (Index j=i+1; j<N; j++) {
+    for (Index j=i+1; j<n; j++) {
       if (sumlw == 0) {
         W(j, i) = 0.0;
         W(i, j) = 0.0;
       } else {
         W(j, i) *= - sumup / sumlw;
-        W(i, j) = W(j, i) * std::exp((erot(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J)) - erot(band.LowerQuantumNumber(sorting[j], QuantumNumberType::J))) / Conversion::kelvin2joule(T));  // This gives LTE
+        W(i, j) = W(j, i) * pop[i] / pop[j];
       }
     }
   }
@@ -608,6 +603,7 @@ constexpr Rational getTypeOfTransition(TypeOfTransition t) noexcept {
 void relaxation_matrix_offdiagonal(MatrixView W,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
+                                   const PopulationAndDipole& tp,
                                    const SpeciesErrorCorrectedSuddenData& rovib_data,
                                    const Numeric T) ARTS_NOEXCEPT
 {
@@ -625,9 +621,9 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   }
   
   real_offdiagonal_relaxation_matrix(W, band, sorting, rovib_data, k,  T, erot);
-  std::cout << W << '\n';
+  
   // FIXME: Use local pop and dip instead?
-  verify_sum_rule(W, band, dip, sorting, T, erot);  // FIXME: make this use local ratio?
+  verify_sum_rule(W, dip, tp.pop);  // FIXME: make this use local ratio?
 }
 } // namespace LinearRovibErrorCorrectedSudden
 
@@ -645,6 +641,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  */
 ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
                                                    const ArrayOfIndex& sorting,
+                                                   const PopulationAndDipole& tp,
                                                    const Numeric T,
                                                    const Numeric P,
                                                    const SpeciesErrorCorrectedSuddenData& species_ecs_data,
@@ -667,7 +664,7 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
       Makarov2020etal::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
       break;
     case PopulationType::ByRovibLinearDipoleLineMixing: {
-      LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
+      LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, tp, species_ecs_data, T);
     } break;
     default:
       ARTS_ASSERT(false, "Bad type, we don't support band population type: ", band.Population(),
@@ -696,6 +693,7 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
                                     const ErrorCorrectedSuddenData& ecs_data,
                                     const AbsorptionLines& band,
                                     const ArrayOfIndex& sorting,
+                                    const PopulationAndDipole& tp,
                                     const Numeric frenorm) {
   const Index N = band.NumLines();
   const Index M = vmrs.nelem();
@@ -708,10 +706,10 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
     if (vmrs[k] == 0) continue;
     
     // Create temporary
-    const ComplexMatrix Wtmp = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[k]], k);
+    const ComplexMatrix Wtmp = single_species_ecs_relaxation_matrix(band, sorting, tp, T, P, ecs_data[band.BroadeningSpecies()[k]], k);
     
     // Sum up all atmospheric components
-    MapToEigen(W).noalias() += vmrs[k] * MapToEigen(Wtmp);
+    MapToEigen(W).noalias() += P * vmrs[k] * MapToEigen(Wtmp);
   }
   
   // Deal with line frequency and its re-normalization
@@ -742,8 +740,8 @@ ComplexVector ecs_absorption_impl(const Numeric T,
   auto [sorting, tp] = sorted_population_and_dipole(T, band);
   
   // Relaxation matrix
-  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, frenorm);
-  
+  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, tp, frenorm);
+
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
   
@@ -765,13 +763,6 @@ ComplexVector ecs_absorption_impl(const Numeric T,
     const Numeric f = f_grid[iv];
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
-    
-    ARTS_USER_ERROR_IF(isnan(absorption[iv]) or absorption[iv].real() < 0,
-                       "There's a bad value in the absorption profile.  The offending band\n"
-                       "must not be fulfilling some of the conditions associated with\n"
-                       "on-the-fly line mixing, the value is: ", absorption[iv], "\n\n"
-                       "The full band metadata:\n", band.MetaData(), '\n',
-                       "The full band data:\n", band)
   }
   
   return absorption;
@@ -1020,7 +1011,7 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
   const auto [sorting, tp] = sorted_population_and_dipole(T, band);
   
   // Relaxation matrix
-  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, frenorm);
+  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, tp, frenorm);
   
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
@@ -1050,13 +1041,6 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
     const Numeric f = f_grid[iv];
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
-    
-    ARTS_USER_ERROR_IF(isnan(absorption[iv]) or absorption[iv].real() < 0,
-                       "There's a bad value in the absorption profile.  The offending band\n"
-                       "must not be fulfilling some of the conditions associated with\n"
-                       "on-the-fly line mixing, the value is: ", absorption[iv], "\n\n"
-                       "The full band metadata:\n", band.MetaData(), '\n',
-                       "The full band data:\n", band)
   }
   
   return absorption;
@@ -1555,16 +1539,16 @@ Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
       const Numeric T = temperatures[k];
       const Numeric QT = single_partition_function(T, band.Isotopologue());
       
+      // Populations and dipoles of T0 sorting at T
+      const auto tp = presorted_population_and_dipole(T, sorting, band);
+      
       // Relaxation matrix of T0 sorting at T
-      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[m]], m);
+      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, tp, T, P, ecs_data[band.BroadeningSpecies()[m]], m);
       for (Index n=0; n<N; n++) {
         W(n, n) += band.F0(sorting[n]) - frenorm;
       }
       
-      // Populations and dipoles of T0 sorting at T
-      const auto [pop, dip] = presorted_population_and_dipole(T, sorting, band);
-      
-      const auto eig = eigenvalue_adaptation_of_relmat(W, pop, dip, band, frenorm, T, P, QT, QT0, m);
+      const auto eig = eigenvalue_adaptation_of_relmat(W, tp.pop, tp.dip, band, frenorm, T, P, QT, QT0, m);
       
       out(0, joker, m, k) = eig.str.real();
       out(1, joker, m, k) = eig.str.imag();
