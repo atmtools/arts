@@ -1701,7 +1701,7 @@ Vector compabs(
   
   constexpr Numeric sq_ln2 = Constant::sqrt_ln_2;
   constexpr Numeric sq_ln2pi = sq_ln2 / Constant::sqrt_pi;
-  const Numeric dens = vmrs[2] * number_density(P, T);
+  const Numeric dens = vmrs[0] * number_density(P, T);
   constexpr Numeric u_pi = Constant::inv_pi;
   constexpr Numeric u_sqln2pi = 1 / sq_ln2pi;
   
@@ -2057,7 +2057,7 @@ void read(HitranRelaxationMatrixData& hitran,
                 linemixinglimit_internal,
                 {specs[cmn.Bands.Isot[i]-1].Isotopologue(), outer_upper, outer_lower},
                 {QuantumNumberType::J},
-                {Species::fromShortName("N2"), Species::fromShortName("H2O"), specs[cmn.Bands.Isot[i]-1].Spec()}};
+                {Species::fromShortName("CO2"), Species::fromShortName("H2O"), Species::fromShortName("AIR")}};
     
     const Numeric rat_isot = isotopologue_ratio[bands[i].Isotopologue()];
     
@@ -2099,8 +2099,8 @@ void read(HitranRelaxationMatrixData& hitran,
       const LineShape::SingleSpeciesModel vp_h2o{G0_vp_h2o, D0};
       const LineShape::SingleSpeciesModel vp_co2{G0_vp_co2, D0};
       const auto lsmodel = typeVP(mode) ?
-        LineShape::Model{{vp_air, vp_h2o, vp_co2}} :
-        LineShape::Model{{sdvp_air, sdvp_h2o, sdvp_co2}};
+      LineShape::Model{{vp_co2,vp_h2o, vp_air}} :
+      LineShape::Model{{sdvp_co2, sdvp_h2o, sdvp_air}};
         
       Numeric qt0_co2, gsi0;
       qt_co2(parameters::T0, cmn.Bands.Isot[i], gsi0, qt0_co2);
