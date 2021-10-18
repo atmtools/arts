@@ -1,12 +1,17 @@
+#include <iomanip>
+#include <iostream>
 #include <numeric>
 
 #include <Faddeeva/Faddeeva.hh>
 
+#include "constants.h"
 #include "lin_alg.h"
 #include "linemixing.h"
 #include "lineshape.h"
+#include "matpack.h"
 #include "minimize.h"
 #include "physics_funcs.h"
+#include "species.h"
 
 namespace Absorption::LineMixing {
 EquivalentLines::EquivalentLines(const ComplexMatrix& W,
@@ -147,11 +152,7 @@ PopulationAndDipole::PopulationAndDipole(const Numeric T,
                                                              band.LowerQuantumNumber(i, QuantumNumberType::J),
                                                              band.UpperQuantumNumber(i, QuantumNumberType::N))) ? - 1 : 1;
     } else if (band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing) {
-      const Rational& Ji = band.UpperQuantumNumber(i, QuantumNumberType::J);
-      const Rational& Jf = band.LowerQuantumNumber(i, QuantumNumberType::J);
-      const Rational& li = band.UpperQuantumNumber(i, QuantumNumberType::l2);
-      const Rational& lf = band.LowerQuantumNumber(i, QuantumNumberType::l2);
-      dip[i] *= std::signbit((iseven(lf + Jf) ? 1 : -1) * sqrt(2* Jf + 1) * wigner3j(Ji, 1, Jf, li, lf-li, lf)) ? -1 : 1;
+      // pass
     }
   }
 }
@@ -227,8 +228,7 @@ PopulationAndDipole presorted_population_and_dipole(const Numeric T,
 Numeric SpeciesErrorCorrectedSuddenData::Q(const Rational J,
                                            const Numeric T,
                                            const Numeric T0,
-                                           const Numeric energy) const noexcept
-{
+                                           const Numeric energy) const noexcept {
   return std::exp(- beta.at(T, T0) * energy / (Constant::k * T)) * scaling.at(T, T0) / pow(J * (J+1), lambda.at(T, T0));
 }
 
@@ -319,10 +319,8 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
                                    const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T)
-{
+                                   const Numeric T) {
   using Conversion::kelvin2joule;
-  constexpr std::pair<Rational, Rational> compute_limits_L{2, std::numeric_limits<Index>::max()};
   
   const auto bk = [](const Rational& r) -> Numeric {return sqrt(2*r + 1);};
   
@@ -356,7 +354,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
       Numeric sum=0;
       const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) * bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) * bk(Ji_p);
-      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Ni_p, Ni), compute_limits_L);
+      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Ni_p, Ni), {Rational(2), std::numeric_limits<Index>::max()});
       for (Rational L=L0; L<=L1; L+=2) {
         const Numeric a = wigner3j(Ni_p, Ni, L, 0, 0, 0);
         const Numeric b = wigner3j(Nf_p, Nf, L, 0, 0, 0);
@@ -369,7 +367,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       
       // Add to W and rescale to upwards element by the populations
       W(k, l) = sum;
-      W(l, k) = sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / Conversion::kelvin2joule(T));
+      W(l, k) = sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / kelvin2joule(T));
     }
   }
   
@@ -396,7 +394,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
         W(i, j) = 0.0;
       } else {
         W(j, i) *= - sumup / sumlw;
-        W(i, j) = W(j, i) * std::exp((erot(Ni, Ji) - erot(Nj, Jj)) / Conversion::kelvin2joule(T));  // This gives LTE
+        W(i, j) = W(j, i) * std::exp((erot(Ni, Ji) - erot(Nj, Jj)) / kelvin2joule(T));  // This gives LTE
       }
     }
   }
@@ -413,146 +411,79 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  * It requires inputs for each of the internal components
  */
 namespace LinearRovibErrorCorrectedSudden {
-/** The entire "sum over L" full expression
- * 
- * The main transition is Jf   ← Ji
- * The virt transition is Jf_p ← Ji_p
- * 
- * @param[in] Ji Main upper state angular momentum quantum number
- * @param[in] Ji_p Virtual upper state angular momentum quantum number
- * @param[in] Jf Main lower state angular momentum quantum number
- * @param[in] Jf_p Virtual lower state angular momentum quantum number
- * @param[in] k 1 means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
- * @param[in] Q The Q function, must accept Q(L) and return a Numeric
- * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
- * @return full sum result
- */
-Numeric upper_offdiagonal_element(const Rational Ji,
-                                  const Rational Ji_p,
-                                  const Rational Jf,
-                                  const Rational Jf_p,
-                                  const Rational li,
-                                  const Rational lf,
-                                  const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                  const Rational k,
-                                  const Numeric T,
-                                  const Numeric T0,
-                                  const Numeric self_mass,
-                                  const EnergyFunction& erot) ARTS_NOEXCEPT
+
+EnergyFunction erot_selection(const SpeciesIsotopeRecord& isot)
 {
-  ARTS_ASSERT(Ji <= Ji_p, "Ji is selected as the upper state in our formalism")
-  
-  Numeric sum = 0;
-  Index L = std::max(std::abs((Ji-Ji_p).toIndex()), std::abs((Jf-Jf_p).toIndex())); if (L % 2) ++L;
-  const Index Lf = std::min((Ji+Ji_p).toIndex(), (Jf+Jf_p).toIndex());
-  
-  for (; L<=Lf; L+=2) {
-    const Numeric a = wigner3j(Ji_p, L, Ji, li, 0, -li);
-    const Numeric b = wigner3j(Jf_p, L, Jf, lf, 0, -lf);
-    const Numeric c = wigner6j(Ji, Jf, k, Jf_p, Ji_p, L);
-    sum += a * b * c * Numeric(2 * L + 1) * rovib_data.Q(L, T, T0, erot(L)) / rovib_data.Omega(T, T0, self_mass, erot(L), erot(L-2));
+  if (isot.spec == Species::Species::CarbonDioxide and isot.isotname == "626") {
+    return [](const Rational J) -> Numeric {return Conversion::kaycm2joule(0.39021) * Numeric(J * (J + 1));};
   }
   
-  return (iseven(li + lf + k) ? -1 : 1) * rovib_data.Omega(T, T0, self_mass, erot(Ji), erot(Ji-2)) *
-          Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1)) * sum;
+  ARTS_USER_ERROR(isot.FullName(), " has no rotational energies in ARTS")
+  return [](const Rational J) -> Numeric {return Numeric(J) * std::numeric_limits<Numeric>::signaling_NaN();};
 }
 
-/** Compute off-diagonal elements for a pair of quantum numbers
- * 
- * One transition is Jf1 ← Ji1, and
- * one transition is Jf2 ← Ji2
- * 
- * Selects the largest Ji* (or Ji1 if both are equal) to be the 
- *'reference' off-diagonal element.  The other is going to be a
- * scale of the population ratios of the reference element
- * 
- * @param[in] Ji1 First transition's upper state angular momentum quantum number
- * @param[in] Ji2 Second transition's upper state angular momentum quantum number
- * @param[in] Jf1 First transition's lower state angular momentum quantum number
- * @param[in] Jf2 Second transition's lower state angular momentum quantum number
- * @param[in] k 1 means IR absorption, 0 means isotropic Raman, and 2 means anisotropic Raman
- * @param[in] pop1 First transition's population ratio
- * @param[in] pop2 Second transition's population ratio
- * @param[in] Q The Q function, must accept Q(L) and return a Numeric
- * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
- * @return The pair of off-diagonal elements W12 and W21 in that order
- */
-std::pair<Numeric, Numeric> offdiagonal_elements(const Rational Ji1,
-                                                 const Rational Ji2,
-                                                 const Rational Jf1,
-                                                 const Rational Jf2,
-                                                 const Rational li,
-                                                 const Rational lf,
-                                                 const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                                 const Rational k,
-                                                 const Numeric pop12,
-                                                 const Numeric T,
-                                                 const Numeric T0,
-                                                 const Numeric self_mass,
-                                                 const EnergyFunction& erot) ARTS_NOEXCEPT
+void relaxation_matrix_offdiagonal(MatrixView W,
+                                   const AbsorptionLines& band,
+                                   const ArrayOfIndex& sorting,
+                                   const SpeciesErrorCorrectedSuddenData& rovib_data,
+                                   const Numeric T) ARTS_NOEXCEPT
 {
-  if (Ji1 <= Ji2) {
-    const Numeric W = upper_offdiagonal_element(Ji1, Ji2, Jf1, Jf2, li, lf, rovib_data,
-                                                k, T, T0, self_mass, erot);
-    return {W, W / pop12};
-  }
-  const Numeric W = upper_offdiagonal_element(Ji2, Ji1, Jf2, Jf1, li, lf, rovib_data,
-                                              k, T, T0, self_mass, erot);
-  return {W * pop12, W};
-}
+  using Conversion::kelvin2joule;
 
-/** Returns the off-diagonal relaxation matrix if full
- * 
- * @param[in] band The absorption band
- * @param[in] pop The population level distribtion
- * @param[in] sorting pop[i] corresponds to absorption line band.Lines(sorting[i])
- * @param[in] Q The Q function, must accept Q(L) and return a Numeric
- * @param[in] Omega The adiabatic function, must accept Omega(L) and return a Numeric
- * @return W but imaginary parts and diagonal elements are zero
- */
-void real_offdiagonal_relaxation_matrix(MatrixView W,
-                                        const AbsorptionLines& band,
-                                        const ArrayOfIndex& sorting,
-                                        const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                        const Rational k,
-                                        const Numeric T,
-                                        const EnergyFunction& erot) ARTS_NOEXCEPT
-{
-  const Index N = band.NumLines();
-  ARTS_ASSERT(sorting.nelem() == N, "Inconsistent sorting and lines count")
+  const EnergyFunction erot = erot_selection(band.Isotopologue());
   
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
+  const Index n = band.NumLines();
+  if (not n) return;
+
+  // These are constant for a band
   const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
   
-  for (Index i=0; i<N; i++) {
-    for (Index j=0; j<i; j++) {
-      const Rational Jf1 = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
-      const Rational Jf2 = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
-      const Rational Ji1 = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
-      const Rational Ji2 = band.UpperQuantumNumber(sorting[j], QuantumNumberType::J);
+  Vector dipr(n);
+  for (Index i=0; i<n; i++) {
+    dipr[i] = Absorption::reduced_rovibrational_dipole(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
+                                                       band.UpperQuantumNumber(sorting[i], QuantumNumberType::J), 
+                                                       band.LowerQuantumNumber(sorting[i], QuantumNumberType::l2), 
+                                                       band.UpperQuantumNumber(sorting[i], QuantumNumberType::l2));
+    
+    for (Index j=i+1; j<n; j++) {
+      // Select upper quantum number
+      const bool ihigh = band.E0(sorting[i]) > band.E0(sorting[j]);
+      const Index k = ihigh ? i : j;
+      const Index l = ihigh ? j : i;
       
-      const auto [W12, W21] = offdiagonal_elements(Ji1, Ji2, Jf1, Jf2, li, lf, rovib_data, k,
-                                                   std::exp((erot(Jf2) - erot(Jf1)) / Conversion::kelvin2joule(T)),
-                                                   T, band.T0(), band.SpeciesMass(), erot);
-      W(j, i) = - std::abs(W12);
-      W(i, j) = - std::abs(W21);
+      // Quantum numbers
+      const Rational Ji = band.UpperQuantumNumber(sorting[k], QuantumNumberType::J);
+      const Rational Jf = band.LowerQuantumNumber(sorting[k], QuantumNumberType::J);
+      const Rational Ji_p = band.UpperQuantumNumber(sorting[l], QuantumNumberType::J);
+      const Rational Jf_p = band.LowerQuantumNumber(sorting[l], QuantumNumberType::J);
+
+      Index L = std::max(std::abs((Ji-Ji_p).toIndex()), std::abs((Jf-Jf_p).toIndex()));
+      L += L % 2;
+      const Index Lf = std::min((Ji+Ji_p).toIndex(), (Jf+Jf_p).toIndex());
+      
+      Numeric sum=0;
+      for (; L<=Lf; L+=2) {
+        const Numeric a = wigner3j(Ji_p, L, Ji, li, 0, -li);
+        const Numeric b = wigner3j(Jf_p, L, Jf, lf, 0, -lf);
+        const Numeric c = wigner6j(Ji, Jf, 1, Jf_p, Ji_p, L);
+        const Numeric QL = rovib_data.Q(L, T, band.T0(), erot(L));
+        const Numeric ECS = rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(L), erot(L-2));
+        sum += a * b * c * Numeric(2 * L + 1) * QL / ECS;
+      }
+      const Numeric ECS = rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(Ji), erot(Ji-2));
+      const int sgn = iseven(li + lf + 1) ? -1 : 1;
+      const Numeric scl = sgn * ECS * 
+        Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1));
+
+      sum *= scl;
+      sum = - std::abs(sum);  // Undocumented abs-sign
+      
+      // Add to W and rescale to upwards element by the populations
+      W(k, l) = sum;
+      W(l, k) = sum * std::exp((erot(Jf_p) - erot(Jf)) / kelvin2joule(T));
     }
   }
-}
-
-/** Readjust the real part of the relaxation matrix
- * to fulfill the sum rule
- * 
- * @param[in,out] W The real part of the relaxation matrix
- * @param[in] popr The relative population ratios
- * @param[in] dipr The reduced dipole moments
- */
-void verify_sum_rule(MatrixView W,
-                     const Vector& dipr,
-                     const Vector& pop) ARTS_NOEXCEPT
-{
-  const Index n = dipr.nelem();
-  ARTS_ASSERT(W.nrows() == n and W.nrows() == W.ncols(), "Bad lines count and matrix size")
   
   // Sum rule correction
   for (Index i=0; i<n; i++) {
@@ -561,69 +492,24 @@ void verify_sum_rule(MatrixView W,
     
     for (Index j=0; j<n; j++) {
       if (j > i) {
-        sumlw += std::abs(dipr[j]) * W(j, i);
+        sumlw += std::abs(dipr[j]) * W(j, i);  // Undocumented abs-sign
       } else {
-        sumup += std::abs(dipr[j]) * W(j, i);
+        sumup += std::abs(dipr[j]) * W(j, i);  // Undocumented abs-sign
       }
     }
     
+    const Rational Ji = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
     for (Index j=i+1; j<n; j++) {
+      const Rational Jj = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
       if (sumlw == 0) {
         W(j, i) = 0.0;
         W(i, j) = 0.0;
       } else {
         W(j, i) *= - sumup / sumlw;
-        W(i, j) = W(j, i) * pop[i] / pop[j];
+        W(i, j) = W(j, i) * std::exp((erot(Ji) - erot(Jj)) / kelvin2joule(T));  // This gives LTE
       }
     }
   }
-}
-
-EnergyFunction erot_selection(const SpeciesIsotopeRecord& isot)
-{
-  if (isot.spec == Species::Species::CarbonDioxide and isot.isotname == "626") {
-    return [](const Rational J) -> Numeric {return Conversion::kaycm2joule(0.39021) * Numeric(J * (J + 1)) - Conversion::kaycm2joule(0.39021);};
-  }
-  
-  ARTS_USER_ERROR(isot.FullName(), " has no rotational energies in ARTS")
-  return [](const Rational J) -> Numeric {return Numeric(J) * std::numeric_limits<Numeric>::signaling_NaN();};
-}
-
-ENUMCLASS(TypeOfTransition, unsigned char, RamanIsotropic, Dipole, RamanAnisotropic)
-constexpr Rational getTypeOfTransition(TypeOfTransition t) noexcept {
-  switch(t) {
-    case TypeOfTransition::RamanIsotropic: return 0;
-    case TypeOfTransition::Dipole: return 1;
-    case TypeOfTransition::RamanAnisotropic: return 2;
-    case TypeOfTransition::FINAL: {/* leave last */}
-  }
-  return -1;
-}
-
-void relaxation_matrix_offdiagonal(MatrixView W,
-                                   const AbsorptionLines& band,
-                                   const ArrayOfIndex& sorting,
-                                   const PopulationAndDipole& tp,
-                                   const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T) ARTS_NOEXCEPT
-{
-  constexpr Rational k = getTypeOfTransition(TypeOfTransition::Dipole);
-  const EnergyFunction erot = erot_selection(band.Isotopologue());
-  
-  const Index N = band.NumLines();
-  Vector dip(N);
-  for (Index i=0; i<N; i++) {
-    const Rational Ji = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
-    const Rational li = band.UpperQuantumNumber(sorting[i], QuantumNumberType::l2);
-    const Rational Jf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
-    const Rational lf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::l2);
-    dip[i] = (iseven(lf + Jf) ? 1 : -1) * sqrt(2* Jf + 1) * wigner3j(Ji, k, Jf, li, lf-li, lf);
-  }
-  
-  real_offdiagonal_relaxation_matrix(W, band, sorting, rovib_data, k,  T, erot);
-  
-  // FIXME: Use local pop and dip instead?
-  verify_sum_rule(W, dip, tp.pop);  // FIXME: make this use local ratio?
 }
 } // namespace LinearRovibErrorCorrectedSudden
 
@@ -641,7 +527,6 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  */
 ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
                                                    const ArrayOfIndex& sorting,
-                                                   const PopulationAndDipole& tp,
                                                    const Numeric T,
                                                    const Numeric P,
                                                    const SpeciesErrorCorrectedSuddenData& species_ecs_data,
@@ -664,7 +549,7 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
       Makarov2020etal::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
       break;
     case PopulationType::ByRovibLinearDipoleLineMixing: {
-      LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, tp, species_ecs_data, T);
+      LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
     } break;
     default:
       ARTS_ASSERT(false, "Bad type, we don't support band population type: ", band.Population(),
@@ -693,7 +578,6 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
                                     const ErrorCorrectedSuddenData& ecs_data,
                                     const AbsorptionLines& band,
                                     const ArrayOfIndex& sorting,
-                                    const PopulationAndDipole& tp,
                                     const Numeric frenorm) {
   const Index N = band.NumLines();
   const Index M = vmrs.nelem();
@@ -705,18 +589,16 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
   for (Index k=0; k<M; k++) {
     if (vmrs[k] == 0) continue;
     
-    // Create temporary
-    const ComplexMatrix Wtmp = single_species_ecs_relaxation_matrix(band, sorting, tp, T, P, ecs_data[band.BroadeningSpecies()[k]], k);
-    
     // Sum up all atmospheric components
-    MapToEigen(W).noalias() += P * vmrs[k] * MapToEigen(Wtmp);
+    MapToEigen(W).noalias() += vmrs[k] * MapToEigen(
+      single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[k]], k));
   }
-  
+
   // Deal with line frequency and its re-normalization
   for (Index i=0; i<N; i++) {
-    W(i, i) += band.F0(sorting[i]) - frenorm;
+   real_val(W(i, i)) += band.F0(sorting[i]) - frenorm;
   }
-  
+
   return W;
 }
 
@@ -729,18 +611,18 @@ ComplexVector ecs_absorption_impl(const Numeric T,
                                   const Vector& f_grid,
                                   const AbsorptionLines& band) {
   constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
-  
+
   // Weighted center of the band
-  const Numeric frenorm = band.F_mean();
+  const Numeric frenorm = band.F_mean(T);
   
   // Band Doppler broadening constant
   const Numeric GD_div_F0 = band.DopplerConstant(T);
   
   // Sorted population
   auto [sorting, tp] = sorted_population_and_dipole(T, band);
-  
+
   // Relaxation matrix
-  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, tp, frenorm);
+  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, frenorm);
 
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
@@ -1011,7 +893,7 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
   const auto [sorting, tp] = sorted_population_and_dipole(T, band);
   
   // Relaxation matrix
-  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, tp, frenorm);
+  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, frenorm);
   
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
@@ -1539,16 +1421,16 @@ Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
       const Numeric T = temperatures[k];
       const Numeric QT = single_partition_function(T, band.Isotopologue());
       
-      // Populations and dipoles of T0 sorting at T
-      const auto tp = presorted_population_and_dipole(T, sorting, band);
-      
       // Relaxation matrix of T0 sorting at T
-      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, tp, T, P, ecs_data[band.BroadeningSpecies()[m]], m);
+      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[m]], m);
       for (Index n=0; n<N; n++) {
         W(n, n) += band.F0(sorting[n]) - frenorm;
       }
       
-      const auto eig = eigenvalue_adaptation_of_relmat(W, tp.pop, tp.dip, band, frenorm, T, P, QT, QT0, m);
+      // Populations and dipoles of T0 sorting at T
+      const auto [pop, dip] = presorted_population_and_dipole(T, sorting, band);
+      
+      const auto eig = eigenvalue_adaptation_of_relmat(W, pop, dip, band, frenorm, T, P, QT, QT0, m);
       
       out(0, joker, m, k) = eig.str.real();
       out(1, joker, m, k) = eig.str.imag();

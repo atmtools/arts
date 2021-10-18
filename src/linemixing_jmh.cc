@@ -1,3 +1,4 @@
+#include "constants.h"
 #include "linemixing.h"
 #include "matpackI.h"
 #include "wigner_functions.h"
@@ -18,7 +19,6 @@ Numeric relaxation_matrix_element(const Index li, const Index lf, const Index jj
     const Numeric SS=RJ*QL[L]/ECS[L];
     RJ = wigner3j(jjf, jjfp, L, lf, -lf, 0);
     som += RJ*SS*wigner6j(jji, jjf, 1, jjfp, jjip, L);
-    std::cout << wigner3j(jji, jjip, L, li, -li, 0) << ' ' << wigner3j(jjf, jjfp, L, lf, -lf, 0) << '\n';
   }
   const Numeric ROJ=Numeric(2*jjip+1)*std::sqrt(Numeric((2*jjf+1)*(2*jjfp+1)))*ECS[jji];
   
@@ -34,23 +34,6 @@ int main() try {
   constexpr Numeric T0{296.0};
   
   make_wigner_ready(300, 50000000, 6);
-  
-  for (Index Ji=0; Ji<5; Ji++) {
-    for (Index Ji_p=0; Ji_p<5; Ji_p++) {
-      for (Index L=0; L<5; L++) {
-        for (Index li=0; li<5; li++) {
-          const Numeric one = wigner3j(Ji, Ji_p, L, -li, li, 0);
-          const Numeric two = wigner3j(Ji_p, L, Ji, li, 0, -li);
-          if (one not_eq two)
-            std::cout << "X " << Ji << ' ' << Ji_p << ' ' << L << ' ' << li << ' ' << one << ' ' << two << '\n';
-          else if (one not_eq 0)
-            std::cout << "O " << Ji << ' ' << Ji_p << ' ' << L << ' ' << li << ' ' << one << ' ' << two << '\n';
-        }
-      }
-    }
-  }
-  
-  return 0;
   
   Index nraies = -1;
   
@@ -116,7 +99,6 @@ int main() try {
           for (Index iR=0; iR<=nraies; iR++) {
             const Index jji = ji[iR];
             const Index jjf = jf[iR];
-            std::cerr << jji << ' ' << jjf << '\n';
             for (Index iRp=0; iRp<=nraies; iRp++) {
               const Index jjip = ji[iRp];
               const Index jjfp = jf[iRp];

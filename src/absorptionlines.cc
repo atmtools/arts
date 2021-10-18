@@ -36,6 +36,7 @@
 #include "file.h"
 #include "hitran_species.h"
 #include "jpl_species.h"
+#include "linescaling.h"
 #include "quantum_parser_hitran.h"
 
 Rational Absorption::Lines::LowerQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept {
@@ -2846,21 +2847,31 @@ void Lines::SetAutomaticZeeman() noexcept {
     line.SetAutomaticZeeman(mquantumidentity, mlocalquanta);
 }
 
-Numeric Lines::F_mean() const noexcept {
-  const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
-                                         mlines.cbegin(), 0.0, std::plus<>(),
-                                         [](const auto& a, const auto& b){return a.F0() * b.I0();});
-  const Numeric div = std::accumulate(mlines.cbegin(), mlines.cend(), 0.0,
-                                      [](const auto& a, const auto& b){return a + b.I0();});
-  return  val / div;
-}
-
 Numeric Lines::F_mean(const ConstVectorView& wgts) const noexcept {
   const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
                                          wgts.begin(), 0.0, std::plus<>(),
                                          [](const auto& a, const auto& b){return a.F0() * b;});
   const Numeric div = wgts.sum();
   return  val / div;
+}
+
+Numeric Lines::F_mean(Numeric T) const noexcept {
+  if (T <= 0) T = mT0;
+
+  const Index n = NumLines();
+  const Numeric QT = single_partition_function(T, Isotopologue());
+  const Numeric QT0 = single_partition_function(mT0, Isotopologue());
+  const Numeric ratiopart = QT0 / QT;
+
+  Vector wgts(n);
+  for (Index i=0; i<n; i++) {
+    const Numeric pop0 = (g_upp(i) / QT0) * boltzman_factor(mT0, E0(i));
+    const Numeric pop = pop0 * ratiopart * boltzman_ratio(T, mT0, E0(i));
+    const Numeric dip_squared = - I0(i)/(pop0 * F0(i) * std::expm1(- (Constant::h * F0(i)) / (Constant::k * mT0)));
+    wgts[i] = pop * dip_squared;
+  }
+
+  return F_mean(wgts);
 }
 
 #pragma GCC diagnostic push

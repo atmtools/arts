@@ -126,11 +126,13 @@ int main() {
                                                         ArrayOfRetrievalQuantity(0));
   
   // Line by line calculations
-//   band.Population(Absorption::PopulationType::LTE);
-//   xsec_species(xsec2, source, phase, dxsec, dsource, dphase,
-//                ArrayOfRetrievalQuantity(0),
-//                f_grid, {P}, {T}, EnergyLevelMap{}, VMRmat, specs, band, 1);
-//   xsec2 *= number_density(P, T);
+  band.Normalization(Absorption::NormalizationType::SFS);
+  band.Population(Absorption::PopulationType::LTE);
+  LineShape::ComputeData com_lte(f_grid, {rq}, 0);
+  LineShape::ComputeData sparse_com_lte(Vector(0), {rq}, 0);
+  LineShape::compute(com_lte, sparse_com_lte, band, {rq}, {},
+                     band.BroadeningSpeciesVMR(VMR, specs), 1.0, 1.0, P, T, 0, 0,
+                     false, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
   
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
 //   auto data = Absorption::LineMixing::ecs_eigenvalue_adaptation_test(band,
@@ -153,5 +155,5 @@ int main() {
   ARTSGUI::PlotConfig::Legend = {"Full", "MPM2020", "LBL", "FullZeeman", "Adapted"};
   ARTSGUI::PlotConfig::X = "Frequency [GHz]";
   ARTSGUI::PlotConfig::Y = "Absorption [1/m]";
-  ARTSGUI::plot(f_grid, abs.real(), f_grid, mpm_abs.Kjj(), f_grid, xsec2(joker, 0), f_grid, absZ.real(), f_grid, com.F.real());
+  ARTSGUI::plot(f_grid, abs.real(), f_grid, mpm_abs.Kjj(), f_grid, com_lte.F.real(), f_grid, absZ.real(), f_grid, com.F.real());
 }
