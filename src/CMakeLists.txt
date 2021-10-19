@@ -669,3 +669,8 @@ target_link_libraries(test_partfun ${ALL_ARTS_LIBRARIES})
 add_dependencies(check-deps test_partfun)
 add_test(NAME "arts.cpp.fast.test_partfun" COMMAND test_partfun)
 ########################################################################################
+
+########### next testcase ###############
+
+add_executable (linemixing_jmh linemixing_jmh.cc)
+target_link_libraries(linemixing_jmh ${ALL_ARTS_LIBRARIES})

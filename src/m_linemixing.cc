@@ -116,11 +116,11 @@ void propmat_clearskyAddHitranLineMixingLines(PropagationMatrix& propmat_clearsk
         vmrs[1] = rtp_vmr[i];
       }
       else if (Species::fromShortName("CO2") == spec.Spec()) {
-        vmrs[2] = rtp_vmr[i];
+        vmrs[0] = rtp_vmr[i];
       }
     }
   }
-  vmrs[0] = 1 - vmrs[1] - vmrs[2];
+  vmrs[2] = 1.0 - vmrs[1] - vmrs[0];
     
   for (Index i=0; i<abs_species.nelem(); i++) {
     if (abs_lines_per_species[i].nelem() and 

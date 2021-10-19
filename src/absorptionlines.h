@@ -737,11 +737,12 @@ public:
    */
   Numeric& F0(size_t k) noexcept {return mlines[k].F0();}
   
-  /** Mean frequency by weight of line strengt
+  /** Mean frequency by weight of line strength
    * 
+   * @param[in] T Temperature at which to compute the line strength (T <= 0 means at T0 is used)
    * @return Mean frequency
    */
-  [[nodiscard]] Numeric F_mean() const noexcept;
+  [[nodiscard]] Numeric F_mean(Numeric T=0) const noexcept;
   
   /** Mean frequency by weight of line strengt
    * 
