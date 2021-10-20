@@ -288,7 +288,6 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
   }
 }
 
-#include "gui/progress_bar.h"
 void abs_lines_per_speciesAdaptOnTheFlyLineMixing(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                                   const MapOfErrorCorrectedSuddenData& ecs_data,
                                                   const Vector& t_grid,
