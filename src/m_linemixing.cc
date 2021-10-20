@@ -146,23 +146,6 @@ void abs_lines_per_speciesAdaptHitranLineMixing(ArrayOfArrayOfAbsorptionLines& a
   }
 }
 
-void abs_lines_per_speciesHitranLineMixingAdaptationData(ArrayOfTensor5& lm_data,
-                                                         const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                         const HitranRelaxationMatrixData& abs_hitran_relmat_data,
-                                                         const Vector& t_grid,
-                                                         const Vector& p_grid,
-                                                         const Verbosity&) 
-{
-  lm_data.resize(0);
-  for (auto& abs_lines: abs_lines_per_species) {
-    for (auto& band: abs_lines) {
-      if (band.Population() == Absorption::PopulationType::ByHITRANFullRelmat or band.Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat) {
-        lm_data.emplace_back(lm_hitran_2017::hitran_lm_eigenvalue_adaptation_test(band, t_grid, abs_hitran_relmat_data, p_grid));
-      }
-    }
-  }
-}
-
 void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
                                            ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                            const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -190,14 +173,14 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
         // vmrs should be for the line
         const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
         const Numeric this_vmr = rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
-        const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(rtp_temperature,
-                                                                        rtp_pressure,
-                                                                        this_vmr,
-                                                                        line_shape_vmr,
-                                                                        ecs_data[band.QuantumIdentity()],
-                                                                        f_grid,
-                                                                        band,
-                                                                        jacobian_quantities);
+        const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption(rtp_temperature,
+                                                                               rtp_pressure,
+                                                                               this_vmr,
+                                                                               line_shape_vmr,
+                                                                               ecs_data[band.QuantumIdentity()],
+                                                                               f_grid,
+                                                                               band,
+                                                                               jacobian_quantities);
         propmat_clearsky.Kjj() += abs.real();
         
         // Sum up the resorted Jacobian
@@ -255,16 +238,16 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
         const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
         const Numeric this_vmr = rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
         for (Zeeman::Polarization polarization : {Zeeman::Polarization::Pi, Zeeman::Polarization::SigmaMinus, Zeeman::Polarization::SigmaPlus}) {
-          const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption_zeeman(rtp_temperature,
-                                                                                 Z.H,
-                                                                                 rtp_pressure,
-                                                                                 this_vmr,
-                                                                                 line_shape_vmr,
-                                                                                 ecs_data[band.QuantumIdentity()],
-                                                                                 f_grid,
-                                                                                 polarization,
-                                                                                 band,
-                                                                                 jacobian_quantities);
+          const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption_zeeman(rtp_temperature,
+                                                                                        Z.H,
+                                                                                        rtp_pressure,
+                                                                                        this_vmr,
+                                                                                        line_shape_vmr,
+                                                                                        ecs_data[band.QuantumIdentity()],
+                                                                                        f_grid,
+                                                                                        polarization,
+                                                                                        band,
+                                                                                        jacobian_quantities);
           
           // Sum up the propagation matrix
           Zeeman::sum(propmat_clearsky, abs, Zeeman::SelectPolarization(polarization_scale_data, polarization));
@@ -300,6 +283,22 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
             }
           }
         }
+      }
+    }
+  }
+}
+
+#include "gui/progress_bar.h"
+void abs_lines_per_speciesAdaptOnTheFlyLineMixing(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                  const MapOfErrorCorrectedSuddenData& ecs_data,
+                                                  const Vector& t_grid,
+                                                  const Numeric& pressure,
+                                                  const Index& order,
+                                                  const Verbosity&) {
+  for (auto& abs_lines: abs_lines_per_species) {
+    for (auto& band: abs_lines) {
+      if (band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing or band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+        Absorption::LineMixing::ecs_eigenvalue_adaptation(band, t_grid, ecs_data[band.QuantumIdentity()], pressure, order);
       }
     }
   }

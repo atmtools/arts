@@ -592,7 +592,10 @@ class ConstComplexIterator2D {
 class ComplexVector : public ComplexVectorView {
  public:
   // Constructors:
-  ComplexVector();
+  ComplexVector() = default;
+  ComplexVector(ComplexVector&& cv) noexcept : ComplexVectorView(std::forward<ComplexVectorView>(cv)) {
+    cv.mdata = nullptr;
+  }
   explicit ComplexVector(Index n);
   ComplexVector(Index n, Complex fill);
   ComplexVector(Index n, Numeric fill);
@@ -600,20 +603,31 @@ class ComplexVector : public ComplexVectorView {
   ComplexVector(Complex start, Index extent, Numeric stride);
   ComplexVector(Numeric start, Index extent, Complex stride);
   ComplexVector(Numeric start, Index extent, Numeric stride);
-  ComplexVector(const ConstComplexVectorView& v);
+  explicit ComplexVector(const ConstComplexVectorView& v);
   ComplexVector(const ComplexVector& v);
-  ComplexVector(const Vector& v);
-  ComplexVector(const std::vector<Complex>&);
-  ComplexVector(const std::vector<Numeric>&);
+  explicit ComplexVector(const Vector& v);
+  explicit ComplexVector(const std::vector<Complex>&);
+  explicit ComplexVector(const std::vector<Numeric>&);
   ComplexVector(Complex* c, const Range& r0) ARTS_NOEXCEPT
   : ComplexVectorView(c, r0) {
     ARTS_ASSERT(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
   }
 
   // Assignment operators:
-  ComplexVector& operator=(ComplexVector v);
+  ComplexVector& operator=(const ComplexVector& v);
   ComplexVector& operator=(const Array<Complex>& v);
   ComplexVector& operator=(Complex x);
+
+  ComplexVector& operator=(ComplexVector&& v) noexcept {
+    if (this != &v) {
+      delete[] mdata;
+      mdata = v.mdata;
+      mrange = v.mrange;
+      v.mrange = Range(0, 0);
+      v.mdata = nullptr;
+    }
+    return *this;
+  }
 
   // Resize function:
   void resize(Index n);

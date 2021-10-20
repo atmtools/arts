@@ -30,10 +30,10 @@
   \author Stefan Buehler
   \date 2000-06-10 */
 
-#include <array>
 #include "methods.h"
 #include "arts.h"
 #include "wsv_aux.h"
+#include <array>
 
 namespace global_data {
 Array<MdRecord> md_data_raw;
@@ -205,14 +205,12 @@ void define_md_data_raw() {
 
   using global_data::wsv_group_names;
 
-  for (ArrayOfString::const_iterator it = wsv_group_names.begin();
-       it != wsv_group_names.end();
-       it++) {
-    if (*it != "Any") {
+  for (const auto & wsv_group_name : wsv_group_names) {
+    if (wsv_group_name != "Any") {
       md_data_raw.push_back(MdRecord(
-          NAME(String(*it + "Create").c_str()),
+          NAME(String(wsv_group_name + "Create").c_str()),
           DESCRIPTION(
-              String("Creates a variable of group " + *it +
+              String("Creates a variable of group " + wsv_group_name +
                      ".\n"
                      "\n"
                      "After being created, the variable is uninitialized.\n")
@@ -220,7 +218,7 @@ void define_md_data_raw() {
           ArrayOfString(AUTHORS("Oliver Lemke")),
           ArrayOfString(OUT()),
           ArrayOfString(GOUT("out")),
-          ArrayOfString(GOUT_TYPE((*it).c_str())),
+          ArrayOfString(GOUT_TYPE(wsv_group_name.c_str())),
           ArrayOfString(GOUT_DESC("Variable to create.")),
           ArrayOfString(IN()),
           ArrayOfString(GIN()),
@@ -407,8 +405,30 @@ void define_md_data_raw() {
               )));
 
   md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesAdaptOnTheFlyLineMixing"),
+      DESCRIPTION("Adapts the line-catalog from using *ecs_data* data to.\n"
+        "instead fit ordered parameters to imitate the line mxixing\n"
+        "\n"
+        "The order should be 1 or 2.  It will compute at 3 as well, but\n"
+        "there's no support in current ARTS LBL to make use of it so it\n"
+        "will crash at some point\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "ecs_data"),
+      GIN("t_grid", "pressure", "order"),
+      GIN_TYPE("Vector", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("The sorted temperature grid",
+               "The pressure at which the adaptation is made",
+               "The order of the parameters in adaptation")));
+
+  md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesAdaptHitranLineMixing"),
-      DESCRIPTION("Adapts the line-catalog from using HITRAN data to.\n"
+      DESCRIPTION("Adapts the line-catalog from using *abs_hitran_relmat_data* to.\n"
         "instead fit ordered parameters to imitate the line mxixing\n"
         "\n"
         "The order should be 1 or 2.  It will compute at 3 as well, but\n"
@@ -427,22 +447,6 @@ void define_md_data_raw() {
       GIN_DESC("The sorted temperature grid",
                "The pressure at which the adaptation is made",
                "The order of the parameters in adaptation")));
-
-  md_data_raw.push_back(create_mdrecord(
-    NAME("abs_lines_per_speciesHitranLineMixingAdaptationData"),
-      DESCRIPTION("Calls underlying functions to get adaptation data\n"
-      ),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("lm_data"),
-      GOUT_TYPE("ArrayOfTensor5"),
-      GOUT_DESC("Underlying LM data in order of appearance"),
-      IN("abs_lines_per_species", "abs_hitran_relmat_data"),
-      GIN("t_grid", "p_grid"),
-      GIN_TYPE("Vector", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The temperature grid",
-               "The pressure grid")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesKeepBand"),

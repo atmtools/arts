@@ -2,12 +2,13 @@
 #define linemixing_h
 
 #include <functional>
+#include <utility>
 
 #include "absorption.h"
-#include "matpack_complex.h"
 #include "constants.h"
 #include "gridded_fields.h"
 #include "linescaling.h"
+#include "matpack_complex.h"
 #include "zeemandata.h"
 
 namespace Absorption::LineMixing {
@@ -203,6 +204,16 @@ struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
   }
 };  // MapOfErrorCorrectedSuddenData
 
+// Return struct from calculations
+struct EcsReturn {
+  ComplexVector abs;
+  ArrayOfComplexVector dabs;
+  bool error;
+  EcsReturn(EcsReturn&&) noexcept = default;
+  EcsReturn(ComplexVector&& abs_, ArrayOfComplexVector&& dabs_, bool error_) noexcept :
+  abs(std::move(abs_)), dabs(std::move(dabs_)), error(error_) {}
+};
+
 /*! Computed the Error Corrected Sudden Complex absorption
  * 
  * @param[in] T The temperature
@@ -215,14 +226,14 @@ struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
  * @param[in] jacobian_quantities As WSV
  * @return Complex absorption and list of Complex absorption partial derivatives
  */
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
-                                                              const Numeric P,
-                                                              const Numeric this_vmr,
-                                                              const Vector& vmrs,
-                                                              const ErrorCorrectedSuddenData& ecs_data,
-                                                              const Vector& f_grid,
-                                                              const AbsorptionLines& band,
-                                                              const ArrayOfRetrievalQuantity& jacobian_quantities={});
+EcsReturn ecs_absorption(const Numeric T,
+                         const Numeric P,
+                         const Numeric this_vmr,
+                         const Vector& vmrs,
+                         const ErrorCorrectedSuddenData& ecs_data,
+                         const Vector& f_grid,
+                         const AbsorptionLines& band,
+                         const ArrayOfRetrievalQuantity& jacobian_quantities={});
 
 
 /*! Computed the Error Corrected Sudden Complex absorption with Zeeman effect perturbations
@@ -239,16 +250,16 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
  * @param[in] band The absorption band
  * @return Complex absorption of the Zeeman component
  */
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numeric T,
-                                                                     const Numeric H,
-                                                                     const Numeric P,
-                                                                     const Numeric this_vmr,
-                                                                     const Vector& vmrs,
-                                                                     const ErrorCorrectedSuddenData& ecs_data,
-                                                                     const Vector& f_grid,
-                                                                     const Zeeman::Polarization zeeman_polarization,
-                                                                     const AbsorptionLines& band,
-                                                                     const ArrayOfRetrievalQuantity& jacobian_quantities={});
+EcsReturn ecs_absorption_zeeman(const Numeric T,
+                                const Numeric H,
+                                const Numeric P,
+                                const Numeric this_vmr,
+                                const Vector& vmrs,
+                                const ErrorCorrectedSuddenData& ecs_data,
+                                const Vector& f_grid,
+                                const Zeeman::Polarization zeeman_polarization,
+                                const AbsorptionLines& band,
+                                const ArrayOfRetrievalQuantity& jacobian_quantities={});
 
 /**  Adapts the band to the temperature data
  * 

@@ -1758,6 +1758,10 @@ Vector compabs(
     const Numeric f = f_grid[iv];
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * dens * sq_ln2pi;
+
+    if (Numeric& a = absorption[iv]; not std::isnormal(a) or a < 0) {
+      a = 0;
+    }
   }
   
   return absorption;
@@ -2099,7 +2103,7 @@ void read(HitranRelaxationMatrixData& hitran,
       const LineShape::SingleSpeciesModel vp_h2o{G0_vp_h2o, D0};
       const LineShape::SingleSpeciesModel vp_co2{G0_vp_co2, D0};
       const auto lsmodel = typeVP(mode) ?
-      LineShape::Model{{vp_co2,vp_h2o, vp_air}} :
+      LineShape::Model{{vp_co2,vp_h2o, vp_air}}:
       LineShape::Model{{sdvp_co2, sdvp_h2o, sdvp_air}};
         
       Numeric qt0_co2, gsi0;

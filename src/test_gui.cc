@@ -106,19 +106,17 @@ int main() {
   
   
   // Line Mixing full calculations
-  const auto [abs, dabs] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, ecs_data, f_grid, band,
-                                                                  {rq});
+  const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, ecs_data, f_grid, band, {rq});
   
   // Line Mixing full calculations
-  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, ecs_data, f_grid, band).first;
+  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, ecs_data, f_grid, band).abs;
   
   // Line Mixing full calculations with Zeeman (ignoring polarization...)
-  auto [absZ, dabsZ] = Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid, 
-                                                                     Zeeman::Polarization::Pi, band);
+  auto [absZ, dabsZ, errorZ] = Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid,  Zeeman::Polarization::Pi, band);
   absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid, 
-                                                        Zeeman::Polarization::SigmaMinus, band).first;
+                                                        Zeeman::Polarization::SigmaMinus, band).abs;
   absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid, 
-                                                        Zeeman::Polarization::SigmaPlus, band).first;
+                                                        Zeeman::Polarization::SigmaPlus, band).abs;
   
   // Line Mixing reimplementation of MPM19
   Absorption::PredefinedModel::makarov2020_o2_lines_mpm(mpm_abs, dmpm_abs,
@@ -128,8 +126,8 @@ int main() {
   // Line by line calculations
   band.Normalization(Absorption::NormalizationType::SFS);
   band.Population(Absorption::PopulationType::LTE);
-  LineShape::ComputeData com_lte(f_grid, {rq}, 0);
-  LineShape::ComputeData sparse_com_lte(Vector(0), {rq}, 0);
+  LineShape::ComputeData com_lte(f_grid, {rq}, false);
+  LineShape::ComputeData sparse_com_lte(Vector(0), {rq}, false);
   LineShape::compute(com_lte, sparse_com_lte, band, {rq}, {},
                      band.BroadeningSpeciesVMR(VMR, specs), 1.0, 1.0, P, T, 0, 0,
                      false, Zeeman::Polarization::Pi, Options::LblSpeedup::None);

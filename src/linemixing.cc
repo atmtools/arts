@@ -9,6 +9,7 @@
 #include "linemixing.h"
 #include "lineshape.h"
 #include "matpack.h"
+#include "matpack_complex.h"
 #include "minimize.h"
 #include "physics_funcs.h"
 #include "species.h"
@@ -603,13 +604,13 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
 }
 
 
-ComplexVector ecs_absorption_impl(const Numeric T,
-                                  const Numeric P,
-                                  const Numeric this_vmr,
-                                  const Vector& vmrs,
-                                  const ErrorCorrectedSuddenData& ecs_data,
-                                  const Vector& f_grid,
-                                  const AbsorptionLines& band) {
+std::pair<ComplexVector, bool> ecs_absorption_impl(const Numeric T,
+                                                   const Numeric P,
+                                                   const Numeric this_vmr,
+                                                   const Vector& vmrs,
+                                                   const ErrorCorrectedSuddenData& ecs_data,
+                                                   const Vector& f_grid,
+                                                   const AbsorptionLines& band) {
   constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
 
   // Weighted center of the band
@@ -627,8 +628,11 @@ ComplexVector ecs_absorption_impl(const Numeric T,
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
   
-  // Absorption of this band
-  ComplexVector absorption(f_grid.nelem(), 0);
+  // Return the absorption and if this works
+  std::pair<ComplexVector, bool> retval{ComplexVector(f_grid.nelem(), 0), false};
+  auto& [absorption,works] = retval;
+
+  //  Add the lines
   for (Index i=0; i<band.NumLines(); i++) {
     const Numeric gamd = GD_div_F0 * (eqv.val[i].real() + frenorm);
     const Numeric cte = Constant::sqrt_ln_2 / gamd;
@@ -638,28 +642,33 @@ ComplexVector ecs_absorption_impl(const Numeric T,
       absorption[iv] += eqv.str[i] * w / gamd;
     }
   }
-  
+
   // Adjust by frequency and number density
   const Numeric numdens = this_vmr * number_density(P, T);
   for (Index iv=0; iv<f_grid.nelem(); iv++) {
     const Numeric f = f_grid[iv];
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
+
+    if (auto& a = real_val(absorption[iv]); not std::isnormal(a) or a < 0) {
+      a = 0;
+      works = false;
+    }
   }
   
-  return absorption;
+  return retval;
 }
 
 
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
-                                                              const Numeric P,
-                                                              const Numeric this_vmr,
-                                                              const Vector& vmrs,
-                                                              const ErrorCorrectedSuddenData& ecs_data,
-                                                              const Vector& f_grid,
-                                                              const AbsorptionLines& band,
-                                                              const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  const ComplexVector absorption = ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
+EcsReturn ecs_absorption(const Numeric T,
+                         const Numeric P,
+                         const Numeric this_vmr,
+                         const Vector& vmrs,
+                         const ErrorCorrectedSuddenData& ecs_data,
+                         const Vector& f_grid,
+                         const AbsorptionLines& band,
+                         const ArrayOfRetrievalQuantity& jacobian_quantities) {
+  auto [absorption, work] = ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
   
   // Start as original, so remove new and divide with the negative to get forward derivative
   ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
@@ -670,13 +679,18 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
     
     if (target == Jacobian::Atm::Temperature) {
       const Numeric dT = target.Perturbation();
-      vec -= ecs_absorption_impl(T+dT, P, this_vmr, vmrs, ecs_data, f_grid, band);
+      const auto [dabs, dwork] = ecs_absorption_impl(T+dT, P, this_vmr, vmrs, ecs_data, f_grid, band);
+      vec -= dabs;
       vec /= -dT;
+      work &= dwork;
     } else if (target.isWind()) {
       const Numeric df = target.Perturbation();
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
-      vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid_copy, band);
+      const auto [dabs, dwork] = ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid_copy, band);
+      vec -= dabs;
+      vec /= df;
+      work &= dwork;
     } else if (target == Jacobian::Line::VMR) {
       if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
         Vector vmrs_copy = vmrs;
@@ -697,8 +711,10 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
         }
         
         // Computations
-        vec -= ecs_absorption_impl(T, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, band);
+        const auto [dabs, dwork] = ecs_absorption_impl(T, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, band);
+        vec -= dabs;
         vec /= -dvmr;
+        work &= dwork;
       }
     } else if (target.needQuantumIdentity()) {
       Numeric d=1e-6;
@@ -838,28 +854,12 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
           }
           
           // Perform calculations and estimate derivative
-          vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band_copy);
+          auto [dabs, dwork] = ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band_copy);
+          vec -= dabs;
           vec /= -d;
+          work &= dwork;
         } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
-          /*
-          d = target.Perturbation();
-          ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
-          
-          if (target == Jacobian::Line::ECS_A) {
-            ecs_data_copy[target.LineSpecies()].a += d;
-            vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data_copy, f_grid, band);
-          } else if (target == Jacobian::Line::ECS_B) {
-            ecs_data_copy[target.LineSpecies()].b += d;
-            vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
-          } else if (target == Jacobian::Line::ECS_GAMMA) {
-            ecs_data_copy[target.LineSpecies()].gamma += d;
-            vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
-          } else if (target == Jacobian::Line::ECS_DC) {
-            ecs_data_copy[target.LineSpecies()].dc += d;
-            vec -= ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
-          }
-          vec /= -d;
-          */
+          // pass
         } else {
           ARTS_ASSERT (false, "Missing Line Derivative");
         }
@@ -869,18 +869,18 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
     }
   }
   
-  return {absorption, jacobian};
+  return EcsReturn(std::move(absorption), std::move(jacobian), not work);
 }
 
-ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
-                                         const Numeric H,
-                                         const Numeric P,
-                                         const Numeric this_vmr,
-                                         const Vector& vmrs,
-                                         const ErrorCorrectedSuddenData& ecs_data,
-                                         const Vector& f_grid,
-                                         const Zeeman::Polarization zeeman_polarization,
-                                         const AbsorptionLines& band) {
+std::pair<ComplexVector, bool> ecs_absorption_zeeman_impl(const Numeric T,
+                                                          const Numeric H,
+                                                          const Numeric P,
+                                                          const Numeric this_vmr,
+                                                          const Vector& vmrs,
+                                                          const ErrorCorrectedSuddenData& ecs_data,
+                                                          const Vector& f_grid,
+                                                          const Zeeman::Polarization zeeman_polarization,
+                                                          const AbsorptionLines& band) {
   constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
   
   // Weighted center of the band
@@ -898,8 +898,11 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
   // Equivalent lines computations
   const EquivalentLines eqv(W, tp.pop, tp.dip);
   
-  // Absorption of this band
-  ComplexVector absorption(f_grid.nelem(), 0);
+  // Return the absorption and if this works
+  std::pair<ComplexVector, bool> retval{ComplexVector(f_grid.nelem(), 0), false};
+  auto& [absorption,works] = retval;
+
+  //  Add the lines
   for (Index i=0; i<band.NumLines(); i++) {
     // Zeeman lines if necessary
     const Index nz = band.ZeemanCount(i, zeeman_polarization);
@@ -923,23 +926,28 @@ ComplexVector ecs_absorption_zeeman_impl(const Numeric T,
     const Numeric f = f_grid[iv];
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
+
+    if (auto& a = real_val(absorption[iv]); not std::isnormal(a) or a < 0) {
+      a = 0;
+      works = false;
+    }
   }
   
-  return absorption;
+  return retval;
 }
 
 
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numeric T,
-                                                                     const Numeric H,
-                                                                     const Numeric P,
-                                                                     const Numeric this_vmr,
-                                                                     const Vector& vmrs,
-                                                                     const ErrorCorrectedSuddenData& ecs_data,
-                                                                     const Vector& f_grid,
-                                                                     const Zeeman::Polarization zeeman_polarization,
-                                                                     const AbsorptionLines& band,
-                                                                     const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  const ComplexVector absorption = ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+EcsReturn ecs_absorption_zeeman(const Numeric T,
+                                const Numeric H,
+                                const Numeric P,
+                                const Numeric this_vmr,
+                                const Vector& vmrs,
+                                const ErrorCorrectedSuddenData& ecs_data,
+                                const Vector& f_grid,
+                                const Zeeman::Polarization zeeman_polarization,
+                                const AbsorptionLines& band,
+                                const ArrayOfRetrievalQuantity& jacobian_quantities) {
+  auto [absorption, work] = ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
   
   // Start as original, so remove new and divide with the negative to get forward derivative
   ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
@@ -950,17 +958,24 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
     
     if (target == Jacobian::Atm::Temperature) {
       const Numeric dT = target.Perturbation();
-      vec -= ecs_absorption_zeeman_impl(T+dT, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+      const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T+dT, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+      vec -= dabs;
       vec /= -dT;
+      work &= dwork;
     } else if (target.isMagnetic()) {
       const Numeric dH = target.Perturbation();
-      vec -= ecs_absorption_zeeman_impl(T, H+dH, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+      const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T, H+dH, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+      vec -= dabs;
       vec /= -dH;
+      work &= dwork;
     } else if (target.isWind()) {
       const Numeric df = target.Perturbation();
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
-      vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid_copy, zeeman_polarization, band);
+      const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid_copy, zeeman_polarization, band);
+      vec -= dabs;
+      vec /= df;
+      work &= dwork;
     } else if (target == Jacobian::Line::VMR) {
       if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
         Vector vmrs_copy = vmrs;
@@ -980,8 +995,10 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
         }
         
         // Computations
-        vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, zeeman_polarization, band);
+        const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T, H, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, zeeman_polarization, band);
+        vec -= dabs;
         vec /= -dvmr;
+        work &= dwork;
       }
     } else if (target.needQuantumIdentity()) {
       Numeric d=1e-6;
@@ -1121,29 +1138,11 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
           }
           
           // Perform calculations and estimate derivative
-          vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band_copy);
+          const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band_copy);
+          vec -= dabs;
           vec /= -d;
+          work &= dwork;
         } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
-          /*
-          d = target.Perturbation();
-          ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
-          
-          if (target == Jacobian::Line::ECS_A) {
-            ecs_data_copy[target.LineSpecies()].a += d;
-            vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
-          } else if (target == Jacobian::Line::ECS_B) {
-            ecs_data_copy[target.LineSpecies()].b += d;
-            vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
-          } else if (target == Jacobian::Line::ECS_GAMMA) {
-            ecs_data_copy[target.LineSpecies()].gamma += d;
-            vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
-          } else if (target == Jacobian::Line::ECS_DC) {
-            ecs_data_copy[target.LineSpecies()].dc += d;
-            vec -= ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
-          }
-          
-          vec /= -d;
-          */
         } else {
           ARTS_ASSERT (false, "Missing Line Derivative");
         }
@@ -1153,7 +1152,7 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numer
     }
   }
   
-  return {absorption, jacobian};
+  return EcsReturn(std::move(absorption), std::move(jacobian), not work);
 }
 
 Index band_eigenvalue_adaptation(
