@@ -1,9 +1,9 @@
 #include "linemixing.h"
-#include "predefined_absorption_models.h"
-#include "gui/plot.h"
 #include "auto_md.h"
-#include "physics_funcs.h"
+#include "gui/plot.h"
 #include "lineshape.h"
+#include "physics_funcs.h"
+#include "predefined_absorption_models.h"
 
 Vector VectorNLinSpaceConst(Numeric f0, Numeric f1, Index n) {
   Vector x;
@@ -144,10 +144,10 @@ int main() {
                                                     VectorNLinSpaceConst(200, 350, 76),
                                                     ecs_data,
                                                     Conversion::atm2pa(1), 2);
-  LineShape::ComputeData com(f_grid, {rq}, 0);
-  LineShape::ComputeData sparse_com(Vector(0), {rq}, 0);
+  LineShape::ComputeData com(f_grid, {rq}, false);
+  LineShape::ComputeData sparse_com(Vector(0), {rq}, false);
   LineShape::compute(com, sparse_com, band, {rq}, {},
-                     band.BroadeningSpeciesVMR(VMR, specs), 1.0, 1.0, P, T, 0, 0,
+                     band.BroadeningSpeciesVMR(VMR, specs), {}, 1.0, 1.0, P, T, 0, 0,
                      false, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
   
   // Plot it all

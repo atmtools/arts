@@ -2384,6 +2384,11 @@ void cutoff_frequency_loop(ComputeValues &com,
         if (do_nlte) {
           com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;
         }
+      } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+        com.dF[com.jac_pos(iv, ij)] += ls_str.dSdSELFVMR() * LM * Fls;
+        if (do_nlte) {
+          com.dN[com.jac_pos(iv, ij)] += ls_str.dNdSELFVMR() * LM * Fls;
+        }
       } else if (deriv.Target().needQuantumIdentity()) {
         if (deriv == Jacobian::Line::VMR) {
           const auto &dXdVMR = value.o;
@@ -2585,6 +2590,11 @@ void frequency_loop(ComputeValues &com,
         if (do_nlte) {
           com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;
         }
+      } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+        com.dF[com.jac_pos(iv, ij)] += ls_str.dSdSELFVMR() * LM * Fls;
+        if (do_nlte) {
+              com.dN[com.jac_pos(iv, ij)] += ls_str.dNdSELFVMR() * LM * Fls;
+        }
       } else if (deriv.Target().needQuantumIdentity()) {
         if (deriv == Jacobian::Line::VMR) {
           const auto &dXdVMR = value.o;
@@ -2598,7 +2608,7 @@ void frequency_loop(ComputeValues &com,
           if (do_nlte) {
             com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls + dLM * DS * Fls;
             if (self_species == deriv.QuantumIdentity().Species()) {
-              com.dF[com.jac_pos(iv, ij)] += ls_str.dNdSELFVMR() * LM * Fls;
+              com.dN[com.jac_pos(iv, ij)] += ls_str.dNdSELFVMR() * LM * Fls;
             }
           }
         } else {
@@ -2988,6 +2998,7 @@ void line_loop(ComputeData &com,
                const ArrayOfRetrievalQuantity &jacobian_quantities,
                const EnergyLevelMap &nlte,
                const Vector &vmrs,
+               const ArrayOfSpeciesTag& self_tag,
                const Numeric &P,
                const Numeric &T,
                const Numeric &H,
@@ -3017,12 +3028,17 @@ void line_loop(ComputeData &com,
       derivs[ij].jac_pos = -1;
       derivs[ij].deriv = nullptr;
       
-      if (not deriv.propmattype() or deriv.Target() == Jacobian::Special::ArrayOfSpeciesTagVMR) continue;
+      if (not deriv.propmattype()) continue;
       derivs[ij].jac_pos = ij;
       derivs[ij].deriv = &deriv;
 
       if (deriv == Jacobian::Atm::Temperature) {
         derivs[ij].value.o = band.ShapeParameters_dT(i, T, P, vmrs);
+      } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+        if (not (deriv == self_tag)) {  // Remove if its not good
+          derivs[ij].jac_pos = -1;
+          derivs[ij].deriv = nullptr;
+        }
       } else if (deriv.Target().needQuantumIdentity()) {
         if (deriv == Jacobian::Line::VMR) {
           derivs[ij].value.o = band.ShapeParameters_dVMR(i, T, P, deriv.QuantumIdentity());
@@ -3103,6 +3119,7 @@ void compute(ComputeData &com,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
              const EnergyLevelMap &nlte,
              const Vector &vmrs,
+             const ArrayOfSpeciesTag& self_tag,
              const Numeric& self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H,
              const Numeric &sparse_lim,
              const bool do_zeeman, const Zeeman::Polarization zeeman_polarization,
@@ -3135,7 +3152,7 @@ void compute(ComputeData &com,
   }
   
   const Numeric dnumdensdVMR = isot_ratio * number_density(P, T);
-  line_loop(com, sparse_com, band, jacobian_quantities, nlte, vmrs, P, T, H, sparse_lim,
+  line_loop(com, sparse_com, band, jacobian_quantities, nlte, vmrs, self_tag, P, T, H, sparse_lim,
             single_partition_function(T, band.Isotopologue()),
             single_partition_function(band.T0(), band.Isotopologue()),
             dsingle_partition_function_dT(T, band.Isotopologue()),

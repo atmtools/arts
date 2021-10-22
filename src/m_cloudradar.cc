@@ -353,10 +353,6 @@ void iyRadarSingleScat(Workspace& ws,
             jacobian_quantities,
             ppvar_f(joker, ip),
             ppath.los(ip, joker),
-            ppvar_vmr(joker, ip),
-            ppvar_t[ip],
-            ppvar_p[ip],
-            jac_species_i,
             lte[ip],
             atmosphere_dim,
             trans_in_jacobian && j_analytical_do);
@@ -1232,7 +1228,7 @@ void RadarOnionPeelingTableCalc(
   //
   Tensor3 D(2, nwc, nt, 0);
   //
-  Vector pnd_agenda_input_t = t_grid;
+  const Vector& pnd_agenda_input_t = t_grid;
   Matrix pnd_agenda_input(nt, 1);
   ArrayOfString dpnd_data_dx_names(0);
   //

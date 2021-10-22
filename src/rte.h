@@ -65,11 +65,6 @@
  * @param[in] jacobian_quantities as WSV
  * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
- * @param[in] ppath_vmrs Volume mixing ratio of atmospheric species at propagation path point
- * @param[in] ppath_temperature Temperature of atmosphere at propagation path point
- * @param[in] ppath_pressure Pressure of atmosphere at propagation path point
- * @param[in] jacobian_species Index list showing where and how the Jacobian needs to compute VMRs
- * @param[in] jacobian_wind Index list showing where and how the Jacobian needs to compute Wind
  * @param[in] lte Boolean index for whether or not the atmosphere is in LTE at propagation path point
  * @param[in] atmosphere_dim As WSV
  * @param[in] jacobian_do As WSV
@@ -83,10 +78,6 @@ void adapt_stepwise_partial_derivatives(
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstVectorView& ppath_f_grid,
     const ConstVectorView& ppath_line_of_sight,
-    const ConstVectorView& ppath_vmrs,
-    const Numeric& ppath_temperature,
-    const Numeric& ppath_pressure,
-    const ArrayOfIndex& jacobian_species,
     const Index& lte,
     const Index& atmosphere_dim,
     const bool& jacobian_do);

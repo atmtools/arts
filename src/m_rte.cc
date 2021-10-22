@@ -29,8 +29,6 @@
   === External declarations
   ===========================================================================*/
 
-#include <cmath>
-#include <stdexcept>
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
@@ -46,6 +44,8 @@
 #include "rte.h"
 #include "special_interp.h"
 #include "transmissionmatrix.h"
+#include <cmath>
+#include <stdexcept>
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
@@ -390,10 +390,6 @@ void iyEmissionStandard(
                                              jacobian_quantities,
                                              ppvar_f(joker, ip),
                                              ppath.los(ip, joker),
-                                             ppvar_vmr(joker, ip),
-                                             ppvar_t[ip],
-                                             ppvar_p[ip],
-                                             jac_species_i,
                                              lte,
                                              atmosphere_dim,
                                              j_analytical_do);

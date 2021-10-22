@@ -58,10 +58,6 @@ void adapt_stepwise_partial_derivatives(
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstVectorView& ppath_f_grid,
     const ConstVectorView& ppath_line_of_sight,
-    const ConstVectorView& ppath_vmrs,
-    const Numeric& ppath_temperature,
-    const Numeric& ppath_pressure,
-    const ArrayOfIndex& jacobian_species,
     const Index& lte,
     const Index& atmosphere_dim,
     const bool& jacobian_do) {
@@ -80,29 +76,6 @@ void adapt_stepwise_partial_derivatives(
       const auto scale = get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, jacobian_quantities[i].Target().AtmType(), atmosphere_dim);
       dK_dx[i] *= scale;
       if (not lte) dS_dx[i] *= scale;
-    } else if (jacobian_species[i] > -1) {
-      const Index& isp = jacobian_species[i];
-
-      // Computational factor
-      Numeric factor;
-
-      // Scaling factors to handle retrieval unit
-      if (jacobian_quantities[i] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
-        //vmrunitscf(factor, jacobian_quantities[i].Mode(),
-        vmrunitscf(
-            factor, "vmr", ppath_vmrs[isp], ppath_pressure, ppath_temperature);
-      } else {
-        //dxdvmrscf(factor, jacobian_quantities[i].Mode(),
-        dxdvmrscf(
-            factor, "vmr", ppath_vmrs[isp], ppath_pressure, ppath_temperature);
-      }
-      // Apply conversion to K-matrix partial derivative
-      dK_dx[i] *= factor;
-
-      // Apply conversion to source vector partial derivative
-      if (not lte) dS_dx[i] *= factor;
-    } else {
-      // All other partial derivatives should already be adapted...
     }
   }
 }
@@ -2398,7 +2371,7 @@ void yCalc_mblock_loop_body(bool& failed,
             jmax = j;
           }
         }
-        const Index jhit = Index(floor(jmax / nfs));
+        const auto jhit = Index(floor(jmax / nfs));
         y_geo(row0 + i, joker) = geo_pos_matrix(jhit, joker);
       }
     }

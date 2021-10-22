@@ -354,6 +354,9 @@ void abs_coefCalcFromXsec(  // WS Output:
               dabs_coef_dx[iq](k, j) +=
                   dabs_xsec_per_species_dx[i][iq](k, j) * abs_vmrs(i, j) * n;
             }
+          } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+            dabs_coef_dx[iq](k, j) +=
+                dabs_xsec_per_species_dx[i][iq](k, j) * n;
           } else {
             dabs_coef_dx[iq](k, j) +=
                 dabs_xsec_per_species_dx[i][iq](k, j) * n * abs_vmrs(i, j);
@@ -1005,13 +1008,13 @@ void propmat_clearskyAddFaraday(
   if (ne != 0 && (rtp_mag[0] != 0 || rtp_mag[1] != 0 || rtp_mag[2] != 0)) {
     // Include remaining terms, beside /f^2
     const Numeric c1 =
-        2 * FRconst * ne *
+        2 * FRconst *
         dotprod_with_los(
             rtp_los, rtp_mag[0], rtp_mag[1], rtp_mag[2], atmosphere_dim);
 
     Numeric dc1_u = 0.0, dc1_v = 0.0, dc1_w = 0.0;
     if (do_magn_jac) {
-      dc1_u = (2 * FRconst * ne *
+      dc1_u = (2 * FRconst *
                     dotprod_with_los(rtp_los,
                                     rtp_mag[0] + dmag,
                                     rtp_mag[1],
@@ -1019,7 +1022,7 @@ void propmat_clearskyAddFaraday(
                                     atmosphere_dim) -
                 c1) /
               dmag;
-      dc1_v = (2 * FRconst * ne *
+      dc1_v = (2 * FRconst *
                     dotprod_with_los(rtp_los,
                                     rtp_mag[0],
                                     rtp_mag[1] + dmag,
@@ -1027,7 +1030,7 @@ void propmat_clearskyAddFaraday(
                                     atmosphere_dim) -
                 c1) /
               dmag;
-      dc1_w = (2 * FRconst * ne *
+      dc1_w = (2 * FRconst *
                     dotprod_with_los(rtp_los,
                                     rtp_mag[0],
                                     rtp_mag[1],
@@ -1039,21 +1042,21 @@ void propmat_clearskyAddFaraday(
 
     for (Index iv = 0; iv < f_grid.nelem(); iv++) {
       const Numeric f2 = f_grid[iv] * f_grid[iv];
-      const Numeric r = c1 / f2;
+      const Numeric r = ne * c1 / f2;
       propmat_clearsky.AddFaraday(r, iv);
 
       // The Jacobian loop
       for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
         if (is_frequency_parameter(jacobian_quantities[iq]))
-          dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * ne * r / f_grid[iv], iv);
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticU)
-          dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(ne * dc1_u / f2, iv);
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticV)
-          dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(ne * dc1_v / f2, iv);
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticW)
-          dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(ne * dc1_w / f2, iv);
         else if (jacobian_quantities[iq] == Jacobian::Atm::Electrons)
-          dpropmat_clearsky_dx[iq].AddFaraday(r / ne, iv);
+          dpropmat_clearsky_dx[iq].AddFaraday(r, iv);
         else if (jacobian_quantities[iq] == abs_species[ife])
           dpropmat_clearsky_dx[iq].AddFaraday(r, iv);
       }
@@ -1220,8 +1223,7 @@ void propmat_clearskyAddParticles(
               internal_propmat.SetAtPosition(
                   ext_mat_Nse[i_ss][i_se](0, 0, 0, joker, joker), iv);
         }
-        internal_propmat *= rtp_vmr[sp];
-        propmat_clearsky += internal_propmat;
+        propmat_clearsky += rtp_vmr[sp] * internal_propmat;
       }
 
       // For temperature derivatives (so we don't need to check it in jac loop)
@@ -1417,110 +1419,45 @@ void propmat_clearskyAddLines(  // Workspace reference:
   LineShape::ComputeData com(f_grid, jacobian_quantities, nlte_do);
   LineShape::ComputeData sparse_com(f_grid_sparse, jacobian_quantities, nlte_do);
   
-  // Need to do more complicated calculations if this is true
-  const bool legacy_vmr_derivative=std::any_of(jacobian_quantities.cbegin(), jacobian_quantities.cend(),
-                                               [](auto& deriv){return deriv == Jacobian::Special::ArrayOfSpeciesTagVMR;});
-  if (legacy_vmr_derivative) {
-    for (Index ispecies = 0; ispecies < ns; ispecies++) {
-      if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
-      
-      // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
-        continue;
-      
-      // Reset for legacy VMR jacobian
-      com.reset();
-      sparse_com.reset();
-      
-      for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
-                           false, Zeeman::Polarization::Pi, speedup_type);
-        
-      }
-      
-      switch (speedup_type) {
-        case Options::LblSpeedup::LinearIndependent: com.interp_add_even(sparse_com); break;
-        case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
-        case Options::LblSpeedup::None: /* Do nothing */ break;
-        case Options::LblSpeedup::FINAL: { /* Leave last */ }
-      }
-      
-      // Sum up the propagation matrix
-      propmat_clearsky.Kjj() += com.F.real();
-      
-      // Sum up the Jacobian
-      for (Index j=0; j<nq; j++) {
-        auto& deriv = jacobian_quantities[j];
-        
-        if (not deriv.propmattype()) continue;
-        
-        if (deriv == abs_species[ispecies]) {
-          dpropmat_clearsky_dx[j].Kjj() += com.F.real();  // FIXME: Without this, the complex-variables would never need reset
-        } else {
-          dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
-        }
-      }
-      
-      if (nlte_do) {
-        // Sum up the source vector
-        nlte_source.Kjj() += com.N.real();
-        
-        // Sum up the Jacobian
-        for (Index j=0; j<nq; j++) {
-          auto& deriv = jacobian_quantities[j];
-          
-          if (not deriv.propmattype()) continue;
-          
-          if (deriv == abs_species[ispecies]) {
-            dnlte_source_dx[j].Kjj() += com.N.real();  // FIXME: Without this, the complex-variables would never need reset
-          } else {
-            dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
-          }
-        }
-      }
-    }
-  } else {
-    for (Index ispecies = 0; ispecies < ns; ispecies++) {
-      if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
-      
-      // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
-        continue;
-      
-      for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), rtp_vmr[ispecies],
-                           isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
-                           false, Zeeman::Polarization::Pi, speedup_type);
-        
-      }
-    }
+  for (Index ispecies = 0; ispecies < ns; ispecies++) {
+    if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
     
-    switch (speedup_type) {
-      case Options::LblSpeedup::LinearIndependent: com.interp_add_even(sparse_com); break;
-      case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
-      case Options::LblSpeedup::None: /* Do nothing */ break;
-      case Options::LblSpeedup::FINAL: { /* Leave last */ }
-    }
+    // Skip it if there are no species or there is Zeeman requested
+    if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
+      continue;
+    
+    for (auto& band : abs_lines_per_species[ispecies]) {
+      LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
+                          isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
+                          false, Zeeman::Polarization::Pi, speedup_type);
       
-    // Sum up the propagation matrix
-    propmat_clearsky.Kjj() += com.F.real();
+    }
+  }
+  
+  switch (speedup_type) {
+    case Options::LblSpeedup::LinearIndependent: com.interp_add_even(sparse_com); break;
+    case Options::LblSpeedup::QuadraticIndependent: com.interp_add_triplequad(sparse_com); break;
+    case Options::LblSpeedup::None: /* Do nothing */ break;
+    case Options::LblSpeedup::FINAL: { /* Leave last */ }
+  }
+    
+  // Sum up the propagation matrix
+  propmat_clearsky.Kjj() += com.F.real();
+  
+  // Sum up the Jacobian
+  for (Index j=0; j<nq; j++) {
+    if (not jacobian_quantities[j].propmattype()) continue;
+    dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
+  }
+  
+  if (nlte_do) {
+    // Sum up the source vector
+    nlte_source.Kjj() += com.N.real();
     
     // Sum up the Jacobian
     for (Index j=0; j<nq; j++) {
       if (not jacobian_quantities[j].propmattype()) continue;
-      dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
-    }
-    
-    if (nlte_do) {
-      // Sum up the source vector
-      nlte_source.Kjj() += com.N.real();
-      
-      // Sum up the Jacobian
-      for (Index j=0; j<nq; j++) {
-        if (not jacobian_quantities[j].propmattype()) continue;
-        dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
-      }
+      dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
     }
   }
 }
@@ -1859,7 +1796,7 @@ void abs_xsec_per_speciesAddLines(
       sparse_com.reset();
       
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species), abs_vmrs(ispecies, ip),
+        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species), abs_species[ispecies], abs_vmrs(ispecies, ip),
                            isotopologue_ratios[band.Isotopologue()], abs_p[ip], abs_t[ip], 0, 0, false, Zeeman::Polarization::Pi, speedup_type);
         
       }
