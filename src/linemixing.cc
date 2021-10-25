@@ -5,6 +5,7 @@
 #include <Faddeeva/Faddeeva.hh>
 
 #include "constants.h"
+#include "debug.h"
 #include "lin_alg.h"
 #include "linemixing.h"
 #include "lineshape.h"
@@ -427,25 +428,34 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
                                    const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T) ARTS_NOEXCEPT
+                                   const Numeric T)
 {
   using Conversion::kelvin2joule;
-
-  const EnergyFunction erot = erot_selection(band.Isotopologue());
-  
-  const Index n = band.NumLines();
-  if (not n) return;
 
   // These are constant for a band
   const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
   const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
+  const int sgn = iseven(li + lf + 1) ? -1 : 1;
+
+  // Deal with l2 being bad or not compatible
+  ARTS_USER_ERROR_IF(li.isUndefined() or lf.isUndefined(), "Need l2 for band selection")
+  if (abs(li - lf) > 1) return;
+  
+  const Index n = band.NumLines();
+  if (not n) return;
+
+  const EnergyFunction erot = erot_selection(band.Isotopologue());
   
   Vector dipr(n);
   for (Index i=0; i<n; i++) {
+    ARTS_USER_ERROR_IF(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J).isUndefined() or
+                       band.UpperQuantumNumber(sorting[i], QuantumNumberType::J).isUndefined(),
+                       "Need J for calculations")
+
     dipr[i] = Absorption::reduced_rovibrational_dipole(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
                                                        band.UpperQuantumNumber(sorting[i], QuantumNumberType::J), 
-                                                       band.LowerQuantumNumber(sorting[i], QuantumNumberType::l2), 
-                                                       band.UpperQuantumNumber(sorting[i], QuantumNumberType::l2));
+                                                       lf, 
+                                                       li);
     
     for (Index j=i+1; j<n; j++) {
       // Select upper quantum number
@@ -473,18 +483,20 @@ void relaxation_matrix_offdiagonal(MatrixView W,
         sum += a * b * c * Numeric(2 * L + 1) * QL / ECS;
       }
       const Numeric ECS = rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(Ji), erot(Ji-2));
-      const int sgn = iseven(li + lf + 1) ? -1 : 1;
-      const Numeric scl = sgn * ECS * 
-        Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1));
-
+      const Numeric scl = sgn * ECS * Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1));
       sum *= scl;
-      sum = - std::abs(sum);  // Undocumented abs-sign
       
       // Add to W and rescale to upwards element by the populations
       W(k, l) = sum;
       W(l, k) = sum * std::exp((erot(Jf_p) - erot(Jf)) / kelvin2joule(T));
     }
   }
+
+  // Undocumented negative absolute sign 
+  for (Index i=0; i<n; i++)
+    for (Index j=0; j<n; j++)
+      if (j not_eq i and W(i, j) > 0)
+        W(i, j) *= -1;
   
   // Sum rule correction
   for (Index i=0; i<n; i++) {
@@ -650,8 +662,9 @@ std::pair<ComplexVector, bool> ecs_absorption_impl(const Numeric T,
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
 
+    // correct for too low value
     if (auto& a = real_val(absorption[iv]); not std::isnormal(a) or a < 0) {
-      a = 0;
+      absorption[iv] = 0;
       works = false;
     }
   }
@@ -927,8 +940,9 @@ std::pair<ComplexVector, bool> ecs_absorption_zeeman_impl(const Numeric T,
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * numdens * sq_ln2pi;
 
+    // correct for too low value
     if (auto& a = real_val(absorption[iv]); not std::isnormal(a) or a < 0) {
-      a = 0;
+      absorption[iv] = 0;
       works = false;
     }
   }

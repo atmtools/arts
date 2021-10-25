@@ -1749,7 +1749,7 @@ Vector compabs(
       }
       
       // Guard to not allow negative absorption inside a band
-      if (a > 0)
+      if (std::isnormal(a) and a > 0)
         absorption[iv] += rat_isot * a;
     }
   }
@@ -1758,10 +1758,6 @@ Vector compabs(
     const Numeric f = f_grid[iv];
     const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
     absorption[iv] *= fact * dens * sq_ln2pi;
-
-    if (Numeric& a = absorption[iv]; not std::isnormal(a) or a < 0) {
-      a = 0;
-    }
   }
   
   return absorption;
@@ -1814,12 +1810,9 @@ void detband(CommonBlock& cmn,
       cmn.Bands.Isot[cmn.Bands.nBand] = isotr;
       if (isotr == 0)
         cmn.Bands.Isot[cmn.Bands.nBand] = 10;
-      
       cmn.Bands.li[cmn.Bands.nBand] = lir;
       cmn.Bands.lf[cmn.Bands.nBand] = lfr;
       
-      if (jmxp < 40 or jmxr < 40) cmn.Bands.li[cmn.Bands.nBand] = 55;
-      if (jmxq >= 0 and jmxq < 40) cmn.Bands.li[cmn.Bands.nBand] = 55;
       char name[15];
       sprintf(name, "S%ld%c%c%ld%c%c%c%c%ld%c%c%c%c", isotr, c11, c12, lfr, c21, c22, c31, c32, lir, c41, c42, c51, c52);
       cmn.Bands.BandFile[cmn.Bands.nBand] = name;
