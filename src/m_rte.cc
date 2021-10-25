@@ -382,6 +382,7 @@ void iyClearsky(
     Matrix ppvar_f_dummy;
     Tensor3 ppvar_iy_dummy;
     Tensor4 ppvar_trans_cumulat_dummy;
+    Tensor4 ppvar_trans_partial_dummy;
     const ArrayOfIndex cloudbox_limits_dummy;
     const Tensor4 pnd_field_dummy;
     const ArrayOfTensor4 dpnd_field_dx_dummy;
@@ -429,10 +430,6 @@ void iyClearsky(
                                              jacobian_quantities,
                                              ppvar_f(joker, ip),
                                              ppath.los(ip, joker),
-                                             ppvar_vmr(joker, ip),
-                                             ppvar_t[ip],
-                                             ppvar_p[ip],
-                                             jac_species_i,
                                              lte,
                                              atmosphere_dim,
                                              j_analytical_do);
@@ -531,6 +528,7 @@ void iyClearsky(
                                        ppvar_f_dummy,
                                        ppvar_iy_dummy,
                                        ppvar_trans_cumulat_dummy,
+                                       ppvar_trans_partial_dummy,
                                        stokes_dim,
                                        f_grid,
                                        atmosphere_dim,
