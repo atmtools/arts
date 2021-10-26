@@ -288,18 +288,27 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
   }
 }
 
+void abs_linesAdaptOnTheFlyLineMixing(ArrayOfAbsorptionLines& abs_lines,
+                                      const MapOfErrorCorrectedSuddenData& ecs_data,
+                                      const Vector& t_grid,
+                                      const Numeric& pressure,
+                                      const Index& order,
+                                      const Verbosity&) {
+  for (auto& band: abs_lines) {
+    if (band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing or band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
+      Absorption::LineMixing::ecs_eigenvalue_adaptation(band, t_grid, ecs_data[band.QuantumIdentity()], pressure, order);
+    }
+  }
+}
+
 void abs_lines_per_speciesAdaptOnTheFlyLineMixing(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                                   const MapOfErrorCorrectedSuddenData& ecs_data,
                                                   const Vector& t_grid,
                                                   const Numeric& pressure,
                                                   const Index& order,
-                                                  const Verbosity&) {
+                                                  const Verbosity& verbosity) {
   for (auto& abs_lines: abs_lines_per_species) {
-    for (auto& band: abs_lines) {
-      if (band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing or band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-        Absorption::LineMixing::ecs_eigenvalue_adaptation(band, t_grid, ecs_data[band.QuantumIdentity()], pressure, order);
-      }
-    }
+    abs_linesAdaptOnTheFlyLineMixing(abs_lines, ecs_data, t_grid, pressure, order, verbosity);
   }
 }
 

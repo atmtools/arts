@@ -405,13 +405,30 @@ void define_md_data_raw() {
               )));
 
   md_data_raw.push_back(create_mdrecord(
-    NAME("abs_lines_per_speciesAdaptOnTheFlyLineMixing"),
+    NAME("abs_linesAdaptOnTheFlyLineMixing"),
       DESCRIPTION("Adapts the line-catalog from using *ecs_data* data to.\n"
         "instead fit ordered parameters to imitate the line mxixing\n"
         "\n"
         "The order should be 1 or 2.  It will compute at 3 as well, but\n"
         "there's no support in current ARTS LBL to make use of it so it\n"
         "will crash at some point\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines", "ecs_data"),
+      GIN("t_grid", "pressure", "order"),
+      GIN_TYPE("Vector", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("The sorted temperature grid",
+               "The pressure at which the adaptation is made",
+               "The order of the parameters in adaptation")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesAdaptOnTheFlyLineMixing"),
+      DESCRIPTION("Calls *abs_linesAdaptOnTheFlyLineMixing* for each internal array\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
@@ -1015,6 +1032,20 @@ void define_md_data_raw() {
              GIN_DEFAULT(NODEF, NODEF),
              GIN_DESC("Method of line mirroring",
                       "The species tag from *abs_species* to change")));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("abs_linesSort"),
+               DESCRIPTION("Sorts first the lines then the bands by smallest first\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT("ByFrequency"),
+               GIN_DESC("Sorting option")));
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesMakeManualMirroring"),

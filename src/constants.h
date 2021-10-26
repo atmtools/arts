@@ -576,6 +576,10 @@ namespace Options {
             None,
             QuadraticIndependent,
             LinearIndependent)
+
+  ENUMCLASS(SortingOption, char,
+            ByFrequency,
+            ByEinstein)
 } // namespace Options
 
 #endif
