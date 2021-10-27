@@ -31,6 +31,7 @@
 #include "matpackIV.h"
 #include "mystring.h"
 #include "optproperties.h"
+#include "star.h"
 
 /** check_disort_input. *** FIXMEDOC *** in disort.cc, line 197
  *
@@ -165,6 +166,74 @@ void run_cdisort(Workspace& ws,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& only_tro,
+                 const Index& quiet,
+                 const Verbosity& verbosity);
+
+/** Calculate doit_i_field with Disort including a star source.
+ *
+ * Prepares actual input variables for Disort, runs it, and sorts the output
+ * into cloudbox_field.
+ *
+ * This version uses the C implementation of Disort based on ::run_disort.
+ *
+ * Altitudes, temperatures, VMRs and PNDs shall be provided with lat and lon
+ * dimensions removed
+ *
+ * @param[in,out] ws Current workspace
+ * @param[out]    cloudbox_field Radiation field
+ * @param[in]     f_grid Frequency grid
+ * @param[in]     p_grid Pressure grid
+ * @param[in]     z_profile Profile of geometric altitudes.
+ * @param[in]     z_surface Surface altitude.
+ * @param[in]     t_profile Temperature profile.
+ * @param[in]     vmr_profiles VMR profiles.
+ * @param[in]     pnd_profiles PND profiles.
+ * @param[in]     scat_data Array of single scattering data
+ * @param[in]     stars Array of star(s)
+ * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
+                  matrix.
+ * @param[in]     gas_scattering_agenda Agenda agenda calculating the gas scattering
+                  cross section and matrix.
+ * @param[in]     cloudbox_limits Cloudbox limits
+ * @param[in]     surface_skin_t Surface skin temperature
+ * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity
+ * @param[in]     za_grid Zenith angle grid
+ * @param[in]     aa_grid Azimuth angle grid
+ * @param[in]     gas_scattering_do Flag to activate gas scattering.
+ * @param[in]     star_do Flag to activate the star(s).
+ * @param[in]     nstreams Number of quadrature angles (both hemispheres).
+ * @param[in]     Npfct Number of angular grid points to calculate bulk phase
+ *                function
+ * @param[in]     quiet Silence warnings
+ * @param[in]     verbosity Verbosity setting
+ *
+ * @author        Oliver Lemke, Manfred Brath
+ * @date          2019-09-19, 2021-10-27
+ */
+void run_cdisort_star(Workspace& ws,
+                 // Output
+                 Tensor7& cloudbox_field,
+                 // Input
+                 ConstVectorView f_grid,
+                 ConstVectorView p_grid,
+                 ConstVectorView z_profile,
+                 const Numeric& z_surface,
+                 ConstVectorView t_profile,
+                 ConstMatrixView vmr_profiles,
+                 ConstMatrixView pnd_profiles,
+                 const ArrayOfArrayOfSingleScatteringData& scat_data,
+                 const ArrayOfStar& stars,
+                 const Agenda& propmat_clearsky_agenda,
+                 const Agenda& gas_scattering_agenda,
+                 const ArrayOfIndex& cloudbox_limits,
+                 const Numeric& surface_skin_t,
+                 const Vector& surface_scalar_reflectivity,
+                 ConstVectorView za_grid,
+                 ConstVectorView aa_grid,
+                 const Index& gas_scattering_do,
+                 const Index& star_do,
+                 const Index& nstreams,
+                 const Index& Npfct,
                  const Index& quiet,
                  const Verbosity& verbosity);
 
