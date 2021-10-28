@@ -69,7 +69,8 @@ void check_disort_input(  // Input
  * @param[out] cloudbox_field       As the WSV.
  * @param[in]  f_grid             As the WSV.
  * @param[in]  cloudbox_limits    As the WSV.
- * @param[in]  nang               Total number of angles with RT output.
+ * @param[in]  n_za               Number of zenith angles with RT output.
+ * @param[in]  n_aa               Number of azimuth angles with RT output.
  * @param[in]  stokes_dim         As the WSV.
  *
  * @author     Jana Mendrok
@@ -80,7 +81,8 @@ void init_ifield(  // Output
     // Input
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& nang,
+    const Index& n_za,
+    const Index& n_aa,
     const Index& stokes_dim);
 
 /** get_disortsurf_props. *** FIXMEDOC *** input/output

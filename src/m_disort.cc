@@ -98,7 +98,7 @@ void DisortCalc(Workspace& ws,
                      nstreams);
 
   init_ifield(
-      cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), stokes_dim);
+      cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), 1, stokes_dim);
 
   Vector albedo(f_grid.nelem(), 0.);
   Numeric btemp;
@@ -180,7 +180,7 @@ void DisortCalcWithARTSSurface(
                      nstreams);
 
   init_ifield(
-      cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), stokes_dim);
+      cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), 1, stokes_dim);
 
   Vector albedo(f_grid.nelem(), 0.);
   Numeric btemp;
@@ -372,39 +372,73 @@ void DisortCalcStar(Workspace& ws,
                      "The simulation setup contains ",stars.nelem()," stars. \n"
                      "Disort can handle only one star.")
 
-  init_ifield(
-      cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), stokes_dim);
 
-  Vector albedo(f_grid.nelem(), 0.);
-  Numeric btemp;
+  if (star_do){
+    init_ifield(
+        cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), aa_grid.nelem(), stokes_dim);
 
-  get_disortsurf_props(
-      albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
+    Vector albedo(f_grid.nelem(), 0.);
+    Numeric btemp;
 
-  run_cdisort_star(ws,
-                   cloudbox_field,
-                   f_grid,
-                   p_grid,
-                   lat_grid,
-                   lon_grid,
-                   z_field(joker, 0, 0),
-                   z_surface(0, 0),
-                   t_field(joker, 0, 0),
-                   vmr_field(joker, joker, 0, 0),
-                   pnd_field(joker, joker, 0, 0),
-                   scat_data,
-                   stars,
-                   propmat_clearsky_agenda,
-                   gas_scattering_agenda,
-                   cloudbox_limits,
-                   btemp,
-                   albedo,
-                   za_grid,
-                   aa_grid,
-                   gas_scattering_do,
-                   star_do,
-                   nstreams,
-                   Npfct,
-                   cdisort_quiet,
-                   verbosity);
+    get_disortsurf_props(
+        albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
+
+    run_cdisort_star(ws,
+                     cloudbox_field,
+                     f_grid,
+                     p_grid,
+                     lat_grid,
+                     lon_grid,
+                     z_field(joker, 0, 0),
+                     z_surface(0, 0),
+                     t_field(joker, 0, 0),
+                     vmr_field(joker, joker, 0, 0),
+                     pnd_field(joker, joker, 0, 0),
+                     scat_data,
+                     stars,
+                     propmat_clearsky_agenda,
+                     gas_scattering_agenda,
+                     cloudbox_limits,
+                     btemp,
+                     albedo,
+                     za_grid,
+                     aa_grid,
+                     gas_scattering_do,
+                     star_do,
+                     nstreams,
+                     Npfct,
+                     cdisort_quiet,
+                     verbosity);
+  } else {
+    init_ifield(
+        cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), 1, stokes_dim);
+
+    Vector albedo(f_grid.nelem(), 0.);
+    Numeric btemp;
+
+    get_disortsurf_props(
+        albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
+
+    run_cdisort(ws,
+                     cloudbox_field,
+                     f_grid,
+                     p_grid,
+                     z_field(joker, 0, 0),
+                     z_surface(0, 0),
+                     t_field(joker, 0, 0),
+                     vmr_field(joker, joker, 0, 0),
+                     pnd_field(joker, joker, 0, 0),
+                     scat_data,
+                     propmat_clearsky_agenda,
+                     cloudbox_limits,
+                     btemp,
+                     albedo,
+                     za_grid,
+                     nstreams,
+                     Npfct,
+                     cdisort_quiet,
+                     verbosity);
+
+
+  }
 }

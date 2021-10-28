@@ -186,14 +186,15 @@ void init_ifield(  // Output
     // Input
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& nang,
+    const Index& n_za,
+    const Index& n_aa,
     const Index& stokes_dim) {
   const Index Nf = f_grid.nelem();
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   //const Index Nza = za_grid.nelem();
 
   // Resize and initialize radiation field in the cloudbox
-  cloudbox_field.resize(Nf, Np_cloud, 1, 1, nang, 1, stokes_dim);
+  cloudbox_field.resize(Nf, Np_cloud, 1, 1, n_za, n_aa, stokes_dim);
   cloudbox_field = NAN;
 }
 
@@ -1058,7 +1059,7 @@ void run_cdisort_star(Workspace& ws,
   ds.nmom = ds.nstr;
   //ds.ntau = ds.nlyr + 1;   // With ds.flag.usrtau = FALSE; set by cdisort
   ds.numu = static_cast<int>(za_grid.nelem());
-  ds.nphi = 1;
+  ds.nphi = static_cast<int>(aa_grid.nelem());;
   Index Nlegendre = nstreams + 1;
 
   /* Allocate memory */
@@ -1066,13 +1067,12 @@ void run_cdisort_star(Workspace& ws,
   c_disort_out_alloc(&ds, &out);
 
   // Properties of solar beam, set to zero as they are not needed
-  ds.bc.fbeam = 0.;
-  ds.bc.umu0 = 0.;
+  ds.bc.umu0 = 1.;
   ds.bc.phi0 = 0.;
   ds.bc.fluor = 0.;
 
   // Since we have no solar source there is no angular dependance
-  ds.phi[0] = 0.;
+  for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
 
   for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
 
@@ -1141,6 +1141,7 @@ void run_cdisort_star(Workspace& ws,
     ds.wvnmlo -= ds.wvnmlo * 1e-7;
 
     ds.bc.albedo = surface_scalar_reflectivity[f_index];
+    ds.bc.fbeam = stars[0].spectrum(f_index,0);
 
     std::memcpy(ds.pmom,
                 pmom(f_index, joker, joker).get_c_array(),
@@ -1148,17 +1149,19 @@ void run_cdisort_star(Workspace& ws,
 
     c_disort(&ds, &out);
 
-    for (Index j = 0; j < ds.numu; j++) {
-      for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-        cloudbox_field(f_index, k + ncboxremoved, 0, 0, j, 0, 0) =
-            out.uu[ds.numu * (ds.nlyr - k - cboxlims[0]) + j] /
-            (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
-      }
-      // To avoid potential numerical problems at interpolation of the field,
-      // we copy the surface field to underground altitudes
-      for (Index k = ncboxremoved - 1; k >= 0; k--) {
-        cloudbox_field(f_index, k, 0, 0, j, 0, 0) =
-            cloudbox_field(f_index, k + 1, 0, 0, j, 0, 0);
+    for (Index i = 0; i < ds.nphi; i++) {
+      for (Index j = 0; j < ds.numu; j++) {
+        for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
+          cloudbox_field(f_index, k + ncboxremoved, 0, 0, j, i, 0) =
+              out.uu[j + ( (ds.nlyr - k - cboxlims[0]) + i * (ds.nlyr+1) )* ds.numu] /
+              (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
+        }
+        // To avoid potential numerical problems at interpolation of the field,
+        // we copy the surface field to underground altitudes
+        for (Index k = ncboxremoved - 1; k >= 0; k--) {
+          cloudbox_field(f_index, k, 0, 0, j, i, 0) =
+              cloudbox_field(f_index, k + 1, 0, 0, j, i, 0);
+        }
       }
     }
   }
