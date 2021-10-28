@@ -974,6 +974,8 @@ void run_cdisort_star(Workspace& ws,
                       // Input
                       ConstVectorView f_grid,
                       ConstVectorView p_grid,
+                      ConstVectorView lat_grid,
+                      ConstVectorView lon_grid,
                       ConstVectorView z_profile,
                       const Numeric& z_surface,
                       ConstVectorView t_profile,

@@ -183,6 +183,8 @@ void run_cdisort(Workspace& ws,
  * @param[out]    cloudbox_field Radiation field
  * @param[in]     f_grid Frequency grid
  * @param[in]     p_grid Pressure grid
+ * @param[in]     lat_grid Latitude grid
+ * @param[in]     lon_grid Longitude grid
  * @param[in]     z_profile Profile of geometric altitudes.
  * @param[in]     z_surface Surface altitude.
  * @param[in]     t_profile Temperature profile.
@@ -216,6 +218,8 @@ void run_cdisort_star(Workspace& ws,
                  // Input
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
+                 ConstVectorView lat_grid,
+                 ConstVectorView lon_grid,
                  ConstVectorView z_profile,
                  const Numeric& z_surface,
                  ConstVectorView t_profile,

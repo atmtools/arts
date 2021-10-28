@@ -5946,6 +5946,8 @@ Possible models:
          "z_field",
          "vmr_field",
          "p_grid",
+         "lat_grid",
+         "lon_grid",
          "scat_data",
          "stars",
          "f_grid",
