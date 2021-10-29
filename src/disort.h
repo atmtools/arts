@@ -33,6 +33,7 @@
 #include "optproperties.h"
 #include "star.h"
 
+
 /** check_disort_input. *** FIXMEDOC *** in disort.cc, line 197
  *
  * Checks that input of DisortCalc* is sane.
@@ -185,8 +186,6 @@ void run_cdisort(Workspace& ws,
  * @param[out]    cloudbox_field Radiation field
  * @param[in]     f_grid Frequency grid
  * @param[in]     p_grid Pressure grid
- * @param[in]     lat_grid Latitude grid
- * @param[in]     lon_grid Longitude grid
  * @param[in]     z_profile Profile of geometric altitudes.
  * @param[in]     z_surface Surface altitude.
  * @param[in]     t_profile Temperature profile.
@@ -202,7 +201,8 @@ void run_cdisort(Workspace& ws,
  * @param[in]     surface_skin_t Surface skin temperature
  * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity
  * @param[in]     za_grid Zenith angle grid
- * @param[in]     aa_grid Azimuth angle grid
+ * @param[in]     aa_grid azimuth angle grid
+ * @param[in]     star_rte_los local position of the sun top of cloudbox
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
  * @param[in]     star_do Flag to activate the star(s).
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
@@ -220,8 +220,6 @@ void run_cdisort_star(Workspace& ws,
                  // Input
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
-                 ConstVectorView lat_grid,
-                 ConstVectorView lon_grid,
                  ConstVectorView z_profile,
                  const Numeric& z_surface,
                  ConstVectorView t_profile,
@@ -236,6 +234,7 @@ void run_cdisort_star(Workspace& ws,
                  const Vector& surface_scalar_reflectivity,
                  ConstVectorView za_grid,
                  ConstVectorView aa_grid,
+                 ConstVectorView star_rte_los,
                  const Index& gas_scattering_do,
                  const Index& star_do,
                  const Index& nstreams,

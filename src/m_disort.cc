@@ -331,8 +331,9 @@ void DisortCalcStar(Workspace& ws,
                 const Tensor3& z_field,
                 const Tensor4& vmr_field,
                 const Vector& p_grid,
-                const Vector& lat_grid,
-                const Vector& lon_grid,
+                const Vector& lat_true,
+                const Vector& lon_true,
+                const Vector& refellipsoid,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                 const ArrayOfStar& stars,
                 const Vector& f_grid,
@@ -355,6 +356,8 @@ void DisortCalcStar(Workspace& ws,
     return;
   }
 
+
+
   check_disort_input(cloudbox_on,
                      atmfields_checked,
                      atmgeom_checked,
@@ -372,23 +375,59 @@ void DisortCalcStar(Workspace& ws,
                      "The simulation setup contains ",stars.nelem()," stars. \n"
                      "Disort can handle only one star.")
 
+  //allocate Varibale for direct (star) source
+  Vector star_rte_los;
+  Vector star_pos(3);
+  Vector cloudboxtop_pos(3);
+  Index star_on = star_do;
+  Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
+  Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
 
-  if (star_do){
+
+
+  //Position of star
+  star_pos={stars[0].distance,stars[0].latitude,stars[0].longitude};
+
+  // Position of top of cloudbox
+  cloudboxtop_pos={z_field(cloudbox_limits[1],0,0),lat_true[0],lon_true[0]};
+
+
+
+  // calculate local position of sun at top of cloudbox
+  rte_losGeometricFromRtePosToRtePos2(star_rte_los,
+                                      3,
+                                      lat_grid,
+                                      lon_grid,
+                                      refellipsoid,
+                                      cloudboxtop_pos,
+                                      star_pos,
+                                      verbosity);
+
+  //FIXME: IF we want to be correct and include refraction, we must calculate the
+  // local position of sun via ppathFromRtePos2. The question is, is this needed.
+
+
+  // Check if sun is above horizon, if not switch it off
+  if (star_rte_los[0] >= 90){
+    star_on = 0;
+  }
+
+  //FIXME: Should we add a warning for low sun position near the horizon?
+
+  Vector albedo(f_grid.nelem(), 0.);
+  Numeric btemp;
+
+  get_disortsurf_props(
+      albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
+
+  if (star_on){
     init_ifield(
         cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), aa_grid.nelem(), stokes_dim);
-
-    Vector albedo(f_grid.nelem(), 0.);
-    Numeric btemp;
-
-    get_disortsurf_props(
-        albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
 
     run_cdisort_star(ws,
                      cloudbox_field,
                      f_grid,
                      p_grid,
-                     lat_grid,
-                     lon_grid,
                      z_field(joker, 0, 0),
                      z_surface(0, 0),
                      t_field(joker, 0, 0),
@@ -403,6 +442,7 @@ void DisortCalcStar(Workspace& ws,
                      albedo,
                      za_grid,
                      aa_grid,
+                     star_rte_los,
                      gas_scattering_do,
                      star_do,
                      nstreams,
@@ -412,12 +452,6 @@ void DisortCalcStar(Workspace& ws,
   } else {
     init_ifield(
         cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), 1, stokes_dim);
-
-    Vector albedo(f_grid.nelem(), 0.);
-    Numeric btemp;
-
-    get_disortsurf_props(
-        albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
 
     run_cdisort(ws,
                      cloudbox_field,

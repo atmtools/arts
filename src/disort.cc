@@ -36,6 +36,7 @@
 #include "array.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "constants.h"
 
 extern "C" {
 #include "cdisort.h"
@@ -975,8 +976,6 @@ void run_cdisort_star(Workspace& ws,
                       // Input
                       ConstVectorView f_grid,
                       ConstVectorView p_grid,
-                      ConstVectorView lat_grid,
-                      ConstVectorView lon_grid,
                       ConstVectorView z_profile,
                       const Numeric& z_surface,
                       ConstVectorView t_profile,
@@ -991,6 +990,7 @@ void run_cdisort_star(Workspace& ws,
                       const Vector& surface_scalar_reflectivity,
                       ConstVectorView za_grid,
                       ConstVectorView aa_grid,
+                      ConstVectorView star_rte_los,
                       const Index& gas_scattering_do,
                       const Index& star_do,
                       const Index& nstreams,
@@ -1067,8 +1067,8 @@ void run_cdisort_star(Workspace& ws,
   c_disort_out_alloc(&ds, &out);
 
   // Properties of solar beam, set to zero as they are not needed
-  ds.bc.umu0 = 1.;
-  ds.bc.phi0 = 0.;
+  ds.bc.umu0 = Conversion::cosd(star_rte_los[0]);
+  ds.bc.phi0 = star_rte_los[1];
   ds.bc.fluor = 0.;
 
   // Since we have no solar source there is no angular dependance
