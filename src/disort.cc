@@ -1018,6 +1018,7 @@ void run_cdisort_star(Workspace& ws,
                 pnd_profiles,
                 cloudbox_limits);
 
+
   disort_state ds;
   disort_output out;
 
@@ -1027,6 +1028,22 @@ void run_cdisort_star(Workspace& ws,
     disort_verbosity = Verbosity(0, 0, 0);
 
   const Index nf = f_grid.nelem();
+
+  // solar dependent properties if no sun is present
+  // Number of azimuth angles
+  Index nphi = 1;
+  //local zenith angle of sun
+  Numeric umu0 = 0.;
+  //local azimuth angle of sun
+  Numeric phi0 = 0.;
+  //Intensity of incident sun beam
+  Numeric fbeam = 0.;
+
+  if (star_do) {
+    nphi = aa_grid.nelem();
+    umu0 = Conversion::cosd(star_rte_los[0]);
+    phi0 = star_rte_los[1];
+  }
 
   ds.accur = 0.005;
   ds.flag.prnt[0] = FALSE;
@@ -1059,16 +1076,19 @@ void run_cdisort_star(Workspace& ws,
   ds.nmom = ds.nstr;
   //ds.ntau = ds.nlyr + 1;   // With ds.flag.usrtau = FALSE; set by cdisort
   ds.numu = static_cast<int>(za_grid.nelem());
-  ds.nphi = static_cast<int>(aa_grid.nelem());;
+  ds.nphi = static_cast<int>(nphi);
   Index Nlegendre = nstreams + 1;
 
   /* Allocate memory */
   c_disort_state_alloc(&ds);
   c_disort_out_alloc(&ds, &out);
 
+
+
   // Properties of solar beam, set to zero as they are not needed
-  ds.bc.umu0 = Conversion::cosd(star_rte_los[0]);
-  ds.bc.phi0 = star_rte_los[1];
+
+  ds.bc.umu0 = umu0;
+  ds.bc.phi0 = phi0;
   ds.bc.fluor = 0.;
 
   // Since we have no solar source there is no angular dependance
@@ -1141,7 +1161,10 @@ void run_cdisort_star(Workspace& ws,
     ds.wvnmlo -= ds.wvnmlo * 1e-7;
 
     ds.bc.albedo = surface_scalar_reflectivity[f_index];
-    ds.bc.fbeam = stars[0].spectrum(f_index,0);
+    if (star_do) {
+      fbeam = stars[0].spectrum(f_index, 0);
+    }
+    ds.bc.fbeam = fbeam;
 
     std::memcpy(ds.pmom,
                 pmom(f_index, joker, joker).get_c_array(),

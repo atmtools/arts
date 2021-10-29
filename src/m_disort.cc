@@ -314,49 +314,47 @@ void DisortCalcClearsky(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalcStar(Workspace& ws,
-                // WS Output:
-                Tensor7& cloudbox_field,
-                // WS Input
-                const Index& atmfields_checked,
-                const Index& atmgeom_checked,
-                const Index& scat_data_checked,
-                const Index& cloudbox_checked,
-                const Index& cloudbox_on,
-                const ArrayOfIndex& cloudbox_limits,
-                const Agenda& propmat_clearsky_agenda,
-                const Agenda& gas_scattering_agenda,
-                const Index& atmosphere_dim,
-                const Tensor4& pnd_field,
-                const Tensor3& t_field,
-                const Tensor3& z_field,
-                const Tensor4& vmr_field,
-                const Vector& p_grid,
-                const Vector& lat_true,
-                const Vector& lon_true,
-                const Vector& refellipsoid,
-                const ArrayOfArrayOfSingleScatteringData& scat_data,
-                const ArrayOfStar& stars,
-                const Vector& f_grid,
-                const Vector& za_grid,
-                const Vector& aa_grid,
-                const Index& stokes_dim,
-                const Matrix& z_surface,
-                const Numeric& surface_skin_t,
-                const Vector& surface_scalar_reflectivity,
-                const Index& gas_scattering_do,
-                const Index& star_do,
-                const Index& nstreams,
-                const Index& Npfct,
-                const Index& cdisort_quiet,
-                const Verbosity& verbosity) {
+                    // WS Output:
+                    Tensor7& cloudbox_field,
+                    // WS Input
+                    const Index& atmfields_checked,
+                    const Index& atmgeom_checked,
+                    const Index& scat_data_checked,
+                    const Index& cloudbox_checked,
+                    const Index& cloudbox_on,
+                    const ArrayOfIndex& cloudbox_limits,
+                    const Agenda& propmat_clearsky_agenda,
+                    const Agenda& gas_scattering_agenda,
+                    const Index& atmosphere_dim,
+                    const Tensor4& pnd_field,
+                    const Tensor3& t_field,
+                    const Tensor3& z_field,
+                    const Tensor4& vmr_field,
+                    const Vector& p_grid,
+                    const Vector& lat_true,
+                    const Vector& lon_true,
+                    const Vector& refellipsoid,
+                    const ArrayOfArrayOfSingleScatteringData& scat_data,
+                    const ArrayOfStar& stars,
+                    const Vector& f_grid,
+                    const Vector& za_grid,
+                    const Vector& aa_grid,
+                    const Index& stokes_dim,
+                    const Matrix& z_surface,
+                    const Numeric& surface_skin_t,
+                    const Vector& surface_scalar_reflectivity,
+                    const Index& gas_scattering_do,
+                    const Index& star_do,
+                    const Index& nstreams,
+                    const Index& Npfct,
+                    const Index& cdisort_quiet,
+                    const Verbosity& verbosity) {
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
     CREATE_OUT0;
     out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
     return;
   }
-
-
 
   check_disort_input(cloudbox_on,
                      atmfields_checked,
@@ -371,8 +369,10 @@ void DisortCalcStar(Workspace& ws,
                      nstreams);
 
   //Check for number of stars
-  ARTS_USER_ERROR_IF (stars.nelem()>1,
-                     "The simulation setup contains ",stars.nelem()," stars. \n"
+  ARTS_USER_ERROR_IF(stars.nelem() > 1,
+                     "The simulation setup contains ",
+                     stars.nelem(),
+                     " stars. \n"
                      "Disort can handle only one star.")
 
   //allocate Varibale for direct (star) source
@@ -383,15 +383,12 @@ void DisortCalcStar(Workspace& ws,
   Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
   Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
 
-
-
   //Position of star
-  star_pos={stars[0].distance,stars[0].latitude,stars[0].longitude};
+  star_pos = {stars[0].distance, stars[0].latitude, stars[0].longitude};
 
   // Position of top of cloudbox
-  cloudboxtop_pos={z_field(cloudbox_limits[1],0,0),lat_true[0],lon_true[0]};
-
-
+  cloudboxtop_pos = {
+      z_field(cloudbox_limits[1], 0, 0), lat_true[0], lon_true[0]};
 
   // calculate local position of sun at top of cloudbox
   rte_losGeometricFromRtePosToRtePos2(star_rte_los,
@@ -406,9 +403,8 @@ void DisortCalcStar(Workspace& ws,
   //FIXME: IF we want to be correct and include refraction, we must calculate the
   // local position of sun via ppathFromRtePos2. The question is, is this needed.
 
-
   // Check if sun is above horizon, if not switch it off
-  if (star_rte_los[0] >= 90){
+  if (star_rte_los[0] >= 90) {
     star_on = 0;
   }
 
@@ -420,59 +416,45 @@ void DisortCalcStar(Workspace& ws,
   get_disortsurf_props(
       albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
 
-  if (star_on){
-    init_ifield(
-        cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), aa_grid.nelem(), stokes_dim);
-
-    run_cdisort_star(ws,
-                     cloudbox_field,
-                     f_grid,
-                     p_grid,
-                     z_field(joker, 0, 0),
-                     z_surface(0, 0),
-                     t_field(joker, 0, 0),
-                     vmr_field(joker, joker, 0, 0),
-                     pnd_field(joker, joker, 0, 0),
-                     scat_data,
-                     stars,
-                     propmat_clearsky_agenda,
-                     gas_scattering_agenda,
-                     cloudbox_limits,
-                     btemp,
-                     albedo,
-                     za_grid,
-                     aa_grid,
-                     star_rte_los,
-                     gas_scattering_do,
-                     star_do,
-                     nstreams,
-                     Npfct,
-                     cdisort_quiet,
-                     verbosity);
+  if (star_on) {
+    init_ifield(cloudbox_field,
+                f_grid,
+                cloudbox_limits,
+                za_grid.nelem(),
+                aa_grid.nelem(),
+                stokes_dim);
   } else {
-    init_ifield(
-        cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), 1, stokes_dim);
-
-    run_cdisort(ws,
-                     cloudbox_field,
-                     f_grid,
-                     p_grid,
-                     z_field(joker, 0, 0),
-                     z_surface(0, 0),
-                     t_field(joker, 0, 0),
-                     vmr_field(joker, joker, 0, 0),
-                     pnd_field(joker, joker, 0, 0),
-                     scat_data,
-                     propmat_clearsky_agenda,
-                     cloudbox_limits,
-                     btemp,
-                     albedo,
-                     za_grid,
-                     nstreams,
-                     Npfct,
-                     cdisort_quiet,
-                     verbosity);
-
-
+    init_ifield(cloudbox_field,
+                f_grid,
+                cloudbox_limits,
+                za_grid.nelem(),
+                1,
+                stokes_dim);
   }
+
+  run_cdisort_star(ws,
+                   cloudbox_field,
+                   f_grid,
+                   p_grid,
+                   z_field(joker, 0, 0),
+                   z_surface(0, 0),
+                   t_field(joker, 0, 0),
+                   vmr_field(joker, joker, 0, 0),
+                   pnd_field(joker, joker, 0, 0),
+                   scat_data,
+                   stars,
+                   propmat_clearsky_agenda,
+                   gas_scattering_agenda,
+                   cloudbox_limits,
+                   btemp,
+                   albedo,
+                   za_grid,
+                   aa_grid,
+                   star_rte_los,
+                   gas_scattering_do,
+                   star_do,
+                   nstreams,
+                   Npfct,
+                   cdisort_quiet,
+                   verbosity);
 }
