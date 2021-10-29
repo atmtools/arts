@@ -160,7 +160,7 @@ void check_enum_error(EnumType type, Messages ... args) {
   constexpr std::string_view toString(ENUMTYPE x) noexcept {              \
     if (good_enum(x))                                                     \
       return enumstrs::ENUMTYPE##Names[(TYPE)x];                          \
-    return "BAD " #ENUMTYPE;                                            \
+    return "BAD " #ENUMTYPE;                                              \
   }                                                                       \
                                                                           \
   constexpr ENUMTYPE to##ENUMTYPE(const std::string_view x) noexcept {    \
@@ -184,10 +184,7 @@ void check_enum_error(EnumType type, Messages ... args) {
   inline std::istream &operator>>(std::istream &is, ENUMTYPE &x) {        \
     std::string val;                                                      \
     is >> val;                                                            \
-    x = to##ENUMTYPE(val);                                                \
-    check_enum_error(x, "Cannot understand argument: \"", val, "\"\n"     \
-                     "Valid " #ENUMTYPE " options are: ["                 \
-                     #__VA_ARGS__ "]");                                   \
+    x = to##ENUMTYPE##OrThrow(val);                                       \
     return is;                                                            \
   }
 

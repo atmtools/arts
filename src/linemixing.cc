@@ -11,8 +11,10 @@
 #include "lineshape.h"
 #include "matpack.h"
 #include "matpack_complex.h"
+#include "messages.h"
 #include "minimize.h"
 #include "physics_funcs.h"
+#include "rational.h"
 #include "species.h"
 
 namespace Absorption::LineMixing {
@@ -256,7 +258,7 @@ Numeric SpeciesErrorCorrectedSuddenData::Omega(const Numeric T,
   const Numeric v_bar_pow2 = fac*T*inv_eff_mass;
   const Numeric tauc_pow2 = pow2(collisional_distance.at(T, T0)) / v_bar_pow2;
   
-  return 1.0 / pow2(1 + 1.0/24.0 * pow2(wnnm2) * tauc_pow2);
+  return 1.0 / pow2(1 + pow2(wnnm2) * tauc_pow2 / 24.0);
 }
 
 namespace Makarov2020etal {
@@ -321,36 +323,45 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
                                    const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T) {
+                                   const Numeric T) ARTS_NOEXCEPT {
   using Conversion::kelvin2joule;
   
   const auto bk = [](const Rational& r) -> Numeric {return sqrt(2*r + 1);};
   
   const Index n = band.NumLines();
+  if (n == 0) return;
+
+  const Rational Si = band.UpperQuantumNumber(0, QuantumNumberType::S);
+  const Rational Sf = band.LowerQuantumNumber(0, QuantumNumberType::S);
+  ARTS_ASSERT(Si.isDefined() and Sf.isDefined(), "Need S for band selection")
   
   Vector dipr(n);
   for (Index i=0; i<n; i++) {
+    ARTS_ASSERT(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J).isDefined() and
+                band.UpperQuantumNumber(sorting[i], QuantumNumberType::J).isDefined() and
+                band.LowerQuantumNumber(sorting[i], QuantumNumberType::N).isDefined() and
+                band.UpperQuantumNumber(sorting[i], QuantumNumberType::N).isDefined(),
+                "Need J and N for calculations")
+    
     dipr[i] = reduced_dipole(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
                              band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
                              band.UpperQuantumNumber(sorting[i], QuantumNumberType::N));
+  }
     
-    for (Index j=i+1; j<n; j++) {
-      // Select upper quantum number
-      const bool ihigh = band.E0(sorting[i]) > band.E0(sorting[j]);
-      const Index k = ihigh ? i : j;
-      const Index l = ihigh ? j : i;
-      
-      // Quantum numbers
-      const Rational Ji = band.UpperQuantumNumber(sorting[k], QuantumNumberType::J);
-      const Rational Jf = band.LowerQuantumNumber(sorting[k], QuantumNumberType::J);
-      const Rational Ni = band.UpperQuantumNumber(sorting[k], QuantumNumberType::N);
-      const Rational Nf = band.LowerQuantumNumber(sorting[k], QuantumNumberType::N);
-      const Rational Si = band.UpperQuantumNumber(sorting[k], QuantumNumberType::S);
-      const Rational Sf = band.LowerQuantumNumber(sorting[k], QuantumNumberType::S);
-      const Rational Ji_p = band.UpperQuantumNumber(sorting[l], QuantumNumberType::J);
-      const Rational Jf_p = band.LowerQuantumNumber(sorting[l], QuantumNumberType::J);
-      const Rational Ni_p = band.UpperQuantumNumber(sorting[l], QuantumNumberType::N);
-      const Rational Nf_p = band.LowerQuantumNumber(sorting[l], QuantumNumberType::N);
+  for (Index i=0; i<n; i++) {
+    const Rational Ji = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
+    const Rational Jf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
+    const Rational Ni = band.UpperQuantumNumber(sorting[i], QuantumNumberType::N);
+    const Rational Nf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::N);
+    for (Index j=0; j<n; j++) {
+      if (i == j) continue;
+
+      const Rational Ji_p = band.UpperQuantumNumber(sorting[j], QuantumNumberType::J);
+      const Rational Jf_p = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
+      const Rational Ni_p = band.UpperQuantumNumber(sorting[j], QuantumNumberType::N);
+      const Rational Nf_p = band.LowerQuantumNumber(sorting[j], QuantumNumberType::N);
+
+      if (Jf_p > Jf) continue;
       
       // Tran etal 2006 symbol with modifications:
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
@@ -368,8 +379,8 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       sum *= scl * rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(Ni), erot(Ni - 2));
       
       // Add to W and rescale to upwards element by the populations
-      W(k, l) = sum;
-      W(l, k) = sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / kelvin2joule(T));
+      W(i, j) = sum;
+      W(j, i) = sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / kelvin2joule(T));
     }
   }
   
@@ -428,46 +439,48 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
                                    const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T)
+                                   const Numeric T) ARTS_NOEXCEPT
 {
   using Conversion::kelvin2joule;
-
-  // These are constant for a band
-  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
-  const int sgn = iseven(li + lf + 1) ? -1 : 1;
-
-  // Deal with l2 being bad or not compatible
-  ARTS_USER_ERROR_IF(li.isUndefined() or lf.isUndefined(), "Need l2 for band selection")
-  if (abs(li - lf) > 1) return;
   
   const Index n = band.NumLines();
   if (not n) return;
+
+  // These are constant for a band
+  Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
+  Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
+  ARTS_ASSERT(li.isDefined() and lf.isDefined(), "Need l2 for band selection")
+  const bool swap_order = li > lf;
+  if (swap_order) swap(li, lf);
+  const int sgn = iseven(li + lf + 1) ? -1 : 1;
+  if (abs(li - lf) > 1) return;
 
   const EnergyFunction erot = erot_selection(band.Isotopologue());
   
   Vector dipr(n);
   for (Index i=0; i<n; i++) {
-    ARTS_USER_ERROR_IF(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J).isUndefined() or
-                       band.UpperQuantumNumber(sorting[i], QuantumNumberType::J).isUndefined(),
-                       "Need J for calculations")
+    ARTS_ASSERT(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J).isDefined() and
+                band.UpperQuantumNumber(sorting[i], QuantumNumberType::J).isDefined(),
+                "Need J for calculations")
 
     dipr[i] = Absorption::reduced_rovibrational_dipole(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
                                                        band.UpperQuantumNumber(sorting[i], QuantumNumberType::J), 
                                                        lf, 
                                                        li);
-    
-    for (Index j=i+1; j<n; j++) {
+  }
+  
+  for (Index i=0; i<n; i++) {
+    Rational Ji = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
+    Rational Jf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
+    if (swap_order) swap(Ji, Jf);
+    for (Index j=0; j<n; j++) {
+      if(i == j) continue;
+      Rational Ji_p = band.UpperQuantumNumber(sorting[j], QuantumNumberType::J);
+      Rational Jf_p = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
+      if (swap_order) swap(Ji_p, Jf_p);
+
       // Select upper quantum number
-      const bool ihigh = band.E0(sorting[i]) > band.E0(sorting[j]);
-      const Index k = ihigh ? i : j;
-      const Index l = ihigh ? j : i;
-      
-      // Quantum numbers
-      const Rational Ji = band.UpperQuantumNumber(sorting[k], QuantumNumberType::J);
-      const Rational Jf = band.LowerQuantumNumber(sorting[k], QuantumNumberType::J);
-      const Rational Ji_p = band.UpperQuantumNumber(sorting[l], QuantumNumberType::J);
-      const Rational Jf_p = band.LowerQuantumNumber(sorting[l], QuantumNumberType::J);
+      if (Jf_p > Jf) continue;
 
       Index L = std::max(std::abs((Ji-Ji_p).toIndex()), std::abs((Jf-Jf_p).toIndex()));
       L += L % 2;
@@ -487,8 +500,8 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       sum *= scl;
       
       // Add to W and rescale to upwards element by the populations
-      W(k, l) = sum;
-      W(l, k) = sum * std::exp((erot(Jf_p) - erot(Jf)) / kelvin2joule(T));
+      W(j, i) = sum;
+      W(i, j) = sum * std::exp((erot(Jf_p) - erot(Jf)) / kelvin2joule(T));
     }
   }
 
@@ -1474,7 +1487,7 @@ void ecs_eigenvalue_adaptation(AbsorptionLines& band,
   if (band_eigenvalue_adaptation(band,
     ecs_eigenvalue_approximation(band, temperatures, ecs_data, P0),
     temperatures, P0, ord)) {
-    ARTS_USER_ERROR("Bad eigenvalue adaptation")
+    ARTS_USER_ERROR("Bad eigenvalue adaptation for band: ", band.QuantumIdentity())
   }
 }
 

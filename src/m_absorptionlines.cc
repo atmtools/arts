@@ -27,13 +27,13 @@
  * @brief  Contains the user interaction with absorption lines
  **/
 
-#include <algorithm>
 #include "absorptionlines.h"
 #include "auto_md.h"
 #include "enums.h"
 #include "file.h"
 #include "global_data.h"
 #include "m_xml.h"
+#include <algorithm>
 
 /////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////// Basic removal and flattening

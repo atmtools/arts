@@ -129,7 +129,7 @@ int main() {
   LineShape::ComputeData com_lte(f_grid, {rq}, false);
   LineShape::ComputeData sparse_com_lte(Vector(0), {rq}, false);
   LineShape::compute(com_lte, sparse_com_lte, band, {rq}, {},
-                     band.BroadeningSpeciesVMR(VMR, specs), 1.0, 1.0, P, T, 0, 0,
+                     band.BroadeningSpeciesVMR(VMR, specs), {}, 1.0, 1.0, P, T, 0, 0,
                      false, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
   
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
