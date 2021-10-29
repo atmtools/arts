@@ -406,6 +406,9 @@ void DisortCalcStar(Workspace& ws,
   // Check if sun is above horizon, if not switch it off
   if (star_rte_los[0] >= 90) {
     star_on = 0;
+
+    //TODO: Add warning message that star is switched off because it is below horizon
+
   }
 
   //FIXME: Should we add a warning for low sun position near the horizon?
@@ -452,7 +455,7 @@ void DisortCalcStar(Workspace& ws,
                    aa_grid,
                    star_rte_los,
                    gas_scattering_do,
-                   star_do,
+                   star_on,
                    nstreams,
                    Npfct,
                    cdisort_quiet,
