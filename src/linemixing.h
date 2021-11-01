@@ -323,6 +323,8 @@ EquivalentLines eigenvalue_adaptation_of_relmat(const ComplexMatrix& W,
  * @param[in] mass The mass of all broadeners of the absorption band
  * @param[in] P0 The pressure at which temperature dependencies are computed at
  * @param[in] ord The order of the parameters [1: Y; 2: Y, DF, G; 3: Y, DF, G, DG]
+ * @param[in] robust Doesn't throw on failure if true
+ * @param[in] verbosity As WSM
  * @return EXIT_FAILURE when some parameterization fit fails
  * @return EXIT_SUCCESS if all algorithms worked (independent of if the absorption will be reasonable)
  */
@@ -330,7 +332,9 @@ void ecs_eigenvalue_adaptation(AbsorptionLines& band,
                                const Vector& temperatures,
                                const ErrorCorrectedSuddenData& ecs_data,
                                const Numeric P0,
-                               const Index ord);
+                               const Index ord,
+                               const bool robust,
+                               const Verbosity& verbosity);
 
 /*! Outputs the adaptation values used for ecs_eigenvalue_adaptation but as 
  * a function of pressure.  ecs_eigenvalue_adaptation makes strong assumptions

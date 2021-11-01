@@ -419,12 +419,13 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines", "ecs_data"),
-      GIN("t_grid", "pressure", "order"),
-      GIN_TYPE("Vector", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN("t_grid", "pressure", "order", "robust"),
+      GIN_TYPE("Vector", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1"),
       GIN_DESC("The sorted temperature grid",
                "The pressure at which the adaptation is made",
-               "The order of the parameters in adaptation")));
+               "The order of the parameters in adaptation",
+               "Boolean for failed band adaptation behavior. 0: throw exception. not 0: conversion to line-by-line calculations")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesAdaptOnTheFlyLineMixing"),
@@ -436,12 +437,13 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "ecs_data"),
-      GIN("t_grid", "pressure", "order"),
-      GIN_TYPE("Vector", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN("t_grid", "pressure", "order", "robust"),
+      GIN_TYPE("Vector", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1"),
       GIN_DESC("The sorted temperature grid",
                "The pressure at which the adaptation is made",
-               "The order of the parameters in adaptation")));
+               "The order of the parameters in adaptation",
+               "Boolean for failed band adaptation behavior. 0: throw exception. not 0: conversion to line-by-line calculations")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesAdaptHitranLineMixing"),

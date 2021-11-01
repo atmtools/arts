@@ -1472,8 +1472,10 @@ void ecs_eigenvalue_adaptation(AbsorptionLines& band,
                                const Vector& temperatures,
                                const ErrorCorrectedSuddenData& ecs_data,
                                const Numeric P0,
-                               const Index ord
-                               ) {
+                               const Index ord,
+                               const bool robust,
+                               const Verbosity& verbosity) {
+  CREATE_OUT3;
   ARTS_USER_ERROR_IF (P0 <= 0, P0, " Pa is not possible")
   
   ARTS_USER_ERROR_IF(
@@ -1487,7 +1489,18 @@ void ecs_eigenvalue_adaptation(AbsorptionLines& band,
   if (band_eigenvalue_adaptation(band,
     ecs_eigenvalue_approximation(band, temperatures, ecs_data, P0),
     temperatures, P0, ord)) {
-    ARTS_USER_ERROR("Bad eigenvalue adaptation for band: ", band.QuantumIdentity())
+    ARTS_USER_ERROR_IF(not robust, "Bad eigenvalue adaptation for band: ", band.QuantumIdentity(), '\n')
+    out3 << "Bad eigenvalue adaptation for band: " << band.QuantumIdentity() << '\n';
+
+    band.Normalization(Absorption::NormalizationType::SFS);
+    band.Population(Absorption::PopulationType::LTE);
+    for (auto& line: band.AllLines()) {
+      for (auto& sm: line.LineShape().Data()) {
+        sm.Y() = LineShape::ModelParameters(LineShape::TemperatureModel::None);
+        sm.G() = LineShape::ModelParameters(LineShape::TemperatureModel::None);
+        sm.DV() = LineShape::ModelParameters(LineShape::TemperatureModel::None);
+      }
+    }
   }
 }
 

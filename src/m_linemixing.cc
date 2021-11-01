@@ -293,10 +293,11 @@ void abs_linesAdaptOnTheFlyLineMixing(ArrayOfAbsorptionLines& abs_lines,
                                       const Vector& t_grid,
                                       const Numeric& pressure,
                                       const Index& order,
-                                      const Verbosity&) {
+                                      const Index& robust,
+                                      const Verbosity& verbosity) {
   for (auto& band: abs_lines) {
     if (band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing or band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-      Absorption::LineMixing::ecs_eigenvalue_adaptation(band, t_grid, ecs_data[band.QuantumIdentity()], pressure, order);
+      Absorption::LineMixing::ecs_eigenvalue_adaptation(band, t_grid, ecs_data[band.QuantumIdentity()], pressure, order, robust, verbosity);
     }
   }
 }
@@ -306,9 +307,10 @@ void abs_lines_per_speciesAdaptOnTheFlyLineMixing(ArrayOfArrayOfAbsorptionLines&
                                                   const Vector& t_grid,
                                                   const Numeric& pressure,
                                                   const Index& order,
+                                                  const Index& robust,
                                                   const Verbosity& verbosity) {
   for (auto& abs_lines: abs_lines_per_species) {
-    abs_linesAdaptOnTheFlyLineMixing(abs_lines, ecs_data, t_grid, pressure, order, verbosity);
+    abs_linesAdaptOnTheFlyLineMixing(abs_lines, ecs_data, t_grid, pressure, order, robust, verbosity);
   }
 }
 
