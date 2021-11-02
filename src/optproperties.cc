@@ -2064,12 +2064,12 @@ void ext_matFromabs_vec(  //Output
   The scattering angle is calculated from the angles defining
   the directions of the incoming and scattered radiation.
 
-  \param[out] theta_rad    Scattering angle [rad].
   \param[in]  za_sca       Zenith angle of scattered direction [deg].
   \param[in]  aa_sca       Azimuth angle of scattered direction [deg].
   \param[in]  za_inc       Zenith angle of incoming direction [deg].
   \param[in]  aa_inc       Azimuth angle of incoming direction [deg].
-     
+  \return Scattering angle [rad].   
+  
   \author Jana Mendrok (moved out from interpolate_scat_angle by C.Emde)
   \date   2018-03-23
 */
