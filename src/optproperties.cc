@@ -41,6 +41,7 @@
 #include "array.h"
 #include "arts.h"
 #include "check_input.h"
+#include "constants.h"
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
 #include "logic.h"
@@ -2064,10 +2065,10 @@ void ext_matFromabs_vec(  //Output
   the directions of the incoming and scattered radiation.
 
   \param[out] theta_rad    Scattering angle [rad].
-  \param[in]  za_sca       Zenith angle of scattered direction [rad].
-  \param[in]  aa_sca       Azimuth angle of scattered direction [rad].
-  \param[in]  za_inc       Zenith angle of incoming direction [rad].
-  \param[in]  aa_inc       Azimuth angle of incoming direction [rad].
+  \param[in]  za_sca       Zenith angle of scattered direction [deg].
+  \param[in]  aa_sca       Azimuth angle of scattered direction [deg].
+  \param[in]  za_inc       Zenith angle of incoming direction [deg].
+  \param[in]  aa_inc       Azimuth angle of incoming direction [deg].
      
   \author Jana Mendrok (moved out from interpolate_scat_angle by C.Emde)
   \date   2018-03-23
@@ -2088,21 +2089,16 @@ Numeric scat_angle(const Numeric& za_sca,
 
   if ((abs(aa_sca - aa_inc) < ANG_TOL) ||
       (abs(abs(aa_sca - aa_inc) - 360) < ANG_TOL)) {
-    theta_rad = DEG2RAD * abs(za_sca - za_inc);
+    theta_rad = Conversion::deg2rad(abs(za_sca - za_inc));
   } else if (abs(abs(aa_sca - aa_inc) - 180) < ANG_TOL) {
-    theta_rad = DEG2RAD * (za_sca + za_inc);
+    theta_rad = Conversion::deg2rad(za_sca + za_inc);
     if (theta_rad > PI) {
       theta_rad = 2 * PI - theta_rad;
     }
-  } else {
-    const Numeric za_sca_rad = za_sca * DEG2RAD;
-    const Numeric za_inc_rad = za_inc * DEG2RAD;
-    const Numeric aa_sca_rad = aa_sca * DEG2RAD;
-    const Numeric aa_inc_rad = aa_inc * DEG2RAD;
-
-    theta_rad =
-        acos(cos(za_sca_rad) * cos(za_inc_rad) +
-             sin(za_sca_rad) * sin(za_inc_rad) * cos(aa_sca_rad - aa_inc_rad));
+  } else {theta_rad =
+      acos(Conversion::cosd(za_sca) * Conversion::cosd(za_inc) +
+           Conversion::sind(za_sca) * Conversion::sind(za_inc) * 
+           Conversion::cosd(aa_sca - aa_inc));
   }
   return theta_rad;
 }
