@@ -25,370 +25,210 @@
  */
 
 #include "predefined_absorption_models.h"
-#include "lin_alg.h"
-#include "linescaling.h"
 
 #include <Faddeeva/Faddeeva.hh>
+#include <algorithm>
 
-constexpr std::size_t nlines_mpm2020 = 44;
+#include "debug.h"
+#include "jacobian.h"
+#include "lin_alg.h"
+#include "linescaling.h"
+#include "matpack.h"
+#include "propagationmatrix.h"
+#include "quantum.h"
+#include "species.h"
 
+namespace Absorption::PredefinedModel::Makarov2020etal {
+constexpr Index num = 38;
 
-constexpr LineShape::SingleSpeciesModel init_mpm2020_slsm(Numeric g00,
-                                                          Numeric y0,
-                                                          Numeric y1,
-                                                          Numeric g0,
-                                                          Numeric g1,
-                                                          Numeric dv0,
-                                                          Numeric dv1,
-                                                          Numeric x) noexcept
-{
-  LineShape::SingleSpeciesModel ssm;
-  ssm.G0() = {LineShape::TemperatureModel::T1, g00, x,   NAN, NAN};
-  ssm.Y()  = {LineShape::TemperatureModel::T4, y0,  y1,    x, NAN};
-  ssm.G()  = {LineShape::TemperatureModel::T4, g0,  g1,  2*x, NAN};
-  ssm.DV() = {LineShape::TemperatureModel::T4, dv0, dv1, 2*x, NAN};
-  return ssm;
-}
-
-
-constexpr std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> init_mpm2020_lsm() noexcept
-{
-  // Pressure broadening [1/Pa] at reference temperature
-  constexpr std::array<Numeric, nlines_mpm2020> g00 =
-    {1.685E+4, 1.703E+4, 1.513E+4, 1.495E+4, 1.433E+4, 
-      1.408E+4, 1.353E+4, 1.353E+4, 1.303E+4, 1.319E+4, 
-      1.262E+4, 1.265E+4, 1.238E+4, 1.217E+4, 1.207E+4, 
-      1.207E+4, 1.137E+4, 1.137E+4, 1.101E+4, 1.101E+4, 
-      1.037E+4, 1.038E+4, 9.96E+3, 9.96E+3, 9.55E+3, 
-      9.55E+3, 9.06E+3, 9.06E+3, 8.58E+3, 8.58E+3, 
-      8.11E+3, 8.11E+3, 7.64E+3, 7.64E+3, 7.17E+3, 
-      7.17E+3, 6.69E+3, 6.69E+3, 1.64E+4, 1.64E+4, 
-      1.60E+4, 1.60E+4, 1.62E+4, 1.47E+4,};
-  
-  // First order line mixing first coefficient [1/Pa] at reference temperature
-  constexpr std::array<Numeric, nlines_mpm2020> y0 = 
-    {-4.1E-7, 0.00000277, -0.00000372, 0.00000559, -0.00000573, 
-      0.00000618, -0.00000366, 0.00000278, -8.9E-7, -2.1E-7, 
-      6.0E-7, -0.00000152, 0.00000216, -0.00000293, 0.00000373, 
-      -0.00000436, 0.00000491, -0.00000542, 0.00000571, -0.00000613, 
-      0.00000636, -0.00000670, 0.00000690, -0.00000718, 0.00000740, 
-      -0.00000763, 0.00000788, -0.00000807, 0.00000834, -0.00000849, 
-      0.00000876, -0.00000887, 0.00000915, -0.00000922, 0.00000950, 
-      -0.00000955, 0.00000987, -0.00000988, 0.00000, 0.00000, 
-      0.00000, 0.00000, 0.00000, 0.00000,};
-  
-  // First order line mixing second coefficient [1/Pa] at reference temperature
-  constexpr std::array<Numeric, nlines_mpm2020> y1 =
-    {0.00000, 0.00000124, -2E-8, 8E-8, 4.5E-7, 
-      -9.3E-7, 0.00000264, -0.00000351, 0.00000359, -0.00000416, 
-      0.00000326, -0.00000353, 0.00000484, -0.00000503, 0.00000579, 
-      -0.00000590, 0.00000616, -0.00000619, 0.00000611, -0.00000609, 
-      0.00000574, -0.00000568, 0.00000574, -0.00000566, 0.0000060, 
-      -0.0000059, 0.0000063, -0.0000062, 0.0000064, -0.0000063, 
-      0.0000065, -0.0000064, 0.0000065, -0.0000064, 0.0000065, 
-      -0.0000064, 0.0000064, -0.0000062, 0.00000, 0.00000, 
-      0.00000, 0.00000, 0.00000, 0.00000, };
-  
-  // Second order line mixing strength adjustment first coefficient [1/Pa^2] at reference temperature
-  constexpr std::array<Numeric, nlines_mpm2020> g0 =
-    {-6.95E-14, -9.0E-12, -1.03E-11, -2.39E-11, -1.72E-11, 
-      -1.71E-11, 2.8E-12, 1.50E-11, 1.32E-11, 1.70E-11, 
-      8.7E-12, 6.9E-12, 8.3E-12, 6.7E-12, 7E-13, 
-      1.6E-12, -2.1E-12, -6.6E-12, -9.5E-12, -1.15E-11, 
-      -1.18E-11, -1.40E-11, -1.73E-11, -1.86E-11, -2.17E-11, 
-      -2.27E-11, -2.34E-11, -2.42E-11, -2.66E-11, -2.72E-11, 
-      -3.01E-11, -3.04E-11, -3.34E-11, -3.33E-11, -3.61E-11, 
-      -3.58E-11, -3.48E-11, -3.44E-11, 0E-10, 0E-10, 
-      0E-10, 0E-10, 0E-10, 0E-10,};
-  
-  // Second order line mixing strength adjustment second coefficient [1/Pa^2] at reference temperature
-  constexpr std::array<Numeric, nlines_mpm2020> g1 =
-    {0E-10, -4.5E-12, 7E-13, 3.3E-12, 8.1E-12, 
-      1.62E-11, 1.79E-11, 2.25E-11, 5.4E-12, 3E-13, 
-      4E-14, -4.7E-12, -3.4E-12, -7.1E-12, -1.80E-11, 
-      -2.10E-11, -2.85E-11, -3.23E-11, -3.63E-11, -3.80E-11, 
-      -3.78E-11, -3.87E-11, -3.92E-11, -3.94E-11, -4.24E-11, 
-      -4.22E-11, -4.65E-11, -4.6E-11, -5.1E-11, -5.0E-11, 
-      -5.5E-11, -5.4E-11, -5.8E-11, -5.6E-11, -6.2E-11, 
-      -5.9E-11, -6.8E-11, -6.5E-11, 0E-10, 0E-10, 
-      0E-10, 0E-10, 0E-10, 0E-10, };
-  
-  // Second order line mixing frequency adjustment first coefficient [Hz/Pa^2] at reference temperature
-  constexpr std::array<Numeric, nlines_mpm2020> dv0 =
-    {-0.000028, 0.000597, -0.00195, 0.0032, -0.00475, 
-      0.00541, -0.00232, 0.00154, 0.00007, -0.00084, 
-      -0.00025, -0.00014, -0.00004, -0.00020, 0.0005, 
-      -0.00066, 0.00072, -0.0008, 0.00064, -0.00070, 
-      0.00056, -0.00060, 0.00047, -0.00049, 0.00040, 
-      -0.00041, 0.00036, -0.00037, 0.00033, -0.00034, 
-      0.00032, -0.00032, 0.00030, -0.00030, 0.00028, 
-      -0.00029, 0.00029, -0.00029, 0.0, 0.0, 
-      0.0, 0.0, 0.0, 0.0, };
-  
-  // Second order line mixing frequency adjustment second coefficient [Hz/Pa^2] at reference temperature
-  constexpr std::array<Numeric, nlines_mpm2020> dv1 =
-    {-0.000039, 0.0009, -0.0012, 0.0016, -0.0027, 
-      0.0029, 0.0006, -0.0015, 0.0010, -0.0014, 
-      -0.0013, 0.0013, 0.0004, -0.0005, 0.0010, 
-      -0.0010, 0.0010, -0.0011, 0.0008, -0.0009, 
-      0.0003, -0.0003, 0.00009, -0.00009, 0.00017, 
-      -0.00016, 0.00024, -0.00023, 0.00024, -0.00024, 
-      0.00024, -0.00020, 0.00017, -0.00016, 0.00013, 
-      -0.00012, 0.00005, -0.00004, 0.0, 0.0, 
-      0.0, 0.0, 0.0, 0.0, };
-  
-  // Temperature scaling exponent [-]
-  constexpr Numeric x = 0.754;
-  
-  // Init all the values
-  std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> out;
-  for (std::size_t i=0; i<nlines_mpm2020; i++) {
-    out[i] = init_mpm2020_slsm(g00[i], y0[i], y1[i], g0[i], g1[i], dv0[i], dv1[i], x);
-  }
-  return out;
-}
-
-
-constexpr QuantumIdentifier init_mpm2020_qid(Rational Jup, Rational Jlow, Rational Nup, Rational Nlow) noexcept
-{
-  QuantumNumbers upp;
-  QuantumNumbers low;
-  upp[QuantumNumberType::J] = Jup;
-  upp[QuantumNumberType::N] = Nup;
-  upp[QuantumNumberType::v1] = 0;
-  low[QuantumNumberType::J] = Jlow;
-  low[QuantumNumberType::N] = Nlow;
-  low[QuantumNumberType::v1] = 0;
-  return QuantumIdentifier(Species::select(Species::Species::Oxygen, "66"), upp, low);
-}
-
-
-constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids() noexcept
-{
-  // N of upper level
-  constexpr std::array<Index, nlines_mpm2020> Np = {
-    1, 1, 3, 3, 5, 5, 7, 7, 9, 9,
-    11, 11, 13, 13, 15, 15, 17, 17,
-    19, 19,  21, 21, 23, 23, 25, 25,
-    27, 27, 29, 29, 31, 31, 33, 33,
-    35, 35, 37, 37, 1, 1, 1, 3, 3, 3};
-  
-  // N of lower level
-  constexpr std::array<Index, nlines_mpm2020> Npp = {
-    1, 1, 3, 3, 5, 5, 7, 7, 9, 9,
-    11, 11, 13, 13, 15, 15, 17, 17,
-    19, 19,  21, 21, 23, 23, 25, 25,
-    27, 27, 29, 29, 31, 31, 33, 33,
-    35, 35, 37, 37, 3, 3, 3, 5, 5, 5};
-  
-  // J of upper level
-  constexpr std::array<Index, nlines_mpm2020> Jp = {
-    1, 1, 3, 3, 5, 5, 7, 7, 9, 9,
-    11, 11, 13, 13, 15, 15, 17, 17,
-    19, 19,  21, 21, 23, 23, 25, 25,
-    27, 27, 29, 29, 31, 31, 33, 33,
-    35, 35, 37, 37, 1, 2, 2, 3, 4, 4};
-  
-  // J of lower level
-  constexpr std::array<Index, nlines_mpm2020> Jpp = {
-    0, 2, 2, 4, 4, 6, 6, 8, 8, 10,
-    10, 12, 12, 14, 14, 16, 16, 18,
-    18, 20,  20, 22, 22, 24, 24, 26,
-    26, 28, 28, 30, 30, 32, 32, 34,
-    34, 36, 36, 38, 2, 2, 3, 4, 4, 5};
-  
-  // Init all the values
-  std::array<QuantumIdentifier, nlines_mpm2020> out;
-  for (std::size_t i=0; i<nlines_mpm2020; i++) {
-    out[i] = init_mpm2020_qid(Rational(Jp[i]), Rational(Np[i]), Rational(Jpp[i]), Rational(Npp[i]));
-  }
-  return out;
-}
-
-
-void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(PropagationMatrix& propmat_clearsky,
-                                                           ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-                                                           const Vector& f,
-                                                           const Numeric& p,
-                                                           const Numeric& t,
-                                                           const Numeric& oxygen_vmr,
-                                                           const Numeric& water_vmr,
-                                                           const ArrayOfRetrievalQuantity& jacs)
-{
-  using Constant::pi;
-  using Constant::sqrt_pi;
-  using Constant::inv_sqrt_pi;
+constexpr Numeric sum_lines(Numeric f,
+                            const std::array<Numeric, num>& c,
+                            const std::array<Numeric, num>& ga,
+                            const std::array<Numeric, num>& g,
+                            const std::array<Numeric, num>& y,
+                            const std::array<Numeric, num>& dv,
+                            const std::array<Numeric, num>& f0) noexcept {
   using Constant::pow2;
-  using Constant::pow3;
-  
-  // Central frequency [Hz]
-  constexpr std::array<Numeric, nlines_mpm2020> f0 = {
-    1.18750334E+11, 5.6264774E+10, 6.2486253E+10, 5.8446588E+10, 6.0306056E+10, 
-    5.9590983E+10, 5.9164204E+10, 6.0434778E+10, 5.8323877E+10, 6.1150562E+10, 
-    5.7612486E+10, 6.1800158E+10, 5.6968211E+10, 6.2411220E+10, 5.6363399E+10, 
-    6.2997984E+10, 5.5783815E+10, 6.3568526E+10, 5.5221384E+10, 6.4127775E+10, 
-    5.4671180E+10, 6.4678910E+10, 5.4130025E+10, 6.5224078E+10, 5.3595775E+10, 
-    6.5764779E+10, 5.3066934E+10, 6.6302096E+10, 5.2542418E+10, 6.6836834E+10, 
-    5.2021429E+10, 6.7369601E+10, 5.1503360E+10, 6.7900868E+10, 5.0987745E+10, 
-    6.8431006E+10, 5.0474214E+10, 6.8960312E+10, 3.68498246E+11, 4.24763020E+11, 
-    4.87249273E+11, 7.15392902E+11, 7.73839490E+11, 8.34145546E+11, };
-  
-  // Intensity [1 / Pa] (rounded to 10 digits because at most 9 digits exist in f0)
-  constexpr std::array<Numeric, nlines_mpm2020> intens = {
-    1.591521878E-21, 1.941172240E-21, 4.834543970E-21, 4.959264029E-21, 7.010386457E-21, 
-    7.051673348E-21, 8.085012578E-21, 8.108262250E-21, 8.145673278E-21, 8.149757320E-21, 
-    7.396406085E-21, 7.401923754E-21, 6.162286575E-21, 6.168475265E-21, 4.749226167E-21, 
-    4.754435107E-21, 3.405982896E-21, 3.408455562E-21, 2.282498656E-21, 2.283934341E-21, 
-    1.432692459E-21, 1.433513473E-21, 8.439995690E-22, 8.443521837E-22, 4.672706507E-22, 
-    4.676049313E-22, 2.435008301E-22, 2.437304596E-22, 1.195038747E-22, 1.196873412E-22, 
-    5.532759045E-23, 5.537261239E-23, 2.416832398E-23, 2.418989865E-23, 9.969285671E-24, 
-    9.977543709E-24, 3.882541154E-24, 3.888101811E-24, 3.676253816E-23, 3.017524005E-22, 
-    9.792882227E-23, 2.756166168E-23, 1.486462215E-22, 4.411918954E-23, };
-  
-  // Temperature intensity modifier
-  constexpr std::array<Numeric, nlines_mpm2020> a2 = {
-    0.01, 0.014, 0.083, 0.083, 0.207, 0.207, 0.387, 0.386,
-    0.621, 0.621, 0.910, 0.910, 1.255, 1.255, 1.654, 1.654,
-    2.109, 2.108, 2.618, 2.617, 3.182, 3.181, 3.800, 3.800,
-    4.474, 4.473, 5.201, 5.200, 5.983, 5.982, 6.819, 6.818,
-    7.709, 7.708, 8.653, 8.652, 9.651, 9.650, 0.048, 0.044,
-    0.049, 0.145, 0.141, 0.145};
-  
-  // Line shape model in SI units
-  constexpr auto lsm = init_mpm2020_lsm();
-  
-  // Reference temperature [K]
-  constexpr Numeric t0 = 300;
-  
-  // QuantumIdentifier if we need it
-  constexpr std::array<QuantumIdentifier, nlines_mpm2020> qids = init_mpm2020_qids();
-  constexpr Numeric mass = qids.front().Isotopologue().mass;
-  
-  // Model setting
-  const bool do_temp_deriv = do_temperature_jacobian(jacs);
-  
-  const Numeric theta = t0 / t;
-  const Numeric theta_m1 = theta - 1;
-  const Numeric theta_3 = pow3(theta);
-  const Numeric GD_div_F0 = std::sqrt(Constant::doppler_broadening_const_squared * t / mass);
-  
-  for (std::size_t i=0; i<nlines_mpm2020; i++) {
-    const Numeric invGD = 1 / (GD_div_F0 * f0[i]);
-    const Numeric fac = sqrt_pi * invGD;
-    const Numeric ST = oxygen_vmr * theta_3 * p * intens[i] * std::exp(-a2[i] * theta_m1);
-    const Numeric G0 = (1 + 0.1*water_vmr) * p * lsm[i].G0().at(t, t0);
-    const Numeric Y = p * lsm[i].Y().at(t, t0);
-    const Numeric G = pow2( p) * lsm[i].G().at(t, t0);
-    const Numeric DV = pow2(p) * lsm[i].DV().at(t, t0);
-    
-    const Numeric dinvGD_dT = do_temp_deriv ? - invGD * GD_div_F0 / (2 * t) : 0;
-    const Numeric dST_dT = do_temp_deriv ? (a2[i]*t0 - 3*t) / pow2(t) * ST : 0;
-    const Numeric dG0_dT = do_temp_deriv ? (1 + 0.1*water_vmr) * p * lsm[i].G0().dT(t, t0) : 0;
-    const Numeric dY_dT = do_temp_deriv ? p * lsm[i].Y().dT(t, t0) : 0;
-    const Numeric dG_dT = do_temp_deriv ? pow2(p) * lsm[i].G().dT(t, t0) : 0;
-    const Numeric dDV_dT = do_temp_deriv ? pow2(p) * lsm[i].DV().dT(t, t0) : 0;
-    
-    for (Index j=0; j<f.nelem(); j++) {
-      const Complex z = Complex(f0[i] + DV - f[j], G0) * invGD;
-      const Complex Fv = fac * Faddeeva::w(z);
-      const Complex Flm = 1 / Complex(G0, f[j] + f0[i] + DV);
-      
-      const Complex abs = std::real(
-        Complex(1 + G, Y) * Fv +
-        Complex(1 + G, -Y) * Flm);
-      
-      propmat_clearsky.Kjj()[j] += ST * pow2(f[j]) * abs.real();
-      
-      if (jacs.nelem()) {
-        const Complex dw = 2 * (Complex(0, fac * inv_sqrt_pi) - z * Fv);
-        const Complex dm = - pi * pow2(Flm);
-        
-        for (Index iq=0; iq<jacs.nelem(); iq++) {
-          const auto& deriv = jacs[iq];
-          
-          if (not deriv.propmattype()) continue;
-          
-          if (deriv == Jacobian::Atm::Temperature) {
-            const Complex dFv = dw * (invGD * Complex(dDV_dT, dG0_dT) - dinvGD_dT) + Fv * dinvGD_dT;
-            const Complex dFlm = dm * Complex(dG0_dT, dDV_dT);
-            dpropmat_clearsky_dx[iq].Kjj()[j] += pow2(f[j]) * (ST * std::real(
-              Complex(1 + G, Y) * dFv + Complex(dG_dT, dY_dT) * Fv +
-              Complex(1 + G, -Y) * dFlm + Complex(G, -dY_dT) * Flm) + abs.real() * dST_dT);
-          } else if (is_frequency_parameter(deriv)) {
-            const Complex dFv = - dw * invGD;
-            const Complex dFlm = Complex(0, 1) * dm;
-            dpropmat_clearsky_dx[iq].Kjj()[j] += ST * (pow2(f[j]) * std::real(
-              Complex(1 + G, Y) * dFv +
-              Complex(1 + G, -Y) * dFlm) + 2 * abs.real() * f[j]);
-          } else if (deriv.Target().needQuantumIdentity()) {
-            const Absorption::QuantumIdentifierLineTarget lt(deriv.QuantumIdentity(), qids[i]);
-            
-            //NOTE: This is a special case where each line must be seen as a "Band" by themselves.
-            //NOTE: (cont) This is because we never check for "Line" unless a full Absorption::Lines
-            //NOTE: (cont) is used in the QuantumIdentifierLineTarget struct.
-            if (lt not_eq Absorption::QuantumIdentifierLineTargetType::Band) continue;
-            
-            if (deriv == Jacobian::Line::ShapeG0X0) {
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
-                Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
-                Complex(1 + G, -Y) * dm) * 
-                lsm[i].G0().dX0(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeG0X1) {
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
-                Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
-                Complex(1 + G, -Y) * dm) * 
-                lsm[i].G0().dX1(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeDVX0) {
-              const Complex dFv = dw * invGD;
-              const Complex dFlm = Complex(0, 1) * dm;
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
-                Complex(1 + G, Y) * dFv +
-                Complex(1 + G, -Y) * dFlm) * 
-                lsm[i].DV().dX0(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeDVX1) {
-              const Complex dFv = dw * invGD;
-              const Complex dFlm = Complex(0, 1) * dm;
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
-                Complex(1 + G, Y) * dFv +
-                Complex(1 + G, -Y) * dFlm) * 
-                lsm[i].DV().dX1(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeDVX2) {
-              const Complex dFv = dw * invGD;
-              const Complex dFlm = Complex(0, 1) * dm;
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
-                Complex(1 + G, Y) * dFv +
-                Complex(1 + G, -Y) * dFlm) * 
-                lsm[i].DV().dX2(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeGX0) {
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv + Flm) * 
-              lsm[i].G().dX0(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeYX0) {
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv + Flm) * 
-                lsm[i].Y().dX0(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeGX1) {
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv - Flm) * 
-              lsm[i].G().dX1(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeYX1) {
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv + Flm) * 
-              lsm[i].Y().dX1(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeGX2) {
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv - Flm) * 
-                lsm[i].G().dX2(t, t0);
-            } else if (deriv == Jacobian::Line::ShapeYX2) {
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(Fv - Flm) * 
-                lsm[i].Y().dX2(t, t0);
-            } else if (deriv == Jacobian::Line::Center) {
-              const Complex dFv = Fv / f0[i] - dw * invGD + dw * z / f0[i];
-              const Complex dFlm = Complex(0, 1) * dm;
-              dpropmat_clearsky_dx[iq].Kjj()[j] += ST * pow2(f[j]) * std::real(
-                Complex(1 + G, Y) * dFv +
-                Complex(1 + G, -Y) * dFlm);
-            } else if (deriv == Jacobian::Line::Strength) {
-              dpropmat_clearsky_dx[iq].Kjj()[j] += theta_3 * p * std::exp(-a2[i] * theta_m1) * pow2(f[j]) * abs.real();
-            }
-          }
-        }
+
+  Numeric a = 0;
+  for (Index i = 0; i < num; i++)
+    a += c[i] * ((ga[i] * (1 + g[i]) + y[i] * (f - f0[i] - dv[i])) /
+                     (pow2(ga[i]) + pow2(f - f0[i] - dv[i])) +
+                 (ga[i] * (1 + g[i]) - y[i] * (f + f0[i] + dv[i])) /
+                     (pow2(ga[i]) + pow2(f + f0[i] + dv[i])));
+  return a;
+}
+
+void impl(PropagationMatrix& propmat_clearsky,
+          const Vector& f_grid,
+          const Numeric& p_pa,
+          const Numeric& t,
+          const Numeric& oxygen_vmr) noexcept {
+  using Constant::pow2, Constant::pow3, Constant::log10_euler;
+  using Conversion::hz2ghz, Conversion::pa2bar;
+
+  // constexpr std::array ids = identifiers();
+  std::array<Numeric, num> c{
+      940.3,  543.4,  1503.0, 1442.1, 2103.4, 2090.7, 2379.9, 2438.0,
+      2363.7, 2479.5, 2120.1, 2275.9, 1746.6, 1915.4, 1331.8, 1490.2,
+      945.3,  1078.0, 627.1,  728.7,  389.7,  461.3,  227.3,  274.0,
+      124.6,  153.0,  64.29,  80.40,  31.24,  39.80,  14.32,  18.56,
+      6.193,  8.172,  2.529,  3.397,  0.975,  1.334};
+  constexpr std::array<Numeric, num> a2{
+      0.01,  0.014, 0.083, 0.083, 0.207, 0.207, 0.387, 0.386, 0.621, 0.621,
+      0.910, 0.910, 1.255, 1.255, 1.654, 1.654, 2.109, 2.108, 2.618, 2.617,
+      3.182, 3.181, 3.800, 3.800, 4.474, 4.473, 5.201, 5.200, 5.983, 5.982,
+      6.819, 6.818, 7.709, 7.708, 8.653, 8.652, 9.651, 9.650};
+  std::array<Numeric, num> ga{
+      1.685, 1.703, 1.513, 1.495, 1.433, 1.408, 1.353, 1.353, 1.303, 1.319,
+      1.262, 1.265, 1.238, 1.217, 1.207, 1.207, 1.137, 1.137, 1.101, 1.101,
+      1.037, 1.038, 0.996, 0.996, 0.955, 0.955, 0.906, 0.906, 0.858, 0.858,
+      0.811, 0.811, 0.764, 0.764, 0.717, 0.717, 0.669, 0.669};
+  std::array<Numeric, num> y0{
+      -0.041, 0.277,  -0.372, 0.559,  -0.573, 0.618,  -0.366, 0.278,
+      -0.089, -0.021, 0.060,  -0.152, 0.216,  -0.293, 0.373,  -0.436,
+      0.491,  -0.542, 0.571,  -0.613, 0.636,  -0.670, 0.690,  -0.718,
+      0.740,  -0.763, 0.788,  -0.807, 0.834,  -0.849, 0.876,  -0.887,
+      0.915,  -0.922, 0.950,  -0.955, 0.987,  -0.988};
+  constexpr std::array<Numeric, num> y1{
+      0.0,   0.124,  -0.002, 0.008,  0.045, -0.093, 0.264, -0.351,
+      0.359, -0.416, 0.326,  -0.353, 0.484, -0.503, 0.579, -0.590,
+      0.616, -0.619, 0.611,  -0.609, 0.574, -0.568, 0.574, -0.566,
+      0.60,  -0.59,  0.63,   -0.62,  0.64,  -0.63,  0.65,  -0.64,
+      0.65,  -0.64,  0.65,   -0.64,  0.64,  -0.62};
+  std::array<Numeric, num> g0{
+      -0.000695, -0.090, -0.103, -0.239, -0.172, -0.171, 0.028,  0.150,
+      0.132,     0.170,  0.087,  0.069,  0.083,  0.067,  0.007,  0.016,
+      -0.021,    -0.066, -0.095, -0.115, -0.118, -0.140, -0.173, -0.186,
+      -0.217,    -0.227, -0.234, -0.242, -0.266, -0.272, -0.301, -0.304,
+      -0.334,    -0.333, -0.361, -0.358, -0.348, -0.344};
+  constexpr std::array<Numeric, num> g1{
+      0.,     -0.045, 0.007,  0.033,  0.081,  0.162,  0.179,  0.225,
+      0.054,  0.003,  0.0004, -0.047, -0.034, -0.071, -0.180, -0.210,
+      -0.285, -0.323, -0.363, -0.380, -0.378, -0.387, -0.392, -0.394,
+      -0.424, -0.422, -0.465, -0.46,  -0.51,  -0.50,  -0.55,  -0.54,
+      -0.58,  -0.56,  -0.62,  -0.59,  -0.68,  -0.65};
+  std::array<Numeric, num> dv0{
+      -0.00028, 0.00597, -0.0195, 0.032,   -0.0475, 0.0541,  -0.0232, 0.0154,
+      0.0007,   -0.0084, -0.0025, -0.0014, -0.0004, -0.0020, 0.005,   -0.0066,
+      0.0072,   -0.008,  0.0064,  -0.0070, 0.0056,  -0.0060, 0.0047,  -0.0049,
+      0.0040,   -0.0041, 0.0036,  -0.0037, 0.0033,  -0.0034, 0.0032,  -0.0032,
+      0.0030,   -0.0030, 0.0028,  -0.0029, 0.0029,  -0.0029};
+  constexpr std::array<Numeric, num> dv1{
+      -0.00039, 0.009,   -0.012, 0.016,   -0.027, 0.029,   0.006,  -0.015,
+      0.010,    -0.014,  -0.013, 0.013,   0.004,  -0.005,  0.010,  -0.010,
+      0.010,    -0.011,  0.008,  -0.009,  0.003,  -0.003,  0.0009, -0.0009,
+      0.0017,   -0.0016, 0.0024, -0.0023, 0.0024, -0.0024, 0.0024, -0.0020,
+      0.0017,   -0.0016, 0.0013, -0.0012, 0.0005, -0.0004};
+  constexpr std::array<Numeric, num> f0 = {
+      118.750334, 56.264774, 62.486253, 58.446588, 60.306056, 59.590983,
+      59.164204,  60.434778, 58.323877, 61.150562, 57.612486, 61.800158,
+      56.968211,  62.411220, 56.363399, 62.997984, 55.783815, 63.568526,
+      55.221384,  64.127775, 54.671180, 64.678910, 54.130025, 65.224078,
+      53.595775,  65.764779, 53.066934, 66.302096, 52.542418, 66.836834,
+      52.021429,  67.369601, 51.503360, 67.900868, 50.987745, 68.431006,
+      50.474214,  68.960312};
+
+  // Conversion factor to ARTS units
+  constexpr Numeric conv = 0.1820 * 1e-7 / (2.0946 * log10_euler);
+
+  {
+    // Pressure and temperature adaptation constants
+    constexpr Numeric x = 0.754;
+    const Numeric p = pa2bar(p_pa);
+    const Numeric theta = 300. / t;
+    const Numeric dt = theta - 1;
+    const Numeric tadapt = std::pow(theta, x);
+
+    // Temperature adaptation formulas
+    constexpr auto div = [](auto& a, auto& b) { return a / b; };
+    const auto linear = [dt, ta = tadapt * p](auto& Z0, auto& Z1) {
+      return (Z0 + Z1 * dt) * ta;
+    };
+    const auto square = [dt, ta = pow2(tadapt * p)](auto& Z0, auto& Z1) {
+      return (Z0 + Z1 * dt) * ta;
+    };
+    const auto gamma = [ta = tadapt * p](auto& Z) { return Z * ta; };
+    const auto strength = [dt, tp = pow3(theta) * p](auto& a, auto& b) {
+      return a * tp * std::exp(-b * dt);
+    };
+
+    // Apply transformation
+    std::transform(y0.begin(), y0.end(), y1.begin(), y0.begin(), linear);
+    std::transform(g0.begin(), g0.end(), g1.begin(), g0.begin(), square);
+    std::transform(dv0.begin(), dv0.end(), dv1.begin(), dv0.begin(), square);
+    std::transform(ga.begin(), ga.end(), ga.begin(), gamma);
+    std::transform(c.begin(), c.end(), f0.begin(), c.begin(), div);
+    std::transform(c.begin(), c.end(), a2.begin(), c.begin(), strength);
+  }
+
+  // Sum up positive absorption
+  const Index nf = f_grid.nelem();
+  for (Index iv = 0; iv < nf; iv++) {
+    const Numeric f = hz2ghz(f_grid[iv]);
+    if (const Numeric a = sum_lines(f, c, ga, g0, y0, dv0, f0); a > 0)
+      propmat_clearsky.Kjj()[iv] += conv * oxygen_vmr * pow2(f) * a;
+  }
+}
+
+void compute(PropagationMatrix& propmat_clearsky,
+             ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+             const Vector& f_grid,
+             const Numeric& p,
+             const Numeric& t,
+             const Numeric& oxygen_vmr,
+             const ArrayOfRetrievalQuantity& jacs) ARTS_NOEXCEPT {
+  ARTS_ASSERT(t > 0)
+
+  if (const Index nq = dpropmat_clearsky_dx.nelem(); nq > 0) {
+    // Local copies are required
+    PropagationMatrix propmat(propmat_clearsky.NumberOfFrequencies(),
+                              propmat_clearsky.StokesDimensions());
+    PropagationMatrix dpropmat(propmat_clearsky.NumberOfFrequencies(),
+                               propmat_clearsky.StokesDimensions());
+
+    impl(propmat, f_grid, p, t, oxygen_vmr);
+    propmat_clearsky.Kjj() += propmat.Kjj();
+
+    for (Index iq = 0; iq < nq; iq++) {
+      const auto& deriv = jacs[iq];
+
+      if (not deriv.propmattype()) continue;
+
+      if (deriv == Jacobian::Atm::Temperature) {
+        ARTS_ASSERT(deriv.Target().Perturbation() not_eq 0)
+
+        dpropmat.SetZero();
+
+        impl(
+            dpropmat, f_grid, p, t + deriv.Target().Perturbation(), oxygen_vmr);
+        dpropmat.Kjj() -= propmat.Kjj();
+        dpropmat.Kjj() /= deriv.Target().Perturbation();
+        dpropmat_clearsky_dx[iq].Kjj() += dpropmat.Kjj();
+      } else if (is_frequency_parameter(deriv)) {
+        ARTS_ASSERT(deriv.Target().Perturbation() not_eq 0)
+
+        dpropmat.SetZero();
+
+        Vector f_pert{f_grid};
+        f_pert += deriv.Target().Perturbation();
+
+        impl(dpropmat, f_pert, p, t, oxygen_vmr);
+        dpropmat.Kjj() -= propmat.Kjj();
+        dpropmat.Kjj() /= deriv.Target().Perturbation();
+        dpropmat_clearsky_dx[iq].Kjj() += dpropmat.Kjj();
+      } else if (constexpr auto& o266 =
+                     Species::select(Species::Species::Oxygen, "66");
+                 deriv.Target().isSpeciesVMR() and
+                 deriv.Target().QuantumIdentity().Isotopologue() == o266 and
+                 oxygen_vmr > 0) {
+        dpropmat = propmat;
+        dpropmat /= oxygen_vmr;
+        dpropmat_clearsky_dx[iq].Kjj() += dpropmat.Kjj();
       }
     }
+  } else {
+    impl(propmat_clearsky, f_grid, p, t, oxygen_vmr);
   }
 }
+}  // namespace Absorption::PredefinedModel::Makarov2020etal

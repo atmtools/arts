@@ -1,7 +1,9 @@
-#include "linemixing.h"
+#include "absorptionlines.h"
 #include "auto_md.h"
 #include "gui/plot.h"
+#include "linemixing.h"
 #include "lineshape.h"
+#include "messages.h"
 #include "physics_funcs.h"
 #include "predefined_absorption_models.h"
 
@@ -119,9 +121,7 @@ int main() {
                                                         Zeeman::Polarization::SigmaPlus, band).abs;
   
   // Line Mixing reimplementation of MPM19
-  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(mpm_abs, dmpm_abs,
-                                                        f_grid, P, T, 1, 0,
-                                                        ArrayOfRetrievalQuantity(0));
+  Absorption::PredefinedModel::Makarov2020etal::compute(mpm_abs, dmpm_abs, f_grid, P, T, 1, ArrayOfRetrievalQuantity(0));
   
   // Line by line calculations
   band.Normalization(Absorption::NormalizationType::SFS);
@@ -137,11 +137,11 @@ int main() {
 //     VectorNLinSpaceConst(200, 350, 76), ecs_data,
 //     VectorNLogSpaceConst(1, 1'000'000'000'000, 101));
 //   WriteXML("ascii", data, "prestemp.xml", 0, "", "", "", Verbosity());
-  
+  Verbosity v;
   Absorption::LineMixing::ecs_eigenvalue_adaptation(band,
                                                     VectorNLinSpaceConst(200, 350, 76),
                                                     ecs_data,
-                                                    Conversion::atm2pa(1), 2);
+                                                    Conversion::atm2pa(1), 2, false, v);
   LineShape::ComputeData com(f_grid, {rq}, false);
   LineShape::ComputeData sparse_com(Vector(0), {rq}, false);
   LineShape::compute(com, sparse_com, band, {rq}, {},

@@ -31,35 +31,33 @@
 #include "jacobian.h"
 #include "propagationmatrix.h"
 
-namespace Absorption::PredefinedModel {
+namespace Absorption::PredefinedModel::Makarov2020etal {
 
 /** Adds Makarov MPM2020 O2 absorption lines to the propagation matrix
+ *
+ * Adds the 60 GHz O2-66 band, including the 118.75 GHz line.  No Zeeman
+ * effect is considered.
  * 
- * Adds negative values outside of bounds.  Works for Earth only
- * 
- * Water is 10% more effective at broadening than dry air so must
- * be included.  Does not deal with Zeeman effect and ignores negative
- * absorption far from the line center (this can be fixed but requires
- * clear-cut motivation)
+ * Adds no negative values outside of bounds.
+ *
+ * Jacobian values are computed by perturbations, only
+ * frequency, temperature, and the two styles of VMR are supported
  * 
  * @param[in,out] propmat_clearsky As WSV
  * @param[in,out] dpropmat_clearsky_dx As WSV
- * @param[in]     f Frequency grid of computations (size: [f])
- * @param[in]     p Pressure of computations
- * @param[in]     t Temperature of computations
+ * @param[in]     f_grid As WSV
+ * @param[in]     rtp_pressure As WSV
+ * @param[in]     rtp_temperature As WSV
  * @param[in]     oxygen_vmr O2 volume mixing ratio (only for strength scaling)
- * @param[in]     water_vmr Water volume mixing ratio
- * @param[in]     self_vmr Molecular oxygen volume mixing ratio
- * @param[in]     jacs The Jacobian descriptions (size: [greater than max(jacs_pos)])
+ * @param[in]     jacobian_quantities As WSV
  */
-void makarov2020_o2_lines_mpm(PropagationMatrix& propmat_clearsky,
-                              ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-                              const Vector& f,
-                              const Numeric& p,
-                              const Numeric& t,
-                              const Numeric& oxygen_vmr,
-                              const Numeric& water_vmr,
-                              const ArrayOfRetrievalQuantity& jacs);
-} // namespace Absorption::PredefinedModel
+void compute(PropagationMatrix& propmat_clearsky,
+             ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+             const Vector& f_grid,
+             const Numeric& rtp_pressure,
+             const Numeric& rtp_temperature,
+             const Numeric& oxygen_vmr,
+             const ArrayOfRetrievalQuantity& jacobian_quantities) ARTS_NOEXCEPT;
+} // namespace Absorption::PredefinedModel::Makarov2020etal
 
 #endif  // fullmodel_h
