@@ -236,6 +236,13 @@ ComplexVectorView& ComplexVectorView::operator=(Complex x) {
   return *this;
 }
 
+/** Assigning a scalar to a ComplexVectorView will set all elements to this
+    value. */
+ComplexVectorView& ComplexVectorView::operator=(Numeric x) {
+  copy(x, begin(), end());
+  return *this;
+}
+
 /** Multiplication by scalar. */
 ComplexVectorView ComplexVectorView::operator*=(Complex x) {
   const ComplexIterator1D e = end();

@@ -2813,7 +2813,9 @@ String Lines::LineShapeMetaData() const noexcept {
 }
 
 Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
-  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) 
+  if (type == Zeeman::Polarization::None) return 1;
+  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and
+      LowerQuantumNumber(k, QuantumNumberType::F).isDefined())
     return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::F),
                          LowerQuantumNumber(k, QuantumNumberType::F),
                          type);
@@ -2822,24 +2824,40 @@ Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
                        type);
 }
 
-Numeric Lines::ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const noexcept {
-  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined())
-    return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::F),
-                                       LowerQuantumNumber(k, QuantumNumberType::F),
-                                       type, i);
-  return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::J),
-                                     LowerQuantumNumber(k, QuantumNumberType::J),
-                                     type, i);
+Numeric Lines::ZeemanStrength(size_t k,
+                              Zeeman::Polarization type,
+                              Index i) const noexcept {
+  if (type == Zeeman::Polarization::None) return 1.0;
+  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and
+      LowerQuantumNumber(k, QuantumNumberType::F).isDefined())
+    return mlines[k].Zeeman().Strength(
+        UpperQuantumNumber(k, QuantumNumberType::F),
+        LowerQuantumNumber(k, QuantumNumberType::F),
+        type,
+        i);
+  return mlines[k].Zeeman().Strength(
+      UpperQuantumNumber(k, QuantumNumberType::J),
+      LowerQuantumNumber(k, QuantumNumberType::J),
+      type,
+      i);
 }
 
-Numeric Lines::ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const noexcept {
-  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined())
-    return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::F),
-                                        LowerQuantumNumber(k, QuantumNumberType::F),
-                                        type, i);
-  return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::J),
-                                      LowerQuantumNumber(k, QuantumNumberType::J),
-                                      type, i);
+Numeric Lines::ZeemanSplitting(size_t k,
+                               Zeeman::Polarization type,
+                               Index i) const noexcept {
+  if (type == Zeeman::Polarization::None) return 0.0;
+  if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and
+      LowerQuantumNumber(k, QuantumNumberType::F).isDefined())
+    return mlines[k].Zeeman().Splitting(
+        UpperQuantumNumber(k, QuantumNumberType::F),
+        LowerQuantumNumber(k, QuantumNumberType::F),
+        type,
+        i);
+  return mlines[k].Zeeman().Splitting(
+      UpperQuantumNumber(k, QuantumNumberType::J),
+      LowerQuantumNumber(k, QuantumNumberType::J),
+      type,
+      i);
 }
 
 void Lines::SetAutomaticZeeman() noexcept {

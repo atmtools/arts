@@ -368,6 +368,8 @@ const PolarizationVector& SelectPolarization(
       return data.pi;
     case Polarization::SigmaPlus:
       return data.sp;
+    case Polarization::None:
+      return data.sm;  //! This should never be reached
   }
 }
 #pragma GCC diagnostic pop

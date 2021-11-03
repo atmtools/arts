@@ -13098,14 +13098,15 @@ void define_md_data_raw() {
          "rtp_vmr",
          "nlte_do",
          "lbl_checked"),
-      GIN("sparse_df", "sparse_lim", "speedup_option", "select_speciestags"),
-      GIN_TYPE("Numeric", "Numeric", "String", "ArrayOfSpeciesTag"),
-      GIN_DEFAULT("0", "0", "None", ""),
+      GIN("sparse_df", "sparse_lim", "speedup_option", "select_speciestags", "robust"),
+      GIN_TYPE("Numeric", "Numeric", "String", "ArrayOfSpeciesTag", "Index"),
+      GIN_DEFAULT("0", "0", "None", "", "0"),
       GIN_DESC(
         "The grid sparse separation",
         "The dense-to-sparse limit",
         "Speedup logic",
-        "Species selection (will only compute for the select species in *abs_species*)"
+        "Species selection (will only compute for the select species in *abs_species*)",
+        "Boolean.  If it is true, line mixed bands each allocate their own compute data to ensure that they cannot produce negative absorption"
       )));
 
   md_data_raw.push_back(create_mdrecord(

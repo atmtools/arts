@@ -136,7 +136,7 @@ void zeeman_on_the_fly(
                             band, jacobian_quantities, rtp_nlte,
                             band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
                             isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, X.H, sparse_limit,
-                            true, polar, Options::LblSpeedup::None);
+                            polar, Options::LblSpeedup::None, false);
         
       }
     }
