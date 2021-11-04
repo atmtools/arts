@@ -31,6 +31,7 @@
 #include "hitran_species.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
+#include "matpack.h"
 #include "propagationmatrix.h"
 
 
@@ -294,10 +295,11 @@ void abs_linesAdaptOnTheFlyLineMixing(ArrayOfAbsorptionLines& abs_lines,
                                       const Numeric& pressure,
                                       const Index& order,
                                       const Index& robust,
+                                      const Index& rosenkranz_adaptation,
                                       const Verbosity& verbosity) {
   for (auto& band: abs_lines) {
     if (band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing or band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-      Absorption::LineMixing::ecs_eigenvalue_adaptation(band, t_grid, ecs_data[band.QuantumIdentity()], pressure, order, robust, verbosity);
+      Absorption::LineMixing::ecs_eigenvalue_adaptation(band, t_grid, ecs_data[band.QuantumIdentity()], pressure, order, robust, rosenkranz_adaptation, verbosity);
     }
   }
 }
@@ -308,9 +310,10 @@ void abs_lines_per_speciesAdaptOnTheFlyLineMixing(ArrayOfArrayOfAbsorptionLines&
                                                   const Numeric& pressure,
                                                   const Index& order,
                                                   const Index& robust,
+                                                  const Index& rosenkranz_adaptation,
                                                   const Verbosity& verbosity) {
   for (auto& abs_lines: abs_lines_per_species) {
-    abs_linesAdaptOnTheFlyLineMixing(abs_lines, ecs_data, t_grid, pressure, order, robust, verbosity);
+    abs_linesAdaptOnTheFlyLineMixing(abs_lines, ecs_data, t_grid, pressure, order, robust, rosenkranz_adaptation, verbosity);
   }
 }
 

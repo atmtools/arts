@@ -1468,34 +1468,101 @@ Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
   return out;
 }
 
+
+/*! Computes the Eigenvalue adaptation values
+ * 
+ * The output is sorted based on frequency.  If pressure shifts
+ * moves one line's frequency past another, this introduces errors.
+ * This is uncommon but happens more easily at higher pressures.
+ * 
+ * If this happens, the output of this function is not usable, but no
+ * safe-guards are in place to guard against this.
+ * 
+ * @param[in] band The absorption band [N lines]
+ * @param[in] temperatures The temperature grid for fitting parameters upon [K temperatures]
+ * @param[in] mass The mass of all broadeners of the absorption band [M broadeners]
+ * @return Eigenvalue line mixing parameters
+ */
+Tensor4 rosenkranz_approximation(const AbsorptionLines& band,
+                                 const Vector& temperatures,
+                                 const ErrorCorrectedSuddenData& ecs_data,
+                                 const Numeric P) {
+  const Index N = band.NumLines();
+  const Index M = band.NumBroadeners();
+  const Index K = temperatures.nelem();
+  
+  // Weighted center of the band
+  const Numeric frenorm = band.F_mean();
+  
+  // Need sorting to put weak lines last, but we need the sorting constant or the output jumps
+  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0(), band).first;
+  
+  // Output
+  Tensor4 out(4, N, M, K);
+  
+  #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
+  for (Index m=0; m<M; m++) {
+    for (Index k=0; k<K; k++) {
+      const Numeric T = temperatures[k];
+      
+      // Relaxation matrix of T0 sorting at T
+      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[m]], m);
+      for (Index n=0; n<N; n++) {
+        W(n, n) += band.F0(sorting[n]) - frenorm;
+      }
+      
+      // Populations and dipoles of T0 sorting at T
+      const auto [pop, dip] = presorted_population_and_dipole(T, sorting, band);
+      
+      out(0, joker, m, k) = RosenkranzG(dip, W.imag(), band);
+      out(1, joker, m, k) = RosenkranzY(dip, W.imag(), band);
+      out(2, joker, m, k) = RosenkranzDV(dip, W.imag(), band);
+      out(3, joker, m, k) = 0;
+    }
+  }
+  
+  return out;
+}
+
 void ecs_eigenvalue_adaptation(AbsorptionLines& band,
                                const Vector& temperatures,
                                const ErrorCorrectedSuddenData& ecs_data,
                                const Numeric P0,
                                const Index ord,
                                const bool robust,
+                               const bool rosenkranz_adaptation,
                                const Verbosity& verbosity) {
   CREATE_OUT3;
-  ARTS_USER_ERROR_IF (P0 <= 0, P0, " Pa is not possible")
-  
+  ARTS_USER_ERROR_IF(P0 <= 0, P0, " Pa is not possible")
+
+  ARTS_USER_ERROR_IF(not is_sorted(temperatures),
+                     "The temperature list [",
+                     temperatures,
+                     "] K\n"
+                     "must be fully sorted from low to high")
+
   ARTS_USER_ERROR_IF(
-    not is_sorted(temperatures),
-  "The temperature list [", temperatures,  "] K\n"
-  "must be fully sorted from low to high"
-  )
-  
-  ARTS_USER_ERROR_IF (ord < 1 or ord > 3, "Order not in list [1, 2, 3], is: ", ord)
-  
-  if (band_eigenvalue_adaptation(band,
-    ecs_eigenvalue_approximation(band, temperatures, ecs_data, P0),
-    temperatures, P0, ord)) {
-    ARTS_USER_ERROR_IF(not robust, "Bad eigenvalue adaptation for band: ", band.QuantumIdentity(), '\n')
-    out3 << "Bad eigenvalue adaptation for band: " << band.QuantumIdentity() << '\n';
+      ord < 1 or ord > 3, "Order not in list [1, 2, 3], is: ", ord)
+
+  if (band_eigenvalue_adaptation(
+          band,
+          rosenkranz_adaptation not_eq 0
+              ? rosenkranz_approximation(band, temperatures, ecs_data, P0)
+              : ecs_eigenvalue_approximation(band, temperatures, ecs_data, P0),
+          temperatures,
+          P0,
+          ord)) {
+    ARTS_USER_ERROR_IF(not robust,
+                       "Bad eigenvalue adaptation for band: ",
+                       band.QuantumIdentity(),
+                       '\n')
+    out3 << "Bad eigenvalue adaptation for band: " << band.QuantumIdentity()
+         << '\n';
 
     band.Normalization(Absorption::NormalizationType::SFS);
     band.Population(Absorption::PopulationType::LTE);
-    for (auto& line: band.AllLines()) {
-      for (auto& sm: line.LineShape().Data()) {
+    for (auto& line : band.AllLines()) {
+      for (auto& sm : line.LineShape().Data()) {
         sm.Y() = LineShape::ModelParameters(LineShape::TemperatureModel::None);
         sm.G() = LineShape::ModelParameters(LineShape::TemperatureModel::None);
         sm.DV() = LineShape::ModelParameters(LineShape::TemperatureModel::None);
