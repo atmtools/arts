@@ -2278,6 +2278,11 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                            a_nlte_list,
                                            a_vmr_list,
                                            l_abs_agenda);
+            
+            // Convert from derivative to absorption
+            for (Index ispec=0; ispec<partial_abs.nelem(); ispec++) {
+              partial_abs[ispec] *= a_vmr_list[ispec];
+            }
 
             // Verify, that the number of elements in abs matrix is
             // constistent with stokes_dim:

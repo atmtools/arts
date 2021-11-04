@@ -28,13 +28,6 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 # create the workspace variable `lines'.
 ReadARTSCAT( abs_lines=abs_lines, filename="lines.xml", fmin=1e9, fmax=200e9 )
 
-# This test catalogue was generated from the HITRAN catalogue in the
-# following way:
-#abs_linesReadFromHitran( abs_lines,
-#        "PATH_TO_ARTS-DATA/spectroscopy/hitran96/hitran96_lowfreq.par",
-#        1e9,
-#        200e9 )
-
 # Define the list of absorption species:
 abs_speciesSet( species=[ "H2O-PWR98",
                           "O2-PWR93",
@@ -78,12 +71,12 @@ lbl_checkedCalc
 jacobianOff
 
 propmat_clearsky_fieldCalc
+Tensor7Create(test_of_propmat_clearsky_field)
 
 # Write out:
-Tensor7Create(abs_field_nodoppler)
-Copy(abs_field_nodoppler, propmat_clearsky_field)
-WriteXML( output_file_format, abs_field_nodoppler )
-
+#WriteXML( output_file_format, propmat_clearsky_field, "TestAbsDoppler.test1.xml")
+ReadXML(test_of_propmat_clearsky_field, "TestAbsDoppler.test1.xml")
+CompareRelative(propmat_clearsky_field, test_of_propmat_clearsky_field, 1e-5, "propmat_clearsky_fieldCalc output changed significantly without Doppler!")
 
 # Now with Doppler (still LBL)!
 
@@ -98,9 +91,9 @@ VectorNLinSpace( doppler, nelem, 0, 1e9 )
 propmat_clearsky_fieldCalc( doppler=doppler )
 
 # Write out:
-Tensor7Create(abs_field_doppler)
-Copy(abs_field_doppler, propmat_clearsky_field)
-WriteXML( output_file_format, abs_field_doppler )
+#WriteXML( output_file_format, propmat_clearsky_field, "TestAbsDoppler.test2.xml")
+ReadXML(test_of_propmat_clearsky_field, "TestAbsDoppler.test2.xml")
+CompareRelative(propmat_clearsky_field, test_of_propmat_clearsky_field, 1e-5, "propmat_clearsky_fieldCalc output changed significantly without Doppler!")
 
 # Now with Doppler and lookup table!
 
@@ -124,15 +117,8 @@ Copy(f_grid, f_grid_backup)
 propmat_clearsky_fieldCalc( doppler=doppler )
 
 # Write out:
-Tensor7Create(abs_field_doppler_lookup)
-Copy(abs_field_doppler_lookup, propmat_clearsky_field)
-WriteXML( output_file_format, abs_field_doppler_lookup )
-
-
-
-# Write out aux variables for plotting:
-WriteXML( output_file_format, p_grid )
-WriteXML( output_file_format, f_grid )
-
+#WriteXML( output_file_format, propmat_clearsky_field, "TestAbsDoppler.test3.xml")
+ReadXML(test_of_propmat_clearsky_field, "TestAbsDoppler.test3.xml")
+CompareRelative(propmat_clearsky_field, test_of_propmat_clearsky_field, 1e-5, "propmat_clearsky_fieldCalc output changed significantly!")
 }
 

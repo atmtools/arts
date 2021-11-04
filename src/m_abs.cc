@@ -355,8 +355,7 @@ void abs_coefCalcFromXsec(  // WS Output:
                   dabs_xsec_per_species_dx[i][iq](k, j) * abs_vmrs(i, j) * n;
             }
           } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
-            dabs_coef_dx[iq](k, j) +=
-                dabs_xsec_per_species_dx[i][iq](k, j) * n;
+            dabs_coef_dx[iq](k, j) += abs_xsec_per_species[i](k, j) * n;
           } else {
             dabs_coef_dx[iq](k, j) +=
                 dabs_xsec_per_species_dx[i][iq](k, j) * n * abs_vmrs(i, j);
