@@ -354,7 +354,7 @@ void abs_coefCalcFromXsec(  // WS Output:
               dabs_coef_dx[iq](k, j) +=
                   dabs_xsec_per_species_dx[i][iq](k, j) * abs_vmrs(i, j) * n;
             }
-          } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+          } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR and deriv == abs_species[i]) {
             dabs_coef_dx[iq](k, j) += abs_xsec_per_species[i](k, j) * n;
           } else {
             dabs_coef_dx[iq](k, j) +=
@@ -853,6 +853,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
   // where for each species the matrix has format [f_grid, abs_p].
 
   Index n_species = abs_coef_per_species.nelem();  // # species
+  Index n_jacs = dabs_coef_dx.nelem();  // # derivatives
 
   ARTS_USER_ERROR_IF (0 == n_species,
     "Must have at least one species.")
@@ -868,28 +869,17 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
     "Frequency dimension of propmat_clearsky does not\n"
     "match abs_coef_per_species.")
 
+  ARTS_USER_ERROR_IF (dpropmat_clearsky_dx.nelem() not_eq n_jacs,
+    "Must have the same dimension.")
+
   // Loop species and stokes dimensions, and add to propmat_clearsky:
   for (Index si = 0; si < n_species; ++si)
     propmat_clearsky.Kjj() += abs_coef_per_species[si](joker, 0);
 
-  for (Index iqn = 0; iqn < dabs_coef_dx.nelem(); iqn++) {
-    bool found_special = false;
-    for (Index isp=0; isp<abs_species.nelem(); isp++) {
-      if (jacobian_quantities[iqn] == abs_species[isp]) {
-        dpropmat_clearsky_dx[iqn].Kjj() += abs_coef_per_species[isp](joker, 0);
-        found_special = true;
-        break;
-      }
-    }
-    
-    if (not found_special) {
-      if (dabs_coef_dx[iqn].nrows() == n_f) {
-        if (dabs_coef_dx[iqn].ncols() == 1) {
-          dpropmat_clearsky_dx[iqn].Kjj() += dabs_coef_dx[iqn](joker, 0);
-        } else {
-          ARTS_USER_ERROR("Must have exactly one pressure.");
-        }
-      }
+  for (Index iqn = 0; iqn < n_jacs; iqn++) {
+    if (dabs_coef_dx[iqn].nrows() == n_f) {
+      ARTS_USER_ERROR_IF(dabs_coef_dx[iqn].ncols() not_eq 1, "Must have exactly one pressure.")
+      dpropmat_clearsky_dx[iqn].Kjj() += dabs_coef_dx[iqn](joker, 0);
     }
   }
 }
