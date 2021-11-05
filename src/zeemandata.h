@@ -421,7 +421,7 @@ class Model {
    * 
    * @return The relative strength of the Zeeman subline
    */
-  [[nodiscard]] Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const;
+  [[nodiscard]] Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const ARTS_NOEXCEPT;
   
   /** Gives the splitting of one subline of a given polarization
    * 
@@ -442,8 +442,7 @@ class Model {
     using Constant::h;
     constexpr Numeric C = bohr_magneton / h;
 
-    return C * (Ml(Ju, Jl, type, n).toNumeric() * gl() -
-                Mu(Ju, Jl, type, n).toNumeric() * gu());
+    return C * (Ml(Ju, Jl, type, n) * gl() - Mu(Ju, Jl, type, n) * gu());
   }
 
   /** Output operator for Zeeman::Model */

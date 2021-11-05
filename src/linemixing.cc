@@ -630,275 +630,6 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
 
 
 std::pair<ComplexVector, bool> ecs_absorption_impl(const Numeric T,
-                                                   const Numeric P,
-                                                   const Numeric this_vmr,
-                                                   const Vector& vmrs,
-                                                   const ErrorCorrectedSuddenData& ecs_data,
-                                                   const Vector& f_grid,
-                                                   const AbsorptionLines& band) {
-  constexpr Numeric sq_ln2pi = Constant::sqrt_ln_2 / Constant::sqrt_pi;
-
-  // Weighted center of the band
-  const Numeric frenorm = band.F_mean(T);
-  
-  // Band Doppler broadening constant
-  const Numeric GD_div_F0 = band.DopplerConstant(T);
-  
-  // Sorted population
-  auto [sorting, tp] = sorted_population_and_dipole(T, band);
-
-  // Relaxation matrix
-  const ComplexMatrix W = ecs_relaxation_matrix(T, P, vmrs, ecs_data, band, sorting, frenorm);
-
-  // Equivalent lines computations
-  const EquivalentLines eqv(W, tp.pop, tp.dip);
-  
-  // Return the absorption and if this works
-  std::pair<ComplexVector, bool> retval{ComplexVector(f_grid.nelem(), 0), false};
-  auto& [absorption,works] = retval;
-
-  //  Add the lines
-  for (Index i=0; i<band.NumLines(); i++) {
-    const Numeric gamd = GD_div_F0 * (eqv.val[i].real() + frenorm);
-    const Numeric cte = Constant::sqrt_ln_2 / gamd;
-    for (Index iv=0; iv<f_grid.nelem(); iv++) {
-      const Complex z = (eqv.val[i] + frenorm - f_grid[iv]) * cte;
-      const Complex w = Faddeeva::w(z);
-      absorption[iv] += eqv.str[i] * w / gamd;
-    }
-  }
-
-  // Adjust by frequency and number density
-  const Numeric numdens = this_vmr * number_density(P, T);
-  for (Index iv=0; iv<f_grid.nelem(); iv++) {
-    const Numeric f = f_grid[iv];
-    const Numeric fact = - f * std::expm1(- (Constant::h * f) / (Constant::k * T));
-    absorption[iv] *= fact * numdens * sq_ln2pi;
-
-    // correct for too low value
-    if (auto& a = real_val(absorption[iv]); not std::isnormal(a) or a < 0) {
-      absorption[iv] = 0;
-      works = false;
-    }
-  }
-  
-  return retval;
-}
-
-
-EcsReturn ecs_absorption(const Numeric T,
-                         const Numeric P,
-                         const Numeric this_vmr,
-                         const Vector& vmrs,
-                         const ErrorCorrectedSuddenData& ecs_data,
-                         const Vector& f_grid,
-                         const AbsorptionLines& band,
-                         const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  auto [absorption, work] = ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band);
-  
-  // Start as original, so remove new and divide with the negative to get forward derivative
-  ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
-  
-  for (Index i=0; i<jacobian_quantities.nelem(); i++) {
-    auto& vec = jacobian[i];
-    auto& target = jacobian_quantities[i].Target();
-    
-    if (target == Jacobian::Atm::Temperature) {
-      const Numeric dT = target.Perturbation();
-      const auto [dabs, dwork] = ecs_absorption_impl(T+dT, P, this_vmr, vmrs, ecs_data, f_grid, band);
-      vec -= dabs;
-      vec /= -dT;
-      work &= dwork;
-    } else if (target.isWind()) {
-      const Numeric df = target.Perturbation();
-      Vector f_grid_copy = f_grid;
-      f_grid_copy += df;
-      const auto [dabs, dwork] = ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid_copy, band);
-      vec -= dabs;
-      vec /= df;
-      work &= dwork;
-    } else if (target == Jacobian::Line::VMR) {
-      if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
-        Vector vmrs_copy = vmrs;
-        Numeric this_vmr_copy = this_vmr;
-        const Numeric dvmr = target.Perturbation();
-        
-        // Alter the VMRs for self 
-        if (band.Species() == target.QuantumIdentity().Species() and
-          band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
-          this_vmr_copy += dvmr;
-          if (band.Self()) vmrs_copy[0] += dvmr;  // First value is self if band has self broadener
-        } else {
-          for (Index j=band.Self(); j<band.BroadeningSpecies().nelem()-band.Bath(); j++) {
-            if (band.BroadeningSpecies()[j] == target.QuantumIdentity().Species()) {
-              vmrs_copy[j] += dvmr;
-            }
-          }
-        }
-        
-        // Computations
-        const auto [dabs, dwork] = ecs_absorption_impl(T, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, band);
-        vec -= dabs;
-        vec /= -dvmr;
-        work &= dwork;
-      }
-    } else if (target.needQuantumIdentity()) {
-      Numeric d=1e-6;
-      
-      for (Index iline=0; iline<band.NumLines(); iline++) {
-        const Absorption::QuantumIdentifierLineTarget qlt(target.QuantumIdentity(), band, iline);
-        if (qlt == Absorption::QuantumIdentifierLineTargetType::Line) {
-          AbsorptionLines band_copy = band;
-          
-          const Index pos = band.BroadeningSpeciesPosition(target.QuantumIdentity().Species());
-          switch (target.LineType()) {
-            case Jacobian::Line::ShapeG0X0:
-              d *= band.AllLines()[iline].LineShape()[pos].G0().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].G0().X0 += d;
-              break;
-            case Jacobian::Line::ShapeG0X1:
-              d *= band.AllLines()[iline].LineShape()[pos].G0().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].G0().X1 += d;
-              break;
-            case Jacobian::Line::ShapeG0X2:
-              d *= band.AllLines()[iline].LineShape()[pos].G0().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].G0().X2 += d;
-              break;
-            case Jacobian::Line::ShapeG0X3:
-              d *= band.AllLines()[iline].LineShape()[pos].G0().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].G0().X3 += d;
-              break;
-            case Jacobian::Line::ShapeD0X0:
-              d *= band.AllLines()[iline].LineShape()[pos].D0().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].D0().X0 += d;
-              break;
-            case Jacobian::Line::ShapeD0X1:
-              d *= band.AllLines()[iline].LineShape()[pos].D0().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].D0().X1 += d;
-              break;
-            case Jacobian::Line::ShapeD0X2:
-              d *= band.AllLines()[iline].LineShape()[pos].D0().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].D0().X2 += d;
-              break;
-            case Jacobian::Line::ShapeD0X3:
-              d *= band.AllLines()[iline].LineShape()[pos].D0().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].D0().X3 += d;
-              break;
-            case Jacobian::Line::ShapeG2X0:
-              d *= band.AllLines()[iline].LineShape()[pos].G2().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].G2().X0 += d;
-              break;
-            case Jacobian::Line::ShapeG2X1:
-              d *= band.AllLines()[iline].LineShape()[pos].G2().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].G2().X1 += d;
-              break;
-            case Jacobian::Line::ShapeG2X2:
-              d *= band.AllLines()[iline].LineShape()[pos].G2().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].G2().X2 += d;
-              break;
-            case Jacobian::Line::ShapeG2X3:
-              d *= band.AllLines()[iline].LineShape()[pos].G2().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].G2().X3 += d;
-              break;
-            case Jacobian::Line::ShapeD2X0:
-              d *= band.AllLines()[iline].LineShape()[pos].D2().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].D2().X0 += d;
-              break;
-            case Jacobian::Line::ShapeD2X1:
-              d *= band.AllLines()[iline].LineShape()[pos].D2().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].D2().X1 += d;
-              break;
-            case Jacobian::Line::ShapeD2X2:
-              d *= band.AllLines()[iline].LineShape()[pos].D2().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].D2().X2 += d;
-              break;
-            case Jacobian::Line::ShapeD2X3:
-              d *= band.AllLines()[iline].LineShape()[pos].D2().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].D2().X3 += d;
-              break;
-            case Jacobian::Line::ShapeFVCX0:
-              d *= band.AllLines()[iline].LineShape()[pos].FVC().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].FVC().X0 += d;
-              break;
-            case Jacobian::Line::ShapeFVCX1:
-              d *= band.AllLines()[iline].LineShape()[pos].FVC().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].FVC().X1 += d;
-              break;
-            case Jacobian::Line::ShapeFVCX2:
-              d *= band.AllLines()[iline].LineShape()[pos].FVC().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].FVC().X2 += d;
-              break;
-            case Jacobian::Line::ShapeFVCX3:
-              d *= band.AllLines()[iline].LineShape()[pos].FVC().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].FVC().X3 += d;
-              break;
-            case Jacobian::Line::ShapeETAX0:
-              d *= band.AllLines()[iline].LineShape()[pos].ETA().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].ETA().X0 += d;
-              break;
-            case Jacobian::Line::ShapeETAX1:
-              d *= band.AllLines()[iline].LineShape()[pos].ETA().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].ETA().X1 += d;
-              break;
-            case Jacobian::Line::ShapeETAX2:
-              d *= band.AllLines()[iline].LineShape()[pos].ETA().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].ETA().X2 += d;
-              break;
-            case Jacobian::Line::ShapeETAX3:
-              d *= band.AllLines()[iline].LineShape()[pos].ETA().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].ETA().X3 += d;
-              break;
-            case Jacobian::Line::Center:
-              d *= band.AllLines()[iline].F0();
-              band_copy.AllLines()[iline].F0() += d;
-              break;
-            case Jacobian::Line::Strength:
-              d *= band.AllLines()[iline].I0();
-              band_copy.AllLines()[iline].I0() += d;
-              break;
-            case Jacobian::Line::ShapeYX0:
-            case Jacobian::Line::ShapeYX1:
-            case Jacobian::Line::ShapeYX2:
-            case Jacobian::Line::ShapeYX3:
-            case Jacobian::Line::ShapeGX0:
-            case Jacobian::Line::ShapeGX1:
-            case Jacobian::Line::ShapeGX2:
-            case Jacobian::Line::ShapeGX3:
-            case Jacobian::Line::ShapeDVX0:
-            case Jacobian::Line::ShapeDVX1:
-            case Jacobian::Line::ShapeDVX2:
-            case Jacobian::Line::ShapeDVX3:
-            case Jacobian::Line::NLTE:
-            case Jacobian::Line::VMR:
-            case Jacobian::Line::ECS_A:
-            case Jacobian::Line::ECS_B:
-            case Jacobian::Line::ECS_GAMMA:
-            case Jacobian::Line::ECS_DC:
-            case Jacobian::Line::FINAL: {
-              /* do nothing */
-            }
-          }
-          
-          // Perform calculations and estimate derivative
-          auto [dabs, dwork] = ecs_absorption_impl(T, P, this_vmr, vmrs, ecs_data, f_grid, band_copy);
-          vec -= dabs;
-          vec /= -d;
-          work &= dwork;
-        } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
-          // pass
-        } else {
-          ARTS_ASSERT (false, "Missing Line Derivative");
-        }
-      }
-    } else {
-      vec *= 0;  // No derivative, so don't mess around and remove everything
-    }
-  }
-  
-  return EcsReturn(std::move(absorption), std::move(jacobian), not work);
-}
-
-std::pair<ComplexVector, bool> ecs_absorption_zeeman_impl(const Numeric T,
                                                           const Numeric H,
                                                           const Numeric P,
                                                           const Numeric this_vmr,
@@ -964,17 +695,17 @@ std::pair<ComplexVector, bool> ecs_absorption_zeeman_impl(const Numeric T,
 }
 
 
-EcsReturn ecs_absorption_zeeman(const Numeric T,
-                                const Numeric H,
-                                const Numeric P,
-                                const Numeric this_vmr,
-                                const Vector& vmrs,
-                                const ErrorCorrectedSuddenData& ecs_data,
-                                const Vector& f_grid,
-                                const Zeeman::Polarization zeeman_polarization,
-                                const AbsorptionLines& band,
-                                const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  auto [absorption, work] = ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+EcsReturn ecs_absorption(const Numeric T,
+                         const Numeric H,
+                         const Numeric P,
+                         const Numeric this_vmr,
+                         const Vector& vmrs,
+                         const ErrorCorrectedSuddenData& ecs_data,
+                         const Vector& f_grid,
+                         const Zeeman::Polarization zeeman_polarization,
+                         const AbsorptionLines& band,
+                         const ArrayOfRetrievalQuantity& jacobian_quantities) {
+  auto [absorption, work] = ecs_absorption_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
   
   // Start as original, so remove new and divide with the negative to get forward derivative
   ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
@@ -985,13 +716,13 @@ EcsReturn ecs_absorption_zeeman(const Numeric T,
     
     if (target == Jacobian::Atm::Temperature) {
       const Numeric dT = target.Perturbation();
-      const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T+dT, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+      const auto [dabs, dwork] = ecs_absorption_impl(T+dT, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
       vec -= dabs;
       vec /= -dT;
       work &= dwork;
     } else if (target.isMagnetic()) {
       const Numeric dH = target.Perturbation();
-      const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T, H+dH, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
+      const auto [dabs, dwork] = ecs_absorption_impl(T, H+dH, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
       vec -= dabs;
       vec /= -dH;
       work &= dwork;
@@ -999,7 +730,7 @@ EcsReturn ecs_absorption_zeeman(const Numeric T,
       const Numeric df = target.Perturbation();
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
-      const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid_copy, zeeman_polarization, band);
+      const auto [dabs, dwork] = ecs_absorption_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid_copy, zeeman_polarization, band);
       vec -= dabs;
       vec /= df;
       work &= dwork;
@@ -1022,7 +753,7 @@ EcsReturn ecs_absorption_zeeman(const Numeric T,
         }
         
         // Computations
-        const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T, H, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, zeeman_polarization, band);
+        const auto [dabs, dwork] = ecs_absorption_impl(T, H, P, this_vmr_copy, vmrs_copy, ecs_data, f_grid, zeeman_polarization, band);
         vec -= dabs;
         vec /= -dvmr;
         work &= dwork;
@@ -1155,21 +886,153 @@ EcsReturn ecs_absorption_zeeman(const Numeric T,
             case Jacobian::Line::ShapeDVX3:
             case Jacobian::Line::NLTE:
             case Jacobian::Line::VMR:
-            case Jacobian::Line::ECS_A:
-            case Jacobian::Line::ECS_B:
-            case Jacobian::Line::ECS_GAMMA:
-            case Jacobian::Line::ECS_DC:
+            case Jacobian::Line::ECS_SCALINGX0:
+            case Jacobian::Line::ECS_SCALINGX1:
+            case Jacobian::Line::ECS_SCALINGX2:
+            case Jacobian::Line::ECS_SCALINGX3:
+            case Jacobian::Line::ECS_BETAX0:
+            case Jacobian::Line::ECS_BETAX1:
+            case Jacobian::Line::ECS_BETAX2:
+            case Jacobian::Line::ECS_BETAX3:
+            case Jacobian::Line::ECS_LAMBDAX0:
+            case Jacobian::Line::ECS_LAMBDAX1:
+            case Jacobian::Line::ECS_LAMBDAX2:
+            case Jacobian::Line::ECS_LAMBDAX3:
+            case Jacobian::Line::ECS_DCX0:
+            case Jacobian::Line::ECS_DCX1:
+            case Jacobian::Line::ECS_DCX2:
+            case Jacobian::Line::ECS_DCX3:
             case Jacobian::Line::FINAL: {
               /* do nothing */
             }
           }
           
           // Perform calculations and estimate derivative
-          const auto [dabs, dwork] = ecs_absorption_zeeman_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band_copy);
+          const auto [dabs, dwork] = ecs_absorption_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band_copy);
           vec -= dabs;
           vec /= -d;
           work &= dwork;
         } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
+          ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
+          
+          const auto spec = target.QuantumIdentity().Species();
+          ARTS_USER_ERROR_IF(const Index pos = ecs_data.pos(spec); pos == ecs_data.size(), "No data for species ", spec, " in ecs_data:\n", ecs_data)
+          switch (target.LineType()) {
+            case Jacobian::Line::ECS_SCALINGX0:
+              d *= ecs_data_copy[spec].scaling.X0;
+              ecs_data_copy[spec].scaling.X0 += d;
+              break;
+            case Jacobian::Line::ECS_SCALINGX1:
+              d *= ecs_data_copy[spec].scaling.X1;
+              ecs_data_copy[spec].scaling.X1 += d;
+              break;
+            case Jacobian::Line::ECS_SCALINGX2:
+              d *= ecs_data_copy[spec].scaling.X2;
+              ecs_data_copy[spec].scaling.X2 += d;
+              break;
+            case Jacobian::Line::ECS_SCALINGX3:
+              d *= ecs_data_copy[spec].scaling.X3;
+              ecs_data_copy[spec].scaling.X3 += d;
+              break;
+            case Jacobian::Line::ECS_BETAX0:
+              d *= ecs_data_copy[spec].beta.X0;
+              ecs_data_copy[spec].beta.X0 += d;
+              break;
+            case Jacobian::Line::ECS_BETAX1:
+              d *= ecs_data_copy[spec].beta.X1;
+              ecs_data_copy[spec].beta.X1 += d;
+              break;
+            case Jacobian::Line::ECS_BETAX2:
+              d *= ecs_data_copy[spec].beta.X2;
+              ecs_data_copy[spec].beta.X2 += d;
+              break;
+            case Jacobian::Line::ECS_BETAX3:
+              d *= ecs_data_copy[spec].beta.X3;
+              ecs_data_copy[spec].beta.X3 += d;
+              break;
+            case Jacobian::Line::ECS_LAMBDAX0:
+              d *= ecs_data_copy[spec].lambda.X0;
+              ecs_data_copy[spec].lambda.X0 += d;
+              break;
+            case Jacobian::Line::ECS_LAMBDAX1:
+              d *= ecs_data_copy[spec].lambda.X1;
+              ecs_data_copy[spec].lambda.X1 += d;
+              break;
+            case Jacobian::Line::ECS_LAMBDAX2:
+              d *= ecs_data_copy[spec].lambda.X1;
+              ecs_data_copy[spec].lambda.X1 += d;
+              break;
+            case Jacobian::Line::ECS_LAMBDAX3:
+              d *= ecs_data_copy[spec].lambda.X0;
+              ecs_data_copy[spec].lambda.X0 += d;
+              break;
+            case Jacobian::Line::ECS_DCX0:
+              d *= ecs_data_copy[spec].collisional_distance.X0;
+              ecs_data_copy[spec].collisional_distance.X0 += d;
+              break;
+            case Jacobian::Line::ECS_DCX1:
+              d *= ecs_data_copy[spec].collisional_distance.X1;
+              ecs_data_copy[spec].collisional_distance.X1 += d;
+              break;
+            case Jacobian::Line::ECS_DCX2:
+              d *= ecs_data_copy[spec].collisional_distance.X2;
+              ecs_data_copy[spec].collisional_distance.X2 += d;
+              break;
+            case Jacobian::Line::ECS_DCX3:
+              d *= ecs_data_copy[spec].collisional_distance.X3;
+              ecs_data_copy[spec].collisional_distance.X3 += d;
+              break;
+            case Jacobian::Line::ShapeG0X0:
+            case Jacobian::Line::ShapeG0X1:
+            case Jacobian::Line::ShapeG0X2:
+            case Jacobian::Line::ShapeG0X3:
+            case Jacobian::Line::ShapeD0X0:
+            case Jacobian::Line::ShapeD0X1:
+            case Jacobian::Line::ShapeD0X2:
+            case Jacobian::Line::ShapeD0X3:
+            case Jacobian::Line::ShapeG2X0:
+            case Jacobian::Line::ShapeG2X1:
+            case Jacobian::Line::ShapeG2X2:
+            case Jacobian::Line::ShapeG2X3:
+            case Jacobian::Line::ShapeD2X0:
+            case Jacobian::Line::ShapeD2X1:
+            case Jacobian::Line::ShapeD2X2:
+            case Jacobian::Line::ShapeD2X3:
+            case Jacobian::Line::ShapeFVCX0:
+            case Jacobian::Line::ShapeFVCX1:
+            case Jacobian::Line::ShapeFVCX2:
+            case Jacobian::Line::ShapeFVCX3:
+            case Jacobian::Line::ShapeETAX0:
+            case Jacobian::Line::ShapeETAX1:
+            case Jacobian::Line::ShapeETAX2:
+            case Jacobian::Line::ShapeETAX3:
+            case Jacobian::Line::Center:
+            case Jacobian::Line::Strength:
+            case Jacobian::Line::ShapeYX0:
+            case Jacobian::Line::ShapeYX1:
+            case Jacobian::Line::ShapeYX2:
+            case Jacobian::Line::ShapeYX3:
+            case Jacobian::Line::ShapeGX0:
+            case Jacobian::Line::ShapeGX1:
+            case Jacobian::Line::ShapeGX2:
+            case Jacobian::Line::ShapeGX3:
+            case Jacobian::Line::ShapeDVX0:
+            case Jacobian::Line::ShapeDVX1:
+            case Jacobian::Line::ShapeDVX2:
+            case Jacobian::Line::ShapeDVX3:
+            case Jacobian::Line::NLTE:
+            case Jacobian::Line::VMR:
+            case Jacobian::Line::FINAL: {
+              /* do nothing */
+            }
+          }
+          
+          // Perform calculations and estimate derivative
+          const auto [dabs, dwork] = ecs_absorption_impl(T, H, P, this_vmr, vmrs, ecs_data_copy, f_grid, zeeman_polarization, band);
+          vec -= dabs;
+          vec /= -d;
+          work &= dwork;
+          break;  // Leave early because it is a band derivative
         } else {
           ARTS_ASSERT (false, "Missing Line Derivative");
         }

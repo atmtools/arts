@@ -9,6 +9,7 @@
 #include "gridded_fields.h"
 #include "linescaling.h"
 #include "matpack_complex.h"
+#include "species.h"
 #include "zeemandata.h"
 
 namespace Absorption::LineMixing {
@@ -157,6 +158,14 @@ struct ErrorCorrectedSuddenData {
   bool operator==(const Quantum::Identifier& band_id) const noexcept {
     return id == band_id;
   }
+
+  [[nodiscard]] Index pos(Species::Species spec) const noexcept {
+    return std::distance(data.begin(), std::find(data.cbegin(), data.cend(), spec));
+  }
+
+  [[nodiscard]] Index size() const noexcept {
+    return data.size();
+  }
   
   const SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) const noexcept {
     if(auto ptr = std::find(data.cbegin(), data.cend(), spec); ptr not_eq data.cend())
@@ -214,31 +223,11 @@ struct EcsReturn {
   abs(std::move(abs_)), dabs(std::move(dabs_)), error(error_) {}
 };
 
-/*! Computed the Error Corrected Sudden Complex absorption
- * 
- * @param[in] T The temperature
- * @param[in] P The pressure
- * @param[in] this_vmr The VMR of this species
- * @param[in] vmrs The VMRs of all broadeners of the absorption band
- * @param[in] mass The mass of all broadeners of the absorption band
- * @param[in] f_grid The grid of frequencies
- * @param[in] band The absorption band
- * @param[in] jacobian_quantities As WSV
- * @return Complex absorption and list of Complex absorption partial derivatives
- */
-EcsReturn ecs_absorption(const Numeric T,
-                         const Numeric P,
-                         const Numeric this_vmr,
-                         const Vector& vmrs,
-                         const ErrorCorrectedSuddenData& ecs_data,
-                         const Vector& f_grid,
-                         const AbsorptionLines& band,
-                         const ArrayOfRetrievalQuantity& jacobian_quantities={});
-
 
 /*! Computed the Error Corrected Sudden Complex absorption with Zeeman effect perturbations
  * 
- * Note that Zeeman perturbations are only applied after the ECS computations
+ * Note that Zeeman perturbations are only applied after the ECS computations, and only
+ * if zeeman_polarization is not None
  * 
  * @param[in] T The temperature
  * @param[in] P The pressure
@@ -250,16 +239,16 @@ EcsReturn ecs_absorption(const Numeric T,
  * @param[in] band The absorption band
  * @return Complex absorption of the Zeeman component
  */
-EcsReturn ecs_absorption_zeeman(const Numeric T,
-                                const Numeric H,
-                                const Numeric P,
-                                const Numeric this_vmr,
-                                const Vector& vmrs,
-                                const ErrorCorrectedSuddenData& ecs_data,
-                                const Vector& f_grid,
-                                const Zeeman::Polarization zeeman_polarization,
-                                const AbsorptionLines& band,
-                                const ArrayOfRetrievalQuantity& jacobian_quantities={});
+EcsReturn ecs_absorption(const Numeric T,
+                         const Numeric H,
+                         const Numeric P,
+                         const Numeric this_vmr,
+                          const Vector& vmrs,
+                          const ErrorCorrectedSuddenData& ecs_data,
+                          const Vector& f_grid,
+                          const Zeeman::Polarization zeeman_polarization,
+                          const AbsorptionLines& band,
+                          const ArrayOfRetrievalQuantity& jacobian_quantities={});
 
 /**  Adapts the band to the temperature data
  * 

@@ -161,35 +161,40 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
                                            const Index& lbl_checked,
                                            const Verbosity&)
 {
-  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_lines_per_species.nelem(),
-                      "Bad size of input species+lines");
-  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq rtp_vmr.nelem(),
-                      "Bad size of input species+vmrs");
-  ARTS_USER_ERROR_IF (not lbl_checked,
-                      "Please set lbl_checked true to use this function");
-  
-  for (Index i=0; i<abs_species.nelem(); i++) {
-    for (auto& band: abs_lines_per_species[i]) {
+  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq abs_lines_per_species.nelem(),
+                     "Bad size of input species+lines");
+  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq rtp_vmr.nelem(),
+                     "Bad size of input species+vmrs");
+  ARTS_USER_ERROR_IF(not lbl_checked,
+                     "Please set lbl_checked true to use this function");
+
+  for (Index i = 0; i < abs_species.nelem(); i++) {
+    for (auto& band : abs_lines_per_species[i]) {
       if (band.OnTheFlyLineMixing() and band.DoLineMixing(rtp_pressure)) {
         // vmrs should be for the line
-        const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
-        const Numeric this_vmr = rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
-        const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption(rtp_temperature,
-                                                                               rtp_pressure,
-                                                                               this_vmr,
-                                                                               line_shape_vmr,
-                                                                               ecs_data[band.QuantumIdentity()],
-                                                                               f_grid,
-                                                                               band,
-                                                                               jacobian_quantities);
+        const Vector line_shape_vmr =
+            band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
+        const Numeric this_vmr =
+            rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
+        const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption(
+            rtp_temperature,
+            0,
+            rtp_pressure,
+            this_vmr,
+            line_shape_vmr,
+            ecs_data[band.QuantumIdentity()],
+            f_grid,
+            Zeeman::Polarization::None,
+            band,
+            jacobian_quantities);
         propmat_clearsky.Kjj() += abs.real();
-        
+
         // Sum up the resorted Jacobian
-        for (Index j=0; j<jacobian_quantities.nelem(); j++) {
+        for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
           const auto& deriv = jacobian_quantities[j];
-          
+
           if (not deriv.propmattype()) continue;
-          
+
           if (deriv == abs_species[i]) {
             dpropmat_clearsky_dx[j].Kjj() += abs.real();
           } else {
@@ -217,68 +222,108 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
                                                      const Index& lbl_checked,
                                                      const Verbosity&)
 {
-  ARTS_USER_ERROR_IF (propmat_clearsky.StokesDimensions() not_eq 4,
-                      "Only for stokes dim 4");
-  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_lines_per_species.nelem(),
-                      "Bad size of input species+lines");
-  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq rtp_vmr.nelem(),
-                      "Bad size of input species+vmrs");
-  ARTS_USER_ERROR_IF (not lbl_checked,
-                      "Please set lbl_checked true to use this function");
-  
+  ARTS_USER_ERROR_IF(propmat_clearsky.StokesDimensions() not_eq 4,
+                     "Only for stokes dim 4");
+  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq abs_lines_per_species.nelem(),
+                     "Bad size of input species+lines");
+  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq rtp_vmr.nelem(),
+                     "Bad size of input species+vmrs");
+  ARTS_USER_ERROR_IF(not lbl_checked,
+                     "Please set lbl_checked true to use this function");
+
   // Polarization
-  const auto Z = Zeeman::FromGrids(rtp_mag[0], rtp_mag[1], rtp_mag[2], Conversion::deg2rad(rtp_los[0]), Conversion::deg2rad(rtp_los[1]));
+  const auto Z = Zeeman::FromGrids(rtp_mag[0],
+                                   rtp_mag[1],
+                                   rtp_mag[2],
+                                   Conversion::deg2rad(rtp_los[0]),
+                                   Conversion::deg2rad(rtp_los[1]));
   const auto polarization_scale_data = Zeeman::AllPolarization(Z.theta, Z.eta);
-  const auto polarization_scale_dtheta_data = Zeeman::AllPolarization_dtheta(Z.theta, Z.eta);
-  const auto polarization_scale_deta_data = Zeeman::AllPolarization_deta(Z.theta, Z.eta);
-  
-  for (Index i=0; i<abs_species.nelem(); i++) {
-    for (auto& band: abs_lines_per_species[i]) {
+  const auto polarization_scale_dtheta_data =
+      Zeeman::AllPolarization_dtheta(Z.theta, Z.eta);
+  const auto polarization_scale_deta_data =
+      Zeeman::AllPolarization_deta(Z.theta, Z.eta);
+
+  for (Index i = 0; i < abs_species.nelem(); i++) {
+    for (auto& band : abs_lines_per_species[i]) {
       if (band.OnTheFlyLineMixing() and band.DoLineMixing(rtp_pressure)) {
         // vmrs should be for the line
-        const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
-        const Numeric this_vmr = rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
-        for (Zeeman::Polarization polarization : {Zeeman::Polarization::Pi, Zeeman::Polarization::SigmaMinus, Zeeman::Polarization::SigmaPlus}) {
-          const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption_zeeman(rtp_temperature,
-                                                                                        Z.H,
-                                                                                        rtp_pressure,
-                                                                                        this_vmr,
-                                                                                        line_shape_vmr,
-                                                                                        ecs_data[band.QuantumIdentity()],
-                                                                                        f_grid,
-                                                                                        polarization,
-                                                                                        band,
-                                                                                        jacobian_quantities);
-          
+        const Vector line_shape_vmr =
+            band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
+        const Numeric this_vmr =
+            rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
+        for (Zeeman::Polarization polarization :
+             {Zeeman::Polarization::Pi,
+              Zeeman::Polarization::SigmaMinus,
+              Zeeman::Polarization::SigmaPlus}) {
+          const auto [abs, dabs, error] =
+              Absorption::LineMixing::ecs_absorption(
+                  rtp_temperature,
+                  Z.H,
+                  rtp_pressure,
+                  this_vmr,
+                  line_shape_vmr,
+                  ecs_data[band.QuantumIdentity()],
+                  f_grid,
+                  polarization,
+                  band,
+                  jacobian_quantities);
+
           // Sum up the propagation matrix
-          Zeeman::sum(propmat_clearsky, abs, Zeeman::SelectPolarization(polarization_scale_data, polarization));
-          
+          Zeeman::sum(propmat_clearsky,
+                      abs,
+                      Zeeman::SelectPolarization(polarization_scale_data,
+                                                 polarization));
+
           // Sum up the resorted Jacobian
-          for (Index j=0; j<jacobian_quantities.nelem(); j++) {
+          for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
             const auto& deriv = jacobian_quantities[j];
-            
+
             if (not deriv.propmattype()) continue;
-            
+
             if (deriv == Jacobian::Atm::MagneticU) {
-              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[j],
-                           Zeeman::SelectPolarization(polarization_scale_data, polarization),
-                           Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
-                           Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
-                           Z.dH_du, Z.dtheta_du, Z.deta_du);
+              Zeeman::dsum(dpropmat_clearsky_dx[j],
+                           abs,
+                           dabs[j],
+                           Zeeman::SelectPolarization(polarization_scale_data,
+                                                      polarization),
+                           Zeeman::SelectPolarization(
+                               polarization_scale_dtheta_data, polarization),
+                           Zeeman::SelectPolarization(
+                               polarization_scale_deta_data, polarization),
+                           Z.dH_du,
+                           Z.dtheta_du,
+                           Z.deta_du);
             } else if (deriv == Jacobian::Atm::MagneticV) {
-              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[j],
-                           Zeeman::SelectPolarization(polarization_scale_data, polarization),
-                           Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
-                           Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
-                           Z.dH_dv, Z.dtheta_dv, Z.deta_dv);
+              Zeeman::dsum(dpropmat_clearsky_dx[j],
+                           abs,
+                           dabs[j],
+                           Zeeman::SelectPolarization(polarization_scale_data,
+                                                      polarization),
+                           Zeeman::SelectPolarization(
+                               polarization_scale_dtheta_data, polarization),
+                           Zeeman::SelectPolarization(
+                               polarization_scale_deta_data, polarization),
+                           Z.dH_dv,
+                           Z.dtheta_dv,
+                           Z.deta_dv);
             } else if (deriv == Jacobian::Atm::MagneticW) {
-              Zeeman::dsum(dpropmat_clearsky_dx[j], abs, dabs[j],
-                           Zeeman::SelectPolarization(polarization_scale_data, polarization),
-                           Zeeman::SelectPolarization(polarization_scale_dtheta_data, polarization),
-                           Zeeman::SelectPolarization(polarization_scale_deta_data, polarization),
-                           Z.dH_dw, Z.dtheta_dw, Z.deta_dw);
+              Zeeman::dsum(dpropmat_clearsky_dx[j],
+                           abs,
+                           dabs[j],
+                           Zeeman::SelectPolarization(polarization_scale_data,
+                                                      polarization),
+                           Zeeman::SelectPolarization(
+                               polarization_scale_dtheta_data, polarization),
+                           Zeeman::SelectPolarization(
+                               polarization_scale_deta_data, polarization),
+                           Z.dH_dw,
+                           Z.dtheta_dw,
+                           Z.deta_dw);
             } else if (deriv == abs_species[i]) {
-              Zeeman::sum(dpropmat_clearsky_dx[j], abs, Zeeman::SelectPolarization(polarization_scale_data, polarization));
+              Zeeman::sum(dpropmat_clearsky_dx[j],
+                          abs,
+                          Zeeman::SelectPolarization(polarization_scale_data,
+                                                     polarization));
             } else {
               dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();
             }

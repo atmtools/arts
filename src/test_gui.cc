@@ -108,16 +108,16 @@ int main() {
   
   
   // Line Mixing full calculations
-  const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption(T, P, 1, VMR, ecs_data, f_grid, band, {rq});
+  const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption(T, 0, P, 1, VMR, ecs_data, f_grid,  Zeeman::Polarization::None, band, {rq});
   
   // Line Mixing full calculations
-  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, P, 1, VMR, ecs_data, f_grid, band).abs;
+  ComplexVector absdT = Absorption::LineMixing::ecs_absorption(T+0.1, 0, P, 1, VMR, ecs_data, f_grid, Zeeman::Polarization::None, band).abs;
   
   // Line Mixing full calculations with Zeeman (ignoring polarization...)
-  auto [absZ, dabsZ, errorZ] = Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid,  Zeeman::Polarization::Pi, band);
-  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid, 
+  auto [absZ, dabsZ, errorZ] = Absorption::LineMixing::ecs_absorption(T, H, P, 1, VMR, ecs_data, f_grid,  Zeeman::Polarization::Pi, band);
+  absZ += Absorption::LineMixing::ecs_absorption(T, H, P, 1, VMR, ecs_data, f_grid, 
                                                         Zeeman::Polarization::SigmaMinus, band).abs;
-  absZ += Absorption::LineMixing::ecs_absorption_zeeman(T, H, P, 1, VMR, ecs_data, f_grid, 
+  absZ += Absorption::LineMixing::ecs_absorption(T, H, P, 1, VMR, ecs_data, f_grid, 
                                                         Zeeman::Polarization::SigmaPlus, band).abs;
   
   // Line Mixing reimplementation of MPM19
@@ -130,7 +130,7 @@ int main() {
   LineShape::ComputeData sparse_com_lte(Vector(0), {rq}, false);
   LineShape::compute(com_lte, sparse_com_lte, band, {rq}, {},
                      band.BroadeningSpeciesVMR(VMR, specs), {}, 1.0, 1.0, P, T, 0, 0,
-                     false, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+                     Zeeman::Polarization::None, Options::LblSpeedup::None, false);
   
   band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
 //   auto data = Absorption::LineMixing::ecs_eigenvalue_adaptation_test(band,
@@ -141,12 +141,12 @@ int main() {
   Absorption::LineMixing::ecs_eigenvalue_adaptation(band,
                                                     VectorNLinSpaceConst(200, 350, 76),
                                                     ecs_data,
-                                                    Conversion::atm2pa(1), 2, false, v);
+                                                    Conversion::atm2pa(1), 2, false, false, v);
   LineShape::ComputeData com(f_grid, {rq}, false);
   LineShape::ComputeData sparse_com(Vector(0), {rq}, false);
   LineShape::compute(com, sparse_com, band, {rq}, {},
                      band.BroadeningSpeciesVMR(VMR, specs), {}, 1.0, 1.0, P, T, 0, 0,
-                     false, Zeeman::Polarization::Pi, Options::LblSpeedup::None);
+                     Zeeman::Polarization::None, Options::LblSpeedup::None, false);
   
   // Plot it all
   f_grid /= 1e9;  // Rescale for easier axis
