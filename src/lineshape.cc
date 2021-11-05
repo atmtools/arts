@@ -2385,9 +2385,9 @@ void cutoff_frequency_loop(ComputeValues &com,
           com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;
         }
       } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
-        com.dF[com.jac_pos(iv, ij)] += ls_str.dSdSELFVMR() * LM * Fls;
+        com.dF[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dSdSELFVMR() * LM * Fls;
         if (do_nlte) {
-          com.dN[com.jac_pos(iv, ij)] += ls_str.dNdSELFVMR() * LM * Fls;
+          com.dN[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dNdSELFVMR() * LM * Fls;
         }
       } else if (deriv.Target().needQuantumIdentity()) {
         if (deriv == Jacobian::Line::VMR) {
@@ -2591,9 +2591,9 @@ void frequency_loop(ComputeValues &com,
           com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;
         }
       } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
-        com.dF[com.jac_pos(iv, ij)] += ls_str.dSdSELFVMR() * LM * Fls;
+        com.dF[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dSdSELFVMR() * LM * Fls;
         if (do_nlte) {
-              com.dN[com.jac_pos(iv, ij)] += ls_str.dNdSELFVMR() * LM * Fls;
+              com.dN[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dNdSELFVMR() * LM * Fls;
         }
       } else if (deriv.Target().needQuantumIdentity()) {
         if (deriv == Jacobian::Line::VMR) {
