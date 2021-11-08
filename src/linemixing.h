@@ -2,12 +2,14 @@
 #define linemixing_h
 
 #include <functional>
+#include <utility>
 
 #include "absorption.h"
-#include "matpack_complex.h"
 #include "constants.h"
 #include "gridded_fields.h"
 #include "linescaling.h"
+#include "matpack_complex.h"
+#include "species.h"
 #include "zeemandata.h"
 
 namespace Absorption::LineMixing {
@@ -156,6 +158,14 @@ struct ErrorCorrectedSuddenData {
   bool operator==(const Quantum::Identifier& band_id) const noexcept {
     return id == band_id;
   }
+
+  [[nodiscard]] Index pos(Species::Species spec) const noexcept {
+    return std::distance(data.begin(), std::find(data.cbegin(), data.cend(), spec));
+  }
+
+  [[nodiscard]] Index size() const noexcept {
+    return data.size();
+  }
   
   const SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) const noexcept {
     if(auto ptr = std::find(data.cbegin(), data.cend(), spec); ptr not_eq data.cend())
@@ -203,31 +213,21 @@ struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
   }
 };  // MapOfErrorCorrectedSuddenData
 
-/*! Computed the Error Corrected Sudden Complex absorption
- * 
- * @param[in] T The temperature
- * @param[in] P The pressure
- * @param[in] this_vmr The VMR of this species
- * @param[in] vmrs The VMRs of all broadeners of the absorption band
- * @param[in] mass The mass of all broadeners of the absorption band
- * @param[in] f_grid The grid of frequencies
- * @param[in] band The absorption band
- * @param[in] jacobian_quantities As WSV
- * @return Complex absorption and list of Complex absorption partial derivatives
- */
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
-                                                              const Numeric P,
-                                                              const Numeric this_vmr,
-                                                              const Vector& vmrs,
-                                                              const ErrorCorrectedSuddenData& ecs_data,
-                                                              const Vector& f_grid,
-                                                              const AbsorptionLines& band,
-                                                              const ArrayOfRetrievalQuantity& jacobian_quantities={});
+// Return struct from calculations
+struct EcsReturn {
+  ComplexVector abs;
+  ArrayOfComplexVector dabs;
+  bool error;
+  EcsReturn(EcsReturn&&) noexcept = default;
+  EcsReturn(ComplexVector&& abs_, ArrayOfComplexVector&& dabs_, bool error_) noexcept :
+  abs(std::move(abs_)), dabs(std::move(dabs_)), error(error_) {}
+};
 
 
 /*! Computed the Error Corrected Sudden Complex absorption with Zeeman effect perturbations
  * 
- * Note that Zeeman perturbations are only applied after the ECS computations
+ * Note that Zeeman perturbations are only applied after the ECS computations, and only
+ * if zeeman_polarization is not None
  * 
  * @param[in] T The temperature
  * @param[in] P The pressure
@@ -239,16 +239,16 @@ std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption(const Numeric T,
  * @param[in] band The absorption band
  * @return Complex absorption of the Zeeman component
  */
-std::pair<ComplexVector, ArrayOfComplexVector> ecs_absorption_zeeman(const Numeric T,
-                                                                     const Numeric H,
-                                                                     const Numeric P,
-                                                                     const Numeric this_vmr,
-                                                                     const Vector& vmrs,
-                                                                     const ErrorCorrectedSuddenData& ecs_data,
-                                                                     const Vector& f_grid,
-                                                                     const Zeeman::Polarization zeeman_polarization,
-                                                                     const AbsorptionLines& band,
-                                                                     const ArrayOfRetrievalQuantity& jacobian_quantities={});
+EcsReturn ecs_absorption(const Numeric T,
+                         const Numeric H,
+                         const Numeric P,
+                         const Numeric this_vmr,
+                          const Vector& vmrs,
+                          const ErrorCorrectedSuddenData& ecs_data,
+                          const Vector& f_grid,
+                          const Zeeman::Polarization zeeman_polarization,
+                          const AbsorptionLines& band,
+                          const ArrayOfRetrievalQuantity& jacobian_quantities={});
 
 /**  Adapts the band to the temperature data
  * 
@@ -311,7 +311,10 @@ EquivalentLines eigenvalue_adaptation_of_relmat(const ComplexMatrix& W,
  * @param[in] temperatures The temperature grid for fitting parameters upon
  * @param[in] mass The mass of all broadeners of the absorption band
  * @param[in] P0 The pressure at which temperature dependencies are computed at
- * @param[in] ord The order of the parameters [1: Y; 2: Y, DF, G; 3: Y, DF, G, DG]
+ * @param[in] ord The order of the parameters [1: Y; 2: Y, DF, G; 3: Y, DF, G, DG], the last is still not supported fully
+ * @param[in] robust Doesn't throw on failure if true
+ * @param[in] rosenkranz_adaptation Makes the explicit computation of Rosenkranz parameters
+ * @param[in] verbosity As WSM
  * @return EXIT_FAILURE when some parameterization fit fails
  * @return EXIT_SUCCESS if all algorithms worked (independent of if the absorption will be reasonable)
  */
@@ -319,7 +322,10 @@ void ecs_eigenvalue_adaptation(AbsorptionLines& band,
                                const Vector& temperatures,
                                const ErrorCorrectedSuddenData& ecs_data,
                                const Numeric P0,
-                               const Index ord);
+                               const Index ord,
+                               const bool robust,
+                               const bool rosenkranz_adaptation,
+                               const Verbosity& verbosity);
 
 /*! Outputs the adaptation values used for ecs_eigenvalue_adaptation but as 
  * a function of pressure.  ecs_eigenvalue_adaptation makes strong assumptions

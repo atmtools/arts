@@ -3,14 +3,13 @@
 
 #include <GL/glew.h>     // Initialize with glewInit()
 #include <GLFW/glfw3.h>  // Include glfw3.h after our OpenGL definitions
+#include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include <stdio.h>
-
-#include <imgui.h>
 #include <imgui_stdlib.h>
 #include <implot.h>
 #include <implot_internal.h>
+#include <stdio.h>
 
 #include <iostream>
 
@@ -78,26 +77,26 @@ inline static void glfw_error_callback(int error, const char *description) {
  *  window: A glfw window
  *  glsl_version: Version of GLSL
  */
-#define InitializeGUI(NAME)                                                \
-  glfwSetErrorCallback(glfw_error_callback);                               \
-  if (!glfwInit()) throw std::runtime_error("Cannot initialize a window"); \
-                                                                           \
-  Selectglsl_versionGUI                                                    \
-                                                                           \
-      GLFWwindow *window = glfwCreateWindow(1280, 720, NAME, NULL, NULL);  \
-  if (window == NULL) throw std::runtime_error("Cannot create a window");  \
-  glfwMakeContextCurrent(window);                                          \
-  glfwSwapInterval(1);                                                     \
-                                                                           \
-  if (glewInit() != GLEW_OK)                                               \
-    throw std::runtime_error("Cannot initialize OpenGL loader");           \
-                                                                           \
-  IMGUI_CHECKVERSION();                                                    \
-  ImGui::CreateContext();                                                  \
-  ImPlot::CreateContext();                                                 \
-  ImGui::StyleColorsDark();                                                \
-                                                                           \
-  ImGui_ImplGlfw_InitForOpenGL(window, true);                              \
+#define InitializeGUI(NAME, WIDTH, HEIGHT)                                    \
+  glfwSetErrorCallback(glfw_error_callback);                                  \
+  if (!glfwInit()) throw std::runtime_error("Cannot initialize a window");    \
+                                                                              \
+  Selectglsl_versionGUI                                                       \
+                                                                              \
+      GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, NAME, NULL, NULL); \
+  if (window == NULL) throw std::runtime_error("Cannot create a window");     \
+  glfwMakeContextCurrent(window);                                             \
+  glfwSwapInterval(1);                                                        \
+                                                                              \
+  if (glewInit() != GLEW_OK)                                                  \
+    throw std::runtime_error("Cannot initialize OpenGL loader");              \
+                                                                              \
+  IMGUI_CHECKVERSION();                                                       \
+  ImGui::CreateContext();                                                     \
+  ImPlot::CreateContext();                                                    \
+  ImGui::StyleColorsDark();                                                   \
+                                                                              \
+  ImGui_ImplGlfw_InitForOpenGL(window, true);                                 \
   ImGui_ImplOpenGL3_Init(glsl_version)
 
 /** Cleanup for the GUI

@@ -41,7 +41,7 @@
 namespace Zeeman {
   
 /** Zeeman polarization selection */
-enum class Polarization : char { SigmaMinus, Pi, SigmaPlus };
+enum class Polarization : char { SigmaMinus, Pi, SigmaPlus, None };
 
 /** Gives the change of M given a polarization type
  * 
@@ -57,6 +57,8 @@ constexpr Index dM(Polarization type) noexcept {
       return 0;
     case Polarization::SigmaPlus:
       return 1;
+    case Polarization::None:
+      return 0;
   }
   return std::numeric_limits<Index>::max();
 }
@@ -88,6 +90,8 @@ constexpr Rational start(Rational Ju, Rational Jl, Polarization type) noexcept {
       return -min(Ju, Jl);
     case Polarization::SigmaPlus:
       return -Ju;
+    case Polarization::None:
+      return 0;
   }
   return Rational(std::numeric_limits<Index>::max());
 }
@@ -119,6 +123,8 @@ constexpr Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
         return Ju;
       else
         return Jl;
+    case Polarization::None:
+      return 0;
   }
   return Rational(std::numeric_limits<Index>::max());
 }
@@ -197,6 +203,8 @@ constexpr Numeric PolarizationFactor(Polarization type) noexcept {
       return 1.5;
     case Polarization::SigmaPlus:
       return .75;
+    case Polarization::None:
+      return 1.0;
   }
   return std::numeric_limits<Numeric>::max();
 }
@@ -413,7 +421,7 @@ class Model {
    * 
    * @return The relative strength of the Zeeman subline
    */
-  [[nodiscard]] Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const;
+  [[nodiscard]] Numeric Strength(Rational Ju, Rational Jl, Polarization type, Index n) const ARTS_NOEXCEPT;
   
   /** Gives the splitting of one subline of a given polarization
    * 
@@ -434,8 +442,7 @@ class Model {
     using Constant::h;
     constexpr Numeric C = bohr_magneton / h;
 
-    return C * (Ml(Ju, Jl, type, n).toNumeric() * gl() -
-                Mu(Ju, Jl, type, n).toNumeric() * gu());
+    return C * (Ml(Ju, Jl, type, n) * gl() - Mu(Ju, Jl, type, n) * gu());
   }
 
   /** Output operator for Zeeman::Model */

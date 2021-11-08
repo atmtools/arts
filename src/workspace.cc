@@ -353,7 +353,11 @@ void Workspace::define_wsv_data() {
           "HITRAN line mixing data to compute the relaxation matrix.\n"
           "\n"
           "This variable holds HITRAN line mixing data\n"
-          "as per J. Lamouroux, L. Realia, X. Thomas, et al., J.Q.S.R.T. 151 (2015), 88-96\n"),
+          "as per J. Lamouroux, L. Realia, X. Thomas, et al., J.Q.S.R.T. 151 (2015), 88-96\n"
+          "\n"
+          "It is used for absorption bands with these population tags:\n"
+          "\tByHITRANFullRelmat\n"
+          "\tByHITRANRosenkranzRelmat\n"),
       GROUP("HitranRelaxationMatrixData")));
   
   wsv_data.push_back(WsvRecord(NAME("abs_lines"),
@@ -1560,7 +1564,11 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "Error corrected sudden data\n"
           "\n"
-          "Dimensions: [num IDs] [num Species]\n"),
+          "Dimensions: [num IDs] [num Species]\n"
+          "\n"
+          "It is used for absorption bands with these population tags:\n"
+          "\t ByMakarovFullRelmat \n"
+          "\t ByRovibLinearDipoleLineMixing \n"),
       GROUP("MapOfErrorCorrectedSuddenData")));
 
   wsv_data.push_back(WsvRecord(
@@ -5750,11 +5758,10 @@ void Workspace::define_wsv_data() {
  \author Oliver Lemke
  */
 Index get_wsv_id(const String& name) {
-  map<String, Index>::const_iterator it = Workspace::WsvMap.find(name);
+  auto it = Workspace::WsvMap.find(name);
   if (it == Workspace::WsvMap.end())
     return -1;
-  else
-    return it->second;
+  return it->second;
 }
 
 //! Get index of WSV

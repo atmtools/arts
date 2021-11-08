@@ -23,7 +23,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   auto one_at_a_time = std::lock_guard(mtx);
   
   // Get Graphics data
-  InitializeGUI(PlotConfig::Frame.c_str());
+  InitializeGUI(PlotConfig::Frame.c_str(), 1280, 720);
   
   // Our global states are stored in config
   Config config;
@@ -109,4 +109,4 @@ void plot(const Vector& ydata) {
   const Vector xdata(0.0, ydata.size(), 1.0);
   plot(xdata, ydata);
 }
-}  // ARTSGUI
+} // namespace ARTSGUI

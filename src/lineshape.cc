@@ -2721,7 +2721,6 @@ void cutoff_loop_sparse_linear(ComputeData &com,
                                const Numeric &sparse_lim,
                                const Numeric &DC,
                                const Index i,
-                               const bool do_zeeman,
                                const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   // Basic settings
   const bool do_nlte = ls_str.do_nlte();
@@ -2746,10 +2745,10 @@ void cutoff_loop_sparse_linear(ComputeData &com,
   ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, derivs, do_nlte);
   ComputeValues sparse_upp_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_upp_start, sparse_upp_size, derivs, do_nlte);
   
-  const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
+  const Index nz = band.ZeemanCount(i, zeeman_polarization) ;
   for (Index iz = 0; iz < nz; iz++) {
-    const Numeric dfdH = do_zeeman ? band.ZeemanSplitting(i, zeeman_polarization, iz) : 0;
-    const Numeric Sz = do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
+    const Numeric dfdH = band.ZeemanSplitting(i, zeeman_polarization, iz);
+    const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, iz);
     const Complex LM = Complex(1 + X.G, -X.Y);
     Calculator ls(band.LineShapeType(), band.F0(i), X, DC, dfdH * H, band.Mirroring() == Absorption::MirroringType::Manual);
     Calculator ls_mirr(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
@@ -2803,7 +2802,6 @@ void cutoff_loop_sparse_triple(ComputeData &com,
                                const Numeric &sparse_lim,
                                const Numeric &DC,
                                const Index i,
-                               const bool do_zeeman,
                                const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   // Basic settings
   const bool do_nlte = ls_str.do_nlte();
@@ -2828,10 +2826,10 @@ void cutoff_loop_sparse_triple(ComputeData &com,
   ComputeValues sparse_low_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_low_start, sparse_low_size, derivs, do_nlte);
   ComputeValues sparse_upp_range(sparse_com.F, sparse_com.dF, sparse_com.N, sparse_com.dN, sparse_com.f_grid, sparse_upp_start, sparse_upp_size, derivs, do_nlte);
   
-  const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
+  const Index nz = band.ZeemanCount(i, zeeman_polarization);
   for (Index iz = 0; iz < nz; iz++) {
-    const Numeric dfdH = do_zeeman ? band.ZeemanSplitting(i, zeeman_polarization, iz) : 0;
-    const Numeric Sz = do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
+    const Numeric dfdH = band.ZeemanSplitting(i, zeeman_polarization, iz);
+    const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, iz);
     const Complex LM = Complex(1 + X.G, -X.Y);
     Calculator ls(band.LineShapeType(), band.F0(i), X, DC, dfdH * H, band.Mirroring() == Absorption::MirroringType::Manual);
     Calculator ls_mirr(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
@@ -2921,7 +2919,6 @@ void cutoff_loop(ComputeData &com,
                  const Numeric &H,
                  const Numeric &DC,
                  const Index i,
-                 const bool do_zeeman,
                  const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   // Basic settings
   const bool do_nlte = ls_str.do_nlte();
@@ -2936,10 +2933,10 @@ void cutoff_loop(ComputeData &com,
   // Get the compute data view
   ComputeValues comval(com.F, com.dF, com.N, com.dN, com.f_grid, cutstart, cutsize, derivs, do_nlte);
   
-  const Index nz = do_zeeman ? band.ZeemanCount(i, zeeman_polarization) : 1;
+  const Index nz = band.ZeemanCount(i, zeeman_polarization);
   for (Index iz = 0; iz < nz; iz++) {
-    const Numeric dfdH = do_zeeman ? band.ZeemanSplitting(i, zeeman_polarization, iz) : 0;
-    const Numeric Sz = do_zeeman ? band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
+    const Numeric dfdH = band.ZeemanSplitting(i, zeeman_polarization, iz);
+    const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, iz);
     const Complex LM = Complex(1 + X.G, -X.Y);
     Calculator ls(band.LineShapeType(), band.F0(i), X, DC, dfdH * H, band.Mirroring() == Absorption::MirroringType::Manual);
     Calculator ls_mirr(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
@@ -3009,7 +3006,6 @@ void line_loop(ComputeData &com,
                const Numeric r,
                const Numeric drdSELFVMR,
                const Numeric drdT,
-               const bool do_zeeman,
                const Zeeman::Polarization zeeman_polarization,
                const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT {
   const Index nj = jacobian_quantities.nelem();
@@ -3070,49 +3066,27 @@ void line_loop(ComputeData &com,
                     Normalizer(band.Normalization(), band.F0(i), T),
                     IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
                     band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H,
-                    DC, i, do_zeeman, zeeman_polarization);
+                    DC, i, zeeman_polarization);
         break;
       case Options::LblSpeedup::QuadraticIndependent:
         cutoff_loop_sparse_triple(com, sparse_com,
                     Normalizer(band.Normalization(), band.F0(i), T),
                     IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
                     band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
-                    DC, i, do_zeeman, zeeman_polarization);
+                    DC, i, zeeman_polarization);
         break;
       case Options::LblSpeedup::LinearIndependent:
         cutoff_loop_sparse_linear(com, sparse_com,
                                   Normalizer(band.Normalization(), band.F0(i), T),
                                   IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
                                   band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
-                                  DC, i, do_zeeman, zeeman_polarization);
+                                  DC, i, zeeman_polarization);
         break;
       case Options::LblSpeedup::FINAL: { /* Leave last */ }
     }
   }
 }
 
-/** Compute the line shape in its entirety
- *
- * For a single line the line shape is
- *
- * \f[ F_i = S_{z_i}  S_{n_i}  S_i  LM_i  F_i( \cdots ), \f]
- *
- * where \f$ S_{z_i} \f$ is the Zeeman scaling, \f$ S_{n_i} \f$ is the
- * normalization scaling, \f$ S_i \f$ is the line strength scaling, \f$ LM_i \f$
- * is the line mixing scaling, and \f$ F_i( \cdots )\f$ is the shape.
- *
- * and the derivatives are
- *
- * \f[
- *  \frac{\partial F_l}{\partial t} = S_{z_i} \left(
- *  \frac{\partial S_{n_i}}{\partial t}  S_i  LM_i  F_i( \cdots ) +
- *  S_{n_i}  \frac{\partial S_i}{\partial t}  LM_i  F_i( \cdots ) +
- *  S_{n_i}  S_i  \frac{\partial LM_i}{\partial t} F_i( \cdots ) +
- *  S_{n_i}  S_i  LM_i \frac{\partial F_i( \cdots )}{\partial t} \right),
- * \f]
- *
- * where \f$ t \f$ is some arbitrary variable.
- */
 void compute(ComputeData &com,
              ComputeData &sparse_com,
              const AbsorptionLines &band,
@@ -3122,8 +3096,9 @@ void compute(ComputeData &com,
              const ArrayOfSpeciesTag& self_tag,
              const Numeric& self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H,
              const Numeric &sparse_lim,
-             const bool do_zeeman, const Zeeman::Polarization zeeman_polarization,
-             const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT {
+             const Zeeman::Polarization zeeman_polarization,
+             const Options::LblSpeedup speedup_type,
+             const bool robust) ARTS_NOEXCEPT {
   [[maybe_unused]] const Index nj = jacobian_quantities.nelem();
   const Index nl = band.NumLines();
   const Index nv = com.f_grid.nelem();
@@ -3152,12 +3127,31 @@ void compute(ComputeData &com,
   }
   
   const Numeric dnumdensdVMR = isot_ratio * number_density(P, T);
-  line_loop(com, sparse_com, band, jacobian_quantities, nlte, vmrs, self_tag, P, T, H, sparse_lim,
-            single_partition_function(T, band.Isotopologue()),
-            single_partition_function(band.T0(), band.Isotopologue()),
-            dsingle_partition_function_dT(T, band.Isotopologue()),
-            self_vmr * dnumdensdVMR, dnumdensdVMR, self_vmr * isot_ratio * dnumber_density_dt(P, T),
-            do_zeeman, zeeman_polarization, speedup_type);
+
+  if (robust and band.DoLineMixing(P) and band.AnyLinemixing()) {
+    ComputeData com_safe(com.f_grid, jacobian_quantities, com.do_nlte);
+    ComputeData sparse_com_safe(sparse_com.f_grid, jacobian_quantities, sparse_com.do_nlte);
+
+    line_loop(com_safe, sparse_com_safe, band, jacobian_quantities, nlte, vmrs, self_tag, P, T, H, sparse_lim,
+              single_partition_function(T, band.Isotopologue()),
+              single_partition_function(band.T0(), band.Isotopologue()),
+              dsingle_partition_function_dT(T, band.Isotopologue()),
+              self_vmr * dnumdensdVMR, dnumdensdVMR, self_vmr * isot_ratio * dnumber_density_dt(P, T),
+              zeeman_polarization, speedup_type);
+    
+    com_safe.enforce_positive_absorption();
+    sparse_com_safe.enforce_positive_absorption();
+
+    com += com_safe;
+    sparse_com += sparse_com_safe;
+  } else {
+    line_loop(com, sparse_com, band, jacobian_quantities, nlte, vmrs, self_tag, P, T, H, sparse_lim,
+              single_partition_function(T, band.Isotopologue()),
+              single_partition_function(band.T0(), band.Isotopologue()),
+              dsingle_partition_function_dT(T, band.Isotopologue()),
+              self_vmr * dnumdensdVMR, dnumdensdVMR, self_vmr * isot_ratio * dnumber_density_dt(P, T),
+              zeeman_polarization, speedup_type);
+  }
 }
 
 #undef InternalDerivatives

@@ -30,10 +30,10 @@
   \author Stefan Buehler
   \date 2000-06-10 */
 
-#include <array>
 #include "methods.h"
 #include "arts.h"
 #include "wsv_aux.h"
+#include <array>
 
 namespace global_data {
 Array<MdRecord> md_data_raw;
@@ -205,14 +205,12 @@ void define_md_data_raw() {
 
   using global_data::wsv_group_names;
 
-  for (ArrayOfString::const_iterator it = wsv_group_names.begin();
-       it != wsv_group_names.end();
-       it++) {
-    if (*it != "Any") {
+  for (const auto & wsv_group_name : wsv_group_names) {
+    if (wsv_group_name != "Any") {
       md_data_raw.push_back(MdRecord(
-          NAME(String(*it + "Create").c_str()),
+          NAME(String(wsv_group_name + "Create").c_str()),
           DESCRIPTION(
-              String("Creates a variable of group " + *it +
+              String("Creates a variable of group " + wsv_group_name +
                      ".\n"
                      "\n"
                      "After being created, the variable is uninitialized.\n")
@@ -220,7 +218,7 @@ void define_md_data_raw() {
           ArrayOfString(AUTHORS("Oliver Lemke")),
           ArrayOfString(OUT()),
           ArrayOfString(GOUT("out")),
-          ArrayOfString(GOUT_TYPE((*it).c_str())),
+          ArrayOfString(GOUT_TYPE(wsv_group_name.c_str())),
           ArrayOfString(GOUT_DESC("Variable to create.")),
           ArrayOfString(IN()),
           ArrayOfString(GIN()),
@@ -407,8 +405,51 @@ void define_md_data_raw() {
               )));
 
   md_data_raw.push_back(create_mdrecord(
+    NAME("abs_linesAdaptOnTheFlyLineMixing"),
+      DESCRIPTION("Adapts the line-catalog from using *ecs_data* data to.\n"
+        "instead fit ordered parameters to imitate the line mxixing\n"
+        "\n"
+        "The order should be 1 or 2.  It will compute at 3 as well, but\n"
+        "there's no support in current ARTS LBL to make use of it so it\n"
+        "will crash at some point\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines", "ecs_data"),
+      GIN("t_grid", "pressure", "order", "robust", "rosenkranz_adaptation"),
+      GIN_TYPE("Vector", "Numeric", "Index", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1", "0"),
+      GIN_DESC("The sorted temperature grid",
+               "The pressure at which the adaptation is made",
+               "The order of the parameters in adaptation",
+               "Boolean for failed band adaptation behavior. 0: throw exception. not 0: conversion to line-by-line calculations",
+               "Apply direct Rosenkranz adaptation instead of computing the Eigenvalues")));
+
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_lines_per_speciesAdaptOnTheFlyLineMixing"),
+      DESCRIPTION("Calls *abs_linesAdaptOnTheFlyLineMixing* for each internal array\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "ecs_data"),
+      GIN("t_grid", "pressure", "order", "robust", "rosenkranz_adaptation"),
+      GIN_TYPE("Vector", "Numeric", "Index", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1", "0"),
+      GIN_DESC("The sorted temperature grid",
+               "The pressure at which the adaptation is made",
+               "The order of the parameters in adaptation",
+               "Boolean for failed band adaptation behavior. 0: throw exception. not 0: conversion to line-by-line calculations",
+               "Apply direct Rosenkranz adaptation instead of computing the Eigenvalues")));
+
+  md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesAdaptHitranLineMixing"),
-      DESCRIPTION("Adapts the line-catalog from using HITRAN data to.\n"
+      DESCRIPTION("Adapts the line-catalog from using *abs_hitran_relmat_data* to.\n"
         "instead fit ordered parameters to imitate the line mxixing\n"
         "\n"
         "The order should be 1 or 2.  It will compute at 3 as well, but\n"
@@ -427,22 +468,6 @@ void define_md_data_raw() {
       GIN_DESC("The sorted temperature grid",
                "The pressure at which the adaptation is made",
                "The order of the parameters in adaptation")));
-
-  md_data_raw.push_back(create_mdrecord(
-    NAME("abs_lines_per_speciesHitranLineMixingAdaptationData"),
-      DESCRIPTION("Calls underlying functions to get adaptation data\n"
-      ),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("lm_data"),
-      GOUT_TYPE("ArrayOfTensor5"),
-      GOUT_DESC("Underlying LM data in order of appearance"),
-      IN("abs_lines_per_species", "abs_hitran_relmat_data"),
-      GIN("t_grid", "p_grid"),
-      GIN_TYPE("Vector", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The temperature grid",
-               "The pressure grid")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesKeepBand"),
@@ -1011,6 +1036,20 @@ void define_md_data_raw() {
              GIN_DEFAULT(NODEF, NODEF),
              GIN_DESC("Method of line mirroring",
                       "The species tag from *abs_species* to change")));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("abs_linesSort"),
+               DESCRIPTION("Sorts first the lines then the bands by smallest first\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT("ByFrequency"),
+               GIN_DESC("Sorting option")));
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesMakeManualMirroring"),
@@ -13061,14 +13100,15 @@ void define_md_data_raw() {
          "rtp_vmr",
          "nlte_do",
          "lbl_checked"),
-      GIN("sparse_df", "sparse_lim", "speedup_option", "select_speciestags"),
-      GIN_TYPE("Numeric", "Numeric", "String", "ArrayOfSpeciesTag"),
-      GIN_DEFAULT("0", "0", "None", ""),
+      GIN("sparse_df", "sparse_lim", "speedup_option", "select_speciestags", "robust"),
+      GIN_TYPE("Numeric", "Numeric", "String", "ArrayOfSpeciesTag", "Index"),
+      GIN_DEFAULT("0", "0", "None", "", "0"),
       GIN_DESC(
         "The grid sparse separation",
         "The dense-to-sparse limit",
         "Speedup logic",
-        "Species selection (will only compute for the select species in *abs_species*)"
+        "Species selection (will only compute for the select species in *abs_species*)",
+        "Boolean.  If it is true, line mixed bands each allocate their own compute data to ensure that they cannot produce negative absorption"
       )));
 
   md_data_raw.push_back(create_mdrecord(

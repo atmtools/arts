@@ -623,101 +623,278 @@ public:
   }
 };  // Normalizer
 
+/** Class encapsulating all supported types of intensity calculations of individual absorption lines */
 class IntensityCalculator {
-  using Variant = std::variant<Nostrength, LocalThermodynamicEquilibrium,
-                               FullNonLocalThermodynamicEquilibrium,
-                               VibrationalTemperaturesNonLocalThermodynamicEquilibrium>;
+  using Variant =
+      std::variant<Nostrength,
+                   LocalThermodynamicEquilibrium,
+                   FullNonLocalThermodynamicEquilibrium,
+                   VibrationalTemperaturesNonLocalThermodynamicEquilibrium>;
   Variant ls_str;
-  
-public:
-  [[nodiscard]] constexpr Numeric S() const noexcept { return std::visit([](auto &&S) { return S.S; }, ls_str); }
-  [[nodiscard]] constexpr Numeric dSdT() const noexcept { return std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str); }
-  [[nodiscard]] constexpr Numeric dSdI0() const noexcept { return std::visit([](auto &&LS) { return LS.dSdI0(); }, ls_str); }
-  [[nodiscard]] constexpr Numeric dSdF0() const noexcept { return std::visit([](auto &&LS) { return LS.dSdF0(); }, ls_str); }
-  [[nodiscard]] constexpr Numeric dSdNLTEu() const noexcept { return std::visit([](auto &&LS) { return LS.dSdNLTEu(); }, ls_str); }
-  [[nodiscard]] constexpr Numeric dSdNLTEl() const noexcept { return std::visit([](auto &&LS) { return LS.dSdNLTEl(); }, ls_str); }
-  [[nodiscard]] constexpr Numeric dSdSELFVMR() const noexcept { return std::visit([](auto&&LS){return LS.dSdSELFVMR();}, ls_str); }
 
-  [[nodiscard]] constexpr Numeric N() const noexcept { return std::visit([](auto &&S) { return S.N; }, ls_str); }
-  [[nodiscard]] constexpr Numeric dNdT() const noexcept { return std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str); }
-  [[nodiscard]] constexpr Numeric dNdI0() const noexcept { return std::visit([](auto &&LS) { return LS.dNdI0(); }, ls_str); }
-  [[nodiscard]] constexpr Numeric dNdF0() const noexcept { return std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_str); }
-  [[nodiscard]] constexpr Numeric dNdNLTEu() const noexcept { return std::visit([](auto &&LS) { return LS.dNdNLTEu(); }, ls_str); }
-  [[nodiscard]] constexpr Numeric dNdNLTEl() const noexcept { return std::visit([](auto &&LS) { return LS.dNdNLTEl(); }, ls_str);; }
-  [[nodiscard]] constexpr Numeric dNdSELFVMR() const noexcept { return std::visit([](auto&&LS){return LS.dNdSELFVMR();}, ls_str); }
-  
-  [[nodiscard]] constexpr bool do_nlte() const noexcept {return std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);}
+ public:
+  /** The line strength absorption */
+  [[nodiscard]] constexpr Numeric S() const noexcept {
+    return std::visit([](auto &&S) { return S.S; }, ls_str);
+  }
 
-  IntensityCalculator(const Numeric T, const Numeric QT,
-                                           const Numeric QT0,
-                                           const Numeric dQTdT, const Numeric r,
-                                           const Numeric drdSELFVMR,
-                                           const Numeric drdT,
-                                           const EnergyLevelMap &nlte,
-                                           const Absorption::Lines &band,
-                                           const Index line_index) noexcept : ls_str(Nostrength{})  {
+  /** The line strength absorption derivative wrt temperature */
+  [[nodiscard]] constexpr Numeric dSdT() const noexcept {
+    return std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str);
+  }
+
+  /** The line strength absorption derivative wrt the reference line strength */
+  [[nodiscard]] constexpr Numeric dSdI0() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dSdI0(); }, ls_str);
+  }
+
+  /** The line strength absorption derivative wrt the line center */
+  [[nodiscard]] constexpr Numeric dSdF0() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dSdF0(); }, ls_str);
+  }
+
+  /** The line strength absorption derivative wrt either the upper state number density distribution or its vibration temperature */
+  [[nodiscard]] constexpr Numeric dSdNLTEu() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dSdNLTEu(); }, ls_str);
+  }
+
+  /** The line strength absorption derivative wrt either the lower state number density distribution or its vibration temperature */
+  [[nodiscard]] constexpr Numeric dSdNLTEl() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dSdNLTEl(); }, ls_str);
+  }
+
+  /** The line strength derivative wrt the VMR of the band's species */
+  [[nodiscard]] constexpr Numeric dSdSELFVMR() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dSdSELFVMR(); }, ls_str);
+  }
+
+  /** The line strength source offset */
+  [[nodiscard]] constexpr Numeric N() const noexcept {
+    return std::visit([](auto &&S) { return S.N; }, ls_str);
+  }
+
+  /** The line strength source offset derivative wrt temperature */
+  [[nodiscard]] constexpr Numeric dNdT() const noexcept {
+    return std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str);
+  }
+
+  /** The line strength source offset derivative wrt the reference line strength */
+  [[nodiscard]] constexpr Numeric dNdI0() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dNdI0(); }, ls_str);
+  }
+
+  /** The line strength source offset derivative wrt the line center */
+  [[nodiscard]] constexpr Numeric dNdF0() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_str);
+  }
+
+  /** The line strength source offset derivative wrt either the upper state number density distribution or its vibration temperature */
+  [[nodiscard]] constexpr Numeric dNdNLTEu() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dNdNLTEu(); }, ls_str);
+  }
+
+  /** The line strength source offset derivative wrt either the lower state number density distribution or its vibration temperature */
+  [[nodiscard]] constexpr Numeric dNdNLTEl() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dNdNLTEl(); }, ls_str);
+    ;
+  }
+
+  /** The line source offset derivative wrt the VMR of the band's species */
+  [[nodiscard]] constexpr Numeric dNdSELFVMR() const noexcept {
+    return std::visit([](auto &&LS) { return LS.dNdSELFVMR(); }, ls_str);
+  }
+
+  /** Whether or not NLTE is possible with the selected intensity variant */
+  [[nodiscard]] constexpr bool do_nlte() const noexcept {
+    return std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
+  }
+
+  IntensityCalculator(const Numeric T,
+                      const Numeric QT,
+                      const Numeric QT0,
+                      const Numeric dQTdT,
+                      const Numeric r,
+                      const Numeric drdSELFVMR,
+                      const Numeric drdT,
+                      const EnergyLevelMap &nlte,
+                      const Absorption::Lines &band,
+                      const Index line_index) noexcept
+      : ls_str(Nostrength{}) {
     const auto &line = band.Line(line_index);
     switch (band.Population()) {
-    case Absorption::PopulationType::ByHITRANFullRelmat:
-    case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
-    case Absorption::PopulationType::ByMakarovFullRelmat:
-    case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
-    case Absorption::PopulationType::LTE:
-      ls_str = LocalThermodynamicEquilibrium(line.I0(), band.T0(), T, line.F0(),
-                                             line.E0(), QT, QT0, dQTdT, r, drdSELFVMR, drdT); break;
-    case Absorption::PopulationType::NLTE: {
-      const auto [r_low, r_upp] = nlte.get_ratio_params(band, line_index);
-      ls_str = FullNonLocalThermodynamicEquilibrium(
-        line.F0(), line.A(), T, line.g_low(), line.g_upp(), r_low, r_upp, r, drdSELFVMR, drdT);
+      case Absorption::PopulationType::ByHITRANFullRelmat:
+      case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
+      case Absorption::PopulationType::ByMakarovFullRelmat:
+      case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
+      case Absorption::PopulationType::LTE:
+        ls_str = LocalThermodynamicEquilibrium(line.I0(),
+                                               band.T0(),
+                                               T,
+                                               line.F0(),
+                                               line.E0(),
+                                               QT,
+                                               QT0,
+                                               dQTdT,
+                                               r,
+                                               drdSELFVMR,
+                                               drdT);
+        break;
+      case Absorption::PopulationType::NLTE: {
+        const auto [r_low, r_upp] = nlte.get_ratio_params(band, line_index);
+        ls_str = FullNonLocalThermodynamicEquilibrium(line.F0(),
+                                                      line.A(),
+                                                      T,
+                                                      line.g_low(),
+                                                      line.g_upp(),
+                                                      r_low,
+                                                      r_upp,
+                                                      r,
+                                                      drdSELFVMR,
+                                                      drdT);
       } break;
-    case Absorption::PopulationType::VibTemps: {
-      const auto [E_low, E_upp, T_low, T_upp] =
-          nlte.get_vibtemp_params(band, line_index, T);
-      ls_str = VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
-          line.I0(), band.T0(), T, T_low, T_upp, line.F0(), line.E0(), E_low,
-          E_upp, QT, QT0, dQTdT, r, drdSELFVMR, drdT);
+      case Absorption::PopulationType::VibTemps: {
+        const auto [E_low, E_upp, T_low, T_upp] =
+            nlte.get_vibtemp_params(band, line_index, T);
+        ls_str =
+            VibrationalTemperaturesNonLocalThermodynamicEquilibrium(line.I0(),
+                                                                    band.T0(),
+                                                                    T,
+                                                                    T_low,
+                                                                    T_upp,
+                                                                    line.F0(),
+                                                                    line.E0(),
+                                                                    E_low,
+                                                                    E_upp,
+                                                                    QT,
+                                                                    QT0,
+                                                                    dQTdT,
+                                                                    r,
+                                                                    drdSELFVMR,
+                                                                    drdT);
       } break;
-    case Absorption::PopulationType::FINAL: { /*leave last*/
+      case Absorption::PopulationType::FINAL: { /*leave last*/
       }
     }
   }
 };  // IntensityCalculator
 
+/** Main computational data for the line shape and strength calculations */
 struct ComputeData {
   ComplexVector F, N;
   ComplexMatrix dF, dN;
-  const Vector & f_grid;
+  const Vector &f_grid;
   const bool do_nlte;
-  
-  ComputeData(const Vector& f, const ArrayOfRetrievalQuantity &jacobian_quantities, const bool nlte) noexcept : 
-  F(f.nelem(), 0),
-  N(nlte ? f.nelem() : 0, 0),
-  dF(f.nelem(), jacobian_quantities.nelem(), 0),
-  dN(nlte ? f.nelem() : 0, nlte ? jacobian_quantities.nelem() : 0, 0),
-  f_grid(f),
-  do_nlte(nlte) {}
-  
+
+  ComputeData(const Vector &f,
+              const ArrayOfRetrievalQuantity &jacobian_quantities,
+              const bool nlte) noexcept
+      : F(f.nelem(), 0),
+        N(nlte ? f.nelem() : 0, 0),
+        dF(f.nelem(), jacobian_quantities.nelem(), 0),
+        dN(nlte ? f.nelem() : 0, nlte ? jacobian_quantities.nelem() : 0, 0),
+        f_grid(f),
+        do_nlte(nlte) {}
+
   void reset() noexcept {
     F = 0;
     N = 0;
     dF = 0;
     dN = 0;
   }
-  
-  void interp_add_even(const ComputeData& sparse) ARTS_NOEXCEPT;
-  
-  void interp_add_triplequad(const ComputeData& sparse) ARTS_NOEXCEPT;
+
+  /** Add a sparse grid to this grid via linear interpolation
+    *
+    * @param[in] sparse The sparsely gridded data
+  */
+  void interp_add_even(const ComputeData &sparse) ARTS_NOEXCEPT;
+
+  /** Add a sparse grid to this grid via square interpolation
+    *
+    * @param[in] sparse The sparsely gridded data
+  */
+  void interp_add_triplequad(const ComputeData &sparse) ARTS_NOEXCEPT;
+
+  /** All four fields are set to zero at i if F[i].real() < 0 */
+  void enforce_positive_absorption() noexcept {
+    const Index nf = f_grid.nelem();
+    for (Index i = 0; i < nf; i++) {
+      if (F[i].real() < 0) {
+        F[i] = 0;
+        dF(i, joker) = 0;
+        if (do_nlte) {
+          N[i] = 0;
+          dN(i, joker) = 0;
+        }
+      }
+    }
+  }
+
+  /** Adds two identical compute data fields, the size must be identical */
+  ComputeData &operator+=(const ComputeData &other) {
+    F += other.F;
+    N += other.N;
+    dF += other.dF;
+    dN += other.dN;
+    return *this;
+  }
 };
 
+/** Compute the absorption of an absorption band
+ *
+ * For a single line the line shape is
+ *
+ * \f[ F_i = S_{z_i}  S_{n_i}  S_i  LM_i  F_i( \cdots ), \f]
+ *
+ * where \f$ S_{z_i} \f$ is the Zeeman scaling, \f$ S_{n_i} \f$ is the
+ * normalization scaling, \f$ S_i \f$ is the line strength scaling, \f$ LM_i \f$
+ * is the line mixing scaling, and \f$ F_i( \cdots )\f$ is the shape.
+ *
+ * and the derivatives are
+ *
+ * \f[
+ *  \frac{\partial F_l}{\partial t} = S_{z_i} \left(
+ *  \frac{\partial S_{n_i}}{\partial t}  S_i  LM_i  F_i( \cdots ) +
+ *  S_{n_i}  \frac{\partial S_i}{\partial t}  LM_i  F_i( \cdots ) +
+ *  S_{n_i}  S_i  \frac{\partial LM_i}{\partial t} F_i( \cdots ) +
+ *  S_{n_i}  S_i  LM_i \frac{\partial F_i( \cdots )}{\partial t} \right),
+ * \f]
+ *
+ * where \f$ t \f$ is some arbitrary variable.
+ *
+ * @param[inout] com Main computations variable.  Should be initialized and may have been used before.
+ * @param[inout] sparse_com Sparse computations variable.  Should be initialized and may have been used before.
+ * @param[in] band The absorption band
+ * @param[in] jacobian_quantities As WSV
+ * @param[in] rtp_nlte As WSV
+ * @param[in] vmrs The volume mixing ratios of the band's line shape model
+ * @param[in] self_tag The species tag from abs_species this band belongs to (only used for derivatives)
+ * @param[in] self_vmr The volume mixing of the band's species.
+ * @param[in] isot_ratio The sotopologue ratio of the band's species
+ * @param[in] rtp_pressure As WSV
+ * @param[in] rtp_temperature As WSV
+ * @param[in] H The magnetic field strength in Teslas
+ * @param[in] sparse_lim The frequency separating the sparse and dense frequency grid calculations
+ * @param[in] zeeman_polarization Type of Zeeman polarization
+ * @param[in] speedup_type Type of sparse grid interactions
+ * @param[in] robust If true, a band with line mixing parameters guarantees non-negative output by allocating its own com and sparse_com for local calculations
+ */
 void compute(ComputeData &com,
              ComputeData &sparse_com,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
-             const EnergyLevelMap &nlte, const Vector &vmrs,
-             const ArrayOfSpeciesTag& self_tag,
-             const Numeric &self_vmr, const Numeric &isot_ratio, const Numeric &P, const Numeric &T, const Numeric &H, const Numeric &sparse_lim,
-             const bool do_zeeman, const Zeeman::Polarization zeeman_polarization, const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT;
-                        
+             const EnergyLevelMap &rtp_nlte,
+             const Vector &vmrs,
+             const ArrayOfSpeciesTag &self_tag,
+             const Numeric &self_vmr,
+             const Numeric &isot_ratio,
+             const Numeric &rtp_pressure,
+             const Numeric &rtp_temperature,
+             const Numeric &H,
+             const Numeric &sparse_lim,
+             const Zeeman::Polarization zeeman_polarization,
+             const Options::LblSpeedup speedup_type,
+             const bool robust) ARTS_NOEXCEPT;
+
 Vector linear_sparse_f_grid(const Vector& f_grid, const Numeric& sparse_df) ARTS_NOEXCEPT;
 
 bool good_linear_sparse_f_grid(const Vector& f_grid_dense, const Vector& f_grid_sparse) noexcept;

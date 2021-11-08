@@ -101,6 +101,6 @@ template <typename ... Vectors> void plot(Vectors ... xy) {
     plot(x, y);
   }
 }
-}
+} // namespace ARTSGUI
 
 #endif  // arts_gui_plot_h

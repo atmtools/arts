@@ -26,6 +26,7 @@
 #include "matpack_complex.h"
 #include "blas.h"
 #include "exceptions.h"
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -231,6 +232,13 @@ ComplexVectorView& ComplexVectorView::operator=(const ComplexVector& v) {
 /** Assigning a scalar to a ComplexVectorView will set all elements to this
     value. */
 ComplexVectorView& ComplexVectorView::operator=(Complex x) {
+  copy(x, begin(), end());
+  return *this;
+}
+
+/** Assigning a scalar to a ComplexVectorView will set all elements to this
+    value. */
+ComplexVectorView& ComplexVectorView::operator=(Numeric x) {
   copy(x, begin(), end());
   return *this;
 }
@@ -487,9 +495,6 @@ void copy(Complex x, ComplexIterator1D target, const ComplexIterator1D& end) {
 // Functions for Vector:
 // ---------------------
 
-/** Default constructor. */
-ComplexVector::ComplexVector() = default;
-
 /** Constructor setting size. */
 ComplexVector::ComplexVector(Index n)
     : ComplexVectorView(new Complex[n], Range(0, n)) {
@@ -662,8 +667,20 @@ ComplexVector::ComplexVector(const std::vector<Numeric>& v)
  * \author Stefan Buehler
  * \date   2002-12-19
  */
-ComplexVector& ComplexVector::operator=(ComplexVector v) {
-  swap(*this, v);
+ComplexVector& ComplexVector::operator=(const ComplexVector& v) {
+  const auto n = v.nelem();
+  resize(n);
+
+  auto* in = v.mdata + v.mrange.mstart;
+  auto* end = v.mdata + n;
+  auto* out = mdata;
+
+  while (in < end) {
+    out = in;
+    out++;
+    in += v.mrange.mstride;
+  }
+
   return *this;
 }
 

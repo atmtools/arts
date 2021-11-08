@@ -463,7 +463,7 @@ struct Lagrange {
   Lagrange(Lagrange&& l) noexcept : pos(l.pos), lx(std::move(l.lx)), dlx(std::move(l.dlx)) {}
   
   //! Ensure that the copy constructor exists
-  Lagrange(const Lagrange& l) noexcept : pos(l.pos), lx(l.lx), dlx(l.dlx) {}
+  Lagrange(const Lagrange& l) = default;
   
   //! Ensure that the move operator exists
   Lagrange& operator=(Lagrange&& l) noexcept {
@@ -474,12 +474,7 @@ struct Lagrange {
   }
   
   //! Ensure that the copy operator exists
-  Lagrange& operator=(const Lagrange& l) noexcept {
-    pos = l.pos;
-    lx = l.lx;
-    dlx = l.dlx;
-    return *this;
-  }
+  Lagrange& operator=(const Lagrange& l) = default;
 
   /*! Standard initializer, assumes sorted xi
    * 

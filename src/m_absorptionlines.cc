@@ -33,6 +33,7 @@
 #include "file.h"
 #include "global_data.h"
 #include "m_xml.h"
+#include <algorithm>
 
 /////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////// Basic removal and flattening
@@ -2568,4 +2569,28 @@ void abs_lines_per_speciesRemoveLinesFromSpecies(ArrayOfArrayOfAbsorptionLines& 
                                                  const Verbosity& verbosity) {
   for (auto& abs_lines: abs_lines_per_species)
     abs_linesRemoveLinesFromSpecies(abs_lines, species, lower_frequency, upper_frequency, lower_intensity, safe, verbosity);
+}
+
+void abs_linesSort(ArrayOfAbsorptionLines& abs_lines,
+                   const String& option,
+                   const Verbosity& verbosity) {
+  const auto opt = Options::toSortingOptionOrThrow(option);
+
+  abs_linesRemoveEmptyBands(abs_lines, verbosity);
+
+  switch (opt) {
+    case Options::SortingOption::ByFrequency:
+      for (auto& band: abs_lines)
+        band.sort_by_frequency();
+      std::sort(abs_lines.begin(), abs_lines.end(),
+                [](auto& a, auto& b){return a.AllLines()[0].F0() <= b.AllLines()[0].F0();});
+      break;
+    case Options::SortingOption::ByEinstein:
+      for (auto& band: abs_lines)
+        band.sort_by_einstein();
+      std::sort(abs_lines.begin(), abs_lines.end(),
+                [](auto& a, auto& b){return a.AllLines()[0].A() <= b.AllLines()[0].A();});
+      break;
+    case Options::SortingOption::FINAL: {/*leave last*/}
+  }
 }

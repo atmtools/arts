@@ -930,7 +930,21 @@ public:
   [[nodiscard]] bool DoLineMixing(Numeric P) const noexcept {
     return mlinemixinglimit < 0 ? true : mlinemixinglimit > P;
   }
-  
+
+  /** @return Whether the band may require linemixing */
+  [[nodiscard]] bool AnyLinemixing() const noexcept {
+    for (auto& line : mlines) {
+      for (auto& shape : line.LineShape().Data()) {
+        if (shape.Y().type not_eq LineShape::TemperatureModel::None or
+            shape.G().type not_eq LineShape::TemperatureModel::None or
+            shape.DV().type not_eq LineShape::TemperatureModel::None) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /** Line shape parameters
    * 
    * @param[in] k Line number (less than NumLines())

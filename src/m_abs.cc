@@ -1361,6 +1361,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const Numeric& sparse_lim,
     const String& speedup_option,
     const ArrayOfSpeciesTag& select_speciestags,
+    const Index& robust,
     // Verbosity object:
     const Verbosity& verbosity) {
   
@@ -1418,7 +1419,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     for (auto& band : abs_lines_per_species[ispecies]) {
       LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
                           isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, 0, sparse_lim,
-                          false, Zeeman::Polarization::Pi, speedup_type);
+                          Zeeman::Polarization::None, speedup_type, robust not_eq 0);
       
     }
   }
@@ -1786,7 +1787,7 @@ void abs_xsec_per_speciesAddLines(
       
       for (auto& band : abs_lines_per_species[ispecies]) {
         LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species), abs_species[ispecies], abs_vmrs(ispecies, ip),
-                           isotopologue_ratios[band.Isotopologue()], abs_p[ip], abs_t[ip], 0, 0, false, Zeeman::Polarization::Pi, speedup_type);
+                           isotopologue_ratios[band.Isotopologue()], abs_p[ip], abs_t[ip], 0, 0, Zeeman::Polarization::None, speedup_type, false);
         
       }
       

@@ -23,20 +23,20 @@
  * \brief  Test Propagation Matrix Internal Partial Derivatives and PropagationMatrix
  */
 
-#include <random>
 #include "absorption.h"
 #include "arts.h"
 #include "global_data.h"
 #include "hitran_species.h"
-#include "lineshapemodel.h"
+#include "legacy_continua.h"
 #include "linescaling.h"
+#include "lineshapemodel.h"
+#include "predefined_absorption_models.h"
 #include "transmissionmatrix.h"
+#include "wigner_functions.h"
 #include "zeeman.h"
 #include "zeemandata.h"
 #include <Faddeeva/Faddeeva.hh>
-#include "legacy_continua.h"
-#include "predefined_absorption_models.h"
-#include "wigner_functions.h"
+#include <random>
 
 #include "linemixing_hitran.h"
 #include <auto_md.h>
@@ -546,7 +546,7 @@ void test_mpm20()
   ArrayOfRetrievalQuantity jacs(2);
   jacs[0].Target(Jacobian::Target(Jacobian::Atm::Temperature));
   jacs[1].Target(Jacobian::Target(Jacobian::Atm::WindU));
-  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, p, t, 1, 0.5, jacs);
+  Absorption::PredefinedModel::Makarov2020etal::compute(xsec, dxsec, f, p, t, 1, jacs);
   
   constexpr auto df = 1000;
   constexpr auto dt = 0.1;

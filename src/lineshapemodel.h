@@ -106,6 +106,7 @@ ENUMCLASS(Variable, char,
  */
 struct ModelParameters {
   static constexpr Index N = 4;
+  static_assert(Index(Options::LineShapeCoeff::FINAL) == N, "Must update either LineShapeCoeff options or ModelParameters");
   TemperatureModel type;
   Numeric X0;
   Numeric X1;

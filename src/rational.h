@@ -943,5 +943,21 @@ constexpr bool iseven(const Rational r) noexcept {
   return 0 == (r % 2);
 }
 
+/** Multiplication with numeric */
+constexpr Numeric operator*(Rational y, Numeric x) noexcept {return y.toNumeric() * x;}
+constexpr Numeric operator*(Numeric x, Rational y) noexcept {return x * y.toNumeric();}
+
+/** Division with numeric */
+constexpr Numeric operator/(Rational y, Numeric x) noexcept {return y.toNumeric() / x;}
+constexpr Numeric operator/(Numeric x, Rational y) noexcept {return x / y.toNumeric();}
+
+/** Addition with numeric */
+constexpr Numeric operator+(Rational y, Numeric x) noexcept {return y.toNumeric() + x;}
+constexpr Numeric operator+(Numeric x, Rational y) noexcept {return x + y.toNumeric();}
+
+/** Subtraction with numeric */
+constexpr Numeric operator-(Rational y, Numeric x) noexcept {return y.toNumeric() - x;}
+constexpr Numeric operator-(Numeric x, Rational y) noexcept {return x - y.toNumeric();}
+
 #endif  // rational_h
 
