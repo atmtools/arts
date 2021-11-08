@@ -306,7 +306,7 @@ add_library (artscore STATIC
   zeemandata.cc
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
-add_dependencies (artscore auto_version_h species)
+add_dependencies (artscore auto_version_h species make_autoarts_h_target)
 
 if (ENABLE_GUI)
   add_subdirectory(gui)
@@ -594,13 +594,20 @@ target_include_directories(public_arts_interface INTERFACE ${ARTS_BINARY_DIR}
                                                            ${ARTS_SOURCE_DIR}/src/
                                                            ${ARTS_SOURCE_DIR}/3rdparty/
                                                            ${ARTS_SOURCE_DIR}/3rdparty/invlib/src)
-add_dependencies(public_arts_interface make_autoarts_h_target)
+add_dependencies(public_arts_interface make_autoarts_h_target ${ALL_ARTS_LIBRARIES})
 ########################################################################################
 
 ########################################################################################
 # Generate the internal structure for the ARTS C++ interface
-add_executable(make_autoarts_h make_autoarts_h.cc)
-target_link_libraries(make_autoarts_h PUBLIC ${ALL_ARTS_LIBRARIES})
+add_executable(make_autoarts_h make_autoarts_h.cc
+        agenda_record.cc
+        arts.cc
+        file.cc
+        messages.cc
+        parameters.cc
+        workspace.cc
+        workspace_ng.cc)
+target_link_libraries(make_autoarts_h PUBLIC methods matpack)
 ########################################################################################
 
 ########################################################################################
@@ -609,7 +616,7 @@ add_custom_command(OUTPUT autoarts.h autoarts_core.h
                    COMMAND make_autoarts_h
                    DEPENDS make_autoarts_h
                    VERBATIM)
-add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts.h)
+add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts.h ${ARTS_BINARY_DIR}/src/autoarts_core.h)
 ########################################################################################
 
 ########################################################################################

@@ -1,4 +1,4 @@
-#include <auto_md.h>
+#include <workspace_ng.h>
 #include <global_data.h>
 
 #include <algorithm>
