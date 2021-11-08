@@ -13428,6 +13428,32 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearsky_agendaAuto"),
+      DESCRIPTION(
+          "Sets an automatic *propmat_clearsky_agenda*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("propmat_clearsky_agenda"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky_agenda", "abs_species", "abs_lines_per_species"),
+      GIN("for_lookup", "sparse_df", "sparse_lim", "speedup_option", "extpolfac", "use_abs_as_ext", "manual_zeeman_tag", "manual_zeeman_magnetic_field_strength", "manual_zeeman_theta", "manual_zeeman_eta"),
+      GIN_TYPE("Index", "Numeric", "Numeric", "String", "Numeric", "Index", "Index", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT("0", "0", "0", "None", "0.5", "1", "1", "1.0", "0.0", "0.0"),
+      GIN_DESC(
+        "Whether or not a lookup table will be used",
+        "See *propmat_clearskyAddLines*",
+        "See *propmat_clearskyAddLines*",
+        "See *propmat_clearskyAddLines*",
+        "See *propmat_clearskyAddFromLookup*",
+        "See *propmat_clearskyAddParticles*",
+        "See *propmat_clearskyAddZeeman*",
+        "See *propmat_clearskyAddZeeman*",
+        "See *propmat_clearskyAddZeeman*",
+        "See *propmat_clearskyAddZeeman*"
+      )));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearsky_fieldCalc"),
       DESCRIPTION(
           "Calculate (vector) gas absorption coefficients for all points in the\n"

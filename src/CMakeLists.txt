@@ -605,9 +605,10 @@ target_link_libraries(make_autoarts_h PUBLIC ${ALL_ARTS_LIBRARIES})
 
 ########################################################################################
 # Generate autoarts.h for the ARTS interface
-add_custom_command(OUTPUT autoarts.h
-                   COMMAND make_autoarts_h > ${ARTS_BINARY_DIR}/src/autoarts.h
-                   DEPENDS make_autoarts_h)
+add_custom_command(OUTPUT autoarts.h autoarts_core.h
+                   COMMAND make_autoarts_h
+                   DEPENDS make_autoarts_h
+                   VERBATIM)
 add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts.h)
 ########################################################################################
 

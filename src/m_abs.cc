@@ -55,6 +55,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include <autoarts_core.h>
+
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>
 #include "nc_io.h"
@@ -1792,3 +1794,132 @@ void abs_xsec_per_speciesAddLines(
     }
   }
 }
+
+
+void propmat_clearsky_agendaAuto(Workspace& ws,
+                                 Agenda& propmat_clearsky_agenda,
+                                 const ArrayOfArrayOfSpeciesTag& abs_species,
+                                 const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                 const Index& for_lookup,
+                                 
+                                 const Numeric& sparse_df,
+                                 const Numeric& sparse_lim,
+                                 const String& speedup_option,
+                                 
+                                 const Numeric& extpolfac,
+                                 
+                                 const Index& use_abs_as_ext,
+                                 
+                                 const Index& manual_zeeman_tag,
+                                 const Numeric& manual_zeeman_magnetic_field_strength,
+                                 const Numeric& manual_zeeman_theta,
+                                 const Numeric& manual_zeeman_eta,
+                                 const Verbosity& verbosity) {
+  using namespace ARTS::Agenda;
+  CREATE_OUT2;
+  
+  // Variables of the agenda
+  bool rtp_mag = false;
+  bool rtp_los = false;
+  bool rtp_pressure = false;
+  bool rtp_temperature = false;
+  bool rtp_nlte = false;
+  bool rtp_vmr = false;
+  
+  propmat_clearsky_agenda.resize(0);
+  propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
+  propmat_clearsky_agenda.push_back(Method::propmat_clearskyInit(ws));
+  
+  if (not for_lookup and abs_lines_per_species.nelem()) {
+    propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddLines(ws, sparse_df, sparse_lim, speedup_option));
+     rtp_pressure = true;
+     rtp_temperature = true;
+     rtp_nlte = true;
+     rtp_vmr = true;
+    
+    bool do_hitran_lm=false, do_arts_lm=false;
+    for (auto& bands: abs_lines_per_species) {
+      for (auto& band: bands) {
+        if (band.Population() == Absorption::PopulationType::ByHITRANFullRelmat or band.Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat)
+          do_hitran_lm = true;
+        if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat or band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing)
+          do_arts_lm = true;  // FIXME: Zeeman should be the default here ???
+      }
+    }
+    
+    if (do_hitran_lm) {
+      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddHitranLineMixingLines(ws));
+    }
+    
+    if (do_arts_lm) {
+      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddOnTheFlyLineMixing(ws));  // FIXME: Zeeman should be the default here ???
+    }
+  }
+  
+  if (for_lookup) {
+    rtp_pressure = true;
+     rtp_temperature = true;
+     rtp_vmr = true;
+    
+    propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddFromLookup(ws, extpolfac));
+  }
+  
+  bool done_electrons=false, done_particles=false, done_zeeman=false, done_xsec=false;
+  for (auto& species: abs_species) {
+    if (not done_electrons and species.FreeElectrons()) {
+      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddFaraday(ws));
+      done_electrons = true;
+      rtp_vmr = true;
+      rtp_mag = true;
+      rtp_los = true;
+    }
+    
+    else if (not done_particles and species.Particles()) {
+      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddParticles(ws, use_abs_as_ext));
+      done_particles = true;
+      
+      rtp_los = true;
+      rtp_temperature = true;
+      rtp_vmr = true;
+    }
+    
+    else if (not done_zeeman and species.Zeeman()) {
+      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddZeeman(ws, manual_zeeman_tag, manual_zeeman_magnetic_field_strength, manual_zeeman_theta, manual_zeeman_eta));
+      done_zeeman = true;
+      
+       rtp_mag = true;
+       rtp_los = true;
+       rtp_pressure = true;
+       rtp_temperature = true;
+       rtp_nlte = true;
+       rtp_vmr = true;
+    }
+    
+    else for (auto& tag: species) {
+      if (not for_lookup and tag.Isotopologue() == Species::select("O2", "MPM2020")) {
+        propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddPredefinedO2MPM2020(ws));
+        
+        rtp_pressure = true;
+        rtp_temperature = true;
+        rtp_vmr = true;
+      } else if (not for_lookup and not done_xsec and Species::is_predefined_model(tag.Isotopologue())) {
+        propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddXsecAgenda(ws));
+        done_xsec = true;
+        
+        rtp_pressure = true;
+        rtp_temperature = true;
+        rtp_vmr = true;
+      }
+    }
+  }
+  
+  if (not rtp_mag) propmat_clearsky_agenda.push_back(Method::Ignore(ws, ARTS::Var::rtp_mag(ws)));
+  if (not rtp_los) propmat_clearsky_agenda.push_back(Method::Ignore(ws, ARTS::Var::rtp_los(ws)));
+  if (not rtp_pressure) propmat_clearsky_agenda.push_back(Method::Ignore(ws, ARTS::Var::rtp_pressure(ws)));
+  if (not rtp_temperature) propmat_clearsky_agenda.push_back(Method::Ignore(ws, ARTS::Var::rtp_temperature(ws)));
+  if (not rtp_nlte) propmat_clearsky_agenda.push_back(Method::Ignore(ws, ARTS::Var::rtp_nlte(ws)));
+  if (not rtp_vmr) propmat_clearsky_agenda.push_back(Method::Ignore(ws, ARTS::Var::rtp_vmr(ws)));
+  
+  propmat_clearsky_agenda.check(ws, verbosity);
+}
+
