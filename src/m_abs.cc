@@ -1831,7 +1831,11 @@ void propmat_clearsky_agendaAuto(Workspace& ws,
   propmat_clearsky_agenda.push_back(Method::propmat_clearskyInit(ws));
   
   if (not for_lookup and abs_lines_per_species.nelem()) {
-    propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddLines(ws, sparse_df, sparse_lim, speedup_option));
+    static auto sparse_df_arts = ARTS::Var::NumericCreate(ws, 0.0, "propmat_clearsky_agendaAuto_sparse_df__");
+    static auto sparse_lim_arts = ARTS::Var::NumericCreate(ws, 0.0, "propmat_clearsky_agendaAuto_sparse_lim__");
+    static auto speedup_option_arts = ARTS::Var::StringCreate(ws, "", "propmat_clearsky_agendaAuto_speedup_option__");
+    
+    propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddLines(ws, sparse_df_arts=sparse_df, sparse_lim_arts=sparse_lim, speedup_option_arts=speedup_option));
      rtp_pressure = true;
      rtp_temperature = true;
      rtp_nlte = true;
