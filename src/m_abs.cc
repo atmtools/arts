@@ -1862,41 +1862,54 @@ void propmat_clearsky_agendaAuto(Workspace& ws,
   
   if (for_lookup) {
     rtp_pressure = true;
-     rtp_temperature = true;
-     rtp_vmr = true;
+    rtp_temperature = true;
+    rtp_vmr = true;
     
-    propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddFromLookup(ws, extpolfac));
+    static auto extpolfac_arts = ARTS::Var::NumericCreate(ws, 0.0, "propmat_clearsky_agendaAuto_extpolfac__");
+    
+    propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddFromLookup(ws, extpolfac_arts=extpolfac));
   }
   
   bool done_electrons=false, done_particles=false, done_zeeman=false, done_xsec=false;
   for (auto& species: abs_species) {
     if (not done_electrons and species.FreeElectrons()) {
-      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddFaraday(ws));
       done_electrons = true;
       rtp_vmr = true;
       rtp_mag = true;
       rtp_los = true;
+      
+      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddFaraday(ws));
     }
     
     else if (not done_particles and species.Particles()) {
-      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddParticles(ws, use_abs_as_ext));
       done_particles = true;
-      
       rtp_los = true;
       rtp_temperature = true;
       rtp_vmr = true;
+      
+      static auto use_abs_as_ext_arts = ARTS::Var::IndexCreate(ws, 0, "propmat_clearsky_agendaAuto_use_abs_as_ext__");
+      
+      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddParticles(ws, use_abs_as_ext_arts=use_abs_as_ext));
     }
     
     else if (not done_zeeman and species.Zeeman()) {
-      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddZeeman(ws, manual_zeeman_tag, manual_zeeman_magnetic_field_strength, manual_zeeman_theta, manual_zeeman_eta));
       done_zeeman = true;
+      rtp_mag = true;
+      rtp_los = true;
+      rtp_pressure = true;
+      rtp_temperature = true;
+      rtp_nlte = true;
+      rtp_vmr = true;
       
-       rtp_mag = true;
-       rtp_los = true;
-       rtp_pressure = true;
-       rtp_temperature = true;
-       rtp_nlte = true;
-       rtp_vmr = true;
+      static auto manual_zeeman_tag_arts = ARTS::Var::IndexCreate(ws, 0, "propmat_clearsky_agendaAuto_manual_zeeman_tag__");
+      static auto manual_zeeman_magnetic_field_strength_arts = ARTS::Var::NumericCreate(ws, 0.0, "propmat_clearsky_agendaAuto_manual_zeeman_magnetic_field_strength__");
+      static auto manual_zeeman_theta_arts = ARTS::Var::NumericCreate(ws, 0.0, "propmat_clearsky_agendaAuto_manual_zeeman_theta__");
+      static auto manual_zeeman_eta_arts = ARTS::Var::NumericCreate(ws, 0.0, "propmat_clearsky_agendaAuto_manual_zeeman_eta__");
+      
+      propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddZeeman(ws, manual_zeeman_tag_arts=manual_zeeman_tag,
+                                                                          manual_zeeman_magnetic_field_strength_arts=manual_zeeman_magnetic_field_strength,
+                                                                          manual_zeeman_theta_arts=manual_zeeman_theta,
+                                                                          manual_zeeman_eta_arts=manual_zeeman_eta));
     }
     
     else for (auto& tag: species) {
