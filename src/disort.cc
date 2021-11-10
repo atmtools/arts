@@ -1043,6 +1043,9 @@ void run_cdisort_star(Workspace& ws,
     nphi = aa_grid.nelem();
     umu0 = Conversion::cosd(star_rte_los[0]);
     phi0 = star_rte_los[1];
+    if (phi0<0){
+      phi0=phi0+360.;
+    }
   }
 
   ds.accur = 0.005;
@@ -1091,10 +1094,12 @@ void run_cdisort_star(Workspace& ws,
   ds.bc.phi0 = phi0;
   ds.bc.fluor = 0.;
 
-  // Since we have no solar source there is no angular dependance
+  // fill up azimuth angle and temperature array
   for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
-
   for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
+
+  // Transform to mu, starting with negative values
+  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
 
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
   get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
@@ -1102,14 +1107,39 @@ void run_cdisort_star(Workspace& ws,
   get_paroptprop(
       ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
 
+  // get the angles where to calculate the scattering, which is later used for
+  //for the calculation of the legendre polynoms
+  Vector pfct_angs;
+  get_angs(pfct_angs, scat_data, Npfct);
+  Index nang = pfct_angs.nelem();
+
+  Index nf_ssd = scat_data[0][0].f_grid.nelem();
+  Tensor3 pha_bulk_par(nf_ssd, ds.nlyr + 1, nang);
+  get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
+  Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
+  get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
+
+  //TODO: Add gas scattering
+  if (gas_scattering_do){
+
+    //FIXME: we must add the gas scattering phase function to pnom. It is important
+    // to add them using the weight.
+
+    //FIXME: add gas scattering coefficient to ext_bulk_gas
+
+  }
+
+
   // Optical depth of layers
   Matrix dtauc(nf, ds.nlyr);
   // Single scattering albedo of layers
   Matrix ssalb(nf, ds.nlyr);
   get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
 
-  // Transform to mu, starting with negative values
-  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
+  // Legendre polynomials of phase function
+  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
+  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
+
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -1131,20 +1161,6 @@ void run_cdisort_star(Workspace& ws,
   ds.bc.btemp = surface_skin_t;
   ds.bc.temis = 1.;
 
-  Vector pfct_angs;
-  get_angs(pfct_angs, scat_data, Npfct);
-  Index nang = pfct_angs.nelem();
-
-  Index nf_ssd = scat_data[0][0].f_grid.nelem();
-  Tensor3 pha_bulk_par(nf_ssd, ds.nlyr + 1, nang);
-  get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
-  Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
-  get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
-
-  // Legendre polynomials of phase function
-  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
-  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
-
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
     sprintf(ds.header, "ARTS Calc f_index = %ld", f_index);
 
@@ -1160,7 +1176,10 @@ void run_cdisort_star(Workspace& ws,
     ds.wvnmhi += ds.wvnmhi * 1e-7;
     ds.wvnmlo -= ds.wvnmlo * 1e-7;
 
+    // set
     ds.bc.albedo = surface_scalar_reflectivity[f_index];
+
+    // Set Intensity of incident solar beam at top boundary
     if (star_do) {
       fbeam = stars[0].spectrum(f_index, 0);
     }
