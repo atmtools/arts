@@ -1639,6 +1639,16 @@ void define_wsv_data() {
           "\n"),
       GROUP("Index")));
 
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_output_type"),
+      DESCRIPTION(
+          "Flag to select the output of the *gas_scattering_agenda*.\n"
+          "\n"
+          "Internal communications variable, not intended to be used by user."
+          "If equals 1 *sca_mat* is output and *sca_fct_legendre* is empty.\n"
+          "If equals 0 *sca_fct_legendre* is output and *sca_mat* is empty.\n"
+          "\n"),
+      GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
       NAME("gas_scattering_agenda"),
@@ -3852,6 +3862,21 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
       GROUP("TransmissionMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("sca_fct_legendre"),
+      DESCRIPTION(
+          "Spectrum of normalized phase functions as Legendre series.\n"
+          "\n"
+          "This variable contains the normalized phase function\n"
+          "as Legendre series.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ 1 ]\n"
+          "\n"
+          "Size:  [fgrid, number of Legendre polynomials]\n"),
+      GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("scat_data"),

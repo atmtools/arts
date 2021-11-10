@@ -235,15 +235,17 @@ void define_agenda_data() {
                            "*sca_mat* is set empty. If *in_los* and *out_los*\n"
                            "are not empty, then the phase matrix is calculated\n"
                            "for the define incoming and outgoing direction.\n"),
-               OUTPUT("sca_coef","sca_mat"),
+               OUTPUT("sca_coef","sca_mat","sca_fct_legendre"),
                INPUT("sca_coef",
                      "sca_mat",
+                     "sca_fct_legendre",
                      "f_grid",
                      "rtp_pressure",
                      "rtp_temperature",
                      "rtp_vmr",
                      "in_los",
-                     "out_los")));
+                     "out_los",
+                     "gas_scattering_output_type")));
 
   agenda_data.push_back(
       AgRecord(NAME("g0_agenda"),

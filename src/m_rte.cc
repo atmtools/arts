@@ -199,6 +199,7 @@ void iyClearsky(
     const Numeric& ppath_lraytrace,
     const Index& cloudbox_on,
     const Index& gas_scattering_do,
+    const Index& gas_scattering_output_type,
     const Index& star_do,
     const String& iy_unit,
     const ArrayOfString& iy_aux_vars,
@@ -389,6 +390,7 @@ void iyClearsky(
     const ArrayOfString scat_species_dummy;
     const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
     TransmissionMatrix sca_mat_dummy;
+    Matrix sca_fct_dummy;
     const Vector in_los_dummy;
     const Vector out_los_dummy;
 
@@ -546,6 +548,7 @@ void iyClearsky(
                                        0,
                                        cloudbox_limits_dummy,
                                        gas_scattering_do,
+                                       gas_scattering_output_type,
                                        pnd_field_dummy,
                                        dpnd_field_dx_dummy,
                                        scat_species_dummy,
@@ -575,6 +578,7 @@ void iyClearsky(
                                          transmitted_starlight,
                                          star_rte_los,
                                          ppath.los(ip, joker),
+                                         gas_scattering_output_type,
                                          gas_scattering_agenda);
 
 
@@ -589,12 +593,14 @@ void iyClearsky(
           gas_scattering_agendaExecute(ws,
                                        K_sca,
                                        sca_mat_dummy,
+                                       sca_fct_dummy,
                                        f_grid,
                                        ppvar_p[ip],
                                        ppvar_t[ip],
                                        ppvar_vmr(joker, ip),
                                        in_los_dummy,
                                        out_los_dummy,
+                                       gas_scattering_output_type,
                                        gas_scattering_agenda);
 
           // absorption equals extinction only for the gas absorption part.

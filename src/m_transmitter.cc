@@ -684,6 +684,7 @@ void iyTransmissionStandard(Workspace& ws,
                             const Index& cloudbox_on,
                             const ArrayOfIndex& cloudbox_limits,
                             const Index& gas_scattering_do,
+                            const Index& gas_scattering_output_type,
                             const Tensor4& pnd_field,
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfString& scat_species,
@@ -870,6 +871,7 @@ void iyTransmissionStandard(Workspace& ws,
 
     // size gas scattering variables
     TransmissionMatrix sca_mat;
+    Matrix sca_fct_dummy;
     PropagationMatrix K_sca;
     if (gas_scattering_do) {
       K_sca = PropagationMatrix(nf, ns);
@@ -924,12 +926,14 @@ void iyTransmissionStandard(Workspace& ws,
         gas_scattering_agendaExecute(ws,
                                      K_sca,
                                      sca_mat,
+                                     sca_fct_dummy,
                                      f_grid,
                                      ppvar_p[ip],
                                      ppvar_t[ip],
                                      ppvar_vmr(joker, ip),
                                      in_los,
                                      out_los,
+                                     gas_scattering_output_type,
                                      gas_scattering_agenda);
 
         K_this += K_sca;
