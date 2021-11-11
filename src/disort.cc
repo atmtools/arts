@@ -1120,16 +1120,6 @@ void run_cdisort_star(Workspace& ws,
   Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
   get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
 
-  //TODO: Add gas scattering
-  if (gas_scattering_do){
-
-    //FIXME: we must add the gas scattering phase function to pnom. It is important
-    // to add them using the weight.
-
-    //FIXME: add gas scattering coefficient to ext_bulk_gas
-
-  }
-
 
   // Optical depth of layers
   Matrix dtauc(nf, ds.nlyr);
@@ -1140,6 +1130,55 @@ void run_cdisort_star(Workspace& ws,
   // Legendre polynomials of phase function
   Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
   get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
+
+
+  //DEBUG+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  std::cout << "Tensor3 Legendre polynomials \n";
+  std::cout << pmom <<"\n";
+  std::cout << "\n";
+  std::cout << "delta Tau \n";
+  std::cout << dtauc << "\n";
+  std::cout << "\n";
+  std::cout << "single scattering albedo \n";
+  std::cout << ssalb;
+
+
+  //DEBUG end+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  //TODO: Add gas scattering
+
+  PropagationMatrix K_sca_gas;
+  TransmissionMatrix sca_mat_dummy;
+    Vector dummy;
+
+  if (gas_scattering_do){
+
+    for (Index i = 0; i <= ds.nlyr; i++) {
+
+      Matrix sca_fct_gas;
+
+      gas_scattering_agendaExecute(ws,
+                                   K_sca_gas,
+                                   sca_mat_dummy,
+                                   sca_fct_gas,
+                                   f_grid,
+                                   p[ds.nlyr - i],
+                                   t[ds.nlyr - i],
+                                   vmr(joker, ds.nlyr - i),
+                                   dummy,
+                                   dummy,
+                                   gas_scattering_output_type,
+                                   gas_scattering_agenda);
+
+
+
+
+    }
+
+    //FIXME: add gas scattering coefficient to ext_bulk_gas
+
+  }
+
 
 
   //upper boundary conditions:

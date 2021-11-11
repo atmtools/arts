@@ -1645,8 +1645,8 @@ void define_wsv_data() {
           "Flag to select the output of the *gas_scattering_agenda*.\n"
           "\n"
           "Internal communications variable, not intended to be used by user."
-          "If equals 1 *sca_mat* is output and *sca_fct_legendre* is empty.\n"
-          "If equals 0 *sca_fct_legendre* is output and *sca_mat* is empty.\n"
+          "If equals 0 *sca_mat* is output and *sca_fct_legendre* is empty.\n"
+          "If equals 1 *sca_fct_legendre* is output and *sca_mat* is empty.\n"
           "\n"),
       GROUP("Index")));
 
