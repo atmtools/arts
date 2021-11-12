@@ -7161,6 +7161,36 @@ Possible models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("gas_scatteringCoefAirSimple"),
+      DESCRIPTION(
+          "Calculates of scattering coefficient matrix for air.\n"
+          "\n"
+          "This function calculates the scattering coefficient for air using a\n"
+          "fitted version from Stamnes et al., 2017 of the numerical results of\n"
+          "Bates, 1984. Internally it calculates the spectrum of scattering\n"
+          "coefficient matrices from the spectrum of scattering cross section matrices,\n"
+          "atmospheric pressure, temperature for one point in the atmosphere. The\n"
+          "function multi- plies the cross sections with the number density of gas\n"
+          "molecules under the assumption of an ideal gas to get the coefficients.\n"
+          "The result is returned in *sca_coef*. The atmospheric  pressure  and \n"
+          "temperature  state  has  to  be  specified by  *rtp_pressure*,\n"
+          "*rtp_temperature*. The formula is accurate to 0.3 percent for wavelengths\n"
+          "between 0.205 and 1.05 micrometer.\n"),
+      AUTHORS("Jon Petersen"),
+      OUT("sca_coef"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "rtp_pressure",
+         "rtp_temperature",
+         "stokes_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("gas_scatteringCoefXsecConst"),
       DESCRIPTION(
           "Calculates the spectrum of scattering coefficient matrices.\n"

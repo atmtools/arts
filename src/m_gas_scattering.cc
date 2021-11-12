@@ -84,6 +84,45 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
+                                  const Vector& f_grid,
+                                  const Numeric& rtp_pressure,
+                                  const Numeric& rtp_temperature,
+                                  const Index& stokes_dim,
+                                  const Verbosity&) {
+  
+  Vector coefficients{3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
+
+  // Number density
+  Numeric N;
+  N = rtp_pressure / rtp_temperature / BOLTZMAN_CONST;
+
+  PropagationMatrix sca_coef_temp(f_grid.nelem(), stokes_dim);
+  sca_coef_temp.SetZero();
+
+  Matrix eye(stokes_dim, stokes_dim, 0.0);
+  for (Index i = 0; i < stokes_dim; i++){
+    eye(i,i) = 1;
+  }
+
+  for (Index f = 0; f < f_grid.nelem(); f++) {
+    Matrix Xsec = eye;
+    Numeric wavelen = Conversion::freq2wavelen(f_grid[f]) * 1e6; 
+    Numeric sigma;
+    Numeric sum = 0;
+    for (Index i = 0; i < 4; i++){
+      sum += coefficients[i] * pow(wavelen, -2.0 * static_cast<double>(i));
+    }
+    sigma = pow(wavelen, -4) * sum * 1e-32;
+    Xsec *= sigma;
+    sca_coef_temp.SetAtPosition(Xsec, f);
+  }
+
+  sca_coef_temp.Kjj() *= N;
+  sca_coef=sca_coef_temp;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
                                    const Vector& f_grid,
                                    const Vector& in_los,
