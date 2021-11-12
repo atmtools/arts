@@ -56,7 +56,7 @@ void abs_linesFlatten(ArrayOfAbsorptionLines& abs_lines,
     AbsorptionLines& band = abs_lines[i];
     if (band.NumLines()) {
       for (Index j=i+1; j<n; j++) {
-        if (band.Match(abs_lines[j])) {
+        if (band.Match(abs_lines[j]).first) {
           for (auto& line: abs_lines[j].AllLines()) {
             band.AppendSingleLine(line);
           }
@@ -403,7 +403,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
       for (auto& newband: more_abs_lines) {
         bool found = false;
         for (auto& band: abs_lines) {
-          if (band.Match(newband)) {
+          if (band.Match(newband).first) {
             for (Index k=0; k<newband.NumLines(); k++) {
               band.AppendSingleLine(newband.Line(k));
               found = true;
@@ -942,7 +942,7 @@ void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
     
     Index match = -1;
     for (Index ind=0; ind<x.nelem(); ind++) {
-      if (x[ind].Match(lines)) {
+      if (x[ind].Match(lines).first) {
         match = ind;
         break;
       }
@@ -1007,7 +1007,7 @@ void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfA
   for (auto& rlines: replacing_lines) {
     Index number_of_matching_bands = 0;
     for (auto& tlines: abs_lines) {
-      if (tlines.Match(rlines)) {
+      if (tlines.Match(rlines).first) {
         number_of_matching_bands++;
         for (auto& rline: rlines.AllLines()) {
           Index number_of_matching_single_lines = 0;
@@ -1043,7 +1043,7 @@ void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
     for (auto& alines: appending_lines) {
       Index number_of_matching_bands = 0;
       for (auto& tlines: abs_lines) {
-        if (tlines.Match(alines)) {
+        if (tlines.Match(alines).first) {
           number_of_matching_bands++;
           for (auto& aline: alines.AllLines()) {
             Index number_of_matching_single_lines = 0;
@@ -1106,7 +1106,7 @@ void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
     for (auto& tlines: abs_lines) {
       std::vector<Index> hits(0);
       
-      if (tlines.Match(dlines)) {
+      if (tlines.Match(dlines).first) {
         for (auto& dline: dlines.AllLines()) {
           for (Index i=0; i<tlines.NumLines(); i++) {
             if (tlines.AllLines()[i].SameQuantumNumbers(dline)) {
@@ -1241,6 +1241,127 @@ void abs_linesKeepBand(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifie
     const Absorption::QuantumIdentifierLineTarget lt(qid, band);
     while (lt not_eq Absorption::QuantumIdentifierLineTargetType::Band and band.NumLines()) {
       band.RemoveLine(0);
+    }
+  }
+}
+
+void CheckUnique(const ArrayOfAbsorptionLines& lines,
+                 const Verbosity&) {
+  const Index nb = lines.nelem();
+  for (Index i=0; i<nb; i++) {
+    for (Index j=i+1; j<nb; j++) {
+      ARTS_USER_ERROR_IF(
+        Absorption::QuantumIdentifierLineTarget(lines[i].QuantumIdentity(), lines[j]).found ==
+        Absorption::QuantumIdentifierLineTargetType::Band,
+        "Not unique, these bands match:\n", lines[i], "\nand\n", lines[j])
+    }
+  }
+}
+
+void abs_linesMergeBands(ArrayOfAbsorptionLines& abs_lines,
+                         const ArrayOfAbsorptionLines& merging_lines,
+                         const Verbosity&) {
+  for (auto& merger: merging_lines) {
+    struct {Index band;} pos{-1};
+    
+    for (Index i=0; i<abs_lines.nelem(); i++) {
+      auto& band = abs_lines[i];
+      
+      if (Absorption::QuantumIdentifierLineTarget(merger.QuantumIdentity(), band).found ==
+        Absorption::QuantumIdentifierLineTargetType::Band) {
+        ARTS_USER_ERROR_IF (pos.band not_eq -1, "Duplicate band matches for merging lines:\n",
+                            merger, "\nThese are for band indexes ", pos.band, " and ", i)
+        
+        pos.band = i;
+      }
+    }
+    
+    for (auto& line: merger.AllLines())
+      abs_lines[pos.band].AllLines().push_back(line);
+    abs_lines[pos.band].MakeLineShapeModelCommon();
+  }
+}
+
+void abs_linesReplaceBand(ArrayOfAbsorptionLines& abs_lines,
+                          const ArrayOfAbsorptionLines& replacing_bands,
+                          const Verbosity&) {
+  for (auto& replacement: replacing_bands) {
+    struct {Index band;} pos{-1};
+    
+    for (Index i=0; i<abs_lines.nelem(); i++) {
+      auto& band = abs_lines[i];
+      
+      if (Absorption::QuantumIdentifierLineTarget(replacement.QuantumIdentity(), band).found ==
+        Absorption::QuantumIdentifierLineTargetType::Band) {
+        ARTS_USER_ERROR_IF (pos.band not_eq -1, "Duplicate band matches for replacement line:\n",
+                            replacement, "\nThese are for band indexes ", pos.band, " and ", i)
+        
+        pos.band = i;
+      }
+    }
+    
+    ARTS_USER_ERROR_IF(pos.band == -1,
+      "There is no match for replacement band:\n", replacement,
+      "\nYou need to append the entire band")
+    abs_lines[pos.band] = replacement;
+  }
+}
+
+void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
+                           const ArrayOfAbsorptionLines& replacing_lines,
+                           const Verbosity&) {
+  const Index nb = abs_lines.nelem();  // Evaluate first so new bands are not counted
+  
+  for (auto& replacement: replacing_lines) {
+    const Index nl=replacement.NumLines();
+    
+    struct {Index band; ArrayOfIndex lines;} pos{-1, ArrayOfIndex(nl, -1)};
+    
+    for (Index i=0; i<nb; i++) {
+      auto& band = abs_lines[i];
+      
+      if (Absorption::QuantumIdentifierLineTarget(replacement.QuantumIdentity(), band).found ==
+        Absorption::QuantumIdentifierLineTargetType::Band) {
+        ARTS_USER_ERROR_IF (pos.band not_eq -1, "Duplicate band matches for replacement line:\n",
+                            replacement, "\nThese are for band indexes ", pos.band, " and ", i)
+        
+        pos.band = i;
+        
+        for (Index k=0; k<band.NumLines(); k++) {
+          auto& line_low = band.Line(k).LowerQuantumNumbers();
+          auto& line_upp = band.Line(k).UpperQuantumNumbers();
+          
+          for (Index j=0; j<nl; j++) {
+            auto& repl_low = replacement.Line(j).LowerQuantumNumbers();
+            auto& repl_upp = replacement.Line(j).UpperQuantumNumbers();
+            
+            // All local quantum numbers must match
+            if (std::equal(line_low.begin(), line_low.end(), repl_low.begin()) and std::equal(line_upp.begin(), line_upp.end(), repl_upp.begin())) {
+              // We cannot have multiple entries
+              ARTS_USER_ERROR_IF(pos.lines[j] not_eq -1 or std::any_of(pos.lines.begin(), pos.lines.end(), [k](auto& a){return a == k;}),
+                                "Found multiple matches of lines in:\n", replacement, "\n\nin mathcing band:\n", band)
+              
+              pos.lines[j] = k;
+            }
+          }
+        }
+      }
+    }
+    
+    ARTS_USER_ERROR_IF(pos.band == -1 or std::any_of(pos.lines.begin(), pos.lines.end(), [](auto& a){return a == -1;}),
+      "There is no match for replacement line:\n", replacement,
+      "\nYou need to append the entire band")
+    
+    // Add or change the line catalog
+    auto& band = abs_lines[pos.band];
+    if (const auto [match, nullable] = band.Match(replacement); nullable) {
+      for (Index j=0; j<nl; j++) band.AllLines()[pos.lines[j]] = replacement.AllLines()[j];
+      band.MakeLineShapeModelCommon();
+    } else {
+      // Sort to remove from behind
+      std::sort(pos.lines.begin(), pos.lines.end(), std::greater<int>());
+      for (auto& k: pos.lines) band.RemoveLine(k);
+      abs_lines.push_back(replacement);
     }
   }
 }
@@ -1404,7 +1525,7 @@ void abs_linesMakeManualMirroring(ArrayOfAbsorptionLines& abs_lines,
     ARTS_USER_ERROR_IF(
       std::find_if(abs_lines_copy.cbegin(), abs_lines_copy.cend(),
                    [&band](const AbsorptionLines& li){
-                     return band.Match(li);
+                     return band.Match(li).first;
                    }) not_eq abs_lines_copy.cend(),
       "Dual bands with same setup is not allowed for mirroring of band:\n",
       band, '\n')

@@ -610,7 +610,7 @@ public:
    * @param[in] sle Full external lines
    * @param[in] quantumidentity Expected global quantum id of the line
    */
-  [[nodiscard]] bool Match(const Lines& l) const noexcept;
+  [[nodiscard]] std::pair<bool, bool> Match(const Lines& l) const noexcept;
   
   /** Sort inner line list by frequency */
   void sort_by_frequency();
@@ -650,6 +650,9 @@ public:
   
   /** Lines */
   std::vector<SingleLine>& AllLines() noexcept {return mlines;}
+  
+  /** Make a common line shape if possible */
+  void MakeLineShapeModelCommon();
   
   /** Number of broadening species */
   [[nodiscard]] Index NumBroadeners() const noexcept {return Index(mbroadeningspecies.nelem());}

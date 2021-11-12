@@ -2309,6 +2309,33 @@ void Absorption::Lines::RemoveUnusedLocalQuantums()
   }
 }
 
+void Absorption::Lines::MakeLineShapeModelCommon() {
+  const Index n = NumLines();
+  const Index m = NumBroadeners();
+  if (not n) return;
+  
+  for (Index j=0; j<m; j++) {
+    for (Index i=0; i<LineShape::nVars; i++) {
+      
+      // Find a common type (same or none) or throw if there is none
+      LineShape::TemperatureModel t=LineShape::TemperatureModel::None;
+      for (auto& line : AllLines()) {
+        if (auto& data = line.LineShape()[i].Data()[j]; not LineShape::modelparameterEmpty(data)) {
+          if (t == LineShape::TemperatureModel::None) t = data.type;
+          ARTS_USER_ERROR_IF(t not_eq data.type, "Cannot make a common line shape model for the band as there are multiple non-empty types")
+        }
+      }
+      
+      // Set the common type
+      for (auto& line : AllLines()) {
+        if (auto& data = line.LineShape()[i].Data()[j]; data.type not_eq t) {
+          data = LineShape::modelparameterGetEmpty(t);
+        }
+      }
+    }
+  }
+}
+
 void Absorption::Lines::RemoveLocalQuantum(size_t x)
 {
   mlocalquanta.erase(mlocalquanta.begin() + x);
@@ -2746,41 +2773,43 @@ bool Lines::MatchWithExternal(const SingleLineExternal& sle, const QuantumIdenti
     return false;
   if(not std::equal(sle.species.cbegin(), sle.species.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
     return false;
-  if(NumLines() not_eq 0 and not sle.line.LineShape().Match(mlines[0].LineShape()))
+  if(NumLines() not_eq 0 and not sle.line.LineShape().Match(mlines[0].LineShape()).first)
     return false;
   return true;
 }
 
-bool Lines::Match(const Lines& l) const noexcept {
+std::pair<bool, bool> Lines::Match(const Lines& l) const noexcept {
   if(l.mselfbroadening not_eq mselfbroadening)
-    return false;
+    return {false, false};
   if(l.mbathbroadening not_eq mbathbroadening)
-    return false;
+    return {false, false};
   if(l.mcutoff not_eq mcutoff)
-    return false;
+    return {false, false};
   if(l.mmirroring not_eq mmirroring)
-    return false;
+    return {false, false};
   if(l.mpopulation not_eq mpopulation)
-    return false;
+    return {false, false};
   if(l.mnormalization not_eq mnormalization)
-    return false;
+    return {false, false};
   if(l.mlineshapetype not_eq mlineshapetype)
-    return false;
+    return {false, false};
   if(l.mT0 not_eq mT0)
-    return false;
+    return {false, false};
   if(l.mcutofffreq not_eq mcutofffreq)
-    return false;
+    return {false, false};
   if(l.mlinemixinglimit not_eq mlinemixinglimit)
-    return false;
+    return {false, false};
   if(l.mquantumidentity not_eq mquantumidentity)
-    return false;
+    return {false, false};
   if(not std::equal(l.mbroadeningspecies.cbegin(), l.mbroadeningspecies.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
-    return false;
+    return {false, false};
   if(not std::equal(l.mlocalquanta.cbegin(), l.mlocalquanta.cend(), mlocalquanta.cbegin(), mlocalquanta.cend()))
-    return false;
-  if(NumLines() not_eq 0 and l.NumLines() not_eq 0 and not l.mlines[0].LineShape().Match(mlines[0].LineShape()))
-    return false;
-  return true;
+    return {false, false};
+  if(NumLines() not_eq 0 and l.NumLines() not_eq 0) {
+    if (auto matchpair = l.mlines[0].LineShape().Match(mlines[0].LineShape()); not matchpair.first) return matchpair;
+  }
+  
+  return {true, true};
 }
 
 void Lines::sort_by_frequency() {

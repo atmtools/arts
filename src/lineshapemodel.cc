@@ -950,8 +950,13 @@ bofstream & SingleSpeciesModel::write(bofstream& bof) const {
   return bof;
 }
 
-bool SingleSpeciesModel::MatchTypes(const SingleSpeciesModel& other) const noexcept {
-  return std::equal (X.cbegin(), X.cend(), other.X.cbegin(), other.X.cend(), [](const auto& a, const auto& b){return a.type == b.type;});
+std::pair<bool, bool> SingleSpeciesModel::MatchTypes(const SingleSpeciesModel& other) const noexcept {
+  bool match=true, nullable=true;
+  for (Index i=0; i<nVars; i++) {
+    match = match and other.X[i].type == X[i].type;
+    nullable = nullable and (modelparameterEmpty(other.X[i]) or modelparameterEmpty(X[i]) or other.X[i].type == X[i].type);
+  }
+  return {match, nullable};
 }
 
 std::ostream& operator<<(std::ostream& os, const SingleSpeciesModel& ssm) {
@@ -1316,8 +1321,18 @@ void Model::SetLineMixingModel(SingleSpeciesModel x) {
   }
 }
 
-bool Model::Match(const Model& other) const noexcept {
-  return std::equal (mdata.cbegin(), mdata.cend(), other.mdata.cbegin(), other.mdata.cend(), [](auto& a, auto& b) {return a.MatchTypes(b);});
+std::pair<bool, bool> Model::Match(const Model& other) const noexcept {
+  const Index n = nelem();
+  if (other.nelem() not_eq n) return {false, false};
+  
+  bool match = true, nullable = true;
+  for (Index i=0; i<n; i++) {
+    const auto x = mdata[i].MatchTypes(other[i]);
+    match = match and x.first;
+    nullable = nullable and x.second;
+  }
+  
+  return {match, nullable};
 }
 
 bifstream& Model::read(bifstream& bif) {
