@@ -11,7 +11,7 @@
 #
 ############
 #
-# Authors: Jana Mendrok
+# Authors: Jana Mendrok, Manfred Brath
 #
 
 
@@ -27,6 +27,13 @@ AgendaSet( iy_main_agenda__Emission ){
   ppathCalc
   iyEmissionStandard
   VectorSet(geo_pos, [])
+}
+
+###
+AgendaCreate( iy_main_agenda__Clearsky )
+AgendaSet( iy_main_agenda__Clearsky ){
+  ppathCalc
+  iyClearsky
 }
 
 ###
@@ -120,6 +127,11 @@ AgendaSet( iy_space_agenda__CosmicBackground ){
   MatrixCBR( iy, stokes_dim, f_grid )
 }
 
+### cosmic background and star
+AgendaCreate( iy_space_agenda__CosmicMicrowaveAndStarBackground )
+AgendaSet( iy_space_agenda__CosmicMicrowaveAndStarBackground){
+  CosmicMicrowaveAndStarBackground
+}
 
 
 ##################################
