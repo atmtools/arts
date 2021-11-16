@@ -26,6 +26,7 @@ USA. */
 
 #include "rational.h"
 
+#include "debug.h"
 #include "mystring.h"
 #include <ostream>
 #include <stdexcept>
@@ -90,10 +91,19 @@ Rational::Rational(const String& s)
     if (len > dot_pos) {
       *this = numeric2rational(std::stod(s), len - dot_pos - 1);
     } else if (len > slash_pos) {
-      *this = Rational(std::stoi(s.substr(0, slash_pos)),
-                       std::stoi(s.substr(slash_pos + 1, len)));
+      const String a{s.substr(0, slash_pos)};
+      const String b{s.substr(slash_pos + 1, len)};
+      try {
+        *this = Rational(std::stoi(a), std::stoi(b));
+      } catch (...) {
+        ARTS_USER_ERROR("Cannot interpret either '", a, "' or '", b, "' as an integer (or both)");
+      }
     } else {
-      *this = Rational(std::stoi(s));
+      try {
+        *this = Rational(std::stoi(s));
+      } catch (...) {
+        ARTS_USER_ERROR("Cannot interpret '", s, "' as an integer");
+      }
     }
   } else {
     *this = RATIONAL_UNDEFINED;

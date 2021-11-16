@@ -19,5 +19,6 @@ def read(ws, filename):
       normalization_option="SFS",
       hitran_type="Online")
     ws.abs_linesRemoveUnusedLocalQuantumNumbers()
+    ws.abs_linesSetEmptyBroadeningParametersToEmpty()
 
     return ws.abs_lines

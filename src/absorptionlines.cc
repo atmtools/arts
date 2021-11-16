@@ -626,6 +626,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2012Stream(istream& is)
   data.bathbroadening = true;
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
+  data.species[1] = Species::Species::Bath;
   
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -673,6 +674,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2012Stream(istream& is)
   
   // Set line data
   data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
+  data.species[0] = data.quantumidentity.Species();
   
   // Position.
   {
@@ -897,6 +899,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   data.bathbroadening = true;
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
+  data.species[1] = Species::Species::Bath;
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -944,6 +947,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   
   // Set line data
   data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+  data.species[0] = data.quantumidentity.Species();
 
   // Position.
   {
@@ -1190,6 +1194,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   data.bathbroadening = true;
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
+  data.species[1] = Species::Species::Bath;
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -1237,6 +1242,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   
   // Set line data
   data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
+  data.species[0] = data.quantumidentity.Species();
 
   // Position.
   {
@@ -1464,6 +1470,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   data.bathbroadening = true;
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
+  data.species[1] = Species::Species::Bath;
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -1511,6 +1518,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   
   // Set line data
   data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+  data.species[0] = data.quantumidentity.Species();
 
   // Position.
   {
@@ -2320,15 +2328,15 @@ void Absorption::Lines::MakeLineShapeModelCommon() {
       // Find a common type (same or none) or throw if there is none
       LineShape::TemperatureModel t=LineShape::TemperatureModel::None;
       for (auto& line : AllLines()) {
-        if (auto& data = line.LineShape()[i].Data()[j]; not LineShape::modelparameterEmpty(data)) {
+        if (auto& data = line.LineShape()[j].Data()[i]; not LineShape::modelparameterEmpty(data)) {
           if (t == LineShape::TemperatureModel::None) t = data.type;
-          ARTS_USER_ERROR_IF(t not_eq data.type, "Cannot make a common line shape model for the band as there are multiple non-empty types")
+          ARTS_USER_ERROR_IF(t not_eq data.type, "Cannot make a common line shape model for the band as there are multiple non-empty types: ", data.type, " and ", t)
         }
       }
       
       // Set the common type
       for (auto& line : AllLines()) {
-        if (auto& data = line.LineShape()[i].Data()[j]; data.type not_eq t) {
+        if (auto& data = line.LineShape()[j].Data()[i]; data.type not_eq t) {
           data = LineShape::modelparameterGetEmpty(t);
         }
       }
