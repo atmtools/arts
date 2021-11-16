@@ -578,10 +578,10 @@ constexpr std::array Isotopologues {
 
   /** GeH4 species **/
   deal_with_spec(Germane)
-  IsotopeRecord(fromShortName("GeH4"), "411", 77.952479, 1),
-  IsotopeRecord(fromShortName("GeH4"), "211", 75.953380, 1),
   IsotopeRecord(fromShortName("GeH4"), "011", 73.955550, 1),
+  IsotopeRecord(fromShortName("GeH4"), "211", 75.953380, 1),
   IsotopeRecord(fromShortName("GeH4"), "311", 76.954764, 10),
+  IsotopeRecord(fromShortName("GeH4"), "411", 77.952479, 1),
   IsotopeRecord(fromShortName("GeH4"), "611", 79.952703, 1),
   /** GeH4 species **/
 

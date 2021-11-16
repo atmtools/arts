@@ -1,7 +1,5 @@
 #include "isotopologues.h"
 
-#ifndef NDEBUG
-
 namespace CompileTimeTests {
 //! Don't call this manually, it only exists to catch a developer error
 constexpr bool testIsotopologuesAllValid() noexcept {
@@ -13,7 +11,6 @@ constexpr bool testIsotopologuesAllValid() noexcept {
 static_assert(testIsotopologuesAllValid(), "Error!\n\n"
               "Cannot have invalid species in the isotopologues list.\n"
               "One of your newly added or modified species cannot be understood\n");
-}
 
 //! Don't call this manually, it only exists to catch a developer error
 constexpr bool testShortNames() noexcept {
@@ -82,5 +79,4 @@ static_assert(testIsotopologuesIncreasing(), "Error!\n\n"
 static_assert(Species::isotopologue_ratiosInitFromBuiltin().all_isotopes_have_a_value(),
               "There's a missing value in the default isotopologue_ratiosInitFromBuiltin()"
 );
-
-#endif
+} // namespace CompileTimeTests
