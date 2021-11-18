@@ -17,9 +17,11 @@
 
 /**
  * @file   disort.h
- * @author Claudia Emde <claudia.emde@dlr.de>
- * @date   Tue Feb  7 11:48:17 2006
-  
+ * @author Claudia Emde <claudia.emde@dlr.de>,
+ *         Manfred Brath <manfred.brath@uni-hamburg.de>
+ * @date   Tue Feb  7 10:08:28 2006,
+ *         October 27, 2021
+ *
  * @brief  Functions for disort interface.
  * 
  */
