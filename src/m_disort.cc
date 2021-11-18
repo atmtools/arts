@@ -408,7 +408,6 @@ void DisortCalcStar(Workspace& ws,
     star_on = 0;
 
     //TODO: Add warning message that star is switched off because it is below horizon
-
   }
 
   //FIXME: Should we add a warning for low sun position near the horizon?

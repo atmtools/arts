@@ -1132,7 +1132,6 @@ void run_cdisort_star(Workspace& ws,
                 pnd_profiles,
                 cloudbox_limits);
 
-
   disort_state ds;
   disort_output out;
 
@@ -1157,8 +1156,8 @@ void run_cdisort_star(Workspace& ws,
     nphi = aa_grid.nelem();
     umu0 = Conversion::cosd(star_rte_los[0]);
     phi0 = star_rte_los[1];
-    if (phi0<0){
-      phi0=phi0+360.;
+    if (phi0 < 0) {
+      phi0 = phi0 + 360.;
     }
   }
 
@@ -1199,8 +1198,6 @@ void run_cdisort_star(Workspace& ws,
   /* Allocate memory */
   c_disort_state_alloc(&ds);
   c_disort_out_alloc(&ds, &out);
-
-
 
   // Properties of solar beam, set to zero as they are not needed
 
@@ -1327,7 +1324,8 @@ void run_cdisort_star(Workspace& ws,
       for (Index j = 0; j < ds.numu; j++) {
         for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
           cloudbox_field(f_index, k + ncboxremoved, 0, 0, j, i, 0) =
-              out.uu[j + ( (ds.nlyr - k - cboxlims[0]) + i * (ds.nlyr+1) )* ds.numu] /
+              out.uu[j + ((ds.nlyr - k - cboxlims[0]) + i * (ds.nlyr + 1)) *
+                             ds.numu] /
               (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
         }
         // To avoid potential numerical problems at interpolation of the field,
