@@ -56,6 +56,31 @@ extern const Numeric PLANCK_CONST;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric COSMIC_BG_TEMP;
 
+void add_normed_phase_functions(Tensor3View& pfct1,
+                                const MatrixView& sca1,
+                                const Tensor3View& pfct2,
+                                const MatrixView& sca2) {
+  const Index np1 = pfct1.npages();
+  const Index nr1 = pfct1.nrows();
+  const Index nc1 = pfct1.ncols();
+
+  ARTS_ASSERT(pfct2.npages() == np1);
+
+  ARTS_ASSERT(pfct2.nrows() == nr1);
+
+  ARTS_ASSERT(pfct2.ncols() == nc1);
+
+  for (Index i = 0; i < np1; i++) {        // frequncy loop
+    for (Index j = 0; j < nr1 - 1; j++) {  // layer loop
+      for (Index k = 0; k < nc1; k++)      // polynomial loop
+
+        pfct1(i, j, k) =
+            (sca1(i, j) * pfct1(i, j, k) + sca2(i, j) * pfct2(i, j, k)) /
+            (sca1(i, j) + sca2(i, j));
+    }
+  }
+}
+
 void check_disort_input(  // Input
     const Index& cloudbox_on,
     const Index& atmfields_checked,
@@ -285,6 +310,70 @@ void get_gasoptprop(Workspace& ws,
                                    vmr_profiles(joker, ip),
                                    propmat_clearsky_agenda);
     ext_bulk_gas(joker, ip) += propmat_clearsky_local.Kjj();
+  }
+}
+
+void get_gas_scattering_properties(Workspace& ws,
+                                   MatrixView& sca_coeff_gas,
+                                   MatrixView& sca_coeff_gas_level,
+                                   Tensor3View& pfct_gas,
+                                   const ConstVectorView& f_grid,
+                                   const VectorView& p,
+                                   const VectorView& t,
+                                   const MatrixView& vmr,
+                                   const Agenda& gas_scattering_agenda) {
+  const Index Np = p.nelem(); // Number of pressure levels
+  const Index Nl = pfct_gas.npages();  // Number of legendre polynomials
+  const Index Nf = f_grid.nelem(); // Number of frequencies
+
+  PropagationMatrix K_sca_gas_temp;
+  TransmissionMatrix sca_mat_dummy;
+  Vector dummy;
+  Matrix sca_fct_temp;
+  Tensor3 pmom_gas_level(f_grid.nelem(), Np, Nl, 0.);
+  Index N_polys;
+
+  // calculate gas scattering properties on level
+  for (Index ip = 0; ip < Np; ip++) {
+    gas_scattering_agendaExecute(ws,
+                                 K_sca_gas_temp,
+                                 sca_mat_dummy,
+                                 sca_fct_temp,
+                                 f_grid,
+                                 p[ip],
+                                 t[ip],
+                                 vmr(joker, ip),
+                                 dummy,
+                                 dummy,
+                                 1,
+                                 gas_scattering_agenda);
+
+    // gas scattering extinction
+    sca_coeff_gas_level(joker, ip) = K_sca_gas_temp.Kjj(0, 0);
+
+    // gas scattering (phase) function
+    N_polys = min(Nl, sca_fct_temp.ncols());
+    for (Index k = 0; k < N_polys; k++) {
+      pmom_gas_level(joker, ip, k) = sca_fct_temp(joker, k);
+    }
+  }
+
+  // layer averages
+  for (Index ip = 0; ip < Np - 1; ip++) {
+    for (Index f_index = 0; f_index < Nf; f_index++) {
+      // extinction
+      sca_coeff_gas(f_index, Np - 2 - ip) =
+          0.5 *
+          (sca_coeff_gas_level(f_index, ip) +
+                 sca_coeff_gas_level(f_index, ip + 1));
+
+      // phase function
+      for (Index l_index = 0; l_index < Nl; l_index++) {
+        pfct_gas(f_index, Np - 2 - ip, l_index) =
+            0.5 * (pmom_gas_level(f_index, ip, l_index) +
+                   pmom_gas_level(f_index, ip + 1, l_index));
+      }
+    }
   }
 }
 
@@ -591,6 +680,31 @@ void get_pmom(Tensor3View pmom,
           }
         }
       }
+}
+
+void get_scat_bulk_layer(MatrixView& sca_bulk_layer,
+                         const MatrixView& ext_bulk,
+                         const MatrixView& abs_bulk) {
+  const Index nf = ext_bulk.nrows();
+  const Index Np = ext_bulk.ncols();
+
+  ARTS_ASSERT(sca_bulk_layer.nrows() == nf);
+  ARTS_ASSERT(sca_bulk_layer.ncols() == Np - 1);
+  ARTS_ASSERT(abs_bulk.nrows() == nf);
+  ARTS_ASSERT(abs_bulk.ncols() == Np);
+
+  // Initialization
+  sca_bulk_layer = 0.;
+
+  for (Index ip = 0; ip < Np - 1; ip++)
+    // Do layer averaging and derive single scattering albedo & optical depth
+    for (Index f_index = 0; f_index < nf; f_index++) {
+      Numeric sca =
+          0.5 * (ext_bulk(f_index, ip) - abs_bulk(f_index, ip) +
+                 ext_bulk(f_index, ip + 1) - abs_bulk(f_index, ip + 1));
+
+      sca_bulk_layer(f_index, Np - 2 - ip) = sca;
+    }
 }
 
 // Use a thread_local variable to communicate the Verbosity to the
@@ -992,7 +1106,6 @@ void run_cdisort_star(Workspace& ws,
                       ConstVectorView aa_grid,
                       ConstVectorView star_rte_los,
                       const Index& gas_scattering_do,
-                      const Index& gas_scattering_output_type,
                       const Index& star_do,
                       const Index& nstreams,
                       const Index& Npfct,
@@ -1120,66 +1233,45 @@ void run_cdisort_star(Workspace& ws,
   Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
   get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
 
+  // Legendre polynomials of phase function
+  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
+  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
+
+  if (gas_scattering_do) {
+    // gas scattering
+
+    // layer averaged particle scattering coefficient
+    Matrix sca_bulk_par_layer(nf_ssd, ds.nlyr);
+    get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
+
+    // call gas_scattering_properties
+    Matrix sca_coeff_gas_layer(nf_ssd, ds.nlyr, 0.);
+    Matrix sca_coeff_gas_level(nf_ssd, ds.nlyr + 1, 0.);
+    Tensor3 pmom_gas(nf_ssd, ds.nlyr, Nlegendre, 0.);
+
+    get_gas_scattering_properties(ws,
+                                  sca_coeff_gas_layer,
+                                  sca_coeff_gas_level,
+                                  pmom_gas,
+                                  f_grid,
+                                  p,
+                                  t,
+                                  vmr,
+                                  gas_scattering_agenda);
+
+    // call add_norm_phase_functions
+    add_normed_phase_functions(
+        pmom, sca_bulk_par_layer, pmom_gas, sca_coeff_gas_layer);
+
+    // add gas_scat_ext to ext_bulk_par
+    ext_bulk_par += sca_coeff_gas_level;
+  }
 
   // Optical depth of layers
   Matrix dtauc(nf, ds.nlyr);
   // Single scattering albedo of layers
   Matrix ssalb(nf, ds.nlyr);
   get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
-
-  // Legendre polynomials of phase function
-  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
-  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
-
-
-  //DEBUG+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  std::cout << "Tensor3 Legendre polynomials \n";
-  std::cout << pmom <<"\n";
-  std::cout << "\n";
-  std::cout << "delta Tau \n";
-  std::cout << dtauc << "\n";
-  std::cout << "\n";
-  std::cout << "single scattering albedo \n";
-  std::cout << ssalb;
-
-
-  //DEBUG end+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  //TODO: Add gas scattering
-
-  PropagationMatrix K_sca_gas;
-  TransmissionMatrix sca_mat_dummy;
-    Vector dummy;
-
-  if (gas_scattering_do){
-
-    for (Index i = 0; i <= ds.nlyr; i++) {
-
-      Matrix sca_fct_gas;
-
-      gas_scattering_agendaExecute(ws,
-                                   K_sca_gas,
-                                   sca_mat_dummy,
-                                   sca_fct_gas,
-                                   f_grid,
-                                   p[ds.nlyr - i],
-                                   t[ds.nlyr - i],
-                                   vmr(joker, ds.nlyr - i),
-                                   dummy,
-                                   dummy,
-                                   gas_scattering_output_type,
-                                   gas_scattering_agenda);
-
-
-
-
-    }
-
-    //FIXME: add gas scattering coefficient to ext_bulk_gas
-
-  }
-
-
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck

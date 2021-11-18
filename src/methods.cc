@@ -5959,7 +5959,6 @@ Possible models:
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
-         "gas_scattering_output_type",
          "star_do"),
       GIN("nstreams", "Npfct", "quiet"),
       GIN_TYPE("Index", "Index", "Index"),

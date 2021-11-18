@@ -34,6 +34,20 @@
 #include "star.h"
 
 
+/** add_normed_phase_functions
+ *
+ * Adds two normalized phase functions, which are represented as Legendre series.
+ *
+ * @param[in, out]   pftc1   Phase function 1 as Legendre series (frequency, layer, plolynomial).
+ * @param[in]   sca1    Scattering coefficient phase function 1 (frequency, layer).
+ * @param[in]   pftc2   Phase function 2 as Legendre series (frequency, layer, plolynomial).
+ * @param[in]   sca2    Scattering coefficient phase function 2 (frequency, layer).
+ */
+void add_normed_phase_functions(Tensor3View& pftc1,
+                                const MatrixView& sca1,
+                                const Tensor3View& pftc2,
+                                const MatrixView& sca2);
+
 /** check_disort_input. *** FIXMEDOC *** in disort.cc, line 197
  *
  * Checks that input of DisortCalc* is sane.
@@ -204,8 +218,6 @@ void run_cdisort(Workspace& ws,
  * @param[in]     aa_grid azimuth angle grid
  * @param[in]     star_rte_los local position of the sun top of cloudbox
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
- * @param[in]     gas_scattering_output_type Flag to control the output of the
-                  *gas_scattering_agenda*.
  * @param[in]     star_do Flag to activate the star(s).
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
@@ -238,7 +250,6 @@ void run_cdisort_star(Workspace& ws,
                  ConstVectorView aa_grid,
                  ConstVectorView star_rte_los,
                  const Index& gas_scattering_do,
-                 const Index& gas_scattering_output_type,
                  const Index& star_do,
                  const Index& nstreams,
                  const Index& Npfct,
@@ -267,6 +278,34 @@ void get_gasoptprop(Workspace& ws,
                     ConstMatrixView vmr_profiles,
                     ConstVectorView p_grid,
                     ConstVectorView f_grid);
+
+/** get_gas_scattering_properties
+ *
+ * Calculates the gas scattering coefficient for level and for layer averaged
+ * and the layer averaged phase function as Legendre series.
+ *
+ * @param[in,out]   ws                      Current workspace.
+ * @param[out]      sca_coeff_gas           Gas scattering coefficient (all layers,freqs).
+ * @param[out]      sca_coeff_gas_level     Gas scattering coefficient (all levels,freqs).
+ * @param[out]      pfct_gas                Legendre moments for all layers.
+ * @param[in]       f_grid                  Frequency grid.
+ * @param[in]       p                       Pressure profile.
+ * @param[in]       t                       Temperature.
+ * @param[in]       vmr                     Volume mixing ratio.
+ * @param[in]       gas_scattering_agenda   Gas scattering agenda.
+ *
+ * @author     Manfred Brath
+ * @date       2021-11-17
+ */
+void get_gas_scattering_properties(Workspace& ws,
+                                   MatrixView& sca_coeff_gas,
+                                   MatrixView& sca_coeff_gas_level,
+                                   Tensor3View& pfct_gas,
+                                   const ConstVectorView& f_grid,
+                                   const VectorView& p,
+                                   const VectorView& t,
+                                   const MatrixView& vmr,
+                                   const Agenda& gas_scattering_agenda);
 
 /** get_paroptprop.
  *
@@ -406,6 +445,21 @@ void get_pmom(Tensor3View pmom,
               ConstTensor3View pfct_bulk_par,
               ConstVectorView pfct_angs,
               const Index& Nlegendre);
+
+/** get_scat_bulk_layer
+ *
+ * Calculates layer averaged scattering coefficient
+ *
+ * @param[out]  sca_bulk_layer  Bulk scattering coefficient (all levels & freqs)
+ * @param[in]   ext_bulk        Bulk extinction coefficient (all levels & freqs)
+ * @param[in]   abs_bulk        Bulk absorption coefficient (all levels & freqs)
+ *
+ * @author     Manfred Brath
+ * @date       2021-11-17
+ */
+void get_scat_bulk_layer(MatrixView& sca_bulk_layer,
+                         const MatrixView& ext_bulk,
+                         const MatrixView& abs_bulk);
 
 /** reduced_1datm
  *
