@@ -146,14 +146,6 @@
    131 Hartwell Avenue<br>
    Lexington, MA 02421, USA
    </li>
-   <li><b>H2O-H2O (H2O-SelfContCKDMT350)</b>:<br>
-         CKD_MTv3.50 H2O self continuum from the FORTRAN77 code written by<br>
-         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and
-         Environmental Research Inc. (AER),</a><br>
-   Radiation and Climate Group<br>
-   131 Hartwell Avenue<br>
-   Lexington, MA 02421, USA
-   </li>
    <li><b>H2O-air (H2O-ForeignContStandardType)</b>: <br>
          P. W. Rosenkranz,<br>
          Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and <br>
@@ -194,14 +186,6 @@
    </li>
    <li><b>H2O-air (H2O-foreignContCKDMT320)</b>:<br>
          CKD_MTv3.20 H2O foreign continuum from the FORTRAN77 code written by<br>
-         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and
-         Environmental Research Inc. (AER),</a><br>
-   Radiation and Climate Group<br>
-   131 Hartwell Avenue<br>
-   Lexington, MA 02421, USA
-   </li>
-   <li><b>H2O-air (H2O-foreignContCKDMT350)</b>:<br>
-         CKD_MTv3.50 H2O foreign continuum from the FORTRAN77 code written by<br>
          <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and
          Environmental Research Inc. (AER),</a><br>
    Radiation and Climate Group<br>
@@ -6501,8 +6485,8 @@ void PWR98H2OAbsModel(MatrixView pxsec,
     Numeric pvap = Pa_to_hPa * abs_p[i] * vmr[i];
     // dry air partial pressure [hPa]
     Numeric pda = (Pa_to_hPa * abs_p[i]) - pvap;
-    // Rosenkranz number density  (Rosenkranz H2O mass density in [g/m�])
-    // [g/m�]    =  [g*K / Pa*m�]  *  [Pa/K]
+    // Rosenkranz number density  (Rosenkranz H2O mass density in [g/m³])
+    // [g/m³]    =  [g*K / Pa*m³]  *  [Pa/K]
     // rho       =   (M_H2O / R)   *  (P_H2O / T)
     // rho       =      2.1667     *  abs_p * vmr / abs_t
     // den       = 3.335e16 * rho
@@ -6682,7 +6666,7 @@ void CP98H2OAbsModel(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of the
                             H2O-H2O continuum [1/m]
-   \param    Cin            constant absorption strength     [1/m / (Hz*Pa)�]
+   \param    Cin            constant absorption strength     [1/m / (Hz*Pa)²]
    \param    xin            temperature exponent of (300/T)  [1]
    \param    model          allows user defined input parameter set
                             (C and x)<br> or choice of
@@ -6715,16 +6699,16 @@ void Standard_H2O_self_continuum(MatrixView pxsec,
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):
-  const Numeric Cs_PWR = 1.796e-33;  //  [1/m / (Hz�*Pa�)]
+  const Numeric Cs_PWR = 1.796e-33;  //  [1/m / (Hz²*Pa²)]
   const Numeric xs_PWR = 4.5;        //  [1]
   // standard values for the Cruz-Pol model (Radio Science, 33(5), 1319, 1998):
-  const Numeric Cs_CP = 1.851e-33;  //  [1/m / (Hz�*Pa�)]
+  const Numeric Cs_CP = 1.851e-33;  //  [1/m / (Hz²*Pa²)]
   const Numeric xs_CP = 7.5;        //  [1]
   // standard values for the MPM89 model (Int. J. Inf. and Millim. Waves, 10(6), 1989, 631):
-  const Numeric Cs_MPM89 = 1.500e-33;  //  [1/m / (Hz�*Pa�)]
+  const Numeric Cs_MPM89 = 1.500e-33;  //  [1/m / (Hz²*Pa²)]
   const Numeric xs_MPM89 = 7.5;        //  [1]
   // standard values for the MPM87 model (Radio Science, 20(5), 1985, 1069):
-  const Numeric Cs_MPM87 = 1.500e-33;  //  [1/m / (Hz�*Pa�)]
+  const Numeric Cs_MPM87 = 1.500e-33;  //  [1/m / (Hz²*Pa²)]
   const Numeric xs_MPM87 = 7.5;        //  [1]
   // ---------------------------------------------------------------------------------------
 
@@ -6790,7 +6774,7 @@ void Standard_H2O_self_continuum(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of the
                             H2O-dry air continuum [1/m]
-   \param    Cin            constant absorption strength [1/m / (Hz*Pa)�]
+   \param    Cin            constant absorption strength [1/m / (Hz*Pa)²]
    \param    xin            temperature exponent         [1]
    \param    model          allows user defined input parameter set
                             (C and x)<br> or choice of
@@ -6824,16 +6808,16 @@ void Standard_H2O_foreign_continuum(MatrixView pxsec,
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):
-  const Numeric Cf_PWR = 5.43e-35;  //  [1/m / (Hz�*Pa�)]
+  const Numeric Cf_PWR = 5.43e-35;  //  [1/m / (Hz²*Pa²)]
   const Numeric xf_PWR = 0.0;       //  [1]
   // standard values for the Cruz-Pol model (Radio Science, 33(5), 1319, 1998):
-  const Numeric Cf_CP = 5.85e-35;  //  [1/m / (Hz�*Pa�)]
+  const Numeric Cf_CP = 5.85e-35;  //  [1/m / (Hz²*Pa²)]
   const Numeric xf_CP = 0.0;       //  [1]
   // standard values for the MPM89 model (Int. J. Inf. and Millim. Waves, 10(6), 1989, 631):
-  const Numeric Cf_MPM89 = 4.74e-35;  //  [1/m / (Hz�*Pa�)]
+  const Numeric Cf_MPM89 = 4.74e-35;  //  [1/m / (Hz²*Pa²)]
   const Numeric xf_MPM89 = 0.0;       //  [1]
   // standard values for the MPM87 model (Radio Science, 20(5), 1985, 1069):
-  const Numeric Cf_MPM87 = 4.74e-35;  //  [1/m / (Hz�*Pa�)]
+  const Numeric Cf_MPM87 = 4.74e-35;  //  [1/m / (Hz²*Pa²)]
   const Numeric xf_MPM87 = 0.0;       //  [1]
   // ---------------------------------------------------------------------------------------
 
@@ -6902,7 +6886,7 @@ void Standard_H2O_foreign_continuum(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             the H2O-dry air continuum [1/m]
-   \param    Cin            constant absorption strength [1/m / (Hz*Pa)�]
+   \param    Cin            constant absorption strength [1/m / (Hz*Pa)²]
    \param    xin            temperature exponent         [1]
    \param    model          allows user defined input parameter set
                             (C and x)<br> or choice of
@@ -6938,7 +6922,7 @@ void MaTipping_H2O_foreign_continuum(MatrixView pxsec,
   // the Cf value is originally given in dB/km/kPa^2/GHz^2.0389. the conversion factor is
   // then 1.0283E-28 to get arts units. Additionally the Cf value is divided by 1.08 to
   // get the Cf for air.
-  const Numeric Cf_MaTipping = 1.8590e-35;  //  [1/m / (Hz�*Pa�)]
+  const Numeric Cf_MaTipping = 1.8590e-35;  //  [1/m / (Hz²*Pa²)]
   const Numeric xf_MaTipping = 4.6019;      //  [1]
   // ---------------------------------------------------------------------------------------
 
@@ -9451,7 +9435,6 @@ void CKD_mt_320_foreign_h2o(MatrixView pxsec,
   }
 }
 
-
 // ===========END WATER VAPOUR MODELS==============================================
 
 // =================================================================================
@@ -11876,7 +11859,7 @@ void CKD24_H20(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             N2-continuum according to Rosenkranz, 1993 [1/m]
-   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)�]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    model          allows user defined input parameter set
                             (Cin and xTin)<br> or choice of
                             pre-defined parameters of specific models (see note below).
@@ -11956,7 +11939,7 @@ void Pardo_ATM_H2O_ForeignContinuum(MatrixView pxsec,
       // specific N2 but mainly caused by N2. Therefore the N2 vmr must be
       // canceled out here which is later in abs_coefCalc multiplied
       // (calculation: abs = vmr * pxsec):
-      pxsec(s, i) += C *  // strength [1/(m*Hz�Pa�)]
+      pxsec(s, i) += C *  // strength [1/(m*Hz²Pa²)]
                      pow((f_grid[s] / (Numeric)2.25e11),
                          (Numeric)2.) *  // quadratic f dependence [1]
                      pow(((Numeric)300.0 / abs_t[i]),
@@ -12955,7 +12938,7 @@ void MPM92O2AbsModel(MatrixView pxsec,
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //         0           1            2       3        4      5      6
   //         f0          a1           a2      a3       a4     a5     a6
-  //        [GHz]     [kHz/hPa]      [1]   [MHz/hPa]  [1]    [10�/hPa]
+  //        [GHz]     [kHz/hPa]      [1]   [MHz/hPa]  [1]    [10³/hPa]
   const Numeric mpm92[44][7] = {
       {50.474238, 0.094, 9.694, 0.850, 0.0, 0.210, 0.685},     // 0
       {50.987749, 0.246, 8.694, 0.870, 0.0, 0.190, 0.680},     // 1
@@ -13226,7 +13209,7 @@ void TRE05O2AbsModel(MatrixView pxsec,
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //         0             1           2         3         4      5        6
   //         f0           a1           a2       a3        a4      a5       a6
-  //        [GHz]      [kHz/hPa]      [1]    [MHz/hPa]    [1]       [10�/hPa]
+  //        [GHz]      [kHz/hPa]      [1]    [MHz/hPa]    [1]       [10³/hPa]
   const Numeric tre05[44][7] = {
       {50.474214, 0.975 / 10, 9.651, 0.669, 0.0, 0.2566, 0.685},     // 37-
       {50.987745, 2.529 / 10, 8.653, 0.717, 0.0, 0.2246, 0.680},     // 35-
@@ -13492,7 +13475,7 @@ void MPM93O2AbsModel(MatrixView pxsec,
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //         0             1           2         3         4      5        6
   //         f0           a1           a2       a3        a4      a5       a6
-  //        [GHz]      [kHz/hPa]      [1]    [MHz/hPa]    [1]       [10�/hPa]
+  //        [GHz]      [kHz/hPa]      [1]    [MHz/hPa]    [1]       [10³/hPa]
   const Numeric mpm93[44][7] = {
       {50.474238, 0.094, 9.694, 0.890, 0.0, 0.240, 0.790},     // 0
       {50.987749, 0.246, 8.694, 0.910, 0.0, 0.220, 0.780},     // 1
@@ -13801,7 +13784,7 @@ void PWR93O2AbsModel(MatrixView pxsec,
       52.5424,  66.8368,  52.0214,  67.3696,  51.5034, 67.9009, 368.4984,
       424.7632, 487.2494, 715.3931, 773.8397, 834.1458};
 
-  // line strength at T=300K in [cm� * Hz]
+  // line strength at T=300K in [cm² * Hz]
   const Numeric S93[n_lines] = {
       0.2936E-14, 0.8079E-15, 0.2480E-14, 0.2228E-14, 0.3351E-14, 0.3292E-14,
       0.3721E-14, 0.3891E-14, 0.3640E-14, 0.4005E-14, 0.3227E-14, 0.3715E-14,
@@ -14219,7 +14202,7 @@ void MPM93_O2_continuum(MatrixView pxsec,
 
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             O2-continuum according to Rosenkranz 1993 [1/m]
-   \param    S0in           line strength [K�/(Hz*Pa*m)]
+   \param    S0in           line strength [K²/(Hz*Pa*m)]
    \param    G0in           line width [Hz/Pa]
    \param    XS0in          line strength temperature exponent  [1]
    \param    XG0in          line widths temperature exponent    [1]
@@ -14263,7 +14246,7 @@ void Rosenkranz_O2_continuum(MatrixView pxsec,
   // P. W. Rosenkranz, Chapter 2, in M. A. Janssen,
   // Atmospheric Remote Sensing by Microwave Radiometry, John Wiley & Sons, Inc., 1993
   // ftp://mesa.mit.edu/phil/lbl_rt
-  const Numeric S0_PWR93 = 1.11e-14;  // [K�/(Hz*Pa*m)] line strength
+  const Numeric S0_PWR93 = 1.11e-14;  // [K²/(Hz*Pa*m)] line strength
   const Numeric G0_PWR93 = 5600.000;  // line width [Hz/Pa]
   const Numeric XS0_PWR93 = 2.000;    // temperature dependence of line strength
   const Numeric XG0_PWR93 = 0.800;    // temperature dependence of line width
@@ -14665,7 +14648,7 @@ void MPM93_N2_continuum(MatrixView pxsec,
   const Numeric xf_MPM93 = 1.500;  // frequency exponent [1]
   const Numeric gxf_MPM93 =
       9.000 * xf_MPM93;  // needed for the unit conversion of G_MPM93
-  const Numeric S_MPM93 = 2.296e-31;  // line strength  [1/Pa� * 1/Hz]
+  const Numeric S_MPM93 = 2.296e-31;  // line strength  [1/Pa² * 1/Hz]
   const Numeric G_MPM93 =
       1.930e-5 *
       pow((Numeric)10.000, -gxf_MPM93);  // frequency factor [1/Hz^xf]
@@ -14706,7 +14689,7 @@ void MPM93_N2_continuum(MatrixView pxsec,
        << " xf = " << xf << "\n";
 
   // unit conversion internally:
-  //const Numeric S0unitconv = 1.000e+13;  // x [1/(hPa�*GHz)] => y [1/(pa�*Hz)]
+  //const Numeric S0unitconv = 1.000e+13;  // x [1/(hPa²*GHz)] => y [1/(pa²*Hz)]
   //const Numeric G0unitconv = pow(10.000, gxf);
 
   const Index n_p = abs_p.nelem();   // Number of pressure levels
@@ -14747,7 +14730,7 @@ void MPM93_N2_continuum(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             N2-continuum according to Rosenkranz, 1993 [1/m]
-   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)�]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    model          allows user defined input parameter set
                             (Cin and xTin)<br> or choice of
                             pre-defined parameters of specific models (see note below).
@@ -14827,13 +14810,13 @@ void Pardo_ATM_N2_dry_continuum(MatrixView pxsec,
         // specific N2 but mainly caused by N2. Therefore the N2 vmr must be
         // canceled out here which is later in abs_coefCalc multiplied
         // (calculation: abs = vmr * pxsec):
-        pxsec(s, i) += C *  // strength [1/(m*Hz�Pa�)]
+        pxsec(s, i) += C *  // strength [1/(m*Hz²Pa²)]
                        pow((f_grid[s] / (Numeric)2.25e11),
-                           (Numeric)2.) *  // quadratic f dependence [Hz�]
+                           (Numeric)2.) *  // quadratic f dependence [Hz²]
                        pow(((Numeric)300.0 / abs_t[i]),
                            (Numeric)3.5) *  // free T dependence      [1]
                        pow((pd / (Numeric)1.01300e5),
-                           (Numeric)2.) /  // quadratic p dependence [Pa�]
+                           (Numeric)2.) /  // quadratic p dependence [Pa²]
                        vmr[i];             // cancel the vmr dependency
       }
     }
@@ -14845,7 +14828,7 @@ void Pardo_ATM_N2_dry_continuum(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             N2-continuum according to Rosenkranz, 1993 [1/m]
-   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)�]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            temperature exponent of N2-continuum [1]
    \param    model          allows user defined input parameter set
                             (Cin and xTin)<br> or choice of
@@ -14882,7 +14865,7 @@ void Rosenkranz_N2_self_continuum(MatrixView pxsec,
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Chapter 2, pp 74, in M. A. Janssen,
   // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
-  const Numeric C_PWR = 1.05e-38;  // [1/(Pa�*Hz�*m)]
+  const Numeric C_PWR = 1.05e-38;  // [1/(Pa²*Hz²*m)]
   const Numeric x_PWR = 3.55;      // [1]
   // ---------------------------------------------------------------------------------------
 
@@ -14923,10 +14906,10 @@ void Rosenkranz_N2_self_continuum(MatrixView pxsec,
       // The second vmr of N2 will be multiplied at the stage of absorption
       // calculation: abs = vmr * pxsec.
       pxsec(s, i) +=
-          C *                                  // strength [1/(m*Hz�Pa�)]
-          pow(f_grid[s], (Numeric)2.) *        // quadratic f dependence [Hz�]
+          C *                                  // strength [1/(m*Hz²Pa²)]
+          pow(f_grid[s], (Numeric)2.) *        // quadratic f dependence [Hz²]
           pow((Numeric)300.0 / abs_t[i], x) *  // free T dependence      [1]
-          pow(abs_p[i], (Numeric)2.) *         // quadratic p dependence [Pa�]
+          pow(abs_p[i], (Numeric)2.) *         // quadratic p dependence [Pa²]
           vmr[i];                              // second N2-VMR at the stage
                                                // of absorption calculation
     }
@@ -14942,7 +14925,7 @@ void Rosenkranz_N2_self_continuum(MatrixView pxsec,
 
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             N2-continuum according to Rosenkranz, 1993 [1/m]
-   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)�]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xfin           continuum frequency exponent [1]
    \param    xtin           continuum strength temperature exponent [1]
    \param    xpin           continuum strength pressure exponent [1]
@@ -14983,7 +14966,7 @@ void Standard_N2_self_continuum(MatrixView pxsec,
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model, Chapter 2, pp 74, in M. A. Janssen,
   // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
-  const Numeric C_GM = 1.05e-38;  // [1/(Pa�*Hz�*m)]
+  const Numeric C_GM = 1.05e-38;  // [1/(Pa²*Hz²*m)]
   const Numeric xf_GM = 2.00;     // [1]
   const Numeric xt_GM = 3.55;     // [1]
   const Numeric xp_GM = 2.00;     // [1]
@@ -15034,7 +15017,7 @@ void Standard_N2_self_continuum(MatrixView pxsec,
       // The second N2-VMR will be multiplied at the stage of absorption
       // calculation: abs = vmr * pxsec.
       pxsec(s, i) +=
-          C *                                      // strength [1/(m*Hz�Pa�)]
+          C *                                      // strength [1/(m*Hz²Pa²)]
           pow(((Numeric)300.00 / abs_t[i]), xt) *  // T dependence        [1]
           pow(f_grid[s], xf) *                     // f dependence    [Hz^xt]
           pow(abs_p[i], xp) *                      // p dependence    [Pa^xp]
@@ -15053,7 +15036,7 @@ void Standard_N2_self_continuum(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             CO2-CO2-continuum according to Rosenkranz, 1993 [1/m]
-   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)�]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
    \param    model          allows user defined input parameter set
                             (Cin and xin)<br> or choice of
@@ -15090,7 +15073,7 @@ void Rosenkranz_CO2_self_continuum(MatrixView pxsec,
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen,
   // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
-  const Numeric C_PWR = 7.43e-37;  // [ 1/(Pa�*Hz�*m) ]
+  const Numeric C_PWR = 7.43e-37;  // [ 1/(Pa²*Hz²*m) ]
   const Numeric x_PWR = 5.08;      // [ 1 ]
   // ---------------------------------------------------------------------------------------
 
@@ -15147,7 +15130,7 @@ void Rosenkranz_CO2_self_continuum(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             CO2-N2-continuum according to Rosenkranz, 1993 [1/m]
-   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)�]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
    \param    model          allows user defined input parameter set
                             (Cin and xin)<br> or choice of
@@ -15185,7 +15168,7 @@ void Rosenkranz_CO2_foreign_continuum(MatrixView pxsec,
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
-  const Numeric C_PWR = 2.71e-37;  // default: 2.71*10^-37 1/(Pa�*Hz�*m)
+  const Numeric C_PWR = 2.71e-37;  // default: 2.71*10^-37 1/(Pa²*Hz²*m)
   const Numeric x_PWR = 4.7;       // default: 4.7
   // ---------------------------------------------------------------------------------------
 
@@ -15242,7 +15225,7 @@ void Rosenkranz_CO2_foreign_continuum(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             CO2-CO2-continuum according to Ho et al 1966 [1/m]
-   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)�]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
    \param    model          allows user defined input parameter set
                             (Cin and xin)<br> or choice of
@@ -15277,7 +15260,7 @@ void Ho66_CO2_self_continuum(MatrixView pxsec,
 
   // --------- STANDARD MODEL PARAMETERS --------------------------------------
   // Values (after conversion for C) from abstract of Ho66:
-  const Numeric C_Ho66 = 1.70e-36;  // [ 1/(Pa�*Hz�*m) ]
+  const Numeric C_Ho66 = 1.70e-36;  // [ 1/(Pa²*Hz²*m) ]
   const Numeric x_Ho66 = 5;         // [ 1 ]
   // --------------------------------------------------------------------------
 
@@ -15334,7 +15317,7 @@ void Ho66_CO2_self_continuum(MatrixView pxsec,
 /*!
    \param[out] pxsec        cross section (absorption/volume mixing ratio) of
                             CO2-CO2-continuum according to Ho et al 1966 [1/m]
-   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)�]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
    \param    model          allows user defined input parameter set
                             (Cin and xin)<br> or choice of
@@ -15371,7 +15354,7 @@ void Ho66_CO2_foreign_continuum(MatrixView pxsec,
 
   // --------- STANDARD MODEL PARAMETERS --------------------------------------
   // Values (after conversion for C) from abstract of Ho66:
-  const Numeric C_Ho66 = 4.23e-37;  // [ 1/(Pa�*Hz�*m) ]
+  const Numeric C_Ho66 = 4.23e-37;  // [ 1/(Pa²*Hz²*m) ]
   const Numeric x_Ho66 = 5;         // [ 1 ]
   // --------------------------------------------------------------------------
 
@@ -15441,7 +15424,7 @@ void Ho66_CO2_foreign_continuum(MatrixView pxsec,
    \param    f_grid         predefined frequency grid       [Hz]
    \param    abs_p          predefined pressure grid        [Pa]
    \param    abs_t          predefined temperature grid     [K]
-   \param    vmr            suspended water droplet density profile [kg/m�]
+   \param    vmr            suspended water droplet density profile [kg/m³]
                             (valid range (Tab.1 of reference): 0-0.005)
 
    \note     Except for  model 'user' the input parameters CCin, CGin, and CEin
@@ -15518,7 +15501,7 @@ void MPM93WaterDropletAbs(
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
-    // Check limits of suspended water droplet density ("vmr") [kg/m�]
+    // Check limits of suspended water droplet density ("vmr") [kg/m³]
     if ((vmr[i] < low_lim_den) || (vmr[i] > high_lim_den)) {
       ostringstream os;
       os << "ERROR in MPM93WaterDropletAbs:\n"
@@ -15564,10 +15547,10 @@ void MPM93WaterDropletAbs(
                               (pow((f_grid[s] * Hz_to_GHz), (Numeric)2.) +
                                pow(gamma2, (Numeric)2.))));
         // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
-        // In MPM93 w is in g/m� and m is in g/cm�. Because of the units used in arts,
+        // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
         // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-        // MPM93: (w/m)_MPM93  in   (g/m�)/(g/cm�)
-        // arts:  (w/m)_arts   in  (kg/m�)/(kg/m�)
+        // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
+        // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
         // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
         // the factor of 1.0e6 is included below in pxsec calculation.
         Numeric ImNw = 1.500 / m *
@@ -15596,7 +15579,7 @@ void MPM93WaterDropletAbs(
    \param    f_grid         predefined frequency grid       [Hz]
    \param    abs_p          predefined pressure grid        [Pa]
    \param    abs_t          predefined temperature grid     [K]
-   \param    vmr            suspended water droplet density profile [kg/m�]
+   \param    vmr            suspended water droplet density profile [kg/m³]
                             (valid range (Tab.1 of MPM93): 0-0.005)
 
    \note     Allowed models: 'ELL07'.
@@ -15682,7 +15665,7 @@ void ELL07WaterDropletAbs(
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
-    // Check limits of suspended water droplet density ("vmr") [kg/m�]
+    // Check limits of suspended water droplet density ("vmr") [kg/m³]
     if ((vmr[i] < low_lim_den) || (vmr[i] > high_lim_den)) {
       ostringstream os;
       os << "ERROR in ELL07WaterDropletAbs:\n"
@@ -15779,10 +15762,10 @@ void ELL07WaterDropletAbs(
                                     (Numeric)2.)));
 
         // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
-        // In MPM93 w is in g/m� and m is in g/cm�. Because of the units used in arts,
+        // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
         // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-        // MPM93: (w/m)_MPM93  in   (g/m�)/(g/cm�)
-        // arts:  (w/m)_arts   in  (kg/m�)/(kg/m�)
+        // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
+        // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
         // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
         // the factor of 1.0e6 is included below in pxsec calculation.
         Numeric ImNw = 1.500 / m *
@@ -15817,7 +15800,7 @@ void ELL07WaterDropletAbs(
    \param    f_grid         predefined frequency grid       [Hz]
    \param    abs_p          predefined pressure grid        [Pa]
    \param    abs_t          predefined temperature grid     [K]
-   \param    vmr            suspended water droplet density profile [kg/m�]
+   \param    vmr            suspended water droplet density profile [kg/m³]
                             (valid range (Tab.1 of reference): 0-0.001)
 
    \note     Except for  model 'user' the input parameters CCin, CAin, and CBin
@@ -15845,7 +15828,7 @@ void MPM93IceCrystalAbs(
     ConstVectorView abs_p,   // pressure vector
     ConstVectorView abs_t,   // temperature vector
     ConstVectorView vmr,     // suspended ice particle density vector,
-                             // valid range: 0-1.0e-3 kg/m�
+                             // valid range: 0-1.0e-3 kg/m³
     const Verbosity &) {
   // --------- STANDARD MODEL PARAMETERS ------------------------------------------------
   // standard values for the MPM93 model (J. Liebe and G. A. Hufford and M. G. Cotton,
@@ -15876,11 +15859,11 @@ void MPM93IceCrystalAbs(
   }
 
   const Numeric m =
-      0.916e3;  // specific weight of ice particles,  fixed value:   0.916e3 kg/m�
+      0.916e3;  // specific weight of ice particles,  fixed value:   0.916e3 kg/m³
   const Numeric low_lim_den =
       -LIQUID_AND_ICE_TREAT_AS_ZERO;  // lower limit of suspended droplet particle density vector [kg/m3]
   const Numeric high_lim_den =
-      1.00e-3;  // lower limit of suspended ice particle density vector [kg/m�]
+      1.00e-3;  // lower limit of suspended ice particle density vector [kg/m³]
 
   const Index n_p = abs_p.nelem();   // Number of pressure levels
   const Index n_f = f_grid.nelem();  // Number of frequencies
@@ -15896,7 +15879,7 @@ void MPM93IceCrystalAbs(
 
   // Loop pressure/temperature:
   for (Index i = 0; i < n_p; ++i) {
-    // Check limits of suspended water droplet density ("vmr") [kg/m�]
+    // Check limits of suspended water droplet density ("vmr") [kg/m³]
     if ((vmr[i] < low_lim_den) || (vmr[i] > high_lim_den)) {
       ostringstream os;
       os << "ERROR in MPM93IceCrystalAbs:\n"
@@ -15928,10 +15911,10 @@ void MPM93IceCrystalAbs(
         Numeric Imepsilon =
             ((ai / (f_grid[s] * Hz_to_GHz)) + (bi * (f_grid[s] * Hz_to_GHz)));
         // the imaginary part of the complex refractivity of suspended ice particles.
-        // In MPM93 w is in g/m� and m is in g/cm�. Because of the units used in arts,
+        // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
         // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-        // MPM93: (w/m)_MPM93  in   (g/m�)/(g/cm�)
-        // arts:  (w/m)_arts   in  (kg/m�)/(kg/m�)
+        // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
+        // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
         // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
         // the factor of 1.0e6 is included below in pxsec calculation.
         Numeric ImNw = 1.500 / m *
@@ -16197,7 +16180,7 @@ void MPM93RainExt(MatrixView pxsec,
    \param    f                     frequency position of calculation [Hz]
 
    \note     This function calculates the line shape function of Van Vleck and Weisskopf
-             with the factor (f/fl)�. for the MPM pseudo continuum line.
+             with the factor (f/fl)¹. for the MPM pseudo continuum line.
 
    \remark   Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
              <i>Propagation modeling of moist air and suspended water/ice
@@ -16214,7 +16197,7 @@ Numeric MPMLineShapeFunction(const Numeric gamma,
                              const Numeric f) {
   /*
     this routine calculates the line shape function of Van Vleck and Weisskopf
-    with the factor (f/f_o)�. for the MPM pseudo continuum line.
+    with the factor (f/f_o)¹. for the MPM pseudo continuum line.
 
     creation  TKS, 4.11.00
 
@@ -16416,7 +16399,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum coefficient (C_s)  [1/m / (Hz�*Pa�)]
+    //     parameters[0] : continuum coefficient (C_s)  [1/m / (Hz²*Pa²)]
     //     parameters[1] : temperature exponent  (x_s)  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -16472,7 +16455,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  a) output
     //     pxsec          : [1/m],
     //  b) input
-    //     parameters[0] : [1/m / (Hz�*Pa�)]
+    //     parameters[0] : [1/m / (Hz²*Pa²)]
     //     parameters[1] : [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -16528,7 +16511,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  a) output
     //     pxsec          : [1/m],
     //  b) input
-    //     parameters[0] : [1/m / (Hz�*Pa�)]
+    //     parameters[0] : [1/m / (Hz²*Pa²)]
     //     parameters[1] : [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -17126,7 +17109,7 @@ void xsec_continuum_tag(MatrixView xsec,
   else if ("H2O-SelfContCKDMT320" == name) {
     // OUTPUT:
     //   pxsec           cross section (absorption/volume mixing ratio) of
-    //                  H2O self continuum according to CKD MT 3.20    [1/m]
+    //                  H2O self continuum according to CKD MT 2.50    [1/m]
     // INPUT:
     //   parameters[0]  strength scaling factor              [1]
     //   model          allows user defined input parameter set
@@ -17177,7 +17160,7 @@ void xsec_continuum_tag(MatrixView xsec,
   else if ("H2O-ForeignContCKDMT320" == name) {
     // OUTPUT:
     //   pxsec           cross section (absorption/volume mixing ratio) of
-    //                  H2O foreign continuum according to CKD MT 3.20    [1/m]
+    //                  H2O foreign continuum according to CKD MT 2.50    [1/m]
     // INPUT:
     //   parameters[0]  strength scaling factor              [1]
     //   model          allows user defined input parameter set
@@ -17224,6 +17207,8 @@ void xsec_continuum_tag(MatrixView xsec,
       throw runtime_error(os.str());
     }
   }
+
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   else if ("H2O-SelfContCKD24" == name) {
     // OUTPUT:
@@ -17995,7 +17980,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum coefficient (C)    [1/m / (Hz�*Pa�)]
+    //     parameters[0] : continuum coefficient (C)    [1/m / (Hz²*Pa²)]
     //     parameters[1] : temperature exponent  (x_s)  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -18078,7 +18063,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum coefficient (C) [K�/(Hz*Pa*m)]
+    //     parameters[0] : continuum coefficient (C) [K²/(Hz*Pa*m)]
     //     parameters[1] : temperature exponent  (x) [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -18945,7 +18930,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : strength parameter   [1/m * 1/(Hz�*Pa�)]
+    //     parameters[0] : strength parameter   [1/m * 1/(Hz²*Pa²)]
     //     parameters[1] : broadening parameter [1]
     //     parameters[2] : temperature exponent [1]
     //     parameters[3] : frequency exponent   [1]
@@ -19055,7 +19040,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  a) output
     //     pxsec          : [1/m],
     //  b) input
-    //     parameters[0] : continuum strength coefficient  [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum strength coefficient  [1/m * 1/(Hz*Pa)²]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
     //     abs_t         : [K]
@@ -19130,7 +19115,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  a) output
     //     pxsec          : [1/m],
     //  b) input
-    //     parameters[0] : continuum strength coefficient  [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum strength coefficient  [1/m * 1/(Hz*Pa)²]
     //     parameters[1] : continuum temperature exponent  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -19188,7 +19173,7 @@ void xsec_continuum_tag(MatrixView xsec,
     // OUTPUT
     //     pxsec          : [1/m],
     // INPUT
-    //     parameters[0] : continuum coefficient (C)  [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum coefficient (C)  [1/m * 1/(Hz*Pa)²]
     //     parameters[1] : frequency exponent    (xf) [1]
     //     parameters[2] : temperature exponent  (xt) [1]
     //     parameters[3] : pressure exponent     (xp) [1]
@@ -19550,7 +19535,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
     //     parameters[1] : continuum temperature exponent  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -19609,7 +19594,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
     //     parameters[1] : continuum temperature exponent  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -19668,7 +19653,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
     //     parameters[1] : continuum temperature exponent  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -19728,7 +19713,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
     //     parameters[1] : continuum temperature exponent  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -19789,7 +19774,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
     //     parameters[1] : continuum temperature exponent  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -19867,7 +19852,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
     //     parameters[1] : continuum temperature exponent  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -19927,7 +19912,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //  OUTPUT
     //     pxsec          : [1/m],
     //  INPUT
-    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)�]
+    //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
     //     parameters[1] : continuum temperature exponent  [1]
     //     f_grid        : [Hz]
     //     abs_p         : [Pa]
@@ -20019,7 +20004,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //     vmr           : [1]
     //
     // liquid water droplet parameters:
-    // suspended water droplet density   range: 0-5 g/m�
+    // suspended water droplet density   range: 0-5 g/m³
     //
     // valid atmospheric condition:
     // temperature      : 210 to 373 K
@@ -20117,7 +20102,7 @@ void xsec_continuum_tag(MatrixView xsec,
     //     vmr           : [1]
     //
     // liquid water droplet parameters:
-    // suspended water droplet density   range: 0-5 g/m�
+    // suspended water droplet density   range: 0-5 g/m³
     //
     // valid atmospheric condition:
     // temperature      : 210 to 373 K
@@ -20195,8 +20180,8 @@ void xsec_continuum_tag(MatrixView xsec,
     //     vmr           : [1]
     //
     // ice crystal parameters:
-    // suspended water droplet density   range: 0-10 g/m�
-    // specific droplet weight           value:    1 g/cm�
+    // suspended water droplet density   range: 0-10 g/m³
+    // specific droplet weight           value:    1 g/cm³
     //
     // valid atmospheric condition:
     // temperature      : 233 to 323 K
