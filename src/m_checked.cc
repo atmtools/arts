@@ -58,8 +58,10 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
           break;
         case Species::TagType::Zeeman:
           break;
-        case Species::TagType::Predefined:
+        case Species::TagType::PredefinedLegacy:
           needs_continua = true;
+          break;
+        case Species::TagType::PredefinedModern:
           break;
         case Species::TagType::Cia:
           needs_cia = true;
@@ -847,28 +849,33 @@ void propmat_clearsky_agenda_checkedCalc(
     const Verbosity&) {
   bool needs_lines = false;
   bool needs_zeeman = false;
+  bool needs_predefined = false;
   bool needs_continua = false;
   bool needs_cia = false;
-  //bool needs_free_electrons = false;
+  bool needs_free_electrons = false;
   bool needs_particles = false;
   bool needs_hxsec = false;
 
-  for (Index sp = 0; sp < abs_species.nelem(); sp++) {
-    for (Index tgs = 0; tgs < abs_species[sp].nelem(); tgs++) {
-      switch (abs_species[sp][tgs].Type()) {
+  for (auto& tag_groups: abs_species) {
+    for (auto& tag: tag_groups) {
+      switch (tag.Type()) {
         case Species::TagType::Plain:
           needs_lines = true;
           break;
         case Species::TagType::Zeeman:
           needs_zeeman = true;
           break;
-        case Species::TagType::Predefined:
+        case Species::TagType::PredefinedModern:
+          needs_predefined = true;
+          break;
+        case Species::TagType::PredefinedLegacy:
           needs_continua = true;
           break;
         case Species::TagType::Cia:
           needs_cia = true;
           break;
         case Species::TagType::FreeElectrons:
+          needs_free_electrons = true;
           break;
         case Species::TagType::Particles:
           needs_particles = true;
@@ -877,37 +884,64 @@ void propmat_clearsky_agenda_checkedCalc(
           needs_hxsec = true;
           break;
         default:
-          ARTS_USER_ERROR (
-                              "Unknown species type: ", abs_species[sp][tgs].Type())
+          ARTS_ASSERT(false, "Unknown species type: ", tag.Type())
           break;
       }
     }
   }
 
-  ARTS_USER_ERROR_IF ((needs_lines || needs_continua || needs_cia || needs_hxsec) &&
-      !(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") ||
-      propmat_clearsky_agenda.has_method("propmat_clearskyAddFromLookup") ||
-      propmat_clearsky_agenda.has_method("propmat_clearskyAddLines")),
-        "*abs_species* contains line species, CIA species, "
-        "hitran xsec species or continua but *propmat_clearsky_agenda*\n"
-        "does not contain *propmat_clearskyAddXsecAgenda* "
-        "*propmat_clearskyAddFromLookup*, or propmat_clearskyAddLines.");
+  ARTS_USER_ERROR_IF(
+      needs_lines and
+          not(propmat_clearsky_agenda.has_method("propmat_clearskyAddLines") or
+              propmat_clearsky_agenda.has_method(
+                  "propmat_clearskyAddFromLookup")),
+      "*abs_species* contains normal lines species but *propmat_clearsky_agenda*\n"
+      "cannot support lines.");
+
+  ARTS_USER_ERROR_IF(
+      needs_continua and
+          not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
+              propmat_clearsky_agenda.has_method(
+                  "propmat_clearskyAddFromLookup")),
+      "*abs_species* contains legacy continua but *propmat_clearsky_agenda*\n"
+      "cannot support these.");
+
+  ARTS_USER_ERROR_IF(
+      needs_cia and
+          not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
+              propmat_clearsky_agenda.has_method(
+                  "propmat_clearskyAddFromLookup")),
+      "*abs_species* contains CIA models but *propmat_clearsky_agenda*\n"
+      "cannot support these.");
+
+  ARTS_USER_ERROR_IF(
+      needs_hxsec and
+          not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
+              propmat_clearsky_agenda.has_method(
+                  "propmat_clearskyAddFromLookup")),
+      "*abs_species* contains Hitran XSEC models but *propmat_clearsky_agenda*\n"
+      "cannot support these.");
+
+  ARTS_USER_ERROR_IF(
+      needs_predefined and
+          not(propmat_clearsky_agenda.has_method("propmat_clearskyAddPredefined") or
+              propmat_clearsky_agenda.has_method(
+                  "propmat_clearskyAddFromLookup")),
+      "*abs_species* contains modern continua models but *propmat_clearsky_agenda*\n"
+      "cannot support these.");
 
   ARTS_USER_ERROR_IF (needs_zeeman and
       not propmat_clearsky_agenda.has_method("propmat_clearskyAddZeeman"),
         "*abs_species* contains Zeeman species but *propmat_clearsky_agenda*\n"
         "does not contain *propmat_clearskyAddZeeman*.");
-  /*
-    if (needs_free_electrons
-        && !propmat_clearsky_agenda.has_method("propmat_clearskyAddFaraday"))
-    {
-        throw runtime_error("*abs_species* contains free electrons but *propmat_clearsky_agenda*\n"
-                            "does not contain *propmat_clearskyAddFaraday*.");
-    }
-*/
+
+  ARTS_USER_ERROR_IF (needs_free_electrons and
+      not propmat_clearsky_agenda.has_method("propmat_clearskyAddFaraday"),
+        "*abs_species* contains Zeeman species but *propmat_clearsky_agenda*\n"
+        "does not contain *propmat_clearskyAddFaraday*.");
+  
   ARTS_USER_ERROR_IF (needs_particles &&
-      !(propmat_clearsky_agenda.has_method("propmat_clearskyAddParticles") ||
-        propmat_clearsky_agenda.has_method("propmat_clearskyAddParticles2")),
+      !(propmat_clearsky_agenda.has_method("propmat_clearskyAddParticles")),
         "*abs_species* contains particles but *propmat_clearsky_agenda*\n"
         "does not contain *propmat_clearskyAddParticles*.");
 

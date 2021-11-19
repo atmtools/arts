@@ -2654,13 +2654,16 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("propmat_clearskyAddPredefinedO2MPM2020"),
-      DESCRIPTION("Reimplementation of published O2 absorption algorithm\n"
+      NAME("propmat_clearskyAddPredefined"),
+      DESCRIPTION("Adds one of many predefined models to the propmat_clearsky\n"
         "\n"
-        "Based on:\n"
-        "\tDmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020,\n"
-        "\tRevision of the 60-GHz atmospheric oxygen absorption band models for practical use,\n"
-        "\thttps://doi.org/10.1016/j.jqsrt.2019.106798\n"
+        "Only supports temperature and wind speed derivatives\n"
+        "\n"
+        "Possible models:\n"
+        "\tO2-MPM2020:\n"
+        "\t\tDmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020,\n"
+        "\t\tRevision of the 60-GHz atmospheric oxygen absorption band models for practical use,\n"
+        "\t\thttps://doi.org/10.1016/j.jqsrt.2019.106798\n"
         "\n"
         "Note that this is only really applicable to Earth and at lower altitudes.\n"
         "The only two tested derivatives are for frequency (wind) and for temperature.\n"

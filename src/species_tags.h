@@ -5,6 +5,7 @@
 #include <set>
 
 #include "array.h"
+#include "matpackI.h"
 #include "mystring.h"
 #include "partfun.h"
 
@@ -12,7 +13,8 @@ namespace Species {
 ENUMCLASS(TagType, unsigned char,
     Plain,
     Zeeman,
-    Predefined,
+    PredefinedLegacy,
+    PredefinedModern,
     Cia,
     FreeElectrons,
     Particles,
@@ -49,7 +51,7 @@ struct Tag {
   
   constexpr Tag(const IsotopeRecord& isot) noexcept :
   spec_ind(find_species_index(isot)),
-  type(is_predefined_model(isot) ? TagType::Predefined : TagType::Plain) { /* Nothing to be done here. */
+  type(is_predefined_model(isot) ? TagType::PredefinedLegacy : TagType::Plain) { /* Nothing to be done here. */
   }
   
   // Documentation is with implementation.
@@ -215,5 +217,17 @@ void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species);
  * @return The set of unique species that requires line-by-line calculations
  */
 std::set<Species::Species> lbl_species(const ArrayOfArrayOfSpeciesTag&) noexcept;
+
+namespace Species {
+/*! First VMR or 0
+ * 
+ * @param abs_species  As WSV
+ * @param rtp_vmr  As WSV
+ * @param spec A species
+ */
+Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
+                  const Vector& rtp_vmr,
+                  const Species spec) ARTS_NOEXCEPT;
+} // namespace Species
 
 #endif  // species_tags_h

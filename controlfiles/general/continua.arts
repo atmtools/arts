@@ -95,14 +95,6 @@ abs_cont_descriptionAppend( tagname="H2O-SelfContCKDMT320",
 abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT320",
                             model="CKDMT320" )
 #
-# CKD MT 3.50 self continuum original parameters:
-abs_cont_descriptionAppend( tagname="H2O-SelfContCKDMT350",
-                            model="CKDMT350" )
-#
-# CKD MT 3.50 H2O foreign continuum original parameters:
-abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT350",
-                            model="CKDMT350" )
-#
 #  Cruz-Pol et al. 98 Continuum:
 abs_cont_descriptionAppend( tagname="H2O-CP98",
                             model="CruzPol" )

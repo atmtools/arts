@@ -541,13 +541,22 @@ void test_mpm20()
   nlinspace(f, fstart, fend, nf);
   PropagationMatrix xsec(nf, 1);
   ArrayOfPropagationMatrix dxsec(2, PropagationMatrix(nf, 1));
-  
-  
+
   ArrayOfRetrievalQuantity jacs(2);
   jacs[0].Target(Jacobian::Target(Jacobian::Atm::Temperature));
   jacs[1].Target(Jacobian::Target(Jacobian::Atm::WindU));
-  Absorption::PredefinedModel::Makarov2020etal::compute(xsec, dxsec, f, p, t, 1, jacs);
-  
+  Absorption::PredefinedModel::VMRS vmrs_predef;
+  vmrs_predef.O2 = 1;
+  Absorption::PredefinedModel::compute(
+      xsec,
+      dxsec,
+      Species::Isotopologues[Species::find_species_index("O2", "MPM2020")],
+      f,
+      p,
+      t,
+      vmrs_predef,
+      jacs);
+
   constexpr auto df = 1000;
   constexpr auto dt = 0.1;
   Matrix pxsec(nf, 1, 0);

@@ -271,7 +271,6 @@ add_library (artscore STATIC
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
-  propagationmatrix.cc
   propmat_field.cc
   psd.cc
   quantum.cc
@@ -321,6 +320,10 @@ if (ENABLE_GUI)
   target_link_libraries (artscore artsgui)
 endif()
 
+
+add_subdirectory(predefined)
+target_link_libraries (artscore predef)
+
 target_link_libraries (artscore xmliobase wigner)
 
 if (FFTW_FOUND)
@@ -354,6 +357,7 @@ add_library (matpack STATIC
         matpackVI.cc
         matpackVII.cc
         matpack_complex.cc
+        propagationmatrix.cc
         )
         
 include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
@@ -674,3 +678,10 @@ add_test(NAME "arts.cpp.fast.test_partfun" COMMAND test_partfun)
 
 add_executable (linemixing_jmh linemixing_jmh.cc)
 target_link_libraries(linemixing_jmh ${ALL_ARTS_LIBRARIES})
+
+########### next testcase ###############
+
+if (ENABLE_GUI)
+add_executable (calc_predef predefined.cc)
+target_link_libraries(calc_predef ${ALL_ARTS_LIBRARIES})
+endif()

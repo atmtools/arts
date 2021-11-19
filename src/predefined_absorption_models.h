@@ -30,34 +30,33 @@
 
 #include "jacobian.h"
 #include "propagationmatrix.h"
+#include "species.h"
+#include <algorithm>
+#include <random>
 
-namespace Absorption::PredefinedModel::Makarov2020etal {
+namespace Absorption::PredefinedModel {
+/** Contains known required VMR values */
+struct VMRS {
+  Numeric O2{0};
+  Numeric H2O{0};
 
-/** Adds Makarov MPM2020 O2 absorption lines to the propagation matrix
- *
- * Adds the 60 GHz O2-66 band, including the 118.75 GHz line.  No Zeeman
- * effect is considered.
- * 
- * Adds no negative values outside of bounds.
- *
- * Jacobian values are computed by perturbations, only
- * frequency, temperature, and the two styles of VMR are supported
- * 
- * @param[in,out] propmat_clearsky As WSV
- * @param[in,out] dpropmat_clearsky_dx As WSV
- * @param[in]     f_grid As WSV
- * @param[in]     rtp_pressure As WSV
- * @param[in]     rtp_temperature As WSV
- * @param[in]     oxygen_vmr O2 volume mixing ratio (only for strength scaling)
- * @param[in]     jacobian_quantities As WSV
- */
-void compute(PropagationMatrix& propmat_clearsky,
-             ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-             const Vector& f_grid,
-             const Numeric& rtp_pressure,
-             const Numeric& rtp_temperature,
-             const Numeric& oxygen_vmr,
-             const ArrayOfRetrievalQuantity& jacobian_quantities) ARTS_NOEXCEPT;
-} // namespace Absorption::PredefinedModel::Makarov2020etal
+  VMRS(const ArrayOfArrayOfSpeciesTag& specs, const Vector& rtp_vmr) :
+  O2(Species::first_vmr(specs, rtp_vmr, Species::Species::Oxygen)),
+  H2O(Species::first_vmr(specs, rtp_vmr, Species::Species::Water))
+  {}
+  
+  constexpr VMRS() = default;
+};
+
+void compute(
+    PropagationMatrix& propmat_clearsky,
+    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    const SpeciesIsotopeRecord& tag,
+    const Vector& f_grid,
+    const Numeric& rtp_pressure,
+    const Numeric& rtp_temperature,
+    const VMRS& vmr,
+    const ArrayOfRetrievalQuantity& jacobian_quantities);
+} // namespace Absorption::PredefinedModel
 
 #endif  // fullmodel_h
