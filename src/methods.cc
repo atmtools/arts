@@ -2655,7 +2655,7 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddPredefined"),
-      DESCRIPTION("Adds one of many predefined models to the propmat_clearsky\n"
+      DESCRIPTION("Adds all of the modern predefined models in *abs_species* to the propmat_clearsky\n"
         "\n"
         "Only supports temperature and wind speed derivatives\n"
         "\n"
@@ -2664,12 +2664,20 @@ void define_md_data_raw() {
         "\t\tDmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020,\n"
         "\t\tRevision of the 60-GHz atmospheric oxygen absorption band models for practical use,\n"
         "\t\thttps://doi.org/10.1016/j.jqsrt.2019.106798\n"
-        "\n"
-        "Note that this is only really applicable to Earth and at lower altitudes.\n"
-        "The only two tested derivatives are for frequency (wind) and for temperature.\n"
-        "Several other derivatives are included and possible by the calculations but they\n"
-        "are not tested, so it is not recommended to use this method with any other type(s)\n"
-        "of derivatives\n"
+        "\tH2O-ForeignContCKDMT350:\n"
+        "\t\tCKD_MTv3.50 H2O foreign continuum from the FORTRAN77 code written by\n"
+        "\t\tAtmospheric and Environmental Research Inc. (AER),\n"
+        "\t\tRadiation and Climate Group\n"
+        "\t\t131 Hartwell Avenue\n"
+        "\t\tLexington, MA 02421, USA\n"
+        "\t\thttp://www.rtweb.aer.com/continuum_frame.html\n"
+        "\tH2O-SelfContCKDMT350:\n"
+        "\t\tCKD_MTv3.50 H2O self continuum from the FORTRAN77 code written by\n"
+        "\t\tAtmospheric and Environmental Research Inc. (AER),\n"
+        "\t\tRadiation and Climate Group\n"
+        "\t\t131 Hartwell Avenue\n"
+        "\t\tLexington, MA 02421, USA\n"
+        "\t\thttp://www.rtweb.aer.com/continuum_frame.html\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky",

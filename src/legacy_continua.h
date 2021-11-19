@@ -279,7 +279,7 @@ void CKD_mt_320_foreign_h2o(MatrixView xsec,
                             ConstVectorView abs_t,
                             ConstVectorView vmr,
                             const Verbosity& verbosity);
-                            
+
 ////////////////////////////////////////////////////////////////////////////
 // oxygen line+continuum absorption models
 ////////////////////////////////////////////////////////////////////////////

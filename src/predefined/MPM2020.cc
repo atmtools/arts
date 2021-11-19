@@ -4,7 +4,7 @@
 /**
  * @brief Contains the MPM2020 model as presented by Makarov et al. (2020)
  * 
- * Only for absorption lines in the 60 GHz band, not for the resonant or 
+ * Only for absorption lines in the 60 GHz band, not for the nonresonant or 
  * >119 GHz lines.  Only for the ground-state band.
  */
 
@@ -37,7 +37,6 @@ void compute(PropagationMatrix& propmat_clearsky,
   using Constant::pow2, Constant::pow3, Constant::log10_euler;
   using Conversion::hz2ghz, Conversion::pa2bar;
 
-  // constexpr std::array ids = identifiers();
   std::array<Numeric, num> c{
       940.3,  543.4,  1503.0, 1442.1, 2103.4, 2090.7, 2379.9, 2438.0,
       2363.7, 2479.5, 2120.1, 2275.9, 1746.6, 1915.4, 1331.8, 1490.2,

@@ -27,15 +27,15 @@
 
 namespace Absorption::PredefinedModel::CKDMT350 {
 // ************************** CKD stuff ************************************
+constexpr int addF77fields = 1;
 constexpr Numeric xLosmt = 2.68675e19;  // [molecules/cm^3]
 constexpr Numeric TO = 296.000e0;       // [K]
-constexpr Numeric T1 = 273.000e0;
-constexpr Numeric PO = 1013.000e0;  // [hPa]
+constexpr Numeric T1 = 273.000e0;       // [K]
+constexpr Numeric PO = 1013.000e0;      // [hPa]
 constexpr Numeric SL296_ckd_mt_350_v1 = -20.0;
 constexpr Numeric SL296_ckd_mt_350_v2 = 20000.0;
 constexpr Numeric SL296_ckd_mt_350_dv = 10.0;
 constexpr int SL296_ckd_mt_350_npt = 2003;
-constexpr int addF77fields = 1;
 constexpr Numeric FH2O_ckd_mt_350_v1 = -20.0;
 constexpr Numeric FH2O_ckd_mt_350_v2 = 20000.0;
 constexpr Numeric FH2O_ckd_mt_350_dv = 10.0;
@@ -939,7 +939,7 @@ constexpr Numeric RADFN_FUN(const Numeric XVI, const Numeric XKT) {
   Numeric RADFN = 0.00e0;
 
   if (XKT > 0.0) {
-    Numeric XVIOKT = XVI / XKT;
+    const Numeric XVIOKT = XVI / XKT;
 
     if (XVIOKT <= 0.01e0) {
       RADFN = 0.500e0 * XVIOKT * XVI;
@@ -966,20 +966,17 @@ Numeric XINT_FUN(const Numeric V1A,
   //     FROM V1A TO V2A IN INCREMENTS OF DVA INTO XINT
   // ----------------------------------------------------------------------
 
-  const Numeric ONEPL = 1.001;  // original value given in F77 code
-  // FIXME const Numeric ONEMI  = 0.999;     // original value given in F77 code
+  constexpr Numeric ONEPL = 1.001;  // original value given in F77 code
 
-  //const Numeric ONEPL  = 0.001;  // modified value for C/C++ code
+  const Numeric RECDVA = 1.00e0 / DVA;
 
-  Numeric RECDVA = 1.00e0 / DVA;
-
-  int J = (int)((VI - V1A) * RECDVA + ONEPL);
-  Numeric VJ = V1A + DVA * (Numeric)(J - 1);
-  Numeric P = RECDVA * (VI - VJ);
-  Numeric C = (3.00e0 - 2.00e0 * P) * P * P;
-  Numeric B = 0.500e0 * P * (1.00e0 - P);
-  Numeric B1 = B * (1.00e0 - P);
-  Numeric B2 = B * P;
+  const int J = (int)((VI - V1A) * RECDVA + ONEPL);
+  const Numeric VJ = V1A + DVA * (Numeric)(J - 1);
+  const Numeric P = RECDVA * (VI - VJ);
+  const Numeric C = (3.00e0 - 2.00e0 * P) * P * P;
+  const Numeric B = 0.500e0 * P * (1.00e0 - P);
+  const Numeric B1 = B * (1.00e0 - P);
+  const Numeric B2 = B * P;
 
   Numeric xint = 0.;
   if (J - 1 > 0 && J + 2 < A.nelem()) {
@@ -1010,7 +1007,7 @@ Numeric XINT_FUN(const Numeric V1A,
 
    \param[inout] propmat_clearsky The propagation matrix  [1/m]
    \param[in]    f_grid           frequency grid          [Hz]
-   \param[in]    T                pressure                [Pa]
+   \param[in]    P                pressure                [Pa]
    \param[in]    T                temperature             [K]
    \param[in]    vmrh2o           H2O volume mixing ratio [1]
 
@@ -1049,7 +1046,7 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
   if (V1C < SL296_ckd_mt_350_v1) I1 = -1;
   V1C = SL296_ckd_mt_350_v1 + (SL296_ckd_mt_350_dv * (Numeric)(I1 - 1));
 
-  int I2 = (int)((V2C - SL296_ckd_mt_350_v1) / SL296_ckd_mt_350_dv);
+  const int I2 = (int)((V2C - SL296_ckd_mt_350_v1) / SL296_ckd_mt_350_dv);
 
   int NPTC = I2 - I1 + 3;
   if (NPTC > SL296_ckd_mt_350_npt) NPTC = SL296_ckd_mt_350_npt + 4;
@@ -1064,7 +1061,7 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
   Vector SH2OT1(NPTC + addF77fields, 0.);  // [cm^3/molecules]
 
   for (Index J = 1; J <= NPTC; ++J) {
-    Index I = I1 + (J - 1);
+    const Index I = I1 + (J - 1);
     if ((I > 0) && (I <= SL296_ckd_mt_350_npt)) {
       SH2OT0[J] = SL296_ckd_mt_350[I];  // at T=296 K
       SH2OT1[J] = SL260_ckd_mt_350[I];  // at T=260 K
@@ -1075,14 +1072,13 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
 
   const Numeric Pave = (P * 1.000e-2);  // [hPa]
   const Numeric Patm = Pave / PO;       // [1]
-  // FIXME Numeric Ph2o   = Patm * vmrh2o;                                // [1]
+  
   // second vmr in abs_coefCalc multiplied
-  const Numeric Rh2o = Patm * (TO / T);          // [1]
-  const Numeric Tfac = (T - TO) / (260.0 - TO);  // [1]
-  const Numeric WTOT =
-      xLosmt * (Pave / 1.013000e3) * (2.7300e2 / T);  // [molecules/cm^2]
-  const Numeric W1 = vmrh2o * WTOT;                      // [molecules/cm^2]
-  const Numeric XKT = T / 1.4387752e0;                // = (T*k_B)/(h*c)
+  const Numeric Rh2o = Patm * (TO / T);                                // [1]
+  const Numeric Tfac = (T - TO) / (260.0 - TO);                        // [1]
+  const Numeric WTOT = xLosmt * (Pave / 1.013000e3) * (2.7300e2 / T);  // [molecules/cm^2]
+  const Numeric W1 = vmrh2o * WTOT;                                    // [molecules/cm^2]
+  const Numeric XKT = T / 1.4387752e0;                                 // = (T*k_B)/(h*c)
 
   // Molecular cross section calculated by CKD.
   // The cross sectionis calculated on the predefined
@@ -1131,7 +1127,7 @@ October 2020: The water vapor continuum in the microwave through far-infrared wa
 
    \param[inout] propmat_clearsky The propagation matrix  [1/m]
    \param[in]    f_grid           frequency grid          [Hz]
-   \param[in]    T                pressure                [Pa]
+   \param[in]    P                pressure                [Pa]
    \param[in]    T                temperature             [K]
    \param[in]    vmrh2o           H2O volume mixing ratio [1]
 
@@ -1176,7 +1172,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
 
   // retrieve the appropriate array sequence of the foreign continuum
   // arrays of the CKD model.
-  Numeric DVC = FH2O_ckd_mt_350_dv;
+  const Numeric DVC = FH2O_ckd_mt_350_dv;
   Numeric V1C = V1ABS - DVC;
   Numeric V2C = V2ABS + DVC;
 
@@ -1184,7 +1180,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
   if (V1C < FH2O_ckd_mt_350_v1) I1 = -1;
   V1C = FH2O_ckd_mt_350_v1 + (FH2O_ckd_mt_350_dv * (Numeric)(I1 - 1));
 
-  int I2 = (int)((V2C - FH2O_ckd_mt_350_v1) / FH2O_ckd_mt_350_dv);
+  const int I2 = (int)((V2C - FH2O_ckd_mt_350_v1) / FH2O_ckd_mt_350_dv);
 
   int NPTC = I2 - I1 + 3;
   if (NPTC > FH2O_ckd_mt_350_npt) NPTC = FH2O_ckd_mt_350_npt + 4;
@@ -1198,7 +1194,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
   Vector FH2OT0(NPTC + addF77fields, 0.);  // [cm^3/molecules]
 
   for (Index J = 1; J <= NPTC; ++J) {
-    Index I = I1 + (J - 1);
+    const Index I = I1 + (J - 1);
     if ((I > 0) && (I <= FH2O_ckd_mt_350_npt)) {
       FH2OT0[J] = FH2O_ckd_mt_350[I];
     }
@@ -1206,20 +1202,19 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
 
   // ---------------------- subroutine FRN296 ------------------------------
 
-  // atmospheric state parameters             // [K]
-  const Numeric Pave = (P * 1.000e-2);  // [hPa]
-  const Numeric PFRGN =
-      (Pave / PO) * (1.00000e0 - vmrh2o);     // dry air pressure [hPa]
-  const Numeric RFRGN = PFRGN * (TO / T);  // [hPa]
-  const Numeric WTOT = xLosmt * (Pave / PO) * (T1 / T);  // [molecules/cm^2]
-  const Numeric XKT = T / 1.4387752;                     // = (T*k_B) / (h*c)
+  // atmospheric state parameters
+  const Numeric Pave = (P * 1.000e-2);                       // [hPa]
+  const Numeric PFRGN = (Pave / PO) * (1.00000e0 - vmrh2o);  // dry air pressure [hPa]
+  const Numeric RFRGN = PFRGN * (TO / T);                    // [hPa]
+  const Numeric WTOT = xLosmt * (Pave / PO) * (T1 / T);      // [molecules/cm^2]
+  const Numeric XKT = T / 1.4387752;                         // = (T*k_B) / (h*c)
 
   // Molecular cross section calculated by CKD.
   // The cross sectionis calculated on the predefined
   // CKD wavenumber grid.
   Vector k(NPTC + addF77fields, 0.);  // [1/cm]
   for (Index J = 1; J <= NPTC; ++J) {
-    Numeric VJ = V1C + (DVC * (Numeric)(J - 1));
+    const Numeric VJ = V1C + (DVC * (Numeric)(J - 1));
 
     int JFAC = 0;
     Numeric FSCAL = 0;
@@ -1232,12 +1227,11 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
                                    // but FORTRAN code has DIMENSION -1, 61
     } else  // same as from version 2.4 apart from the 630e0 in the VF2 equation
     {
-      Numeric VDELSQ1 = pow((VJ - 255.67e0), 2e0);
-      Numeric VDELmSQ1 = pow((VJ + 255.67e0), 2e0);
-      Numeric VF1 = pow(((VJ - 255.67e0) / 57.83e0), 8e0);
-      Numeric VmF1 = pow(((VJ + 255.67e0) / 57.83e0), 8e0);
-      // Numeric VF2 = pow( ((VJ)/57.83e0), 8e0); // previous VF2 equation
-      Numeric VF2 = pow(
+      const Numeric VDELSQ1 = pow((VJ - 255.67e0), 2e0);
+      const Numeric VDELmSQ1 = pow((VJ + 255.67e0), 2e0);
+      const Numeric VF1 = pow(((VJ - 255.67e0) / 57.83e0), 8e0);
+      const Numeric VmF1 = pow(((VJ + 255.67e0) / 57.83e0), 8e0);
+      const Numeric VF2 = pow(
           ((VJ) / 630e0),
           8e0);  // the 630e0 factor is different from previous versions of VF2 equation
 
@@ -1247,7 +1241,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
                   (1.000e0 + 0.3e0 * VF2);
     }
 
-    Numeric FH2O = FH2OT0[J] * FSCAL;
+    const Numeric FH2O = FH2OT0[J] * FSCAL;
 
     // CKD cross section with radiative field [1/cm]
     // The VMRH2O will be multiplied in abs_coefCalc, hence WTOT and not W1
@@ -1259,7 +1253,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
   // has therefore to be interpolated on the input frequencies.
   for (Index s = 0; s < nf; ++s) {
     // calculate the associated wave number (= 1/wavelength)
-    Numeric V = freq2kaycm(f_grid[s]);  // [cm^-1]
+    const Numeric V = freq2kaycm(f_grid[s]);  // [cm^-1]
     if ((V >= 0.000e0) && (V < FH2O_ckd_mt_350_v2)) {
       // arts CKD_MT.100 cross section [1/m]
       // interpolate the k vector on the f_grid grid
