@@ -98,7 +98,7 @@ void compute(PropagationMatrix& propmat_clearsky,
 
     if (do_temp_jac) {
       const Numeric d = temperature_perturbation(jacobian_quantities);
-      ARTS_ASSERT(dt not_eq 0)
+      ARTS_ASSERT(d not_eq 0)
 
       compute_selection(
           dpm, model, f_grid, rtp_pressure, rtp_temperature + d, vmr);
