@@ -1070,10 +1070,8 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
 
   // ------------------- subroutine SL296/SL260 ----------------------------
 
-  const Numeric Pave = (P * 1.000e-2);  // [hPa]
-  const Numeric Patm = Pave / PO;       // [1]
-  
-  // second vmr in abs_coefCalc multiplied
+  const Numeric Pave = (P * 1.000e-2);                                 // [hPa]
+  const Numeric Patm = Pave / PO;                                      // [1]
   const Numeric Rh2o = vmrh2o * Patm * (TO / T);                       // [1]
   const Numeric Tfac = (T - TO) / (260.0 - TO);                        // [1]
   const Numeric WTOT = xLosmt * (Pave / 1.013000e3) * (2.7300e2 / T);  // [molecules/cm^2]

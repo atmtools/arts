@@ -115,7 +115,7 @@ constexpr Numeric dvmr_calc(Numeric x) noexcept {
  * @param[in] spec The species whose derivative is computed
  */
 template <bool special>
-void compute_vmr_deriv(PropagationMatrix& dpm,
+bool compute_vmr_deriv(PropagationMatrix& dpm,
                        const PropagationMatrix& pm,
                        const SpeciesIsotopeRecord& model,
                        const Vector& f,
@@ -135,7 +135,7 @@ void compute_vmr_deriv(PropagationMatrix& dpm,
       if constexpr (not special) vmr.H2O += dvmr;
       break;
     default:
-      return;  // Escape mechanism when nothing should be done
+      return false;  // Escape mechanism when nothing should be done
   }
 
   if constexpr (not special) {
@@ -151,6 +151,7 @@ void compute_vmr_deriv(PropagationMatrix& dpm,
       compute_vmr_deriv<false>(dpm, pm, model, f, p, t, vmr, spec);
     }
   }
+  return true;
 }
 
 void compute(PropagationMatrix& propmat_clearsky,
@@ -232,30 +233,31 @@ void compute(PropagationMatrix& propmat_clearsky,
     for (Index iq = 0; iq < dpropmat_clearsky_dx.nelem(); iq++) {
       auto& deriv = jacobian_quantities[iq];
       if (deriv == Jacobian::Line::VMR) {
-        compute_vmr_deriv<false>(dpm,
-                                 pm,
-                                 model,
-                                 f_grid,
-                                 rtp_pressure,
-                                 rtp_temperature,
-                                 vmr,
-                                 deriv.QuantumIdentity().Species());
-        dpropmat_clearsky_dx[iq].Kjj() += dpm.Kjj();
+        if (compute_vmr_deriv<false>(dpm,
+                                     pm,
+                                     model,
+                                     f_grid,
+                                     rtp_pressure,
+                                     rtp_temperature,
+                                     vmr,
+                                     deriv.QuantumIdentity().Species()))
+          dpropmat_clearsky_dx[iq].Kjj() += dpm.Kjj();
       } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR and
                  std::any_of(deriv.Target().SpeciesList().begin(),
                              deriv.Target().SpeciesList().end(),
                              [model](auto& tag) {
                                return tag.Isotopologue() == model;
                              })) {
-        compute_vmr_deriv<true>(dpm,
-                                pm,
-                                model,
-                                f_grid,
-                                rtp_pressure,
-                                rtp_temperature,
-                                vmr,
-                                deriv.Target().SpeciesList().front().Spec());
-        dpropmat_clearsky_dx[iq].Kjj() += dpm.Kjj();
+        if (compute_vmr_deriv<true>(
+                dpm,
+                pm,
+                model,
+                f_grid,
+                rtp_pressure,
+                rtp_temperature,
+                vmr,
+                deriv.Target().SpeciesList().front().Spec()))
+          dpropmat_clearsky_dx[iq].Kjj() += dpm.Kjj();
       }
     }
   } else {
