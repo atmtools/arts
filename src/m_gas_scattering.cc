@@ -24,13 +24,8 @@
 #include "agenda_class.h"
 #include "check_input.h"
 #include "constants.h"
-// #include "debug.h"
 #include "gas_scattering.h"
-// // #include "matpack.h"
-// // // #include "matpackI.h"
-// // // // #include "messages.h"
 #include "optproperties.h"
-// #include "rte.h"
 #include "transmissionmatrix.h"
 #include <cmath>
 
