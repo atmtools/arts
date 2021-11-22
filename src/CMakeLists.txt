@@ -177,6 +177,7 @@ add_library (artscore STATIC
   predefined_absorption_models.cc
   file.cc
   gas_abs_lookup.cc
+  gas_scattering.cc
   geodetic.cc
   gridded_fields.cc
   gui_propmat.cc

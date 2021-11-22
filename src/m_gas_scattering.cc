@@ -22,8 +22,21 @@
   ===========================================================================*/
 
 #include "agenda_class.h"
-#include "arts.h"
-#include "rte.h"
+#include "check_input.h"
+#include "constants.h"
+// #include "debug.h"
+#include "gas_scattering.h"
+// // #include "matpack.h"
+// // // #include "matpackI.h"
+// // // // #include "messages.h"
+#include "optproperties.h"
+// #include "rte.h"
+#include "transmissionmatrix.h"
+#include <cmath>
+
+using Constant::pi;
+using Constant::boltzmann_constant;
+
 
 /*!
   \file   m_gas_scattering.cc
@@ -36,10 +49,6 @@
   These functions are listed in the doxygen documentation as entries of the
   file auto_md.h.
 */
-
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric BOLTZMAN_CONST;
 
 /*===========================================================================
   === The functions
@@ -69,7 +78,7 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
 
   // Number density
   Numeric N;
-  N = rtp_pressure / rtp_temperature / BOLTZMAN_CONST;
+  N = rtp_pressure / rtp_temperature / boltzmann_constant;
 
   //Vector of constant cross sections
   Vector Xsec(nf, ConstXsec);
@@ -95,7 +104,7 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
 
   // Number density
   Numeric N;
-  N = rtp_pressure / rtp_temperature / BOLTZMAN_CONST;
+  N = rtp_pressure / rtp_temperature / boltzmann_constant;
 
   PropagationMatrix sca_coef_temp(f_grid.nelem(), stokes_dim);
   sca_coef_temp.SetZero();
@@ -134,8 +143,48 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
   if (in_los.nelem()>0 && out_los.nelem()>0){
     TransmissionMatrix sca_mat_temp(f_grid.nelem(), stokes_dim);
     sca_mat_temp.setIdentity();
-    sca_mat_temp *= 1 / (4 * PI);
+    sca_mat_temp *= 1 / (4 * pi);
 
     sca_mat=sca_mat_temp;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
+                                  const Vector& in_los,
+                                  const Vector& out_los,
+                                  const Index& stokes_dim,
+                                  const Verbosity&) {
+
+  ARTS_USER_ERROR_IF(in_los.nelem() != out_los.nelem(), 
+    "The length of the vectors of incoming and outgoing direction must be the same.")                                  
+
+  //if in_los or out_los is empty then sca_mat is empty.
+  if (in_los.nelem()>0 && out_los.nelem()>0){
+
+    // calc_scatteringAngle() between in_los and out_los
+    Numeric za_inc = in_los[0];
+    Numeric aa_inc = in_los[1];
+    Numeric za_sca = out_los[0];
+    Numeric aa_sca = out_los[1];
+
+    Numeric theta_rad = scat_angle(za_sca, aa_sca, za_inc, aa_inc);
+    std::cout << "Scat angle:  " << Conversion::rad2deg(theta_rad) << std::endl;
+
+    // Rayleigh phase matrix in scattering system
+    Vector pha_mat_int = calc_rayleighPhaMat(theta_rad, stokes_dim);
+
+    // transform the phase matrix
+    Matrix pha_mat(stokes_dim, stokes_dim, 0.0);
+
+    pha_mat_labCalc(pha_mat, pha_mat_int, out_los[0], out_los[1], in_los[0], in_los[1], theta_rad);
+
+    TransmissionMatrix sca_mat_temp(pha_mat);
+    sca_mat_temp *= 1 / (4 * pi);
+    
+    sca_mat = sca_mat_temp;
+  } else {
+    // set the scattering matrics empty in case the in and out los are empty
+    sca_mat = TransmissionMatrix();
   }
 }

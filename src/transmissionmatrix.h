@@ -98,6 +98,13 @@ struct TransmissionMatrix {
 
   operator Tensor3() const;
 
+  explicit TransmissionMatrix(const ConstMatrixView& mat): TransmissionMatrix(1, mat.nrows()){
+   ARTS_ASSERT(mat.nrows() == mat.ncols());
+   for (Index i = 0; i < stokes_dim; i++)
+    for (Index j = 0; j < stokes_dim; j++)
+      operator()(0, i, j) = mat(i,j);
+  };
+
   /** Get Matrix at position
    * 
    * @param[in] i Position
@@ -195,6 +202,28 @@ struct TransmissionMatrix {
   [[nodiscard]] Numeric operator()(const Index i,
                                    const Index j,
                                    const Index k) const;
+
+  /** Access value in matrix
+   *
+   * @param[in] i Position in vector
+   * @param[in] j Row in matrix
+   * @param[in] k Col in matrix
+   * @return const Numeric& value
+   */
+  Numeric& operator()(const Index i, const Index j, const Index k) {
+    switch (stokes_dim) {
+      case 4:
+        return T4[i](j, k);
+      case 3:
+        return T3[i](j, k);
+      case 2:
+        return T2[i](j, k);
+      default:
+        return T1[i](j, k);
+    }
+  }
+
+
 
   /** Number of frequencies */
   [[nodiscard]] Index Frequencies() const;

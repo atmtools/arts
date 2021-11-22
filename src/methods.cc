@@ -7236,6 +7236,23 @@ Possible models:
       GIN_DEFAULT(),
       GIN_DESC()));
 
+  md_data_raw.push_back(create_mdrecord(      
+      NAME("gas_scatteringMatrixRayleigh"),
+      DESCRIPTION(
+          "Calculates the normalized Rayleigh scattering matrix.\n"),
+      AUTHORS("Jon Petersen"),
+      OUT("sca_mat"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("in_los",
+         "out_los",
+         "stokes_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("g0Earth"),
       DESCRIPTION(
