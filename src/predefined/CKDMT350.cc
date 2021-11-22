@@ -1074,7 +1074,7 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
   const Numeric Patm = Pave / PO;       // [1]
   
   // second vmr in abs_coefCalc multiplied
-  const Numeric Rh2o = Patm * (TO / T);                                // [1]
+  const Numeric Rh2o = vmrh2o * Patm * (TO / T);                       // [1]
   const Numeric Tfac = (T - TO) / (260.0 - TO);                        // [1]
   const Numeric WTOT = xLosmt * (Pave / 1.013000e3) * (2.7300e2 / T);  // [molecules/cm^2]
   const Numeric W1 = vmrh2o * WTOT;                                    // [molecules/cm^2]
@@ -1092,8 +1092,6 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
     }
 
     // CKD cross section with radiative field [1/cm]
-    // The VMRH2O will be multiplied in abs_coefCalc, hence Rh2o does not contain
-    // VMRH2O as multiplicative term
     k[J] = W1 * Rh2o * (SH2O * 1.000e-20) * RADFN_FUN(VJ, XKT);
   }
 
@@ -1107,7 +1105,7 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
       // interpolate the k vector on the f_grid grid
       // The factor 100 comes from the conversion from 1/cm to 1/m for
       // the absorption coefficient
-      propmat_clearsky.Kjj()[s] += 1.000e2 * vmrh2o * XINT_FUN(V1C, V2C, DVC, k, V);
+      propmat_clearsky.Kjj()[s] += 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
     }
   }
 }
@@ -1207,6 +1205,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
   const Numeric PFRGN = (Pave / PO) * (1.00000e0 - vmrh2o);  // dry air pressure [hPa]
   const Numeric RFRGN = PFRGN * (TO / T);                    // [hPa]
   const Numeric WTOT = xLosmt * (Pave / PO) * (T1 / T);      // [molecules/cm^2]
+  const Numeric W1 = vmrh2o * WTOT;                          // [molecules/cm^2]
   const Numeric XKT = T / 1.4387752;                         // = (T*k_B) / (h*c)
 
   // Molecular cross section calculated by CKD.
@@ -1244,9 +1243,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
     const Numeric FH2O = FH2OT0[J] * FSCAL;
 
     // CKD cross section with radiative field [1/cm]
-    // The VMRH2O will be multiplied in abs_coefCalc, hence WTOT and not W1
-    // as multiplicative term
-    k[J] = WTOT * RFRGN * (FH2O * 1.000e-20) * RADFN_FUN(VJ, XKT);
+    k[J] = W1 * RFRGN * (FH2O * 1.000e-20) * RADFN_FUN(VJ, XKT);
   }
 
   // Loop input frequency array. The previously calculated cross section
@@ -1259,7 +1256,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
       // interpolate the k vector on the f_grid grid
       // The factor 100 comes from the conversion from (1/cm) to (1/m)
       // of the abs. coeff.
-      propmat_clearsky.Kjj()[s] += 1.000e2 * vmrh2o * XINT_FUN(V1C, V2C, DVC, k, V);
+      propmat_clearsky.Kjj()[s] += 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
     }
   }
 }

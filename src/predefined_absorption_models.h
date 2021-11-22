@@ -35,19 +35,46 @@
 #include <random>
 
 namespace Absorption::PredefinedModel {
-/** Contains known required VMR values */
+/** Contains known required VMR values
+ *
+ *  Note: If you add a species here, add it to the Jacobian
+ *  wrapper in the compute function.
+ */
 struct VMRS {
   Numeric O2{0};
   Numeric H2O{0};
 
-  VMRS(const ArrayOfArrayOfSpeciesTag& specs, const Vector& rtp_vmr) :
-  O2(Species::first_vmr(specs, rtp_vmr, Species::Species::Oxygen)),
-  H2O(Species::first_vmr(specs, rtp_vmr, Species::Species::Water))
+  /**  Construct a new VMRS object
+   * 
+   * @param abs_species 
+   * @param rtp_vmr 
+   */
+  VMRS(const ArrayOfArrayOfSpeciesTag& abs_species, const Vector& rtp_vmr) :
+  O2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Oxygen)),
+  H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water))
   {}
-  
+
   constexpr VMRS() = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const VMRS& vmrs) {
+    return os << "O2: " << vmrs.O2 << '\n' <<
+                 "H2O: " << vmrs.H2O << '\n';
+  }
 };
 
+/** Compute the predefined model
+ *
+ * The tag is checked, so this should just be looped over by all available species
+ * 
+ * @param[inout] propmat_clearsky As WSV
+ * @param[inout] dpropmat_clearsky_dx As WSV
+ * @param[in] tag An isotope record
+ * @param[in] f_grid As WSV
+ * @param[in] rtp_pressure As WSV
+ * @param[in] rtp_temperature As WSV
+ * @param[in] vmr The VMRS defined from WSVs abs_species and rtp_vmr
+ * @param[in] jacobian_quantities As WSV
+ */
 void compute(
     PropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
