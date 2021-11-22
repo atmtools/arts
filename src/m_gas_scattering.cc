@@ -133,7 +133,6 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
-                                   const Vector& f_grid,
                                    const Vector& in_los,
                                    const Vector& out_los,
                                    const Index& stokes_dim,
@@ -141,11 +140,15 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
 
   //if in_los or out_los is empty then sca_mat is empty.
   if (in_los.nelem()>0 && out_los.nelem()>0){
-    TransmissionMatrix sca_mat_temp(f_grid.nelem(), stokes_dim);
+    TransmissionMatrix sca_mat_temp(0, stokes_dim);
     sca_mat_temp.setIdentity();
     sca_mat_temp *= 1 / (4 * pi);
 
     sca_mat=sca_mat_temp;
+  }
+  else {
+    // set the scattering matrics empty in case the in and out los are empty
+    sca_mat = TransmissionMatrix();
   }
 }
 
@@ -169,7 +172,6 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
     Numeric aa_sca = out_los[1];
 
     Numeric theta_rad = scat_angle(za_sca, aa_sca, za_inc, aa_inc);
-    std::cout << "Scat angle:  " << Conversion::rad2deg(theta_rad) << std::endl;
 
     // Rayleigh phase matrix in scattering system
     Vector pha_mat_int = calc_rayleighPhaMat(theta_rad, stokes_dim);

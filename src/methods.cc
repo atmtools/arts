@@ -7227,7 +7227,6 @@ Possible models:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("sca_mat",
-         "f_grid",
          "in_los",
          "out_los",
          "stokes_dim"),
