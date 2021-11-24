@@ -926,11 +926,54 @@ temperature.
  quantity is attenuated by the factor $e^{-\tau}$ before it reaches the
  observation point.
 
- \section{Clear sky simulations with a direct source}
+ \section{Clear sky simulations with star like sources}
  \label{sec:rtetheory:ClearskyDirectSources}
 
- In this section we describe the radiative transfer with a star like source.
+ In this section we describe the radiative transfer in clearsky with star 
+ like sources.
+ In this context clear sky means that there is no scattering by liquid or 
+ solid matter but scattering by atoms and molecules (gas scattering, see also ....).
+ Fig. XXX  shows the geometry for a reciever outside of the atmosphere.
 
+ The star is assumed to be far away from the planet or to be more precise
+ \begin{equation}
+  $r_{\astrosun}\ll d_{\astrosun p}$
+ \end{equation} with $r_{\astrosun}$ the star radius,
+ and $d_{\astrosun p}$ the distance between star and TOA of the planet. 
+ This means that the angular variability of the direction of the  radiation 
+ from the star can be neglected (parallel beam or collimated  beam approximation) 
+ and the incoming radiation at top of  the atmosphere (TOA) can be described as 
+ \begin{equation}
+ I_{\astrosun,TOA}\left(\Omega\right)=F_{\astrosun}\delta\left(\Omega,\Omega'\right)\label{eq:rtetheory:directsource}
+ \end{equation}
+ with $\Omega'$ the direction of the star. We neglect polarization here and in the follwoing part of this section for 
+ the sake of simplicity. 
+
+ The flux of the incoming radiation from the star at the top of the atmosphere
+ $F_{\astrosun}$ is 
+\begin{align}
+F_{\astrosun} & =\stackrel[0]{2\pi}{\int}\stackrel[0]{\alpha}{\int}I_{\astrosun}\cos\theta\sin\theta\text{d}\theta\text{d}\phi\\
+ & =\pi I_{\astrosun}\sin^{2}\alpha
+\end{align}
+with $I_{\astrosun}$ the star spectral radiance, which is assumed
+to be isotropic, and $\alpha$ the angular radius of the star seen
+from TOA of the planet. This is 
+\begin{equation}
+\alpha=\arctan\frac{r_{\astrosun}}{d_{\astrosun p}}\,.
+\end{equation}
+
+As gas scattering is rather weak, multi scattering can be neglected and only
+single scattering of the incoming radiation from the star needs to be considered. 
+With this and Eq. \ref{eq:rtetheory:directsource}, Eq. \ref{eq:rtetheory:VRTE} 
+neglecting polarization simplifies to  
+\begin{eqnarray}
+  \label{eq:rtetheory:ClearskyRTE}
+  \frac{\mathrm{d}I\left(s,\nu\right)}{\mathrm{d}s} & = & -kI\left(s,\nu\right)
+  +a\Planck\left(T\left(s\right)\right)+\underset{4\pi}{\int}P\left(\nu,\Omega_{i},\Omega_{s}\right)
+  F_{\astrosun}^{*}\left(\nu,s\right)\delta\left(\Omega_{i},\Omega'\right)\mathrm{d}\Omega_{i}\\
+  & = & -kI\left(s,\nu\right)+aB\left(T\left(s\right)\right)+P\left(\nu,\Omega',\Omega_{s}\right)F_{\astrosun}^{*}\left(\nu,s\right)
+\end{eqnarray}
+with $k$ and $a$ the extinction coefficients, $\Planck$ the Planck function
  
 
 
