@@ -471,7 +471,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
     // Loop tags in tag group
     for (Index s = 0; s < abs_species[i].nelem(); ++s) {
       // Check for continuum tags
-      if (abs_species[i][s].type == Species::TagType::Predefined ||
+      if (abs_species[i][s].type == Species::TagType::PredefinedLegacy ||
           abs_species[i][s].type == Species::TagType::Cia) {
         const String thisname = abs_species[i][s].Name();
         // Ok, now we know this is a continuum tag.

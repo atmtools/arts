@@ -66,6 +66,7 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT100"),
   IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT252"),
   IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT320"),
+  IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT350"),
   IsotopeRecord(fromShortName("H2O"), "ForeignContMaTippingType"),
   IsotopeRecord(fromShortName("H2O"), "ForeignContStandardType"),
   IsotopeRecord(fromShortName("H2O"), "MPM87"),
@@ -78,6 +79,7 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT100"),
   IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT252"),
   IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT320"),
+  IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT350"),
   IsotopeRecord(fromShortName("H2O"), "SelfContStandardType"),
   /** Water species **/
   

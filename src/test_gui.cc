@@ -121,7 +121,9 @@ int main() {
                                                         Zeeman::Polarization::SigmaPlus, band).abs;
   
   // Line Mixing reimplementation of MPM19
-  Absorption::PredefinedModel::Makarov2020etal::compute(mpm_abs, dmpm_abs, f_grid, P, T, 1, ArrayOfRetrievalQuantity(0));
+  Absorption::PredefinedModel::VMRS vmrs_predef;
+  vmrs_predef.O2 = 1;
+  Absorption::PredefinedModel::compute(mpm_abs, dmpm_abs, Species::Isotopologues[Species::find_species_index("O2", "MPM2020")], f_grid, P, T, vmrs_predef, ArrayOfRetrievalQuantity(0));
   
   // Line by line calculations
   band.Normalization(Absorption::NormalizationType::SFS);

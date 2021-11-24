@@ -37,3 +37,4 @@ endif()
 
 arts_test_run_pyfile(fast artscomponents/cutoff/ycalc.py)
 arts_test_run_pyfile(fast artscomponents/zeeman/ycalc.py)
+arts_test_run_pyfile(fast artscomponents/predefined/TestCKDMT350.py)

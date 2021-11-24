@@ -565,14 +565,12 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
     for (Index s = 0; s < tgs[i].nelem(); ++s) {
       // Continuum tags in the sense that we talk about here
       // (including complete absorption models) are marked by a special type.
-      if (tgs[i][s].Type() == Species::TagType::Predefined) {
+      if (tgs[i][s].Type() == Species::TagType::PredefinedLegacy) {
         // We have identified a continuum tag!
 
         // Get only the continuum name. The full tag name is something like:
         // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
         const String name = tgs[i][s].Isotopologue().FullName();
-
-        if (name == "O2-MPM2020") continue;
                                 
         // Check, if we have parameters for this model. For
         // this, the model name must be listed in
@@ -844,9 +842,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(  // WS Output:
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const ArrayOfMatrix& abs_coef_per_species,
-    const ArrayOfMatrix& dabs_coef_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfArrayOfSpeciesTag& abs_species) {
+    const ArrayOfMatrix& dabs_coef_dx) {
   // propmat_clearsky has format
   // [ abs_species, f_grid, stokes_dim, stokes_dim ].
   // abs_coef_per_species has format ArrayOfMatrix (over species),
@@ -1525,8 +1521,7 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
   propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky,
                                            dpropmat_clearsky_dx,
                                            abs_coef_per_species,
-                                           dabs_coef_dx,
-                                           jacobian_quantities, abs_species);
+                                           dabs_coef_dx);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -24,10 +24,11 @@
  * @brief  Full absorption models of various kinds
  */
 
+#include "debug.h"
 #include "predefined_absorption_models.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddPredefinedO2MPM2020(
+void propmat_clearskyAddPredefined(
     PropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -36,9 +37,7 @@ void propmat_clearskyAddPredefinedO2MPM2020(
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
     const Vector& rtp_vmr,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+    const Verbosity&) {
   // Forward simulations and their error handling
   ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
                      "Mismatch dimensions on species and VMR inputs");
@@ -60,19 +59,18 @@ void propmat_clearskyAddPredefinedO2MPM2020(
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
-  // We select the model at compile-time
-  constexpr const SpeciesIsotopeRecord& mpm2020 =
-      Species::select("O2", "MPM2020");
-
-  // Perform calculations if there is any oxygen
-  if (const auto o2 = find_first_isotologue(abs_species, mpm2020).first;
-      o2 not_eq -1) {
-    Absorption::PredefinedModel::Makarov2020etal::compute(propmat_clearsky,
-                                                          dpropmat_clearsky_dx,
-                                                          f_grid,
-                                                          rtp_pressure,
-                                                          rtp_temperature,
-                                                          rtp_vmr[o2],
-                                                          jacobian_quantities);
+  const Absorption::PredefinedModel::VMRS vmr(abs_species, rtp_vmr);
+  for (auto& tag_groups : abs_species) {
+    for (auto& tag : tag_groups) {
+      Absorption::PredefinedModel::compute(
+          propmat_clearsky,
+          dpropmat_clearsky_dx,
+          tag.Isotopologue(),
+          f_grid,
+          rtp_pressure,
+          rtp_temperature,
+          vmr,
+          jacobian_quantities);
+    }
   }
 }

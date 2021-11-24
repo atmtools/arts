@@ -30,34 +30,60 @@
 
 #include "jacobian.h"
 #include "propagationmatrix.h"
+#include "species.h"
+#include <algorithm>
+#include <random>
 
-namespace Absorption::PredefinedModel::Makarov2020etal {
-
-/** Adds Makarov MPM2020 O2 absorption lines to the propagation matrix
+namespace Absorption::PredefinedModel {
+/** Contains known required VMR values
  *
- * Adds the 60 GHz O2-66 band, including the 118.75 GHz line.  No Zeeman
- * effect is considered.
- * 
- * Adds no negative values outside of bounds.
- *
- * Jacobian values are computed by perturbations, only
- * frequency, temperature, and the two styles of VMR are supported
- * 
- * @param[in,out] propmat_clearsky As WSV
- * @param[in,out] dpropmat_clearsky_dx As WSV
- * @param[in]     f_grid As WSV
- * @param[in]     rtp_pressure As WSV
- * @param[in]     rtp_temperature As WSV
- * @param[in]     oxygen_vmr O2 volume mixing ratio (only for strength scaling)
- * @param[in]     jacobian_quantities As WSV
+ *  Note: If you add a species here, add it to the Jacobian
+ *  wrapper in the compute function.
  */
-void compute(PropagationMatrix& propmat_clearsky,
-             ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-             const Vector& f_grid,
-             const Numeric& rtp_pressure,
-             const Numeric& rtp_temperature,
-             const Numeric& oxygen_vmr,
-             const ArrayOfRetrievalQuantity& jacobian_quantities) ARTS_NOEXCEPT;
-} // namespace Absorption::PredefinedModel::Makarov2020etal
+struct VMRS {
+  Numeric O2{0};
+  Numeric H2O{0};
+
+  /**  Construct a new VMRS object
+   * 
+   * @param abs_species 
+   * @param rtp_vmr 
+   */
+  VMRS(const ArrayOfArrayOfSpeciesTag& abs_species, const Vector& rtp_vmr) :
+  O2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Oxygen)),
+  H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water))
+  {}
+
+  constexpr VMRS() = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const VMRS& vmrs) {
+    return os << "O2: " << vmrs.O2 << '\n' <<
+                 "H2O: " << vmrs.H2O << '\n';
+  }
+};
+
+/** Compute the predefined model
+ *
+ * The tag is checked, so this should just be looped over by all available species
+ * 
+ * @param[inout] propmat_clearsky As WSV
+ * @param[inout] dpropmat_clearsky_dx As WSV
+ * @param[in] tag An isotope record
+ * @param[in] f_grid As WSV
+ * @param[in] rtp_pressure As WSV
+ * @param[in] rtp_temperature As WSV
+ * @param[in] vmr The VMRS defined from WSVs abs_species and rtp_vmr
+ * @param[in] jacobian_quantities As WSV
+ */
+void compute(
+    PropagationMatrix& propmat_clearsky,
+    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    const SpeciesIsotopeRecord& tag,
+    const Vector& f_grid,
+    const Numeric& rtp_pressure,
+    const Numeric& rtp_temperature,
+    const VMRS& vmr,
+    const ArrayOfRetrievalQuantity& jacobian_quantities);
+} // namespace Absorption::PredefinedModel
 
 #endif  // fullmodel_h
