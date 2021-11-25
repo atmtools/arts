@@ -51,6 +51,7 @@
 #include "parameters.h"
 #include "physics_funcs.h"
 #include "rte.h"
+#include "species_tags.h"
 #include "xml_io.h"
 #include <algorithm>
 #include <cmath>
@@ -1800,20 +1801,28 @@ void propmat_clearsky_agendaAuto(Workspace& ws,
                                  Agenda& propmat_clearsky_agenda,
                                  const ArrayOfArrayOfSpeciesTag& abs_species,
                                  const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+
+                                 // GIN
                                  const Index& for_lookup,
                                  
+                                 // Lines
                                  const Numeric& sparse_df,
                                  const Numeric& sparse_lim,
                                  const String& speedup_option,
                                  
+                                 // Lookup
                                  const Numeric& extpolfac,
                                  
+                                 // Particles
                                  const Index& use_abs_as_ext,
                                  
+                                 // Zeeman
                                  const Index& manual_zeeman_tag,
                                  const Numeric& manual_zeeman_magnetic_field_strength,
                                  const Numeric& manual_zeeman_theta,
                                  const Numeric& manual_zeeman_eta,
+
+                                 // Finally, verbosity
                                  const Verbosity& verbosity) {
   using namespace ARTS::Agenda;
   CREATE_OUT2;
@@ -1870,7 +1879,7 @@ void propmat_clearsky_agendaAuto(Workspace& ws,
     propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddFromLookup(ws, extpolfac_arts=extpolfac));
   }
   
-  bool done_electrons=false, done_particles=false, done_zeeman=false, done_xsec=false;
+  bool done_electrons=false, done_particles=false, done_zeeman=false, done_xsec=false, done_modern=false;
   for (auto& species: abs_species) {
     if (not done_electrons and species.FreeElectrons()) {
       done_electrons = true;
@@ -1913,20 +1922,24 @@ void propmat_clearsky_agendaAuto(Workspace& ws,
     }
     
     else for (auto& tag: species) {
-      if (not for_lookup and tag.Isotopologue() == Species::select("O2", "MPM2020")) {
-        propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddPredefinedO2MPM2020(ws));
-        
-        rtp_pressure = true;
-        rtp_temperature = true;
-        rtp_vmr = true;
-      } else if (not for_lookup and not done_xsec and Species::is_predefined_model(tag.Isotopologue())) {
-        propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddXsecAgenda(ws));
-        done_xsec = true;
-        
-        rtp_pressure = true;
-        rtp_temperature = true;
-        rtp_vmr = true;
-      }
+        if (not for_lookup and not done_modern and tag.type == Species::TagType::PredefinedModern) {
+          done_modern = true;
+          rtp_pressure = true;
+          rtp_temperature = true;
+          rtp_vmr = true;
+
+          propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddPredefined(ws));
+        } else if (not for_lookup and not done_xsec and
+                   (tag.type == Species::TagType::PredefinedLegacy or
+                    tag.type == Species::TagType::Cia or
+                    tag.type == Species::TagType::HitranXsec)) {
+          done_xsec = true;
+          rtp_pressure = true;
+          rtp_temperature = true;
+          rtp_vmr = true;
+
+          propmat_clearsky_agenda.push_back(Method::propmat_clearskyAddXsecAgenda(ws));
+        }
     }
   }
   
