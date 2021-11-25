@@ -591,9 +591,8 @@ ENUMCLASS(BasicCatParamJacobian, char, LineStrength, LineCenter)
 ENUMCLASS(
     HitranType,
     char,
-    Pre2004,         // 2004 version changed the .par-length
-    From2004To2012,  // New par length but old isotopologues order
-    Post2012,        // 2012 version changed the order of isotopologues
+    Pre2004,   // 2004 version changed the .par-length
+    Post2004,  // New par length
     Online  // Onine expects a modern .par line followed by Upper then Lower quantum numbers
 )
 

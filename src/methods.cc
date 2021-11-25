@@ -14747,9 +14747,9 @@ void define_md_data_raw() {
       DESCRIPTION("Reads a HITRAN .par file.\n"
                   "\n"
                   "The HITRAN type switch can be:\n"
-                  "\t\"Pre2004\"\t-\tfor old format\n"
-                  "\t\"Post2004\"\t-\tfor new format\n"
-                  "\t\"Online\"\t-\tfor the online format with quantum numbers (recommended)\n"
+                  "\t\"Pre2004\"  \t-\t for old format\n"
+                  "\t\"Post2004\" \t-\t for new format\n"
+                  "\t\"Online\"   \t-\t for the online format with quantum numbers (recommended)\n"
                   "\n"
                   "Be careful setting the options!\n"
                   "\n"
@@ -14771,8 +14771,9 @@ void define_md_data_raw() {
                   "\tUse *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*\n"
                   "\n"
                   "The <commit hash> required per version of Hitran are:\n"
-                  "\tHitran 2004-2016: Your current version is OK.\n"
-                  "\tHitran before 2004: d41aa88a8c8bb9a2da3cfbd75a24d69029ecca9a\n"
+                  "\tHitran 2020-****: Your current version is OK.\n"
+                  "\tHitran 2004-2016: 1a80ee78970650ecf96d5e0a9fcef2f226b434a6\n"
+                  "\tHitran  pre-2004: d41aa88a8c8bb9a2da3cfbd75a24d69029ecca9a\n"
       ),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),

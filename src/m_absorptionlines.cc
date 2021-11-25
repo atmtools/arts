@@ -474,10 +474,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   while (go_on) {
     Absorption::SingleLineExternal sline;
     switch (hitran_version) {
-      case Options::HitranType::Post2012:
-        sline = Absorption::ReadFromHitran2012Stream(is);
-        break;
-      case Options::HitranType::From2004To2012:
+      case Options::HitranType::Post2004:
         sline = Absorption::ReadFromHitran2004Stream(is);
         break;
       case Options::HitranType::Pre2004:

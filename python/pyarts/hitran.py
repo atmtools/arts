@@ -2,6 +2,7 @@ from urllib.request import urlopen
 
 # Map Hitran to ARTS species names
 _HITRAN_TO_ARTS_NAMES = {
+    "HC3N-1224": "HC3N-12224",
 }
 
 

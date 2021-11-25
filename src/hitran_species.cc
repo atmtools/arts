@@ -19,6 +19,8 @@ using HitranMap = std::map<Index, std::map<char, std::pair<Index, Numeric>>>;
  * this when you update this variable.  If any isotopologue ratio is changed, or any
  * isotopologue key (the char) is changed, also update methods.cc ReadHITRAN as it
  * depends on this map for versions of Hitran
+ *
+ * Last Updated: 2021-11-25
  */
 const HitranMap molparam_map{
     {1,
@@ -30,7 +32,7 @@ const HitranMap molparam_map{
          {'4', {Species::find_species_index("H2O", "162"), 3.10693E-04}},
          {'5', {Species::find_species_index("H2O", "182"), 6.23003E-07}},
          {'6', {Species::find_species_index("H2O", "172"), 1.15853E-07}},
-         {'7', {Species::find_species_index("H2O", "262"), 2.41970E-08}},
+         {'7', {Species::find_species_index("H2O", "262"), 2.41974E-08}},
      }},
     {2,
      {
@@ -46,7 +48,7 @@ const HitranMap molparam_map{
          {'9', {Species::find_species_index("CO2", "727"), 1.36847E-07}},
          {'0', {Species::find_species_index("CO2", "838"), 4.44600E-08}},
          {'A', {Species::find_species_index("CO2", "837"), 1.65354E-08}},
-         {'B', {Species::find_species_index("CO2", "737"), 1.53750E-09}},
+         {'B', {Species::find_species_index("CO2", "737"), 1.53745E-09}},
      }},
     {3,
      {
@@ -103,6 +105,8 @@ const HitranMap molparam_map{
          // SO2
          {'1', {Species::find_species_index("SO2", "626"), 9.45678E-01}},
          {'2', {Species::find_species_index("SO2", "646"), 4.19503E-02}},
+         {'3', {Species::find_species_index("SO2", "636"), 7.46446E-03}},
+         {'4', {Species::find_species_index("SO2", "628"), 3.79256E-03}},
      }},
     {10,
      {
@@ -120,7 +124,7 @@ const HitranMap molparam_map{
      {
          // HNO3
          {'1', {Species::find_species_index("HNO3", "146"), 9.89110E-01}},
-         {'2', {Species::find_species_index("HNO3", "156"), 3.63600E-03}},
+         {'2', {Species::find_species_index("HNO3", "156"), 3.63643E-03}},
      }},
     {13,
      {
@@ -171,7 +175,7 @@ const HitranMap molparam_map{
          {'3', {Species::find_species_index("OCS", "632"), 1.05315E-02}},
          {'4', {Species::find_species_index("OCS", "623"), 7.39908E-03}},
          {'5', {Species::find_species_index("OCS", "822"), 1.87967E-03}},
-         {'6', {Species::find_species_index("OCS", "634"), 4.67508E-04}},
+         {'6', {Species::find_species_index("OCS", "634"), 4.67176E-04}},
      }},
     {20,
      {
@@ -190,7 +194,7 @@ const HitranMap molparam_map{
      {
          // N2
          {'1', {Species::find_species_index("N2", "44"), 9.92687E-01}},
-         {'2', {Species::find_species_index("N2", "45"), 7.47809E-03}},
+         {'2', {Species::find_species_index("N2", "45"), 7.29916E-03}},
      }},
     {23,
      {
@@ -232,12 +236,12 @@ const HitranMap molparam_map{
      {
          // COF2
          {'1', {Species::find_species_index("COF2", "269"), 9.86544E-01}},
-         {'2', {Species::find_species_index("COF2", "369"), 1.10834E-02}},
+         {'2', {Species::find_species_index("COF2", "369"), 1.10837E-02}},
      }},
     {30,
      {
          // SF6
-         {'1', {Species::find_species_index("SF6", "29"), .950180E+00}},
+         {'1', {Species::find_species_index("SF6", "29"), 9.50180E-01}},
      }},
     {31,
      {
@@ -264,8 +268,8 @@ const HitranMap molparam_map{
     {35,
      {
          // ClONO2
-         {'1', {Species::find_species_index("ClONO2", "5646"), .749570E+00}},
-         {'2', {Species::find_species_index("ClONO2", "7646"), .239694E+00}},
+         {'1', {Species::find_species_index("ClONO2", "5646"), 7.49570E-01}},
+         {'2', {Species::find_species_index("ClONO2", "7646"), 2.39694E-01}},
      }},
     {36,
      {
@@ -332,7 +336,7 @@ const HitranMap molparam_map{
     {47,
      {
          // SO3
-         {'1', {Species::find_species_index("SO3", "26"), 9.43400E-01}},
+         {'1', {Species::find_species_index("SO3", "26"), 9.43434E-01}},
      }},
     {48,
      {
@@ -345,13 +349,44 @@ const HitranMap molparam_map{
          {'1', {Species::find_species_index("COCl2", "2655"), 5.66392E-01}},
          {'2', {Species::find_species_index("COCl2", "2657"), 3.62235E-01}},
      }},
+    {50,
+     {
+         // SO
+         {'1', {Species::find_species_index("SO", "26"), 9.47926E-01}},
+         {'2', {Species::find_species_index("SO", "46"), 4.20500E-02}},
+         {'3', {Species::find_species_index("SO", "28"), 1.90079E-03}},
+     }},
+    {51,
+     {
+         // CH3F
+         {'1', {Species::find_species_index("CH3F", "219"), 9.88428E-01}},
+     }},
+    {52,
+     {
+         // GeH4
+         {'1', {Species::find_species_index("GeH4", "411"), 3.65172E-01}},
+         {'2', {Species::find_species_index("GeH4", "211"), 2.74129E-01}},
+         {'3', {Species::find_species_index("GeH4", "011"), 2.05072E-01}},
+         {'4', {Species::find_species_index("GeH4", "311"), 7.75517E-02}},
+         {'5', {Species::find_species_index("GeH4", "611"), 7.75517E-02}},
+     }},
     {53,
      {
          // CS2
          {'1', {Species::find_species_index("CS2", "222"), 8.92811E-01}},
-         {'2', {Species::find_species_index("CS2", "224"), 7.92600E-02}},
-         {'3', {Species::find_species_index("CS2", "223"), 1.40940E-02}},
-         {'4', {Species::find_species_index("CS2", "232"), 1.03100E-02}},
+         {'2', {Species::find_species_index("CS2", "224"), 7.92103E-02}},
+         {'3', {Species::find_species_index("CS2", "223"), 1.40944E-02}},
+         {'4', {Species::find_species_index("CS2", "232"), 1.00306E-02}},
+     }},
+    {54,
+     {
+         // CH3I
+         {'1', {Species::find_species_index("CH3I", "217"), 9.88428E-01}},
+     }},
+    {55,
+     {
+         // NF3
+         {'1', {Species::find_species_index("NF3", "4999"), 9.96337E-01}},
      }},
 };
 
