@@ -44,12 +44,11 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
                                                         const Numeric& fmax,
                                                         const Numeric& stot,
                                                         const String& mode,
-                                                        const String& hitran_type,
                                                         const Verbosity&)
 {
   const lm_hitran_2017::ModeOfLineMixing intmode = lm_hitran_2017::toModeOfLineMixingOrThrow(mode);
   
-  const SpeciesIsotopologueRatios isotopologue_ratios = Hitran::isotopologue_ratios(Hitran::toTypeOrThrow(hitran_type));
+  const SpeciesIsotopologueRatios isotopologue_ratios = Hitran::isotopologue_ratios();
   
   ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_lines_per_species.nelem(),
                       "Bad size of input species+lines");

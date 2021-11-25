@@ -392,16 +392,15 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "abs_species"),
-      GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode", "hitran_type"),
-      GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, "-1", "-1e99", "1e99", "0", "VP_W", "Newest"),
+      GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode"),
+      GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String"),
+      GIN_DEFAULT(NODEF, "-1", "-1e99", "1e99", "0", "VP_W"),
       GIN_DESC("Direcory where the linemixing data is to be found",
                "Line mixing limit as defined by *AbsorptionLines*",
                "Minimum frequency to read from",
                "Maximum frequency to read until",
                "Minimum integrated band strength to consider",
-               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\"",
-               "Type of HITRAN catalog used (to scale line strengths)"
+               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\""
               )));
 
   md_data_raw.push_back(create_mdrecord(
@@ -7587,10 +7586,10 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("option"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("Newest"),
-      GIN_DESC("Version of HITRAN catalog")));
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
@@ -14772,7 +14771,7 @@ void define_md_data_raw() {
                   "\tUse *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*\n"
                   "\n"
                   "The <commit hash> required per version of Hitran are:\n"
-                  "THIS IS THE LAST COMMIT WITH VERY OLD BEHAVIOR BUT THE METHOD TEXT IS UPDATED\n"
+                  "\tHitran before 2004: Your current version is OK\n"
       ),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),

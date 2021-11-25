@@ -673,7 +673,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2012Stream(istream& is)
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso);
   data.species[0] = data.quantumidentity.Species();
   
   // Position.
@@ -713,7 +713,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2012Stream(istream& is)
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Newest);
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso);
   }
   
   // Einstein coefficient
@@ -946,7 +946,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso);
   data.species[0] = data.quantumidentity.Species();
 
   // Position.
@@ -986,7 +986,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso);
   }
 
   // Einstein coefficient
@@ -1241,7 +1241,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso);
   data.species[0] = data.quantumidentity.Species();
 
   // Position.
@@ -1281,7 +1281,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Newest);
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso);
   }
 
   // Einstein coefficient
@@ -1517,7 +1517,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso);
   data.species[0] = data.quantumidentity.Species();
 
   // Position.
@@ -1558,7 +1558,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso);
   }
 
   // Skip transition probability:
@@ -1755,7 +1755,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso);
 
   // Position.
   {
@@ -1797,7 +1797,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /=  Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Newest);
+    data.line.I0() /=  Hitran::ratio_from_lookup(mo, iso);
   }
 
   // Skip transition probability:

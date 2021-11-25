@@ -1547,9 +1547,8 @@ void isotopologue_ratiosInitFromBuiltin(SpeciesIsotopologueRatios& isotopologue_
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void isotopologue_ratiosInitFromHitran(SpeciesIsotopologueRatios& isotopologue_ratios,
-                                       const String& option,
                                        const Verbosity&) {
-  isotopologue_ratios = Hitran::isotopologue_ratios(Hitran::toTypeOrThrow(option));
+  isotopologue_ratios = Hitran::isotopologue_ratios();
 }
 
 #ifdef ENABLE_NETCDF
