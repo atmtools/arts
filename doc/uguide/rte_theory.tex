@@ -938,7 +938,8 @@ temperature.
  The star is assumed to be far away from the planet or to be more precise
  \begin{equation}
   r_{\astrosun} \ll d_{\astrosun p}
- \end{equation} with $r_{\astrosun}$ the star radius,
+ \end{equation}
+ with $r_{\astrosun}$ the star radius,
  and $d_{\astrosun p}$ the distance between star and TOA of the planet. 
  This means that the angular variability of the direction of the  radiation 
  from the star can be neglected (parallel beam or collimated  beam approximation) 
@@ -952,8 +953,7 @@ temperature.
  The flux of the incoming radiation from the star at the top of the atmosphere
  $F_{\astrosun}$ is 
 \begin{align}
-F_{\astrosun} & =\int^{2\pi}_0 \int^{\alpha}_0I_{\astrosun}\cos\theta\sin\theta\text{d}\theta\text{d}\phi\\
- & =\pi I_{\astrosun}\sin^{2}\alpha
+F_{\astrosun} = \int^{2\pi}_0 \int^{\alpha}_0 I_{\astrosun}\cos\theta\sin\theta\text{d}\theta\text{d}\phi=\pi I_{\astrosun}\sin^{2}\alpha
 \end{align}
 with $I_{\astrosun}$ the star spectral radiance, which is assumed
 to be isotropic, and $\alpha$ the angular radius of the star seen
@@ -968,20 +968,21 @@ With this and Eq. \ref{eq:rtetheory:directsource}, Eq. \ref{eq:rtetheory:VRTE}
 neglecting polarization simplifies to  
 \begin{eqnarray}
   \label{eq:rtetheory:ClearskyRTE}
-  \frac{\mathrm{d}I\left(s,\nu\right)}{\mathrm{d}s} & = & -kI\left(s,\nu\right)
-  +a\Planck\left(T\left(s\right)\right)+\underset{4\pi}{\int}P\left(\nu,\Omega_{i},\Omega_{s}\right)
+  \frac{\mathrm{d}I\left(s,\nu\right)}{\mathrm{d}s}   = & -kI\left(s,\nu\right)
+   &  +a\Planck\left(T\left(s\right)\right)+ \nonumber\\
+  \underset{4\pi}{\int}P\left(\nu,\Omega_{i},\Omega_{s}\right)
   F_{\astrosun}^{*}\left(\nu,s\right)\delta\left(\Omega_{i},\Omega'\right)\mathrm{d}\Omega_{i}\\
-  & = & -kI\left(s,\nu\right)+aB\left(T\left(s\right)\right)+P\left(\nu,\Omega',\Omega_{s}\right)F_{\astrosun}^{*}\left(\nu,s\right)
+   = -kI\left(s,\nu\right)+aB\left(T\left(s\right)\right)+P\left(\nu,\Omega',\Omega_{s}\right)F_{\astrosun}^{*}\left(\nu,s\right)
 \end{eqnarray}
 with $k$ and $a$ the extinction coefficients, $\Planck$ the Planck function.
 
 \subsection{Star definition}
 \label{sec:rtetheory:star_def}
 
-As in section \ref{sec:rte_theory:ClearskyDirectSources} described the radius $r_{\astrosun}$ of 
-and distance $d_{\astrosun}$ to the star like object must be known. The position of this object 
+As in section \ref{sec:rte_theory:ClearskyDirectSources} described the radius $r_{\astrosun}$ of
+and distance $d_{\astrosun}$ to the star like object must be known. The position of this object
 in the sky of the planet is defined by the latitude and longitude where it stands at its zenith.
-The monochromatic irradiance spectra is definde as the blackbody spectrum, which is calculated 
+The monochromatic irradiance spectra is definde as the blackbody spectrum, which is calculated
 with the Plank function and the surface temperature of the object $T_{astrosun}$.
 
 \section{Special solutions}
