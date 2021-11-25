@@ -14771,7 +14771,8 @@ void define_md_data_raw() {
                   "\tUse *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*\n"
                   "\n"
                   "The <commit hash> required per version of Hitran are:\n"
-                  "\tHitran before 2004: Your current version is OK\n"
+                  "\tHitran 2004-2016: Your current version is OK.\n"
+                  "\tHitran before 2004: d41aa88a8c8bb9a2da3cfbd75a24d69029ecca9a\n"
       ),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),

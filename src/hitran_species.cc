@@ -8,11 +8,17 @@
 namespace Hitran {
 using HitranMap = std::map<Index, std::map<char, std::pair<Index, Numeric>>>;
 
-/** In 2012 the order if isotopologues were changed in HITRAN
+/** The latest version of the HITRAN online molparam.txt file as a map
  * 
- * This version takes that into account.  Note that the other species
- * are left as they were in the latest_molparam_map map at the time
- * of creating this file (2021-03-10)
+ * Note that ARTS does not use AFGL notation as HITRAN so several species has
+ * to be changed manually when recreating this map.  Please keep the comments
+ * of this change around so that it is easy to do this recreation.  Thanks!
+ * 
+ * To recreate this map, run the pyarts.hitran.gen_latest_molparam_map.  If more
+ * species names mismatch between ARTS and HITRAN, do please add a comment to indicate
+ * this when you update this variable.  If any isotopologue ratio is changed, or any
+ * isotopologue key (the char) is changed, also update methods.cc ReadHITRAN as it
+ * depends on this map for versions of Hitran
  */
 const HitranMap molparam_map{
     {1,
@@ -37,9 +43,10 @@ const HitranMap molparam_map{
          {'6', {Species::find_species_index("CO2", "637"), 8.24623E-06}},
          {'7', {Species::find_species_index("CO2", "828"), 3.95734E-06}},
          {'8', {Species::find_species_index("CO2", "827"), 1.47180E-06}},
-         {'9',
-          {Species::find_species_index("CO2", "838"),
-           4.44600E-08}},  // This is different for HITRAN2008 and earlier cf original map
+         {'9', {Species::find_species_index("CO2", "727"), 1.36847E-07}},
+         {'0', {Species::find_species_index("CO2", "838"), 4.44600E-08}},
+         {'A', {Species::find_species_index("CO2", "837"), 1.65354E-08}},
+         {'B', {Species::find_species_index("CO2", "737"), 1.53750E-09}},
      }},
     {3,
      {
