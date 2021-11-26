@@ -667,12 +667,18 @@ std::pair<ComplexVector, bool> ecs_absorption_impl(const Numeric T,
       const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, j);
       const Numeric dzeeman = H * band.ZeemanSplitting(i, zeeman_polarization, j);
       
-      const Numeric gamd = GD_div_F0 * (eqv.val[i].real() + frenorm + dzeeman);
-      const Numeric cte = Constant::sqrt_ln_2 / gamd;
-      for (Index iv=0; iv<f_grid.nelem(); iv++) {
-        const Complex z = (eqv.val[i] + frenorm + dzeeman - f_grid[iv]) * cte;
-        const Complex w = Faddeeva::w(z);
-        absorption[iv] += Sz * eqv.str[i] * w / gamd;
+      if (band.LineShapeType() == LineShape::Type::LP) {
+        for (Index iv=0; iv<f_grid.nelem(); iv++) {
+          absorption[iv] -= 1i * Sz * ((eqv.str[i] / (f_grid[iv] - frenorm - dzeeman - eqv.val[i]))) / (Constant::sqrt_ln_2 * Constant::sqrt_pi);
+        }
+      } else /*if (band.LineShapeType() == LineShape::Type::VP)*/ {
+        const Numeric gamd = GD_div_F0 * (eqv.val[i].real() + frenorm + dzeeman);
+        const Numeric cte = Constant::sqrt_ln_2 / gamd;
+        for (Index iv=0; iv<f_grid.nelem(); iv++) {
+          const Complex z = (eqv.val[i] + frenorm + dzeeman - f_grid[iv]) * cte;
+          const Complex w = Faddeeva::w(z);
+          absorption[iv] += Sz * eqv.str[i] * w / gamd;
+        }
       }
     }
   }

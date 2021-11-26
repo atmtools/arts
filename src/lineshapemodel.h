@@ -247,6 +247,34 @@ String modelparameters2metadata(const ModelParameters mp, const Numeric T0);
  */
 Numeric& SingleModelParameter(ModelParameters& mp, const String& type);
 
+constexpr ModelParameters modelparameterGetEmpty(const TemperatureModel t) noexcept {
+  switch(t) {
+    case TemperatureModel::None:   // 0
+      return {TemperatureModel::None, 0, 0, 0, 0};
+    case TemperatureModel::T0:     // Constant, X0
+      return {TemperatureModel::T0, 0, 0, 0, 0};
+    case TemperatureModel::T1:     // Standard, X0 * (T0/T) ^ X1
+      return {TemperatureModel::T1, 0, 0, 0, 0};
+    case TemperatureModel::T2:     // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+      return {TemperatureModel::T2, 0, 0, 0, 0};
+    case TemperatureModel::T3:     // X0 + X1 * (T - T0)
+      return {TemperatureModel::T3, 0, 0, 0, 0};
+    case TemperatureModel::T4:     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+      return {TemperatureModel::T4, 0, 0, 0, 0};
+    case TemperatureModel::T5:     // X0 * (T0/T)^(0.25 + 1.5*X1)
+      return {TemperatureModel::T5, 0, 0, 0, 0};
+    case TemperatureModel::LM_AER: // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+      return {TemperatureModel::LM_AER, 0, 0, 0, 0};
+    case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+      return {TemperatureModel::DPL, 0, 0, 0, 0};
+    case TemperatureModel::POLY:
+      return {TemperatureModel::POLY, 0, 0, 0, 0};
+    case TemperatureModel::FINAL:
+      return {TemperatureModel::None, 0, 0, 0, 0};
+  }
+  return {TemperatureModel::None, 0, 0, 0, 0};
+}
+
 constexpr bool modelparameterEmpty(const ModelParameters mp) noexcept {
   switch(mp.type) {
     case TemperatureModel::None:   // 0
@@ -407,7 +435,7 @@ class SingleSpeciesModel {
   /** Binary write for SingleSpeciesModel */
   bofstream& write(bofstream& bof) const;
   
-  [[nodiscard]] bool MatchTypes(const SingleSpeciesModel& other) const noexcept;
+  [[nodiscard]] std::pair<bool, bool> MatchTypes(const SingleSpeciesModel& other) const noexcept;
 };
 
 /** Output operator for SingleSpeciesModel */
@@ -850,7 +878,7 @@ class Model {
    */
   void SetLineMixingModel(SingleSpeciesModel x);
   
-  [[nodiscard]] bool Match(const Model& other) const noexcept;
+  [[nodiscard]] std::pair<bool, bool> Match(const Model& other) const noexcept;
   
   friend
   std::istream& from_linefunctiondata(std::istream& data,

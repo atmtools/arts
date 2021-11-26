@@ -392,16 +392,15 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "abs_species"),
-      GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode", "hitran_type"),
-      GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, "-1", "-1e99", "1e99", "0", "VP_W", "Newest"),
+      GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode"),
+      GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String"),
+      GIN_DEFAULT(NODEF, "-1", "-1e99", "1e99", "0", "VP_W"),
       GIN_DESC("Direcory where the linemixing data is to be found",
                "Line mixing limit as defined by *AbsorptionLines*",
                "Minimum frequency to read from",
                "Maximum frequency to read until",
                "Minimum integrated band strength to consider",
-               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\"",
-               "Type of HITRAN catalog used (to scale line strengths)"
+               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\""
               )));
 
   md_data_raw.push_back(create_mdrecord(
@@ -640,15 +639,31 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesReplaceWithLines"),
+      NAME("CheckUnique"),
+      DESCRIPTION("Checks that *abs_lines* contains only unique absorption lines\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("abs_linesReplaceLines"),
       DESCRIPTION(
           "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
           "\n"
           "Each replacement_lines must match excatly a single line in *abs_lines*.\n"
           "\n"
-          "The matching required identical quantum number signatures to work\n"
+          "The matching requires identical quantum number signatures to work\n"
           "\n"
-          "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers.\n"),
+          "Note that lines are identified by their quantum number identifier, and if the broadening or\n"
+          "compute data disagree between two bands, a new band is appended unless we can work around the issue.\n"
+          "This may cause *CheckUnique* to fail after running this method\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -661,115 +676,23 @@ void define_md_data_raw() {
       GIN_DESC("Line-array that replace lines in *abs_lines*.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesAppendWithLines"),
+      NAME("abs_linesReplaceBands"),
       DESCRIPTION(
-          "Appends all lines in *abs_lines* that match with lines in replacement_lines if *safe*.\n"
-          "If not *safe*, appends all lines.\n"
+          "Replace all bands in *abs_lines* that match with bands in *replacing_bands*.\n"
           "\n"
-          "No appended line is allowed to match any line in *abs_lines* if *safe*\n"
+          "Each *replacing_bands* must match excatly a single band in *abs_lines*.\n"
           "\n"
-          "Conditional behavior if *safe*:\n"
-          "\tIf the AbosorptionLines to be appended match no AbsorptionLines\n"
-          "\tin *abs_lines*, then the entire AbsorptionLines is appended.\n"
-          "\tOtherwise, only a single AbsorptionLines can be matched and is not\n"
-          "\tallowed to have any internal matches\n"
-          "\n"
-          "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers\n"
-          "in *safe* mode.\n"),
+          "The matching requires identical quantum number signatures to work.\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("appending_lines", "safe"),
-      GIN_TYPE("ArrayOfAbsorptionLines", "Index"),
-      GIN_DEFAULT(NODEF, "1"),
-      GIN_DESC("Line-array that appends lines in *abs_lines*.",
-               "Flag whether to check quantum numbers or not")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesDeleteWithLines"),
-      DESCRIPTION(
-          "Deletes all lines in *abs_lines* that match with lines in replacement_lines.\n"
-          "\n"
-          "If a deleted line has no match, then nothing happens.\n"
-          "\n"
-          "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers.\n"
-          "There is no need to have all values correct.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("deleting_lines"),
+      GIN("replacing_bands"),
       GIN_TYPE("ArrayOfAbsorptionLines"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Line-array that removes lines from *abs_lines*.")));
-  
-  md_data_raw.push_back(create_mdrecord(
-    NAME("abs_linesDeleteBadF0"),
-      DESCRIPTION(
-          "Deletes all lines in *abs_lines* that have bad central frequencies\n"
-          "\n"
-          "If lower evaluates as true, deletes all lines with a frequency below f0.\n"
-          "Otherwise deletes all lines with a frequency above f0.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("f0", "lower"),
-      GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT(NODEF, "1"),
-      GIN_DESC("Target frequency",
-               "Lower or upper flag (eval as boolean)")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesDeleteLinesWithUndefinedLocalQuanta"),
-      DESCRIPTION(
-          "Deletes all lines in *abs_lines* that have undefined local quanta\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesDeleteLinesWithBadOrHighChangingJs"),
-      DESCRIPTION("Deletes all lines in *abs_lines* that have undefined Js or Js\n"
-                  "that change more than 1 between energy levels\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesDeleteLinesWithQuantumNumberAbove"),
-      DESCRIPTION("Deletes all lines in *abs_lines* that have too large quantum number\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("quantumnumber", "quantumnumber_value"),
-      GIN_TYPE("String", "Index"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Quantum number identified", "Value")));
+      GIN_DESC("Line-array that replace lines in *abs_lines*.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesPrintDefinedQuantumNumbers"),
@@ -7663,10 +7586,10 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("option"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("Newest"),
-      GIN_DESC("Version of HITRAN catalog")));
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
@@ -14824,12 +14747,33 @@ void define_md_data_raw() {
       DESCRIPTION("Reads a HITRAN .par file.\n"
                   "\n"
                   "The HITRAN type switch can be:\n"
-                  "\t\"Pre2004\"\t-\tfor old format\n"
-                  "\t\"From2004To2012\"\t-\tfor new format but old isotopologue order\n"
-                  "\t\"Post2012\"\t-\tfor new format and new isotopologue order\n"
-                  "\t\"Online\"\t-\tfor the online format with quantum numbers (recommended)\n"
+                  "\t\"Pre2004\"  \t-\t for old format\n"
+                  "\t\"Post2004\" \t-\t for new format\n"
+                  "\t\"Online\"   \t-\t for the online format with quantum numbers (recommended)\n"
                   "\n"
                   "Be careful setting the options!\n"
+                  "\n"
+                  "Note that the isoptopologues in Hitran changes between its versions.\n"
+                  "We support only one version of Hitran isoptopologues per commit.\n"
+                  "To read an older version of Hitran, you should down-grade to the\n"
+                  "correct commit-version.  If you still want to make use of modern features,\n"
+                  "you must also store the generated *abs_lines* to file and reload the\n"
+                  "catalog in the new version of Arts.  This step needs only be done once per\n"
+                  "version of Hitran you are using\n"
+                  "\n"
+                  "The complete flow to downgrade, read Hitran, and update is:\n"
+                  "\t'git checkout <commit hash>' to get the old version of Arts\n"
+                  "\tCompile the program\n"
+                  "\tRun *ReadHITRAN* to get *abs_lines* of that version of Hitran\n"
+                  "\tRun *abs_linesWriteSpeciesSplitXML* to store the *abs_lines* to a folder\n"
+                  "\t'git checkout -' to get back to your previous version of Arts\n"
+                  "\tCompile the program\n"
+                  "\tUse *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*\n"
+                  "\n"
+                  "The <commit hash> required per version of Hitran are:\n"
+                  "\tHitran 2020-XXXX: Your current version is OK.\n"
+                  "\tHitran 2004-2016: 60a9664f69f10b3f3eef3d9456282c3638b637fc\n"
+                  "\tHitran  pre-2004: d81802cc7fe887446715491ee8a9eab8e370a0c7\n"
       ),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),

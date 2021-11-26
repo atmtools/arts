@@ -8,7 +8,7 @@ void test001() {
   for (Index mol = 0; mol < nmols; mol++) {
     for (char iso : isos) {
       try {
-        Hitran::id_from_lookup(mol, iso, Hitran::Type::Newest);
+        Hitran::id_from_lookup(mol, iso);
       } catch(std::runtime_error& e) {
         std::cout << e.what() << "\n\n";
       }

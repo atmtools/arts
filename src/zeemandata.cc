@@ -202,12 +202,8 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
                  closed_shell_trilinear(KL, JL, gperp, gpara));
   }
 
-  // Take care of zeroes since they do not show up in replacement databases
-  const bool upperzero = qid.Upper()[QuantumNumberType::J] == 0 or
-                         qid.Upper()[QuantumNumberType::F] == 0;
-  const bool lowerzero = qid.Lower()[QuantumNumberType::J] == 0 or
-                         qid.Lower()[QuantumNumberType::F] == 0;
-  return Model(upperzero ? 0 : NAN, lowerzero ? 0 : NAN);
+  // Set to zero otherwise as we practically say "there's no Zeeman effect" then
+  return Model(0, 0);
 }
 
 Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {

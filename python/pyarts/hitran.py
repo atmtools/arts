@@ -2,13 +2,7 @@ from urllib.request import urlopen
 
 # Map Hitran to ARTS species names
 _HITRAN_TO_ARTS_NAMES = {
-    "CH3CN-2124": "CH3CN-211124",
-    "CO2-827": "CO2-728",
-    "H2CO-126": "H2CO-1126",
-    "H2CO-128": "H2CO-1128",
-    "H2CO-136": "H2CO-1136",
     "HC3N-1224": "HC3N-12224",
-    "HCOOH-126": "HCOOH-1261",
 }
 
 
@@ -53,7 +47,7 @@ def gen_latest_molparam_map(molparam_txt_file=None):
             out[spec].append([specnum, pos, vec[0], vec[1]])
             pos += 1
 
-    print ('static const std::map<Index, std::map<char, const char * const>> latest_molparam_map{')
+    print ('const HitranMap molparam_map{')
     for spec in out:
         print ('{',out[spec][0][0], ', {  // ', spec, sep='')
         for isot in out[spec]:

@@ -619,277 +619,6 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
   return data;
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromHitran2012Stream(istream& is) {
-  // Default data and values for this type
-  SingleLineExternal data;
-  data.selfbroadening = true;
-  data.bathbroadening = true;
-  data.lineshapetype = LineShape::Type::VP;
-  data.species.resize(2);
-  
-  // This contains the rest of the line to parse. At the beginning the
-  // entire line. Line gets shorter and shorter as we continue to
-  // extract stuff from the beginning.
-  String line;
-  
-  // The first item is the molecule number:
-  Index mo;
-  
-  // Look for more comments?
-  bool comment = true;
-  
-  while (comment) {
-    // Return true if eof is reached:
-    if (is.eof()) return data;
-    
-    // Throw runtime_error if stream is bad:
-    ARTS_USER_ERROR_IF (!is, "Stream bad.");
-    
-    // Read line from file into linebuffer:
-    getline(is, line);
-    
-    // It is possible that we were exactly at the end of the file before
-    // calling getline. In that case the previous eof() was still false
-    // because eof() evaluates only to true if one tries to read after the
-    // end of the file. The following check catches this.
-    if (line.nelem() == 0 && is.eof()) return data;
-    
-    // If the catalogue is in dos encoding, throw away the
-    // additional carriage return
-    if (line[line.nelem() - 1] == 13) {
-      line.erase(line.nelem() - 1, 1);
-    }
-    
-    mo = 0;
-    // Initialization of mo is important, because mo stays the same
-    // if line is empty.
-    extract(mo, line, 2);
-    comment = false;
-  }
-  
-  // Extract isotopologue:
-  char iso;
-  extract(iso, line, 1);
-  
-  // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
-  
-  // Position.
-  {
-    // HITRAN position in wavenumbers (cm^-1):
-    Numeric v;
-    // Conversion from wavenumber to Hz. If you multiply a line
-    // position in wavenumber (cm^-1) by this constant, you get the
-    // frequency in Hz.
-    constexpr Numeric w2Hz = Constant::c * 100.;
-    
-    // Extract HITRAN postion:
-    extract(v, line, 12);
-    
-    // ARTS position in Hz:
-    data.line.F0() = v * w2Hz;
-  }
-  
-  // Intensity.
-  {
-    // HITRAN intensity is in cm-1/(molec * cm-2) at 296 Kelvin.
-    // It already includes the isotpic ratio.
-    // The first cm-1 is the frequency unit (it cancels with the
-    // 1/frequency unit of the line shape function).
-    //
-    // We need to do the following:
-    // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c).
-    // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
-    // 3. Take out the isotopologue ratio.
-    
-    constexpr Numeric hi2arts = 1e-2 * Constant::c;
-    
-    Numeric s;
-    
-    // Extract HITRAN intensity:
-    extract(s, line, 10);
-    // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
-    data.line.I0() = s * hi2arts;
-    // Take out isotopologue ratio:
-    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Newest);
-  }
-  
-  // Einstein coefficient
-  {
-    Numeric r;
-    extract(r, line, 10);
-    data.line.A() = r;
-  }
-  
-  // Air broadening parameters.
-  Numeric agam, sgam;
-  {
-    // HITRAN parameter is in cm-1/atm at 296 Kelvin
-    // All parameters are HWHM (I hope this is true!)
-    Numeric gam;
-    // Conversion from wavenumber to Hz. If you multiply a value in
-    // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    constexpr Numeric w2Hz = Constant::c * 1e2;
-    // Ok, put together the end-to-end conversion that we need:
-    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
-    
-    // Extract HITRAN AGAM value:
-    extract(gam, line, 5);
-    
-    // ARTS parameter in Hz/Pa:
-    agam = gam * hi2arts;
-    
-    // Extract HITRAN SGAM value:
-    extract(gam, line, 5);
-    
-    // ARTS parameter in Hz/Pa:
-    sgam = gam * hi2arts;
-    
-    // If zero, set to agam:
-    if (0 == sgam) sgam = agam;
-    
-    //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
-  }
-  
-  // Lower state energy.
-  {
-    // HITRAN parameter is in wavenumbers (cm^-1).
-    // We have to convert this to the ARTS unit Joule.
-    
-    // Extract from Catalogue line
-    extract(data.line.E0(), line, 10);
-    
-    // Convert to Joule:
-    data.line.E0() = wavenumber_to_joule(data.line.E0());
-  }
-  
-  // Temperature coefficient of broadening parameters.
-  Numeric nair, nself;
-  {
-    // This is dimensionless, we can also extract directly.
-    extract(nair, line, 4);
-    
-    // Set self broadening temperature coefficient to the same value:
-    nself = nair;
-    //    cout << "mnair = " << mnair << endl;
-  }
-  
-  // Pressure shift.
-  Numeric psf;
-  {
-    // HITRAN value in cm^-1 / atm. So the conversion goes exactly as
-    // for the broadening parameters.
-    Numeric d;
-    // Conversion from wavenumber to Hz. If you multiply a value in
-    // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    constexpr Numeric w2Hz = Constant::c * 1e2;
-    // Ok, put together the end-to-end conversion that we need:
-    constexpr Numeric hi2arts = w2Hz / Conversion::atm2pa(1);
-    
-    // Extract HITRAN value:
-    extract(d, line, 8);
-    
-    // ARTS value in Hz/Pa
-    psf = d * hi2arts;
-  }
-  // Set the accuracies using the definition of HITRAN
-  // indices. If some are missing, they are set to -1.
-  
-  static QuantumParserHITRAN2004 quantum_parser;
-  const String qstr = line.substr(0, 15 * 4);
-  
-  // Upper state global quanta
-  {
-    Index eu;
-    extract(eu, line, 15);
-  }
-  
-  // Lower state global quanta
-  {
-    Index el;
-    extract(el, line, 15);
-  }
-  
-  // Upper state local quanta
-  {
-    Index eul;
-    extract(eul, line, 15);
-  }
-  
-  // Lower state local quanta
-  {
-    Index ell;
-    extract(ell, line, 15);
-  }
-  
-  // Parse quantum numbers.
-  quantum_parser.Parse(data.quantumidentity, qstr);
-  
-  // Accuracy index for frequency
-  {
-    Index df;
-    // Extract HITRAN value:
-    extract(df, line, 1);
-  }
-  
-  // Accuracy index for intensity
-  {
-    Index di0;
-    // Extract HITRAN value:
-    extract(di0, line, 1);
-  }
-  
-  // Accuracy index for air-broadened halfwidth
-  {
-    Index dgam;
-    // Extract HITRAN value:
-    extract(dgam, line, 1);
-  }
-  
-  // Accuracy index for self-broadened half-width
-  {
-    Index dgam;
-    // Extract HITRAN value:
-    extract(dgam, line, 1);
-  }
-  
-  // Accuracy index for temperature-dependence exponent for agam
-  {
-    Index dn;
-    // Extract HITRAN value:
-    extract(dn, line, 1);
-  }
-  
-  // Accuracy index for pressure shift
-  {
-    Index dpsfi;
-    // Extract HITRAN value (given in cm-1):
-    extract(dpsfi, line, 1);
-  }
-  
-  // These were all the parameters that we can extract from
-  // HITRAN 2004. However, we still have to set the reference temperatures
-  // to the appropriate value:
-  
-  // Reference temperature for Intensity in K.
-  data.T0 = 296.0;
-  
-  // Set line shape computer
-  data.line.LineShape() = LineShape::hitran_model(sgam, nself, agam, nair, psf);
-  {
-    Index garbage;
-    extract(garbage, line, 13);
-    
-    // The statistical weights
-    extract(data.line.g_upp(), line, 7);
-    extract(data.line.g_low(), line, 7);
-  }
-  
-  // That's it!
-  data.bad = false;
-  return data;
-}
-
 Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
@@ -897,6 +626,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   data.bathbroadening = true;
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
+  data.species[1] = Species::Species::Bath;
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -943,7 +673,8 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso);
+  data.species[0] = data.quantumidentity.Species();
 
   // Position.
   {
@@ -982,7 +713,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso);
   }
 
   // Einstein coefficient
@@ -1190,6 +921,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   data.bathbroadening = true;
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
+  data.species[1] = Species::Species::Bath;
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -1236,7 +968,8 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso);
+  data.species[0] = data.quantumidentity.Species();
 
   // Position.
   {
@@ -1275,7 +1008,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Newest);
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso);
   }
 
   // Einstein coefficient
@@ -1464,6 +1197,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   data.bathbroadening = true;
   data.lineshapetype = LineShape::Type::VP;
   data.species.resize(2);
+  data.species[1] = Species::Species::Bath;
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -1510,7 +1244,8 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso);
+  data.species[0] = data.quantumidentity.Species();
 
   // Position.
   {
@@ -1550,7 +1285,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Pre2012CO2Change);
+    data.line.I0() /= Hitran::ratio_from_lookup(mo, iso);
   }
 
   // Skip transition probability:
@@ -1747,7 +1482,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   extract(iso, line, 1);
   
   // Set line data
-  data.quantumidentity = Hitran::id_from_lookup(mo, iso, Hitran::Type::Newest);
+  data.quantumidentity = Hitran::id_from_lookup(mo, iso);
 
   // Position.
   {
@@ -1789,7 +1524,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     data.line.I0() = s * hi2arts;
     // Take out isotopologue ratio:
-    data.line.I0() /=  Hitran::ratio_from_lookup(mo, iso, Hitran::Type::Newest);
+    data.line.I0() /=  Hitran::ratio_from_lookup(mo, iso);
   }
 
   // Skip transition probability:
@@ -2309,6 +2044,33 @@ void Absorption::Lines::RemoveUnusedLocalQuantums()
   }
 }
 
+void Absorption::Lines::MakeLineShapeModelCommon() {
+  const Index n = NumLines();
+  const Index m = NumBroadeners();
+  if (not n) return;
+  
+  for (Index j=0; j<m; j++) {
+    for (Index i=0; i<LineShape::nVars; i++) {
+      
+      // Find a common type (same or none) or throw if there is none
+      LineShape::TemperatureModel t=LineShape::TemperatureModel::None;
+      for (auto& line : AllLines()) {
+        if (auto& data = line.LineShape()[j].Data()[i]; not LineShape::modelparameterEmpty(data)) {
+          if (t == LineShape::TemperatureModel::None) t = data.type;
+          ARTS_USER_ERROR_IF(t not_eq data.type, "Cannot make a common line shape model for the band as there are multiple non-empty types: ", data.type, " and ", t)
+        }
+      }
+      
+      // Set the common type
+      for (auto& line : AllLines()) {
+        if (auto& data = line.LineShape()[j].Data()[i]; data.type not_eq t) {
+          data = LineShape::modelparameterGetEmpty(t);
+        }
+      }
+    }
+  }
+}
+
 void Absorption::Lines::RemoveLocalQuantum(size_t x)
 {
   mlocalquanta.erase(mlocalquanta.begin() + x);
@@ -2746,41 +2508,44 @@ bool Lines::MatchWithExternal(const SingleLineExternal& sle, const QuantumIdenti
     return false;
   if(not std::equal(sle.species.cbegin(), sle.species.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
     return false;
-  if(NumLines() not_eq 0 and not sle.line.LineShape().Match(mlines[0].LineShape()))
+  if(NumLines() not_eq 0 and not sle.line.LineShape().Match(mlines[0].LineShape()).first)
     return false;
   return true;
 }
 
-bool Lines::Match(const Lines& l) const noexcept {
+std::pair<bool, bool> Lines::Match(const Lines& l) const noexcept {
+  // Note: The pair here is first: matching and second: nullable
   if(l.mselfbroadening not_eq mselfbroadening)
-    return false;
+    return {false, false};
   if(l.mbathbroadening not_eq mbathbroadening)
-    return false;
+    return {false, false};
   if(l.mcutoff not_eq mcutoff)
-    return false;
+    return {false, false};
   if(l.mmirroring not_eq mmirroring)
-    return false;
+    return {false, false};
   if(l.mpopulation not_eq mpopulation)
-    return false;
+    return {false, false};
   if(l.mnormalization not_eq mnormalization)
-    return false;
+    return {false, false};
   if(l.mlineshapetype not_eq mlineshapetype)
-    return false;
+    return {false, false};
   if(l.mT0 not_eq mT0)
-    return false;
+    return {false, false};
   if(l.mcutofffreq not_eq mcutofffreq)
-    return false;
+    return {false, false};
   if(l.mlinemixinglimit not_eq mlinemixinglimit)
-    return false;
+    return {false, false};
   if(l.mquantumidentity not_eq mquantumidentity)
-    return false;
+    return {false, false};
   if(not std::equal(l.mbroadeningspecies.cbegin(), l.mbroadeningspecies.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
-    return false;
+    return {false, false};
   if(not std::equal(l.mlocalquanta.cbegin(), l.mlocalquanta.cend(), mlocalquanta.cbegin(), mlocalquanta.cend()))
-    return false;
-  if(NumLines() not_eq 0 and l.NumLines() not_eq 0 and not l.mlines[0].LineShape().Match(mlines[0].LineShape()))
-    return false;
-  return true;
+    return {false, false};
+  if(NumLines() not_eq 0 and l.NumLines() not_eq 0) {
+    if (auto matchpair = l.mlines[0].LineShape().Match(mlines[0].LineShape()); not matchpair.first) return matchpair;
+  }
+  
+  return {true, true};
 }
 
 void Lines::sort_by_frequency() {

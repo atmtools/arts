@@ -31,3 +31,14 @@ OClO-656
 OClO-676
 
 2) TIPS 2021 [Robert R. Gamache, Bastien Vispoel, Michaël Rey, Andrei Nikitin, Vladimir Tyuterev, Oleg Egorov, Iouli E. Gordon, Vincent Boudon, Total internal partition sums for the HITRAN2020 database, Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 271, 2021, 107713, ISSN 0022-4073, https://doi.org/10.1016/j.jqsrt.2021.107713]
+
+
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+
+
+Changes:
+
+Several species in TIPS2021 do not agree with the names in HITRAN2020.  These have been changed.
+
+
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_

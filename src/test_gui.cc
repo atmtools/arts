@@ -75,7 +75,7 @@ int main() {
   
   // Initializing values
   constexpr Index nfreq = 100000;
-  Vector f_grid = VectorNLinSpaceConst(50e9, 70e9, nfreq);
+  Vector f_grid = VectorNLinSpaceConst(40e9, 130e9, nfreq);
   const Numeric P=Conversion::torr2pa(755.0);
   const Numeric T=296;
   const Numeric H=50e-6;

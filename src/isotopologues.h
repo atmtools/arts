@@ -47,6 +47,7 @@ struct IsotopeRecord {
 
 #define deal_with_spec(SPEC) IsotopeRecord(Species::SPEC),
 
+/** A list of all ARTS isotopologues, note how the species enum class input HAS to be sorted */
 constexpr std::array Isotopologues {
   /** Water species **/
   deal_with_spec(Water)
@@ -176,8 +177,8 @@ constexpr std::array Isotopologues {
   /** SO2 species **/
   deal_with_spec(SulfurDioxide)
   IsotopeRecord(fromShortName("SO2"), "626", 63.961901, 1),
-  IsotopeRecord(fromShortName("SO2"), "628", 66),  // FIXME: Better mass and some gj?
-  IsotopeRecord(fromShortName("SO2"), "636", 65),  // FIXME: Better mass and some gj?
+  IsotopeRecord(fromShortName("SO2"), "628", 65.966146, 1),
+  IsotopeRecord(fromShortName("SO2"), "636", 64.961286, 4),
   IsotopeRecord(fromShortName("SO2"), "646", 65.957695, 1),
   /** SO2 species **/
   
@@ -485,9 +486,9 @@ constexpr std::array Isotopologues {
   
   /** SO species **/
   deal_with_spec(SulfurMonoxide)
-  IsotopeRecord(fromShortName("SO"), "26", 48),  // FIXME: Better mass and some gj?
-  IsotopeRecord(fromShortName("SO"), "28", 50),  // FIXME: Better mass and some gj?
-  IsotopeRecord(fromShortName("SO"), "46", 50),  // FIXME: Better mass and some gj?
+  IsotopeRecord(fromShortName("SO"), "26", 47.966986, 1),
+  IsotopeRecord(fromShortName("SO"), "28", 49.971231, 1),
+  IsotopeRecord(fromShortName("SO"), "46", 49.962782, 1),
   /** SO species **/
   
   /** C3H8 species **/
@@ -507,7 +508,7 @@ constexpr std::array Isotopologues {
   
   /** Ar species **/
   deal_with_spec(Argon)
-  IsotopeRecord(fromShortName("Ar"), "8", 18),  // FIXME: Better mass and some gj?
+  IsotopeRecord(fromShortName("Ar"), "8", 39.948),  // FIXME: Better mass and some gj?
   /** Ar species **/
   
   /** SO3 species **/
@@ -534,7 +535,6 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("CS2"), "232", 76.947495, 2),
   /** CS2 species **/
   
-  /** All species need a default joker **/
   deal_with_spec(Methyl)
   deal_with_spec(Cyclopropene)
   deal_with_spec(Hexafluoroethane)
@@ -567,13 +567,33 @@ constexpr std::array Isotopologues {
   deal_with_spec(HFC23)
   deal_with_spec(HFC245fa)
   deal_with_spec(HFC32)
+
+  /** NF3 species **/
   deal_with_spec(NitrogenTrifluoride)
+  IsotopeRecord(fromShortName("NF3"), "4999", 70.998286, 3),
+  /** NF3 species **/
+
   deal_with_spec(SulfurylFluoride)
   deal_with_spec(HFC4310mee)
+
+  /** GeH4 species **/
   deal_with_spec(Germane)
+  IsotopeRecord(fromShortName("GeH4"), "011", 73.955550, 1),
+  IsotopeRecord(fromShortName("GeH4"), "211", 75.953380, 1),
+  IsotopeRecord(fromShortName("GeH4"), "311", 76.954764, 10),
+  IsotopeRecord(fromShortName("GeH4"), "411", 77.952479, 1),
+  IsotopeRecord(fromShortName("GeH4"), "611", 79.952703, 1),
+  /** GeH4 species **/
+
+  /** CH3I species **/
   deal_with_spec(Iodomethane)
+  IsotopeRecord(fromShortName("CH3I"), "217", 141.927947, 6),
+  /** CH3I species **/
+
+  /** CH3F species **/
   deal_with_spec(Fluoromethane)
-  /** All species need a default joker **/
+  IsotopeRecord(fromShortName("CH3F"), "219", 34.021878, 2),
+  /** CH3F species **/
   
   /** Model species **/
   deal_with_spec(liquidcloud)
@@ -1081,6 +1101,26 @@ constexpr IsotopologueRatios isotopologue_ratiosInitFromBuiltin() {
   #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("COCl2", ISOT)] = VAL
   set_isot_val("2655", 5.66392E-01);
   set_isot_val("2657", 3.62235E-01);
+  #undef set_isot_val
+  
+  #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("CH3F", ISOT)] = VAL
+  set_isot_val("219", 9.88428E-01);
+  #undef set_isot_val
+  
+  #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("GeH4", ISOT)] = VAL
+  set_isot_val("411", 3.65172E-01);
+  set_isot_val("211", 2.74129E-01);
+  set_isot_val("011", 2.05072E-01);
+  set_isot_val("311", 7.75517E-01);
+  set_isot_val("611", 7.75517E-01);
+  #undef set_isot_val
+  
+  #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("CH3I", ISOT)] = VAL
+  set_isot_val("217", 9.88428E-01);
+  #undef set_isot_val
+  
+  #define set_isot_val(ISOT, VAL) isotopologue_ratios.data[find_species_index("NF3", ISOT)] = VAL
+  set_isot_val("4999", 9.96337E-01);
   #undef set_isot_val
   
   return isotopologue_ratios;

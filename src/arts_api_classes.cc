@@ -43,20 +43,21 @@
 #include <unistd.h>
 #endif
 
-#define BasicInterfaceCAPI(TYPE)                            \
-void * create##TYPE()                                       \
-{                                                           \
-    return new TYPE;                                        \
-}                                                           \
-                                                            \
-void delete##TYPE(void * data)                              \
-{                                                           \
-    delete static_cast<TYPE *>(data);                       \
-}                                                           \
-                                                            \
-void print##TYPE(void * data)                               \
-{                                                           \
-  std::cout << (*static_cast<TYPE *>(data)) << std::endl;   \
+#define BasicInterfaceCAPI(TYPE)                \
+void * create##TYPE()                           \
+{                                               \
+    return new TYPE;                            \
+}                                               \
+                                                \
+void delete##TYPE(void * data)                  \
+{                                               \
+    delete static_cast<TYPE *>(data);           \
+}                                               \
+                                                \
+void print##TYPE(void * data)                   \
+{                                               \
+  std::cout << std::setprecision(DBL_DIG) <<    \
+    (*static_cast<TYPE *>(data)) << std::endl;  \
 }
 
 

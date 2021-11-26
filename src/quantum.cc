@@ -26,6 +26,7 @@
 
 #include "quantum.h"
 #include "absorption.h"
+#include "debug.h"
 #include "global_data.h"
 #include "special_interp.h"
 #include <stdexcept>
@@ -138,6 +139,18 @@ Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
   if (key == QuantumNumberType::ElectronState) {
     if (val == "X")
       return Rational(int('X'));
+    if (val == "a")
+      return Rational(int('a'));
+    if (val == "b")
+      return Rational(int('b'));
+    if (val == "c")
+      return Rational(int('c'));
+    if (val == "A")
+      return Rational(int('A'));
+    if (val == "'")
+      return Rational(int('\''));
+    if (val == "B")
+      return Rational(int('B'));
   }
   
   if (key == QuantumNumberType::kronigParity) {
@@ -147,7 +160,11 @@ Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
       return Rational(int('e'));
   }
 
-  return Rational(val);
+  try {
+    return Rational(val);
+  } catch (std::runtime_error& e) {
+    ARTS_USER_ERROR("Key: ", key, "\nFailed\n", e.what());
+  }
 }
 
 void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >& upper_list, const std::vector<std::array<String, 2> >& lower_list)

@@ -145,11 +145,13 @@ class Rational:
             raise OSError("Cannot save {}".format(file))
 
     def __eq__(self, other):
-        if isinstance(other, Rational) and other.nom * self.denom == self.nom * other.denom:
-            return True
-        else:
-            return False
+        return isinstance(other, Rational) and other.nom * self.denom == self.nom * other.denom
 
+    def __lt__(self, other):
+        return isinstance(other, Rational) and self.nom * other.denom < other.nom * self.denom
+
+    def __int__(self):
+        return self.nom // self.denom
 
 lib.createRational.restype = c.c_void_p
 lib.createRational.argtypes = []

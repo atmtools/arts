@@ -56,7 +56,7 @@ void abs_linesFlatten(ArrayOfAbsorptionLines& abs_lines,
     AbsorptionLines& band = abs_lines[i];
     if (band.NumLines()) {
       for (Index j=i+1; j<n; j++) {
-        if (band.Match(abs_lines[j])) {
+        if (band.Match(abs_lines[j]).first) {
           for (auto& line: abs_lines[j].AllLines()) {
             band.AppendSingleLine(line);
           }
@@ -403,7 +403,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
       for (auto& newband: more_abs_lines) {
         bool found = false;
         for (auto& band: abs_lines) {
-          if (band.Match(newband)) {
+          if (band.Match(newband).first) {
             for (Index k=0; k<newband.NumLines(); k++) {
               band.AppendSingleLine(newband.Line(k));
               found = true;
@@ -474,10 +474,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   while (go_on) {
     Absorption::SingleLineExternal sline;
     switch (hitran_version) {
-      case Options::HitranType::Post2012:
-        sline = Absorption::ReadFromHitran2012Stream(is);
-        break;
-      case Options::HitranType::From2004To2012:
+      case Options::HitranType::Post2004:
         sline = Absorption::ReadFromHitran2004Stream(is);
         break;
       case Options::HitranType::Pre2004:
@@ -942,7 +939,7 @@ void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
     
     Index match = -1;
     for (Index ind=0; ind<x.nelem(); ind++) {
-      if (x[ind].Match(lines)) {
+      if (x[ind].Match(lines).first) {
         match = ind;
         break;
       }
@@ -1002,209 +999,6 @@ void abs_linesRemoveUnusedLocalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
 /////////////////////////////////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& replacing_lines, const Verbosity&)
-{
-  for (auto& rlines: replacing_lines) {
-    Index number_of_matching_bands = 0;
-    for (auto& tlines: abs_lines) {
-      if (tlines.Match(rlines)) {
-        number_of_matching_bands++;
-        for (auto& rline: rlines.AllLines()) {
-          Index number_of_matching_single_lines = 0;
-          for (auto& tline: tlines.AllLines()) {
-            if (tline.SameQuantumNumbers(rline)) {
-              number_of_matching_single_lines++;
-              tline = rline;
-            }
-          }
-          
-          ARTS_USER_ERROR_IF (number_of_matching_single_lines not_eq 1,
-                              "Error: Did not match to a single single line.  "
-                              "This means the input data has not been understood.  "
-                              "This function needs exactly one match.");
-        }
-        tlines.sort_by_frequency();
-      }
-    }
-    
-    ARTS_USER_ERROR_IF (number_of_matching_bands not_eq 1,
-                        "Error: Did not match to a single set of absorption lines.  "
-                        "This means the input data has not been understood.  "
-                        "This function needs exactly one match.");
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Index& safe, const Verbosity&)
-{
-  if (safe) {
-    std::vector<AbsorptionLines> addedlines(0);
-    
-    for (auto& alines: appending_lines) {
-      Index number_of_matching_bands = 0;
-      for (auto& tlines: abs_lines) {
-        if (tlines.Match(alines)) {
-          number_of_matching_bands++;
-          for (auto& aline: alines.AllLines()) {
-            Index number_of_matching_single_lines = 0;
-            for (auto& tline: tlines.AllLines()) {
-              if (tline.SameQuantumNumbers(aline)) {
-                number_of_matching_single_lines++;
-              }
-            }
-            ARTS_USER_ERROR_IF (number_of_matching_single_lines not_eq 0,
-                                "Error: Did match to a single single line.  "
-                                "This means the input data has not been understood.  "
-                                "This function needs exactly zero matches.");
-            tlines.AppendSingleLine(aline);
-          }
-          tlines.sort_by_frequency();
-        }
-      }
-      
-      if (number_of_matching_bands == 0) addedlines.push_back(alines);
-      ARTS_USER_ERROR_IF (number_of_matching_bands not_eq 1,
-                          "Error: Did not match to a single set of absorption lines.  "
-                          "This means the input data has not been understood.  "
-                          "This function needs exactly one or zero matches.");
-    }
-    
-    for (auto& lines: addedlines) {
-      abs_lines.push_back(std::move(lines));
-    }
-  } else {
-    for (auto& band: appending_lines)
-      abs_lines.push_back(band);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesDeleteBadF0(ArrayOfAbsorptionLines& abs_lines, const Numeric& f0, const Index& lower, const Verbosity&)
-{
-  for (auto& lines: abs_lines) {
-    std::vector<Index> hits;
-    for (Index i=0; i<lines.NumLines(); i++) {
-      if (lower and lines.F0(i) < f0)
-        hits.push_back(i);
-      else if (not lower and lines.F0(i) > f0)
-        hits.push_back(i);
-    }
-    
-    // Remove the bad values (sort by descending firs)
-    std::sort(hits.begin(), hits.end());
-    while(not hits.empty()) {
-      lines.RemoveLine(hits.back());
-      hits.pop_back();
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines, const Verbosity&)
-{
-  for (auto& dlines: deleting_lines) {
-    for (auto& tlines: abs_lines) {
-      std::vector<Index> hits(0);
-      
-      if (tlines.Match(dlines)) {
-        for (auto& dline: dlines.AllLines()) {
-          for (Index i=0; i<tlines.NumLines(); i++) {
-            if (tlines.AllLines()[i].SameQuantumNumbers(dline)) {
-              hits.push_back(i);
-            }
-          }
-        }
-        
-        // Sort and test the input
-        std::sort(hits.begin(), hits.end());
-        auto n = hits.size();
-        hits.erase(std::unique(hits.begin(), hits.end()), hits.end());
-        ARTS_USER_ERROR_IF(n not_eq hits.size(),
-                           "Removing the same line more than once is not accepted");
-        
-        // Remove the bad values
-        while(not hits.empty()) {
-          tlines.RemoveLine(hits.back());
-          hits.pop_back();
-        }
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesDeleteLinesWithUndefinedLocalQuanta(ArrayOfAbsorptionLines& abs_lines, const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  Index i = 0;
-  
-  for (auto& band: abs_lines) {
-    std::vector<Index> deleters(0);
-    
-    for (Index iline=0; iline<band.NumLines(); iline++) {
-      if (std::any_of(band.Line(iline).LowerQuantumNumbers().cbegin(),
-                      band.Line(iline).LowerQuantumNumbers().cend(),
-                      [](auto x) -> bool {return x.isUndefined();}) or
-          std::any_of(band.Line(iline).UpperQuantumNumbers().cbegin(),
-                      band.Line(iline).UpperQuantumNumbers().cend(),
-                      [](auto x) -> bool {return x.isUndefined();})) {
-        deleters.push_back(iline);
-      }
-    }
-    
-    while (deleters.size()) {
-      band.RemoveLine(deleters.back());
-      deleters.pop_back();
-      i++;
-    }
-  }
-  
-  out2 << "Deleted " << i << " lines.\n";
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesDeleteLinesWithBadOrHighChangingJs(ArrayOfAbsorptionLines& abs_lines, const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  Index i = 0;
-  
-  for (auto& band: abs_lines) {
-    std::vector<Index> deleters(0);
-    
-    for (Index iline=0; iline<band.NumLines(); iline++) {
-      auto Jlo = band.LowerQuantumNumber(iline, QuantumNumberType::J);
-      auto Jup = band.UpperQuantumNumber(iline, QuantumNumberType::J);
-      
-      if (Jlo.isUndefined() or Jup.isUndefined() or 1 < abs(Jup - Jlo)) {
-        deleters.push_back(iline);
-      }
-    }
-    
-    while (deleters.size()) {
-      band.RemoveLine(deleters.back());
-      deleters.pop_back();
-      i++;
-    }
-  }
-  
-  out2 << "Deleted " << i << " lines.\n";
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesDeleteLinesWithQuantumNumberAbove(ArrayOfAbsorptionLines& abs_lines, const String& qn_id, const Index& qn_val, const Verbosity&)
-{
-  const auto qn = string2quantumnumbertype(qn_id);
-  
-  for (auto& band: abs_lines) {
-    for (Index i=band.NumLines() - 1; i>=0; i--) {
-      if (band.UpperQuantumNumber(i, qn) > qn_val or band.LowerQuantumNumber(i, qn) > qn_val) {
-        band.RemoveLine(i);
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesSetEmptyBroadeningParametersToEmpty(ArrayOfAbsorptionLines& abs_lines, const Verbosity& /*verbosity*/)
 {
   for (auto& band: abs_lines) {
@@ -1241,6 +1035,103 @@ void abs_linesKeepBand(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifie
     const Absorption::QuantumIdentifierLineTarget lt(qid, band);
     while (lt not_eq Absorption::QuantumIdentifierLineTargetType::Band and band.NumLines()) {
       band.RemoveLine(0);
+    }
+  }
+}
+
+void CheckUnique(const ArrayOfAbsorptionLines& lines,
+                 const Verbosity&) {
+  const Index nb = lines.nelem();
+  for (Index i=0; i<nb; i++) {
+    for (Index j=i+1; j<nb; j++) {
+      ARTS_USER_ERROR_IF(
+        Absorption::QuantumIdentifierLineTarget(lines[i].QuantumIdentity(), lines[j]).found ==
+        Absorption::QuantumIdentifierLineTargetType::Band,
+        "Not unique, these bands match:\n", lines[i], "\nand\n", lines[j])
+    }
+  }
+}
+
+void abs_linesReplaceBands(ArrayOfAbsorptionLines& abs_lines,
+                           const ArrayOfAbsorptionLines& replacing_bands,
+                           const Verbosity&) {
+  for (auto& replacement: replacing_bands) {
+    struct {Index band;} pos{-1};
+    
+    for (Index i=0; i<abs_lines.nelem(); i++) {
+      auto& band = abs_lines[i];
+      
+      if (Absorption::QuantumIdentifierLineTarget(replacement.QuantumIdentity(), band).found ==
+        Absorption::QuantumIdentifierLineTargetType::Band) {
+        ARTS_USER_ERROR_IF (pos.band not_eq -1, "Duplicate band matches for replacement line:\n",
+                            replacement, "\nThese are for band indexes ", pos.band, " and ", i)
+        
+        pos.band = i;
+      }
+    }
+    
+    ARTS_USER_ERROR_IF(pos.band == -1,
+      "There is no match for replacement band:\n", replacement,
+      "\nYou need to append the entire band")
+    abs_lines[pos.band] = replacement;
+  }
+}
+
+void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
+                           const ArrayOfAbsorptionLines& replacing_lines,
+                           const Verbosity&) {
+  const Index nb = abs_lines.nelem();  // Evaluate first so new bands are not counted
+  
+  for (auto& replacement: replacing_lines) {
+    const Index nl=replacement.NumLines();
+    
+    struct {Index band; ArrayOfIndex lines;} pos{-1, ArrayOfIndex(nl, -1)};
+    
+    for (Index i=0; i<nb; i++) {
+      auto& band = abs_lines[i];
+      
+      if (Absorption::QuantumIdentifierLineTarget(replacement.QuantumIdentity(), band).found ==
+        Absorption::QuantumIdentifierLineTargetType::Band) {
+        ARTS_USER_ERROR_IF (pos.band not_eq -1, "Duplicate band matches for replacement line:\n",
+                            replacement, "\nThese are for band indexes ", pos.band, " and ", i)
+        
+        pos.band = i;
+        
+        for (Index k=0; k<band.NumLines(); k++) {
+          auto& line_low = band.Line(k).LowerQuantumNumbers();
+          auto& line_upp = band.Line(k).UpperQuantumNumbers();
+          
+          for (Index j=0; j<nl; j++) {
+            auto& repl_low = replacement.Line(j).LowerQuantumNumbers();
+            auto& repl_upp = replacement.Line(j).UpperQuantumNumbers();
+            
+            // All local quantum numbers must match
+            if (std::equal(line_low.begin(), line_low.end(), repl_low.begin()) and std::equal(line_upp.begin(), line_upp.end(), repl_upp.begin())) {
+              // We cannot have multiple entries
+              ARTS_USER_ERROR_IF(pos.lines[j] not_eq -1 or std::any_of(pos.lines.begin(), pos.lines.end(), [k](auto& a){return a == k;}),
+                                "Found multiple matches of lines in:\n", replacement, "\n\nin mathcing band:\n", band)
+              
+              pos.lines[j] = k;
+            }
+          }
+        }
+      }
+    }
+    
+    ARTS_USER_ERROR_IF(pos.band == -1 or std::any_of(pos.lines.begin(), pos.lines.end(), [](auto& a){return a == -1;}),
+      "There is no match for replacement line:\n", replacement,
+      "\nYou need to append the entire band")
+    
+    // Add or change the line catalog
+    auto& band = abs_lines[pos.band];
+    if (const auto [match, nullable] = band.Match(replacement); nullable) {
+      for (Index j=0; j<nl; j++) band.AllLines()[pos.lines[j]] = replacement.AllLines()[j];
+      band.MakeLineShapeModelCommon();
+    } else {
+      // Sort to remove from behind
+      std::sort(pos.lines.begin(), pos.lines.end(), std::greater<>());
+      for (auto& k: pos.lines) band.RemoveLine(k);
+      abs_lines.push_back(replacement);
     }
   }
 }
@@ -1404,7 +1295,7 @@ void abs_linesMakeManualMirroring(ArrayOfAbsorptionLines& abs_lines,
     ARTS_USER_ERROR_IF(
       std::find_if(abs_lines_copy.cbegin(), abs_lines_copy.cend(),
                    [&band](const AbsorptionLines& li){
-                     return band.Match(li);
+                     return band.Match(li).first;
                    }) not_eq abs_lines_copy.cend(),
       "Dual bands with same setup is not allowed for mirroring of band:\n",
       band, '\n')
