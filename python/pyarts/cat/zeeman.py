@@ -4,6 +4,21 @@ import os
 
 
 def set(ws, lines, directory, spec):
+    """ Set Zeeman coefficients
+    
+    Looks in directory for a file {spec}.aoqi.xml and {spec}.g.xml to find
+    replacement data
+    
+    Parameters:
+        ws (Workspace): A pyarts workspace
+        lines (pyarts workspace variable): An ArrayOfAbsorptionLines (modified in-place)
+        directory (str): A directory with Zeeman data
+        spec (str): An Arts species
+        
+    Returns:
+        lines modified
+    """
+    
     if "pyarts_zeeman_set_aoqi__" not in dir(ws):
         ws.create_variable("ArrayOfQuantumIdentifier", "pyarts_zeeman_set_aoqi__")
 

@@ -2514,6 +2514,7 @@ bool Lines::MatchWithExternal(const SingleLineExternal& sle, const QuantumIdenti
 }
 
 std::pair<bool, bool> Lines::Match(const Lines& l) const noexcept {
+  // Note: The pair here is first: matching and second: nullable
   if(l.mselfbroadening not_eq mselfbroadening)
     return {false, false};
   if(l.mbathbroadening not_eq mbathbroadening)

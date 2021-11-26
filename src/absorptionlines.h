@@ -609,6 +609,7 @@ public:
    * 
    * @param[in] sle Full external lines
    * @param[in] quantumidentity Expected global quantum id of the line
+   * @return first: match; second: nullable line shape
    */
   [[nodiscard]] std::pair<bool, bool> Match(const Lines& l) const noexcept;
   
