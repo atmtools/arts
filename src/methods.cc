@@ -14771,7 +14771,7 @@ void define_md_data_raw() {
                   "\tUse *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*\n"
                   "\n"
                   "The <commit hash> required per version of Hitran are:\n"
-                  "\tHitran 2020-****: Your current version is OK.\n"
+                  "\tHitran 2020-XXXX: Your current version is OK.\n"
                   "\tHitran 2004-2016: 60a9664f69f10b3f3eef3d9456282c3638b637fc\n"
                   "\tHitran  pre-2004: d81802cc7fe887446715491ee8a9eab8e370a0c7\n"
       ),
