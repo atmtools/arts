@@ -45,9 +45,10 @@ const HitranMap molparam_map{
          {'6', {Species::find_species_index("CO2", "637"), 8.24623E-06}},
          {'7', {Species::find_species_index("CO2", "828"), 3.95734E-06}},
          {'8', {Species::find_species_index("CO2", "827"), 1.47180E-06}},
-         {'9',
-          {Species::find_species_index("CO2", "838"),
-           4.44600E-08}},  // This is different for HITRAN2008 and earlier cf original map
+         {'9', {Species::find_species_index("CO2", "727"), 1.36847E-07}},
+         {'0', {Species::find_species_index("CO2", "838"), 4.44600E-08}},
+         {'A', {Species::find_species_index("CO2", "837"), 1.65354E-08}},
+         {'B', {Species::find_species_index("CO2", "737"), 1.53750E-09}},
      }},
     {3,
      {

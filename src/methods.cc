@@ -14772,8 +14772,8 @@ void define_md_data_raw() {
                   "\n"
                   "The <commit hash> required per version of Hitran are:\n"
                   "\tHitran 2020-****: Look for a future version.\n"
-                  "\tHitran 2004-2016: Look for a future version.\n"
-                  "\tHitran  pre-2004: Your current version is OK.\n"
+                  "\tHitran 2004-2016: Your current version is OK.\n"
+                  "\tHitran  pre-2004: d81802cc7fe887446715491ee8a9eab8e370a0c7\n"
       ),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),
