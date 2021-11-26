@@ -35,7 +35,6 @@ def adapt_lines(ws, lines, t_grid=np.linspace(150, 350),pressure=1e5,order=1,rob
         
     Returns:
         lines modified
-    Returns: None
     """
     ws.abs_linesAdaptOnTheFlyLineMixing(abs_lines=lines, t_grid=t_grid, pressure=pressure, order=order,
                                         robust=robust, rosenkranz_adaptation=rosenkranz_adaptation)
