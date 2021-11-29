@@ -926,19 +926,32 @@ temperature.
  quantity is attenuated by the factor $e^{-\tau}$ before it reaches the
  observation point.
 
- \section{Clear sky simulations with star like sources}
- \label{sec:rtetheory:ClearskyDirectSources}
+\section{Clear sky simulations with star like sources}
+\label{sec:rtetheory:ClearskyDirectSources}
 
- In this section we describe the radiative transfer in clearsky with star 
- like sources.
- In this context clear sky means that there is no scattering by liquid or 
- solid matter but scattering by atoms and molecules (gas scattering, see also ....).
- Fig. XXX  shows the geometry for a reciever outside of the atmosphere.
+In this section we describe the radiative transfer in clearsky with star
+like sources.
+In this context clear sky means that there is no scattering by liquid or
+solid matter but scattering by atoms and molecules (gas scattering, see also
+Sect.~\ref{sec:abs_theory:gas_scattering}).
+Fig.~\ref{fig:rtetheory:star_receiver_geometry} shows the geometry for a
+reciever outside of the atmosphere. The incoming direct radiation (yellow rays)
+from the star is attenuated by the atmosphere and scattered at the surface and
+in the atmosphere (black dots) towards the receiver.
+
+\begin{figure}[t]
+ \begin{center}
+   \includegraphics*[width=0.6\hsize]{star_reciever_geometry}
+   \caption{Radiative transfer of direct radiation form a star to
+   a nadir pointing receiver outside of the atmosphere.  }
+  \label{fig:rtetheory:star_receiver_geometry}
+ \end{center}
+\end{figure}
 
  The star is assumed to be far away from the planet or to be more precise
  \begin{equation}
-  r_{\astrosun} \ll d_{\astrosun p}
- \end{equation}
+  r_{\astrosun}\ll d_{\astrosun p}
+ \end{equation} 
  with $r_{\astrosun}$ the star radius,
  and $d_{\astrosun p}$ the distance between star and TOA of the planet. 
  This means that the angular variability of the direction of the  radiation 
@@ -950,34 +963,49 @@ temperature.
  with $\Omega'$ the direction of the star. We neglect polarization here and in the follwoing part of this section for 
  the sake of simplicity. 
 
- The flux of the incoming radiation from the star at the top of the atmosphere
- $F_{\astrosun}$ is 
+The flux of the incoming radiation from the star at the top of the atmosphere
+$F_{\astrosun}$ is
 \begin{align}
-F_{\astrosun} = \int^{2\pi}_0 \int^{\alpha}_0 I_{\astrosun}\cos\theta\sin\theta\text{d}\theta\text{d}\phi=\pi I_{\astrosun}\sin^{2}\alpha
+	F_{\astrosun} &=
+		\int^{2\pi}_0 \int^{\alpha}_0 I_{\astrosun}\cos\theta\sin\theta
+		\text{d}\theta\text{d}\phi\nonumber\\
+		&=\pi I_{\astrosun}\sin^{2}\alpha
 \end{align}
 with $I_{\astrosun}$ the star spectral radiance, which is assumed
 to be isotropic, and $\alpha$ the angular radius of the star seen
 from TOA of the planet. This is 
 \begin{equation}
-\alpha=\arctan\frac{r_{\astrosun}}{d_{\astrosun p}}\,.
+	\alpha=\arctan\frac{r_{\astrosun}}{d_{\astrosun p}}\,.
 \end{equation}
 
 As gas scattering is rather weak, multi scattering can be neglected and only
 single scattering of the incoming radiation from the star needs to be considered. 
-With this and Eq. \ref{eq:rtetheory:directsource}, Eq. \ref{eq:rtetheory:VRTE} 
+With this and Eq.~\ref{eq:rtetheory:directsource}, Eq.~\ref{eq:rtetheory:VRTE}
 neglecting polarization simplifies to  
-\begin{eqnarray}
-  \label{eq:rtetheory:ClearskyRTE}
-  \frac{\mathrm{d}I\left(s,\nu\right)}{\mathrm{d}s}   = & -kI\left(s,\nu\right)
-   &  +a\Planck\left(T\left(s\right)\right)+ \nonumber\\
-  \underset{4\pi}{\int}P\left(\nu,\Omega_{i},\Omega_{s}\right)
-  F_{\astrosun}^{*}\left(\nu,s\right)\delta\left(\Omega_{i},\Omega'\right)\mathrm{d}\Omega_{i}\\
-   = -kI\left(s,\nu\right)+aB\left(T\left(s\right)\right)+P\left(\nu,\Omega',\Omega_{s}\right)F_{\astrosun}^{*}\left(\nu,s\right)
-\end{eqnarray}
-with $k$ and $a$ the extinction coefficients, $\Planck$ the Planck function.
-
-\subsection{Star definition}
-\label{sec:rtetheory:star_def}
+\begin{align}
+	\label{eq:rtetheory:ClearskyRTE}
+	\frac{\mathrm{d}I\left(s,\nu\right)}{\mathrm{d}s}= &
+		-kI\left(s,\nu\right)+a\Planck\left(T\left(s\right)\right)+ \nonumber\\
+		& \underset{4\pi}{\int}P\left(s, \nu,\Omega_{i},\Omega_{s}\right)
+		F_{\astrosun}^{*}\left(\nu,s\right)\delta\left(\Omega_{i},\Omega'\right)
+		\mathrm{d}\Omega_{i}\nonumber\\
+		= & -kI\left(s,\nu\right)+a\Planck\left(T\left(s\right)\right)+
+		P\left(s, \nu,\Omega',\Omega_{s}\right)F_{\astrosun}^{*}\left(\nu,s\right)
+\end{align}
+with $s$ the position along the propagation path (black ray in Fig.~\ref{fig:rtetheory:star_receiver_geometry}),
+$\nu$ the frequency, $k$ and $a$ the extinction and absorption coefficient,
+$\Planck$ the Planck function, $\Omega_i$ the incoming and $\Omega_s$ the
+direction of the propagation path.
+$P$ is the phase function or if at the surface the bidirectional reflectance
+function. The incoming direct radiation $F_{\astrosun}^{*}$ at along track position
+$s$ is
+\begin{equation}
+	F_{\astrosun}^{*}\left(\nu,s\right)=F_{\astrosun}\left(\nu,s\right)
+		\exp\left(\int_{0}^{s'_{toa}}k\left(\nu,s'\right)\mathrm{d}s'\right)
+\end{equation}
+with $s'$ the position along the path from the position $s$ to the top of the
+atmosphere in the direction of the star (yellow rays in Fig.~\ref{fig:rtetheory:star_receiver_geometry}).
+ 
 
 As in section \ref{sec:rte_theory:ClearskyDirectSources} described the radius $r_{\astrosun}$ of
 and distance $d_{\astrosun}$ to the star like object must be known. The position of this object
