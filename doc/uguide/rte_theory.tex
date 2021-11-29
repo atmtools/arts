@@ -887,21 +887,21 @@ temperature.
  At the wavelengths considered rotational and vibrational transitions
  are the dominating absorbing processes.
 
- The basic equation describing radiative transfer along a specific 
+ The basic equation describing radiative transfer along a specific
  direction is
  \begin{equation}
    \frac{dI(\nu)}{dl} = k(l,\nu)(B(l,\nu)-I(\nu))
   \label{eq:rtetheory:chand}
- \end{equation} 
+ \end{equation}
  where $I$ is the intensity per unit area, $\nu$ the frequency, $l$
  the distance along the propagation path, $k$ the total absorption
  coefficient (summed over all species and transitions) and $B$ the
  Planck function. This differential equation can be solved:
  \begin{equation}
-   I(\nu) = I_0(\nu)e^{-\int^h_0{k(l',\nu)dl'}} + 
+   I(\nu) = I_0(\nu)e^{-\int^h_0{k(l',\nu)dl'}} +
      \int^h_0{k(l,\nu)B(T(l),\nu) e^{-\int^l_0{k(l',\nu)dl'}} dl}
   \label{eq:rtetheory:rte}
- \end{equation}  
+ \end{equation}
  where the receiver is assumed to be placed at $l$~=~0 and $h$ is the
  distance along the path to the limit of the media. $I_0$ is the
  intensity at the point $h$ which can represent thermal emission from
@@ -911,16 +911,16 @@ temperature.
  commonly used and it is defined as
 
  \begin{equation}
-   \tau(l,\nu) = \int^l_0{k(l',\nu)dl'} 
+   \tau(l,\nu) = \int^l_0{k(l',\nu)dl'}
   \label{eq:rtetheory:tau}
- \end{equation}  
+ \end{equation}
  and Equation \ref{eq:rtetheory:rte} can be written as
  
  \begin{equation}
-   I(\nu) = I_0(\nu)e^{-\tau(h,\nu)dl'} + 
+   I(\nu) = I_0(\nu)e^{-\tau(h,\nu)dl'} +
      \int^h_0{k(l,\nu)B(T(l),\nu) e^{-\tau(l',\nu)} dl}
   \label{eq:rtetheory:rte2}
- \end{equation}  
+ \end{equation}
  The terms inside the integral found in this equation have a simple
  physical meaning, the radiation emitted at one point is $kBdl$ and this
  quantity is attenuated by the factor $e^{-\tau}$ before it reaches the
@@ -942,26 +942,27 @@ in the atmosphere (black dots) towards the receiver.
 \begin{figure}[t]
  \begin{center}
    \includegraphics*[width=0.6\hsize]{star_reciever_geometry}
-   \caption{Radiative transfer of direct radiation form a star to
-   a nadir pointing receiver outside of the atmosphere.  }
-  \label{fig:rtetheory:star_receiver_geometry}
+   \caption{Radiative transfer of direct radiation form a star to 
+   a nadir pointing receiver outside of the atmosphere assuming single
+   scattering.}
+  \label{fig:rtetheory:star_receiver_geometry}  
  \end{center}
 \end{figure}
 
  The star is assumed to be far away from the planet or to be more precise
  \begin{equation}
   r_{\astrosun}\ll d_{\astrosun p}
- \end{equation} 
+ \end{equation}
  with $r_{\astrosun}$ the star radius,
- and $d_{\astrosun p}$ the distance between star and TOA of the planet. 
- This means that the angular variability of the direction of the  radiation 
- from the star can be neglected (parallel beam or collimated  beam approximation) 
- and the incoming radiation at top of  the atmosphere (TOA) can be described as 
+ and $d_{\astrosun p}$ the distance between star and TOA of the planet.
+ This means that the angular variability of the direction of the  radiation
+ from the star can be neglected (parallel beam or collimated  beam approximation)
+ and the incoming radiation at top of  the atmosphere (TOA) can be described as
  \begin{equation}
  I_{\astrosun,TOA}\left(\Omega\right)=F_{\astrosun}\delta\left(\Omega,\Omega'\right)\label{eq:rtetheory:directsource}
  \end{equation}
- with $\Omega'$ the direction of the star. We neglect polarization here and in the follwoing part of this section for 
- the sake of simplicity. 
+ with $\Omega'$ the direction of the star. We neglect polarization here and in the follwoing part of this section for
+ the sake of simplicity.
 
 The flux of the incoming radiation from the star at the top of the atmosphere
 $F_{\astrosun}$ is
