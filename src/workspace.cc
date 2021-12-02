@@ -1178,6 +1178,18 @@ void define_wsv_data() {
       GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("depolarization_factor"),
+      DESCRIPTION(
+          "Depolarization factor for the scattered gas.\n"
+          "\n"
+          "The variable accounts for the anisotropy of the scatterer.\n"
+          "It is the ratio of intensities parallel and perpendicular \n"
+          "to the plan of scattering. A table of measured values is \n"
+          "given by Penndorf (1957). Some values are: H2=0.02, N2=0.03\n"
+          "O2=0.06, CO2=0.09 and atmospheric air=0.03."),
+      GROUP("Numeric")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("dobatch_calc_agenda"),
       DESCRIPTION(
           "Agenda defining the calculations to perform for each batch case.\n"),

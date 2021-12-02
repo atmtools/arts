@@ -152,6 +152,7 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
                                   const Vector& in_los,
                                   const Vector& out_los,
                                   const Index& stokes_dim,
+                                  const Numeric& depolarization_factor,
                                   const Verbosity&) {
 
   ARTS_USER_ERROR_IF(in_los.nelem() != out_los.nelem(), 
@@ -173,6 +174,24 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
 
     // transform the phase matrix
     Matrix pha_mat(stokes_dim, stokes_dim, 0.0);
+
+    // account for depolarization factor
+    Numeric delta =
+        (1 - depolarization_factor) / (1 + 0.5 * depolarization_factor);
+    Numeric delta_prime =
+        (1 - 2 * depolarization_factor) / (1 - depolarization_factor);
+    Vector depol(6, 0.0);
+
+    switch (stokes_dim) {
+      case 4:
+        depol[5] = 1;
+        pha_mat_int[5] *= delta_prime;
+        [[fallthrough]];
+      case 1:
+        depol[0] = 1;
+        depol *= 1 - delta;
+        pha_mat_int += depol;
+    }
 
     pha_mat_labCalc(pha_mat, pha_mat_int, out_los[0], out_los[1], in_los[0], in_los[1], theta_rad);
 

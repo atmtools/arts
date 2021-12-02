@@ -7235,22 +7235,22 @@ Possible models:
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(create_mdrecord(      
+  md_data_raw.push_back(create_mdrecord(
       NAME("gas_scatteringMatrixRayleigh"),
       DESCRIPTION(
-          "Calculates the normalized Rayleigh scattering matrix.\n"),
+          "Calculates the normalized Rayleigh scattering matrix.\n"
+          "\n"
+          "The phase mayrix for anisotropic Rayleigh particles in random orientations."),
       AUTHORS("Jon Petersen"),
       OUT("sca_mat"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("in_los",
-         "out_los",
-         "stokes_dim"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      IN("in_los", "out_los", "stokes_dim"),
+      GIN("depolarization_factor"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("0.03"),
+      GIN_DESC("depolarization factor for air")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("g0Earth"),
