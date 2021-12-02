@@ -684,7 +684,6 @@ void iyTransmissionStandard(Workspace& ws,
                             const Index& cloudbox_on,
                             const ArrayOfIndex& cloudbox_limits,
                             const Index& gas_scattering_do,
-                            const Index& gas_scattering_output_type,
                             const Tensor4& pnd_field,
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfString& scat_species,
@@ -933,7 +932,7 @@ void iyTransmissionStandard(Workspace& ws,
                                      ppvar_vmr(joker, ip),
                                      in_los,
                                      out_los,
-                                     gas_scattering_output_type,
+                                     0,
                                      gas_scattering_agenda);
 
         K_this += K_sca;

@@ -199,7 +199,6 @@ void iyClearsky(
     const Numeric& ppath_lraytrace,
     const Index& cloudbox_on,
     const Index& gas_scattering_do,
-    const Index& gas_scattering_output_type,
     const Index& star_do,
     const String& iy_unit,
     const ArrayOfString& iy_aux_vars,
@@ -548,7 +547,6 @@ void iyClearsky(
                                        0,
                                        cloudbox_limits_dummy,
                                        gas_scattering_do,
-                                       gas_scattering_output_type,
                                        pnd_field_dummy,
                                        dpnd_field_dx_dummy,
                                        scat_species_dummy,
@@ -578,7 +576,6 @@ void iyClearsky(
                                          transmitted_starlight,
                                          star_rte_los,
                                          ppath.los(ip, joker),
-                                         gas_scattering_output_type,
                                          gas_scattering_agenda);
 
 
@@ -600,7 +597,7 @@ void iyClearsky(
                                        ppvar_vmr(joker, ip),
                                        in_los_dummy,
                                        out_los_dummy,
-                                       gas_scattering_output_type,
+                                       0,
                                        gas_scattering_agenda);
 
           // absorption equals extinction only for the gas absorption part.

@@ -62,7 +62,6 @@ void get_scattered_starsource(Workspace& ws,
                               const Matrix& transmitted_starlight,
                               const Vector& in_los,
                               const Vector& out_los,
-                              const Index& gas_scattering_output_type,
                               const Agenda& gas_scattering_agenda) {
   PropagationMatrix K_sca;
   TransmissionMatrix sca_mat;
@@ -80,7 +79,7 @@ void get_scattered_starsource(Workspace& ws,
                                vmr,
                                in_los,
                                out_los,
-                               gas_scattering_output_type,
+                               0,
                                gas_scattering_agenda);
 
   //some basic quantities

@@ -87,7 +87,6 @@ using ArrayOfStar = Array<Star>;
  *            spectrum.
  * @param[in] out_los outgoing direction of the transmitted star irradiance
  *            spectrum.
- * @param[in] gas_scattering_output_type Flag to control the output of the *gas_scattering_agenda*.
  * @param[in] gas_scattering_agenda Agenda agenda calculating the gas scattering
  *            cross sectionand matrix.
  */
@@ -101,7 +100,6 @@ void get_scattered_starsource(
     const Matrix& transmitted_starlight,
     const Vector& in_los,
     const Vector& out_los,
-    const Index& gas_scattering_output_type,
     const Agenda& gas_scattering_agenda
 );
 
