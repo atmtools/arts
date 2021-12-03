@@ -679,3 +679,6 @@ if (ENABLE_GUI)
 add_executable (calc_predef predefined.cc)
 target_link_libraries(calc_predef ${ALL_ARTS_LIBRARIES})
 endif()
+
+add_executable (arts_qn arts_quantum_numbers.cc)
+target_link_libraries(arts_qn matpack)

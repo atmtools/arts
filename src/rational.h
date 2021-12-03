@@ -344,7 +344,7 @@ class Rational {
  * @param[in] a Any Rational
  * @return a / gcd(a)
  */
-constexpr Rational reduce_by_gcd(const Rational a) noexcept {
+constexpr Rational reduce_by_gcd(Rational a) noexcept {
   const Index div = gcd(a.Nom(), a.Denom());
   if (div)
     return Rational(a.Nom() / div, a.Denom() / div);
