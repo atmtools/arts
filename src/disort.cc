@@ -1089,6 +1089,7 @@ void run_cdisort(Workspace& ws,
 void run_cdisort_star(Workspace& ws,
                       // Output
                       Tensor7& cloudbox_field,
+                      Matrix& optical_depth,
                       // Input
                       ConstVectorView f_grid,
                       ConstVectorView p_grid,
@@ -1271,6 +1272,9 @@ void run_cdisort_star(Workspace& ws,
   // Single scattering albedo of layers
   Matrix ssalb(nf, ds.nlyr);
   get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
+
+  // DEBUG output
+  optical_depth=dtauc;
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck

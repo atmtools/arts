@@ -2798,6 +2798,18 @@ void define_wsv_data() {
                 GROUP("ArrayOfString")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("optical_depth"),
+      DESCRIPTION(
+          "optical depth\n"
+          "\n"
+          "This vector holds optical depth in frequency and layer.\n"
+          "\n"
+          "Usage: Output from *DisortCalcStar*.\n"
+          "\n"
+          "Unit:  Undefined.\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("output_file_format"),
       DESCRIPTION(
           "Output file format.\n"

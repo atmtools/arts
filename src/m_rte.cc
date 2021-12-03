@@ -253,23 +253,55 @@ void iyClearsky(
 
   // Init iy_aux and fill where possible
   const Index naux = iy_aux_vars.nelem();
-  iy_aux.resize(naux);
+//  iy_aux.resize(naux);
   //
   Index auxOptDepth = -1;
-  //
-  for (Index i = 0; i < naux; i++) {
-    iy_aux[i].resize(nf, ns);
-    iy_aux[i] = 0;
+  Index field_flag = 0;
 
-    if (iy_aux_vars[i] == "Radiative background")
-      iy_aux[i](joker, 0) = (Numeric)min((Index)2, rbi - 1);
-    else if (iy_aux_vars[i] == "Optical depth")
-      auxOptDepth = i;
+  // Allocate, if we have radiation field as iy_aux_var, then
+  // we have an array of length naux+(np-1)
+  Index cnt=0;
+  for (Index i = 0; i < naux; i++) {
+    if (iy_aux_vars[i] == "Radiation field") {
+      cnt+=np;
+    } else {
+      cnt+=1;
+    }
+  }
+  iy_aux.resize(cnt);
+
+  // Allocate and set (if possible here) iy_aux
+  cnt=-1;
+  for (Index i = 0; i < naux; i++) {
+
+
+    if (iy_aux_vars[i] == "Radiative background"){
+      cnt+=1;
+      iy_aux[cnt].resize(nf, ns);
+      iy_aux[cnt](joker, 0) = (Numeric)min((Index)2, rbi - 1);
+    }
+    else if (iy_aux_vars[i] == "Optical depth"){
+      // we set it further below
+      cnt+=1;
+      auxOptDepth = cnt;
+      iy_aux[cnt].resize(nf, ns);
+      iy_aux[cnt] = 0;
+    }
+    else if (iy_aux_vars[i] == "Radiation field"){
+      // we set it at the end
+      field_flag = cnt +1;
+      for (Index j = 0; j < np; j++){
+        cnt+=1;
+        iy_aux[cnt].resize(nf, ns);
+        iy_aux[cnt] = 0;
+      }
+    }
     else {
       ARTS_USER_ERROR (
           "The only allowed strings in *iy_aux_vars* are:\n"
           "  \"Radiative background\"\n"
           "  \"Optical depth\"\n"
+          "  \"Radiation field\"\n"
           "but you have selected: \"", iy_aux_vars[i], "\"")
     }
   }
@@ -371,6 +403,7 @@ void iyClearsky(
     //dummy variables needed for the output and input of iyTransmission and
     // gas_scattering_agenda
     ArrayOfMatrix iy_aux_dummy;
+    ArrayOfString iy_aux_vars_dummy;
     ArrayOfTensor3 diy_dx_dummy;
     Vector ppvar_p_dummy;
     Vector ppvar_t_dummy;
@@ -551,7 +584,7 @@ void iyClearsky(
                                        dpnd_field_dx_dummy,
                                        scat_species_dummy,
                                        scat_data_dummy,
-                                       iy_aux_vars,
+                                       iy_aux_vars_dummy,
                                        jacobian_do,
                                        jacobian_quantities,
                                        star_ppath,
@@ -777,6 +810,10 @@ void iyClearsky(
   }
 
   // Copy back to ARTS external style
+  for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
+    iy_aux[field_flag+ip]=lvl_rad[ip];
+  }
+
   iy = lvl_rad[0];
   for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
     ppvar_trans_cumulat(ip, joker, joker, joker) = tot_tra[ip];
@@ -1768,7 +1805,7 @@ void iyEmissionStandard(
     ARTS_USER_ERROR ( "Only allowed choices for *integration order* are "
                         "1 and 2.");    
   }
-  
+
   // Copy back to ARTS external style
   iy = lvl_rad[0];
   for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {

@@ -316,6 +316,7 @@ void DisortCalcClearsky(Workspace& ws,
 void DisortCalcStar(Workspace& ws,
                     // WS Output:
                     Tensor7& cloudbox_field,
+                    Matrix& optical_depth,
                     // WS Input
                     const Index& atmfields_checked,
                     const Index& atmgeom_checked,
@@ -436,6 +437,7 @@ void DisortCalcStar(Workspace& ws,
 
   run_cdisort_star(ws,
                    cloudbox_field,
+                   optical_depth,
                    f_grid,
                    p_grid,
                    z_field(joker, 0, 0),

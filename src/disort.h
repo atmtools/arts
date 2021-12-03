@@ -200,6 +200,7 @@ void run_cdisort(Workspace& ws,
  *
  * @param[in,out] ws Current workspace
  * @param[out]    cloudbox_field Radiation field
+ * @param[out]    optical_depth Vertically integrated optical depth
  * @param[in]     f_grid Frequency grid
  * @param[in]     p_grid Pressure grid
  * @param[in]     z_profile Profile of geometric altitudes.
@@ -233,6 +234,7 @@ void run_cdisort(Workspace& ws,
 void run_cdisort_star(Workspace& ws,
                  // Output
                  Tensor7& cloudbox_field,
+                 Matrix& optical_depth,
                  // Input
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,

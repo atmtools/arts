@@ -5928,7 +5928,7 @@ Possible models:
           "  atmosphere, but only the radiation field within the cloudbox is\n"
           "  passed on and used further in ARTS (e.g. by *yCalc*).\n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
-      OUT("cloudbox_field"),
+      OUT("cloudbox_field","optical_depth"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
