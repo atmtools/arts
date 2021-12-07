@@ -256,7 +256,7 @@ void iyClearsky(
 //  iy_aux.resize(naux);
   //
   Index auxOptDepth = -1;
-  Index field_flag = 0;
+  Index field_flag = -1;
 
   // Allocate, if we have radiation field as iy_aux_var, then
   // we have an array of length naux+(np-1)
@@ -809,11 +809,14 @@ void iyClearsky(
                       "1 and 2.");
   }
 
-  // Copy back to ARTS external style
-  for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
-    iy_aux[field_flag+ip]=lvl_rad[ip];
+  // radiation field along the path
+  if (field_flag>=0){
+    for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
+      iy_aux[field_flag+ip]=lvl_rad[ip];
+    }
   }
 
+  // Copy back to ARTS external style
   iy = lvl_rad[0];
   for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
     ppvar_trans_cumulat(ip, joker, joker, joker) = tot_tra[ip];
