@@ -34,7 +34,7 @@
 #include "energylevelmap.h"
 #include "global_data.h"
 #include "lineshapemodel.h"
-#include "quantum.h"
+#include "quantum_numbers.h"
 #include "supergeneric.h"
 #include "xml_io.h"
 #include "zeemandata.h"

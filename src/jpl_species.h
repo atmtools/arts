@@ -1,7 +1,7 @@
 #ifndef jpl_species_h
 #define jpl_species_h
 
-#include "quantum.h"
+#include "quantum_numbers.h"
 
 namespace Jpl {
 /** Finds the ID of the ARTS species from JPL */

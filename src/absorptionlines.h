@@ -42,7 +42,7 @@
 
 #include "matpack.h"
 
-#include "quantum.h"
+#include "quantum_numbers.h"
 
 #include "zeemandata.h"
 
@@ -1439,108 +1439,6 @@ Numeric reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rati
  * @return As titled
  */
 Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
-
-//! Keep track of the target type and position in Lines of a Jacobian Target
-ENUMCLASS(QuantumIdentifierLineTargetType, char,
-          None,
-          Species,
-          Isotopologue,
-          Band,
-          Line,
-          Level
-)
-          
-struct QuantumIdentifierLineTarget {
-  QuantumIdentifierLineTargetType found{QuantumIdentifierLineTargetType::None};
-  bool lower{false};
-  bool upper{false};
-  
-  //! Default constexpr like constructor for "nothing"
-  constexpr QuantumIdentifierLineTarget() noexcept = default;
-  
-  //! Species/Isotopologue/Band match constructor from ID
-  constexpr QuantumIdentifierLineTarget(const QuantumIdentifier& qt, const QuantumIdentifier& qid) ARTS_NOEXCEPT : QuantumIdentifierLineTarget()
-  {
-    ARTS_ASSERT(qid.type == Quantum::IdentifierType::Transition);
-    
-    // We have no match if we do not match the species
-    if (qt.Species() == qid.Species()) found = QuantumIdentifierLineTargetType::Species;
-    
-    // We can only match the isotopologue if we match the species
-    if (found == QuantumIdentifierLineTargetType::Species and qt.Isotopologue() == qid.Isotopologue()) found = QuantumIdentifierLineTargetType::Isotopologue;
-    
-    // We do cannot match the band if we do not match the isotopologue
-    if (found == QuantumIdentifierLineTargetType::Isotopologue) {
-      if (qt.type == Quantum::IdentifierType::All) {
-        
-        // Nothing to do here
-        
-      } else if (qt.type == Quantum::IdentifierType::None) {
-        
-        found = QuantumIdentifierLineTargetType::None;  // We turned this off!
-        
-      } else if (qt.type == Quantum::IdentifierType::Transition) {
-        
-        // We are band specific values
-        bool all_good = true;
-        for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
-          if (qn not_eq QuantumNumberType::FINAL) {
-            const Rational& low_band = qid.Lower()[qn];
-            const Rational& low_targ = qt.Lower()[qn];
-            const Rational& upp_band = qid.Upper()[qn];
-            const Rational& upp_targ = qt.Upper()[qn];
-            all_good = all_good
-            and (low_band.isUndefined() or low_band == low_targ)
-            and (upp_band.isUndefined() or upp_band == upp_targ);
-          }
-        }
-        
-        // We are a band?
-        if (all_good) found = QuantumIdentifierLineTargetType::Band;
-        
-      } else if (qt.type == Quantum::IdentifierType::EnergyLevel) {
-        
-        // We are the right species, are we a level?
-        bool low_lvl = true;
-        bool upp_lvl = true;
-        for (auto qn: ::enumtyps::QuantumNumberTypeTypes) {
-          if (qn not_eq QuantumNumberType::FINAL) {
-            // Check only numbers in the energy levels
-            const Rational& low_band = qid.Lower()[qn];
-            const Rational& upp_band = qid.Upper()[qn];
-            const Rational& lvl_targ = qt.Level()[qn];
-            low_lvl = low_lvl and (low_band.isUndefined() or low_band == lvl_targ);
-            upp_lvl = upp_lvl and (upp_band.isUndefined() or upp_band == lvl_targ);
-          }
-        }
-        
-        // We are a level?
-        if (low_lvl or upp_lvl) found = QuantumIdentifierLineTargetType::Level;
-        lower = low_lvl;
-        upper = upp_lvl;
-        
-      }
-    }
-  }
-  
-  //! Species/Isotopologue/Band match constructor from band
-  QuantumIdentifierLineTarget(const QuantumIdentifier& qt, const Lines& lines) ARTS_NOEXCEPT :
-    QuantumIdentifierLineTarget(qt, lines.QuantumIdentity()) {}
-  
-  //! Line/Level match constructor (calls the Species/Isotopologue/Band match constructor)
-  QuantumIdentifierLineTarget(const QuantumIdentifier&, const Lines&, const Index) ARTS_NOEXCEPT;
-  
-  //! Check if this is a positive match
-  constexpr bool operator==(QuantumIdentifierLineTargetType x) const noexcept {return x == found;}
-  
-  //! Check if this is not a match
-  constexpr bool operator!=(QuantumIdentifierLineTargetType x) const noexcept {return x != found;}
-  
-  //! Debug output
-  friend std::ostream& operator<<(std::ostream& os, QuantumIdentifierLineTarget qlt) {
-    return os << qlt.found << ' ' << qlt.lower << ' ' << qlt.upper;
-  }
-};
 } // namespace Absorption
 
 using AbsorptionSingleLine = Absorption::SingleLine;

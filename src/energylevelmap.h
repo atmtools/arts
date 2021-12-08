@@ -30,7 +30,7 @@
 #include "absorptionlines.h"
 #include "matpackIV.h"
 #include "mystring.h"
-#include "quantum.h"
+#include "quantum_numbers.h"
 
 // Output from EnergyLevelMap
 struct Output2{

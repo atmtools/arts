@@ -38,7 +38,7 @@
 #include "methods.h"
 #include "mystring.h"
 #include "ppath.h"
-#include "quantum.h"  
+#include "quantum_numbers.h"  
 #include <iostream>
 #include <map>
 #include <stdexcept>

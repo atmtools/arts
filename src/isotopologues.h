@@ -2,6 +2,7 @@
 #define isotopologues_h
 
 #include <limits>
+#include <string_view>
 
 #include "mystring.h"
 #include "nonstd.h"
@@ -666,6 +667,11 @@ constexpr Index find_species_index(const IsotopeRecord ir) noexcept {
 constexpr Index find_species_index(const std::string_view spec,
                                    const std::string_view isot) noexcept {
   return find_species_index(fromShortName(spec), isot);
+}
+
+inline Index find_species_index(std::string_view s) {
+  auto minus = s.find('-');
+  return find_species_index(s.substr(0, minus), s.substr(minus+1));
 }
 
 constexpr const IsotopeRecord& select(Species spec, const std::string_view isotname) noexcept {

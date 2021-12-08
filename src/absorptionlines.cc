@@ -37,7 +37,6 @@
 #include "hitran_species.h"
 #include "jpl_species.h"
 #include "linescaling.h"
-#include "quantum_parser_hitran.h"
 
 Rational Absorption::Lines::LowerQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept {
   for(size_t i=0; i<mlocalquanta.size(); i++)

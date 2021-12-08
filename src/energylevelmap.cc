@@ -66,7 +66,8 @@ Output2 EnergyLevelMap::get_ratio_params(
   bool found1=false;
   bool found2=false;
   for (size_t i=0; i<mlevels.size(); i++) {
-    const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(mlevels[i], band, line_index);
+    
+
     if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
       found1 = true;
       x.r_low = mvalue(i, 0, 0, 0);

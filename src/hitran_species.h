@@ -1,7 +1,7 @@
 #ifndef hitran_species_h
 #define hitran_species_h
 
-#include "quantum.h"
+#include "quantum_numbers.h"
 #include "enums.h"
 
 namespace Hitran {

@@ -33,7 +33,7 @@
 #include "file.h"
 #include "mystring.h"
 #include "propagationmatrix.h"
-#include "quantum.h"
+#include "quantum_numbers.h"
 #include "wigner_functions.h"
 #include <limits>
 
@@ -209,38 +209,6 @@ constexpr Numeric PolarizationFactor(Polarization type) noexcept {
   return std::numeric_limits<Numeric>::max();
 }
 
-/** Checks if the quantum numbers are good for this transition
- * 
- * Given some Hund state, various quantum numbers must
- * be defined to allow the Zeeman calculations to work
- *  
- * @param[in] qns Quantum numbers of a level
- * 
- * @return If the numbers can be used to compute simple Zeeman effect
- */
-constexpr bool GoodHundData(const QuantumNumbers& qns) noexcept {
-  if (qns[QuantumNumberType::Hund].isUndefined()) return false;
-  switch (Hund(qns[QuantumNumberType::Hund].toIndex())) {
-    case Hund::CaseA:
-      if (qns[QuantumNumberType::Omega].isUndefined() or
-          qns[QuantumNumberType::J].isUndefined() or
-          qns[QuantumNumberType::Lambda].isUndefined() or
-          qns[QuantumNumberType::S].isUndefined())
-        return false;
-      break;
-    case Hund::CaseB:
-      if (qns[QuantumNumberType::N].isUndefined() or
-          qns[QuantumNumberType::J].isUndefined() or
-          qns[QuantumNumberType::Lambda].isUndefined() or
-          qns[QuantumNumberType::S].isUndefined())
-        return false;
-      break;
-    default:
-      return false;
-  }
-  return true;
-}
-
 /** Computes the Zeeman splitting coefficient
  * 
  * The level should be Hund case b type and all
@@ -308,6 +276,16 @@ constexpr Numeric SimpleGCaseA(Rational Omega,
  
 }
 
+/** Main storage for Zeeman splitting coefficients
+ * 
+ * The splitting data has an upper (gu) and lower (gl)
+ * component and this stores both of them to not confuse
+ * them elsewhere
+ */
+struct SplittingData {
+  Numeric gu, gl;
+};
+
 /** Computes the Zeeman splitting coefficient
  * 
  * The level should be Hund case a or b type and all
@@ -319,41 +297,44 @@ constexpr Numeric SimpleGCaseA(Rational Omega,
  * 
  * @return If the numbers can be used to compute simple Zeeman effect
  */
-constexpr Numeric SimpleG(const QuantumNumbers& qns,
-                          const Numeric& GS,
-                          const Numeric& GL) noexcept{
-  if (not GoodHundData(qns))
-    return NAN;
+inline SplittingData SimpleG(const Quantum::Number::ValueList& qns,
+                             const Numeric& GS,
+                             const Numeric& GL) noexcept {
+  if (qns.has(QuantumNumberType::Omega,
+              QuantumNumberType::J,
+              QuantumNumberType::Lambda,
+              QuantumNumberType::S))
+    return {SimpleGCaseA(qns[QuantumNumberType::Omega].upp(),
+                         qns[QuantumNumberType::J].upp(),
+                         qns[QuantumNumberType::Lambda].upp(),
+                         qns[QuantumNumberType::S].upp(),
+                         GS,
+                         GL),
+            SimpleGCaseA(qns[QuantumNumberType::Omega].low(),
+                         qns[QuantumNumberType::J].low(),
+                         qns[QuantumNumberType::Lambda].low(),
+                         qns[QuantumNumberType::S].low(),
+                         GS,
+                         GL)};
+  if (qns.has(QuantumNumberType::N,
+              QuantumNumberType::J,
+              QuantumNumberType::Lambda,
+              QuantumNumberType::S))
+    return {SimpleGCaseB(qns[QuantumNumberType::N].upp(),
+                         qns[QuantumNumberType::J].upp(),
+                         qns[QuantumNumberType::Lambda].upp(),
+                         qns[QuantumNumberType::S].upp(),
+                         GS,
+                         GL),
+            SimpleGCaseB(qns[QuantumNumberType::N].low(),
+                         qns[QuantumNumberType::J].low(),
+                         qns[QuantumNumberType::Lambda].low(),
+                         qns[QuantumNumberType::S].low(),
+                         GS,
+                         GL)};
 
-  switch (Hund(qns[QuantumNumberType::Hund].toIndex())) {
-    case Hund::CaseA:
-      return SimpleGCaseA(qns[QuantumNumberType::Omega],
-                          qns[QuantumNumberType::J],
-                          qns[QuantumNumberType::Lambda],
-                          qns[QuantumNumberType::S],
-                          GS,
-                          GL);
-    case Hund::CaseB:
-      return SimpleGCaseB(qns[QuantumNumberType::N],
-                          qns[QuantumNumberType::J],
-                          qns[QuantumNumberType::Lambda],
-                          qns[QuantumNumberType::S],
-                          GS,
-                          GL);
-  }
-
-  return NAN;
+  return {NAN, NAN};
 }
-
-/** Main storage for Zeeman splitting coefficients
- * 
- * The splitting data has an upper (gu) and lower (gl)
- * component and this stores both of them to not confuse
- * them elsewhere
- */
-struct SplittingData {
-  Numeric gu, gl;
-};
 
 /** Main Zeeman Model
  * 
