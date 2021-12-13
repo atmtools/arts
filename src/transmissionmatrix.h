@@ -440,6 +440,24 @@ struct RadiationVector {
    */
   RadiationVector& operator=(RadiationVector&& rv) noexcept = default;
 
+  /** Addition operator
+   *
+   * @param[in] rv Addition by rv
+   * @return RadiationVector& *this
+   */
+  RadiationVector& operator+=(const RadiationVector& rv) {
+    for (size_t i = 0; i < R4.size(); i++)
+      R4[i].noalias() += rv.R4[i];
+    for (size_t i = 0; i < R3.size(); i++)
+      R3[i].noalias() += rv.R3[i];
+    for (size_t i = 0; i < R2.size(); i++)
+      R2[i].noalias() += rv.R2[i];
+    for (size_t i = 0; i < R1.size(); i++)
+      R1[i].noalias() += rv.R1[i];
+
+    return *this;
+  }
+
   /** Multiply radiation vector from the left
    * 
    * @param[in] T Tranmission Vector
@@ -750,6 +768,8 @@ void update_radiation_vector(RadiationVector& I,
  * @param[in] dS Scattering source vector derivatives
  * @param[in] B Planck vector
  * @param[in] dB_dT Planck vector derivative wrt temperature
+ * @param[in] J_add Additional source vector
+ * @param[in] J_add Additional source vector derivatives
  * @param[in] jacobian_quantities As WSV
  * @param[in] jacobian_do Do Jacobian?
  */
@@ -763,6 +783,8 @@ void stepwise_source(RadiationVector& J,
                      const ArrayOfStokesVector& dS,
                      const ConstVectorView& B,
                      const ConstVectorView& dB_dT,
+                     const RadiationVector& J_add,
+                     const ArrayOfRadiationVector& dJ_add,
                      const ArrayOfRetrievalQuantity& jacobian_quantities,
                      const bool& jacobian_do);
 

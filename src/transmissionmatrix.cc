@@ -1760,6 +1760,8 @@ void stepwise_source(RadiationVector& J,
                      const ArrayOfStokesVector& dS,
                      const ConstVectorView& B,
                      const ConstVectorView& dB_dT,
+                     const RadiationVector& J_add,
+                     const ArrayOfRadiationVector& dJ_add,
                      const ArrayOfRetrievalQuantity& jacobian_quantities,
                      const bool& jacobian_do) {
   for (Index i = 0; i < K.NumberOfFrequencies(); i++) {
@@ -1865,6 +1867,15 @@ void stepwise_source(RadiationVector& J,
           }
         } break;
       }
+    }
+  }
+
+  // Add additional source and derivatives
+  if (J_add.Frequencies()) {
+    J += J_add;
+
+    for (Index i = 0; i < dJ_add.nelem(); i++) {
+      dJ[i] += dJ_add[i];
     }
   }
 }

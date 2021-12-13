@@ -369,6 +369,8 @@ void iyClearsky(
     // Size radiative variables always used
     Vector B(nf);
     StokesVector a(nf, ns), S(nf, ns);
+    RadiationVector J_add_star(nf, ns);
+    ArrayOfRadiationVector dJ_add_star;
 
     // Init variables only used if analytical jacobians done
     Vector dB_dT(temperature_jacobian ? nf : 0);
@@ -655,6 +657,8 @@ void iyClearsky(
                         dS_dx,
                         B,
                         dB_dT,
+                        J_add_star,
+                        dJ_add_star,
                         jacobian_quantities,
                         jacobian_do);
       } catch (const std::runtime_error& e) {
@@ -1576,6 +1580,8 @@ void iyEmissionStandard(
     // Size radiative variables always used
     Vector B(nf);
     StokesVector a(nf, ns), S(nf, ns);
+    RadiationVector J_add_dummy;
+    ArrayOfRadiationVector dJ_add_dummy;
 
     // Init variables only used if analytical jacobians done
     Vector dB_dT(temperature_jacobian ? nf : 0);
@@ -1655,6 +1661,8 @@ void iyEmissionStandard(
                         dS_dx,
                         B,
                         dB_dT,
+                        J_add_dummy,
+                        dJ_add_dummy,
                         jacobian_quantities,
                         jacobian_do);
       } catch (const std::runtime_error& e) {
