@@ -1112,21 +1112,19 @@ bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js) {
 }
 
 bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
-  if (rq.QuantumIdentity().type == Quantum::IdentifierType::All) {  // Single tag
-    for (const auto& s : ast) {
-      if (rq.QuantumIdentity().Species() not_eq s.Spec())
-        return false;  // Species must match
-      if (rq.QuantumIdentity().Isotopologue().isotname not_eq Species::Joker and
-          s.Isotopologue().isotname not_eq Species::Joker and
-          rq.QuantumIdentity().Isotopologue() not_eq s.Isotopologue())
-        return false;  // Isotopologue must match or be either one be a joker
+  if (rq == Jacobian::Line::VMR) {  // Single tag
+    for (auto& st : ast) {
+      if ((rq.QuantumIdentity().isotopologue_index == st.spec_ind) or
+          (rq.QuantumIdentity().Species() == st.Spec() and
+           (rq.QuantumIdentity().Isotopologue().isotname == Species::Joker or
+            st.Isotopologue().isotname == Species::Joker)))
+        return true;
     }
   } else {
-    ArrayOfSpeciesTag test(rq.Subtag());
-    if (ast not_eq test)
-      return false;  // Match single tag perfectly or throw out
+    return rq.Target().SpeciesList() == ast;
   }
-  return true;
+
+  return false;
 }
 
 bool species_match(const RetrievalQuantity& rq, const Species::Species species) {

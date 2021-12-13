@@ -31,13 +31,46 @@
 #include "debug.h"
 #include "species_info.h"
 
+Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
+                              const Numeric& GS,
+                              const Numeric& GL) noexcept {
+  if (Quantum::Number::vamdcCheck(qns, Quantum::Number::VAMDC::hunda) and
+      qns.has(QuantumNumberType::Omega,
+              QuantumNumberType::J,
+              QuantumNumberType::Lambda,
+              QuantumNumberType::S)) {
+    auto& Omega = qns[QuantumNumberType::Omega];
+    auto& J = qns[QuantumNumberType::J];
+    auto& Lambda = qns[QuantumNumberType::Lambda];
+    auto& S = qns[QuantumNumberType::S];
+    return {Zeeman::SimpleGCaseA(
+                Omega.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
+            Zeeman::SimpleGCaseA(
+                Omega.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
+  }
+
+  if (Quantum::Number::vamdcCheck(qns, Quantum::Number::VAMDC::hundb) and
+      qns.has(QuantumNumberType::N,
+              QuantumNumberType::J,
+              QuantumNumberType::Lambda,
+              QuantumNumberType::S)) {
+    auto& N = qns[QuantumNumberType::N];
+    auto& J = qns[QuantumNumberType::J];
+    auto& Lambda = qns[QuantumNumberType::Lambda];
+    auto& S = qns[QuantumNumberType::S];
+    return {
+        Zeeman::SimpleGCaseB(N.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
+        Zeeman::SimpleGCaseB(N.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
+  }
+
+  return {NAN, NAN};
+}
+
 Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid)
     ARTS_NOEXCEPT {
   const Numeric GS = get_lande_spin_constant(qid.Species());
   const Numeric GL = get_lande_lambda_constant();
-  const Numeric gu = SimpleG(qid.Upper(), GS, GL);
-  const Numeric gl = SimpleG(qid.Lower(), GS, GL);
-  return Model(gu, gl);
+  return SimpleG(qid.val, GS, GL);
 }
 
 Numeric case_b_g_coefficient_o2(Rational J,
@@ -98,8 +131,8 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
   ARTS_ASSERT(qid.type == Quantum::IdentifierType::Transition,
               "Not a transition")
   if (qid.Isotopologue() == "O2-66") {
-    if (qid.Lower()[QuantumNumberType::v1] == 0 and
-        qid.Upper()[QuantumNumberType::v1] == 0) {
+    if (qid.val[QuantumNumberType::v1].low() == 0 and
+        qid.val[QuantumNumberType::v1].upp() == 0) {
       constexpr Numeric GS = 2.002084;
       constexpr Numeric GLE = 2.77e-3;
       constexpr Numeric GR = -1.16e-4;
@@ -113,19 +146,19 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       constexpr Numeric gD = -243.42;
       constexpr Numeric gH = -1.46e-3;
 
-      auto JU = qid.Upper()[QuantumNumberType::J];
-      auto NU = qid.Upper()[QuantumNumberType::N];
+      auto JU = qid.val[QuantumNumberType::J].upp();
+      auto NU = qid.val[QuantumNumberType::N].upp();
       Numeric gu = case_b_g_coefficient_o2(
           JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      auto JL = qid.Lower()[QuantumNumberType::J];
-      auto NL = qid.Lower()[QuantumNumberType::N];
+      auto JL = qid.val[QuantumNumberType::J].low();
+      auto NL = qid.val[QuantumNumberType::N].low();
       Numeric gl = case_b_g_coefficient_o2(
           JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
       return Model(gu, gl);
     }
   } else if (qid.Isotopologue() == "O2-68") {
-    if (qid.Lower()[QuantumNumberType::v1] == 0 and
-        qid.Upper()[QuantumNumberType::v1] == 0) {
+    if (qid.val[QuantumNumberType::v1].low() == 0 and
+        qid.val[QuantumNumberType::v1].upp() == 0) {
       constexpr Numeric GS = 2.002025;
       constexpr Numeric GLE = 2.813e-3;
       constexpr Numeric GR = -1.26e-4;
@@ -139,12 +172,12 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       constexpr Numeric gD = -217.77;
       constexpr Numeric gH = -1.305e-3;
 
-      auto JU = qid.Upper()[QuantumNumberType::J];
-      auto NU = qid.Upper()[QuantumNumberType::N];
+      auto JU = qid.val[QuantumNumberType::J].upp();
+      auto NU = qid.val[QuantumNumberType::N].upp();
       Numeric gu = case_b_g_coefficient_o2(
           JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      auto JL = qid.Lower()[QuantumNumberType::J];
-      auto NL = qid.Lower()[QuantumNumberType::N];
+      auto JL = qid.val[QuantumNumberType::J].low();
+      auto NL = qid.val[QuantumNumberType::N].low();
       Numeric gl = case_b_g_coefficient_o2(
           JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
       return Model(gu, gl);
@@ -163,10 +196,10 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         0 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
-    auto JU = qid.Upper()[QuantumNumberType::J];
-    auto KU = qid.Upper()[QuantumNumberType::Ka];
-    auto JL = qid.Lower()[QuantumNumberType::J];
-    auto KL = qid.Lower()[QuantumNumberType::Ka];
+    auto JU = qid.val[QuantumNumberType::J].upp();
+    auto KU = qid.val[QuantumNumberType::Ka].upp();
+    auto JL = qid.val[QuantumNumberType::J].low();
+    auto KL = qid.val[QuantumNumberType::Ka].low();
 
     return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
                  closed_shell_trilinear(KL, JL, gperp, gpara));
@@ -178,10 +211,10 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         -.061 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
-    auto JU = qid.Upper()[QuantumNumberType::J];
-    auto KU = qid.Upper()[QuantumNumberType::Ka];
-    auto JL = qid.Lower()[QuantumNumberType::J];
-    auto KL = qid.Lower()[QuantumNumberType::Ka];
+    auto JU = qid.val[QuantumNumberType::J].upp();
+    auto KU = qid.val[QuantumNumberType::Ka].upp();
+    auto JL = qid.val[QuantumNumberType::J].low();
+    auto KL = qid.val[QuantumNumberType::Ka].low();
 
     return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
                  closed_shell_trilinear(KL, JL, gperp, gpara));
@@ -193,10 +226,10 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         0 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
-    auto JU = qid.Upper()[QuantumNumberType::J];
-    auto KU = qid.Upper()[QuantumNumberType::Ka];
-    auto JL = qid.Lower()[QuantumNumberType::J];
-    auto KL = qid.Lower()[QuantumNumberType::Ka];
+    auto JU = qid.val[QuantumNumberType::J].upp();
+    auto KU = qid.val[QuantumNumberType::Ka].upp();
+    auto JL = qid.val[QuantumNumberType::J].low();
+    auto KL = qid.val[QuantumNumberType::Ka].low();
 
     return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
                  closed_shell_trilinear(KL, JL, gperp, gpara));

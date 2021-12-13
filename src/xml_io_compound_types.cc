@@ -28,8 +28,8 @@
 
 #include "arts.h"
 #include "cloudbox.h"
-#include "xml_io.h"
 #include "global_data.h"
+#include "xml_io.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -1199,15 +1199,27 @@ void xml_read_from_stream(istream& is_xml,
                           QuantumIdentifier& qi,
                           bifstream* pbifs _U_,
                           const Verbosity& verbosity) {
+  static_assert(QuantumIdentifier::version == 1);
+
   ArtsXMLTag tag(verbosity);
 
   tag.read_from_stream(is_xml);
   tag.check_name("QuantumIdentifier");
+  
+  Index version;
+  if (tag.has_attribute("version")) {
+    tag.get_attribute_value("version", version);
+  } else {
+    version = 0;
+  }
+  ARTS_USER_ERROR_IF(
+      QuantumIdentifier::version < version,
+      "The version of this quantum identifier is too new.  You need to upgrade ARTS to use it.")
 
   try {
     String qi_str;
     parse_xml_tag_content_as_string(is_xml, qi_str);
-    qi.SetFromString(qi_str);
+    qi = QuantumIdentifier(qi_str, version);
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading QuantumIdentifier: "
@@ -1235,7 +1247,10 @@ void xml_write_to_stream(ostream& os_xml,
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
+  static_assert(QuantumIdentifier::version == 1);
+
   open_tag.set_name("QuantumIdentifier");
+  open_tag.add_attribute("version", QuantumIdentifier::version);
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.write_to_stream(os_xml);
 
@@ -1244,67 +1259,6 @@ void xml_write_to_stream(ostream& os_xml,
   close_tag.set_name("/QuantumIdentifier");
   close_tag.write_to_stream(os_xml);
   os_xml << endl;
-}
-
-//=== QuantumNumbers =========================================
-
-//! Reads QuantumNumbers from XML input stream
-/*!
-  \param is_xml  XML Input stream
-  \param qn      QuantumNumbers return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(istream& is_xml,
-                          QuantumNumbers& qn,
-                          bifstream* pbifs _U_,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
-  Index nelem;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("QuantumNumbers");
-
-  tag.get_attribute_value("nelem", nelem);
-
-  Index n;
-  try {
-    for (n = 0; n < nelem; n++) is_xml >> qn;
-  } catch (const std::runtime_error& e) {
-    ostringstream os;
-    os << "Error reading QuantumNumbers: "
-       << "\n Element: " << n << "\n"
-       << e.what();
-    throw runtime_error(os.str());
-  }
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/QuantumNumbers");
-}
-
-//! Writes QuantumNumbers to XML output stream
-/*!
-  \param os_xml  XML Output stream
-  \param qn      QuantumNumbers
-  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
-  \param name    Optional name attribute
-*/
-void xml_write_to_stream(ostream& os_xml,
-                         const QuantumNumbers& qn,
-                         bofstream* pbofs _U_,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
-
-  open_tag.set_name("QuantumNumbers");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", Index(qn.GetNumbers().size()));
-  open_tag.write_to_stream(os_xml);
-
-  os_xml << " " << qn << " ";
-
-  close_tag.set_name("/QuantumNumbers");
-  close_tag.write_to_stream(os_xml);
 }
 
 //=== RetrievalQuantity =========================================
@@ -2104,7 +2058,7 @@ void xml_write_to_stream(ostream& os_xml,
   for (auto& r: rvb) {
     ArtsXMLTag internal_open_tag(verbosity);
     internal_open_tag.set_name("ErrorCorrectedSuddenData");
-    internal_open_tag.add_attribute("key", r.id.GetString());
+    internal_open_tag.add_attribute("key", var_string(r.id));
     internal_open_tag.add_attribute("nelem", r.data.nelem());
     internal_open_tag.write_to_stream(os_xml);
     os_xml << '\n';

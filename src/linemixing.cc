@@ -139,23 +139,23 @@ Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N) {
 PopulationAndDipole::PopulationAndDipole(const Numeric T,
                                          const AbsorptionLines& band) noexcept :
   pop(band.NumLines()), dip(band.NumLines()) {
-  const Index N = band.NumLines();
+  const Index n = band.NumLines();
   
   const Numeric QT = single_partition_function(T, band.Isotopologue());
-  const Numeric QT0 = single_partition_function(band.T0(), band.Isotopologue());
+  const Numeric QT0 = single_partition_function(band.T0, band.Isotopologue());
   const Numeric ratiopart = QT0 / QT;
   
-  for (Index i=0; i<N; i++) {
-    const Numeric pop0 = (band.g_upp(i) / QT0) * boltzman_factor(band.T0(), band.E0(i));
-    pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
-    dip[i] = std::sqrt(- band.I0(i)/(pop0 * band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * band.T0()))));
+  for (Index i=0; i<n; i++) {
+    const Numeric pop0 = (band.lines[i].gupp / QT0) * boltzman_factor(band.T0, band.lines[i].E0);
+    pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0, band.lines[i].E0);
+    dip[i] = std::sqrt(- band.lines[i].I0/(pop0 * band.lines[i].F0 * std::expm1(- (Constant::h * band.lines[i].F0)) / (Constant::k * band.T0)));
     
     // Adjust the sign depending on type
-    if (band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-      dip[i] *= std::signbit(Makarov2020etal::reduced_dipole(band.UpperQuantumNumber(i, QuantumNumberType::J),
-                                                             band.LowerQuantumNumber(i, QuantumNumberType::J),
-                                                             band.UpperQuantumNumber(i, QuantumNumberType::N))) ? - 1 : 1;
-    } else if (band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing) {
+    if (band.population == Absorption::PopulationType::ByMakarovFullRelmat) {
+      auto& J = band.lines[i].localquanta.val[QuantumNumberType::J];
+      auto& N = band.lines[i].localquanta.val[QuantumNumberType::N];
+      dip[i] *= std::signbit(Makarov2020etal::reduced_dipole(J.upp(), J.low(), N.upp())) ? - 1 : 1;
+    } else if (band.population == Absorption::PopulationType::ByRovibLinearDipoleLineMixing) {
       // pass
     }
   }
@@ -172,7 +172,7 @@ ArrayOfIndex PopulationAndDipole::sort(const AbsorptionLines& band) noexcept {
   // Strength
   Vector s(N);
   for (Index i=0; i<N; i++) {
-    s[i] = band.F0(i) * pop[i] * Constant::pow2(dip[i]);
+    s[i] = band.lines[i].F0 * pop[i] * Constant::pow2(dip[i]);
   }
   
   // Sorter
@@ -331,38 +331,41 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   const Index n = band.NumLines();
   if (n == 0) return;
 
-  const Rational Si = band.UpperQuantumNumber(0, QuantumNumberType::S);
-  const Rational Sf = band.LowerQuantumNumber(0, QuantumNumberType::S);
+  auto& S = band.quantumidentity.val[QuantumNumberType::S];
+  const Rational Si = S.upp();
+  const Rational Sf = S.low();
   ARTS_ASSERT(Si.isDefined() and Sf.isDefined(), "Need S for band selection")
   
   Vector dipr(n);
   for (Index i=0; i<n; i++) {
-    ARTS_ASSERT(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J).isDefined() and
-                band.UpperQuantumNumber(sorting[i], QuantumNumberType::J).isDefined() and
-                band.LowerQuantumNumber(sorting[i], QuantumNumberType::N).isDefined() and
-                band.UpperQuantumNumber(sorting[i], QuantumNumberType::N).isDefined(),
-                "Need J and N for calculations")
+    auto& J = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J];
+    auto& N = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N];
     
-    dipr[i] = reduced_dipole(band.UpperQuantumNumber(sorting[i], QuantumNumberType::J),
-                             band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
-                             band.UpperQuantumNumber(sorting[i], QuantumNumberType::N));
+    dipr[i] = reduced_dipole(J.upp(), J.low(), N.upp());
   }
-    
-  for (Index i=0; i<n; i++) {
-    const Rational Ji = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
-    const Rational Jf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
-    const Rational Ni = band.UpperQuantumNumber(sorting[i], QuantumNumberType::N);
-    const Rational Nf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::N);
-    for (Index j=0; j<n; j++) {
+
+  for (Index i = 0; i < n; i++) {
+    auto& J = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J];
+    auto& N = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N];
+
+    const Rational Ji = J.upp();
+    const Rational Jf = J.low();
+    const Rational Ni = N.upp();
+    const Rational Nf = N.low();
+
+    for (Index j = 0; j < n; j++) {
       if (i == j) continue;
 
-      const Rational Ji_p = band.UpperQuantumNumber(sorting[j], QuantumNumberType::J);
-      const Rational Jf_p = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
-      const Rational Ni_p = band.UpperQuantumNumber(sorting[j], QuantumNumberType::N);
-      const Rational Nf_p = band.LowerQuantumNumber(sorting[j], QuantumNumberType::N);
+      auto& J_p = band.lines[sorting[j]].localquanta.val[QuantumNumberType::J];
+      auto& N_p = band.lines[sorting[j]].localquanta.val[QuantumNumberType::N];
+
+      const Rational Ji_p = J_p.upp();
+      const Rational Jf_p = J_p.low();
+      const Rational Ni_p = N_p.upp();
+      const Rational Nf_p = N_p.low();
 
       if (Jf_p > Jf) continue;
-      
+
       // Tran etal 2006 symbol with modifications:
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
       Numeric sum=0;
@@ -374,16 +377,16 @@ void relaxation_matrix_offdiagonal(MatrixView W,
         const Numeric c = wigner6j(L, Ji, Ji_p, Si, Ni_p, Ni);
         const Numeric d = wigner6j(L, Jf, Jf_p, Sf, Nf_p, Nf);
         const Numeric e = wigner6j(L, Ji, Ji_p, 1, Jf_p, Jf);
-        sum += a * b * c * d * e * Numeric(2*L + 1) * rovib_data.Q(L, T, band.T0(), erot(L)) / rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(L), erot(L-2));
+        sum += a * b * c * d * e * Numeric(2*L + 1) * rovib_data.Q(L, T, band.T0, erot(L)) / rovib_data.Omega(T, band.T0, band.SpeciesMass(), erot(L), erot(L-2));
       }
-      sum *= scl * rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(Ni), erot(Ni - 2));
+      sum *= scl * rovib_data.Omega(T, band.T0, band.SpeciesMass(), erot(Ni), erot(Ni - 2));
       
       // Add to W and rescale to upwards element by the populations
       W(i, j) = sum;
       W(j, i) = sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / kelvin2joule(T));
     }
   }
-  
+
   // Sum rule correction
   for (Index i=0; i<n; i++) {
     Numeric sumlw = 0.0;
@@ -396,12 +399,12 @@ void relaxation_matrix_offdiagonal(MatrixView W,
         sumup += dipr[j] * W(j, i);
       }
     }
-    
-    const Rational Ji = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
-    const Rational Ni = band.LowerQuantumNumber(sorting[i], QuantumNumberType::N);
-    for (Index j=i+1; j<n; j++) {
-      const Rational Jj = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
-      const Rational Nj = band.LowerQuantumNumber(sorting[j], QuantumNumberType::N);
+
+    const Rational Ji = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J].low();
+    const Rational Ni = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N].low();
+    for (Index j = i + 1; j < n; j++) {
+      const Rational Jj = band.lines[sorting[j]].localquanta.val[QuantumNumberType::J].low();
+      const Rational Nj = band.lines[sorting[j]].localquanta.val[QuantumNumberType::N].low();
       if (sumlw == 0) {
         W(j, i) = 0.0;
         W(i, j) = 0.0;
@@ -447,9 +450,10 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   if (not n) return;
 
   // These are constant for a band
-  Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
-  Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
-  ARTS_ASSERT(li.isDefined() and lf.isDefined(), "Need l2 for band selection")
+  auto& l2 = band.quantumidentity.val[QuantumNumberType::l2];
+  Rational li = l2.upp();
+  Rational lf = l2.low();
+  
   const bool swap_order = li > lf;
   if (swap_order) swap(li, lf);
   const int sgn = iseven(li + lf + 1) ? -1 : 1;
@@ -459,24 +463,21 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   
   Vector dipr(n);
   for (Index i=0; i<n; i++) {
-    ARTS_ASSERT(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J).isDefined() and
-                band.UpperQuantumNumber(sorting[i], QuantumNumberType::J).isDefined(),
-                "Need J for calculations")
-
-    dipr[i] = Absorption::reduced_rovibrational_dipole(band.LowerQuantumNumber(sorting[i], QuantumNumberType::J),
-                                                       band.UpperQuantumNumber(sorting[i], QuantumNumberType::J), 
-                                                       lf, 
-                                                       li);
+    auto& J = band.lines[i].localquanta.val[QuantumNumberType::J];
+    dipr[i] = Absorption::reduced_rovibrational_dipole(J.upp(), J.low(), lf, li);
   }
   
   for (Index i=0; i<n; i++) {
-    Rational Ji = band.UpperQuantumNumber(sorting[i], QuantumNumberType::J);
-    Rational Jf = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
+    auto& J = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J];
+    Rational Ji = J.upp();
+    Rational Jf = J.low();
     if (swap_order) swap(Ji, Jf);
+
     for (Index j=0; j<n; j++) {
       if(i == j) continue;
-      Rational Ji_p = band.UpperQuantumNumber(sorting[j], QuantumNumberType::J);
-      Rational Jf_p = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
+      auto& J_p = band.lines[sorting[j]].localquanta.val[QuantumNumberType::J];
+      Rational Ji_p = J_p.upp();
+      Rational Jf_p = J_p.low();
       if (swap_order) swap(Ji_p, Jf_p);
 
       // Select upper quantum number
@@ -491,11 +492,11 @@ void relaxation_matrix_offdiagonal(MatrixView W,
         const Numeric a = wigner3j(Ji_p, L, Ji, li, 0, -li);
         const Numeric b = wigner3j(Jf_p, L, Jf, lf, 0, -lf);
         const Numeric c = wigner6j(Ji, Jf, 1, Jf_p, Ji_p, L);
-        const Numeric QL = rovib_data.Q(L, T, band.T0(), erot(L));
-        const Numeric ECS = rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(L), erot(L-2));
+        const Numeric QL = rovib_data.Q(L, T, band.T0, erot(L));
+        const Numeric ECS = rovib_data.Omega(T, band.T0, band.SpeciesMass(), erot(L), erot(L-2));
         sum += a * b * c * Numeric(2 * L + 1) * QL / ECS;
       }
-      const Numeric ECS = rovib_data.Omega(T, band.T0(), band.SpeciesMass(), erot(Ji), erot(Ji-2));
+      const Numeric ECS = rovib_data.Omega(T, band.T0, band.SpeciesMass(), erot(Ji), erot(Ji-2));
       const Numeric scl = sgn * ECS * Numeric(2 * Ji_p + 1) * sqrt((2 * Jf + 1) * (2 * Jf_p + 1));
       sum *= scl;
       
@@ -524,9 +525,9 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       }
     }
     
-    const Rational Ji = band.LowerQuantumNumber(sorting[i], QuantumNumberType::J);
+    const Rational Ji =  band.lines[sorting[i]].localquanta.val[QuantumNumberType::J].low();
     for (Index j=i+1; j<n; j++) {
-      const Rational Jj = band.LowerQuantumNumber(sorting[j], QuantumNumberType::J);
+      const Rational Jj =  band.lines[sorting[j]].localquanta.val[QuantumNumberType::J].low();
       if (sumlw == 0) {
         W(j, i) = 0.0;
         W(i, j) = 0.0;
@@ -570,7 +571,7 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
   }
   
   // Set the off-diagonal part of the matrix for this broadener
-  switch (band.Population()) {
+  switch (band.population) {
     case PopulationType::ByMakarovFullRelmat:
       Makarov2020etal::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
       break;
@@ -617,12 +618,12 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
     
     // Sum up all atmospheric components
     MapToEigen(W).noalias() += vmrs[k] * MapToEigen(
-      single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[k]], k));
+      single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.broadeningspecies[k]], k));
   }
 
   // Deal with line frequency and its re-normalization
   for (Index i=0; i<N; i++) {
-   real_val(W(i, i)) += band.F0(sorting[i]) - frenorm;
+   real_val(W(i, i)) += band.lines[sorting[i]].F0 - frenorm;
   }
 
   return W;
@@ -667,7 +668,7 @@ std::pair<ComplexVector, bool> ecs_absorption_impl(const Numeric T,
       const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, j);
       const Numeric dzeeman = H * band.ZeemanSplitting(i, zeeman_polarization, j);
       
-      if (band.LineShapeType() == LineShape::Type::LP) {
+      if (band.lineshapetype == LineShape::Type::LP) {
         for (Index iv=0; iv<f_grid.nelem(); iv++) {
           absorption[iv] -= 1i * Sz * ((eqv.str[i] / (f_grid[iv] - frenorm - dzeeman - eqv.val[i]))) / (Constant::sqrt_ln_2 * Constant::sqrt_pi);
         }
@@ -741,7 +742,7 @@ EcsReturn ecs_absorption(const Numeric T,
       vec /= df;
       work &= dwork;
     } else if (target == Jacobian::Line::VMR) {
-      if (Absorption::QuantumIdentifierLineTarget(target.QuantumIdentity(), band) == Absorption::QuantumIdentifierLineTargetType::Isotopologue) {
+      if (band.DoVmrDerivative(target.QuantumIdentity())) {
         Vector vmrs_copy = vmrs;
         Numeric this_vmr_copy = this_vmr;
         const Numeric dvmr = target.Perturbation();
@@ -749,10 +750,10 @@ EcsReturn ecs_absorption(const Numeric T,
         // Alter the VMRs for self 
         if (band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
           this_vmr_copy += dvmr;
-          if (band.Self()) vmrs_copy[0] += dvmr;  // First value is self if band has self broadener
+          if (band.selfbroadening) vmrs_copy[0] += dvmr;  // First value is self if band has self broadener
         } else {
-          for (Index j=band.Self(); j<band.BroadeningSpecies().nelem()-band.Bath(); j++) {
-            if (band.BroadeningSpecies()[j] == target.QuantumIdentity().Species()) {
+          for (Index j=band.selfbroadening; j<band.broadeningspecies.nelem()-band.bathbroadening; j++) {
+            if (band.broadeningspecies[j] == target.QuantumIdentity().Species()) {
               vmrs_copy[j] += dvmr;
             }
           }
@@ -768,115 +769,115 @@ EcsReturn ecs_absorption(const Numeric T,
       Numeric d=1e-6;
       
       for (Index iline=0; iline<band.NumLines(); iline++) {
-        const Absorption::QuantumIdentifierLineTarget qlt(target.QuantumIdentity(), band, iline);
-        if (qlt == Absorption::QuantumIdentifierLineTargetType::Line) {
+        const Quantum::Number::StateMatch qlt(target.QuantumIdentity(), band.lines[iline].localquanta, band.quantumidentity);
+        if (qlt == Quantum::Number::StateMatchType::Full) {
           AbsorptionLines band_copy = band;
           
           const Index pos = band.BroadeningSpeciesPosition(target.QuantumIdentity().Species());
           switch (target.LineType()) {
             case Jacobian::Line::ShapeG0X0:
-              d *= band.AllLines()[iline].LineShape()[pos].G0().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].G0().X0 += d;
+              d *= band.lines[iline].lineshape[pos].G0().X0;
+              band_copy.lines[iline].lineshape[pos].G0().X0 += d;
               break;
             case Jacobian::Line::ShapeG0X1:
-              d *= band.AllLines()[iline].LineShape()[pos].G0().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].G0().X1 += d;
+              d *= band.lines[iline].lineshape[pos].G0().X1;
+              band_copy.lines[iline].lineshape[pos].G0().X1 += d;
               break;
             case Jacobian::Line::ShapeG0X2:
-              d *= band.AllLines()[iline].LineShape()[pos].G0().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].G0().X2 += d;
+              d *= band.lines[iline].lineshape[pos].G0().X2;
+              band_copy.lines[iline].lineshape[pos].G0().X2 += d;
               break;
             case Jacobian::Line::ShapeG0X3:
-              d *= band.AllLines()[iline].LineShape()[pos].G0().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].G0().X3 += d;
+              d *= band.lines[iline].lineshape[pos].G0().X3;
+              band_copy.lines[iline].lineshape[pos].G0().X3 += d;
               break;
             case Jacobian::Line::ShapeD0X0:
-              d *= band.AllLines()[iline].LineShape()[pos].D0().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].D0().X0 += d;
+              d *= band.lines[iline].lineshape[pos].D0().X0;
+              band_copy.lines[iline].lineshape[pos].D0().X0 += d;
               break;
             case Jacobian::Line::ShapeD0X1:
-              d *= band.AllLines()[iline].LineShape()[pos].D0().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].D0().X1 += d;
+              d *= band.lines[iline].lineshape[pos].D0().X1;
+              band_copy.lines[iline].lineshape[pos].D0().X1 += d;
               break;
             case Jacobian::Line::ShapeD0X2:
-              d *= band.AllLines()[iline].LineShape()[pos].D0().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].D0().X2 += d;
+              d *= band.lines[iline].lineshape[pos].D0().X2;
+              band_copy.lines[iline].lineshape[pos].D0().X2 += d;
               break;
             case Jacobian::Line::ShapeD0X3:
-              d *= band.AllLines()[iline].LineShape()[pos].D0().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].D0().X3 += d;
+              d *= band.lines[iline].lineshape[pos].D0().X3;
+              band_copy.lines[iline].lineshape[pos].D0().X3 += d;
               break;
             case Jacobian::Line::ShapeG2X0:
-              d *= band.AllLines()[iline].LineShape()[pos].G2().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].G2().X0 += d;
+              d *= band.lines[iline].lineshape[pos].G2().X0;
+              band_copy.lines[iline].lineshape[pos].G2().X0 += d;
               break;
             case Jacobian::Line::ShapeG2X1:
-              d *= band.AllLines()[iline].LineShape()[pos].G2().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].G2().X1 += d;
+              d *= band.lines[iline].lineshape[pos].G2().X1;
+              band_copy.lines[iline].lineshape[pos].G2().X1 += d;
               break;
             case Jacobian::Line::ShapeG2X2:
-              d *= band.AllLines()[iline].LineShape()[pos].G2().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].G2().X2 += d;
+              d *= band.lines[iline].lineshape[pos].G2().X2;
+              band_copy.lines[iline].lineshape[pos].G2().X2 += d;
               break;
             case Jacobian::Line::ShapeG2X3:
-              d *= band.AllLines()[iline].LineShape()[pos].G2().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].G2().X3 += d;
+              d *= band.lines[iline].lineshape[pos].G2().X3;
+              band_copy.lines[iline].lineshape[pos].G2().X3 += d;
               break;
             case Jacobian::Line::ShapeD2X0:
-              d *= band.AllLines()[iline].LineShape()[pos].D2().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].D2().X0 += d;
+              d *= band.lines[iline].lineshape[pos].D2().X0;
+              band_copy.lines[iline].lineshape[pos].D2().X0 += d;
               break;
             case Jacobian::Line::ShapeD2X1:
-              d *= band.AllLines()[iline].LineShape()[pos].D2().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].D2().X1 += d;
+              d *= band.lines[iline].lineshape[pos].D2().X1;
+              band_copy.lines[iline].lineshape[pos].D2().X1 += d;
               break;
             case Jacobian::Line::ShapeD2X2:
-              d *= band.AllLines()[iline].LineShape()[pos].D2().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].D2().X2 += d;
+              d *= band.lines[iline].lineshape[pos].D2().X2;
+              band_copy.lines[iline].lineshape[pos].D2().X2 += d;
               break;
             case Jacobian::Line::ShapeD2X3:
-              d *= band.AllLines()[iline].LineShape()[pos].D2().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].D2().X3 += d;
+              d *= band.lines[iline].lineshape[pos].D2().X3;
+              band_copy.lines[iline].lineshape[pos].D2().X3 += d;
               break;
             case Jacobian::Line::ShapeFVCX0:
-              d *= band.AllLines()[iline].LineShape()[pos].FVC().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].FVC().X0 += d;
+              d *= band.lines[iline].lineshape[pos].FVC().X0;
+              band_copy.lines[iline].lineshape[pos].FVC().X0 += d;
               break;
             case Jacobian::Line::ShapeFVCX1:
-              d *= band.AllLines()[iline].LineShape()[pos].FVC().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].FVC().X1 += d;
+              d *= band.lines[iline].lineshape[pos].FVC().X1;
+              band_copy.lines[iline].lineshape[pos].FVC().X1 += d;
               break;
             case Jacobian::Line::ShapeFVCX2:
-              d *= band.AllLines()[iline].LineShape()[pos].FVC().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].FVC().X2 += d;
+              d *= band.lines[iline].lineshape[pos].FVC().X2;
+              band_copy.lines[iline].lineshape[pos].FVC().X2 += d;
               break;
             case Jacobian::Line::ShapeFVCX3:
-              d *= band.AllLines()[iline].LineShape()[pos].FVC().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].FVC().X3 += d;
+              d *= band.lines[iline].lineshape[pos].FVC().X3;
+              band_copy.lines[iline].lineshape[pos].FVC().X3 += d;
               break;
             case Jacobian::Line::ShapeETAX0:
-              d *= band.AllLines()[iline].LineShape()[pos].ETA().X0;
-              band_copy.AllLines()[iline].LineShape()[pos].ETA().X0 += d;
+              d *= band.lines[iline].lineshape[pos].ETA().X0;
+              band_copy.lines[iline].lineshape[pos].ETA().X0 += d;
               break;
             case Jacobian::Line::ShapeETAX1:
-              d *= band.AllLines()[iline].LineShape()[pos].ETA().X1;
-              band_copy.AllLines()[iline].LineShape()[pos].ETA().X1 += d;
+              d *= band.lines[iline].lineshape[pos].ETA().X1;
+              band_copy.lines[iline].lineshape[pos].ETA().X1 += d;
               break;
             case Jacobian::Line::ShapeETAX2:
-              d *= band.AllLines()[iline].LineShape()[pos].ETA().X2;
-              band_copy.AllLines()[iline].LineShape()[pos].ETA().X2 += d;
+              d *= band.lines[iline].lineshape[pos].ETA().X2;
+              band_copy.lines[iline].lineshape[pos].ETA().X2 += d;
               break;
             case Jacobian::Line::ShapeETAX3:
-              d *= band.AllLines()[iline].LineShape()[pos].ETA().X3;
-              band_copy.AllLines()[iline].LineShape()[pos].ETA().X3 += d;
+              d *= band.lines[iline].lineshape[pos].ETA().X3;
+              band_copy.lines[iline].lineshape[pos].ETA().X3 += d;
               break;
             case Jacobian::Line::Center:
-              d *= band.AllLines()[iline].F0();
-              band_copy.AllLines()[iline].F0() += d;
+              d *= band.lines[iline].F0;
+              band_copy.lines[iline].F0 += d;
               break;
             case Jacobian::Line::Strength:
-              d *= band.AllLines()[iline].I0();
-              band_copy.AllLines()[iline].I0() += d;
+              d *= band.lines[iline].I0;
+              band_copy.lines[iline].I0 += d;
               break;
             case Jacobian::Line::ShapeYX0:
             case Jacobian::Line::ShapeYX1:
@@ -918,7 +919,7 @@ EcsReturn ecs_absorption(const Numeric T,
           vec -= dabs;
           vec /= -d;
           work &= dwork;
-        } else if (qlt == Absorption::QuantumIdentifierLineTargetType::Band) {
+        } else if (qlt == Quantum::Number::StateMatchType::Band) {
           ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
           
           const auto spec = target.QuantumIdentity().Species();
@@ -1076,7 +1077,7 @@ Index band_eigenvalue_adaptation(
       // Fit to a polynomial
       auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
       if (not fit) return EXIT_FAILURE;
-      band.Line(j).LineShape()[i].Y() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+      band.lines[j].lineshape[i].Y() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
     }
     
     // Rosenkranz 2nd order frequency parameter
@@ -1090,7 +1091,7 @@ Index band_eigenvalue_adaptation(
         // Fit to a polynomial
         auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
         if (not fit) return EXIT_FAILURE;
-        band.Line(j).LineShape()[i].DV() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+        band.lines[j].lineshape[i].DV() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
       }
     }
     
@@ -1105,7 +1106,7 @@ Index band_eigenvalue_adaptation(
         // Fit to a polynomial
         auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
         if (not fit) return EXIT_FAILURE;
-        band.Line(j).LineShape()[i].G() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+        band.lines[j].lineshape[i].G() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
       }
     }
     
@@ -1121,15 +1122,15 @@ Index band_eigenvalue_adaptation(
         auto [fit, c] = Minimize::curve_fit<Minimize::Polynom>(temperatures, targ, LineShape::ModelParameters::N - 1);
         if (not fit) return EXIT_FAILURE;
         ARTS_USER_ERROR("Not yet implemented: 3rd order line mixing")
-        //         band.Line(j).LineShape()[i].DG() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
+        //         band.lines[j].lineshape[i].DG() = LineShape::ModelParameters(LineShape::TemperatureModel::POLY, c);
       }
     }
   }
   
   // If we reach here, we have to set the band population type
   // to LTE and renormalize the strength to physical frequency
-  band.Normalization(Absorption::NormalizationType::SFS);
-  band.Population(Absorption::PopulationType::LTE);
+  band.normalization = Absorption::NormalizationType::SFS;
+  band.population = Absorption::PopulationType::LTE;
   
   return EXIT_SUCCESS;
 }
@@ -1154,7 +1155,7 @@ Vector RosenkranzY(const Vector& dip,
   for (Index k=0; k<N; k++) {
     for (Index j=0; j<N; j++) {
       if (k == j) continue;
-      Y[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) / (band.F0(k) - band.F0(j));
+      Y[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) / (band.lines[k].F0 - band.lines[j].F0);
     }
   }
   
@@ -1181,12 +1182,12 @@ Vector RosenkranzG(const Vector& dip,
   for (Index k=0; k<N; k++) {
     for (Index j=0; j<N; j++) {
       if (k == j) continue;
-      G[k] += W(k, j) * W(j, k) / Constant::pow2(band.F0(j) - band.F0(k));
-      G[k] += Constant::pow2(std::abs(dip[j] / dip[k]) * W(j, k) / (band.F0(j) - band.F0(k)));
-      G[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) * W(k, k) / Constant::pow2(band.F0(j) - band.F0(k));
+      G[k] += W(k, j) * W(j, k) / Constant::pow2(band.lines[j].F0 - band.lines[k].F0);
+      G[k] += Constant::pow2(std::abs(dip[j] / dip[k]) * W(j, k) / (band.lines[j].F0 - band.lines[k].F0));
+      G[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) * W(k, k) / Constant::pow2(band.lines[j].F0 - band.lines[k].F0);
       for (Index l=0; l<N; l++) {
         if (l == k or l == j) continue;
-        G[k] -= 2 * std::abs(dip[j] / dip[k]) * W(j, l) * W(l, k) / ((band.F0(j) - band.F0(k)) * (band.F0(l) - band.F0(k)));
+        G[k] -= 2 * std::abs(dip[j] / dip[k]) * W(j, l) * W(l, k) / ((band.lines[j].F0 - band.lines[k].F0) * (band.lines[l].F0 - band.lines[k].F0));
        
       }
     }
@@ -1215,7 +1216,7 @@ Vector RosenkranzDV(const Vector& dip,
   for (Index k=0; k<N; k++) {
     for (Index j=0; j<N; j++) {
       if (k == j) continue;
-      DV[k] += W(k, j) * W(j, k) / (band.F0(j) - band.F0(k));
+      DV[k] += W(k, j) * W(j, k) / (band.lines[j].F0 - band.lines[k].F0);
     }
   }
   
@@ -1240,7 +1241,7 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
   // Compute all the shifted line centers in band-order
   Vector f0(band.NumLines());
   for (Index i=0; i<pop.size(); i++) {
-    f0[i] = band.F0(i) - frenorm + P * band.Line(i).LineShape()[broadener].D0().at(T, band.T0());
+    f0[i] = band.lines[i].F0 - frenorm + P * band.lines[i].lineshape[broadener].D0().at(T, band.T0);
   }
   
   // Find how the band-orders have shifted line order at the current temp/pres
@@ -1261,7 +1262,7 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
   // Eigenvalue should now be (F0 + P * D0(T) + i * P * G0(T)) + (P * P * DV(T) + i * P * P * P * DG(T)),
   // or in form (1) + (2).  We only want to keep (2), since it is new from the line mixing
   for (Index i=0; i<pop.size(); i++) {
-    eig.val[i] -= Complex(f0[i], P * band.Line(i).LineShape()[broadener].G0().at(T, band.T0()));
+    eig.val[i] -= Complex(f0[i], P * band.lines[i].lineshape[broadener].G0().at(T, band.T0));
   }
   
   // The strength term should now be (1 + i y(T) + g(T)) * d**2 * rho(T)
@@ -1269,8 +1270,8 @@ EquivalentLines eigenvalue_adaptation_of_relmat(
   // We only want to keep (i y(T) + g(T)).
   // So we divide by d**2 * rho(T) through the use of I0(T) and remove 1 from the real component
   for (Index i=0; i<pop.size(); i++) {
-    const Numeric i0 = LineShape::LocalThermodynamicEquilibrium(band.I0(i), band.T0(), T, band.F0(i), band.E0(i), QT, QT0, 0, 1, 0, 0).S;
-    eig.str[i] *= - band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * T)) / i0;
+    const Numeric i0 = LineShape::LocalThermodynamicEquilibrium(band.lines[i].I0, band.T0, T, band.lines[i].F0, band.lines[i].E0, QT, QT0, 0, 1, 0, 0).S;
+    eig.str[i] *= - band.lines[i].F0 * std::expm1(- (Constant::h * band.lines[i].F0) / (Constant::k * T)) / i0;
   }
   eig.str -= 1;
   
@@ -1304,8 +1305,8 @@ Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
   const Numeric frenorm = band.F_mean();
   
   // Need sorting to put weak lines last, but we need the sorting constant or the output jumps
-  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0(), band).first;
-  const Numeric QT0 = single_partition_function(band.T0(), band.Isotopologue());
+  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0, band).first;
+  const Numeric QT0 = single_partition_function(band.T0, band.Isotopologue());
   
   // Output
   Tensor4 out(4, N, M, K);
@@ -1317,9 +1318,9 @@ Tensor4 ecs_eigenvalue_approximation(const AbsorptionLines& band,
       const Numeric QT = single_partition_function(T, band.Isotopologue());
       
       // Relaxation matrix of T0 sorting at T
-      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[m]], m);
+      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.broadeningspecies[m]], m);
       for (Index n=0; n<N; n++) {
-        W(n, n) += band.F0(sorting[n]) - frenorm;
+        W(n, n) += band.lines[sorting[n]].F0 - frenorm;
       }
       
       // Populations and dipoles of T0 sorting at T
@@ -1364,7 +1365,7 @@ Tensor4 rosenkranz_approximation(const AbsorptionLines& band,
   const Numeric frenorm = band.F_mean();
   
   // Need sorting to put weak lines last, but we need the sorting constant or the output jumps
-  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0(), band).first;
+  const ArrayOfIndex sorting = sorted_population_and_dipole(band.T0, band).first;
   
   // Output
   Tensor4 out(4, N, M, K);
@@ -1375,9 +1376,9 @@ Tensor4 rosenkranz_approximation(const AbsorptionLines& band,
       const Numeric T = temperatures[k];
       
       // Relaxation matrix of T0 sorting at T
-      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.BroadeningSpecies()[m]], m);
+      ComplexMatrix W = single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.broadeningspecies[m]], m);
       for (Index n=0; n<N; n++) {
-        W(n, n) += band.F0(sorting[n]) - frenorm;
+        W(n, n) += band.lines[n].F0 - frenorm;
       }
       
       // Populations and dipoles of T0 sorting at T
@@ -1423,15 +1424,15 @@ void ecs_eigenvalue_adaptation(AbsorptionLines& band,
           ord)) {
     ARTS_USER_ERROR_IF(not robust,
                        "Bad eigenvalue adaptation for band: ",
-                       band.QuantumIdentity(),
+                       band.quantumidentity,
                        '\n')
-    out3 << "Bad eigenvalue adaptation for band: " << band.QuantumIdentity()
+    out3 << "Bad eigenvalue adaptation for band: " << band.quantumidentity
          << '\n';
 
-    band.Normalization(Absorption::NormalizationType::SFS);
-    band.Population(Absorption::PopulationType::LTE);
-    for (auto& line : band.AllLines()) {
-      for (auto& sm : line.LineShape().Data()) {
+    band.normalization = Absorption::NormalizationType::SFS;
+    band.population = Absorption::PopulationType::LTE;
+    for (auto& line : band.lines) {
+      for (auto& sm : line.lineshape.Data()) {
         sm.Y() = LineShape::ModelParameters(LineShape::TemperatureModel::None);
         sm.G() = LineShape::ModelParameters(LineShape::TemperatureModel::None);
         sm.DV() = LineShape::ModelParameters(LineShape::TemperatureModel::None);

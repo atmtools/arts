@@ -983,21 +983,21 @@ Sorter sorter_calcw(ConvTPOut& out,
   const Index n=Y.nelem();
   
   // Copies for local variables
-  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
+  const Rational li = band.quantumidentity.val[QuantumNumberType::l2].upp();
+  const Rational lf = band.quantumidentity.val[QuantumNumberType::l2].low();
   
   Vector dip0(n);
   std::vector<Rational> Ji(n), Jf(n);
   for (Index i=0; i<n; i++) {
-    Ji[i] = band.UpperQuantumNumber(i, QuantumNumberType::J);
-    Jf[i] = band.LowerQuantumNumber(i, QuantumNumberType::J);
+    Ji[i] = band.lines[i].localquanta.val[QuantumNumberType::J].upp();
+    Jf[i] = band.lines[i].localquanta.val[QuantumNumberType::J].low();
     dip0[i] = Absorption::reduced_rovibrational_dipole(Jf[i], Ji[i], lf, li, 1);
   }
   
   Vector s(n);
   for (Index i=0; i<n; i++) {
     if (at_t0) {
-      s[i] = band.I0(i);
+      s[i] = band.lines[i].I0;
     } else {
       s[i] = f0[i] * pop[i] * Constant::pow2(dip[i]);
     }
@@ -1042,8 +1042,8 @@ void calcw(ConvTPOut& out,
   // Size of problem
   const Index n=Y.nelem();
   
-  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
+  const Rational li = band.quantumidentity.val[QuantumNumberType::l2].upp();
+  const Rational lf = band.quantumidentity.val[QuantumNumberType::l2].low();
   
   // Sort before the if-statement.  This technicalyl goes awa from how
   // HITRAN code does it.  It is however required for other line mixing
@@ -1055,7 +1055,7 @@ void calcw(ConvTPOut& out,
       W(i, i) = g0[i];  // nb... units Hz/Pa
     }
   } else {
-    const Numeric dlgt0t = std::log(band.T0() / T);
+    const Numeric dlgt0t = std::log(band.T0 / T);
     const Rational lli = std::min(li, lf);
     const Rational llf = std::max(li, lf);
     
@@ -1357,21 +1357,21 @@ ConvTPOut convtp(const ConstVectorView& vmrs,
   const Index n = band.NumLines();
   
   const Numeric QT = single_partition_function(T, band.Isotopologue());
-  const Numeric QT0 = single_partition_function(band.T0(), band.Isotopologue());
+  const Numeric QT0 = single_partition_function(band.T0, band.Isotopologue());
   const Numeric ratiopart = QT0 / QT;
   
   ConvTPOut out(n);
   
   Vector wgt(n);
   for (Index i=0; i<n; i++) {
-    const Numeric pop0 = (band.g_upp(i) / QT0) * boltzman_factor(band.T0(), band.E0(i));
+    const Numeric pop0 = (band.lines[i].gupp / QT0) * boltzman_factor(band.T0, band.lines[i].E0);
 
-    out.f0[i] = band.F0(i);
-    out.pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
-    out.hwt[i] = band.Line(i).LineShape().G0(T, band.T0(), 1, vmrs);
-    out.shft[i] = band.Line(i).LineShape().D0(T, band.T0(), 1, vmrs);
-    out.dip[i] = std::sqrt(- band.I0(i)/(pop0 * band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * band.T0()))));
-    out.hwt2[i] = band.Line(i).LineShape().G2(T, band.T0(), 1, vmrs);
+    out.f0[i] = band.lines[i].F0;
+    out.pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0, band.lines[i].E0);
+    out.hwt[i] = band.lines[i].lineshape.G0(T, band.T0, 1, vmrs);
+    out.shft[i] = band.lines[i].lineshape.D0(T, band.T0, 1, vmrs);
+    out.dip[i] = std::sqrt(- band.lines[i].I0/(pop0 * band.lines[i].F0 * std::expm1(- (Constant::h * band.lines[i].F0) / (Constant::k * band.T0))));
+    out.hwt2[i] = band.lines[i].lineshape.G2(T, band.T0, 1, vmrs);
     wgt[i] = out.pop[i] * Constant::pow2(out.dip[i]);
   }
   
@@ -1384,7 +1384,7 @@ ConvTPOut convtp(const ConstVectorView& vmrs,
   out.shft *= P;
   out.Y *= P;
   
-  if (band.Population() == Absorption::PopulationType::ByHITRANFullRelmat) {
+  if (band.population == Absorption::PopulationType::ByHITRANFullRelmat) {
     const Numeric fmean = band.F_mean(wgt);
     out.W.diagonal().real() = out.f0;
     out.W.diagonal().real() += out.shft;
@@ -1713,10 +1713,10 @@ Vector compabs(
     auto tp = convtp(vmrs, hitran, bands[iband], T, P);
     const Numeric GD_div_F0 = bands[iband].DopplerConstant(T);
     
-    const bool sdvp = bands[iband].LineShapeType() == LineShape::Type::SDVP;
-    const bool vp = bands[iband].LineShapeType() == LineShape::Type::VP;
-    const bool rosenkranz = bands[iband].Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat;
-    const bool full = bands[iband].Population() == Absorption::PopulationType::ByHITRANFullRelmat;
+    const bool sdvp = bands[iband].lineshapetype == LineShape::Type::SDVP;
+    const bool vp = bands[iband].lineshapetype == LineShape::Type::VP;
+    const bool rosenkranz = bands[iband].population == Absorption::PopulationType::ByHITRANRosenkranzRelmat;
+    const bool full = bands[iband].population == Absorption::PopulationType::ByHITRANFullRelmat;
     
     for (Index iv=0; iv<nf; iv++) {
       const Numeric f = f_grid[iv];
@@ -2029,19 +2029,23 @@ void read(HitranRelaxationMatrixData& hitran,
   // Reshape to band count size
   bands.resize(cmn.Bands.nBand);
   for (Index i{0}; i<cmn.Bands.nBand; i++) {
-    QuantumNumbers outer_upper;
-    outer_upper[QuantumNumberType::l2] = Rational(cmn.Bands.li[i]);
-    outer_upper[QuantumNumberType::v1] = cmn.UnusedBandParams.iv1[i];
-    outer_upper[QuantumNumberType::v2] = cmn.UnusedBandParams.iv2[i];
-    outer_upper[QuantumNumberType::v3] = cmn.UnusedBandParams.iv3[i];
-    outer_upper[QuantumNumberType::r] = cmn.UnusedBandParams.ir[i];
-    QuantumNumbers outer_lower;
-    outer_lower[QuantumNumberType::l2] = Rational(cmn.Bands.lf[i]);
-    outer_lower[QuantumNumberType::v1] = cmn.UnusedBandParams.fv1[i];
-    outer_lower[QuantumNumberType::v2] = cmn.UnusedBandParams.fv2[i];
-    outer_lower[QuantumNumberType::v3] = cmn.UnusedBandParams.fv3[i];
-    outer_lower[QuantumNumberType::r] = cmn.UnusedBandParams.fr[i];
-    
+    QuantumIdentifier qid{specs[cmn.Bands.Isot[i]-1].spec_ind};
+
+    qid.val.set(Quantum::Number::Value(
+        QuantumNumberType::l2, cmn.Bands.li[i], cmn.Bands.lf[i]));
+    qid.val.set(Quantum::Number::Value(QuantumNumberType::v1,
+                                       cmn.UnusedBandParams.iv1[i],
+                                       cmn.UnusedBandParams.fv1[i]));
+    qid.val.set(Quantum::Number::Value(QuantumNumberType::v2,
+                                       cmn.UnusedBandParams.iv2[i],
+                                       cmn.UnusedBandParams.fv2[i]));
+    qid.val.set(Quantum::Number::Value(QuantumNumberType::v3,
+                                       cmn.UnusedBandParams.iv3[i],
+                                       cmn.UnusedBandParams.fv3[i]));
+    qid.val.set(Quantum::Number::Value(QuantumNumberType::r,
+                                       cmn.UnusedBandParams.ir[i],
+                                       cmn.UnusedBandParams.fr[i]));
+
     bands[i] = {true,
                 true,
                 Absorption::CutoffType::None,
@@ -2052,17 +2056,18 @@ void read(HitranRelaxationMatrixData& hitran,
                 296,
                 -1,
                 linemixinglimit_internal,
-                {specs[cmn.Bands.Isot[i]-1].Isotopologue(), outer_upper, outer_lower},
-                {QuantumNumberType::J},
+                qid,
                 {Species::fromShortName("CO2"), Species::fromShortName("H2O"), Species::fromShortName("AIR")}};
     
     const Numeric rat_isot = isotopologue_ratio[bands[i].Isotopologue()];
     
-    bands[i].AllLines().resize(cmn.Bands.nLines[i]);
+    bands[i].lines.resize(cmn.Bands.nLines[i]);
     for (Index j{0}; j<cmn.Bands.nLines[i]; j++) {
-      const std::vector<Rational> inner_upper{Rational(cmn.Jiln.Ji(j, i))};
-      const std::vector<Rational> inner_lower{Rational(cmn.Jfln.Jf(j, i))};
-      
+      Quantum::Number::LocalState local_state(
+          Quantum::Number::Value(QuantumNumberType::J,
+                                 Rational(cmn.Jiln.Ji(j, i)),
+                                 Rational(cmn.Jfln.Jf(j, i))));
+
       const LineShape::ModelParameters G0_sdvp_air{LineShape::TemperatureModel::T1,
         Conversion::kaycm_per_atm2hz_per_pa(cmn.GamSDVT0AIR.HWSDVT0AIR(j, i)), 
         cmn.DTGAMAIR.BHWAIR(j, i)};
@@ -2103,7 +2108,7 @@ void read(HitranRelaxationMatrixData& hitran,
       qt_co2(parameters::T0, cmn.Bands.Isot[i], gsi0, qt0_co2);
       
       // Should probably use the isotopologue ratio
-      bands[i].Line(j) = {Conversion::kaycm2freq(cmn.LineSg.Sig(j, i)),
+      bands[i].lines[j] = {Conversion::kaycm2freq(cmn.LineSg.Sig(j, i)),
                           Conversion::kaycm_per_cmsquared2hz_per_msquared(cmn.UnusedBandParams.intens(j, i)) / rat_isot,
                           Conversion::kaycm2joule(cmn.Energy.E(j, i)),
                           gsi0*Numeric(cmn.Jfln.Jf(j, i) * 2 + 1),
@@ -2111,8 +2116,7 @@ void read(HitranRelaxationMatrixData& hitran,
                           cmn.UnusedBandParams.eina(j, i),
                           ZeemanModel{},
                           lsmodel,
-                          inner_lower,
-                          inner_upper};
+                          local_state};
     }
   }
 }
@@ -2126,7 +2130,7 @@ Tensor4 hitran_lm_eigenvalue_approximation(const AbsorptionLines& band,
   const Index K = temperatures.nelem();
   
   // Need sorting to put weak lines last, but we need the sorting constant or the output jumps
-  const Numeric QT0 = single_partition_function(band.T0(), band.Isotopologue());
+  const Numeric QT0 = single_partition_function(band.T0, band.Isotopologue());
   const Numeric fmean = band.F_mean();
   
   // Output
@@ -2143,21 +2147,21 @@ Tensor4 hitran_lm_eigenvalue_approximation(const AbsorptionLines& band,
       const Numeric ratiopart = QT0 / QT;
       
       for (Index i=0; i<N; i++) {
-        const Numeric pop0 = (band.g_upp(i) / QT0) * boltzman_factor(band.T0(), band.E0(i));
+        const Numeric pop0 = (band.lines[i].gupp / QT0) * boltzman_factor(band.T0, band.lines[i].E0);
         
-        calc.f0[i] = band.F0(i);
-        calc.pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
-        calc.hwt[i] = P * band.Line(i).LineShape()[m].G0().at(T, band.T0());
-        calc.shft[i] = P * band.Line(i).LineShape()[m].D0().at(T, band.T0());
-        calc.dip[i] = std::sqrt(- band.I0(i)/(pop0 * band.F0(i) * std::expm1(- (Constant::h * band.F0(i)) / (Constant::k * band.T0()))));
-        calc.hwt2[i] = P * band.Line(i).LineShape()[m].G2().at(T, band.T0());
+        calc.f0[i] = band.lines[i].F0;
+        calc.pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0, band.lines[i].E0);
+        calc.hwt[i] = P * band.lines[i].lineshape[m].G0().at(T, band.T0);
+        calc.shft[i] = P * band.lines[i].lineshape[m].D0().at(T, band.T0);
+        calc.dip[i] = std::sqrt(- band.lines[i].I0/(pop0 * band.lines[i].F0 * std::expm1(- (Constant::h * band.lines[i].F0) / (Constant::k * band.T0))));
+        calc.hwt2[i] = P * band.lines[i].lineshape[m].G2().at(T, band.T0);
       }
       
       // Calculate the relaxation matrix
       calcw(calc, hitran, band, T, true);
       
       // Select types depending on population tag
-      if (Absorption::PopulationType::ByHITRANRosenkranzRelmat == band.Population()) {
+      if (Absorption::PopulationType::ByHITRANRosenkranzRelmat == band.population) {
         // Sort the values
         for (Index i=0; i<calc.Y.nelem(); i++) {
           for (Index j=i+1; j<calc.Y.nelem(); j++) {
@@ -2169,7 +2173,7 @@ Tensor4 hitran_lm_eigenvalue_approximation(const AbsorptionLines& band,
         }
 
         out(1, joker, m, k) = calc.Y;
-      } else if (Absorption::PopulationType::ByHITRANFullRelmat == band.Population()) {
+      } else if (Absorption::PopulationType::ByHITRANFullRelmat == band.population) {
         calc.W.diagonal().real() = calc.f0;
         calc.W.diagonal().real() += calc.shft;
         calc.W.diagonal().real() -= fmean;

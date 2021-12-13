@@ -4016,9 +4016,9 @@ void nlte_fieldSetLteExternalPartitionFunction(
     for (auto& abs_lines : abs_lines_per_species) {
       for (auto& band : abs_lines) {
         for (Index k=0; k<band.NumLines(); k++) {
-          const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(qi, band, k);
-          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
-            band.Population(Absorption::PopulationType::NLTE);
+          const Quantum::Number::StateMatch lt(qi, band.lines[k].localquanta, band.quantumidentity);
+          if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
+            band.population = Absorption::PopulationType::NLTE;
             
             if (not checked[in]) {
               checked[in] = 1;
@@ -4027,8 +4027,8 @@ void nlte_fieldSetLteExternalPartitionFunction(
                 for (Index ilat = 0; ilat < nlat; ilat++) {
                   for (Index ilon = 0; ilon < nlon; ilon++) {
                     lte(ip, ilat, ilon) =
-                    boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
-                    band.g_low(k) / single_partition_function(
+                    boltzman_factor(t_field(ip, ilat, ilon), band.lines[k].E0) *
+                    band.lines[k].glow / single_partition_function(
                       t_field(ip, ilat, ilon), band.Isotopologue());
                   }
                 }
@@ -4036,8 +4036,8 @@ void nlte_fieldSetLteExternalPartitionFunction(
             }
           }
           
-          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
-            band.Population(Absorption::PopulationType::NLTE);
+          if (lt == Quantum::Number::StateMatchType::Level and lt.upp) {
+            band.population = Absorption::PopulationType::NLTE;
             
             if (not checked[in]) {
               checked[in] = 1;
@@ -4045,8 +4045,8 @@ void nlte_fieldSetLteExternalPartitionFunction(
                 for (Index ilat = 0; ilat < nlat; ilat++) {
                   for (Index ilon = 0; ilon < nlon; ilon++) {
                     lte(ip, ilat, ilon) =
-                    boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
-                    band.g_upp(k) / single_partition_function(
+                    boltzman_factor(t_field(ip, ilat, ilon), band.lines[k].E0 + h*band.lines[k].F0) *
+                    band.lines[k].gupp / single_partition_function(
                       t_field(ip, ilat, ilon), band.Isotopologue());
                   }
                 }
@@ -4116,9 +4116,9 @@ void nlte_fieldSetLteInternalPartitionFunction(
     for (auto& abs_lines : abs_lines_per_species) {
       for (auto& band : abs_lines) {
         for (Index k=0; k<band.NumLines(); k++) {
-          const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(qi, band, k);
-          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
-            band.Population(Absorption::PopulationType::NLTE);
+          const Quantum::Number::StateMatch lt(qi, band.lines[k].localquanta, band.quantumidentity);
+          if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
+            band.population = Absorption::PopulationType::NLTE;
             
             if (not checked[in]) {
               checked[in] = 1;
@@ -4127,8 +4127,8 @@ void nlte_fieldSetLteInternalPartitionFunction(
                 for (Index ilat = 0; ilat < nlat; ilat++) {
                   for (Index ilon = 0; ilon < nlon; ilon++) {
                     lte(ip, ilat, ilon) =
-                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
-                                      band.g_low(k);
+                      boltzman_factor(t_field(ip, ilat, ilon), band.lines[k].E0) *
+                                      band.lines[k].glow;
                     part_fun(part_fun_pos[in], ip, ilat, ilon) +=
                       lte(ip, ilat, ilon);
                   }
@@ -4137,8 +4137,8 @@ void nlte_fieldSetLteInternalPartitionFunction(
             }
           }
           
-          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
-            band.Population(Absorption::PopulationType::NLTE);
+          if (lt == Quantum::Number::StateMatchType::Level and lt.upp) {
+            band.population = Absorption::PopulationType::NLTE;
             
             if (not checked[in]) {
               checked[in] = 1;
@@ -4148,8 +4148,8 @@ void nlte_fieldSetLteInternalPartitionFunction(
                   for (Index ilon = 0; ilon < nlon; ilon++) {
                     lte(ip, ilat, ilon) =
                       boltzman_factor(t_field(ip, ilat, ilon),
-                                      band.E0(k) + h * band.F0(k)) *
-                                      band.g_upp(k);
+                                      band.lines[k].E0 + h * band.lines[k].F0) *
+                                      band.lines[k].gupp;
                     part_fun(part_fun_pos[in], ip, ilat, ilon) +=
                       lte(ip, ilat, ilon);
                   }

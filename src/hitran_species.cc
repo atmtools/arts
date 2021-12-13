@@ -421,28 +421,15 @@ QuantumIdentifier from_mol_iso(Index molnum, char isonum) {
   static const OurHitranMap hitmap = to_species_map(molparam_map);
 
   // Search the map with pointers so that we can throw manually if something is bad
-  if (auto species_list = hitmap.find(molnum);
-      species_list not_eq hitmap.cend()) {
-    if (auto species_info = species_list->second.find(isonum);
-        species_info not_eq species_list->second.cend()) {
-      return QuantumIdentifier(species_info->second,
-                               Quantum::IdentifierType::Transition);
+
+  if (auto species_list = hitmap.find(molnum); species_list not_eq hitmap.cend()) {
+    if (auto species_info = species_list -> second.find(isonum); species_info not_eq species_list -> second.cend()) {
+      return QuantumIdentifier{Species::find_species_index(species_info->second)};
     }
-    ARTS_USER_ERROR(
-        "Species ",
-        molnum,
-        " has no isotopologue ",
-        isonum,
-        " in ARTS' HITRAN implementation.\n",
-        "(Species is ",
-        Species::toShortName(hitmap.at(molnum).at('1').spec),
-        ")\n"
-        "If you are using a new version of HITRAN that has added the isotopologue, please consider\n"
-        "contacting the ARTS developers so we can append the species to our list and make this work.\n")
   }
   ARTS_USER_ERROR(
       "Species ",
-      molnum,
+      molnum, ' ', isonum,
       " does not exist in ARTS' HITRAN implementation\n"
       "If you are using a new version of HITRAN that has added the species, please consider\n"
       "contacting the ARTS developers so we can append the species to our list and make this work.\n");

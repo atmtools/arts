@@ -286,56 +286,6 @@ struct SplittingData {
   Numeric gu, gl;
 };
 
-/** Computes the Zeeman splitting coefficient
- * 
- * The level should be Hund case a or b type and all
- * the quantum numbers have to be defined
- *  
- * @param[in] qns Quantum numbers of a level
- * @param[in] GS The spin Landé coefficient of the molecule
- * @param[in] GS The Landé coefficient of the molecule
- * 
- * @return If the numbers can be used to compute simple Zeeman effect
- */
-inline SplittingData SimpleG(const Quantum::Number::ValueList& qns,
-                             const Numeric& GS,
-                             const Numeric& GL) noexcept {
-  if (qns.has(QuantumNumberType::Omega,
-              QuantumNumberType::J,
-              QuantumNumberType::Lambda,
-              QuantumNumberType::S))
-    return {SimpleGCaseA(qns[QuantumNumberType::Omega].upp(),
-                         qns[QuantumNumberType::J].upp(),
-                         qns[QuantumNumberType::Lambda].upp(),
-                         qns[QuantumNumberType::S].upp(),
-                         GS,
-                         GL),
-            SimpleGCaseA(qns[QuantumNumberType::Omega].low(),
-                         qns[QuantumNumberType::J].low(),
-                         qns[QuantumNumberType::Lambda].low(),
-                         qns[QuantumNumberType::S].low(),
-                         GS,
-                         GL)};
-  if (qns.has(QuantumNumberType::N,
-              QuantumNumberType::J,
-              QuantumNumberType::Lambda,
-              QuantumNumberType::S))
-    return {SimpleGCaseB(qns[QuantumNumberType::N].upp(),
-                         qns[QuantumNumberType::J].upp(),
-                         qns[QuantumNumberType::Lambda].upp(),
-                         qns[QuantumNumberType::S].upp(),
-                         GS,
-                         GL),
-            SimpleGCaseB(qns[QuantumNumberType::N].low(),
-                         qns[QuantumNumberType::J].low(),
-                         qns[QuantumNumberType::Lambda].low(),
-                         qns[QuantumNumberType::S].low(),
-                         GS,
-                         GL)};
-
-  return {NAN, NAN};
-}
-
 /** Main Zeeman Model
  * 
  * This model contains the splitting coefficients

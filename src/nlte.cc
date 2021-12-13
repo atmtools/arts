@@ -102,7 +102,7 @@ Vector createAij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   for (auto& lines: abs_lines) {
     for (auto& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
-        Aij[i] = band.A(k); 
+        Aij[i] = band.lines[k].A; 
         i++;
       }
     }
@@ -111,9 +111,7 @@ Vector createAij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
 }
 
 Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
-  extern const Numeric PLANCK_CONST, SPEED_OF_LIGHT;
-  const static Numeric c0 =
-  2.0 * PLANCK_CONST / SPEED_OF_LIGHT / SPEED_OF_LIGHT;
+  constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
   
   // Size of problem
   const Index n = nelem(abs_lines);
@@ -124,7 +122,7 @@ Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   for (auto& lines: abs_lines) {
     for (auto& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
-        Bij[i] = band.A(k) / (c0 * band.F0(k) * band.F0(k) * band.F0(k));
+        Bij[i] = band.lines[k].A / (c0 * Constant::pow3(band.lines[k].F0));
         i++;
       }
     }
@@ -142,7 +140,7 @@ Vector createBji(const Vector& Bij, const ArrayOfArrayOfAbsorptionLines& abs_lin
   for (auto& lines: abs_lines) {
     for (auto& band: lines) {
       for (Index k=0; k<band.NumLines();k++) {
-        Bji[i] = Bij[i] * band.g_upp(k) / band.g_low(k);
+        Bji[i] = Bij[i] * band.lines[k].gupp / band.lines[k].glow;
         i++;
       }
     }
@@ -172,7 +170,7 @@ void setCji(Vector& Cji,
   for (auto& lines: abs_lines) {
     for (auto& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
-        Cji[i] = Cij[i] * exp(constant * band.F0(k)) * band.g_upp(k) / band.g_low(k);
+        Cji[i] = Cij[i] * exp(constant * band.lines[k].F0) * band.lines[k].gupp / band.lines[k].glow;
         i++;
       }
     }
@@ -190,8 +188,6 @@ void nlte_collision_factorsCalcFromCoeffs(
     const ConstVectorView& vmr,
     const Numeric& T,
     const Numeric& P) {
-  extern const Numeric BOLTZMAN_CONST;
-
   // size of problem
   const Index nspec = abs_species.nelem();
   const Index ntrans = collision_line_identifiers.nelem();
@@ -203,7 +199,7 @@ void nlte_collision_factorsCalcFromCoeffs(
   for (Index i = 0; i < nspec; i++) {
     // Compute the number density noting that free_electrons will behave differently
     const Numeric numden =
-        vmr[i] * (abs_species[i].FreeElectrons() ? 1.0 : P / (BOLTZMAN_CONST * T));
+        vmr[i] * (abs_species[i].FreeElectrons() ? 1.0 : P / (Constant::k * T));
     
     for (Index j = 0; j < ntrans; j++) {
       Index iline=0;
@@ -214,9 +210,9 @@ void nlte_collision_factorsCalcFromCoeffs(
             
             const auto& transition = collision_line_identifiers[j];
             const auto& gf1 = collision_coefficients[i][j];
-            const Absorption::QuantumIdentifierLineTarget lt(transition, band, k);
+            const Quantum::Number::StateMatch lt(transition, band.lines[k].localquanta, band.quantumidentity);
             
-            if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+            if (lt == Quantum::Number::StateMatchType::Full) {
               // Standard linear ARTS interpolation
               const FixedLagrangeInterpolation<1> lag(0, T, gf1.get_numeric_grid(0), false);
               const auto itw = interpweights(lag);
@@ -251,10 +247,10 @@ void nlte_positions_in_statistical_equilibrium_matrix(
     for (const AbsorptionLines& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
         for (Index iq = 0; iq < nq; iq++) {
-          const Absorption::QuantumIdentifierLineTarget lt(nlte_field.Levels()[iq], band, k);
-          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower)
+          const Quantum::Number::StateMatch lt(nlte_field.Levels()[iq], band.lines[k].localquanta, band.quantumidentity);
+          if (lt == Quantum::Number::StateMatchType::Level and lt.low)
             lower[i] = iq;
-          if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper)
+          if (lt == Quantum::Number::StateMatchType::Level and lt.upp)
             upper[i] = iq;
         }
         i++;
@@ -279,12 +275,11 @@ Index find_first_unique_in_lower(const ArrayOfIndex& upper,
 }
 
 void check_collision_line_identifiers(const ArrayOfQuantumIdentifier& collision_line_identifiers) {
-  auto p = std::find_if(collision_line_identifiers.cbegin(), collision_line_identifiers.cend(), 
-                        [isot=collision_line_identifiers.front().Isotopologue()]
-                        (auto& x) {
-                          return
-                          isot not_eq x.Isotopologue() or 
-                          x.type not_eq Quantum::IdentifierType::Transition;});
+  auto p =
+      std::find_if(collision_line_identifiers.cbegin(),
+                   collision_line_identifiers.cend(),
+                   [isot = collision_line_identifiers.front().Isotopologue()](
+                       auto& x) { return isot not_eq x.Isotopologue(); });
   ARTS_USER_ERROR_IF (p not_eq collision_line_identifiers.cend(),
     *p, "\n"
     "does not match the requirements for a line identifier\n"

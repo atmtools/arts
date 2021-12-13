@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -346,23 +347,25 @@ struct TwoLevelValueHolder {
   ValueHolder upp{}, low{};
 
   //! Constructor to ensure two ValueDescription have the same type, for IO purposes
-  constexpr TwoLevelValueHolder(ValueDescription u, ValueDescription l)
+  constexpr TwoLevelValueHolder(ValueDescription u, ValueDescription l, Type t)
       : upp(u.val), low(l.val) {
-    if (u.type not_eq l.type) {
-      ARTS_USER_ERROR_IF(
-          u.type == ValueType::S,
-          "The upper quantum number is a string but not the lower.  Value: ",
-          upp.s.val())
-      ARTS_USER_ERROR_IF(
-          l.type == ValueType::S,
-          "The lower quantum number is a string but not the upper.  Value: ",
-          low.s.val())
+    auto ct = common_value_type(t);
+    if (u.type not_eq ct) {
+      ARTS_USER_ERROR_IF(u.type not_eq ValueType::I,
+                         "Cannot convert from ",
+                         u.type,
+                         " to ",
+                         ct)
+      upp.h.x = 2 * u.val.i.x;
+    }
 
-      // either u or l is half
-      if (u.type == ValueType::H)
-        low.h.x = 2 * l.val.i.x;
-      else
-        upp.h.x = 2 * u.val.i.x;
+    if (l.type not_eq ct) {
+      ARTS_USER_ERROR_IF(l.type not_eq ValueType::I,
+                         "Cannot convert from ",
+                         l.type,
+                         " to ",
+                         ct)
+      low.h.x = 2 * l.val.i.x;
     }
   }
 
@@ -496,51 +499,59 @@ struct TwoLevelValueHolder {
  * @param s Some view of a string
  * @return constexpr ValueDescription 
  */
-[[nodiscard]] constexpr ValueDescription value_holder(std::string_view s) {
-  // If this is possibly a rational, we return this as a rational type
-  if (const Rational r = cast_qnrat(s); r.isDefined()) return value_holder(r);
-
-  // Otherwise this is a string type as long as it fits
+[[nodiscard]] constexpr ValueDescription value_holder(std::string_view s,
+                                                      Type t) {
   ValueDescription x{};
-  x.type = ValueType::S;
-  x.val.s = StringValue(s);
+  // If this is possibly a rational, we return this as a rational type
+  switch (common_value_type(t)) {
+    case ValueType::I:
+    case ValueType::H:
+      return value_holder(cast_qnrat(s));
+    case ValueType::S:
+      x.type = ValueType::S;
+      x.val.s = StringValue(s);
+      return x;
+    case ValueType::FINAL: {
+    }
+  }
+  x.type = ValueType::FINAL;
   return x;
 }
 
-//! Struct that converts to bool automatically but allows checking both energy levels matching status
-struct LevelMatch {
-  bool upp{true};
-  bool low{true};
+  //! Struct that converts to bool automatically but allows checking both energy levels matching status
+  struct LevelMatch {
+    bool upp{true};
+    bool low{true};
 
-  //! Convert automatically to bool so exact matches are easy, non-explicit by design
-  constexpr operator bool() const noexcept { return upp and low; }
-};
+    //! Convert automatically to bool so exact matches are easy, non-explicit by design
+    constexpr operator bool() const noexcept { return upp and low; }
+  };
 
-/** Count all space-separated items in s
+  /** Count all space-separated items in s
  * 
  * Example: "X 1 3123 1/3 1,,,,,2 " returns 5
  *
  * @param s Any set of characters
  * @return constexpr Index The number of space-separated items in s
  */
-constexpr Index count_items(std::string_view s) noexcept {
-  // Checks if we are in-between items, we start true as we are inbetween items
-  bool last_space = true;
+  constexpr Index count_items(std::string_view s) noexcept {
+    // Checks if we are in-between items, we start true as we are inbetween items
+    bool last_space = true;
 
-  Index count = 0;
-  for (auto& x : s) {
-    bool this_space = nonstd::isspace(x);
+    Index count = 0;
+    for (auto& x : s) {
+      bool this_space = nonstd::isspace(x);
 
-    // If we had a space and now no longer do, we are in an item
-    if (last_space and not this_space) count++;
+      // If we had a space and now no longer do, we are in an item
+      if (last_space and not this_space) count++;
 
-    // The current state must be remembere
-    last_space = this_space;
+      // The current state must be remembere
+      last_space = this_space;
+    }
+    return count;
   }
-  return count;
-}
 
-/** Get a view of a number of space-separated items from the list
+  /** Get a view of a number of space-separated items from the list
  * 
  * Example: "X    1   3123 1/3 1,,,,,2  " with i=0, n=3 returns "X    1   3123"
  * Example: "X    1   3123 1/3 1,,,,,2  " with i=2, n=3 returns "3123 1/3 1,,,,,2"
@@ -552,109 +563,130 @@ constexpr Index count_items(std::string_view s) noexcept {
  * @param i The first item from the original list in the list of n items
  * @return constexpr std::string_view 
  */
-template <std::size_t n = 1>
-constexpr std::string_view items(std::string_view s, std::size_t i) noexcept {
-  static_assert(n > 0, "Must want some items");
-  bool last_space = true;
+  template <std::size_t n = 1>
+  constexpr std::string_view items(std::string_view s, std::size_t i) noexcept {
+    static_assert(n > 0, "Must want some items");
+    bool last_space = true;
 
-  std::size_t beg = 0, count = 0, end = s.size();
-  if (end == 0) return s;
+    std::size_t beg = 0, count = 0, end = s.size();
+    if (end == 0) return s;
 
-  for (std::size_t ind = 0; ind < end; ind++) {
-    bool this_space = nonstd::isspace(s[ind]);
+    for (std::size_t ind = 0; ind < end; ind++) {
+      bool this_space = nonstd::isspace(s[ind]);
 
-    // Return when we find the end of the final item
-    if (this_space and count == i + n) return {&s[beg], ind - beg};
+      // Return when we find the end of the final item
+      if (this_space and count == i + n) return {&s[beg], ind - beg};
 
-    // If we had a space and now no longer do, we are in an item
-    if (last_space and not this_space) {
-      count++;
+      // If we had a space and now no longer do, we are in an item
+      if (last_space and not this_space) {
+        count++;
 
-      // If that is our first item, we are good!
-      if (count - 1 == i) beg = ind;
+        // If that is our first item, we are good!
+        if (count - 1 == i) beg = ind;
+      }
+
+      // Count up the beginning until we have found the first item
+      if (count - 1 < i) beg = ind;
+
+      // The current state must be remembere
+      last_space = this_space;
     }
 
-    // Count up the beginning until we have found the first item
-    if (count - 1 < i) beg = ind;
-
-    // The current state must be remembere
-    last_space = this_space;
+    // Remove spaces at the end to be sure
+    while (nonstd::isspace(s[end - 1]) and end > beg) end--;
+    return {&s[beg], end - beg};
   }
 
-  // Remove spaces at the end to be sure
-  while (nonstd::isspace(s[end - 1]) and end > beg) end--;
-  return {&s[beg], end - beg};
-}
+  //! A complete quantum number value with type information
+  struct Value {
+    Type type{Type::FINAL};
+    TwoLevelValueHolder qn{};
 
-//! A complete quantum number value with type information
-struct Value {
-  Type type;
-  ValueType value_type;
-  TwoLevelValueHolder qn;
+    Value() = default;
 
-  Value() = default;
+    constexpr Value(Type t, Rational upp_, Rational low_) : type(t) {
+      Rational upp = reduce_by_gcd(upp_), low = reduce_by_gcd(low_);
 
-  //! Default constructor from some string of values
-  constexpr Value(std::string_view s)
-      : type(toTypeOrThrow(items(s, 0))), value_type(), qn() {
-    ARTS_USER_ERROR_IF(count_items(s) not_eq 3,
-                       "Must have ' TYPE UPPNUM LOWNUM ' but got: '",
-                       s,
-                       '\'')
+      if (common_value_type(type) == ValueType::H) {
+        ARTS_ASSERT(upp.Denom() <= 2 and low.Denom() <= 2)
+        if (upp.Denom() not_eq 2) upp *= 2;
+        if (low.Denom() not_eq 2) low *= 2;
+        qn.upp.h.x = upp.Nom();
+        qn.low.h.x = low.Nom();
+      } else if (common_value_type(type) == ValueType::I) {
+        ARTS_ASSERT(upp.Denom() == 1 and low.Denom() == 1)
+        qn.upp.i.x = upp.Nom();
+        qn.low.i.x = low.Nom();
+      } else {
+        ARTS_USER_ERROR(
+            t, " is a string-type, so cannot be constructed from rationals")
+      }
 
-    // Get values and ensure they are good types
-    auto upv = value_holder(items(s, 1));
-    auto lov = value_holder(items(s, 2));
+      ARTS_ASSERT(good())
+    }
 
-    // This can return an error but the error is less descriptive than the next constructor
-    value_type = common_value_type(upv.type, lov.type);
+    //! Default constructor from some string of values
+    constexpr Value(std::string_view s) : type(toTypeOrThrow(items(s, 0))) {
+      ARTS_USER_ERROR_IF(count_items(s) not_eq 3,
+                         "Must have ' TYPE UPPNUM LOWNUM ' but got: '",
+                         s,
+                         '\'')
 
-    // Deal with errors while setting the level values
-    qn = TwoLevelValueHolder(upv, lov);
-  }
+      // Get values and ensure they are good types
+      auto upv = value_holder(items(s, 1), type);
+      auto lov = value_holder(items(s, 2), type);
 
-  //! Returns the upper quantum number rational if it exists or an undefined
-  [[nodiscard]] constexpr Rational upp() const noexcept {
-    switch (value_type) {
-      case ValueType::I:
-        return qn.upp.i.val();
-      case ValueType::H:
-        return qn.upp.h.val();
-      default: {
+      // Deal with errors while setting the level values
+      qn = TwoLevelValueHolder(upv, lov, type);
+    }
+
+    //! Returns the upper quantum number rational if it exists or an undefined
+    [[nodiscard]] constexpr Rational upp() const noexcept {
+      switch (common_value_type(type)) {
+        case ValueType::I:
+          return qn.upp.i.val();
+        case ValueType::H:
+          return qn.upp.h.val();
+        default: {
+        }
+      }
+      return RATIONAL_UNDEFINED;
+    }
+
+    //! Returns the lower quantum number rational if it exists or an undefined
+    [[nodiscard]] constexpr Rational low() const noexcept {
+      switch (common_value_type(type)) {
+        case ValueType::I:
+          return qn.low.i.val();
+        case ValueType::H:
+          return qn.low.h.val();
+        default: {
+        }
+      }
+      return RATIONAL_UNDEFINED;
+    }
+
+    //! Returns the upper quantum number string copy
+    [[nodiscard]] String str_upp() const noexcept;
+
+    //! Returns the lower quantum number string copy
+    [[nodiscard]] String str_low() const noexcept;
+
+    //! Legacy way to swap the values between two Values
+    void swap_values(Value& x);
+
+    //! Set level value
+    constexpr void set(std::string_view s, bool upp) {
+      ValueDescription v = value_holder(s, type);
+      TwoLevelValueHolder nqn(v, v, type);
+      if (upp) {
+        qn.upp = nqn.upp;
+      } else {
+        qn.low = nqn.low;
       }
     }
-    return RATIONAL_UNDEFINED;
-  }
 
-  //! Returns the lower quantum number rational if it exists or an undefined
-  [[nodiscard]] constexpr Rational low() const noexcept {
-    switch (value_type) {
-      case ValueType::I:
-        return qn.low.i.val();
-      case ValueType::H:
-        return qn.low.h.val();
-      default: {
-      }
-    }
-    return RATIONAL_UNDEFINED;
-  }
-
-  //! Returns the upper quantum number string copy
-  [[nodiscard]] String str_upp() const noexcept;
-
-  //! Returns the lower quantum number string copy
-  [[nodiscard]] String str_low() const noexcept;
-
-  //! Checks if this value is good.  Assumed true after construction
-  [[nodiscard]] constexpr bool good() const {
-    const auto common = common_value_type(type);
-
-    /** Check that the common value type for this quantum number type is
-      also common with the stored value here */
-    return common == common_value_type(common, value_type);
-  }
-
-  /** Returns a description of whether both levels match
+    /** Returns a description of whether both levels match
    * 
    * Note that the LevelMatch type should automatically transform to bool
    * so there's no need for extra work if this is your target question
@@ -662,675 +694,310 @@ struct Value {
    * @param other Another value
    * @return constexpr LevelMatch
    */
-  constexpr LevelMatch operator==(Value other) const noexcept {
-    if (type == other.type and
-        good_enum(common_value_type(value_type, other.value_type))) {
-      switch (value_type) {
+    constexpr LevelMatch operator==(Value other) const noexcept {
+      if (type == other.type) {
+        switch (common_value_type(type)) {
+          case ValueType::I:
+          case ValueType::H:
+            return {upp() == other.upp(), low() == other.low()};
+          case ValueType::S:
+            return {qn.upp.s.x == other.qn.upp.s.x,
+                    qn.low.s.x == other.qn.low.s.x};
+          case ValueType::FINAL: {
+          }
+        }
+      }
+      return {false, false};
+    }
+
+    //! Standard output
+    friend std::ostream& operator<<(std::ostream& os, Value x);
+
+    //! Standard input
+    friend std::istream& operator>>(std::istream& is, Value& x);
+
+    bofstream& write(bofstream& bof) const {
+      switch (common_value_type(type)) {
         case ValueType::I:
+          bof << qn.upp.i.x << qn.low.i.x;
+          break;
         case ValueType::H:
-          return {upp() == other.upp(), low() == other.low()};
+          bof << qn.upp.h.x << qn.low.h.x;
+          break;
         case ValueType::S:
-          return {qn.upp.s.x == other.qn.upp.s.x,
-                  qn.low.s.x == other.qn.low.s.x};
+          bof.writeString(qn.upp.s.x.data(), StringValue::N);
+          bof.writeString(qn.low.s.x.data(), StringValue::N);
+          break;
         case ValueType::FINAL: {
         }
       }
+      return bof;
     }
-    return {false, false};
+
+    bifstream& read(bifstream& bif) {
+      switch (common_value_type(type)) {
+        case ValueType::I:
+          bif >> qn.upp.i.x >> qn.low.i.x;
+          break;
+        case ValueType::H:
+          bif >> qn.upp.h.x >> qn.low.h.x;
+          break;
+        case ValueType::S:
+          bif.readString(qn.upp.s.x.data(), StringValue::N);
+          bif.readString(qn.low.s.x.data(), StringValue::N);
+          break;
+        case ValueType::FINAL: {
+        }
+      }
+      return bif;
+    }
+  };
+
+  //! Status of comparing two lists that are supposedly of some type
+  ENUMCLASS(CheckValue, char, Full, AinB, BinA, Miss)
+
+  //! Level-by-level version of CheckValue
+  struct CheckMatch {
+    CheckValue upp{CheckValue::Full};
+    CheckValue low{CheckValue::Full};
+
+    //! Convert automatically to bool so exact matches are easy, non-explicit by design
+    constexpr operator bool() const noexcept {
+      return upp == CheckValue::Full and low == CheckValue::Full;
+    }
+  };
+
+  //! Updates old by what a new check says it should be
+  constexpr CheckValue update(CheckValue val, CheckValue res) noexcept {
+    if (val == CheckValue::Miss) return val;
+    if (val == CheckValue::Full) return res;
+    if (res == CheckValue::Miss) return res;
+    if (res == CheckValue::Full) return val;
+    if (val == res) return val;
+    return CheckValue::Miss;
   }
 
-  //! Standard output
-  friend std::ostream& operator<<(std::ostream& os, Value x);
-
-  //! Standard input
-  friend std::istream& operator>>(std::istream& is, Value& x);
-};
-
-//! Status of comparing two lists that are supposedly of some type
-ENUMCLASS(CheckValue, char, Full, AinB, BinA, Miss)
-
-//! Level-by-level version of CheckValue
-struct CheckMatch {
-  CheckValue upp{CheckValue::Full};
-  CheckValue low{CheckValue::Full};
-
-  //! Convert automatically to bool so exact matches are easy, non-explicit by design
-  constexpr operator bool() const noexcept {
-    return upp == CheckValue::Full and low == CheckValue::Full;
+  //! Updates old by what a new check says it should be
+  constexpr CheckMatch update(CheckMatch val, CheckValue res) noexcept {
+    return {update(val.upp, res), update(val.low, res)};
   }
-};
 
-//! Updates old by what a new check says it should be
-constexpr CheckValue update(CheckValue val, CheckValue res) noexcept {
-  if (val == CheckValue::Miss) return val;
-  if (val == CheckValue::Full) return res;
-  if (res == CheckValue::Miss) return res;
-  if (res == CheckValue::Full) return val;
-  if (val == res) return val;
-  return CheckValue::Miss;
-}
+  //! Updates old by what a new check says it should be
+  constexpr CheckMatch update(CheckMatch val, CheckMatch res) noexcept {
+    return {update(val.upp, res.upp), update(val.low, res.low)};
+  }
 
-//! Updates old by what a new check says it should be
-constexpr CheckMatch update(CheckMatch val, CheckValue res) noexcept {
-  return {update(val.upp, res), update(val.low, res)};
-}
-
-//! Updates old by what a new check says it should be
-constexpr CheckMatch update(CheckMatch val, CheckMatch res) noexcept {
-  return {update(val.upp, res.upp), update(val.low, res.low)};
-}
-
-//! A list of many quantum numbers.  Should always remain sorted
-class ValueList {
-  Array<Value> values;
-
-  //! Internal sort function.  Should be called whenever new items are created
-  void sort_by_type();
-
-  //! Internal check function.  Remember to sort by type before calling this
-  [[nodiscard]] bool has_unique_increasing_types() const;
-
- public:
-  //! From text
-  ValueList(std::string_view s);
-
-  //! Empty
-  ValueList() : values(0) {}
-
-  //! Should always be called before this object is handed to another user
-  void finalize();
-
-  //! Return number of quantum numbers
-  [[nodiscard]] Index nelem() const {return values.nelem();}
-
-  //! Finds whether two ValueList describe completely different sets of quantum numbers (e.g., local vs global)
-  [[nodiscard]] bool perpendicular(const ValueList& that) const ARTS_NOEXCEPT;
-
-  //! Returns whether the Type is part of the list
-  template <typename... Types>
-  [[nodiscard]] bool has(Types... ts) const noexcept {
-    static_assert(sizeof...(Types) > 0);
-
-    std::array qnt{Type(ts)...};
-    std::sort(qnt.begin(), qnt.end());
-
-    auto ptr = values.begin();
-    auto end = values.end();
-    for (Type t : qnt) {
-      ptr = std::find_if(ptr, end, [t](auto& x) { return x.type == t; });
-      if (ptr == end) return false;
-    }
+  /** Checks if an array of types is sorted
+ * 
+ * @tparam N Number of types
+ * @param types Array of types
+ * @return true if it is sorted
+ * @return false if it is not sorted
+ */
+  template <size_t N>
+  constexpr bool is_sorted(const std::array<Type, N>& types) noexcept {
+    for (size_t i = 1; i < N; i++)
+      if (not(types[i - 1] < types[i])) return false;
     return true;
   }
 
-  //! Returns the value of the Type (assumes it exist)
-  const Value& operator[](Type t) const ARTS_NOEXCEPT;
+  //! A list of many quantum numbers.  Should always remain sorted
+  class ValueList {
+    Array<Value> values;
 
-  //! Returns upper and lower matching status
-  CheckMatch operator==(const ValueList& other) const noexcept;
+    //! Internal sort function.  Should be called whenever new items are created
+    void sort_by_type();
 
-  //! ouptut stream if all values
-  friend std::ostream& operator<<(std::ostream& os, const ValueList& vl);
+    //! Internal check function.  Remember to sort by type before calling this
+    [[nodiscard]] bool has_unique_increasing_types() const;
 
-  //! input stream must have pre-set size
-  friend std::istream& operator>>(std::istream& is, ValueList& vl);
-};
+   public:
+    //! From text
+    explicit ValueList(std::string_view s, bool legacy=false);
 
-//! A logical struct for local quantum numbers
-struct LocalState {
-  ValueList val;
+    //! From legacy text
+    ValueList(std::string_view upp, std::string_view low);
 
-  [[nodiscard]] String keys() const;
+    //! From values (resorted)
+    explicit ValueList(Array<Value> values_) : values(std::move(values_)) {finalize();}
 
-  [[nodiscard]] String values() const;
-};
+    //! Empty
+    ValueList() : values(0) {}
 
-//! A logical struct for global quantum numbers with species identifiers
-struct GlobalState {
-  Index isotopologue_index;
-  ValueList val;
+    //! For iterators
+    Array<Value>::iterator begin() {return values.begin();}
+    Array<Value>::iterator end() {return values.end();}
+    Array<Value>::iterator cbegin() {return values.begin();}
+    Array<Value>::iterator cend() {return values.end();}
+    [[nodiscard]] Array<Value>::const_iterator begin() const {return values.begin();}
+    [[nodiscard]] Array<Value>::const_iterator end() const {return values.end();}
+    [[nodiscard]] Array<Value>::const_iterator cbegin() const {return values.cbegin();}
+    [[nodiscard]] Array<Value>::const_iterator cend() const {return values.cend();}
 
-  [[nodiscard]] const Species::IsotopeRecord& Isotopologue() const noexcept;
-  [[nodiscard]] Species::Species Species() const noexcept;
+    //! Should always be called before this object is handed to another user
+    void finalize();
 
-  friend std::ostream& operator<<(std::ostream& os, const GlobalState& gs);
+    //! Return number of quantum numbers
+    [[nodiscard]] Index nelem() const { return values.nelem(); }
 
-  friend std::istream& operator<<(std::istream& is, GlobalState& gs);
-};
+    //! Finds whether two ValueList describe completely different sets of quantum numbers (e.g., local vs global)
+    [[nodiscard]] bool perpendicular(const ValueList& that) const ARTS_NOEXCEPT;
 
-ENUMCLASS(StateMatch, char, FullMatch, FullUpper, FullLower, BandMatch, BandUpper, BandLower, Species, Isotopologue, None)
+    //! Returns whether all the Types are part of the list, the types must be sorted
+    template <typename... Types>
+    [[nodiscard]] bool has(Types... ts) const ARTS_NOEXCEPT {
+      static_assert(sizeof...(Types) > 0);
 
-/** Checks how a pair of local and global set of quantum numbers match a target
+      ARTS_ASSERT(is_sorted(std::array qnt{Type(ts)...}))
+
+      auto ptr = cbegin();
+      auto end = cend();
+      for (Type t : {Type(ts)...}) {
+        ptr = std::find_if(ptr, end, [t](auto& x) { return x.type == t; });
+        if (ptr == end) return false;
+      }
+      return true;
+    }
+
+    //! Returns the value of the Type (assumes it exist)
+    const Value& operator[](Type t) const ARTS_NOEXCEPT;
+
+    //! Legacy manipulation operator access
+    Value& operator[](Index i) {return values.at(i);}
+
+    //! Add for manipulation
+    Value& add(Type t);
+
+    //! Add for manipulation
+    Value& add(Value v);
+
+    //! Sets the value if it exists or adds it otherwise
+    void set(Value v);
+
+    //! Set a value in value list
+    void set(Index i, std::string_view upp, std::string_view low);
+
+    //! Returns upper and lower matching status
+    CheckMatch operator==(const ValueList& other) const noexcept;
+
+    //! ouptut stream if all values
+    friend std::ostream& operator<<(std::ostream& os, const ValueList& vl);
+
+    //! input stream must have pre-set size
+    friend std::istream& operator>>(std::istream& is, ValueList& vl);
+  };
+
+  //! A logical struct for local quantum numbers
+  struct LocalState {
+    ValueList val{};
+
+    LocalState() = default;
+
+    template <typename... Values>
+    LocalState(Values... vals) : val(Array<Value>{Value(vals)...}) {}
+
+    [[nodiscard]] String keys() const;
+
+    [[nodiscard]] String values() const;
+
+    [[nodiscard]] bool same_types_as(const LocalState& that) const;
+
+    //! ouptut stream if all values
+    friend std::ostream& operator<<(std::ostream& os, const LocalState& vl);
+
+    //! input stream must have pre-set size
+    friend std::istream& operator>>(std::istream& is, LocalState& vl);
+  };
+
+  //! A logical struct for global quantum numbers with species identifiers
+  struct GlobalState {
+    static constexpr Index version = 1;  // Second version of quantum identifiers
+
+    Index isotopologue_index{-1};
+    ValueList val{};
+
+    GlobalState() = default;
+
+    explicit GlobalState(Index i, ValueList  v={}) : isotopologue_index(i), val(std::move(v)) {}
+
+    explicit GlobalState(const Species::IsotopeRecord& ir) : isotopologue_index(Species::find_species_index(ir)) {}
+
+    explicit GlobalState(std::string_view s, Index v=version);
+
+    [[nodiscard]] const Species::IsotopeRecord& Isotopologue() const noexcept;
+    [[nodiscard]] Species::Species Species() const noexcept;
+
+    friend std::ostream& operator<<(std::ostream& os, const GlobalState& gs);
+
+    friend std::istream& operator<<(std::istream& is, GlobalState& gs);
+
+    [[nodiscard]] GlobalState LowerLevel() const;
+    [[nodiscard]] GlobalState UpperLevel() const;
+
+    bool operator==(const GlobalState& that) const;
+    bool operator!=(const GlobalState& that) const;
+  };
+
+  //! StateMatchType operates so that a check less than a level should be 'better', bar None
+  ENUMCLASS(
+      StateMatchType, char, Full, Band, Level, Isotopologue, Species, None)
+
+  //! StateMatch, where you need to check the upp and low values when manipulating energy levels
+  struct StateMatch {
+    StateMatchType type{StateMatchType::None};
+    bool upp{false}, low{false};
+
+    StateMatch() = default;
+
+    StateMatch(const GlobalState& target,
+               const LocalState& local,
+               const GlobalState& global);
+
+    StateMatch(const GlobalState& target, const GlobalState& key);
+
+    //! It is of the desired type if it is less than the value, bar None
+    bool operator==(StateMatchType x) const noexcept {
+      return x == StateMatchType::None ? false : x <= type;
+    }
+
+    bool operator!=(StateMatchType x) const noexcept {
+      return not((*this) == x);
+    }
+  };
+
+  //! VAMDC classes of quantum number cases
+  ENUMCLASS(
+      VAMDC,
+      char,
+      asymcs,  // Schema for specifying the quantum numbers of closed-shell asymmetric top molecules
+      asymos,  // Schema for specifying the quantum numbers of open-shell asymmetric top molecules
+      dcs,  // Schema for specifying the quantum numbers of closed-shell, diatomic molecules
+      hunda,  // Schema for specifying the quantum numbers for Hund's case (a) diatomic molecules
+      hundb,  // Schema for specifying the quantum numbers for Hund's case (b) diatomic molecules
+      lpcs,  // Schema for specifying the quantum numbers of closed-shell linear polyatomic molecules
+      lpos,  // Schema for specifying the quantum numbers of open-shell linear polyatomic molecules
+      ltcs,  // Schema for specifying the quantum numbers of closed-shell linear triatomic molecules
+      ltos,  // Schema for specifying the quantum numbers of open-shell linear triatomic molecules
+      nltcs,  // Schema for specifying the quantum numbers of closed-shell non-linear triatomic molecules
+      nltos,  // Schema for specifying the quantum numbers of open-shell non-linear triatomic molecules
+      sphcs,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
+      sphos,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
+      stcs  // Schema for specifying the quantum numbers of closed-shell, symmetric top molecules
+  )
+
+  /** Checks if a ValueList can belong to a given VAMDC type by
+ * ensuring it cannot have some quantum numbers
  * 
- * @param target A target
- * @param local A local set of quantum numbers.  Should be perpendicular to global
- * @param global A global set of quantum numbers.  Should be perpendicular to local
- * @param level Whether or not level matches should be made
- * @return CheckMatch 
+ * @param l A list of values
+ * @param type A type of VAMDC molecular model
+ * @return true If it can belong to the VAMDC type
+ * @return false If it cannot belong to the VAMDC type
  */
-StateMatch checkLocalGlobal(const GlobalState& target,
-                            const LocalState& local,
-                            const GlobalState& global,
-                            bool level = false) ARTS_NOEXCEPT;
+  bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT;
 
-//! VAMDC classes of quantum number cases
-ENUMCLASS(VAMDC, char,
-asymcs,  // Schema for specifying the quantum numbers of closed-shell asymmetric top molecules
-asymos,  // Schema for specifying the quantum numbers of open-shell asymmetric top molecules
-dcs,  // Schema for specifying the quantum numbers of closed-shell, diatomic molecules
-hunda,  // Schema for specifying the quantum numbers for Hund's case (a) diatomic molecules
-hundb,  // Schema for specifying the quantum numbers for Hund's case (b) diatomic molecules
-lpcs,  // Schema for specifying the quantum numbers of closed-shell linear polyatomic molecules
-lpos,  // Schema for specifying the quantum numbers of open-shell linear polyatomic molecules
-ltcs,  // Schema for specifying the quantum numbers of closed-shell linear triatomic molecules
-ltos,  // Schema for specifying the quantum numbers of open-shell linear triatomic molecules
-nltcs,  // Schema for specifying the quantum numbers of closed-shell non-linear triatomic molecules
-nltos,  // Schema for specifying the quantum numbers of open-shell non-linear triatomic molecules
-sphcs,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
-sphos,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
-stcs   // Schema for specifying the quantum numbers of closed-shell, symmetric top molecules
-)
-
-template <VAMDC type>
-constexpr bool vamdcCheck(const ValueList& l) noexcept {
-  if constexpr (type == VAMDC::asymcs) {
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::N)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::S)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::asSym)) return false;
-    if (l.has(Type::elecInv)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::kronigParity)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::l1)) return false;
-    if (l.has(Type::l10)) return false;
-    if (l.has(Type::l11)) return false;
-    if (l.has(Type::l12)) return false;
-    if (l.has(Type::l2)) return false;
-    if (l.has(Type::l3)) return false;
-    if (l.has(Type::l4)) return false;
-    if (l.has(Type::l5)) return false;
-    if (l.has(Type::l6)) return false;
-    if (l.has(Type::l7)) return false;
-    if (l.has(Type::l8)) return false;
-    if (l.has(Type::l9)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::vibRefl)) return false;
-  }
-  if constexpr (type == VAMDC::asymos) {
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::asSym)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::kronigParity)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::l1)) return false;
-    if (l.has(Type::l10)) return false;
-    if (l.has(Type::l11)) return false;
-    if (l.has(Type::l12)) return false;
-    if (l.has(Type::l2)) return false;
-    if (l.has(Type::l3)) return false;
-    if (l.has(Type::l4)) return false;
-    if (l.has(Type::l5)) return false;
-    if (l.has(Type::l6)) return false;
-    if (l.has(Type::l7)) return false;
-    if (l.has(Type::l8)) return false;
-    if (l.has(Type::l9)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::vibRefl)) return false;
-  }
-  if constexpr (type == VAMDC::dcs) {
-    if (l.has(Type::F10)) return false;
-    if (l.has(Type::F11)) return false;
-    if (l.has(Type::F12)) return false;
-    if (l.has(Type::F2)) return false;
-    if (l.has(Type::F3)) return false;
-    if (l.has(Type::F4)) return false;
-    if (l.has(Type::F5)) return false;
-    if (l.has(Type::F6)) return false;
-    if (l.has(Type::F7)) return false;
-    if (l.has(Type::F8)) return false;
-    if (l.has(Type::F9)) return false;
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::N)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::S)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::elecInv)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::l1)) return false;
-    if (l.has(Type::l10)) return false;
-    if (l.has(Type::l11)) return false;
-    if (l.has(Type::l12)) return false;
-    if (l.has(Type::l2)) return false;
-    if (l.has(Type::l3)) return false;
-    if (l.has(Type::l4)) return false;
-    if (l.has(Type::l5)) return false;
-    if (l.has(Type::l6)) return false;
-    if (l.has(Type::l7)) return false;
-    if (l.has(Type::l8)) return false;
-    if (l.has(Type::l9)) return false;
-    if (l.has(Type::rotSym)) return false;
-    if (l.has(Type::rovibSym)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v1)) return false;
-    if (l.has(Type::v10)) return false;
-    if (l.has(Type::v11)) return false;
-    if (l.has(Type::v12)) return false;
-    if (l.has(Type::v2)) return false;
-    if (l.has(Type::v3)) return false;
-    if (l.has(Type::v4)) return false;
-    if (l.has(Type::v5)) return false;
-    if (l.has(Type::v6)) return false;
-    if (l.has(Type::v7)) return false;
-    if (l.has(Type::v8)) return false;
-    if (l.has(Type::v9)) return false;
-    if (l.has(Type::vibInv)) return false;
-    if (l.has(Type::vibRefl)) return false;
-    if (l.has(Type::vibSym)) return false;
-  }
-  if constexpr (type == VAMDC::hunda) {
-    if (l.has(Type::F10)) return false;
-    if (l.has(Type::F11)) return false;
-    if (l.has(Type::F12)) return false;
-    if (l.has(Type::F2)) return false;
-    if (l.has(Type::F3)) return false;
-    if (l.has(Type::F4)) return false;
-    if (l.has(Type::F5)) return false;
-    if (l.has(Type::F6)) return false;
-    if (l.has(Type::F7)) return false;
-    if (l.has(Type::F8)) return false;
-    if (l.has(Type::F9)) return false;
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::N)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::l1)) return false;
-    if (l.has(Type::l10)) return false;
-    if (l.has(Type::l11)) return false;
-    if (l.has(Type::l12)) return false;
-    if (l.has(Type::l2)) return false;
-    if (l.has(Type::l3)) return false;
-    if (l.has(Type::l4)) return false;
-    if (l.has(Type::l5)) return false;
-    if (l.has(Type::l6)) return false;
-    if (l.has(Type::l7)) return false;
-    if (l.has(Type::l8)) return false;
-    if (l.has(Type::l9)) return false;
-    if (l.has(Type::rotSym)) return false;
-    if (l.has(Type::rovibSym)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v1)) return false;
-    if (l.has(Type::v10)) return false;
-    if (l.has(Type::v11)) return false;
-    if (l.has(Type::v12)) return false;
-    if (l.has(Type::v2)) return false;
-    if (l.has(Type::v3)) return false;
-    if (l.has(Type::v4)) return false;
-    if (l.has(Type::v5)) return false;
-    if (l.has(Type::v6)) return false;
-    if (l.has(Type::v7)) return false;
-    if (l.has(Type::v8)) return false;
-    if (l.has(Type::v9)) return false;
-    if (l.has(Type::vibInv)) return false;
-    if (l.has(Type::vibRefl)) return false;
-    if (l.has(Type::vibSym)) return false;
-  }
-  if constexpr (type == VAMDC::hundb) {
-    if (l.has(Type::F10)) return false;
-    if (l.has(Type::F11)) return false;
-    if (l.has(Type::F12)) return false;
-    if (l.has(Type::F2)) return false;
-    if (l.has(Type::F3)) return false;
-    if (l.has(Type::F4)) return false;
-    if (l.has(Type::F5)) return false;
-    if (l.has(Type::F6)) return false;
-    if (l.has(Type::F7)) return false;
-    if (l.has(Type::F8)) return false;
-    if (l.has(Type::F9)) return false;
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::l1)) return false;
-    if (l.has(Type::l10)) return false;
-    if (l.has(Type::l11)) return false;
-    if (l.has(Type::l12)) return false;
-    if (l.has(Type::l2)) return false;
-    if (l.has(Type::l3)) return false;
-    if (l.has(Type::l4)) return false;
-    if (l.has(Type::l5)) return false;
-    if (l.has(Type::l6)) return false;
-    if (l.has(Type::l7)) return false;
-    if (l.has(Type::l8)) return false;
-    if (l.has(Type::l9)) return false;
-    if (l.has(Type::rotSym)) return false;
-    if (l.has(Type::rovibSym)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v1)) return false;
-    if (l.has(Type::v10)) return false;
-    if (l.has(Type::v11)) return false;
-    if (l.has(Type::v12)) return false;
-    if (l.has(Type::v2)) return false;
-    if (l.has(Type::v3)) return false;
-    if (l.has(Type::v4)) return false;
-    if (l.has(Type::v5)) return false;
-    if (l.has(Type::v6)) return false;
-    if (l.has(Type::v7)) return false;
-    if (l.has(Type::v8)) return false;
-    if (l.has(Type::v9)) return false;
-    if (l.has(Type::vibInv)) return false;
-    if (l.has(Type::vibRefl)) return false;
-    if (l.has(Type::vibSym)) return false;
-  }
-  if constexpr (type == VAMDC::lpcs) {
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::N)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::S)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::elecInv)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::rotSym)) return false;
-    if (l.has(Type::rovibSym)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v)) return false;
-  }
-  if constexpr (type == VAMDC::lpos) {
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::rotSym)) return false;
-    if (l.has(Type::rovibSym)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::vibSym)) return false;
-  }
-  if constexpr (type == VAMDC::ltcs) {
-    if (l.has(Type::F10)) return false;
-    if (l.has(Type::F11)) return false;
-    if (l.has(Type::F12)) return false;
-    if (l.has(Type::F3)) return false;
-    if (l.has(Type::F4)) return false;
-    if (l.has(Type::F5)) return false;
-    if (l.has(Type::F6)) return false;
-    if (l.has(Type::F7)) return false;
-    if (l.has(Type::F8)) return false;
-    if (l.has(Type::F9)) return false;
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::N)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::S)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::elecInv)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::l1)) return false;
-    if (l.has(Type::l10)) return false;
-    if (l.has(Type::l11)) return false;
-    if (l.has(Type::l12)) return false;
-    if (l.has(Type::l3)) return false;
-    if (l.has(Type::l4)) return false;
-    if (l.has(Type::l5)) return false;
-    if (l.has(Type::l6)) return false;
-    if (l.has(Type::l7)) return false;
-    if (l.has(Type::l8)) return false;
-    if (l.has(Type::l9)) return false;
-    if (l.has(Type::rotSym)) return false;
-    if (l.has(Type::rovibSym)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::v10)) return false;
-    if (l.has(Type::v11)) return false;
-    if (l.has(Type::v12)) return false;
-    if (l.has(Type::v4)) return false;
-    if (l.has(Type::v5)) return false;
-    if (l.has(Type::v6)) return false;
-    if (l.has(Type::v7)) return false;
-    if (l.has(Type::v8)) return false;
-    if (l.has(Type::v9)) return false;
-    if (l.has(Type::vibInv)) return false;
-    if (l.has(Type::vibRefl)) return false;
-    if (l.has(Type::vibSym)) return false;
-  }
-  if constexpr (type == VAMDC::ltos) {
-    if (l.has(Type::F10)) return false;
-    if (l.has(Type::F11)) return false;
-    if (l.has(Type::F12)) return false;
-    if (l.has(Type::F3)) return false;
-    if (l.has(Type::F4)) return false;
-    if (l.has(Type::F5)) return false;
-    if (l.has(Type::F6)) return false;
-    if (l.has(Type::F7)) return false;
-    if (l.has(Type::F8)) return false;
-    if (l.has(Type::F9)) return false;
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::l1)) return false;
-    if (l.has(Type::l10)) return false;
-    if (l.has(Type::l11)) return false;
-    if (l.has(Type::l12)) return false;
-    if (l.has(Type::l3)) return false;
-    if (l.has(Type::l4)) return false;
-    if (l.has(Type::l5)) return false;
-    if (l.has(Type::l6)) return false;
-    if (l.has(Type::l7)) return false;
-    if (l.has(Type::l8)) return false;
-    if (l.has(Type::l9)) return false;
-    if (l.has(Type::rotSym)) return false;
-    if (l.has(Type::rovibSym)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::v10)) return false;
-    if (l.has(Type::v11)) return false;
-    if (l.has(Type::v12)) return false;
-    if (l.has(Type::v4)) return false;
-    if (l.has(Type::v5)) return false;
-    if (l.has(Type::v6)) return false;
-    if (l.has(Type::v7)) return false;
-    if (l.has(Type::v8)) return false;
-    if (l.has(Type::v9)) return false;
-    if (l.has(Type::vibInv)) return false;
-    if (l.has(Type::vibRefl)) return false;
-    if (l.has(Type::vibSym)) return false;
-  }
-  if constexpr (type == VAMDC::nltcs) {
-    if (l.has(Type::F10)) return false;
-    if (l.has(Type::F11)) return false;
-    if (l.has(Type::F12)) return false;
-    if (l.has(Type::F3)) return false;
-    if (l.has(Type::F4)) return false;
-    if (l.has(Type::F5)) return false;
-    if (l.has(Type::F6)) return false;
-    if (l.has(Type::F7)) return false;
-    if (l.has(Type::F8)) return false;
-    if (l.has(Type::F9)) return false;
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::N)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::S)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::elecInv)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::l1)) return false;
-    if (l.has(Type::l10)) return false;
-    if (l.has(Type::l11)) return false;
-    if (l.has(Type::l12)) return false;
-    if (l.has(Type::l2)) return false;
-    if (l.has(Type::l3)) return false;
-    if (l.has(Type::l4)) return false;
-    if (l.has(Type::l5)) return false;
-    if (l.has(Type::l6)) return false;
-    if (l.has(Type::l7)) return false;
-    if (l.has(Type::l8)) return false;
-    if (l.has(Type::l9)) return false;
-    if (l.has(Type::rotSym)) return false;
-    if (l.has(Type::rovibSym)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::v10)) return false;
-    if (l.has(Type::v11)) return false;
-    if (l.has(Type::v12)) return false;
-    if (l.has(Type::v4)) return false;
-    if (l.has(Type::v5)) return false;
-    if (l.has(Type::v6)) return false;
-    if (l.has(Type::v7)) return false;
-    if (l.has(Type::v8)) return false;
-    if (l.has(Type::v9)) return false;
-    if (l.has(Type::vibInv)) return false;
-    if (l.has(Type::vibRefl)) return false;
-    if (l.has(Type::vibSym)) return false;
-  }
-  if constexpr (type == VAMDC::nltos) {
-    if (l.has(Type::F10)) return false;
-    if (l.has(Type::F11)) return false;
-    if (l.has(Type::F12)) return false;
-    if (l.has(Type::F3)) return false;
-    if (l.has(Type::F4)) return false;
-    if (l.has(Type::F5)) return false;
-    if (l.has(Type::F6)) return false;
-    if (l.has(Type::F7)) return false;
-    if (l.has(Type::F8)) return false;
-    if (l.has(Type::F9)) return false;
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::elecInv)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::l1)) return false;
-    if (l.has(Type::l10)) return false;
-    if (l.has(Type::l11)) return false;
-    if (l.has(Type::l12)) return false;
-    if (l.has(Type::l2)) return false;
-    if (l.has(Type::l3)) return false;
-    if (l.has(Type::l4)) return false;
-    if (l.has(Type::l5)) return false;
-    if (l.has(Type::l6)) return false;
-    if (l.has(Type::l7)) return false;
-    if (l.has(Type::l8)) return false;
-    if (l.has(Type::l9)) return false;
-    if (l.has(Type::rotSym)) return false;
-    if (l.has(Type::rovibSym)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::v10)) return false;
-    if (l.has(Type::v11)) return false;
-    if (l.has(Type::v12)) return false;
-    if (l.has(Type::v4)) return false;
-    if (l.has(Type::v5)) return false;
-    if (l.has(Type::v6)) return false;
-    if (l.has(Type::v7)) return false;
-    if (l.has(Type::v8)) return false;
-    if (l.has(Type::v9)) return false;
-    if (l.has(Type::vibInv)) return false;
-    if (l.has(Type::vibRefl)) return false;
-    if (l.has(Type::vibSym)) return false;
-  }
-  if constexpr (type == VAMDC::sphcs) {
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::N)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::S)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::asSym)) return false;
-    if (l.has(Type::elecInv)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::kronigParity)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::vibInv)) return false;
-    if (l.has(Type::vibRefl)) return false;
-  }
-  if constexpr (type == VAMDC::sphos) {
-    if (l.has(Type::K)) return false;
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::asSym)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::kronigParity)) return false;
-    if (l.has(Type::l)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::vibInv)) return false;
-    if (l.has(Type::vibRefl)) return false;
-  }
-  if constexpr (type == VAMDC::stcs) {
-    if (l.has(Type::Ka)) return false;
-    if (l.has(Type::Kc)) return false;
-    if (l.has(Type::Lambda)) return false;
-    if (l.has(Type::N)) return false;
-    if (l.has(Type::Omega)) return false;
-    if (l.has(Type::S)) return false;
-    if (l.has(Type::Sigma)) return false;
-    if (l.has(Type::SpinComponentLabel)) return false;
-    if (l.has(Type::asSym)) return false;
-    if (l.has(Type::elecInv)) return false;
-    if (l.has(Type::elecRefl)) return false;
-    if (l.has(Type::elecSym)) return false;
-    if (l.has(Type::kronigParity)) return false;
-    if (l.has(Type::sym)) return false;
-    if (l.has(Type::v)) return false;
-    if (l.has(Type::vibRefl)) return false;
-  }
-  return true;
-}
+  void update_id(GlobalState & qid,
+                 const std::vector<std::array<String, 2> >& upper_list,
+                 const std::vector<std::array<String, 2> >& lower_list);
 }  // namespace Quantum::Number
 
 using QuantumIdentifier = Quantum::Number::GlobalState;

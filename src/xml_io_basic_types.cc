@@ -27,8 +27,13 @@
 
 */
 
+#include "absorptionlines.h"
 #include "arts.h"
+#include "debug.h"
+#include "isotopologues.h"
+#include "quantum_numbers.h"
 #include "xml_io.h"
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -60,21 +65,9 @@ void xml_read_from_stream(istream& is_xml,
   
   /** Catalog ID */
   if (jt.needQuantumIdentity()) {
-    SpeciesTag spec;
-    tag.get_attribute_value("species", spec);
-    
-    if (jt == Jacobian::Line::VMR) {
-      jt.QuantumIdentity() = QuantumIdentifier(spec.Isotopologue(), Quantum::IdentifierType::All);
-    } else if (jt == Jacobian::Line::NLTE) {
-      QuantumNumbers levelquanta;
-      tag.get_attribute_value("levelquanta", levelquanta);
-      jt.QuantumIdentity() = QuantumIdentifier(spec.Isotopologue(), levelquanta);
-    } else {
-      QuantumNumbers upperglobalquanta, lowerglobalquanta;
-      tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
-      tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
-      jt.QuantumIdentity() = QuantumIdentifier(spec.Isotopologue(), upperglobalquanta, lowerglobalquanta);
-    }
+    String qid;
+    tag.get_attribute_value("id", qid);
+    jt.QuantumIdentity(QuantumIdentifier(qid));
   }
 
   if (jt.needArrayOfSpeciesTag()) {
@@ -131,15 +124,7 @@ void xml_write_to_stream(ostream& os_xml,
   
   /** Catalog ID */
   if (jt.needQuantumIdentity()) {
-    open_tag.add_attribute("species", String(Species::toShortName(jt.QuantumIdentity().Species())));
-    
-    if (jt == Jacobian::Line::VMR) {
-    } else if (jt == Jacobian::Line::NLTE) {
-      open_tag.add_attribute("levelquanta", jt.QuantumIdentity().Level().toString());
-    } else {
-      open_tag.add_attribute("upperglobalquanta", jt.QuantumIdentity().Upper().toString());
-      open_tag.add_attribute("lowerglobalquanta", jt.QuantumIdentity().Lower().toString());
-    }
+    open_tag.add_attribute("id", var_string(jt.QuantumIdentity()));
   }
 
   if (jt.needArrayOfSpeciesTag()) {
@@ -447,7 +432,7 @@ void xml_read_from_stream(istream& is_xml,
                           AbsorptionLines& al,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
-  static_assert(AbsorptionLines::version == 1, "The reading routine expects version 1 of the absorption lines data type to work");
+  static_assert(AbsorptionLines::version == 2, "The reading routine expects version 1 of the absorption lines data type to work");
   
   ArtsXMLTag tag(verbosity);
   
@@ -460,47 +445,70 @@ void xml_read_from_stream(istream& is_xml,
   } else {
     version = 0;
   }
-  
+  ARTS_USER_ERROR_IF(
+      AbsorptionLines::version < version,
+      "The version of this catalog is too new.  You need to upgrade ARTS to use it.")
+
+  ARTS_USER_ERROR_IF(
+      version < AbsorptionLines::version - 1 or
+          (pbifs and version not_eq AbsorptionLines::version),
+      "Using descoped version of the catalog; version: ",
+      version,
+      '\n',
+      "We only ever support limited number of versions. Your compilation supports versions ",
+      AbsorptionLines::version,
+      " and ",
+      AbsorptionLines::version - 1,
+      " in ascii but only version ",
+      AbsorptionLines::version,
+      " in binary\n\n",
+      "To update from versions, please check-out the following branch, compile, and save your catalog again (as ascii):\n"
+      "0 to 1: 3b6565fb93702308c4cdd660ec63c71d63dcaf26\n"
+      "1 to 2: Current version\n")
+
   // Number of lines
   Index nlines;
   tag.get_attribute_value("nlines", nlines);
   
-  // Species of the lines
-  SpeciesTag spec;
-  if (version == 1) {
+  // Identity of the lines (Changes between versions)
+  QuantumIdentifier id;
+  if (version == 2) {
+    String id_str;
+    tag.get_attribute_value("id", id_str);
+    id = QuantumIdentifier(id_str);
+  } else if (version == 1) {
+    String spec;
     tag.get_attribute_value("species", spec);
-  } else {
-    String specname;
-    tag.get_attribute_value("species", specname);
-    specname = Species::update_isot_name(specname);
-    
-    spec = SpeciesTag(specname);
+
+    Index spec_ind = Species::find_species_index(spec);
+    ARTS_USER_ERROR_IF(spec_ind < 0, "Bad species index for: ", spec)
+    id.isotopologue_index = spec_ind;
   }
   
   // Cutoff type
   String s_cutoff;
   tag.get_attribute_value("cutofftype", s_cutoff);
-  const Absorption::CutoffType cutoff = Absorption::toCutoffType(s_cutoff);
+  const Absorption::CutoffType cutoff = Absorption::toCutoffTypeOrThrow(s_cutoff);
   
   // Mirroring type
   String s_mirroring;
   tag.get_attribute_value("mirroringtype", s_mirroring);
-  const Absorption::MirroringType mirroring = Absorption::toMirroringType(s_mirroring);
+  const Absorption::MirroringType mirroring = Absorption::toMirroringTypeOrThrow(s_mirroring);
   
   // Line population type
   String s_population;
   tag.get_attribute_value("populationtype", s_population);
-  const Absorption::PopulationType population = Absorption::toPopulationType(s_population);
+  const Absorption::PopulationType population = Absorption::toPopulationTypeOrThrow(s_population);
   
   // Normalization type
   String s_normalization;
   tag.get_attribute_value("normalizationtype", s_normalization);
-  const Absorption::NormalizationType normalization = Absorption::toNormalizationType(s_normalization);
+  const Absorption::NormalizationType normalization = Absorption::toNormalizationTypeOrThrow(s_normalization);
   
   // Shape type
   String s_lineshapetype;
   tag.get_attribute_value("lineshapetype", s_lineshapetype);
-  const LineShape::Type lineshapetype = LineShape::toType(s_lineshapetype);
+  const LineShape::Type lineshapetype = LineShape::toTypeOrThrow(s_lineshapetype);
   
   /** Reference temperature for all parameters of the lines */
   Numeric T0;
@@ -515,21 +523,31 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("linemixinglimit", linemixinglimit);
   
   /** List of local quantum numbers, these must be defined */
-  std::vector<QuantumNumberType> localquanta;
-  tag.get_attribute_value("localquanta", localquanta);
-  
-  /** Catalog ID */  
-  QuantumNumbers upperglobalquanta;
-  tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
-  QuantumNumbers lowerglobalquanta;
-  tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
+  Quantum::Number::LocalState meta_localstate;
+  String localquanta_str;
+  tag.get_attribute_value("localquanta", localquanta_str);
+
+  const Index nlocal = Quantum::Number::count_items(localquanta_str);
+  std::vector<QuantumNumberType> qn_key;
+  for (Index i = 0; i < nlocal; i++)
+    qn_key.push_back(
+        Quantum::Number::toType(Quantum::Number::items(localquanta_str, i)));
+  for (auto& key : qn_key) meta_localstate.val.add(key);
+
+  /** Catalog ID */
+  if (version == 1) {
+    String uid, lid;
+    tag.get_attribute_value("upperglobalquanta", uid);
+    tag.get_attribute_value("lowerglobalquanta", lid);
+    id.val = Quantum::Number::ValueList(uid, lid);
+  }
   
   /** A list of broadening species */
   ArrayOfSpecies broadeningspecies;
   bool selfbroadening;
   bool bathbroadening;
   tag.get_attribute_value("broadeningspecies", broadeningspecies, selfbroadening, bathbroadening);
-  if (selfbroadening) broadeningspecies.front() = spec.Spec();
+  if (selfbroadening) broadeningspecies.front() = id.Species();
   
   String temperaturemodes;
   tag.get_attribute_value("temperaturemodes", temperaturemodes);
@@ -539,9 +557,8 @@ void xml_read_from_stream(istream& is_xml,
                        nlines, cutoff, mirroring,
                        population, normalization,
                        lineshapetype, T0, cutofffreq,
-                       linemixinglimit, QuantumIdentifier(
-                         spec.Isotopologue(), upperglobalquanta, lowerglobalquanta),
-                       localquanta, broadeningspecies, metamodel);
+                       linemixinglimit, id,
+                       broadeningspecies, meta_localstate, metamodel);
   
   if (pbifs) {
     al.read(*pbifs);
@@ -556,6 +573,24 @@ void xml_read_from_stream(istream& is_xml,
       ostringstream os;
       os << "AbsorptionLines has wrong dimensions";
       xml_data_parse_error(tag, os.str());
+    }
+
+    if (version == 1) {
+      // The order of quantum numbers is sorted since version 2.
+      // the wrong quantum numbers might have been read.
+      // We need to do a reshuffle so that the values from
+      // different quantum numbers is correct
+      for (auto& line: al.lines)
+        for (Index i = 0; i < nlocal; i++) {
+          if (qn_key[i] == line.localquanta.val[i].type) {
+          } else {
+            for (Index j=i+1; j<nlocal; j++) {
+              if (qn_key[j] == line.localquanta.val[i].type) {
+                line.localquanta.val[i].swap_values(line.localquanta.val[j]);
+              }
+            }
+          }
+        }
     }
   }
 
@@ -590,19 +625,25 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("AbsorptionLines");
   open_tag.add_attribute("version", al.version);
   open_tag.add_attribute("nlines", al.NumLines());
-  open_tag.add_attribute("species", al.SpeciesName());
-  open_tag.add_attribute("cutofftype", Absorption::toString(al.Cutoff()));
-  open_tag.add_attribute("mirroringtype", Absorption::toString(al.Mirroring()));
-  open_tag.add_attribute("populationtype", Absorption::toString(al.Population()));
-  open_tag.add_attribute("normalizationtype", Absorption::toString(al.Normalization()));
-  open_tag.add_attribute("lineshapetype", LineShape::toString(al.LineShapeType()));
-  open_tag.add_attribute("T0", al.T0());
-  open_tag.add_attribute("cutofffreq", al.CutoffFreqValue());
-  open_tag.add_attribute("linemixinglimit", al.LinemixingLimit());
-  open_tag.add_attribute("localquanta", al.LocalQuanta());
-  open_tag.add_attribute("upperglobalquanta", al.UpperQuantumNumbers());
-  open_tag.add_attribute("lowerglobalquanta", al.LowerQuantumNumbers());
-  open_tag.add_attribute("broadeningspecies", al.BroadeningSpecies(), al.Self(), al.Bath());
+  open_tag.add_attribute("cutofftype", Absorption::toString(al.cutoff));
+  open_tag.add_attribute("mirroringtype", Absorption::toString(al.mirroring));
+  open_tag.add_attribute("populationtype", Absorption::toString(al.population));
+  open_tag.add_attribute("normalizationtype", Absorption::toString(al.normalization));
+  open_tag.add_attribute("lineshapetype", LineShape::toString(al.lineshapetype));
+  open_tag.add_attribute("T0", al.T0);
+  open_tag.add_attribute("cutofffreq", al.cutofffreq);
+  open_tag.add_attribute("linemixinglimit", al.linemixinglimit);
+
+//  open_tag.add_attribute("species", al.SpeciesName());
+//  open_tag.add_attribute("localquanta", al.LocalQuanta());
+//  open_tag.add_attribute("upperglobalquanta", al.UpperQuantumNumbers());
+//  open_tag.add_attribute("lowerglobalquanta", al.LowerQuantumNumbers());
+  open_tag.add_attribute("id", var_string(al.quantumidentity));
+  const String localquanta_str =
+      al.NumLines() ? al.lines.front().localquanta.keys() : "";
+  open_tag.add_attribute("localquanta", localquanta_str);
+
+  open_tag.add_attribute("broadeningspecies", al.broadeningspecies, al.selfbroadening, al.bathbroadening);
   open_tag.add_attribute("temperaturemodes", al.LineShapeMetaData());
 
   open_tag.write_to_stream(os_xml);

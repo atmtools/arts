@@ -24,7 +24,7 @@
  */
 
 #include "energylevelmap.h"
-#include "quantum.h"
+#include "quantum_numbers.h"
 #include "messages.h"
 
 void nlte_fieldFromRaw(EnergyLevelMap& nlte_field,

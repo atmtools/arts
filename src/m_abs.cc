@@ -123,9 +123,10 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
           const Numeric upp = (this_tag.upper_freq >= 0) ? this_tag.upper_freq : std::numeric_limits<Numeric>::max();
           
           // Fill up a copy of the line record to match with the wished frequency criteria
-          AbsorptionLines these_lines = createEmptyCopy(lines);
+          AbsorptionLines these_lines = lines;
+          these_lines.lines.resize(0);
           for (Index k=lines.NumLines()-1; k>=0; k--)
-            if (low <= lines.F0(k) and upp >= lines.F0(k))
+            if (low <= lines.lines[k].F0 and upp >= lines.lines[k].F0)
               these_lines.AppendSingleLine(lines.PopLine(k));
           
           // Append these lines after sorting them if there are any of them

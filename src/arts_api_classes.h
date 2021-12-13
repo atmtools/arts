@@ -179,27 +179,19 @@ extern "C" {
   
     // Absorption::SingleLine
     BasicInterfaceCAPI(AbsorptionSingleLine)
-    GetterSetterCAPI(AbsorptionSingleLine, F0, Numeric)
-    GetterSetterCAPI(AbsorptionSingleLine, I0, Numeric)
-    GetterSetterCAPI(AbsorptionSingleLine, E0, Numeric)
-    GetterSetterCAPI(AbsorptionSingleLine, g_low, Numeric)
-    GetterSetterCAPI(AbsorptionSingleLine, g_upp, Numeric)
-    GetterSetterCAPI(AbsorptionSingleLine, A, Numeric)
-    VoidGetterCAPI(AbsorptionSingleLine, Zeeman)
-    VoidGetterCAPI(AbsorptionSingleLine, LineShape)
-    VoidArrayElemCAPI(AbsorptionSingleLine, LowerQuantumNumbers)
-    VoidArrayElemCAPI(AbsorptionSingleLine, UpperQuantumNumbers)
+    VoidStructGetterCAPI(AbsorptionSingleLine, F0)
+    VoidStructGetterCAPI(AbsorptionSingleLine, I0)
+    VoidStructGetterCAPI(AbsorptionSingleLine, E0)
+    VoidStructGetterCAPI(AbsorptionSingleLine, glow)
+    VoidStructGetterCAPI(AbsorptionSingleLine, gupp)
+    VoidStructGetterCAPI(AbsorptionSingleLine, A)
+    VoidStructGetterCAPI(AbsorptionSingleLine, zeeman)
+    VoidStructGetterCAPI(AbsorptionSingleLine, lineshape)
+    VoidStructGetterCAPI(AbsorptionSingleLine, localquanta)
     
     // QuantumNumbers
     BasicInterfaceCAPI(QuantumNumberType)
     StringEnumPointersCAPI(QuantumNumberType)
-  
-    // QuantumNumbers
-    BasicInterfaceCAPI(QuantumNumbers)
-    DLL_PUBLIC void * getelemQuantumNumbers(Index, void *);
-    DLL_PUBLIC Index sizeQuantumNumbers();
-    DLL_PUBLIC Index string2quantumnumbersindex(char *);
-    DLL_PUBLIC void * getQuantumNumbersString(void *);
     
     // Species::Species
     DLL_PUBLIC void * createSpecies();
@@ -228,18 +220,12 @@ extern "C" {
     BasicInterfaceCAPI(SpeciesIsotopologueRatios)
     BasicInputOutputCAPI(SpeciesIsotopologueRatios)
     DLL_PUBLIC Numeric * getdataSpeciesIsotopologueRatios(void *);
-    
-    // QuantumIdentifierType
-    BasicInterfaceCAPI(QuantumIdentifierType)
-    StringEnumPointersCAPI(QuantumIdentifierType)
   
     // QuantumIdentifier
     BasicInterfaceCAPI(QuantumIdentifier)
     BasicInputOutputCAPI(QuantumIdentifier)
-    VoidStructGetterCAPI(QuantumIdentifier, type)
-    VoidStructGetterCAPI(QuantumIdentifier, spec_ind)
-    VoidStructGetterCAPI(QuantumIdentifier, upp)
-    VoidStructGetterCAPI(QuantumIdentifier, low)
+    VoidStructGetterCAPI(QuantumIdentifier, isotopologue_index)
+    VoidStructGetterCAPI(QuantumIdentifier, val)
     DLL_PUBLIC Index fromstringQuantumIdentifier(void *, char *);
     
     // ArrayOfQuantumIdentifier
@@ -288,29 +274,25 @@ extern "C" {
     // AbsorptionLines
     BasicInterfaceCAPI(AbsorptionLines)
     BasicInputOutputCAPI(AbsorptionLines)
-    GetterSetterCAPI(AbsorptionLines, Self, bool)
-    GetterSetterCAPI(AbsorptionLines, Bath, bool)
-    VoidGetterCAPI(AbsorptionLines, Cutoff)
-    VoidGetterCAPI(AbsorptionLines, LineShapeType)
-    VoidGetterCAPI(AbsorptionLines, Mirroring)
-    VoidGetterCAPI(AbsorptionLines, Population)
-    VoidGetterCAPI(AbsorptionLines, Normalization)
-    GetterSetterCAPI(AbsorptionLines, T0, Numeric)
-    GetterSetterCAPI(AbsorptionLines, CutoffFreqValue, Numeric)
-    GetterSetterCAPI(AbsorptionLines, LinemixingLimit, Numeric)
-    VoidGetterCAPI(AbsorptionLines, QuantumIdentity)
-    VoidGetterCAPI(AbsorptionLines, BroadeningSpecies)
-    VoidArrayElemCAPI(AbsorptionLines, AllLines)
+    VoidStructGetterCAPI(AbsorptionLines, selfbroadening)
+    VoidStructGetterCAPI(AbsorptionLines, bathbroadening)
+    VoidStructGetterCAPI(AbsorptionLines, cutoff)
+    VoidStructGetterCAPI(AbsorptionLines, lineshapetype)
+    VoidStructGetterCAPI(AbsorptionLines, mirroring)
+    VoidStructGetterCAPI(AbsorptionLines, population)
+    VoidStructGetterCAPI(AbsorptionLines, normalization)
+    VoidStructGetterCAPI(AbsorptionLines, T0)
+    VoidStructGetterCAPI(AbsorptionLines, cutofffreq)
+    VoidStructGetterCAPI(AbsorptionLines, linemixinglimit)
+    VoidStructGetterCAPI(AbsorptionLines, quantumidentity)
+    VoidStructGetterCAPI(AbsorptionLines, broadeningspecies)
+    VoidStructGetterCAPI(AbsorptionLines, lines)
     VoidArrayCAPI(ArrayOfAbsorptionLines)
     BasicInterfaceCAPI(ArrayOfAbsorptionLines)
     BasicInputOutputCAPI(ArrayOfAbsorptionLines)
     VoidArrayCAPI(ArrayOfArrayOfAbsorptionLines)
     BasicInterfaceCAPI(ArrayOfArrayOfAbsorptionLines)
     BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
-    DLL_PUBLIC Index sizeLocalQuantaAbsorptionLines(void * data);
-    DLL_PUBLIC void resizeLocalQuantaAbsorptionLines(Index n, void * data);
-    DLL_PUBLIC void * getQuantumNumberTypeLocalQuantaAbsorptionLines(void * data, Index i);
-    DLL_PUBLIC void * getLocalQuantaAbsorptionLines(void * data);
     DLL_PUBLIC void printmetaAbsorptionLines(void *);
     DLL_PUBLIC Index isAbsorptionLinesOK(void *);
     DLL_PUBLIC void * getSpeciesNameAbsorptionLines(void *);

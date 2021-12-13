@@ -105,24 +105,14 @@ void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
     const QuantumIdentifier& id = qid[i];
     const Numeric g = gs[i];
     
-    ARTS_USER_ERROR_IF(id.type not_eq QuantumIdentifierType::EnergyLevel, 
-      "The type of quantum identifier at position ", i, " is wrong.  It reads:\n", qid[i])
-    const QuantumNumbers& level = id.Level();
-    
     for (AbsorptionLines& band: abs_lines) {
       if (id.Isotopologue() not_eq band.Isotopologue()) continue;
       
       for (Index iline=0; iline<band.NumLines(); iline++) {
-        bool match_upp = true;
-        bool match_low = true;
-        for (const QuantumNumberType qn: enumtyps::QuantumNumberTypeTypes) {
-          if (level[qn].isUndefined()) continue;
-          match_upp = match_upp and level[qn] == band.UpperQuantumNumber(iline, qn);
-          match_low = match_low and level[qn] == band.LowerQuantumNumber(iline, qn);
-          if (not match_low and not match_upp) break;
-        }
-        if (match_upp) band.Line(iline).Zeeman().gu(g);
-        if (match_low) band.Line(iline).Zeeman().gl(g);
+        const Quantum::Number::StateMatch lt(id, band.lines[iline].localquanta, band.quantumidentity);
+        
+        if (lt == Quantum::Number::StateMatchType::Level and lt.upp) band.lines[iline].zeeman.gu(g);
+        if (lt == Quantum::Number::StateMatchType::Level and lt.low) band.lines[iline].zeeman.gl(g);
       }
     }
   }

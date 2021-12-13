@@ -79,7 +79,7 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
         // Select lines with correct Isotopologue and one line center within the range
         if ((abs_species[i][j].Isotopologue() == lines[k].Isotopologue() or 
              abs_species[i][j].Isotopologue() == Species::select_joker("CO2")) and 
-             (lines[k].AllLines().front().F0() <= uf and lines[k].AllLines().back().F0() >= lf)) {
+             (lines[k].lines.front().F0 <= uf and lines[k].lines.back().F0 >= lf)) {
           used[k] = true;  // The lines should not be copied into other places
           abs_lines_per_species[i].push_back(lines[k]);
         }
@@ -124,8 +124,8 @@ void propmat_clearskyAddHitranLineMixingLines(PropagationMatrix& propmat_clearsk
     
   for (Index i=0; i<abs_species.nelem(); i++) {
     if (abs_lines_per_species[i].nelem() and 
-       (abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANFullRelmat or
-        abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat))
+       (abs_lines_per_species[i].front().population == Absorption::PopulationType::ByHITRANFullRelmat or
+        abs_lines_per_species[i].front().population == Absorption::PopulationType::ByHITRANRosenkranzRelmat))
       propmat_clearsky.Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], isotopologue_ratios, rtp_pressure, rtp_temperature, vmrs, f_grid);
   }
 }
@@ -139,7 +139,7 @@ void abs_lines_per_speciesAdaptHitranLineMixing(ArrayOfArrayOfAbsorptionLines& a
 {
   for (auto& abs_lines: abs_lines_per_species) {
     for (auto& band: abs_lines) {
-      if (band.Population() == Absorption::PopulationType::ByHITRANFullRelmat or band.Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat) {
+      if (band.population == Absorption::PopulationType::ByHITRANFullRelmat or band.population == Absorption::PopulationType::ByHITRANRosenkranzRelmat) {
         lm_hitran_2017::hitran_lm_eigenvalue_adaptation(band, t_grid, abs_hitran_relmat_data, pressure, order);
       }
     }
@@ -181,7 +181,7 @@ void propmat_clearskyAddOnTheFlyLineMixing(PropagationMatrix& propmat_clearsky,
             rtp_pressure,
             this_vmr,
             line_shape_vmr,
-            ecs_data[band.QuantumIdentity()],
+            ecs_data[band.quantumidentity],
             f_grid,
             Zeeman::Polarization::None,
             band,
@@ -261,7 +261,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(PropagationMatrix& propmat_
                   rtp_pressure,
                   this_vmr,
                   line_shape_vmr,
-                  ecs_data[band.QuantumIdentity()],
+                  ecs_data[band.quantumidentity],
                   f_grid,
                   polarization,
                   band,
@@ -342,8 +342,8 @@ void abs_linesAdaptOnTheFlyLineMixing(ArrayOfAbsorptionLines& abs_lines,
                                       const Index& rosenkranz_adaptation,
                                       const Verbosity& verbosity) {
   for (auto& band: abs_lines) {
-    if (band.Population() == Absorption::PopulationType::ByRovibLinearDipoleLineMixing or band.Population() == Absorption::PopulationType::ByMakarovFullRelmat) {
-      Absorption::LineMixing::ecs_eigenvalue_adaptation(band, t_grid, ecs_data[band.QuantumIdentity()], pressure, order, robust, rosenkranz_adaptation, verbosity);
+    if (band.population == Absorption::PopulationType::ByRovibLinearDipoleLineMixing or band.population == Absorption::PopulationType::ByMakarovFullRelmat) {
+      Absorption::LineMixing::ecs_eigenvalue_adaptation(band, t_grid, ecs_data[band.quantumidentity], pressure, order, robust, rosenkranz_adaptation, verbosity);
     }
   }
 }
@@ -370,7 +370,7 @@ void ecs_dataInit(MapOfErrorCorrectedSuddenData& ecs_data,
 void ecs_dataSetSpeciesData(
   MapOfErrorCorrectedSuddenData& ecs_data,
   const SpeciesIsotopologueRatios& isotopologue_ratios,
-  const Quantum::Identifier& qid,
+  const QuantumIdentifier& qid,
   const String& species,
   const String& scaling_type,
   const Vector& scaling,

@@ -43,6 +43,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include <string_view>
 #include "array.h"
 #include "arts.h"
 #include "artstime.h"
@@ -62,7 +63,7 @@
 #include "messages.h"
 #include "mystring.h"
 #include "optproperties.h"
-#include "quantum.h"
+#include "quantum_numbers.h"
 #include "sorting.h"
 
 /*===========================================================================

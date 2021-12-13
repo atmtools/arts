@@ -78,7 +78,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
   for (auto& lines: abs_lines_per_species) {
     for (auto& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
-        nlinspace(f_grid[Range(il * nf, nf)], band.F0(k) * (1 - df), band.F0(k) * (1 + df), nf);
+        nlinspace(f_grid[Range(il * nf, nf)], band.lines[k].F0 * (1 - df), band.lines[k].F0 * (1 + df), nf);
         il++;
       }
     }
@@ -136,7 +136,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
         const Vector vmrs = band.BroadeningSpeciesVMR(vmr_field(joker, ip, 0, 0), abs_species);
         for (Index k=0; k<band.NumLines(); k++) {
           const auto X = band.ShapeParameters(k, t_field(ip, 0, 0), p_grid[ip], vmrs);
-          LineShape::Calculator ls(band.LineShapeType(), band.F0(k), X, DC, 0, false);
+          LineShape::Calculator ls(band.lineshapetype, band.lines[k].F0, X, DC, 0, false);
           for (Index iv=0; iv<f_grid.nelem(); iv++) {
             lineshapes[il][ip][iv] = ls(f_grid[iv]);
           }

@@ -56,7 +56,8 @@ bool EnergyLevelMap::OK() const noexcept {
 
 
 Output2 EnergyLevelMap::get_ratio_params(
-  const AbsorptionLines& band, const Index& line_index) const
+  const AbsorptionLines& band,
+   const Index& line_index) const
 {
   ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Numeric_t,
                       "Must have Numeric_t, input type is bad");
@@ -66,14 +67,14 @@ Output2 EnergyLevelMap::get_ratio_params(
   bool found1=false;
   bool found2=false;
   for (size_t i=0; i<mlevels.size(); i++) {
-    
+    const Quantum::Number::StateMatch lt(mlevels[i], band.lines[line_index].localquanta, band.quantumidentity);
 
-    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
+    if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
       found1 = true;
       x.r_low = mvalue(i, 0, 0, 0);
     }
     
-    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
+    if (lt == Quantum::Number::StateMatchType::Level and lt.upp) {
       found2 = true;
       x.r_upp = mvalue(i, 0, 0, 0);
     }
@@ -97,15 +98,15 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   bool found1=false;
   bool found2=false;
   for (Index i=0; i<mlevels.nelem(); i++) {
-    const Absorption::QuantumIdentifierLineTarget lt = Absorption::QuantumIdentifierLineTarget(mlevels[i], band, line_index);
+    const Quantum::Number::StateMatch lt(mlevels[i], band.lines[line_index].localquanta, band.quantumidentity);
     
-    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.lower) {
+    if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
       found1 = true;
       x.T_low = mvalue(i, 0, 0, 0);
       x.E_low = mvib_energy[i];
     }
     
-    if (lt == Absorption::QuantumIdentifierLineTargetType::Level and lt.upper) {
+    if (lt == Quantum::Number::StateMatchType::Level and lt.upp) {
       found2 = true;
       x.T_upp = mvalue(i, 0, 0, 0);
       x.E_upp = mvib_energy[i];

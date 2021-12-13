@@ -27,7 +27,7 @@
 #include "species_tags.h"
 #include "global_data.h"
 #include "physics_funcs.h"
-#include "quantum.h"
+#include "quantum_numbers.h"
 #include "rte.h"
 
 /** Main and only way to compute Zeeman effect

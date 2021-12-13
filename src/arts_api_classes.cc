@@ -267,16 +267,15 @@ VoidArrayCAPI(LineShapeModel)
 
 // Absorption::SingleLine
 BasicInterfaceCAPI(AbsorptionSingleLine)
-GetterSetterCAPI(AbsorptionSingleLine, F0, Numeric)
-GetterSetterCAPI(AbsorptionSingleLine, I0, Numeric)
-GetterSetterCAPI(AbsorptionSingleLine, E0, Numeric)
-GetterSetterCAPI(AbsorptionSingleLine, g_low, Numeric)
-GetterSetterCAPI(AbsorptionSingleLine, g_upp, Numeric)
-GetterSetterCAPI(AbsorptionSingleLine, A, Numeric)
-VoidGetterCAPI(AbsorptionSingleLine, Zeeman)
-VoidGetterCAPI(AbsorptionSingleLine, LineShape)
-VoidArrayElemCAPI(AbsorptionSingleLine, LowerQuantumNumbers)
-VoidArrayElemCAPI(AbsorptionSingleLine, UpperQuantumNumbers)
+VoidStructGetterCAPI(AbsorptionSingleLine, F0)
+VoidStructGetterCAPI(AbsorptionSingleLine, I0)
+VoidStructGetterCAPI(AbsorptionSingleLine, E0)
+VoidStructGetterCAPI(AbsorptionSingleLine, glow)
+VoidStructGetterCAPI(AbsorptionSingleLine, gupp)
+VoidStructGetterCAPI(AbsorptionSingleLine, A)
+VoidStructGetterCAPI(AbsorptionSingleLine, zeeman)
+VoidStructGetterCAPI(AbsorptionSingleLine, lineshape)
+VoidStructGetterCAPI(AbsorptionSingleLine, localquanta)
 
 // QuantumNumberType
 BasicInterfaceCAPI(QuantumNumberType)
@@ -284,7 +283,7 @@ void * getQuantumNumberTypeString(void * data) {
   return new String(toString(*static_cast<QuantumNumberType *>(data)));
 }
 int setQuantumNumberTypeString(void * data, char * val) {
-  auto x = string2quantumnumbertype(val);
+  auto x = Quantum::Number::toType(val);
   if (good_enum(x)) {
     *static_cast<QuantumNumberType *>(data) = x;
     return EXIT_SUCCESS;
@@ -292,13 +291,6 @@ int setQuantumNumberTypeString(void * data, char * val) {
     return EXIT_FAILURE;
   }
 }
-
-// QuantumNumbers
-BasicInterfaceCAPI(QuantumNumbers)
-void * getelemQuantumNumbers(Index i, void * data) { return &static_cast<QuantumNumbers *>(data)->operator[](i); }
-Index sizeQuantumNumbers() { return Index(QuantumNumberType::FINAL); }
-Index string2quantumnumbersindex(char * str) { return Index(string2quantumnumbertype(str)); }
-void * getQuantumNumbersString(void * data) { return new String(static_cast<QuantumNumbers *>(data) -> toString()); }
 
 // Species::Species
 void * createSpecies() {
@@ -378,35 +370,18 @@ BasicInterfaceCAPI(SpeciesIsotopologueRatios)
 BasicInputOutputCAPI(SpeciesIsotopologueRatios)
 Numeric * getdataSpeciesIsotopologueRatios(void * data) {return static_cast<SpeciesIsotopologueRatios *>(data) -> data.begin();}
 
-// QuantumIdentifierType
-BasicInterfaceCAPI(QuantumIdentifierType)
-void * getQuantumIdentifierTypeString(void * data) {
-  return new String(toString(*static_cast<QuantumIdentifierType *>(data)));
-}
-int setQuantumIdentifierTypeString(void * data, char * val) {
-  auto x = Quantum::toIdentifierType(val);
-  if (good_enum(x)) {
-    *static_cast<QuantumIdentifierType *>(data) = x;
-    return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
-  }
-}
-
 // QuantumIdentifier
 BasicInterfaceCAPI(QuantumIdentifier)
 BasicInputOutputCAPI(QuantumIdentifier)
-VoidStructGetterCAPI(QuantumIdentifier, type)
-VoidStructGetterCAPI(QuantumIdentifier, spec_ind)
-VoidStructGetterCAPI(QuantumIdentifier, upp)
-VoidStructGetterCAPI(QuantumIdentifier, low)
+VoidStructGetterCAPI(QuantumIdentifier, isotopologue_index)
+VoidStructGetterCAPI(QuantumIdentifier, val)
 Index fromstringQuantumIdentifier(void * data, char * str) {
   try {
-    static_cast<QuantumIdentifier *>(data) -> SetFromString(str);
+    *static_cast<QuantumIdentifier *>(data) = QuantumIdentifier(str);
     return EXIT_SUCCESS;
   } catch(...) {
+    return EXIT_FAILURE;
   }
-  return EXIT_FAILURE;
 }
 
 // ArrayOfQuantumIdentifier
@@ -527,34 +502,25 @@ int setAbsorptionCutoffTypeString(void * data, char * val) {
 // AbsorptionLines
 BasicInterfaceCAPI(AbsorptionLines)
 BasicInputOutputCAPI(AbsorptionLines)
-GetterSetterCAPI(AbsorptionLines, Self, bool)
-GetterSetterCAPI(AbsorptionLines, Bath, bool)
-VoidGetterCAPI(AbsorptionLines, Cutoff)
-VoidGetterCAPI(AbsorptionLines, LineShapeType)
-VoidGetterCAPI(AbsorptionLines, Mirroring)
-VoidGetterCAPI(AbsorptionLines, Population)
-VoidGetterCAPI(AbsorptionLines, Normalization)
-GetterSetterCAPI(AbsorptionLines, T0, Numeric)
-GetterSetterCAPI(AbsorptionLines, CutoffFreqValue, Numeric)
-GetterSetterCAPI(AbsorptionLines, LinemixingLimit, Numeric)
-VoidGetterCAPI(AbsorptionLines, QuantumIdentity)
-VoidGetterCAPI(AbsorptionLines, BroadeningSpecies)
-VoidArrayElemCAPI(AbsorptionLines, AllLines)
+VoidStructGetterCAPI(AbsorptionLines, selfbroadening)
+VoidStructGetterCAPI(AbsorptionLines, bathbroadening)
+VoidStructGetterCAPI(AbsorptionLines, cutoff)
+VoidStructGetterCAPI(AbsorptionLines, lineshapetype)
+VoidStructGetterCAPI(AbsorptionLines, mirroring)
+VoidStructGetterCAPI(AbsorptionLines, population)
+VoidStructGetterCAPI(AbsorptionLines, normalization)
+VoidStructGetterCAPI(AbsorptionLines, T0)
+VoidStructGetterCAPI(AbsorptionLines, cutofffreq)
+VoidStructGetterCAPI(AbsorptionLines, linemixinglimit)
+VoidStructGetterCAPI(AbsorptionLines, quantumidentity)
+VoidStructGetterCAPI(AbsorptionLines, broadeningspecies)
+VoidStructGetterCAPI(AbsorptionLines, lines)
 VoidArrayCAPI(ArrayOfAbsorptionLines)
 BasicInterfaceCAPI(ArrayOfAbsorptionLines)
 BasicInputOutputCAPI(ArrayOfAbsorptionLines)
 VoidArrayCAPI(ArrayOfArrayOfAbsorptionLines)
 BasicInterfaceCAPI(ArrayOfArrayOfAbsorptionLines)
 BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
-Index sizeLocalQuantaAbsorptionLines(void * data) { return static_cast<std::vector<QuantumNumberType> *>(data) -> size(); }
-void resizeLocalQuantaAbsorptionLines(Index n, void * data) { static_cast<std::vector<QuantumNumberType> *>(data) -> resize(n); }
-void * getQuantumNumberTypeLocalQuantaAbsorptionLines(void * data, Index i) {
-  if (i >= 0 and i < Index(static_cast<std::vector<QuantumNumberType> *>(data) -> size()))
-    return & static_cast<std::vector<QuantumNumberType> *>(data) -> operator[](i);
-  else
-    return nullptr;
-}
-void * getLocalQuantaAbsorptionLines(void * data) { return & static_cast<AbsorptionLines *>(data) -> LocalQuanta(); }
 void printmetaAbsorptionLines(void * data) { std::cout << static_cast<AbsorptionLines *>(data) -> MetaData() << std::endl; }
 Index isAbsorptionLinesOK(void * data) { return Index(static_cast<AbsorptionLines *>(data) -> OK()); }
 void * getSpeciesNameAbsorptionLines(void * data) {

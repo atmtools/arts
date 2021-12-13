@@ -47,31 +47,18 @@ void ArrayOfQuantumIdentifierFromLines(
     for (const auto& band: lines) {
       for (Index k=0; k<band.NumLines() and (global ? (k==0) : false); k++) {
         if (global) {
-          lower = band.QuantumIdentity().LowerId();
-          upper = band.QuantumIdentity().UpperId();
+          lower = band.quantumidentity.LowerLevel();
+          upper = band.quantumidentity.UpperLevel();
         } else {
           auto x = band.QuantumIdentityOfLine(k);
-          lower = x.LowerId();
-          upper = x.UpperId();
+          lower = x.LowerLevel();
+          upper = x.UpperLevel();
         }
         
-        const bool canbeinlower = lower.Level().Any(),
-                   canbeinupper = upper.Level().Any();
-
-        // Test if the level has already been treated
-        const Index n = qid.nelem();
-        bool inlower = false, inupper = false;
-        for (Index i = 0; i < n; i++) {
-          if (not inlower and canbeinlower)
-            if (qid[i] == lower) inlower = true;
-          if (not inupper and canbeinupper)
-            if (qid[i] == upper) inupper = true;
-        }
-
-        // If the level has not been treated and has any quantum numbers, then store it
-        if (not inlower and canbeinlower) qid.push_back(lower);
-        if (not inupper and canbeinupper)
-          if (not(lower == upper)) qid.push_back(upper);
+        if (std::none_of(qid.begin(), qid.end(), [&](auto& x){return x == lower;}))
+          qid.push_back(lower);
+        if (std::none_of(qid.begin(), qid.end(), [&](auto& x){return x == upper;}))
+          qid.push_back(upper);
       }
     }
   }

@@ -1983,8 +1983,8 @@ CutInternalDerivativesImpl(X, X0) CutInternalDerivativesImpl(X, X1)           \
     const Index pos =                                                         \
       band.BroadeningSpeciesPosition(deriv.Target().LineSpecies());           \
     if (pos >= 0) {                                                           \
-    derivs[ij].value.n = band.Line(i).LineShape().d##X##_d##Y(                \
-        T, band.T0(), P, pos, vmrs);                                          \
+    derivs[ij].value.n = band.lines[i].lineshape.d##X##_d##Y(                 \
+        T, band.T0, P, pos, vmrs);                                            \
     } else {                                                                  \
       derivs[ij].value.n = 0;                                                 \
     }                                                                         \
@@ -2172,7 +2172,7 @@ SparseLimitRange quad_sparse_limited_range(const Numeric flc,
  * add the type to the Values union
  */
 struct Derivatives {
-  Absorption::QuantumIdentifierLineTarget target;
+  Quantum::Number::StateMatch target;
   union Values {
     Output o;
     Numeric n;
@@ -2406,7 +2406,7 @@ void cutoff_frequency_loop(ComputeValues &com,
             }
           }
         } else {
-          if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+          if (lt == Quantum::Number::StateMatchType::Full) {
             if (deriv == Jacobian::Line::Center) {
               const Numeric d = ls_norm.dNdF0() * Si + ls_str.dSdF0() * Sn;
               const Complex dFm = std::conj(ls_mirr.dFdF0() - ls_mirr_cut.dFdF0());
@@ -2436,9 +2436,9 @@ void cutoff_frequency_loop(ComputeValues &com,
             InternalDerivativesY
             InternalDerivativesG
             CutInternalDerivatives(DV)
-          } else if (lt == Absorption::QuantumIdentifierLineTargetType::Level) {
+          } else if (lt == Quantum::Number::StateMatchType::Level) {
             if (deriv == Jacobian::Line::NLTE) {
-              if (lt.upper) {
+              if (lt.upp) {
                 const Numeric dS = Sz * Sn * ls_str.dSdNLTEu();
                 com.dF[com.jac_pos(iv, ij)] += dS * LM * Fls;
                 
@@ -2448,7 +2448,7 @@ void cutoff_frequency_loop(ComputeValues &com,
                 }
               }
 
-              if (lt.lower) {
+              if (lt.low) {
                 const Numeric dS = Sz * Sn * ls_str.dSdNLTEl();
                 com.dF[com.jac_pos(iv, ij)] += dS * LM * Fls;
                 
@@ -2612,7 +2612,7 @@ void frequency_loop(ComputeValues &com,
             }
           }
         } else {
-          if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+          if (lt == Quantum::Number::StateMatchType::Full) {
             if (deriv == Jacobian::Line::Center) {
               const Numeric d = ls_norm.dNdF0() * Si + ls_str.dSdF0() * Sn;
               const Complex dFm = std::conj(ls_mirr.dFdF0());
@@ -2642,9 +2642,9 @@ void frequency_loop(ComputeValues &com,
             InternalDerivativesY
             InternalDerivativesG
             InternalDerivatives(DV)
-          } else if (lt == Absorption::QuantumIdentifierLineTargetType::Level) {
+          } else if (lt == Quantum::Number::StateMatchType::Level) {
             if (deriv == Jacobian::Line::NLTE) {
-              if (lt.upper) {
+              if (lt.upp) {
                 const Numeric dS = Sz * Sn * ls_str.dSdNLTEu();
                 com.dF[com.jac_pos(iv, ij)] += dS * LM * Fls;
                 
@@ -2654,7 +2654,7 @@ void frequency_loop(ComputeValues &com,
                 }
               }
 
-              if (lt.lower) {
+              if (lt.low) {
                 const Numeric dS = Sz * Sn * ls_str.dSdNLTEl();
                 com.dF[com.jac_pos(iv, ij)] += dS * LM * Fls;
                 
@@ -2724,11 +2724,11 @@ void cutoff_loop_sparse_linear(ComputeData &com,
                                const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   // Basic settings
   const bool do_nlte = ls_str.do_nlte();
-  const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
+  const bool do_cutoff = band.cutoff not_eq Absorption::CutoffType::None;
   const Numeric fu = band.CutoffFreq(i, X.D0);
   const Numeric fl = band.CutoffFreqMinus(i, X.D0);
-  const Numeric fus = band.F0(i) + sparse_lim;
-  const Numeric fls = band.F0(i) - sparse_lim;
+  const Numeric fus = band.lines[i].F0 + sparse_lim;
+  const Numeric fls = band.lines[i].F0 - sparse_lim;
 
   // Find sparse and dense ranges
   const auto [dense_start, dense_size,
@@ -2750,8 +2750,8 @@ void cutoff_loop_sparse_linear(ComputeData &com,
     const Numeric dfdH = band.ZeemanSplitting(i, zeeman_polarization, iz);
     const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, iz);
     const Complex LM = Complex(1 + X.G, -X.Y);
-    Calculator ls(band.LineShapeType(), band.F0(i), X, DC, dfdH * H, band.Mirroring() == Absorption::MirroringType::Manual);
-    Calculator ls_mirr(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
+    Calculator ls(band.lineshapetype, band.lines[i].F0, X, DC, dfdH * H, band.mirroring == Absorption::MirroringType::Manual);
+    Calculator ls_mirr(band.mirroring, band.lineshapetype, band.lines[i].F0, X, DC, dfdH * H);
     
     if (do_cutoff) {
       // Initialize and set the cutoff values
@@ -2805,11 +2805,11 @@ void cutoff_loop_sparse_triple(ComputeData &com,
                                const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   // Basic settings
   const bool do_nlte = ls_str.do_nlte();
-  const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
+  const bool do_cutoff = band.cutoff not_eq Absorption::CutoffType::None;
   const Numeric fu = band.CutoffFreq(i, X.D0);
   const Numeric fl = band.CutoffFreqMinus(i, X.D0);
-  const Numeric fus = band.F0(i) + sparse_lim;
-  const Numeric fls = band.F0(i) - sparse_lim;
+  const Numeric fus = band.lines[i].F0 + sparse_lim;
+  const Numeric fls = band.lines[i].F0 - sparse_lim;
 
   // Find sparse and dense ranges
   const auto [dense_start, dense_size,
@@ -2831,8 +2831,8 @@ void cutoff_loop_sparse_triple(ComputeData &com,
     const Numeric dfdH = band.ZeemanSplitting(i, zeeman_polarization, iz);
     const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, iz);
     const Complex LM = Complex(1 + X.G, -X.Y);
-    Calculator ls(band.LineShapeType(), band.F0(i), X, DC, dfdH * H, band.Mirroring() == Absorption::MirroringType::Manual);
-    Calculator ls_mirr(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
+    Calculator ls(band.lineshapetype, band.lines[i].F0, X, DC, dfdH * H, band.mirroring == Absorption::MirroringType::Manual);
+    Calculator ls_mirr(band.mirroring, band.lineshapetype, band.lines[i].F0, X, DC, dfdH * H);
     
     if (do_cutoff) {
       // Initialize and set the cutoff values
@@ -2922,7 +2922,7 @@ void cutoff_loop(ComputeData &com,
                  const Zeeman::Polarization zeeman_polarization) ARTS_NOEXCEPT {
   // Basic settings
   const bool do_nlte = ls_str.do_nlte();
-  const bool do_cutoff = band.Cutoff() not_eq Absorption::CutoffType::None;
+  const bool do_cutoff = band.cutoff not_eq Absorption::CutoffType::None;
   const Numeric fu = band.CutoffFreq(i, X.D0);
   const Numeric fl = band.CutoffFreqMinus(i, X.D0);
 
@@ -2938,8 +2938,8 @@ void cutoff_loop(ComputeData &com,
     const Numeric dfdH = band.ZeemanSplitting(i, zeeman_polarization, iz);
     const Numeric Sz = band.ZeemanStrength(i, zeeman_polarization, iz);
     const Complex LM = Complex(1 + X.G, -X.Y);
-    Calculator ls(band.LineShapeType(), band.F0(i), X, DC, dfdH * H, band.Mirroring() == Absorption::MirroringType::Manual);
-    Calculator ls_mirr(band.Mirroring(), band.LineShapeType(), band.F0(i), X, DC, dfdH * H);
+    Calculator ls(band.lineshapetype, band.lines[i].F0, X, DC, dfdH * H, band.mirroring == Absorption::MirroringType::Manual);
+    Calculator ls_mirr(band.mirroring, band.lineshapetype, band.lines[i].F0, X, DC, dfdH * H);
     
     if (do_cutoff) {
       // Initialize and set the cutoff values
@@ -3040,8 +3040,8 @@ void line_loop(ComputeData &com,
           derivs[ij].value.o = band.ShapeParameters_dVMR(i, T, P, deriv.QuantumIdentity());
         } else {
           auto &lt =
-              derivs[ij].target = {deriv.Target().QuantumIdentity(), band, i};
-          if (lt == Absorption::QuantumIdentifierLineTargetType::Line) {
+              derivs[ij].target = {deriv.Target().QuantumIdentity(), band.lines[i].localquanta, band.quantumidentity};
+          if (lt == Quantum::Number::StateMatchType::Full) {
             if constexpr (false) {/*skip so the rest can be a else-if block*/}
             // All line shape derivatives
             InternalDerivativesSetup(G0)
@@ -3063,21 +3063,21 @@ void line_loop(ComputeData &com,
     switch (speedup_type) {
       case Options::LblSpeedup::None:
         cutoff_loop(com,
-                    Normalizer(band.Normalization(), band.F0(i), T),
+                    Normalizer(band.normalization, band.lines[i].F0, T),
                     IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
                     band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H,
                     DC, i, zeeman_polarization);
         break;
       case Options::LblSpeedup::QuadraticIndependent:
         cutoff_loop_sparse_triple(com, sparse_com,
-                    Normalizer(band.Normalization(), band.F0(i), T),
+                    Normalizer(band.normalization, band.lines[i].F0, T),
                     IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
                     band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
                     DC, i, zeeman_polarization);
         break;
       case Options::LblSpeedup::LinearIndependent:
         cutoff_loop_sparse_linear(com, sparse_com,
-                                  Normalizer(band.Normalization(), band.F0(i), T),
+                                  Normalizer(band.normalization, band.lines[i].F0, T),
                                   IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, band, i),
                                   band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
                                   DC, i, zeeman_polarization);
@@ -3122,7 +3122,7 @@ void compute(ComputeData &com,
   ARTS_ASSERT((sparse_lim > 0 and sparse_com.f_grid.size() > 1) or (sparse_lim == 0), "Sparse limit is either 0, or the sparse frequency grid has to have upper and lower values")
 
   // Early return test
-  if (nv == 0 or nl == 0 or (Absorption::relaxationtype_relmat(band.Population()) and band.DoLineMixing(P))) {
+  if (nv == 0 or nl == 0 or (Absorption::relaxationtype_relmat(band.population) and band.DoLineMixing(P))) {
     return; // No line-by-line computations required/wanted
   }
   
@@ -3134,7 +3134,7 @@ void compute(ComputeData &com,
 
     line_loop(com_safe, sparse_com_safe, band, jacobian_quantities, nlte, vmrs, self_tag, P, T, H, sparse_lim,
               single_partition_function(T, band.Isotopologue()),
-              single_partition_function(band.T0(), band.Isotopologue()),
+              single_partition_function(band.T0, band.Isotopologue()),
               dsingle_partition_function_dT(T, band.Isotopologue()),
               self_vmr * dnumdensdVMR, dnumdensdVMR, self_vmr * isot_ratio * dnumber_density_dt(P, T),
               zeeman_polarization, speedup_type);
@@ -3147,7 +3147,7 @@ void compute(ComputeData &com,
   } else {
     line_loop(com, sparse_com, band, jacobian_quantities, nlte, vmrs, self_tag, P, T, H, sparse_lim,
               single_partition_function(T, band.Isotopologue()),
-              single_partition_function(band.T0(), band.Isotopologue()),
+              single_partition_function(band.T0, band.Isotopologue()),
               dsingle_partition_function_dT(T, band.Isotopologue()),
               self_vmr * dnumdensdVMR, dnumdensdVMR, self_vmr * isot_ratio * dnumber_density_dt(P, T),
               zeeman_polarization, speedup_type);
