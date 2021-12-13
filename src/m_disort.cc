@@ -349,6 +349,7 @@ void DisortCalcStar(Workspace& ws,
                     const Index& nstreams,
                     const Index& Npfct,
                     const Index& cdisort_quiet,
+                    const Index& emission,
                     const Verbosity& verbosity) {
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
@@ -460,5 +461,6 @@ void DisortCalcStar(Workspace& ws,
                    nstreams,
                    Npfct,
                    cdisort_quiet,
+                   emission,
                    verbosity);
 }

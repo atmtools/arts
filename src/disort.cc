@@ -73,7 +73,7 @@ void add_normed_phase_functions(Tensor3View& pfct1,
   ARTS_ASSERT(pfct2.ncols() == nc1);
 
   for (Index i = 0; i < np1; i++) {        // frequncy loop
-    for (Index j = 0; j < nr1 - 1; j++) {  // layer loop
+    for (Index j = 0; j < nr1 ; j++) {  // layer loop
       for (Index k = 0; k < nc1; k++)      // polynomial loop
 
         pfct1(i, j, k) =
@@ -1113,6 +1113,7 @@ void run_cdisort_star(Workspace& ws,
                       const Index& nstreams,
                       const Index& Npfct,
                       const Index& quiet,
+                      const Index& emission,
                       const Verbosity& verbosity) {
   // Create an atmosphere starting at z_surface
   Vector p, z, t;
@@ -1183,7 +1184,13 @@ void run_cdisort_star(Workspace& ws,
 
   ds.flag.ibcnd = GENERAL_BC;
   ds.flag.usrang = TRUE;
-  ds.flag.planck = TRUE;
+
+  if (emission){
+    ds.flag.planck = TRUE;
+  }
+  else {
+    ds.flag.planck = FALSE;
+  }
   ds.flag.onlyfl = FALSE;
   ds.flag.lamber = TRUE;
   ds.flag.quiet = FALSE;
@@ -1210,7 +1217,10 @@ void run_cdisort_star(Workspace& ws,
 
   // fill up azimuth angle and temperature array
   for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
-  for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
+
+  if  (ds.flag.planck==TRUE){
+    for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
+  }
 
   // Transform to mu, starting with negative values
   for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);

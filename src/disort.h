@@ -198,35 +198,36 @@ void run_cdisort(Workspace& ws,
  * Altitudes, temperatures, VMRs and PNDs shall be provided with lat and lon
  * dimensions removed
  *
- * @param[in,out] ws Current workspace
- * @param[out]    cloudbox_field Radiation field
- * @param[out]    optical_depth Vertically integrated optical depth
- * @param[in]     f_grid Frequency grid
- * @param[in]     p_grid Pressure grid
+ * @param[in,out] ws Current workspace.
+ * @param[out]    cloudbox_field Radiation field.
+ * @param[out]    optical_depth optical depth.
+ * @param[in]     f_grid Frequency grid.
+ * @param[in]     p_grid Pressure grid.
  * @param[in]     z_profile Profile of geometric altitudes.
  * @param[in]     z_surface Surface altitude.
  * @param[in]     t_profile Temperature profile.
  * @param[in]     vmr_profiles VMR profiles.
  * @param[in]     pnd_profiles PND profiles.
- * @param[in]     scat_data Array of single scattering data
- * @param[in]     stars Array of star(s)
+ * @param[in]     scat_data Array of single scattering data.
+ * @param[in]     stars Array of star(s).
  * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
                   matrix.
  * @param[in]     gas_scattering_agenda Agenda agenda calculating the gas scattering
                   cross section and matrix.
- * @param[in]     cloudbox_limits Cloudbox limits
- * @param[in]     surface_skin_t Surface skin temperature
- * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity
- * @param[in]     za_grid Zenith angle grid
- * @param[in]     aa_grid azimuth angle grid
- * @param[in]     star_rte_los local position of the sun top of cloudbox
+ * @param[in]     cloudbox_limits Cloudbox limits.
+ * @param[in]     surface_skin_t Surface skin temperature.
+ * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity.
+ * @param[in]     za_grid Zenith angle grid.
+ * @param[in]     aa_grid azimuth angle grid.
+ * @param[in]     star_rte_los local position of the sun top of cloudbox.
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
  * @param[in]     star_do Flag to activate the star(s).
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
- *                function
- * @param[in]     quiet Silence warnings
- * @param[in]     verbosity Verbosity setting
+ *                function.
+ * @param[in]     quiet Silence warnings.
+ * @param[in]     emission Enables blackbody emission.
+ * @param[in]     verbosity Verbosity setting.
  *
  * @author        Oliver Lemke, Manfred Brath
  * @date          2019-09-19, 2021-10-27
@@ -258,6 +259,7 @@ void run_cdisort_star(Workspace& ws,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& quiet,
+                 const Index& emission,
                  const Verbosity& verbosity);
 
 /** get_gasoptprop.

@@ -5960,15 +5960,18 @@ Possible models:
          "surface_scalar_reflectivity",
          "gas_scattering_do",
          "star_do"),
-      GIN("nstreams", "Npfct", "quiet"),
-      GIN_TYPE("Index", "Index", "Index"),
-      GIN_DEFAULT("8", "181", "0"),
+      GIN("nstreams", "Npfct", "quiet", "emission"),
+      GIN_TYPE("Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("8", "181", "0", "1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polynomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
-               "Silence C Disort warnings.")));
+               "Silence C Disort warnings.",
+               "Enables blackbody emission. Set to zero, if no\n "
+               "Emission e. g. like in visible regime for earth\n"
+               "is needed")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DOBatchCalc"),
