@@ -3606,6 +3606,28 @@ In that case the normalized Rayleigh scattering phase matrix for a spherical obj
 
 %%TODO: Add here Phasematrix of Hansen and Travis 1974/ Emde et al 2010.
 
+Furthermore, the Rayleigh scattering cross section for air in the visible part of the sectrum 
+can be approximated using a fitted version \citep{Stamnes2017_Radiative} of the numerical results of \citep{Bates1984_Rayleigh}.
+
+\begin{equation}
+\sigma_{ray,xsec}=10^{-28}\lambda^{-4}\sum^3_{i=0}a_{i}\lambda^{-2i}\ \ \left[\text{cm}^{2}\right]
+\end{equation}
+with the wavelength $\lambda$ in $[\mathrm{\mu m}]$. The coefficients
+are
+\begin{align*}
+a_{0}= & 3.9729066\\
+a_{1}= & 4.6547659\cdot10^{-2}\\
+a_{2}= & 4.5055995\cdot10^{-4}\\
+a_{3}= & 2.3229848\cdot10^{-5}\,.
+\end{align*}
+The formula is accurate to $0.3\%$ for wavelengths between $0.205\,\mathrm{\mu m}$
+and $1.05\,\mathrm{\mu m}$. The Rayleigh scattering coefficient is
+\begin{equation}
+\sigma_{ray}=N\sigma_{ray,xsec}=\frac{p}{Tk_{b}}\sigma_{ray,xsec}
+\end{equation}
+with $N$ the number density of molecules, pressure $p$, temperature
+$T$ and the Boltzmann constant $k_{B}$.
+
 
 
 % ================================================================================

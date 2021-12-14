@@ -955,7 +955,6 @@ temperature.
 F_{\astrosun} & =\int^{2\pi}_0 \int^{\alpha}_0I_{\astrosun}\cos\theta\sin\theta\text{d}\theta\text{d}\phi\\
  & =\pi I_{\astrosun}\sin^{2}\alpha
 \end{align}
-%\stackrel[0]{\alpha}
 with $I_{\astrosun}$ the star spectral radiance, which is assumed
 to be isotropic, and $\alpha$ the angular radius of the star seen
 from TOA of the planet. This is 
@@ -976,9 +975,17 @@ neglecting polarization simplifies to
 \end{eqnarray}
 with $k$ and $a$ the extinction coefficients, $\Planck$ the Planck function.
 
+\subsection{Star definition}
+\label{sec:rtetheory:star_def}
+
+As in section \ref{sec:rte_theory:ClearskyDirectSources} described the radius $r_{\astrosun}$ of 
+and distance $d_{\astrosun}$ to the star like object must be known. The position of this object 
+in the sky of the planet is defined by the latitude and longitude where it stands at its zenith.
+The monochromatic irradiance spectra is definde as the blackbody spectrum, which is calculated 
+with the Plank function and the surface temperature of the object $T_{astrosun}$.
 
 \section{Special solutions}
- \label{sec:rtetheory:special}
+\label{sec:rtetheory:special}
  
  If the total emission along the propagation path can be neglected
  compared to the transmitted part of the incoming radiation, the
