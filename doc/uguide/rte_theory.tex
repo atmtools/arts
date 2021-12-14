@@ -952,9 +952,10 @@ temperature.
  The flux of the incoming radiation from the star at the top of the atmosphere
  $F_{\astrosun}$ is 
 \begin{align}
-F_{\astrosun} & =\stackrel[0]{2\pi}{\int}\stackrel[0]{\alpha}{\int}I_{\astrosun}\cos\theta\sin\theta\text{d}\theta\text{d}\phi\\
+F_{\astrosun} & =\int^{2\pi}_0 \int^{\alpha}_0I_{\astrosun}\cos\theta\sin\theta\text{d}\theta\text{d}\phi\\
  & =\pi I_{\astrosun}\sin^{2}\alpha
 \end{align}
+%\stackrel[0]{\alpha}
 with $I_{\astrosun}$ the star spectral radiance, which is assumed
 to be isotropic, and $\alpha$ the angular radius of the star seen
 from TOA of the planet. This is 
@@ -973,8 +974,7 @@ neglecting polarization simplifies to
   F_{\astrosun}^{*}\left(\nu,s\right)\delta\left(\Omega_{i},\Omega'\right)\mathrm{d}\Omega_{i}\\
   & = & -kI\left(s,\nu\right)+aB\left(T\left(s\right)\right)+P\left(\nu,\Omega',\Omega_{s}\right)F_{\astrosun}^{*}\left(\nu,s\right)
 \end{eqnarray}
-with $k$ and $a$ the extinction coefficients, $\Planck$ the Planck function
- 
+with $k$ and $a$ the extinction coefficients, $\Planck$ the Planck function.
 
 
 \section{Special solutions}
