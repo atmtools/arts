@@ -622,8 +622,6 @@ struct TwoLevelValueHolder {
         ARTS_USER_ERROR(
             t, " is a string-type, so cannot be constructed from rationals")
       }
-
-      ARTS_ASSERT(good())
     }
 
     //! Default constructor from some string of values
@@ -849,7 +847,7 @@ struct TwoLevelValueHolder {
     [[nodiscard]] bool has(Types... ts) const ARTS_NOEXCEPT {
       static_assert(sizeof...(Types) > 0);
 
-      ARTS_ASSERT(is_sorted(std::array qnt{Type(ts)...}))
+      ARTS_ASSERT(is_sorted(std::array{Type(ts)...}))
 
       auto ptr = cbegin();
       auto end = cend();

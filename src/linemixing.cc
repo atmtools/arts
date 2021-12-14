@@ -579,7 +579,7 @@ ComplexMatrix single_species_ecs_relaxation_matrix(const AbsorptionLines& band,
       LinearRovibErrorCorrectedSudden::relaxation_matrix_offdiagonal(W.imag(), band, sorting, species_ecs_data, T);
     } break;
     default:
-      ARTS_ASSERT(false, "Bad type, we don't support band population type: ", band.Population(),
+      ARTS_ASSERT(false, "Bad type, we don't support band population type: ", band.population,
                   "\nin this code.  It must either be added or computations aborted earlier");
       break;
   }
