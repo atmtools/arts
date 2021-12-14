@@ -328,7 +328,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   
   for (auto& x: v)
     x.line.zeeman = Zeeman::GetAdvancedModel(x.quantumidentity);
-  
+
   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
   abs_lines.resize(0);
   abs_lines.reserve(x.size());

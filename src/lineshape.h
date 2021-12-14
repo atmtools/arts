@@ -754,7 +754,7 @@ class IntensityCalculator {
       } break;
       case Absorption::PopulationType::VibTemps: {
         const auto [E_low, E_upp, T_low, T_upp] =
-            nlte.get_vibtemp_params(band, line_index, T);
+            nlte.get_vibtemp_params(band, T);
         ls_str =
             VibrationalTemperaturesNonLocalThermodynamicEquilibrium(line.I0,
                                                                     band.T0,

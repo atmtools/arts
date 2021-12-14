@@ -161,7 +161,7 @@ public:
    * @param[in] transition A line-by-line transition
    * @return Upper and lower level distributions and energies
    */
-  [[nodiscard]] Output4 get_vibtemp_params(const AbsorptionLines& band, const Index& line_index, const Numeric T) const;
+  [[nodiscard]] Output4 get_vibtemp_params(const AbsorptionLines& band, const Numeric T) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm);

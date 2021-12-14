@@ -128,59 +128,65 @@ constexpr Numeric closed_shell_trilinear(Rational k,
 
 Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
     ARTS_NOEXCEPT {
-  ARTS_ASSERT(qid.type == Quantum::IdentifierType::Transition,
-              "Not a transition")
   if (qid.Isotopologue() == "O2-66") {
-    if (qid.val[QuantumNumberType::v1].low() == 0 and
-        qid.val[QuantumNumberType::v1].upp() == 0) {
-      constexpr Numeric GS = 2.002084;
-      constexpr Numeric GLE = 2.77e-3;
-      constexpr Numeric GR = -1.16e-4;
-      constexpr Numeric B = 43100.44276e6;
-      constexpr Numeric D = 145.1271e3;
-      constexpr Numeric H = 49e-3;
-      constexpr Numeric lB = 59501.3438e6;
-      constexpr Numeric lD = 58.3680e3;
-      constexpr Numeric lH = 290.8e-3;
-      constexpr Numeric gB = -252.58634e6;
-      constexpr Numeric gD = -243.42;
-      constexpr Numeric gH = -1.46e-3;
+    if (qid.val.has(QuantumNumberType::J,
+                    QuantumNumberType::N,
+                    QuantumNumberType::v1)) {
+      if (qid.val[QuantumNumberType::v1].low() == 0 and
+          qid.val[QuantumNumberType::v1].upp() == 0) {
+        constexpr Numeric GS = 2.002084;
+        constexpr Numeric GLE = 2.77e-3;
+        constexpr Numeric GR = -1.16e-4;
+        constexpr Numeric B = 43100.44276e6;
+        constexpr Numeric D = 145.1271e3;
+        constexpr Numeric H = 49e-3;
+        constexpr Numeric lB = 59501.3438e6;
+        constexpr Numeric lD = 58.3680e3;
+        constexpr Numeric lH = 290.8e-3;
+        constexpr Numeric gB = -252.58634e6;
+        constexpr Numeric gD = -243.42;
+        constexpr Numeric gH = -1.46e-3;
 
-      auto JU = qid.val[QuantumNumberType::J].upp();
-      auto NU = qid.val[QuantumNumberType::N].upp();
-      Numeric gu = case_b_g_coefficient_o2(
-          JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      auto JL = qid.val[QuantumNumberType::J].low();
-      auto NL = qid.val[QuantumNumberType::N].low();
-      Numeric gl = case_b_g_coefficient_o2(
-          JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      return Model(gu, gl);
+        auto JU = qid.val[QuantumNumberType::J].upp();
+        auto NU = qid.val[QuantumNumberType::N].upp();
+        Numeric gu = case_b_g_coefficient_o2(
+            JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        auto JL = qid.val[QuantumNumberType::J].low();
+        auto NL = qid.val[QuantumNumberType::N].low();
+        Numeric gl = case_b_g_coefficient_o2(
+            JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        return Model(gu, gl);
+      }
     }
   } else if (qid.Isotopologue() == "O2-68") {
-    if (qid.val[QuantumNumberType::v1].low() == 0 and
-        qid.val[QuantumNumberType::v1].upp() == 0) {
-      constexpr Numeric GS = 2.002025;
-      constexpr Numeric GLE = 2.813e-3;
-      constexpr Numeric GR = -1.26e-4;
-      constexpr Numeric B = 40707.38657e6;
-      constexpr Numeric D = 129.4142e3;
-      constexpr Numeric H = 0;
-      constexpr Numeric lB = 59499.0375e6;
-      constexpr Numeric lD = 54.9777e3;
-      constexpr Numeric lH = 272.1e-3;
-      constexpr Numeric gB = -238.51530e6;
-      constexpr Numeric gD = -217.77;
-      constexpr Numeric gH = -1.305e-3;
+    if (qid.val.has(QuantumNumberType::J,
+                    QuantumNumberType::N,
+                    QuantumNumberType::v1)) {
+      if (qid.val[QuantumNumberType::v1].low() == 0 and
+          qid.val[QuantumNumberType::v1].upp() == 0) {
+        constexpr Numeric GS = 2.002025;
+        constexpr Numeric GLE = 2.813e-3;
+        constexpr Numeric GR = -1.26e-4;
+        constexpr Numeric B = 40707.38657e6;
+        constexpr Numeric D = 129.4142e3;
+        constexpr Numeric H = 0;
+        constexpr Numeric lB = 59499.0375e6;
+        constexpr Numeric lD = 54.9777e3;
+        constexpr Numeric lH = 272.1e-3;
+        constexpr Numeric gB = -238.51530e6;
+        constexpr Numeric gD = -217.77;
+        constexpr Numeric gH = -1.305e-3;
 
-      auto JU = qid.val[QuantumNumberType::J].upp();
-      auto NU = qid.val[QuantumNumberType::N].upp();
-      Numeric gu = case_b_g_coefficient_o2(
-          JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      auto JL = qid.val[QuantumNumberType::J].low();
-      auto NL = qid.val[QuantumNumberType::N].low();
-      Numeric gl = case_b_g_coefficient_o2(
-          JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-      return Model(gu, gl);
+        auto JU = qid.val[QuantumNumberType::J].upp();
+        auto NU = qid.val[QuantumNumberType::N].upp();
+        Numeric gu = case_b_g_coefficient_o2(
+            JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        auto JL = qid.val[QuantumNumberType::J].low();
+        auto NL = qid.val[QuantumNumberType::N].low();
+        Numeric gl = case_b_g_coefficient_o2(
+            JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        return Model(gu, gl);
+      }
     }
   } else if (qid.Isotopologue() == "CO-26") {
     constexpr Numeric gperp =
@@ -195,14 +201,15 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
     constexpr Numeric gpara =
         0 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+    if (qid.val.has(QuantumNumberType::J, QuantumNumberType::Ka)) {
+      auto JU = qid.val[QuantumNumberType::J].upp();
+      auto KU = qid.val[QuantumNumberType::Ka].upp();
+      auto JL = qid.val[QuantumNumberType::J].low();
+      auto KL = qid.val[QuantumNumberType::Ka].low();
 
-    auto JU = qid.val[QuantumNumberType::J].upp();
-    auto KU = qid.val[QuantumNumberType::Ka].upp();
-    auto JL = qid.val[QuantumNumberType::J].low();
-    auto KL = qid.val[QuantumNumberType::Ka].low();
-
-    return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
-                 closed_shell_trilinear(KL, JL, gperp, gpara));
+      return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
+                   closed_shell_trilinear(KL, JL, gperp, gpara));
+    }
   } else if (qid.Isotopologue() == "OCS-624") {
     constexpr Numeric gperp =
         -.0285 /
@@ -211,13 +218,15 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         -.061 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
-    auto JU = qid.val[QuantumNumberType::J].upp();
-    auto KU = qid.val[QuantumNumberType::Ka].upp();
-    auto JL = qid.val[QuantumNumberType::J].low();
-    auto KL = qid.val[QuantumNumberType::Ka].low();
+    if (qid.val.has(QuantumNumberType::J, QuantumNumberType::Ka)) {
+      auto JU = qid.val[QuantumNumberType::J].upp();
+      auto KU = qid.val[QuantumNumberType::Ka].upp();
+      auto JL = qid.val[QuantumNumberType::J].low();
+      auto KL = qid.val[QuantumNumberType::Ka].low();
 
-    return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
-                 closed_shell_trilinear(KL, JL, gperp, gpara));
+      return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
+                   closed_shell_trilinear(KL, JL, gperp, gpara));
+    }
   } else if (qid.Isotopologue() == "CO2-626") {
     constexpr Numeric gperp =
         -.05508 /
@@ -226,13 +235,15 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         0 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
-    auto JU = qid.val[QuantumNumberType::J].upp();
-    auto KU = qid.val[QuantumNumberType::Ka].upp();
-    auto JL = qid.val[QuantumNumberType::J].low();
-    auto KL = qid.val[QuantumNumberType::Ka].low();
+    if (qid.val.has(QuantumNumberType::J, QuantumNumberType::Ka)) {
+      auto JU = qid.val[QuantumNumberType::J].upp();
+      auto KU = qid.val[QuantumNumberType::Ka].upp();
+      auto JL = qid.val[QuantumNumberType::J].low();
+      auto KL = qid.val[QuantumNumberType::Ka].low();
 
-    return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
-                 closed_shell_trilinear(KL, JL, gperp, gpara));
+      return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
+                   closed_shell_trilinear(KL, JL, gperp, gpara));
+    }
   }
 
   // Set to zero otherwise as we practically say "there's no Zeeman effect" then

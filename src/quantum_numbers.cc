@@ -58,40 +58,43 @@ bool ValueList::has_unique_increasing_types() const {
 
 ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
   const Index n = count_items(s);
-
+  
   if (not legacy) {
     ARTS_USER_ERROR_IF(
         n % 3, "Must have multiple of three items, got ", n, " in:\n", s)
     for (Index i = 0; i < n; i += 3) values.emplace_back(Value(items<3>(s, i)));
   } else {
     ARTS_USER_ERROR_IF(n < 2, "Must have two items:\n", s)
-    auto key_type = items(s, 1);
+    Index i = 0;
+    auto key_type = items(s, i);
     if (key_type == "ALL") return;
     if (key_type == "NONE") return;
     
     if (key_type == "TR") {
+      std::cout << "TR: " << s << '\n';
       // Transition type, will look like SPEC TR UP QN VAL QN VAL QN VAL LO QN VAL QN VAL QN VAL
-      ARTS_USER_ERROR_IF(n < 4, "Must have four items")
+      ARTS_USER_ERROR_IF(n < 4, "Must have at least four items")
       
-      Index i = 2;
+      i++;
       ARTS_USER_ERROR_IF(items(s, i) not_eq "UP", "Bad legacy quantum numbers in:\n", s)
-      i = 3;
+      i++;
 
       bool upp = true;
       for (; i<n; i+=2) {
         auto key = items(s, i);
         if (key == "LO") {
           i++;
-          key = items(s, ++i);
+          key = items(s, i);
           upp = false;
         }
 
         auto val = items(s, i+1);
+
         auto t = toTypeOrThrow(key);
         if (has(t)) {
-          add(t).set(val, upp);
+          std::find_if(begin(), end(), [t](auto& x){return x.type == t;}) -> set(val, upp);
         } else {
-          Value value = operator[](t);
+          Value value = add(t);
           value.set(val, upp);
           set(value);
         }
@@ -101,21 +104,20 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
     
     if (key_type == "EN") {
       // Transition type, will look like SPEC EN QN VAL QN VAL QN VAL
-      Index i = 2;
-      ARTS_USER_ERROR_IF(items(s, i) not_eq "UP", "Bad legacy quantum numbers in:\n", s)
-      i = 3;      for (; i<n; i+=2) {
+      i++;
+
+      for (; i<n; i+=2) {
         auto t = toTypeOrThrow(items(s, i));
         auto val = items(s, i+1);
 
         if (has(t)) {
+          auto valptr = std::find_if(begin(), end(), [t](auto& x){return x.type == t;});
+          valptr -> set(val, true);
+          valptr -> set(val, false);
+        } else {
           Value& value = add(t);
           value.set(val, true);
           value.set(val, false);
-        } else {
-          Value value = operator[](t);
-          value.set(val, true);
-          value.set(val, false);
-          set(value);
         }
       }
       return;
@@ -892,6 +894,7 @@ std::istream& operator>>(std::istream& is, LocalState& vl) {
 bool LocalState::same_types_as(const LocalState& that) const {
   auto x = that.val.begin();
   for (auto& y: val) {
+    if (x == that.val.end()) return true;
     if (x -> type == y.type) x++;
     else return false;
   }
@@ -930,9 +933,11 @@ GlobalState::GlobalState(std::string_view s, Index v) {
       ARTS_USER_ERROR_IF(isotopologue_index < 0, "Bad species in: ", s)
 
       if (version == v) {
-        val = ValueList(s.substr(specname.length()));
-      } else if (version == 0) {
-        val = ValueList(s.substr(specname.length()), true);
+        val = ValueList(s.substr(specname.length()+1));
+      } else if (v == 0) {
+        val = ValueList(s.substr(specname.length()+1), true);
+      } else {
+        ARTS_USER_ERROR("Unknown version: ", v)
       }
     }
 }  // namespace Quantum::Number

@@ -2,6 +2,7 @@
 #define quantun_numbers_h
 
 #include <algorithm>
+#include <cstddef>
 #include <istream>
 #include <limits>
 #include <ostream>
@@ -455,13 +456,13 @@ struct TwoLevelValueHolder {
     }
 
     // Denominator
+    i++;
     for (; i < s.size(); ++i) {
       den *= 10;
       den += s[i] - '0';
     }
 
     // Guard for QN style rationals
-    if (den < 1 or den > 2) return RATIONAL_UNDEFINED;
     return Rational(minus ? -num : num, den);
   }
 
@@ -998,6 +999,74 @@ struct TwoLevelValueHolder {
   void update_id(GlobalState & qid,
                  const std::vector<std::array<String, 2> >& upper_list,
                  const std::vector<std::array<String, 2> >& lower_list);
+
+  //! A default state of global quantum numbers
+  [[maybe_unused]] constexpr std::array global_types{Type::ElecStateLabel,
+                                                     Type::Lambda,
+                                                     Type::Omega,
+                                                     Type::S,
+                                                     Type::Sigma,
+                                                     Type::SpinComponentLabel,
+                                                     Type::asSym,
+                                                     Type::elecInv,
+                                                     Type::elecRefl,
+                                                     Type::elecSym,
+                                                     Type::kronigParity,
+                                                     Type::l,
+                                                     Type::l1,
+                                                     Type::l10,
+                                                     Type::l11,
+                                                     Type::l12,
+                                                     Type::l2,
+                                                     Type::l3,
+                                                     Type::l4,
+                                                     Type::l5,
+                                                     Type::l6,
+                                                     Type::l7,
+                                                     Type::l8,
+                                                     Type::l9,
+                                                     Type::parity,
+                                                     Type::r,
+                                                     Type::rotSym,
+                                                     Type::rovibSym,
+                                                     Type::sym,
+                                                     Type::v,
+                                                     Type::v1,
+                                                     Type::v10,
+                                                     Type::v11,
+                                                     Type::v12,
+                                                     Type::v2,
+                                                     Type::v3,
+                                                     Type::v4,
+                                                     Type::v5,
+                                                     Type::v6,
+                                                     Type::v7,
+                                                     Type::v8,
+                                                     Type::v9,
+                                                     Type::vibInv,
+                                                     Type::vibRefl,
+                                                     Type::vibSym};
+
+  //! A default state of local quantum numbers
+  [[maybe_unused]] constexpr std::array local_types{Type::F,
+                                                    Type::F1,
+                                                    Type::F10,
+                                                    Type::F11,
+                                                    Type::F12,
+                                                    Type::F2,
+                                                    Type::F3,
+                                                    Type::F4,
+                                                    Type::F5,
+                                                    Type::F6,
+                                                    Type::F7,
+                                                    Type::F8,
+                                                    Type::F9,
+                                                    Type::I,
+                                                    Type::J,
+                                                    Type::K,
+                                                    Type::Ka,
+                                                    Type::Kc,
+                                                    Type::N};
 }  // namespace Quantum::Number
 
 using QuantumIdentifier = Quantum::Number::GlobalState;

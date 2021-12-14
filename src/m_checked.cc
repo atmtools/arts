@@ -757,21 +757,18 @@ void lbl_checkedCalc(Index& lbl_checked,
         ARTS_USER_ERROR_IF (band.cutoff not_eq Absorption::CutoffType::None,
                             "Zeeman effects are not symmetric, you cannot use cutoff.\n");
         for (Index k=0; k<band.NumLines(); k++) {
-          auto& F = band.lines[k].localquanta.val[QuantumNumberType::F];
-          auto& J = band.lines[k].localquanta.val[QuantumNumberType::J];
-          auto Fu = F.upp();
-          auto Fl = F.low();
-          auto Ju = J.upp();
-          auto Jl = J.low();
+          bool hasJ = band.lines[k].localquanta.val.has(QuantumNumberType::J);
+          bool hasF = band.lines[k].localquanta.val.has(QuantumNumberType::F);
+          ARTS_USER_ERROR_IF (not(hasF or hasJ),
+                              "No J(s) or F(s) yet declared Zeeman splitting.\n");
+
+          auto& qn = hasF ? band.lines[k].localquanta.val[QuantumNumberType::F] : band.lines[k].localquanta.val[QuantumNumberType::J];
+          ARTS_USER_ERROR_IF (not is_wigner3_ready(qn.upp()),
+                              "Bad Wigner numbers for upper state F or J.  Try increasing the Wigner memory allocation.\n");
+          ARTS_USER_ERROR_IF (not is_wigner3_ready(qn.low()),
+                              "Bad Wigner numbers for lower state F or J.  Try increasing the Wigner memory allocation.\n");
+
           auto Ze = band.lines[k].zeeman;
-          ARTS_USER_ERROR_IF (Fu.isUndefined() and Ju.isUndefined(),
-                              "Bad upper state F(s) or J(s).\n");
-          ARTS_USER_ERROR_IF (Fl.isUndefined() and Jl.isUndefined(),
-                              "Bad lower state F(s) or J(s).\n");
-          ARTS_USER_ERROR_IF (not is_wigner3_ready(Fu.isUndefined() ? Ju : Fu),
-                              "Bad Wigner numbers for lower state F or J.  Try increasing the Wigner memory allocation.\n");
-          ARTS_USER_ERROR_IF (not is_wigner3_ready(Fl.isUndefined() ? Jl : Fl),
-                              "Bad Wigner numbers for lower state F or J.  Try increasing the Wigner memory allocation.\n");
           ARTS_USER_ERROR_IF (Ze.gu() == 0 ? false : not std::isnormal(Ze.gu()),
                               "Bad value(s) in the upper Zeeman data not allowed when modeling Zeeman effect.\n");
           ARTS_USER_ERROR_IF (Ze.gl() == 0 ? false : not std::isnormal(Ze.gl()),

@@ -624,6 +624,21 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("CheckUnique"),
+      DESCRIPTION(
+          "Checks that *abs_lines* contains only unique absorption lines\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesReplaceLines"),
       DESCRIPTION(
           "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"

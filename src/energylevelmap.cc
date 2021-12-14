@@ -87,7 +87,6 @@ Output2 EnergyLevelMap::get_ratio_params(
 
 Output4 EnergyLevelMap::get_vibtemp_params(
   const AbsorptionLines& band,
-  const Index& line_index,
   const Numeric T) const
 {
   ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Numeric_t,
@@ -98,8 +97,8 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   bool found1=false;
   bool found2=false;
   for (Index i=0; i<mlevels.nelem(); i++) {
-    const Quantum::Number::StateMatch lt(mlevels[i], band.lines[line_index].localquanta, band.quantumidentity);
-    
+    const Quantum::Number::StateMatch lt(mlevels[i], band.quantumidentity);
+
     if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
       found1 = true;
       x.T_low = mvalue(i, 0, 0, 0);

@@ -33,6 +33,8 @@
 
 #include "absorption.h"
 #include "constants.h"
+#include "debug.h"
+#include "enums.h"
 #include "file.h"
 #include "hitran_species.h"
 #include "jpl_species.h"
@@ -423,10 +425,51 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
           icecream >> token;
         } else if (token == "QN") {
           // Quantum numbers
-          ARTS_USER_ERROR("Artscat5 quantum number routine is deprecated.\n"
-          "Please downgrade ARTS to a previous version and save your catalog with the AbsorptionLines format\n"
-          "Recommended checkout ID for this is: 3b6565fb93702308c4cdd660ec63c71d63dcaf26\n");
-        } else if (token == "LM") { // LEGACY
+
+          icecream >> token;
+          ARTS_USER_ERROR_IF (token != "UP",
+            "Unknown quantum number tag: ", token)
+
+          icecream >> token;
+          String r;
+          while (icecream and token not_eq "LO") {
+            auto qn = Quantum::Number::toType(token);
+            icecream >> r;
+            icecream >> token;
+
+            if (good_enum(qn)) {
+              if (data.quantumidentity.val.has(qn)) {
+                Quantum::Number::Value val = data.quantumidentity.val[qn];
+                val.set(r, true);
+                data.quantumidentity.val.set(val);
+              } else {
+                data.quantumidentity.val.add(qn).set(r, true);
+              }
+            }
+          }
+
+          ARTS_USER_ERROR_IF (!is || token != "LO",
+            "Error in catalog. Lower quantum number tag 'LO' not found.")
+
+          icecream >> token;
+          auto qn = Quantum::Number::toType(token);
+          while (icecream and not (token == "LM" or token == "LF" or token == "ZM" or token == "LSM" or token == "PB")) {
+            icecream >> r;
+            icecream >> token;
+
+            if (good_enum(qn)) {
+              if (data.quantumidentity.val.has(qn)) {
+                Quantum::Number::Value val = data.quantumidentity.val[qn];
+                val.set(r, false);
+                data.quantumidentity.val.set(val);
+              } else {
+                data.quantumidentity.val.add(qn).set(r, false);
+              }
+            }
+
+            qn = Quantum::Number::toType(token);
+          }
+        } else if (token == "LM") {
           LineShape::from_linemixingdata(icecream, line_mixing_model);
           icecream >> token;
           lmd_found = true;
@@ -478,7 +521,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
           }
           icecream >> token;
         } else {
-          ARTS_USER_ERROR ("Unknown line data tag: ", token)
+          ARTS_USER_ERROR ("Unknown line data tag in legacy reading routine: ", token)
         }
       }
     }
@@ -2259,19 +2302,16 @@ String Lines::LineShapeMetaData() const noexcept {
   "";
 }
 
+const Quantum::Number::Value& get(const Quantum::Number::LocalState& qns) ARTS_NOEXCEPT {
+  ARTS_ASSERT(qns.val.has(QuantumNumberType::F) or qns.val.has(QuantumNumberType::J))
+  return qns.val.has(QuantumNumberType::F) ? qns.val[QuantumNumberType::F] : qns.val[QuantumNumberType::J];
+}
+
 Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
   if (type == Zeeman::Polarization::None) return 1;
 
   // Select F before J but assume one of them exist
-  auto& val =
-      quantumidentity.val.has(QuantumNumberType::F)  // is global F?
-          ? quantumidentity.val[QuantumNumberType::F]
-          : lines[k].localquanta.val.has(QuantumNumberType::F)  // is local F?
-                ? lines[k].localquanta.val[QuantumNumberType::F]
-                : quantumidentity.val.has(
-                      QuantumNumberType::J)  // is global J or local J!?
-                      ? quantumidentity.val[QuantumNumberType::J]
-                      : lines[k].localquanta.val[QuantumNumberType::J];
+  auto& val = get(lines[k].localquanta);
   return Zeeman::nelem(val.upp(), val.low(), type);
 }
 
@@ -2281,15 +2321,7 @@ Numeric Lines::ZeemanStrength(size_t k,
   if (type == Zeeman::Polarization::None) return 1.0;
 
   // Select F before J but assume one of them exist
-  auto& val =
-      quantumidentity.val.has(QuantumNumberType::F)  // is global F?
-          ? quantumidentity.val[QuantumNumberType::F]
-          : lines[k].localquanta.val.has(QuantumNumberType::F)  // is local F?
-                ? lines[k].localquanta.val[QuantumNumberType::F]
-                : quantumidentity.val.has(
-                      QuantumNumberType::J)  // is global J or local J!?
-                      ? quantumidentity.val[QuantumNumberType::J]
-                      : lines[k].localquanta.val[QuantumNumberType::J];
+  auto& val = get(lines[k].localquanta);
   return lines[k].zeeman.Strength(val.upp(), val.low(), type, i);
 }
 
@@ -2299,16 +2331,7 @@ Numeric Lines::ZeemanSplitting(size_t k,
   if (type == Zeeman::Polarization::None) return 0.0;
 
   // Select F before J but assume one of them exist
-  auto& val =
-      quantumidentity.val.has(QuantumNumberType::F)  // is global F?
-          ? quantumidentity.val[QuantumNumberType::F]
-          : lines[k].localquanta.val.has(QuantumNumberType::F)  // is local F?
-                ? lines[k].localquanta.val[QuantumNumberType::F]
-                : quantumidentity.val.has(
-                      QuantumNumberType::J)  // is global J or local J!?
-                      ? quantumidentity.val[QuantumNumberType::J]
-                      : lines[k].localquanta.val[QuantumNumberType::J];
-
+  auto& val = get(lines[k].localquanta);
   return lines[k].zeeman.Splitting(val.upp(), val.low(), type, i);
 }
 
