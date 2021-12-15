@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2012
    Patrick Eriksson <patrick.eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
-                            
+
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -20,7 +20,7 @@
 /**
   @file   m_rte.cc
   @author Patrick Eriksson <patrick.eriksson@chalmers.se>
-  @date   2002-05-11 
+  @date   2002-05-11
 
   @brief  Workspace methods for solving clear sky radiative transfer.
 */
@@ -56,7 +56,7 @@ extern const Index GFIELD4_LAT_GRID;
 extern const Index GFIELD4_LON_GRID;
 
 /*===========================================================================
-  === Workspace methods 
+  === Workspace methods
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -104,7 +104,7 @@ void iyCalc(Workspace& ws,
             const Index& cloudbox_on,
             const Index& cloudbox_checked,
             const Index& scat_data_checked,
-            const Vector& f_grid,            
+            const Vector& f_grid,
             const EnergyLevelMap& nlte_field,
             const Vector& rte_pos,
             const Vector& rte_los,
@@ -369,8 +369,6 @@ void iyClearsky(
     // Size radiative variables always used
     Vector B(nf);
     StokesVector a(nf, ns), S(nf, ns);
-    RadiationVector J_add_star(nf, ns);
-    ArrayOfRadiationVector dJ_add_star;
 
     // Init variables only used if analytical jacobians done
     Vector dB_dT(temperature_jacobian ? nf : 0);
@@ -399,8 +397,9 @@ void iyClearsky(
     Ppath star_ppath;
     Matrix transmitted_starlight;
     Numeric ppath_lraytrace2=ppath_lraytrace;
-    StokesVector scattered_starlight(nf, ns);
     PropagationMatrix K_sca;
+    RadiationVector scattered_starlight;
+    ArrayOfRadiationVector dscattered_starlight;
 
     //dummy variables needed for the output and input of iyTransmission and
     // gas_scattering_agenda
@@ -604,6 +603,7 @@ void iyClearsky(
 
                 get_scattered_starsource(ws,
                                          scattered_starlight,
+                                         dscattered_starlight,
                                          f_grid,
                                          ppvar_p[ip],
                                          ppvar_t[ip],
@@ -613,10 +613,6 @@ void iyClearsky(
                                          ppath.los(ip, joker),
                                          gas_scattering_agenda);
 
-
-                // Richard will change the type of S to RadiationVector,
-                //but for now we have to convert it, within get_scattered_starsource
-                S += scattered_starlight;
               }
             }
           }
@@ -657,8 +653,8 @@ void iyClearsky(
                         dS_dx,
                         B,
                         dB_dT,
-                        J_add_star,
-                        dJ_add_star,
+                        scattered_starlight,
+                        dscattered_starlight,
                         jacobian_quantities,
                         jacobian_do);
       } catch (const std::runtime_error& e) {
@@ -1458,7 +1454,7 @@ void iyEmissionStandard(
     const Verbosity& verbosity) {
   //  Init Jacobian quantities?
   const Index j_analytical_do = jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
-  
+
   // Some basic sizes
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
@@ -1479,10 +1475,10 @@ void iyEmissionStandard(
 
   // Set diy_dpath if we are doing are doing jacobian calculations
   ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, ns, false) : ArrayOfTensor3(0);
-  
+
   // Set the species pointers if we are doing jacobian
   const ArrayOfIndex jac_species_i = j_analytical_do ? get_pointers_for_analytical_species(jacobian_quantities, abs_species) : ArrayOfIndex(0);
-  
+
   // Start diy_dx out if we are doing the first run and are doing jacobian calculations
   if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, ns, false);
 
@@ -1527,7 +1523,7 @@ void iyEmissionStandard(
       np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
   ArrayOfArrayOfTransmissionMatrix dlyr_tra_below(
       np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
-  
+
   ArrayOfPropagationMatrix K(np, PropagationMatrix(nf, ns));
   ArrayOfArrayOfPropagationMatrix dK_dx(np);
   Vector r(np);
@@ -1573,7 +1569,7 @@ void iyEmissionStandard(
 
     get_ppath_f(
         ppvar_f, ppath, f_grid, atmosphere_dim, rte_alonglos_v, ppvar_wind);
-    
+
     const bool temperature_jacobian =
         j_analytical_do and do_temperature_jacobian(jacobian_quantities);
 
@@ -1697,7 +1693,7 @@ void iyEmissionStandard(
                               dr_dT_past,
                               dr_dT_this,
                               temperature_derivative_position);
-        
+
         r[ip - 1] = ppath.lstep[ip - 1];
         if (temperature_derivative_position >= 0){
           dr_below[ip][temperature_derivative_position] = dr_dT_past;
@@ -1814,7 +1810,7 @@ void iyEmissionStandard(
     }
   } else {
     ARTS_USER_ERROR ( "Only allowed choices for *integration order* are "
-                        "1 and 2.");    
+                        "1 and 2.");
   }
 
   // Copy back to ARTS external style
@@ -1937,7 +1933,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                   lat_grid,
                   lat_true,
                   lon_true);
-  
+
   // Note that input 1D atmospheres are handled exactly as 2D and 3D, to make
   // the function totally general. And 1D must be handled for iterative calls.
 

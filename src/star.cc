@@ -54,7 +54,8 @@ std::ostream& operator<<(std::ostream& os, const Star& star) {
 }
 
 void get_scattered_starsource(Workspace& ws,
-                              StokesVector& scattered_starlight,
+                              RadiationVector& scattered_starlight,
+                              ArrayOfRadiationVector& dscattered_starlight,
                               const Vector& f_grid,
                               const Numeric& p,
                               const Numeric& T,
@@ -94,18 +95,15 @@ void get_scattered_starsource(Workspace& ws,
   // Calculate the scattered radiation
   RadiationVector scattered_starlight_temp(nf,ns);
   scattered_starlight_temp=transmitted_starlight;
-  scattered_starlight_temp.leftMul(sca_mat);
+  scattered_starlight=scattered_starlight_temp;
+  scattered_starlight.leftMul(sca_mat);
 
-
-  // Richard will change the type of S to RadiationVector in iyClearsky
-  //but for now we have to convert it
   for (Index i_f = 0; i_f < nf; i_f++) {
-
-      temp=scattered_starlight_temp.Vec(i_f);
-      temp*=K_sca.Kjj(0,0)[i_f];
-      scattered_starlight.SetAtPosition(temp,i_f);
+    for (Index j = 0; j < ns; j++)
+    {
+      scattered_starlight(i_f,j) = scattered_starlight(i_f,j) * K_sca.Kjj(0,0)[i_f];
+    }
   }
-
 
 }
 

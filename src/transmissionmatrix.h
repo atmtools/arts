@@ -663,6 +663,26 @@ struct RadiationVector {
    */
   const Numeric& operator()(const Index i, const Index j) const;
 
+
+  /** Access operator
+   *
+   * @param[in] i Position in outer vector
+   * @param[in] j Position in inner vector
+   * @return Numeric&
+   */
+  [[nodiscard]] Numeric& operator()(const Index i, const Index j) {
+    switch (stokes_dim) {
+      case 4:
+        return R4[i][j];
+      case 3:
+        return R3[i][j];
+      case 2:
+        return R2[i][j];
+      default:
+        return R1[i][j];
+    }
+  }
+
   /** Convert *this to Matrix class
    * 
    * @return Matrix

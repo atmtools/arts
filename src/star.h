@@ -74,8 +74,10 @@ using ArrayOfStar = Array<Star>;
 /** Calculates the radiance spectrum of star which is scattered by the atmospheric gases.
  *
  * @param[in,out] ws ARTS workspace.
- * @param[out] scattered_starlight StokesVector scattered monochromatic radiance
+ * @param[out] scattered_starlight RadiationVector scattered monochromatic radiance
  *             spectrum of star.
+ * @param[out] dscattered_starlight ArrayOfRadiationVector derivatives of
+ *              scattered monochromatic radiance.
  * @param[in] f_grid Vector frequency grid.
  * @param[in] p Numeric pressure at location of scattering.
  * @param[in] T Numeric temperature at location of scattering.
@@ -92,7 +94,8 @@ using ArrayOfStar = Array<Star>;
  */
 void get_scattered_starsource(
     Workspace& ws,
-    StokesVector& scattered_starlight,
+    RadiationVector& scattered_starlight,
+    ArrayOfRadiationVector& dscattered_starlight,
     const Vector& f_grid,
     const Numeric& p,
     const Numeric& T,
