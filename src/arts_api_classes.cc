@@ -27,11 +27,14 @@
 */
 
 #include "arts_api_classes.h"
+#include <cstdlib>
 
 #include "absorption.h"
 #include "absorptionlines.h"
 #include "covariance_matrix.h"
+#include "debug.h"
 #include "energylevelmap.h"
+#include "enums.h"
 #include "global_data.h"
 #include "lineshapemodel.h"
 #include "quantum_numbers.h"
@@ -169,6 +172,18 @@ void * getelem##ELEM##TYPE(Index i, void * data)        \
   return &static_cast<TYPE *>(data) -> ELEM()[i];       \
 }
 
+#define EnumMacroInterfaceCAPI(TYPE)                          \
+  void *get##TYPE(void *data) {                              \
+    return new String(toString(*static_cast<TYPE *>(data))); \
+  }                                                          \
+  int set##TYPE(void *data, char *val) {                     \
+    auto x = Quantum::Number::toType(val);                   \
+    if (good_enum(x)) {                                      \
+      *static_cast<TYPE *>(data) = x;                        \
+      return EXIT_SUCCESS;                                   \
+    }                                                        \
+    return EXIT_FAILURE;                                     \
+  }
 
 // Index
 BasicInterfaceCAPI(Index)
@@ -276,21 +291,71 @@ VoidStructGetterCAPI(AbsorptionSingleLine, A)
 VoidStructGetterCAPI(AbsorptionSingleLine, zeeman)
 VoidStructGetterCAPI(AbsorptionSingleLine, lineshape)
 VoidStructGetterCAPI(AbsorptionSingleLine, localquanta)
+VoidArrayCAPI(ArrayOfAbsorptionSingleLine)
+Index xmlreadArrayOfAbsorptionSingleLine(void *, char *) {return EXIT_FAILURE;}
+Index xmlsaveArrayOfAbsorptionSingleLine(void *, char *, Index, Index)  {return EXIT_FAILURE;}
+BasicInterfaceCAPI(ArrayOfAbsorptionSingleLine)
 
 // QuantumNumberType
 BasicInterfaceCAPI(QuantumNumberType)
-void * getQuantumNumberTypeString(void * data) {
-  return new String(toString(*static_cast<QuantumNumberType *>(data)));
-}
-int setQuantumNumberTypeString(void * data, char * val) {
-  auto x = Quantum::Number::toType(val);
-  if (good_enum(x)) {
-    *static_cast<QuantumNumberType *>(data) = x;
+EnumMacroInterfaceCAPI(QuantumNumberType)
+
+// QuantumNumberValue
+BasicInterfaceCAPI(QuantumNumberValue)
+VoidStructGetterCAPI(QuantumNumberValue, type)
+int setqnQuantumNumberValue(void * data, char * val) {
+  try {
+    *static_cast<QuantumNumberValue *>(data) = QuantumNumberValue(val);
     return EXIT_SUCCESS;
-  } else {
+  } catch (...) {
     return EXIT_FAILURE;
   }
 }
+void * getuppQuantumNumberValue(void * data, bool str) {
+  if (str)
+    return new String(static_cast<QuantumNumberValue *>(data) -> str_upp());
+  return new Rational(static_cast<QuantumNumberValue *>(data) -> upp());
+}
+void * getlowQuantumNumberValue(void * data, bool str) {
+  if (str)
+    return new String(static_cast<QuantumNumberValue *>(data) -> str_low());
+  return new Rational(static_cast<QuantumNumberValue *>(data) -> low());
+}
+
+// QuantumNumberValueList
+BasicInterfaceCAPI(QuantumNumberValueList)
+void * getQuantumNumberValueList(void * data, char * key) {
+  QuantumNumberType x = Quantum::Number::toType(key);
+  bool null = not good_enum(x) or not static_cast<QuantumNumberValueList *>(data) -> has(x);
+  return null ? new QuantumNumberValue((*static_cast<QuantumNumberValueList *>(data))[x]) : nullptr;
+
+}
+int setQuantumNumberValueList(void * data, char * key, char * value) {
+  try {
+    const QuantumNumberType x = Quantum::Number::toType(key);
+    const QuantumNumberValue val(value);
+    if (val.type not_eq x) return EXIT_FAILURE;
+    static_cast<QuantumNumberValueList *>(data) -> set(val);
+    return EXIT_SUCCESS;
+  } catch (...) {
+    return EXIT_FAILURE;
+  }
+}
+void * getQuantumNumberValueListString(void * data) {
+  return new String(var_string(*static_cast<QuantumNumberValueList *>(data)));
+}
+int setQuantumNumberValueListString(void * data, char * value) {
+  try {
+    *static_cast<QuantumNumberValueList *>(data) = QuantumNumberValueList(value);
+    return EXIT_SUCCESS;
+  } catch (...) {
+    return EXIT_FAILURE;
+  }
+}
+
+// QuantumNumberLocalState
+BasicInterfaceCAPI(QuantumNumberLocalState)
+VoidStructGetterCAPI(QuantumNumberLocalState, val)
 
 // Species::Species
 void * createSpecies() {
@@ -307,9 +372,8 @@ int setSpeciesLongName(void * data, char * spec) {
   if (good_enum(x)) {
     *static_cast<Species::Species *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 int setSpeciesShortName(void * data, char * spec) {
   Species::Species x = Species::fromShortName(spec);
@@ -1548,3 +1612,4 @@ void * get_list_of_all_workspace_classes() { return new ArrayOfString{global_dat
 #undef BasicInputOutputCAPI
 #undef VoidArrayCAPI
 #undef VoidArrayElemCAPI
+#undef EnumMacroInterfaceCAPI

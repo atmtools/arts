@@ -468,18 +468,26 @@ struct TwoLevelValueHolder {
 
   // We have a decimal number
   if (dot) {
-    Index f = 0;
+    Index f = 0, d = 0;
     std::size_t i = 0;
 
+    // The integer part
     for (; s[i] not_eq '.'; ++i) {
       if (s[i] == '-' or s[i] == '+') continue;
       f *= 10;
       f += s[i] - '0';
     }
 
+    // The decimal part
+    i++;
+    for (; i < s.size(); ++i) {
+      d *= 10;
+      d += s[i] - '0';
+    }
+
     if (i + 1 > n) return RATIONAL_UNDEFINED;
-    if (i + 1 == n or s.back() == '0') return minus ? -f : f;
-    if (s.back() == '5') return Rational((minus ? -1 : 1) * (2 * f + 1), 2);
+    if (d == 0) return minus ? -f : f;
+    if (d == 5) return Rational((minus ? -1 : 1) * (2 * f + 1), 2);
     return RATIONAL_UNDEFINED;
   }
 
@@ -1067,8 +1075,11 @@ struct TwoLevelValueHolder {
                                                     Type::N};
 }  // namespace Quantum::Number
 
-using QuantumIdentifier = Quantum::Number::GlobalState;
 using QuantumNumberType = Quantum::Number::Type;
+using QuantumNumberValue = Quantum::Number::Value;
+using QuantumNumberValueList = Quantum::Number::ValueList;
+using QuantumNumberLocalState = Quantum::Number::LocalState;
+using QuantumIdentifier = Quantum::Number::GlobalState;
 using ArrayOfQuantumIdentifier = Array<QuantumIdentifier>;
 
 #endif  // quantun_numbers_h

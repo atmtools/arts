@@ -4,70 +4,14 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.AbsorptionSingleLine import AbsorptionSingleLine
 from pyarts.classes.LineShapeModel import LineShapeModel, LineShapeType
-from pyarts.classes.QuantumIdentifier import QuantumIdentifier
-from pyarts.classes.QuantumNumbers import QuantumNumberType
+from pyarts.classes.quantum import QuantumIdentifier
 from pyarts.classes.Rational import Rational
 from pyarts.classes.BasicTypes import String
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 from pyarts.classes.SpeciesIsotopeRecord import ArrayOfSpecies
 
-
-class VectorOfQuantumNumberType:
-    def __init__(self, data):
-        assert isinstance(data, c.c_void_p)
-        self.__data__ = data
-    
-    def __getitem__(self, key):
-        x = lib.getQuantumNumberTypeLocalQuantaAbsorptionLines(self.__data__, int(key))
-        if x:
-            return QuantumNumberType(c.c_void_p(x))
-        else:
-            raise IndexError("Out of bounds")
-    
-    def __setitem__(self, key, val):
-        self.__getitem__(key).set(val)
-    
-    def __len__(self):
-        return int(lib.sizeLocalQuantaAbsorptionLines(self.__data__))
-    
-    def resize(self, n):
-        n = int(n)
-        assert n >= 0
-        lib.resizeLocalQuantaAbsorptionLines(n, self.__data__)
-    
-    def __repr__(self):
-        out = "["
-        for i in range(len(self)):
-            out += str(self[i])
-            if (i+1) != len(self):
-                out += ', '
-        return out+ ']'
-    
-    def set(self, other):
-        self.resize(len(other))
-        for i in range(len(self)):
-            self[i] = other[i]
-    
-    def __eq__(self, other):
-        if not len(self) == len(other):
-            return False
-        else:
-            for i in range(len(self)):
-                if not self[i] == other[i]:
-                    return False
-        return True
-            
-
-lib.sizeLocalQuantaAbsorptionLines.restype = c.c_long
-lib.sizeLocalQuantaAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.resizeLocalQuantaAbsorptionLines.restype = None
-lib.resizeLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
-
-lib.getQuantumNumberTypeLocalQuantaAbsorptionLines.restype = c.c_void_p
-lib.getQuantumNumberTypeLocalQuantaAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
-
+from pyarts.classes.macros import BasicInterfaceCAPI, EnumMacroInterfaceCAP, VoidStructGetterCAPI
 
 class AbsorptionPopulationType:
     """ ARTS AbsorptionPopulationType type data
@@ -357,9 +301,6 @@ class AbsorptionLines:
         quantumidentity:
             Quantum identity (QuantumIdentifier)
 
-        localquantumnumbers:
-            Local quantum numbers (list of QuantumNumberType(s))
-
         sizebroadeningspecies:
             Number of broadening species (Index)
 
@@ -375,7 +316,7 @@ class AbsorptionLines:
     def __init__(self, selfbroadening=False, bathbroadening=False, nlines=0,
                  cutoff="None", mirroring="None", population="LTE", normalization="None",
                  lineshapetype="VP", t0=296, cutofffreq=-1, linemixinglimit=-1,
-                 quantumidentity=QuantumIdentifier(), localquantumnumbers=[],
+                 quantumidentity=QuantumIdentifier(),
                  broadeningspecies=ArrayOfSpecies(), lsm=LineShapeModel()):
         if isinstance(selfbroadening, c.c_void_p):
             self.__delete__ = False
@@ -394,7 +335,6 @@ class AbsorptionLines:
             self.cutofffreq = cutofffreq
             self.linemixinglimit = linemixinglimit
             self.quantumidentity = quantumidentity
-            self.localquantumnumbers = localquantumnumbers
             self.broadeningspecies = broadeningspecies
 
             n = len(self.localquantumnumbers)
@@ -424,20 +364,20 @@ class AbsorptionLines:
     @property
     def selfbroadening(self):
         """ Self broadening (bool) """
-        return lib.getSelfAbsorptionLines(self.__data__)
+        return c.POINTER(c.c_bool(lib.getselfbroadeningAbsorptionLines(self.__data__))).value
 
     @selfbroadening.setter
     def selfbroadening(self, val):
-        lib.setSelfAbsorptionLines(self.__data__, bool(val))
+        self.selfbroadening = bool(val)
 
     @property
     def bathbroadening(self):
         """ Air broadening (bool) """
-        return lib.getBathAbsorptionLines(self.__data__)
+        return c.POINTER(c.c_bool(lib.getbathbroadeningAbsorptionLines(self.__data__))).value
 
     @bathbroadening.setter
     def bathbroadening(self, val):
-        lib.setBathAbsorptionLines(self.__data__, bool(val))
+        self.bathbroadening = bool(val)
 
     @property
     def cutoff(self):
@@ -616,7 +556,6 @@ class AbsorptionLines:
             self.cutofffreq = other.cutofffreq
             self.linemixinglimit = other.linemixinglimit
             self.quantumidentity = other.quantumidentity
-            self.localquantumnumbers = other.localquantumnumbers
             self.broadeningspecies = other.broadeningspecies
             self.lines = other.lines
         else:
@@ -664,7 +603,6 @@ class AbsorptionLines:
                 self.cutofffreq == other.cutofffreq and \
                 self.linemixinglimit == other.linemixinglimit and \
                 self.quantumidentity == other.quantumidentity and \
-                self.localquantumnumbers == other.localquantumnumbers and \
                 self.broadeningspecies == other.broadeningspecies and \
                 self.lines == other.lines:
             return True
@@ -698,71 +636,18 @@ lib.xmlsaveAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_lon
 lib.printmetaAbsorptionLines.restype = None
 lib.printmetaAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.getSelfAbsorptionLines.restype = c.c_bool
-lib.getSelfAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.setSelfAbsorptionLines.restype = None
-lib.setSelfAbsorptionLines.argtypes = [c.c_void_p, c.c_bool]
-
-lib.getBathAbsorptionLines.restype = c.c_bool
-lib.getBathAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.setBathAbsorptionLines.restype = None
-lib.setBathAbsorptionLines.argtypes = [c.c_void_p, c.c_bool]
-
-lib.getCutoffAbsorptionLines.restype = c.c_void_p
-lib.getCutoffAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.getMirroringAbsorptionLines.restype = c.c_void_p
-lib.getMirroringAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.getLineShapeTypeAbsorptionLines.restype = c.c_void_p
-lib.getLineShapeTypeAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.getPopulationAbsorptionLines.restype = c.c_void_p
-lib.getPopulationAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.getNormalizationAbsorptionLines.restype = c.c_void_p
-lib.getNormalizationAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.getT0AbsorptionLines.restype = c.c_double
-lib.getT0AbsorptionLines.argtypes = [c.c_void_p]
-
-lib.setT0AbsorptionLines.restype = None
-lib.setT0AbsorptionLines.argtypes = [c.c_void_p, c.c_double]
-
-lib.getCutoffFreqValueAbsorptionLines.restype = c.c_double
-lib.getCutoffFreqValueAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.setCutoffFreqValueAbsorptionLines.restype = None
-lib.setCutoffFreqValueAbsorptionLines.argtypes = [c.c_void_p, c.c_double]
-
-lib.getLinemixingLimitAbsorptionLines.restype = c.c_double
-lib.getLinemixingLimitAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.setLinemixingLimitAbsorptionLines.restype = None
-lib.setLinemixingLimitAbsorptionLines.argtypes = [c.c_void_p, c.c_double]
-
-lib.getQuantumIdentityAbsorptionLines.restype = c.c_void_p
-lib.getQuantumIdentityAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.getLocalQuantaAbsorptionLines.restype = c.c_void_p
-lib.getLocalQuantaAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.getBroadeningSpeciesAbsorptionLines.restype = c.c_void_p
-lib.getBroadeningSpeciesAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.sizeAllLinesAbsorptionLines.restype = c.c_long
-lib.sizeAllLinesAbsorptionLines.argtypes = [c.c_void_p]
-
-lib.resizeAllLinesAbsorptionLines.restype = None
-lib.resizeAllLinesAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
-
-lib.getelemAllLinesAbsorptionLines.restype = c.c_void_p
-lib.getelemAllLinesAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
-
-lib.isAbsorptionLinesOK.restype = c.c_long
-lib.isAbsorptionLinesOK.argtypes = [c.c_void_p]
-
-lib.getSpeciesNameAbsorptionLines.restype = c.c_void_p
-lib.getSpeciesNameAbsorptionLines.argtypes = [c.c_void_p]
+VoidStructGetterCAPI(lib, "AbsorptionLines", "selfbroadening")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "bathbroadening")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "selfbroadening")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "bathbroadening")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "cutoff")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "lineshapetype")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "mirroring")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "population")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "normalization")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "T0")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "cutofffreq")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "linemixinglimit")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "quantumidentity")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "broadeningspecies")
+VoidStructGetterCAPI(lib, "AbsorptionLines", "lines")

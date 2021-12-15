@@ -983,6 +983,7 @@ Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
 } // namespace Absorption
 
 using AbsorptionSingleLine = Absorption::SingleLine;
+using ArrayOfAbsorptionSingleLine = Array<AbsorptionSingleLine>;
 using AbsorptionLines = Absorption::Lines;
 using ArrayOfAbsorptionLines = Array<AbsorptionLines>;
 using ArrayOfArrayOfAbsorptionLines = Array<ArrayOfAbsorptionLines>;

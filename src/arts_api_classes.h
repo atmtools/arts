@@ -110,6 +110,9 @@ void * get##ENUM##String(void *);               \
 __attribute__((visibility("default")))          \
 int set##ENUM##String(void *, char *);
 
+#define EnumMacroInterfaceCAPI(TYPE)                                      \
+  __attribute__((visibility("default"))) void *get##TYPE(void *data);    \
+  __attribute__((visibility("default"))) int set##TYPE(void *data, char *val);
 
 extern "C" {
     // Index
@@ -188,10 +191,31 @@ extern "C" {
     VoidStructGetterCAPI(AbsorptionSingleLine, zeeman)
     VoidStructGetterCAPI(AbsorptionSingleLine, lineshape)
     VoidStructGetterCAPI(AbsorptionSingleLine, localquanta)
+    VoidArrayCAPI(ArrayOfAbsorptionSingleLine)
+    BasicInputOutputCAPI(ArrayOfAbsorptionSingleLine)
+    BasicInterfaceCAPI(ArrayOfAbsorptionSingleLine)
     
     // QuantumNumbers
     BasicInterfaceCAPI(QuantumNumberType)
-    StringEnumPointersCAPI(QuantumNumberType)
+    EnumMacroInterfaceCAPI(QuantumNumberType)
+
+    // QuantumNumberValue
+    BasicInterfaceCAPI(QuantumNumberValue)
+    VoidStructGetterCAPI(QuantumNumberValue, type)
+    DLL_PUBLIC int setqnQuantumNumberValue(void * data, char * val);
+    DLL_PUBLIC void * getuppQuantumNumberValue(void * data, bool str);
+    DLL_PUBLIC void * getlowQuantumNumberValue(void * data, bool str);
+
+    // QuantumNumberValueList
+    BasicInterfaceCAPI(QuantumNumberValueList)
+    DLL_PUBLIC void * getQuantumNumberValueList(void *, char *);
+    DLL_PUBLIC int setQuantumNumberValueList(void *, char *, char *);
+    DLL_PUBLIC void * getQuantumNumberValueListString(void * data);
+    DLL_PUBLIC int setQuantumNumberValueListString(void * data, char * value);
+
+    // QuantumNumberLocalState
+    BasicInterfaceCAPI(QuantumNumberLocalState)
+    VoidStructGetterCAPI(QuantumNumberLocalState, val)
     
     // Species::Species
     DLL_PUBLIC void * createSpecies();
@@ -1003,7 +1027,7 @@ extern "C" {
 #undef VoidArrayCAPI
 #undef VoidArrayElemCAPI
 #undef StringEnumPointersCAPI
-
+#undef EnumMacroInterfaceCAPI
 
 #if REMOVE_DLL_PUBLIC
 #undef DLL_PUBLIC
