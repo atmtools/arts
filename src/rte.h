@@ -817,6 +817,83 @@ void mirror_los(Vector& los_mirrored,
                 const ConstVectorView& los,
                 const Index& atmosphere_dim);
 
+//! muellersparse_rotation
+/*!
+   Returns the Mueller matrix for a rotation of the coordinate system defining
+   H and V directions.
+
+   The function follows Eq 9 in the sensor response article (Eriksson et al,
+   Efficient forward modelling by matrix representation of sensor responses,
+   IJRS, 2006).
+
+   The sparse matrix H is not sized by the function, in order to save time for
+   repeated usage. Before first call of this function, size H as
+   H.resize( stokes_dim, stokes_dim );
+   The H returned of this function can be used as input for later calls. That
+   is, no need to repeat the resize command above.
+
+   \param   H           Mueller matrix
+   \param   stokes_dim  Stokes dimensionality (1-2)
+   \param   rotangle    Rotation angle.
+
+   \author Patrick Eriksson
+   \date   2014-09-23
+*/
+void muellersparse_rotation(Sparse& H,
+                            const Index& stokes_dim,
+                            const Numeric& rotangle);
+
+//! mueller_modif2stokes
+/*!
+   Returns the Mueller matrix for transformation of a modified Stokes vector to
+   its standard counterpart.
+
+   See ARTS Theory document, section "Change of the Stokes basis" for details.
+
+   \param   Cs          Mueller matrix
+   \param   stokes_dim  Stokes dimensionality (1-4)
+
+   \author Patrick Eriksson
+   \date   2021-12-22
+*/
+void mueller_modif2stokes(Matrix& Cs,
+                          const Index& stokes_dim);
+
+//! mueller_rotation
+/*!
+   Returns the Mueller matrix for a rotation of the coordinate system defining
+   H and V directions.
+
+   As muellersparse_rotation, besides that this function returns a matrix (not
+   Sparse) and the matrix is sized by the function.
+
+   \param   L           Mueller matrix
+   \param   stokes_dim  Stokes dimensionality (1-4)
+   \param   rotangle    Rotation angle.
+
+   \author Patrick Eriksson
+   \date   2021-12-22
+*/
+void mueller_rotation(Matrix& L,
+                      const Index& stokes_dim,
+                      const Numeric& rotangle);
+
+//! mueller_stokes2modif
+/*!
+   Returns the Mueller matrix for transformation from Stokes to its modified
+   counterpart.
+
+   See ARTS Theory document, section "Change of the Stokes basis" for details.
+
+   \param   Cm          Mueller matrix
+   \param   stokes_dim  Stokes dimensionality (1-4)
+
+   \author Patrick Eriksson
+   \date   2021-12-22
+*/
+void mueller_stokes2modif(Matrix& Cm,
+                          const Index& stokes_dim);
+
 /** Determines the true alt and lon for an "ARTS position"
 
     The function disentangles if the geographical position shall be taken from

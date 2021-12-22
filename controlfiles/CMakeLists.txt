@@ -67,7 +67,8 @@ arts_test_run_ctlfile(fast artscomponents/transmission/TestTransmissionWithScat.
 
 arts_test_run_ctlfile(fast artscomponents/surfacetypes/TestSurfaceTypes.arts)
 
-arts_test_run_ctlfile(fast artscomponents/tessem/TestTessem.arts)
+arts_test_run_ctlfile(fast artscomponents/surface/TestTessem.arts)
+arts_test_run_ctlfile(fast artscomponents/surface/TestSurfaceSinglePol.arts)
 
 arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
@@ -143,7 +144,7 @@ if (ENABLE_TMATRIX)
 endif ()
 
 if (ENABLE_FASTEM)
-  arts_test_run_ctlfile(fast artscomponents/fastem/TestFastem.arts)
+  arts_test_run_ctlfile(fast artscomponents/surface/TestFastem.arts)
   arts_test_run_ctlfile(fast artscomponents/antenna/TestAntenna2D.arts)
   arts_test_run_ctlfile(fast artscomponents/iba/TestIBA.arts)
   arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1to4.arts)

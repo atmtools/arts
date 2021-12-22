@@ -5566,10 +5566,11 @@ void define_md_data_raw() {
       DESCRIPTION(
           "As *DisortCalc* but uses *surface_rtprop_agenda*.\n"
           "\n"
-          "The Lambertian surface reflection is set by calling\n"
-          "*surface_rtprop_agenda* for a set of angles and taking an\n"
-          "angular weighed mean value.\n"
-          ),
+          "The Lambertian surface reflection is set by *surface_rtprop_agenda*.\n"
+          "If the GIN inc_angle is inside of the range [0,90], the reflection is\n"
+          "set according to the result of *surface_rtprop_agenda* for this incidence\n"
+          "angle. Otherwise (default) is to call *surface_rtprop_agenda* for\n"
+          "multiple angles, to estimate the hemispheric mean value.\n"),
       AUTHORS("Claudia Emde, Jana Mendrok"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -5594,15 +5595,16 @@ void define_md_data_raw() {
          "f_grid",
          "za_grid",
          "stokes_dim"),
-      GIN("nstreams", "Npfct", "quiet"),
-      GIN_TYPE("Index", "Index", "Index"),
-      GIN_DEFAULT("8", "181", "0"),
+      GIN("nstreams", "Npfct", "quiet", "inc_angle"),
+      GIN_TYPE("Index", "Index", "Index", "Numeric"),
+      GIN_DEFAULT("8", "181", "0", "-1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polynomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
-               "Silence C Disort warnings.")));
+               "Silence C Disort warnings.",
+               "Incidence angle, see above.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcClearsky"),

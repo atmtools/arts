@@ -1050,6 +1050,27 @@ void surfaceMapToSinglePolCalc(Index& stokes_dim,
       }
     }
   } else {
+    Matrix Cm, Cs, Lp, Lm;
+    mueller_stokes2modif(Cm, stokes_dim);
+    mueller_modif2stokes(Cs, stokes_dim);
+    mueller_rotation(Lp, stokes_dim, pol_angle);
+    mueller_rotation(Lm, stokes_dim, -pol_angle);
+    Matrix Mleft(stokes_dim,stokes_dim), Mright(stokes_dim,stokes_dim);
+    mult(Mleft, Cm, Lp);
+    mult(Mright, Lm, Cs);
+    //
+    Vector Vr(stokes_dim);
+    Matrix Tmp(stokes_dim,stokes_dim), Mr(stokes_dim,stokes_dim);
+    //
+    for (Index f=0; f<nf; ++f) {
+      mult(Vr, Mleft, se(f,joker) );        // Note that we have to multiply with 2
+      surface_emission(f,0) = 2.0 * Vr[0];  // as we place a single pol as I
+      for (Index l=0; l<nlos; ++l) {
+        mult(Tmp, sr(l,f,joker,joker), Mright);
+        mult(Mr, Mleft, Tmp);
+        surface_rmatrix(l,f,0,0) = Tmp(0,0);
+      }
+    }
   }
   
   stokes_dim = 1;

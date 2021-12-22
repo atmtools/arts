@@ -2031,6 +2031,104 @@ void mirror_los(Vector& los_mirrored,
   }
 }
 
+void muellersparse_rotation(Sparse& H,
+                            const Index& stokes_dim,
+                            const Numeric& rotangle) {
+  ARTS_ASSERT(stokes_dim > 1);
+  ARTS_ASSERT(stokes_dim <= 4);
+  ARTS_ASSERT(H.nrows() == stokes_dim);
+  ARTS_ASSERT(H.ncols() == stokes_dim);
+  ARTS_ASSERT(H(0, 1) == 0);
+  ARTS_ASSERT(H(1, 0) == 0);
+  //
+  H.rw(0, 0) = 1;
+  const Numeric a = cos(2 * DEG2RAD * rotangle);
+  H.rw(1, 1) = a;
+  if (stokes_dim > 2) {
+    ARTS_ASSERT(H(2, 0) == 0);
+    ARTS_ASSERT(H(0, 2) == 0);
+
+    const Numeric b = sin(2 * DEG2RAD * rotangle);
+    H.rw(1, 2) = b;
+    H.rw(2, 1) = -b;
+    H.rw(2, 2) = a;
+    if (stokes_dim > 3) {
+      // More values should be checked, but to save time we just ARTS_ASSERT one
+      ARTS_ASSERT(H(2, 3) == 0);
+      H.rw(3, 3) = 1;
+    }
+  }
+}
+
+void mueller_modif2stokes(Matrix& Cs,
+                          const Index& stokes_dim) {
+  ARTS_ASSERT(stokes_dim >= 1);
+  ARTS_ASSERT(stokes_dim <= 4);
+  //
+  Cs.resize(stokes_dim, stokes_dim);
+  Cs(0,0) = 1;
+  if (stokes_dim > 1 ) {
+    Cs(0,1) = Cs(1,0) = 1;
+    Cs(1,1) = -1;
+    if (stokes_dim > 2 ) {
+      Cs(0,2) = Cs(1,2) = Cs(2,0) = Cs(2,1) = 0;
+      Cs(2,2) = 1;
+      if (stokes_dim > 3 ) {
+        Cs(0,3) = Cs(1,3) = Cs(2,3) = Cs(3,0) = Cs(3,1) = Cs(3,2) = 0;
+        Cs(3,3) = 1;       
+      }
+    }
+  }
+}
+
+void mueller_rotation(Matrix& L,
+                      const Index& stokes_dim,
+                      const Numeric& rotangle) {
+  ARTS_ASSERT(stokes_dim >= 1);
+  ARTS_ASSERT(stokes_dim <= 4);
+  //
+  L.resize(stokes_dim, stokes_dim);
+  L(0, 0) = 1;
+  if (stokes_dim > 1 ) {
+    const Numeric alpha = 2 * DEG2RAD * rotangle;
+    const Numeric c2 = cos(alpha);
+    L(0,1) = L(1,0) = 0;
+    L(1,1) = c2;
+    if (stokes_dim > 2 ) {
+      const Numeric s2 = sin(alpha);
+      L(0,2) = L(2,0) = 0;
+      L(1,2) = s2;
+      L(2,1) = -s2;      
+      L(2,2) = c2;
+      if (stokes_dim > 3 ) {
+        L(0,3) = L(1,3) = L(2,3) = L(3,0) = L(3,1) = L(3,2) = 0;
+        L(3,3) = 1;       
+      }
+    }
+  }
+}
+
+void mueller_stokes2modif(Matrix& Cm,
+                          const Index& stokes_dim) {
+  ARTS_ASSERT(stokes_dim >= 1);
+  ARTS_ASSERT(stokes_dim <= 4);
+  //
+  Cm.resize(stokes_dim, stokes_dim);
+  Cm(0,0) = 0.5;
+  if (stokes_dim > 1 ) {
+    Cm(0,1) = Cm(1,0) = 0.5;
+    Cm(1,1) = -0.5;
+    if (stokes_dim > 2 ) {
+      Cm(0,2) = Cm(1,2) = Cm(2,0) = Cm(2,1) = 0;
+      Cm(2,2) = 1;
+      if (stokes_dim > 3 ) {
+        Cm(0,3) = Cm(1,3) = Cm(2,3) = Cm(3,0) = Cm(3,1) = Cm(3,2) = 0;
+        Cm(3,3) = 1;       
+      }
+    }
+  }
+}
+
 void pos2true_latlon(Numeric& lat,
                      Numeric& lon,
                      const Index& atmosphere_dim,

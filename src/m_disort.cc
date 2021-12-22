@@ -47,6 +47,7 @@
 #include "wsv_aux.h"
 #include "xml_io.h"
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalc(Workspace& ws,
                 // WS Output:
@@ -125,6 +126,8 @@ void DisortCalc(Workspace& ws,
               verbosity);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalcWithARTSSurface(
     Workspace& ws,
@@ -153,16 +156,13 @@ void DisortCalcWithARTSSurface(
     const Index& nstreams,
     const Index& Npfct,
     const Index& cdisort_quiet,
+    const Numeric& inc_angle,
     const Verbosity& verbosity) {
   if (!cloudbox_on) {
     CREATE_OUT0;
     out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
     return;
   }
-
-  // FIXME: so far surface is implictly assumed at lowest atmospheric level.
-  // That should be fixed (using z_surface and allowing other altitudes) at some
-  // point.
 
   check_disort_input(cloudbox_on,
                      atmfields_checked,
@@ -182,15 +182,25 @@ void DisortCalcWithARTSSurface(
   Vector albedo(f_grid.nelem(), 0.);
   Numeric btemp;
 
-  surf_albedoCalc(ws,
-                  albedo,
-                  btemp,
-                  surface_rtprop_agenda,
-                  f_grid,
-                  za_grid,
-                  z_surface(0,0),
-                  verbosity);
-
+  if (inc_angle<0 || inc_angle>90) {
+    surf_albedoCalc(ws,
+                    albedo,
+                    btemp,
+                    surface_rtprop_agenda,
+                    f_grid,
+                    za_grid,
+                    z_surface(0,0),
+                    verbosity);
+  } else {
+    surf_albedoCalcSingleAngle(ws,
+                               albedo,
+                               btemp,
+                               surface_rtprop_agenda,
+                               f_grid,
+                               z_surface(0,0),
+                               inc_angle);
+  }
+  
   run_cdisort(ws,
               cloudbox_field,
               f_grid,
@@ -211,6 +221,8 @@ void DisortCalcWithARTSSurface(
               cdisort_quiet,
               verbosity);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalcClearsky(Workspace& ws,
