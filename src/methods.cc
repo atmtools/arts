@@ -18466,98 +18466,6 @@ void define_md_data_raw() {
                "The version of FASTEM to use.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceTessem"),
-      DESCRIPTION(
-          "TESSEM sea surface microwave emissivity parametrization.\n"
-          "\n"
-          "This method computes surface emissivity and reflectivity matrices for\n"
-          "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
-          "Sea‐surface emissivity parametrization from microwaves to millimetre\n"
-          "waves, QJRMS, 2017, 143.702: 596-605.\n"
-          "\n"
-          "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
-          "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
-          "The accepted temperaute range for *surface_skin_t* is [260.0 K, 373.0 K]\n"
-          "\n"
-          "The model itself is represented by the neural networks in\n"
-          "*tessem_neth* and *tessem_netv*.\n"),
-      AUTHORS("Simon Pfreundschuh"),
-      OUT("surface_los", "surface_rmatrix", "surface_emission"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmosphere_dim",
-         "stokes_dim",
-         "f_grid",
-         "rtp_pos",
-         "rtp_los",
-         "surface_skin_t",
-         "tessem_neth",
-         "tessem_netv"),
-      GIN("salinity", "wind_speed"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT("0.035", NODEF),
-      GIN_DESC("Salinity, 0-1. That is, 3% is given as 0.03.", "Wind speed.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceTelsem"),
-      DESCRIPTION(
-          "Compute surface emissivities using the TELSEM 2 model.\n"
-          "\n"
-          "This method uses second version of the TELSEM model for calculating\n"
-          "land surface emissivities (F. Aires et al, \"A Tool to Estimate \n"
-          " Land‐Surface Emissivities at Microwave frequencies (TELSEM) for use\n"
-          " in numerical weather prediction\" Quarterly Journal of the Royal\n"
-          "Meteorological Society, vol. 137, (656), pp. 690-699, 2011.)\n"
-          "This methods computes land surface emissivities for a given pencil beam\n"
-          "using a given TELSEM2 atlas.\n"
-          "\n"
-          "The input must satisfy the following conditions, otherwise an error is thrown:\n"
-          " - The input frequencies (*f_grid*) must be within the range [5 GHz, 900 GHz]\n"
-          " - The skin temperature (*surface_skin_t*) must be within the range\n"
-          "   [180 K, 360 K]\n"
-          "\n"
-          "A TELSEM atlas contains only suface emissivities for locations that are\n"
-          "classified as land. By default this WSM will throw an error if the\n"
-          "pencil beam hits the surface at a position that is not contained in the\n"
-          "given atlas.\n"
-          "\n"
-          "The above behavior can be avoided by setting *d_max* to a positive value.\n"
-          "This enables nearest neighbor interpolation, which assigns the emissivities\n"
-          "of the nearest found cell in the atlas to the given position. In this case,\n"
-          "an error is only thrown if the distance of the found neighbor is higher\n"
-          "than the provided value of *d_max.\n"
-          "\n"
-          "You can limit the final reflectivity applied by setting *r_min* and *r_max*.\n"
-          "\n"
-          "To extract a land-sea mask from a given telsem atlas see the WSM\n"
-          "*telsemSurfaceTypeLandSea*.\n"),
-      AUTHORS("Simon Pfreundschuh"),
-      OUT("surface_los", "surface_rmatrix", "surface_emission"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmosphere_dim",
-         "stokes_dim",
-         "f_grid",
-         "lat_grid",
-         "lat_true",
-         "lon_true",
-         "rtp_pos",
-         "rtp_los",
-         "specular_los",
-         "surface_skin_t"),
-      GIN("atlas", "r_min", "r_max", "d_max"),
-      GIN_TYPE("TelsemAtlas", "Numeric", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0", "1", "-1.0"),
-      GIN_DESC("The Telsem atlas to use for the emissivity calculation.",
-               "Minimum allowed value for reflectivity to apply.",
-               "Maximum allowed value for reflectivity to apply.",
-               "Maximum allowed distance in meters for nearest neighbor"
-               " interpolation in meters. Set to a negative value or zero "
-               " to disable interpolation.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatRefractiveIndex"),
       DESCRIPTION(
           "Creates variables to mimic specular reflection by a (flat) surface\n"
@@ -18817,6 +18725,157 @@ void define_md_data_raw() {
                " A value between 1/3 and 1.",
                "Zenith angle seperation to each secondary direction. A "
                "between 0 and 45 degrees.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surfaceMapToSinglePolCalc"),
+      DESCRIPTION(
+          "Apply change of Stokes basis for surface RT properties.\n"
+          "\n"
+          "See *surfaceMapToSinglePolInit* for an introdction to the method pair.\n"
+          "\n"
+          "The polarisation to apply is selected by *pol_angle*. This angle is\n"
+          "defined as in *sensor_pol* (i.e. 0 and 90 equal V and H, respectively).\n"
+          "\n"
+          "If *local_stokes_dim* was set to 2 in *surfaceMapToSinglePolInit*, the\n"
+          "generated *surface_rmatrix is assumed to have the structure:\n"
+          "   [ (rv+rh)/2 (rv-rh)/2; \n"
+          "     (rv-rh)/2 (rv+rh)/2 ],\n"
+          "while if *local_stokes_dim* was set to 3 or 4, the mapping involves\n"
+          "several transformation matrices. The later case covers also couplings\n"
+          "between V/H and +-45 deg, and the mapping is described in the ARTS\n"
+          "theory guide, in section \"Rotated modified Stokes vector\".\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("stokes_dim", "surface_emission", "surface_rmatrix"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("stokes_dim", "surface_emission", "surface_rmatrix"),
+      GIN("pol_angle"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Polarisation angle, see above.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surfaceMapToSinglePolInit"),
+      DESCRIPTION(
+          "Initialise change of Stokes basis for surface RT properties.\n"
+          "\n"
+          "This method allows to set the surface properties to match a specific\n"
+          "linear polarisation for scalar calculation (stokes_dim=1). If you want\n"
+          "this, you place this method at the start of *surface_rtprop_agenda*\n"
+          "and the accompanying *surfaceMapToSinglePolCalc* at the end of the same\n"
+          "agenda.\n"
+          "\n"
+          "This method checks if *stokes_dim* actually is set to 1 and changes its\n"
+          "value to *local_stokes_dim*. The mapping of the surface properties to\n"
+          "scalarcounterparts is performed by *surfaceMapToSinglePolCalc*, where\n"
+          "the output polarisation is selected.\n"
+          "\n"
+          "In general it should suffice to set *local_stokes_dim* to 2, that gives\n"
+          "slightly faster calculations. The default value of 3 handles any case\n"
+          "correctly. See *surfaceMapToSinglePolCalc* for more details.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("stokes_dim"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("stokes_dim"),
+      GIN("local_stokes_dim"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("3"),
+      GIN_DESC("The Stokes dimension to apply locally (2-4).")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surfaceTelsem"),
+      DESCRIPTION(
+          "Compute surface emissivities using the TELSEM 2 model.\n"
+          "\n"
+          "This method uses second version of the TELSEM model for calculating\n"
+          "land surface emissivities (F. Aires et al, \"A Tool to Estimate \n"
+          " Land‐Surface Emissivities at Microwave frequencies (TELSEM) for use\n"
+          " in numerical weather prediction\" Quarterly Journal of the Royal\n"
+          "Meteorological Society, vol. 137, (656), pp. 690-699, 2011.)\n"
+          "This methods computes land surface emissivities for a given pencil beam\n"
+          "using a given TELSEM2 atlas.\n"
+          "\n"
+          "The input must satisfy the following conditions, otherwise an error is thrown:\n"
+          " - The input frequencies (*f_grid*) must be within the range [5 GHz, 900 GHz]\n"
+          " - The skin temperature (*surface_skin_t*) must be within the range\n"
+          "   [180 K, 360 K]\n"
+          "\n"
+          "A TELSEM atlas contains only suface emissivities for locations that are\n"
+          "classified as land. By default this WSM will throw an error if the\n"
+          "pencil beam hits the surface at a position that is not contained in the\n"
+          "given atlas.\n"
+          "\n"
+          "The above behavior can be avoided by setting *d_max* to a positive value.\n"
+          "This enables nearest neighbor interpolation, which assigns the emissivities\n"
+          "of the nearest found cell in the atlas to the given position. In this case,\n"
+          "an error is only thrown if the distance of the found neighbor is higher\n"
+          "than the provided value of *d_max.\n"
+          "\n"
+          "You can limit the final reflectivity applied by setting *r_min* and *r_max*.\n"
+          "\n"
+          "To extract a land-sea mask from a given telsem atlas see the WSM\n"
+          "*telsemSurfaceTypeLandSea*.\n"),
+      AUTHORS("Simon Pfreundschuh"),
+      OUT("surface_los", "surface_rmatrix", "surface_emission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmosphere_dim",
+         "stokes_dim",
+         "f_grid",
+         "lat_grid",
+         "lat_true",
+         "lon_true",
+         "rtp_pos",
+         "rtp_los",
+         "specular_los",
+         "surface_skin_t"),
+      GIN("atlas", "r_min", "r_max", "d_max"),
+      GIN_TYPE("TelsemAtlas", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "1", "-1.0"),
+      GIN_DESC("The Telsem atlas to use for the emissivity calculation.",
+               "Minimum allowed value for reflectivity to apply.",
+               "Maximum allowed value for reflectivity to apply.",
+               "Maximum allowed distance in meters for nearest neighbor"
+               " interpolation in meters. Set to a negative value or zero "
+               " to disable interpolation.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surfaceTessem"),
+      DESCRIPTION(
+          "TESSEM sea surface microwave emissivity parametrization.\n"
+          "\n"
+          "This method computes surface emissivity and reflectivity matrices for\n"
+          "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
+          "Sea‐surface emissivity parametrization from microwaves to millimetre\n"
+          "waves, QJRMS, 2017, 143.702: 596-605.\n"
+          "\n"
+          "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
+          "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
+          "The accepted temperaute range for *surface_skin_t* is [260.0 K, 373.0 K]\n"
+          "\n"
+          "The model itself is represented by the neural networks in\n"
+          "*tessem_neth* and *tessem_netv*.\n"),
+      AUTHORS("Simon Pfreundschuh"),
+      OUT("surface_los", "surface_rmatrix", "surface_emission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmosphere_dim",
+         "stokes_dim",
+         "f_grid",
+         "rtp_pos",
+         "rtp_los",
+         "surface_skin_t",
+         "tessem_neth",
+         "tessem_netv"),
+      GIN("salinity", "wind_speed"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("0.035", NODEF),
+      GIN_DESC("Salinity, 0-1. That is, 3% is given as 0.03.", "Wind speed.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_complex_refr_indexFromGriddedField5"),

@@ -1021,6 +1021,50 @@ void surfaceFastem(Matrix& surface_los,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceMapToSinglePolCalc(Index& stokes_dim,
+                               Matrix& surface_emission,
+                               Tensor4& surface_rmatrix,
+                               const Numeric& pol_angle,
+                               const Verbosity& ) {
+  chk_if_in_range("stokes_dim", stokes_dim, 2, 4);
+  
+  const Index nf = surface_emission.nrows();
+  const Index nlos = surface_rmatrix.nbooks();
+  Matrix se = surface_emission;
+  Tensor4 sr = surface_rmatrix;
+  surface_emission.resize(nf, 1);
+  surface_rmatrix.resize(nlos, nf, 1, 1);
+  
+  if (stokes_dim == 2) {
+    const Numeric alpha = DEG2RAD * pol_angle; 
+    const Numeric c2 = pow( cos(alpha), 2 );
+    const Numeric s2 = pow( sin(alpha), 2 );
+    for (Index f=0; f<nf; ++f) {
+      const Numeric bv = se(f,0) + se(f,1); // Note that we have to multiply with 2
+      const Numeric bh = se(f,0) - se(f,1); // as we place a single pol as I
+      surface_emission(f,0) = c2*bv + s2*bh;
+      for (Index l=0; l<nlos; ++l) {
+        const Numeric rv = sr(l,f,0,0) + sr(l,f,1,0); 
+        const Numeric rh = sr(l,f,0,0) - sr(l,f,1,0);
+        surface_rmatrix(l,f,0,0) = c2*rv + s2*rh;
+      }
+    }
+  } else {
+  }
+  
+  stokes_dim = 1;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceMapToSinglePolInit(Index& stokes_dim,
+                               const Index& local_stokes_dim,
+                               const Verbosity& ) {
+  chk_if_in_range("stokes_dim", stokes_dim, 1, 1); 
+  chk_if_in_range("local_stokes_dim", local_stokes_dim, 2, 4); 
+  stokes_dim = local_stokes_dim;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceTelsem(Matrix& surface_los,
                    Tensor4& surface_rmatrix,
                    Matrix& surface_emission,
