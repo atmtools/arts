@@ -18736,11 +18736,11 @@ void define_md_data_raw() {
           "The polarisation to apply is selected by *pol_angle*. This angle is\n"
           "defined as in *sensor_pol* (i.e. 0 and 90 equal V and H, respectively).\n"
           "\n"
-          "If *local_stokes_dim* was set to 2 in *surfaceMapToSinglePolInit*, the\n"
+          "If local_stokes_dim was set to 2 in *surfaceMapToSinglePolInit*, the\n"
           "generated *surface_rmatrix is assumed to have the structure:\n"
           "   [ (rv+rh)/2 (rv-rh)/2; \n"
           "     (rv-rh)/2 (rv+rh)/2 ],\n"
-          "while if *local_stokes_dim* was set to 3 or 4, the mapping involves\n"
+          "while if local_stokes_dim was set to 3 or 4, the mapping involves\n"
           "several transformation matrices. The later case covers also couplings\n"
           "between V/H and +-45 deg, and the mapping is described in the ARTS\n"
           "theory guide, in section \"Rotated modified Stokes vector\".\n"),
@@ -18767,11 +18767,11 @@ void define_md_data_raw() {
           "agenda.\n"
           "\n"
           "This method checks if *stokes_dim* actually is set to 1 and changes its\n"
-          "value to *local_stokes_dim*. The mapping of the surface properties to\n"
+          "value to local_stokes_dim. The mapping of the surface properties to\n"
           "scalarcounterparts is performed by *surfaceMapToSinglePolCalc*, where\n"
           "the output polarisation is selected.\n"
           "\n"
-          "In general it should suffice to set *local_stokes_dim* to 2, that gives\n"
+          "In general it should suffice to set local_stokes_dim to 2, that gives\n"
           "slightly faster calculations. The default value of 3 handles any case\n"
           "correctly. See *surfaceMapToSinglePolCalc* for more details.\n"),
       AUTHORS("Patrick Eriksson"),
