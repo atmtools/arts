@@ -7669,6 +7669,98 @@ void define_md_data_raw() {
        GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("iyEmissionHybrid"),
+      DESCRIPTION(
+        "Radiative transfer with emission and precalculated radiation field.\n"
+        "\n"
+        "This method works largely as *iyEmissionStandard* but incorporates\n"
+        "scattering by a precalculated radiation field. It is so far limited\n"
+        "to 1D calculations.\n"
+        "\n"
+        "The method integrates the source term along the propagation path. While\n"
+        "*iyEmissionStandard* only considers local thermal emission, this method\n"
+        "also includes scattering into the line-of-sight in the source term.\n"
+        "The scattering integral is solved with the precalculated field as incoming\n"
+        "radiation. That is, this method extends the integration into the cloudbox,\n"
+        "while *iyEmissionStandard* starts at the cloudbox boundary.\n"
+        "\n"
+        "The calculate radiance should be as exact as what is produced by the\n"
+        "scattering solver used to calculate the precalculted radiation field,\n"
+        "but the main reason to use this method is to obtain the Jacobian even\n"
+        "in the presence of scattering. The Jacobian with respect to bulk scattering\n"
+        "properties can be obtained, but it is approximate. This is the case as\n"
+        "the incoming radiation field is treated as fixed in the calculation\n"
+        "of the Jacobian. The impact of this approximation increases with the degree\n"
+        "of scattering.\n"),
+      AUTHORS("Patrick Eriksson", "Jana Mendrok", "Richard Larsson"),
+      OUT("iy",
+          "iy_aux",
+          "diy_dx",
+          "ppvar_p",
+          "ppvar_t",
+          "ppvar_nlte",
+          "ppvar_vmr",
+          "ppvar_wind",
+          "ppvar_mag",
+          "ppvar_pnd",
+          "ppvar_f",
+          "ppvar_iy",
+          "ppvar_trans_cumulat",
+          "ppvar_trans_partial"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("diy_dx",
+         "iy_id",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "pnd_field",
+         "dpnd_field_dx",
+         "scat_species",
+         "scat_data",
+         "iy_unit",
+         "iy_aux_vars",
+         "jacobian_do",
+         "jacobian_quantities",
+         "propmat_clearsky_agenda",
+         "water_p_eq_agenda",
+         "rt_integration_option",
+         "iy_main_agenda",
+         "iy_space_agenda",
+         "iy_surface_agenda",
+         "iy_cloudbox_agenda",
+         "iy_agenda_call1",
+         "iy_transmittance",
+         "ppath",
+         "rte_pos2",
+         "rte_alonglos_v",
+         "surface_props_data",
+         "cloudbox_field",
+         "za_grid"),
+      GIN("Naa_grid", "t_interp_order"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT("19", "1"),
+      GIN_DESC("Number of azimuth angles to consider in scattering source term"
+               " integral.",
+               "Interpolation order of temperature for scattering data (so"
+               " far only applied in phase matrix, not in extinction and"
+               " absorption.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyEmissionStandard"),
       DESCRIPTION(
           "Standard method for radiative transfer calculations with emission.\n"
@@ -7848,77 +7940,6 @@ void define_md_data_raw() {
                   "Max scattering order to consider." )
         ));
   */
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("iyHybrid"),
-      DESCRIPTION("So far just for testing.\n"),
-      AUTHORS("Patrick Eriksson", "Jana Mendrok", "Richard Larsson"),
-      OUT("iy",
-          "iy_aux",
-          "diy_dx",
-          "ppvar_p",
-          "ppvar_t",
-          "ppvar_nlte",
-          "ppvar_vmr",
-          "ppvar_wind",
-          "ppvar_mag",
-          "ppvar_pnd",
-          "ppvar_f",
-          "ppvar_iy",
-          "ppvar_trans_cumulat",
-          "ppvar_trans_partial"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("diy_dx",
-         "iy_id",
-         "stokes_dim",
-         "f_grid",
-         "atmosphere_dim",
-         "p_grid",
-         "t_field",
-         "nlte_field",
-         "vmr_field",
-         "abs_species",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "pnd_field",
-         "dpnd_field_dx",
-         "scat_species",
-         "scat_data",
-         "iy_unit",
-         "iy_aux_vars",
-         "jacobian_do",
-         "jacobian_quantities",
-         "propmat_clearsky_agenda",
-         "water_p_eq_agenda",
-         "rt_integration_option",
-         "iy_main_agenda",
-         "iy_space_agenda",
-         "iy_surface_agenda",
-         "iy_cloudbox_agenda",
-         "iy_agenda_call1",
-         "iy_transmittance",
-         "ppath",
-         "rte_pos2",
-         "rte_alonglos_v",
-         "surface_props_data",
-         "cloudbox_field",
-         "za_grid"),
-      GIN("Naa_grid", "t_interp_order"),
-      GIN_TYPE("Index", "Index"),
-      GIN_DEFAULT("19", "1"),
-      GIN_DESC("Number of azimuth angles to consider in scattering source term"
-               " integral.",
-               "Interpolation order of temperature for scattering data (so"
-               " far only applied in phase matrix, not in extinction and"
-               " absorption.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyIndependentBeamApproximation"),
