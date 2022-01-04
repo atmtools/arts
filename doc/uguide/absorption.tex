@@ -222,9 +222,9 @@ abs\_xsec\_agenda.
 \subsection{Absorption species}
 
 Absorption is additive, so the total absorption is simply the sum of
-all partial absorptions.  And the partial absorption for gases that
-have spectral lines can be calculated as a sum over the absorption of
-each spectral line, plus some more or less empirical continuum terms.
+all partial absorptions.  The partial absorption for gases can be calculated
+as a sum over the absorption of each spectral line, plus some more or less
+empirical continuum terms or over empirical absorption cross section.
 
 An absorption species in ARTS is an abstract entity that has a partial
 absorption matrix associated with it, and that usually can be
@@ -239,13 +239,15 @@ The absorption species tags specify the different considered absorbers, which ca
 be gaseous species but also free electrons and (grey-body) particles.
 For gaseous species, they also describe the model that should be used to
 calculate the absorption for each of the species.
-There are three types of tags, those for explicit line-by-line
-calculations, those for continua and complete absorption models, and a special
-Zeeman effect tag.
+There are four types of tags, those for explicit line-by-line
+calculations, those for continua and complete absorption models,
+those for empirical cross section model, and a special Zeeman effect tag.
 An example of the first kind is \verb|"H2O-18"|, which identifies a
 particular isotopologue of water vapor. An example of the second kind is
 \verb|"H2O-ForeignContCKDMT100"|, which identifies a particular continuum
-model. An example of the third is \verb|"O2-Z"|, which identifies that special Zeeman
+model. An example of the third is \verb|"CFC11-HXSEC"|, which identifies the
+empirical absorption cross section model of CFC11.
+An example of the fourth is \verb|"O2-Z"|, which identifies that special Zeeman
 routines should be used.
 Tags can be combined, if they refer to the same molecule
 (different isotopologues are allowed). Even continuum tags can be combined
@@ -647,6 +649,15 @@ specifically:
   \label{fig:absorption:cia}
  \end{center}
 \end{figure}
+
+\subsection{Absorption cross section model}
+
+The empirical absorption cross sections are calculated in the method \wsmindex{propmat\_clearskyAddHitranXsec}.
+If this method is included in the \builtindoc{propmat\_clearsky\_agenda}, then species with the
+tag "\verb|-HXSEC|" will be calculated as empirical cross section model species. 
+The absorption cross section model is based on HITRAN cross-section data, which are described in detail in 
+\cite{gordon17:_hitran2016_jqsrt}. For the details on the empirical cross section model, see \theory, 
+Section \ref{sec:abs_theory:Absorption_cross_section_model}. 
 
 \subsection{Zeeman calculations}
 \label{sec:absorption:zeeman}

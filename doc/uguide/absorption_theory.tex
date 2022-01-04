@@ -3282,18 +3282,17 @@ and thus proportional to the dry air pressure\footnote{The absorption
   treated separately and therefore not included in this Debye
   formula.}.
 
-\section{HITRAN absorption cross section model}
-\label{sec:abs_theory:HITRAN_cross_section}
+\section{Absorption cross section model}
+\label{sec:abs_theory:Absorption_cross_section_model}
 
 Many heavy polyatomic molecules posses spectra that are too dense and 
-complex to compute line-by-line. Instead absorption cross-sections
-measured in the laboratory at different pressures and temperatures are used.
-The 2016 edition of HITRAN (high-resolution transmission molecular absorption database) draws on
-such compilations, and complements them with numerous individual
-measurements from the literature, in order to provide measured
-absorption cross-sections for various gas molecules.
+complex to compute line-by-line. Instead measured absorption cross-sections
+are used. The 2016 edition of HITRAN (high-resolution transmission molecular 
+absorption database) draws on such compilations, and complements them with 
+numerous individual measurements from the literature, in order to provide measured
+absorption cross-sections for numerous gas molecules.
 These HITRAN cross-section data are described in detail in 
-\cite{gordon17:_hitran2016_jqsrt}.   For each molecular absorption species, 
+\cite{gordon17:_hitran2016_jqsrt}. For each molecular absorption species, 
 there are data in one or more spectral bands, and for each spectral band, there can be data at
 several different pressures and several different temperatures.
 
@@ -3470,7 +3469,7 @@ $\sigma(\nu,T,p)$ is fitted in temperature $T$ and pressure $p$
 by an up to 2nd order polynominal:
 \begin{equation}
   \label{eq:abs_theory:XsecFitmodel}
-  \sigma(\nu,T,p)=c_{00}+c_{10}x+c_{01}y+c_{20}x^{2}
+  \sigma(\nu,T,p)=c_{00}(\nu)+c_{10}(\nu)x+c_{01}(\nu)y+c_{20}(\nu)x^{2}
 \end{equation}
  with 
  \begin{equation}
