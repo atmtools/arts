@@ -3282,6 +3282,256 @@ and thus proportional to the dry air pressure\footnote{The absorption
   treated separately and therefore not included in this Debye
   formula.}.
 
+\section{HITRAN absorption cross section model}
+\label{sec:abs_theory:HITRAN_cross_section}
+
+Many heavy polyatomic molecules posses spectra that are too dense and 
+complex to compute line-by-line. Instead absorption cross-sections
+measured in the laboratory at different pressures and temperatures are used.
+The 2016 edition of HITRAN (high-resolution transmission molecular absorption database) draws on
+such compilations, and complements them with numerous individual
+measurements from the literature, in order to provide measured
+absorption cross-sections for various gas molecules.
+These HITRAN cross-section data are described in detail in 
+\cite{gordon17:_hitran2016_jqsrt}.   For each molecular absorption species, 
+there are data in one or more spectral bands, and for each spectral band, there can be data at
+several different pressures and several different temperatures.
+
+The basic idea is to set up a simple model for the pressure and
+temperature dependence of the absorption species, and then apply a
+global fit to all the available laboratory spectra for a given
+species. 
+
+The HITRAN cross-section data are very diverse in their spectral
+resolution, and in pressure $p$  and temperature $T$ coverage, as discussed in detail in
+\cite{kochanov19:_infrared_jqsrt}. For example, there
+are species that have high $p$ / $T$ resolution data in a specific
+spectral range and only coarse $p$ / $T$ resolution data outside that
+range. Frequency resolution also varies considerably in different
+parts of the spectrum.
+Before the fit, the input data have to be harmonised with
+respect to their frequency grids.  The highest spectral resolution 
+of the set of observations of a species is used as the reference resolution. 
+The observations with coarser frequency resolution are linearly interpolated onto this
+resolution.
+Some molecular species have a very high resolution for a small
+spectral range, and coarse resolution or no data elsewhere.
+Therefore, the data are split into bands of different
+spectral resolution. Table \ref{tab:abs_theory:Xsec_Absorption-species} and 
+\ref{tab:abs_theory:Xsec_Absorption-species2} list the implemented species, their bands, 
+and for each band the $p$ / $T$ limits of the laboratory data and the 
+polynomial orders in $p$ and $T$ that were adopted.
+
+\begin{table}
+  \caption{Considered cross section species together
+  with spectral, pressure and temperature limits and with $O_{p,T}$
+  the maximum polynominal order of the pressure/temperature dependency
+  of the band. (First half)}
+\label{tab:abs_theory:Xsec_Absorption-species}
+\scriptsize
+\renewcommand{\arraystretch}{0.7}
+\hspace{-2cm}
+\begin{tabular}{lllllllllll}
+\hline 
+species & band & $\overset{\sim}{\nu}_{min}$ {[}cm$^{-1}${]} & $\overset{\sim}{\nu}_{max}$ {[}cm$^{-1}${]} & $\delta\overset{\sim}{\nu}$ {[}cm$^{-1}${]} & $p_{min}$ {[}hPa{]} & $p_{max}$ {[}hPa{]} & $T_{min}$ {[}K{]} & $T_{min}$ {[}K{]} & $O_{p}$ & $O_{T}$\tabularnewline
+\hline 
+&  &  &  &  &  &  &  &  &  & \tabularnewline
+CFC11 & $0$ & $570$ & $810$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $810$ & $880$ & $0.003$ & $10.00$ & $1013.25$ & $190.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $2$ & $880$ & $1050$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $3$ & $1050$ & $1120$ & $0.003$ & $10.00$ & $1013.25$ & $190.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $4$ & $1120$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+CFC12 & $0$ & $800$ & $1270$ & $0.001$ & $10.00$ & $1014.58$ & $189.50$ & $296.30$ & $1$ & $2$\tabularnewline
+CFC113 & $0$ & $600$ & $1250$ & $0.015$ & $0.00$ & $1013.25$ & $203.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $1$ & $1250$ & $5000$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+CFC114 & $0$ & $600$ & $815$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $815$ & $860$ & $0.015$ & $0.00$ & $1013.25$ & $203.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $2$ & $860$ & $870$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $3$ & $870$ & $960$ & $0.015$ & $0.00$ & $1013.25$ & $203.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $4$ & $960$ & $1030$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $5$ & $1030$ & $1067$ & $0.015$ & $0.00$ & $1013.25$ & $203.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $6$ & $1067$ & $1095$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $7$ & $1095$ & $1285$ & $0.015$ & $0.00$ & $1013.25$ & $203.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $8$ & $1285$ & $5000$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+CFC115 & $0$ & $955$ & $1015$ & $0.015$ & $0.00$ & $0.00$ & $203.00$ & $293.00$ & $0$ & $2$\tabularnewline
+& $1$ & $1110$ & $1145$ & $0.015$ & $0.00$ & $0.00$ & $203.00$ & $293.00$ & $0$ & $2$\tabularnewline
+& $2$ & $1167$ & $1260$ & $0.015$ & $0.00$ & $0.00$ & $203.00$ & $293.00$ & $0$ & $2$\tabularnewline
+HCFC22 & $0$ & $730$ & $1380$ & $0.001$ & $0.00$ & $1019.38$ & $181.00$ & $297.00$ & $1$ & $2$\tabularnewline
+HCFC141b & $0$ & $550$ & $560$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $560$ & $3100$ & $0.008$ & $0.00$ & $1013.25$ & $223.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $2$ & $3100$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+HCFC142b & $0$ & $600$ & $650$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $650$ & $1500$ & $0.008$ & $0.00$ & $1013.25$ & $223.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $2$ & $1500$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+HFC23 & $0$ & $950$ & $1500$ & $0.001$ & $30.66$ & $1016.45$ & $187.60$ & $294.40$ & $1$ & $2$\tabularnewline
+HFC32 & $0$ & $400$ & $450$ & $0.120$ & $933.26$ & $933.26$ & $296.00$ & $296.00$ & $0$ & $0$\tabularnewline
+& $1$ & $450$ & $630$ & $0.017$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $2$ & $630$ & $995$ & $0.060$ & $933.26$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $3$ & $995$ & $1236$ & $0.015$ & $0.00$ & $1013.25$ & $203.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $4$ & $1236$ & $1385$ & $0.060$ & $933.26$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $5$ & $1385$ & $1475$ & $0.015$ & $0.00$ & $1013.25$ & $203.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $6$ & $1475$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+HFC125 & $0$ & $495$ & $495$ & $0.048$ & $0.00$ & $0.00$ & $253.00$ & $253.00$ & $0$ & $0$\tabularnewline
+& $1$ & $495$ & $499$ & $0.048$ & $0.00$ & $799.93$ & $203.00$ & $273.00$ & $0$ & $1$\tabularnewline
+& $2$ & $499$ & $1504$ & $0.048$ & $0.00$ & $1013.25$ & $203.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $3$ & $1504$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+HFC134a & $0$ & $75$ & $590$ & $0.017$ & $0.00$ & $0.00$ & $253.00$ & $253.00$ & $0$ & $0$\tabularnewline
+& $1$ & $600$ & $750$ & $0.015$ & $0.00$ & $0.00$ & $253.00$ & $253.00$ & $0$ & $0$\tabularnewline
+& $2$ & $750$ & $1600$ & $0.001$ & $0.00$ & $1014.32$ & $190.00$ & $296.00$ & $1$ & $2$\tabularnewline
+HFC143a & $0$ & $500$ & $550$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $550$ & $3500$ & $0.008$ & $0.00$ & $1013.25$ & $203.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $2$ & $3500$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+HFC152a & $0$ & $525$ & $830$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $830$ & $840$ & $0.010$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $2$ & $840$ & $995$ & $0.009$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $3$ & $995$ & $1050$ & $0.010$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $4$ & $1050$ & $1205$ & $0.009$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $5$ & $1205$ & $1320$ & $0.010$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $6$ & $1320$ & $1490$ & $0.009$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $7$ & $1490$ & $1500$ & $0.010$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $8$ & $1500$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+HFC227ea & $0$ & $400$ & $500$ & $0.121$ & $933.26$ & $933.26$ & $296.00$ & $296.00$ & $0$ & $0$\tabularnewline
+& $1$ & $500$ & $6500$ & $0.060$ & $933.26$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+HFC236fa & $0$ & $350$ & $1500$ & $0.120$ & $933.26$ & $933.26$ & $296.00$ & $296.00$ & $0$ & $0$\tabularnewline
+HFC245fa & $0$ & $640$ & $1500$ & $0.241$ & $933.26$ & $933.26$ & $296.00$ & $296.00$ & $0$ & $0$\tabularnewline
+HFC365mfc & $0$ & $600$ & $2000$ & $0.060$ & $933.26$ & $933.26$ & $296.00$ & $296.00$ & $0$ & $0$\tabularnewline
+\hline 
+\end{tabular}
+
+\end{table}
+
+
+\begin{table}
+  \caption{Considered cross section species together
+  with spectral, pressure and temperature limits and with $O_{p,T}$
+  the maximum polynominal order of the pressure/temperature dependency
+  of the band. (Second half)}
+\label{tab:abs_theory:Xsec_Absorption-species2}
+\scriptsize
+\renewcommand{\arraystretch}{0.7}
+\hspace{-2cm}
+\begin{tabular}{lllllllllll}
+\hline 
+species & band & $\overset{\sim}{\nu}_{min}$ {[}cm$^{-1}${]} & $\overset{\sim}{\nu}_{max}$ {[}cm$^{-1}${]} & $\delta\overset{\sim}{\nu}$ {[}cm$^{-1}${]} & $p_{min}$ {[}hPa{]} & $p_{max}$ {[}hPa{]} & $T_{min}$ {[}K{]} & $T_{min}$ {[}K{]} & $O_{p}$ & $O_{T}$\tabularnewline
+\hline 
+&  &  &  &  &  &  &  &  &  & \tabularnewline
+HFC4310mee & $0$ & $500$ & $550$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $550$ & $3500$ & $0.030$ & $0.00$ & $1013.25$ & $278.10$ & $340.00$ & $1$ & $1$\tabularnewline
+& $2$ & $3500$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+CH3CCl3 & $0$ & $500$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+CCl4 & $0$ & $700$ & $860$ & $0.001$ & $10.00$ & $1013.25$ & $207.90$ & $296.70$ & $1$ & $2$\tabularnewline
+CH2Cl2 & $0$ & $600$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+CHCl3 & $0$ & $580$ & $725$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $725$ & $805$ & $0.048$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $2$ & $805$ & $7200$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+Halon1211 & $0$ & $600$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+Halon1301 & $0$ & $510$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+Halon2402 & $0$ & $550$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+NF3 & $0$ & $600$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+SF6 & $0$ & $560$ & $925$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $925$ & $955$ & $0.005$ & $26.93$ & $1013.52$ & $180.00$ & $323.10$ & $1$ & $2$\tabularnewline
+& $2$ & $955$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+SO2F2 & $0$ & $500$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+CF4 & $0$ & $570$ & $1250$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $1250$ & $1290$ & $0.003$ & $10.05$ & $1014.58$ & $180.40$ & $323.10$ & $1$ & $2$\tabularnewline
+& $2$ & $1290$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+C2F6 & $0$ & $500$ & $680$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $680$ & $750$ & $0.015$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $2$ & $750$ & $1061$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $3$ & $1061$ & $1165$ & $0.003$ & $0.00$ & $1013.65$ & $180.60$ & $323.10$ & $1$ & $2$\tabularnewline
+& $4$ & $1165$ & $1170$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $5$ & $1170$ & $1220$ & $0.030$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $6$ & $1220$ & $1285$ & $0.003$ & $0.00$ & $1013.65$ & $180.60$ & $323.10$ & $1$ & $2$\tabularnewline
+& $7$ & $1285$ & $1380$ & $0.030$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $8$ & $1380$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+C3F8 & $0$ & $600$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+cC4F8 & $0$ & $550$ & $555$ & $0.061$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $1$ & $555$ & $590$ & $0.015$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $2$ & $590$ & $900$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $3$ & $900$ & $1460$ & $0.015$ & $0.00$ & $1013.25$ & $253.00$ & $323.10$ & $1$ & $1$\tabularnewline
+& $4$ & $1460$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+C4F10 & $0$ & $500$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+C5F12 & $0$ & $500$ & $700$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $0$\tabularnewline
+& $1$ & $700$ & $1400$ & $0.012$ & $0.00$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $1$\tabularnewline
+& $2$ & $1400$ & $6500$ & $0.060$ & $1013.25$ & $1013.25$ & $278.10$ & $323.10$ & $0$ & $0$\tabularnewline
+C6F14 & $0$ & $700$ & $1400$ & $0.012$ & $0.00$ & $0.00$ & $297.00$ & $297.00$ & $0$ & $0$\tabularnewline
+C8F18 & $0$ & $700$ & $1400$ & $0.012$ & $0.00$ & $0.00$ & $297.00$ & $297.00$ & $0$ & $0$\tabularnewline
+\hline 
+\end{tabular}
+\end{table}
+
+Since the number of observations at different
+temperatures and pressures varies over the spectral range, the fitting
+model is selected for each frequency individually, as summarised in
+Table \ref{tab:abs_theory:Xsec_Fitting-conditions}.
+Explicitly, for a given species and at a given
+frequency $\nu$, the observed cross-section
+$\sigma(\nu,T,p)$ is fitted in temperature $T$ and pressure $p$
+by an up to 2nd order polynominal:
+\begin{equation}
+  \label{eq:abs_theory:XsecFitmodel}
+  \sigma(\nu,T,p)=c_{00}+c_{10}x+c_{01}y+c_{20}x^{2}
+\end{equation}
+ with 
+ \begin{equation}
+   \label{eq:abs_theory:Xsec_X_definition}
+   x=\frac{T}{T_{0}}\,,
+\end{equation}
+and
+\begin{equation}
+  \label{eq:abs_theory:Xsec_Y_definition}
+  y=\frac{p}{p_{0}}\,,
+\end{equation}
+using a least squares fit. The variables $T_{0}$ = 1\,K and $p_{0}$ = 1\,Pa
+are constant factors to remove the units of $T$ and $p$. The coefficients
+$c_{ij}$  and the cross-section $\sigma\left(\nu \right)$ are defined in units of [m$^2$]. 
+
+The fitting process includes a simple outlier detection algorithm.
+\begin{enumerate}
+\item Fit the data using all given data at frequency $f$. 
+\item Estimate the residuals between fit and data. 
+\item Fit the data excluding all data points with residuals $>1.5\,\sigma_{data}$ in which
+$\sigma_{data}$ is the standard deviation of the data at given frequency
+\end{enumerate} 
+
+
+
+\begin{table}[H]
+  \caption{\label{tab:abs_theory:Xsec_Fitting-conditions}Fitting conditions for the
+    cross-section fit. Variables $x$ and $y$ are defined according to
+    Equations \ref{eq:abs_theory:Xsec_X_definition} and \ref{eq:abs_theory:Xsec_Y_definition}. Column
+    `min. obs.' states the minimum required number of observations
+    (laboratory cross-section spectra at different $p$/$T$
+    conditions). The last two columns state the required range in $p$
+    and $T$, respectively.}
+\centerline{%
+\scriptsize
+\renewcommand{\arraystretch}{0.7}
+\begin{tabular}{cccccc}
+\hline 
+&  &  &  &  & \tabularnewline
+fit model & $N_{T,min}$ & $N_{p,min}$ & $N_{min}$ & $\max\left(p\right)-\min\left(p\right)\ge$ & $\max\left(T\right)-\min\left(T\right)\ge$\tabularnewline
+\hline 
+&  &  &  &  & \tabularnewline
+$c_{00}+c_{10}x+c_{01}y+c_{20}x^{2}$ & 5 & 2 & 6 & 800$\,$hPa & 80$\,$K\tabularnewline
+$c_{00}+c_{10}x+c_{01}y$ & 2 & 2 & 4 & 800$\,$hPa & 40$\,$K\tabularnewline
+$c_{00}+c_{10}x+c_{20}x^{2}$ & 5 & 1 & 5 & 0$\,$hPa & 80$\,$K\tabularnewline
+$c_{00}+c_{10}x$ & 3 & 1 & 3 & 0$\,$hPa & 40$\,$K\tabularnewline
+$c_{00}+c_{01}y$ & 1 & 3 & 3 & 800$\,$hPa & 0$\,$K\tabularnewline
+$c_{00}$ & 1 & 1 & 1 & 0$\,$hPa & 0$\,$K\tabularnewline
+\hline 
+\end{tabular}}
+\end{table}
+
+Negative absorption cross sections can occur, when using the fit 
+outside the limited temperature and pressure range. These ranges are defined
+by the minimum and maximum pressure and temperature of the set
+of observations for the given species ($p_{\mathrm{min}}$,
+$p_{\mathrm{max}}$, $T_{\mathrm{min}}$, $T_{\mathrm{max}}$), Within the range
+of atmospheric conditions, the negative values occur only at the noise level of the 
+absorption spectra. Therefore, negative absorption cross sections are simply set to zero.
+To avoid a positive bias due to the removal of negative values, the spectrum is scaled 
+afterwards so that the integral over the spectrum of the specific band does not change.
 
 
 
