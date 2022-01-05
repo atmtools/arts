@@ -2490,39 +2490,6 @@ void define_md_data_raw() {
           "Set to 1 to suppress runtime errors (and return NAN values instead).")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddHitranXsec"),
-      DESCRIPTION(
-          "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
-          "\n"
-          "This broadens the cross section data from *hitran_xsec_data* and\n"
-          "interpolates it onto the current f_grid.\n"
-          "\n"
-          "apply_tfit turns of the temperature fit. It is only meant for testing\n"
-          "and should alwasy be kept on for real calculations.\n"
-          "\n"
-          "This method depends on the FFTW-3 library.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT("abs_xsec_per_species", "dabs_xsec_per_species_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "abs_species",
-         "jacobian_quantities",
-         "abs_species_active",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "hitran_xsec_data"),
-      GIN("apply_tfit", "force_p", "force_t"),
-      GIN_TYPE("Index", "Numeric", "Numeric"),
-      GIN_DEFAULT("1", "-1", "-1"),
-      GIN_DESC("Apply temperature fit.",
-               "Positive value forces constant pressure [Pa].",
-               "Positive value forces constant temperature [K].")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddConts"),
       DESCRIPTION(
           "Calculate absorption cross sections per tag group for continua.\n"),
@@ -12991,6 +12958,71 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("abs_xsec_per_speciesAddHitranXsec"),
+      DESCRIPTION(
+          "This method will be removed soon, use *propmat_clearskyAddHitranXsec*\n"
+          "instead if possible.\n"
+          "\n"
+          "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
+          "\n"
+          "This broadens the cross section data from *hitran_xsec_data* and\n"
+          "interpolates it onto the current f_grid.\n"
+          "\n"
+          "Model data needs to be read in with *ReadXsecData* before calling\n"
+          "this method.\n"),
+      AUTHORS("Oliver Lemke"),
+      OUT("abs_xsec_per_species", "dabs_xsec_per_species_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_xsec_per_species",
+         "dabs_xsec_per_species_dx",
+         "abs_species",
+         "jacobian_quantities",
+         "abs_species_active",
+         "f_grid",
+         "abs_p",
+         "abs_t",
+         "hitran_xsec_data"),
+      GIN("force_p",
+          "force_t"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1"),
+      GIN_DESC("Positive value forces constant pressure [Pa].",
+               "Positive value forces constant temperature [K].")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddHitranXsec"),
+      DESCRIPTION(
+          "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
+          "\n"
+          "This broadens the cross section data from *hitran_xsec_data* and\n"
+          "interpolates it onto the current f_grid.\n"
+          "\n"
+          "Model data needs to be read in with *ReadXsecData* before calling\n"
+          "this method.\n"),
+      AUTHORS("Oliver Lemke"),
+      OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "dpropmat_clearsky_dx",
+         "abs_species",
+         "jacobian_quantities",
+         "f_grid",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_vmr",
+         "hitran_xsec_data"),
+      GIN("force_p",
+          "force_t"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1"),
+      GIN_DESC("Positive value forces constant pressure [Pa].",
+               "Positive value forces constant temperature [K].")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddLines"),
       DESCRIPTION(
         "Computes the line-by-line unpolarized absorption and adds\n"
@@ -14984,6 +15016,23 @@ void define_md_data_raw() {
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Path to store the files at")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ReadXsecData"),
+      DESCRIPTION("Reads HITRAN Crosssection coefficients\n"
+                  "\n"
+                  "Reads coefficient files for HITRAN Xsec species defined\n"
+                  "in *abs_species*.\n"),
+      AUTHORS("Oliver Lemke"),
+      OUT("hitran_xsec_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_species"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Basepath to the files")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadNetCDF"),

@@ -103,8 +103,10 @@ ENUMCLASS(Species, unsigned char,
           HFC152a,
           HFC227ea,
           HFC23,
+          HFC236fa,
           HFC245fa,
           HFC32,
+          HFC365mfc,
           NitrogenTrifluoride,
           SulfurylFluoride,
           HFC4310mee,
@@ -284,8 +286,10 @@ constexpr std::string_view toShortName(Species x) noexcept {
     case Species::HFC152a: return "HFC152a";
     case Species::HFC227ea: return "HFC227ea";
     case Species::HFC23: return "HFC23";
+    case Species::HFC236fa: return "HFC236fa";
     case Species::HFC245fa: return "HFC245fa";
     case Species::HFC32: return "HFC32";
+    case Species::HFC365mfc: return "HFC365mfc";
     case Species::NitrogenTrifluoride: return "NF3";
     case Species::SulfurylFluoride: return "SO2F2";
     case Species::HFC4310mee: return "HFC4310mee";
@@ -473,8 +477,10 @@ constexpr Species fromShortName(const std::string_view x) noexcept {
   if (x == "HFC152a") return Species::HFC152a;
   if (x == "HFC227ea") return Species::HFC227ea;
   if (x == "HFC23") return Species::HFC23;
+  if (x == "HFC236fa") return Species::HFC236fa;
   if (x == "HFC245fa") return Species::HFC245fa;
   if (x == "HFC32") return Species::HFC32;
+  if (x == "HFC365mfc") return Species::HFC365mfc;
   if (x == "NF3") return Species::NitrogenTrifluoride;
   if (x == "SO2F2") return Species::SulfurylFluoride;
   if (x == "HFC4310mee") return Species::HFC4310mee;

@@ -89,11 +89,6 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
         "*abs_species* contains CIA species but *abs_xsec_agenda*\n"
         "does not contain *abs_xsec_per_speciesAddCIA*.");
 
-  ARTS_USER_ERROR_IF (needs_hxsec &&
-      !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddHitranXsec"),
-        "*abs_species* contains HITRAN xsec species but *abs_xsec_agenda*\n"
-        "does not contain *abs_xsec_per_speciesAddHitranXsec*.");
-
   // If here, all OK
   abs_xsec_agenda_checked = 1;
 }
@@ -917,6 +912,7 @@ void propmat_clearsky_agenda_checkedCalc(
   ARTS_USER_ERROR_IF(
       needs_hxsec and
           not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
+              propmat_clearsky_agenda.has_method("propmat_clearskyAddHitranXsec") or
               propmat_clearsky_agenda.has_method(
                   "propmat_clearskyAddFromLookup")),
       "*abs_species* contains Hitran XSEC models but *propmat_clearsky_agenda*\n"

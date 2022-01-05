@@ -1923,9 +1923,12 @@ void xml_read_from_stream(istream& is_xml,
                           const Verbosity& verbosity) {
   CREATE_OUT2;
   ArtsXMLTag tag(verbosity);
+  Index version;
 
   tag.read_from_stream(is_xml);
   tag.check_name("XsecRecord");
+  tag.get_attribute_value("version", version);
+  xd.SetVersion(version);
 
   String species_name;
   xml_read_from_stream(is_xml, species_name, pbifs, verbosity);
@@ -1936,57 +1939,23 @@ void xml_read_from_stream(istream& is_xml,
     os << "  Unknown species in XsecRecord: " << species_name;
     throw std::runtime_error(os.str());
   }
-  xd.mspecies = species;
+  xd.SetSpecies(species);
 
-  Vector fmin, fmax;
-  xml_read_from_stream(is_xml, xd.mcoeffs, pbifs, verbosity);
-  xml_read_from_stream(is_xml, fmin, pbifs, verbosity);
-  xml_read_from_stream(is_xml, fmax, pbifs, verbosity);
-  xml_read_from_stream(is_xml, xd.mrefpressure, pbifs, verbosity);
-  xml_read_from_stream(is_xml, xd.mreftemperature, pbifs, verbosity);
-  xml_read_from_stream(is_xml, xd.mxsecs, pbifs, verbosity);
+  ARTS_USER_ERROR_IF(version != 2, "Only XsecRecord version 2 is supported")
 
-  xml_read_from_stream(is_xml, xd.mtslope, pbifs, verbosity);
-  xml_read_from_stream(is_xml, xd.mtintersect, pbifs, verbosity);
-  if (xd.mtslope.nelem() != xd.mxsecs.nelem() ||
-      xd.mtintersect.nelem() != xd.mxsecs.nelem()) {
-    std::ostringstream os;
-    os << "  Bugged input data for " << species_name << ". "
-       << "Number of bands mismatch.\n"
-       << "Cross sections:      " << xd.mxsecs.nelem() << "\n"
-       << "Tfit slope data:     " << xd.mtslope.nelem() << "\n"
-       << "Tfit intersect data: " << xd.mtintersect.nelem() << "\n";
-    throw std::runtime_error(os.str());
+  xml_read_from_stream(is_xml, xd.FitMinPressures(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, xd.FitMaxPressures(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, xd.FitMinTemperatures(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, xd.FitMaxTemperatures(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, xd.FitCoeffs(), pbifs, verbosity);
+
+  for (const auto& fitcoeffs : xd.FitCoeffs()) {
+    const Index ncoeff = fitcoeffs.data.ncols();
+    ARTS_USER_ERROR_IF(
+        ncoeff != 4, "Wrong number of coefficients, expected 4, found ", ncoeff)
   }
-  for (Index i = 0; i < xd.mxsecs.nelem(); i++) {
-    if (xd.mtslope[i].nelem() <= 1) {
-      out2 << "  Warning: No temperature fit available for " << species_name
-           << " band " << i << "\n";
-    } else if (xd.mtslope[i].nelem() != xd.mxsecs[i].nelem()) {
-      std::ostringstream os;
-      os << "  Bugged input data for " << species_name << ". "
-         << "Length of cross sections (" << xd.mxsecs[i].nelem()
-         << ") does not match length of temperature fit data ("
-         << xd.mtslope[i].nelem() << ").";
-      throw std::runtime_error(os.str());
-    }
 
-    if (xd.mtslope[i].nelem() != xd.mtintersect[i].nelem()) {
-      std::ostringstream os;
-      os << "  Bugged input data for " << species_name << ". "
-         << "Length of temperature fit slope data (" << xd.mtslope[i].nelem()
-         << ") does not match length of temperature fit intersect data ("
-         << xd.mtintersect[i].nelem() << ") for band " << i << ".";
-      throw std::runtime_error(os.str());
-    }
-  }
   tag.read_from_stream(is_xml);
-
-  const Index ndatasets = xd.mxsecs.nelem();
-  xd.mfgrids.resize(ndatasets);
-  for (Index i = 0; i < ndatasets; i++) {
-    nlinspace(xd.mfgrids[i], fmin[i], fmax[i], xd.mxsecs[i].nelem());
-  }
   tag.check_name("/XsecRecord");
 }
 
@@ -2007,28 +1976,35 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("XsecRecord");
   if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("version", xd.Version());
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
-  const Index ndatasets = xd.Coeffs().nelem();
-  Vector fmin(ndatasets), fmax(ndatasets);
-  for (Index i = 0; i < ndatasets; i++) {
-    fmin[i] = xd.Fgrids()[i][0];
-    fmax[i] = xd.Fgrids()[i][xd.Fgrids()[i].nelem() - 1];
-  }
-
   xml_write_to_stream(os_xml, xd.SpeciesName(), pbofs, "species", verbosity);
-  xml_write_to_stream(os_xml, (Vector)xd.Coeffs(), pbofs, "coefs", verbosity);
-  xml_write_to_stream(os_xml, fmin, pbofs, "fmin", verbosity);
-  xml_write_to_stream(os_xml, fmax, pbofs, "fmax", verbosity);
+
+  xml_write_to_stream(os_xml,
+                      xd.FitMinPressures(),
+                      pbofs,
+                      "Mininum pressures from fit",
+                      verbosity);
+  xml_write_to_stream(os_xml,
+                      xd.FitMaxPressures(),
+                      pbofs,
+                      "Maximum pressures from fit",
+                      verbosity);
+  xml_write_to_stream(os_xml,
+                      xd.FitMinTemperatures(),
+                      pbofs,
+                      "Mininum temperatures from fit",
+                      verbosity);
+  xml_write_to_stream(os_xml,
+                      xd.FitMaxTemperatures(),
+                      pbofs,
+                      "Maximum temperatures from fit",
+                      verbosity);
   xml_write_to_stream(
-      os_xml, (Vector)xd.RefPressure(), pbofs, "refpressure", verbosity);
-  xml_write_to_stream(
-      os_xml, (Vector)xd.RefTemperature(), pbofs, "reftemperature", verbosity);
-  xml_write_to_stream(os_xml, xd.Xsecs(), pbofs, "xsec", verbosity);
-  xml_write_to_stream(os_xml, xd.TemperatureSlope(), pbofs, "xsec", verbosity);
-  xml_write_to_stream(
-      os_xml, xd.TemperatureIntersect(), pbofs, "xsec", verbosity);
+      os_xml, xd.FitCoeffs(), pbofs, "Fit coefficients", verbosity);
+
   close_tag.set_name("/XsecRecord");
   close_tag.write_to_stream(os_xml);
 

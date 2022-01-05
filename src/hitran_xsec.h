@@ -26,107 +26,134 @@
 #ifndef HITRAN_XSEC_H
 #define HITRAN_XSEC_H
 
-#include "arts.h"
-
 #include "array.h"
+#include "arts.h"
 #include "bifstream.h"
+#include "gridded_fields.h"
 #include "matpackI.h"
 #include "messages.h"
 #include "mystring.h"
+#include "species.h"
 
+/** Hitran crosssection class.
+ *
+ * Stores the coefficients from our model for hitran crosssection data and
+ * applies them to calculate the crossections.
+ */
 class XsecRecord {
  public:
   /** Return species index */
-  Species::Species Species() const { return mspecies; };
+  [[nodiscard]] const Species::Species& Species() const { return mspecies; };
 
   /** Return species name */
-  String SpeciesName() const;
+  [[nodiscard]] String SpeciesName() const;
 
   /** Set species name */
   void SetSpecies(const Species::Species species) { mspecies = species; };
 
-  /** Get coefficients */
-  ConstVectorView Coeffs() const { return mcoeffs; };
+  /** Return species index */
+  [[nodiscard]] Index Version() const { return mversion; };
 
-  /** Get reference pressures */
-  ConstVectorView RefPressure() const { return mrefpressure; };
+  /** Set species name */
+  void SetVersion(Index version);
 
-  /** Get reference temperatures */
-  ConstVectorView RefTemperature() const { return mreftemperature; };
+  /** Calculate hitran cross section data.
 
-  /** Get frequency grids of cross sections */
-  const ArrayOfVector& Fgrids() const { return mfgrids; };
+     Calculate crosssections at each frequency for given pressure and
+     temperature.
 
-  /** Get cross sections */
-  const ArrayOfVector& Xsecs() const { return mxsecs; };
-
-  /** Get slope of temperature fit */
-  const ArrayOfVector& TemperatureSlope() const { return mtslope; };
-
-  /** Get intersect of temperature fit */
-  const ArrayOfVector& TemperatureIntersect() const { return mtintersect; };
-  
-  /** Get coefficients */
-  Vector& Coeffs() { return mcoeffs; };
-  
-  /** Get reference pressures */
-  Vector& RefPressure() { return mrefpressure; };
-  
-  /** Get reference temperatures */
-  Vector& RefTemperature() { return mreftemperature; };
-  
-  /** Get frequency grids of cross sections */
-  ArrayOfVector& Fgrids() { return mfgrids; };
-  
-  /** Get cross sections */
-  ArrayOfVector& Xsecs() { return mxsecs; };
-  
-  /** Get slope of temperature fit */
-  ArrayOfVector& TemperatureSlope() { return mtslope; };
-  
-  /** Get intersect of temperature fit */
-  ArrayOfVector& TemperatureIntersect() { return mtintersect; };
-
-  /** Interpolate cross section data.
-
-     Interpolate Xsec data to given frequency vector and given scalar pressure.
-     Uses third order interpolation in both coordinates, if grid length allows,
-     otherwise lower order or no interpolation.
-
-     \param[out] result     Xsec value for given frequency grid and temperature.
+     \param[out] result     Crosssections for given frequency grid.
      \param[in] f_grid      Frequency grid.
      \param[in] pressure    Scalar pressure.
      \param[in] temperature Scalar temperature.
-     \param[in] apply_tfit  Set to 0 to not apply the temperature fit
-     \param[in] verbosity   Standard verbosity object.
+     \param[in] verbosity   Verbosity.
      */
   void Extract(VectorView result,
-               ConstVectorView f_grid,
-               const Numeric& pressure,
-               const Numeric& temperature,
-               const Index& apply_tfit,
+               const Vector& f_grid,
+               Numeric pressure,
+               Numeric temperature,
                const Verbosity& verbosity) const;
 
-  friend void xml_read_from_stream(std::istream& is_xml,
-                                   XsecRecord& cr,
-                                   bifstream* pbifs,
-                                   const Verbosity& verbosity);
+  /************ VERSION 2 *************/
+  /** Get mininum pressures from fit */
+  [[nodiscard]] const Vector& FitMinPressures() const {
+    return mfitminpressures;
+  };
+
+  /** Get maximum pressures from fit */
+  [[nodiscard]] const Vector& FitMaxPressures() const {
+    return mfitmaxpressures;
+  };
+
+  /** Get mininum temperatures from fit */
+  [[nodiscard]] const Vector& FitMinTemperatures() const {
+    return mfitmintemperatures;
+  };
+
+  /** Get maximum temperatures */
+  [[nodiscard]] const Vector& FitMaxTemperatures() const {
+    return mfitmaxtemperatures;
+  };
+
+  /** Get coefficients */
+  [[nodiscard]] const ArrayOfGriddedField2& FitCoeffs() const {
+    return mfitcoeffs;
+  };
+
+  /** Get mininum pressures from fit */
+  [[nodiscard]] Vector& FitMinPressures() { return mfitminpressures; };
+
+  /** Get maximum pressures from fit */
+  [[nodiscard]] Vector& FitMaxPressures() { return mfitmaxpressures; };
+
+  /** Get mininum temperatures from fit */
+  [[nodiscard]] Vector& FitMinTemperatures() { return mfitmintemperatures; };
+
+  /** Get maximum temperatures */
+  [[nodiscard]] Vector& FitMaxTemperatures() { return mfitmaxtemperatures; };
+
+  /** Get coefficients */
+  [[nodiscard]] ArrayOfGriddedField2& FitCoeffs() { return mfitcoeffs; };
 
  private:
+  /** Calculate crosssections */
+  void CalcXsec(VectorView& xsec,
+                Index dataset,
+                Numeric pressure,
+                Numeric temperature) const;
+
+  // /** Calculate temperature derivative of crosssections */
+  // void CalcDT(VectorView& xsec_dt,
+  //             Index dataset,
+  //             Numeric temperature) const;
+
+  // /** Calculate pressure derivative of crosssections */
+  // void CalcDP(VectorView& xsec_dp,
+  //             Index dataset,
+  //             Numeric pressure) const;
+
+  /** Remove negative cross sections and adjust integral */
+  void RemoveNegativeXsec(VectorView& xsec) const;
+
+  static const Index P00 = 0;
+  static const Index P10 = 1;
+  static const Index P01 = 2;
+  static const Index P20 = 3;
+
+  Index mversion{2};
   Species::Species mspecies;
-  Vector mcoeffs;
-  Vector mrefpressure;
-  Vector mreftemperature;
-  ArrayOfVector mfgrids;
-  ArrayOfVector mxsecs;
-  ArrayOfVector mtslope;
-  ArrayOfVector mtintersect;
+  /* VERSION 2 */
+  Vector mfitminpressures;
+  Vector mfitmaxpressures;
+  Vector mfitmintemperatures;
+  Vector mfitmaxtemperatures;
+  ArrayOfGriddedField2 mfitcoeffs;
 };
 
-typedef Array<XsecRecord> ArrayOfXsecRecord;
+using ArrayOfXsecRecord = Array<XsecRecord>;
 
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
-                            const Species::Species species);
+                            Species::Species species);
 
 std::ostream& operator<<(std::ostream& os, const XsecRecord& xd);
 
