@@ -12960,7 +12960,16 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddHitranXsec"),
       DESCRIPTION(
-          "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"),
+          "This method will be removed soon, use *propmat_clearskyAddHitranXsec*\n"
+          "instead if possible.\n"
+          "\n"
+          "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
+          "\n"
+          "This broadens the cross section data from *hitran_xsec_data* and\n"
+          "interpolates it onto the current f_grid.\n"
+          "\n"
+          "Model data needs to be read in with *ReadXsecData* before calling\n"
+          "this method.\n"),
       AUTHORS("Oliver Lemke"),
       OUT("abs_xsec_per_species", "dabs_xsec_per_species_dx"),
       GOUT(),
@@ -12988,7 +12997,10 @@ void define_md_data_raw() {
           "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
           "\n"
           "This broadens the cross section data from *hitran_xsec_data* and\n"
-          "interpolates it onto the current f_grid.\n"),
+          "interpolates it onto the current f_grid.\n"
+          "\n"
+          "Model data needs to be read in with *ReadXsecData* before calling\n"
+          "this method.\n"),
       AUTHORS("Oliver Lemke"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
