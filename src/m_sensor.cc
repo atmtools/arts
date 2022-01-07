@@ -48,6 +48,7 @@
 #include "math_funcs.h"
 #include "messages.h"
 #include "ppath.h"
+#include "rte.h"
 #include "sensor.h"
 #include "sorting.h"
 #include "special_interp.h"
@@ -2701,7 +2702,7 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
     //
     for (Index ilos = 0; ilos < nlos; ilos++) {
       // Rotation matrix for direction of concern
-      mueller_rotation(Hrot, npol, stokes_rotation[ilos]);
+      muellersparse_rotation(Hrot, npol, stokes_rotation[ilos]);
 
       for (Index ifr = 0; ifr < nf; ifr++) {
         for (Index ip = 0; ip < npol; ip++) {

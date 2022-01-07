@@ -1125,6 +1125,124 @@ $S_3$ $(S_3=S_4^\ast)$ and this results in that \MtrStl{F} is a
 symmetric matrix (in general with all element positions filled).
 
 
+\section{Change of the Stokes basis}
+\label{sec:polarization:basis}
+%=====================================================================
+%
+In this section vector-matrix formalism is used. The standard Stokes vector
+is
+\begin{equation}
+  \VctStl{s} = \begin{bmatrix} I\\Q\\U\\V \end{bmatrix}.
+\end{equation}
+
+\subsection{The modified Stokes vector}
+%
+There are also other definitions of the Stokes vector, such as the modified
+Stokes vector:
+\begin{equation}
+  \VctStl{m} = \begin{bmatrix} I_v\\I_h\\U\\V \end{bmatrix}.
+\end{equation}
+A Stokes vector is converted to its modified counterpart by the matrix:
+\begin{equation}
+  \MtrStl{C_m} = \begin{bmatrix}
+    1/2&1/2&0&0\\
+    1/2&-1/2&0&0\\
+    0&0&1&0\\
+    0&0&0&1\\
+  \end{bmatrix}.
+\end{equation}
+The reversed transformation is
+\begin{equation}
+  \MtrStl{C_s} = \begin{bmatrix}
+    1&1&0&0\\
+    1&-1&0&0\\
+    0&0&1&0\\
+    0&0&0&1\\
+  \end{bmatrix}.
+\end{equation}
+A matrix operating on a Stokes vectoir is called a Mueller matrix. How to
+convert such a matrix ($\MtrStl{M}$) operating on a standard Stokes vector to its
+modified counterpart ($\MtrStl{M_m}$) can be understood by considering
+\begin{equation}
+  \MtrStl{M_mm} = \MtrStl{C_mMC_sm}.
+\end{equation}
+That is 
+\begin{equation}
+  \MtrStl{M_m} = \MtrStl{C_mMC_s}.
+  \label{eq:mueller_convert}
+\end{equation}
+
+\subsection{Rotated modified Stokes vector}
+%
+In some cases it could be of interest to place $I_h$ at the first position, or
+some intermediate state between pure $I_v$ and $I_h$. These cases can be seen
+as a rotation of what is considered as the direction of vertical polarisation.
+The Mueller matrix for such a rotation is
+\begin{equation}
+  \MtrStl{L}(\alpha) = \begin{bmatrix}
+    1&0&0&0\\
+    0&\cos(2\alpha)&\sin(2\alpha)&0\\
+    0&-\sin(2\alpha)&\cos(2\alpha)&0\\
+    0&0&0&1
+  \end{bmatrix},
+\end{equation}
+where $\alpha$ is the size of the rotation. That is the rotated
+modified Stokes vector is
+\begin{equation}
+  \VctStl{r} = \MtrStl{C_mL}(\alpha)\VctStl{s}.
+\end{equation}
+The extension of the conversion in Eq.~\ref{eq:mueller_convert} is
+\begin{equation}
+  \MtrStl{M_r} = \MtrStl{C_mL(\alpha)ML(-\alpha)C_s}.
+\end{equation}
+The matrix products left and right of $\MtrStl{M}$ are 
+\begin{equation}
+  \MtrStl{C_mL(\alpha)} = \begin{bmatrix}
+    1/2&\cos(2\alpha)/2&\sin(2\alpha)/2&0\\
+    1/2&-\cos(2\alpha)/2&-\sin(2\alpha)/2&0\\
+    0&-\sin(2\alpha)&\cos(2\alpha)&0\\
+    0&0&0&1
+  \end{bmatrix},
+\end{equation}
+and
+\begin{equation}
+  \MtrStl{L(-\alpha)C_s} = \begin{bmatrix}
+    1&1&0&0\\
+    \cos(2\alpha)&-\cos(2\alpha)&-\sin(2\alpha)&0\\
+    \sin(2\alpha)&-\sin(2\alpha)&\cos(2\alpha)&0&\\
+    0&0&0&1
+  \end{bmatrix},
+\end{equation}
+The relationships between the elements in $\VctStl{s}$ and $\VctStl{r}$ are 
+\begin{equation}
+  \MtrStl{C_mL(\alpha)}
+  \begin{bmatrix} I\\Q\\U\\V \end{bmatrix} =
+  \frac{1}{2}\begin{bmatrix}
+    I+\cos(2\alpha)Q+\sin(2\alpha)U\\
+    I-\cos(2\alpha)Q-\sin(2\alpha)U\\
+    2\sin(2\alpha)Q+2\cos(2\alpha)U\\
+    V
+  \end{bmatrix}.
+\end{equation}
+If $U=0$ the first element in $\VctStl{r}$ can be written as
+\begin{equation}
+  $\VctStl{r}$_I = I_v\cos^2(\alpha) + I_h\sin^2(\alpha), 
+  \label{eq:IvIhWeighting}
+\end{equation}
+where $I_v$ and $I_v$ are the radiances at vertical and horisontal
+polarisation, in the basis of the original Stokes vector. That is, by selecting
+$\alpha=90^\circ$, a modified Stokes vector with $I_h$ in the first position is
+effectively obtained. Further, Equation \ref{eq:IvIhWeighting} equals the
+expression normally assumed to model the change in polarisation response of
+microwave cross-track sounders as a function of scanning angle. If the sensor
+measures ``quasi-vertical'' (the polarisation when looking just besides nadir),
+$\alpha$ matches the angle between nadir and the viewing direction, $\beta$. If
+the sensor instead measures ``quasi-horisontal'', $\alpha$ should be replaced
+with $90-\beta$.
+
+
+
+
 
 %%% Local Variables: 
 %%% mode: latex

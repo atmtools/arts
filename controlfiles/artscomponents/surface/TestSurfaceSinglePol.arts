@@ -1,0 +1,250 @@
+#DEFINITIONS:  -*-sh-*-
+#
+#  Demonstrates how to set up stokes_dim=1 calculations with surface properties
+#  set to match a specific linear polarisation
+# 
+# 2021-12-22, Patrick Eriksson
+
+Arts2{
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+
+# Non-standard variables
+NumericCreate( sst )
+NumericCreate( wspeed )
+NumericCreate( wdir )
+VectorCreate( trv )
+NumericCreate( h )
+NumericCreate( za )
+VectorCreate( pols )
+VectorCreate( y0 )
+VectorCreate( y2 )
+VectorCreate( y3 )
+VectorCreate( yd )
+NumericCreate( pol_angle )
+IndexCreate( local_stokes_dim )
+NumericCreate( yv )
+VectorCreate( vdummy )
+NumericCreate( inc_angle )
+
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA )
+
+# Standard emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# On-the-fly absorption
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# Ppaths
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# Position and angle of surface intersection
+AgendaSet( geo_pos_agenda ) {
+    geo_posEndOfPpath
+}
+
+
+# Basic settings
+#
+AtmosphereSet1D
+IndexSet( stokes_dim, 3 )
+VectorSet( f_grid, [89e9] )
+StringSet( iy_unit, "PlanckBT" )
+
+# No jacobian calculation
+jacobianOff
+
+# No scattering
+cloudboxOff
+
+# Definition of species
+# 
+abs_speciesSet( species = [ 
+   "N2-SelfContStandardType",
+   "O2-PWR98",
+   "H2O-PWR98" 
+] )
+
+# No transitions needed
+# 
+abs_lines_per_speciesSetEmpty
+
+# Atmospheric grids
+#
+VectorNLogSpace( p_grid, 33, 1050e2, 100e2 )
+
+# Read a 1D atmospheric case and expand to *atmosphere_dim*
+#
+AtmRawRead( basename = "testdata/tropical" )
+AtmFieldsCalc
+
+# Surface = Ocean by FASTEM
+#
+MatrixSetConstant( z_surface, 1, 1, 0 )
+#
+NumericSet( sst, 290 )
+NumericSet( wspeed, 8.8 )
+NumericSet( wdir, 45 )
+VectorSet( trv, [1] )
+#
+AgendaSet( surface_rtprop_agenda ){
+  specular_losCalc
+  Copy( surface_skin_t, sst )
+  surfaceFastem( wind_speed=wspeed, wind_direction=wdir, 
+                 transmittance=trv )
+}
+
+# Check data and settings 
+# 
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+lbl_checkedCalc
+
+# Observation geometry
+#
+NumericSet( h, 20e3 )
+NumericSet( za, 127 )
+VectorSet( pols, [0,37,90] )
+
+# Sensor 
+#
+MatrixSetConstant( sensor_pos, 3, 1, h )
+MatrixSetConstant( sensor_los, 3, 1, za )
+Matrix1ColFromVector( sensor_pol, pols )
+#
+sensorOff
+sensor_checkedCalc
+
+
+# Calculate in vector radiative transfer manner
+#
+yCalc
+yApplySensorPol
+#
+Copy( y0, y )
+#Print(y0,0)
+
+
+# Reset for scalar, single mblock, calculations
+
+IndexSet( stokes_dim, 1 )
+
+MatrixSetConstant( sensor_pos, 1, 1, h )
+MatrixSetConstant( sensor_los, 1, 1, za )
+
+sensorOff
+sensor_checkedCalc
+
+AgendaSet( surface_rtprop_agenda ){
+  surfaceMapToSinglePolInit( local_stokes_dim = local_stokes_dim)
+  specular_losCalc
+  Copy( surface_skin_t, sst )
+  surfaceFastem( wind_speed=wspeed, wind_direction=wdir, 
+                 transmittance=trv )
+  surfaceMapToSinglePolCalc( pol_angle = pol_angle )
+}
+
+
+# Calculate the three polarisations in scalar radiative transfer manner,
+# with local_stokes_dim = 2
+
+IndexSet( local_stokes_dim, 2 )
+
+Extract( pol_angle, pols, 0 )
+yCalc
+Extract( yv, y, 0 )
+Append( y2, yv )
+#        
+Extract( pol_angle, pols, 1 )
+yCalc
+Extract( yv, y, 0 )
+Append( y2, yv )
+#
+Extract( pol_angle, pols, 2 )
+yCalc
+Extract( yv, y, 0 )
+Append( y2, yv )
+
+Compare( y2, y0, 1e-2)
+
+
+# Calculate the three polarisations in scalar radiative transfer manner,
+# with local_stokes_dim = 3
+
+IndexSet( local_stokes_dim, 3 )
+
+
+
+Extract( pol_angle, pols, 0 )
+yCalc
+Extract( yv, y, 0 )
+Append( y3, yv )
+#        
+Extract( pol_angle, pols, 1 )
+yCalc
+Extract( yv, y, 0 )
+Append( y3, yv )
+#
+Extract( pol_angle, pols, 2 )
+yCalc
+Extract( yv, y, 0 )
+Append( y3, yv )
+
+Compare( y3, y0, 1e-2)
+
+
+# Also test with DISORT
+#
+
+# Get incidence angle
+VectorExtractFromMatrix( vdummy, y_geo, 3, "column" )
+Extract( inc_angle, vdummy, 0 )
+NumericMultiply( inc_angle, inc_angle, -1 )
+NumericAdd( inc_angle, inc_angle, 180 )
+#Print(inc_angle,0)
+
+IndexSet( local_stokes_dim, 2 )
+
+cloudboxSetFullAtm
+pnd_fieldZero
+cloudbox_checkedCalc
+scat_data_checkedCalc
+VectorNLinSpace( za_grid, 180, 0, 180 )
+VectorSet( aa_grid, [] )
+Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__QuarticInterpField )
+
+Extract( pol_angle, pols, 0 )
+DisortCalcWithARTSSurface( nstreams = 16, inc_angle = inc_angle )
+yCalc
+Extract( yv, y, 0 )
+Append( yd, yv )
+#
+Extract( pol_angle, pols, 1 )
+DisortCalcWithARTSSurface( nstreams = 16, inc_angle = inc_angle )
+yCalc
+Extract( yv, y, 0 )
+Append( yd, yv )
+#
+#
+Extract( pol_angle, pols, 2 )
+DisortCalcWithARTSSurface( nstreams = 16, inc_angle = inc_angle )
+yCalc
+Extract( yv, y, 0 )
+Append( yd, yv )
+
+Compare( yd, y0, 1)
+#Print(yd,0)
+
+}

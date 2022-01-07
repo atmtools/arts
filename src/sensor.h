@@ -223,34 +223,6 @@ void mixer_matrix(Sparse& H,
 
 
 
-//! mueller_rotation
-/*!
-   Returns the Mueller matrix for a rotation of the coordinate system defining
-   H and V directions.
-
-   The function follows Eq 9 in the sensor response article (Eriksson et al,
-   Efficient forward modelling by matrix representation of sensor responses,
-   IJRS, 2006).
-
-   The sparse matrix H is not sized by the function, in order to save time for
-   repeated usage. Before first call of this function, size H as
-   H.resize( stokes_dim, stokes_dim );
-   The H returned of this function can be used as input for later calls. That
-   is, no need to repeat the resize command above.
-
-   \param   H           Mueller matrix
-   \param   stokes_dim  Stokes dimensionality
-   \param   rotangle    Rotation angle.
-
-   \author Patrick Eriksson
-   \date   2014-09-23
-*/
-void mueller_rotation(Sparse& H,
-                      const Index& stokes_dim,
-                      const Numeric& rotangle);
-
-
-
 /** Calculate polarisation H-matrix
  
  Takes into account instrument channel polarisation and zenith angle.

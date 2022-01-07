@@ -996,9 +996,13 @@ void surf_albedoCalc(Workspace& ws,
                                  rtp_pos,
                                  rtp_los,
                                  surface_rtprop_agenda);
-    //cout << "surf_los has " << surface_los.ncols() << " columns and "
-    //     << surface_los.nrows() << " rows.\n";
-    ARTS_ASSERT(surface_los.ncols() == 1 || surface_los.nrows() == 0);
+    if (surface_los.nrows() != 1) {
+      ostringstream os;
+      os << "For this method, *surface_rtprop_agenda* must be set up to\n"
+         << "return a single direction in *surface_los*.";
+      throw runtime_error(os.str());
+    }
+
     if (rza == 0)
       btemp = surface_skin_t;
     else if (surface_skin_t != btemp) {
@@ -1093,4 +1097,52 @@ void surf_albedoCalc(Workspace& ws,
       throw runtime_error(os.str());
     }
   }
+}
+
+void surf_albedoCalcSingleAngle(Workspace& ws,
+                                //Output
+                                VectorView albedo,
+                                Numeric& btemp,
+                                //Input
+                                const Agenda& surface_rtprop_agenda,
+                                ConstVectorView f_grid,
+                                const Numeric& surf_alt,
+                                const Numeric& inc_angle) {
+
+  Vector rtp_pos(1, surf_alt); 
+  Vector rtp_los(1, 180-inc_angle);
+  
+  Numeric surface_skin_t;
+  Matrix surface_los;
+  Tensor4 surface_rmatrix;
+  Matrix surface_emission;
+    
+  surface_rtprop_agendaExecute(ws,
+                               surface_skin_t,
+                               surface_emission,
+                               surface_los,
+                               surface_rmatrix,
+                               f_grid,
+                               rtp_pos,
+                               rtp_los,
+                               surface_rtprop_agenda);
+  
+  if (surface_los.nrows() != 1) {
+    ostringstream os;
+    os << "For this method, *surface_rtprop_agenda* must be set up to\n"
+       << "return a single direction in *surface_los*.";
+    throw runtime_error(os.str());
+  }
+  for (Index f=0; f<f_grid.nelem(); ++f) {
+    albedo[f] = surface_rmatrix(0,f,0,0);
+  }
+
+  btemp = surface_skin_t;
+  if (btemp < 0. || btemp > 1000.) {
+    ostringstream os;
+    os << "Surface temperature has been derived as " << btemp << " K,\n"
+       << "which is not considered a meaningful value.\n";
+    throw runtime_error(os.str());
+  }
+
 }

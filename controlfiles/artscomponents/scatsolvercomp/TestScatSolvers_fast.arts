@@ -106,7 +106,7 @@ AgendaCreate( iy_hybrid_agenda )
 AgendaSet( iy_hybrid_agenda ){
   Ignore( iy_id )
   ppathCalc( cloudbox_on = 0 ) 
-  iyHybrid
+  iyEmissionHybrid
   # The line below is just temporary
   Touch( iy_aux)  
 }

@@ -536,71 +536,6 @@ void get_stepwise_clearsky_propmat(
   const Numeric& ppath_pressure,
   const bool& jacobian_do);
 
-/** Gets the effective source at propagation path point
- * 
- *  Computes
- * 
- *  J = K^-1 (a B + S)
- * 
- *  and
- * 
- *  dJ = - K^-1 dK/dx K^-1 (a B + S) + K^-1 (da B + a dB + dS)
- * 
- *  Assumes zeroes for the a and K if nothing is happening but checks all other variables
- * 
- * FIXME: This function should be removed
- * 
- * @param[in,out] J Source term for RTE at propagation path point
- * @param[in,out] dJ_dx Source term derivative for RTE at propagation path point
- * @param[in] K Propagation matrix, clearsky+scattersky, at propagation path point
- * @param[in] a Absorption vector, clearsky+scattersky, at propagation path point
- * @param[in] S NLTE source adjustment, clearsky+scattersky, at propagation path point
- * @param[in] dK_dx Propagation matrix derivatives, clearsky+scattersky, at propagation path point
- * @param[in] da_dx Absorption vector derivatives, clearsky+scattersky, at propagation path point
- * @param[in] dS_dx NLTE source adjustment derivatives, clearsky+scattersky, at propagation path point
- * @param[in] B Blackbody radiation at propagation path point
- * @param[in] dB_dT Blackbody radiation temperature derivative at propagation path point
- * @param[in] jacobian_quantities As WSV
- * @param[in] jacobian_do As WSV
- * 
- * @author Richard Larsson 
- * @date   2017-09-21
- */
-void get_stepwise_effective_source(
-    MatrixView J,
-    Tensor3View dJ_dx,
-    const PropagationMatrix& K,
-    const StokesVector& a,
-    const StokesVector& S,
-    const ArrayOfPropagationMatrix& dK_dx,
-    const ArrayOfStokesVector& da_dx,
-    const ArrayOfStokesVector& dS_dx,
-    const ConstVectorView& B,
-    const ConstVectorView& dB_dT,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const bool& jacobian_do);
-
-/** Inverse of get_stepwise_f_partials
- * 
- * Computes practical frequency grid due to wind for propmat_clearsky_agenda
- * 
- * @param[in,out] ppath_f_grid Wind-adjusted frequency grid at propagation path point
- * @param[in] f_grid As WSV
- * @param[in] ppath_wind Wind vector at propagation path point
- * @param[in] ppath_line_of_sight Line of sight at propagation path point
- * @param[in] rte_alonglos_v As WSV
- * @param[in] atmosphere_dim As WSV
- * 
- * @author Richard Larsson 
- * @date   2017-09-21
- */
-void get_stepwise_frequency_grid(VectorView ppath_f_grid,
-                                 const ConstVectorView& f_grid,
-                                 const ConstVectorView& ppath_wind,
-                                 const ConstVectorView& ppath_line_of_sight,
-                                 const Numeric& rte_alonglos_v,
-                                 const Index& atmosphere_dim);
-
 /** Computes the ratio that a partial derivative with regards to frequency
  *  relates to the wind of come component
  * 
@@ -816,6 +751,83 @@ void iy_transmittance_mult(Matrix& iy_new,
 void mirror_los(Vector& los_mirrored,
                 const ConstVectorView& los,
                 const Index& atmosphere_dim);
+
+//! muellersparse_rotation
+/*!
+   Returns the Mueller matrix for a rotation of the coordinate system defining
+   H and V directions.
+
+   The function follows Eq 9 in the sensor response article (Eriksson et al,
+   Efficient forward modelling by matrix representation of sensor responses,
+   IJRS, 2006).
+
+   The sparse matrix H is not sized by the function, in order to save time for
+   repeated usage. Before first call of this function, size H as
+   H.resize( stokes_dim, stokes_dim );
+   The H returned of this function can be used as input for later calls. That
+   is, no need to repeat the resize command above.
+
+   \param   H           Mueller matrix
+   \param   stokes_dim  Stokes dimensionality (1-2)
+   \param   rotangle    Rotation angle.
+
+   \author Patrick Eriksson
+   \date   2014-09-23
+*/
+void muellersparse_rotation(Sparse& H,
+                            const Index& stokes_dim,
+                            const Numeric& rotangle);
+
+//! mueller_modif2stokes
+/*!
+   Returns the Mueller matrix for transformation of a modified Stokes vector to
+   its standard counterpart.
+
+   See ARTS Theory document, section "Change of the Stokes basis" for details.
+
+   \param   Cs          Mueller matrix
+   \param   stokes_dim  Stokes dimensionality (1-4)
+
+   \author Patrick Eriksson
+   \date   2021-12-22
+*/
+void mueller_modif2stokes(Matrix& Cs,
+                          const Index& stokes_dim);
+
+//! mueller_rotation
+/*!
+   Returns the Mueller matrix for a rotation of the coordinate system defining
+   H and V directions.
+
+   As muellersparse_rotation, besides that this function returns a matrix (not
+   Sparse) and the matrix is sized by the function.
+
+   \param   L           Mueller matrix
+   \param   stokes_dim  Stokes dimensionality (1-4)
+   \param   rotangle    Rotation angle.
+
+   \author Patrick Eriksson
+   \date   2021-12-22
+*/
+void mueller_rotation(Matrix& L,
+                      const Index& stokes_dim,
+                      const Numeric& rotangle);
+
+//! mueller_stokes2modif
+/*!
+   Returns the Mueller matrix for transformation from Stokes to its modified
+   counterpart.
+
+   See ARTS Theory document, section "Change of the Stokes basis" for details.
+
+   \param   Cm          Mueller matrix
+   \param   stokes_dim  Stokes dimensionality (1-4)
+
+   \author Patrick Eriksson
+   \date   2021-12-22
+*/
+void mueller_stokes2modif(Matrix& Cm,
+                          const Index& stokes_dim);
 
 /** Determines the true alt and lon for an "ARTS position"
 

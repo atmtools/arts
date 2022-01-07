@@ -39,6 +39,8 @@
 #include "matpackI.h"
 #include "matpackII.h"
 #include "messages.h"
+#include "rte.h"
+#include "sensor.h"
 #include "sorting.h"
 
 extern const Numeric PI;
@@ -760,35 +762,6 @@ void mixer_matrix(Sparse& H,
 }
 
 
-void mueller_rotation(Sparse& H,
-                      const Index& stokes_dim,
-                      const Numeric& rotangle) {
-  ARTS_ASSERT(stokes_dim > 1);
-  ARTS_ASSERT(H.nrows() == stokes_dim);
-  ARTS_ASSERT(H.ncols() == stokes_dim);
-  ARTS_ASSERT(H(0, 1) == 0);
-  ARTS_ASSERT(H(1, 0) == 0);
-
-  H.rw(0, 0) = 1;
-  const Numeric a = cos(2 * DEG2RAD * rotangle);
-  H.rw(1, 1) = a;
-  if (stokes_dim > 2) {
-    ARTS_ASSERT(H(2, 0) == 0);
-    ARTS_ASSERT(H(0, 2) == 0);
-
-    const Numeric b = sin(2 * DEG2RAD * rotangle);
-    H.rw(1, 2) = b;
-    H.rw(2, 1) = -b;
-    H.rw(2, 2) = a;
-    if (stokes_dim > 3) {
-      // More values should be checked, but to save time we just ARTS_ASSERT one
-      ARTS_ASSERT(H(2, 3) == 0);
-      H.rw(3, 3) = 1;
-    }
-  }
-}
-
-
 
 void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& mm_pol,
@@ -905,19 +878,19 @@ void met_mm_polarisation_hmatrix(Sparse& H,
       if (rot[i] == "AMSU") {
         // No idea about the sign. Not important if U=0,
         // but matter for U != 0.
-        mueller_rotation(Hrot, stokes_dim, abs(dza));
+        muellersparse_rotation(Hrot, stokes_dim, abs(dza));
       } else if (rot[i] == "ISMAR") {
         // No rotation at -53 (= forward direction). But no idea about the
         // sign, as for AMSU above
-        mueller_rotation(Hrot, stokes_dim, dza + 50);
+        muellersparse_rotation(Hrot, stokes_dim, dza + 50);
       } else if (rot[i] == "MARSS") {
         // MARSS special, as 48 deg between different polarisation (not 90,
         // as for ISMAR. This is best interpretation of information
         // from Stuart. Should be double-checked with him at some point.
         if (pol[i] == "H") {
-          mueller_rotation(Hrot, stokes_dim, dza + 42);
+          muellersparse_rotation(Hrot, stokes_dim, dza + 42);
         } else {
-          mueller_rotation(Hrot, stokes_dim, dza);
+          muellersparse_rotation(Hrot, stokes_dim, dza);
         }
       } else {
         ARTS_ASSERT(0);

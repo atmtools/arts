@@ -257,7 +257,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
   ArrayOfIndex mgd_i_pai = {-1, -1, -1, -1};  // Position in pnd_agenda_input
   const ArrayOfIndex ext_i_pai = {0, 1};      // Position in pnd_agenda_input
   {
-    Index nhit = 2;  // As mass and Dm always occupy first position
+    Index nhit = 2;  // As mass and Dm always occupy first two positions
     if (n0_fixed) {
       mgd_pars[0] = n0;
     } else if (!n0_depend) {
@@ -370,10 +370,10 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
           throw runtime_error("Bad MGD parameter detected: mu + b + 1 <= 0");
         eterm = mub1 / mgd_pars[3];
         // Start by deriving la
-        scfac2 = pow(eterm, mgd_pars[3]);
+        gterm = tgamma(eterm);
+        scfac2 = pow(tgamma(eterm+1/ga)/gterm, mgd_pars[3]);
         mgd_pars[2] = scfac2 * pow(ext_pars[1], -mgd_pars[3]);
         // We can now derive n0
-        gterm = tgamma(eterm);
         scfac1 =
             (mgd_pars[3] * pow(mgd_pars[2], eterm)) / (scat_species_a * gterm);
         mgd_pars[0] = scfac1 * ext_pars[0];

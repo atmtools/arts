@@ -201,14 +201,14 @@ consistent with e.g.\ Eq. 3 of \citet{delanoe2014normalized}, just expressed
 in a more general manner. The equation above can rewritten in several ways:
 \begin{equation}
   \xmea =\frac{\int_0^\infty x m(x) n(x)\,dx}{w}=\frac{M_{b+1}}{M_b}=
-  \frac{\mu+b+1}{\ga}\la^{-1/\ga}=\eterm\la^{-1/\ga}.
+  \frac{\Gamma(\eterm+1/\ga)}{\Gamma(\eterm)} \la^{-1/\ga}.
   \label{eq:xmean2}
 \end{equation}
 As mentioned, so far only $\no$ and $\la$ are allowed to be the pair of
 dependent variables: $n(w,\xmea,\mu,\ga)$. The implied value of $\la$ can be
 obtained by Eq.~\ref{eq:xmean2}:
 \begin{equation}
-  \la = \left( \frac{\xmea}{e}\right)^{-\ga}.
+  \la = \left( \frac{\xmea\Gamma(\eterm)}{\Gamma(\eterm+1/\ga)}\right)^{-\ga}.
 \end{equation}
 With $\la$ at hand, $\no$ can be determined as for the mass-only case
 (Eq.~\ref{eq:n0fromw}).
@@ -220,7 +220,7 @@ and $\la$ are affected:
   \frac{dn}{d\xmea} &=& \left( \frac{dn}{d\no}\frac{d\no}{d\la} + 
                         \frac{dn}{d\la} \right) \frac{d\la}{d\xmea} \nonumber\\
  &=& \left( \frac{dn}{d\no} \frac{w\ga\eterm\la^{\eterm-1}}{a\Gamma(\eterm)} + 
-                        \frac{dn}{d\la} \right) (-\ga e^\ga \xmea^{-(\ga+1)}).
+                        \frac{dn}{d\la} \right) \left(-\ga \left( \frac{\Gamma(\eterm)}{\Gamma(\eterm+1/\ga)}\right)^{-\ga}  \xmea^{-(\ga+1)}\right).
 \end{eqnarray}
 The workspace method for this form of MGD is \wsmindex{psdModifiedGammaMassXmean}.
 

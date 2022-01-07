@@ -1165,120 +1165,6 @@ void get_stepwise_clearsky_propmat(
   lte = S.allZeroes();  // FIXME: Should be nlte_do?
 }
 
-void get_stepwise_effective_source(
-    MatrixView J,
-    Tensor3View dJ_dx,
-    const PropagationMatrix& K,
-    const StokesVector& a,
-    const StokesVector& S,
-    const ArrayOfPropagationMatrix& dK_dx,
-    const ArrayOfStokesVector& da_dx,
-    const ArrayOfStokesVector& dS_dx,
-    const ConstVectorView& B,
-    const ConstVectorView& dB_dT,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const bool& jacobian_do) {
-  const Index nq = jacobian_quantities.nelem();
-  const Index nf = K.NumberOfFrequencies();
-  const Index ns = K.StokesDimensions();
-
-  dJ_dx = 0;
-  for (Index i1 = 0; i1 < nf; i1++) {
-    Matrix invK(ns, ns);
-    Vector j(ns);
-
-    if (K.IsRotational(i1)) {
-      dJ_dx(joker, i1, joker) = 0;
-      J(i1, joker) = 0;
-      continue;
-    }
-
-    K.MatrixInverseAtPosition(invK, i1);
-
-    // Set a B to j
-    j = a.VectorAtPosition(i1);
-    ;
-    j *= B[i1];
-
-    // Add S to j
-    if (not S.IsEmpty()) j += S.VectorAtPosition(i1);
-    ;
-
-    // Compute J = K^-1 (a B + S)
-    mult(J(i1, joker), invK, j);
-
-    // Compute dJ = K^-1((da B + a dB + dS) - dK K^-1(a B + S))
-    if (jacobian_do)
-      //FOR_ANALYTICAL_JACOBIANS_DO
-      //(
-      for (Index iq = 0; iq < nq; iq++) {
-        if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString)) {
-          Matrix dk(ns, ns), tmp_matrix(ns, ns);
-          Vector dj(ns, 0), tmp(ns);
-
-          // Control parameters for special jacobians that are computed elsewhere
-          //const bool has_dk = (not dK_dx[iq].IsEmpty());   // currently always
-          //const bool has_ds = (not dS_dx[iq].IsEmpty());   // evaluate as true
-          const bool has_dt =
-              (jacobian_quantities[iq] == Jacobian::Atm::Temperature);
-
-          // Sets the -K^-1 dK/dx K^-1 (a B + S) term
-          //if(has_dk)
-          //{
-          dK_dx[iq].MatrixAtPosition(dk, i1);
-          mult(tmp, dk, J(i1, joker));
-
-          dj = da_dx[iq].VectorAtPosition(i1);
-          dj *= B[i1];
-
-          dj -= tmp;
-
-          // Adds a dB to dj
-          if (has_dt) {
-            tmp = a.VectorAtPosition(i1);
-            tmp *= dB_dT[i1];
-            dj += tmp;
-          }
-
-          // Adds dS to dj
-          //if(has_ds)
-          dj += dS_dx[iq].VectorAtPosition(i1);
-
-          mult(dJ_dx(iq, i1, joker), invK, dj);
-          //}
-        }
-        // don't need that anymore now that we zero dJ_dx at the very beginning
-        //else
-        //{
-        //  dJ_dx(iq, i1, joker) = 0;
-        //}
-      }
-    //)
-  }
-
-  if (nq) dJ_dx *= 0.5;
-}
-
-void get_stepwise_frequency_grid(VectorView ppath_f_grid,
-                                 const ConstVectorView& f_grid,
-                                 const ConstVectorView& ppath_wind,
-                                 const ConstVectorView& ppath_line_of_sight,
-                                 const Numeric& rte_alonglos_v,
-                                 const Index& atmosphere_dim) {
-  Numeric v_doppler = rte_alonglos_v;
-
-  if (ppath_wind[0] not_eq 0 or ppath_wind[1] not_eq 0 or
-      ppath_wind[2] not_eq 0)
-    v_doppler += dotprod_with_los(ppath_line_of_sight,
-                                  ppath_wind[0],
-                                  ppath_wind[1],
-                                  ppath_wind[2],
-                                  atmosphere_dim);
-  ppath_f_grid = f_grid;
-
-  if (v_doppler not_eq 0) ppath_f_grid *= 1 - v_doppler / SPEED_OF_LIGHT;
-}
-
 Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
                                const ConstVectorView& f_grid,
                                const Jacobian::Atm wind_type,
@@ -1596,62 +1482,6 @@ void get_stepwise_scattersky_source(
           })
     }
   }  // for iv
-}
-
-void get_stepwise_transmission_matrix(
-    Tensor3View cumulative_transmission,
-    Tensor3View T,
-    Tensor4View dT_close_dx,
-    Tensor4View dT_far_dx,
-    const ConstTensor3View& cumulative_transmission_close,
-    const PropagationMatrix& K_close,
-    const PropagationMatrix& K_far,
-    const ArrayOfPropagationMatrix& dK_close_dx,
-    const ArrayOfPropagationMatrix& dK_far_dx,
-    const Numeric& ppath_distance,
-    const bool& first_level,
-    const Numeric& dppath_distance_dT_HSE_close,
-    const Numeric& dppath_distance_dT_HSE_far,
-    const Index& temperature_derivative_position_if_hse_is_active) {
-  // Frequency counter
-  const Index nf = K_close.NumberOfFrequencies();
-  const Index stokes_dim = T.ncols();
-
-  if (first_level) {
-    if (stokes_dim > 1)
-      for (Index iv = 0; iv < nf; iv++)
-        id_mat(cumulative_transmission(iv, joker, joker));
-    else
-      cumulative_transmission = 1;
-  } else {
-    // Compute the transmission of the layer between close and far
-    if (not dK_close_dx.nelem())
-      compute_transmission_matrix(T, ppath_distance, K_close, K_far);
-    else
-      compute_transmission_matrix_and_derivative(
-          T,
-          dT_close_dx,
-          dT_far_dx,
-          ppath_distance,
-          K_close,
-          K_far,
-          dK_close_dx,
-          dK_far_dx,
-          dppath_distance_dT_HSE_close,
-          dppath_distance_dT_HSE_far,
-          temperature_derivative_position_if_hse_is_active);
-
-    // Cumulate transmission
-    if (stokes_dim > 1)
-      for (Index iv = 0; iv < nf; iv++)
-        mult(cumulative_transmission(iv, joker, joker),
-             cumulative_transmission_close(iv, joker, joker),
-             T(iv, joker, joker));
-    else {
-      cumulative_transmission = cumulative_transmission_close;
-      cumulative_transmission *= T;
-    }
-  }
 }
 
 void iyb_calc_body(bool& failed,
@@ -2027,6 +1857,104 @@ void mirror_los(Vector& los_mirrored,
     los_mirrored[1] = los[1] + 180;
     if (los_mirrored[1] > 180) {
       los_mirrored[1] -= 360;
+    }
+  }
+}
+
+void muellersparse_rotation(Sparse& H,
+                            const Index& stokes_dim,
+                            const Numeric& rotangle) {
+  ARTS_ASSERT(stokes_dim > 1);
+  ARTS_ASSERT(stokes_dim <= 4);
+  ARTS_ASSERT(H.nrows() == stokes_dim);
+  ARTS_ASSERT(H.ncols() == stokes_dim);
+  ARTS_ASSERT(H(0, 1) == 0);
+  ARTS_ASSERT(H(1, 0) == 0);
+  //
+  H.rw(0, 0) = 1;
+  const Numeric a = cos(2 * DEG2RAD * rotangle);
+  H.rw(1, 1) = a;
+  if (stokes_dim > 2) {
+    ARTS_ASSERT(H(2, 0) == 0);
+    ARTS_ASSERT(H(0, 2) == 0);
+
+    const Numeric b = sin(2 * DEG2RAD * rotangle);
+    H.rw(1, 2) = b;
+    H.rw(2, 1) = -b;
+    H.rw(2, 2) = a;
+    if (stokes_dim > 3) {
+      // More values should be checked, but to save time we just ARTS_ASSERT one
+      ARTS_ASSERT(H(2, 3) == 0);
+      H.rw(3, 3) = 1;
+    }
+  }
+}
+
+void mueller_modif2stokes(Matrix& Cs,
+                          const Index& stokes_dim) {
+  ARTS_ASSERT(stokes_dim >= 1);
+  ARTS_ASSERT(stokes_dim <= 4);
+  //
+  Cs.resize(stokes_dim, stokes_dim);
+  Cs(0,0) = 1;
+  if (stokes_dim > 1 ) {
+    Cs(0,1) = Cs(1,0) = 1;
+    Cs(1,1) = -1;
+    if (stokes_dim > 2 ) {
+      Cs(0,2) = Cs(1,2) = Cs(2,0) = Cs(2,1) = 0;
+      Cs(2,2) = 1;
+      if (stokes_dim > 3 ) {
+        Cs(0,3) = Cs(1,3) = Cs(2,3) = Cs(3,0) = Cs(3,1) = Cs(3,2) = 0;
+        Cs(3,3) = 1;       
+      }
+    }
+  }
+}
+
+void mueller_rotation(Matrix& L,
+                      const Index& stokes_dim,
+                      const Numeric& rotangle) {
+  ARTS_ASSERT(stokes_dim >= 1);
+  ARTS_ASSERT(stokes_dim <= 4);
+  //
+  L.resize(stokes_dim, stokes_dim);
+  L(0, 0) = 1;
+  if (stokes_dim > 1 ) {
+    const Numeric alpha = 2 * DEG2RAD * rotangle;
+    const Numeric c2 = cos(alpha);
+    L(0,1) = L(1,0) = 0;
+    L(1,1) = c2;
+    if (stokes_dim > 2 ) {
+      const Numeric s2 = sin(alpha);
+      L(0,2) = L(2,0) = 0;
+      L(1,2) = s2;
+      L(2,1) = -s2;      
+      L(2,2) = c2;
+      if (stokes_dim > 3 ) {
+        L(0,3) = L(1,3) = L(2,3) = L(3,0) = L(3,1) = L(3,2) = 0;
+        L(3,3) = 1;       
+      }
+    }
+  }
+}
+
+void mueller_stokes2modif(Matrix& Cm,
+                          const Index& stokes_dim) {
+  ARTS_ASSERT(stokes_dim >= 1);
+  ARTS_ASSERT(stokes_dim <= 4);
+  //
+  Cm.resize(stokes_dim, stokes_dim);
+  Cm(0,0) = 0.5;
+  if (stokes_dim > 1 ) {
+    Cm(0,1) = Cm(1,0) = 0.5;
+    Cm(1,1) = -0.5;
+    if (stokes_dim > 2 ) {
+      Cm(0,2) = Cm(1,2) = Cm(2,0) = Cm(2,1) = 0;
+      Cm(2,2) = 1;
+      if (stokes_dim > 3 ) {
+        Cm(0,3) = Cm(1,3) = Cm(2,3) = Cm(3,0) = Cm(3,1) = Cm(3,2) = 0;
+        Cm(3,3) = 1;       
+      }
     }
   }
 }
