@@ -325,7 +325,7 @@ void get_gas_scattering_properties(Workspace& ws,
                                    const MatrixView& vmr,
                                    const Agenda& gas_scattering_agenda) {
   const Index Np = p.nelem(); // Number of pressure levels
-  const Index Nl = pfct_gas.npages();  // Number of legendre polynomials
+  const Index Nl = pfct_gas.ncols();  // Number of legendre polynomials
   const Index Nf = f_grid.nelem(); // Number of frequencies
 
   PropagationMatrix K_sca_gas_temp;
@@ -1326,7 +1326,7 @@ void run_cdisort_star(Workspace& ws,
 
     // Set Intensity of incident solar beam at top boundary
     if (star_do) {
-      fbeam = stars[0].spectrum(f_index, 0);
+      fbeam = stars[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*(100 * SPEED_OF_LIGHT);
     }
     ds.bc.fbeam = fbeam;
 

@@ -94,7 +94,7 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
                                   const Numeric& rtp_temperature,
                                   const Index& stokes_dim,
                                   const Verbosity&) {
-  
+
   Vector coefficients{3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
   // Number density
@@ -111,7 +111,7 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
 
   for (Index f = 0; f < f_grid.nelem(); f++) {
     Matrix Xsec = eye;
-    Numeric wavelen = Conversion::freq2wavelen(f_grid[f]) * 1e6; 
+    Numeric wavelen = Conversion::freq2wavelen(f_grid[f]) * 1e6;
     Numeric sigma;
     Numeric sum = 0;
     for (Index i = 0; i < 4; i++){
@@ -128,22 +128,30 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
+                                   Matrix& sca_fct_legendre,
+                                   const Vector& f_grid,
                                    const Vector& in_los,
                                    const Vector& out_los,
                                    const Index& stokes_dim,
+                                   const Index& gas_scattering_output_type,
                                    const Verbosity&) {
+  //out
+  if (gas_scattering_output_type) {
+    sca_fct_legendre.resize(f_grid.nelem(), 1);
+    sca_fct_legendre = 1.;  /// (4 * PI);
 
-  //if in_los or out_los is empty then sca_mat is empty.
-  if (in_los.nelem()>0 && out_los.nelem()>0){
-    TransmissionMatrix sca_mat_temp(0, stokes_dim);
-    sca_mat_temp.setIdentity();
-    sca_mat_temp *= 1 / (4 * pi);
+  } else {
+    //if in_los or out_los is empty then sca_mat is empty.
+    if (in_los.nelem() > 0 && out_los.nelem() > 0) {
+      TransmissionMatrix sca_mat_temp(f_grid.nelem(), stokes_dim);
+      sca_mat_temp.setIdentity();
+      sca_mat_temp *= 1 / (4 * pi);
 
-    sca_mat=sca_mat_temp;
-  }
-  else {
-    // set the scattering matrics empty in case the in and out los are empty
-    sca_mat = TransmissionMatrix();
+      sca_mat = sca_mat_temp;
+    } else {
+      // set the scattering matrics empty in case the in and out los are empty
+      sca_mat = TransmissionMatrix();
+    }
   }
 }
 
@@ -155,8 +163,8 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
                                   const Numeric& depolarization_factor,
                                   const Verbosity&) {
 
-  ARTS_USER_ERROR_IF(in_los.nelem() != out_los.nelem(), 
-    "The length of the vectors of incoming and outgoing direction must be the same.")                                  
+  ARTS_USER_ERROR_IF(in_los.nelem() != out_los.nelem(),
+    "The length of the vectors of incoming and outgoing direction must be the same.")
 
   //if in_los or out_los is empty then sca_mat is empty.
   if (in_los.nelem()>0 && out_los.nelem()>0){
@@ -197,7 +205,7 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
 
     TransmissionMatrix sca_mat_temp(pha_mat);
     sca_mat_temp *= 1 / (4 * pi);
-    
+
     sca_mat = sca_mat_temp;
   } else {
     // set the scattering matrics empty in case the in and out los are empty
