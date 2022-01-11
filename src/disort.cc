@@ -1110,6 +1110,7 @@ void run_cdisort_star(Workspace& ws,
                       ConstVectorView star_rte_los,
                       const Index& gas_scattering_do,
                       const Index& star_do,
+                      const Numeric& scale_factor,
                       const Index& nstreams,
                       const Index& Npfct,
                       const Index& quiet,
@@ -1326,7 +1327,8 @@ void run_cdisort_star(Workspace& ws,
 
     // Set Intensity of incident solar beam at top boundary
     if (star_do) {
-      fbeam = stars[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*(100 * SPEED_OF_LIGHT);
+      fbeam = stars[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
+              (100 * SPEED_OF_LIGHT)*scale_factor;
     }
     ds.bc.fbeam = fbeam;
 

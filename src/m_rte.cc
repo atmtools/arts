@@ -543,7 +543,7 @@ void iyClearsky(
                            star_pos[1],
                            star_pos[2]);
 
-                // Scale the incoming star_radiance spectrum
+                // Scale the incoming star_irradiance spectrum
                 Matrix star_spectrum=stars[i_star].spectrum;
                 star_spectrum*=stars[i_star].radius*stars[i_star].radius;
                 star_spectrum/=(stars[i_star].radius*stars[i_star].radius+R_Star2Toa*R_Star2Toa);

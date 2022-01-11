@@ -46,6 +46,7 @@
 #include "messages.h"
 #include "wsv_aux.h"
 #include "xml_io.h"
+#include "geodetic.h"
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -384,49 +385,65 @@ void DisortCalcStar(Workspace& ws,
   Index star_on = star_do;
   Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
   Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
+  Numeric scale_factor;
 
-  //Position of star
-  star_pos = {stars[0].distance, stars[0].latitude, stars[0].longitude};
+  if (star_on){
+    //Position of star
+    star_pos = {stars[0].distance, stars[0].latitude, stars[0].longitude};
 
-  // Position of top of cloudbox
-  cloudboxtop_pos = {
-      z_field(cloudbox_limits[1], 0, 0), lat_true[0], lon_true[0]};
+    // Position of top of cloudbox
+    cloudboxtop_pos = {
+        z_field(cloudbox_limits[1], 0, 0), lat_true[0], lon_true[0]};
 
-  // calculate local position of sun at top of cloudbox
-  rte_losGeometricFromRtePosToRtePos2(star_rte_los,
-                                      3,
-                                      lat_grid,
-                                      lon_grid,
-                                      refellipsoid,
-                                      cloudboxtop_pos,
-                                      star_pos,
-                                      verbosity);
+    // calculate local position of sun at top of cloudbox
+    rte_losGeometricFromRtePosToRtePos2(star_rte_los,
+                                        3,
+                                        lat_grid,
+                                        lon_grid,
+                                        refellipsoid,
+                                        cloudboxtop_pos,
+                                        star_pos,
+                                        verbosity);
 
-  //FIXME: IF we want to be correct and include refraction, we must calculate the
-  // local position of sun via ppathFromRtePos2. The question is, is this needed.
+    //FIXME: IF we want to be correct and include refraction, we must calculate the
+    // local position of sun via ppathFromRtePos2. The question is, is this needed.
 
-  // Check if sun is above horizon, if not switch it off
-  if (star_rte_los[0] >= 90) {
-    star_on = 0;
+    // Check if sun is above horizon, if not switch it off
+    if (star_rte_los[0] >= 90) {
+      star_on = 0;
 
-    //TODO: Add warning message that star is switched off because it is below horizon
-  }
+      //TODO: Add warning message that star is switched off because it is below horizon
+    }
 
-  //FIXME: Should we add a warning for low sun position near the horizon?
+    //FIXME: Should we add a warning for low sun position near the horizon?
 
-  Vector albedo(f_grid.nelem(), 0.);
-  Numeric btemp;
-
-  get_disortsurf_props(
-      albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
-
-  if (star_on) {
     init_ifield(cloudbox_field,
                 f_grid,
                 cloudbox_limits,
                 za_grid.nelem(),
                 aa_grid.nelem(),
                 stokes_dim);
+
+    //get the cloudbox top distance to earth center.
+    Numeric R_TOA = refell2r(refellipsoid,
+                             lat_true[0]) +
+                    cloudboxtop_pos[0];
+
+    //get the distance between sun and cloudbox top
+    Numeric R_Star2CloudboxTop;
+    distance3D(R_Star2CloudboxTop,
+               R_TOA,
+               lat_true[0],
+               lon_true[0],
+               star_pos[0],
+               star_pos[1],
+               star_pos[2]);
+
+    scale_factor=stars[0].radius*stars[0].radius/
+                   (stars[0].radius*stars[0].radius+R_Star2CloudboxTop*R_Star2CloudboxTop);
+
+
+
   } else {
     init_ifield(cloudbox_field,
                 f_grid,
@@ -435,6 +452,12 @@ void DisortCalcStar(Workspace& ws,
                 1,
                 stokes_dim);
   }
+
+  Vector albedo(f_grid.nelem(), 0.);
+  Numeric btemp;
+
+  get_disortsurf_props(
+      albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
 
   run_cdisort_star(ws,
                    cloudbox_field,
@@ -458,6 +481,7 @@ void DisortCalcStar(Workspace& ws,
                    star_rte_los,
                    gas_scattering_do,
                    star_on,
+                   scale_factor,
                    nstreams,
                    Npfct,
                    cdisort_quiet,

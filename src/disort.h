@@ -222,6 +222,8 @@ void run_cdisort(Workspace& ws,
  * @param[in]     star_rte_los local position of the sun top of cloudbox.
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
  * @param[in]     star_do Flag to activate the star(s).
+ * @param[in]     scale_factor Scales the star radiance according to the star
+ *                cloubbox top distance.
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
  *                function.
@@ -256,6 +258,7 @@ void run_cdisort_star(Workspace& ws,
                  ConstVectorView star_rte_los,
                  const Index& gas_scattering_do,
                  const Index& star_do,
+                 const Numeric& scale_factor,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& quiet,
