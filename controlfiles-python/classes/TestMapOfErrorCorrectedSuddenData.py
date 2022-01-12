@@ -23,5 +23,5 @@ ecs_data2 = pyarts.classes.MapOfErrorCorrectedSuddenData()
 ecs_data2.readxml("tmp.xml")
 
 # Cannot compare directly but this gets close enough to ensure reading works
-assert np.isclose(float(ecs_data2["CO2-626 ALL"]["O2"].mass),
-                  float(arts.ecs_data.value["CO2-626 ALL"]["O2"].mass))
+assert np.isclose(float(ecs_data2["CO2-626"]["O2"].mass),
+                  float(arts.ecs_data.value["CO2-626"]["O2"].mass))

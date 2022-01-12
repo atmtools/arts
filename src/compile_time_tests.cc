@@ -90,6 +90,9 @@ constexpr bool check_global_local_types() {
   // Check completeness
   if (global_types.size() + local_types.size() not_eq size_t(Type::FINAL)) return false;
 
+  // Check that local state has no string types
+  for (auto qn: local_types) if (common_value_type(common_value_type(qn), ValueType::H) not_eq ValueType::H) return false;
+
   return true;
 }
 

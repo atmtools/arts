@@ -39,15 +39,14 @@ std::istream& operator>>(std::istream& is, Value& x) {
   std::string upp, low;
   is >> x.type >> upp >> low;
 
-  x.qn = TwoLevelValueHolder(value_holder(upp, x.type), value_holder(low, x.type), x.type);
-  
+  x.qn = TwoLevelValueHolder(
+      value_holder(upp, x.type), value_holder(low, x.type), x.type);
+
   return is;
 }
 
 void ValueList::sort_by_type() {
-  std::sort(begin(), end(), [](auto& a, auto& b) {
-    return a.type < b.type;
-  });
+  std::sort(begin(), end(), [](auto& a, auto& b) { return a.type < b.type; });
 }
 
 bool ValueList::has_unique_increasing_types() const {
@@ -56,9 +55,53 @@ bool ValueList::has_unique_increasing_types() const {
          }) == values.end();
 }
 
+//! Fix legacy catalog, where some values are rationals even though they shouldn't be
+ std::pair<std::string_view, String> fix_legacy(std::string_view key, std::string_view val) {
+  if (key == "ElectronState") {
+    if (val == "X") return {"ElecStateLabel", "X"};
+    if (val == "a") return {"ElecStateLabel", "a"};
+    if (val == "b") return {"ElecStateLabel", "b"};
+    if (val == "c") return {"ElecStateLabel", "c"};
+    if (val == "A") return {"ElecStateLabel", "A"};
+    if (val == "'") return {"ElecStateLabel", "'"};
+    if (val == "B") return {"ElecStateLabel", "B"};
+    if (val == "88") return {"ElecStateLabel", "X"};
+    if (val == "97") return {"ElecStateLabel", "a"};
+    if (val == "98") return {"ElecStateLabel", "b"};
+    if (val == "99") return {"ElecStateLabel", "c"};
+    if (val == "65") return {"ElecStateLabel", "A"};
+    if (val == "39") return {"ElecStateLabel", "'"};
+    if (val == "66") return {"ElecStateLabel", "B"};
+    goto error;
+  }
+
+  if (key == "parity") {
+    if (val == "-") return {key, "-"};
+    if (val == "+") return {key, "+"};
+    if (val == "-1") return {key, "-"};
+    if (val == "1") return {key, "+"};
+    goto error;
+  }
+
+  if (key == "Hund") return {"config", val};
+
+  if (key == "kronigParity") {
+    if (val == "e") return {key, "e"};
+    if (val == "f") return {key, "f"};
+    if (val == "101") return {key, "e"};
+    if (val == "102") return {key, "f"};
+    goto error;
+  } 
+  
+  return {key, val};
+
+error:
+    ARTS_USER_ERROR("Cannot read combination ", key, ' ', val)
+}
+
 ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
   const Index n = count_items(s);
-  
+
   if (not legacy) {
     ARTS_USER_ERROR_IF(
         n % 3, "Must have multiple of three items, got ", n, " in:\n", s)
@@ -69,18 +112,18 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
     auto key_type = items(s, i);
     if (key_type == "ALL") return;
     if (key_type == "NONE") return;
-    
+
     if (key_type == "TR") {
-      std::cout << "TR: " << s << '\n';
       // Transition type, will look like SPEC TR UP QN VAL QN VAL QN VAL LO QN VAL QN VAL QN VAL
       ARTS_USER_ERROR_IF(n < 4, "Must have at least four items")
-      
+
       i++;
-      ARTS_USER_ERROR_IF(items(s, i) not_eq "UP", "Bad legacy quantum numbers in:\n", s)
+      ARTS_USER_ERROR_IF(
+          items(s, i) not_eq "UP", "Bad legacy quantum numbers in:\n", s)
       i++;
 
       bool upp = true;
-      for (; i<n; i+=2) {
+      for (; i < n; i += 2) {
         auto key = items(s, i);
         if (key == "LO") {
           i++;
@@ -88,11 +131,13 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
           upp = false;
         }
 
-        auto val = items(s, i+1);
+        auto [k, val] = fix_legacy(key, items(s, i + 1));
 
-        auto t = toTypeOrThrow(key);
+        auto t = toTypeOrThrow(k);
         if (has(t)) {
-          std::find_if(begin(), end(), [t](auto& x){return x.type == t;}) -> set(val, upp);
+          std::find_if(begin(), end(), [t](auto& x) {
+            return x.type == t;
+          })->set(val, upp);
         } else {
           Value value = add(t);
           value.set(val, upp);
@@ -101,19 +146,20 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
       }
       return;
     }
-    
+
     if (key_type == "EN") {
       // Transition type, will look like SPEC EN QN VAL QN VAL QN VAL
       i++;
 
-      for (; i<n; i+=2) {
-        auto t = toTypeOrThrow(items(s, i));
-        auto val = items(s, i+1);
+      for (; i < n; i += 2) {
+        auto [key, val] = fix_legacy(items(s, i), items(s, i + 1));
+        auto t = toTypeOrThrow(key);
 
         if (has(t)) {
-          auto valptr = std::find_if(begin(), end(), [t](auto& x){return x.type == t;});
-          valptr -> set(val, true);
-          valptr -> set(val, false);
+          auto valptr = std::find_if(
+              begin(), end(), [t](auto& x) { return x.type == t; });
+          valptr->set(val, true);
+          valptr->set(val, false);
         } else {
           Value& value = add(t);
           value.set(val, true);
@@ -127,35 +173,105 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
 }
 
 ValueList::ValueList(std::string_view upp, std::string_view low) {
-    const Index nu = count_items(upp);
-    const Index nl = count_items(low);
+  const Index nu = count_items(upp);
+  const Index nl = count_items(low);
 
-    ARTS_USER_ERROR_IF(nu % 2, "Uneven count of items for legacy upper quantum number list: ", upp)
-    ARTS_USER_ERROR_IF(nl % 2, "Uneven count of items for legacy lower quantum number list: ", low)
+  ARTS_USER_ERROR_IF(
+      nu % 2,
+      "Uneven count of items for legacy upper quantum number list: ",
+      upp)
+  ARTS_USER_ERROR_IF(
+      nl % 2,
+      "Uneven count of items for legacy lower quantum number list: ",
+      low)
 
-    for (Index i=0; i<nu; i+=2) {
-      auto key = toTypeOrThrow(items(upp, i));
+  for (Index i = 0; i < nu; i += 2) {
+    auto [k, val] = fix_legacy(items(upp, i), items(upp, i+1));
+    auto key = toTypeOrThrow(k);
 
-      auto ptr = std::find_if(begin(), end(), [key](auto& a){return a.type == key;});
-      if (ptr == end()) {
-        add(key);
-        ptr = std::find_if(begin(), end(), [key](auto& a){return a.type == key;});
-      }
-
-      ptr -> set(items(upp, i + 1), true);
+    auto ptr =
+        std::find_if(begin(), end(), [key](auto& a) { return a.type == key; });
+    if (ptr == end()) {
+      add(key);
+      ptr = std::find_if(
+          begin(), end(), [key](auto& a) { return a.type == key; });
     }
 
-    for (Index i=0; i<nl; i+=2) {
-      auto key = toTypeOrThrow(items(low, i));
+    ptr->set(val, true);
+  }
 
-      auto ptr = std::find_if(begin(), end(), [key](auto& a){return a.type == key;});
-      if (ptr == end()) {
-        add(key);
-        ptr = std::find_if(begin(), end(), [key](auto& a){return a.type == key;});
-      }
-      
-      ptr -> set(items(low, i + 1), false);
+  for (Index i = 0; i < nl; i += 2) {
+    auto [k, val] = fix_legacy(items(low, i), items(low, i+1));
+    auto key = toTypeOrThrow(k);
+
+    auto ptr =
+        std::find_if(begin(), end(), [key](auto& a) { return a.type == key; });
+    if (ptr == end()) {
+      add(key);
+      ptr = std::find_if(
+          begin(), end(), [key](auto& a) { return a.type == key; });
     }
+
+    ptr->set(val, false);
+  }
+}
+
+/** Returns some input "ASDASDS=asdAS" as ["ASDASDS", "asdAS"] for Hitran online data
+ * 
+ * Note that there is a special exception for F#XYZ values
+ *
+ * @param x A string
+ * @return constexpr std::pair<std::string_view, std::string_view> 
+ */
+constexpr std::pair<std::string_view, std::string_view> split_hitran_qn(
+    std::string_view x) {
+  auto eq = x.find('=');
+  std::pair<std::string_view, std::string_view> out{strip(x.substr(0, eq)),
+                                                    strip(x.substr(eq + 1))};
+
+  if (x.size() > 1 and 'F' == out.first.front() and '#' == out.first[1])
+    out.first = out.first.substr(0, 1);
+
+  return out;
+}
+
+ValueList from_hitran(std::string_view upp, std::string_view low) {
+  ValueList out;
+
+  upp = strip(upp);
+  while (not upp.empty()) {
+    auto sep = upp.find(';');
+    auto [t, v] = split_hitran_qn(upp.substr(0, sep));
+    auto type = toTypeOrThrow(t);
+    ARTS_USER_ERROR_IF(
+        out.has(type),
+        "Type ",
+        t,
+        " already exist, this is a problem, there should be only one per level!")
+    out.add(type).set(v, true);
+
+    if (sep == upp.npos) break;
+    upp = upp.substr(sep + 1);
+  }
+
+  low = strip(low);
+  while (not low.empty()) {
+    auto sep = low.find(';');
+    auto [t, v] = split_hitran_qn(low.substr(0, sep));
+    auto type = toTypeOrThrow(t);
+    if (out.has(type)) {
+      Value val = out[type];
+      val.set(v, false);
+      out.set(val);
+    } else {
+      out.add(type).set(v, false);
+    }
+
+    if (sep == low.npos) break;
+    low = low.substr(sep + 1);
+  }
+
+  return out;
 }
 
 void ValueList::finalize() {
@@ -203,8 +319,8 @@ CheckMatch ValueList::operator==(const ValueList& other) const noexcept {
 }
 
 const Value& ValueList::operator[](Type t) const ARTS_NOEXCEPT {
-  auto val = std::find_if(
-      cbegin(), cend(), [t](auto& x) { return x.type == t; });
+  auto val =
+      std::find_if(cbegin(), cend(), [t](auto& x) { return x.type == t; });
   ARTS_ASSERT(val not_eq cend())
   return *val;
 }
@@ -216,8 +332,7 @@ Value& ValueList::add(Type t) {
   finalize();
 
   // We have the value, it is unique, so no need to check this pointer (we still need to find it, since we sort things)
-  return *std::find_if(
-      begin(), end(), [t](auto& x) { return x.type == t; });
+  return *std::find_if(begin(), end(), [t](auto& x) { return x.type == t; });
 }
 
 Value& ValueList::add(Value v) {
@@ -225,16 +340,14 @@ Value& ValueList::add(Value v) {
   finalize();
 
   // We have the value, it is unique, so no need to check this pointer (we still need to find it, since we sort things)
-  return *std::find_if(begin(), end(), [t = v.type](auto& x) {
-    return x.type == t;
-  });
+  return *std::find_if(
+      begin(), end(), [t = v.type](auto& x) { return x.type == t; });
 }
 
 void ValueList::set(Value v) {
   if (has(v.type))
-    *std::find_if(begin(), end(), [t = v.type](auto& x) {
-      return x.type == t;
-    }) = v;
+    *std::find_if(
+        begin(), end(), [t = v.type](auto& x) { return x.type == t; }) = v;
   else
     add(v);
 }
@@ -261,7 +374,7 @@ String LocalState::keys() const {
   std::ostringstream os;
 
   bool has = false;
-  for (auto&qn : val) {
+  for (auto& qn : val) {
     if (has) os << ' ';
     has = true;
     os << qn.type;
@@ -272,12 +385,17 @@ String LocalState::keys() const {
 String LocalState::values() const {
   std::ostringstream os;
 
-  for (auto& qn : val) {
-    os << qn.str_upp() << ' ';
+  bool first = true;
+  for (auto& x: val) {
+    if (first) first = false;
+    else os << ' '; 
+    os << x.str_low();
   }
-  for (auto& qn : val) {
-    os << ' ' << qn.str_low();
+  
+  for (auto& x: val) {
+    os << ' ' << x.str_upp();
   }
+
   return os.str();
 }
 
@@ -293,7 +411,7 @@ std::ostream& operator<<(std::ostream& os, const GlobalState& gs) {
   return os << gs.Isotopologue().FullName() << ' ' << gs.val;
 }
 
-std::istream& operator<<(std::istream& is, GlobalState& gs) {
+std::istream& operator>>(std::istream& is, GlobalState& gs) {
   String spec;
   is >> spec >> gs.val;
   gs.isotopologue_index = Species::find_species_index(spec);
@@ -805,7 +923,6 @@ bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT {
   return false;
 }
 
-// ENUMCLASS(StateMatchType, char, Full, Band, Level, Isotopologue, Species, None)
 StateMatch::StateMatch(const GlobalState& target,
                        const LocalState& local,
                        const GlobalState& global) {
@@ -830,8 +947,6 @@ StateMatch::StateMatch(const GlobalState& target,
       type = StateMatchType::Full;
     else if (upp or low)
       type = StateMatchType::Level;
-    else if (ug and lg)
-      type = StateMatchType::Band;
   }
 }
 
@@ -846,7 +961,6 @@ StateMatch::StateMatch(const GlobalState& target, const GlobalState& key) {
 
     upp = m.upp == CheckValue::Full or m.upp == CheckValue::BinA;
     low = m.low == CheckValue::Full or m.low == CheckValue::BinA;
-
     if (upp and low)
       type = StateMatchType::Full;
     else if (upp or low)
@@ -855,27 +969,20 @@ StateMatch::StateMatch(const GlobalState& target, const GlobalState& key) {
 }
 
 bool GlobalState::operator==(const GlobalState& that) const {
-  return isotopologue_index == that.isotopologue_index and bool(val == that.val);
+  return isotopologue_index == that.isotopologue_index and
+         bool(val == that.val);
 }
 
-bool GlobalState::operator!=(const GlobalState& that) const {return not (*this == that);}
+bool GlobalState::operator!=(const GlobalState& that) const {
+  return not(*this == that);
+}
 
-void update_id(GlobalState& qid,
-               const std::vector<std::array<String, 2> >& upper_list,
-               const std::vector<std::array<String, 2> >& lower_list) {
-  Array<String> values(0);
-  for (auto& pair : upper_list) {
-    auto ptr = std::find_if(lower_list.begin(),
-                            lower_list.end(),
-                            [&pair](auto& x) { return x[0] == pair[0]; });
-    ARTS_USER_ERROR_IF(ptr == lower_list.end(),
-                       "Cannot find ",
-                       pair[0],
-                       " in the lower list, these must be paired!")
-    values.emplace_back(var_string(pair[0], ' ', pair[1], ' ', (*ptr)[1]));
-  }
+bool GlobalState::part_of(const GlobalState& other) const {
+  if (other.isotopologue_index not_eq isotopologue_index) return false;
 
-  for (auto& x : values) qid.val.set(Quantum::Number::Value(x));
+  auto test = other.val == val;
+  return (test.upp == CheckValue::Full or test.upp == CheckValue::AinB) and 
+         (test.low == CheckValue::Full or test.low == CheckValue::AinB);
 }
 
 std::ostream& operator<<(std::ostream& os, const LocalState& vl) {
@@ -883,22 +990,20 @@ std::ostream& operator<<(std::ostream& os, const LocalState& vl) {
 }
 
 std::istream& operator>>(std::istream& is, LocalState& vl) {
-  for (Index i=0; i<vl.val.nelem(); i++) {
-    String upp, low;
-    is >> upp >> low;
-    vl.val.set(i, upp, low);
+  String val;
+  for (auto& v: vl.val) {
+    is >> val;
+    v.set(val, false);
+  }
+  for (auto& v: vl.val) {
+    is >> val;
+    v.set(val, true);
   }
   return is;
 }
 
 bool LocalState::same_types_as(const LocalState& that) const {
-  auto x = that.val.begin();
-  for (auto& y: val) {
-    if (x == that.val.end()) return true;
-    if (x -> type == y.type) x++;
-    else return false;
-  }
-  return true;
+  return std::equal(val.begin(), val.end(), that.val.begin(), that.val.end(), [](auto& a, auto& b){return a.type==b.type;});
 }
 
 GlobalState GlobalState::LowerLevel() const {
@@ -917,7 +1022,7 @@ void Value::swap_values(Value& x) {
   // Make copies
   Value _this = *this;
   Value _x = x;
-  
+
   // Copy values from the other part
   _this.qn = x.qn;
   _x.qn = qn;
@@ -928,16 +1033,57 @@ void Value::swap_values(Value& x) {
 }
 
 GlobalState::GlobalState(std::string_view s, Index v) {
-      auto specname = items(s, 0);
-      isotopologue_index = Species::find_species_index(specname);
-      ARTS_USER_ERROR_IF(isotopologue_index < 0, "Bad species in: ", s)
+  auto n = count_items(s);
+  auto specname = items(s, 0);
+  isotopologue_index = Species::find_species_index(specname);
+  ARTS_USER_ERROR_IF(isotopologue_index < 0, "Bad species in: ", s)
+  
+  if (version == v) {
+    if (n > 1) val = ValueList(s.substr(specname.length() + 1));
+  } else if (v == 0 or v == 1) {
+    val = ValueList(s.substr(specname.length() + 1), true);
+  } else {
+    ARTS_USER_ERROR("Unknown version: ", v)
+  }
+}
 
-      if (version == v) {
-        val = ValueList(s.substr(specname.length()+1));
-      } else if (v == 0) {
-        val = ValueList(s.substr(specname.length()+1), true);
-      } else {
-        ARTS_USER_ERROR("Unknown version: ", v)
-      }
+void ValueList::add_type_wo_sort(Type t) {values.emplace_back().type=t;}
+
+void LocalState::set_unsorted_qns(const Array<Type>& vals) {
+  val = ValueList("");
+  for (auto qn: vals) val.add_type_wo_sort(qn);
+}
+
+[[nodiscard]] LevelTest GlobalState::part_of(const GlobalState& g, const LocalState& l) const {
+  bool upp=true, low=true;
+  if (isotopologue_index not_eq g.isotopologue_index) return {false, false};
+
+  for (auto& qn: val) {
+    bool any=false;
+
+    if (g.val.has(qn.type)) {
+      auto& v = g.val[qn.type];
+
+      upp = upp and v.str_upp() == qn.str_upp();
+      low = low and v.str_low() == qn.str_low();
+      any=true;
     }
+
+    if (l.val.has(qn.type)) {
+      auto& v = l.val[qn.type];
+
+      upp = upp and v.str_upp() == qn.str_upp();
+      low = low and v.str_low() == qn.str_low();
+      ARTS_USER_ERROR_IF(any, "Repeated type: ", qn.type, '\n',
+      "From original key: ", *this, '\n',
+      "With global key: ", g, '\n',
+      "With local key: ", l.val)
+      any=true;
+    }
+
+    if (not any) return {false, false};
+  }
+  return {upp, low};
+
+}
 }  // namespace Quantum::Number

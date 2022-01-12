@@ -2,12 +2,11 @@ import os
 from pyarts.workspace import Workspace
 from pyarts.classes import from_workspace
 from pyarts.classes.AbsorptionLines import AbsorptionLines, ArrayOfAbsorptionLines
+from pyarts.classes.quantum import QuantumIdentifier
 
 
 ws = Workspace()
-datapath = "../../arts-xml-data/" if not os.getenv("ARTS_XML_DATA_DIR") else os.getenv("ARTS_XML_DATA_DIR")
-fn1 = os.path.join(datapath, 'spectroscopy/Artscat/')
-fn2 = os.path.join(datapath, 'spectroscopy/Artscat/O2-66.xml')
+datapath = "../../../arts-cat-data/" if not os.getenv("ARTS_XML_DATA_DIR") else os.getenv("ARTS_XML_DATA_DIR")
 
 # Init
 al = AbsorptionLines()
@@ -25,17 +24,15 @@ assert al.lineshapetype == "VP", "Bad init"
 assert al.t0 == 296, "Bad init"
 assert al.cutofffreq == -1, "Bad init"
 assert al.linemixinglimit == -1, "Bad init"
-assert al.quantumidentity.spec_ind == -1, "Bad init"
-assert al.quantumidentity.type == "None", "Bad init"
-assert not al.localquantumnumbers, "Bad init"
+assert al.quantumidentity == QuantumIdentifier(), "Bad init"
 assert not al.broadeningspecies, "Bad init"
 assert not al.lines, "Bad init"
 assert al.OK, "Bad init"
 
 # Read same file twice, in ARTS and external
 ws.abs_speciesSet(species = ["O2-66"])
-aal.readxml(fn2)
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = fn1)
+aal.readxml(os.path.join(datapath, "O2-66.xml"))
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = datapath)
 
 # Everything should be the same (with silly not-empty test)
 assert aal == aaal[0], "Bad load"

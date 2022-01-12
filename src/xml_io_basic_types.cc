@@ -33,6 +33,7 @@
 #include "isotopologues.h"
 #include "quantum_numbers.h"
 #include "xml_io.h"
+#include <algorithm>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////
@@ -445,6 +446,7 @@ void xml_read_from_stream(istream& is_xml,
   } else {
     version = 0;
   }
+
   ARTS_USER_ERROR_IF(
       AbsorptionLines::version < version,
       "The version of this catalog is too new.  You need to upgrade ARTS to use it.")
@@ -522,17 +524,28 @@ void xml_read_from_stream(istream& is_xml,
   Numeric linemixinglimit;
   tag.get_attribute_value("linemixinglimit", linemixinglimit);
   
-  /** List of local quantum numbers, these must be defined */
+  /** List of local quantum numbers, these must be defined and not strings */
   Quantum::Number::LocalState meta_localstate;
   String localquanta_str;
   tag.get_attribute_value("localquanta", localquanta_str);
-
   const Index nlocal = Quantum::Number::count_items(localquanta_str);
-  std::vector<QuantumNumberType> qn_key;
+  Array<QuantumNumberType> qn_key;
   for (Index i = 0; i < nlocal; i++)
     qn_key.push_back(
         Quantum::Number::toType(Quantum::Number::items(localquanta_str, i)));
-  for (auto& key : qn_key) meta_localstate.val.add(key);
+  ARTS_USER_ERROR_IF(
+      std::any_of(qn_key.begin(),
+                  qn_key.end(),
+                  [](auto& qn) {
+                    return Quantum::Number::common_value_type(
+                               Quantum::Number::common_value_type(qn),
+                               Quantum::Number::ValueType::H) not_eq
+                           Quantum::Number::ValueType::H;
+                  }),
+      "Quantum number list contains a string type, this is not allowed: [",
+      qn_key,
+      ']')
+  meta_localstate.set_unsorted_qns(qn_key);
 
   /** Catalog ID */
   if (version == 1) {
@@ -574,25 +587,10 @@ void xml_read_from_stream(istream& is_xml,
       os << "AbsorptionLines has wrong dimensions";
       xml_data_parse_error(tag, os.str());
     }
-
-    if (version == 1) {
-      // The order of quantum numbers is sorted since version 2.
-      // the wrong quantum numbers might have been read.
-      // We need to do a reshuffle so that the values from
-      // different quantum numbers is correct
-      for (auto& line: al.lines)
-        for (Index i = 0; i < nlocal; i++) {
-          if (qn_key[i] == line.localquanta.val[i].type) {
-          } else {
-            for (Index j=i+1; j<nlocal; j++) {
-              if (qn_key[j] == line.localquanta.val[i].type) {
-                line.localquanta.val[i].swap_values(line.localquanta.val[j]);
-              }
-            }
-          }
-        }
-    }
   }
+
+  // Finalize the sorting because we have to
+  for (auto& line: al.lines) line.localquanta.val.finalize();
 
   tag.read_from_stream(is_xml);
   tag.check_name("/AbsorptionLines");

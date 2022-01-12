@@ -471,7 +471,7 @@ void ecs_dataAddMakarov2020(MapOfErrorCorrectedSuddenData& ecs_data,
                             const Verbosity&)
 {
   // The band is ignored
-  auto& ecs = ecs_data[QuantumIdentifier("O2-66 ALL")];
+  auto& ecs = ecs_data[QuantumIdentifier("O2-66")];
   
   // All species have the same effect, so just copy the values but change the mass (allow new mass for Air)
   
@@ -492,7 +492,7 @@ void ecs_dataAddRodrigues1997(MapOfErrorCorrectedSuddenData& ecs_data,
                               const SpeciesIsotopologueRatios& isotopologue_ratios,
                               const Verbosity&)
 {
-  for (const auto *key: {"CO2-626 ALL", "CO2-628 ALL", "CO2-636 ALL"}) {
+  for (const auto *key: {"CO2-626", "CO2-628", "CO2-636"}) {
     auto& ecs = ecs_data[QuantumIdentifier(key)];
     
     ecs[Species::Species::Nitrogen].scaling = LineShapeModelParameters(LineShapeTemperatureModel::T1, Conversion::kaycm_per_atm2hz_per_pa(0.0180), 0.85, 0, 0);
@@ -513,7 +513,7 @@ void ecs_dataAddTran2011(MapOfErrorCorrectedSuddenData& ecs_data,
                               const SpeciesIsotopologueRatios& isotopologue_ratios,
                               const Verbosity&)
 {
-  for (const auto *key: {"CO2-626 ALL", "CO2-628 ALL", "CO2-636 ALL"}) {
+  for (const auto *key: {"CO2-626", "CO2-628", "CO2-636"}) {
     auto& ecs = ecs_data[QuantumIdentifier(key)];
     
     ecs[Species::Species::CarbonDioxide].scaling = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::kaycm_per_atm2hz_per_pa(0.019), 0, 0, 0);

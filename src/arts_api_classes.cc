@@ -85,9 +85,8 @@ Index set##VALUE##TYPE(void * data, Index newval)                     \
   if (static_cast<TYPE *>(data) -> validIndexFor##VALUE (newval)) {   \
     static_cast<TYPE *>(data) -> VALUE (ENUM(newval));                \
     return EXIT_SUCCESS;                                              \
-  } else {                                                            \
-    return EXIT_FAILURE;                                              \
   }                                                                   \
+  return EXIT_FAILURE;                                                \
 }                                                                     \
 Index string2index##VALUE##TYPE(void * data, char * newval)           \
 {                                                                     \
@@ -232,9 +231,8 @@ int setLineShapeTemperatureModelString(void * data, char * val) {
   if (good_enum(x)) {
     *static_cast<LineShapeTemperatureModel *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 
 
@@ -270,9 +268,8 @@ int setLineShapeTypeString(void * data, char * val) {
   if (good_enum(x)) {
     *static_cast<LineShapeType *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 
 // LineShape::Model
@@ -380,9 +377,8 @@ int setSpeciesShortName(void * data, char * spec) {
   if (good_enum(x)) {
     *static_cast<Species::Species *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 void * getSpeciesLongName(void * data) {
   return new String(Species::toString(*static_cast<Species::Species *>(data)));
@@ -400,6 +396,9 @@ BasicInterfaceCAPI(SpeciesIsotopeRecord)
 Index getIndexSpeciesIsotopeRecordFromNames(char * spec, char * isot) {
   return Species::find_species_index(spec, isot);
 }
+Index getIndexSpeciesIsotopeRecordFromFullName(char * spec) {
+  return Species::find_species_index(spec);
+}
 void * getIsotnameSpeciesIsotopeRecord(void *);
 Index getIndexSpeciesIsotopeRecordFromData(void * data) {
   return Species::find_species_index(*static_cast<SpeciesIsotopeRecord *>(data));
@@ -408,12 +407,10 @@ Index nelemSpeciesIsotopeRecordDefined() {
   return Index(Species::Isotopologues.size());
 }
 int setSpeciesIsotopeRecordToIndex(void * data, Index i) {
-  if (i < 0 or i >= nelemSpeciesIsotopeRecordDefined()) {
+  if (i < 0 or i >= nelemSpeciesIsotopeRecordDefined())
     return EXIT_FAILURE;
-  } else {
-    *static_cast<SpeciesIsotopeRecord *>(data) = Species::Isotopologues[i];
-    return EXIT_SUCCESS;
-  }
+  *static_cast<SpeciesIsotopeRecord *>(data) = Species::Isotopologues[i];
+  return EXIT_SUCCESS;
 }
 
 void * getSpeciesSpeciesIsotopeRecord(void * data) {
@@ -463,9 +460,8 @@ int setSpeciesTagTypeString(void * data, char * val) {
   if (good_enum(x)) {
     *static_cast<SpeciesTagType *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 
 // SpeciesTag
@@ -510,9 +506,8 @@ int setAbsorptionNormalizationTypeString(void * data, char * val) {
   if (good_enum(x)) {
     *static_cast<AbsorptionNormalizationType *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 
 
@@ -526,9 +521,8 @@ int setAbsorptionPopulationTypeString(void * data, char * val) {
   if (good_enum(x)) {
     *static_cast<AbsorptionPopulationType *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 
 
@@ -542,9 +536,8 @@ int setAbsorptionMirroringTypeString(void * data, char * val) {
   if (good_enum(x)) {
     *static_cast<AbsorptionMirroringType *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 
 
@@ -558,9 +551,8 @@ int setAbsorptionCutoffTypeString(void * data, char * val) {
   if (good_enum(x)) {
     *static_cast<AbsorptionCutoffType *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 
 // AbsorptionLines
@@ -588,8 +580,7 @@ BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
 void printmetaAbsorptionLines(void * data) { std::cout << static_cast<AbsorptionLines *>(data) -> MetaData() << std::endl; }
 Index isAbsorptionLinesOK(void * data) { return Index(static_cast<AbsorptionLines *>(data) -> OK()); }
 void * getSpeciesNameAbsorptionLines(void * data) {
-  String *s = new String(static_cast<AbsorptionLines *>(data)->SpeciesName());
-  return (void *)s;
+  return new String(static_cast<AbsorptionLines *>(data)->SpeciesName());
 }
 
 // EnergyLevelMap
@@ -740,9 +731,8 @@ Index setPropagationMatrix(void * data, Index f, Index s, Index z, Index a, Nume
   if (s >= 0 and s < 5 and f >= 0 and z >= 0 and a >= 0) {
     static_cast<PropagationMatrix *>(data) -> operator=(PropagationMatrix(f, s, z, a, v));
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 bool getOKPropagationMatrix(void * data) {return static_cast<PropagationMatrix *>(data) -> OK();}
 
@@ -766,9 +756,8 @@ Index setStokesVector(void * data, Index f, Index s, Index z, Index a, Numeric v
   if (s >= 0 and s < 5 and f >= 0 and z >= 0 and a >= 0) {
     static_cast<StokesVector *>(data) -> operator=(StokesVector(f, s, z, a, v));
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 bool getOKStokesVector(void * data) {return static_cast<StokesVector *>(data) -> OK();}
 
@@ -1062,11 +1051,10 @@ Index getScreenVerbosity(void * data) {return static_cast<Verbosity *>(data) -> 
 Index getFileVerbosity(void * data) {return static_cast<Verbosity *>(data) -> get_file_verbosity();}
 bool getMainVerbosity(void * data) {return static_cast<Verbosity *>(data) -> is_main_agenda();}
 void setVerbosity(void * data, Index a, Index s, Index f, bool m) {
-  auto x = static_cast<Verbosity *>(data);
-  x -> set_agenda_verbosity(a);
-  x -> set_screen_verbosity(s);
-  x -> set_file_verbosity(f);
-  x -> set_main_agenda(m);
+  static_cast<Verbosity *>(data) -> set_agenda_verbosity(a);
+  static_cast<Verbosity *>(data) -> set_screen_verbosity(s);
+  static_cast<Verbosity *>(data) -> set_file_verbosity(f);
+  static_cast<Verbosity *>(data) -> set_main_agenda(m);
 }
 
 
@@ -1481,7 +1469,7 @@ Index get_index2Block(void * data) {return static_cast<Block *>(data) -> get_ind
 void set_indicesBlock(void * data, Index i1, Index i2) {static_cast<Block *>(data) -> set_indices(i1, i2);}
 void set_matrixBlock(void * data, void * newdata, bool dense)
 {
-  auto x = static_cast<Block *>(data);
+  auto *x = static_cast<Block *>(data);
   if (dense) {
     x -> operator=(Block(x -> get_row_range(), x -> get_column_range(), x -> get_indices(), std::make_shared<Matrix>(*static_cast<Matrix *>(newdata))));
   } else {
@@ -1546,9 +1534,8 @@ int setPartitionFunctionsTypeString(void * data, char * val) {
   if (good_enum(x)) {
     *static_cast<PartitionFunctionsType *>(data) = x;
     return EXIT_SUCCESS;
-  } else {
-    return EXIT_FAILURE;
   }
+  return EXIT_FAILURE;
 }
 
 
@@ -1578,9 +1565,8 @@ void * getSpeciesErrorCorrectedSuddenDataAtErrorCorrectedSuddenData(void * data,
 {
   if (i < static_cast<ErrorCorrectedSuddenData *>(data) -> data.nelem() and i >= 0) {
     return & static_cast<ErrorCorrectedSuddenData *>(data) -> data[i];
-  } else {
-    return nullptr;
   }
+  return nullptr;
 }
 
 // MapOfErrorCorrectedSuddenData
@@ -1590,18 +1576,18 @@ void * getMapOfErrorCorrectedSuddenData(void * data, void * id) {
   return & static_cast<MapOfErrorCorrectedSuddenData *>(data) -> operator[](*static_cast<QuantumIdentifier *>(id));
 }
 Index getnelemMapOfErrorCorrectedSuddenData(void * data) {return static_cast<MapOfErrorCorrectedSuddenData *>(data) -> nelem();}
-void * getErrorCorrectedSuddenDataAtMapOfErrorCorrectedSuddenData(void * data, Index i)
-{
+void * getErrorCorrectedSuddenDataAtMapOfErrorCorrectedSuddenData(void * data, Index i) {
   if (i < static_cast<MapOfErrorCorrectedSuddenData *>(data) -> nelem() and i >= 0) {
     return & static_cast<MapOfErrorCorrectedSuddenData *>(data) -> operator[](i);
-  } else {
-    return nullptr;
   }
+  return nullptr;
 }
 
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 void * get_list_of_all_workspace_classes() { return new ArrayOfString{global_data::wsv_group_names}; }
+bool get_bool(void * data) {return *static_cast<bool *>(data);}
+void set_bool(void * data, bool val) {*static_cast<bool *>(data) = val;}
 
 #undef BasicInterfaceCAPI
 #undef GetterSetterCAPI

@@ -82,6 +82,7 @@ Output2 EnergyLevelMap::get_ratio_params(
     if (found1 and found2)
       break;
   }
+  
   return x;
 }
 

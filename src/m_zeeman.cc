@@ -94,8 +94,6 @@ void propmat_clearskyAddZeeman(
                     manual_zeeman_eta);
 }
 
-
-
 void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
                                     const ArrayOfQuantumIdentifier& qid,
                                     const Vector& gs,
@@ -106,13 +104,13 @@ void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
     const Numeric g = gs[i];
     
     for (AbsorptionLines& band: abs_lines) {
-      if (id.Isotopologue() not_eq band.Isotopologue()) continue;
-      
-      for (Index iline=0; iline<band.NumLines(); iline++) {
-        const Quantum::Number::StateMatch lt(id, band.lines[iline].localquanta, band.quantumidentity);
-        
-        if (lt == Quantum::Number::StateMatchType::Level and lt.upp) band.lines[iline].zeeman.gu(g);
-        if (lt == Quantum::Number::StateMatchType::Level and lt.low) band.lines[iline].zeeman.gl(g);
+      if (id.isotopologue_index not_eq band.quantumidentity.isotopologue_index) continue;
+
+      for (auto& line: band.lines) {
+        auto test = id.part_of(band.quantumidentity, line.localquanta);
+
+        if (test.upp) line.zeeman.gu(g);
+        if (test.low) line.zeeman.gl(g);
       }
     }
   }

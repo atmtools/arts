@@ -232,6 +232,7 @@ extern "C" {
     // SpeciesIsotopeRecord
     BasicInterfaceCAPI(SpeciesIsotopeRecord)
     DLL_PUBLIC Index getIndexSpeciesIsotopeRecordFromNames(char * spec, char * isot);
+    DLL_PUBLIC Index getIndexSpeciesIsotopeRecordFromFullName(char * spec);
     DLL_PUBLIC Index getIndexSpeciesIsotopeRecordFromData(void *);
     DLL_PUBLIC int setSpeciesIsotopeRecordToIndex(void *, Index);
     DLL_PUBLIC void * getSpeciesSpeciesIsotopeRecord(void *);
@@ -1014,6 +1015,8 @@ extern "C" {
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
     DLL_PUBLIC void * get_list_of_all_workspace_classes();
+    DLL_PUBLIC bool get_bool(void *);
+    DLL_PUBLIC void set_bool(void *, bool);
 }
 
 

@@ -3058,7 +3058,8 @@ void line_loop(ComputeData &com,
       }
     }
     std::remove_if(derivs.begin(), derivs.end(), [](Derivatives& dd) { return dd.deriv == nullptr; });
-
+//std::cout << nlte << '\n';
+//std::cout << band.MetaData() << '\n';
     // Call cut off loop with or without sparsity
     switch (speedup_type) {
       case Options::LblSpeedup::None:

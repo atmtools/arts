@@ -39,6 +39,7 @@
 #include "hitran_species.h"
 #include "jpl_species.h"
 #include "linescaling.h"
+#include "quantum_numbers.h"
 
 LineShape::Output Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
   auto x = lines[k].lineshape.GetParams(T, T0, P, vmrs);
@@ -804,31 +805,6 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   return data;
 }
 
-std::vector<std::array<String, 2>> split_quantum_numbers_from_hitran_online(String& qns)
-{
-  std::vector<std::array<String, 2>> out(0);
-  
-  if (qns.length()) {
-  auto pos_semicolon = qns.find(";");
-    while (pos_semicolon < qns.length() and (pos_semicolon > 0)) {
-      String var = qns.substr(0, pos_semicolon);
-      qns.erase(0, pos_semicolon + 1);
-      
-      const auto pos_equality = var.find("=");
-      out.push_back({var.substr(0, pos_equality), var.substr(pos_equality+1, var.length())});
-      pos_semicolon = qns.find(";");
-    }
-    
-    const auto pos_equality = qns.find("=");
-    out.push_back({qns.substr(0, pos_equality), qns.substr(pos_equality+1, qns.length())});
-  }
-
-  // Convert F# FIXME: This could cause problems
-  for (auto& pair: out) if (pair[0].size() and pair[0][0] == 'F' and pair[0][1] == '#') pair[0] = "F";
-  
-  return out;
-}
-
 Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
@@ -1094,9 +1070,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   std::stringstream ss;
   ss.str(line);
   ss >> upper >> lower;
-  auto upper_list = split_quantum_numbers_from_hitran_online(upper);
-  auto lower_list = split_quantum_numbers_from_hitran_online(lower);
-  update_id(data.quantumidentity, upper_list, lower_list);
+  data.quantumidentity.val = Quantum::Number::from_hitran(upper, lower);
 
   // That's it!
   data.bad = false;
@@ -1846,7 +1820,7 @@ String Absorption::Lines::MetaData() const
     os << "\t\t" << "A: " << line.A << " 1/s\n";
     os << "\t\t" << "Zeeman splitting of lower state: " << line.zeeman.gl() << " [-]\n";
     os << "\t\t" << "Zeeman splitting of upper state: " << line.zeeman.gu() << " [-]\n";
-    os << "\t\t" << "Local quantum numbers: " << line.localquanta << "\n";
+    os << "\t\t" << "Local quantum numbers: " << line.localquanta.val << "\n";
 
     ArrayOfString ls_meta = LineShape::ModelMetaDataArray(line.lineshape,
                                                           selfbroadening,
@@ -2196,9 +2170,10 @@ bofstream& SingleLine::write(bofstream& bof) const {
 }
 
 void Lines::AppendSingleLine(SingleLine&& sl) {
-  ARTS_USER_ERROR_IF (NumLocalQuanta() not_eq sl.LocalQuantumElems(),
-                     "Error calling appending function, bad size of quantum numbers");
-  
+  ARTS_USER_ERROR_IF(
+      NumLines() not_eq 0 and NumLocalQuanta() not_eq sl.LocalQuantumElems(),
+      "Error calling appending function, bad size of quantum numbers");
+
   ARTS_USER_ERROR_IF(NumLines() not_eq 0 and 
     sl.LineShapeElems() not_eq lines[0].LineShapeElems(),
                      "Error calling appending function, bad size of broadening species");
@@ -2207,13 +2182,18 @@ void Lines::AppendSingleLine(SingleLine&& sl) {
 }
 
 void Lines::AppendSingleLine(const SingleLine& sl) {
-  ARTS_USER_ERROR_IF( NumLocalQuanta() not_eq sl.LocalQuantumElems(),
-                     "Error calling appending function, bad size of quantum numbers");
-  
-  ARTS_USER_ERROR_IF (NumLines() not_eq 0 and 
-                      sl.LineShapeElems() not_eq lines[0].LineShapeElems(),
-                     "Error calling appending function, bad size of broadening species");
-  
+  ARTS_USER_ERROR_IF(
+      NumLines() not_eq 0 and NumLocalQuanta() not_eq sl.LocalQuantumElems(),
+      "Error calling appending function, bad size of quantum numbers\n"
+      "Type of quantum numbers in band: ", lines.front().localquanta.val,
+      "\nType of quantum numbers in new line:", sl.localquanta.val
+      );
+
+  ARTS_USER_ERROR_IF(
+      NumLines() not_eq 0 and
+          sl.LineShapeElems() not_eq lines.front().LineShapeElems(),
+      "Error calling appending function, bad size of broadening species");
+
   lines.push_back(sl);
 }
 

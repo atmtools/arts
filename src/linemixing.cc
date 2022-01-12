@@ -769,8 +769,7 @@ EcsReturn ecs_absorption(const Numeric T,
       Numeric d=1e-6;
       
       for (Index iline=0; iline<band.NumLines(); iline++) {
-        const Quantum::Number::StateMatch qlt(target.QuantumIdentity(), band.lines[iline].localquanta, band.quantumidentity);
-        if (qlt == Quantum::Number::StateMatchType::Full) {
+        if (Quantum::Number::StateMatch(target.QuantumIdentity(), band.lines[iline].localquanta, band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
           AbsorptionLines band_copy = band;
           
           const Index pos = band.BroadeningSpeciesPosition(target.QuantumIdentity().Species());
@@ -919,7 +918,7 @@ EcsReturn ecs_absorption(const Numeric T,
           vec -= dabs;
           vec /= -d;
           work &= dwork;
-        } else if (qlt == Quantum::Number::StateMatchType::Band) {
+        } else if (Quantum::Number::StateMatch(target.QuantumIdentity(), band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
           ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
           
           const auto spec = target.QuantumIdentity().Species();
@@ -1040,8 +1039,6 @@ EcsReturn ecs_absorption(const Numeric T,
           vec /= -d;
           work &= dwork;
           break;  // Leave early because it is a band derivative
-        } else {
-          ARTS_ASSERT (false, "Missing Line Derivative");
         }
       }
     } else {

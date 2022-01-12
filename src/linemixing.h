@@ -139,8 +139,8 @@ struct ErrorCorrectedSuddenData {
    * contain a Bath-species, either the default one or modified */
   Array<SpeciesErrorCorrectedSuddenData> data;
   
-  explicit ErrorCorrectedSuddenData(const QuantumIdentifier& qid={}) noexcept :
-  id(qid), data({SpeciesErrorCorrectedSuddenData()}) {}
+  explicit ErrorCorrectedSuddenData(QuantumIdentifier  qid={}) noexcept :
+  id(std::move(qid)), data({SpeciesErrorCorrectedSuddenData()}) {}
   
   friend std::ostream& operator<<(std::ostream& os, const ErrorCorrectedSuddenData& rbd) {
     for (Index i=0; i<rbd.data.nelem(); i++) {
@@ -156,7 +156,7 @@ struct ErrorCorrectedSuddenData {
   }
   
   bool operator==(const QuantumIdentifier& band_id) const noexcept {
-    return id == band_id;
+    return band_id.part_of(id);
   }
 
   [[nodiscard]] Index pos(Species::Species spec) const noexcept {
