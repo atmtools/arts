@@ -1210,10 +1210,11 @@ void run_cdisort_star(Workspace& ws,
   c_disort_state_alloc(&ds);
   c_disort_out_alloc(&ds, &out);
 
-  // Properties of solar beam, set to zero as they are not needed
-
+  // Looking direction of solar beam
   ds.bc.umu0 = umu0;
   ds.bc.phi0 = phi0;
+
+  // Intensity of bottom-boundary isotropic illumination
   ds.bc.fluor = 0.;
 
   // fill up azimuth angle and temperature array
@@ -1325,7 +1326,7 @@ void run_cdisort_star(Workspace& ws,
     // set
     ds.bc.albedo = surface_scalar_reflectivity[f_index];
 
-    // Set Intensity of incident solar beam at top boundary
+    // Set irradiance of incident solar beam at top boundary
     if (star_do) {
       fbeam = stars[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
               (100 * SPEED_OF_LIGHT)*scale_factor;

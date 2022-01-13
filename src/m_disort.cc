@@ -415,8 +415,6 @@ void DisortCalcStar(Workspace& ws,
       //TODO: Add warning message that star is switched off because it is below horizon
     }
 
-    //FIXME: Should we add a warning for low sun position near the horizon?
-
     init_ifield(cloudbox_field,
                 f_grid,
                 cloudbox_limits,
@@ -439,6 +437,8 @@ void DisortCalcStar(Workspace& ws,
                star_pos[1],
                star_pos[2]);
 
+    // Geometric scaling factor, scales the star spectral irradiance at the surface
+    // of the star to the spectral irradiance of the star at cloubbox top.
     scale_factor=stars[0].radius*stars[0].radius/
                    (stars[0].radius*stars[0].radius+R_Star2CloudboxTop*R_Star2CloudboxTop);
 
