@@ -598,9 +598,8 @@ void iyClearsky(
                                        rte_alonglos_v,
                                        verbosity);
 
-                //add here get_scattered_directsource
-                //              StokesVector test = StokesVector(transmitted_starlight);
-
+                // here we calculate how much incoming star radiation is scattered
+                //into the direction of the ppath
                 get_scattered_starsource(ws,
                                          scattered_starlight,
                                          dscattered_starlight,
@@ -617,7 +616,7 @@ void iyClearsky(
             }
           }
 
-          // add gas scattering extiction
+          // Calculate gas scattering extiction
           gas_scattering_agendaExecute(ws,
                                        K_sca,
                                        sca_mat_dummy,
@@ -643,8 +642,12 @@ void iyClearsky(
             FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
         }
 
+        // scattered_starlight and dscattered_starlight are changed within
+        // stepwise source.
         stepwise_source(src_rad[ip],
                         dsrc_rad[ip],
+                        scattered_starlight,
+                        dscattered_starlight,
                         K[ip],
                         a,
                         S,
@@ -653,10 +656,9 @@ void iyClearsky(
                         dS_dx,
                         B,
                         dB_dT,
-                        scattered_starlight,
-                        dscattered_starlight,
                         jacobian_quantities,
                         jacobian_do);
+
       } catch (const std::runtime_error& e) {
         ostringstream os;
         os << "Runtime-error in source calculation at index " << ip
@@ -778,6 +780,7 @@ void iyClearsky(
                               0,
                               0,
                               RadiativeTransferSolver::Emission);
+
     }
   } else if (rt_integration_option == "second order") {
     for (Index ip = np - 2; ip >= 0; ip--) {
@@ -1649,6 +1652,8 @@ void iyEmissionStandard(
 
         stepwise_source(src_rad[ip],
                         dsrc_rad[ip],
+                        J_add_dummy,
+                        dJ_add_dummy,
                         K[ip],
                         a,
                         S,
@@ -1657,8 +1662,6 @@ void iyEmissionStandard(
                         dS_dx,
                         B,
                         dB_dT,
-                        J_add_dummy,
-                        dJ_add_dummy,
                         jacobian_quantities,
                         jacobian_do);
       } catch (const std::runtime_error& e) {

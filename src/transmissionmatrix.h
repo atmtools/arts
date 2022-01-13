@@ -780,6 +780,8 @@ void update_radiation_vector(RadiationVector& I,
  * 
  * @param[in,out] J Source vector
  * @param[in,out] dJ Source vector derivatives
+ * @param[in] J_add Additional source vector
+ * @param[in] dJ_add Additional source vector derivatives
  * @param[in] K Propagation matrix
  * @param[in] a Absorption vector
  * @param[in] S Scattering source vector
@@ -788,13 +790,13 @@ void update_radiation_vector(RadiationVector& I,
  * @param[in] dS Scattering source vector derivatives
  * @param[in] B Planck vector
  * @param[in] dB_dT Planck vector derivative wrt temperature
- * @param[in] J_add Additional source vector
- * @param[in] J_add Additional source vector derivatives
  * @param[in] jacobian_quantities As WSV
  * @param[in] jacobian_do Do Jacobian?
  */
 void stepwise_source(RadiationVector& J,
                      ArrayOfRadiationVector& dJ,
+                     RadiationVector& J_add,
+                     ArrayOfRadiationVector& dJ_add,
                      const PropagationMatrix& K,
                      const StokesVector& a,
                      const StokesVector& S,
@@ -803,8 +805,6 @@ void stepwise_source(RadiationVector& J,
                      const ArrayOfStokesVector& dS,
                      const ConstVectorView& B,
                      const ConstVectorView& dB_dT,
-                     const RadiationVector& J_add,
-                     const ArrayOfRadiationVector& dJ_add,
                      const ArrayOfRetrievalQuantity& jacobian_quantities,
                      const bool& jacobian_do);
 

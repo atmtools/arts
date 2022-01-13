@@ -1752,6 +1752,8 @@ void stepwise_transmission(TransmissionMatrix& T,
 
 void stepwise_source(RadiationVector& J,
                      ArrayOfRadiationVector& dJ,
+                     RadiationVector& J_add,
+                     ArrayOfRadiationVector& dJ_add,
                      const PropagationMatrix& K,
                      const StokesVector& a,
                      const StokesVector& S,
@@ -1760,8 +1762,6 @@ void stepwise_source(RadiationVector& J,
                      const ArrayOfStokesVector& dS,
                      const ConstVectorView& B,
                      const ConstVectorView& dB_dT,
-                     const RadiationVector& J_add,
-                     const ArrayOfRadiationVector& dJ_add,
                      const ArrayOfRetrievalQuantity& jacobian_quantities,
                      const bool& jacobian_do) {
   for (Index i = 0; i < K.NumberOfFrequencies(); i++) {
@@ -1796,6 +1796,10 @@ void stepwise_source(RadiationVector& J,
               }
             }
           }
+          if (J_add.Frequencies()) {
+            J_add.Vec4(i) = invK * J_add.Vec4(i);
+            //TODO: Add jacobians dJ_add of additional source
+          }
         } break;
         case 3: {
           const auto invK = inv_prop_matrix<3>(K.Data()(0, 0, i, joker));
@@ -1818,6 +1822,10 @@ void stepwise_source(RadiationVector& J,
                      prop_matrix<3>(dK[j].Data()(0, 0, i, joker)) * J.Vec3(i));
               }
             }
+          }
+          if (J_add.Frequencies()) {
+            J_add.Vec3(i) = invK * J_add.Vec3(i);
+            //TODO: Add jacobians dJ_add of additional source
           }
         } break;
         case 2: {
@@ -1842,6 +1850,10 @@ void stepwise_source(RadiationVector& J,
               }
             }
           }
+          if (J_add.Frequencies()) {
+            J_add.Vec2(i) = invK * J_add.Vec2(i);
+            //TODO: Add jacobians dJ_add of additional source
+          }
         } break;
         default: {
           const auto invK = inv_prop_matrix<1>(K.Data()(0, 0, i, joker));
@@ -1865,15 +1877,17 @@ void stepwise_source(RadiationVector& J,
               }
             }
           }
+          if (J_add.Frequencies()) {
+            J_add.Vec1(i) = invK * J_add.Vec1(i);
+            //TODO: Add jacobians dJ_add of additional source
+          }
         } break;
       }
     }
   }
 
-  // Add additional source and derivatives
   if (J_add.Frequencies()) {
     J += J_add;
-
     for (Index i = 0; i < dJ_add.nelem(); i++) {
       dJ[i] += dJ_add[i];
     }

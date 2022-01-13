@@ -1268,6 +1268,8 @@ void iyHybrid(Workspace& ws,
 
       stepwise_source(src_rad[ip],
                       dsrc_rad[ip],
+                      J_add_dummy,
+                      dJ_add_dummy,
                       K_this,
                       a,
                       S,
@@ -1276,8 +1278,6 @@ void iyHybrid(Workspace& ws,
                       dS_dx,
                       B,
                       dB_dT,
-                      J_add_dummy,
-                      dJ_add_dummy,
                       jacobian_quantities,
                       jacobian_do);
 

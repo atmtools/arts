@@ -186,6 +186,8 @@ void emission_from_propmat_field(
 
     stepwise_source(src_rad[ip],
                     rvtmp,
+                    J_add_dummy,
+                    dJ_add_dummy,
                     K_this,
                     a,
                     S,
@@ -194,8 +196,6 @@ void emission_from_propmat_field(
                     svtmp,
                     B,
                     vtmp,
-                    J_add_dummy,
-                    dJ_add_dummy,
                     rqtmp,
                     false);
 
