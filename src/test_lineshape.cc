@@ -114,22 +114,19 @@ struct InternalData {
 
 template <ModificationInternal mod, LineShape::Type ls_type>
 InternalData line_model() {
-  QuantumNumbers upp, low;
-  upp[QuantumNumberType::J] = 3;
-  low[QuantumNumberType::J] = 2;
-  QuantumIdentifier qid = QuantumIdentifier(Species::Tag("H2O-161").Isotopologue(), upp, low);
+  QuantumIdentifier qid = QuantumIdentifier("H2O-161 J 3 2");
   
   Absorption::SingleLine line(1e9, 1e10, 1e-20, 1., 3., 1e-14,
                               Zeeman::Model(2, 1.5), lineshape_model<mod>(),
-                              {low[QuantumNumberType::J]}, {upp[QuantumNumberType::J]});
+                              "J 3 2");
   
-  if constexpr (mod == ModificationInternal::F0) line.F0() += ::dF0;
-  if constexpr (mod == ModificationInternal::I0) line.I0() += ::dI0;
+  if constexpr (mod == ModificationInternal::F0) line.F0 += ::dF0;
+  if constexpr (mod == ModificationInternal::I0) line.I0 += ::dI0;
   
   AbsorptionLines band(true, true,
                        Absorption::CutoffType::None, Absorption::MirroringType::None,
                        Absorption::PopulationType::LTE, Absorption::NormalizationType::None,
-                       ls_type, 296, -1, -1, qid, {QuantumNumberType::J},
+                       ls_type, 296, -1, -1, qid,
                        {Species::Species::Water, Species::Species::Bath}, {line});
   
   const Numeric f0 = ((mod == ModificationInternal::f) ? 500e6 + ::df : 500e6) + (ls_type == LineShape::Type::DP ? 498e6 : 0);
@@ -519,11 +516,11 @@ void test_norm() {
   ArrayOfVector dN_rq_mod(3, Vector(::N));
   ArrayOfVector dN_sfs_mod(3, Vector(::N));
   
-  LineShape::Normalizer lsn_nonorm(Absorption::NormalizationType::None, band.Line(0).F0(), T);
-  LineShape::Normalizer lsn_vvh(Absorption::NormalizationType::VVH, band.Line(0).F0(), T);
-  LineShape::Normalizer lsn_vvw(Absorption::NormalizationType::VVW, band.Line(0).F0(), T);
-  LineShape::Normalizer lsn_rq(Absorption::NormalizationType::RQ, band.Line(0).F0(), T);
-  LineShape::Normalizer lsn_sfs(Absorption::NormalizationType::SFS, band.Line(0).F0(), T);
+  LineShape::Normalizer lsn_nonorm(Absorption::NormalizationType::None, band.lines.front().F0, T);
+  LineShape::Normalizer lsn_vvh(Absorption::NormalizationType::VVH, band.lines.front().F0, T);
+  LineShape::Normalizer lsn_vvw(Absorption::NormalizationType::VVW, band.lines.front().F0, T);
+  LineShape::Normalizer lsn_rq(Absorption::NormalizationType::RQ, band.lines.front().F0, T);
+  LineShape::Normalizer lsn_sfs(Absorption::NormalizationType::SFS, band.lines.front().F0, T);
   for (Index i=0; i<::N; i++) {
     const Numeric& f = f_grid[i];
     
@@ -559,11 +556,11 @@ void test_norm() {
     dN_sfs_mod[1][i] = lsn_sfs(f+::df);
   }
   
-  LineShape::Normalizer lsn_nonormdT(Absorption::NormalizationType::None, band.Line(0).F0(), T+::dT);
-  LineShape::Normalizer lsn_vvhdT(Absorption::NormalizationType::VVH, band.Line(0).F0(), T+::dT);
-  LineShape::Normalizer lsn_vvwdT(Absorption::NormalizationType::VVW, band.Line(0).F0(), T+::dT);
-  LineShape::Normalizer lsn_rqdT(Absorption::NormalizationType::RQ, band.Line(0).F0(), T+::dT);
-  LineShape::Normalizer lsn_sfsdT(Absorption::NormalizationType::SFS, band.Line(0).F0(), T+::dT);
+  LineShape::Normalizer lsn_nonormdT(Absorption::NormalizationType::None, band.lines.front().F0, T+::dT);
+  LineShape::Normalizer lsn_vvhdT(Absorption::NormalizationType::VVH, band.lines.front().F0, T+::dT);
+  LineShape::Normalizer lsn_vvwdT(Absorption::NormalizationType::VVW, band.lines.front().F0, T+::dT);
+  LineShape::Normalizer lsn_rqdT(Absorption::NormalizationType::RQ, band.lines.front().F0, T+::dT);
+  LineShape::Normalizer lsn_sfsdT(Absorption::NormalizationType::SFS, band.lines.front().F0, T+::dT);
   for (Index i=0; i<::N; i++) {
     const Numeric& f = f_grid[i];
 
@@ -574,11 +571,11 @@ void test_norm() {
     dN_sfs_mod[0][i] = lsn_sfsdT(f);
   }
   
-  LineShape::Normalizer lsn_nonormdF0(Absorption::NormalizationType::None, band.Line(0).F0()+::dF0, T);
-  LineShape::Normalizer lsn_vvhdF0(Absorption::NormalizationType::VVH, band.Line(0).F0()+::dF0, T);
-  LineShape::Normalizer lsn_vvwdF0(Absorption::NormalizationType::VVW, band.Line(0).F0()+::dF0, T);
-  LineShape::Normalizer lsn_rqdF0(Absorption::NormalizationType::RQ, band.Line(0).F0()+::dF0, T);
-  LineShape::Normalizer lsn_sfsdF0(Absorption::NormalizationType::SFS, band.Line(0).F0()+::dF0, T);
+  LineShape::Normalizer lsn_nonormdF0(Absorption::NormalizationType::None, band.lines.front().F0+::dF0, T);
+  LineShape::Normalizer lsn_vvhdF0(Absorption::NormalizationType::VVH, band.lines.front().F0+::dF0, T);
+  LineShape::Normalizer lsn_vvwdF0(Absorption::NormalizationType::VVW, band.lines.front().F0+::dF0, T);
+  LineShape::Normalizer lsn_rqdF0(Absorption::NormalizationType::RQ, band.lines.front().F0+::dF0, T);
+  LineShape::Normalizer lsn_sfsdF0(Absorption::NormalizationType::SFS, band.lines.front().F0+::dF0, T);
   for (Index i=0; i<::N; i++) {
     const Numeric& f = f_grid[i];
 
@@ -606,7 +603,7 @@ void test_norm() {
   dN_sfs_mod[2] -= N_sfs; dN_sfs_mod[2] /= ::dF0;
   
   //! Plot results, so modify frequency to be readable
-  f_grid /= band.F0(0);
+  f_grid /= band.lines.front().F0;
   
   ARTSGUI::PlotConfig::X = "Frequency [line center]";
   ARTSGUI::PlotConfig::Y = "Norm";
@@ -681,13 +678,13 @@ void test_lte_strength() {
 void test_sparse() {
   auto [qid, band, f_gp, vmr, P, T, H] = line_model<ModificationInternal::None, LineShape::Type::HTP>();
   P *= 1000;
-  band.F0(0) = 1500e9;
+  band.lines.front().F0 = 1500e9;
   Vector f_g(500e9, 20001, 10e7);
   auto band2 = band;
-  band2.Cutoff(Absorption::CutoffType::ByLine);
-  band2.CutoffFreqValue(750e9);
+  band2.cutoff = Absorption::CutoffType::ByLine;
+  band2.cutofffreq = 750e9;
   auto band3 = band2;
-  band3.CutoffFreqValue(333.33e9);
+  band3.cutofffreq = 333.33e9;
   
   EnergyLevelMap nlte;
   
