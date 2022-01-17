@@ -95,9 +95,6 @@ void get_scattered_starsource(Workspace& ws,
     scattered_starlight_temp = transmitted_starlight(i_f, joker);
     scattered_starlight_temp.leftMul(sca_mat);
 
-    std::cout << "scattered_starlight_temp:\n " << scattered_starlight_temp
-              << "\n";
-
     for (Index j = 0; j < ns; j++) {
       scattered_starlight(i_f, j) =
           scattered_starlight_temp(0, j) * K_sca.Kjj(0, 0)[i_f];
