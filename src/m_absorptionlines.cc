@@ -35,6 +35,7 @@
 #include "file.h"
 #include "global_data.h"
 #include "m_xml.h"
+#include "quantum_numbers.h"
 #include <algorithm>
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -80,6 +81,81 @@ void abs_lines_per_speciesFlatten(ArrayOfArrayOfAbsorptionLines& abs_lines_per_s
 /////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////// Reading old/external functions
 /////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/** Merge an external line to abs_lines
+ * 
+ * @param abs_lines As WSV
+ * @param sline A single local line
+ * @param global_qid The band id of the local line
+ */
+void merge_external_line(ArrayOfAbsorptionLines& abs_lines,
+                         const Absorption::SingleLineExternal& sline,
+                         const QuantumIdentifier& global_qid) {
+  auto band =
+      std::find_if(abs_lines.begin(), abs_lines.end(), [&](const auto& li) {
+        return li.MatchWithExternal(sline, global_qid);
+      });
+  if (band not_eq abs_lines.end()) {
+    band->AppendSingleLine(sline.line);
+  } else {
+    abs_lines.emplace_back(sline.selfbroadening,
+                           sline.bathbroadening,
+                           sline.cutoff,
+                           sline.mirroring,
+                           sline.population,
+                           sline.normalization,
+                           sline.lineshapetype,
+                           sline.T0,
+                           sline.cutofffreq,
+                           sline.linemixinglimit,
+                           global_qid,
+                           sline.species,
+                           Array<AbsorptionSingleLine>{sline.line});
+  }
+}
+
+constexpr Index merge_local_lines_size = 499;
+
+/** Merge lines to abs_lines
+ *
+ * @param abs_lines As WSV
+ * @param local_lines A local list of lines
+ */
+void merge_local_lines(ArrayOfAbsorptionLines& abs_lines,
+                       const ArrayOfAbsorptionLines& local_lines) {
+  for (auto& band : local_lines) {
+    if (auto ptr = std::find_first_of(
+            abs_lines.begin(),
+            abs_lines.end(),
+            &band,
+            &band,
+            [](const auto& abs_band, const auto& local_band) {
+              return abs_band.Match(local_band).first;
+            });
+        ptr == abs_lines.end())
+      abs_lines.push_back(band);
+    else
+      for (auto& line : band.lines) ptr->lines.push_back(line);
+  }
+}
+
+/** Selects the global quantum numbers
+ *
+ * @param qns Quantum numbers to select
+ * @param qid Identifeier to select from
+ * @return QuantumIdentifier of all qns in qid
+ */
+QuantumIdentifier global_quantumidentifier(const Array<QuantumNumberType>& qns, const QuantumIdentifier& qid) {
+  QuantumIdentifier out(qid.Isotopologue());
+  for(auto qn: qns) {
+    if (qid.val.has(qn)) {
+      out.val.set(qid.val[qn]);
+    }
+  }
+  return out;
+}
 
 /** Get a list of quantum numbers from a string
  * 
@@ -155,9 +231,8 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   
   Index num_arrays;
   tag.get_attribute_value("nelem", num_arrays);
-  
-  std::vector<Absorption::SingleLineExternal> v(0);
-  
+
+  ArrayOfAbsorptionLines local_bands(0);
   for (Index i=0; i<num_arrays; i++) {
     tag.read_from_stream(is_xml);
     tag.check_name("ArrayOfLineRecord");
@@ -185,52 +260,57 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     
     bool go_on = true;
     Index n = 0;
-    while (go_on and n<nelem) {
-      switch(artscat_version) {
-        case 3:
-          v.push_back(Absorption::ReadFromArtscat3Stream(is_xml));
-          break;
-        case 4:
-          v.push_back(Absorption::ReadFromArtscat4Stream(is_xml));
-          break;
-        case 5:
-          v.push_back(Absorption::ReadFromArtscat5Stream(is_xml));
-          break;
-        default:
-          ARTS_ASSERT (false, "Bad version!");
-      }
-      
-      if (v.back().bad) {
-        v.pop_back();
-        go_on = false;
-      } else if (v.back().line.F0 < fmin) {
-        v.pop_back();
-      } else if (v.back().line.F0 > fmax) {
-        v.pop_back();
-        go_on = false;
-      }
-      
+    while (n<nelem) {
       n++;
+
+      if (go_on) {
+        Absorption::SingleLineExternal sline;
+        switch(artscat_version) {
+          case 3:
+            sline = Absorption::ReadFromArtscat3Stream(is_xml);
+            break;
+          case 4:
+            sline = Absorption::ReadFromArtscat4Stream(is_xml);
+            break;
+          case 5:
+            sline = Absorption::ReadFromArtscat5Stream(is_xml);
+            break;
+          default:
+            ARTS_ASSERT (false, "Bad version!");
+        }
+        
+        ARTS_USER_ERROR_IF(sline.bad, "Cannot read line ", n)
+        if (sline.line.F0 < fmin) continue;
+        if (sline.line.F0 > fmax) {go_on = false; continue;}
+
+        sline.line.zeeman = Zeeman::GetAdvancedModel(sline.quantumidentity);
+
+        // Get the global quantum number identifier
+        const QuantumIdentifier global_qid = global_quantumidentifier(global_nums, sline.quantumidentity);
+      
+        // Get local quantum numbers into the line
+        for(auto qn: local_nums) {
+          if (sline.quantumidentity.val.has(qn)) {
+            sline.line.localquanta.val.set(sline.quantumidentity.val[qn]);
+          }
+        }
+
+        merge_external_line(local_bands, sline, global_qid);
+        if (local_bands.nelem() > merge_local_lines_size) {
+          merge_local_lines(abs_lines, local_bands);
+          local_bands.resize(0);
+        }
+      } else {
+        String line;
+        getline(is_xml, line);
+      }
     }
     
     tag.read_from_stream(is_xml);
     tag.check_name("/ArrayOfLineRecord");
   }
-  
-  tag.read_from_stream(is_xml);
-  tag.check_name("/Array");
-  
-  for (auto& x: v)
-    x.line.zeeman = Zeeman::GetAdvancedModel(x.quantumidentity);
-  
-  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
-  abs_lines.resize(0);
-  abs_lines.reserve(x.size());
-  while (x.size()) {
-    abs_lines.push_back(x.back());
-    abs_lines.back().sort_by_frequency();
-    x.pop_back();
-  }
+
+  merge_local_lines(abs_lines, local_bands);
   
   abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
   abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
@@ -238,6 +318,9 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
   abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -302,57 +385,56 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   ARTS_USER_ERROR_IF (artscat_version < 3 or artscat_version > 5,
                       "Unknown ARTS line file version: ", version)
   
-  std::vector<Absorption::SingleLineExternal> v(0);
-  
   bool go_on = true;
   Index n = 0;
+  ArrayOfAbsorptionLines local_bands(0);
   while (n<nelem) {
+    n++;
+
     if (go_on) {
+      Absorption::SingleLineExternal sline;
       switch(artscat_version) {
         case 3:
-          v.push_back(Absorption::ReadFromArtscat3Stream(is_xml));
+          sline = Absorption::ReadFromArtscat3Stream(is_xml);
           break;
         case 4:
-          v.push_back(Absorption::ReadFromArtscat4Stream(is_xml));
+          sline = Absorption::ReadFromArtscat4Stream(is_xml);
           break;
         case 5:
-          v.push_back(Absorption::ReadFromArtscat5Stream(is_xml));
+          sline = Absorption::ReadFromArtscat5Stream(is_xml);
           break;
         default:
-          ARTS_ASSERT(false, "Bad version!");
+          ARTS_ASSERT (false, "Bad version!");
       }
-      
-      if (v.back().bad) {
-        v.pop_back();
-        go_on = false;
-      } else if (v.back().line.F0 < fmin) {
-        v.pop_back();
-      } else if (v.back().line.F0 > fmax) {
-        v.pop_back();
-        go_on = false;
+        
+      ARTS_USER_ERROR_IF(sline.bad, "Cannot read line ", n)
+      if (sline.line.F0 < fmin) continue;
+      if (sline.line.F0 > fmax) {go_on = false; continue;}
+    
+      sline.line.zeeman = Zeeman::GetAdvancedModel(sline.quantumidentity);
+
+      // Get the global quantum number identifier
+      const QuantumIdentifier global_qid = global_quantumidentifier(global_nums, sline.quantumidentity);
+    
+      // Get local quantum numbers into the line
+      for(auto qn: local_nums) {
+        if (sline.quantumidentity.val.has(qn)) {
+          sline.line.localquanta.val.set(sline.quantumidentity.val[qn]);
+        }
+      }
+
+      merge_external_line(local_bands, sline, global_qid);
+      if (local_bands.nelem() > merge_local_lines_size) {
+        merge_local_lines(abs_lines, local_bands);
+        local_bands.resize(0);
       }
     } else {
       String line;
       getline(is_xml, line);
     }
-    
-    n++;
   }
-  
-  tag.read_from_stream(is_xml);
-  tag.check_name("/ArrayOfLineRecord");
-  
-  for (auto& x: v)
-    x.line.zeeman = Zeeman::GetAdvancedModel(x.quantumidentity);
 
-  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
-  abs_lines.resize(0);
-  abs_lines.reserve(x.size());
-  while (x.size()) {
-    abs_lines.push_back(x.back());
-    abs_lines.back().sort_by_frequency();
-    x.pop_back();
-  }
+  merge_local_lines(abs_lines, local_bands);
   
   abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
   abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
@@ -360,6 +442,9 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
   abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/ArrayOfLineRecord");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -435,75 +520,6 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   
   for (auto& band: abs_lines)
     band.sort_by_frequency();
-  
-  if (normalization_option != "None")
-    abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-  if (mirroring_option != "None")
-    abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-  if (population_option != "None")
-    abs_linesSetPopulation(abs_lines, population_option, verbosity);
-  if (lineshapetype_option != "None")
-    abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  if (cutoff_option != "None")
-    abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
-}
-
-/** Merge an external line to abs_lines
- * 
- * @param abs_lines As WSV
- * @param sline A single local line
- * @param global_qid The band id of the local line
- */
-void merge_external_line(ArrayOfAbsorptionLines& abs_lines,
-                         const Absorption::SingleLineExternal& sline,
-                         const QuantumIdentifier& global_qid) {
-  auto band =
-      std::find_if(abs_lines.begin(), abs_lines.end(), [&](const auto& li) {
-        return li.MatchWithExternal(sline, global_qid);
-      });
-  if (band not_eq abs_lines.end()) {
-    band->AppendSingleLine(sline.line);
-  } else {
-    abs_lines.emplace_back(sline.selfbroadening,
-                           sline.bathbroadening,
-                           sline.cutoff,
-                           sline.mirroring,
-                           sline.population,
-                           sline.normalization,
-                           sline.lineshapetype,
-                           sline.T0,
-                           sline.cutofffreq,
-                           sline.linemixinglimit,
-                           global_qid,
-                           sline.species,
-                           Array<AbsorptionSingleLine>{sline.line});
-  }
-}
-
-constexpr Index merge_local_lines_size = 499;
-
-/** Merge lines to abs_lines
- *
- * @param abs_lines As WSV
- * @param local_lines A local list of lines
- */
-void merge_local_lines(ArrayOfAbsorptionLines& abs_lines,
-                       const ArrayOfAbsorptionLines& local_lines) {
-  for (auto& band : local_lines) {
-    if (auto ptr = std::find_first_of(
-            abs_lines.begin(),
-            abs_lines.end(),
-            &band,
-            &band,
-            [](const auto& abs_band, const auto& local_band) {
-              return abs_band.Match(local_band).first;
-            });
-        ptr == abs_lines.end())
-      abs_lines.push_back(band);
-    else
-      for (auto& line : band.lines) ptr->lines.push_back(line);
-  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -561,7 +577,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
     if (sline.bad) {
       if (is.eof())
         break;
-      ARTS_USER_ERROR("Cannot read line ", nelem(abs_lines) + 1);
+      ARTS_USER_ERROR("Cannot read line ", nelem(abs_lines) + nelem(local_bands) + 1);
     }
     if (sline.line.F0 < fmin)
       continue; // Skip this line
@@ -570,14 +586,9 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
 
     // Set Zeeman if implemented
     sline.line.zeeman = Zeeman::GetAdvancedModel(sline.quantumidentity);
-    
+
     // Get the global quantum number identifier
-    QuantumIdentifier global_qid(sline.quantumidentity.Isotopologue());
-    for(auto qn: global_nums) {
-      if (sline.quantumidentity.val.has(qn)) {
-        global_qid.val.set(sline.quantumidentity.val[qn]);
-      }
-    }
+    const QuantumIdentifier global_qid = global_quantumidentifier(global_nums, sline.quantumidentity);
     
     // Get local quantum numbers into the line
     for(auto qn: local_nums) {
@@ -2285,13 +2296,17 @@ void nlteSetByQuantumIdentifiers(
   const Absorption::PopulationType poptyp =
       nlte_field.Energies().empty() ? Absorption::PopulationType::NLTE
                                     : Absorption::PopulationType::VibTemps;
-
+  
   for (auto& spec_lines : abs_lines_per_species) {
     for (auto& band : spec_lines) {
       Index low = 0, upp = 0;
       for (auto& id : nlte_field.Levels()) {
         for (auto& line : band.lines) {
-          const Quantum::Number::StateMatch lt(id, line.localquanta, band.quantumidentity);
+          const auto lt =
+              poptyp == Absorption::PopulationType::NLTE
+                  ? Quantum::Number::StateMatch(
+                        id, line.localquanta, band.quantumidentity)
+                  : Quantum::Number::StateMatch(id, band.quantumidentity);
           low += lt.low;
           upp += lt.upp;
         }
