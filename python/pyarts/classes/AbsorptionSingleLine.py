@@ -7,6 +7,7 @@ from pyarts.classes.LineShapeModel import LineShapeModel
 from pyarts.classes.Rational import Rational
 from pyarts.classes.ZeemanModel import ZeemanModel
 from pyarts.classes.BasicTypes import Numeric
+from pyarts.classes.quantum import QuantumNumberLocalState
 
 from pyarts.classes.macros import BasicInterfaceCAPI, EnumMacroInterfaceCAP, VoidStructGetterCAPI
 
@@ -75,7 +76,7 @@ class AbsorptionSingleLine:
     @property
     def f0(self):
         """ Line frequency (Numeric) """
-        return Numeric(lib.getF0AbsorptionSingleLine(self.__data__))
+        return Numeric(c.c_void_p(lib.getF0AbsorptionSingleLine(self.__data__)))
 
     @f0.setter
     def f0(self, x):
@@ -84,7 +85,7 @@ class AbsorptionSingleLine:
     @property
     def i0(self):
         """ Line strength (Numeric) """
-        return Numeric(lib.getI0AbsorptionSingleLine(self.__data__))
+        return Numeric(c.c_void_p(lib.getI0AbsorptionSingleLine(self.__data__)))
 
     @i0.setter
     def i0(self, x):
@@ -93,7 +94,7 @@ class AbsorptionSingleLine:
     @property
     def e0(self):
         """ Line lower state energy (Numeric) """
-        return Numeric(lib.getE0AbsorptionSingleLine(self.__data__))
+        return Numeric(c.c_void_p(lib.getE0AbsorptionSingleLine(self.__data__)))
 
     @e0.setter
     def e0(self, x):
@@ -102,7 +103,7 @@ class AbsorptionSingleLine:
     @property
     def gl(self):
         """ Lower state statistical weight (Numeric) """
-        return Numeric(lib.getglowAbsorptionSingleLine(self.__data__))
+        return Numeric(c.c_void_p(lib.getglowAbsorptionSingleLine(self.__data__)))
 
     @gl.setter
     def gl(self, x):
@@ -111,7 +112,7 @@ class AbsorptionSingleLine:
     @property
     def gu(self):
         """ Upper state statistical weight (Numeric) """
-        return Numeric(lib.getguppAbsorptionSingleLine(self.__data__))
+        return Numeric(c.c_void_p(lib.getguppAbsorptionSingleLine(self.__data__)))
 
     @gu.setter
     def gu(self, x):
@@ -120,7 +121,7 @@ class AbsorptionSingleLine:
     @property
     def a(self):
         """ Einstein coefficient (Numeric) """
-        return Numeric(lib.getAAbsorptionSingleLine(self.__data__))
+        return Numeric(c.c_void_p(lib.getAAbsorptionSingleLine(self.__data__)))
 
     @a.setter
     def a(self, x):
@@ -146,8 +147,8 @@ class AbsorptionSingleLine:
 
     @property
     def localquanta(self):
-        """ Upper state quantum numbers (LocalState) """
-        return LocalState(c.c_void_p(lib.getlocalquantaAbsorptionSingleLine(self.__data__)))
+        """ Upper state quantum numbers (QuantumNumberLocalState) """
+        return QuantumNumberLocalState(c.c_void_p(lib.getlocalquantaAbsorptionSingleLine(self.__data__)))
 
     @localquanta.setter
     def localquanta(self, x):

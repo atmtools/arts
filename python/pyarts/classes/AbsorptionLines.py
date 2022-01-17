@@ -599,8 +599,6 @@ lib.printmetaAbsorptionLines.argtypes = [c.c_void_p]
 
 VoidStructGetterCAPI(lib, "AbsorptionLines", "selfbroadening")
 VoidStructGetterCAPI(lib, "AbsorptionLines", "bathbroadening")
-VoidStructGetterCAPI(lib, "AbsorptionLines", "selfbroadening")
-VoidStructGetterCAPI(lib, "AbsorptionLines", "bathbroadening")
 VoidStructGetterCAPI(lib, "AbsorptionLines", "cutoff")
 VoidStructGetterCAPI(lib, "AbsorptionLines", "lineshapetype")
 VoidStructGetterCAPI(lib, "AbsorptionLines", "mirroring")
