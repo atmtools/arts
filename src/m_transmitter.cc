@@ -870,7 +870,7 @@ void iyTransmissionStandard(Workspace& ws,
 
     // size gas scattering variables
     TransmissionMatrix sca_mat;
-    Matrix sca_fct_dummy;
+    Vector sca_fct_dummy;
     PropagationMatrix K_sca;
     if (gas_scattering_do) {
       K_sca = PropagationMatrix(nf, ns);

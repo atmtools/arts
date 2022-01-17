@@ -42,12 +42,12 @@
  *
  * @param[in, out]   pftc1   Phase function 1 as Legendre series (frequency, layer, plolynomial).
  * @param[in]   sca1    Scattering coefficient phase function 1 (frequency, layer).
- * @param[in]   pftc2   Phase function 2 as Legendre series (frequency, layer, plolynomial).
+ * @param[in]   pftc2   Phase function 2 as Legendre series (layer, polynomial).
  * @param[in]   sca2    Scattering coefficient phase function 2 (frequency, layer).
  */
 void add_normed_phase_functions(Tensor3View& pftc1,
                                 const MatrixView& sca1,
-                                const Tensor3View& pftc2,
+                                const MatrixView& pftc2,
                                 const MatrixView& sca2);
 
 /** check_disort_input. *** FIXMEDOC *** in disort.cc, line 197
@@ -310,7 +310,7 @@ void get_gasoptprop(Workspace& ws,
 void get_gas_scattering_properties(Workspace& ws,
                                    MatrixView& sca_coeff_gas,
                                    MatrixView& sca_coeff_gas_level,
-                                   Tensor3View& pfct_gas,
+                                   MatrixView& pfct_gas,
                                    const ConstVectorView& f_grid,
                                    const VectorView& p,
                                    const VectorView& t,

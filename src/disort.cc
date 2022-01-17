@@ -60,13 +60,12 @@ extern const Numeric COSMIC_BG_TEMP;
 
 void add_normed_phase_functions(Tensor3View& pfct1,
                                 const MatrixView& sca1,
-                                const Tensor3View& pfct2,
+                                const MatrixView& pfct2,
                                 const MatrixView& sca2) {
   const Index np1 = pfct1.npages();
   const Index nr1 = pfct1.nrows();
   const Index nc1 = pfct1.ncols();
 
-  ARTS_ASSERT(pfct2.npages() == np1);
 
   ARTS_ASSERT(pfct2.nrows() == nr1);
 
@@ -77,7 +76,7 @@ void add_normed_phase_functions(Tensor3View& pfct1,
       for (Index k = 0; k < nc1; k++)      // polynomial loop
 
         pfct1(i, j, k) =
-            (sca1(i, j) * pfct1(i, j, k) + sca2(i, j) * pfct2(i, j, k)) /
+            (sca1(i, j) * pfct1(i, j, k) + sca2(i, j) * pfct2(j, k)) /
             (sca1(i, j) + sca2(i, j));
     }
   }
@@ -318,7 +317,7 @@ void get_gasoptprop(Workspace& ws,
 void get_gas_scattering_properties(Workspace& ws,
                                    MatrixView& sca_coeff_gas,
                                    MatrixView& sca_coeff_gas_level,
-                                   Tensor3View& pfct_gas,
+                                   MatrixView& pfct_gas,
                                    const ConstVectorView& f_grid,
                                    const VectorView& p,
                                    const VectorView& t,
@@ -331,8 +330,8 @@ void get_gas_scattering_properties(Workspace& ws,
   PropagationMatrix K_sca_gas_temp;
   TransmissionMatrix sca_mat_dummy;
   Vector dummy;
-  Matrix sca_fct_temp;
-  Tensor3 pmom_gas_level(f_grid.nelem(), Np, Nl, 0.);
+  Vector sca_fct_temp;
+  Matrix pmom_gas_level( Np, Nl, 0.);
   Index N_polys;
 
   // calculate gas scattering properties on level
@@ -354,9 +353,9 @@ void get_gas_scattering_properties(Workspace& ws,
     sca_coeff_gas_level(joker, ip) = K_sca_gas_temp.Kjj(0, 0);
 
     // gas scattering (phase) function
-    N_polys = min(Nl, sca_fct_temp.ncols());
+    N_polys = min(Nl, sca_fct_temp.nelem());
     for (Index k = 0; k < N_polys; k++) {
-      pmom_gas_level(joker, ip, k) = sca_fct_temp(joker, k);
+      pmom_gas_level( ip, k) = sca_fct_temp[k];
     }
   }
 
@@ -368,13 +367,12 @@ void get_gas_scattering_properties(Workspace& ws,
           0.5 *
           (sca_coeff_gas_level(f_index, ip) +
                  sca_coeff_gas_level(f_index, ip + 1));
-
-      // phase function
-      for (Index l_index = 0; l_index < Nl; l_index++) {
-        pfct_gas(f_index, Np - 2 - ip, l_index) =
-            0.5 * (pmom_gas_level(f_index, ip, l_index) +
-                   pmom_gas_level(f_index, ip + 1, l_index));
-      }
+    }
+    // phase function
+    for (Index l_index = 0; l_index < Nl; l_index++) {
+      pfct_gas( Np - 2 - ip, l_index) =
+          0.5 * (pmom_gas_level( ip, l_index) +
+                 pmom_gas_level( ip + 1, l_index));
     }
   }
 }
@@ -1259,7 +1257,7 @@ void run_cdisort_star(Workspace& ws,
     // call gas_scattering_properties
     Matrix sca_coeff_gas_layer(nf_ssd, ds.nlyr, 0.);
     Matrix sca_coeff_gas_level(nf_ssd, ds.nlyr + 1, 0.);
-    Tensor3 pmom_gas(nf_ssd, ds.nlyr, Nlegendre, 0.);
+    Matrix pmom_gas(ds.nlyr, Nlegendre, 0.);
 
     get_gas_scattering_properties(ws,
                                   sca_coeff_gas_layer,

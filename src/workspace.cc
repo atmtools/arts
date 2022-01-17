@@ -3878,7 +3878,7 @@ Can currently only contain data for new MT CKD models of water.
   wsv_data.push_back(WsvRecord(
       NAME("sca_fct_legendre"),
       DESCRIPTION(
-          "Spectrum of normalized phase functions as Legendre series.\n"
+          "Normalized phase function as Legendre series.\n"
           "\n"
           "This variable contains the normalized phase function\n"
           "as Legendre series.\n"
@@ -3887,8 +3887,8 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "Units: [ 1 ]\n"
           "\n"
-          "Size:  [fgrid, number of Legendre polynomials]\n"),
-      GROUP("Matrix")));
+          "Size:  [Number of Legendre polynomials]\n"),
+      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("scat_data"),

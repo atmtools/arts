@@ -128,8 +128,7 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
-                                   Matrix& sca_fct_legendre,
-                                   const Vector& f_grid,
+                                   Vector& sca_fct_legendre,
                                    const Vector& in_los,
                                    const Vector& out_los,
                                    const Index& stokes_dim,
@@ -137,16 +136,14 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
                                    const Verbosity&) {
   //out
   if (gas_scattering_output_type) {
-    sca_fct_legendre.resize(f_grid.nelem(), 1);
+    sca_fct_legendre.resize(1);
     sca_fct_legendre = 1.;  /// (4 * PI);
 
   } else {
-    //if in_los or out_los is empty then sca_mat is empty.
     if (in_los.nelem() > 0 && out_los.nelem() > 0) {
-      TransmissionMatrix sca_mat_temp(f_grid.nelem(), stokes_dim);
+      TransmissionMatrix sca_mat_temp(1, stokes_dim);
       sca_mat_temp.setIdentity();
       sca_mat_temp *= 1 / (4 * pi);
-
       sca_mat = sca_mat_temp;
     } else {
       // set the scattering matrics empty in case the in and out los are empty

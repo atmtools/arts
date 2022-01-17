@@ -398,7 +398,7 @@ void iyClearsky(
     Matrix transmitted_starlight;
     Numeric ppath_lraytrace2=ppath_lraytrace;
     PropagationMatrix K_sca;
-    RadiationVector scattered_starlight;
+    RadiationVector scattered_starlight(nf,ns);
     ArrayOfRadiationVector dscattered_starlight;
 
     //dummy variables needed for the output and input of iyTransmission and
@@ -423,7 +423,7 @@ void iyClearsky(
     const ArrayOfString scat_species_dummy;
     const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
     TransmissionMatrix sca_mat_dummy;
-    Matrix sca_fct_dummy;
+    Vector sca_fct_dummy;
     const Vector in_los_dummy;
     const Vector out_los_dummy;
 

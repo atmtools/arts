@@ -66,8 +66,7 @@ void get_scattered_starsource(Workspace& ws,
                               const Agenda& gas_scattering_agenda) {
   PropagationMatrix K_sca;
   TransmissionMatrix sca_mat;
-  Matrix sca_fct_dummy;
-
+  Vector sca_fct_dummy;
 
   // calculate gas scattering properties
   gas_scattering_agendaExecute(ws,
@@ -89,22 +88,21 @@ void get_scattered_starsource(Workspace& ws,
 
   //allocate and resize
   Vector temp(ns);
-//  Matrix Z(ns, ns);
-//  Vector temp(ns);
+  RadiationVector scattered_starlight_temp(1, ns);
 
   // Calculate the scattered radiation
-  RadiationVector scattered_starlight_temp(nf,ns);
-  scattered_starlight_temp=transmitted_starlight;
-  scattered_starlight=scattered_starlight_temp;
-  scattered_starlight.leftMul(sca_mat);
-
   for (Index i_f = 0; i_f < nf; i_f++) {
-    for (Index j = 0; j < ns; j++)
-    {
-      scattered_starlight(i_f,j) = scattered_starlight(i_f,j) * K_sca.Kjj(0,0)[i_f];
+    scattered_starlight_temp = transmitted_starlight(i_f, joker);
+    scattered_starlight_temp.leftMul(sca_mat);
+
+    std::cout << "scattered_starlight_temp:\n " << scattered_starlight_temp
+              << "\n";
+
+    for (Index j = 0; j < ns; j++) {
+      scattered_starlight(i_f, j) =
+          scattered_starlight_temp(0, j) * K_sca.Kjj(0, 0)[i_f];
     }
   }
-
 }
 
 void get_star_background(Matrix& iy,
