@@ -333,13 +333,30 @@ def update(filename, precision='%g'):
     """
     filename = os.path.abspath(filename)
     
-    # Test file format
-    if os.path.isfile(filename + '.gz'):
+    # Test file format so that the '.gz' is caught primarily
+    if not os.path.isfile(filename) and os.path.isfile(filename + '.gz'):
         filename += '.gz'
-    binary = os.path.isfile(filename + '.bin')
     
-    save(load(filename, False), filename, precision=precision,
-         format='binary' if binary else 'ascii')
+    # Find the format for saving, it must be understood
+    tascii = filename.endswith('.xml')
+    zascii = filename.endswith('.gz')
+    binary = os.path.isfile(filename + '.bin')
+    format = 'binary' if binary else 'ascii'  # load will deal with zascii
+    if not (tascii or zascii):
+        raise RuntimeError(f'Must end with .xml or .gz, reads: {filename}')
+    
+    # Set a silly temporary file name and ensure it is silly enough
+    n = 1234567890
+    fn = filename + f".pyarts.tmpfile.{n}.{'xml.gz' if zascii else 'xml'}"
+    while os.path.isfile(fn) or os.path.isfile(fn + '.bin'):
+        fn += f".pyarts.tmpfile.{n}.{'xml.gz' if zascii else 'xml'}"
+    
+    # load+save the file to temporary names
+    save(load(filename, False), fn, precision=precision, format=format)
+    
+    # Move the files back
+    os.rename(fn, filename)
+    if binary: os.rename(fn + '.bin', filename + '.bin')
 
 def update_directory(directory, precision='%g'):
     """ Update all files in a directory
