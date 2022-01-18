@@ -1148,6 +1148,8 @@ void iyEmissionHybrid(Workspace& ws,
     PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
     StokesVector a(nf, ns), S(nf, ns), Sp(nf, ns);
     ArrayOfIndex lte(np);
+    RadiationVector J_add_dummy;
+    ArrayOfRadiationVector dJ_add_dummy;
 
     // Init variables only used if analytical jacobians done
     Vector dB_dT(0);
@@ -1277,6 +1279,8 @@ void iyEmissionHybrid(Workspace& ws,
 
       stepwise_source(src_rad[ip],
                       dsrc_rad[ip],
+                      J_add_dummy,
+                      dJ_add_dummy,
                       K_this,
                       a,
                       S,
