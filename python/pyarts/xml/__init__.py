@@ -8,6 +8,7 @@ import glob
 import itertools
 import os
 from os.path import isfile, join, basename, splitext, dirname
+import tempfile
 
 from . import read
 from . import write
@@ -19,6 +20,8 @@ __all__ = [
     'load_indexed',
     'make_binary',
     'make_directory_binary',
+    'update',
+    'update_directory'
 ]
 
 
@@ -141,6 +144,9 @@ def load(filename, search_arts_path=True):
                 artstag = root[0].tag
                 return root.value()
     except RuntimeError:
+        if artstag == "Array" and len(root) and 'type' in root[0].attrib:
+            artstag = f"ArrayOf{root[0].attrib['type']}"  # Fix for arrays
+        
         import pyarts.classes as native_classes
         if hasattr(native_classes, artstag) and hasattr(
                 getattr(native_classes, artstag), "readxml"):
@@ -309,3 +315,77 @@ def make_directory_binary(directory, out='', absolute_out=False, parents=True):
         outfiles.append(outfile)
 
     return outfiles
+
+
+def update(filename, precision='%g'):
+    """ Updates a file to the latest version of ARTS
+    
+    Wraps load()+save() from higher up in this file
+    
+    Only works for absolute paths.  To ensure the path is absolute,
+    os.path.abspath is applied on filename as the first operation
+    
+    Attempts to store the file in the same format as it was read by, clobbering
+    the original file.
+    
+    Parameters:
+        filename (str): Filename path.
+        precision (str): Format for output precision.
+    """
+    filename = os.path.abspath(filename)
+    
+    # Test file format so that the '.gz' is caught primarily
+    if not os.path.isfile(filename) and os.path.isfile(filename + '.gz'):
+        filename += '.gz'
+    
+    # Find the format for saving, it must be understood
+    tascii = filename.endswith('.xml')
+    zascii = filename.endswith('.gz')
+    binary = os.path.isfile(filename + '.bin')
+    format = 'binary' if binary else 'ascii'  # load will deal with zascii
+    if not (tascii or zascii):
+        raise RuntimeError(f'Must end with .xml or .gz, reads: {filename}')
+    
+    n = next(tempfile._get_candidate_names())
+    fn = filename + f".pyarts.tmpfile.{n}.{'xml.gz' if zascii else 'xml'}"
+    while os.path.isfile(fn) or os.path.isfile(fn + '.bin'):
+        fn += f".pyarts.tmpfile.{n}.{'xml.gz' if zascii else 'xml'}"
+    
+    # load+save the file to temporary names
+    save(load(filename, False), fn, precision=precision, format=format)
+    
+    # Move the files back
+    os.rename(fn, filename)
+    if binary: os.rename(fn + '.bin', filename + '.bin')
+
+def update_directory(directory, precision='%g'):
+    """ Update all files in a directory
+    
+    Wraps update() from higher up in this file for all files ending with
+    .xml in the given directory
+    
+    Only works for absolute paths.  To ensure the path is absolute,
+    os.path.abspath is applied on directory as the first operation
+    
+    There is a subset of .xml files that cannot be read by standard ARTS but
+    requires specialized functions from within ARTS to be read.  For example,
+    the old Artscat-N format line catalog files.
+    
+    Parameters:
+        directory (str): Directory path.
+        precision (str): Format for output precision.
+        
+    Returns:
+        A dict of files with failed conversions and their error representations
+    """
+    directory = os.path.abspath(directory)
+    
+    out = {}
+    for file in os.listdir(directory):
+        if file.endswith('.xml'):
+            fn = os.path.join(directory, file)
+            try:
+                update(fn, precision=precision)
+            except Exception as e:
+                out[fn] = repr(e)
+    return out
