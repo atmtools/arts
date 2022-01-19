@@ -8,6 +8,7 @@ import glob
 import itertools
 import os
 from os.path import isfile, join, basename, splitext, dirname
+import tempfile
 
 from . import read
 from . import write
@@ -345,8 +346,7 @@ def update(filename, precision='%g'):
     if not (tascii or zascii):
         raise RuntimeError(f'Must end with .xml or .gz, reads: {filename}')
     
-    # Set a silly temporary file name and ensure it is silly enough
-    n = 1234567890
+    n = next(tempfile._get_candidate_names())
     fn = filename + f".pyarts.tmpfile.{n}.{'xml.gz' if zascii else 'xml'}"
     while os.path.isfile(fn) or os.path.isfile(fn + '.bin'):
         fn += f".pyarts.tmpfile.{n}.{'xml.gz' if zascii else 'xml'}"
