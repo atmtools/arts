@@ -6018,8 +6018,6 @@ Possible models:
          "aa_grid",
          "stokes_dim",
          "z_surface",
-         "surface_skin_t",
-         "surface_scalar_reflectivity",
          "gas_scattering_do",
          "star_do"),
       GIN("nstreams", "Npfct", "quiet", "emission", "inc_angle"),
