@@ -131,7 +131,7 @@ class Array : public std::vector<base> {
   Array& operator=(Array<base>&& A) noexcept;
 
   // Number of elements:
-  Index nelem() const ARTS_NOEXCEPT;
+  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT;
 
   // Index operators:
   const base& operator[](const Index n) const;

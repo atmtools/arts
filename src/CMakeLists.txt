@@ -700,3 +700,9 @@ endif()
 
 add_executable (arts_qn arts_quantum_numbers.cc quantum_numbers.cc)
 target_link_libraries(arts_qn species matpack)
+
+########### pybind11 class interface
+pybind11_add_module(pyarts_classes test_python_interface.cpp)
+target_link_libraries(pyarts_classes PUBLIC ${ALL_ARTS_LIBRARIES})
+########################################################################################
+
