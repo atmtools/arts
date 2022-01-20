@@ -5963,15 +5963,78 @@ Possible models:
       GIN("nstreams", "Npfct", "quiet", "emission"),
       GIN_TYPE("Index", "Index", "Index", "Index"),
       GIN_DEFAULT("8", "181", "0", "1"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT "
-               "solution (must be an even number).",
-               "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polynomials from). If <0,"
-               " the finest za_grid from scat_data will be used.",
-               "Silence C Disort warnings.",
+      GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
+               "solution (must be an even number).\n",
+               "Number of angular grid points to calculate bulk phase\n"
+               " function on (and derive Legendre polynomials from). If <0,\n"
+               " the finest za_grid from scat_data will be used.\n",
+               "Silence C Disort warnings.\n",
                "Enables blackbody emission. Set to zero, if no\n "
                "Emission e. g. like in visible regime for earth\n"
-               "is needed")));
+               "is needed\n")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("DisortCalcStarWithARTSSurface"),
+      DESCRIPTION(
+          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
+          "\n"
+          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
+          "DEVELOPMENT VERSION!"
+          "\n"
+          "As *DisortCalc* but uses *surface_rtprop_agenda*.\n"
+          "\n"
+          "The Lambertian surface reflection is set by *surface_rtprop_agenda*.\n"
+          "If the GIN inc_angle is inside of the range [0,90], the reflection is\n"
+          "set according to the result of *surface_rtprop_agenda* for this incidence\n"
+          "angle. Otherwise (default) is to call *surface_rtprop_agenda* for\n"
+          "multiple angles, to estimate the hemispheric mean value.\n"),
+      AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
+      OUT("cloudbox_field","optical_depth"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmfields_checked",
+         "atmgeom_checked",
+         "scat_data_checked",
+         "cloudbox_checked",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "propmat_clearsky_agenda",
+         "surface_rtprop_agenda",
+         "gas_scattering_agenda",
+         "atmosphere_dim",
+         "pnd_field",
+         "t_field",
+         "z_field",
+         "vmr_field",
+         "p_grid",
+         "lat_true",
+         "lon_true",
+         "refellipsoid",
+         "scat_data",
+         "stars",
+         "f_grid",
+         "za_grid",
+         "aa_grid",
+         "stokes_dim",
+         "z_surface",
+         "surface_skin_t",
+         "surface_scalar_reflectivity",
+         "gas_scattering_do",
+         "star_do"),
+      GIN("nstreams", "Npfct", "quiet", "emission", "inc_angle"),
+      GIN_TYPE("Index", "Index", "Index", "Index","Numeric"),
+      GIN_DEFAULT("8", "181", "0", "1","-1"),
+      GIN_DESC("Number of polar angle directions (streams) in DISORT "
+               "solution (must be an even number).\n",
+               "Number of angular grid points to calculate bulk phase\n"
+               " function on (and derive Legendre polynomials from). If <0,\n"
+               " the finest za_grid from scat_data will be used.\n",
+               "Silence C Disort warnings.\n",
+               "Enables blackbody emission. Set to zero, if no\n "
+               "Emission e. g. like in visible regime for earth\n"
+               "is needed\n",
+               "Incidence angle, see above.\n")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DOBatchCalc"),
