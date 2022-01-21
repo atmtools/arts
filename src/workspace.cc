@@ -2804,7 +2804,7 @@ void define_wsv_data() {
           "\n"
           "This vector holds optical depth in frequency and layer.\n"
           "\n"
-          "Usage: Output from *DisortCalcStar*.\n"
+          "Usage: Output from *DisortCalc*.\n"
           "\n"
           "Unit:  Undefined.\n"),
       GROUP("Matrix")));

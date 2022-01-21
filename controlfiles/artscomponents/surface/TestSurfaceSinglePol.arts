@@ -61,6 +61,12 @@ jacobianOff
 # No scattering
 cloudboxOff
 
+# No star
+starOff
+
+# No gas scattering
+gas_scatteringOff
+
 # Definition of species
 # 
 abs_speciesSet( species = [ 
@@ -219,7 +225,7 @@ pnd_fieldZero
 cloudbox_checkedCalc
 scat_data_checkedCalc
 VectorNLinSpace( za_grid, 180, 0, 180 )
-VectorSet( aa_grid, [] )
+VectorSet( aa_grid, [0] )
 Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__QuarticInterpField )
 
 Extract( pol_angle, pols, 0 )
