@@ -1,6 +1,10 @@
 Arts2{
 
 # DISORT
+
+gas_scatteringOff
+starOff
+
 DisortCalc
 yCalc( y = y_disort )
 

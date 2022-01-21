@@ -5721,170 +5721,6 @@ Possible models:
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
-          "DISCLAIMER: There is a couple of known issues with the current\n"
-          "implementation (see below). Use this WSM with care and only if\n"
-          "these limitations/requirements are fulfilled. Results might be\n"
-          "erroneous otherwise.\n"
-          "\n"
-          "DISORT provides the radiation field (*cloudbox_field*) from a scalar\n"
-          "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
-          "Earth). Only totally randomly oriented particles are allowed.\n"
-          "Refraction is not taken into account. Only Lambertian surface\n"
-          "reflection is handled.\n"
-          "\n"
-          "*nstreams* is the number of polar angles taken into account\n"
-          "internally in the scattering solution, *za_grid* is the\n"
-          "polar angle grid on which *cloudbox_field* is provided.\n"
-          "*nstreams* determines the angular resolution, hence the accuracy,\n"
-          "of the scattering solution. The more anisotropic the bulk scattering\n"
-          "matrix, the more streams are required. The computational burden\n"
-          "increases approximately linearly with *nstreams*. The default value\n"
-          "(8) is sufficient for most microwave scattering calculations. It is\n"
-          "likely insufficient for IR calculations involving ice clouds,\n"
-          "though.\n"
-          "\n"
-          "Further, *za_grid* determines the resolution of the output\n"
-          "radiation field. The size of *za_grid* has no practical\n"
-          "impact on computation time in the case of Disort and higher\n"
-          "resolution generally improves the interpolation results, hence\n"
-          "larger *za_grid* are recommended. To ensure sufficient\n"
-          "interpolation accuracy, we require a (hardcoded) minimum size of 38.\n"
-          "\n"
-          "Different sphericity levels are emulated here by embedding DISORT\n"
-          "in different ways and using different output. The available options\n"
-          "(from low to high sphericity level) are:\n"
-          "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox\n"
-          "  from *cloudboxSetFullAtm*).\n"
-          "- Cloudbox extends over a limited part of the atmosphere only (e.g.\n"
-          "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
-          "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
-          "  atmosphere, but only the radiation field within the cloudbox is\n"
-          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"),
-      AUTHORS("Claudia Emde, Jana Mendrok"),
-      OUT("cloudbox_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmfields_checked",
-         "atmgeom_checked",
-         "scat_data_checked",
-         "cloudbox_checked",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "propmat_clearsky_agenda",
-         "atmosphere_dim",
-         "pnd_field",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "p_grid",
-         "scat_data",
-         "f_grid",
-         "za_grid",
-         "stokes_dim",
-         "z_surface",
-         "surface_skin_t",
-         "surface_scalar_reflectivity"),
-      GIN("nstreams", "Npfct", "only_tro", "quiet"),
-      GIN_TYPE("Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("8", "181", "0", "0"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT "
-               "solution (must be an even number).",
-               "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polynomials from). If <0,"
-               " the finest za_grid from scat_data will be used.",
-               "Set to 1 if the scattering data is just of TRO type. Has effect "
-               "only if Npfct > 3, but then leads to much faster calculatuions.",
-               "Silence C Disort warnings.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcWithARTSSurface"),
-      DESCRIPTION(
-          "As *DisortCalc* but uses *surface_rtprop_agenda*.\n"
-          "\n"
-          "The Lambertian surface reflection is set by *surface_rtprop_agenda*.\n"
-          "If the GIN inc_angle is inside of the range [0,90], the reflection is\n"
-          "set according to the result of *surface_rtprop_agenda* for this incidence\n"
-          "angle. Otherwise (default) is to call *surface_rtprop_agenda* for\n"
-          "multiple angles, to estimate the hemispheric mean value.\n"),
-      AUTHORS("Claudia Emde, Jana Mendrok"),
-      OUT("cloudbox_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmfields_checked",
-         "atmgeom_checked",
-         "scat_data_checked",
-         "cloudbox_checked",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "propmat_clearsky_agenda",
-         "surface_rtprop_agenda",
-         "atmosphere_dim",
-         "pnd_field",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "p_grid",
-         "z_surface",
-         "scat_data",
-         "f_grid",
-         "za_grid",
-         "stokes_dim"),
-      GIN("nstreams", "Npfct", "only_tro", "quiet", "inc_angle"),
-      GIN_TYPE("Index", "Index", "Index", "Index", "Numeric"),
-      GIN_DEFAULT("8", "181", "0", "0", "-1"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT "
-               "solution (must be an even number).",
-               "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polynomials from). If <0,"
-               " the finest za_grid from scat_data will be used.",
-               "Set to 1 if the scattering data is just of TRO type. Has effect "
-               "only if Npfct > 3, but then leads to much faster calculatuions.",
-               "Silence C Disort warnings.",
-               "Incidence angle, see above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcClearsky"),
-      DESCRIPTION(
-          "Interface to DISORT for running clear-sky cases.\n"
-          "\n"
-          "The method runs DISORT with *pnd_field* set to zero.\n"
-          "\n"
-          "Note that this version returns *spectral_radiance_field*, i.e.\n"
-          "the solution for the full atmosphere. The standard *DisortCalc*\n"
-          "only returns the field inside the cloudbox.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("spectral_radiance_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmfields_checked",
-         "atmgeom_checked",
-         "propmat_clearsky_agenda",
-         "atmosphere_dim",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "p_grid",
-         "f_grid",
-         "za_grid",
-         "stokes_dim",
-         "z_surface",
-         "surface_skin_t",
-         "surface_scalar_reflectivity"),
-      GIN("nstreams", "quiet"),
-      GIN_TYPE("Index", "Index"),
-      GIN_DEFAULT("8", "0"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT "
-               "solution (must be an even number).",
-               "Silence C Disort warnings.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcStar"),
-      DESCRIPTION(
-          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
-          "\n"
           "THIS VERSION INCLUDES DIRECT SOURCE!\n"
           "DEVELOPMENT VERSION!"
           "\n"
@@ -5974,7 +5810,7 @@ Possible models:
                "is needed\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcStarWithARTSSurface"),
+      NAME("DisortCalcWithARTSSurface"),
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
@@ -6035,7 +5871,7 @@ Possible models:
                "Incidence angle, see above.\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcStarClearSky"),
+      NAME("DisortCalcClearSky"),
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "for running clear-sky cases.\n"

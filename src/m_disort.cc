@@ -48,273 +48,8 @@
 #include "xml_io.h"
 #include "geodetic.h"
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalc(Workspace& ws,
-                // WS Output:
-                Tensor7& cloudbox_field,
-                // WS Input
-                const Index& atmfields_checked,
-                const Index& atmgeom_checked,
-                const Index& scat_data_checked,
-                const Index& cloudbox_checked,
-                const Index& cloudbox_on,
-                const ArrayOfIndex& cloudbox_limits,
-                const Agenda& propmat_clearsky_agenda,
-                const Index& atmosphere_dim,
-                const Tensor4& pnd_field,
-                const Tensor3& t_field,
-                const Tensor3& z_field,
-                const Tensor4& vmr_field,
-                const Vector& p_grid,
-                const ArrayOfArrayOfSingleScatteringData& scat_data,
-                const Vector& f_grid,
-                const Vector& za_grid,
-                const Index& stokes_dim,
-                const Matrix& z_surface,
-                const Numeric& surface_skin_t,
-                const Vector& surface_scalar_reflectivity,
-                const Index& nstreams,
-                const Index& Npfct,
-                const Index& only_tro,
-                const Index& cdisort_quiet,
-                const Verbosity& verbosity) {
-  // Don't do anything if there's no cloudbox defined.
-  if (!cloudbox_on) {
-    CREATE_OUT0;
-    out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
-    return;
-  }
-
-  check_disort_input(cloudbox_on,
-                     atmfields_checked,
-                     atmgeom_checked,
-                     cloudbox_checked,
-                     scat_data_checked,
-                     atmosphere_dim,
-                     stokes_dim,
-                     cloudbox_limits,
-                     scat_data,
-                     za_grid,
-                     nstreams);
-
-  init_ifield(
-      cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), 1, stokes_dim);
-
-  Vector albedo(f_grid.nelem(), 0.);
-  Numeric btemp;
-
-  get_disortsurf_props(
-      albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
-
-  run_cdisort(ws,
-              cloudbox_field,
-              f_grid,
-              p_grid,
-              z_field(joker, 0, 0),
-              z_surface(0, 0),
-              t_field(joker, 0, 0),
-              vmr_field(joker, joker, 0, 0),
-              pnd_field(joker, joker, 0, 0),
-              scat_data,
-              propmat_clearsky_agenda,
-              cloudbox_limits,
-              btemp,
-              albedo,
-              za_grid,
-              nstreams,
-              Npfct,
-              only_tro,
-              cdisort_quiet,
-              verbosity);
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcWithARTSSurface(
-    Workspace& ws,
-    // WS Output:
-    Tensor7& cloudbox_field,
-    // WS Input
-    const Index& atmfields_checked,
-    const Index& atmgeom_checked,
-    const Index& scat_data_checked,
-    const Index& cloudbox_checked,
-    const Index& cloudbox_on,
-    const ArrayOfIndex& cloudbox_limits,
-    const Agenda& propmat_clearsky_agenda,
-    const Agenda& surface_rtprop_agenda,
-    const Index& atmosphere_dim,
-    const Tensor4& pnd_field,
-    const Tensor3& t_field,
-    const Tensor3& z_field,
-    const Tensor4& vmr_field,
-    const Vector& p_grid,
-    const Matrix& z_surface,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Vector& f_grid,
-    const Vector& za_grid,
-    const Index& stokes_dim,
-    const Index& nstreams,
-    const Index& Npfct,
-    const Index& only_tro,
-    const Index& cdisort_quiet,
-    const Numeric& inc_angle,
-    const Verbosity& verbosity) {
-  if (!cloudbox_on) {
-    CREATE_OUT0;
-    out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
-    return;
-  }
-
-  check_disort_input(cloudbox_on,
-                     atmfields_checked,
-                     atmgeom_checked,
-                     cloudbox_checked,
-                     scat_data_checked,
-                     atmosphere_dim,
-                     stokes_dim,
-                     cloudbox_limits,
-                     scat_data,
-                     za_grid,
-                     nstreams);
-
-  init_ifield(
-      cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), 1, stokes_dim);
-
-  Vector albedo(f_grid.nelem(), 0.);
-  Numeric btemp;
-
-  if (inc_angle<0 || inc_angle>90) {
-    surf_albedoCalc(ws,
-                    albedo,
-                    btemp,
-                    surface_rtprop_agenda,
-                    f_grid,
-                    za_grid,
-                    z_surface(0,0),
-                    verbosity);
-  } else {
-    surf_albedoCalcSingleAngle(ws,
-                               albedo,
-                               btemp,
-                               surface_rtprop_agenda,
-                               f_grid,
-                               z_surface(0,0),
-                               inc_angle);
-  }
-  
-  run_cdisort(ws,
-              cloudbox_field,
-              f_grid,
-              p_grid,
-              z_field(joker, 0, 0),
-              z_surface(0,0),
-              t_field(joker, 0, 0),
-              vmr_field(joker, joker, 0, 0),
-              pnd_field(joker, joker, 0, 0),
-              scat_data,
-              propmat_clearsky_agenda,
-              cloudbox_limits,
-              btemp,
-              albedo,
-              za_grid,
-              nstreams,
-              Npfct,
-              only_tro,
-              cdisort_quiet,
-              verbosity);
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcClearsky(Workspace& ws,
-                        Tensor7& spectral_radiance_field,
-                        const Index& atmfields_checked,
-                        const Index& atmgeom_checked,
-                        const Agenda& propmat_clearsky_agenda,
-                        const Index& atmosphere_dim,
-                        const Tensor3& t_field,
-                        const Tensor3& z_field,
-                        const Tensor4& vmr_field,
-                        const Vector& p_grid,
-                        const Vector& f_grid,
-                        const Vector& za_grid,
-                        const Index& stokes_dim,
-                        const Matrix& z_surface,
-                        const Numeric& surface_skin_t,
-                        const Vector& surface_scalar_reflectivity,
-                        const Index& nstreams,
-                        const Index& cdisort_quiet,
-                        const Verbosity& verbosity) {
-  if (atmosphere_dim != 1)
-    throw runtime_error(
-        "For running DISORT, atmospheric dimensionality "
-        "must be 1.\n");
-
-  // Set cloudbox to cover complete atmosphere
-  Index cloudbox_on;
-  ArrayOfIndex cloudbox_limits;
-  const Index cloudbox_checked = 1;
-  //
-  cloudboxSetFullAtm(cloudbox_on,
-                     cloudbox_limits,
-                     atmosphere_dim,
-                     p_grid,
-                     Vector(0),
-                     Vector(0),
-                     0,
-                     verbosity);
-
-  // Create data matching no particles
-  Tensor4 pnd_field;
-  ArrayOfTensor4 dpnd_field_dx;
-  ArrayOfArrayOfSingleScatteringData scat_data;
-  const Index scat_data_checked = 1;
-  //
-  pnd_fieldZero(pnd_field,
-                dpnd_field_dx,
-                scat_data,
-                atmosphere_dim,
-                f_grid,
-                cloudbox_limits,
-                ArrayOfRetrievalQuantity(0),
-                verbosity);
-
-  // Call standard DISORT method
-  DisortCalc(ws,
-             spectral_radiance_field,
-             atmfields_checked,
-             atmgeom_checked,
-             scat_data_checked,
-             cloudbox_checked,
-             cloudbox_on,
-             cloudbox_limits,
-             propmat_clearsky_agenda,
-             atmosphere_dim,
-             pnd_field,
-             t_field,
-             z_field,
-             vmr_field,
-             p_grid,
-             scat_data,
-             f_grid,
-             za_grid,
-             stokes_dim,
-             z_surface,
-             surface_skin_t,
-             surface_scalar_reflectivity,
-             nstreams,
-             181,
-             0,
-             cdisort_quiet,
-             verbosity);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcStar(Workspace& ws,
                     // WS Output:
                     Tensor7& cloudbox_field,
                     Matrix& optical_depth,
@@ -494,7 +229,7 @@ void DisortCalcStar(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcStarWithARTSSurface(Workspace& ws,
+void DisortCalcWithARTSSurface(Workspace& ws,
                     // WS Output:
                     Tensor7& cloudbox_field,
                     Matrix& optical_depth,
@@ -691,7 +426,7 @@ void DisortCalcStarWithARTSSurface(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcStarClearSky(Workspace& ws,
+void DisortCalcClearSky(Workspace& ws,
                     // WS Output:
                     Tensor7& spectral_radiance_field,
                     // WS Input
@@ -757,7 +492,7 @@ void DisortCalcStarClearSky(Workspace& ws,
 
   Matrix optical_depth_dummy;
 
-  DisortCalcStar(ws,
+  DisortCalc(ws,
                  // WS Output:
                  spectral_radiance_field,
                  optical_depth_dummy,
