@@ -6035,6 +6035,57 @@ Possible models:
                "Incidence angle, see above.\n")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("DisortCalcStarClearSky"),
+      DESCRIPTION(
+          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
+          "for running clear-sky cases.\n"
+          "\n"
+          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
+          "DEVELOPMENT VERSION!"
+          "\n"
+          "The method runs DISORT with *pnd_field* set to zero.\n"
+          "\n"
+          "Note that this version returns *spectral_radiance_field*, i.e.\n"
+          "the solution for the full atmosphere. The standard *DisortCalc*\n"
+          "only returns the field inside the cloudbox.\n"),
+      AUTHORS("Patrick Eriksson", "Manfred Brath"),
+      OUT("spectral_radiance_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmfields_checked",
+         "atmgeom_checked",
+         "propmat_clearsky_agenda",
+         "gas_scattering_agenda",
+         "atmosphere_dim",
+         "t_field",
+         "z_field",
+         "vmr_field",
+         "p_grid",
+         "lat_true",
+         "lon_true",
+         "refellipsoid",
+         "stars",
+         "f_grid",
+         "za_grid",
+         "aa_grid",
+         "stokes_dim",
+         "z_surface",
+         "surface_skin_t",
+         "surface_scalar_reflectivity",
+         "gas_scattering_do",
+         "star_do"),
+      GIN("nstreams", "quiet", "emission"),
+      GIN_TYPE("Index", "Index", "Index"),
+      GIN_DEFAULT("8", "0", "1"),
+      GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
+               "solution (must be an even number).\n",
+               "Silence C Disort warnings.\n",
+               "Enables blackbody emission. Set to zero, if no\n "
+               "Emission e. g. like in visible regime for earth\n"
+               "is needed\n")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("DOBatchCalc"),
       DESCRIPTION(
           "Performs batch calculations for radiation fields.\n"

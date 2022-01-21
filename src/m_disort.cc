@@ -383,11 +383,13 @@ void DisortCalcStar(Workspace& ws,
   Vector star_pos(3);
   Vector cloudboxtop_pos(3);
   Index star_on = star_do;
-  Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
-  Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
   Numeric scale_factor;
 
   if (star_on){
+
+    Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
+    Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
+
     //Position of star
     star_pos = {stars[0].distance, stars[0].latitude, stars[0].longitude};
 
@@ -406,7 +408,8 @@ void DisortCalcStar(Workspace& ws,
                                         verbosity);
 
     //FIXME: IF we want to be correct and include refraction, we must calculate the
-    // local position of sun via ppathFromRtePos2. The question is, is this needed.
+    // local position of sun via ppathFromRtePos2. The question is, is this needed,
+    // because DISORT does not handle refraction at all.
 
     // Check if sun is above horizon, if not switch it off
     if (star_rte_los[0] >= 90) {
@@ -561,11 +564,13 @@ void DisortCalcStarWithARTSSurface(Workspace& ws,
   Vector star_pos(3);
   Vector cloudboxtop_pos(3);
   Index star_on = star_do;
-  Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
-  Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
   Numeric scale_factor;
 
   if (star_on){
+
+    Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
+    Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
+
     //Position of star
     star_pos = {stars[0].distance, stars[0].latitude, stars[0].longitude};
 
@@ -584,7 +589,8 @@ void DisortCalcStarWithARTSSurface(Workspace& ws,
                                         verbosity);
 
     //FIXME: IF we want to be correct and include refraction, we must calculate the
-    // local position of sun via ppathFromRtePos2. The question is, is this needed.
+    // local position of sun via ppathFromRtePos2. The question is, is this needed,
+    // because DISORT does not handle refraction at all.
 
     // Check if sun is above horizon, if not switch it off
     if (star_rte_los[0] >= 90) {
@@ -684,3 +690,110 @@ void DisortCalcStarWithARTSSurface(Workspace& ws,
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void DisortCalcStarClearSky(Workspace& ws,
+                    // WS Output:
+                    Tensor7& spectral_radiance_field,
+                    // WS Input
+                    const Index& atmfields_checked,
+                    const Index& atmgeom_checked,
+                    const Agenda& propmat_clearsky_agenda,
+                    const Agenda& gas_scattering_agenda,
+                    const Index& atmosphere_dim,
+                    const Tensor3& t_field,
+                    const Tensor3& z_field,
+                    const Tensor4& vmr_field,
+                    const Vector& p_grid,
+                    const Vector& lat_true,
+                    const Vector& lon_true,
+                    const Vector& refellipsoid,
+                    const ArrayOfStar& stars,
+                    const Vector& f_grid,
+                    const Vector& za_grid,
+                    const Vector& aa_grid,
+                    const Index& stokes_dim,
+                    const Matrix& z_surface,
+                    const Numeric& surface_skin_t,
+                    const Vector& surface_scalar_reflectivity,
+                    const Index& gas_scattering_do,
+                    const Index& star_do,
+                    const Index& nstreams,
+                    const Index& cdisort_quiet,
+                    const Index& emission,
+                    const Verbosity& verbosity) {
+
+  if (atmosphere_dim != 1)
+    throw runtime_error(
+        "For running DISORT, atmospheric dimensionality "
+        "must be 1.\n");
+
+  // Set cloudbox to cover complete atmosphere
+  Index cloudbox_on;
+  ArrayOfIndex cloudbox_limits;
+  const Index cloudbox_checked = 1;
+  //
+  cloudboxSetFullAtm(cloudbox_on,
+                     cloudbox_limits,
+                     atmosphere_dim,
+                     p_grid,
+                     Vector(0),
+                     Vector(0),
+                     verbosity);
+
+  // Create data matching no particles
+  Tensor4 pnd_field;
+  ArrayOfTensor4 dpnd_field_dx;
+  ArrayOfArrayOfSingleScatteringData scat_data;
+  const Index scat_data_checked = 1;
+  //
+  pnd_fieldZero(pnd_field,
+                dpnd_field_dx,
+                scat_data,
+                atmosphere_dim,
+                f_grid,
+                cloudbox_limits,
+                ArrayOfRetrievalQuantity(0),
+                verbosity);
+
+  Matrix optical_depth_dummy;
+
+  DisortCalcStar(ws,
+                 // WS Output:
+                 spectral_radiance_field,
+                 optical_depth_dummy,
+                 // WS Input
+                 atmfields_checked,
+                 atmgeom_checked,
+                 scat_data_checked,
+                 cloudbox_checked,
+                 cloudbox_on,
+                 cloudbox_limits,
+                 propmat_clearsky_agenda,
+                 gas_scattering_agenda,
+                 atmosphere_dim,
+                 pnd_field,
+                 t_field,
+                 z_field,
+                 vmr_field,
+                 p_grid,
+                 lat_true,
+                 lon_true,
+                 refellipsoid,
+                 scat_data,
+                 stars,
+                 f_grid,
+                 za_grid,
+                 aa_grid,
+                 stokes_dim,
+                 z_surface,
+                 surface_skin_t,
+                 surface_scalar_reflectivity,
+                 gas_scattering_do,
+                 star_do,
+                 nstreams,
+                 181,
+                 cdisort_quiet,
+                 emission,
+                 verbosity);
+
+}
