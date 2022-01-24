@@ -19,10 +19,11 @@
 /*!
   \file   m_disort.cc
   \author Claudia Emde <claudia.emde@dlr.de>
-  \date   2006-02-06
+          Manfred Brath <manfred.brath@uni-hamburg.de>
+  \date   2006-02-06, 2022-01-22
   
   \brief  This file contains functions to use the multiple scattering 
-  program DISORT.
+  program (C)DISORT.
   
   These functions are listed in the doxygen documentation as entries of the
   file auto_md.h
@@ -33,20 +34,14 @@
   ===========================================================================*/
 
 #include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
 #include <stdexcept>
 #include "array.h"
-#include "arts.h"
 #include "auto_md.h"
 #include "disort.h"
 #include "m_general.h"
 #include "math_funcs.h"
 #include "messages.h"
-#include "wsv_aux.h"
-#include "xml_io.h"
-#include "geodetic.h"
+ #include "geodetic.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalc(Workspace& ws,
