@@ -13,10 +13,32 @@
       },                                                                   \
       py::arg("file"),                                                     \
       py::arg("type") = "ascii",                                           \
-      py::arg("clobber") = true)                                           \
-      .def("loadxml", [](Type& x, const char* const file) {                \
-        xml_read_from_file(file, x, Verbosity());                          \
-      })
+      py::arg("clobber") = true,                                           \
+      py::doc("Saves " #Type " to file\n"                                  \
+              "\n"                                                         \
+              "Parameters:\n"                                              \
+              "    file (str): The path to which the file is written."     \
+              " Note that several of the options might modify the"         \
+              " name or write more files\n"                                \
+              "    type (str): Type of file to save (ascii. zascii,"       \
+              " or binary)\n"                                              \
+              "    clobber (bool): Overwrite existing files or add new"    \
+              " file with modified name?\n"                                \
+              "\n"                                                         \
+              "On Error:\n"                                                \
+              "    Throws RuntimeError for any failure to save"))          \
+      .def(                                                                \
+          "loadxml",                                                       \
+          [](Type& x, const char* const file) {                            \
+            xml_read_from_file(file, x, Verbosity());                      \
+          },                                                               \
+          py::doc("Load " #Type " from file\n"                             \
+                  "\n"                                                     \
+                  "Parameters:\n"                                          \
+                  "    file (str): A file that can be read\n"              \
+                  "\n"                                                     \
+                  "On Error:\n"                                            \
+                  "    Throws RuntimeError for any failure to read"))
 
 #define PythonInterfaceIndexItemAccess(Type)                                 \
   def("__len__", [](const Type& x) { return x.nelem(); })                    \
@@ -31,12 +53,12 @@
              return x[i];                                                    \
            })                                                                \
       .def("__setitem__", [](Type& x, Index i, decltype(x[i]) y) {           \
-             if (x.nelem() <= i or i < 0)                                    \
-               throw std::out_of_range(var_string("Bad index access: ",      \
-                                                  i,                         \
-                                                  " in object of size [0, ", \
-                                                  x.size(),                  \
-                                                  ")"));                     \
+        if (x.nelem() <= i or i < 0)                                         \
+          throw std::out_of_range(var_string("Bad index access: ",           \
+                                             i,                              \
+                                             " in object of size [0, ",      \
+                                             x.size(),                       \
+                                             ")"));                          \
         x[i] = std::move(y);                                                 \
       })
 
@@ -66,14 +88,19 @@
  * len(x)
  * for a in x: DO_SOMETHING(a)
  */
-#define PythonInterfaceArrayDefault(Type)          \
-  PythonInterfaceIndexItemAccess(Type)             \
-      .PythonInterfaceBasicIteration(Type)         \
-      .def(py::init<>())                           \
-      .def(py::init<Index>())                      \
-      .def(py::init<Index, decltype(Type{}[0])>()) \
-      .def("append",                               \
-           [](Type& x, decltype(x[0]) y) { x.emplace_back(std::move(y)); })
+#define PythonInterfaceArrayDefault(BaseType)         \
+  PythonInterfaceIndexItemAccess(Array<BaseType>)     \
+      .PythonInterfaceBasicIteration(Array<BaseType>) \
+      .def(py::init<>())                              \
+      .def(py::init<Index>())                         \
+      .def(py::init<Index, BaseType>())               \
+      .def(py::init<std::vector<BaseType>>())         \
+      .def(                                           \
+          "append",                                   \
+          [](Array<BaseType>& x, BaseType y) {        \
+            x.emplace_back(std::move(y));             \
+          },                                          \
+          py::doc("Appends a " #BaseType " at the end of the Array"))
 
 /** Provides -=, +=, /=. and *= for all LHS Type */
 #define PythonInterfaceInPlaceMathOperators(Type, Other)  \
@@ -134,11 +161,16 @@
           [](Type& x, const Other& y) { return y - x; }, \
           py::is_operator())
 
-#define PythonInterfaceWorkspaceArray(Type) \
-  py::class_<Type>(m, #Type)                \
-      .PythonInterfaceFileIO(Type)          \
-      .PythonInterfaceArrayDefault(Type)    \
-      .PythonInterfaceBasicRepresentation(Type)
+#define PythonInterfaceWorkspaceArray(BaseType)                           \
+  auto auto_impl_name##BaseType =                                         \
+      py::class_<Array<BaseType>>(m, "ArrayOf" #BaseType);                \
+  auto_impl_name##BaseType.doc() = "The Arts ArrayOf" #BaseType " class"; \
+                                                                          \
+  py::implicitly_convertible<std::vector<BaseType>, Array<BaseType>>();   \
+                                                                          \
+  auto_impl_name##BaseType.PythonInterfaceFileIO(Array<BaseType>)         \
+      .PythonInterfaceBasicRepresentation(Array<BaseType>)                \
+      .PythonInterfaceArrayDefault(BaseType)
 
 #define PythonInterfaceGriddedField(Type)                                \
   def_readwrite("data", &Type::data)                                     \

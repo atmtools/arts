@@ -25,9 +25,12 @@ struct IsotopeRecord {
   
   //! The degeneracy of states of the molecule.  It is -1 if not defined.
   Index gi;
+
   constexpr explicit IsotopeRecord(Species spec_, const std::string_view isotname_=Joker, Numeric mass_=std::numeric_limits<Numeric>::quiet_NaN(), Index gi_=-1) noexcept
   : spec(spec_), isotname(isotname_), mass(mass_), gi(gi_) {}
+  
   constexpr IsotopeRecord() noexcept : IsotopeRecord(Species::FINAL) {}
+  
   friend std::ostream& operator<<(std::ostream& os, const IsotopeRecord& ir) {
     return os << ir.spec << ' ' << ir.isotname << ' ' << ir.mass << ' ' << ir.gi;
   }

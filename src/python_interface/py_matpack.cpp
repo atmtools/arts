@@ -1,6 +1,8 @@
 #include <matpackVII.h>
+#include <pybind11/attr.h>
 #include <xml_io.h>
 
+#include <functional>
 #include <stdexcept>
 
 #include "debug.h"
@@ -16,6 +18,10 @@ void py_matpack(py::module_& m) {
       .def(py::init<Index, Numeric>())
       .def(py::init<const std::vector<Numeric>&>())
       .def(py::init<Numeric, Index, Numeric>())
+      .def_property_readonly(
+          "shape",
+          [](const Vector& x) { return std::array{x.nelem()}; },
+          "The shape of the data")
       .PythonInterfaceBasicRepresentation(Vector)
       .PythonInterfaceFileIO(Vector)
       .PythonInterfaceIndexItemAccess(Vector)
@@ -26,9 +32,23 @@ void py_matpack(py::module_& m) {
                                1,
                                {x.nelem()},
                                {sizeof(Numeric)});
-      });
-  py::implicitly_convertible<py::array, Vector>();
-  py::implicitly_convertible<py::list, Vector>();
+      })
+      .doc() =
+      "The Arts Vector class\n"
+      "\n"
+      "This class is compatible with numpy arrays.  The data can "
+      "be accessed without copy using np.array(x, copy=False), "
+      "with x as an instance of this class.  Note that access to "
+      "any and all of the mathematical operations are only available "
+      "via the numpy interface.  Also note that the equality operation "
+      "only checks pointer equality and not element-wise equality\n"
+      "\n"
+      "Initialization:\n"
+      "    Vector(): for basic initialization\n\n"
+      "    Vector(Index): for constant size, unknown value\n\n"
+      "    Vector(Index, Numeric): for constant size, constant value\n\n"
+      "    Vector(List or Array): to copy elements\n\n"
+      "    Vector(Numeric x, Index n, Numeric dx): as Vector([x+i*dx for i in range(n)])\n\n";
 
   py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
       .def(py::init<>())
@@ -51,42 +71,24 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Matrix)
       .PythonInterfaceFileIO(Matrix)
-      .def("ncols", [](const Matrix& x) { return x.ncols(); })
-      .def("nrows", [](const Matrix& x) { return x.nrows(); })
+      .def_property_readonly(
+          "shape",
+          [](const Matrix& x) {
+            return std::array{x.nrows(), x.ncols()};
+          },
+          "The shape of the data")
       .def("__getitem__",
            [](const Matrix& x, std::tuple<Index, Index> inds) {
              auto [r, c] = inds;
              if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
-               throw std::out_of_range(var_string("Bad index access ",
-                                                  '[',
-                                                  r,
-                                                  ", ",
-                                                  c,
-                                                  ']',
-                                                  " in object of shape ",
-                                                  '(',
-                                                  x.nrows(),
-                                                  ", ",
-                                                  x.ncols(),
-                                                  ')'));
+               throw std::out_of_range("Out of bounds");
              return x(r, c);
            })
       .def("__setitem__",
            [](Matrix& x, std::tuple<Index, Index> inds, Numeric y) {
              auto [r, c] = inds;
              if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
-               throw std::out_of_range(var_string("Bad index access ",
-                                                  '[',
-                                                  r,
-                                                  ", ",
-                                                  c,
-                                                  ']',
-                                                  " in object of shape ",
-                                                  '(',
-                                                  x.nrows(),
-                                                  ", ",
-                                                  x.ncols(),
-                                                  ')'));
+               throw std::out_of_range("Out of bounds");
              x(r, c) = y;
            })
       .def_buffer([](Matrix& x) -> py::buffer_info {
@@ -96,7 +98,22 @@ void py_matpack(py::module_& m) {
                                2,
                                {x.nrows(), x.ncols()},
                                {sizeof(Numeric) * x.ncols(), sizeof(Numeric)});
-      });
+      })
+      .doc() =
+      "The Arts Matrix class\n"
+      "\n"
+      "This class is compatible with numpy arrays.  The data can "
+      "be accessed without copy using np.array(x, copy=False), "
+      "with x as an instance of this class.  Note that access to "
+      "any and all of the mathematical operations are only available "
+      "via the numpy interface.  Also note that the equality operation "
+      "only checks pointer equality and not element-wise equality\n"
+      "\n"
+      "Initialization:\n"
+      "    Matrix(): for basic initialization\n\n"
+      "    Matrix(Index, Index): for constant size, unknown value\n\n"
+      "    Matrix(Index, Index, Numeric): for constant size, constant value\n\n"
+      "    Matrix(List or Array): to copy elements\n\n";
 
   py::class_<Tensor3>(m, "Tensor3", py::buffer_protocol())
       .def(py::init<>())
@@ -121,31 +138,19 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor3)
       .PythonInterfaceFileIO(Tensor3)
-      .def("ncols", [](const Tensor3& x) { return x.ncols(); })
-      .def("nrows", [](const Tensor3& x) { return x.nrows(); })
-      .def("npages", [](const Tensor3& x) { return x.npages(); })
+      .def_property_readonly(
+          "shape",
+          [](const Tensor3& x) {
+            return std::array{x.npages(), x.nrows(), x.ncols()};
+          },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](const Tensor3& x, std::tuple<Index, Index, Index> inds) {
             auto [p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0)
-              throw std::out_of_range(var_string("Bad index access ",
-                                                 '[',
-                                                 p,
-                                                 ", ",
-                                                 r,
-                                                 ", ",
-                                                 c,
-                                                 ']',
-                                                 " in object of shape ",
-                                                 '(',
-                                                 x.npages(),
-                                                 ", ",
-                                                 x.nrows(),
-                                                 ", ",
-                                                 x.ncols(),
-                                                 ')'));
+              throw std::out_of_range("Out of bounds");
             return x(p, r, c);
           },
           py::return_value_policy::reference_internal)
@@ -154,22 +159,7 @@ void py_matpack(py::module_& m) {
              auto [p, r, c] = inds;
              if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                  x.npages() <= p or p < 0)
-               throw std::out_of_range(var_string("Bad index access ",
-                                                  '[',
-                                                  p,
-                                                  ", ",
-                                                  r,
-                                                  ", ",
-                                                  c,
-                                                  ']',
-                                                  " in object of shape ",
-                                                  '(',
-                                                  x.npages(),
-                                                  ", ",
-                                                  x.nrows(),
-                                                  ", ",
-                                                  x.ncols(),
-                                                  ')'));
+               throw std::out_of_range("Out of bounds");
              x(p, r, c) = y;
            })
       .def_buffer([](Tensor3& x) -> py::buffer_info {
@@ -181,7 +171,22 @@ void py_matpack(py::module_& m) {
                                {sizeof(Numeric) * x.nrows() * x.ncols(),
                                 sizeof(Numeric) * x.ncols(),
                                 sizeof(Numeric)});
-      });
+      })
+      .doc() =
+      "The Arts Tensor3 class\n"
+      "\n"
+      "This class is compatible with numpy arrays.  The data can "
+      "be accessed without copy using np.array(x, copy=False), "
+      "with x as an instance of this class.  Note that access to "
+      "any and all of the mathematical operations are only available "
+      "via the numpy interface.  Also note that the equality operation "
+      "only checks pointer equality and not element-wise equality\n"
+      "\n"
+      "Initialization:\n"
+      "    Tensor3(): for basic initialization\n\n"
+      "    Tensor3(Index, Index, Index): for constant size, unknown value\n\n"
+      "    Tensor3(Index, Index, Index, Numeric): for constant size, constant value\n\n"
+      "    Tensor3(List or Array): to copy elements\n\n";
 
   py::class_<Tensor4>(m, "Tensor4", py::buffer_protocol())
       .def(py::init<>())
@@ -211,36 +216,19 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor4)
       .PythonInterfaceFileIO(Tensor4)
-      .def("ncols", [](const Tensor4& x) { return x.ncols(); })
-      .def("nrows", [](const Tensor4& x) { return x.nrows(); })
-      .def("npages", [](const Tensor4& x) { return x.npages(); })
-      .def("nbooks", [](const Tensor4& x) { return x.nbooks(); })
+      .def_property_readonly(
+          "shape",
+          [](const Tensor4& x) {
+            return std::array{x.nbooks(), x.npages(), x.nrows(), x.ncols()};
+          },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](const Tensor4& x, std::tuple<Index, Index, Index, Index> inds) {
             auto [b, p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0)
-              throw std::out_of_range(var_string("Bad index access ",
-                                                 '[',
-                                                 b,
-                                                 ", ",
-                                                 p,
-                                                 ", ",
-                                                 r,
-                                                 ", ",
-                                                 c,
-                                                 ']',
-                                                 " in object of shape ",
-                                                 '(',
-                                                 x.nbooks(),
-                                                 ", ",
-                                                 x.npages(),
-                                                 ", ",
-                                                 x.nrows(),
-                                                 ", ",
-                                                 x.ncols(),
-                                                 ')'));
+              throw std::out_of_range("Out of bounds");
             return x(b, p, r, c);
           },
           py::return_value_policy::reference_internal)
@@ -251,26 +239,7 @@ void py_matpack(py::module_& m) {
              auto [b, p, r, c] = inds;
              if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                  x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0)
-               throw std::out_of_range(var_string("Bad index access ",
-                                                  '[',
-                                                  b,
-                                                  ", ",
-                                                  p,
-                                                  ", ",
-                                                  r,
-                                                  ", ",
-                                                  c,
-                                                  ']',
-                                                  " in object of shape ",
-                                                  '(',
-                                                  x.nbooks(),
-                                                  ", ",
-                                                  x.npages(),
-                                                  ", ",
-                                                  x.nrows(),
-                                                  ", ",
-                                                  x.ncols(),
-                                                  ')'));
+               throw std::out_of_range("Out of bounds");
              x(b, p, r, c) = y;
            })
       .def_buffer([](Tensor4& x) -> py::buffer_info {
@@ -284,7 +253,22 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols() * x.nrows(),
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
-      });
+      })
+      .doc() =
+      "The Arts Tensor4 class\n"
+      "\n"
+      "This class is compatible with numpy arrays.  The data can "
+      "be accessed without copy using np.array(x, copy=False), "
+      "with x as an instance of this class.  Note that access to "
+      "any and all of the mathematical operations are only available "
+      "via the numpy interface.  Also note that the equality operation "
+      "only checks pointer equality and not element-wise equality\n"
+      "\n"
+      "Initialization:\n"
+      "    Tensor4(): for basic initialization\n\n"
+      "    Tensor4(Index, Index, Index, Index): for constant size, unknown value\n\n"
+      "    Tensor4(Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
+      "    Tensor4(List or Array): to copy elements\n\n";
 
   py::class_<Tensor5>(m, "Tensor5", py::buffer_protocol())
       .def(py::init<>())
@@ -317,11 +301,13 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor5)
       .PythonInterfaceFileIO(Tensor5)
-      .def("ncols", [](const Tensor5& x) { return x.ncols(); })
-      .def("nrows", [](const Tensor5& x) { return x.nrows(); })
-      .def("npages", [](const Tensor5& x) { return x.npages(); })
-      .def("nbooks", [](const Tensor5& x) { return x.nbooks(); })
-      .def("nshelves", [](const Tensor5& x) { return x.nshelves(); })
+      .def_property_readonly(
+          "shape",
+          [](const Tensor5& x) {
+            return std::array{
+                x.nshelves(), x.nbooks(), x.npages(), x.nrows(), x.ncols()};
+          },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](const Tensor5& x,
@@ -330,30 +316,7 @@ void py_matpack(py::module_& m) {
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
                 x.nshelves() <= s or s < 0)
-              throw std::out_of_range(var_string("Bad index access ",
-                                                 '[',
-                                                 s,
-                                                 ", ",
-                                                 b,
-                                                 ", ",
-                                                 p,
-                                                 ", ",
-                                                 r,
-                                                 ", ",
-                                                 c,
-                                                 ']',
-                                                 " in object of shape ",
-                                                 '(',
-                                                 x.nshelves(),
-                                                 ", ",
-                                                 x.nbooks(),
-                                                 ", ",
-                                                 x.npages(),
-                                                 ", ",
-                                                 x.nrows(),
-                                                 ", ",
-                                                 x.ncols(),
-                                                 ')'));
+              throw std::out_of_range("Out of bounds");
             return x(s, b, p, r, c);
           },
           py::return_value_policy::reference_internal)
@@ -365,30 +328,7 @@ void py_matpack(py::module_& m) {
              if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                  x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
                  x.nshelves() <= s or s < 0)
-               throw std::out_of_range(var_string("Bad index access ",
-                                                  '[',
-                                                  s,
-                                                  ", ",
-                                                  b,
-                                                  ", ",
-                                                  p,
-                                                  ", ",
-                                                  r,
-                                                  ", ",
-                                                  c,
-                                                  ']',
-                                                  " in object of shape ",
-                                                  '(',
-                                                  x.nshelves(),
-                                                  ", ",
-                                                  x.nbooks(),
-                                                  ", ",
-                                                  x.npages(),
-                                                  ", ",
-                                                  x.nrows(),
-                                                  ", ",
-                                                  x.ncols(),
-                                                  ')'));
+               throw std::out_of_range("Out of bounds");
              x(s, b, p, r, c) = y;
            })
       .def_buffer([](Tensor5& x) -> py::buffer_info {
@@ -403,7 +343,22 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols() * x.nrows(),
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
-      });
+      })
+      .doc() =
+      "The Arts Tensor5 class\n"
+      "\n"
+      "This class is compatible with numpy arrays.  The data can "
+      "be accessed without copy using np.array(x, copy=False), "
+      "with x as an instance of this class.  Note that access to "
+      "any and all of the mathematical operations are only available "
+      "via the numpy interface.  Also note that the equality operation "
+      "only checks pointer equality and not element-wise equality\n"
+      "\n"
+      "Initialization:\n"
+      "    Tensor5(): for basic initialization\n\n"
+      "    Tensor5(Index, Index, Index, Index, Index): for constant size, unknown value\n\n"
+      "    Tensor5(Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
+      "    Tensor5(List or Array): to copy elements\n\n";
 
   py::class_<Tensor6>(m, "Tensor6", py::buffer_protocol())
       .def(py::init<>())
@@ -439,12 +394,17 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor6)
       .PythonInterfaceFileIO(Tensor6)
-      .def("ncols", [](const Tensor6& x) { return x.ncols(); })
-      .def("nrows", [](const Tensor6& x) { return x.nrows(); })
-      .def("npages", [](const Tensor6& x) { return x.npages(); })
-      .def("nbooks", [](const Tensor6& x) { return x.nbooks(); })
-      .def("nshelves", [](const Tensor6& x) { return x.nshelves(); })
-      .def("nvitrines", [](const Tensor6& x) { return x.nvitrines(); })
+      .def_property_readonly(
+          "shape",
+          [](const Tensor6& x) {
+            return std::array{x.nvitrines(),
+                              x.nshelves(),
+                              x.nbooks(),
+                              x.npages(),
+                              x.nrows(),
+                              x.ncols()};
+          },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](const Tensor6& x,
@@ -453,34 +413,7 @@ void py_matpack(py::module_& m) {
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
                 x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0)
-              throw std::out_of_range(var_string("Bad index access ",
-                                                 '[',
-                                                 v,
-                                                 ", ",
-                                                 s,
-                                                 ", ",
-                                                 b,
-                                                 ", ",
-                                                 p,
-                                                 ", ",
-                                                 r,
-                                                 ", ",
-                                                 c,
-                                                 ']',
-                                                 " in object of shape ",
-                                                 '(',
-                                                 x.nvitrines(),
-                                                 ", ",
-                                                 x.nshelves(),
-                                                 ", ",
-                                                 x.nbooks(),
-                                                 ", ",
-                                                 x.npages(),
-                                                 ", ",
-                                                 x.nrows(),
-                                                 ", ",
-                                                 x.ncols(),
-                                                 ')'));
+              throw std::out_of_range("Out of bounds");
             return x(v, s, b, p, r, c);
           },
           py::return_value_policy::reference_internal)
@@ -492,34 +425,7 @@ void py_matpack(py::module_& m) {
              if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                  x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
                  x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0)
-               throw std::out_of_range(var_string("Bad index access ",
-                                                  '[',
-                                                  v,
-                                                  ", ",
-                                                  s,
-                                                  ", ",
-                                                  b,
-                                                  ", ",
-                                                  p,
-                                                  ", ",
-                                                  r,
-                                                  ", ",
-                                                  c,
-                                                  ']',
-                                                  " in object of shape ",
-                                                  '(',
-                                                  x.nvitrines(),
-                                                  ", ",
-                                                  x.nshelves(),
-                                                  ", ",
-                                                  x.nbooks(),
-                                                  ", ",
-                                                  x.npages(),
-                                                  ", ",
-                                                  x.nrows(),
-                                                  ", ",
-                                                  x.ncols(),
-                                                  ')'));
+               throw std::out_of_range("Out of bounds");
              x(v, s, b, p, r, c) = y;
            })
       .def_buffer([](Tensor6& x) -> py::buffer_info {
@@ -541,7 +447,22 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols() * x.nrows(),
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
-      });
+      })
+      .doc() =
+      "The Arts Tensor6 class\n"
+      "\n"
+      "This class is compatible with numpy arrays.  The data can "
+      "be accessed without copy using np.array(x, copy=False), "
+      "with x as an instance of this class.  Note that access to "
+      "any and all of the mathematical operations are only available "
+      "via the numpy interface.  Also note that the equality operation "
+      "only checks pointer equality and not element-wise equality\n"
+      "\n"
+      "Initialization:\n"
+      "    Tensor6(): for basic initialization\n\n"
+      "    Tensor6(Index, Index, Index, Index, Index, Index): for constant size, unknown value\n\n"
+      "    Tensor6(Index, Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
+      "    Tensor6(List or Array): to copy elements\n\n";
 
   py::class_<Tensor7>(m, "Tensor7", py::buffer_protocol())
       .def(py::init<>())
@@ -580,13 +501,18 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
-      .def("ncols", [](const Tensor7& x) { return x.ncols(); })
-      .def("nrows", [](const Tensor7& x) { return x.nrows(); })
-      .def("npages", [](const Tensor7& x) { return x.npages(); })
-      .def("nbooks", [](const Tensor7& x) { return x.nbooks(); })
-      .def("nshelves", [](const Tensor7& x) { return x.nshelves(); })
-      .def("nvitrines", [](const Tensor7& x) { return x.nvitrines(); })
-      .def("nlibraries", [](const Tensor7& x) { return x.nlibraries(); })
+      .def_property_readonly(
+          "shape",
+          [](const Tensor7& x) {
+            return std::array{x.nlibraries(),
+                              x.nvitrines(),
+                              x.nshelves(),
+                              x.nbooks(),
+                              x.npages(),
+                              x.nrows(),
+                              x.ncols()};
+          },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](const Tensor7& x,
@@ -596,38 +522,7 @@ void py_matpack(py::module_& m) {
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
                 x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0 or
                 x.nlibraries() <= l or l < 0)
-              throw std::out_of_range(var_string("Bad index access ",
-                                                 '[',
-                                                 l,
-                                                 ", ",
-                                                 v,
-                                                 ", ",
-                                                 s,
-                                                 ", ",
-                                                 b,
-                                                 ", ",
-                                                 p,
-                                                 ", ",
-                                                 r,
-                                                 ", ",
-                                                 c,
-                                                 ']',
-                                                 " in object of shape ",
-                                                 '(',
-                                                 x.nlibraries(),
-                                                 ", ",
-                                                 x.nvitrines(),
-                                                 ", ",
-                                                 x.nshelves(),
-                                                 ", ",
-                                                 x.nbooks(),
-                                                 ", ",
-                                                 x.npages(),
-                                                 ", ",
-                                                 x.nrows(),
-                                                 ", ",
-                                                 x.ncols(),
-                                                 ')'));
+              throw std::out_of_range("Out of bounds");
             return x(l, v, s, b, p, r, c);
           },
           py::return_value_policy::reference_internal)
@@ -640,38 +535,7 @@ void py_matpack(py::module_& m) {
                  x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
                  x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0 or
                  x.nlibraries() <= l or l < 0)
-               throw std::out_of_range(var_string("Bad index access ",
-                                                  '[',
-                                                  l,
-                                                  ", ",
-                                                  v,
-                                                  ", ",
-                                                  s,
-                                                  ", ",
-                                                  b,
-                                                  ", ",
-                                                  p,
-                                                  ", ",
-                                                  r,
-                                                  ", ",
-                                                  c,
-                                                  ']',
-                                                  " in object of shape ",
-                                                  '(',
-                                                  x.nlibraries(),
-                                                  ", ",
-                                                  x.nvitrines(),
-                                                  ", ",
-                                                  x.nshelves(),
-                                                  ", ",
-                                                  x.nbooks(),
-                                                  ", ",
-                                                  x.npages(),
-                                                  ", ",
-                                                  x.nrows(),
-                                                  ", ",
-                                                  x.ncols(),
-                                                  ')'));
+               throw std::out_of_range("Out of bounds");
              x(l, v, s, b, p, r, c) = y;
            })
       .def_buffer([](Tensor7& x) -> py::buffer_info {
@@ -696,6 +560,63 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols() * x.nrows(),
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
-      });
+      })
+      .doc() =
+      "The Arts Tensor7 class\n"
+      "\n"
+      "This class is compatible with numpy arrays.  The data can "
+      "be accessed without copy using np.array(x, copy=False), "
+      "with x as an instance of this class.  Note that access to "
+      "any and all of the mathematical operations are only available "
+      "via the numpy interface.  Also note that the equality operation "
+      "only checks pointer equality and not element-wise equality\n"
+      "\n"
+      "Initialization:\n"
+      "    Tensor7(): for basic initialization\n\n"
+      "    Tensor7(Index, Index, Index, Index, Index, Index, Index): for constant size, unknown value\n\n"
+      "    Tensor7(Index, Index, Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
+      "    Tensor7(List or Array): to copy elements\n\n";
+
+  PythonInterfaceWorkspaceArray(Vector);
+  PythonInterfaceWorkspaceArray(Matrix);
+  PythonInterfaceWorkspaceArray(Tensor3);
+  PythonInterfaceWorkspaceArray(Tensor4);
+  PythonInterfaceWorkspaceArray(Tensor5);
+  PythonInterfaceWorkspaceArray(Tensor6);
+  PythonInterfaceWorkspaceArray(Tensor7);
+
+  PythonInterfaceWorkspaceArray(ArrayOfVector);
+  PythonInterfaceWorkspaceArray(ArrayOfMatrix);
+  PythonInterfaceWorkspaceArray(ArrayOfTensor3);
+  PythonInterfaceWorkspaceArray(ArrayOfTensor6);
+
+  py::implicitly_convertible<py::array, Vector>();
+  py::implicitly_convertible<py::array, Matrix>();
+  py::implicitly_convertible<py::array, Tensor3>();
+  py::implicitly_convertible<py::array, Tensor4>();
+  py::implicitly_convertible<py::array, Tensor5>();
+  py::implicitly_convertible<py::array, Tensor6>();
+  py::implicitly_convertible<py::array, Tensor7>();
+
+  py::implicitly_convertible<py::list, Vector>();
+  py::implicitly_convertible<py::list, Matrix>();
+  py::implicitly_convertible<py::list, Tensor3>();
+  py::implicitly_convertible<py::list, Tensor4>();
+  py::implicitly_convertible<py::list, Tensor5>();
+  py::implicitly_convertible<py::list, Tensor6>();
+  py::implicitly_convertible<py::list, Tensor7>();
+
+  py::class_<Rational>(m, "Rational")
+      .def(py::init<>())
+      .def(py::init<Index>())
+      .def(py::init<Index, Index>())
+      .PythonInterfaceFileIO(Rational)
+      .PythonInterfaceBasicRepresentation(Rational)
+      .PythonInterfaceInPlaceMathOperators(Rational, Rational)
+      .PythonInterfaceInPlaceMathOperators(Rational, Index)
+      .PythonInterfaceMathOperators(Rational, Rational)
+      .PythonInterfaceMathOperators(Rational, Index);
+
+  py::implicitly_convertible<Index, Rational>();
 }
 }  // namespace Python

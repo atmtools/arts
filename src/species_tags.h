@@ -107,6 +107,7 @@ public:
   ArrayOfSpeciesTag(Index n, const SpeciesTag& fillvalue) : Array<SpeciesTag>(n, fillvalue) {}
   ArrayOfSpeciesTag(const ArrayOfSpeciesTag& A) = default;
   ArrayOfSpeciesTag(ArrayOfSpeciesTag&& A) noexcept : Array<SpeciesTag>(std::move(A)) {}
+  explicit ArrayOfSpeciesTag(std::vector<SpeciesTag> x) : Array<SpeciesTag>(std::move(x)) {}
   
   // Assignment operators:
   ArrayOfSpeciesTag& operator=(SpeciesTag x) {

@@ -125,6 +125,8 @@ class Array : public std::vector<base> {
     static_assert(std::is_convertible<base, base2>::value, "Must be convertible");
   }
 
+  explicit Array(std::vector<base> x) : std::vector<base>(std::move(x)) {}
+
   // Assignment operators:
   Array& operator=(base x);
   Array& operator=(const Array<base>& A);
