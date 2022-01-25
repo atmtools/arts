@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
 <Array type="AbsorptionLines" nelem="1">
-<AbsorptionLines nlines="1" species="O2-66" cutofftype="None" mirroringtype="None" populationtype="LTE" normalizationtype="None" lineshapetype="VP" T0="296" cutofffreq="7.5e+11" linemixinglimit="-1" localquanta="J N" upperglobalquanta="S 1 Lambda 0 v1 0 ElectronState 88" lowerglobalquanta="S 1 Lambda 0 v1 0 ElectronState 88" broadeningspecies="SELF AIR" temperaturemodes="G0 T1 T1 D0 T0 T0">
+<AbsorptionLines nlines="1" version="1" species="O2-66" cutofftype="None" mirroringtype="None" populationtype="LTE" normalizationtype="None" lineshapetype="VP" T0="296" cutofffreq="7.5e+11" linemixinglimit="-1" localquanta="J N" upperglobalquanta="S 1 Lambda 0 v1 0 ElectronState 88" lowerglobalquanta="S 1 Lambda 0 v1 0 ElectronState 88" broadeningspecies="SELF AIR" temperaturemodes="G0 T1 T1 D0 T0 T0">
 118750348044.712 3.01219636638393e-19 0 1 3 4.48e-09 1.0011 0 16864.7126632124 0.97 0 0 0 0 0 0 16864.7126632124 0.97 0 0 0 0 0 0 0 1 1 1 
 </AbsorptionLines>
 </Array>

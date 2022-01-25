@@ -126,7 +126,7 @@ void jacobianAddAbsSpecies(Workspace&,
           "Trying to add a species as a species tag of multiple species.\n"
           "This is not supported.  Please give just a single species instead.\n"
           "Otherwise consider if you intended for_species_tag to be evaluated true.\n");
-    qi = QuantumIdentifier(test[0].Isotopologue(), Quantum::IdentifierType::All);
+    qi = QuantumIdentifier(test[0].Isotopologue());
   }
 
   // Check that this species is not already included in the jacobian.
@@ -1532,9 +1532,6 @@ void jacobianAddShapeCatalogParameter(Workspace&,
                                       const String& coefficient,
                                       const Verbosity& verbosity) {
   CREATE_OUT3;
-
-  if (line_identity.type not_eq Quantum::IdentifierType::Transition)
-    throw std::runtime_error("Identity has to identify a line");
 
   const auto jpt = select_derivativeLineShape(variable, coefficient);
 

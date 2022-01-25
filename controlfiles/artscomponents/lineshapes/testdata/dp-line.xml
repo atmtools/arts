@@ -28,7 +28,7 @@ Lines meta-data:
 		Upper state local quantum numbers:
 		Line shape parameters (are normalized by sum(VMR)):
 </comment>
-<AbsorptionLines nlines="1" species="O2-66" cutofftype="None" mirroringtype="None" populationtype="LTE" normalizationtype="None" lineshapetype="DP" T0="296" cutofffreq="0" linemixinglimit="-1" localquanta="" upperglobalquanta="J 1" lowerglobalquanta="J 0" broadeningspecies="" temperaturemodes="">
+<AbsorptionLines version="1" nlines="1" species="O2-66" cutofftype="None" mirroringtype="None" populationtype="LTE" normalizationtype="None" lineshapetype="DP" T0="296" cutofffreq="0" linemixinglimit="-1" localquanta="" upperglobalquanta="J 1" lowerglobalquanta="J 0" broadeningspecies="" temperaturemodes="">
 100000000000 1e-15 3e-20 1 3 0 0 0 
 </AbsorptionLines>
 </Array>

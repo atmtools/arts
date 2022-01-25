@@ -720,18 +720,18 @@ class IntensityCalculator {
                       const Absorption::Lines &band,
                       const Index line_index) noexcept
       : ls_str(Nostrength{}) {
-    const auto &line = band.Line(line_index);
-    switch (band.Population()) {
+    const auto &line = band.lines[line_index];
+    switch (band.population) {
       case Absorption::PopulationType::ByHITRANFullRelmat:
       case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
       case Absorption::PopulationType::ByMakarovFullRelmat:
       case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
       case Absorption::PopulationType::LTE:
-        ls_str = LocalThermodynamicEquilibrium(line.I0(),
-                                               band.T0(),
+        ls_str = LocalThermodynamicEquilibrium(line.I0,
+                                               band.T0,
                                                T,
-                                               line.F0(),
-                                               line.E0(),
+                                               line.F0,
+                                               line.E0,
                                                QT,
                                                QT0,
                                                dQTdT,
@@ -741,11 +741,11 @@ class IntensityCalculator {
         break;
       case Absorption::PopulationType::NLTE: {
         const auto [r_low, r_upp] = nlte.get_ratio_params(band, line_index);
-        ls_str = FullNonLocalThermodynamicEquilibrium(line.F0(),
-                                                      line.A(),
+        ls_str = FullNonLocalThermodynamicEquilibrium(line.F0,
+                                                      line.A,
                                                       T,
-                                                      line.g_low(),
-                                                      line.g_upp(),
+                                                      line.glow,
+                                                      line.gupp,
                                                       r_low,
                                                       r_upp,
                                                       r,
@@ -753,16 +753,15 @@ class IntensityCalculator {
                                                       drdT);
       } break;
       case Absorption::PopulationType::VibTemps: {
-        const auto [E_low, E_upp, T_low, T_upp] =
-            nlte.get_vibtemp_params(band, line_index, T);
+        const auto [E_low, E_upp, T_low, T_upp] = nlte.get_vibtemp_params(band, T);
         ls_str =
-            VibrationalTemperaturesNonLocalThermodynamicEquilibrium(line.I0(),
-                                                                    band.T0(),
+            VibrationalTemperaturesNonLocalThermodynamicEquilibrium(line.I0,
+                                                                    band.T0,
                                                                     T,
                                                                     T_low,
                                                                     T_upp,
-                                                                    line.F0(),
-                                                                    line.E0(),
+                                                                    line.F0,
+                                                                    line.E0,
                                                                     E_low,
                                                                     E_upp,
                                                                     QT,

@@ -18,7 +18,7 @@ ws.Touch(ws.jacobian_quantities)
 ws.Touch(ws.rtp_nlte)
 
 ws.abs_speciesSet(species=["O2-66"])
-ws.ReadXML(ws.abs_lines, "spectroscopy/Artscat/O2-66.xml")
+ws.ReadXML(ws.abs_lines, "O2-66.xml")
 
 upp = pyarts.classes.QuantumNumbers.QuantumNumbers()
 upp["S"] = 1

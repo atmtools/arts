@@ -272,8 +272,7 @@ add_library (artscore STATIC
   ppath.cc
   propmat_field.cc
   psd.cc
-  quantum.cc
-  quantum_parser_hitran.cc
+  quantum_numbers.cc
   radiation_field.cc
   rational.cc
   raw.cc
@@ -679,3 +678,6 @@ if (ENABLE_GUI)
 add_executable (calc_predef predefined.cc)
 target_link_libraries(calc_predef ${ALL_ARTS_LIBRARIES})
 endif()
+
+add_executable (arts_qn arts_quantum_numbers.cc quantum_numbers.cc)
+target_link_libraries(arts_qn species matpack)

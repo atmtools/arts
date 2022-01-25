@@ -61,14 +61,12 @@ int main() {
     "118.75034e9 2.9847337118480003e-19 0.0 1 3 4.48e-09 1.0011 0 16726.375524302985 0.754 0 0 16838.88477670861 0.754 0 0 0 1 1 1\n");
   
   const SpeciesTag sp("O2-66");
-  const QuantumIdentifier qid(sp.Isotopologue(),
-                              {QuantumNumberType::S, QuantumNumberType::Lambda, QuantumNumberType::v1, QuantumNumberType::ElectronState},
-                              {Rational(1), Rational(0), Rational(0), Rational(88)}, {Rational(1), Rational(0), Rational(0), Rational(88)});
+  const QuantumIdentifier qid("O2-66 S 1 1 Lambda 0 0 ElecStateLabel X X v1 0 0");
   const LineShape::Model metamodel = LineShape::MetaData2ModelShape("G0 T1 T1");
   AbsorptionLines band(false, false, 38, Absorption::CutoffType::None,
                        Absorption::MirroringType::None, Absorption::PopulationType::ByMakarovFullRelmat,
                        Absorption::NormalizationType::None, LineShape::Type::VP, 296, 750e9, -1, qid, 
-                       {QuantumNumberType::J, QuantumNumberType::N}, {Species::Species::Oxygen, Species::Species::Nitrogen}, metamodel);
+                       {Species::Species::Oxygen, Species::Species::Nitrogen}, QuantumNumberLocalState{"J 0 0", "N 0 0"}, metamodel);
   ss >> band;
   Index wigner_initialized;
   Wigner6Init(wigner_initialized, 20000000, 250, Verbosity{});
@@ -94,7 +92,7 @@ int main() {
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
   rq.Target().Perturbation(0.1);
   
-  Absorption::LineMixing::ErrorCorrectedSuddenData ecs_data{QuantumIdentifier("O2-66 ALL")};
+  Absorption::LineMixing::ErrorCorrectedSuddenData ecs_data{QuantumIdentifier("O2-66")};
   ecs_data[Species::Species::Oxygen].scaling = LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
   ecs_data[Species::Species::Oxygen].collisional_distance = LineShapeModelParameters(LineShapeTemperatureModel::T0, Conversion::angstrom2meter(0.61), 0, 0, 0);
   ecs_data[Species::Species::Oxygen].lambda = LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
@@ -126,15 +124,15 @@ int main() {
   Absorption::PredefinedModel::compute(mpm_abs, dmpm_abs, Species::Isotopologues[Species::find_species_index("O2", "MPM2020")], f_grid, P, T, vmrs_predef, ArrayOfRetrievalQuantity(0));
   
   // Line by line calculations
-  band.Normalization(Absorption::NormalizationType::SFS);
-  band.Population(Absorption::PopulationType::LTE);
+  band.normalization = Absorption::NormalizationType::SFS;
+  band.population = Absorption::PopulationType::LTE;
   LineShape::ComputeData com_lte(f_grid, {rq}, false);
   LineShape::ComputeData sparse_com_lte(Vector(0), {rq}, false);
   LineShape::compute(com_lte, sparse_com_lte, band, {rq}, {},
                      band.BroadeningSpeciesVMR(VMR, specs), {}, 1.0, 1.0, P, T, 0, 0,
                      Zeeman::Polarization::None, Options::LblSpeedup::None, false);
   
-  band.Population(Absorption::PopulationType::ByMakarovFullRelmat);
+  band.population = Absorption::PopulationType::ByMakarovFullRelmat;
 //   auto data = Absorption::LineMixing::ecs_eigenvalue_adaptation_test(band,
 //     VectorNLinSpaceConst(200, 350, 76), ecs_data,
 //     VectorNLogSpaceConst(1, 1'000'000'000'000, 101));

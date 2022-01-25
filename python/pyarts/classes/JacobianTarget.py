@@ -4,7 +4,7 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.SpeciesTag import ArrayOfSpeciesTag
 from pyarts.classes.BasicTypes import Numeric, String
-from pyarts.classes.QuantumIdentifier import QuantumIdentifier
+from pyarts.classes.quantum import QuantumIdentifier
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 

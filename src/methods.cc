@@ -624,23 +624,9 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-    NAME("abs_linesRemoveUnusedLocalQuantumNumbers"),
-      DESCRIPTION(
-          "Removes unused quantums from local values in the line lists\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("CheckUnique"),
-      DESCRIPTION("Checks that *abs_lines* contains only unique absorption lines\n"),
+      DESCRIPTION(
+          "Checks that *abs_lines* contains only unique absorption lines\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -692,21 +678,26 @@ void define_md_data_raw() {
       GIN("replacing_bands"),
       GIN_TYPE("ArrayOfAbsorptionLines"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Line-array that replace lines in *abs_lines*.")));
-
+      GIN_DESC("Line-array that removes lines from *abs_lines*.")));
+  
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesPrintDefinedQuantumNumbers"),
-      DESCRIPTION("Print the count of defined quantum numbers in the catalog\n"),
+    NAME("abs_linesDeleteBadF0"),
+      DESCRIPTION(
+          "Deletes all lines in *abs_lines* that have bad central frequencies\n"
+          "\n"
+          "If lower evaluates as true, deletes all lines with a frequency below f0.\n"
+          "Otherwise deletes all lines with a frequency above f0.\n"),
       AUTHORS("Richard Larsson"),
-      OUT(),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("f0", "lower"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "1"),
+      GIN_DESC("Target frequency",
+               "Lower or upper flag (eval as boolean)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesReadSplitCatalog"),
@@ -1435,40 +1426,6 @@ void define_md_data_raw() {
              GIN_DESC("Value of T0",
                       "The species tag from *abs_species* to change")));
 
-  md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetQuantumNumberForMatch"),
-               DESCRIPTION("Sets a quantum number to a new value\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
-               AUTHORS("Richard Larsson"),
-               OUT("abs_lines"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("abs_lines"),
-               GIN("quantum_number", "value", "ID"),
-               GIN_TYPE("String", "Rational", "QuantumIdentifier"),
-               GIN_DEFAULT(NODEF, NODEF, NODEF),
-               GIN_DESC("Quantum number key",
-                        "Value of quantum number",
-                        "ID of one or more bands")));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetQuantumNumberForMatch"),
-               DESCRIPTION("See *abs_linesSetQuantumNumberForMatch*\n"),
-               AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("abs_lines_per_species"),
-               GIN("quantum_number", "value", "ID"),
-               GIN_TYPE("String", "Rational", "QuantumIdentifier"),
-               GIN_DEFAULT(NODEF, NODEF, NODEF),
-               GIN_DESC("Quantum number key",
-                        "Value of quantum number",
-                        "ID of one or more bands")));
-
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeBaseParameterForMatchingLevel"),
       DESCRIPTION(
@@ -1621,24 +1578,20 @@ void define_md_data_raw() {
           "parameter_name = \"Lower Statistical Weight\"\n"
           "parameter_name = \"Upper Statistical Weight\"\n"
           "parameter_name = \"Lower Zeeman Coefficient\"\n"
-          "parameter_name = \"Upper Zeeman Coefficient\"\n"
-          "\n"
-          "Note that band_matching:=0 means only identical quantum identifiers are accepted,\n"
-          "otherwise the numbers in QI must just be contained in the band identifier\n"),
+          "parameter_name = \"Upper Zeeman Coefficient\"\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("QI", "parameter_name", "change", "relative", "band_matching"),
-      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
+      GIN("QI", "parameter_name", "change", "relative"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
       GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
-               "Flag for relative change (0 is absolute change)",
-               "Flag for band match (0 means only line matches)")));
+               "Flag for relative change (0 is absolute change)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLines"),
@@ -1649,14 +1602,13 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species"),
-      GIN("QI", "parameter_name", "change", "relative", "band_matching"),
-      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
+      GIN("QI", "parameter_name", "change", "relative"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
       GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
-               "Flag for relative change (0 is absolute change)",
-               "Flag for band match (0 means only line matches)")));
+               "Flag for relative change (0 is absolute change)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForSpecies"),
@@ -1667,14 +1619,13 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "abs_species"),
-      GIN("QI", "parameter_name", "change", "relative", "band_matching", "species_tag"),
-      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index", "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0", NODEF),
+      GIN("QI", "parameter_name", "change", "relative", "species_tag"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", NODEF),
       GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
                "Value with which to change matching line's value",
                "Flag for relative change (0 is absolute change)",
-               "Flag for band match (0 means only band matches)",
                "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -1689,23 +1640,19 @@ void define_md_data_raw() {
           "parameter_name = \"Lower Statistical Weight\"\n"
           "parameter_name = \"Upper Statistical Weight\"\n"
           "parameter_name = \"Lower Zeeman Coefficient\"\n"
-          "parameter_name = \"Upper Zeeman Coefficient\"\n"
-          "\n"
-          "Note that band_matching:=0 means only identical quantum identifiers are accepted,\n"
-          "otherwise the numbers in QI must just be contained in the line identifier\n"),
+          "parameter_name = \"Upper Zeeman Coefficient\"\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("QI", "parameter_name", "change", "band_matching"),
-      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
+      GIN("QI", "parameter_name", "change"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
       GIN_DESC("Information to match the line/band.",
                "Name of parameter to be replaced",
-               "Value with which to change matching line's value",
-               "Flag for band match (0 means only line matches)")));
+               "Value with which to change matching line's value")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesSetLineShapeModelParametersForMatchingLines"),
@@ -14842,13 +14789,13 @@ void define_md_data_raw() {
           "cutoff_value", "linemixinglimit_value"),
       GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String", "String",
                "String", "String", "String", "String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "Online", "None", "None", "LTE", "VP",
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "DEFAULT_GLOBAL", "DEFAULT_LOCAL", "Online", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
       GIN_DESC("Name of the HITRAN file",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
-               "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)",
+               "Global quantum number list (space-separated, default gives all)",
+               "Local quantum number list (space-separated, default gives all)",
                "Method to use to read the line data",
                "Normalization option, see *abs_linesSetNormalization*",
                "Mirroring option, see *abs_linesSetMirroring*",
@@ -14921,55 +14868,6 @@ void define_md_data_raw() {
                "Cutoff option, see *abs_linesSetCutoff*",
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesTruncateQuantumNumbers"),
-      DESCRIPTION("Truncates all quantum numbers\n"
-                  "and then recombine the line list.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesTruncateQuantumNumbers"),
-      DESCRIPTION("Truncates all quantum numbers\n"
-                  "and then recombine the internal line lists.\n"
-                  "\n"
-                  "Effectively wraps abs_linesTruncateQuantumNumbers for each species.\n"
-                  "\n"
-                  "If pos is given, selects only that species in abs_lines_per_species\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species"),
-      GIN("pos"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("-1"),
-      GIN_DESC("Position to manipulate")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesTruncateGlobalQuantumNumbers"),
-      DESCRIPTION("Truncates all global quantum numbers\n"
-                  "and then recombine the line list.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesWriteSplitXML"),

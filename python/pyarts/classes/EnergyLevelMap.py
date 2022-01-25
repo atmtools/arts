@@ -1,7 +1,7 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
-from pyarts.classes.QuantumIdentifier import ArrayOfQuantumIdentifier
+from pyarts.classes.quantum import ArrayOfQuantumIdentifier
 from pyarts.classes.Vector import Vector
 from pyarts.classes.Tensor4 import Tensor4
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments

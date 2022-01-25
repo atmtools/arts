@@ -129,25 +129,7 @@ void ArtsXMLTag::get_attribute_value(const String& aname, std::vector<QuantumNum
       xml_parse_error("Error while parsing value of " + aname + " from <" + name +
       ">");
     }
-    value.push_back(string2quantumnumbertype(val));
-  }
-}
-
-void ArtsXMLTag::get_attribute_value(const String& aname, QuantumNumbers& value) {
-  String attribute_value;
-  istringstream strstr("");
-  
-  get_attribute_value(aname, attribute_value);
-  
-  strstr.str(attribute_value);
-  String key;
-  Rational r;
-  
-  strstr >> key;
-  while (strstr) {
-    strstr >> r;
-    value.Set(key, r);
-    strstr >> key;
+    value.push_back(Quantum::Number::toType(val));
   }
 }
 

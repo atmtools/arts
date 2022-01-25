@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include "debug.h"
+#include "nonstd.h"
 
 /** Checks if the enum number is good.
  * 
@@ -20,20 +21,6 @@
 template <typename EnumType>
 constexpr bool good_enum(EnumType x) noexcept {
   return std::size_t(x) < std::size_t(EnumType::FINAL);
-}
-
-/** Returns true if x is a standard space-character
- * 
- * @param[in] x a character
- * @return true if x is a space
- */
-constexpr bool is_space_char(char x) noexcept {
-  return x == ' '  or
-         x == '\n' or
-         x == '\r' or
-         x == '\t' or
-         x == '\f' or
-         x == '\v';
 }
 
 /** Internal string view array generator.
@@ -62,8 +49,8 @@ std::array<std::string_view, size_t(EnumType::FINAL)> enum_strarray(
     str = strchars.substr(N0, N1 - N0);
     
     // Remove spaces at the beginning and at the end of the string
-    while (is_space_char(str.front())) str.remove_prefix(1);
-    while (is_space_char(str.back())) str.remove_suffix(1);
+    while (nonstd::isspace(str.front())) str.remove_prefix(1);
+    while (nonstd::isspace(str.back())) str.remove_suffix(1);
     
     // Set the new start for the next iteration
     N0 = N1 + 1;
@@ -92,7 +79,7 @@ std::array<EnumType, size_t(EnumType::FINAL)> enum_typarray() noexcept {
  * @param[in] type The enum class type variable
  * @param[in] ...args A list of errors to print if type is bad
  */
-template <typename EnumType, typename ... Messages>
+template <typename EnumType, typename ... Messages> constexpr
 void check_enum_error(EnumType type, Messages ... args) {
   ARTS_USER_ERROR_IF (not good_enum(type), args...)
 }
@@ -169,7 +156,7 @@ void check_enum_error(EnumType type, Messages ... args) {
     return ENUMTYPE::FINAL;                                               \
   }                                                                       \
                                                                           \
-  inline ENUMTYPE to##ENUMTYPE##OrThrow(const std::string_view x) {       \
+  constexpr ENUMTYPE to##ENUMTYPE##OrThrow(const std::string_view x) {    \
     ENUMTYPE out = to##ENUMTYPE(x);                                       \
     check_enum_error(out, "Cannot understand argument: \"", x, "\"\n"     \
                      "Valid " #ENUMTYPE " options are: ["                 \

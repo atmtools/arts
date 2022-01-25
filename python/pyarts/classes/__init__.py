@@ -26,7 +26,7 @@ from pyarts.classes.Matrix import Matrix, ArrayOfMatrix, ArrayOfArrayOfMatrix
 from pyarts.classes.MCAntenna import MCAntenna
 from pyarts.classes.Ppath import Ppath, ArrayOfPpath
 from pyarts.classes.PropagationMatrix import PropagationMatrix, ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix
-from pyarts.classes.QuantumIdentifier import QuantumIdentifier, ArrayOfQuantumIdentifier
+from pyarts.classes.quantum import QuantumIdentifier, ArrayOfQuantumIdentifier
 from pyarts.classes.RadiationVector import RadiationVector, ArrayOfRadiationVector, ArrayOfArrayOfRadiationVector
 from pyarts.classes.Rational import Rational
 from pyarts.classes.RetrievalQuantity import ArrayOfRetrievalQuantity

@@ -33,7 +33,7 @@
 #include "file.h"
 #include "mystring.h"
 #include "propagationmatrix.h"
-#include "quantum.h"
+#include "quantum_numbers.h"
 #include "wigner_functions.h"
 #include <limits>
 
@@ -209,38 +209,6 @@ constexpr Numeric PolarizationFactor(Polarization type) noexcept {
   return std::numeric_limits<Numeric>::max();
 }
 
-/** Checks if the quantum numbers are good for this transition
- * 
- * Given some Hund state, various quantum numbers must
- * be defined to allow the Zeeman calculations to work
- *  
- * @param[in] qns Quantum numbers of a level
- * 
- * @return If the numbers can be used to compute simple Zeeman effect
- */
-constexpr bool GoodHundData(const QuantumNumbers& qns) noexcept {
-  if (qns[QuantumNumberType::Hund].isUndefined()) return false;
-  switch (Hund(qns[QuantumNumberType::Hund].toIndex())) {
-    case Hund::CaseA:
-      if (qns[QuantumNumberType::Omega].isUndefined() or
-          qns[QuantumNumberType::J].isUndefined() or
-          qns[QuantumNumberType::Lambda].isUndefined() or
-          qns[QuantumNumberType::S].isUndefined())
-        return false;
-      break;
-    case Hund::CaseB:
-      if (qns[QuantumNumberType::N].isUndefined() or
-          qns[QuantumNumberType::J].isUndefined() or
-          qns[QuantumNumberType::Lambda].isUndefined() or
-          qns[QuantumNumberType::S].isUndefined())
-        return false;
-      break;
-    default:
-      return false;
-  }
-  return true;
-}
-
 /** Computes the Zeeman splitting coefficient
  * 
  * The level should be Hund case b type and all
@@ -306,43 +274,6 @@ constexpr Numeric SimpleGCaseA(Rational Omega,
   auto T2 = (Lambda * DIV).toNumeric();
   return GS * T1 + GL * T2;
  
-}
-
-/** Computes the Zeeman splitting coefficient
- * 
- * The level should be Hund case a or b type and all
- * the quantum numbers have to be defined
- *  
- * @param[in] qns Quantum numbers of a level
- * @param[in] GS The spin Landé coefficient of the molecule
- * @param[in] GS The Landé coefficient of the molecule
- * 
- * @return If the numbers can be used to compute simple Zeeman effect
- */
-constexpr Numeric SimpleG(const QuantumNumbers& qns,
-                          const Numeric& GS,
-                          const Numeric& GL) noexcept{
-  if (not GoodHundData(qns))
-    return NAN;
-
-  switch (Hund(qns[QuantumNumberType::Hund].toIndex())) {
-    case Hund::CaseA:
-      return SimpleGCaseA(qns[QuantumNumberType::Omega],
-                          qns[QuantumNumberType::J],
-                          qns[QuantumNumberType::Lambda],
-                          qns[QuantumNumberType::S],
-                          GS,
-                          GL);
-    case Hund::CaseB:
-      return SimpleGCaseB(qns[QuantumNumberType::N],
-                          qns[QuantumNumberType::J],
-                          qns[QuantumNumberType::Lambda],
-                          qns[QuantumNumberType::S],
-                          GS,
-                          GL);
-  }
-
-  return NAN;
 }
 
 /** Main storage for Zeeman splitting coefficients

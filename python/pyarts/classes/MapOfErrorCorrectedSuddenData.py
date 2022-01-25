@@ -2,7 +2,7 @@ import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
-from pyarts.classes.QuantumIdentifier import QuantumIdentifier
+from pyarts.classes.quantum import QuantumIdentifier
 from pyarts.classes.LineShapeModelParameters import LineShapeModelParameters
 from pyarts.classes.BasicTypes import Numeric
 from pyarts.classes.SpeciesIsotopeRecord import Species

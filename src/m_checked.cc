@@ -754,22 +754,21 @@ void lbl_checkedCalc(Index& lbl_checked,
     
     if (any_zeeman) {
       for (auto& band: lines) {
-        ARTS_USER_ERROR_IF (band.Cutoff() not_eq Absorption::CutoffType::None,
+        ARTS_USER_ERROR_IF (band.cutoff not_eq Absorption::CutoffType::None,
                             "Zeeman effects are not symmetric, you cannot use cutoff.\n");
         for (Index k=0; k<band.NumLines(); k++) {
-          auto Fu = band.UpperQuantumNumber(k, QuantumNumberType::F);
-          auto Fl = band.LowerQuantumNumber(k, QuantumNumberType::F);
-          auto Ju = band.UpperQuantumNumber(k, QuantumNumberType::J);
-          auto Jl = band.LowerQuantumNumber(k, QuantumNumberType::J);
-          auto Ze = band.Line(k).Zeeman();
-          ARTS_USER_ERROR_IF (Fu.isUndefined() and Ju.isUndefined(),
-                              "Bad upper state F(s) or J(s).\n");
-          ARTS_USER_ERROR_IF (Fl.isUndefined() and Jl.isUndefined(),
-                              "Bad lower state F(s) or J(s).\n");
-          ARTS_USER_ERROR_IF (not is_wigner3_ready(Fu.isUndefined() ? Ju : Fu),
+          bool hasJ = band.lines[k].localquanta.val.has(QuantumNumberType::J);
+          bool hasF = band.lines[k].localquanta.val.has(QuantumNumberType::F);
+          ARTS_USER_ERROR_IF (not(hasF or hasJ),
+                              "No J(s) or F(s) yet declared Zeeman splitting.\n");
+
+          auto& qn = hasF ? band.lines[k].localquanta.val[QuantumNumberType::F] : band.lines[k].localquanta.val[QuantumNumberType::J];
+          ARTS_USER_ERROR_IF (not is_wigner3_ready(qn.upp()),
+                              "Bad Wigner numbers for upper state F or J.  Try increasing the Wigner memory allocation.\n");
+          ARTS_USER_ERROR_IF (not is_wigner3_ready(qn.low()),
                               "Bad Wigner numbers for lower state F or J.  Try increasing the Wigner memory allocation.\n");
-          ARTS_USER_ERROR_IF (not is_wigner3_ready(Fl.isUndefined() ? Jl : Fl),
-                              "Bad Wigner numbers for lower state F or J.  Try increasing the Wigner memory allocation.\n");
+
+          auto Ze = band.lines[k].zeeman;
           ARTS_USER_ERROR_IF (Ze.gu() == 0 ? false : not std::isnormal(Ze.gu()),
                               "Bad value(s) in the upper Zeeman data not allowed when modeling Zeeman effect.\n");
           ARTS_USER_ERROR_IF (Ze.gl() == 0 ? false : not std::isnormal(Ze.gl()),
@@ -781,9 +780,9 @@ void lbl_checkedCalc(Index& lbl_checked,
     
     // Checks per band
     for (auto& band: lines) {
-      ARTS_USER_ERROR_IF (band.Mirroring() not_eq Absorption::MirroringType::Manual and
-                          std::any_of(band.AllLines().cbegin(), band.AllLines().cend(),
-                                      [](auto& x){return x.F0() <= 0;}),
+      ARTS_USER_ERROR_IF (band.mirroring not_eq Absorption::MirroringType::Manual and
+                          std::any_of(band.lines.cbegin(), band.lines.cend(),
+                                      [](auto& x){return x.F0 <= 0;}),
                           "Negative or zero frequency in non-Manual mirrored band.\n");
     }
   }
@@ -792,31 +791,31 @@ void lbl_checkedCalc(Index& lbl_checked,
     for (auto& band: lines) {
       
       // Mirroring checks
-      for (auto& line: band.AllLines()) {
-        if (band.Mirroring() == Absorption::MirroringType::Manual) {
-          ARTS_USER_ERROR_IF(line.F0() >= 0,
-                             "Must have negative frequency, finds " , line.F0())
+      for (auto& line: band.lines) {
+        if (band.mirroring == Absorption::MirroringType::Manual) {
+          ARTS_USER_ERROR_IF(line.F0 >= 0,
+                             "Must have negative frequency, finds " , line.F0)
         } else {
-          ARTS_USER_ERROR_IF(line.F0() <= 0,
-                             "Must have positive frequency, finds " , line.F0())
+          ARTS_USER_ERROR_IF(line.F0 <= 0,
+                             "Must have positive frequency, finds " , line.F0)
         }
       }
       
       // Cutoff checks
-      switch (band.Cutoff()) {
+      switch (band.cutoff) {
         case Absorption::CutoffType::None: break;
         case Absorption::CutoffType::ByLine: {
-          ARTS_USER_ERROR_IF (not (band.Mirroring() == Absorption::MirroringType::None or
-                                   band.Mirroring() == Absorption::MirroringType::Manual),
+          ARTS_USER_ERROR_IF (not (band.mirroring == Absorption::MirroringType::None or
+                                   band.mirroring == Absorption::MirroringType::Manual),
                               "Cutoff only possible with symmetric mirroring types")
-          ARTS_USER_ERROR_IF(Absorption::relaxationtype_relmat(band.Population()),
+          ARTS_USER_ERROR_IF(Absorption::relaxationtype_relmat(band.population),
                              "Cannot have relaxation matrix line mixing with cutoff calculations")
-          ARTS_USER_ERROR_IF (not (band.LineShapeType() == LineShape::Type::DP or
-                                   band.LineShapeType() == LineShape::Type::LP or
-                                   band.LineShapeType() == LineShape::Type::VP),
+          ARTS_USER_ERROR_IF (not (band.lineshapetype == LineShape::Type::DP or
+                                   band.lineshapetype == LineShape::Type::LP or
+                                   band.lineshapetype == LineShape::Type::VP),
                               "Cutoff only possible with symmetric line shape types")
-          for (auto& line: band.AllLines()) {
-            for (auto& single_data: line.LineShape().Data()) {
+          for (auto& line: band.lines) {
+            for (auto& single_data: line.lineshape.Data()) {
               // Skipping G() intentionally, since the calculations technically works with it
               ARTS_USER_ERROR_IF(
                 single_data.Y().type not_eq LineShape::TemperatureModel::None or

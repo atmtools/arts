@@ -132,15 +132,15 @@ struct SpeciesErrorCorrectedSuddenData {
  * adiabatic factors and so on should be added here
  */
 struct ErrorCorrectedSuddenData {
-  Quantum::Identifier id;
+  QuantumIdentifier id;
   
   /** Data of species data
    * The program is considered ill-formed if data does not
    * contain a Bath-species, either the default one or modified */
   Array<SpeciesErrorCorrectedSuddenData> data;
   
-  explicit ErrorCorrectedSuddenData(const Quantum::Identifier& qid={}) noexcept :
-  id(qid), data({SpeciesErrorCorrectedSuddenData()}) {}
+  explicit ErrorCorrectedSuddenData(QuantumIdentifier  qid={}) noexcept :
+  id(std::move(qid)), data({SpeciesErrorCorrectedSuddenData()}) {}
   
   friend std::ostream& operator<<(std::ostream& os, const ErrorCorrectedSuddenData& rbd) {
     for (Index i=0; i<rbd.data.nelem(); i++) {
@@ -155,8 +155,8 @@ struct ErrorCorrectedSuddenData {
     return is;
   }
   
-  bool operator==(const Quantum::Identifier& band_id) const noexcept {
-    return id == band_id;
+  bool operator==(const QuantumIdentifier& band_id) const noexcept {
+    return band_id.part_of(id);
   }
 
   [[nodiscard]] Index pos(Species::Species spec) const noexcept {
@@ -181,14 +181,14 @@ struct ErrorCorrectedSuddenData {
 };  // ErrorCorrectedSuddenData
 
 struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
-  ErrorCorrectedSuddenData& operator[](const Quantum::Identifier& id) noexcept {
+  ErrorCorrectedSuddenData& operator[](const QuantumIdentifier& id) noexcept {
     if(auto ptr = std::find(begin(), end(), id); ptr not_eq end())
       return *ptr;
     return emplace_back(id);
    
   }
   
-  const ErrorCorrectedSuddenData& operator[](const Quantum::Identifier& id) const {
+  const ErrorCorrectedSuddenData& operator[](const QuantumIdentifier& id) const {
     if(auto ptr = std::find(cbegin(), cend(), id); ptr not_eq cend()) {
       return *ptr;
     }

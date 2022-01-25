@@ -27,6 +27,20 @@ constexpr int isdigit(int ch) noexcept {
          ch == '8' or ch == '9';
 }
 
+/** Returns 1 if x is a standard space-character
+ * 
+ * Reason to re-implement: std::isspace(ch) is not officially constexpr
+ * 
+ * The int-interface is kept from the standard
+ * 
+ * @param[in] x a character
+ * @return 1 if x is a space
+ */
+constexpr int isspace(int ch) noexcept {
+  return ch == ' ' or ch == '\n' or ch == '\r' or ch == '\t' or ch == '\f' or
+         ch == '\v';
+}
+
 /*! Checks if the given value is nan
  * 
  * Reason to re-implement: std::isnan(d) is not officially constexpr

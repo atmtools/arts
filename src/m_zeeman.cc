@@ -94,8 +94,6 @@ void propmat_clearskyAddZeeman(
                     manual_zeeman_eta);
 }
 
-
-
 void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
                                     const ArrayOfQuantumIdentifier& qid,
                                     const Vector& gs,
@@ -105,24 +103,14 @@ void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
     const QuantumIdentifier& id = qid[i];
     const Numeric g = gs[i];
     
-    ARTS_USER_ERROR_IF(id.type not_eq QuantumIdentifierType::EnergyLevel, 
-      "The type of quantum identifier at position ", i, " is wrong.  It reads:\n", qid[i])
-    const QuantumNumbers& level = id.Level();
-    
     for (AbsorptionLines& band: abs_lines) {
-      if (id.Isotopologue() not_eq band.Isotopologue()) continue;
-      
-      for (Index iline=0; iline<band.NumLines(); iline++) {
-        bool match_upp = true;
-        bool match_low = true;
-        for (const QuantumNumberType qn: enumtyps::QuantumNumberTypeTypes) {
-          if (level[qn].isUndefined()) continue;
-          match_upp = match_upp and level[qn] == band.UpperQuantumNumber(iline, qn);
-          match_low = match_low and level[qn] == band.LowerQuantumNumber(iline, qn);
-          if (not match_low and not match_upp) break;
-        }
-        if (match_upp) band.Line(iline).Zeeman().gu(g);
-        if (match_low) band.Line(iline).Zeeman().gl(g);
+      if (id.isotopologue_index not_eq band.quantumidentity.isotopologue_index) continue;
+
+      for (auto& line: band.lines) {
+        auto test = id.part_of(band.quantumidentity, line.localquanta);
+
+        if (test.upp) line.zeeman.gu(g);
+        if (test.low) line.zeeman.gl(g);
       }
     }
   }

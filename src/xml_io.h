@@ -96,15 +96,6 @@ class ArtsXMLTag : public XMLTag {
    * @param[out] value Return value
    */
   void get_attribute_value(const String& aname, std::vector<QuantumNumberType>& value);
-  
-  /** Returns value of attribute as type ArrayOfSpeciesTag
-   * 
-   * Searches for the matching attribute and returns it value
-   * 
-   * @param[in] aname Attribute name
-   * @param[in,out] value Return value
-   */
-  void get_attribute_value(const String& aname, QuantumNumbers& value);
 };
 
 ////////////////////////////////////////////////////////////////////////////

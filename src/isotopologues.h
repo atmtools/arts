@@ -2,7 +2,9 @@
 #define isotopologues_h
 
 #include <limits>
+#include <string_view>
 
+#include "enums.h"
 #include "mystring.h"
 #include "nonstd.h"
 #include "species.h"
@@ -650,9 +652,11 @@ Array<IsotopeRecord> isotopologues(Species spec);
 
 constexpr Index find_species_index(const Species spec,
                                    const std::string_view isot) noexcept {
-  for (std::size_t i=IsotopologuesStart[std::size_t(spec)]; i<IsotopologuesStart[std::size_t(spec) + 1]; i++) {
-    if (isot == Isotopologues[i].isotname) {
-      return i;
+  if (good_enum(spec)) {
+    for (std::size_t i=IsotopologuesStart[std::size_t(spec)]; i<IsotopologuesStart[std::size_t(spec) + 1]; i++) {
+      if (isot == Isotopologues[i].isotname) {
+        return i;
+      }
     }
   }
   return -1;
@@ -666,6 +670,11 @@ constexpr Index find_species_index(const IsotopeRecord ir) noexcept {
 constexpr Index find_species_index(const std::string_view spec,
                                    const std::string_view isot) noexcept {
   return find_species_index(fromShortName(spec), isot);
+}
+
+constexpr Index find_species_index(std::string_view s) {
+  auto minus = s.find('-');
+  return find_species_index(s.substr(0, minus), s.substr(minus+1));
 }
 
 constexpr const IsotopeRecord& select(Species spec, const std::string_view isotname) noexcept {

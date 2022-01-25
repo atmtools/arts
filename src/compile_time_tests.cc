@@ -1,4 +1,5 @@
 #include "isotopologues.h"
+#include "quantum_numbers.h"
 
 namespace CompileTimeTests {
 //! Don't call this manually, it only exists to catch a developer error
@@ -79,4 +80,21 @@ static_assert(testIsotopologuesIncreasing(), "Error!\n\n"
 static_assert(Species::isotopologue_ratiosInitFromBuiltin().all_isotopes_have_a_value(),
               "There's a missing value in the default isotopologue_ratiosInitFromBuiltin()"
 );
+
+constexpr bool check_global_local_types() {
+  using namespace Quantum::Number;
+
+  // Check independence
+  for (auto qn: local_types) for (auto qn2: global_types) if (qn == qn2) return false;
+
+  // Check completeness
+  if (global_types.size() + local_types.size() not_eq size_t(Type::FINAL)) return false;
+
+  // Check that local state has no string types
+  for (auto qn: local_types) if (common_value_type(common_value_type(qn), ValueType::H) not_eq ValueType::H) return false;
+
+  return true;
+}
+
+static_assert(check_global_local_types(), "Missing some quantum numbers from the global/local states");
 } // namespace CompileTimeTests

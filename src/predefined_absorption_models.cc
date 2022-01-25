@@ -37,7 +37,7 @@
 #include "matpackI.h"
 #include "predefined/predef.h"
 #include "propagationmatrix.h"
-#include "quantum.h"
+#include "quantum_numbers.h"
 #include "species.h"
 
 namespace Absorption::PredefinedModel {

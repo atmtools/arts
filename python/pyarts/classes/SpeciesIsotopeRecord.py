@@ -128,7 +128,10 @@ class SpeciesIsotopeRecord:
         else:
             self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createSpeciesIsotopeRecord())
-            self.index = self.get_index(spec, isotname)
+            if '-' in spec:
+                self.index = self.get_index(spec)
+            else:
+                self.index = self.get_index_split(spec, isotname)
     
     @staticmethod
     def from_index(ind):
@@ -191,9 +194,12 @@ class SpeciesIsotopeRecord:
         return lib.nelemSpeciesIsotopeRecordDefined()
     
     @staticmethod
-    def get_index(spec, isot):
+    def get_index_split(spec, isot):
         return lib.getIndexSpeciesIsotopeRecordFromNames(str(spec).encode("utf-8"),
                                                          str(isot).encode("utf-8"))
+    @staticmethod
+    def get_index(spec):
+        return lib.getIndexSpeciesIsotopeRecordFromFullName(str(spec).encode("utf-8"))
 
 lib.createSpeciesIsotopeRecord.restype = c.c_void_p
 lib.createSpeciesIsotopeRecord.argtypes = []
@@ -206,6 +212,9 @@ lib.printSpeciesIsotopeRecord.argtypes = [c.c_void_p]
 
 lib.getIndexSpeciesIsotopeRecordFromNames.restype = c.c_long
 lib.getIndexSpeciesIsotopeRecordFromNames.argtypes = [c.c_char_p, c.c_char_p]
+
+lib.getIndexSpeciesIsotopeRecordFromFullName.restype = c.c_long
+lib.getIndexSpeciesIsotopeRecordFromFullName.argtypes = [c.c_char_p]
 
 lib.getIndexSpeciesIsotopeRecordFromData.restype = c.c_long
 lib.getIndexSpeciesIsotopeRecordFromData.argtypes = [c.c_void_p]

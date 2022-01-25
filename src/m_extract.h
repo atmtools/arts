@@ -34,7 +34,7 @@
 #include "exceptions.h"
 #include "gridded_fields.h"
 #include "matpackV.h"
-#include "quantum.h"
+#include "quantum_numbers.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 /* This template function covers all implementations of extracting

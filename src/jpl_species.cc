@@ -204,6 +204,7 @@ ArtsMap to_species_map(const JplMap& jplmap) {
 QuantumIdentifier Jpl::id_from_lookup(Index tag) {
   static ArtsMap data = to_species_map(catdir2arts);
   auto ptr = data.find(tag);
-  ARTS_USER_ERROR_IF(ptr == data.cend(), "Cannot find the tag: ", tag, " in ARTS")
-  return QuantumIdentifier(ptr -> second.Isotopologue(), Quantum::IdentifierType::Transition);
+  ARTS_USER_ERROR_IF(
+      ptr == data.cend(), "Cannot find the tag: ", tag, " in ARTS")
+  return QuantumIdentifier{Species::find_species_index(ptr->second.Isotopologue())};
 }
