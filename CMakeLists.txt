@@ -443,6 +443,25 @@ else (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
   message(STATUS "Found arts-xml-data in ${ARTS_XML_DATA_DIR}")
 endif (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
 
+########### Path to arts-cat-data ##########
+if (ARTS_CAT_DATA_PATH)
+  get_filename_component (ARTS_CAT_DATA_DIR "${ARTS_CAT_DATA_PATH}" ABSOLUTE)
+else (ARTS_CAT_DATA_PATH)
+  get_filename_component (ARTS_CAT_DATA_DIR "${CMAKE_SOURCE_DIR}/../arts-cat-data" ABSOLUTE)
+endif (ARTS_CAT_DATA_PATH)
+
+if (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
+  message(WARNING "Cannot determine location of arts-cat-data!
+Depending tests will be disabled.
+Please specify arts-cat-data location with
+cmake -DARTS_CAT_DATA_PATH=PATH_TO_ARTS_CAT_DATA ..")
+  unset (ARTS_CAT_DATA_DIR)
+else (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
+  message(STATUS "Found arts-cat-data in ${ARTS_CAT_DATA_DIR}")
+endif (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
+
+string(JOIN ":" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR})
+
 ########### Path to partition functions data ##########
 if (ARTS_PARTFUN_DATA_PATH)
   get_filename_component (ARTS_PARTFUN_DATA_PATH "${ARTS_PARTFUN_DATA_PATH}" ABSOLUTE)
