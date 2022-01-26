@@ -6,7 +6,8 @@ from pyarts.classes.quantum import QuantumIdentifier
 
 
 ws = Workspace()
-datapath = "../../../arts-cat-data/" if not os.getenv("ARTS_XML_DATA_DIR") else os.getenv("ARTS_XML_DATA_DIR")
+datapath = "../../../arts-cat-data/" if not os.getenv("ARTS_CAT_DATA_DIR") else os.getenv("ARTS_CAT_DATA_DIR")
+datapath = os.path.join(datapath, "lines/")
 
 # Init
 al = AbsorptionLines()
