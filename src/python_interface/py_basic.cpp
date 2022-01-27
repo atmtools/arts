@@ -13,9 +13,9 @@ void py_basic(py::module_& m) {
   py::class_<Verbosity>(m, "Verbosity")
       .def(py::init<>())
       .def(py::init<Index, Index, Index>(),
-      py::arg("agenda")=0,
-      py::arg("screen")=0,
-      py::arg("file")=0)
+           py::arg("agenda") = 0,
+           py::arg("screen") = 0,
+           py::arg("file") = 0)
       .PythonInterfaceFileIO(Verbosity)
       .PythonInterfaceBasicRepresentation(Verbosity)
       .def_property(
@@ -48,7 +48,8 @@ void py_basic(py::module_& m) {
       .PythonInterfaceBasicRepresentation(String)
       .def(py::self + py::self)
       .def(py::self += py::self)
-      .doc() = "The Arts String class\n"
+      .doc() =
+      "The Arts String class\n"
       "\n"
       "This class is compatible with python strings.  The data can "
       "be accessed without copy using element-wise access operators.";
@@ -87,8 +88,120 @@ void py_basic(py::module_& m) {
       "    ArrayOfIndex(List or Array): to copy elements\n\n";
   py::implicitly_convertible<py::array, ArrayOfIndex>();
   py::implicitly_convertible<py::list, ArrayOfIndex>();
+  py::implicitly_convertible<std::vector<Index>, ArrayOfIndex>();
 
-  py::implicitly_convertible<std::vector<Index>, ArrayOfIndex>();  
-  PythonInterfaceWorkspaceArray(ArrayOfIndex);      
+  PythonInterfaceWorkspaceArray(ArrayOfIndex);
+
+  py::class_<Numeric_>(m, "Numeric", py::buffer_protocol())
+      .def(py::init<>())
+      .def(py::init<double>())
+      .def(py::init([](std::array<Numeric, 1> x) { return Numeric_{x[0]}; }))
+      .PythonInterfaceBasicRepresentation(Numeric_)
+      .def_buffer([](Numeric_& x) -> py::buffer_info {
+        return py::buffer_info(&x.val,
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               1,
+                               {1},
+                               {sizeof(Numeric)});
+      })
+      .def(
+          "savexml",
+          [](const Numeric_& x,
+             const char* const file,
+             const char* const type,
+             bool clobber) {
+            xml_write_to_file(file,
+                              x.val,
+                              string2filetype(type),
+                              clobber ? 0 : 1,
+                              Verbosity());
+          },
+          py::arg("file"),
+          py::arg("type") = "ascii",
+          py::arg("clobber") = true,
+          py::doc("Saves Numeric to file\n"
+                  "\n"
+                  "Parameters:\n"
+                  "    file (str): The path to which the file is written."
+                  " Note that several of the options might modify the"
+                  " name or write more files\n"
+                  "    type (str): Type of file to save (ascii. zascii,"
+                  " or binary)\n"
+                  "    clobber (bool): Overwrite existing files or add new"
+                  " file with modified name?\n"
+                  "\n"
+                  "On Error:\n"
+                  "    Throws RuntimeError for any failure to save"))
+      .def(
+          "loadxml",
+          [](Numeric_& x, const char* const file) {
+            xml_read_from_file(file, x.val, Verbosity());
+          },
+          py::doc("Load Numeric from file\n"
+                  "\n"
+                  "Parameters:\n"
+                  "    file (str): A file that can be read\n"
+                  "\n"
+                  "On Error:\n"
+                  "    Throws RuntimeError for any failure to read"))
+      .doc() = "This is a dummy class for inputs only, get the value by np.array(..., copy=False) if you read this and are having trouble";
+  py::implicitly_convertible<Numeric, Numeric_>();
+
+  py::class_<Index_>(m, "Index", py::buffer_protocol())
+      .def(py::init<>())
+      .def(py::init<double>())
+      .def(py::init([](std::array<Index_, 1> x) { return Index_{x[0]}; }))
+      .PythonInterfaceBasicRepresentation(Index_)
+      .def_buffer([](Index_& x) -> py::buffer_info {
+        return py::buffer_info(&x.val,
+                               sizeof(Index),
+                               py::format_descriptor<Index>::format(),
+                               1,
+                               {1},
+                               {sizeof(Index)});
+      })
+      .def(
+          "savexml",
+          [](const Index_& x,
+             const char* const file,
+             const char* const type,
+             bool clobber) {
+            xml_write_to_file(file,
+                              x.val,
+                              string2filetype(type),
+                              clobber ? 0 : 1,
+                              Verbosity());
+          },
+          py::arg("file"),
+          py::arg("type") = "ascii",
+          py::arg("clobber") = true,
+          py::doc("Saves Index to file\n"
+                  "\n"
+                  "Parameters:\n"
+                  "    file (str): The path to which the file is written."
+                  " Note that several of the options might modify the"
+                  " name or write more files\n"
+                  "    type (str): Type of file to save (ascii. zascii,"
+                  " or binary)\n"
+                  "    clobber (bool): Overwrite existing files or add new"
+                  " file with modified name?\n"
+                  "\n"
+                  "On Error:\n"
+                  "    Throws RuntimeError for any failure to save"))
+      .def(
+          "loadxml",
+          [](Index_& x, const char* const file) {
+            xml_read_from_file(file, x.val, Verbosity());
+          },
+          py::doc("Load Index from file\n"
+                  "\n"
+                  "Parameters:\n"
+                  "    file (str): A file that can be read\n"
+                  "\n"
+                  "On Error:\n"
+                  "    Throws RuntimeError for any failure to read"))
+      .doc() = "This is a dummy class for inputs only, get the value by np.array(..., copy=False) if you read this and are having trouble";
+  py::implicitly_convertible<Index, Index_>();
 }
 }  // namespace Python

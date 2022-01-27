@@ -10,6 +10,7 @@ void py_tessem(py::module_&);
 void py_rte(py::module_& m);
 void py_telsem(py::module_& m);
 void py_species(py::module_& m);
+void py_workspace(py::module_& m);
 
 PYBIND11_MODULE(pyarts_cpp, m) {
     m.doc() = "Contains direct C++ interface for Arts";
@@ -24,5 +25,6 @@ PYBIND11_MODULE(pyarts_cpp, m) {
     py_rte(classes);
     py_telsem(classes);
     py_species(classes);
+    py_workspace(classes);
 }
 }  // namespace Python

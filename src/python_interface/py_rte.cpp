@@ -147,7 +147,7 @@ void py_rte(py::module_& m) {
            py::arg_v("ns", Index(1), "Index(1)"),
            py::arg_v("nza", Index(1), "Index(1)"),
            py::arg_v("naa", Index(1), "Index(1)"),
-           py::arg_v("v", Numeric(0), "Numeric(0)"))
+           py::arg("v"))
       .PythonInterfaceFileIO(PropagationMatrix)
       .PythonInterfaceBasicRepresentation(PropagationMatrix)
       .def_property(

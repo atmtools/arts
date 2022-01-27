@@ -243,7 +243,7 @@ inline void Append(  // WS Generic Output:
           in_ref;
   } else
     throw runtime_error(
-        "Dimension must be either \"leading\" or \"trailing\".");
+        R"(Dimension must be either "leading" or "trailing".)");
 }
 
 /* Implementation for Matrix/Vector */

@@ -102,7 +102,6 @@ void py_species(py::module_& m) {
       .doc() = "The Arts ArrayOfArrayOfSpeciesTag class";
   py::implicitly_convertible<std::vector<SpeciesTag>, ArrayOfSpeciesTag>();
 
-  //PythonInterfaceWorkspaceArray(SpeciesTag);
   PythonInterfaceWorkspaceArray(ArrayOfSpeciesTag);
 }
 }  // namespace Python

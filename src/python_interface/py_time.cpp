@@ -29,7 +29,5 @@ void py_time(py::module_& m) {
 
   PythonInterfaceWorkspaceArray(Time);
   PythonInterfaceWorkspaceArray(ArrayOfTime);
-
-  py::class_<Workspace>(m, "Workspace");
 }
 }  // namespace Python
