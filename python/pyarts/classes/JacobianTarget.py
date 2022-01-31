@@ -61,7 +61,7 @@ class JacobianTarget:
     @property
     def quantumidentity(self):
         """ Identifier of the Jacobian line parameter (QuantumIdentifier) """
-        return QuantumIdentifier(c.c_void_p(lib.getQuantumIdentityJacobianTarget(self.__data__)))
+        return QuantumIdentifier(c.c_void_p(lib.getqidJacobianTarget(self.__data__)))
 
     @quantumidentity.setter
     def quantumidentity(self, val):
@@ -70,7 +70,7 @@ class JacobianTarget:
     @property
     def specieslist(self):
         """ Identifier of the Jacobian line parameter (ArrayOfSpeciesTag) """
-        return ArrayOfSpeciesTag(c.c_void_p(lib.getSpeciesListJacobianTarget(self.__data__)))
+        return ArrayOfSpeciesTag(c.c_void_p(lib.getspecies_array_idJacobianTarget(self.__data__)))
 
     @specieslist.setter
     def specieslist(self, val):
@@ -79,7 +79,7 @@ class JacobianTarget:
     @property
     def string_key(self):
         """ Identifier of the Jacobian line parameter (String) """
-        return String(c.c_void_p(lib.getStringKeyJacobianTarget(self.__data__)))
+        return String(c.c_void_p(lib.getstring_idJacobianTarget(self.__data__)))
 
     @string_key.setter
     def string_key(self, val):
@@ -88,7 +88,7 @@ class JacobianTarget:
     @property
     def perturbation(self):
         """ Perturbation for some calculations (Numeric) """
-        return Numeric(c.c_void_p(lib.getPerturbationJacobianTarget(self.__data__)))
+        return Numeric(c.c_void_p(lib.getperturbationJacobianTarget(self.__data__)))
 
     @perturbation.setter
     def perturbation(self, val):
@@ -190,14 +190,14 @@ lib.enumgetTargetSubTypeJacobianTarget.argtypes = [c.c_void_p]
 lib.enumsetTargetSubTypeJacobianTarget.restype = c.c_bool
 lib.enumsetTargetSubTypeJacobianTarget.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.getPerturbationJacobianTarget.restype = c.c_void_p
-lib.getPerturbationJacobianTarget.argtypes = [c.c_void_p]
+lib.getperturbationJacobianTarget.restype = c.c_void_p
+lib.getperturbationJacobianTarget.argtypes = [c.c_void_p]
 
-lib.getQuantumIdentityJacobianTarget.restype = c.c_void_p
-lib.getQuantumIdentityJacobianTarget.argtypes = [c.c_void_p]
+lib.getqidJacobianTarget.restype = c.c_void_p
+lib.getqidJacobianTarget.argtypes = [c.c_void_p]
 
-lib.getSpeciesListJacobianTarget.restype = c.c_void_p
-lib.getSpeciesListJacobianTarget.argtypes = [c.c_void_p]
+lib.getspecies_array_idJacobianTarget.restype = c.c_void_p
+lib.getspecies_array_idJacobianTarget.argtypes = [c.c_void_p]
 
-lib.getStringKeyJacobianTarget.restype = c.c_void_p
-lib.getStringKeyJacobianTarget.argtypes = [c.c_void_p]
+lib.getstring_idJacobianTarget.restype = c.c_void_p
+lib.getstring_idJacobianTarget.argtypes = [c.c_void_p]

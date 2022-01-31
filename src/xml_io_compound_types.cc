@@ -1293,7 +1293,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("/RetrievalQuantity");
 
   rq = RetrievalQuantity(
-    target, subtag, subsubtag, mode, target.Perturbation(), grids);
+    target, subtag, subsubtag, mode, target.perturbation, grids);
 }
 
 //! Writes RetrievalQuantity to XML output stream

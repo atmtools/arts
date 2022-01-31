@@ -132,6 +132,7 @@ def parse_function(func, allow_callbacks):
     source = getsource(func)
     source = unindent(source)
     ast = parse(source)
+    print(func, "\n\n\n", type(source), "\n\n\n", ast)
 
     func_ast = ast.body[0]
     if not type(func_ast) == FunctionDef:
@@ -189,6 +190,7 @@ def parse_function(func, allow_callbacks):
 
     # Create agenda
     a_ptr = arts_api.create_agenda(func.__name__.encode())
+    print(func.__name__.encode())
     agenda = Agenda(a_ptr)
 
     illegal_statement_exception = Exception(
@@ -292,7 +294,7 @@ def parse_function(func, allow_callbacks):
             if len(callback_body) > 0:
                 agenda.add_callback(callback_make_fun(callback_body))
                 callback_body = []
-
+            print(args, '\n', kwargs)
             agenda.add_method(*args, **kwargs)
 
     # Check if there's callback code left to add to the agenda.

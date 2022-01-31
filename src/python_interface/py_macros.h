@@ -40,27 +40,32 @@
                   "On Error:\n"                                            \
                   "    Throws RuntimeError for any failure to read"))
 
-#define PythonInterfaceIndexItemAccess(Type)                                 \
-  def("__len__", [](const Type& x) { return x.nelem(); })                    \
-      .def("__getitem__",                                                    \
-           [](const Type& x, Index i) {                                      \
-             if (x.nelem() <= i or i < 0)                                    \
-               throw std::out_of_range(var_string("Bad index access: ",      \
-                                                  i,                         \
-                                                  " in object of size [0, ", \
-                                                  x.size(),                  \
-                                                  ")"));                     \
-             return x[i];                                                    \
-           })                                                                \
-      .def("__setitem__", [](Type& x, Index i, decltype(x[i]) y) {           \
-        if (x.nelem() <= i or i < 0)                                         \
-          throw std::out_of_range(var_string("Bad index access: ",           \
-                                             i,                              \
-                                             " in object of size [0, ",      \
-                                             x.size(),                       \
-                                             ")"));                          \
-        x[i] = std::move(y);                                                 \
-      })
+#define PythonInterfaceIndexItemAccess(Type)                                \
+  def("__len__", [](const Type& x) { return x.nelem(); })                   \
+      .def(                                                                 \
+          "__getitem__",                                                    \
+          [](Type& x, Index i) -> decltype(x[i])& {                         \
+            if (x.nelem() <= i or i < 0)                                    \
+              throw std::out_of_range(var_string("Bad index access: ",      \
+                                                 i,                         \
+                                                 " in object of size [0, ", \
+                                                 x.size(),                  \
+                                                 ")"));                     \
+            return x[i];                                                    \
+          },                                                                \
+          py::return_value_policy::reference_internal)                      \
+      .def(                                                                 \
+          "__setitem__",                                                    \
+          [](Type& x, Index i, decltype(x[i]) y) {                          \
+            if (x.nelem() <= i or i < 0)                                    \
+              throw std::out_of_range(var_string("Bad index access: ",      \
+                                                 i,                         \
+                                                 " in object of size [0, ", \
+                                                 x.size(),                  \
+                                                 ")"));                     \
+            x[i] = std::move(y);                                            \
+          },                                                                \
+          py::return_value_policy::reference_internal)
 
 #define PythonInterfaceBasicRepresentation(Type) \
   def("__str__", [](const Type& x) {             \
@@ -217,5 +222,17 @@
         ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")           \
         return gf.set_grid(i, str);                                      \
       });
+
+#define PythonInterfaceReadWriteData(Type, data) \
+  def_readwrite(#data, &Type::data, py::return_value_policy::reference_internal)
+
+#define PythonInterfaceReferenceFromPointer(Type)     \
+  m.def(                                              \
+      #Type,                                          \
+      [](std::size_t x) -> Type& {                    \
+        ARTS_USER_ERROR_IF(x == 0, "Not for nullptr") \
+        return *reinterpret_cast<Type*>(x);           \
+      },                                              \
+      py::return_value_policy::reference);
 
 #endif

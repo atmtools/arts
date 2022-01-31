@@ -1121,7 +1121,7 @@ bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
         return true;
     }
   } else {
-    return rq.Target().SpeciesList() == ast;
+    return rq.Target().species_array_id == ast;
   }
 
   return false;
@@ -1174,7 +1174,7 @@ bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
 Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::Temperature;});
   if (p not_eq js.cend())
-    return p -> Target().Perturbation();
+    return p -> Target().perturbation;
   else
     return std::numeric_limits<Numeric>::quiet_NaN();
 }
@@ -1182,7 +1182,7 @@ Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
 Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return is_frequency_parameter(j);});
   if (p not_eq js.cend())
-    return p -> Target().Perturbation();
+    return p -> Target().perturbation;
   else
     return std::numeric_limits<Numeric>::quiet_NaN();
 }
@@ -1190,7 +1190,7 @@ Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
 Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return j.is_mag();});
   if (p not_eq js.cend())
-    return p -> Target().Perturbation();
+    return p -> Target().perturbation;
   else
     return std::numeric_limits<Numeric>::quiet_NaN();
 }
@@ -1198,16 +1198,16 @@ Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
 std::ostream& Jacobian::operator<<(std::ostream& os, const Target& x) {
   os << x.TargetType() << ' ';
   switch (toType(x.TargetType())) {
-    case Type::Atm: os << x.AtmType(); break;
-    case Type::Line: os << x.LineType(); break;
-    case Type::Sensor: os << x.SensorType(); break;
-    case Type::Special: os << x.SpecialType(); break;
+    case Type::Atm: os << x.atm; break;
+    case Type::Line: os << x.line; break;
+    case Type::Sensor: os << x.sensor; break;
+    case Type::Special: os << x.special; break;
     case Type::FINAL: os << "BAD STATE"; break;
   }
-  if (x.needQuantumIdentity()) os << ' ' << x.QuantumIdentity();
-  if (x.needArrayOfSpeciesTag()) os << ' ' << x.SpeciesList();
-  if (x.needString()) os << ' ' << x.StringKey();
-  if (std::isnormal(x.Perturbation())) os << ' ' << x.Perturbation();
+  if (x.needQuantumIdentity()) os << ' ' << x.qid;
+  if (x.needArrayOfSpeciesTag()) os << ' ' << x.species_array_id;
+  if (x.needString()) os << ' ' << x.string_id;
+  if (std::isnormal(x.perturbation)) os << ' ' << x.perturbation;
   
   return os;
 }

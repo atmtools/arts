@@ -1,4 +1,5 @@
 #include <auto_md.h>
+#include <pybind11/pybind11.h>
 #include <xml_io.h>
 
 #include "py_macros.h"
@@ -10,7 +11,7 @@ void py_telsem(py::module_& m) {
       .def(py::init<>())
       .PythonInterfaceFileIO(TelsemAtlas)
       .PythonInterfaceBasicRepresentation(TelsemAtlas);
-  
+
   PythonInterfaceWorkspaceArray(TelsemAtlas);
 }
 }  // namespace Python

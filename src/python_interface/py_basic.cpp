@@ -49,11 +49,12 @@ void py_basic(py::module_& m) {
       .def(py::self + py::self)
       .def(py::self += py::self)
       .doc() =
-      "The Arts String class\n"
-      "\n"
-      "This class is compatible with python strings.  The data can "
-      "be accessed without copy using element-wise access operators.";
-  py::implicitly_convertible<py::str, String>();
+      R"--(
+The Arts String class
+
+This class is compatible with python strings.  The data can 
+be accessed without copy using element-wise access operators.
+)--";
 
   PythonInterfaceWorkspaceArray(String);
   PythonInterfaceWorkspaceArray(ArrayOfString);
@@ -92,19 +93,11 @@ void py_basic(py::module_& m) {
 
   PythonInterfaceWorkspaceArray(ArrayOfIndex);
 
-  py::class_<Numeric_>(m, "Numeric", py::buffer_protocol())
+  py::class_<Numeric_>(m, "Numeric")
       .def(py::init<>())
-      .def(py::init<double>())
-      .def(py::init([](std::array<Numeric, 1> x) { return Numeric_{x[0]}; }))
+      .def(py::init<Numeric>())
+      .def_property("val", [](Numeric_& x){return x.val;}, [](Numeric_& x, Numeric y){x.val = y;})
       .PythonInterfaceBasicRepresentation(Numeric_)
-      .def_buffer([](Numeric_& x) -> py::buffer_info {
-        return py::buffer_info(&x.val,
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               1,
-                               {1},
-                               {sizeof(Numeric)});
-      })
       .def(
           "savexml",
           [](const Numeric_& x,
@@ -145,22 +138,18 @@ void py_basic(py::module_& m) {
                   "\n"
                   "On Error:\n"
                   "    Throws RuntimeError for any failure to read"))
-      .doc() = "This is a dummy class for inputs only, get the value by np.array(..., copy=False) if you read this and are having trouble";
-  py::implicitly_convertible<Numeric, Numeric_>();
+      .doc() =
+      R"--(
+This is a wrapper class for Arts Numeric.
 
-  py::class_<Index_>(m, "Index", py::buffer_protocol())
+You can get copies and set the value by the \"val\" property
+)--";
+
+  py::class_<Index_>(m, "Index")
       .def(py::init<>())
-      .def(py::init<double>())
-      .def(py::init([](std::array<Index_, 1> x) { return Index_{x[0]}; }))
+      .def(py::init<Index>())
+      .def_property("val", [](Index_& x){return x.val;}, [](Index_& x, Index y){x.val = y;})
       .PythonInterfaceBasicRepresentation(Index_)
-      .def_buffer([](Index_& x) -> py::buffer_info {
-        return py::buffer_info(&x.val,
-                               sizeof(Index),
-                               py::format_descriptor<Index>::format(),
-                               1,
-                               {1},
-                               {sizeof(Index)});
-      })
       .def(
           "savexml",
           [](const Index_& x,
@@ -201,7 +190,15 @@ void py_basic(py::module_& m) {
                   "\n"
                   "On Error:\n"
                   "    Throws RuntimeError for any failure to read"))
-      .doc() = "This is a dummy class for inputs only, get the value by np.array(..., copy=False) if you read this and are having trouble";
+      .doc() =
+      R"--(
+This is a wrapper class for Arts Index.
+
+You can get copies and set the value by the \"val\" property
+)--";
+
+  py::implicitly_convertible<py::str, String>();
+  py::implicitly_convertible<Numeric, Numeric_>();
   py::implicitly_convertible<Index, Index_>();
 }
 }  // namespace Python

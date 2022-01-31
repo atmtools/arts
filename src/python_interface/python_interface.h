@@ -3,18 +3,20 @@
 
 #include <pybind11/eigen.h>
 #include <pybind11/embed.h>
+#include <pybind11/functional.h>
 #include <pybind11/numpy.h>
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
 
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
 
-#include "debug.h"
 #include "auto_md.h"
+#include "debug.h"
 #include "enums.h"
 
 //! Contains a bunch of helper functions to manipulate python objects inside C++
@@ -33,26 +35,23 @@ struct Index_ {
   constexpr operator const Index&() const { return val; };
 };
 
-template<typename OUT>
+template <typename OUT>
 OUT& refcast(const py::object& in) {
   return *in.cast<OUT*>();
 }
 
-template<>
+template <>
 inline Index& refcast<Index>(const py::object& in) {
-  return in.cast<Index_*>() -> val;
+  return in.cast<Index_*>()->val;
 }
 
-template<>
+template <>
 inline Numeric& refcast<Numeric>(const py::object& in) {
-  return in.cast<Numeric_*>() -> val;
+  return in.cast<Numeric_*>()->val;
 }
 
 template <class T, class Tptr>
-T& select(T& default_,
-          Tptr* val,
-          py::kwargs& kwargs,
-          const char* const name) {
+T& select(T& default_, Tptr* val, py::kwargs& kwargs, const char* const name) {
   if (val not_eq nullptr) return *val;
   if (kwargs.contains(name)) return refcast<T>(kwargs[name]);
   return default_;
@@ -73,9 +72,7 @@ T& select(Workspace& ws,
 }
 
 template <class T, class Tptr>
-T& select(Tptr* val,
-          py::kwargs& kwargs,
-          const char* const name) {
+T& select(Tptr* val, py::kwargs& kwargs, const char* const name) {
   if (val not_eq nullptr) return *val;
   if (kwargs.contains(name)) return refcast<T>(kwargs[name]);
   ARTS_USER_ERROR("User generated data is not defined ", name)

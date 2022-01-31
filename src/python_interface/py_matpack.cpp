@@ -1,8 +1,11 @@
 #include <matpackVII.h>
 #include <pybind11/attr.h>
+#include <pybind11/pytypes.h>
 #include <xml_io.h>
 
+#include <algorithm>
 #include <functional>
+#include <memory>
 #include <stdexcept>
 
 #include "debug.h"
@@ -12,7 +15,8 @@
 
 namespace Python {
 void py_matpack(py::module_& m) {
-  py::class_<Vector>(m, "Vector", py::buffer_protocol())
+  py::class_<Vector>(
+      m, "Vector", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Index, Numeric>())
@@ -55,17 +59,27 @@ void py_matpack(py::module_& m) {
       .def(py::init<Index, Index>())
       .def(py::init<Index, Index, Numeric>())
       .def(py::init([](const py::array_t<Numeric>& arr) {
-        ARTS_USER_ERROR_IF(arr.request().ndim not_eq 2, "Bad size array")
+        auto info = arr.request();
 
-        auto arr_val = arr.unchecked<2>();
-
-        Matrix out(arr_val.shape(0), arr_val.shape(1));
-
-        for (Index r = 0; r < out.nrows(); r++) {
-          for (Index c = 0; c < out.ncols(); c++) {
-            out(r, c) = arr_val(r, c);
-          }
+        std::size_t i = 0;
+        std::size_t nc = 1, nr = 1;
+        switch (info.ndim) {
+          case 2:
+            nr = info.shape[i++];
+            [[fallthrough]];
+          case 1:
+            nc = info.shape.back();
+            break;
+          case 0:
+            nr = nc = 0;
+            break;
+          default:
+            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
+        
+        auto* val = reinterpret_cast<Numeric*>(info.ptr);
+        Matrix out(nr, nc);
+        std::copy(val, val+out.size(), out.get_raw_data());
 
         return out;
       }))
@@ -77,20 +91,24 @@ void py_matpack(py::module_& m) {
             return std::array{x.nrows(), x.ncols()};
           },
           "The shape of the data")
-      .def("__getitem__",
-           [](const Matrix& x, std::tuple<Index, Index> inds) {
-             auto [r, c] = inds;
-             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
-               throw std::out_of_range("Out of bounds");
-             return x(r, c);
-           })
-      .def("__setitem__",
-           [](Matrix& x, std::tuple<Index, Index> inds, Numeric y) {
-             auto [r, c] = inds;
-             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
-               throw std::out_of_range("Out of bounds");
-             x(r, c) = y;
-           })
+      .def(
+          "__getitem__",
+          [](Matrix& x, std::tuple<Index, Index> inds) -> Numeric& {
+            auto [r, c] = inds;
+            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
+              throw std::out_of_range("Out of bounds");
+            return x(r, c);
+          },
+          py::return_value_policy::reference_internal)
+      .def(
+          "__setitem__",
+          [](Matrix& x, std::tuple<Index, Index> inds, Numeric y) {
+            auto [r, c] = inds;
+            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
+              throw std::out_of_range("Out of bounds");
+            x(r, c) = y;
+          },
+          py::return_value_policy::reference_internal)
       .def_buffer([](Matrix& x) -> py::buffer_info {
         return py::buffer_info(x.get_c_array(),
                                sizeof(Numeric),
@@ -120,19 +138,30 @@ void py_matpack(py::module_& m) {
       .def(py::init<Index, Index, Index>())
       .def(py::init<Index, Index, Index, Numeric>())
       .def(py::init([](const py::array_t<Numeric>& arr) {
-        ARTS_USER_ERROR_IF(arr.request().ndim not_eq 3, "Bad size array")
+        auto info = arr.request();
 
-        auto arr_val = arr.unchecked<3>();
-
-        Tensor3 out(arr_val.shape(0), arr_val.shape(1), arr_val.shape(2));
-
-        for (Index p = 0; p < out.npages(); p++) {
-          for (Index r = 0; r < out.nrows(); r++) {
-            for (Index c = 0; c < out.ncols(); c++) {
-              out(p, r, c) = arr_val(p, r, c);
-            }
-          }
+        std::size_t i = 0;
+        std::size_t nc = 1, nr = 1, np = 0;
+        switch (info.ndim) {
+          case 3:
+            np = info.shape[i++];
+            [[fallthrough]];
+          case 2:
+            nr = info.shape[i++];
+            [[fallthrough]];
+          case 1:
+            nc = info.shape.back();
+            break;
+          case 0:
+            np = nr = nc = 0;
+            break;
+          default:
+            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
+        
+        auto* val = reinterpret_cast<Numeric*>(info.ptr);
+        Tensor3 out(np, nr, nc);
+        std::copy(val, val+out.size(), out.get_c_array());
 
         return out;
       }))
@@ -146,7 +175,7 @@ void py_matpack(py::module_& m) {
           "The shape of the data")
       .def(
           "__getitem__",
-          [](const Tensor3& x, std::tuple<Index, Index, Index> inds) {
+          [](Tensor3& x, std::tuple<Index, Index, Index> inds) -> Numeric& {
             auto [p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0)
@@ -154,14 +183,16 @@ void py_matpack(py::module_& m) {
             return x(p, r, c);
           },
           py::return_value_policy::reference_internal)
-      .def("__setitem__",
-           [](Tensor3& x, std::tuple<Index, Index, Index> inds, Numeric y) {
-             auto [p, r, c] = inds;
-             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                 x.npages() <= p or p < 0)
-               throw std::out_of_range("Out of bounds");
-             x(p, r, c) = y;
-           })
+      .def(
+          "__setitem__",
+          [](Tensor3& x, std::tuple<Index, Index, Index> inds, Numeric y) {
+            auto [p, r, c] = inds;
+            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
+                x.npages() <= p or p < 0)
+              throw std::out_of_range("Out of bounds");
+            x(p, r, c) = y;
+          },
+          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor3& x) -> py::buffer_info {
         return py::buffer_info(x.get_c_array(),
                                sizeof(Numeric),
@@ -193,24 +224,33 @@ void py_matpack(py::module_& m) {
       .def(py::init<Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Numeric>())
       .def(py::init([](const py::array_t<Numeric>& arr) {
-        ARTS_USER_ERROR_IF(arr.request().ndim not_eq 4, "Bad size array")
+        auto info = arr.request();
 
-        auto arr_val = arr.unchecked<4>();
-
-        Tensor4 out(arr_val.shape(0),
-                    arr_val.shape(1),
-                    arr_val.shape(2),
-                    arr_val.shape(3));
-
-        for (Index b = 0; b < out.nbooks(); b++) {
-          for (Index p = 0; p < out.npages(); p++) {
-            for (Index r = 0; r < out.nrows(); r++) {
-              for (Index c = 0; c < out.ncols(); c++) {
-                out(b, p, r, c) = arr_val(b, p, r, c);
-              }
-            }
-          }
+        std::size_t i = 0;
+        std::size_t nc = 1, nr = 1, np = 1, nb = 1;
+        switch (info.ndim) {
+          case 4:
+            nb = info.shape[i++];
+            [[fallthrough]];
+          case 3:
+            np = info.shape[i++];
+            [[fallthrough]];
+          case 2:
+            nr = info.shape[i++];
+            [[fallthrough]];
+          case 1:
+            nc = info.shape.back();
+            break;
+          case 0:
+            nb = np = nr = nc = 0;
+            break;
+          default:
+            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
+        
+        auto* val = reinterpret_cast<Numeric*>(info.ptr);
+        Tensor4 out(nb, np, nr, nc);
+        std::copy(val, val+out.size(), out.get_c_array());
 
         return out;
       }))
@@ -224,7 +264,8 @@ void py_matpack(py::module_& m) {
           "The shape of the data")
       .def(
           "__getitem__",
-          [](const Tensor4& x, std::tuple<Index, Index, Index, Index> inds) {
+          [](Tensor4& x,
+             std::tuple<Index, Index, Index, Index> inds) -> Numeric& {
             auto [b, p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0)
@@ -232,16 +273,18 @@ void py_matpack(py::module_& m) {
             return x(b, p, r, c);
           },
           py::return_value_policy::reference_internal)
-      .def("__setitem__",
-           [](Tensor4& x,
-              std::tuple<Index, Index, Index, Index> inds,
-              Numeric y) {
-             auto [b, p, r, c] = inds;
-             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0)
-               throw std::out_of_range("Out of bounds");
-             x(b, p, r, c) = y;
-           })
+      .def(
+          "__setitem__",
+          [](Tensor4& x,
+             std::tuple<Index, Index, Index, Index> inds,
+             Numeric y) {
+            auto [b, p, r, c] = inds;
+            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
+                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0)
+              throw std::out_of_range("Out of bounds");
+            x(b, p, r, c) = y;
+          },
+          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor4& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -275,27 +318,36 @@ void py_matpack(py::module_& m) {
       .def(py::init<Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Numeric>())
       .def(py::init([](const py::array_t<Numeric>& arr) {
-        ARTS_USER_ERROR_IF(arr.request().ndim not_eq 5, "Bad size array")
+        auto info = arr.request();
 
-        auto arr_val = arr.unchecked<5>();
-
-        Tensor5 out(arr_val.shape(0),
-                    arr_val.shape(1),
-                    arr_val.shape(2),
-                    arr_val.shape(3),
-                    arr_val.shape(4));
-
-        for (Index s = 0; s < out.nshelves(); s++) {
-          for (Index b = 0; b < out.nbooks(); b++) {
-            for (Index p = 0; p < out.npages(); p++) {
-              for (Index r = 0; r < out.nrows(); r++) {
-                for (Index c = 0; c < out.ncols(); c++) {
-                  out(s, b, p, r, c) = arr_val(s, b, p, r, c);
-                }
-              }
-            }
-          }
+        std::size_t i = 0;
+        std::size_t nc = 1, nr = 1, np = 1, nb = 1, ns = 1;
+        switch (info.ndim) {
+          case 5:
+            ns = info.shape[i++];
+            [[fallthrough]];
+          case 4:
+            nb = info.shape[i++];
+            [[fallthrough]];
+          case 3:
+            np = info.shape[i++];
+            [[fallthrough]];
+          case 2:
+            nr = info.shape[i++];
+            [[fallthrough]];
+          case 1:
+            nc = info.shape.back();
+            break;
+          case 0:
+            ns = nb = np = nr = nc = 0;
+            break;
+          default:
+            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
+        
+        auto* val = reinterpret_cast<Numeric*>(info.ptr);
+        Tensor5 out(ns, nb, np, nr, nc);
+        std::copy(val, val+out.size(), out.get_c_array());
 
         return out;
       }))
@@ -310,8 +362,8 @@ void py_matpack(py::module_& m) {
           "The shape of the data")
       .def(
           "__getitem__",
-          [](const Tensor5& x,
-             std::tuple<Index, Index, Index, Index, Index> inds) {
+          [](Tensor5& x,
+             std::tuple<Index, Index, Index, Index, Index> inds) -> Numeric& {
             auto [s, b, p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
@@ -320,17 +372,19 @@ void py_matpack(py::module_& m) {
             return x(s, b, p, r, c);
           },
           py::return_value_policy::reference_internal)
-      .def("__setitem__",
-           [](Tensor5& x,
-              std::tuple<Index, Index, Index, Index, Index> inds,
-              Numeric y) {
-             auto [s, b, p, r, c] = inds;
-             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
-                 x.nshelves() <= s or s < 0)
-               throw std::out_of_range("Out of bounds");
-             x(s, b, p, r, c) = y;
-           })
+      .def(
+          "__setitem__",
+          [](Tensor5& x,
+             std::tuple<Index, Index, Index, Index, Index> inds,
+             Numeric y) {
+            auto [s, b, p, r, c] = inds;
+            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
+                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
+                x.nshelves() <= s or s < 0)
+              throw std::out_of_range("Out of bounds");
+            x(s, b, p, r, c) = y;
+          },
+          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor5& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -365,30 +419,39 @@ void py_matpack(py::module_& m) {
       .def(py::init<Index, Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Numeric>())
       .def(py::init([](const py::array_t<Numeric>& arr) {
-        ARTS_USER_ERROR_IF(arr.request().ndim not_eq 6, "Bad size array")
+        auto info = arr.request();
 
-        auto arr_val = arr.unchecked<6>();
-
-        Tensor6 out(arr_val.shape(0),
-                    arr_val.shape(1),
-                    arr_val.shape(2),
-                    arr_val.shape(3),
-                    arr_val.shape(4),
-                    arr_val.shape(5));
-
-        for (Index v = 0; v < out.nvitrines(); v++) {
-          for (Index s = 0; s < out.nshelves(); s++) {
-            for (Index b = 0; b < out.nbooks(); b++) {
-              for (Index p = 0; p < out.npages(); p++) {
-                for (Index r = 0; r < out.nrows(); r++) {
-                  for (Index c = 0; c < out.ncols(); c++) {
-                    out(v, s, b, p, r, c) = arr_val(v, s, b, p, r, c);
-                  }
-                }
-              }
-            }
-          }
+        std::size_t i = 0;
+        std::size_t nc = 1, nr = 1, np = 1, nb = 1, ns = 1, nv = 1;
+        switch (info.ndim) {
+          case 6:
+            nv = info.shape[i++];
+            [[fallthrough]];
+          case 5:
+            ns = info.shape[i++];
+            [[fallthrough]];
+          case 4:
+            nb = info.shape[i++];
+            [[fallthrough]];
+          case 3:
+            np = info.shape[i++];
+            [[fallthrough]];
+          case 2:
+            nr = info.shape[i++];
+            [[fallthrough]];
+          case 1:
+            nc = info.shape.back();
+            break;
+          case 0:
+            nv = ns = nb = np = nr = nc = 0;
+            break;
+          default:
+            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
+        
+        auto* val = reinterpret_cast<Numeric*>(info.ptr);
+        Tensor6 out(nv, ns, nb, np, nr, nc);
+        std::copy(val, val+out.size(), out.get_c_array());
 
         return out;
       }))
@@ -407,8 +470,9 @@ void py_matpack(py::module_& m) {
           "The shape of the data")
       .def(
           "__getitem__",
-          [](const Tensor6& x,
-             std::tuple<Index, Index, Index, Index, Index, Index> inds) {
+          [](Tensor6& x,
+             std::tuple<Index, Index, Index, Index, Index, Index> inds)
+              -> Numeric& {
             auto [v, s, b, p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
@@ -417,17 +481,19 @@ void py_matpack(py::module_& m) {
             return x(v, s, b, p, r, c);
           },
           py::return_value_policy::reference_internal)
-      .def("__setitem__",
-           [](Tensor6& x,
-              std::tuple<Index, Index, Index, Index, Index, Index> inds,
-              Numeric y) {
-             auto [v, s, b, p, r, c] = inds;
-             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
-                 x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0)
-               throw std::out_of_range("Out of bounds");
-             x(v, s, b, p, r, c) = y;
-           })
+      .def(
+          "__setitem__",
+          [](Tensor6& x,
+             std::tuple<Index, Index, Index, Index, Index, Index> inds,
+             Numeric y) {
+            auto [v, s, b, p, r, c] = inds;
+            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
+                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
+                x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0)
+              throw std::out_of_range("Out of bounds");
+            x(v, s, b, p, r, c) = y;
+          },
+          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor6& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -469,33 +535,42 @@ void py_matpack(py::module_& m) {
       .def(py::init<Index, Index, Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Index, Numeric>())
       .def(py::init([](const py::array_t<Numeric>& arr) {
-        ARTS_USER_ERROR_IF(arr.request().ndim not_eq 7, "Bad size array")
+        auto info = arr.request();
 
-        auto arr_val = arr.unchecked<7>();
-
-        Tensor7 out(arr_val.shape(0),
-                    arr_val.shape(1),
-                    arr_val.shape(2),
-                    arr_val.shape(3),
-                    arr_val.shape(4),
-                    arr_val.shape(5),
-                    arr_val.shape(6));
-
-        for (Index l = 0; l < out.nlibraries(); l++) {
-          for (Index v = 0; v < out.nvitrines(); v++) {
-            for (Index s = 0; s < out.nshelves(); s++) {
-              for (Index b = 0; b < out.nbooks(); b++) {
-                for (Index p = 0; p < out.npages(); p++) {
-                  for (Index r = 0; r < out.nrows(); r++) {
-                    for (Index c = 0; c < out.ncols(); c++) {
-                      out(l, v, s, b, p, r, c) = arr_val(l, v, s, b, p, r, c);
-                    }
-                  }
-                }
-              }
-            }
-          }
+        std::size_t i = 0;
+        std::size_t nc = 1, nr = 1, np = 1, nb = 1, ns = 1, nv = 1, nl = 1;
+        switch (info.ndim) {
+          case 7:
+            nl = info.shape[i++];
+            [[fallthrough]];
+          case 6:
+            nv = info.shape[i++];
+            [[fallthrough]];
+          case 5:
+            ns = info.shape[i++];
+            [[fallthrough]];
+          case 4:
+            nb = info.shape[i++];
+            [[fallthrough]];
+          case 3:
+            np = info.shape[i++];
+            [[fallthrough]];
+          case 2:
+            nr = info.shape[i++];
+            [[fallthrough]];
+          case 1:
+            nc = info.shape.back();
+            break;
+          case 0:
+            nl = nv = ns = nb = np = nr = nc = 0;
+            break;
+          default:
+            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
+        
+        auto* val = reinterpret_cast<Numeric*>(info.ptr);
+        Tensor7 out(nl, nv, ns, nb, np, nr, nc);
+        std::copy(val, val+out.size(), out.get_c_array());
 
         return out;
       }))
@@ -515,8 +590,9 @@ void py_matpack(py::module_& m) {
           "The shape of the data")
       .def(
           "__getitem__",
-          [](const Tensor7& x,
-             std::tuple<Index, Index, Index, Index, Index, Index, Index> inds) {
+          [](Tensor7& x,
+             std::tuple<Index, Index, Index, Index, Index, Index, Index> inds)
+              -> Numeric& {
             auto [l, v, s, b, p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
@@ -526,18 +602,20 @@ void py_matpack(py::module_& m) {
             return x(l, v, s, b, p, r, c);
           },
           py::return_value_policy::reference_internal)
-      .def("__setitem__",
-           [](Tensor7& x,
-              std::tuple<Index, Index, Index, Index, Index, Index, Index> inds,
-              Numeric y) {
-             auto [l, v, s, b, p, r, c] = inds;
-             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
-                 x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0 or
-                 x.nlibraries() <= l or l < 0)
-               throw std::out_of_range("Out of bounds");
-             x(l, v, s, b, p, r, c) = y;
-           })
+      .def(
+          "__setitem__",
+          [](Tensor7& x,
+             std::tuple<Index, Index, Index, Index, Index, Index, Index> inds,
+             Numeric y) {
+            auto [l, v, s, b, p, r, c] = inds;
+            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
+                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
+                x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0 or
+                x.nlibraries() <= l or l < 0)
+              throw std::out_of_range("Out of bounds");
+            x(l, v, s, b, p, r, c) = y;
+          },
+          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor7& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -590,25 +668,18 @@ void py_matpack(py::module_& m) {
   PythonInterfaceWorkspaceArray(ArrayOfTensor3);
   PythonInterfaceWorkspaceArray(ArrayOfTensor6);
 
-  py::implicitly_convertible<py::array, Vector>();
-  py::implicitly_convertible<py::array, Matrix>();
-  py::implicitly_convertible<py::array, Tensor3>();
-  py::implicitly_convertible<py::array, Tensor4>();
-  py::implicitly_convertible<py::array, Tensor5>();
-  py::implicitly_convertible<py::array, Tensor6>();
-  py::implicitly_convertible<py::array, Tensor7>();
-
-  py::implicitly_convertible<py::list, Vector>();
-  py::implicitly_convertible<py::list, Matrix>();
-  py::implicitly_convertible<py::list, Tensor3>();
-  py::implicitly_convertible<py::list, Tensor4>();
-  py::implicitly_convertible<py::list, Tensor5>();
-  py::implicitly_convertible<py::list, Tensor6>();
-  py::implicitly_convertible<py::list, Tensor7>();
+  py::implicitly_convertible<py::array_t<Numeric>, Vector>();
+  py::implicitly_convertible<py::array_t<Numeric>, Matrix>();
+  py::implicitly_convertible<py::array_t<Numeric>, Tensor3>();
+  py::implicitly_convertible<py::array_t<Numeric>, Tensor4>();
+  py::implicitly_convertible<py::array_t<Numeric>, Tensor5>();
+  py::implicitly_convertible<py::array_t<Numeric>, Tensor6>();
+  py::implicitly_convertible<py::array_t<Numeric>, Tensor7>();
 
   py::class_<Rational>(m, "Rational")
       .def(py::init<>())
       .def(py::init<Index>())
+      .def(py::init<String>())
       .def(py::init<Index, Index>())
       .PythonInterfaceFileIO(Rational)
       .PythonInterfaceBasicRepresentation(Rational)
@@ -616,7 +687,6 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceInPlaceMathOperators(Rational, Index)
       .PythonInterfaceMathOperators(Rational, Rational)
       .PythonInterfaceMathOperators(Rational, Index);
-
   py::implicitly_convertible<Index, Rational>();
 }
 }  // namespace Python

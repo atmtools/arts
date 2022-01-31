@@ -375,21 +375,24 @@ void includes(std::ofstream& os) {
      << "#include <m_select.h>" << '\n'
      << "#include <m_xml.h>" << '\n'
      << "#include <xml_io.h>" << '\n'
+     << "#include <supergeneric.h>" << '\n'
      << '\n'
      << "#include <python_interface.h>" << '\n';
 }
 
-void workspace_variables(std::array<std::ofstream, num_split_files>& oss, const NameMaps& arts) {
-  auto * osptr = oss.begin();
+void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
+                         const NameMaps& arts) {
+  auto* osptr = oss.begin();
   for (auto& [name, data] : arts.varname_group) {
     auto& os = *osptr;
 
     os << "  ws.def_property(\"" << name << "\",\n";
     os << "    [](Workspace& w_) ";
-    os << "{ARTS_USER_ERROR_IF (not w_.is_initialized("
-       << data.artspos << "), \"Not initialized: " << name
-       << "\") return * reinterpret_cast<" << data.varname_group;
-    if (data.varname_group == "Index" or data.varname_group == "Numeric") os << '_';
+    os << "{ARTS_USER_ERROR_IF (not w_.is_initialized(" << data.artspos
+       << "), \"Not initialized: " << name << "\") return * reinterpret_cast<"
+       << data.varname_group;
+    if (data.varname_group == "Index" or data.varname_group == "Numeric")
+      os << '_';
     os << " *>(w_[" << data.artspos << "]);},\n";
     os << "    [](Workspace& w_, " << data.varname_group
        << " val) {if (not w_.is_initialized(" << data.artspos << ")) {w_.push("
@@ -405,8 +408,9 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss, const 
   }
 }
 
-void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const NameMaps& arts) {
-  auto * osptr = oss.begin();
+void workspace_methods(std::array<std::ofstream, num_split_files>& oss,
+                       const NameMaps& arts) {
+  auto* osptr = oss.begin();
 
   for (auto& method : arts.methodname_method) {
     auto& os = *osptr;
@@ -438,15 +442,14 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
                      arts.varname_group.at(g).varname_group == "ArrayOfAgenda";
             });
 
-    const bool has_many = [&](){
-      long i=0;
-      for (auto& a: arts.methodname_method)
-        i += (a.name == method.name);
+    const bool has_many = [&]() {
+      long i = 0;
+      for (auto& a : arts.methodname_method) i += (a.name == method.name);
       return i > 1;
     }();
 
-    const bool is_last = [&](){
-      auto * last = &method;
+    const bool is_last = [&]() {
+      auto* last = &method;
       for (auto& a : arts.methodname_method) {
         if (a.name == method.name) last = &a;
       }
@@ -454,8 +457,9 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
     }();
 
     // Arguments from python side
-    os << "ws.def(\"" << method.name << "\",\n[](Workspace& w_ [[maybe_unused]], ";
-    for (const auto & i : method.out.varname) {
+    os << "ws.def(\"" << method.name
+       << "\",\n[](Workspace& w_ [[maybe_unused]], ";
+    for (const auto& i : method.out.varname) {
       auto& group = arts.varname_group.at(i).varname_group;
       os << group;
       if (group == "Index" or group == "Numeric") os << "_";
@@ -467,7 +471,7 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
       if (group == "Index" or group == "Numeric") os << "_";
       os << "* " << method.gout.name[i] << ", ";
     }
-    for (const auto & i: method.in.varname) {
+    for (const auto& i : method.in.varname) {
       if (std::none_of(method.out.varname.cbegin(),
                        method.out.varname.cend(),
                        [in = i](const auto& out) { return in == out; })) {
@@ -490,20 +494,22 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
     // Create static defaults
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
       if (method.gin.hasdefs[i]) {
-        os << "static " << method.gin.group[i] << " " << method.gin.name[i] << "_{";
+        os << "static " << method.gin.group[i] << " " << method.gin.name[i]
+           << "_{";
         if (method.gin.defs[i] not_eq "{}") os << method.gin.defs[i];
         os << "};\n";
       }
     }
 
     // Pure outputs need a stack
-    for (const auto & i : method.out.varname) {
+    for (const auto& i : method.out.varname) {
       if (std::none_of(method.in.varname.cbegin(),
                        method.in.varname.cend(),
                        [in = i](const auto& out) { return in == out; })) {
         auto& group = arts.varname_group.at(i).varname_group;
         auto& pos = arts.varname_group.at(i).artspos;
-        os << "if (not w_.is_initialized(" << pos << ")) w_.push("<<pos<<", new "<<group<<"{});\n";
+        os << "if (not w_.is_initialized(" << pos << ")) w_.push(" << pos
+           << ", new " << group << "{});\n";
       }
     }
 
@@ -512,10 +518,11 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
     if (pass_workspace) {
       os << "w_";
       has_any = true;
-    } else os <<'\n';
+    } else
+      os << '\n';
 
     // Outputs
-    for (const auto & i : method.out.varname) {
+    for (const auto& i : method.out.varname) {
       if (has_any) os << ",\n";
       has_any = true;
 
@@ -547,7 +554,7 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
     }
 
     // Inputs (that are not outputs)
-    for (auto& i: method.in.varname) {
+    for (auto& i : method.in.varname) {
       if (std::none_of(method.out.varname.cbegin(),
                        method.out.varname.cend(),
                        [in = i](const auto& out) { return in == out; })) {
@@ -558,7 +565,7 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
         auto& group = arts.varname_group.at(i).varname_group;
         os << group;
         os << ">(w_, " << arts.varname_group.at(i).artspos << ", " << i
-          << ", kwargs, \"" << i << "\")";
+           << ", kwargs, \"" << i << "\")";
       }
     }
 
@@ -570,8 +577,7 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
       os << method.gin.group[i];
       os << ">(";
       if (method.gin.hasdefs[i]) os << method.gin.name[i] << "_, ";
-      os << method.gin.name[i] << ", kwargs, \"" << method.gin.name[i]
-         << "\")";
+      os << method.gin.name[i] << ", kwargs, \"" << method.gin.name[i] << "\")";
     }
 
     // False Generic Input Names
@@ -586,43 +592,55 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
     // Verbosity?
     if (pass_verbosity) {
       if (has_any) os << ",\n";
-      os <<"select<Verbosity>(w_, " << arts.varname_group.at("verbosity").artspos << ", verbosity, kwargs, \"verbosity\")";
+      os << "select<Verbosity>(w_, "
+         << arts.varname_group.at("verbosity").artspos
+         << ", verbosity, kwargs, \"verbosity\")";
     }
     os << ");\n}";
 
+    // Name the paramters and show their defaults
     for (const auto& i : method.out.varname) {
-      os << ','  << '\n' << "py::arg_v(\"" << i << "\", nullptr, \"Workspace::" << i << "\")";
+      os << ',' << '\n'
+         << "py::arg_v(\"" << i << "\", nullptr, \"Workspace::" << i << "\")";
     }
     for (const auto& i : method.gout.name) {
-      os << ','  << '\n' << "py::arg(\"" << i << "\") = nullptr";
+      os << ',' << '\n' << "py::arg(\"" << i << "\") = nullptr";
     }
     for (const auto& i : method.in.varname) {
       if (std::none_of(method.out.varname.cbegin(),
                        method.out.varname.cend(),
                        [in = i](const auto& out) { return in == out; })) {
-        os << ','  << '\n' << "py::arg_v(\"" << i << "\", nullptr, \"Workspace::" << i << "\")";
+        os << ',' << '\n'
+           << "py::arg_v(\"" << i << "\", nullptr, \"Workspace::" << i << "\")";
       }
     }
-    for (size_t i = 0; i<method.gin.name.size(); i++) {
+    for (size_t i = 0; i < method.gin.name.size(); i++) {
       if (method.gin.hasdefs[i]) {
         if (method.gin.group[i] == "String")
-          os << ','  << '\n' << "py::arg_v(\"" << method.gin.hasdefs[i] << R"(", nullptr, "\)" << method.gin.defs[i] << R"("\"")" << ')';
-        else 
-          os << ','  << '\n' << "py::arg_v(\"" << method.gin.hasdefs[i] << "\", nullptr, \"" << method.gin.defs[i] << "\")";
+          os << ',' << '\n'
+             << "py::arg_v(\"" << method.gin.name[i] << R"(", nullptr, "\)"
+             << method.gin.defs[i] << R"("\"")" << ')';
+        else
+          os << ',' << '\n'
+             << "py::arg_v(\"" << method.gin.name[i] << "\", nullptr, \""
+             << method.gin.defs[i] << "\")";
       } else {
-        os << ','  << '\n' << "py::arg(\"" << method.gin.name[i] << "\") = nullptr";
+        os << ',' << '\n'
+           << "py::arg(\"" << method.gin.name[i] << "\") = nullptr";
       }
     }
-    if (pass_verbosity) os << ','  << '\n' << R"--(py::arg_v("verbosity", nullptr, "Workspace::verbosity"))--";
+    if (pass_verbosity)
+      os << ',' << '\n'
+         << R"--(py::arg_v("verbosity", nullptr, "Workspace::verbosity"))--";
 
-    // Put comment at the end
+    // Put description at the end
     if (not has_many or is_last) {
       os << ",\npy::doc(\nR\"-METHODS_DESC-(\n" << method.desc;
       os << "\n\nAuthor";
       if (method.authors.size() > 1) os << "s";
       os << ": ";
-      for (auto& author: method.authors) os << author << ", ";
-      os << "\n\")-METHODS_DESC-\")";
+      for (auto& author : method.authors) os << author << ", ";
+      os << "\n)-METHODS_DESC-\")";
     }
 
     os << ')' << ';' << '\n' << '\n';
@@ -632,6 +650,97 @@ void workspace_methods(std::array<std::ofstream, num_split_files>& oss, const Na
       if (osptr == oss.end()) osptr = oss.begin();
     }
   }
+}
+
+void workspace_access(std::ofstream& os, const NameMaps& arts) {
+  bool first = true;
+  os << "\nusing WorkspaceVariablesVariant = std::variant<\n";
+  for (auto& [name, group] : arts.group) {
+    if (not first) os << ",\n";
+    first = false;
+    os << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << " *";
+  }
+  os << ",\npy::object *>;\n\n";
+
+  os << "ws.def(\"__getattr__\", [](Workspace& w, const char * name) -> WorkspaceVariablesVariant {\n"
+        R"--(
+auto varpos = std::find_if(Workspace::WsvMap.begin(),
+                           Workspace::WsvMap.end(),
+                          [name](auto& b) { return b.first == name; });
+ARTS_USER_ERROR_IF(varpos == Workspace::WsvMap.end(),
+                   "No workspace variable: ",
+                   name,
+                   "\n\nCustom workspace variables have to "
+                   "be created using create_variable or by explicit set")
+
+ARTS_USER_ERROR_IF(not w.is_initialized(varpos->second), "Not initialized: ", name)
+        
+)--"
+        "switch(Workspace::wsv_data[varpos->second].Group()) {\n";
+  for (auto& [name, group] : arts.group) {
+    os << "  case " << group << ": return reinterpret_cast<" << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << " *>(w[varpos->second]);\n";
+  }
+  os << "}\n"
+        "ARTS_USER_ERROR(\"Unknown variable group\")\n"
+        "}, py::return_value_policy::reference_internal);\n";
+
+  os << "ws.def(\"__setattr__\", [](Workspace& w, const char * name, WorkspaceVariablesVariant x) {\n"
+        R"--(
+auto varpos = std::find_if(Workspace::WsvMap.begin(),
+                           Workspace::WsvMap.end(),
+                           [name](auto& b) { return b.first == name; });
+
+bool newname = varpos == Workspace::WsvMap.end();
+bool init = newname ? true : not w.is_initialized(varpos->second);
+
+Index i=-1;
+if (newname) {
+)--";
+  first = true;
+  for (auto& [name, group] : arts.group) {
+    if (not first) os << "else ";
+    first = false;
+    os << "if (std::holds_alternative<" << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << R"--( *>(x)) i = w.add_wsv_inplace(WsvRecord(name, "User-generated value", )--"
+       << group << "));\n";
+  }
+
+  os << R"--(else
+ARTS_USER_ERROR("Cannot recognize workspace variable type\n\n"
+"You cannot initiate a workspace variable from a pure python object (use create_variable if unsure how to proceed)")
+} else i = varpos->second;
+
+switch(Workspace::wsv_data[i].Group()) {
+)--";
+  for (auto& [name, group] : arts.group) {
+    os << "case " << group << ":\n  if (init) w.push(i, new " << name
+       << "{});\n"
+          "  if (std::holds_alternative<py::object *>(x)) {\n"
+          "    * reinterpret_cast<"
+       << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << " *>(w[i]) = * std::get<py::object *>(x) -> cast<" << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << " *>();\n";
+
+    os << "  } else {\n    ARTS_USER_ERROR_IF(not std::holds_alternative<"
+       << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << " *>(x), \"Cannot cast between internal classes\")\n"
+          "    * reinterpret_cast<"
+       << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << " *>(w[i]) = * std::get<" << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << " *>(x);\n  } break;\n";
+  }
+  os << "  default: ARTS_USER_ERROR(\"Unknown variable group,\")\n"
+        "}\n});\n";
 }
 
 int main() {
@@ -646,20 +755,34 @@ int main() {
 
   std::ofstream py_workspace("py_auto_workspace.cc");
   std::array<std::ofstream, num_split_files> py_workspaces;
-  for (Index i=0; i<num_split_files; i++) py_workspaces[i] = std::ofstream(var_string("py_auto_workspace_split_", i, ".cc"));
+  for (Index i = 0; i < num_split_files; i++)
+    py_workspaces[i] =
+        std::ofstream(var_string("py_auto_workspace_split_", i, ".cc"));
 
   includes(py_workspace);
-  for (Index i=0; i<num_split_files; i++) includes(py_workspaces[i]);
+  for (Index i = 0; i < num_split_files; i++) includes(py_workspaces[i]);
 
   const auto artsname = NameMaps();
 
   py_workspace << '\n' << "namespace Python {\n";
-  for (Index i=0; i<num_split_files; i++) py_workspace << "void py_auto_workspace_" << i << "(py::class_<Workspace>& ws);\n";
+  for (Index i = 0; i < num_split_files; i++) {
+    py_workspace << "void py_auto_workspace_" << i
+                 << "(py::class_<Workspace>& ws);\n";
+  }
   py_workspace << "void py_auto_workspace(py::class_<Workspace>& ws) {\n";
-  for (Index i=0; i<num_split_files; i++) py_workspaces[i] << '\n' << "namespace Python {\nvoid py_auto_workspace_" << i << "(py::class_<Workspace>& ws) {\n";
+  for (Index i = 0; i < num_split_files; i++) {
+    py_workspaces[i] << '\n'
+                     << "namespace Python {\nvoid py_auto_workspace_" << i
+                     << "(py::class_<Workspace>& ws) {\n";
+  }
   workspace_variables(py_workspaces, artsname);
   workspace_methods(py_workspaces, artsname);
-  for (Index i=0; i<num_split_files; i++) py_workspace << "py_auto_workspace_" << i << "(ws);\n";
+  for (Index i = 0; i < num_split_files; i++) {
+    py_workspace << "py_auto_workspace_" << i << "(ws);\n";
+  }
+  workspace_access(py_workspace, artsname);
   py_workspace << "}\n}  // namespace Python\n";
-  for (Index i=0; i<num_split_files; i++) py_workspaces[i] << "}\n}  // namespace Python\n";
+  for (Index i = 0; i < num_split_files; i++) {
+    py_workspaces[i] << "}\n}  // namespace Python\n";
+  }
 }

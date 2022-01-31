@@ -14,6 +14,13 @@ pybind11_add_module(pyarts_cpp
     py_rte.cpp
     py_telsem.cpp
     py_species.cpp
+    py_sparse.cpp
+    py_mcantenna.cpp
+    py_scattering.cpp
+    py_quantum.cpp
+    py_spectroscopy.cpp
+    py_jac.cpp
+    py_workspace_references.cpp
     py_workspace.cpp
     py_auto_workspace.cc
     py_auto_workspace_split_0.cc
@@ -48,7 +55,6 @@ pybind11_add_module(pyarts_cpp
     py_auto_workspace_split_29.cc
     py_auto_workspace_split_30.cc
     py_auto_workspace_split_31.cc
-
 )
 
 target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES})

@@ -17,13 +17,16 @@ void py_species(py::module_& m) {
       .PythonInterfaceFileIO(SpeciesIsotopologueRatios)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
       .def_readonly_static("maxsize", &SpeciesIsotopologueRatios::maxsize)
-      .def_readwrite("data", &SpeciesIsotopologueRatios::data);
+      .def_readwrite("data", &SpeciesIsotopologueRatios::data)
+      .def("__getitem__",
+           [](const SpeciesIsotopologueRatios& s,
+              const SpeciesIsotopeRecord& ir) { return s[ir]; });
 
   py::class_<Species::Species>(m, "Species")
       .def(py::init<>())
       .def(py::init([](char* c) {
-        if (auto out = Species::toSpecies(c); good_enum(out)) return out;
-        return Species::fromShortName(c);
+        if (auto out = Species::fromShortName(c); good_enum(out)) return out;
+        return Species::toSpeciesOrThrow(c);
       }))
       .PythonInterfaceBasicRepresentation(Species::Species);
   py::implicitly_convertible<py::str, Species::Species>();
@@ -36,11 +39,15 @@ void py_species(py::module_& m) {
   py::class_<SpeciesIsotopeRecord>(m, "SpeciesIsotopeRecord")
       .def(py::init([](Index i) { return Species::Isotopologues.at(i); }),
            py::arg("isot") = 0)
+      .def(py::init([](char* c) {
+        return Species::Isotopologues.at(Species::find_species_index(c));
+      }))
       .PythonInterfaceBasicRepresentation(SpeciesIsotopeRecord)
       .def_readwrite("spec", &SpeciesIsotopeRecord::spec)
       .def_readwrite("isotname", &SpeciesIsotopeRecord::isotname)
       .def_readwrite("mass", &SpeciesIsotopeRecord::mass)
       .def_readwrite("gi", &SpeciesIsotopeRecord::gi);
+  py::implicitly_convertible<char*, SpeciesIsotopeRecord>();
 
   py::class_<ArrayOfIsotopeRecord>(m, "ArrayOfIsotopeRecord")
       .def(py::init([](bool full_list) -> ArrayOfIsotopeRecord {
@@ -90,7 +97,7 @@ void py_species(py::module_& m) {
       .PythonInterfaceBasicIteration(ArrayOfSpeciesTag)
       .def(py::init<>())
       .def(py::init<Index>())
-      .def(py::init<char *>())
+      .def(py::init<char*>())
       .def(py::init<Index, SpeciesTag>())
       .def(py::init<const std::vector<SpeciesTag>&>())
       .def(
