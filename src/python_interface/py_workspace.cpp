@@ -70,6 +70,21 @@ Creates a named variable of the given group, initializing it
 The variable can be accessed with its property name upon completion
 )--"));
 
+  ws.def("__delattr__", [](Workspace& w, const char* name) {
+    auto varpos = std::find_if(Workspace::WsvMap.begin(),
+                               Workspace::WsvMap.end(),
+                               [name](auto& b) { return b.first == name; });
+    ARTS_USER_ERROR_IF(varpos == Workspace::WsvMap.end(),
+                       "No workspace variable: ",
+                       name,
+                       "\n\nCustom workspace variables have to "
+                       "be created using create_variable or by explicit set")
+
+    if (w.is_initialized(varpos->second)) {
+      w.pop_free(varpos->second);
+    }
+  });
+
   py_auto_workspace(ws);
 }
 }  // namespace Python

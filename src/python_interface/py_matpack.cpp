@@ -1,5 +1,8 @@
 #include <matpackVII.h>
 #include <pybind11/attr.h>
+#include <pybind11/detail/common.h>
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <xml_io.h>
 
@@ -15,8 +18,7 @@
 
 namespace Python {
 void py_matpack(py::module_& m) {
-  py::class_<Vector>(
-      m, "Vector", py::buffer_protocol())
+  py::class_<Vector>(m, "Vector", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Index, Numeric>())
@@ -37,6 +39,17 @@ void py_matpack(py::module_& m) {
                                {x.nelem()},
                                {sizeof(Numeric)});
       })
+      .def_property("value",
+                    py::cpp_function(
+                        [](Vector& x) {
+                          py::capsule do_nothing(x.get_c_array(), [](void*) {});
+                          return py::array_t<Numeric>({x.nelem()},
+                                                      {sizeof(Numeric)},
+                                                      x.get_c_array(),
+                                                      do_nothing);
+                        },
+                        py::return_value_policy::reference_internal),
+                    [](Vector& x, Vector& y) { x = y; })
       .doc() =
       "The Arts Vector class\n"
       "\n"
@@ -76,10 +89,10 @@ void py_matpack(py::module_& m) {
           default:
             ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
-        
+
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Matrix out(nr, nc);
-        std::copy(val, val+out.size(), out.get_raw_data());
+        std::copy(val, val + out.size(), out.get_raw_data());
 
         return out;
       }))
@@ -117,6 +130,18 @@ void py_matpack(py::module_& m) {
                                {x.nrows(), x.ncols()},
                                {sizeof(Numeric) * x.ncols(), sizeof(Numeric)});
       })
+      .def_property("value",
+                    py::cpp_function(
+                        [](Matrix& x) {
+                          py::capsule do_nothing(x.get_c_array(), [](void*) {});
+                          return py::array_t<Numeric>(
+                              {x.nrows(), x.ncols()},
+                              {sizeof(Numeric) * x.ncols(), sizeof(Numeric)},
+                              x.get_c_array(),
+                              do_nothing);
+                        },
+                        py::return_value_policy::reference_internal),
+                    [](Matrix& x, Matrix& y) { x = y; })
       .doc() =
       "The Arts Matrix class\n"
       "\n"
@@ -158,10 +183,10 @@ void py_matpack(py::module_& m) {
           default:
             ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
-        
+
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor3 out(np, nr, nc);
-        std::copy(val, val+out.size(), out.get_c_array());
+        std::copy(val, val + out.size(), out.get_c_array());
 
         return out;
       }))
@@ -203,6 +228,20 @@ void py_matpack(py::module_& m) {
                                 sizeof(Numeric) * x.ncols(),
                                 sizeof(Numeric)});
       })
+      .def_property("value",
+                    py::cpp_function(
+                        [](Tensor3& x) {
+                          py::capsule do_nothing(x.get_c_array(), [](void*) {});
+                          return py::array_t<Numeric>(
+                              {x.npages(), x.nrows(), x.ncols()},
+                              {sizeof(Numeric) * x.nrows() * x.ncols(),
+                               sizeof(Numeric) * x.ncols(),
+                               sizeof(Numeric)},
+                              x.get_c_array(),
+                              do_nothing);
+                        },
+                        py::return_value_policy::reference_internal),
+                    [](Tensor3& x, Tensor3& y) { x = y; })
       .doc() =
       "The Arts Tensor3 class\n"
       "\n"
@@ -247,10 +286,10 @@ void py_matpack(py::module_& m) {
           default:
             ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
-        
+
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor4 out(nb, np, nr, nc);
-        std::copy(val, val+out.size(), out.get_c_array());
+        std::copy(val, val + out.size(), out.get_c_array());
 
         return out;
       }))
@@ -297,6 +336,22 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
       })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](Tensor4& x) {
+                py::capsule do_nothing(x.get_c_array(), [](void*) {});
+                return py::array_t<Numeric>(
+                    {x.nbooks(), x.npages(), x.nrows(), x.ncols()},
+                    {sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.ncols(),
+                     sizeof(Numeric)},
+                    x.get_c_array(),
+                    do_nothing);
+              },
+              py::return_value_policy::reference_internal),
+          [](Tensor4& x, Tensor4& y) { x = y; })
       .doc() =
       "The Arts Tensor4 class\n"
       "\n"
@@ -344,10 +399,10 @@ void py_matpack(py::module_& m) {
           default:
             ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
-        
+
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor5 out(ns, nb, np, nr, nc);
-        std::copy(val, val+out.size(), out.get_c_array());
+        std::copy(val, val + out.size(), out.get_c_array());
 
         return out;
       }))
@@ -398,6 +453,28 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
       })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](Tensor5& x) {
+                py::capsule do_nothing(x.get_c_array(), [](void*) {});
+                return py::array_t<Numeric>(
+                    {x.nshelves(),
+                     x.nbooks(),
+                     x.npages(),
+                     x.nrows(),
+                     x.ncols()},
+                    {sizeof(Numeric) * x.nbooks() * x.npages() * x.ncols() *
+                         x.nrows(),
+                     sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.ncols(),
+                     sizeof(Numeric)},
+                    x.get_c_array(),
+                    do_nothing);
+              },
+              py::return_value_policy::reference_internal),
+          [](Tensor5& x, Tensor5& y) { x = y; })
       .doc() =
       "The Arts Tensor5 class\n"
       "\n"
@@ -448,10 +525,10 @@ void py_matpack(py::module_& m) {
           default:
             ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
-        
+
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor6 out(nv, ns, nb, np, nr, nc);
-        std::copy(val, val+out.size(), out.get_c_array());
+        std::copy(val, val + out.size(), out.get_c_array());
 
         return out;
       }))
@@ -514,6 +591,31 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
       })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](Tensor6& x) {
+                py::capsule do_nothing(x.get_c_array(), [](void*) {});
+                return py::array_t<Numeric>(
+                    {x.nvitrines(),
+                     x.nshelves(),
+                     x.nbooks(),
+                     x.npages(),
+                     x.nrows(),
+                     x.ncols()},
+                    {sizeof(Numeric) * x.nshelves() * x.nbooks() * x.npages() *
+                         x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.nbooks() * x.npages() * x.ncols() *
+                         x.nrows(),
+                     sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.ncols(),
+                     sizeof(Numeric)},
+                    x.get_c_array(),
+                    do_nothing);
+              },
+              py::return_value_policy::reference_internal),
+          [](Tensor6& x, Tensor6& y) { x = y; })
       .doc() =
       "The Arts Tensor6 class\n"
       "\n"
@@ -567,10 +669,10 @@ void py_matpack(py::module_& m) {
           default:
             ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
         }
-        
+
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor7 out(nl, nv, ns, nb, np, nr, nc);
-        std::copy(val, val+out.size(), out.get_c_array());
+        std::copy(val, val + out.size(), out.get_c_array());
 
         return out;
       }))
@@ -639,6 +741,34 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
       })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](Tensor7& x) {
+                py::capsule do_nothing(x.get_c_array(), [](void*) {});
+                return py::array_t<Numeric>(
+                    {x.nlibraries(),
+                     x.nvitrines(),
+                     x.nshelves(),
+                     x.nbooks(),
+                     x.npages(),
+                     x.nrows(),
+                     x.ncols()},
+                    {sizeof(Numeric) * x.nvitrines() * x.nshelves() *
+                         x.nbooks() * x.npages() * x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.nshelves() * x.nbooks() * x.npages() *
+                         x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.nbooks() * x.npages() * x.ncols() *
+                         x.nrows(),
+                     sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.ncols() * x.nrows(),
+                     sizeof(Numeric) * x.ncols(),
+                     sizeof(Numeric)},
+                    x.get_c_array(),
+                    do_nothing);
+              },
+              py::return_value_policy::reference_internal),
+          [](Tensor7& x, Tensor7& y) { x = y; })
       .doc() =
       "The Arts Tensor7 class\n"
       "\n"
@@ -668,13 +798,21 @@ void py_matpack(py::module_& m) {
   PythonInterfaceWorkspaceArray(ArrayOfTensor3);
   PythonInterfaceWorkspaceArray(ArrayOfTensor6);
 
-  py::implicitly_convertible<py::array_t<Numeric>, Vector>();
-  py::implicitly_convertible<py::array_t<Numeric>, Matrix>();
-  py::implicitly_convertible<py::array_t<Numeric>, Tensor3>();
-  py::implicitly_convertible<py::array_t<Numeric>, Tensor4>();
-  py::implicitly_convertible<py::array_t<Numeric>, Tensor5>();
-  py::implicitly_convertible<py::array_t<Numeric>, Tensor6>();
-  py::implicitly_convertible<py::array_t<Numeric>, Tensor7>();
+  py::implicitly_convertible<py::array, Vector>();
+  py::implicitly_convertible<py::array, Matrix>();
+  py::implicitly_convertible<py::array, Tensor3>();
+  py::implicitly_convertible<py::array, Tensor4>();
+  py::implicitly_convertible<py::array, Tensor5>();
+  py::implicitly_convertible<py::array, Tensor6>();
+  py::implicitly_convertible<py::array, Tensor7>();
+
+  py::implicitly_convertible<py::list, Vector>();
+  py::implicitly_convertible<py::list, Matrix>();
+  py::implicitly_convertible<py::list, Tensor3>();
+  py::implicitly_convertible<py::list, Tensor4>();
+  py::implicitly_convertible<py::list, Tensor5>();
+  py::implicitly_convertible<py::list, Tensor6>();
+  py::implicitly_convertible<py::list, Tensor7>();
 
   py::class_<Rational>(m, "Rational")
       .def(py::init<>())

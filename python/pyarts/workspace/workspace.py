@@ -253,7 +253,7 @@ def parse_function(func, allow_callbacks):
 
             # Extract method name.
             name = call.func.attr
-
+            print(workspace_methods)
             # m is not a workspace method
             if name not in workspace_methods:
                 if allow_callbacks:

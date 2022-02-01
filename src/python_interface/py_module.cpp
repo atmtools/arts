@@ -17,6 +17,8 @@ void py_spec(py::module_& m);
 void py_jac(py::module_& m);
 void py_workspace(py::module_& m);
 void py_workspace_references(py::module_& m);
+void py_agenda(py::module_& m);
+void py_agenda_methods(py::module_& m);
 
 PYBIND11_MODULE(pyarts_cpp, m) {
   m.doc() = "Contains direct C++ interface for Arts";
@@ -49,5 +51,11 @@ PYBIND11_MODULE(pyarts_cpp, m) {
       m.def_submodule("workspace",
                       "Contains a way to interactively use the Arts workspace");
   py_workspace(workspace);
+  py_agenda(workspace);
+
+  auto methods = 
+      m.def_submodule("methods",
+                      "Contains some direct Arts method calls to get pure internal data");
+  py_agenda_methods(methods);
 }
 }  // namespace Python

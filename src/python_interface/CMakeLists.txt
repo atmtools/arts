@@ -59,6 +59,7 @@ pybind11_add_module(pyarts_cpp
     py_quantum.cpp
     py_spectroscopy.cpp
     py_jac.cpp
+    py_agenda.cpp
     py_workspace_references.cpp
     py_workspace.cpp
     py_auto_workspace.cc

@@ -1,8 +1,12 @@
 #include <auto_md.h>
 #include <pybind11/cast.h>
+#include <pybind11/eval.h>
 #include <pybind11/pybind11.h>
+#include <supergeneric.h>
 #include <xml_io.h>
 
+#include <algorithm>
+#include <functional>
 #include <initializer_list>
 
 #include "py_macros.h"
@@ -46,6 +50,7 @@ void py_basic(py::module_& m) {
       .PythonInterfaceIndexItemAccess(String)
       .PythonInterfaceBasicIteration(String)
       .PythonInterfaceBasicRepresentation(String)
+      .def("__contains__", [](String& a, const char* b){return a.find(b) not_eq a.npos;})
       .def(py::self + py::self)
       .def(py::self += py::self)
       .doc() =
@@ -200,5 +205,9 @@ You can get copies and set the value by the \"val\" property
   py::implicitly_convertible<py::str, String>();
   py::implicitly_convertible<Numeric, Numeric_>();
   py::implicitly_convertible<Index, Index_>();
+
+  py::class_<Any>(m, "Any")
+  .def("__repr__", [](Any&){return "Any";})
+  .def("__str__", [](Any&){return "Any";});
 }
 }  // namespace Python
