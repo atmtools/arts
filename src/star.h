@@ -34,8 +34,10 @@
   === External declarations
   ===========================================================================*/
 
+#include "arts.h"
 #include "agenda_class.h"
 #include "transmissionmatrix.h"
+#include "energylevelmap.h"
 
 /*===========================================================================
   === structs/classes  in star.h
@@ -120,6 +122,86 @@ void get_star_background(Matrix& iy,
                          const Vector& rtp_los,
                          const Vector& refellipsoid);
 
-
+/** Calculates the transmitted radiation of one star for a given ppath position
+ *
+ * @param[in,out] ws ARTS workspace.
+ * @param[out] transmitted_starlight Matrix transmitted monochromatic irradiance
+ *             spectrum of star at location of scattering.
+ * @param[out] star_rte_los Vector incoming direction of the transmitted star irradiance
+ *            spectrum.
+ * @param[in] ip Index of ppath point.
+ * @param[in] i_star Index of star.
+ * @param[in] stokes_dim As the WSV.
+ * @param[in] f_grid As the WSV.
+ * @param[in] atmosphere_dim As the WSV.
+ * @param[in] p_grid As the WSV.
+ * @param[in] lat_grid As the WSV.
+ * @param[in] lon_grid As the WSV.
+ * @param[in] z_field As the WSV.
+ * @param[in] t_field As the WSV.
+ * @param[in] nlte_field As the WSV.
+ * @param[in] vmr_field As the WSV.
+ * @param[in] abs_species As the WSV.
+ * @param[in] wind_u_field As the WSV.
+ * @param[in] wind_v_field As the WSV.
+ * @param[in] wind_w_field As the WSV.
+ * @param[in] mag_u_field As the WSV.
+ * @param[in] mag_v_field As the WSV.
+ * @param[in] mag_w_field As the WSV.
+ * @param[in] z_surface As the WSV.
+ * @param[in] refellipsoid As the WSV.
+ * @param[in] ppath_lmax As the WSV.
+ * @param[in] ppath_lraytrace As the WSV.
+ * @param[in] gas_scattering_do As the WSV.
+ * @param[in] jacobian_do As the WSV.
+ * @param[in] jacobian_quantities As the WSV.
+ * @param[in] ppath As the WSV.
+ * @param[in] stars As the WSV.
+ * @param[in] rte_alonglos_v As the WSV.
+ * @param[in] propmat_clearsky_agenda As the WSV.
+ * @param[in] water_p_eq_agenda As the WSV.
+ * @param[in] gas_scattering_agenda As the WSV.
+ * @param[in] ppath_step_agenda As the WSV.
+ * @param[in] verbosity Verbosity.
+ */
+void get_transmitted_starlight(
+    Workspace& ws,
+    Matrix& transmitted_starlight,
+    Vector& star_rte_los,
+    Index& star_path_ok,
+    const Index& ip,
+    const Index& i_star,
+    const Index& stokes_dim,
+    const Vector& f_grid,
+    const Index& atmosphere_dim,
+    const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Tensor3& z_field,
+    const Tensor3& t_field,
+    const EnergyLevelMap& nlte_field,
+    const Tensor4& vmr_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Tensor3& wind_u_field,
+    const Tensor3& wind_v_field,
+    const Tensor3& wind_w_field,
+    const Tensor3& mag_u_field,
+    const Tensor3& mag_v_field,
+    const Tensor3& mag_w_field,
+    const Matrix& z_surface,
+    const Vector& refellipsoid,
+    const Numeric& ppath_lmax,
+    const Numeric& ppath_lraytrace,
+    const Index& gas_scattering_do,
+    const Index& jacobian_do,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const Ppath& ppath,
+    const ArrayOfStar& stars,
+    const Numeric& rte_alonglos_v,
+    const Agenda& propmat_clearsky_agenda,
+    const Agenda& water_p_eq_agenda,
+    const Agenda& gas_scattering_agenda,
+    const Agenda& ppath_step_agenda,
+    const Verbosity& verbosity);
 
 #endif /* star_h */

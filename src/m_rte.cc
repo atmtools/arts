@@ -394,34 +394,13 @@ void iyClearsky(
 
     //allocate Varibale for direct (star) source
     Vector star_rte_los;
-    Ppath star_ppath;
     Matrix transmitted_starlight;
-    Numeric ppath_lraytrace2=ppath_lraytrace;
     PropagationMatrix K_sca;
-    RadiationVector scattered_starlight(nf,ns);
+    RadiationVector scattered_starlight(nf, ns);
     ArrayOfRadiationVector dscattered_starlight;
 
-    //dummy variables needed for the output and input of iyTransmission and
+    //dummy variables needed for the output and input of
     // gas_scattering_agenda
-    ArrayOfMatrix iy_aux_dummy;
-    ArrayOfString iy_aux_vars_dummy;
-    ArrayOfTensor3 diy_dx_dummy;
-    Vector ppvar_p_dummy;
-    Vector ppvar_t_dummy;
-    EnergyLevelMap ppvar_nlte_dummy;
-    Matrix ppvar_vmr_dummy;
-    Matrix ppvar_wind_dummy;
-    Matrix ppvar_mag_dummy;
-    Matrix ppvar_pnd_dummy;
-    Matrix ppvar_f_dummy;
-    Tensor3 ppvar_iy_dummy;
-    Tensor4 ppvar_trans_cumulat_dummy;
-    Tensor4 ppvar_trans_partial_dummy;
-    const ArrayOfIndex cloudbox_limits_dummy;
-    const Tensor4 pnd_field_dummy;
-    const ArrayOfTensor4 dpnd_field_dx_dummy;
-    const ArrayOfString scat_species_dummy;
-    const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
     TransmissionMatrix sca_mat_dummy;
     Vector sca_fct_dummy;
     const Vector in_los_dummy;
@@ -472,132 +451,57 @@ void iyClearsky(
         if (gas_scattering_do) {
 
           Numeric minP = min(ppvar_p);
+          Index star_path_ok = 0;
 
-          if (star_do && ppvar_p[ip] > minP ){
-                                            // iy_agenda_call1 is used as additional
-                                            // flag to ensure that the single scattering
-                                            // calculation is not called recursively.
-                                            // Furthermore we skip the uppermost altitude
-                                            // level as there can be sometimes issue due
-                                            // to the finite precision when calculating
-                                            // the (star-)ppath. The influence of the
-                                            // uppermost level in view of scattering
-                                            // is negligible due to the low density.
-
-
-            Vector star_pos(3);
+          if (star_do && ppvar_p[ip] > minP) {
+            // We skip the uppermost altitude
+            // level as there can be sometimes issue due
+            // to the finite precision when calculating
+            // the (star-)ppath. The influence of the
+            // uppermost level in view of scattering
+            // is negligible due to the low density.
 
             for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
+              get_transmitted_starlight(ws,
+                                        transmitted_starlight,
+                                        star_rte_los,
+                                        star_path_ok,
+                                        ip,
+                                        i_star,
+                                        stokes_dim,
+                                        f_grid,
+                                        atmosphere_dim,
+                                        p_grid,
+                                        lat_grid,
+                                        lon_grid,
+                                        z_field,
+                                        t_field,
+                                        nlte_field,
+                                        vmr_field,
+                                        abs_species,
+                                        wind_u_field,
+                                        wind_v_field,
+                                        wind_w_field,
+                                        mag_u_field,
+                                        mag_v_field,
+                                        mag_w_field,
+                                        z_surface,
+                                        refellipsoid,
+                                        ppath_lmax,
+                                        ppath_lraytrace,
+                                        gas_scattering_do,
+                                        jacobian_do,
+                                        jacobian_quantities,
+                                        ppath,
+                                        stars,
+                                        rte_alonglos_v,
+                                        propmat_clearsky_agenda,
+                                        water_p_eq_agenda,
+                                        gas_scattering_agenda,
+                                        ppath_step_agenda,
+                                        verbosity);
 
-              star_pos={stars[i_star].distance,stars[i_star].latitude,stars[i_star].longitude};
-
-              // we need the distance to the star relative to the surface
-              star_pos[0]=star_pos[0]-pos2refell_r(atmosphere_dim, refellipsoid, lat_grid, lon_grid, star_pos);
-
-              // get the line of sight direction from star i_star to ppath point
-              rte_losGeometricFromRtePosToRtePos2(star_rte_los,
-                                                  atmosphere_dim,
-                                                  lat_grid,
-                                                  lon_grid,
-                                                  refellipsoid,
-                                                  ppath.pos(ip, joker),
-                                                  star_pos,
-                                                  verbosity);
-
-              // calculate ppath (star path) from star to ppath point
-              ppathFromRtePos2(ws,
-                               star_ppath,
-                               star_rte_los,
-                               ppath_lraytrace2,
-                               ppath_step_agenda,
-                               atmosphere_dim,
-                               p_grid,
-                               lat_grid,
-                               lon_grid,
-                               z_field,
-                               f_grid,
-                               refellipsoid,
-                               z_surface,
-                               ppath.pos(ip, joker),
-                               star_pos,
-                               ppath_lmax,
-                               2e-5,
-                               5.,
-                               0.5,
-                               verbosity);
-
-              if (star_ppath.np > 1 && ppath_what_background(star_ppath) == 9) {
-
-                //get the TOA distance to earth center.
-                Numeric R_TOA = refell2r(refellipsoid,
-                                         star_ppath.pos(star_ppath.np - 1, 1)) +
-                                star_ppath.pos(star_ppath.np - 1, 0);
-
-                //get the distance between sun and star_ppath at TOA
-                Numeric R_Star2Toa;
-                distance3D(R_Star2Toa,
-                           R_TOA,
-                           star_ppath.pos(star_ppath.np - 1, 1),
-                           star_ppath.pos(star_ppath.np - 1, 2),
-                           star_pos[0],
-                           star_pos[1],
-                           star_pos[2]);
-
-                // Scale the incoming star_irradiance spectrum
-                Matrix star_spectrum=stars[i_star].spectrum;
-                star_spectrum*=stars[i_star].radius*stars[i_star].radius;
-                star_spectrum/=(stars[i_star].radius*stars[i_star].radius+R_Star2Toa*R_Star2Toa);
-
-                // calculate transmission through atmosphere
-                iyTransmissionStandard(ws,
-                                       transmitted_starlight,
-                                       iy_aux_dummy,
-                                       diy_dx_dummy,
-                                       ppvar_p_dummy,
-                                       ppvar_t_dummy,
-                                       ppvar_nlte_dummy,
-                                       ppvar_vmr_dummy,
-                                       ppvar_wind_dummy,
-                                       ppvar_mag_dummy,
-                                       ppvar_pnd_dummy,
-                                       ppvar_f_dummy,
-                                       ppvar_iy_dummy,
-                                       ppvar_trans_cumulat_dummy,
-                                       ppvar_trans_partial_dummy,
-                                       stokes_dim,
-                                       f_grid,
-                                       atmosphere_dim,
-                                       p_grid,
-                                       t_field,
-                                       nlte_field,
-                                       vmr_field,
-                                       abs_species,
-                                       wind_u_field,
-                                       wind_v_field,
-                                       wind_w_field,
-                                       mag_u_field,
-                                       mag_v_field,
-                                       mag_w_field,
-                                       0,
-                                       cloudbox_limits_dummy,
-                                       gas_scattering_do,
-                                       pnd_field_dummy,
-                                       dpnd_field_dx_dummy,
-                                       scat_species_dummy,
-                                       scat_data_dummy,
-                                       iy_aux_vars_dummy,
-                                       jacobian_do,
-                                       jacobian_quantities,
-                                       star_ppath,
-                                       star_spectrum,
-                                       propmat_clearsky_agenda,
-                                       water_p_eq_agenda,
-                                       gas_scattering_agenda,
-                                       1,
-                                       Tensor3(),
-                                       rte_alonglos_v,
-                                       verbosity);
-
+              if (star_path_ok) {
                 // here we calculate how much incoming star radiation is scattered
                 //into the direction of the ppath
                 get_scattered_starsource(ws,
@@ -611,7 +515,6 @@ void iyClearsky(
                                          star_rte_los,
                                          ppath.los(ip, joker),
                                          gas_scattering_agenda);
-
               }
             }
           }
