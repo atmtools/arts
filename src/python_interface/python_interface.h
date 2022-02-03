@@ -27,44 +27,27 @@ struct Numeric_ {
   Numeric val;
   constexpr operator Numeric&() { return val; }
   constexpr operator const Numeric&() const { return val; }
+  constexpr Numeric_& operator=(Numeric x) {val = x; return *this;}
 };
 
 struct Index_ {
   Index val;
   constexpr operator Index&() { return val; }
   constexpr operator const Index&() const { return val; };
+  constexpr Index_& operator=(Index x) {val = x; return *this;}
 };
 
-template <typename OUT>
-OUT& refcast(const py::object& in) {
-  return *in.cast<OUT*>();
-}
-
-template <>
-inline Index& refcast<Index>(const py::object& in) {
-  return in.cast<Index_*>()->val;
-}
-
-template <>
-inline Numeric& refcast<Numeric>(const py::object& in) {
-  return in.cast<Numeric_*>()->val;
-}
-
 template <class T, class Tptr>
-T& select(T& default_, Tptr* val, py::kwargs& kwargs, const char* const name) {
+T& select(T& default_, Tptr* val) {
   if (val not_eq nullptr) return *val;
-  if (kwargs.contains(name)) return refcast<T>(kwargs[name]);
   return default_;
 }
 
 template <class T, class Tptr>
 T& select(Workspace& ws,
           size_t iws,
-          Tptr* val,
-          py::kwargs& kwargs,
-          const char* const name) {
+          Tptr* val) {
   if (val not_eq nullptr) return *val;
-  if (kwargs.contains(name)) return refcast<T>(kwargs[name]);
   ARTS_USER_ERROR_IF(not ws.is_initialized(iws),
                      Workspace::wsv_data[iws].Name(),
                      " is not initialized")
@@ -72,10 +55,9 @@ T& select(Workspace& ws,
 }
 
 template <class T, class Tptr>
-T& select(Tptr* val, py::kwargs& kwargs, const char* const name) {
+T& select(Tptr* val, const char* const name) {
   if (val not_eq nullptr) return *val;
-  if (kwargs.contains(name)) return refcast<T>(kwargs[name]);
-  ARTS_USER_ERROR("User generated data is not defined ", name)
+  ARTS_USER_ERROR("User generated data is not defined: ", name)
 }
 }  // namespace Python
 

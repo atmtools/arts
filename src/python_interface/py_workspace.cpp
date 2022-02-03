@@ -10,10 +10,10 @@
 #include <supergeneric.h>
 #include <iterator>
 
+#include <py_auto_interface.h>
 #include "debug.h"
 #include "jacobian.h"
 #include "py_macros.h"
-#include "python_interface.h"
 #include "workspace_ng.h"
 
 namespace Python {
@@ -34,10 +34,20 @@ void py_workspace(py::module_& m) {
                 .def(py::init([]() {
                   Workspace w{};
                   w.initialize();
+                  w.push(Workspace::WsvMap.at("verbosity"), new Verbosity{});
                   return w;
                 }));
 
   ws.def_property_readonly("size", &Workspace::nelem);
+
+  ws.def("add_callback_function", [](Workspace& w, CallbackFunction fun) mutable {
+    static Index i = 0;
+    std::string name = var_string("pyarts_callback_function_", i++, "_");
+    const Index group_index = get_wsv_group_id("CallbackFunction");
+    WsvRecord x(name.c_str(), "Created by pybind11 API", group_index);
+    w.push(w.add_wsv_inplace(x), new CallbackFunction{fun});
+    return name;
+  });
 
   ws.def(
       "create_variable",
@@ -65,9 +75,23 @@ void py_workspace(py::module_& m) {
       py::arg("desc") = nullptr,
       py::doc(
           R"--(
-Creates a named variable of the given group, initializing it
+Creates a named variable of the given group, initializing it on the workspace
 
 The variable can be accessed with its property name upon completion
+
+Example:
+ws.create_variable("String", "my_string")
+
+Now,
+ws.my_string
+
+can be accessed and will give an empty string object.  This you can
+ws.my_string = "hi there"
+
+and now doing
+print(ws.my_string)
+
+will output the expected greeting
 )--"));
 
   ws.def("__delattr__", [](Workspace& w, const char* name) {
@@ -84,6 +108,15 @@ The variable can be accessed with its property name upon completion
       w.pop_free(varpos->second);
     }
   });
+
+  py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
+      .def_property(
+          "value",
+          py::cpp_function([](const WorkspaceVariable& w)
+                               -> WorkspaceVariablesVariant { return w; },
+                           py::return_value_policy::reference_internal),
+          [](WorkspaceVariable& w, WorkspaceVariablesVariant x) { w = x; },
+          "Returns a proper Arts type");
 
   py_auto_workspace(ws);
 }

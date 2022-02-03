@@ -2150,3 +2150,20 @@ void xml_write_to_stream(ostream&,
                          const Verbosity&) {
   throw runtime_error("Method not implemented!");
 }
+
+//=== CallbackFunction =========================================
+
+void xml_read_from_stream(istream&,
+                          CallbackFunction&,
+                          bifstream* /* pbifs */,
+                          const Verbosity&) {
+  throw runtime_error("Method not implemented!");
+}
+
+void xml_write_to_stream(ostream&,
+                         const CallbackFunction&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */,
+                         const Verbosity&) {
+  throw runtime_error("Method not implemented!");
+}

@@ -100,4 +100,5 @@ pybind11_add_module(pyarts_cpp
 target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES})
 target_include_directories(pyarts_cpp PUBLIC ${ARTS_SOURCE_DIR}/src)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 ########################################################################################

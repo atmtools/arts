@@ -203,6 +203,7 @@ You can get copies and set the value by the \"val\" property
 )--";
 
   py::implicitly_convertible<py::str, String>();
+  py::implicitly_convertible<Index, Numeric_>();
   py::implicitly_convertible<Numeric, Numeric_>();
   py::implicitly_convertible<Index, Index_>();
 

@@ -638,6 +638,20 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("CallbackFunctionExecute"),
+      DESCRIPTION("Execute any code in Arts\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("function"),
+      GIN_TYPE("CallbackFunction"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("This will execute as \"function();\"")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("CheckUnique"),
       DESCRIPTION(
           "Checks that *abs_lines* contains only unique absorption lines\n"),

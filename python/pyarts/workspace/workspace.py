@@ -168,7 +168,7 @@ def parse_function(func, allow_callbacks):
             m = Module(body, [])
         else:
             m = Module(body)
-
+            
         def callback(ptr):
             try:
                 context[arg_name].ptr = ptr
