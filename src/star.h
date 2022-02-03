@@ -125,11 +125,13 @@ void get_star_background(Matrix& iy,
 /** Calculates the transmitted radiation of one star for a given ppath position
  *
  * @param[in,out] ws ARTS workspace.
- * @param[out] transmitted_starlight Matrix transmitted monochromatic irradiance
- *             spectrum of star at location of scattering.
- * @param[out] star_rte_los Vector incoming direction of the transmitted star irradiance
+ * @param[out] transmitted_starlight Matrix Transmitted monochromatic irradiance
+ *             spectrum of star.
+ * @param[out] dtransmitted_starlight Array of Tensor3 Jacobian of transmitted
+*              monochromatic irradiance spectrum of star.
+ * @param[out] star_rte_los Vector Incoming direction of the transmitted star irradiance
  *            spectrum.
- * @param[in] ip Index of ppath point.
+ * @param[in] rte_pos As the WSV.
  * @param[in] i_star Index of star.
  * @param[in] stokes_dim As the WSV.
  * @param[in] f_grid As the WSV.
@@ -155,7 +157,6 @@ void get_star_background(Matrix& iy,
  * @param[in] gas_scattering_do As the WSV.
  * @param[in] jacobian_do As the WSV.
  * @param[in] jacobian_quantities As the WSV.
- * @param[in] ppath As the WSV.
  * @param[in] stars As the WSV.
  * @param[in] rte_alonglos_v As the WSV.
  * @param[in] propmat_clearsky_agenda As the WSV.
@@ -167,9 +168,10 @@ void get_star_background(Matrix& iy,
 void get_transmitted_starlight(
     Workspace& ws,
     Matrix& transmitted_starlight,
+    ArrayOfTensor3 dtransmitted_starlight,
     Vector& star_rte_los,
     Index& star_path_ok,
-    const Index& ip,
+    const Vector& rte_pos,
     const Index& i_star,
     const Index& stokes_dim,
     const Vector& f_grid,
@@ -195,7 +197,6 @@ void get_transmitted_starlight(
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Ppath& ppath,
     const ArrayOfStar& stars,
     const Numeric& rte_alonglos_v,
     const Agenda& propmat_clearsky_agenda,

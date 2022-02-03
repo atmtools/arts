@@ -395,6 +395,7 @@ void iyClearsky(
     //allocate Varibale for direct (star) source
     Vector star_rte_los;
     Matrix transmitted_starlight;
+    ArrayOfTensor3 dtransmitted_starlight;
     PropagationMatrix K_sca;
     RadiationVector scattered_starlight(nf, ns);
     ArrayOfRadiationVector dscattered_starlight;
@@ -464,9 +465,10 @@ void iyClearsky(
             for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
               get_transmitted_starlight(ws,
                                         transmitted_starlight,
+                                        dtransmitted_starlight,
                                         star_rte_los,
                                         star_path_ok,
-                                        ip,
+                                        ppath.pos(ip, joker),
                                         i_star,
                                         stokes_dim,
                                         f_grid,
@@ -492,7 +494,6 @@ void iyClearsky(
                                         gas_scattering_do,
                                         jacobian_do,
                                         jacobian_quantities,
-                                        ppath,
                                         stars,
                                         rte_alonglos_v,
                                         propmat_clearsky_agenda,

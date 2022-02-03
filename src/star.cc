@@ -174,9 +174,10 @@ void get_star_background(Matrix& iy,
 void get_transmitted_starlight(
     Workspace& ws,
     Matrix& transmitted_starlight,
+    ArrayOfTensor3 dtransmitted_starlight,
     Vector& star_rte_los,
     Index& star_path_ok,
-    const Index& ip,
+    const Vector& rte_pos,
     const Index& i_star,
     const Index& stokes_dim,
     const Vector& f_grid,
@@ -202,7 +203,6 @@ void get_transmitted_starlight(
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Ppath& ppath,
     const ArrayOfStar& stars,
     const Numeric& rte_alonglos_v,
     const Agenda& propmat_clearsky_agenda,
@@ -218,7 +218,6 @@ void get_transmitted_starlight(
   // gas_scattering_agenda
   ArrayOfMatrix iy_aux_dummy;
   ArrayOfString iy_aux_vars_dummy;
-  ArrayOfTensor3 diy_dx_dummy;
   Vector ppvar_p_dummy;
   Vector ppvar_t_dummy;
   EnergyLevelMap ppvar_nlte_dummy;
@@ -254,7 +253,7 @@ void get_transmitted_starlight(
                                       lat_grid,
                                       lon_grid,
                                       refellipsoid,
-                                      ppath.pos(ip, joker),
+                                      rte_pos,
                                       star_pos,
                                       verbosity);
 
@@ -272,7 +271,7 @@ void get_transmitted_starlight(
                    f_grid,
                    refellipsoid,
                    z_surface,
-                   ppath.pos(ip, joker),
+                   rte_pos,
                    star_pos,
                    ppath_lmax,
                    2e-5,
@@ -309,7 +308,7 @@ void get_transmitted_starlight(
     iyTransmissionStandard(ws,
                            transmitted_starlight,
                            iy_aux_dummy,
-                           diy_dx_dummy,
+                           dtransmitted_starlight,
                            ppvar_p_dummy,
                            ppvar_t_dummy,
                            ppvar_nlte_dummy,
@@ -354,5 +353,9 @@ void get_transmitted_starlight(
                            Tensor3(),
                            rte_alonglos_v,
                            verbosity);
+  }
+  else{
+    transmitted_starlight=stars[i_star].spectrum;
+    transmitted_starlight*=0.;
   }
 }
