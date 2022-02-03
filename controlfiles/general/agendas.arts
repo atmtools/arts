@@ -127,13 +127,6 @@ AgendaSet( iy_space_agenda__CosmicBackground ){
   MatrixCBR( iy, stokes_dim, f_grid )
 }
 
-### cosmic background and star
-AgendaCreate( iy_space_agenda__CosmicMicrowaveAndStarBackground )
-AgendaSet( iy_space_agenda__CosmicMicrowaveAndStarBackground){
-  CosmicMicrowaveAndStarBackground
-}
-
-
 ##################################
 #    iy_surface_agenda
 ##################################

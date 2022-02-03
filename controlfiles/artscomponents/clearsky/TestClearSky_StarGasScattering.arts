@@ -31,7 +31,7 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 Copy( iy_main_agenda, iy_main_agenda__Clearsky )
 
 # In coming background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicMicrowaveAndStarBackground)
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground)
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop)

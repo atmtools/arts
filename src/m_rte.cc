@@ -256,6 +256,7 @@ void iyClearsky(
 //  iy_aux.resize(naux);
   //
   Index auxOptDepth = -1;
+  Index auxDirectRad = -1;
   Index field_flag = -1;
 
   // Allocate, if we have radiation field as iy_aux_var, then
@@ -287,6 +288,12 @@ void iyClearsky(
       iy_aux[cnt].resize(nf, ns);
       iy_aux[cnt] = 0;
     }
+    else if (iy_aux_vars[i] == "Direct radiation"){
+      cnt+=1;
+      auxDirectRad = cnt;
+      iy_aux[cnt].resize(nf, ns);
+      iy_aux[cnt] = 0;
+    }
     else if (iy_aux_vars[i] == "Radiation field"){
       // we set it at the end
       field_flag = cnt +1;
@@ -301,6 +308,7 @@ void iyClearsky(
           "The only allowed strings in *iy_aux_vars* are:\n"
           "  \"Radiative background\"\n"
           "  \"Optical depth\"\n"
+          "  \"Direct radiation\"\n"
           "  \"Radiation field\"\n"
           "but you have selected: \"", iy_aux_vars[i], "\"")
     }
@@ -633,7 +641,7 @@ void iyClearsky(
     for (Index iv = 0; iv < nf; iv++)
       iy_aux[auxOptDepth](iv, 0) = -std::log(tot_tra[np - 1](iv, 0, 0));
 
-  // Radiative background
+  // Diffuse radiative background
   get_iy_of_background(ws,
                        iy,
                        diy_dx,
@@ -656,6 +664,38 @@ void iyClearsky(
                        iy_cloudbox_agenda,
                        iy_agenda_call1,
                        verbosity);
+
+  // Direct radiative background
+  if (star_do){
+    Matrix iy_direct;
+
+    get_star_background(iy_direct,
+                        stars,
+                        ppath,
+                        atmosphere_dim,
+                        f_grid,
+                        stokes_dim,
+                        refellipsoid);
+
+    //TODO: Add multiplication with iy_transmittance to get the transmitted
+    // radiation at the end of the ppath.
+
+
+
+    // iy_aux: Direct radiation
+    if (auxDirectRad >= 0)
+        iy_aux[auxDirectRad] = iy_direct;
+
+  }
+
+  //sketch-----------------------------------
+  //if ppath background == 9
+  //iy_direct_toa = iy
+  //else
+  //iy_direct_toa = 0
+  //
+  //calculate iy_direct
+  // iy_direct = iy_trans_new * iy_direct_toa
 
   lvl_rad[np - 1] = iy;
 

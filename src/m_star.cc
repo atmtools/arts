@@ -99,32 +99,3 @@ void starOff(Index &star_do,
   star.resize(0);
 
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void CosmicMicrowaveAndStarBackground(Matrix &iy,
-                                      const Vector &f_grid,
-                                      const Vector &rtp_pos,
-                                      const Vector &rtp_los,
-                                      const ArrayOfStar &stars,
-                                      const Vector &refellipsoid,
-                                      const Index &star_do,
-                                      const Index &stokes_dim,
-                                      const Verbosity &verbosity) {
-
-  // Cosmic microwave background
-  MatrixCBR(iy, stokes_dim, f_grid, verbosity);
-
-  // Star background
-  if (star_do) {
-
-    //TODO: add check if star_* have the same length.
-
-    for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-      get_star_background(iy,
-                          stars[i_star],
-                          rtp_pos,
-                          rtp_los,
-                          refellipsoid);
-    }
-  }
-}

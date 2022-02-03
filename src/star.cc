@@ -107,13 +107,37 @@ void get_scattered_starsource(Workspace& ws,
 }
 
 void get_star_background(Matrix& iy,
-                         const Star& star,
+                         const ArrayOfStar& stars,
+                         const Ppath& ppath,
+                         const Index& atmosphere_dim,
+                         const Vector& f_grid,
+                         const Index& stokes_dim,
+                         const Vector& refellipsoid) {
+  const Index nf = f_grid.nelem();
+  const Index np = ppath.np;
+
+  Vector rtp_pos, rtp_los;
+  rtp_pos.resize(atmosphere_dim);
+  rtp_pos = ppath.pos(np - 1, Range(0, atmosphere_dim));
+  rtp_los.resize(ppath.los.ncols());
+  rtp_los = ppath.los(np - 1, joker);
+
+  iy.resize(nf, stokes_dim);
+  iy = 0;
+
+  for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
+    get_star_radiation(iy, stars[i_star], rtp_pos, rtp_los, refellipsoid);
+  }
+}
+
+void get_star_radiation(Matrix& iy,
+                         const Star& stars,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
                          const Vector& refellipsoid) {
 
   //Calculate earth centric radial component of star_pos and rtp_pos.
-  const Numeric R_star = star.distance;
+  const Numeric R_star = stars.distance;
   const Numeric R_rte = refell2r(refellipsoid, rtp_pos[1]) + rtp_pos[0];
 
   //Transform to cartesian coordinate system
@@ -122,7 +146,7 @@ void get_star_background(Matrix& iy,
   Numeric r_los_x, r_los_y, r_los_z;
 
   // r_star
-  sph2cart(r_star_x, r_star_y, r_star_z, R_star, star.latitude, star.longitude);
+  sph2cart(r_star_x, r_star_y, r_star_z, R_star, stars.latitude, stars.longitude);
 
   // r_rte, r_los
   poslos2cart(r_rte_x,
@@ -157,14 +181,14 @@ void get_star_background(Matrix& iy,
       (r_ps_x * r_los_x + r_ps_y * r_los_y + r_ps_z * r_los_z) / (r_ps * r_glos);
   const Numeric beta = acos(cos_beta);
 
-  // angular diameter of star
-  const Numeric alpha = atan(star.radius / r_ps);
+  // angular radius of star
+  const Numeric alpha = atan(stars.radius / r_ps);
 
   //Check if we see the star. We see the star if the angle beta is smaller than
-  // the angular diameter alpha of the star.
+  // the angular radius alpha of the star.
   if (beta <= alpha) {
     //Here we assume that the star radiates isotropically.
-    Matrix star_radiance = star.spectrum;
+    Matrix star_radiance = stars.spectrum;
     star_radiance /= PI;
 
     iy += star_radiance;
