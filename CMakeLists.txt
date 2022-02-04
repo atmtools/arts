@@ -1,8 +1,4 @@
-if (ENABLE_CXX20)
-  cmake_minimum_required (VERSION 3.12)
-else ()
-  cmake_minimum_required (VERSION 3.9)
-endif ()
+cmake_minimum_required (VERSION 3.12)
 
 project (ARTS C CXX)
 
