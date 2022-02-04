@@ -507,7 +507,15 @@ void define_md_data_raw() {
         "\tThe upper frequency bound (all lines of this frequency or lower may be kept)\n"
         "\tThe lower intensity bound (all lines with lower intensity may be removed)\n"
         "\n"
-        "If safe evaluates true, all lines in an absorption band must fail the above tests to be removed\n"
+        "If safe evaluates true, all lines in an absorption band must fail the above\n"
+        "tests to be removed\n"
+        "\n"
+        "The frequency filtering can be reversed, from keeping upper_frequency to\n"
+        "lower_frequency, to instead remove lines inside the range by setting\n"
+        "*flip_flims* to 1.\n"
+        "\n"
+        "The method *abs_linesRemoveEmptyBands* is internally applied after the\n"
+        "filtering.\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
@@ -515,13 +523,14 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("lower_frequency", "upper_frequency", "lower_intensity", "safe"),
-      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT("-1e99", "1e99", "0", "1"),
+      GIN("lower_frequency", "upper_frequency", "lower_intensity", "safe", "flip_flims"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index", "Index"),
+      GIN_DEFAULT("-1e99", "1e99", "0", "1", "0"),
       GIN_DESC("The lower frequency bound",
         "The upper frequency bound",
         "The lower intensity bound",
-        "Remove only lines from a band if all lines of a band fail")));
+        "Remove only lines from a band if all lines of a band fail",
+        "Reverse the frequecy filtering, see above")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesRemoveLines"),
@@ -533,13 +542,14 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species"),
-      GIN("lower_frequency", "upper_frequency", "lower_intensity", "safe"),
-      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT("-1e99", "1e99", "0", "1"),
+      GIN("lower_frequency", "upper_frequency", "lower_intensity", "safe", "flip_flims"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index", "Index"),
+      GIN_DEFAULT("-1e99", "1e99", "0", "1", "0"),
       GIN_DESC("The lower frequency bound",
         "The upper frequency bound",
         "The lower intensity bound",
-        "Remove only lines from a band if all lines of a band fail")));
+        "Remove only lines from a band if all lines of a band fail",
+        "Reverse the frequecy filtering")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveLinesFromSpecies"),
@@ -553,14 +563,16 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("species", "lower_frequency", "upper_frequency", "lower_intensity", "safe"),
-      GIN_TYPE("ArrayOfSpeciesTag", "Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, "-1e99", "1e99", "0", "1"),
+      GIN("species", "lower_frequency", "upper_frequency", "lower_intensity",
+          "safe", "flip_flims"),
+      GIN_TYPE("ArrayOfSpeciesTag", "Numeric", "Numeric", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "0", "1", "0"),
       GIN_DESC("Species to be removed",
         "The lower frequency bound",
         "The upper frequency bound",
         "The lower intensity bound",
-        "Remove only lines from a band if all lines of a band fail")));
+        "Remove only lines from a band if all lines of a band fail",
+        "Reverse the frequecy filtering")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesRemoveLinesFromSpecies"),
@@ -572,14 +584,16 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species"),
-      GIN("species", "lower_frequency", "upper_frequency", "lower_intensity", "safe"),
-      GIN_TYPE("ArrayOfSpeciesTag", "Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, "-1e99", "1e99", "0", "1"),
+      GIN("species", "lower_frequency", "upper_frequency", "lower_intensity",
+          "safe", "flip_flims"),
+      GIN_TYPE("ArrayOfSpeciesTag", "Numeric", "Numeric", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "-1e99", "1e99", "0", "1", "0"),
       GIN_DESC("Species to be removed",
         "The lower frequency bound",
         "The upper frequency bound",
         "The lower intensity bound",
-        "Remove only lines from a band if all lines of a band fail")));
+        "Remove only lines from a band if all lines of a band fail",
+        "Reverse the frequecy filtering")));
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveEmptyBands"),
