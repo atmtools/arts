@@ -1167,6 +1167,11 @@ void RadarOnionPeelingTableCalc(
   const Index iss = i_species;
 
   // Check input
+  ARTS_USER_ERROR_IF (scat_data[0][0].T_grid[0] < 220,
+                      "First element in T_grid of scattering species is "
+                      "below 220 K.\nThat seems to be too low for liquid.\n"
+                      "Please note that the onion peeling function expects "
+                      "rain\nas the first scattering element.");
   ARTS_USER_ERROR_IF (f_grid.nelem() != 1,
                       "This method requires that *f_grid* has length 1.");
   ARTS_USER_ERROR_IF (i_species < 0 || i_species > 1,
