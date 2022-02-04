@@ -20,6 +20,7 @@
 /*===========================================================================
   ===  File description
   ===========================================================================*/
+
 #include "messages.h"
 #include "physics_funcs.h"
 #include "arts.h"
@@ -86,6 +87,48 @@ void starBlackbodySimple(ArrayOfStar &star,
   //append
   star.push_back(star_temp);
 
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void starFromGrid(ArrayOfStar &star,
+                         Index &star_do,
+                         // Inputs:
+                         const Vector &f_grid,
+                         const Index &stokes_dim,
+                         const GriddedField2& star_spectrum_raw,
+                         const Numeric &radius,
+                         const Numeric &distance,
+                         const Numeric &temperature,
+                         const Numeric &latitude,
+                         const Numeric &longitude,
+                         const String &description,
+                         const Verbosity &verbosity) {
+
+  // some sanity checks
+  ARTS_USER_ERROR_IF (distance<radius,
+                      "The distance to the center of the star (",distance," m) \n"
+                     " is smaller than the radius of the star (", radius," m )")
+
+  // interpolate field
+  Matrix int_data = regrid_star_spectrum(star_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
+
+  // create star
+  Star star_temp;
+  
+  star_temp.spectrum = int_data; // set spectrum
+  star_temp.spectrum *= PI; // outgoing flux at the surface of the star.
+
+  star_temp.description = description;
+  star_temp.radius = radius;
+  star_temp.distance = distance;
+  star_temp.latitude = latitude;
+  star_temp.longitude = longitude;
+
+  // set flag
+  star_do = 1;
+
+  //append
+  star.push_back(star_temp);
 }
 
 void starOff(Index &star_do,

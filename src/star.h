@@ -34,8 +34,11 @@
   === External declarations
   ===========================================================================*/
 
+
 #include "arts.h"
 #include "agenda_class.h"
+#include "gridded_fields.h"
+#include "matpack.h"
 #include "transmissionmatrix.h"
 #include "energylevelmap.h"
 
@@ -224,5 +227,30 @@ void get_transmitted_starlight(
     const Agenda& gas_scattering_agenda,
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity);
+ 
+ /** regrid_star_spectrum
+ *
+ * Regrids a given spectrum from a griddedfield2 to the f_grid.
+ * if the f_grid covers a larger range as the given one, one
+ * can choose between two padding options:
+ * zeros: Intensities outside the given spectrum are set to zero 
+ * planck: Intensities outside the given spectrum are initilizied 
+ *        with the black body value at that frequency.
+ *
+ * @param[in]  star_spectrum_raw  gf2 of the given spectrum.
+ * @param[in]  f_grid  f_grid for the calculation.
+ * @param[in]  stokes_dim  stokes_dim for the calculation.
+ * @param[in]  temperature  Temperature for the planck padding.
+ *
+ * @return     interpolated spectrum
+ *
+ * @author Jon Petersen
+ * @date   2022-01-19
+ */
+Matrix regrid_star_spectrum(const GriddedField2& star_spectrum_raw,
+                          const Vector &f_grid,
+                          const Index &stokes_dim,
+                          const Numeric &temperature,
+                          const Verbosity &verbosity);
 
 #endif /* star_h */
