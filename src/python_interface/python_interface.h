@@ -14,10 +14,12 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <variant>
+#include <optional>
 
-#include "auto_md.h"
-#include "debug.h"
-#include "enums.h"
+#include <auto_md.h>
+#include <debug.h>
+#include <enums.h>
 
 //! Contains a bunch of helper functions to manipulate python objects inside C++
 namespace Python {
@@ -37,27 +39,43 @@ struct Index_ {
   constexpr Index_& operator=(Index x) {val = x; return *this;}
 };
 
-template <class T, class Tptr>
-T& select(T& default_, Tptr* val) {
-  if (val not_eq nullptr) return *val;
+template <class T, class VariantT>
+T& select_gout(const VariantT& val) {
+  return std::visit([](auto&& out) -> T& {return *out;}, val);
+}
+
+template <class T, class VariantT>
+const T& select_gin(const VariantT& val) {
+  return std::visit([](auto&& out) -> const T& {return *out;}, val);
+}
+
+template <class T, class VariantT>
+const T& select_gin(const T& default_, const std::optional<VariantT>& val) {
+  if (val) return std::visit([](auto&& out) -> const T& {return *out;}, val.value());
   return default_;
 }
 
-template <class T, class Tptr>
-T& select(Workspace& ws,
-          size_t iws,
-          Tptr* val) {
-  if (val not_eq nullptr) return *val;
-  ARTS_USER_ERROR_IF(not ws.is_initialized(iws),
-                     Workspace::wsv_data[iws].Name(),
-                     " is not initialized")
-  return *reinterpret_cast<T*>(ws[iws]);
+template <class T, class WorkspaceVariable, class VariantT>
+T& select_out(WorkspaceVariable wsv, std::optional<VariantT>& val) {
+  if (val) return std::visit([](auto&& out) -> T& {return *out;}, val.value());
+  return wsv;
 }
 
-template <class T, class Tptr>
-T& select(Tptr* val, const char* const name) {
-  if (val not_eq nullptr) return *val;
-  ARTS_USER_ERROR("User generated data is not defined: ", name)
+template <class T, class WorkspaceVariable, class VariantT>
+T& select_inout(const WorkspaceVariable wsv, std::optional<VariantT>& val) {
+  if (val) return std::visit([](auto&& out) -> T& {return *out;}, val.value());
+  return wsv;
+}
+
+template <class T, class WorkspaceVariable, class VariantT>
+const T& select_in(const WorkspaceVariable wsv, const std::optional<VariantT>& val) {
+  if (val) return std::visit([](auto&& out) -> const T& {return *out;}, val.value());
+  return wsv;
+}
+
+template <class SelectT, class VariantT>
+SelectT select_wvv(VariantT val) {
+  return std::visit([](auto&& out) -> SelectT {return *out;}, val);
 }
 }  // namespace Python
 

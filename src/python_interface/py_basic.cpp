@@ -50,7 +50,6 @@ void py_basic(py::module_& m) {
       .PythonInterfaceIndexItemAccess(String)
       .PythonInterfaceBasicIteration(String)
       .PythonInterfaceBasicRepresentation(String)
-      .def("__contains__", [](String& a, const char* b){return a.find(b) not_eq a.npos;})
       .def(py::self + py::self)
       .def(py::self += py::self)
       .doc() =

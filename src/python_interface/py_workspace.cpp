@@ -1,16 +1,17 @@
 #include <auto_md.h>
 #include <global_data.h>
+#include <py_auto_interface.h>
 #include <pybind11/attr.h>
 #include <pybind11/cast.h>
 #include <pybind11/detail/common.h>
 #include <pybind11/gil.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
-#include <xml_io.h>
 #include <supergeneric.h>
+#include <xml_io.h>
+
 #include <iterator>
 
-#include <py_auto_interface.h>
 #include "debug.h"
 #include "jacobian.h"
 #include "py_macros.h"
@@ -30,24 +31,24 @@ void py_workspace(py::module_& m) {
   define_agenda_map();
   global_data::workspace_memory_handler.initialize();
 
-  auto ws = py::class_<Workspace>(m, "Workspace")
-                .def(py::init([]() {
-                  Workspace w{};
-                  w.initialize();
-                  w.push(Workspace::WsvMap.at("verbosity"), new Verbosity{});
-                  return w;
-                }));
+  auto ws = py::class_<Workspace>(m, "Workspace").def(py::init([]() {
+    Workspace w{};
+    w.initialize();
+    w.push(Workspace::WsvMap.at("verbosity"), new Verbosity{});
+    return w;
+  }));
 
   ws.def_property_readonly("size", &Workspace::nelem);
 
-  ws.def("add_callback_function", [](Workspace& w, CallbackFunction fun) mutable {
-    static Index i = 0;
-    std::string name = var_string("pyarts_callback_function_", i++, "_");
-    const Index group_index = get_wsv_group_id("CallbackFunction");
-    WsvRecord x(name.c_str(), "Created by pybind11 API", group_index);
-    w.push(w.add_wsv_inplace(x), new CallbackFunction{fun});
-    return name;
-  });
+  ws.def("add_callback_function",
+         [](Workspace& w, CallbackFunction fun) mutable {
+           static Index i = 0;
+           std::string name = var_string("pyarts_callback_function_", i++, "_");
+           const Index group_index = get_wsv_group_id("CallbackFunction");
+           WsvRecord x(name.c_str(), "Created by pybind11 API", group_index);
+           w.push(w.add_wsv_inplace(x), new CallbackFunction{fun});
+           return name;
+         });
 
   ws.def(
       "create_variable",
@@ -109,14 +110,42 @@ will output the expected greeting
     }
   });
 
+  ws.def("__getattr__", [](Workspace& w, const char* name) {
+    auto varpos = std::find_if(Workspace::WsvMap.begin(),
+                               Workspace::WsvMap.end(),
+                               [name](auto& b) { return b.first == name; });
+    ARTS_USER_ERROR_IF(varpos == Workspace::WsvMap.end(),
+                       "No workspace variable: ",
+                       name,
+                       "\n\nCustom workspace variables have to "
+                       "be created using create_variable or by explicit set")
+
+    return WorkspaceVariable{w, varpos->second};
+  });
+
   py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
       .def_property(
           "value",
-          py::cpp_function([](const WorkspaceVariable& w)
-                               -> WorkspaceVariablesVariant { return w; },
+          py::cpp_function([](const WorkspaceVariable& wsv)
+                               -> WorkspaceVariablesVariant { return wsv; },
                            py::return_value_policy::reference_internal),
-          [](WorkspaceVariable& w, WorkspaceVariablesVariant x) { w = x; },
-          "Returns a proper Arts type");
+          [](WorkspaceVariable& wsv, WorkspaceVariablesVariant x) { wsv = x; },
+          "Returns a proper Arts type")
+      .def("__str__",
+           [](WorkspaceVariable& wsv) {
+             return var_string("Arts Workspace Variable ",
+                               Workspace::wsv_data[wsv.pos].Name(),
+                               " of type ",
+                               global_data::wsv_group_names[
+                                   Workspace::wsv_data[wsv.pos].Group()]);
+           })
+      .def("__repr__", [](WorkspaceVariable& wsv) {
+        return var_string(
+            "Arts Workspace Variable ",
+            Workspace::wsv_data[wsv.pos].Name(),
+            " of type ",
+            global_data::wsv_group_names[Workspace::wsv_data[wsv.pos].Group()]);
+      });
 
   py_auto_workspace(ws);
 }

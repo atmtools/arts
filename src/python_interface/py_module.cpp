@@ -7,6 +7,7 @@ void py_ppath(py::module_&);
 void py_griddedfield(py::module_&);
 void py_time(py::module_&);
 void py_tessem(py::module_&);
+void py_quantum(py::module_&);
 void py_rte(py::module_& m);
 void py_telsem(py::module_& m);
 void py_species(py::module_& m);
@@ -40,6 +41,7 @@ PYBIND11_MODULE(pyarts_cpp, m) {
   py_scattering(classes);
   py_spec(classes);
   py_jac(classes);
+  py_quantum(classes);
 
   // Temporary to work with old-style workspaces
   auto workspace_references =
@@ -50,12 +52,13 @@ PYBIND11_MODULE(pyarts_cpp, m) {
   auto workspace = 
       m.def_submodule("workspace",
                       "Contains a way to interactively use the Arts workspace");
-  py_workspace(workspace);
   py_agenda(workspace);
 
   auto methods = 
       m.def_submodule("methods",
                       "Contains some direct Arts method calls to get pure internal data");
   py_agenda_methods(methods);
+
+  py_workspace(workspace);  // Must be last, it contains automatic conversion operations
 }
 }  // namespace Python
