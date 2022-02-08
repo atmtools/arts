@@ -649,7 +649,12 @@ void define_md_data_raw() {
       GIN("function"),
       GIN_TYPE("CallbackFunction"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("This will execute as \"function();\"")));
+      GIN_DESC("This will execute as \"function();\""),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true),
+      PASSWSVNAMES(false)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("CheckUnique"),

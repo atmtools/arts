@@ -40,7 +40,7 @@ struct Index_ {
 };
 
 template <class T, class VariantT>
-T& select_gout(const VariantT& val) {
+T& select_gout(VariantT& val) {
   return std::visit([](auto&& out) -> T& {return *out;}, val);
 }
 

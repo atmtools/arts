@@ -373,12 +373,8 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
     os << "    py::cpp_function([](Workspace& w) -> WorkspaceVariable ";
     os << "{return WorkspaceVariable{w, " << data.artspos
        << "};}, py::return_value_policy::reference_internal),\n";
-    os << "    [](Workspace& w, " << data.varname_group
-       << " val) {"
-          "WorkspaceVariablesVariant modvar = WorkspaceVariable{w, "
-       << data.artspos << "}; * std::get<" << data.varname_group;
-    if (data.varname_group == "Index" or data.varname_group == "Numeric") os << "_";
-    os << " *>(modvar) = std::move(val);},\n";
+    os << "    [](Workspace& w, std::variant<const WorkspaceVariable*, " << data.varname_group
+       << "*> val) {"<<data.varname_group<<"& v_ = WorkspaceVariable{w, " << data.artspos << "}; v_ = select_gin<"<<data.varname_group<<">(val);},\n";
     os << "    R\"-VARNAME_DESC-(\n"
        << data.varname_desc << ")-VARNAME_DESC-\""
        << ");";
@@ -1013,6 +1009,15 @@ struct WorkspaceVariable {
   Workspace &ws;
   Index pos;
 
+  WorkspaceVariable(Workspace& ws_, Index pos_) : ws(ws_), pos(pos_) {}
+
+  WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj);
+
+  WorkspaceVariable& operator=(WorkspaceVariable& wv2) {
+    pos = wv2.pos;
+    return *this;
+  }
+
   bool is_initialized() const; 
   void initialize_if_not();
   operator WorkspaceVariablesVariant();
@@ -1049,6 +1054,34 @@ os << R"--(
 void auto_header_definitions(std::ofstream& os, const NameMaps& arts) {
   os << R"--(
 bool WorkspaceVariable::is_initialized() const { return ws.is_initialized(pos); }
+
+WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj) : ws(ws_), pos(-1) {
+  static std::size_t i = 0;
+
+  try {
+    *this = *obj.cast<WorkspaceVariable *>();
+    return;
+  } catch (...) {
+    // Do nothing
+  }
+
+  ARTS_USER_ERROR_IF(group_index == )--" << arts.group.at("Any") <<  R"--(, "Cannot create type Any")
+  void * value_ptr = nullptr;
+  )--";
+
+  for (auto& [name, group] : arts.group) {
+    os << "if (group_index == " << group << ") {\n";
+    os << "   value_ptr = " << "obj.cast<" << name;
+    if (name == "Index" or name == "Numeric") os << '_';
+    os << " *>();\n" << "  } else ";
+  }
+
+  os << R"--(ARTS_USER_ERROR("Cannot create type")
+
+  // Create the variable and initialize it
+  pos = ws.add_wsv_inplace(WsvRecord(var_string("_anon", i++).c_str(), "Created by pybind11 API", group_index));
+  ws.push(pos, value_ptr);
+}
 
 void WorkspaceVariable::initialize_if_not() {
   if (not ws.is_initialized(pos)) {
@@ -1171,6 +1204,42 @@ ws.def("__setattr__", [](Workspace& w, const char * name, WorkspaceVariablesVari
 )--";
 }
 
+struct TypeVal {
+  String type;
+  String val;
+};
+
+void internal_defaults(std::ofstream& os, const NameMaps& arts) {
+  std::map<String, TypeVal> has;
+
+  for (auto& method: arts.methodname_method) {
+    for (std::size_t i=0; i<method.gin.name.size(); i++) {
+      if (method.gin.hasdefs[i]) {
+        String gin_key = "GeneratedInputDefault_" + method.name + "_" + method.gin.name[i] + "_";
+        has[gin_key] = TypeVal{method.gin.group[i], method.gin.defs[i]};
+      }
+    }
+  }
+
+  os << R"--(
+Index create_workspace_gin_default_internal(Workspace& ws, String& key) {
+  )--";
+  
+  for (auto& [key, items]: has) {
+    os << "if (key == \"" << key << "\") {\n";
+    os << "    WorkspaceVariable wv{ws, ws.add_wsv_inplace(WsvRecord(\""<<key<<"\", \"Created by pybind11 API\", " << arts.group.at(items.type) << "))};\n";
+    os << "    wv.initialize_if_not();\n";
+    os << "    " << items.type << "& val = wv;\n";
+    os << "    val = "<<items.type<<"{";
+    if ("{}" not_eq items.val) os << items.val;
+    os <<"};\n";
+    os << "    return wv.pos;\n";
+    os << "  } else ";
+  }
+
+  os << "ARTS_USER_ERROR(\"Cannot understand internal key\")\n  return -1;\n}\n\n";
+}
+
 int main() {
   define_wsv_group_names();
   Workspace::define_wsv_data();
@@ -1197,6 +1266,7 @@ int main() {
 
   py_workspace << '\n' << "namespace Python {\n";
   auto_header_definitions(py_workspace, artsname);
+  internal_defaults(py_workspace, artsname);
   for (Index i = 0; i < num_split_files; i++) {
     py_workspace << "void py_auto_workspace_" << i
                  << "(py::class_<Workspace>& ws);\n";

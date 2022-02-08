@@ -1,7 +1,8 @@
 #include "callback.h"
 #include "messages.h"
 
-void CallbackFunctionExecute(const CallbackFunction& function,
+void CallbackFunctionExecute(Workspace& ws,
+                             const CallbackFunction& function,
                              const Verbosity&) {
-  function();
+  function(ws);
 }

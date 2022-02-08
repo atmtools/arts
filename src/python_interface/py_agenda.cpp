@@ -8,6 +8,7 @@
 #include <py_auto_interface.h>
 
 namespace Python {
+Index create_workspace_gin_default_internal(Workspace& ws, String& key);
 
 struct AgendaMethodVariable {
   String name{};
@@ -19,6 +20,8 @@ struct AgendaMethodVariable {
 };
 
 Array<AgendaMethodVariable> sorted_mdrecord(Workspace& ws, decltype(global_data::md_data_raw.begin()) ptr) {
+  static std::map<String, Index> gin_defaults;
+
   const Index any_pos = global_data::WsvGroupMap.at("Any");
 
   Array<AgendaMethodVariable> var_order;
@@ -58,6 +61,19 @@ Array<AgendaMethodVariable> sorted_mdrecord(Workspace& ws, decltype(global_data:
     var.g_pos = i;
     var.input = true;
     var.any = var.group == any_pos;
+
+    // Create defaults (on the workspace)
+    if (ptr -> GInDefault()[i] not_eq NODEF) {
+      String gin_key =  "GeneratedInputDefault_" + ptr -> Name() + "_" + var.name + "_";
+
+      auto gin_def_ptr = gin_defaults.find(gin_key);
+      if (gin_def_ptr == gin_defaults.end()) {
+        gin_defaults[gin_key] = create_workspace_gin_default_internal(ws, gin_key);
+        gin_def_ptr = gin_defaults.find(gin_key);
+      }
+
+      var.ws_pos = gin_def_ptr -> second;
+    }
   }
 
   return var_order;
@@ -78,9 +94,9 @@ std::pair<ArrayOfIndex, ArrayOfIndex> split_io(
 void py_agenda(py::module_& m) {
   py::class_<CallbackFunction>(m, "CallbackFunction")
       .def(py::init<>())
-      .def(py::init<std::function<void(void)>>())
-      .def("__call__", [](CallbackFunction& f) { f(); });
-  py::implicitly_convertible<std::function<void(void)>, CallbackFunction>();
+      .def(py::init<std::function<void(Workspace&)>>())
+      .def("__call__", [](CallbackFunction& f, Workspace& ws) { f(ws); });
+  py::implicitly_convertible<std::function<void(Workspace&)>, CallbackFunction>();
 
   py::class_<MdRecord>(m, "MdRecord")
       .def(py::init<>())
@@ -107,21 +123,28 @@ void py_agenda(py::module_& m) {
         // The method input and output lists in one long list
         Array<AgendaMethodVariable> var_order=sorted_mdrecord(ws, ptr);
 
+        // Generic checker
+        const bool generic_function = std::any_of(var_order.begin(), var_order.end(), [](auto& v){return v.any;});
+
         // Point at the first actual function (or if non-generic, the actual function)
         ptr = std::find_if(global_data::md_data.begin(), global_data::md_data.end(), [name](auto& method){return name == method.Name();});
 
         // Set the actual input and output of all the variables
         for (Index i = 0; i < var_order.nelem(); i++) {
           auto& var = var_order[i];
-          if (i < nargs) {
-            var.ws_pos = args[i].cast<WorkspaceVariable*>()->pos;
-          } else if (auto key = var.name.c_str(); kwargs.contains(key)) {
-            var.ws_pos = kwargs[key].cast<WorkspaceVariable*>()->pos;
+          try {
+            if (i < nargs) {
+              var.ws_pos = WorkspaceVariable(ws, var.group, args[i]).pos;
+            } else if (auto key = var.name.c_str(); kwargs.contains(key)) {
+              var.ws_pos = WorkspaceVariable(ws, var.group, kwargs[key]).pos;
+            }
+          } catch (std::exception& e) {
+            ARTS_USER_ERROR("\nCannot add workspace method \"", name, "\" with the following reason for variable \"", var.name, "\":\n\n", e.what());
           }
         }
 
         // Adjust pointer to the correct one given the current args and kwargs if we are generic
-        if (std::any_of(var_order.begin(), var_order.end(), [](auto& v){return v.any;})) {
+        if (generic_function) {
 
           // Ensure we have GIN and GOUT for all of the generic types
           for (Index i=0; i<var_order.nelem(); i++) {
@@ -161,7 +184,7 @@ void py_agenda(py::module_& m) {
         a.push_back(MRecord(std::distance(global_data::md_data.begin(), std::find_if(global_data::md_data.begin(), global_data::md_data.end(), [](auto& method){return "CallbackFunctionExecute" == method.Name();})), {}, {in}, {}, {}));
       })
       .def("execute", &Agenda::execute)
-      .def("check", &Agenda::check)
+      .def("check", [](Agenda& a, Workspace& w){a.check(w, Verbosity{});})
       .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",
            [](Agenda& a) {

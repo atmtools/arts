@@ -40,16 +40,6 @@ void py_workspace(py::module_& m) {
 
   ws.def_property_readonly("size", &Workspace::nelem);
 
-  ws.def("add_callback_function",
-         [](Workspace& w, CallbackFunction fun) mutable {
-           static Index i = 0;
-           std::string name = var_string("pyarts_callback_function_", i++, "_");
-           const Index group_index = get_wsv_group_id("CallbackFunction");
-           WsvRecord x(name.c_str(), "Created by pybind11 API", group_index);
-           w.push(w.add_wsv_inplace(x), new CallbackFunction{fun});
-           return name;
-         });
-
   ws.def(
       "create_variable",
       [](Workspace& w, char* group, char* name, char* desc) {
@@ -122,6 +112,8 @@ will output the expected greeting
 
     return WorkspaceVariable{w, varpos->second};
   });
+    
+  ws.def("swap", [](Workspace* w_, Workspace* w_2){std::swap(w_, w_2);}, py::return_value_policy::reference_internal);
 
   py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
       .def_property(
