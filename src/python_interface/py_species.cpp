@@ -1,19 +1,11 @@
-#include <auto_md.h>
-#include <pybind11/pybind11.h>
-#include <xml_io.h>
-
-#include "debug.h"
-#include "enums.h"
-#include "isotopologues.h"
 #include "py_macros.h"
-#include "python_interface.h"
-#include "species.h"
-#include "workspace_ng.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_species(py::module_& m) {
   py::class_<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
       .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin))
+      .PythonInterfaceWorkspaceVariableConversion(SpeciesIsotopologueRatios)
       .PythonInterfaceFileIO(SpeciesIsotopologueRatios)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
       .def_readonly_static("maxsize", &SpeciesIsotopologueRatios::maxsize)
@@ -92,6 +84,7 @@ void py_species(py::module_& m) {
 
   py::class_<ArrayOfSpeciesTag>(m, "ArrayOfSpeciesTag")
       .PythonInterfaceFileIO(ArrayOfSpeciesTag)
+      .PythonInterfaceWorkspaceVariableConversion(ArrayOfSpeciesTag)
       .PythonInterfaceBasicRepresentation(ArrayOfSpeciesTag)
       .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)
       .PythonInterfaceBasicIteration(ArrayOfSpeciesTag)

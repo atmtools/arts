@@ -1,25 +1,8 @@
-#include <auto_md.h>
-#include <xml_io.h>
-
 #include "py_macros.h"
-#include "python_interface.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_jac(py::module_& m) {
-  py::class_<JacobianTarget>(m, "JacobianTarget")
-      .PythonInterfaceFileIO(JacobianTarget)
-      .PythonInterfaceBasicRepresentation(JacobianTarget)
-      .PythonInterfaceReadWriteData(JacobianTarget, type)
-      .PythonInterfaceReadWriteData(JacobianTarget, atm)
-      .PythonInterfaceReadWriteData(JacobianTarget, line)
-      .PythonInterfaceReadWriteData(JacobianTarget, sensor)
-      .PythonInterfaceReadWriteData(JacobianTarget, special)
-      .PythonInterfaceReadWriteData(JacobianTarget, perturbation)
-      .PythonInterfaceReadWriteData(JacobianTarget, qid)
-      .PythonInterfaceReadWriteData(JacobianTarget, species_array_id)
-      .PythonInterfaceReadWriteData(JacobianTarget, string_id)
-      .PythonInterfaceReadWriteData(JacobianTarget, species_id);
-
   py::class_<Jacobian::Type>(m, "JacobianType")
       .def(py::init<>())
       .def(py::init([](char* c) { return Jacobian::toTypeOrThrow(c); }))
@@ -49,6 +32,21 @@ void py_jac(py::module_& m) {
       .def(py::init([](char* c) { return Jacobian::toSpecialOrThrow(c); }))
       .PythonInterfaceBasicRepresentation(Jacobian::Special);
   py::implicitly_convertible<py::str, Jacobian::Special>();
+
+  py::class_<JacobianTarget>(m, "JacobianTarget")
+      .PythonInterfaceWorkspaceVariableConversion(JacobianTarget)
+      .PythonInterfaceFileIO(JacobianTarget)
+      .PythonInterfaceBasicRepresentation(JacobianTarget)
+      .PythonInterfaceReadWriteData(JacobianTarget, type)
+      .PythonInterfaceReadWriteData(JacobianTarget, atm)
+      .PythonInterfaceReadWriteData(JacobianTarget, line)
+      .PythonInterfaceReadWriteData(JacobianTarget, sensor)
+      .PythonInterfaceReadWriteData(JacobianTarget, special)
+      .PythonInterfaceReadWriteData(JacobianTarget, perturbation)
+      .PythonInterfaceReadWriteData(JacobianTarget, qid)
+      .PythonInterfaceReadWriteData(JacobianTarget, species_array_id)
+      .PythonInterfaceReadWriteData(JacobianTarget, string_id)
+      .PythonInterfaceReadWriteData(JacobianTarget, species_id);
 
   PythonInterfaceWorkspaceArray(JacobianTarget);
 

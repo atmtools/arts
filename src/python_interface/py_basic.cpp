@@ -1,21 +1,11 @@
-#include <auto_md.h>
-#include <pybind11/cast.h>
-#include <pybind11/eval.h>
-#include <pybind11/pybind11.h>
-#include <supergeneric.h>
-#include <xml_io.h>
-
-#include <algorithm>
-#include <functional>
-#include <initializer_list>
-
 #include "py_macros.h"
-#include "python_interface.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_basic(py::module_& m) {
   py::class_<Verbosity>(m, "Verbosity")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(Verbosity)
       .def(py::init<Index, Index, Index>(),
            py::arg("agenda") = 0,
            py::arg("screen") = 0,
@@ -46,6 +36,7 @@ void py_basic(py::module_& m) {
   py::class_<String>(m, "String")
       .def(py::init<>())
       .def(py::init<char*>())
+      .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
       .PythonInterfaceIndexItemAccess(String)
       .PythonInterfaceBasicIteration(String)
@@ -65,6 +56,7 @@ be accessed without copy using element-wise access operators.
 
   py::class_<ArrayOfIndex>(m, "ArrayOfIndex", py::buffer_protocol())
       .PythonInterfaceFileIO(ArrayOfIndex)
+      .PythonInterfaceWorkspaceVariableConversion(ArrayOfIndex)
       .PythonInterfaceBasicRepresentation(ArrayOfIndex)
       .PythonInterfaceArrayDefault(Index)
       .def_buffer([](ArrayOfIndex& x) -> py::buffer_info {
@@ -100,6 +92,7 @@ be accessed without copy using element-wise access operators.
   py::class_<Numeric_>(m, "Numeric")
       .def(py::init<>())
       .def(py::init<Numeric>())
+      .PythonInterfaceWorkspaceVariableConversion(Numeric_)
       .def_property("val", [](Numeric_& x){return x.val;}, [](Numeric_& x, Numeric y){x.val = y;})
       .PythonInterfaceBasicRepresentation(Numeric_)
       .def(
@@ -152,6 +145,7 @@ You can get copies and set the value by the \"val\" property
   py::class_<Index_>(m, "Index")
       .def(py::init<>())
       .def(py::init<Index>())
+      .PythonInterfaceWorkspaceVariableConversion(Index_)
       .def_property("val", [](Index_& x){return x.val;}, [](Index_& x, Index y){x.val = y;})
       .PythonInterfaceBasicRepresentation(Index_)
       .def(

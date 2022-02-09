@@ -73,9 +73,25 @@ const T& select_in(const WorkspaceVariable wsv, const std::optional<VariantT>& v
   return wsv;
 }
 
+template <std::size_t i, class SelectT, class VariantT>
+SelectT select_internal(VariantT val) {
+  constexpr std::size_t n = std::variant_size_v<VariantT>;
+  
+  if constexpr (i + 1 == n) {
+    return std::get<i>(val);
+  } else {
+    if (val.index() == i) return std::get<i>(val);
+    return select_internal<i+1, SelectT>(val);
+  }
+}
+
 template <class SelectT, class VariantT>
 SelectT select_wvv(VariantT val) {
-  return std::visit([](auto&& out) -> SelectT {return *out;}, val);
+  constexpr std::size_t n = std::variant_size_v<VariantT>;
+  static_assert(n > 1, "Cannot select a workspace variable variant from 0 arguments");
+
+  if (val.index() == 0) return * std::get<0>(val);
+  return select_internal<1, SelectT>(val);
 }
 }  // namespace Python
 

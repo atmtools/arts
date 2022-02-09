@@ -112,8 +112,11 @@ will output the expected greeting
 
     return WorkspaceVariable{w, varpos->second};
   });
-    
-  ws.def("swap", [](Workspace* w_, Workspace* w_2){std::swap(w_, w_2);}, py::return_value_policy::reference_internal);
+
+  ws.def(
+      "swap",
+      [](Workspace* w_, Workspace* w_2) { std::swap(w_, w_2); },
+      py::return_value_policy::reference_internal);
 
   py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
       .def_property(
@@ -125,11 +128,12 @@ will output the expected greeting
           "Returns a proper Arts type")
       .def("__str__",
            [](WorkspaceVariable& wsv) {
-             return var_string("Arts Workspace Variable ",
-                               Workspace::wsv_data[wsv.pos].Name(),
-                               " of type ",
-                               global_data::wsv_group_names[
-                                   Workspace::wsv_data[wsv.pos].Group()]);
+             return var_string(
+                 "Arts Workspace Variable ",
+                 Workspace::wsv_data[wsv.pos].Name(),
+                 " of type ",
+                 global_data::wsv_group_names[Workspace::wsv_data[wsv.pos]
+                                                  .Group()]);
            })
       .def("__repr__", [](WorkspaceVariable& wsv) {
         return var_string(
@@ -139,6 +143,7 @@ will output the expected greeting
             global_data::wsv_group_names[Workspace::wsv_data[wsv.pos].Group()]);
       });
 
+  // Should be last as it contains several implicit conversions
   py_auto_workspace(ws);
 }
 }  // namespace Python

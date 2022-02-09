@@ -1,14 +1,11 @@
-#include <auto_md.h>
-#include <pybind11/pybind11.h>
-#include <xml_io.h>
-
 #include "py_macros.h"
-#include "python_interface.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_time(py::module_& m) {
   py::class_<Timer>(m, "Timer")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(Timer)
       .PythonInterfaceFileIO(Timer)
       .def_readwrite("running", &Timer::running)
       .def_readwrite("finished", &Timer::finished)
@@ -22,6 +19,7 @@ void py_time(py::module_& m) {
 
   py::class_<Time>(m, "Time")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(Time)
       .def(py::init<const String&>())
       .PythonInterfaceFileIO(Time)
       .PythonInterfaceBasicRepresentation(Time)

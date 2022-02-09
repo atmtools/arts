@@ -1,8 +1,5 @@
-#include <auto_md.h>
-#include <xml_io.h>
-
 #include "py_macros.h"
-#include "python_interface.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_rte(py::module_& m) {
@@ -10,6 +7,7 @@ void py_rte(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Index, Index>())
+      .PythonInterfaceWorkspaceVariableConversion(TransmissionMatrix)
       .PythonInterfaceFileIO(TransmissionMatrix)
       .PythonInterfaceBasicRepresentation(TransmissionMatrix)
       .def("__getitem__",
@@ -58,6 +56,7 @@ void py_rte(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Index, Index>())
+      .PythonInterfaceWorkspaceVariableConversion(RadiationVector)
       .PythonInterfaceFileIO(RadiationVector)
       .PythonInterfaceBasicRepresentation(RadiationVector)
       .def("__getitem__",
@@ -104,6 +103,7 @@ void py_rte(py::module_& m) {
            py::arg_v("nza", Index(1), "Index(1)"),
            py::arg_v("naa", Index(1), "Index(1)"),
            py::arg_v("v", Numeric(0), "Numeric(0)"))
+      .PythonInterfaceWorkspaceVariableConversion(StokesVector)
       .PythonInterfaceFileIO(StokesVector)
       .PythonInterfaceBasicRepresentation(StokesVector)
       .def_property(
@@ -148,6 +148,7 @@ void py_rte(py::module_& m) {
            py::arg_v("nza", Index(1), "Index(1)"),
            py::arg_v("naa", Index(1), "Index(1)"),
            py::arg("v"))
+      .PythonInterfaceWorkspaceVariableConversion(PropagationMatrix)
       .PythonInterfaceFileIO(PropagationMatrix)
       .PythonInterfaceBasicRepresentation(PropagationMatrix)
       .def_property(
@@ -200,6 +201,7 @@ void py_rte(py::module_& m) {
 
   py::class_<GasAbsLookup>(m, "GasAbsLookup")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(GasAbsLookup)
       .PythonInterfaceFileIO(GasAbsLookup)
       .PythonInterfaceBasicRepresentation(GasAbsLookup)
       .PythonInterfaceBasicReferenceProperty(

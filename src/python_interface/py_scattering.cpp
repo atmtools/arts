@@ -1,8 +1,5 @@
-#include <auto_md.h>
-#include <xml_io.h>
-
 #include "py_macros.h"
-#include "python_interface.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_scattering(py::module_& m) {
@@ -13,6 +10,7 @@ void py_scattering(py::module_& m) {
 
   py::class_<SingleScatteringData>(m, "SingleScatteringData")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(SingleScatteringData)
       .PythonInterfaceFileIO(SingleScatteringData)
       .PythonInterfaceBasicRepresentation(SingleScatteringData)
       .def_readwrite("ptype", &SingleScatteringData::ptype)
@@ -27,6 +25,7 @@ void py_scattering(py::module_& m) {
 
   py::class_<ScatteringMetaData>(m, "ScatteringMetaData")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(ScatteringMetaData)
       .PythonInterfaceFileIO(ScatteringMetaData)
       .PythonInterfaceBasicRepresentation(ScatteringMetaData)
       .def_readwrite("description", &ScatteringMetaData::description)

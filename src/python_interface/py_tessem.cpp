@@ -1,13 +1,11 @@
-#include <auto_md.h>
-#include <xml_io.h>
-
 #include "py_macros.h"
-#include "python_interface.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_tessem(py::module_& m) {
   py::class_<TessemNN>(m, "TessemNN")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(TessemNN)
       .PythonInterfaceFileIO(TessemNN)
       .def_readwrite("nb_inputs", &TessemNN::nb_inputs)
       .def_readwrite("nb_outputs", &TessemNN::nb_outputs)

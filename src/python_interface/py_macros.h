@@ -166,6 +166,12 @@
           [](Type& x, const Other& y) { return y - x; }, \
           py::is_operator())
 
+#define PythonInterfaceWorkspaceVariableConversion(Type) \
+  def(py::init([](const WorkspaceVariable* w) {          \
+    Type& v = *w;                                        \
+    return new Type(v);                                  \
+  }))
+
 #define PythonInterfaceWorkspaceArray(BaseType)                           \
   auto auto_impl_name##BaseType =                                         \
       py::class_<Array<BaseType>>(m, "ArrayOf" #BaseType);                \
@@ -175,7 +181,8 @@
                                                                           \
   auto_impl_name##BaseType.PythonInterfaceFileIO(Array<BaseType>)         \
       .PythonInterfaceBasicRepresentation(Array<BaseType>)                \
-      .PythonInterfaceArrayDefault(BaseType)
+      .PythonInterfaceArrayDefault(BaseType)                              \
+      .PythonInterfaceWorkspaceVariableConversion(Array<BaseType>)
 
 #define PythonInterfaceGriddedField(Type)                                \
   def_readwrite("data", &Type::data)                                     \
@@ -225,14 +232,5 @@
 
 #define PythonInterfaceReadWriteData(Type, data) \
   def_readwrite(#data, &Type::data, py::return_value_policy::reference_internal)
-
-#define PythonInterfaceReferenceFromPointer(Type)     \
-  m.def(                                              \
-      #Type,                                          \
-      [](std::size_t x) -> Type& {                    \
-        ARTS_USER_ERROR_IF(x == 0, "Not for nullptr") \
-        return *reinterpret_cast<Type*>(x);           \
-      },                                              \
-      py::return_value_policy::reference);
 
 #endif

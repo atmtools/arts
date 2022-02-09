@@ -1,20 +1,5 @@
-#include <matpackVII.h>
-#include <pybind11/attr.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include <xml_io.h>
-
-#include <algorithm>
-#include <functional>
-#include <memory>
-#include <stdexcept>
-
-#include "debug.h"
-#include "matpackI.h"
 #include "py_macros.h"
-#include "python_interface.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_matpack(py::module_& m) {
@@ -22,6 +7,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Index, Numeric>())
+      .PythonInterfaceWorkspaceVariableConversion(Vector)
       .def(py::init<const std::vector<Numeric>&>())
       .def(py::init<Numeric, Index, Numeric>())
       .def_property_readonly(
@@ -71,6 +57,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index>())
       .def(py::init<Index, Index, Numeric>())
+      .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
@@ -162,6 +149,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index>())
       .def(py::init<Index, Index, Index, Numeric>())
+      .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
@@ -262,6 +250,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Numeric>())
+      .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
@@ -372,6 +361,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Numeric>())
+      .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
@@ -495,6 +485,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Numeric>())
+      .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
@@ -636,6 +627,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Index, Numeric>())
+      .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 

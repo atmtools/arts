@@ -14,13 +14,21 @@ void py_species(py::module_& m);
 void py_sparse(py::module_& m);
 void py_mcantenna(py::module_& m);
 void py_scattering(py::module_& m);
-void py_spec(py::module_& m);
+void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
 void py_workspace(py::module_& m);
-void py_workspace_references(py::module_& m);
 void py_agenda(py::module_& m);
 void py_agenda_methods(py::module_& m);
 
+/** Construct a new pybind11 module object to hold all the Arts types and functions
+ * 
+ * Note: the order of execution mostly does not matter bar for two important things:
+ *
+ * 1) The auto-generated documentation must know about a type to give the python name
+ *
+ * 2) The workspace auto-generation should be last, it contains some automatic trans-
+ *    lations that would otherwise mess things up
+ */
 PYBIND11_MODULE(pyarts_cpp, m) {
   m.doc() = "Contains direct C++ interface for Arts";
 
@@ -29,25 +37,19 @@ PYBIND11_MODULE(pyarts_cpp, m) {
       "Contains all exposed internal and external Arts classes except Index and Numeric");
   py_basic(classes);
   py_matpack(classes);
-  py_ppath(classes);
   py_griddedfield(classes);
   py_time(classes);
+  py_species(classes);
+  py_spectroscopy(classes);
+  py_ppath(classes);
   py_tessem(classes);
   py_rte(classes);
   py_telsem(classes);
-  py_species(classes);
   py_sparse(classes);
   py_mcantenna(classes);
   py_scattering(classes);
-  py_spec(classes);
   py_jac(classes);
   py_quantum(classes);
-
-  // Temporary to work with old-style workspaces
-  auto workspace_references =
-      m.def_submodule("workspace_references",
-                      "Return a reference from old C-API workspace variables");
-  py_workspace_references(workspace_references);
 
   auto workspace = 
       m.def_submodule("workspace",

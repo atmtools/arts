@@ -373,8 +373,8 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
     os << "    py::cpp_function([](Workspace& w) -> WorkspaceVariable ";
     os << "{return WorkspaceVariable{w, " << data.artspos
        << "};}, py::return_value_policy::reference_internal),\n";
-    os << "    [](Workspace& w, std::variant<const WorkspaceVariable*, " << data.varname_group
-       << "*> val) {"<<data.varname_group<<"& v_ = WorkspaceVariable{w, " << data.artspos << "}; v_ = select_gin<"<<data.varname_group<<">(val);},\n";
+    os << "    [](Workspace& w, " << data.varname_group
+       << " val) {"<<data.varname_group<<"& v_ = WorkspaceVariable{w, " << data.artspos << "}; v_ = std::move(val);},\n";
     os << "    R\"-VARNAME_DESC-(\n"
        << data.varname_desc << ")-VARNAME_DESC-\""
        << ");";
@@ -770,10 +770,23 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
       if (arg.types.size() == 1) {
         os << arg.types.front();
         if (arg.types.front() == "Index" or arg.types.front() == "Numeric") os << "_";
+        os << " *";
       } else {
-        os << "WorkspaceVariablesVariant";
+        ArrayOfString copy_types = arg.types;
+        std::sort(copy_types.begin(), copy_types.end());
+        copy_types.erase(std::unique(copy_types.begin(), copy_types.end()), copy_types.end());
+
+        has_any = false;
+        for (auto& t: copy_types) {
+          if (has_any) os << ", ";
+          has_any = true;
+          os << t;
+        if (t == "Index" or t == "Numeric") os << "_";
+          os << " *";
+        }
       }
-      os << " *>";
+      os << '>';
+
       if (not arg.gen or arg.def) os << '>';
       os << ' ' << arg.name;
     }
@@ -1201,7 +1214,16 @@ ws.def("__setattr__", [](Workspace& w, const char * name, WorkspaceVariablesVari
   var.initialize_if_not();
   var = x;
 });
+
 )--";
+
+
+  for (auto& [name, group] : arts.group) {
+    os << "py::implicitly_convertible<const WorkspaceVariable, "<< name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os <<">();\n";
+  }
+  os << '\n';
 }
 
 struct TypeVal {

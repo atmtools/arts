@@ -1,16 +1,11 @@
-#include <auto_md.h>
-#include <pybind11/pybind11.h>
-#include <xml_io.h>
-
-#include "debug.h"
-#include "matpackII.h"
 #include "py_macros.h"
-#include "python_interface.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_sparse(py::module_& m) {
   py::class_<Sparse>(m, "Sparse")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(Sparse)
       .PythonInterfaceFileIO(Sparse)
       .PythonInterfaceBasicRepresentation(Sparse);
 
@@ -35,6 +30,7 @@ void py_sparse(py::module_& m) {
 
   py::class_<CovarianceMatrix>(m, "CovarianceMatrix")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(CovarianceMatrix)
       .def_property(
           "blocks",
           [](CovarianceMatrix& x) { return x.get_blocks(); },

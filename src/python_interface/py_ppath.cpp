@@ -1,9 +1,5 @@
-#include <auto_md.h>
-#include <pybind11/pybind11.h>
-#include <xml_io.h>
-
 #include "py_macros.h"
-#include "python_interface.h"
+#include <py_auto_interface.h>
 
 namespace Python {
 void py_ppath(py::module_& m) {
@@ -41,6 +37,7 @@ void py_ppath(py::module_& m) {
                     ArrayOfGridPos,
                     ArrayOfGridPos,
                     ArrayOfGridPos>())
+      .PythonInterfaceWorkspaceVariableConversion(Ppath)
       .PythonInterfaceFileIO(Ppath)
       .def_readwrite("dim", &Ppath::dim)
       .def_readwrite("np", &Ppath::np)
@@ -63,6 +60,7 @@ void py_ppath(py::module_& m) {
       .def_readwrite("gp_lon", &Ppath::gp_lon);
 
   py::class_<ArrayOfPpath>(m, "ArrayOfPpath")
+      .PythonInterfaceWorkspaceVariableConversion(ArrayOfPpath)
       .PythonInterfaceFileIO(ArrayOfPpath)
       .PythonInterfaceArrayDefault(Ppath);
   py::implicitly_convertible<std::vector<Ppath>, ArrayOfPpath>();
