@@ -34,7 +34,7 @@
 #define nc_io_h
 
 #include <netcdf.h>
-#include "abs_species_tags.h"
+#include "species_tags.h"
 #include "exceptions.h"
 #include "messages.h"
 #include "mystring.h"
