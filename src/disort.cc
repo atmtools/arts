@@ -996,10 +996,10 @@ void surf_albedoCalc(Workspace& ws,
                                  rtp_pos,
                                  rtp_los,
                                  surface_rtprop_agenda);
-    if (surface_los.nrows() != 1) {
+    if (surface_los.nrows() > 1) {
       ostringstream os;
       os << "For this method, *surface_rtprop_agenda* must be set up to\n"
-         << "return a single direction in *surface_los*.";
+         << "return zero or one direction in *surface_los*.";
       throw runtime_error(os.str());
     }
 
@@ -1012,6 +1012,8 @@ void surf_albedoCalc(Workspace& ws,
          << "  for different LOS.\n";
       throw runtime_error(os.str());
     }
+    // Nothing to do if no surface_los (which means blackbody surface)
+    // as dir_refl_coeff already set to 0    
     if (surface_los.nrows() > 0) {
       for (Index f_index = 0; f_index < nf; f_index++)
         dir_refl_coeff(rza, f_index) =
@@ -1127,14 +1129,16 @@ void surf_albedoCalcSingleAngle(Workspace& ws,
                                rtp_los,
                                surface_rtprop_agenda);
   
-  if (surface_los.nrows() != 1) {
+  if (surface_los.nrows() > 1) {
     ostringstream os;
     os << "For this method, *surface_rtprop_agenda* must be set up to\n"
-       << "return a single direction in *surface_los*.";
+       << "return zero or one direction in *surface_los*.";
     throw runtime_error(os.str());
   }
-  for (Index f=0; f<f_grid.nelem(); ++f) {
-    albedo[f] = surface_rmatrix(0,f,0,0);
+  if (surface_los.nrows()) {
+    albedo[joker] = surface_rmatrix(0,joker,0,0);
+  } else {
+    albedo = 0;  // Blackbody assumed if no surface_los
   }
 
   btemp = surface_skin_t;
@@ -1144,5 +1148,4 @@ void surf_albedoCalcSingleAngle(Workspace& ws,
        << "which is not considered a meaningful value.\n";
     throw runtime_error(os.str());
   }
-
 }

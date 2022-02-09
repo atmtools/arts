@@ -2332,269 +2332,290 @@ void nlteSetByQuantumIdentifiers(
   }
 }
 
-  /////////////////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////// Destructively manipulate content of whole catalog
-  /////////////////////////////////////////////////////////////////////////////////////
 
-  /* Workspace method: Doxygen documentation will be auto-generated */
-  void abs_lines_per_speciesSetEmpty(
-      ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
-      const ArrayOfArrayOfSpeciesTag& abs_species,
-      const Verbosity&) {
-    abs_lines_per_species = ArrayOfArrayOfAbsorptionLines(
-        abs_species.nelem(), ArrayOfAbsorptionLines(0));
-  }
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////// Destructively manipulate content of whole catalog
+/////////////////////////////////////////////////////////////////////////////////////
 
-  /* Workspace method: Doxygen documentation will be auto-generated */
-  void abs_linesCompact(ArrayOfAbsorptionLines & abs_lines,
-                        const Vector& f_grid,
-                        const Verbosity&) {
-    const Numeric fmax = max(f_grid);
-    const Numeric fmin = min(f_grid);
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetEmpty(
+    ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Verbosity&) {
+  abs_lines_per_species = ArrayOfArrayOfAbsorptionLines(
+      abs_species.nelem(), ArrayOfAbsorptionLines(0));
+}
 
-    for (auto& band : abs_lines) {
-      for (Index k = band.NumLines() - 1; k >= 0; k--) {
-        const Numeric fcut_upp = band.CutoffFreq(k);
-        const Numeric fcut_low = band.CutoffFreqMinus(k);
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesCompact(ArrayOfAbsorptionLines & abs_lines,
+                      const Vector& f_grid,
+                      const Verbosity&) {
+  const Numeric fmax = max(f_grid);
+  const Numeric fmin = min(f_grid);
 
-        if (fmax < fcut_low or fmin > fcut_upp) {
-          band.RemoveLine(k);
-        }
+  for (auto& band : abs_lines) {
+    for (Index k = band.NumLines() - 1; k >= 0; k--) {
+      const Numeric fcut_upp = band.CutoffFreq(k);
+      const Numeric fcut_low = band.CutoffFreqMinus(k);
+
+      if (fmax < fcut_low or fmin > fcut_upp) {
+        band.RemoveLine(k);
       }
     }
   }
+}
 
-  /* Workspace method: Doxygen documentation will be auto-generated */
-  void abs_lines_per_speciesCompact(
-      ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
-      const Vector& f_grid,
-      const Verbosity& verbosity) {
-    for (auto& lines : abs_lines_per_species) {
-      abs_linesCompact(lines, f_grid, verbosity);
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesCompact(
+    ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
+    const Vector& f_grid,
+    const Verbosity& verbosity) {
+  for (auto& lines : abs_lines_per_species) {
+    abs_linesCompact(lines, f_grid, verbosity);
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesRemoveBand(ArrayOfAbsorptionLines & abs_lines,
+                         const QuantumIdentifier& qid,
+                         const Verbosity&) {
+  for (Index i = 0; i < abs_lines.nelem(); i++) {
+    const Quantum::Number::StateMatch lt(qid, abs_lines[i].quantumidentity);
+    if (lt == Quantum::Number::StateMatchType::Full) {
+      abs_lines.erase(abs_lines.begin() + i);
+      break;
     }
   }
+}
 
-  /* Workspace method: Doxygen documentation will be auto-generated */
-  void abs_linesRemoveBand(ArrayOfAbsorptionLines & abs_lines,
-                           const QuantumIdentifier& qid,
-                           const Verbosity&) {
-    for (Index i = 0; i < abs_lines.nelem(); i++) {
-      const Quantum::Number::StateMatch lt(qid, abs_lines[i].quantumidentity);
-      if (lt == Quantum::Number::StateMatchType::Full) {
-        abs_lines.erase(abs_lines.begin() + i);
-        break;
-      }
-    }
-  }
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////// Manipulation of other ARTS variables based on AbsorptionLines
+/////////////////////////////////////////////////////////////////////////////////////
 
-  /////////////////////////////////////////////////////////////////////////////////////
-  /////////////////////// Manipulation of other ARTS variables based on AbsorptionLines
-  /////////////////////////////////////////////////////////////////////////////////////
+template <class T>
+std::vector<T> linspace(
+    T s, T e, typename std::vector<T>::size_type count) noexcept {
+  std::vector<T> ls(count);
 
-  template <class T>
-  std::vector<T> linspace(
-      T s, T e, typename std::vector<T>::size_type count) noexcept {
-    std::vector<T> ls(count);
-
-    if (count == 0) return ls;
-    if (count == 1) {
-      ls.front() = (e + s) / 2;
-      return ls;
-    }
-    const T step = (e - s) / T(count - 1);
-    ls.front() = s;
-    ls.back() = e;
-    for (typename std::vector<T>::size_type i = 1; i < count - 1; ++i)
-      ls[i] = s + step * T(i);
+  if (count == 0) return ls;
+  if (count == 1) {
+    ls.front() = (e + s) / 2;
     return ls;
   }
+  const T step = (e - s) / T(count - 1);
+  ls.front() = s;
+  ls.back() = e;
+  for (typename std::vector<T>::size_type i = 1; i < count - 1; ++i)
+    ls[i] = s + step * T(i);
+  return ls;
+}
 
-  /* Workspace method: Doxygen documentation will be auto-generated */
-  void f_gridFromAbsorptionLines(
-      Vector & f_grid,
-      const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-      const Numeric& delta_f_low,
-      const Numeric& delta_f_upp,
-      const Index& num_freqs,
-      const Verbosity&) {
-    const Index n = nelem(abs_lines_per_species);
+/* Workspace method: Doxygen documentation will be auto-generated */
+void f_gridFromAbsorptionLines(
+    Vector & f_grid,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const Numeric& delta_f_low,
+    const Numeric& delta_f_upp,
+    const Index& num_freqs,
+    const Verbosity&) {
+  const Index n = nelem(abs_lines_per_species);
 
-    ARTS_USER_ERROR_IF(delta_f_low >= delta_f_upp,
-                       "The lower frequency delta has to be smaller "
-                       "than the upper frequency delta");
-    ARTS_USER_ERROR_IF(num_freqs == 0, "Need more than zero frequency points");
-    ARTS_USER_ERROR_IF(n < 1,
-                       "No lines found.  Error?  Use *VectorSet* "
-                       "to resize *f_grid*");
+  ARTS_USER_ERROR_IF(delta_f_low >= delta_f_upp,
+                     "The lower frequency delta has to be smaller "
+                     "than the upper frequency delta");
+  ARTS_USER_ERROR_IF(num_freqs == 0, "Need more than zero frequency points");
+  ARTS_USER_ERROR_IF(n < 1,
+                     "No lines found.  Error?  Use *VectorSet* "
+                     "to resize *f_grid*");
 
-    std::vector<Numeric> fout(0);
-    for (auto& lines : abs_lines_per_species) {
-      for (auto& band : lines) {
-        for (Index k = 0; k < band.NumLines(); k++) {
-          if (num_freqs > 1) {
-            auto ftmp =
-                linspace<Numeric>(band.lines[k].F0 + delta_f_low,
-                                  band.lines[k].F0 + delta_f_upp,
-                                  std::vector<Numeric>::size_type(num_freqs));
-            for (auto& f : ftmp) {
-              if (f > 0) fout.push_back(f);
-            }
-          } else {
-            fout.push_back(band.lines[k].F0);
+  std::vector<Numeric> fout(0);
+  for (auto& lines : abs_lines_per_species) {
+    for (auto& band : lines) {
+      for (Index k = 0; k < band.NumLines(); k++) {
+        if (num_freqs > 1) {
+          auto ftmp =
+              linspace<Numeric>(band.lines[k].F0 + delta_f_low,
+                                band.lines[k].F0 + delta_f_upp,
+                                std::vector<Numeric>::size_type(num_freqs));
+          for (auto& f : ftmp) {
+            if (f > 0) fout.push_back(f);
           }
+        } else {
+          fout.push_back(band.lines[k].F0);
         }
       }
     }
-
-    std::sort(fout.begin(), fout.end());
-    fout.erase(std::unique(fout.begin(), fout.end()), fout.end());
-    f_grid.resize(fout.size());
-    for (Index i = 0; i < f_grid.nelem(); i++) f_grid[i] = fout[i];
   }
 
-  /////////////////////////////////////////////////////////
-  //////////////////// Remove lines safely from the catalog
-  /////////////////////////////////////////////////////////
+  std::sort(fout.begin(), fout.end());
+  fout.erase(std::unique(fout.begin(), fout.end()), fout.end());
+  f_grid.resize(fout.size());
+  for (Index i = 0; i < f_grid.nelem(); i++) f_grid[i] = fout[i];
+}
 
-  void remove_impl(ArrayOfAbsorptionLines & abs_lines,
-                   const ArrayOfSpeciesTag& species,
-                   const Numeric lower_frequency,
-                   const Numeric upper_frequency,
-                   const Numeric lower_intensity,
-                   const Index safe,
-                   const Verbosity& verbosity) {
-    const bool care_about_species = species.nelem();
+/////////////////////////////////////////////////////////
+//////////////////// Remove lines safely from the catalog
+/////////////////////////////////////////////////////////
 
-    for (auto& band : abs_lines) {
-      if (care_about_species and
-          species[0].Isotopologue() not_eq band.Isotopologue())
-        continue;
+void remove_impl(ArrayOfAbsorptionLines & abs_lines,
+                 const ArrayOfSpeciesTag& species,
+                 const Numeric lower_frequency,
+                 const Numeric upper_frequency,
+                 const Numeric lower_intensity,
+                 const Index safe,
+                 const Index flip_flims,                 
+                 const Verbosity& verbosity) {
+  const bool care_about_species = species.nelem();
 
-      auto& lines = band.lines;
+  for (auto& band : abs_lines) {
+    if (care_about_species and
+        species[0].Isotopologue() not_eq band.Isotopologue())
+      continue;
 
-      if (not safe) {
-        std::vector<std::size_t> rem;
+    auto& lines = band.lines;
+
+    if (not safe) {
+      std::vector<std::size_t> rem;
+      if (flip_flims) {
+        for (std::size_t i=lines.size()-1; i<lines.size(); i--) {
+          auto& line = lines[i];
+          if ((line.F0 >= lower_frequency and
+               line.F0 <= upper_frequency) or
+              line.I0 < lower_intensity)
+            rem.push_back(i);
+        }
+      } else {      
         for (std::size_t i = lines.size() - 1; i < lines.size(); i--) {
           auto& line = lines[i];
           if (line.F0 < lower_frequency or line.F0 > upper_frequency or
               line.I0 < lower_intensity)
             rem.push_back(i);
         }
-
-        for (auto i : rem) band.RemoveLine(i);
-      } else {
-        const bool all_low = std::all_of(
-            lines.begin(), lines.end(), [lower_frequency](auto& line) {
-              return line.F0 < lower_frequency;
-            });
-        const bool all_upp = std::all_of(
-            lines.begin(), lines.end(), [upper_frequency](auto& line) {
-              return line.F0 > upper_frequency;
-            });
-        const bool low_int = std::all_of(
-            lines.begin(), lines.end(), [lower_intensity](auto& line) {
-              return line.I0 < lower_intensity;
-            });
-        if (all_low or all_upp or low_int) lines.resize(0);
       }
-    }
-
-    // Removes empty bands
-    abs_linesRemoveEmptyBands(abs_lines, verbosity);
-  }
-
-  void abs_linesRemoveLines(ArrayOfAbsorptionLines & abs_lines,
-                            const Numeric& lower_frequency,
-                            const Numeric& upper_frequency,
-                            const Numeric& lower_intensity,
-                            const Index& safe,
-                            const Verbosity& verbosity) {
-    remove_impl(abs_lines,
-                {},
-                lower_frequency,
-                upper_frequency,
-                lower_intensity,
-                safe,
-                verbosity);
-  }
-
-  void abs_lines_per_speciesRemoveLines(
-      ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
-      const Numeric& lower_frequency,
-      const Numeric& upper_frequency,
-      const Numeric& lower_intensity,
-      const Index& safe,
-      const Verbosity& verbosity) {
-    for (auto& abs_lines : abs_lines_per_species)
-      abs_linesRemoveLines(abs_lines,
-                           lower_frequency,
-                           upper_frequency,
-                           lower_intensity,
-                           safe,
-                           verbosity);
-  }
-
-  void abs_linesRemoveLinesFromSpecies(ArrayOfAbsorptionLines & abs_lines,
-                                       const ArrayOfSpeciesTag& species,
-                                       const Numeric& lower_frequency,
-                                       const Numeric& upper_frequency,
-                                       const Numeric& lower_intensity,
-                                       const Index& safe,
-                                       const Verbosity& verbosity) {
-    ARTS_USER_ERROR_IF(
-        species.nelem() not_eq 1, "Must have a single species, got: ", species)
-    ARTS_USER_ERROR_IF(species[0].Isotopologue().joker(),
-                       "Cannot give joker species, got: ",
-                       species)
-
-    remove_impl(abs_lines,
-                species,
-                lower_frequency,
-                upper_frequency,
-                lower_intensity,
-                safe,
-                verbosity);
-  }
-
-  void abs_lines_per_speciesRemoveLinesFromSpecies(
-      ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
-      const ArrayOfSpeciesTag& species,
-      const Numeric& lower_frequency,
-      const Numeric& upper_frequency,
-      const Numeric& lower_intensity,
-      const Index& safe,
-      const Verbosity& verbosity) {
-    for (auto& abs_lines : abs_lines_per_species)
-      abs_linesRemoveLinesFromSpecies(abs_lines,
-                                      species,
-                                      lower_frequency,
-                                      upper_frequency,
-                                      lower_intensity,
-                                      safe,
-                                      verbosity);
-  }
-
-  void abs_linesSort(ArrayOfAbsorptionLines & abs_lines,
-                     const String& option,
-                     const Verbosity& verbosity) {
-    const auto opt = Options::toSortingOptionOrThrow(option);
-
-    abs_linesRemoveEmptyBands(abs_lines, verbosity);
-
-    switch (opt) {
-      case Options::SortingOption::ByFrequency:
-        for (auto& band : abs_lines) band.sort_by_frequency();
-        std::sort(abs_lines.begin(), abs_lines.end(), [](auto& a, auto& b) {
-          return a.lines[0].F0 <= b.lines[0].F0;
-        });
-        break;
-      case Options::SortingOption::ByEinstein:
-        for (auto& band : abs_lines) band.sort_by_einstein();
-        std::sort(abs_lines.begin(), abs_lines.end(), [](auto& a, auto& b) {
-          return a.lines[0].A <= b.lines[0].A;
-        });
-        break;
-      case Options::SortingOption::FINAL: { /*leave last*/
-      }
+      for (auto i : rem) band.RemoveLine(i);
+    } else {
+      ARTS_USER_ERROR_IF(flip_flims,
+                         "Not allowed to combine GINs flip_flims and safe.")      
+      const bool all_low = std::all_of(
+          lines.begin(), lines.end(), [lower_frequency](auto& line) {
+            return line.F0 < lower_frequency;
+          });
+      const bool all_upp = std::all_of(
+          lines.begin(), lines.end(), [upper_frequency](auto& line) {
+            return line.F0 > upper_frequency;
+          });
+      const bool low_int = std::all_of(
+          lines.begin(), lines.end(), [lower_intensity](auto& line) {
+            return line.I0 < lower_intensity;
+          });
+      if (all_low or all_upp or low_int) lines.resize(0);
     }
   }
+
+  // Removes empty bands
+  abs_linesRemoveEmptyBands(abs_lines, verbosity);
+}
+
+void abs_linesRemoveLines(ArrayOfAbsorptionLines & abs_lines,
+                          const Numeric& lower_frequency,
+                          const Numeric& upper_frequency,
+                          const Numeric& lower_intensity,
+                          const Index& safe,
+                          const Index& flip_flims,
+                          const Verbosity& verbosity) {
+  remove_impl(abs_lines,
+              {},
+              lower_frequency,
+              upper_frequency,
+              lower_intensity,
+              safe,
+              flip_flims,
+              verbosity);
+}
+
+void abs_lines_per_speciesRemoveLines(
+    ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
+    const Numeric& lower_frequency,
+    const Numeric& upper_frequency,
+    const Numeric& lower_intensity,
+    const Index& safe,
+    const Index& flip_flims,
+    const Verbosity& verbosity) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesRemoveLines(abs_lines,
+                         lower_frequency,
+                         upper_frequency,
+                         lower_intensity,
+                         safe,
+                         flip_flims,
+                         verbosity);
+}
+
+void abs_linesRemoveLinesFromSpecies(ArrayOfAbsorptionLines & abs_lines,
+                                     const ArrayOfSpeciesTag& species,
+                                     const Numeric& lower_frequency,
+                                     const Numeric& upper_frequency,
+                                     const Numeric& lower_intensity,
+                                     const Index& safe,
+                                     const Index& flip_flims,
+                                     const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(
+      species.nelem() not_eq 1, "Must have a single species, got: ", species)
+  ARTS_USER_ERROR_IF(species[0].Isotopologue().joker(),
+                     "Cannot give joker species, got: ",
+                     species)
+
+  remove_impl(abs_lines,
+              species,
+              lower_frequency,
+              upper_frequency,
+              lower_intensity,
+              safe,
+              flip_flims,
+              verbosity);
+}
+
+void abs_lines_per_speciesRemoveLinesFromSpecies(
+    ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
+    const ArrayOfSpeciesTag& species,
+    const Numeric& lower_frequency,
+    const Numeric& upper_frequency,
+    const Numeric& lower_intensity,
+    const Index& safe,
+    const Index& flip_flims,
+    const Verbosity& verbosity) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesRemoveLinesFromSpecies(abs_lines,
+                                    species,
+                                    lower_frequency,
+                                    upper_frequency,
+                                    lower_intensity,
+                                    safe,
+                                    flip_flims,
+                                    verbosity);
+}
+
+void abs_linesSort(ArrayOfAbsorptionLines & abs_lines,
+                   const String& option,
+                   const Verbosity& verbosity) {
+  const auto opt = Options::toSortingOptionOrThrow(option);
+
+  abs_linesRemoveEmptyBands(abs_lines, verbosity);
+
+  switch (opt) {
+    case Options::SortingOption::ByFrequency:
+      for (auto& band : abs_lines) band.sort_by_frequency();
+      std::sort(abs_lines.begin(), abs_lines.end(), [](auto& a, auto& b) {
+        return a.lines[0].F0 <= b.lines[0].F0;
+      });
+      break;
+    case Options::SortingOption::ByEinstein:
+      for (auto& band : abs_lines) band.sort_by_einstein();
+      std::sort(abs_lines.begin(), abs_lines.end(), [](auto& a, auto& b) {
+        return a.lines[0].A <= b.lines[0].A;
+      });
+      break;
+    case Options::SortingOption::FINAL: { /*leave last*/
+    }
+  }
+}
