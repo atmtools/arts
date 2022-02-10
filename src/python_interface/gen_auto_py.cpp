@@ -1026,6 +1026,8 @@ struct WorkspaceVariable {
 
   WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj);
 
+  String name() const;
+
   WorkspaceVariable& operator=(WorkspaceVariable& wv2) {
     pos = wv2.pos;
     return *this;
@@ -1067,6 +1069,10 @@ os << R"--(
 void auto_header_definitions(std::ofstream& os, const NameMaps& arts) {
   os << R"--(
 bool WorkspaceVariable::is_initialized() const { return ws.is_initialized(pos); }
+
+String WorkspaceVariable::name() const {
+  return ws.wsv_data[pos].Name();
+}
 
 WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj) : ws(ws_), pos(-1) {
   static std::size_t i = 0;
@@ -1183,14 +1189,12 @@ WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
 void workspace_access(std::ofstream& os, const NameMaps& arts) {
   os << R"--(
 ws.def("__setattr__", [](Workspace& w, const char * name, WorkspaceVariablesVariant x) {
-  auto varpos = std::find_if(Workspace::WsvMap.begin(),
-                             Workspace::WsvMap.end(),
-                             [name](auto& b) { return b.first == name; });
+  auto varpos = w.WsvMap.find(name);
 
-  bool newname = varpos == Workspace::WsvMap.end();
+  bool newname = varpos == w.WsvMap.end();
   Index i=-1;
   if (newname) {
-    ARTS_USER_ERROR_IF(auto sv_name_=std::string_view(name); sv_name_.size() == 0 or sv_name_.front() == '_' or sv_name_.back() == '_',
+    ARTS_USER_ERROR_IF(auto _sv=std::string_view(name); _sv.size() == 0 or _sv.front() == '_' or _sv.back() == '_',
     "Cannot automatically generate names starting or ending with \'_\', it is reserved for internal use.\n"
     "If you really need it, use create_variable at your own risk")
 

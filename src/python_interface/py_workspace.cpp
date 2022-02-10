@@ -27,8 +27,10 @@ void py_workspace(py::module_& m) {
   define_md_data_raw();
   expand_md_data_raw_to_md_data();
   define_md_map();
+  define_md_raw_map();
   define_agenda_data();
   define_agenda_map();
+  ARTS_ASSERT(check_agenda_data());
   global_data::workspace_memory_handler.initialize();
 
   auto ws = py::class_<Workspace>(m, "Workspace").def(py::init([]() {
@@ -126,11 +128,12 @@ will output the expected greeting
                            py::return_value_policy::reference_internal),
           [](WorkspaceVariable& wsv, WorkspaceVariablesVariant x) { wsv = x; },
           "Returns a proper Arts type")
+          .def_property_readonly("name", &WorkspaceVariable::name)
       .def("__str__",
            [](WorkspaceVariable& wsv) {
              return var_string(
                  "Arts Workspace Variable ",
-                 Workspace::wsv_data[wsv.pos].Name(),
+                 wsv.ws.wsv_data[wsv.pos].Name(),
                  " of type ",
                  global_data::wsv_group_names[Workspace::wsv_data[wsv.pos]
                                                   .Group()]);
@@ -138,7 +141,7 @@ will output the expected greeting
       .def("__repr__", [](WorkspaceVariable& wsv) {
         return var_string(
             "Arts Workspace Variable ",
-            Workspace::wsv_data[wsv.pos].Name(),
+            wsv.ws.wsv_data[wsv.pos].Name(),
             " of type ",
             global_data::wsv_group_names[Workspace::wsv_data[wsv.pos].Group()]);
       });

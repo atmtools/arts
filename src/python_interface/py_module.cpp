@@ -19,6 +19,7 @@ void py_jac(py::module_& m);
 void py_workspace(py::module_& m);
 void py_agenda(py::module_& m);
 void py_agenda_methods(py::module_& m);
+void py_std(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -35,6 +36,7 @@ PYBIND11_MODULE(pyarts_cpp, m) {
   auto classes = m.def_submodule(
       "classes",
       "Contains all exposed internal and external Arts classes except Index and Numeric");
+  py_std(classes);
   py_basic(classes);
   py_matpack(classes);
   py_griddedfield(classes);

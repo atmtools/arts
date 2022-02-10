@@ -4,11 +4,22 @@
 #include <xml_io.h>
 
 #include <algorithm>
+#include <filesystem>
 
 #include "py_macros.h"
 
 namespace Python {
 Index create_workspace_gin_default_internal(Workspace& ws, String& key);
+
+Agenda *parse_agenda(const char *filename, const Verbosity& verbosity) {
+  Agenda *a = new Agenda;
+  ArtsParser parser = ArtsParser(*a, filename, verbosity);
+
+  parser.parse_tasklist();
+  a->set_name(filename);
+  a->set_main_agenda();
+  return a;
+}
 
 struct AgendaMethodVariable {
   String name{};
@@ -120,6 +131,12 @@ void py_agenda(py::module_& m) {
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init<>())
+      .def(py::init([](Workspace& ws, std::filesystem::path path) {
+        ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path), "There is no regular file at: ", path.c_str())
+        Agenda *a = parse_agenda(path.c_str(), *reinterpret_cast<Verbosity *>(ws[Workspace::WsvMap.at("verbosity")]));
+        ws.initialize();
+        return a;
+      }))
       .def(
           "add_workspace_method",
           [](Agenda& a,
@@ -154,7 +171,7 @@ void py_agenda(py::module_& m) {
                 global_data::md_data.end(),
                 [name](auto& method) { return name == method.Name(); });
 
-            // Set the actual input and output of all the variables
+            // Set the actual input and output of all the variables (and create anonymous variables)
             for (Index i = 0; i < var_order.nelem(); i++) {
               auto& var = var_order[i];
               try {
@@ -206,9 +223,10 @@ void py_agenda(py::module_& m) {
                   "Cannot find a matching generic function signature for call to: ",
                   name,
                   "\n"
-                  "Note that generic functions can only operate on true Workspace groups, either via a workspace or via python classes representing the type")
+                  "Note that generic functions can only operate on true Workspace groups, either via a workspace variable or via python classes representing the type")
             }
 
+            // Ensure we have all input/output
             std::for_each(
                 var_order.begin(), var_order.end(), [name](auto& var) {
                   ARTS_USER_ERROR_IF(var.ws_pos < 0,
@@ -217,6 +235,8 @@ void py_agenda(py::module_& m) {
                                      " in agenda method ",
                                      name)
                 });
+            
+            // Set the method record
             const auto [in, out] = split_io(var_order);
             a.push_back(
                 MRecord(std::distance(global_data::md_data.begin(), ptr),
@@ -224,7 +244,16 @@ void py_agenda(py::module_& m) {
                         in,
                         {},
                         {}));
-          })
+          }, R"--(
+Adds a named method to the Agenda
+
+All workspace variables are defaulted, and all GIN with defaults
+create anonymous workspace variables.  All input that are not 
+workspace variables are added to the workspace
+
+The input order takes priority over the named argument order,
+so Copy(a, out=b) will not even see the b variable.
+)--")
       .def(
           "add_callback_method",
           [](Agenda& a, Workspace& ws, CallbackFunction x) mutable {
