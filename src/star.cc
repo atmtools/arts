@@ -94,15 +94,11 @@ void get_scattered_starsource(Workspace& ws,
   Index nf = f_grid.nelem();
 
   //allocate and resize
-  Vector temp(ns);
   RadiationVector scattered_starlight_temp(1, ns);
 
   // Calculate the scattered radiation
   for (Index i_f = 0; i_f < nf; i_f++) {
     scattered_starlight_temp = transmitted_starlight(i_f, joker);
-
-    std::cout << "scattered_starlight_temp: " << scattered_starlight_temp << "\n";
-    std::cout << "sca_mat: " << sca_mat << "\n";
     scattered_starlight_temp.leftMul(sca_mat);
 
     for (Index j = 0; j < ns; j++) {
@@ -113,14 +109,17 @@ void get_scattered_starsource(Workspace& ws,
 }
 
 void get_star_background(Matrix& iy,
+                         Index& stars_visible,
                          const ArrayOfStar& stars,
                          const Ppath& ppath,
                          const Index& atmosphere_dim,
                          const Vector& f_grid,
-                         const Index& stokes_dim,
                          const Vector& refellipsoid) {
   const Index nf = f_grid.nelem();
   const Index np = ppath.np;
+
+  //set visibilty flag to default
+  stars_visible = 0;
 
   Vector rtp_pos, rtp_los;
   rtp_pos.resize(atmosphere_dim);
@@ -128,15 +127,13 @@ void get_star_background(Matrix& iy,
   rtp_los.resize(ppath.los.ncols());
   rtp_los = ppath.los(np - 1, joker);
 
-  iy.resize(nf, stokes_dim);
-  iy = 0;
-
   for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-    get_star_radiation(iy, stars[i_star], rtp_pos, rtp_los, refellipsoid);
+    get_star_radiation(iy, stars_visible, stars[i_star], rtp_pos, rtp_los, refellipsoid);
   }
 }
 
 void get_star_radiation(Matrix& iy,
+                        Index& stars_visible,
                          const Star& stars,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
@@ -198,6 +195,9 @@ void get_star_radiation(Matrix& iy,
     star_radiance /= PI;
 
     iy += star_radiance;
+
+    // visibility flag
+    stars_visible = 1;
   }
 }
 

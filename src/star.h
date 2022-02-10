@@ -116,30 +116,32 @@ void get_scattered_starsource(
  * iy is zero if there is no star in the line of sight at TOA.
  *
  * @param[out] iy Matrix radiance spectrum of stars.
+ * @param[out] stars_visible Index indicating if stars are in los
  * @param[in] star Star-structure.
  * @param ppath Propagation path as the WSV.
  * @param atmosphere_dim Index as the WSV.
  * @param f_grid Vector as the WSV.
- * @param stokes_dim Index as the WSV.
  * @param refellipsoid Vector as the WSV.
  */
 void get_star_background(Matrix& iy,
+                         Index& stars_visible,
                          const ArrayOfStar& stars,
                          const Ppath& ppath,
                          const Index& atmosphere_dim,
                          const Vector& f_grid,
-                         const Index& stokes_dim,
                          const Vector& refellipsoid);
 
 /** Checks and adds star radiance if star is in line of sight.
  *
  * @param[in, out] iy Matrix of star.
+ * @param[out] stars_visible Index indicating if stars are in los
  * @param[in] star Star-structure.
  * @param[in] rtp_pos The position of the ppath point.
  * @param[in] rtp_los The line of sight of the ppath.
  * @param[in] refellipsoid As the WSV with the same name.
   */
 void get_star_radiation(Matrix& iy,
+                        Index& stars_visible,
                          const Star& stars,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,

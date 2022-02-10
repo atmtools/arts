@@ -470,6 +470,10 @@ struct RadiationVector {
    */
   void SetZero(size_t i);
 
+  void SetZero() {
+    for (Index i=0; i<Frequencies(); i++) SetZero(i);
+  }
+
   /** Return Vector at position
    * 
    * @param[in] i position

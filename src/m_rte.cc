@@ -406,7 +406,7 @@ void iyClearsky(
     ArrayOfTensor3 dtransmitted_starlight;
     PropagationMatrix K_sca;
     RadiationVector scattered_starlight(nf, ns);
-    ArrayOfRadiationVector dscattered_starlight;
+    ArrayOfRadiationVector dscattered_starlight(nq, RadiationVector(nf, ns));
 
     //dummy variables needed for the output and input of
     // gas_scattering_agenda
@@ -461,6 +461,11 @@ void iyClearsky(
 
           Numeric minP = min(ppvar_p);
           Index star_path_ok = 0;
+
+          //Zeroing scattered_starlight
+          scattered_starlight.SetZero();
+          for (auto &dscattered:dscattered_starlight) dscattered.SetZero();
+
 
           if (star_do && ppvar_p[ip] > minP) {
             // We skip the uppermost altitude
@@ -524,9 +529,11 @@ void iyClearsky(
                                          star_rte_los,
                                          ppath.los(ip, joker),
                                          gas_scattering_agenda);
+
               }
             }
           }
+
 
           // Calculate gas scattering extiction
           gas_scattering_agendaExecute(ws,
@@ -570,6 +577,7 @@ void iyClearsky(
                         dB_dT,
                         jacobian_quantities,
                         jacobian_do);
+
 
       } catch (const std::runtime_error& e) {
         ostringstream os;
@@ -666,36 +674,38 @@ void iyClearsky(
                        verbosity);
 
   // Direct radiative background
-  if (star_do){
-    Matrix iy_direct;
+  Matrix iy_direct(nf, ns, 0.);
 
-    get_star_background(iy_direct,
+  if (star_do) {
+    Matrix iy_direct_toa(nf, ns, 0.);
+
+    Index stars_visible;
+
+    // Get incoming star radiation at top of the atmosphere. if star is not visible
+    // in los, iy_direct_toa will be zero
+    get_star_background(iy_direct_toa,
+                        stars_visible,
                         stars,
                         ppath,
                         atmosphere_dim,
                         f_grid,
-                        stokes_dim,
                         refellipsoid);
 
-    //TODO: Add multiplication with iy_transmittance to get the transmitted
-    // radiation at the end of the ppath.
+    if (stars_visible) {
+      for (Index iv = 0; iv < nf; iv++) {
+        mult(iy_direct(iv, joker),
+             iy_trans_new(iv, joker, joker),
+             iy_direct_toa(iv, joker));
+      }
 
-
-
-    // iy_aux: Direct radiation
-    if (auxDirectRad >= 0)
-        iy_aux[auxDirectRad] = iy_direct;
-
+      //Add star background
+      iy += iy_direct_toa;
+    }
   }
 
-  //sketch-----------------------------------
-  //if ppath background == 9
-  //iy_direct_toa = iy
-  //else
-  //iy_direct_toa = 0
-  //
-  //calculate iy_direct
-  // iy_direct = iy_trans_new * iy_direct_toa
+  // iy_aux: Direct radiation
+  if (auxDirectRad >= 0)
+    iy_aux[auxDirectRad] = iy_direct;
 
   lvl_rad[np - 1] = iy;
 
