@@ -54,6 +54,9 @@
 #include "special_interp.h"
 #include "surface.h"
 #include "tessem.h"
+#include "constants.h"
+
+using Constant::pi;
 
 extern Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;
@@ -440,6 +443,109 @@ void iySurfaceFastem(Workspace& ws,
     }
   }
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceLambertianDirect(Workspace& ws,
+                     Matrix& iy,
+                     ArrayOfTensor3& diy_dx,
+                     const Vector& rte_pos,
+                     const Index& stokes_dim,
+                     const Vector& f_grid,
+                     const Index& atmosphere_dim,
+                     const Vector& p_grid,
+                     const Vector& lat_grid,
+                     const Vector& lon_grid,
+                     const Tensor3& z_field,
+                     const Tensor3& t_field,
+                     const EnergyLevelMap& nlte_field,
+                     const Tensor4& vmr_field,
+                     const ArrayOfArrayOfSpeciesTag& abs_species,
+                     const Tensor3& wind_u_field,
+                     const Tensor3& wind_v_field,
+                     const Tensor3& wind_w_field,
+                     const Tensor3& mag_u_field,
+                     const Tensor3& mag_v_field,
+                     const Tensor3& mag_w_field,
+                     const Matrix& z_surface,
+                     const Vector& refellipsoid,
+                     const Numeric& ppath_lmax,
+                     const Numeric& ppath_lraytrace,
+                     const Index& star_do,
+                     const Index& gas_scattering_do,
+                     const Index& jacobian_do,
+                     const ArrayOfRetrievalQuantity& jacobian_quantities,
+                     const ArrayOfStar& stars,
+                     const Numeric& rte_alonglos_v,
+                     const Agenda& propmat_clearsky_agenda,
+                     const Agenda& water_p_eq_agenda,
+                     const Agenda& gas_scattering_agenda,
+                     const Agenda& ppath_step_agenda,
+                     const Verbosity& verbosity){
+
+  Vector star_rte_los;
+  Matrix transmitted_starlight;
+  ArrayOfTensor3 dtransmitted_starlight;
+
+  Index star_path_ok = 0;
+
+  //do something only if there is a star
+  if (star_do ) {
+
+    //loop over stars
+    for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
+      get_transmitted_starlight(ws,
+                                transmitted_starlight,
+                                dtransmitted_starlight,
+                                star_rte_los,
+                                star_path_ok,
+                                rte_pos,
+                                i_star,
+                                stokes_dim,
+                                f_grid,
+                                atmosphere_dim,
+                                p_grid,
+                                lat_grid,
+                                lon_grid,
+                                z_field,
+                                t_field,
+                                nlte_field,
+                                vmr_field,
+                                abs_species,
+                                wind_u_field,
+                                wind_v_field,
+                                wind_w_field,
+                                mag_u_field,
+                                mag_v_field,
+                                mag_w_field,
+                                z_surface,
+                                refellipsoid,
+                                ppath_lmax,
+                                ppath_lraytrace,
+                                gas_scattering_do,
+                                jacobian_do,
+                                jacobian_quantities,
+                                stars,
+                                rte_alonglos_v,
+                                propmat_clearsky_agenda,
+                                water_p_eq_agenda,
+                                gas_scattering_agenda,
+                                ppath_step_agenda,
+                                verbosity);
+
+      if (star_path_ok) {
+        transmitted_starlight/=pi;
+        iy+=transmitted_starlight;
+
+        for (Index i_jac = 0; i_jac < dtransmitted_starlight.nelem(); i_jac++)
+        {
+          dtransmitted_starlight[i_jac]/=pi;
+          diy_dx[i_jac]+=dtransmitted_starlight[i_jac];
+        }
+      }
+    }
+  }
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceRtpropAgenda(Workspace& ws,

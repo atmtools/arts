@@ -9032,6 +9032,61 @@ Possible models:
                "The version of FASTEM to use.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceLambertianDirect"),
+      DESCRIPTION(
+          "This method calculates the scattering of the direct radiation\n"
+          "for a Lambertian surface.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the scattering of the direct\n"
+          "(star) radiation. No diffuse incoming radiation is considered\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy",
+          "diy_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy",
+         "diy_dx",
+         "rte_pos",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_field",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "z_surface",
+         "refellipsoid",
+         "ppath_lmax",
+         "ppath_lraytrace",
+         "star_do",
+         "gas_scattering_do",
+         "jacobian_do",
+         "jacobian_quantities",
+         "stars",
+         "rte_alonglos_v",
+         "propmat_clearsky_agenda",
+         "water_p_eq_agenda",
+         "gas_scattering_agenda",
+         "ppath_step_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceRtpropAgenda"),
       DESCRIPTION(
           "Interface to *surface_rtprop_agenda* for *iy_surface_agenda*.\n"
