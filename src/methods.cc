@@ -9056,6 +9056,7 @@ Possible models:
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
+         "star_do",
          "atmosphere_dim",
          "nlte_field",
          "cloudbox_on",

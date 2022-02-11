@@ -670,7 +670,8 @@ void iyClearsky(
 
   if (star_do) {
     Matrix iy_direct_toa(nf, ns, 0.);
-
+    Tensor3 total_transmission;
+    total_transmission = tot_tra[np - 1];
     Index stars_visible;
 
     // Get incoming star radiation at top of the atmosphere. if star is not visible
@@ -686,7 +687,7 @@ void iyClearsky(
     if (stars_visible) {
       for (Index iv = 0; iv < nf; iv++) {
         mult(iy_direct(iv, joker),
-             iy_trans_new(iv, joker, joker),
+             total_transmission(iv, joker, joker),
              iy_direct_toa(iv, joker));
       }
 

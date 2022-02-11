@@ -452,6 +452,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                            const Tensor3& iy_transmittance,
                            const Index& iy_id,
                            const Index& jacobian_do,
+                           const Index& star_do,
                            const Index& atmosphere_dim,
                            const EnergyLevelMap& nlte_field,
                            const Index& cloudbox_on,
@@ -508,6 +509,12 @@ void iySurfaceRtpropAgenda(Workspace& ws,
   // Variable to hold down-welling radiation
   Tensor3 I(nlos, nf, stokes_dim);
 
+  ArrayOfString iy_aux_var(0);
+  if (star_do) {
+    iy_aux_var.resize(1);
+    iy_aux_var[0] = "Direct radiation";
+  }
+
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if (nlos > 0) {
     for (Index ilos = 0; ilos < nlos; ilos++) {
@@ -540,7 +547,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                               geo_pos,
                               0,
                               iy_trans_new,
-                              ArrayOfString(0),
+                              iy_aux_var,
                               iy_id_new,
                               iy_unit,
                               cloudbox_on,
@@ -551,6 +558,15 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                               los,
                               rte_pos2,
                               iy_main_agenda);
+
+        //For the case that a star is present and the los is towards a star, we
+        //subtract the direct radiation, so that only the diffuse radiation is considered here.
+        //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+        //radiation at the surface. Otherwise it is zero.
+        if (star_do){
+          iy-=iy_aux[0];
+        }
+
       }
 
       if (iy.ncols() != stokes_dim || iy.nrows() != nf) {
