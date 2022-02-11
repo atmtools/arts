@@ -9101,6 +9101,7 @@ Possible models:
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
+         "star_do",
          "jacobian_quantities",
          "atmosphere_dim",
          "nlte_field",
