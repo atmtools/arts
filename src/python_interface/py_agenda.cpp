@@ -7,6 +7,9 @@
 #include <filesystem>
 
 #include "py_macros.h"
+#include <parameters.h>
+
+extern Parameters parameters;
 
 namespace Python {
 Index create_workspace_gin_default_internal(Workspace& ws, String& key);
@@ -133,6 +136,11 @@ void py_agenda(py::module_& m) {
       .def(py::init<>())
       .def(py::init([](Workspace& ws, std::filesystem::path path) {
         ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path), "There is no regular file at: ", path.c_str())
+
+        std::filesystem::path path_copy = path;
+        parameters.includepath.push_back(path_copy.remove_filename().c_str());
+        parameters.includepath.erase(std::unique(parameters.includepath.begin(), parameters.includepath.end()), parameters.includepath.end());
+
         Agenda *a = parse_agenda(path.c_str(), *reinterpret_cast<Verbosity *>(ws[Workspace::WsvMap.at("verbosity")]));
         ws.initialize();
         return a;
@@ -223,19 +231,19 @@ void py_agenda(py::module_& m) {
                   "Cannot find a matching generic function signature for call to: ",
                   name,
                   "\n"
-                  "Note that generic functions can only operate on true Workspace groups, either via a workspace variable or via python classes representing the type")
+                  "Note that generic functions can only operate on true Workspace groups, "
+                  "either via a workspace variable or via python classes representing the type")
             }
 
             // Ensure we have all input/output
-            std::for_each(
-                var_order.begin(), var_order.end(), [name](auto& var) {
-                  ARTS_USER_ERROR_IF(var.ws_pos < 0,
-                                     "Must set ",
-                                     var.name,
-                                     " in agenda method ",
-                                     name)
-                });
-            
+            for (auto& var : var_order) {
+              ARTS_USER_ERROR_IF(var.ws_pos < 0,
+                                 "Must set ",
+                                 var.name,
+                                 " in agenda method ",
+                                 name)
+            }
+
             // Set the method record
             const auto [in, out] = split_io(var_order);
             a.push_back(
@@ -244,7 +252,8 @@ void py_agenda(py::module_& m) {
                         in,
                         {},
                         {}));
-          }, R"--(
+          },
+          R"--(
 Adds a named method to the Agenda
 
 All workspace variables are defaulted, and all GIN with defaults
@@ -268,19 +277,16 @@ so Copy(a, out=b) will not even see the b variable.
                 name.c_str(), "Callback created by pybind11 API", group_index));
             ws.push(in, new CallbackFunction{x});
 
-            a.push_back(MRecord(
-                std::distance(global_data::md_data.begin(),
-                              std::find_if(global_data::md_data.begin(),
-                                           global_data::md_data.end(),
-                                           [](auto& method) {
-                                             return "CallbackFunctionExecute" ==
-                                                    method.Name();
-                                           })),
-                {},
-                {in},
-                {},
-                {}));
+            auto method_ptr =
+                global_data::MdMap.find("CallbackFunctionExecute");
+            ARTS_USER_ERROR_IF(method_ptr == global_data::MdMap.end(),
+                               "Cannot find CallbackFunctionExecute")
+
+            a.push_back(MRecord(method_ptr->second, {}, {in}, {}, {}));
           })
+      .def("append_agenda_methods", [](Agenda& self, Agenda& other) {
+        for(auto& method: other.Methods()) self.push_back(method);
+      })
       .def("execute", &Agenda::execute)
       .def("check", [](Agenda& a, Workspace& w) { a.check(w, Verbosity{}); })
       .def_property("name", &Agenda::name, &Agenda::set_name)
@@ -301,16 +307,5 @@ so Copy(a, out=b) will not even see the b variable.
       });
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda");
-}
-
-void py_agenda_methods(py::module_& m) {
-  m.def("workspace_methods_list", []() { return global_data::md_data; });
-
-  m.def("workspace_methods_map", []() { return global_data::MdMap; });
-
-  m.def("workspace_methods_raw_list",
-        []() { return global_data::md_data_raw; });
-
-  m.def("workspace_methods_raw_map", []() { return global_data::MdRawMap; });
 }
 }  // namespace Python

@@ -62,6 +62,7 @@ pybind11_add_module(pyarts_cpp
     py_jac.cpp
     py_agenda.cpp
     py_workspace.cpp
+    py_global.cpp
 
     py_auto_workspace.cc
     py_auto_workspace_split_0.cc

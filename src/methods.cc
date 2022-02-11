@@ -649,7 +649,7 @@ void define_md_data_raw() {
       GIN("function"),
       GIN_TYPE("CallbackFunction"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("This will execute as \"function();\""),
+      GIN_DESC("This will execute as \"function(current workspace);\""),
       SETMETHOD(false),
       AGENDAMETHOD(false),
       USES_TEMPLATES(false),

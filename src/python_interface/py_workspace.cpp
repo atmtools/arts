@@ -1,37 +1,63 @@
-#include <auto_md.h>
-#include <global_data.h>
+
 #include <py_auto_interface.h>
-#include <pybind11/attr.h>
-#include <pybind11/cast.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/gil.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include <supergeneric.h>
-#include <xml_io.h>
 
-#include <iterator>
+#include <global_data.h>
+#include <parameters.h>
+#include <workspace_ng.h>
 
-#include "debug.h"
-#include "jacobian.h"
 #include "py_macros.h"
-#include "workspace_ng.h"
+
+#include <cstdlib>
+
+extern Parameters parameters;
+void parse_path_from_environment(String envvar, ArrayOfString &paths);
 
 namespace Python {
 
 void py_auto_workspace(py::class_<Workspace>&);
 void py_workspace(py::module_& m) {
-  define_wsv_group_names();
-  Workspace::define_wsv_data();
-  Workspace::define_wsv_map();
-  define_md_data_raw();
-  expand_md_data_raw_to_md_data();
-  define_md_map();
-  define_md_raw_map();
-  define_agenda_data();
-  define_agenda_map();
-  ARTS_ASSERT(check_agenda_data());
-  global_data::workspace_memory_handler.initialize();
+  static bool init=true;
+  if (init) {
+    init = false;
+
+    define_wsv_group_names();
+    Workspace::define_wsv_data();
+    Workspace::define_wsv_map();
+    define_md_data_raw();
+    expand_md_data_raw_to_md_data();
+    define_md_map();
+    define_md_raw_map();
+    define_agenda_data();
+    define_agenda_map();
+    ARTS_ASSERT(check_agenda_data());
+    global_data::workspace_memory_handler.initialize();
+
+    // Set parameters that are know on first execution
+  #ifdef ARTS_DEFAULT_INCLUDE_DIR
+    String arts_default_include_path(ARTS_DEFAULT_INCLUDE_DIR);
+    if (arts_default_include_path != "" && !parameters.includepath.nelem()) {
+      // Skip delimiters at beginning.
+      String::size_type lastPos =
+          arts_default_include_path.find_first_not_of(":", 0);
+      // Find first "non-delimiter".
+      String::size_type pos =
+          arts_default_include_path.find_first_of(":", lastPos);
+
+      while (String::npos != pos || String::npos != lastPos) {
+        parameters.includepath.push_back(
+            arts_default_include_path.substr(lastPos, pos - lastPos));
+        lastPos = arts_default_include_path.find_first_not_of(":", pos);
+        pos = arts_default_include_path.find_first_of(":", lastPos);
+      }
+    }
+  #endif
+
+    parse_path_from_environment("ARTS_INCLUDE_PATH", parameters.includepath);
+    parse_path_from_environment("ARTS_DATA_PATH", parameters.datapath);
+
+    parameters.includepath.insert(parameters.includepath.begin(), ".");
+    parameters.datapath.insert(parameters.datapath.begin(), ".");
+  }
 
   auto ws = py::class_<Workspace>(m, "Workspace").def(py::init([]() {
     Workspace w{};
