@@ -241,6 +241,9 @@ void iyClearsky(
                       "A secondary propagation path starting at the "
                       "surface and is going directly into the surface "
                       "is found. This is not allowed.");
+  ARTS_USER_ERROR_IF (iy_unit != "1" && star_do,
+                     "If stars are present only iy_unit=\"1\" can be used.");
+
 
   // Set diy_dpath if we are doing are doing jacobian calculations
   ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, ns, false) : ArrayOfTensor3(0);
@@ -257,7 +260,6 @@ void iyClearsky(
   //
   Index auxOptDepth = -1;
   Index auxDirectRad = -1;
-  Index field_flag = -1;
 
   // Allocate, if we have radiation field as iy_aux_var, then
   // we have an array of length naux+(np-1)
@@ -269,7 +271,7 @@ void iyClearsky(
       cnt+=1;
     }
   }
-  iy_aux.resize(cnt);
+  iy_aux.resize(iy_aux_vars.nelem());
 
   // Allocate and set (if possible here) iy_aux
   cnt=-1;
@@ -294,22 +296,12 @@ void iyClearsky(
       iy_aux[cnt].resize(nf, ns);
       iy_aux[cnt] = 0;
     }
-    else if (iy_aux_vars[i] == "Radiation field"){
-      // we set it at the end
-      field_flag = cnt +1;
-      for (Index j = 0; j < np; j++){
-        cnt+=1;
-        iy_aux[cnt].resize(nf, ns);
-        iy_aux[cnt] = 0;
-      }
-    }
     else {
       ARTS_USER_ERROR (
           "The only allowed strings in *iy_aux_vars* are:\n"
           "  \"Radiative background\"\n"
           "  \"Optical depth\"\n"
           "  \"Direct radiation\"\n"
-          "  \"Radiation field\"\n"
           "but you have selected: \"", iy_aux_vars[i], "\"")
     }
   }
@@ -764,13 +756,6 @@ void iyClearsky(
   } else {
     ARTS_USER_ERROR ( "Only allowed choices for *integration order* are "
                       "1 and 2.");
-  }
-
-  // radiation field along the path
-  if (field_flag>=0){
-    for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
-      iy_aux[field_flag+ip]=lvl_rad[ip];
-    }
   }
 
   // Copy back to ARTS external style
