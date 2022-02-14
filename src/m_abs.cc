@@ -1741,53 +1741,91 @@ void abs_xsec_per_speciesAddLines(
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Index& lbl_checked,
     const Verbosity&) {
-  DEPRECATED_FUNCTION("abs_xsec_per_speciesAddLines", "2021-07-13",
-             "This function is no longer up to date.  It only exists to satisfy "
-             "lookup table calculations before these are updated.\n"
-             "Once the lookup table calculations are up-to-date, this function "
-             "is fully replaced with propmat_clearskyAddLines, with better functionality\n" )
-  
+  DEPRECATED_FUNCTION(
+      "abs_xsec_per_speciesAddLines",
+      "2021-07-13",
+      "This function is no longer up to date.  It only exists to satisfy "
+      "lookup table calculations before these are updated.\n"
+      "Once the lookup table calculations are up-to-date, this function "
+      "is fully replaced with propmat_clearskyAddLines, with better functionality\n")
+
   ARTS_USER_ERROR_IF(not lbl_checked, "Must check LBL calculations")
-  ARTS_USER_ERROR_IF(jacobian_quantities.nelem(), "There's a hard deprecation of derivatives using old style lbl-calculations with derivatives, switch to propmat_clearskyAddLines")
-  ARTS_USER_ERROR_IF (abs_species.nelem() not_eq abs_xsec_per_species.nelem() or
-                      abs_species.nelem() not_eq abs_vmrs.nrows() or
-                      abs_species.nelem() not_eq abs_lines_per_species.nelem(),
-    "The following variables must all have the same dimension:\n"
-    "abs_species:           ", abs_species.nelem(), '\n',
-    "abs_xsec_per_species:  ", abs_xsec_per_species.nelem(), '\n',
-    "abs_vmrs:              ", abs_vmrs.nrows(), '\n',
-    "abs_lines_per_species: ", abs_lines_per_species.nelem(), '\n')
-  ARTS_USER_ERROR_IF (min(abs_t) < 0,
-    "Temperature must be at least 0 K. But you request an absorption\n"
-    "calculation at ", min(abs_t), " K!")
-  
+  ARTS_USER_ERROR_IF(
+      jacobian_quantities.nelem(),
+      "There's a hard deprecation of derivatives using old style lbl-calculations "
+      "with derivatives, switch to propmat_clearskyAddLines")
+  ARTS_USER_ERROR_IF(
+      abs_species.nelem() not_eq abs_xsec_per_species.nelem() or
+          abs_species.nelem() not_eq abs_vmrs.nrows() or
+          abs_species.nelem() not_eq abs_lines_per_species.nelem(),
+      "The following variables must all have the same dimension:\n"
+      "abs_species:           ",
+      abs_species.nelem(),
+      '\n',
+      "abs_xsec_per_species:  ",
+      abs_xsec_per_species.nelem(),
+      '\n',
+      "abs_vmrs:              ",
+      abs_vmrs.nrows(),
+      '\n',
+      "abs_lines_per_species: ",
+      abs_lines_per_species.nelem(),
+      '\n')
+  ARTS_USER_ERROR_IF(
+      min(abs_t) < 0,
+      "Temperature must be at least 0 K. But you request an absorption\n"
+      "calculation at ",
+      min(abs_t),
+      " K!")
+
   // Size of problem
   const Index np = abs_p.nelem();
-  
+  const Index ns = abs_species_active.nelem();
+
   // Calculations data
   constexpr Options::LblSpeedup speedup_type = Options::LblSpeedup::None;
   const EnergyLevelMap rtp_nlte;
-  
-  #pragma omp parallel for collapse(2) schedule(dynamic) if (!arts_omp_in_parallel()) 
-  for (Index ip=0; ip<np; ip++) {
-    for (Index ispecies: abs_species_active) {
+
+#pragma omp parallel for if (!arts_omp_in_parallel()) collapse(2) \
+    schedule(dynamic)
+  for (Index ip = 0; ip < np; ip++) {
+    for (Index is = 0; is < ns; is++) {
       // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
+      if (not abs_species[abs_species_active[is]].nelem() or
+          abs_species[abs_species_active[is]].Zeeman() or
+          not abs_lines_per_species[abs_species_active[is]].nelem())
         continue;
 
       // Local compute values
-      thread_local LineShape::ComputeData com(f_grid, jacobian_quantities, false);
-      thread_local LineShape::ComputeData sparse_com(Vector(0), jacobian_quantities, false);
-      
-      for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species), abs_species[ispecies], abs_vmrs(ispecies, ip),
-                           isotopologue_ratios[band.Isotopologue()], abs_p[ip], abs_t[ip], 0, 0, Zeeman::Polarization::None, speedup_type, false);
-        
+      thread_local LineShape::ComputeData com(
+          f_grid, jacobian_quantities, false);
+      thread_local LineShape::ComputeData sparse_com(
+          Vector(0), jacobian_quantities, false);
+
+      for (auto& band : abs_lines_per_species[abs_species_active[is]]) {
+        LineShape::compute(
+            com,
+            sparse_com,
+            band,
+            jacobian_quantities,
+            rtp_nlte,
+            band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species),
+            abs_species[abs_species_active[is]],
+            abs_vmrs(abs_species_active[is], ip),
+            isotopologue_ratios[band.Isotopologue()],
+            abs_p[ip],
+            abs_t[ip],
+            0,
+            0,
+            Zeeman::Polarization::None,
+            speedup_type,
+            false);
       }
-      
+
       // Sum up the propagation matrix
-      com.F /= number_density(abs_p[ip], abs_t[ip]) * abs_vmrs(ispecies, ip);
-      abs_xsec_per_species[ispecies](joker, ip) += com.F.real();
+      com.F /= number_density(abs_p[ip], abs_t[ip]) *
+               abs_vmrs(abs_species_active[is], ip);
+      abs_xsec_per_species[abs_species_active[is]](joker, ip) += com.F.real();
     }
   }
 }
