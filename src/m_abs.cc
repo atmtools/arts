@@ -1765,20 +1765,19 @@ void abs_xsec_per_speciesAddLines(
   const Index np = abs_p.nelem();
   
   // Calculations data
-  LineShape::ComputeData com(f_grid, jacobian_quantities, false);
-  LineShape::ComputeData sparse_com(Vector(0), jacobian_quantities, false);
   constexpr Options::LblSpeedup speedup_type = Options::LblSpeedup::None;
   const EnergyLevelMap rtp_nlte;
   
+  #pragma omp parallel for collapse(2) schedule(dynamic) if (!arts_omp_in_parallel()) 
   for (Index ip=0; ip<np; ip++) {
     for (Index ispecies: abs_species_active) {
       // Skip it if there are no species or there is Zeeman requested
       if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
         continue;
-      
-      // Reset for legacy VMR jacobian
-      com.reset();
-      sparse_com.reset();
+
+      // Local compute values
+      thread_local LineShape::ComputeData com(f_grid, jacobian_quantities, false);
+      thread_local LineShape::ComputeData sparse_com(Vector(0), jacobian_quantities, false);
       
       for (auto& band : abs_lines_per_species[ispecies]) {
         LineShape::compute(com, sparse_com, band, jacobian_quantities, rtp_nlte, band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species), abs_species[ispecies], abs_vmrs(ispecies, ip),
