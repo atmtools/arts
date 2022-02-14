@@ -404,6 +404,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
                           const ArrayOfString& scat_species,
                           const Matrix& particle_masses,
                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                          const Index& demand_latlon_margin,
                           const Index& negative_pnd_ok,
                           const Verbosity&) {
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
@@ -454,54 +455,88 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
 
     if (atmosphere_dim > 1) {
       nlat = lat_grid.nelem();
-      ARTS_USER_ERROR_IF (cloudbox_limits[3] <= cloudbox_limits[2] || cloudbox_limits[2] < 1 ||
-                          cloudbox_limits[3] >= nlat - 1,
+      if (demand_latlon_margin) {
+        ARTS_USER_ERROR_IF (cloudbox_limits[3] <= cloudbox_limits[2] ||
+                            cloudbox_limits[2] < 1 ||
+                            cloudbox_limits[3] >= nlat - 1,
           "Incorrect value(s) for cloud box latitude limit(s) found."
           "\nValues are either out of range or upper limit is not "
           "greater than lower limit.\nWith present length of "
-          "*lat_grid*, OK values are 1 - ", nlat - 2,
+          "*lat_grid* and demand_latlon_margin set to true, "
+          "OK values are 1 - ", nlat - 2,
           ".\nThe latitude index limits are set to ", cloudbox_limits[2],
           " - ", cloudbox_limits[3], ".")
-      ARTS_USER_ERROR_IF ((lat_grid[cloudbox_limits[2]] - lat_grid[0] < LAT_LON_MIN) &&
-          (atmosphere_dim == 2 || (atmosphere_dim == 3 && lat_grid[0] > -90)),
+        ARTS_USER_ERROR_IF ((lat_grid[cloudbox_limits[2]] -
+                             lat_grid[0] < LAT_LON_MIN) &&
+                            (atmosphere_dim == 2 ||
+                             (atmosphere_dim == 3 && lat_grid[0] > -90)),
           "Too small distance between cloudbox and lower end of "
           "latitude grid.\n"
           "This distance must be ", LAT_LON_MIN, " degrees.\n"
           "Cloudbox ends at ", lat_grid[cloudbox_limits[2]],
           " and latitude grid starts at ", lat_grid[0], ".")
-      ARTS_USER_ERROR_IF ((lat_grid[nlat - 1] - lat_grid[cloudbox_limits[3]] < LAT_LON_MIN) &&
-          (atmosphere_dim == 2 ||
-           (atmosphere_dim == 3 && lat_grid[nlat - 1] < 90)),
+        ARTS_USER_ERROR_IF ((lat_grid[nlat - 1] -
+                             lat_grid[cloudbox_limits[3]] < LAT_LON_MIN) &&
+                            (atmosphere_dim == 2 ||
+                             (atmosphere_dim == 3 && lat_grid[nlat - 1] < 90)),
           "Too small distance between cloudbox and upper end of "
           "latitude grid.\n"
           "This distance must be ", LAT_LON_MIN, " degrees.\n"
           "Cloudbox ends at ", lat_grid[cloudbox_limits[3]],
           " and latitude grid ends at ", lat_grid[nlat - 1], ".")
+      } else {
+        ARTS_USER_ERROR_IF (cloudbox_limits[3] <= cloudbox_limits[2] ||
+                            cloudbox_limits[2] < 0 ||
+                            cloudbox_limits[3] >= nlat,
+          "Incorrect value(s) for cloud box latitude limit(s) found."
+          "\nValues are either out of range or upper limit is not "
+          "greater than lower limit.\nWith present length of "
+          "*lat_grid* and demand_latlon_margin set to false, "
+          "OK values are 0 - ", nlat - 1,
+          ".\nThe latitude index limits are set to ", cloudbox_limits[2],
+          " - ", cloudbox_limits[3], ".")
+      }  
     }
 
     if (atmosphere_dim > 2) {
       nlon = lon_grid.nelem();
-      ARTS_USER_ERROR_IF (cloudbox_limits[5] <= cloudbox_limits[4] || cloudbox_limits[4] < 1 ||
-          cloudbox_limits[5] >= nlon - 1,
+      if (demand_latlon_margin) {
+        ARTS_USER_ERROR_IF (cloudbox_limits[5] <= cloudbox_limits[4] ||
+                            cloudbox_limits[4] < 1 ||
+                            cloudbox_limits[5] >= nlon - 1,
           "Incorrect value(s) for cloud box longitude limit(s) found"
           ".\nValues are either out of range or upper limit is not "
           "greater than lower limit.\nWith present length of "
-          "*lon_grid*, OK values are 1 - ", nlon - 2,
+          "*lon_grid* and demand_latlon_margin set to true,"
+          "OK values are 1 - ", nlon - 2,
           ".\nThe longitude limits are set to ", cloudbox_limits[4],
           " - ", cloudbox_limits[5], ".")
-      if (lon_grid[nlon - 1] - lon_grid[0] < 360) {
-        const Numeric latmax = max(abs(lat_grid[cloudbox_limits[2]]),
-                                   abs(lat_grid[cloudbox_limits[3]]));
-        const Numeric lfac = 1 / cos(DEG2RAD * latmax);
-        ARTS_USER_ERROR_IF (lon_grid[cloudbox_limits[4]] - lon_grid[0] < LAT_LON_MIN / lfac,
+        if (lon_grid[nlon - 1] - lon_grid[0] < 360) {
+          const Numeric latmax = max(abs(lat_grid[cloudbox_limits[2]]),
+                                     abs(lat_grid[cloudbox_limits[3]]));
+          const Numeric lfac = 1 / cos(DEG2RAD * latmax);
+          ARTS_USER_ERROR_IF (lon_grid[cloudbox_limits[4]] - lon_grid[0] <
+                              LAT_LON_MIN / lfac,
             "Too small distance between cloudbox and lower end of"
             "the longitude\ngrid. This distance must here be ",
             LAT_LON_MIN / lfac, " degrees.")
-        ARTS_USER_ERROR_IF (lon_grid[nlon - 1] - lon_grid[cloudbox_limits[5]] <
-            LAT_LON_MIN / lfac,
+          ARTS_USER_ERROR_IF (lon_grid[nlon - 1] - lon_grid[cloudbox_limits[5]] <
+                              LAT_LON_MIN / lfac,
             "Too small distance between cloudbox and upper end of"
             "the longitude\ngrid. This distance must here be ",
             LAT_LON_MIN / lfac, " degrees.")
+        }
+      } else {
+        ARTS_USER_ERROR_IF (cloudbox_limits[5] <= cloudbox_limits[4] ||
+                            cloudbox_limits[4] < 0 ||
+                            cloudbox_limits[5] >= nlon,
+          "Incorrect value(s) for cloud box longitude limit(s) found"
+          ".\nValues are either out of range or upper limit is not "
+          "greater than lower limit.\nWith present length of "
+          "*lon_grid* and demand_latlon_margin set to false,"
+          "OK values are 0 - ", nlon - 1,
+          ".\nThe longitude limits are set to ", cloudbox_limits[4],
+          " - ", cloudbox_limits[5], ".")
       }
     }
 

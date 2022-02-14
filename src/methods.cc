@@ -4301,6 +4301,11 @@ void define_md_data_raw() {
           "and that the scattering element variables *pnd_field* and\n"
           "*scat_data* match in size.\n"
           "\n"
+          "Default is to demand that there is a margin between the cloudbox\n"
+          "and the ends of latitide and longitude grids. Such margins are\n"
+          "required by MC and DOIT/3D, but are not needed for e.g. IBA.\n"
+          "If the margins not are a demand, set GIN demand_latlon_margin to 0.\n"
+          "\n"
           "Further checks on *scat_data* are performed in *scat_data_checkedCalc*\n"
           "\n"
           "*scat_species* and *particle_masses* must either be empty or have a\n"
@@ -4333,10 +4338,11 @@ void define_md_data_raw() {
          "scat_species",
          "particle_masses",
          "abs_species"),
-      GIN("negative_pnd_ok"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Flag whether to accept pnd_field < 0.")));
+      GIN("demand_latlon_margin", "negative_pnd_ok"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT("1", "0"),
+      GIN_DESC("Flag to demand margin or not w.r.t. to ends of lat/lon grids.",
+               "Flag whether to accept pnd_field < 0.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_field_monoIterate"),
