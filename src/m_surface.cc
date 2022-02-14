@@ -57,6 +57,7 @@
 #include "constants.h"
 
 using Constant::pi;
+using Conversion::deg2rad;
 
 extern Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;
@@ -445,51 +446,63 @@ void iySurfaceFastem(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iySurfaceLambertianDirect(Workspace& ws,
-                     Matrix& iy,
-                     ArrayOfTensor3& diy_dx,
-                     const Vector& rte_pos,
-                     const Index& stokes_dim,
-                     const Vector& f_grid,
-                     const Index& atmosphere_dim,
-                     const Vector& p_grid,
-                     const Vector& lat_grid,
-                     const Vector& lon_grid,
-                     const Tensor3& z_field,
-                     const Tensor3& t_field,
-                     const EnergyLevelMap& nlte_field,
-                     const Tensor4& vmr_field,
-                     const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const Tensor3& wind_u_field,
-                     const Tensor3& wind_v_field,
-                     const Tensor3& wind_w_field,
-                     const Tensor3& mag_u_field,
-                     const Tensor3& mag_v_field,
-                     const Tensor3& mag_w_field,
-                     const Matrix& z_surface,
-                     const Vector& refellipsoid,
-                     const Numeric& ppath_lmax,
-                     const Numeric& ppath_lraytrace,
-                     const Index& star_do,
-                     const Index& gas_scattering_do,
-                     const Index& jacobian_do,
-                     const ArrayOfRetrievalQuantity& jacobian_quantities,
-                     const ArrayOfStar& stars,
-                     const Numeric& rte_alonglos_v,
-                     const Agenda& propmat_clearsky_agenda,
-                     const Agenda& water_p_eq_agenda,
-                     const Agenda& gas_scattering_agenda,
-                     const Agenda& ppath_step_agenda,
-                     const Verbosity& verbosity){
-
+void iySurfaceLambertianDirect(
+    Workspace& ws,
+    Matrix& iy,
+    ArrayOfTensor3& diy_dx,
+    const Vector& rtp_pos,
+    const Index& stokes_dim,
+    const Vector& f_grid,
+    const Index& atmosphere_dim,
+    const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Tensor3& z_field,
+    const Tensor3& t_field,
+    const EnergyLevelMap& nlte_field,
+    const Tensor4& vmr_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Tensor3& wind_u_field,
+    const Tensor3& wind_v_field,
+    const Tensor3& wind_w_field,
+    const Tensor3& mag_u_field,
+    const Tensor3& mag_v_field,
+    const Tensor3& mag_w_field,
+    const Matrix& z_surface,
+    const Numeric& surface_skin_t,
+    const Vector& surface_scalar_reflectivity,
+    const Vector& refellipsoid,
+    const Numeric& ppath_lmax,
+    const Numeric& ppath_lraytrace,
+    const Index& star_do,
+    const Index& gas_scattering_do,
+    const Index& jacobian_do,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfStar& stars,
+    const Numeric& rte_alonglos_v,
+    const Agenda& propmat_clearsky_agenda,
+    const Agenda& water_p_eq_agenda,
+    const Agenda& gas_scattering_agenda,
+    const Agenda& ppath_step_agenda,
+    const Verbosity& verbosity) {
   Vector star_rte_los;
   Matrix transmitted_starlight;
   ArrayOfTensor3 dtransmitted_starlight;
 
-  Index star_path_ok = 0;
+  //Check size of iy
+  if (not is_size(iy, f_grid.nelem(), stokes_dim)){
+    iy.resize(f_grid.nelem(), stokes_dim);
+    iy=0.;
+  }
 
   //do something only if there is a star
-  if (star_do ) {
+  if (star_do) {
+
+    Index star_path_ok = 0;
+
+    // Input checks
+    chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
+    chk_rte_pos(atmosphere_dim, rtp_pos);
 
     //loop over stars
     for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
@@ -498,7 +511,7 @@ void iySurfaceLambertianDirect(Workspace& ws,
                                 dtransmitted_starlight,
                                 star_rte_los,
                                 star_path_ok,
-                                rte_pos,
+                                rtp_pos,
                                 i_star,
                                 stokes_dim,
                                 f_grid,
@@ -533,19 +546,38 @@ void iySurfaceLambertianDirect(Workspace& ws,
                                 verbosity);
 
       if (star_path_ok) {
-        transmitted_starlight/=pi;
-        iy+=transmitted_starlight;
+        // Only the first component of transmitted_starlight is relevant.
+        // Comment taken from surfaceLambertianSimple.
+        // This follows VDISORT that refers to: K. L. Coulson, Polarization and Intensity of Light in
+        // the Atmosphere (1989), page 229
+        // (Thanks to Michael Kahnert for providing this information!)
+        // Update: Is the above for a later edition? We have not found a copy of
+        // that edition. In a 1988 version of the book, the relevant page seems
+        // to be 232.
 
-        for (Index i_jac = 0; i_jac < dtransmitted_starlight.nelem(); i_jac++)
-        {
-          dtransmitted_starlight[i_jac]/=pi;
-          diy_dx[i_jac]+=dtransmitted_starlight[i_jac];
+
+        Vector iy_surface_direct(f_grid.nelem());
+
+        for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
+          iy_surface_direct[i_freq] = surface_scalar_reflectivity[i_freq] / pi *
+                              transmitted_starlight(i_freq, 0) *cos(deg2rad(star_rte_los[0]))  ;
+        }
+
+        //Add the surface contribution of the direct part
+        iy(joker,0) += iy_surface_direct;
+
+        //For now we only have the jacobians from the transmission calculation.
+        //I am not really sure, if this is correct.
+        //TODO: Check and add surface jacobian
+        for (Index i_jac = 0; i_jac < dtransmitted_starlight.nelem(); i_jac++) {
+          dtransmitted_starlight[i_jac] /= pi;
+          diy_dx[i_jac](joker, joker, 0) +=
+              dtransmitted_starlight[i_jac](joker, joker, 0);
         }
       }
     }
   }
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceRtpropAgenda(Workspace& ws,
