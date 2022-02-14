@@ -134,15 +134,15 @@ void py_agenda(py::module_& m) {
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init<>())
-      .def(py::init([](Workspace& ws, std::filesystem::path path) {
+      .def(py::init([](Workspace& w, std::filesystem::path path) {
         ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path), "There is no regular file at: ", path.c_str())
 
         std::filesystem::path path_copy = path;
         parameters.includepath.push_back(path_copy.remove_filename().c_str());
         parameters.includepath.erase(std::unique(parameters.includepath.begin(), parameters.includepath.end()), parameters.includepath.end());
 
-        Agenda *a = parse_agenda(path.c_str(), *reinterpret_cast<Verbosity *>(ws[Workspace::WsvMap.at("verbosity")]));
-        ws.initialize();
+        Agenda *a = parse_agenda(path.c_str(), *reinterpret_cast<Verbosity *>(w[w.WsvMap.at("verbosity")]));
+        w.initialize();
         return a;
       }))
       .def(
@@ -288,7 +288,7 @@ so Copy(a, out=b) will not even see the b variable.
         for(auto& method: other.Methods()) self.push_back(method);
       })
       .def("execute", &Agenda::execute)
-      .def("check", [](Agenda& a, Workspace& w) { a.check(w, Verbosity{}); })
+      .def("check", [](Agenda& a, Workspace& w) { a.check(w, *reinterpret_cast<Verbosity *>(w[w.WsvMap.at("verbosity")])); })
       .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",
            [](Agenda& a) {
