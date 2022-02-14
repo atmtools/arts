@@ -474,6 +474,53 @@ void print_method_args(std::ofstream& os, const Method& method, bool pass_verbos
        << R"--(py::arg_v("verbosity", std::nullopt, "Workspace::verbosity"))--";
 }
 
+void workspace_method_create(std::array<std::ofstream, num_split_files>& oss, const NameMaps& arts) {
+  auto* osptr = oss.begin();
+
+  for (auto& [group, group_index] : arts.group) {
+    auto& os = *osptr;
+
+    if (group == "Any") continue;
+    os << "ws.def(\"" << group
+       << "Create\",[](Workspace& w, const char * name, std::optional<const char *> desc, std::optional<"
+       << group << R"--(> value) {
+  ARTS_USER_ERROR_IF(std::find_if(w.WsvMap.begin(),
+                                  w.WsvMap.end(),
+                                  [&](auto& b) {
+                                    return b.first == name;
+                                  }) not_eq w.WsvMap.end(),
+                      "A variable of this name already exist: ",
+                      name)
+  ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == '_' or sv.back() == '_',
+    "Must have a name some length that neither ends or starts with \'_\', got: ", name)
+  const Index pos = w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "Created by pybind11 API", )--"
+       << group_index << R"--());
+  if (value.has_value()) w.push(pos, new )--"
+       << group << R"--({*value});
+  },
+  py::doc(R"-x-(
+Create a )--"
+       << group << R"--( on the workspace
+
+If there is no default value, the variable remains uninitialized
+
+Parameters:
+-----------
+name (str): Name of the variable, can be accessed later with getattr() on the workspace
+desc (str): Description of the variable [Optional]
+value ()--" << group << R"--(): Initialized value [Optional]
+)-x-"),
+  py::arg("name"),
+  py::arg("desc")=std::nullopt,
+  py::arg("value")=std::nullopt);
+  
+)--";
+
+    osptr++;
+    if (osptr == oss.end()) osptr = oss.begin();
+  }
+}
+
 void workspace_method_nongenerics(
     std::array<std::ofstream, num_split_files>& oss, const NameMaps& arts) {
   auto* osptr = oss.begin();
@@ -1274,8 +1321,7 @@ ws.def("__setattr__", [](Workspace& w, const char * name, WorkspaceVariablesVari
   Index i=-1;
   if (newname) {
     ARTS_USER_ERROR_IF(auto _sv=std::string_view(name); _sv.size() == 0 or _sv.front() == '_' or _sv.back() == '_',
-    "Cannot automatically generate names starting or ending with \'_\', it is reserved for internal use.\n"
-    "If you really need it, use create_variable at your own risk")
+    "Cannot automatically generate names starting or ending with \'_\', it is reserved for internal use")
 
     )--";
   bool first = true;
@@ -1391,6 +1437,8 @@ int main() {
     py_workspace << "py_auto_workspace_" << i << "(ws);\n";
   }
   workspace_access(py_workspace, artsname);
+  workspace_method_create(py_workspaces, artsname);
+
   py_workspace << "}\n}  // namespace Python\n";
   for (Index i = 0; i < num_split_files; i++) {
     py_workspaces[i] << "}\n}  // namespace Python\n";

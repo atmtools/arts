@@ -3,6 +3,7 @@ import pyarts
 
 list_of_groups = pyarts.classes.list_of_workspace_variables()
 for group in list_of_groups:
+    if group == "CallbackFunction": continue
     try:
         if group in ["Index", "Numeric", "String"]:
             eval("pyarts.classes.{}(1)".format(group.val))

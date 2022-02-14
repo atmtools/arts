@@ -4,6 +4,7 @@
 #include <global_data.h>
 #include <parameters.h>
 #include <workspace_ng.h>
+#include <depr.h>
 
 #include "py_macros.h"
 
@@ -62,7 +63,7 @@ void py_workspace(py::module_& m) {
   auto ws = py::class_<Workspace>(m, "Workspace").def(py::init([]() {
     Workspace w{};
     w.initialize();
-    w.push(Workspace::WsvMap.at("verbosity"), new Verbosity{});
+    w.push(w.WsvMap.at("verbosity"), new Verbosity{});
     return w;
   }));
 
@@ -70,58 +71,36 @@ void py_workspace(py::module_& m) {
 
   ws.def(
       "create_variable",
-      [](Workspace& w, char* group, char* name, char* desc) {
+      [](Workspace& w, char* group, char* name, std::optional<char*> desc) {
         using global_data::workspace_memory_handler;
 
-        ARTS_USER_ERROR_IF(std::find_if(Workspace::WsvMap.begin(),
-                                        Workspace::WsvMap.end(),
-                                        [name](auto& b) {
+        DEPRECATED_FUNCTION("create_variable", "2022-02-14",
+            "This function is deprecated, use explicit *Create or simply set the attribute manually\n"
+            "The reason is that it is unsafe to allow \'_\' in front or behind names since a recent pyarts update" )
+
+        ARTS_USER_ERROR_IF(std::find_if(w.WsvMap.begin(),
+                                        w.WsvMap.end(),
+                                        [&](auto& b) {
                                           return b.first == name;
-                                        }) not_eq Workspace::WsvMap.end(),
+                                        }) not_eq w.WsvMap.end(),
                            "A variable of this name already exist: ",
                            name)
 
         const Index group_index = get_wsv_group_id(group);
         ARTS_USER_ERROR_IF(group_index < 0, "Cannot recognize group: ", group)
 
-        WsvRecord x(name, desc ? desc : "Created by pybind11 API", group_index);
-
-        Index out = w.add_wsv_inplace(x);
-        w.push(out, workspace_memory_handler.allocate(group_index));
+        w.push(w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "Created by pybind11 API", group_index)), workspace_memory_handler.allocate(group_index));
       },
       py::arg("group"),
       py::arg("name"),
-      py::arg("desc") = nullptr,
-      py::doc(
-          R"--(
-Creates a named variable of the given group, initializing it on the workspace
-
-The variable can be accessed with its property name upon completion
-
-Example:
-ws.create_variable("String", "my_string")
-
-Now,
-ws.my_string
-
-can be accessed and will give an empty string object.  This you can
-ws.my_string = "hi there"
-
-and now doing
-print(ws.my_string)
-
-will output the expected greeting
-)--"));
+      py::arg("desc") = std::nullopt);
 
   ws.def("__delattr__", [](Workspace& w, const char* name) {
-    auto varpos = std::find_if(Workspace::WsvMap.begin(),
-                               Workspace::WsvMap.end(),
-                               [name](auto& b) { return b.first == name; });
-    ARTS_USER_ERROR_IF(varpos == Workspace::WsvMap.end(),
-                       "No workspace variable: ",
-                       name,
-                       "\n\nCustom workspace variables have to "
-                       "be created using create_variable or by explicit set")
+    auto varpos = std::find_if(w.WsvMap.begin(),
+                               w.WsvMap.end(),
+                               [&](auto& b) { return b.first == name; });
+    ARTS_USER_ERROR_IF(varpos == w.WsvMap.end(),
+                       "No workspace variable called: ", name)
 
     if (w.is_initialized(varpos->second)) {
       w.pop_free(varpos->second);
@@ -129,14 +108,11 @@ will output the expected greeting
   });
 
   ws.def("__getattr__", [](Workspace& w, const char* name) {
-    auto varpos = std::find_if(Workspace::WsvMap.begin(),
-                               Workspace::WsvMap.end(),
-                               [name](auto& b) { return b.first == name; });
-    ARTS_USER_ERROR_IF(varpos == Workspace::WsvMap.end(),
-                       "No workspace variable: ",
-                       name,
-                       "\n\nCustom workspace variables have to "
-                       "be created using create_variable or by explicit set")
+    auto varpos = std::find_if(w.WsvMap.begin(),
+                               w.WsvMap.end(),
+                               [&](auto& b) { return b.first == name; });
+    ARTS_USER_ERROR_IF(varpos == w.WsvMap.end(),
+                       "No workspace variable called: ", name)
 
     return WorkspaceVariable{w, varpos->second};
   });
@@ -161,7 +137,7 @@ will output the expected greeting
                  "Arts Workspace Variable ",
                  wsv.ws.wsv_data[wsv.pos].Name(),
                  " of type ",
-                 global_data::wsv_group_names[Workspace::wsv_data[wsv.pos]
+                 global_data::wsv_group_names[wsv.ws.wsv_data[wsv.pos]
                                                   .Group()]);
            })
       .def("__repr__", [](WorkspaceVariable& wsv) {
@@ -169,7 +145,7 @@ will output the expected greeting
             "Arts Workspace Variable ",
             wsv.ws.wsv_data[wsv.pos].Name(),
             " of type ",
-            global_data::wsv_group_names[Workspace::wsv_data[wsv.pos].Group()]);
+            global_data::wsv_group_names[wsv.ws.wsv_data[wsv.pos].Group()]);
       });
 
   // Should be last as it contains several implicit conversions

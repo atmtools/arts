@@ -1,5 +1,6 @@
 #include <auto_md.h>
 #include <global_data.h>
+#include <parameters.h>
 #include <py_auto_interface.h>
 #include <xml_io.h>
 
@@ -7,15 +8,14 @@
 #include <filesystem>
 
 #include "py_macros.h"
-#include <parameters.h>
 
 extern Parameters parameters;
 
 namespace Python {
 Index create_workspace_gin_default_internal(Workspace& ws, String& key);
 
-Agenda *parse_agenda(const char *filename, const Verbosity& verbosity) {
-  Agenda *a = new Agenda;
+Agenda* parse_agenda(const char* filename, const Verbosity& verbosity) {
+  Agenda* a = new Agenda;
   ArtsParser parser = ArtsParser(*a, filename, verbosity);
 
   parser.parse_tasklist();
@@ -135,13 +135,19 @@ void py_agenda(py::module_& m) {
   py::class_<Agenda>(m, "Agenda")
       .def(py::init<>())
       .def(py::init([](Workspace& w, std::filesystem::path path) {
-        ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path), "There is no regular file at: ", path.c_str())
+        ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
+                           "There is no regular file at: ",
+                           path.c_str())
 
         std::filesystem::path path_copy = path;
         parameters.includepath.push_back(path_copy.remove_filename().c_str());
-        parameters.includepath.erase(std::unique(parameters.includepath.begin(), parameters.includepath.end()), parameters.includepath.end());
+        parameters.includepath.erase(std::unique(parameters.includepath.begin(),
+                                                 parameters.includepath.end()),
+                                     parameters.includepath.end());
 
-        Agenda *a = parse_agenda(path.c_str(), *reinterpret_cast<Verbosity *>(w[w.WsvMap.at("verbosity")]));
+        Agenda* a = parse_agenda(
+            path.c_str(),
+            *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
         w.initialize();
         return a;
       }))
@@ -284,11 +290,18 @@ so Copy(a, out=b) will not even see the b variable.
 
             a.push_back(MRecord(method_ptr->second, {}, {in}, {}, {}));
           })
-      .def("append_agenda_methods", [](Agenda& self, Agenda& other) {
-        for(auto& method: other.Methods()) self.push_back(method);
-      })
+      .def("append_agenda_methods",
+           [](Agenda& self, Agenda& other) {
+             for (auto& method : other.Methods()) self.push_back(method);
+           })
       .def("execute", &Agenda::execute)
-      .def("check", [](Agenda& a, Workspace& w) { a.check(w, *reinterpret_cast<Verbosity *>(w[w.WsvMap.at("verbosity")])); })
+      .def(
+          "check",
+          [](Agenda& a, Workspace& w) {
+            a.check(w,
+                    *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
+          },
+          py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",
            [](Agenda& a) {
@@ -306,6 +319,105 @@ so Copy(a, out=b) will not even see the b variable.
         return out;
       });
 
-  py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda");
+  py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
+      .def(py::init<>())
+      .def(py::init<Index>())
+      .def(py::init<Index, Agenda>())
+      .def(py::init([](std::vector<Agenda> va) {
+        for (auto& a : va) {
+          ARTS_USER_ERROR_IF(
+              a.name() not_eq va.front().name(),
+              "An ArrayOfAgenda must only consist of agendas with the same name\n"
+              "You have input a list of agendas that contains disimilar names.\n"
+              "\nThe first item is named: \"",
+              va.front().name(),
+              '"',
+              '\n',
+              "A later item in the list is names: \"",
+              a.name(),
+              '"',
+              '\n')
+        }
+        return va;
+      }))
+      .def("__repr__",
+           [](ArrayOfAgenda& aa) {
+             std::string out = "[\n";
+             for (auto& a : aa) {
+               out += var_string("Arts Agenda ", a.name(), ":\n");
+               std::ostringstream os;
+               a.print(os, "   ");
+               out += os.str();
+               out += "\n";
+             }
+             out += "]\n";
+             return out;
+           })
+      .def("__str__",
+           [](ArrayOfAgenda& aa) {
+             std::string out = "[\n";
+             for (auto& a : aa) {
+               out += var_string("Arts Agenda ", a.name(), ":\n");
+               std::ostringstream os;
+               a.print(os, "   ");
+               out += os.str();
+               out += "\n";
+             }
+             out += "]\n";
+             return out;
+           })
+      .PythonInterfaceFileIO(ArrayOfAgenda)
+      .def("__len__", [](const ArrayOfAgenda& x) { return x.nelem(); })
+      .def(
+          "__getitem__",
+          [](ArrayOfAgenda& x, Index i) -> Agenda& {
+            if (x.nelem() <= i or i < 0)
+              throw std::out_of_range(var_string("Bad index access: ",
+                                                 i,
+                                                 " in object of size [0, ",
+                                                 x.size(),
+                                                 ")"));
+            return x[i];
+          },
+          py::return_value_policy::reference_internal)
+      .def(
+          "__setitem__",
+          [](ArrayOfAgenda& x, Index i, Agenda y) {
+            if (x.nelem() <= i or i < 0) {
+              throw std::out_of_range(var_string("Bad index access: ",
+                                                 i,
+                                                 " in object of size [0, ",
+                                                 x.size(),
+                                                 ")"));
+            }
+            if (y.name() not_eq x.front().name()) y.set_name(x.front().name());
+            x[i] = std::move(y);
+          },
+          py::return_value_policy::reference_internal)
+      .def("append",
+           [](ArrayOfAgenda& x, Agenda y) {
+             if (x.nelem() and y.name() not_eq x.front().name())
+               y.set_name(x.front().name());
+             x.emplace_back(std::move(y));
+           })
+      .def(
+          "check",
+          [](ArrayOfAgenda& aa, Workspace& w) {
+            for (auto& a : aa)
+              a.check(
+                  w,
+                  *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
+          },
+          py::doc("Checks if the agenda works"))
+      .def_property(
+          "name",
+          [](ArrayOfAgenda& a) -> String {
+            if (a.nelem() == 0) return "";
+            return a.front().name();
+          },
+          [](ArrayOfAgenda& aa, const String& name) {
+            for (auto& a : aa) a.set_name(name);
+          });
+  py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();
 }
 }  // namespace Python
