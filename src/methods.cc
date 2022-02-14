@@ -3642,7 +3642,7 @@ void define_md_data_raw() {
          "lon_true"),
       GIN("max500hpa_gradient"),
       GIN_TYPE("Numeric"),
-      GIN_DEFAULT("100"),
+      GIN_DEFAULT("500"),
       GIN_DESC("The maximum allowed gradient of 500 hPa pressure level [m/100km].")));
 
   md_data_raw.push_back(create_mdrecord(
