@@ -465,6 +465,29 @@ constexpr auto pa2bar(T x) noexcept -> decltype(x * 1e-5) {
   return x * 1e-5;
 }
 
+/** Conversion from hPa to Pa */
+template <class T>
+constexpr auto hpa2pa(T x) noexcept -> decltype(x * 1e2) {
+  return x * 1e2;
+}
+
+/** Conversion from Pa to hPa */
+template <class T>
+constexpr auto pa2hpa(T x) noexcept -> decltype(x * 1e-2) {
+  return x * 1e-2;
+}
+
+/** Conversion from hPa to bar */
+template <class T>
+constexpr auto hpa2bar(T x) noexcept -> decltype(x * 1e-3) {
+  return x * 1e-3;
+}
+
+/** Conversion from bar to hPa */
+template <class T>
+constexpr auto bar2hpa(T x) noexcept -> decltype(x * 1e3) {
+  return x * 1e3;
+}
 /** Conversion from Torr to Pa */
 template <class T>
 constexpr auto torr2pa(T x) noexcept -> decltype(x * atm2pa(1.0 / 760.0)) {
