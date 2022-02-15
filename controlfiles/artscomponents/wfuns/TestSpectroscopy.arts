@@ -63,6 +63,7 @@ Arts2{
   MatrixSet(sensor_pos, [300e3, 0, 0])  # 300 km altitude
   MatrixSet(sensor_los, [180, 0])  # Nadir looking
   sensorOff  # We have no sensor
+  starOff # and we have no stars
   
   ## Set up partial derivatives
   jacobianInit
