@@ -236,10 +236,7 @@ void define_agenda_data() {
                            "are not empty, then the phase matrix is calculated\n"
                            "for the define incoming and outgoing direction.\n"),
                OUTPUT("sca_coef","sca_mat","sca_fct_legendre"),
-               INPUT("sca_coef",
-                     "sca_mat",
-                     "sca_fct_legendre",
-                     "f_grid",
+               INPUT("f_grid",
                      "rtp_pressure",
                      "rtp_temperature",
                      "rtp_vmr",
