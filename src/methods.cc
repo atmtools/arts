@@ -4204,19 +4204,29 @@ void define_md_data_raw() {
                " cloudbox lower limit is fixed to 0, i.e., corresponds to"
                " the lowest atmospheric level (or the surface).")));
 
-  md_data_raw.push_back(
-      create_mdrecord(NAME("cloudboxSetFullAtm"),
-               DESCRIPTION("Sets the cloudbox to cover the full atmosphere.\n"),
-               AUTHORS("Claudia Emde, Jana Mendrok"),
-               OUT("cloudbox_on", "cloudbox_limits"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("atmosphere_dim", "p_grid", "lat_grid", "lon_grid"),
-               GIN(),
-               GIN_TYPE(),
-               GIN_DEFAULT(),
-               GIN_DESC()));
+  md_data_raw.push_back(create_mdrecord(
+      NAME("cloudboxSetFullAtm"),
+      DESCRIPTION(
+          "Sets the cloudbox to cover the full atmosphere.\n"
+          "\n"
+          "The cloudbox is always set to fully span the atmosphere vertically.\n"
+          "\n"
+          "For the latitide and longitide dimensions, default is to leave room\n"
+          "between the cloudbox an the end of the atmosphere in these dimensions.\n"
+          "This is required for some scattering solvers (MC and DOIT). In other\n"
+          "cases it can be OK to let the cloudbox to fill the atmosphere fully\n"
+          "also in latitude and longitude. This is triggered by setting the GIN\n"
+          "fullfull to 1.\n"),
+      AUTHORS("Claudia Emde, Jana Mendrok, Patrick Eriksson"),
+      OUT("cloudbox_on", "cloudbox_limits"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmosphere_dim", "p_grid", "lat_grid", "lon_grid"),
+      GIN("fullfull"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Flag to let cloudbox reach ends of lat and lon grids.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetManually"),

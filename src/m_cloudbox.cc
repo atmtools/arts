@@ -255,6 +255,7 @@ void cloudboxSetAutomatically(  // WS Output:
   }
 }
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetFullAtm(  //WS Output
     Index& cloudbox_on,
@@ -264,6 +265,7 @@ void cloudboxSetFullAtm(  //WS Output
     const Vector& p_grid,
     const Vector& lat_grid,
     const Vector& lon_grid,
+    const Index& fullfull,
     const Verbosity&) {
   cloudbox_on = 1;
   cloudbox_limits.resize(2 * atmosphere_dim);
@@ -272,59 +274,68 @@ void cloudboxSetFullAtm(  //WS Output
   cloudbox_limits[1] = p_grid.nelem() - 1;
 
   if (atmosphere_dim > 1) {
-    Index last_lat = lat_grid.nelem() - 1;
+    if (fullfull) {
+      cloudbox_limits[2] = 0;
+      cloudbox_limits[3] = lat_grid.nelem() - 1;
+    } else {
+      Index last_lat = lat_grid.nelem() - 1;
 
-    // find minimum lat_grid point i with lat_grid[i]-lat_grid[0]>=LAT_LON_MIN
-    Index i = 1;
-    while ((i < last_lat - 1) && (lat_grid[i] - lat_grid[0] < LAT_LON_MIN)) i++;
-    ARTS_USER_ERROR_IF (i == last_lat - 1,
+      // find minimum lat_grid point i with lat_grid[i]-lat_grid[0]>=LAT_LON_MIN
+      Index i = 1;
+      while ((i < last_lat - 1) && (lat_grid[i] - lat_grid[0] < LAT_LON_MIN)) i++;
+      ARTS_USER_ERROR_IF (i == last_lat - 1,
         "Can not define lower latitude edge of cloudbox:\n"
         "Extend of atmosphere too small. Distance to minimum latitude\n"
         "has to be at least ", LAT_LON_MIN, "deg, but only ",
         lat_grid[i - 1] - lat_grid[0], " available here.")
-    cloudbox_limits[2] = i;
+        cloudbox_limits[2] = i;
 
-    // find maximum lat_grid point j with lat_grid[-1]-lat_grid[j]>=LAT_LON_MIN
-    // and j>i
-    Index j = last_lat - 1;
-    while ((j > i) && (lat_grid[last_lat] - lat_grid[j] < LAT_LON_MIN)) j--;
-    ARTS_USER_ERROR_IF (j == i,
+      // find maximum lat_grid point j with lat_grid[-1]-lat_grid[j]>=LAT_LON_MIN
+      // and j>i
+      Index j = last_lat - 1;
+      while ((j > i) && (lat_grid[last_lat] - lat_grid[j] < LAT_LON_MIN)) j--;
+      ARTS_USER_ERROR_IF (j == i,
         "Can not define upper latitude edge of cloudbox:\n"
         "Extend of atmosphere too small. Distance to maximum latitude\n"
         "has to be at least ", LAT_LON_MIN, "deg, but only ",
         lat_grid[last_lat] - lat_grid[j + 1], " available here.")
-    cloudbox_limits[3] = j;
+      cloudbox_limits[3] = j;
+    }
   }
 
   if (atmosphere_dim > 2) {
-    const Numeric latmax = max(abs(lat_grid[cloudbox_limits[2]]),
-                               abs(lat_grid[cloudbox_limits[3]]));
-    const Numeric lfac = 1 / cos(DEG2RAD * latmax);
-    Index last_lon = lon_grid.nelem() - 1;
+    if (fullfull) {
+      cloudbox_limits[4] = 0;
+      cloudbox_limits[5] = lon_grid.nelem() - 1;
+    } else {
+      const Numeric latmax = max(abs(lat_grid[cloudbox_limits[2]]),
+                                 abs(lat_grid[cloudbox_limits[3]]));
+      const Numeric lfac = 1 / cos(DEG2RAD * latmax);
+      Index last_lon = lon_grid.nelem() - 1;
 
-    // find minimum lon_grid point i with lon_grid[i]-lon_grid[0]>=LAT_LON_MIN/lfac
-    Index i = 1;
-    while ((i < last_lon - 1) &&
-           (lon_grid[i] - lon_grid[0] < LAT_LON_MIN / lfac))
-      i++;
-    ARTS_USER_ERROR_IF (i == last_lon - 1,
+      // find minimum lon_grid point i with lon_grid[i]-lon_grid[0]>=LAT_LON_MIN/lfac
+      Index i = 1;
+      while ((i < last_lon - 1) &&
+             (lon_grid[i] - lon_grid[0] < LAT_LON_MIN / lfac))
+        i++;
+      ARTS_USER_ERROR_IF (i == last_lon - 1,
         "Can not define lower longitude edge of cloudbox:\n"
         "Extend of atmosphere too small. Distance to minimum longitude\n"
         "has to be at least ", LAT_LON_MIN / lfac, "deg, but only ",
         lon_grid[i - 1] - lon_grid[0], " available here.")
-    cloudbox_limits[4] = i;
+      cloudbox_limits[4] = i;
 
-    // find maximum lon_grid point j with lon_grid[-1]-lon_grid[j]>=LAT_LON_MIN/lfac
-    // and j>i
-    Index j = last_lon - 1;
-    while ((j > i) && (lon_grid[last_lon] - lon_grid[j] < LAT_LON_MIN / lfac))
-      j--;
-    ARTS_USER_ERROR_IF (j == i,
+      // find maximum lon_grid point j with lon_grid[-1]-lon_grid[j]>=LAT_LON_MIN/lfac
+      // and j>i
+      Index j = last_lon - 1;
+      while ((j > i) && (lon_grid[last_lon] - lon_grid[j] < LAT_LON_MIN / lfac))
+        j--;
+      ARTS_USER_ERROR_IF (j == i,
         "Can not define upper longitude edge of cloudbox:\n"
         "Extend of atmosphere too small. Distance to maximum longitude\n"
         "has to be at least ", LAT_LON_MIN / lfac, "deg, but only ",
         lon_grid[last_lon] - lon_grid[j + 1], " available here.")
-    cloudbox_limits[5] = j;
+    }
   }
 }
 
