@@ -230,6 +230,8 @@ void get_transmitted_starlight(
     const Vector& refellipsoid,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -259,7 +261,7 @@ void get_transmitted_starlight(
   Tensor3 ppvar_iy_dummy;
   Tensor4 ppvar_trans_cumulat_dummy;
   Tensor4 ppvar_trans_partial_dummy;
-  const ArrayOfIndex cloudbox_limits_dummy;
+//  const ArrayOfIndex cloudbox_limits_dummy;
   const Tensor4 pnd_field_dummy;
   const ArrayOfTensor4 dpnd_field_dx_dummy;
   const ArrayOfString scat_species_dummy;
@@ -364,8 +366,8 @@ void get_transmitted_starlight(
                            mag_u_field,
                            mag_v_field,
                            mag_w_field,
-                           0,
-                           cloudbox_limits_dummy,
+                           cloudbox_on,
+                           cloudbox_limits,
                            gas_scattering_do,
                            pnd_field_dummy,
                            dpnd_field_dx_dummy,

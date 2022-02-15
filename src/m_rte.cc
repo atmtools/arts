@@ -406,6 +406,7 @@ void iyClearsky(
     Vector sca_fct_dummy;
     const Vector in_los_dummy;
     const Vector out_los_dummy;
+    const ArrayOfIndex cloudbox_limits_dummy;
 
     Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
     Workspace l_ws(ws);
@@ -496,6 +497,8 @@ void iyClearsky(
                                         refellipsoid,
                                         ppath_lmax,
                                         ppath_lraytrace,
+                                        cloudbox_on,
+                                        cloudbox_limits_dummy,
                                         gas_scattering_do,
                                         jacobian_do,
                                         jacobian_quantities,

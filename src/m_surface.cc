@@ -469,17 +469,19 @@ void iySurfaceLambertianDirect(
     const Tensor3& mag_v_field,
     const Tensor3& mag_w_field,
     const Matrix& z_surface,
-    const Numeric& surface_skin_t,
     const Vector& surface_scalar_reflectivity,
     const Vector& refellipsoid,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
     const Index& star_do,
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfStar& stars,
     const Numeric& rte_alonglos_v,
+    const String& iy_unit,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
     const Agenda& gas_scattering_agenda,
@@ -488,6 +490,10 @@ void iySurfaceLambertianDirect(
   Vector star_rte_los;
   Matrix transmitted_starlight;
   ArrayOfTensor3 dtransmitted_starlight;
+
+  //Check for correct unit
+  ARTS_USER_ERROR_IF (iy_unit != "1" && star_do,
+                     "If stars are present only iy_unit=\"1\" can be used.");
 
   //Check size of iy
   if (not is_size(iy, f_grid.nelem(), stokes_dim)){
@@ -534,6 +540,8 @@ void iySurfaceLambertianDirect(
                                 refellipsoid,
                                 ppath_lmax,
                                 ppath_lraytrace,
+                                cloudbox_on,
+                                cloudbox_limits,
                                 gas_scattering_do,
                                 jacobian_do,
                                 jacobian_quantities,

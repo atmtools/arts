@@ -179,6 +179,8 @@ void get_star_radiation(Matrix& iy,
  * @param[in] refellipsoid As the WSV.
  * @param[in] ppath_lmax As the WSV.
  * @param[in] ppath_lraytrace As the WSV.
+ * @param[in] cloudbox_on As the WSV.
+ * @param[in] cloudbox_limits As the WSV.
  * @param[in] gas_scattering_do As the WSV.
  * @param[in] jacobian_do As the WSV.
  * @param[in] jacobian_quantities As the WSV.
@@ -219,6 +221,8 @@ void get_transmitted_starlight(
     const Vector& refellipsoid,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
