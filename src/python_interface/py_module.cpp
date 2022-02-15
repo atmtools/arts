@@ -16,7 +16,7 @@ void py_mcantenna(py::module_& m);
 void py_scattering(py::module_& m);
 void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
-void py_workspace(py::module_& m);
+void py_workspace(py::module_& m, py::class_<Workspace>& ws);
 void py_agenda(py::module_& m);
 void py_std(py::module_& m);
 void py_global(py::module_& m);
@@ -56,9 +56,11 @@ PYBIND11_MODULE(pyarts_cpp, m) {
   auto workspace = 
       m.def_submodule("workspace",
                       "Contains a way to interactively use the Arts workspace");
+  auto ws = py::class_<Workspace>(workspace, "Workspace");
+
   py_agenda(workspace);
   py_global(workspace);
 
-  py_workspace(workspace);  // Must be last, it contains automatic conversion operations
+  py_workspace(workspace, ws);  // Must be last, it contains automatic conversion operations
 }
 }  // namespace Python

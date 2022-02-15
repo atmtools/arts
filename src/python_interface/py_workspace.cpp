@@ -16,7 +16,7 @@ void parse_path_from_environment(String envvar, ArrayOfString &paths);
 namespace Python {
 
 void py_auto_workspace(py::class_<Workspace>&);
-void py_workspace(py::module_& m) {
+void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
   static bool init=true;
   if (init) {
     init = false;
@@ -60,7 +60,7 @@ void py_workspace(py::module_& m) {
     parameters.datapath.insert(parameters.datapath.begin(), ".");
   }
 
-  auto ws = py::class_<Workspace>(m, "Workspace").def(py::init([]() {
+  ws.def(py::init([]() {
     Workspace w{};
     w.initialize();
     w.push(w.WsvMap.at("verbosity"), new Verbosity{});
