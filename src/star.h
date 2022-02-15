@@ -120,7 +120,6 @@ void get_scattered_starsource(
  * @param[in] star Star-structure.
  * @param ppath Propagation path as the WSV.
  * @param atmosphere_dim Index as the WSV.
- * @param f_grid Vector as the WSV.
  * @param refellipsoid Vector as the WSV.
  */
 void get_star_background(Matrix& iy,
@@ -128,7 +127,6 @@ void get_star_background(Matrix& iy,
                          const ArrayOfStar& stars,
                          const Ppath& ppath,
                          const Index& atmosphere_dim,
-                         const Vector& f_grid,
                          const Vector& refellipsoid);
 
 /** Checks and adds star radiance if star is in line of sight.

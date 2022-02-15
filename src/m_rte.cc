@@ -684,7 +684,6 @@ void iyClearsky(
                         stars,
                         ppath,
                         atmosphere_dim,
-                        f_grid,
                         refellipsoid);
 
     if (stars_visible) {

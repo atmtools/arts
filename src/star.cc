@@ -113,9 +113,7 @@ void get_star_background(Matrix& iy,
                          const ArrayOfStar& stars,
                          const Ppath& ppath,
                          const Index& atmosphere_dim,
-                         const Vector& f_grid,
                          const Vector& refellipsoid) {
-  const Index nf = f_grid.nelem();
   const Index np = ppath.np;
 
   //set visibilty flag to default
@@ -261,7 +259,6 @@ void get_transmitted_starlight(
   Tensor3 ppvar_iy_dummy;
   Tensor4 ppvar_trans_cumulat_dummy;
   Tensor4 ppvar_trans_partial_dummy;
-//  const ArrayOfIndex cloudbox_limits_dummy;
   const Tensor4 pnd_field_dummy;
   const ArrayOfTensor4 dpnd_field_dx_dummy;
   const ArrayOfString scat_species_dummy;

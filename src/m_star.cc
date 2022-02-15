@@ -68,7 +68,6 @@ void starBlackbodySimple(ArrayOfStar &star,
   Star star_temp;
 
   // spectrum
-  const Numeric atan1 = std::atan(radius / distance);
   star_temp.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
 
   planck(star_temp.spectrum(joker,0), f_grid, temperature);
