@@ -918,6 +918,26 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
         arg.types = ArrayOfString{arg.types.front()};
     });
 
+    bool allow_py_object_input = false;
+    {
+      bool has_one_possible_combination = true;
+      Index generic_var_out_count = 0;
+      Index generic_var_in_count = 0;
+      for (auto& arg : arg_help) {
+        ArrayOfString copies = arg.types;
+        std::sort(copies.begin(), copies.end());
+        if (std::adjacent_find(copies.begin(), copies.end()) not_eq
+            copies.end())
+          has_one_possible_combination = false;
+        generic_var_in_count += arg.types.nelem() > 1 and arg.in;
+        generic_var_out_count += arg.types.nelem() > 1 and arg.out;
+      }
+
+      if (has_one_possible_combination and generic_var_in_count == 1 and
+          generic_var_out_count > 0)
+        allow_py_object_input = true;
+    }
+
     bool has_any = false;
 
     // Arguments from python side
@@ -947,6 +967,8 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
           if (t == "Index" or t == "Numeric") os << "_";
           os << " *";
         }
+
+        if (arg.in and not arg.out and allow_py_object_input) os << ", py::object *";
       }
       os << '>';
 
@@ -971,7 +993,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
     Index counter = 0;
     for (auto& arg : arg_help) {
       if (method.pass_wsv_names and arg.gen) {
-        os << "const String arg" << counter << "_name_{";
+        os << "  const String arg" << counter << "_name_{";
         if (arg.def) os << arg.name << ".has_value() ? (";
         os << "(" << arg.name;
         if (arg.def) os << "->"; else os << '.';
@@ -985,6 +1007,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
         os << "};\n";
       }
 
+      os << "  ";
       if (arg.types.size() == 1) {
         if (arg.in and not arg.out) os << "const ";
         os << arg.types.front() << "& ";
@@ -1007,12 +1030,13 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
     }
 
     if (pass_verbosity) {
-      os << "const Verbosity& arg" << counter++
+      os << "  const Verbosity& arg" << counter++
          << "_ = select_in<Verbosity>(WorkspaceVariable{w_, "
          << arts.varname_group.at("verbosity").artspos << "}, verbosity);\n";
     }
 
     // Find the right function
+    os << "  ";
     for (std::size_t i = 0; i < n_func; i++) {
       os << "if (";
       counter = 0;
@@ -1020,6 +1044,8 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
 
       for (auto& arg : arg_help) {
         if (arg.types.size() > 1) {
+          if (arg.in and not arg.out and allow_py_object_input) continue;
+
           if (has_any) os << " and ";
           has_any = true;
           os << "std::holds_alternative<" << arg.types[i];
@@ -1034,9 +1060,16 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
       counter = 0;
       for (auto& arg : arg_help) {
         if (arg.types.size() > 1) {
+          os << "    ";
           if (not arg.out) os << "const ";
           os << arg.types[i];
-          os << "& arg" << counter << "_ = *std::get<" << arg.types[i];
+          os << "& arg" << counter << "_ = ";
+          if (arg.in and not arg.out and allow_py_object_input) {
+            os << "std::holds_alternative<py::object *>(wvv_arg" << counter << "_) ? *std::get<py::object *>(wvv_arg" << counter << "_)->cast<" <<  arg.types[i];
+            if (arg.types[i] == "Numeric" or arg.types[i] == "Index") os << '_';
+            os << " *>() : ";
+          }
+          os << "*std::get<" << arg.types[i];
           if (arg.types[i] == "Numeric" or arg.types[i] == "Index") os << '_';
           os << " *>(wvv_arg" << counter << "_);\n";
         }
@@ -1045,7 +1078,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
 
       // Arguments from Arts side
       has_any = false;
-      os << method.name << '(';
+      os << "    " << method.name << '(';
       if (pass_workspace or
           (std::any_of(extra_workspace_for_agenda.begin(),
                        extra_workspace_for_agenda.end(),
@@ -1082,7 +1115,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
       if (pass_verbosity) os << ", arg" << counter << "_";
       os << ");\n";
 
-      os << "} else ";
+      os << "  } else ";
     }
 
     os << "ARTS_USER_ERROR(\"Generic Arts function called but without exact match of input parameter types\")}";

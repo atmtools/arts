@@ -122,6 +122,8 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       [](Workspace* w_, Workspace* w_2) { std::swap(w_, w_2); },
       py::return_value_policy::reference_internal);
 
+  ws.def("__repr__", [](Workspace& w) {Index c = 0; for (Index i=0; i<w.nelem(); i++) c += w.is_initialized(i); return var_string("Workspace with ", c, " initialized variables");});
+
   py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
       .def_property(
           "value",
