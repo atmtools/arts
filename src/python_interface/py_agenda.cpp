@@ -83,7 +83,7 @@ Array<AgendaMethodVariable> sorted_mdrecord(
     // Create defaults (on the workspace)
     if (ptr->GInDefault()[i] not_eq NODEF) {
       String gin_key =
-          "GeneratedInputDefault_" + ptr->Name() + "_" + var.name + "_";
+          "gin_" + ptr->Name() + "_" + var.name + "_";
 
       auto gin_def_ptr = gin_defaults.find(gin_key);
       if (gin_def_ptr == gin_defaults.end()) {

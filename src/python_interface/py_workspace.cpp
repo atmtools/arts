@@ -115,7 +115,7 @@ void py_workspace(py::module_& m) {
                        "No workspace variable called: ", name)
 
     return WorkspaceVariable{w, varpos->second};
-  });
+  }, py::doc("A custom workspace variable"));
 
   ws.def(
       "swap",

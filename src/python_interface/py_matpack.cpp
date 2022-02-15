@@ -61,21 +61,10 @@ void py_matpack(py::module_& m) {
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
-        std::size_t i = 0;
-        std::size_t nc = 1, nr = 1;
-        switch (info.ndim) {
-          case 2:
-            nr = info.shape[i++];
-            [[fallthrough]];
-          case 1:
-            nc = info.shape.back();
-            break;
-          case 0:
-            nr = nc = 0;
-            break;
-          default:
-            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
-        }
+        Index i = 2;
+        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        std::size_t nc = info.shape[--i];
+        std::size_t nr = info.shape[--i];
 
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Matrix out(nr, nc);
@@ -153,24 +142,11 @@ void py_matpack(py::module_& m) {
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
-        std::size_t i = 0;
-        std::size_t nc = 1, nr = 1, np = 0;
-        switch (info.ndim) {
-          case 3:
-            np = info.shape[i++];
-            [[fallthrough]];
-          case 2:
-            nr = info.shape[i++];
-            [[fallthrough]];
-          case 1:
-            nc = info.shape.back();
-            break;
-          case 0:
-            np = nr = nc = 0;
-            break;
-          default:
-            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
-        }
+        Index i = 3;
+        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        std::size_t nc = info.shape[--i];
+        std::size_t nr = info.shape[--i];
+        std::size_t np = info.shape[--i];
 
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor3 out(np, nr, nc);
@@ -254,27 +230,12 @@ void py_matpack(py::module_& m) {
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
-        std::size_t i = 0;
-        std::size_t nc = 1, nr = 1, np = 1, nb = 1;
-        switch (info.ndim) {
-          case 4:
-            nb = info.shape[i++];
-            [[fallthrough]];
-          case 3:
-            np = info.shape[i++];
-            [[fallthrough]];
-          case 2:
-            nr = info.shape[i++];
-            [[fallthrough]];
-          case 1:
-            nc = info.shape.back();
-            break;
-          case 0:
-            nb = np = nr = nc = 0;
-            break;
-          default:
-            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
-        }
+        Index i = 4;
+        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        std::size_t nc = info.shape[--i];
+        std::size_t nr = info.shape[--i];
+        std::size_t np = info.shape[--i];
+        std::size_t nb = info.shape[--i];
 
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor4 out(nb, np, nr, nc);
@@ -365,30 +326,13 @@ void py_matpack(py::module_& m) {
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
-        std::size_t i = 0;
-        std::size_t nc = 1, nr = 1, np = 1, nb = 1, ns = 1;
-        switch (info.ndim) {
-          case 5:
-            ns = info.shape[i++];
-            [[fallthrough]];
-          case 4:
-            nb = info.shape[i++];
-            [[fallthrough]];
-          case 3:
-            np = info.shape[i++];
-            [[fallthrough]];
-          case 2:
-            nr = info.shape[i++];
-            [[fallthrough]];
-          case 1:
-            nc = info.shape.back();
-            break;
-          case 0:
-            ns = nb = np = nr = nc = 0;
-            break;
-          default:
-            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
-        }
+        Index i = 5;
+        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        std::size_t nc = info.shape[--i];
+        std::size_t nr = info.shape[--i];
+        std::size_t np = info.shape[--i];
+        std::size_t nb = info.shape[--i];
+        std::size_t ns = info.shape[--i];
 
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor5 out(ns, nb, np, nr, nc);
@@ -489,33 +433,14 @@ void py_matpack(py::module_& m) {
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
-        std::size_t i = 0;
-        std::size_t nc = 1, nr = 1, np = 1, nb = 1, ns = 1, nv = 1;
-        switch (info.ndim) {
-          case 6:
-            nv = info.shape[i++];
-            [[fallthrough]];
-          case 5:
-            ns = info.shape[i++];
-            [[fallthrough]];
-          case 4:
-            nb = info.shape[i++];
-            [[fallthrough]];
-          case 3:
-            np = info.shape[i++];
-            [[fallthrough]];
-          case 2:
-            nr = info.shape[i++];
-            [[fallthrough]];
-          case 1:
-            nc = info.shape.back();
-            break;
-          case 0:
-            nv = ns = nb = np = nr = nc = 0;
-            break;
-          default:
-            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
-        }
+        Index i = 6;
+        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        std::size_t nc = info.shape[--i];
+        std::size_t nr = info.shape[--i];
+        std::size_t np = info.shape[--i];
+        std::size_t nb = info.shape[--i];
+        std::size_t ns = info.shape[--i];
+        std::size_t nv = info.shape[--i];
 
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor6 out(nv, ns, nb, np, nr, nc);
@@ -631,36 +556,15 @@ void py_matpack(py::module_& m) {
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
 
-        std::size_t i = 0;
-        std::size_t nc = 1, nr = 1, np = 1, nb = 1, ns = 1, nv = 1, nl = 1;
-        switch (info.ndim) {
-          case 7:
-            nl = info.shape[i++];
-            [[fallthrough]];
-          case 6:
-            nv = info.shape[i++];
-            [[fallthrough]];
-          case 5:
-            ns = info.shape[i++];
-            [[fallthrough]];
-          case 4:
-            nb = info.shape[i++];
-            [[fallthrough]];
-          case 3:
-            np = info.shape[i++];
-            [[fallthrough]];
-          case 2:
-            nr = info.shape[i++];
-            [[fallthrough]];
-          case 1:
-            nc = info.shape.back();
-            break;
-          case 0:
-            nl = nv = ns = nb = np = nr = nc = 0;
-            break;
-          default:
-            ARTS_USER_ERROR("Cannot understand dimensionality ", info.ndim)
-        }
+        Index i = 7;
+        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        std::size_t nc = info.shape[--i];
+        std::size_t nr = info.shape[--i];
+        std::size_t np = info.shape[--i];
+        std::size_t nb = info.shape[--i];
+        std::size_t ns = info.shape[--i];
+        std::size_t nv = info.shape[--i];
+        std::size_t nl = info.shape[--i];
 
         auto* val = reinterpret_cast<Numeric*>(info.ptr);
         Tensor7 out(nl, nv, ns, nb, np, nr, nc);

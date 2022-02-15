@@ -83,8 +83,6 @@ be accessed without copy using element-wise access operators.
       "    ArrayOfIndex(Index): for constant size, unknown value\n\n"
       "    ArrayOfIndex(Index, Index): for constant size, constant value\n\n"
       "    ArrayOfIndex(List or Array): to copy elements\n\n";
-  py::implicitly_convertible<py::array, ArrayOfIndex>();
-  py::implicitly_convertible<py::list, ArrayOfIndex>();
   py::implicitly_convertible<std::vector<Index>, ArrayOfIndex>();
 
   PythonInterfaceWorkspaceArray(ArrayOfIndex);

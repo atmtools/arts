@@ -66,7 +66,8 @@ void py_global(py::module_& m) {
         else
           omp_set_num_threads(n);
       },
-      R"--(
+      R"--(--
+
 Sets the maximum number of OpenMP threads
 
 With n as the startup maximum number of OpenMP threads:
