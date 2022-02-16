@@ -96,9 +96,11 @@ void get_scattered_starsource(Workspace& ws,
   //allocate and resize
   RadiationVector scattered_starlight_temp(1, ns);
 
+  Matrix mat_temp(1, ns,0.);
   // Calculate the scattered radiation
   for (Index i_f = 0; i_f < nf; i_f++) {
-    scattered_starlight_temp = transmitted_starlight(i_f, joker);
+    mat_temp(0,joker) =  transmitted_starlight(i_f, joker);
+    scattered_starlight_temp = mat_temp;//transmitted_starlight(i_f, joker);
     scattered_starlight_temp.leftMul(sca_mat);
 
     for (Index j = 0; j < ns; j++) {
