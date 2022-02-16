@@ -154,58 +154,67 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
+                                  Vector& sca_fct_legendre,
                                   const Vector& in_los,
                                   const Vector& out_los,
                                   const Index& stokes_dim,
+                                  const Index& gas_scattering_output_type,
                                   const Numeric& depolarization_factor,
                                   const Verbosity&) {
 
   ARTS_USER_ERROR_IF(in_los.nelem() != out_los.nelem(),
     "The length of the vectors of incoming and outgoing direction must be the same.")
 
-  //if in_los or out_los is empty then sca_mat is empty.
-  if (in_los.nelem()>0 && out_los.nelem()>0){
+    if (gas_scattering_output_type) {
+    sca_fct_legendre.resize(3);
+    Vector legendre{1, 0, 0.1};
+    sca_fct_legendre = legendre;  /// (4 * PI);
 
-    // calc_scatteringAngle() between in_los and out_los
-    Numeric za_inc = in_los[0];
-    Numeric aa_inc = in_los[1];
-    Numeric za_sca = out_los[0];
-    Numeric aa_sca = out_los[1];
-
-    Numeric theta_rad = scat_angle(za_sca, aa_sca, za_inc, aa_inc);
-
-    // Rayleigh phase matrix in scattering system
-    Vector pha_mat_int = calc_rayleighPhaMat(theta_rad, stokes_dim);
-
-    // transform the phase matrix
-    Matrix pha_mat(stokes_dim, stokes_dim, 0.0);
-
-    // account for depolarization factor
-    Numeric delta =
-        (1 - depolarization_factor) / (1 + 0.5 * depolarization_factor);
-    Numeric delta_prime =
-        (1 - 2 * depolarization_factor) / (1 - depolarization_factor);
-    Vector depol(6, 0.0);
-
-    switch (stokes_dim) {
-      case 4:
-        depol[5] = 1;
-        pha_mat_int[5] *= delta_prime;
-        [[fallthrough]];
-      case 1:
-        depol[0] = 1;
-        depol *= 1 - delta;
-        pha_mat_int += depol;
-    }
-
-    pha_mat_labCalc(pha_mat, pha_mat_int, out_los[0], out_los[1], in_los[0], in_los[1], theta_rad);
-
-    TransmissionMatrix sca_mat_temp(pha_mat);
-    sca_mat_temp *= 1 / (4 * pi);
-
-    sca_mat = sca_mat_temp;
   } else {
-    // set the scattering matrics empty in case the in and out los are empty
-    sca_mat = TransmissionMatrix();
+    //if in_los or out_los is empty then sca_mat is empty.
+    if (in_los.nelem()>0 && out_los.nelem()>0){
+
+      // calc_scatteringAngle() between in_los and out_los
+      Numeric za_inc = in_los[0];
+      Numeric aa_inc = in_los[1];
+      Numeric za_sca = out_los[0];
+      Numeric aa_sca = out_los[1];
+
+      Numeric theta_rad = scat_angle(za_sca, aa_sca, za_inc, aa_inc);
+
+      // Rayleigh phase matrix in scattering system
+      Vector pha_mat_int = calc_rayleighPhaMat(theta_rad, stokes_dim);
+
+      // transform the phase matrix
+      Matrix pha_mat(stokes_dim, stokes_dim, 0.0);
+
+      // account for depolarization factor
+      Numeric delta =
+          (1 - depolarization_factor) / (1 + 0.5 * depolarization_factor);
+      Numeric delta_prime =
+          (1 - 2 * depolarization_factor) / (1 - depolarization_factor);
+      Vector depol(6, 0.0);
+
+      switch (stokes_dim) {
+        case 4:
+          depol[5] = 1;
+          pha_mat_int[5] *= delta_prime;
+          [[fallthrough]];
+        case 1:
+          depol[0] = 1;
+          depol *= 1 - delta;
+          pha_mat_int += depol;
+      }
+
+      pha_mat_labCalc(pha_mat, pha_mat_int, out_los[0], out_los[1], in_los[0], in_los[1], theta_rad);
+
+      TransmissionMatrix sca_mat_temp(pha_mat);
+      sca_mat_temp *= 1 / (4 * pi);
+
+      sca_mat = sca_mat_temp;
+    } else {
+      // set the scattering matrics empty in case the in and out los are empty
+      sca_mat = TransmissionMatrix();
+    }
   }
 }

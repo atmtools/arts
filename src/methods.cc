@@ -7245,11 +7245,11 @@ Possible models:
           "\n"
           "The phase mayrix for anisotropic Rayleigh particles in random orientations."),
       AUTHORS("Jon Petersen"),
-      OUT("sca_mat"),
+      OUT("sca_mat", "sca_fct_legendre"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("in_los", "out_los", "stokes_dim"),
+      IN("in_los", "out_los", "stokes_dim", "gas_scattering_output_type"),
       GIN("depolarization_factor"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0.03"),
