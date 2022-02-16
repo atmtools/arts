@@ -15,6 +15,9 @@ ws.rtp_temperature = 250.
 ws.rtp_pressure = 5e4
 ws.rtp_vmr = np.array([1e-4])
 
+# switch off stars
+ws.starOff()
+
 ##################### SILLY ARTS DEFINITIONS
 ws.atmosphere_dim = 3
 ws.p_grid = np.array([1000000000000000000000000000000000000000000000000000000])
