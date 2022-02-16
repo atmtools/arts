@@ -105,7 +105,7 @@ void get_scattered_starsource(Workspace& ws,
 
     for (Index j = 0; j < ns; j++) {
       scattered_starlight(i_f, j) =
-          scattered_starlight_temp(0, j) * K_sca.Kjj(0, 0)[i_f];
+          scattered_starlight_temp(0, j) * K_sca.Kjj(0, 0)[i_f] /(4*PI);
     }
   }
 }

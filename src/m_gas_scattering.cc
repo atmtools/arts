@@ -137,13 +137,12 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
   //out
   if (gas_scattering_output_type) {
     sca_fct_legendre.resize(1);
-    sca_fct_legendre = 1.;  /// (4 * PI);
+    sca_fct_legendre = 1.;
 
   } else {
     if (in_los.nelem() > 0 && out_los.nelem() > 0) {
       TransmissionMatrix sca_mat_temp(1, stokes_dim);
       sca_mat_temp.setIdentity();
-      sca_mat_temp *= 1 / (4 * pi);
       sca_mat = sca_mat_temp;
     } else {
       // set the scattering matrics empty in case the in and out los are empty
@@ -167,8 +166,7 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
 
     if (gas_scattering_output_type) {
     sca_fct_legendre.resize(3);
-    Vector legendre{1, 0, 0.1};
-    sca_fct_legendre = legendre;  /// (4 * PI);
+    sca_fct_legendre = {1, 0, 0.1};
 
   } else {
     //if in_los or out_los is empty then sca_mat is empty.
@@ -209,7 +207,6 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
       pha_mat_labCalc(pha_mat, pha_mat_int, out_los[0], out_los[1], in_los[0], in_los[1], theta_rad);
 
       TransmissionMatrix sca_mat_temp(pha_mat);
-      sca_mat_temp *= 1 / (4 * pi);
 
       sca_mat = sca_mat_temp;
     } else {
