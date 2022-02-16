@@ -75,6 +75,7 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("H2O"), "MPM87"),
   IsotopeRecord(fromShortName("H2O"), "MPM89"),
   IsotopeRecord(fromShortName("H2O"), "MPM93"),
+  IsotopeRecord(fromShortName("H2O"), "PWR2021"),
   IsotopeRecord(fromShortName("H2O"), "PWR98"),
   IsotopeRecord(fromShortName("H2O"), "SelfContCKD222"),
   IsotopeRecord(fromShortName("H2O"), "SelfContCKD24"),

@@ -15,6 +15,7 @@ namespace Species {
 constexpr bool is_modern_predefined(const IsotopeRecord& isot) {
   constexpr std::array modern{
       find_species_index(Species::Oxygen, "MPM2020"),
+      find_species_index(Species::Water, "PWR2021"),
       find_species_index(Species::Water, "ForeignContCKDMT350"),
       find_species_index(Species::Water, "SelfContCKDMT350"),
   };

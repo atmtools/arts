@@ -9,6 +9,14 @@ void compute(PropagationMatrix& propmat_clearsky,
              const Numeric& oxygen_vmr) noexcept;
 }  // namespace MPM2020
 
+namespace PWR2021 {
+void compute_h2o(PropagationMatrix& propmat_clearsky,
+                 const Vector& f_grid,
+                 const Numeric& p_pa,
+                 const Numeric& t,
+                 const Numeric& h2o_vmr) noexcept;
+}  // namespace PWR2021
+
 namespace CKDMT350 {
 void compute_self_h2o(PropagationMatrix& propmat_clearsky,
                       const Vector& f_grid,
