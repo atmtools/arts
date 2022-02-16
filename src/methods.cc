@@ -8093,6 +8093,12 @@ Possible models:
           "    and the end of the present propagation path. Calculated based on\n"
           "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT.\n"
+          " \"Direct radiation\": Stokes vector of direct radiation. It dimensions\n"
+          "   are number of frequencies and *stokes_dim*. If no star is present "
+          "   in the line of sight, it is zero.\n"
+          " \"Radiation Background\": Stokes vector of the radiation at start of"
+          "   the propagation path. It dimensions are number of frequencies and\n"
+          "   *stokes_dim*.\n"
           "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
           "i.e. the column matching Stokes element I, while remaing columns are\n"
           "are filled with zeros.\n"),

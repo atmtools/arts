@@ -260,21 +260,13 @@ void iyClearsky(
   //
   Index auxOptDepth = -1;
   Index auxDirectRad = -1;
+  Index auxRadBackGrnd = -1;
 
-  // Allocate, if we have radiation field as iy_aux_var, then
-  // we have an array of length naux+(np-1)
-  Index cnt=0;
-  for (Index i = 0; i < naux; i++) {
-    if (iy_aux_vars[i] == "Radiation field") {
-      cnt+=np;
-    } else {
-      cnt+=1;
-    }
-  }
+  // Allocate
   iy_aux.resize(iy_aux_vars.nelem());
 
   // Allocate and set (if possible here) iy_aux
-  cnt=-1;
+  Index cnt=-1;
   for (Index i = 0; i < naux; i++) {
 
 
@@ -296,12 +288,19 @@ void iyClearsky(
       iy_aux[cnt].resize(nf, ns);
       iy_aux[cnt] = 0;
     }
+    else if (iy_aux_vars[i] == "Radiation Background"){
+      cnt+=1;
+      auxRadBackGrnd = cnt;
+      iy_aux[cnt].resize(nf, ns);
+      iy_aux[cnt] = 0;
+    }
     else {
       ARTS_USER_ERROR (
           "The only allowed strings in *iy_aux_vars* are:\n"
           "  \"Radiative background\"\n"
           "  \"Optical depth\"\n"
           "  \"Direct radiation\"\n"
+          "  \"Radiation Background\"\n"
           "but you have selected: \"", iy_aux_vars[i], "\"")
     }
   }
@@ -702,6 +701,11 @@ void iyClearsky(
   if (auxDirectRad >= 0)
     iy_aux[auxDirectRad] = iy_direct;
 
+  // iy_aux: Background Radiation
+  if (auxRadBackGrnd >= 0)
+    iy_aux[auxRadBackGrnd] = iy;
+
+  // set the radiation at the start of the ppath
   lvl_rad[np - 1] = iy;
 
   // Radiative transfer calculations
