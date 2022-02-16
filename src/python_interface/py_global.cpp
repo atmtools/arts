@@ -67,7 +67,6 @@ void py_global(py::module_& m) {
           omp_set_num_threads(n);
       },
       R"--(--
-
 Sets the maximum number of OpenMP threads
 
 With n as the startup maximum number of OpenMP threads:
@@ -79,7 +78,7 @@ Parameters:
     threads (int): Number of threads
 )--",
       py::arg("threads") = 0);
-}
 #endif
 
+}  // void py_global(py::module_& m)
 }  // namespace Python

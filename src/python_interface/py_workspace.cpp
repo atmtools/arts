@@ -74,10 +74,6 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       [](Workspace& w, char* group, char* name, std::optional<char*> desc) {
         using global_data::workspace_memory_handler;
 
-        DEPRECATED_FUNCTION("create_variable", "2022-02-14",
-            "This function is deprecated, use explicit *Create or simply set the attribute manually\n"
-            "The reason is that it is unsafe to allow \'_\' in front or behind names since a recent pyarts update" )
-
         ARTS_USER_ERROR_IF(std::find_if(w.WsvMap.begin(),
                                         w.WsvMap.end(),
                                         [&](auto& b) {

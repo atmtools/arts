@@ -1203,9 +1203,11 @@ struct WorkspaceVariable {
 
   WorkspaceVariable(Workspace& ws_, Index pos_) : ws(ws_), pos(pos_) {}
 
-  WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj);
+  WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj, bool allow_casting);
 
   String name() const;
+
+  Index group() const;
 
   WorkspaceVariable& operator=(WorkspaceVariable& wv2) {
     pos = wv2.pos;
@@ -1254,9 +1256,11 @@ String WorkspaceVariable::name() const {
   return ws.wsv_data[pos].Name();
 }
 
-WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj) : ws(ws_), pos(-1) {
-  static std::size_t i = 0;
+Index WorkspaceVariable::group() const {
+  return ws.wsv_data[pos].Group();
+}
 
+WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj, bool allow_casting) : ws(ws_), pos(-1) {
   try {
     *this = *obj.cast<WorkspaceVariable *>();
     return;
@@ -1264,24 +1268,26 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, py::obje
     // Do nothing
   }
 
+  ARTS_USER_ERROR_IF(not allow_casting, "Only workspace variable objects allowed")
   ARTS_USER_ERROR_IF(group_index == )--"
      << arts.group.at("Any") << R"--(, "Cannot create type Any")
   void * value_ptr = nullptr;
-  )--";
+  switch(group_index) {
+)--";
 
   for (auto& [name, group] : arts.group) {
-    os << "if (group_index == " << group << ") {\n";
-    os << "   value_ptr = "
-       << "obj.cast<" << name;
+    if (name == "Any") continue;
+    os << "    case " << group << ": value_ptr = new " << name << "{* obj.cast<" << name;
     if (name == "Index" or name == "Numeric") os << '_';
-    os << " *>();\n"
-       << "  } else ";
+    os << " *>()}; break;\n";
   }
 
-  os << R"--(ARTS_USER_ERROR("Cannot create type")
+  os << R"--(    default: ARTS_USER_ERROR("Cannot create type")
+  }
 
   // Create the variable and initialize it
-  pos = ws.add_wsv_inplace(WsvRecord(var_string("_anon", i++).c_str(), "Created by pybind11 API", group_index));
+  static std::size_t i = 0;
+  pos = ws.add_wsv_inplace(WsvRecord(var_string("::anon::", i++).c_str(), "Created by pybind11 API", group_index));
   ws.push(pos, value_ptr);
 }
 
@@ -1390,23 +1396,20 @@ ws.def("__setattr__", [](Workspace& w, const char * name, WorkspaceVariablesVari
   bool newname = varpos == w.WsvMap.end();
   Index i=-1;
   if (newname) {
-    ARTS_USER_ERROR_IF(auto _sv=std::string_view(name); _sv.size() == 0 or _sv.front() == '_' or _sv.back() == '_',
-    "Cannot automatically generate names starting or ending with \'_\', it is reserved for internal use")
-
     )--";
-  bool first = true;
   for (auto& [name, group] : arts.group) {
-    if (not first) os << "    else ";
-    first = false;
     os << "if (std::holds_alternative<" << name;
     if (name == "Index" or name == "Numeric") os << "_";
     os << R"--( *>(x)) i = w.add_wsv_inplace(WsvRecord(name, "User-generated value", )--"
-       << group << "));\n";
+       << group << "));\n    else ";
   }
 
-  os << R"--(    else
-      ARTS_USER_ERROR("Cannot recognize workspace variable type\n\n"
-      "You cannot initiate a workspace variable from a pure python object (use create_variable if unsure how to proceed)")
+  os << R"--(ARTS_USER_ERROR("Cannot recognize workspace variable type\n\n"
+      "You cannot initiate a workspace variable from a pure python object.\n"
+      "There are three options to proceed:\n"
+      "    1) Cast the type into the desired pyarts type before repeating this evaluation\n"
+      "    2) Use one of the *Create(...) methods with a default value\n"
+      "    3) Use create_variable and then set the value manually\n"
   } else i = varpos->second;
 
   WorkspaceVariable var{w, i};
@@ -1435,9 +1438,8 @@ void internal_defaults(std::ofstream& os, const NameMaps& arts) {
   for (auto& method : arts.methodname_method) {
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
       if (method.gin.hasdefs[i]) {
-        String gin_key = "gin_" + method.name + "_" +
-                         method.gin.name[i] + "_";
-        has[gin_key] = TypeVal{method.gin.group[i], method.gin.defs[i]};
+        has[var_string("::", method.name, "::", method.gin.name[i])] =
+            TypeVal{method.gin.group[i], method.gin.defs[i]};
       }
     }
   }

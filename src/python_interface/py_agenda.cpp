@@ -82,8 +82,7 @@ Array<AgendaMethodVariable> sorted_mdrecord(
 
     // Create defaults (on the workspace)
     if (ptr->GInDefault()[i] not_eq NODEF) {
-      String gin_key =
-          "gin_" + ptr->Name() + "_" + var.name + "_";
+      String gin_key = var_string("::", ptr->Name(), "::", var.name);
 
       auto gin_def_ptr = gin_defaults.find(gin_key);
       if (gin_def_ptr == gin_defaults.end()) {
@@ -109,6 +108,21 @@ std::pair<ArrayOfIndex, ArrayOfIndex> split_io(
       out.push_back(var.ws_pos);
   }
   return {in, out};
+}
+
+String error_msg(const String& name, Workspace& ws, const Array<AgendaMethodVariable>& var_order) {
+  std::ostringstream os;
+  os << name << "(";
+  for (auto& var: var_order) {
+    os << var.name << " : ";
+    if (var.ws_pos >= 0)
+      os << global_data::wsv_group_names[WorkspaceVariable(ws, var.ws_pos).group()];
+    else
+      os << global_data::wsv_group_names[var.group];
+    if (&var not_eq &var_order.back()) os << ", ";
+  }
+  os << ")";
+  return os.str();
 }
 
 void py_agenda(py::module_& m) {
@@ -188,21 +202,58 @@ void py_agenda(py::module_& m) {
             // Set the actual input and output of all the variables (and create anonymous variables)
             for (Index i = 0; i < var_order.nelem(); i++) {
               auto& var = var_order[i];
+
+            try_to_set_workspace_position:
               try {
                 if (i < nargs) {
-                  var.ws_pos = WorkspaceVariable(ws, var.group, args[i]).pos;
+                  var.ws_pos = WorkspaceVariable(ws, var.group, args[i], var.input).pos;
                 } else if (auto key = var.name.c_str(); kwargs.contains(key)) {
                   var.ws_pos =
-                      WorkspaceVariable(ws, var.group, kwargs[key]).pos;
+                      WorkspaceVariable(ws, var.group, kwargs[key], var.input).pos;
                 }
               } catch (std::exception& e) {
-                ARTS_USER_ERROR("\nCannot add workspace method \"",
-                                name,
-                                "\" with the following reason for variable \"",
-                                var.name,
-                                "\":\n\n",
-                                e.what());
+                // We should be able to switch to the right method for simple_generic_function
+                if (var.any and var.input) {
+                increment_ptr:
+                  ptr++;
+
+                  ARTS_USER_ERROR_IF(
+                      ptr == global_data::md_data.end() or
+                          ptr->Name() not_eq name,
+                      "Cannot find matching workspace method:\n", error_msg(name, ws, var_order), "\n"
+                      "The generic variable \"", var.name, "\" cannot be converted to a type that matches any available workspace method signatures (note that the signature above is therefore potentially extra weird)")
+                  
+                  // We have a new variable order but previous variables must be respected
+                  auto new_var_order = sorted_mdrecord(ws, ptr);
+                  for (Index j = 0; j < i; j++) {
+                    if (var_order[j].ws_pos >= 0 and new_var_order[j].group not_eq WorkspaceVariable(ws, var_order[j].ws_pos).group()) {
+                      goto increment_ptr;
+                    }
+                  }
+
+                  // Try with a new type
+                  var.group = new_var_order[i].group;
+                  goto try_to_set_workspace_position;
+                } else {
+                  ARTS_USER_ERROR(
+                      "\nCannot add workspace method:\n",
+                      error_msg(name, ws, var_order),
+                      "\n"
+                      "with the following reason for variable \"",
+                      var.name,
+                      "\":\n\n",
+                      e.what());
+                }
               }
+            }
+
+            // Ensure we have all input/output
+            for (auto& var : var_order) {
+              ARTS_USER_ERROR_IF(var.ws_pos < 0,
+                                 "Must set ",
+                                 var.name,
+                                 " in agenda method:\n",
+                                 error_msg(name, ws, var_order))
             }
 
             // Adjust pointer to the correct one given the current args and kwargs if we are generic
@@ -210,11 +261,6 @@ void py_agenda(py::module_& m) {
               // Ensure we have GIN and GOUT for all of the generic types
               for (Index i = 0; i < var_order.nelem(); i++) {
                 auto& var = var_order[i];
-                ARTS_USER_ERROR_IF(var.ws_pos < 0,
-                                   "Must have variable ",
-                                   var.name,
-                                   " for agenda method ",
-                                   name)
                 var.group = ws.wsv_data[var.ws_pos].Group();
               }
 
@@ -234,20 +280,27 @@ void py_agenda(py::module_& m) {
 
               ARTS_USER_ERROR_IF(
                   ptr == global_data::md_data.end() or ptr->Name() not_eq name,
-                  "Cannot find a matching generic function signature for call to: ",
-                  name,
+                  "Cannot find a matching generic function signature for call to:\n",
+                  error_msg(name, ws, var_order),
                   "\n"
-                  "Note that generic functions can only operate on true Workspace groups, "
-                  "either via a workspace variable or via python classes representing the type")
-            }
-
-            // Ensure we have all input/output
-            for (auto& var : var_order) {
-              ARTS_USER_ERROR_IF(var.ws_pos < 0,
-                                 "Must set ",
-                                 var.name,
-                                 " in agenda method ",
-                                 name)
+                  "Please check documentation of the function for correct signatures\n\n"
+                  "If you think we should have deduced a correct signature from your\n"
+                  "input, try first casting your data into a Arts type manually or put\n"
+                  "it directly onto the workspace")
+            } else {
+              // Ensure that all input match the final method
+              ARTS_USER_ERROR_IF(
+                  std::any_of(
+                      var_order.begin(),
+                      var_order.end(),
+                      [&](auto& var) {
+                        return WorkspaceVariable(ws, var.ws_pos).group() not_eq
+                               var.group;
+                      }),
+                  "Mismatching signature.  Got:\n",
+                  error_msg(name, ws, var_order),
+                  "\n"
+                  "But this does not match a signature in Arts")
             }
 
             // Set the method record
@@ -272,13 +325,14 @@ so Copy(a, out=b) will not even see the b variable.
       .def(
           "add_callback_method",
           [](Agenda& a, Workspace& ws, CallbackFunction x) mutable {
-            static std::size_t counter = 0;
 
             const Index group_index = get_wsv_group_id("CallbackFunction");
             ARTS_USER_ERROR_IF(group_index < 0,
                                "Cannot recognize CallbackFunction")
 
-            const String name = var_string("_callback_function_nr_", counter++);
+            static std::size_t counter = 0;
+            const String name = var_string("::callback::", counter++);
+
             Index in = ws.add_wsv_inplace(WsvRecord(
                 name.c_str(), "Callback created by pybind11 API", group_index));
             ws.push(in, new CallbackFunction{x});
@@ -304,15 +358,10 @@ so Copy(a, out=b) will not even see the b variable.
           py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",
-           [](Agenda& a) {
-             std::string out = var_string("Arts Agenda ", a.name(), ":\n");
-             std::ostringstream os;
-             a.print(os, "   ");
-             out += os.str();
-             return out;
-           })
+           [](Agenda& a) { return var_string("Arts Agenda ", a.name()); })
       .def("__str__", [](Agenda& a) {
-        std::string out = var_string("Arts Agenda ", a.name(), ":\n");
+        std::string out =
+            var_string("Arts Agenda ", a.name(), " with methods:\n");
         std::ostringstream os;
         a.print(os, "   ");
         out += os.str();
