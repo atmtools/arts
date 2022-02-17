@@ -3,4 +3,4 @@
 """This module contains functions to interact with ARTS.
 """
 
-import pyarts_cpp
+import pyarts.builtin.pyarts_cpp
