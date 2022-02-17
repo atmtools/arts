@@ -8,7 +8,9 @@ Arts2{
   ## Constants (changes here might require changes in perturbations to match)
   isotopologue_ratiosInitFromBuiltin
   abs_speciesSet(species=["O2-66"])
-  VectorNLinSpace(f_grid, 101, 90e9, 110e9)
+  VectorNLinSpace(f_grid, 50, 90e9, 99.9e9)
+  VectorNLinSpace(x, 50, 100.1e9, 110e9)
+  Append(f_grid, x)
   Touch(rtp_nlte)
   VectorSet(rtp_vmr, [0.21])
   NumericSet(rtp_temperature, 250)
@@ -88,10 +90,14 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed frequency derivative
-  VectorNLinSpace(f_grid, 101, 90000000100, 110000000100)
+  VectorNLinSpace(f_grid, 50, 90000000100, 99900000100)
+  VectorNLinSpace(x, 50, 100100000100, 110000000100)
+  Append(f_grid, x)
   propmat_clearskyInit
   propmat_clearskyAddLines
-  VectorNLinSpace(f_grid, 101, 90e9, 110e9)
+  VectorNLinSpace(f_grid, 50, 90e9, 99.9e9)
+  VectorNLinSpace(x, 50, 100.1e9, 110e9)
+  Append(f_grid, x)
   #WriteXML("ascii", propmat_clearsky, "testdata/test-lm-lp/propmat-df.xml")
   ReadXML(testdata, "testdata/test-lm-lp/propmat-df.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
