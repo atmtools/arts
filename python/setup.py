@@ -17,8 +17,8 @@ from setuptools import setup, find_packages
 
 # To use a consistent encoding
 from codecs import open
-from os import remove
-from os.path import abspath, dirname, isfile, join
+from os import remove, listdir
+from os.path import abspath, dirname, isfile, join, splitext
 
 import builtins
 
@@ -43,6 +43,20 @@ except:
         "successful."
     )
 
+try:
+    builtin_path = join("@ARTS_BINARY_DIR@", "src", "python_interface")
+    files = listdir(builtin_path)
+    found = False
+    for file in files:
+        if splitext(file)[-1] in [".so"]:
+            builtin_lib_path = join(builtin_path, file)
+            if isfile(join("pyarts", "builtin", file)):
+                remove(join("pyarts", "builtin", file))
+            shutil.copy(builtin_lib_path, join("pyarts", "builtin"))
+            found = True
+    if not found: raise
+except:
+    raise Exception("Cannot find builtin library")
 
 setup(
     name="pyarts",

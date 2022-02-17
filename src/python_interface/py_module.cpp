@@ -57,10 +57,8 @@ PYBIND11_MODULE(pyarts_cpp, m) {
       m.def_submodule("workspace",
                       "Contains a way to interactively use the Arts workspace");
   auto ws = py::class_<Workspace>(workspace, "Workspace");
-
   py_agenda(workspace);
   py_global(workspace);
-
   py_workspace(workspace, ws);  // Must be last, it contains automatic conversion operations
 }
 }  // namespace Python
