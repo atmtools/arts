@@ -1409,7 +1409,7 @@ ws.def("__setattr__", [](Workspace& w, const char * name, WorkspaceVariablesVari
       "There are three options to proceed:\n"
       "    1) Cast the type into the desired pyarts type before repeating this evaluation\n"
       "    2) Use one of the *Create(...) methods with a default value\n"
-      "    3) Use create_variable and then set the value manually\n"
+      "    3) Use create_variable and then set the value manually\n")
   } else i = varpos->second;
 
   WorkspaceVariable var{w, i};
