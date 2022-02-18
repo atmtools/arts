@@ -471,6 +471,10 @@ void iySurfaceLambertianDirect(
     const Matrix& z_surface,
     const Vector& surface_scalar_reflectivity,
     const Vector& refellipsoid,
+    const Tensor4& pnd_field,
+    const ArrayOfTensor4& dpnd_field_dx,
+    const ArrayOfString& scat_species,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
     const Index& cloudbox_on,
@@ -487,9 +491,11 @@ void iySurfaceLambertianDirect(
     const Agenda& gas_scattering_agenda,
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
-  Vector star_rte_los;
-  Matrix transmitted_starlight;
-  ArrayOfTensor3 dtransmitted_starlight;
+  ArrayOfVector star_rte_los;
+  ArrayOfMatrix transmitted_starlight;
+  ArrayOfArrayOfTensor3 dtransmitted_starlight;
+  ArrayOfPpath star_ppaths(stars.nelem());
+  ArrayOfIndex stars_visible(stars.nelem());
 
   //Check for correct unit
   ARTS_USER_ERROR_IF (iy_unit != "1" && star_do,
@@ -503,57 +509,72 @@ void iySurfaceLambertianDirect(
 
   //do something only if there is a star
   if (star_do) {
-
-    Index star_path_ok = 0;
-
     // Input checks
     chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
     chk_rte_pos(atmosphere_dim, rtp_pos);
 
+    //get star ppaths
+    get_star_ppaths(ws,
+                    star_ppaths,
+                    stars_visible,
+                    star_rte_los,
+                    rtp_pos,
+                    stars,
+                    f_grid,
+                    atmosphere_dim,
+                    p_grid,
+                    lat_grid,
+                    lon_grid,
+                    z_field,
+                    z_surface,
+                    refellipsoid,
+                    ppath_lmax,
+                    ppath_lraytrace,
+                    ppath_step_agenda,
+                    verbosity);
+
+    get_direct_radiation(ws,
+                         transmitted_starlight,
+                         dtransmitted_starlight,
+                         stokes_dim,
+                         f_grid,
+                         atmosphere_dim,
+                         p_grid,
+                         lat_grid,
+                         lon_grid,
+                         t_field,
+                         nlte_field,
+                         vmr_field,
+                         abs_species,
+                         wind_u_field,
+                         wind_v_field,
+                         wind_w_field,
+                         mag_u_field,
+                         mag_v_field,
+                         mag_w_field,
+                         cloudbox_on,
+                         cloudbox_limits,
+                         gas_scattering_do,
+                         1,
+                         star_ppaths,
+                         stars,
+                         stars_visible,
+                         refellipsoid,
+                         pnd_field,
+                         dpnd_field_dx,
+                         scat_species,
+                         scat_data,
+                         jacobian_do,
+                         jacobian_quantities,
+                         propmat_clearsky_agenda,
+                         water_p_eq_agenda,
+                         gas_scattering_agenda,
+                         rte_alonglos_v,
+                         verbosity);
+
     //loop over stars
     for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-      get_transmitted_starlight(ws,
-                                transmitted_starlight,
-                                dtransmitted_starlight,
-                                star_rte_los,
-                                star_path_ok,
-                                rtp_pos,
-                                i_star,
-                                stokes_dim,
-                                f_grid,
-                                atmosphere_dim,
-                                p_grid,
-                                lat_grid,
-                                lon_grid,
-                                z_field,
-                                t_field,
-                                nlte_field,
-                                vmr_field,
-                                abs_species,
-                                wind_u_field,
-                                wind_v_field,
-                                wind_w_field,
-                                mag_u_field,
-                                mag_v_field,
-                                mag_w_field,
-                                z_surface,
-                                refellipsoid,
-                                ppath_lmax,
-                                ppath_lraytrace,
-                                cloudbox_on,
-                                cloudbox_limits,
-                                gas_scattering_do,
-                                jacobian_do,
-                                jacobian_quantities,
-                                stars,
-                                rte_alonglos_v,
-                                propmat_clearsky_agenda,
-                                water_p_eq_agenda,
-                                gas_scattering_agenda,
-                                ppath_step_agenda,
-                                verbosity);
-
-      if (star_path_ok) {
+      if (stars_visible[i_star]) {
         // Only the first component of transmitted_starlight is relevant.
         // Comment taken from surfaceLambertianSimple.
         // This follows VDISORT that refers to: K. L. Coulson, Polarization and Intensity of Light in
@@ -563,25 +584,25 @@ void iySurfaceLambertianDirect(
         // that edition. In a 1988 version of the book, the relevant page seems
         // to be 232.
 
-
         Vector iy_surface_direct(f_grid.nelem());
 
         for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
           iy_surface_direct[i_freq] = surface_scalar_reflectivity[i_freq] / pi *
-                              transmitted_starlight(i_freq, 0) *cos(deg2rad(star_rte_los[0]))  ;
+                                      transmitted_starlight[i_star](i_freq, 0) *
+                                      cos(deg2rad(star_rte_los[0]));
         }
 
         //Add the surface contribution of the direct part
-        iy(joker,0) += iy_surface_direct;
+        iy(joker, 0) += iy_surface_direct;
 
         //For now we only have the jacobians from the transmission calculation.
         //I am not really sure, if this is correct.
         //TODO: Check and add surface jacobian
-        for (Index i_jac = 0; i_jac < dtransmitted_starlight.nelem(); i_jac++) {
-          dtransmitted_starlight[i_jac] /= pi;
-          diy_dx[i_jac](joker, joker, 0) +=
-              dtransmitted_starlight[i_jac](joker, joker, 0);
-        }
+        //        for (Index i_jac = 0; i_jac < dtransmitted_starlight.nelem(); i_jac++) {
+        //          dtransmitted_starlight[i_jac] /= pi;
+        //          diy_dx[i_jac](joker, joker, 0) +=
+        //              dtransmitted_starlight[i_jac](joker, joker, 0);
+        //        }
       }
     }
   }
