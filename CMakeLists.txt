@@ -555,6 +555,8 @@ add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (controlfiles)
 add_subdirectory (controlfiles-python)
+add_subdirectory (tests)
+add_subdirectory (examples)
 add_subdirectory (python)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
