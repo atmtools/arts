@@ -392,12 +392,18 @@ void iyClearsky(
 
 
     //allocate Varibale for direct (star) source
-    Vector star_rte_los;
-    Matrix transmitted_starlight;
-    ArrayOfTensor3 dtransmitted_starlight;
+    ArrayOfVector star_rte_los(stars.nelem(), Vector(2));
+    ArrayOfMatrix transmitted_starlight;
+    ArrayOfArrayOfTensor3 dtransmitted_starlight;
+//    Matrix transmitted_starlight_istar;
+    ArrayOfTensor3 dtransmitted_starlight_istar;
     PropagationMatrix K_sca;
+    RadiationVector scattered_starlight_istar(nf, ns);
+    ArrayOfRadiationVector dscattered_starlight_istar(nq, RadiationVector(nf, ns));
     RadiationVector scattered_starlight(nf, ns);
     ArrayOfRadiationVector dscattered_starlight(nq, RadiationVector(nf, ns));
+    ArrayOfPpath star_ppaths(stars.nelem());
+    ArrayOfIndex stars_visible(stars.nelem());
 
     //dummy variables needed for the output and input of
     // gas_scattering_agenda
@@ -406,6 +412,10 @@ void iyClearsky(
     const Vector in_los_dummy;
     const Vector out_los_dummy;
     const ArrayOfIndex cloudbox_limits_dummy;
+    const Tensor4 pnd_field_dummy;
+    const ArrayOfTensor4 dpnd_field_dx_dummy;
+    const ArrayOfString scat_species_dummy;
+    const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
 
     Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
     Workspace l_ws(ws);
@@ -450,14 +460,12 @@ void iyClearsky(
                                              j_analytical_do);
 
         if (gas_scattering_do) {
-
           Numeric minP = min(ppvar_p);
-          Index star_path_ok = 0;
 
-          //Zeroing scattered_starlight
-          scattered_starlight.SetZero();
-          for (auto &dscattered:dscattered_starlight) dscattered.SetZero();
-
+          //Zeroing scattered_starlight_istar
+          scattered_starlight_istar.SetZero();
+          for (auto& dscattered : dscattered_starlight_istar)
+            dscattered.SetZero();
 
           if (star_do && ppvar_p[ip] > minP) {
             // We skip the uppermost altitude
@@ -467,67 +475,100 @@ void iyClearsky(
             // uppermost level in view of scattering
             // is negligible due to the low density.
 
-            for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-              get_transmitted_starlight(ws,
-                                        transmitted_starlight,
-                                        dtransmitted_starlight,
-                                        star_rte_los,
-                                        star_path_ok,
-                                        ppath.pos(ip, joker),
-                                        i_star,
-                                        stokes_dim,
-                                        f_grid,
-                                        atmosphere_dim,
-                                        p_grid,
-                                        lat_grid,
-                                        lon_grid,
-                                        z_field,
-                                        t_field,
-                                        nlte_field,
-                                        vmr_field,
-                                        abs_species,
-                                        wind_u_field,
-                                        wind_v_field,
-                                        wind_w_field,
-                                        mag_u_field,
-                                        mag_v_field,
-                                        mag_w_field,
-                                        z_surface,
-                                        refellipsoid,
-                                        ppath_lmax,
-                                        ppath_lraytrace,
-                                        cloudbox_on,
-                                        cloudbox_limits_dummy,
-                                        gas_scattering_do,
-                                        jacobian_do,
-                                        jacobian_quantities,
-                                        stars,
-                                        rte_alonglos_v,
-                                        propmat_clearsky_agenda,
-                                        water_p_eq_agenda,
-                                        gas_scattering_agenda,
-                                        ppath_step_agenda,
-                                        verbosity);
+            get_star_ppaths(ws,
+                            star_ppaths,
+                            stars_visible,
+                            star_rte_los,
+                            ppath.pos(ip, joker),
+                            stars,
+                            f_grid,
+                            atmosphere_dim,
+                            p_grid,
+                            lat_grid,
+                            lon_grid,
+                            z_field,
+                            z_surface,
+                            refellipsoid,
+                            ppath_lmax,
+                            ppath_lraytrace,
+                            ppath_step_agenda,
+                            verbosity);
 
-              if (star_path_ok) {
+            get_direct_radiation(ws,
+                                 transmitted_starlight,
+                                 dtransmitted_starlight,
+                                 stokes_dim,
+                                 f_grid,
+                                 atmosphere_dim,
+                                 p_grid,
+                                 lat_grid,
+                                 lon_grid,
+                                 t_field,
+                                 nlte_field,
+                                 vmr_field,
+                                 abs_species,
+                                 wind_u_field,
+                                 wind_v_field,
+                                 wind_w_field,
+                                 mag_u_field,
+                                 mag_v_field,
+                                 mag_w_field,
+                                 cloudbox_on,
+                                 cloudbox_limits_dummy,
+                                 gas_scattering_do,
+                                 1,
+                                 star_ppaths,
+                                 stars,
+                                 stars_visible,
+                                 refellipsoid,
+                                 pnd_field_dummy,
+                                 dpnd_field_dx_dummy,
+                                 scat_species_dummy,
+                                 scat_data_dummy,
+                                 jacobian_do,
+                                 jacobian_quantities,
+                                 propmat_clearsky_agenda,
+                                 water_p_eq_agenda,
+                                 gas_scattering_agenda,
+                                 rte_alonglos_v,
+                                 verbosity);
+
+            //Loop over the different stars to get the total scattered starlight
+            for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
+              if (stars_visible[i_star]) {
+                //                transmitted_starlight_istar = transmitted_starlight[i_star];
+
+                if (jacobian_do) {
+                  dtransmitted_starlight_istar = dtransmitted_starlight[i_star];
+                }
+
                 // here we calculate how much incoming star radiation is scattered
                 //into the direction of the ppath
                 get_scattered_starsource(ws,
-                                         scattered_starlight,
-                                         dscattered_starlight,
+                                         scattered_starlight_istar,
+                                         dscattered_starlight_istar,
                                          f_grid,
                                          ppvar_p[ip],
                                          ppvar_t[ip],
                                          ppvar_vmr(joker, ip),
-                                         transmitted_starlight,
-                                         star_rte_los,
+                                         transmitted_starlight[i_star],
+                                         dtransmitted_starlight_istar,
+                                         star_rte_los[i_star],
                                          ppath.los(ip, joker),
+                                         jacobian_do,
                                          gas_scattering_agenda);
 
+                scattered_starlight += scattered_starlight_istar;
+
+                if (jacobian_do) {
+                  for (int i_jac = 0; i_jac < nq; ++i_jac) {
+                    dscattered_starlight[i_jac] +=
+                        dscattered_starlight_istar[i_jac];
+                  }
+                }
               }
             }
           }
-
 
           // Calculate gas scattering extiction
           gas_scattering_agendaExecute(ws,
@@ -547,7 +588,6 @@ void iyClearsky(
           a = K[ip];
           K[ip] += K_sca;
 
-
         } else {
           // Here absorption equals extinction
           a = K[ip];
@@ -555,12 +595,12 @@ void iyClearsky(
             FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
         }
 
-        // scattered_starlight and dscattered_starlight are changed within
+        // scattered_starlight_istar and dscattered_starlight_istar are changed within
         // stepwise source.
         stepwise_source(src_rad[ip],
                         dsrc_rad[ip],
-                        scattered_starlight,
-                        dscattered_starlight,
+                        scattered_starlight_istar,
+                        dscattered_starlight_istar,
                         K[ip],
                         a,
                         S,
