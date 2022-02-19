@@ -1118,7 +1118,31 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
       os << "  } else ";
     }
 
-    os << "ARTS_USER_ERROR(\"Generic Arts function called but without exact match of input parameter types\")}";
+    os << "{\n"
+    "    WorkspaceVariablesVariant2String printer{};\n"
+    "    ARTS_USER_ERROR(\"Call to invalid signature:\n" << method.name << '(';
+    has_any = false;
+    counter=0;
+    for (auto& arg : arg_help) {
+      if (has_any) os << ", ";
+      has_any = true;
+      os << arg.name << " : ";
+      if (arg.types.size() > 1) os << "\",\n"
+        "                    "
+        "std::visit(printer, wvv_arg"<<counter<<"_),\n"
+        "                    \"";
+      else os << arg.types.front();
+      counter++;
+    }
+    if (pass_verbosity) {
+      if (has_any) os << ", ";
+      os << "verbosity : Verbosity";
+    }
+    os << ")\"\n"
+    "                    \"\\n\\n\"\n"
+    "                    \"See method description for valid signatures\")\n  }\n}";
+    
+    //os << "ARTS_USER_ERROR(\"Generic Arts function called but without exact match of input parameter types\")}";
 
     // Name the paramters and show their defaults
     print_method_args(os, method, pass_verbosity);
@@ -1196,6 +1220,21 @@ using WorkspaceVariablesVariant =
 
   os << R"--(,
     py::object *>;
+  
+struct WorkspaceVariablesVariant2String {
+)--";
+
+for (auto& [name, group] : arts.group) {
+  os << "String operator()(" << name;
+  if (name == "Index" or name == "Numeric") os << "_";
+  os << " *){return \"" << name << "\";}\n";
+}
+
+os << R"--(
+String operator()(const Index *){return "Index";}
+String operator()(const Numeric *){return "Numeric";}
+String operator()(const py::object *){return "Python Object";}
+};
 
 struct WorkspaceVariable {
   Workspace &ws;
