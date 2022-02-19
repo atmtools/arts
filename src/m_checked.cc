@@ -1041,7 +1041,7 @@ void sensor_checkedCalc(Index& sensor_checked,
   }
 
   // Transmission position.
-  if (transmitter_pos.ncols() > 0 && transmitter_pos.nrows() > 0) {
+  if (!transmitter_pos.empty()) {
     ARTS_USER_ERROR_IF (transmitter_pos.nrows() != sensor_pos.nrows(),
           "*transmitter_pos* must either be empty or have "
           "the same number of rows as *sensor_pos*.");

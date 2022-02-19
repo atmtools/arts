@@ -1014,7 +1014,7 @@ void surf_albedoCalc(Workspace& ws,
     }
     // Nothing to do if no surface_los (which means blackbody surface)
     // as dir_refl_coeff already set to 0    
-    if (surface_los.nrows() > 0) {
+    if (!surface_los.empty()) {
       for (Index f_index = 0; f_index < nf; f_index++)
         dir_refl_coeff(rza, f_index) =
             surface_rmatrix(joker, f_index, 0, 0).sum();
@@ -1135,10 +1135,10 @@ void surf_albedoCalcSingleAngle(Workspace& ws,
        << "return zero or one direction in *surface_los*.";
     throw runtime_error(os.str());
   }
-  if (surface_los.nrows()) {
-    albedo[joker] = surface_rmatrix(0,joker,0,0);
-  } else {
+  if (surface_los.empty()) {
     albedo = 0;  // Blackbody assumed if no surface_los
+  } else {
+    albedo[joker] = surface_rmatrix(0,joker,0,0);
   }
 
   btemp = surface_skin_t;
