@@ -403,7 +403,7 @@ elseif (WIN)
   set (WINDOWS 1)
 endif (APPLE)
 
-set (ARTS_DEFAULT_INCLUDE_DIR "${ARTS_SOURCE_DIR}/controlfiles")
+set (ARTS_DEFAULT_INCLUDE_DIR "${ARTS_SOURCE_DIR}/examples/arts")
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
@@ -456,7 +456,7 @@ else (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
   message(STATUS "Found arts-cat-data in ${ARTS_CAT_DATA_DIR}")
 endif (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
 
-string(JOIN ":" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR})
+string(JOIN ":" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR} ${CMAKE_SOURCE_DIR}/controlfiles)
 
 ########### Path to partition functions data ##########
 if (ARTS_PARTFUN_DATA_PATH)
