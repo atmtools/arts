@@ -8,6 +8,8 @@
 extern Parameters parameters;
 
 namespace Python {
+struct GlobalDataName {};
+
 void py_global(py::module_& m) {
   py::class_<Parameters>(m, "parameters")
       .def_readwrite_static("includepath", &parameters.includepath)
@@ -15,50 +17,52 @@ void py_global(py::module_& m) {
       .def_readwrite_static("numthreads", &parameters.numthreads)
       .doc() = "Access to static settings data";
 
-  m.def(
+  py::class_<GlobalDataName>(m, "global_data")
+  .def(py::init<>())
+  .def_property_readonly_static(
       "md_data",
       []() { return global_data::md_data; },
-      "Copy of global attribute");
+      "Copy of global attribute")
 
-  m.def(
-      "MdMap", []() { return global_data::MdMap; }, "Copy of global attribute");
+  .def_property_readonly_static(
+      "MdMap", []() { return global_data::MdMap; }, "Copy of global attribute")
 
-  m.def(
+  .def_property_readonly_static(
       "md_data_raw",
       []() { return global_data::md_data_raw; },
-      "Copy of global attribute");
+      "Copy of global attribute")
 
-  m.def(
+  .def_property_readonly_static(
       "MdRawMap",
       []() { return global_data::MdRawMap; },
-      "Copy of global attribute");
+      "Copy of global attribute")
 
-  m.def(
+  .def_property_readonly_static(
       "agenda_data",
       []() { return global_data::agenda_data; },
-      "Copy of global attribute");
+      "Copy of global attribute")
 
-  m.def(
+  .def_property_readonly_static(
       "AgendaMap",
       []() { return global_data::AgendaMap; },
-      "Copy of global attribute");
+      "Copy of global attribute")
 
-  m.def(
+  .def_property_readonly_static(
       "wsv_group_names",
       []() { return global_data::wsv_group_names; },
-      "Copy of global attribute");
+      "Copy of global attribute")
 
-  m.def(
+  .def_property_readonly_static(
       "WsvGroupMap",
       []() { return global_data::WsvGroupMap; },
-      "Copy of global attribute");
+      "Copy of global attribute")
 
 #ifdef _OPENMP
-  m.def("omp_get_max_threads",
+  .def_static("omp_get_max_threads",
         &omp_get_max_threads,
-        "Get maximum number of OpenMP threads");
+        "Get maximum number of OpenMP threads")
 
-  m.def(
+  .def_static(
       "omp_set_num_threads",
       [n = omp_get_max_threads()](int threads) {
         if (threads > 0)
@@ -77,8 +81,9 @@ Parameters:
 -----------
     threads (int): Number of threads
 )--",
-      py::arg("threads") = 0);
+      py::arg("threads") = 0)
 #endif
+;  // end global_data
 
 }  // void py_global(py::module_& m)
 }  // namespace Python
