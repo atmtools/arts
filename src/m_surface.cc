@@ -491,7 +491,9 @@ void iySurfaceLambertianDirect(
     const Agenda& gas_scattering_agenda,
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
-  ArrayOfVector star_rte_los;
+
+  //Allocate
+  ArrayOfVector star_rte_los(stars.nelem());
   ArrayOfMatrix transmitted_starlight;
   ArrayOfArrayOfTensor3 dtransmitted_starlight;
   ArrayOfPpath star_ppaths(stars.nelem());
@@ -589,7 +591,7 @@ void iySurfaceLambertianDirect(
         for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
           iy_surface_direct[i_freq] = surface_scalar_reflectivity[i_freq] / pi *
                                       transmitted_starlight[i_star](i_freq, 0) *
-                                      cos(deg2rad(star_rte_los[0]));
+                                      cos(deg2rad(star_rte_los[i_star][0]));
         }
 
         //Add the surface contribution of the direct part
@@ -597,12 +599,12 @@ void iySurfaceLambertianDirect(
 
         //For now we only have the jacobians from the transmission calculation.
         //I am not really sure, if this is correct.
-        //TODO: Check and add surface jacobian
-        //        for (Index i_jac = 0; i_jac < dtransmitted_starlight.nelem(); i_jac++) {
-        //          dtransmitted_starlight[i_jac] /= pi;
-        //          diy_dx[i_jac](joker, joker, 0) +=
-        //              dtransmitted_starlight[i_jac](joker, joker, 0);
-        //        }
+        //TODO: Check surface jacobian
+        for (Index i_jac = 0; i_jac < dtransmitted_starlight.nelem(); i_jac++) {
+          dtransmitted_starlight[i_star][i_jac] /= pi;
+          diy_dx[i_jac](joker, joker, 0) +=
+              dtransmitted_starlight[i_star][i_jac](joker, joker, 0);
+        }
       }
     }
   }
