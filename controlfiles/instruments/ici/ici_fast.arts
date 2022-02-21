@@ -29,7 +29,7 @@
 
 Arts2 {
 
-INCLUDE "instruments/ici/ici.arts"
+INCLUDE "ici.arts"
 
 # Replace f_grid and sensor_response by optimized ones.
 #  Also, sensor_response_f is reset to effective channel frequencies resulting
@@ -37,8 +37,8 @@ INCLUDE "instruments/ici/ici.arts"
 #  used, gives largely wrong answers for the default sensor_response_f setting,
 #  particularly for bands with large IF.
 # (other parameters remain like initialized above).
-ReadXML( f_grid, "instruments/ici/ici.f_grid_fast.xml")
-ReadXML( sensor_response, "instruments/ici/ici.sensor_response_fast.xml")
-ReadXML( sensor_response_f, "instruments/ici/ici.sensor_response_f_fast.xml" )
+ReadXML( f_grid, "ici.f_grid_fast.xml")
+ReadXML( sensor_response, "ici.sensor_response_fast.xml")
+ReadXML( sensor_response_f, "ici.sensor_response_f_fast.xml" )
 
 }

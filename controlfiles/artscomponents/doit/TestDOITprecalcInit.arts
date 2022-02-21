@@ -14,7 +14,7 @@ Arts2 {
 Tensor7Create( cloudbox_field_ref )
 
 IndexSet( stokes_dim, 4 )
-INCLUDE "artscomponents/doit/doit_setup.arts"
+INCLUDE "doit_setup.arts"
 
 # Perturbing the pnd_field by 1%
 Tensor4Multiply( out=pnd_field, in=pnd_field, value=1.01 )

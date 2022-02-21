@@ -11,7 +11,7 @@
 Arts2 {
 
 IndexSet( stokes_dim, 4 )
-INCLUDE "artscomponents/doit/doit_setup.arts"
+INCLUDE "doit_setup.arts"
 
 # Sensor altitude from earth surface
 nelemGet( nelem, vector_1 )
@@ -19,14 +19,14 @@ nelemGet( nelem, vector_1 )
 VectorSetConstant( vector_2, nelem, 10000. )
 Matrix1ColFromVector( sensor_pos, vector_2 )
 
-INCLUDE "artscomponents/doit/doit_calc.arts"
+INCLUDE "doit_calc.arts"
 
 #WriteXML( in=y )
 
 #==================check==========================
 
 VectorCreate(yREFERENCE)
-ReadXML( yREFERENCE, "artscomponents/doit/yREFERENCE_DOITsensorInsideCloudbox.xml" )
+ReadXML( yREFERENCE, "yREFERENCE_DOITsensorInsideCloudbox.xml" )
 Compare( y, yREFERENCE, 1e-6 )
 
 } # End of Main

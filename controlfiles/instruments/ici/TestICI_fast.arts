@@ -93,7 +93,7 @@ abs_lines_per_speciesSetEmpty
 # 3. Sensor:
 #-----------
 
-INCLUDE "instruments/ici/ici_fast.arts"
+INCLUDE "ici_fast.arts"
 
 
 # 4. Atmosphere
@@ -101,7 +101,7 @@ INCLUDE "instruments/ici/ici_fast.arts"
 # Atmospheric profiles are stored in an ArrayOfGriddedField4.
 # It contains one GriddedField4 for each atmospheric state.
 #
-ReadXML( batch_atm_fields_compact, "../../testdata/chevallierl91_all_extract.xml" )
+ReadXML( batch_atm_fields_compact, "testdata/chevallierl91_all_extract.xml" )
 
 # add constant profiles for O2 and N2
 batch_atm_fields_compactAddConstant( name="abs_species-O2", value=0.2095 )
