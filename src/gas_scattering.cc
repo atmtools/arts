@@ -72,7 +72,7 @@ Vector convert_los2propagation_direction(const Vector& los) {
 
   zaaa2cart(x, y, z, los[0], los[1]);
 
-  cart2zaaa(prop[0], prop[1], x, y, z);
+  cart2zaaa(prop[0], prop[1], -x, -y, -z);
 
   return prop;
 }
