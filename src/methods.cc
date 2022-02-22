@@ -76,7 +76,7 @@ MdRecord create_mdrecord(
   const std::array<String, NUM_OF_GIN_DEFAULTS>& gindefault,
   const std::array<String, NUM_OF_GIN_DESCRIPTIONS>& gindesc,
   Ts ... flags)
-{ 
+{
   static_assert(LEN_OF_NAME > 1, "Must have a name");
   static_assert(LEN_OF_DESCRIPTION > 1, "Must have a description");
   static_assert(NUM_OF_AUTHORS not_eq 0, "Must have at least one author");
@@ -85,7 +85,7 @@ MdRecord create_mdrecord(
   static_assert(NUM_OF_GIN_ARGS == NUM_OF_GIN_TYPES, "GIN type(s) count does not match number of GIN");
   static_assert(NUM_OF_GIN_ARGS == NUM_OF_GIN_DEFAULTS, "GIN default(s) count does not match number of GIN");
   static_assert(NUM_OF_GIN_ARGS == NUM_OF_GIN_DESCRIPTIONS, "GIN description(s) count does not match number of GIN");
-  
+
   return MdRecord(name,
                   description,
                   ArrayOfString(authors),
@@ -161,11 +161,11 @@ MdRecord create_mdrecord(
         GIN_DEFAULT( NODEF ),
         GIN_DESC(    "Description for Generic Input Variable 1" )
         ));
- 
+
  For variable descriptions longer than one line, use the following format.
  Don't forget to remove the space in '/ *' and '* /' if you copy this template.
  I had to put it in there because C++ doesn't allow nested comments.
- 
+
   md_data_raw.push_back
     ( create_mdrecord
       ( NAME( "MethodName" ),
@@ -948,7 +948,7 @@ See the theory guide for more details.
                GIN_DEFAULT(NODEF, NODEF),
                GIN_DESC("Method of line normalizations",
                         "ID of one or more bands")));
-  
+
   md_data_raw.push_back(
     create_mdrecord(NAME("abs_lines_per_speciesNormalizationSpecies"),
              DESCRIPTION(R"--(Sets normalization type for all matching lines
@@ -1109,7 +1109,7 @@ offsets might not work as hoped.
                GIN_DEFAULT(NODEF, NODEF),
                GIN_DESC("Method of line mirroring",
                         "ID of one or more bands")));
-  
+
   md_data_raw.push_back(
     create_mdrecord(NAME("abs_lines_per_speciesMirroringSpecies"),
              DESCRIPTION(R"--(Sets mirroring type for all matching lines.
@@ -1508,7 +1508,7 @@ See the theory guide for more details.
                GIN_DEFAULT(NODEF, NODEF),
                GIN_DESC("Method of line shape calculations",
                         "ID of one or more bands")));
-  
+
   md_data_raw.push_back(
     create_mdrecord(NAME("abs_lines_per_speciesLineShapeTypeSpecies"),
              DESCRIPTION(R"--(Sets shape calculations type for all matching lines.
@@ -1820,7 +1820,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                GIN_DEFAULT(NODEF, NODEF),
                GIN_DESC("Value of T0",
                         "ID of one or more bands")));
-  
+
   md_data_raw.push_back(
     create_mdrecord(NAME("abs_lines_per_speciesT0Species"),
              DESCRIPTION("See *abs_linesT0* but for single species\n"),
@@ -2499,7 +2499,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Temperature grid maximum [K].",
                "Humidity grid minimum [fractional].",
                "Humidity grid maximum [fractional].")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_nlteFromRaw"),
       DESCRIPTION("Sets NLTE values manually\n"
@@ -6440,7 +6440,7 @@ Possible models:
       GIN_TYPE("String"),
       GIN_DEFAULT("linear"),
       GIN_DESC("Interpolation method (\"linear\" or \"polynomial\").")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("Duration"),
       DESCRIPTION("Sets the seconds between two times.\n"),
@@ -7222,7 +7222,9 @@ Possible models:
   md_data_raw.push_back(create_mdrecord(
       NAME("gas_scatteringMatrixIsotropic"),
       DESCRIPTION(
-          "Calculates the spectrum of normalized scattering matrices.\n"),
+          "Calculates the spectrum of normalized scattering matrices.\n"
+          "Important, the angular direction are line of sight direction not the\n"
+          "propagation direction.\n"),
       AUTHORS("Manfred Brath"),
       OUT("sca_mat",
           "sca_fct_legendre"),
@@ -7243,7 +7245,9 @@ Possible models:
       DESCRIPTION(
           "Calculates the normalized Rayleigh scattering matrix.\n"
           "\n"
-          "The phase mayrix for anisotropic Rayleigh particles in random orientations."),
+          "The phase matrix for anisotropic Rayleigh particles in random orientations."
+          "Important, the angular direction are defined as line of sight direction not as\n"
+          "propagation direction.\n"),
       AUTHORS("Jon Petersen"),
       OUT("sca_mat", "sca_fct_legendre"),
       GOUT(),
@@ -8423,14 +8427,14 @@ Possible models:
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim",
-            "p_grid", "z_field", "t_field", "vmr_field", "abs_species", 
+            "p_grid", "z_field", "t_field", "vmr_field", "abs_species",
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "cloudbox_on", "cloudbox_limits",
             "pnd_field", "scat_data",
-            "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do", 
-            "ppath_agenda", 
-            "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda", 
-            "iy_surface_agenda", "iy_agenda_call1", "iy_transmittance", 
+            "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do",
+            "ppath_agenda",
+            "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
+            "iy_surface_agenda", "iy_agenda_call1", "iy_transmittance",
             "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v",
             "ppath_lmax", "ppath_lraytrace",
             "fos_scatint_angles", "fos_iyin_za_angles"
@@ -8704,7 +8708,7 @@ Possible models:
          "Radiative transfer for (active) radio links.\n"
          "\n"
          "The method assumes that *ppath_agenda* is set up to return the\n"
-         "propagation path between the transmitter and the receiver. The\n" 
+         "propagation path between the transmitter and the receiver. The\n"
          "position of the transmitter is given as *rte_pos*, and the\n"
          "\"sensor\" is taken as the receiver.\n"
          "\n"
@@ -8797,13 +8801,13 @@ Possible models:
             "p_grid", "lat_grid", "lon_grid",
             "z_field", "t_field", "vmr_field", "abs_species",
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-            "mag_v_field", "mag_w_field", 
-            "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_limits", 
-            "pnd_field", "scat_data", 
-            "particle_masses", "iy_aux_vars", "jacobian_do", 
+            "mag_v_field", "mag_w_field",
+            "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_limits",
+            "pnd_field", "scat_data",
+            "particle_masses", "iy_aux_vars", "jacobian_do",
             "ppath_agenda", "ppath_step_agenda",
             "propmat_clearsky_agenda", "iy_transmitter_agenda",
-            "iy_agenda_call1", "iy_transmittance", "rte_pos", "rte_los", 
+            "iy_agenda_call1", "iy_transmittance", "rte_pos", "rte_los",
             "rte_pos2", "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
         GIN(      "defocus_method", "defocus_shift" ),
         GIN_TYPE( "Index", "Numeric" ),
@@ -8812,7 +8816,7 @@ Possible models:
                   "Angular shift to apply in defocusing estimates." )
         ));
   */
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("iyRadarSingleScat"),
       DESCRIPTION(
@@ -10538,7 +10542,7 @@ Possible models:
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("LocalTimeOffset"),
       DESCRIPTION("Sets the seconds between localtime and gmtime representation of now().\n"),
@@ -11057,7 +11061,7 @@ Possible models:
           "GIN *spacing*. All points inside a radius from (0,0) are included in\n"
           "*mblock_dlos_grid*. The positions in *mblock_dlos_grid* thus covers\n"
           "a roughly circular domain, and cover the same solid beam angle.\n"
-          "The radius is adjusted according to *spacing' and *centre*, but is\n" 
+          "The radius is adjusted according to *spacing' and *centre*, but is\n"
           "ensured to be >= *width*.\n"
           "\n"
           "Note that the method assumes that width is small and the solid beam\n"
@@ -11809,7 +11813,7 @@ Possible models:
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("timeNow"),
       DESCRIPTION("Sets time to system_clock::now().\n"),
@@ -11823,7 +11827,7 @@ Possible models:
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("timeOffset"),
       DESCRIPTION("Offsets time for some seconds\n"),
@@ -11837,7 +11841,7 @@ Possible models:
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Time in seconds")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("OEM"),
       DESCRIPTION(
@@ -16923,8 +16927,8 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
-  
+
+
   md_data_raw.push_back(create_mdrecord(
       NAME("rtp_nlteFromRaw"),
       DESCRIPTION("Sets NLTE values manually\n"
@@ -17371,13 +17375,13 @@ where N>=0 and the species name is something line "H2O".
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "scat_meta", "complex_refr_index" ),
-      GIN( "description", "material", "shape", "ptype", "density", 
+      GIN( "description", "material", "shape", "ptype", "density",
            "aspect_ratio_grid", "diameter_max_grid", "scat_f_grid", "scat_T_grid" ),
       GIN_TYPE( "String", "String", "String", "String", "Numeric", "Vector",
            "Vector", "Vector", "Vector" ),
       GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
                    NODEF, NODEF ),
-      GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
+      GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder",
                 "Particle Type: "totally_random" (20) or "azimuthally_random" (30)",
                 "Particle mass density",
                 "Particle aspect ratio vector",
@@ -18548,7 +18552,7 @@ where N>=0 and the species name is something line "H2O".
                GIN_TYPE("Index"),
                GIN_DEFAULT(NODEF),
                GIN_DESC("Number of threads.")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("Sleep"),
       DESCRIPTION("Sleeps for a number of seconds\n"),
@@ -18562,7 +18566,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Time to sleep for in seconds")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("timeSleep"),
       DESCRIPTION("Sleeps until time has been reached.\n"),
@@ -18786,7 +18790,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
       GIN_DESC("Flag to select parallelization over zenith angles.\n")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalc"),
       DESCRIPTION(
@@ -19586,7 +19590,7 @@ where N>=0 and the species name is something line "H2O".
       DESCRIPTION(
           "Switch between the elements of *surface_rtprop_agenda_array*.\n"
           "\n"
-          "This method requires that *surface_types* have length 1, in\n"          
+          "This method requires that *surface_types* have length 1, in\n"
           "contrast to *iySurfaceCallAgendaX*\n"
           "\n"
           "This method obtains the surface properties as defined by the\n"
@@ -20465,7 +20469,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("time_gridOffset"),
       DESCRIPTION("Offsets a time grid by some seconds.\n"),
@@ -20517,7 +20521,7 @@ where N>=0 and the species name is something line "H2O".
                GIN_TYPE(),
                GIN_DEFAULT(),
                GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("time_stampsSort"),
       DESCRIPTION("Sort *in* by *time_stamps* into *out*.\n"),
@@ -22115,7 +22119,7 @@ where N>=0 and the species name is something line "H2O".
                "that case, a warning message is written to screen and file\n"
                "(out1 output stream), and the *y* Vector entry for the\n"
                "failed job in *ybatch* is left empty.")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("yColdAtmHot"),
       DESCRIPTION(
@@ -22142,7 +22146,7 @@ where N>=0 and the species name is something line "H2O".
                "Cold load temperature",
                "Hot load temperature",
                "Flag for calibration scheme, false means system temperature is computed")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfiles"),
       DESCRIPTION(
@@ -22228,7 +22232,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("FIXME DOC", "FIXME DOC")));
 
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTimeAveraging"),
       DESCRIPTION(
@@ -22282,7 +22286,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("yCalc"),
       DESCRIPTION(

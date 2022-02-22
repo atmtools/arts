@@ -172,11 +172,18 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
     //if in_los or out_los is empty then sca_mat is empty.
     if (in_los.nelem()>0 && out_los.nelem()>0){
 
+      //For the scattering calculation we need the propagation direction of incoming
+      //and outgoing radiation. Therefore we have to convert the line of sights to
+      //propagation directions.
+      Vector in_prop=convert_los2propagation_direction(in_los);
+      Vector out_prop=convert_los2propagation_direction(out_los);
+
+
       // calc_scatteringAngle() between in_los and out_los
-      Numeric za_inc = in_los[0];
-      Numeric aa_inc = in_los[1];
-      Numeric za_sca = out_los[0];
-      Numeric aa_sca = out_los[1];
+      Numeric za_inc = in_prop[0];
+      Numeric aa_inc = in_prop[1];
+      Numeric za_sca = out_prop[0];
+      Numeric aa_sca = out_prop[1];
 
       Numeric theta_rad = scat_angle(za_sca, aa_sca, za_inc, aa_inc);
 
