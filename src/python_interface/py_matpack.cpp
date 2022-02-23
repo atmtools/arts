@@ -4,12 +4,22 @@
 
 #include "py_macros.h"
 
-template <size_t N>
-std::ostream& operator<<(std::ostream& os, std::array<Index, N> shape) {
-  os << shape[0];
-  for (size_t i = 1; i < N; i++) os << 'x' << shape[i];
-  return os;
-}
+#define MyShapeOutputOperator(N)                                           \
+  std::ostream& operator<<(std::ostream& os, std::array<Index, N> shape) { \
+    os << shape[0];                                                        \
+    for (size_t i = 1; i < N; i++) os << 'x' << shape[i];                  \
+    return os;                                                             \
+  }
+
+MyShapeOutputOperator(1)
+MyShapeOutputOperator(2)
+MyShapeOutputOperator(3)
+MyShapeOutputOperator(4)
+MyShapeOutputOperator(5)
+MyShapeOutputOperator(6)
+MyShapeOutputOperator(7)
+
+#undef MyShapeOutputOperator
 
 #define PythonInterfaceMatpackMath(Type)                          \
   def(                                                            \
