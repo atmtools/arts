@@ -4,23 +4,6 @@
 
 #include "py_macros.h"
 
-#define MyShapeOutputOperator(N)                                           \
-  std::ostream& operator<<(std::ostream& os, std::array<Index, N> shape) { \
-    os << shape[0];                                                        \
-    for (size_t i = 1; i < N; i++) os << 'x' << shape[i];                  \
-    return os;                                                             \
-  }
-
-MyShapeOutputOperator(1)
-MyShapeOutputOperator(2)
-MyShapeOutputOperator(3)
-MyShapeOutputOperator(4)
-MyShapeOutputOperator(5)
-MyShapeOutputOperator(6)
-MyShapeOutputOperator(7)
-
-#undef MyShapeOutputOperator
-
 #define PythonInterfaceMatpackMath(Type)                          \
   def(                                                            \
       "__pos__",                                                  \
@@ -240,7 +223,10 @@ void py_matpack(py::module_& m) {
             return a * b;
           },
           py::is_operator())
-      .def_property_readonly("shape", &Vector::shape, "The shape of the data")
+      .def_property_readonly(
+          "shape",
+          [](Vector& x) { return x.shape().data; },
+          "The shape of the data")
       .PythonInterfaceBasicRepresentation(Vector)
       .PythonInterfaceFileIO(Vector)
       .PythonInterfaceIndexItemAccess(Vector)
@@ -335,7 +321,10 @@ void py_matpack(py::module_& m) {
           "T",
           [](const Matrix& x) { return Matrix(transpose(x)); },
           "Non-trivial transpose")
-      .def_property_readonly("shape", &Matrix::shape, "The shape of the data")
+      .def_property_readonly(
+          "shape",
+          [](Matrix& x) { return x.shape().data; },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](Matrix& x, std::tuple<Index, Index> inds) -> Numeric& {
@@ -414,7 +403,10 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor3)
       .PythonInterfaceFileIO(Tensor3)
       .PythonInterfaceMatpackMath(Tensor3)
-      .def_property_readonly("shape", &Tensor3::shape, "The shape of the data")
+      .def_property_readonly(
+          "shape",
+          [](Tensor3& x) { return x.shape().data; },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor3& x, std::tuple<Index, Index, Index> inds) -> Numeric& {
@@ -500,7 +492,10 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor4)
       .PythonInterfaceFileIO(Tensor4)
       .PythonInterfaceMatpackMath(Tensor4)
-      .def_property_readonly("shape", &Tensor4::shape, "The shape of the data")
+      .def_property_readonly(
+          "shape",
+          [](Tensor4& x) { return x.shape().data; },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor4& x,
@@ -594,7 +589,10 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor5)
       .PythonInterfaceFileIO(Tensor5)
       .PythonInterfaceMatpackMath(Tensor5)
-      .def_property_readonly("shape", &Tensor5::shape, "The shape of the data")
+      .def_property_readonly(
+          "shape",
+          [](Tensor5& x) { return x.shape().data; },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor5& x,
@@ -698,7 +696,10 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor6)
       .PythonInterfaceFileIO(Tensor6)
       .PythonInterfaceMatpackMath(Tensor6)
-      .def_property_readonly("shape", &Tensor6::shape, "The shape of the data")
+      .def_property_readonly(
+          "shape",
+          [](Tensor6& x) { return x.shape().data; },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor6& x,
@@ -814,7 +815,10 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
       .PythonInterfaceMatpackMath(Tensor7)
-      .def_property_readonly("shape", &Tensor7::shape, "The shape of the data")
+      .def_property_readonly(
+          "shape",
+          [](Tensor7& x) { return x.shape().data; },
+          "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor7& x,

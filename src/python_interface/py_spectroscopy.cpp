@@ -13,6 +13,16 @@ void py_spectroscopy(py::module_& m) {
 
   static_assert(LineShapeModelParameters::N == 4);
   py::class_<LineShapeModelParameters>(m, "LineShapeModelParameters")
+      .def(py::init<LineShape::TemperatureModel,
+                    Numeric_,
+                    Numeric_,
+                    Numeric_,
+                    Numeric_>(),
+           py::arg("type") = LineShape::TemperatureModel::None,
+           py::arg("X0") = std::numeric_limits<Numeric>::quiet_NaN(),
+           py::arg("X1") = std::numeric_limits<Numeric>::quiet_NaN(),
+           py::arg("X2") = std::numeric_limits<Numeric>::quiet_NaN(),
+           py::arg("X3") = std::numeric_limits<Numeric>::quiet_NaN())
       .def_readwrite("type", &LineShapeModelParameters::type)
       .def_readwrite("X0", &LineShapeModelParameters::X0)
       .def_readwrite("X1", &LineShapeModelParameters::X1)
@@ -117,6 +127,7 @@ void py_spectroscopy(py::module_& m) {
 
   py::class_<LineShapeModel>(m, "LineShapeModel")
       .PythonInterfaceBasicRepresentation(LineShapeModel)
+      .PythonInterfaceIndexItemAccess(LineShapeModel)
       .def_property(
           "data",
           [](const LineShapeModel& x) { return x.Data(); },

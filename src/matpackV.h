@@ -156,7 +156,7 @@ class ConstTensor5View {
   Index ncols() const;
 
   /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  std::array<Index, 5> shape() const {return {nshelves(), nbooks(), npages(), nrows(), ncols()};}
+  Shape<5> shape() const {return {nshelves(), nbooks(), npages(), nrows(), ncols()};}
 
   // Const index operators:
   ConstTensor5View operator()(const Range& s,

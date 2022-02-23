@@ -31,19 +31,6 @@ STABLE = int(VERSION_TUPLE[1]) % 2 == 0
 here = abspath(dirname(__file__))
 
 try:
-    arts_libname = "libarts_api.so"
-    lib_path = join("@ARTS_BINARY_DIR@", "src", arts_libname)
-    if isfile(join("pyarts", "workspace", arts_libname)):
-        remove(join("pyarts", "workspace", arts_libname))
-    shutil.copy(lib_path, join("pyarts", "workspace"))
-except:
-    raise Exception(
-        "Could not find ARTS API, which is required for the Python "
-        "interface. Please make sure the installation was "
-        "successful."
-    )
-
-try:
     builtin_path = join("@ARTS_BINARY_DIR@", "src", "python_interface")
     files = listdir(builtin_path)
     found = False

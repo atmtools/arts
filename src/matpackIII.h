@@ -150,7 +150,7 @@ class ConstTensor3View {
   Index ncols() const { return mcr.mextent; }
 
   /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  std::array<Index, 3> shape() const {return {npages(), nrows(), ncols()};}
+  Shape<3> shape() const {return {npages(), nrows(), ncols()};}
 
   // Const index operators:
   ConstTensor3View operator()(const Range& p,

@@ -147,7 +147,7 @@ class ConstTensor4View {
   Index ncols() const;
 
   /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  std::array<Index, 4> shape() const {return {nbooks(), npages(), nrows(), ncols()};}
+  Shape<4> shape() const {return {nbooks(), npages(), nrows(), ncols()};}
 
   // Const index operators:
   ConstTensor4View operator()(const Range& b,

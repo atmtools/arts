@@ -528,11 +528,7 @@ void workspace_method_create(std::array<std::ofstream, num_split_files>& oss,
     os << "ws.def(\"" << group
        << "Create\",[](Workspace& w, const char * name, std::optional<const char *> desc, std::optional<"
        << group << R"--(> value) {
-  ARTS_USER_ERROR_IF(std::find_if(w.WsvMap.begin(),
-                                  w.WsvMap.end(),
-                                  [&](auto& b) {
-                                    return b.first == name;
-                                  }) not_eq w.WsvMap.end(),
+  ARTS_USER_ERROR_IF(w.WsvMap.find(name) not_eq w.WsvMap.end(),
                       "A variable of this name already exist: ",
                       name)
   ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == ':' or sv.back() == ':',
@@ -1284,7 +1280,9 @@ struct WorkspaceVariable {
 
   Index group() const;
 
-  WorkspaceVariable& operator=(WorkspaceVariable& wv2) {
+  WorkspaceVariable(const WorkspaceVariable&) = default;
+
+  WorkspaceVariable& operator=(const WorkspaceVariable& wv2) {
     pos = wv2.pos;
     return *this;
   }

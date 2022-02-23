@@ -360,6 +360,19 @@ class Range {
   Index mstride;
 };
 
+//! Helper shape class
+template <size_t N>
+struct Shape {
+  std::array<Index, N> data;
+  bool operator==(const Shape& other) {return data == other.data;}
+  bool operator!=(const Shape& other) {return data not_eq other.data;}
+  friend std::ostream& operator<<(std::ostream& os, const Shape& shape) {
+    os << shape.data[0];
+    for (size_t i = 1; i < N; i++) os << 'x' << shape.data[i];
+    return os;
+  }
+};
+
 /** The iterator class for sub vectors. This takes into account the
     defined stride. */
 class Iterator1D {
@@ -516,7 +529,7 @@ class ConstVectorView {
   Index size() const ARTS_NOEXCEPT;
 
   /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  std::array<Index, 1> shape() const {return {nelem()};}
+  Shape<1> shape() const {return {nelem()};}
 
   /** The sum of all elements of a Vector. */
   Numeric sum() const ARTS_NOEXCEPT;
@@ -1030,7 +1043,7 @@ class ConstMatrixView {
   Index ncols() const ARTS_NOEXCEPT;
 
   /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  std::array<Index, 2> shape() const {return {nrows(), ncols()};}
+  Shape<2> shape() const {return {nrows(), ncols()};}
 
   // Const index operators:
   /** Plain const index operator. */
