@@ -653,11 +653,11 @@ void workspace_method_nongenerics(
     os << ") {\n";
     bool has_any = false;
 
-    // Create static defaults
+    // Create defaults
     has_any = false;
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
       if (method.gin.hasdefs[i]) {
-        os << "  static const " << method.gin.group[i] << " "
+        os << "  const " << method.gin.group[i] << " "
            << method.gin.name[i] << "_{";
         if (method.gin.defs[i] not_eq "{}") os << method.gin.defs[i];
         os << "};\n";
@@ -1002,11 +1002,11 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
       os << ",\nstd::optional<std::variant<const WorkspaceVariable *, Verbosity *>> verbosity";
     os << ") {\n";
 
-    // Create static defaults
+    // Create defaults
     has_any = false;
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
       if (method.gin.hasdefs[i]) {
-        os << "  static const " << method.gin.group[i] << " "
+        os << "  const " << method.gin.group[i] << " "
            << method.gin.name[i] << "_{";
         if (method.gin.defs[i] not_eq "{}") os << method.gin.defs[i];
         os << "};\n";
