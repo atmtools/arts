@@ -8,7 +8,6 @@
 extern Parameters parameters;
 
 namespace Python {
-struct GlobalDataName {};
 
 void py_global(py::module_& m) {
   py::class_<Parameters>(m, "parameters")
@@ -17,73 +16,79 @@ void py_global(py::module_& m) {
       .def_readwrite_static("numthreads", &parameters.numthreads)
       .doc() = "Access to static settings data";
 
-  py::class_<GlobalDataName>(m, "global_data")
-  .def(py::init<>())
-  .def_property_readonly_static(
-      "md_data",
+  m.def(
+      "get_md_data",
       []() { return global_data::md_data; },
-      "Copy of global attribute")
+      py::doc("Get a copy of the global data variable"));
 
-  .def_property_readonly_static(
-      "MdMap", []() { return global_data::MdMap; }, "Copy of global attribute")
+  m.def(
+      "get_MdMap",
+      []() { return global_data::MdMap; },
+      py::doc("Get a copy of the global data variable"));
 
-  .def_property_readonly_static(
-      "md_data_raw",
+  m.def(
+      "get_md_data_raw",
       []() { return global_data::md_data_raw; },
-      "Copy of global attribute")
+      py::doc("Get a copy of the global data variable"));
 
-  .def_property_readonly_static(
-      "MdRawMap",
+  m.def(
+      "get_MdRawMap",
       []() { return global_data::MdRawMap; },
-      "Copy of global attribute")
+      py::doc("Get a copy of the global data variable"));
 
-  .def_property_readonly_static(
-      "agenda_data",
+  m.def(
+      "get_agenda_data",
       []() { return global_data::agenda_data; },
-      "Copy of global attribute")
+      py::doc("Get a copy of the global data variable"));
 
-  .def_property_readonly_static(
-      "AgendaMap",
+  m.def(
+      "get_AgendaMap",
       []() { return global_data::AgendaMap; },
-      "Copy of global attribute")
+      py::doc("Get a copy of the global data variable"));
 
-  .def_property_readonly_static(
-      "wsv_group_names",
+  m.def(
+      "get_wsv_group_names",
       []() { return global_data::wsv_group_names; },
-      "Copy of global attribute")
+      py::doc("Get a copy of the global data variable"));
 
-  .def_property_readonly_static(
-      "WsvGroupMap",
+  m.def(
+      "get_WsvGroupMap",
       []() { return global_data::WsvGroupMap; },
-      "Copy of global attribute")
+      py::doc("Get a copy of the global data variable"));
+
+  m.def(
+      "get_wsv_data",
+      []() { return Workspace::wsv_data; },
+      py::doc("Get a copy of the global data variable"));
+
+  m.def(
+      "get_WsvMap",
+      []() { return Workspace::WsvMap; },
+      py::doc("Get a copy of the global data variable"));
 
 #ifdef _OPENMP
-  .def_static("omp_get_max_threads",
+  m.def("omp_get_max_threads",
         &omp_get_max_threads,
-        "Get maximum number of OpenMP threads")
+        py::doc("Get maximum number of OpenMP threads"));
 
-  .def_static(
+  m.def(
       "omp_set_num_threads",
-      [n = omp_get_max_threads()](int threads) {
-        if (threads > 0)
-          omp_set_num_threads(std::min(threads, n));
-        else
-          omp_set_num_threads(n);
+      [startup_max = omp_get_max_threads(), one = 1](int threads) {
+        omp_set_num_threads(std::clamp<int>(threads, one, startup_max));
       },
-      R"--(--
+      py::doc(R"--(
 Sets the maximum number of OpenMP threads
 
-With n as the startup maximum number of OpenMP threads:
-    If threads is positive the value is set to min(threads, n).
-    If threads is zero or negative, the value is set to n.
+The input is clamped between 1 and n, where n
+is the startup value of omp_get_max_threads
+(which is also the default value)
 
-Parameters:
------------
+Parameters
+----------
     threads (int): Number of threads
-)--",
-      py::arg("threads") = 0)
+)--"),
+      py::arg("threads") = omp_get_max_threads());
 #endif
-;  // end global_data
 
 }  // void py_global(py::module_& m)
 }  // namespace Python

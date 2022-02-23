@@ -515,6 +515,9 @@ class ConstVectorView {
   /*! See nelem() */
   Index size() const ARTS_NOEXCEPT;
 
+  /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
+  std::array<Index, 1> shape() const {return {nelem()};}
+
   /** The sum of all elements of a Vector. */
   Numeric sum() const ARTS_NOEXCEPT;
 
@@ -1025,6 +1028,9 @@ class ConstMatrixView {
   bool empty() const ARTS_NOEXCEPT;
   Index nrows() const ARTS_NOEXCEPT;
   Index ncols() const ARTS_NOEXCEPT;
+
+  /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
+  std::array<Index, 2> shape() const {return {nrows(), ncols()};}
 
   // Const index operators:
   /** Plain const index operator. */

@@ -396,25 +396,23 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
   for (auto& [name, data] : arts.varname_group) {
     auto& os = *osptr;
 
-    os << "  ws.def_property(\"" << name << "\",\n";
-    os << "    py::cpp_function([](Workspace& w) -> WorkspaceVariable ";
-    os << "{return WorkspaceVariable{w, " << data.artspos
-       << "};}, py::return_value_policy::reference_internal),\n";
-    os << "    [](Workspace& w, " << data.varname_group << " val) {"
+    os << "ws.def_property(\"" << name << "\",\n";
+    os << R"--(  py::cpp_function([](Workspace& w) -> WorkspaceVariable {
+    return WorkspaceVariable{w, )--" << data.artspos
+       << "};\n  }, py::return_value_policy::reference_internal),\n";
+    os << "  [](Workspace& w, " << data.varname_group << " val) {\n    "
        << data.varname_group << "& v_ = WorkspaceVariable{w, " << data.artspos
-       << "};";
+       << "};\n    ";
     if (data.varname_group == "Agenda")
-      os << " val.set_name(\"" << name
-         << "\"); val.check(w, WorkspaceVariable{w, " << verbpos << "});";
+      os << "val.set_name(\"" << name
+         << "\");\n    val.check(w, WorkspaceVariable{w, " << verbpos << "});\n    ";
     if (data.varname_group == "ArrayOfAgenda")
-      os << " for(auto& x: val) {x.set_name(\"" << name
-         << "\"); x.check(w, WorkspaceVariable{w, " << verbpos << "});}";
-    os << " v_ = std::move(val);";
-    os << "},\n";
-    os << "    R\"-VARNAME_DESC-(\n"
-       << data.varname_desc << '\n';
-    os << "Type\n----\n" << data.varname_group
-       << "\n)-VARNAME_DESC-\""
+      os << "for(auto& x: val) {\n      x.set_name(\"" << name
+         << "\");\n      x.check(w, WorkspaceVariable{w, " << verbpos << "});\n    }\n    ";
+    os << "v_ = std::move(val);";
+    os << "\n  }, R\"-VARNAME_DESC-(\n" << data.varname_desc << '\n';
+    os << "Type\n----\n"
+       << data.varname_group << "\n)-VARNAME_DESC-\""
        << ");";
     os << '\n' << '\n';
 
@@ -423,7 +421,10 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
   }
 }
 
-void print_method_desc(std::ofstream& os, const Method& method, const std::map<std::string, Group>& groups, bool pass_verbosity) {
+void print_method_desc(std::ofstream& os,
+                       const Method& method,
+                       const std::map<std::string, Group>& groups,
+                       bool pass_verbosity) {
   os << ",\npy::doc(\nR\"-METHODS_DESC-(\n" << method.desc;
   os << "\nAuthor(s): ";
   for (auto& author : method.authors) {
@@ -438,20 +439,24 @@ void print_method_desc(std::ofstream& os, const Method& method, const std::map<s
 
   for (const auto& i : method.out.varname) {
     os << i << " : " << groups.at(i).varname_group << ", optional\n";
-    os << "    As the WSV (";
+    os << "    As WSV (";
     if (std::none_of(method.in.varname.cbegin(),
                      method.in.varname.cend(),
-                     [out = i](const auto& in) { return in == out; })) {os << "IN";}
+                     [out = i](const auto& in) { return in == out; })) {
+      os << "IN";
+    }
     os << "OUT)\n";
   }
   for (size_t i = 0; i < method.gout.name.size(); i++) {
-    os << method.gout.name[i] << " : " << method.gout.group[i] << "\n    " << method.gout.desc[i] << " (OUT)\n";
+    os << method.gout.name[i] << " : " << method.gout.group[i] << "\n    "
+       << method.gout.desc[i] << " (OUT)\n";
   }
   for (const auto& i : method.in.varname) {
     if (std::none_of(method.out.varname.cbegin(),
                      method.out.varname.cend(),
                      [in = i](const auto& out) { return in == out; })) {
-          os << i << " : " << groups.at(i).varname_group <<", optional\n    As WSV (IN)\n";
+      os << i << " : " << groups.at(i).varname_group
+         << ", optional\n    As WSV (IN)\n";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
@@ -466,12 +471,15 @@ void print_method_desc(std::ofstream& os, const Method& method, const std::map<s
     os << ')' << '\n';
   }
 
-  if (pass_verbosity) os << "verbosity : Verbosity, optional\n    As WSV (IN)\n";
+  if (pass_verbosity)
+    os << "verbosity : Verbosity, optional\n    As WSV (IN)\n";
 
   os << "\n)-METHODS_DESC-\")";
 }
 
-void print_method_args(std::ofstream& os, const Method& method, bool pass_verbosity) {
+void print_method_args(std::ofstream& os,
+                       const Method& method,
+                       bool pass_verbosity) {
   for (const auto& i : method.out.varname) {
     os << ',' << '\n'
        << "py::arg_v(\"" << i << "\", std::nullopt, \"Workspace::" << i
@@ -500,7 +508,8 @@ void print_method_args(std::ofstream& os, const Method& method, bool pass_verbos
            << "py::arg_v(\"" << method.gin.name[i] << "\", std::nullopt, \""
            << method.gin.defs[i] << "\")";
     } else {
-      os << ',' << '\n' << "py::arg(\"" << method.gin.name[i] << "\").none(false)";
+      os << ',' << '\n'
+         << "py::arg(\"" << method.gin.name[i] << "\").none(false)";
     }
   }
   if (pass_verbosity)
@@ -508,7 +517,8 @@ void print_method_args(std::ofstream& os, const Method& method, bool pass_verbos
        << R"--(py::arg_v("verbosity", std::nullopt, "Workspace::verbosity"))--";
 }
 
-void workspace_method_create(std::array<std::ofstream, num_split_files>& oss, const NameMaps& arts) {
+void workspace_method_create(std::array<std::ofstream, num_split_files>& oss,
+                             const NameMaps& arts) {
   auto* osptr = oss.begin();
 
   for (auto& [group, group_index] : arts.group) {
@@ -525,15 +535,16 @@ void workspace_method_create(std::array<std::ofstream, num_split_files>& oss, co
                                   }) not_eq w.WsvMap.end(),
                       "A variable of this name already exist: ",
                       name)
-  ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == '_' or sv.back() == '_',
-    "Must have a name some length that neither ends or starts with \'_\', got: ", name)
+  ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == ':' or sv.back() == ':',
+    "Cannot create variables without a name, or one that starts or ends with \":\"\nVariable name: \"", name, "\"")
+
   const Index pos = w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "Created by pybind11 API", )--"
        << group_index << R"--());
+
   if (value.has_value()) w.push(pos, new )--"
        << group << R"--({*value});
-  },
-  py::doc(R"-x-(
-Create a )--"
+}, py::doc(R"-x-(
+Create new )--"
        << group << R"--( on the workspace
 
 If there is no default value, the variable remains uninitialized
@@ -542,7 +553,8 @@ Parameters:
 -----------
 name (str): Name of the variable, can be accessed later with getattr() on the workspace
 desc (str): Description of the variable [Optional]
-value ()--" << group << R"--(): Initialized value [Optional]
+value ()--"
+       << group << R"--(): Initialized value [Optional]
 )-x-"),
   py::arg("name"),
   py::arg("desc")=std::nullopt,
@@ -642,20 +654,23 @@ void workspace_method_nongenerics(
     bool has_any = false;
 
     // Create static defaults
+    has_any = false;
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
       if (method.gin.hasdefs[i]) {
-        os << "static const " << method.gin.group[i] << " "
+        os << "  static const " << method.gin.group[i] << " "
            << method.gin.name[i] << "_{";
         if (method.gin.defs[i] not_eq "{}") os << method.gin.defs[i];
         os << "};\n";
+        has_any = true;
       }
     }
+    if (has_any) os << '\n';
 
     // Outputs
     Index counter = 0;
     for (const auto& i : method.out.varname) {
       auto& group = arts.varname_group.at(i).varname_group;
-      os << group << "& arg" << counter++ << "_ = select_";
+      os << "  " << group << "& arg" << counter++ << "_ = select_";
       if (std::any_of(method.in.varname.cbegin(),
                       method.in.varname.cend(),
                       [out = i](const auto& in) { return in == out; }))
@@ -668,7 +683,8 @@ void workspace_method_nongenerics(
 
     // Generic Outputs
     for (std::size_t i = 0; i < method.gout.name.size(); i++) {
-      os << method.gout.group[i] << "& arg" << counter++ << "_ = select_gout<";
+      os << "  " << method.gout.group[i] << "& arg" << counter++
+         << "_ = select_gout<";
       os << method.gout.group[i];
       os << ">(" << method.gout.name[i] << ");\n";
     }
@@ -676,7 +692,10 @@ void workspace_method_nongenerics(
     // Generic Output Names
     if (method.pass_wsv_names) {
       for (auto& name : method.gout.name) {
-        os << "const String arg" << counter++ << "_{" << name << ".index() == 0 ? std::get<WorkspaceVariable*>("<<name<<") -> name() : \"" << name << "\"};\n";
+        os << "  const String arg" << counter++
+           << "_{std::holds_alternative<WorkspaceVariable*>(" << name
+           << ") ? std::get<WorkspaceVariable*>(" << name << ") -> name() : \""
+           << name << "\"};\n";
       }
     }
 
@@ -686,7 +705,7 @@ void workspace_method_nongenerics(
                        method.out.varname.cend(),
                        [in = i](const auto& out) { return in == out; })) {
         auto& group = arts.varname_group.at(i).varname_group;
-        os << "const " << group << "& arg" << counter++ << "_ = select_in<";
+        os << "  const " << group << "& arg" << counter++ << "_ = select_in<";
         os << group;
         os << ">(WorkspaceVariable{w_, " << arts.varname_group.at(i).artspos
            << "}, " << i << ");\n";
@@ -695,7 +714,7 @@ void workspace_method_nongenerics(
 
     // Generic Inputs
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
-      os << "const " << method.gin.group[i] << "& arg" << counter++
+      os << "  const " << method.gin.group[i] << "& arg" << counter++
          << "_ = select_gin<" << method.gin.group[i] << ">(";
       if (method.gin.hasdefs[i]) os << method.gin.name[i] << "_, ";
       os << method.gin.name[i] << ");\n";
@@ -703,15 +722,15 @@ void workspace_method_nongenerics(
 
     // Generic Input Names
     if (method.pass_wsv_names) {
-      for (std::size_t i =0; i<method.gin.name.size(); i++) {
+      for (std::size_t i = 0; i < method.gin.name.size(); i++) {
         auto& name = method.gin.name[i];
-        os << "const String arg" << counter++ << "_{";
+        os << "  const String arg" << counter++ << "_{";
         if (method.gin.hasdefs[i]) os << name << ".has_value() ? (";
-        os << name;
-        if (method.gin.hasdefs[i]) os << "->"; else os << ".";
-        os <<"index() == 0 ? std::get<const WorkspaceVariable *>(";
+        os << "std::holds_alternative<const WorkspaceVariable*>(";
         if (method.gin.hasdefs[i]) os << '*';
-        os << name<<") -> name() : \"" << name << "\"";
+        os << name << ") ? std::get<const WorkspaceVariable *>(";
+        if (method.gin.hasdefs[i]) os << '*';
+        os << name << ") -> name() : \"" << name << "\"";
         if (method.gin.hasdefs[i]) os << ") : \"" << name << "\"";
         os << "};\n";
       }
@@ -719,14 +738,15 @@ void workspace_method_nongenerics(
 
     // Verbosity?
     if (pass_verbosity) {
-      os << "const Verbosity& arg" << counter++
+      os << "  const Verbosity& arg" << counter++
          << "_ = select_in<Verbosity>(WorkspaceVariable{w_, "
          << arts.varname_group.at("verbosity").artspos << "}, verbosity);\n";
     }
+    os << '\n';
 
     // Arguments from Arts side
     has_any = false;
-    os << method.name << '(';
+    os << "  " << method.name << '(';
     if (pass_workspace) {
       os << "w_";
       has_any = true;
@@ -767,9 +787,9 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
                                const NameMaps& arts) {
   auto* osptr = oss.begin();
 
-  ArrayOfString ignore {"Delete"};
+  ArrayOfString ignore{"Delete"};
 
-  ArrayOfString extra_workspace_for_agenda {"Append", "Copy"};
+  ArrayOfString extra_workspace_for_agenda{"Append", "Copy"};
 
   for (std::size_t imethod = 0; imethod < arts.methodname_method.size();
        imethod++) {
@@ -788,7 +808,9 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
                     }))
       continue;
 
-    if (ignore.end() not_eq std::find(ignore.begin(), ignore.end(), method.name)) continue;
+    if (ignore.end() not_eq
+        std::find(ignore.begin(), ignore.end(), method.name))
+      continue;
 
     const bool pass_verbosity = std::none_of(
         method.out.varname.begin(), method.out.varname.end(), [](auto& var) {
@@ -968,7 +990,8 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
           os << " *";
         }
 
-        if (arg.in and not arg.out and allow_py_object_input) os << ", py::object *";
+        if (arg.in and not arg.out and allow_py_object_input)
+          os << ", py::object *";
       }
       os << '>';
 
@@ -980,14 +1003,17 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
     os << ") {\n";
 
     // Create static defaults
+    has_any = false;
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
       if (method.gin.hasdefs[i]) {
-        os << "static const " << method.gin.group[i] << " "
+        os << "  static const " << method.gin.group[i] << " "
            << method.gin.name[i] << "_{";
         if (method.gin.defs[i] not_eq "{}") os << method.gin.defs[i];
         os << "};\n";
+        has_any = true;
       }
     }
+    if (has_any) os << '\n';
 
     // Variables
     Index counter = 0;
@@ -995,14 +1021,15 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
       if (method.pass_wsv_names and arg.gen) {
         os << "  const String arg" << counter << "_name_{";
         if (arg.def) os << arg.name << ".has_value() ? (";
-        os << "(" << arg.name;
-        if (arg.def) os << "->"; else os << '.';
-        os << "index() == 0) ? std::get<";
+        os << "std::holds_alternative<";
         if (arg.in) os << "const ";
         os << "WorkspaceVariable*>(";
         if (arg.def) os << '*';
-        os << arg.name << ") -> name() : \""
-           << arg.name << "\"";
+        os << arg.name << ") ? std::get<";
+        if (arg.in) os << "const ";
+        os << "WorkspaceVariable*>(";
+        if (arg.def) os << '*';
+        os << arg.name << ") -> name() : \"" << arg.name << "\"";
         if (arg.def) os << ") : \"" << arg.name << "\"";
         os << "};\n";
       }
@@ -1034,6 +1061,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
          << "_ = select_in<Verbosity>(WorkspaceVariable{w_, "
          << arts.varname_group.at("verbosity").artspos << "}, verbosity);\n";
     }
+    os << '\n';
 
     // Find the right function
     os << "  ";
@@ -1065,7 +1093,9 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
           os << arg.types[i];
           os << "& arg" << counter << "_ = ";
           if (arg.in and not arg.out and allow_py_object_input) {
-            os << "std::holds_alternative<py::object *>(wvv_arg" << counter << "_) ? *std::get<py::object *>(wvv_arg" << counter << "_)->cast<" <<  arg.types[i];
+            os << "std::holds_alternative<py::object *>(wvv_arg" << counter
+               << "_) ? *std::get<py::object *>(wvv_arg" << counter
+               << "_)->cast<" << arg.types[i];
             if (arg.types[i] == "Numeric" or arg.types[i] == "Index") os << '_';
             os << " *>() : ";
           }
@@ -1119,19 +1149,25 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
     }
 
     os << "{\n"
-    "    WorkspaceVariablesVariant2String printer{};\n"
-    "    ARTS_USER_ERROR(\"Call to invalid signature:\n" << method.name << '(';
+          "    WorkspaceVariablesVariant2String printer{};\n"
+          "    ARTS_USER_ERROR(\"Call to invalid signature:\"\n"
+          "                    \""
+       << method.name << '(';
     has_any = false;
-    counter=0;
+    counter = 0;
     for (auto& arg : arg_help) {
       if (has_any) os << ", ";
       has_any = true;
       os << arg.name << " : ";
-      if (arg.types.size() > 1) os << "\",\n"
-        "                    "
-        "std::visit(printer, wvv_arg"<<counter<<"_),\n"
-        "                    \"";
-      else os << arg.types.front();
+      if (arg.types.size() > 1)
+        os << "\",\n"
+              "                    "
+              "std::visit(printer, wvv_arg"
+           << counter
+           << "_),\n"
+              "                    \"";
+      else
+        os << arg.types.front();
       counter++;
     }
     if (pass_verbosity) {
@@ -1139,9 +1175,9 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
       os << "verbosity : Verbosity";
     }
     os << ")\"\n"
-    "                    \"\\n\\n\"\n"
-    "                    \"See method description for valid signatures\")\n  }\n}";
-    
+          "                    \"\\n\\n\"\n"
+          "                    \"See method description for valid signatures\")\n  }\n}";
+
     //os << "ARTS_USER_ERROR(\"Generic Arts function called but without exact match of input parameter types\")}";
 
     // Name the paramters and show their defaults
@@ -1224,13 +1260,13 @@ using WorkspaceVariablesVariant =
 struct WorkspaceVariablesVariant2String {
 )--";
 
-for (auto& [name, group] : arts.group) {
-  os << "String operator()(" << name;
-  if (name == "Index" or name == "Numeric") os << "_";
-  os << " *){return \"" << name << "\";}\n";
-}
+  for (auto& [name, group] : arts.group) {
+    os << "String operator()(" << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << " *){return \"" << name << "\";}\n";
+  }
 
-os << R"--(
+  os << R"--(
 String operator()(const Index *){return "Index";}
 String operator()(const Numeric *){return "Numeric";}
 String operator()(const py::object *){return "Python Object";}
@@ -1316,7 +1352,8 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, py::obje
 
   for (auto& [name, group] : arts.group) {
     if (name == "Any") continue;
-    os << "    case " << group << ": value_ptr = new " << name << "{* obj.cast<" << name;
+    os << "    case " << group << ": value_ptr = new " << name << "{* obj.cast<"
+       << name;
     if (name == "Index" or name == "Numeric") os << '_';
     os << " *>()}; break;\n";
   }
@@ -1409,12 +1446,14 @@ WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
 
     if (name == "Agenda") {
       os << "      reinterpret_cast<Agenda *>(ws[pos]) -> set_name(name());\n";
-      os << "      reinterpret_cast<Agenda *>(ws[pos]) -> check(ws, * reinterpret_cast<Verbosity *>(ws[" << verbpos << "]));\n";
+      os << "      reinterpret_cast<Agenda *>(ws[pos]) -> check(ws, * reinterpret_cast<Verbosity *>(ws["
+         << verbpos << "]));\n";
     }
 
     if (name == "ArrayOfAgenda") {
       os << "      for (auto& aoa: * reinterpret_cast<ArrayOfAgenda *>(ws[pos])) aoa.set_name(name());\n";
-      os << "      for (auto& aoa: * reinterpret_cast<ArrayOfAgenda *>(ws[pos])) aoa.check(ws, * reinterpret_cast<Verbosity *>(ws[" << verbpos << "]));\n";
+      os << "      for (auto& aoa: * reinterpret_cast<ArrayOfAgenda *>(ws[pos])) aoa.check(ws, * reinterpret_cast<Verbosity *>(ws["
+         << verbpos << "]));\n";
     }
 
     os << "      break;\n";
@@ -1484,16 +1523,17 @@ void internal_defaults(std::ofstream& os, const NameMaps& arts) {
   }
 
   os << R"--(
-Index create_workspace_gin_default_internal(Workspace& ws, String& key) {
-  ARTS_ASSERT(ws.WsvMap.find(key) not_eq ws.WsvMap.end(), "Only call this once per workspace run")
+Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
+  ARTS_ASSERT(ws.WsvMap.find(key) == ws.WsvMap.end(), "Only call this once per workspace run")
   Index pos=-1;
   )--";
 
   for (auto& [key, items] : has) {
     os << "if (key == \"" << key << "\") {\n";
-    os << "    static_cast<" << items.type << " &>(WorkspaceVariable{ws, pos = ws.add_wsv_inplace(WsvRecord(\"" << key
-       << "\", \"Created by pybind11 API\", " << arts.group.at(items.type)
-       << "))}) = " <<  items.val;
+    os << "    static_cast<" << items.type
+       << " &>(WorkspaceVariable{ws, pos = ws.add_wsv_inplace(WsvRecord(\""
+       << key << "\", \"Created by pybind11 API\", "
+       << arts.group.at(items.type) << "))}) = " << items.val;
     os << ";\n";
     os << "  } else ";
   }
@@ -1538,7 +1578,6 @@ int main() {
                      << "namespace Python {\nvoid py_auto_workspace_" << i
                      << "(py::class_<Workspace>& ws) {\n";
   }
-
 
   workspace_variables(py_workspaces, artsname);
   workspace_method_nongenerics(py_workspaces, artsname);

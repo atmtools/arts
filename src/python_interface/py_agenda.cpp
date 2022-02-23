@@ -12,7 +12,27 @@
 extern Parameters parameters;
 
 namespace Python {
-Index create_workspace_gin_default_internal(Workspace& ws, String& key);
+Index create_workspace_gin_default_internal(Workspace& ws, const String& key);
+
+std::filesystem::path correct_include_path(std::filesystem::path path) {
+  const std::filesystem::path path_copy=path;
+  for (auto& prefix : parameters.includepath) {
+    if (std::filesystem::is_regular_file(
+            path = std::filesystem::path(prefix.c_str()) / path_copy))
+      break;
+  }
+
+  ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
+                     "There is no regular file at ",
+                     path_copy,
+                     '\n',
+                     "Looked in the following search path ",
+                     '[',
+                     parameters.includepath,
+                     ']')
+
+  return path;
+}
 
 Agenda* parse_agenda(const char* filename, const Verbosity& verbosity) {
   Agenda* a = new Agenda;
@@ -82,7 +102,7 @@ Array<AgendaMethodVariable> sorted_mdrecord(
 
     // Create defaults (on the workspace)
     if (ptr->GInDefault()[i] not_eq NODEF) {
-      String gin_key = var_string("::", ptr->Name(), "::", var.name);
+      const String gin_key = var_string("::", ptr->Name(), "::", var.name);
 
       auto gin_def_ptr = gin_defaults.find(gin_key);
       if (gin_def_ptr == gin_defaults.end()) {
@@ -110,13 +130,16 @@ std::pair<ArrayOfIndex, ArrayOfIndex> split_io(
   return {in, out};
 }
 
-String error_msg(const String& name, Workspace& ws, const Array<AgendaMethodVariable>& var_order) {
+String error_msg(const String& name,
+                 Workspace& ws,
+                 const Array<AgendaMethodVariable>& var_order) {
   std::ostringstream os;
   os << name << "(";
-  for (auto& var: var_order) {
+  for (auto& var : var_order) {
     os << var.name << " : ";
     if (var.ws_pos >= 0)
-      os << global_data::wsv_group_names[WorkspaceVariable(ws, var.ws_pos).group()];
+      os << global_data::wsv_group_names[WorkspaceVariable(ws, var.ws_pos)
+                                             .group()];
     else
       os << global_data::wsv_group_names[var.group];
     if (&var not_eq &var_order.back()) os << ", ";
@@ -136,31 +159,38 @@ void py_agenda(py::module_& m) {
   py::class_<MdRecord>(m, "MdRecord")
       .def(py::init<>())
       .def_property_readonly("name", &MdRecord::Name)
-      .def_property_readonly("out", &MdRecord::Out)
-      .def_property_readonly("gout", &MdRecord::GOut)
-      .def_property_readonly("gout_type", &MdRecord::GOutType)
-      .def_property_readonly("in", &MdRecord::In)
-      .def_property_readonly("gin", &MdRecord::GIn)
-      .def_property_readonly("gin_type", &MdRecord::GInType);
+      .def_property_readonly("outs", &MdRecord::Out)
+      .def_property_readonly("g_out", &MdRecord::GOut)
+      .def_property_readonly("g_out_types", &MdRecord::GOutType)
+      .def_property_readonly("ins", &MdRecord::In)
+      .def_property_readonly("g_in", &MdRecord::GIn)
+      .def_property_readonly("g_in_types", &MdRecord::GInType)
+      .def_property_readonly("g_in_default", &MdRecord::GInDefault)
+      .def("__str__", [](MdRecord& mr) { return var_string('"', mr, '"'); })
+      .def("__repr__", [](MdRecord& mr) { return var_string('"', mr, '"'); });
 
   py::class_<Array<MdRecord>>(m, "ArrayOfMdRecord")
-      .PythonInterfaceArrayDefault(MdRecord);
+      .PythonInterfaceArrayDefault(MdRecord)
+      .PythonInterfaceBasicRepresentation(Array<MdRecord>);
+
+  py::class_<AgRecord>(m, "AgRecord")
+      .def(py::init<>())
+      .def_property_readonly("name", &AgRecord::Name)
+      .def_property_readonly("description", &AgRecord::Description)
+      .def_property_readonly("outs", &AgRecord::Out)
+      .def_property_readonly("ins", &AgRecord::In)
+      .def("__str__", [](AgRecord& ar) { return var_string(ar); })
+      .def("__repr__", [](AgRecord& ar) { return var_string(ar); });
+
+  py::class_<Array<AgRecord>>(m, "ArrayOfAgRecord")
+      .PythonInterfaceArrayDefault(AgRecord)
+      .PythonInterfaceBasicRepresentation(Array<AgRecord>);
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init<>())
       .def(py::init([](Workspace& w, std::filesystem::path path) {
-        ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
-                           "There is no regular file at: ",
-                           path.c_str())
-
-        std::filesystem::path path_copy = path;
-        parameters.includepath.push_back(path_copy.remove_filename().c_str());
-        parameters.includepath.erase(std::unique(parameters.includepath.begin(),
-                                                 parameters.includepath.end()),
-                                     parameters.includepath.end());
-
         Agenda* a = parse_agenda(
-            path.c_str(),
+            correct_include_path(path).c_str(),
             *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
         w.initialize();
         return a;
@@ -206,10 +236,12 @@ void py_agenda(py::module_& m) {
             try_to_set_workspace_position:
               try {
                 if (i < nargs) {
-                  var.ws_pos = WorkspaceVariable(ws, var.group, args[i], var.input).pos;
+                  var.ws_pos =
+                      WorkspaceVariable(ws, var.group, args[i], var.input).pos;
                 } else if (auto key = var.name.c_str(); kwargs.contains(key)) {
                   var.ws_pos =
-                      WorkspaceVariable(ws, var.group, kwargs[key], var.input).pos;
+                      WorkspaceVariable(ws, var.group, kwargs[key], var.input)
+                          .pos;
                 }
               } catch (std::exception& e) {
                 // We should be able to switch to the right method for simple_generic_function
@@ -220,13 +252,20 @@ void py_agenda(py::module_& m) {
                   ARTS_USER_ERROR_IF(
                       ptr == global_data::md_data.end() or
                           ptr->Name() not_eq name,
-                      "Cannot find matching workspace method:\n", error_msg(name, ws, var_order), "\n"
-                      "The generic variable \"", var.name, "\" cannot be converted to a type that matches any available workspace method signatures (note that the signature above is therefore potentially extra weird)")
-                  
+                      "Cannot find matching workspace method:\n",
+                      error_msg(name, ws, var_order),
+                      "\n"
+                      "The generic variable \"",
+                      var.name,
+                      "\" cannot be converted to a type that matches any available workspace method signatures (note that the signature above is therefore potentially extra weird)")
+
                   // We have a new variable order but previous variables must be respected
                   auto new_var_order = sorted_mdrecord(ws, ptr);
                   for (Index j = 0; j < i; j++) {
-                    if (var_order[j].ws_pos >= 0 and new_var_order[j].group not_eq WorkspaceVariable(ws, var_order[j].ws_pos).group()) {
+                    if (var_order[j].ws_pos >= 0 and
+                        new_var_order[j].group not_eq
+                            WorkspaceVariable(ws, var_order[j].ws_pos)
+                                .group()) {
                       goto increment_ptr;
                     }
                   }
@@ -235,14 +274,13 @@ void py_agenda(py::module_& m) {
                   var.group = new_var_order[i].group;
                   goto try_to_set_workspace_position;
                 } else {
-                  ARTS_USER_ERROR(
-                      "\nCannot add workspace method:\n",
-                      error_msg(name, ws, var_order),
-                      "\n"
-                      "with the following reason for variable \"",
-                      var.name,
-                      "\":\n\n",
-                      e.what());
+                  ARTS_USER_ERROR("\nCannot add workspace method:\n",
+                                  error_msg(name, ws, var_order),
+                                  "\n"
+                                  "with the following reason for variable \"",
+                                  var.name,
+                                  "\":\n\n",
+                                  e.what());
                 }
               }
             }
@@ -325,7 +363,6 @@ so Copy(a, out=b) will not even see the b variable.
       .def(
           "add_callback_method",
           [](Agenda& a, Workspace& ws, CallbackFunction x) mutable {
-
             const Index group_index = get_wsv_group_id("CallbackFunction");
             ARTS_USER_ERROR_IF(group_index < 0,
                                "Cannot recognize CallbackFunction")

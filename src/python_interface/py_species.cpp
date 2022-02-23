@@ -1,5 +1,6 @@
-#include "py_macros.h"
 #include <py_auto_interface.h>
+
+#include "py_macros.h"
 
 namespace Python {
 void py_species(py::module_& m) {
@@ -49,7 +50,6 @@ void py_species(py::module_& m) {
            py::arg("full_list") = false)
       .PythonInterfaceBasicRepresentation(ArrayOfIsotopeRecord)
       .PythonInterfaceIndexItemAccess(ArrayOfIsotopeRecord)
-      .PythonInterfaceBasicIteration(ArrayOfIsotopeRecord)
       .def(py::init<Index, SpeciesIsotopeRecord>())
       .def(py::init<const std::vector<SpeciesIsotopeRecord>&>())
       .def(
@@ -72,7 +72,7 @@ void py_species(py::module_& m) {
 
   py::class_<SpeciesTag>(m, "SpeciesTag")
       .def(py::init<>())
-      .def(py::init<char*>())
+      .def(py::init<const char*>())
       .def_readwrite("spec_ind", &SpeciesTag::spec_ind)
       .def_readwrite("lower_freq", &SpeciesTag::lower_freq)
       .def_readwrite("upper_freq", &SpeciesTag::upper_freq)
@@ -87,10 +87,9 @@ void py_species(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfSpeciesTag)
       .PythonInterfaceBasicRepresentation(ArrayOfSpeciesTag)
       .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)
-      .PythonInterfaceBasicIteration(ArrayOfSpeciesTag)
       .def(py::init<>())
       .def(py::init<Index>())
-      .def(py::init<char*>())
+      .def(py::init<const char*>())
       .def(py::init<Index, SpeciesTag>())
       .def(py::init<const std::vector<SpeciesTag>&>())
       .def(
@@ -101,6 +100,8 @@ void py_species(py::module_& m) {
           py::doc("Appends a SpeciesTag at the end of the Array"))
       .doc() = "The Arts ArrayOfArrayOfSpeciesTag class";
   py::implicitly_convertible<std::vector<SpeciesTag>, ArrayOfSpeciesTag>();
+  py::implicitly_convertible<std::vector<py::str>, ArrayOfSpeciesTag>();
+  py::implicitly_convertible<py::str, ArrayOfSpeciesTag>();
 
   PythonInterfaceWorkspaceArray(ArrayOfSpeciesTag);
 }

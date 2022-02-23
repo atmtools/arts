@@ -177,3 +177,9 @@ void *Workspace::operator[](Index i) {
 
   return (ws[i].top()->wsv);
 }
+
+void Workspace::swap(Workspace& other) {
+  initialize();
+  other.initialize();
+  ws.swap(other.ws);
+}

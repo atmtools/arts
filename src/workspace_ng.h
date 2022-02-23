@@ -166,6 +166,9 @@ class Workspace {
 
   /** Retrieve a pointer to the given WSV. */
   void *operator[](Index i);
+
+  /** Swap with another workspace */
+  void swap(Workspace& other);
 };
 
 /** Print WSV name to output stream.

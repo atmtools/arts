@@ -161,6 +161,9 @@ class ConstTensor7View {
   Index nrows() const;
   Index ncols() const;
 
+  /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
+  std::array<Index, 7> shape() const {return {nlibraries(), nvitrines(), nshelves(), nbooks(), npages(), nrows(), ncols()};}
+
   // Const index operators:
 
   // Result 7D (1 combination)

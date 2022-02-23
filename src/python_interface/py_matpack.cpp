@@ -1,5 +1,212 @@
-#include "py_macros.h"
 #include <py_auto_interface.h>
+
+#include <cstddef>
+
+#include "py_macros.h"
+
+template <size_t N>
+std::ostream& operator<<(std::ostream& os, std::array<Index, N> shape) {
+  os << shape[0];
+  for (size_t i = 1; i < N; i++) os << 'x' << shape[i];
+  return os;
+}
+
+#define PythonInterfaceMatpackMath(Type)                          \
+  def(                                                            \
+      "__pos__",                                                  \
+      [](const Type& a) {                                         \
+        Type c = a;                                               \
+        return c;                                                 \
+      },                                                          \
+      py::is_operator())                                          \
+      .def(                                                       \
+          "__neg__",                                              \
+          [](const Type& a) {                                     \
+            Type c = a;                                           \
+            c *= -1;                                              \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+                                                                  \
+      .def(                                                       \
+          "__rmul__",                                             \
+          [](const Type& a, Numeric_ b) {                         \
+            Type c = a;                                           \
+            c *= b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__radd__",                                             \
+          [](const Type& a, Numeric_ b) {                         \
+            Type c = a;                                           \
+            c += b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__rtruediv__",                                         \
+          [](const Type& a, Numeric_ b) {                         \
+            Type c = a;                                           \
+            c = b;                                                \
+            c /= a;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__rsub__",                                             \
+          [](Type& a, Numeric_ b) {                               \
+            Type c = a;                                           \
+            c = b;                                                \
+            c -= a;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+                                                                  \
+      .def(                                                       \
+          "__mul__",                                              \
+          [](const Type& a, Numeric_ b) {                         \
+            Type c = a;                                           \
+            c *= b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__add__",                                              \
+          [](const Type& a, Numeric_ b) {                         \
+            Type c = a;                                           \
+            c += b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__truediv__",                                          \
+          [](const Type& a, Numeric_ b) {                         \
+            Type c = a;                                           \
+            c /= b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__sub__",                                              \
+          [](const Type& a, Numeric_ b) {                         \
+            Type c = a;                                           \
+            c -= b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+                                                                  \
+      .def(                                                       \
+          "__mul__",                                              \
+          [](const Type& a, const Type& b) {                      \
+            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
+                               "Invalid operation with shapes (", \
+                               a.shape(),                         \
+                               ") and (",                         \
+                               b.shape(),                         \
+                               ')')                               \
+            Type c = a;                                           \
+            c *= b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__add__",                                              \
+          [](const Type& a, const Type& b) {                      \
+            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
+                               "Invalid operation with shapes (", \
+                               a.shape(),                         \
+                               ") and (",                         \
+                               b.shape(),                         \
+                               ')')                               \
+            Type c = a;                                           \
+            c += b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__truediv__",                                          \
+          [](const Type& a, const Type& b) {                      \
+            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
+                               "Invalid operation with shapes (", \
+                               a.shape(),                         \
+                               ") and (",                         \
+                               b.shape(),                         \
+                               ')')                               \
+            Type c = a;                                           \
+            c /= b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__sub__",                                              \
+          [](const Type& a, const Type& b) {                      \
+            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
+                               "Invalid operation with shapes (", \
+                               a.shape(),                         \
+                               ") and (",                         \
+                               b.shape(),                         \
+                               ')')                               \
+            Type c = a;                                           \
+            c -= b;                                               \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+                                                                  \
+      .PythonInterfaceInPlaceMathOperators(Type, Numeric_)        \
+                                                                  \
+      .def(                                                       \
+          "__imul__",                                             \
+          [](Type& a, const Type& b) {                            \
+            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
+                               "Invalid operation with shapes (", \
+                               a.shape(),                         \
+                               ") and (",                         \
+                               b.shape(),                         \
+                               ')')                               \
+            a *= b;                                               \
+            return a;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__iadd__",                                             \
+          [](Type& a, const Type& b) {                            \
+            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
+                               "Invalid operation with shapes (", \
+                               a.shape(),                         \
+                               ") and (",                         \
+                               b.shape(),                         \
+                               ')')                               \
+            a += b;                                               \
+            return a;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__itruediv__",                                         \
+          [](Type& a, const Type& b) {                            \
+            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
+                               "Invalid operation with shapes (", \
+                               a.shape(),                         \
+                               ") and (",                         \
+                               b.shape(),                         \
+                               ')')                               \
+            a /= b;                                               \
+            return a;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
+          "__isub__",                                             \
+          [](Type& a, const Type& b) {                            \
+            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
+                               "Invalid operation with shapes (", \
+                               a.shape(),                         \
+                               ") and (",                         \
+                               b.shape(),                         \
+                               ')')                               \
+            a -= b;                                               \
+            return a;                                             \
+          },                                                      \
+          py::is_operator())
 
 namespace Python {
 void py_matpack(py::module_& m) {
@@ -10,10 +217,20 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Vector)
       .def(py::init<const std::vector<Numeric>&>())
       .def(py::init<Numeric, Index, Numeric>())
-      .def_property_readonly(
-          "shape",
-          [](const Vector& x) { return std::array{x.nelem()}; },
-          "The shape of the data")
+      .PythonInterfaceMatpackMath(Vector)
+      .def(
+          "__matmul__",
+          [](const Vector& a, const Vector& b) {
+            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),
+                               "Invalid operation with shapes (",
+                               a.shape(),
+                               ") and (",
+                               b.shape(),
+                               ')')
+            return a * b;
+          },
+          py::is_operator())
+      .def_property_readonly("shape", &Vector::shape, "The shape of the data")
       .PythonInterfaceBasicRepresentation(Vector)
       .PythonInterfaceFileIO(Vector)
       .PythonInterfaceIndexItemAccess(Vector)
@@ -62,7 +279,8 @@ void py_matpack(py::module_& m) {
         auto info = arr.request();
 
         Index i = 2;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        ARTS_USER_ERROR_IF(
+            info.ndim not_eq i, "Can only initialize from ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
 
@@ -74,12 +292,40 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Matrix)
       .PythonInterfaceFileIO(Matrix)
-      .def_property_readonly(
-          "shape",
-          [](const Matrix& x) {
-            return std::array{x.nrows(), x.ncols()};
+      .PythonInterfaceMatpackMath(Matrix)
+      .def(
+          "__matmul__",
+          [](const Matrix& B, const Matrix& C) {
+            ARTS_USER_ERROR_IF(B.ncols() not_eq C.nrows(),
+                               "Invalid operation with shapes (",
+                               B.shape(),
+                               ") and (",
+                               C.shape(),
+                               ')')
+            Matrix A(B.nrows(), C.ncols());
+            mult(A, B, C);
+            return A;
           },
-          "The shape of the data")
+          py::is_operator())
+      .def(
+          "__matmul__",
+          [](const Matrix& B, const Vector& C) {
+            ARTS_USER_ERROR_IF(B.ncols() not_eq C.nelem(),
+                               "Invalid operation with shapes (",
+                               B.shape(),
+                               ") and (",
+                               C.shape(),
+                               ')')
+            Vector A(B.nrows());
+            mult(A, B, C);
+            return A;
+          },
+          py::is_operator())
+      .def_property_readonly(
+          "T",
+          [](const Matrix& x) { return Matrix(transpose(x)); },
+          "Non-trivial transpose")
+      .def_property_readonly("shape", &Matrix::shape, "The shape of the data")
       .def(
           "__getitem__",
           [](Matrix& x, std::tuple<Index, Index> inds) -> Numeric& {
@@ -91,7 +337,7 @@ void py_matpack(py::module_& m) {
           py::return_value_policy::reference_internal)
       .def(
           "__setitem__",
-          [](Matrix& x, std::tuple<Index, Index> inds, Numeric y) {
+          [](Matrix& x, std::tuple<Index, Index> inds, Numeric_ y) {
             auto [r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
               throw std::out_of_range("Out of bounds");
@@ -143,7 +389,8 @@ void py_matpack(py::module_& m) {
         auto info = arr.request();
 
         Index i = 3;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        ARTS_USER_ERROR_IF(
+            info.ndim not_eq i, "Can only initialize from ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -156,12 +403,8 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor3)
       .PythonInterfaceFileIO(Tensor3)
-      .def_property_readonly(
-          "shape",
-          [](const Tensor3& x) {
-            return std::array{x.npages(), x.nrows(), x.ncols()};
-          },
-          "The shape of the data")
+      .PythonInterfaceMatpackMath(Tensor3)
+      .def_property_readonly("shape", &Tensor3::shape, "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor3& x, std::tuple<Index, Index, Index> inds) -> Numeric& {
@@ -174,7 +417,7 @@ void py_matpack(py::module_& m) {
           py::return_value_policy::reference_internal)
       .def(
           "__setitem__",
-          [](Tensor3& x, std::tuple<Index, Index, Index> inds, Numeric y) {
+          [](Tensor3& x, std::tuple<Index, Index, Index> inds, Numeric_ y) {
             auto [p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0)
@@ -231,7 +474,8 @@ void py_matpack(py::module_& m) {
         auto info = arr.request();
 
         Index i = 4;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        ARTS_USER_ERROR_IF(
+            info.ndim not_eq i, "Can only initialize from ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -245,12 +489,8 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor4)
       .PythonInterfaceFileIO(Tensor4)
-      .def_property_readonly(
-          "shape",
-          [](const Tensor4& x) {
-            return std::array{x.nbooks(), x.npages(), x.nrows(), x.ncols()};
-          },
-          "The shape of the data")
+      .PythonInterfaceMatpackMath(Tensor4)
+      .def_property_readonly("shape", &Tensor4::shape, "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor4& x,
@@ -266,7 +506,7 @@ void py_matpack(py::module_& m) {
           "__setitem__",
           [](Tensor4& x,
              std::tuple<Index, Index, Index, Index> inds,
-             Numeric y) {
+             Numeric_ y) {
             auto [b, p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0)
@@ -327,7 +567,8 @@ void py_matpack(py::module_& m) {
         auto info = arr.request();
 
         Index i = 5;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        ARTS_USER_ERROR_IF(
+            info.ndim not_eq i, "Can only initialize from ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -342,13 +583,8 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor5)
       .PythonInterfaceFileIO(Tensor5)
-      .def_property_readonly(
-          "shape",
-          [](const Tensor5& x) {
-            return std::array{
-                x.nshelves(), x.nbooks(), x.npages(), x.nrows(), x.ncols()};
-          },
-          "The shape of the data")
+      .PythonInterfaceMatpackMath(Tensor5)
+      .def_property_readonly("shape", &Tensor5::shape, "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor5& x,
@@ -365,7 +601,7 @@ void py_matpack(py::module_& m) {
           "__setitem__",
           [](Tensor5& x,
              std::tuple<Index, Index, Index, Index, Index> inds,
-             Numeric y) {
+             Numeric_ y) {
             auto [s, b, p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
@@ -434,7 +670,8 @@ void py_matpack(py::module_& m) {
         auto info = arr.request();
 
         Index i = 6;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        ARTS_USER_ERROR_IF(
+            info.ndim not_eq i, "Can only initialize from ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -450,17 +687,8 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor6)
       .PythonInterfaceFileIO(Tensor6)
-      .def_property_readonly(
-          "shape",
-          [](const Tensor6& x) {
-            return std::array{x.nvitrines(),
-                              x.nshelves(),
-                              x.nbooks(),
-                              x.npages(),
-                              x.nrows(),
-                              x.ncols()};
-          },
-          "The shape of the data")
+      .PythonInterfaceMatpackMath(Tensor6)
+      .def_property_readonly("shape", &Tensor6::shape, "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor6& x,
@@ -478,7 +706,7 @@ void py_matpack(py::module_& m) {
           "__setitem__",
           [](Tensor6& x,
              std::tuple<Index, Index, Index, Index, Index, Index> inds,
-             Numeric y) {
+             Numeric_ y) {
             auto [v, s, b, p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
@@ -557,7 +785,8 @@ void py_matpack(py::module_& m) {
         auto info = arr.request();
 
         Index i = 7;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i, "Can only initialize from ", i, "D array")
+        ARTS_USER_ERROR_IF(
+            info.ndim not_eq i, "Can only initialize from ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -574,18 +803,8 @@ void py_matpack(py::module_& m) {
       }))
       .PythonInterfaceBasicRepresentation(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
-      .def_property_readonly(
-          "shape",
-          [](const Tensor7& x) {
-            return std::array{x.nlibraries(),
-                              x.nvitrines(),
-                              x.nshelves(),
-                              x.nbooks(),
-                              x.npages(),
-                              x.nrows(),
-                              x.ncols()};
-          },
-          "The shape of the data")
+      .PythonInterfaceMatpackMath(Tensor7)
+      .def_property_readonly("shape", &Tensor7::shape, "The shape of the data")
       .def(
           "__getitem__",
           [](Tensor7& x,
@@ -604,7 +823,7 @@ void py_matpack(py::module_& m) {
           "__setitem__",
           [](Tensor7& x,
              std::tuple<Index, Index, Index, Index, Index, Index, Index> inds,
-             Numeric y) {
+             Numeric_ y) {
             auto [l, v, s, b, p, r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or

@@ -23,42 +23,40 @@ void py_global(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
- * Note: the order of execution mostly does not matter bar for two important things:
+ * Note: the order of execution mostly does not matter bar for some important things:
  *
  * 1) The auto-generated documentation must know about a type to give the python name
  *
  * 2) The workspace auto-generation should be last, it contains some automatic trans-
  *    lations that would otherwise mess things up
+ * 
+ * 3) Implicit conversion can only be defined between two python-defined Arts types
  */
 PYBIND11_MODULE(pyarts_cpp, m) {
   m.doc() = "Contains direct C++ interface for Arts";
+  auto ws = py::class_<Workspace>(m, "Workspace");
 
-  auto classes = m.def_submodule(
-      "classes",
-      "Contains all exposed internal and external Arts classes except Index and Numeric");
-  py_std(classes);
-  py_basic(classes);
-  py_matpack(classes);
-  py_griddedfield(classes);
-  py_time(classes);
-  py_species(classes);
-  py_spectroscopy(classes);
-  py_ppath(classes);
-  py_tessem(classes);
-  py_rte(classes);
-  py_telsem(classes);
-  py_sparse(classes);
-  py_mcantenna(classes);
-  py_scattering(classes);
-  py_jac(classes);
-  py_quantum(classes);
+  py_std(m);
+  py_basic(m);
+  py_matpack(m);
+  py_griddedfield(m);
+  py_time(m);
+  py_species(m);
+  py_spectroscopy(m);
+  py_ppath(m);
+  py_tessem(m);
+  py_rte(m);
+  py_telsem(m);
+  py_sparse(m);
+  py_mcantenna(m);
+  py_scattering(m);
+  py_jac(m);
+  py_quantum(m);
 
-  auto workspace = 
-      m.def_submodule("workspace",
-                      "Contains a way to interactively use the Arts workspace");
-  auto ws = py::class_<Workspace>(workspace, "Workspace");
-  py_agenda(workspace);
-  py_global(workspace);
-  py_workspace(workspace, ws);  // Must be last, it contains automatic conversion operations
+  py_agenda(m);
+  py_global(m);
+
+  // Must be last, it contains automatic conversion operations
+  py_workspace(m, ws);  
 }
 }  // namespace Python

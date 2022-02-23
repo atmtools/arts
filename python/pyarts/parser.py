@@ -9,10 +9,16 @@ to transform the parsed controlfile to a Python script.
 import numpy as np
 import re
 from textwrap import indent
-from pyarts.workspace.methods import workspace_methods
-from pyarts.workspace.variables import (workspace_variables, group_names,
-                                      WorkspaceVariable)
+
 from lark import Lark, Transformer, Token
+
+import pyarts.workspace.global_data as global_data
+
+
+workspace_methods = global_data.get_raw_method_map()
+workspace_variables = global_data.get_variables_map()
+group_names =  global_data.cxx.get_wsv_group_names()
+
 grammar = r"""
     controlfile : statement*
 
@@ -124,12 +130,12 @@ class WSMCall:
 
         self.wsm = workspace_methods[name]
 
-        self.wsm_outs = [WorkspaceVariable.get_variable_name(m) for m in self.wsm.outs]
+        self.wsm_outs = [global_data.get_variable_name(m) for m in self.wsm.outs]
         self.wsm_gouts = self.wsm.g_out
-        self.wsm_ins = [WorkspaceVariable.get_variable_name(m) for m in self.wsm.ins \
+        self.wsm_ins = [global_data.get_variable_name(m) for m in self.wsm.ins \
                         if not m in self.wsm.outs]
         self.wsm_gins = self.wsm.g_in
-        self.arg_names = self.wsm_outs + self.wsm_gouts + self.wsm_ins + self.wsm_gins
+        self.arg_names = list(self.wsm_outs) + list(self.wsm_gouts) + list(self.wsm_ins) + list(self.wsm_gins)
 
         self.name = name
         self.args = args
@@ -202,15 +208,15 @@ class WSMCall:
 
         if name in self.wsm_ins:
             v = workspace_variables[name]
-            value_converted = WorkspaceVariable.convert(v.group, value)
+            value_converted = global_data.convert(v.group, value)
             if not value_converted is None:
                 value = value_converted
 
         if name in self.wsm_gins:
             if len(self.wsm.g_in_types) == 1:
-                g = group_names[self.wsm.g_in_types[0][name]]
+                g = group_names[self.wsm.g_in_types[0]]
 
-                value_converted = WorkspaceVariable.convert(g, value)
+                value_converted = global_data.convert(g, value)
                 if not value_converted is None:
                     value = value_converted
         return value

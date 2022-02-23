@@ -1,5 +1,6 @@
-#include "py_macros.h"
 #include <py_auto_interface.h>
+
+#include "py_macros.h"
 
 namespace Python {
 void py_basic(py::module_& m) {
@@ -39,10 +40,11 @@ void py_basic(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
       .PythonInterfaceIndexItemAccess(String)
-      .PythonInterfaceBasicIteration(String)
       .PythonInterfaceBasicRepresentation(String)
       .def(py::self + py::self)
       .def(py::self += py::self)
+      .def(py::self == py::self)
+      .def("__hash__", [](String& x){return py::hash(py::str(x));})
       .doc() =
       R"--(
 The Arts String class
@@ -91,7 +93,30 @@ be accessed without copy using element-wise access operators.
       .def(py::init<>())
       .def(py::init<Numeric>())
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
-      .def_property("val", [](Numeric_& x){return x.val;}, [](Numeric_& x, Numeric y){x.val = y;})
+      .def(
+          "__mul__",
+          [](Numeric_& a, Numeric_ b) { return a.val * b.val; },
+          py::is_operator())
+      .def(
+          "__add__",
+          [](Numeric_& a, Numeric_ b) { return a.val + b.val; },
+          py::is_operator())
+      .def(
+          "__truediv__",
+          [](Numeric_& a, Numeric_ b) { return a.val / b.val; },
+          py::is_operator())
+      .def(
+          "__sub__",
+          [](Numeric_& a, Numeric_ b) { return a.val - b.val; },
+          py::is_operator())
+      .def(
+          "__pow__",
+          [](Numeric_& a, Numeric_ b) { return std::pow(a.val, b.val); },
+          py::is_operator())
+      .def_property(
+          "val",
+          [](Numeric_& x) { return x.val; },
+          [](Numeric_& x, Numeric y) { x.val = y; })
       .PythonInterfaceBasicRepresentation(Numeric_)
       .def(
           "savexml",
@@ -144,7 +169,34 @@ You can get copies and set the value by the \"val\" property
       .def(py::init<>())
       .def(py::init<Index>())
       .PythonInterfaceWorkspaceVariableConversion(Index_)
-      .def_property("val", [](Index_& x){return x.val;}, [](Index_& x, Index y){x.val = y;})
+      .def(
+          "__mul__",
+          [](Index_& a, Index_ b) { return a.val * b.val; },
+          py::is_operator())
+      .def(
+          "__add__",
+          [](Index_& a, Index_ b) { return a.val + b.val; },
+          py::is_operator())
+      .def(
+          "__div__",
+          [](Index_& a, Index_ b) { return a.val / b.val; },
+          py::is_operator())
+      .def(
+          "__truediv__",
+          [](Index_& a, Index_ b) { return Numeric(Rational(a.val, b.val)); },
+          py::is_operator())
+      .def(
+          "__sub__",
+          [](Index_& a, Index_ b) { return a.val - b.val; },
+          py::is_operator())
+      .def(
+          "__pow__",
+          [](Index_& a, Index_ b) { return std::pow(a.val, b.val); },
+          py::is_operator())
+      .def_property(
+          "val",
+          [](Index_& x) { return x.val; },
+          [](Index_& x, Index y) { x.val = y; })
       .PythonInterfaceBasicRepresentation(Index_)
       .def(
           "savexml",
@@ -194,12 +246,13 @@ You can get copies and set the value by the \"val\" property
 )--";
 
   py::implicitly_convertible<py::str, String>();
+  py::implicitly_convertible<std::vector<py::str>, ArrayOfString>();
   py::implicitly_convertible<Index, Numeric_>();
   py::implicitly_convertible<Numeric, Numeric_>();
   py::implicitly_convertible<Index, Index_>();
 
   py::class_<Any>(m, "Any")
-  .def("__repr__", [](Any&){return "Any";})
-  .def("__str__", [](Any&){return "Any";});
+      .def("__repr__", [](Any&) { return "Any"; })
+      .def("__str__", [](Any&) { return "Any"; });
 }
 }  // namespace Python

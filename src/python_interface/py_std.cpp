@@ -6,6 +6,5 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_std(py::module_&) {
-}
+void py_std(py::module_&) {}
 }  // namespace Python

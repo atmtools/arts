@@ -72,12 +72,6 @@
     return var_string(x);                        \
   }).def("__repr__", [](const Type& x) { return var_string(x); })
 
-#define PythonInterfaceBasicIteration(Type)                          \
-  def(                                                               \
-      "__iter__",                                                    \
-      [](Type& x) { return py::make_iterator(x.begin(), x.end()); }, \
-      py::keep_alive<0, 1>())
-
 /** Gives the basic Array<X> interface of Arts
  * 
  * The type should be the full name of the class
@@ -88,47 +82,73 @@
  * x = Array<X>(INDEX)
  * x = Array<X>(INDEX, X())
  * x.append(X())
+ * y = x.pop()
  * list(x)
  * x[INDEX]
+ * x[INDEX] = X()
  * len(x)
  * for a in x: DO_SOMETHING(a)
  */
-#define PythonInterfaceArrayDefault(BaseType)         \
-  PythonInterfaceIndexItemAccess(Array<BaseType>)     \
-      .PythonInterfaceBasicIteration(Array<BaseType>) \
-      .def(py::init<>())                              \
-      .def(py::init<Index>())                         \
-      .def(py::init<Index, BaseType>())               \
-      .def(py::init<std::vector<BaseType>>())         \
-      .def(                                           \
-          "append",                                   \
-          [](Array<BaseType>& x, BaseType y) {        \
-            x.emplace_back(std::move(y));             \
-          },                                          \
-          py::doc("Appends a " #BaseType " at the end of the Array"))
+#define PythonInterfaceArrayDefault(BaseType)                                 \
+  PythonInterfaceIndexItemAccess(Array<BaseType>)                             \
+      .def(py::init<>())                                                      \
+      .def(py::init<Index>())                                                 \
+      .def(py::init<Index, BaseType>())                                       \
+      .def(py::init<std::vector<BaseType>>())                                 \
+      .def(                                                                   \
+          "append",                                                           \
+          [](Array<BaseType>& x, BaseType y) {                                \
+            x.emplace_back(std::move(y));                                     \
+          },                                                                  \
+          py::doc("Appends a " #BaseType " at the end of the Array"))         \
+      .def(                                                                   \
+          "pop",                                                              \
+          [](Array<BaseType>& x) -> BaseType {                                \
+            if (x.size() < 1) throw std::out_of_range("pop from empty list"); \
+            BaseType copy = std::move(x.back());                              \
+            x.pop_back();                                                     \
+            return copy;                                                      \
+          },                                                                  \
+          py::doc("Pops a " #BaseType " from the Array"))                     \
+      .def(                                                                   \
+          "__concat__",                                                       \
+          [](const Array<BaseType>& a, const Array<BaseType>& b) {            \
+            auto c = a;                                                       \
+            for (auto x : b) c.emplace_back(std::move(x));                    \
+            return c;                                                         \
+          },                                                                  \
+          "Joins two lists of " #BaseType)
 
 /** Provides -=, +=, /=. and *= for all LHS Type */
-#define PythonInterfaceInPlaceMathOperators(Type, Other)  \
-  def(                                                    \
-      "__imul__",                                         \
-      [](Type& x, const Other& y) { return x *= y; },     \
-      py::is_operator(),                                  \
-      py::keep_alive<0, 1>())                             \
-      .def(                                               \
-          "__itruediv__",                                 \
-          [](Type& x, const Other& y) { return x /= y; }, \
-          py::is_operator(),                              \
-          py::keep_alive<0, 1>())                         \
-      .def(                                               \
-          "__iadd__",                                     \
-          [](Type& x, const Other& y) { return x += y; }, \
-          py::is_operator(),                              \
-          py::keep_alive<0, 1>())                         \
-      .def(                                               \
-          "__isub__",                                     \
-          [](Type& x, const Other& y) { return x -= y; }, \
-          py::is_operator(),                              \
-          py::keep_alive<0, 1>())
+#define PythonInterfaceInPlaceMathOperators(Type, Other) \
+  def(                                                   \
+      "__imul__",                                        \
+      [](Type& x, const Other& y) {                      \
+        x *= y;                                          \
+        return x;                                        \
+      },                                                 \
+      py::is_operator())                                 \
+      .def(                                              \
+          "__itruediv__",                                \
+          [](Type& x, const Other& y) {                  \
+            x /= y;                                      \
+            return x;                                    \
+          },                                             \
+          py::is_operator())                             \
+      .def(                                              \
+          "__iadd__",                                    \
+          [](Type& x, const Other& y) {                  \
+            x += y;                                      \
+            return x;                                    \
+          },                                             \
+          py::is_operator())                             \
+      .def(                                              \
+          "__isub__",                                    \
+          [](Type& x, const Other& y) {                  \
+            x -= y;                                      \
+            return x;                                    \
+          },                                             \
+          py::is_operator())
 
 /** Provides -, +, /. and * for Type (right and left)
  */

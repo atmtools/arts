@@ -50,9 +50,9 @@ try:
     for file in files:
         if splitext(file)[-1] in [".so"]:
             builtin_lib_path = join(builtin_path, file)
-            if isfile(join("pyarts", "builtin", file)):
-                remove(join("pyarts", "builtin", file))
-            shutil.copy(builtin_lib_path, join("pyarts", "builtin"))
+            if isfile(join("pyarts", file)):
+                remove(join("pyarts", file))
+            shutil.copy(builtin_lib_path, "pyarts")
             found = True
     if not found: raise
 except:

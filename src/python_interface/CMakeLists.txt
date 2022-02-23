@@ -4,7 +4,8 @@ target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 ########################################################################################
 # Generate automatic python files (there are many to help compile-time)
-add_custom_command(OUTPUT py_auto_workspace.cc
+add_custom_command(OUTPUT py_auto_interface.h
+                          py_auto_workspace.cc
                           py_auto_workspace_split_0.cc
                           py_auto_workspace_split_1.cc
                           py_auto_workspace_split_2.cc

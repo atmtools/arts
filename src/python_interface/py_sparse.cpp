@@ -1,14 +1,16 @@
-#include "py_macros.h"
 #include <py_auto_interface.h>
+
+#include "py_macros.h"
 
 namespace Python {
 void py_sparse(py::module_& m) {
   py::class_<Sparse>(m, "Sparse")
       .def(py::init<>())
+      .def(py::init<Index, Index>())
       .PythonInterfaceWorkspaceVariableConversion(Sparse)
       .PythonInterfaceFileIO(Sparse)
       .PythonInterfaceBasicRepresentation(Sparse);
-
+  
   py::enum_<Block::MatrixType>(m, "BlockMatrixType")
       .value("dense", Block::MatrixType::dense)
       .value("sparse", Block::MatrixType::sparse);

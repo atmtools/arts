@@ -1,23 +1,25 @@
 
-#include <py_auto_interface.h>
-
+#include <depr.h>
 #include <global_data.h>
 #include <parameters.h>
+#include <py_auto_interface.h>
 #include <workspace_ng.h>
-#include <depr.h>
-
-#include "py_macros.h"
 
 #include <cstdlib>
 
+#include "py_macros.h"
+
 extern Parameters parameters;
-void parse_path_from_environment(String envvar, ArrayOfString &paths);
+
+void parse_path_from_environment(String envvar, ArrayOfString& paths);
 
 namespace Python {
-
+std::filesystem::path correct_include_path(std::filesystem::path path);
+Agenda* parse_agenda(const char* filename, const Verbosity& verbosity);
 void py_auto_workspace(py::class_<Workspace>&);
+
 void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
-  static bool init=true;
+  static bool init = true;
   if (init) {
     init = false;
 
@@ -34,7 +36,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
     global_data::workspace_memory_handler.initialize();
 
     // Set parameters that are know on first execution
-  #ifdef ARTS_DEFAULT_INCLUDE_DIR
+#ifdef ARTS_DEFAULT_INCLUDE_DIR
     String arts_default_include_path(ARTS_DEFAULT_INCLUDE_DIR);
     if (arts_default_include_path != "" && !parameters.includepath.nelem()) {
       // Skip delimiters at beginning.
@@ -51,7 +53,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
         pos = arts_default_include_path.find_first_of(":", lastPos);
       }
     }
-  #endif
+#endif
 
     parse_path_from_environment("ARTS_INCLUDE_PATH", parameters.includepath);
     parse_path_from_environment("ARTS_DATA_PATH", parameters.datapath);
@@ -60,65 +62,78 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
     parameters.datapath.insert(parameters.datapath.begin(), ".");
   }
 
-  ws.def(py::init([]() {
-    Workspace w{};
-    w.initialize();
-    w.push(w.WsvMap.at("verbosity"), new Verbosity{});
-    return w;
-  }));
+  ws.def(py::init([](Index verbosity, Index agenda_verbosity) {
+           Workspace w{};
+           w.initialize();
+           w.push(w.WsvMap.at("verbosity"),
+                  new Verbosity{agenda_verbosity, verbosity, 0});
+           return w;
+         }),
+         py::arg("verbosity") = 0,
+         py::arg("agenda_verbosity") = 0)
+      .def(
+          "execute_controlfile",
+          [](Workspace& w, std::filesystem::path path) {
+            std::unique_ptr<Agenda> a{parse_agenda(
+                correct_include_path(path).c_str(),
+                *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]))};
+            w.initialize();
+            a->execute(w);
+          })
+      .def_property_readonly("size", &Workspace::nelem)
+      .def(
+          "create_variable",
+          [](Workspace& w, char* group, char* name, std::optional<char*> desc) {
+            using global_data::workspace_memory_handler;
 
-  ws.def_property_readonly("size", &Workspace::nelem);
+            ARTS_USER_ERROR_IF(w.WsvMap.find(name) not_eq w.WsvMap.end(),
+                               "Variable already exist: ",
+                               name)
+
+            const Index group_index = get_wsv_group_id(group);
+            ARTS_USER_ERROR_IF(
+                group_index < 0, "Cannot recognize group: ", group)
+
+            w.push(w.add_wsv_inplace(WsvRecord(
+                       name,
+                       desc.has_value() ? *desc : "Created by pybind11 API",
+                       group_index)),
+                   workspace_memory_handler.allocate(group_index));
+          },
+          py::arg("group"),
+          py::arg("name"),
+          py::arg("desc") = std::nullopt)
+      .def("__delattr__", [](Workspace& w, const char* name) {
+        auto varpos = w.WsvMap.find(name);
+        ARTS_USER_ERROR_IF(
+            varpos == w.WsvMap.end(), "No workspace variable called: ", name)
+
+        if (w.is_initialized(varpos->second)) {
+          w.pop_free(varpos->second);
+        }
+      });
 
   ws.def(
-      "create_variable",
-      [](Workspace& w, char* group, char* name, std::optional<char*> desc) {
-        using global_data::workspace_memory_handler;
+      "__getattr__",
+      [](Workspace& w, const char* name) {
+        auto varpos = w.WsvMap.find(name);
+        ARTS_USER_ERROR_IF(
+            varpos == w.WsvMap.end(), "No workspace variable called: ", name)
 
-        ARTS_USER_ERROR_IF(std::find_if(w.WsvMap.begin(),
-                                        w.WsvMap.end(),
-                                        [&](auto& b) {
-                                          return b.first == name;
-                                        }) not_eq w.WsvMap.end(),
-                           "A variable of this name already exist: ",
-                           name)
-
-        const Index group_index = get_wsv_group_id(group);
-        ARTS_USER_ERROR_IF(group_index < 0, "Cannot recognize group: ", group)
-
-        w.push(w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "Created by pybind11 API", group_index)), workspace_memory_handler.allocate(group_index));
+        return WorkspaceVariable{w, varpos->second};
       },
-      py::arg("group"),
-      py::arg("name"),
-      py::arg("desc") = std::nullopt);
-
-  ws.def("__delattr__", [](Workspace& w, const char* name) {
-    auto varpos = std::find_if(w.WsvMap.begin(),
-                               w.WsvMap.end(),
-                               [&](auto& b) { return b.first == name; });
-    ARTS_USER_ERROR_IF(varpos == w.WsvMap.end(),
-                       "No workspace variable called: ", name)
-
-    if (w.is_initialized(varpos->second)) {
-      w.pop_free(varpos->second);
-    }
-  });
-
-  ws.def("__getattr__", [](Workspace& w, const char* name) {
-    auto varpos = std::find_if(w.WsvMap.begin(),
-                               w.WsvMap.end(),
-                               [&](auto& b) { return b.first == name; });
-    ARTS_USER_ERROR_IF(varpos == w.WsvMap.end(),
-                       "No workspace variable called: ", name)
-
-    return WorkspaceVariable{w, varpos->second};
-  }, py::doc("A custom workspace variable"));
+      py::doc("A custom workspace variable"));
 
   ws.def(
       "swap",
-      [](Workspace* w_, Workspace* w_2) { std::swap(w_, w_2); },
-      py::return_value_policy::reference_internal);
+      [](Workspace& w_1, Workspace& w_2) { w_1.swap(w_2); },
+      py::arg("ws").noconvert().none(false));
 
-  ws.def("__repr__", [](Workspace& w) {Index c = 0; for (Index i=0; i<w.nelem(); i++) c += w.is_initialized(i); return var_string("Workspace with ", c, " initialized variables");});
+  ws.def("__repr__", [](Workspace& w) {
+    Index c = 0;
+    for (Index i = 0; i < w.nelem(); i++) c += w.is_initialized(i);
+    return var_string("Workspace with ", c, " initialized variables");
+  });
 
   py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
       .def_property(
@@ -128,16 +143,16 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
                            py::return_value_policy::reference_internal),
           [](WorkspaceVariable& wsv, WorkspaceVariablesVariant x) { wsv = x; },
           "Returns a proper Arts type")
-          .def_property_readonly("name", &WorkspaceVariable::name)
-      .def("__str__",
-           [](WorkspaceVariable& wsv) {
-             return var_string(
-                 "Arts Workspace Variable ",
-                 wsv.ws.wsv_data[wsv.pos].Name(),
-                 " of type ",
-                 global_data::wsv_group_names[wsv.ws.wsv_data[wsv.pos]
-                                                  .Group()]);
-           })
+      .def_property_readonly("name", &WorkspaceVariable::name)
+      .def(
+          "__str__",
+          [](WorkspaceVariable& wsv) {
+            return var_string(
+                "Arts Workspace Variable ",
+                wsv.ws.wsv_data[wsv.pos].Name(),
+                " of type ",
+                global_data::wsv_group_names[wsv.ws.wsv_data[wsv.pos].Group()]);
+          })
       .def("__repr__", [](WorkspaceVariable& wsv) {
         return var_string(
             "Arts Workspace Variable ",
@@ -145,6 +160,18 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
             " of type ",
             global_data::wsv_group_names[wsv.ws.wsv_data[wsv.pos].Group()]);
       });
+
+  py::class_<WsvRecord>(m, "WsvRecord")
+      .def_property_readonly("name", &WsvRecord::Name)
+      .def_property_readonly("description", &WsvRecord::Description)
+      .def_property_readonly("group", &WsvRecord::Group)
+      .def_property_readonly("implicit", &WsvRecord::Implicit)
+      .def("__str__", [](WsvRecord& mr) { return var_string(mr); })
+      .def("__repr__", [](WsvRecord& mr) { return var_string(mr); });
+
+  py::class_<Array<WsvRecord>>(m, "ArrayOfWsvRecord")
+      .PythonInterfaceArrayDefault(WsvRecord)
+      .PythonInterfaceBasicRepresentation(Array<WsvRecord>);
 
   // Should be last as it contains several implicit conversions
   py_auto_workspace(ws);
