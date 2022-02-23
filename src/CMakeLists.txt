@@ -91,18 +91,6 @@ set_source_files_properties (m_oem.cc PROPERTIES
 
 ########### next target ###############
 
-if (C_API)
-add_library (arts_api SHARED arts_api.cc interactive_workspace.cc arts_api_classes.cc)
-add_dependencies (arts arts_api)
-set_target_properties(arts_api PROPERTIES SUFFIX .so)
-if (ENABLE_PCH)
-  target_precompile_headers(arts_api PRIVATE pch_matpack.h)
-endif()
-target_link_libraries (arts_api ${ALL_ARTS_LIBRARIES})
-endif (C_API)
-
-########### next target ###############
-
 add_executable (make_workspace_memory_handler_cc
                 make_workspace_memory_handler_cc.cc
                 arts.cc

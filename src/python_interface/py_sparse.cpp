@@ -7,9 +7,11 @@ void py_sparse(py::module_& m) {
   py::class_<Sparse>(m, "Sparse")
       .def(py::init<>())
       .def(py::init<Index, Index>())
+      .def(py::init<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>>())
       .PythonInterfaceWorkspaceVariableConversion(Sparse)
       .PythonInterfaceFileIO(Sparse)
       .PythonInterfaceBasicRepresentation(Sparse);
+  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, Sparse>();
   
   py::enum_<Block::MatrixType>(m, "BlockMatrixType")
       .value("dense", Block::MatrixType::dense)
