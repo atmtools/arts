@@ -133,6 +133,14 @@ void reshape(Tensor3View X, ConstVectorView x);
 
 void calculate_weights_linear(Vector& x, Vector& w, const Index nph);
 
+/** Calculates trapezoidal integration weights for arbitray grid
+ *
+ * @param w Vector integration weights
+ * @param x Vector evaluation points
+ */
+void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x);
+
+
 /** Checks for negative values */
 template <typename MatpackType>
 constexpr bool any_negative(const MatpackType& var) noexcept {

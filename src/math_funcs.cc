@@ -824,3 +824,22 @@ void calculate_weights_linear(Vector& x, Vector& w, const Index nph) {
   }
   w[x.nelem() - 1] = (x[x.nelem() - 1] - x[x.nelem() - 2]) / 2.;
 }
+
+void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x) {
+
+  ARTS_USER_ERROR_IF(x.nelem() <1, "Grid needs at least 2 points." );
+
+  Index N = x.nelem();
+
+  w.resize(N);
+
+  w[0] = (x[1] - x[0])/2;
+  if (N>2){
+
+    for (Index i = 1; i < N-1; i++ ){
+      w[i] = (x[i+1] - x[i-1])/2;
+    }
+
+  }
+  w[N-1] = (x[N-1] - x[N-2])/2;
+}

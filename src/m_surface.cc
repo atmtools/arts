@@ -55,6 +55,7 @@
 #include "surface.h"
 #include "tessem.h"
 #include "constants.h"
+#include "gas_scattering.h"
 
 using Constant::pi;
 using Conversion::deg2rad;
@@ -446,6 +447,220 @@ void iySurfaceFastem(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceLambertian(Workspace& ws,
+                         Matrix& iy,
+                         ArrayOfTensor3& diy_dx,
+                         const Tensor3& iy_transmittance,
+                         const Index& iy_id,
+                         const Index& jacobian_do,
+                         const Index& star_do,
+                         const Index& atmosphere_dim,
+                         const EnergyLevelMap& nlte_field,
+                         const Index& cloudbox_on,
+                         const Index& stokes_dim,
+                         const Vector& f_grid,
+                         const Vector& lat_grid,
+                         const Vector& lon_grid,
+                         const Matrix& z_surface,
+                         const Vector& refellipsoid,
+                         const Vector& rtp_pos,
+                         const Vector& rtp_los,
+                         const Vector& rte_pos2,
+                         const String& iy_unit,
+                         const Vector& surface_scalar_reflectivity,
+                         const Numeric& surface_skin_t,
+                         const Agenda& iy_main_agenda,
+                         const Index& N_za,
+                         const Index& N_aa,
+                         const Verbosity& verbosity) {
+  // Input checks
+
+  ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
+  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
+  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_not_negative("surface_skin_t", surface_skin_t);
+
+  //Check size of iy
+  if (not is_size(iy, f_grid.nelem(), stokes_dim)) {
+    iy.resize(f_grid.nelem(), stokes_dim);
+    iy = 0.;
+  }
+
+  const Index nf = f_grid.nelem();
+
+  Vector za_grid, aa_grid, za_grid_weights;
+
+  //get angular grids. here we use gauss quadrature. As the function is not intended for
+  //a hemisphere but for full sphere, we have to tweak it a little bit and use only
+  //the first half of the angles.
+  AngularGridsSetFluxCalc(za_grid,
+                          aa_grid,
+                          za_grid_weights,
+                          N_za * 2,
+                          N_aa,
+                          "double_gauss",
+                          verbosity);
+
+  Tensor3 iy_trans_new;
+  Index idx = 2 * N_za;
+  Vector los(2, 0);
+
+  ArrayOfString iy_aux_var(0);
+  if (star_do) {
+    iy_aux_var.resize(1);
+    iy_aux_var[0] = "Direct radiation";
+  }
+
+  Matrix iy_temp;
+  Matrix Flx(nf, 1, 0.);
+
+  if (iy_transmittance.npages()) {
+    iy_trans_new=iy_transmittance;
+  }
+
+
+//  ArrayOfMatrix Flx_dx;
+//  if (jacobian_do) {
+//    Flx_dx.resize(diy_dx.nelem(),
+//                  Matrix(diy_dx[0].npages(), diy_dx[0].nrows()));
+//  }
+  ArrayOfTensor3 diy_dx_dumb;
+  iy.resize(nf, stokes_dim);
+  iy = 0;
+
+  if (N_aa == 1 || atmosphere_dim == 1) {
+    //Set azimuth angle index
+    Index i_aa = 0;
+
+    for (Index i_za = 0; i_za < N_za; i_za++) {
+
+      los[0] = za_grid[i_za];
+
+      // For clearsky, the skylight is in general approximately independent of the azimuth direction.
+      // So, we consider only the line of sight plane.
+      los[1] = rtp_los[1];
+
+      // Calculate downwelling radiation for a los
+      ArrayOfMatrix iy_aux;
+      Ppath ppath;
+      Index iy_id_new = iy_id + i_za + i_aa * N_za + 1;
+      iy_main_agendaExecute(ws,
+                            iy_temp,
+                            iy_aux,
+                            ppath,
+                            diy_dx_dumb,
+                            0,
+                            iy_trans_new,
+                            iy_aux_var,
+                            iy_id_new,
+                            iy_unit,
+                            cloudbox_on,
+                            jacobian_do,
+                            f_grid,
+                            nlte_field,
+                            rtp_pos,
+                            los,
+                            rte_pos2,
+                            iy_main_agenda);
+
+      //For the case that a star is present and the los is towards a star, we
+      //subtract the direct radiation, so that only the diffuse radiation is considered here.
+      //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+      //radiation at the surface. Otherwise it is zero.
+      if (star_do) {
+        iy_temp -= iy_aux[0];
+      }
+      iy_temp *= abs(cos(deg2rad(los[0])) * sin(deg2rad(los[0]))) *
+                 za_grid_weights[i_za];
+      Flx(joker, 0) += iy_temp(joker, 0);
+    }
+    //Azimuthal integration just gives a factor of 2*pi
+    Flx *= 2 * pi;
+
+  } else {
+    // before we start with the actual RT calculation, we calculate the integration
+    // weights for a trapezoidal integration over the azimuth.
+    Vector aa_grid_weights;
+    Vector aa_grid_rad = aa_grid;
+
+    //For the integration we need the aa grid in rad
+    for (Index i = 0; i < aa_grid_rad.nelem(); i++) {
+      aa_grid_rad[i] = deg2rad(aa_grid_rad[i]);
+    }
+
+    calculate_int_weights_arbitrary_grid(aa_grid_weights, aa_grid_rad);
+
+    for (Index i_aa = 0; i_aa < N_aa; i_aa++) {
+      for (Index i_za = 0; i_za < N_za; i_za++) {
+
+
+        los[0] = za_grid[i_za];
+        los[1] = aa_grid[i_aa];
+
+        // Calculate downwelling radiation for LOS ilos
+        ArrayOfMatrix iy_aux;
+        Ppath ppath;
+        Index iy_id_new = iy_id + i_za + i_aa * N_za + 1;
+        iy_main_agendaExecute(ws,
+                              iy_temp,
+                              iy_aux,
+                              ppath,
+                              diy_dx_dumb,
+                              0,
+                              iy_trans_new,
+                              iy_aux_var,
+                              iy_id_new,
+                              iy_unit,
+                              cloudbox_on,
+                              jacobian_do,
+                              f_grid,
+                              nlte_field,
+                              rtp_pos,
+                              los,
+                              rte_pos2,
+                              iy_main_agenda);
+
+        //For the case that a star is present and the los is towards a star, we
+        //subtract the direct radiation, so that only the diffuse radiation is considered here.
+        //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+        //radiation at the surface. Otherwise it is zero.
+        if (star_do) {
+          iy_temp -= iy_aux[0];
+        }
+        iy_temp *= abs(cos(deg2rad(los[0])) * sin(deg2rad(los[0]))) *
+                   za_grid_weights[i_za] * aa_grid_weights[i_aa];
+        Flx(joker, 0) += iy_temp(joker, 0);
+      }
+    }
+  }
+
+  Vector specular_los, surface_normal;
+  specular_losCalc(specular_los,
+                   surface_normal,
+                   rtp_pos,
+                   rtp_los,
+                   atmosphere_dim,
+                   lat_grid,
+                   lon_grid,
+                   refellipsoid,
+                   z_surface,
+                   0,
+                   verbosity);
+
+  //Surface emission
+  Vector b(nf);
+  planck(b, f_grid, surface_skin_t);
+
+  //Upwelling radiation
+  for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
+    iy(i_freq, 0) = surface_scalar_reflectivity[i_freq] *
+                        cos(deg2rad(specular_los[0])) / pi * Flx(i_freq, 0) +
+                    (1 - surface_scalar_reflectivity[i_freq]) * b[i_freq];
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceLambertianDirect(
     Workspace& ws,
     Matrix& iy,
@@ -491,7 +706,6 @@ void iySurfaceLambertianDirect(
     const Agenda& gas_scattering_agenda,
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
-
   //Allocate
   ArrayOfVector star_rte_los(stars.nelem());
   ArrayOfMatrix transmitted_starlight;
@@ -500,13 +714,13 @@ void iySurfaceLambertianDirect(
   ArrayOfIndex stars_visible(stars.nelem());
 
   //Check for correct unit
-  ARTS_USER_ERROR_IF (iy_unit != "1" && star_do,
+  ARTS_USER_ERROR_IF(iy_unit != "1" && star_do,
                      "If stars are present only iy_unit=\"1\" can be used.");
 
   //Check size of iy
-  if (not is_size(iy, f_grid.nelem(), stokes_dim)){
+  if (not is_size(iy, f_grid.nelem(), stokes_dim)) {
     iy.resize(f_grid.nelem(), stokes_dim);
-    iy=0.;
+    iy = 0.;
   }
 
   //do something only if there is a star
@@ -575,8 +789,26 @@ void iySurfaceLambertianDirect(
                          verbosity);
 
     //loop over stars
+    Vector specular_los, surface_normal;
+
     for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
       if (stars_visible[i_star]) {
+        //star_rte_los is the direction toward the star, but we need from the star
+        Vector incoming_los =
+            convert_los2propagation_direction(star_rte_los[i_star]);
+
+        specular_losCalc(specular_los,
+                         surface_normal,
+                         rtp_pos,
+                         incoming_los,
+                         atmosphere_dim,
+                         lat_grid,
+                         lon_grid,
+                         refellipsoid,
+                         z_surface,
+                         0,
+                         verbosity);
+
         // Only the first component of transmitted_starlight is relevant.
         // Comment taken from surfaceLambertianSimple.
         // This follows VDISORT that refers to: K. L. Coulson, Polarization and Intensity of Light in
@@ -591,20 +823,13 @@ void iySurfaceLambertianDirect(
         for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
           iy_surface_direct[i_freq] = surface_scalar_reflectivity[i_freq] / pi *
                                       transmitted_starlight[i_star](i_freq, 0) *
-                                      cos(deg2rad(star_rte_los[i_star][0]));
+                                      cos(deg2rad(specular_los[0]));
         }
 
         //Add the surface contribution of the direct part
         iy(joker, 0) += iy_surface_direct;
 
-        //For now we only have the jacobians from the transmission calculation.
-        //I am not really sure, if this is correct.
-        //TODO: Check surface jacobian
-        for (Index i_jac = 0; i_jac < dtransmitted_starlight.nelem(); i_jac++) {
-          dtransmitted_starlight[i_star][i_jac] /= pi;
-          diy_dx[i_jac](joker, joker, 0) +=
-              dtransmitted_starlight[i_star][i_jac](joker, joker, 0);
-        }
+        //        //TODO: Add surface jacobian
       }
     }
   }

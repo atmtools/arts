@@ -9040,6 +9040,59 @@ Possible models:
                "The version of FASTEM to use.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceLambertian"),
+      DESCRIPTION(
+          "This method calculates upwelling radiation for a lambertian surface\n"
+          "due to the scattering of the downgoing diffuse radiation and emission from\n"
+          "the surface.\n"
+          "This method works only for 1D or 3D atmospheres.\n"
+          "For the integration over the zenith angles a gaussian quadrature with\n"
+          "N_za\n angles is used.\n"
+          "For 1D atmospheres N_aa is ignored. For 3D atmospheres without clouds\n"
+          "azimuthal dependency\n can be neglected. N_aa = 1 is sufficient.\n"
+          "For 3D atmospheres with cloudbox on azimuthal dependency needs to be \n"
+          "accounted. In that case the number of azimuth angles N_aa as a rule of"
+          "thumb should be set to 4*N_za.\n"
+          "For the 1D case N_za downwelling streams and 3D case N_za*N_aa downwelling\n"
+          "streams are calculated.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the scattering of the diffuse\n"
+          "downward radiation. No direct incoming radiation is considered\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy",
+          "diy_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("diy_dx",
+         "iy_transmittance",
+         "iy_id",
+         "jacobian_do",
+         "star_do",
+         "atmosphere_dim",
+         "nlte_field",
+         "cloudbox_on",
+         "stokes_dim",
+         "f_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_surface",
+         "refellipsoid",
+         "rtp_pos",
+         "rtp_los",
+         "rte_pos2",
+         "iy_unit",
+         "surface_scalar_reflectivity",
+         "surface_skin_t",
+         "iy_main_agenda"),
+      GIN("N_za","N_aa"),
+      GIN_TYPE("Index","Index"),
+      GIN_DEFAULT("3","1"),
+      GIN_DESC("Number of zenith angles.","Number of azimuth angles")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceLambertianDirect"),
       DESCRIPTION(
           "This method calculates the scattering of the direct radiation\n"

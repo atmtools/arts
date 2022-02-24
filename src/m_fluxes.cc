@@ -64,7 +64,7 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
                              const Verbosity&) {
   // Azimuth angle grid
   if (N_aa_grid > 1)
-    nlinspace(aa_grid, 0, 360, N_aa_grid);
+    nlinspace(aa_grid, -180, 180, N_aa_grid);
   else if (N_aa_grid < 1) {
     ostringstream os;
     os << "N_aa_grid must be > 0 (even for 1D).";

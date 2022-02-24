@@ -560,12 +560,13 @@ void iyClearsky(
 
                 scattered_starlight += scattered_starlight_istar;
 
-                if (jacobian_do) {
-                  for (int i_jac = 0; i_jac < nq; ++i_jac) {
-                    dscattered_starlight[i_jac] +=
-                        dscattered_starlight_istar[i_jac];
-                  }
-                }
+//                if (jacobian_do) {
+//                  //TODO:Add Jacobian for the star radiation
+//                  for (int i_jac = 0; i_jac < nq; ++i_jac) {
+//                    dscattered_starlight[i_jac] +=
+//                        dscattered_starlight_istar[i_jac];
+//                  }
+//                }
               }
             }
           }
