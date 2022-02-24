@@ -31,7 +31,7 @@ def get_variable_name(i):
         str: The name of the workspace variable.
     """
     vars = cxx.get_wsv_data()
-    return vars[i].name
+    return str(vars[i].name)
 
 def convert(group, value):
     """ Converts a value into something that can be turned into an Arts group

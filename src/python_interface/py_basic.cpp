@@ -1,4 +1,7 @@
 #include <py_auto_interface.h>
+#include <algorithm>
+#include <iterator>
+#include <stdexcept>
 
 #include "py_macros.h"
 
@@ -53,7 +56,13 @@ This class is compatible with python strings.  The data can
 be accessed without copy using element-wise access operators.
 )--";
 
-  PythonInterfaceWorkspaceArray(String);
+  PythonInterfaceWorkspaceArray(String).def(
+      "index", [](ArrayOfString& a, String& b) {
+        auto ptr = std::find(a.begin(), a.end(), b);
+        if (ptr == a.end())
+          throw std::invalid_argument(var_string(b, " not in list"));
+        return std::distance(a.begin(), ptr);
+      });
   PythonInterfaceWorkspaceArray(ArrayOfString);
 
   py::class_<ArrayOfIndex>(m, "ArrayOfIndex", py::buffer_protocol())
