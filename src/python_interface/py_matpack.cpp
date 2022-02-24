@@ -273,10 +273,11 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
+        if (info.ndim == 1 and info.shape[0] == 0) return Matrix{};
 
         Index i = 2;
         ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from ", i, "D array")
+            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
 
@@ -386,10 +387,11 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
+        if (info.ndim == 1 and info.shape[0] == 0) return Tensor3{};
 
         Index i = 3;
         ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from ", i, "D array")
+            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -474,10 +476,11 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
+        if (info.ndim == 1 and info.shape[0] == 0) return Tensor4{};
 
         Index i = 4;
         ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from ", i, "D array")
+            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -570,10 +573,11 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
+        if (info.ndim == 1 and info.shape[0] == 0) return Tensor5{};
 
         Index i = 5;
         ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from ", i, "D array")
+            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -676,10 +680,11 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
+        if (info.ndim == 1 and info.shape[0] == 0) return Tensor6{};
 
         Index i = 6;
         ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from ", i, "D array")
+            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -794,10 +799,11 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
+        if (info.ndim == 1 and info.shape[0] == 0) return Tensor7{};
 
         Index i = 7;
         ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from ", i, "D array")
+            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];

@@ -853,8 +853,8 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
           arg.gen = false;
           arg.def = false;
           arg.wsv = true;
-          arg.wsvpos = meth.out.varpos[i];
           arg.name = meth.out.varname[i];
+          arg.wsvpos = arts.varname_group.at(arg.name).artspos;
           arg.def_str = "";
           arg.types =
               ArrayOfString{arts.varname_group.at(arg.name).varname_group};
@@ -894,8 +894,8 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
             arg.gen = false;
             arg.def = false;
             arg.wsv = true;
-            arg.wsvpos = meth.in.varpos[i];
             arg.name = meth.in.varname[i];
+            arg.wsvpos = arts.varname_group.at(arg.name).artspos;
             arg.def_str = "";
             arg.types =
                 ArrayOfString{arts.varname_group.at(arg.name).varname_group};
