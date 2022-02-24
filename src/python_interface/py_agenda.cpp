@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <filesystem>
 
+#include "debug.h"
 #include "py_macros.h"
 
 extern Parameters parameters;
@@ -148,6 +149,34 @@ String error_msg(const String& name,
   return os.str();
 }
 
+MRecord set_mrrecord(const Index m_id,
+                     const ArrayOfIndex& output,
+                     const ArrayOfIndex& input,
+                     void* val,
+                     const String& group) {
+  static_assert(TokValType::undefined_t == 8, "The python interface expects TokValType::undefined_t to be last and indicate the number of TokVal types");
+  if (group == "Agenda")
+    return MRecord(m_id, output, input, {}, *reinterpret_cast<Agenda*>(val));
+  if (group == "Index")
+    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<Index*>(val)), {});
+  if (group == "Numeric")
+    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<Numeric*>(val)), {});
+  if (group == "ArrayOfIndex")
+    return MRecord( m_id, output, input, TokVal(*reinterpret_cast<ArrayOfIndex*>(val)), {});
+  if (group == "String")
+    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<String*>(val)), {});
+  if (group == "ArrayOfString")
+    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<ArrayOfString*>(val)), {});
+  if (group == "Vector")
+    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<Vector*>(val)), {});
+  if (group == "Matrix")
+    return MRecord( m_id, output, input, TokVal(*reinterpret_cast<Matrix*>(val)), {});
+  if (group == "ArrayOfSpeciesTag")
+    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<ArrayOfSpeciesTag*>(val)), {});
+
+  ARTS_USER_ERROR("This is probably a developer bug.  If a new Set method is added that doesn't follow old conventions, it will cause issues...");
+}
+
 void py_agenda(py::module_& m) {
   py::class_<CallbackFunction>(m, "CallbackFunction")
       .def(py::init<>())
@@ -195,6 +224,10 @@ void py_agenda(py::module_& m) {
         w.initialize();
         return a;
       }))
+      .def_property_readonly("main", &Agenda::is_main_agenda)
+      .def_property_readonly("output2push", &Agenda::get_output2push)
+      .def_property_readonly("output2dup", &Agenda::get_output2dup)
+      .def("set_outputs_to_push_and_dup", [](Agenda& a, Workspace& w){a.set_outputs_to_push_and_dup(*reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));})
       .def(
           "add_workspace_method",
           [](Agenda& a,
@@ -340,15 +373,21 @@ void py_agenda(py::module_& m) {
                   "\n"
                   "But this does not match a signature in Arts")
             }
-
+            
             // Set the method record
             const auto [in, out] = split_io(var_order);
-            a.push_back(
-                MRecord(std::distance(global_data::md_data.begin(), ptr),
-                        out,
-                        in,
-                        {},
-                        {}));
+            const auto m_id = std::distance(global_data::md_data.begin(), ptr);
+            if (ptr->SetMethod() and in.nelem()) {
+              a.push_back(set_mrrecord(
+                  m_id,
+                  out,
+                  in,
+                  ws[in.back()],
+                  global_data::wsv_group_names[ws.wsv_data[in.back()]
+                                                   .Group()]));
+            } else {
+              a.push_back(MRecord(m_id, out, in, {}, {}));
+            }
           },
           R"--(
 Adds a named method to the Agenda
@@ -385,7 +424,7 @@ so Copy(a, out=b) will not even see the b variable.
            [](Agenda& self, Agenda& other) {
              for (auto& method : other.Methods()) self.push_back(method);
            })
-      .def("execute", &Agenda::execute)
+      .def("execute", &Agenda::execute, "Executes the agenda as if it was the main agenda")
       .def(
           "check",
           [](Agenda& a, Workspace& w) {
