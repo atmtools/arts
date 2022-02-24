@@ -24,13 +24,10 @@ std::filesystem::path correct_include_path(std::filesystem::path path) {
   }
 
   ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
-                     "There is no regular file at ",
-                     path_copy,
+                     "Cannot find file: ", path_copy,
                      '\n',
-                     "Looked in the following search path ",
-                     '[',
-                     parameters.includepath,
-                     ']')
+                     "Search path: ",
+                     parameters.includepath)
 
   return path;
 }

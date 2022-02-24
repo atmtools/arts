@@ -6,6 +6,7 @@
 #include "py_macros.h"
 
 extern Parameters parameters;
+extern String out_basename;
 
 namespace Python {
 
@@ -14,6 +15,7 @@ void py_global(py::module_& m) {
       .def_readwrite_static("includepath", &parameters.includepath)
       .def_readwrite_static("datapath", &parameters.datapath)
       .def_readwrite_static("numthreads", &parameters.numthreads)
+      .def_readwrite_static("out_basename", &out_basename)
       .doc() = "Access to static settings data";
 
   m.def(

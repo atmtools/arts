@@ -1,3 +1,4 @@
+import os
 import sys
 from   ast      import parse, Call, Name, Expression, Expr, FunctionDef, \
                        Starred, Module, Str
@@ -6,6 +7,15 @@ from   copy     import copy
 
 import pyarts.pyarts_cpp as cxx
 from pyarts.workspace.utility import unindent as unindent
+
+
+# Set the default basename of Arts
+try:
+    filename = sys.modules["__main__"].__file__
+    basename, _ = os.path.splitext(os.path.basename(filename))
+    cxx.parameters.out_basename = basename
+except:
+    pass
 
 
 Workspace = cxx.Workspace
