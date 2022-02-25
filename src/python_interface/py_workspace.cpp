@@ -12,9 +12,8 @@
 extern Parameters parameters;
 
 void parse_path_from_environment(String envvar, ArrayOfString& paths);
-
 namespace Python {
-std::filesystem::path correct_include_path(std::filesystem::path path);
+std::filesystem::path correct_include_path(const std::filesystem::path& path_copy);
 Agenda* parse_agenda(const char* filename, const Verbosity& verbosity);
 void py_auto_workspace(py::class_<Workspace>&);
 
@@ -73,7 +72,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
          py::arg("agenda_verbosity") = 0)
       .def(
           "execute_controlfile",
-          [](Workspace& w, std::filesystem::path path) {
+          [](Workspace& w, const std::filesystem::path& path) {
             std::unique_ptr<Agenda> a{parse_agenda(
                 correct_include_path(path).c_str(),
                 *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]))};

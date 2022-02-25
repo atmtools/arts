@@ -46,8 +46,17 @@ def convert(group, value):
         groupname = group
     groupname = str(groupname)
     
+    if isinstance(value, cxx.String):
+        value = str(value)
+    
+    if isinstance(value, str) and groupname != "String":
+        value = eval(value)
+    
     if groupname == "Index":
         return int(value)
+        
+    if groupname == "String":
+        return str(value)
         
     if groupname == "Numeric":
         return float(value)

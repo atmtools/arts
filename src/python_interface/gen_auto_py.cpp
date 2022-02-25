@@ -666,7 +666,7 @@ void workspace_method_nongenerics(
     Index counter = 0;
     for (const auto& i : method.out.varname) {
       auto& group = arts.varname_group.at(i).varname_group;
-      os << "  " << group << "& arg" << counter++ << "_ = select_";
+      os << "  auto& arg" << counter++ << "_ = select_";
       if (std::any_of(method.in.varname.cbegin(),
                       method.in.varname.cend(),
                       [out = i](const auto& in) { return in == out; }))
@@ -679,7 +679,7 @@ void workspace_method_nongenerics(
 
     // Generic Outputs
     for (std::size_t i = 0; i < method.gout.name.size(); i++) {
-      os << "  " << method.gout.group[i] << "& arg" << counter++
+      os << "  auto& arg" << counter++
          << "_ = select_gout<";
       os << method.gout.group[i];
       os << ">(" << method.gout.name[i] << ");\n";
@@ -701,7 +701,7 @@ void workspace_method_nongenerics(
                        method.out.varname.cend(),
                        [in = i](const auto& out) { return in == out; })) {
         auto& group = arts.varname_group.at(i).varname_group;
-        os << "  const " << group << "& arg" << counter++ << "_ = select_in<";
+        os << "  const auto& arg" << counter++ << "_ = select_in<";
         os << group;
         os << ">(WorkspaceVariable{w_, " << arts.varname_group.at(i).artspos
            << "}, " << i << ");\n";
@@ -710,7 +710,7 @@ void workspace_method_nongenerics(
 
     // Generic Inputs
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
-      os << "  const " << method.gin.group[i] << "& arg" << counter++
+      os << "  const auto& arg" << counter++
          << "_ = select_gin<" << method.gin.group[i] << ">(";
       if (method.gin.hasdefs[i]) os << method.gin.name[i] << "_, ";
       os << method.gin.name[i] << ");\n";
@@ -734,7 +734,7 @@ void workspace_method_nongenerics(
 
     // Verbosity?
     if (pass_verbosity) {
-      os << "  const Verbosity& arg" << counter++
+      os << "  const auto& arg" << counter++
          << "_ = select_in<Verbosity>(WorkspaceVariable{w_, "
          << arts.varname_group.at("verbosity").artspos << "}, verbosity);\n";
     }
@@ -1033,9 +1033,9 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
       os << "  ";
       if (arg.types.size() == 1) {
         if (arg.in and not arg.out) os << "const ";
-        os << arg.types.front() << "& ";
+        os << "auto& ";
       } else {
-        os << "WorkspaceVariablesVariant wvv_";
+        os << "auto wvv_";
       }
       os << "arg" << counter++ << "_ = select_";
       if (arg.types.size() == 1) {
@@ -1053,7 +1053,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
     }
 
     if (pass_verbosity) {
-      os << "  const Verbosity& arg" << counter++
+      os << "  const auto& arg" << counter++
          << "_ = select_in<Verbosity>(WorkspaceVariable{w_, "
          << arts.varname_group.at("verbosity").artspos << "}, verbosity);\n";
     }
@@ -1274,7 +1274,7 @@ struct WorkspaceVariable {
 
   WorkspaceVariable(Workspace& ws_, Index pos_) : ws(ws_), pos(pos_) {}
 
-  WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj, bool allow_casting);
+  WorkspaceVariable(Workspace& ws_, Index group_index, const py::object& obj, bool allow_casting);
 
   String name() const;
 
@@ -1333,7 +1333,7 @@ Index WorkspaceVariable::group() const {
   return ws.wsv_data[pos].Group();
 }
 
-WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, py::object obj, bool allow_casting) : ws(ws_), pos(-1) {
+WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py::object& obj, bool allow_casting) : ws(ws_), pos(-1) {
   try {
     *this = *obj.cast<WorkspaceVariable *>();
     return;
@@ -1530,7 +1530,7 @@ Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
     os << "if (key == \"" << key << "\") {\n";
     os << "    static_cast<" << items.type
        << " &>(WorkspaceVariable{ws, pos = ws.add_wsv_inplace(WsvRecord(\""
-       << key << "\", \"Created by pybind11 API\", "
+       << key << R"(", "A default GIN value; modify at own risk", )"
        << arts.group.at(items.type) << "))}) = " << items.val;
     os << ";\n";
     os << "  } else ";

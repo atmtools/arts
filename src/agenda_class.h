@@ -26,9 +26,10 @@
 #ifndef agenda_class_h
 #define agenda_class_h
 
-#include <set>
 #include "messages.h"
 #include "token.h"
+#include <set>
+#include <utility>
 
 class MRecord;
 
@@ -47,50 +48,43 @@ class Agenda {
       : mname(),
         mml(),
         moutput_push(),
-        moutput_dup(),
-        main_agenda(false),
-        mchecked(false) { /* Nothing to do here */
+        moutput_dup() { /* Nothing to do here */
   }
 
   /*! 
     Copies an agenda.
   */
-  Agenda(const Agenda& x)
-      : mname(x.mname),
-        mml(x.mml),
-        moutput_push(x.moutput_push),
-        moutput_dup(x.moutput_dup),
-        main_agenda(x.main_agenda),
-        mchecked(x.mchecked) { /* Nothing to do here */
-  }
+  Agenda(const Agenda& x) = default;
+
+  Agenda(Agenda&&) noexcept = default;
 
   void append(const String& methodname, const TokVal& keywordvalue);
   void check(Workspace& ws, const Verbosity& verbosity);
   void push_back(const MRecord& n);
   void execute(Workspace& ws) const;
   inline void resize(Index n);
-  inline Index nelem() const;
+  [[nodiscard]] inline Index nelem() const;
   inline Agenda& operator=(const Agenda& x);
-  const Array<MRecord>& Methods() const { return mml; }
-  bool has_method(const String& methodname) const;
+  [[nodiscard]] const Array<MRecord>& Methods() const { return mml; }
+  [[nodiscard]] bool has_method(const String& methodname) const;
   void set_methods(const Array<MRecord>& ml) {
     mml = ml;
     mchecked = false;
   }
   void set_outputs_to_push_and_dup(const Verbosity& verbosity);
   bool is_input(Workspace& ws, Index var) const;
-  bool is_output(Index var) const;
+  [[nodiscard]] bool is_output(Index var) const;
   void set_name(const String& nname);
-  String name() const;
-  const ArrayOfIndex& get_output2push() const { return moutput_push; }
-  const ArrayOfIndex& get_output2dup() const { return moutput_dup; }
+  [[nodiscard]] String name() const;
+  [[nodiscard]] const ArrayOfIndex& get_output2push() const { return moutput_push; }
+  [[nodiscard]] const ArrayOfIndex& get_output2dup() const { return moutput_dup; }
   void print(ostream& os, const String& indent) const;
   void set_main_agenda() {
     main_agenda = true;
     mchecked = true;
   }
-  bool is_main_agenda() const { return main_agenda; }
-  bool checked() const { return mchecked; }
+  [[nodiscard]] bool is_main_agenda() const { return main_agenda; }
+  [[nodiscard]] bool checked() const { return mchecked; }
 
  private:
   String mname;       /*!< Agenda name. */
@@ -101,10 +95,10 @@ class Agenda {
   ArrayOfIndex moutput_dup;
 
   //! Is set to true if this is the main agenda.
-  bool main_agenda;
+  bool main_agenda{false};
 
   /** Flag indicating that the agenda was checked for consistency */
-  bool mchecked;
+  bool mchecked{false};
 };
 
 // Documentation with implementation.
@@ -121,42 +115,33 @@ ostream& operator<<(ostream& os, const Agenda& a);
 class MRecord {
  public:
   MRecord()
-      : mid(-1),
-        moutput(),
+      : moutput(),
         minput(),
         msetvalue(),
-        mtasks(),
-        minternal(false) { /* Nothing to do here. */
+        mtasks() { /* Nothing to do here. */
   }
 
-  MRecord(const MRecord& x)
-      : mid(x.mid),
-        moutput(x.moutput),
-        minput(x.minput),
-        msetvalue(x.msetvalue),
-        mtasks(x.mtasks),
-        minternal(x.minternal) { /* Nothing to do here */
-  }
+  MRecord(const MRecord& x) = default;
 
   MRecord(const Index id,
-          const ArrayOfIndex& output,
-          const ArrayOfIndex& input,
-          const TokVal& setvalue,
-          const Agenda& tasks,
+          ArrayOfIndex  output,
+          ArrayOfIndex  input,
+          TokVal  setvalue,
+          Agenda  tasks,
           bool internal = false)
       : mid(id),
-        moutput(output),
-        minput(input),
-        msetvalue(setvalue),
-        mtasks(tasks),
+        moutput(std::move(output)),
+        minput(std::move(input)),
+        msetvalue(std::move(setvalue)),
+        mtasks(std::move(tasks)),
         minternal(internal) { /* Nothing to do here */
   }
 
-  Index Id() const { return mid; }
-  const ArrayOfIndex& Out() const { return moutput; }
-  const ArrayOfIndex& In() const { return minput; }
-  const TokVal& SetValue() const { return msetvalue; }
-  const Agenda& Tasks() const { return mtasks; }
+  [[nodiscard]] Index Id() const { return mid; }
+  [[nodiscard]] const ArrayOfIndex& Out() const { return moutput; }
+  [[nodiscard]] const ArrayOfIndex& In() const { return minput; }
+  [[nodiscard]] const TokVal& SetValue() const { return msetvalue; }
+  [[nodiscard]] const Agenda& Tasks() const { return mtasks; }
 
   //! Indicates the origin of this method.
   /*!
@@ -166,7 +151,7 @@ class MRecord {
     added internally to handle literals in the controlfile this flag
     will be set to true.
    */
-  bool isInternal() const { return minternal; }
+  [[nodiscard]] bool isInternal() const { return minternal; }
 
   //! Assignment operator for MRecord.
   /*! 
@@ -218,9 +203,9 @@ class MRecord {
   */
   void ginput_only(ArrayOfIndex& ginonly) const {
     ginonly = minput;  // Input
-    for (ArrayOfIndex::const_iterator j = moutput.begin(); j < moutput.end();
+    for (auto j = moutput.begin(); j < moutput.end();
          ++j)
-      for (ArrayOfIndex::iterator k = ginonly.begin(); k < ginonly.end(); ++k)
+      for (auto k = ginonly.begin(); k < ginonly.end(); ++k)
         if (*j == *k) {
           //              erase_vector_element(vi,k);
           k = ginonly.erase(k) - 1;
@@ -236,7 +221,7 @@ class MRecord {
 
  private:
   /** Method id. */
-  Index mid;
+  Index mid{-1};
   /** Output workspace variables. */
   ArrayOfIndex moutput;
   /** Input workspace variables. */
@@ -247,7 +232,7 @@ class MRecord {
       keywords. */
   Agenda mtasks;
   /** Flag if this method is called internally by the engine */
-  bool minternal;
+  bool minternal{false};
 };
 
 //! Resize the method list.
@@ -293,6 +278,6 @@ inline Agenda& Agenda::operator=(const Agenda& x) {
 ostream& operator<<(ostream& os, const MRecord& a);
 
 /** An array of Agenda. */
-typedef Array<Agenda> ArrayOfAgenda;
+using ArrayOfAgenda = Array<Agenda>;
 
 #endif

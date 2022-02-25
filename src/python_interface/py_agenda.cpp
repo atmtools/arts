@@ -15,8 +15,8 @@ extern Parameters parameters;
 namespace Python {
 Index create_workspace_gin_default_internal(Workspace& ws, const String& key);
 
-std::filesystem::path correct_include_path(std::filesystem::path path) {
-  const std::filesystem::path path_copy=path;
+std::filesystem::path correct_include_path(const std::filesystem::path& path_copy) {
+  std::filesystem::path path=path_copy;
   for (auto& prefix : parameters.includepath) {
     if (std::filesystem::is_regular_file(
             path = std::filesystem::path(prefix.c_str()) / path_copy))
@@ -33,7 +33,7 @@ std::filesystem::path correct_include_path(std::filesystem::path path) {
 }
 
 Agenda* parse_agenda(const char* filename, const Verbosity& verbosity) {
-  Agenda* a = new Agenda;
+  auto* a = new Agenda;
   ArtsParser parser = ArtsParser(*a, filename, verbosity);
 
   parser.parse_tasklist();
@@ -214,7 +214,7 @@ void py_agenda(py::module_& m) {
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init<>())
-      .def(py::init([](Workspace& w, std::filesystem::path path) {
+      .def(py::init([](Workspace& w, const std::filesystem::path& path) {
         Agenda* a = parse_agenda(
             correct_include_path(path).c_str(),
             *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
@@ -230,8 +230,8 @@ void py_agenda(py::module_& m) {
           [](Agenda& a,
              Workspace& ws,
              const char* name,
-             py::args args,
-             py::kwargs kwargs) {
+             const py::args& args,
+             const py::kwargs& kwargs) {
             const Index nargs = args.size();
 
             // The MdRecord
@@ -268,7 +268,7 @@ void py_agenda(py::module_& m) {
                 if (i < nargs) {
                   var.ws_pos =
                       WorkspaceVariable(ws, var.group, args[i], var.input).pos;
-                } else if (auto key = var.name.c_str(); kwargs.contains(key)) {
+                } else if (const auto* key = var.name.c_str(); kwargs.contains(key)) {
                   var.ws_pos =
                       WorkspaceVariable(ws, var.group, kwargs[key], var.input)
                           .pos;
@@ -398,7 +398,7 @@ so Copy(a, out=b) will not even see the b variable.
 )--")
       .def(
           "add_callback_method",
-          [](Agenda& a, Workspace& ws, CallbackFunction x) mutable {
+          [](Agenda& a, Workspace& ws, const CallbackFunction& x) mutable {
             const Index group_index = get_wsv_group_id("CallbackFunction");
             ARTS_USER_ERROR_IF(group_index < 0,
                                "Cannot recognize CallbackFunction")
