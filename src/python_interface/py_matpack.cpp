@@ -928,7 +928,13 @@ void py_matpack(py::module_& m) {
   PythonInterfaceWorkspaceArray(Tensor6);
   PythonInterfaceWorkspaceArray(Tensor7);
 
-  PythonInterfaceWorkspaceArray(ArrayOfVector);
+  PythonInterfaceWorkspaceArray(ArrayOfVector)
+      .def(py::init([](const std::vector<std::vector<Vector>>& x) {
+        ArrayOfArrayOfVector y(x.size());
+        std::copy(x.begin(), x.end(), y.begin());
+        return y;
+      }));
+  py::implicitly_convertible<std::vector<std::vector<Vector>>, ArrayOfArrayOfVector>();
   PythonInterfaceWorkspaceArray(ArrayOfMatrix);
   PythonInterfaceWorkspaceArray(ArrayOfTensor3);
   PythonInterfaceWorkspaceArray(ArrayOfTensor6);

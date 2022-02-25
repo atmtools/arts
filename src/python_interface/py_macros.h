@@ -28,11 +28,11 @@
               "On Error:\n"                                                \
               "    Throws RuntimeError for any failure to save"))          \
       .def(                                                                \
-          "loadxml",                                                       \
+          "readxml",                                                       \
           [](Type& x, const char* const file) {                            \
             xml_read_from_file(file, x, Verbosity());                      \
           },                                                               \
-          py::doc("Load " #Type " from file\n"                             \
+          py::doc("Read " #Type " from file\n"                             \
                   "\n"                                                     \
                   "Parameters:\n"                                          \
                   "    file (str): A file that can be read\n"              \

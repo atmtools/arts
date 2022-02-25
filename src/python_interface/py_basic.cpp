@@ -156,11 +156,11 @@ be accessed without copy using element-wise access operators.
                   "On Error:\n"
                   "    Throws RuntimeError for any failure to save"))
       .def(
-          "loadxml",
+          "readxml",
           [](Numeric_& x, const char* const file) {
             xml_read_from_file(file, x.val, Verbosity());
           },
-          py::doc("Load Numeric from file\n"
+          py::doc("Read Numeric from file\n"
                   "\n"
                   "Parameters:\n"
                   "    file (str): A file that can be read\n"
@@ -177,6 +177,7 @@ You can get copies and set the value by the \"val\" property
   py::class_<Index_>(m, "Index")
       .def(py::init<>())
       .def(py::init<Index>())
+      .def(py::init<Numeric>())
       .PythonInterfaceWorkspaceVariableConversion(Index_)
       .def(
           "__mul__",
@@ -236,11 +237,11 @@ You can get copies and set the value by the \"val\" property
                   "On Error:\n"
                   "    Throws RuntimeError for any failure to save"))
       .def(
-          "loadxml",
+          "readxml",
           [](Index_& x, const char* const file) {
             xml_read_from_file(file, x.val, Verbosity());
           },
-          py::doc("Load Index from file\n"
+          py::doc("Read Index from file\n"
                   "\n"
                   "Parameters:\n"
                   "    file (str): A file that can be read\n"
@@ -259,6 +260,7 @@ You can get copies and set the value by the \"val\" property
   py::implicitly_convertible<Index, Numeric_>();
   py::implicitly_convertible<Numeric, Numeric_>();
   py::implicitly_convertible<Index, Index_>();
+  py::implicitly_convertible<Numeric, Index_>();
 
   py::class_<Any>(m, "Any")
       .def("__repr__", [](Any&) { return "Any"; })
