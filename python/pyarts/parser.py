@@ -171,7 +171,7 @@ class WSMCall:
 
         for n in self.wsm_gins:
             if not n in self.kwargs:
-                args.append(self.wsm.g_in.index(n))
+                args.append(self.wsm.g_in_default[self.wsm.g_in.index(n)])
             else:
                 args.append(self.kwargs[n])
 
