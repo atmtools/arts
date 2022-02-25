@@ -794,8 +794,9 @@ void iySurfaceLambertianDirect(
     for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
       if (stars_visible[i_star]) {
         //star_rte_los is the direction toward the star, but we need from the star
-        Vector incoming_los =
-            convert_los2propagation_direction(star_rte_los[i_star]);
+
+        Vector incoming_los;
+        mirror_los(incoming_los,star_rte_los[i_star], atmosphere_dim);
 
         specular_losCalc(specular_los,
                          surface_normal,

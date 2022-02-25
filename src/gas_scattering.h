@@ -41,6 +41,4 @@
 Vector calc_rayleighPhaMat(const Numeric& theta_rad,
                            const Index& stokes_dim);
 
-Vector convert_los2propagation_direction(const Vector& los);
-
 #endif /* gas_scattering_h */

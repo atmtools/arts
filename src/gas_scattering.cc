@@ -65,14 +65,3 @@ Vector calc_rayleighPhaMat(const Numeric& theta_rad,
   pha_mat_int *= 1.5;
   return pha_mat_int;
 }
-
-Vector convert_los2propagation_direction(const Vector& los) {
-  Vector prop(2, 0);
-  Numeric x, y, z;
-
-  zaaa2cart(x, y, z, los[0], los[1]);
-
-  cart2zaaa(prop[0], prop[1], -x, -y, -z);
-
-  return prop;
-}
