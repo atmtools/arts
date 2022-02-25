@@ -471,10 +471,7 @@ class ArtsTransformer(Transformer):
 
     def SIGNED_INT(self, i):
         i = int(i)
-        if i < 0:
-            return float(i)
-        else:
-            return int(i)
+        return int(i)
 
     def include(self, i):
         return Include(i[0])

@@ -46,6 +46,12 @@ def convert(group, value):
         groupname = group
     groupname = str(groupname)
     
+    if groupname == "Index":
+        return int(value)
+        
+    if groupname == "Numeric":
+        return float(value)
+    
     if groupname == "Matrix":
         return np.array(value, dtype=np.float64, order='C', ndmin=2)
         
