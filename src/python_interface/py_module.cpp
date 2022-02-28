@@ -42,6 +42,7 @@ PYBIND11_MODULE(pyarts_cpp, m) {
   py_griddedfield(m);
   py_time(m);
   py_species(m);
+  py_quantum(m);
   py_spectroscopy(m);
   py_ppath(m);
   py_tessem(m);
@@ -51,7 +52,6 @@ PYBIND11_MODULE(pyarts_cpp, m) {
   py_mcantenna(m);
   py_scattering(m);
   py_jac(m);
-  py_quantum(m);
 
   py_agenda(m);
   py_global(m);

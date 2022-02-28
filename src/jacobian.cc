@@ -1135,7 +1135,7 @@ bool species_match(const RetrievalQuantity& rq, const Species::Species species) 
 
 bool species_iso_match(const RetrievalQuantity& rq,
                        const Species::IsotopeRecord& ir) {
-  auto& ir2 = rq.QuantumIdentity().Isotopologue();
+  auto ir2 = rq.QuantumIdentity().Isotopologue();
   if (ir.spec == ir2.spec and (ir.isotname == Species::Joker or ir.isotname == ir2.isotname))
     return true;
   else

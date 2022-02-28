@@ -957,6 +957,7 @@ void py_matpack(py::module_& m) {
 
   py::class_<Rational>(m, "Rational")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(Rational)
       .def(py::init<Index>())
       .def(py::init<String>())
       .def(py::init<Index, Index>())

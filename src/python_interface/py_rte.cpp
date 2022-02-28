@@ -142,13 +142,15 @@ void py_rte(py::module_& m) {
                                 "Bad Stokes Dimension ",
                                 ns,
                                 " should be [1, 4]")
+             ARTS_USER_ERROR_IF(nf < 0 or ns < 0 or nza < 0 or naa < 0,
+                                "Negative size index")
              return new PropagationMatrix(nf, ns, nza, naa, v);
            }),
-           py::arg_v("nf", Index(0), "Index(0)"),
-           py::arg_v("ns", Index(1), "Index(1)"),
-           py::arg_v("nza", Index(1), "Index(1)"),
-           py::arg_v("naa", Index(1), "Index(1)"),
-           py::arg("v"))
+           py::arg("nf") = 0,
+           py::arg("ns") = 1,
+           py::arg("nza") = 1,
+           py::arg("naa") = 1,
+           py::arg("v") = 0)
       .PythonInterfaceWorkspaceVariableConversion(PropagationMatrix)
       .PythonInterfaceFileIO(PropagationMatrix)
       .PythonInterfaceBasicRepresentation(PropagationMatrix)

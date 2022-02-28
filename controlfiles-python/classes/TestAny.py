@@ -1,0 +1,5 @@
+import pyarts.pyarts_cpp as cxx
+
+x = cxx.Any()
+
+assert False

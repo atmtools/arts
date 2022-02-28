@@ -1,11 +1,13 @@
 #include <py_auto_interface.h>
 
+#include "ppath.h"
 #include "py_macros.h"
 
 namespace Python {
 void py_ppath(py::module_& m) {
   py::class_<GridPos>(m, "GridPos")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(GridPos)
       .def(py::init<Index, std::array<Numeric, 2>>())
       .PythonInterfaceFileIO(GridPos)
       .PythonInterfaceBasicRepresentation(GridPos)
@@ -39,6 +41,7 @@ void py_ppath(py::module_& m) {
                     ArrayOfGridPos,
                     ArrayOfGridPos>())
       .PythonInterfaceWorkspaceVariableConversion(Ppath)
+      .def("__repr__", [](Ppath&){return "Ppath";})
       .PythonInterfaceFileIO(Ppath)
       .def_readwrite("dim", &Ppath::dim)
       .def_readwrite("np", &Ppath::np)
@@ -63,6 +66,7 @@ void py_ppath(py::module_& m) {
   py::class_<ArrayOfPpath>(m, "ArrayOfPpath")
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfPpath)
       .PythonInterfaceFileIO(ArrayOfPpath)
+      .def("__repr__", [](ArrayOfPpath&){return "ArrayOfPpath";})
       .PythonInterfaceArrayDefault(Ppath);
   py::implicitly_convertible<std::vector<Ppath>, ArrayOfPpath>();
 }

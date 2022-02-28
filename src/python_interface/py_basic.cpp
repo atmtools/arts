@@ -1,4 +1,5 @@
 #include <py_auto_interface.h>
+#include <pybind11/pytypes.h>
 #include <algorithm>
 #include <iterator>
 #include <stdexcept>
@@ -39,7 +40,7 @@ void py_basic(py::module_& m) {
 
   py::class_<String>(m, "String")
       .def(py::init<>())
-      .def(py::init<char*>())
+      .def(py::init<const char*>(), py::arg("str").none(false))
       .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
       .PythonInterfaceIndexItemAccess(String)
@@ -139,8 +140,8 @@ be accessed without copy using element-wise access operators.
                               clobber ? 0 : 1,
                               Verbosity());
           },
-          py::arg("file"),
-          py::arg("type") = "ascii",
+          py::arg("file").none(false),
+          py::arg("type").none(false) = "ascii",
           py::arg("clobber") = true,
           py::doc("Saves Numeric to file\n"
                   "\n"
@@ -160,6 +161,7 @@ be accessed without copy using element-wise access operators.
           [](Numeric_& x, const char* const file) {
             xml_read_from_file(file, x.val, Verbosity());
           },
+          py::arg("file").none(false),
           py::doc("Read Numeric from file\n"
                   "\n"
                   "Parameters:\n"
@@ -220,8 +222,8 @@ You can get copies and set the value by the \"val\" property
                               clobber ? 0 : 1,
                               Verbosity());
           },
-          py::arg("file"),
-          py::arg("type") = "ascii",
+          py::arg("file").none(false),
+          py::arg("type").none(false) = "ascii",
           py::arg("clobber") = true,
           py::doc("Saves Index to file\n"
                   "\n"
@@ -241,6 +243,7 @@ You can get copies and set the value by the \"val\" property
           [](Index_& x, const char* const file) {
             xml_read_from_file(file, x.val, Verbosity());
           },
+          py::arg("file").none(false),
           py::doc("Read Index from file\n"
                   "\n"
                   "Parameters:\n"

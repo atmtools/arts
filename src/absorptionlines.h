@@ -495,7 +495,7 @@ struct Lines {
   [[nodiscard]] Species::Species Species() const noexcept {return quantumidentity.Species();}
   
   /** Isotopologue Index */
-  [[nodiscard]] const Species::IsotopeRecord& Isotopologue() const noexcept {return quantumidentity.Isotopologue();}
+  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept {return quantumidentity.Isotopologue();}
   
   /** Number of lines */
   [[nodiscard]] Index NumLines() const noexcept {return Index(lines.size());}

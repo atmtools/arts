@@ -214,6 +214,7 @@ void py_agenda(py::module_& m) {
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
         Agenda* a = parse_agenda(
             correct_include_path(path).c_str(),
@@ -221,6 +222,7 @@ void py_agenda(py::module_& m) {
         w.initialize();
         return a;
       }))
+      .PythonInterfaceFileIO(Agenda)
       .def_property_readonly("main", &Agenda::is_main_agenda)
       .def_property_readonly("output2push", &Agenda::get_output2push)
       .def_property_readonly("output2dup", &Agenda::get_output2dup)
@@ -386,6 +388,8 @@ void py_agenda(py::module_& m) {
               a.push_back(MRecord(m_id, out, in, {}, {}));
             }
           },
+          py::arg("ws"),
+          py::arg("name").none(false),
           R"--(
 Adds a named method to the Agenda
 
@@ -431,7 +435,7 @@ so Copy(a, out=b) will not even see the b variable.
           py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",
-           [](Agenda& a) { return var_string("Arts Agenda ", a.name()); })
+           [](Agenda&) { return "Agenda"; })
       .def("__str__", [](Agenda& a) {
         std::string out =
             var_string("Arts Agenda ", a.name(), " with methods:\n");
@@ -443,6 +447,7 @@ so Copy(a, out=b) will not even see the b variable.
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
       .def(py::init<>())
+      .PythonInterfaceWorkspaceVariableConversion(ArrayOfAgenda)
       .def(py::init<Index>())
       .def(py::init<Index, Agenda>())
       .def(py::init([](std::vector<Agenda> va) {
@@ -462,19 +467,7 @@ so Copy(a, out=b) will not even see the b variable.
         }
         return va;
       }))
-      .def("__repr__",
-           [](ArrayOfAgenda& aa) {
-             std::string out = "[\n";
-             for (auto& a : aa) {
-               out += var_string("Arts Agenda ", a.name(), ":\n");
-               std::ostringstream os;
-               a.print(os, "   ");
-               out += os.str();
-               out += "\n";
-             }
-             out += "]\n";
-             return out;
-           })
+      .def("__repr__", [](ArrayOfAgenda&) { return "ArrayOfAgenda"; })
       .def("__str__",
            [](ArrayOfAgenda& aa) {
              std::string out = "[\n";

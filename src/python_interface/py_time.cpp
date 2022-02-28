@@ -8,6 +8,7 @@ void py_time(py::module_& m) {
       .def(py::init<>())
       .PythonInterfaceWorkspaceVariableConversion(Timer)
       .PythonInterfaceFileIO(Timer)
+      .def("__repr__", [](Timer&) { return "Timer"; })
       .def_readwrite("running", &Timer::running)
       .def_readwrite("finished", &Timer::finished)
 #ifdef TIME_SUPPORT

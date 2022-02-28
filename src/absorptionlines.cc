@@ -1806,8 +1806,7 @@ String Absorption::Lines::MetaData() const
   
   if (not NumLines()) {
     os << "\tNo line data is available.\n";
-  }
-  else {
+  } else {
     os << "\tThere are " << NumLines() << " lines available.\n";
     
     auto& line = lines.front();
@@ -2080,6 +2079,9 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
 bool Absorption::Lines::OK() const noexcept
 {
   const Index nb = broadeningspecies.nelem();
+
+  // Check that the isotopologue is ok
+  if (not Isotopologue().OK()) return false;
   
   // Test that self and bath is covered by the range if set positive
   if (nb < (Index(selfbroadening) + Index(bathbroadening)))

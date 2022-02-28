@@ -527,15 +527,20 @@ void workspace_method_create(std::array<std::ofstream, num_split_files>& oss,
     if (group == "Any") continue;
     os << "ws.def(\"" << group
        << "Create\",[](Workspace& w, const char * name, std::optional<const char *> desc, std::optional<"
-       << group << R"--(> value) {
-  ARTS_USER_ERROR_IF(w.WsvMap.find(name) not_eq w.WsvMap.end(),
-                      "A variable of this name already exist: ",
-                      name)
-  ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == ':' or sv.back() == ':',
-    "Cannot create variables without a name, or one that starts or ends with \":\"\nVariable name: \"", name, "\"")
-
-  const Index pos = w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "Created by pybind11 API", )--"
+       << group;
+    if (group == "Index" or group == "Numeric") os << '_';
+    os << R"--(> value) {
+  Index pos=-1;
+  if (auto varptr = w.WsvMap.find(name); varptr == w.WsvMap.end()) {
+    ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == ':' or sv.back() == ':',
+      "Cannot create variables without a name, or one that starts or ends with \":\"\nVariable name: \"", name, "\"")
+    pos = w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "Created by pybind11 API", )--"
        << group_index << R"--());
+  } else {
+    pos = varptr->second;
+    ARTS_USER_ERROR_IF(w.wsv_data[pos].Group() not_eq )--"
+       << group_index << R"--(, "Already exist of different group: ", name)
+  }
 
   if (value.has_value()) w.push(pos, new )--"
        << group << R"--({*value});
@@ -543,7 +548,19 @@ void workspace_method_create(std::array<std::ofstream, num_split_files>& oss,
 Create new )--"
        << group << R"--( on the workspace
 
+It is recommended that this is only called once per Arts run
+
 If there is no default value, the variable remains uninitialized
+
+If the variable already exist, an error is thrown only if the group
+is not )--"
+       << group << R"--(.  If the variable does exist, a new value
+is pushed onto its stack iff value is given.  This efficiently puts
+any current value out of reach for the current Agenda level.  Note
+that this should be OK inside Agendas as the stack should be freed
+at the end of the Agenda call, however if this is called directly
+on the workspace outside an Agenda, the extra memory allocated can
+only be freed using "del name" as an appropriate pair
 
 Parameters:
 -----------
@@ -552,7 +569,7 @@ desc (str): Description of the variable [Optional]
 value ()--"
        << group << R"--(): Initialized value [Optional]
 )-x-"),
-  py::arg("name"),
+  py::arg("name").none(false),
   py::arg("desc")=std::nullopt,
   py::arg("value")=std::nullopt);
   

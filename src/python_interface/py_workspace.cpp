@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 
+#include "debug.h"
 #include "py_macros.h"
 
 extern Parameters parameters;
@@ -82,42 +83,44 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       .def_property_readonly("size", &Workspace::nelem)
       .def(
           "create_variable",
-          [](Workspace& w, char* group, char* name, std::optional<char*> desc) {
+          [](Workspace& w, const char* group, const char* name, std::optional<const char*> desc) {
             using global_data::workspace_memory_handler;
-
-            ARTS_USER_ERROR_IF(w.WsvMap.find(name) not_eq w.WsvMap.end(),
-                               "Variable already exist: ",
-                               name)
 
             const Index group_index = get_wsv_group_id(group);
             ARTS_USER_ERROR_IF(
                 group_index < 0, "Cannot recognize group: ", group)
 
-            w.push(w.add_wsv_inplace(WsvRecord(
-                       name,
-                       desc.has_value() ? *desc : "Created by pybind11 API",
-                       group_index)),
+            auto varptr = w.WsvMap.find(name);
+            ARTS_USER_ERROR_IF(
+                varptr not_eq w.WsvMap.end() and
+                    w.wsv_data[varptr->second].Group() not_eq group_index,
+                "Already exist of different group: ",
+                name)
+
+            w.push(w.add_wsv_inplace(
+                       WsvRecord(name,
+                                 desc.has_value() ? *desc : "No description",
+                                 group_index)),
                    workspace_memory_handler.allocate(group_index));
           },
-          py::arg("group"),
-          py::arg("name"),
+          py::arg("group").none(false),
+          py::arg("name").none(false),
           py::arg("desc") = std::nullopt)
       .def("__delattr__", [](Workspace& w, const char* name) {
         auto varpos = w.WsvMap.find(name);
-        ARTS_USER_ERROR_IF(
-            varpos == w.WsvMap.end(), "No workspace variable called: ", name)
+        if (varpos == w.WsvMap.end()) throw pybind11::attribute_error(var_string('\'', name, '\''));
 
         if (w.is_initialized(varpos->second)) {
           w.pop_free(varpos->second);
         }
-      });
+      },
+      py::arg("name").none(false));
 
   ws.def(
       "__getattr__",
       [](Workspace& w, const char* name) {
         auto varpos = w.WsvMap.find(name);
-        ARTS_USER_ERROR_IF(
-            varpos == w.WsvMap.end(), "No workspace variable called: ", name)
+        if (varpos == w.WsvMap.end()) throw pybind11::attribute_error(var_string('\'', name, '\''));
 
         return WorkspaceVariable{w, varpos->second};
       },
@@ -128,7 +131,11 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       [](Workspace& w_1, Workspace& w_2) { w_1.swap(w_2); },
       py::arg("ws").noconvert().none(false));
 
-  ws.def("__repr__", [](Workspace& w) {
+  ws.def("__repr__", [](Workspace&) {
+    return "Workspace";
+  });
+
+  ws.def("__str__", [](Workspace& w) {
     Index c = 0;
     for (Index i = 0; i < w.nelem(); i++) c += w.is_initialized(i);
     return var_string("Workspace with ", c, " initialized variables");

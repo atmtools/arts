@@ -309,7 +309,7 @@ constexpr std::string_view toShortName(Species x) noexcept {
     case Species::FINAL: { /* Leave last */
     }
   }
-  return "";
+  return "InvalidSpecies";
 }
 
 constexpr Species fromShortName(const std::string_view x) noexcept {

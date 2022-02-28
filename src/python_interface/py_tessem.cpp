@@ -8,6 +8,7 @@ void py_tessem(py::module_& m) {
       .def(py::init<>())
       .PythonInterfaceWorkspaceVariableConversion(TessemNN)
       .PythonInterfaceFileIO(TessemNN)
+      .def("__repr__", [](TessemNN&) { return "TessemNN"; })
       .def_readwrite("nb_inputs", &TessemNN::nb_inputs)
       .def_readwrite("nb_outputs", &TessemNN::nb_outputs)
       .def_readwrite("nb_cache", &TessemNN::nb_cache)

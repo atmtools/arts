@@ -48,6 +48,7 @@ struct IsotopeRecord {
   
   [[nodiscard]] String FullName() const noexcept {return String(toShortName(spec)) + String("-") + String(isotname);}
   [[nodiscard]] constexpr bool joker() const noexcept {return isotname == Joker;}
+  [[nodiscard]] constexpr bool OK() const noexcept {return good_enum(spec);}
 };
 
 #define deal_with_spec(SPEC) IsotopeRecord(Species::SPEC),
