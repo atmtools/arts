@@ -1,5 +1,10 @@
 import pyarts.pyarts_cpp as cxx
 
-x = cxx.Any()
+try:
+    x = cxx.Any()
+    assert False
+except TypeError:
+    pass
+except:
+    assert False, "Any should do nothing"
 
-assert False

@@ -2,4 +2,4 @@ import pyarts.pyarts_cpp as cxx
 
 x = cxx.Agenda()
 
-assert False
+assert not x.main
