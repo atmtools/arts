@@ -110,15 +110,7 @@
             x.pop_back();                                                     \
             return copy;                                                      \
           },                                                                  \
-          py::doc("Pops a " #BaseType " from the Array"))                     \
-      .def(                                                                   \
-          "__concat__",                                                       \
-          [](const Array<BaseType>& a, const Array<BaseType>& b) {            \
-            auto c = a;                                                       \
-            for (auto x : b) c.emplace_back(std::move(x));                    \
-            return c;                                                         \
-          },                                                                  \
-          "Joins two lists of " #BaseType)
+          py::doc("Pops a " #BaseType " from the Array"))
 
 /** Provides -=, +=, /=. and *= for all LHS Type */
 #define PythonInterfaceInPlaceMathOperators(Type, Other) \

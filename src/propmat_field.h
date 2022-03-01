@@ -33,6 +33,10 @@
 #include "energylevelmap.h"
 #include "field.h"
 #include "transmissionmatrix.h"
+#include "workspace_ng.h"
+
+class Agenda;
+class Workspace;
 
 using FieldOfTransmissionMatrix = Field3D<TransmissionMatrix>;
 using FieldOfPropagationMatrix = Field3D<PropagationMatrix>;

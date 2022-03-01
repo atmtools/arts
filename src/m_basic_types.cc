@@ -71,13 +71,6 @@
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfIndexSet(ArrayOfIndex& aoi,
-                     const ArrayOfIndex& values,
-                     const Verbosity&) {
-  aoi = values;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfIndexSetConstant(ArrayOfIndex& aoi,
                              const Index& nelem,
                              const Index& value,
@@ -113,14 +106,6 @@ void ArrayOfIndexLinSpace(ArrayOfIndex& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfStringSet(ArrayOfString& sa,
-                      const ArrayOfString& sa2,
-                      const Verbosity&) {
-  sa.resize(sa2.nelem());
-  sa = sa2;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void FlagOff(Index& x, const Verbosity&) { x = 0; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -149,9 +134,6 @@ void IndexMultiply(Index& out,
                    const Verbosity&) {
   out = in * value;
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void IndexSet(Index& x, const Index& value, const Verbosity&) { x = value; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void IndexStepDown(Index& xout, const Index& xin, const Verbosity&) {
@@ -439,11 +421,6 @@ void MatrixIdentity(Matrix& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixSet(Matrix& x, const Matrix& values, const Verbosity&) {
-  x = values;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixSetConstant(Matrix& x,
                        const Index& nrows,
                        const Index& ncols,
@@ -515,32 +492,11 @@ void NumericMultiply(Numeric& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericSet(Numeric& x, const Numeric& value, const Verbosity&) {
-  x = value;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericSubtract(Numeric& out,
                      const Numeric& in,
                      const Numeric& value,
                      const Verbosity&) {
   out = in - value;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void QuantumIdentifierSet(QuantumIdentifier& x,
-                          const String& value,
-                          const Verbosity&) {
-  x = QuantumIdentifier(value);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfQuantumIdentifierSet(ArrayOfQuantumIdentifier& x,
-                                 const ArrayOfString& values,
-                                 const Verbosity& verbosity) {
-  x.resize(values.nelem());
-  for (Index i = 0; i < x.nelem(); i++)
-    QuantumIdentifierSet(x[i], values[i], verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -565,14 +521,6 @@ void RationalMultiply(Rational& out,
                       const Rational& value,
                       const Verbosity&) {
   out = in * value;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void RationalSet(Rational& x,
-                 const Index& numerator,
-                 const Index& denominator,
-                 const Verbosity&) {
-  x = Rational(numerator, denominator);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -644,9 +592,6 @@ void DiagonalMatrix(Sparse& X, const Vector& diag, const Verbosity& /*v*/) {
 
   X.insert_elements(n, indices, indices, diag);
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void StringSet(String& s, const String& s2, const Verbosity&) { s = s2; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3Add(Tensor3& out,
@@ -1653,11 +1598,6 @@ void ArrayOfTimeSetConstant(ArrayOfTime& x,
   out2 << "  Creating a constant vector.\n";
   out3 << "            length : " << n << "\n";
   out3 << "             value : " << value << "\n";
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSet(Vector& x, const Vector& values, const Verbosity&) {
-  x = values;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3288,13 +3228,4 @@ void PrintPhysicalConstants(const Verbosity& verbosity) {
        << "Vacuum permittivity:    \t " << VACUUM_PERMITTIVITY << '\n'
        << "Doppler constant:       \t " << DOPPLER_CONST << '\n'
        << "---------------------------------------------------------\n";
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfSpeciesTagSet(ArrayOfSpeciesTag& sst,
-                          const ArrayOfSpeciesTag& sst2,
-                          const Verbosity&) {
-  sst = sst2;
 }

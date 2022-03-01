@@ -27,11 +27,12 @@
 #ifndef array_h
 #define array_h
 
+#include <array>
 #include <climits>
 #include <iomanip>
 #include <iostream>
-#include <array>
 #include <vector>
+
 #include "matpack.h"
 
 // Declare the existance of class Array:

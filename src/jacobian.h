@@ -27,7 +27,6 @@
 #define jacobian_h
 
 #include "species_tags.h"
-#include "agenda_class.h"
 #include "array.h"
 #include "bifstream.h"
 #include "constants.h"
@@ -37,7 +36,7 @@
 #include "matpackI.h"
 #include "methods.h"
 #include "mystring.h"
-#include "ppath.h"
+#include "ppath_struct.h"
 #include "quantum_numbers.h"  
 #include <iostream>
 #include <map>

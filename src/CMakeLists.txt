@@ -288,7 +288,7 @@ add_library (artscore STATIC
   tessem.cc
   timings.cc
   tmatrix.cc
-  token.cc
+  tokval.h
   transmissionmatrix.cc
   wigner_functions.cc
   workspace.cc
@@ -692,3 +692,9 @@ target_link_libraries(arts_qn species matpack)
 
 ########### python interface
 add_subdirectory(python_interface)
+
+########### variant tokval
+add_executable (make_tokval_h make_tokval_h.cc groups.cc)
+add_custom_command(OUTPUT tokval.h
+                   COMMAND make_tokval_h
+                   DEPENDS make_tokval_h)

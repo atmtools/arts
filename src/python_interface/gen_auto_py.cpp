@@ -482,7 +482,7 @@ void print_method_args(std::ofstream& os,
                        bool pass_verbosity) {
   for (const auto& i : method.out.varname) {
     os << ',' << '\n'
-       << "py::arg_v(\"" << i << "\", std::nullopt, \"Workspace::" << i
+       << "py::arg_v(\"" << i << "\", std::nullopt, \"ws." << i
        << "\").noconvert()";
   }
   for (const auto& i : method.gout.name) {
@@ -493,7 +493,7 @@ void print_method_args(std::ofstream& os,
                      method.out.varname.cend(),
                      [in = i](const auto& out) { return in == out; })) {
       os << ',' << '\n'
-         << "py::arg_v(\"" << i << "\", std::nullopt, \"Workspace::" << i
+         << "py::arg_v(\"" << i << "\", std::nullopt, \"ws." << i
          << "\")";
     }
   }
@@ -514,7 +514,7 @@ void print_method_args(std::ofstream& os,
   }
   if (pass_verbosity)
     os << ',' << '\n'
-       << R"--(py::arg_v("verbosity", std::nullopt, "Workspace::verbosity"))--";
+       << R"--(py::arg_v("verbosity", std::nullopt, "ws.verbosity"))--";
 }
 
 void workspace_method_create(std::array<std::ofstream, num_split_files>& oss,
@@ -1297,6 +1297,10 @@ struct WorkspaceVariable {
 
   Index group() const;
 
+  void pop_workspace_level();
+
+  operator TokVal() const;
+
   WorkspaceVariable(const WorkspaceVariable&) = default;
 
   WorkspaceVariable& operator=(const WorkspaceVariable& wv2) {
@@ -1384,7 +1388,7 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
 
 void WorkspaceVariable::initialize_if_not() {
   if (not ws.is_initialized(pos)) {
-    switch (Workspace::wsv_data[pos].Group()) {
+    switch (ws.wsv_data[pos].Group()) {
 )--";
 
   for (auto& [name, group] : arts.group)
@@ -1400,7 +1404,7 @@ void WorkspaceVariable::initialize_if_not() {
 WorkspaceVariable::operator WorkspaceVariablesVariant() {
   initialize_if_not();
 
-  switch (Workspace::wsv_data[pos].Group()) {
+  switch (ws.wsv_data[pos].Group()) {
 )--";
 
   for (auto& [name, group] : arts.group) {
@@ -1415,9 +1419,9 @@ WorkspaceVariable::operator WorkspaceVariablesVariant() {
 }
 
 WorkspaceVariable::operator WorkspaceVariablesVariant() const {
-  ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", Workspace::wsv_data[pos].Name())
+  ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", ws.wsv_data[pos].Name())
 
-  switch (Workspace::wsv_data[pos].Group()) {
+  switch (ws.wsv_data[pos].Group()) {
 )--";
 
   for (auto& [name, group] : arts.group) {
@@ -1433,7 +1437,7 @@ WorkspaceVariable::operator WorkspaceVariablesVariant() const {
 
 WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
   initialize_if_not();
-  switch (Workspace::wsv_data[pos].Group()) {
+  switch (ws.wsv_data[pos].Group()) {
 )--";
 
   const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
@@ -1473,10 +1477,34 @@ WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
 
     os << "      break;\n";
   }
-  os << R"--(  default: ARTS_USER_ERROR("Unknown variable group: ", Workspace::wsv_data[pos].Name())
+  os << R"--(  default: ARTS_USER_ERROR("Unknown variable group: ", ws.wsv_data[pos].Name())
   }
   
   return *this;
+}
+
+  void WorkspaceVariable::pop_workspace_level() { ws.pop_free(pos); }
+
+  WorkspaceVariable::operator TokVal() const {
+  ARTS_USER_ERROR_IF(not is_initialized(), "Must be initialized")
+  
+  switch (ws.wsv_data[pos].Group()) {
+)--";
+
+  for (auto& [name, group] : arts.group) {
+    if (name == "Agenda" or name == "ArrayOfAgenda") continue;
+
+    os << "    case " << group << ": return ";
+    if (name == "Index" or name == "Numeric") os << name << '(';
+    os << "* reinterpret_cast<" << name;
+    if (name == "Index" or name == "Numeric") os << "_";
+    os << " *>(ws[pos])";
+    if (name == "Index" or name == "Numeric") os << ')';
+    os << ";\n";
+  }
+
+  os << R"--(  }
+  ARTS_USER_ERROR("Cannot support Agenda and ArrayOfAgenda")
 }
 )--";
 }
@@ -1538,8 +1566,9 @@ void internal_defaults(std::ofstream& os, const NameMaps& arts) {
   }
 
   os << R"--(
-Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
-  ARTS_ASSERT(ws.WsvMap.find(key) == ws.WsvMap.end(), "Only call this once per workspace run")
+Index create_workspace_gin_default_internal(Workspace& ws, String key) {
+  if (auto ptr = ws.WsvMap.find(key); ptr not_eq ws.WsvMap.end()) return ptr -> second;
+  
   Index pos=-1;
   )--";
 

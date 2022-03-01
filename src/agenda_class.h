@@ -26,8 +26,14 @@
 #ifndef agenda_class_h
 #define agenda_class_h
 
+
+#include "array.h"
+#include "species_tags.h"
+#include "matpackI.h"
+#include "mystring.h"
+
 #include "messages.h"
-#include "token.h"
+#include "tokval.h"
 #include <set>
 #include <utility>
 

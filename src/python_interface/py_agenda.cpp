@@ -13,10 +13,11 @@
 extern Parameters parameters;
 
 namespace Python {
-Index create_workspace_gin_default_internal(Workspace& ws, const String& key);
+Index create_workspace_gin_default_internal(Workspace& ws, String key);
 
-std::filesystem::path correct_include_path(const std::filesystem::path& path_copy) {
-  std::filesystem::path path=path_copy;
+std::filesystem::path correct_include_path(
+    const std::filesystem::path& path_copy) {
+  std::filesystem::path path = path_copy;
   for (auto& prefix : parameters.includepath) {
     if (std::filesystem::is_regular_file(
             path = std::filesystem::path(prefix.c_str()) / path_copy))
@@ -24,7 +25,8 @@ std::filesystem::path correct_include_path(const std::filesystem::path& path_cop
   }
 
   ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
-                     "Cannot find file: ", path_copy,
+                     "Cannot find file: ",
+                     path_copy,
                      '\n',
                      "Search path: ",
                      parameters.includepath)
@@ -53,8 +55,6 @@ struct AgendaMethodVariable {
 
 Array<AgendaMethodVariable> sorted_mdrecord(
     Workspace& ws, decltype(global_data::md_data_raw.begin()) ptr) {
-  static std::map<String, Index> gin_defaults;
-
   const Index any_pos = global_data::WsvGroupMap.at("Any");
 
   Array<AgendaMethodVariable> var_order;
@@ -100,16 +100,8 @@ Array<AgendaMethodVariable> sorted_mdrecord(
 
     // Create defaults (on the workspace)
     if (ptr->GInDefault()[i] not_eq NODEF) {
-      const String gin_key = var_string("::", ptr->Name(), "::", var.name);
-
-      auto gin_def_ptr = gin_defaults.find(gin_key);
-      if (gin_def_ptr == gin_defaults.end()) {
-        gin_defaults[gin_key] =
-            create_workspace_gin_default_internal(ws, gin_key);
-        gin_def_ptr = gin_defaults.find(gin_key);
-      }
-
-      var.ws_pos = gin_def_ptr->second;
+      var.ws_pos = create_workspace_gin_default_internal(
+          ws, var_string("::", ptr->Name(), "::", var.name));
     }
   }
 
@@ -146,32 +138,28 @@ String error_msg(const String& name,
   return os.str();
 }
 
-MRecord set_mrrecord(const Index m_id,
+MRecord set_mrrecord(WorkspaceVariable val,
                      const ArrayOfIndex& output,
-                     const ArrayOfIndex& input,
-                     void* val,
-                     const String& group) {
-  static_assert(TokValType::undefined_t == 8, "The python interface expects TokValType::undefined_t to be last and indicate the number of TokVal types");
-  if (group == "Agenda")
-    return MRecord(m_id, output, input, {}, *reinterpret_cast<Agenda*>(val));
-  if (group == "Index")
-    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<Index*>(val)), {});
-  if (group == "Numeric")
-    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<Numeric*>(val)), {});
-  if (group == "ArrayOfIndex")
-    return MRecord( m_id, output, input, TokVal(*reinterpret_cast<ArrayOfIndex*>(val)), {});
-  if (group == "String")
-    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<String*>(val)), {});
-  if (group == "ArrayOfString")
-    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<ArrayOfString*>(val)), {});
-  if (group == "Vector")
-    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<Vector*>(val)), {});
-  if (group == "Matrix")
-    return MRecord( m_id, output, input, TokVal(*reinterpret_cast<Matrix*>(val)), {});
-  if (group == "ArrayOfSpeciesTag")
-    return MRecord(m_id, output, input, TokVal(*reinterpret_cast<ArrayOfSpeciesTag*>(val)), {});
+                     const ArrayOfIndex& input = ArrayOfIndex{},
+                     Index m_id = -1) {
+  const bool pop = m_id >= 0;
 
-  ARTS_USER_ERROR("This is probably a developer bug.  If a new Set method is added that doesn't follow old conventions, it will cause issues...");
+  const String group =
+      global_data::wsv_group_names[val.ws.wsv_data[val.pos].Group()];
+  if (m_id < 0) m_id = global_data::MdMap.find(group + "Set")->second;
+
+  if (group == "Agenda") {
+    auto a = Agenda(val);
+    if (pop) val.pop_workspace_level();
+    return MRecord(m_id, output, input, {}, a);
+  }
+
+  ARTS_USER_ERROR_IF(group == "ArrayOfAgenda",
+                     "Cannot support setting ArrayOfAgenda yet")
+
+  auto t = TokVal(val);
+  if (pop) val.pop_workspace_level();
+  return MRecord(m_id, output, input, t, {});
 }
 
 void py_agenda(py::module_& m) {
@@ -226,7 +214,11 @@ void py_agenda(py::module_& m) {
       .def_property_readonly("main", &Agenda::is_main_agenda)
       .def_property_readonly("output2push", &Agenda::get_output2push)
       .def_property_readonly("output2dup", &Agenda::get_output2dup)
-      .def("set_outputs_to_push_and_dup", [](Agenda& a, Workspace& w){a.set_outputs_to_push_and_dup(*reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));})
+      .def("set_outputs_to_push_and_dup",
+           [](Agenda& a, Workspace& w) {
+             a.set_outputs_to_push_and_dup(
+                 *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
+           })
       .def(
           "add_workspace_method",
           [](Agenda& a,
@@ -249,6 +241,9 @@ void py_agenda(py::module_& m) {
             // The method input and output lists in one long list
             Array<AgendaMethodVariable> var_order = sorted_mdrecord(ws, ptr);
 
+            // "Original size" after all defaulted GINs
+            const Index original_ws_size = ws.nelem();
+
             // Generic checker
             const bool generic_function =
                 std::any_of(var_order.begin(), var_order.end(), [](auto& v) {
@@ -270,7 +265,8 @@ void py_agenda(py::module_& m) {
                 if (i < nargs) {
                   var.ws_pos =
                       WorkspaceVariable(ws, var.group, args[i], var.input).pos;
-                } else if (const auto* key = var.name.c_str(); kwargs.contains(key)) {
+                } else if (const auto* key = var.name.c_str();
+                           kwargs.contains(key)) {
                   var.ws_pos =
                       WorkspaceVariable(ws, var.group, kwargs[key], var.input)
                           .pos;
@@ -372,18 +368,22 @@ void py_agenda(py::module_& m) {
                   "\n"
                   "But this does not match a signature in Arts")
             }
-            
+
+            // Set the actual values using automatic set methods
+            for (auto& var : var_order) {
+              if (var.ws_pos >= original_ws_size) {
+                a.push_back(set_mrrecord(WorkspaceVariable(ws, var.ws_pos),
+                                         {var.ws_pos}));
+              }
+            }
+
             // Set the method record
             const auto [in, out] = split_io(var_order);
+
             const auto m_id = std::distance(global_data::md_data.begin(), ptr);
             if (ptr->SetMethod() and in.nelem()) {
               a.push_back(set_mrrecord(
-                  m_id,
-                  out,
-                  in,
-                  ws[in.back()],
-                  global_data::wsv_group_names[ws.wsv_data[in.back()]
-                                                   .Group()]));
+                  WorkspaceVariable(ws, in.back()), out, in, m_id));
             } else {
               a.push_back(MRecord(m_id, out, in, {}, {}));
             }
@@ -413,6 +413,7 @@ so Copy(a, out=b) will not even see the b variable.
             Index in = ws.add_wsv_inplace(WsvRecord(
                 name.c_str(), "Callback created by pybind11 API", group_index));
             ws.push(in, new CallbackFunction{x});
+            a.push_back(set_mrrecord(WorkspaceVariable(ws, in), {in}));
 
             auto method_ptr =
                 global_data::MdMap.find("CallbackFunctionExecute");
@@ -425,7 +426,9 @@ so Copy(a, out=b) will not even see the b variable.
            [](Agenda& self, Agenda& other) {
              for (auto& method : other.Methods()) self.push_back(method);
            })
-      .def("execute", &Agenda::execute, "Executes the agenda as if it was the main agenda")
+      .def("execute",
+           &Agenda::execute,
+           "Executes the agenda as if it was the main agenda")
       .def(
           "check",
           [](Agenda& a, Workspace& w) {
@@ -434,8 +437,7 @@ so Copy(a, out=b) will not even see the b variable.
           },
           py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
-      .def("__repr__",
-           [](Agenda&) { return "Agenda"; })
+      .def("__repr__", [](Agenda&) { return "Agenda"; })
       .def("__str__", [](Agenda& a) {
         std::string out =
             var_string("Arts Agenda ", a.name(), " with methods:\n");
