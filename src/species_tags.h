@@ -57,7 +57,7 @@ struct Tag {
   // Documentation is with implementation.
   [[nodiscard]] String Name() const;
   
-  [[nodiscard]] constexpr const IsotopeRecord& Isotopologue() const noexcept {return Isotopologues[spec_ind];}
+  [[nodiscard]] constexpr IsotopeRecord Isotopologue() const noexcept {return spec_ind < 0 ? IsotopeRecord{} : Isotopologues[spec_ind];}
   
   constexpr void Isotopologue(const IsotopeRecord& ir) ARTS_NOEXCEPT {
     Index ind = find_species_index(ir);

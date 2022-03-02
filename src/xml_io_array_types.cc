@@ -767,7 +767,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "ArrayOfJacobianTarget");
+  open_tag.add_attribute("type", "JacobianTarget");
   open_tag.add_attribute("nelem", ajt.nelem());
 
   open_tag.write_to_stream(os_xml);
@@ -3779,7 +3779,7 @@ void xml_write_to_stream(ostream& os_xml,
   for (Index n = 0; n < at.nelem(); n++)
     xml_write_to_stream(os_xml, at[n], pbofs, "", verbosity);
 
-  close_tag.set_name("/ArrayOfTime");
+  close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
 
   os_xml << '\n';

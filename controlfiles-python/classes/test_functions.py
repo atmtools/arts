@@ -23,3 +23,11 @@ def array(x):
     x[0] = x[1]
     x.pop()
     assert len(x) == 1
+    y = type(x)([x[0]])
+    assert len(y) == 1
+
+def array_of_array(x):
+    assert len(x) > 0
+    y = type(x)([[x[0][0]]])
+    assert len(y) == 1
+    assert len(y[0]) == 1

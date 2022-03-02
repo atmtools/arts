@@ -1,5 +1,10 @@
 import pyarts.pyarts_cpp as cxx
+import test_functions as test
 
-x = cxx.ArrayOfArrayOfRadiationVector()
+import TestArrayOfRadiationVector
 
-assert False
+x = cxx.ArrayOfArrayOfRadiationVector([TestArrayOfRadiationVector.x])
+
+test.io(x, delete=True)
+test.array(x)
+test.array_of_array(x)

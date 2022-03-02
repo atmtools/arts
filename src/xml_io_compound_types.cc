@@ -1750,7 +1750,7 @@ void xml_read_from_stream(istream& is_xml,
     Index nza = d.npages();
     Index nf = d.nrows();
     Index nstokes_needed = d.ncols();
-    sv = PropagationMatrix(nf, need2stokes<false>(nstokes_needed), nza, naa);
+    sv = StokesVector(nf, need2stokes<false>(nstokes_needed), nza, naa);
     sv.Data() = std::move(d); // destructive takeover
   } catch (const std::runtime_error& e) {
     ostringstream os;
@@ -1759,7 +1759,7 @@ void xml_read_from_stream(istream& is_xml,
        << e.what();
     throw runtime_error(os.str());
   }
-
+  
   tag.read_from_stream(is_xml);
   tag.check_name("/StokesVector");
 }

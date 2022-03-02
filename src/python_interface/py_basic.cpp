@@ -1,8 +1,10 @@
 #include <py_auto_interface.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <algorithm>
 #include <iterator>
 #include <stdexcept>
+#include <vector>
 
 #include "py_macros.h"
 
@@ -98,6 +100,7 @@ be accessed without copy using element-wise access operators.
   py::implicitly_convertible<std::vector<Index>, ArrayOfIndex>();
 
   PythonInterfaceWorkspaceArray(ArrayOfIndex);
+  py::implicitly_convertible<std::vector<std::vector<Index>>, ArrayOfArrayOfIndex>();
 
   py::class_<Numeric_>(m, "Numeric")
       .def(py::init<>())

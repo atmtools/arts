@@ -35,6 +35,12 @@ void py_time(py::module_& m) {
   py::implicitly_convertible<Numeric, Time>();
 
   PythonInterfaceWorkspaceArray(Time);
-  PythonInterfaceWorkspaceArray(ArrayOfTime);
+  PythonInterfaceWorkspaceArray(ArrayOfTime)
+      .def(py::init([](const std::vector<std::vector<Time>>& x) {
+        ArrayOfArrayOfTime y(x.size());
+        std::copy(x.begin(), x.end(), y.begin());
+        return y;
+      }));
+  py::implicitly_convertible<std::vector<std::vector<Time>>, ArrayOfArrayOfTime>();
 }
 }  // namespace Python

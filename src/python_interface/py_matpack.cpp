@@ -1,7 +1,10 @@
 #include <py_auto_interface.h>
+#include <pybind11/pybind11.h>
 
 #include <cstddef>
+#include <vector>
 
+#include "debug.h"
 #include "py_macros.h"
 
 #define PythonInterfaceMatpackMath(Type)                          \
@@ -920,25 +923,6 @@ void py_matpack(py::module_& m) {
       "    Tensor7(Index, Index, Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
       "    Tensor7(List or Array): to copy elements\n\n";
 
-  PythonInterfaceWorkspaceArray(Vector);
-  PythonInterfaceWorkspaceArray(Matrix);
-  PythonInterfaceWorkspaceArray(Tensor3);
-  PythonInterfaceWorkspaceArray(Tensor4);
-  PythonInterfaceWorkspaceArray(Tensor5);
-  PythonInterfaceWorkspaceArray(Tensor6);
-  PythonInterfaceWorkspaceArray(Tensor7);
-
-  PythonInterfaceWorkspaceArray(ArrayOfVector)
-      .def(py::init([](const std::vector<std::vector<Vector>>& x) {
-        ArrayOfArrayOfVector y(x.size());
-        std::copy(x.begin(), x.end(), y.begin());
-        return y;
-      }));
-  py::implicitly_convertible<std::vector<std::vector<Vector>>, ArrayOfArrayOfVector>();
-  PythonInterfaceWorkspaceArray(ArrayOfMatrix);
-  PythonInterfaceWorkspaceArray(ArrayOfTensor3);
-  PythonInterfaceWorkspaceArray(ArrayOfTensor6);
-
   py::implicitly_convertible<py::array, Vector>();
   py::implicitly_convertible<py::array, Matrix>();
   py::implicitly_convertible<py::array, Tensor3>();
@@ -954,6 +938,46 @@ void py_matpack(py::module_& m) {
   py::implicitly_convertible<py::list, Tensor5>();
   py::implicitly_convertible<py::list, Tensor6>();
   py::implicitly_convertible<py::list, Tensor7>();
+
+  PythonInterfaceWorkspaceArray(Vector);
+  PythonInterfaceWorkspaceArray(Matrix);
+  PythonInterfaceWorkspaceArray(Tensor3);
+  PythonInterfaceWorkspaceArray(Tensor4);
+  PythonInterfaceWorkspaceArray(Tensor5);
+  PythonInterfaceWorkspaceArray(Tensor6);
+  PythonInterfaceWorkspaceArray(Tensor7);
+
+  PythonInterfaceWorkspaceArray(ArrayOfVector)
+      .def(py::init([](const std::vector<std::vector<Vector>>& x) {
+        ArrayOfArrayOfVector y(x.size());
+        std::copy(x.begin(), x.end(), y.begin());
+        return y;
+      }));
+  py::implicitly_convertible<std::vector<std::vector<Vector>>, ArrayOfArrayOfVector>();
+
+  PythonInterfaceWorkspaceArray(ArrayOfMatrix)
+      .def(py::init([](const std::vector<std::vector<Matrix>>& x) {
+        ArrayOfArrayOfMatrix y(x.size());
+        std::copy(x.begin(), x.end(), y.begin());
+        return y;
+      }));
+  py::implicitly_convertible<std::vector<std::vector<Matrix>>, ArrayOfArrayOfMatrix>();
+
+  PythonInterfaceWorkspaceArray(ArrayOfTensor3)
+      .def(py::init([](const std::vector<std::vector<Tensor3>>& x) {
+        ArrayOfArrayOfTensor3 y(x.size());
+        std::copy(x.begin(), x.end(), y.begin());
+        return y;
+      }));
+  py::implicitly_convertible<std::vector<std::vector<Tensor3>>, ArrayOfArrayOfTensor3>();
+
+  PythonInterfaceWorkspaceArray(ArrayOfTensor6)
+      .def(py::init([](const std::vector<std::vector<Tensor6>>& x) {
+        ArrayOfArrayOfTensor6 y(x.size());
+        std::copy(x.begin(), x.end(), y.begin());
+        return y;
+      }));
+  py::implicitly_convertible<std::vector<std::vector<Tensor6>>, ArrayOfArrayOfTensor6>();
 
   py::class_<Rational>(m, "Rational")
       .def(py::init<>())

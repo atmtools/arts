@@ -6,5 +6,5 @@ try:
 except TypeError:
     pass
 except:
-    assert False, "Any should do nothing"
+    assert False, "Any should do nothing, and not be initialized by anything"
 

@@ -99,6 +99,14 @@ void py_species(py::module_& m) {
             x.emplace_back(std::move(y));
           },
           py::doc("Appends a SpeciesTag at the end of the Array"))
+      .def(
+          "pop",
+          [](ArrayOfSpeciesTag& x) {
+            SpeciesTag y = x.back();
+            x.pop_back();
+            return y;
+          },
+          py::doc("Pops a SpeciesTag from the end of the Array"))
       .doc() = "The Arts ArrayOfArrayOfSpeciesTag class";
   py::implicitly_convertible<std::vector<SpeciesTag>, ArrayOfSpeciesTag>();
   py::implicitly_convertible<std::vector<py::str>, ArrayOfSpeciesTag>();

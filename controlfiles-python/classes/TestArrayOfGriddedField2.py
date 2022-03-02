@@ -1,5 +1,8 @@
 import pyarts.pyarts_cpp as cxx
+import test_functions as test
 
-x = cxx.ArrayOfGriddedField2()
+import TestGriddedField2
 
-assert False
+x = cxx.ArrayOfGriddedField2([TestGriddedField2.x])
+test.io(x, delete=True)
+test.array(x)

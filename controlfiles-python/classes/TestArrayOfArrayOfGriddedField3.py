@@ -1,5 +1,10 @@
 import pyarts.pyarts_cpp as cxx
+import test_functions as test
 
-x = cxx.ArrayOfArrayOfGriddedField3()
+import TestGriddedField3
 
-assert False
+x = cxx.ArrayOfArrayOfGriddedField3([TestGriddedField3.x])
+
+test.io(x, delete=True)
+test.array(x)
+test.array_of_array(x)
