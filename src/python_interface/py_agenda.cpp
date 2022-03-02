@@ -6,9 +6,13 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iterator>
 
+#include "agenda_class.h"
+#include "array.h"
 #include "debug.h"
 #include "py_macros.h"
+#include "tokval.h"
 
 extern Parameters parameters;
 
@@ -138,28 +142,51 @@ String error_msg(const String& name,
   return os.str();
 }
 
-MRecord set_mrrecord(WorkspaceVariable val,
-                     const ArrayOfIndex& output,
-                     const ArrayOfIndex& input = ArrayOfIndex{},
-                     Index m_id = -1) {
-  const bool pop = m_id >= 0;
+MRecord simple_set_method(WorkspaceVariable val) {
+  using namespace global_data;
 
-  const String group =
-      global_data::wsv_group_names[val.ws.wsv_data[val.pos].Group()];
-  if (m_id < 0) m_id = global_data::MdMap.find(group + "Set")->second;
+  // Find group and is it acceptable
+  const String group = wsv_group_names[val.group()];
+  ARTS_USER_ERROR_IF(group == "ArrayOfAgenda",
+                     "Cannot support setting ArrayOfAgenda")
 
+  // Set method set values
+  TokVal t;
+  Agenda a;
   if (group == "Agenda") {
-    auto a = Agenda(val);
-    if (pop) val.pop_workspace_level();
-    return MRecord(m_id, output, input, {}, a);
+    a = Agenda(val);
+  } else {
+    t = TokVal(val);
   }
 
-  ARTS_USER_ERROR_IF(group == "ArrayOfAgenda",
-                     "Cannot support setting ArrayOfAgenda yet")
+  // If this is a new variable, we need to find its set-method and transfer
+  // data ownership to the MRecord and remove the value from the workspace
+  const ArrayOfIndex output = ArrayOfIndex{val.pos};
+  const Index m_id = MdMap.find(group + "Set")->second;
+  val.pop_workspace_level();
 
-  auto t = TokVal(val);
-  if (pop) val.pop_workspace_level();
-  return MRecord(m_id, output, input, t, {});
+  return MRecord(m_id, output, {}, t, a);
+}
+
+MRecord simple_delete_method(WorkspaceVariable val) {
+  using namespace global_data;
+
+  // Find group and is it acceptable
+  auto ptr = std::find_if(md_data.begin(),
+                          md_data.end(),
+                          [delete_method = String("Delete")](auto& m) {
+                            return m.Name() == delete_method;
+                          });
+  while (ptr not_eq md_data.end() and ptr->In().nelem() == 1 and
+         ptr->In().front() not_eq val.group())
+    ptr++;
+  ARTS_ASSERT(ptr not_eq md_data.end(),
+              "Did not find a Delete method to the end of the list")
+  ARTS_ASSERT(ptr->Name() == "Delete",
+              "Expects to find a Delete method but encounters ",
+              ptr->Name())
+
+  return MRecord(std::distance(md_data.begin(), ptr), {}, {val.pos}, {}, {});
 }
 
 void py_agenda(py::module_& m) {
@@ -240,9 +267,6 @@ void py_agenda(py::module_& m) {
 
             // The method input and output lists in one long list
             Array<AgendaMethodVariable> var_order = sorted_mdrecord(ws, ptr);
-
-            // "Original size" after all defaulted GINs
-            const Index original_ws_size = ws.nelem();
 
             // Generic checker
             const bool generic_function =
@@ -371,21 +395,32 @@ void py_agenda(py::module_& m) {
 
             // Set the actual values using automatic set methods
             for (auto& var : var_order) {
-              if (var.ws_pos >= original_ws_size) {
-                a.push_back(set_mrrecord(WorkspaceVariable(ws, var.ws_pos),
-                                         {var.ws_pos}));
+              WorkspaceVariable val(ws, var.ws_pos);
+              if (val.name().find("::anon::") == 0) {
+                a.push_back(simple_set_method(val));
               }
             }
 
             // Set the method record
             const auto [in, out] = split_io(var_order);
-
             const auto m_id = std::distance(global_data::md_data.begin(), ptr);
             if (ptr->SetMethod() and in.nelem()) {
-              a.push_back(set_mrrecord(
-                  WorkspaceVariable(ws, in.back()), out, in, m_id));
+              ARTS_USER_ERROR_IF (ws.is_initialized(in.back()), "Can only set values, use Copy to copy workspace variables")
+
+              // The previous value will be the GIN set value as the last value
+              // is also the last in the push_back above
+              ARTS_ASSERT(a.Methods().nelem())
+              a.push_back(MRecord(m_id, out, in, a.Methods().back().SetValue(), a.Methods().back().Tasks()));
             } else {
               a.push_back(MRecord(m_id, out, in, {}, {}));
+            }
+
+            // Clean up the value
+            for (auto& var : var_order) {
+              WorkspaceVariable val(ws, var.ws_pos);
+              if (val.name().find("::anon::") == 0) {
+                a.push_back(simple_delete_method(val));
+              }
             }
           },
           py::arg("ws"),
@@ -413,14 +448,16 @@ so Copy(a, out=b) will not even see the b variable.
             Index in = ws.add_wsv_inplace(WsvRecord(
                 name.c_str(), "Callback created by pybind11 API", group_index));
             ws.push(in, new CallbackFunction{x});
-            a.push_back(set_mrrecord(WorkspaceVariable(ws, in), {in}));
 
             auto method_ptr =
                 global_data::MdMap.find("CallbackFunctionExecute");
             ARTS_USER_ERROR_IF(method_ptr == global_data::MdMap.end(),
                                "Cannot find CallbackFunctionExecute")
 
+            WorkspaceVariable val(ws, in);
+            a.push_back(simple_set_method(val));
             a.push_back(MRecord(method_ptr->second, {}, {in}, {}, {}));
+            a.push_back(simple_delete_method(val));
           })
       .def("append_agenda_methods",
            [](Agenda& self, Agenda& other) {
@@ -517,6 +554,11 @@ so Copy(a, out=b) will not even see the b variable.
                y.set_name(x.front().name());
              x.emplace_back(std::move(y));
            })
+      .def("pop", [](ArrayOfAgenda& aa) {
+        Agenda a = std::move(aa.back());
+        aa.pop_back();
+        return a;
+      }, "Pops and returns the last item")
       .def(
           "check",
           [](ArrayOfAgenda& aa, Workspace& w) {
