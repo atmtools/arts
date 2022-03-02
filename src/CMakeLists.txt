@@ -104,7 +104,7 @@ add_custom_command (
         DEPENDS make_workspace_memory_handler_cc
         )
 add_custom_target (BuildAutoSources DEPENDS auto_md.h
-                   auto_md.cc)
+                   auto_md.cc tokval.h)
 
 ########### next target ###############
 
