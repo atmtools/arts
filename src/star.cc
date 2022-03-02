@@ -374,7 +374,7 @@ void get_direct_radiation(Workspace& ws,
                              rte_alonglos_v,
                              verbosity);
 
-      if (jacobian_do){
+      if (jacobian_do && dradiation_trans.nelem()){
         ddirect_radiation_dx[i_star] = dradiation_trans;
       }
       direct_radiation[i_star] = radiation_trans;

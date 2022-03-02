@@ -394,9 +394,9 @@ void iyClearsky(
     //allocate Varibale for direct (star) source
     ArrayOfVector star_rte_los(stars.nelem(), Vector(2));
     ArrayOfMatrix transmitted_starlight;
-    ArrayOfArrayOfTensor3 dtransmitted_starlight;
+    ArrayOfArrayOfTensor3 dtransmitted_starlight(stars.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
 //    Matrix transmitted_starlight_istar;
-    ArrayOfTensor3 dtransmitted_starlight_istar;
+    ArrayOfTensor3 dtransmitted_starlight_istar(jacobian_quantities.nelem());
     PropagationMatrix K_sca;
     RadiationVector scattered_starlight_istar(nf, ns);
     ArrayOfRadiationVector dscattered_starlight_istar(nq, RadiationVector(nf, ns));
@@ -413,7 +413,7 @@ void iyClearsky(
     const Vector out_los_dummy;
     const ArrayOfIndex cloudbox_limits_dummy;
     const Tensor4 pnd_field_dummy;
-    const ArrayOfTensor4 dpnd_field_dx_dummy;
+    const ArrayOfTensor4 dpnd_field_dx_dummy(jacobian_quantities.nelem());
     const ArrayOfString scat_species_dummy;
     const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
 
@@ -538,7 +538,7 @@ void iyClearsky(
               if (stars_visible[i_star]) {
                 //                transmitted_starlight_istar = transmitted_starlight[i_star];
 
-                if (jacobian_do) {
+                if (jacobian_do && dtransmitted_starlight[i_star].nelem()) {
                   dtransmitted_starlight_istar = dtransmitted_starlight[i_star];
                 }
 

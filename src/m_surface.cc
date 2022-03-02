@@ -468,7 +468,10 @@ void iySurfaceLambertian(Workspace& ws,
                          const Vector& rte_pos2,
                          const String& iy_unit,
                          const Vector& surface_scalar_reflectivity,
-                         const Numeric& surface_skin_t,
+                         const Tensor3& surface_props_data,
+                         const ArrayOfString& surface_props_names,
+                         const ArrayOfString& dsurface_names,
+                         const ArrayOfRetrievalQuantity& jacobian_quantities,
                          const Agenda& iy_main_agenda,
                          const Index& N_za,
                          const Index& N_aa,
@@ -479,13 +482,43 @@ void iySurfaceLambertian(Workspace& ws,
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(atmosphere_dim, rtp_pos);
   chk_rte_los(atmosphere_dim, rtp_los);
-  chk_not_negative("surface_skin_t", surface_skin_t);
+
 
   //Check size of iy
   if (not is_size(iy, f_grid.nelem(), stokes_dim)) {
     iy.resize(f_grid.nelem(), stokes_dim);
     iy = 0.;
   }
+
+  // Check surface_data
+  surface_props_check(atmosphere_dim,
+                      lat_grid,
+                      lon_grid,
+                      surface_props_data,
+                      surface_props_names);
+
+  // Interplation grid positions and weights
+  ArrayOfGridPos gp_lat(1), gp_lon(1);
+  Matrix itw;
+  rte_pos2gridpos(
+      gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos);
+  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
+
+  // Skin temperature
+  Vector surface_skin_t(1);
+  surface_props_interp(surface_skin_t,
+                       "Skin temperature",
+                       atmosphere_dim,
+                       gp_lat,
+                       gp_lon,
+                       itw,
+                       surface_props_data,
+                       surface_props_names);
+
+  chk_not_negative("surface_skin_t", surface_skin_t[0]);
+
+
+
 
   const Index nf = f_grid.nelem();
 
@@ -650,13 +683,50 @@ void iySurfaceLambertian(Workspace& ws,
 
   //Surface emission
   Vector b(nf);
-  planck(b, f_grid, surface_skin_t);
+  planck(b, f_grid, surface_skin_t[0]);
 
   //Upwelling radiation
   for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
     iy(i_freq, 0) = surface_scalar_reflectivity[i_freq] *
                         cos(deg2rad(specular_los[0])) / pi * Flx(i_freq, 0) +
                     (1 - surface_scalar_reflectivity[i_freq]) * b[i_freq];
+  }
+
+  // Surface Jacobians
+  if (jacobian_do && dsurface_names.nelem()) {
+
+    Index irq;
+    irq = find_first(dsurface_names, String("Skin temperature"));
+
+    if (irq >= 0){
+      // Find index among jacobian quantities
+      Index ihit = -1;
+      for (Index j = 0; j < jacobian_quantities.nelem() && ihit < 0; j++) {
+        if (dsurface_names[irq] == jacobian_quantities[j].Subtag()) {
+          ihit = j;
+        }
+      }
+
+      // Derivative of surface skin temperature, as observed at the surface
+      Matrix diy_dpos0(f_grid.nelem(), stokes_dim, 0.), diy_dpos;
+      dplanck_dt(diy_dpos0(joker, 0), f_grid, surface_skin_t[0]);
+
+      Vector emissivity=surface_scalar_reflectivity;
+      emissivity*=-1;
+      emissivity+=1;
+      diy_dpos0*=emissivity;
+
+      // Weight with transmission to sensor
+      iy_transmittance_mult(diy_dpos, iy_transmittance, diy_dpos0);
+
+      // Put into diy_dx
+      diy_from_pos_to_rgrids(diy_dx[ihit],
+                             jacobian_quantities[ihit],
+                             diy_dpos,
+                             atmosphere_dim,
+                             rtp_pos);
+
+    }
   }
 }
 
@@ -830,7 +900,7 @@ void iySurfaceLambertianDirect(
         //Add the surface contribution of the direct part
         iy(joker, 0) += iy_surface_direct;
 
-        //        //TODO: Add surface jacobian
+
       }
     }
   }
