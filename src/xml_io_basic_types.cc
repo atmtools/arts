@@ -203,7 +203,7 @@ void xml_write_to_stream(ostream& os_xml,
   if (pbofs)
     *pbofs << rational;
   else
-    os_xml << rational;
+    os_xml << ' ' << rational << ' ';
 
   close_tag.set_name("/Rational");
   close_tag.write_to_stream(os_xml);

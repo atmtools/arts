@@ -279,8 +279,10 @@ void py_matpack(py::module_& m) {
         if (info.ndim == 1 and info.shape[0] == 0) return Matrix{};
 
         Index i = 2;
-        ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
+        ARTS_USER_ERROR_IF(info.ndim not_eq i,
+                           "Can only initialize from empty or ",
+                           i,
+                           "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
 
@@ -393,8 +395,10 @@ void py_matpack(py::module_& m) {
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor3{};
 
         Index i = 3;
-        ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
+        ARTS_USER_ERROR_IF(info.ndim not_eq i,
+                           "Can only initialize from empty or ",
+                           i,
+                           "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -482,8 +486,10 @@ void py_matpack(py::module_& m) {
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor4{};
 
         Index i = 4;
-        ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
+        ARTS_USER_ERROR_IF(info.ndim not_eq i,
+                           "Can only initialize from empty or ",
+                           i,
+                           "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -579,8 +585,10 @@ void py_matpack(py::module_& m) {
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor5{};
 
         Index i = 5;
-        ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
+        ARTS_USER_ERROR_IF(info.ndim not_eq i,
+                           "Can only initialize from empty or ",
+                           i,
+                           "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -686,8 +694,10 @@ void py_matpack(py::module_& m) {
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor6{};
 
         Index i = 6;
-        ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
+        ARTS_USER_ERROR_IF(info.ndim not_eq i,
+                           "Can only initialize from empty or ",
+                           i,
+                           "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -805,8 +815,10 @@ void py_matpack(py::module_& m) {
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor7{};
 
         Index i = 7;
-        ARTS_USER_ERROR_IF(
-            info.ndim not_eq i, "Can only initialize from empty or ", i, "D array")
+        ARTS_USER_ERROR_IF(info.ndim not_eq i,
+                           "Can only initialize from empty or ",
+                           i,
+                           "D array")
         std::size_t nc = info.shape[--i];
         std::size_t nr = info.shape[--i];
         std::size_t np = info.shape[--i];
@@ -953,7 +965,8 @@ void py_matpack(py::module_& m) {
         std::copy(x.begin(), x.end(), y.begin());
         return y;
       }));
-  py::implicitly_convertible<std::vector<std::vector<Vector>>, ArrayOfArrayOfVector>();
+  py::implicitly_convertible<std::vector<std::vector<Vector>>,
+                             ArrayOfArrayOfVector>();
 
   PythonInterfaceWorkspaceArray(ArrayOfMatrix)
       .def(py::init([](const std::vector<std::vector<Matrix>>& x) {
@@ -961,7 +974,8 @@ void py_matpack(py::module_& m) {
         std::copy(x.begin(), x.end(), y.begin());
         return y;
       }));
-  py::implicitly_convertible<std::vector<std::vector<Matrix>>, ArrayOfArrayOfMatrix>();
+  py::implicitly_convertible<std::vector<std::vector<Matrix>>,
+                             ArrayOfArrayOfMatrix>();
 
   PythonInterfaceWorkspaceArray(ArrayOfTensor3)
       .def(py::init([](const std::vector<std::vector<Tensor3>>& x) {
@@ -969,7 +983,8 @@ void py_matpack(py::module_& m) {
         std::copy(x.begin(), x.end(), y.begin());
         return y;
       }));
-  py::implicitly_convertible<std::vector<std::vector<Tensor3>>, ArrayOfArrayOfTensor3>();
+  py::implicitly_convertible<std::vector<std::vector<Tensor3>>,
+                             ArrayOfArrayOfTensor3>();
 
   PythonInterfaceWorkspaceArray(ArrayOfTensor6)
       .def(py::init([](const std::vector<std::vector<Tensor6>>& x) {
@@ -977,20 +992,49 @@ void py_matpack(py::module_& m) {
         std::copy(x.begin(), x.end(), y.begin());
         return y;
       }));
-  py::implicitly_convertible<std::vector<std::vector<Tensor6>>, ArrayOfArrayOfTensor6>();
+  py::implicitly_convertible<std::vector<std::vector<Tensor6>>,
+                             ArrayOfArrayOfTensor6>();
 
   py::class_<Rational>(m, "Rational")
-      .def(py::init<>())
+      .def(py::init([](Index n, Index d) {
+             ARTS_USER_ERROR_IF(d < 1, "Must be positive")
+             return Rational(n, d);
+           }),
+           py::arg("n") = 0,
+           py::arg("d") = 1)
       .PythonInterfaceWorkspaceVariableConversion(Rational)
-      .def(py::init<Index>())
       .def(py::init<String>())
-      .def(py::init<Index, Index>())
+      .def(py::init([](Numeric n) { return Rational(std::to_string(n)); }))
       .PythonInterfaceFileIO(Rational)
       .PythonInterfaceBasicRepresentation(Rational)
       .PythonInterfaceInPlaceMathOperators(Rational, Rational)
       .PythonInterfaceInPlaceMathOperators(Rational, Index)
       .PythonInterfaceMathOperators(Rational, Rational)
-      .PythonInterfaceMathOperators(Rational, Index);
+      .PythonInterfaceMathOperators(Rational, Index)
+      .def(
+          "__eq__",
+          [](Rational& a, Rational b) { return a == b; },
+          py::is_operator())
+      .def(
+          "__neq__",
+          [](Rational& a, Rational b) { return a != b; },
+          py::is_operator())
+      .def(
+          "__lt__",
+          [](Rational& a, Rational b) { return a < b; },
+          py::is_operator())
+      .def(
+          "__l3__",
+          [](Rational& a, Rational b) { return a <= b; },
+          py::is_operator())
+      .def(
+          "__gt__",
+          [](Rational& a, Rational b) { return a > b; },
+          py::is_operator())
+      .def(
+          "__ge__",
+          [](Rational& a, Rational b) { return a >= b; },
+          py::is_operator());
   py::implicitly_convertible<Index, Rational>();
 }
 }  // namespace Python

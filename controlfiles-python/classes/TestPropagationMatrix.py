@@ -1,5 +1,15 @@
 import pyarts.pyarts_cpp as cxx
+import test_functions as test
 
-x = cxx.PropagationMatrix()
+import numpy as np
 
-assert False
+x = cxx.PropagationMatrix(100, 4, 4, 4)
+test.io(x, delete=True)
+
+assert np.all(np.array(x.data) == 0)
+
+np.array(x.data)[:] = 1
+assert np.all(np.array(x.data) == 0)
+
+np.array(x.data, copy=False)[:] = 1
+assert np.all(np.array(x.data) == 1)

@@ -1,19 +1,17 @@
 #include <py_auto_interface.h>
+#include <pybind11/attr.h>
 
 #include "py_macros.h"
 
 namespace Python {
 void py_species(py::module_& m) {
   py::class_<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
-      .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin))
+      .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin), py::doc("Get the builtin values"))
       .PythonInterfaceWorkspaceVariableConversion(SpeciesIsotopologueRatios)
       .PythonInterfaceFileIO(SpeciesIsotopologueRatios)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
       .def_readonly_static("maxsize", &SpeciesIsotopologueRatios::maxsize)
-      .def_readwrite("data", &SpeciesIsotopologueRatios::data)
-      .def("__getitem__",
-           [](const SpeciesIsotopologueRatios& s,
-              const SpeciesIsotopeRecord& ir) { return s[ir]; });
+      .def_readwrite("data", &SpeciesIsotopologueRatios::data);
 
   py::class_<Species::Species>(m, "Species")
       .def(py::init<>())

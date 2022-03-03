@@ -1,5 +1,9 @@
 import pyarts.pyarts_cpp as cxx
+import test_functions as test
 
-x = cxx.Numeric()
+x = cxx.Numeric(0)
+test.io(x, delete=True)
 
-assert False
+assert x.val == 0
+x.val = x + 2
+assert x.val == 2

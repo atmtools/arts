@@ -1,9 +1,9 @@
 import pyarts.pyarts_cpp as cxx
 import test_functions as test
 
-import TestGriddedField2
+import TestArrayOfGriddedField2
 
-x = cxx.ArrayOfArrayOfGriddedField2([TestGriddedField2.x])
+x = cxx.ArrayOfArrayOfGriddedField2([TestArrayOfGriddedField2.x])
 
 test.io(x, delete=True)
 test.array(x)

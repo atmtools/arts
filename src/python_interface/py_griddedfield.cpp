@@ -57,8 +57,31 @@ void py_griddedfield(py::module_& m) {
   PythonInterfaceWorkspaceArray(GriddedField3);
   PythonInterfaceWorkspaceArray(GriddedField4);
 
-  PythonInterfaceWorkspaceArray(ArrayOfGriddedField1);
-  PythonInterfaceWorkspaceArray(ArrayOfGriddedField2);
-  PythonInterfaceWorkspaceArray(ArrayOfGriddedField3);
+  PythonInterfaceWorkspaceArray(ArrayOfGriddedField1)
+      .def(py::init([](const std::vector<std::vector<GriddedField1>>& x) {
+        ArrayOfArrayOfGriddedField1 y(x.size());
+        std::copy(x.begin(), x.end(), y.begin());
+        return y;
+      }));
+  py::implicitly_convertible<std::vector<std::vector<GriddedField1>>,
+                             ArrayOfArrayOfGriddedField1>();
+
+  PythonInterfaceWorkspaceArray(ArrayOfGriddedField2)
+      .def(py::init([](const std::vector<std::vector<GriddedField2>>& x) {
+        ArrayOfArrayOfGriddedField2 y(x.size());
+        std::copy(x.begin(), x.end(), y.begin());
+        return y;
+      }));
+  py::implicitly_convertible<std::vector<std::vector<GriddedField2>>,
+                             ArrayOfArrayOfGriddedField2>();
+
+  PythonInterfaceWorkspaceArray(ArrayOfGriddedField3)
+      .def(py::init([](const std::vector<std::vector<GriddedField3>>& x) {
+        ArrayOfArrayOfGriddedField3 y(x.size());
+        std::copy(x.begin(), x.end(), y.begin());
+        return y;
+      }));
+  py::implicitly_convertible<std::vector<std::vector<GriddedField3>>,
+                             ArrayOfArrayOfGriddedField3>();
 }
 }  // namespace Python

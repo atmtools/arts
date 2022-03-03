@@ -1,5 +1,12 @@
 import pyarts.pyarts_cpp as cxx
+import test_functions as test
 
-x = cxx.TransmissionMatrix()
+import numpy as np
 
-assert False
+x = cxx.TransmissionMatrix(10, 4)
+test.io(x, delete=True)
+
+assert np.all(x[0] == np.diag([1,1,1,1]))
+
+x[0][:] = 2
+assert np.all(x[0] == 2)

@@ -181,9 +181,11 @@
 
 #define PythonInterfaceWorkspaceVariableConversion(Type) \
   def(py::init([](const WorkspaceVariable* w) {          \
-    Type& v = *w;                                        \
-    return new Type(v);                                  \
-  }))
+        Type& v = *w;                                    \
+        return new Type(v);                              \
+      }),                                                \
+      py::arg("wsv").none(false).noconvert(),            \
+      py::doc("Automatic conversion from a workspace variable"))
 
 /*! The workspace array interface
 
