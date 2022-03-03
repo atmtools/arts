@@ -30,7 +30,7 @@ def Include(ws, path):
     """
     Agenda(ws, path).execute(ws)
 
-def arts_agenda(func=None, *, allow_callbacks=False, set_agenda=False):
+def arts_agenda(ws, /, func=None, *, allow_callbacks=False, set_agenda=False):
     """
     Decorator to parse a Python method as ARTS agenda
 
@@ -42,7 +42,7 @@ def arts_agenda(func=None, *, allow_callbacks=False, set_agenda=False):
 
     Example:
 
-    >>> @arts_agenda
+    >>> @arts_agenda(ws)
     >>> def inversion_iterate_agenda(ws):
     >>>     ws.x2artsStandard()
     >>>     ws.atmfields_checkedCalc()
@@ -61,9 +61,14 @@ def arts_agenda(func=None, *, allow_callbacks=False, set_agenda=False):
 
     Example:
 
-    >>> @arts_agenda(allow_callbacks=True)
+    >>> @arts_agenda(ws, allow_callbacks=True)
     >>> def python_agenda(ws):
     >>>     print("Python says 'hi'.)
+                  
+    Note that using allow_callbacks=True breaks the Agenda input-output
+    control.  It is therefore considered undefined behavior if you manipulate
+    workspace variables that are neither in- nor output of the Agenda using
+    callbacks.  Do this at your own risk.
                   
     A special INCLUDE(path) directive can be part of the function definitions
     to use the Arts parser of .arts files to be invoked on the file.
@@ -75,16 +80,17 @@ def arts_agenda(func=None, *, allow_callbacks=False, set_agenda=False):
     workspace agenda)
     """
     
+    assert isinstance(ws, Workspace), f"Expects Workspace Input got {type(ws)}"
     
     def agenda_decorator(func):
-        return parse_function(func, allow_callbacks=allow_callbacks, set_agenda=set_agenda)
+        return parse_function(func, ws, allow_callbacks=allow_callbacks, set_agenda=set_agenda)
     
     if func is None:
         return agenda_decorator
     else:
-        return parse_function(func, False, False)
+        return parse_function(func, ws, False, False)
 
-def parse_function(func, allow_callbacks, set_agenda):
+def parse_function(func, arts, allow_callbacks, set_agenda):
     """
     Parse python method as ARTS agenda
 
@@ -95,6 +101,8 @@ def parse_function(func, allow_callbacks, set_agenda):
     Return:
         An 'Agenda' object containing the code in the given function.
     """
+    assert isinstance(arts, Workspace), "Expects Workspace"
+    
     source = getsource(func)
     source = unindent(source)
     ast = parse(source)
@@ -111,9 +119,7 @@ def parse_function(func, allow_callbacks, set_agenda):
         raise Exception("Agenda definition needs workspace arguments.")
     
     context = copy(func.__globals__)
-    assert isinstance(context.get(arg_name), Workspace), \
-        f"{arg_name} must be a defined Workspace, we can only create " + \
-        "agendas for a specific Workspace"
+    context.update({arg_name : arts})
     
     # Add resolved non-local variables from closure.
     nls, _, _, _ = getclosurevars(func)
@@ -158,7 +164,6 @@ def parse_function(func, allow_callbacks, set_agenda):
         " keyword argument set to 'True'.")
 
     workspace_methods = [str(x.name) for x in cxx.get_md_data()]
-    arts = context[arg_name]  # This is the main workspace
     agenda = Agenda()
     
     for e in func_ast.body:
@@ -200,7 +205,7 @@ def parse_function(func, allow_callbacks, set_agenda):
                     agenda.append_agenda_methods(include_agenda)
         else:
             att = call.func.value
-            if not att.id == arg_name:
+            if not hasattr(att, 'id') or not att.id == arg_name:
                 callback_body += [e]
                 continue
 

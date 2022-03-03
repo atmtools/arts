@@ -2,6 +2,7 @@
 #include <global_data.h>
 #include <parameters.h>
 #include <py_auto_interface.h>
+#include <pybind11/cast.h>
 #include <xml_io.h>
 
 #include <algorithm>
@@ -458,7 +459,16 @@ so Copy(a, out=b) will not even see the b variable.
             a.push_back(simple_set_method(val));
             a.push_back(MRecord(method_ptr->second, {}, {in}, {}, {}));
             a.push_back(simple_delete_method(val));
-          })
+          }, py::doc(R"--(
+Adds a callback method to the Agenda
+
+Parameters
+----------
+    ws : Workspace
+        The workspace for which the Agenda works
+    f : CallbackFunction
+        A method that takes ws and only ws as input
+)--"), py::arg("ws"), py::arg("f"))
       .def("append_agenda_methods",
            [](Agenda& self, Agenda& other) {
              for (auto& method : other.Methods()) self.push_back(method);
@@ -474,7 +484,7 @@ so Copy(a, out=b) will not even see the b variable.
           },
           py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
-      .def("__repr__", [](Agenda&) { return "Agenda"; })
+      .def("__repr__", [](Agenda& a) { return var_string("Agenda ", a.name()); })
       .def("__str__", [](Agenda& a) {
         std::string out =
             var_string("Arts Agenda ", a.name(), " with methods:\n");

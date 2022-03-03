@@ -53,12 +53,12 @@ arts.Touch(arts.transmitter_pos)
 
 # %% Agendas
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def propmat_clearsky_agenda_dyn(arts):
     arts.propmat_clearskyInit()
     arts.propmat_clearskyAddZeeman()
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def propmat_clearsky_agenda_nodyn(arts):
     arts.propmat_clearskyInit()
     arts.propmat_clearskyAddZeeman(manual_zeeman_tag=True,
@@ -68,25 +68,25 @@ def propmat_clearsky_agenda_nodyn(arts):
 arts.Copy(arts.propmat_clearsky_agenda,
           propmat_clearsky_agenda_dyn if DYNMAG else propmat_clearsky_agenda_nodyn)
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def ppath_agenda_step_by_step(arts):
     arts.Ignore(arts.rte_pos2)
     arts.ppathStepByStep()
 arts.Copy(arts.ppath_agenda, ppath_agenda_step_by_step)
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def iy_main_agenda_emission(arts):
     arts.ppathCalc()
     arts.iyEmissionStandard()
 arts.Copy(arts.iy_main_agenda, iy_main_agenda_emission)
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def surface_rtprop_agenda(arts):
     arts.InterpSurfaceFieldToPosition(out=arts.surface_skin_t, field=arts.t_surface)
     arts.surfaceBlackbody()
 arts.Copy(arts.surface_rtprop_agenda, surface_rtprop_agenda)
  
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def ppath_step_agenda_geometric(arts):
     arts.Ignore(arts.t_field)
     arts.Ignore(arts.vmr_field)
@@ -95,26 +95,26 @@ def ppath_step_agenda_geometric(arts):
     arts.ppath_stepGeometric()
 arts.Copy(arts.ppath_step_agenda, ppath_step_agenda_geometric)
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def iy_space_agenda_cosmic_background(arts):
     arts.Ignore(arts.rtp_pos)
     arts.Ignore(arts.rtp_los)
     arts.MatrixCBR(arts.iy, arts.stokes_dim, arts.f_grid)
 arts.Copy(arts.iy_space_agenda, iy_space_agenda_cosmic_background)
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def geo_pos_agenda(arts):
     arts.Ignore(arts.ppath)
     arts.VectorSet(arts.geo_pos, np.array([]))
 arts.Copy(arts.geo_pos_agenda, geo_pos_agenda)
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def iy_surface_agenda(arts):
     arts.SurfaceDummy()
     arts.iySurfaceRtpropAgenda()
 arts.Copy(arts.iy_surface_agenda, iy_surface_agenda)
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(arts)
 def water_psat_agenda(arts):
     arts.water_p_eq_fieldMK05()
 arts.Copy(arts.water_p_eq_agenda, water_psat_agenda)
