@@ -7486,6 +7486,35 @@ void define_md_data_raw() {
       GIN_DESC("Field to interpolate.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("IntersectionGeometricalWithAltitude"),
+      DESCRIPTION(
+          "Calculates the geometrical intersection with an altitude.\n"
+          "\n"
+          "This method only handles 3D !!! For non-spherical geoids the altitude\n"
+          "obtained in *sensor_pos* can deviate a bit from the GIN altitude if\n"
+          "the position is outside of *lat_grid*, due to the internal handling\n"
+          "of the geoid. Improvements around this are planned, but not clear when\n"
+          "they will be in place.\n"
+          "\n"
+          "For each observation geometry specified by the combination of\n"
+          "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
+          "an altitude is determined. The intersections are described by the\n"
+          "GOUT *pos* and *los.\n"
+          "\n"
+          "For cases with no intersection, *pos* and *los* are filled with NaN.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("pos", "los"),
+      GOUT_TYPE("Matrix", "Matrix"),
+      GOUT_DESC("Position of intersections.",
+                "Line-of-sight at intersections."),
+      IN("sensor_pos", "sensor_los", "refellipsoid", "lat_grid", "lon_grid"),
+      GIN("altitude"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Target altitude.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("irradiance_fieldFromRadiance"),
       DESCRIPTION(
           "Calculates the irradiance from the *radiance_field*.\n"
@@ -17226,6 +17255,24 @@ void define_md_data_raw() {
       GIN_TYPE("Matrix"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Target position, for each position in *sensor_pos*.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_losReverse"),
+      DESCRIPTION(
+          "Reverses the direction in *sensor_los*.\n"
+          "\n"
+          "The method updates *sensor_los* to have angles matching the reversed\n"
+          "direction.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_los", "atmosphere_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_poslosFromECEF"),

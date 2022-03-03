@@ -42,6 +42,7 @@
 #include "messages.h"
 #include "ppath.h"
 #include "refraction.h"
+#include "rte.h"
 #include "special_interp.h"
 #include "xml_io.h"
 
@@ -1975,6 +1976,7 @@ void rte_posSet(Vector& rte_pos,
   }
 }
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_pos_losMoveToStartOfPpath(Vector& rte_pos,
                                    Vector& rte_los,
@@ -1997,6 +1999,7 @@ void rte_pos_losMoveToStartOfPpath(Vector& rte_pos,
     rte_los = ppath.los(np - 1, Range(0, 2));
   }
 }
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_losGeometricFromSensorPosToOtherPositions(
@@ -2036,6 +2039,21 @@ void sensor_losGeometricFromSensorPosToOtherPositions(
     sensor_los(i, joker) = rte_los;
   }
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_losReverse(
+    Matrix& sensor_los,
+    const Index& atmosphere_dim,
+    const Verbosity&) {
+
+  Vector los;
+  Index l = sensor_los.ncols();
+  for (Index i = 0; i < sensor_los.nrows(); i++) {
+    mirror_los(los, sensor_los(i, joker), atmosphere_dim);
+    sensor_los(i, joker) = los[Range(0,l)];
+  }
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void TangentPointExtract(Vector& tan_pos,
