@@ -99,7 +99,8 @@ VectorSet( trv, [1] )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   Copy( surface_skin_t, sst )
-  surfaceFastem( wind_speed=wspeed, wind_direction=wdir, 
+  surfaceFastem( wind_speed=wspeed,
+                 wind_direction=wdir, 
                  transmittance=trv )
 }
 
@@ -148,12 +149,13 @@ sensorOff
 sensor_checkedCalc
 
 AgendaSet( surface_rtprop_agenda ){
-  surfaceMapToSinglePolInit( local_stokes_dim = local_stokes_dim)
   specular_losCalc
   Copy( surface_skin_t, sst )
-  surfaceFastem( wind_speed=wspeed, wind_direction=wdir, 
+  surfaceFastem( stokes_dim=local_stokes_dim,
+                 wind_speed=wspeed,
+                 wind_direction=wdir, 
                  transmittance=trv )
-  surfaceMapToSinglePolCalc( pol_angle = pol_angle )
+  surfaceMapToLinearPolarisation( pol_angle = pol_angle )
 }
 
 

@@ -1021,13 +1021,20 @@ void surfaceFastem(Matrix& surface_los,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceMapToSinglePolCalc(Index& stokes_dim,
-                               Matrix& surface_emission,
-                               Tensor4& surface_rmatrix,
-                               const Numeric& pol_angle,
-                               const Verbosity& ) {
-  chk_if_in_range("stokes_dim", stokes_dim, 2, 4);
+void surfaceMapToLinearPolarisation(Matrix& surface_emission,
+                                    Tensor4& surface_rmatrix,
+                                    const Index& stokes_dim,
+                                    const Numeric& pol_angle,
+                                    const Verbosity& ) {
+  ARTS_USER_ERROR_IF (stokes_dim != 1,
+        "You should only use this method where the main calculations are "
+        "done with *stokes_dim* set to 1.");
   
+  Index local_stokes = surface_emission.ncols();
+  ARTS_USER_ERROR_IF (local_stokes < 2,
+        "This method requires that the input surface proporties match a Stokes "
+        "dimension of 2-4. Incoming *surface_emission* matches stokes_dim=1.");
+
   const Index nf = surface_emission.nrows();
   const Index nlos = surface_rmatrix.nbooks();
   Matrix se = surface_emission;
@@ -1035,7 +1042,7 @@ void surfaceMapToSinglePolCalc(Index& stokes_dim,
   surface_emission.resize(nf, 1);
   surface_rmatrix.resize(nlos, nf, 1, 1);
   
-  if (stokes_dim == 2) {
+  if (local_stokes == 2) {
     const Numeric alpha = DEG2RAD * pol_angle; 
     const Numeric c2 = pow( cos(alpha), 2 );
     const Numeric s2 = pow( sin(alpha), 2 );
@@ -1051,16 +1058,16 @@ void surfaceMapToSinglePolCalc(Index& stokes_dim,
     }
   } else {
     Matrix Cm, Cs, Lp, Lm;
-    mueller_stokes2modif(Cm, stokes_dim);
-    mueller_modif2stokes(Cs, stokes_dim);
-    mueller_rotation(Lp, stokes_dim, pol_angle);
-    mueller_rotation(Lm, stokes_dim, -pol_angle);
-    Matrix Mleft(stokes_dim,stokes_dim), Mright(stokes_dim,stokes_dim);
+    mueller_stokes2modif(Cm, local_stokes);
+    mueller_modif2stokes(Cs, local_stokes);
+    mueller_rotation(Lp, local_stokes, pol_angle);
+    mueller_rotation(Lm, local_stokes, -pol_angle);
+    Matrix Mleft(local_stokes,local_stokes), Mright(local_stokes,local_stokes);
     mult(Mleft, Cm, Lp);
     mult(Mright, Lm, Cs);
     //
-    Vector Vr(stokes_dim);
-    Matrix Tmp(stokes_dim,stokes_dim), Mr(stokes_dim,stokes_dim);
+    Vector Vr(local_stokes);
+    Matrix Tmp(local_stokes,local_stokes), Mr(local_stokes,local_stokes);
     //
     for (Index f=0; f<nf; ++f) {
       mult(Vr, Mleft, se(f,joker) );        // Note that we have to multiply with 2
@@ -1072,17 +1079,6 @@ void surfaceMapToSinglePolCalc(Index& stokes_dim,
       }
     }
   }
-  
-  stokes_dim = 1;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceMapToSinglePolInit(Index& stokes_dim,
-                               const Index& local_stokes_dim,
-                               const Verbosity& ) {
-  chk_if_in_range("stokes_dim", stokes_dim, 1, 1); 
-  chk_if_in_range("local_stokes_dim", local_stokes_dim, 2, 4); 
-  stokes_dim = local_stokes_dim;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

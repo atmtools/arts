@@ -18774,63 +18774,43 @@ void define_md_data_raw() {
                "between 0 and 45 degrees.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceMapToSinglePolCalc"),
+      NAME("surfaceMapToLinearPolarisation"),
       DESCRIPTION(
-          "Apply change of Stokes basis for surface RT properties.\n"
+          "Convert surface RT properties to a linear polarisation.\n"
           "\n"
-          "See *surfaceMapToSinglePolInit* for an introdction to the method pair.\n"
+          "The properties converted are *surface_emission* and *surface_rmatrix*.\n"
+          "\n"
+          "This method allows to set the surface properties to match a specific\n"
+          "linear polarisation for scalar calculation (stokes_dim=1). If you want\n"
+          "this, you have to call the method(s) setting up the surface RT\n"
+          "properties with *stokes_dim* set to 2, 3 or 4. This Stokes dimension\n"
+          "is below called local_stokes_dim.\n"
           "\n"
           "The polarisation to apply is selected by *pol_angle*. This angle is\n"
           "defined as in *sensor_pol* (i.e. 0 and 90 equal V and H, respectively).\n"
           "\n"
-          "If local_stokes_dim was set to 2 in *surfaceMapToSinglePolInit*, the\n"
-          "generated *surface_rmatrix is assumed to have the structure:\n"
+          "If local_stokes_dim was set to 2, *surface_rmatrix is assumed to have\n"
+          "the structure:\n"
           "   [ (rv+rh)/2 (rv-rh)/2; \n"
           "     (rv-rh)/2 (rv+rh)/2 ],\n"
           "while if local_stokes_dim was set to 3 or 4, the mapping involves\n"
           "several transformation matrices. The later case covers also couplings\n"
           "between V/H and +-45 deg, and the mapping is described in the ARTS\n"
-          "theory guide, in section \"Rotated modified Stokes vector\".\n"),
+          "theory guide, in section \"Rotated modified Stokes vector\".\n"
+          "\n"
+          "In general it should suffice to set local_stokes_dim to 2, that gives\n"
+          "slightly faster calculations. A local_stokes_dim of 3 handles any case\n"
+          "correctly.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("stokes_dim", "surface_emission", "surface_rmatrix"),
+      OUT("surface_emission", "surface_rmatrix"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stokes_dim", "surface_emission", "surface_rmatrix"),
+      IN("surface_emission", "surface_rmatrix", "stokes_dim"),
       GIN("pol_angle"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Polarisation angle, see above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceMapToSinglePolInit"),
-      DESCRIPTION(
-          "Initialise change of Stokes basis for surface RT properties.\n"
-          "\n"
-          "This method allows to set the surface properties to match a specific\n"
-          "linear polarisation for scalar calculation (stokes_dim=1). If you want\n"
-          "this, you place this method at the start of *surface_rtprop_agenda*\n"
-          "and the accompanying *surfaceMapToSinglePolCalc* at the end of the same\n"
-          "agenda.\n"
-          "\n"
-          "This method checks if *stokes_dim* actually is set to 1 and changes its\n"
-          "value to local_stokes_dim. The mapping of the surface properties to\n"
-          "scalarcounterparts is performed by *surfaceMapToSinglePolCalc*, where\n"
-          "the output polarisation is selected.\n"
-          "\n"
-          "In general it should suffice to set local_stokes_dim to 2, that gives\n"
-          "slightly faster calculations. The default value of 3 handles any case\n"
-          "correctly. See *surfaceMapToSinglePolCalc* for more details.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("stokes_dim"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("stokes_dim"),
-      GIN("local_stokes_dim"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("3"),
-      GIN_DESC("The Stokes dimension to apply locally (2-4).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceTelsem"),
