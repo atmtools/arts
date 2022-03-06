@@ -176,7 +176,7 @@ void HydrotableCalc(Workspace& ws,
       pnd_profiles(ise0+ise,joker) = pnd_data(joker,ise);
     }
     
-    // We use methods from disort to calculate opt props
+    // We use methods from disort to calculate the opt props
     get_paroptprop(ext_bulk_par,
                    abs_bulk_par,
                    scat_data,

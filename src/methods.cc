@@ -7180,7 +7180,21 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("HydrotableCalc"),
       DESCRIPTION(
-          "Work in progress ....\n"),
+         "Creates a look-up table of scattering properties.\n"
+         "\n"
+         "The table produced largely follows the format used in RTTOV-SCATT for\n"
+         "its \"hydrotables\". The table is returned as a GriddedField4, with\n"
+         "dimensions (in order):\n"
+         "   Scattering property\n"
+         "   Frequency (equals WSV f_grid)\n"
+         "   Temperature (equals GIN T_grid)\n"
+         "   Particle content [kg/m3]  (equals GIN wc_grid)\n"
+         "\n"
+         "Four scattering properties are calculated. They are (in order)\n"
+         "   Extinction [m-1]\n"
+         "   Single scattering albedo [-]\n"
+         "   Asymmetry parameter [-]\n"
+         "   Radar reflectivity [m2]\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("hydrotable"),
