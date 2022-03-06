@@ -7178,6 +7178,27 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("HydrotableCalc"),
+      DESCRIPTION(
+          "Work in progress ....\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("hydrotable"),
+      GOUT_TYPE("GriddedField4"),
+      GOUT_DESC("Generated hydrotable with format described above."),
+      IN("pnd_agenda_array",
+         "pnd_agenda_array_input_names",
+         "scat_data",
+         "scat_data_checked",
+         "f_grid"),
+      GIN("iss", "T_grid", "wc_grid"),
+      GIN_TYPE("Index", "Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("Index of scattering species.",
+               "Temperature grid of table.",
+               "Water content grid of table.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("Ignore"),
       DESCRIPTION(
           "Ignore a workspace variable.\n"

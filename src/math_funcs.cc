@@ -276,6 +276,29 @@ void nlogspace(Vector& x,
   x[n - 1] = stop;
 }
 
+//! trapz
+/*! 
+    Integration by the basic trapezoidal rule
+
+    \param x   Grid values
+    \param y   Integrand
+
+    \return The resulting integral
+
+    \author Patrick Eriksson
+    \date 2022-03-06
+*/
+Numeric trapz(ConstVectorView x,
+              ConstVectorView y)
+{
+  const Index n = x.nelem();
+  ARTS_ASSERT(y.nelem() == n);
+  Numeric sum = 0.0;
+  for (Index i=1; i<n; ++i)
+    sum += (x[i]-x[i-1]) * (y[i]+y[i-1]);
+  return sum/2.0;
+}
+
 //! AngIntegrate_trapezoid
 /*! 
     Performs an integration of a matrix over all directions defined in angular
