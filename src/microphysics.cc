@@ -65,33 +65,29 @@ Numeric asymmetry_parameter(ConstVectorView sa_grid,
   ARTS_ASSERT(abs(sa_grid[n-1]-180.0) < 1.0e-3);
   ARTS_ASSERT(pfun.nelem() == n);
 
-  Vector za = sa_grid;
-  za *= DEG2RAD;
+  Vector sa = sa_grid;
+  sa *= DEG2RAD;
 
-  // Comments on integration:
-  // Some constants terms (including pi) skipped as cancelled by the normalisation
-  
-  // Azimuthal weighting
-  Vector azi_w = za;
-  transform(azi_w, sin, azi_w);
-
-  // Scattering angle weighting
-  Vector cterm = za;
+  // Sine and cosine of scattering angle
+  Vector sterm = sa;
+  transform(sterm, sin, sterm);
+  Vector cterm = sa;
   transform(cterm, cos, cterm);
 
   // Functions to integrate 
   Vector f1(n), f2(n);
   for (Index i=0; i<n; ++i) {
-    f1[i] = azi_w[i] * pfun[i];
+    f1[i] = sterm[i] * pfun[i];
     f2[i] = cterm[i] * f1[i];
   }
-  
-  const Numeric normfac = trapz(za, f1);
+
+  // We skip some 2, 4 and pi, as they all cancel in the end
+  const Numeric normfac = trapz(sa, f1);
 
   if (normfac < 1e-12) {
     return 0.0;  // If very small scattering cross-section, set to zero
   } else {       // to avoid numerical issues
-    return trapz(za, f2) / normfac;
+    return trapz(sa, f2) / normfac;
   }
 }
 
