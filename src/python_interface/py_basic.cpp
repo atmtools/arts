@@ -1,6 +1,7 @@
 #include <py_auto_interface.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
+
 #include <algorithm>
 #include <iterator>
 #include <stdexcept>
@@ -50,7 +51,7 @@ void py_basic(py::module_& m) {
       .def(py::self + py::self)
       .def(py::self += py::self)
       .def(py::self == py::self)
-      .def("__hash__", [](String& x){return py::hash(py::str(x));})
+      .def("__hash__", [](String& x) { return py::hash(py::str(x)); })
       .doc() =
       R"--(
 The Arts String class
@@ -81,6 +82,17 @@ be accessed without copy using element-wise access operators.
                                {x.nelem()},
                                {sizeof(Index)});
       })
+      .def_property("value",
+                    py::cpp_function(
+                        [](ArrayOfIndex& x) {
+                          py::capsule do_nothing(x.data(), [](void*) {});
+                          return py::array_t<Index>({x.nelem()},
+                                                      {sizeof(Numeric)},
+                                                      x.data(),
+                                                      do_nothing);
+                        },
+                        py::return_value_policy::reference_internal),
+                    [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
       .doc() =
       "The Arts ArrayOfIndex class\n"
       "\n"
@@ -100,7 +112,8 @@ be accessed without copy using element-wise access operators.
   py::implicitly_convertible<std::vector<Index>, ArrayOfIndex>();
 
   PythonInterfaceWorkspaceArray(ArrayOfIndex);
-  py::implicitly_convertible<std::vector<std::vector<Index>>, ArrayOfArrayOfIndex>();
+  py::implicitly_convertible<std::vector<std::vector<Index>>,
+                             ArrayOfArrayOfIndex>();
 
   py::class_<Numeric_>(m, "Numeric")
       .def(py::init<>())

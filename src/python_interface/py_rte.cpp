@@ -230,14 +230,14 @@ void py_rte(py::module_& m) {
       .PythonInterfaceBasicReferenceProperty(
           GasAbsLookup, species, Species, Species)
       .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup, nonlin_species, NonLinearSpecies, NonLinearSpecies)
+          GasAbsLookup, non_linear_species, NonLinearSpecies, NonLinearSpecies)
       .PythonInterfaceBasicReferenceProperty(GasAbsLookup, f_grid, Fgrid, Fgrid)
       .PythonInterfaceBasicReferenceProperty(
           GasAbsLookup, flag_default, FLAGDefault, FLAGDefault)
       .PythonInterfaceBasicReferenceProperty(GasAbsLookup, p_grid, Pgrid, Pgrid)
       .PythonInterfaceBasicReferenceProperty(
           GasAbsLookup, log_p_grid, LogPgrid, LogPgrid)
-      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, vmrs_ref, VMRs, VMRs)
+      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, vmrs, VMRs, VMRs)
       .PythonInterfaceBasicReferenceProperty(GasAbsLookup, t_ref, Tref, Tref)
       .PythonInterfaceBasicReferenceProperty(GasAbsLookup, t_pert, Tpert, Tpert)
       .PythonInterfaceBasicReferenceProperty(
