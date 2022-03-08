@@ -107,6 +107,30 @@ be accessed without copy using element-wise access operators.
       .def(py::init<Numeric>())
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
       .def(
+          "__ne__",
+          [](Numeric_& a, Numeric_ b) { return a.val != b.val; },
+          py::is_operator())
+      .def(
+          "__eq__",
+          [](Numeric_& a, Numeric_ b) { return a.val == b.val; },
+          py::is_operator())
+      .def(
+          "__le__",
+          [](Numeric_& a, Numeric_ b) { return a.val <= b.val; },
+          py::is_operator())
+      .def(
+          "__ge__",
+          [](Numeric_& a, Numeric_ b) { return a.val >= b.val; },
+          py::is_operator())
+      .def(
+          "__lt__",
+          [](Numeric_& a, Numeric_ b) { return a.val < b.val; },
+          py::is_operator())
+      .def(
+          "__gt__",
+          [](Numeric_& a, Numeric_ b) { return a.val > b.val; },
+          py::is_operator())
+      .def(
           "__mul__",
           [](Numeric_& a, Numeric_ b) { return a.val * b.val; },
           py::is_operator())
@@ -184,6 +208,30 @@ You can get copies and set the value by the \"val\" property
       .def(py::init<Index>())
       .def(py::init<Numeric>())
       .PythonInterfaceWorkspaceVariableConversion(Index_)
+      .def(
+          "__ne__",
+          [](Index_& a, Index_ b) { return a.val != b.val; },
+          py::is_operator())
+      .def(
+          "__eq__",
+          [](Index_& a, Index_ b) { return a.val == b.val; },
+          py::is_operator())
+      .def(
+          "__le__",
+          [](Index_& a, Index_ b) { return a.val <= b.val; },
+          py::is_operator())
+      .def(
+          "__ge__",
+          [](Index_& a, Index_ b) { return a.val >= b.val; },
+          py::is_operator())
+      .def(
+          "__lt__",
+          [](Index_& a, Index_ b) { return a.val < b.val; },
+          py::is_operator())
+      .def(
+          "__gt__",
+          [](Index_& a, Index_ b) { return a.val > b.val; },
+          py::is_operator())
       .def(
           "__mul__",
           [](Index_& a, Index_ b) { return a.val * b.val; },

@@ -11,15 +11,13 @@ from pyarts.xml import load, save
 
 ws = Workspace()
 
-@arts_agenda(ws)
+@arts_agenda
 def ppath_agenda(ws):
       ws.Ignore(ws.rte_pos2)
       ws.ppathStepByStep()
 
 
 class TestAgendas:
-    ws = ws
-    
     """
     Tests the calling of ARTS workspace methods.
     """
@@ -30,6 +28,7 @@ class TestAgendas:
         self.setup_workspace()
 
     def setup_workspace(self):
+        self.ws = Workspace()
         self.ws.execute_controlfile("artscomponents/clearsky/TestClearSky.arts")
 
     def test_assignment(self):
@@ -64,7 +63,7 @@ class TestAgendas:
 
         assert self.ws.atmosphere_dim.value == 2
 
-        add_1.append(add_1)
+        add_1.append_agenda_methods(add_1)
         add_1.execute(self.ws)
 
         assert self.ws.atmosphere_dim.value == 4

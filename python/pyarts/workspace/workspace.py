@@ -22,6 +22,18 @@ Workspace = cxx.Workspace
 Agenda = cxx.Agenda
 
 
+class DelayedAgenda:
+    """ Helper class to delay the parsing of an Agenda until a workspace exist
+    """
+    
+    def __init__(self, func, allow_callbacks, set_agenda):
+        self.func = func
+        self.allow_callbacks = allow_callbacks
+        self.set_agenda = set_agenda
+    def __call__(self, ws):
+        return parse_function(self.func, ws, self.allow_callbacks, self.set_agenda)
+
+
 def Include(ws, path):
     """ Parse and execute the .arts file at path onto the current workspace ws
     
@@ -33,7 +45,7 @@ def Include(ws, path):
     else:
         Agenda(ws, path).execute(ws)
 
-def arts_agenda(ws, /, func=None, *, allow_callbacks=False, set_agenda=False):
+def arts_agenda(func=None, *, ws=None, allow_callbacks=False, set_agenda=False):
     """
     Decorator to parse a Python method as ARTS agenda
 
@@ -83,8 +95,6 @@ def arts_agenda(ws, /, func=None, *, allow_callbacks=False, set_agenda=False):
     workspace agenda)
     """
     
-    assert isinstance(ws, Workspace), f"Expects Workspace Input got {type(ws)}"
-    
     def agenda_decorator(func):
         return parse_function(func, ws, allow_callbacks=allow_callbacks, set_agenda=set_agenda)
     
@@ -104,7 +114,10 @@ def parse_function(func, arts, allow_callbacks, set_agenda):
     Return:
         An 'Agenda' object containing the code in the given function.
     """
-    assert isinstance(arts, Workspace), "Expects Workspace"
+    if arts is None:
+        return DelayedAgenda(func, allow_callbacks, set_agenda)
+    
+    assert isinstance(arts, Workspace), f"Expects Workspace, got {type(arts)}"
     
     source = getsource(func)
     source = unindent(source)

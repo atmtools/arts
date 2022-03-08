@@ -400,9 +400,20 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
     os << R"--(  py::cpp_function([](Workspace& w) -> WorkspaceVariable {
     return WorkspaceVariable{w, )--" << data.artspos
        << "};\n  }, py::return_value_policy::reference_internal),\n";
-    os << "  [](Workspace& w, " << data.varname_group << " val) {\n    "
-       << data.varname_group << "& v_ = WorkspaceVariable{w, " << data.artspos
+    
+    os << "  [](Workspace& w, ";
+    if (data.varname_group == "Agenda")
+      os << "std::variant<Agenda, std::function<py::object(Workspace&)>> var_";
+    else
+      os << data.varname_group << ' ';
+    os << "val) {\n    ";
+
+    os << data.varname_group << "& v_ = WorkspaceVariable{w, " << data.artspos
        << "};\n    ";
+    
+    if (data.varname_group == "Agenda")
+    os << "Agenda val = std::holds_alternative<Agenda>(var_val) ? std::get<Agenda>(var_val) : py::cast<Agenda>(std::get<std::function<py::object(Workspace&)>>(var_val)(w));\n    ";
+
     if (data.varname_group == "Agenda")
       os << "val.set_name(\"" << name
          << "\");\n    val.check(w, WorkspaceVariable{w, " << verbpos << "});\n    ";
@@ -1444,10 +1455,17 @@ WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
   for (auto& [name, group] : arts.group) {
     os << "    case " << group
        << ":\n"
-          "      if (std::holds_alternative<py::object *>(x)) {\n"
-          "        * reinterpret_cast<"
-       << name << " *>(ws[pos]) = py::cast<"<<name<<">(* std::get<py::object *>(x));\n"
-     << "      } else {\n"
+          "      if (std::holds_alternative<py::object *>(x)) {";
+    if (name == "Agenda") {
+          os << R"--(
+        auto var_val = py::cast<std::variant<Agenda, std::function<py::object(Workspace&)>>>(* std::get<py::object *>(x));
+        * reinterpret_cast<Agenda *>(ws[pos]) = std::move(std::holds_alternative<Agenda>(var_val) ? std::get<Agenda>(var_val) : py::cast<Agenda>(std::get<std::function<py::object(Workspace&)>>(var_val)(ws)));
+)--";
+    } else {
+      os << "\n        * reinterpret_cast<"
+        << name << " *>(ws[pos]) = py::cast<"<<name<<">(* std::get<py::object *>(x));\n";
+    }
+    os << "      } else {\n"
           "        ARTS_USER_ERROR_IF(not std::holds_alternative<"
        << name;
     if (name == "Index" or name == "Numeric") os << "_";

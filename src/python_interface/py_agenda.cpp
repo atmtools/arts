@@ -239,6 +239,9 @@ void py_agenda(py::module_& m) {
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init<>())
+      .def(py::init([](const std::function<py::object(Workspace&)>& f, Workspace& ws) {
+        return py::cast<Agenda>(f(ws));
+      }))
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
         Agenda* a = parse_agenda(
@@ -468,7 +471,8 @@ so Copy(a, out=b) will not even see the b variable.
             a.push_back(simple_set_method(val));
             a.push_back(MRecord(method_ptr->second, {}, {in}, {}, {}));
             a.push_back(simple_delete_method(val));
-          }, py::doc(R"--(
+          },
+          py::doc(R"--(
 Adds a callback method to the Agenda
 
 Parameters
@@ -477,14 +481,20 @@ Parameters
         The workspace for which the Agenda works
     f : CallbackFunction
         A method that takes ws and only ws as input
-)--"), py::arg("ws"), py::arg("f"))
+)--"),
+          py::arg("ws"),
+          py::arg("f"))
       .def("append_agenda_methods",
-           [](Agenda& self, Agenda& other) {
+           [](Agenda& self, Agenda other) {  // explicit copy
              for (auto& method : other.Methods()) self.push_back(method);
            })
-      .def("execute",
-           &Agenda::execute,
-           "Executes the agenda as if it was the main agenda")
+      .def(
+          "execute",
+          [](Agenda& a, Workspace& ws) {
+            a.set_main_agenda();
+            a.execute(ws);
+          },
+          "Executes the agenda as if it was the main agenda")
       .def(
           "check",
           [](Agenda& a, Workspace& w) {
@@ -493,7 +503,8 @@ Parameters
           },
           py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
-      .def("__repr__", [](Agenda& a) { return var_string("Agenda ", a.name()); })
+      .def("__repr__",
+           [](Agenda& a) { return var_string("Agenda ", a.name()); })
       .def("__str__", [](Agenda& a) {
         std::string out =
             var_string("Arts Agenda ", a.name(), " with methods:\n");
