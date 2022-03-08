@@ -619,6 +619,11 @@ class Tensor5 : public Tensor5View {
     mdata = nullptr;
     return out;
   }
+
+  template <class F>
+  void transform_elementwise(F&& func) {
+    std::transform(mdata, mdata+size(), mdata, func);
+  }
 };
 
 // Function declarations:

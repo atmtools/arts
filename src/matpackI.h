@@ -95,6 +95,7 @@
 #ifndef matpackI_h
 #define matpackI_h
 
+#include <algorithm>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -1012,6 +1013,11 @@ class Vector : public VectorView {
   /** Destructor for Vector. This is important, since Vector uses new to
     allocate storage. */
   virtual ~Vector();
+
+  template <class F>
+  void transform_elementwise(F&& func) {
+    std::transform(mdata, mdata+size(), mdata, func);
+  }
 };
 
 // Declare class Matrix:
@@ -1301,6 +1307,11 @@ class Matrix : public MatrixView {
   }
 
   Numeric* get_raw_data() ARTS_NOEXCEPT { return mdata; }
+
+  template <class F>
+  void transform_elementwise(F&& func) {
+    std::transform(mdata, mdata+size(), mdata, func);
+  }
 };
 
 // Function declarations:

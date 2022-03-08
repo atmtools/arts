@@ -239,7 +239,7 @@ void py_agenda(py::module_& m) {
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init<>())
-      .def(py::init([](const std::function<py::object(Workspace&)>& f, Workspace& ws) {
+      .def(py::init([](Workspace& ws, const std::function<py::object(Workspace&)>& f) {
         return py::cast<Agenda>(f(ws));
       }))
       .PythonInterfaceWorkspaceVariableConversion(Agenda)

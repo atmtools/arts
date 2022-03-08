@@ -41,7 +41,7 @@ class TestAgendas:
     def test_include(self):
         ws = self.ws
 
-        @arts_agenda(self.ws)
+        @arts_agenda(ws=self.ws)
         def ppath_agenda_inc(ws):
             INCLUDE(ppath_agenda)
 
@@ -54,7 +54,7 @@ class TestAgendas:
 
         self.ws.atmosphere_dim = 1
 
-        @arts_agenda(self.ws)
+        @arts_agenda(ws=self.ws)
         def add_1(ws):
             ws.IndexAdd(ws.atmosphere_dim,
                         ws.atmosphere_dim,
@@ -70,7 +70,7 @@ class TestAgendas:
 
         args = [self.ws.atmosphere_dim, self.ws.atmosphere_dim, 1]
 
-        @arts_agenda(self.ws)
+        @arts_agenda(ws=self.ws)
         def add_2(ws):
             ws.IndexAdd(*args)
 
@@ -92,7 +92,7 @@ class TestAgendas:
 
         import scipy.constants as c
 
-        @arts_agenda(ws, allow_callbacks=True)
+        @arts_agenda(ws=ws, allow_callbacks=True)
         def space_agenda(ws):
             # Since everything happens in Python we need
             # to tell ARTS that we are using all in and outputs.
@@ -111,8 +111,8 @@ class TestAgendas:
             b = c1 * f ** 3 / (np.exp(c2 * f / t) - 1.0)
 
             # Put into iy vector.
-            ws.iy = np.zeros((f.size, ws.stokes_dim.value))
-            ws.iy.value[:, 0] = b
+            ws.iy = np.zeros((f.size, ws.stokes_dim.value.val))
+            ws.iy.value.value[:, 0] = b
 
         # Copy ppath_agenda into workspace.
         ws.iy_space_agenda = space_agenda
@@ -128,7 +128,7 @@ class TestAgendas:
         Test a very complicated Python callback.
         """
 
-        @arts_agenda(self.ws, allow_callbacks=True)
+        @arts_agenda(ws=self.ws, allow_callbacks=True)
         def agenda(ws):
             """
             This agenda sets a workspace variable in a very
@@ -156,7 +156,7 @@ class TestAgendas:
         This covers https://github.com/atmtools/arts/issues/368
         """
         with pytest.raises(ValueError):
-            @arts_agenda(self.ws)
+            @arts_agenda(ws=self.ws)
             def my_agenda(ws):
                   ws.UnknownMethod()
 
@@ -164,7 +164,7 @@ class TestAgendas:
         """
         Test expansion of starred expression.
         """
-        @arts_agenda(self.ws)
+        @arts_agenda(ws=self.ws)
         def agenda(ws):
             """
             This agenda uses a starred expression.
@@ -179,7 +179,7 @@ class TestAgendas:
         """
         Test expansion of starred expression.
         """
-        @arts_agenda(self.ws)
+        @arts_agenda(ws=self.ws)
         def agenda(ws):
             """
             This agenda uses a starred expression.
@@ -196,7 +196,7 @@ class TestAgendas:
         Ensure that exception is thrown when a agenda
         variable is set to an invalid value.
         """
-        @arts_agenda(self.ws, allow_callbacks=True)
+        @arts_agenda(ws=self.ws, allow_callbacks=True)
         def abs_xsec_agenda(ws):
               pass
         self.ws = pyarts.workspace.Workspace()

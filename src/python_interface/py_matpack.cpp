@@ -25,6 +25,15 @@
           py::is_operator())                                      \
                                                                   \
       .def(                                                       \
+          "__rpow__",                                              \
+          [](const Type& a, Numeric_ b) {                         \
+            Type c = a;                                           \
+            c.transform_elementwise(                              \
+                [b](Numeric x) { return std::pow(b, x); });       \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
+      .def(                                                       \
           "__rmul__",                                             \
           [](const Type& a, Numeric_ b) {                         \
             Type c = a;                                           \
@@ -59,6 +68,15 @@
           },                                                      \
           py::is_operator())                                      \
                                                                   \
+      .def(                                                       \
+          "__pow__",                                              \
+          [](const Type& a, Numeric_ b) {                         \
+            Type c = a;                                           \
+            c.transform_elementwise(                              \
+                [b](Numeric x) { return std::pow(x, b); });       \
+            return c;                                             \
+          },                                                      \
+          py::is_operator())                                      \
       .def(                                                       \
           "__mul__",                                              \
           [](const Type& a, Numeric_ b) {                         \
@@ -226,7 +244,7 @@ void py_matpack(py::module_& m) {
             return a * b;
           },
           py::is_operator())
-      .def_property_readonly("size", [](Vector& x){ return x.size(); } )
+      .def_property_readonly("size", [](Vector& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Vector& x) { return x.shape().data; },
@@ -328,7 +346,7 @@ void py_matpack(py::module_& m) {
           "T",
           [](const Matrix& x) { return Matrix(transpose(x)); },
           "Non-trivial transpose")
-      .def_property_readonly("size", [](Matrix& x){ return x.size(); } )
+      .def_property_readonly("size", [](Matrix& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Matrix& x) { return x.shape().data; },
@@ -414,7 +432,7 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor3)
       .PythonInterfaceFileIO(Tensor3)
       .PythonInterfaceMatpackMath(Tensor3)
-      .def_property_readonly("size", [](Tensor3& x){ return x.size(); } )
+      .def_property_readonly("size", [](Tensor3& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor3& x) { return x.shape().data; },
@@ -507,7 +525,7 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor4)
       .PythonInterfaceFileIO(Tensor4)
       .PythonInterfaceMatpackMath(Tensor4)
-      .def_property_readonly("size", [](Tensor4& x){ return x.size(); } )
+      .def_property_readonly("size", [](Tensor4& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor4& x) { return x.shape().data; },
@@ -608,7 +626,7 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor5)
       .PythonInterfaceFileIO(Tensor5)
       .PythonInterfaceMatpackMath(Tensor5)
-      .def_property_readonly("size", [](Tensor5& x){ return x.size(); } )
+      .def_property_readonly("size", [](Tensor5& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor5& x) { return x.shape().data; },
@@ -719,7 +737,7 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor6)
       .PythonInterfaceFileIO(Tensor6)
       .PythonInterfaceMatpackMath(Tensor6)
-      .def_property_readonly("size", [](Tensor6& x){ return x.size(); } )
+      .def_property_readonly("size", [](Tensor6& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor6& x) { return x.shape().data; },
@@ -842,7 +860,7 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
       .PythonInterfaceMatpackMath(Tensor7)
-      .def_property_readonly("size", [](Tensor7& x){ return x.size(); } )
+      .def_property_readonly("size", [](Tensor7& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor7& x) { return x.shape().data; },

@@ -513,6 +513,11 @@ class Tensor4 : public Tensor4View {
     mdata = nullptr;
     return out;
   }
+
+  template <class F>
+  void transform_elementwise(F&& func) {
+    std::transform(mdata, mdata+size(), mdata, func);
+  }
 };
 
 // Function declarations:
