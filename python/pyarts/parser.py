@@ -292,7 +292,7 @@ class AgendaDefinition:
         """
         Print agenda definition in Python syntax.
         """
-        s = f"@arts_agenda({workspace})\ndef " + self.name + "({}):\n".format(workspace)
+        s = f"@arts_agenda(ws={workspace})\ndef " + self.name + "({}):\n".format(workspace)
         cs = ""
         for c in self.content:
             cs += to_python(c, workspace)
@@ -326,7 +326,7 @@ class AgendaAppend:
         """
         Print agenda definition in Python syntax.
         """
-        s = f"@arts_agenda({workspace})\ndef " + self.name + "({}):\n".format(workspace)
+        s = f"@arts_agenda(ws={workspace})\ndef " + self.name + "({}):\n".format(workspace)
         cs = ""
         for c in self.content:
             cs += to_python(c, workspace)
