@@ -312,7 +312,7 @@ class Range {
   friend class ConstTensor7View;
   friend class Tensor7View;
   friend class Tensor7;
-  friend class Sparse;
+  friend struct Sparse;
   friend class ConstComplexVectorView;
   friend class ComplexVectorView;
   friend class ComplexVector;

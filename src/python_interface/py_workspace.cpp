@@ -85,13 +85,23 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
           "create_variable",
           [](Workspace& w,
              const char* group,
-             const char* name,
+             const char* name_,
              std::optional<const char*> desc) {
             using global_data::workspace_memory_handler;
 
             const Index group_index = get_wsv_group_id(group);
             ARTS_USER_ERROR_IF(
                 group_index < 0, "Cannot recognize group: ", group)
+
+            String name;
+            if (name_) {
+              name = name_;
+            } else {
+              Index i = 0;
+              while (w.WsvMap.find(name = var_string("::auto::", group, i++)) not_eq
+                     w.WsvMap.end()) {
+              }
+            }
 
             auto varptr = w.WsvMap.find(name);
             ARTS_USER_ERROR_IF(
@@ -100,14 +110,15 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
                 "Already exist of different group: ",
                 name)
 
-            w.push(w.add_wsv_inplace(
-                       WsvRecord(name,
-                                 desc.has_value() ? *desc : "No description",
-                                 group_index)),
-                   workspace_memory_handler.allocate(group_index));
+            const Index pos = w.add_wsv_inplace(
+                WsvRecord(name.c_str(),
+                          desc.has_value() ? *desc : "No description",
+                          group_index));
+            w.push(pos, workspace_memory_handler.allocate(group_index));
+            return WorkspaceVariable{w, pos};
           },
           py::arg("group").none(false),
-          py::arg("name").none(false),
+          py::arg("name"),
           py::arg("desc") = std::nullopt)
       .def(
           "__delattr__",
@@ -124,7 +135,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
 
   ws.def(
       "__getattr__",
-      [](Workspace& w, const char* name) {
+      [](Workspace& w, const String& name) {
         auto varpos = w.WsvMap.find(name);
         if (varpos == w.WsvMap.end())
           throw pybind11::attribute_error(var_string('\'', name, '\''));

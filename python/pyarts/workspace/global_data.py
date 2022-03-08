@@ -53,13 +53,22 @@ def convert(group, value):
         value = eval(value)
     
     if groupname == "Index":
-        return int(value)
+        return np.int64(value)
+    
+    if groupname == "ArrayOfIndex":
+        return np.array(value, dtype=np.int64, order='C', ndmin=1)
+    
+    if groupname == "ArrayOfArrayOfIndex":
+        return eval(np.array2string(np.array(value, dtype=np.int64, order='C', ndmin=2)))
         
     if groupname == "String":
         return str(value)
         
     if groupname == "Numeric":
-        return float(value)
+        return np.float64(value)
+    
+    if groupname == "Vector":
+        return np.array(value, dtype=np.float64, order='C', ndmin=1)
     
     if groupname == "Matrix":
         return np.array(value, dtype=np.float64, order='C', ndmin=2)

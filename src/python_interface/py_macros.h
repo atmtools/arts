@@ -204,6 +204,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
   auto_impl_name##BaseType.doc() = "The Arts ArrayOf" #BaseType " class"; \
                                                                           \
   py::implicitly_convertible<std::vector<BaseType>, ArrayOf##BaseType>(); \
+  py::implicitly_convertible<py::list, ArrayOf##BaseType>();              \
                                                                           \
   auto_impl_name##BaseType.PythonInterfaceFileIO(ArrayOf##BaseType)       \
       .PythonInterfaceBasicRepresentation(ArrayOf##BaseType)              \

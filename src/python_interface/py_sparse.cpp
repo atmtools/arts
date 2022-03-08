@@ -1,5 +1,10 @@
 #include <py_auto_interface.h>
+#include <pybind11/detail/common.h>
+#include <pybind11/pybind11.h>
+#include <stdexcept>
+#include <tuple>
 
+#include "debug.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -10,9 +15,32 @@ void py_sparse(py::module_& m) {
       .def(py::init<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>>())
       .PythonInterfaceWorkspaceVariableConversion(Sparse)
       .PythonInterfaceFileIO(Sparse)
-      .PythonInterfaceBasicRepresentation(Sparse);
-  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, Sparse>();
-  
+      .PythonInterfaceBasicRepresentation(Sparse)
+      .def(
+          "__getitem__",
+          [](Sparse& x, std::tuple<Index, Index> ind) -> Numeric& {
+            const auto [r, c] = ind;
+            if (r < 0 or r >= x.nrows())
+              throw std::out_of_range(var_string("row ", r));
+            if (c < 0 or c >= x.ncols())
+              throw std::out_of_range(var_string("col ", c));
+            return x.rw(r, c);
+          },
+          py::return_value_policy::reference_internal)
+      .def("__setitem__",
+           [](Sparse& x, std::tuple<Index, Index> ind, Numeric y) {
+             const auto [r, c] = ind;
+             if (r < 0 or r >= x.nrows())
+               throw std::out_of_range(var_string("row ", r));
+             if (c < 0 or c >= x.ncols())
+               throw std::out_of_range(var_string("col ", c));
+             x.rw(r, c) = y;
+           })
+      .def_readwrite("value", &Sparse::matrix)
+      .def("toarray", [](Sparse& sp) { return Eigen::MatrixXd(sp.matrix); });
+  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
+                             Sparse>();
+
   py::enum_<Block::MatrixType>(m, "BlockMatrixType")
       .value("dense", Block::MatrixType::dense)
       .value("sparse", Block::MatrixType::sparse);

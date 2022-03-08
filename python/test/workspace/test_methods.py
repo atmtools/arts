@@ -26,11 +26,10 @@ class TestMethods:
 
     def test_mixed_arguments(self):
         """
-        Check that this raises a syntax error.
+        Check that this works.
         """
         ws = self.ws
-        with pytest.raises(SyntaxError):
-            ws.yCalc(ws.yf, y_f = ws.y_f)
+        ws.yCalc(ws.yf, y_f = ws.y_f)
 
     def test_unexpected_argument(self):
         """

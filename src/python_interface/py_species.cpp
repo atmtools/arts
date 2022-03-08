@@ -1,5 +1,6 @@
 #include <py_auto_interface.h>
 #include <pybind11/attr.h>
+#include <pybind11/operators.h>
 
 #include "py_macros.h"
 
@@ -78,7 +79,8 @@ void py_species(py::module_& m) {
       .def_readwrite("type", &SpeciesTag::type)
       .def_readwrite("cia_2nd_species", &SpeciesTag::cia_2nd_species)
       .def_readwrite("cia_dataset_index", &SpeciesTag::cia_dataset_index)
-      .PythonInterfaceBasicRepresentation(SpeciesTag);
+      .PythonInterfaceBasicRepresentation(SpeciesTag)
+      .def(py::self == py::self);
   py::implicitly_convertible<py::str, SpeciesTag>();
 
   py::class_<ArrayOfSpeciesTag>(m, "ArrayOfSpeciesTag")
@@ -86,6 +88,7 @@ void py_species(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfSpeciesTag)
       .PythonInterfaceBasicRepresentation(ArrayOfSpeciesTag)
       .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)
+      .def(py::self == py::self)
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<const char*>(), py::arg("str").none(false))
@@ -110,6 +113,7 @@ void py_species(py::module_& m) {
   py::implicitly_convertible<std::vector<py::str>, ArrayOfSpeciesTag>();
   py::implicitly_convertible<py::str, ArrayOfSpeciesTag>();
 
-  PythonInterfaceWorkspaceArray(ArrayOfSpeciesTag);
+  PythonInterfaceWorkspaceArray(ArrayOfSpeciesTag)
+      .def(py::self == py::self);
 }
 }  // namespace Python

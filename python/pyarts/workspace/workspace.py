@@ -28,7 +28,10 @@ def Include(ws, path):
     The Arts parser is invoked on the file at path.  The methods and commands
     of this file are executed
     """
-    Agenda(ws, path).execute(ws)
+    if isinstance(path, Agenda):
+        path.execute(ws)
+    else:
+        Agenda(ws, path).execute(ws)
 
 def arts_agenda(ws, /, func=None, *, allow_callbacks=False, set_agenda=False):
     """

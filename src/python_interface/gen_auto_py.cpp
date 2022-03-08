@@ -1446,19 +1446,14 @@ WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
        << ":\n"
           "      if (std::holds_alternative<py::object *>(x)) {\n"
           "        * reinterpret_cast<"
-       << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>(ws[pos]) = * std::get<py::object *>(x) -> cast<" << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>();\n";
-    os << "      } else {\n"
+       << name << " *>(ws[pos]) = py::cast<"<<name<<">(* std::get<py::object *>(x));\n"
+     << "      } else {\n"
           "        ARTS_USER_ERROR_IF(not std::holds_alternative<"
        << name;
     if (name == "Index" or name == "Numeric") os << "_";
     os << " *>(x), \"Cannot cast between internal classes\")\n"
           "        * reinterpret_cast<"
        << name;
-    if (name == "Index" or name == "Numeric") os << "_";
     os << " *>(ws[pos]) = * std::get<" << name;
     if (name == "Index" or name == "Numeric") os << "_";
     os << " *>(x);\n      }\n";
@@ -1511,7 +1506,7 @@ WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
 
 void workspace_access(std::ofstream& os, const NameMaps& arts) {
   os << R"--(
-ws.def("__setattr__", [](Workspace& w, const char * name, WorkspaceVariablesVariant x) {
+ws.def("__setattr__", [](Workspace& w, const String& name, WorkspaceVariablesVariant x) {
   auto varpos = w.WsvMap.find(name);
 
   bool newname = varpos == w.WsvMap.end();
@@ -1521,7 +1516,7 @@ ws.def("__setattr__", [](Workspace& w, const char * name, WorkspaceVariablesVari
   for (auto& [name, group] : arts.group) {
     os << "if (std::holds_alternative<" << name;
     if (name == "Index" or name == "Numeric") os << "_";
-    os << R"--( *>(x)) i = w.add_wsv_inplace(WsvRecord(name, "User-generated value", )--"
+    os << R"--( *>(x)) i = w.add_wsv_inplace(WsvRecord(name.c_str(), "User-generated value", )--"
        << group << "));\n    else ";
   }
 

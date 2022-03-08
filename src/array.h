@@ -50,7 +50,7 @@ typedef Array<Numeric> ArrayOfNumeric;
 // Declare the existance of Vector/Matrix/Tensor classes:
 class Vector;
 class Matrix;
-class Sparse;
+struct Sparse;
 class Tensor3;
 class Tensor4;
 class Tensor5;
