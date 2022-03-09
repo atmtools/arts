@@ -4,7 +4,10 @@
 #include <algorithm>
 #include <fstream>
 #include <ostream>
+#include <sstream>
 #include <utility>
+#include "debug.h"
+#include "mystring.h"
 
 /** Implements pybind11 bindings generation for Arts workspace
  *
@@ -807,6 +810,11 @@ struct ArgumentHelper {
   ArrayOfString types;
 };
 
+struct VariadicInfo {
+  Index counter;
+  String name, type, first, second;
+};
+
 void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
                                const NameMaps& arts) {
   auto* osptr = oss.begin();
@@ -1110,8 +1118,31 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
 
       // Interpret the right variables
       counter = 0;
+      std::vector<VariadicInfo> input_var_args;
       for (auto& arg : arg_help) {
         if (arg.types.size() > 1) {
+          if (arg.in and not arg.out and allow_py_object_input) {
+            VariadicInfo x;
+            x.counter = counter;
+            x.name = var_string("arg", counter, '_');
+            x.type = arg.types[i];
+            x.first = var_string("py::cast<",
+                                 arg.types[i],
+                                 ">(* std::get<py::object *>(wvv_arg",
+                                 counter,
+                                 "_))");
+            x.second = var_string(
+                "*std::get<",
+                arg.types[i],
+                ((arg.types[i] == "Numeric" or arg.types[i] == "Index") ? '_'
+                                                                        : ' '),
+                "*>(wvv_arg",
+                counter,
+                "_)");
+            input_var_args.push_back(x);
+            continue;
+          }
+
           os << "    ";
           if (not arg.out) os << "const ";
           os << arg.types[i];
@@ -1132,7 +1163,8 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
 
       // Arguments from Arts side
       has_any = false;
-      os << "    " << method.name << '(';
+      std::ostringstream method_os;
+      method_os << method.name << '(';
       if (pass_workspace or
           (std::any_of(extra_workspace_for_agenda.begin(),
                        extra_workspace_for_agenda.end(),
@@ -1143,7 +1175,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
              return arg.types.size() > 1 and (arg.types[i] == "Agenda" or
                                               arg.types[i] == "ArrayOfAgenda");
            }))) {
-        os << "w_";
+        method_os << "w_";
         has_any = true;
       }
 
@@ -1154,21 +1186,77 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
         gouts += arg.gen and arg.out;
 
         while (method.pass_wsv_names and not arg.out and gouts not_eq 0) {
-          os << ", arg" << counter - (gouts--) << "_name_";
+          method_os << ", arg" << counter - (gouts--) << "_name_";
         }
 
-        if (has_any) os << ", ";
+        if (has_any) method_os << ", ";
         has_any = true;
-        os << "arg" << counter++ << "_";
+        method_os << "arg" << counter++ << "_";
       }
 
       while (method.pass_wsv_names and gins not_eq 0) {
-        os << ", arg" << counter - (gins--) << "_name_";
+        method_os << ", arg" << counter - (gins--) << "_name_";
       }
 
-      if (pass_verbosity) os << ", arg" << counter << "_";
-      os << ");\n";
+      if (pass_verbosity) method_os << ", arg" << counter << "_";
+      method_os << ");";
 
+      const String method_call = method_os.str();
+
+      if (allow_py_object_input and input_var_args.size()) {
+        Index s=4;
+        auto spaces = [](Index N){std::ostringstream space; for(Index i=0; i<N; i++) space << ' '; return space.str();};
+
+        // keywords to find a logical path
+        const String path1 = "__#1__";
+        const String path2 = "__#2__";
+        String path1_exe;
+        String path2_exe;
+
+        // Get the last argument to work from
+        VariadicInfo last = input_var_args.back();
+        input_var_args.pop_back();
+        ARTS_ASSERT(
+            input_var_args.size() == 0,
+            "You need to implement a better parser. Sorry!  We had no examples of multiple "
+            "GIN in a function that gives GOUT before you added the ",
+            method.name,
+            " method, so this is not supported (yet) as it could not be tested")
+
+        String full_exe =
+            var_string(spaces(s),
+                       "if (std::holds_alternative<py::object *>(wvv_arg",
+                       last.counter, "_)) {\n", spaces(s + 2),
+                       path1, '\n', spaces(s), "} else {\n",
+                       spaces(s + 2), path2, '\n', spaces(s), '}', '\n');
+        
+        // Path1 may have to be formed if it contains an agenda
+        if (last.type == "Agenda") {
+          path1_exe = method_call;
+          path1_exe.replace(path1_exe.find(last.name),
+                            last.name.length(),
+                            var_string("std::holds_alternative<Agenda>(",last.name,") ? std::get<Agenda>(",last.name,") : py::cast<Agenda>(std::get<std::function<py::object(Workspace&)>>(",last.name,")(w_))"));
+          path1_exe = var_string(
+              "auto ",
+              last.name,
+              " = py::cast<std::variant<Agenda, std::function<py::object(Workspace&)>>>(* std::get<py::object *>(wvv_arg",last.counter,"_));\n",
+              spaces(s + 2),
+              path1_exe);
+        } else {
+          path1_exe = var_string("const auto ", last.name, " = ", last.first, ';', '\n', spaces(s + 2), method_call);
+        }
+
+        // Make sure we can get references out of these values
+        path2_exe = var_string("const ", last.type, "& ", last.name, " = ", last.second, ';', '\n', spaces(s + 2), method_call);
+
+        full_exe.replace(full_exe.find(path1), path1.length(), path1_exe);
+        full_exe.replace(full_exe.find(path2), path2.length(), path2_exe);
+        //std::cerr << full_exe << '\n';
+
+        os << full_exe;
+      } else {
+        os << "    " << method_call << '\n';
+      }
       os << "  } else ";
     }
 
@@ -1201,8 +1289,6 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
     os << ")\"\n"
           "                    \"\\n\\n\"\n"
           "                    \"See method description for valid signatures\")\n  }\n}";
-
-    //os << "ARTS_USER_ERROR(\"Generic Arts function called but without exact match of input parameter types\")}";
 
     // Name the paramters and show their defaults
     print_method_args(os, method, pass_verbosity);
