@@ -1,5 +1,4 @@
 #include <py_auto_interface.h>
-#include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
 #include <stdexcept>
 #include <tuple>
@@ -12,7 +11,7 @@ void py_sparse(py::module_& m) {
   py::class_<Sparse>(m, "Sparse")
       .def(py::init<>())
       .def(py::init<Index, Index>())
-      .def(py::init<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>>())
+      .def(py::init([](Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es){Sparse s; s.matrix.swap(es); return s;}))
       .PythonInterfaceWorkspaceVariableConversion(Sparse)
       .PythonInterfaceFileIO(Sparse)
       .PythonInterfaceBasicRepresentation(Sparse)
@@ -38,8 +37,7 @@ void py_sparse(py::module_& m) {
            })
       .def_readwrite("value", &Sparse::matrix)
       .def("toarray", [](Sparse& sp) { return Eigen::MatrixXd(sp.matrix); });
-  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
-                             Sparse>();
+  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, Sparse>();
 
   py::enum_<Block::MatrixType>(m, "BlockMatrixType")
       .value("dense", Block::MatrixType::dense)

@@ -104,7 +104,7 @@ class TestVariables:
         d1 = np.ones(n - 1)
         d = np.ones(n)
         m = sp.sparse.diags(diagonals=[d2, d1, d, d1, d2],
-                            offsets=[2, 1, 0, -1, -2])
+                            offsets=[2, 1, 0, -1, -2]).tocsc()
         self.ws.sensor_response = m
         assert np.all(m.toarray() == self.ws.sensor_response.value.toarray())
 

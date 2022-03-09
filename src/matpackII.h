@@ -68,7 +68,6 @@ struct Sparse {
   // Constructors:
   Sparse();
   Sparse(Index r, Index c);
-  Sparse(Eigen::SparseMatrix<Numeric, Eigen::RowMajor>&& m) noexcept : matrix(std::move(m)) {}
 
   void split(Index offset, Index nrows);
 
