@@ -1205,7 +1205,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
 
       if (allow_py_object_input and input_var_args.size()) {
         Index s=4;
-        auto spaces = [](Index N){std::ostringstream space; for(Index i=0; i<N; i++) space << ' '; return space.str();};
+        auto spaces = [](Index NUM){std::ostringstream space; while(NUM--) space << ' '; return space.str();};
 
         // keywords to find a logical path
         const String path1 = "__#1__";

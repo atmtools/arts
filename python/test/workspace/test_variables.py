@@ -157,13 +157,20 @@ class TestVariables:
         """
         Create and set Time variable.
         """
-        times = ["2020-01-02 03:04:05", "2021-02-03 04:05:06"]
+        import datetime
+        times = ["2020-01-02 03:04:05.5", datetime.datetime.now()]
         self.ws.ArrayOfTimeCreate("time_1")
-        self.ws.ArrayOfTimeNLinSpace(self.ws.time_1, 2, times[0], times[1])
-        assert (
-                times[0] == str(self.ws.time_1.value[0])[0:19]
-                and times[1] == str(self.ws.time_1.value[1])[0:19]
-        )
+        self.ws.ArrayOfTimeNLinSpace(self.ws.time_1, 5, times[0], str(times[1]))
+        
+        assert self.ws.time_1.value[0].time.year == 2020
+        assert self.ws.time_1.value[0].time.month == 1
+        assert self.ws.time_1.value[0].time.day == 2
+        assert self.ws.time_1.value[0].time.hour == 3
+        assert self.ws.time_1.value[0].time.minute == 4
+        assert self.ws.time_1.value[0].time.second == 5
+        
+        time = pyarts.pyarts_cpp.Time(times[1])
+        assert time.time == times[1]
 
     def test_creation(self):
         """

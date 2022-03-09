@@ -24,6 +24,11 @@ void py_time(py::module_& m) {
 
   py::class_<Time>(m, "Time")
       .def(py::init<>())
+      .def(py::init([](std::chrono::system_clock::time_point nt) {
+        Time t;
+        t.time = nt;
+        return t;
+      }))
       .def(py::init([](Numeric x) {
         Time t;
         t.Seconds(x);
@@ -70,13 +75,14 @@ void py_time(py::module_& m) {
             return t2;
           },
           py::is_operator());
+  py::implicitly_convertible<std::chrono::system_clock::time_point, Time>();
   py::implicitly_convertible<py::str, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
-  PythonInterfaceWorkspaceArray(Time)
-  .def_property_readonly(
+  PythonInterfaceWorkspaceArray(Time).def_property_readonly(
       "as_datetime",
-      [](const ArrayOfTime& in) -> std::vector<std::chrono::system_clock::time_point> {
+      [](const ArrayOfTime& in)
+          -> std::vector<std::chrono::system_clock::time_point> {
         const Index n = in.nelem();
         std::vector<std::chrono::system_clock::time_point> out(n);
         for (Index i = 0; i < n; i++) out[i] = in[i].time;

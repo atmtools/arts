@@ -11,7 +11,11 @@ void py_sparse(py::module_& m) {
   py::class_<Sparse>(m, "Sparse")
       .def(py::init<>())
       .def(py::init<Index, Index>())
-      .def(py::init([](Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es){Sparse s; s.matrix.swap(es); return s;}))
+      .def(py::init([](Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
+        Sparse s;
+        s.matrix.swap(es);
+        return s;
+      }))
       .PythonInterfaceWorkspaceVariableConversion(Sparse)
       .PythonInterfaceFileIO(Sparse)
       .PythonInterfaceBasicRepresentation(Sparse)
@@ -35,7 +39,12 @@ void py_sparse(py::module_& m) {
                throw std::out_of_range(var_string("col ", c));
              x.rw(r, c) = y;
            })
-      .def_readwrite("value", &Sparse::matrix)
+      .def_property(
+          "value",
+          [](Sparse& s) { return s.matrix; },
+          [](Sparse& s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> ns) {
+            s.matrix.swap(ns);
+          })
       .def("toarray", [](Sparse& sp) { return Eigen::MatrixXd(sp.matrix); });
   py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, Sparse>();
 
