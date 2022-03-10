@@ -288,7 +288,7 @@ add_library (artscore STATIC
   tessem.cc
   timings.cc
   tmatrix.cc
-  tokval.h
+  tokval.cc
   transmissionmatrix.cc
   wigner_functions.cc
   workspace.cc
@@ -695,6 +695,6 @@ add_subdirectory(python_interface)
 
 ########### variant tokval
 add_executable (make_tokval_h make_tokval_h.cc groups.cc)
-add_custom_command(OUTPUT tokval.h
+add_custom_command(OUTPUT tokval.h tokval.cc
                    COMMAND make_tokval_h
                    DEPENDS make_tokval_h)

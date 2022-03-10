@@ -18,7 +18,7 @@
 extern Parameters parameters;
 
 namespace Python {
-Index create_workspace_gin_default_internal(Workspace& ws, String key);
+Index create_workspace_gin_default_internal(Workspace& ws, const String& key);
 
 std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy) {

@@ -684,10 +684,9 @@ void workspace_method_nongenerics(
     has_any = false;
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
       if (method.gin.hasdefs[i]) {
-        os << "  const " << method.gin.group[i] << " "
-           << method.gin.name[i] << "_{";
-        if (method.gin.defs[i] not_eq "{}") os << method.gin.defs[i];
-        os << "};\n";
+        os << "  const auto " << method.gin.name[i]
+           << "_ = " << method.gin.group[i] << '(' << method.gin.defs[i] << ')'
+           << ";\n";
         has_any = true;
       }
     }
@@ -819,7 +818,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
                                const NameMaps& arts) {
   auto* osptr = oss.begin();
 
-  ArrayOfString ignore{"Delete"};
+  ArrayOfString ignore_methods{"Delete"};
 
   ArrayOfString extra_workspace_for_agenda{"Append", "Copy"};
 
@@ -840,8 +839,8 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
                     }))
       continue;
 
-    if (ignore.end() not_eq
-        std::find(ignore.begin(), ignore.end(), method.name))
+    if (ignore_methods.end() not_eq
+        std::find(ignore_methods.begin(), ignore_methods.end(), method.name))
       continue;
 
     const bool pass_verbosity = std::none_of(
@@ -1390,9 +1389,9 @@ struct WorkspaceVariable {
 
   WorkspaceVariable(Workspace& ws_, Index group_index, const py::object& obj, bool allow_casting);
 
-  String name() const;
+  [[nodiscard]] String name() const;
 
-  Index group() const;
+  [[nodiscard]] Index group() const;
 
   void pop_workspace_level();
 
@@ -1452,6 +1451,8 @@ Index WorkspaceVariable::group() const {
 }
 
 WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py::object& obj, bool allow_casting) : ws(ws_), pos(-1) {
+  ARTS_USER_ERROR_IF(std::addressof(ws) not_eq std::addressof(ws_), "Cannot use a workspace variable from another workspace")
+
   try {
     *this = *obj.cast<WorkspaceVariable *>();
     return;
@@ -1468,10 +1469,7 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
 
   for (auto& [name, group] : arts.group) {
     if (name == "Any") continue;
-    os << "    case " << group << ": value_ptr = new " << name << "{* obj.cast<"
-       << name;
-    if (name == "Index" or name == "Numeric") os << '_';
-    os << " *>()}; break;\n";
+    os << "    case " << group << ": value_ptr = new " << name << "{py::cast<"<<name<<">(obj)}; break;\n";
   }
 
   os << R"--(    default: ARTS_USER_ERROR("Cannot create type")
@@ -1594,11 +1592,8 @@ WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
     if (name == "Agenda" or name == "ArrayOfAgenda") continue;
 
     os << "    case " << group << ": return ";
-    if (name == "Index" or name == "Numeric") os << name << '(';
     os << "* reinterpret_cast<" << name;
-    if (name == "Index" or name == "Numeric") os << "_";
     os << " *>(ws[pos])";
-    if (name == "Index" or name == "Numeric") os << ')';
     os << ";\n";
   }
 
@@ -1665,7 +1660,7 @@ void internal_defaults(std::ofstream& os, const NameMaps& arts) {
   }
 
   os << R"--(
-Index create_workspace_gin_default_internal(Workspace& ws, String key) {
+Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
   if (auto ptr = ws.WsvMap.find(key); ptr not_eq ws.WsvMap.end()) return ptr -> second;
   
   Index pos=-1;
@@ -1676,7 +1671,7 @@ Index create_workspace_gin_default_internal(Workspace& ws, String key) {
     os << "    static_cast<" << items.type
        << " &>(WorkspaceVariable{ws, pos = ws.add_wsv_inplace(WsvRecord(\""
        << key << R"(", "A default GIN value; modify at own risk", )"
-       << arts.group.at(items.type) << "))}) = " << items.val;
+       << arts.group.at(items.type) << "))}) = " << items.type << '(' << items.val << ')';
     os << ";\n";
     os << "  } else ";
   }
