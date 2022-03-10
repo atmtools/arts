@@ -122,14 +122,18 @@ void get_scattered_starsource(Workspace& ws,
  * @param[out] iy Matrix radiance spectrum of stars.
  * @param[out] stars_visible Index indicating if stars are in los
  * @param[in] star Star-structure.
- * @param ppath Propagation path as the WSV.
- * @param atmosphere_dim Index as the WSV.
- * @param refellipsoid Vector as the WSV.
+ * @param[in] ppath Propagation path as the WSV.
+ * @param[in] f_grid Vector as the WSV.
+ * @param[in] stokes_dim Index as the WSV.
+ * @param[in] atmosphere_dim Index as the WSV.
+ * @param[in] refellipsoid Vector as the WSV.
  */
 void get_star_background(Matrix& iy,
                          Index& stars_visible,
                          const ArrayOfStar& stars,
                          const Ppath& ppath,
+                         const Vector& f_grid,
+                         const Index& stokes_dim,
                          const Index& atmosphere_dim,
                          const Vector& refellipsoid);
 

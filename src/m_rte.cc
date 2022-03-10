@@ -560,13 +560,12 @@ void iyClearsky(
 
                 scattered_starlight += scattered_starlight_istar;
 
-//                if (jacobian_do) {
-//                  //TODO:Add Jacobian for the star radiation
-//                  for (int i_jac = 0; i_jac < nq; ++i_jac) {
-//                    dscattered_starlight[i_jac] +=
-//                        dscattered_starlight_istar[i_jac];
-//                  }
-//                }
+                if (jacobian_do && dscattered_starlight_istar.nelem()) {
+                  for (int i_jac = 0; i_jac < nq; ++i_jac) {
+                    dscattered_starlight[i_jac] +=
+                        dscattered_starlight_istar[i_jac];
+                  }
+                }
               }
             }
           }
@@ -601,7 +600,7 @@ void iyClearsky(
         stepwise_source(src_rad[ip],
                         dsrc_rad[ip],
                         scattered_starlight_istar,
-                        dscattered_starlight_istar,
+                        dscattered_starlight,
                         K[ip],
                         a,
                         S,
@@ -712,7 +711,7 @@ void iyClearsky(
   Matrix iy_direct(nf, ns, 0.);
 
   if (star_do) {
-    Matrix iy_direct_toa(nf, ns, 0.);
+    Matrix iy_direct_toa;
     Tensor3 total_transmission;
     total_transmission = tot_tra[np - 1];
     Index stars_visible;
@@ -723,6 +722,8 @@ void iyClearsky(
                         stars_visible,
                         stars,
                         ppath,
+                        f_grid,
+                        stokes_dim,
                         atmosphere_dim,
                         refellipsoid);
 

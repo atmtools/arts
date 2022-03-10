@@ -119,6 +119,8 @@ void get_star_background(Matrix& iy,
                          Index& stars_visible,
                          const ArrayOfStar& stars,
                          const Ppath& ppath,
+                         const Vector& f_grid,
+                         const Index& stokes_dim,
                          const Index& atmosphere_dim,
                          const Vector& refellipsoid) {
   const Index np = ppath.np;
@@ -126,14 +128,20 @@ void get_star_background(Matrix& iy,
   //set visibilty flag to default
   stars_visible = 0;
 
+  //allocate iy and set it to zero
+  iy.resize(f_grid.nelem(), stokes_dim);
+  iy=0.;
+
   Vector rtp_pos, rtp_los;
   rtp_pos.resize(atmosphere_dim);
   rtp_pos = ppath.pos(np - 1, Range(0, atmosphere_dim));
   rtp_los.resize(ppath.los.ncols());
   rtp_los = ppath.los(np - 1, joker);
 
-  for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-    get_star_radiation(iy, stars_visible, stars[i_star], rtp_pos, rtp_los, refellipsoid);
+  if (ppath_what_background(ppath) == 9 || ppath_what_background(ppath) == 1){
+    for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
+      get_star_radiation(iy, stars_visible, stars[i_star], rtp_pos, rtp_los, refellipsoid);
+    }
   }
 }
 
