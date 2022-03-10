@@ -8,7 +8,8 @@ git fetch --prune --depth=1 origin
 # Build pyarts
 git checkout --force ${GITHUB_REF#refs/heads/}; mkdir -p build; cd build;
 cmake3 -DCMAKE_BUILD_TYPE=Release -DENABLE_FORTRAN=1 -DBLAS_blas_LIBRARY=/usr/lib64/atlas/libtatlas.so -DLAPACK_lapack_LIBRARY=/usr/lib64/atlas/libtatlas.so ..
-make -j2 pyarts
+make -j2 arts
+make -j1 pyarts
 
 # Packaging
 cd python
