@@ -447,6 +447,17 @@ void iySurfaceFastem(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceInit(Matrix& iy,
+                   const Vector& f_grid,
+                   const Index& stokes_dim,
+                   const Verbosity& verbosity){
+
+  iy.resize(f_grid.nelem(),stokes_dim);
+  iy=0.;
+
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceLambertian(Workspace& ws,
                          Matrix& iy,
                          ArrayOfTensor3& diy_dx,

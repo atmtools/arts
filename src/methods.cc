@@ -9040,6 +9040,26 @@ Possible models:
                "The version of FASTEM to use.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceInit"),
+      DESCRIPTION(
+          "This method initialize iy.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*.\n"
+          "Its only prpose is to initialize *iy* properly within the \n"
+          "*iy_surface_agenda*\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "stokes_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceLambertian"),
       DESCRIPTION(
           "This method calculates upwelling radiation for a lambertian surface\n"
