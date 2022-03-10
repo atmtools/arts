@@ -158,7 +158,7 @@ class TestVariables:
         Create and set Time variable.
         """
         import datetime
-        times = ["2020-01-02 03:04:05.5", datetime.datetime.now()]
+        times = ["2020-01-02 03:04:05.1", datetime.datetime.now()]
         self.ws.ArrayOfTimeCreate("time_1")
         self.ws.ArrayOfTimeNLinSpace(self.ws.time_1, 5, times[0], str(times[1]))
         
