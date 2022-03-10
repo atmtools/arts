@@ -469,7 +469,7 @@ void run_rt4(Workspace& ws,
     // vmr_field is not freq-dependent, gas_extinct will remain as above
     // initialized (with 0) for all freqs, ie we can rely on that it wasn't
     // changed).
-    if (vmr.ncols() > 0) {
+    if (!vmr.empty()) {
       gas_optpropCalc(ws,
                       gas_extinct,
                       propmat_clearsky_agenda,

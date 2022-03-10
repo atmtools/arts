@@ -978,13 +978,14 @@ void particle_bulkpropRadarOnionPeeling(
           Numeric dbze_corr_abs = 0;  // Corrections for 2-way attenuation
           Numeric dbze_corr_hyd = 0;
           Numeric k_part_above = 0, k_abs_above = 0;
-          const Numeric hfac = 1 / cos(DEG2RAD * incangles(ilat, ilon));
+          // Take abs below if incangle wrongly given as viewing angle
+          const Numeric hfac = abs(1 / cos(DEG2RAD * incangles(ilat, ilon)));
 
           for (Index ip = np - 1; ip >= 0; ip--) {
             // Above clutter zone
             if (z_field(ip, ilat, ilon) >= z_surface(ilat, ilon) +
                                            hclutterm(ilat, ilon)) {
-              // Local dBZe, roughly corrected with attenuation for previos point
+              // Local dBZe, roughly corrected with attenuation for previous point
               Numeric dbze =
                   dBZe(ip, ilat, ilon) + dbze_corr_abs + dbze_corr_hyd;
                                 

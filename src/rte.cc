@@ -1534,7 +1534,7 @@ void iyb_calc_body(bool& failed,
     Vector rtp_pos, rtp_pos2(0);
     //
     rtp_pos = sensor_pos(mblock_index, joker);
-    if (transmitter_pos.nrows()) {
+    if (!transmitter_pos.empty()) {
       rtp_pos2 = transmitter_pos(mblock_index, joker);
     }
 

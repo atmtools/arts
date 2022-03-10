@@ -3642,7 +3642,7 @@ void define_md_data_raw() {
          "lon_true"),
       GIN("max500hpa_gradient"),
       GIN_TYPE("Numeric"),
-      GIN_DEFAULT("100"),
+      GIN_DEFAULT("500"),
       GIN_DESC("The maximum allowed gradient of 500 hPa pressure level [m/100km].")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -4204,19 +4204,29 @@ void define_md_data_raw() {
                " cloudbox lower limit is fixed to 0, i.e., corresponds to"
                " the lowest atmospheric level (or the surface).")));
 
-  md_data_raw.push_back(
-      create_mdrecord(NAME("cloudboxSetFullAtm"),
-               DESCRIPTION("Sets the cloudbox to cover the full atmosphere.\n"),
-               AUTHORS("Claudia Emde, Jana Mendrok"),
-               OUT("cloudbox_on", "cloudbox_limits"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("atmosphere_dim", "p_grid", "lat_grid", "lon_grid"),
-               GIN(),
-               GIN_TYPE(),
-               GIN_DEFAULT(),
-               GIN_DESC()));
+  md_data_raw.push_back(create_mdrecord(
+      NAME("cloudboxSetFullAtm"),
+      DESCRIPTION(
+          "Sets the cloudbox to cover the full atmosphere.\n"
+          "\n"
+          "The cloudbox is always set to fully span the atmosphere vertically.\n"
+          "\n"
+          "For the latitide and longitide dimensions, default is to leave room\n"
+          "between the cloudbox an the end of the atmosphere in these dimensions.\n"
+          "This is required for some scattering solvers (MC and DOIT). In other\n"
+          "cases it can be OK to let the cloudbox to fill the atmosphere fully\n"
+          "also in latitude and longitude. This is triggered by setting the GIN\n"
+          "fullfull to 1.\n"),
+      AUTHORS("Claudia Emde, Jana Mendrok, Patrick Eriksson"),
+      OUT("cloudbox_on", "cloudbox_limits"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmosphere_dim", "p_grid", "lat_grid", "lon_grid"),
+      GIN("fullfull"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Flag to let cloudbox reach ends of lat and lon grids.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetManually"),
@@ -4301,6 +4311,11 @@ void define_md_data_raw() {
           "and that the scattering element variables *pnd_field* and\n"
           "*scat_data* match in size.\n"
           "\n"
+          "Default is to demand that there is a margin between the cloudbox\n"
+          "and the ends of latitide and longitude grids. Such margins are\n"
+          "required by MC and DOIT/3D, but are not needed for e.g. IBA.\n"
+          "If the margins not are a demand, set GIN demand_latlon_margin to 0.\n"
+          "\n"
           "Further checks on *scat_data* are performed in *scat_data_checkedCalc*\n"
           "\n"
           "*scat_species* and *particle_masses* must either be empty or have a\n"
@@ -4333,10 +4348,11 @@ void define_md_data_raw() {
          "scat_species",
          "particle_masses",
          "abs_species"),
-      GIN("negative_pnd_ok"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Flag whether to accept pnd_field < 0.")));
+      GIN("demand_latlon_margin", "negative_pnd_ok"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT("1", "0"),
+      GIN_DESC("Flag to demand margin or not w.r.t. to ends of lat/lon grids.",
+               "Flag whether to accept pnd_field < 0.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_field_monoIterate"),
@@ -7162,6 +7178,41 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("HydrotableCalc"),
+      DESCRIPTION(
+         "Creates a look-up table of scattering properties.\n"
+         "\n"
+         "The table produced largely follows the format used in RTTOV-SCATT for\n"
+         "its \"hydrotables\". The table is returned as a GriddedField4, with\n"
+         "dimensions (in order):\n"
+         "   Scattering property\n"
+         "   Frequency (equals WSV f_grid)\n"
+         "   Temperature (equals GIN T_grid)\n"
+         "   Particle content [kg/m3]  (equals GIN wc_grid)\n"
+         "\n"
+         "Four scattering properties are calculated. They are (in order)\n"
+         "   Extinction [m-1]\n"
+         "   Single scattering albedo [-]\n"
+         "   Asymmetry parameter [-]\n"
+         "   Radar reflectivity [m2]\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("hydrotable"),
+      GOUT_TYPE("GriddedField4"),
+      GOUT_DESC("Generated hydrotable with format described above."),
+      IN("pnd_agenda_array",
+         "pnd_agenda_array_input_names",
+         "scat_data",
+         "scat_data_checked",
+         "f_grid"),
+      GIN("iss", "T_grid", "wc_grid"),
+      GIN_TYPE("Index", "Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("Index of scattering species.",
+               "Temperature grid of table.",
+               "Water content grid of table.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("Ignore"),
       DESCRIPTION(
           "Ignore a workspace variable.\n"
@@ -7468,6 +7519,35 @@ void define_md_data_raw() {
       GIN_TYPE("Matrix"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Field to interpolate.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("IntersectionGeometricalWithAltitude"),
+      DESCRIPTION(
+          "Calculates the geometrical intersection with an altitude.\n"
+          "\n"
+          "This method only handles 3D !!! For non-spherical geoids the altitude\n"
+          "obtained in *sensor_pos* can deviate a bit from the GIN altitude if\n"
+          "the position is outside of *lat_grid*, due to the internal handling\n"
+          "of the geoid. Improvements around this are planned, but not clear when\n"
+          "they will be in place.\n"
+          "\n"
+          "For each observation geometry specified by the combination of\n"
+          "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
+          "an altitude is determined. The intersections are described by the\n"
+          "GOUT *pos* and *los.\n"
+          "\n"
+          "For cases with no intersection, *pos* and *los* are filled with NaN.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("pos", "los"),
+      GOUT_TYPE("Matrix", "Matrix"),
+      GOUT_DESC("Position of intersections.",
+                "Line-of-sight at intersections."),
+      IN("sensor_pos", "sensor_los", "refellipsoid", "lat_grid", "lon_grid"),
+      GIN("altitude"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Target altitude.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("irradiance_fieldFromRadiance"),
@@ -17212,6 +17292,24 @@ void define_md_data_raw() {
       GIN_DESC("Target position, for each position in *sensor_pos*.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_losReverse"),
+      DESCRIPTION(
+          "Reverses the direction in *sensor_los*.\n"
+          "\n"
+          "The method updates *sensor_los* to have angles matching the reversed\n"
+          "direction.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_los", "atmosphere_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_poslosFromECEF"),
       DESCRIPTION(
           "Converts sensor position and LOS from ECEF to geocentric values.\n"
@@ -18711,63 +18809,43 @@ void define_md_data_raw() {
                "between 0 and 45 degrees.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceMapToSinglePolCalc"),
+      NAME("surfaceMapToLinearPolarisation"),
       DESCRIPTION(
-          "Apply change of Stokes basis for surface RT properties.\n"
+          "Convert surface RT properties to a linear polarisation.\n"
           "\n"
-          "See *surfaceMapToSinglePolInit* for an introdction to the method pair.\n"
+          "The properties converted are *surface_emission* and *surface_rmatrix*.\n"
+          "\n"
+          "This method allows to set the surface properties to match a specific\n"
+          "linear polarisation for scalar calculation (stokes_dim=1). If you want\n"
+          "this, you have to call the method(s) setting up the surface RT\n"
+          "properties with *stokes_dim* set to 2, 3 or 4. This Stokes dimension\n"
+          "is below called local_stokes_dim.\n"
           "\n"
           "The polarisation to apply is selected by *pol_angle*. This angle is\n"
           "defined as in *sensor_pol* (i.e. 0 and 90 equal V and H, respectively).\n"
           "\n"
-          "If local_stokes_dim was set to 2 in *surfaceMapToSinglePolInit*, the\n"
-          "generated *surface_rmatrix is assumed to have the structure:\n"
+          "If local_stokes_dim was set to 2, *surface_rmatrix is assumed to have\n"
+          "the structure:\n"
           "   [ (rv+rh)/2 (rv-rh)/2; \n"
           "     (rv-rh)/2 (rv+rh)/2 ],\n"
           "while if local_stokes_dim was set to 3 or 4, the mapping involves\n"
           "several transformation matrices. The later case covers also couplings\n"
           "between V/H and +-45 deg, and the mapping is described in the ARTS\n"
-          "theory guide, in section \"Rotated modified Stokes vector\".\n"),
+          "theory guide, in section \"Rotated modified Stokes vector\".\n"
+          "\n"
+          "In general it should suffice to set local_stokes_dim to 2, that gives\n"
+          "slightly faster calculations. A local_stokes_dim of 3 handles any case\n"
+          "correctly.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("stokes_dim", "surface_emission", "surface_rmatrix"),
+      OUT("surface_emission", "surface_rmatrix"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stokes_dim", "surface_emission", "surface_rmatrix"),
+      IN("surface_emission", "surface_rmatrix", "stokes_dim"),
       GIN("pol_angle"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Polarisation angle, see above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceMapToSinglePolInit"),
-      DESCRIPTION(
-          "Initialise change of Stokes basis for surface RT properties.\n"
-          "\n"
-          "This method allows to set the surface properties to match a specific\n"
-          "linear polarisation for scalar calculation (stokes_dim=1). If you want\n"
-          "this, you place this method at the start of *surface_rtprop_agenda*\n"
-          "and the accompanying *surfaceMapToSinglePolCalc* at the end of the same\n"
-          "agenda.\n"
-          "\n"
-          "This method checks if *stokes_dim* actually is set to 1 and changes its\n"
-          "value to local_stokes_dim. The mapping of the surface properties to\n"
-          "scalarcounterparts is performed by *surfaceMapToSinglePolCalc*, where\n"
-          "the output polarisation is selected.\n"
-          "\n"
-          "In general it should suffice to set local_stokes_dim to 2, that gives\n"
-          "slightly faster calculations. The default value of 3 handles any case\n"
-          "correctly. See *surfaceMapToSinglePolCalc* for more details.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("stokes_dim"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("stokes_dim"),
-      GIN("local_stokes_dim"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("3"),
-      GIN_DESC("The Stokes dimension to apply locally (2-4).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceTelsem"),

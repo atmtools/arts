@@ -433,7 +433,7 @@ void define_agenda_data() {
           "\n"
           "See also the include-file 'agendas.arts' for a predefined agenda\n"
           "suitable to be used in most applications.\n"),
-      OUTPUT("iy", "diy_dx", "dsurface_rmatrix_dx", "dsurface_emission_dx"),
+      OUTPUT("iy", "diy_dx"),
       INPUT("diy_dx",
             "dsurface_rmatrix_dx",
             "dsurface_emission_dx",
