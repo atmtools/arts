@@ -32,9 +32,6 @@ arts_test_run_ctlfile(fast artscomponents/helpers/TestForloop.arts)
 arts_test_run_ctlfile(fast artscomponents/helpers/TestAgendaCopy.arts)
 arts_test_run_ctlfile(fast artscomponents/helpers/TestHSE.arts)
 
-arts_test_run_ctlfile(fast artscomponents/agendas/TestAgendaExecute.arts)
-arts_test_run_ctlfile(fast artscomponents/agendas/TestArrayOfAgenda.arts)
-
 arts_test_run_ctlfile(fast artscomponents/absorption/TestAbs.arts)
 arts_test_run_ctlfile(fast
                       artscomponents/absorption/TestAbsDoppler.arts)
@@ -181,9 +178,6 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts)
 
-#  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Mars.arts)
-#  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Venus.arts)
-
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Earth.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Mars.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Venus.arts)
@@ -209,14 +203,7 @@ if (ARTS_XML_DATA_DIR)
   
   ##################################
   ### planet toolbox demos cases ###
-#  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/active/DemoLinkBudget.arts)
-
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoJupiter_fullRT_1D_clearsky.arts)
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_clearsky.arts)
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_3D_clearsky.arts)
-#  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_cloudy.arts)
   arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_clearsky.arts)
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_cloudy.arts)
 
   arts_test_run_ctlfile(fast artscomponents/cia/TestCIADerivs.arts)
 endif (ARTS_XML_DATA_DIR)

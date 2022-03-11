@@ -23,20 +23,13 @@ arts_test_run_pyfile(fast classes/TestXsecRecord.py)
 arts_test_run_pyfile(fast example/TestExample.py)
 arts_test_run_pyfile(fast raw/calib.py)
 arts_test_run_pyfile(fast raw/corr.py)
-
-if (ARTS_XML_DATA_DIR)
-    arts_test_run_pyfile(fast classes/TestAbsorptionLines.py)
-    arts_test_run_pyfile(fast classes/TestCIARecord.py)
-    arts_test_run_pyfile(fast classes/TestScatteringTypes.py)
-endif ()
-
-if (OEM_SUPPORT)
-    arts_test_run_ctlfile(fast artscomponents/oem/TestOEM.arts)
-endif (OEM_SUPPORT)
-
 arts_test_run_pyfile(fast test_tests.py)
 arts_test_run_pyfile(fast testdata/get_testdata.py)
 
-add_subdirectory(testdata)
+arts_test_run_ctlfile(fast artscomponents/agendas/TestAgendaExecute.arts)
+arts_test_run_ctlfile(fast artscomponents/agendas/TestArrayOfAgenda.arts)
+arts_test_run_ctlfile(fast artscomponents/catalog/TestReadCataloguePerrin.arts)
+arts_test_run_ctlfile(fast artscomponents/oem/TestOEM.arts)
 
+add_subdirectory(testdata)
 add_dependencies(check-deps arts_testdata_folder_download)
