@@ -158,6 +158,7 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("O2"), "MPM89"),
   IsotopeRecord(fromShortName("O2"), "MPM92"),
   IsotopeRecord(fromShortName("O2"), "MPM93"),
+  IsotopeRecord(fromShortName("O2"), "PWR2021"),
   IsotopeRecord(fromShortName("O2"), "PWR88"),
   IsotopeRecord(fromShortName("O2"), "PWR93"),
   IsotopeRecord(fromShortName("O2"), "PWR98"),

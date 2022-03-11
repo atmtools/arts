@@ -15,6 +15,12 @@ void compute_h2o(PropagationMatrix& propmat_clearsky,
                  const Numeric& p_pa,
                  const Numeric& t,
                  const Numeric& h2o_vmr) noexcept;
+void compute_o2(PropagationMatrix& propmat_clearsky,
+                const Vector& f_grid,
+                const Numeric& p_pa,
+                const Numeric& t,
+                const Numeric& o2_vmr,
+                const Numeric& h2o_vmr) noexcept;
 }  // namespace PWR2021
 
 namespace CKDMT350 {

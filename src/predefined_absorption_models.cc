@@ -68,6 +68,9 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
     case find_species_index(Species::Species::Oxygen, "MPM2020"):
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);
       return true;
+    case find_species_index(Species::Species::Oxygen, "PWR2021"):
+      if constexpr (not check_exist) PWR2021::compute_o2(pm, f, p, t, vmr.O2, vmr.H2O);
+      return true;
     case find_species_index(Species::Species::Water, "PWR2021"):
       if constexpr (not check_exist) PWR2021::compute_h2o(pm, f, p, t, vmr.H2O);
       return true;
