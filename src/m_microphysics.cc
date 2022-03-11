@@ -117,13 +117,14 @@ void HydrotableCalc(Workspace& ws,
   
   // Allocate *hydrotable*
   hydrotable.set_name("Table of particle optical properties");
-  hydrotable.data.resize(4, nf, nt, nw);
+  hydrotable.data.resize(5, nf, nt, nw);
   //
   hydrotable.set_grid_name(0, "Quantity");
   hydrotable.set_grid(0, {"Extinction [m-1]",
                           "Single scattering albedo [-]",
                           "Asymmetry parameter [-]",
-                          "Radar reflectivity [m2]"});
+                          "Radar reflectivity [m2]",
+                          "Test [-]"});
   hydrotable.set_grid_name(1, "Frequency [Hz]");
   hydrotable.set_grid(1, f_grid);
   hydrotable.set_grid_name(2, "Temperature [K]");
@@ -143,6 +144,7 @@ void HydrotableCalc(Workspace& ws,
   ArrayOfString dpnd_data_dx_names(0);
   Matrix ext(nf, nt);
   Matrix abs(nf, nt);
+  Matrix g2(nf, nt);  // !!!
   Tensor3 pfu(nf, nt, nsa);
   const Numeric fourpi = 4.0 * PI;
 
@@ -163,6 +165,7 @@ void HydrotableCalc(Workspace& ws,
     ext = 0.0;
     abs = 0.0;
     pfu = 0.0;
+    g2 = 0.0;   // !!!
  
     for (Index ie = 0; ie < ne; ie++) {
       // Temperature-only interpolation weights
@@ -191,9 +194,11 @@ void HydrotableCalc(Workspace& ws,
         for (Index it = 0; it < nt; it++) {
           ext(iv,it) += pnd_data(it,ie) * ext1[it];
           abs(iv,it) += pnd_data(it,ie) * abs1[it];
+          Numeric gthis = asymmetry_parameter(sa_grid, pfu1(it,joker)); // !!!
+          g2(iv,it) += pnd_data(it,ie)*(ext1[it]-abs1[it]) * gthis;   // !!!
           for (Index ia = 0; ia < nsa; ia++) {
             pfu(iv,it,ia) += pnd_data(it,ie) * pfu1(it,ia);
-          }
+          }          
         }
       }
     }
@@ -206,6 +211,7 @@ void HydrotableCalc(Workspace& ws,
         hydrotable.data(2,iv,it,iw) = asymmetry_parameter(sa_grid,
                                                           pfu(iv,it,joker));
         hydrotable.data(3,iv,it,iw) = fourpi * pfu(iv,it,nsa-1);
+        hydrotable.data(4,iv,it,iw) = g2(iv,it) / (ext(iv,it)-abs(iv,it));  // !!!
       }
     }
   }
