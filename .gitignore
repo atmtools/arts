@@ -19,4 +19,8 @@
 /tools/arts-control-lang/syntaxes/arts.tmLanguage.json
 Testing/
 __pycache__/
+tests/testdata/arts-cat-data
+tests/testdata/arts-xml-data
+tests/**/*.rep
+examples/**/*.rep
 heaptrack.*.gz

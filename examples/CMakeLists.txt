@@ -1,16 +1,13 @@
-arts_test_run_ctlfile(fast arts/general/agendas.arts)
-arts_test_run_ctlfile(fast arts/general/agendasDOIT.arts)
-arts_test_run_ctlfile(fast arts/general/agendas_surface.arts)
-arts_test_run_ctlfile(fast arts/general/continua.arts)
-arts_test_run_ctlfile(fast arts/general/general.arts)
-arts_test_run_ctlfile(fast arts/general/moon_io.arts)
-arts_test_run_ctlfile(fast arts/general/planet_earth.arts)
-arts_test_run_ctlfile(fast arts/general/planet_jupiter.arts)
-arts_test_run_ctlfile(fast arts/general/planet_mars.arts)
-arts_test_run_ctlfile(fast arts/general/planet_venus.arts)
+arts_test_run_ctlfile(fast general/agendas.arts)
+arts_test_run_ctlfile(fast general/agendasDOIT.arts)
+arts_test_run_ctlfile(fast general/agendas_surface.arts)
+arts_test_run_ctlfile(fast general/continua.arts)
+arts_test_run_ctlfile(fast general/general.arts)
+arts_test_run_ctlfile(fast general/planet_earth.arts)
 
 if (ARTS_XML_DATA_DIR)
+arts_test_run_ctlfile(fast general/moon_io.arts)
+arts_test_run_ctlfile(fast general/planet_jupiter.arts)
+arts_test_run_ctlfile(fast general/planet_mars.arts)
+arts_test_run_ctlfile(fast general/planet_venus.arts)
 endif (ARTS_XML_DATA_DIR)
-
-
-

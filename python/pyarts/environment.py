@@ -63,7 +63,11 @@ class _EnvironmentHandler:
         # Try to return the value from the user's environment.
         # If the key is not set, try to find it in the config.
         # If this also fails, return a default value.
-        return os.environ.get(key)
+        return os.environ.get(key, default)
+    
+    def keys(self):
+        """Returns keys to the environment."""
+        return os.environ.keys()
 
 
 environ = _EnvironmentHandler()

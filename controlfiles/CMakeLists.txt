@@ -157,18 +157,6 @@ if (ENABLE_NETCDF)
   arts_test_run_ctlfile(slow artscomponents/moltau/TestMolTau.arts)
 endif ()
 
-# if (ENABLE_RELMAT)
-#   if (FASTWIGNER)
-#     arts_test_run_ctlfile(fast artscomponents/linemixing/TestRelmat.arts)
-#   else()
-#     arts_test_run_ctlfile(slow artscomponents/linemixing/TestRelmat.arts)
-#   endif()
-# endif ()
-
-if (OEM_SUPPORT)
-  arts_test_run_ctlfile(fast artscomponents/oem/TestOEM.arts)
-endif ()
-
 ###################
 ### Instruments ###
 arts_test_run_ctlfile(fast instruments/odinsmr/TestOdinSMR.arts)

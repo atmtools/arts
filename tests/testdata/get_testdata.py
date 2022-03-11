@@ -1,0 +1,1 @@
+import pyarts.environmentimport pyarts.subversion_data as svnimport sysimport osnargs = len(sys.argv)if nargs > 2:    path = os.getcwd()    try:        os.chdir(sys.argv[1])        svn.get_test_files(*sys.argv[2:])    finally:        os.chdir(path)
