@@ -75,6 +75,7 @@ void DisortCalc(Workspace& ws,
                 const Vector& surface_scalar_reflectivity,
                 const Index& nstreams,
                 const Index& Npfct,
+                const Index& only_tro,
                 const Index& cdisort_quiet,
                 const Verbosity& verbosity) {
   // Don't do anything if there's no cloudbox defined.
@@ -122,6 +123,7 @@ void DisortCalc(Workspace& ws,
               za_grid,
               nstreams,
               Npfct,
+              only_tro,
               cdisort_quiet,
               verbosity);
 }
@@ -155,6 +157,7 @@ void DisortCalcWithARTSSurface(
     const Index& stokes_dim,
     const Index& nstreams,
     const Index& Npfct,
+    const Index& only_tro,
     const Index& cdisort_quiet,
     const Numeric& inc_angle,
     const Verbosity& verbosity) {
@@ -218,6 +221,7 @@ void DisortCalcWithARTSSurface(
               za_grid,
               nstreams,
               Npfct,
+              only_tro,
               cdisort_quiet,
               verbosity);
 }
@@ -303,6 +307,7 @@ void DisortCalcClearsky(Workspace& ws,
              surface_scalar_reflectivity,
              nstreams,
              181,
+             0,
              cdisort_quiet,
              verbosity);
 }

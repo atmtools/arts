@@ -5495,14 +5495,16 @@ void define_md_data_raw() {
          "z_surface",
          "surface_skin_t",
          "surface_scalar_reflectivity"),
-      GIN("nstreams", "Npfct", "quiet"),
-      GIN_TYPE("Index", "Index", "Index"),
-      GIN_DEFAULT("8", "181", "0"),
+      GIN("nstreams", "Npfct", "only_tro", "quiet"),
+      GIN_TYPE("Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("8", "181", "0", "0"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polynomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
+               "Set to 1 if the scattering data is just of TRO type. Has effect "
+               "only if Npfct > 3, but then leads to much faster calculatuions.",
                "Silence C Disort warnings.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -5539,14 +5541,16 @@ void define_md_data_raw() {
          "f_grid",
          "za_grid",
          "stokes_dim"),
-      GIN("nstreams", "Npfct", "quiet", "inc_angle"),
-      GIN_TYPE("Index", "Index", "Index", "Numeric"),
-      GIN_DEFAULT("8", "181", "0", "-1"),
+      GIN("nstreams", "Npfct", "quiet", "only_tro", "inc_angle"),
+      GIN_TYPE("Index", "Index", "Index", "Index", "Numeric"),
+      GIN_DEFAULT("8", "181", "0", "0", "-1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polynomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
+               "Set to 1 if the scattering data is just of TRO type. Has effect "
+               "only if Npfct > 3, but then leads to much faster calculatuions.",
                "Silence C Disort warnings.",
                "Incidence angle, see above.")));
 

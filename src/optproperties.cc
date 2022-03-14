@@ -2649,3 +2649,108 @@ String PTypeToString(const ParticleSSDMethod& particle_ssdmethod) {
 
   return particle_ssdmethod_string;
 }
+
+
+//! Extinction, absorption and phase function for one scattering species, 1D and TRO
+/*!
+ This function interpolates scat_data and sums up values to obtain the
+ extinction, absorption and phase function for one scattering species, on the
+ condition that scat_data only contains data of TRO-type and a 1D atmosphere is 
+ given.
+
+ For flexibility, the quantities are added to ext, mat and pfun. This means
+ that you need to set these variables to zero before calling this function for
+ the first or each scattering species.
+
+ The function gives error if not all data are TRO.
+
+ ext, abs, pfun and T_grid shall match the complete atmosphere, while pnd shall
+ match the cloudbox.
+
+ \param[in,out]  ext    Extinction [frequency, temperature]
+ \param[in,out]  abs    Absorption [frequency, temperature]
+ \param[in,out]  pfun   Phase function [frequency, temperature, scattering angle]
+ \param[in]  scat_data  Scattering data for one scattering species
+ \param[in]  pnd      Particle number density [scattering element, cloudbox level]
+ \param[in]  T_grid   Temperatures
+ \param[in]  sa_grid  Scattering angles
+ \param[in]  cloudbox_limits  Limits in pressure dimension
+
+
+ \author Patrick Eriksspn
+*/
+void ext_abs_pfun_from_tro(MatrixView ext,
+                           MatrixView abs,
+                           Tensor3View pfun,
+                           const ArrayOfSingleScatteringData& scat_data,
+                           ConstMatrixView pnd_data,
+                           ArrayOfIndex& cloudbox_limits,
+                           ConstVectorView T_grid,
+                           ConstVectorView sa_grid)
+{
+  // Sizes
+  const Index nse = scat_data.nelem(); 
+  const Index nf = scat_data[0].f_grid.nelem();
+  const Index nt = T_grid.nelem();
+  const Index nsa = sa_grid.nelem();
+
+  ARTS_ASSERT(ext.nrows() == nf);
+  ARTS_ASSERT(ext.ncols() == nt);
+  ARTS_ASSERT(abs.nrows() == nf);
+  ARTS_ASSERT(abs.ncols() == nt);
+  ARTS_ASSERT(pfun.npages() == nf);
+  ARTS_ASSERT(pfun.nrows() == nt);
+  ARTS_ASSERT(pfun.ncols() == nsa);
+  ARTS_ASSERT(cloudbox_limits.nelem() == 2);
+  ARTS_ASSERT(pnd_data.nrows() == nse);
+  ARTS_ASSERT(pnd_data.ncols() == cloudbox_limits[1]-cloudbox_limits[0]+1);
+  
+  // Check that all data is TRO 
+  {    
+    bool all_totrand = true;
+    for (Index ie = 0; ie < nse; ie++) {
+      if (scat_data[ie].ptype != PTYPE_TOTAL_RND)
+        all_totrand = false;
+    }
+    ARTS_USER_ERROR_IF (!all_totrand,
+                        "This method demands that all scat_data are TRO");
+  }
+  
+  // Loop scattering elements
+  for (Index ie = 0; ie < nse; ie++) {
+    
+    // Temperature-only interpolation weights
+    ArrayOfGridPos gp_t(nt);
+    gridpos(gp_t, scat_data[ie].T_grid, T_grid);
+    Matrix itw1(nt, 2);
+    interpweights(itw1, gp_t);
+
+    // Temperature + scattering angle interpolation weights
+    ArrayOfGridPos gp_sa(nsa);
+    gridpos(gp_sa, scat_data[ie].za_grid, sa_grid);
+    Tensor3 itw2(nt, nsa, 4);
+    interpweights(itw2, gp_t, gp_sa);
+
+    // Loop frequencies
+    for (Index iv = 0; iv < nf; iv++) {
+      // Interpolate
+      Vector ext1(nt), abs1(nt);
+      Matrix pfu1(nt,nsa);
+      interp(ext1, itw1, scat_data[ie].ext_mat_data(iv,joker,0,0,0), gp_t);
+      interp(abs1, itw1, scat_data[ie].abs_vec_data(iv,joker,0,0,0), gp_t);
+      interp(pfu1, itw2, scat_data[ie].pha_mat_data(iv,joker,joker,0,0,0,0),
+             gp_t, gp_sa);
+
+      // Add to container variables
+      for (Index it = 0; it < nt; it++) {
+        ext(iv,it) += pnd_data(ie,it) * ext1[it];
+        abs(iv,it) += pnd_data(ie,it) * abs1[it];
+        for (Index ia = 0; ia < nsa; ia++) {
+          pfun(iv,it,ia) += pnd_data(ie,it) * pfu1(it,ia);
+        }          
+      }
+    }
+  }
+}
+
+

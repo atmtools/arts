@@ -86,7 +86,6 @@ void HydrotableCalc(Workspace& ws,
 
   // Sizes
   const Index nss = scat_data.nelem(); 
-  const Index ne = scat_data[iss].nelem(); 
   const Index nf = f_grid.nelem();
   const Index nt = T_grid.nelem();
   const Index nw = wc_grid.nelem();
@@ -104,17 +103,6 @@ void HydrotableCalc(Workspace& ws,
                       "The scat_data must be flagged to have passed a "
                       "consistency check (scat_data_checked=1).");
 
-  // Check that all is TRO and determine flat scattering element positions
-  {    
-    bool all_totrand = true;
-    for (Index ie = 0; ie < ne; ie++) {
-      if (scat_data[iss][ie].ptype != PTYPE_TOTAL_RND)
-        all_totrand = false;
-    }
-    ARTS_USER_ERROR_IF (!all_totrand,
-                        "This method demands that all scat_data are TRO");
-  }
-  
   // Allocate *hydrotable*
   hydrotable.set_name("Table of particle optical properties");
   hydrotable.data.resize(5, nf, nt, nw);
@@ -144,10 +132,10 @@ void HydrotableCalc(Workspace& ws,
   ArrayOfString dpnd_data_dx_names(0);
   Matrix ext(nf, nt);
   Matrix abs(nf, nt);
-  Matrix g2(nf, nt);  // !!!
-  Tensor3 pfu(nf, nt, nsa);
+  Tensor3 pfun(nf, nt, nsa);
   const Numeric fourpi = 4.0 * PI;
-
+  ArrayOfIndex cbox_limits = {0, nt-1};
+  
   // Loop and fill table
   for (Index iw = 0; iw < nw; iw++) {
     // Call pnd_agenda
@@ -162,46 +150,18 @@ void HydrotableCalc(Workspace& ws,
                             dpnd_data_dx_names,
                             pnd_agenda_array);
 
+    // Calculate extinsion, absorbtion and phase function
     ext = 0.0;
     abs = 0.0;
-    pfu = 0.0;
-    g2 = 0.0;   // !!!
- 
-    for (Index ie = 0; ie < ne; ie++) {
-      // Temperature-only interpolation weights
-      ArrayOfGridPos gp_t(nt);
-      gridpos(gp_t, scat_data[iss][ie].T_grid, T_grid);
-      Matrix itw1(nt, 2);
-      interpweights(itw1, gp_t);
-
-      // Temperature + scattering angle interpolation weights
-      ArrayOfGridPos gp_a(nsa);
-      gridpos(gp_a, scat_data[iss][ie].za_grid, sa_grid);
-      Tensor3 itw2(nt, nsa, 4);
-      interpweights(itw2, gp_t, gp_a);
-
-      // Loop frequencies
-      for (Index iv = 0; iv < nf; iv++) {
-        // Interpolate
-        Vector ext1(nt), abs1(nt);
-        Matrix pfu1(nt,nsa);
-        interp(ext1, itw1, scat_data[iss][ie].ext_mat_data(iv,joker,0,0,0), gp_t);
-        interp(abs1, itw1, scat_data[iss][ie].abs_vec_data(iv,joker,0,0,0), gp_t);
-        interp(pfu1, itw2, scat_data[iss][ie].pha_mat_data(iv,joker,joker,0,0,0,0),
-               gp_t, gp_a);
-
-        // Add to container variables
-        for (Index it = 0; it < nt; it++) {
-          ext(iv,it) += pnd_data(it,ie) * ext1[it];
-          abs(iv,it) += pnd_data(it,ie) * abs1[it];
-          Numeric gthis = asymmetry_parameter(sa_grid, pfu1(it,joker)); // !!!
-          g2(iv,it) += pnd_data(it,ie)*(ext1[it]-abs1[it]) * gthis;   // !!!
-          for (Index ia = 0; ia < nsa; ia++) {
-            pfu(iv,it,ia) += pnd_data(it,ie) * pfu1(it,ia);
-          }          
-        }
-      }
-    }
+    pfun = 0.0;
+    ext_abs_pfun_from_tro(ext,
+                          abs,
+                          pfun,
+                          scat_data[iss],
+                          transpose(pnd_data),
+                          cbox_limits,
+                          T_grid,
+                          sa_grid);
     
     // Fill the hydrotable for present particle content
     for (Index iv = 0; iv < nf; iv++) {
@@ -209,9 +169,8 @@ void HydrotableCalc(Workspace& ws,
         hydrotable.data(0,iv,it,iw) = ext(iv,it);
         hydrotable.data(1,iv,it,iw) = 1.0 - (abs(iv,it) / ext(iv,it));
         hydrotable.data(2,iv,it,iw) = asymmetry_parameter(sa_grid,
-                                                          pfu(iv,it,joker));
-        hydrotable.data(3,iv,it,iw) = fourpi * pfu(iv,it,nsa-1);
-        hydrotable.data(4,iv,it,iw) = g2(iv,it) / (ext(iv,it)-abs(iv,it));  // !!!
+                                                          pfun(iv,it,joker));
+        hydrotable.data(3,iv,it,iw) = fourpi * pfun(iv,it,nsa-1);
       }
     }
   }
