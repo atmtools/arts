@@ -27,11 +27,18 @@ class DelayedAgenda:
     """
     
     def __init__(self, func, allow_callbacks, set_agenda):
-        self.func = func
-        self.allow_callbacks = allow_callbacks
-        self.set_agenda = set_agenda
+        self.func = [func]
+        self.allow_callbacks = [allow_callbacks]
+        self.set_agenda = [set_agenda]
+    def append_agenda_methods(self, other):
+        self.func.extend(other.func)
+        self.allow_callbacks.extend(other.allow_callbacks)
+        self.set_agenda.extend(other.set_agenda)
     def __call__(self, ws):
-        return parse_function(self.func, ws, self.allow_callbacks, self.set_agenda)
+        a = parse_function(self.func[0], ws, self.allow_callbacks[0], self.set_agenda[0])
+        for i in range(1, len(self.func)):
+            a.append_agenda_methods(parse_function(self.func[i], ws, self.allow_callbacks[i], self.set_agenda[i]))
+        return a
 
 
 def Include(ws, path):
