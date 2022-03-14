@@ -394,4 +394,36 @@ void compute_o2(PropagationMatrix& propmat_clearsky,
 
 }
 
+void compute_n2(PropagationMatrix& propmat_clearsky,
+                const Vector& f_grid,
+                const Numeric& p_pa,
+                const Numeric& t,
+                const Numeric& n2_vmr,
+                const Numeric& h2o_vmr) noexcept {
+    // Nitrogen absorption routine
+    // Based on absn2.f
+
+    using Constant::pow2;
+    using Conversion::pa2hpa, Conversion::hz2ghz;
+
+    const auto theta = 300.0 / t;
+    const auto pdry_pa = p_pa * (1.0 - h2o_vmr);
+    const auto pdry_hpa = pa2hpa(pdry_pa);
+    // absn2.f includes the N2 vmr in the continuum coefficient
+    // Here, we remove the (assumed) value to permit absorption
+    // to vary with N2 VMR - ARTS requires this for 
+    // propmat_clearsky_fieldCalc to work properly
+    constexpr Numeric assumed_n2_vmr = 0.781; // NEED TO CHECK ACTUAL VALUE STILL
+    constexpr Numeric continuum_coefficient = 9.95e-14 / pow2(assumed_n2_vmr);
+    const auto pn2_hpa = n2_vmr * pdry_hpa; // Partial pressure of N2
+    const auto cont = continuum_coefficient * pow2(pn2_hpa) * std::pow(theta, 3.22);
+    const Index nf = f_grid.nelem();
+    for (Index iv = 0; iv < nf; ++iv) {
+        const auto f_ghz = hz2ghz(f_grid[iv]);
+        const auto frequency_dependence = 0.5 + 0.5/(1.0 + pow2(f_ghz / 450.0));
+        const auto continuum = cont * frequency_dependence * pow2(f_ghz) / 1000.0;
+        propmat_clearsky.Kjj()[iv] += continuum;
+    }
+}
+
 } // namespace Absorption::PredefinedModel::PWR2021

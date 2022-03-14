@@ -290,6 +290,7 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("N2"), "DryContATM01"),
   IsotopeRecord(fromShortName("N2"), "SelfContBorysow"),
   IsotopeRecord(fromShortName("N2"), "SelfContMPM93"),
+  IsotopeRecord(fromShortName("N2"), "SelfContPWR2021"),
   IsotopeRecord(fromShortName("N2"), "SelfContPWR93"),
   IsotopeRecord(fromShortName("N2"), "SelfContStandardType"),
   /** N2 species **/

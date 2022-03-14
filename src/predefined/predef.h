@@ -21,6 +21,12 @@ void compute_o2(PropagationMatrix& propmat_clearsky,
                 const Numeric& t,
                 const Numeric& o2_vmr,
                 const Numeric& h2o_vmr) noexcept;
+void compute_n2(PropagationMatrix& propmat_clearsky,
+                const Vector& f_grid,
+                const Numeric& p_pa,
+                const Numeric& t,
+                const Numeric& n2_vmr,
+                const Numeric& h2o_vmr) noexcept;
 }  // namespace PWR2021
 
 namespace CKDMT350 {

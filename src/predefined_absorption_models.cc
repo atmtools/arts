@@ -74,6 +74,9 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
     case find_species_index(Species::Species::Water, "PWR2021"):
       if constexpr (not check_exist) PWR2021::compute_h2o(pm, f, p, t, vmr.H2O);
       return true;
+    case find_species_index(Species::Species::Nitrogen, "SelfContPWR2021"):
+      if constexpr (not check_exist) PWR2021::compute_n2(pm, f, p, t, vmr.N2, vmr.H2O);
+      return true;
     case find_species_index(Species::Species::Water, "ForeignContCKDMT350"):
       if constexpr (not check_exist)
         CKDMT350::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
@@ -139,6 +142,10 @@ bool compute_vmr_deriv(PropagationMatrix& dpm,
     case Species::Species::Water:
       dvmr = dvmr_calc<special>(vmr.H2O);
       if constexpr (not special) vmr.H2O += dvmr;
+      break;
+    case Species::Species::Nitrogen:
+      dvmr = dvmr_calc<special>(vmr.N2);
+      if constexpr (not special) vmr.N2 += dvmr;
       break;
     default:
       return false;  // Escape mechanism when nothing should be done

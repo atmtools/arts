@@ -43,6 +43,7 @@ namespace Absorption::PredefinedModel {
 struct VMRS {
   Numeric O2{0};
   Numeric H2O{0};
+  Numeric N2{0};
 
   /**  Construct a new VMRS object
    * 
@@ -51,14 +52,16 @@ struct VMRS {
    */
   VMRS(const ArrayOfArrayOfSpeciesTag& abs_species, const Vector& rtp_vmr) :
   O2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Oxygen)),
-  H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water))
+  H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water)),
+  N2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Nitrogen))
   {}
 
   constexpr VMRS() = default;
 
   friend std::ostream& operator<<(std::ostream& os, const VMRS& vmrs) {
     return os << "O2: " << vmrs.O2 << '\n' <<
-                 "H2O: " << vmrs.H2O << '\n';
+                 "H2O: " << vmrs.H2O << '\n' <<
+                 "N2: " << vmrs.N2 << '\n';
   }
 };
 
