@@ -239,9 +239,10 @@ void py_agenda(py::module_& m) {
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init<>())
-      .def(py::init([](Workspace& ws, const std::function<py::object(Workspace&)>& f) {
-        return py::cast<Agenda>(f(ws));
-      }))
+      .def(py::init(
+          [](Workspace& ws, const std::function<py::object(Workspace&)>& f) {
+            return py::cast<Agenda>(f(ws));
+          }))
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
         Agenda* a = parse_agenda(
@@ -450,7 +451,7 @@ so Copy(a, out=b) will not even see the b variable.
 )--")
       .def(
           "add_callback_method",
-          [](Agenda& a, Workspace& ws, const CallbackFunction& x) mutable {
+          [](Agenda& a, Workspace& ws, const CallbackFunction& f) mutable {
             const Index group_index = get_wsv_group_id("CallbackFunction");
             ARTS_USER_ERROR_IF(group_index < 0,
                                "Cannot recognize CallbackFunction")
@@ -460,7 +461,7 @@ so Copy(a, out=b) will not even see the b variable.
 
             Index in = ws.add_wsv_inplace(WsvRecord(
                 name.c_str(), "Callback created by pybind11 API", group_index));
-            ws.push(in, new CallbackFunction{x});
+            ws.push(in, new CallbackFunction{f});
 
             auto method_ptr =
                 global_data::MdMap.find("CallbackFunctionExecute");
@@ -484,10 +485,23 @@ Parameters
 )--"),
           py::arg("ws"),
           py::arg("f"))
-      .def("append_agenda_methods",
-           [](Agenda& self, Agenda other) {  // explicit copy
-             for (auto& method : other.Methods()) self.push_back(method);
-           })
+      .def(
+          "append_agenda_methods",
+          [](Agenda& self, const Agenda& other) {
+            const Index n = other.Methods().nelem();  // if other==self
+            for (Index i=0 ; i<n; i++) self.push_back(other.Methods()[i]);
+          },
+          py::doc(R"--(
+Appends the input agenda's methods to this agenda's method list
+
+Parameters
+----------
+other : Agenda
+    The other agenda
+
+Warning
+-------
+Both agendas must be defined on the same workspace)--"), py::arg("other"))
       .def(
           "execute",
           [](Agenda& a, Workspace& ws) {
