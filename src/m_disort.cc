@@ -468,6 +468,7 @@ void DisortCalcClearSky(Workspace& ws,
                      p_grid,
                      Vector(0),
                      Vector(0),
+                     0.,
                      verbosity);
 
   // Create data matching no particles
