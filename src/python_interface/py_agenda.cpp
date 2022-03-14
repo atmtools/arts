@@ -253,6 +253,7 @@ void py_agenda(py::module_& m) {
       }))
       .PythonInterfaceFileIO(Agenda)
       .def_property_readonly("main", &Agenda::is_main_agenda)
+      .def_property("name", &Agenda::name, &Agenda::set_name)
       .def_property_readonly("output2push", &Agenda::get_output2push)
       .def_property_readonly("output2dup", &Agenda::get_output2dup)
       .def("set_outputs_to_push_and_dup",

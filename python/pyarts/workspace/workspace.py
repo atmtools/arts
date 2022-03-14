@@ -26,18 +26,15 @@ class DelayedAgenda:
     """ Helper class to delay the parsing of an Agenda until a workspace exist
     """
     
-    def __init__(self, func, allow_callbacks, set_agenda):
-        self.func = [func]
-        self.allow_callbacks = [allow_callbacks]
-        self.set_agenda = [set_agenda]
+    def __init__(self, *args):
+        self.args = [[*args]]
     def append_agenda_methods(self, other):
-        self.func.extend(other.func)
-        self.allow_callbacks.extend(other.allow_callbacks)
-        self.set_agenda.extend(other.set_agenda)
+        self.args.extend(other.args)
     def __call__(self, ws):
-        a = parse_function(self.func[0], ws, self.allow_callbacks[0], self.set_agenda[0])
-        for i in range(1, len(self.func)):
-            a.append_agenda_methods(parse_function(self.func[i], ws, self.allow_callbacks[i], self.set_agenda[i]))
+        a = cxx.Agenda()
+        for args in self.args:
+            a.append_agenda_methods(continue_parser_function(ws, *args))
+        a.name = "<unknown>"
         return a
 
 
@@ -121,19 +118,27 @@ def parse_function(func, arts, allow_callbacks, set_agenda):
     Return:
         An 'Agenda' object containing the code in the given function.
     """
-    if arts is None:
-        return DelayedAgenda(func, allow_callbacks, set_agenda)
-    
-    assert isinstance(arts, Workspace), f"Expects Workspace, got {type(arts)}"
     
     source = getsource(func)
     source = unindent(source)
     ast = parse(source)
+    
+    context = copy(func.__globals__)
+    nls, _, _, _ = getclosurevars(func)
+    context.update(nls)
+    
+    if arts is None:
+        return DelayedAgenda(context, ast, allow_callbacks, set_agenda)
+    return continue_parser_function(arts, context, ast, allow_callbacks, set_agenda)
+
+
+def continue_parser_function(arts, context, ast, allow_callbacks, set_agenda):
+    assert isinstance(arts, Workspace), f"Expects Workspace, got {type(arts)}"
 
     func_ast = ast.body[0]
     if not isinstance(func_ast, FunctionDef):
         raise Exception("ARTS agenda definition can only decorate function definitions.")
-
+    
     args = func_ast.args.args
 
     try:
@@ -141,17 +146,11 @@ def parse_function(func, arts, allow_callbacks, set_agenda):
     except:
         raise Exception("Agenda definition needs workspace arguments.")
     
-    context = copy(func.__globals__)
     context.update({arg_name : arts})
     
-    # Add resolved non-local variables from closure.
-    nls, _, _, _ = getclosurevars(func)
-    context.update(nls)
-
     #
     # Helper functions
     #
-
     callback_body = []
     def callback_make_fun(body):
         """
