@@ -21,29 +21,14 @@
 #include <optional>
 #include <variant>
 
+#include "python_interface/python_interface_value_type.h"
+
 //! Contains a bunch of helper functions to manipulate python objects inside C++
 namespace Python {
 namespace py = pybind11;
 
-struct Numeric_ {
-  Numeric val;
-  constexpr operator Numeric&() { return val; }
-  constexpr operator const Numeric&() const { return val; }
-  constexpr Numeric_& operator=(Numeric x) {
-    val = x;
-    return *this;
-  }
-};
-
-struct Index_ {
-  Index val;
-  constexpr operator Index&() { return val; }
-  constexpr operator const Index&() const { return val; };
-  constexpr Index_& operator=(Index x) {
-    val = x;
-    return *this;
-  }
-};
+//! Only for debugs (and to suppress warning about the line above)
+template <class... Ts> void print(const Ts&... args) {py::print(args...);}
 
 template <class T, class VariantT>
 T& select_gout(VariantT& val) {

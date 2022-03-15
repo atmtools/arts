@@ -18,7 +18,6 @@ void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
 void py_workspace(py::module_& m, py::class_<Workspace>& ws);
 void py_agenda(py::module_& m);
-void py_std(py::module_& m);
 void py_global(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
@@ -36,7 +35,6 @@ PYBIND11_MODULE(pyarts_cpp, m) {
   m.doc() = "Contains direct C++ interface for Arts";
   auto ws = py::class_<Workspace>(m, "Workspace");
 
-  py_std(m);
   py_basic(m);
   py_matpack(m);
   py_griddedfield(m);
@@ -57,6 +55,6 @@ PYBIND11_MODULE(pyarts_cpp, m) {
   py_global(m);
 
   // Must be last, it contains automatic conversion operations
-  py_workspace(m, ws);  
+  py_workspace(m, ws);
 }
 }  // namespace Python

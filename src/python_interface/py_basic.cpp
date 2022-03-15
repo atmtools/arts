@@ -1,6 +1,4 @@
 #include <py_auto_interface.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
 
 #include <algorithm>
 #include <iterator>
@@ -13,6 +11,7 @@ namespace Python {
 void py_basic(py::module_& m) {
   py::class_<Verbosity>(m, "Verbosity")
       .def(py::init<>())
+      .def(py::init([](Index x){return Verbosity(x, x, x);}))
       .PythonInterfaceWorkspaceVariableConversion(Verbosity)
       .def(py::init<Index, Index, Index>(),
            py::arg("agenda") = 0,
@@ -40,6 +39,7 @@ void py_basic(py::module_& m) {
           [](Verbosity& x) { return x.is_main_agenda(); },
           [](Verbosity& x, bool i) { return x.set_main_agenda(i); },
           py::doc("Main class flag"));
+  py::implicitly_convertible<Index, Verbosity>();
 
   py::class_<String>(m, "String")
       .def(py::init<>())
@@ -117,52 +117,24 @@ be accessed without copy using element-wise access operators.
 
   py::class_<Numeric_>(m, "Numeric")
       .def(py::init<>())
+      .def(py::init<Index>())
       .def(py::init<Numeric>())
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
-      .def(
-          "__ne__",
-          [](Numeric_& a, Numeric_ b) { return a.val != b.val; },
-          py::is_operator())
-      .def(
-          "__eq__",
-          [](Numeric_& a, Numeric_ b) { return a.val == b.val; },
-          py::is_operator())
-      .def(
-          "__le__",
-          [](Numeric_& a, Numeric_ b) { return a.val <= b.val; },
-          py::is_operator())
-      .def(
-          "__ge__",
-          [](Numeric_& a, Numeric_ b) { return a.val >= b.val; },
-          py::is_operator())
-      .def(
-          "__lt__",
-          [](Numeric_& a, Numeric_ b) { return a.val < b.val; },
-          py::is_operator())
-      .def(
-          "__gt__",
-          [](Numeric_& a, Numeric_ b) { return a.val > b.val; },
-          py::is_operator())
-      .def(
-          "__mul__",
-          [](Numeric_& a, Numeric_ b) { return a.val * b.val; },
-          py::is_operator())
-      .def(
-          "__add__",
-          [](Numeric_& a, Numeric_ b) { return a.val + b.val; },
-          py::is_operator())
-      .def(
-          "__truediv__",
-          [](Numeric_& a, Numeric_ b) { return a.val / b.val; },
-          py::is_operator())
-      .def(
-          "__sub__",
-          [](Numeric_& a, Numeric_ b) { return a.val - b.val; },
-          py::is_operator())
-      .def(
-          "__pow__",
-          [](Numeric_& a, Numeric_ b) { return std::pow(a.val, b.val); },
-          py::is_operator())
+      .def(py::self != py::self)
+      .def(py::self == py::self)
+      .def(py::self <= py::self)
+      .def(py::self >= py::self)
+      .def(py::self < py::self)
+      .def(py::self > py::self)
+      .def(py::self + py::self)
+      .def(py::self - py::self)
+      .def(py::self * py::self)
+      .def(py::self / py::self)
+      .def(py::self += py::self)
+      .def(py::self -= py::self)
+      .def(py::self *= py::self)
+      .def(py::self /= py::self)
+      .def("__pow__", &Numeric_::pow, py::is_operator())
       .def_property(
           "val",
           [](Numeric_& x) { return x.val; },
@@ -221,54 +193,21 @@ You can get copies and set the value by the \"val\" property
       .def(py::init<Index>())
       .def(py::init<Numeric>())
       .PythonInterfaceWorkspaceVariableConversion(Index_)
-      .def(
-          "__ne__",
-          [](Index_& a, Index_ b) { return a.val != b.val; },
-          py::is_operator())
-      .def(
-          "__eq__",
-          [](Index_& a, Index_ b) { return a.val == b.val; },
-          py::is_operator())
-      .def(
-          "__le__",
-          [](Index_& a, Index_ b) { return a.val <= b.val; },
-          py::is_operator())
-      .def(
-          "__ge__",
-          [](Index_& a, Index_ b) { return a.val >= b.val; },
-          py::is_operator())
-      .def(
-          "__lt__",
-          [](Index_& a, Index_ b) { return a.val < b.val; },
-          py::is_operator())
-      .def(
-          "__gt__",
-          [](Index_& a, Index_ b) { return a.val > b.val; },
-          py::is_operator())
-      .def(
-          "__mul__",
-          [](Index_& a, Index_ b) { return a.val * b.val; },
-          py::is_operator())
-      .def(
-          "__add__",
-          [](Index_& a, Index_ b) { return a.val + b.val; },
-          py::is_operator())
-      .def(
-          "__div__",
-          [](Index_& a, Index_ b) { return a.val / b.val; },
-          py::is_operator())
-      .def(
-          "__truediv__",
-          [](Index_& a, Index_ b) { return Numeric(Rational(a.val, b.val)); },
-          py::is_operator())
-      .def(
-          "__sub__",
-          [](Index_& a, Index_ b) { return a.val - b.val; },
-          py::is_operator())
-      .def(
-          "__pow__",
-          [](Index_& a, Index_ b) { return std::pow(a.val, b.val); },
-          py::is_operator())
+      .def(py::self != py::self)
+      .def(py::self == py::self)
+      .def(py::self <= py::self)
+      .def(py::self >= py::self)
+      .def(py::self < py::self)
+      .def(py::self > py::self)
+      .def(py::self + py::self)
+      .def(py::self - py::self)
+      .def(py::self * py::self)
+      .def(py::self / py::self)
+      .def(py::self += py::self)
+      .def(py::self -= py::self)
+      .def(py::self *= py::self)
+      .def(py::self /= py::self)
+      .def("__pow__", &Index_::pow, py::is_operator())
       .def_property(
           "val",
           [](Index_& x) { return x.val; },

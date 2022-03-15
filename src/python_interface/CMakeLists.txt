@@ -46,7 +46,6 @@ add_custom_command(OUTPUT py_auto_interface.h
 pybind11_add_module(pyarts_cpp
     py_module.cpp
     py_matpack.cpp
-    py_std.cpp
     py_basic.cpp
     py_ppath.cpp
     py_griddedfield.cpp
