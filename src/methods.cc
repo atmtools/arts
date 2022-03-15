@@ -5541,7 +5541,7 @@ void define_md_data_raw() {
          "f_grid",
          "za_grid",
          "stokes_dim"),
-      GIN("nstreams", "Npfct", "quiet", "only_tro", "inc_angle"),
+      GIN("nstreams", "Npfct", "only_tro", "quiet", "inc_angle"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Numeric"),
       GIN_DEFAULT("8", "181", "0", "0", "-1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "

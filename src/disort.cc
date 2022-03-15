@@ -750,6 +750,7 @@ void run_cdisort(Workspace& ws,
                  const Index& only_tro,
                  const Index& quiet,
                  const Verbosity& verbosity) {
+
   // Create an atmosphere starting at z_surface
   Vector p, z, t;
   Matrix vmr, pnd;
@@ -861,7 +862,9 @@ void run_cdisort(Workspace& ws,
   Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
   Index nf_ssd = scat_data[0][0].f_grid.nelem();
   Tensor3 pha_bulk_par;
+
   if (only_tro && Npfct > 3) {
+    cout << "new\n";
     nang = Npfct;
     nlinspace(pfct_angs, 0, 180, nang);
 
@@ -871,15 +874,20 @@ void run_cdisort(Workspace& ws,
     abs_bulk_par = 0.0;
     pha_bulk_par = 0.0;
 
-    for (Index iss=0; iss < scat_data.nelem(); iss++)
+    Index iflat = 0;
+    
+    for (Index iss=0; iss < scat_data.nelem(); iss++) {
+      const Index nse = scat_data[iss].nelem();
       ext_abs_pfun_from_tro(ext_bulk_par,
                             abs_bulk_par,
                             pha_bulk_par,
                             scat_data[iss],
-                            pnd,
+                            pnd(Range(iflat,nse),joker),
                             cboxlims,
                             t,
                             pfct_angs);
+      iflat += nse;
+    }
   } else {
     get_angs(pfct_angs, scat_data, Npfct);
     nang = pfct_angs.nelem();
