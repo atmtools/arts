@@ -1,8 +1,8 @@
 #include <py_auto_interface.h>
 
-#include "debug.h"
 #include "py_macros.h"
-#include "quantum_numbers.h"
+
+#include <quantum_numbers.h>
 
 namespace Python {
 void py_quantum(py::module_& m) {

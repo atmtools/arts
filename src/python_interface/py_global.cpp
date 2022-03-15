@@ -1,9 +1,10 @@
 
-#include <global_data.h>
-#include <parameters.h>
 #include <py_auto_interface.h>
 
 #include "py_macros.h"
+
+#include <global_data.h>
+#include <parameters.h>
 
 extern Parameters parameters;
 extern String out_basename;

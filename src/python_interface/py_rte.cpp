@@ -1,7 +1,8 @@
 #include <py_auto_interface.h>
-#include <pybind11/detail/common.h>
 
-#include "debug.h"
+#include <pybind11/eigen.h>
+#include <pybind11/numpy.h>
+
 #include "py_macros.h"
 
 namespace Python {

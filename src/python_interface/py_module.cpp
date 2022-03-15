@@ -1,6 +1,10 @@
-#include "python_interface.h"
+#include <pybind11/pybind11.h>
+
+#include <workspace_ng.h>
 
 namespace Python {
+namespace py = pybind11;
+
 void py_basic(py::module_&);
 void py_matpack(py::module_&);
 void py_ppath(py::module_&);

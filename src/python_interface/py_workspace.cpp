@@ -1,13 +1,5 @@
+#include "python_interface.h"
 
-#include <depr.h>
-#include <global_data.h>
-#include <parameters.h>
-#include <py_auto_interface.h>
-#include <workspace_ng.h>
-
-#include <cstdlib>
-
-#include "debug.h"
 #include "py_macros.h"
 
 extern Parameters parameters;

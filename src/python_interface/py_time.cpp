@@ -1,8 +1,6 @@
 #include <py_auto_interface.h>
 #include <pybind11/chrono.h>
 
-#include <vector>
-
 #include "py_macros.h"
 
 namespace Python {

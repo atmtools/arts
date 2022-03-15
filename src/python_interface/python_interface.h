@@ -21,7 +21,28 @@
 #include <optional>
 #include <variant>
 
-#include "python_interface/python_interface_value_type.h"
+#include <auto_md.h>
+#include <global_data.h>
+#include <m_append.h>
+#include <m_basic_types.h>
+#include <m_conversion.h>
+#include <m_copy.h>
+#include <m_delete.h>
+#include <m_extract.h>
+#include <m_general.h>
+#include <m_gridded_fields.h>
+#include <m_ignore.h>
+#include <m_nc.h>
+#include <m_reduce.h>
+#include <m_select.h>
+#include <m_xml.h>
+#include <parameters.h>
+#include <supergeneric.h>
+#include <xml_io.h>
+
+#include <py_auto_interface.h>
+
+#include "python_interface_value_type.h"
 
 //! Contains a bunch of helper functions to manipulate python objects inside C++
 namespace Python {

@@ -1,10 +1,7 @@
 #include <py_auto_interface.h>
-#include <pybind11/pybind11.h>
 
-#include <cstddef>
-#include <vector>
+#include <pybind11/numpy.h>
 
-#include "debug.h"
 #include "py_macros.h"
 
 #define PythonInterfaceMatpackMath(Type)                          \

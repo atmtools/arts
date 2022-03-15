@@ -1,9 +1,7 @@
 #include <py_auto_interface.h>
 
-#include <algorithm>
-#include <iterator>
-#include <stdexcept>
-#include <vector>
+#include <pybind11/operators.h>
+#include <pybind11/numpy.h>
 
 #include "py_macros.h"
 

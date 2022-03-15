@@ -1,19 +1,6 @@
-#include <auto_md.h>
-#include <global_data.h>
-#include <parameters.h>
-#include <py_auto_interface.h>
-#include <pybind11/cast.h>
-#include <xml_io.h>
+#include "python_interface.h"
 
-#include <algorithm>
-#include <filesystem>
-#include <iterator>
-
-#include "agenda_class.h"
-#include "array.h"
-#include "debug.h"
 #include "py_macros.h"
-#include "tokval.h"
 
 extern Parameters parameters;
 
@@ -242,7 +229,8 @@ void py_agenda(py::module_& m) {
       .def(py::init(
           [](Workspace& ws, const std::function<py::object(Workspace&)>& f) {
             return py::cast<Agenda>(f(ws));
-          }))
+          }),
+          py::keep_alive<0, 1>())
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
         Agenda* a = parse_agenda(
@@ -250,7 +238,7 @@ void py_agenda(py::module_& m) {
             *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
         w.initialize();
         return a;
-      }))
+      }), py::keep_alive<0, 1>())
       .PythonInterfaceFileIO(Agenda)
       .def_property_readonly("main", &Agenda::is_main_agenda)
       .def_property("name", &Agenda::name, &Agenda::set_name)
@@ -438,6 +426,7 @@ void py_agenda(py::module_& m) {
               }
             }
           },
+          py::keep_alive<1, 2>(),
           py::arg("ws"),
           py::arg("name").none(false),
           R"--(
@@ -474,6 +463,7 @@ so Copy(a, out=b) will not even see the b variable.
             a.push_back(MRecord(method_ptr->second, {}, {in}, {}, {}));
             a.push_back(simple_delete_method(val));
           },
+          py::keep_alive<1, 2>(),
           py::doc(R"--(
 Adds a callback method to the Agenda
 
@@ -509,6 +499,7 @@ Both agendas must be defined on the same workspace)--"), py::arg("other"))
             a.set_main_agenda();
             a.execute(ws);
           },
+          py::keep_alive<1, 2>(),
           "Executes the agenda as if it was the main agenda")
       .def(
           "check",
@@ -516,6 +507,7 @@ Both agendas must be defined on the same workspace)--"), py::arg("other"))
             a.check(w,
                     *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
           },
+          py::keep_alive<1, 2>(),
           py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",

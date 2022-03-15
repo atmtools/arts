@@ -1,7 +1,8 @@
 #include <py_auto_interface.h>
 
-#include "ppath.h"
 #include "py_macros.h"
+
+#include <ppath_struct.h>
 
 namespace Python {
 void py_ppath(py::module_& m) {

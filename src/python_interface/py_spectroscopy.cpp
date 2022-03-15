@@ -1,13 +1,7 @@
 #include <py_auto_interface.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/pybind11.h>
 
 #include "py_macros.h"
 
-#include <limits>
-#include <vector>
-
-#include <debug.h>
 #include <lineshape.h>
 #include <lineshapemodel.h>
 #include <zeemandata.h>

@@ -388,7 +388,7 @@ struct NameMaps {
 constexpr Index num_split_files = 32;
 
 void includes(std::ofstream& os) {
-  os << "#include <py_auto_interface.h>" << '\n';
+  os << "#include <python_interface.h>" << '\n';
 }
 
 void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
@@ -1330,26 +1330,22 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
 void auto_header(std::ofstream& os, const NameMaps& arts) {
   bool first;
 
-  os << R"--(// Automatic header generated from full Arts setup
+  os << R"--(#ifndef py_auto_interface_h
+#define py_auto_interface_h
 
-#include <auto_md.h>
-#include <m_append.h>
-#include <m_basic_types.h>
-#include <m_conversion.h>
-#include <m_copy.h>
-#include <m_delete.h>
-#include <m_extract.h>
-#include <m_general.h>
-#include <m_gridded_fields.h>
-#include <m_ignore.h>
-#include <m_nc.h>
-#include <m_reduce.h>
-#include <m_select.h>
-#include <m_xml.h>
-#include <python_interface.h>
-#include <supergeneric.h>
-#include <xml_io.h>
+// Automatic header generated from full Arts setup
+
+#include <pybind11/pybind11.h>
+
+#include <tokval.h>
+#include <agenda_class.h>
+#include <workspace_ng.h>
+
+#include <python_interface_value_type.h>
+
 namespace Python {
+namespace py = pybind11;
+
 using WorkspaceVariablesVariant =
     std::variant<
     )--";
@@ -1431,10 +1427,10 @@ struct WorkspaceVariable {
   operator Index&() const {return *std::get<Index_ *>(WorkspaceVariablesVariant(*this));}
   operator Numeric&() {return *std::get<Numeric_ *>(WorkspaceVariablesVariant(*this));}
   operator Numeric&() const {return *std::get<Numeric_ *>(WorkspaceVariablesVariant(*this));}
-)--";
-
-  os << R"--(};  // struct WorkspaceVariable
+};  // struct WorkspaceVariable
 }  // namespace Python
+
+#endif  // py_auto_interface_h
 )--";
 }
 

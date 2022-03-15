@@ -1,6 +1,16 @@
 #ifndef py_macros_h
 #define py_macros_h
 
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <debug.h>
+#include <xml_io.h>
+
+#include "python_interface_value_type.h"
+
+namespace Python { namespace py = pybind11; }
+
 #define PythonInterfaceFileIO(Type)                                        \
   def(                                                                     \
       "savexml",                                                           \
