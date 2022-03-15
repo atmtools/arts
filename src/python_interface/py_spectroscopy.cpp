@@ -1,5 +1,7 @@
 #include <py_auto_interface.h>
 
+#include <pybind11/complex.h>
+
 #include "py_macros.h"
 
 #include <lineshape.h>
