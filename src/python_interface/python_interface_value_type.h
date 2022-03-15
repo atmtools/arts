@@ -29,10 +29,10 @@ struct ValueHolder {
   constexpr ValueType operator*(ValueHolder x) const noexcept {return val * x.val;}
   constexpr ValueType operator/(ValueHolder x) const noexcept {return val / x.val;}
   
-  constexpr ValueHolder& operator+=(ValueHolder x) noexcept { return operator=(val + x.val); }
-  constexpr ValueHolder& operator-=(ValueHolder x) noexcept { return operator=(val - x.val); }
-  constexpr ValueHolder& operator*=(ValueHolder x) noexcept { return operator=(val * x.val); }
-  constexpr ValueHolder& operator/=(ValueHolder x) noexcept { return operator=(val / x.val); }
+  constexpr ValueHolder& operator+=(ValueHolder x) noexcept { return operator=(operator+(x)); }
+  constexpr ValueHolder& operator-=(ValueHolder x) noexcept { return operator=(operator-(x)); }
+  constexpr ValueHolder& operator*=(ValueHolder x) noexcept { return operator=(operator*(x)); }
+  constexpr ValueHolder& operator/=(ValueHolder x) noexcept { return operator=(operator/(x)); }
 };
 
 using Numeric_ = ValueHolder<Numeric>;

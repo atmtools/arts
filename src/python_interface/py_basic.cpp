@@ -130,10 +130,10 @@ be accessed without copy using element-wise access operators.
       .def(py::self - py::self)
       .def(py::self * py::self)
       .def(py::self / py::self)
-      .def(py::self += py::self)
-      .def(py::self -= py::self)
-      .def(py::self *= py::self)
-      .def(py::self /= py::self)
+      .def(py::self += Numeric_())
+      .def(py::self -= Numeric_())
+      .def(py::self *= Numeric_())
+      .def(py::self /= Numeric_())
       .def_property(
           "val",
           [](Numeric_& x) { return x.val; },
@@ -204,10 +204,10 @@ You can get copies and set the value by the \"val\" property
       .def(py::self - py::self)
       .def(py::self * py::self)
       .def(py::self / py::self)
-      .def(py::self += py::self)
-      .def(py::self -= py::self)
-      .def(py::self *= py::self)
-      .def(py::self /= py::self)
+      .def(py::self += Index_())
+      .def(py::self -= Index_())
+      .def(py::self *= Index_())
+      .def(py::self /= Index_())
       .def_property(
           "val",
           [](Index_& x) { return x.val; },
