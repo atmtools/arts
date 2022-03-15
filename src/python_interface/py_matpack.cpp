@@ -22,7 +22,7 @@
           py::is_operator())                                      \
                                                                   \
       .def(                                                       \
-          "__rpow__",                                              \
+          "__rpow__",                                             \
           [](const Type& a, Numeric_ b) {                         \
             Type c = a;                                           \
             c.transform_elementwise(                              \

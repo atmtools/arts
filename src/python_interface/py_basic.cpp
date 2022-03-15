@@ -118,6 +118,8 @@ be accessed without copy using element-wise access operators.
       .def(py::init<Index>())
       .def(py::init<Numeric>())
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
+      .def(+ py::self)
+      .def(- py::self)
       .def(py::self != py::self)
       .def(py::self == py::self)
       .def(py::self <= py::self)
@@ -132,7 +134,6 @@ be accessed without copy using element-wise access operators.
       .def(py::self -= py::self)
       .def(py::self *= py::self)
       .def(py::self /= py::self)
-      .def("__pow__", &Numeric_::pow, py::is_operator())
       .def_property(
           "val",
           [](Numeric_& x) { return x.val; },
@@ -191,6 +192,8 @@ You can get copies and set the value by the \"val\" property
       .def(py::init<Index>())
       .def(py::init<Numeric>())
       .PythonInterfaceWorkspaceVariableConversion(Index_)
+      .def(+ py::self)
+      .def(- py::self)
       .def(py::self != py::self)
       .def(py::self == py::self)
       .def(py::self <= py::self)
@@ -205,7 +208,6 @@ You can get copies and set the value by the \"val\" property
       .def(py::self -= py::self)
       .def(py::self *= py::self)
       .def(py::self /= py::self)
-      .def("__pow__", &Index_::pow, py::is_operator())
       .def_property(
           "val",
           [](Index_& x) { return x.val; },

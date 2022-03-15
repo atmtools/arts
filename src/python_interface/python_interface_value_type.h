@@ -21,18 +21,18 @@ struct ValueHolder {
   constexpr bool operator>=(ValueHolder x) const noexcept {return val >= x.val;}
   constexpr bool operator==(ValueHolder x) const noexcept {return val == x.val;}
   constexpr bool operator!=(ValueHolder x) const noexcept {return val != x.val;}
-  
+
+  constexpr ValueType operator-() const noexcept {return - val;}
+  constexpr ValueType operator+() const noexcept {return val;}
   constexpr ValueType operator+(ValueHolder x) const noexcept {return val + x.val;}
   constexpr ValueType operator-(ValueHolder x) const noexcept {return val - x.val;}
   constexpr ValueType operator*(ValueHolder x) const noexcept {return val * x.val;}
   constexpr ValueType operator/(ValueHolder x) const noexcept {return val / x.val;}
   
-  constexpr ValueHolder& operator+=(ValueHolder x) noexcept {val += x.val; return *this; }
-  constexpr ValueHolder& operator-=(ValueHolder x) noexcept {val -= x.val; return *this; }
-  constexpr ValueHolder& operator*=(ValueHolder x) noexcept {val *= x.val; return *this; }
-  constexpr ValueHolder& operator/=(ValueHolder x) noexcept {val /= x.val; return *this; }
-
-  constexpr ValueType pow(ValueHolder x) const noexcept {using std::pow; return ValueType(pow(val, Numeric(x.val)));}
+  constexpr ValueHolder& operator+=(ValueHolder x) noexcept { return operator=(val + x.val); }
+  constexpr ValueHolder& operator-=(ValueHolder x) noexcept { return operator=(val - x.val); }
+  constexpr ValueHolder& operator*=(ValueHolder x) noexcept { return operator=(val * x.val); }
+  constexpr ValueHolder& operator/=(ValueHolder x) noexcept { return operator=(val / x.val); }
 };
 
 using Numeric_ = ValueHolder<Numeric>;
