@@ -1,5 +1,4 @@
 #include <py_auto_interface.h>
-
 #include <pybind11/numpy.h>
 
 #include "py_macros.h"
@@ -266,7 +265,7 @@ void py_matpack(py::module_& m) {
                                                       x.get_c_array(),
                                                       do_nothing);
                         },
-                        py::return_value_policy::reference_internal),
+                        py::keep_alive<0, 1>()),
                     [](Vector& x, Vector& y) { x = y; })
       .doc() =
       "The Arts Vector class\n"
@@ -384,7 +383,7 @@ void py_matpack(py::module_& m) {
                               x.get_c_array(),
                               do_nothing);
                         },
-                        py::return_value_policy::reference_internal),
+                        py::keep_alive<0, 1>()),
                     [](Matrix& x, Matrix& y) { x = y; })
       .doc() =
       "The Arts Matrix class\n"
@@ -476,7 +475,7 @@ void py_matpack(py::module_& m) {
                               x.get_c_array(),
                               do_nothing);
                         },
-                        py::return_value_policy::reference_internal),
+                        py::keep_alive<0, 1>()),
                     [](Tensor3& x, Tensor3& y) { x = y; })
       .doc() =
       "The Arts Tensor3 class\n"
@@ -576,7 +575,7 @@ void py_matpack(py::module_& m) {
                     x.get_c_array(),
                     do_nothing);
               },
-              py::return_value_policy::reference_internal),
+              py::keep_alive<0, 1>()),
           [](Tensor4& x, Tensor4& y) { x = y; })
       .doc() =
       "The Arts Tensor4 class\n"
@@ -686,7 +685,7 @@ void py_matpack(py::module_& m) {
                     x.get_c_array(),
                     do_nothing);
               },
-              py::return_value_policy::reference_internal),
+              py::keep_alive<0, 1>()),
           [](Tensor5& x, Tensor5& y) { x = y; })
       .doc() =
       "The Arts Tensor5 class\n"
@@ -808,7 +807,7 @@ void py_matpack(py::module_& m) {
                     x.get_c_array(),
                     do_nothing);
               },
-              py::return_value_policy::reference_internal),
+              py::keep_alive<0, 1>()),
           [](Tensor6& x, Tensor6& y) { x = y; })
       .doc() =
       "The Arts Tensor6 class\n"
@@ -939,7 +938,7 @@ void py_matpack(py::module_& m) {
                     x.get_c_array(),
                     do_nothing);
               },
-              py::return_value_policy::reference_internal),
+              py::keep_alive<0, 1>()),
           [](Tensor7& x, Tensor7& y) { x = y; })
       .doc() =
       "The Arts Tensor7 class\n"

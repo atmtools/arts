@@ -1,4 +1,9 @@
 #include "python_interface.h"
+#include <pybind11/stl/filesystem.h>
+
+#include <global_data.h>
+#include <parameters.h>
+#include <parser.h>
 
 #include "py_macros.h"
 

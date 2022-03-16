@@ -214,7 +214,7 @@ jobs:
         run: |
           cd cmake-build
           make -j2 -C 3rdparty
-          make -j2 -C src
+          make -j1 -C src
 
       - name: Docs (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'

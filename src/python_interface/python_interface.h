@@ -1,44 +1,7 @@
 #ifndef python_interface_h
 #define python_interface_h
 
-#include <auto_md.h>
-#include <debug.h>
-#include <enums.h>
-#include <pybind11/eigen.h>
-#include <pybind11/embed.h>
-#include <pybind11/functional.h>
-#include <pybind11/numpy.h>
-#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include <pybind11/stl.h>
-#include <pybind11/stl/filesystem.h>
-#include <pybind11/stl_bind.h>
-
-#include <filesystem>
-#include <iomanip>
-#include <iostream>
-#include <optional>
-#include <variant>
-
-#include <auto_md.h>
-#include <global_data.h>
-#include <m_append.h>
-#include <m_basic_types.h>
-#include <m_conversion.h>
-#include <m_copy.h>
-#include <m_delete.h>
-#include <m_extract.h>
-#include <m_general.h>
-#include <m_gridded_fields.h>
-#include <m_ignore.h>
-#include <m_nc.h>
-#include <m_reduce.h>
-#include <m_select.h>
-#include <m_xml.h>
-#include <parameters.h>
-#include <supergeneric.h>
-#include <xml_io.h>
 
 #include <py_auto_interface.h>
 

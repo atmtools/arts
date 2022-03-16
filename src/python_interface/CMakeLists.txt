@@ -5,6 +5,7 @@ target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 ########################################################################################
 # Generate automatic python files (there are many to help compile-time)
 add_custom_command(OUTPUT py_auto_interface.h
+                          py_auto_interface.cc
                           py_auto_workspace.cc
                           py_auto_workspace_split_0.cc
                           py_auto_workspace_split_1.cc
@@ -38,6 +39,38 @@ add_custom_command(OUTPUT py_auto_interface.h
                           py_auto_workspace_split_29.cc
                           py_auto_workspace_split_30.cc
                           py_auto_workspace_split_31.cc
+                          py_auto_workspace_split_32.cc
+                          py_auto_workspace_split_33.cc
+                          py_auto_workspace_split_34.cc
+                          py_auto_workspace_split_35.cc
+                          py_auto_workspace_split_36.cc
+                          py_auto_workspace_split_37.cc
+                          py_auto_workspace_split_38.cc
+                          py_auto_workspace_split_39.cc
+                          py_auto_workspace_split_40.cc
+                          py_auto_workspace_split_41.cc
+                          py_auto_workspace_split_42.cc
+                          py_auto_workspace_split_43.cc
+                          py_auto_workspace_split_44.cc
+                          py_auto_workspace_split_45.cc
+                          py_auto_workspace_split_46.cc
+                          py_auto_workspace_split_47.cc
+                          py_auto_workspace_split_48.cc
+                          py_auto_workspace_split_49.cc
+                          py_auto_workspace_split_50.cc
+                          py_auto_workspace_split_51.cc
+                          py_auto_workspace_split_52.cc
+                          py_auto_workspace_split_53.cc
+                          py_auto_workspace_split_54.cc
+                          py_auto_workspace_split_55.cc
+                          py_auto_workspace_split_56.cc
+                          py_auto_workspace_split_57.cc
+                          py_auto_workspace_split_58.cc
+                          py_auto_workspace_split_59.cc
+                          py_auto_workspace_split_60.cc
+                          py_auto_workspace_split_61.cc
+                          py_auto_workspace_split_62.cc
+                          py_auto_workspace_split_63.cc
                    COMMAND gen_auto_py
                    DEPENDS gen_auto_py)
 ########################################################################################
@@ -64,6 +97,7 @@ pybind11_add_module(pyarts_cpp
     py_workspace.cpp
     py_global.cpp
 
+    py_auto_interface.cc
     py_auto_workspace.cc
     py_auto_workspace_split_0.cc
     py_auto_workspace_split_1.cc
@@ -97,6 +131,38 @@ pybind11_add_module(pyarts_cpp
     py_auto_workspace_split_29.cc
     py_auto_workspace_split_30.cc
     py_auto_workspace_split_31.cc
+    py_auto_workspace_split_32.cc
+    py_auto_workspace_split_33.cc
+    py_auto_workspace_split_34.cc
+    py_auto_workspace_split_35.cc
+    py_auto_workspace_split_36.cc
+    py_auto_workspace_split_37.cc
+    py_auto_workspace_split_38.cc
+    py_auto_workspace_split_39.cc
+    py_auto_workspace_split_40.cc
+    py_auto_workspace_split_41.cc
+    py_auto_workspace_split_42.cc
+    py_auto_workspace_split_43.cc
+    py_auto_workspace_split_44.cc
+    py_auto_workspace_split_45.cc
+    py_auto_workspace_split_46.cc
+    py_auto_workspace_split_47.cc
+    py_auto_workspace_split_48.cc
+    py_auto_workspace_split_49.cc
+    py_auto_workspace_split_50.cc
+    py_auto_workspace_split_51.cc
+    py_auto_workspace_split_52.cc
+    py_auto_workspace_split_53.cc
+    py_auto_workspace_split_54.cc
+    py_auto_workspace_split_55.cc
+    py_auto_workspace_split_56.cc
+    py_auto_workspace_split_57.cc
+    py_auto_workspace_split_58.cc
+    py_auto_workspace_split_59.cc
+    py_auto_workspace_split_60.cc
+    py_auto_workspace_split_61.cc
+    py_auto_workspace_split_62.cc
+    py_auto_workspace_split_63.cc
 )
 
 target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES})

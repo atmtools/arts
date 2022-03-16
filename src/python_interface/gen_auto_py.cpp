@@ -385,7 +385,7 @@ struct NameMaps {
 };
 
 // To speed up compilation, we split the workspace into N units
-constexpr Index num_split_files = 32;
+constexpr Index num_split_files = 64;
 
 void includes(std::ofstream& os) {
   os << "#include <python_interface.h>" << '\n';
@@ -395,8 +395,10 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
                          const NameMaps& arts) {
   const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
 
-
   std::array<ArrayOfString, num_split_files> arr_func_names{};
+
+  for (auto& os: oss) os << "namespace Python {\n";
+
   auto* osptr = oss.begin();
   auto* fnptr = arr_func_names.begin();
   for (auto& [name, data] : arts.varname_group) {
@@ -447,10 +449,9 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
     auto& func_names = arr_func_names[i];
 
     os << R"--(
-void py_wsvs_(py::class_<Workspace>& ws) {
-)--";
+void py_wsvs_)--"<<i<<"_(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
     for (auto& func: func_names) os << "  " << func << "(ws);\n";
-    os <<"}\n\n";
+    os <<"}\n}\n\n";
   }
 }
 
@@ -552,12 +553,22 @@ void print_method_args(std::ofstream& os,
 
 void workspace_method_create(std::array<std::ofstream, num_split_files>& oss,
                              const NameMaps& arts) {
+  std::array<ArrayOfString, num_split_files> arr_func_names{};
+
+  for (auto& os: oss) os << "namespace Python {\n";
+
   auto* osptr = oss.begin();
+  auto* fnptr = arr_func_names.begin();
 
   for (auto& [group, group_index] : arts.group) {
     auto& os = *osptr;
+    auto& func_names = *fnptr;
 
     if (group == "Any") continue;
+
+    func_names.emplace_back(var_string("py_", group, "Create_"));
+    os << "void "<<func_names.back()<<"(py::class_<Workspace>& ws) {\n";
+
     os << "ws.def(\"" << group
        << "Create\",[](Workspace& w, const char * name, std::optional<const char *> desc, std::optional<"
        << group;
@@ -605,20 +616,111 @@ value ()--"
   py::arg("name").none(false),
   py::arg("desc")=std::nullopt,
   py::arg("value")=std::nullopt);
-  
+}
+
 )--";
 
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
+    fnptr++;
+    if (fnptr == arr_func_names.end()) fnptr = arr_func_names.begin();
   }
+
+  for (Index i=0; i<num_split_files; i++) {
+    auto& os = oss[i];
+    auto& func_names = arr_func_names[i];
+
+    os << R"--(
+void py_wsmcs_)--"<<i<<"_(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+    for (auto& func: func_names) os << "  " << func << "(ws);\n";
+    os <<"}\n}\n\n";
+  }
+}
+
+auto nongeneric_method_signature(const Method& method,
+                                 const std::map<std::string, Group>& groups,
+                                 bool pass_verbosity,
+                                 bool pass_workspace) {
+  std::ostringstream os;
+  os << "void " << method.name << '(';
+  bool has_any = false;
+
+  if (pass_workspace) {
+    os << "Workspace&";
+    has_any = true;
+  }
+
+  for (const auto& i : method.out.varname) {
+    if (has_any) os << ", ";
+    has_any = true;
+    auto& group = groups.at(i).varname_group;
+    os << group << '&';
+  }
+
+  // Generic Outputs
+  for (std::size_t i = 0; i < method.gout.name.size(); i++) {
+    if (has_any) os << ", ";
+    has_any = true;
+    os << method.gout.group[i] << '&';
+  }
+
+  // Generic Output Names
+  if (method.pass_wsv_names) {
+    for (std::size_t i = 0; i < method.gout.name.size(); i++) {
+      if (has_any) os << ", ";
+      has_any = true;
+      os << "const String&";
+    }
+  }
+
+  // Inputs (that are not outputs)
+  for (auto& i : method.in.varname) {
+    if (std::none_of(method.out.varname.cbegin(),
+                     method.out.varname.cend(),
+                     [in = i](const auto& out) { return in == out; })) {
+      if (has_any) os << ", ";
+      has_any = true;
+      auto& group = groups.at(i).varname_group;
+      os << "const " << group << '&';
+    }
+  }
+
+  // Generic Inputs
+  for (std::size_t i = 0; i < method.gin.name.size(); i++) {
+    if (has_any) os << ", ";
+    has_any = true;
+    os << "const " << method.gin.group[i] << '&';
+  }
+
+  // Generic Input Names
+  if (method.pass_wsv_names) {
+    for (std::size_t i = 0; i < method.gin.name.size(); i++) {
+      if (has_any) os << ", ";
+      has_any = true;
+      os << "const String&";
+    }
+  }
+
+  if (pass_verbosity) {
+    if (has_any) os << ", ";
+    os << "const Verbosity&";
+  }
+
+  os << ')';
+
+  return os.str();
 }
 
 void workspace_method_nongenerics(
     std::array<std::ofstream, num_split_files>& oss, const NameMaps& arts) {
+  std::array<ArrayOfString, num_split_files> arr_func_names{};
+
   auto* osptr = oss.begin();
+  auto* fnptr = arr_func_names.begin();
 
   for (auto& method : arts.methodname_method) {
     auto& os = *osptr;
+    auto& func_names = *fnptr;
 
     if (method.agenda_method) continue;  // FIXME: Should be fixed???
 
@@ -653,6 +755,11 @@ void workspace_method_nongenerics(
           return i > 1;
         }())
       continue;  // Skip 'generic' functions
+
+    func_names.emplace_back(var_string("py_", method.name, '_'));
+    os << nongeneric_method_signature(method, arts.varname_group, pass_verbosity, pass_workspace) << ";\n";
+    os << "namespace Python {\n";
+    os << "void "<<func_names.back()<<"(py::class_<Workspace>& ws) {\n";
 
     // Arguments from python side
     os << "ws.def(\"" << method.name << "\",[](Workspace& w_ [[maybe_unused]]";
@@ -809,10 +916,22 @@ void workspace_method_nongenerics(
     // Put description at the end
     print_method_desc(os, method, arts.varname_group, pass_verbosity);
 
-    os << ')' << ';' << '\n' << '\n';
+    os << ')' << ';' << '\n' << '}' << '\n' << '}' << '\n' << '\n';
 
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
+    fnptr++;
+    if (fnptr == arr_func_names.end()) fnptr = arr_func_names.begin();
+  }
+
+  for (Index i=0; i<num_split_files; i++) {
+    auto& os = oss[i];
+    auto& func_names = arr_func_names[i];
+
+    os << R"--(namespace Python {
+void py_wsms_)--"<<i<<"_(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+    for (auto& func: func_names) os << "  " << func << "(ws);\n";
+    os <<"}\n}\n\n";
   }
 }
 
@@ -833,9 +952,78 @@ struct VariadicInfo {
   String name, type, first, second;
 };
 
+String generic_method_signature(const Method& method,
+                              const Index n,
+                              const Array<ArgumentHelper>& arg_help,
+                              bool pass_verbosity,
+                              bool pass_workspace) {
+  if (method.name == "Copy") return "#include <m_copy.h>\n";
+  if (method.name == "Append") return "#include <m_append.h>\n";
+  if (method.name == "Extract") return "#include <m_extract.h>\n";
+  if (method.name == "Print") return "#include <m_general.h>\n";
+  if (method.name == "GriddedFieldGetName") return "#include <m_gridded_fields.h>\n";
+  if (method.name == "ArrayOfGriddedFieldGetNames") return "#include <m_gridded_fields.h>\n";
+  if (method.name == "Ignore") return "#include <m_ignore.h>\n";
+  if (method.name == "Touch") return "#include <m_ignore.h>\n";
+  if (method.name == "ReadNetCDF") return "#include <m_nc.h>\n";
+  if (method.name == "WriteNetCDF") return "#include <m_nc.h>\n";
+  if (method.name == "WriteNetCDFIndexed") return "#include <m_nc.h>\n";
+  if (method.name == "Reduce") return "#include <m_reduce.h>\n";
+
+  std::ostringstream os;
+
+  for (Index i = 0; i < n; i++) {
+    bool has_any = false;
+    os << "void " << method.name << '(';
+
+    if (pass_workspace) {
+      os << "Workspace&";
+      has_any = true;
+    }
+
+    bool begin_gout = false;
+    bool done_gout = false;
+    for (auto& arg : arg_help) {
+      begin_gout = begin_gout or arg.gen;
+      if (method.pass_wsv_names and not done_gout) {
+        if (begin_gout and not arg.out) {
+          for (auto& arg2 : arg_help) {
+            if (arg2.out and arg2.gen) os << ", const String&";
+          }
+          done_gout = true;
+        }
+      }
+
+      if (has_any) os << ", ";
+      has_any = true;
+      if (arg.in and not arg.out) os << "const ";
+      os << (arg.types.nelem() > 1 ? arg.types[i] : arg.types.front()) << '&';
+    }
+
+    if (method.pass_wsv_names) {
+      for (auto& arg : arg_help) {
+        if (arg.in and arg.gen) os << ", const String&";
+      }
+    }
+
+    if (pass_verbosity) {
+      if (has_any) os << ", ";
+      has_any = true;
+      os << "const Verbosity&";
+    }
+
+    os << ')' << ';' << '\n';
+  }
+
+  return os.str();
+}
+
 void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
                                const NameMaps& arts) {
+  std::array<ArrayOfString, num_split_files> arr_func_names{};
+
   auto* osptr = oss.begin();
+  auto* fnptr = arr_func_names.begin();
 
   ArrayOfString ignore_methods{"Delete"};
 
@@ -845,6 +1033,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
        imethod++) {
     auto& method = arts.methodname_method[imethod];
     auto& os = *osptr;
+    auto& func_names = *fnptr;
 
     if (method.agenda_method) {
       continue;  // FIXME: Should be fixed???
@@ -886,6 +1075,7 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
       return i;
     }();
     if (n_func < 2) continue;  // Skip 'nongeneric' functions
+
     const std::size_t n_method_end = imethod + n_func;
 
     // Fix the argument order already so generic variables can be known
@@ -990,6 +1180,11 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
         arg.types = ArrayOfString{arg.types.front()};
     });
 
+    func_names.emplace_back(var_string("py_", method.name, '_'));
+    os << generic_method_signature(method, n_func, arg_help, pass_verbosity, pass_workspace);
+    os << "namespace Python {\n";
+    os << "void "<<func_names.back()<<"(py::class_<Workspace>& ws) {\n";
+
     bool allow_py_object_input = false;
     {
       bool has_one_possible_combination = true;
@@ -1010,9 +1205,8 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
         allow_py_object_input = true;
     }
 
-    bool has_any = false;
-
     // Arguments from python side
+    bool has_any = false;
     os << "ws.def(\"" << method.name << "\",[](Workspace& w_ [[maybe_unused]]";
     for (auto& arg : arg_help) {
       os << ",\n";
@@ -1314,15 +1508,19 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
     // Put description at the end
     print_method_desc(os, method, arts.varname_group, pass_verbosity);
 
-    os << ')' << ';' << '\n' << '\n';
+    os << ')' << ';'  << '\n' << '}' << '\n' << '}' << '\n' << '\n';
 
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
+    fnptr++;
+    if (fnptr == arr_func_names.end()) fnptr = arr_func_names.begin();
   }
 
   // Delete
   {
     auto& os = *osptr;
+    auto& func_names = *fnptr;
+
     const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
     auto method_ptr = std::find_if(arts.methodname_method.begin(),
                                    arts.methodname_method.end(),
@@ -1334,15 +1532,31 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
     ARTS_USER_ERROR_IF(method_ptr == arts.methodname_method.end(),
                        "The Delete method no longer exist")
 
+    func_names.emplace_back("py_Delete");
+    os << "#include <m_delete.h>\nnamespace Python {\n";
+    os << "void "<<func_names.back()<<"(py::class_<Workspace>& ws) {\n";
+
     os << R"--(ws.def("Delete", [](Workspace& w, WorkspaceVariable& x, std::optional<Verbosity> verbosity) {
       Delete(w, Index(1), x.name(), verbosity.has_value() ? *verbosity : WorkspaceVariable{w, )--"
        << verbpos << "});\n}";
     print_method_args(os, *method_ptr, true);
     print_method_desc(os, *method_ptr, arts.varname_group, pass_verbosity);
-    os << ");\n\n";
+    os << ");\n}\n}\n\n";
 
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
+    fnptr++;
+    if (fnptr == arr_func_names.end()) fnptr = arr_func_names.begin();
+  }
+
+  for (Index i=0; i<num_split_files; i++) {
+    auto& os = oss[i];
+    auto& func_names = arr_func_names[i];
+
+    os << R"--(namespace Python {
+void py_wsmgs_)--"<<i<<"_(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+    for (auto& func: func_names) os << "  " << func << "(ws);\n";
+    os <<"}\n}\n\n";
   }
 }
 
@@ -1454,7 +1668,9 @@ struct WorkspaceVariable {
 }
 
 void auto_header_definitions(std::ofstream& os, const NameMaps& arts) {
-  os << R"--(
+  os << R"--(#include <py_auto_interface.h>
+
+namespace Python {
 bool WorkspaceVariable::is_initialized() const { return ws.is_initialized(pos); }
 
 String WorkspaceVariable::name() const {
@@ -1615,6 +1831,7 @@ WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
   os << R"--(  }
   ARTS_USER_ERROR("Cannot support Agenda and ArrayOfAgenda")
 }
+}
 )--";
 }
 
@@ -1634,12 +1851,14 @@ ws.def("__setattr__", [](Workspace& w, const String& name, WorkspaceVariablesVar
        << group << "));\n    else ";
   }
 
-  os << R"--(ARTS_USER_ERROR("Cannot recognize workspace variable type\n\n"
-      "You cannot initiate a workspace variable from a pure python object.\n"
-      "There are three options to proceed:\n"
-      "    1) Cast the type into the desired pyarts type before repeating this evaluation\n"
-      "    2) Use one of the *Create(...) methods with a default value\n"
-      "    3) Use create_variable and then set the value manually\n")
+  os << R"--(ARTS_USER_ERROR(R"-x-(Cannot recognize workspace variable type
+
+You cannot initiate a workspace variable from a pure python object.
+There are three options to proceed:
+    1) Cast the type into the desired pyarts type before repeating this evaluation
+    2) Use one of the *Create(...) methods with a default value
+    3) Use create_variable and then set the value manually
+)-x-")
   } else i = varpos->second;
 
   WorkspaceVariable var{w, i};
@@ -1674,7 +1893,7 @@ void internal_defaults(std::ofstream& os, const NameMaps& arts) {
     }
   }
 
-  os << R"--(
+  os << R"--(namespace Python {
 Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
   if (auto ptr = ws.WsvMap.find(key); ptr not_eq ws.WsvMap.end()) return ptr -> second;
   
@@ -1691,7 +1910,7 @@ Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
     os << "  } else ";
   }
 
-  os << "ARTS_USER_ERROR(\"Cannot understand internal key\")\n  return pos;\n}\n\n";
+  os << "ARTS_USER_ERROR(\"Cannot understand internal key\")\n  return pos;\n}\n}\n\n";
 }
 
 int main() {
@@ -1707,48 +1926,43 @@ int main() {
   const auto artsname = NameMaps();
 
   std::ofstream py_header("py_auto_interface.h");
+  std::ofstream py_header_cc("py_auto_interface.cc");
   auto_header(py_header, artsname);
+  auto_header_definitions(py_header_cc, artsname);
+  internal_defaults(py_header_cc, artsname);
+
 
   std::ofstream py_workspace("py_auto_workspace.cc");
-  std::array<std::ofstream, num_split_files> py_workspaces;
-  for (Index i = 0; i < num_split_files; i++)
-    py_workspaces[i] =
-        std::ofstream(var_string("py_auto_workspace_split_", i, ".cc"));
-
   includes(py_workspace);
-  for (Index i = 0; i < num_split_files; i++) includes(py_workspaces[i]);
-
   py_workspace << '\n' << "namespace Python {\n";
-  auto_header_definitions(py_workspace, artsname);
-  internal_defaults(py_workspace, artsname);
   for (Index i = 0; i < num_split_files; i++) {
     py_workspace << "void py_auto_workspace_" << i
                  << "(py::class_<Workspace>& ws);\n";
   }
-
   py_workspace << "void py_auto_workspace(py::class_<Workspace>& ws) {\n";
-  for (Index i = 0; i < num_split_files; i++) {
-    py_workspaces[i] << "\nnamespace Python {\n";
-  }
-
-  workspace_variables(py_workspaces, artsname);
-
-  for (Index i = 0; i < num_split_files; i++) {
-    py_workspaces[i] << "\nvoid py_auto_workspace_" << i
-                        << "(py::class_<Workspace>& ws) {\n";
-    py_workspaces[i] << "py_wsvs_(ws);\n\n";
-  }
-
-  workspace_method_nongenerics(py_workspaces, artsname);
-  workspace_method_generics(py_workspaces, artsname);
+  workspace_access(py_workspace, artsname);
   for (Index i = 0; i < num_split_files; i++) {
     py_workspace << "py_auto_workspace_" << i << "(ws);\n";
   }
-  workspace_access(py_workspace, artsname);
-  workspace_method_create(py_workspaces, artsname);
-
   py_workspace << "}\n}  // namespace Python\n";
+
+
+  std::array<std::ofstream, num_split_files> py_workspaces;
+  for (Index i = 0; i < num_split_files; i++)
+    py_workspaces[i] =
+        std::ofstream(var_string("py_auto_workspace_split_", i, ".cc"));
+  for (Index i = 0; i < num_split_files; i++) includes(py_workspaces[i]);
+  workspace_variables(py_workspaces, artsname);
+  workspace_method_create(py_workspaces, artsname);
+  workspace_method_nongenerics(py_workspaces, artsname);
+  workspace_method_generics(py_workspaces, artsname);
   for (Index i = 0; i < num_split_files; i++) {
+    py_workspaces[i] << "namespace Python {\nvoid py_auto_workspace_" << i
+                        << "(py::class_<Workspace>& ws) {\n";
+    py_workspaces[i] << "py_wsvs_"<<i<<"_(ws);\n";
+    py_workspaces[i] << "py_wsmcs_"<<i<<"_(ws);\n";
+    py_workspaces[i] << "py_wsms_"<<i<<"_(ws);\n";
+    py_workspaces[i] << "py_wsmgs_"<<i<<"_(ws);\n";
     py_workspaces[i] << "}\n}  // namespace Python\n";
   }
 }
