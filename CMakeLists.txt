@@ -456,7 +456,7 @@ else (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
   message(STATUS "Found arts-cat-data in ${ARTS_CAT_DATA_DIR}")
 endif (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
 
-string(JOIN ":" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR} ${CMAKE_SOURCE_DIR}/controlfiles)
+string(JOIN ":" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR} ${CMAKE_SOURCE_DIR}/controlfiles ${CMAKE_BINARY_DIR}/tests/testdata/arts-xml-data ${CMAKE_BINARY_DIR}/tests/testdata/arts-cat-data)
 
 ########### Path to partition functions data ##########
 if (ARTS_PARTFUN_DATA_PATH)
