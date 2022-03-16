@@ -395,10 +395,16 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
                          const NameMaps& arts) {
   const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
 
+
+  std::array<ArrayOfString, num_split_files> arr_func_names{};
   auto* osptr = oss.begin();
+  auto* fnptr = arr_func_names.begin();
   for (auto& [name, data] : arts.varname_group) {
     auto& os = *osptr;
+    auto& func_names = *fnptr;
+    func_names.emplace_back(var_string("py_", name, '_'));
 
+    os << "void " << func_names.back() << "(py::class_<Workspace>& ws) {\n";
     os << "ws.def_property(\"" << name << "\",\n";
     os << R"--(  py::cpp_function([](Workspace& w) -> WorkspaceVariable {
     return WorkspaceVariable{w, )--" << data.artspos
@@ -428,10 +434,23 @@ void workspace_variables(std::array<std::ofstream, num_split_files>& oss,
     os << "Type\n----\n"
        << data.varname_group << "\n)-VARNAME_DESC-\""
        << ");";
-    os << '\n' << '\n';
+    os << '\n' << '}' << '\n' << '\n';
 
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
+    fnptr++;
+    if (fnptr == arr_func_names.end()) fnptr = arr_func_names.begin();
+  }
+
+  for (Index i=0; i<num_split_files; i++) {
+    auto& os = oss[i];
+    auto& func_names = arr_func_names[i];
+
+    os << R"--(
+void py_wsvs_(py::class_<Workspace>& ws) {
+)--";
+    for (auto& func: func_names) os << "  " << func << "(ws);\n";
+    os <<"}\n\n";
   }
 }
 
@@ -1706,14 +1725,20 @@ int main() {
     py_workspace << "void py_auto_workspace_" << i
                  << "(py::class_<Workspace>& ws);\n";
   }
+
   py_workspace << "void py_auto_workspace(py::class_<Workspace>& ws) {\n";
   for (Index i = 0; i < num_split_files; i++) {
-    py_workspaces[i] << '\n'
-                     << "namespace Python {\nvoid py_auto_workspace_" << i
-                     << "(py::class_<Workspace>& ws) {\n";
+    py_workspaces[i] << "\nnamespace Python {\n";
   }
 
   workspace_variables(py_workspaces, artsname);
+
+  for (Index i = 0; i < num_split_files; i++) {
+    py_workspaces[i] << "\nvoid py_auto_workspace_" << i
+                        << "(py::class_<Workspace>& ws) {\n";
+    py_workspaces[i] << "py_wsvs_(ws);\n\n";
+  }
+
   workspace_method_nongenerics(py_workspaces, artsname);
   workspace_method_generics(py_workspaces, artsname);
   for (Index i = 0; i < num_split_files; i++) {
