@@ -115,7 +115,7 @@ class Workspace {
    * @param[in] i WSV index.
    * @return true if the WSV exists, otherwise false.
    */
-  bool is_initialized(Index i) {
+  bool is_initialized(Index i) const {
     return ((ws[i].size() != 0) && (ws[i].top()->initialized == true));
   }
 
@@ -159,7 +159,7 @@ class Workspace {
   void push_uninitialized(Index i, void *wsv);
 
   /** Get the number of workspace variables. */
-  Index nelem() { return ws.nelem(); }
+  Index nelem() const { return ws.nelem(); }
   
   /** Add a new variable to existing workspace and to the static maps */
   Index add_wsv_inplace(const WsvRecord &wsv);

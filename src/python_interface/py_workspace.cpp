@@ -98,7 +98,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
             auto varptr = w.WsvMap.find(name);
             ARTS_USER_ERROR_IF(
                 varptr not_eq w.WsvMap.end() and
-                    w.wsv_data[varptr->second].Group() not_eq group_index,
+                    w.wsv_data.at(varptr->second).Group() not_eq group_index,
                 "Already exist of different group: ",
                 name)
 
@@ -108,7 +108,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
                           group_index));
             w.push(pos, workspace_memory_handler.allocate(group_index));
             return WorkspaceVariable{w, pos};
-          },
+          }, py::keep_alive<0, 1>(),
           py::arg("group").none(false),
           py::arg("name"),
           py::arg("desc") = std::nullopt)
@@ -117,7 +117,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
           [](Workspace& w, const char* name) {
             auto varpos = w.WsvMap.find(name);
             if (varpos == w.WsvMap.end())
-              throw pybind11::attribute_error(var_string('\'', name, '\''));
+              throw py::attribute_error(var_string('\'', name, '\''));
 
             if (w.is_initialized(varpos->second)) {
               w.pop_free(varpos->second);
@@ -130,10 +130,10 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       [](Workspace& w, const String& name) {
         auto varpos = w.WsvMap.find(name);
         if (varpos == w.WsvMap.end())
-          throw pybind11::attribute_error(var_string('\'', name, '\''));
+          throw py::attribute_error(var_string('\'', name, '\''));
 
         return WorkspaceVariable{w, varpos->second};
-      },
+      }, py::keep_alive<0, 1>(),
       py::doc("A custom workspace variable"));
 
   ws.def(
@@ -141,12 +141,19 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       [](Workspace& w_1, Workspace& w_2) { w_1.swap(w_2); },
       py::arg("ws").noconvert().none(false));
 
-  ws.def("__repr__", [](Workspace&) { return "Workspace"; });
+  ws.def("__repr__", [](const Workspace&) { return "Workspace"; });
 
-  ws.def("__str__", [](Workspace& w) {
-    Index c = 0;
-    for (Index i = 0; i < w.nelem(); i++) c += w.is_initialized(i);
-    return var_string("Workspace with ", c, " initialized variables");
+  ws.def("__str__", [](const Workspace& w) {
+    ArrayOfString vars;
+    for (Index i = 0; i < w.nelem(); i++)
+      if (w.is_initialized(i))
+        if (auto x = w.wsv_data.at(i).Name(); x[0] != ':')
+          vars.push_back(var_string(x,
+                                    ": ",
+                                    global_data::wsv_group_names.at(
+                                        w.wsv_data.at(i).Group())));
+    std::sort(vars.begin(), vars.end());
+    return var_string("Workspace [ ", stringify(vars, ", "), ']');
   });
 
   py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
@@ -158,20 +165,20 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
           [](WorkspaceVariable& wsv, WorkspaceVariablesVariant x) { wsv = x; },
           "Returns a proper Arts type")
       .def_property_readonly("name", &WorkspaceVariable::name)
-      .def_property_readonly("desc", [](WorkspaceVariable& wv) {return wv.ws.wsv_data[wv.pos].Description();})
+      .def_property_readonly("desc", [](WorkspaceVariable& wv) {return wv.ws.wsv_data.at(wv.pos).Description();})
       .def_property_readonly("init", &WorkspaceVariable::is_initialized)
       .def("initialize_if_not", &WorkspaceVariable::initialize_if_not)
       .def(
           "__str__",
-          [](WorkspaceVariable& wsv) {
+          [](const WorkspaceVariable& wsv) {
             return var_string(
                 "Workspace ",
-                global_data::wsv_group_names[wsv.ws.wsv_data[wsv.pos].Group()]);
+                global_data::wsv_group_names.at(wsv.ws.wsv_data.at(wsv.pos).Group()));
           })
-      .def("__repr__", [](WorkspaceVariable& wsv) {
+      .def("__repr__", [](const WorkspaceVariable& wsv) {
         return var_string(
             "Workspace ",
-            global_data::wsv_group_names[wsv.ws.wsv_data[wsv.pos].Group()]);
+            global_data::wsv_group_names.at(wsv.ws.wsv_data.at(wsv.pos).Group()));
       });
 
   py::class_<WsvRecord>(m, "WsvRecord")
@@ -179,8 +186,8 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       .def_property_readonly("description", &WsvRecord::Description)
       .def_property_readonly("group", &WsvRecord::Group)
       .def_property_readonly("implicit", &WsvRecord::Implicit)
-      .def("__str__", [](WsvRecord& mr) { return var_string(mr); })
-      .def("__repr__", [](WsvRecord& mr) { return var_string(mr); });
+      .def("__str__", [](const WsvRecord& mr) { return var_string(mr); })
+      .def("__repr__", [](const WsvRecord& mr) { return var_string(mr); });
 
   py::class_<Array<WsvRecord>>(m, "ArrayOfWsvRecord")
       .PythonInterfaceArrayDefault(WsvRecord)

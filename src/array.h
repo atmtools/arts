@@ -378,4 +378,11 @@ constexpr std::array<T, 1 + sizeof...(Ts)> stdarrayify(const T& first, const Ts&
   return {first, T(the_rest)...};
 }
 
+template <typename T>
+std::string stringify(const Array<T>& list, const char * const sep=" ", const char * const beg="") {
+  std::ostringstream os;
+  for (auto& x: list) os << beg << x << sep;
+  return os.str();
+}
+
 #endif  // array_h
