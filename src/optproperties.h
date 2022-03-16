@@ -327,10 +327,11 @@ ParticleSSDMethod ParticleSSDMethodFromString(
 String ParticleSSDMethodToString(
     const ParticleSSDMethod& particle_ssdmethod_type);
 
-void ext_abs_pfun_from_tro(MatrixView ext,
-                           MatrixView abs,
-                           Tensor3View pfun,
+void ext_abs_pfun_from_tro(MatrixView ext_data,
+                           MatrixView abs_data,
+                           Tensor3View pfun_data,
                            const ArrayOfSingleScatteringData& scat_data,
+                           const Index& iss,
                            ConstMatrixView pnd_data,
                            ArrayOfIndex& cloudbox_limits,
                            ConstVectorView T_grid,

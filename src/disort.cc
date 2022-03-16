@@ -864,7 +864,6 @@ void run_cdisort(Workspace& ws,
   Tensor3 pha_bulk_par;
 
   if (only_tro && Npfct > 3) {
-    cout << "new\n";
     nang = Npfct;
     nlinspace(pfct_angs, 0, 180, nang);
 
@@ -882,6 +881,7 @@ void run_cdisort(Workspace& ws,
                             abs_bulk_par,
                             pha_bulk_par,
                             scat_data[iss],
+                            iss,
                             pnd(Range(iflat,nse),joker),
                             cboxlims,
                             t,

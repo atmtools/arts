@@ -2667,22 +2667,23 @@ String PTypeToString(const ParticleSSDMethod& particle_ssdmethod) {
  ext, abs, pfun and T_grid shall match the complete atmosphere, while pnd shall
  match the cloudbox.
 
- \param[in,out]  ext    Extinction [frequency, temperature]
- \param[in,out]  abs    Absorption [frequency, temperature]
- \param[in,out]  pfun   Phase function [frequency, temperature, scattering angle]
+ \param[in,out] ext_data     Extinction [frequency, temperature]
+ \param[in,out] abs_data     Absorption [frequency, temperature]
+ \param[in,out] pfun_data    Phase function [frequency, temperature, scattering angle]
  \param[in]  scat_data  Scattering data for one scattering species
- \param[in]  pnd      Particle number density [scattering element, cloudbox level]
- \param[in]  T_grid   Temperatures
- \param[in]  sa_grid  Scattering angles
- \param[in]  cloudbox_limits  Limits in pressure dimension
-
+ \param[in]  iss        Index for scattering species, only used for error
+ \param[in]  pnd        Particle number density [scattering element, cloudbox level]
+ \param[in]  T_grid     Temperatures
+ \param[in]  sa_grid    Scattering angles
+ \param[in]  cloudbox_limits Limits in pressure dimension
 
  \author Patrick Eriksspn
 */
-void ext_abs_pfun_from_tro(MatrixView ext,
-                           MatrixView abs,
-                           Tensor3View pfun,
+void ext_abs_pfun_from_tro(MatrixView ext_data,
+                           MatrixView abs_data,
+                           Tensor3View pfun_data,
                            const ArrayOfSingleScatteringData& scat_data,
+                           const Index& iss,
                            ConstMatrixView pnd_data,
                            ArrayOfIndex& cloudbox_limits,
                            ConstVectorView T_grid,
@@ -2695,14 +2696,13 @@ void ext_abs_pfun_from_tro(MatrixView ext,
   const Index nsa = sa_grid.nelem();
   const Index ncl = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   
-
-  ARTS_ASSERT(ext.nrows() == nf);
-  ARTS_ASSERT(ext.ncols() == nt);
-  ARTS_ASSERT(abs.nrows() == nf);
-  ARTS_ASSERT(abs.ncols() == nt);
-  ARTS_ASSERT(pfun.npages() == nf);
-  ARTS_ASSERT(pfun.nrows() == nt);
-  ARTS_ASSERT(pfun.ncols() == nsa);
+  ARTS_ASSERT(ext_data.nrows() == nf);
+  ARTS_ASSERT(ext_data.ncols() == nt);
+  ARTS_ASSERT(abs_data.nrows() == nf);
+  ARTS_ASSERT(abs_data.ncols() == nt);
+  ARTS_ASSERT(pfun_data.npages() == nf);
+  ARTS_ASSERT(pfun_data.nrows() == nt);
+  ARTS_ASSERT(pfun_data.ncols() == nsa);
   ARTS_ASSERT(cloudbox_limits.nelem() == 2);
   ARTS_ASSERT(pnd_data.nrows() == nse);
   ARTS_ASSERT(pnd_data.ncols() == ncl);
@@ -2718,42 +2718,67 @@ void ext_abs_pfun_from_tro(MatrixView ext,
                         "This method demands that all scat_data are TRO");
   }
 
-  // Range for layers inside the cloudbox
-  const Index i0 = cloudbox_limits[0];
-  Range clevels = Range(i0, ncl);
+  // Help variables to hold non-zero data inside the cloudbox
+  const Index cl_start = cloudbox_limits[0];
+  Vector T_values(ncl);
+  ArrayOfIndex cboxlayer(ncl);
   
   // Loop scattering elements
   for (Index ie = 0; ie < nse; ie++) {
-    // Add any check that pnd_data(ie,:) > 0?
+    // Allowed temperature range
+    const Index last = scat_data[ie].T_grid.nelem() - 1;
+    const Numeric tmin = 1.5*scat_data[ie].T_grid[0] -
+      0.5*scat_data[ie].T_grid[1];
+    const Numeric tmax = 1.5*scat_data[ie].T_grid[last] -
+      0.5*scat_data[ie].T_grid[last-1];
+    
+    Index nvals = 0;
+    for(Index icl=0; icl<ncl; ++icl){
+      // Nothing to do if PND is zero
+      if (abs(pnd_data(ie,icl)) > 1e-3) {
+        const Numeric Tthis = T_grid[cl_start + icl];
+        ARTS_USER_ERROR_IF(Tthis < tmin || Tthis > tmax,
+          "Temperature interpolation error for scattering element ", ie,
+          " of species ", iss, "\nYour temperature: ", Tthis, " K\n"
+          "Allowed range of temperatures: ", tmin, " - ", tmax, " K");
+        T_values[nvals] = Tthis;
+        cboxlayer[nvals] = icl;
+        nvals++;
+      }
+    }
 
-    // Temperature-only interpolation weights
-    ArrayOfGridPos gp_t(ncl);
-    gridpos(gp_t, scat_data[ie].T_grid, T_grid[clevels]);
-    Matrix itw1(ncl, 2);
-    interpweights(itw1, gp_t);
+    if (nvals > 0) {
+      // Temperature-only interpolation weights
+      ArrayOfGridPos gp_t(nvals);
+      gridpos(gp_t, scat_data[ie].T_grid, T_values[Range(0,nvals)]);
+      Matrix itw1(nvals, 2);
+      interpweights(itw1, gp_t);
 
-    // Temperature + scattering angle interpolation weights
-    ArrayOfGridPos gp_sa(nsa);
-    gridpos(gp_sa, scat_data[ie].za_grid, sa_grid);
-    Tensor3 itw2(ncl, nsa, 4);
-    interpweights(itw2, gp_t, gp_sa);
+      // Temperature + scattering angle interpolation weights
+      ArrayOfGridPos gp_sa(nsa);
+      gridpos(gp_sa, scat_data[ie].za_grid, sa_grid);
+      Tensor3 itw2(nvals, nsa, 4);
+      interpweights(itw2, gp_t, gp_sa);
 
-    // Loop frequencies
-    for (Index iv = 0; iv < nf; iv++) {
-      // Interpolate
-      Vector ext1(ncl), abs1(ncl);
-      Matrix pfu1(ncl,nsa);
-      interp(ext1, itw1, scat_data[ie].ext_mat_data(iv,joker,0,0,0), gp_t);
-      interp(abs1, itw1, scat_data[ie].abs_vec_data(iv,joker,0,0,0), gp_t);
-      interp(pfu1, itw2, scat_data[ie].pha_mat_data(iv,joker,joker,0,0,0,0),
-             gp_t, gp_sa);
+      // Loop frequencies
+      for (Index iv = 0; iv < nf; iv++) {
+        // Interpolate
+        Vector ext1(nvals), abs1(nvals);
+        Matrix pfu1(nvals,nsa);
+        interp(ext1, itw1, scat_data[ie].ext_mat_data(iv,joker,0,0,0), gp_t);
+        interp(abs1, itw1, scat_data[ie].abs_vec_data(iv,joker,0,0,0), gp_t);
+        interp(pfu1, itw2, scat_data[ie].pha_mat_data(iv,joker,joker,0,0,0,0),
+               gp_t, gp_sa);
 
-      // Add to container variables
-      for (Index il = 0; il < ncl; il++) {
-        ext(iv,i0+il) += pnd_data(ie,il) * ext1[il];
-        abs(iv,i0+il) += pnd_data(ie,il) * abs1[il];
-        for (Index ia = 0; ia < nsa; ia++) {
-          pfun(iv,i0+il,ia) += pnd_data(ie,il) * pfu1(il,ia);
+        // Add to container variables
+        for (Index i = 0; i < nvals; i++) {
+          const Index ic = cboxlayer[i];
+          const Index it = cl_start + ic;
+          ext_data(iv,it) += pnd_data(ie,ic) * ext1[i];
+          abs_data(iv,it) += pnd_data(ie,ic) * abs1[i];
+          for (Index ia = 0; ia < nsa; ia++) {
+            pfun_data(iv,it,ia) += pnd_data(ie,ic) * pfu1(i,ia);
+          }
         }
       }
     }
