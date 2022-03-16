@@ -59,8 +59,8 @@ void compute_h2o(PropagationMatrix& propmat_clearsky,
        1.  , 0.75, 1.  , 0.84, 0.48
     };
     const std::valarray<Numeric> d_air = {
-       1.2 , 0.82, 0.54, 0.74, 0.89, 0.52, 0.5 , 0.67, 0.65, 0.64, 0.72,
-       1.  , 0.75, 1.  , 0.84, 0.48
+       -0.033 , -0.074, -0.143, -0.013, -0.074, 0.051, 0.140 , -0.116, 0.061, 
+       -0.027,  -0.065,  0.187, 0.0, 0.176  , 0.162, 0.0
     };
     std::valarray<Numeric> xd_air = {
        2.6, 1.8, 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ,
@@ -400,8 +400,15 @@ void compute_n2(PropagationMatrix& propmat_clearsky,
                 const Numeric& t,
                 const Numeric& n2_vmr,
                 const Numeric& h2o_vmr) noexcept {
-    // Nitrogen absorption routine
-    // Based on absn2.f
+    // Dry air continuum absorption routine based on absn2.f
+    // Note that in spite of the name, this is for air and
+    // not pure Nitrogen, i.e. it includes O2-N2 and O2-O2 
+    // collision induced absorption. As such, it should only be 
+    // used with N2 (dry) vmr = 0.781 and  the N2/O2 rato applicable to 
+    // Earth. However, the N2-vmr dependence is included as
+    // the absorption must have a non-zero Jacobian for
+    // the calculation of partial absorption in 
+    // propmat_clearsky_fieldCalc. 
 
     using Constant::pow2;
     using Conversion::pa2hpa, Conversion::hz2ghz;
@@ -413,10 +420,9 @@ void compute_n2(PropagationMatrix& propmat_clearsky,
     // Here, we remove the (assumed) value to permit absorption
     // to vary with N2 VMR - ARTS requires this for 
     // propmat_clearsky_fieldCalc to work properly
-    constexpr Numeric assumed_n2_vmr = 0.781; // NEED TO CHECK ACTUAL VALUE STILL
-    constexpr Numeric continuum_coefficient = 9.95e-14 / pow2(assumed_n2_vmr);
-    const auto pn2_hpa = n2_vmr * pdry_hpa; // Partial pressure of N2
-    const auto cont = continuum_coefficient * pow2(pn2_hpa) * std::pow(theta, 3.22);
+    constexpr Numeric assumed_n2_vmr = 0.781;
+    constexpr Numeric continuum_coefficient = 9.95e-14; // Np / km / (hPa GHz)^2
+    const auto cont = (n2_vmr / assumed_n2_vmr) * continuum_coefficient * pow2(pdry_hpa) * std::pow(theta, 3.22);
     const Index nf = f_grid.nelem();
     for (Index iv = 0; iv < nf; ++iv) {
         const auto f_ghz = hz2ghz(f_grid[iv]);
