@@ -52,11 +52,17 @@ add_custom_target(python_tests
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts
   COMMENT "Converting *.arts controlfiles to Python")
-add_test(
-  NAME arts.pyarts.pytest
+#add_test(
+#  NAME arts.pyarts.pytest
+#  COMMAND ${PYTHON_EXECUTABLE} -m pytest test
+#  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+#)
+add_custom_target(pyarts_tests
   COMMAND ${PYTHON_EXECUTABLE} -m pytest test
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-)
+  DEPENDS pyarts
+  COMMENT "Run PyARTS tests")
+add_dependencies(check-deps pyarts_tests)
 
 file(COPY test/plots/reference DESTINATION test/plots/)
 file(COPY test/reference DESTINATION test/)
