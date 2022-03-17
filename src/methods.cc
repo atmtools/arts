@@ -9040,6 +9040,52 @@ Possible models:
                "The version of FASTEM to use.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceFlatReflectivity"),
+      DESCRIPTION(
+          "This method calculates upwelling radiation for a specular flat surface\n"
+          "due to the reflection of the downgoing diffuse radiation and emission from\n"
+          "the surface.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the reflection of the diffuse\n"
+          "downward radiation. No direct incoming radiation is considered\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy",
+          "diy_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("diy_dx",
+         "iy_transmittance",
+         "iy_id",
+         "jacobian_do",
+         "star_do",
+         "atmosphere_dim",
+         "nlte_field",
+         "cloudbox_on",
+         "stokes_dim",
+         "f_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_surface",
+         "refellipsoid",
+         "rtp_pos",
+         "rtp_los",
+         "rte_pos2",
+         "iy_unit",
+         "surface_reflectivity",
+         "surface_props_data",
+         "surface_props_names",
+         "dsurface_names",
+         "jacobian_quantities",
+         "iy_main_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatReflectivityDirect"),
       DESCRIPTION(
           "This method calculates the specular reflection at a flat \n"

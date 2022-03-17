@@ -447,6 +447,194 @@ void iySurfaceFastem(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceFlatReflectivity(Workspace& ws,
+                         Matrix& iy,
+                         ArrayOfTensor3& diy_dx,
+                         const Tensor3& iy_transmittance,
+                         const Index& iy_id,
+                         const Index& jacobian_do,
+                         const Index& star_do,
+                         const Index& atmosphere_dim,
+                         const EnergyLevelMap& nlte_field,
+                         const Index& cloudbox_on,
+                         const Index& stokes_dim,
+                         const Vector& f_grid,
+                         const Vector& lat_grid,
+                         const Vector& lon_grid,
+                         const Matrix& z_surface,
+                         const Vector& refellipsoid,
+                         const Vector& rtp_pos,
+                         const Vector& rtp_los,
+                         const Vector& rte_pos2,
+                         const String& iy_unit,
+                         const Tensor3& surface_reflectivity,
+                         const Tensor3& surface_props_data,
+                         const ArrayOfString& surface_props_names,
+                         const ArrayOfString& dsurface_names,
+                         const ArrayOfRetrievalQuantity& jacobian_quantities,
+                         const Agenda& iy_main_agenda,
+                         const Verbosity& verbosity) {
+  // Input checks
+
+  ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
+  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
+  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_rte_los(atmosphere_dim, rtp_los);
+
+  // Check surface_data
+  surface_props_check(atmosphere_dim,
+                      lat_grid,
+                      lon_grid,
+                      surface_props_data,
+                      surface_props_names);
+
+  // Interplation grid positions and weights
+  ArrayOfGridPos gp_lat(1), gp_lon(1);
+  Matrix itw;
+  rte_pos2gridpos(
+      gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos);
+  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
+
+  // Skin temperature
+  Vector surface_skin_t(1);
+  surface_props_interp(surface_skin_t,
+                       "Skin temperature",
+                       atmosphere_dim,
+                       gp_lat,
+                       gp_lon,
+                       itw,
+                       surface_props_data,
+                       surface_props_names);
+
+  chk_not_negative("surface_skin_t", surface_skin_t[0]);
+
+
+  //Allocate
+  Tensor3 iy_trans_new;
+  Matrix iy_incoming;
+  Vector specular_los, surface_normal;
+  ArrayOfMatrix iy_aux;
+  Ppath ppath;
+  Index iy_id_new = iy_id + 1;
+  ArrayOfTensor3 diy_dx_dumb;
+  Matrix surface_los;
+  Tensor4 surface_rmatrix;
+  Matrix surface_emission;
+  Tensor3 I(1,f_grid.nelem(),stokes_dim);
+  if (iy_transmittance.npages()) {
+    iy_trans_new=iy_transmittance;
+  }
+
+  //get specular line of sight
+  specular_losCalc(specular_los,
+                   surface_normal,
+                   rtp_pos,
+                   rtp_los,
+                   atmosphere_dim,
+                   lat_grid,
+                   lon_grid,
+                   refellipsoid,
+                   z_surface,
+                   0,
+                   verbosity);
+
+  //if star is is present we need an additional output.
+  ArrayOfString iy_aux_var(0);
+  if (star_do) {
+    iy_aux_var.resize(1);
+    iy_aux_var[0] = "Direct radiation";
+  }
+
+  //Calculate incoming radiation for line of sight
+  iy_main_agendaExecute(ws,
+                        iy_incoming,
+                        iy_aux,
+                        ppath,
+                        diy_dx_dumb,
+                        0,
+                        iy_trans_new,
+                        iy_aux_var,
+                        iy_id_new,
+                        iy_unit,
+                        cloudbox_on,
+                        jacobian_do,
+                        f_grid,
+                        nlte_field,
+                        rtp_pos,
+                        specular_los,
+                        rte_pos2,
+                        iy_main_agenda);
+
+  //For the case that a star is present and the los is towards a star, we
+  //subtract the direct radiation, so that only the diffuse radiation is considered here.
+  //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+  //radiation at the surface. Otherwise it is zero.
+  if (star_do) {
+    iy_incoming -= iy_aux[0];
+  }
+
+  // Calculate incoming radiation directions, surface reflection matrix and
+  // emission vector
+  surfaceFlatReflectivity(surface_los,
+                          surface_rmatrix,
+                          surface_emission,
+                          f_grid,
+                          stokes_dim,
+                          atmosphere_dim,
+                          rtp_pos,
+                          rtp_los,
+                          specular_los,
+                          surface_skin_t[0],
+                          surface_reflectivity,
+                          verbosity);
+
+  I(0,joker,joker) = iy_incoming;
+
+  //calculate upwelling radiation from surface
+  surface_calc(iy, I, surface_los, surface_rmatrix, surface_emission);
+
+
+  // Surface Jacobians
+  if (jacobian_do && dsurface_names.nelem()) {
+
+//    Index irq;
+//    irq = find_first(dsurface_names, String("Skin temperature"));
+//
+//    if (irq >= 0){
+//      // Find index among jacobian quantities
+//      Index ihit = -1;
+//      for (Index j = 0; j < jacobian_quantities.nelem() && ihit < 0; j++) {
+//        if (dsurface_names[irq] == jacobian_quantities[j].Subtag()) {
+//          ihit = j;
+//        }
+//      }
+//
+//      // Derivative of surface skin temperature, as observed at the surface
+//      Matrix diy_dpos0(f_grid.nelem(), stokes_dim, 0.), diy_dpos;
+//      dplanck_dt(diy_dpos0(joker, 0), f_grid, surface_skin_t[0]);
+//
+//      Vector emissivity=surface_scalar_reflectivity;
+//      emissivity*=-1;
+//      emissivity+=1;
+//      diy_dpos0*=emissivity;
+//
+//      // Weight with transmission to sensor
+//      iy_transmittance_mult(diy_dpos, iy_transmittance, diy_dpos0);
+//
+//      // Put into diy_dx
+//      diy_from_pos_to_rgrids(diy_dx[ihit],
+//                             jacobian_quantities[ihit],
+//                             diy_dpos,
+//                             atmosphere_dim,
+//                             rtp_pos);
+//
+//    }
+    std::cout <<"Jacobian not implemented so far!";
+
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceFlatReflectivityDirect(
     Workspace& ws,
     Matrix& iy,
