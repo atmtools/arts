@@ -204,6 +204,8 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                         const Numeric& linemixinglimit_value,
                         const Verbosity& verbosity)
 {
+  abs_lines.resize(0);
+
   // Global numbers
   const Array<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
@@ -339,6 +341,8 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                  const Numeric& linemixinglimit_value,
                  const Verbosity& verbosity)
 {
+  abs_lines.resize(0);
+
   // Global numbers
   const Array<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
@@ -465,6 +469,8 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                       const Numeric& linemixinglimit_value,
                       const Verbosity& verbosity)
 {
+  abs_lines.resize(0);
+
   // Build a set of species indices. Duplicates are ignored.
   const std::set<Species::Species> unique_species = lbl_species(abs_species);
   
@@ -631,6 +637,8 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
                 const Numeric& linemixinglimit_value,
                 const Verbosity& verbosity)
 {
+  abs_lines.resize(0);
+  
   // Global numbers
   const Array<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
@@ -695,6 +703,8 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
              const Numeric& linemixinglimit_value,
              const Verbosity& verbosity)
 {
+  abs_lines.resize(0);
+  
   // Global numbers
   const Array<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
@@ -863,6 +873,8 @@ void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_li
                                            const String& basename,
                                            const Verbosity& verbosity)
 {
+  abs_lines_per_species.resize(0);
+
   // Build a set of species indices. Duplicates are ignored.
   const std::set<Species::Species> unique_species = lbl_species(abs_species);
   
@@ -900,6 +912,8 @@ void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
                                       const Index& robust,
                                       const Verbosity& verbosity)
 {
+  abs_lines.resize(0);
+  
   CREATE_OUT3;
   std::size_t bands_found{0};
   
@@ -910,7 +924,6 @@ void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
   
   // Read catalogs for each identified species and put them all into
   // abs_lines
-  abs_lines.resize(0);
   for (auto& ir: Species::Isotopologues) {
     String filename = tmpbasename + ir.FullName() + ".xml";
     if (find_xml_file_existence(filename)) {
@@ -935,6 +948,8 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
                                                   const Index& robust,
                                                   const Verbosity& verbosity)
 {
+  abs_lines_per_species.resize(0);
+  
   CREATE_OUT3;
   std::size_t bands_found{0};
   
