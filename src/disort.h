@@ -164,6 +164,7 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
+                 const Index& only_tro,
                  const Index& quiet,
                  const Verbosity& verbosity);
 

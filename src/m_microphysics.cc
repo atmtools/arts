@@ -82,11 +82,8 @@ void HydrotableCalc(Workspace& ws,
                     const Vector& wc_grid,                    
                     const Verbosity&)
 {
-  cout << "scat_data version\n";
-
   // Sizes
   const Index nss = scat_data.nelem(); 
-  const Index ne = scat_data[iss].nelem(); 
   const Index nf = f_grid.nelem();
   const Index nt = T_grid.nelem();
   const Index nw = wc_grid.nelem();
@@ -104,26 +101,16 @@ void HydrotableCalc(Workspace& ws,
                       "The scat_data must be flagged to have passed a "
                       "consistency check (scat_data_checked=1).");
 
-  // Check that all is TRO and determine flat scattering element positions
-  {    
-    bool all_totrand = true;
-    for (Index ie = 0; ie < ne; ie++) {
-      if (scat_data[iss][ie].ptype != PTYPE_TOTAL_RND)
-        all_totrand = false;
-    }
-    ARTS_USER_ERROR_IF (!all_totrand,
-                        "This method demands that all scat_data are TRO");
-  }
-  
   // Allocate *hydrotable*
   hydrotable.set_name("Table of particle optical properties");
-  hydrotable.data.resize(4, nf, nt, nw);
+  hydrotable.data.resize(5, nf, nt, nw);
   //
   hydrotable.set_grid_name(0, "Quantity");
   hydrotable.set_grid(0, {"Extinction [m-1]",
                           "Single scattering albedo [-]",
                           "Asymmetry parameter [-]",
-                          "Radar reflectivity [m2]"});
+                          "Radar reflectivity [m2]",
+                          "Test [-]"});
   hydrotable.set_grid_name(1, "Frequency [Hz]");
   hydrotable.set_grid(1, f_grid);
   hydrotable.set_grid_name(2, "Temperature [K]");
@@ -143,9 +130,10 @@ void HydrotableCalc(Workspace& ws,
   ArrayOfString dpnd_data_dx_names(0);
   Matrix ext(nf, nt);
   Matrix abs(nf, nt);
-  Tensor3 pfu(nf, nt, nsa);
+  Tensor3 pfun(nf, nt, nsa);
   const Numeric fourpi = 4.0 * PI;
-
+  ArrayOfIndex cbox_limits = {0, nt-1};
+  
   // Loop and fill table
   for (Index iw = 0; iw < nw; iw++) {
     // Call pnd_agenda
@@ -160,43 +148,19 @@ void HydrotableCalc(Workspace& ws,
                             dpnd_data_dx_names,
                             pnd_agenda_array);
 
+    // Calculate extinsion, absorbtion and phase function
     ext = 0.0;
     abs = 0.0;
-    pfu = 0.0;
- 
-    for (Index ie = 0; ie < ne; ie++) {
-      // Temperature-only interpolation weights
-      ArrayOfGridPos gp_t(nt);
-      gridpos(gp_t, scat_data[iss][ie].T_grid, T_grid);
-      Matrix itw1(nt, 2);
-      interpweights(itw1, gp_t);
-
-      // Temperature + scattering angle interpolation weights
-      ArrayOfGridPos gp_a(nsa);
-      gridpos(gp_a, scat_data[iss][ie].za_grid, sa_grid);
-      Tensor3 itw2(nt, nsa, 4);
-      interpweights(itw2, gp_t, gp_a);
-
-      // Loop frequencies
-      for (Index iv = 0; iv < nf; iv++) {
-        // Interpolate
-        Vector ext1(nt), abs1(nt);
-        Matrix pfu1(nt,nsa);
-        interp(ext1, itw1, scat_data[iss][ie].ext_mat_data(iv,joker,0,0,0), gp_t);
-        interp(abs1, itw1, scat_data[iss][ie].abs_vec_data(iv,joker,0,0,0), gp_t);
-        interp(pfu1, itw2, scat_data[iss][ie].pha_mat_data(iv,joker,joker,0,0,0,0),
-               gp_t, gp_a);
-
-        // Add to container variables
-        for (Index it = 0; it < nt; it++) {
-          ext(iv,it) += pnd_data(it,ie) * ext1[it];
-          abs(iv,it) += pnd_data(it,ie) * abs1[it];
-          for (Index ia = 0; ia < nsa; ia++) {
-            pfu(iv,it,ia) += pnd_data(it,ie) * pfu1(it,ia);
-          }
-        }
-      }
-    }
+    pfun = 0.0;
+    ext_abs_pfun_from_tro(ext,
+                          abs,
+                          pfun,
+                          scat_data[iss],
+                          iss,
+                          transpose(pnd_data),
+                          cbox_limits,
+                          T_grid,
+                          sa_grid);
     
     // Fill the hydrotable for present particle content
     for (Index iv = 0; iv < nf; iv++) {
@@ -204,152 +168,8 @@ void HydrotableCalc(Workspace& ws,
         hydrotable.data(0,iv,it,iw) = ext(iv,it);
         hydrotable.data(1,iv,it,iw) = 1.0 - (abs(iv,it) / ext(iv,it));
         hydrotable.data(2,iv,it,iw) = asymmetry_parameter(sa_grid,
-                                                          pfu(iv,it,joker));
-        hydrotable.data(3,iv,it,iw) = fourpi * pfu(iv,it,nsa-1);
-      }
-    }
-  }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void HydrotableCalc2(Workspace& ws,
-                    GriddedField4& hydrotable,
-                    const ArrayOfAgenda& pnd_agenda_array,
-                    const ArrayOfArrayOfString& pnd_agenda_array_input_names,
-                    const ArrayOfArrayOfSingleScatteringData& scat_data,
-                    const Index& scat_data_checked,
-                    const Vector& f_grid,
-                    const Index& iss,
-                    const Vector& T_grid,
-                    const Vector& wc_grid,                    
-                    const Verbosity&)
-{ 
-  cout << "disort version\n";
-
-  // Sizes
-  const Index nss = scat_data.nelem(); 
-  const Index nf = f_grid.nelem();
-  const Index nt = T_grid.nelem();
-  const Index nw = wc_grid.nelem();
-
-  ARTS_USER_ERROR_IF (pnd_agenda_array.nelem() != nss,
-        "*scat_data* and *pnd_agenda_array* are inconsistent "
-        "in size.");
-  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names.nelem() != nss,
-        "*scat_data* and *pnd_agenda_array_input_names* are "
-        "inconsistent in size.");
-  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names[iss].nelem() != 1,
-        "This method requires one-moment PSDs, but *pnd_agenda_array_input_names* "
-        "for the selected scattering species does not have length one.");
-  ARTS_USER_ERROR_IF (!scat_data_checked,
-                      "The scat_data must be flagged to have passed a "
-                      "consistency check (scat_data_checked=1).");
-
-  // Check that all is TRO and determine flat scattering element positions
-  Index ise0, nse, nsetot;
-  {    
-    bool all_totrand = true;
-    ArrayOfIndex ncumse(nss + 1);
-    ncumse[0] = 0;
-    for (Index i = 0; i < nss; i++) {
-      ncumse[i + 1] = ncumse[i] + scat_data[i].nelem();
-      for (Index i_se = 0; i_se < scat_data[i].nelem(); i_se++) {
-        if (scat_data[i][i_se].ptype != PTYPE_TOTAL_RND)
-          all_totrand = false;
-      }
-    }
-    ARTS_USER_ERROR_IF (!all_totrand,
-                        "This method demands that all scat_data are TRO");
-    ise0 = ncumse[iss];
-    nse = ncumse[iss+1] - ise0;
-    nsetot = ncumse[nss];
-  }
-  
-  // Allocate *hydrotable*
-  hydrotable.set_name("Table of particle optical properties");
-  hydrotable.data.resize(4, nf, nt, nw);
-  //
-  hydrotable.set_grid_name(0, "Quantity");
-  hydrotable.set_grid(0, {"Extinction [m-1]",
-                          "Single scattering albedo [-]",
-                          "Asymmetry parameter [-]",
-                          "Radar reflectivity [m2]"});
-  hydrotable.set_grid_name(1, "Frequency [Hz]");
-  hydrotable.set_grid(1, f_grid);
-  hydrotable.set_grid_name(2, "Temperature [K]");
-  hydrotable.set_grid(2, T_grid);
-  hydrotable.set_grid_name(3, "Particle content [kg/m3]");
-  hydrotable.set_grid(3, wc_grid);
-
-  // Phase matrix angles
-  Vector pfct_angs;
-  get_angs(pfct_angs, scat_data, -1);
-  Index nang = pfct_angs.nelem();
-  ARTS_USER_ERROR_IF (abs(pfct_angs[nang-1]-180.0)>1e-3,
-                      "scat_data must cover scattering angles up to 180 deg");
-  
-  // Local variables
-  Matrix pnd_data;
-  Tensor3 dpnd_data_dx;
-  Matrix pnd_agenda_input(nt, 1);
-  ArrayOfString dpnd_data_dx_names(0);
-  Matrix pnd_profiles(nsetot, nt, 0.0);
-  Matrix ext_bulk_par(nf, nt);
-  Matrix abs_bulk_par(nf, nt);
-  Vector p_grid_dummy(nt, 0.0);
-  ArrayOfIndex cloudbox_limits = {0, nt-1};
-  Tensor3 pha_bulk_par(nf, nt, nang);
-  const Numeric fourpi = 4.0 * PI;
-
-  // Loop and fill table
-  for (Index iw = 0; iw < nw; iw++) {
-    // Call pnd_agenda
-    pnd_agenda_input = wc_grid[iw];
-    pnd_agenda_arrayExecute(ws,
-                            pnd_data,
-                            dpnd_data_dx,
-                            iss,
-                            T_grid,
-                            pnd_agenda_input,
-                            pnd_agenda_array_input_names[iss],
-                            dpnd_data_dx_names,
-                            pnd_agenda_array);
-    
-    // Copy to variable covering all scattering elements 
-    for (Index ise = 0; ise < nse; ise++) {
-      pnd_profiles(ise0+ise,joker) = pnd_data(joker,ise);
-    }
-    
-    // We use methods from disort to calculate the opt props
-    get_paroptprop(ext_bulk_par,
-                   abs_bulk_par,
-                   scat_data,
-                   pnd_profiles,
-                   T_grid,
-                   p_grid_dummy,
-                   cloudbox_limits,
-                   f_grid);
-    get_parZ(pha_bulk_par,
-              scat_data,
-              pnd_profiles,
-              T_grid,
-              pfct_angs,
-              cloudbox_limits);
-    /*
-    WriteXML("ascii", pfct_angs, "theta.xml", 0, "Vector", "", "", verbosity);
-    WriteXML("ascii", pha_bulk_par, "pfun.xml", 0, "Tensor3", "", "", verbosity);
-    */
-
-    // Fill the hydrotable for present particle content
-    for (Index iv = 0; iv < nf; iv++) {
-      for (Index it = 0; it < nt; it++) {
-        hydrotable.data(0,iv,it,iw) = ext_bulk_par(iv,it);
-        hydrotable.data(1,iv,it,iw) = 1.0 - (abs_bulk_par(iv,it) /
-                                             ext_bulk_par(iv,it));
-        hydrotable.data(2,iv,it,iw) = asymmetry_parameter(pfct_angs,
-                                                          pha_bulk_par(iv,it,joker));
-        hydrotable.data(3,iv,it,iw) = fourpi * pha_bulk_par(iv,it,nang-1);
+                                                          pfun(iv,it,joker));
+        hydrotable.data(3,iv,it,iw) = fourpi * pfun(iv,it,nsa-1);
       }
     }
   }

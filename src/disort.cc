@@ -747,8 +747,10 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
+                 const Index& only_tro,
                  const Index& quiet,
                  const Verbosity& verbosity) {
+
   // Create an atmosphere starting at z_surface
   Vector p, z, t;
   Matrix vmr, pnd;
@@ -827,23 +829,6 @@ void run_cdisort(Workspace& ws,
   // Since we have no solar source there is no angular dependance
   ds.phi[0] = 0.;
 
-  for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
-
-  Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
-  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
-  get_paroptprop(
-      ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
-
-  // Optical depth of layers
-  Matrix dtauc(nf, ds.nlyr);
-  // Single scattering albedo of layers
-  Matrix ssalb(nf, ds.nlyr);
-  get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
-
-  // Transform to mu, starting with negative values
-  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
-
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
   // emission. Both are applied additively.
@@ -864,13 +849,71 @@ void run_cdisort(Workspace& ws,
   ds.bc.btemp = surface_skin_t;
   ds.bc.temis = 1.;
 
-  Vector pfct_angs;
-  get_angs(pfct_angs, scat_data, Npfct);
-  Index nang = pfct_angs.nelem();
+  
+  for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
 
+  // Absorption species
+  Matrix ext_bulk_gas(nf, ds.nlyr + 1);
+  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
+
+  // Get particle bulk properties
+  Index nang;
+  Vector pfct_angs;
+  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
   Index nf_ssd = scat_data[0][0].f_grid.nelem();
-  Tensor3 pha_bulk_par(nf_ssd, ds.nlyr + 1, nang);
-  get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
+  Tensor3 pha_bulk_par;
+
+  if (only_tro && Npfct > 3) {
+    nang = Npfct;
+    nlinspace(pfct_angs, 0, 180, nang);
+
+    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
+    
+    ext_bulk_par = 0.0;
+    abs_bulk_par = 0.0;
+    pha_bulk_par = 0.0;
+
+    Index iflat = 0;
+    
+    for (Index iss=0; iss < scat_data.nelem(); iss++) {
+      const Index nse = scat_data[iss].nelem();
+      ext_abs_pfun_from_tro(ext_bulk_par,
+                            abs_bulk_par,
+                            pha_bulk_par,
+                            scat_data[iss],
+                            iss,
+                            pnd(Range(iflat,nse),joker),
+                            cboxlims,
+                            t,
+                            pfct_angs);
+      iflat += nse;
+    }
+  } else {
+    get_angs(pfct_angs, scat_data, Npfct);
+    nang = pfct_angs.nelem();
+    
+    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
+  
+    get_paroptprop(ext_bulk_par,
+                   abs_bulk_par,
+                   scat_data,
+                   pnd,
+                   t,
+                   p,
+                   cboxlims,
+                   f_grid);
+    get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
+  }
+  
+  // Optical depth of layers
+  Matrix dtauc(nf, ds.nlyr);
+  // Single scattering albedo of layers
+  Matrix ssalb(nf, ds.nlyr);
+  get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
+
+  // Transform to mu, starting with negative values
+  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
+
   Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
   get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
 
