@@ -386,9 +386,6 @@ struct NameMaps {
   }
 };
 
-// To speed up compilation, we split the workspace into N units
-constexpr Index num_split_files = 128;
-
 void includes(std::ofstream& os) {
   os << "#include <python_interface.h>" << '\n';
 }
@@ -400,7 +397,7 @@ void workspace_variables(size_t n,
   std::vector<std::ofstream> oss(n);
   for (size_t i=0; i<n; i++) {
     oss[i] = std::ofstream(var_string("py_auto_workspace_split_vars_", i, ".cc"));
-    oss[i] << "#include <py_auto_interface.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsv_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+    oss[i] << "#include \"py_auto_interface.h\"\n\nnamespace Python {\nvoid py_auto_workspace_wsv_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
   }
 
   auto osptr = oss.begin();
@@ -541,9 +538,14 @@ void print_method_args(std::ofstream& os,
        << R"--(py::arg_v("verbosity", std::nullopt, "ws.verbosity"))--";
 }
 
-void workspace_method_create(std::array<std::ofstream, num_split_files>& oss,
+void workspace_method_create(size_t n,
                              const NameMaps& arts) {
-  auto* osptr = oss.begin();
+  std::vector<std::ofstream> oss(n);
+  for (size_t i=0; i<n; i++) {
+    oss[i] = std::ofstream(var_string("py_auto_workspace_split_create_", i, ".cc"));
+    oss[i] << "#include \"py_auto_interface.h\"\n\nnamespace Python {\nvoid py_auto_workspace_wsc_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+  }
+  auto osptr = oss.begin();
 
   for (auto& [group, group_index] : arts.group) {
     auto& os = *osptr;
@@ -602,11 +604,19 @@ value ()--"
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
   }
+  
+  for (auto& os: oss) os << "}\n}\n\n";
 }
 
 void workspace_method_nongenerics(
-    std::array<std::ofstream, num_split_files>& oss, const NameMaps& arts) {
-  auto* osptr = oss.begin();
+  size_t n, const NameMaps& arts) {
+  std::vector<std::ofstream> oss(n);
+  for (size_t i=0; i<n; i++) {
+    oss[i] = std::ofstream(var_string("py_auto_workspace_split_methods_", i, ".cc"));
+    oss[i] << "#include <python_interface.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsm_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+  }
+  
+  auto osptr = oss.begin();
 
   for (auto& method : arts.methodname_method) {
     auto& os = *osptr;
@@ -805,6 +815,8 @@ void workspace_method_nongenerics(
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
   }
+  
+  for (auto& os: oss) os << "}\n}\n\n";
 }
 
 struct ArgumentHelper {
@@ -824,9 +836,15 @@ struct VariadicInfo {
   String name, type, first, second;
 };
 
-void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
+void workspace_method_generics(size_t n,
                                const NameMaps& arts) {
-  auto* osptr = oss.begin();
+  std::vector<std::ofstream> oss(n);
+  for (size_t i=0; i<n; i++) {
+    oss[i] = std::ofstream(var_string("py_auto_workspace_split_generic_", i, ".cc"));
+    oss[i] << "#include <python_interface.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsg_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+  }
+  
+  auto osptr = oss.begin();
 
   ArrayOfString ignore_methods{"Delete"};
 
@@ -1335,6 +1353,8 @@ void workspace_method_generics(std::array<std::ofstream, num_split_files>& oss,
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
   }
+  
+  for (auto& os: oss) os << "}\n}\n\n";
 }
 
 void auto_header(std::ofstream& os, const NameMaps& arts) {
@@ -1721,46 +1741,52 @@ int main(int argc, char** argv) {
   ARTS_USER_ERROR_IF(nwsm < 1 or nwsv < 1 or nwsc < 1 or nwsg < 1, "Bad value: ", nwsm, ' ', nwsv, ' ', nwsc, ' ', nwsg)
 
   const auto artsname = NameMaps();
-
-  std::ofstream py_header("py_auto_interface.h");
-  std::ofstream py_header_cc("py_auto_interface.cc");
-  auto_header(py_header, artsname);
-  auto_header_definitions(py_header_cc, artsname);
+  {
+    std::ofstream py_header("py_auto_interface.h");
+    auto_header(py_header, artsname);
+  }
+  {
+    std::ofstream py_header_cc("py_auto_interface.cc");
+    auto_header_definitions(py_header_cc, artsname);
+  }
 
   std::ofstream py_workspace("py_auto_workspace.cc");
   includes(py_workspace);
   py_workspace << '\n' << "namespace Python {\n";
-  for (Index i = 0; i < num_split_files; i++) {
-    py_workspace << "void py_auto_workspace_" << i
-                 << "(py::class_<Workspace>& ws);\n";
-  }
   for (int i = 0; i < nwsv; i++) {
     py_workspace << "void py_auto_workspace_wsv_" << i
                  << "(py::class_<Workspace>& ws);\n";
   }
+  for (int i = 0; i < nwsg; i++) {
+    py_workspace << "void py_auto_workspace_wsg_" << i
+    << "(py::class_<Workspace>& ws);\n";
+  }
+  for (int i = 0; i < nwsc; i++) {
+    py_workspace << "void py_auto_workspace_wsc_" << i
+    << "(py::class_<Workspace>& ws);\n";
+  }
+  for (int i = 0; i < nwsm; i++) {
+    py_workspace << "void py_auto_workspace_wsm_" << i
+    << "(py::class_<Workspace>& ws);\n";
+  }
   py_workspace << "void py_auto_workspace(py::class_<Workspace>& ws) {\n";
   workspace_access(py_workspace, artsname);
-  for (Index i = 0; i < num_split_files; i++) {
-    py_workspace << "py_auto_workspace_" << i << "(ws);\n";
-  }
   for (int i = 0; i < nwsv; i++) {
     py_workspace << "py_auto_workspace_wsv_" << i << "(ws);\n";
   }
+  for (int i = 0; i < nwsg; i++) {
+    py_workspace << "py_auto_workspace_wsg_" << i << "(ws);\n";
+  }
+  for (int i = 0; i < nwsm; i++) {
+    py_workspace << "py_auto_workspace_wsm_" << i << "(ws);\n";
+  }
+  for (int i = 0; i < nwsc; i++) {
+    py_workspace << "py_auto_workspace_wsc_" << i << "(ws);\n";
+  }
   py_workspace << "}\n}  // namespace Python\n";
 
-  std::array<std::ofstream, num_split_files> py_workspaces;
-  for (Index i = 0; i < num_split_files; i++) {
-    py_workspaces[i] =
-        std::ofstream(var_string("py_auto_workspace_split_", i, ".cc"));
-    includes(py_workspaces[i]);
-    py_workspaces[i] << '\n'
-                     << "namespace Python {\nvoid py_auto_workspace_" << i
-                     << "(py::class_<Workspace>& ws) {\n";
-  }
-
   workspace_variables(nwsv, artsname);
-  workspace_method_nongenerics(py_workspaces, artsname);
-  workspace_method_generics(py_workspaces, artsname);
-  workspace_method_create(py_workspaces, artsname);
-  for (Index i = 0; i < num_split_files; i++) py_workspaces[i] << "}\n}  // namespace Python\n";
+  workspace_method_nongenerics(nwsm, artsname);
+  workspace_method_generics(nwsg, artsname);
+  workspace_method_create(nwsc, artsname);
 }

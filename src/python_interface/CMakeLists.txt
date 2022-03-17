@@ -1,29 +1,29 @@
 ########################################################################################
 # Generate list of files to be generated
 if (NOT NUM_PYARTS_WSM)
-    set(NUM_PYARTS_WSM 128)
+    set(NUM_PYARTS_WSM 16)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSM} python interface automatic workspace method files (-DNUM_PYARTS_WSM=N to change)")
 
 if (NOT NUM_PYARTS_WSV)
-    set(NUM_PYARTS_WSV 300)
+    set(NUM_PYARTS_WSV 2)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSV} python interface automatic workspace variable files (-DNUM_PYARTS_WSV=N to change)")
 
 if (NOT NUM_PYARTS_WSC)
-    set(NUM_PYARTS_WSC 100)
+    set(NUM_PYARTS_WSC 10)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSC} python interface automatic workspace create method files (-DNUM_PYARTS_WSC=N to change)")
 
 if (NOT NUM_PYARTS_WSG)
-    set(NUM_PYARTS_WSG 64)
+    set(NUM_PYARTS_WSG 10)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSG} python interface automatic workspace generic method files (-DNUM_PYARTS_WSG=N to change)")
 
 set(PYARTS_WORKSPACE_METHODS "")
 list(LENGTH PYARTS_WORKSPACE_METHODS N)
 while (N LESS NUM_PYARTS_WSM)
-    list(APPEND PYARTS_WORKSPACE_METHODS "py_auto_workspace_split_${N}.cc")
+    list(APPEND PYARTS_WORKSPACE_METHODS "py_auto_workspace_split_methods_${N}.cc")
     list(LENGTH PYARTS_WORKSPACE_METHODS N)
 endwhile()
 
@@ -60,6 +60,8 @@ add_custom_command(OUTPUT py_auto_interface.h
                           py_auto_workspace.cc
                           ${PYARTS_WORKSPACE_METHODS}
                           ${PYARTS_WORKSPACE_VARS}
+                          ${PYARTS_WORKSPACE_GEN}
+                          ${PYARTS_WORKSPACE_CREATE}
                    COMMAND gen_auto_py ${NUM_PYARTS_WSM} ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSC} ${NUM_PYARTS_WSG}
                    DEPENDS gen_auto_py)
 ########################################################################################
@@ -86,10 +88,13 @@ pybind11_add_module(pyarts_cpp
     py_workspace.cpp
     py_global.cpp
 
+    py_auto_interface.h
     py_auto_interface.cc
     py_auto_workspace.cc
     ${PYARTS_WORKSPACE_METHODS}
     ${PYARTS_WORKSPACE_VARS}
+    ${PYARTS_WORKSPACE_GEN}
+    ${PYARTS_WORKSPACE_CREATE}
 )
 
 target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES})
