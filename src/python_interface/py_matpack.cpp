@@ -259,11 +259,8 @@ void py_matpack(py::module_& m) {
       .def_property("value",
                     py::cpp_function(
                         [](Vector& x) {
-                          py::capsule do_nothing(x.get_c_array(), [](void*) {});
-                          return py::array_t<Numeric>({x.nelem()},
-                                                      {sizeof(Numeric)},
-                                                      x.get_c_array(),
-                                                      do_nothing);
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
                     [](Vector& x, Vector& y) { x = y; })
@@ -353,7 +350,7 @@ void py_matpack(py::module_& m) {
             auto [r, c] = inds;
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
               throw std::out_of_range("Out of bounds");
-            return x(r, c);
+            return as_ref(x(r, c));
           },
           py::return_value_policy::reference_internal)
       .def(
@@ -376,12 +373,8 @@ void py_matpack(py::module_& m) {
       .def_property("value",
                     py::cpp_function(
                         [](Matrix& x) {
-                          py::capsule do_nothing(x.get_c_array(), [](void*) {});
-                          return py::array_t<Numeric>(
-                              {x.nrows(), x.ncols()},
-                              {sizeof(Numeric) * x.ncols(), sizeof(Numeric)},
-                              x.get_c_array(),
-                              do_nothing);
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
                     [](Matrix& x, Matrix& y) { x = y; })
@@ -440,7 +433,7 @@ void py_matpack(py::module_& m) {
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0)
               throw std::out_of_range("Out of bounds");
-            return x(p, r, c);
+            return as_ref(x(p, r, c));
           },
           py::return_value_policy::reference_internal)
       .def(
@@ -466,14 +459,8 @@ void py_matpack(py::module_& m) {
       .def_property("value",
                     py::cpp_function(
                         [](Tensor3& x) {
-                          py::capsule do_nothing(x.get_c_array(), [](void*) {});
-                          return py::array_t<Numeric>(
-                              {x.npages(), x.nrows(), x.ncols()},
-                              {sizeof(Numeric) * x.nrows() * x.ncols(),
-                               sizeof(Numeric) * x.ncols(),
-                               sizeof(Numeric)},
-                              x.get_c_array(),
-                              do_nothing);
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
                     [](Tensor3& x, Tensor3& y) { x = y; })
@@ -534,7 +521,7 @@ void py_matpack(py::module_& m) {
             if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0)
               throw std::out_of_range("Out of bounds");
-            return x(b, p, r, c);
+            return as_ref(x(b, p, r, c));
           },
           py::return_value_policy::reference_internal)
       .def(
@@ -561,22 +548,14 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
       })
-      .def_property(
-          "value",
-          py::cpp_function(
-              [](Tensor4& x) {
-                py::capsule do_nothing(x.get_c_array(), [](void*) {});
-                return py::array_t<Numeric>(
-                    {x.nbooks(), x.npages(), x.nrows(), x.ncols()},
-                    {sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.ncols(),
-                     sizeof(Numeric)},
-                    x.get_c_array(),
-                    do_nothing);
-              },
-              py::keep_alive<0, 1>()),
-          [](Tensor4& x, Tensor4& y) { x = y; })
+      .def_property("value",
+                    py::cpp_function(
+                        [](Tensor4& x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](Tensor4& x, Tensor4& y) { x = y; })
       .doc() =
       "The Arts Tensor4 class\n"
       "\n"
@@ -636,7 +615,7 @@ void py_matpack(py::module_& m) {
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
                 x.nshelves() <= s or s < 0)
               throw std::out_of_range("Out of bounds");
-            return x(s, b, p, r, c);
+            return as_ref(x(s, b, p, r, c));
           },
           py::return_value_policy::reference_internal)
       .def(
@@ -665,28 +644,14 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
       })
-      .def_property(
-          "value",
-          py::cpp_function(
-              [](Tensor5& x) {
-                py::capsule do_nothing(x.get_c_array(), [](void*) {});
-                return py::array_t<Numeric>(
-                    {x.nshelves(),
-                     x.nbooks(),
-                     x.npages(),
-                     x.nrows(),
-                     x.ncols()},
-                    {sizeof(Numeric) * x.nbooks() * x.npages() * x.ncols() *
-                         x.nrows(),
-                     sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.ncols(),
-                     sizeof(Numeric)},
-                    x.get_c_array(),
-                    do_nothing);
-              },
-              py::keep_alive<0, 1>()),
-          [](Tensor5& x, Tensor5& y) { x = y; })
+      .def_property("value",
+                    py::cpp_function(
+                        [](Tensor5& x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](Tensor5& x, Tensor5& y) { x = y; })
       .doc() =
       "The Arts Tensor5 class\n"
       "\n"
@@ -748,7 +713,7 @@ void py_matpack(py::module_& m) {
                 x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
                 x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0)
               throw std::out_of_range("Out of bounds");
-            return x(v, s, b, p, r, c);
+            return as_ref(x(v, s, b, p, r, c));
           },
           py::return_value_policy::reference_internal)
       .def(
@@ -784,31 +749,14 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
       })
-      .def_property(
-          "value",
-          py::cpp_function(
-              [](Tensor6& x) {
-                py::capsule do_nothing(x.get_c_array(), [](void*) {});
-                return py::array_t<Numeric>(
-                    {x.nvitrines(),
-                     x.nshelves(),
-                     x.nbooks(),
-                     x.npages(),
-                     x.nrows(),
-                     x.ncols()},
-                    {sizeof(Numeric) * x.nshelves() * x.nbooks() * x.npages() *
-                         x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.nbooks() * x.npages() * x.ncols() *
-                         x.nrows(),
-                     sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.ncols(),
-                     sizeof(Numeric)},
-                    x.get_c_array(),
-                    do_nothing);
-              },
-              py::keep_alive<0, 1>()),
-          [](Tensor6& x, Tensor6& y) { x = y; })
+      .def_property("value",
+                    py::cpp_function(
+                        [](Tensor6& x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](Tensor6& x, Tensor6& y) { x = y; })
       .doc() =
       "The Arts Tensor6 class\n"
       "\n"
@@ -872,7 +820,7 @@ void py_matpack(py::module_& m) {
                 x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0 or
                 x.nlibraries() <= l or l < 0)
               throw std::out_of_range("Out of bounds");
-            return x(l, v, s, b, p, r, c);
+            return as_ref(x(l, v, s, b, p, r, c));
           },
           py::return_value_policy::reference_internal)
       .def(
@@ -912,34 +860,14 @@ void py_matpack(py::module_& m) {
              sizeof(Numeric) * x.ncols(),
              sizeof(Numeric)});
       })
-      .def_property(
-          "value",
-          py::cpp_function(
-              [](Tensor7& x) {
-                py::capsule do_nothing(x.get_c_array(), [](void*) {});
-                return py::array_t<Numeric>(
-                    {x.nlibraries(),
-                     x.nvitrines(),
-                     x.nshelves(),
-                     x.nbooks(),
-                     x.npages(),
-                     x.nrows(),
-                     x.ncols()},
-                    {sizeof(Numeric) * x.nvitrines() * x.nshelves() *
-                         x.nbooks() * x.npages() * x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.nshelves() * x.nbooks() * x.npages() *
-                         x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.nbooks() * x.npages() * x.ncols() *
-                         x.nrows(),
-                     sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.ncols() * x.nrows(),
-                     sizeof(Numeric) * x.ncols(),
-                     sizeof(Numeric)},
-                    x.get_c_array(),
-                    do_nothing);
-              },
-              py::keep_alive<0, 1>()),
-          [](Tensor7& x, Tensor7& y) { x = y; })
+      .def_property("value",
+                    py::cpp_function(
+                        [](Tensor7& x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](Tensor7& x, Tensor7& y) { x = y; })
       .doc() =
       "The Arts Tensor7 class\n"
       "\n"

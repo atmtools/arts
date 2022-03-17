@@ -1,77 +1,66 @@
+########################################################################################
+# Generate list of files to be generated
+if (NOT NUM_PYARTS_WSM)
+    set(NUM_PYARTS_WSM 128)
+endif()
+message(STATUS "Using ${NUM_PYARTS_WSM} python interface automatic workspace method files (-DNUM_PYARTS_WSM=N to change)")
+
+if (NOT NUM_PYARTS_WSV)
+    set(NUM_PYARTS_WSV 300)
+endif()
+message(STATUS "Using ${NUM_PYARTS_WSV} python interface automatic workspace variable files (-DNUM_PYARTS_WSV=N to change)")
+
+if (NOT NUM_PYARTS_WSC)
+    set(NUM_PYARTS_WSC 100)
+endif()
+message(STATUS "Using ${NUM_PYARTS_WSC} python interface automatic workspace create method files (-DNUM_PYARTS_WSC=N to change)")
+
+if (NOT NUM_PYARTS_WSG)
+    set(NUM_PYARTS_WSG 64)
+endif()
+message(STATUS "Using ${NUM_PYARTS_WSG} python interface automatic workspace generic method files (-DNUM_PYARTS_WSG=N to change)")
+
+set(PYARTS_WORKSPACE_METHODS "")
+list(LENGTH PYARTS_WORKSPACE_METHODS N)
+while (N LESS NUM_PYARTS_WSM)
+    list(APPEND PYARTS_WORKSPACE_METHODS "py_auto_workspace_split_${N}.cc")
+    list(LENGTH PYARTS_WORKSPACE_METHODS N)
+endwhile()
+
+set(PYARTS_WORKSPACE_VARS "")
+list(LENGTH PYARTS_WORKSPACE_VARS N)
+while (N LESS NUM_PYARTS_WSV)
+    list(APPEND PYARTS_WORKSPACE_VARS "py_auto_workspace_split_vars_${N}.cc")
+    list(LENGTH PYARTS_WORKSPACE_VARS N)
+endwhile()
+
+set(PYARTS_WORKSPACE_CREATE "")
+list(LENGTH PYARTS_WORKSPACE_CREATE N)
+while (N LESS NUM_PYARTS_WSC)
+    list(APPEND PYARTS_WORKSPACE_CREATE "py_auto_workspace_split_create_${N}.cc")
+    list(LENGTH PYARTS_WORKSPACE_CREATE N)
+endwhile()
+
+set(PYARTS_WORKSPACE_GEN "")
+list(LENGTH PYARTS_WORKSPACE_GEN N)
+while (N LESS NUM_PYARTS_WSG)
+    list(APPEND PYARTS_WORKSPACE_GEN "py_auto_workspace_split_generic_${N}.cc")
+    list(LENGTH PYARTS_WORKSPACE_GEN N)
+endwhile()
+
+########################################################################################
+# Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp)
 target_link_libraries(gen_auto_py PUBLIC ${ALL_ARTS_LIBRARIES})
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
-########################################################################################
-# Generate automatic python files (there are many to help compile-time)
+# Generate the actual files with this command
 add_custom_command(OUTPUT py_auto_interface.h
                           py_auto_interface.cc
                           py_auto_workspace.cc
-                          py_auto_workspace_split_0.cc
-                          py_auto_workspace_split_1.cc
-                          py_auto_workspace_split_2.cc
-                          py_auto_workspace_split_3.cc
-                          py_auto_workspace_split_4.cc
-                          py_auto_workspace_split_5.cc
-                          py_auto_workspace_split_6.cc
-                          py_auto_workspace_split_7.cc
-                          py_auto_workspace_split_8.cc
-                          py_auto_workspace_split_9.cc
-                          py_auto_workspace_split_10.cc
-                          py_auto_workspace_split_11.cc
-                          py_auto_workspace_split_12.cc
-                          py_auto_workspace_split_13.cc
-                          py_auto_workspace_split_14.cc
-                          py_auto_workspace_split_15.cc
-                          py_auto_workspace_split_16.cc
-                          py_auto_workspace_split_17.cc
-                          py_auto_workspace_split_18.cc
-                          py_auto_workspace_split_19.cc
-                          py_auto_workspace_split_20.cc
-                          py_auto_workspace_split_21.cc
-                          py_auto_workspace_split_22.cc
-                          py_auto_workspace_split_23.cc
-                          py_auto_workspace_split_24.cc
-                          py_auto_workspace_split_25.cc
-                          py_auto_workspace_split_26.cc
-                          py_auto_workspace_split_27.cc
-                          py_auto_workspace_split_28.cc
-                          py_auto_workspace_split_29.cc
-                          py_auto_workspace_split_30.cc
-                          py_auto_workspace_split_31.cc
-                          py_auto_workspace_split_32.cc
-                          py_auto_workspace_split_33.cc
-                          py_auto_workspace_split_34.cc
-                          py_auto_workspace_split_35.cc
-                          py_auto_workspace_split_36.cc
-                          py_auto_workspace_split_37.cc
-                          py_auto_workspace_split_38.cc
-                          py_auto_workspace_split_39.cc
-                          py_auto_workspace_split_40.cc
-                          py_auto_workspace_split_41.cc
-                          py_auto_workspace_split_42.cc
-                          py_auto_workspace_split_43.cc
-                          py_auto_workspace_split_44.cc
-                          py_auto_workspace_split_45.cc
-                          py_auto_workspace_split_46.cc
-                          py_auto_workspace_split_47.cc
-                          py_auto_workspace_split_48.cc
-                          py_auto_workspace_split_49.cc
-                          py_auto_workspace_split_50.cc
-                          py_auto_workspace_split_51.cc
-                          py_auto_workspace_split_52.cc
-                          py_auto_workspace_split_53.cc
-                          py_auto_workspace_split_54.cc
-                          py_auto_workspace_split_55.cc
-                          py_auto_workspace_split_56.cc
-                          py_auto_workspace_split_57.cc
-                          py_auto_workspace_split_58.cc
-                          py_auto_workspace_split_59.cc
-                          py_auto_workspace_split_60.cc
-                          py_auto_workspace_split_61.cc
-                          py_auto_workspace_split_62.cc
-                          py_auto_workspace_split_63.cc
-                   COMMAND gen_auto_py
+                          ${PYARTS_WORKSPACE_METHODS}
+                          ${PYARTS_WORKSPACE_VARS}
+                   COMMAND gen_auto_py ${NUM_PYARTS_WSM} ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSC} ${NUM_PYARTS_WSG}
                    DEPENDS gen_auto_py)
 ########################################################################################
 
@@ -99,70 +88,8 @@ pybind11_add_module(pyarts_cpp
 
     py_auto_interface.cc
     py_auto_workspace.cc
-    py_auto_workspace_split_0.cc
-    py_auto_workspace_split_1.cc
-    py_auto_workspace_split_2.cc
-    py_auto_workspace_split_3.cc
-    py_auto_workspace_split_4.cc
-    py_auto_workspace_split_5.cc
-    py_auto_workspace_split_6.cc
-    py_auto_workspace_split_7.cc
-    py_auto_workspace_split_8.cc
-    py_auto_workspace_split_9.cc
-    py_auto_workspace_split_10.cc
-    py_auto_workspace_split_11.cc
-    py_auto_workspace_split_12.cc
-    py_auto_workspace_split_13.cc
-    py_auto_workspace_split_14.cc
-    py_auto_workspace_split_15.cc
-    py_auto_workspace_split_16.cc
-    py_auto_workspace_split_17.cc
-    py_auto_workspace_split_18.cc
-    py_auto_workspace_split_19.cc
-    py_auto_workspace_split_20.cc
-    py_auto_workspace_split_21.cc
-    py_auto_workspace_split_22.cc
-    py_auto_workspace_split_23.cc
-    py_auto_workspace_split_24.cc
-    py_auto_workspace_split_25.cc
-    py_auto_workspace_split_26.cc
-    py_auto_workspace_split_27.cc
-    py_auto_workspace_split_28.cc
-    py_auto_workspace_split_29.cc
-    py_auto_workspace_split_30.cc
-    py_auto_workspace_split_31.cc
-    py_auto_workspace_split_32.cc
-    py_auto_workspace_split_33.cc
-    py_auto_workspace_split_34.cc
-    py_auto_workspace_split_35.cc
-    py_auto_workspace_split_36.cc
-    py_auto_workspace_split_37.cc
-    py_auto_workspace_split_38.cc
-    py_auto_workspace_split_39.cc
-    py_auto_workspace_split_40.cc
-    py_auto_workspace_split_41.cc
-    py_auto_workspace_split_42.cc
-    py_auto_workspace_split_43.cc
-    py_auto_workspace_split_44.cc
-    py_auto_workspace_split_45.cc
-    py_auto_workspace_split_46.cc
-    py_auto_workspace_split_47.cc
-    py_auto_workspace_split_48.cc
-    py_auto_workspace_split_49.cc
-    py_auto_workspace_split_50.cc
-    py_auto_workspace_split_51.cc
-    py_auto_workspace_split_52.cc
-    py_auto_workspace_split_53.cc
-    py_auto_workspace_split_54.cc
-    py_auto_workspace_split_55.cc
-    py_auto_workspace_split_56.cc
-    py_auto_workspace_split_57.cc
-    py_auto_workspace_split_58.cc
-    py_auto_workspace_split_59.cc
-    py_auto_workspace_split_60.cc
-    py_auto_workspace_split_61.cc
-    py_auto_workspace_split_62.cc
-    py_auto_workspace_split_63.cc
+    ${PYARTS_WORKSPACE_METHODS}
+    ${PYARTS_WORKSPACE_VARS}
 )
 
 target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES})

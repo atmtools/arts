@@ -205,15 +205,6 @@ void py_rte(py::module_& m) {
   PythonInterfaceWorkspaceArray(ArrayOfRadiationVector);
   PythonInterfaceWorkspaceArray(ArrayOfStokesVector);
 
-#define PythonInterfaceBasicReferenceProperty(       \
-    Type, PropertyName, ReadFunction, WriteFunction) \
-  def_property(                                      \
-      #PropertyName,                                 \
-      [](Type& x) { return x.ReadFunction(); },      \
-      [](Type& x, decltype(x.ReadFunction()) y) {    \
-        return x.WriteFunction() = std::move(y);     \
-      })
-
   py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
       .def(py::init<>());
 

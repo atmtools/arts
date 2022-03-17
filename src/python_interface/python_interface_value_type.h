@@ -2,8 +2,10 @@
 #define python_interface_value_type_h
 
 #include <cmath>
-#include <matpack.h>
+#include <type_traits>
 #include <utility>
+
+#include <matpack.h>
 
 namespace Python {
 template <typename ValueType>
@@ -37,6 +39,15 @@ struct ValueHolder {
 
 using Numeric_ = ValueHolder<Numeric>;
 using Index_ = ValueHolder<Index>;
+
+//! Return a possibly dangling reference to a value, be sure it is not dangling!
+template <typename T> auto& as_ref(T& x) noexcept {
+  static_assert(not std::is_const_v<T>, "Cannot return a constant");
+
+  if constexpr (std::is_same_v<T, Numeric>) return reinterpret_cast<Numeric_&>(x);
+  else if constexpr (std::is_same_v<T, Index>) return reinterpret_cast<Index_&>(x);
+  else return x;
+}
 }
 
 #endif  // python_interface_value_type_h

@@ -1,15 +1,24 @@
 #ifndef py_macros_h
 #define py_macros_h
 
+#include <debug.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-
-#include <debug.h>
 #include <xml_io.h>
 
 #include "python_interface_value_type.h"
 
-namespace Python { namespace py = pybind11; }
+namespace Python {
+namespace py = pybind11;
+}
+
+constexpr Index cyclic_clamp(Index x, const Index lo, const Index hi) {
+  ARTS_USER_ERROR_IF(lo == hi, "No range")
+  const Index dx = hi - lo;
+  while (x <  lo) x+=dx;
+  while (x >= hi) x-=dx;
+  return x;
+}
 
 #define PythonInterfaceFileIO(Type)                                        \
   def(                                                                     \
@@ -56,18 +65,20 @@ namespace Python { namespace py = pybind11; }
       .def(                                                                 \
           "__getitem__",                                                    \
           [](Type& x, Index i) -> decltype(x[i])& {                         \
+            i = cyclic_clamp(i, 0, x.nelem());                              \
             if (x.nelem() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
                                                  i,                         \
                                                  " in object of size [0, ", \
                                                  x.size(),                  \
                                                  ")"));                     \
-            return x[i];                                                    \
+            return as_ref(x[i]);                                            \
           },                                                                \
           py::return_value_policy::reference_internal)                      \
       .def(                                                                 \
           "__setitem__",                                                    \
           [](Type& x, Index i, decltype(x[i]) y) {                          \
+            i = cyclic_clamp(i, 0, x.nelem());                              \
             if (x.nelem() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
                                                  i,                         \
@@ -269,5 +280,14 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
 
 #define PythonInterfaceReadWriteData(Type, data) \
   def_readwrite(#data, &Type::data, py::return_value_policy::reference_internal)
+
+#define PythonInterfaceBasicReferenceProperty(                                \
+    Type, PropertyName, ReadFunction, WriteFunction)                          \
+  def_property(#PropertyName,                                                 \
+               py::cpp_function(&Type::ReadFunction,                          \
+                                py::return_value_policy::reference_internal), \
+               [](Type& x, decltype(x.ReadFunction()) y) {                    \
+                 return x.WriteFunction() = std::move(y);                     \
+               })
 
 #endif
