@@ -397,7 +397,7 @@ void workspace_variables(size_t n,
   std::vector<std::ofstream> oss(n);
   for (size_t i=0; i<n; i++) {
     oss[i] = std::ofstream(var_string("py_auto_workspace_split_vars_", i, ".cc"));
-    oss[i] << "#include \"py_auto_interface.h\"\n#include <pybind11/functional.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsv_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+    oss[i] << "#include <python_interface.h>\n#include <pybind11/functional.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsv_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
   }
 
   auto osptr = oss.begin();
@@ -1466,7 +1466,8 @@ struct TypeVal {
 
 
 void auto_header_definitions(std::ofstream& os, const NameMaps& arts) {
-  os << R"--(#include "py_auto_interface.h"
+  os << R"--(#include <python_interface.h>
+#include <pybind11/functional.h>
 
 namespace Python {
 
