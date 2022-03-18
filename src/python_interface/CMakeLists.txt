@@ -6,7 +6,7 @@ endif()
 message(STATUS "Using ${NUM_PYARTS_WSM} python interface automatic workspace method files (-DNUM_PYARTS_WSM=N to change)")
 
 if (NOT NUM_PYARTS_WSV)
-    set(NUM_PYARTS_WSV 2)
+    set(NUM_PYARTS_WSV 8)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSV} python interface automatic workspace variable files (-DNUM_PYARTS_WSV=N to change)")
 

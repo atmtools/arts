@@ -12,12 +12,10 @@ namespace Python {
 namespace py = pybind11;
 }
 
-constexpr Index cyclic_clamp(Index x, const Index lo, const Index hi) {
-  ARTS_USER_ERROR_IF(lo == hi, "No range")
-  const Index dx = hi - lo;
-  while (x <  lo) x+=dx;
-  while (x >= hi) x-=dx;
-  return x;
+constexpr Index negative_clamp(Index i, const Index n) {
+  ARTS_USER_ERROR_IF(n == 0, "No range")
+  if (i < 0) return i + n;
+  return i;
 }
 
 #define PythonInterfaceFileIO(Type)                                        \
@@ -65,7 +63,7 @@ constexpr Index cyclic_clamp(Index x, const Index lo, const Index hi) {
       .def(                                                                 \
           "__getitem__",                                                    \
           [](Type& x, Index i) -> decltype(x[i])& {                         \
-            i = cyclic_clamp(i, 0, x.nelem());                              \
+            i = negative_clamp(i, x.nelem());                              \
             if (x.nelem() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
                                                  i,                         \
@@ -78,7 +76,7 @@ constexpr Index cyclic_clamp(Index x, const Index lo, const Index hi) {
       .def(                                                                 \
           "__setitem__",                                                    \
           [](Type& x, Index i, decltype(x[i]) y) {                          \
-            i = cyclic_clamp(i, 0, x.nelem());                              \
+            i = negative_clamp(i, x.nelem());                              \
             if (x.nelem() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
                                                  i,                         \

@@ -397,7 +397,7 @@ void workspace_variables(size_t n,
   std::vector<std::ofstream> oss(n);
   for (size_t i=0; i<n; i++) {
     oss[i] = std::ofstream(var_string("py_auto_workspace_split_vars_", i, ".cc"));
-    oss[i] << "#include \"py_auto_interface.h\"\n\nnamespace Python {\nvoid py_auto_workspace_wsv_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+    oss[i] << "#include \"py_auto_interface.h\"\n#include <pybind11/functional.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsv_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
   }
 
   auto osptr = oss.begin();
@@ -543,7 +543,7 @@ void workspace_method_create(size_t n,
   std::vector<std::ofstream> oss(n);
   for (size_t i=0; i<n; i++) {
     oss[i] = std::ofstream(var_string("py_auto_workspace_split_create_", i, ".cc"));
-    oss[i] << "#include \"py_auto_interface.h\"\n\nnamespace Python {\nvoid py_auto_workspace_wsc_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+    oss[i] << "#include \"py_auto_interface.h\"\n#include <pybind11/stl.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsc_" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
   }
   auto osptr = oss.begin();
 
@@ -681,7 +681,6 @@ void workspace_method_nongenerics(
         auto& group = arts.varname_group.at(i).varname_group;
         os << ",\nstd::optional<std::variant<const WorkspaceVariable *, "
            << group;
-        if (group == "Index" or group == "Numeric") os << "_";
         os << " *>> " << i;
       }
     }
@@ -690,7 +689,6 @@ void workspace_method_nongenerics(
       os << ",\n";
       if (method.gin.hasdefs[i]) os << "std::optional<";
       os << "std::variant<const WorkspaceVariable *, " << group;
-      if (group == "Index" or group == "Numeric") os << "_";
       os << " *>";
       if (method.gin.hasdefs[i]) os << '>';
       os << ' ' << method.gin.name[i];
@@ -1031,8 +1029,8 @@ void workspace_method_generics(size_t n,
       os << "WorkspaceVariable *, ";
       if (arg.types.size() == 1) {
         os << arg.types.front();
-        if (arg.types.front() == "Index" or arg.types.front() == "Numeric")
-          os << "_";
+        if (arg.out and (arg.types.front() == "Index" or arg.types.front() == "Numeric"))
+          os << '_';
         os << " *";
       } else {
         ArrayOfString copy_types = arg.types;
@@ -1065,8 +1063,8 @@ void workspace_method_generics(size_t n,
     has_any = false;
     for (std::size_t i = 0; i < method.gin.name.size(); i++) {
       if (method.gin.hasdefs[i]) {
-        os << "  const " << method.gin.group[i] << " "
-           << method.gin.name[i] << "_{";
+        os << "  const auto "
+           << method.gin.name[i] << '_' << '=' << method.gin.group[i] << '{';
         if (method.gin.defs[i] not_eq "{}") os << method.gin.defs[i];
         os << "};\n";
         has_any = true;
@@ -1110,7 +1108,7 @@ void workspace_method_generics(size_t n,
         if (arg.def) os << arg.name << "_, ";
         os << arg.name << ");";
       } else {
-        os << "wvv<WorkspaceVariablesVariant>(" << arg.name << ");";
+        os << "wvv(" << arg.name << ");";
       }
       os << '\n';
     }
