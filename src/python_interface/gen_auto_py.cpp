@@ -681,6 +681,7 @@ void workspace_method_nongenerics(
         auto& group = arts.varname_group.at(i).varname_group;
         os << ",\nstd::optional<std::variant<const WorkspaceVariable *, "
            << group;
+        if (group == "Index" or group == "Numeric") os << "_";
         os << " *>> " << i;
       }
     }
@@ -689,6 +690,7 @@ void workspace_method_nongenerics(
       os << ",\n";
       if (method.gin.hasdefs[i]) os << "std::optional<";
       os << "std::variant<const WorkspaceVariable *, " << group;
+      if (group == "Index" or group == "Numeric") os << "_";
       os << " *>";
       if (method.gin.hasdefs[i]) os << '>';
       os << ' ' << method.gin.name[i];
@@ -1029,7 +1031,7 @@ void workspace_method_generics(size_t n,
       os << "WorkspaceVariable *, ";
       if (arg.types.size() == 1) {
         os << arg.types.front();
-        if (arg.out and (arg.types.front() == "Index" or arg.types.front() == "Numeric"))
+        if (arg.types.front() == "Index" or arg.types.front() == "Numeric")
           os << '_';
         os << " *";
       } else {

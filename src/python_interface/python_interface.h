@@ -53,13 +53,13 @@ T& select_gout(std::variant<WorkspaceVariable *, U *>& val) {
   return std::visit([](auto&& out) -> T& { return *out; }, val);
 }
 
-template <class T>
-const T& select_gin(const std::variant<const WorkspaceVariable *, T *>& val) {
+template <class T, class U>
+const T& select_gin(const std::variant<const WorkspaceVariable *, U *>& val) {
   return std::visit([](auto&& out) -> const T& { return *out; }, val);
 }
 
-template <class T>
-const T& select_gin(const T& default_, const std::optional<std::variant<const WorkspaceVariable *, T *>>& val) {
+template <class T, class U>
+const T& select_gin(const T& default_, const std::optional<std::variant<const WorkspaceVariable *, U *>>& val) {
   if (val)
     return std::visit([](auto&& out) -> const T& { return *out; }, val.value());
   return default_;
@@ -79,9 +79,9 @@ T& select_inout(const WorkspaceVariable wsv, std::optional<std::variant<const Wo
   return wsv;
 }
 
-template <class T>
+template <class T, class U>
 const T& select_in(const WorkspaceVariable wsv,
-                   const std::optional<std::variant<const WorkspaceVariable *, T *>>& val) {
+                   const std::optional<std::variant<const WorkspaceVariable *, U *>>& val) {
   if (val)
     return std::visit([](auto&& out) -> const T& { return *out; }, val.value());
   return wsv;
