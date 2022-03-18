@@ -48,38 +48,38 @@ namespace py = pybind11;
 //! Only for debugs (and to suppress warning about the line above)
 template <class... Ts> void print(const Ts&... args) {py::print(args...);}
 
-template <class T, class U> constexpr
+template <class T, class U>
 T& select_gout(std::variant<WorkspaceVariable *, U *>& val) {
   return std::visit([](auto&& out) -> T& { return *out; }, val);
 }
 
-template <class T> constexpr
+template <class T>
 const T& select_gin(const std::variant<const WorkspaceVariable *, T *>& val) {
   return std::visit([](auto&& out) -> const T& { return *out; }, val);
 }
 
-template <class T> constexpr
+template <class T>
 const T& select_gin(const T& default_, const std::optional<std::variant<const WorkspaceVariable *, T *>>& val) {
   if (val)
     return std::visit([](auto&& out) -> const T& { return *out; }, val.value());
   return default_;
 }
 
-template <class T, class U> constexpr
+template <class T, class U>
 T& select_out(WorkspaceVariable wsv, std::optional<std::variant<WorkspaceVariable *, U *>>& val) {
   if (val)
     return std::visit([](auto&& out) -> T& { return *out; }, val.value());
   return wsv;
 }
 
-template <class T, class U> constexpr
+template <class T, class U>
 T& select_inout(const WorkspaceVariable wsv, std::optional<std::variant<const WorkspaceVariable *, U *>>& val) {
   if (val)
     return std::visit([](auto&& out) -> T& { return *out; }, val.value());
   return wsv;
 }
 
-template <class T> constexpr
+template <class T>
 const T& select_in(const WorkspaceVariable wsv,
                    const std::optional<std::variant<const WorkspaceVariable *, T *>>& val) {
   if (val)
@@ -87,7 +87,7 @@ const T& select_in(const WorkspaceVariable wsv,
   return wsv;
 }
 
-template <class... Types> constexpr
+template <class... Types>
 WorkspaceVariablesVariant select_wvv(std::variant<WorkspaceVariable *, Types...>&  val) {
   return std::visit([](auto&& x) -> WorkspaceVariablesVariant {
     if constexpr (std::is_convertible_v<decltype(x), WorkspaceVariable *>) return *x;
@@ -95,7 +95,7 @@ WorkspaceVariablesVariant select_wvv(std::variant<WorkspaceVariable *, Types...>
     }, val);
 }
 
-template <class... Types> constexpr
+template <class... Types>
 WorkspaceVariablesVariant select_wvv(std::variant<const WorkspaceVariable *, Types...>&  val) {
   return std::visit([](auto&& x) -> WorkspaceVariablesVariant {
     if constexpr (std::is_convertible_v<decltype(x), const WorkspaceVariable *>) return *x;
