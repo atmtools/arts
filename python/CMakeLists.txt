@@ -58,7 +58,7 @@ add_custom_target(python_tests
 #  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 #)
 add_custom_target(pyarts_tests
-  COMMAND ${PYTHON_EXECUTABLE} -m pytest test
+  COMMAND ${PYTHON_EXECUTABLE} -m pytest -v test
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts
   COMMENT "Run PyARTS tests")
