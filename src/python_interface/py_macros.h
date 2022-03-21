@@ -12,8 +12,7 @@ namespace Python {
 namespace py = pybind11;
 }
 
-constexpr Index negative_clamp(Index i, const Index n) {
-  ARTS_USER_ERROR_IF(n == 0, "No range")
+constexpr Index negative_clamp(Index i, const Index n) noexcept {
   if (i < 0) return i + n;
   return i;
 }
@@ -63,7 +62,7 @@ constexpr Index negative_clamp(Index i, const Index n) {
       .def(                                                                 \
           "__getitem__",                                                    \
           [](Type& x, Index i) -> decltype(x[i])& {                         \
-            i = negative_clamp(i, x.nelem());                              \
+            i = negative_clamp(i, x.nelem());                               \
             if (x.nelem() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
                                                  i,                         \
@@ -76,7 +75,7 @@ constexpr Index negative_clamp(Index i, const Index n) {
       .def(                                                                 \
           "__setitem__",                                                    \
           [](Type& x, Index i, decltype(x[i]) y) {                          \
-            i = negative_clamp(i, x.nelem());                              \
+            i = negative_clamp(i, x.nelem());                               \
             if (x.nelem() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
                                                  i,                         \
