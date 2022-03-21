@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<PropagationMatrix>
+<Tensor4 nbooks="1" npages="1" nrows="11" ncols="1">
+1.25725497801981e-13
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+</Tensor4>
+</PropagationMatrix>
+</arts>

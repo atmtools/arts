@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<arts format="ascii" version="1">
-<Array type="String" nelem="4">
-<String>"testdata/scatData/P20FromHong_ShapePlate_Dmax0010um.xml.gz"</String>
-<String>"testdata/scatData/P20FromHong_ShapePlate_Dmax0050um.xml.gz"</String>
-<String>"testdata/scatData/P20FromHong_ShapePlate_Dmax0250um.xml.gz"</String>
-<String>"testdata/scatData/P20FromHong_ShapePlate_Dmax1000um.xml.gz"</String>
-</Array>
-</arts>

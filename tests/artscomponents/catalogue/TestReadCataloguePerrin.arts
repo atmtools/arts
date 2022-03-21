@@ -10,7 +10,7 @@ Arts2 {
   StringCreate( case )
   StringSet( case, "spectroscopy/Perrin/" )
   # derive all species we have line data for
-  abs_speciesDefineAllInScenario( basename=case )
+  abs_speciesSet(species=["C2H2"])
 
   # alternatively, specify the species by hand
   #abs_speciesSet(species=
@@ -21,9 +21,9 @@ Arts2 {
   #   "NH3", "O3", "SO2"])
 
   # Read the line files and prepare line data
-  abs_linesReadFromSplitArtscat(abs_lines, abs_species,
-                                "spectroscopy/Perrin/",
-                                0., 10e12)
+  ReadSplitARTSCAT(abs_lines, abs_species,
+                   "spectroscopy/Perrin/",
+                   0., 10e12)
   abs_lines_per_speciesCreateFromLines
 }
  

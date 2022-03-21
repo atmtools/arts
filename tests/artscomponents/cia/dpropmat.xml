@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Array type="PropagationMatrix" nelem="4">
+<PropagationMatrix>
+<Tensor4 nbooks="1" npages="1" nrows="11" ncols="1">
+-1.2912711722921e-15
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+</Tensor4>
+</PropagationMatrix>
+<PropagationMatrix>
+<Tensor4 nbooks="1" npages="1" nrows="11" ncols="1">
+1.56109831247968e-12
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+</Tensor4>
+</PropagationMatrix>
+<PropagationMatrix>
+<Tensor4 nbooks="1" npages="1" nrows="11" ncols="1">
+4.76707113594497e-13
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+</Tensor4>
+</PropagationMatrix>
+<PropagationMatrix>
+<Tensor4 nbooks="1" npages="1" nrows="11" ncols="1">
+8.40878869924607e-23
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+</Tensor4>
+</PropagationMatrix>
+</Array>
+</arts>
