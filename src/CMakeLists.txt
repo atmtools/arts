@@ -95,6 +95,9 @@ if (C_API)
 add_library (arts_api SHARED arts_api.cc interactive_workspace.cc arts_api_classes.cc)
 add_dependencies (arts arts_api)
 set_target_properties(arts_api PROPERTIES SUFFIX .so)
+if (ENABLE_PCH)
+  target_precompile_headers(arts_api PRIVATE pch_matpack.h)
+endif()
 target_link_libraries (arts_api ${ALL_ARTS_LIBRARIES})
 endif (C_API)
 
@@ -128,6 +131,9 @@ add_executable (make_auto_md_h
         workspace_ng.cc
         )
 
+if (ENABLE_PCH)
+  target_precompile_headers(make_auto_md_h PRIVATE pch_matpack.h)
+endif()
 target_link_libraries (make_auto_md_h methods matpack)
 
 add_custom_command (
@@ -149,6 +155,9 @@ add_executable (make_auto_md_cc
         workspace_ng.cc
         )
 
+if (ENABLE_PCH)
+  target_precompile_headers(make_auto_md_cc PRIVATE pch_matpack.h)
+endif()
 target_link_libraries (make_auto_md_cc methods matpack)
 
 add_custom_command (
@@ -305,6 +314,10 @@ add_library (artscore STATIC
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
 add_dependencies (artscore auto_version_h species)
+if (ENABLE_PCH)
+  target_precompile_headers(artscore PRIVATE pch_artscore.h)
+endif()
+
 
 if (ENABLE_GUI)
   add_subdirectory(gui)
@@ -354,6 +367,9 @@ add_library (matpack STATIC
         )
         
 include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
+if (ENABLE_PCH)
+  target_precompile_headers(matpack PRIVATE pch_matpack.h)
+endif()
 target_link_libraries( matpack ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
@@ -593,6 +609,9 @@ add_dependencies(public_arts_interface make_autoarts_h_target)
 ########################################################################################
 # Generate the internal structure for the ARTS C++ interface
 add_executable(make_autoarts_h make_autoarts_h.cc)
+if (ENABLE_PCH)
+  target_precompile_headers(make_autoarts_h PRIVATE pch_matpack.h)
+endif()
 target_link_libraries(make_autoarts_h PUBLIC ${ALL_ARTS_LIBRARIES})
 ########################################################################################
 
