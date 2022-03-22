@@ -78,75 +78,75 @@ class TestAgendas:
 
         assert self.ws.atmosphere_dim.value == 5
 
-    def test_callback(self):
-        """
-        Test callbacks by re-implementing iy_space_agenda in Python and
-        comparing results of yCalc.
-        """
-        z_ppath = []
+    # def test_callback(self):
+    #     """
+    #     Test callbacks by re-implementing iy_space_agenda in Python and
+    #     comparing results of yCalc.
+    #     """
+    #     z_ppath = []
 
-        ws = self.ws
+    #     ws = self.ws
 
-        ws.yCalc()
-        y_old = np.copy(ws.y.value)
+    #     ws.yCalc()
+    #     y_old = np.copy(ws.y.value)
 
-        import scipy.constants as c
+    #     import scipy.constants as c
 
-        @arts_agenda(ws=ws, allow_callbacks=True)
-        def space_agenda(ws):
-            # Since everything happens in Python we need
-            # to tell ARTS that we are using all in and outputs.
-            ws.Ignore(ws.f_grid)
-            ws.Ignore(ws.rtp_pos)
-            ws.Ignore(ws.rtp_los)
-            ws.Touch(ws.iy)
+    #     @arts_agenda(ws=ws, allow_callbacks=True)
+    #     def space_agenda(ws):
+    #         # Since everything happens in Python we need
+    #         # to tell ARTS that we are using all in and outputs.
+    #         ws.Ignore(ws.f_grid)
+    #         ws.Ignore(ws.rtp_pos)
+    #         ws.Ignore(ws.rtp_los)
+    #         ws.Touch(ws.iy)
 
-            # Temperatures and frequency
-            t = 2.735
-            f = ws.f_grid.value
+    #         # Temperatures and frequency
+    #         t = 2.735
+    #         f = ws.f_grid.value
 
-            # Compute radiances
-            c1 = 2.0 * c.h / c.c ** 2
-            c2 = c.h / c.k
-            b = c1 * f ** 3 / (np.exp(c2 * f / t) - 1.0)
+    #         # Compute radiances
+    #         c1 = 2.0 * c.h / c.c ** 2
+    #         c2 = c.h / c.k
+    #         b = c1 * f ** 3 / (np.exp(c2 * f / t) - 1.0)
 
-            # Put into iy vector.
-            ws.iy = np.zeros((f.size, ws.stokes_dim.value.val))
-            ws.iy.value.value[:, 0] = b
+    #         # Put into iy vector.
+    #         ws.iy = np.zeros((f.size, ws.stokes_dim.value.val))
+    #         ws.iy.value.value[:, 0] = b
 
-        # Copy ppath_agenda into workspace.
-        ws.iy_space_agenda = space_agenda
-        ws.yCalc()
+    #     # Copy ppath_agenda into workspace.
+    #     ws.iy_space_agenda = space_agenda
+    #     ws.yCalc()
 
-        y_new = np.copy(ws.y.value)
+    #     y_new = np.copy(ws.y.value)
 
-        assert(np.allclose(y_new, y_old))
+    #     assert(np.allclose(y_new, y_old))
 
 
-    def test_callback_2(self):
-        """
-        Test a very complicated Python callback.
-        """
+    # def test_callback_2(self):
+    #     """
+    #     Test a very complicated Python callback.
+    #     """
 
-        @arts_agenda(ws=self.ws, allow_callbacks=True)
-        def agenda(ws):
-            """
-            This agenda sets a workspace variable in a very
-            obscure way.
-            """
+    #     @arts_agenda(ws=self.ws, allow_callbacks=True)
+    #     def agenda(ws):
+    #         """
+    #         This agenda sets a workspace variable in a very
+    #         obscure way.
+    #         """
 
-            class Foo:
-                def __init__(self, ws):
-                    self.ws = ws
+    #         class Foo:
+    #             def __init__(self, ws):
+    #                 self.ws = ws
 
-                def ooo(self):
-                    self.ws.IndexSet(ws.stokes_dim, 42)
+    #             def ooo(self):
+    #                 self.ws.IndexSet(ws.stokes_dim, 42)
 
-            foo = Foo(ws)
-            ws.IndexSet(ws.stokes_dim, 21)
-            foo.ooo()
+    #         foo = Foo(ws)
+    #         ws.IndexSet(ws.stokes_dim, 21)
+    #         foo.ooo()
 
-        agenda.execute(self.ws)
+    #     agenda.execute(self.ws)
 
     def test_unknown_wsv(self):
         """
