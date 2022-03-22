@@ -245,6 +245,21 @@ support is enabled:
 cmake -DENABLE_NETCDF=1 ..
 ```
 
+Precompiled headers: PCH can speed up builds significantly. However, it hampers
+the ability for ccache to properly skip unnecessary compilations, potentially
+increasing rebuild times.
+
+```
+cmake -DENABLE_PCH=1 ..
+```
+
+If you enable PCH and also use ccache, you need to set the `CCACHE_SLOPPINESS`
+environment variable properly:
+
+```
+export CCACHE_SLOPPINESS=pch_defines,time_macros
+```
+
 
 Disabling features
 ------------------
