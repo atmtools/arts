@@ -57,6 +57,12 @@ add_custom_target(python_tests
 #  COMMAND ${PYTHON_EXECUTABLE} -m pytest test
 #  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 #)
+add_custom_target(pyarts_agendatest
+  COMMAND ${PYTHON_EXECUTABLE} test/workspace/test_agendas.py
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS pyarts
+  COMMENT "Run PyARTS Agenda test")
+
 add_custom_target(pyarts_tests
   COMMAND ${PYTHON_EXECUTABLE} -m pytest -v test
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

@@ -82,13 +82,18 @@ class TestAgendas:
         Test callbacks by re-implementing iy_space_agenda in Python and
         comparing results of yCalc.
         """
+        print("In testcallback")
         z_ppath = []
 
+        print("Call yCalc")
         self.ws.yCalc()
+        print("Assign y_old")
         y_old = np.array(self.ws.y.value)
 
+        print("import scipy")
         import scipy.constants as c
 
+        print("Define agenda")
         @arts_agenda(ws=self.ws, allow_callbacks=True)
         def space_agenda(ws):
             # Since everything happens in Python we need
@@ -111,12 +116,16 @@ class TestAgendas:
             ws.iy = np.zeros((f.size, ws.stokes_dim.value.val))
             ws.iy.value.value[:, 0] = b
 
+        print("Assign agenda")
         # Copy ppath_agenda into workspace.
         self.ws.iy_space_agenda = space_agenda
+        print("Call yCalc again")
         self.ws.yCalc()
 
+        print("Assign y_new")
         y_new = np.array(self.ws.y.value)
 
+        print("Return allclose")
         assert(np.allclose(y_new, y_old))
 
 
@@ -199,3 +208,10 @@ class TestAgendas:
         self.ws = pyarts.workspace.Workspace()
         with pytest.raises(Exception):
               self.ws.abs_xsec_agenda = abs_xsec_agenda
+
+
+if __name__ == "__main__":
+    ta = TestAgendas()
+    ta.setup_method()
+    ta.test_callback()
+
