@@ -181,7 +181,7 @@ jobs:
         run: |
           mkdir cmake-build
           cd cmake-build
-          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_FORTRAN=$USEFORTRAN ..
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DENABLE_FORTRAN=$USEFORTRAN ..
 
       - name: Build (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.arts == 'yes'
