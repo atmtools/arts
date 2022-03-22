@@ -123,30 +123,30 @@ class TestAgendas:
     #     assert(np.allclose(y_new, y_old))
 
 
-    # def test_callback_2(self):
-    #     """
-    #     Test a very complicated Python callback.
-    #     """
+    def test_callback_2(self):
+        """
+        Test a very complicated Python callback.
+        """
 
-    #     @arts_agenda(ws=self.ws, allow_callbacks=True)
-    #     def agenda(ws):
-    #         """
-    #         This agenda sets a workspace variable in a very
-    #         obscure way.
-    #         """
+        @arts_agenda(ws=self.ws, allow_callbacks=True)
+        def agenda(ws):
+            """
+            This agenda sets a workspace variable in a very
+            obscure way.
+            """
 
-    #         class Foo:
-    #             def __init__(self, ws):
-    #                 self.ws = ws
+            class Foo:
+                def __init__(self, ws):
+                    self.ws = ws
 
-    #             def ooo(self):
-    #                 self.ws.IndexSet(ws.stokes_dim, 42)
+                def ooo(self):
+                    self.ws.IndexSet(ws.stokes_dim, 42)
 
-    #         foo = Foo(ws)
-    #         ws.IndexSet(ws.stokes_dim, 21)
-    #         foo.ooo()
+            foo = Foo(ws)
+            ws.IndexSet(ws.stokes_dim, 21)
+            foo.ooo()
 
-    #     agenda.execute(self.ws)
+        agenda.execute(self.ws)
 
     def test_unknown_wsv(self):
         """
