@@ -84,14 +84,12 @@ class TestAgendas:
         """
         z_ppath = []
 
-        ws = self.ws
-
-        ws.yCalc()
-        y_old = np.array(ws.y.value)
+        self.ws.yCalc()
+        y_old = np.array(self.ws.y.value)
 
         import scipy.constants as c
 
-        @arts_agenda(ws=ws, allow_callbacks=True)
+        @arts_agenda(ws=self.ws, allow_callbacks=True)
         def space_agenda(ws):
             # Since everything happens in Python we need
             # to tell ARTS that we are using all in and outputs.
@@ -114,10 +112,10 @@ class TestAgendas:
             ws.iy.value.value[:, 0] = b
 
         # Copy ppath_agenda into workspace.
-        ws.iy_space_agenda = space_agenda
-        ws.yCalc()
+        self.ws.iy_space_agenda = space_agenda
+        self.ws.yCalc()
 
-        y_new = np.array(ws.y.value)
+        y_new = np.array(self.ws.y.value)
 
         assert(np.allclose(y_new, y_old))
 
