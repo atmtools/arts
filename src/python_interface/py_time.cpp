@@ -7,6 +7,7 @@ namespace Python {
 void py_time(py::module_& m) {
   py::class_<Timer>(m, "Timer")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(Timer)
       .PythonInterfaceWorkspaceVariableConversion(Timer)
       .PythonInterfaceFileIO(Timer)
       .def("__repr__", [](Timer&) { return "Timer"; })
@@ -32,6 +33,7 @@ void py_time(py::module_& m) {
         t.Seconds(x);
         return t;
       }))
+      .PythonInterfaceCopyValue(Time)
       .PythonInterfaceWorkspaceVariableConversion(Time)
       .def(py::init<const String&>())
       .PythonInterfaceFileIO(Time)

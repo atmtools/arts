@@ -194,6 +194,7 @@ MRecord simple_delete_method(WorkspaceVariable val) {
 void py_agenda(py::module_& m) {
   py::class_<CallbackFunction>(m, "CallbackFunction")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(CallbackFunction)
       .def(py::init<std::function<void(Workspace&)>>())
       .def("__call__", [](CallbackFunction& f, Workspace& ws) { f(ws); });
   py::implicitly_convertible<std::function<void(Workspace&)>,
@@ -209,6 +210,7 @@ void py_agenda(py::module_& m) {
       .def_property_readonly("g_in", &MdRecord::GIn)
       .def_property_readonly("g_in_types", &MdRecord::GInType)
       .def_property_readonly("g_in_default", &MdRecord::GInDefault)
+      .PythonInterfaceCopyValue(MdRecord)
       .def("__str__", [](MdRecord& mr) { return var_string('"', mr, '"'); })
       .def("__repr__", [](MdRecord& mr) { return var_string('"', mr, '"'); });
 
@@ -218,6 +220,7 @@ void py_agenda(py::module_& m) {
 
   py::class_<AgRecord>(m, "AgRecord")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(AgRecord) 
       .def_property_readonly("name", &AgRecord::Name)
       .def_property_readonly("description", &AgRecord::Description)
       .def_property_readonly("outs", &AgRecord::Out)
@@ -244,6 +247,7 @@ void py_agenda(py::module_& m) {
         w.initialize();
         return a;
       }), py::keep_alive<0, 1>())
+      .PythonInterfaceCopyValue(Agenda)
       .PythonInterfaceFileIO(Agenda)
       .def_property_readonly("main", &Agenda::is_main_agenda)
       .def_property("name", &Agenda::name, &Agenda::set_name)
@@ -529,6 +533,7 @@ Both agendas must be defined on the same workspace)--"), py::arg("other"))
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
       .def(py::init<>())
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfAgenda)
+      .PythonInterfaceCopyValue(ArrayOfAgenda)
       .def(py::init<Index>())
       .def(py::init<Index, Agenda>())
       .def(py::init([](std::vector<Agenda> va) {

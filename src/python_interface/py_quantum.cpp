@@ -9,12 +9,14 @@ void py_quantum(py::module_& m) {
   py::class_<QuantumNumberType>(m, "QuantumNumberType")
       .def(py::init<>())
       .def(py::init([](const char* c) { return Quantum::Number::toTypeOrThrow(c); }), py::arg("str").none(false))
+      .PythonInterfaceCopyValue(QuantumNumberType)
       .PythonInterfaceBasicRepresentation(QuantumNumberType);
   py::implicitly_convertible<py::str, QuantumNumberType>();
 
   py::class_<QuantumNumberValue>(m, "QuantumNumberValue")
       .def(py::init<>())
       .def(py::init<const char*>(), py::arg("str").none(false))
+      .PythonInterfaceCopyValue(QuantumNumberValue)
       .PythonInterfaceBasicRepresentation(QuantumNumberValue)
       .def_readwrite("type", &QuantumNumberValue::type)
       .def_property("str_upp",
@@ -38,6 +40,7 @@ void py_quantum(py::module_& m) {
   py::class_<QuantumNumberValueList>(m, "QuantumNumberValueList")
       .def(py::init<>())
       .def(py::init<const char*>(), py::arg("str").none(false))
+      .PythonInterfaceCopyValue(QuantumNumberValueList)
       .def("get",
            [](QuantumNumberValueList& x, QuantumNumberType y) {
              ARTS_USER_ERROR_IF(not x.has(y), "Out of range: ", y) return x[y];
@@ -60,6 +63,7 @@ void py_quantum(py::module_& m) {
         out.val = ql;
         return out;
       }))
+      .PythonInterfaceCopyValue(QuantumNumberLocalState)
       .PythonInterfaceBasicRepresentation(QuantumNumberLocalState)
       .def_readwrite("state", &QuantumNumberLocalState::val);
   py::implicitly_convertible<py::str, QuantumNumberLocalState>();
@@ -67,6 +71,7 @@ void py_quantum(py::module_& m) {
   py::class_<QuantumIdentifier>(m, "QuantumIdentifier")
       .def(py::init<>())
       .def(py::init<const char*>(), py::arg("str").none(false))
+      .PythonInterfaceCopyValue(QuantumIdentifier)
       .PythonInterfaceWorkspaceVariableConversion(QuantumIdentifier)
       .PythonInterfaceFileIO(QuantumIdentifier)
       .PythonInterfaceBasicRepresentation(QuantumIdentifier)

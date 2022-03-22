@@ -60,10 +60,10 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
   }
 
   ws.def(py::init([](Index verbosity, Index agenda_verbosity) {
-           Workspace w{};
-           w.initialize();
-           w.push(w.WsvMap.at("verbosity"),
-                  new Verbosity{agenda_verbosity, verbosity, 0});
+           auto * w = new Workspace{};
+           w->initialize();
+           w->push(w->WsvMap.at("verbosity"),
+                   new Verbosity{agenda_verbosity, verbosity, 0});
            return w;
          }),
          py::arg("verbosity") = 0,
@@ -112,7 +112,8 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
                           group_index));
             w.push(pos, workspace_memory_handler.allocate(group_index));
             return WorkspaceVariable{w, pos};
-          }, py::keep_alive<0, 1>(),
+          },
+          py::keep_alive<0, 1>(),
           py::arg("group").none(false),
           py::arg("name"),
           py::arg("desc") = std::nullopt)
@@ -160,6 +161,8 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
     return var_string("Workspace [ ", stringify(vars, ", "), ']');
   });
 
+  ws.PythonInterfaceCopyValue(Workspace);
+
   py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
       .def_property(
           "value",
@@ -168,6 +171,8 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
                            py::return_value_policy::reference_internal),
           [](WorkspaceVariable& wsv, WorkspaceVariablesVariant x) { wsv = x; },
           "Returns a proper Arts type")
+      .def("__copy__", [](WorkspaceVariable&){ARTS_USER_ERROR("Cannot copy")}, "Cannot copy a workspace variable, try instead to copy its value")
+      .def("__deepcopy__", [](WorkspaceVariable&){ARTS_USER_ERROR("Cannot copy")}, "Cannot copy a workspace variable, try instead to copy its value")
       .def_property_readonly("name", &WorkspaceVariable::name)
       .def_property_readonly("desc", [](WorkspaceVariable& wv) {return wv.ws.wsv_data.at(wv.pos).Description();})
       .def_property_readonly("init", &WorkspaceVariable::is_initialized)
@@ -186,6 +191,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       });
 
   py::class_<WsvRecord>(m, "WsvRecord")
+      .PythonInterfaceCopyValue(WsvRecord)
       .def_property_readonly("name", &WsvRecord::Name)
       .def_property_readonly("description", &WsvRecord::Description)
       .def_property_readonly("group", &WsvRecord::Group)

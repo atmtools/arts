@@ -6,6 +6,7 @@ namespace Python {
 void py_mcantenna(py::module_& m) {
   py::class_<MCAntenna>(m, "MCAntenna")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(MCAntenna)
       .PythonInterfaceWorkspaceVariableConversion(MCAntenna)
       .PythonInterfaceFileIO(MCAntenna)
       .PythonInterfaceBasicRepresentation(MCAntenna);

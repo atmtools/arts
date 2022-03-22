@@ -14,6 +14,7 @@ void py_sparse(py::module_& m) {
         s.matrix.swap(es);
         return s;
       }))
+      .PythonInterfaceCopyValue(Sparse)
       .PythonInterfaceWorkspaceVariableConversion(Sparse)
       .PythonInterfaceFileIO(Sparse)
       .PythonInterfaceBasicRepresentation(Sparse)
@@ -48,9 +49,11 @@ void py_sparse(py::module_& m) {
 
   py::enum_<Block::MatrixType>(m, "BlockMatrixType")
       .value("dense", Block::MatrixType::dense)
-      .value("sparse", Block::MatrixType::sparse);
+      .value("sparse", Block::MatrixType::sparse)
+      .PythonInterfaceCopyValue(Block::MatrixType);
 
   py::class_<Block>(m, "Block")
+      .PythonInterfaceCopyValue(Block)
       .def("get_matrix_type", &Block::get_matrix_type)
       .def_property_readonly("dense",
                              [](Block& x) {
@@ -67,6 +70,7 @@ void py_sparse(py::module_& m) {
 
   py::class_<CovarianceMatrix>(m, "CovarianceMatrix")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(CovarianceMatrix)
       .PythonInterfaceWorkspaceVariableConversion(CovarianceMatrix)
       .def_property(
           "blocks",

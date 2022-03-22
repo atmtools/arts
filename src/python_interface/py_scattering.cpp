@@ -7,10 +7,12 @@ void py_scattering(py::module_& m) {
   py::enum_<PType>(m, "PType")
       .value("PTYPE_GENERAL", PType::PTYPE_GENERAL)
       .value("PTYPE_AZIMUTH_RND", PType::PTYPE_AZIMUTH_RND)
-      .value("PTYPE_TOTAL_RND", PType::PTYPE_TOTAL_RND);
+      .value("PTYPE_TOTAL_RND", PType::PTYPE_TOTAL_RND)
+      .PythonInterfaceCopyValue(PType);
 
   py::class_<SingleScatteringData>(m, "SingleScatteringData")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(SingleScatteringData)
       .PythonInterfaceWorkspaceVariableConversion(SingleScatteringData)
       .PythonInterfaceFileIO(SingleScatteringData)
       .PythonInterfaceBasicRepresentation(SingleScatteringData)
@@ -26,6 +28,7 @@ void py_scattering(py::module_& m) {
 
   py::class_<ScatteringMetaData>(m, "ScatteringMetaData")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(ScatteringMetaData)
       .PythonInterfaceWorkspaceVariableConversion(ScatteringMetaData)
       .PythonInterfaceFileIO(ScatteringMetaData)
       .PythonInterfaceBasicRepresentation(ScatteringMetaData)

@@ -11,6 +11,7 @@ void py_rte(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Index, Index>())
+      .PythonInterfaceCopyValue(TransmissionMatrix)
       .PythonInterfaceWorkspaceVariableConversion(TransmissionMatrix)
       .PythonInterfaceFileIO(TransmissionMatrix)
       .PythonInterfaceBasicRepresentation(TransmissionMatrix)
@@ -69,6 +70,7 @@ void py_rte(py::module_& m) {
            py::arg("nf") = 0,
            py::arg("ns") = 1,
            py::doc("Init by frequency size and stokes dimensionality"))
+      .PythonInterfaceCopyValue(RadiationVector)
       .PythonInterfaceWorkspaceVariableConversion(RadiationVector)
       .PythonInterfaceFileIO(RadiationVector)
       .PythonInterfaceBasicRepresentation(RadiationVector)
@@ -122,6 +124,7 @@ void py_rte(py::module_& m) {
            py::arg_v("nza", Index(1), "Index(1)"),
            py::arg_v("naa", Index(1), "Index(1)"),
            py::arg_v("v", Numeric(0), "Numeric(0)"))
+      .PythonInterfaceCopyValue(StokesVector)
       .PythonInterfaceWorkspaceVariableConversion(StokesVector)
       .PythonInterfaceFileIO(StokesVector)
       .PythonInterfaceBasicRepresentation(StokesVector)
@@ -170,6 +173,7 @@ void py_rte(py::module_& m) {
            py::arg("nza") = 1,
            py::arg("naa") = 1,
            py::arg("v") = 0)
+      .PythonInterfaceCopyValue(PropagationMatrix)
       .PythonInterfaceWorkspaceVariableConversion(PropagationMatrix)
       .PythonInterfaceFileIO(PropagationMatrix)
       .PythonInterfaceBasicRepresentation(PropagationMatrix)
@@ -206,7 +210,8 @@ void py_rte(py::module_& m) {
   PythonInterfaceWorkspaceArray(ArrayOfStokesVector);
 
   py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
-      .def(py::init<>());
+      .def(py::init<>())
+      .PythonInterfaceCopyValue(LagrangeInterpolation);
 
   py::class_<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
       .PythonInterfaceArrayDefault(LagrangeInterpolation)
@@ -216,6 +221,7 @@ void py_rte(py::module_& m) {
 
   py::class_<GasAbsLookup>(m, "GasAbsLookup")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(GasAbsLookup)
       .PythonInterfaceWorkspaceVariableConversion(GasAbsLookup)
       .PythonInterfaceFileIO(GasAbsLookup)
       .PythonInterfaceBasicRepresentation(GasAbsLookup)

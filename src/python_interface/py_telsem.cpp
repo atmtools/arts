@@ -6,6 +6,7 @@ namespace Python {
 void py_telsem(py::module_& m) {
   py::class_<TelsemAtlas>(m, "TelsemAtlas")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(TelsemAtlas)
       .PythonInterfaceWorkspaceVariableConversion(TelsemAtlas)
       .PythonInterfaceFileIO(TelsemAtlas)
       .PythonInterfaceBasicRepresentation(TelsemAtlas);

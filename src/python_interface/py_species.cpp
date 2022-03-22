@@ -9,6 +9,7 @@ namespace Python {
 void py_species(py::module_& m) {
   py::class_<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
       .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin), py::doc("Get the builtin values"))
+      .PythonInterfaceCopyValue(SpeciesIsotopologueRatios)
       .PythonInterfaceWorkspaceVariableConversion(SpeciesIsotopologueRatios)
       .PythonInterfaceFileIO(SpeciesIsotopologueRatios)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
@@ -21,6 +22,7 @@ void py_species(py::module_& m) {
         if (auto out = Species::fromShortName(c); good_enum(out)) return out;
         return Species::toSpeciesOrThrow(c);
       }), py::arg("str").none(false))
+      .PythonInterfaceCopyValue(Species::Species)
       .PythonInterfaceBasicRepresentation(Species::Species);
   py::implicitly_convertible<py::str, Species::Species>();
 
@@ -36,6 +38,7 @@ void py_species(py::module_& m) {
       .def(py::init([](const char* c) {
         return Species::Isotopologues.at(Species::find_species_index(c));
       }), py::arg("str").none(false))
+      .PythonInterfaceCopyValue(SpeciesIsotopeRecord)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopeRecord)
       .def_readwrite("spec", &SpeciesIsotopeRecord::spec)
       .def_readwrite("isotname", &SpeciesIsotopeRecord::isotname)
@@ -68,12 +71,14 @@ void py_species(py::module_& m) {
   py::class_<Species::TagType>(m, "SpeciesTagType")
       .def(py::init<>())
       .def(py::init([](const char* c) { return Species::toTagType(c); }), py::arg("str").none(false))
+      .PythonInterfaceCopyValue(Species::TagType)
       .PythonInterfaceBasicRepresentation(Species::TagType);
   py::implicitly_convertible<py::str, Species::TagType>();
 
   py::class_<SpeciesTag>(m, "SpeciesTag")
       .def(py::init<>())
       .def(py::init<const char*>(), py::arg("str").none(false))
+      .PythonInterfaceCopyValue(SpeciesTag)
       .def_readwrite("spec_ind", &SpeciesTag::spec_ind)
       .def_readwrite("lower_freq", &SpeciesTag::lower_freq)
       .def_readwrite("upper_freq", &SpeciesTag::upper_freq)
@@ -86,6 +91,7 @@ void py_species(py::module_& m) {
 
   py::class_<ArrayOfSpeciesTag>(m, "ArrayOfSpeciesTag")
       .PythonInterfaceFileIO(ArrayOfSpeciesTag)
+      .PythonInterfaceCopyValue(ArrayOfSpeciesTag)
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfSpeciesTag)
       .PythonInterfaceBasicRepresentation(ArrayOfSpeciesTag)
       .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)

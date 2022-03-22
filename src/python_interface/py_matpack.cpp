@@ -224,6 +224,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Index, Numeric>())
+      .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
       .def(py::init<const std::vector<Numeric>&>())
       .def(py::init<Numeric, Index, Numeric>())
@@ -285,6 +286,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index>())
       .def(py::init<Index, Index, Numeric>())
+      .PythonInterfaceCopyValue(Matrix)
       .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
@@ -398,6 +400,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index>())
       .def(py::init<Index, Index, Index, Numeric>())
+      .PythonInterfaceCopyValue(Tensor3)
       .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
@@ -484,6 +487,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Numeric>())
+      .PythonInterfaceCopyValue(Tensor4)
       .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
@@ -576,6 +580,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Numeric>())
+      .PythonInterfaceCopyValue(Tensor5)
       .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
@@ -672,6 +677,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Numeric>())
+      .PythonInterfaceCopyValue(Tensor6)
       .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
@@ -777,6 +783,7 @@ void py_matpack(py::module_& m) {
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Index, Numeric>())
+      .PythonInterfaceCopyValue(Tensor7)
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
@@ -951,6 +958,7 @@ void py_matpack(py::module_& m) {
            }),
            py::arg("n") = 0,
            py::arg("d") = 1)
+      .PythonInterfaceCopyValue(Rational)
       .PythonInterfaceWorkspaceVariableConversion(Rational)
       .def(py::init<String>())
       .def(py::init([](Numeric n) { return Rational(std::to_string(n)); }))
@@ -973,7 +981,7 @@ void py_matpack(py::module_& m) {
           [](Rational& a, Rational b) { return a < b; },
           py::is_operator())
       .def(
-          "__l3__",
+          "__le__",
           [](Rational& a, Rational b) { return a <= b; },
           py::is_operator())
       .def(

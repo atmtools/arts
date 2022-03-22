@@ -8,6 +8,7 @@ namespace Python {
 void py_ppath(py::module_& m) {
   py::class_<GridPos>(m, "GridPos")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(GridPos)
       .PythonInterfaceWorkspaceVariableConversion(GridPos)
       .def(py::init<Index, std::array<Numeric, 2>>())
       .PythonInterfaceFileIO(GridPos)
@@ -41,6 +42,7 @@ void py_ppath(py::module_& m) {
                     ArrayOfGridPos,
                     ArrayOfGridPos,
                     ArrayOfGridPos>())
+      .PythonInterfaceCopyValue(Ppath)
       .PythonInterfaceWorkspaceVariableConversion(Ppath)
       .def("__repr__", [](Ppath&){return "Ppath";})
       .PythonInterfaceFileIO(Ppath)

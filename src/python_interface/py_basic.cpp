@@ -11,6 +11,7 @@ void py_basic(py::module_& m) {
       .def(py::init<>())
       .def(py::init([](Index x){return Verbosity(x, x, x);}))
       .PythonInterfaceWorkspaceVariableConversion(Verbosity)
+      .PythonInterfaceCopyValue(Verbosity)
       .def(py::init<Index, Index, Index>(),
            py::arg("agenda") = 0,
            py::arg("screen") = 0,
@@ -42,6 +43,7 @@ void py_basic(py::module_& m) {
   py::class_<String>(m, "String")
       .def(py::init<>())
       .def(py::init<const char*>(), py::arg("str").none(false))
+      .PythonInterfaceCopyValue(String)
       .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
       .PythonInterfaceIndexItemAccess(String)
@@ -117,6 +119,7 @@ be accessed without copy using element-wise access operators.
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Numeric>())
+      .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
       .def(+ py::self)
       .def(- py::self)
@@ -191,6 +194,7 @@ You can get copies and set the value by the \"val\" property
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Numeric>())
+      .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
       .def(+ py::self)
       .def(- py::self)

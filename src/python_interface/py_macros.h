@@ -86,10 +86,23 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
           },                                                                \
           py::return_value_policy::reference_internal)
 
-#define PythonInterfaceBasicRepresentation(Type) \
-  def("__str__", [](const Type& x) {             \
-    return var_string(x);                        \
-  }).def("__repr__", [](const Type& x) { return var_string(x); })
+#define PythonInterfaceBasicRepresentation(Type)       \
+  def(                                                 \
+      "__str__",                                       \
+      [](const Type& x) { return var_string(x); },     \
+      py::is_operator())                               \
+      .def(                                            \
+          "__repr__",                                  \
+          [](const Type& x) { return var_string(x); }, \
+          py::is_operator())
+
+#define PythonInterfaceCopyValue(Type)                                  \
+  def(                                                                  \
+      "__copy__", [](Type& t) -> Type { return t; }, py::is_operator()) \
+      .def(                                                             \
+          "__deepcopy__",                                               \
+          [](Type& t) -> Type { return t; },                            \
+          py::is_operator())
 
 /** Gives the basic Array<X> interface of Arts
  * 
@@ -110,6 +123,7 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
  */
 #define PythonInterfaceArrayDefault(BaseType)                                 \
   PythonInterfaceIndexItemAccess(Array<BaseType>)                             \
+      .PythonInterfaceCopyValue(Array<BaseType>)                              \
       .def(py::init<>())                                                      \
       .def(py::init<Index>())                                                 \
       .def(py::init<Index, BaseType>())                                       \

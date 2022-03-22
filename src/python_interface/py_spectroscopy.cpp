@@ -16,6 +16,7 @@ void py_spectroscopy(py::module_& m) {
              return LineShape::toTemperatureModelOrThrow(c);
            }),
            py::arg("str").none(false))
+      .PythonInterfaceCopyValue(LineShape::TemperatureModel)
       .PythonInterfaceBasicRepresentation(LineShape::TemperatureModel);
   py::implicitly_convertible<py::str, LineShape::TemperatureModel>();
 
@@ -31,6 +32,7 @@ void py_spectroscopy(py::module_& m) {
            py::arg("X1") = 0,
            py::arg("X2") = 0,
            py::arg("X3") = 0)
+      .PythonInterfaceCopyValue(LineShapeModelParameters)
       .def_readwrite("type", &LineShapeModelParameters::type)
       .def_readwrite("X0", &LineShapeModelParameters::X0)
       .def_readwrite("X1", &LineShapeModelParameters::X1)
@@ -44,6 +46,7 @@ void py_spectroscopy(py::module_& m) {
              return Absorption::toCutoffTypeOrThrow(c);
            }),
            py::arg("str").none(false))
+      .PythonInterfaceCopyValue(AbsorptionCutoffType)
       .PythonInterfaceBasicRepresentation(AbsorptionCutoffType);
   py::implicitly_convertible<py::str, AbsorptionCutoffType>();
 
@@ -57,6 +60,7 @@ void py_spectroscopy(py::module_& m) {
              ARTS_USER_ERROR("Bad enum value ", c);
            }),
            py::arg("str"))
+      .PythonInterfaceCopyValue(Zeeman::Polarization)
       .def("__repr__",
            [](Zeeman::Polarization c) {
              if (c == Zeeman::Polarization::SigmaMinus) return "SigmaMinus";
@@ -80,6 +84,7 @@ void py_spectroscopy(py::module_& m) {
              return Absorption::toMirroringTypeOrThrow(c);
            }),
            py::arg("str").none(false))
+      .PythonInterfaceCopyValue(AbsorptionMirroringType)
       .PythonInterfaceBasicRepresentation(AbsorptionMirroringType);
   py::implicitly_convertible<py::str, AbsorptionMirroringType>();
 
@@ -89,6 +94,7 @@ void py_spectroscopy(py::module_& m) {
              return Absorption::toPopulationTypeOrThrow(c);
            }),
            py::arg("str").none(false))
+      .PythonInterfaceCopyValue(AbsorptionPopulationType)
       .PythonInterfaceBasicRepresentation(AbsorptionPopulationType);
   py::implicitly_convertible<py::str, AbsorptionPopulationType>();
 
@@ -98,6 +104,7 @@ void py_spectroscopy(py::module_& m) {
              return Absorption::toNormalizationTypeOrThrow(c);
            }),
            py::arg("str").none(false))
+      .PythonInterfaceCopyValue(AbsorptionNormalizationType)
       .PythonInterfaceBasicRepresentation(AbsorptionNormalizationType);
   py::implicitly_convertible<py::str, AbsorptionNormalizationType>();
 
@@ -105,12 +112,14 @@ void py_spectroscopy(py::module_& m) {
       .def(py::init<>())
       .def(py::init([](const char* c) { return LineShape::toTypeOrThrow(c); }),
            py::arg("str").none(false))
+      .PythonInterfaceCopyValue(LineShapeType)
       .PythonInterfaceBasicRepresentation(LineShapeType);
   py::implicitly_convertible<py::str, LineShapeType>();
 
   py::class_<Zeeman::Model>(m, "ZeemanModel")
       .def(py::init<>())
       .def(py::init<Numeric, Numeric>())
+      .PythonInterfaceCopyValue(Zeeman::Model)
       .PythonInterfaceBasicRepresentation(Zeeman::Model)
       .def_property("gu", &Zeeman::Model::gu, &Zeeman::Model::gu)
       .def_property("gl", &Zeeman::Model::gl, &Zeeman::Model::gl);
@@ -134,6 +143,7 @@ void py_spectroscopy(py::module_& m) {
            py::arg("y") = 0,
            py::arg("g") = 0,
            py::arg("dv") = 0)
+      .PythonInterfaceCopyValue(LineShape::Output)
       .PythonInterfaceReadWriteData(LineShape::Output, G0)
       .PythonInterfaceReadWriteData(LineShape::Output, D0)
       .PythonInterfaceReadWriteData(LineShape::Output, G2)
@@ -164,6 +174,7 @@ void py_spectroscopy(py::module_& m) {
            py::arg("Y") = LineShape::ModelParameters{},
            py::arg("G") = LineShape::ModelParameters{},
            py::arg("DV") = LineShape::ModelParameters{})
+      .PythonInterfaceCopyValue(LineShapeSingleSpeciesModel)
       .def_property(
           "G0",
           [](const LineShapeSingleSpeciesModel& x) { return x.G0(); },
@@ -222,6 +233,7 @@ void py_spectroscopy(py::module_& m) {
   py::class_<LineShapeModel>(m, "LineShapeModel")
       .def(py::init<>())
       .def(py::init<std::vector<LineShapeSingleSpeciesModel>>())
+      .PythonInterfaceCopyValue(LineShapeModel)
       .PythonInterfaceBasicRepresentation(LineShapeModel)
       .PythonInterfaceIndexItemAccess(LineShapeModel)
       .def_property(
@@ -252,6 +264,7 @@ void py_spectroscopy(py::module_& m) {
            py::arg("zeeman") = Zeeman::Model(),
            py::arg("lineshape") = LineShape::Model(),
            py::arg("localquanta") = Quantum::Number::LocalState{})
+      .PythonInterfaceCopyValue(AbsorptionSingleLine)
       .PythonInterfaceBasicRepresentation(AbsorptionSingleLine)
       .PythonInterfaceReadWriteData(AbsorptionSingleLine, F0)
       .PythonInterfaceReadWriteData(AbsorptionSingleLine, I0)
@@ -298,6 +311,7 @@ void py_spectroscopy(py::module_& m) {
            py::arg("quantumidentity") = QuantumIdentifier(),
            py::arg("broadeningspecies") = ArrayOfSpecies{},
            py::arg("lines") = Array<AbsorptionSingleLine>{})
+      .PythonInterfaceCopyValue(AbsorptionLines)
       .PythonInterfaceWorkspaceVariableConversion(AbsorptionLines)
       .PythonInterfaceBasicRepresentation(AbsorptionLines)
       .PythonInterfaceFileIO(AbsorptionLines)
@@ -378,6 +392,7 @@ void py_spectroscopy(py::module_& m) {
            py::arg("zeeman") = Zeeman::Polarization::None,
            py::arg("H") = 0,
            py::arg("iz") = 0)
+      .PythonInterfaceCopyValue(LineShape::Calculator)
       .def("dFdT",
            [](LineShape::Calculator& LS,
               const LineShape::Output& dXdT,
@@ -412,6 +427,7 @@ void py_spectroscopy(py::module_& m) {
   py::class_<SpeciesErrorCorrectedSuddenData>(m,
                                               "SpeciesErrorCorrectedSuddenData")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(SpeciesErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(SpeciesErrorCorrectedSuddenData)
       .def_readwrite("spec", &SpeciesErrorCorrectedSuddenData::spec)
       .def_readwrite("scaling", &SpeciesErrorCorrectedSuddenData::scaling)
@@ -423,6 +439,7 @@ void py_spectroscopy(py::module_& m) {
 
   py::class_<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(ErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(ErrorCorrectedSuddenData)
       .def(
           "__getitem__",
@@ -438,6 +455,7 @@ void py_spectroscopy(py::module_& m) {
 
   py::class_<MapOfErrorCorrectedSuddenData>(m, "MapOfErrorCorrectedSuddenData")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceWorkspaceVariableConversion(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceFileIO(MapOfErrorCorrectedSuddenData)
@@ -455,12 +473,14 @@ void py_spectroscopy(py::module_& m) {
 
   py::class_<EnergyLevelMap>(m, "EnergyLevelMap")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(EnergyLevelMap)
       .PythonInterfaceWorkspaceVariableConversion(EnergyLevelMap)
       .PythonInterfaceBasicRepresentation(EnergyLevelMap)
       .PythonInterfaceFileIO(EnergyLevelMap);
 
   py::class_<CIARecord>(m, "CIARecord")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(CIARecord)
       .PythonInterfaceWorkspaceVariableConversion(CIARecord)
       .PythonInterfaceBasicRepresentation(CIARecord)
       .PythonInterfaceFileIO(CIARecord);
@@ -469,6 +489,7 @@ void py_spectroscopy(py::module_& m) {
 
   py::class_<HitranRelaxationMatrixData>(m, "HitranRelaxationMatrixData")
       .def(py::init<>())
+      .PythonInterfaceCopyValue(HitranRelaxationMatrixData)
       .PythonInterfaceWorkspaceVariableConversion(HitranRelaxationMatrixData)
       .PythonInterfaceBasicRepresentation(HitranRelaxationMatrixData)
       .PythonInterfaceFileIO(HitranRelaxationMatrixData)
