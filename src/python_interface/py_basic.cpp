@@ -1,7 +1,6 @@
 #include <py_auto_interface.h>
-
-#include <pybind11/operators.h>
 #include <pybind11/numpy.h>
+#include <pybind11/operators.h>
 
 #include "py_macros.h"
 
@@ -9,7 +8,7 @@ namespace Python {
 void py_basic(py::module_& m) {
   py::class_<Verbosity>(m, "Verbosity")
       .def(py::init<>())
-      .def(py::init([](Index x){return Verbosity(x, x, x);}))
+      .def(py::init([](Index x) { return Verbosity(x, x, x); }))
       .PythonInterfaceWorkspaceVariableConversion(Verbosity)
       .PythonInterfaceCopyValue(Verbosity)
       .def(py::init<Index, Index, Index>(),
@@ -93,6 +92,19 @@ be accessed without copy using element-wise access operators.
                         },
                         py::keep_alive<0, 1>()),
                     [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
+      .def(
+          "append",
+          [](ArrayOfIndex& x, Index y) { x.emplace_back(std::move(y)); },
+          py::doc("Appends a Index at the end of the Array"))
+      .def(
+          "pop",
+          [](ArrayOfIndex& x) -> Index {
+            if (x.size() < 1) throw std::out_of_range("pop from empty list");
+            Index copy = std::move(x.back());
+            x.pop_back();
+            return copy;
+          },
+          py::doc("Pops a Index from the Array"))
       .doc() =
       "The Arts ArrayOfIndex class\n"
       "\n"
@@ -122,8 +134,8 @@ be accessed without copy using element-wise access operators.
       .def(py::init<Numeric>())
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
-      .def(+ py::self)
-      .def(- py::self)
+      .def(+py::self)
+      .def(-py::self)
       .def(py::self != py::self)
       .def(py::self == py::self)
       .def(py::self <= py::self)
@@ -197,8 +209,8 @@ You can get copies and set the value by the \"val\" property
       .def(py::init<Numeric>())
       .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
-      .def(+ py::self)
-      .def(- py::self)
+      .def(+py::self)
+      .def(-py::self)
       .def(py::self != py::self)
       .def(py::self == py::self)
       .def(py::self <= py::self)
