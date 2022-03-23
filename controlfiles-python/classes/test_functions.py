@@ -7,8 +7,12 @@ Created on Mon Feb 28 09:59:42 2022
 """
 
 import os
+import uuid
 
-def io(x, fname="tmp.xml", delete=False):
+
+def io(x, fname=None, delete=False):
+    if fname is None:
+        fname = str(uuid.uuid4()) + ".xml"
     try:
         x.savexml(fname)
         x.readxml(fname)
