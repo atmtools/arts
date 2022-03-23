@@ -99,7 +99,7 @@ if CMPR:
     dcmpr.readxml("test_data_ckdmt350.deriv.xml")
     for i in range(len(dcmpr)):
         for j in range(len(dcmpr[i])):
-            assert np.isclose(dcmpr[i][j], dres[i][j]).all()
+            assert np.isclose(dcmpr[i][j].value, dres[i][j].value).all()
 
 # Note: manual_dres is not compared against but kept around.  The derivative of
 # water VMR for the self-model has a factor x**2, where x is the VMR itself.
