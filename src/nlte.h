@@ -24,6 +24,9 @@
  * @brief Deep calculations for NLTE
  */
 
+#ifndef NLTE_H
+#define NLTE_H
+
 #include "absorption.h"
 #include "gridded_fields.h"
 #include "matpackI.h"
@@ -189,3 +192,6 @@ Index find_first_unique_in_lower(const ArrayOfIndex& upper,
  */
 void check_collision_line_identifiers(
     const ArrayOfQuantumIdentifier& collision_line_identifiers);
+
+#endif /* NLTE_H */
+
