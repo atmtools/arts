@@ -3,6 +3,7 @@
 
 #include <debug.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 #include <xml_io.h>
 
@@ -300,5 +301,76 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
                [](Type& x, decltype(x.ReadFunction()) y) {                    \
                  return x.WriteFunction() = std::move(y);                     \
                })
+
+#define PythonInterfaceNumpyReadProperty(Type, prop)         \
+  def_property_readonly(#prop, [](Type& a) {                 \
+    py::object np = py::module_::import("numpy");            \
+    auto npa = np.attr("array")(a, py::arg("copy") = false); \
+    return npa.attr(#prop);                                  \
+  })
+
+#define PythonInterfaceNumpyOperatorSelf(Type, op)           \
+  def(#op, [](Type& a) {                                     \
+    py::object np = py::module_::import("numpy");            \
+    auto npa = np.attr("array")(a, py::arg("copy") = false); \
+    return npa.attr(#op)();                                  \
+  })
+
+#define PythonInterfaceNumpyOperator(Type, op)                   \
+  def(                                                           \
+      #op,                                                       \
+      [](Type& a, py::object& b) {                               \
+        py::object np = py::module_::import("numpy");            \
+        auto npa = np.attr("array")(a, py::arg("copy") = false); \
+        return npa.attr(#op)(b);                                 \
+      },                                                         \
+      py::is_operator())
+
+#define PythonInterfaceNumpyMath(Type)                               \
+  PythonInterfaceNumpyOperatorSelf(Type, __pos__)                    \
+      .PythonInterfaceNumpyOperatorSelf(Type, __len__)               \
+      .PythonInterfaceNumpyOperatorSelf(Type, __neg__)               \
+      .PythonInterfaceNumpyOperatorSelf(Type, __abs__)               \
+      .PythonInterfaceNumpyOperatorSelf(Type, __invert__)            \
+      .PythonInterfaceNumpyOperatorSelf(Type, __int__)               \
+      .PythonInterfaceNumpyOperatorSelf(Type, __float__)             \
+      .PythonInterfaceNumpyOperatorSelf(Type, __complex__)           \
+      .PythonInterfaceNumpyOperatorSelf(Type, __str__)               \
+      .PythonInterfaceNumpyOperatorSelf(Type, __repr__)              \
+      .PythonInterfaceNumpyOperator(Type, __matmul__)                \
+      .PythonInterfaceNumpyOperator(Type, __rmatmul__)               \
+      .PythonInterfaceNumpyOperator(Type, __mul__)                   \
+      .PythonInterfaceNumpyOperator(Type, __rmul__)                  \
+      .PythonInterfaceNumpyOperator(Type, __sub__)                   \
+      .PythonInterfaceNumpyOperator(Type, __rsub__)                  \
+      .PythonInterfaceNumpyOperator(Type, __pow__)                   \
+      .PythonInterfaceNumpyOperator(Type, __rpow__)                  \
+      .PythonInterfaceNumpyOperator(Type, __add__)                   \
+      .PythonInterfaceNumpyOperator(Type, __radd__)                  \
+      .PythonInterfaceNumpyOperator(Type, __div__)                   \
+      .PythonInterfaceNumpyOperator(Type, __rdiv__)                  \
+      .PythonInterfaceNumpyOperator(Type, __truediv__)               \
+      .PythonInterfaceNumpyOperator(Type, __rtruediv__)              \
+      .PythonInterfaceNumpyOperator(Type, __floordiv__)              \
+      .PythonInterfaceNumpyOperator(Type, __rfloordiv__)             \
+      .PythonInterfaceNumpyOperator(Type, __le__)                    \
+      .PythonInterfaceNumpyOperator(Type, __lt__)                    \
+      .PythonInterfaceNumpyOperator(Type, __ge__)                    \
+      .PythonInterfaceNumpyOperator(Type, __gt__)                    \
+      .PythonInterfaceNumpyOperator(Type, __eq__)                    \
+      .PythonInterfaceNumpyOperator(Type, __ne__)                    \
+      .PythonInterfaceNumpyReadProperty(Type, shape)                 \
+      .PythonInterfaceNumpyReadProperty(Type, size)                  \
+      .PythonInterfaceNumpyReadProperty(Type, ndim)                  \
+      .PythonInterfaceNumpyOperator(Type, __getitem__)               \
+      .def(                                                          \
+          "__setitem__",                                             \
+          [](Type& a, py::object& b, py::object& c) {                \
+            py::object np = py::module_::import("numpy");            \
+            auto npa = np.attr("array")(a, py::arg("copy") = false); \
+            auto npc = np.attr("array")(c, py::arg("copy") = false); \
+            npa.attr("__setitem__")(b, npc);                         \
+          },                                                         \
+          py::is_operator())
 
 #endif

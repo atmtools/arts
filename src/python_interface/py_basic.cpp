@@ -70,10 +70,13 @@ be accessed without copy using element-wise access operators.
   PythonInterfaceWorkspaceArray(ArrayOfString);
 
   py::class_<ArrayOfIndex>(m, "ArrayOfIndex", py::buffer_protocol())
+      .def(py::init<>())
+      .def(py::init<Index>())
+      .def(py::init<Index, Index>())
+      .def(py::init<std::vector<Index>>())
       .PythonInterfaceFileIO(ArrayOfIndex)
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfIndex)
-      .PythonInterfaceBasicRepresentation(ArrayOfIndex)
-      .PythonInterfaceArrayDefault(Index)
+      .PythonInterfaceNumpyMath(ArrayOfIndex)
       .def_buffer([](ArrayOfIndex& x) -> py::buffer_info {
         return py::buffer_info(x.data(),
                                sizeof(Index),
@@ -85,13 +88,10 @@ be accessed without copy using element-wise access operators.
       .def_property("value",
                     py::cpp_function(
                         [](ArrayOfIndex& x) {
-                          py::capsule do_nothing(x.data(), [](void*) {});
-                          return py::array_t<Index>({x.nelem()},
-                                                      {sizeof(Numeric)},
-                                                      x.data(),
-                                                      do_nothing);
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
                         },
-                        py::return_value_policy::reference_internal),
+                        py::keep_alive<0, 1>()),
                     [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
       .doc() =
       "The Arts ArrayOfIndex class\n"
@@ -110,6 +110,7 @@ be accessed without copy using element-wise access operators.
       "    ArrayOfIndex(Index, Index): for constant size, constant value\n\n"
       "    ArrayOfIndex(List or Array): to copy elements\n\n";
   py::implicitly_convertible<std::vector<Index>, ArrayOfIndex>();
+  py::implicitly_convertible<py::array, ArrayOfIndex>();
 
   PythonInterfaceWorkspaceArray(ArrayOfIndex);
   py::implicitly_convertible<std::vector<std::vector<Index>>,
