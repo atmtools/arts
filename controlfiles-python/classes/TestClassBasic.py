@@ -14,13 +14,17 @@ cxx.Group(ws.Group__1)
 cxx.Group(ws.Group__2)
 assert hasattr(x, "readxml")
 assert hasattr(x, "loadxml")
+assert hasattr(x, "__copy__")
+assert hasattr(x, "__deepcopy__")
+assert hasattr(x, "__str__")
+assert hasattr(x, "__repr__")
 """
 
 import pyarts.pyarts_cpp as cxx
 ws = cxx.Workspace()
 
 # Special groups
-special_groups = ["CallbackFunction", "Any"]
+special_groups = ["Any"]
 
 # All groups
 list_of_groups = cxx.get_wsv_group_names()
@@ -49,11 +53,23 @@ for g in list_of_groups:
         assert hasattr(x, "readxml")
         assert hasattr(x, "savexml")
         
+        print("Checking copy constructor")
+        assert hasattr(x, "__copy__")
+        assert hasattr(x, "__deepcopy__")
+        
+        print("Checking string and representation")
+        assert hasattr(x, "__str__")
+        assert hasattr(x, "__repr__")
+        
         print("Success!\n")
     except:
         raise ImportError("Incomplete pyarts interface for {} in pyarts.classes".format(g))
 
-# Each class should must tested
+""" Each class must be tested
+
+If you encounter this error, add a Test{GROUP}.py for the group that is missing
+in the same folder as this file is located
+"""
 if __name__ == "__main__":
     import os
     dir = os.path.dirname(__file__)

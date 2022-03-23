@@ -134,7 +134,7 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
           [](Array<BaseType>& x, BaseType y) {                                \
             x.emplace_back(std::move(y));                                     \
           },                                                                  \
-          py::doc("Appends a " #BaseType " at the end of the Array"))         \
+          py::doc("Appends " #BaseType " at the end of the Array"))           \
       .def(                                                                   \
           "pop",                                                              \
           [](Array<BaseType>& x) -> BaseType {                                \
@@ -143,7 +143,7 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
             x.pop_back();                                                     \
             return copy;                                                      \
           },                                                                  \
-          py::doc("Pops a " #BaseType " from the Array"))
+          py::doc("Pops " #BaseType " from the Array"))
 
 /** Provides -=, +=, /=. and *= for all LHS Type */
 #define PythonInterfaceInPlaceMathOperators(Type, Other) \
