@@ -18,7 +18,7 @@ jobs:
           ubuntu-gcc-10-debug,
           ubuntu-gcc-11,
           ubuntu-clang-13-nofortran,
-          macos-gcc-10,
+          macos-gcc-11,
         ]
 
         include:
@@ -99,10 +99,10 @@ jobs:
             libcxx: "yes"
             buildtype: "Release"
 
-          - name: macos-gcc-10
+          - name: macos-gcc-11
             os: macos-latest
             compiler: gcc
-            version: "10"
+            version: "11"
             doc: "no"
             arts: "yes"
             fortran: "yes"
