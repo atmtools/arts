@@ -195,16 +195,7 @@ void py_agenda(py::module_& m) {
   py::class_<CallbackFunction>(m, "CallbackFunction")
       .def(py::init<>())
       .PythonInterfaceCopyValue(CallbackFunction)
-      .PythonInterfaceWorkspaceVariableConversion(CallbackFunction)
       .def(py::init<std::function<void(Workspace&)>>())
-      .def("savexml",
-           [](const CallbackFunction&, const char* const, const char* const, bool) {
-             ARTS_USER_ERROR("Not implemented, cannot implement")
-           })
-      .def("readxml",
-           [](CallbackFunction&, const char* const) {
-             ARTS_USER_ERROR("Not implemented, cannot implement")
-           })
       .def("__call__", [](CallbackFunction& f, Workspace& ws) { f(ws); });
   py::implicitly_convertible<std::function<void(Workspace&)>,
                              CallbackFunction>();

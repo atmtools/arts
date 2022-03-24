@@ -73,7 +73,6 @@ be accessed without copy using element-wise access operators.
       .def(py::init<Index>())
       .def(py::init<Index, Index>())
       .def(py::init<std::vector<Index>>())
-      .PythonInterfaceCopyValue(ArrayOfIndex)
       .PythonInterfaceFileIO(ArrayOfIndex)
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfIndex)
       .PythonInterfaceNumpyMath(ArrayOfIndex)
@@ -96,7 +95,7 @@ be accessed without copy using element-wise access operators.
       .def(
           "append",
           [](ArrayOfIndex& x, Index y) { x.emplace_back(std::move(y)); },
-          py::doc("Appends Index at the end of the Array"))
+          py::doc("Appends a Index at the end of the Array"))
       .def(
           "pop",
           [](ArrayOfIndex& x) -> Index {
@@ -105,7 +104,7 @@ be accessed without copy using element-wise access operators.
             x.pop_back();
             return copy;
           },
-          py::doc("Pops Index from the Array"))
+          py::doc("Pops a Index from the Array"))
       .doc() =
       "The Arts ArrayOfIndex class\n"
       "\n"
@@ -129,28 +128,12 @@ be accessed without copy using element-wise access operators.
   py::implicitly_convertible<std::vector<std::vector<Index>>,
                              ArrayOfArrayOfIndex>();
 
-  py::class_<Numeric_>(m, "Numeric", py::buffer_protocol())
+  py::class_<Numeric_>(m, "Numeric")
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Numeric>())
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
-      .def_buffer([](Numeric_& x) -> py::buffer_info {
-        return py::buffer_info(&x.val,
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               0,
-                               {},
-                               {});
-      })
-      .def_property("value",
-                    py::cpp_function(
-                        [](Numeric_& x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](Numeric_& x, Numeric_& y) { x = y; })
       .def(+py::self)
       .def(-py::self)
       .def(py::self != py::self)
@@ -220,28 +203,12 @@ This is a wrapper class for Arts Numeric.
 You can get copies and set the value by the \"val\" property
 )--";
 
-  py::class_<Index_>(m, "Index", py::buffer_protocol())
+  py::class_<Index_>(m, "Index")
       .def(py::init<>())
       .def(py::init<Index>())
       .def(py::init<Numeric>())
       .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
-      .def_buffer([](Index_& x) -> py::buffer_info {
-        return py::buffer_info(&x.val,
-                               sizeof(Index),
-                               py::format_descriptor<Index>::format(),
-                               0,
-                               {},
-                               {});
-      })
-      .def_property("value",
-                    py::cpp_function(
-                        [](Index_& x) {
-                          py::object np = py::module_::import("numpy");
-                          return np.attr("array")(x, py::arg("copy") = false);
-                        },
-                        py::keep_alive<0, 1>()),
-                    [](Index_& x, Index_& y) { x = y; })
       .def(+py::self)
       .def(-py::self)
       .def(py::self != py::self)
