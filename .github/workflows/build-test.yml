@@ -15,7 +15,7 @@ jobs:
           ubuntu-gcc-8,
           ubuntu-gcc-9,
           ubuntu-gcc-10,
-          ubuntu-gcc-10-debug,
+          ubuntu-clang-13-debug,
           ubuntu-gcc-11,
           ubuntu-clang-13-nofortran,
           macos-gcc-11,
@@ -67,15 +67,15 @@ jobs:
             libcxx: "no"
             buildtype: "Release"
 
-          - name: ubuntu-gcc-10-debug
+          - name: ubuntu-clang-13-debug
             os: ubuntu-20.04
-            compiler: gcc
-            version: "10"
+            compiler: clang
+            version: "13"
             doc: "no"
             arts: "yes"
-            fortran: "yes"
+            fortran: "no"
             check: "yes"
-            libcxx: "no"
+            libcxx: "yes"
             buildtype: "RelWithDebInfo"
 
           - name: ubuntu-gcc-11
