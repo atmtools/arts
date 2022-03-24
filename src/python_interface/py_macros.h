@@ -337,7 +337,6 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
       .PythonInterfaceNumpyOperatorSelf(Type, __complex__)           \
       .PythonInterfaceNumpyOperatorSelf(Type, __str__)               \
       .PythonInterfaceNumpyOperatorSelf(Type, __repr__)              \
-      .PythonInterfaceNumpyOperatorSelf(Type, __array__)             \
       .PythonInterfaceNumpyOperator(Type, __matmul__)                \
       .PythonInterfaceNumpyOperator(Type, __rmatmul__)               \
       .PythonInterfaceNumpyOperator(Type, __mul__)                   \
@@ -363,7 +362,6 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
       .PythonInterfaceNumpyReadProperty(Type, shape)                 \
       .PythonInterfaceNumpyReadProperty(Type, size)                  \
       .PythonInterfaceNumpyReadProperty(Type, ndim)                  \
-      .PythonInterfaceNumpyReadProperty(Type, data)                  \
       .PythonInterfaceNumpyOperator(Type, __getitem__)               \
       .def(                                                          \
           "__setitem__",                                             \
