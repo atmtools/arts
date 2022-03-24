@@ -19,6 +19,7 @@ jobs:
           ubuntu-gcc-11,
           ubuntu-clang-13-nofortran,
           macos-gcc-11,
+          macos-clang-latest,
         ]
 
         include:
@@ -110,6 +111,17 @@ jobs:
             libcxx: "no"
             buildtype: "Release"
 
+          - name: macos-clang-latest
+            os: macos-latest
+            compiler: clang
+            version: "13"
+            doc: "no"
+            arts: "yes"
+            fortran: "no"
+            check: "yes"
+            libcxx: "no"
+            buildtype: "Release"
+
     steps:
       - uses: actions/checkout@v1
         with:
@@ -172,6 +184,10 @@ jobs:
             else
               echo "USEFORTRAN=0" >> $GITHUB_ENV
             fi
+          elif [ "${{ matrix.compiler }}" = "clang" ]; then
+            brew install llvm@${{ matrix.version }}
+            echo "CC=/usr/local/opt/llvm/bin/clang" >> $GITHUB_ENV
+            echo "CXX=/usr/local/opt/llvm/bin/clang++" >> $GITHUB_ENV
           else
             exit 1
           fi
