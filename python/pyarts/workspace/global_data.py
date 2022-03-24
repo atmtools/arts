@@ -1,4 +1,3 @@
-import numbers
 import numpy as np
 import scipy as sp
 import pyarts.pyarts_cpp as cxx
@@ -40,7 +39,7 @@ def convert(group, value):
     This is intended to be used purely by a function parsing old controlfiles
     """
     
-    if isinstance(group, numbers.Integral):
+    if isinstance(group, int):
         data = cxx.get_wsv_group_names()
         groupname = data[group]
     else:
