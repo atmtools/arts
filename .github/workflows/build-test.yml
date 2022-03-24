@@ -41,6 +41,7 @@ jobs:
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "8"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
@@ -52,6 +53,7 @@ jobs:
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "9"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
@@ -63,6 +65,7 @@ jobs:
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "10"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
@@ -73,7 +76,8 @@ jobs:
             version: "13"
             doc: "no"
             arts: "yes"
-            fortran: "no"
+            fortran: "yes"
+            fortran-version: "11"
             check: "yes"
             libcxx: "yes"
             buildtype: "RelWithDebInfo"
@@ -85,6 +89,7 @@ jobs:
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "11"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
@@ -107,6 +112,7 @@ jobs:
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "11"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
@@ -144,8 +150,8 @@ jobs:
           fi
 
           if [ "${{ matrix.fortran }}" = "yes" ]; then
-            sudo apt-get install -y gfortran-${{ matrix.version }}
-            echo "FC=gfortran-${{ matrix.version }}" >> $GITHUB_ENV
+            sudo apt-get install -y gfortran-${{ matrix.fortran-version }}
+            echo "FC=gfortran-${{ matrix.fortran-version }}" >> $GITHUB_ENV
             echo "USEFORTRAN=1" >> $GITHUB_ENV
           else
             echo "USEFORTRAN=0" >> $GITHUB_ENV
@@ -178,18 +184,22 @@ jobs:
             brew install gcc@${{ matrix.version }}
             echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
             echo "CXX=g++-${{ matrix.version }}" >> $GITHUB_ENV
-            if [ "${{ matrix.fortran }}" = "yes" ]; then
-              echo "FC=gfortran-${{ matrix.version }}" >> $GITHUB_ENV
-              echo "USEFORTRAN=1" >> $GITHUB_ENV
-            else
-              echo "USEFORTRAN=0" >> $GITHUB_ENV
-            fi
           elif [ "${{ matrix.compiler }}" = "clang" ]; then
             brew install llvm@${{ matrix.version }}
             echo "CC=/usr/local/opt/llvm/bin/clang" >> $GITHUB_ENV
             echo "CXX=/usr/local/opt/llvm/bin/clang++" >> $GITHUB_ENV
+            if [ "${{ matrix.fortran }}" = "yes" ]; then
+              brew install gcc@${{ matrix.fortran-version }}
+            fi
           else
             exit 1
+          fi
+
+          if [ "${{ matrix.fortran }}" = "yes" ]; then
+            echo "FC=gfortran-${{ matrix.fortran-version }}" >> $GITHUB_ENV
+            echo "USEFORTRAN=1" >> $GITHUB_ENV
+          else
+            echo "USEFORTRAN=0" >> $GITHUB_ENV
           fi
 
       - name: Configure (Linux / macOS)
