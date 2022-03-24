@@ -81,7 +81,6 @@ arts_test_run_ctlfile(fast artscomponents/lineshapes/TestLorentzLM.arts)
 arts_test_run_ctlfile(fast artscomponents/lineshapes/TestVoigt.arts)
 arts_test_run_ctlfile(fast artscomponents/lineshapes/TestVoigtLM.arts)
 arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTP-VP.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestSDVP.arts)
 arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTP.arts)
 arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTPLM.arts)
 
