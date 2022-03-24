@@ -25,7 +25,6 @@
  */
 
 #include "species_tags.h"
-#include "global_data.h"
 #include "physics_funcs.h"
 #include "quantum_numbers.h"
 #include "rte.h"

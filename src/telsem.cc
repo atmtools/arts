@@ -30,9 +30,9 @@
 #include "check_input.h"
 #include "geodetic.h"
 
-extern Numeric EARTH_RADIUS;
-extern Numeric DEG2RAD;
-extern Numeric PI;
+extern const Numeric EARTH_RADIUS;
+extern const Numeric DEG2RAD;
+extern const Numeric PI;
 
 ////////////////////////////////////////////////////////////////////////////////
 // TelsemAtlas Class

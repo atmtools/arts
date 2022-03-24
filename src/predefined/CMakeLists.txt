@@ -3,4 +3,7 @@ add_library(predef STATIC
     CKDMT350.cc
 )
 
+if (ENABLE_PCH)
+    target_precompile_headers(predef PRIVATE <pch_matpack.h>)
+endif()
 target_link_libraries(predef PUBLIC matpack)

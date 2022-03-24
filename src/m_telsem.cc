@@ -30,8 +30,8 @@
 #include "rte.h"
 #include "telsem.h"
 
-extern Numeric EARTH_RADIUS;
-extern Numeric DEG2RAD;
+extern const Numeric EARTH_RADIUS;
+extern const Numeric DEG2RAD;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void telsemStandalone(Matrix &emis,
