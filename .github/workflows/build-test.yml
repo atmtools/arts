@@ -19,7 +19,7 @@ jobs:
           ubuntu-gcc-11,
           ubuntu-clang-13-nofortran,
           macos-gcc-11,
-          macos-clang-latest,
+          macos-clang-13,
         ]
 
         include:
@@ -117,7 +117,7 @@ jobs:
             libcxx: "no"
             buildtype: "Release"
 
-          - name: macos-clang-latest
+          - name: macos-clang-13
             os: macos-latest
             compiler: clang
             version: "13"
@@ -186,8 +186,8 @@ jobs:
             echo "CXX=g++-${{ matrix.version }}" >> $GITHUB_ENV
           elif [ "${{ matrix.compiler }}" = "clang" ]; then
             brew install llvm@${{ matrix.version }}
-            echo "CC=/usr/local/opt/llvm/bin/clang" >> $GITHUB_ENV
-            echo "CXX=/usr/local/opt/llvm/bin/clang++" >> $GITHUB_ENV
+            echo "CC=/usr/local/opt/llvm@${{ matrix.version }}/bin/clang" >> $GITHUB_ENV
+            echo "CXX=/usr/local/opt/llvm@${{ matrix.version }}/bin/clang++" >> $GITHUB_ENV
             if [ "${{ matrix.fortran }}" = "yes" ]; then
               brew install gcc@${{ matrix.fortran-version }}
             fi
