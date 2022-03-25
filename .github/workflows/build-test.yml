@@ -15,22 +15,23 @@ jobs:
           ubuntu-gcc-8,
           ubuntu-gcc-9,
           ubuntu-gcc-10,
-          ubuntu-gcc-10-debug,
+          ubuntu-clang-13-debug,
           ubuntu-gcc-11,
-          ubuntu-clang-12-nofortran,
-          macos-gcc-10,
+          ubuntu-clang-13-nofortran,
+          macos-gcc-11,
+          macos-clang-13,
         ]
 
         include:
           - name: ubuntu-doc
             os: ubuntu-20.04
-            compiler: gcc
-            version: "9"
+            compiler: clang
+            version: "13"
             doc: "yes"
             arts: "no"
             fortran: "no"
             check: "no"
-            libcxx: "no"
+            libcxx: "yes"
             buildtype: "Release"
 
           - name: ubuntu-gcc-8
@@ -40,6 +41,7 @@ jobs:
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "8"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
@@ -51,6 +53,7 @@ jobs:
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "9"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
@@ -62,19 +65,21 @@ jobs:
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "10"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
 
-          - name: ubuntu-gcc-10-debug
+          - name: ubuntu-clang-13-debug
             os: ubuntu-20.04
-            compiler: gcc
-            version: "10"
+            compiler: clang
+            version: "13"
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "11"
             check: "yes"
-            libcxx: "no"
+            libcxx: "yes"
             buildtype: "RelWithDebInfo"
 
           - name: ubuntu-gcc-11
@@ -84,14 +89,15 @@ jobs:
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "11"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
 
-          - name: ubuntu-clang-12-nofortran
+          - name: ubuntu-clang-13-nofortran
             os: ubuntu-20.04
             compiler: clang
-            version: "12"
+            version: "13"
             doc: "no"
             arts: "yes"
             fortran: "no"
@@ -99,13 +105,25 @@ jobs:
             libcxx: "yes"
             buildtype: "Release"
 
-          - name: macos-gcc-10
+          - name: macos-gcc-11
             os: macos-latest
             compiler: gcc
-            version: "10"
+            version: "11"
             doc: "no"
             arts: "yes"
             fortran: "yes"
+            fortran-version: "11"
+            check: "yes"
+            libcxx: "no"
+            buildtype: "Release"
+
+          - name: macos-clang-13
+            os: macos-latest
+            compiler: clang
+            version: "13"
+            doc: "no"
+            arts: "yes"
+            fortran: "no"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
@@ -118,9 +136,9 @@ jobs:
       - name: Setup (Linux)
         if: runner.os == 'Linux'
         run: |
-          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "12" ]; then
+          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "13" ]; then
              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main"
+             sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-13 main"
           fi
 
           sudo apt-get update
@@ -132,8 +150,8 @@ jobs:
           fi
 
           if [ "${{ matrix.fortran }}" = "yes" ]; then
-            sudo apt-get install -y gfortran-${{ matrix.version }}
-            echo "FC=gfortran-${{ matrix.version }}" >> $GITHUB_ENV
+            sudo apt-get install -y gfortran-${{ matrix.fortran-version }}
+            echo "FC=gfortran-${{ matrix.fortran-version }}" >> $GITHUB_ENV
             echo "USEFORTRAN=1" >> $GITHUB_ENV
           else
             echo "USEFORTRAN=0" >> $GITHUB_ENV
@@ -166,14 +184,22 @@ jobs:
             brew install gcc@${{ matrix.version }}
             echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
             echo "CXX=g++-${{ matrix.version }}" >> $GITHUB_ENV
+          elif [ "${{ matrix.compiler }}" = "clang" ]; then
+            brew install llvm@${{ matrix.version }}
+            echo "CC=/usr/local/opt/llvm@${{ matrix.version }}/bin/clang" >> $GITHUB_ENV
+            echo "CXX=/usr/local/opt/llvm@${{ matrix.version }}/bin/clang++" >> $GITHUB_ENV
             if [ "${{ matrix.fortran }}" = "yes" ]; then
-              echo "FC=gfortran-${{ matrix.version }}" >> $GITHUB_ENV
-              echo "USEFORTRAN=1" >> $GITHUB_ENV
-            else
-              echo "USEFORTRAN=0" >> $GITHUB_ENV
+              brew install gcc@${{ matrix.fortran-version }}
             fi
           else
             exit 1
+          fi
+
+          if [ "${{ matrix.fortran }}" = "yes" ]; then
+            echo "FC=gfortran-${{ matrix.fortran-version }}" >> $GITHUB_ENV
+            echo "USEFORTRAN=1" >> $GITHUB_ENV
+          else
+            echo "USEFORTRAN=0" >> $GITHUB_ENV
           fi
 
       - name: Configure (Linux / macOS)
@@ -204,8 +230,8 @@ jobs:
           cd cmake-build
           make check
 
-      - name: Check Python (Linux)
-        if: runner.os == 'Linux' && matrix.check == 'yes'
+      - name: Check Python (Linux / macOS)
+        if: matrix.check == 'yes'
         run: |
           cd cmake-build
           make check-python
