@@ -25,13 +25,13 @@ jobs:
         include:
           - name: ubuntu-doc
             os: ubuntu-20.04
-            compiler: gcc
-            version: "9"
+            compiler: clang
+            version: "13"
             doc: "yes"
             arts: "no"
             fortran: "no"
             check: "no"
-            libcxx: "no"
+            libcxx: "yes"
             buildtype: "Release"
 
           - name: ubuntu-gcc-8
