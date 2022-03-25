@@ -233,7 +233,6 @@ jobs:
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
         run: |
           cd cmake-build
-          make pyarts_agendatest
           make check
 
       - name: Check Python (Linux / macOS)
