@@ -123,25 +123,20 @@ add_library(fastwigxj STATIC
     src/fortran_wrap.c
 )
 
-target_link_libraries(fastwigxj wigxjpf)
-
 target_include_directories(fastwigxj
     PUBLIC 
         inc/
-        ../wigxjpf/inc/
     PRIVATE
         cfg/
         src/
-        ../wigxjpf/cfg/
-        ../wigxjpf/src/
         ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR}/../wigxjpf/
 )
+
+target_link_libraries(fastwigxj wigxjpf)
     
 set_target_properties(fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS} -march=native")
 
 target_compile_options(fastwigxj PRIVATE -Wno-shadow)
-
 
 add_library(hashing_fastwigxj STATIC
             src/unique_js.cc

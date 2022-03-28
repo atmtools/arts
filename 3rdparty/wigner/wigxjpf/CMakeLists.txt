@@ -77,15 +77,22 @@ if (HAS_UINT128)
 endif()
 
 add_library(wigxjpf STATIC
-            src/prime_factor.c
-            src/calc.c
-            src/trivial_zero.c
-            src/c_wrap.c
-            src/fortran_wrap.c
-            src/wigxjpf_error.c
-            )
+    src/prime_factor.c
+    src/calc.c
+    src/trivial_zero.c
+    src/c_wrap.c
+    src/fortran_wrap.c
+    src/wigxjpf_error.c
+)
 
-target_include_directories(wigxjpf PUBLIC inc/ PRIVATE cfg/ ${CMAKE_CURRENT_BINARY_DIR} src/)
+target_include_directories(wigxjpf
+    PUBLIC
+        inc/
+    PRIVATE
+        cfg/
+        src/
+        ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 set_target_properties(wigxjpf PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS}")
 
