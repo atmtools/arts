@@ -1,10 +1,5 @@
 include(CheckCSourceCompiles)
 
-if(FASTWIGNER LESS 0)
-  message (SEND_ERROR "ERROR:  FASTWIGNER must be positive if active")
-  return()
-endif()
-
 check_c_source_compiles("
     #include <pthread.h>
     int main() {
@@ -168,6 +163,11 @@ add_executable(hash_fastwigxj src/hash_js.cc)
 target_link_libraries(hash_fastwigxj hashing_fastwigxj)
 
 set_target_properties(hash_fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS} -march=native")
+
+if(FASTWIGNER LESS 1)
+  message (SEND_ERROR "ERROR:  FASTWIGNER must be positive if active")
+  return()
+endif()
 
 add_custom_command(
     OUTPUT
