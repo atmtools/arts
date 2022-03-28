@@ -1,5 +1,3 @@
-find_program(LEGACY_MAKE make REQUIRED)
-
 set(WIGXJPF_CPP_ERROR 1)
 
 add_subdirectory(wigxjpf)
