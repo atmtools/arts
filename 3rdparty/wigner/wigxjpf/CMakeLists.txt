@@ -85,6 +85,16 @@ add_library(wigxjpf STATIC
     src/wigxjpf_error.c
 )
 
+if (WIGXJPF_CPP_ERROR)
+    add_library(wigxjpf_cpp_throw STATIC
+        src/wigxjpf_error.cc
+    )
+
+    target_link_libraries(wigxjpf PRIVATE wigxjpf_cpp_throw)
+
+    target_compile_definitions(wigxjpf PUBLIC -DCPP_WIGXJPF_ERROR_HANDLING)
+endif()
+
 target_include_directories(wigxjpf
     PUBLIC
         inc/

@@ -140,24 +140,57 @@ set_target_properties(fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS}
 
 target_compile_options(fastwigxj PRIVATE -Wno-shadow)
 
-add_library(hashing_fastwigxj STATIC
-            src/unique_js.cc
-            src/combine_js.cc
-            src/gen_header.cc)
 
-target_link_libraries(hashing_fastwigxj fastwigxj)
+add_library(hashing_fastwigxj STATIC
+    src/fastwigxj.c
+    src/canonicalise.c
+    src/fortran_wrap.c
+    src/unique_js.cc
+    src/combine_js.cc
+    src/gen_header.cc
+)
+
+target_include_directories(hashing_fastwigxj
+    PUBLIC
+        inc/
+        cfg/
+        src/
+        ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+target_link_libraries(hashing_fastwigxj wigxjpf)
 
 set_target_properties(hashing_fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS} -march=native")
 
+
 add_executable(hash_fastwigxj src/hash_js.cc)
 
-target_link_libraries(hash_fastwigxj hashing_fastwigxj fastwigxj)
+target_link_libraries(hash_fastwigxj hashing_fastwigxj)
 
 set_target_properties(hash_fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS} -march=native")
 
-add_custom_command(TARGET hash_fastwigxj POST_BUILD
-  COMMAND "hash_fastwigxj" 
-  ARGS "--max-E-3j=${FASTWIGNER}" "/dev/null" "./fasttable.3j"
-  COMMAND "hash_fastwigxj" 
-  ARGS "--max-E-6j=${FASTWIGNER}" "/dev/null" "./fasttable.6j"
-  WORKING_DIRECTORY "${ARTS_BINARY_DIR}/3rdparty/wigner/fastwigxj/")
+add_custom_command(
+    OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/fasttable.3j
+    COMMAND
+        hash_fastwigxj --max-E-3j=${FASTWIGNER} /dev/null ${CMAKE_CURRENT_BINARY_DIR}/fasttable.3j
+    DEPENDS
+        hash_fastwigxj
+)
+
+add_custom_command(
+    OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/fasttable.6j
+    COMMAND
+        hash_fastwigxj --max-E-6j=${FASTWIGNER} /dev/null ${CMAKE_CURRENT_BINARY_DIR}/fasttable.6j
+    DEPENDS
+        hash_fastwigxj
+)
+
+add_custom_target(fastwigxj_generate_tables
+    DEPENDS
+        ${CMAKE_CURRENT_BINARY_DIR}/fasttable.3j
+        ${CMAKE_CURRENT_BINARY_DIR}/fasttable.6j
+)
+
+add_dependencies(fastwigxj fastwigxj_generate_tables)

@@ -102,7 +102,7 @@ void wig_temp_free(void)
   wigxjpf_global_temp = NULL;
 }
 
-#if PYWIGXJPF_ERROR_HANDLING
+#if PYWIGXJPF_ERROR_HANDLING || CPP_WIGXJPF_ERROR_HANDLING
 /* This function is only called from the error handler, to allow reuse
  * of the temp array.
  */

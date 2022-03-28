@@ -42,6 +42,18 @@ void wigxjpf_error(void)
 }
 
 #else
+#if CPP_WIGXJPF_ERROR_HANDLING
+
+void cpp_wigxjpf_throw(void);
+
+void wigxjpf_error(void) {
+  /* Allow reuse of the temp array. */
+  wigxjpf_drop_temp();
+
+  cpp_wigxjpf_throw();
+}
+
+#else
 
 void wigxjpf_error(void)
 {
@@ -49,4 +61,5 @@ void wigxjpf_error(void)
   exit(1);
 }
 
-#endif/*PYWIGXJPF_ERROR_HANDLING*/
+#endif /*CPP_WIGXJPF_ERROR_HANDLING*/
+#endif /*PYWIGXJPF_ERROR_HANDLING*/

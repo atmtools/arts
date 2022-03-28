@@ -35,10 +35,12 @@ extern __thread jmp_buf _pywigxjpf_jmp_env;
     if (setjmp(_pywigxjpf_jmp_env))	\
       return x;				\
   } while (0)
-
-void wigxjpf_drop_temp(void);
 #else
 # define PYWIGXJPF_ERROR_SETUP(x) do { } while (0)
+#endif
+
+#if PYWIGXJPF_ERROR_HANDLING || CPP_WIGXJPF_ERROR_HANDLING
+void wigxjpf_drop_temp(void);
 #endif
 
 # define PYWIGXJPF_ERROR_SETUP_void  PYWIGXJPF_ERROR_SETUP()
