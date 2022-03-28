@@ -1,3 +1,5 @@
+include(CheckCSourceCompiles)
+
 if(FASTWIGNER LESS 0)
   message (SEND_ERROR "ERROR:  FASTWIGNER must be positive if active")
   return()
