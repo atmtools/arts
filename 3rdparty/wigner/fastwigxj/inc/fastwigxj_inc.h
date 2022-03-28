@@ -93,12 +93,13 @@ struct wigner369j_stats
   uint64_t  _dyn_trip; /* Do not include in sum of lookups. */
   uint64_t  _calc;
   uint64_t  _trivial0; /* Do not include in sum of lookups. */
+  uint64_t  _dyn_ovfl; /* Do not include in sum of lookups. */
   uint64_t  _9j_by_6j; /* Do not include in sum of lookups. */
   uint64_t  _dyn_table_reduce;
 };
 
 #define WIGNER369J_STATS_INIT \
-  { 0, 0, 0, 0, 0, 0, 0 }
+  { 0, 0, 0, 0, 0, 0, 0, 0 }
 
 union fastwigxj_double_uint64_t_type_pun
 {

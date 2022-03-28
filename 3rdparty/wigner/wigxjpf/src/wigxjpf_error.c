@@ -1,5 +1,5 @@
 
-/* Copyright 2015 Haakan T. Johansson */
+/* Copyright 2019 Haakan T. Johansson */
 
 /*  This file is part of WIGXJPF.
  *
@@ -18,17 +18,35 @@
  *  <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WIGXJPF_C_WRAP_H__
-#define __WIGXJPF_C_WRAP_H__
+#include "wigxjpf_error.h"
 
-#include "wigxjpf_config.h"
+#include <stdlib.h>
+#include <stdio.h>
 
-#include "wigxjpf.h"
+#if PYWIGXJPF_ERROR_HANDLING
 
-#if WIGXJPF_HAVE_THREAD
-extern __thread struct wigxjpf_temp *wigxjpf_global_temp;
+__thread jmp_buf _pywigxjpf_jmp_env;
+
+void wigxjpf_error(void)
+{
+  /* Allow reuse of the temp array. */
+  wigxjpf_drop_temp();
+
+  fprintf(stderr,
+	  "\n"
+	  "pywigxjpf: Error detected! "
+	  "** Library misuse?  See documentation. **\n"
+	  "\n");
+
+  longjmp(_pywigxjpf_jmp_env, 1);
+}
+
 #else
-extern struct wigxjpf_temp *wigxjpf_global_temp;
-#endif
 
-#endif/*__WIGXJPF_C_WRAP_H__*/
+void wigxjpf_error(void)
+{
+  fprintf (stderr, "wigxjpf: Abort.\n");
+  exit(1);
+}
+
+#endif/*PYWIGXJPF_ERROR_HANDLING*/

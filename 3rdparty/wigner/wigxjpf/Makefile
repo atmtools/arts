@@ -1,13 +1,7 @@
 
 QUIET ?= @
 
-UNAME_S := $(shell uname -s)
-
-ifeq ($(UNAME_S),Darwin)
-    SO_EXT = dylib
-else
-    SO_EXT = so
-endif
+####################################################################
 
 all: lib/libwigxjpf.a bin/wigxjpf
 
@@ -17,19 +11,29 @@ fpsimple: lib/libfpsimplexj.a
 # ensure that linking with the static library uses the static without
 # ambiguity and thus avoid hunting library paths later.
 
+####################################################################
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+    SO_EXT = dylib
+else
+    SO_EXT = so
+endif
+
 shared: lib/libwigxjpf_shared.$(SO_EXT)
 
-AR = ar
-RLIB = ranlib
+####################################################################
 
 HEADERS = src/multi_word_int.h src/multi_word_int_dbl.h \
 	src/prime_factor.h src/calc.h src/calc_minmax.h src/calc_dbl.h \
+	src/wigxjpf_error.h \
 	inc/wigxjpf.h inc/wigxjpf_quadmath.h \
 	gen/wigxjpf_auto_config.h \
 	cfg/wigxjpf_config.h
 
 LIB_OBJS = prime_factor.o calc.o trivial_zero.o \
-	c_wrap.o fortran_wrap.o
+	c_wrap.o fortran_wrap.o wigxjpf_error.o
 
 LIB_OBJECTS = $(LIB_OBJS:%.o=obj/%.o)
 
@@ -41,19 +45,29 @@ FPSIMPLE_OBJS = fpsimple.o fpsimple_log.o fpsimple_precalc.o
 
 FPSIMPLE_OBJECTS = $(FPSIMPLE_OBJS:%.o=obj/%.o)
 
+####################################################################
+
+AR = ar
+RLIB = ranlib
+
 FCFLAGS += -O3 -I mod/
-CFLAGS += -O3 -fPIC -Wall -Wextra -Wconversion -Wcast-qual -g -I inc/ -I cfg/ -I gen/
+CFLAGS += -O3 -fPIC -g -I inc/ -I cfg/ -I gen/ \
+	-Wall -Wextra -Wconversion -Wcast-qual
 ARFLAGS = -cr
 
 LDLIBS += -lm
 
-# HAVE_QUADMATH := $(shell $(CC) -DTEST_FLOAT128=1 src/test_cc_dbl.c -lquadmath \
-# 	-o /dev/null 2> /dev/null && echo 1)
+####################################################################
+
+HAVE_QUADMATH := $(shell $(CC) -DTEST_FLOAT128=1 src/test_cc_dbl.c \
+	-lquadmath -o /dev/null 2> /dev/null && echo 1)
 
 ifeq ($(HAVE_QUADMATH),1)
 LDLIBS += -lquadmath
 lib/libwigxjpf.a: lib/libwigxjpf_quadmath.a
 endif
+
+####################################################################
 
 AUTO_CONFIG_TESTS = TEST_LONG_DOUBLE TEST_FLOAT128 \
 	TEST_THREAD TEST_UINT128
@@ -69,10 +83,13 @@ gen/wigxjpf_auto_config.h.%: src/test_cc_dbl.c Makefile
 	  > $@.run.out 2> $@.run.err && \
 	  grep define $@.run.out >> $@ || true
 
-gen/wigxjpf_auto_config.h: $(addprefix gen/wigxjpf_auto_config.h.,$(AUTO_CONFIG_TESTS))
+gen/wigxjpf_auto_config.h: \
+	  $(addprefix gen/wigxjpf_auto_config.h.,$(AUTO_CONFIG_TESTS))
 	@echo "  AUTO   $@"
 	$(QUIET)mkdir -p $(dir $@)
 	$(QUIET)cat $^ > $@
+
+####################################################################
 
 obj/%.o: src/%.c $(HEADERS)
 	@echo "   CC    $@"
@@ -93,6 +110,8 @@ obj/%.o: example/%.f $(HEADERS)
 	@echo "   FC    $@"
 	$(QUIET)mkdir -p $(dir $@)
 	$(QUIET)$(FC) $(FCFLAGS) -o $@ -c $<
+
+####################################################################
 
 lib/libwigxjpf.a: $(LIB_OBJECTS)
 	@echo "   AR    $@"
@@ -122,6 +141,8 @@ lib/libwigxjpf_shared.dylib: lib/libwigxjpf.a
 	$(QUIET)mkdir -p $(dir $@)
 	$(QUIET)$(CC) -dynamiclib -Wl,-force_load $< -o $@
 
+####################################################################
+
 bin/wigxjpf: obj/wigxjpf.o lib/libwigxjpf.a
 	@echo "  LINK   $@"
 	$(QUIET)mkdir -p $(dir $@)
@@ -144,43 +165,126 @@ bin/csimple: obj/csimple.o lib/libwigxjpf.a
 	$(QUIET)mkdir -p $(dir $@)
 	$(QUIET)$(CC) $(LDFLAGS) -o $@ $<  -Llib/ -lwigxjpf $(LDLIBS)
 
+bin/cfail: obj/cfail.o lib/libwigxjpf.a
+	@echo "  LINK   $@"
+	$(QUIET)mkdir -p $(dir $@)
+	$(QUIET)$(CC) $(LDFLAGS) -o $@ $<  -Llib/ -lwigxjpf $(LDLIBS)
+
 bin/cthreadedsimple: example/cthreadedsimple.c lib/libwigxjpf.a
 	@echo " CC+LINK $@"
 	$(QUIET)mkdir -p $(dir $@)
-	$(QUIET)$(CC) $(CFLAGS) -fopenmp $(LDFLAGS) -o $@ $< -Llib/ -lwigxjpf $(LDLIBS)
+	$(QUIET)$(CC) $(CFLAGS) -fopenmp $(LDFLAGS) -o $@ $< \
+	  -Llib/ -lwigxjpf $(LDLIBS)
 
 bin/ccsimple: obj/ccsimple.o lib/libwigxjpf.a
 	@echo "  LINK   $@"
 	$(QUIET)mkdir -p $(dir $@)
 	$(QUIET)$(CXX) $(LDFLAGS) -o $@ $<  -Llib/ -lwigxjpf $(LDLIBS)
 
+####################################################################
+
+pywigxjpf_ffi-%: lib/libwigxjpf.a
+	@echo "FFIBUILD $@"
+	$(QUIET)mkdir -p logs/
+	$(QUIET) ( cd pywigxjpf ; \
+	           $* pywigxjpf_ffi_builder.py ) > logs/$@.log || \
+	  ( echo "* Failure *" ; cat logs/$@.log ; exit 1 )
+
+pywigxjpf_ffi:  pywigxjpf_ffi-python
+pywigxjpf_ffi2: pywigxjpf_ffi-python2
+pywigxjpf_ffi3: pywigxjpf_ffi-python3
+
+####################################################################
+
 %simple.test: bin/%simple
 	@echo "  CHECK  $@"
-	$(QUIET)mkdir -p gen/
-	$(QUIET)./$< > gen/$*simple.out
-	$(QUIET)diff example/$*simple.good gen/$*simple.out
+	$(QUIET)mkdir -p logs/
+	$(QUIET)./$< > logs/$*simple.out
+	$(QUIET)diff example/$*simple.good logs/$*simple.out
 	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
 
-pysimple.test: example/pysimple.py shared
+%fail.test: bin/%fail
 	@echo "  CHECK  $@"
-	$(QUIET)mkdir -p gen/
-	$(QUIET)PYTHONPATH=pywigxjpf/ ./$< > gen/pysimple.out
-	$(QUIET)diff example/pysimple.good gen/pysimple.out
+	$(QUIET)mkdir -p logs/
+	$(QUIET)( for i in 0 1 2 3 4 5 6 7 8 ; do \
+	  echo "-- Test $$i --" ; \
+	  ./$< $$i 2>&1 || true ; done ) > logs/$*fail.out
+	$(QUIET)diff example/$*fail.expect logs/$*fail.out
 	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
+
+pysimple.test-%: example/pysimple.py pywigxjpf_ffi-%
+	@echo "  CHECK  $@"
+	$(QUIET)mkdir -p logs/
+	$(QUIET)PYTHONPATH=pywigxjpf $* ./$< > logs/pysimple$*.out
+	$(QUIET)diff -u example/pysimple.good logs/pysimple$*.out
+	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
+
+pyfail.test-%: example/pyfail.py pywigxjpf_ffi-%
+	@echo "  CHECK  $@"
+	$(QUIET)mkdir -p logs/
+	$(QUIET)( for i in 0 1 2 3 4 5 6 7 8 9 10 11 ; do \
+	  echo "-- Test $$i --" ; \
+	  PYTHONPATH=pywigxjpf $* ./$< $$i 2>&1 || true ; done ) \
+	  > logs/pyfail$*.out
+	$(QUIET)diff -u example/pyfail.expect logs/pyfail$*.out
+	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
+
+pysimple.test:  pysimple.test-python  pyfail.test-python 
+pysimple2.test: pysimple.test-python2 pyfail.test-python2
+pysimple3.test: pysimple.test-python3 pyfail.test-python3
+
+venv_pyinstall.setup-%: example/pysimple.py pywigxjpf_ffi-%
+	@echo "  SETUP  $@"
+	$(QUIET)mkdir -p logs/
+	$(QUIET) ( rm -rf vennv-$* > logs/$@.log 2> logs/$@.err.log ) && \
+	  ( virtualenv --python=$* vennv-$* >> logs/$@.log ) && \
+	  ( . vennv-$*/bin/activate ; pip --version ; pip list ; \
+	    pip install numpy ; pip list ; \
+	    pip install numba ; pip list ; \
+	    $* setup.py install ; \
+	    pip list ) >> logs/$@.log 2>> logs/$@.err.log || \
+	  ( echo "* Failure *" ; \
+	    cat logs/$@.log ; cat logs/$@.err.log ; exit 1 )
+
+venv_pysimple.test-%: example/pysimple.py venv_pyinstall.setup-%
+	@echo "  CHECK  $@"
+	$(QUIET)mkdir -p logs/
+	$(QUIET) . vennv-$*/bin/activate ; \
+	  $* example/pysimple.py > logs/venv_pysimple$*.out
+	$(QUIET). vennv-$*/bin/activate ; \
+	  ( for i in 0 1 2 3 4 5 6 7 8 9 10 11 ; do \
+	  echo "-- Test $$i --" ; \
+	  PYTHONPATH=pywigxjpf $* example/pyfail.py $$i 2>&1 || true ; done ) \
+	  > logs/venv_pyfail$*.out
+	$(QUIET) . vennv-$*/bin/activate ; \
+	  $* example/py_numba.py > logs/venv_py_numba$*.out
+	$(QUIET)diff -u example/pysimple.good logs/venv_pysimple$*.out
+	$(QUIET)diff -u example/pyfail.expect logs/venv_pyfail$*.out
+
+venv_pysimple.test: venv_pysimple.test-python
+venv_pysimple2.test: venv_pysimple.test-python2
+venv_pysimple3.test: venv_pysimple.test-python3
+
+# We cut away all exponents before comparison, in order to also
+# deal with systems that always emit three-digit exponents.
 
 evaltable.%.test: bin/wigxjpf
 	@echo "  CHECK  $@"
-	$(QUIET)mkdir -p gen/
+	$(QUIET)mkdir -p logs/
 	$(QUIET)MEMUSE=$* STATS=" " example/evaltable.sh | \
-	  sed -e "s/ //g" > gen/evaltable.$*.out
+	  sed -e "s/ //g" -e "s/\([eE][+-]\)0\+/\1/" > logs/evaltable.$*.out
 	$(QUIET)cat example/evaltable.$*.good | \
-	  sed -e "s/#.*//" -e "s/ //g" -e '/^$$/d' > gen/evaltable.$*.cmpgood
-	$(QUIET)diff gen/evaltable.$*.cmpgood gen/evaltable.$*.out
+	  sed -e "s/#.*//" -e "s/ //g" -e '/^$$/d' > logs/evaltable.$*.cmpgood
+	$(QUIET)diff logs/evaltable.$*.cmpgood logs/evaltable.$*.out
 	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
 
-test: evaltable.small.test csimple.test
+####################################################################
+
+test: evaltable.small.test csimple.test cfail.test
 test-large: evaltable.large.test
 test-huge: evaltable.huge.test
+
+####################################################################
 
 clean-test:
 	rm -f *.test

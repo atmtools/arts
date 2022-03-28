@@ -129,7 +129,9 @@ inline uint64_t wigner9j_canonicalise(const int *two_jv)
     j__g________c______ | j_____h________f___ | j________i________i;
 
 #ifndef WIGNER9J_NO_OVERFLOW_CHECK
-  /* Check for 2j overflowing the 7 bits available. */
+  /* Check for 2j overflowing the 7 bits available.
+   * (at least for values <= 2097151).
+   */
 
   int64_t j110110110_ =
     (0x7fll << 57) | (0x7fll << 50) |
@@ -146,7 +148,7 @@ inline uint64_t wigner9j_canonicalise(const int *two_jv)
   if (reg_to_xmm[0])
     {
       /* We would overflow while c14n. */
-      /* Return a special non-existent  key. */
+      /* Return a special non-existent key. */
       return (uint64_t) -4;
       exit(1);
     }

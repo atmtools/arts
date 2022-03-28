@@ -83,6 +83,9 @@ extern int    wigxjpf_max_prime_decomp;
 extern void *wigxjpf_prime_factors_base;
 extern void *wigxjpf_prime_factors_1;
 extern void *wigxjpf_prime_factors_2;
+#if WIGXJPF_IMPL_DOUBLE_FACTORIAL
+extern void *wigxjpf_prime_factors_3;
+#endif
 
 #define PRIME_FACTOR(x)							\
   ((struct prime_exponents*) (((char *) wigxjpf_prime_factors_1) +	\
@@ -91,6 +94,12 @@ extern void *wigxjpf_prime_factors_2;
 #define FACTORIAL_PRIME_FACTOR(x)					\
   ((struct prime_exponents*) (((char *) wigxjpf_prime_factors_2) +	\
 			      (size_t) (x) * wigxjpf_prime_fact_stride))
+
+#if WIGXJPF_IMPL_DOUBLE_FACTORIAL
+#define DOUBLE_FACTORIAL_PRIME_FACTOR(x)				\
+  ((struct prime_exponents*) (((char *) wigxjpf_prime_factors_3) +	\
+			      (size_t) (x) * wigxjpf_prime_fact_stride))
+#endif
 
 #define PRIME_FACTOR_UPDOWN(x, type, cast_type, direction_op) do {	\
     x = ((type *) (((cast_type *) x) direction_op			\
