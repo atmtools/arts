@@ -35,7 +35,6 @@ endif()
 
 # User options (auto-complete and cmake gui works better like this)
 include(CMakeDependentOption)
-option (ENABLE_ALLPATHS "Turn off pathing guards" OFF)
 option (ENABLE_CCACHE "Turn on CCACHE" ON)
 option (ENABLE_CXX20 "Turn on C++20 (experimental)" OFF)
 option (ENABLE_FORTRAN "Turn on Fortran code" OFF)
@@ -43,6 +42,7 @@ option (ENABLE_GUI "Turn on Debug GUI" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
+option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
 option (NO_DOCSERVER "Turn off the document server" OFF)
 cmake_dependent_option(
@@ -55,7 +55,7 @@ cmake_dependent_option(
     NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
 
-if (NOT ENABLE_ALLPATHS)
+if (IGNORE_CONDA_PATH)
   # Avoid possible linker incompatibilities for
   # libstdc++ and libgomp on Linux if anaconda is installed
   find_program(CONDA_PROG NAMES conda)
