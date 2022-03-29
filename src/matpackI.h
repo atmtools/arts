@@ -95,6 +95,7 @@
 #ifndef matpackI_h
 #define matpackI_h
 
+#include <algorithm>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -312,7 +313,7 @@ class Range {
   friend class ConstTensor7View;
   friend class Tensor7View;
   friend class Tensor7;
-  friend class Sparse;
+  friend struct Sparse;
   friend class ConstComplexVectorView;
   friend class ComplexVectorView;
   friend class ComplexVector;
@@ -358,6 +359,19 @@ class Range {
   Index mextent;
   /** The stride. Can be positive or negative. */
   Index mstride;
+};
+
+//! Helper shape class
+template <size_t N>
+struct Shape {
+  std::array<Index, N> data;
+  bool operator==(const Shape& other) {return data == other.data;}
+  bool operator!=(const Shape& other) {return data not_eq other.data;}
+  friend std::ostream& operator<<(std::ostream& os, const Shape& shape) {
+    os << shape.data[0];
+    for (size_t i = 1; i < N; i++) os << 'x' << shape.data[i];
+    return os;
+  }
 };
 
 /** The iterator class for sub vectors. This takes into account the
@@ -514,6 +528,9 @@ class ConstVectorView {
   
   /*! See nelem() */
   Index size() const ARTS_NOEXCEPT;
+
+  /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
+  Shape<1> shape() const {return {nelem()};}
 
   /** The sum of all elements of a Vector. */
   Numeric sum() const ARTS_NOEXCEPT;
@@ -996,6 +1013,11 @@ class Vector : public VectorView {
   /** Destructor for Vector. This is important, since Vector uses new to
     allocate storage. */
   virtual ~Vector();
+
+  template <class F>
+  void transform_elementwise(F&& func) {
+    std::transform(mdata, mdata+size(), mdata, func);
+  }
 };
 
 // Declare class Matrix:
@@ -1025,6 +1047,9 @@ class ConstMatrixView {
   bool empty() const ARTS_NOEXCEPT;
   Index nrows() const ARTS_NOEXCEPT;
   Index ncols() const ARTS_NOEXCEPT;
+
+  /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
+  Shape<2> shape() const {return {nrows(), ncols()};}
 
   // Const index operators:
   /** Plain const index operator. */
@@ -1282,6 +1307,11 @@ class Matrix : public MatrixView {
   }
 
   Numeric* get_raw_data() ARTS_NOEXCEPT { return mdata; }
+
+  template <class F>
+  void transform_elementwise(F&& func) {
+    std::transform(mdata, mdata+size(), mdata, func);
+  }
 };
 
 // Function declarations:

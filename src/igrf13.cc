@@ -285,6 +285,13 @@ MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vect
   const Index nz = z_field.npages();
   const Index nlat = z_field.nrows();
   const Index nlon = z_field.ncols();
+
+  // Constant times
+  const Time y2020("2020-01-01 00:00:00");
+  const Time y2015("2015-01-01 00:00:00");
+  const Time y2010("2010-01-01 00:00:00");
+  const Time y2005("2005-01-01 00:00:00");
+  const Time y2000("2000-01-01 00:00:00");
   
   // Compute vector
   Vector r(nlon * nz);
@@ -293,12 +300,12 @@ MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vect
   MagneticField out(nz, nlat, nlon);  // Inits to zeroes
   
   // Select the correct time
-  if (const Time y2020("2020-01-01 00:00:00"); time >= y2020) {
+  if (time >= y2020) {
     const Matrix g(matrix(g2020));
     const Matrix h(matrix(h2020));
     
     compute_impl(out, r, g, h, z_field, lat_grid, lon_grid, ell, 1.0);
-  } else if (const Time y2015("2020-01-01 00:00:00"); time >= y2015) {
+  } else if (time >= y2015) {
     const Numeric scale = (time.Seconds() - y2015.Seconds()) / (y2020.Seconds() - y2015.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
@@ -309,7 +316,7 @@ MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vect
     const Matrix g1(matrix(g2015));
     const Matrix h1(matrix(h2015));
     compute_impl(out, r, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
-  } else if (const Time y2010("2020-01-01 00:00:00"); time >= y2010) {
+  } else if (time >= y2010) {
     const Numeric scale = (time.Seconds() - y2010.Seconds()) / (y2015.Seconds() - y2010.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
@@ -320,7 +327,7 @@ MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vect
     const Matrix g1(matrix(g2010));
     const Matrix h1(matrix(h2010));
     compute_impl(out, r, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
-  } else if (const Time y2005("2020-01-01 00:00:00"); time >= y2005) {
+  } else if (time >= y2005) {
     const Numeric scale = (time.Seconds() - y2005.Seconds()) / (y2010.Seconds() - y2005.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
@@ -331,7 +338,7 @@ MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vect
     const Matrix g1(matrix(g2005));
     const Matrix h1(matrix(h2005));
     compute_impl(out, r, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
-  } else if (const Time y2000("2020-01-01 00:00:00"); time >= y2000) {
+  } else if (time >= y2000) {
     const Numeric scale = (time.Seconds() - y2000.Seconds()) / (y2005.Seconds() - y2000.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     

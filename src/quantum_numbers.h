@@ -1001,7 +1001,7 @@ struct GlobalState {
 
   explicit GlobalState(std::string_view s, Index v = version);
 
-  [[nodiscard]] const Species::IsotopeRecord& Isotopologue() const noexcept;
+  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept;
   [[nodiscard]] Species::Species Species() const noexcept;
 
   friend std::ostream& operator<<(std::ostream& os, const GlobalState& gs);

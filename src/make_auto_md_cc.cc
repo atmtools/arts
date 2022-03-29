@@ -530,6 +530,12 @@ int main() {
           ofs << "var = " << it << "();";
 
         ofs << " }\n\n";
+
+        if (it not_eq "Agenda" and it not_eq "ArrayOfAgenda") {
+          ofs << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
+              << "void " << it << "Set(" << it << "& out, const " << it
+              << "& value, const Verbosity&) { out = value; }\n\n";
+        }
       }
     }
   } catch (const std::runtime_error& x) {

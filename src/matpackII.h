@@ -64,8 +64,7 @@
 
 */
 
-class Sparse {
- public:
+struct Sparse {
   // Constructors:
   Sparse();
   Sparse(Index r, Index c);
@@ -142,8 +141,7 @@ class Sparse {
   friend void sub(Sparse& A, const Sparse& B, const Sparse& C);
   friend void transpose(Sparse& A, const Sparse& B);
   friend void id_mat(Sparse& A);
-
- private:
+  
   //! The actual matrix.
   Eigen::SparseMatrix<Numeric, Eigen::RowMajor> matrix;
 };

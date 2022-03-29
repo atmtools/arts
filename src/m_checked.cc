@@ -34,6 +34,7 @@
 
 #include "arts.h"
 #include "auto_md.h"
+#include "check_input.h"
 #include "cloudbox.h"
 #include "matpackI.h"
 
@@ -49,7 +50,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
                                  const Verbosity&) {
   bool needs_continua = false;
   bool needs_cia = false;
-  bool needs_hxsec = false;
+  // bool needs_hxsec = false;
 
   for (Index sp = 0; sp < abs_species.nelem(); sp++) {
     for (Index tgs = 0; tgs < abs_species[sp].nelem(); tgs++) {
@@ -71,7 +72,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
         case Species::TagType::Particles:
           break;
         case Species::TagType::HitranXsec:
-          needs_hxsec = true;
+          // needs_hxsec = true;
           break;
         default:
           ARTS_USER_ERROR ("Unknown species type: ", abs_species[sp][tgs].Type())
@@ -777,9 +778,8 @@ void lbl_checkedCalc(Index& lbl_checked,
     if (not specs.nelem()) {
       if (not lines.nelem()) {
         continue;
-      } else {
-        ARTS_USER_ERROR ( "Lines for non-existent species discovered!\n");
       }
+      ARTS_USER_ERROR ( "Lines for non-existent species discovered!\n");
     }
     
     const bool any_zeeman = std::any_of(specs.cbegin(), specs.cend(), [](auto& x){return x.Type() == Species::TagType::Zeeman;});

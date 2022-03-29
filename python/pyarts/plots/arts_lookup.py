@@ -25,19 +25,19 @@ def _calc_lookup_species_count(lookup):
 
     Usually one, except for the nonlinear species.
     """
-    nlsspecies = [int(s) for s in lookup.nonlinspecs.data]
-    speciescount = np.ones_like(np.array(lookup.specs, dtype=object),
-                                dtype=int)
+    nlsspecies = np.array(lookup.non_linear_species)
+    speciescount = np.ones(shape=(len(lookup.species)), dtype=int)
+    
     if len(nlsspecies) != 0:
-        speciescount[nlsspecies] = lookup.nls_pert.data.size
+        speciescount[nlsspecies] = lookup.nls_pert.value.size
     return speciescount
 
 
 def _get_lookup_species_index(lookup, species, vmrpert):
     """Get index of given species in lookup table."""
     ret = 0
-    spindex = lookup.specs.data.index(species)
-    nlsspecies = lookup.nonlinspecs.data
+    spindex = list(lookup.species).index(species)
+    nlsspecies = lookup.non_linear_species.value
     speciescount = _calc_lookup_species_count(lookup)
     if nlsspecies is not None and spindex in nlsspecies:
         if vmrpert >= speciescount[spindex]:
@@ -76,7 +76,7 @@ def _add_xsec_legend(lookup, ipressures, ax=None):
     if ax is None:
         ax = plt.gca()
 
-    pgrid = lookup.p_grid.data
+    pgrid = lookup.p_grid.value
     colors = [plt.cm.viridis(i) for i in np.linspace(0, 1, len(ipressures))]
     handles = [
         Line2D([], [], color=colors[i], label=f'{pgrid[ip]/100.:8.3f} hPa')
@@ -95,7 +95,7 @@ def _add_xsec_legend(lookup, ipressures, ax=None):
 def _setup_lookup_figure(lookup, cols=3, species=None):
     """Create the figure and axes objects for the lookup table plot."""
     if species is None:
-        species = lookup.specs
+        species = lookup.species
     rows = int(np.ceil(len(species) / cols))
     fig, ax = plt.subplots(rows + 1, cols, figsize=(4 * cols, (rows + 1) * 2))
     fig.tight_layout()
@@ -126,7 +126,7 @@ def plot_lookup_xsec(lookup,
 
     ax.set_yscale('log')
     if species is None:
-        species = lookup.specs.data
+        species = lookup.species.value
 
     for tag in species:
         ax.set_prop_cycle(
@@ -134,7 +134,7 @@ def plot_lookup_xsec(lookup,
                 plt.cm.viridis(i) for i in np.linspace(0, 1, len(ipressures))
             ]))
         for pi in ipressures:
-            xsec = lookup.xsec.data[
+            xsec = lookup.xsec.value[
                 tpert,
                 _get_lookup_species_index(lookup, tag, vmrpert), :, pi]
             ax.plot(lookup.f_grid, xsec, label=f'{pi/100.:8.3f} hPa')
@@ -143,7 +143,7 @@ def plot_lookup_xsec(lookup,
         ax.legend(fontsize='xx-small', frameon=False)
     else:
         ax.set_title(',\n'.join(
-            re.sub(r'(-\*)+$', '', str(s.as_string)) for s in species[0]),
+            re.sub(r'(-\*)+$', '', str(s)) for s in species[0]),
                      y=1. - len(species[0]) * 0.05,
                      fontsize='xx-small')
 
@@ -186,25 +186,25 @@ def plot_lookup_opacity(lookup,
 
     ax.set_yscale('log')
     if species is None:
-        species = lookup.specs
+        species = lookup.species
 
     for tag in species:
-        ax.plot(lookup.f_grid.data,
+        ax.plot(lookup.f_grid.value,
                 opacity[_get_lookup_species_index(lookup, tag, vmrpert), :],
-                label=',\n'.join([str(t.as_string) for t in tag]))
+                label=',\n'.join([str(t) for t in tag]))
     if oneline:
-        ax.plot(lookup.f_grid.data,
-                np.ones_like(lookup.f_grid.data),
+        ax.plot(lookup.f_grid.value,
+                np.ones_like(lookup.f_grid.value),
                 linewidth=1,
                 linestyle='--',
                 color='k')
     if total:
-        if lookup.nonlinspecs is not None:
+        if lookup.non_linear_species is not None:
             speciescount = _calc_lookup_species_count(lookup)
             spindex = np.cumsum(speciescount)
             spindex[1:] = spindex[0:-1]
             spindex[0] = 0
-            spindex[[int(s) for s in lookup.nonlinspecs]] += vmrpert
+            spindex[[int(s) for s in lookup.non_linear_species]] += vmrpert
             o = opacity[spindex]
         else:
             o = opacity
@@ -214,7 +214,7 @@ def plot_lookup_opacity(lookup,
         ax.legend(fontsize='xx-small', frameon=False)
     else:
         ax.set_title(',\n'.join(
-            re.sub(r'(-\*)+$', '', str(s.as_string)) for s in species[0]),
+            re.sub(r'(-\*)+$', '', str(s)) for s in species[0]),
                      y=1. - len(species[0]) * 0.05,
                      fontsize='xx-small')
 
@@ -251,28 +251,28 @@ def calc_opacity_from_lookup(lookup,
         ndarray: Opacity per species in lookup table.
     """
     speciescount = _calc_lookup_species_count(lookup)
-    vmrs = (np.repeat(lookup.vmrs.data, speciescount, axis=0)
-            if lookup.nonlinspecs is not None else lookup.vmrs.data)
+    vmrs = (np.repeat(np.array(lookup.vmrs.value), speciescount, axis=0)
+            if np.array(lookup.non_linear_species) is not None else np.array(lookup.vmrs.value))
 
-    ni = (lookup.p_grid.data * vmrs / lookup.t_ref.data /
+    ni = (lookup.p_grid.value * vmrs / lookup.t_ref.value /
           constants.Boltzmann).reshape(np.sum(speciescount), 1,
-                                       len(lookup.p_grid.data))
+                                       len(lookup.p_grid.value))
 
-    alpha = ni * lookup.xsec.data[tpert, :, :, :]
+    alpha = ni * lookup.xsec.value[tpert, :, :, :]
 
     if z is not None:
-        z = interp1d(z.grids[0], z.data[:, 0, 0])(lookup.p_grid.data)
+        z = interp1d(z.grids[0], z.data[:, 0, 0])(lookup.p_grid.value)
     else:
         # Calculate z from hypsometric formula
-        pgrid = lookup.p_grid.data
+        pgrid = lookup.p_grid.value
         z = [
             r * t / g * np.log(p1 / p2)
             for p1, p2, t in zip(pgrid[:-1], pgrid[1:], (
-                lookup.t_ref.data[1:] + lookup.t_ref.data[:-1]) / 2.)
+                lookup.t_ref.value[1:] + lookup.t_ref.value[:-1]) / 2.)
         ]
         z = np.cumsum(z)
         p = (pgrid[1:] + pgrid[:-1]) / 2.
-        z = interp1d(p, z, fill_value='extrapolate')(lookup.p_grid.data)
+        z = interp1d(p, z, fill_value='extrapolate')(lookup.p_grid.value)
 
     return np.vstack([np.trapz(ialpha, z, axis=1) for ialpha in alpha])
 
@@ -352,7 +352,7 @@ def plot_arts_lookup(lookup,
 
     """
     if species is None:
-        species = lookup.specs
+        species = lookup.species
 
     rows, cols, fig, ax = _setup_lookup_figure(lookup, cols, species)
 
@@ -361,7 +361,7 @@ def plot_arts_lookup(lookup,
     
     for cax, spec in zip_longest(
             ax.flatten() if len(ax.shape) == 2 else ax.reshape(ax.size, 1),
-            species.data):
+            species):
         if spec is None:
             cax.axis('off')
             continue
@@ -375,16 +375,16 @@ def plot_arts_lookup(lookup,
                                 species=[spec],
                                 ax=cax)
         else:
-            psize = lookup.p_grid.data.size
+            psize = lookup.p_grid.value.size
             if pressures is not None:
                 ipressures = [
-                    np.abs(lookup.p_grid.data - p).argmin() for p in pressures
+                    np.abs(lookup.p_grid.value - p).argmin() for p in pressures
                 ]
             else:
-                ipressures = (lookup.p_grid.data.size - 1 -
+                ipressures = (lookup.p_grid.value.size - 1 -
                               (range(psize) if psize <= 5 else np.linspace(
                                   0,
-                                  lookup.p_grid.data.size,
+                                  lookup.p_grid.value.size,
                                   num=6,
                                   endpoint=False,
                                   dtype=int)))

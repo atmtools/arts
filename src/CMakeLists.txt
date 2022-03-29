@@ -91,18 +91,6 @@ set_source_files_properties (m_oem.cc PROPERTIES
 
 ########### next target ###############
 
-if (C_API)
-add_library (arts_api SHARED arts_api.cc interactive_workspace.cc arts_api_classes.cc)
-add_dependencies (arts arts_api)
-set_target_properties(arts_api PROPERTIES SUFFIX .so)
-if (ENABLE_PCH)
-  target_precompile_headers(arts_api PRIVATE pch_matpack.h)
-endif()
-target_link_libraries (arts_api ${ALL_ARTS_LIBRARIES})
-endif (C_API)
-
-########### next target ###############
-
 add_executable (make_workspace_memory_handler_cc
                 make_workspace_memory_handler_cc.cc
                 arts.cc
@@ -116,7 +104,7 @@ add_custom_command (
         DEPENDS make_workspace_memory_handler_cc
         )
 add_custom_target (BuildAutoSources DEPENDS auto_md.h
-                   auto_md.cc)
+                   auto_md.cc tokval.h)
 
 ########### next target ###############
 
@@ -265,6 +253,7 @@ add_library (artscore STATIC
   m_wigner.cc
   m_xml.cc
   m_zeeman.cc
+  m_callback.cc
   math_funcs.cc
   mc_antenna.cc
   mc_interp.cc
@@ -299,7 +288,7 @@ add_library (artscore STATIC
   tessem.cc
   timings.cc
   tmatrix.cc
-  token.cc
+  tokval.cc
   transmissionmatrix.cc
   wigner_functions.cc
   workspace.cc
@@ -700,3 +689,12 @@ endif()
 
 add_executable (arts_qn arts_quantum_numbers.cc quantum_numbers.cc)
 target_link_libraries(arts_qn species matpack)
+
+########### python interface
+add_subdirectory(python_interface)
+
+########### variant tokval
+add_executable (make_tokval_h make_tokval_h.cc groups.cc)
+add_custom_command(OUTPUT tokval.h tokval.cc
+                   COMMAND make_tokval_h
+                   DEPENDS make_tokval_h)

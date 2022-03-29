@@ -207,19 +207,24 @@ jobs:
         run: |
           mkdir cmake-build
           cd cmake-build
-          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DENABLE_FORTRAN=$USEFORTRAN ..
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1 -DNUM_PYARTS_WSC=1 -DNUM_PYARTS_WSG=1 -DENABLE_FORTRAN=$USEFORTRAN ..
 
       - name: Build (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.arts == 'yes'
         run: |
           cd cmake-build
           make -j2 -C 3rdparty
+          make -j2 arts
+          make -j1 pyarts_cpp
           make -j2 -C src
 
       - name: Docs (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
         run: |
           cd cmake-build
+          make -j2 -C 3rdparty
+          make -j2 arts
+          make -j1 pyarts_cpp
           make -j2 -C doc/uguide
           make -j2 -C doc/doxygen
           make -j2 sphinx
