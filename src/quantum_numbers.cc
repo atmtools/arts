@@ -57,7 +57,8 @@ bool ValueList::has_unique_increasing_types() const {
 }
 
 //! Fix legacy catalog, where some values are rationals even though they shouldn't be
- std::pair<std::string_view, String> fix_legacy(std::string_view key, std::string_view val) {
+std::pair<std::string_view, String> fix_legacy(std::string_view key,
+                                               std::string_view val) {
   if (key == "ElectronState") {
     if (val == "X") return {"ElecStateLabel", "X"};
     if (val == "a") return {"ElecStateLabel", "a"};
@@ -92,12 +93,12 @@ bool ValueList::has_unique_increasing_types() const {
     if (val == "101") return {key, "e"};
     if (val == "102") return {key, "f"};
     goto error;
-  } 
-  
+  }
+
   return {key, val};
 
 error:
-    ARTS_USER_ERROR("Cannot read combination ", key, ' ', val)
+  ARTS_USER_ERROR("Cannot read combination ", key, ' ', val)
 }
 
 ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
@@ -187,7 +188,7 @@ ValueList::ValueList(std::string_view upp, std::string_view low) {
       low)
 
   for (Index i = 0; i < nu; i += 2) {
-    auto [k, val] = fix_legacy(items(upp, i), items(upp, i+1));
+    auto [k, val] = fix_legacy(items(upp, i), items(upp, i + 1));
     auto key = toTypeOrThrow(k);
 
     auto ptr =
@@ -202,7 +203,7 @@ ValueList::ValueList(std::string_view upp, std::string_view low) {
   }
 
   for (Index i = 0; i < nl; i += 2) {
-    auto [k, val] = fix_legacy(items(low, i), items(low, i+1));
+    auto [k, val] = fix_legacy(items(low, i), items(low, i + 1));
     auto key = toTypeOrThrow(k);
 
     auto ptr =
@@ -387,13 +388,15 @@ String LocalState::values() const {
   std::ostringstream os;
 
   bool first = true;
-  for (auto& x: val) {
-    if (first) first = false;
-    else os << ' '; 
+  for (auto& x : val) {
+    if (first)
+      first = false;
+    else
+      os << ' ';
     os << x.str_low();
   }
-  
-  for (auto& x: val) {
+
+  for (auto& x : val) {
     os << ' ' << x.str_upp();
   }
 
@@ -982,7 +985,7 @@ bool GlobalState::part_of(const GlobalState& other) const {
   if (other.isotopologue_index not_eq isotopologue_index) return false;
 
   auto test = other.val == val;
-  return (test.upp == CheckValue::Full or test.upp == CheckValue::AinB) and 
+  return (test.upp == CheckValue::Full or test.upp == CheckValue::AinB) and
          (test.low == CheckValue::Full or test.low == CheckValue::AinB);
 }
 
@@ -992,11 +995,11 @@ std::ostream& operator<<(std::ostream& os, const LocalState& vl) {
 
 std::istream& operator>>(std::istream& is, LocalState& vl) {
   String val;
-  for (auto& v: vl.val) {
+  for (auto& v : vl.val) {
     is >> val;
     v.set(val, false);
   }
-  for (auto& v: vl.val) {
+  for (auto& v : vl.val) {
     is >> val;
     v.set(val, true);
   }
@@ -1004,7 +1007,11 @@ std::istream& operator>>(std::istream& is, LocalState& vl) {
 }
 
 bool LocalState::same_types_as(const LocalState& that) const {
-  return std::equal(val.begin(), val.end(), that.val.begin(), that.val.end(), [](auto& a, auto& b){return a.type==b.type;});
+  return std::equal(val.begin(),
+                    val.end(),
+                    that.val.begin(),
+                    that.val.end(),
+                    [](auto& a, auto& b) { return a.type == b.type; });
 }
 
 GlobalState GlobalState::LowerLevel() const {
@@ -1038,7 +1045,7 @@ GlobalState::GlobalState(std::string_view s, Index v) {
   auto specname = items(s, 0);
   isotopologue_index = Species::find_species_index(specname);
   ARTS_USER_ERROR_IF(isotopologue_index < 0, "Bad species in: ", s)
-  
+
   if (version == v) {
     if (n > 1) val = ValueList(s.substr(specname.length() + 1));
   } else if (v == 0 or v == 1) {
@@ -1048,26 +1055,27 @@ GlobalState::GlobalState(std::string_view s, Index v) {
   }
 }
 
-void ValueList::add_type_wo_sort(Type t) {values.emplace_back().type=t;}
+void ValueList::add_type_wo_sort(Type t) { values.emplace_back().type = t; }
 
 void LocalState::set_unsorted_qns(const Array<Type>& vals) {
   val = ValueList("");
-  for (auto qn: vals) val.add_type_wo_sort(qn);
+  for (auto qn : vals) val.add_type_wo_sort(qn);
 }
 
-[[nodiscard]] LevelTest GlobalState::part_of(const GlobalState& g, const LocalState& l) const {
-  bool upp=true, low=true;
+[[nodiscard]] LevelTest GlobalState::part_of(const GlobalState& g,
+                                             const LocalState& l) const {
+  bool upp = true, low = true;
   if (isotopologue_index not_eq g.isotopologue_index) return {false, false};
 
-  for (auto& qn: val) {
-    bool any=false;
+  for (auto& qn : val) {
+    bool any = false;
 
     if (g.val.has(qn.type)) {
       auto& v = g.val[qn.type];
 
       upp = upp and v.str_upp() == qn.str_upp();
       low = low and v.str_low() == qn.str_low();
-      any=true;
+      any = true;
     }
 
     if (l.val.has(qn.type)) {
@@ -1075,16 +1083,75 @@ void LocalState::set_unsorted_qns(const Array<Type>& vals) {
 
       upp = upp and v.str_upp() == qn.str_upp();
       low = low and v.str_low() == qn.str_low();
-      ARTS_USER_ERROR_IF(any, "Repeated type: ", qn.type, '\n',
-      "From original key: ", *this, '\n',
-      "With global key: ", g, '\n',
-      "With local key: ", l.val)
-      any=true;
+      ARTS_USER_ERROR_IF(any,
+                         "Repeated type: ",
+                         qn.type,
+                         '\n',
+                         "From original key: ",
+                         *this,
+                         '\n',
+                         "With global key: ",
+                         g,
+                         '\n',
+                         "With local key: ",
+                         l.val)
+      any = true;
     }
 
     if (not any) return {false, false};
   }
   return {upp, low};
+}
 
+bofstream& Quantum::Number::Value::write(bofstream& bof) const {
+  switch (common_value_type(type)) {
+    case ValueType::I:
+      bof << qn.upp.i.x << qn.low.i.x;
+      break;
+    case ValueType::H:
+      bof << qn.upp.h.x << qn.low.h.x;
+      break;
+    case ValueType::S:
+      bof.writeString(qn.upp.s.x.data(), StringValue::N);
+      bof.writeString(qn.low.s.x.data(), StringValue::N);
+      break;
+    case ValueType::FINAL: {
+    }
+  }
+  return bof;
+}
+
+bifstream& Quantum::Number::Value::read(bifstream& bif) {
+  switch (common_value_type(type)) {
+    case ValueType::I:
+      bif >> qn.upp.i.x >> qn.low.i.x;
+      break;
+    case ValueType::H:
+      bif >> qn.upp.h.x >> qn.low.h.x;
+      break;
+    case ValueType::S:
+      bif.readString(qn.upp.s.x.data(), StringValue::N);
+      bif.readString(qn.low.s.x.data(), StringValue::N);
+      break;
+    case ValueType::FINAL: {
+    }
+  }
+  return bif;
+}
+
+bool Quantum::Number::ValueList::good() const {
+  {
+    for (auto& qn : values)
+      if (not qn.good()) {
+        return false;
+      }
+  }
+  return true;
+}
+
+bool Quantum::Number::LocalState::good() const { return val.good(); }
+
+bool Quantum::Number::GlobalState::good() const {
+  return Species::is_normal_isotopologue(Isotopologue()) and val.good();
 }
 }  // namespace Quantum::Number

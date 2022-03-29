@@ -31,6 +31,7 @@
 #include "arts.h"
 #include "debug.h"
 #include "isotopologues.h"
+#include "messages.h"
 #include "quantum_numbers.h"
 #include "xml_io.h"
 #include <algorithm>
@@ -594,6 +595,19 @@ void xml_read_from_stream(istream& is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/AbsorptionLines");
+
+  CREATE_OUT3;
+  if (out3.sufficient_priority_screen()) {
+    if (not al.quantumidentity.good()) {
+      out3 << "Bad data in absorption band " << al.MetaData() << '\n';
+    }
+    for (auto& line : al.lines) {
+      if (not line.localquanta.good()) {
+        out3 << "Bad data in absorption band " << al.MetaData() << '\n'
+             << "Line: " << line << '\n';
+      }
+    }
+  }
 }
 
 //! Writes AbsorptionLines to XML output stream

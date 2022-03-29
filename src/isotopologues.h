@@ -704,6 +704,10 @@ constexpr bool is_predefined_model(const IsotopeRecord& ir) noexcept {
   return not (nonstd::isdigit(ir.isotname[0]) or ir.isotname == Joker);
 }
 
+constexpr bool is_normal_isotopologue(const IsotopeRecord& ir) noexcept {
+  return nonstd::isdigit(ir.isotname[0]) and ir.isotname not_eq Joker;
+}
+
 String predefined_model_names() noexcept;
 
 constexpr bool same_or_joker(const IsotopeRecord& ir1, const IsotopeRecord& ir2) noexcept {
