@@ -1,3 +1,25 @@
+1.11  2020-01-31
+
+	Fixes for Windows (MSVC / MinGW)  (A. Egel).
+
+1.10  2019-05-06
+
+	Python interface no longer aborts the interpreter on errors.
+	Moved setup.py to top-level directory (K. Ladutenko).
+	CFFI compiles using sources instead of library (K. Ladutenko).
+	PyPI release preparations (K. Ladutenko).
+	Minor compile warning fix.
+
+1.9   2018-09-26
+
+	Python interface uses CFFI (suggestion from K. Ladutenko).
+	Numba example for faster python (K. Ladutenko).
+
+1.8   2018-08-09
+
+	python3 print fix in example (K. Ladutenko and K. Wendt).
+	Minor compile warning fix in header.
+
 1.7   2018-01-21
 
 	Simple C++ example use of the C interface.

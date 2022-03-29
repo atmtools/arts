@@ -32,6 +32,7 @@ Hits............:               0              0          19683              0
 Hits non-triv-0.:               0              0            215              0
 Dynamic hits....:               0              0              0              0
 Dynamic trip....:               0              0              0              0
+Dyn C14N ovfl...:               0              0              0              0
 9j-by-6j........:               0              0              0              0
 Full calc.......:               0              0              0              0
 Total lookups...:               0              0          19683              0
@@ -47,6 +48,7 @@ Hits............:               0              0         262144              0
 Hits non-triv-0.:               0              0           1616              0
 Dynamic hits....:               0              0              0              0
 Dynamic trip....:               0              0              0              0
+Dyn C14N ovfl...:               0              0              0              0
 9j-by-6j........:               0              0              0              0
 Full calc.......:               0              0              0              0
 Total lookups...:               0              0         262144              0
@@ -62,6 +64,7 @@ Hits............:               0              0        1952266           4299
 Hits non-triv-0.:               0              0           8201           4299
 Dynamic hits....:               0              0              0              0
 Dynamic trip....:               0              0              0              0
+Dyn C14N ovfl...:               0              0              0              0
 9j-by-6j........:               0              0            808              0
 Full calc.......:               0              0            859              0
 Total lookups...:               0              0        1953125           4299
@@ -77,6 +80,7 @@ Hits............:               0              0       10059080         100932
 Hits non-triv-0.:               0              0          19415         100932
 Dynamic hits....:               0              0              0              0
 Dynamic trip....:               0              0              0              0
+Dyn C14N ovfl...:               0              0              0              0
 9j-by-6j........:               0              0          18342              0
 Full calc.......:               0              0          18616              0
 Total lookups...:               0              0       10077696         100932

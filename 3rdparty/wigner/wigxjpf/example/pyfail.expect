@@ -1,0 +1,256 @@
+-- Test 0 --
+WIGXJPF python error handling test (0)
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+Using the (numpy) array interface
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+-- Test 1 --
+WIGXJPF python error handling test (1)
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+Using the (numpy) array interface
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+-- Test 2 --
+WIGXJPF python error handling test (2)
+wigxjpf: Too large factorial (36!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: Too large factorial (41!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: Too large factorial (11!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+Using the (numpy) array interface
+wigxjpf: Too large factorial (36!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: Too large factorial (41!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: Too large factorial (11!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+-- Test 3 --
+WIGXJPF python error handling test (3)
+wigxjpf: Bad wigner_type (-1) in wig_table_init.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+Using the (numpy) array interface
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: No factorials table.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+-- Test 4 --
+WIGXJPF python error handling test (4)
+wigxjpf: Temp array not allocated.  (For this thread?)
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: Temp array not allocated.  (For this thread?)
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: Temp array not allocated.  (For this thread?)
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+Using the (numpy) array interface
+wigxjpf: Temp array not allocated.  (For this thread?)
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: Temp array not allocated.  (For this thread?)
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: Temp array not allocated.  (For this thread?)
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+-- Test 5 --
+WIGXJPF python error handling test (5)
+wigxjpf: More iterations (2) than allocated in temp array.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: More iterations (2) than allocated in temp array.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: More iterations (2) than allocated in temp array.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+Using the (numpy) array interface
+wigxjpf: More iterations (2) than allocated in temp array.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+wigxjpf: More iterations (2) than allocated in temp array.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+wigxjpf: More iterations (2) than allocated in temp array.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+-- Test 6 --
+WIGXJPF python error handling test (6)
+wigxjpf: Too large factorial (3501!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+Using the (numpy) array interface
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+-- Test 7 --
+WIGXJPF python error handling test (7)
+3J(10  15  10; -3  12  -9): 0.0400138176828
+wigxjpf: Too large factorial (4100!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+Using the (numpy) array interface
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+-- Test 8 --
+WIGXJPF python error handling test (8)
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+wigxjpf: Too large factorial (1100!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan
+Using the (numpy) array interface
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+-- Test 9 --
+WIGXJPF python error handling test (9)
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+Using the (numpy) array interface
+wigxjpf: Too large factorial (3501!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+3J(10  15  10; -3  12  -9): nan
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+-- Test 10 --
+WIGXJPF python error handling test (10)
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+Using the (numpy) array interface
+3J(10  15  10; -3  12  -9): 0.0400138176828
+wigxjpf: Too large factorial (4100!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+6J{10  15  10;  7   7   9}: nan
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+-- Test 11 --
+WIGXJPF python error handling test (11)
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: -0.00301561193523
+Using the (numpy) array interface
+3J(10  15  10; -3  12  -9): 0.0400138176828
+6J{10  15  10;  7   7   9}: 0.0103314973434
+wigxjpf: Too large factorial (1100!).  Increase MAX_FACT.
+
+pywigxjpf: Error detected! ** Library misuse?  See documentation. **
+
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: nan

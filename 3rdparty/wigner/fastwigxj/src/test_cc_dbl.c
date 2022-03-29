@@ -44,6 +44,10 @@ typedef long long v4di __attribute__ ((vector_size (32)));
 #include <x86intrin.h>
 typedef double v2df __attribute__ ((vector_size (16)));
 #endif
+#if TEST_SSE4_2
+#include <x86intrin.h>
+typedef long long int  v2di __attribute__ ((vector_size (16)));
+#endif
 
 int main()
 {
@@ -98,6 +102,15 @@ int main()
   z = __builtin_ia32_blendvpd(y,x,c);
   printf ("%f\n",z[0]);
   printf ("#define FASTWIGXJ_HAVE_SSE4_1 1\n");
+#endif
+#endif
+#if TEST_SSE4_2
+#if defined(__SSE4_2__)
+  v2di a = { 1, 0. }, b = { 2, 0. };
+  v2di c;
+  c = (v2di) _mm_cmpgt_epi64((__m128i) a,(__m128i) b);
+  printf ("%lld\n",c[0]);
+  printf ("#define FASTWIGXJ_HAVE_SSE4_2 1\n");
 #endif
 #endif
 #if TEST_LSFENCE

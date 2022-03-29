@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include "array.h"
 #include "describe.h"
@@ -1807,6 +1808,17 @@ void test48() {
   }
 }
 
+void test_wigner_error() {
+  try {
+    wigner3j(1, 0, 1, 0, 0, 0);
+  } catch(std::exception& e) {
+    std::cerr << e.what() << '\n';
+  }
+
+  make_wigner_ready(250, 20000000, 3);
+  wigner3j(1, 0, 1, 0, 0, 0);
+}
+
 int main() {
   //   test1();
   //   test2();
@@ -1856,7 +1868,8 @@ int main() {
   //    test45();
   //    test46();
   //  test47();
-  test48();
+  //test48();
+  test_wigner_error();
 
   //    const double tolerance = 1e-9;
   //    double error;

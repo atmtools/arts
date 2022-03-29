@@ -1,0 +1,40 @@
+-- Test 0 --
+WIGXJPF C error handling test (0)
+3J(10  15  10; -3  12  -9):              0.040013817682833
+6J{10  15  10;  7   7   9}:              0.010331497343357
+9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}:        -0.003015611935232
+-- Test 1 --
+WIGXJPF C error handling test (1)
+wigxjpf: No factorials table.
+wigxjpf: Abort.
+-- Test 2 --
+WIGXJPF C error handling test (2)
+wigxjpf: Too large factorial (36!).  Increase MAX_FACT.
+wigxjpf: Abort.
+-- Test 3 --
+WIGXJPF C error handling test (3)
+wigxjpf: Bad wigner_type (-1) in wig_table_init.
+wigxjpf: Abort.
+-- Test 4 --
+WIGXJPF C error handling test (4)
+wigxjpf: Temp array not allocated.  (For this thread?)
+wigxjpf: Abort.
+-- Test 5 --
+WIGXJPF C error handling test (5)
+wigxjpf: More iterations (2) than allocated in temp array.
+wigxjpf: Abort.
+-- Test 6 --
+WIGXJPF C error handling test (6)
+wigxjpf: Too large factorial (3501!).  Increase MAX_FACT.
+wigxjpf: Abort.
+-- Test 7 --
+WIGXJPF C error handling test (7)
+3J(10  15  10; -3  12  -9):              0.040013817682833
+wigxjpf: Too large factorial (4100!).  Increase MAX_FACT.
+wigxjpf: Abort.
+-- Test 8 --
+WIGXJPF C error handling test (8)
+3J(10  15  10; -3  12  -9):              0.040013817682833
+6J{10  15  10;  7   7   9}:              0.010331497343357
+wigxjpf: Too large factorial (1100!).  Increase MAX_FACT.
+wigxjpf: Abort.

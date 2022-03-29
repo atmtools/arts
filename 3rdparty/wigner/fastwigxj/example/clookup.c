@@ -8,6 +8,7 @@
 int main(int argc, char *argv[])
 {
   double val3j, val6j, val9j;
+  int i;
 
   printf ("FASTWIGXJ C test program\n");
 
@@ -31,8 +32,10 @@ int main(int argc, char *argv[])
 
   /* For fallback to WIGXJPF when symbols too large for table. */
 
-  wig_table_init(2*100,9);
-  wig_temp_init(2*100);
+  /* Large values to allow large 3j and 6j testing. */
+  /* More normal use may need instead e.g. 2*100. */
+  wig_table_init(2*10000,9);
+  wig_temp_init(2*10000);
 
   /* Note that the arguments to wig3jj, wig6jj and wig9jj are 2*j
    * and 2*m.  To be able to handle half-integer arguments.
@@ -73,21 +76,85 @@ int main(int argc, char *argv[])
 
   printf ("6J{10  15  10;  7   7   9}:      %#25.15f\n", val6j);
 
-  val9j = fw9jja(1,  2,  3,
-		 2,  3,  5,
-		 3,  3,  6);
+  for (i = 0; i < 3; i++)
+  {
+    /* Test with dynamic tables on second and third round. */
 
-  printf ("9J{0.5 1 1.5; 1 1.5 2.5; 1.5 1.5 3}:%#22.15f\n", val9j);
+    /* Normally, one would set up the tables before evaluating
+     * any symbols.
+     */
 
-  /* The following symbol is not in the 9j table, and will
-   * automatically go via 6j fallback (through float128).
-   */
+    if (i == 1)
+      {
+	fastwigxj_dyn_init(3, 128);
+	fastwigxj_dyn_init(6, 128);
+	fastwigxj_dyn_init(9, 128);
+      }
+
+    val9j = fw9jja(1,  2,  3,
+		   2,  3,  5,
+		   3,  3,  6);
+
+    printf ("9J{0.5 1 1.5; 1 1.5 2.5; 1.5 1.5 3}:%#22.15f\n", val9j);
+
+    /* The following symbol is too large for the C14N routine. */
+
+    val9j = fw9jja(140, 140, 140,
+		   140, 140, 140,
+		   140, 140, 140);
+
+    printf ("9J{70 70 70; 70 70 70; 70 70 70}:%#25.15f\n", val9j);
+
+    /* The following symbol is not in the 9j table, and will
+     * automatically go via 6j fallback (through float128).
+     */
   
-  val9j = fw9jja(1,  2,  3,
-		 4,  6,  8,
-		 3,  6,  9);
+    val9j = fw9jja(1,  2,  3,
+		   4,  6,  8,
+		   3,  6,  9);
 
-  printf ("9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: %#25.15f\n", val9j);
+    printf ("9J{0.5 1 1.5; 2 3 4; 1.5 3 4.5}: %#25.15f\n", val9j);
+
+    /* This has arguments to become too large for the intermediate
+     * index variables in the Rasch-Yu routine, so wont insert into
+     * the dynamic table.
+     */
+
+    val3j = fw3jja6(2* 8000 , 2* 8000 , 2* 8000 ,
+		    2*    1 , 2*    2 , 2*  (-3));
+
+    printf ("3J(8000 8000 8000; 1   2  -3):   %#25.15f\n", val3j);
+
+    /* Not exceeding 64-bit Rasch-Yu index. */
+
+    val3j = fw3jja6(2*  100 , 2*  100 , 2*  100 ,
+		    2*    1 , 2*    2 , 2*  (-3));
+
+    printf ("3J(100 100 100; 1   2  -3):      %#25.15f\n", val3j);
+
+    /* Not exceeding 64-bit Rasch-Yu index. */
+
+    val6j = fw6jja(2*  300 , 2*  400 , 2*  200 ,
+		   2*  200 , 2*  200 , 2*  300 );
+
+    printf ("6J{300 400 200;  200 200 300}:   %#25.15f\n", val6j);
+
+    /* Exceeding 64-bit Rasch-Yu index. */
+
+    val6j = fw6jja(2* 3000 , 2* 4000 , 2* 2000 ,
+		   2* 2000 , 2* 2000 , 2* 3000 );
+
+    printf ("6J{3000 4000 2000;  2000 2000 3000}:%#22.15f\n", val6j);
+
+    /* On last round, release values. */
+
+    if (i == 2)
+      {
+	fastwigxj_dyn_free(3);
+	fastwigxj_dyn_free(6);
+	fastwigxj_dyn_free(9);
+      }
+  }
 
   {
     /* Call the lookup functions with argument lists instead.

@@ -1,5 +1,5 @@
 
-/* Copyright 2015 Haakan T. Johansson */
+/* Copyright 2019 Haakan T. Johansson */
 
 /*  This file is part of WIGXJPF.
  *
@@ -18,17 +18,32 @@
  *  <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WIGXJPF_C_WRAP_H__
-#define __WIGXJPF_C_WRAP_H__
+#ifndef __WIGXJPF_ERROR_H__
+#define __WIGXJPF_ERROR_H__
 
 #include "wigxjpf_config.h"
 
-#include "wigxjpf.h"
+void wigxjpf_error(void);
 
-#if WIGXJPF_HAVE_THREAD
-extern __thread struct wigxjpf_temp *wigxjpf_global_temp;
+#if PYWIGXJPF_ERROR_HANDLING
+
+#include <setjmp.h>
+
+extern __thread jmp_buf _pywigxjpf_jmp_env;
+
+# define PYWIGXJPF_ERROR_SETUP(x) do {	\
+    if (setjmp(_pywigxjpf_jmp_env))	\
+      return x;				\
+  } while (0)
 #else
-extern struct wigxjpf_temp *wigxjpf_global_temp;
+# define PYWIGXJPF_ERROR_SETUP(x) do { } while (0)
 #endif
 
-#endif/*__WIGXJPF_C_WRAP_H__*/
+#if PYWIGXJPF_ERROR_HANDLING || CPP_WIGXJPF_ERROR_HANDLING
+void wigxjpf_drop_temp(void);
+#endif
+
+# define PYWIGXJPF_ERROR_SETUP_void  PYWIGXJPF_ERROR_SETUP()
+# define PYWIGXJPF_ERROR_SETUP_NaN   PYWIGXJPF_ERROR_SETUP(strtof("NAN",NULL))
+
+#endif/*__WIGXJPF_ERROR_H__*/

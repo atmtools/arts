@@ -22,6 +22,7 @@
 #define __WIGXJPF_MULTI_WORD_INT_H__
 
 #include "wigxjpf_config.h"
+#include "wigxjpf_error.h"
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -107,7 +108,7 @@ static inline void mwi_realloc(struct multi_word_int *mwi,
 	       "wigxjpf: "
 	       "Memory allocation error (multi-word int), %zd bytes.\n",
 	       alloc_size);
-      exit(1);
+      wigxjpf_error();
     }
 }
 

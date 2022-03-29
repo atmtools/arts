@@ -1,0 +1,8 @@
+include COPYING
+include COPYING.LESSER
+include CHANGELOG
+graft inc
+graft src
+graft cfg
+graft pywigxjpf/pregen
+graft example
