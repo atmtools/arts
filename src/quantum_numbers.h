@@ -20,6 +20,8 @@
 #include "nonstd.h"
 #include "rational.h"
 
+constexpr Index quantum_number_error_value = -999'999'999;
+
 namespace Quantum::Number {
 
 //! Holds string values but can only hold sizeof(Index) long values
@@ -412,8 +414,8 @@ struct TwoLevelValueHolder {
     x.type = ValueType::I;
     x.val.i.x = r.Nom();
   } else {
-    ARTS_USER_ERROR(
-        "Cannot convert ", r, " to half-integer or to full integer value")
+    x.type = ValueType::I;
+    x.val.i.x = quantum_number_error_value;
   }
 
   return x;
