@@ -1,7 +1,8 @@
 #!/bin/sh
 
-PYTHONDIR=/opt/python/cp39-cp39
-if [[ ! -d "${PYTHONDIR}" ]]; then
+PYTHONDIR=/opt/python/$INPUT_PYTHON_VERSION
+echo "PYTHONDIR=$PYTHONDIR"
+if [[ ! -f "${PYTHONDIR}/bin/python3" ]]; then
     echo "Python directory ${PYTHONDIR} not found"
     exit 1
 fi
