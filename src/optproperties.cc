@@ -2692,7 +2692,7 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
   // Sizes
   const Index nse = scat_data.nelem();
   const Index nf = scat_data[0].f_grid.nelem();
-  const Index nt = T_grid.nelem();
+  [[maybe_unused]] const Index nt = T_grid.nelem();
   const Index nsa = sa_grid.nelem();
   const Index ncl = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   

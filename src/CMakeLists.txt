@@ -198,7 +198,6 @@ add_library (artscore STATIC
   jpl_species.cc
   legacy_continua.cc
   legendre.cc
-  lin_alg.cc
   linemixing.cc
   linemixing_hitran.cc
   linescaling.cc
@@ -272,7 +271,6 @@ add_library (artscore STATIC
   psd.cc
   quantum_numbers.cc
   radiation_field.cc
-  rational.cc
   raw.cc
   refraction.cc
   rng.cc
@@ -688,7 +686,7 @@ target_link_libraries(calc_predef ${ALL_ARTS_LIBRARIES})
 endif()
 
 add_executable (arts_qn arts_quantum_numbers.cc quantum_numbers.cc)
-target_link_libraries(arts_qn species matpack)
+target_link_libraries(arts_qn species xmliobase)
 
 ########### python interface
 add_subdirectory(python_interface)
@@ -698,3 +696,4 @@ add_executable (make_tokval_h make_tokval_h.cc groups.cc)
 add_custom_command(OUTPUT tokval.h tokval.cc
                    COMMAND make_tokval_h
                    DEPENDS make_tokval_h)
+

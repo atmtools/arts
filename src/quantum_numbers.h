@@ -20,6 +20,8 @@
 #include "nonstd.h"
 #include "rational.h"
 
+constexpr Index quantum_number_error_value = -999'999'999;
+
 namespace Quantum::Number {
 
 //! Holds string values but can only hold sizeof(Index) long values
@@ -412,8 +414,8 @@ struct TwoLevelValueHolder {
     x.type = ValueType::I;
     x.val.i.x = r.Nom();
   } else {
-    ARTS_USER_ERROR(
-        "Cannot convert ", r, " to half-integer or to full integer value")
+    x.type = ValueType::I;
+    x.val.i.x = quantum_number_error_value;
   }
 
   return x;
@@ -533,7 +535,6 @@ struct TwoLevelValueHolder {
     case ValueType::I:
     case ValueType::H: {
       const Rational r = cast_qnrat(s);
-      ARTS_USER_ERROR_IF(r.isUndefined(), "Bad conversion from: ", s)
       return value_holder(r);
     }
     case ValueType::S:
@@ -772,41 +773,11 @@ struct Value {
   //! Standard input
   friend std::istream& operator>>(std::istream& is, Value& x);
 
-  bofstream& write(bofstream& bof) const {
-    switch (common_value_type(type)) {
-      case ValueType::I:
-        bof << qn.upp.i.x << qn.low.i.x;
-        break;
-      case ValueType::H:
-        bof << qn.upp.h.x << qn.low.h.x;
-        break;
-      case ValueType::S:
-        bof.writeString(qn.upp.s.x.data(), StringValue::N);
-        bof.writeString(qn.low.s.x.data(), StringValue::N);
-        break;
-      case ValueType::FINAL: {
-      }
-    }
-    return bof;
-  }
+  bofstream& write(bofstream& bof) const;
 
-  bifstream& read(bifstream& bif) {
-    switch (common_value_type(type)) {
-      case ValueType::I:
-        bif >> qn.upp.i.x >> qn.low.i.x;
-        break;
-      case ValueType::H:
-        bif >> qn.upp.h.x >> qn.low.h.x;
-        break;
-      case ValueType::S:
-        bif.readString(qn.upp.s.x.data(), StringValue::N);
-        bif.readString(qn.low.s.x.data(), StringValue::N);
-        break;
-      case ValueType::FINAL: {
-      }
-    }
-    return bif;
-  }
+  bifstream& read(bifstream& bif);
+
+  [[nodiscard]] constexpr bool good() const {return operator==(*this);}
 };
 
 //! Status of comparing two lists that are supposedly of some type
@@ -954,6 +925,8 @@ class ValueList {
 
   //! Add a type without sorting (WARNING, many things might break if you don't sort in the end)
   void add_type_wo_sort(Type);
+
+  [[nodiscard]] bool good() const;
 };
 
 ValueList from_hitran(std::string_view upp, std::string_view low);
@@ -980,6 +953,9 @@ struct LocalState {
 
   //! input stream must have pre-set size
   friend std::istream& operator>>(std::istream& is, LocalState& vl);
+
+  //! Test if there are bad quantum numbers (undefined ones)
+  [[nodiscard]] bool good() const;
 };
 
 struct LevelTest {bool upp{true}, low{true};};
@@ -1019,6 +995,9 @@ struct GlobalState {
 
   //! Checks wheter all of the LHS is part of any of the RHS
   [[nodiscard]] LevelTest part_of(const GlobalState& g, const LocalState& l) const;
+
+  //! Test if there are bad quantum numbers (undefined ones) or if the isotopologue is not a normal target
+  [[nodiscard]] bool good() const;
 };
 
 //! StateMatchType operates so that a check less than a level should be 'better', bar None
