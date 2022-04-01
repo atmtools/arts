@@ -1,8 +1,11 @@
 name: 'pypi'
 description: 'Builds Python binary wheels and uploads them to PyPI'
 inputs:
-  pypi_access:  # id of input
+  pypi_access:
     description: 'Access token for PyPI repository.'
+    required: true
+  python_version:
+    description: 'Python version to build with.'
     required: true
 runs:
   using: 'docker'
