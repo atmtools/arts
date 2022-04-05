@@ -33,3 +33,24 @@ if [[ ${GITHUB_REPOSITORY} == "atmtools/arts" ]]; then
     python3 -m twine upload wheelhouse/pyarts*.whl -u __token__ -p $INPUT_PYPI_ACCESS
 fi
 
+# Testing
+python3 -m pip install .
+cd ..
+echo "Direct install tests"
+echo "Test #1"
+python3 -c "import pyarts; ws=pyarts.workspace.Workspace(); ws.f_grid=[1.,2.,3.]; print(ws.f_grid.value)"
+echo "Test #2"
+python3 -c "import pyarts; ws=pyarts.workspace.Workspace(); ws.f_grid.value=[1.,2.,3.]; print(ws.f_grid.value)"
+echo "Pytest"
+python3 -m pytest -v python/test
+python3 -m pip uninstall -y pyarts
+
+echo "Wheel install tests"
+python3 -m pip install python/wheelhouse/pyarts*.whl
+echo "Test #1"
+python3 -c "import pyarts; ws=pyarts.workspace.Workspace(); ws.f_grid=[1.,2.,3.]; print(ws.f_grid.value)"
+echo "Test #2"
+python3 -c "import pyarts; ws=pyarts.workspace.Workspace(); ws.f_grid.value=[1.,2.,3.]; print(ws.f_grid.value)"
+echo "Pytest"
+python3 -m pytest -v python/test
+
