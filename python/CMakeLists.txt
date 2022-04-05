@@ -42,24 +42,24 @@ configure_file(MANIFEST.in MANIFEST.in)
 
 add_custom_target(pyarts
   ALL
-  COMMAND ${PYTHON_EXECUTABLE} setup.py build
+  COMMAND ${Python3_EXECUTABLE} setup.py build
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts_cpp
   COMMENT "Building ARTS python package.")
 set(CONTROLFILE_DIR ${ARTS_SOURCE_DIR}/controlfiles)
 add_custom_target(python_tests
-  COMMAND PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR} ${PYTHON_EXECUTABLE} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
+  COMMAND PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR} ${Python3_EXECUTABLE} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts_tests
   COMMENT "Converting *.arts controlfiles to Python")
 add_custom_target(pyarts_agendatest
-  COMMAND ${PYTHON_EXECUTABLE} -m test.workspace.test_agendas
+  COMMAND ${Python3_EXECUTABLE} -m test.workspace.test_agendas
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts
   COMMENT "Run PyARTS Agenda test")
 
 add_custom_target(pyarts_tests
-  COMMAND ${PYTHON_EXECUTABLE} -m pytest -v test
+  COMMAND ${Python3_EXECUTABLE} -m pytest -v test
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts
   COMMENT "Run PyARTS tests")

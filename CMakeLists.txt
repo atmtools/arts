@@ -75,8 +75,7 @@ enable_testing ()
 list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 
 ########### Find Python ##########
-set(Python_ADDITIONAL_VERSIONS 3)
-find_package (PythonInterp REQUIRED)
+find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
 
 include (CheckPythonModule)
 check_python_modules()
