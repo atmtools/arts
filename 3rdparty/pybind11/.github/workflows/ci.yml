@@ -30,8 +30,8 @@ jobs:
         - '3.6'
         - '3.9'
         - '3.10'
-        - 'pypy-3.7-v7.3.7'
-        - 'pypy-3.8-v7.3.7'
+        - 'pypy-3.7'
+        - 'pypy-3.8'
 
         # Items in here will either be added to the build matrix (if not
         # present), or add new keys to an existing matrix element if all the
@@ -600,11 +600,11 @@ jobs:
       fail-fast: false
       matrix:
         centos:
-          - 7  # GCC 4.8
-          - 8
+          - centos7  # GCC 4.8
+          - stream8
 
     name: "🐍 3 • CentOS ${{ matrix.centos }} • x64"
-    container: "centos:${{ matrix.centos }}"
+    container: "quay.io/centos/centos:${{ matrix.centos }}"
 
     steps:
     - uses: actions/checkout@v2
@@ -619,22 +619,11 @@ jobs:
       run: |
         python3 -m pip install cmake -r tests/requirements.txt
 
-    - name: VAR_BUILD_TYPE 7
-      if: matrix.centos == 7
-      run: echo MinSizeRel > VAR_BUILD_TYPE
-
-    # Using Release to avoid segfault that appeared around 2021-06-04,
-    # apparently when the gcc version changed from 8.3 to 8.4.
-    - name: VAR_BUILD_TYPE 8
-      if: matrix.centos == 8
-      run: echo Release > VAR_BUILD_TYPE
-
-    # Temporally disabling EIGEN due to SSL issue in CentOS 7
     - name: Configure
       shell: bash
       run: >
         cmake -S . -B build
-        -DCMAKE_BUILD_TYPE=$(cat VAR_BUILD_TYPE)
+        -DCMAKE_BUILD_TYPE=MinSizeRel
         -DPYBIND11_WERROR=ON
         -DDOWNLOAD_CATCH=ON
         -DDOWNLOAD_EIGEN=ON
@@ -904,8 +893,7 @@ jobs:
           - { sys: mingw64, env: x86_64 }
           - { sys: mingw32, env: i686 }
     steps:
-    # Force version because of https://github.com/msys2/setup-msys2/issues/167
-    - uses: msys2/setup-msys2@v2.4.2
+    - uses: msys2/setup-msys2@v2
       with:
         msystem: ${{matrix.sys}}
         install: >-
@@ -926,7 +914,7 @@ jobs:
     - name: Configure C++11
       # LTO leads to many undefined reference like
       # `pybind11::detail::function_call::function_call(pybind11::detail::function_call&&)
-      run: cmake -G "MinGW Makefiles" -DCMAKE_CXX_STANDARD=11 -S . -B build
+      run: cmake -G "MinGW Makefiles" -DCMAKE_CXX_STANDARD=11 -DDOWNLOAD_CATCH=ON -S . -B build
 
     - name: Build C++11
       run: cmake --build build -j 2
@@ -935,16 +923,16 @@ jobs:
       run: cmake --build build --target pytest -j 2
 
     - name: C++11 tests
-      run: cmake --build build --target cpptest -j 2
+      run: PYTHONHOME=/${{matrix.sys}} PYTHONPATH=/${{matrix.sys}} cmake --build build --target cpptest -j 2
 
     - name: Interface test C++11
-      run: cmake --build build --target test_cmake_build
+      run: PYTHONHOME=/${{matrix.sys}} PYTHONPATH=/${{matrix.sys}} cmake --build build --target test_cmake_build
 
     - name: Clean directory
       run: git clean -fdx
 
     - name: Configure C++14
-      run: cmake -G "MinGW Makefiles" -DCMAKE_CXX_STANDARD=14 -S . -B build2
+      run: cmake -G "MinGW Makefiles" -DCMAKE_CXX_STANDARD=14 -DDOWNLOAD_CATCH=ON -S . -B build2
 
     - name: Build C++14
       run: cmake --build build2 -j 2
@@ -953,16 +941,16 @@ jobs:
       run: cmake --build build2 --target pytest -j 2
 
     - name: C++14 tests
-      run: cmake --build build2 --target cpptest -j 2
+      run: PYTHONHOME=/${{matrix.sys}} PYTHONPATH=/${{matrix.sys}} cmake --build build2 --target cpptest -j 2
 
     - name: Interface test C++14
-      run: cmake --build build2 --target test_cmake_build
+      run: PYTHONHOME=/${{matrix.sys}} PYTHONPATH=/${{matrix.sys}} cmake --build build2 --target test_cmake_build
 
     - name: Clean directory
       run: git clean -fdx
 
     - name: Configure C++17
-      run: cmake -G "MinGW Makefiles" -DCMAKE_CXX_STANDARD=17 -S . -B build3
+      run: cmake -G "MinGW Makefiles" -DCMAKE_CXX_STANDARD=17 -DDOWNLOAD_CATCH=ON -S . -B build3
 
     - name: Build C++17
       run: cmake --build build3 -j 2
@@ -971,7 +959,7 @@ jobs:
       run: cmake --build build3 --target pytest -j 2
 
     - name: C++17 tests
-      run: cmake --build build3 --target cpptest -j 2
+      run: PYTHONHOME=/${{matrix.sys}} PYTHONPATH=/${{matrix.sys}} cmake --build build3 --target cpptest -j 2
 
     - name: Interface test C++17
-      run: cmake --build build3 --target test_cmake_build
+      run: PYTHONHOME=/${{matrix.sys}} PYTHONPATH=/${{matrix.sys}} cmake --build build3 --target test_cmake_build
