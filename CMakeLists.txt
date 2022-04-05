@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.12)
+cmake_minimum_required (VERSION 3.18)
 
 project (ARTS C CXX)
 
@@ -75,7 +75,7 @@ enable_testing ()
 list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 
 ########### Find Python ##########
-find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
+find_package (Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 
 include (CheckPythonModule)
 check_python_modules()
