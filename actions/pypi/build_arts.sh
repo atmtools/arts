@@ -27,5 +27,9 @@ cd python
 python3 setup.py sdist bdist_wheel
 auditwheel repair dist/pyarts*.whl
 ls -lh dist/pyarts*.whl
-python3 -m twine upload wheelhouse/pyarts*.whl -u __token__ -p $INPUT_PYPI_ACCESS
+
+# Upload to PyPi
+if [[ ${GITHUB_REPOSITORY} == "atmtools/arts" ]]; then
+    python3 -m twine upload wheelhouse/pyarts*.whl -u __token__ -p $INPUT_PYPI_ACCESS
+fi
 
