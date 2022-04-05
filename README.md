@@ -24,7 +24,7 @@ Building ARTS
 Build Prerequisites:
 
 - gcc/g++ >=8 (or llvm/clang >=10) older versions might work, but are untested
-- cmake (>=3.12)
+- cmake (>=3.18)
 - zlib
 - openblas
 - netcdf (optional)
