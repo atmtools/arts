@@ -476,12 +476,13 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
                          const Agenda& iy_main_agenda,
                          const Verbosity& verbosity) {
-  // Input checks
 
+  // Input checks
   ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(atmosphere_dim, rtp_pos);
   chk_rte_los(atmosphere_dim, rtp_los);
+  chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
   // Check surface_data
   surface_props_check(atmosphere_dim,
@@ -666,143 +667,70 @@ void iySurfaceFlatReflectivityDirect(
     const Agenda& water_p_eq_agenda,
     const Agenda& gas_scattering_agenda,
     const Agenda& ppath_step_agenda,
-    const Verbosity& verbosity){
-
+    const Verbosity& verbosity) {
   //Check for correct unit
   ARTS_USER_ERROR_IF(iy_unit != "1" && star_do,
                      "If stars are present only iy_unit=\"1\" can be used.");
 
-  if (star_do){
+  chk_size("iy", iy, f_grid.nelem(), stokes_dim);
 
-    //Allocate
-    Vector specular_los;
-    Vector surface_normal;
+  if (star_do) {
+    Matrix iy_incoming;
     Index stars_visible;
-    Matrix iy_star_toa;
+    Vector specular_los;
 
-    //get specular line of sight
-    specular_losCalc(specular_los,
-                     surface_normal,
-                     rtp_pos,
-                     rtp_los,
-                     atmosphere_dim,
-                     lat_grid,
-                     lon_grid,
-                     refellipsoid,
-                     z_surface,
-                     0,
-                     verbosity);
+    //Get incoming direct radiation, if no star is in line of sight, then
+    //iy_incoming is zero.
+    surface_get_incoming_direct(ws,
+                                iy_incoming,
+                                stars_visible,
+                                specular_los,
+                                rtp_pos,
+                                rtp_los,
+                                stokes_dim,
+                                f_grid,
+                                atmosphere_dim,
+                                p_grid,
+                                lat_grid,
+                                lon_grid,
+                                z_field,
+                                t_field,
+                                nlte_field,
+                                vmr_field,
+                                abs_species,
+                                wind_u_field,
+                                wind_v_field,
+                                wind_w_field,
+                                mag_u_field,
+                                mag_v_field,
+                                mag_w_field,
+                                z_surface,
+                                refellipsoid,
+                                pnd_field,
+                                dpnd_field_dx,
+                                scat_species,
+                                scat_data,
+                                ppath_lmax,
+                                ppath_lraytrace,
+                                ppath_inside_cloudbox_do,
+                                cloudbox_on,
+                                cloudbox_limits,
+                                gas_scattering_do,
+                                jacobian_do,
+                                jacobian_quantities,
+                                stars,
+                                rte_alonglos_v,
+                                propmat_clearsky_agenda,
+                                water_p_eq_agenda,
+                                gas_scattering_agenda,
+                                ppath_step_agenda,
+                                verbosity);
 
-    //calculate propagation path from the surface to the space in line of sight
-    Ppath ppath;
-    ppath_calc(ws,
-               ppath,
-               ppath_step_agenda,
-               atmosphere_dim,
-               p_grid,
-               lat_grid,
-               lon_grid,
-               z_field,
-               f_grid,
-               refellipsoid,
-               z_surface,
-               cloudbox_on,
-               cloudbox_limits,
-               rtp_pos,
-               specular_los,
-               ppath_lmax,
-               ppath_lraytrace,
-               ppath_inside_cloudbox_do,
-               verbosity);
-
-
-    //get the incoming spectral radiance of the star at toa. If there is no in
-    //line of sight, then iy_star_toa is simply zero and we are finished. No further
-    //calculations needed.
-    get_star_background(iy_star_toa,
-                        stars_visible,
-                        stars,
-                        ppath,
-                        f_grid,
-                        stokes_dim,
-                        atmosphere_dim,
-                        refellipsoid);
-
-    if (stars_visible){
-
-      //dummy variables needed for the output and input of iyTransmission
-      ArrayOfMatrix iy_aux_dummy;
-      ArrayOfString iy_aux_vars_dummy;
-      Vector ppvar_p_dummy;
-      Vector ppvar_t_dummy;
-      EnergyLevelMap ppvar_nlte_dummy;
-      Matrix ppvar_vmr_dummy;
-      Matrix ppvar_wind_dummy;
-      Matrix ppvar_mag_dummy;
-      Matrix ppvar_pnd_dummy;
-      Matrix ppvar_f_dummy;
-      Tensor3 ppvar_iy_dummy;
-      Tensor4 ppvar_trans_cumulat_dummy;
-      Tensor4 ppvar_trans_partial_dummy;
-      ArrayOfTensor3 diy_incoming_dummy;
-
-      //Allocate
-      Matrix iy_incoming;
-
-      //Calculate the transmitted radiation from toa to the surface
-      iyTransmissionStandard(ws,
-                             iy_incoming,
-                             iy_aux_dummy,
-                             diy_incoming_dummy,
-                             ppvar_p_dummy,
-                             ppvar_t_dummy,
-                             ppvar_nlte_dummy,
-                             ppvar_vmr_dummy,
-                             ppvar_wind_dummy,
-                             ppvar_mag_dummy,
-                             ppvar_pnd_dummy,
-                             ppvar_f_dummy,
-                             ppvar_iy_dummy,
-                             ppvar_trans_cumulat_dummy,
-                             ppvar_trans_partial_dummy,
-                             stokes_dim,
-                             f_grid,
-                             atmosphere_dim,
-                             p_grid,
-                             t_field,
-                             nlte_field,
-                             vmr_field,
-                             abs_species,
-                             wind_u_field,
-                             wind_v_field,
-                             wind_w_field,
-                             mag_u_field,
-                             mag_v_field,
-                             mag_w_field,
-                             cloudbox_on,
-                             cloudbox_limits,
-                             gas_scattering_do,
-                             pnd_field,
-                             dpnd_field_dx,
-                             scat_species,
-                             scat_data,
-                             iy_aux_vars_dummy,
-                             jacobian_do,
-                             jacobian_quantities,
-                             ppath,
-                             iy_star_toa,
-                             propmat_clearsky_agenda,
-                             water_p_eq_agenda,
-                             gas_scattering_agenda,
-                             1,
-                             Tensor3(),
-                             rte_alonglos_v,
-                             verbosity);
-
+    if (stars_visible) {
       Matrix surface_los;
       Tensor4 surface_rmatrix;
       Matrix surface_emission;
-      Numeric surface_skin_t_dummy=1.;
+      Numeric surface_skin_t_dummy = 1.;
 
       //As we only consider the reflection of the direct radiation we do not consider
       //any type of surface emission, therefore we set the surface skin temperature
@@ -820,15 +748,14 @@ void iySurfaceFlatReflectivityDirect(
                               surface_reflectivity,
                               verbosity);
 
-      surface_emission*=0.;
+      surface_emission *= 0.;
 
-      Tensor3 I(1,f_grid.nelem(),stokes_dim);
-      I(0,joker,joker) = iy_incoming;
+      Tensor3 I(1, f_grid.nelem(), stokes_dim);
+      I(0, joker, joker) = iy_incoming;
 
       surface_calc(iy, I, surface_los, surface_rmatrix, surface_emission);
 
-      //TODO: add jacobian
-
+      //TODO: add reflectivity jacobian
     }
   }
 }
@@ -880,13 +807,8 @@ void iySurfaceLambertian(Workspace& ws,
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(atmosphere_dim, rtp_pos);
   chk_rte_los(atmosphere_dim, rtp_los);
+  chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
-
-  //Check size of iy
-  if (not is_size(iy, f_grid.nelem(), stokes_dim)) {
-    iy.resize(f_grid.nelem(), stokes_dim);
-    iy = 0.;
-  }
 
   // Check surface_data
   surface_props_check(atmosphere_dim,
@@ -1185,10 +1107,7 @@ void iySurfaceLambertianDirect(
                      "If stars are present only iy_unit=\"1\" can be used.");
 
   //Check size of iy
-  if (not is_size(iy, f_grid.nelem(), stokes_dim)) {
-    iy.resize(f_grid.nelem(), stokes_dim);
-    iy = 0.;
-  }
+  chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
   //do something only if there is a star
   if (star_do) {

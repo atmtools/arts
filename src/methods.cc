@@ -9051,7 +9051,7 @@ Possible models:
           "Important this method calculates only the reflection of the diffuse\n"
           "downward radiation. No direct incoming radiation is considered\n"
           "\n"
-          "Jacobian is supported only for Skin temperature"),
+          "Jacobian is supported only for Skin temperature\n"),
       AUTHORS("Manfred Brath"),
       OUT("iy",
           "diy_dx",
@@ -9060,7 +9060,8 @@ Possible models:
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("diy_dx",
+      IN("iy",
+          "diy_dx",
          "dsurface_rmatrix_dx",
          "dsurface_emission_dx",
          "iy_transmittance",
@@ -9102,7 +9103,7 @@ Possible models:
           "Important this method calculates only the scattering of the direct\n"
           "(star) radiation. No diffuse incoming radiation is considered\n"
           "\n"
-          "This method has no jacobian capability"),
+          "This method has no jacobian capability\n"),
       AUTHORS("Manfred Brath"),
       OUT("iy"),
       GOUT(),
@@ -9196,14 +9197,17 @@ Possible models:
           "This method is designed to be part of *iy_surface_agenda*\n"
           "\n"
           "Important this method calculates only the scattering of the diffuse\n"
-          "downward radiation. No direct incoming radiation is considered\n"),
+          "downward radiation. No direct incoming radiation is considered\n"
+          "\n"
+          "Jacobian is supported only for Skin temperature\n"),
       AUTHORS("Manfred Brath"),
       OUT("iy",
           "diy_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("diy_dx",
+      IN("iy",
+         "diy_dx",
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
@@ -9243,7 +9247,7 @@ Possible models:
           "Important this method calculates only the scattering of the direct\n"
           "(star) radiation. No diffuse incoming radiation is considered\n"
           "\n"
-          "This method has no jacobian capability"),
+          "This method has no jacobian capability\n"),
       AUTHORS("Manfred Brath"),
       OUT("iy"),
       GOUT(),
