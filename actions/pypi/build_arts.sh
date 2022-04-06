@@ -31,5 +31,7 @@ ls -lh dist/pyarts*.whl
 # Upload to PyPi
 if [[ ${GITHUB_REPOSITORY} == "atmtools/arts" ]]; then
     python3 -m twine upload wheelhouse/pyarts*.whl -u __token__ -p $INPUT_PYPI_ACCESS
+elif [[ ${GITHUB_REPOSITORY} == "olemke/arts" ]]; then
+    python3 -m twine upload --repository testpypi wheelhouse/pyarts*.whl -u __token__ -p $INPUT_PYPI_ACCESS
 fi
 
