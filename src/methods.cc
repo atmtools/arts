@@ -9049,14 +9049,20 @@ Possible models:
           "This method is designed to be part of *iy_surface_agenda*\n"
           "\n"
           "Important this method calculates only the reflection of the diffuse\n"
-          "downward radiation. No direct incoming radiation is considered\n"),
+          "downward radiation. No direct incoming radiation is considered\n"
+          "\n"
+          "Jacobian is supported only for Skin temperature"),
       AUTHORS("Manfred Brath"),
       OUT("iy",
-          "diy_dx"),
+          "diy_dx",
+          "dsurface_rmatrix_dx",
+          "dsurface_emission_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("diy_dx",
+         "dsurface_rmatrix_dx",
+         "dsurface_emission_dx",
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
@@ -9094,15 +9100,15 @@ Possible models:
           "This method is designed to be part of *iy_surface_agenda*\n"
           "\n"
           "Important this method calculates only the scattering of the direct\n"
-          "(star) radiation. No diffuse incoming radiation is considered\n"),
+          "(star) radiation. No diffuse incoming radiation is considered\n"
+          "\n"
+          "This method has no jacobian capability"),
       AUTHORS("Manfred Brath"),
-      OUT("iy",
-          "diy_dx"),
+      OUT("iy"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("iy",
-         "diy_dx",
          "rtp_pos",
          "rtp_los",
          "stokes_dim",
@@ -9235,15 +9241,15 @@ Possible models:
           "This method is designed to be part of *iy_surface_agenda*\n"
           "\n"
           "Important this method calculates only the scattering of the direct\n"
-          "(star) radiation. No diffuse incoming radiation is considered\n"),
+          "(star) radiation. No diffuse incoming radiation is considered\n"
+          "\n"
+          "This method has no jacobian capability"),
       AUTHORS("Manfred Brath"),
-      OUT("iy",
-          "diy_dx"),
+      OUT("iy"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("iy",
-         "diy_dx",
          "rtp_pos",
          "stokes_dim",
          "f_grid",

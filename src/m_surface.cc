@@ -450,6 +450,8 @@ void iySurfaceFastem(Workspace& ws,
 void iySurfaceFlatReflectivity(Workspace& ws,
                          Matrix& iy,
                          ArrayOfTensor3& diy_dx,
+                         ArrayOfTensor4& dsurface_rmatrix_dx,
+                         ArrayOfMatrix& dsurface_emission_dx,
                          const Tensor3& iy_transmittance,
                          const Index& iy_id,
                          const Index& jacobian_do,
@@ -509,6 +511,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
   chk_not_negative("surface_skin_t", surface_skin_t[0]);
 
 
+
   //Allocate
   Tensor3 iy_trans_new;
   Matrix iy_incoming;
@@ -538,41 +541,6 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                    0,
                    verbosity);
 
-  //if star is is present we need an additional output.
-  ArrayOfString iy_aux_var(0);
-  if (star_do) {
-    iy_aux_var.resize(1);
-    iy_aux_var[0] = "Direct radiation";
-  }
-
-  //Calculate incoming radiation for line of sight
-  iy_main_agendaExecute(ws,
-                        iy_incoming,
-                        iy_aux,
-                        ppath,
-                        diy_dx_dumb,
-                        0,
-                        iy_trans_new,
-                        iy_aux_var,
-                        iy_id_new,
-                        iy_unit,
-                        cloudbox_on,
-                        jacobian_do,
-                        f_grid,
-                        nlte_field,
-                        rtp_pos,
-                        specular_los,
-                        rte_pos2,
-                        iy_main_agenda);
-
-  //For the case that a star is present and the los is towards a star, we
-  //subtract the direct radiation, so that only the diffuse radiation is considered here.
-  //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
-  //radiation at the surface. Otherwise it is zero.
-  if (star_do) {
-    iy_incoming -= iy_aux[0];
-  }
-
   // Calculate incoming radiation directions, surface reflection matrix and
   // emission vector
   surfaceFlatReflectivity(surface_los,
@@ -588,57 +556,74 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                           surface_reflectivity,
                           verbosity);
 
-  I(0,joker,joker) = iy_incoming;
-
-  //calculate upwelling radiation from surface
-  surface_calc(iy, I, surface_los, surface_rmatrix, surface_emission);
 
 
-  // Surface Jacobians
-  if (jacobian_do && dsurface_names.nelem()) {
+  // Jacobian part
+  if (jacobian_do) {
+    dsurface_check(surface_props_names,
+                   dsurface_names,
+                   dsurface_rmatrix_dx,
+                   dsurface_emission_dx);
 
-//    Index irq;
-//    irq = find_first(dsurface_names, String("Skin temperature"));
-//
-//    if (irq >= 0){
-//      // Find index among jacobian quantities
-//      Index ihit = -1;
-//      for (Index j = 0; j < jacobian_quantities.nelem() && ihit < 0; j++) {
-//        if (dsurface_names[irq] == jacobian_quantities[j].Subtag()) {
-//          ihit = j;
-//        }
-//      }
-//
-//      // Derivative of surface skin temperature, as observed at the surface
-//      Matrix diy_dpos0(f_grid.nelem(), stokes_dim, 0.), diy_dpos;
-//      dplanck_dt(diy_dpos0(joker, 0), f_grid, surface_skin_t[0]);
-//
-//      Vector emissivity=surface_scalar_reflectivity;
-//      emissivity*=-1;
-//      emissivity+=1;
-//      diy_dpos0*=emissivity;
-//
-//      // Weight with transmission to sensor
-//      iy_transmittance_mult(diy_dpos, iy_transmittance, diy_dpos0);
-//
-//      // Put into diy_dx
-//      diy_from_pos_to_rgrids(diy_dx[ihit],
-//                             jacobian_quantities[ihit],
-//                             diy_dpos,
-//                             atmosphere_dim,
-//                             rtp_pos);
-//
-//    }
-    std::cout <<"Jacobian not implemented so far!";
+    Index irq;
 
+    // Skin temperature
+    irq = find_first(dsurface_names, String("Skin temperature"));
+    if (irq >= 0) {
+      const Numeric dd = 0.1;
+      Matrix surface_los2;
+      surfaceFlatReflectivity(surface_los2,
+                                    dsurface_rmatrix_dx[irq],
+                                    dsurface_emission_dx[irq],
+                                    f_grid,
+                                    stokes_dim,
+                                    atmosphere_dim,
+                                    rtp_pos,
+                                    rtp_los,
+                                    specular_los,
+                                    surface_skin_t[0]+dd,
+                                    surface_reflectivity,
+                                    verbosity);
+      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+      dsurface_rmatrix_dx[irq] /= dd;
+      dsurface_emission_dx[irq] -= surface_emission;
+      dsurface_emission_dx[irq] /= dd;
+    }
   }
+
+  iySurfaceRtpropCalc(ws,
+                      iy,
+                      diy_dx,
+                      surface_los,
+                      surface_rmatrix,
+                      surface_emission,
+                      dsurface_names,
+                      dsurface_rmatrix_dx,
+                      dsurface_emission_dx,
+                      iy_transmittance,
+                      iy_id,
+                      jacobian_do,
+                      star_do,
+                      jacobian_quantities,
+                      atmosphere_dim,
+                      nlte_field,
+                      cloudbox_on,
+                      stokes_dim,
+                      f_grid,
+                      rtp_pos,
+                      rtp_los,
+                      rte_pos2,
+                      iy_unit,
+                      iy_main_agenda,
+                      verbosity);
+
+
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceFlatReflectivityDirect(
     Workspace& ws,
     Matrix& iy,
-    ArrayOfTensor3& diy_dx,
     const Vector& rtp_pos,
     const Vector& rtp_los,
     const Index& stokes_dim,
@@ -1147,7 +1132,6 @@ void iySurfaceLambertian(Workspace& ws,
 void iySurfaceLambertianDirect(
     Workspace& ws,
     Matrix& iy,
-    ArrayOfTensor3& diy_dx,
     const Vector& rtp_pos,
     const Index& stokes_dim,
     const Vector& f_grid,
@@ -1561,7 +1545,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                               geo_pos,
                               0,
                               iy_trans_new,
-                              ArrayOfString(0),
+                              iy_aux_var,
                               iy_id,
                               iy_unit,
                               cloudbox_on,
