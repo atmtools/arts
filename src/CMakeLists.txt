@@ -697,3 +697,12 @@ add_custom_command(OUTPUT tokval.h tokval.cc
                    COMMAND make_tokval_h
                    DEPENDS make_tokval_h)
 
+########################################################################################
+pybind11_add_module(test_pyversion test_pyversion.cc)
+add_custom_target(check-pyversion
+  COMMAND ${Python3_EXECUTABLE} -c "import test_pyversion\\; test_pyversion.check_pyversion\\(\\)"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS test_pyversion
+  COMMENT "Check Python version")
+########################################################################################
+
