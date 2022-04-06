@@ -761,6 +761,157 @@ void iySurfaceFlatReflectivityDirect(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceFlatRefractiveIndexDirect(
+    Workspace& ws,
+    Matrix& iy,
+    const Vector& rtp_pos,
+    const Vector& rtp_los,
+    const Index& stokes_dim,
+    const Vector& f_grid,
+    const Index& atmosphere_dim,
+    const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Tensor3& z_field,
+    const Tensor3& t_field,
+    const EnergyLevelMap& nlte_field,
+    const Tensor4& vmr_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Tensor3& wind_u_field,
+    const Tensor3& wind_v_field,
+    const Tensor3& wind_w_field,
+    const Tensor3& mag_u_field,
+    const Tensor3& mag_v_field,
+    const Tensor3& mag_w_field,
+    const Matrix& z_surface,
+    const GriddedField3& surface_complex_refr_index,
+    const Vector& refellipsoid,
+    const Tensor4& pnd_field,
+    const ArrayOfTensor4& dpnd_field_dx,
+    const ArrayOfString& scat_species,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Numeric& ppath_lmax,
+    const Numeric& ppath_lraytrace,
+    const Index& ppath_inside_cloudbox_do,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
+    const Index& star_do,
+    const Index& gas_scattering_do,
+    const Index& jacobian_do,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfStar& stars,
+    const Numeric& rte_alonglos_v,
+    const String& iy_unit,
+    const Agenda& propmat_clearsky_agenda,
+    const Agenda& water_p_eq_agenda,
+    const Agenda& gas_scattering_agenda,
+    const Agenda& ppath_step_agenda,
+    const Verbosity& verbosity) {
+  //Check for correct unit
+  ARTS_USER_ERROR_IF(iy_unit != "1" && star_do,
+                     "If stars are present only iy_unit=\"1\" can be used.");
+
+  chk_size("iy", iy, f_grid.nelem(), stokes_dim);
+
+  if (star_do) {
+    Matrix iy_incoming;
+    Index stars_visible;
+    Vector specular_los;
+
+    //Get incoming direct radiation, if no star is in line of sight, then
+    //iy_incoming is zero.
+    surface_get_incoming_direct(ws,
+                                iy_incoming,
+                                stars_visible,
+                                specular_los,
+                                rtp_pos,
+                                rtp_los,
+                                stokes_dim,
+                                f_grid,
+                                atmosphere_dim,
+                                p_grid,
+                                lat_grid,
+                                lon_grid,
+                                z_field,
+                                t_field,
+                                nlte_field,
+                                vmr_field,
+                                abs_species,
+                                wind_u_field,
+                                wind_v_field,
+                                wind_w_field,
+                                mag_u_field,
+                                mag_v_field,
+                                mag_w_field,
+                                z_surface,
+                                refellipsoid,
+                                pnd_field,
+                                dpnd_field_dx,
+                                scat_species,
+                                scat_data,
+                                ppath_lmax,
+                                ppath_lraytrace,
+                                ppath_inside_cloudbox_do,
+                                cloudbox_on,
+                                cloudbox_limits,
+                                gas_scattering_do,
+                                jacobian_do,
+                                jacobian_quantities,
+                                stars,
+                                rte_alonglos_v,
+                                propmat_clearsky_agenda,
+                                water_p_eq_agenda,
+                                gas_scattering_agenda,
+                                ppath_step_agenda,
+                                verbosity);
+
+    if (stars_visible) {
+      Matrix surface_los;
+      Tensor4 surface_rmatrix;
+      Matrix surface_emission;
+      Numeric surface_skin_t_dummy = 1.;
+
+      //As we only consider the reflection of the direct radiation we do not consider
+      //any type of surface emission, therefore we set the surface skin temperature
+      //to a dummy value and later on set the surface emission vector (matrix) to zero.
+//      surfaceFlatReflectivity(surface_los,
+//                              surface_rmatrix,
+//                              surface_emission,
+//                              f_grid,
+//                              stokes_dim,
+//                              atmosphere_dim,
+//                              rtp_pos,
+//                              rtp_los,
+//                              specular_los,
+//                              surface_skin_t_dummy,
+//                              surface_reflectivity,
+//                              verbosity);
+     surfaceFlatRefractiveIndex(surface_los,
+                                surface_rmatrix,
+                                surface_emission,
+                                f_grid,
+                                stokes_dim,
+                                atmosphere_dim,
+                                rtp_pos,
+                                rtp_los,
+                                specular_los,
+                                surface_skin_t_dummy,
+                                surface_complex_refr_index,
+                                verbosity);
+
+      surface_emission *= 0.;
+
+      Tensor3 I(1, f_grid.nelem(), stokes_dim);
+      I(0, joker, joker) = iy_incoming;
+
+      surface_calc(iy, I, surface_los, surface_rmatrix, surface_emission);
+
+      //TODO: add reflectivity jacobian
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceInit(Matrix& iy,
                    const Vector& f_grid,
                    const Index& stokes_dim,
