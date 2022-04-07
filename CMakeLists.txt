@@ -143,8 +143,6 @@ if (NO_USER_ERRORS)
   add_definitions (-DNO_ARTS_USER_ERRORS)
 endif (NO_USER_ERRORS)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
-
 ########### ccache Support ##########
 
 if (ENABLE_CCACHE)
