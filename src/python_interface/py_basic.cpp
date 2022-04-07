@@ -117,7 +117,7 @@ be accessed without copy using element-wise access operators.
 
   py::class_<Numeric_>(m, "Numeric")
       .def(py::init<>())
-      .def(py::init<Index>())
+      .def(py::init([](Index i)->Numeric_ {return Numeric_{static_cast<Numeric>(i)};}))
       .def(py::init<Numeric>())
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
@@ -193,7 +193,6 @@ You can get copies and set the value by the \"val\" property
   py::class_<Index_>(m, "Index")
       .def(py::init<>())
       .def(py::init<Index>())
-      .def(py::init<Numeric>())
       .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
       .def(+ py::self)
@@ -270,7 +269,6 @@ You can get copies and set the value by the \"val\" property
   py::implicitly_convertible<Index, Numeric_>();
   py::implicitly_convertible<Numeric, Numeric_>();
   py::implicitly_convertible<Index, Index_>();
-  py::implicitly_convertible<Numeric, Index_>();
 
   py::class_<Any>(m, "Any")
       .def("__repr__", [](Any&) { return "Any"; })
