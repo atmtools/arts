@@ -84,7 +84,9 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
                                                  ")"));                     \
             x[i] = std::move(y);                                            \
           },                                                                \
-          py::return_value_policy::reference_internal)
+          py::return_value_policy::reference_internal)                      \
+      .def("__iter__", [](Type& s) { return py::make_iterator(s.begin(), s.end()); },  \
+                          py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
 
 #define PythonInterfaceBasicRepresentation(Type)       \
   def(                                                 \
