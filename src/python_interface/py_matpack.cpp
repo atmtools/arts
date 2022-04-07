@@ -1,4 +1,5 @@
 #include <py_auto_interface.h>
+#include <pybind11/eigen.h>
 #include <pybind11/numpy.h>
 
 #include "py_macros.h"

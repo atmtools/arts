@@ -7,12 +7,13 @@
 #include <optional>
 #include <variant>
 
+#include <pybind11/pybind11.h>
+#include <py_auto_interface.h>
+
 #include <pybind11/eigen.h>
-#include <pybind11/embed.h>
 #include <pybind11/functional.h>
 #include <pybind11/numpy.h>
 #include <pybind11/operators.h>
-#include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl/filesystem.h>
@@ -39,7 +40,6 @@
 #include <supergeneric.h>
 #include <xml_io.h>
 
-#include <py_auto_interface.h>
 
 //! Contains a bunch of helper functions to manipulate python objects inside C++
 namespace Python {
