@@ -220,9 +220,23 @@
 
 namespace Python {
 void py_matpack(py::module_& m) {
-  py::class_<Vector>(m, "Vector", py::buffer_protocol())
+  py::class_<ConstVectorView>(m, "Const" "Vector" "View");
+  py::class_<ConstMatrixView>(m, "Const" "Matrix" "View");
+  py::class_<ConstTensor3View>(m, "Const" "Tensor3" "View");
+  py::class_<ConstTensor4View>(m, "Const" "Tensor4" "View");
+  py::class_<ConstTensor5View>(m, "Const" "Tensor5" "View");
+  py::class_<ConstTensor6View>(m, "Const" "Tensor6" "View");
+  py::class_<ConstTensor7View>(m, "Const" "Tensor7" "View");
+  py::class_<VectorView, ConstVectorView>(m, "Vector" "View");
+  py::class_<MatrixView, ConstMatrixView>(m, "Matrix" "View");
+  py::class_<Tensor3View, ConstTensor3View>(m, "Tensor3" "View");
+  py::class_<Tensor4View, ConstTensor4View>(m, "Tensor4" "View");
+  py::class_<Tensor5View, ConstTensor5View>(m, "Tensor5" "View");
+  py::class_<Tensor6View, ConstTensor6View>(m, "Tensor6" "View");
+  py::class_<Tensor7View, ConstTensor7View>(m, "Tensor7" "View");
+
+  py::class_<Vector, VectorView>(m, "Vector", py::buffer_protocol())
       .def(py::init<>())
-      .def(py::init<Index>())
       .def(py::init<Index, Numeric>())
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
@@ -282,7 +296,7 @@ void py_matpack(py::module_& m) {
       "    Vector(List or Array): to copy elements\n\n"
       "    Vector(Numeric x, Index n, Numeric dx): as Vector([x+i*dx for i in range(n)])\n\n";
 
-  py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
+  py::class_<Matrix, MatrixView>(m, "Matrix", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Index, Index>())
       .def(py::init<Index, Index, Numeric>())
@@ -396,7 +410,7 @@ void py_matpack(py::module_& m) {
       "    Matrix(Index, Index, Numeric): for constant size, constant value\n\n"
       "    Matrix(List or Array): to copy elements\n\n";
 
-  py::class_<Tensor3>(m, "Tensor3", py::buffer_protocol())
+  py::class_<Tensor3, Tensor3View>(m, "Tensor3", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Index, Index, Index>())
       .def(py::init<Index, Index, Index, Numeric>())
@@ -483,7 +497,7 @@ void py_matpack(py::module_& m) {
       "    Tensor3(Index, Index, Index, Numeric): for constant size, constant value\n\n"
       "    Tensor3(List or Array): to copy elements\n\n";
 
-  py::class_<Tensor4>(m, "Tensor4", py::buffer_protocol())
+  py::class_<Tensor4, Tensor4View>(m, "Tensor4", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Numeric>())
@@ -576,7 +590,7 @@ void py_matpack(py::module_& m) {
       "    Tensor4(Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
       "    Tensor4(List or Array): to copy elements\n\n";
 
-  py::class_<Tensor5>(m, "Tensor5", py::buffer_protocol())
+  py::class_<Tensor5, Tensor5View>(m, "Tensor5", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Numeric>())
@@ -673,7 +687,7 @@ void py_matpack(py::module_& m) {
       "    Tensor5(Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
       "    Tensor5(List or Array): to copy elements\n\n";
 
-  py::class_<Tensor6>(m, "Tensor6", py::buffer_protocol())
+  py::class_<Tensor6, Tensor6View>(m, "Tensor6", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Numeric>())
@@ -779,7 +793,7 @@ void py_matpack(py::module_& m) {
       "    Tensor6(Index, Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
       "    Tensor6(List or Array): to copy elements\n\n";
 
-  py::class_<Tensor7>(m, "Tensor7", py::buffer_protocol())
+  py::class_<Tensor7, Tensor7View>(m, "Tensor7", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Index>())
       .def(py::init<Index, Index, Index, Index, Index, Index, Index, Numeric>())
