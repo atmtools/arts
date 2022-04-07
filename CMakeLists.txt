@@ -205,7 +205,8 @@ endif ()
 
 ########### Python ##########
 
-add_definitions(-fPIC)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 ########### Check C header files ##########
 check_include_file (stdlib.h    HAVE_STDLIB_H)
