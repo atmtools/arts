@@ -1,7 +1,10 @@
 #include <py_auto_interface.h>
 #include <pybind11/eigen.h>
 #include <pybind11/numpy.h>
+#include <type_traits>
+#include <vector>
 
+#include "matpackI.h"
 #include "py_macros.h"
 
 #define PythonInterfaceMatpackMath(Type)                          \
@@ -220,6 +223,17 @@
           py::is_operator())
 
 namespace Python {
+using Scalar = std::variant<Index, Numeric>;
+
+template<typename T>
+void test_correct_size(const std::vector<T>& x) {
+  if constexpr (not std::is_same_v<Scalar, T>) {
+    // T is a vector!
+    ARTS_USER_ERROR_IF(x.size() and std::any_of(x.begin()+1, x.end(), [n=x.front().size()](auto& v){return v.size() != n;}), "Bad size")
+    for (auto& y: x) test_correct_size(y);
+  }
+}
+
 void py_matpack(py::module_& m) {
   py::class_<ConstVectorView>(m,
                               "Const"
@@ -273,8 +287,28 @@ void py_matpack(py::module_& m) {
 
   py::class_<Vector, VectorView>(m, "Vector", py::buffer_protocol())
       .def(py::init([]() { return new Vector{}; }))
-      .def(
-          py::init([](const std::vector<Numeric>& v) { return new Vector{v}; }))
+      .def(py::init([](const std::vector<Scalar>& v) {
+        auto* out = new Vector(v.size());
+        for (size_t i=0; i<v.size(); i++) out -> operator[](i) = std::visit([](auto&&x) {return static_cast<Numeric>(x);}, v[i]);
+        return out; 
+        } ))
+      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
+        auto info = arr.request();
+        if (info.ndim == 1 and info.shape[0] == 0) return Vector{};
+
+        Index i = 1;
+        ARTS_USER_ERROR_IF(info.ndim not_eq i,
+                           "Can only initialize from empty or ",
+                           i,
+                           "D array")
+        std::size_t nc = info.shape[--i];
+
+        auto* val = reinterpret_cast<Numeric*>(info.ptr);
+        Vector out(nc);
+        std::copy(val, val + out.size(), out.get_c_array());
+
+        return out;
+      }))
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
       .PythonInterfaceMatpackMath(Vector)
@@ -333,7 +367,20 @@ void py_matpack(py::module_& m) {
 
   py::class_<Matrix, MatrixView>(m, "Matrix", py::buffer_protocol())
       .def(py::init([]() { return new Matrix{}; }))
-      .def(py::init([](const py::array_t<Numeric>& arr) {
+      .def(py::init([](const std::vector<std::vector<Scalar>>& v) {
+        test_correct_size(v);
+        auto n1 = v.size();
+        auto n2 = n1 > 0 ? v[0].size() : 0;
+        auto* out = new Matrix(n1, n2);
+        for (size_t i = 0; i < n1; i++) {
+          for (size_t j = 0; j < n2; j++) {
+            out->operator()(i, j) = std::visit(
+                [](auto&& x) { return static_cast<Numeric>(x); }, v[i][j]);
+          }
+        }
+        return out;
+      }))
+      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Matrix{};
 
@@ -445,7 +492,24 @@ void py_matpack(py::module_& m) {
 
   py::class_<Tensor3, Tensor3View>(m, "Tensor3", py::buffer_protocol())
       .def(py::init([]() { return new Tensor3{}; }))
-      .def(py::init([](const py::array_t<Numeric>& arr) {
+      .def(py::init([](const std::vector<std::vector<std::vector<Scalar>>>& v) {
+        test_correct_size(v);
+        auto n1 = v.size();
+        auto n2 = n1 > 0 ? v[0].size() : 0;
+        auto n3 = n2 > 0 ? v[0][0].size() : 0;
+        auto* out = new Tensor3(n1, n2, n3);
+        for (size_t i1 = 0; i1 < n1; i1++) {
+          for (size_t i2 = 0; i2 < n2; i2++) {
+            for (size_t i3 = 0; i3 < n3; i3++) {
+              out->operator()(i1, i2, i3) =
+                  std::visit([](auto&& x) { return static_cast<Numeric>(x); },
+                             v[i1][i2][i3]);
+            }
+          }
+        }
+        return out;
+      }))
+      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor3{};
 
@@ -530,7 +594,29 @@ void py_matpack(py::module_& m) {
 
   py::class_<Tensor4, Tensor4View>(m, "Tensor4", py::buffer_protocol())
       .def(py::init([]() { return new Tensor4{}; }))
-      .def(py::init([](const py::array_t<Numeric>& arr) {
+      .def(py::init(
+          [](const std::vector<std::vector<std::vector<std::vector<Scalar>>>>&
+                 v) {
+            test_correct_size(v);
+            auto n1 = v.size();
+            auto n2 = n1 > 0 ? v[0].size() : 0;
+            auto n3 = n2 > 0 ? v[0][0].size() : 0;
+            auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
+            auto* out = new Tensor4(n1, n2, n3, n4);
+            for (size_t i1 = 0; i1 < n1; i1++) {
+              for (size_t i2 = 0; i2 < n2; i2++) {
+                for (size_t i3 = 0; i3 < n3; i3++) {
+                  for (size_t i4 = 0; i4 < n4; i4++) {
+                    out->operator()(i1, i2, i3, i4) = std::visit(
+                        [](auto&& x) { return static_cast<Numeric>(x); },
+                        v[i1][i2][i3][i4]);
+                  }
+                }
+              }
+            }
+            return out;
+          }))
+      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor4{};
 
@@ -621,7 +707,32 @@ void py_matpack(py::module_& m) {
 
   py::class_<Tensor5, Tensor5View>(m, "Tensor5", py::buffer_protocol())
       .def(py::init([]() { return new Tensor5{}; }))
-      .def(py::init([](const py::array_t<Numeric>& arr) {
+      .def(py::init(
+          [](const std::vector<
+              std::vector<std::vector<std::vector<std::vector<Scalar>>>>>& v) {
+            test_correct_size(v);
+            auto n1 = v.size();
+            auto n2 = n1 > 0 ? v[0].size() : 0;
+            auto n3 = n2 > 0 ? v[0][0].size() : 0;
+            auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
+            auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
+            auto* out = new Tensor5(n1, n2, n3, n4, n5);
+            for (size_t i1 = 0; i1 < n1; i1++) {
+              for (size_t i2 = 0; i2 < n2; i2++) {
+                for (size_t i3 = 0; i3 < n3; i3++) {
+                  for (size_t i4 = 0; i4 < n4; i4++) {
+                    for (size_t i5 = 0; i5 < n5; i5++) {
+                      out->operator()(i1, i2, i3, i4, i5) = std::visit(
+                          [](auto&& x) { return static_cast<Numeric>(x); },
+                          v[i1][i2][i3][i4][i5]);
+                    }
+                  }
+                }
+              }
+            }
+            return out;
+          }))
+      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor5{};
 
@@ -716,7 +827,35 @@ void py_matpack(py::module_& m) {
 
   py::class_<Tensor6, Tensor6View>(m, "Tensor6", py::buffer_protocol())
       .def(py::init([]() { return new Tensor6{}; }))
-      .def(py::init([](const py::array_t<Numeric>& arr) {
+      .def(
+          py::init([](const std::vector<std::vector<std::vector<
+                          std::vector<std::vector<std::vector<Scalar>>>>>>& v) {
+            test_correct_size(v);
+            auto n1 = v.size();
+            auto n2 = n1 > 0 ? v[0].size() : 0;
+            auto n3 = n2 > 0 ? v[0][0].size() : 0;
+            auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
+            auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
+            auto n6 = n5 > 0 ? v[0][0][0][0][0].size() : 0;
+            auto* out = new Tensor6(n1, n2, n3, n4, n5, n6);
+            for (size_t i1 = 0; i1 < n1; i1++) {
+              for (size_t i2 = 0; i2 < n2; i2++) {
+                for (size_t i3 = 0; i3 < n3; i3++) {
+                  for (size_t i4 = 0; i4 < n4; i4++) {
+                    for (size_t i5 = 0; i5 < n5; i5++) {
+                      for (size_t i6 = 0; i6 < n6; i6++) {
+                        out->operator()(i1, i2, i3, i4, i5, i6) = std::visit(
+                            [](auto&& x) { return static_cast<Numeric>(x); },
+                            v[i1][i2][i3][i4][i5][i6]);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            return out;
+          }))
+      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor6{};
 
@@ -820,7 +959,41 @@ void py_matpack(py::module_& m) {
 
   py::class_<Tensor7, Tensor7View>(m, "Tensor7", py::buffer_protocol())
       .def(py::init([]() { return new Tensor7{}; }))
-      .def(py::init([](const py::array_t<Numeric>& arr) {
+      .def(py::init(
+          [](const std::vector<std::vector<std::vector<std::vector<
+                 std::vector<std::vector<std::vector<Scalar>>>>>>>& v) {
+            test_correct_size(v);
+            auto n1 = v.size();
+            auto n2 = n1 > 0 ? v[0].size() : 0;
+            auto n3 = n2 > 0 ? v[0][0].size() : 0;
+            auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
+            auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
+            auto n6 = n5 > 0 ? v[0][0][0][0][0].size() : 0;
+            auto n7 = n6 > 0 ? v[0][0][0][0][0][0].size() : 0;
+            auto* out = new Tensor7(n1, n2, n3, n4, n5, n6, n7);
+            for (size_t i1 = 0; i1 < n1; i1++) {
+              for (size_t i2 = 0; i2 < n2; i2++) {
+                for (size_t i3 = 0; i3 < n3; i3++) {
+                  for (size_t i4 = 0; i4 < n4; i4++) {
+                    for (size_t i5 = 0; i5 < n5; i5++) {
+                      for (size_t i6 = 0; i6 < n6; i6++) {
+                        for (size_t i7 = 0; i7 < n7; i7++) {
+                          out->operator()(i1, i2, i3, i4, i5, i6, i7) =
+                              std::visit(
+                                  [](auto&& x) {
+                                    return static_cast<Numeric>(x);
+                                  },
+                                  v[i1][i2][i3][i4][i5][i6][i7]);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            return out;
+          }))
+      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor7{};
 
@@ -928,21 +1101,26 @@ void py_matpack(py::module_& m) {
       "    Tensor7(Index, Index, Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
       "    Tensor7(List or Array): to copy elements\n\n";
 
+  py::implicitly_convertible<std::vector<Scalar>, Vector>();
   py::implicitly_convertible<py::array, Vector>();
-  py::implicitly_convertible<py::array, Matrix>();
-  py::implicitly_convertible<py::array, Tensor3>();
-  py::implicitly_convertible<py::array, Tensor4>();
-  py::implicitly_convertible<py::array, Tensor5>();
-  py::implicitly_convertible<py::array, Tensor6>();
-  py::implicitly_convertible<py::array, Tensor7>();
 
-  py::implicitly_convertible<py::list, Vector>();
-  py::implicitly_convertible<py::list, Matrix>();
-  py::implicitly_convertible<py::list, Tensor3>();
-  py::implicitly_convertible<py::list, Tensor4>();
-  py::implicitly_convertible<py::list, Tensor5>();
-  py::implicitly_convertible<py::list, Tensor6>();
-  py::implicitly_convertible<py::list, Tensor7>();
+  py::implicitly_convertible<std::vector<std::vector<Scalar>>, Matrix>();
+  py::implicitly_convertible<py::array, Matrix>();
+
+  py::implicitly_convertible<std::vector<std::vector<std::vector<Scalar>>>, Tensor3>();
+  py::implicitly_convertible<py::array, Tensor3>();
+
+  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<Scalar>>>>, Tensor4>();
+  py::implicitly_convertible<py::array, Tensor4>();
+
+  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>, Tensor5>();
+  py::implicitly_convertible<py::array, Tensor5>();
+
+  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>, Tensor6>();
+  py::implicitly_convertible<py::array, Tensor6>();
+
+  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>>, Tensor7>();
+  py::implicitly_convertible<py::array, Tensor7>();
 
   PythonInterfaceWorkspaceArray(Vector);
   PythonInterfaceWorkspaceArray(Matrix);
