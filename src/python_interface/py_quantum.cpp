@@ -7,15 +7,15 @@
 namespace Python {
 void py_quantum(py::module_& m) {
   py::class_<QuantumNumberType>(m, "QuantumNumberType")
-      .def(py::init<>())
-      .def(py::init([](const char* c) { return Quantum::Number::toTypeOrThrow(c); }), py::arg("str").none(false))
+      .def(py::init([]() { return new QuantumNumberType{}; }))
+      .def(py::init([](const std::string& c) { return Quantum::Number::toTypeOrThrow(c); }))
       .PythonInterfaceCopyValue(QuantumNumberType)
       .PythonInterfaceBasicRepresentation(QuantumNumberType);
-  py::implicitly_convertible<py::str, QuantumNumberType>();
+  py::implicitly_convertible<std::string, QuantumNumberType>();
 
   py::class_<QuantumNumberValue>(m, "QuantumNumberValue")
-      .def(py::init<>())
-      .def(py::init<const char*>(), py::arg("str").none(false))
+      .def(py::init([]() { return new QuantumNumberValue{}; }))
+      .def(py::init([](const std::string& s) { return new QuantumNumberValue{s}; }))
       .PythonInterfaceCopyValue(QuantumNumberValue)
       .PythonInterfaceBasicRepresentation(QuantumNumberValue)
       .def_readwrite("type", &QuantumNumberValue::type)
@@ -35,11 +35,11 @@ void py_quantum(py::module_& m) {
                     [](QuantumNumberValue& x, Rational& y) {
                       x.set(var_string(y), false);
                     });
-  py::implicitly_convertible<py::str, QuantumNumberValue>();
+  py::implicitly_convertible<std::string, QuantumNumberValue>();
 
   py::class_<QuantumNumberValueList>(m, "QuantumNumberValueList")
-      .def(py::init<>())
-      .def(py::init<const char*>(), py::arg("str").none(false))
+      .def(py::init([]() { return new QuantumNumberValueList{}; }))
+      .def(py::init([](const std::string& s) { return new QuantumNumberValueList{s}; }))
       .PythonInterfaceCopyValue(QuantumNumberValueList)
       .def("get",
            [](QuantumNumberValueList& x, QuantumNumberType y) {
@@ -48,16 +48,15 @@ void py_quantum(py::module_& m) {
       .def("set",
            [](QuantumNumberValueList& x, QuantumNumberValue y) { x.set(y); })
       .PythonInterfaceBasicRepresentation(QuantumNumberValueList);
-  py::implicitly_convertible<py::str, QuantumNumberValueList>();
+  py::implicitly_convertible<std::string, QuantumNumberValueList>();
 
   py::class_<QuantumNumberLocalState>(m, "QuantumNumberLocalState")
-      .def(py::init<>())
-      .def(py::init([](const char* str) {
+      .def(py::init([]() { return new QuantumNumberLocalState{}; }))
+      .def(py::init([](const std::string& str) {
              auto out = QuantumNumberLocalState{};
              out.val = QuantumNumberValueList{str};
              return out;
-           }),
-           py::arg("str").none(false))
+           }))
       .def(py::init([](QuantumNumberValueList& ql) {
         auto out = QuantumNumberLocalState{};
         out.val = ql;
@@ -66,11 +65,11 @@ void py_quantum(py::module_& m) {
       .PythonInterfaceCopyValue(QuantumNumberLocalState)
       .PythonInterfaceBasicRepresentation(QuantumNumberLocalState)
       .def_readwrite("state", &QuantumNumberLocalState::val);
-  py::implicitly_convertible<py::str, QuantumNumberLocalState>();
+  py::implicitly_convertible<std::string, QuantumNumberLocalState>();
 
   py::class_<QuantumIdentifier>(m, "QuantumIdentifier")
-      .def(py::init<>())
-      .def(py::init<const char*>(), py::arg("str").none(false))
+      .def(py::init([]() { return new QuantumIdentifier{}; }))
+      .def(py::init([](const std::string& s) { return new QuantumIdentifier{s}; }))
       .PythonInterfaceCopyValue(QuantumIdentifier)
       .PythonInterfaceWorkspaceVariableConversion(QuantumIdentifier)
       .PythonInterfaceFileIO(QuantumIdentifier)
@@ -88,7 +87,7 @@ void py_quantum(py::module_& m) {
             ARTS_USER_ERROR_IF(res < 0, "Bad species: ", iso)
             qid.isotopologue_index = res;
           });
-  py::implicitly_convertible<py::str, QuantumIdentifier>();
+  py::implicitly_convertible<std::string, QuantumIdentifier>();
 
   PythonInterfaceWorkspaceArray(QuantumIdentifier);
 }

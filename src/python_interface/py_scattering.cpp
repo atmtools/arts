@@ -11,7 +11,7 @@ void py_scattering(py::module_& m) {
       .PythonInterfaceCopyValue(PType);
 
   py::class_<SingleScatteringData>(m, "SingleScatteringData")
-      .def(py::init<>())
+      .def(py::init([]() { return new SingleScatteringData{}; }))
       .PythonInterfaceCopyValue(SingleScatteringData)
       .PythonInterfaceWorkspaceVariableConversion(SingleScatteringData)
       .PythonInterfaceFileIO(SingleScatteringData)
@@ -27,7 +27,7 @@ void py_scattering(py::module_& m) {
       .def_readwrite("abs_vec_data", &SingleScatteringData::abs_vec_data);
 
   py::class_<ScatteringMetaData>(m, "ScatteringMetaData")
-      .def(py::init<>())
+      .def(py::init([]() { return new ScatteringMetaData{}; }))
       .PythonInterfaceCopyValue(ScatteringMetaData)
       .PythonInterfaceWorkspaceVariableConversion(ScatteringMetaData)
       .PythonInterfaceFileIO(ScatteringMetaData)

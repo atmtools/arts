@@ -5,8 +5,8 @@
 namespace Python {
 void py_griddedfield(py::module_& m) {
   py::class_<GriddedField1>(m, "GriddedField1")
-      .def(py::init<>())
-      .def(py::init<const String&>())
+      .def(py::init([]() { return new GriddedField1{}; }))
+      .def(py::init([](const String& s) { return new GriddedField1{s}; }))
       .PythonInterfaceCopyValue(GriddedField1)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField1)
       .PythonInterfaceFileIO(GriddedField1)
@@ -14,8 +14,8 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField1);
 
   py::class_<GriddedField2>(m, "GriddedField2")
-      .def(py::init<>())
-      .def(py::init<const String&>())
+      .def(py::init([]() { return new GriddedField2{}; }))
+      .def(py::init([](const String& s) { return new GriddedField2{s}; }))
       .PythonInterfaceCopyValue(GriddedField2)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField2)
       .PythonInterfaceFileIO(GriddedField2)
@@ -23,8 +23,8 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField2);
 
   py::class_<GriddedField3>(m, "GriddedField3")
-      .def(py::init<>())
-      .def(py::init<const String&>())
+      .def(py::init([]() { return new GriddedField3{}; }))
+      .def(py::init([](const String& s) { return new GriddedField3{s}; }))
       .PythonInterfaceCopyValue(GriddedField3)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField3)
       .PythonInterfaceFileIO(GriddedField3)
@@ -32,8 +32,8 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField3);
 
   py::class_<GriddedField4>(m, "GriddedField4")
-      .def(py::init<>())
-      .def(py::init<const String&>())
+      .def(py::init([]() { return new GriddedField4{}; }))
+      .def(py::init([](const String& s) { return new GriddedField4{s}; }))
       .PythonInterfaceCopyValue(GriddedField4)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField4)
       .PythonInterfaceFileIO(GriddedField4)
@@ -41,8 +41,8 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField4);
 
   py::class_<GriddedField5>(m, "GriddedField5")
-      .def(py::init<>())
-      .def(py::init<const String&>())
+      .def(py::init([]() { return new GriddedField5{}; }))
+      .def(py::init([](const String& s) { return new GriddedField5{s}; }))
       .PythonInterfaceCopyValue(GriddedField5)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField5)
       .PythonInterfaceFileIO(GriddedField5)
@@ -50,8 +50,8 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField5);
 
   py::class_<GriddedField6>(m, "GriddedField6")
-      .def(py::init<>())
-      .def(py::init<const String&>())
+      .def(py::init([]() { return new GriddedField6{}; }))
+      .def(py::init([](const String& s) { return new GriddedField6{s}; }))
       .PythonInterfaceCopyValue(GriddedField6)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField6)
       .PythonInterfaceFileIO(GriddedField6)

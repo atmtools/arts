@@ -5,7 +5,7 @@
 namespace Python {
 void py_tessem(py::module_& m) {
   py::class_<TessemNN>(m, "TessemNN")
-      .def(py::init<>())
+      .def(py::init([]() { return new TessemNN{}; }))
       .PythonInterfaceCopyValue(TessemNN)
       .PythonInterfaceWorkspaceVariableConversion(TessemNN)
       .PythonInterfaceFileIO(TessemNN)

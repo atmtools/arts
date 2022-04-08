@@ -7,8 +7,7 @@
 namespace Python {
 void py_sparse(py::module_& m) {
   py::class_<Sparse>(m, "Sparse")
-      .def(py::init<>())
-      .def(py::init<Index, Index>())
+      .def(py::init([]() { return new Sparse{}; }))
       .def(py::init([](Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
         Sparse s;
         s.matrix.swap(es);
@@ -69,7 +68,7 @@ void py_sparse(py::module_& m) {
       });
 
   py::class_<CovarianceMatrix>(m, "CovarianceMatrix")
-      .def(py::init<>())
+      .def(py::init([]() { return new CovarianceMatrix{}; }))
       .PythonInterfaceCopyValue(CovarianceMatrix)
       .PythonInterfaceWorkspaceVariableConversion(CovarianceMatrix)
       .def_property(

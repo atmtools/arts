@@ -85,8 +85,12 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
             x[i] = std::move(y);                                            \
           },                                                                \
           py::return_value_policy::reference_internal)                      \
-      .def("__iter__", [](Type& s) { return py::make_iterator(s.begin(), s.end()); },  \
-                          py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
+      .def(                                                                 \
+          "__iter__",                                                       \
+          [](Type& s) { return py::make_iterator(s.begin(), s.end()); },    \
+          py::keep_alive<                                                   \
+              0,                                                            \
+              1>() /* Essential: keep object alive while iterator exists */)
 
 #define PythonInterfaceBasicRepresentation(Type)       \
   def(                                                 \
@@ -126,10 +130,13 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
 #define PythonInterfaceArrayDefault(BaseType)                                 \
   PythonInterfaceIndexItemAccess(Array<BaseType>)                             \
       .PythonInterfaceCopyValue(Array<BaseType>)                              \
-      .def(py::init<>())                                                      \
-      .def(py::init<Index>())                                                 \
-      .def(py::init<Index, BaseType>())                                       \
-      .def(py::init<std::vector<BaseType>>())                                 \
+      .def(py::init([]() { return new Array<BaseType>{}; }))                  \
+      .def(py::init([](Index n, const BaseType& v) {                          \
+        return new Array<BaseType>(n, v);                                     \
+      }))                                                                     \
+      .def(py::init([](const std::vector<BaseType>& v) {                      \
+        return new Array<BaseType>{v};                                        \
+      }))                                                                     \
       .def(                                                                   \
           "append",                                                           \
           [](Array<BaseType>& x, BaseType y) {                                \
@@ -213,13 +220,14 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
           [](Type& x, const Other& y) { return y - x; }, \
           py::is_operator())
 
-#define PythonInterfaceWorkspaceVariableConversion(Type) \
-  def(py::init([](const WorkspaceVariable* w) {          \
-        Type& v = *w;                                    \
-        return new Type(v);                              \
-      }),                                                \
-      py::arg("wsv").none(false).noconvert(),            \
-      py::doc("Automatic conversion from a workspace variable"))
+#define PythonInterfaceWorkspaceVariableConversion(Type)   \
+  def(py::init([](const Type& x) { return new Type{x}; })) \
+      .def(py::init([](const WorkspaceVariable* w) {       \
+             Type& v = *w;                                 \
+             return new Type(v);                           \
+           }),                                             \
+           py::arg("wsv").none(false).noconvert(),         \
+           py::doc("Automatic conversion from a workspace variable"))
 
 /*! The workspace array interface
 

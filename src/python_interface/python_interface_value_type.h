@@ -48,6 +48,6 @@ template <typename T> auto& as_ref(T& x) noexcept {
   else if constexpr (std::is_same_v<T, Index>) return reinterpret_cast<Index_&>(x);
   else return x;
 }
-}
+} // namespace Python
 
 #endif  // python_interface_value_type_h

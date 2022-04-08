@@ -1,18 +1,19 @@
 #include <py_auto_interface.h>
-
-#include <pybind11/operators.h>
 #include <pybind11/numpy.h>
+#include <pybind11/operators.h>
 
+#include "messages.h"
 #include "py_macros.h"
 
 namespace Python {
 void py_basic(py::module_& m) {
   py::class_<Verbosity>(m, "Verbosity")
-      .def(py::init<>())
-      .def(py::init([](Index x){return Verbosity(x, x, x);}))
+      .def(py::init([]() { return new Verbosity{}; }))
       .PythonInterfaceWorkspaceVariableConversion(Verbosity)
       .PythonInterfaceCopyValue(Verbosity)
-      .def(py::init<Index, Index, Index>(),
+      .def(py::init([](Index a, Index s, Index f) {
+             return new Verbosity(a, s, f);
+           }),
            py::arg("agenda") = 0,
            py::arg("screen") = 0,
            py::arg("file") = 0)
@@ -41,8 +42,8 @@ void py_basic(py::module_& m) {
   py::implicitly_convertible<Index, Verbosity>();
 
   py::class_<String>(m, "String")
-      .def(py::init<>())
-      .def(py::init<const char*>(), py::arg("str").none(false))
+      .def(py::init([]() { return new String{}; }))
+      .def(py::init([](const std::string& s) { return new String{s}; }))
       .PythonInterfaceCopyValue(String)
       .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
@@ -82,17 +83,16 @@ be accessed without copy using element-wise access operators.
                                {x.nelem()},
                                {sizeof(Index)});
       })
-      .def_property("value",
-                    py::cpp_function(
-                        [](ArrayOfIndex& x) {
-                          py::capsule do_nothing(x.data(), [](void*) {});
-                          return py::array_t<Index>({x.nelem()},
-                                                      {sizeof(Numeric)},
-                                                      x.data(),
-                                                      do_nothing);
-                        },
-                        py::return_value_policy::reference_internal),
-                    [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](ArrayOfIndex& x) {
+                py::capsule do_nothing(x.data(), [](void*) {});
+                return py::array_t<Index>(
+                    {x.nelem()}, {sizeof(Numeric)}, x.data(), do_nothing);
+              },
+              py::return_value_policy::reference_internal),
+          [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
       .doc() =
       "The Arts ArrayOfIndex class\n"
       "\n"
@@ -116,13 +116,15 @@ be accessed without copy using element-wise access operators.
                              ArrayOfArrayOfIndex>();
 
   py::class_<Numeric_>(m, "Numeric")
-      .def(py::init<>())
-      .def(py::init([](Index i)->Numeric_ {return Numeric_{static_cast<Numeric>(i)};}))
-      .def(py::init<Numeric>())
+      .def(py::init([]() { return new Numeric_{}; }))
+      .def(py::init([](Index i) -> Numeric_ {
+        return Numeric_{static_cast<Numeric>(i)};
+      }))
+      .def(py::init([](Numeric n) { return new Numeric_{n}; }))
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
-      .def(+ py::self)
-      .def(- py::self)
+      .def(+py::self)
+      .def(-py::self)
       .def(py::self != py::self)
       .def(py::self == py::self)
       .def(py::self <= py::self)
@@ -191,12 +193,12 @@ You can get copies and set the value by the \"val\" property
 )--";
 
   py::class_<Index_>(m, "Index")
-      .def(py::init<>())
-      .def(py::init<Index>())
+      .def(py::init([]() { return new Index_{}; }))
+      .def(py::init([](Index i) { return new Index_{i}; }))
       .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
-      .def(+ py::self)
-      .def(- py::self)
+      .def(+py::self)
+      .def(-py::self)
       .def(py::self != py::self)
       .def(py::self == py::self)
       .def(py::self <= py::self)

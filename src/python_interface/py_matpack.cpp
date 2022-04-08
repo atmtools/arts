@@ -221,28 +221,62 @@
 
 namespace Python {
 void py_matpack(py::module_& m) {
-  py::class_<ConstVectorView>(m, "Const" "Vector" "View");
-  py::class_<ConstMatrixView>(m, "Const" "Matrix" "View");
-  py::class_<ConstTensor3View>(m, "Const" "Tensor3" "View");
-  py::class_<ConstTensor4View>(m, "Const" "Tensor4" "View");
-  py::class_<ConstTensor5View>(m, "Const" "Tensor5" "View");
-  py::class_<ConstTensor6View>(m, "Const" "Tensor6" "View");
-  py::class_<ConstTensor7View>(m, "Const" "Tensor7" "View");
-  py::class_<VectorView, ConstVectorView>(m, "Vector" "View");
-  py::class_<MatrixView, ConstMatrixView>(m, "Matrix" "View");
-  py::class_<Tensor3View, ConstTensor3View>(m, "Tensor3" "View");
-  py::class_<Tensor4View, ConstTensor4View>(m, "Tensor4" "View");
-  py::class_<Tensor5View, ConstTensor5View>(m, "Tensor5" "View");
-  py::class_<Tensor6View, ConstTensor6View>(m, "Tensor6" "View");
-  py::class_<Tensor7View, ConstTensor7View>(m, "Tensor7" "View");
+  py::class_<ConstVectorView>(m,
+                              "Const"
+                              "Vector"
+                              "View");
+  py::class_<ConstMatrixView>(m,
+                              "Const"
+                              "Matrix"
+                              "View");
+  py::class_<ConstTensor3View>(m,
+                               "Const"
+                               "Tensor3"
+                               "View");
+  py::class_<ConstTensor4View>(m,
+                               "Const"
+                               "Tensor4"
+                               "View");
+  py::class_<ConstTensor5View>(m,
+                               "Const"
+                               "Tensor5"
+                               "View");
+  py::class_<ConstTensor6View>(m,
+                               "Const"
+                               "Tensor6"
+                               "View");
+  py::class_<ConstTensor7View>(m,
+                               "Const"
+                               "Tensor7"
+                               "View");
+  py::class_<VectorView, ConstVectorView>(m,
+                                          "Vector"
+                                          "View");
+  py::class_<MatrixView, ConstMatrixView>(m,
+                                          "Matrix"
+                                          "View");
+  py::class_<Tensor3View, ConstTensor3View>(m,
+                                            "Tensor3"
+                                            "View");
+  py::class_<Tensor4View, ConstTensor4View>(m,
+                                            "Tensor4"
+                                            "View");
+  py::class_<Tensor5View, ConstTensor5View>(m,
+                                            "Tensor5"
+                                            "View");
+  py::class_<Tensor6View, ConstTensor6View>(m,
+                                            "Tensor6"
+                                            "View");
+  py::class_<Tensor7View, ConstTensor7View>(m,
+                                            "Tensor7"
+                                            "View");
 
   py::class_<Vector, VectorView>(m, "Vector", py::buffer_protocol())
-      .def(py::init<>())
-      .def(py::init<Index, Numeric>())
+      .def(py::init([]() { return new Vector{}; }))
+      .def(
+          py::init([](const std::vector<Numeric>& v) { return new Vector{v}; }))
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
-      .def(py::init<const std::vector<Numeric>&>())
-      .def(py::init<Numeric, Index, Numeric>())
       .PythonInterfaceMatpackMath(Vector)
       .def(
           "__matmul__",
@@ -298,11 +332,7 @@ void py_matpack(py::module_& m) {
       "    Vector(Numeric x, Index n, Numeric dx): as Vector([x+i*dx for i in range(n)])\n\n";
 
   py::class_<Matrix, MatrixView>(m, "Matrix", py::buffer_protocol())
-      .def(py::init<>())
-      .def(py::init<Index, Index>())
-      .def(py::init<Index, Index, Numeric>())
-      .PythonInterfaceCopyValue(Matrix)
-      .PythonInterfaceWorkspaceVariableConversion(Matrix)
+      .def(py::init([]() { return new Matrix{}; }))
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Matrix{};
@@ -321,6 +351,8 @@ void py_matpack(py::module_& m) {
 
         return out;
       }))
+      .PythonInterfaceCopyValue(Matrix)
+      .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .PythonInterfaceBasicRepresentation(Matrix)
       .PythonInterfaceFileIO(Matrix)
       .PythonInterfaceMatpackMath(Matrix)
@@ -412,11 +444,7 @@ void py_matpack(py::module_& m) {
       "    Matrix(List or Array): to copy elements\n\n";
 
   py::class_<Tensor3, Tensor3View>(m, "Tensor3", py::buffer_protocol())
-      .def(py::init<>())
-      .def(py::init<Index, Index, Index>())
-      .def(py::init<Index, Index, Index, Numeric>())
-      .PythonInterfaceCopyValue(Tensor3)
-      .PythonInterfaceWorkspaceVariableConversion(Tensor3)
+      .def(py::init([]() { return new Tensor3{}; }))
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor3{};
@@ -436,6 +464,8 @@ void py_matpack(py::module_& m) {
 
         return out;
       }))
+      .PythonInterfaceCopyValue(Tensor3)
+      .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .PythonInterfaceBasicRepresentation(Tensor3)
       .PythonInterfaceFileIO(Tensor3)
       .PythonInterfaceMatpackMath(Tensor3)
@@ -499,11 +529,7 @@ void py_matpack(py::module_& m) {
       "    Tensor3(List or Array): to copy elements\n\n";
 
   py::class_<Tensor4, Tensor4View>(m, "Tensor4", py::buffer_protocol())
-      .def(py::init<>())
-      .def(py::init<Index, Index, Index, Index>())
-      .def(py::init<Index, Index, Index, Index, Numeric>())
-      .PythonInterfaceCopyValue(Tensor4)
-      .PythonInterfaceWorkspaceVariableConversion(Tensor4)
+      .def(py::init([]() { return new Tensor4{}; }))
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor4{};
@@ -524,6 +550,8 @@ void py_matpack(py::module_& m) {
 
         return out;
       }))
+      .PythonInterfaceCopyValue(Tensor4)
+      .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .PythonInterfaceBasicRepresentation(Tensor4)
       .PythonInterfaceFileIO(Tensor4)
       .PythonInterfaceMatpackMath(Tensor4)
@@ -592,11 +620,7 @@ void py_matpack(py::module_& m) {
       "    Tensor4(List or Array): to copy elements\n\n";
 
   py::class_<Tensor5, Tensor5View>(m, "Tensor5", py::buffer_protocol())
-      .def(py::init<>())
-      .def(py::init<Index, Index, Index, Index, Index>())
-      .def(py::init<Index, Index, Index, Index, Index, Numeric>())
-      .PythonInterfaceCopyValue(Tensor5)
-      .PythonInterfaceWorkspaceVariableConversion(Tensor5)
+      .def(py::init([]() { return new Tensor5{}; }))
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor5{};
@@ -618,6 +642,8 @@ void py_matpack(py::module_& m) {
 
         return out;
       }))
+      .PythonInterfaceCopyValue(Tensor5)
+      .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .PythonInterfaceBasicRepresentation(Tensor5)
       .PythonInterfaceFileIO(Tensor5)
       .PythonInterfaceMatpackMath(Tensor5)
@@ -689,11 +715,7 @@ void py_matpack(py::module_& m) {
       "    Tensor5(List or Array): to copy elements\n\n";
 
   py::class_<Tensor6, Tensor6View>(m, "Tensor6", py::buffer_protocol())
-      .def(py::init<>())
-      .def(py::init<Index, Index, Index, Index, Index, Index>())
-      .def(py::init<Index, Index, Index, Index, Index, Index, Numeric>())
-      .PythonInterfaceCopyValue(Tensor6)
-      .PythonInterfaceWorkspaceVariableConversion(Tensor6)
+      .def(py::init([]() { return new Tensor6{}; }))
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor6{};
@@ -716,6 +738,8 @@ void py_matpack(py::module_& m) {
 
         return out;
       }))
+      .PythonInterfaceCopyValue(Tensor6)
+      .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .PythonInterfaceBasicRepresentation(Tensor6)
       .PythonInterfaceFileIO(Tensor6)
       .PythonInterfaceMatpackMath(Tensor6)
@@ -795,11 +819,7 @@ void py_matpack(py::module_& m) {
       "    Tensor6(List or Array): to copy elements\n\n";
 
   py::class_<Tensor7, Tensor7View>(m, "Tensor7", py::buffer_protocol())
-      .def(py::init<>())
-      .def(py::init<Index, Index, Index, Index, Index, Index, Index>())
-      .def(py::init<Index, Index, Index, Index, Index, Index, Index, Numeric>())
-      .PythonInterfaceCopyValue(Tensor7)
-      .PythonInterfaceWorkspaceVariableConversion(Tensor7)
+      .def(py::init([]() { return new Tensor7{}; }))
       .def(py::init([](const py::array_t<Numeric>& arr) {
         auto info = arr.request();
         if (info.ndim == 1 and info.shape[0] == 0) return Tensor7{};
@@ -823,6 +843,8 @@ void py_matpack(py::module_& m) {
 
         return out;
       }))
+      .PythonInterfaceCopyValue(Tensor7)
+      .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .PythonInterfaceBasicRepresentation(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
       .PythonInterfaceMatpackMath(Tensor7)
@@ -975,7 +997,7 @@ void py_matpack(py::module_& m) {
            py::arg("d") = 1)
       .PythonInterfaceCopyValue(Rational)
       .PythonInterfaceWorkspaceVariableConversion(Rational)
-      .def(py::init<String>())
+      .def(py::init([](const String& s) { return new Rational{s}; }))
       .def(py::init([](Numeric n) { return Rational(std::to_string(n)); }))
       .PythonInterfaceFileIO(Rational)
       .PythonInterfaceBasicRepresentation(Rational)

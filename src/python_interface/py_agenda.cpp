@@ -193,15 +193,15 @@ MRecord simple_delete_method(WorkspaceVariable val) {
 
 void py_agenda(py::module_& m) {
   py::class_<CallbackFunction>(m, "CallbackFunction")
-      .def(py::init<>())
+      .def(py::init([]() { return new CallbackFunction{}; }))
       .PythonInterfaceCopyValue(CallbackFunction)
-      .def(py::init<std::function<void(Workspace&)>>())
+      .def(py::init([](const std::function<void(Workspace&)>& f) { return new CallbackFunction{f}; }))
       .def("__call__", [](CallbackFunction& f, Workspace& ws) { f(ws); });
   py::implicitly_convertible<std::function<void(Workspace&)>,
                              CallbackFunction>();
 
   py::class_<MdRecord>(m, "MdRecord")
-      .def(py::init<>())
+      .def(py::init([]() { return new MdRecord{}; }))
       .def_property_readonly("name", &MdRecord::Name)
       .def_property_readonly("outs", &MdRecord::Out)
       .def_property_readonly("g_out", &MdRecord::GOut)
@@ -219,7 +219,7 @@ void py_agenda(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Array<MdRecord>);
 
   py::class_<AgRecord>(m, "AgRecord")
-      .def(py::init<>())
+      .def(py::init([]() { return new AgRecord{}; }))
       .PythonInterfaceCopyValue(AgRecord) 
       .def_property_readonly("name", &AgRecord::Name)
       .def_property_readonly("description", &AgRecord::Description)
@@ -233,7 +233,7 @@ void py_agenda(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Array<AgRecord>);
 
   py::class_<Agenda>(m, "Agenda")
-      .def(py::init<>())
+      .def(py::init([]() { return new Agenda{}; }))
       .def(py::init(
           [](Workspace& ws, const std::function<py::object(Workspace&)>& f) {
             return py::cast<Agenda>(f(ws));
@@ -531,11 +531,9 @@ Both agendas must be defined on the same workspace)--"), py::arg("other"))
       });
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
-      .def(py::init<>())
+      .def(py::init([]() { return new ArrayOfAgenda{}; }))
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfAgenda)
       .PythonInterfaceCopyValue(ArrayOfAgenda)
-      .def(py::init<Index>())
-      .def(py::init<Index, Agenda>())
       .def(py::init([](std::vector<Agenda> va) {
         for (auto& a : va) {
           ARTS_USER_ERROR_IF(

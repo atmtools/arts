@@ -6,42 +6,54 @@
 namespace Python {
 void py_jac(py::module_& m) {
   py::class_<Jacobian::Type>(m, "JacobianType")
-      .def(py::init<>())
-      .def(py::init([](const char* c) { return Jacobian::toTypeOrThrow(c); }), py::arg("str").none(false))
+      .def(py::init([]() { return new Jacobian::Type{}; }))
+      .def(py::init(
+               [](const std::string& c) { return Jacobian::toTypeOrThrow(c); }),
+           py::arg("str").none(false))
       .PythonInterfaceCopyValue(Jacobian::Type)
       .PythonInterfaceBasicRepresentation(Jacobian::Type);
-  py::implicitly_convertible<py::str, Jacobian::Type>();
+  py::implicitly_convertible<std::string, Jacobian::Type>();
 
   py::class_<Jacobian::Atm>(m, "JacobianAtm")
-      .def(py::init<>())
-      .def(py::init([](const char* c) { return Jacobian::toAtmOrThrow(c); }), py::arg("str").none(false))
+      .def(py::init([]() { return new Jacobian::Atm{}; }))
+      .def(py::init(
+               [](const std::string& c) { return Jacobian::toAtmOrThrow(c); }),
+           py::arg("str").none(false))
       .PythonInterfaceCopyValue(Jacobian::Atm)
       .PythonInterfaceBasicRepresentation(Jacobian::Atm);
-  py::implicitly_convertible<py::str, Jacobian::Atm>();
+  py::implicitly_convertible<std::string, Jacobian::Atm>();
 
   py::class_<Jacobian::Line>(m, "JacobianLine")
-      .def(py::init<>())
-      .def(py::init([](const char* c) { return Jacobian::toLineOrThrow(c); }), py::arg("str").none(false))
+      .def(py::init([]() { return new Jacobian::Line{}; }))
+      .def(py::init(
+               [](const std::string& c) { return Jacobian::toLineOrThrow(c); }),
+           py::arg("str").none(false))
       .PythonInterfaceCopyValue(Jacobian::Line)
       .PythonInterfaceBasicRepresentation(Jacobian::Line);
-  py::implicitly_convertible<py::str, Jacobian::Line>();
+  py::implicitly_convertible<std::string, Jacobian::Line>();
 
   py::class_<Jacobian::Sensor>(m, "JacobianSensor")
-      .def(py::init<>())
-      .def(py::init([](const char* c) { return Jacobian::toSensorOrThrow(c); }), py::arg("str").none(false))
+      .def(py::init([]() { return new Jacobian::Sensor{}; }))
+      .def(py::init([](const std::string& c) {
+             return Jacobian::toSensorOrThrow(c);
+           }),
+           py::arg("str").none(false))
       .PythonInterfaceCopyValue(Jacobian::Sensor)
       .PythonInterfaceBasicRepresentation(Jacobian::Sensor);
-  py::implicitly_convertible<py::str, Jacobian::Sensor>();
+  py::implicitly_convertible<std::string, Jacobian::Sensor>();
 
   py::class_<Jacobian::Special>(m, "JacobianSpecial")
-      .def(py::init<>())
-      .def(py::init([](const char* c) { return Jacobian::toSpecialOrThrow(c); }), py::arg("str").none(false))
+      .def(py::init([]() { return new Jacobian::Special{}; }))
+      .def(py::init([](const std::string& c) {
+             return Jacobian::toSpecialOrThrow(c);
+           }),
+           py::arg("str").none(false))
       .PythonInterfaceCopyValue(Jacobian::Special)
       .PythonInterfaceBasicRepresentation(Jacobian::Special);
-  py::implicitly_convertible<py::str, Jacobian::Special>();
+  py::implicitly_convertible<std::string, Jacobian::Special>();
 
   py::class_<JacobianTarget>(m, "JacobianTarget")
-      .def(py::init<>())
+      .def(py::init([]() { return new JacobianTarget{}; }))
       .PythonInterfaceCopyValue(JacobianTarget)
       .PythonInterfaceWorkspaceVariableConversion(JacobianTarget)
       .PythonInterfaceFileIO(JacobianTarget)
@@ -59,7 +71,9 @@ void py_jac(py::module_& m) {
 
   PythonInterfaceWorkspaceArray(JacobianTarget);
 
-  py::class_<RetrievalQuantity>(m, "RetrievalQuantity");
+  py::class_<RetrievalQuantity>(m, "RetrievalQuantity").def(py::init([]() {
+    return new RetrievalQuantity{};
+  }));
 
   PythonInterfaceWorkspaceArray(RetrievalQuantity);
 }

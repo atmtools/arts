@@ -1,32 +1,31 @@
-#include <py_auto_interface.h>
-
-#include <pybind11/complex.h>
-
-#include "py_macros.h"
-
 #include <lineshape.h>
 #include <lineshapemodel.h>
+#include <py_auto_interface.h>
+#include <pybind11/complex.h>
 #include <zeemandata.h>
+
+#include "py_macros.h"
 
 namespace Python {
 void py_spectroscopy(py::module_& m) {
   py::class_<LineShape::TemperatureModel>(m, "LineShapeTemperatureModel")
-      .def(py::init<>())
-      .def(py::init([](const char* c) {
-             return LineShape::toTemperatureModelOrThrow(c);
-           }),
-           py::arg("str").none(false))
+      .def(py::init([]() { return new LineShape::TemperatureModel{}; }))
+      .def(py::init([](const std::string& c) {
+        return LineShape::toTemperatureModelOrThrow(c);
+      }))
       .PythonInterfaceCopyValue(LineShape::TemperatureModel)
       .PythonInterfaceBasicRepresentation(LineShape::TemperatureModel);
-  py::implicitly_convertible<py::str, LineShape::TemperatureModel>();
+  py::implicitly_convertible<std::string, LineShape::TemperatureModel>();
 
   static_assert(LineShapeModelParameters::N == 4);
   py::class_<LineShapeModelParameters>(m, "LineShapeModelParameters")
-      .def(py::init<LineShape::TemperatureModel,
-                    Numeric_,
-                    Numeric_,
-                    Numeric_,
-                    Numeric_>(),
+      .def(py::init([](LineShape::TemperatureModel a,
+                       Numeric b,
+                       Numeric c,
+                       Numeric d,
+                       Numeric e) {
+             return new LineShapeModelParameters(a, b, c, d, e);
+           }),
            py::arg("type") = LineShape::TemperatureModel::None,
            py::arg("X0") = 0,
            py::arg("X1") = 0,
@@ -41,18 +40,18 @@ void py_spectroscopy(py::module_& m) {
       .PythonInterfaceBasicRepresentation(LineShapeModelParameters);
 
   py::class_<AbsorptionCutoffType>(m, "AbsorptionCutoffType")
-      .def(py::init<>())
-      .def(py::init([](const char* c) {
+      .def(py::init([]() { return new AbsorptionCutoffType{}; }))
+      .def(py::init([](const std::string& c) {
              return Absorption::toCutoffTypeOrThrow(c);
            }),
            py::arg("str").none(false))
       .PythonInterfaceCopyValue(AbsorptionCutoffType)
       .PythonInterfaceBasicRepresentation(AbsorptionCutoffType);
-  py::implicitly_convertible<py::str, AbsorptionCutoffType>();
+  py::implicitly_convertible<std::string, AbsorptionCutoffType>();
 
   py::class_<Zeeman::Polarization>(m, "ZeemanPolarization")
-      .def(py::init<>())
-      .def(py::init([](String c) {
+      .def(py::init([]() { return new Zeeman::Polarization{}; }))
+      .def(py::init([](const std::string& c) {
              if (c == "SigmaMinus") return Zeeman::Polarization::SigmaMinus;
              if (c == "Pi") return Zeeman::Polarization::Pi;
              if (c == "SigmaPlus") return Zeeman::Polarization::SigmaPlus;
@@ -76,64 +75,70 @@ void py_spectroscopy(py::module_& m) {
         if (c == Zeeman::Polarization::None) return "None";
         ARTS_USER_ERROR("Bad enum state")
       });
-  py::implicitly_convertible<py::str, Zeeman::Polarization>();
+  py::implicitly_convertible<std::string, Zeeman::Polarization>();
 
   py::class_<AbsorptionMirroringType>(m, "AbsorptionMirroringType")
-      .def(py::init<>())
-      .def(py::init([](const char* c) {
+      .def(py::init([]() { return new AbsorptionMirroringType{}; }))
+      .def(py::init([](const std::string& c) {
              return Absorption::toMirroringTypeOrThrow(c);
            }),
            py::arg("str").none(false))
       .PythonInterfaceCopyValue(AbsorptionMirroringType)
       .PythonInterfaceBasicRepresentation(AbsorptionMirroringType);
-  py::implicitly_convertible<py::str, AbsorptionMirroringType>();
+  py::implicitly_convertible<std::string, AbsorptionMirroringType>();
 
   py::class_<AbsorptionPopulationType>(m, "AbsorptionPopulationType")
-      .def(py::init<>())
-      .def(py::init([](const char* c) {
+      .def(py::init([]() { return new AbsorptionPopulationType{}; }))
+      .def(py::init([](const std::string& c) {
              return Absorption::toPopulationTypeOrThrow(c);
            }),
            py::arg("str").none(false))
       .PythonInterfaceCopyValue(AbsorptionPopulationType)
       .PythonInterfaceBasicRepresentation(AbsorptionPopulationType);
-  py::implicitly_convertible<py::str, AbsorptionPopulationType>();
+  py::implicitly_convertible<std::string, AbsorptionPopulationType>();
 
   py::class_<AbsorptionNormalizationType>(m, "AbsorptionNormalizationType")
-      .def(py::init<>())
-      .def(py::init([](const char* c) {
+      .def(py::init([]() { return new AbsorptionNormalizationType{}; }))
+      .def(py::init([](const std::string& c) {
              return Absorption::toNormalizationTypeOrThrow(c);
            }),
            py::arg("str").none(false))
       .PythonInterfaceCopyValue(AbsorptionNormalizationType)
       .PythonInterfaceBasicRepresentation(AbsorptionNormalizationType);
-  py::implicitly_convertible<py::str, AbsorptionNormalizationType>();
+  py::implicitly_convertible<std::string, AbsorptionNormalizationType>();
 
   py::class_<LineShapeType>(m, "LineShapeType")
-      .def(py::init<>())
-      .def(py::init([](const char* c) { return LineShape::toTypeOrThrow(c); }),
+      .def(py::init([]() { return new LineShapeType{}; }))
+      .def(py::init([](const std::string& c) {
+             return LineShape::toTypeOrThrow(c);
+           }),
            py::arg("str").none(false))
       .PythonInterfaceCopyValue(LineShapeType)
       .PythonInterfaceBasicRepresentation(LineShapeType);
-  py::implicitly_convertible<py::str, LineShapeType>();
+  py::implicitly_convertible<std::string, LineShapeType>();
 
   py::class_<Zeeman::Model>(m, "ZeemanModel")
-      .def(py::init<>())
-      .def(py::init<Numeric, Numeric>())
+      .def(py::init([]() { return new Zeeman::Model{}; }))
+      .def(py::init([](Numeric a, Numeric b) {
+        return new Zeeman::Model{a, b};
+      }))
       .PythonInterfaceCopyValue(Zeeman::Model)
       .PythonInterfaceBasicRepresentation(Zeeman::Model)
       .def_property("gu", &Zeeman::Model::gu, &Zeeman::Model::gu)
       .def_property("gl", &Zeeman::Model::gl, &Zeeman::Model::gl);
 
   py::class_<LineShape::Output>(m, "LineShapeOutput")
-      .def(py::init<Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric>(),
+      .def(py::init([](Numeric a,
+                       Numeric b,
+                       Numeric c,
+                       Numeric d,
+                       Numeric e,
+                       Numeric f,
+                       Numeric g,
+                       Numeric h,
+                       Numeric i) {
+             return new LineShape::Output{a, b, c, d, e, f, g, h, i};
+           }),
            py::arg("g0") = 0,
            py::arg("d0") = 0,
            py::arg("g2") = 0,
@@ -156,15 +161,17 @@ void py_spectroscopy(py::module_& m) {
       .PythonInterfaceBasicRepresentation(LineShape::Output);
 
   py::class_<LineShapeSingleSpeciesModel>(m, "LineShapeSingleSpeciesModel")
-      .def(py::init<LineShape::ModelParameters,
-                    LineShape::ModelParameters,
-                    LineShape::ModelParameters,
-                    LineShape::ModelParameters,
-                    LineShape::ModelParameters,
-                    LineShape::ModelParameters,
-                    LineShape::ModelParameters,
-                    LineShape::ModelParameters,
-                    LineShape::ModelParameters>(),
+      .def(py::init([](LineShape::ModelParameters a,
+                       LineShape::ModelParameters b,
+                       LineShape::ModelParameters c,
+                       LineShape::ModelParameters d,
+                       LineShape::ModelParameters e,
+                       LineShape::ModelParameters f,
+                       LineShape::ModelParameters g,
+                       LineShape::ModelParameters h,
+                       LineShape::ModelParameters i) {
+             return new LineShapeSingleSpeciesModel{a, b, c, d, e, f, g, h, i};
+           }),
            py::arg("G0") = LineShape::ModelParameters{},
            py::arg("D0") = LineShape::ModelParameters{},
            py::arg("G2") = LineShape::ModelParameters{},
@@ -231,8 +238,10 @@ void py_spectroscopy(py::module_& m) {
           });
 
   py::class_<LineShapeModel>(m, "LineShapeModel")
-      .def(py::init<>())
-      .def(py::init<std::vector<LineShapeSingleSpeciesModel>>())
+      .def(py::init([]() { return new LineShapeModel{}; }))
+      .def(py::init([](const std::vector<LineShapeSingleSpeciesModel>& v) {
+        return new LineShapeModel{v};
+      }))
       .PythonInterfaceCopyValue(LineShapeModel)
       .PythonInterfaceBasicRepresentation(LineShapeModel)
       .PythonInterfaceIndexItemAccess(LineShapeModel)
@@ -246,15 +255,17 @@ void py_spectroscopy(py::module_& m) {
                              LineShapeModel>();
 
   py::class_<AbsorptionSingleLine>(m, "AbsorptionSingleLine")
-      .def(py::init<Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    ZeemanModel,
-                    LineShapeModel,
-                    Quantum::Number::LocalState>(),
+      .def(py::init([](Numeric a,
+                       Numeric b,
+                       Numeric c,
+                       Numeric d,
+                       Numeric e,
+                       Numeric f,
+                       ZeemanModel g,
+                       LineShapeModel h,
+                       Quantum::Number::LocalState i) {
+             return new AbsorptionSingleLine{a, b, c, d, e, f, g, h, i};
+           }),
            py::arg("F0") = 0,
            py::arg("I0") = 0,
            py::arg("E0") = 0,
@@ -284,20 +295,21 @@ void py_spectroscopy(py::module_& m) {
                              Array<AbsorptionSingleLine>>();
 
   py::class_<AbsorptionLines>(m, "AbsorptionLines")
-      .def(py::init<>())
-      .def(py::init<bool,
-                    bool,
-                    AbsorptionCutoffType,
-                    AbsorptionMirroringType,
-                    AbsorptionPopulationType,
-                    AbsorptionNormalizationType,
-                    LineShape::Type,
-                    Numeric,
-                    Numeric,
-                    Numeric,
-                    QuantumIdentifier,
-                    ArrayOfSpecies,
-                    Array<AbsorptionSingleLine>>(),
+      .def(py::init([](bool a,
+                       bool b,
+                       AbsorptionCutoffType c,
+                       AbsorptionMirroringType d,
+                       AbsorptionPopulationType e,
+                       AbsorptionNormalizationType f,
+                       LineShape::Type g,
+                       Numeric h,
+                       Numeric i,
+                       Numeric j,
+                       QuantumIdentifier k,
+                       ArrayOfSpecies l,
+                       Array<AbsorptionSingleLine> m) {
+             return new AbsorptionLines{a, b, c, d, e, f, g, h, i, j, k, l, m};
+           }),
            py::arg("selfbroadening") = false,
            py::arg("bathbroadening") = false,
            py::arg("cutoff") = AbsorptionCutoffType::None,
@@ -328,28 +340,36 @@ void py_spectroscopy(py::module_& m) {
       .PythonInterfaceReadWriteData(AbsorptionLines, quantumidentity)
       .PythonInterfaceReadWriteData(AbsorptionLines, broadeningspecies)
       .PythonInterfaceReadWriteData(AbsorptionLines, lines)
-      .def_property_readonly("ok", &AbsorptionLines::OK, py::doc("If false, the catalog cannot be used for any calculations"))
-      .def_property_readonly("meta_data", &AbsorptionLines::MetaData, py::doc("Catalog meta data string"))
-      .def("LineShapeOutput",
-           [](AbsorptionLines& band,
-              Index line,
-              Numeric T,
-              Numeric P,
-              const Vector& VMR) {
-             ARTS_USER_ERROR_IF(not band.OK(), "Band in bad shape")
-             ARTS_USER_ERROR_IF(not (T > 0) or not (P >= 0),
-                 "Bad atmospheric state (T P): ",
-                 Vector{T, P})
-             ARTS_USER_ERROR_IF(
-                 VMR.size() not_eq band.broadeningspecies.nelem(),
-                 "Mismatch between VMRs and broadening species.\nVMR: ",
-                 VMR,
-                 "\nSpecies: ",
-                 band.broadeningspecies)
-             band.lines.at(line);
+      .def_property_readonly(
+          "ok",
+          &AbsorptionLines::OK,
+          py::doc("If false, the catalog cannot be used for any calculations"))
+      .def_property_readonly("meta_data",
+                             &AbsorptionLines::MetaData,
+                             py::doc("Catalog meta data string"))
+      .def(
+          "LineShapeOutput",
+          [](AbsorptionLines& band,
+             Index line,
+             Numeric T,
+             Numeric P,
+             const Vector& VMR) {
+            ARTS_USER_ERROR_IF(not band.OK(), "Band in bad shape")
+            ARTS_USER_ERROR_IF(not(T > 0) or not(P >= 0),
+                               "Bad atmospheric state (T P): ",
+                               Vector{T, P})
+            ARTS_USER_ERROR_IF(
+                VMR.size() not_eq band.broadeningspecies.nelem(),
+                "Mismatch between VMRs and broadening species.\nVMR: ",
+                VMR,
+                "\nSpecies: ",
+                band.broadeningspecies)
+            band.lines.at(line);
 
-             return band.ShapeParameters(line, T, P, VMR);
-           }, py::doc("Computes the line shape paramters for the given atmospheric state\n\nNote that the normalization assumes sum(VMR) is 1 for good results but does not enforce it"));
+            return band.ShapeParameters(line, T, P, VMR);
+          },
+          py::doc(
+              "Computes the line shape paramters for the given atmospheric state\n\nNote that the normalization assumes sum(VMR) is 1 for good results but does not enforce it"));
 
   PythonInterfaceWorkspaceArray(AbsorptionLines);
   PythonInterfaceWorkspaceArray(ArrayOfAbsorptionLines);
@@ -364,7 +384,7 @@ void py_spectroscopy(py::module_& m) {
                        Numeric H,
                        Index iz) {
              ARTS_USER_ERROR_IF(not band.OK(), "Band in bad shape")
-             ARTS_USER_ERROR_IF(not (T > 0) or not (P >= 0) or not (H >= 0),
+             ARTS_USER_ERROR_IF(not(T > 0) or not(P >= 0) or not(H >= 0),
                                 "Bad atmospheric state (T P H): ",
                                 Vector{T, P, H})
              ARTS_USER_ERROR_IF(
@@ -422,11 +442,12 @@ void py_spectroscopy(py::module_& m) {
            [](LineShape::Calculator& LS, Numeric d) { return LS.dFdG2(d); })
       .def("F", [](LineShape::Calculator& LS) { return LS.F(); })
       .def("F", [](LineShape::Calculator& LS, Numeric f) { return LS(f); })
-    .doc()="Class to compute the line shape\n\nNote that the normalization assumes sum(VMR) is 1 for good results but does not enforce it";
+      .doc() =
+      "Class to compute the line shape\n\nNote that the normalization assumes sum(VMR) is 1 for good results but does not enforce it";
 
   py::class_<SpeciesErrorCorrectedSuddenData>(m,
                                               "SpeciesErrorCorrectedSuddenData")
-      .def(py::init<>())
+      .def(py::init([]() { return new SpeciesErrorCorrectedSuddenData{}; }))
       .PythonInterfaceCopyValue(SpeciesErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(SpeciesErrorCorrectedSuddenData)
       .def_readwrite("spec", &SpeciesErrorCorrectedSuddenData::spec)
@@ -438,7 +459,7 @@ void py_spectroscopy(py::module_& m) {
       .def_readwrite("mass", &SpeciesErrorCorrectedSuddenData::mass);
 
   py::class_<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData")
-      .def(py::init<>())
+      .def(py::init([]() { return new ErrorCorrectedSuddenData{}; }))
       .PythonInterfaceCopyValue(ErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(ErrorCorrectedSuddenData)
       .def(
@@ -454,7 +475,7 @@ void py_spectroscopy(py::module_& m) {
           py::return_value_policy::reference_internal);
 
   py::class_<MapOfErrorCorrectedSuddenData>(m, "MapOfErrorCorrectedSuddenData")
-      .def(py::init<>())
+      .def(py::init([]() { return new MapOfErrorCorrectedSuddenData{}; }))
       .PythonInterfaceCopyValue(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceWorkspaceVariableConversion(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(MapOfErrorCorrectedSuddenData)
@@ -472,14 +493,14 @@ void py_spectroscopy(py::module_& m) {
           py::return_value_policy::reference_internal);
 
   py::class_<EnergyLevelMap>(m, "EnergyLevelMap")
-      .def(py::init<>())
+      .def(py::init([]() { return new EnergyLevelMap{}; }))
       .PythonInterfaceCopyValue(EnergyLevelMap)
       .PythonInterfaceWorkspaceVariableConversion(EnergyLevelMap)
       .PythonInterfaceBasicRepresentation(EnergyLevelMap)
       .PythonInterfaceFileIO(EnergyLevelMap);
 
   py::class_<CIARecord>(m, "CIARecord")
-      .def(py::init<>())
+      .def(py::init([]() { return new CIARecord{}; }))
       .PythonInterfaceCopyValue(CIARecord)
       .PythonInterfaceWorkspaceVariableConversion(CIARecord)
       .PythonInterfaceBasicRepresentation(CIARecord)
@@ -488,7 +509,7 @@ void py_spectroscopy(py::module_& m) {
   PythonInterfaceWorkspaceArray(CIARecord);
 
   py::class_<HitranRelaxationMatrixData>(m, "HitranRelaxationMatrixData")
-      .def(py::init<>())
+      .def(py::init([]() { return new HitranRelaxationMatrixData{}; }))
       .PythonInterfaceCopyValue(HitranRelaxationMatrixData)
       .PythonInterfaceWorkspaceVariableConversion(HitranRelaxationMatrixData)
       .PythonInterfaceBasicRepresentation(HitranRelaxationMatrixData)
@@ -513,7 +534,7 @@ void py_spectroscopy(py::module_& m) {
       .def_readwrite("B0qq", &HitranRelaxationMatrixData::B0qq);
 
   py::class_<XsecRecord>(m, "XsecRecord")
-      .def(py::init<>())
+      .def(py::init([]() { return new XsecRecord{}; }))
       .PythonInterfaceBasicRepresentation(XsecRecord);
 
   PythonInterfaceWorkspaceArray(XsecRecord);

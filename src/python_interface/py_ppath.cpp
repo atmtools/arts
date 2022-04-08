@@ -7,10 +7,10 @@
 namespace Python {
 void py_ppath(py::module_& m) {
   py::class_<GridPos>(m, "GridPos")
-      .def(py::init<>())
+      .def(py::init([]() { return new GridPos{}; }))
       .PythonInterfaceCopyValue(GridPos)
       .PythonInterfaceWorkspaceVariableConversion(GridPos)
-      .def(py::init<Index, std::array<Numeric, 2>>())
+      .def(py::init([](Index i, std::array<Numeric, 2> x) { return new GridPos{i, x}; }))
       .PythonInterfaceFileIO(GridPos)
       .PythonInterfaceBasicRepresentation(GridPos)
       .def_readwrite("idx", &GridPos::idx)
@@ -22,26 +22,7 @@ void py_ppath(py::module_& m) {
   py::implicitly_convertible<std::vector<GridPos>, ArrayOfGridPos>();
 
   py::class_<Ppath>(m, "Ppath")
-      .def(py::init<>())
-      .def(py::init<Index,
-                    Index,
-                    Numeric,
-                    String,
-                    Vector,
-                    Vector,
-                    Numeric,
-                    Matrix,
-                    Matrix,
-                    Vector,
-                    Vector,
-                    Vector,
-                    Vector,
-                    Numeric,
-                    Vector,
-                    Vector,
-                    ArrayOfGridPos,
-                    ArrayOfGridPos,
-                    ArrayOfGridPos>())
+      .def(py::init([]() { return new Ppath{}; }))
       .PythonInterfaceCopyValue(Ppath)
       .PythonInterfaceWorkspaceVariableConversion(Ppath)
       .def("__repr__", [](Ppath&){return "Ppath";})

@@ -3,7 +3,7 @@ import test_functions as test
 
 import datetime as datetime
 
-x = cxx.ArrayOfTime(1)
+x = cxx.ArrayOfTime(1, "2017-01-01 15:30:20")
 test.io(x, delete=True)
 test.array(x)
 

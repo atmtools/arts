@@ -1,34 +1,51 @@
 #include <py_auto_interface.h>
-
 #include <pybind11/eigen.h>
 #include <pybind11/numpy.h>
 
+#include "debug.h"
 #include "py_macros.h"
 
 namespace Python {
 void py_rte(py::module_& m) {
   py::class_<TransmissionMatrix>(m, "TransmissionMatrix")
-      .def(py::init<>())
-      .def(py::init<Index>())
-      .def(py::init<Index, Index>())
+      .def(py::init([](Index nf, Index ns) {
+             ARTS_USER_ERROR_IF(nf < 0, "Bad frequency size")
+             ARTS_USER_ERROR_IF(ns < 1 or ns > 4, "Bad stokes_dim")
+             return new TransmissionMatrix(nf, ns);
+           }),
+           py::arg("nf") = 0,
+           py::arg("stokes_dim") = 1)
       .PythonInterfaceCopyValue(TransmissionMatrix)
       .PythonInterfaceWorkspaceVariableConversion(TransmissionMatrix)
       .PythonInterfaceFileIO(TransmissionMatrix)
       .PythonInterfaceBasicRepresentation(TransmissionMatrix)
-      .def("__getitem__",
-           [](TransmissionMatrix& t, Index i) -> std::variant<Eigen::Ref<Eigen::Matrix4d>, Eigen::Ref<Eigen::Matrix3d>, Eigen::Ref<Eigen::Matrix2d>, Eigen::Ref<Eigen::Matrix<double, 1, 1>>> {
-             if(i < 0 or i > t.Frequencies()) throw std::out_of_range(var_string(i, " in range [0", t.Frequencies(), ')'));
-             switch (t.StokesDim()) {
-               case 1: return Eigen::Ref<Eigen::Matrix<double, 1, 1>>(t.Mat1(i));
-               case 2: return Eigen::Ref<Eigen::Matrix2d>(t.Mat2(i));
-               case 3: return Eigen::Ref<Eigen::Matrix3d>(t.Mat3(i));
-               case 4: return Eigen::Ref<Eigen::Matrix4d>(t.Mat4(i));
-             }
-             throw std::out_of_range("bad stokes dim");
-           })
+      .def(
+          "__getitem__",
+          [](TransmissionMatrix& t,
+             Index i) -> std::variant<Eigen::Ref<Eigen::Matrix4d>,
+                                      Eigen::Ref<Eigen::Matrix3d>,
+                                      Eigen::Ref<Eigen::Matrix2d>,
+                                      Eigen::Ref<Eigen::Matrix<double, 1, 1>>> {
+            if (i < 0 or i > t.Frequencies())
+              throw std::out_of_range(
+                  var_string(i, " in range [0", t.Frequencies(), ')'));
+            switch (t.StokesDim()) {
+              case 1:
+                return Eigen::Ref<Eigen::Matrix<double, 1, 1>>(t.Mat1(i));
+              case 2:
+                return Eigen::Ref<Eigen::Matrix2d>(t.Mat2(i));
+              case 3:
+                return Eigen::Ref<Eigen::Matrix3d>(t.Mat3(i));
+              case 4:
+                return Eigen::Ref<Eigen::Matrix4d>(t.Mat4(i));
+            }
+            throw std::out_of_range("bad stokes dim");
+          })
       .def("__setitem__",
            [](TransmissionMatrix& t, Index i, const py::array_t<Numeric>& arr) {
-             if(i < 0 or i > t.Frequencies()) throw std::out_of_range(var_string(i, " in range [0", t.Frequencies(), ')'));
+             if (i < 0 or i > t.Frequencies())
+               throw std::out_of_range(
+                   var_string(i, " in range [0", t.Frequencies(), ')'));
              ARTS_USER_ERROR_IF(arr.request().ndim not_eq 2, "Bad size array")
 
              auto arr_val = arr.unchecked<2>();
@@ -64,8 +81,9 @@ void py_rte(py::module_& m) {
   py::class_<RadiationVector>(m, "RadiationVector")
       .def(py::init([](Index nf, Index ns) {
              ARTS_USER_ERROR_IF(nf < 0, "Bad requency size, valid: [0, ...)")
-             ARTS_USER_ERROR_IF(ns < 1 or ns > 4, "Bad stokes dimensionality, valid: [1, 4]")
-             return RadiationVector(nf, ns);
+             ARTS_USER_ERROR_IF(ns < 1 or ns > 4,
+                                "Bad stokes dimensionality, valid: [1, 4]")
+             return new RadiationVector(nf, ns);
            }),
            py::arg("nf") = 0,
            py::arg("ns") = 1,
@@ -74,42 +92,59 @@ void py_rte(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(RadiationVector)
       .PythonInterfaceFileIO(RadiationVector)
       .PythonInterfaceBasicRepresentation(RadiationVector)
-      .def("__getitem__",
-           [](RadiationVector& t, Index i) -> std::variant<Eigen::Ref<Eigen::Vector4d>, Eigen::Ref<Eigen::Vector3d>, Eigen::Ref<Eigen::Vector2d>, Eigen::Ref<Eigen::Matrix<double, 1, 1>>> {
-             if(i < 0 or i > t.Frequencies()) throw std::out_of_range(var_string(i, " in range [0", t.Frequencies(), ')'));
-             switch (t.StokesDim()) {
-               case 1: return Eigen::Ref<Eigen::Matrix<double, 1, 1>>(t.Vec1(i));
-               case 2: return Eigen::Ref<Eigen::Vector2d>(t.Vec2(i));
-               case 3: return Eigen::Ref<Eigen::Vector3d>(t.Vec3(i));
-               case 4: return Eigen::Ref<Eigen::Vector4d>(t.Vec4(i));
-             }
-             throw std::out_of_range("bad stokes dim");
-           })
-      .def("__setitem__",
-           [](RadiationVector& t, Index i, const py::array_t<Numeric>& arr) {
-             if(i < 0 or i > t.Frequencies()) throw std::out_of_range(var_string(i, " in range [0", t.Frequencies(), ')'));
-             ARTS_USER_ERROR_IF(arr.request().ndim not_eq 1, "Bad size array")
+      .def(
+          "__getitem__",
+          [](RadiationVector& t,
+             Index i) -> std::variant<Eigen::Ref<Eigen::Vector4d>,
+                                      Eigen::Ref<Eigen::Vector3d>,
+                                      Eigen::Ref<Eigen::Vector2d>,
+                                      Eigen::Ref<Eigen::Matrix<double, 1, 1>>> {
+            if (i < 0 or i > t.Frequencies())
+              throw std::out_of_range(
+                  var_string(i, " in range [0", t.Frequencies(), ')'));
+            switch (t.StokesDim()) {
+              case 1:
+                return Eigen::Ref<Eigen::Matrix<double, 1, 1>>(t.Vec1(i));
+              case 2:
+                return Eigen::Ref<Eigen::Vector2d>(t.Vec2(i));
+              case 3:
+                return Eigen::Ref<Eigen::Vector3d>(t.Vec3(i));
+              case 4:
+                return Eigen::Ref<Eigen::Vector4d>(t.Vec4(i));
+            }
+            throw std::out_of_range("bad stokes dim");
+          })
+      .def(
+          "__setitem__",
+          [](RadiationVector& t, Index i, const py::array_t<Numeric>& arr) {
+            if (i < 0 or i > t.Frequencies())
+              throw std::out_of_range(
+                  var_string(i, " in range [0", t.Frequencies(), ')'));
+            ARTS_USER_ERROR_IF(arr.request().ndim not_eq 1, "Bad size array")
 
-             auto arr_val = arr.unchecked<1>();
-             ARTS_USER_ERROR_IF(arr_val.shape(0) not_eq t.StokesDim(),
-                                "Bad input size!")
-             const Index n = t.StokesDim();
-             
-             switch (n) {
-               case 1:
-                 for (Index r = 0; r < n; r++) t.Vec1(i)[r] = *arr_val.data(r);
-                 break;
-               case 2:
-                 for (Index r = 0; r < n; r++) t.Vec2(i)[r] = *arr_val.data(r);
-                 break;
-               case 3:
-                 for (Index r = 0; r < n; r++) t.Vec3(i)[r] = *arr_val.data(r);
-                 break;
-               case 4:
-                 for (Index r = 0; r < n; r++) t.Vec4(i)[r] = *arr_val.data(r);
-                 break;
-             }
-           }, py::arg("i"), py::arg("vec"), py::doc("Sets a single vector"));
+            auto arr_val = arr.unchecked<1>();
+            ARTS_USER_ERROR_IF(arr_val.shape(0) not_eq t.StokesDim(),
+                               "Bad input size!")
+            const Index n = t.StokesDim();
+
+            switch (n) {
+              case 1:
+                for (Index r = 0; r < n; r++) t.Vec1(i)[r] = *arr_val.data(r);
+                break;
+              case 2:
+                for (Index r = 0; r < n; r++) t.Vec2(i)[r] = *arr_val.data(r);
+                break;
+              case 3:
+                for (Index r = 0; r < n; r++) t.Vec3(i)[r] = *arr_val.data(r);
+                break;
+              case 4:
+                for (Index r = 0; r < n; r++) t.Vec4(i)[r] = *arr_val.data(r);
+                break;
+            }
+          },
+          py::arg("i"),
+          py::arg("vec"),
+          py::doc("Sets a single vector"));
 
   py::class_<StokesVector>(m, "StokesVector")
       .def(py::init([](Index nf, Index ns, Index nza, Index naa, Numeric v) {
@@ -210,7 +245,7 @@ void py_rte(py::module_& m) {
   PythonInterfaceWorkspaceArray(ArrayOfStokesVector);
 
   py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
-      .def(py::init<>())
+      .def(py::init([]() { return new LagrangeInterpolation{}; }))
       .PythonInterfaceCopyValue(LagrangeInterpolation);
 
   py::class_<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
@@ -220,7 +255,7 @@ void py_rte(py::module_& m) {
                              ArrayOfLagrangeInterpolation>();
 
   py::class_<GasAbsLookup>(m, "GasAbsLookup")
-      .def(py::init<>())
+      .def(py::init([]() { return new GasAbsLookup{}; }))
       .PythonInterfaceCopyValue(GasAbsLookup)
       .PythonInterfaceWorkspaceVariableConversion(GasAbsLookup)
       .PythonInterfaceFileIO(GasAbsLookup)

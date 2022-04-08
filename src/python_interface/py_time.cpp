@@ -6,7 +6,7 @@
 namespace Python {
 void py_time(py::module_& m) {
   py::class_<Timer>(m, "Timer")
-      .def(py::init<>())
+      .def(py::init([]() { return new Timer{}; }))
       .PythonInterfaceCopyValue(Timer)
       .PythonInterfaceWorkspaceVariableConversion(Timer)
       .PythonInterfaceFileIO(Timer)
@@ -22,7 +22,7 @@ void py_time(py::module_& m) {
       ;
 
   py::class_<Time>(m, "Time")
-      .def(py::init<>())
+      .def(py::init([]() { return new Time{}; }))
       .def(py::init([](std::chrono::system_clock::time_point nt) {
         Time t;
         t.time = nt;
@@ -35,7 +35,7 @@ void py_time(py::module_& m) {
       }))
       .PythonInterfaceCopyValue(Time)
       .PythonInterfaceWorkspaceVariableConversion(Time)
-      .def(py::init<const String&>())
+      .def(py::init([](const std::string& s) { return new Time{s}; }))
       .PythonInterfaceFileIO(Time)
       .PythonInterfaceBasicRepresentation(Time)
       .def_readwrite("time", &Time::time)
@@ -76,7 +76,7 @@ void py_time(py::module_& m) {
           },
           py::is_operator());
   py::implicitly_convertible<std::chrono::system_clock::time_point, Time>();
-  py::implicitly_convertible<py::str, Time>();
+  py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
   PythonInterfaceWorkspaceArray(Time).def_property_readonly(
