@@ -307,8 +307,8 @@ void py_spectroscopy(py::module_& m) {
                        Numeric j,
                        QuantumIdentifier k,
                        ArrayOfSpecies l,
-                       Array<AbsorptionSingleLine> m) {
-             return new AbsorptionLines{a, b, c, d, e, f, g, h, i, j, k, l, m};
+                       Array<AbsorptionSingleLine> n) {
+             return new AbsorptionLines{a, b, c, d, e, f, g, h, i, j, k, l, n};
            }),
            py::arg("selfbroadening") = false,
            py::arg("bathbroadening") = false,

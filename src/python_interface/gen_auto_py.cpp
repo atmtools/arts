@@ -390,10 +390,7 @@ void includes(std::ofstream& os) {
   os << "#include <python_interface.h>" << '\n';
 }
 
-void workspace_variables(size_t n,
-                         const NameMaps& arts) {
-  const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
-  
+void workspace_variables(size_t n, const NameMaps& arts) {
   std::vector<std::ofstream> oss(n);
   for (size_t i=0; i<n; i++) {
     oss[i] = std::ofstream(var_string("py_auto_workspace_split_vars_", i, ".cc"));
@@ -409,31 +406,10 @@ void workspace_variables(size_t n,
     return WorkspaceVariable{w, )--" << data.artspos
        << "};\n  }, py::return_value_policy::reference_internal),\n";
     
-    os << "  [](Workspace& w, ";
-    if (data.varname_group == "Agenda")
-      os << "std::variant<Agenda, std::function<py::object(Workspace&)>> var_";
-    else
-      os << data.varname_group << ' ';
-    os << "val) {\n    ";
+    os << "  [](Workspace& w, py::object* val) {\n";
 
-    os << data.varname_group << "& v_ = WorkspaceVariable{w, " << data.artspos
-       << "};\n    ";
-    
-    if (data.varname_group == "Agenda")
-    os << "Agenda val = std::holds_alternative<Agenda>(var_val) ? std::get<Agenda>(var_val) : py::cast<Agenda>(std::get<std::function<py::object(Workspace&)>>(var_val)(w));\n    ";
-
-    if (data.varname_group == "Agenda")
-      os << "val.set_name(\"" << name
-         << "\");\n    val.check(w, WorkspaceVariable{w, " << verbpos << "});\n    ";
-    if (data.varname_group == "ArrayOfAgenda")
-      os << "for(auto& x: val) {\n      x.set_name(\"" << name
-         << "\");\n      x.check(w, WorkspaceVariable{w, " << verbpos << "});\n    }\n    ";
-    os << "v_ = std::move(val);";
-    os << "\n  }, R\"-VARNAME_DESC-(\n" << data.varname_desc << '\n';
-    os << "Type\n----\n"
-       << data.varname_group << "\n)-VARNAME_DESC-\""
-       << ");";
-    os << '\n' << '\n';
+    os << "    WorkspaceVariable {w, " << data.artspos
+       << "} = val;\n  }\n); \n\n";
 
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
@@ -560,7 +536,7 @@ void workspace_method_create(size_t n,
   if (auto varptr = w.WsvMap.find(name); varptr == w.WsvMap.end()) {
     ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == ':' or sv.back() == ':',
       "Cannot create variables without a name, or one that starts or ends with \":\"\nVariable name: \"", name, "\"")
-    pos = w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "Created by pybind11 API", )--"
+    pos = w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "User-generated workspace variable", )--"
        << group_index << R"--());
   } else {
     pos = varptr->second;
@@ -1415,7 +1391,7 @@ struct WorkspaceVariable {
 
   WorkspaceVariable(Workspace& ws_, Index group_index, const py::object& obj, bool allow_casting);
 
-  [[nodiscard]] String name() const;
+  [[nodiscard]] const char * name() const;
 
   [[nodiscard]] Index group() const;
 
@@ -1475,8 +1451,8 @@ namespace Python {
 
 bool WorkspaceVariable::is_initialized() const { return ws.is_initialized(pos); }
 
-String WorkspaceVariable::name() const {
-  return ws.wsv_data[pos].Name();
+const char * WorkspaceVariable::name() const {
+  return ws.wsv_data[pos].Name().c_str();
 }
 
 Index WorkspaceVariable::group() const {
@@ -1686,7 +1662,7 @@ WorkspaceVariable::operator Numeric&() const {return *std::get<Numeric_ *>(Works
 
 void workspace_access(std::ofstream& os, const NameMaps& arts) {
   os << R"--(
-ws.def("__setattr__", [](Workspace& w, const String& name, WorkspaceVariablesVariant x) {
+ws.def("__setattr__", [](Workspace& w, const char* name, WorkspaceVariablesVariant x) {
   auto varpos = w.WsvMap.find(name);
 
   bool newname = varpos == w.WsvMap.end();
@@ -1696,21 +1672,14 @@ ws.def("__setattr__", [](Workspace& w, const String& name, WorkspaceVariablesVar
   for (auto& [name, group] : arts.group) {
     os << "if (std::holds_alternative<" << name;
     if (name == "Index" or name == "Numeric") os << "_";
-    os << R"--( *>(x)) i = w.add_wsv_inplace(WsvRecord(name.c_str(), "User-generated value", )--"
+    os << R"--( *>(x)) i = w.add_wsv_inplace(WsvRecord(name, "User-generated value", )--"
        << group << "));\n    else ";
   }
 
-  os << R"--(ARTS_USER_ERROR("Cannot recognize workspace variable type\n\n"
-      "You cannot initiate a workspace variable from a pure python object.\n"
-      "There are three options to proceed:\n"
-      "    1) Cast the type into the desired pyarts type before repeating this evaluation\n"
-      "    2) Use one of the *Create(...) methods with a default value\n"
-      "    3) Use create_variable and then set the value manually\n")
+  os << R"--({ py::getattr(py::cast(w), "__dict__")[name] = std::get<py::object*>(x); return; }
   } else i = varpos->second;
 
-  WorkspaceVariable var{w, i};
-  var.initialize_if_not();
-  var = x;
+  WorkspaceVariable {w, i} = x;
 });
 
 )--";

@@ -146,6 +146,47 @@ void py_rte(py::module_& m) {
           py::arg("vec"),
           py::doc("Sets a single vector"));
 
+  py::class_<PropagationMatrix>(m, "PropagationMatrix")
+      .def(py::init([](Index nf, Index ns, Index nza, Index naa, Numeric v) {
+             ARTS_USER_ERROR_IF(ns < 1 or ns > 4,
+                                "Bad Stokes Dimension ",
+                                ns,
+                                " should be [1, 4]")
+             ARTS_USER_ERROR_IF(nf < 0 or ns < 0 or nza < 0 or naa < 0,
+                                "Negative size index")
+             return new PropagationMatrix(nf, ns, nza, naa, v);
+           }),
+           py::arg("nf") = 0,
+           py::arg("ns") = 1,
+           py::arg("nza") = 1,
+           py::arg("naa") = 1,
+           py::arg("v") = 0)
+      .PythonInterfaceCopyValue(PropagationMatrix)
+      .PythonInterfaceWorkspaceVariableConversion(PropagationMatrix)
+      .PythonInterfaceFileIO(PropagationMatrix)
+      .PythonInterfaceBasicRepresentation(PropagationMatrix)
+      .def_property(
+          "data",
+          py::cpp_function(
+              [](PropagationMatrix& s) -> Tensor4& { return s.Data(); },
+              py::return_value_policy::reference_internal),
+          [](PropagationMatrix& s, const Tensor4& d) {
+            ARTS_USER_ERROR_IF(s.Data().nbooks() not_eq d.nbooks() or
+                                   s.Data().npages() not_eq d.npages() or
+                                   s.Data().nrows() not_eq d.nrows() or
+                                   s.Data().ncols() not_eq d.ncols(),
+                               "Expect shape: (",
+                               s.Data().nbooks(),
+                               ", ",
+                               s.Data().npages(),
+                               ", ",
+                               s.Data().nrows(),
+                               ", ",
+                               s.Data().ncols(),
+                               ')')
+            s.Data() = d;
+          });
+
   py::class_<StokesVector>(m, "StokesVector")
       .def(py::init([](Index nf, Index ns, Index nza, Index naa, Numeric v) {
              ARTS_USER_ERROR_IF(ns < 1 or ns > 4,
@@ -189,47 +230,6 @@ void py_rte(py::module_& m) {
                                d.nrows(),
                                ", ",
                                d.ncols(),
-                               ')')
-            s.Data() = d;
-          });
-
-  py::class_<PropagationMatrix>(m, "PropagationMatrix")
-      .def(py::init([](Index nf, Index ns, Index nza, Index naa, Numeric v) {
-             ARTS_USER_ERROR_IF(ns < 1 or ns > 4,
-                                "Bad Stokes Dimension ",
-                                ns,
-                                " should be [1, 4]")
-             ARTS_USER_ERROR_IF(nf < 0 or ns < 0 or nza < 0 or naa < 0,
-                                "Negative size index")
-             return new PropagationMatrix(nf, ns, nza, naa, v);
-           }),
-           py::arg("nf") = 0,
-           py::arg("ns") = 1,
-           py::arg("nza") = 1,
-           py::arg("naa") = 1,
-           py::arg("v") = 0)
-      .PythonInterfaceCopyValue(PropagationMatrix)
-      .PythonInterfaceWorkspaceVariableConversion(PropagationMatrix)
-      .PythonInterfaceFileIO(PropagationMatrix)
-      .PythonInterfaceBasicRepresentation(PropagationMatrix)
-      .def_property(
-          "data",
-          py::cpp_function(
-              [](PropagationMatrix& s) -> Tensor4& { return s.Data(); },
-              py::return_value_policy::reference_internal),
-          [](PropagationMatrix& s, const Tensor4& d) {
-            ARTS_USER_ERROR_IF(s.Data().nbooks() not_eq d.nbooks() or
-                                   s.Data().npages() not_eq d.npages() or
-                                   s.Data().nrows() not_eq d.nrows() or
-                                   s.Data().ncols() not_eq d.ncols(),
-                               "Expect shape: (",
-                               s.Data().nbooks(),
-                               ", ",
-                               s.Data().npages(),
-                               ", ",
-                               s.Data().nrows(),
-                               ", ",
-                               s.Data().ncols(),
                                ')')
             s.Data() = d;
           });

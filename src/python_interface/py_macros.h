@@ -10,11 +10,10 @@
 
 namespace Python {
 namespace py = pybind11;
-}
+} // namespace Python
 
-constexpr Index negative_clamp(Index i, const Index n) noexcept {
-  if (i < 0) return i + n;
-  return i;
+constexpr Index negative_clamp(const Index i, const Index n) noexcept {
+  return (i < 0) ? i + n : i;
 }
 
 #define PythonInterfaceFileIO(Type)                                        \
@@ -84,13 +83,7 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
                                                  ")"));                     \
             x[i] = std::move(y);                                            \
           },                                                                \
-          py::return_value_policy::reference_internal)                      \
-      .def(                                                                 \
-          "__iter__",                                                       \
-          [](Type& s) { return py::make_iterator(s.begin(), s.end()); },    \
-          py::keep_alive<                                                   \
-              0,                                                            \
-              1>() /* Essential: keep object alive while iterator exists */)
+          py::return_value_policy::reference_internal)
 
 #define PythonInterfaceBasicRepresentation(Type)       \
   def(                                                 \
@@ -107,7 +100,7 @@ constexpr Index negative_clamp(Index i, const Index n) noexcept {
       "__copy__", [](Type& t) -> Type { return t; }, py::is_operator()) \
       .def(                                                             \
           "__deepcopy__",                                               \
-          [](Type& t) -> Type { return t; },                            \
+          [](Type& t, py::dict&) -> Type { return t; },                            \
           py::is_operator())
 
 /** Gives the basic Array<X> interface of Arts

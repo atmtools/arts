@@ -116,30 +116,34 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
           py::keep_alive<0, 1>(),
           py::arg("group").none(false),
           py::arg("name"),
-          py::arg("desc") = std::nullopt)
-      .def(
-          "__delattr__",
-          [](Workspace& w, const char* name) {
-            auto varpos = w.WsvMap.find(name);
-            if (varpos == w.WsvMap.end())
-              throw py::attribute_error(var_string('\'', name, '\''));
+          py::arg("desc") = std::nullopt);
 
-            if (w.is_initialized(varpos->second)) {
-              w.pop_free(varpos->second);
-            }
-          },
-          py::arg("name").none(false));
+  ws.def(
+      "__delattr__",
+      [](Workspace& w, const char* name) {
+        auto varpos = w.WsvMap.find(name);
+        if (varpos == w.WsvMap.end()) {
+          if (py::dict x = py::getattr(py::cast(w), "__dict__"); x.contains(name)) x[name] = py::none();
+          return;
+        }
+        if (w.is_initialized(varpos->second)) w.pop_free(varpos->second);
+      },
+      py::arg("name").none(false));
 
   ws.def(
       "__getattr__",
-      [](Workspace& w, const String& name) {
+      [](Workspace& w,
+         const char* name) -> std::variant<WorkspaceVariable, py::object> {
         auto varpos = w.WsvMap.find(name);
-        if (varpos == w.WsvMap.end())
-          throw py::attribute_error(var_string('\'', name, '\''));
-
+        if (varpos == w.WsvMap.end()) {
+          if (py::dict x = py::getattr(py::cast(w), "__dict__"); x.contains(name)) return x[name];
+          return py::none();
+        }
         return WorkspaceVariable{w, varpos->second};
-      }, py::keep_alive<0, 1>(),
-      py::doc("A custom workspace variable"));
+      },
+      py::keep_alive<0, 1>(),
+      py::doc("A custom workspace variable"),
+      py::arg("name").none(false));
 
   ws.def(
       "swap",
@@ -172,7 +176,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
           [](WorkspaceVariable& wsv, WorkspaceVariablesVariant x) { wsv = x; },
           "Returns a proper Arts type")
       .def("__copy__", [](WorkspaceVariable&){ARTS_USER_ERROR("Cannot copy")}, "Cannot copy a workspace variable, try instead to copy its value")
-      .def("__deepcopy__", [](WorkspaceVariable&){ARTS_USER_ERROR("Cannot copy")}, "Cannot copy a workspace variable, try instead to copy its value")
+      .def("__deepcopy__", [](WorkspaceVariable&, py::dict&){ARTS_USER_ERROR("Cannot copy")}, "Cannot copy a workspace variable, try instead to copy its value")
       .def_property_readonly("name", &WorkspaceVariable::name)
       .def_property_readonly("desc", [](WorkspaceVariable& wv) {return wv.ws.wsv_data.at(wv.pos).Description();})
       .def_property_readonly("init", &WorkspaceVariable::is_initialized)

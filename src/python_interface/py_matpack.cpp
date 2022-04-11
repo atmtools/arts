@@ -1101,26 +1101,26 @@ void py_matpack(py::module_& m) {
       "    Tensor7(Index, Index, Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
       "    Tensor7(List or Array): to copy elements\n\n";
 
-  py::implicitly_convertible<std::vector<Scalar>, Vector>();
   py::implicitly_convertible<py::array, Vector>();
+  py::implicitly_convertible<std::vector<Scalar>, Vector>();
 
-  py::implicitly_convertible<std::vector<std::vector<Scalar>>, Matrix>();
   py::implicitly_convertible<py::array, Matrix>();
+  py::implicitly_convertible<std::vector<std::vector<Scalar>>, Matrix>();
 
-  py::implicitly_convertible<std::vector<std::vector<std::vector<Scalar>>>, Tensor3>();
   py::implicitly_convertible<py::array, Tensor3>();
+  py::implicitly_convertible<std::vector<std::vector<std::vector<Scalar>>>, Tensor3>();
 
-  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<Scalar>>>>, Tensor4>();
   py::implicitly_convertible<py::array, Tensor4>();
+  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<Scalar>>>>, Tensor4>();
 
-  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>, Tensor5>();
   py::implicitly_convertible<py::array, Tensor5>();
+  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>, Tensor5>();
 
-  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>, Tensor6>();
   py::implicitly_convertible<py::array, Tensor6>();
+  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>, Tensor6>();
 
-  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>>, Tensor7>();
   py::implicitly_convertible<py::array, Tensor7>();
+  py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>>, Tensor7>();
 
   PythonInterfaceWorkspaceArray(Vector);
   PythonInterfaceWorkspaceArray(Matrix);

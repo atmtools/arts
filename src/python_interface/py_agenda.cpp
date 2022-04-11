@@ -408,7 +408,7 @@ void py_agenda(py::module_& m) {
             // Set the actual values using automatic set methods
             for (auto& var : var_order) {
               WorkspaceVariable val(ws, var.ws_pos);
-              if (val.name().find("::anon::") == 0) {
+              if (std::strncmp(val.name(), "::anon::", 8) == 0) {
                 a.push_back(simple_set_method(val));
               }
             }
@@ -430,7 +430,7 @@ void py_agenda(py::module_& m) {
             // Clean up the value
             for (auto& var : var_order) {
               WorkspaceVariable val(ws, var.ws_pos);
-              if (val.name().find("::anon::") == 0) {
+              if (std::strncmp(val.name(), "::anon::", 8) == 0) {
                 a.push_back(simple_delete_method(val));
               }
             }
