@@ -5184,6 +5184,25 @@ Possible models:
                "Temperature grid for refractive index calculation")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("complex_refr_indexTConstant"),
+      DESCRIPTION(
+          "Set frequency dependent complex refractive index.\n"
+          "\n"
+          "Temperature grid is set to have length 1 (and\n"
+          "set to the value 0).\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("complex_refr_index"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid"),
+      GIN("refr_index_real", "refr_index_imag"),
+      GIN_TYPE("Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Real part of refractive index, Dimension [Number of frequencies]",
+               "Imag part of refractive index, Dimension [Number of frequencies]")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexWaterLiebe93"),
       DESCRIPTION(
           "Complex refractive index of liquid water according to Liebe 1993.\n"
@@ -9158,6 +9177,59 @@ Possible models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceFlatRefractiveIndex"),
+      DESCRIPTION(
+          "This method calculates upwelling radiation for a specular flat surface\n"
+          "due to the reflection of the downgoing diffuse radiation and emission from\n"
+          "the surface using a predefined reflectivity matrix. \n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the reflection of the diffuse\n"
+          "downward radiation. No direct incoming radiation is considered\n"
+          "\n"
+          "Jacobian is supported only for Skin temperature\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy",
+          "diy_dx",
+          "dsurface_rmatrix_dx",
+          "dsurface_emission_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy",
+         "diy_dx",
+         "dsurface_rmatrix_dx",
+         "dsurface_emission_dx",
+         "iy_transmittance",
+         "iy_id",
+         "jacobian_do",
+         "star_do",
+         "atmosphere_dim",
+         "nlte_field",
+         "cloudbox_on",
+         "stokes_dim",
+         "f_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_surface",
+         "refellipsoid",
+         "rtp_pos",
+         "rtp_los",
+         "rte_pos2",
+         "iy_unit",
+         "surface_complex_refr_index",
+         "surface_props_data",
+         "surface_props_names",
+         "dsurface_names",
+         "jacobian_quantities",
+         "iy_main_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatRefractiveIndexDirect"),
       DESCRIPTION(
           "This method calculates the specular reflection at a flat \n"
@@ -9195,7 +9267,7 @@ Possible models:
          "mag_v_field",
          "mag_w_field",
          "z_surface",
-         "surface_reflectivity",
+         "surface_complex_refr_index",
          "refellipsoid",
          "pnd_field",
          "dpnd_field_dx",
