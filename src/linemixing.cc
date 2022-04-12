@@ -722,19 +722,19 @@ EcsReturn ecs_absorption(const Numeric T,
     auto& target = jacobian_quantities[i].Target();
     
     if (target == Jacobian::Atm::Temperature) {
-      const Numeric dT = target.Perturbation();
+      const Numeric dT = target.perturbation;
       const auto [dabs, dwork] = ecs_absorption_impl(T+dT, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
       vec -= dabs;
       vec /= -dT;
       work &= dwork;
     } else if (target.isMagnetic()) {
-      const Numeric dH = target.Perturbation();
+      const Numeric dH = target.perturbation;
       const auto [dabs, dwork] = ecs_absorption_impl(T, H+dH, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
       vec -= dabs;
       vec /= -dH;
       work &= dwork;
     } else if (target.isWind()) {
-      const Numeric df = target.Perturbation();
+      const Numeric df = target.perturbation;
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
       const auto [dabs, dwork] = ecs_absorption_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid_copy, zeeman_polarization, band);
@@ -742,18 +742,18 @@ EcsReturn ecs_absorption(const Numeric T,
       vec /= df;
       work &= dwork;
     } else if (target == Jacobian::Line::VMR) {
-      if (band.DoVmrDerivative(target.QuantumIdentity())) {
+      if (band.DoVmrDerivative(target.qid)) {
         Vector vmrs_copy = vmrs;
         Numeric this_vmr_copy = this_vmr;
-        const Numeric dvmr = target.Perturbation();
+        const Numeric dvmr = target.perturbation;
         
         // Alter the VMRs for self 
-        if (band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
+        if (band.Isotopologue() == target.qid.Isotopologue()) {
           this_vmr_copy += dvmr;
           if (band.selfbroadening) vmrs_copy[0] += dvmr;  // First value is self if band has self broadener
         } else {
           for (Index j=band.selfbroadening; j<band.broadeningspecies.nelem()-band.bathbroadening; j++) {
-            if (band.broadeningspecies[j] == target.QuantumIdentity().Species()) {
+            if (band.broadeningspecies[j] == target.qid.Species()) {
               vmrs_copy[j] += dvmr;
             }
           }
@@ -769,11 +769,11 @@ EcsReturn ecs_absorption(const Numeric T,
       Numeric d=1e-6;
       
       for (Index iline=0; iline<band.NumLines(); iline++) {
-        if (Quantum::Number::StateMatch(target.QuantumIdentity(), band.lines[iline].localquanta, band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
+        if (Quantum::Number::StateMatch(target.qid, band.lines[iline].localquanta, band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
           AbsorptionLines band_copy = band;
           
-          const Index pos = band.BroadeningSpeciesPosition(target.QuantumIdentity().Species());
-          switch (target.LineType()) {
+          const Index pos = band.BroadeningSpeciesPosition(target.qid.Species());
+          switch (target.line) {
             case Jacobian::Line::ShapeG0X0:
               d *= band.lines[iline].lineshape[pos].G0().X0;
               band_copy.lines[iline].lineshape[pos].G0().X0 += d;
@@ -918,12 +918,12 @@ EcsReturn ecs_absorption(const Numeric T,
           vec -= dabs;
           vec /= -d;
           work &= dwork;
-        } else if (Quantum::Number::StateMatch(target.QuantumIdentity(), band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
+        } else if (Quantum::Number::StateMatch(target.qid, band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
           ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
           
-          const auto spec = target.QuantumIdentity().Species();
+          const auto spec = target.qid.Species();
           ARTS_USER_ERROR_IF(const Index pos = ecs_data.pos(spec); pos == ecs_data.size(), "No data for species ", spec, " in ecs_data:\n", ecs_data)
-          switch (target.LineType()) {
+          switch (target.line) {
             case Jacobian::Line::ECS_SCALINGX0:
               d *= ecs_data_copy[spec].scaling.X0;
               ecs_data_copy[spec].scaling.X0 += d;

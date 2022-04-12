@@ -323,14 +323,14 @@ String Tag::Name() const {
   std::ostringstream os;
 
   // First the species name:
-  os << toShortName(Isotopologues[spec_ind].spec) << "-";
+  os << toShortName(Isotopologue().spec) << "-";
 
   // Is this a CIA tag?
   if (type == TagType::Cia) {
     os << "CIA-" << toShortName(cia_2nd_species) << "-" << cia_dataset_index;
 
   } else if (type == TagType::FreeElectrons || type == TagType::Particles) {
-    os << toShortName(Isotopologues[spec_ind].spec);
+    os << toShortName(Isotopologue().spec);
   }
   // Hitran Xsec flag.
   else if (type == TagType::HitranXsec) {
@@ -340,7 +340,7 @@ String Tag::Name() const {
     if (type == TagType::Zeeman) os << "Z-";
 
     // Now the isotopologue. Can be a single isotopologue or ALL.
-    os << Isotopologues[spec_ind].isotname << '-';
+    os << Isotopologue().isotname << '-';
 
     // Now the frequency limits, if there are any. For this we first
     // need to determine the floating point precision.

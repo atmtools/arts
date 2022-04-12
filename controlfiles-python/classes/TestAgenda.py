@@ -1,18 +1,31 @@
-from pyarts.workspace import Workspace
-from pyarts.classes.Agenda import Agenda
-from pyarts.classes import from_workspace
+import pyarts.pyarts_cpp as cxx
 
+ws = cxx.Workspace()
+ws.x = [4]
 
-# Get a workspace
-ws = Workspace()
+x = cxx.Agenda()
 
-# Get the agenda
-agenda = from_workspace(ws.abs_xsec_agenda)
+def test(ws):
+    ws.x = [2]
+    print(ws.x.value)
+    ws.x = [1]
 
-assert isinstance(agenda, Agenda), "Bad read"
+# Note that the actual output order here depends on your stream buffer
+# the values counting down is all that matters for
+x.add_workspace_method(ws, "Print", ws.x, 0)
+x.add_workspace_method(ws, "VectorSet", ws.x, [3])
+x.add_workspace_method(ws, "Print", ws.x, 0)
+x.add_callback_method(ws, test)
+x.add_workspace_method(ws, "Print", ws.x, 0)
+x.add_workspace_method(ws, "Print", "Done!", 0)
+x.name = "test_agenda"
+x.check(ws)
+x.execute(ws)
 
-
-# a = Agenda()
-# agenda.savexml("tmp.a.xml", "ascii")
-# a.readxml("tmp.a.xml")
-# assert a == a2
+assert not getattr(ws, "::anon::0").init
+assert not getattr(ws, "::anon::1").init
+assert not getattr(ws, "::anon::2").init
+assert not getattr(ws, "::anon::3").init
+assert not getattr(ws, "::anon::4").init
+assert not getattr(ws, "::anon::5").init
+assert not getattr(ws, "::callback::0").init

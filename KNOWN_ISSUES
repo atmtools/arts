@@ -1,3 +1,3 @@
-- TestSpectroscopy and TestSDVP fail on macOS and with Intel(R) oneAPI DPC++ Compiler
+- TestSpectroscopy and TestSDVP fail in some configurations, safe to ignore
 - OpenMP not working with Intel(R) oneAPI DPC++ Compiler
 

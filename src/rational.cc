@@ -44,38 +44,11 @@ std::ostream& operator<<(std::ostream& os, const Rational& a) {
 
 std::istream& operator>>(std::istream& is, Rational& a) {
   String s;
-  Index nom;
-  Index denom;
-  char* endptr;
 
   is >> s;
+  a = Rational(s);
 
-  try {
-    ArrayOfString as;
-
-    s.split(as, "/");
-
-    if (as.nelem() == 1) {
-      nom = strtol(s.c_str(), &endptr, 10);
-      ARTS_USER_ERROR_IF (endptr != s.c_str() + s.nelem(),
-                          "Error parsing rational number");
-      a = Rational(nom, 1);
-    } else if (as.nelem() == 2) {
-      nom = strtol(as[0].c_str(), &endptr, 10);
-      ARTS_USER_ERROR_IF (endptr != as[0].c_str() + as[0].nelem(),
-                          "Error parsing rational number nominator");
-      denom = strtol(as[1].c_str(), &endptr, 10);
-      ARTS_USER_ERROR_IF (endptr != as[1].c_str() + as[1].nelem(),
-                          "Error parsing rational number denominator");
-      a = Rational(nom, denom);
-    } else {
-      ARTS_USER_ERROR ("Error parsing rational number");
-    }
-  } catch (const std::runtime_error& e) {
-    ARTS_USER_ERROR (
-                        "Error parsing rational number: ",
-                        s, '\n', e.what())
-  }
+  ARTS_USER_ERROR_IF(a.isUndefined(), "Cannot read ", s, " as a rational")
 
   return is;
 }

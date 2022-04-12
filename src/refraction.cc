@@ -38,6 +38,7 @@
 #include "geodetic.h"
 #include "interpolation.h"
 #include "special_interp.h"
+#include "check_input.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;

@@ -1,32 +1,22 @@
-from pyarts.classes.Rational import Rational
+import pyarts.pyarts_cpp as cxx
+import test_functions as test
 
+x = cxx.Rational()
+test.io(x, delete=True)
 
-# Get a workspace
-r = Rational()
+y = x + 1
+x += 1
+assert y == x
 
-r.set(1.5)
-assert r == r
-print(r)
-r.set(r + 3)
-assert r == r
-print(r)
-r.set(r/2)
-assert r == r
-print(r)
-r.set(r-Rational(5, 7))
-assert r == r
-print(r)
-r.set(r**2)
-assert r == r
-print(r)
-r.set(r**2.5)
-assert r == r
-print(r)
-r.set(3/2)
-assert r == r
-print(r)
+y = x * 2
+x *= 2
+assert y == x
 
-r2 = Rational()
-r.savexml("tmp.r.xml", "binary")
-r2.readxml("tmp.r.xml")
-assert r == r2
+y = x / 3
+x /= 3
+assert y == x
+
+y = x - 4
+x -= 4
+assert y == x
+

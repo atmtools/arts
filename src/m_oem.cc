@@ -51,6 +51,7 @@
 #include "rte.h"
 #include "special_interp.h"
 #include "surface.h"
+#include "check_input.h"
 
 #ifdef OEM_SUPPORT
 #include "oem.h"

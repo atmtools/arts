@@ -16,6 +16,7 @@
    USA. */
 
 #include "parser.h"
+#include <algorithm>
 #include <iostream>
 #include "arts.h"
 #include "exceptions.h"
@@ -1222,8 +1223,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
     {
       wsvid = -1;
       // Find Wsv id:
-      map<String, Index>::const_iterator wsvit =
-          Workspace::WsvMap.find(wsvname);
+      auto wsvit = Workspace::WsvMap.find(wsvname);
       if (wsvit == Workspace::WsvMap.end()) {
         if (still_supergeneric) {
           ostringstream os;
@@ -1234,35 +1234,43 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
 
           throw UnknownWsv(
               os.str(), msource.File(), msource.Line(), msource.Column());
-        } else {
-          if (mdd->Name().length() <= 6 ||
-              mdd->Name().substr(mdd->Name().length() - 6) != "Create") {
-            ostringstream os;
-            os << "This might be either a typo or you have to create "
-               << "the variable\nby calling "
-               << wsv_group_names[mdd->GOutType()[j]] << "Create( " << wsvname
-               << " ) first.\n";
-
-            throw UnknownWsv(
-                os.str(), msource.File(), msource.Line(), msource.Column());
-          } else {
-            wsvid = Workspace::add_wsv(
-                WsvRecord(wsvname.c_str(),
-                          "Automatically allocated variable.",
-                          mdd->GOutType()[j],
-                          true));
-          }
         }
+
+        if (mdd->Name().length() <= 6 ||
+            mdd->Name().substr(mdd->Name().length() - 6) != "Create") {
+          ostringstream os;
+          os << "This might be either a typo or you have to create "
+             << "the variable\nby calling "
+             << wsv_group_names[mdd->GOutType()[j]] << "Create( " << wsvname
+             << " ) first.\n";
+
+          throw UnknownWsv(
+              os.str(), msource.File(), msource.Line(), msource.Column());
+        }
+
+        wsvid =
+            Workspace::add_wsv(WsvRecord(wsvname.c_str(),
+                                         "Automatically allocated variable.",
+                                         mdd->GOutType()[j],
+                                         true));
       }
 
       if (wsvid == -1) {
         if (mdd->Name().length() > 6 &&
             mdd->Name().find("Create") == mdd->Name().length() - 6) {
-          ostringstream os;
-          os << wsvname
-             << " already exists. A variable can only be created once.\n";
-          throw WsvAlreadyExists(
-              os.str(), msource.File(), msource.Line(), msource.Column());
+          const String& gn =
+              wsv_group_names[Workspace::wsv_data[wsvit->second].Group()];
+          if (mdd->Name().find(gn) not_eq 0) {
+            throw WsvAlreadyExists(
+                var_string(
+                    wsvname,
+                    " already exists of group ",
+                    gn,
+                    ". A variable cannot be redefined as a different group.\n"),
+                msource.File(),
+                msource.Line(),
+                msource.Column());
+          }
         }
         wsvid = wsvit->second;
       }

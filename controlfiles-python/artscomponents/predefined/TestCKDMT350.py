@@ -46,30 +46,30 @@ for spec in specs:
     
     ws.propmat_clearskyInit()
     ws.propmat_clearskyAddPredefined()
-    vals.append(1.0 *  ws.propmat_clearsky.value.data.data.flatten())
+    vals.append(1.0 *  np.array(ws.propmat_clearsky.value.data).flatten())
     
     dvals.append([])
     for x in ws.dpropmat_clearsky_dx.value:
-        dvals[-1].append(1.0 * x.data.data.flatten())
+        dvals[-1].append(1.0 * np.array(x.data).flatten())
     
     manual_dvals.append([])
     ws.jacobianInit()
     ws.rtp_temperature.value += 0.1
     ws.propmat_clearskyInit()
     ws.propmat_clearskyAddPredefined()
-    manual_dvals[-1].append(10.0 *  (ws.propmat_clearsky.value.data.data.flatten() - vals[-1]))
+    manual_dvals[-1].append(10.0 *  (np.array(ws.propmat_clearsky.value.data).flatten() - vals[-1]))
     ws.rtp_temperature.value -= 0.1
     
     ws.f_grid.value += 0.1
     ws.propmat_clearskyInit()
     ws.propmat_clearskyAddPredefined()
-    manual_dvals[-1].append(10. *  (ws.propmat_clearsky.value.data.data.flatten() - vals[-1]))
+    manual_dvals[-1].append(10. *  (np.array(ws.propmat_clearsky.value.data).flatten() - vals[-1]))
     ws.f_grid.value -= 0.1
     
     ws.rtp_vmr.value += 1e-6
     ws.propmat_clearskyInit()
     ws.propmat_clearskyAddPredefined()
-    manual_dvals[-1].append(1e6 *  (ws.propmat_clearsky.value.data.data.flatten() - vals[-1]))
+    manual_dvals[-1].append(1e6 *  (np.array(ws.propmat_clearsky.value.data).flatten() - vals[-1]))
     ws.rtp_vmr.value -= 1e-6
     
 if PLOT:
@@ -93,13 +93,13 @@ if CMPR:
     cmpr = pyarts.classes.ArrayOfVector()
     cmpr.readxml("test_data_ckdmt350.xml")
     for i in range(len(cmpr)):
-        assert np.isclose(cmpr[i].data, res[i].data).all()
+        assert np.isclose(cmpr[i], res[i]).all()
         
     dcmpr = pyarts.classes.ArrayOfArrayOfVector()
     dcmpr.readxml("test_data_ckdmt350.deriv.xml")
     for i in range(len(dcmpr)):
         for j in range(len(dcmpr[i])):
-            assert np.isclose(dcmpr[i][j].data, dres[i][j].data).all()
+            assert np.isclose(dcmpr[i][j], dres[i][j]).all()
 
 # Note: manual_dres is not compared against but kept around.  The derivative of
 # water VMR for the self-model has a factor x**2, where x is the VMR itself.
