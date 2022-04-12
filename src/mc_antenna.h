@@ -35,6 +35,7 @@
 #include <stdexcept>
 #include "arts.h"
 #include "matpackI.h"
+#include "ppath.h"
 #include "rng.h"
 
 enum AntennaType {

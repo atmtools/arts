@@ -12,11 +12,11 @@ class TestPlots:
         lookup_file = join(dirname(__file__), 'reference',
                            'abs_lookup_small.xml')
         fig, ax = plot_arts_lookup(axml.load(lookup_file))
-        
+
         fig.suptitle('Lookup table opacities')
         fig.subplots_adjust(top=0.88)
         plt.savefig("lookup_opacities.pdf")
-        
+
         lookup_file = join(dirname(__file__), 'reference',
                            'abs_lookup_small.xml')
         fig, ax = plot_arts_lookup(
@@ -24,7 +24,7 @@ class TestPlots:
             species=ArrayOfArrayOfSpeciesTag([[SpeciesTag("N2O")],
                                               [SpeciesTag("O3")]]),
             opacity=False)
-        
+
         fig.suptitle('Lookup table absorption cross sections [m$^2$]')
         fig.subplots_adjust(top=0.88)
         plt.savefig("lookup_crosssections.pdf")

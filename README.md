@@ -73,10 +73,6 @@ make -jX
 Where X is the number of parallel build processes.
 X=(Number of Cores)+1 gives you usually the fastest compilation time.
 
-WARNING: The compilation is very memory intensive. If you have 16GB of RAM,
-don't use more than 4-6 cores. With 8GB, don't use more than 1-2 cores.
-
-
 Developer install of the PyARTS Python package:
 
 ```

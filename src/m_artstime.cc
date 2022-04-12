@@ -52,7 +52,7 @@ void Sleep(const Numeric& duration, const Verbosity&)
 
 void timeSleep(const Time& time, const Verbosity&)
 {
-  std::this_thread::sleep_until(time.time);
+  std::this_thread::sleep_until(time.Data());
 }
 
 

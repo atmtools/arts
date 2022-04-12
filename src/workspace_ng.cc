@@ -29,7 +29,7 @@
 
 namespace global_data {
 WorkspaceMemoryHandler workspace_memory_handler{};
-} // namespace global_data
+}
 using global_data::workspace_memory_handler;
 
 Array<WsvRecord> Workspace::wsv_data;
@@ -68,14 +68,14 @@ void Workspace::del(Index i) {
 
   if (wsvs && wsvs->wsv) {
     workspace_memory_handler.deallocate(wsv_data[i].Group(), wsvs->wsv);
-    wsvs->wsv = nullptr;
+    wsvs->wsv = NULL;
     wsvs->auto_allocated = false;
     wsvs->initialized = false;
   }
 }
 
 void Workspace::duplicate(Index i) {
-  auto *wsvs = new WsvStruct;
+  WsvStruct *wsvs = new WsvStruct;
 
   wsvs->auto_allocated = true;
   if (ws[i].size() && ws[i].top()->wsv) {
@@ -83,7 +83,7 @@ void Workspace::duplicate(Index i) {
                                                    ws[i].top()->wsv);
     wsvs->initialized = true;
   } else {
-    wsvs->wsv = nullptr;
+    wsvs->wsv = NULL;
     wsvs->initialized = false;
   }
   ws[i].push(wsvs);
@@ -94,13 +94,13 @@ Workspace::Workspace(const Workspace &workspace) : ws(workspace.ws.nelem()) {
   context = workspace.context;
 #endif
   for (Index i = 0; i < workspace.ws.nelem(); i++) {
-    auto *wsvs = new WsvStruct;
+    WsvStruct *wsvs = new WsvStruct;
     wsvs->auto_allocated = false;
     if (workspace.ws[i].size() && workspace.ws[i].top()->wsv) {
       wsvs->wsv = workspace.ws[i].top()->wsv;
       wsvs->initialized = workspace.ws[i].top()->initialized;
     } else {
-      wsvs->wsv = nullptr;
+      wsvs->wsv = NULL;
       wsvs->initialized = false;
     }
     ws[i].push(wsvs);
@@ -128,7 +128,7 @@ Workspace::~Workspace() {
 
 void *Workspace::pop(Index i) {
   WsvStruct *wsvs = ws[i].top();
-  void *vp = nullptr;
+  void *vp = NULL;
   if (wsvs) {
     vp = wsvs->wsv;
     delete wsvs;
@@ -150,7 +150,7 @@ void Workspace::pop_free(Index i) {
 }
 
 void Workspace::push(Index i, void *wsv) {
-  auto *wsvs = new WsvStruct;
+  WsvStruct *wsvs = new WsvStruct;
   wsvs->auto_allocated = false;
   wsvs->initialized = true;
   wsvs->wsv = wsv;
@@ -158,7 +158,7 @@ void Workspace::push(Index i, void *wsv) {
 }
 
 void Workspace::push_uninitialized(Index i, void *wsv) {
-  auto *wsvs = new WsvStruct;
+  WsvStruct *wsvs = new WsvStruct;
   wsvs->auto_allocated = false;
   wsvs->initialized = false;
   wsvs->wsv = wsv;
@@ -166,7 +166,7 @@ void Workspace::push_uninitialized(Index i, void *wsv) {
 }
 
 void *Workspace::operator[](Index i) {
-  if (!ws[i].size()) push(i, nullptr);
+  if (!ws[i].size()) push(i, NULL);
 
   if (!ws[i].top()->wsv) {
     ws[i].top()->auto_allocated = true;
@@ -176,10 +176,4 @@ void *Workspace::operator[](Index i) {
   ws[i].top()->initialized = true;
 
   return (ws[i].top()->wsv);
-}
-
-void Workspace::swap(Workspace& other) {
-  initialize();
-  other.initialize();
-  ws.swap(other.ws);
 }

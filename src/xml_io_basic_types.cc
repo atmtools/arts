@@ -69,26 +69,26 @@ void xml_read_from_stream(istream& is_xml,
   if (jt.needQuantumIdentity()) {
     String qid;
     tag.get_attribute_value("id", qid);
-    jt.qid = QuantumIdentifier(qid);
+    jt.QuantumIdentity(QuantumIdentifier(qid));
   }
 
   if (jt.needArrayOfSpeciesTag()) {
     String key;
     tag.get_attribute_value("species", key);
-    jt.species_array_id = ArrayOfSpeciesTag(key);
+    jt.SpeciesList() = ArrayOfSpeciesTag(key);
   }
 
   if (jt.needString()) {
-    tag.get_attribute_value("string_key", jt.string_id);
+    tag.get_attribute_value("string_key", jt.StringKey());
   }
   
   if (pbifs) {
-    *pbifs >> jt.perturbation;
+    *pbifs >> jt.Perturbation();
     if (pbifs->fail()) {
       xml_data_parse_error(tag, "");
     }
   } else {
-    is_xml >> jt.perturbation;
+    is_xml >> jt.Perturbation();
     if (is_xml.fail()) {
       xml_data_parse_error(tag, "");
     }
@@ -126,22 +126,22 @@ void xml_write_to_stream(ostream& os_xml,
   
   /** Catalog ID */
   if (jt.needQuantumIdentity()) {
-    open_tag.add_attribute("id", var_string(jt.qid));
+    open_tag.add_attribute("id", var_string(jt.QuantumIdentity()));
   }
 
   if (jt.needArrayOfSpeciesTag()) {
-    open_tag.add_attribute("species", jt.species_array_id.Name());
+    open_tag.add_attribute("species", jt.SpeciesList().Name());
   }
 
   if (jt.needString()) {
-    open_tag.add_attribute("string_key", jt.string_id);
+    open_tag.add_attribute("string_key", jt.StringKey());
   }
   open_tag.write_to_stream(os_xml);
 
   if (pbofs)
-    *pbofs << jt.perturbation;
+    *pbofs << jt.Perturbation();
   else
-    os_xml << ' ' << jt.perturbation << ' ';
+    os_xml << ' ' << jt.Perturbation() << ' ';
 
   close_tag.set_name("/JacobianTarget");
   close_tag.write_to_stream(os_xml);
@@ -204,7 +204,7 @@ void xml_write_to_stream(ostream& os_xml,
   if (pbofs)
     *pbofs << rational;
   else
-    os_xml << ' ' << rational << ' ';
+    os_xml << rational;
 
   close_tag.set_name("/Rational");
   close_tag.write_to_stream(os_xml);

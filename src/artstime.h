@@ -38,41 +38,47 @@
 using TimeStep = std::chrono::duration<Numeric>;
 
 /** Class to handle time in ARTS */
-struct Time {
-  std::chrono::system_clock::time_point time;
-  using InternalTimeStep = decltype(time)::duration;
+class Time {
+private:
+  std::chrono::system_clock::time_point mtime;
+
+public:
+  using InternalTimeStep = decltype(mtime)::duration;
   
   // Version will be updated when C++20 datetime is available... Version 1 will still assume local time at that time
   [[nodiscard]] Index Version() const noexcept {return 1;}
   
   // Construction
-  Time() : time(std::chrono::system_clock::now()) {}
-  explicit Time(std::time_t t) : time(std::chrono::system_clock::from_time_t(t)) {}
+  Time() : mtime(std::chrono::system_clock::now()) {}
+  explicit Time(std::time_t t) : mtime(std::chrono::system_clock::from_time_t(t)) {}
   explicit Time(std::tm t) : Time(std::mktime(&t)) {}
   explicit Time(const String& t);
   
+  // Data
+  [[nodiscard]] const std::chrono::system_clock::time_point& Data() const {return mtime;}
+  
   // Conversions
-  [[nodiscard]] std::time_t toTimeT() const {return std::chrono::system_clock::to_time_t(time);}
+  [[nodiscard]] std::time_t toTimeT() const {return std::chrono::system_clock::to_time_t(mtime);}
   [[nodiscard]] std::tm toStruct() const {std::time_t x=toTimeT();  std::tm* y = std::localtime(&x); return *y;}
   [[nodiscard]] std::tm toGMTStruct() const {std::time_t x=toTimeT();  std::tm* y = std::gmtime(&x); return *y;}
   [[nodiscard]] TimeStep seconds_into_day() const {std::tm x = toStruct(); return TimeStep(x.tm_hour*3600 + x.tm_min*60 + x.tm_sec + PartOfSecond());}
-  [[nodiscard]] InternalTimeStep EpochTime() const {return time.time_since_epoch();}
+  [[nodiscard]] InternalTimeStep EpochTime() const {return mtime.time_since_epoch();}
   
   // Operations
-  InternalTimeStep operator-(const Time& t) const noexcept {return time - t.time;}
-  bool operator<(const Time& t) const noexcept {return time < t.time;}
-  bool operator==(const Time& t) const noexcept {return time == t.time;}
+  InternalTimeStep operator-(const Time& t) const noexcept {return mtime - t.mtime;}
+  bool operator<(const Time& t) const noexcept {return mtime < t.mtime;}
+  bool operator==(const Time& t) const noexcept {return mtime == t.mtime;}
   bool operator!=(const Time& t) const noexcept {return not this -> operator==(t);}
   bool operator<=(const Time& t) const noexcept {return this -> operator<(t) or this -> operator==(t);}
   bool operator>(const Time& t) const noexcept {return not this -> operator<=(t);}
   bool operator>=(const Time& t) const noexcept {return this -> operator>(t) or this -> operator==(t);}
-  template <typename T, typename R> Time& operator+=(const std::chrono::duration<T, R>& dt) {time += std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
-  template <typename T, typename R> Time& operator-=(const std::chrono::duration<T, R>& dt) {time -= std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
+  template <typename T, typename R> Time& operator+=(const std::chrono::duration<T, R>& dt) {mtime += std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
+  template <typename T, typename R> Time& operator-=(const std::chrono::duration<T, R>& dt) {mtime -= std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
   template <typename T, typename R> Time operator+(const std::chrono::duration<T, R>& dt) const {return (Time(*this) += dt);}
   template <typename T, typename R> Time operator-(const std::chrono::duration<T, R>& dt) const {return (Time(*this) -= dt);}
   
   // helpers
-  [[nodiscard]] Numeric Seconds() const {return std::chrono::duration_cast<TimeStep>(time.time_since_epoch()).count();}
+  [[nodiscard]] Numeric Seconds() const {return std::chrono::duration_cast<TimeStep>(mtime.time_since_epoch()).count();}
   void Seconds(Numeric x) {operator+=(TimeStep(x - Seconds()));}
   [[nodiscard]] Numeric PartOfSecond() const {return std::fmod(Seconds(), 1.0);}
   

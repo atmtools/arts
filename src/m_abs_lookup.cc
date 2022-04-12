@@ -2197,7 +2197,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
     auto& rq = jacobian_quantities.back();
     rq.Subtag(species_list.Name());
     rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, species_list));
-    rq.Target().perturbation = 0.001;
+    rq.Target().Perturbation(0.001);
   }
 
   // We have to make a local copy of the Workspace and the agendas because

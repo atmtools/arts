@@ -33,13 +33,18 @@
 #define absorptionlines_h
 
 #include "bifstream.h"
+
 #include "bofstream.h"
+
 #include "enums.h"
+
 #include "lineshapemodel.h"
+
 #include "matpack.h"
+
 #include "quantum_numbers.h"
+
 #include "zeemandata.h"
-#include "jacobian.h"
 
 #include <utility>
 #include <vector>
@@ -490,7 +495,7 @@ struct Lines {
   [[nodiscard]] Species::Species Species() const noexcept {return quantumidentity.Species();}
   
   /** Isotopologue Index */
-  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept {return quantumidentity.Isotopologue();}
+  [[nodiscard]] const Species::IsotopeRecord& Isotopologue() const noexcept {return quantumidentity.Isotopologue();}
   
   /** Number of lines */
   [[nodiscard]] Index NumLines() const noexcept {return Index(lines.size());}

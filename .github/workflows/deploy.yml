@@ -5,46 +5,15 @@ on: [push]
 jobs:
   publish:
     if: github.repository == 'atmtools/arts'
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        name: [
-          linux-python37,
-          linux-python38,
-          linux-python39,
-          linux-python310
-        ]
-
-        include:
-          - name: linux-python37
-            os: ubuntu-20.04
-            python_version: cp37-cp37m
-
-          - name: linux-python38
-            os: ubuntu-20.04
-            python_version: cp38-cp38
-
-          - name: linux-python39
-            os: ubuntu-20.04
-            python_version: cp39-cp39
-
-          - name: linux-python310
-            os: ubuntu-20.04
-            python_version: cp310-cp310
-
+    runs-on: ubuntu-latest
+    name: Build and publish Python wheels.
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           ref: ${{ github.ref }}
-      - name: PyPI release (Linux)
-        if: runner.os == 'Linux'
+      - name: PyPI release
         continue-on-error: true
         uses: ./actions/pypi
         with:
-          pypi_access: ${{ secrets.pypi_access }}
-          python_version: ${{ matrix.python_version }}
-
+          pypi_access: ${{secrets.pypi_access}}

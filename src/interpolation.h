@@ -72,7 +72,7 @@
 */
 struct GridPos {
   Index idx;     /*!< Original grid index below interpolation point. */
-  std::array<Numeric, 2> fd; /*!< Fractional distance to next point
+  Numeric fd[2]; /*!< Fractional distance to next point
                                     (0<=fd[0]<=1), fd[1] = 1-fd[0]. */
 };
 

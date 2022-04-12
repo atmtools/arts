@@ -32,7 +32,6 @@
 #include "sorting.h"
 #include "surface.h"
 #include "workspace_ng.h"
-#include "check_input.h"
 
 /*!
   \file   m_fluxes.cc
@@ -511,7 +510,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const String& rt_integration_option,
     const Tensor3& surface_props_data,
     const Vector& za_grid,
-    const Index& use_parallel_za  [[maybe_unused]],
+    const Index& use_parallel_za,
     const Verbosity& verbosity) {
   // Check input
   if (atmosphere_dim != 1)
@@ -756,7 +755,7 @@ void spectral_radiance_fieldExpandCloudboxField(
     const String& rt_integration_option,
     const Tensor3& surface_props_data,
     const Vector& za_grid,
-    const Index& use_parallel_za  [[maybe_unused]],
+    const Index& use_parallel_za,
     const Verbosity& verbosity) {
   // Check input
   if (atmosphere_dim != 1)

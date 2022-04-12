@@ -97,7 +97,7 @@ void TelsemAtlas::equare() {
   firstcells.resize(maxlat);
 
   // Total number of cells.
-  //Index totcel = 0.0;
+  Index totcel = 0.0;
 
   Numeric rcelat = dlat * PI / 180.0;
 
@@ -117,7 +117,7 @@ void TelsemAtlas::equare() {
     Numeric rcells = azone / aecell;
     Index icellr = static_cast<Index>(rcells + 0.5);
 
-    //totcel += 2 * icellr;
+    totcel += 2 * icellr;
 
     Index lat1 = i + maxlat / 2;
     Index lat2 = maxlat / 2 - 1 - i;

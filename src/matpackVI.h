@@ -162,9 +162,6 @@ class ConstTensor6View {
   Index nrows() const;
   Index ncols() const;
 
-  /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  Shape<6> shape() const {return {nvitrines(), nshelves(), nbooks(), npages(), nrows(), ncols()};}
-
   // Const index operators:
 
   // Result 6D (1 combination)
@@ -1223,11 +1220,6 @@ class Tensor6 : public Tensor6View {
     ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
-  }
-
-  template <class F>
-  void transform_elementwise(F&& func) {
-    std::transform(mdata, mdata+size(), mdata, func);
   }
 };
 

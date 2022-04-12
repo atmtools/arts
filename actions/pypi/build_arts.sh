@@ -1,8 +1,7 @@
 #!/bin/sh
 
-PYTHONDIR=/opt/python/$INPUT_PYTHON_VERSION
-echo "PYTHONDIR=$PYTHONDIR"
-if [[ ! -f "${PYTHONDIR}/bin/python3" ]]; then
+PYTHONDIR=/opt/python/cp39-cp39
+if [[ ! -d "${PYTHONDIR}" ]]; then
     echo "Python directory ${PYTHONDIR} not found"
     exit 1
 fi
@@ -18,9 +17,8 @@ git fetch --prune --depth=1 origin
 
 # Build pyarts
 git checkout --force ${GITHUB_REF#refs/heads/}; mkdir -p build; cd build;
-cmake3 -DCMAKE_BUILD_TYPE=Release -DENABLE_FORTRAN=1 -DBLAS_blas_LIBRARY=/usr/lib64/atlas/libtatlas.so -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1 -DNUM_PYARTS_WSC=1 -DNUM_PYARTS_WSG=1 ..
-make -j2 arts
-make -j1 pyarts
+cmake3 -DCMAKE_BUILD_TYPE=Release -DENABLE_FORTRAN=1 -DBLAS_blas_LIBRARY=/usr/lib64/atlas/libtatlas.so -DLAPACK_lapack_LIBRARY=/usr/lib64/atlas/libtatlas.so ..
+make -j2 pyarts
 
 # Packaging
 cd python

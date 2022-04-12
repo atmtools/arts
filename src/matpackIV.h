@@ -146,9 +146,6 @@ class ConstTensor4View {
   Index nrows() const;
   Index ncols() const;
 
-  /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  Shape<4> shape() const {return {nbooks(), npages(), nrows(), ncols()};}
-
   // Const index operators:
   ConstTensor4View operator()(const Range& b,
                               const Range& p,
@@ -512,11 +509,6 @@ class Tensor4 : public Tensor4View {
     ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
-  }
-
-  template <class F>
-  void transform_elementwise(F&& func) {
-    std::transform(mdata, mdata+size(), mdata, func);
   }
 };
 
