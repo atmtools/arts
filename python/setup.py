@@ -13,7 +13,7 @@ import subprocess
 import shutil
 
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages, Distribution
+from setuptools import setup, find_packages
 
 # To use a consistent encoding
 from codecs import open
@@ -44,11 +44,6 @@ try:
     if not found: raise
 except:
     raise Exception("Cannot find builtin library")
-
-class BinaryDistribution(Distribution):
-    """Distribution which always forces a binary package with platform name"""
-    def has_ext_modules(foo):
-        return True
 
 setup(
     name="pyarts",
@@ -84,5 +79,4 @@ setup(
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     include_package_data=True,
-    distclass=BinaryDistribution,
 )
