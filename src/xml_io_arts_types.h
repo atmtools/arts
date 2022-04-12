@@ -63,7 +63,6 @@
 #include "hitran_xsec.h"
 #include "absorptionlines.h"
 #include "linemixing.h"
-#include "callback.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                  \
   void xml_read_from_stream(                              \
@@ -178,11 +177,6 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor5)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor6)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor7)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
-
-
-//=== Not storable Types ===================================================
-
-TMPL_XML_READ_WRITE_STREAM(CallbackFunction)
 
 //==========================================================================
 

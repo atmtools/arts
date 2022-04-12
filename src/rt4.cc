@@ -36,7 +36,6 @@
 #include <complex.h>
 #include <cfloat>
 #include <stdexcept>
-#include "check_input.h"
 #include "disort.h"
 #include "interpolation.h"
 #include "interpolation_lagrange.h"

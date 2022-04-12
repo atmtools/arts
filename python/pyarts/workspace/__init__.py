@@ -7,10 +7,15 @@ access and manipulate workspace variables.
 Setup
 -----
 
-The CMake build process should automatically generate this interface as long as
-you build the pyarts package.  A key here is that an internal representation of
-the builtin Arts functions and classes are generated using the pybind11 library
-for the bindings.
+The python interface needs access to the :code:`libarts_api.so` shared library, which
+is located in the `src` subfolder of the ARTS build tree. The interface expects
+the location of the ARTS build tree to be provided in the ``ARTS_BUILD_PATH``
+environment variable. For the :code:`libarts_api.so` to be built, ARTS needs to be
+configured with :code:`-DENABLE_C_API=1`:
+
+.. code-block:: bash
+
+    cmake -DENABLE_C_API=1 ... /path/to/arts
 
 The Workspace Class
 -------------------
@@ -22,28 +27,19 @@ controlfiles and workspace methods and access workspace variables
 >>> from arts.workspace import Workspace
 >>> ws = Workspace()
 
-For a basic interface, see
-
->>> help(ws)
-
 Executing Controlfiles
 ----------------------
 
 Controlfiles can be executed on a workspace using the
-:func:`Include` method.
+:func:`~Workspace.execute_controlfile` method.
 
->>> Include(ws, "general/general.arts")
+>>> ws.execute_controlfile("general.arts")
 
-The search path for controlfiles is the current directory, the paths
-provided in the environment variable ``ARTS_INCLUDE_PATH``, and the search paths
-that were provided in the ``ARTS_DEFAULT_INCLUDE_DIR`` variable while building
-Arts.  Controlfiles are parsed inline, so repeated parsing of a controlfile
-is possible.  If this fails, the controlfile is effectively not parsed.  (A key
-exception here is that variables that are created by a controlfile are
-effectively done so by the parsing and not during the execution of the
-controlfile.  As it is not allowed to create a named variable twice in a
-controlfile, this means that a controlfile that creates variables often cannot
-be included twice, regardless of intitial success.)
+The search path for controlfiles is the current directory plus the paths
+provided in the environment variable ``ARTS_INCLUDE_PATH``. Controlfiles
+are parsed only once and then cached. Thus, if a controlfile is modified
+after it has been loaded, these changes will only be effective after a
+restart of the python runtime.
 
 Calling Workspace Methods
 -------------------------
@@ -59,58 +55,58 @@ Arguments can be passed to a workspace function in three ways:
     1. As workspace variables using the attributes of the
        workspace object, such as :code:`ws.stokes_dim` in the
        example above.
-    2. Using one of classes available in
-       :mod:`pyarts.classes`
-    3. Passing supported python objects directly (limited to pure input)
+    2. Using one of the symbolic variables in
+       :mod:`arts.workspace.variables`
+    3. Passing supported python objects directly
 
-Arguments to a WSM can be passed using either positional or named arguments or
-both.
+Arguments to a WSM can be passed using either positional or named arguments or both. If
+positional arguments are provided at least all generic output and generic input arguments
+must be given in order.
 
 >>> ws.VectorNLogSpace(ws.p_grid, 361, 500e2, 0.1 )
 
-Available keywords are the names of the generic outputs and inputs defined in
-methods.cc
+Keyword arguments to define generic input and output arguments. Available keywords are the
+names of the generic outputs and inputs defined in methods.cc.
 
 >>> ws.abs_speciesSet(species=[ "O3" ])
-
-The documentation is generally available via python's help() command, e.g.,
-
->>> help(ws.yCalc)
 
 Calls to supergeneric functions are resolved by the interface.
 
 Workspace Variables
 -------------------
 
-Variable objects are associated to a workspace, and can be accessed as
-attributes of a workspace, i.e. using for example:
+Symbolic representation of all workspace variables are available in the arts.workspace.variables
+module as module attributes. The purpose of these is to be passed to workspace functions as placeholders
+for variables in the workspace.
+
+Variable objects can be associated to a workspace, which is the case for variables accessed as attributes
+of a workspace, i.e. using for example:
 
 >>> ws.y
 
-their value can be accessed using the value property as
+If that is the case their value can be accessed using the value() member function. In order
+to print out a textual representation of the value, the print() member function can be used,
+which will call the corresponding Print() ARTS WSV.
 
->>> ws.y.value
-
-This will return a builtin representation of the value of the workspace if it is
-initialized.  You should be able to set workspace variables from most python ways
-of representing the type such as
-
->>> ws.y = [1, 2]
-
-or
-
->>> ws.y = np.array([1,2])
-
-This will initialize the workspace variable.
-
-For more information, see for example
-
->>> help(ws.y)
-
-or
-
->> help(ws.y.value)
+Workspace variables of the groups Vector, Matrix and Tensor with an associated workspace
+implement the numpy array interface and can therefore be used just as any other numpy array.
+In some cases, however, it may be necessary to explicitly create a view on the array using
+numpy.asarray.
 
 """
 
-from pyarts.workspace.workspace import Workspace, arts_agenda, Include # noqa 
+import logging
+
+from pyarts.environment import environ
+
+
+logger = logging.getLogger(__name__)
+
+from pyarts.workspace.workspace import Workspace, arts_agenda, Include
+from pyarts.workspace.variables import WorkspaceVariable
+from pyarts.workspace.methods   import WorkspaceMethod
+from pyarts.workspace.api       import arts_include_path   \
+                                            , include_path_push \
+                                            , data_path_push    \
+                                            , data_path_pop     \
+

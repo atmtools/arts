@@ -5,7 +5,6 @@
 #include <utility>
 
 #include "debug.h"
-#include "species.h"
 
 namespace Quantum::Number {
 std::ostream& operator<<(std::ostream& os, ValueDescription x) {
@@ -403,8 +402,8 @@ String LocalState::values() const {
   return os.str();
 }
 
-Species::IsotopeRecord GlobalState::Isotopologue() const noexcept {
-  return isotopologue_index < 0 ? Species::IsotopeRecord() : Species::Isotopologues[isotopologue_index];
+const Species::IsotopeRecord& GlobalState::Isotopologue() const noexcept {
+  return Species::Isotopologues[isotopologue_index];
 }
 
 Species::Species GlobalState::Species() const noexcept {
@@ -412,7 +411,7 @@ Species::Species GlobalState::Species() const noexcept {
 }
 
 std::ostream& operator<<(std::ostream& os, const GlobalState& gs) {
-    return os << gs.Isotopologue().FullName() << ' ' << gs.val;
+  return os << gs.Isotopologue().FullName() << ' ' << gs.val;
 }
 
 std::istream& operator>>(std::istream& is, GlobalState& gs) {

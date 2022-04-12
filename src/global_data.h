@@ -25,11 +25,11 @@
 #ifndef global_data_h
 #define global_data_h
 
+#include <map>
 #include "agenda_record.h"
 #include "array.h"
 #include "methods.h"
 #include "workspace_memory_handler.h"
-#include <map>
 
 namespace global_data {
 

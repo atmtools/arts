@@ -204,8 +204,9 @@ if (ENABLE_MPI) # User must enable MPI using -DENABLE_MPI=ON
   endif ()
 endif ()
 
-########### Python ##########
+########### C API ##########
 
+set (C_API true)
 add_definitions(-fPIC)
 
 ########### Check C header files ##########
@@ -500,14 +501,17 @@ add_custom_target(check-planettoolbox
 add_custom_target(check-all
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
     -E '\\.nocheck\\.'
-  DEPENDS check-deps python_tests)
+  DEPENDS check-deps pyarts python_tests)
 
 add_custom_target(check-all-controlfiles
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
     -E '^python\\.|\\.pyarts\\.|\\.nocheck\\.'
   DEPENDS check-deps)
 
-add_custom_target(check-pyarts-only DEPENDS pyarts_tests)
+add_custom_target(check-pyarts-only
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -R '\\.pyarts\\.'
+  DEPENDS pyarts)
 
 add_dependencies(check-all mkdir-arts-results)
 

@@ -27,12 +27,11 @@
 #ifndef array_h
 #define array_h
 
-#include <array>
 #include <climits>
 #include <iomanip>
 #include <iostream>
+#include <array>
 #include <vector>
-
 #include "matpack.h"
 
 // Declare the existance of class Array:
@@ -50,7 +49,7 @@ typedef Array<Numeric> ArrayOfNumeric;
 // Declare the existance of Vector/Matrix/Tensor classes:
 class Vector;
 class Matrix;
-struct Sparse;
+class Sparse;
 class Tensor3;
 class Tensor4;
 class Tensor5;
@@ -125,7 +124,6 @@ class Array : public std::vector<base> {
       : std::vector<base>(input.begin(), input.end()) {
     static_assert(std::is_convertible<base, base2>::value, "Must be convertible");
   }
-  Array(std::vector<base> x) : std::vector<base>(std::move(x)) {}
 
   // Assignment operators:
   Array& operator=(base x);
@@ -133,7 +131,7 @@ class Array : public std::vector<base> {
   Array& operator=(Array<base>&& A) noexcept;
 
   // Number of elements:
-  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT;
+  Index nelem() const ARTS_NOEXCEPT;
 
   // Index operators:
   const base& operator[](const Index n) const;
@@ -376,13 +374,6 @@ template <typename T, typename ... Ts>
 constexpr std::array<T, 1 + sizeof...(Ts)> stdarrayify(const T& first, const Ts&... the_rest)
 {
   return {first, T(the_rest)...};
-}
-
-template <typename T>
-std::string stringify(const Array<T>& list, const char * const sep=" ", const char * const beg="") {
-  std::ostringstream os;
-  for (auto& x: list) os << beg << x << sep;
-  return os.str();
 }
 
 #endif  // array_h

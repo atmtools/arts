@@ -18,9 +18,9 @@ def f(sec: float, n: int):
     return 30*np.exp(-(np.linspace(-3, 3, n))**2) + off + eps
 
 # Help to access
-ws.sensor_time = []
-ws.time_stamps = []
-ws.ybatch = []
+st = pyarts.classes.from_workspace(ws.sensor_time)
+ts = pyarts.classes.from_workspace(ws.time_stamps)
+ys = pyarts.classes.from_workspace(ws.ybatch)
 
 # Current time
 some_time = pyarts.classes.Time()
@@ -29,9 +29,9 @@ some_time.sec = 1589895540.0
 # Set up the signal every 20 minutes from now
 for i in range(N):
     sec = i*60*20
-    ws.time_stamps.value.append(some_time + sec)
+    ts.append(some_time + sec)
     np.random.seed(i)
-    ws.ybatch.value.append(f(sec, n))
+    ys.append(f(sec, n))
 
 # Sort the time and signal
 ws.time_stampsSort(ws.sensor_time, ws.time_stamps, ws.time_stamps)
@@ -39,14 +39,17 @@ ws.time_stampsSort(ws.ybatch, ws.time_stamps, ws.ybatch)
 ws.time_stampsSort(ws.time_stamps, ws.time_stamps, ws.time_stamps)  # Must be last...
 
 # Apply a simplified troposåheric correction
-ws.range = pyarts.classes.ArrayOfIndex()
-ws.trop_temp = pyarts.classes.Vector()
-ws.targ_temp = pyarts.classes.Numeric()
-ws.targ_temp = 2.73
-ws.trop_temp = [273.15 for i in range(N)]
+ws.create_variable("ArrayOfIndex", "range")
+ws.create_variable("Vector", "trop_temp")
+ws.create_variable("Numeric", "targ_temp")
+rang = pyarts.classes.from_workspace(ws.range)
+trop_temp = pyarts.classes.from_workspace(ws.trop_temp)
+targ_temp = pyarts.classes.from_workspace(ws.targ_temp)
+targ_temp.set(2.73)
+trop_temp.data = [273.15 for i in range(N)]
 trp_range = list(np.append(np.array([i for i in range(K)]), np.array([n-i-1 for i in range(K)])))
 trp_range.sort()
-ws.range = trp_range
+rang.set(trp_range)
 
 # Apply a simple tropospheric correction and then average the
 ws.ybatchTroposphericCorrectionNaiveMedianForward(ws.ybatch_corr, ws.ybatch, ws.range, ws.trop_temp, ws.targ_temp)

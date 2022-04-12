@@ -1293,7 +1293,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("/RetrievalQuantity");
 
   rq = RetrievalQuantity(
-    target, subtag, subsubtag, mode, target.perturbation, grids);
+    target, subtag, subsubtag, mode, target.Perturbation(), grids);
 }
 
 //! Writes RetrievalQuantity to XML output stream
@@ -1750,7 +1750,7 @@ void xml_read_from_stream(istream& is_xml,
     Index nza = d.npages();
     Index nf = d.nrows();
     Index nstokes_needed = d.ncols();
-    sv = StokesVector(nf, need2stokes<false>(nstokes_needed), nza, naa);
+    sv = PropagationMatrix(nf, need2stokes<false>(nstokes_needed), nza, naa);
     sv.Data() = std::move(d); // destructive takeover
   } catch (const std::runtime_error& e) {
     ostringstream os;
@@ -1759,7 +1759,7 @@ void xml_read_from_stream(istream& is_xml,
        << e.what();
     throw runtime_error(os.str());
   }
-  
+
   tag.read_from_stream(is_xml);
   tag.check_name("/StokesVector");
 }
@@ -2145,23 +2145,6 @@ void xml_read_from_stream(istream&,
 
 void xml_write_to_stream(ostream&,
                          const Verbosity&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */,
-                         const Verbosity&) {
-  throw runtime_error("Method not implemented!");
-}
-
-//=== CallbackFunction =========================================
-
-void xml_read_from_stream(istream&,
-                          CallbackFunction&,
-                          bifstream* /* pbifs */,
-                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
-}
-
-void xml_write_to_stream(ostream&,
-                         const CallbackFunction&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {

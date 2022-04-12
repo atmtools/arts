@@ -53,3 +53,9 @@ void rtp_nlteFromRaw(EnergyLevelMap& rtp_nlte,
 {
   rtp_nlte = EnergyLevelMap(data, nlte_level_identifiers, nlte_vibrational_energies);
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void EnergyLevelMapSet(EnergyLevelMap& x, const EnergyLevelMap& y, const Verbosity&) {
+  x = y;
+}

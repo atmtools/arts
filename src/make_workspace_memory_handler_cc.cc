@@ -64,7 +64,6 @@ int main() {
         << "#include \"hitran_xsec.h\"\n"
         << "#include \"absorptionlines.h\"\n"
         << "#include \"linemixing.h\"\n"
-        << "#include \"callback.h\"\n"
         << "\n";
 
     ofs << "// Allocation and deallocation routines for workspace groups\n";

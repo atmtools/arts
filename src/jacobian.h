@@ -27,6 +27,7 @@
 #define jacobian_h
 
 #include "species_tags.h"
+#include "agenda_class.h"
 #include "array.h"
 #include "bifstream.h"
 #include "constants.h"
@@ -36,7 +37,7 @@
 #include "matpackI.h"
 #include "methods.h"
 #include "mystring.h"
-#include "ppath_struct.h"
+#include "ppath.h"
 #include "quantum_numbers.h"  
 #include <iostream>
 #include <map>
@@ -104,123 +105,161 @@ ENUMCLASS(Special, char,
           )
 
 /** Holds all information required for individual partial derivatives */
-struct Target {
+class Target {
+ private:
   /**! Type of quantity, never set manually */
-  Type type{Type::FINAL};
+  Type mtype{Type::FINAL};
 
   /** Type of atm quantity */
-  Atm atm{Atm::FINAL};
+  Atm matm{Atm::FINAL};
 
   /** Type of line quantity */
-  Line line{Line::FINAL};
+  Line mline{Line::FINAL};
 
   /** Type of sensor quantity */
-  Sensor sensor{Sensor::FINAL};
+  Sensor msensor{Sensor::FINAL};
 
   /** Type of special quantity */
-  Special special{Special::FINAL};
+  Special mspecial{Special::FINAL};
 
   /** Perturbations for methods where theoretical computations are impossible or plain slow */
-  Numeric perturbation{std::numeric_limits<Numeric>::quiet_NaN()};
+  Numeric mperturbation{std::numeric_limits<Numeric>::quiet_NaN()};
 
   /** ID for the Line types of partial derivatives */
-  QuantumIdentifier qid{};
+  QuantumIdentifier mqid{};
 
   /** ID for some of the Special types of partial derivatives */
-  ArrayOfSpeciesTag species_array_id{0};
+  ArrayOfSpeciesTag maostid{0};
 
   /** ID for some of the Special types of partial derivatives */
-  String string_id{};
+  String msid{};
 
   /** Species ID for line parameters */
-  Species::Species species_id{Species::Species::FINAL};
+  Species::Species mspecid{Species::Species::FINAL};
 
+ public:
   /** Atmospheric type */
-  explicit Target(Atm atype) : type(Type::Atm), atm(atype) {
-    ARTS_ASSERT(good_enum(atype))
+  explicit Target(Atm type) : mtype(Type::Atm), matm(type) {
+    ARTS_ASSERT(good_enum(type))
   }
 
   /** Line type */
-  explicit Target(Line ltype,
-                  const QuantumIdentifier& iqid,
+  explicit Target(Line type,
+                  const QuantumIdentifier& qid,
                   Species::Species specid)
-      : type(Type::Line), line(ltype), qid(iqid), species_id(specid) {
-    ARTS_ASSERT(good_enum(ltype))
+      : mtype(Type::Line), mline(type), mqid(qid), mspecid(specid) {
+    ARTS_ASSERT(good_enum(type))
   }
 
   /** Sensor type */
-  explicit Target(Sensor stype) : type(Type::Sensor), sensor(stype) {
-    ARTS_ASSERT(good_enum(stype))
+  explicit Target(Sensor type) : mtype(Type::Sensor), msensor(type) {
+    ARTS_ASSERT(good_enum(type))
   }
 
   /** Special type */
-  explicit Target(Special stype, ArrayOfSpeciesTag aostid)
-      : type(Type::Special), special(stype), species_array_id(std::move(aostid)) {
-    ARTS_ASSERT(stype == Special::ArrayOfSpeciesTagVMR,
+  explicit Target(Special type, ArrayOfSpeciesTag aostid)
+      : mtype(Type::Special), mspecial(type), maostid(std::move(aostid)) {
+    ARTS_ASSERT(type == Special::ArrayOfSpeciesTagVMR,
                 "Only for Special::ArrayOfSpeciesTagVMR, but you fed: ",
-                special)
+                mspecial)
   }
 
   /** Special type */
-  explicit Target(Special stype, String sid)
-      : type(Type::Special), special(stype), string_id(std::move(sid)) {
+  explicit Target(Special type, String sid)
+      : mtype(Type::Special), mspecial(type), msid(std::move(sid)) {
     ARTS_ASSERT(
-        stype == Special::SurfaceString or stype == Special::ScatteringString,
+        type == Special::SurfaceString or type == Special::ScatteringString,
         "Only for Special::ScatteringString or Special::SurfaceString, but you fed: ",
-        special)
+        mspecial)
   }
 
   /** A defaultable none-type */
   explicit Target() = default;
 
+  /** Perturbation */
+  void Perturbation(Numeric x) noexcept { mperturbation = x; }
+  Numeric& Perturbation() noexcept { return mperturbation; }
+  [[nodiscard]] Numeric Perturbation() const noexcept { return mperturbation; }
+
+  /** ID */
+  void QuantumIdentity(const QuantumIdentifier& x) noexcept { mqid = x; }
+  QuantumIdentifier& QuantumIdentity() noexcept { return mqid; }
+  [[nodiscard]] const QuantumIdentifier& QuantumIdentity() const noexcept {
+    return mqid;
+  }
+
+  /** ID */
+  void SpeciesList(const ArrayOfSpeciesTag& x) noexcept { maostid = x; }
+  ArrayOfSpeciesTag& SpeciesList() noexcept { return maostid; }
+  [[nodiscard]] const ArrayOfSpeciesTag& SpeciesList() const noexcept {
+    return maostid;
+  }
+
+  /** ID */
+  void StringKey(const String& x) noexcept { msid = x; }
+  String& StringKey() noexcept { return msid; }
+  [[nodiscard]] const String& StringKey() const noexcept { return msid; }
+
+  /** Return the atm type */
+  [[nodiscard]] Atm AtmType() const noexcept { return matm; }
+
+  /** Return the line type */
+  [[nodiscard]] Line LineType() const noexcept { return mline; }
+
+  /** Return the sensor type */
+  [[nodiscard]] Sensor SensorType() const noexcept { return msensor; }
+
+  /** Return the special type */
+  [[nodiscard]] Special SpecialType() const noexcept { return mspecial; }
+
   /** Checks if the type of jacobian is the input atmospheric parameter */
-  bool operator==(Atm other) const noexcept { return other == atm; }
+  bool operator==(Atm other) const noexcept { return other == matm; }
 
   /** Checks if the type of jacobian is the input line parameter */
-  bool operator==(Line other) const noexcept { return other == line; }
+  bool operator==(Line other) const noexcept { return other == mline; }
 
   /** Checks if the type of jacobian is the input sensor parameter */
-  bool operator==(Sensor other) const noexcept { return other == sensor; }
+  bool operator==(Sensor other) const noexcept { return other == msensor; }
 
   /** Checks if the type of jacobian is the input sensor parameter */
-  bool operator==(Special other) const noexcept { return other == special; }
+  bool operator==(Special other) const noexcept { return other == mspecial; }
 
   /** Checks if the type is correct */
-  bool operator==(Type other) const noexcept { return other == type; }
+  bool operator==(Type other) const noexcept { return other == mtype; }
 
   [[nodiscard]] bool sameTargetType(const Target& other) const noexcept {
-    return type == other.type and atm == other.atm and
-           line == other.line and sensor == other.sensor and
-           special == other.special;
+    return mtype == other.mtype and matm == other.matm and
+           mline == other.mline and msensor == other.msensor and
+           mspecial == other.mspecial;
   }
 
   /** Return type as string */
   [[nodiscard]] std::string_view TargetType() const noexcept {
-    return toString(type);
+    return toString(mtype);
   }
 
   /** Sets target based on a string */
-  void TargetType(const std::string_view& s) noexcept { type = toType(s); }
+  void TargetType(const std::string_view& s) noexcept { mtype = toType(s); }
 
   /** Sets sub target based on a string */
   void TargetSubType(const std::string_view& s) noexcept {
-    atm = Atm::FINAL;
-    line = Line::FINAL;
-    sensor = Sensor::FINAL;
-    special = Special::FINAL;
+    matm = Atm::FINAL;
+    mline = Line::FINAL;
+    msensor = Sensor::FINAL;
+    mspecial = Special::FINAL;
 
-    switch (type) {
+    switch (mtype) {
       case Type::Atm:
-        atm = toAtm(s);
+        matm = toAtm(s);
         break;
       case Type::Line:
-        line = toLine(s);
+        mline = toLine(s);
         break;
       case Type::Sensor:
-        sensor = toSensor(s);
+        msensor = toSensor(s);
         break;
       case Type::Special:
-        special = toSpecial(s);
+        mspecial = toSpecial(s);
         break;
       case Type::FINAL: { /* leave last, don't use default */
       }
@@ -228,15 +267,15 @@ struct Target {
   }
 
   [[nodiscard]] std::string_view TargetSubType() const noexcept {
-    switch (type) {
+    switch (mtype) {
       case Type::Atm:
-        return toString(atm);
+        return toString(matm);
       case Type::Line:
-        return toString(line);
+        return toString(mline);
       case Type::Sensor:
-        return toString(sensor);
+        return toString(msensor);
       case Type::Special:
-        return toString(special);
+        return toString(mspecial);
       case Type::FINAL: { /* leave last, don't use default */
       }
     }
@@ -244,22 +283,22 @@ struct Target {
   }
 
   /** Are we good? */
-  [[nodiscard]] bool TargetTypeOK() const noexcept { return good_enum(type); }
+  [[nodiscard]] bool TargetTypeOK() const noexcept { return good_enum(mtype); }
 
   /** Are we good? */
   [[nodiscard]] bool TargetSubTypeOK() const noexcept {
     // We can only hold one valid enum at a time, and it must be of the correct type
-    if (1 == (good_enum(special) + good_enum(sensor) + good_enum(line) +
-              good_enum(atm))) {
-      switch (type) {
+    if (1 == (good_enum(mspecial) + good_enum(msensor) + good_enum(mline) +
+              good_enum(matm))) {
+      switch (mtype) {
         case Type::Special:
-          return good_enum(special);
+          return good_enum(mspecial);
         case Type::Sensor:
-          return good_enum(sensor);
+          return good_enum(msensor);
         case Type::Line:
-          return good_enum(line);
+          return good_enum(mline);
         case Type::Atm:
-          return good_enum(atm);
+          return good_enum(matm);
         case Type::FINAL: { /* leave last, don't use default */
         }
       }
@@ -270,48 +309,54 @@ struct Target {
 
   /** Special species case */
   [[nodiscard]] bool isSpeciesVMR() const noexcept {
-    return line == Line::VMR or special == Special::ArrayOfSpeciesTagVMR;
+    return mline == Line::VMR or mspecial == Special::ArrayOfSpeciesTagVMR;
   }
 
   /** Special wind case */
   [[nodiscard]] bool isWind() const noexcept {
-    return atm == Atm::WindMagnitude or atm == Atm::WindU or
-           atm == Atm::WindV or atm == Atm::WindW;
+    return matm == Atm::WindMagnitude or matm == Atm::WindU or
+           matm == Atm::WindV or matm == Atm::WindW;
   }
 
   /** Special magnetic field case */
   [[nodiscard]] bool isMagnetic() const noexcept {
-    return atm == Atm::MagneticMagnitude or atm == Atm::MagneticU or
-           atm == Atm::MagneticV or atm == Atm::MagneticW;
+    return matm == Atm::MagneticMagnitude or matm == Atm::MagneticU or
+           matm == Atm::MagneticV or matm == Atm::MagneticW;
   }
 
   /** Special frequency case */
   [[nodiscard]] bool isFrequency() const noexcept {
-    return sensor == Sensor::FrequencyStretch or
-           sensor == Sensor::FrequencyShift;
+    return msensor == Sensor::FrequencyStretch or
+           msensor == Sensor::FrequencyShift;
   }
 
   /** Special pointing case */
   [[nodiscard]] bool isPointing() const noexcept {
-    return sensor == Sensor::PointingZenithInterp or
-           sensor == Sensor::PointingZenithRecalc;
+    return msensor == Sensor::PointingZenithInterp or
+           msensor == Sensor::PointingZenithRecalc;
   }
 
   /** Does this type need the QuantumIdentifier? */
   [[nodiscard]] bool needQuantumIdentity() const noexcept {
-    return type == Type::Line;
+    return mtype == Type::Line;
   }
 
   /** Does this type need the ArrayOfSpeciesTag? */
   [[nodiscard]] bool needArrayOfSpeciesTag() const noexcept {
-    return special == Special::ArrayOfSpeciesTagVMR;
+    return mspecial == Special::ArrayOfSpeciesTagVMR;
   }
 
   /** Does this type need the String? */
   [[nodiscard]] bool needString() const noexcept {
-    return special == Special::ScatteringString or
-           special == Special::SurfaceString;
+    return mspecial == Special::ScatteringString or
+           mspecial == Special::SurfaceString;
   }
+
+  [[nodiscard]] const Species::Species& LineSpecies() const noexcept {
+    return mspecid;
+  }
+  Species::Species& LineSpecies() noexcept { return mspecid; }
+  void LineSpecies(Species::Species x) noexcept { mspecid = x; }
 };  // Target
 
 /** Output operator 
@@ -358,7 +403,7 @@ class RetrievalQuantity {
         mmode(std::move(mode)),
         mgrids(std::move(grids)),
         mjac(std::move(target)) {
-    mjac.perturbation = perturbation;
+    mjac.Perturbation() = perturbation;
   }
   
   /** Returns the sub-tag
@@ -448,11 +493,11 @@ class RetrievalQuantity {
    * @return The identity of this Jacobian
    */
   [[nodiscard]] const QuantumIdentifier& QuantumIdentity() const {
-    return mjac.qid;
+    return mjac.QuantumIdentity();
   }
   
   /** Return line type */
-  [[nodiscard]] Jacobian::Line LineType() const noexcept {return mjac.line;}
+  [[nodiscard]] Jacobian::Line LineType() const noexcept {return mjac.LineType();}
   
   /** Return atm type equality */
   bool operator==(Jacobian::Atm other) const noexcept {return mjac==other;}
@@ -470,13 +515,13 @@ class RetrievalQuantity {
   bool operator==(Jacobian::Type other) const noexcept {return mjac==other;}
   
   /** Return special type equality */
-  bool operator==(const ArrayOfSpeciesTag& st) const noexcept {return mjac==Jacobian::Special::ArrayOfSpeciesTagVMR and mjac.species_array_id == st;}
+  bool operator==(const ArrayOfSpeciesTag& st) const noexcept {return mjac==Jacobian::Special::ArrayOfSpeciesTagVMR and mjac.SpeciesList() == st;}
   
   /** Sets the identity of this Jacobian
    * 
    * @param[in] qi The identity of this Jacobian
    */
-  void QuantumIdentity(const QuantumIdentifier& qi) { mjac.qid = qi; }
+  void QuantumIdentity(const QuantumIdentifier& qi) { mjac.QuantumIdentity() = qi; }
   
   /** Returns if this is a propagation matrix type */
   [[nodiscard]] bool propmattype() const noexcept {

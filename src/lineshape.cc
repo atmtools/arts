@@ -1981,7 +1981,7 @@ CutInternalDerivativesImpl(X, X0) CutInternalDerivativesImpl(X, X1)           \
 #define InternalDerivativesSetupImpl(X, Y)                                    \
   else if (deriv == Jacobian::Line::Shape##X##Y) {                            \
     const Index pos =                                                         \
-      band.BroadeningSpeciesPosition(deriv.Target().species_id);           \
+      band.BroadeningSpeciesPosition(deriv.Target().LineSpecies());           \
     if (pos >= 0) {                                                           \
     derivs[ij].value.n = band.lines[i].lineshape.d##X##_d##Y(                 \
         T, band.T0, P, pos, vmrs);                                            \
@@ -3040,7 +3040,7 @@ void line_loop(ComputeData &com,
           derivs[ij].value.o = band.ShapeParameters_dVMR(i, T, P, deriv.QuantumIdentity());
         } else {
           auto &lt =
-              derivs[ij].target = {deriv.Target().qid, band.lines[i].localquanta, band.quantumidentity};
+              derivs[ij].target = {deriv.Target().QuantumIdentity(), band.lines[i].localquanta, band.quantumidentity};
           if (lt == Quantum::Number::StateMatchType::Full) {
             if constexpr (false) {/*skip so the rest can be a else-if block*/}
             // All line shape derivatives

@@ -182,7 +182,7 @@ void jacobianAddAbsSpecies(Workspace&,
     ArrayOfSpeciesTag test(species);
     rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, test));
   }
-  rq.Target().perturbation = 0.001;
+  rq.Target().Perturbation(0.001);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -235,7 +235,7 @@ void jacobianAddFreqShift(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyShift);
   rq.Mode("");
-  rq.Target().perturbation = df;
+  rq.Target().Perturbation(df);
 
   // Dummy vector of length 1
   Vector grid(1, 0);
@@ -306,7 +306,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     constexpr Index porder = 3;
     //
     Vector fg_new = f_grid, iyb2(niyb);
-    fg_new += rq.Target().perturbation;
+    fg_new += rq.Target().Perturbation();
     //
     const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid);
     const auto itw = interpweights(lag);
@@ -325,7 +325,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Target().perturbation;
+      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
     }
   }
 
@@ -376,7 +376,7 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyStretch);
   rq.Mode("");
-  rq.Target().perturbation=df;
+  rq.Target().Perturbation(df);
 
   // Dummy vector of length 1
   Vector grid(1, 0);
@@ -455,7 +455,7 @@ void jacobianCalcFreqStretch(
     //
     Vector fg_new = f_grid, iyb2(niyb);
     //
-    fg_new += rq.Target().perturbation;
+    fg_new += rq.Target().Perturbation();
     //
     const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid);
     const auto itw = interpweights(lag);
@@ -474,7 +474,7 @@ void jacobianCalcFreqStretch(
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Target().perturbation;
+      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
     }
 
     // dy above corresponds now to shift. Convert to stretch:
@@ -561,7 +561,7 @@ void jacobianAddPointingZa(Workspace& ws _U_,
   } else
     throw runtime_error(
       "Possible choices for *calcmode* are \"recalc\" and \"interp\".");
-  rq.Target().perturbation = dza;
+  rq.Target().Perturbation(dza);
 
   // To store the value or the polynomial order, create a vector with length
   // poly_order+1, in case of gitter set the size of the grid vector to be the
@@ -638,9 +638,9 @@ void jacobianCalcPointingZaInterp(
 
     // Shifted zenith angles
     Vector za1 = mblock_dlos_grid(joker, 0);
-    za1 -= rq.Target().perturbation;
+    za1 -= rq.Target().Perturbation();
     Vector za2 = mblock_dlos_grid(joker, 0);
-    za2 += rq.Target().perturbation;
+    za2 += rq.Target().Perturbation();
 
     // Find interpolation weights
     ArrayOfGridPos gp1(nza), gp2(nza);
@@ -673,7 +673,7 @@ void jacobianCalcPointingZaInterp(
     mult(y2, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (y2[i] - y1[i]) / (2 * rq.Target().perturbation);
+      dy[i] = (y2[i] - y1[i]) / (2 * rq.Target().Perturbation());
     }
   }
 
@@ -765,7 +765,7 @@ void jacobianCalcPointingZaRecalc(
     ArrayOfVector iyb_aux;
     ArrayOfMatrix diyb_dx;
 
-    los(joker, 0) += rq.Target().perturbation;
+    los(joker, 0) += rq.Target().Perturbation();
 
     iyb_calc(ws,
              iyb2,
@@ -796,7 +796,7 @@ void jacobianCalcPointingZaRecalc(
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Target().perturbation;
+      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
     }
   }
 
@@ -887,7 +887,7 @@ void jacobianAddPolyfit(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::Polyfit);
   rq.Mode("");
-  rq.Target().perturbation = 0;
+  rq.Target().Perturbation(0);
 
   // Each polynomial coeff. is treated as a retrieval quantity
   //
@@ -1116,7 +1116,7 @@ void jacobianAddSinefit(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::Sinefit);
   rq.Mode("");
-  rq.Target().perturbation = 0;
+  rq.Target().Perturbation(0);
 
   // Each sinefit coeff. pair is treated as a retrieval quantity
   //
@@ -1353,7 +1353,7 @@ void jacobianAddTemperature(Workspace&,
   rq.Subtag(subtag);
   rq.Grids(grids);
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
-  rq.Target().perturbation = 0.1;
+  rq.Target().Perturbation(0.1);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1431,7 +1431,7 @@ void jacobianAddWind(Workspace&,
 
   rq.Subtag(component);  // nb.  This should be possible to remove...
   rq.Grids(grids);
-  rq.Target().perturbation = dfrequency;
+  rq.Target().Perturbation(dfrequency);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1509,7 +1509,7 @@ void jacobianAddMagField(Workspace&,
   }
 
   rq.Grids(grids);
-  rq.Target().perturbation = dB;
+  rq.Target().Perturbation(dB);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1551,7 +1551,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
   } else {
     rq.Target(Jacobian::Target(jpt, line_identity, SpeciesTag(species).Spec()));
   }
-  out3 << species << ' ' << rq.Target().species_id << "\n";
+  out3 << species << ' ' << rq.Target().LineSpecies() << "\n";
 
   // Test this is not a copy
   for (auto& q : jq)
@@ -1714,7 +1714,7 @@ void jacobianAddNLTE(Workspace&,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity, energy_level_identity.Species()));
-  rq.Target().perturbation = dx;
+  rq.Target().Perturbation(dx);
   rq.Grids(grids);
   
   // Add it to the *jacobian_quantities*

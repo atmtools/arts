@@ -29,7 +29,6 @@
 #include "mystring.h"
 #include "rte.h"
 #include "telsem.h"
-#include "check_input.h"
 
 extern const Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;

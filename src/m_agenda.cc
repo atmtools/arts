@@ -49,7 +49,7 @@ void AgendaExecute(Workspace& ws,
       os << "This agenda is uninitialized. We don't even know its name.";
     else
       os << "*" << this_agenda.name() << "* is uninitialized.";
-    os << " Use *AgendaSet* or *@arts_agenda* to add methods to it.";
+    os << " Use *AgendaSet* to add methods to it.";
     throw std::runtime_error(os.str());
   }
 

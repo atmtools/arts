@@ -70,12 +70,12 @@ inline void Append(  // WS Generic Output:
     ArrayOfSpeciesTag& out,
     const String& /* out_name */,
     // WS Generic Input:
-    const ArrayOfSpeciesTag& in,
+    ArrayOfSpeciesTag& in,
     const String& direction _U_,
     const String& /* in_name */,
     const String& /* direction_name */,
     const Verbosity&) {
-  const ArrayOfSpeciesTag* in_pnt;
+  ArrayOfSpeciesTag* in_pnt;
   ArrayOfSpeciesTag in_copy;
 
   if (&in == &out) {
@@ -243,7 +243,7 @@ inline void Append(  // WS Generic Output:
           in_ref;
   } else
     throw runtime_error(
-        R"(Dimension must be either "leading" or "trailing".)");
+        "Dimension must be either \"leading\" or \"trailing\".");
 }
 
 /* Implementation for Matrix/Vector */
