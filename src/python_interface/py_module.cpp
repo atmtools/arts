@@ -1,6 +1,7 @@
-#include <pybind11/pybind11.h>
-
 #include <workspace_ng.h>
+
+#include "py_auto_interface.h"
+#include "python_interface.h"
 
 namespace Python {
 namespace py = pybind11;
@@ -20,7 +21,9 @@ void py_mcantenna(py::module_& m);
 void py_scattering(py::module_& m);
 void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
-void py_workspace(py::module_& m, py::class_<Workspace>& ws);
+void py_workspace(py::module_& m,
+                  py::class_<Workspace>& ws,
+                  py::class_<WorkspaceVariable>& wsv);
 void py_agenda(py::module_& m);
 void py_global(py::module_& m);
 
@@ -38,6 +41,7 @@ void py_global(py::module_& m);
 PYBIND11_MODULE(pyarts_cpp, m) {
   m.doc() = "Contains direct C++ interface for Arts";
   py::class_<Workspace> ws(m, "Pyarts::Workspace");
+  py::class_<WorkspaceVariable> wsv(m, "WorkspaceVariable");
 
   py_basic(m);
   py_matpack(m);
@@ -59,6 +63,6 @@ PYBIND11_MODULE(pyarts_cpp, m) {
   py_global(m);
 
   // Must be last, it contains automatic conversion operations
-  py_workspace(m, ws);
+  py_workspace(m, ws, wsv);
 }
 }  // namespace Python

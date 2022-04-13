@@ -14,9 +14,11 @@ namespace Python {
 std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy);
 Agenda* parse_agenda(const char* filename, const Verbosity& verbosity);
-void py_auto_workspace(py::class_<Workspace>&);
+void py_auto_workspace(py::class_<Workspace>&, py::class_<WorkspaceVariable>&);
 
-void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
+void py_workspace(py::module_& m,
+                  py::class_<Workspace>& ws,
+                  py::class_<WorkspaceVariable>& wsv) {
   static bool init = true;
   if (init) {
     init = false;
@@ -153,16 +155,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
 
   ws.PythonInterfaceCopyValue(Workspace);
 
-  py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
-      .def(py::init([](WorkspaceVariable& wsv) { return wsv; }))
-      .def_property("value",
-                    py::cpp_function(
-                        [](const WorkspaceVariable& wsv) {
-                          return WorkspaceVariablesVariant(wsv);
-                        },
-                        py::return_value_policy::reference_internal),
-                    [](WorkspaceVariable& wsv,
-                       WorkspaceVariablesVariant& value) { wsv = value; })
+  wsv.def(py::init([](WorkspaceVariable& w) { return w; }))
       .def(
           "__copy__",
           [](WorkspaceVariable&) { ARTS_USER_ERROR("Cannot copy") },
@@ -179,15 +172,15 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       .def_property_readonly("init", &WorkspaceVariable::is_initialized)
       .def("initialize_if_not", &WorkspaceVariable::initialize_if_not)
       .def("__str__",
-           [](const WorkspaceVariable& wsv) {
+           [](const WorkspaceVariable& w) {
              return var_string("Workspace ",
                                global_data::wsv_group_names.at(
-                                   wsv.ws.wsv_data.at(wsv.pos).Group()));
+                                   w.ws.wsv_data.at(w.pos).Group()));
            })
-      .def("__repr__", [](const WorkspaceVariable& wsv) {
-        return var_string("Workspace ",
-                          global_data::wsv_group_names.at(
-                              wsv.ws.wsv_data.at(wsv.pos).Group()));
+      .def("__repr__", [](const WorkspaceVariable& w) {
+        return var_string(
+            "Workspace ",
+            global_data::wsv_group_names.at(w.ws.wsv_data.at(w.pos).Group()));
       });
 
   py::class_<WsvRecord>(m, "WsvRecord")
@@ -204,6 +197,6 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
       .PythonInterfaceBasicRepresentation(Array<WsvRecord>);
 
   // Should be last as it contains several implicit conversions
-  py_auto_workspace(ws);
+  py_auto_workspace(ws, wsv);
 }
 }  // namespace Python
