@@ -214,5 +214,5 @@ class TestAgendas:
 if __name__ == "__main__":
     ta = TestAgendas()
     ta.setup_method()
-    ta.test_callback()
+    ta.test_assignment()
 

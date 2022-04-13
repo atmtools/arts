@@ -37,7 +37,7 @@ void py_global(py::module_& m);
  */
 PYBIND11_MODULE(pyarts_cpp, m) {
   m.doc() = "Contains direct C++ interface for Arts";
-  py::class_<Workspace> ws(m, "Workspace", py::dynamic_attr());
+  py::class_<Workspace> ws(m, "Pyarts::Workspace");
 
   py_basic(m);
   py_matpack(m);

@@ -1,4 +1,5 @@
 import pyarts.pyarts_cpp as cxx
+import pyarts
 
 def oi(ws):
     print("oi")
@@ -6,7 +7,7 @@ def oi(ws):
 
 x = cxx.CallbackFunction(oi)
 
-ws = cxx.Workspace()
+ws = getattr(cxx, "Pyarts::Workspace")()
 assert not ws.atmosphere_dim.init
 x(ws)
 assert ws.atmosphere_dim.init

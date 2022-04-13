@@ -18,7 +18,7 @@ except:
     pass
 
 
-Workspace = cxx.Workspace
+InternalWorkspace = getattr(cxx, "Pyarts::Workspace")
 Agenda = cxx.Agenda
 
 
@@ -133,7 +133,7 @@ def parse_function(func, arts, allow_callbacks, set_agenda):
 
 
 def continue_parser_function(arts, context, ast, allow_callbacks, set_agenda):
-    assert isinstance(arts, Workspace), f"Expects Workspace, got {type(arts)}"
+    assert isinstance(arts, InternalWorkspace), f"Expects Workspace, got {type(arts)}"
 
     func_ast = ast.body[0]
     if not isinstance(func_ast, FunctionDef):
@@ -281,3 +281,26 @@ def continue_parser_function(arts, context, ast, allow_callbacks, set_agenda):
     agenda.name = func_ast.name
     if set_agenda: setattr(arts, func_ast.name, agenda)
     return agenda
+
+
+_group_types = [type(eval(f"cxx.{x}()")) for x in list(cxx.get_wsv_group_names())]
+
+
+class Workspace(InternalWorkspace):
+    def __getattr__(self, attr):
+        if self._hasattr_check_(attr): return self._getattr_unchecked_(attr)
+        if attr == "__class__": return InternalWorkspace
+        raise AttributeError(f"'Workspace' object has no attribute '{attr}'")
+    
+    def __setattr__(self, attr, value):
+        if self._hasattr_check_(attr):
+            if isinstance(value, DelayedAgenda): value = value(self)
+            self._getattr_unchecked_(attr).value = value
+        else:
+            if type(value) in _group_types:
+                self._setattr_unchecked_(attr, value)
+            elif isinstance(value, DelayedAgenda):
+                self._setattr_unchecked_(attr, value(self))
+            else:
+                raise AttributeError(f"'Workspace' object has no attribute '{attr}'")
+    

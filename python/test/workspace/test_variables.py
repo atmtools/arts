@@ -276,3 +276,9 @@ class TestVariables:
 
         v = global_data.convert("ArrayOfArrayOfIndex", 1)
         return v
+
+
+if __name__ == "__main__":
+    ta = TestVariables()
+    ta.setup_method()
+    ta.test_variable_set_empty()

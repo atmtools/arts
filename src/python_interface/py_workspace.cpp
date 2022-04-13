@@ -1,10 +1,11 @@
-#include "python_interface.h"
-#include <pybind11/stl/filesystem.h>
-
 #include <global_data.h>
 #include <parameters.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl/filesystem.h>
 
+#include "py_auto_interface.h"
 #include "py_macros.h"
+#include "python_interface.h"
 
 extern Parameters parameters;
 
@@ -60,7 +61,7 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
   }
 
   ws.def(py::init([](Index verbosity, Index agenda_verbosity) {
-           auto * w = new Workspace{};
+           auto* w = new Workspace{};
            w->initialize();
            w->push(w->WsvMap.at("verbosity"),
                    new Verbosity{agenda_verbosity, verbosity, 0});
@@ -94,7 +95,8 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
               name = name_;
             } else {
               Index i = 0;
-              while (w.WsvMap.find(name = var_string("::auto::", group, i++)) not_eq
+              while (w.WsvMap.find(
+                         name = var_string("::auto::", group, i++)) not_eq
                      w.WsvMap.end()) {
               }
             }
@@ -118,32 +120,16 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
           py::arg("name"),
           py::arg("desc") = std::nullopt);
 
-  ws.def(
-      "__delattr__",
-      [](Workspace& w, const char* name) {
-        auto varpos = w.WsvMap.find(name);
-        if (varpos == w.WsvMap.end()) {
-          if (py::dict x = py::getattr(py::cast(w), "__dict__"); x.contains(name)) x[name] = py::none();
-          return;
-        }
-        if (w.is_initialized(varpos->second)) w.pop_free(varpos->second);
-      },
-      py::arg("name").none(false));
+  ws.def("_hasattr_check_", [](Workspace& w, const char* name) {
+    return w.WsvMap.find(name) != w.WsvMap.end();
+  });
 
   ws.def(
-      "__getattr__",
-      [](Workspace& w,
-         const char* name) -> std::variant<WorkspaceVariable, py::object> {
-        auto varpos = w.WsvMap.find(name);
-        if (varpos == w.WsvMap.end()) {
-          if (py::dict x = py::getattr(py::cast(w), "__dict__"); x.contains(name)) return x[name];
-          return py::none();
-        }
-        return WorkspaceVariable{w, varpos->second};
+      "_getattr_unchecked_",
+      [](Workspace& w, const char* name) {
+        return WorkspaceVariable{w, w.WsvMap.at(name)};
       },
-      py::keep_alive<0, 1>(),
-      py::doc("A custom workspace variable"),
-      py::arg("name").none(false));
+      py::keep_alive<0, 1>());
 
   ws.def(
       "swap",
@@ -157,10 +143,10 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
     for (Index i = 0; i < w.nelem(); i++)
       if (w.is_initialized(i))
         if (auto x = w.wsv_data.at(i).Name(); x[0] != ':')
-          vars.push_back(var_string(x,
-                                    ": ",
-                                    global_data::wsv_group_names.at(
-                                        w.wsv_data.at(i).Group())));
+          vars.push_back(var_string(
+              x,
+              ": ",
+              global_data::wsv_group_names.at(w.wsv_data.at(i).Group())));
     std::sort(vars.begin(), vars.end());
     return var_string("Workspace [ ", stringify(vars, ", "), ']');
   });
@@ -168,30 +154,40 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
   ws.PythonInterfaceCopyValue(Workspace);
 
   py::class_<WorkspaceVariable>(m, "WorkspaceVariable")
-      .def_property(
-          "value",
-          py::cpp_function([](const WorkspaceVariable& wsv)
-                               -> WorkspaceVariablesVariant { return wsv; },
-                           py::return_value_policy::reference_internal),
-          [](WorkspaceVariable& wsv, WorkspaceVariablesVariant x) { wsv = x; },
-          "Returns a proper Arts type")
-      .def("__copy__", [](WorkspaceVariable&){ARTS_USER_ERROR("Cannot copy")}, "Cannot copy a workspace variable, try instead to copy its value")
-      .def("__deepcopy__", [](WorkspaceVariable&, py::dict&){ARTS_USER_ERROR("Cannot copy")}, "Cannot copy a workspace variable, try instead to copy its value")
+      .def(py::init([](WorkspaceVariable& wsv) { return wsv; }))
+      .def_property("value",
+                    py::cpp_function(
+                        [](const WorkspaceVariable& wsv) {
+                          return WorkspaceVariablesVariant(wsv);
+                        },
+                        py::return_value_policy::reference_internal),
+                    [](WorkspaceVariable& wsv,
+                       WorkspaceVariablesVariant& value) { wsv = value; })
+      .def(
+          "__copy__",
+          [](WorkspaceVariable&) { ARTS_USER_ERROR("Cannot copy") },
+          "Cannot copy a workspace variable, try instead to copy its value")
+      .def(
+          "__deepcopy__",
+          [](WorkspaceVariable&, py::dict&) { ARTS_USER_ERROR("Cannot copy") },
+          "Cannot copy a workspace variable, try instead to copy its value")
       .def_property_readonly("name", &WorkspaceVariable::name)
-      .def_property_readonly("desc", [](WorkspaceVariable& wv) {return wv.ws.wsv_data.at(wv.pos).Description();})
+      .def_property_readonly("desc",
+                             [](WorkspaceVariable& wv) {
+                               return wv.ws.wsv_data.at(wv.pos).Description();
+                             })
       .def_property_readonly("init", &WorkspaceVariable::is_initialized)
       .def("initialize_if_not", &WorkspaceVariable::initialize_if_not)
-      .def(
-          "__str__",
-          [](const WorkspaceVariable& wsv) {
-            return var_string(
-                "Workspace ",
-                global_data::wsv_group_names.at(wsv.ws.wsv_data.at(wsv.pos).Group()));
-          })
+      .def("__str__",
+           [](const WorkspaceVariable& wsv) {
+             return var_string("Workspace ",
+                               global_data::wsv_group_names.at(
+                                   wsv.ws.wsv_data.at(wsv.pos).Group()));
+           })
       .def("__repr__", [](const WorkspaceVariable& wsv) {
-        return var_string(
-            "Workspace ",
-            global_data::wsv_group_names.at(wsv.ws.wsv_data.at(wsv.pos).Group()));
+        return var_string("Workspace ",
+                          global_data::wsv_group_names.at(
+                              wsv.ws.wsv_data.at(wsv.pos).Group()));
       });
 
   py::class_<WsvRecord>(m, "WsvRecord")

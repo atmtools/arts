@@ -17,7 +17,8 @@ assert hasattr(x, "loadxml")
 """
 
 import pyarts.pyarts_cpp as cxx
-ws = cxx.Workspace()
+import pyarts
+ws = pyarts.workspace.Workspace()
 
 # Special groups
 special_groups = ["CallbackFunction", "Any"]

@@ -273,6 +273,7 @@ You can get copies and set the value by the \"val\" property
   py::implicitly_convertible<Index, Index_>();
 
   py::class_<Any>(m, "Any")
+      .def(py::init([](){return new Any;}))
       .def("__repr__", [](Any&) { return "Any"; })
       .def("__str__", [](Any&) { return "Any"; });
 }

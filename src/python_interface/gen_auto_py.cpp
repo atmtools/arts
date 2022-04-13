@@ -391,6 +391,8 @@ void includes(std::ofstream& os) {
 }
 
 void workspace_variables(size_t n, const NameMaps& arts) {
+  const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
+
   std::vector<std::ofstream> oss(n);
   for (size_t i=0; i<n; i++) {
     oss[i] = std::ofstream(var_string("py_auto_workspace_split_vars_", i, ".cc"));
@@ -406,10 +408,12 @@ void workspace_variables(size_t n, const NameMaps& arts) {
     return WorkspaceVariable{w, )--" << data.artspos
        << "};\n  }, py::return_value_policy::reference_internal),\n";
     
-    os << "  [](Workspace& w, py::object* val) {\n";
+    os << "  [](Workspace& w, " << data.varname_group << "& val) {\n";
 
-    os << "    WorkspaceVariable {w, " << data.artspos
-       << "} = val;\n  }\n); \n\n";
+    if (data.varname_group == "Agenda") os << "    val.set_name(\"" << name << "\");\n    val.check(w, *reinterpret_cast<Verbosity*>(w["<<verbpos<<"]));\n";
+    if (data.varname_group == "ArrayOfAgenda") os << "    for(auto& a : val) a.set_name(\"" << name << "\");\n    for(auto& a : val) a.check(w, *reinterpret_cast<Verbosity*>(w["<<verbpos<<"]));\n";
+    os << "    " << data.varname_group << "& v = WorkspaceVariable {w, " << data.artspos
+       << "};\n    v = val;\n  }, py::doc(R\"-x-(" << data.varname_desc << ")-x-\")\n); \n\n";
 
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
@@ -1661,32 +1665,22 @@ WorkspaceVariable::operator Numeric&() const {return *std::get<Numeric_ *>(Works
 }
 
 void workspace_access(std::ofstream& os, const NameMaps& arts) {
-  os << R"--(
-ws.def("__setattr__", [](Workspace& w, const char* name, WorkspaceVariablesVariant x) {
-  auto varpos = w.WsvMap.find(name);
-
-  bool newname = varpos == w.WsvMap.end();
-  Index i=-1;
-  if (newname) {
-    )--";
   for (auto& [name, group] : arts.group) {
-    os << "if (std::holds_alternative<" << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << R"--( *>(x)) i = w.add_wsv_inplace(WsvRecord(name, "User-generated value", )--"
-       << group << "));\n    else ";
-  }
-
-  os << R"--({ py::getattr(py::cast(w), "__dict__")[name] = std::get<py::object*>(x); return; }
-  } else i = varpos->second;
-
-  WorkspaceVariable {w, i} = x;
+    os << R"--(ws.def("_setattr_unchecked_", [](Workspace& w, const char* name, const )--" << name;
+    if (name == "Index" or name == "Numeric") os << '_';
+    os << R"--(& val) {
+  auto varpos = w.WsvMap.find(name);
+  Index i = (varpos == w.WsvMap.end()) ? w.add_wsv_inplace(WsvRecord(name, "User-created variable", )--" << group << R"--()) : varpos -> second;
+  )--" << name << R"--(& x = WorkspaceVariable{w, i};
+  x = val;
 });
 
 )--";
+  }
 
   for (auto& [name, group] : arts.group) {
     os << "py::implicitly_convertible<const WorkspaceVariable, " << name;
-    if (name == "Index" or name == "Numeric") os << "_";
+    if (name == "Index" or name == "Numeric") os << '_';
     os << ">();\n";
   }
   os << '\n';

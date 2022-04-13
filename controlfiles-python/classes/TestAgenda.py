@@ -1,6 +1,7 @@
 import pyarts.pyarts_cpp as cxx
+import pyarts
 
-ws = cxx.Workspace()
+ws = pyarts.workspace.Workspace()
 ws.x = [4]
 
 x = cxx.Agenda()

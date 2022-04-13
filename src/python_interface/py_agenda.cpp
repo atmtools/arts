@@ -1,4 +1,5 @@
 #include "python_interface.h"
+#include <pybind11/attr.h>
 #include <pybind11/stl/filesystem.h>
 
 #include <global_data.h>
@@ -196,7 +197,7 @@ void py_agenda(py::module_& m) {
       .def(py::init([]() { return new CallbackFunction{}; }))
       .PythonInterfaceCopyValue(CallbackFunction)
       .def(py::init([](const std::function<void(Workspace&)>& f) { return new CallbackFunction{f}; }))
-      .def("__call__", [](CallbackFunction& f, Workspace& ws) { f(ws); });
+      .def("__call__", [](CallbackFunction& f, Workspace& ws) { f(ws); }, py::is_operator());
   py::implicitly_convertible<std::function<void(Workspace&)>,
                              CallbackFunction>();
 
