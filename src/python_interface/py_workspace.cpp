@@ -120,13 +120,13 @@ void py_workspace(py::module_& m, py::class_<Workspace>& ws) {
           py::arg("name"),
           py::arg("desc") = std::nullopt);
 
-  ws.def("_hasattr_check_", [](Workspace& w, const char* name) {
+  ws.def("_hasattr_check_", [](Workspace& w, const char* name) -> bool {
     return w.WsvMap.find(name) != w.WsvMap.end();
   });
 
   ws.def(
       "_getattr_unchecked_",
-      [](Workspace& w, const char* name) {
+      [](Workspace& w, const char* name) -> WorkspaceVariable {
         return WorkspaceVariable{w, w.WsvMap.at(name)};
       },
       py::keep_alive<0, 1>());

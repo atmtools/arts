@@ -7,7 +7,7 @@ def oi(ws):
 
 x = cxx.CallbackFunction(oi)
 
-ws = getattr(cxx, "Pyarts::Workspace")()
+ws = pyarts.workspace.Workspace()
 assert not ws.atmosphere_dim.init
 x(ws)
 assert ws.atmosphere_dim.init

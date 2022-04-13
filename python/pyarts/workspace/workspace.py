@@ -295,7 +295,8 @@ class Workspace(InternalWorkspace):
     def __setattr__(self, attr, value):
         if self._hasattr_check_(attr):
             if isinstance(value, DelayedAgenda): value = value(self)
-            self._getattr_unchecked_(attr).value = value
+            self._getattr_unchecked_(attr).initialize_if_not()
+            self._getattr_unchecked_(attr).value = type(self._getattr_unchecked_(attr).value)(value)
         else:
             if type(value) in _group_types:
                 self._setattr_unchecked_(attr, value)
