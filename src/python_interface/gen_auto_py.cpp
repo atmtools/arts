@@ -1729,7 +1729,7 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
     os << "        auto my_obj = py::type::of<" << name << extra << ">()(";
     if (name == "Agenda") os << "w.ws, ";
     os << "* std::get<py::object *>(v));\n";
-    os << "        " << name << "& rh = *std::get<" << name << extra << "*>(v);\n";
+    os << "        " << name << "& rh = * my_obj.cast<" << name << extra << "*>();\n";
 
     if (name == "Agenda")
       os << "        rh.set_name(w.name());\n        rh.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
