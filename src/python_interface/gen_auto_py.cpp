@@ -1706,33 +1706,45 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
     WorkspaceVariablesVariant wvv{w};
     )--";
   for (auto& [name, group] : arts.group) {
-    os << "if (std::holds_alternative<" << name;
-    if (name == "Index" or name == "Numeric") os << '_';
-    os << "*>(wvv) and std::holds_alternative<" << name;
-    if (name == "Index" or name == "Numeric") os << '_';
-    os << "*>(v)) {\n";
+    char extra = (name == "Index" or name == "Numeric") ? '_' : ' ';
 
-    os << "      " << name << "& lh = *std::get<" << name;
-    if (name == "Index" or name == "Numeric") os << '_';
-    os << "*>(wvv);\n";
+    os << "if (std::holds_alternative<" << name << extra << "*>(wvv)) {\n";
 
-    os << "      " << name << "& rh = *std::get<" << name;
-    if (name == "Index" or name == "Numeric") os << '_';
-    os << "*>(v);\n";
+    os << "      " << name << "& lh = *std::get<" << name << extra << "*>(wvv);\n";
+
+    os <<  "      if (std::holds_alternative<" << name << extra << "*>(v)) {\n";
+
+    os << "        " << name << "& rh = *std::get<" << name << extra << "*>(v);\n";
 
     if (name == "Agenda")
-      os << "      rh.set_name(w.name());\n      rh.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
+      os << "        rh.set_name(w.name());\n        rh.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
          << verbpos << "]));\n";
     if (name == "ArrayOfAgenda")
-      os << "      for (auto& y: rh) y.set_name(w.name());\n      for (auto& y: rh) y.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
+      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
          << verbpos << "]));\n";
 
-    os << "      lh = rh;\n";
+    os << "        lh = rh;\n";
+
+    os << "      } else {\n";
+    os << "        auto my_obj = py::type::of<" << name << extra << ">()(";
+    if (name == "Agenda") os << "w.ws, ";
+    os << "* std::get<py::object *>(v));\n";
+    os << "        " << name << "& rh = *std::get<" << name << extra << "*>(v);\n";
+
+    if (name == "Agenda")
+      os << "        rh.set_name(w.name());\n        rh.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
+         << verbpos << "]));\n";
+    if (name == "ArrayOfAgenda")
+      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
+         << verbpos << "]));\n";
+
+    os << "        lh = rh;\n";
+
+    os << "      }\n";
     os << "    } else ";
   }
-  os << R"--({ARTS_USER_ERROR("No conversions are allowed when using \'.value\'.  \'", w.name(), "\' is \'", std::visit(WorkspaceVariablesVariant2String{}, wvv), "\' but RH is \'", std::visit(WorkspaceVariablesVariant2String{}, v), '\'')}},
-    py::arg("ws").noconvert(), py::arg("value")
-  )
+  os << R"--({}
+  }, py::arg("ws").noconvert(), py::arg("value"))
 );
 
 )--";
