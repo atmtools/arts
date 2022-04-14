@@ -291,24 +291,7 @@ void py_matpack(py::module_& m) {
         auto* out = new Vector(v.size());
         for (size_t i=0; i<v.size(); i++) out -> operator[](i) = std::visit([](auto&&x) {return static_cast<Numeric>(x);}, v[i]);
         return out; 
-        } ))
-      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
-        auto info = arr.request();
-        if (info.ndim == 1 and info.shape[0] == 0) return Vector{};
-
-        Index i = 1;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i,
-                           "Can only initialize from empty or ",
-                           i,
-                           "D array")
-        std::size_t nc = info.shape[--i];
-
-        auto* val = reinterpret_cast<Numeric*>(info.ptr);
-        Vector out(nc);
-        std::copy(val, val + out.size(), out.get_c_array());
-
-        return out;
-      }))
+        } ), py::arg("vec").none(false))
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
       .PythonInterfaceMatpackMath(Vector)
@@ -379,25 +362,7 @@ void py_matpack(py::module_& m) {
           }
         }
         return out;
-      }))
-      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
-        auto info = arr.request();
-        if (info.ndim == 1 and info.shape[0] == 0) return Matrix{};
-
-        Index i = 2;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i,
-                           "Can only initialize from empty or ",
-                           i,
-                           "D array")
-        std::size_t nc = info.shape[--i];
-        std::size_t nr = info.shape[--i];
-
-        auto* val = reinterpret_cast<Numeric*>(info.ptr);
-        Matrix out(nr, nc);
-        std::copy(val, val + out.size(), out.get_raw_data());
-
-        return out;
-      }))
+      }), py::arg("mat").none(false))
       .PythonInterfaceCopyValue(Matrix)
       .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .PythonInterfaceBasicRepresentation(Matrix)
@@ -508,26 +473,7 @@ void py_matpack(py::module_& m) {
           }
         }
         return out;
-      }))
-      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
-        auto info = arr.request();
-        if (info.ndim == 1 and info.shape[0] == 0) return Tensor3{};
-
-        Index i = 3;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i,
-                           "Can only initialize from empty or ",
-                           i,
-                           "D array")
-        std::size_t nc = info.shape[--i];
-        std::size_t nr = info.shape[--i];
-        std::size_t np = info.shape[--i];
-
-        auto* val = reinterpret_cast<Numeric*>(info.ptr);
-        Tensor3 out(np, nr, nc);
-        std::copy(val, val + out.size(), out.get_c_array());
-
-        return out;
-      }))
+      }), py::arg("ten3").none(false))
       .PythonInterfaceCopyValue(Tensor3)
       .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .PythonInterfaceBasicRepresentation(Tensor3)
@@ -615,27 +561,7 @@ void py_matpack(py::module_& m) {
               }
             }
             return out;
-          }))
-      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
-        auto info = arr.request();
-        if (info.ndim == 1 and info.shape[0] == 0) return Tensor4{};
-
-        Index i = 4;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i,
-                           "Can only initialize from empty or ",
-                           i,
-                           "D array")
-        std::size_t nc = info.shape[--i];
-        std::size_t nr = info.shape[--i];
-        std::size_t np = info.shape[--i];
-        std::size_t nb = info.shape[--i];
-
-        auto* val = reinterpret_cast<Numeric*>(info.ptr);
-        Tensor4 out(nb, np, nr, nc);
-        std::copy(val, val + out.size(), out.get_c_array());
-
-        return out;
-      }))
+          }), py::arg("ten4").none(false))
       .PythonInterfaceCopyValue(Tensor4)
       .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .PythonInterfaceBasicRepresentation(Tensor4)
@@ -731,28 +657,7 @@ void py_matpack(py::module_& m) {
               }
             }
             return out;
-          }))
-      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
-        auto info = arr.request();
-        if (info.ndim == 1 and info.shape[0] == 0) return Tensor5{};
-
-        Index i = 5;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i,
-                           "Can only initialize from empty or ",
-                           i,
-                           "D array")
-        std::size_t nc = info.shape[--i];
-        std::size_t nr = info.shape[--i];
-        std::size_t np = info.shape[--i];
-        std::size_t nb = info.shape[--i];
-        std::size_t ns = info.shape[--i];
-
-        auto* val = reinterpret_cast<Numeric*>(info.ptr);
-        Tensor5 out(ns, nb, np, nr, nc);
-        std::copy(val, val + out.size(), out.get_c_array());
-
-        return out;
-      }))
+          }), py::arg("ten5").none(false))
       .PythonInterfaceCopyValue(Tensor5)
       .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .PythonInterfaceBasicRepresentation(Tensor5)
@@ -854,29 +759,7 @@ void py_matpack(py::module_& m) {
               }
             }
             return out;
-          }))
-      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
-        auto info = arr.request();
-        if (info.ndim == 1 and info.shape[0] == 0) return Tensor6{};
-
-        Index i = 6;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i,
-                           "Can only initialize from empty or ",
-                           i,
-                           "D array")
-        std::size_t nc = info.shape[--i];
-        std::size_t nr = info.shape[--i];
-        std::size_t np = info.shape[--i];
-        std::size_t nb = info.shape[--i];
-        std::size_t ns = info.shape[--i];
-        std::size_t nv = info.shape[--i];
-
-        auto* val = reinterpret_cast<Numeric*>(info.ptr);
-        Tensor6 out(nv, ns, nb, np, nr, nc);
-        std::copy(val, val + out.size(), out.get_c_array());
-
-        return out;
-      }))
+          }), py::arg("ten6").none(false))
       .PythonInterfaceCopyValue(Tensor6)
       .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .PythonInterfaceBasicRepresentation(Tensor6)
@@ -992,30 +875,7 @@ void py_matpack(py::module_& m) {
               }
             }
             return out;
-          }))
-      .def(py::init([](const py::array_t<Numeric, py::array::c_style | py::array::forcecast>& arr) {
-        auto info = arr.request();
-        if (info.ndim == 1 and info.shape[0] == 0) return Tensor7{};
-
-        Index i = 7;
-        ARTS_USER_ERROR_IF(info.ndim not_eq i,
-                           "Can only initialize from empty or ",
-                           i,
-                           "D array")
-        std::size_t nc = info.shape[--i];
-        std::size_t nr = info.shape[--i];
-        std::size_t np = info.shape[--i];
-        std::size_t nb = info.shape[--i];
-        std::size_t ns = info.shape[--i];
-        std::size_t nv = info.shape[--i];
-        std::size_t nl = info.shape[--i];
-
-        auto* val = reinterpret_cast<Numeric*>(info.ptr);
-        Tensor7 out(nl, nv, ns, nb, np, nr, nc);
-        std::copy(val, val + out.size(), out.get_c_array());
-
-        return out;
-      }))
+          }), py::arg("ten7").none(false))
       .PythonInterfaceCopyValue(Tensor7)
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .PythonInterfaceBasicRepresentation(Tensor7)
@@ -1101,25 +961,12 @@ void py_matpack(py::module_& m) {
       "    Tensor7(Index, Index, Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
       "    Tensor7(List or Array): to copy elements\n\n";
 
-  py::implicitly_convertible<py::array, Vector>();
   py::implicitly_convertible<std::vector<Scalar>, Vector>();
-
-  py::implicitly_convertible<py::array, Matrix>();
   py::implicitly_convertible<std::vector<std::vector<Scalar>>, Matrix>();
-
-  py::implicitly_convertible<py::array, Tensor3>();
   py::implicitly_convertible<std::vector<std::vector<std::vector<Scalar>>>, Tensor3>();
-
-  py::implicitly_convertible<py::array, Tensor4>();
   py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<Scalar>>>>, Tensor4>();
-
-  py::implicitly_convertible<py::array, Tensor5>();
   py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>, Tensor5>();
-
-  py::implicitly_convertible<py::array, Tensor6>();
   py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>, Tensor6>();
-
-  py::implicitly_convertible<py::array, Tensor7>();
   py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>>, Tensor7>();
 
   PythonInterfaceWorkspaceArray(Vector);
@@ -1135,7 +982,7 @@ void py_matpack(py::module_& m) {
         ArrayOfArrayOfVector y(x.size());
         std::copy(x.begin(), x.end(), y.begin());
         return y;
-      }));
+      }), py::arg("arr").none(false));
   py::implicitly_convertible<std::vector<std::vector<Vector>>,
                              ArrayOfArrayOfVector>();
 
@@ -1144,7 +991,7 @@ void py_matpack(py::module_& m) {
         ArrayOfArrayOfMatrix y(x.size());
         std::copy(x.begin(), x.end(), y.begin());
         return y;
-      }));
+      }), py::arg("arr").none(false));
   py::implicitly_convertible<std::vector<std::vector<Matrix>>,
                              ArrayOfArrayOfMatrix>();
 
@@ -1153,7 +1000,7 @@ void py_matpack(py::module_& m) {
         ArrayOfArrayOfTensor3 y(x.size());
         std::copy(x.begin(), x.end(), y.begin());
         return y;
-      }));
+      }), py::arg("arr").none(false));
   py::implicitly_convertible<std::vector<std::vector<Tensor3>>,
                              ArrayOfArrayOfTensor3>();
 
@@ -1162,7 +1009,7 @@ void py_matpack(py::module_& m) {
         ArrayOfArrayOfTensor6 y(x.size());
         std::copy(x.begin(), x.end(), y.begin());
         return y;
-      }));
+      }), py::arg("arr").none(false));
   py::implicitly_convertible<std::vector<std::vector<Tensor6>>,
                              ArrayOfArrayOfTensor6>();
 

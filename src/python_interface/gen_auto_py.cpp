@@ -1149,19 +1149,19 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
             x.counter = counter;
             x.name = var_string("arg", counter, '_');
             x.type = arg.types[i];
-            x.first = var_string("py::cast<",
-                                 arg.types[i],
-                                 ">(* std::get<py::object *>(wvv_arg",
+            bool num = (arg.types[i] == "Numeric" or arg.types[i] == "Index");
+            x.first = var_string("* _tmp",
                                  counter,
-                                 "_))");
-            x.second = var_string(
-                "*std::get<",
-                arg.types[i],
-                ((arg.types[i] == "Numeric" or arg.types[i] == "Index") ? '_'
-                                                                        : ' '),
-                "*>(wvv_arg",
-                counter,
-                "_)");
+                                 ".cast<",
+                                 arg.types[i],
+                                 num ? '_' : ' ',
+                                 "*>()");
+            x.second = var_string("*std::get<",
+                                  arg.types[i],
+                                  (num ? '_' : ' '),
+                                  "*>(wvv_arg",
+                                  counter,
+                                  "_)");
             input_var_args.push_back(x);
             continue;
           }
@@ -1269,28 +1269,35 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
 
         // Path1 may have to be formed if it contains an agenda
         if (last.type == "Agenda") {
-          path1_exe = method_call;
-          path1_exe.replace(
-              path1_exe.find(last.name),
-              last.name.length(),
-              var_string(
-                  "std::holds_alternative<Agenda>(",
-                  last.name,
-                  ") ? std::get<Agenda>(",
-                  last.name,
-                  ") : py::cast<Agenda>(std::get<std::function<py::object(Workspace&)>>(",
-                  last.name,
-                  ")(w_))"));
           path1_exe = var_string(
-              "auto ",
-              last.name,
-              " = py::cast<std::variant<Agenda, std::function<py::object(Workspace&)>>>(* std::get<py::object *>(wvv_arg",
+              "auto _tmp",
+              last.counter,
+              " = py::type::of<Agenda>()(w_, * std::get<py::object *>(wvv_arg",
               last.counter,
               "_));\n",
               spaces(s + 2),
-              path1_exe);
+              "const Agenda& ",
+              last.name,
+              " = * _tmp",
+              last.counter,
+              ".cast<Agenda *>();\n",
+              spaces(s + 2),
+              method_call);
         } else {
-          path1_exe = var_string("const auto ",
+          bool num = (last.type == "Numeric" or last.type == "Index");
+          path1_exe = var_string("auto _tmp",
+                                 last.counter,
+                                 " = py::type::of<",
+                                 last.type,
+                                 num ? '_' : ' ',
+                                 ">()(* std::get<py::object *>(wvv_arg",
+                                 last.counter,
+                                 "_));\n",
+                                 spaces(s + 2),
+                                 "const ",
+                                 last.type,
+                                 '&',
+                                 ' ',
                                  last.name,
                                  " = ",
                                  last.first,
@@ -1468,7 +1475,6 @@ struct WorkspaceVariable {
   void initialize_if_not();
   operator WorkspaceVariablesVariant();
   operator WorkspaceVariablesVariant() const;
-  WorkspaceVariable &operator=(WorkspaceVariablesVariant x);
 
 )--";
 
@@ -1518,33 +1524,33 @@ Index WorkspaceVariable::group() const {
 WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py::object& obj, bool allow_casting) : ws(ws_), pos(-1) {
   ARTS_USER_ERROR_IF(std::addressof(ws) not_eq std::addressof(ws_), "Cannot use a workspace variable from another workspace")
 
-  try {
-    *this = *obj.cast<WorkspaceVariable *>();
-    return;
-  } catch (...) {
-    // Do nothing
-  }
-
-  ARTS_USER_ERROR_IF(not allow_casting, "Only workspace variable objects allowed")
-  ARTS_USER_ERROR_IF(group_index == )--"
+  if (py::isinstance<WorkspaceVariable>(obj)) {
+    pos = obj.cast<WorkspaceVariable *>() -> pos;
+  } else {
+    ARTS_USER_ERROR_IF(not allow_casting, "Only workspace variable objects allowed")
+    ARTS_USER_ERROR_IF(group_index == )--"
      << arts.group.at("Any") << R"--(, "Cannot create type Any")
-  void * value_ptr = nullptr;
-  switch(group_index) {
+    void * value_ptr = nullptr;
+    switch(group_index) {
 )--";
 
   for (auto& [name, group] : arts.group) {
+    char extra = (name == "Numeric" or name == "Index") ? '_' : ' ';
     if (name == "Any") continue;
-    os << "    case " << group << ": value_ptr = new " << name << "{py::cast<"
-       << name << ">(obj)}; break;\n";
+    os << "      case " << group << ": {auto conv_obj = py::type::of<"<<name<<extra<<">()(";
+    if (name == "Agenda") os << "ws, ";
+    os << "obj); value_ptr = new " << name << "{* conv_obj.cast<"
+       << name << extra << "*>()};} break;\n";
   }
 
-  os << R"--(    default: ARTS_USER_ERROR("Cannot create type")
-  }
+  os << R"--(      default: ARTS_USER_ERROR("Cannot create type")
+    }
 
-  // Create the variable and initialize it
-  static std::size_t i = 0;
-  pos = ws.add_wsv_inplace(WsvRecord(var_string("::anon::", i++).c_str(), "Created by pybind11 API", group_index));
-  ws.push(pos, value_ptr);
+    // Create the variable and initialize it
+    static std::size_t i = 0;
+    pos = ws.add_wsv_inplace(WsvRecord(var_string("::anon::", i++).c_str(), "Anonymous agenda variable", group_index));
+    ws.push(pos, value_ptr);
+  }
 }
 
 void WorkspaceVariable::initialize_if_not() {
@@ -1594,57 +1600,6 @@ WorkspaceVariable::operator WorkspaceVariablesVariant() const {
   os << R"--(  }
   
   ARTS_USER_ERROR("Cannot understand type")
-}
-
-WorkspaceVariable &WorkspaceVariable::operator=(WorkspaceVariablesVariant x) {
-  initialize_if_not();
-  switch (ws.wsv_data[pos].Group()) {
-)--";
-
-  const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
-  for (auto& [name, group] : arts.group) {
-    os << "    case " << group
-       << ":\n"
-          "      if (std::holds_alternative<py::object *>(x)) {";
-    if (name == "Agenda") {
-      os << R"--(
-        auto var_val = py::cast<std::variant<Agenda, std::function<py::object(Workspace&)>>>(* std::get<py::object *>(x));
-        * reinterpret_cast<Agenda *>(ws[pos]) = std::move(std::holds_alternative<Agenda>(var_val) ? std::get<Agenda>(var_val) : py::cast<Agenda>(std::get<std::function<py::object(Workspace&)>>(var_val)(ws)));
-)--";
-    } else {
-      os << "\n        * reinterpret_cast<" << name
-         << " *>(ws[pos]) = py::cast<" << name
-         << ">(* std::get<py::object *>(x));\n";
-    }
-    os << "      } else {\n"
-          "        ARTS_USER_ERROR_IF(not std::holds_alternative<"
-       << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>(x), \"Cannot cast between internal classes\")\n"
-          "        * reinterpret_cast<"
-       << name;
-    os << " *>(ws[pos]) = * std::get<" << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>(x);\n      }\n";
-
-    if (name == "Agenda") {
-      os << "      reinterpret_cast<Agenda *>(ws[pos]) -> set_name(name());\n";
-      os << "      reinterpret_cast<Agenda *>(ws[pos]) -> check(ws, * reinterpret_cast<Verbosity *>(ws["
-         << verbpos << "]));\n";
-    }
-
-    if (name == "ArrayOfAgenda") {
-      os << "      for (auto& aoa: * reinterpret_cast<ArrayOfAgenda *>(ws[pos])) aoa.set_name(name());\n";
-      os << "      for (auto& aoa: * reinterpret_cast<ArrayOfAgenda *>(ws[pos])) aoa.check(ws, * reinterpret_cast<Verbosity *>(ws["
-         << verbpos << "]));\n";
-    }
-
-    os << "      break;\n";
-  }
-  os << R"--(  default: ARTS_USER_ERROR("Unknown variable group: ", ws.wsv_data[pos].Name())
-  }
-  
-  return *this;
 }
 
 void WorkspaceVariable::pop_workspace_level() { ws.pop_free(pos); }

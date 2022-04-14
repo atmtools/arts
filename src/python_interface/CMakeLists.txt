@@ -1,22 +1,22 @@
 ########################################################################################
 # Generate list of files to be generated
 if (NOT NUM_PYARTS_WSM)
-    set(NUM_PYARTS_WSM 16)
+    set(NUM_PYARTS_WSM 5)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSM} python interface automatic workspace method files (-DNUM_PYARTS_WSM=N to change)")
 
 if (NOT NUM_PYARTS_WSV)
-    set(NUM_PYARTS_WSV 8)
+    set(NUM_PYARTS_WSV 3)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSV} python interface automatic workspace variable files (-DNUM_PYARTS_WSV=N to change)")
 
 if (NOT NUM_PYARTS_WSC)
-    set(NUM_PYARTS_WSC 10)
+    set(NUM_PYARTS_WSC 3)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSC} python interface automatic workspace create method files (-DNUM_PYARTS_WSC=N to change)")
 
 if (NOT NUM_PYARTS_WSG)
-    set(NUM_PYARTS_WSG 10)
+    set(NUM_PYARTS_WSG 3)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSG} python interface automatic workspace generic method files (-DNUM_PYARTS_WSG=N to change)")
 

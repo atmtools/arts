@@ -236,6 +236,10 @@ void py_agenda(py::module_& m) {
   py::class_<Agenda>(m, "Agenda")
       .def(py::init([]() { return new Agenda{}; }))
       .def(py::init(
+          [](Workspace&, const Agenda& a) {
+            return a;
+          }), py::doc("Copy Agenda with extra argument (to mimic DelayedAgenda)"))
+      .def(py::init(
           [](Workspace& ws, const std::function<py::object(Workspace&)>& f) {
             return py::cast<Agenda>(f(ws));
           }),

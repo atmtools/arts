@@ -10,7 +10,7 @@
 
 namespace Python {
 namespace py = pybind11;
-} // namespace Python
+}  // namespace Python
 
 constexpr Index negative_clamp(const Index i, const Index n) noexcept {
   return (i < 0) ? i + n : i;
@@ -100,7 +100,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       "__copy__", [](Type& t) -> Type { return t; }, py::is_operator()) \
       .def(                                                             \
           "__deepcopy__",                                               \
-          [](Type& t, py::dict&) -> Type { return t; },                            \
+          [](Type& t, py::dict&) -> Type { return t; },                 \
           py::is_operator())
 
 /** Gives the basic Array<X> interface of Arts
@@ -125,11 +125,14 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .PythonInterfaceCopyValue(Array<BaseType>)                              \
       .def(py::init([]() { return new Array<BaseType>{}; }))                  \
       .def(py::init([](Index n, const BaseType& v) {                          \
-        return new Array<BaseType>(n, v);                                     \
-      }))                                                                     \
+             return new Array<BaseType>(n, v);                                \
+           }),                                                                \
+           py::arg("size"),                                                   \
+           py::arg("cval"))                                                   \
       .def(py::init([](const std::vector<BaseType>& v) {                      \
-        return new Array<BaseType>{v};                                        \
-      }))                                                                     \
+             return new Array<BaseType>{v};                                   \
+           }),                                                                \
+           py::arg("arr"))                                                    \
       .def(                                                                   \
           "append",                                                           \
           [](Array<BaseType>& x, BaseType y) {                                \
@@ -213,13 +216,13 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           [](Type& x, const Other& y) { return y - x; }, \
           py::is_operator())
 
-#define PythonInterfaceWorkspaceVariableConversion(Type)   \
-  def(py::init([](const Type& x) { return new Type{x}; })) \
-      .def(py::init([](const WorkspaceVariable* w) {       \
-             Type& v = *w;                                 \
-             return new Type(v);                           \
-           }),                                             \
-           py::arg("wsv").none(false).noconvert(),         \
+#define PythonInterfaceWorkspaceVariableConversion(Type)                   \
+  def(py::init([](const Type& x) { return new Type{x}; }), py::arg("val")) \
+      .def(py::init([](const WorkspaceVariable* w) {                       \
+             Type& v = *w;                                                 \
+             return new Type(v);                                           \
+           }),                                                             \
+           py::arg("wsv").none(false).noconvert(),                         \
            py::doc("Automatic conversion from a workspace variable"))
 
 /*! The workspace array interface
@@ -239,7 +242,6 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
   auto_impl_name##BaseType.doc() = "The Arts ArrayOf" #BaseType " class"; \
                                                                           \
   py::implicitly_convertible<std::vector<BaseType>, ArrayOf##BaseType>(); \
-  py::implicitly_convertible<py::list, ArrayOf##BaseType>();              \
                                                                           \
   auto_impl_name##BaseType.PythonInterfaceFileIO(ArrayOf##BaseType)       \
       .PythonInterfaceBasicRepresentation(ArrayOf##BaseType)              \
