@@ -139,14 +139,16 @@ void py_matpack(py::module_& m) {
   py::class_<Vector, VectorView>(m, "Vector", py::buffer_protocol())
       .def(py::init([]() { return new Vector{}; }))
       .def(py::init([](const std::vector<Scalar>& v) {
-        auto* out = new Vector(v.size());
-        for (size_t i=0; i<v.size(); i++) out -> operator[](i) = std::visit([](auto&&x) {return static_cast<Numeric>(x);}, v[i]);
-        return out; 
-        } ), py::arg("vec").none(false))
+             auto* out = new Vector(v.size());
+             for (size_t i = 0; i < v.size(); i++)
+               out->operator[](i) = std::visit(
+                   [](auto&& x) { return static_cast<Numeric>(x); }, v[i]);
+             return out;
+           }),
+           py::arg("vec").none(false))
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
-      .PythonInterfaceValueOperators
-      .PythonInterfaceBasicRepresentation(Vector)
+      .PythonInterfaceValueOperators.PythonInterfaceBasicRepresentation(Vector)
       .PythonInterfaceFileIO(Vector)
       .def_buffer([](Vector& x) -> py::buffer_info {
         return py::buffer_info(x.get_c_array(),
@@ -164,6 +166,17 @@ void py_matpack(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](Vector& x, Vector& y) { x = y; })
+      .def(py::pickle(
+          [](const Vector& self) {
+            auto n = self.size();
+            std::vector<Numeric> out(n);
+            std::copy(self.get_c_array(), self.get_c_array() + n, out.begin());
+            return py::make_tuple(std::move(out));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return new Vector{t[0].cast<std::vector<Numeric>>()};
+          }))
       .doc() =
       "The Arts Vector class\n"
       "\n"
@@ -221,6 +234,29 @@ void py_matpack(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](Matrix& x, Matrix& y) { x = y; })
+      .def(py::pickle(
+          [](const Matrix& self) {
+            auto n = self.size();
+
+            Index n1 = self.ncols();
+            Index n2 = self.nrows();
+
+            std::vector<Numeric> out(n);
+
+            std::copy(self.get_c_array(), self.get_c_array() + n, out.begin());
+            return py::make_tuple(std::move(out), n1, n2);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
+
+            const auto data = t[0].cast<std::vector<Numeric>>();
+            const Index n1 = t[1].cast<Index>();
+            const Index n2 = t[2].cast<Index>();
+
+            auto* out = new Matrix{n2, n1};
+            std::copy(data.begin(), data.end(), out -> get_c_array());
+            return out;
+          }))
       .doc() =
       "The Arts Matrix class\n"
       "\n"
@@ -279,6 +315,31 @@ void py_matpack(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](Tensor3& x, Tensor3& y) { x = y; })
+      .def(py::pickle(
+          [](const Tensor3& self) {
+            auto n = self.size();
+
+            Index n1 = self.ncols();
+            Index n2 = self.nrows();
+            Index n3 = self.npages();
+
+            std::vector<Numeric> out(n);
+
+            std::copy(self.get_c_array(), self.get_c_array() + n, out.begin());
+            return py::make_tuple(std::move(out), n1, n2, n3);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
+
+            const auto data = t[0].cast<std::vector<Numeric>>();
+            const Index n1 = t[1].cast<Index>();
+            const Index n2 = t[2].cast<Index>();
+            const Index n3 = t[3].cast<Index>();
+
+            auto* out = new Tensor3{n3, n2, n1};
+            std::copy(data.begin(), data.end(), out -> get_c_array());
+            return out;
+          }))
       .doc() =
       "The Arts Tensor3 class\n"
       "\n"
@@ -344,6 +405,33 @@ void py_matpack(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](Tensor4& x, Tensor4& y) { x = y; })
+      .def(py::pickle(
+          [](const Tensor4& self) {
+            auto n = self.size();
+
+            Index n1 = self.ncols();
+            Index n2 = self.nrows();
+            Index n3 = self.npages();
+            Index n4 = self.nbooks();
+
+            std::vector<Numeric> out(n);
+
+            std::copy(self.get_c_array(), self.get_c_array() + n, out.begin());
+            return py::make_tuple(std::move(out), n1, n2, n3, n4);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
+
+            const auto data = t[0].cast<std::vector<Numeric>>();
+            const Index n1 = t[1].cast<Index>();
+            const Index n2 = t[2].cast<Index>();
+            const Index n3 = t[3].cast<Index>();
+            const Index n4 = t[4].cast<Index>();
+
+            auto* out = new Tensor4{n4, n3, n2, n1};
+            std::copy(data.begin(), data.end(), out -> get_c_array());
+            return out;
+          }))
       .doc() =
       "The Arts Tensor4 class\n"
       "\n"
@@ -413,6 +501,35 @@ void py_matpack(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](Tensor5& x, Tensor5& y) { x = y; })
+      .def(py::pickle(
+          [](const Tensor5& self) {
+            auto n = self.size();
+
+            Index n1 = self.ncols();
+            Index n2 = self.nrows();
+            Index n3 = self.npages();
+            Index n4 = self.nbooks();
+            Index n5 = self.nshelves();
+
+            std::vector<Numeric> out(n);
+
+            std::copy(self.get_c_array(), self.get_c_array() + n, out.begin());
+            return py::make_tuple(std::move(out), n1, n2, n3, n4, n5);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
+
+            const auto data = t[0].cast<std::vector<Numeric>>();
+            const Index n1 = t[1].cast<Index>();
+            const Index n2 = t[2].cast<Index>();
+            const Index n3 = t[3].cast<Index>();
+            const Index n4 = t[4].cast<Index>();
+            const Index n5 = t[5].cast<Index>();
+
+            auto* out = new Tensor5{n5, n4, n3, n2, n1};
+            std::copy(data.begin(), data.end(), out -> get_c_array());
+            return out;
+          }))
       .doc() =
       "The Arts Tensor5 class\n"
       "\n"
@@ -492,6 +609,37 @@ void py_matpack(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](Tensor6& x, Tensor6& y) { x = y; })
+      .def(py::pickle(
+          [](const Tensor6& self) {
+            auto n = self.size();
+
+            Index n1 = self.ncols();
+            Index n2 = self.nrows();
+            Index n3 = self.npages();
+            Index n4 = self.nbooks();
+            Index n5 = self.nshelves();
+            Index n6 = self.nvitrines();
+
+            std::vector<Numeric> out(n);
+
+            std::copy(self.get_c_array(), self.get_c_array() + n, out.begin());
+            return py::make_tuple(std::move(out), n1, n2, n3, n4, n5, n6);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
+
+            const auto data = t[0].cast<std::vector<Numeric>>();
+            const Index n1 = t[1].cast<Index>();
+            const Index n2 = t[2].cast<Index>();
+            const Index n3 = t[3].cast<Index>();
+            const Index n4 = t[4].cast<Index>();
+            const Index n5 = t[5].cast<Index>();
+            const Index n6 = t[6].cast<Index>();
+
+            auto* out = new Tensor6{n6, n5, n4, n3, n2, n1};
+            std::copy(data.begin(), data.end(), out -> get_c_array());
+            return out;
+          }))
       .doc() =
       "The Arts Tensor6 class\n"
       "\n"
@@ -548,6 +696,7 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
       .PythonInterfaceValueOperators
+      .PythonInterfaceBasicRepresentation(Tensor7)
       .def_buffer([](Tensor7& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -579,6 +728,39 @@ void py_matpack(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](Tensor7& x, Tensor7& y) { x = y; })
+      .def(py::pickle(
+          [](const Tensor7& self) {
+            auto n = self.size();
+
+            Index n1 = self.ncols();
+            Index n2 = self.nrows();
+            Index n3 = self.npages();
+            Index n4 = self.nbooks();
+            Index n5 = self.nshelves();
+            Index n6 = self.nvitrines();
+            Index n7 = self.nlibraries();
+
+            std::vector<Numeric> out(n);
+
+            std::copy(self.get_c_array(), self.get_c_array() + n, out.begin());
+            return py::make_tuple(std::move(out), n1, n2, n3, n4, n5, n6, n7);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 8, "Invalid state!")
+
+            const auto data = t[0].cast<std::vector<Numeric>>();
+            const Index n1 = t[1].cast<Index>();
+            const Index n2 = t[2].cast<Index>();
+            const Index n3 = t[3].cast<Index>();
+            const Index n4 = t[4].cast<Index>();
+            const Index n5 = t[5].cast<Index>();
+            const Index n6 = t[6].cast<Index>();
+            const Index n7 = t[7].cast<Index>();
+
+            auto* out = new Tensor7{n7, n6, n5, n4, n3, n2, n1};
+            std::copy(data.begin(), data.end(), out -> get_c_array());
+            return out;
+          }))
       .doc() =
       "The Arts Tensor7 class\n"
       "\n"
