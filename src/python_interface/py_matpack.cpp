@@ -7,6 +7,9 @@
 #include "matpackI.h"
 #include "py_macros.h"
 
+#define PythonInterfaceSelfAttribute(ATTR) \
+  def_property_readonly(#ATTR, [](py::object& x) { return x.attr("value").attr(#ATTR); })
+
 #define PythonInterfaceSelfOperator(ATTR)                          \
   def(                                                             \
       #ATTR,                                                       \
@@ -48,7 +51,11 @@
       py::is_operator())
 
 #define PythonInterfaceValueOperators                      \
-  PythonInterfaceSelfOperator(__pos__)                     \
+  PythonInterfaceSelfAttribute(ndim)                       \
+      .PythonInterfaceSelfAttribute(shape)                 \
+      .PythonInterfaceSelfAttribute(size)                  \
+                                                           \
+      .PythonInterfaceSelfOperator(__pos__)                \
       .PythonInterfaceSelfOperator(__neg__)                \
       .PythonInterfaceSelfOperator(__abs__)                \
       .PythonInterfaceSelfOperator(__invert__)             \
@@ -139,23 +146,6 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
       .PythonInterfaceValueOperators
-      .def(
-          "__matmul__",
-          [](const Vector& a, const Vector& b) {
-            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),
-                               "Invalid operation with shapes (",
-                               a.shape(),
-                               ") and (",
-                               b.shape(),
-                               ')')
-            return a * b;
-          },
-          py::is_operator())
-      .def_property_readonly("size", [](Vector& x) { return x.size(); })
-      .def_property_readonly(
-          "shape",
-          [](Vector& x) { return x.shape().data; },
-          "The shape of the data")
       .PythonInterfaceBasicRepresentation(Vector)
       .PythonInterfaceFileIO(Vector)
       .def_buffer([](Vector& x) -> py::buffer_info {
@@ -215,11 +205,6 @@ void py_matpack(py::module_& m) {
           "T",
           [](const Matrix& x) { return Matrix(transpose(x)); },
           "Non-trivial transpose")
-      .def_property_readonly("size", [](Matrix& x) { return x.size(); })
-      .def_property_readonly(
-          "shape",
-          [](Matrix& x) { return x.shape().data; },
-          "The shape of the data")
       .def_buffer([](Matrix& x) -> py::buffer_info {
         return py::buffer_info(x.get_c_array(),
                                sizeof(Numeric),
@@ -276,11 +261,6 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor3)
       .PythonInterfaceFileIO(Tensor3)
       .PythonInterfaceValueOperators
-      .def_property_readonly("size", [](Tensor3& x) { return x.size(); })
-      .def_property_readonly(
-          "shape",
-          [](Tensor3& x) { return x.shape().data; },
-          "The shape of the data")
       .def_buffer([](Tensor3& x) -> py::buffer_info {
         return py::buffer_info(x.get_c_array(),
                                sizeof(Numeric),
@@ -344,11 +324,6 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor4)
       .PythonInterfaceFileIO(Tensor4)
       .PythonInterfaceValueOperators
-      .def_property_readonly("size", [](Tensor4& x) { return x.size(); })
-      .def_property_readonly(
-          "shape",
-          [](Tensor4& x) { return x.shape().data; },
-          "The shape of the data")
       .def_buffer([](Tensor4& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -417,11 +392,6 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor5)
       .PythonInterfaceFileIO(Tensor5)
       .PythonInterfaceValueOperators
-      .def_property_readonly("size", [](Tensor5& x) { return x.size(); })
-      .def_property_readonly(
-          "shape",
-          [](Tensor5& x) { return x.shape().data; },
-          "The shape of the data")
       .def_buffer([](Tensor5& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -494,11 +464,6 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Tensor6)
       .PythonInterfaceFileIO(Tensor6)
       .PythonInterfaceValueOperators
-      .def_property_readonly("size", [](Tensor6& x) { return x.size(); })
-      .def_property_readonly(
-          "shape",
-          [](Tensor6& x) { return x.shape().data; },
-          "The shape of the data")
       .def_buffer([](Tensor6& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -583,11 +548,6 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
       .PythonInterfaceValueOperators
-      .def_property_readonly("size", [](Tensor7& x) { return x.size(); })
-      .def_property_readonly(
-          "shape",
-          [](Tensor7& x) { return x.shape().data; },
-          "The shape of the data")
       .def_buffer([](Tensor7& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
