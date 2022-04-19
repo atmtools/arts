@@ -7,220 +7,99 @@
 #include "matpackI.h"
 #include "py_macros.h"
 
-#define PythonInterfaceMatpackMath(Type)                          \
-  def(                                                            \
-      "__pos__",                                                  \
-      [](const Type& a) {                                         \
-        Type c = a;                                               \
-        return c;                                                 \
-      },                                                          \
-      py::is_operator())                                          \
-      .def(                                                       \
-          "__neg__",                                              \
-          [](const Type& a) {                                     \
-            Type c = a;                                           \
-            c *= -1;                                              \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-                                                                  \
-      .def(                                                       \
-          "__rpow__",                                             \
-          [](const Type& a, Numeric_ b) {                         \
-            Type c = a;                                           \
-            c.transform_elementwise(                              \
-                [b](Numeric x) { return std::pow(b, x); });       \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__rmul__",                                             \
-          [](const Type& a, Numeric_ b) {                         \
-            Type c = a;                                           \
-            c *= b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__radd__",                                             \
-          [](const Type& a, Numeric_ b) {                         \
-            Type c = a;                                           \
-            c += b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__rtruediv__",                                         \
-          [](const Type& a, Numeric_ b) {                         \
-            Type c = a;                                           \
-            c = b;                                                \
-            c /= a;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__rsub__",                                             \
-          [](Type& a, Numeric_ b) {                               \
-            Type c = a;                                           \
-            c = b;                                                \
-            c -= a;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-                                                                  \
-      .def(                                                       \
-          "__pow__",                                              \
-          [](const Type& a, Numeric_ b) {                         \
-            Type c = a;                                           \
-            c.transform_elementwise(                              \
-                [b](Numeric x) { return std::pow(x, b); });       \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__mul__",                                              \
-          [](const Type& a, Numeric_ b) {                         \
-            Type c = a;                                           \
-            c *= b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__add__",                                              \
-          [](const Type& a, Numeric_ b) {                         \
-            Type c = a;                                           \
-            c += b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__truediv__",                                          \
-          [](const Type& a, Numeric_ b) {                         \
-            Type c = a;                                           \
-            c /= b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__sub__",                                              \
-          [](const Type& a, Numeric_ b) {                         \
-            Type c = a;                                           \
-            c -= b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-                                                                  \
-      .def(                                                       \
-          "__mul__",                                              \
-          [](const Type& a, const Type& b) {                      \
-            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
-                               "Invalid operation with shapes (", \
-                               a.shape(),                         \
-                               ") and (",                         \
-                               b.shape(),                         \
-                               ')')                               \
-            Type c = a;                                           \
-            c *= b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__add__",                                              \
-          [](const Type& a, const Type& b) {                      \
-            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
-                               "Invalid operation with shapes (", \
-                               a.shape(),                         \
-                               ") and (",                         \
-                               b.shape(),                         \
-                               ')')                               \
-            Type c = a;                                           \
-            c += b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__truediv__",                                          \
-          [](const Type& a, const Type& b) {                      \
-            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
-                               "Invalid operation with shapes (", \
-                               a.shape(),                         \
-                               ") and (",                         \
-                               b.shape(),                         \
-                               ')')                               \
-            Type c = a;                                           \
-            c /= b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__sub__",                                              \
-          [](const Type& a, const Type& b) {                      \
-            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
-                               "Invalid operation with shapes (", \
-                               a.shape(),                         \
-                               ") and (",                         \
-                               b.shape(),                         \
-                               ')')                               \
-            Type c = a;                                           \
-            c -= b;                                               \
-            return c;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-                                                                  \
-      .PythonInterfaceInPlaceMathOperators(Type, Numeric_)        \
-                                                                  \
-      .def(                                                       \
-          "__imul__",                                             \
-          [](Type& a, const Type& b) {                            \
-            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
-                               "Invalid operation with shapes (", \
-                               a.shape(),                         \
-                               ") and (",                         \
-                               b.shape(),                         \
-                               ')')                               \
-            a *= b;                                               \
-            return a;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__iadd__",                                             \
-          [](Type& a, const Type& b) {                            \
-            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
-                               "Invalid operation with shapes (", \
-                               a.shape(),                         \
-                               ") and (",                         \
-                               b.shape(),                         \
-                               ')')                               \
-            a += b;                                               \
-            return a;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__itruediv__",                                         \
-          [](Type& a, const Type& b) {                            \
-            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
-                               "Invalid operation with shapes (", \
-                               a.shape(),                         \
-                               ") and (",                         \
-                               b.shape(),                         \
-                               ')')                               \
-            a /= b;                                               \
-            return a;                                             \
-          },                                                      \
-          py::is_operator())                                      \
-      .def(                                                       \
-          "__isub__",                                             \
-          [](Type& a, const Type& b) {                            \
-            ARTS_USER_ERROR_IF(a.shape() not_eq b.shape(),        \
-                               "Invalid operation with shapes (", \
-                               a.shape(),                         \
-                               ") and (",                         \
-                               b.shape(),                         \
-                               ')')                               \
-            a -= b;                                               \
-            return a;                                             \
-          },                                                      \
-          py::is_operator())
+#define PythonInterfaceSelfOperator(ATTR)                          \
+  def(                                                             \
+      #ATTR,                                                       \
+      [](py::object& x) { return x.attr("value").attr(#ATTR)(); }, \
+      py::is_operator())
+
+#define PythonInterfaceValueOperator(ATTR)     \
+  def(                                         \
+      #ATTR,                                   \
+      [](py::object& x, py::object& y) {       \
+        return x.attr("value").attr(#ATTR)(y); \
+      },                                       \
+      py::is_operator())
+
+#define PythonInterfaceTwoValueOperator(ATTR)           \
+  def(                                                  \
+      #ATTR,                                            \
+      [](py::object& x, py::object& y, py::object& z) { \
+        return x.attr("value").attr(#ATTR)(y, z);       \
+      },                                                \
+      py::is_operator())
+
+#define PythonInterfaceInternalValueOperator(ATTR) \
+  def(                                             \
+      #ATTR,                                       \
+      [](py::object& x, py::object& y) {           \
+        x.attr("value").attr(#ATTR)(y);            \
+        return x;                                  \
+      },                                           \
+      py::is_operator())
+
+#define PythonInterfaceInternalTwoValueOperator(ATTR)   \
+  def(                                                  \
+      #ATTR,                                            \
+      [](py::object& x, py::object& y, py::object& z) { \
+        x.attr("value").attr(#ATTR)(y, z);              \
+        return x;                                       \
+      },                                                \
+      py::is_operator())
+
+#define PythonInterfaceValueOperators                      \
+  PythonInterfaceSelfOperator(__pos__)                     \
+      .PythonInterfaceSelfOperator(__neg__)                \
+      .PythonInterfaceSelfOperator(__abs__)                \
+      .PythonInterfaceSelfOperator(__invert__)             \
+      .PythonInterfaceSelfOperator(__complex__)            \
+      .PythonInterfaceSelfOperator(__int__)                \
+      .PythonInterfaceSelfOperator(__float__)              \
+                                                           \
+      .PythonInterfaceValueOperator(__add__)               \
+      .PythonInterfaceValueOperator(__sub__)               \
+      .PythonInterfaceValueOperator(__mul__)               \
+      .PythonInterfaceValueOperator(__matmul__)            \
+      .PythonInterfaceValueOperator(__truediv__)           \
+      .PythonInterfaceValueOperator(__floordiv__)          \
+      .PythonInterfaceValueOperator(__mod__)               \
+      .PythonInterfaceValueOperator(__divmod__)            \
+      .PythonInterfaceValueOperator(__pow__)               \
+      .PythonInterfaceTwoValueOperator(__pow__)            \
+                                                           \
+      .PythonInterfaceValueOperator(__radd__)              \
+      .PythonInterfaceValueOperator(__rsub__)              \
+      .PythonInterfaceValueOperator(__rmul__)              \
+      .PythonInterfaceValueOperator(__rmatmul__)           \
+      .PythonInterfaceValueOperator(__rtruediv__)          \
+      .PythonInterfaceValueOperator(__rfloordiv__)         \
+      .PythonInterfaceValueOperator(__rmod__)              \
+      .PythonInterfaceValueOperator(__rdivmod__)           \
+      .PythonInterfaceValueOperator(__rpow__)              \
+      .PythonInterfaceTwoValueOperator(__rpow__)           \
+                                                           \
+      .PythonInterfaceInternalValueOperator(__iadd__)      \
+      .PythonInterfaceInternalValueOperator(__isub__)      \
+      .PythonInterfaceInternalValueOperator(__imul__)      \
+      .PythonInterfaceInternalValueOperator(__imatmul__)   \
+      .PythonInterfaceInternalValueOperator(__itruediv__)  \
+      .PythonInterfaceInternalValueOperator(__ifloordiv__) \
+      .PythonInterfaceInternalValueOperator(__imod__)      \
+      .PythonInterfaceInternalValueOperator(__idivmod__)   \
+      .PythonInterfaceInternalValueOperator(__ipow__)      \
+      .PythonInterfaceInternalTwoValueOperator(__ipow__)   \
+                                                           \
+      .PythonInterfaceValueOperator(__lt__)                \
+      .PythonInterfaceValueOperator(__le__)                \
+      .PythonInterfaceValueOperator(__eq__)                \
+      .PythonInterfaceValueOperator(__ne__)                \
+      .PythonInterfaceValueOperator(__ge__)                \
+      .PythonInterfaceValueOperator(__gt__)                \
+                                                           \
+      .PythonInterfaceValueOperator(__contains__)          \
+                                                           \
+      .PythonInterfaceValueOperator(__getitem__)           \
+      .PythonInterfaceTwoValueOperator(__setitem__)
 
 namespace Python {
 using Scalar = std::variant<Index, Numeric>;
@@ -235,55 +114,20 @@ void test_correct_size(const std::vector<T>& x) {
 }
 
 void py_matpack(py::module_& m) {
-  py::class_<ConstVectorView>(m,
-                              "Const"
-                              "Vector"
-                              "View");
-  py::class_<ConstMatrixView>(m,
-                              "Const"
-                              "Matrix"
-                              "View");
-  py::class_<ConstTensor3View>(m,
-                               "Const"
-                               "Tensor3"
-                               "View");
-  py::class_<ConstTensor4View>(m,
-                               "Const"
-                               "Tensor4"
-                               "View");
-  py::class_<ConstTensor5View>(m,
-                               "Const"
-                               "Tensor5"
-                               "View");
-  py::class_<ConstTensor6View>(m,
-                               "Const"
-                               "Tensor6"
-                               "View");
-  py::class_<ConstTensor7View>(m,
-                               "Const"
-                               "Tensor7"
-                               "View");
-  py::class_<VectorView, ConstVectorView>(m,
-                                          "Vector"
-                                          "View");
-  py::class_<MatrixView, ConstMatrixView>(m,
-                                          "Matrix"
-                                          "View");
-  py::class_<Tensor3View, ConstTensor3View>(m,
-                                            "Tensor3"
-                                            "View");
-  py::class_<Tensor4View, ConstTensor4View>(m,
-                                            "Tensor4"
-                                            "View");
-  py::class_<Tensor5View, ConstTensor5View>(m,
-                                            "Tensor5"
-                                            "View");
-  py::class_<Tensor6View, ConstTensor6View>(m,
-                                            "Tensor6"
-                                            "View");
-  py::class_<Tensor7View, ConstTensor7View>(m,
-                                            "Tensor7"
-                                            "View");
+  py::class_<ConstVectorView>(m, "ConstVectorView");
+  py::class_<ConstMatrixView>(m, "ConstMatrixView");
+  py::class_<ConstTensor3View>(m, "ConstTensor3View");
+  py::class_<ConstTensor4View>(m, "ConstTensor4View");
+  py::class_<ConstTensor5View>(m, "ConstTensor5View");
+  py::class_<ConstTensor6View>(m, "ConstTensor6View");
+  py::class_<ConstTensor7View>(m, "ConstTensor7View");
+  py::class_<VectorView, ConstVectorView>(m, "VectorView");
+  py::class_<MatrixView, ConstMatrixView>(m, "MatrixView");
+  py::class_<Tensor3View, ConstTensor3View>(m, "Tensor3View");
+  py::class_<Tensor4View, ConstTensor4View>(m, "Tensor4View");
+  py::class_<Tensor5View, ConstTensor5View>(m, "Tensor5View");
+  py::class_<Tensor6View, ConstTensor6View>(m, "Tensor6View");
+  py::class_<Tensor7View, ConstTensor7View>(m, "Tensor7View");
 
   py::class_<Vector, VectorView>(m, "Vector", py::buffer_protocol())
       .def(py::init([]() { return new Vector{}; }))
@@ -294,7 +138,7 @@ void py_matpack(py::module_& m) {
         } ), py::arg("vec").none(false))
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
-      .PythonInterfaceMatpackMath(Vector)
+      .PythonInterfaceValueOperators
       .def(
           "__matmul__",
           [](const Vector& a, const Vector& b) {
@@ -314,7 +158,6 @@ void py_matpack(py::module_& m) {
           "The shape of the data")
       .PythonInterfaceBasicRepresentation(Vector)
       .PythonInterfaceFileIO(Vector)
-      .PythonInterfaceIndexItemAccess(Vector)
       .def_buffer([](Vector& x) -> py::buffer_info {
         return py::buffer_info(x.get_c_array(),
                                sizeof(Numeric),
@@ -367,35 +210,7 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .PythonInterfaceBasicRepresentation(Matrix)
       .PythonInterfaceFileIO(Matrix)
-      .PythonInterfaceMatpackMath(Matrix)
-      .def(
-          "__matmul__",
-          [](const Matrix& B, const Matrix& C) {
-            ARTS_USER_ERROR_IF(B.ncols() not_eq C.nrows(),
-                               "Invalid operation with shapes (",
-                               B.shape(),
-                               ") and (",
-                               C.shape(),
-                               ')')
-            Matrix A(B.nrows(), C.ncols());
-            mult(A, B, C);
-            return A;
-          },
-          py::is_operator())
-      .def(
-          "__matmul__",
-          [](const Matrix& B, const Vector& C) {
-            ARTS_USER_ERROR_IF(B.ncols() not_eq C.nelem(),
-                               "Invalid operation with shapes (",
-                               B.shape(),
-                               ") and (",
-                               C.shape(),
-                               ')')
-            Vector A(B.nrows());
-            mult(A, B, C);
-            return A;
-          },
-          py::is_operator())
+      .PythonInterfaceValueOperators
       .def_property_readonly(
           "T",
           [](const Matrix& x) { return Matrix(transpose(x)); },
@@ -405,24 +220,6 @@ void py_matpack(py::module_& m) {
           "shape",
           [](Matrix& x) { return x.shape().data; },
           "The shape of the data")
-      .def(
-          "__getitem__",
-          [](Matrix& x, std::tuple<Index, Index> inds) -> Numeric& {
-            auto [r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
-              throw std::out_of_range("Out of bounds");
-            return as_ref(x(r, c));
-          },
-          py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](Matrix& x, std::tuple<Index, Index> inds, Numeric_ y) {
-            auto [r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0)
-              throw std::out_of_range("Out of bounds");
-            x(r, c) = y;
-          },
-          py::return_value_policy::reference_internal)
       .def_buffer([](Matrix& x) -> py::buffer_info {
         return py::buffer_info(x.get_c_array(),
                                sizeof(Numeric),
@@ -478,32 +275,12 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .PythonInterfaceBasicRepresentation(Tensor3)
       .PythonInterfaceFileIO(Tensor3)
-      .PythonInterfaceMatpackMath(Tensor3)
+      .PythonInterfaceValueOperators
       .def_property_readonly("size", [](Tensor3& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor3& x) { return x.shape().data; },
           "The shape of the data")
-      .def(
-          "__getitem__",
-          [](Tensor3& x, std::tuple<Index, Index, Index> inds) -> Numeric& {
-            auto [p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0)
-              throw std::out_of_range("Out of bounds");
-            return as_ref(x(p, r, c));
-          },
-          py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](Tensor3& x, std::tuple<Index, Index, Index> inds, Numeric_ y) {
-            auto [p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0)
-              throw std::out_of_range("Out of bounds");
-            x(p, r, c) = y;
-          },
-          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor3& x) -> py::buffer_info {
         return py::buffer_info(x.get_c_array(),
                                sizeof(Numeric),
@@ -566,35 +343,12 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .PythonInterfaceBasicRepresentation(Tensor4)
       .PythonInterfaceFileIO(Tensor4)
-      .PythonInterfaceMatpackMath(Tensor4)
+      .PythonInterfaceValueOperators
       .def_property_readonly("size", [](Tensor4& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor4& x) { return x.shape().data; },
           "The shape of the data")
-      .def(
-          "__getitem__",
-          [](Tensor4& x,
-             std::tuple<Index, Index, Index, Index> inds) -> Numeric& {
-            auto [b, p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0)
-              throw std::out_of_range("Out of bounds");
-            return as_ref(x(b, p, r, c));
-          },
-          py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](Tensor4& x,
-             std::tuple<Index, Index, Index, Index> inds,
-             Numeric_ y) {
-            auto [b, p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0)
-              throw std::out_of_range("Out of bounds");
-            x(b, p, r, c) = y;
-          },
-          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor4& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -662,37 +416,12 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .PythonInterfaceBasicRepresentation(Tensor5)
       .PythonInterfaceFileIO(Tensor5)
-      .PythonInterfaceMatpackMath(Tensor5)
+      .PythonInterfaceValueOperators
       .def_property_readonly("size", [](Tensor5& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor5& x) { return x.shape().data; },
           "The shape of the data")
-      .def(
-          "__getitem__",
-          [](Tensor5& x,
-             std::tuple<Index, Index, Index, Index, Index> inds) -> Numeric& {
-            auto [s, b, p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
-                x.nshelves() <= s or s < 0)
-              throw std::out_of_range("Out of bounds");
-            return as_ref(x(s, b, p, r, c));
-          },
-          py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](Tensor5& x,
-             std::tuple<Index, Index, Index, Index, Index> inds,
-             Numeric_ y) {
-            auto [s, b, p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
-                x.nshelves() <= s or s < 0)
-              throw std::out_of_range("Out of bounds");
-            x(s, b, p, r, c) = y;
-          },
-          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor5& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -764,38 +493,12 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .PythonInterfaceBasicRepresentation(Tensor6)
       .PythonInterfaceFileIO(Tensor6)
-      .PythonInterfaceMatpackMath(Tensor6)
+      .PythonInterfaceValueOperators
       .def_property_readonly("size", [](Tensor6& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor6& x) { return x.shape().data; },
           "The shape of the data")
-      .def(
-          "__getitem__",
-          [](Tensor6& x,
-             std::tuple<Index, Index, Index, Index, Index, Index> inds)
-              -> Numeric& {
-            auto [v, s, b, p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
-                x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0)
-              throw std::out_of_range("Out of bounds");
-            return as_ref(x(v, s, b, p, r, c));
-          },
-          py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](Tensor6& x,
-             std::tuple<Index, Index, Index, Index, Index, Index> inds,
-             Numeric_ y) {
-            auto [v, s, b, p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
-                x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0)
-              throw std::out_of_range("Out of bounds");
-            x(v, s, b, p, r, c) = y;
-          },
-          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor6& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -878,42 +581,13 @@ void py_matpack(py::module_& m) {
           }), py::arg("ten7").none(false))
       .PythonInterfaceCopyValue(Tensor7)
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
-      .PythonInterfaceBasicRepresentation(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
-      .PythonInterfaceMatpackMath(Tensor7)
+      .PythonInterfaceValueOperators
       .def_property_readonly("size", [](Tensor7& x) { return x.size(); })
       .def_property_readonly(
           "shape",
           [](Tensor7& x) { return x.shape().data; },
           "The shape of the data")
-      .def(
-          "__getitem__",
-          [](Tensor7& x,
-             std::tuple<Index, Index, Index, Index, Index, Index, Index> inds)
-              -> Numeric& {
-            auto [l, v, s, b, p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
-                x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0 or
-                x.nlibraries() <= l or l < 0)
-              throw std::out_of_range("Out of bounds");
-            return as_ref(x(l, v, s, b, p, r, c));
-          },
-          py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](Tensor7& x,
-             std::tuple<Index, Index, Index, Index, Index, Index, Index> inds,
-             Numeric_ y) {
-            auto [l, v, s, b, p, r, c] = inds;
-            if (x.ncols() <= c or c < 0 or x.nrows() <= r or r < 0 or
-                x.npages() <= p or p < 0 or x.nbooks() <= b or b < 0 or
-                x.nshelves() <= s or s < 0 or x.nvitrines() <= v or v < 0 or
-                x.nlibraries() <= l or l < 0)
-              throw std::out_of_range("Out of bounds");
-            x(l, v, s, b, p, r, c) = y;
-          },
-          py::return_value_policy::reference_internal)
       .def_buffer([](Tensor7& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),

@@ -19,6 +19,7 @@ def io(x, fname=None, delete=False):
     finally:
         if os.path.exists(fname) and delete:
             os.remove(fname)
+    return True
 
 def array(x):
     assert len(x) == 1
@@ -29,9 +30,18 @@ def array(x):
     assert len(x) == 1
     y = type(x)([x[0]])
     assert len(y) == 1
+    return True
 
 def array_of_array(x):
     assert len(x) > 0
     y = type(x)([[x[0][0]]])
     assert len(y) == 1
     assert len(y[0]) == 1
+    return True
+
+def shape_match(x, y):
+    x = x.shape
+    assert len(x) == len(y)
+    for i in range(len(x)):
+        assert x[i] == y[i]
+    return True
