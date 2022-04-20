@@ -294,11 +294,11 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("EnergyLevelMap");
   String type;
   tag.get_attribute_value("type", type);
-  elm.Type() = string2energylevelmaptype(type);
+  elm.type = toEnergyLevelMapTypeOrThrow(type);
 
-  xml_read_from_stream(is_xml, elm.Levels(), pbifs, verbosity);
-  xml_read_from_stream(is_xml, elm.Data(), pbifs, verbosity);
-  xml_read_from_stream(is_xml, elm.Energies(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.levels, pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.value, pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.vib_energy, pbifs, verbosity);
 
   tag.read_from_stream(is_xml);
   tag.check_name("/EnergyLevelMap");
@@ -323,12 +323,12 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("EnergyLevelMap");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("type", energylevelmaptype2string(elm.Type()));
+  open_tag.add_attribute("type", toString(elm.type));
   open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream(os_xml, elm.Levels(), pbofs, "Energy Levels", verbosity);
-  xml_write_to_stream(os_xml, elm.Data(), pbofs, "Level Data", verbosity);
-  xml_write_to_stream(os_xml, elm.Energies(), pbofs, "Level Energy", verbosity);
+  xml_write_to_stream(os_xml, elm.levels, pbofs, "Energy Levels", verbosity);
+  xml_write_to_stream(os_xml, elm.value, pbofs, "Level Data", verbosity);
+  xml_write_to_stream(os_xml, elm.vib_energy, pbofs, "Level Energy", verbosity);
 
   close_tag.set_name("/EnergyLevelMap");
   close_tag.write_to_stream(os_xml);

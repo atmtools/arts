@@ -2246,7 +2246,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
           {
             Numeric a_temperature = t_field(ipr, ila, ilo);
             a_vmr_list = vmr_field(Range(joker), ipr, ila, ilo);
-            if (!nlte_field.Data().empty())
+            if (!nlte_field.value.empty())
               a_nlte_list = nlte_field(ipr, ila, ilo);
 
             Vector this_rtp_mag(3, 0.);

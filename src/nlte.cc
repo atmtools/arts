@@ -237,7 +237,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
     ArrayOfIndex& lower,
     const ArrayOfArrayOfAbsorptionLines& abs_lines,
     const EnergyLevelMap& nlte_field) {
-  const Index nl = nelem(abs_lines), nq = nlte_field.Levels().nelem();
+  const Index nl = nelem(abs_lines), nq = nlte_field.levels.nelem();
 
   upper = ArrayOfIndex(nl, -1);
   lower = ArrayOfIndex(nl, -1);
@@ -247,7 +247,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
     for (const AbsorptionLines& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
         for (Index iq = 0; iq < nq; iq++) {
-          const Quantum::Number::StateMatch lt(nlte_field.Levels()[iq], band.lines[k].localquanta, band.quantumidentity);
+          const Quantum::Number::StateMatch lt(nlte_field.levels[iq], band.lines[k].localquanta, band.quantumidentity);
           if (lt == Quantum::Number::StateMatchType::Level and lt.low)
             lower[i] = iq;
           if (lt == Quantum::Number::StateMatchType::Level and lt.upp)

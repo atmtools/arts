@@ -68,7 +68,7 @@ void ArrayOfQuantumIdentifierFromLines(
 void nlte_fieldRescalePopulationLevels(EnergyLevelMap& nlte_field,
                                        const Numeric& scale,
                                        const Verbosity&) {
-  nlte_field.Data() *= scale;
+  nlte_field.value *= scale;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -106,13 +106,13 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
   CREATE_OUT2;
 
   ARTS_USER_ERROR_IF (not nlte_do, "Must be set to do NLTE");
-  ARTS_USER_ERROR_IF (nlte_field.Data().empty(),
+  ARTS_USER_ERROR_IF (nlte_field.value.empty(),
                       "Error in NLTE field, it is empty");
 
   Matrix line_irradiance;
   Tensor3 line_transmission;
 
-  const Index nlevels = nlte_field.Levels().nelem(), np = p_grid.nelem();
+  const Index nlevels = nlte_field.levels.nelem(), np = p_grid.nelem();
   ARTS_USER_ERROR_IF (nlevels < 5,
                       "Must have more than a four levels");
 
@@ -171,7 +171,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
         verbosity);
 
     for (Index ip = 0; ip < np; ip++) {
-      r = nlte_field.Data()(joker, ip, 0, 0);
+      r = nlte_field.value(joker, ip, 0, 0);
       nlte_collision_factorsCalcFromCoeffs(Cij,
                                            Cji,
                                            abs_lines_per_species,
@@ -209,11 +209,11 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
                                          lower);
 
       set_constant_statistical_equilibrium_matrix(SEE, x, r.sum(), unique);
-      solve(nlte_field.Data()(joker, ip, 0, 0), SEE, x);
+      solve(nlte_field.value(joker, ip, 0, 0), SEE, x);
 
       for (Index il = 0; il < nlevels; il++) {
         max_change =
-            max(abs(nlte_field.Data()(il, ip, 0, 0) - r[il]) / r[il], max_change);
+            max(abs(nlte_field.value(il, ip, 0, 0) - r[il]) / r[il], max_change);
       }
     }
     i++;

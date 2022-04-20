@@ -1387,7 +1387,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(not is_increasing(f_grid), "Must be sorted and increasing.")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
-  ARTS_USER_ERROR_IF(any_negative(rtp_nlte.Data()), "Negative NLTE (at least one value).")
+  ARTS_USER_ERROR_IF(any_negative(rtp_nlte.value), "Negative NLTE (at least one value).")
   ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
   ARTS_USER_ERROR_IF(sparse_lim > 0 and sparse_df > sparse_lim, 

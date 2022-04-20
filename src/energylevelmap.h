@@ -53,29 +53,52 @@ enum class EnergyLevelMapType {
   None_t,
 };
 
-EnergyLevelMapType string2energylevelmaptype(const String& s);
+constexpr EnergyLevelMapType toEnergyLevelMapTypeOrThrow(std::string_view s) {
+  if (s == "Tensor3")
+    return EnergyLevelMapType::Tensor3_t;
+  if (s == "Vector")
+    return EnergyLevelMapType::Vector_t;
+  if (s == "Numeric")
+    return EnergyLevelMapType::Numeric_t;
+  if (s == "None")
+    return EnergyLevelMapType::None_t;
+  ARTS_USER_ERROR ("Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
+                    "You request to have an EnergyLevelMap of type: ", s, '\n')
+}
 
-String energylevelmaptype2string(EnergyLevelMapType type);
+constexpr std::string_view toString(EnergyLevelMapType x) noexcept {
+  switch(x) {
+    case EnergyLevelMapType::Tensor3_t:
+      return "Tensor3";
+    case EnergyLevelMapType::Vector_t:
+      return "Vector";
+    case EnergyLevelMapType::Numeric_t:
+      return "Numeric";
+    case EnergyLevelMapType::None_t:
+      return "None";
+  }
+  return "BAD EnergyLevelMapType";
+}
 
-class EnergyLevelMap {
-private:
-  EnergyLevelMapType mtype{EnergyLevelMapType::None_t};
-  ArrayOfQuantumIdentifier mlevels;
-  Vector mvib_energy;
-  Tensor4 mvalue;
+inline std::ostream& operator<<(std::ostream& os, EnergyLevelMapType x) {return os << toString(x);}
+
+struct EnergyLevelMap {
+  EnergyLevelMapType type{EnergyLevelMapType::None_t};
+  ArrayOfQuantumIdentifier levels;
+  Vector vib_energy;
+  Tensor4 value;
   
-public:
   [[nodiscard]] bool OK() const noexcept;
   
   void ThrowIfNotOK() const ARTS_NOEXCEPT {ARTS_ASSERT (OK(), "Class in bad state");}
   
-  EnergyLevelMap() : mlevels(0),
-  mvib_energy(0), mvalue(0, 0, 0, 0) {}
+  EnergyLevelMap() : levels(0),
+  vib_energy(0), value(0, 0, 0, 0) {}
   
   EnergyLevelMap(EnergyLevelMapType new_type, Index pages, Index rows,
                  Index cols, const EnergyLevelMap& old) : 
-  mtype(new_type), mlevels(old.mlevels), mvib_energy(old.mvib_energy),
-  mvalue(old.mlevels.nelem(), pages, rows, cols) {ThrowIfNotOK();};
+  type(new_type), levels(old.levels), vib_energy(old.vib_energy),
+  value(old.levels.nelem(), pages, rows, cols) {ThrowIfNotOK();};
   
   // Create Tensor3_t from the raw inputs
   EnergyLevelMap(Tensor4 data, ArrayOfQuantumIdentifier levels, Vector energies=Vector(0));
@@ -94,56 +117,6 @@ public:
   
   // Create Numeric_t from Tensor3_t
   [[nodiscard]] EnergyLevelMap operator()(Index ip, Index ilat, Index ilon) const;
-  
-  /** Energy level type */
-  [[nodiscard]] EnergyLevelMapType Type() const noexcept {return mtype;}
-  
-  /** Energy level type */
-  [[nodiscard]] const ArrayOfQuantumIdentifier& Levels() const noexcept {return mlevels;}
-  
-  /** Energy level type */
-  [[nodiscard]] const Vector& Energies() const noexcept {return mvib_energy;}
-  
-  /** Energy level type */
-  [[nodiscard]] const Tensor4& Data() const noexcept {return mvalue;}
-  
-  /** Energy level type */
-  EnergyLevelMapType& Type() noexcept {return mtype;}
-  
-  /** Energy level type */
-  ArrayOfQuantumIdentifier& Levels() noexcept {return mlevels;}
-  
-  /** Energy level type */
-  Vector& Energies() noexcept {return mvib_energy;}
-  
-  /** Energy level type */
-  Tensor4& Data() noexcept {return mvalue;}
-  
-  ////////////////////////////
-  // C API interface access //
-  ////////////////////////////
-  
-  static bool validIndexForType(Index x) noexcept
-  {
-    constexpr auto keys = stdarrayify(Index(EnergyLevelMapType::Tensor3_t), EnergyLevelMapType::Vector_t, EnergyLevelMapType::Numeric_t, EnergyLevelMapType::None_t);
-    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
-  }
-  
-  /** Energy level type */
-  void Type(EnergyLevelMapType x) noexcept {mtype = x;}
-  
-  static EnergyLevelMapType string2Type(const String& s) noexcept
-  {
-    if (s == "Tensor3")
-      return EnergyLevelMapType::Tensor3_t;
-    if (s == "Vector")
-      return EnergyLevelMapType::Vector_t;
-    if (s == "Numeric")
-      return EnergyLevelMapType::Numeric_t;
-    if (s == "None")
-      return EnergyLevelMapType::None_t;
-    return EnergyLevelMapType(-1);
-  }
   
   //////////////////////
   // Numeric_t access //

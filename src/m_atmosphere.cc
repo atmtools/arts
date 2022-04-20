@@ -2017,9 +2017,9 @@ void AtmFieldsCalc(  //WS Output:
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
   
   // NLTE basics
-  nlte_field.Type() = nlte_ids.nelem() == nlte_field_raw.nelem() ? EnergyLevelMapType::Tensor3_t : EnergyLevelMapType::None_t;
-  nlte_field.Levels() = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_ids : ArrayOfQuantumIdentifier(0);
-  nlte_field.Energies() = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_energies : Vector(0);
+  nlte_field.type = nlte_ids.nelem() == nlte_field_raw.nelem() ? EnergyLevelMapType::Tensor3_t : EnergyLevelMapType::None_t;
+  nlte_field.levels = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_ids : ArrayOfQuantumIdentifier(0);
+  nlte_field.vib_energy = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_energies : Vector(0);
 
   //==========================================================================
   if (atmosphere_dim == 1) {
@@ -2063,10 +2063,10 @@ void AtmFieldsCalc(  //WS Output:
       GriddedFieldPRegrid(
           temp_agfield3, p_grid, nlte_field_raw, interp_order, 0, verbosity);
       FieldFromGriddedField(
-        nlte_field.Data(), p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+        nlte_field.value, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
     }
     else
-      nlte_field.Data().resize(0, 0, 0, 0);
+      nlte_field.value.resize(0, 0, 0, 0);
 
   }
 
@@ -2083,10 +2083,10 @@ void AtmFieldsCalc(  //WS Output:
     vmr_field.resize(
         vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
     if (nlte_ids.nelem() == nlte_field_raw.nelem())
-      nlte_field.Data().resize(
+      nlte_field.value.resize(
         nlte_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
     else
-      nlte_field.Data().resize(0, 0, 0, 0);
+      nlte_field.value.resize(0, 0, 0, 0);
 
     // Interpolate t_field:
 
@@ -2195,13 +2195,13 @@ void AtmFieldsCalc(  //WS Output:
 
       // Interpolate:
       if (nlte_ids.nelem() == nlte_field_raw.nelem())
-        reinterp(nlte_field.Data()(qi_i, joker, joker, 0),
+        reinterp(nlte_field.value(qi_i, joker, joker, 0),
                  nlte_field_raw[qi_i].data(joker, joker, 0),
                  itw,
                  lag_p,
                  lag_lat);
       else
-        nlte_field.Data().resize(0, 0, 0, 0);
+        nlte_field.value.resize(0, 0, 0, 0);
     }
   }
 
@@ -2268,9 +2268,9 @@ void AtmFieldsCalc(  //WS Output:
       
       if (nlte_ids.nelem() == nlte_field_raw.nelem())
         FieldFromGriddedField(
-          nlte_field.Data(), p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+          nlte_field.value, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
       else
-        nlte_field.Data().resize(0, 0, 0, 0);
+        nlte_field.value.resize(0, 0, 0, 0);
     }
   } else {
     // We can never get here, since there was a runtime
@@ -2296,13 +2296,13 @@ void AtmFieldsCalc(  //WS Output:
   // what to do with negative nlte temperatures?
   if (nlte_when_negative != -1) {
     if (nlte_field_raw.nelem()) {
-      for (Index ib = 0; ib < nlte_field.Data().nbooks(); ib++) {
-        for (Index ip = 0; ip < nlte_field.Data().npages(); ip++) {
-          for (Index ir = 0; ir < nlte_field.Data().nrows(); ir++) {
-            for (Index ic = 0; ic < nlte_field.Data().ncols(); ic++) {
-              if (nlte_field.Data()(ib, ip, ir, ic) < 0) {
+      for (Index ib = 0; ib < nlte_field.value.nbooks(); ib++) {
+        for (Index ip = 0; ip < nlte_field.value.npages(); ip++) {
+          for (Index ir = 0; ir < nlte_field.value.nrows(); ir++) {
+            for (Index ic = 0; ic < nlte_field.value.ncols(); ic++) {
+              if (nlte_field.value(ib, ip, ir, ic) < 0) {
                 // Set to atmospheric temperature or to nil.
-                nlte_field.Data()(ib, ip, ir, ic) =
+                nlte_field.value(ib, ip, ir, ic) =
                     nlte_when_negative == 1 ? t_field(ip, ir, ic) : 0;
                 // NOTE: This only makes sense for vibrational NLTE and is bad elsewise
                 //       but since elsewise is bad anyways with negative values, it is 
@@ -2905,10 +2905,10 @@ void AtmFieldsCalcExpand1D(Tensor3& t_field,
   z_field.resize(np, nlat, nlon);
   vmr_field.resize(nspecies, np, nlat, nlon);
   if (nlte_field_raw.nelem()) {
-    nlte_field.Type() = EnergyLevelMapType::Tensor3_t;
-    nlte_field.Data().resize(nlte_field_raw.nelem(), np, nlat, nlon);
-    nlte_field.Levels() = nlte_ids;
-    nlte_field.Energies() = nlte_energies;
+    nlte_field.type = EnergyLevelMapType::Tensor3_t;
+    nlte_field.value.resize(nlte_field_raw.nelem(), np, nlat, nlon);
+    nlte_field.levels = nlte_ids;
+    nlte_field.vib_energy = nlte_energies;
   }
   else
     nlte_field = EnergyLevelMap();
@@ -2922,7 +2922,7 @@ void AtmFieldsCalcExpand1D(Tensor3& t_field,
           vmr_field(is, ip, ilat, ilon) = vmr_temp(is, ip, 0, 0);
         }
         for (Index is = 0; is < nlte_field_raw.nelem(); is++) {
-          nlte_field.Data()(is, ip, ilat, ilon) = nlte_temp.Data()(is, ip, 0, 0);
+          nlte_field.value(is, ip, ilat, ilon) = nlte_temp.value(is, ip, 0, 0);
         }
       }
     }

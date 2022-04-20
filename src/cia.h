@@ -213,6 +213,9 @@ class CIARecord {
   /** Append other CIARecord to this. */
   void AppendDataset(const CIARecord& c2);
 
+std::array<Species::Species, 2> TwoSpecies() const {return mspecies;}
+std::array<Species::Species, 2>& TwoSpecies() {return mspecies;}
+
  private:
   /** Append dataset to mdata. */
   void AppendDataset(const Vector& freq,

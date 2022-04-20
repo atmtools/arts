@@ -2302,20 +2302,20 @@ void nlteSetByQuantumIdentifiers(
     const Verbosity&) {
   nlte_field.ThrowIfNotOK();
 
-  if (nlte_field.Data().empty()) {
+  if (nlte_field.value.empty()) {
     nlte_do = 0;
     return;
   }
   nlte_do = 1;
 
   const Absorption::PopulationType poptyp =
-      nlte_field.Energies().empty() ? Absorption::PopulationType::NLTE
+      nlte_field.vib_energy.empty() ? Absorption::PopulationType::NLTE
                                     : Absorption::PopulationType::VibTemps;
   
   for (auto& spec_lines : abs_lines_per_species) {
     for (auto& band : spec_lines) {
       Index low = 0, upp = 0;
-      for (auto& id : nlte_field.Levels()) {
+      for (auto& id : nlte_field.levels) {
         for (auto& line : band.lines) {
           const auto lt =
               poptyp == Absorption::PopulationType::NLTE
