@@ -150,8 +150,7 @@ EnergyLevelMap::EnergyLevelMap(const Vector& data, ArrayOfQuantumIdentifier leve
 
 EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon) const
 {
-  if (type == EnergyLevelMapType::None_t)
-    return EnergyLevelMap();
+  if (type == EnergyLevelMapType::None_t) return EnergyLevelMap{};
   ARTS_USER_ERROR_IF (type not_eq EnergyLevelMapType::Tensor3_t,
                       "Must have Tensor3_t, input type is bad");
   
@@ -170,8 +169,7 @@ EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const Array
 
 EnergyLevelMap EnergyLevelMap::operator[](Index ip) const
 {
-  if (type == EnergyLevelMapType::None_t)
-    return EnergyLevelMap();
+  if (type == EnergyLevelMapType::None_t) return EnergyLevelMap{};
   if (type == EnergyLevelMapType::Numeric_t)
     return *this;
   ARTS_USER_ERROR_IF (type not_eq EnergyLevelMapType::Vector_t
