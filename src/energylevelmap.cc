@@ -204,3 +204,14 @@ EnergyLevelMap EnergyLevelMap::operator()(Index ip, Index ilat, Index ilon) cons
   elm.value(joker, 0, 0, 0) = value(joker, ip, ilat, ilon);
   return elm;
 }
+
+EnergyLevelMapType toEnergyLevelMapTypeOrThrow(std::string_view s) {
+  auto out = toEnergyLevelMapType(s);
+  ARTS_USER_ERROR_IF(
+      out == EnergyLevelMapType::Final_t,
+      "Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
+      "You request to have an EnergyLevelMap of type: ",
+      s,
+      '\n')
+  return out;
+}

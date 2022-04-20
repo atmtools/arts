@@ -51,9 +51,10 @@ enum class EnergyLevelMapType {
   Vector_t,
   Numeric_t,
   None_t,
+  Final_t
 };
 
-constexpr EnergyLevelMapType toEnergyLevelMapTypeOrThrow(std::string_view s) {
+constexpr EnergyLevelMapType toEnergyLevelMapType(std::string_view s) noexcept {
   if (s == "Tensor3")
     return EnergyLevelMapType::Tensor3_t;
   if (s == "Vector")
@@ -62,9 +63,10 @@ constexpr EnergyLevelMapType toEnergyLevelMapTypeOrThrow(std::string_view s) {
     return EnergyLevelMapType::Numeric_t;
   if (s == "None")
     return EnergyLevelMapType::None_t;
-  ARTS_USER_ERROR ("Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
-                    "You request to have an EnergyLevelMap of type: ", s, '\n')
+  return EnergyLevelMapType::Final_t;
 }
+
+EnergyLevelMapType toEnergyLevelMapTypeOrThrow(std::string_view s);
 
 constexpr std::string_view toString(EnergyLevelMapType x) noexcept {
   switch(x) {
@@ -76,6 +78,8 @@ constexpr std::string_view toString(EnergyLevelMapType x) noexcept {
       return "Numeric";
     case EnergyLevelMapType::None_t:
       return "None";
+    case EnergyLevelMapType::Final_t:
+      {/* leave last */}
   }
   return "BAD EnergyLevelMapType";
 }
