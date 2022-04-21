@@ -335,10 +335,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
             out->data = data;                                                  \
             for (Index i = 0; i < out->get_dim(); i++) {                       \
               out->set_grid_name(i, grid_names[i]);                            \
-              if (std::holds_alternative<ArrayOfString>(grids[i]))             \
-                out->set_grid(i, std::get<ArrayOfString>(grids[i]));           \
-              else                                                             \
-                out->set_grid(i, std::get<Vector>(grids[i]));                  \
+              std::visit([&](auto&& v) { out->set_grid(i, v); }, grids[i]);    \
             }                                                                  \
                                                                                \
             return out;                                                        \

@@ -1537,10 +1537,11 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
   for (auto& [name, group] : arts.group) {
     char extra = (name == "Numeric" or name == "Index") ? '_' : ' ';
     if (name == "Any") continue;
-    os << "      case " << group << ": {auto conv_obj = py::type::of<"<<name<<extra<<">()(";
+    os << "      case " << group << ": {auto conv_obj = py::type::of<" << name
+       << extra << ">()(";
     if (name == "Agenda") os << "ws, ";
-    os << "obj); value_ptr = new " << name << "{* conv_obj.cast<"
-       << name << extra << "*>()};} break;\n";
+    os << "obj); value_ptr = new " << name << "{* conv_obj.cast<" << name
+       << extra << "*>()};} break;\n";
   }
 
   os << R"--(      default: ARTS_USER_ERROR("Cannot create type")
@@ -1710,11 +1711,13 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
 
     os << "if (std::holds_alternative<" << name << extra << "*>(wvv)) {\n";
 
-    os << "      " << name << "& lh = *std::get<" << name << extra << "*>(wvv);\n";
+    os << "      " << name << "& lh = *std::get<" << name << extra
+       << "*>(wvv);\n";
 
-    os <<  "      if (std::holds_alternative<" << name << extra << "*>(v)) {\n";
+    os << "      if (std::holds_alternative<" << name << extra << "*>(v)) {\n";
 
-    os << "        " << name << "& rh = *std::get<" << name << extra << "*>(v);\n";
+    os << "        " << name << "& rh = *std::get<" << name << extra
+       << "*>(v);\n";
 
     if (name == "Agenda")
       os << "        rh.set_name(w.name());\n        rh.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
@@ -1729,7 +1732,8 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
     os << "        auto my_obj = py::type::of<" << name << extra << ">()(";
     if (name == "Agenda") os << "w.ws, ";
     os << "* std::get<py::object *>(v));\n";
-    os << "        " << name << "& rh = * my_obj.cast<" << name << extra << "*>();\n";
+    os << "        " << name << "& rh = * my_obj.cast<" << name << extra
+       << "*>();\n";
 
     if (name == "Agenda")
       os << "        rh.set_name(w.name());\n        rh.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
@@ -1764,8 +1768,11 @@ ws.def(py::pickle(
     constexpr Index ag_index = )--"
      << arts.group.at("Agenda");
   os << ";\n    constexpr Index aag_index = " << arts.group.at("ArrayOfAgenda");
-  os << ";\n    constexpr Index cf_index = " << arts.group.at("CallbackFunction")
-     << R"--(;
+  os << ";\n    constexpr Index arq_index = "
+     << arts.group.at("ArrayOfRetrievalQuantity");
+  os << ";\n    constexpr Index cf_index = "
+     << arts.group.at("CallbackFunction");
+  os << R"--(;
     
     std::vector<py::object> value;
     std::vector<std::string> name;
@@ -1775,22 +1782,24 @@ ws.def(py::pickle(
     for (Index i=0; i<w.nelem(); i++) {
       auto& wsv_data = w.wsv_data[i];
       if (w.is_initialized(i) and             // is initialized
-          wsv_data.Group() != ag_index and    // is not Agenda
-          wsv_data.Group() != aag_index and   // is not ArrayOfAgenda 
-          wsv_data.Group() != cf_index and    // is not CallbackFunction
+          wsv_data.Group() != ag_index and    // is not Agenda (needs workspace variables in fixed positions)
+          wsv_data.Group() != aag_index and   // is not ArrayOfAgenda (as above)
+          wsv_data.Group() != cf_index and    // is not CallbackFunction (needs code)
+          wsv_data.Group() != arq_index and   // is not ArrayOfRetrievalQuantity (always set together with agenda)
           wsv_data.Name().front() != ':') {   // is not generated variable
         name.push_back(wsv_data.Name());
         description.push_back(wsv_data.Description());
         switch (wsv_data.Group()) {)--";
-  for (auto& [name, id]: arts.group) {
+  for (auto& [name, id] : arts.group) {
     const char extra = name == "Index" or name == "Numeric" ? '_' : ' ';
     os << "          case " << id << ": {\n";
     os << "            group.emplace_back(\"" << name << "\");\n";
-    os << "            " << name << extra << " val{*reinterpret_cast<" << name << " *>(w[i])};\n";
+    os << "            " << name << extra << " val{*reinterpret_cast<" << name
+       << " *>(w[i])};\n";
     os << "            value.emplace_back(py::cast(val));\n";
     os << "          } break;\n";
   }
-os << R"--(          default: { ARTS_USER_ERROR("Bad group") }
+  os << R"--(          default: { ARTS_USER_ERROR("Bad group") }
         }
       }
     }
@@ -1820,13 +1829,14 @@ os << R"--(          default: { ARTS_USER_ERROR("Bad group") }
 
       switch (out -> wsv_data[wsv_pos].Group()) {
 )--";
-  for (auto& [name, id]: arts.group) {
+  for (auto& [name, id] : arts.group) {
     const char extra = name == "Index" or name == "Numeric" ? '_' : ' ';
     os << "        case " << id << ": {\n";
-    os << "          out -> push(wsv_pos, new " << name << "{* value[i].cast<"<< name << extra<<" *>()});\n";
+    os << "          out -> push(wsv_pos, new " << name << "{* value[i].cast<"
+       << name << extra << " *>()});\n";
     os << "          } break;\n";
   }
-os << R"--(        default: { ARTS_USER_ERROR("Bad group") }
+  os << R"--(        default: { ARTS_USER_ERROR("Bad group") }
       }
     }
 
