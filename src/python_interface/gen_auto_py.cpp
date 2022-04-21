@@ -1773,15 +1773,15 @@ ws.def(py::pickle(
     std::vector<std::string> description;
 
     for (Index i=0; i<w.nelem(); i++) {
-      auto& wsv = w.wsv_data[i];
-      if (w.is_initialized(i) and                        // init
-          wsv.Group() != ag_index and                    // not Agenda
-          wsv.Group() != aag_index and                   // not ArrayOfAgenda 
-          wsv.Group() != cf_index and                    // not CallbackFunction
-          wsv.Name().find(':') == wsv.Name().npos) {     // not generated variable
-        name.push_back(wsv.Name());
-        description.push_back(wsv.Description());
-        switch (wsv.Group()) {)--";
+      auto& wsv_data = w.wsv_data[i];
+      if (w.is_initialized(i) and             // is initialized
+          wsv_data.Group() != ag_index and    // is not Agenda
+          wsv_data.Group() != aag_index and   // is not ArrayOfAgenda 
+          wsv_data.Group() != cf_index and    // is not CallbackFunction
+          wsv_data.Name().front() != ':') {   // is not generated variable
+        name.push_back(wsv_data.Name());
+        description.push_back(wsv_data.Description());
+        switch (wsv_data.Group()) {)--";
   for (auto& [name, id]: arts.group) {
     const char extra = name == "Index" or name == "Numeric" ? '_' : ' ';
     os << "          case " << id << ": {\n";
@@ -1812,11 +1812,11 @@ os << R"--(          default: { ARTS_USER_ERROR("Bad group") }
     out -> initialize();
 
     for (std::size_t i=0; i<n; i++) {
-      auto wsv = out -> WsvMap.find(name[i]);
+      auto wsv_data = out -> WsvMap.find(name[i]);
       const Index wsv_pos =
-        (wsv == out -> WsvMap.end()) ?
+        (wsv_data == out -> WsvMap.end()) ?
           out -> add_wsv_inplace(WsvRecord(name[i].c_str(), description[i].c_str(), group[i])) :
-          wsv -> second;
+          wsv_data -> second;
 
       switch (out -> wsv_data[wsv_pos].Group()) {
 )--";
