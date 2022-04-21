@@ -57,7 +57,7 @@ void py_basic(py::module_& m) {
             const auto bm = t[3].cast<bool>();
 
             auto* out = new Verbosity{va, vs, vf};
-            out -> set_main_agenda(bm);
+            out->set_main_agenda(bm);
             return out;
           }));
   py::implicitly_convertible<Index, Verbosity>();
@@ -74,6 +74,12 @@ void py_basic(py::module_& m) {
       .def(py::self += py::self)
       .def(py::self == py::self)
       .def("__hash__", [](String& x) { return py::hash(py::str(x)); })
+      .def(py::pickle(
+          [](const String& self) { return py::make_tuple(std::string(self)); },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return new String{t[0].cast<std::string>()};
+          }))
       .doc() =
       R"--(
 The Arts String class
@@ -114,6 +120,17 @@ be accessed without copy using element-wise access operators.
               },
               py::return_value_policy::reference_internal),
           [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
+      .def(py::pickle(
+          [](const ArrayOfIndex& v) {
+            auto n = v.size();
+            std::vector<Index> out(n);
+            std::copy(v.begin(), v.end(), out.begin());
+            return py::make_tuple(std::move(out));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return new ArrayOfIndex{t[0].cast<std::vector<Index>>()};
+          }))
       .doc() =
       "The Arts ArrayOfIndex class\n"
       "\n"
@@ -206,6 +223,12 @@ be accessed without copy using element-wise access operators.
                   "\n"
                   "On Error:\n"
                   "    Throws RuntimeError for any failure to read"))
+      .def(py::pickle(
+          [](const Numeric_& self) { return py::make_tuple(self.val); },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return new Numeric_{t[0].cast<Numeric>()};
+          }))
       .doc() =
       R"--(
 This is a wrapper class for Arts Numeric.
@@ -280,6 +303,12 @@ You can get copies and set the value by the \"val\" property
                   "\n"
                   "On Error:\n"
                   "    Throws RuntimeError for any failure to read"))
+      .def(py::pickle(
+          [](const Index_& self) { return py::make_tuple(self.val); },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return new Index_{t[0].cast<Index>()};
+          }))
       .doc() =
       R"--(
 This is a wrapper class for Arts Index.
@@ -294,7 +323,7 @@ You can get copies and set the value by the \"val\" property
   py::implicitly_convertible<Index, Index_>();
 
   py::class_<Any>(m, "Any")
-      .def(py::init([](){return new Any;}))
+      .def(py::init([]() { return new Any; }))
       .def("__repr__", [](Any&) { return "Any"; })
       .def("__str__", [](Any&) { return "Any"; });
 }
