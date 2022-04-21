@@ -259,51 +259,90 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
             return new ArrayOf##BaseType{t[0].cast<std::vector<BaseType>>()}; \
           }))
 
-#define PythonInterfaceGriddedField(Type)                                \
-  def_readwrite("data", &Type::data)                                     \
-      .def("get_dim", [](Type& gf) { return gf.get_dim(); })             \
-      .def("get_name", [](Type& gf) { return gf.get_name(); })           \
-      .def("set_name",                                                   \
-           [](Type& gf, const String& str) { return gf.set_name(str); }) \
-      .def("get_grid_name",                                              \
-           [](Type& gf, Index i) {                                       \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")      \
-             return gf.get_grid_name(i);                                 \
-           })                                                            \
-      .def("get_grid_size",                                              \
-           [](Type& gf, Index i) {                                       \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")      \
-             return gf.get_grid_size(i);                                 \
-           })                                                            \
-      .def("get_grid_type",                                              \
-           [](Type& gf, Index i) {                                       \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")      \
-             return gf.get_grid_type(i);                                 \
-           })                                                            \
-      .def("get_numeric_grid",                                           \
-           [](Type& gf, Index i) {                                       \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")      \
-             return gf.get_numeric_grid(i);                              \
-           })                                                            \
-      .def("get_string_grid",                                            \
-           [](Type& gf, Index i) {                                       \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")      \
-             return gf.get_string_grid(i);                               \
-           })                                                            \
-      .def("set_grid_name",                                              \
-           [](Type& gf, Index i, const String& str) {                    \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")      \
-             return gf.set_grid_name(i, str);                            \
-           })                                                            \
-      .def("set_grid",                                                   \
-           [](Type& gf, Index i, const Vector& vec) {                    \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")      \
-             return gf.set_grid(i, vec);                                 \
-           })                                                            \
-      .def("set_grid", [](Type& gf, Index i, const ArrayOfString& str) { \
-        ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")           \
-        return gf.set_grid(i, str);                                      \
-      });
+#define PythonInterfaceGriddedField(Type)                                      \
+  def_readwrite("data", &Type::data)                                           \
+      .def("get_dim", [](Type& gf) { return gf.get_dim(); })                   \
+      .def("get_name", [](Type& gf) { return gf.get_name(); })                 \
+      .def("set_name",                                                         \
+           [](Type& gf, const String& str) { return gf.set_name(str); })       \
+      .def("get_grid_name",                                                    \
+           [](Type& gf, Index i) {                                             \
+             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
+             return gf.get_grid_name(i);                                       \
+           })                                                                  \
+      .def("get_grid_size",                                                    \
+           [](Type& gf, Index i) {                                             \
+             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
+             return gf.get_grid_size(i);                                       \
+           })                                                                  \
+      .def("get_grid_type",                                                    \
+           [](Type& gf, Index i) {                                             \
+             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
+             return gf.get_grid_type(i);                                       \
+           })                                                                  \
+      .def("get_numeric_grid",                                                 \
+           [](Type& gf, Index i) {                                             \
+             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
+             return gf.get_numeric_grid(i);                                    \
+           })                                                                  \
+      .def("get_string_grid",                                                  \
+           [](Type& gf, Index i) {                                             \
+             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
+             return gf.get_string_grid(i);                                     \
+           })                                                                  \
+      .def("set_grid_name",                                                    \
+           [](Type& gf, Index i, const String& str) {                          \
+             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
+             return gf.set_grid_name(i, str);                                  \
+           })                                                                  \
+      .def("set_grid",                                                         \
+           [](Type& gf, Index i, const Vector& vec) {                          \
+             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
+             return gf.set_grid(i, vec);                                       \
+           })                                                                  \
+      .def("set_grid",                                                         \
+           [](Type& gf, Index i, const ArrayOfString& str) {                   \
+             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
+             return gf.set_grid(i, str);                                       \
+           })                                                                  \
+      .def(py::pickle(                                                         \
+          [](const Type& self) {                                               \
+            Index n = self.get_dim();                                          \
+            std::vector<std::variant<Vector, ArrayOfString>> outgrid;          \
+            ArrayOfString outname;                                             \
+                                                                               \
+            for (Index i = 0; i < n; i++) {                                    \
+              outname.emplace_back(self.get_grid_name(i));                     \
+              if (self.get_grid_type(i) == GRID_TYPE_NUMERIC)                  \
+                outgrid.emplace_back(self.get_numeric_grid(i));                \
+              else                                                             \
+                outgrid.emplace_back(self.get_string_grid(i));                 \
+            }                                                                  \
+                                                                               \
+            return py::make_tuple(                                             \
+                self.get_name(), self.data, outname, outgrid);                 \
+          },                                                                   \
+          [](const py::tuple& t) {                                             \
+            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")                \
+                                                                               \
+            auto name = t[0].cast<String>();                                   \
+            auto data = t[1].cast<decltype(Type::data)>();                     \
+            auto grid_names = t[2].cast<ArrayOfString>();                      \
+            auto grids =                                                       \
+                t[3].cast<std::vector<std::variant<Vector, ArrayOfString>>>(); \
+                                                                               \
+            auto* out = new Type{name};                                        \
+            out->data = data;                                                  \
+            for (Index i = 0; i < out->get_dim(); i++) {                       \
+              out->set_grid_name(i, grid_names[i]);                            \
+              if (std::holds_alternative<ArrayOfString>(grids[i]))             \
+                out->set_grid(i, std::get<ArrayOfString>(grids[i]));           \
+              else                                                             \
+                out->set_grid(i, std::get<Vector>(grids[i]));                  \
+            }                                                                  \
+                                                                               \
+            return out;                                                        \
+          }))
 
 #define PythonInterfaceReadWriteData(Type, data) \
   def_readwrite(#data, &Type::data, py::return_value_policy::reference_internal)
