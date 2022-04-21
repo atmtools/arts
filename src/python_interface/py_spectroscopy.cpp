@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "absorptionlines.h"
 #include "debug.h"
@@ -210,19 +211,20 @@ void py_spectroscopy(py::module_& m) {
   py::class_<Zeeman::Model>(m, "ZeemanModel")
       .def(py::init([]() { return new Zeeman::Model{}; }))
       .def(py::init([](Numeric a, Numeric b) {
-        return new Zeeman::Model{a, b};
-      }),py::arg("gu"),py::arg("gl"))
+             return new Zeeman::Model{a, b};
+           }),
+           py::arg("gu"),
+           py::arg("gl"))
       .PythonInterfaceCopyValue(Zeeman::Model)
       .PythonInterfaceBasicRepresentation(Zeeman::Model)
       .def_property("gu", &Zeeman::Model::gu, &Zeeman::Model::gu)
       .def_property("gl", &Zeeman::Model::gl, &Zeeman::Model::gl)
       .def(py::pickle(
-          [](const Zeeman::Model& t) {
-            return py::make_tuple(t.gu(), t.gl());
-          },
+          [](const Zeeman::Model& t) { return py::make_tuple(t.gu(), t.gl()); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            return new Zeeman::Model{t[0].cast<Numeric>(), t[1].cast<Numeric>()};
+            return new Zeeman::Model{t[0].cast<Numeric>(),
+                                     t[1].cast<Numeric>()};
           }));
 
   py::class_<LineShape::Output>(m, "LineShapeOutput")
@@ -301,55 +303,55 @@ void py_spectroscopy(py::module_& m) {
           "G0",
           [](const LineShapeSingleSpeciesModel& x) { return x.G0(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
-            return x.G0() = std::move(y);
+            return x.G0() = y;
           })
       .def_property(
           "D0",
           [](const LineShapeSingleSpeciesModel& x) { return x.D0(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
-            return x.D0() = std::move(y);
+            return x.D0() = y;
           })
       .def_property(
           "G2",
           [](const LineShapeSingleSpeciesModel& x) { return x.G2(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
-            return x.G2() = std::move(y);
+            return x.G2() = y;
           })
       .def_property(
           "D2",
           [](const LineShapeSingleSpeciesModel& x) { return x.D2(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
-            return x.D2() = std::move(y);
+            return x.D2() = y;
           })
       .def_property(
           "FVC",
           [](const LineShapeSingleSpeciesModel& x) { return x.FVC(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
-            return x.FVC() = std::move(y);
+            return x.FVC() = y;
           })
       .def_property(
           "ETA",
           [](const LineShapeSingleSpeciesModel& x) { return x.ETA(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
-            return x.ETA() = std::move(y);
+            return x.ETA() = y;
           })
       .def_property(
           "Y",
           [](const LineShapeSingleSpeciesModel& x) { return x.Y(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
-            return x.Y() = std::move(y);
+            return x.Y() = y;
           })
       .def_property(
           "G",
           [](const LineShapeSingleSpeciesModel& x) { return x.G(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
-            return x.G() = std::move(y);
+            return x.G() = y;
           })
       .def_property(
           "DV",
           [](const LineShapeSingleSpeciesModel& x) { return x.DV(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
-            return x.DV() = std::move(y);
+            return x.DV() = y;
           })
       .def(py::pickle(
           [](const LineShapeSingleSpeciesModel& t) {
@@ -411,7 +413,8 @@ void py_spectroscopy(py::module_& m) {
                        ZeemanModel g,
                        LineShapeModel h,
                        Quantum::Number::LocalState i) {
-             return new AbsorptionSingleLine{a, b, c, d, e, f, g, h, i};
+             return new AbsorptionSingleLine{
+                 a, b, c, d, e, f, g, std::move(h), std::move(i)};
            }),
            py::arg("F0") = 0,
            py::arg("I0") = 0,
@@ -492,7 +495,19 @@ void py_spectroscopy(py::module_& m) {
                        QuantumIdentifier k,
                        ArrayOfSpecies l,
                        Array<AbsorptionSingleLine> n) {
-             return new AbsorptionLines{a, b, c, d, e, f, g, h, i, j, k, l, n};
+             return new AbsorptionLines{a,
+                                        b,
+                                        c,
+                                        d,
+                                        e,
+                                        f,
+                                        g,
+                                        h,
+                                        i,
+                                        j,
+                                        std::move(k),
+                                        std::move(l),
+                                        std::move(n)};
            }),
            py::arg("selfbroadening") = false,
            py::arg("bathbroadening") = false,
@@ -741,10 +756,9 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
             return out;
           }));
 
-  py::class_<Array<ErrorCorrectedSuddenData>>(
-      m, "ArrayOfErrorCorrectedSuddenData")
-      .PythonInterfaceBasicRepresentation(
-          Array<ErrorCorrectedSuddenData>)
+  py::class_<Array<ErrorCorrectedSuddenData>>(m,
+                                              "ArrayOfErrorCorrectedSuddenData")
+      .PythonInterfaceBasicRepresentation(Array<ErrorCorrectedSuddenData>)
       .PythonInterfaceArrayDefault(ErrorCorrectedSuddenData)
       .def(py::pickle(
           [](const Array<ErrorCorrectedSuddenData>& v) {
@@ -759,7 +773,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
                 t[0].cast<std::vector<ErrorCorrectedSuddenData>>()};
           }));
 
-  py::class_<MapOfErrorCorrectedSuddenData, Array<ErrorCorrectedSuddenData>>(m, "MapOfErrorCorrectedSuddenData")
+  py::class_<MapOfErrorCorrectedSuddenData, Array<ErrorCorrectedSuddenData>>(
+      m, "MapOfErrorCorrectedSuddenData")
       .def(py::init([]() { return new MapOfErrorCorrectedSuddenData{}; }))
       .PythonInterfaceCopyValue(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceWorkspaceVariableConversion(MapOfErrorCorrectedSuddenData)
@@ -787,7 +802,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             auto x = t[0].cast<Array<ErrorCorrectedSuddenData>>();
             auto* out = new MapOfErrorCorrectedSuddenData{};
-            for (auto& b: x) out -> operator[](b.id) = b;
+            for (auto& b : x) out->operator[](b.id) = b;
             return out;
           }));
 
@@ -804,8 +819,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
             auto* out = new CIARecord{};
-            out -> Data() = t[0].cast<ArrayOfGriddedField2>();
-            out -> TwoSpecies() = t[1].cast<std::array<Species::Species, 2>>();
+            out->Data() = t[0].cast<ArrayOfGriddedField2>();
+            out->TwoSpecies() = t[1].cast<std::array<Species::Species, 2>>();
             return out;
           }));
 

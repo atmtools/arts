@@ -108,7 +108,7 @@ void py_species(py::module_& m) {
       .def(
           "append",
           [](ArrayOfIsotopeRecord& x, SpeciesIsotopeRecord y) {
-            x.emplace_back(std::move(y));
+            x.emplace_back(y);
           },
           py::doc("Appends a SpeciesIsotopeRecord at the end of the Array"))
       .def(py::pickle(

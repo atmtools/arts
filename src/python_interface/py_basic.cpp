@@ -38,7 +38,28 @@ void py_basic(py::module_& m) {
           "main",
           [](Verbosity& x) { return x.is_main_agenda(); },
           [](Verbosity& x, bool i) { return x.set_main_agenda(i); },
-          py::doc("Main class flag"));
+          py::doc("Main class flag"))
+      .def(py::pickle(
+          [](const Verbosity& self) {
+            Index va = self.get_agenda_verbosity();
+            Index vs = self.get_screen_verbosity();
+            Index vf = self.get_file_verbosity();
+            bool bm = self.is_main_agenda();
+
+            return py::make_tuple(va, vs, vf, bm);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
+
+            const auto va = t[0].cast<Index>();
+            const auto vs = t[1].cast<Index>();
+            const auto vf = t[2].cast<Index>();
+            const auto bm = t[3].cast<bool>();
+
+            auto* out = new Verbosity{va, vs, vf};
+            out -> set_main_agenda(bm);
+            return out;
+          }));
   py::implicitly_convertible<Index, Verbosity>();
 
   py::class_<String>(m, "String")

@@ -250,8 +250,8 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
 
             const auto data = t[0].cast<std::vector<Numeric>>();
-            const Index n1 = t[1].cast<Index>();
-            const Index n2 = t[2].cast<Index>();
+            const auto n1 = t[1].cast<Index>();
+            const auto n2 = t[2].cast<Index>();
 
             auto* out = new Matrix{n2, n1};
             std::copy(data.begin(), data.end(), out -> get_c_array());
@@ -332,9 +332,9 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
 
             const auto data = t[0].cast<std::vector<Numeric>>();
-            const Index n1 = t[1].cast<Index>();
-            const Index n2 = t[2].cast<Index>();
-            const Index n3 = t[3].cast<Index>();
+            const auto n1 = t[1].cast<Index>();
+            const auto n2 = t[2].cast<Index>();
+            const auto n3 = t[3].cast<Index>();
 
             auto* out = new Tensor3{n3, n2, n1};
             std::copy(data.begin(), data.end(), out -> get_c_array());
@@ -423,10 +423,10 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
             const auto data = t[0].cast<std::vector<Numeric>>();
-            const Index n1 = t[1].cast<Index>();
-            const Index n2 = t[2].cast<Index>();
-            const Index n3 = t[3].cast<Index>();
-            const Index n4 = t[4].cast<Index>();
+            const auto n1 = t[1].cast<Index>();
+            const auto n2 = t[2].cast<Index>();
+            const auto n3 = t[3].cast<Index>();
+            const auto n4 = t[4].cast<Index>();
 
             auto* out = new Tensor4{n4, n3, n2, n1};
             std::copy(data.begin(), data.end(), out -> get_c_array());
@@ -520,11 +520,11 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
 
             const auto data = t[0].cast<std::vector<Numeric>>();
-            const Index n1 = t[1].cast<Index>();
-            const Index n2 = t[2].cast<Index>();
-            const Index n3 = t[3].cast<Index>();
-            const Index n4 = t[4].cast<Index>();
-            const Index n5 = t[5].cast<Index>();
+            const auto n1 = t[1].cast<Index>();
+            const auto n2 = t[2].cast<Index>();
+            const auto n3 = t[3].cast<Index>();
+            const auto n4 = t[4].cast<Index>();
+            const auto n5 = t[5].cast<Index>();
 
             auto* out = new Tensor5{n5, n4, n3, n2, n1};
             std::copy(data.begin(), data.end(), out -> get_c_array());
@@ -629,12 +629,12 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
             const auto data = t[0].cast<std::vector<Numeric>>();
-            const Index n1 = t[1].cast<Index>();
-            const Index n2 = t[2].cast<Index>();
-            const Index n3 = t[3].cast<Index>();
-            const Index n4 = t[4].cast<Index>();
-            const Index n5 = t[5].cast<Index>();
-            const Index n6 = t[6].cast<Index>();
+            const auto n1 = t[1].cast<Index>();
+            const auto n2 = t[2].cast<Index>();
+            const auto n3 = t[3].cast<Index>();
+            const auto n4 = t[4].cast<Index>();
+            const auto n5 = t[5].cast<Index>();
+            const auto n6 = t[6].cast<Index>();
 
             auto* out = new Tensor6{n6, n5, n4, n3, n2, n1};
             std::copy(data.begin(), data.end(), out -> get_c_array());
@@ -749,13 +749,13 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 8, "Invalid state!")
 
             const auto data = t[0].cast<std::vector<Numeric>>();
-            const Index n1 = t[1].cast<Index>();
-            const Index n2 = t[2].cast<Index>();
-            const Index n3 = t[3].cast<Index>();
-            const Index n4 = t[4].cast<Index>();
-            const Index n5 = t[5].cast<Index>();
-            const Index n6 = t[6].cast<Index>();
-            const Index n7 = t[7].cast<Index>();
+            const auto n1 = t[1].cast<Index>();
+            const auto n2 = t[2].cast<Index>();
+            const auto n3 = t[3].cast<Index>();
+            const auto n4 = t[4].cast<Index>();
+            const auto n5 = t[5].cast<Index>();
+            const auto n6 = t[6].cast<Index>();
+            const auto n7 = t[7].cast<Index>();
 
             auto* out = new Tensor7{n7, n6, n5, n4, n3, n2, n1};
             std::copy(data.begin(), data.end(), out -> get_c_array());
