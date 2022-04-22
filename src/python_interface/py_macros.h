@@ -147,7 +147,18 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             x.pop_back();                                                     \
             return copy;                                                      \
           },                                                                  \
-          py::doc("Pops a " #BaseType " from the Array"))
+          py::doc("Pops a " #BaseType " from the Array"))                     \
+      .def(py::pickle(                                                        \
+          [](const Array<BaseType>& v) {                                      \
+            auto n = v.size();                                                \
+            std::vector<BaseType> out(n);                                     \
+            std::copy(v.begin(), v.end(), out.begin());                       \
+            return py::make_tuple(std::move(out));                            \
+          },                                                                  \
+          [](const py::tuple& t) {                                            \
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")               \
+            return new Array<BaseType>{t[0].cast<std::vector<BaseType>>()};   \
+          }))
 
 /** Provides -=, +=, /=. and *= for all LHS Type */
 #define PythonInterfaceInPlaceMathOperators(Type, Other) \
@@ -246,18 +257,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
   auto_impl_name##BaseType.PythonInterfaceFileIO(ArrayOf##BaseType)           \
       .PythonInterfaceBasicRepresentation(ArrayOf##BaseType)                  \
       .PythonInterfaceArrayDefault(BaseType)                                  \
-      .PythonInterfaceWorkspaceVariableConversion(ArrayOf##BaseType)          \
-      .def(py::pickle(                                                        \
-          [](const ArrayOf##BaseType& v) {                                    \
-            auto n = v.size();                                                \
-            std::vector<BaseType> out(n);                                     \
-            std::copy(v.begin(), v.end(), out.begin());                       \
-            return py::make_tuple(std::move(out));                            \
-          },                                                                  \
-          [](const py::tuple& t) {                                            \
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")               \
-            return new ArrayOf##BaseType{t[0].cast<std::vector<BaseType>>()}; \
-          }))
+      .PythonInterfaceWorkspaceVariableConversion(ArrayOf##BaseType)
 
 #define PythonInterfaceGriddedField(Type)                                      \
   def_readwrite("data", &Type::data)                                           \

@@ -14,7 +14,15 @@ void py_ppath(py::module_& m) {
       .PythonInterfaceFileIO(GridPos)
       .PythonInterfaceBasicRepresentation(GridPos)
       .def_readwrite("idx", &GridPos::idx)
-      .def_readwrite("fd", &GridPos::fd);
+      .def_readwrite("fd", &GridPos::fd)
+      .def(py::pickle(
+          [](const GridPos& self) {
+            return py::make_tuple(self.idx, self.fd);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
+            return new GridPos{t[0].cast<Index>(), t[1].cast<std::array<Numeric, 2>>()};
+          }));
 
   py::class_<ArrayOfGridPos>(m, "ArrayOfGridPos")
       .PythonInterfaceArrayDefault(GridPos)
@@ -25,7 +33,7 @@ void py_ppath(py::module_& m) {
       .def(py::init([]() { return new Ppath{}; }))
       .PythonInterfaceCopyValue(Ppath)
       .PythonInterfaceWorkspaceVariableConversion(Ppath)
-      .def("__repr__", [](Ppath&){return "Ppath";})
+      .def("__repr__", [](Ppath&) { return "Ppath"; })
       .PythonInterfaceFileIO(Ppath)
       .def_readwrite("dim", &Ppath::dim)
       .def_readwrite("np", &Ppath::np)
@@ -45,7 +53,51 @@ void py_ppath(py::module_& m) {
       .def_readwrite("ngroup", &Ppath::ngroup)
       .def_readwrite("gp_p", &Ppath::gp_p)
       .def_readwrite("gp_lat", &Ppath::gp_lat)
-      .def_readwrite("gp_lon", &Ppath::gp_lon);
+      .def_readwrite("gp_lon", &Ppath::gp_lon)
+      .def(py::pickle(
+          [](const Ppath& self) {
+            return py::make_tuple(self.dim,
+                                  self.np,
+                                  self.constant,
+                                  self.background,
+                                  self.start_pos,
+                                  self.start_los,
+                                  self.start_lstep,
+                                  self.pos,
+                                  self.los,
+                                  self.r,
+                                  self.lstep,
+                                  self.end_pos,
+                                  self.end_los,
+                                  self.end_lstep,
+                                  self.nreal,
+                                  self.ngroup,
+                                  self.gp_p,
+                                  self.gp_lat,
+                                  self.gp_lon);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 19, "Invalid state!")
+            return new Ppath{t[0].cast<Index>(),
+                             t[1].cast<Index>(),
+                             t[2].cast<Numeric>(),
+                             t[3].cast<String>(),
+                             t[4].cast<Vector>(),
+                             t[5].cast<Vector>(),
+                             t[6].cast<Numeric>(),
+                             t[7].cast<Matrix>(),
+                             t[8].cast<Matrix>(),
+                             t[9].cast<Vector>(),
+                             t[10].cast<Vector>(),
+                             t[11].cast<Vector>(),
+                             t[12].cast<Vector>(),
+                             t[13].cast<Numeric>(),
+                             t[14].cast<Vector>(),
+                             t[15].cast<Vector>(),
+                             t[16].cast<ArrayOfGridPos>(),
+                             t[17].cast<ArrayOfGridPos>(),
+                             t[18].cast<ArrayOfGridPos>()};
+          }));
 
   py::class_<ArrayOfPpath>(m, "ArrayOfPpath")
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfPpath)

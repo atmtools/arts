@@ -120,17 +120,6 @@ be accessed without copy using element-wise access operators.
               },
               py::return_value_policy::reference_internal),
           [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
-      .def(py::pickle(
-          [](const ArrayOfIndex& v) {
-            auto n = v.size();
-            std::vector<Index> out(n);
-            std::copy(v.begin(), v.end(), out.begin());
-            return py::make_tuple(std::move(out));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new ArrayOfIndex{t[0].cast<std::vector<Index>>()};
-          }))
       .doc() =
       "The Arts ArrayOfIndex class\n"
       "\n"

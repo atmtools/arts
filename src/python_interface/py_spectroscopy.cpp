@@ -465,18 +465,6 @@ void py_spectroscopy(py::module_& m) {
   py::class_<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
       .PythonInterfaceBasicRepresentation(Array<AbsorptionSingleLine>)
       .PythonInterfaceArrayDefault(AbsorptionSingleLine)
-      .def(py::pickle(
-          [](const Array<AbsorptionSingleLine>& v) {
-            auto n = v.size();
-            std::vector<AbsorptionSingleLine> out(n);
-            std::copy(v.begin(), v.end(), out.begin());
-            return py::make_tuple(std::move(out));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Array<AbsorptionSingleLine>{
-                t[0].cast<std::vector<AbsorptionSingleLine>>()};
-          }))
       .doc() = "The Arts ArrayOfAbsorptionSingleLine class";
   py::implicitly_convertible<std::vector<AbsorptionSingleLine>,
                              Array<AbsorptionSingleLine>>();
@@ -715,19 +703,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
       m, "ArrayOfSpeciesErrorCorrectedSuddenData")
       .PythonInterfaceBasicRepresentation(
           Array<SpeciesErrorCorrectedSuddenData>)
-      .PythonInterfaceArrayDefault(SpeciesErrorCorrectedSuddenData)
-      .def(py::pickle(
-          [](const Array<SpeciesErrorCorrectedSuddenData>& v) {
-            auto n = v.size();
-            std::vector<SpeciesErrorCorrectedSuddenData> out(n);
-            std::copy(v.begin(), v.end(), out.begin());
-            return py::make_tuple(std::move(out));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Array<SpeciesErrorCorrectedSuddenData>{
-                t[0].cast<std::vector<SpeciesErrorCorrectedSuddenData>>()};
-          }));
+      .PythonInterfaceArrayDefault(SpeciesErrorCorrectedSuddenData);
 
   py::class_<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData")
       .def(py::init([]() { return new ErrorCorrectedSuddenData{}; }))
@@ -759,19 +735,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
   py::class_<Array<ErrorCorrectedSuddenData>>(m,
                                               "ArrayOfErrorCorrectedSuddenData")
       .PythonInterfaceBasicRepresentation(Array<ErrorCorrectedSuddenData>)
-      .PythonInterfaceArrayDefault(ErrorCorrectedSuddenData)
-      .def(py::pickle(
-          [](const Array<ErrorCorrectedSuddenData>& v) {
-            auto n = v.size();
-            std::vector<ErrorCorrectedSuddenData> out(n);
-            std::copy(v.begin(), v.end(), out.begin());
-            return py::make_tuple(std::move(out));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Array<ErrorCorrectedSuddenData>{
-                t[0].cast<std::vector<ErrorCorrectedSuddenData>>()};
-          }));
+      .PythonInterfaceArrayDefault(ErrorCorrectedSuddenData);
 
   py::class_<MapOfErrorCorrectedSuddenData, Array<ErrorCorrectedSuddenData>>(
       m, "MapOfErrorCorrectedSuddenData")
