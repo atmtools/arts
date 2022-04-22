@@ -94,7 +94,7 @@ void py_rte(py::module_& m) {
             return out;
           }));
 
-          py::class_<RadiationVector>(m, "RadiationVector")
+  py::class_<RadiationVector>(m, "RadiationVector")
       .def(py::init([](Index nf, Index ns) {
              ARTS_USER_ERROR_IF(nf < 0, "Bad requency size, valid: [0, ...)")
              ARTS_USER_ERROR_IF(ns < 1 or ns > 4,
@@ -217,7 +217,25 @@ void py_rte(py::module_& m) {
                                s.Data().ncols(),
                                ')')
             s.Data() = d;
-          });
+          })
+      .def(py::pickle(
+          [](const PropagationMatrix& self) {
+            return py::make_tuple(self.NumberOfFrequencies(),
+                                  self.StokesDimensions(),
+                                  self.NumberOfZenithAngles(),
+                                  self.NumberOfAzimuthAngles(),
+                                  self.Data());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
+
+            auto* out = new PropagationMatrix{t[0].cast<Index>(),
+                                              t[1].cast<Index>(),
+                                              t[2].cast<Index>(),
+                                              t[3].cast<Index>()};
+            out->Data() = t[4].cast<Tensor4>();
+            return out;
+          }));
 
   py::class_<StokesVector>(m, "StokesVector")
       .def(py::init([](Index nf, Index ns, Index nza, Index naa, Numeric v) {
@@ -264,7 +282,25 @@ void py_rte(py::module_& m) {
                                d.ncols(),
                                ')')
             s.Data() = d;
-          });
+          })
+      .def(py::pickle(
+          [](const StokesVector& self) {
+            return py::make_tuple(self.NumberOfFrequencies(),
+                                  self.StokesDimensions(),
+                                  self.NumberOfZenithAngles(),
+                                  self.NumberOfAzimuthAngles(),
+                                  self.Data());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
+
+            auto* out = new StokesVector{t[0].cast<Index>(),
+                                         t[1].cast<Index>(),
+                                         t[2].cast<Index>(),
+                                         t[3].cast<Index>()};
+            out->Data() = t[4].cast<Tensor4>();
+            return out;
+          }));
 
   PythonInterfaceWorkspaceArray(TransmissionMatrix);
   PythonInterfaceWorkspaceArray(PropagationMatrix);
