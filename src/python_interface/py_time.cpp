@@ -72,7 +72,7 @@ void py_time(py::module_& m) {
 #ifdef TIME_SUPPORT
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
 #else
-                        ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
+            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
 #endif
 
             auto* out = new Timer{};
