@@ -31,11 +31,11 @@
 #ifndef mc_antenna_h
 #define mc_antenna_h
 
-#include <cmath>
-#include <stdexcept>
 #include "arts.h"
 #include "matpackI.h"
 #include "rng.h"
+#include <cmath>
+#include <stdexcept>
 
 enum AntennaType {
   ANTENNA_TYPE_PENCIL_BEAM = 1,
@@ -47,18 +47,14 @@ enum AntennaType {
  * This class provides the means of sampling various types of 2D antenna
  * functions.
  */
-class MCAntenna {
-  AntennaType atype;
-  Numeric sigma_aa, sigma_za;
+struct MCAntenna {
+  AntennaType atype{};
+  Numeric sigma_aa{}, sigma_za{};
   Vector aa_grid, za_grid;
   Matrix G_lookup;
 
- public:
   MCAntenna()
-      : atype(),
-        sigma_aa(0.),
-        sigma_za(0.),
-        aa_grid(),
+      : aa_grid(),
         za_grid(),
         G_lookup() { /* Nothing to do here */
   }
@@ -110,16 +106,6 @@ class MCAntenna {
   void set_lookup(ConstVectorView za_grid,
                   ConstVectorView aa_grid,
                   ConstMatrixView G_lookup);
-
-  /** AntennaType get_type.
-   * Returns the antenna type.
-   *
-   * @return  AntennaType
-   *
-   * @author  Cory Davis
-   * @date    2006-6-16
-   */
-  AntennaType get_type() const;
     
   /** return_los
    *
@@ -160,19 +146,6 @@ class MCAntenna {
                 Rng& rng,
                 ConstMatrixView R_ant2enu,
                 ConstVectorView bore_sight_los) const;
-  
-  AntennaType Type() const {return atype;}
-  Index Type(AntennaType x) {if (validType(x)) {atype = x; return EXIT_SUCCESS;} else return EXIT_FAILURE;}
-  static bool validType(AntennaType x) noexcept
-  {
-    constexpr auto keys = stdarrayify(Index(ANTENNA_TYPE_PENCIL_BEAM), ANTENNA_TYPE_GAUSSIAN, ANTENNA_TYPE_LOOKUP);
-    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
-  }
-  Numeric& saa() {return sigma_aa;}
-  Numeric& sza() {return sigma_za;};
-  Vector& aag() {return aa_grid;}
-  Vector& zag() {return za_grid;}
-  Matrix& G() {return G_lookup;}
 };
 
 ostream& operator<<(ostream& os, const MCAntenna& mca);

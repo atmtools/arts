@@ -869,7 +869,16 @@ void py_matpack(py::module_& m) {
       .def(
           "__ge__",
           [](Rational& a, Rational b) { return a >= b; },
-          py::is_operator());
+          py::is_operator())
+      .def(py::pickle(
+          [](const Rational& self) {
+            return py::make_tuple(self.Nom(), self.Denom());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
+
+            return new Rational{t[0].cast<Index>(), t[1].cast<Index>()};
+          }));
   py::implicitly_convertible<Index, Rational>();
 }
 }  // namespace Python
