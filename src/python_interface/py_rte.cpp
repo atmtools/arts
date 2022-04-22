@@ -314,7 +314,21 @@ void py_rte(py::module_& m) {
 
   py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
       .def(py::init([]() { return new LagrangeInterpolation{}; }))
-      .PythonInterfaceCopyValue(LagrangeInterpolation);
+      .PythonInterfaceCopyValue(LagrangeInterpolation)
+      .def(py::pickle(
+          [](const LagrangeInterpolation& self) {
+            return py::make_tuple(self.pos, self.lx, self.dlx);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
+
+            auto* out = new LagrangeInterpolation{};
+
+            out->pos = t[0].cast<Index>();
+            out->lx = t[1].cast<Array<Numeric>>();
+            out->dlx = t[2].cast<Array<Numeric>>();
+            return out;
+          }));
 
   py::class_<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
       .PythonInterfaceArrayDefault(LagrangeInterpolation)

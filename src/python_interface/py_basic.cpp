@@ -314,6 +314,16 @@ You can get copies and set the value by the \"val\" property
   py::class_<Any>(m, "Any")
       .def(py::init([]() { return new Any; }))
       .def("__repr__", [](Any&) { return "Any"; })
-      .def("__str__", [](Any&) { return "Any"; });
+      .def("__str__", [](Any&) { return "Any"; })
+      .def(py::pickle(
+          [](const py::object&) { return py::make_tuple(); },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")
+            return new Any{};
+          }));
+  
+  py::class_<Array<Numeric>>(m, "ArrayOfNumeric")
+      .PythonInterfaceBasicRepresentation(ArrayOfNumeric)
+      .PythonInterfaceArrayDefault(Numeric);
 }
 }  // namespace Python
