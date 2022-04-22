@@ -54,19 +54,7 @@ void py_species(py::module_& m) {
 
   py::class_<ArrayOfSpecies>(m, "ArrayOfSpecies")
       .PythonInterfaceBasicRepresentation(ArrayOfSpecies)
-      .PythonInterfaceArrayDefault(Species::Species)
-      .def(py::pickle(
-          [](const ArrayOfSpecies& v) {
-            auto n = v.size();
-            std::vector<Species::Species> out(n);
-            std::copy(v.begin(), v.end(), out.begin());
-            return py::make_tuple(std::move(out));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new ArrayOfSpecies{
-                t[0].cast<std::vector<Species::Species>>()};
-          }));
+      .PythonInterfaceArrayDefault(Species::Species);
   py::implicitly_convertible<std::vector<Species::Species>, ArrayOfSpecies>();
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpecies>();
 
