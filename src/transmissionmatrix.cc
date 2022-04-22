@@ -1271,7 +1271,7 @@ void stepwise_source(RadiationVector& J,
     } else {
       J.setSource(a, B, S, i);
       
-      switch (J.StokesDim()) {
+      switch (J.stokes_dim) {
         case 4: {
           const auto invK = inv_prop_matrix<4>(K.Data()(0, 0, i, joker));
           J.Vec4(i) = invK * J.Vec4(i);
@@ -1393,7 +1393,7 @@ ArrayOfTransmissionMatrix cumulative_transmission(
 {
   const Index n = T.nelem();
   const Index nf = n ? T[0].Frequencies() : 1;
-  const Index ns = n ? T[0].StokesDim() : 1;
+  const Index ns = n ? T[0].stokes_dim : 1;
   ArrayOfTransmissionMatrix PiT(n, TransmissionMatrix(nf, ns));
   switch (type) {
     case CumulativeTransmission::Forward: {
@@ -1422,7 +1422,7 @@ void set_backscatter_radiation_vector(
     const BackscatterSolver solver) {
   const Index np = I.nelem();
   const Index nv = np ? I[0].Frequencies() : 0;
-  const Index ns = np ? I[0].StokesDim() : 1;
+  const Index ns = np ? I[0].stokes_dim : 1;
   const Index nq = np ? dI[0][0].nelem() : 0;
   
   // For all transmission, the I-vector is the same

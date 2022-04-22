@@ -29,7 +29,7 @@ void py_rte(py::module_& m) {
             if (i < 0 or i > t.Frequencies())
               throw std::out_of_range(
                   var_string(i, " in range [0", t.Frequencies(), ')'));
-            switch (t.StokesDim()) {
+            switch (t.stokes_dim) {
               case 1:
                 return Eigen::Ref<Eigen::Matrix<double, 1, 1>>(t.Mat1(i));
               case 2:
@@ -50,9 +50,9 @@ void py_rte(py::module_& m) {
 
              auto arr_val = arr.unchecked<2>();
              ARTS_USER_ERROR_IF(arr_val.shape(0) not_eq arr_val.shape(1) or
-                                    arr_val.shape(0) not_eq t.StokesDim(),
+                                    arr_val.shape(0) not_eq t.stokes_dim,
                                 "Bad input size!")
-             const Index n = t.StokesDim();
+             const Index n = t.stokes_dim;
 
              switch (n) {
                case 1:
@@ -76,9 +76,25 @@ void py_rte(py::module_& m) {
                      t.Mat4(i)(r, c) = arr_val(r, c);
                  break;
              }
-           });
+           })
+      .def(py::pickle(
+          [](const TransmissionMatrix& self) {
+            return py::make_tuple(
+                self.stokes_dim, self.T1, self.T2, self.T3, self.T4);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
-  py::class_<RadiationVector>(m, "RadiationVector")
+            auto* out = new TransmissionMatrix{};
+            out->stokes_dim = t[0].cast<Index>();
+            out->T1 = t[1].cast<decltype(out->T1)>();
+            out->T2 = t[2].cast<decltype(out->T2)>();
+            out->T3 = t[3].cast<decltype(out->T3)>();
+            out->T4 = t[4].cast<decltype(out->T4)>();
+            return out;
+          }));
+
+          py::class_<RadiationVector>(m, "RadiationVector")
       .def(py::init([](Index nf, Index ns) {
              ARTS_USER_ERROR_IF(nf < 0, "Bad requency size, valid: [0, ...)")
              ARTS_USER_ERROR_IF(ns < 1 or ns > 4,
@@ -102,7 +118,7 @@ void py_rte(py::module_& m) {
             if (i < 0 or i > t.Frequencies())
               throw std::out_of_range(
                   var_string(i, " in range [0", t.Frequencies(), ')'));
-            switch (t.StokesDim()) {
+            switch (t.stokes_dim) {
               case 1:
                 return Eigen::Ref<Eigen::Matrix<double, 1, 1>>(t.Vec1(i));
               case 2:
@@ -123,9 +139,9 @@ void py_rte(py::module_& m) {
             ARTS_USER_ERROR_IF(arr.request().ndim not_eq 1, "Bad size array")
 
             auto arr_val = arr.unchecked<1>();
-            ARTS_USER_ERROR_IF(arr_val.shape(0) not_eq t.StokesDim(),
+            ARTS_USER_ERROR_IF(arr_val.shape(0) not_eq t.stokes_dim,
                                "Bad input size!")
-            const Index n = t.StokesDim();
+            const Index n = t.stokes_dim;
 
             switch (n) {
               case 1:
@@ -144,7 +160,23 @@ void py_rte(py::module_& m) {
           },
           py::arg("i"),
           py::arg("vec"),
-          py::doc("Sets a single vector"));
+          py::doc("Sets a single vector"))
+      .def(py::pickle(
+          [](const RadiationVector& self) {
+            return py::make_tuple(
+                self.stokes_dim, self.R1, self.R2, self.R3, self.R4);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
+
+            auto* out = new RadiationVector{};
+            out->stokes_dim = t[0].cast<Index>();
+            out->R1 = t[1].cast<decltype(out->R1)>();
+            out->R2 = t[2].cast<decltype(out->R2)>();
+            out->R3 = t[3].cast<decltype(out->R3)>();
+            out->R4 = t[4].cast<decltype(out->R4)>();
+            return out;
+          }));
 
   py::class_<PropagationMatrix>(m, "PropagationMatrix")
       .def(py::init([](Index nf, Index ns, Index nza, Index naa, Numeric v) {

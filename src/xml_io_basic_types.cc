@@ -269,7 +269,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("TransmissionMatrix");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("Stokes", tm.StokesDim());
+  open_tag.add_attribute("Stokes", tm.stokes_dim);
   open_tag.add_attribute("Freqs", tm.Frequencies());
 
   open_tag.write_to_stream(os_xml);
@@ -345,7 +345,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("RadiationVector");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("Stokes", rv.StokesDim());
+  open_tag.add_attribute("Stokes", rv.stokes_dim);
   open_tag.add_attribute("Freqs", rv.Frequencies());
 
   open_tag.write_to_stream(os_xml);
