@@ -43,13 +43,32 @@ void py_sparse(py::module_& m) {
           [](Sparse& s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> ns) {
             s.matrix.swap(ns);
           })
-      .def("toarray", [](Sparse& sp) { return Eigen::MatrixXd(sp.matrix); });
+      .def("toarray", [](Sparse& sp) { return Eigen::MatrixXd(sp.matrix); })
+      .def(py::pickle(
+          [](const Sparse& self) { return py::make_tuple(self.matrix); },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+
+            auto* out = new Sparse{};
+            out->matrix = t[0].cast<decltype(out->matrix)>();
+
+            return out;
+          }));
   py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, Sparse>();
 
   py::enum_<Block::MatrixType>(m, "BlockMatrixType")
       .value("dense", Block::MatrixType::dense)
       .value("sparse", Block::MatrixType::sparse)
-      .PythonInterfaceCopyValue(Block::MatrixType);
+      .PythonInterfaceCopyValue(Block::MatrixType)
+      .def(py::pickle(
+          [](const Block::MatrixType& self) {
+            return py::make_tuple(static_cast<Index>(self));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            
+            return static_cast<Block::MatrixType>(t[0].cast<Index>());
+          }));
 
   py::class_<Block>(m, "Block")
       .PythonInterfaceCopyValue(Block)
