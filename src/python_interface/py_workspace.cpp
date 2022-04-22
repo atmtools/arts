@@ -183,6 +183,12 @@ void py_workspace(py::module_& m,
             global_data::wsv_group_names.at(w.ws.wsv_data.at(w.pos).Group()));
       });
 
+  ws.def("number_of_initialized_variables", [](Workspace& w){
+    Index count = 0;
+    for (Index i=0; i<w.nelem(); i++) count += w.is_initialized(i);
+    return count;
+  });
+
   py::class_<WsvRecord>(m, "WsvRecord")
       .PythonInterfaceCopyValue(WsvRecord)
       .def_property_readonly("name", &WsvRecord::Name)

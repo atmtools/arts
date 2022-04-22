@@ -383,7 +383,7 @@ void py_rte(py::module_& m) {
             out->FLAGDefault() = t[3].cast<ArrayOfLagrangeInterpolation>();
             out->Pgrid() = t[4].cast<Vector>();
             out->LogPgrid() = t[5].cast<Vector>();
-            out->VMRs() = t[6].cast<Vector>();
+            out->VMRs() = t[6].cast<Matrix>();
             out->Tref() = t[7].cast<Vector>();
             out->Tpert() = t[8].cast<Vector>();
             out->NLSPert() = t[9].cast<Vector>();

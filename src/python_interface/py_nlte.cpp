@@ -19,7 +19,7 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new EnergyLevelMapType{
-                toEnergyLevelMapTypeOrThrow(t[0].cast<std::string>())};
+                toEnergyLevelMapType(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, EnergyLevelMapType>();
 
@@ -39,7 +39,7 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            std::unique_ptr<EnergyLevelMap> out;
+            auto*  out = new EnergyLevelMap{};
             out->type = t[0].cast<EnergyLevelMapType>();
             out->levels = t[1].cast<ArrayOfQuantumIdentifier>();
             out->vib_energy = t[2].cast<Vector>();

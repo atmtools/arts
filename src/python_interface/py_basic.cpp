@@ -1,6 +1,7 @@
 #include <py_auto_interface.h>
 #include <pybind11/numpy.h>
 #include <pybind11/operators.h>
+#include <pybind11/pytypes.h>
 
 #include "messages.h"
 #include "py_macros.h"
@@ -312,7 +313,8 @@ You can get copies and set the value by the \"val\" property
   py::implicitly_convertible<Index, Index_>();
 
   py::class_<Any>(m, "Any")
-      .def(py::init([]() { return new Any; }))
+      .def(py::init([]() { return new Any{}; }))
+      .def(py::init([](py::args, py::kwargs) { return new Any{}; }))
       .def("__repr__", [](Any&) { return "Any"; })
       .def("__str__", [](Any&) { return "Any"; })
       .def(py::pickle(

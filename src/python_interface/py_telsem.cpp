@@ -18,6 +18,7 @@ void py_telsem(py::module_& m) {
                                   self.Month(),
                                   self.Lat(),
                                   self.Cells(),
+                                  self.FirstCells(),
                                   self.Emis(),
                                   self.Emis_err(),
                                   self.Correlations(),

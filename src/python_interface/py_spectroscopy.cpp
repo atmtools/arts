@@ -33,7 +33,7 @@ void py_spectroscopy(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new LineShape::TemperatureModel{
-                LineShape::toTemperatureModelOrThrow(t[0].cast<std::string>())};
+                LineShape::toTemperatureModel(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, LineShape::TemperatureModel>();
 
@@ -87,7 +87,7 @@ void py_spectroscopy(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new AbsorptionCutoffType{
-                Absorption::toCutoffTypeOrThrow(t[0].cast<std::string>())};
+                Absorption::toCutoffType(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, AbsorptionCutoffType>();
 
@@ -147,7 +147,7 @@ void py_spectroscopy(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new AbsorptionMirroringType{
-                Absorption::toMirroringTypeOrThrow(t[0].cast<std::string>())};
+                Absorption::toMirroringType(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, AbsorptionMirroringType>();
 
@@ -166,7 +166,7 @@ void py_spectroscopy(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new AbsorptionPopulationType{
-                Absorption::toPopulationTypeOrThrow(t[0].cast<std::string>())};
+                Absorption::toPopulationType(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, AbsorptionPopulationType>();
 
@@ -204,7 +204,7 @@ void py_spectroscopy(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new LineShapeType{
-                LineShape::toTypeOrThrow(t[0].cast<std::string>())};
+                LineShape::toType(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, LineShapeType>();
 

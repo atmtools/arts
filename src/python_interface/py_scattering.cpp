@@ -86,7 +86,7 @@ void py_scattering(py::module_& m) {
                                   self.diameter_area_equ_aerodynamical);
           },
           [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
+            ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
             return new ScatteringMetaData{t[0].cast<String>(),
                                           t[1].cast<String>(),

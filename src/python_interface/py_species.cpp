@@ -48,7 +48,7 @@ void py_species(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new Species::Species{
-                Species::toSpeciesOrThrow(t[0].cast<std::string>())};
+                Species::toSpecies(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Species::Species>();
 
@@ -129,7 +129,7 @@ void py_species(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new Species::TagType{
-                Species::toTagTypeOrThrow(t[0].cast<std::string>())};
+                Species::toTagType(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Species::TagType>();
 

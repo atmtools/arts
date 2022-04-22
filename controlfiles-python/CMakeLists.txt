@@ -2,6 +2,8 @@
 ###########################
 ### Python Test Example ###
 arts_test_run_pyfile(fast classes/TestClassBasic.py)
+arts_test_run_pyfile(fast classes/TestWorkspacePickling.py)
+
 arts_test_run_pyfile(fast classes/TestAbsorptionLines.py)
 arts_test_run_pyfile(fast classes/TestAgenda.py)
 arts_test_run_pyfile(fast classes/TestAny.py)

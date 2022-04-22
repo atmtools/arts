@@ -22,7 +22,7 @@ void py_jac(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new Jacobian::Type{
-                Jacobian::toTypeOrThrow(t[0].cast<std::string>())};
+                Jacobian::toType(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Type>();
 
@@ -40,7 +40,7 @@ void py_jac(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new Jacobian::Atm{
-                Jacobian::toAtmOrThrow(t[0].cast<std::string>())};
+                Jacobian::toAtm(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Atm>();
 
@@ -58,7 +58,7 @@ void py_jac(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new Jacobian::Line{
-                Jacobian::toLineOrThrow(t[0].cast<std::string>())};
+                Jacobian::toLine(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Line>();
 
@@ -77,7 +77,7 @@ void py_jac(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new Jacobian::Sensor{
-                Jacobian::toSensorOrThrow(t[0].cast<std::string>())};
+                Jacobian::toSensor(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Sensor>();
 
@@ -96,7 +96,7 @@ void py_jac(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new Jacobian::Special{
-                Jacobian::toSpecialOrThrow(t[0].cast<std::string>())};
+                Jacobian::toSpecial(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Special>();
 
