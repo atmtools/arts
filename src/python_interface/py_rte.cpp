@@ -357,6 +357,39 @@ void py_rte(py::module_& m) {
       .PythonInterfaceBasicReferenceProperty(GasAbsLookup, t_pert, Tpert, Tpert)
       .PythonInterfaceBasicReferenceProperty(
           GasAbsLookup, nls_pert, NLSPert, NLSPert)
-      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, xsec, Xsec, Xsec);
+      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, xsec, Xsec, Xsec)
+      .def(py::pickle(
+          [](GasAbsLookup& self) {
+            return py::make_tuple(self.Species(),
+                                  self.NonLinearSpecies(),
+                                  self.Fgrid(),
+                                  self.FLAGDefault(),
+                                  self.Pgrid(),
+                                  self.LogPgrid(),
+                                  self.VMRs(),
+                                  self.Tref(),
+                                  self.Tpert(),
+                                  self.NLSPert(),
+                                  self.Xsec());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 11, "Invalid state!")
+
+            auto* out = new GasAbsLookup{};
+
+            out->Species() = t[0].cast<ArrayOfArrayOfSpeciesTag>();
+            out->NonLinearSpecies() = t[1].cast<ArrayOfIndex>();
+            out->Fgrid() = t[2].cast<Vector>();
+            out->FLAGDefault() = t[3].cast<ArrayOfLagrangeInterpolation>();
+            out->Pgrid() = t[4].cast<Vector>();
+            out->LogPgrid() = t[5].cast<Vector>();
+            out->VMRs() = t[6].cast<Vector>();
+            out->Tref() = t[7].cast<Vector>();
+            out->Tpert() = t[8].cast<Vector>();
+            out->NLSPert() = t[9].cast<Vector>();
+            out->Xsec() = t[10].cast<Tensor4>();
+
+            return out;
+          }));
 }
 }  // namespace Python
