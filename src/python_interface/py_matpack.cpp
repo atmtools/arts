@@ -1,6 +1,7 @@
 #include <py_auto_interface.h>
 #include <pybind11/eigen.h>
 #include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 #include <type_traits>
 #include <vector>
 
@@ -121,6 +122,27 @@ void test_correct_size(const std::vector<T>& x) {
 }
 
 void py_matpack(py::module_& m) {
+  py::class_<Range>(m, "Range")
+      .def(py::init([](Index a, Index b, Index c) {
+             ARTS_USER_ERROR_IF(0 > a, "Bad start")
+             ARTS_USER_ERROR_IF(0 > b, "Bad extent")
+             return new Range{a, b, c};
+           }),
+           py::arg("start"),
+           py::arg("extent"),
+           py::arg("stride") = 1)
+      .PythonInterfaceBasicRepresentation(Range)
+      .def(py::pickle(
+          [](const Range& self) {
+            return py::make_tuple(
+                self.get_start(), self.get_extent(), self.get_stride());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
+            return new Range{
+                t[0].cast<Index>(), t[1].cast<Index>(), t[2].cast<Index>()};
+          }));
+
   py::class_<ConstVectorView>(m, "ConstVectorView");
   py::class_<ConstMatrixView>(m, "ConstMatrixView");
   py::class_<ConstTensor3View>(m, "ConstTensor3View");

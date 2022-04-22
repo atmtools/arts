@@ -1,7 +1,15 @@
 #include <py_auto_interface.h>
-
+#include <pybind11/cast.h>
+#include <pybind11/detail/common.h>
 #include <pybind11/eigen.h>
+#include <pybind11/pybind11.h>
 
+#include <memory>
+#include <utility>
+#include <variant>
+
+#include "covariance_matrix.h"
+#include "matpack.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -54,7 +62,8 @@ void py_sparse(py::module_& m) {
 
             return out;
           }));
-  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, Sparse>();
+  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
+                             Sparse>();
 
   py::enum_<Block::MatrixType>(m, "BlockMatrixType")
       .value("dense", Block::MatrixType::dense)
@@ -66,25 +75,80 @@ void py_sparse(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            
+
             return static_cast<Block::MatrixType>(t[0].cast<Index>());
           }));
 
   py::class_<Block>(m, "Block")
+      .def(py::init([](Range row_range,
+                       Range column_range,
+                       IndexPair indices,
+                       Matrix mat) {
+        return new Block(row_range,
+                         column_range,
+                         indices,
+                         std::shared_ptr<Matrix>{new Matrix{std::move(mat)}});
+      }))
+      .def(py::init([](Range row_range,
+                       Range column_range,
+                       IndexPair indices,
+                       Sparse mat) {
+        return new Block(row_range,
+                         column_range,
+                         indices,
+                         std::shared_ptr<Sparse>{new Sparse{std::move(mat)}});
+      }))
       .PythonInterfaceCopyValue(Block)
-      .def("get_matrix_type", &Block::get_matrix_type)
-      .def_property_readonly("dense",
-                             [](Block& x) {
-                               ARTS_USER_ERROR_IF(x.get_matrix_type() not_eq
-                                                      Block::MatrixType::dense,
-                                                  "Block is not dense")
-                               return x.get_dense();
-                             })
-      .def_property_readonly("sparse", [](Block& x) {
-        ARTS_USER_ERROR_IF(x.get_matrix_type() not_eq Block::MatrixType::sparse,
-                           "Block is not sparse")
-        return x.get_sparse();
-      });
+      .def_property("matrix",
+                    py::cpp_function(
+                        [](Block& x) -> std::variant<Matrix*, Sparse*> {
+                          if (x.get_matrix_type() == Block::MatrixType::dense)
+                            return &x.get_dense();
+                          return &x.get_sparse();
+                        },
+                        py::return_value_policy::reference_internal),
+                    [](Block& x, std::variant<Matrix*, Sparse*> y) {
+                      if (std::holds_alternative<Matrix*>(y)) {
+                        x.set_matrix(std::shared_ptr<Matrix>{
+                            new Matrix{*std::get<Matrix*>(y)}});
+                      } else {
+                        x.set_matrix(std::shared_ptr<Sparse>{
+                            new Sparse{*std::get<Sparse*>(y)}});
+                      }
+                    })
+      .def(py::pickle(
+          [](const Block& self) {
+            if (self.get_matrix_type() == Block::MatrixType::sparse)
+              return py::make_tuple(self.get_row_range(),
+                                    self.get_column_range(),
+                                    self.get_indices(),
+                                    self.get_matrix_type(),
+                                    self.get_sparse());
+            return py::make_tuple(self.get_row_range(),
+                                  self.get_column_range(),
+                                  self.get_indices(),
+                                  self.get_matrix_type(),
+                                  self.get_dense());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
+
+            auto row_range = t[0].cast<Range>();
+            auto column_range = t[1].cast<Range>();
+            auto indices = t[2].cast<IndexPair>();
+
+            if (t[3].cast<Block::MatrixType>() == Block::MatrixType::sparse)
+              return new Block{
+                  row_range,
+                  column_range,
+                  indices,
+                  std::shared_ptr<Sparse>(new Sparse{t[4].cast<Sparse>()})};
+            return new Block{
+                row_range,
+                column_range,
+                indices,
+                std::shared_ptr<Matrix>(new Matrix{t[4].cast<Matrix>()})};
+          }));
 
   py::class_<CovarianceMatrix>(m, "CovarianceMatrix")
       .def(py::init([]() { return new CovarianceMatrix{}; }))
@@ -97,7 +161,22 @@ void py_sparse(py::module_& m) {
             x.get_blocks() = std::move(y);
           })
       .PythonInterfaceFileIO(CovarianceMatrix)
-      .PythonInterfaceBasicRepresentation(CovarianceMatrix);
+      .PythonInterfaceBasicRepresentation(CovarianceMatrix)
+      .def(py::pickle(
+          [](CovarianceMatrix& self) {
+            return py::make_tuple(self.get_blocks(), self.get_inverse_blocks());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
+
+            auto b = t[0].cast<std::vector<Block>>();
+            auto i = t[0].cast<std::vector<Block>>();
+
+            auto* out = new CovarianceMatrix{};
+            out->get_blocks() = std::move(b);
+            out->get_inverse_blocks() = std::move(i);
+            return out;
+          }));
 
   PythonInterfaceWorkspaceArray(Sparse);
 }
