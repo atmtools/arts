@@ -111,17 +111,15 @@ be accessed without copy using element-wise access operators.
                                {x.nelem()},
                                {sizeof(Index)});
       })
-      .def_property(
-          "value",
-          py::cpp_function(
-              [](ArrayOfIndex& x) {
-                py::capsule do_nothing(x.data(), [](void*) {});
-                return py::array_t<Index>(
-                    {x.nelem()}, {sizeof(Numeric)}, x.data(), do_nothing);
-              },
-              py::return_value_policy::reference_internal),
-          [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
-      .doc() =
+      .def_property("value",
+                    py::cpp_function(
+                        [](ArrayOfIndex& x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
+      .PythonInterfaceValueOperators.doc() =
       "The Arts ArrayOfIndex class\n"
       "\n"
       "This class is compatible with numpy arrays.  The data can "
