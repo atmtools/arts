@@ -1754,7 +1754,7 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
 )--";
 
   for (auto& [name, group] : arts.group) {
-    os << "py::implicitly_convertible<const WorkspaceVariable, " << name;
+    os << "py::implicitly_convertible<WorkspaceVariable, " << name;
     if (name == "Index" or name == "Numeric") os << '_';
     os << ">();\n";
   }
