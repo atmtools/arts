@@ -347,10 +347,10 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
 #define PythonInterfaceBasicReferenceProperty(                                \
     Type, PropertyName, ReadFunction, WriteFunction)                          \
   def_property(#PropertyName,                                                 \
-               py::cpp_function(&Type::ReadFunction,                          \
+               py::cpp_function([](Type& x){return x.ReadFunction();},        \
                                 py::return_value_policy::reference_internal), \
                [](Type& x, decltype(x.ReadFunction()) y) {                    \
-                 return x.WriteFunction() = std::move(y);                     \
+                 return x.WriteFunction() = y;                                \
                })
 
 #define PythonInterfaceSelfAttribute(ATTR) \
