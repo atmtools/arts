@@ -261,50 +261,6 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
 
 #define PythonInterfaceGriddedField(Type)                                      \
   def_readwrite("data", &Type::data)                                           \
-      .def("get_dim", [](Type& gf) { return gf.get_dim(); })                   \
-      .def("get_name", [](Type& gf) { return gf.get_name(); })                 \
-      .def("set_name",                                                         \
-           [](Type& gf, const String& str) { return gf.set_name(str); })       \
-      .def("get_grid_name",                                                    \
-           [](Type& gf, Index i) {                                             \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
-             return gf.get_grid_name(i);                                       \
-           })                                                                  \
-      .def("get_grid_size",                                                    \
-           [](Type& gf, Index i) {                                             \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
-             return gf.get_grid_size(i);                                       \
-           })                                                                  \
-      .def("get_grid_type",                                                    \
-           [](Type& gf, Index i) {                                             \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
-             return gf.get_grid_type(i);                                       \
-           })                                                                  \
-      .def("get_numeric_grid",                                                 \
-           [](Type& gf, Index i) {                                             \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
-             return gf.get_numeric_grid(i);                                    \
-           })                                                                  \
-      .def("get_string_grid",                                                  \
-           [](Type& gf, Index i) {                                             \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
-             return gf.get_string_grid(i);                                     \
-           })                                                                  \
-      .def("set_grid_name",                                                    \
-           [](Type& gf, Index i, const String& str) {                          \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
-             return gf.set_grid_name(i, str);                                  \
-           })                                                                  \
-      .def("set_grid",                                                         \
-           [](Type& gf, Index i, const Vector& vec) {                          \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
-             return gf.set_grid(i, vec);                                       \
-           })                                                                  \
-      .def("set_grid",                                                         \
-           [](Type& gf, Index i, const ArrayOfString& str) {                   \
-             ARTS_USER_ERROR_IF(i >= gf.get_dim(), "Out of bounds")            \
-             return gf.set_grid(i, str);                                       \
-           })                                                                  \
       .def(py::pickle(                                                         \
           [](const Type& self) {                                               \
             Index n = self.get_dim();                                          \
@@ -344,14 +300,15 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
 #define PythonInterfaceReadWriteData(Type, data) \
   def_readwrite(#data, &Type::data, py::return_value_policy::reference_internal)
 
-#define PythonInterfaceBasicReferenceProperty(                                \
-    Type, PropertyName, ReadFunction, WriteFunction)                          \
-  def_property(#PropertyName,                                                 \
-               py::cpp_function([](Type& x){return x.ReadFunction();},        \
-                                py::return_value_policy::reference_internal), \
-               [](Type& x, decltype(x.ReadFunction()) y) {                    \
-                 return x.WriteFunction() = y;                                \
-               })
+#define PythonInterfaceBasicReferenceProperty(                             \
+    Type, PropertyName, ReadFunction, WriteFunction)                       \
+  def_property(                                                            \
+      #PropertyName,                                                       \
+      py::cpp_function([](Type& x) { return x.ReadFunction(); },           \
+                       py::return_value_policy::reference_internal),       \
+      [](Type& x, std::remove_reference_t<decltype(x.ReadFunction())> y) { \
+        x.WriteFunction() = std::move(y);                                  \
+      })
 
 #define PythonInterfaceSelfAttribute(ATTR) \
   def_property_readonly(#ATTR, [](py::object& x) { return x.attr("value").attr(#ATTR); })
@@ -402,6 +359,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
       .PythonInterfaceSelfAttribute(size)                  \
       .PythonInterfaceSelfAttribute(dtype)                 \
                                                            \
+      .PythonInterfaceSelfOperator(__len__)                \
       .PythonInterfaceSelfOperator(__pos__)                \
       .PythonInterfaceSelfOperator(__neg__)                \
       .PythonInterfaceSelfOperator(__abs__)                \

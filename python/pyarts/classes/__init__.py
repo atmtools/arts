@@ -11,3 +11,5 @@ for attr in dir(cxx):
         if isinstance(getattr(cxx, attr), type(cxx.Index)):
             exec(f"{attr} = cxx.{attr}")
 del attr
+
+import pyarts.classes.GriddedFieldExtras  # noqa
