@@ -99,8 +99,10 @@ def from_xarray(cls, da):
     for i in range(obj.dim):
         obj.set_grid(i, da[da.dims[i]].values)
         obj.set_grid_name(i, da.dims[i])
+    if da.values.ndim != obj.dim:
+        raise RuntimeError(f"Dimension mismatch: Expected {obj.dim} got {da.values.ndim}")
     obj.data = da.values
-    obj.name = da.attrs.get('data_name', 'Data')
+    obj.name = str(da.attrs.get('data_name', 'Data'))
     obj.checksize_strict()
     return obj
 
