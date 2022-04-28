@@ -50,6 +50,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
                       "${CMAKE_CURRENT_SOURCE_DIR}/integration.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/lin_alg.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/cpp_api.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/pyarts.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/debug_gui.tex")
   file (GLOB FIGFILES "${CMAKE_CURRENT_SOURCE_DIR}/Figs/*/*.pdf")
   ARTS_ADD_TEX_DOC ("arts_developer" "${TEXFILES}" "${FIGFILES}")
