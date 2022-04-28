@@ -93,23 +93,6 @@ object.  The dataname is used as the DataArray name.
 Returns:
     xarray.DataArray object corresponding to gridded field
 )--"))
-      .def_static(
-          "from_xarray",
-          [](py::object& g, py::object& v) {
-            if (not py::isinstance<py::type>(g))
-              throw std::logic_error("First argument is not a type");
-            return details::GriddedField::from_xarray(g, v);
-          },
-          py::doc(
-              R"--(Create GriddedField from a xarray.DataArray object.
-The data and its dimensions are returned as a :class:`GriddedField` object.
-The DataArray name is used as name for the gridded field. If the attribute
-`data_name` is present, it is used as `dataname` on the :class:`GriddedField`.
-Parameters:
-    da (xarray.DataArray): xarray.DataArray containing the dimensions and data.
-Returns:
-    GriddedField object.
-)--"))
       .def(
           "refine_grid",
           [](py::object& g, py::object& s, py::object& i, py::object& t) {
