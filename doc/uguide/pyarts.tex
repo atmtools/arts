@@ -1,21 +1,21 @@
-\chapter{The python interface}
+\chapter{The Python interface}
 
-This section is devoted to describing various techniques and code used to enhance the python-Arts interface: \verb|pyarts|.
+This section is devoted to describing various techniques and code used to enhance the Python-ARTS interface: \verb|pyarts|.
 It will not be exhaustive but will go over the basic ideas of how to add and modify classes and functions.
 
-The basic section will explain where the files are located in an Arts directory and what the general build steps involved. 
+The basic section will explain where the files are located in an ARTS directory and what the general build steps involved. 
  The classes section described how new classes are added and modified.  
  The workspace and agenda classes are special and so they get their own section.  
  The functions section will be short and go over how functions are added.
 
 \section{Basics}
-A \verb|pyarts| installation consists of two parts: the pure python code available in the main directory \verb|python/pyarts/| folder and the C++ interface.
-The C++ interface relies on the \verb|pybind11| python bindings package available via \url{https://github.com/pybind/pybind11}.
+A \verb|pyarts| installation consists of two parts: the pure Python code available in the main directory \verb|python/pyarts/| folder and the C++ interface.
+The C++ interface relies on the \verb|pybind11| Python bindings package available via \url{https://github.com/pybind/pybind11}.
 We keep a local copy of the latest release of \verb|pybind11| around in \verb|3rdparty/pybind11/|.
 \verb|pybind11| is a pure headers only library and these headers can be found at \verb|3rdparty/pybind11/includes/pybind11|.
 The \verb|CMake| settings ensure that these can be included by any file compiled as part of the \verb|pyarts_cpp| target using
 \verb|#include <pybind11/*}.h>|.
-The Arts side of C++ linkage is available in the \verb|src/python_interface| folder.  There are two parts: the auto-generated files
+The ARTS side of C++ linkage is available in the \verb|src/python_interface| folder.  There are two parts: the auto-generated files
 that are only available after compiling the target, and the other static files.
 
 The \verb|py_module.cpp| file links everything together.
@@ -23,14 +23,14 @@ It is responsible for passing a module reference object along to all other funct
 To keep things simple, we avoid creating a \verb|py_module.h| file and simply declare
 that the functions from the other files are available to the linker down-the-line.
 
-The steps to add a new file with new functionality are as follow (for \verb|py_my_file.cpp| as the file and \verb|my_new_functionality| as function):
+The steps to add a new file with new functionality are as follows (for \verb|py_my_file.cpp| as the file and \verb|my_new_functionality| as function):
 \begin{enumerate}
 \item Create the \verb|py_my_file.cpp| file
 \item Add \verb|py_my_file.cpp| to the \verb|pyarts_cpp| target in the \verb|src/python_interface/CMakeLists.txt|.
 \item Fill the file with the relevant includes (see below).
 \item Within \verb|namespace Python| setup \verb|void my_new_functionality(py::module_& m) {*}|.
 \item Replace \verb|*| with your new functionality (and run the automatic formatter)
-\item Add \verb|void my_new_functionality(py::module_& m);| directly within the python namespace of  \verb|py_module.cpp|.
+\item Add \verb|void my_new_functionality(py::module_& m);| directly within the Python namespace of  \verb|py_module.cpp|.
 \item Add \verb|my_new_functionality(m);| within the \verb|PYBIND11_MODULE(pyarts_cpp, m)| function definition of  \verb|py_module.cpp|.
 \item Compile.  The new functionality is available via \verb|pyarts.pyarts_cpp.*|.
 \item Add a continuous integration test that tests the new functionality in a limited fashion.
@@ -41,18 +41,18 @@ To keep a consistent experience across the code, it is recommended to put either
 at the top of the files.  This ensures that you have access to almost all of \verb|pybind11| and \verb|artscore|.  If you need any of the headers that are
 not included from \verb|artscore|, the \verb|src/| folder is also linked to the \verb|pyarts_cpp| target so you can include it without using relative paths.
 
-Note that the documentation of the python functions and classes that are generated depends on the order of calls within \verb|py_module.cpp|.  If your
+Note that the documentation of the Python functions and classes that are generated depends on the order of calls within \verb|py_module.cpp|.  If your
 class depends on  \verb|matpack| and on gridded fields, place the call after these.  If in turn the Jacobian calculations depends on your type,
-place the call above it.  This only applied to the call to your functionality (not the declaration above the module creation macro).
+place the call above it.  This only applies to the call to your functionality (not the declaration above the module creation macro).
 
 \subsection{Limitations}
 There are many limitations.  Most of these are weeded out by keeping a constantly up-to-date set of tests available to be run as part of the continuous
-integration.  Any feature not tested that way will be considered unwanted as part of the python interface.  Add new tests as you add new functionality!
-This is very important as \verb|pybind11| links directly to python, meaning that new features might work on your computer but not on others.  Even worse,
-changes in the future might break your feature
+integration.  Any feature not tested that way will be considered unwanted as part of the Python interface.  Add new tests as you add new functionality!
+This is very important as \verb|pybind11| links directly to Python, meaning that new features might work on your computer but not on others.  Even worse,
+changes in the future might break your feature.
 
-One limitation we cannot work around is that there are no references to \verb|int| and \verb|float| in python.  The 
-Arts \verb|Index| and \verb|Numeric| map directly to these python types.  As we need references to these variables,
+One limitation we cannot work around is that there are no references to \verb|int| and \verb|float| in Python.  The 
+ARTS \verb|Index| and \verb|Numeric| map directly to these Python types.  As we need references to these variables,
 wrappers known as \verb|Index_| and \verb|Numeric_| have been created.  If you need references, ensure that you are returning
 these types instead of the pure types.  Note that there exist a helper function \verb|as_ref| that can deal with this problem
 for you.  Only use this if you know that you have a reference that will persist to a base-type.
@@ -61,17 +61,17 @@ A limitation that we can work around is that \verb|python| and \verb|pybind11| d
 references in general.  If the output of a function is a reference, we need to mark that that variable is not allowed to
 be converted.  More about this below.
 
-Lastly, we often compile Arts without debug information, turning off several sanity checks inside the classes.
-These might cause segmentation fault if encountered in python.  Please ensure that you do proper input/output
+Lastly, we often compile ARTS without debug information, turning off several sanity checks inside the classes.
+These might cause segmentation fault if encountered in Python.  Please ensure that you do proper input/output
 error handling manually when mapping to these functionalities.
 
 \section{Classes, structs, and enums}
-These are the core data holders in Arts and the python interface aims to wrap them in the way that their use in
-python mostly mimics their use in Arts.  Of course, you might sometime need to modify Arts classes to get the
-desired python behaviour.
+These are the core data holders in ARTS and the Python interface aims to wrap them in the way that their use in
+Python mostly mimics their use in ARTS.  Of course, you might sometimes need to modify ARTS classes to get the
+desired Python behaviour.
 
-It is important that all classes that can be returned or used as arguments in the python interface are defined as such.
-The only exceptions to this rule are inputs that can be automatically converted from standard types to python types
+It is important that all classes that can be returned or used as arguments in the Python interface are defined as such.
+The only exceptions to this rule are inputs that can be automatically converted from standard types to Python types
 and back by the \verb|pybind11| automatic conversion functions.
 
 \subsection{Adding new class or struct \label{subsec: new class}}
@@ -82,7 +82,7 @@ auto c = py::class_<NewClassOrStruct>(m, "NameInPython");
 
 This new class will be registered as the type \verb|pyarts.pyarts_cpp.NameInPython|.  It is also mapped via \verb|pyarts.classes.NameInPython|.
 Here \verb|NewClassOrStruct| is a class or struct that the compiler is aware of from C++, \verb|m| is the common module name (see above), and
-\verb|c| variable can accessed to modify the functionality of the class as seen in python.  Most of these modifications returns \verb|*this| as 
+\verb|c| variable can accessed to modify the functionality of the class as seen in Python.  Most of these modifications returns \verb|*this| as 
 a reference.  It is thus often more convenient to write
 \begin{verbatim}
 py::class_<NewClassOrStruct>(m, "NameInPython")
@@ -94,12 +94,12 @@ py::class_<NewClassOrStruct>(m, "NameInPython")
 Below the use of these \verb|def*| will be discussed.
 
 The main reason to use the former rather than the latter technique to define classes and structs is if you need the name
-registered in the module early on.  As mentioned above, this changes how the python documentation looks, so it is important
+registered in the module early on.  As mentioned above, this changes how the Python documentation looks, so it is important
 to register names in a timely fashion.
 
 \subsection{Adding new enum}
 There are two types of enumeration in C++.  Enum classes and C-style enums.  It is strongly recommended to make use of the
-Arts \verb|ENUMCLASS| macro when creating new enum classes in the future.  These behave very much like normal classes,
+ARTS \verb|ENUMCLASS| macro when creating new enum classes in the future.  These behave very much like normal classes,
 providing both stream operators and conversions from and to string views.
 
 If you want to add an enum class created by this macro, the following
@@ -123,7 +123,7 @@ py::class_<Jacobian::Atm>(m, "JacobianAtm")
         }));
 py::implicitly_convertible<std::string, Jacobian::Atm>();
 \end{verbatim}
-This will allow you to read and write to the enum using python \verb|str|.
+This will allow you to read and write to the enum using Python \verb|str|.
 
 If you have an enum class that does not derive from \verb|ENUMCLASS| or a pure C-style enum, the following example should help:
 \begin{verbatim}
@@ -144,37 +144,37 @@ py::enum_<PType>(m, "PType")
 \end{verbatim}
 This allows values to be accessed using, e.g., \verb|pyarts.pyarts_cpp.PTYPE_GENERAL|.  The \verb|.value| register a name of a value of the enum.
 
-\subsection{Conversion from python to Arts types}
-As said about the \verb|JacobianAtm| example above, it is possible and quite easy to initialize Arts types from python types.  This works by
+\subsection{Conversion from Python to ARTS types}
+As said about the \verb|JacobianAtm| example above, it is possible and quite easy to initialize ARTS types from Python types.  This works by
 making use of the \verb|def(py::init(*))| method.  The \verb|*| should be replaced by a lambda that takes any number of arguments and 
 returns a raw pointer or a value of the type that is being initialized.  (Note that it does not work to use smart pointers here as
-the python interface needs to take ownership.)
+the Python interface needs to take ownership.)
 
 The \verb|def(py::init([](const std::string& c) {*}| call from the example above, for instance, makes it possible to call
 \begin{verbatim}
 import pyarts.pyarts_cpp as cxx
 x = cxx.JacobianAtm("Temperature")
 \end{verbatim}
-in python.  A \verb|std::string| is not a python type, but \verb|pybind11| provides several automatic conversions between
-python and some standard C++ types.  These conversions generally depends on the right files being included.
+in Python.  A \verb|std::string| is not a Python type, but \verb|pybind11| provides several automatic conversions between
+Python and some standard C++ types.  These conversions generally depend on the right files being included.
 Likewise, we can define our own automatic conversions using \verb|py::implicitly_convertible<From, To>();|.  Since we registered the 
 conversion from a C++ string to a \verb|Jacobian::Atm| above, almost any functionality that takes this type (e.g., a call to a function)
-also accepts a python string.  The one exception here is if the function has been marked to not allow any conversions.
+also accepts a Python string.  The one exception here is if the function has been marked to not allow any conversions.
 
 The lambda function initializing a class can take any number of variables. These can also have default values.  More about that later.
 
 Feel free to add as many implicit conversions to a class as you see fit, but remember to always have the accompanying
-initialization function defined when you do so.  The more implicit conversions we can guarantee works, the easier it
-will be to use Arts from python.
+initialization function defined when you do so.  The more implicit conversions we can guarantee to work, the easier it
+will be to use ARTS from Python.
 
 \subsection{Modifying an existing class}
-We can add pretty much and functionality to a python class.  This section will list the ones we use.
+We can add pretty much any functionality to a Python class.  This section will list the ones we use.
 For more details on how function arguments work, see the relevant section further down.
 This section assumes you have \verb|c| defined as in subsection~\ref{subsec: new class}.  For short
-we will say that the C++ class \verb|c| represent is \verb|MyClass|.
+we will say that the C++ class \verb|c| represents is \verb|MyClass|.
 
 Note that this subsection will only deal with non-static modifications.  These must always have
-the class itself as the first argument, just as python.  All of these options have static
+the class itself as the first argument, just as Python.  All of these options have static
 versions as well, where the only difference is that there is no first property.  The exception here
 is the \verb|py::init| function, which does not require an object already but must return it.
 
@@ -187,7 +187,7 @@ Properties are added as
 \begin{verbatim}
 c.def_property("property_name", reading, writing)
 \end{verbatim}
-This property is now available as normal python properties all instances of \verb|c| in python.
+This property is now available as a normal Python property in all instances of \verb|c| in Python.
 Here \verb|reading| and \verb|writing| are instances of \verb|py::cpp_function|.  This class
 can be constructed from a simple lambda function or be allowed more arguments.  Note that if \verb|reading|
 is constructed from a lambda function, it will return a copy of the object.  It might be better to allow it to return
@@ -243,16 +243,17 @@ pointer (if x.set_my_property_value(y) sets the value):
 writing := &MyClass::set_my_property_value
 \end{verbatim}
 It might be worth here to play around with the input type.  Some input
-is better as copies with a partner \verb|std::move|, others might need
+is better as copies with a corresponding \verb|std::move|, others might need
 a constant reference instead.
 
 Note that properties are sometimes weird workarounds around for C++ classes that provides get- and set-functions
 instead of exposing member variables.  If you really want to have properties on your class, it might be worth
-the effort to modify the original Arts class to expose its members variables in public instead.  Why would you
-allow direct manipulation of data this way in python but not in C++?
+the effort to modify the original ARTS class to expose its members variables in public instead.  Why would you
+allow direct manipulation of data this way in Python but not in C++ if the setter does not perform any additional
+logic or checks on the set value?
 
 \subsubsection{Adding a modifiable value}
-Any publically exposed variable of a class can be read from or written to in python using
+Any publically exposed variable of a class can be read from or written to in Python using
 
 \begin{verbatim}
 def_readwrite("readwrite_name", &MyClass::value)
@@ -263,7 +264,7 @@ to not return a copy.  This is done as:
 def_readwrite("readwrite_name", &MyClass::value,
     py::return_value_policy::reference_internal)
 \end{verbatim}
-Note that from python, this will look exactly like a standard property.
+Note that from Python, this will look exactly like a standard property.
 
 \subsubsection{Adding a function}
 A function is defines as
@@ -302,7 +303,7 @@ Monkey patching is when a functionality is added to a class at runtime.  We need
 conversions to \verb|xarray| or to make use of \verb|numpy| or \verb|scipy| when deemed necessary.  If possible, this should be
 avoided as far as possible because it has several drawbacks, one of which is that it is relatively slow.
 
-Anyways, the solution for monkey patching we have gone with in Arts is to retain static function pointers that are overwritten
+Anyways, the solution for monkey patching we have gone with in ARTS is to retain static function pointers that are overwritten
 when \verb|pyarts| is imported and, crucially, reset when \verb|pyarts| is destroyed.  The latter is important to not create
 segmentation faults.
 
@@ -335,14 +336,14 @@ struct MyClass {
 };
 }  // namespace details
 \end{verbatim}
-Now again inside the function we need to define a way to overwrite this from python and to cleanly destroy it.
+Now again inside the function we need to define a way to overwrite this from Python and to cleanly destroy it.
 To overwrite the function, we consider it best practice to hide the class from normal users by defining it as
 \begin{verbatim}
 py::class_<details::MyClass>(m, "MyClass::details")
     .def_readwrite_static("monkey_function",
                         &details::MyClass::monkey_function);
 \end{verbatim}
-This can only be overwritten in python using the \verb|getattr| built-in function such as
+This can only be overwritten in Python using the \verb|getattr| built-in function such as
 \begin{verbatim}
 import pyarts.pyarts_cpp as cxx
 def print_two(a, b): print(a, b)
@@ -359,13 +360,13 @@ The trick here is that there will exist a \verb|_cleanupMyClass| on the \verb|py
 This is ugly and technically users can overwrite it.  However, it is guaranteed that when a module (like \verb|pyarts|)
 is destroyed, it will first destroy all variables beginning with a single underscore.  Thus the first thing that will
 happen is that the \verb|details::MyClass| struct will be restored to its original state and it will not have dangling
-pointers when the python function \verb|print_two| is destroyed.
+pointers when the Python function \verb|print_two| is destroyed.
 
-Note: do not define any monkey patch python function with a name containing a leading underscore.  This might lead to
+Note: do not define any monkey patch Python function with a name containing a leading underscore.  This might lead to
 segmentation faults when closing down \verb|pyarts|.
 
 \section{Workspace and Agenda}
-The workspace and agenda are special classes in Arts.  An agenda can only exist on a workspace but the linkage to that workspace 
+The workspace and agenda are special classes in ARTS.  An agenda can only exist on a workspace but the linkage to that workspace 
 is implicit and not explicit.
 
 Normally, there should be no problems adding new types and functions to the workspace within the scope of the current implementations.  The file \verb|gen_auto_py.cpp| will generate the interface for you.
@@ -373,7 +374,7 @@ Normally, there should be no problems adding new types and functions to the work
 Note that each new workspace group has to define a large set of functionality defined by the \verb|TestClassesBasic.py| continuous integration test.
 
 \section{Functions}
-Functions can be defined on the python module in C++.
+Functions can be defined on the Python module in C++.
 Given the module \verb|m| as used above, this is done with
 \begin{verbatim}
 lambda:
@@ -386,7 +387,7 @@ m.def("module_level_function", &module_level_function);
 Here again the ellipsis means any number of arguments.
 This is pretty much identical to how functions are defined for classes, but the first variable does not have to be a reference to \verb|self| or \verb|this|.
 
-Note again that all the classes and types that this function accept must have been defined either as automatically convertible from standard python types, or as classes or enums in the way detailed above.
+Note again that all the classes and types that this function accept must have been defined either as automatically convertible from standard Python types, or as classes or enums in the way detailed above.
 
 The main point of this section is to go over some of the additional options that can be given to the function definition to change and modify their behaviour.
 
@@ -410,8 +411,8 @@ The main effect of keeping an object alive with the help of another is that it s
 Most of the time you do not want pure functions returning references, but it is common practice for classes.  For instance,
 the \verb|matpack| types can all return a non-owning \verb|numpy| array using the \verb|value| property.  This array is not
 a reference to any value inside the type, yet the \verb|numpy| array needs the \verb|matpack| type to remain alive for as long
-as it exist.  It thus sets \verb|py::keep_alive<0, 1>()| so that the return value of the \verb|value| getter keeps the main
-object alive for as long as it exist.
+as it exists.  It thus sets \verb|py::keep_alive<0, 1>()| so that the return value of the \verb|value| getter keeps the main
+object alive for as long as it exists.
 
 \subsection{Return value policy}
 This is defined as 
@@ -425,9 +426,9 @@ pointer:
 m.def("module_level_function", &module_level_function,
     py::return_value_policy::*);
 \end{verbatim}
-where the \verb|*| is replaced by the policy.  This determines how python views the ownership of the returned object.  For instance,
-the policy: \verb|reference_internal| is used by all array access getters. This ensures that the returned python object keeps the
-array alive and that also that the python object is not the owner of itself.  The difference with pure keep alive is small but still there.
+where the \verb|*| is replaced by the policy.  This determines how Python views the ownership of the returned object.  For instance,
+the policy: \verb|reference_internal| is used by all array access getters. This ensures that the returned Python object keeps the
+array alive and that also that the Python object is not the owner of itself.  The difference with pure keep alive is small but still there.
 
 \subsection{Function arguments}
 This is defined as:
@@ -462,7 +463,7 @@ for a function that takes 6 arguments.
 \item The third argument will be named \verb|bar|.  It has the default value of \verb|None| and the documentation text will say so.
 \item The fourth argument will be named \verb|foobar|.  It has the default value of \verb|5| and the documentation text will say so.  It cannot be implicitly converted to the type it has but must have an exactly matching type to whatever \verb|module_level_function| takes as a fourth argument.
 \item The fifth argument will be names \verb|valfoo|.  It has the default value 5.0 but the documentation will say it is 4.  It cannot be set from \verb|None|.
-\item The sixth argument will be names \verb|valbar|.  It has the default value of \verb|Vector(5)| but the documentation will say it is \verb|JustAVector|.  It cannot be \verb|None|.  It is also not possible to set the sixth argument from any other type than whatever \verb|module_level_function| takes as a sixth argument
+\item The sixth argument will be names \verb|valbar|.  It has the default value of \verb|Vector(5)| but the documentation will say it is \verb|JustAVector|.  It cannot be \verb|None|.  It is also not possible to set the sixth argument from any other type than whatever \verb|module_level_function| takes as a sixth argument.
 \end{itemize}
 
 \subsubsection{Variant}
@@ -498,7 +499,7 @@ pointer:
 m.def("module_level_function", &module_level_function,
     py::doc("..."));
 \end{verbatim}
-The function will now have the ellipsis as its python documentation.  Please follow best practices for python documentation while writing these strings.  Also
+The function will now have the ellipsis as its Python documentation.  Please follow best practices for Python documentation while writing these strings.  Also
 note that it is very convenient to just
 \begin{verbatim}
 m.def("module_level_function",
