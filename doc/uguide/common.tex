@@ -207,21 +207,28 @@
 \newcommand{\theory}{\emph{ARTS Theory}}
 
 %- Cope comments
+\usemintedstyle{sas}
 \definecolor{LightGray}{gray}{0.9}
 \setminted[cpp]{
 frame=lines,
 framesep=2mm,
 baselinestretch=1.2,
 bgcolor=LightGray,
-fontsize=\footnotesize
+fontsize=\footnotesize,
+autogobble,
+label=C++
 }
 \setminted[python]{
 frame=lines,
 framesep=2mm,
 baselinestretch=1.2,
 bgcolor=LightGray,
-fontsize=\footnotesize
+fontsize=\footnotesize,
+autogobble,
+label=Python,
+python3=true
 }
+\setmintedinline{bgcolor={}}
 
 %------------------------------------------------------------------------------
 
