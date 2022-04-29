@@ -320,8 +320,12 @@ Returns:\
     Type, PropertyName, ReadFunction, WriteFunction)                       \
   def_property(                                                            \
       #PropertyName,                                                       \
-      py::cpp_function([](Type& x) { return x.ReadFunction(); },           \
-                       py::return_value_policy::reference_internal),       \
+      py::cpp_function(                                                    \
+          [](Type& x)                                                      \
+              -> std::remove_cv_t<std::add_lvalue_reference_t<decltype(x.ReadFunction())>> { \
+            return x.ReadFunction();                                       \
+          },                                                               \
+          py::return_value_policy::reference_internal),                    \
       [](Type& x, std::remove_reference_t<decltype(x.ReadFunction())> y) { \
         x.WriteFunction() = std::move(y);                                  \
       })
