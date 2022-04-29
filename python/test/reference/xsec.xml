@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<XsecRecord version="2">
+<String name="species">"HFC245fa"</String>
+<Vector name="Mininum pressures from fit" nelem="1">
+10000
+</Vector>
+<Vector name="Maximum pressures from fit" nelem="1">
+20000
+</Vector>
+<Vector name="Mininum temperatures from fit" nelem="1">
+296
+</Vector>
+<Vector name="Maximum temperatures from fit" nelem="1">
+296
+</Vector>
+<Array name="Fit coefficients" type="GriddedField2" nelem="1">
+<GriddedField2>
+<Vector name="frequency grid [Hz]" nelem="5">
+10
+20
+30
+40
+50
+</Vector>
+<Array name="fit coefficients [m]" type="String" nelem="4">
+<String>"p00"</String>
+<String>"p10"</String>
+<String>"p01"</String>
+<String>"p20"</String>
+</Array>
+<Matrix name="Data" nrows="5" ncols="4">
+1 2 3 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+</Matrix>
+</GriddedField2>
+</Array>
+</XsecRecord>
+</arts>
