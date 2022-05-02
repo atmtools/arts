@@ -89,6 +89,7 @@ pybind11_add_module(pyarts_cpp
     py_global.cpp
     py_xsec.cpp
     py_nlte.cpp
+    py_constants.cpp
 
     py_auto_interface.h
     py_auto_interface.cc
