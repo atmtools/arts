@@ -27,10 +27,10 @@ void py_constants(py::module_& m) {
 
   py::class_<ConversionDummy>(m, "convert")
       .PythonInterfaceConvert(
-          freq2kaycm, double, "Frequency [Hz]", "Kayser [cm-1]")
+          freq2kaycm, Numeric, "Frequency [Hz]", "Kayser [cm-1]")
       .PythonInterfaceConvert(
-          kaycm2freq, double, "Kayser [cm-1]", "Frequency [Hz]")
-      .PythonInterfaceConvert(pa2torr, double, "Pressure [Pa]", "Torr [Torr]")
-      .PythonInterfaceConvert(torr2pa, double, "Torr [Torr]", "Pressure [Pa]");
+          kaycm2freq, Numeric, "Kayser [cm-1]", "Frequency [Hz]")
+      .PythonInterfaceConvert(pa2torr, Numeric, "Pressure [Pa]", "Torr [Torr]")
+      .PythonInterfaceConvert(torr2pa, Numeric, "Torr [Torr]", "Pressure [Pa]");
 }
 }  // namespace Python
