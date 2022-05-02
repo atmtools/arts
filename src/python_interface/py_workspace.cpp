@@ -174,13 +174,15 @@ void py_workspace(py::module_& m,
       .def("__str__",
            [](const WorkspaceVariable& w) {
              return var_string("Workspace ",
-                               global_data::wsv_group_names.at(
-                                   w.ws.wsv_data.at(w.pos).Group()));
+                               global_data::wsv_group_names.at(w.group()));
            })
-      .def("__repr__", [](const WorkspaceVariable& w) {
-        return var_string(
-            "Workspace ",
-            global_data::wsv_group_names.at(w.ws.wsv_data.at(w.pos).Group()));
+      .def("__repr__",
+           [](const WorkspaceVariable& w) {
+             return var_string("Workspace ",
+                               global_data::wsv_group_names.at(w.group()));
+           })
+      .def_property_readonly("group", [](const WorkspaceVariable& w) {
+        return global_data::wsv_group_names.at(w.group());
       });
 
   ws.def("number_of_initialized_variables", [](Workspace& w){
