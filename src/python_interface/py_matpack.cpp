@@ -96,22 +96,12 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Vector>()(t[0]).cast<Vector>();
           }))
-      .doc() =
-      "The Arts Vector class\n"
-      "\n"
-      "This class is compatible with numpy arrays.  The data can "
-      "be accessed without copy using np.array(x, copy=False), "
-      "with x as an instance of this class.  Note that access to "
-      "any and all of the mathematical operations are only available "
-      "via the numpy interface.  Also note that the equality operation "
-      "only checks pointer equality and not element-wise equality\n"
-      "\n"
-      "Initialization:\n"
-      "    Vector(): for basic initialization\n\n"
-      "    Vector(Index): for constant size, unknown value\n\n"
-      "    Vector(Index, Numeric): for constant size, constant value\n\n"
-      "    Vector(List or Array): to copy elements\n\n"
-      "    Vector(Numeric x, Index n, Numeric dx): as Vector([x+i*dx for i in range(n)])\n\n";
+      .doc() = R"--(The Arts Vector class
+
+This class is mostly compatible with numpy arrays including numpy math.
+The data can be accessed without copy using np.array(x, copy=False) or
+via x.value
+)--";
 
   py::class_<Matrix, MatrixView>(m, "Matrix", py::buffer_protocol())
       .def(py::init([]() { return new Matrix{}; }))
@@ -161,21 +151,12 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Matrix>()(t[0]).cast<Matrix>();
           }))
-      .doc() =
-      "The Arts Matrix class\n"
-      "\n"
-      "This class is compatible with numpy arrays.  The data can "
-      "be accessed without copy using np.array(x, copy=False), "
-      "with x as an instance of this class.  Note that access to "
-      "any and all of the mathematical operations are only available "
-      "via the numpy interface.  Also note that the equality operation "
-      "only checks pointer equality and not element-wise equality\n"
-      "\n"
-      "Initialization:\n"
-      "    Matrix(): for basic initialization\n\n"
-      "    Matrix(Index, Index): for constant size, unknown value\n\n"
-      "    Matrix(Index, Index, Numeric): for constant size, constant value\n\n"
-      "    Matrix(List or Array): to copy elements\n\n";
+      .doc() = R"--(The Arts Matrix class
+
+This class is mostly compatible with numpy arrays including numpy math.
+The data can be accessed without copy using np.array(x, copy=False) or
+via x.value
+)--";
 
   py::class_<Tensor3, Tensor3View>(m, "Tensor3", py::buffer_protocol())
       .def(py::init([]() { return new Tensor3{}; }))
@@ -227,21 +208,12 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor3>()(t[0]).cast<Tensor3>();
           }))
-      .doc() =
-      "The Arts Tensor3 class\n"
-      "\n"
-      "This class is compatible with numpy arrays.  The data can "
-      "be accessed without copy using np.array(x, copy=False), "
-      "with x as an instance of this class.  Note that access to "
-      "any and all of the mathematical operations are only available "
-      "via the numpy interface.  Also note that the equality operation "
-      "only checks pointer equality and not element-wise equality\n"
-      "\n"
-      "Initialization:\n"
-      "    Tensor3(): for basic initialization\n\n"
-      "    Tensor3(Index, Index, Index): for constant size, unknown value\n\n"
-      "    Tensor3(Index, Index, Index, Numeric): for constant size, constant value\n\n"
-      "    Tensor3(List or Array): to copy elements\n\n";
+      .doc() = R"--(The Arts Tensor3 class
+
+This class is mostly compatible with numpy arrays including numpy math.
+The data can be accessed without copy using np.array(x, copy=False) or
+via x.value
+)--";
 
   py::class_<Tensor4, Tensor4View>(m, "Tensor4", py::buffer_protocol())
       .def(py::init([]() { return new Tensor4{}; }))
@@ -300,21 +272,12 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor4>()(t[0]).cast<Tensor4>();
           }))
-      .doc() =
-      "The Arts Tensor4 class\n"
-      "\n"
-      "This class is compatible with numpy arrays.  The data can "
-      "be accessed without copy using np.array(x, copy=False), "
-      "with x as an instance of this class.  Note that access to "
-      "any and all of the mathematical operations are only available "
-      "via the numpy interface.  Also note that the equality operation "
-      "only checks pointer equality and not element-wise equality\n"
-      "\n"
-      "Initialization:\n"
-      "    Tensor4(): for basic initialization\n\n"
-      "    Tensor4(Index, Index, Index, Index): for constant size, unknown value\n\n"
-      "    Tensor4(Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
-      "    Tensor4(List or Array): to copy elements\n\n";
+      .doc() = R"--(The Arts Tensor4 class
+
+This class is mostly compatible with numpy arrays including numpy math.
+The data can be accessed without copy using np.array(x, copy=False) or
+via x.value
+)--";
 
   py::class_<Tensor5, Tensor5View>(m, "Tensor5", py::buffer_protocol())
       .def(py::init([]() { return new Tensor5{}; }))
@@ -377,21 +340,12 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor5>()(t[0]).cast<Tensor5>();
           }))
-      .doc() =
-      "The Arts Tensor5 class\n"
-      "\n"
-      "This class is compatible with numpy arrays.  The data can "
-      "be accessed without copy using np.array(x, copy=False), "
-      "with x as an instance of this class.  Note that access to "
-      "any and all of the mathematical operations are only available "
-      "via the numpy interface.  Also note that the equality operation "
-      "only checks pointer equality and not element-wise equality\n"
-      "\n"
-      "Initialization:\n"
-      "    Tensor5(): for basic initialization\n\n"
-      "    Tensor5(Index, Index, Index, Index, Index): for constant size, unknown value\n\n"
-      "    Tensor5(Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
-      "    Tensor5(List or Array): to copy elements\n\n";
+      .doc() = R"--(The Arts Tensor5 class
+
+This class is mostly compatible with numpy arrays including numpy math.
+The data can be accessed without copy using np.array(x, copy=False) or
+via x.value
+)--";
 
   py::class_<Tensor6, Tensor6View>(m, "Tensor6", py::buffer_protocol())
       .def(py::init([]() { return new Tensor6{}; }))
@@ -464,21 +418,12 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor6>()(t[0]).cast<Tensor6>();
           }))
-      .doc() =
-      "The Arts Tensor6 class\n"
-      "\n"
-      "This class is compatible with numpy arrays.  The data can "
-      "be accessed without copy using np.array(x, copy=False), "
-      "with x as an instance of this class.  Note that access to "
-      "any and all of the mathematical operations are only available "
-      "via the numpy interface.  Also note that the equality operation "
-      "only checks pointer equality and not element-wise equality\n"
-      "\n"
-      "Initialization:\n"
-      "    Tensor6(): for basic initialization\n\n"
-      "    Tensor6(Index, Index, Index, Index, Index, Index): for constant size, unknown value\n\n"
-      "    Tensor6(Index, Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
-      "    Tensor6(List or Array): to copy elements\n\n";
+      .doc() = R"--(The Arts Tensor6 class
+
+This class is mostly compatible with numpy arrays including numpy math.
+The data can be accessed without copy using np.array(x, copy=False) or
+via x.value
+)--";
 
   py::class_<Tensor7, Tensor7View>(m, "Tensor7", py::buffer_protocol())
       .def(py::init([]() { return new Tensor7{}; }))
@@ -560,21 +505,12 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor7>()(t[0]).cast<Tensor7>();
           }))
-      .doc() =
-      "The Arts Tensor7 class\n"
-      "\n"
-      "This class is compatible with numpy arrays.  The data can "
-      "be accessed without copy using np.array(x, copy=False), "
-      "with x as an instance of this class.  Note that access to "
-      "any and all of the mathematical operations are only available "
-      "via the numpy interface.  Also note that the equality operation "
-      "only checks pointer equality and not element-wise equality\n"
-      "\n"
-      "Initialization:\n"
-      "    Tensor7(): for basic initialization\n\n"
-      "    Tensor7(Index, Index, Index, Index, Index, Index, Index): for constant size, unknown value\n\n"
-      "    Tensor7(Index, Index, Index, Index, Index, Index, Index, Numeric): for constant size, constant value\n\n"
-      "    Tensor7(List or Array): to copy elements\n\n";
+      .doc() =R"--(The Arts Tensor7 class
+
+This class is mostly compatible with numpy arrays including numpy math.
+The data can be accessed without copy using np.array(x, copy=False) or
+via x.value
+)--";
 
   py::implicitly_convertible<std::vector<Scalar>, Vector>();
   py::implicitly_convertible<std::vector<std::vector<Scalar>>, Matrix>();
