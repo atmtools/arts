@@ -91,6 +91,7 @@ update the PyARTS package by running:
 make -jX pyarts
 ```
 
+
 Build configurations
 --------------------
 
@@ -125,22 +126,33 @@ make clean
 make
 ```
 
-Native build
-------------
 
-To squeeze out every last drop of performance, you can also build a version
-specifically optimized for your machine's processor:
+PyARTS Conda and Python compatibility
+-------------------------------------
+
+If you're using a conda distribution as your Python environment, it is strongly
+recommended to compile the PyARTS Python package with the clang compiler (>=13)
+provided by your conda distribution (anaconda/miniforge/mambaforge) to avoid
+compatibility issues.
+
+Install the required compiler packages in your python environment:
 
 ```
-cmake -DCMAKE_BUILD_TYPE=Native ..
-make clean
-make
+conda install clang clangxx libcxx llvm-openmp
 ```
 
-This option should make the executable slightly faster, more so on better
-systems, but not portable. Note that since this build-mode is meant for
-fast-but-accurate computations, some IEEE rules will be ignored. For now only
-complex computations are IEEE incompatible running this mode of build.
+The following cmake configuration will ensure that the correct libraries from
+your conda distribution are used during the compilation. Ensure you run this in
+an empty build directory and adjust the CONDADIR path to the location where
+conda is installed on your system:
+
+```
+export CONDADIR=$HOME/mambaforge
+
+CXXFLAGS="-stdlib=libc++" LDFLAGS="-L$CONDADIR/lib -Wl,-rpath,$CONDADIR/lib -lc++abi" \
+  cmake -DCMAKE_PREFIX_PATH=$CONDADIR -DCMAKE_C_COMPILER=clang  -DCMAKE_CXX_COMPILER=clang++ ..
+```
+
 
 Installing PyARTS
 -----------------
@@ -162,6 +174,7 @@ A link to the pyarts package is created in your home directory, usually
 
 You don't need to reinstall the package with pip after updating ARTS.
 You only need to run `make pyarts` again.
+
 
 Tests
 -----
@@ -217,6 +230,24 @@ CTEST_OUTPUT_ON_FAILURE:
 ```
 export CTEST_OUTPUT_ON_FAILURE=1
 ```
+
+
+Native build
+------------
+
+To squeeze out every last drop of performance, you can also build a version
+specifically optimized for your machine's processor:
+
+```
+cmake -DCMAKE_BUILD_TYPE=Native ..
+make clean
+make
+```
+
+This option should make the executable slightly faster, more so on better
+systems, but not portable. Note that since this build-mode is meant for
+fast-but-accurate computations, some IEEE rules will be ignored. For now only
+complex computations are IEEE incompatible running this mode of build.
 
 
 Optional features
