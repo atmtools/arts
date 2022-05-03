@@ -277,6 +277,13 @@ class TestVariables:
         v = global_data.convert("ArrayOfArrayOfIndex", 1)
         return v
 
+    def test_typeerror(self):
+        with pytest.raises(TypeError):
+            self.ws.f_grid = 1
+
+        with pytest.raises(TypeError):
+            self.ws.f_grid = 'c'
+
 
 if __name__ == "__main__":
     ta = TestVariables()
