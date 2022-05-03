@@ -29,7 +29,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       py::arg("file").none(false),                                         \
       py::arg("type").none(false) = "ascii",                               \
       py::arg("clobber") = true,                                           \
-      py::doc("Saves " #Type " to file\n"                                  \
+      py::doc("Saves :class:`" #Type "` to file\n"                                  \
               "\n"                                                         \
               "Parameters:\n"                                              \
               "    file (str): The path to which the file is written."     \
@@ -48,7 +48,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             xml_read_from_file(file, x, Verbosity());                      \
           },                                                               \
           py::arg("file").none(false),                                     \
-          py::doc("Read " #Type " from file\n"                             \
+          py::doc("Read :class:`" #Type "` from file\n"                             \
                   "\n"                                                     \
                   "Parameters:\n"                                          \
                   "    file (str): A file that can be read\n"              \
@@ -138,7 +138,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           [](Array<BaseType>& x, BaseType y) {                                \
             x.emplace_back(std::move(y));                                     \
           },                                                                  \
-          py::doc("Appends a " #BaseType " at the end of the Array"))         \
+          py::doc("Appends a :class:`" #BaseType "` at the end of the Array"))         \
       .def(                                                                   \
           "pop",                                                              \
           [](Array<BaseType>& x) -> BaseType {                                \
@@ -147,7 +147,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             x.pop_back();                                                     \
             return copy;                                                      \
           },                                                                  \
-          py::doc("Pops a " #BaseType " from the Array"))                     \
+          py::doc("Pops a :class:`" #BaseType "` from the Array"))                     \
       .def(py::pickle(                                                        \
           [](const Array<BaseType>& v) {                                      \
             auto n = v.size();                                                \
