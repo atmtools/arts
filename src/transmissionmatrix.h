@@ -41,8 +41,7 @@
 #include "propagationmatrix.h"
 
 /** Class to keep track of Transmission Matrices for Stokes Dim 1-4 */
-class TransmissionMatrix {
- private:
+struct TransmissionMatrix {
   Index stokes_dim;
   std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>> T4;
   std::vector<Eigen::Matrix3d, Eigen::aligned_allocator<Eigen::Matrix3d>> T3;
@@ -50,8 +49,6 @@ class TransmissionMatrix {
   std::vector<Eigen::Matrix<double, 1, 1>,
               Eigen::aligned_allocator<Eigen::Matrix<double, 1, 1>>>
       T1;
-
- public:
 
   /** Construct a new Transmission Matrix object
    * 
@@ -269,9 +266,6 @@ class TransmissionMatrix {
     }
   }
 
-  /** Stokes dimensionaility */
-  [[nodiscard]] Index StokesDim() const { return stokes_dim; }
-
   /** Number of frequencies */
   [[nodiscard]] Index Frequencies() const {
     switch (stokes_dim) {
@@ -470,8 +464,7 @@ inline LazyScale<TransmissionMatrix> operator*(const Numeric& x,
 }
 
 /** Radiation Vector for Stokes dimension 1-4 */
-class RadiationVector {
- private:
+struct RadiationVector {
   Index stokes_dim;
   std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> R4;
   std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> R3;
@@ -479,8 +472,6 @@ class RadiationVector {
   std::vector<Eigen::Matrix<double, 1, 1>,
               Eigen::aligned_allocator<Eigen::Matrix<double, 1, 1>>>
       R1;
-
- public:
 
   /** Construct a new Radiation Vector object
    * 
@@ -968,9 +959,6 @@ class RadiationVector {
           R1[i][0] = a.Kjj()[i] * B[i];
     }
   }
-
-  /** Get Stokes dimension */
-  [[nodiscard]] Index StokesDim() const { return stokes_dim; }
 
   /** Get frequency count */
   [[nodiscard]] Index Frequencies() const {

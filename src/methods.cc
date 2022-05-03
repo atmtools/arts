@@ -225,6 +225,23 @@ void define_md_data_raw() {
           ArrayOfString(GIN_TYPE()),
           ArrayOfString(GIN_DEFAULT()),
           ArrayOfString(GIN_DESC())));
+
+        if (wsv_group_name not_eq "Agenda" and wsv_group_name not_eq "ArrayOfAgenda") {
+            md_data_raw.push_back(MdRecord(
+                NAME(String(wsv_group_name + "Set").c_str()),
+                DESCRIPTION("Sets a workspace variable to the given value.\n"),
+                ArrayOfString(AUTHORS("Richard Larsson")),
+                ArrayOfString(OUT()),
+                ArrayOfString(GOUT("out")),
+                ArrayOfString(GOUT_TYPE(wsv_group_name.c_str())),
+                ArrayOfString(GOUT_DESC("Variable to initialize.")),
+                ArrayOfString(IN()),
+                ArrayOfString(GIN("value")),
+                ArrayOfString(GIN_TYPE(wsv_group_name.c_str())),
+                ArrayOfString(GIN_DEFAULT(NODEF)),
+                ArrayOfString(GIN_DESC("The value.")),
+                SETMETHOD(true)));
+        }
     }
   }
 
@@ -636,6 +653,25 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("CallbackFunctionExecute"),
+      DESCRIPTION("Execute any code in Arts\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("function"),
+      GIN_TYPE("CallbackFunction"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("This will execute as \"function(current workspace);\""),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true),
+      PASSWSVNAMES(false)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("CheckUnique"),
@@ -3046,36 +3082,6 @@ void define_md_data_raw() {
                "Spacing of the array.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("ArrayOfIndexSet"),
-      DESCRIPTION("Creates an ArrayOfIndex from the given list of numbers.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("ArrayOfIndex"),
-      GOUT_DESC("Variable to initialize."),
-      IN(),
-      GIN("value"),
-      GIN_TYPE("ArrayOfIndex"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Indexes for initializiation."),
-      SETMETHOD(true)));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ArrayOfSpeciesTagSet"),
-      DESCRIPTION("Creates an ArrayOfSpeciesTag from the given ArrayOfSpeciesTag.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("ArrayOfSpeciesTag"),
-      GOUT_DESC("Variable to initialize."),
-      IN(),
-      GIN("value"),
-      GIN_TYPE("ArrayOfSpeciesTag"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("List of SpeciesTag for initializiation."),
-      SETMETHOD(true)));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfIndexSetConstant"),
       DESCRIPTION("Creates an ArrayOfIndex of length *nelem*, with all values\n"
                   "identical.\n"),
@@ -3089,22 +3095,6 @@ void define_md_data_raw() {
       GIN_TYPE("Index"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Array value.."),
-      SETMETHOD(true)));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ArrayOfStringSet"),
-      DESCRIPTION("Sets a String array according the given text.\n"
-                  "The format is text = [\"String1\",\"String2\",...]\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("ArrayOfString"),
-      GOUT_DESC("Variable to initialize."),
-      IN(),
-      GIN("value"),
-      GIN_TYPE("ArrayOfString"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Strings for initialization."),
       SETMETHOD(true)));
 
   md_data_raw.push_back(create_mdrecord(
@@ -6263,20 +6253,6 @@ void define_md_data_raw() {
         "Mean collision interaction distance")));
 
   md_data_raw.push_back(create_mdrecord(
-    NAME("EnergyLevelMapSet"),
-      DESCRIPTION("Sets an EnergyLevelMap\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("x"),
-      GOUT_TYPE("EnergyLevelMap"),
-      GOUT_DESC("out"),
-      IN(),
-      GIN("y"),
-      GIN_TYPE("EnergyLevelMap"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("in")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("Error"),
       DESCRIPTION(
           "Issues an error and exits ARTS.\n"
@@ -7365,21 +7341,6 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("IndexSet"),
-      DESCRIPTION("Sets a Index workspace variable to the given value.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Index"),
-      GOUT_DESC("Variable to initialize."),
-      IN(),
-      GIN("value"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Value."),
-      SETMETHOD(true)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexSetToLast"),
@@ -10322,25 +10283,6 @@ void define_md_data_raw() {
                "The value to be multiplied with the matrix.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("MatrixSet"),
-      DESCRIPTION("Initialize a Matrix from the given list of numbers.\n"
-                  "\n"
-                  "Usage:\n"
-                  "   MatrixSet(m1, [1, 2, 3; 4, 5, 6])\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Matrix"),
-      GOUT_DESC("The newly created matrix"),
-      IN(),
-      GIN("value"),
-      GIN_TYPE("Matrix"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("The values of the newly created matrix. Elements are separated "
-               "by commas, rows by semicolons."),
-      SETMETHOD(true)));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixSetConstant"),
       DESCRIPTION(
           "Creates a matrix and sets all elements to the specified value.\n"
@@ -10958,21 +10900,6 @@ void define_md_data_raw() {
       GIN_DESC("Input Numeric.", "Multiplier.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("NumericSet"),
-      DESCRIPTION("Sets a Numeric workspace variable to the given value.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Numeric"),
-      GOUT_DESC("Variable to initialize."),
-      IN(),
-      GIN("value"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("The value."),
-      SETMETHOD(true)));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("NumericSubtract"),
       DESCRIPTION(
           "Subtracts a Numeric value (out = in - value).\n"
@@ -10988,40 +10915,6 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Numeric.", "Subtrahend.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("QuantumIdentifierSet"),
-      DESCRIPTION(
-          "Sets a QuantumIdentifier workspace variable to the given value\n"
-          "by converting the input String\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("QuantumIdentifier"),
-      GOUT_DESC("Variable to initialize."),
-      IN(),
-      GIN("string_initializer"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("The string representing the value."),
-      SETMETHOD(false)));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ArrayOfQuantumIdentifierSet"),
-      DESCRIPTION(
-          "Sets an ArrayOfQuantumIdentifier workspace variable to the given value\n"
-          "by converting the input ArrayOfString\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("ArrayOfQuantumIdentifier"),
-      GOUT_DESC("Variables to initialize."),
-      IN(),
-      GIN("string_initializers"),
-      GIN_TYPE("ArrayOfString"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("The array of string representing the values of the array."),
-      SETMETHOD(false)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("nelemGet"),
@@ -14707,20 +14600,6 @@ void define_md_data_raw() {
       GIN_TYPE("Rational", "Rational"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Rational.", "Multiplier.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("RationalSet"),
-      DESCRIPTION("Sets a Rational workspace variable to the given value.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Rational"),
-      GOUT_DESC("Variable to initialize."),
-      IN(),
-      GIN("numerator", "denominator"),
-      GIN_TYPE("Index", "Index"),
-      GIN_DEFAULT(NODEF, "1"),
-      GIN_DESC("The numerator.", "The denominator.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RationalSubtract"),
@@ -18433,21 +18312,6 @@ void define_md_data_raw() {
                "Input text string.",
                "Input text string.")));
 
-  md_data_raw.push_back(
-      create_mdrecord(NAME("StringSet"),
-               DESCRIPTION("Sets a String to the given text string.\n"),
-               AUTHORS("Patrick Eriksson"),
-               OUT(),
-               GOUT("out"),
-               GOUT_TYPE("String"),
-               GOUT_DESC("Variable to initialize."),
-               IN(),
-               GIN("text"),
-               GIN_TYPE("String"),
-               GIN_DEFAULT(NODEF),
-               GIN_DESC("Input text string."),
-               SETMETHOD(true)));
-
   md_data_raw.push_back(create_mdrecord(
       NAME("z_surfaceFromFileAndGrid"),
       DESCRIPTION(
@@ -20449,25 +20313,6 @@ void define_md_data_raw() {
       GIN_TYPE("Matrix", "String"),
       GIN_DEFAULT(NODEF, "column"),
       GIN_DESC("Input matrix.", "Direction. \"row\" or \"column\".")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("VectorSet"),
-      DESCRIPTION(
-          "Create a vector from the given list of numbers.\n"
-          "\n"
-          "   VectorSet(p_grid, [1000, 100, 10] )\n"
-          "   Will create a p_grid vector with these three elements.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("Variable to initialize."),
-      IN(),
-      GIN("value"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("The vector elements."),
-      SETMETHOD(true)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorSetConstant"),

@@ -66,7 +66,7 @@ std::map<std::string, Group> groups() {
   std::map<std::string, std::size_t> group;
   for (auto& x : global_data::WsvGroupMap) group[x.first] = x.second;
   std::map<std::string, std::size_t> name;
-  for (auto& x : Workspace::wsv_data) name[x.Name()] = x.Group();
+  for (auto& x : Workspace::wsv_data) name[x.Name()] = x.Group();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
   std::map<std::string, std::string> desc;
   for (auto& x : Workspace::wsv_data) desc[x.Name()] = x.Description();
   std::map<std::string, std::size_t> pos;
@@ -141,38 +141,36 @@ std::vector<Method> methods() {
     actual_groups.push_back(x.ActualGroups());
   std::vector<std::vector<std::size_t>> gin_group;
   for (auto& x : global_data::md_data)
-    gin_group.push_back({x.GInType().cbegin(), x.GInType().cend()});
+    gin_group.emplace_back(x.GInType().cbegin(), x.GInType().cend());
   std::vector<std::vector<std::string>> gin_names;
   for (auto& x : global_data::md_data)
-    gin_names.push_back({x.GIn().cbegin(), x.GIn().cend()});
+    gin_names.emplace_back(x.GIn().cbegin(), x.GIn().cend());
   std::vector<std::vector<std::string>> gin_defaults;
   for (auto& x : global_data::md_data)
-    gin_defaults.push_back({x.GInDefault().cbegin(), x.GInDefault().cend()});
+    gin_defaults.emplace_back(x.GInDefault().cbegin(), x.GInDefault().cend());
   std::vector<std::vector<std::string>> gin_desc;
   for (auto& x : global_data::md_data)
-    gin_desc.push_back(
-        {x.GInDescription().cbegin(), x.GInDescription().cend()});
+    gin_desc.emplace_back(x.GInDescription().cbegin(), x.GInDescription().cend());
   std::vector<std::vector<std::size_t>> gout_group;
   for (auto& x : global_data::md_data)
-    gout_group.push_back({x.GOutType().cbegin(), x.GOutType().cend()});
+    gout_group.emplace_back(x.GOutType().cbegin(), x.GOutType().cend());
   std::vector<std::vector<std::string>> gout_names;
   for (auto& x : global_data::md_data)
-    gout_names.push_back({x.GOut().cbegin(), x.GOut().cend()});
+    gout_names.emplace_back(x.GOut().cbegin(), x.GOut().cend());
   std::vector<std::vector<std::string>> gout_desc;
   for (auto& x : global_data::md_data)
-    gout_desc.push_back(
-        {x.GOutDescription().cbegin(), x.GOutDescription().cend()});
+    gout_desc.emplace_back(x.GOutDescription().cbegin(), x.GOutDescription().cend());
   std::vector<std::vector<std::size_t>> in_wspace;
   for (auto& x : global_data::md_data)
-    in_wspace.push_back({x.In().cbegin(), x.In().cend()});
+    in_wspace.emplace_back(x.In().cbegin(), x.In().cend());
   std::vector<std::vector<std::size_t>> out_wspace;
   for (auto& x : global_data::md_data)
-    out_wspace.push_back({x.Out().cbegin(), x.Out().cend()});
+    out_wspace.emplace_back(x.Out().cbegin(), x.Out().cend());
   std::vector<std::string> desc;
   for (auto& x : global_data::md_data) desc.push_back(x.Description());
   std::vector<std::vector<std::string>> authors;
   for (auto& x : global_data::md_data)
-    authors.push_back({x.Authors().cbegin(), x.Authors().cend()});
+    authors.emplace_back(x.Authors().cbegin(), x.Authors().cend());
 
   std::vector<bool> set_method;
   for (auto& x : global_data::md_data) set_method.push_back(x.SetMethod());
@@ -193,13 +191,13 @@ std::vector<Method> methods() {
 
   std::vector<std::vector<std::size_t>> inoutvarpos;
   for (auto& x : global_data::md_data)
-    inoutvarpos.push_back({x.InOut().cbegin(), x.InOut().cend()});
+    inoutvarpos.emplace_back(x.InOut().cbegin(), x.InOut().cend());
   std::vector<std::vector<std::size_t>> invarpos;
   for (auto& x : global_data::md_data)
-    invarpos.push_back({x.InOnly().cbegin(), x.InOnly().cend()});
+    invarpos.emplace_back(x.InOnly().cbegin(), x.InOnly().cend());
   std::vector<std::vector<std::size_t>> outvarpos;
   for (auto& x : global_data::md_data)
-    outvarpos.push_back({x.Out().cbegin(), x.Out().cend()});
+    outvarpos.emplace_back(x.Out().cbegin(), x.Out().cend());
 
   std::vector<Method> retval;
   for (std::size_t i = 0; i < desc.size(); i++) {
@@ -547,7 +545,7 @@ void print_gin_methods(const NameMaps& artsname) {
 
     // Describe the method
     std::cout << "/*! " << x.desc << '\n';
-    for (auto a : x.authors) std::cout << "@author " << a << '\n';
+    for (const auto& a : x.authors) std::cout << "@author " << a << '\n';
     std::cout << "\n"
                  "@param[in,out] Workspace ws - An ARTS workspace\n";
     for (std::size_t i = 0; i < x.gout.name.size(); i++)
@@ -716,7 +714,7 @@ void print_full_methods(const NameMaps& artsname) {
 
     // Describe the method
     std::cout << "/*! " << x.desc << '\n';
-    for (auto a : x.authors) std::cout << "@author " << a << '\n';
+    for (const auto& a : x.authors) std::cout << "@author " << a << '\n';
     std::cout << "\n"
                  "@param[in,out] Workspace ws - An ARTS workspace\n";
     for (std::size_t i = 0; i < x.out.varname.size(); i++) {
@@ -894,7 +892,7 @@ void print_agenda_methods(const NameMaps& artsname) {
 
     // Describe the method
     std::cout << "/*! " << x.desc << '\n';
-    for (auto a : x.authors) std::cout << "@author " << a << '\n';
+    for (const auto& a : x.authors) std::cout << "@author " << a << '\n';
     std::cout << "\n"
                  "@param[in,out] Workspace ws - An ARTS workspace\n";
     for (std::size_t i = 0; i < x.gout.name.size(); i++)
@@ -988,20 +986,20 @@ void print_agenda_methods(const NameMaps& artsname) {
               << spaces(34) << "Group::ArrayOfIndex(" << '{';
 
     // First are all the outputs
-    for (std::size_t i = 0; i < x.out.varpos.size(); i++) {
-      std::cout << x.out.varpos[i] << ',' << '\n' << spaces(34 + 21);
+    for (unsigned long varpo : x.out.varpos) {
+      std::cout << varpo << ',' << '\n' << spaces(34 + 21);
     }
 
     // Second comes all the generic outputs
-    for (std::size_t i = 0; i < x.gout.name.size(); i++) {
-      std::cout << "Group::Index(" << x.gout.name[i] << ".pos())" << ',' << '\n' << spaces(34 + 21);
+    for (const auto & i : x.gout.name) {
+      std::cout << "Group::Index(" << i << ".pos())" << ',' << '\n' << spaces(34 + 21);
     }
     std::cout << '}' << ')' << ',' << '\n' << spaces(34) << "Group::ArrayOfIndex("
               << '{';
 
     // Then come all the inputs that are not also outputs
-    for (std::size_t i = 0; i < x.in.varpos.size(); i++) {
-      std::cout << x.in.varpos[i] << ',' << '\n' << spaces(34 + 21);
+    for (unsigned long varpo : x.in.varpos) {
+      std::cout << varpo << ',' << '\n' << spaces(34 + 21);
     }
 
     // Lastly are all the generic inputs, which cannot also be outputs

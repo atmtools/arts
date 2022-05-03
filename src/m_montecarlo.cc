@@ -665,7 +665,7 @@ void MCRadar(  // Workspace reference:
         "The vector *range_bins* is not allowed to contain "
         "negative distance or round-trip time.");
 
-  if (mc_antenna.get_type() != ANTENNA_TYPE_GAUSSIAN) {
+  if (mc_antenna.atype != ANTENNA_TYPE_GAUSSIAN) {
     throw runtime_error(
         "MCRadar only works with "
         "Gaussian antenna patterns.");

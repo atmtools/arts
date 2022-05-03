@@ -28,6 +28,7 @@
  \date   2012-11-30
  */
 
+#include "check_input.h"
 #include "cia.h"
 #include <cmath>
 #include "species_tags.h"

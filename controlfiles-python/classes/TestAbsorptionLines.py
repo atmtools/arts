@@ -1,49 +1,36 @@
-import os
-from pyarts.workspace import Workspace
-from pyarts.classes import from_workspace
-from pyarts.classes.AbsorptionLines import AbsorptionLines, ArrayOfAbsorptionLines
-from pyarts.classes.quantum import QuantumIdentifier
+import numpy as np
+import pyarts.pyarts_cpp as cxx
+import test_functions as test
 
+lineshapemodel = cxx.LineShapeModel([cxx.LineShapeSingleSpeciesModel(
+    G0=cxx.LineShapeModelParameters("T1", 10000, 0.8))])
 
-ws = Workspace()
-datapath = "../../../arts-cat-data/" if not os.getenv("ARTS_CAT_DATA_DIR") else os.getenv("ARTS_CAT_DATA_DIR")
-datapath = os.path.join(datapath, "lines/")
+line = cxx.AbsorptionSingleLine(F0=1e9,
+                                I0=1e-20,
+                                glow=5,
+                                gupp=7,
+                                zeeman=cxx.ZeemanModel(1e-4, 1e-3),
+                                localquanta="J 3 2",
+                                lineshape=lineshapemodel)
 
-# Init
-al = AbsorptionLines()
-aal = ArrayOfAbsorptionLines()
-aaal = from_workspace(ws.abs_lines_per_species)
+x = cxx.AbsorptionLines(selfbroadening=False,
+                        bathbroadening=True,
+                        broadeningspecies=["AIR"],
+                        quantumidentity="H2O-161",
+                        lines=[line],
+                        lineshapetype="VP")
 
-# Init is as expected
-assert al.selfbroadening == False, "Bad init"
-assert al.bathbroadening == False, "Bad init"
-assert al.cutoff == "None", "Bad init"
-assert al.mirroring == "None", "Bad init"
-assert al.population == "LTE", "Bad init"
-assert al.normalization == "None", "Bad init"
-assert al.lineshapetype == "VP", "Bad init"
-assert al.t0 == 296, "Bad init"
-assert al.cutofffreq == -1, "Bad init"
-assert al.linemixinglimit == -1, "Bad init"
-assert al.quantumidentity == QuantumIdentifier(), "Bad init"
-assert not al.broadeningspecies, "Bad init"
-assert not al.lines, "Bad init"
-assert al.OK, "Bad init"
+assert x.ok
 
-# Read same file twice, in ARTS and external
-ws.abs_speciesSet(species = ["O2-66"])
-aal.readxml(os.path.join(datapath, "O2-66.xml"))
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = datapath)
+test.io(x, delete=True)
 
-# Everything should be the same (with silly not-empty test)
-assert aal == aaal[0], "Bad load"
-assert aal[0].lines[0].f0 != 0, "Bad frequency"
-assert 2*aal[0].lines[0].f0 == 2*aaal[0][0].lines[0].f0, "Bad frequency"
+assert x.ok
 
-al.set(aal[0])
-assert al == aal[0], "Cannot set"
-
-al2 = AbsorptionLines()
-al.savexml("tmp.al.xml", "binary")
-al2.readxml("tmp.al.xml")
-assert al == al2
+# Test that line shapes can be computed (Check that the
+# Lorentz half-width we compute is actually the half-width)
+VMR = [1]
+T = 250
+P = 1e4
+ls = cxx.LineShapeCalculator(x, 0, T, P, VMR)
+assert np.isclose(ls.F(line.F0 + x.LineShapeOutput(0, T, P,
+                  VMR).G0).real / ls.F(line.F0).real, 0.5)

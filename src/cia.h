@@ -32,11 +32,11 @@
 #define cia_h
 
 #include "arts.h"
-#include "check_input.h"
 #include "gridded_fields.h"
 #include "matpackI.h"
 #include "mystring.h"
 #include "species.h"
+#include "messages.h"
 
 // Declare existance of some classes:
 class bifstream;
@@ -213,6 +213,9 @@ class CIARecord {
   /** Append other CIARecord to this. */
   void AppendDataset(const CIARecord& c2);
 
+std::array<Species::Species, 2> TwoSpecies() const {return mspecies;}
+std::array<Species::Species, 2>& TwoSpecies() {return mspecies;}
+
  private:
   /** Append dataset to mdata. */
   void AppendDataset(const Vector& freq,
@@ -240,7 +243,7 @@ class CIARecord {
      
      We use a plain C array here, since the length of this is always 2.
      */
-  Species::Species mspecies[2];
+  std::array<Species::Species, 2> mspecies;
 };
 
 ostream& operator<<(ostream& os, const CIARecord& cr);

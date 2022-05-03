@@ -5,7 +5,7 @@
 
 import numpy as np
 
-def init_ecs(ws, vmrs=np.array([0.21, 0.79]), specs="O2, N2"):
+def init_ecs(ws, vmrs=np.array([0.21, 0.79]), specs=["O2", "N2"]):
     """ Initialize the error-corrected sudden molecular parameters
     
     Parameters:

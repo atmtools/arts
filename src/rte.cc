@@ -73,7 +73,7 @@ void adapt_stepwise_partial_derivatives(
     if (jacobian_quantities[i] == Jacobian::Type::Sensor or jacobian_quantities[i] == Jacobian::Special::SurfaceString) continue;
 
     if (jacobian_quantities[i].is_wind()) {
-      const auto scale = get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, jacobian_quantities[i].Target().AtmType(), atmosphere_dim);
+      const auto scale = get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, jacobian_quantities[i].Target().atm, atmosphere_dim);
       dK_dx[i] *= scale;
       if (not lte) dS_dx[i] *= scale;
     }

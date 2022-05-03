@@ -33,7 +33,7 @@ if SHOW_PLOTS:
 
 # %% Silly ARTS-isms
     
-arts.abs_f_interp_order = 100_000_000_000_000_000_000_000_000_000_000_000_000
+arts.abs_f_interp_order = 100_000_000
 arts.Touch(arts.iy_aux_vars)
 arts.Touch(arts.surface_props_data)
 arts.Touch(arts.surface_props_names)
@@ -41,63 +41,63 @@ arts.Touch(arts.transmitter_pos)
 
 # %% Agendas
 
-@pyarts.workspace.arts_agenda
-def propmat_clearsky_agenda(ws):
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines()
-    ws.Ignore(ws.rtp_mag)
-    ws.Ignore(ws.rtp_los)
+@pyarts.workspace.arts_agenda(ws=arts)
+def propmat_clearsky_agenda(arts):
+    arts.propmat_clearskyInit()
+    arts.propmat_clearskyAddLines()
+    arts.Ignore(arts.rtp_mag)
+    arts.Ignore(arts.rtp_los)
 arts.Copy(arts.propmat_clearsky_agenda, propmat_clearsky_agenda)
 
-@pyarts.workspace.arts_agenda
-def ppath_agenda_step_by_step(ws):
-    ws.Ignore(ws.rte_pos2)
-    ws.ppathStepByStep()
+@pyarts.workspace.arts_agenda(ws=arts)
+def ppath_agenda_step_by_step(arts):
+    arts.Ignore(arts.rte_pos2)
+    arts.ppathStepByStep()
 arts.Copy(arts.ppath_agenda, ppath_agenda_step_by_step)
 
-@pyarts.workspace.arts_agenda
-def iy_main_agenda_emission(ws):
-    ws.ppathCalc()
-    ws.iyEmissionStandard()
+@pyarts.workspace.arts_agenda(ws=arts)
+def iy_main_agenda_emission(arts):
+    arts.ppathCalc()
+    arts.iyEmissionStandard()
 arts.Copy(arts.iy_main_agenda, iy_main_agenda_emission)
 
-@pyarts.workspace.arts_agenda
-def surface_rtprop_agenda(ws):
-    ws.InterpSurfaceFieldToPosition(out=ws.surface_skin_t, field=ws.t_surface)
-    ws.surfaceBlackbody()
+@pyarts.workspace.arts_agenda(ws=arts)
+def surface_rtprop_agenda(arts):
+    arts.InterpSurfaceFieldToPosition(out=arts.surface_skin_t, field=arts.t_surface)
+    arts.surfaceBlackbody()
 arts.Copy(arts.surface_rtprop_agenda, surface_rtprop_agenda)
  
-@pyarts.workspace.arts_agenda
-def ppath_step_agenda_geometric(ws):
-    ws.Ignore(ws.t_field)
-    ws.Ignore(ws.vmr_field)
-    ws.Ignore(ws.f_grid)
-    ws.Ignore(ws.ppath_lraytrace)
-    ws.ppath_stepGeometric()
+@pyarts.workspace.arts_agenda(ws=arts)
+def ppath_step_agenda_geometric(arts):
+    arts.Ignore(arts.t_field)
+    arts.Ignore(arts.vmr_field)
+    arts.Ignore(arts.f_grid)
+    arts.Ignore(arts.ppath_lraytrace)
+    arts.ppath_stepGeometric()
 arts.Copy(arts.ppath_step_agenda, ppath_step_agenda_geometric)
 
-@pyarts.workspace.arts_agenda
-def iy_space_agenda_cosmic_background(ws):
-    ws.Ignore(ws.rtp_pos)
-    ws.Ignore(ws.rtp_los)
-    ws.MatrixCBR(ws.iy, ws.stokes_dim, ws.f_grid)
+@pyarts.workspace.arts_agenda(ws=arts)
+def iy_space_agenda_cosmic_background(arts):
+    arts.Ignore(arts.rtp_pos)
+    arts.Ignore(arts.rtp_los)
+    arts.MatrixCBR(arts.iy, arts.stokes_dim, arts.f_grid)
 arts.Copy(arts.iy_space_agenda, iy_space_agenda_cosmic_background)
 
-@pyarts.workspace.arts_agenda
-def geo_pos_agenda(ws):
-    ws.Ignore(ws.ppath)
-    ws.VectorSet(ws.geo_pos, np.array([]))
+@pyarts.workspace.arts_agenda(ws=arts)
+def geo_pos_agenda(arts):
+    arts.Ignore(arts.ppath)
+    arts.VectorSet(arts.geo_pos, np.array([]))
 arts.Copy(arts.geo_pos_agenda, geo_pos_agenda)
 
-@pyarts.workspace.arts_agenda
-def iy_surface_agenda(ws):
-    ws.SurfaceDummy()
-    ws.iySurfaceRtpropAgenda()
+@pyarts.workspace.arts_agenda(ws=arts)
+def iy_surface_agenda(arts):
+    arts.SurfaceDummy()
+    arts.iySurfaceRtpropAgenda()
 arts.Copy(arts.iy_surface_agenda, iy_surface_agenda)
 
-@pyarts.workspace.arts_agenda
-def water_psat_agenda(ws):
-    ws.water_p_eq_fieldMK05()
+@pyarts.workspace.arts_agenda(ws=arts)
+def water_psat_agenda(arts):
+    arts.water_p_eq_fieldMK05()
 arts.Copy(arts.water_p_eq_agenda, water_psat_agenda)
     
 # %% Calculations
@@ -118,8 +118,8 @@ arts.isotopologue_ratiosInitFromBuiltin()
 
 # %% Introduce a weird shift so that the cutoff is tested properly
 
-x = arts.abs_lines_per_species.value[0][0].lines[0].lsm[0].d0 = \
-    pyarts.classes.LineShapeModelParameters.LineShapeModelParameters("T0", 50000)
+x = arts.abs_lines_per_species.value[0][0].lines[0].lineshape[0].D0 = \
+    pyarts.classes.LineShapeModelParameters("T0", 50000)
                                                   
 # %% Grids and planet
 

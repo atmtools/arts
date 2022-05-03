@@ -85,7 +85,7 @@ void zeeman_on_the_fly(
     "*dnlte_source_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
-  ARTS_USER_ERROR_IF(any_negative(rtp_nlte.Data()), "Negative NLTE (at least one value).")
+  ARTS_USER_ERROR_IF(any_negative(rtp_nlte.value), "Negative NLTE (at least one value).")
   ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
   ARTS_USER_ERROR_IF(manual_tag and H0 < 0, "Negative manual magnetic field strength")

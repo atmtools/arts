@@ -134,6 +134,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfVector");
   wsv_group_names.push_back("ArrayOfXsecRecord");
   wsv_group_names.push_back("CIARecord");
+  wsv_group_names.push_back("CallbackFunction");
   wsv_group_names.push_back("CovarianceMatrix");
   wsv_group_names.push_back("EnergyLevelMap");
   wsv_group_names.push_back("GasAbsLookup");

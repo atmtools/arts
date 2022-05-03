@@ -57,7 +57,7 @@ struct Tag {
   // Documentation is with implementation.
   [[nodiscard]] String Name() const;
   
-  [[nodiscard]] constexpr const IsotopeRecord& Isotopologue() const noexcept {return Isotopologues[spec_ind];}
+  [[nodiscard]] constexpr IsotopeRecord Isotopologue() const noexcept {return spec_ind < 0 ? IsotopeRecord{} : Isotopologues[spec_ind];}
   
   constexpr void Isotopologue(const IsotopeRecord& ir) ARTS_NOEXCEPT {
     Index ind = find_species_index(ir);
@@ -107,6 +107,7 @@ public:
   ArrayOfSpeciesTag(Index n, const SpeciesTag& fillvalue) : Array<SpeciesTag>(n, fillvalue) {}
   ArrayOfSpeciesTag(const ArrayOfSpeciesTag& A) = default;
   ArrayOfSpeciesTag(ArrayOfSpeciesTag&& A) noexcept : Array<SpeciesTag>(std::move(A)) {}
+  explicit ArrayOfSpeciesTag(std::vector<SpeciesTag> x) : Array<SpeciesTag>(std::move(x)) {}
   
   // Assignment operators:
   ArrayOfSpeciesTag& operator=(SpeciesTag x) {

@@ -138,8 +138,6 @@ void MCAntenna::set_lookup(ConstVectorView za_grid_,
   G_lookup = G_lookup_;
 }
 
-AntennaType MCAntenna::get_type() const { return atype; }
-
 void MCAntenna::return_los(Numeric& wgt,
                            ConstMatrixView R_return,
                            ConstMatrixView R_enu2ant) const {

@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 import scipy as sp
 import pyarts
-from pyarts.workspace import Workspace, WorkspaceVariable
+from pyarts.workspace import Workspace
+from pyarts.workspace import global_data as global_data
 from pyarts.xml import load, save
 
 class TestVariables:
@@ -42,7 +43,7 @@ class TestVariables:
         self.ws.IndexCreate("index_variable")
         i = np.random.randint(0, 100)
         self.ws.index_variable = i
-        assert self.ws.index_variable.value == i
+        assert self.ws.index_variable.value.val == i
 
     def test_string_transfer(self):
         """
@@ -61,10 +62,10 @@ class TestVariables:
         i = [np.random.randint(0, 100) for j in range(10)]
 
         self.ws.array_of_index_variable = i
-        assert self.ws.array_of_index_variable.value == i
+        assert all(np.array(self.ws.array_of_index_variable.value) == i)
 
         self.ws.array_of_index_variable = []
-        assert self.ws.array_of_index_variable.value == []
+        assert all(np.array(self.ws.array_of_index_variable.value) == [])
 
     def test_array_of_vector_transfer(self):
         """
@@ -74,7 +75,7 @@ class TestVariables:
         self.ws.ArrayOfVectorCreate("array_of_vector_variable")
         aov = pyarts.xml.load(os.path.join(self.dir, "../xml/reference/arrayofvector.xml"))
         self.ws.array_of_vector_variable = aov
-        assert self.ws.array_of_vector_variable.value == aov
+        assert all(np.array(self.ws.array_of_vector_variable.value) == aov)
 
     def test_vector_transfer(self):
         """
@@ -92,7 +93,7 @@ class TestVariables:
         self.ws.MatrixCreate("matrix_variable")
         m = np.random.rand(10, 10)
         self.ws.matrix_variable = m
-        assert all(self.ws.matrix_variable.value.ravel() == m.ravel())
+        assert all(self.ws.matrix_variable.value.value.ravel() == m.ravel())
 
     def test_sparse_transfer(self):
         """
@@ -103,7 +104,7 @@ class TestVariables:
         d1 = np.ones(n - 1)
         d = np.ones(n)
         m = sp.sparse.diags(diagonals=[d2, d1, d, d1, d2],
-                            offsets=[2, 1, 0, -1, -2])
+                            offsets=[2, 1, 0, -1, -2]).tocsc()
         self.ws.sensor_response = m
         assert np.all(m.toarray() == self.ws.sensor_response.value.toarray())
 
@@ -156,13 +157,20 @@ class TestVariables:
         """
         Create and set Time variable.
         """
-        times = ["2020-01-02 03:04:05", "2021-02-03 04:05:06"]
+        import datetime
+        times = ["2020-01-02 03:04:05", datetime.datetime.now()]
         self.ws.ArrayOfTimeCreate("time_1")
-        self.ws.ArrayOfTimeNLinSpace(self.ws.time_1, 2, times[0], times[1])
-        assert (
-                times[0] == str(self.ws.time_1.value[0])[0:19]
-                and times[1] == str(self.ws.time_1.value[1])[0:19]
-        )
+        self.ws.ArrayOfTimeNLinSpace(self.ws.time_1, 5, times[0], str(times[1]))
+        
+        assert self.ws.time_1.value[0].time.year == 2020
+        assert self.ws.time_1.value[0].time.month == 1
+        assert self.ws.time_1.value[0].time.day == 2
+        assert self.ws.time_1.value[0].time.hour == 3
+        assert self.ws.time_1.value[0].time.minute == 4
+        # assert self.ws.time_1.value[0].time.second == 5 Cannot test easily as rounding is weird
+        
+        time = pyarts.pyarts_cpp.Time(times[1])
+        assert time.time == times[1]
 
     def test_creation(self):
         """
@@ -189,7 +197,9 @@ class TestVariables:
                                  g2 = ws.lat_grid,
                                  g3 = ws.lon_grid)
         ws.jacobianClose()
-
+        
+        ws.Touch(ws.covmat_sx)
+        
         ws.covmatDiagonal(out = ws.covmat_block,
                           out_inverse = ws.covmat_block,
                           vars = 10.0 * np.ones(ws.p_grid.value.size))
@@ -237,31 +247,45 @@ class TestVariables:
         Test automatic conversion of Python types.
         """
 
-        v = WorkspaceVariable.convert("Index", 1.2)
+        v = global_data.convert("Index", 1.2)
         assert(v == 1)
 
-        v = WorkspaceVariable.convert("String", "string")
+        v = global_data.convert("String", "string")
         assert(v == "string")
 
-        v = WorkspaceVariable.convert("Numeric", 1)
+        v = global_data.convert("Numeric", 1)
+        print(type(v))
         assert(type(v) == np.float64)
 
-        v = WorkspaceVariable.convert("Vector", 1.0)
+        v = global_data.convert("Vector", 1.0)
         assert(v.shape == (1,))
 
-        v = WorkspaceVariable.convert("Matrix", 1.0)
+        v = global_data.convert("Matrix", 1.0)
         assert(v.shape == (1, 1))
 
-        v = WorkspaceVariable.convert("Tensor3", 1.0)
+        v = global_data.convert("Tensor3", 1.0)
         assert(v.shape == (1, 1, 1))
 
-        v = WorkspaceVariable.convert("Tensor6", 1.0)
+        v = global_data.convert("Tensor6", 1.0)
         assert(v.shape == (1, 1, 1, 1, 1, 1))
 
-        v = WorkspaceVariable.convert("ArrayOfArrayOfIndex", 1.0)
+        v = global_data.convert("ArrayOfArrayOfIndex", 1.0)
         assert(type(v) == list)
         assert(type(v[0]) == list)
         assert(type(v[0][0]) == int)
 
-        v = WorkspaceVariable.convert("ArrayOfArrayOfIndex", 1)
+        v = global_data.convert("ArrayOfArrayOfIndex", 1)
         return v
+
+    def test_typeerror(self):
+        with pytest.raises(TypeError):
+            self.ws.f_grid = 1
+
+        with pytest.raises(TypeError):
+            self.ws.f_grid = 'c'
+
+
+if __name__ == "__main__":
+    ta = TestVariables()
+    ta.setup_method()
+    ta.test_variable_set_empty()

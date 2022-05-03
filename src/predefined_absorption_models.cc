@@ -176,8 +176,8 @@ void compute(PropagationMatrix& propmat_clearsky,
                   jacobian_quantities.end(),
                   [model](auto& deriv) {
                     return deriv == Jacobian::Special::ArrayOfSpeciesTagVMR and
-                           std::any_of(deriv.Target().SpeciesList().begin(),
-                                       deriv.Target().SpeciesList().end(),
+                           std::any_of(deriv.Target().species_array_id.begin(),
+                                       deriv.Target().species_array_id.end(),
                                        [model](auto& tag) {
                                          return tag.Isotopologue() == model;
                                        });
@@ -243,8 +243,8 @@ void compute(PropagationMatrix& propmat_clearsky,
                                      deriv.QuantumIdentity().Species()))
           dpropmat_clearsky_dx[iq].Kjj() += dpm.Kjj();
       } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR and
-                 std::any_of(deriv.Target().SpeciesList().begin(),
-                             deriv.Target().SpeciesList().end(),
+                 std::any_of(deriv.Target().species_array_id.begin(),
+                             deriv.Target().species_array_id.end(),
                              [model](auto& tag) {
                                return tag.Isotopologue() == model;
                              })) {
@@ -256,7 +256,7 @@ void compute(PropagationMatrix& propmat_clearsky,
                 rtp_pressure,
                 rtp_temperature,
                 vmr,
-                deriv.Target().SpeciesList().front().Spec()))
+                deriv.Target().species_array_id.front().Spec()))
           dpropmat_clearsky_dx[iq].Kjj() += dpm.Kjj();
       }
     }

@@ -2783,7 +2783,7 @@ void sensor_responseGenericAMSU(  // WS Output:
   //Set the verbosity to one third of the bandwidth to make sure that the passband flanks does't overlap
   const Numeric minRatioVerbosityVsFdiff =
       10;  // To be used when to passbands are closer then one verbosity value
-  Index totNumPb = 0;
+  //Index totNumPb = 0;
   Vector verbosityVect(n);
 
   for (Index idx = 0; idx < n; ++idx) {
@@ -2814,7 +2814,7 @@ void sensor_responseGenericAMSU(  // WS Output:
       numPBpseudo[i] = numPB[i];
     }
 
-    totNumPb += (int)numPB[i];
+    //totNumPb += (int)numPB[i];
 
     if (numPB[i] > 4) {
       ostringstream os;

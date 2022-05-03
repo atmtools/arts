@@ -673,7 +673,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("npages", npages);
   tag.get_attribute_value("nrows", nrows);
   tag.get_attribute_value("ncols", ncols);
-  tensor.resize(nbooks, npages, nrows, ncols);
+  tensor = Tensor4(nbooks, npages, nrows, ncols);
 
   for (Index b = 0; b < nbooks; b++) {
     for (Index p = 0; p < npages; p++) {

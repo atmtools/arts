@@ -1199,7 +1199,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
   ARTS_USER_ERROR_IF (jacobian_do,
         "Jacobians not provided by the method, *jacobian_do* "
         "must be 0.");
-  ARTS_USER_ERROR_IF (!nlte_field.Data().empty(),
+  ARTS_USER_ERROR_IF (!nlte_field.value.empty(),
         "This method does not yet support non-empty *nlte_field*.");
   ARTS_USER_ERROR_IF (!wind_u_field.empty(),
         "This method does not yet support non-empty *wind_u_field*.");

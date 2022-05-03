@@ -849,7 +849,9 @@ class Model {
    */
   const SingleSpeciesModel& operator[](Index i) const {return mdata[i];}
   
-  
+  auto begin() { return mdata.begin(); }
+  auto end() { return mdata.end(); }
+
   /** The line shape model data */
   [[nodiscard]] const std::vector<SingleSpeciesModel>& Data() const noexcept { return mdata; }
   

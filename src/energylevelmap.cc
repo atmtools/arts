@@ -29,28 +29,28 @@
 
 
 bool EnergyLevelMap::OK() const noexcept {
-  if (not (mvalue.nbooks() == mlevels.nelem() and 
-          (mvib_energy.nelem() == mlevels.nelem() or mvib_energy.nelem() == 0))) {
+  if (not (value.nbooks() == levels.nelem() and 
+          (vib_energy.nelem() == levels.nelem() or vib_energy.nelem() == 0))) {
     return false;  // Bad dimensions, vibrational energies and IDs and data of strange size
   }
   
-  if (mtype == EnergyLevelMapType::Tensor3_t) {
-  } else if (mtype == EnergyLevelMapType::Vector_t) {
-    if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1) {
+  if (type == EnergyLevelMapType::Tensor3_t) {
+  } else if (type == EnergyLevelMapType::Vector_t) {
+    if (value.npages() not_eq 1 or value.nrows() not_eq 1) {
       return false;  // Bad dimensions for vector type
     }
-  } else if (mtype == EnergyLevelMapType::Numeric_t) {
-    if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1 or mvalue.ncols() not_eq 1) {
+  } else if (type == EnergyLevelMapType::Numeric_t) {
+    if (value.npages() not_eq 1 or value.nrows() not_eq 1 or value.ncols() not_eq 1) {
       return false;  // Bad dimensions for numeric type
     }
-  } else if (mtype == EnergyLevelMapType::None_t) {
-    if (mvalue.npages() not_eq 0 or mvalue.nrows() not_eq 0 or mvalue.ncols() not_eq 0) {
+  } else if (type == EnergyLevelMapType::None_t) {
+    if (value.npages() not_eq 0 or value.nrows() not_eq 0 or value.ncols() not_eq 0) {
       return false;  // Bad dimensions for none type
     }
   }
 
-  return std::all_of(mvib_energy.begin(),
-                     mvib_energy.end(),
+  return std::all_of(vib_energy.begin(),
+                     vib_energy.end(),
                      [](const auto& val) { return val >= 0; });
 }
 
@@ -59,24 +59,24 @@ Output2 EnergyLevelMap::get_ratio_params(
   const AbsorptionLines& band,
    const Index& line_index) const
 {
-  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Numeric_t,
+  ARTS_USER_ERROR_IF (type not_eq EnergyLevelMapType::Numeric_t,
                       "Must have Numeric_t, input type is bad");
     
   Output2 x{/*.r_low=*/0, /*.r_upp=*/0};
   
   bool found1=false;
   bool found2=false;
-  for (size_t i=0; i<mlevels.size(); i++) {
-    const Quantum::Number::StateMatch lt(mlevels[i], band.lines[line_index].localquanta, band.quantumidentity);
+  for (size_t i=0; i<levels.size(); i++) {
+    const Quantum::Number::StateMatch lt(levels[i], band.lines[line_index].localquanta, band.quantumidentity);
 
     if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
       found1 = true;
-      x.r_low = mvalue(i, 0, 0, 0);
+      x.r_low = value(i, 0, 0, 0);
     }
     
     if (lt == Quantum::Number::StateMatchType::Level and lt.upp) {
       found2 = true;
-      x.r_upp = mvalue(i, 0, 0, 0);
+      x.r_upp = value(i, 0, 0, 0);
     }
     
     if (found1 and found2)
@@ -90,26 +90,26 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   const AbsorptionLines& band,
   const Numeric T) const
 {
-  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Numeric_t,
+  ARTS_USER_ERROR_IF (type not_eq EnergyLevelMapType::Numeric_t,
                       "Must have Numeric_t, input type is bad");
   
   Output4 x{/*.E_low=*/0, /*.E_upp=*/0, /*.T_low=*/T, /*.T_upp=*/T};
   
   bool found1=false;
   bool found2=false;
-  for (Index i=0; i<mlevels.nelem(); i++) {
-    const Quantum::Number::StateMatch lt(mlevels[i], band.quantumidentity);
+  for (Index i=0; i<levels.nelem(); i++) {
+    const Quantum::Number::StateMatch lt(levels[i], band.quantumidentity);
 
     if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
       found1 = true;
-      x.T_low = mvalue(i, 0, 0, 0);
-      x.E_low = mvib_energy[i];
+      x.T_low = value(i, 0, 0, 0);
+      x.E_low = vib_energy[i];
     }
     
     if (lt == Quantum::Number::StateMatchType::Level and lt.upp) {
       found2 = true;
-      x.T_upp = mvalue(i, 0, 0, 0);
-      x.E_upp = mvib_energy[i];
+      x.T_upp = value(i, 0, 0, 0);
+      x.E_upp = vib_energy[i];
     }
     
     if (found1 and found2) {
@@ -119,40 +119,39 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   return x;
 }
 
-EnergyLevelMap::EnergyLevelMap(Tensor4 data, ArrayOfQuantumIdentifier levels, Vector energies) :
-  mtype(EnergyLevelMapType::Tensor3_t),
-  mlevels(std::move(levels)),
-  mvib_energy(std::move(energies)),
-  mvalue(std::move(data))
+EnergyLevelMap::EnergyLevelMap(Tensor4 data, ArrayOfQuantumIdentifier levels_, Vector energies) :
+  type(EnergyLevelMapType::Tensor3_t),
+  levels(std::move(levels_)),
+  vib_energy(std::move(energies)),
+  value(std::move(data))
 {
   ThrowIfNotOK();
 }
 
-EnergyLevelMap::EnergyLevelMap(const Matrix& data, ArrayOfQuantumIdentifier levels, Vector energies) :
-  mtype(EnergyLevelMapType::Vector_t),
-  mlevels(std::move(levels)),
-  mvib_energy(std::move(energies)),
-  mvalue(data.nrows(), 1, 1, data.ncols())
+EnergyLevelMap::EnergyLevelMap(const Matrix& data, ArrayOfQuantumIdentifier levels_, Vector energies) :
+  type(EnergyLevelMapType::Vector_t),
+  levels(std::move(levels_)),
+  vib_energy(std::move(energies)),
+  value(data.nrows(), 1, 1, data.ncols())
 {
-  mvalue(joker, 0, 0, joker) = data;
+  value(joker, 0, 0, joker) = data;
   ThrowIfNotOK();
 }
 
-EnergyLevelMap::EnergyLevelMap(const Vector& data, ArrayOfQuantumIdentifier levels, Vector energies) :
-  mtype(EnergyLevelMapType::Numeric_t),
-  mlevels(std::move(levels)),
-  mvib_energy(std::move(energies)),
-  mvalue(data.nelem(), 1, 1, 1)
+EnergyLevelMap::EnergyLevelMap(const Vector& data, ArrayOfQuantumIdentifier levels_, Vector energies) :
+  type(EnergyLevelMapType::Numeric_t),
+  levels(std::move(levels_)),
+  vib_energy(std::move(energies)),
+  value(data.nelem(), 1, 1, 1)
 {
-  mvalue(joker, 0, 0, 0) = data;
+  value(joker, 0, 0, 0) = data;
   ThrowIfNotOK();
 }
 
 EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon) const
 {
-  if (mtype == EnergyLevelMapType::None_t)
-    return EnergyLevelMap();
-  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Tensor3_t,
+  if (type == EnergyLevelMapType::None_t) return EnergyLevelMap{};
+  ARTS_USER_ERROR_IF (type not_eq EnergyLevelMapType::Tensor3_t,
                       "Must have Tensor3_t, input type is bad");
   
   EnergyLevelMap elm(EnergyLevelMapType::Vector_t, 1, 1, p.nelem(), *this);
@@ -160,75 +159,57 @@ EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const Array
   Matrix itw_field;
   interp_atmfield_gp2itw(itw_field, atmosphere_dim, p, lat, lon);
   
-  const Index nnlte = mlevels.nelem();
+  const Index nnlte = levels.nelem();
   for (Index itnlte = 0; itnlte < nnlte; itnlte++)
-    interp_atmfield_by_itw(elm.mvalue(itnlte, 0, 0, joker), atmosphere_dim,
-                           mvalue(itnlte, joker, joker, joker),
+    interp_atmfield_by_itw(elm.value(itnlte, 0, 0, joker), atmosphere_dim,
+                           value(itnlte, joker, joker, joker),
                            p, lat, lon, itw_field);
   return elm;
 }
 
 EnergyLevelMap EnergyLevelMap::operator[](Index ip) const
 {
-  if (mtype == EnergyLevelMapType::None_t)
-    return EnergyLevelMap();
-  if (mtype == EnergyLevelMapType::Numeric_t)
+  if (type == EnergyLevelMapType::None_t) return EnergyLevelMap{};
+  if (type == EnergyLevelMapType::Numeric_t)
     return *this;
-  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Vector_t
+  ARTS_USER_ERROR_IF (type not_eq EnergyLevelMapType::Vector_t
   ,"Must have Vector_t, input type is bad");
   
-  ARTS_USER_ERROR_IF (ip >= mvalue.ncols() or ip < 0,
+  ARTS_USER_ERROR_IF (ip >= value.ncols() or ip < 0,
     "Bad dims for data:\n\tThe pressure dim of data contains: ",
-    mvalue.ncols(), " values and you are requesting element index ", ip, "\n")
+    value.ncols(), " values and you are requesting element index ", ip, "\n")
   
   EnergyLevelMap elm(EnergyLevelMapType::Numeric_t, 1, 1, 1, *this);
-  elm.mvalue(joker, 0, 0, 0) = mvalue(joker, 0, 0, ip);
+  elm.value(joker, 0, 0, 0) = value(joker, 0, 0, ip);
   return elm;
 }
 
-EnergyLevelMapType string2energylevelmaptype(const String& s) {
-  if (s == "Tensor3")
-    return EnergyLevelMapType::Tensor3_t;
-  if (s == "Vector")
-    return EnergyLevelMapType::Vector_t;
-  if (s == "Numeric")
-    return EnergyLevelMapType::Numeric_t;
-  if (s == "None")
-    return EnergyLevelMapType::None_t;
-  ARTS_USER_ERROR ("Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
-                    "You request to have an EnergyLevelMap of type: ", s, '\n')
-}
-
-String energylevelmaptype2string(EnergyLevelMapType type)
-{
-  switch(type) {
-    case EnergyLevelMapType::Tensor3_t:
-      return "Tensor3";
-    case EnergyLevelMapType::Vector_t:
-      return "Vector";
-    case EnergyLevelMapType::Numeric_t:
-      return "Numeric";
-    case EnergyLevelMapType::None_t:
-      return "None";
-  }
-  return "";
-}
-
 std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm) {
-  return os << energylevelmaptype2string(elm.Type()) << '\n'
-            << elm.Levels() << '\n'
-            << elm.Data() << '\n'
-            << elm.Energies() << '\n';
+  return os << elm.type << '\n'
+            << elm.levels << '\n'
+            << elm.value << '\n'
+            << elm.vib_energy << '\n';
 }
 
 EnergyLevelMap EnergyLevelMap::operator()(Index ip, Index ilat, Index ilon) const
 {
-  if (mtype == EnergyLevelMapType::None_t or mtype == EnergyLevelMapType::Numeric_t)
+  if (type == EnergyLevelMapType::None_t or type == EnergyLevelMapType::Numeric_t)
     return *this;
-  ARTS_USER_ERROR_IF (mtype not_eq EnergyLevelMapType::Tensor3_t,
+  ARTS_USER_ERROR_IF (type not_eq EnergyLevelMapType::Tensor3_t,
                       "Must have Tensor3_t, input type is bad");
   
   auto elm = EnergyLevelMap(EnergyLevelMapType::Numeric_t, 1, 1, 1, *this);
-  elm.mvalue(joker, 0, 0, 0) = mvalue(joker, ip, ilat, ilon);
+  elm.value(joker, 0, 0, 0) = value(joker, ip, ilat, ilon);
   return elm;
+}
+
+EnergyLevelMapType toEnergyLevelMapTypeOrThrow(std::string_view s) {
+  auto out = toEnergyLevelMapType(s);
+  ARTS_USER_ERROR_IF(
+      out == EnergyLevelMapType::Final_t,
+      "Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
+      "You request to have an EnergyLevelMap of type: ",
+      s,
+      '\n')
+  return out;
 }

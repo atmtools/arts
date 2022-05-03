@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.12)
+cmake_minimum_required (VERSION 3.18)
 
 project (ARTS C CXX)
 
@@ -75,8 +75,7 @@ enable_testing ()
 list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 
 ########### Find Python ##########
-set(Python_ADDITIONAL_VERSIONS 3)
-find_package (PythonInterp REQUIRED)
+find_package (Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 
 include (CheckPythonModule)
 check_python_modules()
@@ -144,8 +143,6 @@ if (NO_USER_ERRORS)
   add_definitions (-DNO_ARTS_USER_ERRORS)
 endif (NO_USER_ERRORS)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
-
 ########### ccache Support ##########
 
 if (ENABLE_CCACHE)
@@ -204,10 +201,10 @@ if (ENABLE_MPI) # User must enable MPI using -DENABLE_MPI=ON
   endif ()
 endif ()
 
-########### C API ##########
+########### Python ##########
 
-set (C_API true)
-add_definitions(-fPIC)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 ########### Check C header files ##########
 check_include_file (stdlib.h    HAVE_STDLIB_H)
@@ -501,17 +498,14 @@ add_custom_target(check-planettoolbox
 add_custom_target(check-all
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
     -E '\\.nocheck\\.'
-  DEPENDS check-deps pyarts python_tests)
+  DEPENDS check-deps python_tests)
 
 add_custom_target(check-all-controlfiles
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
     -E '^python\\.|\\.pyarts\\.|\\.nocheck\\.'
   DEPENDS check-deps)
 
-add_custom_target(check-pyarts-only
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
-    -R '\\.pyarts\\.'
-  DEPENDS pyarts)
+add_custom_target(check-pyarts-only DEPENDS pyarts_tests)
 
 add_dependencies(check-all mkdir-arts-results)
 
