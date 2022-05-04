@@ -1193,3 +1193,9 @@ Numeric debug_tensor4view_get_elem(
 
 #endif
 ////////////////////////////////
+
+Vector Tensor4::flatten() && ARTS_NOEXCEPT {
+  Vector out(mdata, Range(0, size()));
+  mdata = nullptr;
+  return out;
+}
