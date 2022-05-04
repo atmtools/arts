@@ -29,7 +29,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       py::arg("file").none(false),                                         \
       py::arg("type").none(false) = "ascii",                               \
       py::arg("clobber") = true,                                           \
-      py::doc("Saves :class:`" #Type "` to file\n"                                  \
+      py::doc("Saves :class:`" #Type "` to file\n"                         \
               "\n"                                                         \
               "Parameters:\n"                                              \
               "    file (str): The path to which the file is written."     \
@@ -48,7 +48,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             xml_read_from_file(file, x, Verbosity());                      \
           },                                                               \
           py::arg("file").none(false),                                     \
-          py::doc("Read :class:`" #Type "` from file\n"                             \
+          py::doc("Read :class:`" #Type "` from file\n"                    \
                   "\n"                                                     \
                   "Parameters:\n"                                          \
                   "    file (str): A file that can be read\n"              \
@@ -120,44 +120,44 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
  * len(x)
  * for a in x: DO_SOMETHING(a)
  */
-#define PythonInterfaceArrayDefault(BaseType)                                 \
-  PythonInterfaceIndexItemAccess(Array<BaseType>)                             \
-      .PythonInterfaceCopyValue(Array<BaseType>)                              \
-      .def(py::init([]() { return new Array<BaseType>{}; }))                  \
-      .def(py::init([](Index n, const BaseType& v) {                          \
-             return new Array<BaseType>(n, v);                                \
-           }),                                                                \
-           py::arg("size"),                                                   \
-           py::arg("cval"))                                                   \
-      .def(py::init([](const std::vector<BaseType>& v) {                      \
-             return new Array<BaseType>{v};                                   \
-           }),                                                                \
-           py::arg("arr"))                                                    \
-      .def(                                                                   \
-          "append",                                                           \
-          [](Array<BaseType>& x, BaseType y) {                                \
-            x.emplace_back(std::move(y));                                     \
-          },                                                                  \
-          py::doc("Appends a :class:`" #BaseType "` at the end of the Array"))         \
-      .def(                                                                   \
-          "pop",                                                              \
-          [](Array<BaseType>& x) -> BaseType {                                \
-            if (x.size() < 1) throw std::out_of_range("pop from empty list"); \
-            BaseType copy = std::move(x.back());                              \
-            x.pop_back();                                                     \
-            return copy;                                                      \
-          },                                                                  \
-          py::doc("Pops a :class:`" #BaseType "` from the Array"))                     \
-      .def(py::pickle(                                                        \
-          [](const Array<BaseType>& v) {                                      \
-            auto n = v.size();                                                \
-            std::vector<BaseType> out(n);                                     \
-            std::copy(v.begin(), v.end(), out.begin());                       \
-            return py::make_tuple(std::move(out));                            \
-          },                                                                  \
-          [](const py::tuple& t) {                                            \
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")               \
-            return new Array<BaseType>{t[0].cast<std::vector<BaseType>>()};   \
+#define PythonInterfaceArrayDefault(BaseType)                                  \
+  PythonInterfaceIndexItemAccess(Array<BaseType>)                              \
+      .PythonInterfaceCopyValue(Array<BaseType>)                               \
+      .def(py::init([]() { return new Array<BaseType>{}; }))                   \
+      .def(py::init([](Index n, const BaseType& v) {                           \
+             return new Array<BaseType>(n, v);                                 \
+           }),                                                                 \
+           py::arg("size"),                                                    \
+           py::arg("cval"))                                                    \
+      .def(py::init([](const std::vector<BaseType>& v) {                       \
+             return new Array<BaseType>{v};                                    \
+           }),                                                                 \
+           py::arg("arr"))                                                     \
+      .def(                                                                    \
+          "append",                                                            \
+          [](Array<BaseType>& x, BaseType y) {                                 \
+            x.emplace_back(std::move(y));                                      \
+          },                                                                   \
+          py::doc("Appends a :class:`" #BaseType "` at the end of the Array")) \
+      .def(                                                                    \
+          "pop",                                                               \
+          [](Array<BaseType>& x) -> BaseType {                                 \
+            if (x.size() < 1) throw std::out_of_range("pop from empty list");  \
+            BaseType copy = std::move(x.back());                               \
+            x.pop_back();                                                      \
+            return copy;                                                       \
+          },                                                                   \
+          py::doc("Pops a :class:`" #BaseType "` from the Array"))             \
+      .def(py::pickle(                                                         \
+          [](const Array<BaseType>& v) {                                       \
+            auto n = v.size();                                                 \
+            std::vector<BaseType> out(n);                                      \
+            std::copy(v.begin(), v.end(), out.begin());                        \
+            return py::make_tuple(std::move(out));                             \
+          },                                                                   \
+          [](const py::tuple& t) {                                             \
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")                \
+            return new Array<BaseType>{t[0].cast<std::vector<BaseType>>()};    \
           }))
 
 /** Provides -=, +=, /=. and *= for all LHS Type */
@@ -304,11 +304,14 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
           },                                                                   \
           py::doc(                                                             \
               R"--(Create GriddedField from a xarray.DataArray object.\
+\
 The data and its dimensions are returned as a :class:`GriddedField` object.\
 The DataArray name is used as name for the gridded field. If the attribute\
 `data_name` is present, it is used as `dataname` on the :class:`GriddedField`.\
+\
 Parameters:\
     da (xarray.DataArray): xarray.DataArray containing the dimensions and data.\
+\
 Returns:\
     GriddedField object.\
 )--"))
@@ -316,18 +319,19 @@ Returns:\
 #define PythonInterfaceReadWriteData(Type, data) \
   def_readwrite(#data, &Type::data, py::return_value_policy::reference_internal)
 
-#define PythonInterfaceBasicReferenceProperty(                             \
-    Type, PropertyName, ReadFunction, WriteFunction)                       \
-  def_property(                                                            \
-      #PropertyName,                                                       \
-      py::cpp_function(                                                    \
-          [](Type& x)                                                      \
-              -> std::remove_cv_t<std::add_lvalue_reference_t<decltype(x.ReadFunction())>> { \
-            return x.ReadFunction();                                       \
-          },                                                               \
-          py::return_value_policy::reference_internal),                    \
-      [](Type& x, std::remove_reference_t<decltype(x.ReadFunction())> y) { \
-        x.WriteFunction() = std::move(y);                                  \
+#define PythonInterfaceBasicReferenceProperty(                               \
+    Type, PropertyName, ReadFunction, WriteFunction)                         \
+  def_property(                                                              \
+      #PropertyName,                                                         \
+      py::cpp_function(                                                      \
+          [](Type& x)                                                        \
+              -> std::remove_cv_t<                                           \
+                  std::add_lvalue_reference_t<decltype(x.ReadFunction())>> { \
+            return x.ReadFunction();                                         \
+          },                                                                 \
+          py::return_value_policy::reference_internal),                      \
+      [](Type& x, std::remove_reference_t<decltype(x.ReadFunction())> y) {   \
+        x.WriteFunction() = std::move(y);                                    \
       })
 
 #define PythonInterfaceSelfAttribute(ATTR) \

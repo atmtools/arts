@@ -18,7 +18,7 @@ namespace Python {
 namespace details {
 struct GriddedField {
   inline static auto extract_slice{three_args};
-  inline static auto refine_grid{four_args};
+  inline static auto refine_grid{five_args};
   inline static auto to_xarray{one_arg};
   inline static auto from_xarray{two_args};
 };
@@ -27,7 +27,7 @@ struct GriddedField {
 void py_griddedfield(py::module_& m) {
   m.add_object("_cleanupGriddedField", py::capsule([]() {
                  details::GriddedField::extract_slice = details::three_args;
-                 details::GriddedField::refine_grid = details::four_args;
+                 details::GriddedField::refine_grid = details::five_args;
                  details::GriddedField::to_xarray = details::one_arg;
                  details::GriddedField::from_xarray = details::two_args;
                }));
@@ -77,9 +77,11 @@ void py_griddedfield(py::module_& m) {
           py::arg("axis") = 0,
           py::doc(
               R"--(Return a new GriddedField containing a slice of the current one.
+
 Parameters:
     s (slice): Slice.
     axis (int): Axis to slice along.
+
 Returns:
     GriddedField containing sliced grids and data.
 )--"))
@@ -88,24 +90,30 @@ Returns:
           [](py::object& g) { return details::GriddedField::to_xarray(g); },
           py::doc(
               R"--(Convert GriddedField to xarray.DataArray object.
+
 Convert a GriddedField object into a :func:`xarray.DataArray`
 object.  The dataname is used as the DataArray name.
+
 Returns:
     xarray.DataArray object corresponding to gridded field
 )--"))
       .def(
           "refine_grid",
-          [](py::object& g, py::object& s, py::object& i, py::object& t) {
-            return details::GriddedField::refine_grid(g, s, i, t);
+          [](py::object& g, py::object& s, py::object& i, py::object& t, const py::kwargs& kw) {
+            py::object in = py::dict{};
+            for (auto& a: kw) in[a.first] = a.second;
+            return details::GriddedField::refine_grid(g, s, i, t, in);
           },
           py::arg("new_grid"),
           py::arg("axis") = py::int_(0),
           py::arg("type") = py::str("linear"),
           py::doc(
               R"--(Interpolate GriddedField axis to a new grid.
+
 This function replaces a grid of a GriddField and interpolates all
 data to match the new coordinates. :func:`scipy.interpolate.interp1d`
 is used for interpolation.
+
 Parameters:
     new_grid (ndarray): The coordinates of the interpolated values.
     axis (int): Specifies the axis of data along which to interpolate.
@@ -114,6 +122,7 @@ Parameters:
         actual rescaling function
     **kwargs:
         Keyword arguments passed to :func:`scipy.interpolate.interp1d`.
+
 Returns: GriddedField
 )--"));
 

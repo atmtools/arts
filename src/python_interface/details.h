@@ -23,8 +23,8 @@ inline static std::function<py::object(py::object&, py::object&, py::object&)>
     }};
 
 inline static std::function<py::object(
-    py::object&, py::object&, py::object&, py::object&)>
-    four_args{[](py::object&, py::object&, py::object&, py::object&) {
+    py::object&, py::object&, py::object&, py::object&, py::object&)>
+    five_args{[](py::object&, py::object&, py::object&, py::object&, py::object&) {
       throw std::logic_error("Not implemented");
       return py::none();
     }};

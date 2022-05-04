@@ -28,8 +28,7 @@ def extract_slice(g, s=slice(None), axis=0):
     return gf
 
 
-# FIXME: I have not managed to forward kwargs reliably from C++ to python  // Richard 2022-04-27
-def refine_grid(gin, new_grid, axis=0, type="linear"):
+def refine_grid(gin, new_grid, axis=0, type="linear", hidden_kwargs={}):
     """Interpolate GriddedField axis to a new grid.
     This function replaces a grid of a GriddField and interpolates all
     data to match the new coordinates. :func:`scipy.interpolate.interp1d`
@@ -53,7 +52,8 @@ def refine_grid(gin, new_grid, axis=0, type="linear"):
     g = copy.deepcopy(gin)
     
     if len(g.get_grid(axis)) > 1:
-        f = interpolate.interp1d(fun(g.get_grid(axis)), g.data, axis=axis)  # FIXME: no **kwargs...
+        f = interpolate.interp1d(
+            fun(g.get_grid(axis)), g.data, axis=axis, **hidden_kwargs)
         g.set_grid(axis, new_grid)
         g.data = f(fun(new_grid))
     else:  # if the intention is to create a useful TensorX
