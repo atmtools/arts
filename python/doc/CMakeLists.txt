@@ -3,10 +3,13 @@ find_package(Sphinx)
 if (SPHINX_FOUND)
   set(SPHINX_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/source)
   set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/build)
+  if (NOT SPHINX_JOBS)
+    set(SPHINX_JOBS 1)
+  endif()
 
   add_custom_target(pyarts_docs
     COMMAND
-    ${SPHINX_EXECUTABLE} -b html
+    ${SPHINX_EXECUTABLE} -j${SPHINX_JOBS} -b html
     ${SPHINX_SOURCE} ${SPHINX_BUILD}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating documentation with Sphinx")
