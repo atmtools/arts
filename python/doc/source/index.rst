@@ -28,8 +28,8 @@ performing RT simulations can be installed from the
 Building from source
 ^^^^^^^^^^^^^^^^^^^^
 
-If you build ARTS from source, then the Python interface will be installed
-automatically.
+If you build ARTS from source, you can find instructions on how to install
+PyARTS in the toplevel ``README.md`` file.
 
 
 Getting started
