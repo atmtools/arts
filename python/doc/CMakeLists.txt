@@ -4,13 +4,13 @@ if (SPHINX_FOUND)
   set(SPHINX_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/source)
   set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/build)
 
-  add_custom_target(sphinx
+  add_custom_target(pyarts_docs
     COMMAND
     ${SPHINX_EXECUTABLE} -b html
     ${SPHINX_SOURCE} ${SPHINX_BUILD}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating documentation with Sphinx")
-  add_dependencies (sphinx pyarts)
+  add_dependencies (pyarts_docs pyarts)
 
   file(GLOB_RECURSE PYTHON_SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.py")
   foreach(file ${PYTHON_SOURCE_FILES})
@@ -18,6 +18,11 @@ if (SPHINX_FOUND)
   endforeach()
 
   file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.rst")
+  foreach(file ${RST_FILES})
+    configure_file(${file} ${file} @ONLY)
+  endforeach()
+
+  file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.css")
   foreach(file ${RST_FILES})
     configure_file(${file} ${file} @ONLY)
   endforeach()

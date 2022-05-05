@@ -9,7 +9,7 @@ struct ConstantDummy {};
 
 #define PythonInterfaceConstant(name) \
   constant.def_readonly_static(       \
-      #name, &Constant::name, "Value of " #name " in Arts")
+      #name, &Constant::name, py::doc(var_string("Value: ", Constant::name).c_str()))
 
 //! Wraps a conversion function with basic information
 #define PythonInterfaceConvert(name, t, from, to)  \
