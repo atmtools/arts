@@ -269,15 +269,13 @@ VectorView::operator MatrixView() ARTS_NOEXCEPT {
 }
 
 const Numeric* VectorView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT(not (mrange.mstart != 0 || mrange.mstride != 1),
-        "A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mrange.mstart == 0 and (mrange.mstride == 1 or mrange.mextent == 0), mrange)
 
   return mdata;
 }
 
 Numeric* VectorView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT(not (mrange.mstart != 0 || mrange.mstride != 1),
-        "A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mrange.mstart == 0 and (mrange.mstride == 1 or mrange.mextent == 0),  mrange)
 
   return mdata;
 }
@@ -737,8 +735,8 @@ MatrixView& MatrixView::operator-=(Numeric x) ARTS_NOEXCEPT {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 const Numeric* MatrixView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT(not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 || mcr.mstride != 1),
-    "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == 1 or mrr.mextent == 0), "Row ", mrr)
+  ARTS_ASSERT(mcr.mstart == 0 and (mcr.mstride == 1 or mcr.mextent == 0), "Column ", mcr)
 
   return mdata;
 }
@@ -750,8 +748,8 @@ const Numeric* MatrixView::get_c_array() const ARTS_NOEXCEPT {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 Numeric* MatrixView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT(not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 || mcr.mstride != 1),
-    "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == 1 or mrr.mextent == 0), "Row ", mrr)
+  ARTS_ASSERT(mcr.mstart == 0 and (mcr.mstride == 1 or mcr.mextent == 0), "Column ", mcr)
 
   return mdata;
 }

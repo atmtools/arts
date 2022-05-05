@@ -332,4 +332,4 @@ class TestGriddedFieldWrite:
 
 if __name__ == "__main__":
     x = TestGriddedFieldLoad()
-    x.test_load_gridnames()
+    x.test_equality_empty()
