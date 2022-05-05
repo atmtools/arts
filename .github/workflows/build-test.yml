@@ -228,7 +228,7 @@ jobs:
           make -j1 pyarts_cpp
           make -j2 -C doc/uguide
           make -j2 -C doc/doxygen
-          make -j2 sphinx
+          make -j2 pyarts_docs
 
       - name: Check (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
