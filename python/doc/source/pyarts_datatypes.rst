@@ -8,7 +8,7 @@ pyarts.catalogues
 .. currentmodule:: pyarts.catalogues
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
    Sparse
 
@@ -20,7 +20,7 @@ pyarts.covariancematrix
 .. currentmodule:: pyarts.covariancematrix
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
    Block
    CovarianceMatrix
@@ -33,7 +33,7 @@ pyarts.griddedfield
 .. currentmodule:: pyarts.griddedfield
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
    GriddedField1
    GriddedField2
@@ -52,7 +52,7 @@ pyarts.scattering
 .. currentmodule:: pyarts.scattering
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
    SingleScatteringData
    SpectralSingleScatteringData
@@ -66,7 +66,7 @@ pyarts.sensor
 .. currentmodule:: pyarts.sensor
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
    get_f_backend_rel_width
    get_f_backend_const_width
