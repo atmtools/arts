@@ -59,8 +59,7 @@ class Iterator4D {
         other.msv.mdata + other.msv.mpr.mstart + other.msv.mrr.mstart +
             other.msv.mcr.mstart)
       return true;
-    else
-      return false;
+    return false;
   }
 
   Tensor3View* operator->();
@@ -101,8 +100,7 @@ class ConstIterator4D {
         other.msv.mdata + other.msv.mpr.mstart + other.msv.mrr.mstart +
             other.msv.mcr.mstart)
       return true;
-    else
-      return false;
+    return false;
   }
 
   const ConstTensor3View* operator->() const;
@@ -138,16 +136,21 @@ class ConstTensor4View {
   ConstTensor4View& operator=(ConstTensor4View&&) = default;
 
   // Member functions:
+  [[nodiscard]] Index nbooks() const noexcept { return mbr.mextent; }
+  [[nodiscard]] Index npages() const noexcept { return mpr.mextent; }
+  [[nodiscard]] Index nrows() const noexcept { return mrr.mextent; }
+  [[nodiscard]] Index ncols() const noexcept { return mcr.mextent; }
 
-  bool empty() const;
-
-  Index nbooks() const;
-  Index npages() const;
-  Index nrows() const;
-  Index ncols() const;
+  // Total size
+  [[nodiscard]] Index size() const noexcept {
+    return nbooks() * npages() * nrows() * ncols();
+  }
+  [[nodiscard]] bool empty() const noexcept { return size() == 0; }
 
   /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  Shape<4> shape() const {return {nbooks(), npages(), nrows(), ncols()};}
+  [[nodiscard]] Shape<4> shape() const {
+    return {nbooks(), npages(), nrows(), ncols()};
+  }
 
   // Const index operators:
   ConstTensor4View operator()(const Range& b,
@@ -220,15 +223,15 @@ class ConstTensor4View {
   }
 
   /** Get element implementation without assertions. */
-  Numeric get(Index b, Index p, Index r, Index c) const {
+  [[nodiscard]] Numeric get(Index b, Index p, Index r, Index c) const {
     return *(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
              p * mpr.mstride + mrr.mstart + r * mrr.mstride + mcr.mstart +
              c * mcr.mstride);
   }
 
   // Functions returning iterators:
-  ConstIterator4D begin() const;
-  ConstIterator4D end() const;
+  [[nodiscard]] ConstIterator4D begin() const;
+  [[nodiscard]] ConstIterator4D end() const;
 
   //! Destructor
   virtual ~ConstTensor4View() = default;
@@ -355,7 +358,7 @@ class Tensor4View : public ConstTensor4View {
   }
 
   // Conversion to a plain C-array
-  const Numeric* get_c_array() const ARTS_NOEXCEPT;
+  [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;
   Numeric* get_c_array() ARTS_NOEXCEPT;
 
   // Functions returning iterators:
@@ -432,7 +435,7 @@ class Tensor4 : public Tensor4View {
   Tensor4(Tensor4&& v) noexcept : Tensor4View(std::forward<Tensor4View>(v)) {
     v.mdata = nullptr;
   }
-  
+
   /*! Construct from known data
    * 
    * Note that this will call delete on the pointer if it is still valid
@@ -444,12 +447,15 @@ class Tensor4 : public Tensor4View {
    * @param[in] r2 - The Range along the third dimension
    * @param[in] r3 - The Range along the fourth dimension
    */
-  Tensor4(Numeric* d, const Range& r0, const Range& r1, const Range& r2, const Range& r3) ARTS_NOEXCEPT
-  : Tensor4View(d, r0, r1, r2, r3) {
-    ARTS_ASSERT (not (r0.get_extent() < 0), "Must have size");
-    ARTS_ASSERT (not (r1.get_extent() < 0), "Must have size");
-    ARTS_ASSERT (not (r2.get_extent() < 0), "Must have size");
-    ARTS_ASSERT (not (r3.get_extent() < 0), "Must have size");
+  Tensor4(Numeric* d,
+          const Range& r0,
+          const Range& r1,
+          const Range& r2,
+          const Range& r3) ARTS_NOEXCEPT : Tensor4View(d, r0, r1, r2, r3) {
+    ARTS_ASSERT(not(r0.get_extent() < 0), "Must have size");
+    ARTS_ASSERT(not(r1.get_extent() < 0), "Must have size");
+    ARTS_ASSERT(not(r2.get_extent() < 0), "Must have size");
+    ARTS_ASSERT(not(r3.get_extent() < 0), "Must have size");
   }
 
   // Assignment operators:
@@ -465,58 +471,67 @@ class Tensor4 : public Tensor4View {
 
   // Destructor:
   virtual ~Tensor4();
-  
-  // Total size
-  Index size() const noexcept {return nbooks() * npages() * nrows() * ncols();}
-  
+
   /*! Reduce a Tensor4 to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() && ARTS_NOEXCEPT {
+      Vector reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim0 < 4, "Bad Dimension, Out-of-Bounds");
-    
-    Range r0(0, dim0 == 0 ? nbooks() : dim0 == 1 ? npages() : dim0 == 2 ? nrows() : ncols());
-    
+
+    Range r0(0,
+             dim0 == 0   ? nbooks()
+             : dim0 == 1 ? npages()
+             : dim0 == 2 ? nrows()
+                         : ncols());
+
     Vector out(mdata, r0);
-    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
+    ARTS_ASSERT(size() == out.size(),
+                "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
-  
+
   /*! Reduce a Tensor4 to a Matrix and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1>
-  Matrix reduce_rank() && ARTS_NOEXCEPT {
+      Matrix reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim1 < 4, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
-    
+
     const Range r1(0, dim1 == 1 ? npages() : dim1 == 2 ? nrows() : ncols());
-    const Range r0(0, dim0 == 0 ? nbooks() : dim0 == 1 ? npages() : nrows(), r1.get_extent());
-    
+    const Range r0(0,
+                   dim0 == 0   ? nbooks()
+                   : dim0 == 1 ? npages()
+                               : nrows(),
+                   r1.get_extent());
+
     Matrix out(mdata, r0, r1);
-    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
+    ARTS_ASSERT(size() == out.size(),
+                "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
-  
+
   /*! Reduce a Tensor4 to a Tensor3 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2>
-  Tensor3 reduce_rank() && ARTS_NOEXCEPT {
+      Tensor3 reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim2 < 4, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
-    
+
     const Range r2(0, dim2 == 2 ? nrows() : ncols());
     const Range r1(0, dim1 == 1 ? npages() : nrows(), r2.get_extent());
-    const Range r0(0, dim0 == 0 ? nbooks() : npages(), r1.get_extent() * r2.get_extent());
-    
+    const Range r0(
+        0, dim0 == 0 ? nbooks() : npages(), r1.get_extent() * r2.get_extent());
+
     Tensor3 out(mdata, r0, r1, r2);
-    ARTS_ASSERT (size() == out.size(), "Can only reduce size on same size input");
+    ARTS_ASSERT(size() == out.size(),
+                "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
 
   template <class F>
   void transform_elementwise(F&& func) {
-    std::transform(mdata, mdata+size(), mdata, func);
+    std::transform(mdata, mdata + size(), mdata, func);
   }
 };
 

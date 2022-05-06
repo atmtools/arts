@@ -23,6 +23,7 @@
 */
 
 #include "matpackIV.h"
+
 #include "exceptions.h"
 
 /** The -> operator is needed, so that we can write i->begin() to get
@@ -41,27 +42,6 @@ const ConstTensor3View& ConstIterator4D::operator*() const { return msv; }
 
 // Functions for ConstTensor4View:
 // ------------------------------
-
-//! Check if variable is empty.
-/*!
- \param[in]  x The variable to check.
- \return True if the size of any dimension of x is 0.
- */
-bool ConstTensor4View::empty() const {
-  return (nbooks() == 0 || npages() == 0 || nrows() == 0 || ncols() == 0);
-}
-
-/** Returns the number of books. */
-Index ConstTensor4View::nbooks() const { return mbr.mextent; }
-
-/** Returns the number of pages. */
-Index ConstTensor4View::npages() const { return mpr.mextent; }
-
-/** Returns the number of rows. */
-Index ConstTensor4View::nrows() const { return mrr.mextent; }
-
-/** Returns the number of columns. */
-Index ConstTensor4View::ncols() const { return mcr.mextent; }
 
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Tensor4. This allows
@@ -336,10 +316,20 @@ ConstVectorView ConstTensor4View::operator()(Index b,
   is not 1 because the caller expects to get a C array with continuous data.
 */
 Numeric* Tensor4View::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT(mbr.mstart == 0 and (mbr.mstride == 1 or mbr.mextent == 0), "Book ", mbr)
-  ARTS_ASSERT(mpr.mstart == 0 and (mpr.mstride == 1 or mpr.mextent == 0), "Page ", mpr)
-  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == 1 or mrr.mextent == 0), "Row ", mrr)
-  ARTS_ASSERT(mcr.mstart == 0 and (mcr.mstride == 1 or mcr.mextent == 0), "Column ", mcr)
+  ARTS_ASSERT(mbr.mstart == 0 and
+                  (mbr.mstride == mcr.mextent * mrr.mextent * mpr.mextent or
+                   size() == 0),
+              "Book ",
+              mbr)
+  ARTS_ASSERT(mpr.mstart == 0 and
+                  (mpr.mstride == mcr.mextent * mrr.mextent or size() == 0),
+              "Page ",
+              mpr)
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
+              "Row ",
+              mrr)
+  ARTS_ASSERT(
+      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
   return mdata;
 }
 
@@ -350,10 +340,20 @@ Numeric* Tensor4View::get_c_array() ARTS_NOEXCEPT {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 const Numeric* Tensor4View::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT(mbr.mstart == 0 and (mbr.mstride == 1 or mbr.mextent == 0), "Book ", mbr)
-  ARTS_ASSERT(mpr.mstart == 0 and (mpr.mstride == 1 or mpr.mextent == 0), "Page ", mpr)
-  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == 1 or mrr.mextent == 0), "Row ", mrr)
-  ARTS_ASSERT(mcr.mstart == 0 and (mcr.mstride == 1 or mcr.mextent == 0), "Column ", mcr)
+  ARTS_ASSERT(mbr.mstart == 0 and
+                  (mbr.mstride == mcr.mextent * mrr.mextent * mpr.mextent or
+                   size() == 0),
+              "Book ",
+              mbr)
+  ARTS_ASSERT(mpr.mstart == 0 and
+                  (mpr.mstride == mcr.mextent * mrr.mextent or size() == 0),
+              "Page ",
+              mpr)
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
+              "Row ",
+              mrr)
+  ARTS_ASSERT(
+      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
   return mdata;
 }
 

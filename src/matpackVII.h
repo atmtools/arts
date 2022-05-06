@@ -62,8 +62,7 @@ class Iterator7D {
             other.msv.mbr.mstart + other.msv.mpr.mstart + other.msv.mrr.mstart +
             other.msv.mcr.mstart)
       return true;
-    else
-      return false;
+    return false;
   }
 
   /** The -> operator is needed, so that we can write i->begin() to get
@@ -110,8 +109,7 @@ class ConstIterator7D {
             other.msv.mbr.mstart + other.msv.mpr.mstart + other.msv.mrr.mstart +
             other.msv.mcr.mstart)
       return true;
-    else
-      return false;
+    return false;
   }
 
   /** The -> operator is needed, so that we can write i->begin() to get
@@ -152,17 +150,31 @@ class ConstTensor7View {
   ConstTensor7View& operator=(ConstTensor7View&&) = default;
 
   // Member functions:
-  bool empty() const;
-  Index nlibraries() const;
-  Index nvitrines() const;
-  Index nshelves() const;
-  Index nbooks() const;
-  Index npages() const;
-  Index nrows() const;
-  Index ncols() const;
+  [[nodiscard]] Index nlibraries() const noexcept { return mlr.mextent; }
+  [[nodiscard]] Index nvitrines() const noexcept { return mvr.mextent; }
+  [[nodiscard]] Index nshelves() const noexcept { return msr.mextent; }
+  [[nodiscard]] Index nbooks() const noexcept { return mbr.mextent; }
+  [[nodiscard]] Index npages() const noexcept { return mpr.mextent; }
+  [[nodiscard]] Index nrows() const noexcept { return mrr.mextent; }
+  [[nodiscard]] Index ncols() const noexcept { return mcr.mextent; }
+
+  // Total size
+  [[nodiscard]] Index size() const noexcept {
+    return nlibraries() * nvitrines() * nshelves() * nbooks() * npages() *
+           nrows() * ncols();
+  }
+  [[nodiscard]] bool empty() const noexcept { return size() == 0; }
 
   /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  Shape<7> shape() const {return {nlibraries(), nvitrines(), nshelves(), nbooks(), npages(), nrows(), ncols()};}
+  [[nodiscard]] Shape<7> shape() const {
+    return {nlibraries(),
+            nvitrines(),
+            nshelves(),
+            nbooks(),
+            npages(),
+            nrows(),
+            ncols()};
+  }
 
   // Const index operators:
 
@@ -1211,15 +1223,15 @@ class ConstTensor7View {
   }
 
   /** Get element implementation without assertions. */
-  Numeric get(
+  [[nodiscard]] Numeric get(
       Index l, Index v, Index s, Index b, Index p, Index r, Index c) const {
     return *(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p) +
              OFFSET(r) + OFFSET(c));
   }
 
   // Functions returning iterators:
-  ConstIterator7D begin() const;
-  ConstIterator7D end() const;
+  [[nodiscard]] ConstIterator7D begin() const;
+  [[nodiscard]] ConstIterator7D end() const;
 
   //! Destructor.
   virtual ~ConstTensor7View() = default;
@@ -2314,7 +2326,7 @@ class Tensor7View : public ConstTensor7View {
   }
 
   // Conversion to a plain C-array
-  const Numeric* get_c_array() const ARTS_NOEXCEPT;
+  [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;
   Numeric* get_c_array() ARTS_NOEXCEPT;
 
   // Functions returning iterators:
@@ -2414,121 +2426,218 @@ class Tensor7 : public Tensor7View {
 
   // Destructor:
   virtual ~Tensor7();
-  
-  // Total size
-  Index size() const noexcept {return nlibraries() * nvitrines() * nshelves() * nbooks() * npages() * nrows() * ncols();}
-  
+
   /*! Reduce a Tensor7 to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() && ARTS_NOEXCEPT {
+      Vector reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim0 < 7, "Bad Dimension, Out-of-Bounds");
-    
-    Range r0(0, dim0 == 0 ? nlibraries() : dim0 == 1 ? nvitrines() : dim0 == 2 ? nshelves() : dim0 == 3 ? nbooks() : dim0 == 4 ? npages() : dim0 == 5 ? nrows() : ncols());
-    
+
+    Range r0(0,
+             dim0 == 0   ? nlibraries()
+             : dim0 == 1 ? nvitrines()
+             : dim0 == 2 ? nshelves()
+             : dim0 == 3 ? nbooks()
+             : dim0 == 4 ? npages()
+             : dim0 == 5 ? nrows()
+                         : ncols());
+
     Vector out(mdata, r0);
-    ARTS_ASSERT(size() not_eq out.size(), "Can only reduce size on same size input");
+    ARTS_ASSERT(size() not_eq out.size(),
+                "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
-  
+
   /*! Reduce a Tensor7 to a Matrix and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1>
-  Matrix reduce_rank() && ARTS_NOEXCEPT {
+      Matrix reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim1 < 7, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
-    
-    const Range r1(0, dim1 == 1 ? nvitrines() : dim1 == 2 ? nshelves() : dim1 == 3 ? nbooks() : dim1 == 4 ? npages() : dim1 == 5 ? nrows() : ncols());
-    const Range r0(0, dim0 == 0 ? nlibraries() : dim0 == 1 ? nvitrines() : dim0 == 2 ? nshelves() : dim0 == 3 ? nbooks() : dim0 == 4 ? npages() : nrows(), r1.get_extent());
-    
+
+    const Range r1(0,
+                   dim1 == 1   ? nvitrines()
+                   : dim1 == 2 ? nshelves()
+                   : dim1 == 3 ? nbooks()
+                   : dim1 == 4 ? npages()
+                   : dim1 == 5 ? nrows()
+                               : ncols());
+    const Range r0(0,
+                   dim0 == 0   ? nlibraries()
+                   : dim0 == 1 ? nvitrines()
+                   : dim0 == 2 ? nshelves()
+                   : dim0 == 3 ? nbooks()
+                   : dim0 == 4 ? npages()
+                               : nrows(),
+                   r1.get_extent());
+
     Matrix out(mdata, r0, r1);
-    ARTS_ASSERT(size() not_eq out.size(), "Can only reduce size on same size input");
+    ARTS_ASSERT(size() not_eq out.size(),
+                "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
-  
+
   /*! Reduce a Tensor7 to a Tensor3 and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1, std::size_t dim2>
-  Tensor3 reduce_rank() && ARTS_NOEXCEPT {
+      Tensor3 reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim2 < 7, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
-    
-    const Range r2(0, dim2 == 2 ? nshelves() : dim2 == 3 ? nbooks() : dim2 == 4 ? npages() : dim2 == 5 ? nrows() : ncols());
-    const Range r1(0, dim1 == 1 ? nvitrines() : dim1 == 2 ? nshelves() : dim1 == 3 ? nbooks() : dim1 == 4 ? npages() : nrows(), r2.get_extent());
-    const Range r0(0, dim0 == 0 ? nlibraries() : dim0 == 1 ? nvitrines() : dim0 == 2 ? nshelves() : dim0 == 3 ? nbooks() : npages(), r1.get_extent() * r2.get_extent());
-    
+
+    const Range r2(0,
+                   dim2 == 2   ? nshelves()
+                   : dim2 == 3 ? nbooks()
+                   : dim2 == 4 ? npages()
+                   : dim2 == 5 ? nrows()
+                               : ncols());
+    const Range r1(0,
+                   dim1 == 1   ? nvitrines()
+                   : dim1 == 2 ? nshelves()
+                   : dim1 == 3 ? nbooks()
+                   : dim1 == 4 ? npages()
+                               : nrows(),
+                   r2.get_extent());
+    const Range r0(0,
+                   dim0 == 0   ? nlibraries()
+                   : dim0 == 1 ? nvitrines()
+                   : dim0 == 2 ? nshelves()
+                   : dim0 == 3 ? nbooks()
+                               : npages(),
+                   r1.get_extent() * r2.get_extent());
+
     Tensor3 out(mdata, r0, r1, r2);
-    ARTS_ASSERT(size() not_eq out.size(), "Can only reduce size on same size input");
+    ARTS_ASSERT(size() not_eq out.size(),
+                "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
-  
+
   /*! Reduce a Tensor7 to a Tensor4 and leave this in an empty state */
-  template <std::size_t dim0, std::size_t dim1, std::size_t dim2, std::size_t dim3>
-  Tensor4 reduce_rank() && ARTS_NOEXCEPT {
+  template <std::size_t dim0,
+            std::size_t dim1,
+            std::size_t dim2,
+            std::size_t dim3>
+      Tensor4 reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim3 < 7, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
     static_assert(dim2 < dim3, "Bad Dimensions, dim3 must be larger than dim2");
-    
-    const Range r3(0, dim3 == 3 ? nbooks() : dim3 == 4 ? npages() : dim3 == 5 ? nrows() : ncols());
-    const Range r2(0, dim2 == 2 ? nshelves() : dim2 == 3 ? nbooks() : dim2 == 4 ? npages() : nrows(), r3.get_extent());
-    const Range r1(0, dim1 == 1 ? nvitrines() : dim1 == 2 ? nshelves() : dim1 == 3 ? nbooks() : npages(), r2.get_extent() * r3.get_extent());
-    const Range r0(0, dim0 == 0 ? nlibraries() : dim0 == 1 ? nvitrines() : dim0 == 2 ? nshelves() : nbooks(), r1.get_extent() * r2.get_extent() * r3.get_extent());
-    
+
+    const Range r3(0,
+                   dim3 == 3   ? nbooks()
+                   : dim3 == 4 ? npages()
+                   : dim3 == 5 ? nrows()
+                               : ncols());
+    const Range r2(0,
+                   dim2 == 2   ? nshelves()
+                   : dim2 == 3 ? nbooks()
+                   : dim2 == 4 ? npages()
+                               : nrows(),
+                   r3.get_extent());
+    const Range r1(0,
+                   dim1 == 1   ? nvitrines()
+                   : dim1 == 2 ? nshelves()
+                   : dim1 == 3 ? nbooks()
+                               : npages(),
+                   r2.get_extent() * r3.get_extent());
+    const Range r0(0,
+                   dim0 == 0   ? nlibraries()
+                   : dim0 == 1 ? nvitrines()
+                   : dim0 == 2 ? nshelves()
+                               : nbooks(),
+                   r1.get_extent() * r2.get_extent() * r3.get_extent());
+
     Tensor4 out(mdata, r0, r1, r2, r3);
-    ARTS_ASSERT(size() not_eq out.size(), "Can only reduce size on same size input");
+    ARTS_ASSERT(size() not_eq out.size(),
+                "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
-  
+
   /*! Reduce a Tensor7 to a Tensor5 and leave this in an empty state */
-  template <std::size_t dim0, std::size_t dim1, std::size_t dim2, std::size_t dim3, std::size_t dim4>
-  Tensor5 reduce_rank() && ARTS_NOEXCEPT {
+  template <std::size_t dim0,
+            std::size_t dim1,
+            std::size_t dim2,
+            std::size_t dim3,
+            std::size_t dim4>
+      Tensor5 reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim4 < 7, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
     static_assert(dim2 < dim3, "Bad Dimensions, dim3 must be larger than dim2");
     static_assert(dim3 < dim4, "Bad Dimensions, dim4 must be larger than dim3");
-    
+
     const Range r4(0, dim4 == 4 ? npages() : dim4 == 5 ? nrows() : ncols());
-    const Range r3(0, dim3 == 3 ? nbooks() : dim3 == 4 ? npages() : nrows(), r4.get_extent());
-    const Range r2(0, dim2 == 2 ? nshelves() : dim2 == 3 ? nbooks() : npages(), r3.get_extent() * r4.get_extent());
-    const Range r1(0, dim1 == 1 ? nvitrines() : dim1 == 2 ? nshelves() : nbooks(), r2.get_extent() * r3.get_extent() * r4.get_extent());
-    const Range r0(0, dim0 == 0 ? nlibraries() : dim0 == 1 ? nvitrines() : nshelves(), r1.get_extent() * r2.get_extent() * r3.get_extent() * r4.get_extent());
-    
+    const Range r3(0,
+                   dim3 == 3   ? nbooks()
+                   : dim3 == 4 ? npages()
+                               : nrows(),
+                   r4.get_extent());
+    const Range r2(0,
+                   dim2 == 2   ? nshelves()
+                   : dim2 == 3 ? nbooks()
+                               : npages(),
+                   r3.get_extent() * r4.get_extent());
+    const Range r1(0,
+                   dim1 == 1   ? nvitrines()
+                   : dim1 == 2 ? nshelves()
+                               : nbooks(),
+                   r2.get_extent() * r3.get_extent() * r4.get_extent());
+    const Range r0(
+        0,
+        dim0 == 0   ? nlibraries()
+        : dim0 == 1 ? nvitrines()
+                    : nshelves(),
+        r1.get_extent() * r2.get_extent() * r3.get_extent() * r4.get_extent());
+
     Tensor5 out(mdata, r0, r1, r2, r3, r4);
-    ARTS_ASSERT(size() not_eq out.size(), "Can only reduce size on same size input");
+    ARTS_ASSERT(size() not_eq out.size(),
+                "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
-  
+
   /*! Reduce a Tensor7 to a Tensor6 and leave this in an empty state */
-  template <std::size_t dim0, std::size_t dim1, std::size_t dim2, std::size_t dim3, std::size_t dim4, std::size_t dim5>
-  Tensor6 reduce_rank() && ARTS_NOEXCEPT {
+  template <std::size_t dim0,
+            std::size_t dim1,
+            std::size_t dim2,
+            std::size_t dim3,
+            std::size_t dim4,
+            std::size_t dim5>
+      Tensor6 reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim5 < 7, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     static_assert(dim1 < dim2, "Bad Dimensions, dim2 must be larger than dim1");
     static_assert(dim2 < dim3, "Bad Dimensions, dim3 must be larger than dim2");
     static_assert(dim3 < dim4, "Bad Dimensions, dim4 must be larger than dim3");
     static_assert(dim4 < dim5, "Bad Dimensions, dim5 must be larger than dim4");
-    
+
     const Range r5(0, dim5 == 5 ? nrows() : ncols());
     const Range r4(0, dim4 == 4 ? npages() : nrows(), r5.get_extent());
-    const Range r3(0, dim3 == 3 ? nbooks() : npages(), r4.get_extent() * r5.get_extent());
-    const Range r2(0, dim2 == 2 ? nshelves() : nbooks(), r3.get_extent() * r4.get_extent() * r5.get_extent());
-    const Range r1(0, dim1 == 1 ? nvitrines() : nshelves(), r2.get_extent() * r3.get_extent() * r4.get_extent() * r5.get_extent());
-    const Range r0(0, dim0 == 0 ? nlibraries() : nvitrines(), r1.get_extent() * r2.get_extent() * r3.get_extent() * r4.get_extent() * r5.get_extent());
-    
+    const Range r3(
+        0, dim3 == 3 ? nbooks() : npages(), r4.get_extent() * r5.get_extent());
+    const Range r2(0,
+                   dim2 == 2 ? nshelves() : nbooks(),
+                   r3.get_extent() * r4.get_extent() * r5.get_extent());
+    const Range r1(
+        0,
+        dim1 == 1 ? nvitrines() : nshelves(),
+        r2.get_extent() * r3.get_extent() * r4.get_extent() * r5.get_extent());
+    const Range r0(0,
+                   dim0 == 0 ? nlibraries() : nvitrines(),
+                   r1.get_extent() * r2.get_extent() * r3.get_extent() *
+                       r4.get_extent() * r5.get_extent());
+
     Tensor6 out(mdata, r0, r1, r2, r3, r4, r5);
-    ARTS_ASSERT(size() not_eq out.size(), "Can only reduce size on same size input");
+    ARTS_ASSERT(size() not_eq out.size(),
+                "Can only reduce size on same size input");
     mdata = nullptr;
     return out;
   }
 
   template <class F>
   void transform_elementwise(F&& func) {
-    std::transform(mdata, mdata+size(), mdata, func);
+    std::transform(mdata, mdata + size(), mdata, func);
   }
 };
 
