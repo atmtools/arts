@@ -1115,13 +1115,21 @@ void iySurfaceLambertian(Workspace& ws,
                          const Index& N_aa,
                          const Verbosity& verbosity) {
   // Input checks
-
-  ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
+  ARTS_USER_ERROR_IF(surface_scalar_reflectivity.nelem() != f_grid.nelem() &&
+                     surface_scalar_reflectivity.nelem() != 1,
+                     "The number of elements in *surface_scalar_reflectivity* should\n",
+                     "match length of *f_grid* or be 1.",
+                     "\n length of *f_grid* : ", f_grid.nelem(),
+                     "\n length of *surface_scalar_reflectivity* : ",
+                     surface_scalar_reflectivity.nelem());
+  ARTS_USER_ERROR_IF(min(surface_scalar_reflectivity) < 0 ||
+                         max(surface_scalar_reflectivity) > 1,
+                     "All values in *surface_scalar_reflectivity* must be inside [0,1].");
+  ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.");
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(atmosphere_dim, rtp_pos);
   chk_rte_los(atmosphere_dim, rtp_los);
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
-
 
   // Check surface_data
   surface_props_check(atmosphere_dim,
@@ -1319,10 +1327,14 @@ void iySurfaceLambertian(Workspace& ws,
   planck(b, f_grid, surface_skin_t[0]);
 
   //Upwelling radiation
+  Numeric r;
   for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
-    iy(i_freq, 0) = surface_scalar_reflectivity[i_freq] *
+    if (i_freq == 0 || surface_scalar_reflectivity.nelem() > 1) {
+      r = surface_scalar_reflectivity[i_freq];
+    }
+    iy(i_freq, 0) = r *
                         cos(deg2rad(specular_los[0])) / pi * Flx(i_freq, 0) +
-                    (1 - surface_scalar_reflectivity[i_freq]) * b[i_freq];
+                    (1 - r) * b[i_freq];
   }
 
   // Surface Jacobians
@@ -1418,16 +1430,26 @@ void iySurfaceLambertianDirect(
   //Check for correct unit
   ARTS_USER_ERROR_IF(iy_unit != "1" && star_do,
                      "If stars are present only iy_unit=\"1\" can be used.");
-
   //Check size of iy
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
+  ARTS_USER_ERROR_IF(surface_scalar_reflectivity.nelem() != f_grid.nelem() &&
+                         surface_scalar_reflectivity.nelem() != 1,
+                     "The number of elements in *surface_scalar_reflectivity* should\n",
+                     "match length of *f_grid* or be 1.",
+                     "\n length of *f_grid* : ", f_grid.nelem(),
+                     "\n length of *surface_scalar_reflectivity* : ",
+                     surface_scalar_reflectivity.nelem());
+  ARTS_USER_ERROR_IF(min(surface_scalar_reflectivity) < 0 ||
+                         max(surface_scalar_reflectivity) > 1,
+                     "All values in *surface_scalar_reflectivity* must be inside [0,1].");
+  // Input checks
+  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
+  chk_rte_pos(atmosphere_dim, rtp_pos);
+
+
   //do something only if there is a star
   if (star_do) {
-    // Input checks
-    chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-    chk_rte_pos(atmosphere_dim, rtp_pos);
-
     //get star ppaths
     get_star_ppaths(ws,
                     star_ppaths,
@@ -1519,9 +1541,12 @@ void iySurfaceLambertianDirect(
         // to be 232.
 
         Vector iy_surface_direct(f_grid.nelem());
-
+        Numeric r;
         for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
-          iy_surface_direct[i_freq] = surface_scalar_reflectivity[i_freq] / pi *
+          if (i_freq == 0 || surface_scalar_reflectivity.nelem() > 1) {
+            r = surface_scalar_reflectivity[i_freq];
+          }
+          iy_surface_direct[i_freq] = r / pi *
                                       transmitted_starlight[i_star](i_freq, 0) *
                                       cos(deg2rad(specular_los[0]));
         }
