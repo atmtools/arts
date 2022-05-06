@@ -6,7 +6,7 @@ pyarts.classes
 .. currentmodule:: pyarts.classes
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
     AbsorptionLines
     Agenda

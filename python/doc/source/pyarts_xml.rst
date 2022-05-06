@@ -6,7 +6,7 @@ arts.xml
 .. currentmodule:: pyarts.xml
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
    load
    load_directory

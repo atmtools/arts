@@ -6,6 +6,6 @@ arts.plots
 .. currentmodule:: pyarts.plots
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
    plot_arts_lookup

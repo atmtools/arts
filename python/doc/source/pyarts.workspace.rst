@@ -5,7 +5,7 @@ pyarts.workspace
 .. currentmodule:: pyarts.workspace
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
    arts_agenda
    Include
