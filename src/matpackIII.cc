@@ -23,19 +23,12 @@
 */
 
 #include "matpackIII.h"
+
+#include "debug.h"
 #include "exceptions.h"
 
 // Functions for ConstTensor3View:
 // ------------------------------
-
-//! Check if variable is empty.
-/*!
- \param[in]  x The variable to check.
- \return True if the size of any dimension of x is 0.
- */
-bool ConstTensor3View::empty() const {
-  return (npages() == 0 || nrows() == 0 || ncols() == 0);
-}
 
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Tensor3. This allows
@@ -301,10 +294,15 @@ VectorView Tensor3View::operator()(const Range& p, Index r, Index c) {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 Numeric* Tensor3View::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT (not (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
-      mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1),
-        "A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mpr.mstart == 0 and
+                  (mpr.mstride == mcr.mextent * mrr.mextent or size() == 0),
+              "Page ",
+              mpr)
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
+              "Row ",
+              mrr)
+  ARTS_ASSERT(
+      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
   return mdata;
 }
 
@@ -315,10 +313,15 @@ Numeric* Tensor3View::get_c_array() ARTS_NOEXCEPT {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 const Numeric* Tensor3View::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT (not (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
-  mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-  mcr.mstride != 1),
-  "A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mpr.mstart == 0 and
+                  (mpr.mstride == mcr.mextent * mrr.mextent or size() == 0),
+              "Page ",
+              mpr)
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
+              "Row ",
+              mrr)
+  ARTS_ASSERT(
+      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
   return mdata;
 }
 

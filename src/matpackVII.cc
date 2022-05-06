@@ -23,41 +23,11 @@
 */
 
 #include "matpackVII.h"
+
 #include "exceptions.h"
 
 // Functions for ConstTensor7View:
 // ------------------------------
-
-//! Check if variable is empty.
-/*!
- \param[in]  x The variable to check.
- \return True if the size of any dimension of x is 0.
- */
-bool ConstTensor7View::empty() const {
-  return (nlibraries() == 0 || nvitrines() == 0 || nshelves() == 0 ||
-          nbooks() == 0 || npages() == 0 || nrows() == 0 || ncols() == 0);
-}
-
-/** Returns the number of libraries. */
-Index ConstTensor7View::nlibraries() const { return mlr.mextent; }
-
-/** Returns the number of vitrines. */
-Index ConstTensor7View::nvitrines() const { return mvr.mextent; }
-
-/** Returns the number of shelves. */
-Index ConstTensor7View::nshelves() const { return msr.mextent; }
-
-/** Returns the number of books. */
-Index ConstTensor7View::nbooks() const { return mbr.mextent; }
-
-/** Returns the number of pages. */
-Index ConstTensor7View::npages() const { return mpr.mextent; }
-
-/** Returns the number of rows. */
-Index ConstTensor7View::nrows() const { return mrr.mextent; }
-
-/** Returns the number of columns. */
-Index ConstTensor7View::ncols() const { return mcr.mextent; }
 
 // Const index operators:
 
@@ -4984,20 +4954,38 @@ Tensor5View is not pointing to the beginning of a Tensor5 or the stride
 is not 1 because the caller expects to get a C array with continuous data.
 */
 Numeric* Tensor7View::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT (not (mlr.mstart != 0 ||
-      mlr.mstride != mvr.mextent * msr.mextent * mbr.mextent * mpr.mextent *
-                         mrr.mextent * mcr.mextent ||
-      mvr.mstart != 0 ||
-      mvr.mstride !=
-          msr.mextent * mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent ||
-      msr.mstart != 0 ||
-      msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent ||
-      mbr.mstart != 0 ||
-      mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
-      mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
-      mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1),
-        "A Tensor7View can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mlr.mstart == 0 and
+                  (mlr.mstride == mcr.mextent * mrr.mextent * mpr.mextent *
+                                      mbr.mextent * msr.mextent * mvr.mextent or
+                   size() == 0),
+              "Library ",
+              mlr)
+  ARTS_ASSERT(mvr.mstart == 0 and
+                  (mvr.mstride == mcr.mextent * mrr.mextent * mpr.mextent *
+                                      mbr.mextent * msr.mextent or
+                   size() == 0),
+              "Vitrine ",
+              mvr)
+  ARTS_ASSERT(msr.mstart == 0 and
+                  (msr.mstride ==
+                       mcr.mextent * mrr.mextent * mpr.mextent * mbr.mextent or
+                   size() == 0),
+              "Shelve ",
+              msr)
+  ARTS_ASSERT(mbr.mstart == 0 and
+                  (mbr.mstride == mcr.mextent * mrr.mextent * mpr.mextent or
+                   size() == 0),
+              "Book ",
+              mbr)
+  ARTS_ASSERT(mpr.mstart == 0 and
+                  (mpr.mstride == mcr.mextent * mrr.mextent or size() == 0),
+              "Page ",
+              mpr)
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
+              "Row ",
+              mrr)
+  ARTS_ASSERT(
+      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
 
   return mdata;
 }
@@ -5009,20 +4997,38 @@ Numeric* Tensor7View::get_c_array() ARTS_NOEXCEPT {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 const Numeric* Tensor7View::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT (not (mlr.mstart != 0 ||
-      mlr.mstride != mvr.mextent * msr.mextent * mbr.mextent * mpr.mextent *
-                         mrr.mextent * mcr.mextent ||
-      mvr.mstart != 0 ||
-      mvr.mstride !=
-          msr.mextent * mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent ||
-      msr.mstart != 0 ||
-      msr.mstride != mbr.mextent * mpr.mextent * mrr.mextent * mcr.mextent ||
-      mbr.mstart != 0 ||
-      mbr.mstride != mpr.mextent * mrr.mextent * mcr.mextent ||
-      mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
-      mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1),
-        "A Tensor7View can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mlr.mstart == 0 and
+                  (mlr.mstride == mcr.mextent * mrr.mextent * mpr.mextent *
+                                      mbr.mextent * msr.mextent * mvr.mextent or
+                   size() == 0),
+              "Library ",
+              mlr)
+  ARTS_ASSERT(mvr.mstart == 0 and
+                  (mvr.mstride == mcr.mextent * mrr.mextent * mpr.mextent *
+                                      mbr.mextent * msr.mextent or
+                   size() == 0),
+              "Vitrine ",
+              mvr)
+  ARTS_ASSERT(msr.mstart == 0 and
+                  (msr.mstride ==
+                       mcr.mextent * mrr.mextent * mpr.mextent * mbr.mextent or
+                   size() == 0),
+              "Shelve ",
+              msr)
+  ARTS_ASSERT(mbr.mstart == 0 and
+                  (mbr.mstride == mcr.mextent * mrr.mextent * mpr.mextent or
+                   size() == 0),
+              "Book ",
+              mbr)
+  ARTS_ASSERT(mpr.mstart == 0 and
+                  (mpr.mstride == mcr.mextent * mrr.mextent or size() == 0),
+              "Page ",
+              mpr)
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
+              "Row ",
+              mrr)
+  ARTS_ASSERT(
+      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
 
   return mdata;
 }

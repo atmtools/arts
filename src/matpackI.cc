@@ -22,8 +22,10 @@
 */
 
 #include "matpackI.h"
+
 #include <cmath>
 #include <cstring>
+
 #include "blas.h"
 #include "exceptions.h"
 
@@ -43,12 +45,6 @@ std::ostream& operator<<(std::ostream& os, const Range& r) {
 // Functions for ConstVectorView:
 // ------------------------------
 
-bool ConstVectorView::empty() const ARTS_NOEXCEPT { return (nelem() == 0); }
-
-Index ConstVectorView::nelem() const ARTS_NOEXCEPT { return mrange.mextent; }
-
-Index ConstVectorView::size() const ARTS_NOEXCEPT { return mrange.mextent; }
-
 Numeric ConstVectorView::sum() const ARTS_NOEXCEPT {
   Numeric s = 0;
   ConstIterator1D i = begin();
@@ -59,7 +55,8 @@ Numeric ConstVectorView::sum() const ARTS_NOEXCEPT {
   return s;
 }
 
-ConstVectorView ConstVectorView::operator[](const Range& r) const ARTS_NOEXCEPT {
+ConstVectorView ConstVectorView::operator[](const Range& r) const
+    ARTS_NOEXCEPT {
   return ConstVectorView(mdata, mrange, r);
 }
 
@@ -86,17 +83,22 @@ ConstVectorView::operator ConstMatrixView() const {
    qualifier, because mdata is not const. This should be safe, since
    there are no non-const methods for ConstVectorView. */
 ConstVectorView::ConstVectorView(const Numeric& a) ARTS_NOEXCEPT
-    : mrange(0, 1), mdata(&const_cast<Numeric&>(a)) {
+    : mrange(0, 1),
+      mdata(&const_cast<Numeric&>(a)) {
   // Nothing to do here.
 }
 
-ConstVectorView::ConstVectorView(Numeric* data, const Range& range) ARTS_NOEXCEPT
-    : mrange(range), mdata(data) {
+ConstVectorView::ConstVectorView(Numeric* data,
+                                 const Range& range) ARTS_NOEXCEPT
+    : mrange(range),
+      mdata(data) {
   // Nothing to do here.
 }
 
-ConstVectorView::ConstVectorView(Numeric* data, const Range& p, const Range& n) ARTS_NOEXCEPT
-    : mrange(p, n), mdata(data) {
+ConstVectorView::ConstVectorView(Numeric* data,
+                                 const Range& p,
+                                 const Range& n) ARTS_NOEXCEPT : mrange(p, n),
+                                                                 mdata(data) {
   // Nothing to do here.
 }
 
@@ -121,15 +123,14 @@ std::ostream& operator<<(std::ostream& os, const ConstVectorView& v) {
 // Functions for VectorView:
 // ------------------------
 
-VectorView::VectorView(const Vector&) {
-  ARTS_ASSERT (false,
-      "Creating a VectorView from a const Vector is not allowed.\n"
-      "This is not really a runtime error, but I don't want to start\n"
-      "producing direct output from inside matpack. And just exiting is\n"
-      "not so nice.\n"
-      "If you see this error, there is a bug in the code, not in the\n"
-      "ARTS input.")
-}
+VectorView::VectorView(const Vector&){ARTS_ASSERT(
+    false,
+    "Creating a VectorView from a const Vector is not allowed.\n"
+    "This is not really a runtime error, but I don't want to start\n"
+    "producing direct output from inside matpack. And just exiting is\n"
+    "not so nice.\n"
+    "If you see this error, there is a bug in the code, not in the\n"
+    "ARTS input.")}
 
 VectorView::VectorView(Vector& v) ARTS_NOEXCEPT {
   mdata = v.mdata;
@@ -269,15 +270,17 @@ VectorView::operator MatrixView() ARTS_NOEXCEPT {
 }
 
 const Numeric* VectorView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT(not (mrange.mstart != 0 || mrange.mstride != 1),
-        "A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(
+      mrange.mstart == 0 and (mrange.mstride == 1 or mrange.mextent == 0),
+      mrange)
 
   return mdata;
 }
 
 Numeric* VectorView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT(not (mrange.mstart != 0 || mrange.mstride != 1),
-        "A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(
+      mrange.mstart == 0 and (mrange.mstride == 1 or mrange.mextent == 0),
+      mrange)
 
   return mdata;
 }
@@ -291,7 +294,9 @@ VectorView::VectorView(Numeric* data, const Range& range) ARTS_NOEXCEPT
   // Nothing to do here.
 }
 
-VectorView::VectorView(Numeric* data, const Range& p, const Range& n) ARTS_NOEXCEPT
+VectorView::VectorView(Numeric* data,
+                       const Range& p,
+                       const Range& n) ARTS_NOEXCEPT
     : ConstVectorView(data, p, n) {
   // Nothing to do here.
 }
@@ -320,11 +325,9 @@ Vector::Vector(std::initializer_list<Numeric> init)
 }
 
 Vector::Vector(const Eigen::VectorXd& init)
-    : VectorView(new Numeric[init.size()], Range(0, init.size()))
-{
-  for (Index i=0; i<size(); i++) operator[](i) = init[i];
+    : VectorView(new Numeric[init.size()], Range(0, init.size())) {
+  for (Index i = 0; i < size(); i++) operator[](i) = init[i];
 }
-
 
 Vector::Vector(Index n) : VectorView(new Numeric[n], Range(0, n)) {
   // Nothing to do here.
@@ -426,20 +429,11 @@ Vector::~Vector() { delete[] mdata; }
 // Functions for ConstMatrixView:
 // ------------------------------
 
-//! Returns true if variable size is zero.
-bool ConstMatrixView::empty() const ARTS_NOEXCEPT { return (nrows() == 0 || ncols() == 0); }
-
-/** Returns the number of rows. */
-Index ConstMatrixView::nrows() const ARTS_NOEXCEPT { return mrr.mextent; }
-
-/** Returns the number of columns. */
-Index ConstMatrixView::ncols() const ARTS_NOEXCEPT { return mcr.mextent; }
-
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Matrix. This allows
     correct recursive behavior.  */
-ConstMatrixView ConstMatrixView::operator()(const Range& r,
-                                            const Range& c) const ARTS_NOEXCEPT {
+ConstMatrixView ConstMatrixView::operator()(
+    const Range& r, const Range& c) const ARTS_NOEXCEPT {
   return ConstMatrixView(mdata, mrr, mcr, r, c);
 }
 
@@ -448,7 +442,8 @@ ConstMatrixView ConstMatrixView::operator()(const Range& r,
 
     \param r A range of rows.
     \param c Index of selected column */
-ConstVectorView ConstMatrixView::operator()(const Range& r, Index c) const ARTS_NOEXCEPT {
+ConstVectorView ConstMatrixView::operator()(const Range& r,
+                                            Index c) const ARTS_NOEXCEPT {
   // Check that c is valid:
   ARTS_ASSERT(0 <= c);
   ARTS_ASSERT(c < mcr.mextent);
@@ -461,7 +456,8 @@ ConstVectorView ConstMatrixView::operator()(const Range& r, Index c) const ARTS_
 
     \param r Index of selected row.
     \param c Range of columns */
-ConstVectorView ConstMatrixView::operator()(Index r, const Range& c) const ARTS_NOEXCEPT {
+ConstVectorView ConstMatrixView::operator()(Index r, const Range& c) const
+    ARTS_NOEXCEPT {
   // Check that r is valid:
   ARTS_ASSERT(0 <= r);
   ARTS_ASSERT(r < mrr.mextent);
@@ -501,8 +497,9 @@ ConstVectorView ConstMatrixView::diagonal() const ARTS_NOEXCEPT {
     stride to account for the length of one row. */
 ConstMatrixView::ConstMatrixView(Numeric* data,
                                  const Range& rr,
-                                 const Range& cr) ARTS_NOEXCEPT
-    : mrr(rr), mcr(cr), mdata(data) {
+                                 const Range& cr) ARTS_NOEXCEPT : mrr(rr),
+                                                                  mcr(cr),
+                                                                  mdata(data) {
   // Nothing to do here.
 }
 
@@ -524,8 +521,9 @@ ConstMatrixView::ConstMatrixView(Numeric* data,
                                  const Range& pr,
                                  const Range& pc,
                                  const Range& nr,
-                                 const Range& nc) ARTS_NOEXCEPT
-    : mrr(pr, nr), mcr(pc, nc), mdata(data) {
+                                 const Range& nc) ARTS_NOEXCEPT : mrr(pr, nr),
+                                                                  mcr(pc, nc),
+                                                                  mdata(data) {
   // Nothing to do here.
 }
 
@@ -577,7 +575,8 @@ std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v) {
 /** Index operator for subrange. We have to also account for the case,
     that *this is already a subrange of a Matrix. This allows correct
     recursive behavior.  */
-MatrixView MatrixView::operator()(const Range& r, const Range& c) ARTS_NOEXCEPT {
+MatrixView MatrixView::operator()(const Range& r,
+                                  const Range& c) ARTS_NOEXCEPT {
   return MatrixView(mdata, mrr, mcr, r, c);
 }
 
@@ -737,8 +736,11 @@ MatrixView& MatrixView::operator-=(Numeric x) ARTS_NOEXCEPT {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 const Numeric* MatrixView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT(not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 || mcr.mstride != 1),
-    "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
+              "Row ",
+              mrr)
+  ARTS_ASSERT(
+      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
 
   return mdata;
 }
@@ -750,8 +752,11 @@ const Numeric* MatrixView::get_c_array() const ARTS_NOEXCEPT {
   is not 1 because the caller expects to get a C array with continuous data.
 */
 Numeric* MatrixView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT(not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 || mcr.mstride != 1),
-    "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
+  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
+              "Row ",
+              mrr)
+  ARTS_ASSERT(
+      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
 
   return mdata;
 }
@@ -879,7 +884,9 @@ MatrixView& MatrixView::operator-=(const ConstVectorView& x) ARTS_NOEXCEPT {
 /** Explicit constructor. This one is used by Matrix to initialize its
     own MatrixView part. The row range rr must have a
     stride to account for the length of one row. */
-MatrixView::MatrixView(Numeric* data, const Range& rr, const Range& cr) ARTS_NOEXCEPT
+MatrixView::MatrixView(Numeric* data,
+                       const Range& rr,
+                       const Range& cr) ARTS_NOEXCEPT
     : ConstMatrixView(data, rr, cr) {
   // Nothing to do here.
 }
@@ -1089,7 +1096,8 @@ Matrix::~Matrix() {
 // Some general Matrix Vector functions:
 
 /** Scalar product. The two vectors may be identical. */
-Numeric operator*(const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT {
+Numeric operator*(const ConstVectorView& a,
+                  const ConstVectorView& b) ARTS_NOEXCEPT {
   // Check dimensions:
   ARTS_ASSERT(a.nelem() == b.nelem());
 
@@ -1390,7 +1398,9 @@ void mult_general(MatrixView A,
     \author Patrick Eriksson
     \date   2012-02-12
 */
-void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT {
+void cross3(VectorView c,
+            const ConstVectorView& a,
+            const ConstVectorView& b) ARTS_NOEXCEPT {
   ARTS_ASSERT(a.nelem() == 3);
   ARTS_ASSERT(b.nelem() == 3);
   ARTS_ASSERT(c.nelem() == 3);
@@ -1447,7 +1457,9 @@ ConstMatrixView transpose(ConstMatrixView m) ARTS_NOEXCEPT {
 
 /** Returns the transpose. This creates a special MatrixView for the
     transpose. The original is not changed! */
-MatrixView transpose(MatrixView m) ARTS_NOEXCEPT { return MatrixView(m.mdata, m.mcr, m.mrr); }
+MatrixView transpose(MatrixView m) ARTS_NOEXCEPT {
+  return MatrixView(m.mdata, m.mcr, m.mrr);
+}
 
 /** A generic transform function for vectors, which can be used to
     implement mathematical functions operating on all
@@ -1600,20 +1612,24 @@ Numeric mean(const ConstVectorView& x) ARTS_NOEXCEPT {
 Numeric nanmean(const ConstVectorView& x) ARTS_NOEXCEPT {
   // Initial value for mean:
   Numeric nanmean = 0;
-  
+
   // Counter for the number of normal values
   Index numnormal = 0;
-  
+
   const ConstIterator1D xe = x.end();
   ConstIterator1D xi = x.begin();
-  
-  for (; xi != xe; ++xi) if (std::isnormal(*xi) or (*xi == 0)) {nanmean += *xi; numnormal++;}
-  
+
+  for (; xi != xe; ++xi)
+    if (std::isnormal(*xi) or (*xi == 0)) {
+      nanmean += *xi;
+      numnormal++;
+    }
+
   if (numnormal)
     nanmean /= Numeric(numnormal);
   else
     nanmean = std::numeric_limits<Numeric>::quiet_NaN();
-  
+
   return nanmean;
 }
 

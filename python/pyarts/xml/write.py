@@ -113,7 +113,7 @@ class ARTSXMLWriter:
         """Write a variable as XML.
 
         Writing basic matpack types is implemented here. Custom types (e.g.
-        GriddedFields) must implement a class member function called
+        CovarianceMatrix) must implement a class member function called
         'write_xml'.
 
         Tuples and list are mapped to ARTS Array types.

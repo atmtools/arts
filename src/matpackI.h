@@ -110,14 +110,14 @@
 class bofstream;
 
 // Declaration of Eigen types
-typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> StrideType;
-typedef Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-    MatrixType;
-typedef Eigen::Map<MatrixType, 0, StrideType> MatrixViewMap;
-typedef Eigen::Map<const MatrixType, 0, StrideType> ConstMatrixViewMap;
-typedef Eigen::Matrix<Numeric, 4, 4, Eigen::RowMajor> Matrix4x4Type;
-typedef Eigen::Map<Matrix4x4Type, 0, StrideType> Matrix4x4ViewMap;
-typedef Eigen::Map<const Matrix4x4Type, 0, StrideType> ConstMatrix4x4ViewMap;
+using StrideType = Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>;
+using MatrixType =
+    Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using MatrixViewMap = Eigen::Map<MatrixType, 0, StrideType>;
+using ConstMatrixViewMap = Eigen::Map<const MatrixType, 0, StrideType>;
+using Matrix4x4Type = Eigen::Matrix<Numeric, 4, 4, Eigen::RowMajor>;
+using Matrix4x4ViewMap = Eigen::Map<Matrix4x4Type, 0, StrideType>;
+using ConstMatrix4x4ViewMap = Eigen::Map<const Matrix4x4Type, 0, StrideType>;
 
 /** The Joker class.
 
@@ -165,7 +165,6 @@ class ConstMatrixView;
 */
 class Range {
  public:
-
   // Constructors:
 
   /** Explicit constructor.
@@ -179,22 +178,26 @@ class Range {
   \param[in] stride Stride can be anything. It can be omitted, in which case the
   default value is 1. */
   constexpr Range(Index start, Index extent, Index stride = 1) ARTS_NOEXCEPT
-    : mstart(start), mextent(extent), mstride(stride) {
-      // Start must be >= 0:
-      ARTS_ASSERT(0 <= mstart);
-      // Extent also. Although internally negative extent means "to the end",
-      // this can not be created this way, only with the joker. Zero
-      // extent is allowed, though, which corresponds to an empty range.
-      ARTS_ASSERT(0 <= mextent);
-      // Stride can be anything except 0.
-      // SAB 2001-09-21: Allow 0 stride.
-      //  ARTS_ASSERT( 0!=mstride);
-    }
+      : mstart(start),
+        mextent(extent),
+        mstride(stride) {
+    // Start must be >= 0:
+    ARTS_ASSERT(0 <= mstart);
+    // Extent also. Although internally negative extent means "to the end",
+    // this can not be created this way, only with the joker. Zero
+    // extent is allowed, though, which corresponds to an empty range.
+    ARTS_ASSERT(0 <= mextent);
+    // Stride can be anything except 0.
+    // SAB 2001-09-21: Allow 0 stride.
+    //  ARTS_ASSERT( 0!=mstride);
+  }
 
   /** Constructor with joker extent. Depending on the sign of stride,
     this means "to the end", or "to the beginning". */
   constexpr Range(Index start, Joker, Index stride = 1) ARTS_NOEXCEPT
-  : mstart(start), mextent(-1), mstride(stride) {
+      : mstart(start),
+        mextent(-1),
+        mstride(stride) {
     // Start must be >= 0:
     ARTS_ASSERT(0 <= mstart);
   }
@@ -202,9 +205,12 @@ class Range {
   /** Constructor with just a joker. This means, take everything. You
     can still optionally give a stride, though. This constructor is
     just shorter notation for Range(0,joker) */
-  constexpr Range(Joker, Index stride = 1) noexcept : mstart(0), mextent(-1), mstride(stride) {
-    // Nothing to do here.
-  };
+  constexpr Range(Joker, Index stride = 1) noexcept
+      : mstart(0),
+        mextent(-1),
+        mstride(stride){
+            // Nothing to do here.
+        };
 
   /** Constructor which converts a range with joker to an explicit
     range.
@@ -212,15 +218,17 @@ class Range {
     \param[in] max_size The maximum allowed size of the vector.
     \param[in] r The new range, with joker. */
   constexpr Range(Index max_size, const Range& r) ARTS_NOEXCEPT
-  : mstart(r.mstart), mextent(r.mextent), mstride(r.mstride) {
+      : mstart(r.mstart),
+        mextent(r.mextent),
+        mstride(r.mstride) {
     // Start must be >= 0:
     ARTS_ASSERT(0 <= mstart);
     // ... and < max_size:
     ARTS_ASSERT(mstart < max_size);
-    
+
     // Stride must be != 0:
     ARTS_ASSERT(0 != mstride);
-    
+
     // Convert negative extent (joker) to explicit extent
     if (mextent < 0) {
       if (0 < mstride)
@@ -228,12 +236,12 @@ class Range {
       else
         mextent = 1 + (0 - mstart) / mstride;
     } else {
-      #ifndef NDEBUG
+#ifndef NDEBUG
       // Check that extent is ok:
       Index fin = mstart + (mextent - 1) * mstride;
       ARTS_ASSERT(0 <= fin);
       ARTS_ASSERT(fin < max_size);
-      #endif
+#endif
     }
   }
 
@@ -245,13 +253,13 @@ class Range {
   constexpr Range(const Range& p, const Range& n) ARTS_NOEXCEPT
       : mstart(p.mstart + n.mstart * p.mstride),
         mextent(n.mextent),
-        mstride(p.mstride * n.mstride) {
+        mstride(p.mstride* n.mstride) {
     // We have to juggle here a bit with previous, new, and resulting
     // quantities. I.e.;
     // p.mstride: Previous stride
     // n.mstride: New stride (as specified)
     // mstride:   Resulting stride (old*new)
-          
+
     // Get the previous final element:
     Index prev_fin = p.mstart + (p.mextent - 1) * p.mstride;
 
@@ -261,7 +269,13 @@ class Range {
     ARTS_ASSERT(mstart <= prev_fin || mextent == -1);
 
     // Resulting stride must be != 0:
-    ARTS_ASSERT(0 != mstride, "Problem: mstride==", mstride, " for mstart==",mstart, " and mextent==", mextent);
+    ARTS_ASSERT(0 != mstride,
+                "Problem: mstride==",
+                mstride,
+                " for mstart==",
+                mstart,
+                " and mextent==",
+                mextent);
 
     // Convert negative extent (joker) to explicit extent
     if (mextent < 0) {
@@ -270,12 +284,12 @@ class Range {
       else
         mextent = 1 + (p.mstart - mstart) / mstride;
     } else {
-  #ifndef NDEBUG
+#ifndef NDEBUG
       // Check that extent is ok:
       Index fin = mstart + (mextent - 1) * mstride;
       ARTS_ASSERT(p.mstart <= fin);
       ARTS_ASSERT(fin <= prev_fin);
-  #endif
+#endif
     }
   };
 
@@ -330,11 +344,11 @@ class Range {
   // Member functions:
 
   /** Returns the start index of the range. */
-  constexpr Index get_start() const ARTS_NOEXCEPT { return mstart; }
+  [[nodiscard]] constexpr Index get_start() const noexcept { return mstart; }
   /** Returns the extent of the range. */
-  constexpr Index get_extent() const ARTS_NOEXCEPT { return mextent; }
+  [[nodiscard]] constexpr Index get_extent() const noexcept { return mextent; }
   /** Returns the stride of the range. */
-  constexpr Index get_stride() const ARTS_NOEXCEPT { return mstride; }
+  [[nodiscard]] constexpr Index get_stride() const noexcept { return mstride; }
 
   /** Range of range. */
   constexpr Range operator()(const Range r) const ARTS_NOEXCEPT {
@@ -349,7 +363,9 @@ class Range {
                                    r.mstride * mstride);
   }
 
-  constexpr Index operator()(const Index i) const ARTS_NOEXCEPT { return mstart + i * mstride; };
+  constexpr Index operator()(const Index i) const ARTS_NOEXCEPT {
+    return mstart + i * mstride;
+  };
 
  private:
   /** The start index. */
@@ -365,8 +381,8 @@ class Range {
 template <size_t N>
 struct Shape {
   std::array<Index, N> data;
-  bool operator==(const Shape& other) {return data == other.data;}
-  bool operator!=(const Shape& other) {return data not_eq other.data;}
+  bool operator==(const Shape& other) { return data == other.data; }
+  bool operator!=(const Shape& other) { return data not_eq other.data; }
   friend std::ostream& operator<<(std::ostream& os, const Shape& shape) {
     os << shape.data[0];
     for (size_t i = 1; i < N; i++) os << 'x' << shape.data[i];
@@ -389,7 +405,8 @@ class Iterator1D {
 
   /** Explicit constructor. */
   Iterator1D(Numeric* x, Index stride) ARTS_NOEXCEPT
-      : mx(x), mstride(stride) { /* Nothing to do here. */
+      : mx(x),
+        mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -405,10 +422,8 @@ class Iterator1D {
 
   /** Not equal operator, needed for algorithms like copy. */
   bool operator!=(const Iterator1D& other) const ARTS_NOEXCEPT {
-    if (mx != other.mx)
-      return true;
-    else
-      return false;
+    if (mx != other.mx) return true;
+    return false;
   }
 
   bool operator==(const Iterator1D& other) const ARTS_NOEXCEPT {
@@ -449,7 +464,8 @@ class ConstIterator1D {
 
   /** Explicit constructor. */
   ConstIterator1D(const Numeric* x, Index stride) ARTS_NOEXCEPT
-      : mx(x), mstride(stride) { /* Nothing to do here. */
+      : mx(x),
+        mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -464,10 +480,8 @@ class ConstIterator1D {
 
   /** Not equal operator, needed for algorithms like copy. */
   bool operator!=(const ConstIterator1D& other) const ARTS_NOEXCEPT {
-    if (mx != other.mx)
-      return true;
-    else
-      return false;
+    if (mx != other.mx) return true;
+    return false;
   }
 
   bool operator==(const ConstIterator1D& other) const ARTS_NOEXCEPT {
@@ -508,12 +522,12 @@ class ConstVectorView {
   ConstVectorView& operator=(ConstVectorView&&) = default;
 
   // Typedef for compatibility with STL
-  typedef ConstIterator1D const_iterator;
+  using const_iterator = ConstIterator1D;
 
   // Member functions:
 
   //! Returns true if variable size is zero.
-  bool empty() const ARTS_NOEXCEPT;
+  [[nodiscard]] bool empty() const noexcept { return mrange.mextent == 0; };
 
   /** Returns the number of elements.  The names `size' and `length'
     are already used by STL functions returning size_t. To avoid
@@ -524,16 +538,16 @@ class ConstVectorView {
     PC from -2147483648 to 2147483647. This means that a 15GB large
     array of float can be addressed with this index. So the extra bit
     that size_t has compared to long is not needed. */
-  Index nelem() const ARTS_NOEXCEPT;
-  
+  [[nodiscard]] Index nelem() const noexcept { return mrange.mextent; }
+
   /*! See nelem() */
-  Index size() const ARTS_NOEXCEPT;
+  [[nodiscard]] Index size() const noexcept { return mrange.mextent; }
 
   /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  Shape<1> shape() const {return {nelem()};}
+  [[nodiscard]] Shape<1> shape() const { return {nelem()}; }
 
   /** The sum of all elements of a Vector. */
-  Numeric sum() const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric sum() const ARTS_NOEXCEPT;
 
   // Const index operators:
   /** Plain const index operator. */
@@ -544,7 +558,7 @@ class ConstVectorView {
   }
 
   /** Get element implementation without assertions. */
-  Numeric get(Index n) const ARTS_NOEXCEPT {
+  [[nodiscard]] Numeric get(Index n) const ARTS_NOEXCEPT {
     return *(mdata + mrange.mstart + n * mrange.mstride);
   }
 
@@ -553,15 +567,16 @@ class ConstVectorView {
     correct recursive behavior.  */
   ConstVectorView operator[](const Range& r) const ARTS_NOEXCEPT;
 
-  friend Numeric operator*(const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT;
+  friend Numeric operator*(const ConstVectorView& a,
+                           const ConstVectorView& b) ARTS_NOEXCEPT;
 
   // Functions returning iterators:
 
   /** Return const iterator to first element. */
-  ConstIterator1D begin() const ARTS_NOEXCEPT;
+  [[nodiscard]] ConstIterator1D begin() const ARTS_NOEXCEPT;
 
   /** Return const iterator behind last element. */
-  ConstIterator1D end() const ARTS_NOEXCEPT;
+  [[nodiscard]] ConstIterator1D end() const ARTS_NOEXCEPT;
 
   /** Conversion to const 1 column matrix. */
   operator ConstMatrixView() const;
@@ -658,7 +673,7 @@ class VectorView : public ConstVectorView {
   VectorView(Vector& v) ARTS_NOEXCEPT;
 
   // Typedef for compatibility with STL
-  typedef Iterator1D iterator;
+  using iterator = Iterator1D;
 
   /** Plain Index operator. */
   Numeric& operator[](Index n) ARTS_NOEXCEPT {  // Check if index is valid:
@@ -744,7 +759,7 @@ class VectorView : public ConstVectorView {
   This function returns a pointer to the raw data. It fails if the
   VectorView is not pointing to the beginning of a Vector or the stride
   is not 1 because the caller expects to get a C array with continuous data. */
-  const Numeric* get_c_array() const ARTS_NOEXCEPT;
+  [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;
 
   /** Conversion to plain C-array, non-const version.
 
@@ -803,7 +818,8 @@ class Iterator2D {
 
   /** Explicit constructor. */
   Iterator2D(const VectorView& x, Index stride) ARTS_NOEXCEPT
-      : msv(x), mstride(stride) { /* Nothing to do here. */
+      : msv(x),
+        mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -818,8 +834,7 @@ class Iterator2D {
     if (msv.mdata + msv.mrange.mstart !=
         other.msv.mdata + other.msv.mrange.mstart)
       return true;
-    else
-      return false;
+    return false;
   }
 
   /** The -> operator is needed, so that we can write i->begin() to get
@@ -847,7 +862,8 @@ class ConstIterator2D {
 
   /** Explicit constructor. */
   ConstIterator2D(const ConstVectorView& x, Index stride) ARTS_NOEXCEPT
-      : msv(x), mstride(stride) { /* Nothing to do here. */
+      : msv(x),
+        mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -862,8 +878,7 @@ class ConstIterator2D {
     if (msv.mdata + msv.mrange.mstart !=
         other.msv.mdata + other.msv.mrange.mstart)
       return true;
-    else
-      return false;
+    return false;
   }
 
   /** The -> operator is needed, so that we can write i->begin() to get
@@ -897,7 +912,7 @@ class Vector : public VectorView {
 
   /** Initialization list constructor. */
   Vector(std::initializer_list<Numeric> init);
-  
+
   /** Initialization from an Eigen vector. */
   Vector(const Eigen::VectorXd& init);
 
@@ -932,7 +947,7 @@ class Vector : public VectorView {
 
   /** Converting constructor from std::vector<Numeric>. */
   Vector(const std::vector<Numeric>&);
-  
+
   /*! Construct from known data
    * 
    * Note that this will call delete on the pointer if it is still valid
@@ -941,8 +956,7 @@ class Vector : public VectorView {
    * @param[in] d - A pointer to some raw data
    * @param[in] r0 - The Range along the first dimension
    */
-  Vector(Numeric* d, const Range& r0) ARTS_NOEXCEPT
-  : VectorView(d, r0) {
+  Vector(Numeric* d, const Range& r0) ARTS_NOEXCEPT : VectorView(d, r0) {
     ARTS_ASSERT(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
   }
 
@@ -1016,7 +1030,7 @@ class Vector : public VectorView {
 
   template <class F>
   void transform_elementwise(F&& func) {
-    std::transform(mdata, mdata+size(), mdata, func);
+    std::transform(mdata, mdata + size(), mdata, func);
   }
 };
 
@@ -1041,19 +1055,23 @@ class ConstMatrixView {
   ConstMatrixView& operator=(ConstMatrixView&&) = default;
 
   // Typedef for compatibility with STL
-  typedef ConstIterator2D const_iterator;
+  using const_iterator = ConstIterator2D;
 
   // Member functions:
-  bool empty() const ARTS_NOEXCEPT;
-  Index nrows() const ARTS_NOEXCEPT;
-  Index ncols() const ARTS_NOEXCEPT;
+  [[nodiscard]] Index nrows() const noexcept { return mrr.mextent; }
+  [[nodiscard]] Index ncols() const noexcept { return mcr.mextent; }
+
+  // Total size
+  [[nodiscard]] Index size() const noexcept { return nrows() * ncols(); }
+  [[nodiscard]] bool empty() const noexcept { return size() == 0; }
 
   /*! Returns the shape as an array (to allow templates to just look for shape on different matpack objects) */
-  Shape<2> shape() const {return {nrows(), ncols()};}
+  [[nodiscard]] Shape<2> shape() const { return {nrows(), ncols()}; }
 
   // Const index operators:
   /** Plain const index operator. */
-  Numeric operator()(Index r, Index c) const ARTS_NOEXCEPT {  // Check if indices are valid:
+  Numeric operator()(Index r, Index c) const
+      ARTS_NOEXCEPT {  // Check if indices are valid:
     ARTS_ASSERT(0 <= r);
     ARTS_ASSERT(0 <= c);
     ARTS_ASSERT(r < mrr.mextent);
@@ -1063,21 +1081,22 @@ class ConstMatrixView {
   }
 
   /** Get element implementation without assertions. */
-  Numeric get(Index r, Index c) const ARTS_NOEXCEPT {
+  [[nodiscard]] Numeric get(Index r, Index c) const ARTS_NOEXCEPT {
     return *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart +
              c * mcr.mstride);
   }
 
-  ConstMatrixView operator()(const Range& r, const Range& c) const ARTS_NOEXCEPT;
+  ConstMatrixView operator()(const Range& r,
+                             const Range& c) const ARTS_NOEXCEPT;
   ConstVectorView operator()(const Range& r, Index c) const ARTS_NOEXCEPT;
   ConstVectorView operator()(Index r, const Range& c) const ARTS_NOEXCEPT;
 
   // Functions returning iterators:
-  ConstIterator2D begin() const ARTS_NOEXCEPT;
-  ConstIterator2D end() const ARTS_NOEXCEPT;
+  [[nodiscard]] ConstIterator2D begin() const ARTS_NOEXCEPT;
+  [[nodiscard]] ConstIterator2D end() const ARTS_NOEXCEPT;
 
   // View on diagonal vector
-  ConstVectorView diagonal() const ARTS_NOEXCEPT;
+  [[nodiscard]] ConstVectorView diagonal() const ARTS_NOEXCEPT;
 
   //! Destructor
   virtual ~ConstMatrixView() = default;
@@ -1158,11 +1177,12 @@ class MatrixView : public ConstMatrixView {
   constexpr MatrixView(const MatrixView&) = default;
 
   // Typedef for compatibility with STL
-  typedef Iterator2D iterator;
+  using iterator = Iterator2D;
 
   // Index Operators:
   /** Plain index operator. */
-  Numeric& operator()(Index r, Index c) ARTS_NOEXCEPT {  // Check if indices are valid:
+  Numeric& operator()(Index r,
+                      Index c) ARTS_NOEXCEPT {  // Check if indices are valid:
     ARTS_ASSERT(0 <= r);
     ARTS_ASSERT(0 <= c);
     ARTS_ASSERT(r < mrr.mextent);
@@ -1209,7 +1229,7 @@ class MatrixView : public ConstMatrixView {
   MatrixView& operator-=(const ConstVectorView& x) ARTS_NOEXCEPT;
 
   // Conversion to a plain C-array
-  const Numeric* get_c_array() const ARTS_NOEXCEPT;
+  [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;
   Numeric* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
@@ -1258,7 +1278,7 @@ class Matrix : public MatrixView {
   Matrix(Matrix&& v) noexcept : MatrixView(std::forward<MatrixView>(v)) {
     v.mdata = nullptr;
   }
-  
+
   /*! Construct from known data
    * 
    * Note that this will call delete on the pointer if it is still valid
@@ -1269,7 +1289,7 @@ class Matrix : public MatrixView {
    * @param[in] r1 - The Range along the second dimension
    */
   Matrix(Numeric* d, const Range& r0, const Range& r1) ARTS_NOEXCEPT
-  : MatrixView(d, r0, r1) {
+      : MatrixView(d, r0, r1) {
     ARTS_ASSERT(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
     ARTS_ASSERT(r1.get_extent() >= 0, "Must have size. Has: ", r1.get_extent());
   }
@@ -1288,20 +1308,21 @@ class Matrix : public MatrixView {
 
   // Destructor:
   virtual ~Matrix();
-  
-  // Total size
-  Index size() const noexcept {return nrows() * ncols();}
-  
+
   /*! Reduce a Matrix to a Vector and leave this in an empty state */
   template <std::size_t dim0>
-  Vector reduce_rank() && ARTS_NOEXCEPT {
+      Vector reduce_rank() && ARTS_NOEXCEPT {
     static_assert(dim0 < 2, "Bad Dimension, Out-of-Bounds");
-    
+
     Range r0(0, dim0 == 0 ? nrows() : ncols());
-    
+
     Vector out(mdata, r0);
-    ARTS_ASSERT(size() == out.size(), "Can only reduce size on same size input. "
-      "The sizes are (input v. output): ", size(), " v. ", out.size());
+    ARTS_ASSERT(size() == out.size(),
+                "Can only reduce size on same size input. "
+                "The sizes are (input v. output): ",
+                size(),
+                " v. ",
+                out.size());
     mdata = nullptr;
     return out;
   }
@@ -1310,7 +1331,7 @@ class Matrix : public MatrixView {
 
   template <class F>
   void transform_elementwise(F&& func) {
-    std::transform(mdata, mdata+size(), mdata, func);
+    std::transform(mdata, mdata + size(), mdata, func);
   }
 };
 
@@ -1342,7 +1363,9 @@ void mult_general(MatrixView A,
                   const ConstMatrixView& B,
                   const ConstMatrixView& C) ARTS_NOEXCEPT;
 
-void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT;
+void cross3(VectorView c,
+            const ConstVectorView& a,
+            const ConstVectorView& b) ARTS_NOEXCEPT;
 
 Numeric vector_angle(ConstVectorView a, ConstVectorView b);
 
@@ -1370,7 +1393,8 @@ Numeric nanmean(const ConstVectorView& x) ARTS_NOEXCEPT;
 
 Numeric mean(const ConstMatrixView& x) ARTS_NOEXCEPT;
 
-Numeric operator*(const ConstVectorView& a, const ConstVectorView& b) ARTS_NOEXCEPT;
+Numeric operator*(const ConstVectorView& a,
+                  const ConstVectorView& b) ARTS_NOEXCEPT;
 
 std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
 
