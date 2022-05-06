@@ -1,6 +1,6 @@
 import numpy as np
 import scipy as sp
-import pyarts.pyarts_cpp as cxx
+import pyarts.arts as cxx
 
 def get_raw_method_map():
     """ Returns a combined Arts MdRawMap and md_data_raw """

@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from pyarts import xml
-import pyarts.pyarts_cpp as cxx
+import pyarts.arts as cxx
 
 
 def _create_tensor(n):

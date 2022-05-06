@@ -103,6 +103,7 @@ pybind11_add_module(pyarts_cpp
 if (ENABLE_PCH)
   target_precompile_headers(pyarts_cpp PRIVATE python_interface.h)
 endif()
+set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
 target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES})
 target_include_directories(pyarts_cpp PUBLIC ${ARTS_SOURCE_DIR}/src)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -4,7 +4,7 @@ should be available in pyarts.  You have probably added a new group.  Unless
 your group is very special it should support the following operations
 
 
-import pyarts.pyarts_cpp as cxx
+import pyarts.arts as cxx
 ws = cxx.Workspace()
 
 x = cxx.Group()
@@ -16,7 +16,7 @@ assert hasattr(x, "readxml")
 assert hasattr(x, "loadxml")
 """
 
-import pyarts.pyarts_cpp as cxx
+import pyarts.arts as cxx
 import pyarts
 ws = pyarts.workspace.Workspace()
 
@@ -52,7 +52,7 @@ for g in list_of_groups:
         
         print("Success!\n")
     except:
-        raise ImportError("Incomplete pyarts interface for {} in pyarts.classes".format(g))
+        raise ImportError("Incomplete pyarts interface for {} in pyarts.arts".format(g))
 
 # Each class should must tested
 if __name__ == "__main__":

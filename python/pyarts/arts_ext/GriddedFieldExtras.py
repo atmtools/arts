@@ -1,5 +1,5 @@
 import copy
-import pyarts.pyarts_cpp as cxx
+import pyarts.arts as cxx
 
 import xarray
 import numpy as np

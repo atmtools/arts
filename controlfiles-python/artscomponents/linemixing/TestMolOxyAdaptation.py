@@ -20,7 +20,7 @@ ws.Touch(ws.rtp_nlte)
 ws.abs_speciesSet(species=["O2-66"])
 ws.ReadXML(ws.abs_lines, "lines/O2-66.xml")
 
-qn = pyarts.classes.QuantumIdentifier("O2-66 S 1 1 Lambda 0 0 v1 0 0 ElecStateLabel X X")
+qn = pyarts.arts.QuantumIdentifier("O2-66 S 1 1 Lambda 0 0 v1 0 0 ElecStateLabel X X")
 
 ws.abs_linesKeepBand(qid=qn)
 ws.abs_linesRemoveEmptyBands()

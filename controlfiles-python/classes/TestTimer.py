@@ -1,3 +1,3 @@
-import pyarts.pyarts_cpp as cxx
+import pyarts.arts as cxx
 
 x = cxx.Timer()

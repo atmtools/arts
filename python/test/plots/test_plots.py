@@ -3,7 +3,7 @@ from os.path import join, dirname
 import matplotlib.pyplot as plt
 import pyarts.xml as axml
 from pyarts.plots import plot_arts_lookup
-from pyarts.classes import ArrayOfArrayOfSpeciesTag, SpeciesTag
+from pyarts.arts import ArrayOfArrayOfSpeciesTag, SpeciesTag
 
 
 class TestPlots:
