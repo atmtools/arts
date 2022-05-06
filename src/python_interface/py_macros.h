@@ -280,161 +280,160 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
       .PythonInterfaceArrayDefault(BaseType)                              \
       .PythonInterfaceWorkspaceVariableConversion(ArrayOf##BaseType)
 
-#define PythonInterfaceGriddedField(Type)                                           \
-  def_readwrite("data", &Type::data)                                                \
-      .def(py::pickle(                                                              \
-          [](const Type& self) {                                                    \
-            Index n = self.get_dim();                                               \
-            std::vector<std::variant<Vector, ArrayOfString>> outgrid;               \
-            ArrayOfString outname;                                                  \
-                                                                                    \
-            for (Index i = 0; i < n; i++) {                                         \
-              outname.emplace_back(self.get_grid_name(i));                          \
-              if (self.get_grid_type(i) == GRID_TYPE_NUMERIC)                       \
-                outgrid.emplace_back(self.get_numeric_grid(i));                     \
-              else                                                                  \
-                outgrid.emplace_back(self.get_string_grid(i));                      \
-            }                                                                       \
-                                                                                    \
-            return py::make_tuple(                                                  \
-                self.get_name(), self.data, outname, outgrid);                      \
-          },                                                                        \
-          [](const py::tuple& t) {                                                  \
-            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")                     \
-                                                                                    \
-            auto name = t[0].cast<String>();                                        \
-            auto data = t[1].cast<decltype(Type::data)>();                          \
-            auto grid_names = t[2].cast<ArrayOfString>();                           \
-            auto grids =                                                            \
-                t[3].cast<std::vector<std::variant<Vector, ArrayOfString>>>();      \
-                                                                                    \
-            auto* out = new Type{name};                                             \
-            out->data = data;                                                       \
-            for (Index i = 0; i < out->get_dim(); i++) {                            \
-              out->set_grid_name(i, grid_names[i]);                                 \
-              std::visit([&](auto&& v) { out->set_grid(i, v); }, grids[i]);         \
-            }                                                                       \
-                                                                                    \
-            return out;                                                             \
-          }))                                                                       \
-      .def(                                                                         \
-          "__eq__",                                                                 \
-          [](Type& g1, Type& g2) {                                                  \
-            const auto n = g1.get_dim();                                            \
-                                                                                    \
-            for (Index i = 0; i < n; i++) {                                         \
-              if (g1.get_grid_size(i) not_eq g2.get_grid_size(i)) {                 \
-                return false;                                                       \
-              }                                                                     \
-                                                                                    \
-              if (g1.get_grid_type(i) not_eq g2.get_grid_type(i)) {                 \
-                return false;                                                       \
-              }                                                                     \
-                                                                                    \
-              if (g1.get_grid_type(i) == GRID_TYPE_NUMERIC) {                       \
-                auto o1 = py::cast(g1.get_numeric_grid(i));                         \
-                auto o2 = py::cast(g2.get_numeric_grid(i));                         \
-                if (not py::bool_((o1.attr("__eq__")(o2)).attr("all")())            \
-                            .cast<bool>()) {                                        \
-                  return false;                                                     \
-                }                                                                   \
-              } else {                                                              \
-                auto o1 = py::cast(g1.get_string_grid(i));                          \
-                auto o2 = py::cast(g2.get_string_grid(i));                          \
-                if (not o1.attr("__eq__")(o2).cast<bool>()) return false;           \
-              }                                                                     \
-                                                                                    \
-              if (g1.get_grid_name(i) not_eq g2.get_grid_name(i)) {                 \
-                return false;                                                       \
-              }                                                                     \
-            }                                                                       \
-            if (g1.get_name() not_eq g2.get_name()) return false;                   \
-                                                                                    \
-            auto o1 = py::cast(g1);                                                 \
-            auto o2 = py::cast(g2);                                                 \
-            if (not py::bool_(                                                      \
-                        (o1.attr("data").attr("__eq__")(o2.attr("data")))           \
-                            .attr("all")())                                         \
-                        .cast<bool>()) {                                            \
-              return false;                                                         \
-            }                                                                       \
-            return true;                                                            \
-          },                                                                        \
-          py::is_operator())                                                        \
-      .def_property_readonly(                                                       \
-          "shape",                                                                  \
-          [](py::object& g) {                                                       \
-            return g.attr("data").attr("value").attr("shape");                      \
-          })                                                                        \
-      .def(                                                                         \
-          "__getitem__",                                                            \
-          [](py::object& g, py::object& i) {                                        \
-            return g.attr("data").attr("value").attr("__getitem__")(i);             \
-          },                                                                        \
-          py::is_operator())                                                        \
-      .def(                                                                         \
-          "__setitem__",                                                            \
-          [](py::object& g, py::object& i, py::object& n) {                         \
-            g.attr("data").attr("value").attr("__setitem__")(i, n);                 \
-          },                                                                        \
-          py::is_operator())                                                        \
-      .def(                                                                         \
-          "get",                                                                    \
-          [](Type& g,                                                               \
-             const String& key,                                                     \
-             const py::object& def,                                                 \
-             bool keep_dims) -> py::object {                                        \
-            ARTS_USER_ERROR_IF(                                                     \
-                g.get_grid_type(0) == GRID_TYPE_NUMERIC,                            \
-                "Method only works, if the first grid is an \"ArrayOfString\"")     \
-            auto& grid = g.get_string_grid(0);                                      \
-            auto ptr = std::find(grid.begin(), grid.end(), key);                    \
-            if (ptr == grid.end()) return def;                                      \
-                                                                                    \
-            auto o = py::cast(g);                                                   \
-            auto v = o.attr("data").attr("value").attr("__getitem__")(              \
-                std::array<Index, 1>{std::distance(grid.begin(), ptr)});            \
-                                                                                    \
-            if (keep_dims) return v;                                                \
-            return v.attr("squeeze")();                                             \
-          },                                                                        \
-          py::arg("key"),                                                           \
-          py::arg("default") = py::none(),                                          \
-          py::arg("keep_dims") = true)                                              \
-      .def(                                                                         \
-          "set",                                                                    \
-          [](Type& g,                                                               \
-             const String& key,                                                     \
-             const py::object& data) {                                              \
-            ARTS_USER_ERROR_IF(                                                     \
-                g.get_grid_type(0) == GRID_TYPE_NUMERIC,                            \
-                "Method only works, if the first grid is an \"ArrayOfString\"")     \
-            auto& grid = g.get_string_grid(0);                                      \
-            auto ptr = std::find(grid.begin(), grid.end(), key);                    \
-            ARTS_USER_ERROR_IF(ptr == grid.end(), "Cannot find: ", key)             \
-                                                                                    \
-            auto o = py::cast(g);                                                   \
-            auto v = o.attr("data").attr("value").attr("__setitem__")(              \
-                std::array<Index, 1>{std::distance(grid.begin(), ptr)}, data);      \
-          },                                                                        \
-          py::arg("key"),                                                           \
-          py::arg("data"))                                                          \
-      .def(                                                                         \
-          "scale",                                                                  \
-          [](py::object& g,                                                         \
-             const String& key,                                                     \
-             const py::object& fac) {                                               \
-            g.attr("set")(key, (g.attr("get")(key)).attr("__mul__")(fac));          \
-          },                                                                        \
-          py::arg("key"),                                                           \
-          py::arg("factor"))                                                        \
-      .def_static(                                                                  \
-          "from_xarray",                                                            \
-          [](py::object& v) {                                                       \
-            auto g = py::type::of<Type>();                                          \
-            return details::GriddedField::from_xarray(g, v);                        \
-          },                                                                        \
-          py::doc(                                                                  \
+#define PythonInterfaceGriddedField(Type)                                       \
+  def_readwrite("data", &Type::data)                                            \
+      .def(py::pickle(                                                          \
+          [](const Type& self) {                                                \
+            Index n = self.get_dim();                                           \
+            std::vector<std::variant<Vector, ArrayOfString>> outgrid;           \
+            ArrayOfString outname;                                              \
+                                                                                \
+            for (Index i = 0; i < n; i++) {                                     \
+              outname.emplace_back(self.get_grid_name(i));                      \
+              if (self.get_grid_type(i) == GRID_TYPE_NUMERIC)                   \
+                outgrid.emplace_back(self.get_numeric_grid(i));                 \
+              else                                                              \
+                outgrid.emplace_back(self.get_string_grid(i));                  \
+            }                                                                   \
+                                                                                \
+            return py::make_tuple(                                              \
+                self.get_name(), self.data, outname, outgrid);                  \
+          },                                                                    \
+          [](const py::tuple& t) {                                              \
+            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")                 \
+                                                                                \
+            auto name = t[0].cast<String>();                                    \
+            auto data = t[1].cast<decltype(Type::data)>();                      \
+            auto grid_names = t[2].cast<ArrayOfString>();                       \
+            auto grids =                                                        \
+                t[3].cast<std::vector<std::variant<Vector, ArrayOfString>>>();  \
+                                                                                \
+            auto* out = new Type{name};                                         \
+            out->data = data;                                                   \
+            for (Index i = 0; i < out->get_dim(); i++) {                        \
+              out->set_grid_name(i, grid_names[i]);                             \
+              std::visit([&](auto&& v) { out->set_grid(i, v); }, grids[i]);     \
+            }                                                                   \
+                                                                                \
+            return out;                                                         \
+          }))                                                                   \
+      .def(                                                                     \
+          "__eq__",                                                             \
+          [](Type& g1, Type& g2) {                                              \
+            const auto n = g1.get_dim();                                        \
+                                                                                \
+            if (not g1.checksize()) return false;                               \
+            if (not g2.checksize()) return false;                               \
+                                                                                \
+            for (Index i = 0; i < n; i++) {                                     \
+              if (g1.get_grid_size(i) not_eq g2.get_grid_size(i)) {             \
+                return false;                                                   \
+              }                                                                 \
+                                                                                \
+              if (g1.get_grid_type(i) not_eq g2.get_grid_type(i)) {             \
+                return false;                                                   \
+              }                                                                 \
+                                                                                \
+              if (g1.get_grid_type(i) == GRID_TYPE_NUMERIC) {                   \
+                auto o1 = py::cast(g1.get_numeric_grid(i));                     \
+                auto o2 = py::cast(g2.get_numeric_grid(i));                     \
+                if (not py::bool_((o1.attr("__eq__")(o2)).attr("all")())        \
+                            .cast<bool>()) {                                    \
+                  return false;                                                 \
+                }                                                               \
+              } else {                                                          \
+                auto o1 = py::cast(g1.get_string_grid(i));                      \
+                auto o2 = py::cast(g2.get_string_grid(i));                      \
+                if (not o1.attr("__eq__")(o2).cast<bool>()) return false;       \
+              }                                                                 \
+                                                                                \
+              if (g1.get_grid_name(i) not_eq g2.get_grid_name(i)) {             \
+                return false;                                                   \
+              }                                                                 \
+            }                                                                   \
+            if (g1.get_name() not_eq g2.get_name()) return false;               \
+                                                                                \
+            auto o1 = py::cast(g1);                                             \
+            auto o2 = py::cast(g2);                                             \
+            if (not py::bool_(                                                  \
+                        (o1.attr("data").attr("__eq__")(o2.attr("data")))       \
+                            .attr("all")())                                     \
+                        .cast<bool>()) {                                        \
+              return false;                                                     \
+            }                                                                   \
+            return true;                                                        \
+          },                                                                    \
+          py::is_operator())                                                    \
+      .def_property_readonly(                                                   \
+          "shape",                                                              \
+          [](py::object& g) {                                                   \
+            return g.attr("data").attr("value").attr("shape");                  \
+          })                                                                    \
+      .def(                                                                     \
+          "__getitem__",                                                        \
+          [](py::object& g, py::object& i) {                                    \
+            return g.attr("data").attr("value").attr("__getitem__")(i);         \
+          },                                                                    \
+          py::is_operator())                                                    \
+      .def(                                                                     \
+          "__setitem__",                                                        \
+          [](py::object& g, py::object& i, py::object& n) {                     \
+            g.attr("data").attr("value").attr("__setitem__")(i, n);             \
+          },                                                                    \
+          py::is_operator())                                                    \
+      .def(                                                                     \
+          "get",                                                                \
+          [](Type& g,                                                           \
+             const String& key,                                                 \
+             const py::object& def,                                             \
+             bool keep_dims) -> py::object {                                    \
+            ARTS_USER_ERROR_IF(                                                 \
+                g.get_grid_type(0) == GRID_TYPE_NUMERIC,                        \
+                "Method only works, if the first grid is an \"ArrayOfString\"") \
+            auto& grid = g.get_string_grid(0);                                  \
+            auto ptr = std::find(grid.begin(), grid.end(), key);                \
+            if (ptr == grid.end()) return def;                                  \
+                                                                                \
+            auto o = py::cast(g);                                               \
+            auto v = o.attr("data").attr("value").attr("__getitem__")(          \
+                std::array<Index, 1>{std::distance(grid.begin(), ptr)});        \
+                                                                                \
+            if (keep_dims) return v;                                            \
+            return v.attr("squeeze")();                                         \
+          },                                                                    \
+          py::arg("key"),                                                       \
+          py::arg("default") = py::none(),                                      \
+          py::arg("keep_dims") = true)                                          \
+      .def(                                                                     \
+          "set",                                                                \
+          [](Type& g, const String& key, const py::object& data) {              \
+            ARTS_USER_ERROR_IF(                                                 \
+                g.get_grid_type(0) == GRID_TYPE_NUMERIC,                        \
+                "Method only works, if the first grid is an \"ArrayOfString\"") \
+            auto& grid = g.get_string_grid(0);                                  \
+            auto ptr = std::find(grid.begin(), grid.end(), key);                \
+            ARTS_USER_ERROR_IF(ptr == grid.end(), "Cannot find: ", key)         \
+                                                                                \
+            auto o = py::cast(g);                                               \
+            auto v = o.attr("data").attr("value").attr("__setitem__")(          \
+                std::array<Index, 1>{std::distance(grid.begin(), ptr)}, data);  \
+          },                                                                    \
+          py::arg("key"),                                                       \
+          py::arg("data"))                                                      \
+      .def(                                                                     \
+          "scale",                                                              \
+          [](py::object& g, const String& key, const py::object& fac) {         \
+            g.attr("set")(key, (g.attr("get")(key)).attr("__mul__")(fac));      \
+          },                                                                    \
+          py::arg("key"),                                                       \
+          py::arg("factor"))                                                    \
+      .def_static(                                                              \
+          "from_xarray",                                                        \
+          [](py::object& v) {                                                   \
+            auto g = py::type::of<Type>();                                      \
+            return details::GriddedField::from_xarray(g, v);                    \
+          },                                                                    \
+          py::doc(                                                              \
               R"--(Create GriddedField from a xarray.DataArray object.\
 \
 The data and its dimensions are returned as a :class:`GriddedField` object.\

@@ -111,7 +111,7 @@ void py_griddedfield(py::module_& m) {
             }
           })
       .def("checksize_strict", &GriddedField::checksize_strict)
-      .def("check_dimension", &GriddedField::checksize)
+      .def("checksize", &GriddedField::checksize)
       .def(
           "extract_slice",
           [](py::object& g, py::object& s, py::object& i) {

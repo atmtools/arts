@@ -53,7 +53,7 @@ class TestGriddedFieldUsage:
         gf3.grids = [np.arange(5), np.arange(5), []]
         gf3.gridnames = ["A", "B", "C"]
         gf3.data = np.ones((5, 5, 1))
-        assert gf3.check_dimension() is True
+        assert gf3.checksize() is True
 
     def test_check_dimension2(self):
         """Test if grid and data dimension agree (negative)."""
@@ -255,7 +255,7 @@ class TestGriddedFieldLoad:
     def test_load_dimension(self):
         """Load reference XML file for GriddedField3 and run check."""
         gf3 = xml.load(self.ref_dir + 'GriddedField3.xml')
-        assert gf3.check_dimension()
+        assert gf3.checksize()
 
     def test_equality(self):
         """Check the equality of two GriddedField objects."""
