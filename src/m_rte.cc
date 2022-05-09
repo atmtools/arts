@@ -391,20 +391,11 @@ void iyClearsky(
     }
 
 
-    //allocate Varibale for direct (star) source
-    ArrayOfVector star_rte_los(stars.nelem(), Vector(2));
-    ArrayOfMatrix transmitted_starlight;
-    ArrayOfArrayOfTensor3 dtransmitted_starlight_dummy(stars.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
-    PropagationMatrix K_sca;
-    RadiationVector scattered_starlight_istar(nf, ns);
-    RadiationVector scattered_starlight(nf, ns);
-    ArrayOfPpath star_ppaths(stars.nelem());
-    ArrayOfIndex stars_visible(stars.nelem());
+   //allocate Varibale for direct (star) source, that is needed outside ppath loop.
+   ArrayOfIndex stars_visible(stars.nelem());
 
     //dummy variables needed for the output and input of
     // gas_scattering_agenda
-    TransmissionMatrix sca_mat_dummy;
-    Vector sca_fct_dummy;
     const Vector in_los_dummy;
     const Vector out_los_dummy;
     const ArrayOfIndex cloudbox_limits_dummy;
@@ -455,12 +446,11 @@ void iyClearsky(
                                              atmosphere_dim,
                                              j_analytical_do);
 
+
+        RadiationVector scattered_starlight(nf, ns);
+
         if (gas_scattering_do) {
           Numeric minP = min(ppvar_p);
-
-          //Zeroing scattered_starlight_istar
-          scattered_starlight_istar.SetZero();
-          scattered_starlight.SetZero();
 
           if (star_do && ppvar_p[ip] > minP) {
             // We skip the uppermost altitude
@@ -469,6 +459,8 @@ void iyClearsky(
             // the (star-)ppath. The influence of the
             // uppermost level in view of scattering
             // is negligible due to the low density.
+            ArrayOfPpath star_ppaths(stars.nelem());
+            ArrayOfVector star_rte_los(stars.nelem(), Vector(2));
 
             get_star_ppaths(ws,
                             star_ppaths,
@@ -488,6 +480,9 @@ void iyClearsky(
                             ppath_lraytrace,
                             ppath_step_agenda,
                             verbosity);
+
+            ArrayOfMatrix transmitted_starlight;
+            ArrayOfArrayOfTensor3 dtransmitted_starlight_dummy(stars.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
 
             get_direct_radiation(ws,
                                  transmitted_starlight,
@@ -529,9 +524,12 @@ void iyClearsky(
                                  verbosity);
 
             //Loop over the different stars to get the total scattered starlight
+            RadiationVector scattered_starlight_istar(nf, ns);
+
             for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
               if (stars_visible[i_star]) {
 
+//                scattered_starlight_istar.SetZero();
 
                 // here we calculate how much incoming star radiation is scattered
                 //into the direction of the ppath
@@ -552,6 +550,10 @@ void iyClearsky(
           }
 
           // Calculate gas scattering extiction
+          PropagationMatrix K_sca;
+          TransmissionMatrix sca_mat_dummy;
+          Vector sca_fct_dummy;
+
           gas_scattering_agendaExecute(ws,
                                        K_sca,
                                        sca_mat_dummy,
