@@ -63,16 +63,13 @@ std::ostream& operator<<(std::ostream& os, const Star& star) {
 
 void get_scattered_starsource(Workspace& ws,
                               RadiationVector& scattered_starlight,
-                              ArrayOfRadiationVector& dscattered_starlight,
                               const Vector& f_grid,
                               const Numeric& p,
                               const Numeric& T,
                               const Vector& vmr,
                               const Matrix& transmitted_starlight,
-                              const ArrayOfTensor3& dtransmitted_starlight,
                               const Vector& in_los,
                               const Vector& out_los,
-                              const Index& jacobian_do,
                               const Agenda& gas_scattering_agenda) {
   PropagationMatrix K_sca;
   TransmissionMatrix sca_mat;

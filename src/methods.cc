@@ -8117,14 +8117,17 @@ Possible models:
           "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT.\n"
           " \"Direct radiation\": Stokes vector of direct radiation. It dimensions\n"
-          "   are number of frequencies and *stokes_dim*. If no star is present "
+          "   are number of frequencies and *stokes_dim*. If no star is present \n"
           "   in the line of sight, it is zero.\n"
-          " \"Radiation Background\": Stokes vector of the radiation at start of"
+          " \"Radiation Background\": Stokes vector of the radiation at start of\n"
           "   the propagation path. It dimensions are number of frequencies and\n"
           "   *stokes_dim*.\n"
           "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
           "i.e. the column matching Stokes element I, while remaing columns are\n"
-          "are filled with zeros.\n"),
+          "are filled with zeros.\n"
+          "\n"
+          "IMPORTANT: No star or gas scattering related jacobians are supported!\n"
+          "They will be implemented in a future version.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson", "Oliver Lemke", "Manfred Brath"),
       OUT("iy",
           "iy_aux",
@@ -9557,7 +9560,10 @@ Possible models:
           "    and the end of the present propagation path. Calculated based on\n"
           "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT. The value is added to each\n"
-          "    column.\n"),
+          "    column.\n"
+          "\n"
+          "IMPORTANT: No star or gas scattering related jacobians are supported!\n"
+          "They will be implemented in a future version.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("iy",
           "iy_aux",

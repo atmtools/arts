@@ -394,14 +394,10 @@ void iyClearsky(
     //allocate Varibale for direct (star) source
     ArrayOfVector star_rte_los(stars.nelem(), Vector(2));
     ArrayOfMatrix transmitted_starlight;
-    ArrayOfArrayOfTensor3 dtransmitted_starlight(stars.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
-//    Matrix transmitted_starlight_istar;
-    ArrayOfTensor3 dtransmitted_starlight_istar(jacobian_quantities.nelem());
+    ArrayOfArrayOfTensor3 dtransmitted_starlight_dummy(stars.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
     PropagationMatrix K_sca;
     RadiationVector scattered_starlight_istar(nf, ns);
-    ArrayOfRadiationVector dscattered_starlight_istar(nq, RadiationVector(nf, ns));
     RadiationVector scattered_starlight(nf, ns);
-    ArrayOfRadiationVector dscattered_starlight(nq, RadiationVector(nf, ns));
     ArrayOfPpath star_ppaths(stars.nelem());
     ArrayOfIndex stars_visible(stars.nelem());
 
@@ -465,8 +461,6 @@ void iyClearsky(
           //Zeroing scattered_starlight_istar
           scattered_starlight_istar.SetZero();
           scattered_starlight.SetZero();
-          for (auto& dscattered : dscattered_starlight_istar)
-            dscattered.SetZero();
 
           if (star_do && ppvar_p[ip] > minP) {
             // We skip the uppermost altitude
@@ -497,7 +491,7 @@ void iyClearsky(
 
             get_direct_radiation(ws,
                                  transmitted_starlight,
-                                 dtransmitted_starlight,
+                                 dtransmitted_starlight_dummy,
                                  stokes_dim,
                                  f_grid,
                                  atmosphere_dim,
@@ -526,7 +520,7 @@ void iyClearsky(
                                  dpnd_field_dx_dummy,
                                  scat_species_dummy,
                                  scat_data_dummy,
-                                 jacobian_do,
+                                 0,
                                  jacobian_quantities,
                                  propmat_clearsky_agenda,
                                  water_p_eq_agenda,
@@ -537,36 +531,22 @@ void iyClearsky(
             //Loop over the different stars to get the total scattered starlight
             for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
               if (stars_visible[i_star]) {
-                //                transmitted_starlight_istar = transmitted_starlight[i_star];
 
-                if (jacobian_do && dtransmitted_starlight[i_star].nelem()) {
-                  dtransmitted_starlight_istar = dtransmitted_starlight[i_star];
-                }
 
                 // here we calculate how much incoming star radiation is scattered
                 //into the direction of the ppath
                 get_scattered_starsource(ws,
                                          scattered_starlight_istar,
-                                         dscattered_starlight_istar,
                                          f_grid,
                                          ppvar_p[ip],
                                          ppvar_t[ip],
                                          ppvar_vmr(joker, ip),
                                          transmitted_starlight[i_star],
-                                         dtransmitted_starlight_istar,
                                          star_rte_los[i_star],
                                          ppath.los(ip, joker),
-                                         jacobian_do,
                                          gas_scattering_agenda);
 
                 scattered_starlight += scattered_starlight_istar;
-
-                if (jacobian_do && dscattered_starlight_istar.nelem()) {
-                  for (int i_jac = 0; i_jac < nq; ++i_jac) {
-                    dscattered_starlight[i_jac] +=
-                        dscattered_starlight_istar[i_jac];
-                  }
-                }
               }
             }
           }
@@ -596,7 +576,7 @@ void iyClearsky(
             FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
         }
 
-        // scattered_starlight_istar and dscattered_starlight_istar are changed within
+        // scattered_starlight is changed within
         // stepwise source.
         stepwise_source(src_rad[ip],
                         dsrc_rad[ip],
