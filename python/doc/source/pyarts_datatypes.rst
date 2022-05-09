@@ -26,24 +26,6 @@ pyarts.covariancematrix
    CovarianceMatrix
    plot_covariance_matrix
 
-pyarts.griddedfield
-===================
-.. automodule:: pyarts.griddedfield
-
-.. currentmodule:: pyarts.griddedfield
-
-.. autosummary::
-   :toctree: stubs
-
-   GriddedField1
-   GriddedField2
-   GriddedField3
-   GriddedField4
-   GriddedField5
-   GriddedField6
-   griddedfield_from_netcdf
-   griddedfield_from_xarray
-
 pyarts.scattering
 =================
 
