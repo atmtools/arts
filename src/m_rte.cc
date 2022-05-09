@@ -464,6 +464,7 @@ void iyClearsky(
 
           //Zeroing scattered_starlight_istar
           scattered_starlight_istar.SetZero();
+          scattered_starlight.SetZero();
           for (auto& dscattered : dscattered_starlight_istar)
             dscattered.SetZero();
 
@@ -599,7 +600,7 @@ void iyClearsky(
         // stepwise source.
         stepwise_source(src_rad[ip],
                         dsrc_rad[ip],
-                        scattered_starlight_istar,
+                        scattered_starlight,
                         dscattered_starlight,
                         K[ip],
                         a,
