@@ -119,7 +119,7 @@ arts.isotopologue_ratiosInitFromBuiltin()
 # %% Introduce a weird shift so that the cutoff is tested properly
 
 x = arts.abs_lines_per_species.value[0][0].lines[0].lineshape[0].D0 = \
-    pyarts.classes.LineShapeModelParameters("T0", 50000)
+    pyarts.arts.LineShapeModelParameters("T0", 50000)
                                                   
 # %% Grids and planet
 

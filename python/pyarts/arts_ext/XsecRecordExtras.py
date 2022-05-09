@@ -2,7 +2,7 @@ from datetime import datetime
 import numpy as np
 import xarray
 
-import pyarts.pyarts_cpp as cxx
+import pyarts.arts as cxx
 
 
 def xsecrecord_to_xarray(self):

@@ -5,7 +5,7 @@ from   ast      import parse, Call, Name, Expression, Expr, FunctionDef, \
 from   inspect  import getsource, getclosurevars
 from   copy     import copy
 
-import pyarts.pyarts_cpp as cxx
+import pyarts.arts as cxx
 from pyarts.workspace.utility import unindent as unindent
 
 

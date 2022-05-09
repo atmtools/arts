@@ -10,11 +10,11 @@ coldtemp = 59.834102630615234
 
 # Set the workspace
 ws = pyarts.workspace.Workspace()
-ws.cold=pyarts.classes.Vector(colddata)
-ws.hot=pyarts.classes.Vector(hotdata)
-ws.atm=pyarts.classes.Vector(atmdata)
-ws.tcold=pyarts.classes.Numeric(coldtemp)
-ws.thot=pyarts.classes.Numeric(hottemp)
+ws.cold=pyarts.arts.Vector(colddata)
+ws.hot=pyarts.arts.Vector(hotdata)
+ws.atm=pyarts.arts.Vector(atmdata)
+ws.tcold=pyarts.arts.Numeric(coldtemp)
+ws.thot=pyarts.arts.Numeric(hottemp)
 
 ws.yColdAtmHot(ws.y, ws.cold, ws.atm, ws.hot, ws.tcold, ws.thot)
 

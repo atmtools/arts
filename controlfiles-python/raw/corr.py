@@ -23,7 +23,7 @@ ws.time_stamps = []
 ws.ybatch = []
 
 # Current time
-some_time = pyarts.classes.Time()
+some_time = pyarts.arts.Time()
 some_time.sec = 1589895540.0
 
 # Set up the signal every 20 minutes from now
@@ -39,9 +39,9 @@ ws.time_stampsSort(ws.ybatch, ws.time_stamps, ws.ybatch)
 ws.time_stampsSort(ws.time_stamps, ws.time_stamps, ws.time_stamps)  # Must be last...
 
 # Apply a simplified troposåheric correction
-ws.range = pyarts.classes.ArrayOfIndex()
-ws.trop_temp = pyarts.classes.Vector()
-ws.targ_temp = pyarts.classes.Numeric()
+ws.range = pyarts.arts.ArrayOfIndex()
+ws.trop_temp = pyarts.arts.Vector()
+ws.targ_temp = pyarts.arts.Numeric()
 ws.targ_temp = 2.73
 ws.trop_temp = [273.15 for i in range(N)]
 trp_range = list(np.append(np.array([i for i in range(K)]), np.array([n-i-1 for i in range(K)])))

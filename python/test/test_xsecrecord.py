@@ -53,16 +53,16 @@ class TestXsecRecord:
         assert self.xr != xr2
 
     def test_species(self):
-        xr = pyarts.classes.XsecRecord()
+        xr = pyarts.arts.XsecRecord()
         xr.species = "CFC11"
         assert str(xr.species) == "CFC11"
 
     def test_xarray(self):
         xa = self.xr.to_xarray()
-        xr2 = pyarts.classes.XsecRecord.from_xarray(xa)
+        xr2 = pyarts.arts.XsecRecord.from_xarray(xa)
         assert self.xr == xr2
 
     def test_netcdf(self):
         self.xr.to_netcdf(self.f)
-        xr2 = pyarts.classes.XsecRecord.from_netcdf(self.f)
+        xr2 = pyarts.arts.XsecRecord.from_netcdf(self.f)
         assert self.xr == xr2

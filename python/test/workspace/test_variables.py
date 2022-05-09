@@ -169,7 +169,7 @@ class TestVariables:
         assert self.ws.time_1.value[0].time.minute == 4
         # assert self.ws.time_1.value[0].time.second == 5 Cannot test easily as rounding is weird
         
-        time = pyarts.pyarts_cpp.Time(times[1])
+        time = pyarts.arts.Time(times[1])
         assert time.time == times[1]
 
     def test_creation(self):

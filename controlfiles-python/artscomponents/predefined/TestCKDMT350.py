@@ -80,9 +80,9 @@ if PLOT:
     plt.legend()
     plt.show()
 
-res = pyarts.classes.ArrayOfVector(vals)
-dres = pyarts.classes.ArrayOfArrayOfVector(dvals)
-manual_dres = pyarts.classes.ArrayOfArrayOfVector(manual_dvals)
+res = pyarts.arts.ArrayOfVector(vals)
+dres = pyarts.arts.ArrayOfArrayOfVector(dvals)
+manual_dres = pyarts.arts.ArrayOfArrayOfVector(manual_dvals)
 
 if SAVE:
     res.savexml("test_data_ckdmt350.xml")
@@ -90,12 +90,12 @@ if SAVE:
     
 
 if CMPR:
-    cmpr = pyarts.classes.ArrayOfVector()
+    cmpr = pyarts.arts.ArrayOfVector()
     cmpr.readxml("test_data_ckdmt350.xml")
     for i in range(len(cmpr)):
         assert np.isclose(cmpr[i], res[i]).all()
         
-    dcmpr = pyarts.classes.ArrayOfArrayOfVector()
+    dcmpr = pyarts.arts.ArrayOfArrayOfVector()
     dcmpr.readxml("test_data_ckdmt350.deriv.xml")
     for i in range(len(dcmpr)):
         for j in range(len(dcmpr[i])):

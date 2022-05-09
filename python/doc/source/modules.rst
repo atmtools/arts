@@ -28,13 +28,13 @@ ARTS Data Types
    pyarts_datatypes
 
 
-ARTS Class Interface
+ARTS Interface
 --------------------
 
 .. toctree::
    :maxdepth: 2
 
-   pyarts_classes
+   pyarts_arts
 
 
 ARTS Plotting

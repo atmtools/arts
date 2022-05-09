@@ -1,9 +1,9 @@
-pyarts.classes
-=================
+pyarts.arts
+===========
 
-.. automodule:: pyarts.classes
+.. automodule:: pyarts.arts
 
-.. currentmodule:: pyarts.classes
+.. currentmodule:: pyarts.arts
 
 .. autosummary::
    :toctree: stubs

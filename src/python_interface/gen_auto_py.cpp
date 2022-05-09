@@ -451,7 +451,7 @@ void print_method_desc(std::ofstream& os,
   os << '\n' << '\n' << "Parameters\n----------\n";
 
   for (const auto& i : method.out.varname) {
-    os << i << " : " << groups.at(i).varname_group << ", optional\n";
+    os << i << " : " << "pyarts.arts." << groups.at(i).varname_group << ", optional\n";
     os << "    As WSV (";
     if (std::none_of(method.in.varname.cbegin(),
                      method.in.varname.cend(),
@@ -461,19 +461,19 @@ void print_method_desc(std::ofstream& os,
     os << "OUT)\n";
   }
   for (size_t i = 0; i < method.gout.name.size(); i++) {
-    os << method.gout.name[i] << " : " << method.gout.group[i] << "\n    "
+    os << method.gout.name[i] << " : " << "pyarts.arts." << method.gout.group[i] << "\n    "
        << method.gout.desc[i] << " (OUT)\n";
   }
   for (const auto& i : method.in.varname) {
     if (std::none_of(method.out.varname.cbegin(),
                      method.out.varname.cend(),
                      [in = i](const auto& out) { return in == out; })) {
-      os << i << " : " << groups.at(i).varname_group
+      os << i << " : " << "pyarts.arts." << groups.at(i).varname_group
          << ", optional\n    As WSV (IN)\n";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
-    os << method.gin.name[i] << " : " << method.gin.group[i];
+    os << method.gin.name[i] << " : " << "pyarts.arts." << method.gin.group[i];
     if (method.gin.hasdefs[i]) {
       os << ", optional";
     }
@@ -485,7 +485,7 @@ void print_method_desc(std::ofstream& os,
   }
 
   if (pass_verbosity)
-    os << "verbosity : Verbosity, optional\n    As WSV (IN)\n";
+    os << "verbosity : pyarts.arts.Verbosity, optional\n    As WSV (IN)\n";
 
   os << "\n)-METHODS_DESC-\")";
 }

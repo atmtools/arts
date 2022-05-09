@@ -8,7 +8,7 @@ Created on Fri Apr 22 16:31:41 2022
 
 import pickle
 import pyarts
-import pyarts.pyarts_cpp as cxx
+import pyarts.arts as cxx
 
 ws = pyarts.workspace.Workspace()
 x = list(cxx.get_WsvGroupMap().keys())
