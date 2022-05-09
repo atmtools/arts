@@ -1753,7 +1753,6 @@ void stepwise_transmission(TransmissionMatrix& T,
 void stepwise_source(RadiationVector& J,
                      ArrayOfRadiationVector& dJ,
                      RadiationVector& J_add,
-                     ArrayOfRadiationVector& dJ_add,
                      const PropagationMatrix& K,
                      const StokesVector& a,
                      const StokesVector& S,
@@ -1888,9 +1887,6 @@ void stepwise_source(RadiationVector& J,
 
   if (J_add.Frequencies()) {
     J += J_add;
-    for (Index i = 0; i < dJ_add.nelem(); i++) {
-      dJ[i] += dJ_add[i];
-    }
   }
 }
 

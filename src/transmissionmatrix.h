@@ -785,7 +785,6 @@ void update_radiation_vector(RadiationVector& I,
  * @param[in,out] J Source vector
  * @param[in,out] dJ Source vector derivatives
  * @param[in] J_add Additional source vector
- * @param[in] dJ_add Additional source vector derivatives
  * @param[in] K Propagation matrix
  * @param[in] a Absorption vector
  * @param[in] S Scattering source vector
@@ -800,7 +799,6 @@ void update_radiation_vector(RadiationVector& I,
 void stepwise_source(RadiationVector& J,
                      ArrayOfRadiationVector& dJ,
                      RadiationVector& J_add,
-                     ArrayOfRadiationVector& dJ_add,
                      const PropagationMatrix& K,
                      const StokesVector& a,
                      const StokesVector& S,
