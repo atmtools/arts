@@ -121,8 +121,12 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
   const Numeric* v = data.wavenumbers.data() + cur;
   const Numeric* y = data.for_absco_ref.data() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
-  for (auto i = 0; i < 4 and cur + i < data_size; i++)
-    k[i - cur] = scl(*(y + i), *(v + i));
+  for (auto i = -1; i < 3 and cur + i < data_size; i++) {
+    if (i == -1 and y == data.for_absco_ref.data())
+      k[0] = 0;
+    else
+      k[i + 1] = scl(*(y + i), *(v + i));
+  }
 
   // Compute loop
   for (Index s = 0; s < n; ++s) {
@@ -192,8 +196,12 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
   const Numeric* y = data.self_absco_ref.data() + cur;
   const Numeric* e = data.self_texp.data() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
-  for (auto i = 0; i < 4 and cur + i < data_size; i++)
-    k[i - cur] = scl(*(y + i), *(e + i), *(v + i));
+  for (auto i = -1; i < 3 and cur + i < data_size; i++) {
+    if (i == -1 and y == data.self_absco_ref.data())
+      k[0] = 0;
+    else
+      k[i + 1] = scl(*(y + i), *(e + i), *(v + i));
+  }
 
   // Compute loop
   for (Index s = 0; s < n; ++s) {
