@@ -2412,30 +2412,56 @@ if they are defined.  Otherwise some values are just selected
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddPredefined"),
-      DESCRIPTION("Adds all of the modern predefined models in *abs_species* to the propmat_clearsky\n"
-        "\n"
-        "Only supports temperature and wind speed derivatives\n"
-        "\n"
-        "Possible models:\n"
-        "\tO2-MPM2020:\n"
-        "\t\tDmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020,\n"
-        "\t\tRevision of the 60-GHz atmospheric oxygen absorption band models for practical use,\n"
-        "\t\thttps://doi.org/10.1016/j.jqsrt.2019.106798\n"
-        "\tH2O-ForeignContCKDMT350:\n"
-        "\t\tCKD_MTv3.50 H2O foreign continuum from the FORTRAN77 code written by\n"
-        "\t\tAtmospheric and Environmental Research Inc. (AER),\n"
-        "\t\tRadiation and Climate Group\n"
-        "\t\t131 Hartwell Avenue\n"
-        "\t\tLexington, MA 02421, USA\n"
-        "\t\thttp://www.rtweb.aer.com/continuum_frame.html\n"
-        "\tH2O-SelfContCKDMT350:\n"
-        "\t\tCKD_MTv3.50 H2O self continuum from the FORTRAN77 code written by\n"
-        "\t\tAtmospheric and Environmental Research Inc. (AER),\n"
-        "\t\tRadiation and Climate Group\n"
-        "\t\t131 Hartwell Avenue\n"
-        "\t\tLexington, MA 02421, USA\n"
-        "\t\thttp://www.rtweb.aer.com/continuum_frame.html\n"
-      ),
+      DESCRIPTION(R"--(Adds all of the modern predefined models in *abs_species* to the propmat_clearsky
+
+Only supports temperature and wind speed derivatives
+
+Possible models:
+    O2-MPM2020:
+        Dmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020, Revision of the 
+        60-GHz atmospheric oxygen absorption band models for practical use, 
+        https://doi.org/10.1016/j.jqsrt.2019.106798
+    H2O-ForeignContCKDMT350:
+        CKD_MTv3.50 H2O foreign continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
+        Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
+        http://www.rtweb.aer.com/continuum_frame.html
+    H2O-SelfContCKDMT350:
+        CKD_MTv3.50 H2O self continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
+        Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
+        http://www.rtweb.aer.com/continuum_frame.html
+    H2O-SelfContHitranMTCKD:
+        Self continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
+
+        Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
+
+        Note that this model comes with the copyright statement [1].
+    H2O-ForeignContHitranMTCKD:
+        Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
+
+        Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
+
+        Note that this model comes with the copyright statement [1].
+
+    Copyright statements:
+        [1]:
+        !  --------------------------------------------------------------------------
+        ! |  Copyright �, Atmospheric and Environmental Research, Inc., 2022         |
+        ! |                                                                          |
+        ! |  All rights reserved. This source code was developed as part of the      |
+        ! |  LBLRTM software and is designed for scientific and research purposes.   |
+        ! |  Atmospheric and Environmental Research Inc. (AER) grants USER the right |
+        ! |  to download, install, use and copy this software for scientific and     |
+        ! |  research purposes only. This software may be redistributed as long as   |
+        ! |  this copyright notice is reproduced on any copy made and appropriate    |
+        ! |  acknowledgment is given to AER. This software or any modified version   |
+        ! |  of this software may not be incorporated into proprietary software or   |
+        ! |  commercial software offered for sale without the express written        |
+        ! |  consent of AER.                                                         |
+        ! |                                                                          |
+        ! |  This software is provided as is without any express or implied          |
+        ! |  warranties.                                                             |
+        !  --------------------------------------------------------------------------
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky",
           "dpropmat_clearsky_dx"),
