@@ -21,6 +21,8 @@ struct WaterData {
   std::vector<double> wavenumbers;
   std::vector<double> self_texp;
   friend std::ostream& operator<<(std::ostream&, const WaterData&);
+  friend std::istream& operator>>(std::istream&, WaterData&);
+  void resize(const std::vector<std::size_t>&);
 };
 }  // namespace Hitran::MTCKD
 
@@ -37,8 +39,12 @@ public:
   Model(const Model&);
   Model& operator=(const Model&);
 
-  [[nodiscard]] const Hitran::MTCKD::WaterData& get_hitran_mtckd_water() const;
+  template <typename T> [[nodiscard]] const T& get() const;
   void set(Hitran::MTCKD::WaterData x);
+
+  [[nodiscard]] std::vector<std::string> keys() const;
+  void output_data_to_stream(std::ostream&, std::string_view) const;
+  void set_data_from_stream(std::istream&, std::string_view);
 
   friend std::ostream& operator<<(std::ostream&, const Model&);
 };

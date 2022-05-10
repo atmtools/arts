@@ -76,7 +76,7 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
             p,
             t,
             vmr.H2O,
-            predefined_model_data.get_hitran_mtckd_water());
+            predefined_model_data.get<Hitran::MTCKD::WaterData>());
       return true;
     case find_species_index(Species::Species::Water, "SelfContHitranMTCKD"):
       if constexpr (not check_exist)
@@ -86,7 +86,7 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
             p,
             t,
             vmr.H2O,
-            predefined_model_data.get_hitran_mtckd_water());
+            predefined_model_data.get<Hitran::MTCKD::WaterData>());
       return true;
     case find_species_index(Species::Species::Oxygen, "MPM2020"):
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);

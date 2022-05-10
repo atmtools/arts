@@ -143,14 +143,15 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
   const Numeric* y = data.for_absco_ref.data() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
   for (auto i = -1; i < 3 and cur + i < data_size; i++) {
-    if (i == -1 and y == data.for_absco_ref.data())
-      k[0] = 0;
+    if (i < 0 and cur == 0)
+      k[i + 1] = scl(*(y + i + 2), *(v + i + 2));
     else
       k[i + 1] = scl(*(y + i), *(v + i));
   }
 
   // Compute loop
   for (Index s = 0; s < n; ++s) {
+    if (f_grid[s] < 0) continue;
     auto x = freq2kaycm(f_grid[s]);
     if (x > last_wavenumber) return;
 
@@ -218,14 +219,15 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
   const Numeric* e = data.self_texp.data() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
   for (auto i = -1; i < 3 and cur + i < data_size; i++) {
-    if (i == -1 and y == data.self_absco_ref.data())
-      k[0] = 0;
+    if (i < 0 and cur == 0)
+      k[i + 1] = scl(*(y + i + 2), *(e + i + 2), *(v + i + 2));
     else
       k[i + 1] = scl(*(y + i), *(e + i), *(v + i));
   }
 
   // Compute loop
   for (Index s = 0; s < n; ++s) {
+    if (f_grid[s] < 0) continue;
     auto x = freq2kaycm(f_grid[s]);
     if (x > last_wavenumber) return;
 

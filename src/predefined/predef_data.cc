@@ -4,6 +4,9 @@
 #include <ostream>
 #include <type_traits>
 
+#include "debug.h"
+#include "double_imanip.h"
+
 namespace Absorption::PredefinedModel {
 Model::Model(const Model& d) {
   for (auto& x : d.data) {
@@ -30,7 +33,8 @@ Model& Model::operator=(const Model& d) {
   return *this;
 }
 
-const Hitran::MTCKD::WaterData& Model::get_hitran_mtckd_water() const try {
+template <>
+const Hitran::MTCKD::WaterData& Model::get() const try {
   return *std::get<std::unique_ptr<Hitran::MTCKD::WaterData>>(
       data.at(Hitran::MTCKD::water_key));
 } catch (std::exception& e) {
@@ -56,12 +60,43 @@ std::ostream& operator<<(std::ostream& os,
   for (auto& x : data.self_texp) os << x << ' ';
   return os;
 }
+
+std::istream& operator>>(std::istream& is, WaterData& data) {
+  for (auto& x : data.for_absco_ref) is >> double_imanip() >> x;
+  for (auto& x : data.self_absco_ref) is >> double_imanip() >> x;
+  for (auto& x : data.wavenumbers) is >> double_imanip() >> x;
+  for (auto& x : data.self_texp) is >> double_imanip() >> x;
+  return is;
+}
+
+void WaterData::resize(const std::vector<std::size_t>& inds) {
+  ARTS_USER_ERROR_IF(inds.size() not_eq 1, "Expects only one size")
+  self_absco_ref.resize(inds.front());
+  for_absco_ref.resize(inds.front());
+  wavenumbers.resize(inds.front());
+  self_texp.resize(inds.front());
+}
 }  // namespace Hitran::MTCKD
+
+std::vector<std::string> Model::keys() const {
+  std::vector<std::string> out;
+  out.reserve(data.size());
+  for (auto& x : data) out.emplace_back(x.first);
+  return out;
+}
+
+void Model::output_data_to_stream(std::ostream& os, std::string_view key) const {
+  std::visit([&](auto& v) { os << (*v); }, data.at(key));
+}
+
+void Model::set_data_from_stream(std::istream& is, std::string_view key) {
+  std::visit([&](auto& v) { is >> (*v); }, data[key]);
+}
 
 std::ostream& operator<<(std::ostream& os, const Model& data) {
   for (auto& x : data.data) {
     os << x.first << '\n';
-    std::visit([&](auto& v) { os << (*v); }, x.second);
+    data.output_data_to_stream(os, x.first);
     os << '\n';
   }
   return os;

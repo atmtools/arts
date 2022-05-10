@@ -33,7 +33,7 @@ void internalMTCKD(
          PredefinedModelData& data) -> Vector {
         PropagationMatrix pm(f.nelem());
         Absorption::PredefinedModel::Hitran::MTCKD::compute_foreign_h2o(
-            pm, f, p, t, x, data.get_hitran_mtckd_water());
+            pm, f, p, t, x, data.get<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>());
         return std::move(pm.Data()).flatten();
       },
       py::arg("f_grid"),
@@ -65,7 +65,7 @@ Parameters:
          PredefinedModelData& data) -> Vector {
         PropagationMatrix pm(f.nelem());
         Absorption::PredefinedModel::Hitran::MTCKD::compute_self_h2o(
-            pm, f, p, t, x, data.get_hitran_mtckd_water());
+            pm, f, p, t, x, data.get<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>());
         return std::move(pm.Data()).flatten();
       },
       py::arg("f_grid"),
@@ -160,8 +160,9 @@ void py_predefined(py::module_& m) {
               Absorption::PredefinedModel::Hitran::MTCKD::WaterData d) {
              x.set(std::move(d));
            })
-      .def("get_hitran_mtckd_water",
-           &PredefinedModelData::get_hitran_mtckd_water);
+      .def("get_hitran_mtckd_water_data", [](PredefinedModelData& x) {
+        return x.get<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>();
+      });
 
   internalCKDMT350(CKDMT350);
   internalMTCKD(hitran_mtckd, hitran_mtckd_data);
