@@ -36,12 +36,16 @@
 
 
 #include "arts.h"
-#include "agenda_class.h"
+//#include "agenda_class.h"
 #include "gridded_fields.h"
 #include "matpack.h"
 #include "transmissionmatrix.h"
 #include "energylevelmap.h"
 #include "optproperties.h"
+
+
+class Agenda;
+class Workspace;
 
 /*===========================================================================
   === structs/classes  in star.h

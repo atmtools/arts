@@ -33,6 +33,7 @@
 #include "star.h"
 #include "auto_md.h"
 #include "agenda_class.h"
+#include "check_input.h"
 #include "debug.h"
 #include "matpack.h"
 #include "matpackI.h"
@@ -41,6 +42,7 @@
 #include "propagationmatrix.h"
 #include "geodetic.h"
 #include "arts.h"
+#include "workspace_ng.h"
 
 
 extern const Numeric PI;

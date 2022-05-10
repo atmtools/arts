@@ -34,6 +34,7 @@
 #include "constants.h"
 #include "gas_scattering.h"
 #include "matpack.h"
+#include "check_input.h"
 #include <cmath>
 
 Vector calc_rayleighPhaMat(const Numeric& theta_rad,
