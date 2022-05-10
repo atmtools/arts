@@ -2,6 +2,7 @@
 #define predefined_predef_data_h
 
 #include <debug.h>
+#include <enums.h>
 
 #include <exception>
 #include <map>
@@ -12,15 +13,13 @@
 #include <variant>
 #include <vector>
 
-#include <enums.h>
-
 namespace Absorption::PredefinedModel {
-  ENUMCLASS(PredefinedModelDataKey, char, 
+  ENUMCLASS(DataKey, char, 
   HITRANMTCKDWATER
   )
 namespace Hitran::MTCKD {
 struct WaterData {
-  static constexpr PredefinedModelDataKey key = PredefinedModelDataKey::HITRANMTCKDWATER;
+  static constexpr DataKey key = DataKey::HITRANMTCKDWATER;
   std::vector<double> self_absco_ref;
   std::vector<double> for_absco_ref;
   std::vector<double> wavenumbers;
@@ -36,15 +35,12 @@ struct WaterData {
 };
 }  // namespace Hitran::MTCKD
 
-class Model {
-public:
-  using DataHolder = std::variant<std::unique_ptr<Hitran::MTCKD::WaterData>>;
+struct Model {
+  using DataHolder = std::variant<std::monostate, Hitran::MTCKD::WaterData>;
+  using DataMap = std::map<DataKey, DataHolder>;
 
-private:
-  using DataMap = std::map<PredefinedModelDataKey, DataHolder>;
   DataMap data;
-
-public:
+  
   Model() = default;
   Model(const Model&);
   Model& operator=(const Model&);
@@ -52,32 +48,34 @@ public:
   template <typename T>
   [[nodiscard]] const T& get() const try {
     ARTS_USER_ERROR_IF(not good_enum(T::key), "Bad key")
-    return *std::get<std::unique_ptr<T>>(data.at(T::key));
+    ARTS_USER_ERROR_IF(data.find(T::key) == data.end(), "No data")
+    return std::get<T>(data.at(T::key));
   } catch (std::exception& e) {
     ARTS_USER_ERROR(
-        "Cannot find data for Hitran MT CKD Water continua with error: ",
+        "Cannot find data for continua with error: ",
         e.what())
   }
 
   template <typename T>
   void set(T x) {
     ARTS_USER_ERROR_IF(not good_enum(T::key), "Bad key")
-    data[T::key] = std::make_unique<T>(std::move(x));
+    data[T::key] = std::move(x);
   }
 
   void set_all(const Model&);
 
-  [[nodiscard]] std::vector<std::size_t> data_size(PredefinedModelDataKey) const;
+  [[nodiscard]] std::vector<std::size_t> data_size(DataKey) const;
   [[nodiscard]] std::size_t size() const {return data.size();}
-  void resize(const std::vector<std::size_t>&, PredefinedModelDataKey);
-  [[nodiscard]] std::vector<PredefinedModelDataKey> keys() const;
-  void output_data_to_stream(std::ostream&, PredefinedModelDataKey) const;
-  void set_data_from_stream(std::istream&, PredefinedModelDataKey);
+  void resize(const std::vector<std::size_t>&, DataKey);
+  [[nodiscard]] std::vector<DataKey> keys() const;
+  void output_data_to_stream(std::ostream&, DataKey) const;
+  void set_data_from_stream(std::istream&, DataKey);
 
   friend std::ostream& operator<<(std::ostream&, const Model&);
 };
 }  // namespace Absorption::PredefinedModel
 
 using PredefinedModelData = Absorption::PredefinedModel::Model;
+using PredefinedModelDataKey = Absorption::PredefinedModel::DataKey;
 
 #endif  // predefined_predef_data_h

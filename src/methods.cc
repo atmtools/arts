@@ -2442,7 +2442,7 @@ Possible models:
 
         Note that this model comes with the copyright statement [1].
 
-        Note also that this model requires *predefined_data_model* to contain relevant data set either using
+        Note also that this model requires *predefined_model_data* to contain relevant data set either using
         *predefined_model_dataSetHitranMTCKD* or via some file reading routine.
     H2O-ForeignContHitranMTCKD:
         Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
@@ -2451,7 +2451,7 @@ Possible models:
 
         Note that this model comes with the copyright statement [1].
 
-        Note also that this model requires *predefined_data_model* to contain relevant data set either using
+        Note also that this model requires *predefined_model_data* to contain relevant data set either using
         *predefined_model_dataSetHitranMTCKD* or via some file reading routine.
 
     Copyright statements:

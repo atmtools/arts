@@ -1,5 +1,7 @@
 #include <predefined/predef.h>
 #include <py_auto_interface.h>
+#include <pybind11/cast.h>
+#include <pybind11/pytypes.h>
 
 #include "predefined/predef_data.h"
 #include "py_macros.h"
@@ -24,7 +26,21 @@ void internalMTCKD(
           &Absorption::PredefinedModel::Hitran::MTCKD::WaterData::wavenumbers)
       .def_readwrite(
           "self_texp",
-          &Absorption::PredefinedModel::Hitran::MTCKD::WaterData::self_texp);
+          &Absorption::PredefinedModel::Hitran::MTCKD::WaterData::self_texp)
+      .def(py::pickle(
+          [](const Absorption::PredefinedModel::Hitran::MTCKD::WaterData& t) {
+            return py::make_tuple(
+                t.self_absco_ref, t.for_absco_ref, t.wavenumbers, t.self_texp);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
+            auto* out = new Absorption::PredefinedModel::Hitran::MTCKD::WaterData{};
+            out ->self_absco_ref = t[0].cast<std::vector<double>>();
+            out ->for_absco_ref = t[1].cast<std::vector<double>>();
+            out ->wavenumbers = t[2].cast<std::vector<double>>();
+            out ->self_texp = t[3].cast<std::vector<double>>();
+            return out;
+          }));
 
   m.def(
       "get_foreign_h2o",
@@ -153,14 +169,26 @@ Parameters:
 }
 
 void py_predefined(py::module_& m) {
-  auto predef = m.def_submodule("predef");
-  predef.doc() = "Contains predefined absorption models";
-  auto CKDMT350 = predef.def_submodule("CKDMT350");
-  m.doc() = "Contains implementations for using MT CKD version 3.50";
-  auto hitran_mtckd = predef.def_submodule("Hitran").def_submodule("MTCKD");
+  py::class_<PredefinedModelDataKey>(m, "PredefinedModelDataKey")
+      .def(py::init([]() { return new PredefinedModelDataKey{}; }))
+      .def(py::init([](const std::string& c) {
+        return Absorption::PredefinedModel::toDataKeyOrThrow(c);
+      }))
+      .PythonInterfaceCopyValue(PredefinedModelDataKey)
+      .PythonInterfaceBasicRepresentation(PredefinedModelDataKey)
+      .def(py::pickle(
+          [](const PredefinedModelDataKey& t) {
+            return py::make_tuple(
+                std::string(Absorption::PredefinedModel::toString(t)));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return new PredefinedModelDataKey{
+                Absorption::PredefinedModel::toDataKey(
+                    t[0].cast<std::string>())};
+          }));
+  py::implicitly_convertible<std::string, PredefinedModelDataKey>();
 
-  py::class_<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>
-      hitran_mtckd_data(hitran_mtckd, "WaterData");
   py::class_<PredefinedModelData>(m, "PredefinedModelData")
       .def(py::init([]() { return new PredefinedModelData{}; }))
       .PythonInterfaceWorkspaceVariableConversion(PredefinedModelData)
@@ -174,7 +202,26 @@ void py_predefined(py::module_& m) {
            })
       .def("get_hitran_mtckd_water_data", [](PredefinedModelData& x) {
         return x.get<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>();
-      });
+      })
+      .def(py::pickle(
+          [](const PredefinedModelData& t) {
+            return py::make_tuple(t.data);
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            auto* out = new PredefinedModelData{};
+            out -> data = t[0].cast<PredefinedModelData::DataMap>();
+            return out;
+          }));
+
+  auto predef = m.def_submodule("predef");
+  predef.doc() = "Contains predefined absorption models";
+  auto CKDMT350 = predef.def_submodule("CKDMT350");
+  m.doc() = "Contains implementations for using MT CKD version 3.50";
+  auto hitran_mtckd = predef.def_submodule("Hitran").def_submodule("MTCKD");
+
+  py::class_<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>
+      hitran_mtckd_data(hitran_mtckd, "WaterData");
 
   internalCKDMT350(CKDMT350);
   internalMTCKD(hitran_mtckd, hitran_mtckd_data);

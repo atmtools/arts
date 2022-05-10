@@ -11,25 +11,20 @@
 #include "double_imanip.h"
 
 namespace Absorption::PredefinedModel {
+
 Model::DataHolder construct_empty(PredefinedModelDataKey key) {
   switch (key) {
     case PredefinedModelDataKey::HITRANMTCKDWATER:
-      return std::make_unique<Hitran::MTCKD::WaterData>();
+      return Hitran::MTCKD::WaterData{};
     case PredefinedModelDataKey::FINAL: { /* do nothing */
     }
   }
-  return std::unique_ptr<Hitran::MTCKD::WaterData>(nullptr);
+  return std::monostate{};
 }
 
 Model::Model(const Model& d) {
   for (auto& x : d.data) {
-    std::visit(
-        [&](auto&& v) {
-          using MyType = std::remove_reference_t<decltype(*v)>;
-          MyType y{*v};
-          data[x.first] = std::make_unique<MyType>(std::move(y));
-        },
-        x.second);
+    std::visit([&](auto& v) { data[x.first] = v; }, x.second);
   }
 }
 
@@ -37,13 +32,7 @@ Model& Model::operator=(const Model& d) {
   data.clear();
 
   for (auto& x : d.data) {
-    std::visit(
-        [&](auto&& v) {
-          using MyType = std::remove_reference_t<decltype(*v)>;
-          MyType y{*v};
-          data[x.first] = std::make_unique<MyType>(std::move(y));
-        },
-        x.second);
+    std::visit([&](auto& v) { data[x.first] = v; }, x.second);
   }
   return *this;
 }
@@ -80,13 +69,7 @@ void WaterData::resize(const std::vector<std::size_t>& inds) {
 
 void Model::set_all(const PredefinedModelData& d) {
   for (auto& x : d.data) {
-    std::visit(
-        [&](auto&& v) {
-          using MyType = std::remove_reference_t<decltype(*v)>;
-          MyType y{*v};
-          data[x.first] = std::make_unique<MyType>(std::move(y));
-        },
-        x.second);
+    std::visit([&](auto& v) { data[x.first] = v; }, x.second);
   }
 }
 
@@ -97,29 +80,83 @@ std::vector<PredefinedModelDataKey> Model::keys() const {
   return out;
 }
 
+struct SizesInterface {
+  template <typename T>
+  std::vector<std::size_t> operator()(const T& x) const {
+    return x.sizes();
+  }
+
+  template <>
+  std::vector<std::size_t> operator()(const std::monostate&) const {
+    ARTS_USER_ERROR("The data is corrupt")
+  }
+};
+
 [[nodiscard]] std::vector<std::size_t> Model::data_size(
     PredefinedModelDataKey key) const {
   ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
-  return std::visit([&](auto& v) { return v->sizes(); }, data.at(key));
+  return std::visit(SizesInterface{}, data.at(key));
 }
+
+struct ReizeInterface {
+  const std::vector<std::size_t>& inds;
+
+  template <typename T>
+  void operator()(T& x) const {
+    x.resize(inds);
+  }
+
+  template <>
+  void operator()(std::monostate&) const {
+    ARTS_USER_ERROR("The data is corrupt")
+  }
+};
 
 void Model::resize(const std::vector<std::size_t>& inds,
                    PredefinedModelDataKey key) {
   ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
   if (data.find(key) == data.end()) data[key] = construct_empty(key);
 
-  std::visit([&](auto& v) { v->resize(inds); }, data.at(key));
+  std::visit(ReizeInterface{inds}, data.at(key));
 }
+
+struct OutputInterface {
+  std::ostream& os;
+
+  template <typename T>
+  void operator()(const T& x) {
+    os << x;
+  }
+
+  template <>
+  void operator()(const std::monostate&) {
+    ARTS_USER_ERROR("The data is corrupt")
+  }
+};
 
 void Model::output_data_to_stream(std::ostream& os,
                                   PredefinedModelDataKey key) const {
   ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
-  std::visit([&](auto& v) { os << (*v); }, data.at(key));
+  std::visit(OutputInterface{os}, data.at(key));
 }
+
+struct InputInterface {
+  std::istream& is;
+
+  template <typename T>
+  void operator()(T& x) {
+    is >> x;
+  }
+
+  template <>
+  void operator()(std::monostate&) {
+    ARTS_USER_ERROR("The data is corrupt")
+  }
+};
 
 void Model::set_data_from_stream(std::istream& is, PredefinedModelDataKey key) {
   ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
-  std::visit([&](auto& v) { is >> (*v); }, data.at(key));
+  std::visit(InputInterface{is}, data.at(key));
 }
 
 std::ostream& operator<<(std::ostream& os, const Model& data) {

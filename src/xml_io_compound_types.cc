@@ -2114,7 +2114,7 @@ void xml_read_from_stream(istream& is_xml,
     String key_str;
     internal_open_tag.get_attribute_value("key", key_str);
     auto key =
-        Absorption::PredefinedModel::toPredefinedModelDataKeyOrThrow(key_str);
+        Absorption::PredefinedModel::toDataKeyOrThrow(key_str);
 
     String sizes_str;
     internal_open_tag.get_attribute_value("sizes", sizes_str);
