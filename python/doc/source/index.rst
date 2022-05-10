@@ -38,11 +38,10 @@ Getting started
 A basic introduction on how to use the ARTS interface is
 provided in the :ref:`getting_started` section.
 
-Content
--------
-
 .. toctree::
    :maxdepth: 2
 
    getting_started
    modules
+   indices
+

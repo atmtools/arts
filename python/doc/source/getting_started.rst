@@ -10,9 +10,6 @@ control ARTS from Python. The second one provides a list of the Python classes
 which are available for the manipulation of built-in ARTS data types.
 
 
-Content
--------
-
 .. toctree::
    :maxdepth: 2
 
