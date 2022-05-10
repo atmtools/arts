@@ -1,13 +1,26 @@
 #include "predef_data.h"
 
+#include <iostream>
 #include <memory>
-#include <ostream>
+#include <string_view>
 #include <type_traits>
+#include <variant>
+#include <vector>
 
 #include "debug.h"
 #include "double_imanip.h"
 
 namespace Absorption::PredefinedModel {
+Model::DataHolder construct_empty(PredefinedModelDataKey key) {
+  switch (key) {
+    case PredefinedModelDataKey::HITRANMTCKDWATER:
+      return std::make_unique<Hitran::MTCKD::WaterData>();
+    case PredefinedModelDataKey::FINAL: { /* do nothing */
+    }
+  }
+  return std::unique_ptr<Hitran::MTCKD::WaterData>(nullptr);
+}
+
 Model::Model(const Model& d) {
   for (auto& x : d.data) {
     std::visit(
@@ -21,6 +34,8 @@ Model::Model(const Model& d) {
 }
 
 Model& Model::operator=(const Model& d) {
+  data.clear();
+
   for (auto& x : d.data) {
     std::visit(
         [&](auto&& v) {
@@ -31,21 +46,6 @@ Model& Model::operator=(const Model& d) {
         x.second);
   }
   return *this;
-}
-
-template <>
-const Hitran::MTCKD::WaterData& Model::get() const try {
-  return *std::get<std::unique_ptr<Hitran::MTCKD::WaterData>>(
-      data.at(Hitran::MTCKD::water_key));
-} catch (std::exception& e) {
-  ARTS_USER_ERROR(
-      "Cannot find data for Hitran MT CKD Water continua with error: ",
-      e.what())
-}
-
-void Model::set(Hitran::MTCKD::WaterData x) {
-  data[Hitran::MTCKD::water_key] =
-      std::make_unique<Hitran::MTCKD::WaterData>(std::move(x));
 }
 
 namespace Hitran::MTCKD {
@@ -78,19 +78,48 @@ void WaterData::resize(const std::vector<std::size_t>& inds) {
 }
 }  // namespace Hitran::MTCKD
 
-std::vector<std::string> Model::keys() const {
-  std::vector<std::string> out;
+void Model::set_all(const PredefinedModelData& d) {
+  for (auto& x : d.data) {
+    std::visit(
+        [&](auto&& v) {
+          using MyType = std::remove_reference_t<decltype(*v)>;
+          MyType y{*v};
+          data[x.first] = std::make_unique<MyType>(std::move(y));
+        },
+        x.second);
+  }
+}
+
+std::vector<PredefinedModelDataKey> Model::keys() const {
+  std::vector<PredefinedModelDataKey> out;
   out.reserve(data.size());
   for (auto& x : data) out.emplace_back(x.first);
   return out;
 }
 
-void Model::output_data_to_stream(std::ostream& os, std::string_view key) const {
+[[nodiscard]] std::vector<std::size_t> Model::data_size(
+    PredefinedModelDataKey key) const {
+  ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
+  return std::visit([&](auto& v) { return v->sizes(); }, data.at(key));
+}
+
+void Model::resize(const std::vector<std::size_t>& inds,
+                   PredefinedModelDataKey key) {
+  ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
+  if (data.find(key) == data.end()) data[key] = construct_empty(key);
+
+  std::visit([&](auto& v) { v->resize(inds); }, data.at(key));
+}
+
+void Model::output_data_to_stream(std::ostream& os,
+                                  PredefinedModelDataKey key) const {
+  ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
   std::visit([&](auto& v) { os << (*v); }, data.at(key));
 }
 
-void Model::set_data_from_stream(std::istream& is, std::string_view key) {
-  std::visit([&](auto& v) { is >> (*v); }, data[key]);
+void Model::set_data_from_stream(std::istream& is, PredefinedModelDataKey key) {
+  ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
+  std::visit([&](auto& v) { is >> (*v); }, data.at(key));
 }
 
 std::ostream& operator<<(std::ostream& os, const Model& data) {

@@ -28,8 +28,11 @@
 
 #include "arts.h"
 #include "cloudbox.h"
+#include "debug.h"
 #include "global_data.h"
+#include "predefined/predef_data.h"
 #include "xml_io.h"
+#include <sstream>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -2078,6 +2081,124 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+
+
+//=== PredefinedModelData =========================================
+/*!
+ * \param is_xml     XML Input stream
+ * \param pmd        PredefinedModelData return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          PredefinedModelData& pmd,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbifs, "No binary data")
+
+  pmd = PredefinedModelData{};  // overwrite
+
+  CREATE_OUT2;
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("PredefinedModelData");
+
+  Index nelem;
+  open_tag.get_attribute_value("nelem", nelem);
+
+  for (Index i = 0; i < nelem; i++) {
+    ArtsXMLTag internal_open_tag(verbosity);
+    internal_open_tag.read_from_stream(is_xml);
+    internal_open_tag.check_name("Data");
+
+    // Get key
+    String key_str;
+    internal_open_tag.get_attribute_value("key", key_str);
+    auto key =
+        Absorption::PredefinedModel::toPredefinedModelDataKeyOrThrow(key_str);
+
+    String sizes_str;
+    internal_open_tag.get_attribute_value("sizes", sizes_str);
+
+    Index sizes_len;
+    internal_open_tag.get_attribute_value("sizes_nelem", sizes_len);
+
+    std::vector<std::size_t> sizes(sizes_len);
+    std::istringstream values(sizes_str);
+    for (auto& sz : sizes) values >> sz;
+
+    pmd.resize(sizes, key);
+    pmd.set_data_from_stream(is_xml, key);
+
+    ArtsXMLTag internal_close_tag(verbosity);
+    internal_close_tag.read_from_stream(is_xml);
+    internal_close_tag.check_name("/Data");
+  }
+
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/PredefinedModelData");
+}
+
+/*!
+ * \param os_xml     XML Output stream
+ * \param rvb        PredefinedModelData
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const PredefinedModelData& pmd,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbofs, "No binary data")
+
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("PredefinedModelData");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("nelem", Index(pmd.size()));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+  const auto keys = pmd.keys();
+
+  for (auto& key : keys) {
+    ArtsXMLTag internal_open_tag(verbosity);
+    internal_open_tag.set_name("Data");
+    internal_open_tag.add_attribute("key", toString(key));
+
+    auto sizes = pmd.data_size(key);
+    internal_open_tag.add_attribute("sizes_nelem", Index(sizes.size()));
+
+    String sizes_str = "";
+    for (std::size_t i = 0; i < sizes.size(); i++) {
+      if (i > 0) sizes_str += " ";
+      sizes_str += var_string(sizes[i]);
+    }
+    internal_open_tag.add_attribute("sizes", sizes_str);
+
+    internal_open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+
+    // Set values
+    pmd.output_data_to_stream(os_xml, key);
+    os_xml << '\n';
+
+    ArtsXMLTag internal_close_tag(verbosity);
+    internal_close_tag.set_name("/Data");
+    internal_close_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+  }
+
+  close_tag.set_name("/PredefinedModelData");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented
@@ -2162,23 +2283,6 @@ void xml_read_from_stream(istream&,
 
 void xml_write_to_stream(ostream&,
                          const CallbackFunction&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */,
-                         const Verbosity&) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-//=== PredefinedModelData =========================================
-
-void xml_read_from_stream(istream&,
-                          PredefinedModelData&,
-                          bifstream* /* pbifs */,
-                          const Verbosity&) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-void xml_write_to_stream(ostream&,
-                         const PredefinedModelData&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
