@@ -392,7 +392,6 @@ void iyClearsky(
 
 
    //allocate Varibale for direct (star) source, that is needed outside ppath loop.
-   ArrayOfIndex stars_visible(stars.nelem());
 
     //dummy variables needed for the output and input of
     // gas_scattering_agenda
@@ -404,14 +403,13 @@ void iyClearsky(
     const ArrayOfString scat_species_dummy;
     const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
 
-    Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
     Workspace l_ws(ws);
     ArrayOfString fail_msg;
     bool do_abort = false;
 
     // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(l_ws, l_propmat_clearsky_agenda, a, B, dB_dT, S, da_dx, dS_dx, stars_visible)
+    firstprivate(l_ws, a, B, dB_dT, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
       if (do_abort) continue;
       try {
@@ -425,7 +423,7 @@ void iyClearsky(
                                       lte,
                                       dK_dx[ip],
                                       dS_dx,
-                                      l_propmat_clearsky_agenda,
+                                      propmat_clearsky_agenda,
                                       jacobian_quantities,
                                       ppvar_f(joker, ip),
                                       ppvar_mag(joker, ip),
@@ -450,6 +448,9 @@ void iyClearsky(
         RadiationVector scattered_starlight(nf, ns);
 
         if (gas_scattering_do) {
+
+          ArrayOfIndex stars_visible(stars.nelem());
+
           Numeric minP = min(ppvar_p);
 
           if (star_do && ppvar_p[ip] > minP) {
@@ -462,7 +463,7 @@ void iyClearsky(
             ArrayOfPpath star_ppaths(stars.nelem());
             ArrayOfVector star_rte_los(stars.nelem(), Vector(2));
 
-            get_star_ppaths(ws,
+            get_star_ppaths(l_ws,
                             star_ppaths,
                             stars_visible,
                             star_rte_los,
@@ -484,7 +485,7 @@ void iyClearsky(
             ArrayOfMatrix transmitted_starlight;
             ArrayOfArrayOfTensor3 dtransmitted_starlight_dummy(stars.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
 
-            get_direct_radiation(ws,
+            get_direct_radiation(l_ws,
                                  transmitted_starlight,
                                  dtransmitted_starlight_dummy,
                                  stokes_dim,
@@ -529,11 +530,9 @@ void iyClearsky(
             for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
               if (stars_visible[i_star]) {
 
-//                scattered_starlight_istar.SetZero();
-
                 // here we calculate how much incoming star radiation is scattered
                 //into the direction of the ppath
-                get_scattered_starsource(ws,
+                get_scattered_starsource(l_ws,
                                          scattered_starlight_istar,
                                          f_grid,
                                          ppvar_p[ip],
@@ -554,7 +553,7 @@ void iyClearsky(
           TransmissionMatrix sca_mat_dummy;
           Vector sca_fct_dummy;
 
-          gas_scattering_agendaExecute(ws,
+          gas_scattering_agendaExecute(l_ws,
                                        K_sca,
                                        sca_mat_dummy,
                                        sca_fct_dummy,
