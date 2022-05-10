@@ -2395,6 +2395,12 @@ if they are defined.  Otherwise some values are just selected
   md_data_raw.push_back(create_mdrecord(
       NAME("predefined_model_dataSetHitranMTCKD"),
       DESCRIPTION(R"--(Sets the data for Hitran MTCKD
+
+Note that the vectors must have the same length, and that wavenumbers must be growing
+at a constant rate.  The minimum length is 4.
+
+Note also that as this is predefined model data, the units of the values of the vectors
+must be as described by each vector.
 )--"),
       AUTHORS("Richard Larsson"),
       OUT("predefined_model_data"),
@@ -2405,8 +2411,8 @@ if they are defined.  Otherwise some values are just selected
       GIN("self_absco_ref", "for_absco_ref", "wavenumbers", "self_texp"),
       GIN_TYPE("Vector", "Vector", "Vector", "Vector"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
-      GIN_DESC("Self absorption [1/(cm-1 molecules/cm**2]",
-               "Foreign absorption [1/(cm-1 molecules/cm**2)]",
+      GIN_DESC("Self absorption [1/(cm-1 molecules/cm^2]",
+               "Foreign absorption [1/(cm-1 molecules/cm^2)]",
                "Wavenumbers [cm-1]",
                "Self temperature exponent [-]")));
 
@@ -2435,12 +2441,18 @@ Possible models:
         Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
 
         Note that this model comes with the copyright statement [1].
+
+        Note also that this model requires *predefined_data_model* to contain relevant data set either using
+        *predefined_model_dataSetHitranMTCKD* or via some file reading routine.
     H2O-ForeignContHitranMTCKD:
         Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
 
         Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
 
         Note that this model comes with the copyright statement [1].
+
+        Note also that this model requires *predefined_data_model* to contain relevant data set either using
+        *predefined_model_dataSetHitranMTCKD* or via some file reading routine.
 
     Copyright statements:
         [1]:
