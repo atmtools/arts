@@ -32,7 +32,13 @@
 #include "bifstream.h"
 #include "bofstream.h"
 #include "file.h"
+#include <iterator>
+#include <string_view>
 
+namespace {
+constexpr std::string_view quotation_mark_replacement{"”"};
+constexpr std::string_view quotation_mark_original{"\""};
+} // namespace
 
 ////////////////////////////////////////////////////////////////////////////
 //   XMLTag implementation
@@ -51,16 +57,24 @@ void XMLTag::check_name(const String& expected_name) {
                     "> found.");
 }
 
-//! Adds a String attribute to tag
-/*!
+/*! Adds a String attribute to tag
+
+All " are replaced by ” to work in the XML tag
 
   \param aname Attribute name
   \param value Attribute value
 */
-void XMLTag::add_attribute(const String& aname, const String& value) {
+void XMLTag::add_attribute(const String& aname, String value) {
   XMLAttribute attr;
 
   attr.name = aname;
+
+  auto pos = value.find(quotation_mark_original);
+  while (pos not_eq std::string::npos) {
+    value.replace(pos, quotation_mark_original.length(), quotation_mark_replacement);
+    pos = value.find(quotation_mark_original);
+  }
+
   attr.value = value;
   attribs.push_back(attr);
 }
@@ -112,11 +126,13 @@ bool XMLTag::has_attribute(const String& aname) const {
   return std::any_of(attribs.cbegin(), attribs.cend(), [&](auto& attr){return attr.name == aname;});
 }
 
-//! Returns value of attribute as String
-/*!
+/*! Returns value of attribute as String
+
   Searches for the matching attribute and returns it value. If no
   attribute with the given name exists, return value is set to
   *not found*.
+
+  Replaces all ” with " to counter XML-tag problems
 
   \param aname Attribute name
   \param value Return value
@@ -124,7 +140,7 @@ bool XMLTag::has_attribute(const String& aname) const {
 void XMLTag::get_attribute_value(const String& aname, String& value) {
   value = "";
 
-  Array<XMLAttribute>::iterator it = attribs.begin();
+  auto it = attribs.begin();
   while (it != attribs.end()) {
     if (it->name == aname) {
       value = it->value;
@@ -132,6 +148,12 @@ void XMLTag::get_attribute_value(const String& aname, String& value) {
     } else {
       it++;
     }
+  }
+
+  auto pos = value.find(quotation_mark_replacement);
+  while (pos not_eq std::string::npos) {
+    value.replace(pos, quotation_mark_replacement.length(), quotation_mark_original);
+    pos = value.find(quotation_mark_replacement);
   }
 }
 
@@ -300,7 +322,7 @@ void XMLTag::read_from_stream(istream& is) {
 void XMLTag::write_to_stream(ostream& os) {
   os << "<" << name;
 
-  Array<XMLAttribute>::iterator it = attribs.begin();
+  auto it = attribs.begin();
 
   while (it != attribs.end()) {
     os << ' ' << it->name << "=\"" << it->value << '\"';
@@ -529,7 +551,7 @@ void xml_parse_error(const String& str_error) {
   \param tag        XMLTag
   \param str_error  Error description
 */
-void xml_data_parse_error(XMLTag& tag, String str_error) {
+void xml_data_parse_error(XMLTag& tag, const String& str_error) {
   ostringstream os;
   os << "XML data parse error: Error reading ";
   tag.write_to_stream(os);

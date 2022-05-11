@@ -75,7 +75,7 @@ class XMLTag {
 
   void set_name(const String& new_name) { name = new_name; }
 
-  void add_attribute(const String& aname, const String& value);
+  void add_attribute(const String& aname, String value);
 
   void add_attribute(const String& aname, const Index& value);
   
@@ -112,7 +112,7 @@ class XMLTag {
    * @param[in] aname Attribute name
    * @return bool Does this attribute exist?
    */
-  bool has_attribute(const String& aname) const;
+  [[nodiscard]] bool has_attribute(const String& aname) const;
 
  protected:
   String name;                 /*!< Tag name */
@@ -126,7 +126,7 @@ class XMLTag {
 
 void xml_parse_error(const String& str_error);
 
-void xml_data_parse_error(XMLTag& tag, String str_error);
+void xml_data_parse_error(XMLTag& tag, const String& str_error);
 
 void xml_set_stream_precision(ostream& os);
 
