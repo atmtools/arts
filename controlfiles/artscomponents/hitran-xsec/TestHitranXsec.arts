@@ -25,6 +25,7 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
   Ignore(rtp_nlte)
+  Ignore(select_abs_species)
   propmat_clearskyInit
   propmat_clearskyAddHitranXsec
 }

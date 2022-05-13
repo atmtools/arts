@@ -189,4 +189,6 @@ AgendaSet( water_p_eq_agenda ){
 
 
 IndexSet( scat_data_checked, 0 )
+
+Touch(select_abs_species)
 }

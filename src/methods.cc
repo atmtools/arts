@@ -33,6 +33,7 @@
 #include "methods.h"
 #include "arts.h"
 #include "wsv_aux.h"
+#include <algorithm>
 #include <array>
 
 namespace global_data {
@@ -12986,26 +12987,27 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddLines"),
       DESCRIPTION(
-        "Computes the line-by-line unpolarized absorption and adds\n"
-        "it to the diagonal of *propmat_clearsky* and derivates to other variables.\n"
-        "Does the same for NLTE variables if required.\n"
-        "\n"
-        "If *speedup_option* is not \"None\", then some speed-up logic is applied.\n"
-        "Valid speed-up logic other than \"None\" includes:\n"
-        "\tLinearIndependent:\n"
-        "\t\tUsing a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]\n"
-        "\t\tuntil the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.\n"
-        "\t\tA linear interpolation scheme is used between the bins to fill up the dense\n"
-        "\t\tabsorption.  The maximum of df[n] is given by *sparse_df* and the minimum\n"
-        "\t\ttransition between dense-to-sparse grid calculations are given by *sparse_lim*.\n"
-        "\tQuadraticIndependent:\n"
-        "\t\tUsing a sparse-grid, the points are separated as [f0, f0+0.5*df[0], f0+df[0], f0+df[0], f0+0.5*df[1], f0+df[1]...]\n"
-        "\t\tuntil the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.\n"
-        "\t\tA quadratic interpolation scheme is used between the bins to fill up the dense\n"
-        "\t\tabsorption.  The maximum of df[n] is given by *sparse_df* and the minimum\n"
-        "\t\ttransition between dense-to-sparse grid calculations are given by *sparse_lim*.\n"
-        "\n"
-        "Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid\n"
+        R"--(Computes the line-by-line unpolarized absorption and adds
+it to the diagonal of *propmat_clearsky* and derivates to other variables.
+Does the same for NLTE variables if required.
+
+If *speedup_option* is not "None", then some speed-up logic is applied.
+Valid speed-up logic other than "None" includes:
+    LinearIndependent:
+        Using a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]
+        until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
+        A linear interpolation scheme is used between the bins to fill up the dense
+        absorption.  The maximum of df[n] is given by *sparse_df* and the minimum
+        transition between dense-to-sparse grid calculations are given by *sparse_lim*.
+    QuadraticIndependent:
+        Using a sparse-grid, the points are separated as [f0, f0+0.5*df[0], f0+df[0], f0+df[0], f0+0.5*df[1], f0+df[1]...]
+        until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
+        A quadratic interpolation scheme is used between the bins to fill up the dense
+        absorption.  The maximum of df[n] is given by *sparse_df* and the minimum
+        transition between dense-to-sparse grid calculations are given by *sparse_lim*.
+
+Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
+)--"
       ),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky", "nlte_source", "dpropmat_clearsky_dx", "dnlte_source_dx"),
@@ -13018,6 +13020,7 @@ void define_md_data_raw() {
          "dnlte_source_dx",
          "f_grid",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "abs_lines_per_species",
          "isotopologue_ratios",
@@ -13027,14 +13030,13 @@ void define_md_data_raw() {
          "rtp_vmr",
          "nlte_do",
          "lbl_checked"),
-      GIN("sparse_df", "sparse_lim", "speedup_option", "select_speciestags", "robust"),
-      GIN_TYPE("Numeric", "Numeric", "String", "ArrayOfSpeciesTag", "Index"),
-      GIN_DEFAULT("0", "0", "None", "", "0"),
+      GIN("sparse_df", "sparse_lim", "speedup_option", "robust"),
+      GIN_TYPE("Numeric", "Numeric", "String", "Index"),
+      GIN_DEFAULT("0", "0", "None", "0"),
       GIN_DESC(
         "The grid sparse separation",
         "The dense-to-sparse limit",
         "Speedup logic",
-        "Species selection (will only compute for the select species in *abs_species*)",
         "Boolean.  If it is true, line mixed bands each allocate their own compute data to ensure that they cannot produce negative absorption"
       )));
 
@@ -21931,4 +21933,59 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+
+  //! Special method that has to look through some of the above methods for changes
+  ArrayOfString gin;
+  ArrayOfString gintype;
+  ArrayOfString gindefault;
+  ArrayOfString gindesc;
+  const ArrayOfString targets = {"propmat_clearskyInit",
+                                 "propmat_clearskyAddLines",
+                                 "propmat_clearskyAddZeeman",
+                                 "propmat_clearskyAddHitranXsec",
+                                 "propmat_clearskyAddOnTheFlyLineMixing",
+                                 "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
+                                 "propmat_clearskyAddXsecAgenda",
+                                 "propmat_clearskyAddPredefined",
+                                 "propmat_clearskyAddParticles",
+                                 "propmat_clearskyAddFaraday",
+                                 "propmat_clearskyAddHitranLineMixingLines"};
+  Index i = 0;
+  for (auto& m : md_data_raw) {
+    if (std::find(targets.cbegin(), targets.cend(), m.Name()) not_eq
+        targets.cend()) {
+      i++;
+      for (auto& x : m.GIn()) gin.push_back(x);
+      for (auto& x : m.GInType()) {
+        gintype.push_back(global_data::wsv_group_names.at(x));
+        gindesc.push_back("See *" + m.Name() + "*");
+      }
+      for (auto& x : m.GInDefault()) gindefault.push_back(x);
+    }
+  }
+  if (i not_eq targets.nelem()) throw std::logic_error("Lacking functions");
+
+  md_data_raw.push_back(
+      MdRecord("propmat_clearsky_agendaSetAutomatic",
+               R"--(Sets the *propmat_clearsky_agenda* automatically
+
+This method introspects the input and uses it for generating the
+*propmat_clearsky_agenda* automatically
+)--",
+               {"Richard Larsson"},
+               {"propmat_clearsky_agenda"},
+               {},
+               {},
+               {},
+               {"abs_species"},
+               gin,
+               gintype,
+               gindefault,
+               gindesc,
+               false,
+               false,
+               false,
+               true,
+               false));
 }

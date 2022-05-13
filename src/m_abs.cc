@@ -31,10 +31,12 @@
    \date   2001-03-12
 */
 #include "absorption.h"
+#include "agenda_class.h"
 #include "array.h"
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "depr.h"
 #include "file.h"
 #include "global_data.h"
@@ -46,14 +48,17 @@
 #include "math_funcs.h"
 #include "matpackI.h"
 #include "messages.h"
+#include "methods.h"
 #include "montecarlo.h"
 #include "optproperties.h"
 #include "parameters.h"
 #include "physics_funcs.h"
 #include "rte.h"
+#include "species_tags.h"
 #include "xml_io.h"
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>
@@ -1344,6 +1349,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     // WS Input:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
@@ -1357,7 +1363,6 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const Numeric& sparse_df,
     const Numeric& sparse_lim,
     const String& speedup_option,
-    const ArrayOfSpeciesTag& select_speciestags,
     const Index& robust,
     // Verbosity object:
     const Verbosity& verbosity) {
@@ -1407,7 +1412,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
   LineShape::ComputeData sparse_com(f_grid_sparse, jacobian_quantities, nlte_do);
   
   for (Index ispecies = 0; ispecies < ns; ispecies++) {
-    if (select_speciestags.nelem() and select_speciestags not_eq abs_species[ispecies]) continue;
+    if (select_abs_species.nelem() and select_abs_species not_eq abs_species[ispecies]) continue;
     
     // Skip it if there are no species or there is Zeeman requested
     if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
@@ -1828,4 +1833,236 @@ void abs_xsec_per_speciesAddLines(
       abs_xsec_per_species[abs_species_active[is]](joker, ip) += com.F.real();
     }
   }
+}
+
+//! Define an anonomous helper class for setting and getting defaults in the automatic agenda creation
+namespace {
+struct MyHelper {
+  String name, type;
+  Index pos{-1};
+  MRecord del, set;
+
+  template <typename T>
+  MyHelper(Workspace& ws, String n, String t, T val)
+      : name(std::move(n)), type(std::move(t)) {
+    if (auto ptr = ws.WsvMap.find("::propmat_clearsky_agenda::" + name);
+        ptr == ws.WsvMap.end()) {
+      pos = ws.add_wsv_inplace(
+          WsvRecord(("::propmat_clearsky_agenda::" + name).c_str(),
+                    "Added automatically",
+                    type));
+    } else {
+      pos = ptr->second;
+    }
+
+    set = MRecord(
+        global_data::MdMap.at(type + "Set"), {pos}, {}, std::move(val), {});
+    del =
+        MRecord(global_data::MdMap.at("Delete_sg_" + type), {}, {pos}, {}, {});
+  }
+};
+}  // namespace
+
+void propmat_clearsky_agendaSetAutomatic(// Workspace reference:
+                                         Workspace& ws,
+                                         // WS Output:
+                                         Agenda& propmat_clearsky_agenda,
+                                         // WS Input:
+                                         const ArrayOfArrayOfSpeciesTag& abs_species,
+                                         // WS Generic Input:
+                                         const Numeric& force_p,
+                                         const Numeric& force_t,
+                                         const Numeric& sparse_df,
+                                         const Numeric& sparse_lim,
+                                         const String& speedup_option,
+                                         const Index& robust,
+                                         const Index& use_abs_as_ext,
+                                         const Index& manual_zeeman_tag,
+                                         const Numeric& manual_zeeman_magnetic_field_strength,
+                                         const Numeric& manual_zeeman_theta,
+                                         const Numeric& manual_zeeman_eta,
+                                         // Verbosity object:
+                                         const Verbosity& verbosity) {
+  // Reset the agenda
+  propmat_clearsky_agenda.resize(0);
+
+  // propmat_clearskyInit
+  if (true) {
+    const auto pos = global_data::MdMap.at("propmat_clearskyInit");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto& in = rec.In();
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+  }
+
+  // propmat_clearskyAddLines
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return s.Plain();
+      })) {
+    const auto pos = global_data::MdMap.at("propmat_clearskyAddLines");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto in = rec.In();
+
+    const std::array gins{
+        MyHelper(ws, "sparse_df", "Numeric", sparse_df),
+        MyHelper(ws, "sparse_lim", "Numeric", sparse_lim),
+        MyHelper(ws, "speedup_option", "String", speedup_option),
+        MyHelper(ws, "robust", "Index", robust)};
+
+    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
+    for (auto& x : gins) in.push_back(x.pos);
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.del);
+  }
+
+  // propmat_clearskyAddZeeman
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return s.Zeeman();
+      })) {
+    const auto pos = global_data::MdMap.at("propmat_clearskyAddZeeman");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto in = rec.In();
+
+    const std::array gins{
+        MyHelper(ws, "manual_zeeman_tag", "Index", manual_zeeman_tag),
+        MyHelper(ws,
+                 "manual_zeeman_magnetic_field_strength",
+                 "Numeric",
+                 manual_zeeman_magnetic_field_strength),
+        MyHelper(ws, "manual_zeeman_theta", "Numeric", manual_zeeman_theta),
+        MyHelper(ws, "manual_zeeman_eta", "Numeric", manual_zeeman_eta)};
+
+    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
+    for (auto& x : gins) in.push_back(x.pos);
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.del);
+  }
+
+  //propmat_clearskyAddHitranXsec
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return std::any_of(s.begin(), s.end(), [](auto& tag) {
+          return tag.type == Species::TagType::HitranXsec;
+        });
+      })) {
+    const auto pos = global_data::MdMap.at("propmat_clearskyAddHitranXsec");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto in = rec.In();
+
+    const std::array gins{MyHelper(ws, "force_p", "Numeric", force_p),
+                          MyHelper(ws, "force_t", "Numeric", force_t)};
+
+    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
+    for (auto& x : gins) in.push_back(x.pos);
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.del);
+  }
+
+  //propmat_clearskyAddOnTheFlyLineMixing
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return s.Plain();
+      })) {
+    const auto pos =
+        global_data::MdMap.at("propmat_clearskyAddOnTheFlyLineMixing");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto& in = rec.In();
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+  }
+
+  //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return s.Zeeman();
+      })) {
+    const auto pos = global_data::MdMap.at(
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto& in = rec.In();
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+  }
+
+  //propmat_clearskyAddXsecAgenda
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return std::any_of(s.begin(), s.end(), [](auto& tag) {
+          return tag.type == Species::TagType::PredefinedLegacy or
+                 tag.type == Species::TagType::Cia;
+        });
+      })) {
+    const auto pos = global_data::MdMap.at("propmat_clearskyAddXsecAgenda");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto& in = rec.In();
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+  }
+
+  //propmat_clearskyAddPredefined
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return std::any_of(s.begin(), s.end(), [](auto& tag) {
+          return tag.type == Species::TagType::PredefinedModern;
+        });
+      })) {
+    const auto pos = global_data::MdMap.at("propmat_clearskyAddPredefined");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto& in = rec.In();
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+  }
+
+  //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return s.Zeeman();
+      })) {
+    const auto pos = global_data::MdMap.at(
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto& in = rec.In();
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+  }
+
+  //propmat_clearskyAddParticles
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return s.Particles();
+      })) {
+    const auto pos = global_data::MdMap.at("propmat_clearskyAddParticles");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto in = rec.In();
+
+    const std::array gins{
+        MyHelper(ws, "use_abs_as_ext", "Index", use_abs_as_ext)};
+
+    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
+    for (auto& x : gins) in.push_back(x.pos);
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.del);
+  }
+
+  //propmat_clearskyAddFaraday
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return s.FreeElectrons();
+      })) {
+    const auto pos = global_data::MdMap.at("propmat_clearskyAddFaraday");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto& in = rec.In();
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+  }
+
+  // propmat_clearskyAddHitranLineMixingLines
+  if (std::any_of(abs_species.begin(), abs_species.end(), [](auto& s) {
+        return s.Plain();
+      })) {
+    const auto pos =
+        global_data::MdMap.at("propmat_clearskyAddHitranLineMixingLines");
+    const MdRecord& rec = global_data::md_data.at(pos);
+    auto& out = rec.Out();
+    auto& in = rec.In();
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
+  }
+
+  propmat_clearsky_agenda.check(ws, verbosity);
 }

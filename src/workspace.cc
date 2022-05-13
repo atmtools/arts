@@ -4134,6 +4134,15 @@ void Workspace::define_wsv_data() {
           "Dimension:  [number of scattering elements]\n"),
       GROUP("Vector")));
 
+  wsv_data.push_back(
+      WsvRecord(NAME("select_abs_species"),
+                DESCRIPTION(R"--(A select species tag group from *abs_species*
+
+If set to empty, this selection is void.  It must otherwise match perfectly a tag inside
+*abs_species* for that to be the selection.
+)--"),
+                GROUP("ArrayOfSpeciesTag")));
+
   wsv_data.push_back(WsvRecord(
       NAME("sensor_checked"),
       DESCRIPTION(

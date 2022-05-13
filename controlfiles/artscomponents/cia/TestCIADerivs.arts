@@ -19,6 +19,7 @@ Arts2{
   NumericSet(rtp_pressure, 25000)
   IndexSet(stokes_dim, 1)
   Touch(rtp_nlte)
+  Touch(select_abs_species)
   IndexSet(abs_f_interp_order, 3)
   
   # Calculate w/o NLTE

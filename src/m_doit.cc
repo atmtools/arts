@@ -1773,6 +1773,7 @@ void OptimizeDoitPressureGrid(
                                    partial_dummy,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
+                                   {},
                                    f_grid[Range(f_index, 1)],
                                    rtp_mag_dummy,
                                    ppath_los_dummy,
