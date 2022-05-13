@@ -86,7 +86,6 @@ struct SizesInterface {
     return x.sizes();
   }
 
-  template <>
   std::vector<std::size_t> operator()(const std::monostate&) const {
     ARTS_USER_ERROR("The data is corrupt")
   }
@@ -106,7 +105,6 @@ struct ReizeInterface {
     x.resize(inds);
   }
 
-  template <>
   void operator()(std::monostate&) const {
     ARTS_USER_ERROR("The data is corrupt")
   }
@@ -128,7 +126,6 @@ struct OutputInterface {
     os << x;
   }
 
-  template <>
   void operator()(const std::monostate&) {
     ARTS_USER_ERROR("The data is corrupt")
   }
@@ -148,7 +145,6 @@ struct InputInterface {
     is >> x;
   }
 
-  template <>
   void operator()(std::monostate&) {
     ARTS_USER_ERROR("The data is corrupt")
   }
