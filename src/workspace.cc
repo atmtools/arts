@@ -1748,10 +1748,50 @@ void Workspace::define_wsv_data() {
           "        lon_grid ]\n"),
       GROUP("Tensor3")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("hitran_xsec_data"),
-                DESCRIPTION("Data for Hitran cross section species.\n"),
-                GROUP("ArrayOfXsecRecord")));
+  wsv_data.push_back(WsvRecord(
+      NAME("hitran_xsec_data"),
+      DESCRIPTION(
+          "Fitting model coefficients for cross section species.\n"
+          "\n"
+          "Dimensions: [ n_species ]\n"
+          "\n"
+          "XsecRecord:\n"
+          "  species: Name of species\n"
+          "  version: Fit model version\n"
+          "  fitcoeffs:\n"
+          "    Fit model coefficients as an *ArrayOfGriddedField2*\n"
+          "    Dimensions: [ n_bands ]\n"
+          "      GriddedField2: [ n_band_frequencies, n_coeffs ]\n"
+          "        The fit model:\n"
+          "          z = p00 + p10*x + p01*y + p20*x^2\n"
+          "\n"
+          "          z = Xsec [m^2]\n"
+          "          x = T / T0\n"
+          "          y = P / P0\n"
+          "\n"
+          "          T0 = 1 [K]\n"
+          "          P0 = 1 [Pa]\n"
+          "\n"
+          "          fitcoeffs(:, 0)           p00  [m^2]\n"
+          "          fitcoeffs(:, 1)           p10  [m^2]\n"
+          "          fitcoeffs(:, 2)           p01  [m^2]\n"
+          "          fitcoeffs(:, 3)           p20  [m^2]\n"
+          "  fitminpressures:\n"
+          "    Minimum pressure available in source xsec data to generate the fit coefficients.\n"
+          "    Dimensions: [ n_bands ]\n"
+          "  fitmaxpressures:\n"
+          "    Maximum pressure available in source xsec data to generate the fit coefficients.\n"
+          "    Dimensions: [ n_bands ]\n"
+          "  fitmintemperatures:\n"
+          "    Minimum temperature available in source xsec data to generate the fit coefficients.\n"
+          "    Dimensions: [ n_bands ]\n"
+          "  fitmintemperatures:\n"
+          "    Maximum temperature available in source xsec data to generate the fit coefficients.\n"
+          "    Dimensions: [ n_bands ]\n"
+          "\n"
+          "fitminpressures, fitmaxpressures, fitmintemperatures and fitmaxtemperatures\n"
+          "are not used to apply the model and solely serve for informational purposes.\n"),
+      GROUP("ArrayOfXsecRecord")));
 
   wsv_data.push_back(WsvRecord(
       NAME("instrument_pol"),
