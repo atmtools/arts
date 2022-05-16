@@ -1959,9 +1959,9 @@ struct MyHelper {
   }
 };
 
-#ifndef NDEBUG
-template <Index N>
-bool gins_are_ok(const MdRecord& rec, const std::array<MyHelper, N>& gins) {
+template <typename T>
+bool gins_are_ok(const MdRecord& rec, const T& gins) {
+  const auto N = static_cast<Index>(gins.size());
   if (rec.GIn().nelem() not_eq N) return false;
   for (Index i = 0; i < N; i++) {
     if (gins.at(i).name not_eq rec.GIn().at(i)) return false;
@@ -1970,7 +1970,6 @@ bool gins_are_ok(const MdRecord& rec, const std::array<MyHelper, N>& gins) {
   }
   return true;
 }
-#endif
 }  // namespace
 
 void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
