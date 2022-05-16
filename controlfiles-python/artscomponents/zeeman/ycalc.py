@@ -19,7 +19,7 @@ arts.verbosityInit()
 
 ATMPATH = "atm"
 LINEPATH = "line"
-DYNMAG = True
+DYNMAG = 1
 
 NF = 100
 NR = 9
@@ -52,23 +52,6 @@ arts.Touch(arts.surface_props_names)
 arts.Touch(arts.transmitter_pos)
 
 # %% Agendas
-
-@pyarts.workspace.arts_agenda(ws=arts)
-def propmat_clearsky_agenda_dyn(arts):
-    arts.Ignore(arts.select_abs_species)
-    arts.propmat_clearskyInit()
-    arts.propmat_clearskyAddZeeman()
-
-@pyarts.workspace.arts_agenda(ws=arts)
-def propmat_clearsky_agenda_nodyn(arts):
-    arts.Ignore(arts.select_abs_species)
-    arts.propmat_clearskyInit()
-    arts.propmat_clearskyAddZeeman(manual_zeeman_tag=True,
-                                 manual_zeeman_magnetic_field_strength=MAGSTR,
-                                 manual_zeeman_theta=MAGTHE,
-                                 manual_zeeman_eta=MAGETA)
-arts.Copy(arts.propmat_clearsky_agenda,
-          propmat_clearsky_agenda_dyn if DYNMAG else propmat_clearsky_agenda_nodyn)
 
 @pyarts.workspace.arts_agenda(ws=arts)
 def ppath_agenda_step_by_step(arts):
@@ -137,6 +120,12 @@ arts.abs_speciesSet(species=[f"O2-Z-66-{CENTRAL_LINE_FREQ-1}-{CENTRAL_LINE_FREQ+
 arts.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = os.path.join(LINEPATH, ""))
 arts.isotopologue_ratiosInitFromBuiltin()
 arts.Wigner6Init()
+
+# %% Use the automatic agenda setter
+arts.propmat_clearsky_agendaSetAutomatic(manual_zeeman_tag=not DYNMAG,
+                                  manual_zeeman_magnetic_field_strength=MAGSTR,
+                                  manual_zeeman_theta=MAGTHE,
+                                  manual_zeeman_eta=MAGETA)
                                                   
 # %% Grids and planet
 

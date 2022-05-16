@@ -80,4 +80,7 @@ def convert(group, value):
         dim = int(group[6])
         return np.array(value, dtype=np.float64, order='C', ndmin=dim)
     
+    if groupname == "ArrayOfSpeciesTag":
+        return str(value)
+    
     return value

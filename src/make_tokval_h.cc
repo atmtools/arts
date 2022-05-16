@@ -38,7 +38,7 @@ int main() {
 #include "timer_struct.h"
 #include "transmissionmatrix.h"
 
-class TokVal {
+struct TokVal {
   std::variant<
 )--";
 
@@ -52,7 +52,6 @@ class TokVal {
 
   file_h << R"--(> value;
 
-public:
 )--";
 
   for (auto& group : global_data::wsv_group_names) {

@@ -1942,10 +1942,10 @@ struct MyHelper {
   template <typename T>
   MyHelper(Workspace& ws, String n, String t, T val)
       : name(std::move(n)), type(std::move(t)) {
-    if (auto ptr = ws.WsvMap.find("::propmat_clearsky_agenda::" + name);
+    if (auto ptr = ws.WsvMap.find("::propmat_clearsky_agendaSetAutomatic::auto::" + name);
         ptr == ws.WsvMap.end()) {
       pos = ws.add_wsv_inplace(
-          WsvRecord(("::propmat_clearsky_agenda::" + name).c_str(),
+          WsvRecord(("::propmat_clearsky_agendaSetAutomatic::auto::" + name).c_str(),
                     "Added automatically",
                     type));
     } else {
@@ -1995,6 +1995,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const Verbosity& verbosity) {
   // Reset the agenda
   propmat_clearsky_agenda.resize(0);
+  propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
   
   const SpeciesTagTypeStatus any_species(abs_species);
   const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
@@ -2029,7 +2030,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const auto pos = global_data::MdMap.at("propmat_clearskyAddLines");
     const MdRecord& rec = global_data::md_data.at(pos);
     auto& out = rec.Out();
-    auto in = rec.In();
+    auto in = rec.InOnly();
 
     const std::array gins{
         MyHelper(ws, "sparse_df", "Numeric", sparse_df),
@@ -2049,7 +2050,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const auto pos = global_data::MdMap.at("propmat_clearskyAddZeeman");
     const MdRecord& rec = global_data::md_data.at(pos);
     auto& out = rec.Out();
-    auto in = rec.In();
+    auto in = rec.InOnly();
 
     const std::array gins{
         MyHelper(ws, "manual_zeeman_tag", "Index", manual_zeeman_tag),
@@ -2072,7 +2073,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const auto pos = global_data::MdMap.at("propmat_clearskyAddHitranXsec");
     const MdRecord& rec = global_data::md_data.at(pos);
     auto& out = rec.Out();
-    auto in = rec.In();
+    auto in = rec.InOnly();
 
     const std::array gins{MyHelper(ws, "force_p", "Numeric", force_p),
                           MyHelper(ws, "force_t", "Numeric", force_t)};
@@ -2127,7 +2128,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const auto pos = global_data::MdMap.at("propmat_clearskyAddParticles");
     const MdRecord& rec = global_data::md_data.at(pos);
     auto& out = rec.Out();
-    auto in = rec.In();
+    auto in = rec.InOnly();
 
     const std::array gins{
         MyHelper(ws, "use_abs_as_ext", "Index", use_abs_as_ext)};
