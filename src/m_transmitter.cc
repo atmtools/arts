@@ -731,6 +731,12 @@ void iyTransmissionStandard(Workspace& ws,
           " quantities.\n(Note: jacobians have to be defined BEFORE *pnd_field*"
           " is calculated/set.");
   }
+
+  ARTS_USER_ERROR_IF(jacobian_quantities.nelem() && gas_scattering_do, R"--(
+Jacobian calculation are not supported when gas scattering or stars are included.
+This feature will be added in a future version.
+)--");
+
   // iy_aux_vars checked below
 
   // Transmitted signal

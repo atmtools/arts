@@ -244,6 +244,11 @@ void iyClearsky(
   ARTS_USER_ERROR_IF (iy_unit != "1" && star_do,
                      "If stars are present only iy_unit=\"1\" can be used.");
 
+  ARTS_USER_ERROR_IF(jacobian_quantities.nelem() && (star_do || gas_scattering_do) , R"--(
+Jacobian calculation are not supported when gas scattering or stars are included.
+This feature will be added in a future version.
+)--");
+
 
   // Set diy_dpath if we are doing are doing jacobian calculations
   ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, ns, false) : ArrayOfTensor3(0);

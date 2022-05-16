@@ -8126,8 +8126,8 @@ Possible models:
           "i.e. the column matching Stokes element I, while remaing columns are\n"
           "are filled with zeros.\n"
           "\n"
-          "IMPORTANT: No star or gas scattering related jacobians are supported!\n"
-          "They will be implemented in a future version.\n"),
+          "IMPORTANT: No jacobian calculation is supported when stars or gas "
+          "scattering is included! This will be implemented in a future version.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson", "Oliver Lemke", "Manfred Brath"),
       OUT("iy",
           "iy_aux",
@@ -9562,8 +9562,8 @@ Possible models:
           "    i.e. only fully valid for scalar RT. The value is added to each\n"
           "    column.\n"
           "\n"
-          "IMPORTANT: No star or gas scattering related jacobians are supported!\n"
-          "They will be implemented in a future version.\n"),
+          "IMPORTANT: No jacobian calculation is supported when gas scattering is\n "
+          "included! This will be implemented in a future version.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("iy",
           "iy_aux",
