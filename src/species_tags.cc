@@ -577,3 +577,39 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_s
     }
   }
 }
+
+std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
+  Species::TagType x{Species::TagType::FINAL};
+  switch (x) {
+    case Species::TagType::FINAL:
+      os << "Species tag types:\n";
+      [[fallthrough]];
+    case Species::TagType::Plain:
+      os << "    Plain:            " << val.Plain << '\n';
+      [[fallthrough]];
+    case Species::TagType::Zeeman:
+      os << "    Zeeman:           " << val.Zeeman << '\n';
+      [[fallthrough]];
+    case Species::TagType::PredefinedLegacy:
+      os << "    PredefinedLegacy: " << val.PredefinedLegacy << '\n';
+      [[fallthrough]];
+    case Species::TagType::PredefinedModern:
+      os << "    PredefinedModern: " << val.PredefinedModern << '\n';
+      [[fallthrough]];
+    case Species::TagType::Cia:
+      os << "    Cia:              " << val.Cia << '\n';
+      [[fallthrough]];
+    case Species::TagType::FreeElectrons:
+      os << "    FreeElectrons:    " << val.FreeElectrons << '\n';
+      [[fallthrough]];
+    case Species::TagType::Particles:
+      os << "    Particles:        " << val.Particles << '\n';
+      [[fallthrough]];
+    case Species::TagType::HitranXsec:
+      os << "    HitranXsec:       " << val.HitranXsec << '\n';
+      [[fallthrough]];
+    case Species::TagType::NoLines:
+      os << "    NoLines:          " << val.NoLines;
+  }
+  return os;
+}

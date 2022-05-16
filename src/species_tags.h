@@ -180,6 +180,7 @@ struct SpeciesTagTypeStatus {
     HitranXsec{false},
     NoLines{false};
   SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species);
+  friend std::ostream& operator<<(std::ostream&, SpeciesTagTypeStatus);
 };
 
 /*! Find the next species of this type inclusively after the start index

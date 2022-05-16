@@ -18,6 +18,83 @@
 #include "species_tags.h"
 
 namespace Python {
+void internal_spectroscopy(py::module_& m) {
+  m.doc() = "For internal functionality dealing with spectroscopy";
+
+  py::class_<AbsorptionMirroringTagTypeStatus>(
+      m, "AbsorptionMirroringTagTypeStatus")
+      .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
+        return new AbsorptionMirroringTagTypeStatus{a};
+      }))
+      .def_readwrite("None", &AbsorptionMirroringTagTypeStatus::None)
+      .def_readwrite("Lorentz", &AbsorptionMirroringTagTypeStatus::Lorentz)
+      .def_readwrite("SameAsLineShape",
+           &AbsorptionMirroringTagTypeStatus::SameAsLineShape)
+      .def_readwrite("Manual", &AbsorptionMirroringTagTypeStatus::Manual)
+      .PythonInterfaceBasicRepresentation(AbsorptionMirroringTagTypeStatus);
+
+  py::class_<AbsorptionNormalizationTagTypeStatus>(
+      m, "AbsorptionNormalizationTagTypeStatus")
+      .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
+        return new AbsorptionNormalizationTagTypeStatus{a};
+      }))
+      .def_readwrite("None", &AbsorptionNormalizationTagTypeStatus::None)
+      .def_readwrite("VVH", &AbsorptionNormalizationTagTypeStatus::VVH)
+      .def_readwrite("VVW", &AbsorptionNormalizationTagTypeStatus::VVW)
+      .def_readwrite("RQ", &AbsorptionNormalizationTagTypeStatus::RQ)
+      .def_readwrite("SFS", &AbsorptionNormalizationTagTypeStatus::SFS)
+      .PythonInterfaceBasicRepresentation(AbsorptionNormalizationTagTypeStatus);
+
+  py::class_<AbsorptionPopulationTagTypeStatus>(
+      m, "AbsorptionPopulationTagTypeStatus")
+      .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
+        return new AbsorptionPopulationTagTypeStatus{a};
+      }))
+      .def_readwrite("LTE", &AbsorptionPopulationTagTypeStatus::LTE)
+      .def_readwrite("NLTE", &AbsorptionPopulationTagTypeStatus::NLTE)
+      .def_readwrite("VibTemps", &AbsorptionPopulationTagTypeStatus::VibTemps)
+      .def_readwrite("ByHITRANRosenkranzRelmat",
+           &AbsorptionPopulationTagTypeStatus::ByHITRANRosenkranzRelmat)
+      .def_readwrite("ByHITRANFullRelmat",
+           &AbsorptionPopulationTagTypeStatus::ByHITRANFullRelmat)
+      .def_readwrite("ByMakarovFullRelmat",
+           &AbsorptionPopulationTagTypeStatus::ByMakarovFullRelmat)
+      .def_readwrite("ByRovibLinearDipoleLineMixing",
+           &AbsorptionPopulationTagTypeStatus::ByRovibLinearDipoleLineMixing)
+      .PythonInterfaceBasicRepresentation(AbsorptionPopulationTagTypeStatus);
+
+  py::class_<AbsorptionCutoffTagTypeStatus>(m, "AbsorptionCutoffTagTypeStatus")
+      .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
+        return new AbsorptionCutoffTagTypeStatus{a};
+      }))
+      .def_readwrite("None", &AbsorptionCutoffTagTypeStatus::None)
+      .def_readwrite("ByLine", &AbsorptionCutoffTagTypeStatus::ByLine)
+      .PythonInterfaceBasicRepresentation(AbsorptionCutoffTagTypeStatus);
+
+  py::class_<AbsorptionLineShapeTagTypeStatus>(
+      m, "AbsorptionLineShapeTagTypeStatus")
+      .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
+        return new AbsorptionLineShapeTagTypeStatus{a};
+      }))
+      .def_readwrite("DP", &AbsorptionLineShapeTagTypeStatus::DP)
+      .def_readwrite("LP", &AbsorptionLineShapeTagTypeStatus::LP)
+      .def_readwrite("VP", &AbsorptionLineShapeTagTypeStatus::VP)
+      .def_readwrite("SDVP", &AbsorptionLineShapeTagTypeStatus::SDVP)
+      .def_readwrite("HTP", &AbsorptionLineShapeTagTypeStatus::HTP)
+      .PythonInterfaceBasicRepresentation(AbsorptionLineShapeTagTypeStatus);
+
+  py::class_<AbsorptionTagTypesStatus>(m, "AbsorptionTagTypesStatus")
+      .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
+        return new AbsorptionTagTypesStatus{a};
+      }))
+      .def_readwrite("mirroring", &AbsorptionTagTypesStatus::mirroring)
+      .def_readwrite("normalization", &AbsorptionTagTypesStatus::normalization)
+      .def_readwrite("population", &AbsorptionTagTypesStatus::population)
+      .def_readwrite("cutoff", &AbsorptionTagTypesStatus::cutoff)
+      .def_readwrite("lineshapetype", &AbsorptionTagTypesStatus::lineshapetype)
+      .PythonInterfaceBasicRepresentation(AbsorptionTagTypesStatus);
+}
+
 void py_spectroscopy(py::module_& m) {
   py::class_<LineShape::TemperatureModel>(m, "LineShapeTemperatureModel")
       .def(py::init([]() { return new LineShape::TemperatureModel{}; }))
@@ -854,5 +931,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
             out->B0qq = t[15].cast<Tensor4>();
             return out;
           }));
+
+  auto spec = m.def_submodule("spectroscopy");
+  internal_spectroscopy(spec);
 }
 }  // namespace Python
