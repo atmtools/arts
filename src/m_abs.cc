@@ -1959,7 +1959,7 @@ struct MyHelper {
   }
 };
 
-#ifdef NDEBUG
+#ifndef NDEBUG
 template <Index N>
 bool gins_are_ok(const MdRecord& rec, const std::array<MyHelper, N>& gins) {
   if (rec.GIn().nelem() not_eq N) return false;
