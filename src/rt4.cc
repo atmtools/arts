@@ -861,6 +861,7 @@ void gas_optpropCalc(Workspace& ws,
                                    partial_dummy,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
+                                   {},
                                    f_mono,  // monochromatic calculation
                                    rtp_mag_dummy,
                                    ppath_los_dummy,

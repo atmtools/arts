@@ -15,8 +15,6 @@ StringCreate( zsurfname )
 StringSet( zsurfname, "SurfaceAltitude_ERA40_1.0Degree" )
 StringCreate( surfmaskname )
 StringSet( surfmaskname, "LandSeaMask_ERA40_1.0Degree" )
-StringCreate( Bname )
-StringSet( Bname, "planets/Earth/IGRF/IGRF11_2010_200km-5deg-5deg" )
 StringCreate( windname )
 StringSet( windname, "planets/Mars/MPS/Mars.Ls0.day.dust-high/Mars.Ls0.day.dust-high.sol-avg/Mars.Ls0.day.dust-high.sol-avg" )
 
@@ -68,12 +66,6 @@ Copy( casefull, surfpath )
 Append( casefull, surfmaskname )
 ReadXML( lsmask_raw, casefull )
 
-# reading B-field w-component
-Copy( casefull, Bname )
-StringSet( caseext, ".mag_w.xml" )
-Append( casefull, caseext )
-ReadXML( B_field_raw, casefull )
-
 # reading wind-field w-component
 Copy( casefull, windname )
 StringSet( caseext, ".wind_w.xml" )
@@ -114,12 +106,6 @@ AgendaSet( forloop_agenda_lon ){
   GriddedFieldLatLonRegrid( lsmask_raw, lat_true, lon_true, lsmask_raw )
   FieldFromGriddedField( lsmask, p_grid, lat_grid, lon_grid, lsmask_raw )
   #Print( lsmask, 0 )
-
-  GriddedFieldPRegrid( B_field_raw, p_grid, B_field_raw, interp_order, 1 )
-  GriddedFieldLatLonRegrid( B_field_raw, lat_true, lon_true, B_field_raw, interp_order )
-  FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, B_field_raw )
-  Extract( mtmp, mag_w_field, 5 )
-  #Print( mtmp, 0 )
 
   # we can also do the expanding here...
   GriddedFieldPRegrid( wind_field_raw, p_grid, wind_field_raw, interp_order, 1 )
