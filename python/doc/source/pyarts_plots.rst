@@ -1,5 +1,5 @@
-arts.plots
-==========
+pyarts.plots
+============
 
 .. automodule:: pyarts.plots
 

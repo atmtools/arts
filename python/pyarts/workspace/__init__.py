@@ -19,7 +19,7 @@ The main functionality of the interface is implemented by the Workspace class.
 A Workspace object represents an ongoing ARTS simulation and is used to execute
 controlfiles and workspace methods and access workspace variables
 
->>> from arts.workspace import Workspace
+>>> from pyarts.workspace import Workspace
 >>> ws = Workspace()
 
 For a basic interface, see
