@@ -48,9 +48,10 @@ def convert(group, value):
     
     if isinstance(value, str) or isinstance(value, cxx.String):
         try:
-            value = eval(f"cxx.{groupname}('{value}')")
+            eval(f"cxx.{groupname}('{value}')")
+            # We understand the value already!
         except:
-            value = eval(str(value))
+            value = eval(str(value))  # We try to stringify the value
     
     if groupname == "Index":
         return np.int64(value)
@@ -79,8 +80,5 @@ def convert(group, value):
     if groupname.startswith("Tensor"):
         dim = int(group[6])
         return np.array(value, dtype=np.float64, order='C', ndmin=dim)
-    
-    if groupname == "ArrayOfSpeciesTag":
-        return str(value)
     
     return value
