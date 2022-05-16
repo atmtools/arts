@@ -20,7 +20,6 @@ ENUMCLASS(TagType, unsigned char,
     Particles,
     HitranXsec,
     NoLines)
-
 struct Tag {
   //! Molecular species index in Species::Isotopologues
   Index spec_ind{-1};
@@ -168,6 +167,20 @@ public:
 };
 
 using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
+
+//! Struct to test of an ArrayOfArrayOfSpeciesTag contains a tagtype
+struct SpeciesTagTypeStatus {
+  bool Plain{false},
+    Zeeman{false},
+    PredefinedLegacy{false},
+    PredefinedModern{false},
+    Cia{false},
+    FreeElectrons{false},
+    Particles{false},
+    HitranXsec{false},
+    NoLines{false};
+  SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species);
+};
 
 /*! Find the next species of this type inclusively after the start index
  * 

@@ -539,3 +539,41 @@ Numeric Species::first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
              ? 0
              : rtp_vmr[std::distance(abs_species.begin(), pos)];
 }
+
+SpeciesTagTypeStatus::SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species) {
+  for (auto& species_list : abs_species) {
+    for (auto& tag : species_list) {
+      switch (tag.type) {
+        case Species::TagType::Plain:
+          Plain = true;
+          break;
+        case Species::TagType::Zeeman:
+          Zeeman = true;
+          break;
+        case Species::TagType::PredefinedLegacy:
+          PredefinedLegacy = true;
+          break;
+        case Species::TagType::PredefinedModern:
+          PredefinedModern = true;
+          break;
+        case Species::TagType::Cia:
+          Cia = true;
+          break;
+        case Species::TagType::FreeElectrons:
+          FreeElectrons = true;
+          break;
+        case Species::TagType::Particles:
+          Particles = true;
+          break;
+        case Species::TagType::HitranXsec:
+          HitranXsec = true;
+          break;
+        case Species::TagType::NoLines:
+          NoLines = true;
+          break;
+        case Species::TagType::FINAL: { /* leave last */
+        }
+      }
+    }
+  }
+}

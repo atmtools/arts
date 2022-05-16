@@ -21978,7 +21978,7 @@ This method introspects the input and uses it for generating the
                {},
                {},
                {},
-               {"abs_species"},
+               {"abs_species", "abs_lines_per_species"},
                gin,
                gintype,
                gindefault,

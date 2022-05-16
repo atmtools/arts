@@ -53,13 +53,13 @@ arts.Touch(arts.transmitter_pos)
 
 # %% Agendas
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(ws=arts)
 def propmat_clearsky_agenda_dyn(arts):
     arts.Ignore(arts.select_abs_species)
     arts.propmat_clearskyInit()
     arts.propmat_clearskyAddZeeman()
 
-@pyarts.workspace.arts_agenda
+@pyarts.workspace.arts_agenda(ws=arts)
 def propmat_clearsky_agenda_nodyn(arts):
     arts.Ignore(arts.select_abs_species)
     arts.propmat_clearskyInit()
