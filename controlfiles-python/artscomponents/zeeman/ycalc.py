@@ -19,7 +19,7 @@ arts.verbosityInit()
 
 ATMPATH = "atm"
 LINEPATH = "line"
-DYNMAG = 1
+DYNMAG = True
 
 NF = 100
 NR = 9
