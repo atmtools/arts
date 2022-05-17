@@ -21,12 +21,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-AgendaSet( abs_xsec_agenda ){
-  abs_xsec_per_speciesInit
-  abs_xsec_per_speciesAddConts
-}
-
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
@@ -40,7 +34,7 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddConts
   propmat_clearskyAddLines
 }
 
@@ -136,7 +130,6 @@ MatrixSet( sensor_los, [ 95; 113; 135] )
 
 # Perform RT calculations
 # ---
-abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
