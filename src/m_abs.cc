@@ -2386,7 +2386,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
   if (any_species.Cia) {
     const std::array gins{MethodSetDelHelper(ws, "T_extrapolfac", "Numeric", T_extrapolfac),
                           MethodSetDelHelper(ws, "ignore_errors", "Index", ignore_errors)};
-    agenda.append_gin_method("propmat_clearskyAddHitranXsec", gins);
+    agenda.append_gin_method("propmat_clearskyAddCIA", gins);
   }
 
   //propmat_clearskyAddConts
