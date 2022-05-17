@@ -122,11 +122,11 @@ arts.isotopologue_ratiosInitFromBuiltin()
 arts.Wigner6Init()
 
 # %% Use the automatic agenda setter
-arts.propmat_clearsky_agendaSetAutomatic(manual_zeeman_tag=not DYNMAG,
-                                  manual_zeeman_magnetic_field_strength=MAGSTR,
-                                  manual_zeeman_theta=MAGTHE,
-                                  manual_zeeman_eta=MAGETA)
-                                                  
+arts.propmat_clearsky_agendaSetAutomatic(manual_mag_field=not DYNMAG,
+                                         H=MAGSTR,
+                                         theta=MAGTHE,
+                                         eta=MAGETA)
+
 # %% Grids and planet
 
 arts.p_grid = np.logspace(np.log10(105000), np.log10(0.1))

@@ -1003,6 +1003,7 @@ void propmat_clearskyAddFaraday(
     const Index& atmosphere_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& rtp_vmr,
     const Vector& rtp_los,
@@ -1042,6 +1043,8 @@ void propmat_clearskyAddFaraday(
   ARTS_USER_ERROR_IF(ife < 0,
                      "Free electrons not found in *abs_species* and "
                      "Faraday rotation can not be calculated.");
+
+  if (select_abs_species.nelem() and select_abs_species not_eq abs_species[ife]) return;
 
   const Numeric ne = rtp_vmr[ife];
 
@@ -1114,6 +1117,7 @@ void propmat_clearskyAddParticles(
     const Index& atmosphere_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& rtp_vmr,
     const Vector& rtp_los,
@@ -1124,6 +1128,10 @@ void propmat_clearskyAddParticles(
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUT1;
+
+  ARTS_USER_ERROR_IF(select_abs_species.nelem(), R"--(
+  We do not yet support select_abs_species for lookup table calculations
+  )--")
 
   // (i)yCalc only checks scat_data_checked if cloudbox is on. It is off here,
   // though, i.e. we need to check it here explicitly. (Also, cloudboxOff sets
@@ -1829,6 +1837,7 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
     // WS Input:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
@@ -1845,6 +1854,10 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
   // Output of abs_coefCalc:
   Matrix abs_coef;
   ArrayOfMatrix abs_coef_per_species, dabs_coef_dx;
+
+  ARTS_USER_ERROR_IF(select_abs_species.nelem(), R"--(
+  We do not yet support select_abs_species for xsec agenda calculations
+  )--")
 
   AbsInputFromRteScalars(abs_p,
                          abs_t,

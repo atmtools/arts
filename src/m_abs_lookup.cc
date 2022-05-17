@@ -2026,6 +2026,7 @@ void propmat_clearskyAddFromLookup(
     const Vector& a_vmr_list,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const Numeric& extpolfac,
     const Verbosity& verbosity) {
   CREATE_OUT3;
@@ -2038,6 +2039,10 @@ void propmat_clearskyAddFromLookup(
     throw runtime_error(
         "Gas absorption lookup table must be adapted,\n"
         "use method abs_lookupAdapt.");
+
+ARTS_USER_ERROR_IF(select_abs_species.nelem(), R"--(
+We do not yet support select_abs_species for lookup table calculations
+)--")
 
   const bool do_jac = supports_lookup(jacobian_quantities);
   const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
@@ -2435,8 +2440,7 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
     // Otherwise, we re-throw the exception.
     if (ignore_errors)
       return -1;
-    else
-      throw runtime_error(x.what());
+    throw runtime_error(x.what());
   }
 
   // Get number of frequencies. (We cannot do this earlier, since we
@@ -2479,6 +2483,7 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
                                 dpropmat_clearsky_dx,
                                 al.f_grid,
                                 al.species,
+                                {},
                                 jacobian_quantities,
                                 local_p,
                                 local_t,
