@@ -1520,7 +1520,8 @@ void propmat_clearskyAddConts(  // Workspace reference:
     for (Index s = 0; s < abs_species[ispecies].nelem(); ++s) {
       // Continuum tags in the sense that we talk about here
       // (including complete absorption models) are marked by a special type.
-      if (abs_species[ispecies][s].Type() == Species::TagType::PredefinedLegacy) {
+      if (abs_species[ispecies][s].Type() ==
+          Species::TagType::PredefinedLegacy) {
         // We have identified a continuum tag!
 
         // Get only the continuum name. The full tag name is something like:
@@ -2208,12 +2209,13 @@ struct MethodSetDelHelper {
   template <typename T>
   MethodSetDelHelper(Workspace& ws, String n, String t, T val)
       : name(std::move(n)), type(std::move(t)) {
-    if (auto ptr = ws.WsvMap.find("::propmat_clearsky_agendaSetAutomatic::autogen::" + name);
+    if (auto ptr = ws.WsvMap.find(
+            "::propmat_clearsky_agendaSetAutomatic::autogen::" + name);
         ptr == ws.WsvMap.end()) {
-      pos = ws.add_wsv_inplace(
-          WsvRecord(("::propmat_clearsky_agendaSetAutomatic::autogen::" + name).c_str(),
-                    "Added automatically",
-                    type));
+      pos = ws.add_wsv_inplace(WsvRecord(
+          ("::propmat_clearsky_agendaSetAutomatic::autogen::" + name).c_str(),
+          "Added automatically",
+          type));
     } else {
       pos = ptr->second;
     }
@@ -2257,13 +2259,14 @@ struct MethodAppender {
     const auto pos = global_data::MdMap.at(method);
     const MdRecord& rec = global_data::md_data.at(pos);
 
-    ARTS_ASSERT(gins_are_ok(rec, gins), "Something is wrong with the Generic inputs!")
+    ARTS_ASSERT(gins_are_ok(rec, gins),
+                "Something is wrong with the Generic inputs!")
 
     auto& out = rec.Out();
     auto in = rec.InOnly();
-    for (auto& i: out) full_out.push_back(i);
-    for (auto& i: in) full_in.push_back(i);
-    
+    for (auto& i : out) full_out.push_back(i);
+    for (auto& i : in) full_in.push_back(i);
+
     for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
     for (auto& x : gins) in.push_back(x.pos);
     propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
@@ -2310,6 +2313,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     Workspace& ws,
     // WS Output:
     Agenda& propmat_clearsky_agenda,
+    Index& propmat_clearsky_agenda_checked,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -2318,21 +2322,23 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const Index& ignore_errors,
     const Numeric& force_p,
     const Numeric& force_t,
-    const Numeric& sparse_df,
-    const Numeric& sparse_lim,
-    const String& speedup_option,
-    const Index& robust,
+    const Numeric& lines_sparse_df,
+    const Numeric& lines_sparse_lim,
+    const String& lines_speedup_option,
+    const Index& no_negatives,
     const Index& use_abs_as_ext,
-    const Index& manual_zeeman_tag,
-    const Numeric& manual_zeeman_magnetic_field_strength,
-    const Numeric& manual_zeeman_theta,
-    const Numeric& manual_zeeman_eta,
+    const Index& manual_mag_field,
+    const Numeric& H,
+    const Numeric& theta,
+    const Numeric& eta,
     // Verbosity object:
     const Verbosity& verbosity) {
+  propmat_clearsky_agenda_checked = 0;  // In case of crash
+
   // Reset the agenda
   propmat_clearsky_agenda.resize(0);
   propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
-  
+
   const SpeciesTagTypeStatus any_species(abs_species);
   const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
   MethodAppender agenda{propmat_clearsky_agenda};
@@ -2343,49 +2349,58 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
   }
 
   // propmat_clearskyAddLines
-  if (any_species.Plain and (any_lines.population.LTE or any_lines.population.NLTE or any_lines.population.VibTemps)) {
+  if (any_species.Plain and
+      (any_lines.population.LTE or any_lines.population.NLTE or
+       any_lines.population.VibTemps)) {
     const std::array gins{
-        MethodSetDelHelper(ws, "sparse_df", "Numeric", sparse_df),
-        MethodSetDelHelper(ws, "sparse_lim", "Numeric", sparse_lim),
-        MethodSetDelHelper(ws, "speedup_option", "String", speedup_option),
-        MethodSetDelHelper(ws, "robust", "Index", robust)};
+        MethodSetDelHelper(ws, "lines_sparse_df", "Numeric", lines_sparse_df),
+        MethodSetDelHelper(ws, "lines_sparse_lim", "Numeric", lines_sparse_lim),
+        MethodSetDelHelper(
+            ws, "lines_speedup_option", "String", lines_speedup_option),
+        MethodSetDelHelper(ws, "no_negatives", "Index", no_negatives)};
     agenda.append_gin_method("propmat_clearskyAddLines", gins);
   }
 
   // propmat_clearskyAddZeeman
-  if (any_species.Zeeman and (any_lines.population.LTE or any_lines.population.NLTE or any_lines.population.VibTemps)) {
+  if (any_species.Zeeman and
+      (any_lines.population.LTE or any_lines.population.NLTE or
+       any_lines.population.VibTemps)) {
     const std::array gins{
-        MethodSetDelHelper(ws, "manual_zeeman_tag", "Index", manual_zeeman_tag),
-        MethodSetDelHelper(ws,
-                 "manual_zeeman_magnetic_field_strength",
-                 "Numeric",
-                 manual_zeeman_magnetic_field_strength),
-        MethodSetDelHelper(ws, "manual_zeeman_theta", "Numeric", manual_zeeman_theta),
-        MethodSetDelHelper(ws, "manual_zeeman_eta", "Numeric", manual_zeeman_eta)};
+        MethodSetDelHelper(ws, "manual_mag_field", "Index", manual_mag_field),
+        MethodSetDelHelper(ws, "H", "Numeric", H),
+        MethodSetDelHelper(ws, "theta", "Numeric", theta),
+        MethodSetDelHelper(ws, "eta", "Numeric", eta)};
     agenda.append_gin_method("propmat_clearskyAddZeeman", gins);
   }
 
-  //propmat_clearskyAddXsecFit
+  //propmat_clearskyAddHitranXsec
   if (any_species.XsecFit) {
-    const std::array gins{MethodSetDelHelper(ws, "force_p", "Numeric", force_p),
-                          MethodSetDelHelper(ws, "force_t", "Numeric", force_t)};
+    const std::array gins{
+        MethodSetDelHelper(ws, "force_p", "Numeric", force_p),
+        MethodSetDelHelper(ws, "force_t", "Numeric", force_t)};
     agenda.append_gin_method("propmat_clearskyAddXsecFit", gins);
   }
 
   //propmat_clearskyAddOnTheFlyLineMixing
-  if (any_species.Plain and (any_lines.population.ByMakarovFullRelmat or any_lines.population.ByRovibLinearDipoleLineMixing)) {
+  if (any_species.Plain and
+      (any_lines.population.ByMakarovFullRelmat or
+       any_lines.population.ByRovibLinearDipoleLineMixing)) {
     agenda.append_nogin_method("propmat_clearskyAddOnTheFlyLineMixing");
   }
 
   //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
-  if (any_species.Zeeman and (any_lines.population.ByMakarovFullRelmat or any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.append_nogin_method("propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
+  if (any_species.Zeeman and
+      (any_lines.population.ByMakarovFullRelmat or
+       any_lines.population.ByRovibLinearDipoleLineMixing)) {
+    agenda.append_nogin_method(
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
   }
 
   //propmat_clearskyAddCIA
   if (any_species.Cia) {
-    const std::array gins{MethodSetDelHelper(ws, "T_extrapolfac", "Numeric", T_extrapolfac),
-                          MethodSetDelHelper(ws, "ignore_errors", "Index", ignore_errors)};
+    const std::array gins{
+        MethodSetDelHelper(ws, "T_extrapolfac", "Numeric", T_extrapolfac),
+        MethodSetDelHelper(ws, "ignore_errors", "Index", ignore_errors)};
     agenda.append_gin_method("propmat_clearskyAddCIA", gins);
   }
 
@@ -2412,7 +2427,8 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
   }
 
   // propmat_clearskyAddHitranLineMixingLines
-  if (any_species.Plain and (any_lines.population.ByHITRANFullRelmat or any_lines.population.ByHITRANRosenkranzRelmat)) {
+  if (any_species.Plain and (any_lines.population.ByHITRANFullRelmat or
+                             any_lines.population.ByHITRANRosenkranzRelmat)) {
     agenda.append_nogin_method("propmat_clearskyAddHitranLineMixingLines");
   }
 
@@ -2423,4 +2439,99 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
 
   // Extra check (should really never ever fail when species exist)
   propmat_clearsky_agenda.check(ws, verbosity);
+  propmat_clearsky_agenda_checked=1;
+}
+
+void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
+    Workspace& ws,
+    // WS Output:
+    Agenda& propmat_clearsky_agenda,
+    Index& propmat_clearsky_agenda_checked,
+    // WS Input:
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    // WS Generic Input:
+    const Numeric& extpolfac,
+    const Index& use_abs_as_ext,
+    const Index& manual_mag_field,
+    const Numeric& H,
+    const Numeric& theta,
+    const Numeric& eta,
+    // Verbosity object:
+    const Verbosity& verbosity) {
+  propmat_clearsky_agenda_checked = 0;  // In case of crash
+  
+  // Reset the agenda
+  propmat_clearsky_agenda.resize(0);
+  propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
+
+  const SpeciesTagTypeStatus any_species(abs_species);
+  const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
+  MethodAppender agenda{propmat_clearsky_agenda};
+
+  // propmat_clearskyInit
+  if (abs_species.nelem()) {
+    agenda.append_nogin_method("propmat_clearskyInit");
+  }
+
+  // propmat_clearskyAddFromLookup
+  {
+    const std::array gins{
+        MethodSetDelHelper(ws, "extpolfac", "Numeric", extpolfac)};
+    agenda.append_gin_method("propmat_clearskyAddFromLookup", gins);
+  }
+
+  // propmat_clearskyAddZeeman
+  if (any_species.Zeeman and
+      (any_lines.population.LTE or any_lines.population.NLTE or
+       any_lines.population.VibTemps)) {
+    const std::array gins{
+        MethodSetDelHelper(ws, "manual_mag_field", "Index", manual_mag_field),
+        MethodSetDelHelper(ws, "H", "Numeric", H),
+        MethodSetDelHelper(ws, "theta", "Numeric", theta),
+        MethodSetDelHelper(ws, "eta", "Numeric", eta)};
+    agenda.append_gin_method("propmat_clearskyAddZeeman", gins);
+  }
+
+  //propmat_clearskyAddOnTheFlyLineMixing
+  if (any_species.Plain and
+      (any_lines.population.ByMakarovFullRelmat or
+       any_lines.population.ByRovibLinearDipoleLineMixing)) {
+    agenda.append_nogin_method("propmat_clearskyAddOnTheFlyLineMixing");
+  }
+
+  //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
+  if (any_species.Zeeman and
+      (any_lines.population.ByMakarovFullRelmat or
+       any_lines.population.ByRovibLinearDipoleLineMixing)) {
+    agenda.append_nogin_method(
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
+  }
+
+  //propmat_clearskyAddParticles
+  if (any_species.Particles) {
+    const std::array gins{
+        MethodSetDelHelper(ws, "use_abs_as_ext", "Index", use_abs_as_ext)};
+    agenda.append_gin_method("propmat_clearskyAddParticles", gins);
+  }
+
+  //propmat_clearskyAddFaraday
+  if (any_species.FreeElectrons) {
+    agenda.append_nogin_method("propmat_clearskyAddFaraday");
+  }
+
+  // propmat_clearskyAddHitranLineMixingLines
+  if (any_species.Plain and (any_lines.population.ByHITRANFullRelmat or
+                             any_lines.population.ByHITRANRosenkranzRelmat)) {
+    agenda.append_nogin_method("propmat_clearskyAddHitranLineMixingLines");
+  }
+
+  // Ignore and touch all unused input and ouptut of the agenda
+  if (abs_species.nelem()) {
+    agenda.append_ignores(ws).append_touch(ws);
+  }
+
+  // Extra check (should really never ever fail when species exist)
+  propmat_clearsky_agenda.check(ws, verbosity);
+  propmat_clearsky_agenda_checked=1;
 }

@@ -62,6 +62,8 @@ atmfields_checkedCalc
 jacobianOff
 
 abs_lookupSetup
+
+propmat_clearsky_agendaSetAutomatic
 abs_lookupCalc
 WriteXML( output_file_format, abs_lookup )
 

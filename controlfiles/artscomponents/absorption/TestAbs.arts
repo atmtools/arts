@@ -78,6 +78,10 @@ VectorSet( abs_t_pert, [] )
 VectorSet( abs_nls_pert, [] )
 #VectorNLogSpace( abs_nls_pert, 5, 0.01, 10 )
 
+IndexSet(stokes_dim, 1)
+
+propmat_clearsky_agendaSetAutomatic
+
 abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 

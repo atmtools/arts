@@ -32,6 +32,7 @@ void propmat_clearskyAddPredefined(
     PropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
     const Numeric& rtp_pressure,
@@ -61,16 +62,17 @@ void propmat_clearskyAddPredefined(
 
   const Absorption::PredefinedModel::VMRS vmr(abs_species, rtp_vmr);
   for (auto& tag_groups : abs_species) {
+    if (select_abs_species.nelem() and select_abs_species not_eq tag_groups)
+      continue;
     for (auto& tag : tag_groups) {
-      Absorption::PredefinedModel::compute(
-          propmat_clearsky,
-          dpropmat_clearsky_dx,
-          tag.Isotopologue(),
-          f_grid,
-          rtp_pressure,
-          rtp_temperature,
-          vmr,
-          jacobian_quantities);
+      Absorption::PredefinedModel::compute(propmat_clearsky,
+                                           dpropmat_clearsky_dx,
+                                           tag.Isotopologue(),
+                                           f_grid,
+                                           rtp_pressure,
+                                           rtp_temperature,
+                                           vmr,
+                                           jacobian_quantities);
     }
   }
 }

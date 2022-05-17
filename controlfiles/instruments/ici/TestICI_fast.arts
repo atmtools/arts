@@ -120,7 +120,7 @@ abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
 jacobianOff
-
+propmat_clearsky_agendaSetAutomatic
 abs_lookupCalc
 
 # Set propmat_clearsky_agenda to use lookup table

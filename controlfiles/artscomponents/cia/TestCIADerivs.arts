@@ -61,9 +61,8 @@ Arts2{
   
   # Perform calculations for perturbed temperature derivative
   NumericSet(rtp_temperature, 250.0001)
-  abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddCIA
   propmat_clearskyAddLines
   NumericSet(rtp_temperature, 250)
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat-dT.xml")
@@ -72,9 +71,8 @@ Arts2{
   
   # Perform calculations for perturbed VMR derivative
   VectorSet(rtp_vmr, [0.10001, 0.2])
-  abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddCIA
   propmat_clearskyAddLines
   VectorSet(rtp_vmr, [0.1, 0.2])
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat-dvmr-H2.xml")
@@ -83,9 +81,8 @@ Arts2{
   
   # Perform calculations for perturbed VMR derivative
   VectorSet(rtp_vmr, [0.1, 0.20001])
-  abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddCIA
   propmat_clearskyAddLines
   VectorSet(rtp_vmr, [0.1, 0.2])
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat-dvmr-He.xml")
@@ -94,9 +91,8 @@ Arts2{
   
   # Perform calculations for perturbed frequency derivative
   VectorNLinSpace(f_grid, 11, 3000001000, 30000000001000)
-  abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddCIA
   propmat_clearskyAddLines
   VectorNLinSpace(f_grid, 11, 3e9, 30e12)
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat-df.xml")

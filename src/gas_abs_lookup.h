@@ -107,6 +107,8 @@ class GasAbsLookup {
       const Vector& abs_t_pert,
       const Vector& abs_nls_pert,
       const Agenda& abs_xsec_agenda,
+      // GIN
+      const Numeric& lowest_vmr,
       // Verbosity object:
       const Verbosity& verbosity);
 

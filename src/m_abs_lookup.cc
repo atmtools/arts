@@ -34,13 +34,16 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
+#include "debug.h"
 #include "gas_abs_lookup.h"
 #include "global_data.h"
 #include "interpolation_lagrange.h"
 #include "math_funcs.h"
+#include "matpackI.h"
 #include "matpackV.h"
 #include "messages.h"
 #include "physics_funcs.h"
+#include "propagationmatrix.h"
 #include "rng.h"
 
 extern const Index GFIELD4_FIELD_NAMES;
@@ -71,11 +74,28 @@ void abs_lookupCalc(  // Workspace reference:
     const Vector& abs_t,
     const Vector& abs_t_pert,
     const Vector& abs_nls_pert,
-    const Agenda& abs_xsec_agenda,
+    const Agenda& propmat_clearsky_agenda,
+    // GIN
+    const Numeric& lowest_vmr,
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUT2;
   CREATE_OUT3;
+
+  ARTS_USER_ERROR_IF(
+      propmat_clearsky_agenda.name() not_eq "propmat_clearsky_agenda",
+      R"--(
+Not propmat_clearsky_agenda:
+
+)--",
+      propmat_clearsky_agenda)
+
+  ARTS_USER_ERROR_IF(lowest_vmr <= 0, R"--(
+You must give a lowest_vmr value above 0.  This is because
+the computations of the absorption lookup table uses true
+absorption calculations but the output is in cross-sections
+
+Your current lowest_vmr value is: )--", lowest_vmr)
 
   // We need this temporary variable to make a local copy of all VMRs,
   // where we then perturb the H2O profile as needed
@@ -86,10 +106,6 @@ void abs_lookupCalc(  // Workspace reference:
   // saves memory and allows for consistent treatment of nonlinear
   // species. But it means we need local copies of species, line list,
   // and line shapes for agenda communication.
-
-  // Absorption cross sections per tag group.
-  ArrayOfMatrix abs_xsec_per_species, src_xsec_per_species;
-  ArrayOfArrayOfMatrix dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx;
 
   // 2. Determine various important sizes:
   const Index n_species = abs_species.nelem();  // Number of abs species
@@ -252,7 +268,7 @@ void abs_lookupCalc(  // Workspace reference:
   // We have to make a local copy of the Workspace and the agenda because
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws(ws);
-  Agenda l_abs_xsec_agenda(abs_xsec_agenda);
+  Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
 
   // Loop species:
   for (Index i = 0, spec = 0; i < n_species; ++i) {
@@ -347,12 +363,8 @@ void abs_lookupCalc(  // Workspace reference:
 #pragma omp parallel for if (                                         \
     !arts_omp_in_parallel() &&                                        \
     these_t_pert_nelem >=                                             \
-        arts_omp_get_max_threads()) private(this_t,                   \
-                                            abs_xsec_per_species,     \
-                                            src_xsec_per_species,     \
-                                            dabs_xsec_per_species_dx, \
-                                            dsrc_xsec_per_species_dx) \
-    firstprivate(l_ws, l_abs_xsec_agenda)
+        arts_omp_get_max_threads()) private(this_t)                   \
+    firstprivate(l_ws, l_propmat_clearsky_agenda)
       for (Index j = 0; j < these_t_pert_nelem; ++j) {
         // Skip remaining iterations if an error occurred
         if (failed) continue;
@@ -377,24 +389,33 @@ void abs_lookupCalc(  // Workspace reference:
           this_t = abs_lookup.t_ref;
           this_t += these_t_pert[j];
 
-          // Call agenda to calculate absorption:
-          abs_xsec_agendaExecute(l_ws,
-                                 abs_xsec_per_species,
-                                 dabs_xsec_per_species_dx,
-                                 abs_species,
-                                 ArrayOfRetrievalQuantity(0),
-                                 abs_species_active,
-                                 f_grid,
-                                 abs_p,
-                                 this_t,
-                                 these_all_vmrs,
-                                 l_abs_xsec_agenda);
-
           // Store in the right place:
           // Loop through all altitudes
           for (Index p = 0; p < n_p_grid; ++p) {
-            abs_lookup.xsec(j, spec, Range(joker), p) =
-                abs_xsec_per_species[i](Range(joker), p);
+            PropagationMatrix K;
+            StokesVector S;
+            ArrayOfPropagationMatrix dK;
+            ArrayOfStokesVector dS;
+            Vector rtp_vmr = these_all_vmrs(joker, p);
+            for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
+            // Perform the propagation matrix computations
+            propmat_clearsky_agendaExecute(ws,
+                                           K,
+                                           S,
+                                           dK,
+                                           dS,
+                                           {},
+                                           abs_species[i],
+                                           f_grid,
+                                           {},
+                                           {},
+                                           abs_p[p],
+                                           this_t[p],
+                                           {},
+                                           rtp_vmr,
+                                           l_propmat_clearsky_agenda);
+            K.Kjj() /= rtp_vmr[i] * number_density(abs_p[p], abs_t[p]);
+            abs_lookup.xsec(j, spec, Range(joker), p) = K.Kjj();
 
             // There used to be a division by the number density
             // n here. This is no longer necessary, since

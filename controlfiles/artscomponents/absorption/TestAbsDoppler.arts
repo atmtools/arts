@@ -105,10 +105,13 @@ Copy(f_grid_backup, f_grid)
 VectorNLinSpace( f_grid, 1000, 49e9, 151e9 )
 
 abs_lookupSetup
+
+propmat_clearsky_agendaSetAutomatic
+
 abs_lookupCalc
 
 # absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+propmat_clearsky_agendaSetAutomaticForLookup
 
 # Restore original frequency grid
 Copy(f_grid, f_grid_backup)
