@@ -39,7 +39,7 @@
 /*! The lookup information for the agendas. */
 namespace global_data {
 Array<AgRecord> agenda_data;
-}
+} // namespace global_data
 
 void define_agenda_data() {
   using global_data::agenda_data;
@@ -74,6 +74,7 @@ void define_agenda_data() {
              "dpropmat_clearsky_dx",
              "dnlte_source_dx"),
       INPUT("jacobian_quantities",
+            "select_abs_species",
             "f_grid",
             "rtp_mag",
             "rtp_los",

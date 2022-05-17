@@ -46,11 +46,12 @@ def convert(group, value):
         groupname = group
     groupname = str(groupname)
     
-    if isinstance(value, cxx.String):
-        value = str(value)
-    
-    if isinstance(value, str) and groupname != "String":
-        value = eval(value)
+    if isinstance(value, str) or isinstance(value, cxx.String):
+        try:
+            eval(f"cxx.{groupname}('{value}')")
+            # We understand the value already!
+        except:
+            value = eval(str(value))  # We try to stringify the value
     
     if groupname == "Index":
         return np.int64(value)

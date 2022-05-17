@@ -73,7 +73,7 @@ class MdRecord {
            const ArrayOfString& input,
            const ArrayOfString& gin,
            const ArrayOfString& gintype,
-           const ArrayOfString& gindefault _U_,
+           const ArrayOfString& gindefault,
            const ArrayOfString& gindesc,
            bool set_method = false,
            bool agenda_method = false,

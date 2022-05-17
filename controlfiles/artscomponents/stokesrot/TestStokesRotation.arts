@@ -46,6 +46,7 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore( rtp_vmr )
   Ignore( rtp_nlte )
   Ignore(jacobian_quantities)
+  Ignore(select_abs_species)
   Touch( nlte_source )
   Touch( dpropmat_clearsky_dx )
   Touch( dnlte_source_dx)

@@ -13,6 +13,7 @@ Arts2{
   NumericSet(rtp_temperature, 250)
   NumericSet(rtp_pressure, 25000)
   IndexSet(stokes_dim, 1)
+  Touch(select_abs_species)
   
   # Calculate w/o NLTE
   nlteOff

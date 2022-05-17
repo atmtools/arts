@@ -1,12 +1,18 @@
-#include "python_interface.h"
-#include <pybind11/attr.h>
-#include <pybind11/stl/filesystem.h>
-
 #include <global_data.h>
 #include <parameters.h>
 #include <parser.h>
+#include <pybind11/attr.h>
+#include <pybind11/detail/common.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl/filesystem.h>
+#include <memory>
+#include <type_traits>
 
+#include "agenda_class.h"
+#include "debug.h"
+#include "py_auto_interface.h"
 #include "py_macros.h"
+#include "python_interface.h"
 
 extern Parameters parameters;
 
@@ -196,10 +202,72 @@ void py_agenda(py::module_& m) {
   py::class_<CallbackFunction>(m, "CallbackFunction")
       .def(py::init([]() { return new CallbackFunction{}; }))
       .PythonInterfaceCopyValue(CallbackFunction)
-      .def(py::init([](const std::function<void(Workspace&)>& f) { return new CallbackFunction{f}; }))
-      .def("__call__", [](CallbackFunction& f, Workspace& ws) { f(ws); }, py::is_operator());
+      .def(py::init([](const std::function<void(Workspace&)>& f) {
+        return new CallbackFunction{f};
+      }))
+      .def(
+          "__call__",
+          [](CallbackFunction& f, Workspace& ws) { f(ws); },
+          py::is_operator());
   py::implicitly_convertible<std::function<void(Workspace&)>,
                              CallbackFunction>();
+
+  py::class_<TokVal>(m, "TokVal")
+      .def(py::init([](const WorkspaceVariablesVariant& x) -> TokVal {
+        return std::visit(
+            [](auto& v) -> TokVal {
+              if constexpr (
+                  std::is_same_v<
+                      Index_*,
+                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>> or
+                  std::is_same_v<
+                      Numeric_*,
+                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>>)
+                return v->val;
+              else if constexpr (
+                  std::is_same_v<
+                      Agenda*,
+                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>> or
+                  std::is_same_v<
+                      ArrayOfAgenda*,
+                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>> or
+                  std::is_same_v<
+                      py::object*,
+                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>>)
+                ARTS_USER_ERROR(
+                    "Must be a non-agenda ARTS type (try specifying the type if the input is not an Agenda type)")
+              else
+                return *v;
+            },
+            x);
+      }))
+      .def_property(
+          "value",
+          [](const TokVal& x) {
+            return std::visit(
+                [](auto& v) -> py::object {
+                  return py::cast(*v, py::return_value_policy::copy);
+                },
+                x.value);
+          },
+          [](TokVal& x, TokVal y) { x.value.swap(y.value); })
+      .def("__repr__",
+           [](py::object& x) { return x.attr("value").attr("__repr__")(); })
+      .def("__str__",
+           [](py::object& x) { return x.attr("value").attr("__str__")(); });
+  py::implicitly_convertible<WorkspaceVariablesVariant, TokVal>();
+
+  py::class_<MRecord>(m, "MRecord")
+      .def_property_readonly("id", &MRecord::Id)
+      .def_property_readonly("output", &MRecord::Out)
+      .def_property_readonly("input", &MRecord::In)
+      .def_property_readonly("value", &MRecord::SetValue)
+      .def_property_readonly("tasks", &MRecord::Tasks)
+      .PythonInterfaceBasicRepresentation(MRecord);
+
+  py::class_<Array<MRecord>>(m, "ArrayOfMRecord")
+      .PythonInterfaceArrayDefault(MRecord)
+      .PythonInterfaceBasicRepresentation(Array<MRecord>);
 
   py::class_<MdRecord>(m, "MdRecord")
       .def(py::init([]() { return new MdRecord{}; }))
@@ -221,7 +289,7 @@ void py_agenda(py::module_& m) {
 
   py::class_<AgRecord>(m, "AgRecord")
       .def(py::init([]() { return new AgRecord{}; }))
-      .PythonInterfaceCopyValue(AgRecord) 
+      .PythonInterfaceCopyValue(AgRecord)
       .def_property_readonly("name", &AgRecord::Name)
       .def_property_readonly("description", &AgRecord::Description)
       .def_property_readonly("outs", &AgRecord::Out)
@@ -235,23 +303,22 @@ void py_agenda(py::module_& m) {
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init([]() { return new Agenda{}; }))
-      .def(py::init(
-          [](Workspace&, const Agenda& a) {
-            return a;
-          }), py::doc("Copy Agenda with extra argument (to mimic DelayedAgenda)"))
-      .def(py::init(
-          [](Workspace& ws, const std::function<py::object(Workspace&)>& f) {
-            return py::cast<Agenda>(f(ws));
-          }),
-          py::keep_alive<0, 1>())
+      .def(py::init([](Workspace&, const Agenda& a) { return a; }),
+           py::doc("Copy Agenda with extra argument (to mimic DelayedAgenda)"))
+      .def(py::init([](Workspace& ws,
+                       const std::function<py::object(Workspace&)>& f) {
+             return py::cast<Agenda>(f(ws));
+           }),
+           py::keep_alive<0, 1>())
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
-        Agenda* a = parse_agenda(
-            correct_include_path(path).c_str(),
-            *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
-        w.initialize();
-        return a;
-      }), py::keep_alive<0, 1>())
+             Agenda* a = parse_agenda(
+                 correct_include_path(path).c_str(),
+                 *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
+             w.initialize();
+             return a;
+           }),
+           py::keep_alive<0, 1>())
       .PythonInterfaceCopyValue(Agenda)
       .PythonInterfaceFileIO(Agenda)
       .def_property_readonly("main", &Agenda::is_main_agenda)
@@ -422,12 +489,18 @@ void py_agenda(py::module_& m) {
             const auto [in, out] = split_io(var_order);
             const auto m_id = std::distance(global_data::md_data.begin(), ptr);
             if (ptr->SetMethod() and in.nelem()) {
-              ARTS_USER_ERROR_IF (ws.is_initialized(in.back()), "Can only set values, use Copy to copy workspace variables")
+              ARTS_USER_ERROR_IF(
+                  ws.is_initialized(in.back()),
+                  "Can only set values, use Copy to copy workspace variables")
 
               // The previous value will be the GIN set value as the last value
               // is also the last in the push_back above
               ARTS_ASSERT(a.Methods().nelem())
-              a.push_back(MRecord(m_id, out, in, a.Methods().back().SetValue(), a.Methods().back().Tasks()));
+              a.push_back(MRecord(m_id,
+                                  out,
+                                  in,
+                                  a.Methods().back().SetValue(),
+                                  a.Methods().back().Tasks()));
             } else {
               a.push_back(MRecord(m_id, out, in, {}, {}));
             }
@@ -494,7 +567,7 @@ Parameters
           "append_agenda_methods",
           [](Agenda& self, const Agenda& other) {
             const Index n = other.Methods().nelem();  // if other==self
-            for (Index i=0 ; i<n; i++) self.push_back(other.Methods()[i]);
+            for (Index i = 0; i < n; i++) self.push_back(other.Methods()[i]);
           },
           py::doc(R"--(
 Appends the input agenda's methods to this agenda's method list
@@ -506,7 +579,8 @@ other : Agenda
 
 Warning
 -------
-Both agendas must be defined on the same workspace)--"), py::arg("other"))
+Both agendas must be defined on the same workspace)--"),
+          py::arg("other"))
       .def(
           "execute",
           [](Agenda& a, Workspace& ws) {
@@ -526,14 +600,16 @@ Both agendas must be defined on the same workspace)--"), py::arg("other"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",
            [](Agenda& a) { return var_string("Agenda ", a.name()); })
-      .def("__str__", [](Agenda& a) {
-        std::string out =
-            var_string("Arts Agenda ", a.name(), " with methods:\n");
-        std::ostringstream os;
-        a.print(os, "   ");
-        out += os.str();
-        return out;
-      });
+      .def("__str__",
+           [](Agenda& a) {
+             std::string out =
+                 var_string("Arts Agenda ", a.name(), " with methods:\n");
+             std::ostringstream os;
+             a.print(os, "   ");
+             out += os.str();
+             return out;
+           })
+      .def_property("methods", &Agenda::Methods, &Agenda::set_methods);
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
       .def(py::init([]() { return new ArrayOfAgenda{}; }))
@@ -604,11 +680,14 @@ Both agendas must be defined on the same workspace)--"), py::arg("other"))
                y.set_name(x.front().name());
              x.emplace_back(std::move(y));
            })
-      .def("pop", [](ArrayOfAgenda& aa) {
-        Agenda a = std::move(aa.back());
-        aa.pop_back();
-        return a;
-      }, "Pops and returns the last item")
+      .def(
+          "pop",
+          [](ArrayOfAgenda& aa) {
+            Agenda a = std::move(aa.back());
+            aa.pop_back();
+            return a;
+          },
+          "Pops and returns the last item")
       .def(
           "check",
           [](ArrayOfAgenda& aa, Workspace& w) {

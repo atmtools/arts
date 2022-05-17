@@ -992,4 +992,52 @@ using AbsorptionPopulationType = Absorption::PopulationType;
 using AbsorptionMirroringType = Absorption::MirroringType;
 using AbsorptionCutoffType = Absorption::CutoffType;
 
+struct AbsorptionMirroringTagTypeStatus {
+  bool None{false}, Lorentz{false}, SameAsLineShape{false}, Manual{false};
+  AbsorptionMirroringTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
+  friend std::ostream& operator<<(std::ostream&, AbsorptionMirroringTagTypeStatus);
+};
+
+struct AbsorptionNormalizationTagTypeStatus {
+  bool None{false}, VVH{false}, VVW{false}, RQ{false}, SFS{false};
+  AbsorptionNormalizationTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
+  friend std::ostream& operator<<(std::ostream&, AbsorptionNormalizationTagTypeStatus);
+};
+
+struct AbsorptionPopulationTagTypeStatus {
+  bool LTE{false}, NLTE{false}, VibTemps{false},
+      ByHITRANRosenkranzRelmat{false}, ByHITRANFullRelmat{false},
+      ByMakarovFullRelmat{false}, ByRovibLinearDipoleLineMixing{false};
+  AbsorptionPopulationTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
+  friend std::ostream& operator<<(std::ostream&, AbsorptionPopulationTagTypeStatus);
+};
+
+struct AbsorptionCutoffTagTypeStatus {
+  bool None{false}, ByLine{false};
+  AbsorptionCutoffTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
+  friend std::ostream& operator<<(std::ostream&, AbsorptionCutoffTagTypeStatus);
+};
+
+struct AbsorptionLineShapeTagTypeStatus {
+  bool DP{false}, LP{false}, VP{false}, SDVP{false}, HTP{false};
+  AbsorptionLineShapeTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
+  friend std::ostream& operator<<(std::ostream&, AbsorptionLineShapeTagTypeStatus);
+};
+
+struct AbsorptionTagTypesStatus {
+  AbsorptionMirroringTagTypeStatus mirroring;
+  AbsorptionNormalizationTagTypeStatus normalization;
+  AbsorptionPopulationTagTypeStatus population;
+  AbsorptionCutoffTagTypeStatus cutoff;
+  AbsorptionLineShapeTagTypeStatus lineshapetype;
+
+  AbsorptionTagTypesStatus(const ArrayOfArrayOfAbsorptionLines& lines)
+      : mirroring(lines),
+        normalization(lines),
+        population(lines),
+        cutoff(lines),
+        lineshapetype(lines) {}
+  friend std::ostream& operator<<(std::ostream&, AbsorptionTagTypesStatus);
+};
+
 #endif  // absorptionlines_h

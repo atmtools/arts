@@ -276,6 +276,7 @@ AgendaSet( propmat_clearsky_agenda__LookUpTable ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
   Ignore(rtp_nlte)
+  Ignore(select_abs_species)
   propmat_clearskyInit
   propmat_clearskyAddFromLookup
 }
@@ -286,6 +287,7 @@ AgendaSet( propmat_clearsky_agenda__LookUpTable ){
 # 
 AgendaCreate( propmat_clearsky_agenda__LookUpTable_Zeeman )
 AgendaSet( propmat_clearsky_agenda__LookUpTable_Zeeman ){
+  Ignore(select_abs_species)
   propmat_clearskyInit
   propmat_clearskyAddFromLookup
   propmat_clearskyAddZeeman
