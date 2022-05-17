@@ -929,7 +929,9 @@ void propmat_clearsky_agenda_checkedCalc(
 
   ARTS_USER_ERROR_IF(
       needs_continua and
-          not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
+          not(propmat_clearsky_agenda.has_method(
+                  "propmat_clearskyAddXsecAgenda") or
+              propmat_clearsky_agenda.has_method("propmat_clearskyAddConts") or
               propmat_clearsky_agenda.has_method(
                   "propmat_clearskyAddFromLookup")),
       "*abs_species* contains legacy continua but *propmat_clearsky_agenda*\n"
@@ -937,7 +939,9 @@ void propmat_clearsky_agenda_checkedCalc(
 
   ARTS_USER_ERROR_IF(
       needs_cia and
-          not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
+          not(propmat_clearsky_agenda.has_method(
+                  "propmat_clearskyAddXsecAgenda") or
+              propmat_clearsky_agenda.has_method("propmat_clearskyAddCIA") or
               propmat_clearsky_agenda.has_method(
                   "propmat_clearskyAddFromLookup")),
       "*abs_species* contains CIA models but *propmat_clearsky_agenda*\n"
