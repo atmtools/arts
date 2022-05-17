@@ -579,45 +579,6 @@ arts_test_cmdline("version" -v)
 arts_test_cmdline("workspacevariables" -w all)
 arts_test_cmdline("check-docs" -C)
 
-########### ARTS Interface ###############
-
-########################################################################################
-# ARTS Library for including in C++ (must link to autoarts.h to get file)
-add_library (public_arts_interface INTERFACE)
-target_link_libraries(public_arts_interface INTERFACE ${ALL_ARTS_LIBRARIES})
-target_include_directories(public_arts_interface INTERFACE ${ARTS_BINARY_DIR}
-                                                           ${ARTS_BINARY_DIR}/src/
-                                                           ${ARTS_SOURCE_DIR}/src/
-                                                           ${ARTS_SOURCE_DIR}/3rdparty/
-                                                           ${ARTS_SOURCE_DIR}/3rdparty/invlib/src)
-add_dependencies(public_arts_interface make_autoarts_h_target)
-########################################################################################
-
-########################################################################################
-# Generate the internal structure for the ARTS C++ interface
-add_executable(make_autoarts_h make_autoarts_h.cc)
-if (ENABLE_PCH)
-  target_precompile_headers(make_autoarts_h PRIVATE pch_matpack.h)
-endif()
-target_link_libraries(make_autoarts_h PUBLIC ${ALL_ARTS_LIBRARIES})
-########################################################################################
-
-########################################################################################
-# Generate autoarts.h for the ARTS interface
-add_custom_command(OUTPUT autoarts.h
-                   COMMAND make_autoarts_h > ${ARTS_BINARY_DIR}/src/autoarts.h
-                   DEPENDS make_autoarts_h)
-add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts.h)
-########################################################################################
-
-########################################################################################
-# Test that the autoarts.h linking can be understood by running a simple test
-add_executable(test_cpp_api test_cpp_api.cc)
-target_link_libraries(test_cpp_api public_arts_interface)
-add_dependencies(check-deps test_cpp_api)
-add_test(NAME "arts.cpp_api.fast.silly_groundbased_water_test" COMMAND test_cpp_api)
-########################################################################################
-
 # Build a test for the plotting tool
 if (ENABLE_GUI)
   add_executable(test_gui test_gui.cc)
