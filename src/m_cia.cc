@@ -254,6 +254,7 @@ void propmat_clearskyAddCIA(  // WS Output:
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
     const Numeric& rtp_pressure,
@@ -262,8 +263,7 @@ void propmat_clearskyAddCIA(  // WS Output:
     const ArrayOfCIARecord& abs_cia_data,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
-    const Index& robust,
-    const ArrayOfSpeciesTag& select_speciestags,
+    const Index& ignore_errors,
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUTS;
@@ -339,8 +339,8 @@ void propmat_clearskyAddCIA(  // WS Output:
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
   for (Index ispecies = 0; ispecies < ns; ispecies++) {
-    if (select_speciestags.nelem() and
-        select_speciestags not_eq abs_species[ispecies])
+    if (select_abs_species.nelem() and
+        select_abs_species not_eq abs_species[ispecies])
       continue;
 
     // Skip it if there are no species or there is Zeeman requested
@@ -397,7 +397,7 @@ void propmat_clearskyAddCIA(  // WS Output:
                          rtp_temperature,
                          this_species.cia_dataset_index,
                          T_extrapolfac,
-                         robust,
+                         ignore_errors,
                          verbosity);
         if (do_wind_jac) {
           this_cia.Extract(dxsec_temp_dF,
@@ -405,7 +405,7 @@ void propmat_clearskyAddCIA(  // WS Output:
                            rtp_temperature,
                            this_species.cia_dataset_index,
                            T_extrapolfac,
-                           robust,
+                           ignore_errors,
                            verbosity);
         }
         if (do_temp_jac) {
@@ -414,7 +414,7 @@ void propmat_clearskyAddCIA(  // WS Output:
                            rtp_temperature + dt,
                            this_species.cia_dataset_index,
                            T_extrapolfac,
-                           robust,
+                           ignore_errors,
                            verbosity);
         }
       } catch (const std::runtime_error& e) {

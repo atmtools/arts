@@ -1414,6 +1414,7 @@ void propmat_clearskyAddConts(  // Workspace reference:
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
     const Numeric& rtp_pressure,
@@ -1422,7 +1423,6 @@ void propmat_clearskyAddConts(  // Workspace reference:
     const ArrayOfString& abs_cont_names,
     const ArrayOfVector& abs_cont_parameters,
     const ArrayOfString& abs_cont_models,
-    const ArrayOfSpeciesTag& select_speciestags,
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUT3;
@@ -1507,8 +1507,8 @@ void propmat_clearskyAddConts(  // Workspace reference:
 
   // Loop tag groups:
   for (Index ispecies = 0; ispecies < ns; ispecies++) {
-    if (select_speciestags.nelem() and
-        select_speciestags not_eq abs_species[ispecies])
+    if (select_abs_species.nelem() and
+        select_abs_species not_eq abs_species[ispecies])
       continue;
 
     // Skip it if there are no species or there is Zeeman requested
@@ -2314,6 +2314,8 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     // WS Generic Input:
+    const Numeric& T_extrapolfac,
+    const Index& ignore_errors,
     const Numeric& force_p,
     const Numeric& force_t,
     const Numeric& sparse_df,
@@ -2380,9 +2382,16 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     agenda.append_nogin_method("propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
   }
 
-  //propmat_clearskyAddXsecAgenda
-  if (any_species.Cia or any_species.PredefinedLegacy) {
-    agenda.append_nogin_method("propmat_clearskyAddXsecAgenda");
+  //propmat_clearskyAddCIA
+  if (any_species.Cia) {
+    const std::array gins{MethodSetDelHelper(ws, "T_extrapolfac", "Numeric", T_extrapolfac),
+                          MethodSetDelHelper(ws, "ignore_errors", "Index", ignore_errors)};
+    agenda.append_gin_method("propmat_clearskyAddHitranXsec", gins);
+  }
+
+  //propmat_clearskyAddConts
+  if (any_species.PredefinedLegacy) {
+    agenda.append_nogin_method("propmat_clearskyAddConts");
   }
 
   //propmat_clearskyAddPredefined
