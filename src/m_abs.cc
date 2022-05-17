@@ -1988,16 +1988,16 @@ struct MethodAppender {
 
   template <typename T>
   void append_gin_method(std::string_view method, const T& gins) {
-    ARTS_ASSERT(gins_are_ok(rec, gins), "Something is wrong with the Generic inputs!")
-
     const auto pos = global_data::MdMap.at(method);
     const MdRecord& rec = global_data::md_data.at(pos);
+
+    ARTS_ASSERT(gins_are_ok(rec, gins), "Something is wrong with the Generic inputs!")
+
     auto& out = rec.Out();
     auto in = rec.InOnly();
     for (auto& i: out) full_out.push_back(i);
     for (auto& i: in) full_in.push_back(i);
     
-
     for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
     for (auto& x : gins) in.push_back(x.pos);
     propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
