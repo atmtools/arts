@@ -1,14 +1,5 @@
 Arts2{
   
-  AgendaSet(abs_xsec_agenda) {
-    abs_xsec_per_speciesInit 
-    abs_xsec_per_speciesAddCIA
-  }
-
-#   Can run with abs_xsec_per_speciesAddLines by uncommenting:
-#   abs_lineshapeDefine(abs_lineshape, "Faddeeva_Algorithm_916", "no_norm", -1)
-#   Will fail at first derivatives with somewhat small error
-  
   # Constants (changes here might require changes in perturbations to match)
   isotopologue_ratiosInitFromBuiltin
   abs_speciesSet(species=["H2-CIA-H2-0,H2-CIA-He-0", "He"]) # BUG:  Must have lines (though good for this test)
@@ -54,10 +45,9 @@ Arts2{
   jacobianClose
   
   # Perform calculations for analytical propagation matrix and derivatives
-  abs_xsec_agenda_checkedCalc
   lbl_checkedCalc
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddCIA
   propmat_clearskyAddLines
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat.xml")
 #   WriteXML("ascii", dpropmat_clearsky_dx, "tests/dpropmat.xml")
