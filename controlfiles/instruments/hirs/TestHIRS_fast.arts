@@ -203,6 +203,7 @@ abs_lookupSetupBatch
 # Create the lookup table
 abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
+propmat_clearsky_agendaSetAutomatic
 abs_lookupCalc
 
 #WriteXML( "binary", abs_lookup )

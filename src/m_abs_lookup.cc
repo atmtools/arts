@@ -24,6 +24,7 @@
 */
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <map>
 
@@ -2127,7 +2128,7 @@ We do not yet support select_abs_species for lookup table calculations
                 (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
           } else if (deriv == abs_species[isp]) {
             // WARNING:  If CIA in list, this scales wrong by factor 2
-            dpropmat_clearsky_dx[iq].Kjj()[iv] += abs_scalar_gas(isp, iv);
+              dpropmat_clearsky_dx[iq].Kjj()[iv] += (std::isnormal(a_vmr_list[isp])) ? abs_scalar_gas(isp, iv) / a_vmr_list[isp] : 0;
           }
         }
       }
