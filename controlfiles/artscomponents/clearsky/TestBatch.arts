@@ -123,12 +123,13 @@ abs_lookupSetupBatch
 abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
+propmat_clearsky_agendaSetAutomatic
 abs_lookupCalc
 
 abs_lookupAdapt
 
 # absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+propmat_clearsky_agendaSetAutomaticForLookup
 
 # no scattering
 cloudboxOff

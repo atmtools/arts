@@ -398,6 +398,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
             ArrayOfStokesVector dS;
             Vector rtp_vmr = these_all_vmrs(joker, p);
             for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
+
             // Perform the propagation matrix computations
             propmat_clearsky_agendaExecute(ws,
                                            K,
@@ -414,7 +415,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
                                            {},
                                            rtp_vmr,
                                            l_propmat_clearsky_agenda);
-            K.Kjj() /= rtp_vmr[i] * number_density(abs_p[p], abs_t[p]);
+            K.Kjj() /= rtp_vmr[i] * number_density(abs_p[p], this_t[p]);
             abs_lookup.xsec(j, spec, Range(joker), p) = K.Kjj();
 
             // There used to be a division by the number density

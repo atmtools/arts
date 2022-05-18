@@ -1665,7 +1665,7 @@ void propmat_clearskyAddConts(  // Workspace reference:
                     rtp_vmr[ispecies];
               } else if (deriv == abs_species[ispecies]) {
                 dpropmat_clearsky_dx[iq].Kjj()[iv] +=
-                    normal[iv] * nd * rtp_vmr[ispecies];
+                    normal[iv] * nd;
               }
             }
           }
@@ -2222,16 +2222,11 @@ struct MethodSetDelHelper {
   template <typename T>
   MethodSetDelHelper(Workspace& ws, String n, String t, T val)
       : name(std::move(n)), type(std::move(t)) {
-    if (auto ptr = ws.WsvMap.find(
-            "::propmat_clearsky_agendaSetAutomatic::autogen::" + name);
-        ptr == ws.WsvMap.end()) {
-      pos = ws.add_wsv_inplace(WsvRecord(
-          ("::propmat_clearsky_agendaSetAutomatic::autogen::" + name).c_str(),
-          "Added automatically",
-          type));
-    } else {
-      pos = ptr->second;
-    }
+    auto k = "::propmat_clearsky_agendaSetAutomatic::autogen::" + name;
+    auto ptr = ws.WsvMap.find(k);
+    pos = ptr == ws.WsvMap.end() ? ws.add_wsv_inplace(WsvRecord(
+                                       k.c_str(), "Added automatically", type))
+                                 : ptr->second;
 
     set = MRecord(
         global_data::MdMap.at(type + "Set"), {pos}, {}, std::move(val), {});
@@ -2257,6 +2252,7 @@ struct MethodAppender {
   ArrayOfIndex full_out{};
   ArrayOfIndex full_in{};
   MethodAppender(Agenda& agenda) : propmat_clearsky_agenda(agenda) {}
+  
   void append_nogin_method(std::string_view method) {
     const auto pos = global_data::MdMap.at(method);
     const MdRecord& rec = global_data::md_data.at(pos);
