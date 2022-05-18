@@ -87,7 +87,7 @@ pybind11_add_module(pyarts_cpp
     py_agenda.cpp
     py_workspace.cpp
     py_global.cpp
-    py_xsec.cpp
+    py_xsec_fit.cpp
     py_nlte.cpp
     py_constants.cpp
 

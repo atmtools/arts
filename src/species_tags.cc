@@ -141,8 +141,8 @@ Tag::Tag(String def) : type(TagType::Plain) {
       }
     }
 
-    if ("HXSEC" == isoname) {
-      type = TagType::HitranXsec;
+    if ("XFIT" == isoname) {
+      type = TagType::XsecFit;
       // Hitran Xsec flag was present, now extract the isotopologue name:
       n = def.find('-');  // find the '-'
       if (n != def.npos) {
@@ -168,8 +168,8 @@ Tag::Tag(String def) : type(TagType::Plain) {
       // the user wants all isotopologues and no frequency limits.
       return;
     }
-    if ("HXSEC" == isoname) {
-      type = TagType::HitranXsec;
+    if ("XFIT" == isoname) {
+      type = TagType::XsecFit;
       // This means that there is nothing else to parse. Apparently
       // the user wants all isotopologues and no frequency limits.
       return;
@@ -333,8 +333,8 @@ String Tag::Name() const {
     os << toShortName(Isotopologue().spec);
   }
   // Hitran Xsec flag.
-  else if (type == TagType::HitranXsec) {
-    os << "HXSEC";
+  else if (type == TagType::XsecFit) {
+    os << "XFIT";
   } else {
     // Zeeman flag.
     if (type == TagType::Zeeman) os << "Z-";
@@ -482,7 +482,7 @@ void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
         has_particles = true;
       }
 
-      if (abs_species[i][s].Type() == Species::TagType::HitranXsec) {
+      if (abs_species[i][s].Type() == Species::TagType::XsecFit) {
         has_hitran_xsec = true;
       }
     }
@@ -565,8 +565,8 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_s
         case Species::TagType::Particles:
           Particles = true;
           break;
-        case Species::TagType::HitranXsec:
-          HitranXsec = true;
+        case Species::TagType::XsecFit:
+          XsecFit = true;
           break;
         case Species::TagType::NoLines:
           NoLines = true;
@@ -605,8 +605,8 @@ std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
     case Species::TagType::Particles:
       os << "    Particles:        " << val.Particles << '\n';
       [[fallthrough]];
-    case Species::TagType::HitranXsec:
-      os << "    HitranXsec:       " << val.HitranXsec << '\n';
+    case Species::TagType::XsecFit:
+      os << "    XsecFit:       " << val.XsecFit << '\n';
       [[fallthrough]];
     case Species::TagType::NoLines:
       os << "    NoLines:          " << val.NoLines;

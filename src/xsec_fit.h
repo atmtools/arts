@@ -16,7 +16,7 @@
    USA. */
 
 /*!
-  \file   hitran_xsec.h
+  \file   xsec_fit.h
   \author Oliver Lemke <oliver.lemke@uni-hamburg.de>
   \date   2018-01-08
 

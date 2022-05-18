@@ -128,7 +128,7 @@ arts_test_run_ctlfile(fast artscomponents/dobatch/TestDOBatch.arts)
 
 arts_test_run_ctlfile(slow artscomponents/heatingrates/TestSpectralRadianceField.arts)
 
-arts_test_run_ctlfile(fast artscomponents/hitran-xsec/TestHitranXsec.arts)
+arts_test_run_ctlfile(fast artscomponents/xsec-fit/TestXsecFit.arts)
 
 if (ENABLE_RT4)
   arts_test_run_ctlfile(fast artscomponents/scatsolvercomp/TestScatSolvers_fast.arts)

@@ -1749,7 +1749,7 @@ void Workspace::define_wsv_data() {
       GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("hitran_xsec_data"),
+      NAME("xsec_fit_data"),
       DESCRIPTION(
           "Fitting model coefficients for cross section species.\n"
           "\n"

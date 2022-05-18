@@ -2097,11 +2097,11 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     agenda.append_gin_method("propmat_clearskyAddZeeman", gins);
   }
 
-  //propmat_clearskyAddHitranXsec
-  if (any_species.HitranXsec) {
+  //propmat_clearskyAddXsecFit
+  if (any_species.XsecFit) {
     const std::array gins{MethodSetDelHelper(ws, "force_p", "Numeric", force_p),
                           MethodSetDelHelper(ws, "force_t", "Numeric", force_t)};
-    agenda.append_gin_method("propmat_clearskyAddHitranXsec", gins);
+    agenda.append_gin_method("propmat_clearskyAddXsecFit", gins);
   }
 
   //propmat_clearskyAddOnTheFlyLineMixing

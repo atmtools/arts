@@ -16,14 +16,14 @@
    USA. */
 
 /*!
-  \file   hitran_xsec.h
+  \file   xsec_fit.h
   \author Oliver Lemke <oliver.lemke@uni-hamburg.de>
   \date   2018-01-08
 
   \brief  Methods and classes for HITRAN absorption cross section data.
 */
 
-#include "hitran_xsec.h"
+#include "xsec_fit.h"
 
 #include <algorithm>
 #include <numeric>
@@ -216,12 +216,12 @@ void XsecRecord::RemoveNegativeXsec(VectorView& xsec) const {
   }
 }
 
-/** Get the index in hitran_xsec_data for the given species.
+/** Get the index in xsec_fit_data for the given species.
 
- \param[in] hitran_xsec_data Hitran Xsec data array
+ \param[in] xsec_fit_data Hitran Xsec data array
  \param[in] species Species name
 
- \returns Index of this species in hitran_xsec_data. -1 if not found.
+ \returns Index of this species in xsec_fit_data. -1 if not found.
  */
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
                             const Species::Species species) {

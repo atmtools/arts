@@ -2398,8 +2398,8 @@ void define_md_data_raw() {
           "species = [ \"N2-CIA-N2-0, N2-CIA-N2-1\" ]\n"
           "\n"
           "For Hitran cross section species the tag consists of the species and\n"
-          "the tagtype HXSEC, e.g. CFC11-HXSEC. The data for the species must be\n"
-          "available in the *hitran_xsec_data* variable."
+          "the tagtype XFIT, e.g. CFC11-XFIT. The data for the species must be\n"
+          "available in the *xsec_fit_data* variable."
           "\n"
           "*abs_xsec_agenda_checked* and *propmat_clearsky_agenda_checked*\n"
           "are set to be false.\n"),
@@ -12920,14 +12920,14 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddHitranXsec"),
+      NAME("abs_xsec_per_speciesAddXsecFit"),
       DESCRIPTION(
-          "This method will be removed soon, use *propmat_clearskyAddHitranXsec*\n"
+          "This method will be removed soon, use *propmat_clearskyAddXsecFit*\n"
           "instead if possible.\n"
           "\n"
           "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
           "\n"
-          "This broadens the cross section data from *hitran_xsec_data* and\n"
+          "This broadens the cross section data from *xsec_fit_data* and\n"
           "interpolates it onto the current f_grid.\n"
           "\n"
           "Model data needs to be read in with *ReadXsecData* before calling\n"
@@ -12945,7 +12945,7 @@ void define_md_data_raw() {
          "f_grid",
          "abs_p",
          "abs_t",
-         "hitran_xsec_data"),
+         "xsec_fit_data"),
       GIN("force_p",
           "force_t"),
       GIN_TYPE("Numeric", "Numeric"),
@@ -12954,11 +12954,11 @@ void define_md_data_raw() {
                "Positive value forces constant temperature [K].")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("propmat_clearskyAddHitranXsec"),
+      NAME("propmat_clearskyAddXsecFit"),
       DESCRIPTION(
           "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
           "\n"
-          "This broadens the cross section data from *hitran_xsec_data* and\n"
+          "This broadens the cross section data from *xsec_fit_data* and\n"
           "interpolates it onto the current f_grid.\n"
           "\n"
           "Model data needs to be read in with *ReadXsecData* before calling\n"
@@ -12976,7 +12976,7 @@ void define_md_data_raw() {
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr",
-         "hitran_xsec_data"),
+         "xsec_fit_data"),
       GIN("force_p",
           "force_t"),
       GIN_TYPE("Numeric", "Numeric"),
@@ -14924,7 +14924,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
                   "Reads coefficient files for HITRAN Xsec species defined\n"
                   "in *abs_species*.\n"),
       AUTHORS("Oliver Lemke"),
-      OUT("hitran_xsec_data"),
+      OUT("xsec_fit_data"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -21943,7 +21943,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
   const ArrayOfString targets = {"propmat_clearskyInit",
                                  "propmat_clearskyAddLines",
                                  "propmat_clearskyAddZeeman",
-                                 "propmat_clearskyAddHitranXsec",
+                                 "propmat_clearskyAddXsecFit",
                                  "propmat_clearskyAddOnTheFlyLineMixing",
                                  "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
                                  "propmat_clearskyAddXsecAgenda",

@@ -27,7 +27,7 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore(rtp_nlte)
   Ignore(select_abs_species)
   propmat_clearskyInit
-  propmat_clearskyAddHitranXsec
+  propmat_clearskyAddXsecFit
 }
 
 # sensor-only path
@@ -60,7 +60,7 @@ VectorNLogSpace( p_grid, 20, 1000e2, 1 )
 
 # Definition of species
 # ---
-abs_speciesSet(species=["CFC11-HXSEC"])
+abs_speciesSet(species=["CFC11-XFIT"])
 
 ReadXsecData(basename="Xsec-coeffs")
 

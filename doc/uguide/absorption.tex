@@ -245,7 +245,7 @@ those for empirical cross section model, and a special Zeeman effect tag.
 An example of the first kind is \verb|"H2O-18"|, which identifies a
 particular isotopologue of water vapor. An example of the second kind is
 \verb|"H2O-ForeignContCKDMT100"|, which identifies a particular continuum
-model. An example of the third is \verb|"CFC11-HXSEC"|, which identifies the
+model. An example of the third is \verb|"CFC11-XFIT"|, which identifies the
 empirical absorption cross section model of CFC11.
 An example of the fourth is \verb|"O2-Z"|, which identifies that special Zeeman
 routines should be used.
@@ -652,9 +652,9 @@ specifically:
 
 \subsection{Absorption cross section model}
 
-The empirical absorption cross sections are calculated in the method \wsmindex{propmat\_clearskyAddHitranXsec}.
+The empirical absorption cross sections are calculated in the method \wsmindex{propmat\_clearskyAddXsecFit}.
 If this method is included in the \builtindoc{propmat\_clearsky\_agenda}, then species with the
-tag "\verb|-HXSEC|" will be calculated as empirical cross section model species. 
+tag "\verb|-XFIT|" will be calculated as empirical cross section model species. 
 The absorption cross section model is based on HITRAN cross-section data, which are described in detail in 
 \cite{gordon17:_hitran2016_jqsrt}. For the details on the empirical cross section model, see \theory, 
 Section \ref{T-sec:abs_theory:Absorption_cross_section_model}. 

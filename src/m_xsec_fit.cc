@@ -27,14 +27,14 @@
 
 #include "arts.h"
 #include "global_data.h"
-#include "hitran_xsec.h"
+#include "xsec_fit.h"
 #include "jacobian.h"
 #include "m_xml.h"
 #include "messages.h"
 #include "physics_funcs.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
+void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
                   const String& basename,
                   const Verbosity& verbosity) {
@@ -42,7 +42,7 @@ void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
   std::set<Species::Species> unique_species;
   for (auto& asp : abs_species) {
     for (auto& sp : asp) {
-      if (sp.Type() == Species::TagType::HitranXsec) {
+      if (sp.Type() == Species::TagType::XsecFit) {
         unique_species.insert(sp.Spec());
       }
     }
@@ -53,8 +53,8 @@ void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
     tmpbasename += '.';
   }
 
-  // Read xsec data for all active species and collect them in hitran_xsec_data
-  hitran_xsec_data.clear();
+  // Read xsec data for all active species and collect them in xsec_fit_data
+  xsec_fit_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
     const String filename{tmpbasename +
@@ -63,7 +63,7 @@ void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
     try {
       ReadXML(xsec_coeffs, "", filename, "", verbosity);
 
-      hitran_xsec_data.push_back(xsec_coeffs);
+      xsec_fit_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {
       ARTS_USER_ERROR(
           "Error reading coefficients file:\n", filename, "\n", e.what());
@@ -72,7 +72,7 @@ void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddHitranXsec(  // WS Output:
+void propmat_clearskyAddXsecFit(  // WS Output:
     PropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     // WS Input:
@@ -82,7 +82,7 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
     const Vector& rtp_vmr,
-    const ArrayOfXsecRecord& hitran_xsec_data,
+    const ArrayOfXsecRecord& xsec_fit_data,
     const Numeric& force_p,
     const Numeric& force_t,
     // Verbosity object:
@@ -153,15 +153,15 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a HITRAN cross section tag
-      if (this_species.Type() != Species::TagType::HitranXsec) continue;
+      if (this_species.Type() != Species::TagType::XsecFit) continue;
 
       Index this_xdata_index =
-          hitran_xsec_get_index(hitran_xsec_data, this_species.Spec());
+          hitran_xsec_get_index(xsec_fit_data, this_species.Spec());
       ARTS_USER_ERROR_IF(this_xdata_index < 0,
                          "Cross-section species ",
                          this_species.Name(),
-                         " not found in *hitran_xsec_data*.")
-      const XsecRecord& this_xdata = hitran_xsec_data[this_xdata_index];
+                         " not found in *xsec_fit_data*.")
+      const XsecRecord& this_xdata = xsec_fit_data[this_xdata_index];
       // ArrayOfMatrix& this_dxsec = do_jac ? dpropmat_clearsky_dx[i] : empty;
 
       if (do_abort) continue;
@@ -216,7 +216,7 @@ void propmat_clearskyAddHitranXsec(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
+void abs_xsec_per_speciesAddXsecFit(  // WS Output:
     ArrayOfMatrix& abs_xsec_per_species,
     ArrayOfArrayOfMatrix& /* dabs_xsec_per_species_dx */,
     // WS Input:
@@ -226,7 +226,7 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
     const Vector& f_grid,
     const Vector& abs_p,
     const Vector& abs_t,
-    const ArrayOfXsecRecord& hitran_xsec_data,
+    const ArrayOfXsecRecord& xsec_fit_data,
     const Numeric& force_p,
     const Numeric& force_t,
     // Verbosity object:
@@ -286,15 +286,15 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a HITRAN cross section tag
-      if (this_species.Type() != Species::TagType::HitranXsec) continue;
+      if (this_species.Type() != Species::TagType::XsecFit) continue;
 
       Index this_xdata_index =
-          hitran_xsec_get_index(hitran_xsec_data, this_species.Spec());
+          hitran_xsec_get_index(xsec_fit_data, this_species.Spec());
       ARTS_USER_ERROR_IF(this_xdata_index < 0,
                          "Cross-section species ",
                          this_species.Name(),
-                         " not found in *hitran_xsec_data*.")
-      const XsecRecord& this_xdata = hitran_xsec_data[this_xdata_index];
+                         " not found in *xsec_fit_data*.")
+      const XsecRecord& this_xdata = xsec_fit_data[this_xdata_index];
       Matrix& this_xsec = abs_xsec_per_species[i];
 
       // Loop over pressure:
@@ -318,7 +318,7 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
              << this_species.Name() << " at pressure level " << ip << " ("
              << abs_p[ip] / 100. << " hPa):\n"
              << e.what() << "\n";
-#pragma omp critical(abs_xsec_per_speciesAddHitranXsec)
+#pragma omp critical(abs_xsec_per_speciesAddXsecFit)
           {
             do_abort = true;
             fail_msg.push_back(os.str());
