@@ -1009,12 +1009,29 @@ void propmat_clearskyAddFaraday(
     const Vector& rtp_los,
     const Vector& rtp_mag,
     const Verbosity&) {
+  Index ife = -1;
+  for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
+    if (abs_species[sp].FreeElectrons()) {
+      ife = sp;
+    }
+  }
+
+  ARTS_USER_ERROR_IF(ife < 0,
+                     "Free electrons not found in *abs_species* and "
+                     "Faraday rotation can not be calculated.");
+
+  // Allow early exit for lookup table calculations
+  if (select_abs_species.nelem() and select_abs_species not_eq abs_species[ife]) return;
+
   // All the physical constants joined into one static constant:
   // (abs as e defined as negative)
   static const Numeric FRconst =
       abs(ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE /
           (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * ELECTRON_MASS *
            ELECTRON_MASS));
+
+  const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
+  const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
 
   ARTS_USER_ERROR_IF(
       stokes_dim < 3,
@@ -1029,22 +1046,6 @@ void propmat_clearskyAddFaraday(
       "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
       "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
       "but it is not.\n")
-
-  const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
-  const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
-
-  Index ife = -1;
-  for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
-    if (abs_species[sp].FreeElectrons()) {
-      ife = sp;
-    }
-  }
-
-  ARTS_USER_ERROR_IF(ife < 0,
-                     "Free electrons not found in *abs_species* and "
-                     "Faraday rotation can not be calculated.");
-
-  if (select_abs_species.nelem() and select_abs_species not_eq abs_species[ife]) return;
 
   const Numeric ne = rtp_vmr[ife];
 
@@ -2502,13 +2503,6 @@ void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
     agenda.append_gin_method("propmat_clearskyAddZeeman", gins);
   }
 
-  //propmat_clearskyAddOnTheFlyLineMixing
-  if (any_species.Plain and
-      (any_lines.population.ByMakarovFullRelmat or
-       any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.append_nogin_method("propmat_clearskyAddOnTheFlyLineMixing");
-  }
-
   //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
   if (any_species.Zeeman and
       (any_lines.population.ByMakarovFullRelmat or
@@ -2527,12 +2521,6 @@ void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
   //propmat_clearskyAddFaraday
   if (any_species.FreeElectrons) {
     agenda.append_nogin_method("propmat_clearskyAddFaraday");
-  }
-
-  // propmat_clearskyAddHitranLineMixingLines
-  if (any_species.Plain and (any_lines.population.ByHITRANFullRelmat or
-                             any_lines.population.ByHITRANRosenkranzRelmat)) {
-    agenda.append_nogin_method("propmat_clearskyAddHitranLineMixingLines");
   }
 
   // Ignore and touch all unused input and ouptut of the agenda

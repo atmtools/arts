@@ -22022,8 +22022,7 @@ This method introspects the input and uses it for generating the
         "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
         "propmat_clearskyAddParticles",
         "propmat_clearskyAddFaraday",
-        "propmat_clearskyAddFromLookup",
-        "propmat_clearskyAddHitranLineMixingLines"};
+        "propmat_clearskyAddFromLookup"};
     Index i = 0;
     for (auto& m : md_data_raw) {
       if (std::find(targets.cbegin(), targets.cend(), m.Name()) not_eq
