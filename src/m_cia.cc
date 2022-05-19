@@ -442,7 +442,8 @@ void propmat_clearskyAddCIA(  // WS Output:
 
             if (is_wind_parameter(deriv)) {
               dpropmat_clearsky_dx[iq].Kjj()[iv] +=
-                  nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
+                  nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
+                  rtp_vmr[ispecies];
             } else if (deriv == Jacobian::Atm::Temperature) {
               dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                   ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +

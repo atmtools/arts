@@ -1657,7 +1657,7 @@ void propmat_clearskyAddConts(  // Workspace reference:
 
               if (is_wind_parameter(deriv)) {
                 dpropmat_clearsky_dx[iq].Kjj()[iv] +=
-                    (jacs_df[iv] - normal[iv]) / df;
+                    (jacs_df[iv] - normal[iv]) / df * nd * rtp_vmr[ispecies];
               } else if (deriv == Jacobian::Atm::Temperature) {
                 dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                     ((jacs_dt[iv] - normal[iv]) / dt * nd +
