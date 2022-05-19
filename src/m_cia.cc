@@ -453,11 +453,17 @@ void propmat_clearskyAddCIA(  // WS Output:
                   rtp_vmr[ispecies];
             } else if (deriv == abs_species[ispecies]) {
               dpropmat_clearsky_dx[iq].Kjj()[iv] +=
-                  nd_sec * xsec_temp[iv] * nd * rtp_vmr[ispecies];
-            } else if (species_match(deriv, this_species.cia_2nd_species)) {
-              // FIXME OLE: Is this correct?
+                  nd_sec * xsec_temp[iv] * nd;
+            } else if (species_match(deriv, this_species.Spec())) {
               dpropmat_clearsky_dx[iq].Kjj()[iv] +=
-                  nd_sec * xsec_temp[iv] * nd * rtp_vmr[ispecies];
+                  nd * nd_sec * xsec_temp[iv] *
+                  (this_species.cia_2nd_species == this_species.Spec() ? 2.0
+                                                                       : 1.0);
+            } else if (species_match(deriv, this_species.cia_2nd_species)) {
+              dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+                  nd * nd * xsec_temp[iv] * rtp_vmr[ispecies] *
+                  (this_species.cia_2nd_species == this_species.Spec() ? 2.0
+                                                                       : 1.0);
             }
           }
         }
