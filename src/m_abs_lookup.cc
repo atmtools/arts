@@ -401,7 +401,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
             for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
 
             // Perform the propagation matrix computations
-            propmat_clearsky_agendaExecute(ws,
+            propmat_clearsky_agendaExecute(l_ws,
                                            K,
                                            S,
                                            dK,
