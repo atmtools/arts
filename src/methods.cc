@@ -36,6 +36,7 @@
 #include "wsv_aux.h"
 #include <algorithm>
 #include <array>
+#include <string>
 
 namespace global_data {
 Array<MdRecord> md_data_raw;
@@ -21962,14 +21963,15 @@ where N>=0 and the species name is something line "H2O".
         "propmat_clearskyAddConts",
         "propmat_clearskyAddLines",
         "propmat_clearskyAddZeeman",
+        "propmat_clearskyAddFaraday",
         "propmat_clearskyAddXsecFit",
-        "propmat_clearskyAddOnTheFlyLineMixing",
-        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
+        "propmat_clearskyAddParticles",
         "propmat_clearskyAddXsecAgenda",
         "propmat_clearskyAddPredefined",
-        "propmat_clearskyAddParticles",
-        "propmat_clearskyAddFaraday",
-        "propmat_clearskyAddHitranLineMixingLines"};
+        "propmat_clearskyAddOnTheFlyLineMixing",
+        "propmat_clearskyAddHitranLineMixingLines",
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
+        };
     Index i = 0;
     for (auto& m : md_data_raw) {
       if (std::find(targets.cbegin(), targets.cend(), m.Name()) not_eq
@@ -21984,14 +21986,21 @@ where N>=0 and the species name is something line "H2O".
       }
     }
     if (i not_eq targets.nelem()) throw std::logic_error("Lacking functions");
-
-    md_data_raw.push_back(
-        MdRecord("propmat_clearsky_agendaSetAutomatic",
-                 R"--(Sets the *propmat_clearsky_agenda* automatically
+    String doc{R"--(Sets the *propmat_clearsky_agenda* automatically
 
 This method introspects the input and uses it for generating the
 *propmat_clearsky_agenda* automatically
-)--",
+
+The following methods are considered for addition:
+)--"};
+    Index count=1;
+    for (auto& m: targets) {
+        doc += "    " + std::to_string(count++) + ") *" + m + "*\n";
+    }
+
+    md_data_raw.push_back(
+        MdRecord("propmat_clearsky_agendaSetAutomatic",
+                 doc.c_str(),
                  {"Richard Larsson"},
                  {"propmat_clearsky_agenda", "propmat_clearsky_agenda_checked"},
                  {},
@@ -22019,10 +22028,11 @@ This method introspects the input and uses it for generating the
     const ArrayOfString targets = {
         "propmat_clearskyInit",
         "propmat_clearskyAddZeeman",
-        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
-        "propmat_clearskyAddParticles",
         "propmat_clearskyAddFaraday",
-        "propmat_clearskyAddFromLookup"};
+        "propmat_clearskyAddParticles",
+        "propmat_clearskyAddFromLookup",
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
+        };
     Index i = 0;
     for (auto& m : md_data_raw) {
       if (std::find(targets.cbegin(), targets.cend(), m.Name()) not_eq
@@ -22037,10 +22047,7 @@ This method introspects the input and uses it for generating the
       }
     }
     if (i not_eq targets.nelem()) throw std::logic_error("Lacking functions");
-
-    md_data_raw.push_back(
-        MdRecord("propmat_clearsky_agendaSetAutomaticForLookup",
-                 R"--(See *propmat_clearsky_agendaSetAutomatic*
+    String doc{R"--(See *propmat_clearsky_agendaSetAutomatic*
 
 This method does not set any calculations that could be computed with the
 lookup table
@@ -22050,7 +22057,17 @@ The intended order of use is:
     2) *abs_lookupCalc*
     3) *propmat_clearsky_agendaSetAutomaticForLookup*
     4) Perform other calculations
-)--",
+
+The following methods are considered for addition:
+)--"};
+    Index count=1;
+    for (auto& m: targets) {
+        doc += "    " + std::to_string(count++) + ") *" + m + "*\n";
+    }
+
+    md_data_raw.push_back(
+        MdRecord("propmat_clearsky_agendaSetAutomaticForLookup",
+                 doc.c_str(),
                  {"Richard Larsson"},
                  {"propmat_clearsky_agenda", "propmat_clearsky_agenda_checked"},
                  {},
