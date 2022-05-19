@@ -71,7 +71,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
           break;
         case Species::TagType::Particles:
           break;
-        case Species::TagType::HitranXsec:
+        case Species::TagType::XsecFit:
           // needs_hxsec = true;
           break;
         default:
@@ -909,7 +909,7 @@ void propmat_clearsky_agenda_checkedCalc(
         case Species::TagType::Particles:
           needs_particles = true;
           break;
-        case Species::TagType::HitranXsec:
+        case Species::TagType::XsecFit:
           needs_hxsec = true;
           break;
         default:
@@ -946,7 +946,7 @@ void propmat_clearsky_agenda_checkedCalc(
   ARTS_USER_ERROR_IF(
       needs_hxsec and
           not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
-              propmat_clearsky_agenda.has_method("propmat_clearskyAddHitranXsec") or
+              propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecFit") or
               propmat_clearsky_agenda.has_method(
                   "propmat_clearskyAddFromLookup")),
       "*abs_species* contains Hitran XSEC models but *propmat_clearsky_agenda*\n"

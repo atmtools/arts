@@ -18,7 +18,7 @@ ENUMCLASS(TagType, unsigned char,
     Cia,
     FreeElectrons,
     Particles,
-    HitranXsec,
+    XsecFit,
     NoLines)
 struct Tag {
   //! Molecular species index in Species::Isotopologues
@@ -177,7 +177,7 @@ struct SpeciesTagTypeStatus {
     Cia{false},
     FreeElectrons{false},
     Particles{false},
-    HitranXsec{false},
+    XsecFit{false},
     NoLines{false};
   SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species);
   friend std::ostream& operator<<(std::ostream&, SpeciesTagTypeStatus);

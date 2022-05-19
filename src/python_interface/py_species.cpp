@@ -29,7 +29,7 @@ void internal_species(py::module_& m) {
       .def_readwrite("Cia", &SpeciesTagTypeStatus::Cia)
       .def_readwrite("FreeElectrons", &SpeciesTagTypeStatus::FreeElectrons)
       .def_readwrite("Particles", &SpeciesTagTypeStatus::Particles)
-      .def_readwrite("HitranXsec", &SpeciesTagTypeStatus::HitranXsec)
+      .def_readwrite("XsecFit", &SpeciesTagTypeStatus::XsecFit)
       .def_readwrite("NoLines", &SpeciesTagTypeStatus::NoLines)
       .PythonInterfaceBasicRepresentation(SpeciesTagTypeStatus);
 }

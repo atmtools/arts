@@ -190,7 +190,7 @@ add_library (artscore STATIC
   geodetic.cc
   gridded_fields.cc
   hitran_species.cc
-  hitran_xsec.cc
+  xsec_fit.cc
   igrf13.cc
   interpolation.cc
   interpolation_lagrange.cc
@@ -222,7 +222,7 @@ add_library (artscore STATIC
   m_predefined_absorption_models.cc
   m_general.cc
   m_geodetic.cc
-  m_hitran_xsec.cc
+  m_xsec_fit.cc
   m_jacobian.cc
   m_linemixing.cc
   m_microphysics.cc

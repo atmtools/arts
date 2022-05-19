@@ -25,7 +25,7 @@ int main() {
 #include "covariance_matrix.h"
 #include "energylevelmap.h"
 #include "gas_abs_lookup.h"
-#include "hitran_xsec.h"
+#include "xsec_fit.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
 #include "matpackII.h"

@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 #include "details.h"
-#include "hitran_xsec.h"
+#include "xsec_fit.h"
 #include "py_macros.h"
 #include "species.h"
 
