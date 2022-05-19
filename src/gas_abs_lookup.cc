@@ -511,6 +511,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   \author Stefan Buehler
 */
 void GasAbsLookup::Extract(Matrix& sga,
+                           const ArrayOfSpeciesTag& select_abs_species,
                            const Index& p_interp_order,
                            const Index& t_interp_order,
                            const Index& h2o_interp_order,
@@ -1101,8 +1102,16 @@ void GasAbsLookup::Extract(Matrix& sga,
   // need to multiply with the number density of the species, i.e.,
   // with the total number density n, times the VMR of the
   // species:
-  for (Index si = 0; si < n_species; ++si)
-    sga(si, Range(joker)) *= (n * abs_vmrs[si]);
+  for (Index si = 0; si < n_species; ++si) {
+    if (select_abs_species.nelem()) {
+      if (species[si] == select_abs_species)
+        sga(si, Range(joker)) *= (n * abs_vmrs[si]);
+      else
+        sga(si, Range(joker)) = 0.;
+    } else {
+      sga(si, Range(joker)) *= (n * abs_vmrs[si]);
+    }
+  }
 
   // That's it, we're done!
 }

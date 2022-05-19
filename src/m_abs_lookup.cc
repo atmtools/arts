@@ -2042,10 +2042,6 @@ void propmat_clearskyAddFromLookup(
         "Gas absorption lookup table must be adapted,\n"
         "use method abs_lookupAdapt.");
 
-ARTS_USER_ERROR_IF(select_abs_species.nelem(), R"--(
-We do not yet support select_abs_species for lookup table calculations
-)--")
-
   const bool do_jac = supports_lookup(jacobian_quantities);
   const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
   const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
@@ -2066,6 +2062,7 @@ We do not yet support select_abs_species for lookup table calculations
   // functions that adjust the size of their output argument
   // automatically.
   abs_lookup.Extract(abs_scalar_gas,
+                     select_abs_species,
                      abs_p_interp_order,
                      abs_t_interp_order,
                      abs_nls_interp_order,
@@ -2079,6 +2076,7 @@ We do not yet support select_abs_species for lookup table calculations
     Vector dfreq = f_grid;
     dfreq += df;
     abs_lookup.Extract(dabs_scalar_gas_df,
+                       select_abs_species,
                        abs_p_interp_order,
                        abs_t_interp_order,
                        abs_nls_interp_order,
@@ -2092,6 +2090,7 @@ We do not yet support select_abs_species for lookup table calculations
   if (do_temp_jac) {
     const Numeric dtemp = a_temperature + dt;
     abs_lookup.Extract(dabs_scalar_gas_dt,
+                       select_abs_species,
                        abs_p_interp_order,
                        abs_t_interp_order,
                        abs_nls_interp_order,
@@ -2427,6 +2426,7 @@ Numeric calc_lookup_error(  // Parameters for lookup table:
     // Absorption, dimension [n_species,n_f_grid]:
     // Output variable: sga_tab
     al.Extract(sga_tab,
+               {},
                abs_p_interp_order,
                abs_t_interp_order,
                abs_nls_interp_order,
