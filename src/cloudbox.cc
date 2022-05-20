@@ -169,7 +169,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
             // Verify latitude is too
             if (dim > 1) {
               lat = pnd_field_raw[n].get_numeric_grid(GFIELD3_LAT_GRID)[lat_i];
-              ARTS_USER_ERROR_IF (!((lat > lat_grid[cloudbox_limits[2]]) bitand
+              ARTS_USER_ERROR_IF (!((lat > lat_grid[cloudbox_limits[2]]) and
                     (lat < lat_grid[cloudbox_limits[3]])),
                   "Found non-zero pnd outside cloudbox. "
                   "Cloudbox extends from lat=",
@@ -182,7 +182,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
             // Etc. for longitude
             if (dim > 2) {
               lon = pnd_field_raw[n].get_numeric_grid(GFIELD3_LON_GRID)[lon_i];
-              ARTS_USER_ERROR_IF (!((lon > lon_grid[cloudbox_limits[4]]) bitand
+              ARTS_USER_ERROR_IF (!((lon > lon_grid[cloudbox_limits[4]]) and
                     (lon < lon_grid[cloudbox_limits[5]])),
                   "Found non-zero pnd outside cloudbox. "
                   "Cloudbox extends from lon=",
