@@ -30,6 +30,8 @@
 #ifndef xml_io_base_h
 #define xml_io_base_h
 
+#include <memory>
+
 #include "arts.h"
 #include "xml_io_general_types.h"
 
