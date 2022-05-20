@@ -60,19 +60,17 @@ list (APPEND ALL_ARTS_LIBRARIES Faddeeva)
 
 ########### target to extract version number from ChangeLog ###############
 
-add_custom_target (auto_version_h DEPENDS auto_version.h)
-add_dependencies (auto_version_h UpdateAutoVersion)
+add_custom_target (auto_version_cc DEPENDS UpdateAutoVersion)
 
 add_custom_command (
-  OUTPUT auto_version.h
-  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_h.cmake
+  OUTPUT auto_version.cc
+  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_cc.cmake
   DEPENDS ${ARTS_BINARY_DIR}/auto_version.txt
 )
 
 ########### next target ###############
 
 add_executable (arts main.cc)
-add_dependencies (arts auto_version_h)
 add_dependencies(check-deps arts)
 
 target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
@@ -173,6 +171,7 @@ add_library (artscore STATIC
   arts.cc
   arts_omp.cc
   artstime.cc
+  auto_version.cc
   check_input.cc
   cia.cc
   cloudbox.cc
@@ -300,7 +299,7 @@ add_library (artscore STATIC
   zeemandata.cc
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
-add_dependencies (artscore auto_version_h species)
+add_dependencies (artscore auto_version_cc species)
 if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()

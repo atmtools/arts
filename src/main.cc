@@ -44,7 +44,6 @@
 #include "agenda_record.h"
 #include "arts_omp.h"
 #include "auto_md.h"
-#include "auto_version.h"
 #include "docserver.h"
 #include "exceptions.h"
 #include "file.h"
@@ -735,7 +734,7 @@ int main(int argc, char** argv) {
   }
 
   if (parameters.version) {
-    cout << ARTS_FULL_VERSION << arts_mod_time(argv[0]) << endl;
+    cout << arts_get_version_string() << arts_mod_time(argv[0]) << endl;
     cout << osfeatures.str();
     arts_exit(EXIT_SUCCESS);
   }
@@ -957,7 +956,8 @@ int main(int argc, char** argv) {
     out1 << "\n";
 
     // Output full program name (with version number):
-    out1 << "Version: " << ARTS_FULL_VERSION << arts_mod_time(argv[0]) << "\n";
+    out1 << "Version: " << arts_get_version_string() << arts_mod_time(argv[0])
+         << "\n";
 
     // Output more details about the compilation:
     out2 << osfeatures.str() << "\n";
