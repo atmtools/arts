@@ -12,7 +12,6 @@ jobs:
       matrix:
         name: [
           ubuntu-doc,
-          ubuntu-gcc-8,
           ubuntu-gcc-9,
           ubuntu-gcc-10,
           ubuntu-clang-13-debug,
@@ -32,18 +31,6 @@ jobs:
             fortran: "no"
             check: "no"
             libcxx: "yes"
-            buildtype: "Release"
-
-          - name: ubuntu-gcc-8
-            os: ubuntu-20.04
-            compiler: gcc
-            version: "8"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            fortran-version: "8"
-            check: "yes"
-            libcxx: "no"
             buildtype: "Release"
 
           - name: ubuntu-gcc-9
