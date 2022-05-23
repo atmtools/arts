@@ -21,14 +21,10 @@
 /**
    \file  double_imanip.h
 
-   IO manipulation classes for parsing nan and inf.
+   Fast double input stream with support for parsing nan and inf.
 
-   Not all compilers do support parsing of nan and inf.
-   The code below is taken (and slightly modified) from the discussion at:
-   http://stackoverflow.com/questions/11420263/is-it-possible-to-read-infinity-or-nan-values-using-input-streams
-
-   \author Oliver Lemke
-   \date 2021-06-03
+   \author Oliver Lemke, Richard Larsson
+   \date 2022-05-23
 */
 
 #ifndef double_imanip_h
@@ -36,37 +32,48 @@
 
 #include <fstream>
 
-/** Input stream class for doubles that correctly handles nan and inf. */
-class double_istream {
- public:
-  double_istream(std::istream& i) : in(i) {}
-
-  double_istream& parse_on_fail(double& x, bool neg);
-
-  double_istream& operator>>(double& x) {
-    bool neg = false;
-    char c;
-    if (!in.good()) return *this;
-    while (isspace(c = (char)in.peek())) in.get();
-    if (c == '-') {
-      neg = true;
-    }
-    in >> x;
-    if (!in.fail()) return *this;
-    return parse_on_fail(x, neg);
-  }
-
- private:
-  std::istream& in;
-};
+#include "debug.h"
 
 /** Input manipulator class for doubles to enable nan and inf parsing. */
 class double_imanip {
  public:
   const double_imanip& operator>>(double& x) const {
-    double_istream(*in) >> x;
+    std::istream& is = *in;
+    std::string buf;
+    try {
+      is >> buf;
+      ARTS_USER_ERROR_IF(is.fail(), "Cannot read from stream")
+      std::size_t n;
+      x = std::stod(buf, &n);
+      while (n++ not_eq buf.size()) is.unget();
+    } catch (std::runtime_error& e) {
+      ARTS_USER_ERROR(R"--(Failed conversion to double
+
+)--",
+                      e.what())
+    } catch (std::invalid_argument&) {
+      ARTS_USER_ERROR("The argument: \n\n'", buf, R"--('
+
+is not convertible to a valid double.  At the very least it
+cannot be converted to one using the standard string-to-double
+routine
+)--")
+    } catch (std::out_of_range&) {
+      ARTS_USER_ERROR("The argument: \n\n'",
+                      buf,
+                      R"--('
+
+is not convertible to a normal double.  The value is
+bad or simply subnormal (i.e., the absolute value is either
+below ~)--",
+                      std::numeric_limits<double>::min(),
+                      " or above ~",
+                      std::numeric_limits<double>::max(),
+                      ")\n")
+    }
     return *this;
   }
+
   std::istream& operator>>(const double_imanip&) const { return *in; }
 
   friend const double_imanip& operator>>(std::istream& in,
@@ -76,6 +83,10 @@ class double_imanip {
   mutable std::istream* in;
 };
 
-const double_imanip& operator>>(std::istream& in, const double_imanip& dm);
+inline const double_imanip& operator>>(std::istream& in,
+                                       const double_imanip& dm) {
+  dm.in = &in;
+  return dm;
+}
 
 #endif
