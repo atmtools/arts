@@ -125,6 +125,7 @@ bool is_valid_keyword_group(const Index name);
 
 void arts_exit(int status = EXIT_FAILURE);
 void arts_exit_with_error_message(const String& m, ArtsOut& os);
+std::string_view arts_get_version_string();
 
 //
 // Physical constants are now in constants.cc
