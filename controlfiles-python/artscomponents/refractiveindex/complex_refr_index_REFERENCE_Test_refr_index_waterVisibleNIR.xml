@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<GriddedField3>
+<Vector name="Frequency" nelem="1">
+614328807377049
+</Vector>
+<Vector name="Temperature" nelem="1">
+283.15
+</Vector>
+<Array name="Complex" type="String" nelem="2">
+<String>"real"</String>
+<String>"imaginary"</String>
+</Array>
+<Tensor3 name="Data" npages="1" nrows="1" ncols="2">
+1.33821937010893 0
+</Tensor3>
+</GriddedField3>
+</arts>
