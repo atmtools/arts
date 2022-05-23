@@ -748,9 +748,9 @@ void refractive_index_water_and_steam_VisNIR(Numeric& n,
   const Numeric lambda_star = 0.589;  // [µm]
 
   //check input
-  bool T_ok = (temperature > T_star - 12) * (temperature < T_star + 500);
-  bool rho_ok = (density > 0) * (density < 1060);
-  bool wvl_ok = (wavelength > 0.2) * (wavelength < 1.9);
+  bool T_ok = (temperature > T_star - 12) && (temperature < T_star + 500);
+  bool rho_ok = (density > 0) && (density < 1060);
+  bool wvl_ok = (wavelength > 0.2) && (wavelength < 1.9);
 
   if (only_valid_range) {
     ARTS_USER_ERROR_IF(!T_ok,
