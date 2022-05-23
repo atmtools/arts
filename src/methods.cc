@@ -16390,7 +16390,7 @@ where N>=0 and the species name is something line "H2O".
           "157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm\n"
           "\n"
           "Density can be set as Vector of size 1 or it must have the same size as\n"
-          "as *t_grid*.\n"
+          "as data_t_grid.\n"
           "\n"
           "IMPORTANT: Though the output is *complex_refr_index*, it only contains\n"
           "the real part. The imaginry part is zero.\n"),
