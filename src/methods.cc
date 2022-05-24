@@ -14853,23 +14853,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Path to store the files at")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesWriteSpeciesSplitCatalog"),
-      DESCRIPTION("See *abs_linesWriteSpeciesSplitCatalog*\n"
-                  "\n"
-                  "In addition, the structure of the files generated will not care about\n"
-                  "generating identifiers for the order in *abs_species*\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("output_file_format", "abs_lines"),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Path to store the files at")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesWriteSpeciesSplitCatalog"),
       DESCRIPTION("See *abs_linesWriteSpeciesSplitCatalog*\n"
                   "\n"
