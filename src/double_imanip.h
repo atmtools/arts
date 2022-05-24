@@ -31,6 +31,7 @@
 #define double_imanip_h
 
 #include <fstream>
+#include <limits>
 
 #include "debug.h"
 
