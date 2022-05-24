@@ -29,6 +29,8 @@
 
 #include "absorptionlines.h"
 #include "array.h"
+#include "arts_omp.h"
+#include "artstime.h"
 #include "auto_md.h"
 #include "debug.h"
 #include "enums.h"
@@ -37,6 +39,9 @@
 #include "m_xml.h"
 #include "quantum_numbers.h"
 #include <algorithm>
+#include <atomic>
+#include <exception>
+#include <iterator>
 
 /////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////// Basic removal and flattening
@@ -758,33 +763,10 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
 /////////////////////////////////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesWriteSplitXML(const String& output_format,
-                            const ArrayOfAbsorptionLines& abs_lines,
-                            const String& basename,
-                            const Verbosity& verbosity)
-{
-  std::map<String, int> names;
-
-  String true_basename = basename;
-  if (not(true_basename.back() == '.' or true_basename.back() == '/'))
-    true_basename += '.';
-
-  for (auto& lines : abs_lines) {
-    auto name = lines.SpeciesName();
-    const String fname = true_basename + name;
-
-    WriteXML(output_format, lines,
-             fname + '.' + std::to_string(names[name]++) + ".xml",
-             0, "", "", "", verbosity);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesWriteSpeciesSplitXML(const String& output_format,
+void abs_linesWriteSpeciesSplitCatalog(const String& output_format,
                                    const ArrayOfAbsorptionLines& abs_lines,
                                    const String& basename,
-                                   const Verbosity& verbosity)
-{
+                                   const Verbosity& verbosity) {
   // Set the true name of the saving
   String true_basename = basename;
   if (not(true_basename.back() == '.' or true_basename.back() == '/'))
@@ -826,35 +808,10 @@ void abs_linesWriteSpeciesSplitXML(const String& output_format,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesWriteSplitXML(const String& output_format,
-                                        const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                        const String& basename,
-                                        const Verbosity& verbosity)
-{
-  std::map<String, int> names;
-
-  String true_basename = basename;
-  if (not(true_basename.back() == '.' or true_basename.back() == '/'))
-    true_basename += '.';
-
-  for (auto& spec_lines : abs_lines_per_species) {
-    for (auto& lines : spec_lines) {
-      auto name = lines.SpeciesName();
-      const String fname = true_basename + name;
-
-      WriteXML(output_format, lines,
-              fname + '.' + std::to_string(names[name]++) + ".xml",
-              0, "", "", "", verbosity);
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesWriteSpeciesSplitXML(const String& output_format,
+void abs_lines_per_speciesWriteSpeciesSplitCatalog(const String& output_format,
                                                const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                                const String& basename,
-                                               const Verbosity& verbosity)
-{ 
+                                               const Verbosity& verbosity) { 
   // Compact to abs_lines
   ArrayOfAbsorptionLines abs_lines(0);
   for (auto& lines: abs_lines_per_species) {
@@ -864,54 +821,14 @@ void abs_lines_per_speciesWriteSpeciesSplitXML(const String& output_format,
   }
   
   // Save using the other function
-  abs_linesWriteSpeciesSplitXML(output_format, abs_lines, basename, verbosity);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                                           const String& basename,
-                                           const Verbosity& verbosity)
-{
-  abs_lines_per_species.resize(0);
-
-  // Build a set of species indices. Duplicates are ignored.
-  const std::set<Species::Species> unique_species = lbl_species(abs_species);
-  
-  String tmpbasename = basename;
-  if (basename.length() && basename[basename.length() - 1] != '/') {
-    tmpbasename += '.';
-  }
-  
-  // Read catalogs for each identified species and put them all into
-  // abs_lines
-  ArrayOfAbsorptionLines abs_lines(0);
-  for (auto& spec: unique_species) {
-    ArrayOfIsotopeRecord specs = Species::isotopologues(spec);
-    for (auto& ir: specs) {
-      Index i=0;
-      do {
-        String filename = tmpbasename + ir.FullName() + '.' + std::to_string(i) + ".xml";
-        if (find_xml_file_existence(filename)) {
-          abs_lines.push_back(AbsorptionLines());
-          xml_read_from_file(filename, abs_lines.back(), verbosity);
-          i++;
-        } else {
-          break;
-        }
-      } while (true);
-    }
-  }
-  
-  abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
+  abs_linesWriteSpeciesSplitCatalog(output_format, abs_lines, basename, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
                                       const String& basename,
                                       const Index& robust,
-                                      const Verbosity& verbosity)
-{
+                                      const Verbosity& verbosity) {
   abs_lines.resize(0);
   
   CREATE_OUT3;
@@ -946,12 +863,10 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
                                                   const ArrayOfArrayOfSpeciesTag& abs_species,
                                                   const String& basename,
                                                   const Index& robust,
-                                                  const Verbosity& verbosity)
-{
+                                                  const Verbosity& verbosity) {
   abs_lines_per_species.resize(0);
   
   CREATE_OUT3;
-  std::size_t bands_found{0};
   
   // Build a set of species indices. Duplicates are ignored.
   const std::set<Species::Species> unique_species = lbl_species(abs_species);
@@ -962,27 +877,55 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
   }
   
   // Read catalogs for each identified species and put them all into
-  // abs_lines
-  ArrayOfAbsorptionLines abs_lines(0);
-  for (auto spec: unique_species) {
-    auto isots = Species::isotopologues(spec);
-    for (auto& isot: isots) {
-      String filename = tmpbasename + isot.FullName() + ".xml";
-      if (find_xml_file_existence(filename)) {
-        ArrayOfAbsorptionLines speclines;
-        xml_read_from_file(filename, speclines, verbosity);
-        for (auto& band: speclines) {
-          abs_lines.push_back(band);
-          bands_found++;
+  // abs_lines in aa parallel manner
+  const Index n = arts_omp_get_max_threads();
+  ArrayOfArrayOfAbsorptionLines par_abs_lines(n);
+  ArrayOfString errors;
+  std::atomic_bool error{false};
+
+  #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
+  for (std::size_t ispec=0; ispec<unique_species.size(); ispec++) {
+
+    const auto i = arts_omp_get_thread_num();
+    const auto& spec = *std::next(unique_species.cbegin(), ispec);
+    const auto isots = Species::isotopologues(spec);
+
+    if (not error.load()) {
+      try {
+        for (const auto& isot: isots) {
+          String filename = tmpbasename + isot.FullName() + ".xml";
+          if (find_xml_file_existence(filename)) {
+            ArrayOfAbsorptionLines speclines;
+            xml_read_from_file(filename, speclines, verbosity);
+            for (auto& band: speclines) {
+              par_abs_lines[i].push_back(std::move(band));
+            }
+          }
         }
+      } catch (std::exception& e) {
+        error.store(true);
+
+        #pragma omp critical
+        errors.push_back(var_string("\n\nError in thread ", i, " for species ", spec, ":\n", e.what(), "\n\n"));
       }
     }
   }
+
+  ARTS_USER_ERROR_IF(error.load(), "Encountered ", errors.nelem(), ':', errors)
   
+  const Index bands_found = nelem(par_abs_lines);
   ARTS_USER_ERROR_IF (not bands_found and not robust,
                       "Cannot find any bands in the directory you are reading");
   out3 << "Found " << bands_found << " bands\n";
   
+  ArrayOfAbsorptionLines abs_lines;
+  abs_lines.reserve(bands_found);
+  for (auto& lines: par_abs_lines) {
+    for (auto& band: lines) {
+      abs_lines.push_back(std::move(band));
+    }
+  }
+
   abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
 }
 

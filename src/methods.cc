@@ -751,23 +751,6 @@ void define_md_data_raw() {
                "Lower or upper flag (eval as boolean)")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesReadSplitCatalog"),
-      DESCRIPTION("Reads *abs_lines_per_species* split by\n"
-                  "*abs_linesWriteSplitXML* or *abs_lines_per_speciesWriteSplitXML*\n"
-                  "\n"
-                  "Note that this will sort the isotopologue\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species"),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("The path to the split catalog files")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesReadSpeciesSplitCatalog"),
       DESCRIPTION("Reads a catalog of absorption lines files in a directory\n"),
       AUTHORS("Richard Larsson"),
@@ -14746,7 +14729,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
                   "\t'git checkout <commit hash>' to get the old version of Arts\n"
                   "\tCompile the program\n"
                   "\tRun *ReadHITRAN* to get *abs_lines* of that version of Hitran\n"
-                  "\tRun *abs_linesWriteSpeciesSplitXML* to store the *abs_lines* to a folder\n"
+                  "\tRun *abs_linesWriteSpeciesSpliCatalog* to store the *abs_lines* to a folder\n"
                   "\t'git checkout -' to get back to your previous version of Arts\n"
                   "\tCompile the program\n"
                   "\tUse *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*\n"
@@ -14849,14 +14832,8 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesWriteSplitXML"),
-      DESCRIPTION("Writes a split catalog, AbsorptionLines by AbsorptionLines.\n"
-                  "\n"
-                  "There will be one unique file generated per AbsorptionLines in *abs_lines*.\n"
-                  "\n"
-                  "The names of these files will be:\n"
-                  "\tbasename+\".\"+AbsorptionLines.SpeciesName()+\".\"+to_string(N)+\".xml\"\n"
-                  "where N>=0 and the species name is something line \"H2O\".\n"),
+      NAME("abs_linesWriteSpeciesSplitCatalog"),
+      DESCRIPTION("Writes a catalog split per species\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -14869,40 +14846,8 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
       GIN_DESC("Path to store the files at")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesWriteSpeciesSplitXML"),
-      DESCRIPTION("As *abs_linesWriteSplitXML* but writes an array\n"
-                  "per species\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("output_file_format", "abs_lines"),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Path to store the files at")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesWriteSplitXML"),
-      DESCRIPTION("See *abs_linesWriteSplitXML*\n"
-                  "\n"
-                  "In addition, the structure of the files generated will not care about\n"
-                  "generating identifiers for the order in *abs_species*\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("output_file_format", "abs_lines_per_species"),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Path to store the files at")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesWriteSpeciesSplitXML"),
-      DESCRIPTION("See *abs_linesWriteSpeciesSplitXML*\n"
+      NAME("abs_lines_per_speciesWriteSpeciesSplitCatalog"),
+      DESCRIPTION("See *abs_linesWriteSpeciesSplitCatalog*\n"
                   "\n"
                   "In addition, the structure of the files generated will not care about\n"
                   "generating identifiers for the order in *abs_species*\n"),

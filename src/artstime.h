@@ -29,6 +29,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <string_view>
 
 #include "array.h"
 #include "debug.h"
@@ -224,5 +225,16 @@ TimeStep median(ArrayOfTimeStep);
  * @return mean time step
  */
 TimeStep mean(const ArrayOfTimeStep&);
+
+//! Used to debug execution time, prints msg+time on destruction to std::cerr
+struct DebugTime {
+  Time start{};
+  std::string_view msg;
+  DebugTime(const std::string_view s="Time") : msg(s) {}
+  ~DebugTime() {
+    #pragma omp critical
+    std::cerr << msg << ':' << ' ' << Time{} - start << '\n';
+  }
+};
 
 #endif  // ARTSTIME_H
