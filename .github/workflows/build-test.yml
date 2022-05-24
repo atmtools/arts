@@ -17,6 +17,7 @@ jobs:
           ubuntu-clang-13-debug,
           ubuntu-gcc-11,
           ubuntu-clang-13-nofortran,
+          ubuntu-clang-14-nofortran,
           macos-gcc-11,
           macos-clang-13,
         ]
@@ -92,6 +93,17 @@ jobs:
             libcxx: "yes"
             buildtype: "Release"
 
+          - name: ubuntu-clang-14-nofortran
+            os: ubuntu-20.04
+            compiler: clang
+            version: "14"
+            doc: "no"
+            arts: "yes"
+            fortran: "no"
+            check: "yes"
+            libcxx: "yes"
+            buildtype: "Release"
+
           - name: macos-gcc-11
             os: macos-latest
             compiler: gcc
@@ -123,9 +135,9 @@ jobs:
       - name: Setup (Linux)
         if: runner.os == 'Linux'
         run: |
-          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "13" ]; then
+          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" -ge "13" ]; then
              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-13 main"
+             sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-${{ matrix.version }} main"
           fi
 
           sudo apt-get update
