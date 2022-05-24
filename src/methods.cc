@@ -767,8 +767,7 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesReadSpeciesSplitCatalog"),
-      DESCRIPTION("See *abs_lines_per_speciesReadSplitCatalog* but expects\n"
-                  "a single file per species of *ArrayOfAbsorptionLines*\n"),
+      DESCRIPTION("See *abs_linesReadSpeciesSplitCatalog* but only for *abs_species*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
