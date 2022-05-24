@@ -374,7 +374,6 @@ add_library (binio STATIC
         bifstream.cc
         bofstream.cc
         binio.cc
-        double_imanip.cc
         gzstream.cc 
         )
 
