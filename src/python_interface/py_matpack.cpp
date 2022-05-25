@@ -96,12 +96,7 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Vector>()(t[0]).cast<Vector>();
           }))
-      .doc() = R"--(The Arts Vector class
-
-This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+      .PythonInterfaceWorkspaceDocumentation(Vector);
 
   py::class_<Matrix, MatrixView>(m, "Matrix", py::buffer_protocol())
       .def(py::init([]() { return new Matrix{}; }))
@@ -151,12 +146,7 @@ via x.value
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Matrix>()(t[0]).cast<Matrix>();
           }))
-      .doc() = R"--(The Arts Matrix class
-
-This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+      .PythonInterfaceWorkspaceDocumentation(Matrix);
 
   py::class_<Tensor3, Tensor3View>(m, "Tensor3", py::buffer_protocol())
       .def(py::init([]() { return new Tensor3{}; }))
@@ -208,12 +198,7 @@ via x.value
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor3>()(t[0]).cast<Tensor3>();
           }))
-      .doc() = R"--(The Arts Tensor3 class
-
-This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+      .PythonInterfaceWorkspaceDocumentation(Tensor3);
 
   py::class_<Tensor4, Tensor4View>(m, "Tensor4", py::buffer_protocol())
       .def(py::init([]() { return new Tensor4{}; }))

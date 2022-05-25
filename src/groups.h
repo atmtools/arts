@@ -5,7 +5,7 @@
 
 struct GroupRecord {
 String name;
-String desc{"No description"};
+String desc{"Missing description"};
 GroupRecord() : name("This is not a good name") {}
 GroupRecord(String n) : name(std::move(n)) {}
 GroupRecord(String n, String d) : name(std::move(n)), desc(std::move(d)) {}

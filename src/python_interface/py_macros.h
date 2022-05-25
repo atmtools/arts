@@ -2,6 +2,7 @@
 #define py_macros_h
 
 #include <debug.h>
+#include <global_data.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <xml_io.h>
@@ -568,5 +569,17 @@ Returns:\
                                                            \
       .PythonInterfaceValueOperator(__getitem__)           \
       .PythonInterfaceTwoValueOperator(__setitem__)
+
+//! Place at the end!
+#define PythonInterfaceWorkspaceDocumentation(Type)                      \
+  doc() = global_data::wsv_groups.at(global_data::WsvGroupMap.at(#Type)) \
+              .desc.c_str()
+
+//! Place at the end!
+#define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)              \
+  doc() =                                                                    \
+      (global_data::wsv_groups.at(global_data::WsvGroupMap.at(#Type)).desc + \
+       extra)                                                                \
+          .c_str()
 
 #endif

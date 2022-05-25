@@ -8,60 +8,17 @@
 #include "python_interface.h"
 
 extern Parameters parameters;
-
-void parse_path_from_environment(String envvar, ArrayOfString& paths);
 namespace Python {
 std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy);
+
 Agenda* parse_agenda(const char* filename, const Verbosity& verbosity);
+
 void py_auto_workspace(py::class_<Workspace>&, py::class_<WorkspaceVariable>&);
 
 void py_workspace(py::module_& m,
                   py::class_<Workspace>& ws,
                   py::class_<WorkspaceVariable>& wsv) {
-  static bool init = true;
-  if (init) {
-    init = false;
-
-    define_wsv_groups();
-    Workspace::define_wsv_data();
-    Workspace::define_wsv_map();
-    define_md_data_raw();
-    expand_md_data_raw_to_md_data();
-    define_md_map();
-    define_md_raw_map();
-    define_agenda_data();
-    define_agenda_map();
-    ARTS_ASSERT(check_agenda_data());
-    global_data::workspace_memory_handler.initialize();
-
-    // Set parameters that are know on first execution
-#ifdef ARTS_DEFAULT_INCLUDE_DIR
-    String arts_default_include_path(ARTS_DEFAULT_INCLUDE_DIR);
-    if (arts_default_include_path != "" && !parameters.includepath.nelem()) {
-      // Skip delimiters at beginning.
-      String::size_type lastPos =
-          arts_default_include_path.find_first_not_of(":", 0);
-      // Find first "non-delimiter".
-      String::size_type pos =
-          arts_default_include_path.find_first_of(":", lastPos);
-
-      while (String::npos != pos || String::npos != lastPos) {
-        parameters.includepath.push_back(
-            arts_default_include_path.substr(lastPos, pos - lastPos));
-        lastPos = arts_default_include_path.find_first_not_of(":", pos);
-        pos = arts_default_include_path.find_first_of(":", lastPos);
-      }
-    }
-#endif
-
-    parse_path_from_environment("ARTS_INCLUDE_PATH", parameters.includepath);
-    parse_path_from_environment("ARTS_DATA_PATH", parameters.datapath);
-
-    parameters.includepath.insert(parameters.includepath.begin(), ".");
-    parameters.datapath.insert(parameters.datapath.begin(), ".");
-  }
-
   ws.def(py::init([](Index verbosity, Index agenda_verbosity) {
            auto* w = new Workspace{};
            w->initialize();

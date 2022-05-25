@@ -161,7 +161,11 @@ void define_wsv_groups() {
   wsv_groups.emplace_back("Time");
   wsv_groups.emplace_back("TessemNN");
   wsv_groups.emplace_back("TransmissionMatrix");
-  wsv_groups.emplace_back("Vector");
+  wsv_groups.emplace_back("Vector", R"--(A 1 dimensional array of numbers
+
+Vector is used in a lot of math requiring vector semantics,
+or just as a way to transport numbers between functions
+)--");
   wsv_groups.emplace_back("Verbosity");
 
   define_wsv_group_map();

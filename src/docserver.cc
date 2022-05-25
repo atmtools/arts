@@ -1136,6 +1136,10 @@ void Docserver::doc_group(const string& gname) {
     // If we are here, then the given name matches a group.
     Index hitcount = 0;
 
+    get_os() << "<pre>" << endl;
+    get_os() << description_add_links(global_data::wsv_groups[gid].desc);
+    get_os() << endl << "</pre>" << endl << endl;
+
     if (gname != "Any") {
       // List specific methods:
       hitcount = 0;

@@ -35,7 +35,7 @@ for g in list_of_groups:
     try:
         print("Running tests for", g)
         
-        print("Trying to defaul init")
+        print("Trying to default init")
         x = eval("cxx.{}()".format(g))
         
         print("Trying create workspace variable")
