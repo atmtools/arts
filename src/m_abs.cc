@@ -103,23 +103,26 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     // WS Input:
     const ArrayOfAbsorptionLines& abs_lines,
-    const ArrayOfArrayOfSpeciesTag& tgs,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
     const Verbosity&) {
   // Size is set but inner size will now change from the original definition of species tags...
-  abs_lines_per_species.resize(tgs.nelem());
+  abs_lines_per_species.resize(abs_species.nelem());
 
   // The inner arrays need to be emptied, because they may contain lines
   // from a previous calculation
-  for (auto& tg : abs_lines_per_species) tg.resize(0);
+  for (auto& lines : abs_lines_per_species) lines.resize(0);
 
-  // Take copies because we have to support frequency ranges, so might have to delete
-  for (AbsorptionLines lines : abs_lines) {
+// Take copies because we have to support frequency ranges, so might have to delete
+#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
+  for (Index ilines = 0; ilines < abs_lines.nelem(); ilines++) {
+    AbsorptionLines lines = abs_lines[ilines];
+    
     // Skip empty lines
     if (lines.NumLines() == 0) continue;
 
     // Loop all the tags
-    for (Index i = 0; i < tgs.nelem() and lines.NumLines(); i++) {
-      for (auto& this_tag : tgs[i]) {
+    for (Index i = 0; i < abs_species.nelem() and lines.NumLines(); i++) {
+      for (auto& this_tag : abs_species[i]) {
         // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
         if (not same_or_joker(this_tag.Isotopologue(), lines.Isotopologue()))
           continue;
@@ -143,12 +146,14 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
           // Append these lines after sorting them if there are any of them
           if (these_lines.NumLines()) {
             these_lines.ReverseLines();
+#pragma omp critical
             abs_lines_per_species[i].push_back(these_lines);
           }
 
           // If this means we have deleted all lines, then we leave
           if (lines.NumLines() == 0) goto leave_inner_loop;
         } else {
+#pragma omp critical
           abs_lines_per_species[i].push_back(lines);
           goto leave_inner_loop;
         }
@@ -156,6 +161,8 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
     }
   leave_inner_loop : {}
   }
+
+  abs_lines_per_species.shrink_to_fit();
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
