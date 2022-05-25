@@ -123,7 +123,7 @@ void option_methods(const String& methods) {
   // Make global data visible:
   using global_data::md_data_raw;
   extern const Parameters parameters;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -234,18 +234,18 @@ void option_methods(const String& methods) {
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
   Index group_key =
-      find(wsv_group_names.begin(), wsv_group_names.end(), methods) -
-      wsv_group_names.begin();
+      find(wsv_groups.begin(), wsv_groups.end(), methods) -
+      wsv_groups.begin();
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
-  if (group_key != wsv_group_names.nelem()) {
+  if (group_key != wsv_groups.nelem()) {
     // List generic methods:
     hitcount = 0;
     cout
         << "\n*-------------------------------------------------------------------*\n"
         << "Generic and supergeneric methods that can generate variables of group "
-        << wsv_group_names[group_key] << ":\n"
+        << wsv_groups[group_key] << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -304,7 +304,7 @@ void option_methods(const String& methods) {
 void option_input(const String& input) {
   // Make global data visible:
   using global_data::md_data_raw;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Ok, so the user has probably specified a workspace variable or
   // workspace variable group.
@@ -393,12 +393,12 @@ void option_input(const String& input) {
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
   Index group_key =
-      find(wsv_group_names.begin(), wsv_group_names.end(), input) -
-      wsv_group_names.begin();
+      find(wsv_groups.begin(), wsv_groups.end(), input) -
+      wsv_groups.begin();
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
-  if (group_key != wsv_group_names.nelem()) {
+  if (group_key != wsv_groups.nelem()) {
     // This is used to count the number of matches to a query, so
     // that `none' can be output if necessary
     Index hitcount = 0;
@@ -407,7 +407,7 @@ void option_input(const String& input) {
     cout
         << "\n*-------------------------------------------------------------------*\n"
         << "Generic and supergeneric methods that require a variable of group "
-        << wsv_group_names[group_key] << ":\n"
+        << wsv_groups[group_key] << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -467,7 +467,7 @@ void option_workspacevariables(const String& workspacevariables) {
   using global_data::md_data;
   using global_data::MdMap;
   extern const Parameters parameters;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -510,7 +510,7 @@ void option_workspacevariables(const String& workspacevariables) {
         << " are of type:\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < mdr.GInType().nelem(); ++i) {
-      cout << "- " << wsv_group_names[mdr.GInType()[i]] << "\n";
+      cout << "- " << wsv_groups[mdr.GInType()[i]] << "\n";
       ++hitcount;
     }
     if (0 == hitcount) cout << "none\n";
@@ -752,7 +752,7 @@ int main(int argc, char** argv) {
   // method lookup data.
 
   // Initialize the wsv group name array:
-  define_wsv_group_names();
+  define_wsv_groups();
 
   // Initialize the wsv data:
   Workspace::define_wsv_data();
@@ -785,7 +785,7 @@ int main(int argc, char** argv) {
   global_data::workspace_memory_handler.initialize();
 
   // Make all global data visible:
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Now we are set to deal with the more interesting command line
   // switches.
@@ -847,9 +847,9 @@ int main(int argc, char** argv) {
           << "---------------------------------------------------------------------\n";
     }
 
-    for (Index i = 0; i < wsv_group_names.nelem(); ++i) {
+    for (Index i = 0; i < wsv_groups.nelem(); ++i) {
       if (!parameters.plain) cout << "- ";
-      cout << wsv_group_names[i] << "\n";
+      cout << wsv_groups[i] << "\n";
     }
 
     if (!parameters.plain)

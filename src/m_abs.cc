@@ -2020,7 +2020,7 @@ struct MethodAppender {
       if (end == std::find(full_in.begin(), end, val_pos)) {
         auto fun_pos = global_data::MdMap.at(
             "Ignore_sg_" +
-            global_data::wsv_group_names.at(ws.wsv_data.at(val_pos).Group()));
+            global_data::wsv_groups.at(ws.wsv_data.at(val_pos).Group()).name);
         propmat_clearsky_agenda.push_back(
             MRecord(fun_pos, {}, {val_pos}, {}, {}));
       }
@@ -2037,7 +2037,7 @@ struct MethodAppender {
       if (end == std::find(full_out.begin(), end, val_pos)) {
         auto fun_pos = global_data::MdMap.at(
             "Touch_sg_" +
-            global_data::wsv_group_names.at(ws.wsv_data.at(val_pos).Group()));
+            global_data::wsv_groups.at(ws.wsv_data.at(val_pos).Group()).name);
         propmat_clearsky_agenda.push_back(
             MRecord(fun_pos, {val_pos}, {}, {}, {}));
       }

@@ -4,13 +4,13 @@
 
 #include "global_data.h"
 
-void define_wsv_group_names();
+void define_wsv_groups();
 
 int main() {
   std::ofstream file_h("tokval.h");
   std::ofstream file_cc("tokval.cc");
 
-  define_wsv_group_names();
+  define_wsv_groups();
 
   file_h << R"--(// auto-generated tokval interface
 
@@ -43,7 +43,7 @@ struct TokVal {
 )--";
 
   bool first = true;
-  for (auto& group : global_data::wsv_group_names) {
+  for (auto& group : global_data::wsv_groups) {
     if (group == "Agenda" or group == "ArrayOfAgenda") continue;
     if (not first) file_h << ",\n";
     first = false;
@@ -54,7 +54,7 @@ struct TokVal {
 
 )--";
 
-  for (auto& group : global_data::wsv_group_names) {
+  for (auto& group : global_data::wsv_groups) {
     if (group == "Agenda" or group == "ArrayOfAgenda") continue;
     file_h << "  TokVal(" << group << " in) noexcept;\n"
          << "  TokVal& operator=(" << group << " in);\n"
@@ -77,7 +77,7 @@ struct TokVal {
 
 file_cc << "// auto-generated tokval implementation\n\n#include <tokval.h>\n\n";
 
-  for (auto& group : global_data::wsv_group_names) {
+  for (auto& group : global_data::wsv_groups) {
     if (group == "Agenda" or group == "ArrayOfAgenda") continue;
     file_cc << "TokVal::TokVal(" << group << " in) noexcept : value(std::make_unique<"
          << group << ">(std::move(in))) {}\n"

@@ -141,10 +141,10 @@ String error_msg(const String& name,
   for (auto& var : var_order) {
     os << var.name << " : ";
     if (var.ws_pos >= 0)
-      os << global_data::wsv_group_names[WorkspaceVariable(ws, var.ws_pos)
+      os << global_data::wsv_groups[WorkspaceVariable(ws, var.ws_pos)
                                              .group()];
     else
-      os << global_data::wsv_group_names[var.group];
+      os << global_data::wsv_groups[var.group];
     if (&var not_eq &var_order.back()) os << ", ";
   }
   os << ")";
@@ -155,7 +155,7 @@ MRecord simple_set_method(WorkspaceVariable val) {
   using namespace global_data;
 
   // Find group and is it acceptable
-  const String group = wsv_group_names[val.group()];
+  const String group = wsv_groups[val.group()].name;
   ARTS_USER_ERROR_IF(group == "ArrayOfAgenda",
                      "Cannot support setting ArrayOfAgenda")
 

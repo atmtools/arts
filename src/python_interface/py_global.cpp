@@ -50,8 +50,8 @@ void py_global(py::module_& m) {
       py::doc("Get a copy of the global data variable"));
 
   m.def(
-      "get_wsv_group_names",
-      []() { return global_data::wsv_group_names; },
+      "get_wsv_groups",
+      []() { return global_data::wsv_groups; },
       py::doc("Get a copy of the global data variable"));
 
   m.def(

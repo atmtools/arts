@@ -28,43 +28,31 @@
   \author Stefan Buehler
   \date   2000-08-04 */
 
-#include <map>
 #include "array.h"
 #include "arts.h"
+#include "groups.h"
 #include "mystring.h"
 #include "wsv_aux.h"
+#include <map>
 
 /*! The names associated with Wsv groups as Strings.
-  See function define_wsv_group_names for more information. */
+  See function define_wsv_groups for more information. */
 namespace global_data {
-ArrayOfString wsv_group_names;
+ArrayOfGroupRecord wsv_groups;
 map<String, Index> WsvGroupMap;
 }  // namespace global_data
 
-/*! Groups that can be used as keywords */
-ArrayOfIndex valid_keyword_groups;
-
-void define_valid_keyword_groups() {
-  valid_keyword_groups.resize(0);
-  valid_keyword_groups.push_back(get_wsv_group_id("String"));
-  valid_keyword_groups.push_back(get_wsv_group_id("Index"));
-  valid_keyword_groups.push_back(get_wsv_group_id("Numeric"));
-  valid_keyword_groups.push_back(get_wsv_group_id("ArrayOfString"));
-  valid_keyword_groups.push_back(get_wsv_group_id("ArrayOfIndex"));
-  valid_keyword_groups.push_back(get_wsv_group_id("Vector"));
-}
-
 void define_wsv_group_map() {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
   using global_data::WsvGroupMap;
-  for (Index i = 0; i < wsv_group_names.nelem(); ++i) {
-    WsvGroupMap[wsv_group_names[i]] = i;
+  for (Index i = 0; i < wsv_groups.nelem(); ++i) {
+    WsvGroupMap[wsv_groups[i]] = i;
   }
 }
 
 //! Define the array of workspace variable group names.
 /*!
-  This defines the global variable wsv_group_names. It is used in two
+  This defines the global variable wsv_groups. It is used in two
   different programs:
 
   1. In arts.
@@ -74,118 +62,109 @@ void define_wsv_group_map() {
   \author Stefan Buehler
   \date   2000-08-04
 */
-void define_wsv_group_names() {
-  using global_data::wsv_group_names;
+void define_wsv_groups() {
+  using global_data::wsv_groups;
 
   //--------------------< Build the group names array >--------------------
   // Initialize to empty, just in case.
-  wsv_group_names.resize(0);
+  wsv_groups.resize(0);
   
-  wsv_group_names.push_back("AbsorptionLines");
-  wsv_group_names.push_back("Agenda");
-  wsv_group_names.push_back("Any");
-  wsv_group_names.push_back("ArrayOfAbsorptionLines");
-  wsv_group_names.push_back("ArrayOfArrayOfAbsorptionLines");
-  wsv_group_names.push_back("ArrayOfAgenda");
-  wsv_group_names.push_back("ArrayOfArrayOfGriddedField1");
-  wsv_group_names.push_back("ArrayOfArrayOfGriddedField2");
-  wsv_group_names.push_back("ArrayOfArrayOfGriddedField3");
-  wsv_group_names.push_back("ArrayOfArrayOfIndex");
-  wsv_group_names.push_back("ArrayOfArrayOfMatrix");
-  wsv_group_names.push_back("ArrayOfPpath");
-  wsv_group_names.push_back("ArrayOfArrayOfPropagationMatrix");
-  wsv_group_names.push_back("ArrayOfArrayOfRadiationVector");
-  wsv_group_names.push_back("ArrayOfArrayOfScatteringMetaData");
-  wsv_group_names.push_back("ArrayOfArrayOfSingleScatteringData");
-  wsv_group_names.push_back("ArrayOfArrayOfSpeciesTag");
-  wsv_group_names.push_back("ArrayOfArrayOfStokesVector");
-  wsv_group_names.push_back("ArrayOfArrayOfString");
-  wsv_group_names.push_back("ArrayOfArrayOfTensor3");
-  wsv_group_names.push_back("ArrayOfArrayOfTensor6");
-  wsv_group_names.push_back("ArrayOfArrayOfTime");
-  wsv_group_names.push_back("ArrayOfArrayOfTransmissionMatrix");
-  wsv_group_names.push_back("ArrayOfArrayOfVector");
-  wsv_group_names.push_back("ArrayOfCIARecord");
-  wsv_group_names.push_back("ArrayOfGriddedField1");
-  wsv_group_names.push_back("ArrayOfGriddedField2");
-  wsv_group_names.push_back("ArrayOfGriddedField3");
-  wsv_group_names.push_back("ArrayOfGriddedField4");
-  wsv_group_names.push_back("ArrayOfIndex");
-  wsv_group_names.push_back("ArrayOfJacobianTarget");
-  wsv_group_names.push_back("ArrayOfMatrix");
-  wsv_group_names.push_back("ArrayOfPropagationMatrix");
-  wsv_group_names.push_back("ArrayOfQuantumIdentifier");
-  wsv_group_names.push_back("ArrayOfRadiationVector");
-  wsv_group_names.push_back("ArrayOfRetrievalQuantity");
-  wsv_group_names.push_back("ArrayOfScatteringMetaData");
-  wsv_group_names.push_back("ArrayOfSingleScatteringData");
-  wsv_group_names.push_back("ArrayOfSpeciesTag");
-  wsv_group_names.push_back("ArrayOfSparse");
-  wsv_group_names.push_back("ArrayOfStokesVector");
-  wsv_group_names.push_back("ArrayOfString");
-  wsv_group_names.push_back("ArrayOfTelsemAtlas");
-  wsv_group_names.push_back("ArrayOfTensor3");
-  wsv_group_names.push_back("ArrayOfTensor4");
-  wsv_group_names.push_back("ArrayOfTensor5");
-  wsv_group_names.push_back("ArrayOfTensor6");
-  wsv_group_names.push_back("ArrayOfTensor7");
-  wsv_group_names.push_back("ArrayOfTime");
-  wsv_group_names.push_back("ArrayOfTransmissionMatrix");
-  wsv_group_names.push_back("ArrayOfVector");
-  wsv_group_names.push_back("ArrayOfXsecRecord");
-  wsv_group_names.push_back("CIARecord");
-  wsv_group_names.push_back("CallbackFunction");
-  wsv_group_names.push_back("CovarianceMatrix");
-  wsv_group_names.push_back("EnergyLevelMap");
-  wsv_group_names.push_back("GasAbsLookup");
-  wsv_group_names.push_back("GridPos");
-  wsv_group_names.push_back("GriddedField1");
-  wsv_group_names.push_back("GriddedField2");
-  wsv_group_names.push_back("GriddedField3");
-  wsv_group_names.push_back("GriddedField4");
-  wsv_group_names.push_back("GriddedField5");
-  wsv_group_names.push_back("GriddedField6");
-  wsv_group_names.push_back("HitranRelaxationMatrixData");
-  wsv_group_names.push_back("Index");
-  wsv_group_names.push_back("JacobianTarget");
-  wsv_group_names.push_back("MapOfErrorCorrectedSuddenData");
-  wsv_group_names.push_back("MCAntenna");
-  wsv_group_names.push_back("Matrix");
-  wsv_group_names.push_back("Numeric");
-  wsv_group_names.push_back("Ppath");
-  wsv_group_names.push_back("PropagationMatrix");
-  wsv_group_names.push_back("QuantumIdentifier");
-  wsv_group_names.push_back("RadiationVector");
-  wsv_group_names.push_back("Rational");
-  wsv_group_names.push_back("ScatteringMetaData");
-  wsv_group_names.push_back("SingleScatteringData");
-  wsv_group_names.push_back("Sparse");
-  wsv_group_names.push_back("SpeciesIsotopologueRatios");
-  wsv_group_names.push_back("StokesVector");
-  wsv_group_names.push_back("String");
-  wsv_group_names.push_back("TelsemAtlas");
-  wsv_group_names.push_back("Tensor3");
-  wsv_group_names.push_back("Tensor4");
-  wsv_group_names.push_back("Tensor5");
-  wsv_group_names.push_back("Tensor6");
-  wsv_group_names.push_back("Tensor7");
-  wsv_group_names.push_back("Timer");
-  wsv_group_names.push_back("Time");
-  wsv_group_names.push_back("TessemNN");
-  wsv_group_names.push_back("TransmissionMatrix");
-  wsv_group_names.push_back("Vector");
-  wsv_group_names.push_back("Verbosity");
+  wsv_groups.emplace_back("AbsorptionLines");
+  wsv_groups.emplace_back("Agenda");
+  wsv_groups.emplace_back("Any");
+  wsv_groups.emplace_back("ArrayOfAbsorptionLines");
+  wsv_groups.emplace_back("ArrayOfArrayOfAbsorptionLines");
+  wsv_groups.emplace_back("ArrayOfAgenda");
+  wsv_groups.emplace_back("ArrayOfArrayOfGriddedField1");
+  wsv_groups.emplace_back("ArrayOfArrayOfGriddedField2");
+  wsv_groups.emplace_back("ArrayOfArrayOfGriddedField3");
+  wsv_groups.emplace_back("ArrayOfArrayOfIndex");
+  wsv_groups.emplace_back("ArrayOfArrayOfMatrix");
+  wsv_groups.emplace_back("ArrayOfPpath");
+  wsv_groups.emplace_back("ArrayOfArrayOfPropagationMatrix");
+  wsv_groups.emplace_back("ArrayOfArrayOfRadiationVector");
+  wsv_groups.emplace_back("ArrayOfArrayOfScatteringMetaData");
+  wsv_groups.emplace_back("ArrayOfArrayOfSingleScatteringData");
+  wsv_groups.emplace_back("ArrayOfArrayOfSpeciesTag");
+  wsv_groups.emplace_back("ArrayOfArrayOfStokesVector");
+  wsv_groups.emplace_back("ArrayOfArrayOfString");
+  wsv_groups.emplace_back("ArrayOfArrayOfTensor3");
+  wsv_groups.emplace_back("ArrayOfArrayOfTensor6");
+  wsv_groups.emplace_back("ArrayOfArrayOfTime");
+  wsv_groups.emplace_back("ArrayOfArrayOfTransmissionMatrix");
+  wsv_groups.emplace_back("ArrayOfArrayOfVector");
+  wsv_groups.emplace_back("ArrayOfCIARecord");
+  wsv_groups.emplace_back("ArrayOfGriddedField1");
+  wsv_groups.emplace_back("ArrayOfGriddedField2");
+  wsv_groups.emplace_back("ArrayOfGriddedField3");
+  wsv_groups.emplace_back("ArrayOfGriddedField4");
+  wsv_groups.emplace_back("ArrayOfIndex");
+  wsv_groups.emplace_back("ArrayOfJacobianTarget");
+  wsv_groups.emplace_back("ArrayOfMatrix");
+  wsv_groups.emplace_back("ArrayOfPropagationMatrix");
+  wsv_groups.emplace_back("ArrayOfQuantumIdentifier");
+  wsv_groups.emplace_back("ArrayOfRadiationVector");
+  wsv_groups.emplace_back("ArrayOfRetrievalQuantity");
+  wsv_groups.emplace_back("ArrayOfScatteringMetaData");
+  wsv_groups.emplace_back("ArrayOfSingleScatteringData");
+  wsv_groups.emplace_back("ArrayOfSpeciesTag");
+  wsv_groups.emplace_back("ArrayOfSparse");
+  wsv_groups.emplace_back("ArrayOfStokesVector");
+  wsv_groups.emplace_back("ArrayOfString");
+  wsv_groups.emplace_back("ArrayOfTelsemAtlas");
+  wsv_groups.emplace_back("ArrayOfTensor3");
+  wsv_groups.emplace_back("ArrayOfTensor4");
+  wsv_groups.emplace_back("ArrayOfTensor5");
+  wsv_groups.emplace_back("ArrayOfTensor6");
+  wsv_groups.emplace_back("ArrayOfTensor7");
+  wsv_groups.emplace_back("ArrayOfTime");
+  wsv_groups.emplace_back("ArrayOfTransmissionMatrix");
+  wsv_groups.emplace_back("ArrayOfVector");
+  wsv_groups.emplace_back("ArrayOfXsecRecord");
+  wsv_groups.emplace_back("CIARecord");
+  wsv_groups.emplace_back("CallbackFunction");
+  wsv_groups.emplace_back("CovarianceMatrix");
+  wsv_groups.emplace_back("EnergyLevelMap");
+  wsv_groups.emplace_back("GasAbsLookup");
+  wsv_groups.emplace_back("GridPos");
+  wsv_groups.emplace_back("GriddedField1");
+  wsv_groups.emplace_back("GriddedField2");
+  wsv_groups.emplace_back("GriddedField3");
+  wsv_groups.emplace_back("GriddedField4");
+  wsv_groups.emplace_back("GriddedField5");
+  wsv_groups.emplace_back("GriddedField6");
+  wsv_groups.emplace_back("HitranRelaxationMatrixData");
+  wsv_groups.emplace_back("Index");
+  wsv_groups.emplace_back("JacobianTarget");
+  wsv_groups.emplace_back("MapOfErrorCorrectedSuddenData");
+  wsv_groups.emplace_back("MCAntenna");
+  wsv_groups.emplace_back("Matrix");
+  wsv_groups.emplace_back("Numeric");
+  wsv_groups.emplace_back("Ppath");
+  wsv_groups.emplace_back("PropagationMatrix");
+  wsv_groups.emplace_back("QuantumIdentifier");
+  wsv_groups.emplace_back("RadiationVector");
+  wsv_groups.emplace_back("Rational");
+  wsv_groups.emplace_back("ScatteringMetaData");
+  wsv_groups.emplace_back("SingleScatteringData");
+  wsv_groups.emplace_back("Sparse");
+  wsv_groups.emplace_back("SpeciesIsotopologueRatios");
+  wsv_groups.emplace_back("StokesVector");
+  wsv_groups.emplace_back("String");
+  wsv_groups.emplace_back("TelsemAtlas");
+  wsv_groups.emplace_back("Tensor3");
+  wsv_groups.emplace_back("Tensor4");
+  wsv_groups.emplace_back("Tensor5");
+  wsv_groups.emplace_back("Tensor6");
+  wsv_groups.emplace_back("Tensor7");
+  wsv_groups.emplace_back("Timer");
+  wsv_groups.emplace_back("Time");
+  wsv_groups.emplace_back("TessemNN");
+  wsv_groups.emplace_back("TransmissionMatrix");
+  wsv_groups.emplace_back("Vector");
+  wsv_groups.emplace_back("Verbosity");
 
   define_wsv_group_map();
-  define_valid_keyword_groups();
-}
-
-bool is_valid_keyword_group(const Index group) {
-  for (Index i = 0; i < valid_keyword_groups.nelem(); i++) {
-    if (valid_keyword_groups[i] == group) return true;
-  }
-
-  return false;
 }
 
 void get_wsv_group_ids(ArrayOfIndex& ids, String name) {
@@ -227,23 +206,22 @@ bool is_agenda_group_id(const Index group) {
 
 Index get_wsv_group_id(const String& name) {
   using global_data::WsvGroupMap;
-  map<String, Index>::const_iterator it = WsvGroupMap.find(name);
+  auto it = WsvGroupMap.find(name);
   if (it == WsvGroupMap.end())
     return -1;
-  else
-    return it->second;
+  return it->second;
 }
 
 String get_array_groups_as_string(bool basetype_is_group,
                                   bool return_basetype_only) {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
   String arraygroups;
 
   bool first = true;
-  for (Index i = 0; i < wsv_group_names.nelem(); i++) {
-    if (wsv_group_names[i].substr(0, String("ArrayOf").length()) == "ArrayOf") {
-      const String basetype = wsv_group_names[i].substr(
-          String("ArrayOf").length(), wsv_group_names[i].length());
+  for (Index i = 0; i < wsv_groups.nelem(); i++) {
+    if (wsv_groups[i].name.substr(0, String("ArrayOf").length()) == "ArrayOf") {
+      const String basetype = wsv_groups[i].name.substr(
+          String("ArrayOf").length(), wsv_groups[i].name.length());
       bool basetype_exists = (get_wsv_group_id(basetype) != -1);
 
       if (return_basetype_only) {
@@ -262,7 +240,7 @@ String get_array_groups_as_string(bool basetype_is_group,
             arraygroups += ", ";
           else
             first = false;
-          arraygroups += wsv_group_names[i];
+          arraygroups += wsv_groups[i];
         }
       }
     }

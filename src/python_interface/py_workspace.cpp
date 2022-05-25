@@ -23,7 +23,7 @@ void py_workspace(py::module_& m,
   if (init) {
     init = false;
 
-    define_wsv_group_names();
+    define_wsv_groups();
     Workspace::define_wsv_data();
     Workspace::define_wsv_map();
     define_md_data_raw();
@@ -148,7 +148,7 @@ void py_workspace(py::module_& m,
           vars.push_back(var_string(
               x,
               ": ",
-              global_data::wsv_group_names.at(w.wsv_data.at(i).Group())));
+              global_data::wsv_groups.at(w.wsv_data.at(i).Group())));
     std::sort(vars.begin(), vars.end());
     return var_string("Workspace [ ", stringify(vars, ", "), ']');
   });
@@ -174,15 +174,15 @@ void py_workspace(py::module_& m,
       .def("__str__",
            [](const WorkspaceVariable& w) {
              return var_string("Workspace ",
-                               global_data::wsv_group_names.at(w.group()));
+                               global_data::wsv_groups.at(w.group()));
            })
       .def("__repr__",
            [](const WorkspaceVariable& w) {
              return var_string("Workspace ",
-                               global_data::wsv_group_names.at(w.group()));
+                               global_data::wsv_groups.at(w.group()));
            })
       .def_property_readonly("group", [](const WorkspaceVariable& w) {
-        return global_data::wsv_group_names.at(w.group());
+        return global_data::wsv_groups.at(w.group());
       });
 
   ws.def("number_of_initialized_variables", [](Workspace& w){

@@ -261,7 +261,7 @@ void write_method_header_documentation(ofstream& ofs, const MdRecord& mdd) {
   \param mdd Method lookup data.
 */
 void write_method_header(ofstream& ofs, const MdRecord& mdd) {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
   const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
   //   // Work out the full name to use:
@@ -346,7 +346,7 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      ofs << wsv_group_names[Workspace::wsv_data[vo[j]].Group()] << "& "
+      ofs << wsv_groups[Workspace::wsv_data[vo[j]].Group()] << "& "
           << Workspace::wsv_data[vo[j]].Name();
     }
   }
@@ -367,10 +367,10 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      if (wsv_group_names[mdd.GOutType()[j]] == "Any")
+      if (wsv_groups[mdd.GOutType()[j]] == "Any")
         ofs << "T& ";
       else
-        ofs << wsv_group_names[mdd.GOutType()[j]] << "& ";
+        ofs << wsv_groups[mdd.GOutType()[j]] << "& ";
 
       if (mdd.GOut()[j].length())
         ofs << mdd.GOut()[j];
@@ -419,7 +419,7 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      ofs << "const " << wsv_group_names[Workspace::wsv_data[vi[j]].Group()]
+      ofs << "const " << wsv_groups[Workspace::wsv_data[vi[j]].Group()]
           << "& " << Workspace::wsv_data[vi[j]].Name();
     }
   }
@@ -440,14 +440,14 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      if (wsv_group_names[mdd.GInType()[j]] == "Any") {
+      if (wsv_groups[mdd.GInType()[j]] == "Any") {
         ofs << "const T& ";
         if (mdd.GIn()[j].length())
           ofs << mdd.GIn()[j];
         else
           ofs << "genericinput" << j + 1;
       } else {
-        ofs << "const " << wsv_group_names[mdd.GInType()[j]] << "& ";
+        ofs << "const " << wsv_groups[mdd.GInType()[j]] << "& ";
         if (mdd.GIn()[j].length())
           ofs << mdd.GIn()[j];
         else
@@ -566,7 +566,7 @@ int main() {
     using global_data::md_data_raw;
 
     // Initialize the wsv group name array:
-    define_wsv_group_names();
+    define_wsv_groups();
 
     // Initialize wsv data.
     Workspace::define_wsv_data();
