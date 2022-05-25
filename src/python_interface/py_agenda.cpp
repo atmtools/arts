@@ -155,7 +155,7 @@ MRecord simple_set_method(WorkspaceVariable val) {
   using namespace global_data;
 
   // Find group and is it acceptable
-  const String group = wsv_groups[val.group()].name;
+  const auto& group = wsv_groups[val.group()];
   ARTS_USER_ERROR_IF(group == "ArrayOfAgenda",
                      "Cannot support setting ArrayOfAgenda")
 
@@ -171,7 +171,7 @@ MRecord simple_set_method(WorkspaceVariable val) {
   // If this is a new variable, we need to find its set-method and transfer
   // data ownership to the MRecord and remove the value from the workspace
   const ArrayOfIndex output = ArrayOfIndex{val.pos};
-  const Index m_id = MdMap.find(group + "Set")->second;
+  const Index m_id = MdMap.find(group.name + "Set")->second;
   val.pop_workspace_level();
 
   return MRecord(m_id, output, {}, t, a);

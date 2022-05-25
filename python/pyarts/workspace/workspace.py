@@ -283,7 +283,7 @@ def continue_parser_function(arts, context, ast, allow_callbacks, set_agenda):
     return agenda
 
 
-_group_types = [type(eval(f"cxx.{x}()")) for x in list(cxx.get_wsv_group_names())]
+_group_types = [type(eval(f"cxx.{x.name}()")) for x in list(cxx.get_wsv_groups())]
 
 
 class Workspace(InternalWorkspace):

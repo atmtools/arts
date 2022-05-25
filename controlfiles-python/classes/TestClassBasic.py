@@ -24,7 +24,7 @@ ws = pyarts.workspace.Workspace()
 special_groups = ["CallbackFunction", "Any"]
 
 # All groups
-list_of_groups = cxx.get_wsv_group_names()
+list_of_groups = [x.name for x in cxx.get_wsv_groups()]
 
 # Test initialization
 for g in list_of_groups:
