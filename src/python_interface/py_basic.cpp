@@ -203,7 +203,7 @@ object's instances (i.e., no element-wise comparisions))--");
 
 This is a wrapper class for Arts Numeric.
 
-You can get copies and set the value by the \"val\" property)--");
+You can get copies and set the value by the "val" property)--");
 
   py::class_<Index_>(m, "Index")
       .def(py::init([]() { return new Index_{}; }))
@@ -272,7 +272,7 @@ You can get copies and set the value by the \"val\" property)--");
 
 This is a wrapper class for Arts Index.
 
-You can get copies and set the value by the \"val\" property)--");
+You can get copies and set the value by the "val" property)--");
 
   py::implicitly_convertible<py::str, String>();
   py::implicitly_convertible<std::vector<py::str>, ArrayOfString>();
