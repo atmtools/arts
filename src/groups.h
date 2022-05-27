@@ -5,9 +5,8 @@
 
 struct GroupRecord {
 String name;
-String desc{"Missing description"};
+String desc;
 GroupRecord() : name("This is not a good name") {}
-GroupRecord(String n) : name(std::move(n)) {}
 GroupRecord(String n, String d) : name(std::move(n)), desc(std::move(d)) {}
 bool operator==(const String& s) const {return name == s;}
 bool operator!=(const String& s) const {return name != s;}
