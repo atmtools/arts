@@ -86,7 +86,8 @@ void py_time(py::module_& m) {
 #endif
 
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(Timer);
 
   py::class_<Time>(m, "Time")
       .def(py::init([]() { return new Time{}; }))
@@ -149,7 +150,8 @@ void py_time(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Time>()(t[0]).cast<Time>();
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(Time);
   py::implicitly_convertible<std::chrono::system_clock::time_point, Time>();
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();

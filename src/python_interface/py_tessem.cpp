@@ -49,6 +49,7 @@ void py_tessem(py::module_& m) {
                                 t[8].cast<Vector>(),
                                 t[9].cast<Vector>(),
                                 t[10].cast<Vector>()};
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(TessemNN);
 }
 }  // namespace Python

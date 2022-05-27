@@ -208,7 +208,8 @@ void py_agenda(py::module_& m) {
       .def(
           "__call__",
           [](CallbackFunction& f, Workspace& ws) { f(ws); },
-          py::is_operator());
+          py::is_operator())
+      .PythonInterfaceWorkspaceDocumentation(CallbackFunction);
   py::implicitly_convertible<std::function<void(Workspace&)>,
                              CallbackFunction>();
 
@@ -609,7 +610,8 @@ Both agendas must be defined on the same workspace)--"),
              out += os.str();
              return out;
            })
-      .def_property("methods", &Agenda::Methods, &Agenda::set_methods);
+      .def_property("methods", &Agenda::Methods, &Agenda::set_methods)
+      .PythonInterfaceWorkspaceDocumentation(Agenda);
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
       .def(py::init([]() { return new ArrayOfAgenda{}; }))
@@ -705,7 +707,8 @@ Both agendas must be defined on the same workspace)--"),
           },
           [](ArrayOfAgenda& aa, const String& name) {
             for (auto& a : aa) a.set_name(name);
-          });
+          })
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfAgenda);
   py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();
 }
 }  // namespace Python

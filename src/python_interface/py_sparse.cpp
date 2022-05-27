@@ -61,7 +61,8 @@ void py_sparse(py::module_& m) {
             out->matrix = t[0].cast<decltype(out->matrix)>();
 
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(Sparse);
   py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
                              Sparse>();
 
@@ -176,7 +177,8 @@ void py_sparse(py::module_& m) {
             out->get_blocks() = std::move(b);
             out->get_inverse_blocks() = std::move(i);
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(CovarianceMatrix);
 
   PythonInterfaceWorkspaceArray(Sparse);
 }

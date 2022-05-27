@@ -58,7 +58,8 @@ void py_scattering(py::module_& m) {
                                             t[6].cast<Tensor7>(),
                                             t[7].cast<Tensor5>(),
                                             t[8].cast<Tensor5>()};
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(SingleScatteringData);
 
   py::class_<ScatteringMetaData>(m, "ScatteringMetaData")
       .def(py::init([]() { return new ScatteringMetaData{}; }))
@@ -95,7 +96,8 @@ void py_scattering(py::module_& m) {
                                           t[4].cast<Numeric>(),
                                           t[5].cast<Numeric>(),
                                           t[6].cast<Numeric>()};
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(ScatteringMetaData);
 
   PythonInterfaceWorkspaceArray(ScatteringMetaData);
   PythonInterfaceWorkspaceArray(SingleScatteringData);

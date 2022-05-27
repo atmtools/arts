@@ -26,6 +26,7 @@ struct ValueHolder {
 
   constexpr ValueType operator-() const noexcept {return - val;}
   constexpr ValueType operator+() const noexcept {return val;}
+  
   constexpr ValueType operator+(ValueHolder x) const noexcept {return val + x.val;}
   constexpr ValueType operator-(ValueHolder x) const noexcept {return val - x.val;}
   constexpr ValueType operator*(ValueHolder x) const noexcept {return val * x.val;}

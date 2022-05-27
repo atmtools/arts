@@ -45,6 +45,7 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
             out->vib_energy = t[2].cast<Vector>();
             out->value = t[3].cast<Tensor4>();
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(EnergyLevelMap);
 }
 }  // namespace Python

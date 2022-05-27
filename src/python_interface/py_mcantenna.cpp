@@ -52,6 +52,7 @@ void py_mcantenna(py::module_& m) {
             out->za_grid = t[4].cast<Vector>();
             out->G_lookup = t[5].cast<Matrix>();
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(MCAntenna);
 }
 }  // namespace Python

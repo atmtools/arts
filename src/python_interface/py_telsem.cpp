@@ -47,7 +47,8 @@ void py_telsem(py::module_& m) {
             out->Correspondance() = t[13].cast<ArrayOfIndex>();
 
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(TelsemAtlas);
 
   PythonInterfaceWorkspaceArray(TelsemAtlas);
 }

@@ -213,7 +213,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceVariableConversion(GriddedField1)
       .PythonInterfaceFileIO(GriddedField1)
       .PythonInterfaceBasicRepresentation(GriddedField1)
-      .PythonInterfaceGriddedField(GriddedField1);
+      .PythonInterfaceGriddedField(GriddedField1)
+      .PythonInterfaceWorkspaceDocumentation(GriddedField1);
 
   py::class_<GriddedField2, GriddedField>(m, "GriddedField2")
       .def(py::init([]() { return new GriddedField2{}; }))
@@ -240,7 +241,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceVariableConversion(GriddedField2)
       .PythonInterfaceFileIO(GriddedField2)
       .PythonInterfaceBasicRepresentation(GriddedField2)
-      .PythonInterfaceGriddedField(GriddedField2);
+      .PythonInterfaceGriddedField(GriddedField2)
+      .PythonInterfaceWorkspaceDocumentation(GriddedField2);
 
   py::class_<GriddedField3, GriddedField>(m, "GriddedField3")
       .def(py::init([]() { return new GriddedField3{}; }))
@@ -267,7 +269,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceVariableConversion(GriddedField3)
       .PythonInterfaceFileIO(GriddedField3)
       .PythonInterfaceBasicRepresentation(GriddedField3)
-      .PythonInterfaceGriddedField(GriddedField3);
+      .PythonInterfaceGriddedField(GriddedField3)
+      .PythonInterfaceWorkspaceDocumentation(GriddedField3);
 
   py::class_<GriddedField4, GriddedField>(m, "GriddedField4")
       .def(py::init([]() { return new GriddedField4{}; }))
@@ -294,7 +297,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceVariableConversion(GriddedField4)
       .PythonInterfaceFileIO(GriddedField4)
       .PythonInterfaceBasicRepresentation(GriddedField4)
-      .PythonInterfaceGriddedField(GriddedField4);
+      .PythonInterfaceGriddedField(GriddedField4)
+      .PythonInterfaceWorkspaceDocumentation(GriddedField4);
 
   py::class_<GriddedField5, GriddedField>(m, "GriddedField5")
       .def(py::init([]() { return new GriddedField5{}; }))
@@ -321,7 +325,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceVariableConversion(GriddedField5)
       .PythonInterfaceFileIO(GriddedField5)
       .PythonInterfaceBasicRepresentation(GriddedField5)
-      .PythonInterfaceGriddedField(GriddedField5);
+      .PythonInterfaceGriddedField(GriddedField5)
+      .PythonInterfaceWorkspaceDocumentation(GriddedField5);
 
   py::class_<GriddedField6, GriddedField>(m, "GriddedField6")
       .def(py::init([]() { return new GriddedField6{}; }))
@@ -348,7 +353,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceVariableConversion(GriddedField6)
       .PythonInterfaceFileIO(GriddedField6)
       .PythonInterfaceBasicRepresentation(GriddedField6)
-      .PythonInterfaceGriddedField(GriddedField6);
+      .PythonInterfaceGriddedField(GriddedField6)
+      .PythonInterfaceWorkspaceDocumentation(GriddedField6);
 
   PythonInterfaceWorkspaceArray(GriddedField1);
   PythonInterfaceWorkspaceArray(GriddedField2);
