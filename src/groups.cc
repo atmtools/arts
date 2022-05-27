@@ -165,7 +165,7 @@ void define_wsv_groups() {
                           "A list of *RadiationVector*");
 
   wsv_groups.emplace_back("ArrayOfRetrievalQuantity",
-                          "A list of *RetrievalQuantity*");
+                          "A list of retrieval quantitities");
 
   wsv_groups.emplace_back("ArrayOfScatteringMetaData",
                           "A list of *ScatteringMetaData*");
@@ -173,7 +173,10 @@ void define_wsv_groups() {
   wsv_groups.emplace_back("ArrayOfSingleScatteringData",
                           "A list of *SingleScatteringData*");
 
-  wsv_groups.emplace_back("ArrayOfSpeciesTag", "A list of *SpeciesTag*");
+  wsv_groups.emplace_back("ArrayOfSpeciesTag", R"--(A list of species tags
+
+These tags include the species and a lot of optional information
+about the isotopologue, the absorption scheme, and the frequency limits)--");
 
   wsv_groups.emplace_back("ArrayOfSparse", "A list of *Sparse*");
 
@@ -200,20 +203,19 @@ void define_wsv_groups() {
 
   wsv_groups.emplace_back("ArrayOfVector", "A list of *Vector*");
 
-  wsv_groups.emplace_back("ArrayOfXsecRecord", "A list of *XsecRecord*");
+  wsv_groups.emplace_back("ArrayOfXsecRecord",
+                          R"--(A list of cross-section records
+
+These cross-section records contains information about the valid temperature and
+pressure ranges as well as well as the fitting coefficients used to compute
+and interpolate the cross-section to other temperatures and pressures)--");
 
   wsv_groups.emplace_back(
       "CIARecord",
       R"--(Contains information to compute collision induced absorption for a pair of species
 
-Holds an *ArrayOfGriddedField2* of data and the pair of species
-
-Array dimension: Dataset. One molecule pair can have
-                      different datasets, typically for different temperature
-                      or frequency ranges.
-Gridded field dimension 1: Frequency [Hz].
-Gridded field dimension 2: Temperature [K].
-Data: Binary absorption cross-sections in m^5 molec^(-2) )--");
+Holds an the record data in a gridded field with grids of temperature and frequency in
+units of m^5 molec^(-2) )--");
 
   wsv_groups.emplace_back("CallbackFunction",
                           "Used to inject custom code into *Agenda*");
@@ -223,67 +225,55 @@ Data: Binary absorption cross-sections in m^5 molec^(-2) )--");
   wsv_groups.emplace_back("EnergyLevelMap",
                           R"--(Maps data based on energy levels
 
-Used for keeping track of non-local thermodynamic equilibrium data
-
-Holds an *ArrayOfQuantumIdentifier* for the energy levels,
-a custom data type description, a *Tensor4* of data and
-optionally a *Vector* for level energies)--");
+Used for keeping track of non-local thermodynamic equilibrium data)--");
 
   wsv_groups.emplace_back("GasAbsLookup", R"--(An absorption lookup table
 
 This class holds an absorption lookup table, as well as all
 information that is necessary to use the table to extract
-absorption
-
-Contains the *ArrayOfArrayOfSpeciesTag* list that generated it, an
-*ArrayOfIndex* for non-linear species, the grequency grid as *Vector*,
-a set of interpolation functions, the pressure grid in normal and log
-scale as two *Vector*, the reference volume mixing ratios as a *Matrix*,
-the reference temeratures as *Vector*, the temperature perturbations as
-*Vector*, the non-linear perturbations as a *Vector*, and the
-cross-section data as a *Tensor4*)--");
+absorption)--");
 
   wsv_groups.emplace_back("GridPos", "A position in a grid");
 
   wsv_groups.emplace_back("GriddedField1",
-                          R"--(A 1 dimensional gridded set of data
+                          R"--(A 1 dimensional gridded set of *Numeric* data
 
-Holds a *Vector* of data and a grid consisting of a single *Vector* or *ArrayOfString*
+The grid is 1 *Vector* or *ArrayOfString*
 
 Both the data and the grid may be named)--");
 
   wsv_groups.emplace_back("GriddedField2",
-                          R"--(A 2 dimensional gridded set of data
+                          R"--(A 2 dimensional gridded set *Numeric* data
 
-Holds a *Matrix* of data and a grid of any combination of two *Vector* and/or *ArrayOfString*
+The grid is a combination of 2 *Vector* and/or *ArrayOfString*
 
 Both the data and the grid may be named)--");
 
   wsv_groups.emplace_back("GriddedField3",
-                          R"--(A 3 dimensional gridded set of data
+                          R"--(A 3 dimensional gridded set of *Numeric* data
 
-Holds a *Tensor3* of data and a grid of any combination of three *Vector* and/or *ArrayOfString*
+The grid is a combination of 3 *Vector* and/or *ArrayOfString*
 
 Both the data and the grid may be named)--");
 
   wsv_groups.emplace_back("GriddedField4",
-                          R"--(A 4 dimensional gridded set of data
+                          R"--(A 4 dimensional gridded set of *Numeric* data
 
-Holds a *Tensor4* of data and a grid of any combination of four *Vector* and/or *ArrayOfString*
+The grid is a combination of 4 *Vector* and/or *ArrayOfString*
 
 Both the data and the grid may be named)--");
 
   wsv_groups.emplace_back("GriddedField5",
-                          R"--(A 5 dimensional gridded set of data
+                          R"--(A 5 dimensional gridded set  of *Numeric* data
 
-Holds a *Tensor5* of data and a grid of any combination of five *Vector* and/or *ArrayOfString*
+The grid is a combination of 5 *Vector* and/or *ArrayOfString*
 
 Both the data and the grid may be named)--");
 
   wsv_groups.emplace_back("GriddedField6",
-                          R"--(A 6 dimensional gridded set of data
+                          R"--(A 6 dimensional gridded set of *Numeric* data
 
-Holds a *Tensor6* of data and a grid of any combination of six *Vector* and/or *ArrayOfString*
+The grid is a combination of 6 *Vector* and/or *ArrayOfString*
 
 Both the data and the grid may be named)--");
 
