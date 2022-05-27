@@ -66,6 +66,8 @@ for g in list_of_groups:
     print("docstr:", docstr, sep='\n',
           end="\n################################\n")
     assert docstr, "There is no documentation!"
+    
+    assert docstr != "Missing description", "Must add real documentation to groups.cc"
 
 
 # Each class should must tested
