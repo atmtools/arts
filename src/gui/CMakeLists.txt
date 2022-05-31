@@ -1,7 +1,9 @@
 # GUI Library: For basic GUI creation
 add_library (artsgui STATIC
             gui.cc
+            menu.cc
             plot.cc
+            propmat.cc
             )
 add_dependencies(artsgui BuildAutoSources)
 target_link_libraries(artsgui PUBLIC imgui implot matpack artscore species)

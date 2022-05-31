@@ -1,6 +1,7 @@
 #include <mutex>
 
 #include "plot.h"
+#include "menu.h"
 
 namespace ARTSGUI {
 // Defaults
@@ -26,7 +27,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   InitializeGUI(PlotConfig::Frame.c_str(), 1280, 720);
   
   // Our global states are stored in config
-  Config config;
+  Config config{};
   
   // Our style
   LayoutAndStyleSettings();

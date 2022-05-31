@@ -212,7 +212,7 @@ void compute(PropagationMatrix& propmat_clearsky,
     }
 
     if (do_freq_jac) {
-      const Numeric d = temperature_perturbation(jacobian_quantities);
+      const Numeric d = frequency_perturbation(jacobian_quantities);
       ARTS_ASSERT(d not_eq 0)
 
       Vector f_grid_d{f_grid};

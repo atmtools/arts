@@ -2524,6 +2524,21 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearsky_agendaGUI"),
+      DESCRIPTION("Opens a GUI for running the propagation matrix agenda\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky_agenda", "abs_species"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddPredefined"),
       DESCRIPTION("Adds all of the modern predefined models in *abs_species* to the propmat_clearsky\n"
         "\n"
