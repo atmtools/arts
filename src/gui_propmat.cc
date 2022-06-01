@@ -5,6 +5,7 @@
 #include <iterator>
 #include <mutex>
 #include <stdexcept>
+#include <thread>
 
 #include "agenda_class.h"
 #include "artstime.h"
