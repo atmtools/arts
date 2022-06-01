@@ -188,6 +188,7 @@ add_library (artscore STATIC
   gas_abs_lookup.cc
   geodetic.cc
   gridded_fields.cc
+  gui_propmat.cc
   hitran_species.cc
   xsec_fit.cc
   igrf13.cc
@@ -315,6 +316,8 @@ if (ENABLE_GUI)
                                              ${ARTS_SOURCE_DIR}/3rdparty/)
   
   target_link_libraries (artscore artsgui)
+
+  target_compile_definitions(artscore PUBLIC ARTS_GUI_ENABLED)
 endif()
 
 

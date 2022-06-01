@@ -9,7 +9,9 @@
 #include <implot.h>
 #include <implot_internal.h>
 
+#include <functional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "gui_macros.h"
@@ -40,6 +42,9 @@ struct Config {
   bool new_save_path;
   std::filesystem::path save_path;
 
+  /** Hover times */
+  float hover_time_limit{0.5f};
+
   Config(bool fullscreen_on = false)
       : io(ImGui::GetIO()),
         fullscreen(fullscreen_on),
@@ -62,12 +67,6 @@ struct Config {
 void LayoutAndStyleSettings();
 
 GLFWmonitor *get_current_monitor(GLFWwindow *window);
-
-namespace MainMenu {
-void fullscreen(Config &cfg, GLFWwindow *window);
-void quitscreen(const Config &cfg, GLFWwindow *window);
-void exportdata(const Config &cfg, ImGui::FileBrowser& fileBrowser);
-}  // namespace MainMenu
 
 namespace Windows {
 template <unsigned WIDTH = 1, unsigned HEIGHT = 1, unsigned WIDTH_POS = 0,
