@@ -1,5 +1,5 @@
-arts.xml
-========
+pyarts.xml
+==========
 
 .. automodule:: pyarts.xml
 

@@ -24,10 +24,5 @@ class TestUtils:
             with pytest.raises(DeprecationWarning):
                 func()
 
-    def test_image2mpeg(self):
-        """Test the behavior when no files are found."""
-        with pytest.raises(Exception):
-            utils.image2mpeg(glob='', outfile='foo.mp4')
-
     def test_unique(self):
         assert utils.unique([0, 5, 1, 2, 0, 3, 1]) == [0, 5, 1, 2, 3]
