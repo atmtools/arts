@@ -68,11 +68,17 @@ void quitscreen(const Config& cfg, GLFWwindow* window) {
   }
 }
 
-void exportdata(const Config& cfg, ImGui::FileBrowser& fileBrowser) {
+bool exportdata(const Config& cfg,
+                ImGui::FileBrowser& fileBrowser,
+                const char* dialog,
+                bool shortcut) {
+  bool pressed = false;
+
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem(" Export Data ", "Ctrl+S")) {
+      if (ImGui::MenuItem(dialog, shortcut ? "Ctrl+S" : "")) {
         fileBrowser.Open();
+        pressed = true;
       }
       ImGui::Separator();
       ImGui::EndMenu();
@@ -80,9 +86,13 @@ void exportdata(const Config& cfg, ImGui::FileBrowser& fileBrowser) {
     ImGui::EndMainMenuBar();
   }
 
-  if (cfg.io.KeyCtrl and ImGui::IsKeyPressed(GLFW_KEY_S)) {
-    fileBrowser.Open();
+  if (shortcut) {
+    if (cfg.io.KeyCtrl and ImGui::IsKeyPressed(GLFW_KEY_S)) {
+      fileBrowser.Open();
+    }
   }
+
+  return pressed;
 }
 
 bool change_item(const char* name) {

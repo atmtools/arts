@@ -19,7 +19,7 @@ void fullscreen(Config &cfg, GLFWwindow *window);
 
 void quitscreen(const Config &cfg, GLFWwindow *window);
 
-void exportdata(const Config &cfg, ImGui::FileBrowser &fileBrowser);
+bool exportdata(const Config &cfg, ImGui::FileBrowser &fileBrowser, const char * dialog = " Export Data ", bool shortcut=true);
 
 [[nodiscard]] bool change_item(const char *);
 

@@ -240,7 +240,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
   Config config{};
   MainMenu::Options menu_opt{};
   PropmatClearsky::DisplayOptions disp_options{};
-  
+
   // Our style
   LayoutAndStyleSettings();
 
@@ -251,12 +251,16 @@ void propmat(PropmatClearsky::ResultsArray& res,
   ImPlotLimits r{};
   Time start_time{};
   Time end_time{};
+  std::size_t curpos = PropmatClearsky::n;
+  auto fileBrowser = ARTSGUI::Files::xmlfile_chooser();
 
   // Main loop
   BeginWhileLoopGUI;
 
   // Main menu bar
   MainMenu::fullscreen(config, window);
+  if (MainMenu::exportdata(config, fileBrowser, " Export Propagation Matrix ", false)) config.save_type=0;
+  if (MainMenu::exportdata(config, fileBrowser, " Export Propagation Matrix Derivatives ", false)) config.save_type=1;
   MainMenu::quitscreen(config, window);
 
   // Allow changing the values
@@ -403,6 +407,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
       for (std::size_t i = 0; i < PropmatClearsky::n; i++) {
         std::string opt{var_string(' ', "Plot panel ", i, ' ')};
         if (ImGui::BeginTabItem(opt.c_str())) {
+          curpos = i;
+
           // Run the update if input has be updated
           if (updated and res[i].auto_update) {
             start_run(i, ctrl, start_time);
@@ -443,15 +449,25 @@ void propmat(PropmatClearsky::ResultsArray& res,
     end_time = Time{};
   }
 
-  if (std::any_of(res.begin(), res.end(), [](auto& x) { return x.ok.load(); })) {
+  if (std::any_of(
+          res.begin(), res.end(), [](auto& x) { return x.ok.load(); })) {
     if (ImGui::BeginMainMenuBar()) {
       std::string msg{
           var_string((ctrl.run.load() ? std::string{"Running: "}
                                       : std::string{"Last run took: "}),
-                     end_time.Seconds() - start_time.Seconds(), " s")};
+                     end_time.Seconds() - start_time.Seconds(),
+                     " s")};
       ImGui::Text("\t%s", msg.c_str());
       ImGui::EndMainMenuBar();
     }
+  }
+
+  // Save the data to file?
+  if (curpos < res.size() and res[curpos].ok.load()) {
+    if (config.save_type == 0)
+      ARTSGUI::Files::save_data(config, fileBrowser, res[curpos].value.pm);
+    else if (config.save_type == 1)
+      ARTSGUI::Files::save_data(config, fileBrowser, res[curpos].value.aopm);
   }
 
   if (ctrl.exit.load()) glfwSetWindowShouldClose(window, 1);

@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "gui_macros.h"
+#include "propagationmatrix.h"
 
 #include <matpackI.h>
 
@@ -41,6 +42,7 @@ struct Config {
   /** User input */
   bool new_save_path;
   std::filesystem::path save_path;
+  int save_type{-1};
 
   /** Hover times */
   float hover_time_limit{0.5f};
@@ -114,6 +116,8 @@ namespace Files {
   ImGui::FileBrowser xmlfile_chooser();
   void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Vector& data);
   void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfVector& data);
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropagationMatrix& data);
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfPropagationMatrix& data);
 }  // namespace Files
 }  // namespace GUI
 
