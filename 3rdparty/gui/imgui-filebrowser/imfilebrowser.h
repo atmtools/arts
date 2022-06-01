@@ -324,7 +324,7 @@ inline void ImGui::FileBrowser::Display()
 #endif
 
     int secIdx = 0, newPwdLastSecIdx = -1;
-    for(auto &sec : pwd_)
+    for(auto &&sec : pwd_)
     {
 #ifdef _WIN32
         if(secIdx == 1)
@@ -346,7 +346,7 @@ inline void ImGui::FileBrowser::Display()
     {
         int i = 0;
         std::filesystem::path newPwd;
-        for(auto &sec : pwd_)
+        for(auto &&sec : pwd_)
         {
             if(i++ > newPwdLastSecIdx)
                 break;
