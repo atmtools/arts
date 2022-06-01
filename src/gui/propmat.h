@@ -4,6 +4,7 @@
 #include <jacobian.h>
 #include <propagationmatrix.h>
 
+#include "enums.h"
 #include "gui.h"
 
 namespace ARTSGUI {
@@ -48,7 +49,7 @@ struct Results {
 
 using ResultsArray = std::array<Results, n>;
 
-ENUMCLASS(Scaling, char,
+ENUMCLASS(XScaling, char,
   Hz,
   GHz,
   THz,
@@ -58,9 +59,15 @@ ENUMCLASS(Scaling, char,
   nm,
   Angfreq)
 
+ENUMCLASS(YScaling, char, None, Normalize, CrossSection)
 struct DisplayOptions {
-  Scaling scale{Scaling::Hz};
+  XScaling xscale{XScaling::Hz};
+  
   Index jacobian_target{-1};
+
+  YScaling yscale{YScaling::None};
+  Numeric yscale_const{1.0};
+  bool inverse_yscale{false};
 };
 }  // namespace PropmatClearsky
 

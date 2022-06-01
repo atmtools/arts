@@ -59,8 +59,10 @@ void select_option(T &current,
                           ImGuiSelectableFlags_DontClosePopups)) {
       current = opt[i];
     }
+    ImGui::Separator();
   }
 }
 
+std::string absunit(const Jacobian::Target& target);
 void select_option(Index&, const ArrayOfRetrievalQuantity& jac);
 }  // namespace ARTSGUI::MainMenu

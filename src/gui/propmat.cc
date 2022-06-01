@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdio>
 #include <limits>
 #include <mutex>
 #include <stdexcept>
@@ -19,30 +20,31 @@
 #include "math_funcs.h"
 #include "matpackI.h"
 #include "menu.h"
+#include "physics_funcs.h"
 #include "propagationmatrix.h"
 #include "species_tags.h"
 
 namespace ARTSGUI {
 namespace PropmatClearsky {
-constexpr Numeric xscale(Numeric x, Scaling scale) noexcept {
+constexpr Numeric xscale(Numeric x, XScaling scale) noexcept {
   switch (scale) {
-    case Scaling::Hz:
+    case XScaling::Hz:
       return x;
-    case Scaling::GHz:
+    case XScaling::GHz:
       return 1e-9 * x;
-    case Scaling::THz:
+    case XScaling::THz:
       return 1e-12 * x;
-    case Scaling::Angcm:
+    case XScaling::Angcm:
       return Conversion::freq2angcm(x);
-    case Scaling::Kaycm:
+    case XScaling::Kaycm:
       return Conversion::freq2kaycm(x);
-    case Scaling::m:
+    case XScaling::m:
       return Conversion::freq2wavelen(x);
-    case Scaling::nm:
+    case XScaling::nm:
       return 1e9 * Conversion::freq2wavelen(x);
-    case Scaling::Angfreq:
+    case XScaling::Angfreq:
       return Conversion::freq2angfreq(x);
-    case Scaling::FINAL: { /* leave last */
+    case XScaling::FINAL: { /* leave last */
     }
   }
   return std::numeric_limits<Numeric>::quiet_NaN();
@@ -50,70 +52,91 @@ constexpr Numeric xscale(Numeric x, Scaling scale) noexcept {
 
 constexpr std::pair<Numeric, Numeric> xunscale(Numeric min,
                                                Numeric max,
-                                               Scaling scale) noexcept {
+                                               XScaling scale) noexcept {
   switch (scale) {
-    case Scaling::Hz:
+    case XScaling::Hz:
       return {min, max};
-    case Scaling::GHz:
+    case XScaling::GHz:
       return {1e9 * min, 1e9 * max};
-    case Scaling::THz:
+    case XScaling::THz:
       return {1e12 * min, 1e12 * max};
-    case Scaling::Angcm:
+    case XScaling::Angcm:
       return {Conversion::angcm2freq(min), Conversion::angcm2freq(max)};
-    case Scaling::Kaycm:
+    case XScaling::Kaycm:
       return {Conversion::kaycm2freq(min), Conversion::kaycm2freq(max)};
-    case Scaling::m:
+    case XScaling::m:
       return {Conversion::wavelen2freq(max), Conversion::wavelen2freq(min)};
-    case Scaling::nm:
+    case XScaling::nm:
       return {Conversion::wavelen2freq(1e-9 * max),
               Conversion::wavelen2freq(1e-9 * min)};
-    case Scaling::Angfreq:
+    case XScaling::Angfreq:
       return {Conversion::angfreq2freq(min), Conversion::angfreq2freq(max)};
-    case Scaling::FINAL: { /* leave last */
+    case XScaling::FINAL: { /* leave last */
     }
   }
   return {std::numeric_limits<Numeric>::quiet_NaN(),
           std::numeric_limits<Numeric>::quiet_NaN()};
 }
 
-constexpr std::string_view xunit(Scaling scale) noexcept {
+constexpr std::string_view xunit(XScaling scale) noexcept {
   switch (scale) {
-    case Scaling::Hz:
+    case XScaling::Hz:
       return "Frequency [Hz]";
-    case Scaling::GHz:
+    case XScaling::GHz:
       return "Frequency [GHz]";
-    case Scaling::THz:
+    case XScaling::THz:
       return "Frequency [THz]";
-    case Scaling::Angcm:
+    case XScaling::Angcm:
       return "Angular Wavenumber [cm-1]";
-    case Scaling::Kaycm:
+    case XScaling::Kaycm:
       return "Kayser Wavenumber [cm-1]";
-    case Scaling::m:
+    case XScaling::m:
       return "Wavelength [m]";
-    case Scaling::nm:
+    case XScaling::nm:
       return "Wavelength [nm]";
-    case Scaling::Angfreq:
+    case XScaling::Angfreq:
       return "Angular Frequency [Hz]";
-    case Scaling::FINAL: { /* leave last */
+    case XScaling::FINAL: { /* leave last */
     }
   }
   return "BadUnit";
 }
 
-std::array<std::string, PropmatClearsky::enumtyps::ScalingTypes.size()>
+std::array<std::string, PropmatClearsky::enumtyps::XScalingTypes.size()>
 xscale_option() {
-  std::array<std::string, PropmatClearsky::enumtyps::ScalingTypes.size()> out;
+  std::array<std::string, PropmatClearsky::enumtyps::XScalingTypes.size()> out;
   std::array<char, 100> buf;
   for (size_t i = 0; i < out.size(); i++) {
     buf.fill('\0');
     std::sprintf(buf.data(),
                  "%g",
-                 xscale(1e12, PropmatClearsky::enumtyps::ScalingTypes[i]));
+                 xscale(1e12, PropmatClearsky::enumtyps::XScalingTypes[i]));
 
-    out[i] = var_string("Scale: ",
-                        xunit(PropmatClearsky::enumtyps::ScalingTypes[i]),
+    out[i] = var_string("\tScale: ",
+                        xunit(PropmatClearsky::enumtyps::XScalingTypes[i]),
                         "; 1e12 Hz -> ",
-                        buf.data());
+                        buf.data(),
+                        '\t');
+  }
+  return out;
+}
+
+Numeric yscale(YScaling scale, Numeric T, Numeric P, const PropagationMatrix& pm) {
+  switch (scale) {
+    case YScaling::None: return 1.0;
+    case YScaling::CrossSection: return number_density(P, T);
+    case YScaling::Normalize: return max(pm.Data());
+    case YScaling::FINAL: { /* leave last */ }
+  }
+  return 1.0;
+}
+
+std::array<std::string, PropmatClearsky::enumtyps::YScalingTypes.size()>
+yscale_option() {
+  std::array<std::string, PropmatClearsky::enumtyps::YScalingTypes.size()> out;
+  for (size_t i = 0; i < out.size(); i++) {
+    out[i] =
+        var_string('\t', PropmatClearsky::enumstrs::YScalingNames[i], '\t');
   }
   return out;
 }
@@ -121,66 +144,83 @@ xscale_option() {
 struct DataHolder {
   const PropagationMatrix& pm;
   const Vector& f_grid;
-  Scaling scale;
+  XScaling xscale_fun;
+  Numeric yscale_const;
 
   static ImPlotPoint Kjj(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->scale),
-            data_ptr->pm.Kjj()[i]};
+    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
+            data_ptr->yscale_const * data_ptr->pm.Kjj()[i]};
   }
 
   static ImPlotPoint K12(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->scale),
-            data_ptr->pm.K12()[i]};
+    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
+            data_ptr->yscale_const * data_ptr->pm.K12()[i]};
   }
 
   static ImPlotPoint K13(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->scale),
-            data_ptr->pm.K13()[i]};
+    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
+            data_ptr->yscale_const * data_ptr->pm.K13()[i]};
   }
 
   static ImPlotPoint K14(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->scale),
-            data_ptr->pm.K14()[i]};
+    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
+            data_ptr->yscale_const * data_ptr->pm.K14()[i]};
   }
 
   static ImPlotPoint K23(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->scale),
-            data_ptr->pm.K23()[i]};
+    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
+            data_ptr->yscale_const * data_ptr->pm.K23()[i]};
   }
 
   static ImPlotPoint K24(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->scale),
-            data_ptr->pm.K24()[i]};
+    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
+            data_ptr->yscale_const * data_ptr->pm.K24()[i]};
   }
 
   static ImPlotPoint K34(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->scale),
-            data_ptr->pm.K34()[i]};
+    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
+            data_ptr->yscale_const * data_ptr->pm.K34()[i]};
   }
 };
 
 ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
   ImPlotLimits out{};
-  DataHolder main_data{(opts.jacobian_target < 0 or
-                        opts.jacobian_target >= v.jacobian_quantities.nelem())
-                           ? v.pm
-                           : v.aopm[opts.jacobian_target],
-                       v.f_grid,
-                       opts.scale};
 
-  std::string y_axis{"Absorption [1/m]"};
+  const bool select_jac = opts.jacobian_target >= 0 and
+                          opts.jacobian_target < v.jacobian_quantities.nelem();
 
-  if (ImPlot::BeginPlot("Propagation Matrix",
-                        xunit(opts.scale).data(),
-                        y_axis.c_str(),
-                        {-1, -1})) {
+  const PropagationMatrix& pm =
+      select_jac ? v.aopm[opts.jacobian_target] : v.pm;
+
+  DataHolder main_data{
+      pm,
+      v.f_grid,
+      opts.xscale,
+      (opts.inverse_yscale ? 1.0 / opts.yscale_const : opts.yscale_const) /
+          yscale(opts.yscale, v.rtp_temperature, v.rtp_pressure, pm)};
+
+  std::array<char, 100> yscale_str;
+  yscale_str.fill('\0');
+  sprintf(yscale_str.data(), " (Scale: 1:%g)", main_data.yscale_const);
+
+  const std::string y_axis = var_string(
+      select_jac ? MainMenu::absunit(
+                       v.jacobian_quantities[opts.jacobian_target].Target())
+                 : std::string{"Absorption [1/m]"}, main_data.yscale_const == 1.0 ? "" : yscale_str.data());
+
+  const std::string_view title = select_jac
+                                     ? "Propagation Matrix Partial Derivative"
+                                     : "Propagation Matrix";
+
+  if (ImPlot::BeginPlot(
+          title.data(), xunit(opts.xscale).data(), y_axis.c_str(), {-1, -1})) {
     if (v.pm.StokesDimensions() > 0) {
       ImPlot::PlotLineG(
           "Kjj", DataHolder::Kjj, &main_data, int(v.f_grid.nelem()));
@@ -246,6 +286,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
   // Local configurations
   const auto xscale_display = PropmatClearsky::xscale_option();
+  const auto yscale_display = PropmatClearsky::yscale_option();
 
   // Local buffers
   ImPlotLimits r{};
@@ -259,8 +300,14 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
   // Main menu bar
   MainMenu::fullscreen(config, window);
-  if (MainMenu::exportdata(config, fileBrowser, " Export Propagation Matrix ", false)) config.save_type=0;
-  if (MainMenu::exportdata(config, fileBrowser, " Export Propagation Matrix Derivatives ", false)) config.save_type=1;
+  if (MainMenu::exportdata(
+          config, fileBrowser, " Export Propagation Matrix ", false))
+    config.save_type = 0;
+  if (MainMenu::exportdata(config,
+                           fileBrowser,
+                           " Export Propagation Matrix Derivatives ",
+                           false))
+    config.save_type = 1;
   MainMenu::quitscreen(config, window);
 
   // Allow changing the values
@@ -365,9 +412,26 @@ void propmat(PropmatClearsky::ResultsArray& res,
     }
 
     if (ImGui::BeginMenu("Display")) {
+      if (ImGui::BeginMenu("\tY Scale\t")) {
+        MainMenu::select_option(disp_options.yscale,
+                                PropmatClearsky::enumtyps::YScalingTypes,
+                                yscale_display);
+        if (disp_options.yscale not_eq PropmatClearsky::YScaling::Normalize) {
+          ImGui::InputDouble(
+              "\tY Scale Constant\t", &disp_options.yscale_const, 0, 0, "%g");
+          ImGui::Checkbox("\tInverse Y Scale Constant\t", &disp_options.inverse_yscale);
+          ImGui::Separator();
+        } else {
+          disp_options.inverse_yscale = false;
+          disp_options.yscale_const = 1.0;
+        }
+        ImGui::EndMenu();
+      }
+      ImGui::Separator();
+
       if (ImGui::BeginMenu("\tX Scale\t")) {
-        MainMenu::select_option(disp_options.scale,
-                                PropmatClearsky::enumtyps::ScalingTypes,
+        MainMenu::select_option(disp_options.xscale,
+                                PropmatClearsky::enumtyps::XScalingTypes,
                                 xscale_display);
         ImGui::EndMenu();
       }
@@ -423,7 +487,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
               r = g;
               if (res[i].auto_f_grid) {
                 auto [min, max] = PropmatClearsky::xunscale(
-                    g.X.Min, g.X.Max, disp_options.scale);
+                    g.X.Min, g.X.Max, disp_options.xscale);
 
                 if (std::isnormal(min) and std::isnormal(max)) {
                   min = std::clamp<Numeric>(

@@ -367,30 +367,44 @@ bool change_item(const char* name,
   return did_something;
 }
 
+std::string absunit(const Jacobian::Target& target) {
+  switch (target.type) {
+    case Jacobian::Type::Atm:
+      switch (target.atm) {
+        case Jacobian::Atm::Temperature:
+          return "Absorption Partial Derivative [1/m K]";
+          break;
+        case Jacobian::Atm::WindMagnitude:
+          return "Absorption Partial Derivative [1/m (m/s)]";
+          break;
+        default:
+          ARTS_USER_ERROR("Not implemented")
+      }
+
+      break;
+    case Jacobian::Type::Line:
+      switch (target.line) {
+        case Jacobian::Line::VMR:
+          return var_string("Absorption Partial Derivative [1/m ", target.qid, ']');
+          break;
+        default:
+          ARTS_USER_ERROR("Not implemented")
+      }
+      break;
+    default:
+      ARTS_USER_ERROR("Not implemented")
+  }
+}
+
 void select_option(Index& ind, const ArrayOfRetrievalQuantity& jac) {
-  if (ImGui::Selectable(
-          "\tMain\t", ind == -1, ImGuiSelectableFlags_DontClosePopups)) {
+  if (ImGui::Selectable("\tAbsorption [1/m]\t",
+                        ind == -1,
+                        ImGuiSelectableFlags_DontClosePopups)) {
     ind = -1;
   }
 
   for (Index i = 0; i < jac.nelem(); i++) {
-    std::string opt{'\t'};
-
-    switch (jac[i].Target().type) {
-      case Jacobian::Type::Atm:
-        opt += var_string(jac[i].Target().atm);
-        break;
-      case Jacobian::Type::Line:
-        opt += var_string(jac[i].Target().line, ' ', jac[i].Target().qid);
-        break;
-      case Jacobian::Type::Sensor:
-      case Jacobian::Type::Special:
-        ARTS_USER_ERROR("Not implemented")
-      case Jacobian::Type::FINAL: { /* leave last */
-      }
-    }
-
-    opt += '\t';
+    const std::string opt{var_string('\t', absunit(jac[i].Target()), '\t')};
     if (ImGui::Selectable(
             opt.c_str(), ind == i, ImGuiSelectableFlags_DontClosePopups)) {
       ind = i;
