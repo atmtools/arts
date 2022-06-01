@@ -60,7 +60,8 @@ void py_basic(py::module_& m) {
             auto* out = new Verbosity{va, vs, vf};
             out->set_main_agenda(bm);
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(Verbosity);
   py::implicitly_convertible<Index, Verbosity>();
 
   py::class_<String>(m, "String")
@@ -81,13 +82,11 @@ void py_basic(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new String{t[0].cast<std::string>()};
           }))
-      .doc() =
-      R"--(
-The Arts String class
+      .PythonInterfaceWorkspaceDocumentationExtra(String,
+                                                  R"--(
 
 This class is compatible with python strings.  The data can 
-be accessed without copy using element-wise access operators.
-)--";
+be accessed without copy using element-wise access operators)--");
 
   PythonInterfaceWorkspaceArray(String).def(
       "index", [](ArrayOfString& a, String& b) {
@@ -119,22 +118,15 @@ be accessed without copy using element-wise access operators.
                         },
                         py::keep_alive<0, 1>()),
                     [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; })
-      .PythonInterfaceValueOperators.doc() =
-      "The Arts ArrayOfIndex class\n"
-      "\n"
-      "This class is compatible with numpy arrays.  The data can "
-      "be accessed without copy using np.array(x, copy=False), "
-      "with x as an instance of this class.  Note that access to "
-      "any and all of the mathematical operations are only available "
-      "via the numpy interface.  The main constern equality operations, "
-      "which only checks pointer equality if both LHS and RHS of this "
-      "object's instances (i.e., no element-wise comparisions)\n"
-      "\n"
-      "Initialization:\n"
-      "    ArrayOfIndex(): for basic initialization\n\n"
-      "    ArrayOfIndex(Index): for constant size, unknown value\n\n"
-      "    ArrayOfIndex(Index, Index): for constant size, constant value\n\n"
-      "    ArrayOfIndex(List or Array): to copy elements\n\n";
+      .PythonInterfaceWorkspaceDocumentationExtra(ArrayOfIndex, R"--(
+
+This class is compatible with numpy arrays.  The data can
+be accessed without copy using np.array(x, copy=False),
+with x as an instance of this class.  Note that access to
+any and all of the mathematical operations are only available
+via the numpy interface.  The main constern equality operations,
+which only checks pointer equality if both LHS and RHS of this
+object's instances (i.e., no element-wise comparisions))--");
   py::implicitly_convertible<std::vector<Index>, ArrayOfIndex>();
 
   PythonInterfaceWorkspaceArray(ArrayOfIndex);
@@ -151,20 +143,9 @@ be accessed without copy using element-wise access operators.
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
       .def(+py::self)
       .def(-py::self)
-      .def(py::self != py::self)
-      .def(py::self == py::self)
-      .def(py::self <= py::self)
-      .def(py::self >= py::self)
-      .def(py::self < py::self)
-      .def(py::self > py::self)
-      .def(py::self + py::self)
-      .def(py::self - py::self)
-      .def(py::self * py::self)
-      .def(py::self / py::self)
-      .def(py::self += Numeric_())
-      .def(py::self -= Numeric_())
-      .def(py::self *= Numeric_())
-      .def(py::self /= Numeric_())
+      .PythonInterfaceInPlaceMathOperators(Numeric_, Numeric_)
+      .PythonInterfaceComparisonOperators(Numeric_, Numeric_)
+      .PythonInterfaceMathOperators(Numeric_, Numeric_)
       .def_property(
           "val",
           [](Numeric_& x) { return x.val; },
@@ -217,12 +198,12 @@ be accessed without copy using element-wise access operators.
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new Numeric_{t[0].cast<Numeric>()};
           }))
-      .doc() =
-      R"--(
+      .PythonInterfaceWorkspaceDocumentationExtra(Numeric,
+                                                  R"--(
+
 This is a wrapper class for Arts Numeric.
 
-You can get copies and set the value by the \"val\" property
-)--";
+You can get copies and set the value by the "val" property)--");
 
   py::class_<Index_>(m, "Index")
       .def(py::init([]() { return new Index_{}; }))
@@ -231,20 +212,9 @@ You can get copies and set the value by the \"val\" property
       .PythonInterfaceWorkspaceVariableConversion(Index_)
       .def(+py::self)
       .def(-py::self)
-      .def(py::self != py::self)
-      .def(py::self == py::self)
-      .def(py::self <= py::self)
-      .def(py::self >= py::self)
-      .def(py::self < py::self)
-      .def(py::self > py::self)
-      .def(py::self + py::self)
-      .def(py::self - py::self)
-      .def(py::self * py::self)
-      .def(py::self / py::self)
-      .def(py::self += Index_())
-      .def(py::self -= Index_())
-      .def(py::self *= Index_())
-      .def(py::self /= Index_())
+      .PythonInterfaceInPlaceMathOperators(Index_, Index_)
+      .PythonInterfaceComparisonOperators(Index_, Index_)
+      .PythonInterfaceMathOperators(Index_, Index_)
       .def_property(
           "val",
           [](Index_& x) { return x.val; },
@@ -297,12 +267,12 @@ You can get copies and set the value by the \"val\" property
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new Index_{t[0].cast<Index>()};
           }))
-      .doc() =
-      R"--(
+      .PythonInterfaceWorkspaceDocumentationExtra(Index,
+                                                  R"--(
+
 This is a wrapper class for Arts Index.
 
-You can get copies and set the value by the \"val\" property
-)--";
+You can get copies and set the value by the "val" property)--");
 
   py::implicitly_convertible<py::str, String>();
   py::implicitly_convertible<std::vector<py::str>, ArrayOfString>();
@@ -315,13 +285,13 @@ You can get copies and set the value by the \"val\" property
       .def(py::init([](py::args, py::kwargs) { return new Any{}; }))
       .def("__repr__", [](Any&) { return "Any"; })
       .def("__str__", [](Any&) { return "Any"; })
-      .def(py::pickle(
-          [](const py::object&) { return py::make_tuple(); },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")
-            return new Any{};
-          }));
-  
+      .def(py::pickle([](const py::object&) { return py::make_tuple(); },
+                      [](const py::tuple& t) {
+                        ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")
+                        return new Any{};
+                      }))
+      .PythonInterfaceWorkspaceDocumentation(Any);
+
   py::class_<Array<Numeric>>(m, "ArrayOfNumeric")
       .PythonInterfaceBasicRepresentation(ArrayOfNumeric)
       .PythonInterfaceArrayDefault(Numeric);

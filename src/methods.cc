@@ -32,13 +32,14 @@
 
 #include "methods.h"
 #include "arts.h"
+#include "groups.h"
 #include "wsv_aux.h"
 #include <algorithm>
 #include <array>
 
 namespace global_data {
 Array<MdRecord> md_data_raw;
-extern const ArrayOfString wsv_group_names;
+extern const ArrayOfGroupRecord wsv_groups;
 }  // namespace global_data
 
 template <typename ... T>
@@ -204,14 +205,14 @@ void define_md_data_raw() {
   const String ARRAY_GROUPS_WITH_BASETYPE =
       get_array_groups_as_string(true, false);
 
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
-  for (const auto & wsv_group_name : wsv_group_names) {
-    if (wsv_group_name != "Any") {
+  for (const auto & wsv_group : wsv_groups) {
+    if (wsv_group != "Any") {
       md_data_raw.push_back(MdRecord(
-          NAME(String(wsv_group_name + "Create").c_str()),
+          NAME(String(wsv_group.name + "Create").c_str()),
           DESCRIPTION(
-              String("Creates a variable of group " + wsv_group_name +
+              String("Creates a variable of group " + wsv_group.name +
                      ".\n"
                      "\n"
                      "After being created, the variable is uninitialized.\n")
@@ -219,7 +220,7 @@ void define_md_data_raw() {
           ArrayOfString(AUTHORS("Oliver Lemke")),
           ArrayOfString(OUT()),
           ArrayOfString(GOUT("out")),
-          ArrayOfString(GOUT_TYPE(wsv_group_name.c_str())),
+          ArrayOfString(GOUT_TYPE(wsv_group.name.c_str())),
           ArrayOfString(GOUT_DESC("Variable to create.")),
           ArrayOfString(IN()),
           ArrayOfString(GIN()),
@@ -227,18 +228,18 @@ void define_md_data_raw() {
           ArrayOfString(GIN_DEFAULT()),
           ArrayOfString(GIN_DESC())));
 
-        if (wsv_group_name not_eq "Agenda" and wsv_group_name not_eq "ArrayOfAgenda") {
+        if (wsv_group not_eq "Agenda" and wsv_group not_eq "ArrayOfAgenda") {
             md_data_raw.push_back(MdRecord(
-                NAME(String(wsv_group_name + "Set").c_str()),
+                NAME(String(wsv_group.name + "Set").c_str()),
                 DESCRIPTION("Sets a workspace variable to the given value.\n"),
                 ArrayOfString(AUTHORS("Richard Larsson")),
                 ArrayOfString(OUT()),
                 ArrayOfString(GOUT("out")),
-                ArrayOfString(GOUT_TYPE(wsv_group_name.c_str())),
+                ArrayOfString(GOUT_TYPE(wsv_group.name.c_str())),
                 ArrayOfString(GOUT_DESC("Variable to initialize.")),
                 ArrayOfString(IN()),
                 ArrayOfString(GIN("value")),
-                ArrayOfString(GIN_TYPE(wsv_group_name.c_str())),
+                ArrayOfString(GIN_TYPE(wsv_group.name.c_str())),
                 ArrayOfString(GIN_DEFAULT(NODEF)),
                 ArrayOfString(GIN_DESC("The value.")),
                 SETMETHOD(true)));
@@ -21909,7 +21910,7 @@ where N>=0 and the species name is something line "H2O".
       i++;
       for (auto& x : m.GIn()) gin.push_back(x);
       for (auto& x : m.GInType()) {
-        gintype.push_back(global_data::wsv_group_names.at(x));
+        gintype.push_back(global_data::wsv_groups.at(x).name);
         gindesc.push_back("See *" + m.Name() + "*");
       }
       for (auto& x : m.GInDefault()) gindefault.push_back(x);

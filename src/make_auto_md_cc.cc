@@ -39,11 +39,11 @@ int main() {
   try {
     // Make the global data visible:
     using global_data::md_data;
-    using global_data::wsv_group_names;
+    using global_data::wsv_groups;
     const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
     // Initialize the wsv group name array:
-    define_wsv_group_names();
+    define_wsv_groups();
 
     // Initialize wsv data.
     Workspace::define_wsv_data();
@@ -195,7 +195,7 @@ int main() {
         ostringstream docstr;
         docstr << "  // " << wsv_data[vo[voutonly[j]]].Name() << "\n";
 
-        String gname = wsv_group_names[wsv_data[vo[voutonly[j]]].Group()];
+        String gname = wsv_groups[wsv_data[vo[voutonly[j]]].Group()];
         ostringstream initstr;
         if (gname == "Numeric")
           initstr << " = NAN;";
@@ -208,7 +208,7 @@ int main() {
         // variable for any other parameter
         ofs << "  if (mr.In().end() == find(mr.In().begin(), mr.In().end(),"
             << " mr.Out()[" << voutonly[j] << "]))\n";
-        ofs << "    (*((" << wsv_group_names[wsv_data[vo[voutonly[j]]].Group()]
+        ofs << "    (*((" << wsv_groups[wsv_data[vo[voutonly[j]]].Group()]
             << " *)ws[mr.Out()[" << voutonly[j] << "]]))" << initstr.str();
         ofs << docstr.str();
       }
@@ -227,12 +227,12 @@ int main() {
         // large to correspond to a group. This can easily
         // happen if somebody puts a variable identifier instead
         // of a group identifier in the argument of GOUTPUT:
-        ARTS_ASSERT(wsv_data[vo[j]].Group() < wsv_group_names.nelem());
+        ARTS_ASSERT(wsv_data[vo[j]].Group() < wsv_groups.nelem());
 
         // Add comma and line break, if not first element:
         align(ofs, is_first_parameter, indent);
 
-        ofs << "*((" << wsv_group_names[wsv_data[vo[j]].Group()]
+        ofs << "*((" << wsv_groups[wsv_data[vo[j]].Group()]
             << " *)ws[mr.Out()[" << j << "]])";
       }
 
@@ -242,12 +242,12 @@ int main() {
         // large to correspond to a group. This can easily
         // happen if somebody puts a variable identifier instead
         // of a group identifier in the argument of GOUTPUT:
-        ARTS_ASSERT(vgo[j] < wsv_group_names.nelem());
+        ARTS_ASSERT(vgo[j] < wsv_groups.nelem());
 
         // Add comma and line break, if not first element:
         align(ofs, is_first_parameter, indent);
 
-        ofs << "*((" << wsv_group_names[vgo[j]] << " *)ws[mr.Out()["
+        ofs << "*((" << wsv_groups[vgo[j]] << " *)ws[mr.Out()["
             << j + vo.nelem() << "]])";
       }
 
@@ -268,10 +268,10 @@ int main() {
         align(ofs, is_first_parameter, indent);
 
         if (is_agenda_group_id(wsv_data[vi[j]].Group())) {
-          ofs << "*((" << wsv_group_names[wsv_data[vi[j]].Group()]
+          ofs << "*((" << wsv_groups[wsv_data[vi[j]].Group()]
               << " *)ws[mr.In()[" << j << "]])";
         } else {
-          ofs << "*((" << wsv_group_names[wsv_data[vi[j]].Group()]
+          ofs << "*((" << wsv_groups[wsv_data[vi[j]].Group()]
               << " *)ws[mr.In()[" << j << "]])";
         }
       }
@@ -290,12 +290,12 @@ int main() {
             // large to correspond to a group. This can easily
             // happen if somebody puts a variable identifier instead
             // of a group identifier in the argument of GINPUT:
-            ARTS_ASSERT(vgi[j] < wsv_group_names.nelem());
+            ARTS_ASSERT(vgi[j] < wsv_groups.nelem());
 
             // Add comma and line break, if not first element:
             align(ofs, is_first_parameter, indent);
 
-            ofs << "*((" << wsv_group_names[vgi[j]] << " *)ws[mr.In()["
+            ofs << "*((" << wsv_groups[vgi[j]] << " *)ws[mr.In()["
                 << j + vi.nelem() << "]])";
           }
 
@@ -340,7 +340,7 @@ int main() {
         static Index verbosity_wsv_id = get_wsv_id("verbosity");
         static Index verbosity_group_id = get_wsv_group_id("Verbosity");
         align(ofs, is_first_parameter, indent);
-        ofs << "*((" << wsv_group_names[verbosity_group_id] << " *)ws["
+        ofs << "*((" << wsv_groups[verbosity_group_id] << " *)ws["
             << verbosity_wsv_id << "])";
       }
 
@@ -514,7 +514,7 @@ int main() {
 
     // Create implementation of the GroupCreate WSMs
     //
-    for (auto&& it : wsv_group_names) {
+    for (auto&& it : wsv_groups) {
       if (it != "Any") {
         ofs << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
             << "void " << it << "Create(" << it << "& var, const Verbosity&)\n"

@@ -5,6 +5,7 @@
 
 #include <global_data.h>
 #include <parameters.h>
+#include <pybind11/pybind11.h>
 
 extern Parameters parameters;
 extern String out_basename;
@@ -49,9 +50,16 @@ void py_global(py::module_& m) {
       []() { return global_data::AgendaMap; },
       py::doc("Get a copy of the global data variable"));
 
+  auto global = m.def_submodule("global");
+  py::class_<GroupRecord>(global, "GroupRecord")
+      .def_readwrite("name", &GroupRecord::name)
+      .def_readwrite("desc", &GroupRecord::desc);
+  py::class_<ArrayOfGroupRecord>(global, "ArrayOfGroupRecord")
+      .PythonInterfaceArrayDefault(GroupRecord);
+
   m.def(
-      "get_wsv_group_names",
-      []() { return global_data::wsv_group_names; },
+      "get_wsv_groups",
+      []() { return global_data::wsv_groups; },
       py::doc("Get a copy of the global data variable"));
 
   m.def(

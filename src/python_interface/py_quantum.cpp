@@ -138,7 +138,8 @@ void py_quantum(py::module_& m) {
             out->val = t[1].cast<Quantum::Number::ValueList>();
 
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(QuantumIdentifier);
   py::implicitly_convertible<std::string, QuantumIdentifier>();
 
   PythonInterfaceWorkspaceArray(QuantumIdentifier);

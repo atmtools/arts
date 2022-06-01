@@ -17,7 +17,7 @@ import pyarts.workspace.global_data as global_data
 
 workspace_methods = global_data.get_raw_method_map()
 workspace_variables = global_data.get_variables_map()
-group_names =  list(global_data.cxx.get_wsv_group_names())
+group_names =  [str(x.name) for x in global_data.cxx.get_wsv_groups()]
 
 grammar = r"""
     controlfile : statement*

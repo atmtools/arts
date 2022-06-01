@@ -3,21 +3,27 @@
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
+
 #include <type_traits>
 #include <vector>
 
-#include "matpackI.h"
 #include "py_macros.h"
 
 namespace Python {
 using Scalar = std::variant<Index, Numeric>;
 
-template<typename T>
+template <typename T>
 void test_correct_size(const std::vector<T>& x) {
   if constexpr (not std::is_same_v<Scalar, T>) {
     // T is a vector!
-    ARTS_USER_ERROR_IF(x.size() and std::any_of(x.begin()+1, x.end(), [n=x.front().size()](auto& v){return v.size() != n;}), "Bad size")
-    for (auto& y: x) test_correct_size(y);
+    ARTS_USER_ERROR_IF(
+        x.size() and std::any_of(x.begin() + 1,
+                                 x.end(),
+                                 [n = x.front().size()](auto& v) {
+                                   return v.size() != n;
+                                 }),
+        "Bad size")
+    for (auto& y : x) test_correct_size(y);
   }
 }
 
@@ -96,28 +102,28 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Vector>()(t[0]).cast<Vector>();
           }))
-      .doc() = R"--(The Arts Vector class
+      .PythonInterfaceWorkspaceDocumentationExtra(Vector, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+via x.value)--");
 
   py::class_<Matrix, MatrixView>(m, "Matrix", py::buffer_protocol())
       .def(py::init([]() { return new Matrix{}; }))
       .def(py::init([](const std::vector<std::vector<Scalar>>& v) {
-        test_correct_size(v);
-        auto n1 = v.size();
-        auto n2 = n1 > 0 ? v[0].size() : 0;
-        auto* out = new Matrix(n1, n2);
-        for (size_t i = 0; i < n1; i++) {
-          for (size_t j = 0; j < n2; j++) {
-            out->operator()(i, j) = std::visit(
-                [](auto&& x) { return static_cast<Numeric>(x); }, v[i][j]);
-          }
-        }
-        return out;
-      }), py::arg("mat").none(false))
+             test_correct_size(v);
+             auto n1 = v.size();
+             auto n2 = n1 > 0 ? v[0].size() : 0;
+             auto* out = new Matrix(n1, n2);
+             for (size_t i = 0; i < n1; i++) {
+               for (size_t j = 0; j < n2; j++) {
+                 out->operator()(i, j) = std::visit(
+                     [](auto&& x) { return static_cast<Numeric>(x); }, v[i][j]);
+               }
+             }
+             return out;
+           }),
+           py::arg("mat").none(false))
       .PythonInterfaceCopyValue(Matrix)
       .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .PythonInterfaceBasicRepresentation(Matrix)
@@ -151,32 +157,32 @@ via x.value
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Matrix>()(t[0]).cast<Matrix>();
           }))
-      .doc() = R"--(The Arts Matrix class
+      .PythonInterfaceWorkspaceDocumentationExtra(Matrix, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+via x.value)--");
 
   py::class_<Tensor3, Tensor3View>(m, "Tensor3", py::buffer_protocol())
       .def(py::init([]() { return new Tensor3{}; }))
       .def(py::init([](const std::vector<std::vector<std::vector<Scalar>>>& v) {
-        test_correct_size(v);
-        auto n1 = v.size();
-        auto n2 = n1 > 0 ? v[0].size() : 0;
-        auto n3 = n2 > 0 ? v[0][0].size() : 0;
-        auto* out = new Tensor3(n1, n2, n3);
-        for (size_t i1 = 0; i1 < n1; i1++) {
-          for (size_t i2 = 0; i2 < n2; i2++) {
-            for (size_t i3 = 0; i3 < n3; i3++) {
-              out->operator()(i1, i2, i3) =
-                  std::visit([](auto&& x) { return static_cast<Numeric>(x); },
-                             v[i1][i2][i3]);
-            }
-          }
-        }
-        return out;
-      }), py::arg("ten3").none(false))
+             test_correct_size(v);
+             auto n1 = v.size();
+             auto n2 = n1 > 0 ? v[0].size() : 0;
+             auto n3 = n2 > 0 ? v[0][0].size() : 0;
+             auto* out = new Tensor3(n1, n2, n3);
+             for (size_t i1 = 0; i1 < n1; i1++) {
+               for (size_t i2 = 0; i2 < n2; i2++) {
+                 for (size_t i3 = 0; i3 < n3; i3++) {
+                   out->operator()(i1, i2, i3) = std::visit(
+                       [](auto&& x) { return static_cast<Numeric>(x); },
+                       v[i1][i2][i3]);
+                 }
+               }
+             }
+             return out;
+           }),
+           py::arg("ten3").none(false))
       .PythonInterfaceCopyValue(Tensor3)
       .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .PythonInterfaceBasicRepresentation(Tensor3)
@@ -208,37 +214,36 @@ via x.value
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor3>()(t[0]).cast<Tensor3>();
           }))
-      .doc() = R"--(The Arts Tensor3 class
+      .PythonInterfaceWorkspaceDocumentationExtra(Tensor3, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+via x.value)--");
 
   py::class_<Tensor4, Tensor4View>(m, "Tensor4", py::buffer_protocol())
       .def(py::init([]() { return new Tensor4{}; }))
-      .def(py::init(
-          [](const std::vector<std::vector<std::vector<std::vector<Scalar>>>>&
-                 v) {
-            test_correct_size(v);
-            auto n1 = v.size();
-            auto n2 = n1 > 0 ? v[0].size() : 0;
-            auto n3 = n2 > 0 ? v[0][0].size() : 0;
-            auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
-            auto* out = new Tensor4(n1, n2, n3, n4);
-            for (size_t i1 = 0; i1 < n1; i1++) {
-              for (size_t i2 = 0; i2 < n2; i2++) {
-                for (size_t i3 = 0; i3 < n3; i3++) {
-                  for (size_t i4 = 0; i4 < n4; i4++) {
-                    out->operator()(i1, i2, i3, i4) = std::visit(
-                        [](auto&& x) { return static_cast<Numeric>(x); },
-                        v[i1][i2][i3][i4]);
-                  }
-                }
-              }
-            }
-            return out;
-          }), py::arg("ten4").none(false))
+      .def(py::init([](const std::vector<
+                        std::vector<std::vector<std::vector<Scalar>>>>& v) {
+             test_correct_size(v);
+             auto n1 = v.size();
+             auto n2 = n1 > 0 ? v[0].size() : 0;
+             auto n3 = n2 > 0 ? v[0][0].size() : 0;
+             auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
+             auto* out = new Tensor4(n1, n2, n3, n4);
+             for (size_t i1 = 0; i1 < n1; i1++) {
+               for (size_t i2 = 0; i2 < n2; i2++) {
+                 for (size_t i3 = 0; i3 < n3; i3++) {
+                   for (size_t i4 = 0; i4 < n4; i4++) {
+                     out->operator()(i1, i2, i3, i4) = std::visit(
+                         [](auto&& x) { return static_cast<Numeric>(x); },
+                         v[i1][i2][i3][i4]);
+                   }
+                 }
+               }
+             }
+             return out;
+           }),
+           py::arg("ten4").none(false))
       .PythonInterfaceCopyValue(Tensor4)
       .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .PythonInterfaceBasicRepresentation(Tensor4)
@@ -272,40 +277,39 @@ via x.value
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor4>()(t[0]).cast<Tensor4>();
           }))
-      .doc() = R"--(The Arts Tensor4 class
+      .PythonInterfaceWorkspaceDocumentationExtra(Tensor4, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+via x.value)--");
 
   py::class_<Tensor5, Tensor5View>(m, "Tensor5", py::buffer_protocol())
       .def(py::init([]() { return new Tensor5{}; }))
-      .def(py::init(
-          [](const std::vector<
-              std::vector<std::vector<std::vector<std::vector<Scalar>>>>>& v) {
-            test_correct_size(v);
-            auto n1 = v.size();
-            auto n2 = n1 > 0 ? v[0].size() : 0;
-            auto n3 = n2 > 0 ? v[0][0].size() : 0;
-            auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
-            auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
-            auto* out = new Tensor5(n1, n2, n3, n4, n5);
-            for (size_t i1 = 0; i1 < n1; i1++) {
-              for (size_t i2 = 0; i2 < n2; i2++) {
-                for (size_t i3 = 0; i3 < n3; i3++) {
-                  for (size_t i4 = 0; i4 < n4; i4++) {
-                    for (size_t i5 = 0; i5 < n5; i5++) {
-                      out->operator()(i1, i2, i3, i4, i5) = std::visit(
-                          [](auto&& x) { return static_cast<Numeric>(x); },
-                          v[i1][i2][i3][i4][i5]);
-                    }
-                  }
-                }
-              }
-            }
-            return out;
-          }), py::arg("ten5").none(false))
+      .def(py::init([](const std::vector<std::vector<
+                           std::vector<std::vector<std::vector<Scalar>>>>>& v) {
+             test_correct_size(v);
+             auto n1 = v.size();
+             auto n2 = n1 > 0 ? v[0].size() : 0;
+             auto n3 = n2 > 0 ? v[0][0].size() : 0;
+             auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
+             auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
+             auto* out = new Tensor5(n1, n2, n3, n4, n5);
+             for (size_t i1 = 0; i1 < n1; i1++) {
+               for (size_t i2 = 0; i2 < n2; i2++) {
+                 for (size_t i3 = 0; i3 < n3; i3++) {
+                   for (size_t i4 = 0; i4 < n4; i4++) {
+                     for (size_t i5 = 0; i5 < n5; i5++) {
+                       out->operator()(i1, i2, i3, i4, i5) = std::visit(
+                           [](auto&& x) { return static_cast<Numeric>(x); },
+                           v[i1][i2][i3][i4][i5]);
+                     }
+                   }
+                 }
+               }
+             }
+             return out;
+           }),
+           py::arg("ten5").none(false))
       .PythonInterfaceCopyValue(Tensor5)
       .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .PythonInterfaceBasicRepresentation(Tensor5)
@@ -340,12 +344,11 @@ via x.value
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor5>()(t[0]).cast<Tensor5>();
           }))
-      .doc() = R"--(The Arts Tensor5 class
+      .PythonInterfaceWorkspaceDocumentationExtra(Tensor5, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+via x.value)--");
 
   py::class_<Tensor6, Tensor6View>(m, "Tensor6", py::buffer_protocol())
       .def(py::init([]() { return new Tensor6{}; }))
@@ -376,7 +379,8 @@ via x.value
               }
             }
             return out;
-          }), py::arg("ten6").none(false))
+          }),
+          py::arg("ten6").none(false))
       .PythonInterfaceCopyValue(Tensor6)
       .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .PythonInterfaceBasicRepresentation(Tensor6)
@@ -418,54 +422,53 @@ via x.value
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor6>()(t[0]).cast<Tensor6>();
           }))
-      .doc() = R"--(The Arts Tensor6 class
+      .PythonInterfaceWorkspaceDocumentationExtra(Tensor6, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+via x.value)--");
 
   py::class_<Tensor7, Tensor7View>(m, "Tensor7", py::buffer_protocol())
       .def(py::init([]() { return new Tensor7{}; }))
       .def(py::init(
-          [](const std::vector<std::vector<std::vector<std::vector<
-                 std::vector<std::vector<std::vector<Scalar>>>>>>>& v) {
-            test_correct_size(v);
-            auto n1 = v.size();
-            auto n2 = n1 > 0 ? v[0].size() : 0;
-            auto n3 = n2 > 0 ? v[0][0].size() : 0;
-            auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
-            auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
-            auto n6 = n5 > 0 ? v[0][0][0][0][0].size() : 0;
-            auto n7 = n6 > 0 ? v[0][0][0][0][0][0].size() : 0;
-            auto* out = new Tensor7(n1, n2, n3, n4, n5, n6, n7);
-            for (size_t i1 = 0; i1 < n1; i1++) {
-              for (size_t i2 = 0; i2 < n2; i2++) {
-                for (size_t i3 = 0; i3 < n3; i3++) {
-                  for (size_t i4 = 0; i4 < n4; i4++) {
-                    for (size_t i5 = 0; i5 < n5; i5++) {
-                      for (size_t i6 = 0; i6 < n6; i6++) {
-                        for (size_t i7 = 0; i7 < n7; i7++) {
-                          out->operator()(i1, i2, i3, i4, i5, i6, i7) =
-                              std::visit(
-                                  [](auto&& x) {
-                                    return static_cast<Numeric>(x);
-                                  },
-                                  v[i1][i2][i3][i4][i5][i6][i7]);
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            return out;
-          }), py::arg("ten7").none(false))
+               [](const std::vector<std::vector<std::vector<std::vector<
+                      std::vector<std::vector<std::vector<Scalar>>>>>>>& v) {
+                 test_correct_size(v);
+                 auto n1 = v.size();
+                 auto n2 = n1 > 0 ? v[0].size() : 0;
+                 auto n3 = n2 > 0 ? v[0][0].size() : 0;
+                 auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
+                 auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
+                 auto n6 = n5 > 0 ? v[0][0][0][0][0].size() : 0;
+                 auto n7 = n6 > 0 ? v[0][0][0][0][0][0].size() : 0;
+                 auto* out = new Tensor7(n1, n2, n3, n4, n5, n6, n7);
+                 for (size_t i1 = 0; i1 < n1; i1++) {
+                   for (size_t i2 = 0; i2 < n2; i2++) {
+                     for (size_t i3 = 0; i3 < n3; i3++) {
+                       for (size_t i4 = 0; i4 < n4; i4++) {
+                         for (size_t i5 = 0; i5 < n5; i5++) {
+                           for (size_t i6 = 0; i6 < n6; i6++) {
+                             for (size_t i7 = 0; i7 < n7; i7++) {
+                               out->operator()(i1, i2, i3, i4, i5, i6, i7) =
+                                   std::visit(
+                                       [](auto&& x) {
+                                         return static_cast<Numeric>(x);
+                                       },
+                                       v[i1][i2][i3][i4][i5][i6][i7]);
+                             }
+                           }
+                         }
+                       }
+                     }
+                   }
+                 }
+                 return out;
+               }),
+           py::arg("ten7").none(false))
       .PythonInterfaceCopyValue(Tensor7)
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
-      .PythonInterfaceValueOperators
-      .PythonInterfaceBasicRepresentation(Tensor7)
+      .PythonInterfaceValueOperators.PythonInterfaceBasicRepresentation(Tensor7)
       .def_buffer([](Tensor7& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -505,12 +508,11 @@ via x.value
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Tensor7>()(t[0]).cast<Tensor7>();
           }))
-      .doc() =R"--(The Arts Tensor7 class
+      .PythonInterfaceWorkspaceDocumentationExtra(Tensor7, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
-via x.value
-)--";
+via x.value)--");
 
   py::implicitly_convertible<std::vector<Scalar>, Vector>();
   py::implicitly_convertible<std::vector<std::vector<Scalar>>, Matrix>();
@@ -530,37 +532,41 @@ via x.value
 
   PythonInterfaceWorkspaceArray(ArrayOfVector)
       .def(py::init([](const std::vector<std::vector<Vector>>& x) {
-        ArrayOfArrayOfVector y(x.size());
-        std::copy(x.begin(), x.end(), y.begin());
-        return y;
-      }), py::arg("arr").none(false));
+             ArrayOfArrayOfVector y(x.size());
+             std::copy(x.begin(), x.end(), y.begin());
+             return y;
+           }),
+           py::arg("arr").none(false));
   py::implicitly_convertible<std::vector<std::vector<Vector>>,
                              ArrayOfArrayOfVector>();
 
   PythonInterfaceWorkspaceArray(ArrayOfMatrix)
       .def(py::init([](const std::vector<std::vector<Matrix>>& x) {
-        ArrayOfArrayOfMatrix y(x.size());
-        std::copy(x.begin(), x.end(), y.begin());
-        return y;
-      }), py::arg("arr").none(false));
+             ArrayOfArrayOfMatrix y(x.size());
+             std::copy(x.begin(), x.end(), y.begin());
+             return y;
+           }),
+           py::arg("arr").none(false));
   py::implicitly_convertible<std::vector<std::vector<Matrix>>,
                              ArrayOfArrayOfMatrix>();
 
   PythonInterfaceWorkspaceArray(ArrayOfTensor3)
       .def(py::init([](const std::vector<std::vector<Tensor3>>& x) {
-        ArrayOfArrayOfTensor3 y(x.size());
-        std::copy(x.begin(), x.end(), y.begin());
-        return y;
-      }), py::arg("arr").none(false));
+             ArrayOfArrayOfTensor3 y(x.size());
+             std::copy(x.begin(), x.end(), y.begin());
+             return y;
+           }),
+           py::arg("arr").none(false));
   py::implicitly_convertible<std::vector<std::vector<Tensor3>>,
                              ArrayOfArrayOfTensor3>();
 
   PythonInterfaceWorkspaceArray(ArrayOfTensor6)
       .def(py::init([](const std::vector<std::vector<Tensor6>>& x) {
-        ArrayOfArrayOfTensor6 y(x.size());
-        std::copy(x.begin(), x.end(), y.begin());
-        return y;
-      }), py::arg("arr").none(false));
+             ArrayOfArrayOfTensor6 y(x.size());
+             std::copy(x.begin(), x.end(), y.begin());
+             return y;
+           }),
+           py::arg("arr").none(false));
   py::implicitly_convertible<std::vector<std::vector<Tensor6>>,
                              ArrayOfArrayOfTensor6>();
 
@@ -581,30 +587,8 @@ via x.value
       .PythonInterfaceInPlaceMathOperators(Rational, Index)
       .PythonInterfaceMathOperators(Rational, Rational)
       .PythonInterfaceMathOperators(Rational, Index)
-      .def(
-          "__eq__",
-          [](Rational& a, Rational b) { return a == b; },
-          py::is_operator())
-      .def(
-          "__neq__",
-          [](Rational& a, Rational b) { return a != b; },
-          py::is_operator())
-      .def(
-          "__lt__",
-          [](Rational& a, Rational b) { return a < b; },
-          py::is_operator())
-      .def(
-          "__le__",
-          [](Rational& a, Rational b) { return a <= b; },
-          py::is_operator())
-      .def(
-          "__gt__",
-          [](Rational& a, Rational b) { return a > b; },
-          py::is_operator())
-      .def(
-          "__ge__",
-          [](Rational& a, Rational b) { return a >= b; },
-          py::is_operator())
+      .PythonInterfaceComparisonOperators(Rational, Rational)
+      .PythonInterfaceComparisonOperators(Rational, Index)
       .def(py::pickle(
           [](const Rational& self) {
             return py::make_tuple(self.Nom(), self.Denom());
@@ -613,7 +597,8 @@ via x.value
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
 
             return new Rational{t[0].cast<Index>(), t[1].cast<Index>()};
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(Rational);
   py::implicitly_convertible<Index, Rational>();
 }
 }  // namespace Python

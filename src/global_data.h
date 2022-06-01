@@ -27,6 +27,7 @@
 
 #include "agenda_record.h"
 #include "array.h"
+#include "groups.h"
 #include "methods.h"
 #include "workspace_memory_handler.h"
 #include <map>
@@ -83,13 +84,13 @@ extern const map<String, Index> AgendaMap;
 
 //! The names associated with Wsv groups as Strings.
 /**
- See function define_wsv_group_names for more information.
+ See function define_wsv_groups for more information.
  
  Defined in groups.cc.
  */
-extern const ArrayOfString wsv_group_names;
+extern const ArrayOfGroupRecord wsv_groups;
 
-//! The map associated with wsv_group_names.
+//! The map associated with wsv_groups.
 /**
  Defined in groups.cc.
  */

@@ -1847,7 +1847,7 @@ ws.def(py::pickle(
 }
 
 int main(int argc, char** argv) {
-  define_wsv_group_names();
+  define_wsv_groups();
   Workspace::define_wsv_data();
   Workspace::define_wsv_map();
   define_md_data_raw();

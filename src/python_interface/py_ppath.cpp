@@ -22,7 +22,8 @@ void py_ppath(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
             return new GridPos{t[0].cast<Index>(), t[1].cast<std::array<Numeric, 2>>()};
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(GridPos);
 
   py::class_<ArrayOfGridPos>(m, "ArrayOfGridPos")
       .PythonInterfaceArrayDefault(GridPos)
@@ -97,13 +98,15 @@ void py_ppath(py::module_& m) {
                              t[16].cast<ArrayOfGridPos>(),
                              t[17].cast<ArrayOfGridPos>(),
                              t[18].cast<ArrayOfGridPos>()};
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(Ppath);
 
   py::class_<ArrayOfPpath>(m, "ArrayOfPpath")
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfPpath)
       .PythonInterfaceFileIO(ArrayOfPpath)
       .def("__repr__", [](ArrayOfPpath&){return "ArrayOfPpath";})
-      .PythonInterfaceArrayDefault(Ppath);
+      .PythonInterfaceArrayDefault(Ppath)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfPpath);
   py::implicitly_convertible<std::vector<Ppath>, ArrayOfPpath>();
 }
 }  // namespace Python

@@ -137,7 +137,8 @@ void py_jac(py::module_& m) {
             out -> species_id = t[9].cast<Species::Species>();
 
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(JacobianTarget);
 
   PythonInterfaceWorkspaceArray(JacobianTarget);
 

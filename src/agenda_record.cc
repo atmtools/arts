@@ -26,6 +26,8 @@
 #include "agenda_record.h"
 #include <iostream>
 #include <map>
+
+#include "groups.h"
 #include "messages.h"
 #include "workspace_ng.h"
 #include "wsv_aux.h"
@@ -35,7 +37,7 @@ namespace global_data {
 map<String, Index> AgendaMap;
 
 extern const Array<AgRecord> agenda_data;
-extern const ArrayOfString wsv_group_names;
+extern const ArrayOfGroupRecord wsv_groups;
 }  // namespace global_data
 
 //! The only non-trivial constructor for AgRecord, which sets all the fields.
@@ -227,7 +229,7 @@ ostream& operator<<(ostream& os, const AgRecord& agr) {
   \return Output stream.
 */
 ostream& operator<<(ostream& os, const WsvRecord& wr) {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // We need a special treatment for the case that the WSV is an agenda.
 
@@ -241,7 +243,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr) {
        << "\n"
        << wr.Description() << "\n"
        << "\n---------------------------------------------------------------------\n"
-       << "Group = " << wsv_group_names[wr.Group()]
+       << "Group = " << wsv_groups[wr.Group()]
        << "\n*-------------------------------------------------------------------*\n";
   } else {
     // Agenda.
@@ -270,7 +272,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr) {
 void write_agenda_wrapper_header(ofstream& ofs,
                                  const AgRecord& agr,
                                  bool is_agenda_array) {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Wrapper function
   ofs << "void " << agr.Name() << "Execute(\n";
@@ -283,7 +285,7 @@ void write_agenda_wrapper_header(ofstream& ofs,
   ofs << "        // Output\n";
   for (ArrayOfIndex::const_iterator j = ago.begin(); j != ago.end(); j++) {
     ofs << "        ";
-    ofs << wsv_group_names[Workspace::wsv_data[*j].Group()] << "& ";
+    ofs << wsv_groups[Workspace::wsv_data[*j].Group()] << "& ";
     ofs << Workspace::wsv_data[*j].Name() << ",\n";
   }
 
@@ -296,7 +298,7 @@ void write_agenda_wrapper_header(ofstream& ofs,
     while (it != ago.end() && *it != *j) it++;
 
     if (it == ago.end()) {
-      String group_name = wsv_group_names[Workspace::wsv_data[*j].Group()];
+      String group_name = wsv_groups[Workspace::wsv_data[*j].Group()].name;
 
       ofs << "        const ";
       ofs << group_name;

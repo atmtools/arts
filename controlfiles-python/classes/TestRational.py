@@ -20,3 +20,12 @@ y = x - 4
 x -= 4
 assert y == x
 
+assert not (x != y)
+
+assert x <= y
+
+assert x >= y
+
+assert x < 0
+
+assert x > -4

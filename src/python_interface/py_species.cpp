@@ -58,7 +58,8 @@ void py_species(py::module_& m) {
             auto* out = new SpeciesIsotopologueRatios{};
             out->data = v;
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(SpeciesIsotopologueRatios);
 
   py::class_<Species::Species>(m, "Species")
       .def(py::init([]() { return new Species::Species{}; }))
@@ -240,7 +241,7 @@ void py_species(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return new ArrayOfSpeciesTag{t[0].cast<std::vector<SpeciesTag>>()};
           }))
-      .doc() = "The Arts ArrayOfSpeciesTag class";
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesTag);
   py::implicitly_convertible<std::vector<SpeciesTag>, ArrayOfSpeciesTag>();
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpeciesTag>();
   py::implicitly_convertible<std::string, ArrayOfSpeciesTag>();

@@ -667,7 +667,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
                 t[10].cast<QuantumIdentifier>(),
                 t[11].cast<ArrayOfSpecies>(),
                 t[12].cast<Array<AbsorptionSingleLine>>()};
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(AbsorptionLines);
 
   PythonInterfaceWorkspaceArray(AbsorptionLines);
   PythonInterfaceWorkspaceArray(ArrayOfAbsorptionLines);
@@ -845,7 +846,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
             auto* out = new MapOfErrorCorrectedSuddenData{};
             for (auto& b : x) out->operator[](b.id) = b;
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(MapOfErrorCorrectedSuddenData);
 
   py::class_<CIARecord>(m, "CIARecord")
       .def(py::init([]() { return new CIARecord{}; }))
@@ -863,7 +865,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
             out->Data() = t[0].cast<ArrayOfGriddedField2>();
             out->TwoSpecies() = t[1].cast<std::array<Species::Species, 2>>();
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(CIARecord);
 
   PythonInterfaceWorkspaceArray(CIARecord);
 
@@ -930,7 +933,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
             out->W0qq = t[14].cast<Tensor4>();
             out->B0qq = t[15].cast<Tensor4>();
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(HitranRelaxationMatrixData);
 
   auto spec = m.def_submodule("spectroscopy");
   internal_spectroscopy(spec);

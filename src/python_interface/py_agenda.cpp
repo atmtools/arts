@@ -141,10 +141,10 @@ String error_msg(const String& name,
   for (auto& var : var_order) {
     os << var.name << " : ";
     if (var.ws_pos >= 0)
-      os << global_data::wsv_group_names[WorkspaceVariable(ws, var.ws_pos)
+      os << global_data::wsv_groups[WorkspaceVariable(ws, var.ws_pos)
                                              .group()];
     else
-      os << global_data::wsv_group_names[var.group];
+      os << global_data::wsv_groups[var.group];
     if (&var not_eq &var_order.back()) os << ", ";
   }
   os << ")";
@@ -155,7 +155,7 @@ MRecord simple_set_method(WorkspaceVariable val) {
   using namespace global_data;
 
   // Find group and is it acceptable
-  const String group = wsv_group_names[val.group()];
+  const auto& group = wsv_groups[val.group()];
   ARTS_USER_ERROR_IF(group == "ArrayOfAgenda",
                      "Cannot support setting ArrayOfAgenda")
 
@@ -171,7 +171,7 @@ MRecord simple_set_method(WorkspaceVariable val) {
   // If this is a new variable, we need to find its set-method and transfer
   // data ownership to the MRecord and remove the value from the workspace
   const ArrayOfIndex output = ArrayOfIndex{val.pos};
-  const Index m_id = MdMap.find(group + "Set")->second;
+  const Index m_id = MdMap.find(group.name + "Set")->second;
   val.pop_workspace_level();
 
   return MRecord(m_id, output, {}, t, a);
@@ -208,7 +208,8 @@ void py_agenda(py::module_& m) {
       .def(
           "__call__",
           [](CallbackFunction& f, Workspace& ws) { f(ws); },
-          py::is_operator());
+          py::is_operator())
+      .PythonInterfaceWorkspaceDocumentation(CallbackFunction);
   py::implicitly_convertible<std::function<void(Workspace&)>,
                              CallbackFunction>();
 
@@ -609,7 +610,8 @@ Both agendas must be defined on the same workspace)--"),
              out += os.str();
              return out;
            })
-      .def_property("methods", &Agenda::Methods, &Agenda::set_methods);
+      .def_property("methods", &Agenda::Methods, &Agenda::set_methods)
+      .PythonInterfaceWorkspaceDocumentation(Agenda);
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
       .def(py::init([]() { return new ArrayOfAgenda{}; }))
@@ -705,7 +707,8 @@ Both agendas must be defined on the same workspace)--"),
           },
           [](ArrayOfAgenda& aa, const String& name) {
             for (auto& a : aa) a.set_name(name);
-          });
+          })
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfAgenda);
   py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();
 }
 }  // namespace Python

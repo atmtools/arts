@@ -40,8 +40,8 @@ def convert(group, value):
     """
     
     if isinstance(group, int):
-        data = cxx.get_wsv_group_names()
-        groupname = data[group]
+        data = cxx.get_wsv_groups()
+        groupname = data[group].name
     else:
         groupname = group
     groupname = str(groupname)

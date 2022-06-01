@@ -357,17 +357,17 @@ void Docserver::list_agendas() {
   \author Oliver Lemke
   */
 void Docserver::list_groups() {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
   Index i;
 
   get_os() << "<h2>Workspace Groups</h2>" << endl;
 
   get_os() << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
-  for (i = 0; i < wsv_group_names.nelem(); ++i) {
-    get_os() << "<li>" << insert_group_link(wsv_group_names[i]) << "</li>"
+  for (i = 0; i < wsv_groups.nelem(); ++i) {
+    get_os() << "<li>" << insert_group_link(wsv_groups[i].name) << "</li>"
              << endl;
 
-    if (i + 1 == wsv_group_names.nelem() / 2)
+    if (i + 1 == wsv_groups.nelem() / 2)
       get_os() << "</ul>" << endl
                << "</div>" << endl
                << "<div class=\"secondcol\">" << endl
@@ -543,7 +543,7 @@ void Docserver::doc_method(const string& mname) {
   // Make global data visible:
   using global_data::md_data_raw;
   using global_data::MdRawMap;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Let's first assume it is a method that the user wants to have
   // described.
@@ -656,7 +656,7 @@ void Docserver::doc_method(const string& mname) {
         const String& vname = Workspace::wsv_data[mdr.Out()[i]].Name();
         buf << "<td class=\"right\">" << insert_wsv_link(vname) << "</td><td>(";
         buf << insert_group_link(
-            wsv_group_names[Workspace::wsv_data[mdr.Out()[i]].Group()]);
+            wsv_groups[Workspace::wsv_data[mdr.Out()[i]].Group()].name);
         buf << ")</td><td>";
       }
 
@@ -690,10 +690,10 @@ void Docserver::doc_method(const string& mname) {
           else
             firstarg = false;
 
-          buf << insert_group_link(wsv_group_names[mdr.GOutSpecType()[i][j]]);
+          buf << insert_group_link(wsv_groups[mdr.GOutSpecType()[i][j]].name);
         }
       } else {
-        buf << insert_group_link(wsv_group_names[mdr.GOutType()[i]]);
+        buf << insert_group_link(wsv_groups[mdr.GOutType()[i]].name);
       }
 
       buf << ")</td><td>";
@@ -731,7 +731,7 @@ void Docserver::doc_method(const string& mname) {
       buf << "<td class=\"right\">" << insert_wsv_link(vname);
       buf << "</td><td>(";
       buf << insert_group_link(
-          wsv_group_names[Workspace::wsv_data[mdr.In()[i]].Group()]);
+          wsv_groups[Workspace::wsv_data[mdr.In()[i]].Group()].name);
       buf << ")</td><td>";
 
       get_short_wsv_description(desc,
@@ -758,10 +758,10 @@ void Docserver::doc_method(const string& mname) {
             buf << ", ";
           else
             firstarg = false;
-          buf << insert_group_link(wsv_group_names[mdr.GInSpecType()[i][j]]);
+          buf << insert_group_link(wsv_groups[mdr.GInSpecType()[i][j]].name);
         }
       } else {
-        buf << insert_group_link(wsv_group_names[mdr.GInType()[i]]);
+        buf << insert_group_link(wsv_groups[mdr.GInType()[i]].name);
       }
 
       if (mdr.GInDefault()[i] != NODEF) {
@@ -995,7 +995,7 @@ void Docserver::doc_variable_methods(const string& vname) {
   \author Oliver Lemke
   */
 void Docserver::doc_variable(const string& vname) {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Find wsv id:
   map<String, Index>::const_iterator it = Workspace::WsvMap.find(vname);
@@ -1009,7 +1009,7 @@ void Docserver::doc_variable(const string& vname) {
 
     get_os() << "<p><b>Group: </b>"
              << insert_group_link(
-                    wsv_group_names[Workspace::wsv_data[it->second].Group()])
+                    wsv_groups[Workspace::wsv_data[it->second].Group()].name)
              << endl;
 
     doc_variable_methods(vname);
@@ -1028,7 +1028,7 @@ void Docserver::doc_variable(const string& vname) {
   \author Oliver Lemke
   */
 void Docserver::doc_agenda(const string& aname) {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Find wsv id:
   map<String, Index>::const_iterator it = Workspace::WsvMap.find(aname);
@@ -1045,7 +1045,7 @@ void Docserver::doc_agenda(const string& aname) {
 
     get_os() << "<p><b>Group: </b>"
              << insert_group_link(
-                    wsv_group_names[Workspace::wsv_data[it->second].Group()])
+                    wsv_groups[Workspace::wsv_data[it->second].Group()].name)
              << endl;
 
     get_os() << "<h3>Variables</h3>" << endl;
@@ -1069,7 +1069,7 @@ void Docserver::doc_agenda(const string& aname) {
           buf << "<td class=\"right\">" << insert_wsv_link(vname)
               << "</td><td>(";
           buf << insert_group_link(
-              wsv_group_names[Workspace::wsv_data[agr.Out()[i]].Group()]);
+              wsv_groups[Workspace::wsv_data[agr.Out()[i]].Group()].name);
           buf << ")</td><td>";
         }
 
@@ -1095,7 +1095,7 @@ void Docserver::doc_agenda(const string& aname) {
         buf << "<td class=\"right\">" << insert_wsv_link(vname);
         buf << "</td><td>(";
         buf << insert_group_link(
-            wsv_group_names[Workspace::wsv_data[agr.In()[i]].Group()]);
+            wsv_groups[Workspace::wsv_data[agr.In()[i]].Group()].name);
         buf << ")</td><td>";
 
         get_short_wsv_description(
@@ -1135,6 +1135,10 @@ void Docserver::doc_group(const string& gname) {
   if (gid != -1) {
     // If we are here, then the given name matches a group.
     Index hitcount = 0;
+
+    get_os() << "<pre>" << endl;
+    get_os() << description_add_links(global_data::wsv_groups[gid].desc);
+    get_os() << endl << "</pre>" << endl << endl;
 
     if (gname != "Any") {
       // List specific methods:

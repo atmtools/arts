@@ -64,7 +64,8 @@ void py_rte(py::module_& m) {
             out->T3 = t[3].cast<decltype(out->T3)>();
             out->T4 = t[4].cast<decltype(out->T4)>();
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(TransmissionMatrix);
 
   py::class_<RadiationVector>(m, "RadiationVector", py::buffer_protocol())
       .def(py::init([](Index nf, Index ns) {
@@ -118,7 +119,8 @@ void py_rte(py::module_& m) {
             out->R3 = t[3].cast<decltype(out->R3)>();
             out->R4 = t[4].cast<decltype(out->R4)>();
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(RadiationVector);
 
   py::class_<PropagationMatrix>(m, "PropagationMatrix")
       .def(py::init([](Index nf, Index ns, Index nza, Index naa, Numeric v) {
@@ -174,7 +176,8 @@ void py_rte(py::module_& m) {
                                               t[3].cast<Index>()};
             out->Data() = t[4].cast<Tensor4>();
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(PropagationMatrix);
 
   py::class_<StokesVector>(m, "StokesVector")
       .def(py::init([](Index nf, Index ns, Index nza, Index naa, Numeric v) {
@@ -229,7 +232,8 @@ void py_rte(py::module_& m) {
                                          t[3].cast<Index>()};
             out->Data() = t[4].cast<Tensor4>();
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(StokesVector);
 
   PythonInterfaceWorkspaceArray(TransmissionMatrix);
   PythonInterfaceWorkspaceArray(PropagationMatrix);
@@ -319,6 +323,7 @@ void py_rte(py::module_& m) {
             out->Xsec() = t[10].cast<Tensor4>();
 
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(GasAbsLookup);
 }
 }  // namespace Python

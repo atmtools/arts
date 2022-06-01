@@ -118,7 +118,7 @@ using namespace std;
 // FIXME: OLE: These should be moved to a separate header file.
 class ArtsOut;
 
-void define_wsv_group_names();
+void define_wsv_groups();
 Index get_wsv_id(const String& name);
 Index get_wsv_id(const char* name);
 bool is_valid_keyword_group(const Index name);

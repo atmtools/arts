@@ -422,10 +422,10 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
                 os.str(), msource.File(), msource.Line(), msource.Column());
           }
           using global_data::MdMap;
-          using global_data::wsv_group_names;
+          using global_data::wsv_groups;
           String method_name =
               "Delete_sg_" +
-              wsv_group_names[Workspace::wsv_data[output[0]].Group()];
+              wsv_groups[Workspace::wsv_data[output[0]].Group()].name;
           map<String, Index>::const_iterator mdit;
           mdit = MdMap.find(method_name);
           ARTS_ASSERT(mdit != MdMap.end());
@@ -685,10 +685,10 @@ String ArtsParser::set_gin_to_default(const MdRecord* mdd,
       }
       tv = v;
     } else {
-      using global_data::wsv_group_names;
+      using global_data::wsv_groups;
       ostringstream os;
       os << "Default values for generic inputs with type "
-         << wsv_group_names[mdd->GInType()[gin_index]]
+         << wsv_groups[mdd->GInType()[gin_index]]
          << " are not supported.\n"
          << "Either remove the default value for generic input '"
          << mdd->GIn()[gin_index] << "' in workspace method\n"
@@ -1004,7 +1004,7 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
   Index wsvid;
   using global_data::md_data;
   using global_data::MdMap;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Then parse all generic input variables
   for (Index j = 0; j < mdd->GInType().nelem(); ++j) {
@@ -1078,9 +1078,9 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
     // arguments. In that case, let's find out the actual group!
     if (still_supergeneric) {
       ostringstream os;
-      if (wsv_group_names[mdd->GInType()[j]] == "Any")
+      if (wsv_groups[mdd->GInType()[j]] == "Any")
         supergeneric_args +=
-            wsv_group_names[Workspace::wsv_data[wsvid].Group()];
+            wsv_groups[Workspace::wsv_data[wsvid].Group()].name;
       os << mdd->Name() << "_sg_" << supergeneric_args;
       methodname = os.str();
 
@@ -1120,12 +1120,12 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
               os << ", ";
             else
               firsttype = false;
-            os << wsv_group_names[mdd->GInSpecType()[j][i]];
+            os << wsv_groups[mdd->GInSpecType()[j][i]];
           }
 
           throw WrongWsvGroup(
               "*" + mdd->Name() + "* is not defined for " +
-                  wsv_group_names[Workspace::wsv_data[wsvid].Group()] +
+                  wsv_groups[Workspace::wsv_data[wsvid].Group()].name +
                   " input. Check the online docs.",
               msource.File(),
               msource.Line(),
@@ -1136,9 +1136,9 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
             mdd->GInSpecType()[j][supergeneric_index]) {
           throw WrongWsvGroup(
               wsvname + " is not " +
-                  wsv_group_names[mdd->GInSpecType()[j][supergeneric_index]] +
+                  wsv_groups[mdd->GInSpecType()[j][supergeneric_index]].name +
                   ", it is " +
-                  wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                  wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
               msource.File(),
               msource.Line(),
               msource.Column());
@@ -1146,8 +1146,8 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
       }
     } else if (Workspace::wsv_data[wsvid].Group() != mdd->GInType()[j]) {
       throw WrongWsvGroup(
-          wsvname + " is not " + wsv_group_names[mdd->GInType()[j]] +
-              ", it is " + wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+          wsvname + " is not " + wsv_groups[mdd->GInType()[j]].name +
+              ", it is " + wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
           msource.File(),
           msource.Line(),
           msource.Column());
@@ -1188,7 +1188,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
   Index wsvid;
   using global_data::md_data;
   using global_data::MdMap;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Parse all generic output variables
   for (Index j = 0; j < mdd->GOut().nelem(); ++j) {
@@ -1241,7 +1241,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
           ostringstream os;
           os << "This might be either a typo or you have to create "
              << "the variable\nby calling "
-             << wsv_group_names[mdd->GOutType()[j]] << "Create( " << wsvname
+             << wsv_groups[mdd->GOutType()[j]] << "Create( " << wsvname
              << " ) first.\n";
 
           throw UnknownWsv(
@@ -1259,7 +1259,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
         if (mdd->Name().length() > 6 &&
             mdd->Name().find("Create") == mdd->Name().length() - 6) {
           const String& gn =
-              wsv_group_names[Workspace::wsv_data[wsvit->second].Group()];
+              wsv_groups[Workspace::wsv_data[wsvit->second].Group()].name;
           if (mdd->Name().find(gn) not_eq 0) {
             throw WsvAlreadyExists(
                 var_string(
@@ -1282,9 +1282,9 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
     // look for a match later again.
     if (still_supergeneric) {
       ostringstream os;
-      if (wsv_group_names[mdd->GOutType()[j]] == "Any")
+      if (wsv_groups[mdd->GOutType()[j]] == "Any")
         supergeneric_args +=
-            wsv_group_names[Workspace::wsv_data[wsvid].Group()];
+            wsv_groups[Workspace::wsv_data[wsvid].Group()].name;
       os << mdd->Name() << "_sg_" << supergeneric_args;
       methodname = os.str();
 
@@ -1324,12 +1324,12 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
               os << ", ";
             else
               firsttype = false;
-            os << wsv_group_names[mdd->GOutSpecType()[j][i]];
+            os << wsv_groups[mdd->GOutSpecType()[j][i]];
           }
 
           throw WrongWsvGroup(
               "*" + mdd->Name() + "* is not defined for " +
-                  wsv_group_names[Workspace::wsv_data[wsvid].Group()] +
+                  wsv_groups[Workspace::wsv_data[wsvid].Group()].name +
                   " output. Check the online docs.",
               msource.File(),
               msource.Line(),
@@ -1340,9 +1340,9 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
             mdd->GOutSpecType()[j][supergeneric_index]) {
           throw WrongWsvGroup(
               wsvname + " is not " +
-                  wsv_group_names[mdd->GOutSpecType()[j][supergeneric_index]] +
+                  wsv_groups[mdd->GOutSpecType()[j][supergeneric_index]].name +
                   ", it is " +
-                  wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                  wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
               msource.File(),
               msource.Line(),
               msource.Column());
@@ -1350,8 +1350,8 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
       }
     } else if (Workspace::wsv_data[wsvid].Group() != mdd->GOutType()[j]) {
       throw WrongWsvGroup(
-          wsvname + " is not " + wsv_group_names[mdd->GOutType()[j]] +
-              ", it is " + wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+          wsvname + " is not " + wsv_groups[mdd->GOutType()[j]].name +
+              ", it is " + wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
           msource.File(),
           msource.Line(),
           msource.Column());
@@ -1383,7 +1383,7 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
                                       bool& first,
                                       NamedArguments& named_args,
                                       bool call_by_name) {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // There are two lists of arguments that we have to read.
   ArrayOfIndex vo = mdd->Out();            // Output
@@ -1453,8 +1453,8 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
         Workspace::wsv_data[*ins].Group()) {
       throw WrongWsvGroup(
           wsvname + " is not " +
-              wsv_group_names[Workspace::wsv_data[*ins].Group()] + ", it is " +
-              wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+              wsv_groups[Workspace::wsv_data[*ins].Group()].name + ", it is " +
+              wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
           msource.File(),
           msource.Line(),
           msource.Column());
@@ -1481,7 +1481,7 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
                                        bool& first,
                                        NamedArguments& named_args,
                                        bool call_by_name) {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   ArrayOfIndex vo = mdd->Out();
 
@@ -1537,7 +1537,7 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
           ostringstream os;
           os << "This might be either a typo or you have to create "
              << "the variable\nby calling "
-             << wsv_group_names[Workspace::wsv_data[*outs].Group()]
+             << wsv_groups[Workspace::wsv_data[*outs].Group()]
              << "Create( " << wsvname << " ) first.\n";
 
           throw UnknownWsv(
@@ -1559,8 +1559,8 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
         Workspace::wsv_data[*outs].Group()) {
       throw WrongWsvGroup(
           wsvname + " is not " +
-              wsv_group_names[Workspace::wsv_data[*outs].Group()] + ", it is " +
-              wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+              wsv_groups[Workspace::wsv_data[*outs].Group()].name + ", it is " +
+              wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
           msource.File(),
           msource.Line(),
           msource.Column());
@@ -1591,7 +1591,7 @@ void ArtsParser::tasklist_insert_set_delete(
     const Index method_type,
     Agenda& tasklist) {
   using global_data::MdMap;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   for (Index i = 0; i < auto_vars.nelem(); i++) {
     map<String, Index>::const_iterator mdit;
@@ -1612,7 +1612,7 @@ void ArtsParser::tasklist_insert_set_delete(
         auto_group != get_wsv_group_id("Matrix")) {
       ostringstream os;
       os << "Passing a "
-         << wsv_group_names[Workspace::wsv_data[auto_vars[i]].Group()]
+         << wsv_groups[Workspace::wsv_data[auto_vars[i]].Group()]
          << " constant to a WSM is not supported!";
       throw ParseError(
           os.str(), msource.File(), msource.Line(), msource.Column());
@@ -1624,13 +1624,13 @@ void ArtsParser::tasklist_insert_set_delete(
         auto_keyword_value = auto_vars_values[i];
         auto_output_var.push_back(auto_vars[i]);
         method_name =
-            wsv_group_names[Workspace::wsv_data[auto_vars[i]].Group()] + "Set";
+            wsv_groups[Workspace::wsv_data[auto_vars[i]].Group()].name + "Set";
         break;
       case 1:
         auto_input_var.push_back(auto_vars[i]);
         method_name =
             "Delete_sg_" +
-            wsv_group_names[Workspace::wsv_data[auto_vars[i]].Group()];
+            wsv_groups[Workspace::wsv_data[auto_vars[i]].Group()].name;
         break;
       default:
         throw ParseError("Invalid method type.",
@@ -1849,9 +1849,9 @@ Index ArtsParser::read_name_or_value(String& name,
     parse_matrix(dummy);
     auto_vars_values.push_back(dummy);
   } else {
-    using global_data::wsv_group_names;
+    using global_data::wsv_groups;
     ostringstream os;
-    os << "Unsupported argument type: " << wsv_group_names[group];
+    os << "Unsupported argument type: " << wsv_groups[group];
     throw ParseError(
         os.str(), msource.File(), msource.Line(), msource.Column());
   }
