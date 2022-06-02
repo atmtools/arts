@@ -68,4 +68,20 @@ void select_option(T &current,
 void select_option(Index&, const ArrayOfRetrievalQuantity& jac);
 
 void tooltip(const char*, const Config& config);
+
+struct disable_lock final {
+  bool disabled;
+  disable_lock(bool x) : disabled(x) {
+    if (disabled) {
+      ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    }
+  }
+  ~disable_lock() noexcept {
+    if (disabled) {
+      ImGui::PopItemFlag();
+      ImGui::PopStyleVar();
+    }
+  }
+};
 }  // namespace ARTSGUI::MainMenu

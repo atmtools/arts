@@ -300,7 +300,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
   ImPlotLimits r{};
   Time start_time{};
   Time end_time{};
-  Numeric last_runtime=std::numeric_limits<Numeric>::quiet_NaN();
+  Numeric last_runtime = std::numeric_limits<Numeric>::quiet_NaN();
   std::size_t curpos = PropmatClearsky::n;
   auto fileBrowser = ARTSGUI::Files::xmlfile_chooser();
 
@@ -497,28 +497,37 @@ void propmat(PropmatClearsky::ResultsArray& res,
     ImGui::Separator();
     ImGui::Separator();
 
-    if (ImGui::Button("\tRun Agenda\t", {-1, 0})) {
-      start_run(curpos, ctrl, start_time);
+    {
+      MainMenu::disable_lock disabled{ctrl.run.load()};
+      if (ImGui::Button("\tRun Agenda\t", {-1, 0})) {
+        start_run(curpos, ctrl, start_time);
+      }
+      MainMenu::tooltip(
+          "Updates the calculations using the current Agenda input", config);
     }
-    MainMenu::tooltip("Updates the calculations using the current Agenda input",
-                      config);
+
     ImGui::Separator();
-    ImGui::Text(" ");
-    ImGui::SameLine();
-    ImGui::Checkbox("\tUpdate Automatic\t", &res[curpos].auto_update);
-    MainMenu::tooltip("Updates the calculations as the Agenda input is updated",
-                      config);
+    {
+      MainMenu::disable_lock disabled{not res[curpos].ok.load()};
+      ImGui::Text(" ");
+      ImGui::SameLine();
+      ImGui::Checkbox("\tUpdate Automatic\t", &res[curpos].auto_update);
+      MainMenu::tooltip(
+          "Updates the calculations as the Agenda input is updated", config);
+      ImGui::Separator();
+      ImGui::Text(" ");
+      ImGui::SameLine();
+      ImGui::Checkbox("\tAutomatic Frequency Grid\t", &res[curpos].auto_f_grid);
+      MainMenu::tooltip("Updates the calculations as you move the x-axis",
+                        config);
+    }
     ImGui::Separator();
-    ImGui::Text(" ");
-    ImGui::SameLine();
-    ImGui::Checkbox("\tAutomatic Frequency Grid\t", &res[curpos].auto_f_grid);
-    MainMenu::tooltip("Updates the calculations as you move the x-axis",
-                      config);
-    ImGui::Separator();
+
     ImGui::Text(" Last run: %g seconds", last_runtime);
     ImGui::Separator();
     if (ctrl.run.load()) {
-      ImGui::Text(" Running: %g seconds", end_time.Seconds() - start_time.Seconds());
+      ImGui::Text(" Running: %g seconds",
+                  end_time.Seconds() - start_time.Seconds());
     } else {
       ImGui::Text(" Not Running");
     }
@@ -555,9 +564,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
           v.f_grid[0],
           v.f_grid[0] == f_grid[0] ? ' ' : '*',
           v.f_grid[v.f_grid.nelem() - 1],
-          v.f_grid[v.f_grid.nelem() - 1] == f_grid[f_grid.nelem() - 1]
-              ? ' '
-              : '*',
+          v.f_grid[v.f_grid.nelem() - 1] == f_grid[f_grid.nelem() - 1] ? ' '
+                                                                       : '*',
           f_grid.nelem(),
           f_grid.nelem() == v.f_grid.nelem() ? ' ' : '*');
       ImGui::Separator();
