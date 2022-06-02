@@ -115,7 +115,7 @@ class Workspace {
    * @param[in] i WSV index.
    * @return true if the WSV exists, otherwise false.
    */
-  bool is_initialized(Index i) const {
+  [[nodiscard]] bool is_initialized(Index i) const {
     return ((ws[i].size() != 0) && (ws[i].top()->initialized == true));
   }
 
@@ -159,13 +159,22 @@ class Workspace {
   void push_uninitialized(Index i, void *wsv);
 
   /** Get the number of workspace variables. */
-  Index nelem() const { return ws.nelem(); }
+  [[nodiscard]] Index nelem() const { return ws.nelem(); }
   
   /** Add a new variable to existing workspace and to the static maps */
   Index add_wsv_inplace(const WsvRecord &wsv);
 
   /** Retrieve a pointer to the given WSV. */
   void *operator[](Index i);
+
+  /** Retrieve a value ptr if it exist (FIXME: C++20 allows const char* as template argument) */
+  template <class T>
+  T *get(const char *name) {
+    if (const Index pos = WsvMap.at(name); is_initialized(pos)) {
+      return static_cast<T *>(operator[](pos));
+    }
+    return nullptr;
+  }
 
   /** Swap with another workspace */
   void swap(Workspace& other);

@@ -57,51 +57,48 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
          Vector& rtp_vmr) {
   for (auto& v : ret) v.ok.store(false);
   ARTSGUI::PropmatClearsky::ComputeValues v;
+  bool error = false;
 
-begin_and_wait:
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  while (not error) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-  try {
-    if (ctrl.exit.load()) goto exit_good;
+    try {
+      if (ctrl.exit.load()) return true;
 
-    if (ctrl.run.load()) {
+      if (ctrl.run.load()) {
+        std::lock_guard allow_copy{ctrl.copy};
+
+        v.jacobian_quantities = jacobian_quantities;
+        v.select_abs_species = select_abs_species;
+        v.f_grid = f_grid;
+        v.rtp_mag = rtp_mag;
+        v.rtp_los = rtp_los;
+        v.rtp_pressure = rtp_pressure;
+        v.rtp_temperature = rtp_temperature;
+        v.rtp_nlte = rtp_nlte;
+        v.rtp_vmr = rtp_vmr;
+      } else {
+        continue;
+      }
+
+      compute(ws, v, propmat_clearsky_agenda);
+
+      // Lock after the compute to copy values
       std::lock_guard allow_copy{ctrl.copy};
 
-      v.jacobian_quantities = jacobian_quantities;
-      v.select_abs_species = select_abs_species;
-      v.f_grid = f_grid;
-      v.rtp_mag = rtp_mag;
-      v.rtp_los = rtp_los;
-      v.rtp_pressure = rtp_pressure;
-      v.rtp_temperature = rtp_temperature;
-      v.rtp_nlte = rtp_nlte;
-      v.rtp_vmr = rtp_vmr;
-    } else {
-      goto begin_and_wait;
+      // Copy over values
+      ret.at(ctrl.pos).value = v;
+      ret.at(ctrl.pos).ok.store(true);
+
+      ctrl.run.store(false);
+    } catch (std::runtime_error& e) {
+      ctrl.error = e.what();
+      ctrl.exit.store(true);
+      error = true;
     }
-
-    compute(ws, v, propmat_clearsky_agenda);
-    
-    // Lock after the compute to copy values
-    std::lock_guard allow_copy{ctrl.copy};
-
-    // Copy over values
-    ret.at(ctrl.pos).value = v;
-    ret.at(ctrl.pos).ok.store(true);
-
-    ctrl.run.store(false);
-  } catch (std::runtime_error& e) {
-    ctrl.error = e.what();
-    ctrl.exit.store(true);
-    goto exit_bad;
   }
 
-  goto begin_and_wait;
-
-exit_bad:
   return false;
-exit_good:
-  return true;
 }
 }  // namespace PropmatClearskyAgendaGUI
 #endif  // ARTS_GUI_ENABLED
@@ -109,6 +106,7 @@ exit_good:
 void propmat_clearsky_agendaGUI(Workspace& ws,
                                 const Agenda& propmat_clearsky_agenda,
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
+                                const Index& load,
                                 const Verbosity&) {
 #ifdef ARTS_GUI_ENABLED
   ARTSGUI::PropmatClearsky::ResultsArray res;
@@ -124,6 +122,17 @@ void propmat_clearsky_agendaGUI(Workspace& ws,
   Numeric rtp_temperature(300);
   EnergyLevelMap rtp_nlte{};
   Vector rtp_vmr(abs_species.nelem(), 1.0/Numeric(abs_species.nelem()));
+
+  // Set some defaults
+  if (load) {
+    if (auto* val = ws.get<Vector>("f_grid")) f_grid = *val;
+    if (auto* val = ws.get<Vector>("rtp_mag")) rtp_mag = *val;
+    if (auto* val = ws.get<Vector>("rtp_los")) rtp_los = *val;
+    if (auto* val = ws.get<Vector>("rtp_vmr")) rtp_vmr = *val;
+    if (auto* val = ws.get<Numeric>("rtp_pressure")) rtp_pressure = *val;
+    if (auto* val = ws.get<Numeric>("rtp_temperature")) rtp_temperature = *val;
+    if (auto* val = ws.get<EnergyLevelMap>("rtp_nlte")) rtp_nlte = *val;
+  }
 
   auto success = std::async(std::launch::async,
                             &PropmatClearskyAgendaGUI::run,
