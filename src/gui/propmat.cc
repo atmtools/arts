@@ -148,52 +148,112 @@ yscale_option() {
   return out;
 }
 
+constexpr Numeric avg(Numeric a, Numeric b) noexcept {
+  return a + 0.5 * (b - a);
+}
+
+Numeric range_mean(const ConstVectorView& vec, Index start, Index last) {
+  const Numeric scale = 1.0 / static_cast<Numeric>(last - start + 1);
+  Numeric out = 0;
+  for (Index i = start; i <= last; i++) out += scale * vec[i];
+  return out;
+}
+
 struct DataHolder {
   const PropagationMatrix& pm;
   const Vector& f_grid;
   XScaling xscale_fun;
   Numeric yscale_const;
+  int running_average;
+
+  [[nodiscard]] int size() const noexcept {
+    const Index nelem = f_grid.nelem();
+    return static_cast<int>(nelem / running_average) +
+           bool(nelem % running_average);
+  }
+
+  [[nodiscard]] std::pair<Index, Index> range(int i) const noexcept {
+    const Index f_grid_size{f_grid.nelem()};
+    const Index start{i * running_average};
+    const Index last{std::min(start + running_average, f_grid_size) - 1};
+    return {start, last};
+  }
 
   static ImPlotPoint Kjj(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
-            data_ptr->yscale_const * data_ptr->pm.Kjj()[i]};
+
+    const auto [start, last] = data_ptr->range(i);
+    const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
+                          xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
+    const Numeric y =
+        data_ptr->yscale_const * range_mean(data_ptr->pm.Kjj(), start, last);
+    return {x, y};
   }
 
   static ImPlotPoint K12(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
-            data_ptr->yscale_const * data_ptr->pm.K12()[i]};
+
+    const auto [start, last] = data_ptr->range(i);
+    const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
+                          xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
+    const Numeric y =
+        data_ptr->yscale_const * range_mean(data_ptr->pm.K12(), start, last);
+    return {x, y};
   }
 
   static ImPlotPoint K13(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
-            data_ptr->yscale_const * data_ptr->pm.K13()[i]};
+
+    const auto [start, last] = data_ptr->range(i);
+    const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
+                          xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
+    const Numeric y =
+        data_ptr->yscale_const * range_mean(data_ptr->pm.K13(), start, last);
+    return {x, y};
   }
 
   static ImPlotPoint K14(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
-            data_ptr->yscale_const * data_ptr->pm.K14()[i]};
+
+    const auto [start, last] = data_ptr->range(i);
+    const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
+                          xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
+    const Numeric y =
+        data_ptr->yscale_const * range_mean(data_ptr->pm.K14(), start, last);
+    return {x, y};
   }
 
   static ImPlotPoint K23(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
-            data_ptr->yscale_const * data_ptr->pm.K23()[i]};
+
+    const auto [start, last] = data_ptr->range(i);
+    const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
+                          xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
+    const Numeric y =
+        data_ptr->yscale_const * range_mean(data_ptr->pm.K23(), start, last);
+    return {x, y};
   }
 
   static ImPlotPoint K24(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
-            data_ptr->yscale_const * data_ptr->pm.K24()[i]};
+
+    const auto [start, last] = data_ptr->range(i);
+    const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
+                          xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
+    const Numeric y =
+        data_ptr->yscale_const * range_mean(data_ptr->pm.K24(), start, last);
+    return {x, y};
   }
 
   static ImPlotPoint K34(void* self, int i) {
     auto* data_ptr = reinterpret_cast<DataHolder*>(self);
-    return {xscale(data_ptr->f_grid[i], data_ptr->xscale_fun),
-            data_ptr->yscale_const * data_ptr->pm.K34()[i]};
+
+    const auto [start, last] = data_ptr->range(i);
+    const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
+                          xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
+    const Numeric y =
+        data_ptr->yscale_const * range_mean(data_ptr->pm.K34(), start, last);
+    return {x, y};
   }
 };
 
@@ -211,7 +271,8 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
       v.f_grid,
       opts.xscale,
       (opts.inverse_yscale ? 1.0 / opts.yscale_const : opts.yscale_const) /
-          yscale(opts.yscale, v.rtp_temperature, v.rtp_pressure, pm)};
+          yscale(opts.yscale, v.rtp_temperature, v.rtp_pressure, pm),
+      opts.smooth_counter};
 
   std::array<char, 100> yscale_str;
   yscale_str.fill('\0');
@@ -231,7 +292,7 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
           title.data(), xunit(opts.xscale).data(), y_axis.c_str(), {-1, -1})) {
     if (v.pm.StokesDimensions() > 0) {
       ImPlot::PlotLineG(
-          "Kjj", DataHolder::Kjj, &main_data, int(v.f_grid.nelem()));
+          "Kjj", DataHolder::Kjj, &main_data, main_data.size());
     }
 
     if (v.pm.StokesDimensions() > 1) {
@@ -384,6 +445,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Display")) {
+      // Scale Y
       if (ImGui::BeginMenu("\tY Scale\t")) {
         MainMenu::select_option(disp_options.yscale,
                                 PropmatClearsky::enumtyps::YScalingTypes,
@@ -402,6 +464,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
       }
       ImGui::Separator();
 
+      // Scale X
       if (ImGui::BeginMenu("\tX Scale\t")) {
         MainMenu::select_option(disp_options.xscale,
                                 PropmatClearsky::enumtyps::XScalingTypes,
@@ -410,6 +473,15 @@ void propmat(PropmatClearsky::ResultsArray& res,
       }
       ImGui::Separator();
 
+      // Running average
+      ImGui::Text(" ");
+      ImGui::SameLine();
+
+      ImGui::InputInt("\tRunning Average Count\t", &disp_options.smooth_counter);
+      disp_options.smooth_counter = std::clamp(disp_options.smooth_counter, 1, std::numeric_limits<int>::max());
+      ImGui::Separator();
+
+      // Plot selection
       if (ImGui::BeginMenu("\tSelect Plot\t")) {
         MainMenu::select_option(disp_options.jacobian_target,
                                 jacobian_quantities);

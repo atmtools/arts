@@ -68,6 +68,8 @@ struct DisplayOptions {
   YScaling yscale{YScaling::None};
   Numeric yscale_const{1.0};
   bool inverse_yscale{false};
+
+  int smooth_counter{1};
 };
 }  // namespace PropmatClearsky
 
