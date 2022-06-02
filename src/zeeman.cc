@@ -40,6 +40,7 @@ void zeeman_on_the_fly(
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     ArrayOfStokesVector& dnlte_source_dx,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
@@ -128,9 +129,14 @@ void zeeman_on_the_fly(
 
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
       // Skip it if there are no species or there is no Zeeman
-      if (not abs_species[ispecies].nelem() or not abs_species[ispecies].Zeeman() or not abs_lines_per_species[ispecies].nelem())
+      if (not abs_species[ispecies].nelem() or
+          not abs_species[ispecies].Zeeman() or
+          not abs_lines_per_species[ispecies].nelem())
         continue;
-      
+      if (select_abs_species.nelem() and
+          select_abs_species not_eq abs_species[ispecies])
+        continue;
+
       for (auto& band : abs_lines_per_species[ispecies]) {
         LineShape::compute(com, sparse_com,
                             band, jacobian_quantities, rtp_nlte,

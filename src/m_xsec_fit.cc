@@ -77,6 +77,7 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
     const Numeric& rtp_pressure,
@@ -149,6 +150,9 @@ void propmat_clearskyAddXsecFit(  // WS Output:
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
   for (Index i = 0; i < abs_species.nelem(); i++) {
+    if (select_abs_species.nelem() and abs_species[i] not_eq select_abs_species)
+      continue;
+
     for (Index s = 0; s < abs_species[i].nelem(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 

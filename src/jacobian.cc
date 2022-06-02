@@ -998,6 +998,10 @@ void dxdvmrscf(Numeric& x,
 //             Propmat partials descriptions
 //======================================================================
 
+bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
+  return t.Target().isWind();
+}
+
 bool is_frequency_parameter(const RetrievalQuantity& t) noexcept {
   return t.Target().isWind() or t.Target().isFrequency();
 }
@@ -1082,7 +1086,7 @@ bool is_line_parameter(const RetrievalQuantity& t) noexcept {
 }
 
 bool supports_CIA(const ArrayOfRetrievalQuantity& js) {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Line::VMR or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or j == Jacobian::Line::VMR or is_frequency_parameter(j));});
 }
 
 bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
@@ -1092,7 +1096,7 @@ bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
 bool supports_continuum(const ArrayOfRetrievalQuantity& js) {
   ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
     "Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n")
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or is_frequency_parameter(j));});
 }
 
 bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
@@ -1161,6 +1165,10 @@ jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
 
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Line::Center;});
+}
+
+bool do_wind_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_wind_parameter(j);});
 }
 
 bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {

@@ -36,6 +36,7 @@
 #include "wsv_aux.h"
 #include <algorithm>
 #include <array>
+#include <string>
 
 namespace global_data {
 Array<MdRecord> md_data_raw;
@@ -1903,11 +1904,11 @@ void define_md_data_raw() {
          "abs_t",
          "abs_t_pert",
          "abs_nls_pert",
-         "abs_xsec_agenda"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+         "propmat_clearsky_agenda"),
+      GIN("lowest_vmr"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("1e-9"),
+      GIN_DESC("Lowest possible VMR to compute absorption at")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupInit"),
@@ -2574,6 +2575,7 @@ void define_md_data_raw() {
       IN("propmat_clearsky",
          "dpropmat_clearsky_dx",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "f_grid",
          "rtp_pressure",
@@ -12787,6 +12789,62 @@ void define_md_data_raw() {
       AGENDAMETHOD(false)));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddCIA"),
+      DESCRIPTION(
+          "Calculate absorption coefficients per tag group for HITRAN CIA continua.\n"
+          "\n"
+          "This interpolates the cross sections from *abs_cia_data*.\n"
+          "\n"
+          "The robust option is intended only for testing. Do not use for normal\n"
+          "runs, since subsequent functions will not be able to deal with NAN values.\n"),
+      AUTHORS("Stefan Buehler, Oliver Lemke"),
+      OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "dpropmat_clearsky_dx",
+         "abs_species",
+         "select_abs_species",
+         "jacobian_quantities",
+         "f_grid",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_vmr",
+         "abs_cia_data"),
+      GIN("T_extrapolfac", "ignore_errors"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT("0.5", "0"),
+      GIN_DESC(
+          "Temperature extrapolation factor (relative to grid spacing).",
+          "Set to 1 to suppress runtime errors (and return NAN values instead).")));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("propmat_clearskyAddConts"),
+                      DESCRIPTION("Calculate propmat for continua.\n"),
+                      AUTHORS("Stefan Buehler, Oliver Lemke"),
+                      OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN("propmat_clearsky",
+                         "dpropmat_clearsky_dx",
+                         "abs_species",
+                         "select_abs_species",
+                         "jacobian_quantities",
+                         "f_grid",
+                         "rtp_pressure",
+                         "rtp_temperature",
+                         "rtp_vmr",
+                         "abs_cont_names",
+                         "abs_cont_parameters",
+                         "abs_cont_models"),
+                      GIN(),
+                      GIN_TYPE(),
+                      GIN_DEFAULT(),
+                      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFaraday"),
       DESCRIPTION(
           "Calculates absorption matrix describing Faraday rotation.\n"
@@ -12815,6 +12873,7 @@ void define_md_data_raw() {
          "atmosphere_dim",
          "f_grid",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "rtp_vmr",
          "rtp_los",
@@ -12879,7 +12938,8 @@ void define_md_data_raw() {
          "rtp_temperature",
          "rtp_vmr",
          "jacobian_quantities",
-         "abs_species"),
+         "abs_species",
+         "select_abs_species"),
       GIN("extpolfac"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0.5"),
@@ -12908,6 +12968,7 @@ void define_md_data_raw() {
          "isotopologue_ratios",
          "f_grid",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "rtp_pressure",
          "rtp_temperature",
@@ -12969,6 +13030,7 @@ void define_md_data_raw() {
       IN("propmat_clearsky",
          "dpropmat_clearsky_dx",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "f_grid",
          "rtp_pressure",
@@ -12989,20 +13051,20 @@ void define_md_data_raw() {
 it to the diagonal of *propmat_clearsky* and derivates to other variables.
 Does the same for NLTE variables if required.
 
-If *speedup_option* is not "None", then some speed-up logic is applied.
+If *lines_speedup_option* is not "None", then some speed-up logic is applied.
 Valid speed-up logic other than "None" includes:
     LinearIndependent:
         Using a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]
         until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
         A linear interpolation scheme is used between the bins to fill up the dense
-        absorption.  The maximum of df[n] is given by *sparse_df* and the minimum
-        transition between dense-to-sparse grid calculations are given by *sparse_lim*.
+        absorption.  The maximum of df[n] is given by *lines_sparse_df* and the minimum
+        transition between dense-to-sparse grid calculations are given by *lines_sparse_lim*.
     QuadraticIndependent:
         Using a sparse-grid, the points are separated as [f0, f0+0.5*df[0], f0+df[0], f0+df[0], f0+0.5*df[1], f0+df[1]...]
         until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
         A quadratic interpolation scheme is used between the bins to fill up the dense
-        absorption.  The maximum of df[n] is given by *sparse_df* and the minimum
-        transition between dense-to-sparse grid calculations are given by *sparse_lim*.
+        absorption.  The maximum of df[n] is given by *lines_sparse_df* and the minimum
+        transition between dense-to-sparse grid calculations are given by *lines_sparse_lim*.
 
 Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
 )--"
@@ -13028,7 +13090,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
          "rtp_vmr",
          "nlte_do",
          "lbl_checked"),
-      GIN("sparse_df", "sparse_lim", "speedup_option", "robust"),
+      GIN("lines_sparse_df", "lines_sparse_lim", "lines_speedup_option", "no_negatives"),
       GIN_TYPE("Numeric", "Numeric", "String", "Index"),
       GIN_DEFAULT("0", "0", "None", "0"),
       GIN_DESC(
@@ -13064,6 +13126,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
          "isotopologue_ratios",
          "f_grid",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "rtp_pressure",
          "rtp_temperature",
@@ -13101,6 +13164,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
          "isotopologue_ratios",
          "f_grid",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "rtp_pressure",
          "rtp_temperature",
@@ -13135,6 +13199,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
          "dpropmat_clearsky_dx",
          "f_grid",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "rtp_pressure",
          "rtp_temperature",
@@ -13200,6 +13265,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
          "atmosphere_dim",
          "f_grid",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "rtp_vmr",
          "rtp_los",
@@ -13240,6 +13306,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
          "abs_lines_per_species",
          "f_grid",
          "abs_species",
+         "select_abs_species",
          "jacobian_quantities",
          "isotopologue_ratios",
          "rtp_pressure",
@@ -13251,10 +13318,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
          "atmosphere_dim",
          "nlte_do",
          "lbl_checked"),
-      GIN("manual_zeeman_tag",
-          "manual_zeeman_magnetic_field_strength",
-          "manual_zeeman_theta",
-          "manual_zeeman_eta"),
+      GIN("manual_mag_field", "H", "theta", "eta"),
       GIN_TYPE("Index", "Numeric", "Numeric", "Numeric"),
       GIN_DEFAULT("0", "1.0", "0.0", "0.0"),
       GIN_DESC("Manual angles tag",
@@ -21901,58 +21965,138 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT(),
       GIN_DESC()));
 
-
   //! Special method that has to look through some of the above methods for changes
-  ArrayOfString gin;
-  ArrayOfString gintype;
-  ArrayOfString gindefault;
-  ArrayOfString gindesc;
-  const ArrayOfString targets = {"propmat_clearskyInit",
-                                 "propmat_clearskyAddLines",
-                                 "propmat_clearskyAddZeeman",
-                                 "propmat_clearskyAddXsecFit",
-                                 "propmat_clearskyAddOnTheFlyLineMixing",
-                                 "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
-                                 "propmat_clearskyAddXsecAgenda",
-                                 "propmat_clearskyAddPredefined",
-                                 "propmat_clearskyAddParticles",
-                                 "propmat_clearskyAddFaraday",
-                                 "propmat_clearskyAddHitranLineMixingLines"};
-  Index i = 0;
-  for (auto& m : md_data_raw) {
-    if (std::find(targets.cbegin(), targets.cend(), m.Name()) not_eq
-        targets.cend()) {
-      i++;
-      for (auto& x : m.GIn()) gin.push_back(x);
-      for (auto& x : m.GInType()) {
-        gintype.push_back(global_data::wsv_groups.at(x).name);
-        gindesc.push_back("See *" + m.Name() + "*");
+  {
+    //! Special method that has to look through some of the above methods for changes
+    ArrayOfString gin;
+    ArrayOfString gintype;
+    ArrayOfString gindefault;
+    ArrayOfString gindesc;
+    const ArrayOfString targets = {
+        "propmat_clearskyInit",
+        "propmat_clearskyAddCIA",
+        "propmat_clearskyAddConts",
+        "propmat_clearskyAddLines",
+        "propmat_clearskyAddZeeman",
+        "propmat_clearskyAddFaraday",
+        "propmat_clearskyAddXsecFit",
+        "propmat_clearskyAddParticles",
+        "propmat_clearskyAddXsecAgenda",
+        "propmat_clearskyAddPredefined",
+        "propmat_clearskyAddOnTheFlyLineMixing",
+        "propmat_clearskyAddHitranLineMixingLines",
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
+        };
+    Index i = 0;
+    for (auto& m : md_data_raw) {
+      if (std::find(targets.cbegin(), targets.cend(), m.Name()) not_eq
+          targets.cend()) {
+        i++;
+        for (auto& x : m.GIn()) gin.push_back(x);
+        for (auto& x : m.GInType()) {
+          gintype.push_back(global_data::wsv_groups.at(x).name);
+          gindesc.push_back("See *" + m.Name() + "*");
+        }
+        for (auto& x : m.GInDefault()) gindefault.push_back(x);
       }
-      for (auto& x : m.GInDefault()) gindefault.push_back(x);
     }
-  }
-  if (i not_eq targets.nelem()) throw std::logic_error("Lacking functions");
-
-  md_data_raw.push_back(
-      MdRecord("propmat_clearsky_agendaSetAutomatic",
-               R"--(Sets the *propmat_clearsky_agenda* automatically
+    if (i not_eq targets.nelem()) throw std::logic_error("Lacking functions");
+    String doc{R"--(Sets the *propmat_clearsky_agenda* automatically
 
 This method introspects the input and uses it for generating the
 *propmat_clearsky_agenda* automatically
-)--",
-               {"Richard Larsson"},
-               {"propmat_clearsky_agenda"},
-               {},
-               {},
-               {},
-               {"abs_species", "abs_lines_per_species"},
-               gin,
-               gintype,
-               gindefault,
-               gindesc,
-               false,
-               false,
-               false,
-               true,
-               false));
+
+The following methods are considered for addition:
+)--"};
+    Index count=1;
+    for (auto& m: targets) {
+        doc += "    " + std::to_string(count++) + ") *" + m + "*\n";
+    }
+
+    md_data_raw.push_back(
+        MdRecord("propmat_clearsky_agendaSetAutomatic",
+                 doc.c_str(),
+                 {"Richard Larsson"},
+                 {"propmat_clearsky_agenda", "propmat_clearsky_agenda_checked"},
+                 {},
+                 {},
+                 {},
+                 {"abs_species", "abs_lines_per_species"},
+                 gin,
+                 gintype,
+                 gindefault,
+                 gindesc,
+                 false,
+                 false,
+                 false,
+                 true,
+                 false));
+  }
+
+  //! Special method that has to look through some of the above methods for changes
+  {
+    //! Special method that has to look through some of the above methods for changes
+    ArrayOfString gin;
+    ArrayOfString gintype;
+    ArrayOfString gindefault;
+    ArrayOfString gindesc;
+    const ArrayOfString targets = {
+        "propmat_clearskyInit",
+        "propmat_clearskyAddZeeman",
+        "propmat_clearskyAddFaraday",
+        "propmat_clearskyAddParticles",
+        "propmat_clearskyAddFromLookup",
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
+        };
+    Index i = 0;
+    for (auto& m : md_data_raw) {
+      if (std::find(targets.cbegin(), targets.cend(), m.Name()) not_eq
+          targets.cend()) {
+        i++;
+        for (auto& x : m.GIn()) gin.push_back(x);
+        for (auto& x : m.GInType()) {
+          gintype.push_back(global_data::wsv_groups.at(x).name);
+          gindesc.push_back("See *" + m.Name() + "*");
+        }
+        for (auto& x : m.GInDefault()) gindefault.push_back(x);
+      }
+    }
+    if (i not_eq targets.nelem()) throw std::logic_error("Lacking functions");
+    String doc{R"--(See *propmat_clearsky_agendaSetAutomatic*
+
+This method does not set any calculations that could be computed with the
+lookup table
+
+The intended order of use is:
+    1) *propmat_clearsky_agendaSetAutomatic*
+    2) *abs_lookupCalc*
+    3) *propmat_clearsky_agendaSetAutomaticForLookup*
+    4) Perform other calculations
+
+The following methods are considered for addition:
+)--"};
+    Index count=1;
+    for (auto& m: targets) {
+        doc += "    " + std::to_string(count++) + ") *" + m + "*\n";
+    }
+
+    md_data_raw.push_back(
+        MdRecord("propmat_clearsky_agendaSetAutomaticForLookup",
+                 doc.c_str(),
+                 {"Richard Larsson"},
+                 {"propmat_clearsky_agenda", "propmat_clearsky_agenda_checked"},
+                 {},
+                 {},
+                 {},
+                 {"abs_species", "abs_lines_per_species"},
+                 gin,
+                 gintype,
+                 gindefault,
+                 gindesc,
+                 false,
+                 false,
+                 false,
+                 true,
+                 false));
+  }
 }

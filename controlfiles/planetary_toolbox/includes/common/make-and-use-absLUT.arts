@@ -62,6 +62,9 @@ abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 atmfields_checkedCalc
 abs_lookupSetup
+
+propmat_clearsky_agendaSetAutomatic
 abs_lookupCalc
+propmat_clearsky_agendaSetAutomaticForLookup
 
 }

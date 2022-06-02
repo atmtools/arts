@@ -52,50 +52,47 @@ abs_speciesSet( species=
 
 VectorNLinSpace( f_grid, 100, 0, 75e12 )
 
-VectorSet( abs_p, [1000e2] )
+NumericSet( rtp_pressure, 1000e2 )
+NumericSet( rtp_temperature, 310 )
 
-VectorSet( abs_t, [310] )
+IndexSet( stokes_dim, 1 )
 
 # Set all VMR values to the same value:
-nelemGet( nrows, abs_species )
-nelemGet( ncols, abs_t )
+nelemGet( nelem, abs_species )
 
 # Set all VMRs to 1. This is unphysical, since actually the total
 # should add up to 1. But does not play a role here. (As long as I
 # don't forget about it.)
-MatrixSetConstant( abs_vmrs, nrows, ncols, 1 )
+VectorSetConstant( rtp_vmr, nelem, 1 )
 
 ArrayOfIndexSet(abs_species_active, [0,1,2,3,4,5,6,7,8,9])
 
-# We don't have an abs_xsec_agenda here. This is specific
+# We don't have an propmat_clearsky_agenda here. This is specific
 # to this test case that checks the consistency of AddCIA directly.
-# In normal life, AddCIA is always called from inside the abs_xsec_agenda.
-# We can therefore just set the abs_xsec_agenda_checked manually to true.
-FlagOn( abs_xsec_agenda_checked )
+# In normal life, AddCIA is always called from inside the
+# propmat_clearsky_agenda. We can therefore just set the
+# propmat_clearsky_agenda_checked manually to true.
+FlagOn( propmat_clearsky_agenda_checked )
 
 jacobianOff
 
-abs_xsec_per_speciesInit
+propmat_clearskyInit
+propmat_clearskyAddCIA
 
-abs_xsec_per_speciesAddCIA
-
-#WriteXML ( "ascii", abs_xsec_per_species )
+#WriteXML ( "ascii", propmat_clearsky )
 #WriteXML ( "ascii", f_grid )
-#WriteXML ( "ascii", abs_t )
-#WriteXML ( "ascii", abs_p )
 #WriteXML ( "ascii", abs_species )
 
 #WriteXML ( "zascii", abs_cia_data )
 
 # Compare results to reference calculation:
-ArrayOfMatrixCreate( abs_xsec_per_species_reference )
-ReadXML( abs_xsec_per_species_reference,
-         "TestCIA.abs_xsec_per_species_reference.xml")
+PropagationMatrixCreate( propmat_clearsky_reference )
+ReadXML( propmat_clearsky_reference,
+         "TestCIA.propmat_clearsky_reference.xml" )
 
-Compare( abs_xsec_per_species, 
-         abs_xsec_per_species_reference, 
-         1e-40, 
-	 "CIA Continua differ from reference calculation" )
-
+CompareRelative( propmat_clearsky, 
+                 propmat_clearsky_reference, 
+                 1e-4, 
+	             "CIA Continua differ from reference calculation" )
 }
 

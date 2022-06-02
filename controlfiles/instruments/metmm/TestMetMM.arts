@@ -97,7 +97,9 @@ INCLUDE "general/planet_earth.arts"
     abs_lookupSetupBatch
     abs_xsec_agenda_checkedCalc
     lbl_checkedCalc
+    propmat_clearsky_agendaSetAutomatic
     abs_lookupCalc
+    propmat_clearsky_agendaSetAutomaticForLookup
 
 # Setting the agenda for batch calculation 
 # Garand profiles have 42 different. We will make RT calculations for all of them.

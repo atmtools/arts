@@ -1003,17 +1003,35 @@ void propmat_clearskyAddFaraday(
     const Index& atmosphere_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& rtp_vmr,
     const Vector& rtp_los,
     const Vector& rtp_mag,
     const Verbosity&) {
+  Index ife = -1;
+  for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
+    if (abs_species[sp].FreeElectrons()) {
+      ife = sp;
+    }
+  }
+
+  ARTS_USER_ERROR_IF(ife < 0,
+                     "Free electrons not found in *abs_species* and "
+                     "Faraday rotation can not be calculated.");
+
+  // Allow early exit for lookup table calculations
+  if (select_abs_species.nelem() and select_abs_species not_eq abs_species[ife]) return;
+
   // All the physical constants joined into one static constant:
   // (abs as e defined as negative)
   static const Numeric FRconst =
       abs(ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE /
           (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * ELECTRON_MASS *
            ELECTRON_MASS));
+
+  const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
+  const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
 
   ARTS_USER_ERROR_IF(
       stokes_dim < 3,
@@ -1028,20 +1046,6 @@ void propmat_clearskyAddFaraday(
       "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
       "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
       "but it is not.\n")
-
-  const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
-  const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
-
-  Index ife = -1;
-  for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
-    if (abs_species[sp].FreeElectrons()) {
-      ife = sp;
-    }
-  }
-
-  ARTS_USER_ERROR_IF(ife < 0,
-                     "Free electrons not found in *abs_species* and "
-                     "Faraday rotation can not be calculated.");
 
   const Numeric ne = rtp_vmr[ife];
 
@@ -1114,6 +1118,7 @@ void propmat_clearskyAddParticles(
     const Index& atmosphere_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& rtp_vmr,
     const Vector& rtp_los,
@@ -1124,6 +1129,10 @@ void propmat_clearskyAddParticles(
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUT1;
+
+  ARTS_USER_ERROR_IF(select_abs_species.nelem(), R"--(
+  We do not yet support select_abs_species for lookup table calculations
+  )--")
 
   // (i)yCalc only checks scat_data_checked if cloudbox is on. It is off here,
   // though, i.e. we need to check it here explicitly. (Also, cloudboxOff sets
@@ -1408,6 +1417,266 @@ Vector create_sparse_f_grid_internal(const Vector& f_grid,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void propmat_clearskyAddConts(  // Workspace reference:
+    // WS Output:
+    PropagationMatrix& propmat_clearsky,
+    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    // WS Input:
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const Vector& f_grid,
+    const Numeric& rtp_pressure,
+    const Numeric& rtp_temperature,
+    const Vector& rtp_vmr,
+    const ArrayOfString& abs_cont_names,
+    const ArrayOfVector& abs_cont_parameters,
+    const ArrayOfString& abs_cont_models,
+    // Verbosity object:
+    const Verbosity& verbosity) {
+  CREATE_OUT3;
+
+  // Size of problem
+  const Index nf = f_grid.nelem();
+  const Index nq = jacobian_quantities.nelem();
+  const Index ns = abs_species.nelem();
+
+  // Possible things that can go wrong in this code (excluding line parameters)
+  check_abs_species(abs_species);
+  // Check, that dimensions of abs_cont_names and
+  // abs_cont_parameters are consistent...
+  ARTS_USER_ERROR_IF(abs_cont_names.nelem() != abs_cont_parameters.nelem(),
+                     continua_model_error_message(
+                         abs_cont_names, abs_cont_parameters, abs_cont_models))
+  ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
+                     "*rtp_vmr* must match *abs_species*")
+  ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
+                     "*f_grid* must match *propmat_clearsky*")
+  ARTS_USER_ERROR_IF(
+      not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
+      "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
+  ARTS_USER_ERROR_IF(
+      not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
+      "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
+  ARTS_USER_ERROR_IF(any_negative(f_grid),
+                     "Negative frequency (at least one value).")
+  ARTS_USER_ERROR_IF(not is_increasing(f_grid),
+                     "Must be sorted and increasing.")
+  ARTS_USER_ERROR_IF(any_negative(rtp_vmr),
+                     "Negative VMR (at least one value).")
+  ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
+
+  // Jacobian overhead START
+  /* NOTE: if any of the functions inside continuum tags could 
+           be made to give partial derivatives, then that would 
+           speed things up.  Also be aware that line specific
+           parameters cannot be retrieved while using these 
+           models. */
+  const Numeric df = frequency_perturbation(jacobian_quantities);
+  const Numeric dt = temperature_perturbation(jacobian_quantities);
+
+  const bool do_jac = supports_continuum(
+      jacobian_quantities);  // Throws runtime error if line parameters are wanted since we cannot know if the line is in the Continuum...
+  const bool do_wind_jac = do_wind_jacobian(jacobian_quantities);
+  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
+
+  Vector dfreq;
+  Vector dabs_t{rtp_temperature + dt};
+
+  if (do_wind_jac) {
+    dfreq.resize(f_grid.nelem());
+    for (Index iv = 0; iv < f_grid.nelem(); iv++) dfreq[iv] = f_grid[iv] + df;
+  }
+
+  Vector normal(f_grid.nelem());
+  Vector jacs_df, jacs_dt;
+
+  if (do_jac) {
+    if (do_wind_jac) {
+      ARTS_USER_ERROR_IF(
+          !std::isnormal(df), "df must be >0 and not NaN or Inf: ", df)
+      jacs_df.resize(f_grid.nelem());
+    }
+    if (do_temp_jac) {
+      ARTS_USER_ERROR_IF(
+          !std::isnormal(dt), "dt must be >0 and not NaN or Inf: ", dt)
+      jacs_dt.resize(f_grid.nelem());
+    }
+  }
+  // Jacobian overhead END
+
+  const Vector abs_p{rtp_pressure};
+  const Vector abs_t{rtp_temperature};
+
+  // We set abs_h2o, abs_n2, and abs_o2 later, because we only want to
+  // do it if the parameters are really needed.
+
+  out3 << "  Calculating continuum spectra.\n";
+
+  // Loop tag groups:
+  for (Index ispecies = 0; ispecies < ns; ispecies++) {
+    if (select_abs_species.nelem() and
+        select_abs_species not_eq abs_species[ispecies])
+      continue;
+
+    // Skip it if there are no species or there is Zeeman requested
+    if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman())
+      continue;
+
+    // Go through the tags in the current tag group to see if they
+    // are continuum tags:
+    for (Index s = 0; s < abs_species[ispecies].nelem(); ++s) {
+      // Continuum tags in the sense that we talk about here
+      // (including complete absorption models) are marked by a special type.
+      if (abs_species[ispecies][s].Type() ==
+          Species::TagType::PredefinedLegacy) {
+        // We have identified a continuum tag!
+
+        // Get only the continuum name. The full tag name is something like:
+        // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
+        const String name = abs_species[ispecies][s].Isotopologue().FullName();
+
+        if (name == "O2-MPM2020") continue;
+
+        // Check, if we have parameters for this model. For
+        // this, the model name must be listed in
+        // abs_cont_names.
+        const Index n =
+            find(abs_cont_names.begin(), abs_cont_names.end(), name) -
+            abs_cont_names.begin();
+
+        // n==abs_cont_names.nelem() indicates that
+        // the name was not found.
+        ARTS_USER_ERROR_IF(n == abs_cont_names.nelem(),
+                           "Cannot find model ",
+                           name,
+                           " in abs_cont_names.")
+
+        // Ok, the tag specifies a valid continuum model and
+        // we have continuum parameters.
+
+        if (out3.sufficient_priority()) {
+          ostringstream os;
+          os << "  Adding " << name << " to tag group " << ispecies << ".\n";
+          out3 << os.str();
+        }
+
+        // Set abs_h2o, abs_n2, and abs_o2 from the first matching species.
+        const Index h2o =
+            find_first_species(abs_species, Species::fromShortName("H2O"));
+        const Vector h2o_vmr{h2o == -1 ? 0.0 : rtp_vmr[h2o]};
+        const Index n2 =
+            find_first_species(abs_species, Species::fromShortName("N2"));
+        const Vector n2_vmr{n2 == -1 ? 0.0 : rtp_vmr[h2o]};
+        const Index o2 =
+            find_first_species(abs_species, Species::fromShortName("O2"));
+        const Vector o2_vmr{o2 == -1 ? 0.0 : rtp_vmr[o2]};
+
+        // Add the continuum for this tag. The parameters in
+        // this call should be clear. The vmr is in
+        // abs_vmrs(i,Range(joker)). The other vmr variables,
+        // abs_h2o, abs_n2, and abs_o2 contains the real vmr of H2O,
+        // N2, nad O2, which are needed as additional information for
+        // certain continua:
+        // abs_h2o for
+        //   O2-PWR88, O2-PWR93, O2-PWR98,
+        //   O2-MPM85, O2-MPM87, O2-MPM89, O2-MPM92, O2-MPM93,
+        //   O2-TRE05,
+        //   O2-SelfContStandardType, O2-SelfContMPM93, O2-SelfContPWR93,
+        //   N2-SelfContMPM93, N2-DryContATM01,
+        //   N2-CIArotCKDMT252, N2-CIAfunCKDMT252
+        // abs_n2 for
+        //   H2O-SelfContCKD24, H2O-ForeignContCKD24,
+        //   O2-v0v0CKDMT100,
+        //   CO2-ForeignContPWR93, CO2-ForeignContHo66
+        // abs_o2 for
+        //   N2-CIArotCKDMT252, N2-CIAfunCKDMT252
+        normal = 0.0;
+        xsec_continuum_tag(normal,
+                           name,
+                           abs_cont_parameters[n],
+                           abs_cont_models[n],
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           n2_vmr,
+                           h2o_vmr,
+                           o2_vmr,
+                           rtp_vmr[ispecies],
+                           verbosity);
+        if (!do_jac) {
+          normal *=
+              number_density(rtp_pressure, rtp_temperature) * rtp_vmr[ispecies];
+          propmat_clearsky.Kjj() += normal;
+        } else  // The Jacobian block
+        {
+          // Needs a reseted block here...
+          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+            if (do_wind_jac) jacs_df[iv] = 0.0;
+            if (do_temp_jac) jacs_dt[iv] = 0.0;
+          }
+
+          // Frequency calculations
+          if (do_wind_jac)
+            xsec_continuum_tag(jacs_df,
+                               name,
+                               abs_cont_parameters[n],
+                               abs_cont_models[n],
+                               dfreq,
+                               abs_p,
+                               abs_t,
+                               n2_vmr,
+                               h2o_vmr,
+                               o2_vmr,
+                               rtp_vmr[ispecies],
+                               verbosity);
+
+          //Temperature calculations
+          if (do_temp_jac)
+            xsec_continuum_tag(jacs_dt,
+                               name,
+                               abs_cont_parameters[n],
+                               abs_cont_models[n],
+                               f_grid,
+                               abs_p,
+                               dabs_t,
+                               n2_vmr,
+                               h2o_vmr,
+                               o2_vmr,
+                               rtp_vmr[ispecies],
+                               verbosity);
+
+          Numeric nd = number_density(rtp_pressure, rtp_temperature);
+          Numeric dnd_dt = dnumber_density_dt(rtp_pressure, rtp_temperature);
+          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+            propmat_clearsky.Kjj()[iv] += normal[iv] * nd * rtp_vmr[ispecies];
+            for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+              const auto& deriv = jacobian_quantities[iq];
+
+              if (not deriv.propmattype()) continue;
+
+              if (is_wind_parameter(deriv)) {
+                dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+                    (jacs_df[iv] - normal[iv]) / df * nd * rtp_vmr[ispecies];
+              } else if (deriv == Jacobian::Atm::Temperature) {
+                dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+                    ((jacs_dt[iv] - normal[iv]) / dt * nd +
+                     normal[iv] * dnd_dt) *
+                    rtp_vmr[ispecies];
+              } else if (deriv == abs_species[ispecies]) {
+                dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+                    normal[iv] * nd;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddLines(  // Workspace reference:
     // WS Output:
     PropagationMatrix& propmat_clearsky,
@@ -1569,6 +1838,7 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
     // WS Input:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
@@ -1585,6 +1855,10 @@ void propmat_clearskyAddXsecAgenda(  // Workspace reference:
   // Output of abs_coefCalc:
   Matrix abs_coef;
   ArrayOfMatrix abs_coef_per_species, dabs_coef_dx;
+
+  ARTS_USER_ERROR_IF(select_abs_species.nelem(), R"--(
+  We do not yet support select_abs_species for xsec agenda calculations
+  )--")
 
   AbsInputFromRteScalars(abs_p,
                          abs_t,
@@ -1949,15 +2223,11 @@ struct MethodSetDelHelper {
   template <typename T>
   MethodSetDelHelper(Workspace& ws, String n, String t, T val)
       : name(std::move(n)), type(std::move(t)) {
-    if (auto ptr = ws.WsvMap.find("::propmat_clearsky_agendaSetAutomatic::autogen::" + name);
-        ptr == ws.WsvMap.end()) {
-      pos = ws.add_wsv_inplace(
-          WsvRecord(("::propmat_clearsky_agendaSetAutomatic::autogen::" + name).c_str(),
-                    "Added automatically",
-                    type));
-    } else {
-      pos = ptr->second;
-    }
+    auto k = "::propmat_clearsky_agendaSetAutomatic::autogen::" + name;
+    auto ptr = ws.WsvMap.find(k);
+    pos = ptr == ws.WsvMap.end() ? ws.add_wsv_inplace(WsvRecord(
+                                       k.c_str(), "Added automatically", type))
+                                 : ptr->second;
 
     set = MRecord(
         global_data::MdMap.at(type + "Set"), {pos}, {}, std::move(val), {});
@@ -1983,6 +2253,7 @@ struct MethodAppender {
   ArrayOfIndex full_out{};
   ArrayOfIndex full_in{};
   MethodAppender(Agenda& agenda) : propmat_clearsky_agenda(agenda) {}
+  
   void append_nogin_method(std::string_view method) {
     const auto pos = global_data::MdMap.at(method);
     const MdRecord& rec = global_data::md_data.at(pos);
@@ -1998,13 +2269,14 @@ struct MethodAppender {
     const auto pos = global_data::MdMap.at(method);
     const MdRecord& rec = global_data::md_data.at(pos);
 
-    ARTS_ASSERT(gins_are_ok(rec, gins), "Something is wrong with the Generic inputs!")
+    ARTS_ASSERT(gins_are_ok(rec, gins),
+                "Something is wrong with the Generic inputs!")
 
     auto& out = rec.Out();
     auto in = rec.InOnly();
-    for (auto& i: out) full_out.push_back(i);
-    for (auto& i: in) full_in.push_back(i);
-    
+    for (auto& i : out) full_out.push_back(i);
+    for (auto& i : in) full_in.push_back(i);
+
     for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
     for (auto& x : gins) in.push_back(x.pos);
     propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, {}));
@@ -2051,27 +2323,32 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     Workspace& ws,
     // WS Output:
     Agenda& propmat_clearsky_agenda,
+    Index& propmat_clearsky_agenda_checked,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     // WS Generic Input:
+    const Numeric& T_extrapolfac,
+    const Index& ignore_errors,
     const Numeric& force_p,
     const Numeric& force_t,
-    const Numeric& sparse_df,
-    const Numeric& sparse_lim,
-    const String& speedup_option,
-    const Index& robust,
+    const Numeric& lines_sparse_df,
+    const Numeric& lines_sparse_lim,
+    const String& lines_speedup_option,
+    const Index& no_negatives,
     const Index& use_abs_as_ext,
-    const Index& manual_zeeman_tag,
-    const Numeric& manual_zeeman_magnetic_field_strength,
-    const Numeric& manual_zeeman_theta,
-    const Numeric& manual_zeeman_eta,
+    const Index& manual_mag_field,
+    const Numeric& H,
+    const Numeric& theta,
+    const Numeric& eta,
     // Verbosity object:
     const Verbosity& verbosity) {
+  propmat_clearsky_agenda_checked = 0;  // In case of crash
+
   // Reset the agenda
   propmat_clearsky_agenda.resize(0);
   propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
-  
+
   const SpeciesTagTypeStatus any_species(abs_species);
   const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
   MethodAppender agenda{propmat_clearsky_agenda};
@@ -2082,48 +2359,64 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
   }
 
   // propmat_clearskyAddLines
-  if (any_species.Plain and (any_lines.population.LTE or any_lines.population.NLTE or any_lines.population.VibTemps)) {
+  if (any_species.Plain and
+      (any_lines.population.LTE or any_lines.population.NLTE or
+       any_lines.population.VibTemps)) {
     const std::array gins{
-        MethodSetDelHelper(ws, "sparse_df", "Numeric", sparse_df),
-        MethodSetDelHelper(ws, "sparse_lim", "Numeric", sparse_lim),
-        MethodSetDelHelper(ws, "speedup_option", "String", speedup_option),
-        MethodSetDelHelper(ws, "robust", "Index", robust)};
+        MethodSetDelHelper(ws, "lines_sparse_df", "Numeric", lines_sparse_df),
+        MethodSetDelHelper(ws, "lines_sparse_lim", "Numeric", lines_sparse_lim),
+        MethodSetDelHelper(
+            ws, "lines_speedup_option", "String", lines_speedup_option),
+        MethodSetDelHelper(ws, "no_negatives", "Index", no_negatives)};
     agenda.append_gin_method("propmat_clearskyAddLines", gins);
   }
 
   // propmat_clearskyAddZeeman
-  if (any_species.Zeeman and (any_lines.population.LTE or any_lines.population.NLTE or any_lines.population.VibTemps)) {
+  if (any_species.Zeeman and
+      (any_lines.population.LTE or any_lines.population.NLTE or
+       any_lines.population.VibTemps)) {
     const std::array gins{
-        MethodSetDelHelper(ws, "manual_zeeman_tag", "Index", manual_zeeman_tag),
-        MethodSetDelHelper(ws,
-                 "manual_zeeman_magnetic_field_strength",
-                 "Numeric",
-                 manual_zeeman_magnetic_field_strength),
-        MethodSetDelHelper(ws, "manual_zeeman_theta", "Numeric", manual_zeeman_theta),
-        MethodSetDelHelper(ws, "manual_zeeman_eta", "Numeric", manual_zeeman_eta)};
+        MethodSetDelHelper(ws, "manual_mag_field", "Index", manual_mag_field),
+        MethodSetDelHelper(ws, "H", "Numeric", H),
+        MethodSetDelHelper(ws, "theta", "Numeric", theta),
+        MethodSetDelHelper(ws, "eta", "Numeric", eta)};
     agenda.append_gin_method("propmat_clearskyAddZeeman", gins);
   }
 
-  //propmat_clearskyAddXsecFit
+  //propmat_clearskyAddHitranXsec
   if (any_species.XsecFit) {
-    const std::array gins{MethodSetDelHelper(ws, "force_p", "Numeric", force_p),
-                          MethodSetDelHelper(ws, "force_t", "Numeric", force_t)};
+    const std::array gins{
+        MethodSetDelHelper(ws, "force_p", "Numeric", force_p),
+        MethodSetDelHelper(ws, "force_t", "Numeric", force_t)};
     agenda.append_gin_method("propmat_clearskyAddXsecFit", gins);
   }
 
   //propmat_clearskyAddOnTheFlyLineMixing
-  if (any_species.Plain and (any_lines.population.ByMakarovFullRelmat or any_lines.population.ByRovibLinearDipoleLineMixing)) {
+  if (any_species.Plain and
+      (any_lines.population.ByMakarovFullRelmat or
+       any_lines.population.ByRovibLinearDipoleLineMixing)) {
     agenda.append_nogin_method("propmat_clearskyAddOnTheFlyLineMixing");
   }
 
   //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
-  if (any_species.Zeeman and (any_lines.population.ByMakarovFullRelmat or any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.append_nogin_method("propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
+  if (any_species.Zeeman and
+      (any_lines.population.ByMakarovFullRelmat or
+       any_lines.population.ByRovibLinearDipoleLineMixing)) {
+    agenda.append_nogin_method(
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
   }
 
-  //propmat_clearskyAddXsecAgenda
-  if (any_species.Cia or any_species.PredefinedLegacy) {
-    agenda.append_nogin_method("propmat_clearskyAddXsecAgenda");
+  //propmat_clearskyAddCIA
+  if (any_species.Cia) {
+    const std::array gins{
+        MethodSetDelHelper(ws, "T_extrapolfac", "Numeric", T_extrapolfac),
+        MethodSetDelHelper(ws, "ignore_errors", "Index", ignore_errors)};
+    agenda.append_gin_method("propmat_clearskyAddCIA", gins);
+  }
+
+  //propmat_clearskyAddConts
+  if (any_species.PredefinedLegacy) {
+    agenda.append_nogin_method("propmat_clearskyAddConts");
   }
 
   //propmat_clearskyAddPredefined
@@ -2144,7 +2437,8 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
   }
 
   // propmat_clearskyAddHitranLineMixingLines
-  if (any_species.Plain and (any_lines.population.ByHITRANFullRelmat or any_lines.population.ByHITRANRosenkranzRelmat)) {
+  if (any_species.Plain and (any_lines.population.ByHITRANFullRelmat or
+                             any_lines.population.ByHITRANRosenkranzRelmat)) {
     agenda.append_nogin_method("propmat_clearskyAddHitranLineMixingLines");
   }
 
@@ -2155,4 +2449,86 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
 
   // Extra check (should really never ever fail when species exist)
   propmat_clearsky_agenda.check(ws, verbosity);
+  propmat_clearsky_agenda_checked=1;
+}
+
+void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
+    Workspace& ws,
+    // WS Output:
+    Agenda& propmat_clearsky_agenda,
+    Index& propmat_clearsky_agenda_checked,
+    // WS Input:
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    // WS Generic Input:
+    const Numeric& extpolfac,
+    const Index& use_abs_as_ext,
+    const Index& manual_mag_field,
+    const Numeric& H,
+    const Numeric& theta,
+    const Numeric& eta,
+    // Verbosity object:
+    const Verbosity& verbosity) {
+  propmat_clearsky_agenda_checked = 0;  // In case of crash
+  
+  // Reset the agenda
+  propmat_clearsky_agenda.resize(0);
+  propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
+
+  const SpeciesTagTypeStatus any_species(abs_species);
+  const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
+  MethodAppender agenda{propmat_clearsky_agenda};
+
+  // propmat_clearskyInit
+  if (abs_species.nelem()) {
+    agenda.append_nogin_method("propmat_clearskyInit");
+  }
+
+  // propmat_clearskyAddFromLookup
+  {
+    const std::array gins{
+        MethodSetDelHelper(ws, "extpolfac", "Numeric", extpolfac)};
+    agenda.append_gin_method("propmat_clearskyAddFromLookup", gins);
+  }
+
+  // propmat_clearskyAddZeeman
+  if (any_species.Zeeman and
+      (any_lines.population.LTE or any_lines.population.NLTE or
+       any_lines.population.VibTemps)) {
+    const std::array gins{
+        MethodSetDelHelper(ws, "manual_mag_field", "Index", manual_mag_field),
+        MethodSetDelHelper(ws, "H", "Numeric", H),
+        MethodSetDelHelper(ws, "theta", "Numeric", theta),
+        MethodSetDelHelper(ws, "eta", "Numeric", eta)};
+    agenda.append_gin_method("propmat_clearskyAddZeeman", gins);
+  }
+
+  //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
+  if (any_species.Zeeman and
+      (any_lines.population.ByMakarovFullRelmat or
+       any_lines.population.ByRovibLinearDipoleLineMixing)) {
+    agenda.append_nogin_method(
+        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
+  }
+
+  //propmat_clearskyAddParticles
+  if (any_species.Particles) {
+    const std::array gins{
+        MethodSetDelHelper(ws, "use_abs_as_ext", "Index", use_abs_as_ext)};
+    agenda.append_gin_method("propmat_clearskyAddParticles", gins);
+  }
+
+  //propmat_clearskyAddFaraday
+  if (any_species.FreeElectrons) {
+    agenda.append_nogin_method("propmat_clearskyAddFaraday");
+  }
+
+  // Ignore and touch all unused input and ouptut of the agenda
+  if (abs_species.nelem()) {
+    agenda.append_ignores(ws).append_touch(ws);
+  }
+
+  // Extra check (should really never ever fail when species exist)
+  propmat_clearsky_agenda.check(ws, verbosity);
+  propmat_clearsky_agenda_checked=1;
 }

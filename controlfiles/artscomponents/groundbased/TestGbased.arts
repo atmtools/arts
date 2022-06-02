@@ -123,6 +123,7 @@ lbl_checkedCalc
 
 jacobianOff
 
+propmat_clearsky_agendaSetAutomatic
 abs_lookupCalc
 
 # absorption from LUT
