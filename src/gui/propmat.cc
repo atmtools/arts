@@ -466,7 +466,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
     ImGui::EndMainMenuBar();
   }
 
-  if (Windows::full(window, Windows::CurrentPosition(), "DrawingWindow")) {
+  if (Windows::sub<5, 1, 0, 0, 4, 1>(window, Windows::CurrentPosition(), "DrawingWindow")) {
     if (ImGui::BeginTabBar("TabBar")) {
       for (std::size_t i = 0; i < PropmatClearsky::n; i++) {
         std::string opt{var_string(' ', "Plot panel ", i, ' ')};
@@ -504,6 +504,102 @@ void propmat(PropmatClearsky::ResultsArray& res,
         }
       }
       ImGui::EndTabBar();
+    }
+  }
+  Windows::end();
+
+  if (Windows::sub<5, 1, 4, 0, 1, 1>(
+          window, Windows::CurrentPosition(), "InformationWindow")) {
+    ImGui::Text("\tPanel %lu Status\t", curpos);
+    ImGui::Separator();
+    ImGui::Separator();
+    if (res[curpos].ok.load()) {
+      std::lock_guard lock{ctrl.copy};
+      auto& v = res[curpos].value;
+
+      // Display current pressure
+      ImGui::Text("\tPressure:    %g Pa%c\t",
+                  v.rtp_pressure,
+                  rtp_pressure == v.rtp_pressure ? ' ' : '*');
+      ImGui::Separator();
+
+      // Display current temperature
+      ImGui::Text("\tTemperature: %g K%c\t",
+                  v.rtp_temperature,
+                  rtp_temperature == v.rtp_temperature ? ' ' : '*');
+      ImGui::Separator();
+
+      // Display current frequency grid
+      ImGui::Text(
+          "\tFrequency Grid:\n\t  Start: %g Hz%c\t\n\t  Stop: %g Hz%c\t\n\t  nelem: %ld%c\t",
+          v.f_grid[0],
+          v.f_grid[0] == f_grid[0] ? ' ' : '*',
+          v.f_grid[v.f_grid.nelem() - 1],
+          v.f_grid[v.f_grid.nelem() - 1] == v.f_grid[v.f_grid.nelem() - 1]
+              ? ' '
+              : '*',
+          f_grid.nelem(),
+          f_grid.nelem() == v.f_grid.nelem() ? ' ' : '*');
+      ImGui::Separator();
+
+      // Display current magnetic field
+      ImGui::Text(
+          "\tMagnetic Field:\n\t  U: %g T%c\t\n\t  V: %g T%c\t\n\t  W: %g T%c\t",
+          v.rtp_mag[0],
+          v.rtp_mag[0] == rtp_mag[0] ? ' ' : '*',
+          v.rtp_mag[1],
+          v.rtp_mag[1] == rtp_mag[1] ? ' ' : '*',
+          v.rtp_mag[2],
+          v.rtp_mag[2] == rtp_mag[2] ? ' ' : '*');
+      ImGui::Separator();
+
+      // Display current LOS
+      ImGui::Text(
+          "\tLine Of Sight:\n\t  Zenith: %g deg%c\t\n\t  Azimuth: %g deg%c\t",
+          v.rtp_los[0],
+          v.rtp_los[0] == rtp_los[0] ? ' ' : '*',
+          v.rtp_los[1],
+          v.rtp_los[1] == rtp_los[1] ? ' ' : '*');
+      ImGui::Separator();
+
+      // Display current VMR
+      ImGui::Text("\tVMR\t");
+      for (Index i = 0; i < abs_species.nelem(); i++) {
+        const std::string spec{var_string(abs_species[i])};
+        ImGui::Text("\t  %s:\t\n\t    %g%c",
+                    spec.c_str(),
+                    v.rtp_vmr[i],
+                    v.rtp_vmr[i] == rtp_vmr[i] ? ' ' : '*');
+      }
+      ImGui::Separator();
+
+      // Display current Jacobian
+      bool jac_agree=jacobian_quantities.nelem() == v.jacobian_quantities.nelem();
+      for (Index i = 0; i < jacobian_quantities.nelem() and jac_agree; i++) {
+        jac_agree = jac_agree and
+                    jacobian_quantities[i].Target().type ==
+                        v.jacobian_quantities[i].Target().type and
+                    jac_agree and
+                    jacobian_quantities[i].Target().atm ==
+                        v.jacobian_quantities[i].Target().atm and
+                    jac_agree and
+                    jacobian_quantities[i].Target().line ==
+                        v.jacobian_quantities[i].Target().line and
+                    jac_agree and
+                    jacobian_quantities[i].Target().qid ==
+                        v.jacobian_quantities[i].Target().qid;
+      }
+      ImGui::Text("\tPartial Derivatives:%c", jac_agree ? ' ' : '*');
+      for (auto& jac: v.jacobian_quantities) {
+        const auto str = MainMenu::change_item_name(jac.Target());
+        ImGui::Text("\t  %s\t", str.c_str());
+      }
+      ImGui::Separator(); 
+
+      // Display current select species
+      auto spec_str = var_string(v.select_abs_species);
+      ImGui::Text("\tSelect Species:%c\t\n\t  %s", spec_str==var_string(select_abs_species) ? ' ': '*', spec_str.length() == 0 ? "All" : spec_str.c_str());
+      ImGui::Separator();
     }
   }
   Windows::end();

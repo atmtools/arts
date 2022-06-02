@@ -111,8 +111,41 @@ bool change_item(const char* name) {
   return false;
 }
 
+[[nodiscard]] std::string change_item_name(const JacobianTarget& target) {
+  switch (target.type) {
+    case Jacobian::Type::Atm:
+      switch (target.atm) {
+        case Jacobian::Atm::Temperature:
+          return "Temperature";
+          break;
+        case Jacobian::Atm::WindMagnitude:
+          return "Wind Magnitude";
+          break;
+        default:
+          ARTS_USER_ERROR("Not implemented")
+      }
+
+      break;
+    case Jacobian::Type::Line:
+      switch (target.line) {
+        case Jacobian::Line::VMR:
+          return var_string("VMR: ", target.qid.Isotopologue());
+          break;
+        default:
+          ARTS_USER_ERROR("Not implemented")
+      }
+      break;
+    default:
+      ARTS_USER_ERROR("Not implemented")
+  }
+
+  return "Bad Value";
+}
+
 bool change_item(const char* name, ArrayOfRetrievalQuantity& jac) {
   bool did_something = false;
+  Jacobian::Target target;
+  std::string target_name;
 
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Value")) {
@@ -120,32 +153,35 @@ bool change_item(const char* name, ArrayOfRetrievalQuantity& jac) {
       auto fpred = [](auto& j) { return j == Jacobian::Atm::WindMagnitude; };
 
       if (ImGui::BeginMenu(name)) {
+        target = Jacobian::Target(Jacobian::Atm::Temperature);
+        target_name = "\t" + change_item_name(target) + "\t";
         if (bool has = std::any_of(jac.begin(), jac.end(), tpred);
-            ImGui::Selectable(
-                "\tTemperature\t", has, ImGuiSelectableFlags_DontClosePopups)) {
+            ImGui::Selectable(target_name.c_str(),
+                              has,
+                              ImGuiSelectableFlags_DontClosePopups)) {
           if (has) {
             std::remove_if(jac.begin(), jac.end(), tpred);
             jac.pop_back();
           } else {
-            auto& x = jac.emplace_back();
-            x.Target() = Jacobian::Target(Jacobian::Atm::Temperature);
-            x.Target().perturbation = 0.1;
+            target.perturbation = 0.1;
+            jac.emplace_back().Target() = target;
           }
           did_something = true;
         }
         ImGui::Separator();
 
+        target = Jacobian::Target(Jacobian::Atm::WindMagnitude);
+        target_name = "\t" + change_item_name(target) + "\t";
         if (bool has = std::any_of(jac.begin(), jac.end(), fpred);
-            ImGui::Selectable("\tWind Magnitude\t",
+            ImGui::Selectable(target_name.c_str(),
                               has,
                               ImGuiSelectableFlags_DontClosePopups)) {
           if (has) {
             std::remove_if(jac.begin(), jac.end(), fpred);
             jac.pop_back();
           } else {
-            auto& x = jac.emplace_back();
-            x.Target() = Jacobian::Target(Jacobian::Atm::WindMagnitude);
-            x.Target().perturbation = 100;
+            target.perturbation = 100;
+            jac.emplace_back().Target() = target;
           }
           did_something = true;
         }
