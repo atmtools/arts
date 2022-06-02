@@ -498,7 +498,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
     ImGui::Separator();
 
     {
-      MainMenu::disable_lock disabled{ctrl.run.load()};
+      MainMenu::scoped_disable disabled{ctrl.run.load()};
       if (ImGui::Button("\tRun Agenda\t", {-1, 0})) {
         start_run(curpos, ctrl, start_time);
       }
@@ -508,7 +508,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
     ImGui::Separator();
     {
-      MainMenu::disable_lock disabled{not res[curpos].ok.load()};
+      MainMenu::scoped_disable disabled{not res[curpos].ok.load()};
       ImGui::Text(" ");
       ImGui::SameLine();
       ImGui::Checkbox("\tUpdate Automatic\t", &res[curpos].auto_update);
