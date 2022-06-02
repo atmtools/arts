@@ -121,12 +121,19 @@ xscale_option() {
   return out;
 }
 
-Numeric yscale(YScaling scale, Numeric T, Numeric P, const PropagationMatrix& pm) {
+Numeric yscale(YScaling scale,
+               Numeric T,
+               Numeric P,
+               const PropagationMatrix& pm) {
   switch (scale) {
-    case YScaling::None: return 1.0;
-    case YScaling::CrossSection: return number_density(P, T);
-    case YScaling::Normalize: return max(pm.Data());
-    case YScaling::FINAL: { /* leave last */ }
+    case YScaling::None:
+      return 1.0;
+    case YScaling::CrossSection:
+      return number_density(P, T);
+    case YScaling::Normalize:
+      return max(pm.Data());
+    case YScaling::FINAL: { /* leave last */
+    }
   }
   return 1.0;
 }
@@ -213,7 +220,8 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
   const std::string y_axis = var_string(
       select_jac ? MainMenu::absunit(
                        v.jacobian_quantities[opts.jacobian_target].Target())
-                 : std::string{"Absorption [1/m]"}, main_data.yscale_const == 1.0 ? "" : yscale_str.data());
+                 : std::string{"Absorption [1/m]"},
+      main_data.yscale_const == 1.0 ? "" : yscale_str.data());
 
   const std::string_view title = select_jac
                                      ? "Propagation Matrix Partial Derivative"
@@ -292,6 +300,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
   ImPlotLimits r{};
   Time start_time{};
   Time end_time{};
+  Numeric last_runtime=std::numeric_limits<Numeric>::quiet_NaN();
   std::size_t curpos = PropmatClearsky::n;
   auto fileBrowser = ARTSGUI::Files::xmlfile_chooser();
 
@@ -325,102 +334,55 @@ void propmat(PropmatClearsky::ResultsArray& res,
   {
     std::lock_guard lock{ctrl.copy};
 
-    updated =
-        MainMenu::change_item("\tjacobian_quantities\t", jacobian_quantities, old_jacobian_quantities) or
-        updated;
-
-    updated = MainMenu::change_item(
-                  "\tselect_abs_species\t", select_abs_species, old_select_abs_species, abs_species) or
+    updated = MainMenu::change_item("\tjacobian_quantities\t",
+                                    jacobian_quantities,
+                                    old_jacobian_quantities) or
               updated;
 
-    updated = MainMenu::change_item("\tf_grid\t", f_grid, old_f_grid, 1) or updated;
+    updated = MainMenu::change_item("\tselect_abs_species\t",
+                                    select_abs_species,
+                                    old_select_abs_species,
+                                    abs_species) or
+              updated;
 
     updated =
-        MainMenu::change_item(
-            "\trtp_mag\t", rtp_mag, old_rtp_mag, {"\tU [T]\t", "\tV [T]\t", "\tW [T]\t"}) or
-        updated;
+        MainMenu::change_item("\tf_grid\t", f_grid, old_f_grid, 1) or updated;
+
+    updated = MainMenu::change_item("\trtp_mag\t",
+                                    rtp_mag,
+                                    old_rtp_mag,
+                                    {"\tU [T]\t", "\tV [T]\t", "\tW [T]\t"}) or
+              updated;
 
     updated =
         MainMenu::change_item("\trtp_los\t",
-                              rtp_los, old_rtp_los,
+                              rtp_los,
+                              old_rtp_los,
                               {"\tZenith [deg]\t", "\tAzimuth [deg]\t"}) or
         updated;
 
     updated = MainMenu::change_item("\trtp_pressure\t",
                                     "\t[Pa]\t",
-                                    rtp_pressure, old_rtp_pressure,
+                                    rtp_pressure,
+                                    old_rtp_pressure,
                                     std::numeric_limits<Numeric>::min()) or
               updated;
 
     updated = MainMenu::change_item("\trtp_temperature\t",
                                     "\t[K]\t",
-                                    rtp_temperature, old_rtp_temperature,
+                                    rtp_temperature,
+                                    old_rtp_temperature,
                                     std::numeric_limits<Numeric>::min()) or
               updated;
 
     updated = MainMenu::change_item("\trtp_nlte\t") or updated;
 
-    updated =
-        MainMenu::change_item("\trtp_vmr\t", rtp_vmr, old_rtp_vmr, abs_species, menu_opt) or
-        updated;
+    updated = MainMenu::change_item(
+                  "\trtp_vmr\t", rtp_vmr, old_rtp_vmr, abs_species, menu_opt) or
+              updated;
   }
 
   if (ImGui::BeginMainMenuBar()) {
-    if (ImGui::BeginMenu("Panels")) {
-      for (std::size_t i = 0; i < PropmatClearsky::n; i++) {
-        std::string opt{var_string("\tSettings plot panel ", i, '\t')};
-        if (ImGui::BeginMenu(opt.c_str())) {
-          if (ImGui::Button("\tUpdate Manually\t")) {
-            start_run(i, ctrl, start_time);
-          }
-          if (ImGui::IsItemHovered()) {
-            if (ImGui::GetCurrentContext()->HoveredIdTimer >
-                config.hover_time_limit) {
-              ImGui::SetTooltip(" \n\tUpdates the calculations\t\n ");
-              ImGui::BeginTooltip();
-              ImGui::EndTooltip();
-            }
-          }
-          ImGui::Separator();
-          ImGui::Checkbox("\tUpdate Automatic\t", &res[i].auto_update);
-          if (ImGui::IsItemHovered()) {
-            if (ImGui::GetCurrentContext()->HoveredIdTimer >
-                config.hover_time_limit) {
-              ImGui::SetTooltip(
-                  " \n\tUpdates the calculations as the atmospheric state is updated\t\n ");
-              ImGui::BeginTooltip();
-              ImGui::EndTooltip();
-            }
-          }
-          ImGui::Separator();
-          ImGui::Checkbox("\tAutomatic Frequency Grid\t", &res[i].auto_f_grid);
-          if (ImGui::IsItemHovered()) {
-            if (ImGui::GetCurrentContext()->HoveredIdTimer >
-                config.hover_time_limit) {
-              ImGui::SetTooltip(
-                  " \n\tUpdates the calculations as you move the x-axis\t\n"
-                  "\n"
-                  "\tNote that this is very unstable with inverse frequency scales (wavelengths)\t\n ");
-              ImGui::BeginTooltip();
-              ImGui::EndTooltip();
-            }
-          }
-
-          ImGui::EndMenu();
-        }
-        ImGui::Separator();
-      }
-      ImGui::EndMenu();
-    }
-    if (ImGui::IsItemHovered()) {
-      if (ImGui::GetCurrentContext()->HoveredIdTimer >
-          config.hover_time_limit) {
-        ImGui::SetTooltip(" \n\tSettings related to individual panels\t\n ");
-        ImGui::BeginTooltip();
-        ImGui::EndTooltip();
-      }
-    }
-
     if (ImGui::BeginMenu("Display")) {
       if (ImGui::BeginMenu("\tY Scale\t")) {
         MainMenu::select_option(disp_options.yscale,
@@ -429,7 +391,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
         if (disp_options.yscale not_eq PropmatClearsky::YScaling::Normalize) {
           ImGui::InputDouble(
               "\tY Scale Constant\t", &disp_options.yscale_const, 0, 0, "%g");
-          ImGui::Checkbox("\tInverse Y Scale Constant\t", &disp_options.inverse_yscale);
+          ImGui::Checkbox("\tInverse Y Scale Constant\t",
+                          &disp_options.inverse_yscale);
           ImGui::Separator();
         } else {
           disp_options.inverse_yscale = false;
@@ -476,7 +439,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
     ImGui::EndMainMenuBar();
   }
 
-  if (Windows::sub<5, 1, 0, 0, 4, 1>(window, Windows::CurrentPosition(), "DrawingWindow")) {
+  if (Windows::sub<5, 1, 0, 0, 4, 1>(
+          window, Windows::CurrentPosition(), "DrawingWindow")) {
     if (ImGui::BeginTabBar("TabBar")) {
       for (std::size_t i = 0; i < PropmatClearsky::n; i++) {
         std::string opt{var_string(' ', "Plot panel ", i, ' ')};
@@ -518,9 +482,55 @@ void propmat(PropmatClearsky::ResultsArray& res,
   }
   Windows::end();
 
-  if (Windows::sub<5, 1, 4, 0, 1, 1>(
+  // Timer
+  if (ctrl.run.load()) {
+    end_time = Time{};
+  } else if (end_time not_eq start_time) {
+    last_runtime = end_time.Seconds() - start_time.Seconds();
+  }
+
+  // Control panel
+  if (Windows::sub<5, 5, 4, 0, 1, 1>(
+          window, Windows::CurrentPosition(), "ControlWindow")) {
+    ImGui::Separator();
+    ImGui::Text("\tPanel Control\t");
+    ImGui::Separator();
+    ImGui::Separator();
+
+    if (ImGui::Button("\tRun Agenda\t", {-1, 0})) {
+      start_run(curpos, ctrl, start_time);
+    }
+    MainMenu::tooltip("Updates the calculations using the current Agenda input",
+                      config);
+    ImGui::Separator();
+    ImGui::Text(" ");
+    ImGui::SameLine();
+    ImGui::Checkbox("\tUpdate Automatic\t", &res[curpos].auto_update);
+    MainMenu::tooltip("Updates the calculations as the Agenda input is updated",
+                      config);
+    ImGui::Separator();
+    ImGui::Text(" ");
+    ImGui::SameLine();
+    ImGui::Checkbox("\tAutomatic Frequency Grid\t", &res[curpos].auto_f_grid);
+    MainMenu::tooltip("Updates the calculations as you move the x-axis",
+                      config);
+    ImGui::Separator();
+    ImGui::Text(" Last run: %g seconds", last_runtime);
+    ImGui::Separator();
+    if (ctrl.run.load()) {
+      ImGui::Text(" Running: %g seconds", end_time.Seconds() - start_time.Seconds());
+    } else {
+      ImGui::Text(" Not Running");
+    }
+    ImGui::Separator();
+  }
+  Windows::end();
+
+  // Information about previous run
+  if (Windows::sub<5, 5, 4, 1, 1, 4>(
           window, Windows::CurrentPosition(), "InformationWindow")) {
-    ImGui::Text("\tPanel %lu Status\t", curpos);
+    ImGui::Separator();
+    ImGui::Text("\tPanel Status\t");
     ImGui::Separator();
     ImGui::Separator();
     if (res[curpos].ok.load()) {
@@ -545,7 +555,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
           v.f_grid[0],
           v.f_grid[0] == f_grid[0] ? ' ' : '*',
           v.f_grid[v.f_grid.nelem() - 1],
-          v.f_grid[v.f_grid.nelem() - 1] == v.f_grid[v.f_grid.nelem() - 1]
+          v.f_grid[v.f_grid.nelem() - 1] == f_grid[f_grid.nelem() - 1]
               ? ' '
               : '*',
           f_grid.nelem(),
@@ -584,7 +594,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
       ImGui::Separator();
 
       // Display current Jacobian
-      bool jac_agree=jacobian_quantities.nelem() == v.jacobian_quantities.nelem();
+      bool jac_agree =
+          jacobian_quantities.nelem() == v.jacobian_quantities.nelem();
       for (Index i = 0; i < jacobian_quantities.nelem() and jac_agree; i++) {
         jac_agree = jac_agree and
                     jacobian_quantities[i].Target().type ==
@@ -600,37 +611,21 @@ void propmat(PropmatClearsky::ResultsArray& res,
                         v.jacobian_quantities[i].Target().qid;
       }
       ImGui::Text("\tPartial Derivatives:%c", jac_agree ? ' ' : '*');
-      for (auto& jac: v.jacobian_quantities) {
+      for (auto& jac : v.jacobian_quantities) {
         const auto str = MainMenu::change_item_name(jac.Target());
         ImGui::Text("\t  %s\t", str.c_str());
       }
-      ImGui::Separator(); 
+      ImGui::Separator();
 
       // Display current select species
       auto spec_str = var_string(v.select_abs_species);
-      ImGui::Text("\tSelect Species:%c\t\n\t  %s", spec_str==var_string(select_abs_species) ? ' ': '*', spec_str.length() == 0 ? "All" : spec_str.c_str());
+      ImGui::Text("\tSelect Species:%c\t\n\t  %s",
+                  spec_str == var_string(select_abs_species) ? ' ' : '*',
+                  spec_str.length() == 0 ? "All" : spec_str.c_str());
       ImGui::Separator();
     }
   }
   Windows::end();
-
-  // Timer
-  if (ctrl.run.load()) {
-    end_time = Time{};
-  }
-
-  if (std::any_of(
-          res.begin(), res.end(), [](auto& x) { return x.ok.load(); })) {
-    if (ImGui::BeginMainMenuBar()) {
-      std::string msg{
-          var_string((ctrl.run.load() ? std::string{"Running: "}
-                                      : std::string{"Last run took: "}),
-                     end_time.Seconds() - start_time.Seconds(),
-                     " s")};
-      ImGui::Text("\t%s", msg.c_str());
-      ImGui::EndMainMenuBar();
-    }
-  }
 
   // Save the data to file?
   if (curpos < res.size() and res[curpos].ok.load()) {

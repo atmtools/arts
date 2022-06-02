@@ -66,4 +66,6 @@ void select_option(T &current,
 
 [[nodiscard]] std::string absunit(const Jacobian::Target& target);
 void select_option(Index&, const ArrayOfRetrievalQuantity& jac);
+
+void tooltip(const char*, const Config& config);
 }  // namespace ARTSGUI::MainMenu

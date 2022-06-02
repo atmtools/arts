@@ -188,12 +188,12 @@ bool change_item(const char* name,
           did_something = true;
         }
         ImGui::Separator();
-        if (ImGui::Button("\tRestore Value\t")) {
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
           jac = old;
           did_something = true;
         }
         ImGui::Separator();
-        if (ImGui::Button("\tStore Value\t")) old = jac;
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = jac;
         ImGui::Separator();
         ImGui::EndMenu();
       }
@@ -226,12 +226,12 @@ bool change_item(const char* name,
           ImGui::Separator();
         }
         ImGui::Separator();
-        if (ImGui::Button("\tRestore Value\t")) {
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
           vec = old;
           did_something = true;
         }
         ImGui::Separator();
-        if (ImGui::Button("\tStore Value\t")) old = vec;
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = vec;
         ImGui::Separator();
         ImGui::EndMenu();
       }
@@ -301,12 +301,12 @@ bool change_item(const char* name,
         }
 
         ImGui::Separator();
-        if (ImGui::Button("\tRestore Value\t")) {
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
           vec = old;
           did_something = true;
         }
         ImGui::Separator();
-        if (ImGui::Button("\tStore Value\t")) old = vec;
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = vec;
         ImGui::Separator();
         ImGui::EndMenu();
       }
@@ -359,12 +359,12 @@ bool change_item(
         }
 
         ImGui::Separator();
-        if (ImGui::Button("\tRestore Value\t")) {
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
           vec = old;
           did_something = true;
         }
         ImGui::Separator();
-        if (ImGui::Button("\tStore Value\t")) old = vec;
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = vec;
         ImGui::Separator();
         ImGui::EndMenu();
       }
@@ -396,12 +396,12 @@ bool change_item(const char* name,
           did_something = true;
         }
         ImGui::Separator();
-        if (ImGui::Button("\tRestore Value\t")) {
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
           val = old;
           did_something = true;
         }
         ImGui::Separator();
-        if (ImGui::Button("\tStore Value\t")) old = val;
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = val;
         ImGui::Separator();
         ImGui::EndMenu();
       }
@@ -440,12 +440,12 @@ bool change_item(const char* name,
           }
         }
         ImGui::Separator();
-        if (ImGui::Button("\tRestore Value\t")) {
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
           out = old;
           did_something = true;
         }
         ImGui::Separator();
-        if (ImGui::Button("\tStore Value\t")) old = out;
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = out;
         ImGui::EndMenu();
       }
       ImGui::Separator();
@@ -499,6 +499,16 @@ void select_option(Index& ind, const ArrayOfRetrievalQuantity& jac) {
     if (ImGui::Selectable(
             opt.c_str(), ind == i, ImGuiSelectableFlags_DontClosePopups)) {
       ind = i;
+    }
+  }
+}
+
+void tooltip(const char* tip, const Config& config) {
+  if (ImGui::IsItemHovered()) {
+    if (ImGui::GetCurrentContext()->HoveredIdTimer > config.hover_time_limit) {
+      ImGui::SetTooltip(" \n\t%s\t\n ", tip);
+      ImGui::BeginTooltip();
+      ImGui::EndTooltip();
     }
   }
 }
