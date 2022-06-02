@@ -24,30 +24,30 @@ bool exportdata(const Config &cfg, ImGui::FileBrowser &fileBrowser, const char *
 [[nodiscard]] bool change_item(const char *);
 
 [[nodiscard]] std::string change_item_name(const JacobianTarget&);
-[[nodiscard]] bool change_item(const char *, ArrayOfRetrievalQuantity&);
+[[nodiscard]] bool change_item(const char *, ArrayOfRetrievalQuantity&, ArrayOfRetrievalQuantity&);
 
 [[nodiscard]] bool change_item(const char *,
-                               Vector &,
+                               Vector &,Vector &,
                                const ArrayOfString &keys);
 [[nodiscard]] bool change_item(const char *,
-                               Vector &,
+                               Vector &,Vector &,
                                const ArrayOfArrayOfSpeciesTag &,
                                Options &);
 [[nodiscard]] bool change_item(
     const char *,
-    Vector &,
+    Vector &,Vector &,
     Numeric min = std::numeric_limits<Numeric>::lowest(),
     Numeric max = std::numeric_limits<Numeric>::max());
 
 [[nodiscard]] bool change_item(
     const char *,
     const char *,
-    Numeric &,
+    Numeric &,Numeric &,
     Numeric min = std::numeric_limits<Numeric>::lowest(),
     Numeric max = std::numeric_limits<Numeric>::max());
 
 [[nodiscard]] bool change_item(const char *,
-                               ArrayOfSpeciesTag &,
+                               ArrayOfSpeciesTag &,ArrayOfSpeciesTag &,
                                const ArrayOfArrayOfSpeciesTag &);
 
 template <class T, size_t N>

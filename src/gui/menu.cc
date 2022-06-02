@@ -142,7 +142,9 @@ bool change_item(const char* name) {
   return "Bad Value";
 }
 
-bool change_item(const char* name, ArrayOfRetrievalQuantity& jac) {
+bool change_item(const char* name,
+                 ArrayOfRetrievalQuantity& jac,
+                 ArrayOfRetrievalQuantity& old) {
   bool did_something = false;
   Jacobian::Target target;
   std::string target_name;
@@ -186,8 +188,16 @@ bool change_item(const char* name, ArrayOfRetrievalQuantity& jac) {
           did_something = true;
         }
         ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t")) {
+          jac = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t")) old = jac;
+        ImGui::Separator();
         ImGui::EndMenu();
       }
+
       ImGui::Separator();
       ImGui::EndMenu();
     }
@@ -197,7 +207,10 @@ bool change_item(const char* name, ArrayOfRetrievalQuantity& jac) {
   return did_something;
 }
 
-bool change_item(const char* name, Vector& vec, const ArrayOfString& keys) {
+bool change_item(const char* name,
+                 Vector& vec,
+                 Vector& old,
+                 const ArrayOfString& keys) {
   const Index n = vec.nelem();
   ARTS_ASSERT(n == keys.nelem())
   bool did_something = false;
@@ -212,6 +225,14 @@ bool change_item(const char* name, Vector& vec, const ArrayOfString& keys) {
             did_something = true;
           ImGui::Separator();
         }
+        ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t")) {
+          vec = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t")) old = vec;
+        ImGui::Separator();
         ImGui::EndMenu();
       }
       ImGui::Separator();
@@ -225,6 +246,7 @@ bool change_item(const char* name, Vector& vec, const ArrayOfString& keys) {
 
 bool change_item(const char* name,
                  Vector& vec,
+                 Vector& old,
                  const ArrayOfArrayOfSpeciesTag& spec,
                  Options& menu) {
   ARTS_ASSERT(vec.nelem() == spec.nelem())
@@ -241,6 +263,7 @@ bool change_item(const char* name,
                     ImGuiSelectableFlags_DontClosePopups))
               menu.vmr = x;
           }
+          ImGui::Separator();
           ImGui::EndMenu();
         }
         ImGui::Separator();
@@ -278,6 +301,13 @@ bool change_item(const char* name,
         }
 
         ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t")) {
+          vec = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t")) old = vec;
+        ImGui::Separator();
         ImGui::EndMenu();
       }
       ImGui::Separator();
@@ -289,7 +319,8 @@ bool change_item(const char* name,
   return did_something;
 }
 
-bool change_item(const char* name, Vector& vec, Numeric min, Numeric max) {
+bool change_item(
+    const char* name, Vector& vec, Vector& old, Numeric min, Numeric max) {
   Index n = vec.nelem();
   ARTS_ASSERT(is_sorted(vec))
   ARTS_ASSERT(min < max)
@@ -328,6 +359,13 @@ bool change_item(const char* name, Vector& vec, Numeric min, Numeric max) {
         }
 
         ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t")) {
+          vec = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t")) old = vec;
+        ImGui::Separator();
         ImGui::EndMenu();
       }
       ImGui::Separator();
@@ -342,6 +380,7 @@ bool change_item(const char* name, Vector& vec, Numeric min, Numeric max) {
 bool change_item(const char* name,
                  const char* value_name,
                  Numeric& val,
+                 Numeric& old,
                  Numeric min,
                  Numeric max) {
   bool did_something = false;
@@ -357,6 +396,13 @@ bool change_item(const char* name,
           did_something = true;
         }
         ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t")) {
+          val = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t")) old = val;
+        ImGui::Separator();
         ImGui::EndMenu();
       }
       ImGui::Separator();
@@ -370,6 +416,7 @@ bool change_item(const char* name,
 
 bool change_item(const char* name,
                  ArrayOfSpeciesTag& out,
+                 ArrayOfSpeciesTag& old,
                  const ArrayOfArrayOfSpeciesTag& keys) {
   bool did_something = false;
 
@@ -392,6 +439,13 @@ bool change_item(const char* name,
             did_something = true;
           }
         }
+        ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t")) {
+          out = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t")) old = out;
         ImGui::EndMenu();
       }
       ImGui::Separator();
@@ -421,7 +475,8 @@ std::string absunit(const Jacobian::Target& target) {
     case Jacobian::Type::Line:
       switch (target.line) {
         case Jacobian::Line::VMR:
-          return var_string("Absorption Partial Derivative [1/m ", target.qid, ']');
+          return var_string(
+              "Absorption Partial Derivative [1/m ", target.qid, ']');
           break;
         default:
           ARTS_USER_ERROR("Not implemented")

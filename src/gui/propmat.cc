@@ -295,6 +295,16 @@ void propmat(PropmatClearsky::ResultsArray& res,
   std::size_t curpos = PropmatClearsky::n;
   auto fileBrowser = ARTSGUI::Files::xmlfile_chooser();
 
+  // Old copies
+  auto old_jacobian_quantities = jacobian_quantities;
+  auto old_select_abs_species = select_abs_species;
+  auto old_f_grid = f_grid;
+  auto old_rtp_mag = rtp_mag;
+  auto old_rtp_los = rtp_los;
+  auto old_rtp_pressure = rtp_pressure;
+  auto old_rtp_temperature = rtp_temperature;
+  auto old_rtp_vmr = rtp_vmr;
+
   // Main loop
   BeginWhileLoopGUI;
 
@@ -316,42 +326,42 @@ void propmat(PropmatClearsky::ResultsArray& res,
     std::lock_guard lock{ctrl.copy};
 
     updated =
-        MainMenu::change_item("\tjacobian_quantities\t", jacobian_quantities) or
+        MainMenu::change_item("\tjacobian_quantities\t", jacobian_quantities, old_jacobian_quantities) or
         updated;
 
     updated = MainMenu::change_item(
-                  "\tselect_abs_species\t", select_abs_species, abs_species) or
+                  "\tselect_abs_species\t", select_abs_species, old_select_abs_species, abs_species) or
               updated;
 
-    updated = MainMenu::change_item("\tf_grid\t", f_grid, 1) or updated;
+    updated = MainMenu::change_item("\tf_grid\t", f_grid, old_f_grid, 1) or updated;
 
     updated =
         MainMenu::change_item(
-            "\trtp_mag\t", rtp_mag, {"\tU [T]\t", "\tV [T]\t", "\tW [T]\t"}) or
+            "\trtp_mag\t", rtp_mag, old_rtp_mag, {"\tU [T]\t", "\tV [T]\t", "\tW [T]\t"}) or
         updated;
 
     updated =
         MainMenu::change_item("\trtp_los\t",
-                              rtp_los,
+                              rtp_los, old_rtp_los,
                               {"\tZenith [deg]\t", "\tAzimuth [deg]\t"}) or
         updated;
 
     updated = MainMenu::change_item("\trtp_pressure\t",
                                     "\t[Pa]\t",
-                                    rtp_pressure,
+                                    rtp_pressure, old_rtp_pressure,
                                     std::numeric_limits<Numeric>::min()) or
               updated;
 
     updated = MainMenu::change_item("\trtp_temperature\t",
                                     "\t[K]\t",
-                                    rtp_temperature,
+                                    rtp_temperature, old_rtp_temperature,
                                     std::numeric_limits<Numeric>::min()) or
               updated;
 
     updated = MainMenu::change_item("\trtp_nlte\t") or updated;
 
     updated =
-        MainMenu::change_item("\trtp_vmr\t", rtp_vmr, abs_species, menu_opt) or
+        MainMenu::change_item("\trtp_vmr\t", rtp_vmr, old_rtp_vmr, abs_species, menu_opt) or
         updated;
   }
 
