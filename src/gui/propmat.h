@@ -6,6 +6,7 @@
 
 #include "enums.h"
 #include "gui.h"
+#include "transmissionmatrix.h"
 
 namespace ARTSGUI {
 namespace PropmatClearsky {
@@ -24,6 +25,10 @@ struct ComputeValues {
   Numeric rtp_temperature;
   EnergyLevelMap rtp_nlte;
   Vector rtp_vmr;
+
+  Numeric transmission_distance;
+  TransmissionMatrix tm;
+  ArrayOfTransmissionMatrix aotm;
 };
 
 struct Control {
@@ -70,6 +75,8 @@ struct DisplayOptions {
   bool inverse_yscale{false};
 
   int smooth_counter{1};
+
+  bool transmission{false};
 };
 }  // namespace PropmatClearsky
 
@@ -84,5 +91,6 @@ void propmat(PropmatClearsky::ResultsArray& res,
              Numeric& rtp_temperature,
              EnergyLevelMap& rtp_nlte,
              Vector& rtp_vmr,
+             Numeric& transmission_distance,
              const ArrayOfArrayOfSpeciesTag&& abs_species);
 }  // namespace ARTSGUI

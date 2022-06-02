@@ -16,6 +16,7 @@
 #include "messages.h"
 #include "propagationmatrix.h"
 #include "species_tags.h"
+#include "transmissionmatrix.h"
 #include "workspace_ng.h"
 
 #ifdef ARTS_GUI_ENABLED
@@ -54,7 +55,8 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
          Numeric& rtp_pressure,
          Numeric& rtp_temperature,
          EnergyLevelMap& rtp_nlte,
-         Vector& rtp_vmr) {
+         Vector& rtp_vmr,
+         Numeric& transmission_distance) {
   for (auto& v : ret) v.ok.store(false);
   ARTSGUI::PropmatClearsky::ComputeValues v;
   bool error = false;
@@ -77,11 +79,27 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
         v.rtp_temperature = rtp_temperature;
         v.rtp_nlte = rtp_nlte;
         v.rtp_vmr = rtp_vmr;
+        v.transmission_distance = transmission_distance;
       } else {
         continue;
       }
 
       compute(ws, v, propmat_clearsky_agenda);
+
+      v.tm = TransmissionMatrix(v.pm.NumberOfFrequencies(), v.pm.StokesDimensions());
+      v.aotm = ArrayOfTransmissionMatrix(v.jacobian_quantities.nelem(), v.tm);
+      auto local_aotm = v.aotm;
+      stepwise_transmission(v.tm,
+                            v.aotm,
+                            local_aotm,
+                            v.pm,
+                            v.pm,
+                            v.aopm,
+                            v.aopm,
+                            v.transmission_distance,
+                            0,
+                            0,
+                            -1);
 
       // Lock after the compute to copy values
       std::lock_guard allow_copy{ctrl.copy};
@@ -122,6 +140,7 @@ void propmat_clearsky_agendaGUI(Workspace& ws,
   Numeric rtp_temperature(300);
   EnergyLevelMap rtp_nlte{};
   Vector rtp_vmr(abs_species.nelem(), 1.0/Numeric(abs_species.nelem()));
+  Numeric transmission_distance{1'000};
 
   // Set some defaults
   if (load) {
@@ -148,7 +167,8 @@ void propmat_clearsky_agendaGUI(Workspace& ws,
                             std::ref(rtp_pressure),
                             std::ref(rtp_temperature),
                             std::ref(rtp_nlte),
-                            std::ref(rtp_vmr));
+                            std::ref(rtp_vmr),
+                            std::ref(transmission_distance));
 
   ARTSGUI::propmat(res,
                    ctrl,
@@ -161,6 +181,7 @@ void propmat_clearsky_agendaGUI(Workspace& ws,
                    rtp_temperature,
                    rtp_nlte,
                    rtp_vmr,
+                   transmission_distance,
                    ArrayOfArrayOfSpeciesTag{abs_species});
 
   bool invalid_state = not success.get();
