@@ -33,30 +33,47 @@
 #include <fstream>
 
 #include "binio.h"
+#include "debug.h"
 
 //! Binary output file stream class
 /*!
   Handles writing to an output file stream in binary format. It makes it
   possible to use the operator<< for binary output.
 */
-class bifstream : public binistream, public ifstream {
+class bifstream final : public binistream, public ifstream {
  public:
   bifstream() : ifstream() {}
 
   explicit bifstream(const char* name,
                      ios::openmode mode = ios::in | ios::binary)
       : ifstream(name, mode) {
-    // Set Little Endian mode, with IEEE-754 floats.
-    this->setFlag(binio::BigEndian, false);  // remove flag
-    this->setFlag(binio::FloatIEEE);         // set flag
+    // Open a second file descriptor for fast array reading
+    this->mfilep = fopen(name, "rb");
   }
 
-  virtual ~bifstream() {}
-  void seek(long spos, Offset offs) override final;
-  streampos pos() override final;
+   ~bifstream() final {
+    if (mfilep) {
+      fclose(mfilep);
+    }
+  }
 
-  bifstream::Byte getByte() override final;
-  void getRaw(char* c, streamsize n) override final { this->read(c, n); }
+  void seek(long spos, Offset offs) final;
+  streampos pos() final;
+
+  bifstream::Byte getByte() final;
+  void getRaw(char* c, streamsize n) final {
+    if (n <= 8) {
+      this->read(c, n);
+    } else {
+      fseek(mfilep, this->tellg(), SEEK_SET);
+      size_t nread = fread(c, sizeof(char), n, mfilep);
+      ARTS_USER_ERROR_IF((streamsize)nread != n,
+                         "Unexpectedly reached end of binary input file.");
+      seek(nread, Add);
+    }
+  }
+
+private : FILE* mfilep{nullptr};
 };
 
 /* Overloaded input operators */

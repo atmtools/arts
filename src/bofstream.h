@@ -45,13 +45,8 @@ class bofstream : public binostream, public ofstream {
 
   explicit bofstream(const char* name,
                      ios::openmode mode = ios::out | ios::trunc | ios::binary)
-      : ofstream(name, mode) {
-    // Set Little Endian mode, with IEEE-754 floats.
-    this->setFlag(binio::BigEndian, false);  // remove flag
-    this->setFlag(binio::FloatIEEE);         // set flag
-  }
+      : ofstream(name, mode) {}
 
-  virtual ~bofstream() {}
   void seek(long spos, Offset offs) override final;
   streampos pos() override final;
 
