@@ -2527,7 +2527,13 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearsky_agendaGUI"),
-      DESCRIPTION("Opens a GUI for running the propagation matrix agenda\n"
+      DESCRIPTION(R"--(Opens a GUI for running the propagation matrix agenda
+
+Note that this is not thread-safe and should be executed on the main workspace
+
+The values of all non-control flow are automatically loaded from the workspace
+if they are defined.  Otherwise some values are just selected
+)--"
       ),
       AUTHORS("Richard Larsson"),
       OUT(),
@@ -2535,10 +2541,10 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("propmat_clearsky_agenda", "abs_species"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("load"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("Load non-logical variables from workspace if true")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddPredefined"),

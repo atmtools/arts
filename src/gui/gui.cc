@@ -1,5 +1,6 @@
 #include "gui.h"
 #include <xml_io.h>
+#include "propagationmatrix.h"
 
 namespace ARTSGUI {
   void LayoutAndStyleSettings() {
@@ -194,6 +195,14 @@ namespace Files {
   }
   
   void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Vector& data) {
+    save_data_impl(config, fileBrowser, data);
+  }
+  
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropagationMatrix& data) {
+    save_data_impl(config, fileBrowser, data);
+  }
+  
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfPropagationMatrix& data) {
     save_data_impl(config, fileBrowser, data);
   }
 }  // Files

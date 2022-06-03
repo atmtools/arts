@@ -4,7 +4,9 @@
 #include <jacobian.h>
 #include <propagationmatrix.h>
 
+#include "enums.h"
 #include "gui.h"
+#include "transmissionmatrix.h"
 
 namespace ARTSGUI {
 namespace PropmatClearsky {
@@ -23,6 +25,10 @@ struct ComputeValues {
   Numeric rtp_temperature;
   EnergyLevelMap rtp_nlte;
   Vector rtp_vmr;
+
+  Numeric transmission_distance;
+  TransmissionMatrix tm;
+  ArrayOfTransmissionMatrix aotm;
 };
 
 struct Control {
@@ -48,7 +54,7 @@ struct Results {
 
 using ResultsArray = std::array<Results, n>;
 
-ENUMCLASS(Scaling, char,
+ENUMCLASS(XScaling, char,
   Hz,
   GHz,
   THz,
@@ -58,9 +64,19 @@ ENUMCLASS(Scaling, char,
   nm,
   Angfreq)
 
+ENUMCLASS(YScaling, char, None, Normalize, CrossSection)
 struct DisplayOptions {
-  Scaling scale{Scaling::Hz};
+  XScaling xscale{XScaling::Hz};
+  
   Index jacobian_target{-1};
+
+  YScaling yscale{YScaling::None};
+  Numeric yscale_const{1.0};
+  bool inverse_yscale{false};
+
+  int smooth_counter{1};
+
+  bool transmission{false};
 };
 }  // namespace PropmatClearsky
 
@@ -75,5 +91,6 @@ void propmat(PropmatClearsky::ResultsArray& res,
              Numeric& rtp_temperature,
              EnergyLevelMap& rtp_nlte,
              Vector& rtp_vmr,
+             Numeric& transmission_distance,
              const ArrayOfArrayOfSpeciesTag&& abs_species);
 }  // namespace ARTSGUI
