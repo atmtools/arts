@@ -64,15 +64,21 @@ ENUMCLASS(XScaling, char,
   nm,
   Angfreq)
 
-ENUMCLASS(YScaling, char, None, Normalize, CrossSection)
+ENUMCLASS(PropmatScaling, char, None, Normalize, CrossSection)
+
+ENUMCLASS(TramatScaling, char, None, dB)
+
 struct DisplayOptions {
   XScaling xscale{XScaling::Hz};
   
   Index jacobian_target{-1};
 
-  YScaling yscale{YScaling::None};
-  Numeric yscale_const{1.0};
-  bool inverse_yscale{false};
+  PropmatScaling propmat_scale{PropmatScaling::None};
+  Numeric propmat_scale_const{1.0};
+  bool inverse_propmat_scale{false};
+
+  TramatScaling tramat_scale{TramatScaling::None};
+  bool inverse_tramat_scale{false};
 
   int smooth_counter{1};
 

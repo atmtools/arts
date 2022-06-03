@@ -122,29 +122,70 @@ xscale_option() {
   return out;
 }
 
-Numeric yscale(YScaling scale,
+Numeric yscale(PropmatScaling scale,
                Numeric T,
                Numeric P,
                const PropagationMatrix& pm) {
   switch (scale) {
-    case YScaling::None:
+    case PropmatScaling::None:
       return 1.0;
-    case YScaling::CrossSection:
+    case PropmatScaling::CrossSection:
       return number_density(P, T);
-    case YScaling::Normalize:
+    case PropmatScaling::Normalize:
       return max(pm.Data());
-    case YScaling::FINAL: { /* leave last */
+    case PropmatScaling::FINAL: { /* leave last */
     }
   }
   return 1.0;
 }
 
-std::array<std::string, PropmatClearsky::enumtyps::YScalingTypes.size()>
-yscale_option() {
-  std::array<std::string, PropmatClearsky::enumtyps::YScalingTypes.size()> out;
+std::array<std::string, PropmatClearsky::enumtyps::PropmatScalingTypes.size()>
+propmat_scale_option() {
+  std::array<std::string, PropmatClearsky::enumtyps::PropmatScalingTypes.size()>
+      out;
   for (size_t i = 0; i < out.size(); i++) {
-    out[i] =
-        var_string('\t', PropmatClearsky::enumstrs::YScalingNames[i], '\t');
+    out[i] = var_string(
+        '\t', PropmatClearsky::enumstrs::PropmatScalingNames[i], '\t');
+  }
+  return out;
+}
+
+Numeric yscale(TramatScaling scale, bool inverse, Numeric x) {
+  switch (scale) {
+    case TramatScaling::None:
+      if (inverse) return 1 - x;
+      return x;
+    case TramatScaling::dB:
+      return (inverse ? -1 : 1) *
+             (x > 0 ? 10 * std::log10(x)
+                    : std::numeric_limits<Numeric>::quiet_NaN());
+    case TramatScaling::FINAL: { /* leave last */
+    }
+  }
+  return x;
+}
+
+std::string_view yscale_str(TramatScaling scale, bool inverse) {
+  switch (scale) {
+    case TramatScaling::None:
+      if (inverse) return "One minus Transmission [-]";
+      return "Transmission [-]";
+    case TramatScaling::dB:
+      if (inverse) return "Negative Transmission [dB]";
+      return "Transmission [dB]";
+    case TramatScaling::FINAL: { /* leave last */
+    }
+  }
+  return "Bad Axis Data";
+}
+
+std::array<std::string, PropmatClearsky::enumtyps::TramatScalingTypes.size()>
+tramat_scale_option() {
+  std::array<std::string, PropmatClearsky::enumtyps::TramatScalingTypes.size()>
+      out;
+  for (size_t i = 0; i < out.size(); i++) {
+    out[i] = var_string(
+        '\t', PropmatClearsky::enumstrs::TramatScalingNames[i], '\t');
   }
   return out;
 }
@@ -164,7 +205,8 @@ template <size_t stokes, size_t r, size_t c>
 auto range_mean(const TransmissionMatrix& t, Index start, Index last) {
   const Numeric scale = 1.0 / static_cast<Numeric>(last - start + 1);
   Numeric out = 0;
-  for (Index i = start; i <= last; i++) out += scale * t.TraMat<stokes>(i)(r, c);
+  for (Index i = start; i <= last; i++)
+    out += scale * t.TraMat<stokes>(i)(r, c);
   return out;
 }
 
@@ -172,7 +214,8 @@ struct TraMatDataHolder {
   const TransmissionMatrix& tm;
   const Vector& f_grid;
   XScaling xscale_fun;
-  Numeric yscale_const;
+  TramatScaling yscale_fun;
+  bool inverse_y;
   int running_average;
 
   [[nodiscard]] int size() const noexcept {
@@ -196,7 +239,10 @@ struct TraMatDataHolder {
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
 
-    return {x, range_mean<stokes, r, c>(data_ptr->tm, start, last)};
+    return {x,
+            
+                yscale(data_ptr->yscale_fun, data_ptr->inverse_y,
+                       range_mean<stokes, r, c>(data_ptr->tm, start, last))};
   }
 };
 
@@ -311,8 +357,9 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
       pm,
       v.f_grid,
       opts.xscale,
-      (opts.inverse_yscale ? 1.0 / opts.yscale_const : opts.yscale_const) /
-          yscale(opts.yscale, v.rtp_temperature, v.rtp_pressure, pm),
+      (opts.inverse_propmat_scale ? 1.0 / opts.propmat_scale_const
+                                  : opts.propmat_scale_const) /
+          yscale(opts.propmat_scale, v.rtp_temperature, v.rtp_pressure, pm),
       opts.smooth_counter};
 
   std::array<char, 100> yscale_str;
@@ -371,8 +418,12 @@ ImPlotLimits draw_tramat(const ComputeValues& v, const DisplayOptions& opts) {
   const TransmissionMatrix& tm =
       select_jac ? v.aotm[opts.jacobian_target] : v.tm;
 
-  TraMatDataHolder main_data{
-      tm, v.f_grid, opts.xscale, 1.0, opts.smooth_counter};
+  TraMatDataHolder main_data{tm,
+                             v.f_grid,
+                             opts.xscale,
+                             opts.tramat_scale,
+                             opts.inverse_tramat_scale,
+                             opts.smooth_counter};
 
   const std::string_view title = select_jac
                                      ? "Transmission Matrix Partial Derivative"
@@ -380,7 +431,7 @@ ImPlotLimits draw_tramat(const ComputeValues& v, const DisplayOptions& opts) {
 
   if (ImPlot::BeginPlot(title.data(),
                         xunit(opts.xscale).data(),
-                        "Transmission [-]",
+                        yscale_str(main_data.yscale_fun, main_data.inverse_y).data(),
                         {-1, -1})) {
     switch (tm.stokes_dim) {
       case 1:
@@ -505,12 +556,13 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
   // Local configurations
   const auto xscale_display = PropmatClearsky::xscale_option();
-  const auto yscale_display = PropmatClearsky::yscale_option();
+  const auto propmat_scale_display = PropmatClearsky::propmat_scale_option();
+  const auto tramat_scale_display = PropmatClearsky::tramat_scale_option();
 
   // Local buffers
   ImPlotLimits limits{};
   Time start_time{};
-  Time end_time{};
+  Time end_time{start_time};
   Numeric last_runtime = std::numeric_limits<Numeric>::quiet_NaN();
   std::size_t curpos = PropmatClearsky::n;
   auto fileBrowser = ARTSGUI::Files::xmlfile_chooser();
@@ -603,31 +655,51 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Display")) {
-      {
-        MainMenu::scoped_disable disabled{disp_options.transmission};
-        // Scale Y
-        if (ImGui::BeginMenu("\tPropagation Matrix Scale\t")) {
-          MainMenu::select_option(disp_options.yscale,
-                                  PropmatClearsky::enumtyps::YScalingTypes,
-                                  yscale_display);
-          if (disp_options.yscale not_eq PropmatClearsky::YScaling::Normalize) {
-            ImGui::InputDouble(
-                "\tY Scale Constant\t", &disp_options.yscale_const, 0, 0, "%g");
-            ImGui::Checkbox("\tInverse Y Scale Constant\t",
-                            &disp_options.inverse_yscale);
-            ImGui::Separator();
-          } else {
-            disp_options.inverse_yscale = false;
-            disp_options.yscale_const = 1.0;
-          }
-          ImGui::EndMenu();
+      // Scale tPropagation
+      if (ImGui::BeginMenu("\tPropagation Matrix Scale\t")) {
+        MainMenu::select_option(disp_options.propmat_scale,
+                                PropmatClearsky::enumtyps::PropmatScalingTypes,
+                                propmat_scale_display);
+        if (disp_options.propmat_scale not_eq
+            PropmatClearsky::PropmatScaling::Normalize) {
+          ImGui::Text(" ");
+          ImGui::SameLine();
+          ImGui::InputDouble("\tScale Constant\t",
+                             &disp_options.propmat_scale_const,
+                             0,
+                             0,
+                             "%g");
+          ImGui::Text(" ");
+          ImGui::SameLine();
+          ImGui::Checkbox("\tInverse Scale Constant\t",
+                          &disp_options.inverse_propmat_scale);
+          ImGui::Separator();
+        } else {
+          disp_options.inverse_propmat_scale = false;
+          disp_options.propmat_scale_const = 1.0;
         }
-        MainMenu::tooltip("Various ways to scale the Propagation Matrix", config);
-        ImGui::Separator();
+        ImGui::EndMenu();
       }
+      MainMenu::tooltip("Various ways to scale the Propagation Matrix", config);
+      ImGui::Separator();
+
+      // Scale Transmission
+      if (ImGui::BeginMenu("\tTransmission Matrix Scale\t")) {
+        MainMenu::select_option(disp_options.tramat_scale,
+                                PropmatClearsky::enumtyps::TramatScalingTypes,
+                                tramat_scale_display);
+        ImGui::Text(" ");
+        ImGui::SameLine();
+        ImGui::Checkbox("\tInverse?\t", &disp_options.inverse_tramat_scale);
+        ImGui::Separator();
+        ImGui::EndMenu();
+      }
+      MainMenu::tooltip("Various ways to scale the Transmission Matrix",
+                        config);
+      ImGui::Separator();
 
       // Scale X
-      if (ImGui::BeginMenu("\tX Scale\t")) {
+      if (ImGui::BeginMenu("\tFrequency Scale\t")) {
         MainMenu::select_option(disp_options.xscale,
                                 PropmatClearsky::enumtyps::XScalingTypes,
                                 xscale_display);
@@ -650,9 +722,9 @@ void propmat(PropmatClearsky::ResultsArray& res,
       // Running average
       ImGui::Text(" ");
       ImGui::SameLine();
-      ImGui::InputInt("\tRunning Average Count\t",
-                      &disp_options.smooth_counter);
-      MainMenu::tooltip("Display the running average", config);
+      ImGui::InputInt("\tBinning Count\t", &disp_options.smooth_counter);
+      MainMenu::tooltip("Display the results by averaging neighboring grid",
+                        config);
       disp_options.smooth_counter = std::clamp(
           disp_options.smooth_counter, 1, std::numeric_limits<int>::max());
       ImGui::Separator();
@@ -693,7 +765,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
             // If automatic f_grid
             if (new_limits.X.Min not_eq limits.X.Min or
                 new_limits.X.Max not_eq limits.X.Max) {
-              limits = new_limits;
+              if (not ctrl.run.load()) limits = new_limits;
               if (res[i].auto_f_grid) {
                 auto [min, max] = PropmatClearsky::xunscale(
                     new_limits.X.Min, new_limits.X.Max, disp_options.xscale);
@@ -867,6 +939,12 @@ void propmat(PropmatClearsky::ResultsArray& res,
       ImGui::Text("\tSelect Species:%c\t\n\t  %s",
                   spec_str == var_string(select_abs_species) ? ' ' : '*',
                   spec_str.length() == 0 ? "All" : spec_str.c_str());
+      ImGui::Separator();
+
+      // Display current transmissio distance
+      ImGui::Text("\tTransmission Distance: %g m%c\t",
+                  v.transmission_distance,
+                  v.transmission_distance == transmission_distance ? ' ' : '*');
       ImGui::Separator();
     }
   }
