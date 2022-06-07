@@ -30,27 +30,11 @@
 // do this.
 #define BINIO_ENABLE_STRING 1
 
-// BINIO_ENABLE_IOSTREAM - Build iostream wrapper classes
-//
-// Set to 1 to build the iostream wrapper classes. You need the standard
-// C++ library to do this.
-#define BINIO_ENABLE_IOSTREAM 1
-
 // BINIO_ISO_STDLIB - Build with ISO C++ standard library compliance
 //
 // Set to 1 to build for the ISO standard C++ library (i.e. namespaces, STL and
 // templatized iostream). Set to 0 to build for the traditional C++ library.
 #define BINIO_ISO_STDLIB 1
-
-// BINIO_WITH_MATH - Build with 'math.h' dependency to allow float conversions
-//
-// Set to 1 to also build routines that depend on the 'math.h' standard C header
-// file (this sometimes also implies a 'libm' or 'libmath' dependency). These
-// routines are needed in order to write IEEE-754 floating-point numbers on a
-// system that doesn't support this format natively. For only reading these
-// numbers, however, these routines are not needed. If set to 0, writing
-// IEEE-754 numbers on an incompatible system will be disabled.
-#define BINIO_WITH_MATH 1
 
 /***** Implementation *****/
 
@@ -65,9 +49,9 @@
 
 class binio {
  public:
-  typedef enum { BigEndian = 1 << 0, FloatIEEE = 1 << 1 } Flag;
+  using Flag = enum { BigEndian = 1 << 0, FloatIEEE = 1 << 1 };
 
-  typedef enum {
+  using ErrorCode = enum {
     NoError = 0,
     Fatal = 1 << 0,
     Unsupported = 1 << 1,
@@ -75,14 +59,13 @@ class binio {
     Denied = 1 << 3,
     NotFound = 1 << 4,
     Eof = 1 << 5
-  } ErrorCode;
+  };
 
-  typedef enum { Set, Add, End } Offset;
-  typedef enum { Single, Double } FType;
-  typedef int Error;
+  using Offset = enum { Set, Add, End };
+  using FType = enum { Single, Double };
+  using Error = int;
 
   binio();
-  virtual ~binio();
 
   void setFlag(Flag f, bool set = true);
   bool getFlag(Flag f);
@@ -91,24 +74,18 @@ class binio {
   bool eof();
 
   virtual void seek(long, Offset = Set) = 0;
-  virtual streampos pos() = 0;
+  virtual std::streampos pos() = 0;
 
  protected:
-  typedef long Int;
-  typedef double Float;
-  typedef unsigned char Byte;  // has to be unsigned!
+  using Int = long;
+  using Float = double;
+  using Byte = unsigned char;  // has to be unsigned!
 
-  typedef int Flags;
+  using Flags = int;
 
-  Flags my_flags;
+  Flags my_flags{system_flags};
   static const Flags system_flags;
-  Error err;
-
-  // Some math.h emulation functions...
-#if !BINIO_WITH_MATH
-  Float pow(Float base, signed int exp);
-  Float ldexp(Float x, signed int exp) { return x * pow(2, exp); }
-#endif
+  Error err{NoError};
 
  private:
   static Flags detect_system_flags();
@@ -116,13 +93,15 @@ class binio {
 
 class binistream : virtual public binio {
  public:
-  binistream();
-  virtual ~binistream();
-
   Int readInt(unsigned int size);
   Float readFloat(FType ft);
+
+  void readDoubleArray(double *d, unsigned long size);
+
   unsigned long readString(char *str, unsigned long amount);
   unsigned long readString(char *str, unsigned long maxlen, const char delim);
+
+
 #if BINIO_ENABLE_STRING
   std::string readString(const char delim = '\0');
 #endif
@@ -135,18 +114,11 @@ class binistream : virtual public binio {
 
  protected:
   virtual Byte getByte() = 0;
-  virtual void getRaw(char *c, streamsize n) = 0;
-
- private:
-  Float ieee_single2float(Byte *data);
-  Float ieee_double2float(Byte *data);
+  virtual void getRaw(char *c, std::streamsize n) = 0;
 };
 
 class binostream : virtual public binio {
  public:
-  binostream();
-  virtual ~binostream();
-
   void writeInt(Int val, unsigned int size);
   void writeFloat(Float f, FType ft);
   unsigned long writeString(const char *str, unsigned long amount = 0);
@@ -156,17 +128,7 @@ class binostream : virtual public binio {
 
  protected:
   virtual void putByte(Byte) = 0;
-  virtual void putRaw(const char *c, streamsize n) = 0;
-
- private:
-  void float2ieee_single(Float f, Byte *data);
-  void float2ieee_double(Float f, Byte *data);
-};
-
-class binstream : public binistream, public binostream {
- public:
-  binstream();
-  virtual ~binstream();
+  virtual void putRaw(const char *c, std::streamsize n) = 0;
 };
 
 #endif
