@@ -9,7 +9,7 @@ void py_star(py::module_& m) {
       .def(py::init([]() { return new Star{}; }))
       .PythonInterfaceCopyValue(Star)
 //      .PythonInterfaceWorkspaceVariableConversion(Star)
-      .def("__repr__", [](Star&) { return "Star"; })
+      .PythonInterfaceBasicRepresentation(Star)
       .PythonInterfaceFileIO(Star)
       .def_readwrite("description", &Star::description)
       .def_readwrite("spectrum", &Star::spectrum)
@@ -34,13 +34,11 @@ void py_star(py::module_& m) {
                              t[3].cast<Numeric>(),
                              t[4].cast<Numeric>(),
                              t[5].cast<Numeric>()};
-          }));
+          })).doc()=R"--(Each star is described by a struct with its spectrum, radius
+distance from center of planet to center of star,
+temperature (if possible), latitude in the sky of the planet,
+longitude in the sky of the planet and the type )--";
 
-  py::class_<ArrayOfStar>(m, "ArrayOfStar")
-      .PythonInterfaceWorkspaceVariableConversion(ArrayOfStar)
-      .PythonInterfaceFileIO(ArrayOfStar)
-      .def("__repr__", [](ArrayOfStar&) { return "ArrayOfStar"; })
-      .PythonInterfaceArrayDefault(Star);
-  py::implicitly_convertible<std::vector<Star>, ArrayOfStar>();
+  PythonInterfaceWorkspaceArray(Star);
 }
 }  // namespace Python

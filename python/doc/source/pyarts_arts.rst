@@ -47,6 +47,7 @@ pyarts.arts
     ArrayOfSingleScatteringData
     ArrayOfSparse
     ArrayOfSpeciesTag
+    ArrayOfStar
     ArrayOfStokesVector
     ArrayOfString
     ArrayOfTelsemAtlas
@@ -88,6 +89,7 @@ pyarts.arts
     SpeciesIsotopeRecord
     SpeciesIsotopologueRatios
     SpeciesTag
+    Star
     StokesVector
     String
     TelsemAtlas
