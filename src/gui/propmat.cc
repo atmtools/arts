@@ -521,11 +521,12 @@ ImPlotLimits draw(const ComputeValues& v, const DisplayOptions& opts) {
   return opts.transmission ? draw_tramat(v, opts) : draw_propmat(v, opts);
 }
 
-void start_run(Index pos, Control& ctrl, Time& start_time) {
+void start_run(Index pos, Control& ctrl, Time& start_time, Time& end_time) {
   if (not ctrl.run.load()) {
     ctrl.pos.store(int(pos));
     ctrl.run.store(true);
     start_time = Time{};
+    end_time = start_time;
   }
 }
 }  // namespace PropmatClearsky
@@ -755,7 +756,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
           // Run the update if input has be updated
           if (updated and res[i].auto_update) {
-            start_run(i, ctrl, start_time);
+            start_run(i, ctrl, start_time, end_time);
           }
 
           if (res[i].ok.load()) {
@@ -778,7 +779,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
                                           new_limits.X.Min + 1,
                                           std::numeric_limits<Numeric>::max());
                   nlinspace(f_grid, min, max, f_grid.nelem());
-                  start_run(i, ctrl, start_time);
+                  start_run(i, ctrl, start_time, end_time);
                 }
               }
             }
@@ -809,7 +810,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
     {
       MainMenu::scoped_disable disabled{ctrl.run.load()};
       if (ImGui::Button("\tRun Agenda\t", {-1, 0})) {
-        start_run(curpos, ctrl, start_time);
+        start_run(curpos, ctrl, start_time, end_time);
       }
       MainMenu::tooltip(
           "Updates the calculations using the current Agenda input", config);

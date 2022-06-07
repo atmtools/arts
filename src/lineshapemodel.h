@@ -554,8 +554,6 @@ constexpr Output differenceOutput(Output y, Output x) noexcept {
  * Renormalizes the values to unity.  If this renormalization
  * is impossible then it throws an error
  * 
- * Returns 0s if type is Doppler line shape
- * 
  * @param[in] atmospheric_vmrs VMRS in atmosphere
  * @param[in] atmospheric_species Species in atmosphere
  * @param[in] lineshape_species Species affecting lineshape

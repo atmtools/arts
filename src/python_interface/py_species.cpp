@@ -175,6 +175,7 @@ void py_species(py::module_& m) {
       .def_readwrite("type", &SpeciesTag::type)
       .def_readwrite("cia_2nd_species", &SpeciesTag::cia_2nd_species)
       .def_readwrite("cia_dataset_index", &SpeciesTag::cia_dataset_index)
+      .def_property_readonly("full_name", &SpeciesTag::FullName)
       .PythonInterfaceBasicRepresentation(SpeciesTag)
       .def(py::self == py::self)
       .def(py::pickle(

@@ -1908,9 +1908,6 @@ Numeric Absorption::Lines::SpeciesMass() const noexcept {
 Vector Absorption::Lines::BroadeningSpeciesVMR(
     const ConstVectorView& atm_vmrs,
     const ArrayOfArrayOfSpeciesTag& atm_spec) const {
-  if (lineshapetype == LineShape::Type::DP)
-    return Vector(broadeningspecies.nelem(),
-                  std::numeric_limits<Numeric>::quiet_NaN());
   return LineShape::vmrs(atm_vmrs, atm_spec, broadeningspecies);
 }
 
@@ -1919,9 +1916,6 @@ Vector Absorption::Lines::BroadeningSpeciesMass(
     const ArrayOfArrayOfSpeciesTag& atm_spec,
     const SpeciesIsotopologueRatios& ir,
     const Numeric& bath_mass) const {
-  if (lineshapetype == LineShape::Type::DP)
-    return Vector(broadeningspecies.nelem(),
-                  std::numeric_limits<Numeric>::quiet_NaN());
   Vector mass = LineShape::mass(atm_vmrs, atm_spec, broadeningspecies, ir);
   if (bathbroadening and bath_mass > 0) mass[mass.nelem() - 1] = bath_mass;
   return mass;
