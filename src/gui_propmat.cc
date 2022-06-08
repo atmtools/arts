@@ -122,11 +122,11 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
 }  // namespace PropmatClearskyAgendaGUI
 #endif  // ARTS_GUI_ENABLED
 
-void propmat_clearsky_agendaGUI(Workspace& ws,
-                                const Agenda& propmat_clearsky_agenda,
-                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                const Index& load,
-                                const Verbosity& verbosity) {
+void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
+                                const Agenda& propmat_clearsky_agenda [[maybe_unused]],
+                                const ArrayOfArrayOfSpeciesTag& abs_species [[maybe_unused]],
+                                const Index& load [[maybe_unused]],
+                                const Verbosity& verbosity [[maybe_unused]]) {
 #ifdef ARTS_GUI_ENABLED
   ARTSGUI::PropmatClearsky::ResultsArray res;
   ARTSGUI::PropmatClearsky::Control ctrl;
