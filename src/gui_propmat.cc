@@ -1,5 +1,6 @@
 #include <atomic>
 #include <chrono>
+#include <cstdlib>
 #include <functional>
 #include <future>
 #include <iterator>
@@ -62,7 +63,7 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
   bool error = false;
 
   while (not error) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(10ms);
 
     try {
       if (ctrl.exit.load()) return true;
@@ -125,7 +126,7 @@ void propmat_clearsky_agendaGUI(Workspace& ws,
                                 const Agenda& propmat_clearsky_agenda,
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
                                 const Index& load,
-                                const Verbosity&) {
+                                const Verbosity& verbosity) {
 #ifdef ARTS_GUI_ENABLED
   ARTSGUI::PropmatClearsky::ResultsArray res;
   ARTSGUI::PropmatClearsky::Control ctrl;
@@ -170,19 +171,30 @@ void propmat_clearsky_agendaGUI(Workspace& ws,
                             std::ref(rtp_vmr),
                             std::ref(transmission_distance));
 
-  ARTSGUI::propmat(res,
-                   ctrl,
-                   jacobian_quantities,
-                   select_abs_species,
-                   f_grid,
-                   rtp_mag,
-                   rtp_los,
-                   rtp_pressure,
-                   rtp_temperature,
-                   rtp_nlte,
-                   rtp_vmr,
-                   transmission_distance,
-                   ArrayOfArrayOfSpeciesTag{abs_species});
+  if (std::getenv("ARTS_HEADLESS")) {
+    CREATE_OUT1;
+    out1 << "Omitting GUI because ARTS_HEADLESS is set.\n";
+
+    ctrl.run.store(true);
+    while (not(res[0].ok.load() or ctrl.exit.load())) {
+      std::this_thread::sleep_for(10ms);
+    }
+    ctrl.exit.store(true);
+  } else {
+    ARTSGUI::propmat(res,
+                     ctrl,
+                     jacobian_quantities,
+                     select_abs_species,
+                     f_grid,
+                     rtp_mag,
+                     rtp_los,
+                     rtp_pressure,
+                     rtp_temperature,
+                     rtp_nlte,
+                     rtp_vmr,
+                     transmission_distance,
+                     ArrayOfArrayOfSpeciesTag{abs_species});
+  }
 
   bool invalid_state = not success.get();
   ARTS_USER_ERROR_IF(invalid_state, '\n', ctrl.error)
