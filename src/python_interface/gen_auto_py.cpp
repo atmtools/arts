@@ -1625,9 +1625,9 @@ void WorkspaceVariable::pop_workspace_level() { ws.pop_free(pos); }
 }
 
 Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
-  if (auto ptr = ws.WsvMap.find(key); ptr not_eq ws.WsvMap.end()) return ptr -> second;
+  auto ptr = ws.WsvMap.find(key);
   
-  Index pos=-1;
+  Index pos = ptr == ws.WsvMap.end() ? -1 : ptr -> second;
   )--";
 
   std::map<String, TypeVal> has;
@@ -1643,10 +1643,11 @@ Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
 
   for (auto& [key, items] : has) {
     os << "if (key == \"" << key << "\") {\n";
+    os << "    if (pos < 0) pos = ws.add_wsv_inplace(WsvRecord(\""
+       << key << R"(", "do not modify", )"
+       << arts.group.at(items.type) << "));\n";
     os << "    static_cast<" << items.type
-       << " &>(WorkspaceVariable{ws, pos = ws.add_wsv_inplace(WsvRecord(\""
-       << key << R"(", "A default GIN value; modify at own risk", )"
-       << arts.group.at(items.type) << "))}) = " << items.type << '('
+       << " &>(WorkspaceVariable{ws, pos}) = " << items.type << '('
        << items.val << ')';
     os << ";\n";
     os << "  } else ";
