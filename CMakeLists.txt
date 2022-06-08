@@ -469,6 +469,12 @@ add_custom_target(check-python
     -E '\(\\.nocheck\\.|\\.slow\\.|\\.xmldata\\.|\\.planettoolbox\\.\)'
   DEPENDS check-deps python_tests)
 
+add_custom_target(check-examples
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -R '\(\\pyarts.examples\\.\)'
+    -E '\(\\.nocheck\\.\)'
+  DEPENDS check-deps)
+
 add_custom_target(check-xmldata
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
     -R '\(\\.xmldata\\.\)'
@@ -547,6 +553,7 @@ add_subdirectory (doc)
 add_subdirectory (controlfiles)
 add_subdirectory (controlfiles-python)
 add_subdirectory (python)
+add_subdirectory (examples)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
