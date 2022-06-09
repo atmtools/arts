@@ -48,7 +48,9 @@ class bifstream final : public binistream, public ifstream {
                      ios::openmode mode = ios::in | ios::binary)
       : ifstream(name, mode) {
     // Open a second file descriptor for fast array reading
-    this->mfilep = fopen(name, "rb");
+    if (!(this->mfilep = fopen(name, "rb"))) {
+      ARTS_USER_ERROR("Failed to open ", name);
+    }
   }
 
    ~bifstream() final {
