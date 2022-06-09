@@ -37,6 +37,8 @@ These all should work with any array-like type
 )--";
   PythonInterfaceConvert(freq2kaycm, Numeric, "Freq. [Hz]", "Kayser [cm-1]");
   PythonInterfaceConvert(kaycm2freq, Numeric, "Kayser [cm-1]", "Freq. [Hz]");
+  PythonInterfaceConvert(freq2wavelen, Numeric, "Freq. [Hz]", "Wavelenth [m]");
+  PythonInterfaceConvert(wavelen2freq, Numeric, "Wavelenth [m]", "Freq. [Hz]");
   PythonInterfaceConvert(pa2torr, Numeric, "Pressure [Pa]", "Torr [Torr]");
   PythonInterfaceConvert(torr2pa, Numeric, "Torr [Torr]", "Pressure [Pa]");
 }
