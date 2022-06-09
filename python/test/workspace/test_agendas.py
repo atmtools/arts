@@ -209,6 +209,29 @@ class TestAgendas:
         self.ws = pyarts.workspace.Workspace()
         with pytest.raises(Exception):
               self.ws.abs_xsec_agenda = abs_xsec_agenda
+              
+    def test_multiple_workspace_defaults(self):
+        """
+        Tests that we can reliably use multiple workspaces with default GINs
+        """
+        @pyarts.workspace.arts_agenda
+        def myagenda(ws):
+            """
+            A simple delayed agenda that has defaults
+            """
+            ws.WriteXML("ascii", [1,2,3])
+
+        def do_something():
+            """
+            A simple function that has its own workspace
+            """
+            ws = pyarts.workspace.Workspace()
+            ws.test_agenda = myagenda
+            ws.AgendaExecute(ws.test_agenda)
+        
+        # Call twice to test multiple defaults
+        do_something()
+        do_something()
 
 
 if __name__ == "__main__":
