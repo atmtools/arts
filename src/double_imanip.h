@@ -32,8 +32,11 @@
 
 #include <fstream>
 #include <limits>
+#include <stdexcept>
 
 #include "debug.h"
+
+#include <fast_float/fast_float.h>
 
 /** Input manipulator class for doubles to enable nan and inf parsing. */
 class double_imanip {
@@ -41,37 +44,30 @@ class double_imanip {
   const double_imanip& operator>>(double& x) const {
     std::istream& is = *in;
     std::string buf;
-    try {
-      is >> buf;
-      ARTS_USER_ERROR_IF(is.fail(), "Cannot read from stream")
-      std::size_t n;
-      x = std::stod(buf, &n);
-      while (n++ not_eq buf.size()) is.unget();
-    } catch (std::runtime_error& e) {
-      ARTS_USER_ERROR(R"--(Failed conversion to double
 
-)--",
-                      e.what())
-    } catch (std::invalid_argument&) {
-      ARTS_USER_ERROR("The argument: \n\n'", buf, R"--('
+    // Read to the buffer
+    is >> buf;
+    ARTS_USER_ERROR_IF(is.fail(), "Cannot read from stream")
+
+    // Actual conversion
+    const auto res =
+        fast_float::from_chars(buf.c_str(), buf.c_str() + buf.size(), x);
+
+    // Error (only std::errc::invalid_argument possible)
+    ARTS_USER_ERROR_IF(res.ec == std::errc::invalid_argument,
+                       "The argument: \n\n'",
+                       buf,
+                       R"--('
 
 is not convertible to a valid double.  At the very least it
 cannot be converted to one using the standard string-to-double
 routine
 )--")
-    } catch (std::out_of_range&) {
-      ARTS_USER_ERROR("The argument: \n\n'",
-                      buf,
-                      R"--('
 
-is not convertible to a normal double.  The value is
-bad or simply subnormal (i.e., the absolute value is either
-below ~)--",
-                      std::numeric_limits<double>::min(),
-                      " or above ~",
-                      std::numeric_limits<double>::max(),
-                      ")\n")
-    }
+    // Put the stream to be where it is supposed to be
+    std::size_t n = std::distance(buf.c_str(), res.ptr);
+    while (n++ < buf.size()) is.unget();
+
     return *this;
   }
 
