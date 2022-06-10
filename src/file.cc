@@ -34,22 +34,9 @@
 #include "arts.h"
 
 #include <algorithm>
-#include <cfloat>
-#include <cmath>
-#include <cstdio>
 #include <cstdlib>
-#include <limits>
+#include <filesystem>
 #include <stdexcept>
-
-// For getdir
-#include <dirent.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 #include "array.h"
 #include "file.h"
@@ -90,7 +77,7 @@ void filename_ascii(String& filename, const String& varname) {
    @version   1
    @exception ios_base::failure Could for example mean that the
                       directory is read only. */
-void open_output_file(ofstream& file, const String& name) {
+void open_output_file(ofstream& file, const std::string_view name) {
   String ename = add_basedir(name);
 
   try {
@@ -101,7 +88,6 @@ void open_output_file(ofstream& file, const String& name) {
     // FIXME: This does not yet work in  egcs-2.91.66, try again later.
     file.exceptions(ios::badbit | ios::failbit);
 
-    // c_str explicitly converts to c String.
     file.open(ename.c_str());
 
     // See if the file is ok.
@@ -110,11 +96,10 @@ void open_output_file(ofstream& file, const String& name) {
     // get here if there really was a problem, because of the exception
     // thrown by open().)
   } catch (const std::exception& e) {
-    ostringstream os;
-    os << "Cannot open output file: " << ename << '\n'
-       << "Maybe you don't have write access "
-       << "to the directory or the file?";
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR(
+        "Cannot open output file: ",
+        ename,
+        "\nMaybe you don't have write access to the directory or the file?");
   }
 }
 
@@ -124,17 +109,13 @@ void open_output_file(ofstream& file, const String& name) {
  @author    Oliver Lemke
  @exception ios_base::failure Could for example mean that the
  directory is read only. */
-#ifdef HAVE_REMOVE
-void cleanup_output_file(ofstream& file, const String& name) {
+void cleanup_output_file(ofstream& file, const std::string_view name) {
   if (file.is_open()) {
     streampos fpos = file.tellp();
     file.close();
-    if (!fpos) unlink(expand_path(name).c_str());
+    if (!fpos) std::filesystem::remove(expand_path(name).c_str());
   }
 }
-#else
-void cleanup_output_file(ofstream&, const String&) {}
-#endif
 
 /**
    Open a file for reading. If the file cannot be opened, the
@@ -144,8 +125,8 @@ void cleanup_output_file(ofstream&, const String&) {}
    @author    Stefan Buehler
    @version   1
    @exception ios_base::failure Somehow the file cannot be opened. */
-void open_input_file(ifstream& file, const String& name) {
-  String ename = expand_path(name);
+void open_input_file(ifstream& file, const std::string_view name) {
+  String ename{expand_path(name)};
 
   // Command line parameters which give us the include search path.
   extern const Parameters parameters;
@@ -170,12 +151,10 @@ void open_input_file(ifstream& file, const String& name) {
   // See if the file is ok.
   // FIXME: This should not be necessary anymore in the future, when
   // g++ stream exceptions work properly.
-  if (!file) {
-    ostringstream os;
-    os << "Cannot open input file: " << ename << '\n'
-       << "Maybe the file does not exist?";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF(!file,
+                     "Cannot open input file: ",
+                     ename,
+                     "\nMaybe the file does not exist?");
 }
 
 /**
@@ -187,7 +166,8 @@ void open_input_file(ifstream& file, const String& name) {
    @exception IOError Some error occured during the read
    @version   1
    @author Stefan Buehler */
-void read_text_from_stream(ArrayOfString& text, istream& is) {
+ArrayOfString read_text_from_stream(istream& is) {
+  ArrayOfString text;
   String linebuffer;
 
   // Read as long as `is' is good.
@@ -205,11 +185,9 @@ void read_text_from_stream(ArrayOfString& text, istream& is) {
   // Check for error:
   // FIXME: This should not be necessary anymore when stream
   // exceptions work properly.
-  if (!is.eof()) {
-    ostringstream os;
-    os << "Read Error. Last line read:\n" << linebuffer;
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF(!is.eof(), "Read Error. Last line read:\n", linebuffer);
+
+  return text;
 }
 
 /**
@@ -222,7 +200,8 @@ void read_text_from_stream(ArrayOfString& text, istream& is) {
    \exception IOError
    \version   1
    \author Stefan Buehler */
-void read_text_from_file(ArrayOfString& text, const String& name) {
+ArrayOfString read_text_from_file(const std::string_view name) {
+  ArrayOfString text{};
   ifstream ifs;
 
   // Open input stream:
@@ -234,12 +213,12 @@ void read_text_from_file(ArrayOfString& text, const String& name) {
   // because then we can issue a nicer error message that includes the
   // filename.
   try {
-    read_text_from_stream(text, ifs);
+    text = read_text_from_stream(ifs);
   } catch (const std::runtime_error& x) {
-    ostringstream os;
-    os << "Error reading file: " << name << '\n' << x.what();
-    throw runtime_error(os.str());
+    ARTS_USER_ERROR("Error reading file: ", name, "\n", x.what());
   }
+
+  return text;
 }
 
 /**
@@ -250,7 +229,7 @@ void read_text_from_file(ArrayOfString& text, const String& name) {
     @param with The replacement.
 
     @author Stefan Buehler */
-void replace_all(String& s, const String& what, const String& with) {
+void replace_all(String& s, const std::string_view what, const std::string_view with) {
   Index j = s.find(what);
   while (j != s.npos) {
     s.replace(j, 1, with);
@@ -268,7 +247,7 @@ void replace_all(String& s, const String& what, const String& with) {
 
   @author Oliver Lemke
 */
-int check_newline(const String& s) {
+int check_newline(const std::string_view s) {
   String d = s;
   int result = 0;
 
@@ -278,7 +257,7 @@ int check_newline(const String& s) {
   replace_all(d, "\r", "");
 
   const char* cp = d.c_str();
-  while ((*cp == '\n') && *cp) cp++;
+  while (*cp == '\n') cp++;
 
   if (!(*cp)) result = 1;
 
@@ -300,20 +279,9 @@ int check_newline(const String& s) {
 
   @author Oliver Lemke
 */
-bool file_exists(const String& filename) {
-  bool exists = false;
-
-  struct stat st;
-  if (lstat(filename.c_str(), &st) >= 0 && !S_ISDIR(st.st_mode)) {
-    fstream fin;
-    fin.open(filename.c_str(), ios::in);
-    if (fin.is_open()) {
-      exists = true;
-    }
-    fin.close();
-  }
-
-  return exists;
+bool file_exists(const std::string_view filename) {
+  return std::filesystem::exists(filename) &&
+         !std::filesystem::is_directory(filename);
 }
 
 /**
@@ -325,15 +293,12 @@ bool file_exists(const String& filename) {
 
   @author Oliver Lemke
 */
-String get_absolute_path(const String& filename) {
-  char* fullrealpath;
-  fullrealpath = realpath(filename.c_str(), NULL);
-  if (fullrealpath) {
-    String retpath(fullrealpath);
-    free(fullrealpath);
-    return retpath;
-  } else
+String get_absolute_path(const std::string_view filename) {
+  try {
+    return std::filesystem::canonical(filename).string();
+  } catch (const std::filesystem::filesystem_error&) {
     return filename;
+  }
 }
 
 /**
@@ -346,23 +311,21 @@ String get_absolute_path(const String& filename) {
   @param[in]     paths       List of paths to look in for the file.
   @param[in]     extensions  List of extensions to add to base filename.
 
-  @return Error code (true = file found, false = file not found)
+  @return True if matches were found, else false
 
   @author Oliver Lemke
 */
 bool find_file(ArrayOfString& matches,
-               const String& filename,
+               const std::string_view filename,
                const ArrayOfString& paths,
                const ArrayOfString& extensions) {
   bool exists = false;
-  String efilename = expand_path(filename);
+  String efilename{expand_path(filename)};
 
   // filename contains full path
   if (!paths.nelem() || (efilename.nelem() && efilename[0] == '/')) {
-    for (ArrayOfString::const_iterator ext = extensions.begin();
-         ext != extensions.end();
-         ext++) {
-      String fullpath = get_absolute_path(efilename + *ext);
+    for (const auto& ext : extensions) {
+      String fullpath = get_absolute_path(efilename + ext);
       // Full path + extension
       if (file_exists(fullpath)) {
         if (std::find(matches.begin(), matches.end(), fullpath) ==
@@ -374,14 +337,10 @@ bool find_file(ArrayOfString& matches,
   }
   // filename contains no or relative path
   else {
-    for (ArrayOfString::const_iterator path = paths.begin();
-         path != paths.end();
-         path++) {
-      for (ArrayOfString::const_iterator ext = extensions.begin();
-           ext != extensions.end();
-           ext++) {
+    for (const auto& path : paths) {
+      for (const auto& ext : extensions) {
         String fullpath =
-            get_absolute_path(expand_path(*path) + "/" + efilename + *ext);
+            get_absolute_path(expand_path(path) + "/" + efilename + ext);
 
         if (file_exists(fullpath)) {
           if (std::find(matches.begin(), matches.end(), fullpath) ==
@@ -421,6 +380,12 @@ void find_xml_file(String& filename, const Verbosity& verbosity) {
   ArrayOfString matching_files;
   find_file(matching_files, filename, allpaths, {"", ".xml", ".gz", ".xml.gz"});
 
+  ARTS_USER_ERROR_IF(!matching_files.nelem(),
+                     "Cannot find input file: ",
+                     filename,
+                     "\nSearch path: ",
+                     allpaths);
+
   if (matching_files.nelem() > 1) {
     CREATE_OUT1;
     out1
@@ -428,11 +393,6 @@ void find_xml_file(String& filename, const Verbosity& verbosity) {
         << "  Using the first file (1) found:\n";
     for (Index i = 0; i < matching_files.nelem(); i++)
       out1 << "  (" << i + 1 << ") " << matching_files[i] << "\n";
-  } else if (!matching_files.nelem()) {
-    ostringstream os;
-    os << "Cannot find input file: " << filename << endl;
-    os << "Search path: " << allpaths << endl;
-    throw runtime_error(os.str());
   }
 
   filename = matching_files[0];
@@ -462,9 +422,9 @@ bool find_xml_file_existence(String& filename) {
   if (matching_files.nelem()) {
     filename = matching_files[0];
     return true;
-  } else {
-    return false;
   }
+
+  return false;
 }
 
 /*!
@@ -477,13 +437,13 @@ bool find_xml_file_existence(String& filename) {
  \author Oliver Lemke              
  \date   2010-04-30
  */
-String expand_path(const String& path) {
-  if ((path.nelem() == 1 && path[0] == '~') ||
-      (path.nelem() > 1 && path[0] == '~' && path[1] == '/')) {
-    return String(getenv("HOME")) + String(path, 1);
-  } else {
-    return path;
+String expand_path(String path) {
+  if ((path.length() == 1 && path[0] == '~') ||
+      (path.length() > 1 && path[0] == '~' && path[1] == '/')) {
+    path = String(std::getenv("HOME")) + String(path, 1);
   }
+
+  return path;
 }
 
 /*!
@@ -496,11 +456,11 @@ String expand_path(const String& path) {
  \author Oliver Lemke              
  \date   2012-05-01
  */
-String add_basedir(const String& path) {
+String add_basedir(const std::string_view path) {
   extern const Parameters parameters;
-  String expanded_path = expand_path(path);
+  String expanded_path{expand_path(path)};
 
-  if (parameters.outdir.nelem() && path.nelem() && path[0] != '/') {
+  if (parameters.outdir.nelem() && path.length() && path[0] != '/') {
     expanded_path = parameters.outdir + '/' + expanded_path;
   }
 
@@ -516,12 +476,12 @@ String add_basedir(const String& path) {
  
  \author Oliver Lemke
  */
-void get_dirname(String& dirname, const String& path) {
-  dirname = "";
-  if (!path.nelem()) return;
+String get_dirname(const std::string_view path) {
+  String dirname{};
+  if (!path.length()) return dirname;
 
   ArrayOfString fileparts;
-  path.split(fileparts, "/");
+  String{path}.split(fileparts, "/");
   if (path[0] == '/') dirname = "/";
   if (fileparts.nelem() > 1) {
     for (Index i = 0; i < fileparts.nelem() - 1; i++) {
@@ -529,6 +489,8 @@ void get_dirname(String& dirname, const String& path) {
       if (i < fileparts.nelem() - 2) dirname += "/";
     }
   }
+
+  return dirname;
 }
 
 //! Return list of files in directory.
@@ -540,20 +502,18 @@ void get_dirname(String& dirname, const String& path) {
 
  \author Oliver Lemke
  */
-void list_directory(ArrayOfString& files, String dirname) {
-  DIR* dp;
-  struct dirent* dirp;
-  if ((dp = opendir(dirname.c_str())) == NULL) {
-    ostringstream os;
-    os << "Error(" << errno << ") opening " << dirname << endl;
-    throw runtime_error(os.str());
+ArrayOfString list_directory(const std::string_view dirname) {
+  ARTS_USER_ERROR_IF(!std::filesystem::is_directory(dirname),
+                     "Error accessing directory: ",
+                     dirname)
+
+  ArrayOfString files{};
+  for (const auto& filename :
+       std::filesystem::directory_iterator{dirname}) {
+    files.push_back(filename.path().string());
   }
 
-  while ((dirp = readdir(dp)) != NULL) {
-    files.push_back(String(dirp->d_name));
-  }
-
-  closedir(dp);
+  return files;
 }
 
 /** Make filename unique.
@@ -561,14 +521,14 @@ void list_directory(ArrayOfString& files, String dirname) {
  Checks if a file (or a gzipped version of it) with the given name already
  exists und appends a unique number to the filename if necessary
 
- \param[in,out] filename   Filename
+ \param[in] filename   Filename
  \param[in]     extension  Optional, number is inserted before the extension
- \return
+ \return Unique filename
 
  \author Oliver Lemke
  */
 
-void make_filename_unique(String& filename, const String& extension) {
+String make_filename_unique(const std::string_view filename, const String& extension) {
   String basename = filename;
   String extensionname;
 
@@ -592,5 +552,5 @@ void make_filename_unique(String& filename, const String& extension) {
     newfilename << basename << "." << filenumber << extensionname;
   }
 
-  filename = newfilename.str();
+  return newfilename.str();
 }

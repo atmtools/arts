@@ -408,8 +408,7 @@ bool get_parameters(int argc, char **argv) {
     parameters.datapath.insert(parameters.datapath.begin(), parameters.outdir);
 
   if (parameters.controlfiles.nelem()) {
-    String cfdirname;
-    get_dirname(cfdirname, parameters.controlfiles[0]);
+    const String cfdirname{get_dirname(parameters.controlfiles[0])};
     if (cfdirname.nelem()) parameters.includepath.push_back(cfdirname);
   }
 

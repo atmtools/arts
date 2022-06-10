@@ -23,7 +23,7 @@ void SourceText::AppendFile(const String& name) {
   mSfLine.push_back(mText.nelem());
   mSfName.push_back(name);
 
-  read_text_from_file(mText, name);
+  mText = read_text_from_file(name);
 }
 
 void SourceText::AdvanceChar() {

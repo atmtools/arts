@@ -364,8 +364,7 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
       extern Parameters parameters;
 
       ArrayOfString current_includepath = parameters.includepath;
-      String includedir;
-      get_dirname(includedir, msource.File());
+      const String includedir{get_dirname(msource.File())};
       if (includedir.nelem()) {
         if (current_includepath.nelem() && current_includepath[0] != includedir)
           current_includepath.insert(current_includepath.begin(), includedir);
