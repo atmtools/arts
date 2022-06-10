@@ -33,9 +33,9 @@ struct ComputeValues {
 
 struct Control {
   std::mutex copy;
-  std::string error{};
+  std::string errmsg{};
   std::atomic_int pos{0};
-  std::atomic_bool run{false}, exit{false};
+  std::atomic_bool run{false}, exit{false}, error{false};
 
   static_assert(
       std::atomic_int::is_always_lock_free,

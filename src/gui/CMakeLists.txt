@@ -1,5 +1,6 @@
 # GUI Library: For basic GUI creation
 add_library (artsgui STATIC
+            error.cc
             gui.cc
             menu.cc
             plot.cc

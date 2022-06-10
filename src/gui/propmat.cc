@@ -13,7 +13,8 @@
 #include "artstime.h"
 #include "constants.h"
 #include "debug.h"
-#include "gui/gui.h"
+#include "error.h"
+#include "gui.h"
 #include "imgui.h"
 #include "implot.h"
 #include "jacobian.h"
@@ -240,9 +241,10 @@ struct TraMatDataHolder {
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
 
     return {x,
-            
-                yscale(data_ptr->yscale_fun, data_ptr->inverse_y,
-                       range_mean<stokes, r, c>(data_ptr->tm, start, last))};
+
+            yscale(data_ptr->yscale_fun,
+                   data_ptr->inverse_y,
+                   range_mean<stokes, r, c>(data_ptr->tm, start, last))};
   }
 };
 
@@ -429,10 +431,11 @@ ImPlotLimits draw_tramat(const ComputeValues& v, const DisplayOptions& opts) {
                                      ? "Transmission Matrix Partial Derivative"
                                      : "Transmission Matrix";
 
-  if (ImPlot::BeginPlot(title.data(),
-                        xunit(opts.xscale).data(),
-                        yscale_str(main_data.yscale_fun, main_data.inverse_y).data(),
-                        {-1, -1})) {
+  if (ImPlot::BeginPlot(
+          title.data(),
+          xunit(opts.xscale).data(),
+          yscale_str(main_data.yscale_fun, main_data.inverse_y).data(),
+          {-1, -1})) {
     switch (tm.stokes_dim) {
       case 1:
         ImPlot::PlotLineG(
@@ -957,6 +960,20 @@ void propmat(PropmatClearsky::ResultsArray& res,
       ARTSGUI::Files::save_data(config, fileBrowser, res[curpos].value.pm);
     else if (config.save_type == 1)
       ARTSGUI::Files::save_data(config, fileBrowser, res[curpos].value.aopm);
+  }
+
+  if (ctrl.error.load()) {
+    res[curpos].auto_f_grid = false;
+    res[curpos].auto_update = false;
+    switch(error(ctrl.errmsg)) {
+      case ErrorStatus::Exit:
+        ctrl.exit.store(true);
+        [[fallthrough]];
+      case ErrorStatus::Continue:
+        ctrl.error.store(false);
+        [[fallthrough]];
+      case ErrorStatus::OnHold: {}
+    }
   }
 
   if (ctrl.exit.load()) glfwSetWindowShouldClose(window, 1);

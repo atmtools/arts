@@ -60,13 +60,14 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
          Numeric& transmission_distance) {
   for (auto& v : ret) v.ok.store(false);
   ARTSGUI::PropmatClearsky::ComputeValues v;
-  bool error = false;
 
-  while (not error) {
+  while (true) {
     std::this_thread::sleep_for(10ms);
 
     try {
       if (ctrl.exit.load()) return true;
+
+      if (ctrl.error.load()) continue;
 
       if (ctrl.run.load()) {
         std::lock_guard allow_copy{ctrl.copy};
@@ -111,9 +112,9 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
 
       ctrl.run.store(false);
     } catch (std::runtime_error& e) {
-      ctrl.error = e.what();
-      ctrl.exit.store(true);
-      error = true;
+      ctrl.errmsg = e.what();
+      ctrl.error.store(true);
+      ctrl.run.store(false);
     }
   }
 
