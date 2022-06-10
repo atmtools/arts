@@ -38,6 +38,7 @@
 #include "lineshapemodel.h"
 #include "matpack.h"
 #include "quantum_numbers.h"
+#include "species_tags.h"
 #include "zeemandata.h"
 #include "jacobian.h"
 
@@ -1039,5 +1040,26 @@ struct AbsorptionTagTypesStatus {
         lineshapetype(lines) {}
   friend std::ostream& operator<<(std::ostream&, AbsorptionTagTypesStatus);
 };
+
+//! Helper struct for flat_index
+struct AbsorptionSpeciesBandIndex {
+  //! The species index in abs_species/abs_lines_per_species
+  Index ispecies;
+
+  //! The band index in abs_lines_per_species[ispecies]
+  Index iband;
+};
+
+/** Get a flat index pair for species and band
+
+  @param[in] i: Index smaller than the total number of bands but at least 0
+  @param[in] abs_species: As WSV
+  @param[in] abs_lines_per_species: As WSV
+  @return A valid AbsorptionSpeciesBandIndex
+*/
+AbsorptionSpeciesBandIndex flat_index(
+    Index i,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species);
 
 #endif  // absorptionlines_h

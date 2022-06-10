@@ -40,6 +40,8 @@
 #include "agenda_class.h"
 #include "array.h"
 #include "arts.h"
+#include "arts_omp.h"
+#include "artstime.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "debug.h"
@@ -1765,19 +1767,69 @@ void propmat_clearskyAddLines(  // Workspace reference:
   LineShape::ComputeData sparse_com(
       f_grid_sparse, jacobian_quantities, nlte_do);
 
-  for (Index ispecies = 0; ispecies < ns; ispecies++) {
-    if (select_abs_species.nelem() and
-        select_abs_species not_eq abs_species[ispecies])
-      continue;
+  if (arts_omp_in_parallel()) {
+    for (Index ispecies = 0; ispecies < ns; ispecies++) {
+      if (select_abs_species.nelem() and
+          select_abs_species not_eq abs_species[ispecies])
+        continue;
 
-    // Skip it if there are no species or there is Zeeman requested
-    if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or
-        not abs_lines_per_species[ispecies].nelem())
-      continue;
+      // Skip it if there are no species or there is Zeeman requested
+      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or
+          not abs_lines_per_species[ispecies].nelem())
+        continue;
 
-    for (auto& band : abs_lines_per_species[ispecies]) {
-      LineShape::compute(com,
-                         sparse_com,
+      for (auto& band : abs_lines_per_species[ispecies]) {
+        LineShape::compute(com,
+                          sparse_com,
+                          band,
+                          jacobian_quantities,
+                          rtp_nlte,
+                          band.BroadeningSpeciesVMR(rtp_vmr, abs_species),
+                          abs_species[ispecies],
+                          rtp_vmr[ispecies],
+                          isotopologue_ratios[band.Isotopologue()],
+                          rtp_pressure,
+                          rtp_temperature,
+                          0,
+                          sparse_lim,
+                          Zeeman::Polarization::None,
+                          speedup_type,
+                          robust not_eq 0);
+      }
+    }
+  } else {  // In parallel
+    const Index nbands = [](auto& lines) {
+      Index n = 0;
+      for (auto& abs_lines : lines) n += abs_lines.nelem();
+      return n;
+    }(abs_lines_per_species);
+
+    std::vector<LineShape::ComputeData> vcom(
+        arts_omp_get_max_threads(),
+        LineShape::ComputeData{
+            f_grid, jacobian_quantities, static_cast<bool>(nlte_do)});
+    std::vector<LineShape::ComputeData> vsparse_com(
+        arts_omp_get_max_threads(),
+        LineShape::ComputeData{
+            f_grid_sparse, jacobian_quantities, static_cast<bool>(nlte_do)});
+
+#pragma omp parallel for schedule(dynamic)
+    for (Index i = 0; i < nbands; i++) {
+      const auto [ispecies, iband] =
+          flat_index(i, abs_species, abs_lines_per_species);
+          
+      if (select_abs_species.nelem() and
+          select_abs_species not_eq abs_species[ispecies])
+        continue;
+
+      // Skip it if there are no species or there is Zeeman requested
+      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or
+          not abs_lines_per_species[ispecies].nelem())
+        continue;
+
+      auto& band = abs_lines_per_species[ispecies][iband];
+      LineShape::compute(vcom[arts_omp_get_thread_num()],
+                         vsparse_com[arts_omp_get_thread_num()],
                          band,
                          jacobian_quantities,
                          rtp_nlte,
@@ -1793,6 +1845,9 @@ void propmat_clearskyAddLines(  // Workspace reference:
                          speedup_type,
                          robust not_eq 0);
     }
+
+    for (auto& pcom: vcom) com += pcom;
+    for (auto& pcom: vsparse_com) sparse_com += pcom;
   }
 
   switch (speedup_type) {
