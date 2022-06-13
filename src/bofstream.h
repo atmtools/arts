@@ -59,7 +59,7 @@ bofstream& operator<<(bofstream& bof, double n);
 
 bofstream& operator<<(bofstream& bof, float n);
 
-bofstream& operator<<(bofstream& bof, long n);
+bofstream& operator<<(bofstream& bof, std::int64_t n);
 
 bofstream& operator<<(bofstream& bof, int n);
 
