@@ -557,7 +557,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
           checked_dirs.push_back(catalogpath + "/" + subfolders[dir] +
                                  cia_name + "/");
           try {
-            list_directory(files, *(checked_dirs.end() - 1));
+            files = list_directory(*(checked_dirs.end() - 1));
           } catch (const std::runtime_error& e) {
             continue;
           }

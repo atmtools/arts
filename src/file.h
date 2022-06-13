@@ -31,6 +31,7 @@
 #define file_h
 
 #include <fstream>
+
 #include "double_imanip.h"
 #include "messages.h"
 #include "mystring.h"
@@ -41,45 +42,45 @@
 
 void filename_ascii(String& filename, const String& varname);
 
-void filename_bin(String& filename, const String& varname);
+void filename_bin(String& filename, const std::string_view varname);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read ASCII files
 ////////////////////////////////////////////////////////////////////////////
 
-void open_output_file(std::ofstream& file, const String& name);
+void open_output_file(std::ofstream& file, const std::string_view name);
 
-void cleanup_output_file(std::ofstream& file, const String& name);
+void cleanup_output_file(std::ofstream& file, const std::string_view name);
 
-void open_input_file(std::ifstream& file, const String& name);
+void open_input_file(std::ifstream& file, const std::string_view name);
 
-void read_text_from_stream(ArrayOfString& text, std::istream& is);
+[[nodiscard]] ArrayOfString read_text_from_stream(std::istream& is);
 
-void read_text_from_file(ArrayOfString& text, const String& name);
+[[nodiscard]] ArrayOfString read_text_from_file(const std::string_view name);
 
-void replace_all(String& s, const String& what, const String& with);
+void replace_all(String& s, const std::string_view what, const std::string_view with);
 
-int check_newline(const String& s);
+[[nodiscard]] int check_newline(const std::string_view s);
 
-bool file_exists(const String& filename);
+[[nodiscard]] bool file_exists(const std::string_view filename);
 
 bool find_file(ArrayOfString& matches,
-               const String& filename,
+               const std::string_view filename,
                const ArrayOfString& paths,
                const ArrayOfString& extensions = {""});
 
 void find_xml_file(String& filename, const Verbosity& verbosity);
 
-bool find_xml_file_existence(String& filename);
+[[nodiscard]] bool find_xml_file_existence(String& filename);
 
-String expand_path(const String& path);
+[[nodiscard]] String expand_path(String path);
 
-String add_basedir(const String& path);
+[[nodiscard]] String add_basedir(const std::string_view path);
 
-void get_dirname(String& dirname, const String& path);
+[[nodiscard]] String get_dirname(const std::string_view path);
 
-void list_directory(ArrayOfString& files, String dirname);
+[[nodiscard]] ArrayOfString list_directory(const std::string_view dirname);
 
-void make_filename_unique(String& filename, const String& extension = "");
+[[nodiscard]] String make_filename_unique(const std::string_view filename, const String& extension = "");
 
 #endif

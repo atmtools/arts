@@ -176,11 +176,11 @@ void xml_write_to_file(const String& filename,
                        const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  String efilename = add_basedir(filename);
+  String efilename{add_basedir(filename)};
 
   std::unique_ptr<ostream> ofs;
 
-  if (no_clobber) make_filename_unique(efilename, ".xml");
+  if (no_clobber) efilename = make_filename_unique(efilename, ".xml");
 
   xml_write_to_file_base(efilename, type, ftype, verbosity);
 }
