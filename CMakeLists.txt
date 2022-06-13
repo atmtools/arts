@@ -100,13 +100,6 @@ if (ENABLE_FORTRAN)
     message (FATAL_ERROR "Unsupported Fortran compiler. Must be gfortran or ifort.")
   endif (FORTRAN_COMPILER MATCHES "gfortran.*")
 
-  INCLUDE (CheckTypeSize)
-  CHECK_TYPE_SIZE (long SIZEOF_LONG)
-  if (NOT SIZEOF_LONG EQUAL 8)
-    message (FATAL_ERROR "Fortran interface only works on 64-bit with long size of 8 bytes.\n"
-      "Size of long on this system: ${SIZEOF_LONG} bytes")
-  endif (NOT SIZEOF_LONG EQUAL 8)
-
 endif (ENABLE_FORTRAN)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -128,7 +121,7 @@ if (NOT NUMERIC)
 endif (NOT NUMERIC)
 
 if (NOT INDEX)
-  set (INDEX long)
+  set (INDEX std::int64_t)
 endif (NOT INDEX)
 
 add_definitions (-DHAVE_CONFIG_H)
