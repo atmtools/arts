@@ -74,7 +74,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
         ImGui::Text("Invalid sizes, xdata is %ld elements and ydata is %ld elements", xdata.size(), ydata.size());
       else {
         for (Index i=0; i<xdata.nelem(); i++) {
-          ImGui::Text("xdata[%ld] is %ld elements and ydata[%ld] is %ld elements", i, xdata[i].size(), i, ydata[i].size());
+          ImGui::Text("xdata[%lld] is %lld elements and ydata[%lld] is %lld elements", i, xdata[i].size(), i, ydata[i].size());
         }
       }
     }
