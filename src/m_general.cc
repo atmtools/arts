@@ -40,11 +40,10 @@
 
 #include "arts.h"
 
+#include <chrono>
 #include <cstdlib>
+#include <ratio>
 #include <stdexcept>
-#ifdef TIME_SUPPORT
-#include <unistd.h>
-#endif
 
 #include "array.h"
 #include "check_input.h"
@@ -232,14 +231,12 @@ void Print(  // WS Generic Input:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-#ifdef TIME_SUPPORT
 void Print(  // WS Generic Input:
     const Timer& timer,
     // Keywords:
     const Index& level,
     const Verbosity& verbosity) {
   CREATE_OUTS;
-
   if (!timer.finished) {
     SWITCH_OUTPUT(
         level,
@@ -248,49 +245,18 @@ void Print(  // WS Generic Input:
   }
 
   ostringstream os;
-  os.setf(ios::showpoint | ios::fixed);
 
-  static long clktck = 0;
-
-  if (clktck == 0)
-    ARTS_USER_ERROR_IF ((clktck = sysconf(_SC_CLK_TCK)) < 0,
-                        "Timer error: Unable to determine CPU clock ticks");
-
-  os << "  * CPU time  total: " << setprecision(2)
-     << (Numeric)(
-            (timer.cputime_end.tms_stime - timer.cputime_start.tms_stime) +
-            (timer.cputime_end.tms_utime - timer.cputime_start.tms_utime)) /
-            (Numeric)clktck;
-
-  os << "  user: " << setprecision(2)
-     << (Numeric)(timer.cputime_end.tms_utime - timer.cputime_start.tms_utime) /
-            (Numeric)clktck;
-
-  os << "  system: " << setprecision(2)
-     << (Numeric)(timer.cputime_end.tms_stime - timer.cputime_start.tms_stime) /
-            (Numeric)clktck;
-
-  os << "\n               real: " << setprecision(2)
-     << (Numeric)(timer.realtime_end - timer.realtime_start) / (Numeric)clktck;
-
-  os << "  " << setprecision(2)
-     << (Numeric)(
-            (timer.cputime_end.tms_stime - timer.cputime_start.tms_stime) +
-            (timer.cputime_end.tms_utime - timer.cputime_start.tms_utime)) /
-            (Numeric)(timer.realtime_end - timer.realtime_start) * 100.
-     << "%CPU\n";
+  const auto cputime =
+      static_cast<double>(timer.cputime_end - timer.cputime_start) /
+      CLOCKS_PER_SEC;
+  const auto walltime = std::chrono::duration<double, std::ratio<1>>(
+                            timer.realtime_end - timer.realtime_start)
+                            .count();
+  os << std::fixed << setprecision(2) << "  * Timing: CPU " << cputime << "s, "
+     << "Wall " << walltime << "s, " << 100. * cputime / walltime << "%CPU\n";
 
   SWITCH_OUTPUT(level, os.str());
 }
-#else
-void Print(  // WS Generic Input:
-    const Timer&,
-    // Keywords:
-    const Index& level,
-    const Verbosity& verbosity) {
-  SWITCH_OUTPUT(level, "Timer error: ARTS was compiled without timer support");
-}
-#endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
@@ -351,47 +317,29 @@ void StringJoin(String& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-#ifdef TIME_SUPPORT
 void timerStart(  // WS Output
     Timer& timer,
     const Verbosity&) {
-  ARTS_USER_ERROR_IF ((timer.realtime_start = times(&timer.cputime_start)) == (clock_t)-1,
-                      "Timer error: Unable to get current CPU time");
+  timer.cputime_start = std::clock();
+  timer.realtime_start = std::chrono::high_resolution_clock::now();
 
   timer.running = true;
   timer.finished = false;
 }
-#else
-void timerStart(  // WS Output
-    Timer& /*starttime*/,
-    const Verbosity&) {
-  ARTS_USER_ERROR (
-      "Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
-}
-#endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-#ifdef TIME_SUPPORT
 void timerStop(  // WS Input
     Timer& timer,
     const Verbosity&) {
-  ARTS_USER_ERROR_IF (!timer.running,
-      "Timer error: Unable to stop timer that's not running.");
+  ARTS_USER_ERROR_IF(!timer.running,
+                     "Timer error: Unable to stop timer that's not running.");
 
-  ARTS_USER_ERROR_IF ((timer.realtime_end = times(&(timer.cputime_end))) == (clock_t)-1,
-    "Timer error: Unable to get current CPU time");
+  timer.realtime_end = std::chrono::high_resolution_clock::now();
+  timer.cputime_end = std::clock();
 
   timer.running = false;
   timer.finished = true;
 }
-#else
-void timerStop(  // WS Input
-    const Timer&,
-    const Verbosity&) {
-  ARTS_USER_ERROR (
-    "Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
-}
-#endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Error(const String& msg, const Verbosity& verbosity) {

@@ -1,19 +1,15 @@
 #ifndef timer_struct_h
 #define timer_struct_h
 
-#ifdef TIME_SUPPORT
-#include <sys/times.h>
-#endif
+#include <chrono>
 
 struct Timer {
   bool running{false};
   bool finished{false};
-#ifdef TIME_SUPPORT
-  struct tms cputime_start;
-  clock_t realtime_start;
-  struct tms cputime_end;
-  clock_t realtime_end;
-#endif
+  std::clock_t cputime_start;
+  std::chrono::time_point<std::chrono::high_resolution_clock> realtime_start;
+  std::clock_t cputime_end;
+  std::chrono::time_point<std::chrono::high_resolution_clock> realtime_end;
 };
 
 #endif
