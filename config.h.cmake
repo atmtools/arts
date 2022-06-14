@@ -101,9 +101,6 @@
 /* check existence of functions */
 #cmakedefine HAVE_REMOVE
 
-/* availability of timer support */
-#cmakedefine TIME_SUPPORT 1
-
 /* Default Index type */
 #cmakedefine INDEX ${INDEX}
 
