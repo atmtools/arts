@@ -284,9 +284,9 @@ endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
 
 ########### Docserver support ##########
 
-if (NOT NO_DOCSERVER)
+if (NOT NO_DOCSERVER AND HAVE_UNISTD_H)
   set (ENABLE_DOCSERVER true)
-endif (NOT NO_DOCSERVER)
+endif ()
 
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########
 if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")

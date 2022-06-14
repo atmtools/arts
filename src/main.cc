@@ -30,13 +30,10 @@
 
 #include "arts.h"
 
-#ifdef TIME_SUPPORT
-#include <sys/stat.h>
-#include <sys/times.h>
-#include <sys/types.h>
+#ifdef ENABLE_DOCSERVER
 #include <unistd.h>
-#include <ctime>
 #endif
+
 #include <algorithm>
 #include <map>
 
