@@ -373,7 +373,7 @@ void define_md_data_raw() {
           "*abs_cont_descriptionAppend* wants to append to the variables.\n"
           "\n"
           "Formally, the continuum description workspace variables are required\n"
-          "by the absorption calculation methods (e.g., *abs_xsec_per_speciesAddConts*).\n"
+          "by the absorption calculation methods (e.g., *propmat_clearskyAddConts*).\n"
           "Therefore you always have to call at least *abs_cont_descriptionInit*, even\n"
           "if you do not want to use any continua.\n"),
       AUTHORS("Thomas Kuhn", "Stefan Buehler"),
@@ -2124,66 +2124,6 @@ void define_md_data_raw() {
                "Temperature grid maximum [K].",
                "Humidity grid minimum [fractional].",
                "Humidity grid maximum [fractional].")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lookupTestAccuracy"),
-      DESCRIPTION(
-          "Test accuracy of absorption lookup table.\n"
-          "\n"
-          "Explicitly compare absorption from the lookup table with line-by-line\n"
-          "calculations for strategically selected conditions (in-between the\n"
-          "lookup table grid points).\n"
-          "\n"
-          "For error units see *abs_lookupTestAccMC*\n"
-          "\n"
-          "Produces no workspace output, only output to the output streams.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lookup",
-         "abs_lookup_is_adapted",
-         "abs_p_interp_order",
-         "abs_t_interp_order",
-         "abs_nls_interp_order",
-         "abs_xsec_agenda"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lookupTestAccMC"),
-      DESCRIPTION(
-          "Test accuracy of absorption lookup table with Monte Carlo Algorithm.\n"
-          "\n"
-          "Explicitly compare absorption from the lookup table with line-by-line\n"
-          "calculations for random conditions.\n"
-          "\n"
-          "The quantities returned are the mean value and standard deviation of\n"
-          "the absolute value of the relative error in percent.\n"
-          "The relative error itself is computed for a large number of cases\n"
-          "(pressure, temperature, and H2O VMR combinations). In the frequency\n"
-          "dimension the maximum value is taken for each case.\n"
-          "\n"
-          "Produces no workspace output, only output to the output streams.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lookup",
-         "abs_lookup_is_adapted",
-         "abs_p_interp_order",
-         "abs_t_interp_order",
-         "abs_nls_interp_order",
-         "mc_seed",
-         "abs_xsec_agenda"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
   
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_nlteFromRaw"),
@@ -2215,8 +2155,7 @@ void define_md_data_raw() {
           "how to input them in the control file.\n"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_species",
-          "propmat_clearsky_agenda_checked",
-          "abs_xsec_agenda_checked"),
+          "propmat_clearsky_agenda_checked"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -2245,8 +2184,7 @@ void define_md_data_raw() {
       OUT("abs_species",
           "jacobian_quantities",
           "jacobian_agenda",
-          "propmat_clearsky_agenda_checked",
-          "abs_xsec_agenda_checked"),
+          "propmat_clearsky_agenda_checked"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -2276,8 +2214,7 @@ void define_md_data_raw() {
           "this works the tag is included, otherwise it is skipped.\n"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_species",
-          "propmat_clearsky_agenda_checked",
-          "abs_xsec_agenda_checked"),
+          "propmat_clearsky_agenda_checked"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -2294,8 +2231,7 @@ void define_md_data_raw() {
       DESCRIPTION("Sets *abs_species*[i][0] to all species in ARTS\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_species",
-          "propmat_clearsky_agenda_checked",
-          "abs_xsec_agenda_checked"),
+          "propmat_clearsky_agenda_checked"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -2385,11 +2321,9 @@ void define_md_data_raw() {
           "the tagtype XFIT, e.g. CFC11-XFIT. The data for the species must be\n"
           "available in the *xsec_fit_data* variable."
           "\n"
-          "*abs_xsec_agenda_checked* and *propmat_clearsky_agenda_checked*\n"
-          "are set to be false.\n"),
+          "*propmat_clearsky_agenda_checked* is set to be false.\n"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_species",
-          "abs_xsec_agenda_checked",
           "propmat_clearsky_agenda_checked"),
       GOUT(),
       GOUT_TYPE(),
@@ -2416,110 +2350,6 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_vec", "propmat_clearsky"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_agenda_checkedCalc"),
-      DESCRIPTION(
-          "Checks if the *abs_xsec_agenda* contains all necessary\n"
-          "methods to calculate all the species in *abs_species*.\n"
-          "\n"
-          "This method should be called just before the *abs_xsec_agenda*\n"
-          "is used, e.g. *abs_lookupCalc*, *ybatchCalc*, *yCalc*\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT("abs_xsec_agenda_checked"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species", "abs_xsec_agenda"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddCIA"),
-      DESCRIPTION(
-          "Calculate absorption cross sections per tag group for HITRAN CIA continua.\n"
-          "\n"
-          "This interpolates the cross sections from *abs_cia_data*.\n"
-          "\n"
-          "The robust option is intended only for testing. Do not use for normal\n"
-          "runs, since subsequent functions will not be able to deal with NAN values.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("abs_xsec_per_species", "dabs_xsec_per_species_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "abs_species",
-         "jacobian_quantities",
-         "abs_species_active",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "abs_vmrs",
-         "abs_cia_data"),
-      GIN("T_extrapolfac", "robust"),
-      GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT("0.5", "0"),
-      GIN_DESC(
-          "Temperature extrapolation factor (relative to grid spacing).",
-          "Set to 1 to suppress runtime errors (and return NAN values instead).")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddConts"),
-      DESCRIPTION(
-          "Calculate absorption cross sections per tag group for continua.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("abs_xsec_per_species", "dabs_xsec_per_species_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "abs_species",
-         "jacobian_quantities",
-         "abs_species_active",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "abs_vmrs",
-         "abs_cont_names",
-         "abs_cont_parameters",
-         "abs_cont_models"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddLines"),
-      DESCRIPTION(
-          "Calculates the line spectrum for both attenuation and phase\n"
-          "for each tag group and adds it to abs_xsec_per_species.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_xsec_per_species",
-          "dabs_xsec_per_species_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "abs_species",
-         "jacobian_quantities",
-         "abs_species_active",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "abs_vmrs",
-         "abs_lines_per_species",
-         "isotopologue_ratios",
-         "lbl_checked"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -2587,33 +2417,6 @@ if they are defined.  Otherwise some values are just selected
          "rtp_pressure",
          "rtp_temperature",
          "rtp_vmr"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesInit"),
-      DESCRIPTION(
-        "Initialize *abs_xsec_per_species* and *dabs_xsec_per_species_dx*.\n"
-          "\n"
-          "The initialization is necessary because all computational methods\n"
-          "requires pre-allocated output variables, and they all add to the\n"
-          "output so the 'start'-value has to be zeroes per level\n"
-          "\n"
-          "The size is determined from *abs_species*.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("abs_xsec_per_species",
-          "dabs_xsec_per_species_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species",
-         "jacobian_quantities",
-         "abs_species_active",
-         "f_grid",
-         "abs_p",
-         "abs_xsec_agenda_checked"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -12923,9 +12726,7 @@ if they are defined.  Otherwise some values are just selected
           "Some extrapolation is allowed. For pressure and frequency interpolation\n"
           "the standard extrapolation factor of 0.5 is applied. The factor is the\n"
           "default for temperature and VMR interpolation, but the extrapolation\n"
-          "limit can here be adjusted by the *extpolfac* argument.\n"
-          "\n"
-          "See also: *propmat_clearskyAddXsecAgenda*.\n"),
+          "limit can here be adjusted by the *extpolfac* argument.\n"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -12983,40 +12784,6 @@ if they are defined.  Otherwise some values are just selected
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddXsecFit"),
-      DESCRIPTION(
-          "This method will be removed soon, use *propmat_clearskyAddXsecFit*\n"
-          "instead if possible.\n"
-          "\n"
-          "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
-          "\n"
-          "This broadens the cross section data from *xsec_fit_data* and\n"
-          "interpolates it onto the current f_grid.\n"
-          "\n"
-          "Model data needs to be read in with *ReadXsecData* before calling\n"
-          "this method.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT("abs_xsec_per_species", "dabs_xsec_per_species_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "abs_species",
-         "jacobian_quantities",
-         "abs_species_active",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "xsec_fit_data"),
-      GIN("force_p",
-          "force_t"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT("-1", "-1"),
-      GIN_DESC("Positive value forces constant pressure [Pa].",
-               "Positive value forces constant temperature [K].")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddXsecFit"),
@@ -13178,39 +12945,6 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
          "rtp_mag",
          "rtp_los",
          "lbl_checked"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("propmat_clearskyAddXsecAgenda"),
-      DESCRIPTION(
-          "Calculates gas absorption coefficients from cross-sections.\n"
-          "\n"
-          "This method can be used inside *propmat_clearsky_agenda* just like\n"
-          "*propmat_clearskyAddFromLookup*. It is a wrapper for putting the\n"
-          "cross-sections generated by *abs_xsec_agenda* into *propmat_clearsky*,\n"
-          "*nlte_field*, *dpropmat_clearsky_dx*, and *dnlte_source_dx*.\n"
-          "\n"
-          "The calculation is for one specific atmospheric condition, i.e., a set\n"
-          "of pressure, temperature, NLTE, and VMR values.\n"),
-      AUTHORS("Stefan Buehler, Richard Larsson"),
-      OUT("propmat_clearsky",
-          "dpropmat_clearsky_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("propmat_clearsky",
-         "dpropmat_clearsky_dx",
-         "f_grid",
-         "abs_species",
-         "select_abs_species",
-         "jacobian_quantities",
-         "rtp_pressure",
-         "rtp_temperature",
-         "rtp_vmr",
-         "abs_xsec_agenda"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -16467,8 +16201,7 @@ where N>=0 and the species name is something line "H2O".
       OUT("scat_data_raw",
           "vmr_field_raw",
           "abs_species",
-          "propmat_clearsky_agenda_checked",
-          "abs_xsec_agenda_checked"),
+          "propmat_clearsky_agenda_checked"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -16476,7 +16209,6 @@ where N>=0 and the species name is something line "H2O".
          "vmr_field_raw",
          "abs_species",
          "propmat_clearsky_agenda_checked",
-         "abs_xsec_agenda_checked",
          "atmosphere_dim",
          "f_grid"),
       GIN("scat_data_files", "pnd_field_files"),
@@ -21987,7 +21719,6 @@ where N>=0 and the species name is something line "H2O".
         "propmat_clearskyAddFaraday",
         "propmat_clearskyAddXsecFit",
         "propmat_clearskyAddParticles",
-        "propmat_clearskyAddXsecAgenda",
         "propmat_clearskyAddPredefined",
         "propmat_clearskyAddOnTheFlyLineMixing",
         "propmat_clearskyAddHitranLineMixingLines",

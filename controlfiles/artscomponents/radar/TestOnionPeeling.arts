@@ -9,12 +9,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
 # A pressure grid rougly matching 0 to 16 km, in steps of 500 m.
 IndexCreate( np )
 IndexSet( np, 33 )
@@ -25,6 +19,8 @@ abs_speciesSet( species= [  "N2-SelfContStandardType", "O2-TRE05", "H2O-PWR98" ]
 
 # No line data needed here
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaSetAutomatic
 
 # Dimensionality of the atmosphere
 AtmosphereSet1D
@@ -146,8 +142,6 @@ pnd_fieldCalcFromParticleBulkProps
 
 # Make checks
 #
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

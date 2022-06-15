@@ -10,9 +10,6 @@ INCLUDE "general/general.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 
@@ -67,10 +64,8 @@ cloudbox_checkedCalc
 #### Define Agendas #################################################
 
 # absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
+abs_lines_per_speciesSetEmpty
+propmat_clearsky_agendaSetAutomaticForLookup
 
 
 #### Define viewing position and line of sight #########################

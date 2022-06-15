@@ -26,13 +26,6 @@ IndexSet( stokes_dim, 1 )
 INCLUDE "odinsmr_501.arts"
 #INCLUDE "odinsmr_544.arts"
 
-# Agenda for scalar gas absorption calculation
-AgendaSet( abs_xsec_agenda ) {
-  abs_xsec_per_speciesInit
-  abs_xsec_per_speciesAddConts
-  abs_xsec_per_speciesAddLines
-}
-
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 
@@ -44,9 +37,6 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-
-# absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 
 # Possibility to change considered species
@@ -95,11 +85,11 @@ abs_speciesSet( abs_species=abs_nls, species=[] )
 VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
 
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
 propmat_clearsky_agendaSetAutomatic
 abs_lookupCalc
+propmat_clearsky_agendaSetAutomaticForLookup
 
 # ---- Sensor position and LOS -----------------------------------------------
 

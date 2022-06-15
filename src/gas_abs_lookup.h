@@ -113,21 +113,6 @@ class GasAbsLookup {
       // Verbosity object:
       const Verbosity& verbosity);
 
-  friend Numeric calc_lookup_error(  // Parameters for lookup table:
-      Workspace& ws,
-      const GasAbsLookup& al,
-      const Index& abs_p_interp_order,
-      const Index& abs_t_interp_order,
-      const Index& abs_nls_interp_order,
-      const bool ignore_errors,
-      // Parameters for LBL:
-      const Agenda& abs_xsec_agenda,
-      // Parameters for both:
-      const Numeric& local_p,
-      const Numeric& local_t,
-      const Vector& local_vmrs,
-      const Verbosity& verbosity);
-
   friend void abs_lookupTestAccuracy(  // Workspace reference:
       Workspace& ws,
       // WS Input:

@@ -300,18 +300,23 @@ Chapter \ref{T-sec:abs_theory}). \\
 \arabic{rownum}a &
 Calculate absorption on-the-fly. &
 Agenda: \wsaindex{propmat\_clearsky\_agenda}. \newline
-Variable: \wsvindex{propmat\_clearsky}, which is nitialized in \wsmindex{propmat\_clearskyInit}.\newline
-Methods: \wsmindex{propmat\_clearskyAddXsecAgenda} (the core method for on-the-fly
-absoprtion calculation inlcuding line-by-line and continuum absorption), \newline
+Variable: \wsvindex{propmat\_clearsky}, which is initialized in \wsmindex{propmat\_clearskyInit}.\newline
+Methods: 
+\wsmindex{propmat\_clearskyAddCIA} computes collision-induced absorption,\newline
+\wsmindex{propmat\_clearskyAddConts} computes legacy continua or full absorption models,\newline
+\wsmindex{propmat\_clearskyAddLines} compute line-by-line absorption,\newline 
 \wsmindex{propmat\_clearskyAddZeeman} (see Sec.~\ref{sec:absorption:zeeman}), \newline
 \wsmindex{propmat\_clearskyAddFaraday} (see Sec.~\ref{sec:absorption:faraday}), \newline
 \wsmindex{propmat\_clearskyAddParticles} (see Sec.~\ref{sec:absorption:particles}). \newline
 Alternative:
-\wsmindex{propmat\_clearskyAddFromLookup} instead of \wsmindex{propmat\_clearskyAddXsecAgenda}
+\wsmindex{propmat\_clearskyAddFromLookup}
 (extract absorption from pre-calculated lookup table, see
 Sec.~\ref{sec:absorption:lookup}). Note that the lookup
 table cannot contain absorption for Zeeman tagged species, Faraday rotation, and
-particles due to their directional dependencies.\\
+particles due to their directional dependencies.\newline
+Recommendation:
+\wsmindex{propmat\_clearsky\_agendaSetAutomatic} can be used to setup lookup table free calculations, and\newline
+\wsmindex{propmat\_clearsky\_agendaSetAutomaticForLookup} can be used to setup calculations using the lookup table\\
 %---------------------------------------------------------------------
 \arabic{rownum}b &
 Calculate absorption lookup table. &

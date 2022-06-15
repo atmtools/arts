@@ -11,9 +11,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # --------------------< A specific method >--------------------
 #                      -------------------
 # Read the spectroscopic line data from the ARTS catalogue and
@@ -82,7 +79,6 @@ IndexSet(stokes_dim, 1)
 
 propmat_clearsky_agendaSetAutomatic
 
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
 jacobianOff

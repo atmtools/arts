@@ -16,10 +16,7 @@ Arts2 {
 		
 	#==========================================================================
 			####  Set Agendas ####
-	#==========================================================================
-	
-	# Agenda for scalar gas absorption calculation
-    Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)                    
+	#==========================================================================                  
                     
     # cosmic background radiation
     Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
@@ -33,10 +30,7 @@ Arts2 {
     Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
         
     # no refraction
-    Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-        
-    # Set propmat_clearsky_agenda to use lookup table
-    Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable)	
+    Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )	
     
     # (standard) emission calculation
     Copy( iy_main_agenda, iy_main_agenda__Emission )
@@ -127,6 +121,9 @@ Arts2 {
     #read absorption lookup table
 	ReadXML(abs_lookup,"TestHeatingRates.abs_lookup.xml")
 	abs_lookupAdapt
+
+    abs_lines_per_speciesSetEmpty
+    propmat_clearsky_agendaSetAutomaticForLookup
 	
 	#==========================================================================
 			#### RT calculations ####
@@ -154,7 +151,6 @@ Arts2 {
     atmgeom_checkedCalc
     atmfields_checkedCalc
     cloudbox_checkedCalc
-    propmat_clearsky_agenda_checkedCalc
 	
 	#calculate intesity field
 	Tensor3Create(trans_field)

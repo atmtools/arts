@@ -13,8 +13,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
@@ -25,15 +23,10 @@ AgendaSet( geo_pos_agenda ){
   geo_posEndOfPpath
 }
 
-
-
-
 #
 # Create an empty (having zero absorption) 3D atmosphere
 #
 
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
 abs_speciesSet( species=
@@ -41,6 +34,8 @@ abs_speciesSet( species=
              "N2" ] )
 
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaSetAutomatic
 
 VectorSet( p_grid, [1013e2,1] )
 VectorSet( lat_grid, [-90,90] )
@@ -111,8 +106,6 @@ cloudboxOff
 
 # Perform remaining checks 
 # 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc

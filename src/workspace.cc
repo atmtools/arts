@@ -511,18 +511,6 @@ void Workspace::define_wsv_data() {
       GROUP("ArrayOfArrayOfSpeciesTag")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("abs_species_active"),
-      DESCRIPTION(
-          "Indices of active absorption species.\n"
-          "\n"
-          "This variable selects, which absorption species are active in\n"
-          "*abs_xsec_agenda*.\n"
-          "\n"
-          "Dimension: A vector with one element for every active species, at max\n"
-          "           same number of elements as abs_species.\n"),
-      GROUP("ArrayOfIndex")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("abs_t"),
       DESCRIPTION(
           "List of temperatures to be used for the calculation of absorption\n"
@@ -599,34 +587,6 @@ void Workspace::define_wsv_data() {
                   "\n"
                   "Dimensions: [tag_groups.nelem(), abs_p.nelem()]\n"),
       GROUP("Matrix")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("abs_xsec_agenda_checked"),
-                DESCRIPTION("OK-flag for *abs_xsec_agenda*.\n"
-                            "\n"
-                            "Set by *abs_xsec_agenda_checkedCalc*.\n"),
-                GROUP("Index")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_xsec_agenda"),
-      DESCRIPTION(
-          "Agenda to calculate scalar gas absorption cross sections.\n"),
-      GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_xsec_per_species"),
-      DESCRIPTION(
-          "Absorption cross sections for the attenuation.\n"
-          "\n"
-          "This variable contains absorption cross section xsec individually for\n"
-          "each tag group. The Array contains one matrix for each tag group, the\n"
-          "matrix format is the same as that of abs_coef.\n"
-          "\n"
-          "Dimensions: [abs_species](f_grid, abs_p)\n"
-          "\n"
-          "Unit:       m^2 (alpha = xsec * n * VMR),\n"
-          "            where n is total density.\n"),
-      GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("agenda_array_index"),
@@ -1212,45 +1172,6 @@ void Workspace::define_wsv_data() {
           "Dimensions:\n"
           "    [x,x]\n"),
       GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("dabs_coef_dx"),
-      DESCRIPTION(
-          "The partial derivatives of the matrix of total scalar absorption\n"
-          "coefficients.\n"
-          "\n"
-          "Contains the derivative of the gas absorption summed over all\n"
-          "species as a function of *f_grid* and *abs_p*, i.e., for a single\n"
-          "atmospheric profile for some parameter.\n"
-          "\n"
-          "This variable is not used explicitly in a standard calculation, where\n"
-          "absorption comes from the lookup table *abs_lookup*. However, it is\n"
-          "useful for testing the methods that actually calculate line-by-line\n"
-          "absorption, which have this variable as output. These methods are\n"
-          "called internally by the method *abs_lookupCalc*, which generates\n"
-          "the lookup table.\n"
-          "\n"
-          "Dimensions: [n_quantities][f_grid, abs_p]\n"
-          "\n"
-          "Unit: 1/m/quantity\n"),
-      GROUP("ArrayOfMatrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("dabs_xsec_per_species_dx"),
-      DESCRIPTION(
-          "Derivative of *abs_xsec_per_species* with respect to retrieval\n"
-          "quantities.\n"
-          "\n"
-          "The variable gives the derivative of *abs_xsec_per_species* with\n"
-          "respect to some variables (but not all jacobian variables). Handled\n"
-          "are only variables that are involved in xsec and cannot be\n"
-          "calculated at transmission level\n"
-          "\n"
-          "Usage:      Output of *abs_xsec_agenda*.\n"
-          "\n"
-          "Dimensions: \n"
-          "     [*abs_species*][n_quantities][*f_grid*, *abs_p* ]\n"),
-      GROUP("ArrayOfArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("dobatch_calc_agenda"),
@@ -3578,26 +3499,6 @@ void Workspace::define_wsv_data() {
           "\n"
           "Size:   [ 2 ]\n"),
       GROUP("Vector")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("relmat_per_band"),
-                DESCRIPTION("Relaxation matrix per band per pressure level.\n"
-                            "\n"
-                            "Dimensions: [pressures][band][n_linex, nlines]\n"
-                            "Units: Hz/Pa in HWHM\n"),
-                GROUP("ArrayOfArrayOfMatrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("relmat_type_per_band"),
-      DESCRIPTION("Used to set the type of line mixing relaxation matrix\n"
-                  "that will be calculated.\n"
-                  "\n"
-                  "Supported types by index:\n"
-                  "   0: Hartmann-Tran type relaxation matrix.\n"
-                  "   1: Linear type relaxation matrix.\n"
-                  "\n"
-                  "Dimensions: [number of bands]\n"),
-      GROUP("ArrayOfIndex")));
 
   wsv_data.push_back(WsvRecord(
       NAME("retrieval_checked"),

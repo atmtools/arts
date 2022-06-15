@@ -790,7 +790,7 @@ void abs_linesWriteSpeciesSplitCatalog(const String& output_format,
   // Make all species into a species tag array
   Index throwaway;
   ArrayOfArrayOfSpeciesTag as;
-  abs_speciesSet(as, throwaway, throwaway, specs, verbosity);
+  abs_speciesSet(as, throwaway, specs, verbosity);
   
   // Split lines by species
   ArrayOfArrayOfAbsorptionLines alps;
@@ -1269,9 +1269,9 @@ void abs_lines_per_speciesSetCutoffForSpecies(
   const String& species_tag,
   const Verbosity& verbosity)
 {
-  Index t1, t2;
+  Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesSetCutoff(abs_lines_per_species[ispec], type, x, verbosity);
@@ -1335,9 +1335,9 @@ void abs_lines_per_speciesSetMirroringForSpecies(
   const String& species_tag,
   const Verbosity& verbosity)
 {
-  Index t1, t2;
+  Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesSetMirroring(abs_lines_per_species[ispec], type, verbosity);
@@ -1452,9 +1452,9 @@ void abs_lines_per_speciesSetPopulationForSpecies(
   const String& species_tag,
   const Verbosity& verbosity)
 {
-  Index t1, t2;
+  Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesSetPopulation(abs_lines_per_species[ispec], type, verbosity);
@@ -1518,9 +1518,9 @@ void abs_lines_per_speciesSetNormalizationForSpecies(
   const String& species_tag,
   const Verbosity& verbosity)
 {
-  Index t1, t2;
+  Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesSetNormalization(abs_lines_per_species[ispec], type, verbosity);
@@ -1585,9 +1585,9 @@ void abs_lines_per_speciesSetLineShapeTypeForSpecies(
   const String& species_tag,
   const Verbosity& verbosity)
 {
-  Index t1, t2;
+  Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesSetLineShapeType(abs_lines_per_species[ispec], type, verbosity);
@@ -1649,9 +1649,9 @@ void abs_lines_per_speciesSetLinemixingLimitForSpecies(
   const String& species_tag,
   const Verbosity& verbosity)
 {
-  Index t1, t2;
+  Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesSetLinemixingLimit(abs_lines_per_species[ispec], x, verbosity);
@@ -1713,9 +1713,9 @@ void abs_lines_per_speciesSetT0ForSpecies(
   const String& species_tag,
   const Verbosity& verbosity)
 {
-  Index t1, t2;
+  Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesSetT0(abs_lines_per_species[ispec], x, verbosity);
@@ -1845,9 +1845,9 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
   const String& species_tag,
   const Verbosity& verbosity)
 {
-  Index t1, t2;
+  Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesChangeBaseParameterForMatchingLines(abs_lines_per_species[ispec], QI, parameter_name, change, relative, verbosity);
@@ -1946,9 +1946,9 @@ void abs_lines_per_speciesSetBaseParameterForSpecies(
   const String& species_tag,
   const Verbosity& verbosity)
 {
-  Index t1, t2;
+  Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, t2, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesSetBaseParameterForMatchingLines(abs_lines_per_species[ispec], QI, parameter_name, change, verbosity);

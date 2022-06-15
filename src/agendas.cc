@@ -83,32 +83,6 @@ void define_agenda_data() {
             "rtp_nlte",
             "rtp_vmr")));
 
-  agenda_data.push_back(AgRecord(
-      NAME("abs_xsec_agenda"),
-      DESCRIPTION(
-          "Calculate scalar gas absorption cross sections.\n"
-          "\n"
-          "Basically, this agenda calculates cross-sections for all the tags defined\n"
-          "in abs_species. It is used both in the calculation of an absorption\n"
-          "lookup table, and in on-the-fly calculations. Typical effects to\n"
-          "include here are:\n"
-          "\n"
-          "Continua and complete absorption models (*abs_xsec_per_speciesAddConts*), and\n"
-          "\n"
-          "HITRAN style CIA continua (*abs_xsec_per_speciesAddCIA*)\n"
-          "\n"
-          "The include file 'agendas.arts' predefines a number of agendas that\n"
-          "should be useful for most users.\n"),
-      OUTPUT("abs_xsec_per_species",
-             "dabs_xsec_per_species_dx"),
-      INPUT("abs_species",
-            "jacobian_quantities",
-            "abs_species_active",
-            "f_grid",
-            "abs_p",
-            "abs_t",
-            "abs_vmrs")));
-
   agenda_data.push_back(
       AgRecord(NAME("dobatch_calc_agenda"),
                DESCRIPTION("Calculations to perform for each batch case.\n"

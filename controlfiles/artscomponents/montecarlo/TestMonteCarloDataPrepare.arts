@@ -10,9 +10,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 output_file_formatSetBinary
 
 VectorSet( f_grid, [ 230e9 ] )
@@ -54,7 +51,6 @@ MatrixSetConstant( z_surface, nrows, ncols, 500.0 )
 
 WriteXML( output_file_format, z_surface )
 
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
 atmfields_checkedCalc
