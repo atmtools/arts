@@ -27,6 +27,10 @@
 #include "transmissionmatrix.h"
 
 namespace ARTSGUI {
+Numeric no_inf(Numeric x) noexcept {
+  return std::isfinite(x) ? x : std::numeric_limits<Numeric>::quiet_NaN();
+}
+
 namespace PropmatClearsky {
 constexpr Numeric xscale(Numeric x, XScaling scale) noexcept {
   switch (scale) {
@@ -240,11 +244,11 @@ struct TraMatDataHolder {
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
 
-    return {x,
-
-            yscale(data_ptr->yscale_fun,
-                   data_ptr->inverse_y,
-                   range_mean<stokes, r, c>(data_ptr->tm, start, last))};
+    return {
+        x,
+        no_inf(yscale(data_ptr->yscale_fun,
+                      data_ptr->inverse_y,
+                      range_mean<stokes, r, c>(data_ptr->tm, start, last)))};
   }
 };
 
@@ -274,8 +278,8 @@ struct PropMatDataHolder {
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
-    const Numeric y =
-        data_ptr->yscale_const * range_mean(data_ptr->pm.Kjj(), start, last);
+    const Numeric y = no_inf(data_ptr->yscale_const *
+                             range_mean(data_ptr->pm.Kjj(), start, last));
     return {x, y};
   }
 
@@ -285,8 +289,8 @@ struct PropMatDataHolder {
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
-    const Numeric y =
-        data_ptr->yscale_const * range_mean(data_ptr->pm.K12(), start, last);
+    const Numeric y = no_inf(data_ptr->yscale_const *
+                             range_mean(data_ptr->pm.K12(), start, last));
     return {x, y};
   }
 
@@ -296,8 +300,8 @@ struct PropMatDataHolder {
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
-    const Numeric y =
-        data_ptr->yscale_const * range_mean(data_ptr->pm.K13(), start, last);
+    const Numeric y = no_inf(data_ptr->yscale_const *
+                             range_mean(data_ptr->pm.K13(), start, last));
     return {x, y};
   }
 
@@ -307,8 +311,8 @@ struct PropMatDataHolder {
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
-    const Numeric y =
-        data_ptr->yscale_const * range_mean(data_ptr->pm.K14(), start, last);
+    const Numeric y = no_inf(data_ptr->yscale_const *
+                             range_mean(data_ptr->pm.K14(), start, last));
     return {x, y};
   }
 
@@ -318,8 +322,8 @@ struct PropMatDataHolder {
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
-    const Numeric y =
-        data_ptr->yscale_const * range_mean(data_ptr->pm.K23(), start, last);
+    const Numeric y = no_inf(data_ptr->yscale_const *
+                             range_mean(data_ptr->pm.K23(), start, last));
     return {x, y};
   }
 
@@ -329,8 +333,8 @@ struct PropMatDataHolder {
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
-    const Numeric y =
-        data_ptr->yscale_const * range_mean(data_ptr->pm.K24(), start, last);
+    const Numeric y = no_inf(data_ptr->yscale_const *
+                             range_mean(data_ptr->pm.K24(), start, last));
     return {x, y};
   }
 
@@ -340,8 +344,8 @@ struct PropMatDataHolder {
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
-    const Numeric y =
-        data_ptr->yscale_const * range_mean(data_ptr->pm.K34(), start, last);
+    const Numeric y = no_inf(data_ptr->yscale_const *
+                             range_mean(data_ptr->pm.K34(), start, last));
     return {x, y};
   }
 };
@@ -965,14 +969,15 @@ void propmat(PropmatClearsky::ResultsArray& res,
   if (ctrl.error.load()) {
     res[curpos].auto_f_grid = false;
     res[curpos].auto_update = false;
-    switch(error(ctrl.errmsg)) {
+    switch (error(ctrl.errmsg)) {
       case ErrorStatus::Exit:
         ctrl.exit.store(true);
         [[fallthrough]];
       case ErrorStatus::Continue:
         ctrl.error.store(false);
         [[fallthrough]];
-      case ErrorStatus::OnHold: {}
+      case ErrorStatus::OnHold: {
+      }
     }
   }
 

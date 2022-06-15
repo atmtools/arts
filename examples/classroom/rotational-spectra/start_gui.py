@@ -5,15 +5,25 @@ import numpy as np
 fmin = 0
 fmax = 3e12
 
+# initialize ARTS
 ws = pyarts.workspace.Workspace()
 
-# Species setup and catalog reading
+# We are setting up our absorption species to include hydrogen chloride,
+# chlorine monoxide, carbon monoxide, nitrous oxide, and ozone
+# To speed up calculations some, we limit ourself to absorption lines with less
+# than 3 THz as their central frequency
+# NOTE: Limiting the frequency range of absorption lines like this artificially
+# removes absorption from the wings of stronger absorption lines that lie
+# outside of the given freqeuncy range.  This migth affect the accuracy of the
+# total absorption that is computed
 ws.abs_speciesSet(
     species=[f"HCl-*-{fmin}-{fmax}",
              f"ClO-*-{fmin}-{fmax}",
              f"CO-*-{fmin}-{fmax}",
              f"N2O-*-{fmin}-{fmax}",
              f"O3-*-{fmin}-{fmax}"])
+
+# Read the absorption lines.  These should be part of the arts-cata-data package
 ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
 
 # Use an automatic agenda
