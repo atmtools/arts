@@ -43,7 +43,6 @@ for spec in specs:
     ws.abs_speciesSet(species=[spec])
     
     ws.propmat_clearsky_agenda_checked = 1
-    ws.abs_xsec_agenda_checked = 1
     
     ws.propmat_clearskyInit()
     ws.propmat_clearskyAddPredefined()
