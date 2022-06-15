@@ -254,13 +254,6 @@ check_type_size("double" SIZEOF_DOUBLE)
 ########### Check functions ##########
 check_function_exists(unlink HAVE_REMOVE)
 
-######## Enable timer support, if we have all necessary header files #######
-if (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
-    AND HAVE_SYS_TIMES_H)
-  set (TIME_SUPPORT 1)
-endif (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
-  AND HAVE_SYS_TIMES_H)
-
 ########### Zlib support ##########
 include (FindZLIB)
 set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
@@ -291,9 +284,9 @@ endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
 
 ########### Docserver support ##########
 
-if (NOT NO_DOCSERVER)
+if (NOT NO_DOCSERVER AND HAVE_UNISTD_H)
   set (ENABLE_DOCSERVER true)
-endif (NOT NO_DOCSERVER)
+endif ()
 
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########
 if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")

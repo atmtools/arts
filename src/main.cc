@@ -30,14 +30,13 @@
 
 #include "arts.h"
 
-#ifdef TIME_SUPPORT
-#include <sys/stat.h>
-#include <sys/times.h>
-#include <sys/types.h>
+#ifdef ENABLE_DOCSERVER
 #include <unistd.h>
-#include <ctime>
 #endif
+
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
 #include <map>
 
 #include "absorption.h"
@@ -577,22 +576,33 @@ void option_describe(const String& describe) {
   arts_exit();
 }
 
+template <typename TimePoint>
+std::time_t to_time_t(TimePoint time_point) {
+  auto tp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+      time_point - TimePoint::clock::now() + std::chrono::system_clock::now());
+  return std::chrono::system_clock::to_time_t(tp);
+}
+
 /** This function returns the modification time of the arts executable
     as a string.
 
-    \author Oliver Lemke */
-#ifdef TIME_SUPPORT
-String arts_mod_time(String filename) {
-  struct stat buf;
-  if (stat(filename.c_str(), &buf) != -1) {
-    String ts = ctime(&buf.st_mtime);
-    return String(" (compiled ") + ts.substr(0, ts.length() - 1) + ")";
-  } else
-    return String("");
+    \author Oliver Lemke
+ */
+String arts_mod_time(std::string_view filename) {
+  auto modtime = to_time_t(std::filesystem::last_write_time(filename));
+  ostringstream os;
+  os << " (compiled " << std::put_time(std::localtime(&modtime), "%F %T")
+     << ")\n";
+  return os.str();
 }
-#else
-String arts_mod_time(String) { return String(""); }
-#endif
+
+double get_arts_runtime_in_sec(
+    std::chrono::high_resolution_clock::time_point arts_realtime_start) {
+  const auto arts_realtime_end = std::chrono::high_resolution_clock::now();
+  return std::chrono::duration<double, std::ratio<1>>(arts_realtime_end -
+                                                      arts_realtime_start)
+      .count();
+}
 
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
@@ -613,11 +623,7 @@ int main(int argc, char** argv) {
                                        // all command line parameters.
 
   //---------------< -1. Time the arts run if possible >---------------
-#ifdef TIME_SUPPORT
-  struct tms arts_cputime_start;
-  clock_t arts_realtime_start;
-  arts_realtime_start = times(&arts_cputime_start);
-#endif
+  const auto arts_realtime_start = std::chrono::high_resolution_clock::now();
 
   //---------------< 1. Get command line parameters >---------------
   if (get_parameters(argc, argv)) {
@@ -1034,49 +1040,14 @@ int main(int argc, char** argv) {
       }
     }
   } catch (const std::runtime_error& x) {
-#ifdef TIME_SUPPORT
-    struct tms arts_cputime_end;
-    clock_t arts_realtime_end;
-    long clktck = 0;
-
-    clktck = sysconf(_SC_CLK_TCK);
-    arts_realtime_end = times(&arts_cputime_end);
-    if (clktck > 0 && arts_realtime_start != (clock_t)-1 &&
-        arts_realtime_end != (clock_t)-1) {
-      out1 << "This run took " << fixed << setprecision(2)
-           << (Numeric)(arts_realtime_end - arts_realtime_start) /
-                  (Numeric)clktck
-           << "s (" << fixed << setprecision(2)
-           << (Numeric)(
-                  (arts_cputime_end.tms_stime - arts_cputime_start.tms_stime) +
-                  (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime)) /
-                  (Numeric)clktck
-           << "s CPU time)\n";
-    }
-#endif
+    out1 << "This run took " << fixed << setprecision(2)
+         << get_arts_runtime_in_sec(arts_realtime_start) << "s\n";
 
     arts_exit_with_error_message(x.what(), out0);
   }
 
-#ifdef TIME_SUPPORT
-  struct tms arts_cputime_end;
-  clock_t arts_realtime_end;
-  long clktck = 0;
-
-  clktck = sysconf(_SC_CLK_TCK);
-  arts_realtime_end = times(&arts_cputime_end);
-  if (clktck > 0 && arts_realtime_start != (clock_t)-1 &&
-      arts_realtime_end != (clock_t)-1) {
-    out1 << "This run took " << fixed << setprecision(2)
-         << (Numeric)(arts_realtime_end - arts_realtime_start) / (Numeric)clktck
-         << "s (" << fixed << setprecision(2)
-         << (Numeric)(
-                (arts_cputime_end.tms_stime - arts_cputime_start.tms_stime) +
-                (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime)) /
-                (Numeric)clktck
-         << "s CPU time)\n";
-  }
-#endif
+  out1 << "This run took " << fixed << setprecision(2)
+       << get_arts_runtime_in_sec(arts_realtime_start) << "s\n";
 
   out1 << "Everything seems fine. Goodbye.\n";
   arts_exit(EXIT_SUCCESS);
