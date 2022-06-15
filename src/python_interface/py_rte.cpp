@@ -32,14 +32,18 @@ void py_rte(py::module_& m) {
                                   ? t.T2.data()->data()
                                   : (t.stokes_dim == 3 ? t.T3.data()->data()
                                                        : t.T4.data()->data()));
-        return py::buffer_info(ptr,
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               3,
-                               {t.Frequencies(), t.stokes_dim, t.stokes_dim},
-                               {sizeof(Numeric) * t.stokes_dim * t.stokes_dim,
-                                sizeof(Numeric) * t.stokes_dim,
-                                sizeof(Numeric)});
+        return py::buffer_info(
+            ptr,
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            3,
+            {static_cast<ssize_t>(t.Frequencies()),
+             static_cast<ssize_t>(t.stokes_dim),
+             static_cast<ssize_t>(t.stokes_dim)},
+            {sizeof(Numeric) *
+                 static_cast<ssize_t>(t.stokes_dim * t.stokes_dim),
+             sizeof(Numeric) * static_cast<ssize_t>(t.stokes_dim),
+             sizeof(Numeric)});
       })
       .def_property("value",
                     py::cpp_function(
@@ -49,7 +53,8 @@ void py_rte(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](TransmissionMatrix& x, TransmissionMatrix& y) { x = y; })
-      .PythonInterfaceValueOperators.def(py::pickle(
+      .PythonInterfaceValueOperators
+      .def(py::pickle(
           [](const TransmissionMatrix& self) {
             return py::make_tuple(
                 self.stokes_dim, self.T1, self.T2, self.T3, self.T4);
@@ -94,7 +99,8 @@ void py_rte(py::module_& m) {
             py::format_descriptor<Numeric>::format(),
             2,
             {t.Frequencies(), t.stokes_dim},
-            {sizeof(Numeric) * t.stokes_dim, sizeof(Numeric)});
+            {sizeof(Numeric) * static_cast<ssize_t>(t.stokes_dim),
+             sizeof(Numeric)});
       })
       .def_property("value",
                     py::cpp_function(
@@ -104,7 +110,8 @@ void py_rte(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](RadiationVector& x, RadiationVector& y) { x = y; })
-      .PythonInterfaceValueOperators.def(py::pickle(
+      .PythonInterfaceValueOperators
+      .def(py::pickle(
           [](const RadiationVector& self) {
             return py::make_tuple(
                 self.stokes_dim, self.R1, self.R2, self.R3, self.R4);

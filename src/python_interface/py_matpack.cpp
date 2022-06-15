@@ -134,12 +134,14 @@ via x.value)--");
           [](const Matrix& x) { return Matrix(transpose(x)); },
           "Non-trivial transpose")
       .def_buffer([](Matrix& x) -> py::buffer_info {
-        return py::buffer_info(x.get_c_array(),
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               2,
-                               {x.nrows(), x.ncols()},
-                               {sizeof(Numeric) * x.ncols(), sizeof(Numeric)});
+        return py::buffer_info(
+            x.get_c_array(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            2,
+            {static_cast<ssize_t>(x.nrows()), static_cast<ssize_t>(x.ncols())},
+            {sizeof(Numeric) * static_cast<ssize_t>(x.ncols()),
+             sizeof(Numeric)});
       })
       .def_property("value",
                     py::cpp_function(
@@ -189,14 +191,17 @@ via x.value)--");
       .PythonInterfaceFileIO(Tensor3)
       .PythonInterfaceValueOperators
       .def_buffer([](Tensor3& x) -> py::buffer_info {
-        return py::buffer_info(x.get_c_array(),
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               3,
-                               {x.npages(), x.nrows(), x.ncols()},
-                               {sizeof(Numeric) * x.nrows() * x.ncols(),
-                                sizeof(Numeric) * x.ncols(),
-                                sizeof(Numeric)});
+        return py::buffer_info(
+            x.get_c_array(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            3,
+            {static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols())},
+            {sizeof(Numeric) * static_cast<ssize_t>(x.nrows() * x.ncols()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.ncols()),
+             sizeof(Numeric)});
       })
       .def_property("value",
                     py::cpp_function(
@@ -255,10 +260,14 @@ via x.value)--");
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             4,
-            {x.nbooks(), x.npages(), x.nrows(), x.ncols()},
-            {sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.ncols(),
+            {static_cast<ssize_t>(x.nbooks()),
+             static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols())},
+            {sizeof(Numeric) *
+                 static_cast<ssize_t>(x.npages() * x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.ncols()),
              sizeof(Numeric)});
       })
       .def_property("value",
@@ -321,11 +330,17 @@ via x.value)--");
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             5,
-            {x.nshelves(), x.nbooks(), x.npages(), x.nrows(), x.ncols()},
-            {sizeof(Numeric) * x.nbooks() * x.npages() * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.ncols(),
+            {static_cast<ssize_t>(x.nshelves()),
+             static_cast<ssize_t>(x.nbooks()),
+             static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols())},
+            {sizeof(Numeric) * static_cast<ssize_t>(x.nbooks() * x.npages() *
+                                                    x.ncols() * x.nrows()),
+             sizeof(Numeric) *
+                 static_cast<ssize_t>(x.npages() * x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.ncols()),
              sizeof(Numeric)});
       })
       .def_property("value",
@@ -392,18 +407,21 @@ via x.value)--");
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             6,
-            {x.nvitrines(),
-             x.nshelves(),
-             x.nbooks(),
-             x.npages(),
-             x.nrows(),
-             x.ncols()},
-            {sizeof(Numeric) * x.nshelves() * x.nbooks() * x.npages() *
-                 x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.nbooks() * x.npages() * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.ncols(),
+            {static_cast<ssize_t>(x.nvitrines()),
+             static_cast<ssize_t>(x.nshelves()),
+             static_cast<ssize_t>(x.nbooks()),
+             static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols())},
+            {sizeof(Numeric) *
+                 static_cast<ssize_t>(x.nshelves() * x.nbooks() * x.npages() *
+                                      x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.nbooks() * x.npages() *
+                                                    x.ncols() * x.nrows()),
+             sizeof(Numeric) *
+                 static_cast<ssize_t>(x.npages() * x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.ncols()),
              sizeof(Numeric)});
       })
       .def_property("value",
@@ -475,21 +493,25 @@ via x.value)--");
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             7,
-            {x.nlibraries(),
-             x.nvitrines(),
-             x.nshelves(),
-             x.nbooks(),
-             x.npages(),
-             x.nrows(),
-             x.ncols()},
-            {sizeof(Numeric) * x.nvitrines() * x.nshelves() * x.nbooks() *
-                 x.npages() * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.nshelves() * x.nbooks() * x.npages() *
-                 x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.nbooks() * x.npages() * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.npages() * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.ncols() * x.nrows(),
-             sizeof(Numeric) * x.ncols(),
+            {static_cast<ssize_t>(x.nlibraries()),
+             static_cast<ssize_t>(x.nvitrines()),
+             static_cast<ssize_t>(x.nshelves()),
+             static_cast<ssize_t>(x.nbooks()),
+             static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols())},
+            {sizeof(Numeric) * static_cast<ssize_t>(
+                                   x.nvitrines() * x.nshelves() * x.nbooks() *
+                                   x.npages() * x.ncols() * x.nrows()),
+             sizeof(Numeric) *
+                 static_cast<ssize_t>(x.nshelves() * x.nbooks() * x.npages() *
+                                      x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.nbooks() * x.npages() *
+                                                    x.ncols() * x.nrows()),
+             sizeof(Numeric) *
+                 static_cast<ssize_t>(x.npages() * x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.ncols() * x.nrows()),
+             sizeof(Numeric) * static_cast<ssize_t>(x.ncols()),
              sizeof(Numeric)});
       })
       .def_property("value",
