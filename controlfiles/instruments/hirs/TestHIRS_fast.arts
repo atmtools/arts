@@ -13,9 +13,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
-
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
@@ -201,7 +198,6 @@ abs_lookupSetupBatch
 
 
 # Create the lookup table
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 propmat_clearsky_agendaSetAutomatic
 abs_lookupCalc
@@ -218,8 +214,7 @@ abs_lookupCalc
 
 # Set propmat_clearsky_agenda to use lookup table
 # ---
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-
+propmat_clearsky_agendaSetAutomaticForLookup
 
 # Set up RT calculation
 # =====================
@@ -295,7 +290,6 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 
 # Execute the batch calculations:
 # ---
-propmat_clearsky_agenda_checkedCalc
 ybatchCalc
 
 

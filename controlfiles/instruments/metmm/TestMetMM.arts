@@ -78,7 +78,6 @@ INCLUDE "general/planet_earth.arts"
     abs_lines_per_speciesSetCutoffForSpecies(option="ByLine", value=5e9, species_tag="O3")
 #    WriteXML( "zascii", abs_lines, "instruments/metmm/abs_lines_metmm.xml.gz" )
 
-
 # ====================================================================
 
 # Set surface reflectivity
@@ -95,7 +94,6 @@ INCLUDE "general/planet_earth.arts"
 
 # Absorption lookup table
     abs_lookupSetupBatch
-    abs_xsec_agenda_checkedCalc
     lbl_checkedCalc
     propmat_clearsky_agendaSetAutomatic
     abs_lookupCalc

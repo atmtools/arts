@@ -17,12 +17,6 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption, with Zeeman
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc  )
-
 # sensor-only path
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
@@ -55,6 +49,7 @@ ReadARTSCAT(filename="line_118ghz.xml", localquantumnumbers="J")
 abs_lines_per_speciesCreateFromLines
 Wigner6Init(wigner_initialized, 40000, 100)
 
+propmat_clearsky_agendaSetAutomatic
 
 # Atmosphere
 #
@@ -114,8 +109,6 @@ sensorOff
 
 # Checks
 #
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

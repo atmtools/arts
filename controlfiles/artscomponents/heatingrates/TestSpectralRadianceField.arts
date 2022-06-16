@@ -12,12 +12,6 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 
@@ -45,6 +39,7 @@ abs_speciesSet( species= [ "N2-SelfContStandardType",
 # 
 abs_lines_per_speciesSetEmpty
 
+propmat_clearsky_agendaSetAutomatic
 
 # Atmosphere
 #
@@ -87,8 +82,6 @@ AngularGridsSetFluxCalc( N_za_grid = 20 )
 
 # Perform checks
 #
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 lbl_checkedCalc

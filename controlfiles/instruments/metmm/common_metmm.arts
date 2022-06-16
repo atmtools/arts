@@ -8,9 +8,6 @@ Arts2{
     # modify the maximum propagation step, from the default to 250 m :
     NumericSet( ppath_lmax, 250 )
 
-    # Agenda for scalar gas absorption calculation
-    Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
     # Surface
     Copy( surface_rtprop_agenda,
     surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
@@ -29,8 +26,4 @@ Arts2{
 
     # no refraction
     Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-
-    # Set propmat_clearsky_agenda to use lookup table
-    Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-
 }
