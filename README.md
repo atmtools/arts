@@ -39,6 +39,9 @@ Build Prerequisites:
     scipy
     setuptools
     xarray
+- GUI (optional)
+    glfw
+    glew
 
 To build the documentation you also need:
 

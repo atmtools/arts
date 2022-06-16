@@ -1,5 +1,6 @@
 #include <atomic>
 #include <chrono>
+#include <cstdlib>
 #include <functional>
 #include <future>
 #include <iterator>
@@ -59,13 +60,14 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
          Numeric& transmission_distance) {
   for (auto& v : ret) v.ok.store(false);
   ARTSGUI::PropmatClearsky::ComputeValues v;
-  bool error = false;
 
-  while (not error) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  while (true) {
+    std::this_thread::sleep_for(10ms);
 
     try {
       if (ctrl.exit.load()) return true;
+
+      if (ctrl.error.load()) continue;
 
       if (ctrl.run.load()) {
         std::lock_guard allow_copy{ctrl.copy};
@@ -110,9 +112,9 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
 
       ctrl.run.store(false);
     } catch (std::runtime_error& e) {
-      ctrl.error = e.what();
-      ctrl.exit.store(true);
-      error = true;
+      ctrl.errmsg = e.what();
+      ctrl.error.store(true);
+      ctrl.run.store(false);
     }
   }
 
@@ -121,11 +123,11 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
 }  // namespace PropmatClearskyAgendaGUI
 #endif  // ARTS_GUI_ENABLED
 
-void propmat_clearsky_agendaGUI(Workspace& ws,
-                                const Agenda& propmat_clearsky_agenda,
-                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                const Index& load,
-                                const Verbosity&) {
+void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
+                                const Agenda& propmat_clearsky_agenda [[maybe_unused]],
+                                const ArrayOfArrayOfSpeciesTag& abs_species [[maybe_unused]],
+                                const Index& load [[maybe_unused]],
+                                const Verbosity& verbosity [[maybe_unused]]) {
 #ifdef ARTS_GUI_ENABLED
   ARTSGUI::PropmatClearsky::ResultsArray res;
   ARTSGUI::PropmatClearsky::Control ctrl;
@@ -170,19 +172,30 @@ void propmat_clearsky_agendaGUI(Workspace& ws,
                             std::ref(rtp_vmr),
                             std::ref(transmission_distance));
 
-  ARTSGUI::propmat(res,
-                   ctrl,
-                   jacobian_quantities,
-                   select_abs_species,
-                   f_grid,
-                   rtp_mag,
-                   rtp_los,
-                   rtp_pressure,
-                   rtp_temperature,
-                   rtp_nlte,
-                   rtp_vmr,
-                   transmission_distance,
-                   ArrayOfArrayOfSpeciesTag{abs_species});
+  if (std::getenv("ARTS_HEADLESS")) {
+    CREATE_OUT1;
+    out1 << "Omitting GUI because ARTS_HEADLESS is set.\n";
+
+    ctrl.run.store(true);
+    while (not(res[0].ok.load() or ctrl.exit.load())) {
+      std::this_thread::sleep_for(10ms);
+    }
+    ctrl.exit.store(true);
+  } else {
+    ARTSGUI::propmat(res,
+                     ctrl,
+                     jacobian_quantities,
+                     select_abs_species,
+                     f_grid,
+                     rtp_mag,
+                     rtp_los,
+                     rtp_pressure,
+                     rtp_temperature,
+                     rtp_nlte,
+                     rtp_vmr,
+                     transmission_distance,
+                     ArrayOfArrayOfSpeciesTag{abs_species});
+  }
 
   bool invalid_state = not success.get();
   ARTS_USER_ERROR_IF(invalid_state, '\n', ctrl.error)

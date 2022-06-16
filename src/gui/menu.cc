@@ -488,14 +488,14 @@ std::string absunit(const Jacobian::Target& target) {
 }
 
 void select_option(Index& ind, const ArrayOfRetrievalQuantity& jac) {
-  if (ImGui::Selectable("\tAbsorption [1/m]\t",
+  if (ImGui::Selectable("\tMain Calculations\t",
                         ind == -1,
                         ImGuiSelectableFlags_DontClosePopups)) {
     ind = -1;
   }
 
   for (Index i = 0; i < jac.nelem(); i++) {
-    const std::string opt{var_string('\t', absunit(jac[i].Target()), '\t')};
+    const std::string opt{var_string('\t', "Derivative: ", change_item_name(jac[i].Target()), '\t')};
     if (ImGui::Selectable(
             opt.c_str(), ind == i, ImGuiSelectableFlags_DontClosePopups)) {
       ind = i;

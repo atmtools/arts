@@ -185,6 +185,23 @@ or
   arts --help
 \end{code}
 
+\subsection{Environment variables}
+
+Environment variables can be used to control the behaviour of ARTS:
+
+\begin{itemize}
+\item \verb|ARTS_DATA_PATH|
+List of search paths for data files. The \verb|-D| commandline option
+takes precedence over this variable.
+\item \verb|ARTS_INCLUDE_PATH|
+List of search paths for include files. The paths will also be
+searched for data files. The \verb|-I| commandline option takes
+precedence over this variable.
+\item \verb|ARTS_HEADLESS|
+If set, ARTS will not display any graphical interface elements. Mostly
+useful for testing.
+\end{itemize}
+
 \section{ARTS as a scripting language}
 
 One of the main goals in the ARTS development was to make the program

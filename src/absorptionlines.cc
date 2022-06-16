@@ -30,6 +30,7 @@
  **/
 
 #include "absorptionlines.h"
+
 #include <ostream>
 #include <string>
 
@@ -1908,9 +1909,6 @@ Numeric Absorption::Lines::SpeciesMass() const noexcept {
 Vector Absorption::Lines::BroadeningSpeciesVMR(
     const ConstVectorView& atm_vmrs,
     const ArrayOfArrayOfSpeciesTag& atm_spec) const {
-  if (lineshapetype == LineShape::Type::DP)
-    return Vector(broadeningspecies.nelem(),
-                  std::numeric_limits<Numeric>::quiet_NaN());
   return LineShape::vmrs(atm_vmrs, atm_spec, broadeningspecies);
 }
 
@@ -1919,9 +1917,6 @@ Vector Absorption::Lines::BroadeningSpeciesMass(
     const ArrayOfArrayOfSpeciesTag& atm_spec,
     const SpeciesIsotopologueRatios& ir,
     const Numeric& bath_mass) const {
-  if (lineshapetype == LineShape::Type::DP)
-    return Vector(broadeningspecies.nelem(),
-                  std::numeric_limits<Numeric>::quiet_NaN());
   Vector mass = LineShape::mass(atm_vmrs, atm_spec, broadeningspecies, ir);
   if (bathbroadening and bath_mass > 0) mass[mass.nelem() - 1] = bath_mass;
   return mass;
@@ -2644,9 +2639,7 @@ constexpr std::size_t req_spaces(T my_enum) {
   return n - toString(my_enum).length();
 }
 
-auto spaces(std::size_t n) {
-  return std::basic_string(n, ' ');
-}
+auto spaces(std::size_t n) { return std::basic_string(n, ' '); }
 }  // namespace
 
 std::ostream& operator<<(std::ostream& os, AbsorptionCutoffTagTypeStatus val) {
@@ -2657,10 +2650,12 @@ std::ostream& operator<<(std::ostream& os, AbsorptionCutoffTagTypeStatus val) {
       os << "Cutoff tag types:\n";
       [[fallthrough]];
     case AbsorptionCutoffType::ByLine:
-      os << "    ByLine:" << spaces(req_spaces(AbsorptionCutoffType::ByLine)) << val.ByLine << '\n';
+      os << "    ByLine:" << spaces(req_spaces(AbsorptionCutoffType::ByLine))
+         << val.ByLine << '\n';
       [[fallthrough]];
     case AbsorptionCutoffType::None:
-      os << "    None:" << spaces(req_spaces(AbsorptionCutoffType::None)) << val.None;
+      os << "    None:" << spaces(req_spaces(AbsorptionCutoffType::None))
+         << val.None;
   }
   return os;
 }
@@ -2674,16 +2669,22 @@ std::ostream& operator<<(std::ostream& os,
       os << "Mirroring tag types:\n";
       [[fallthrough]];
     case Absorption::MirroringType::None:
-      os << "    None:" << spaces(req_spaces(Absorption::MirroringType::None)) << val.None << '\n';
+      os << "    None:" << spaces(req_spaces(Absorption::MirroringType::None))
+         << val.None << '\n';
       [[fallthrough]];
     case Absorption::MirroringType::Lorentz:
-      os << "    Lorentz:" << spaces(req_spaces(Absorption::MirroringType::Lorentz)) << val.Lorentz << '\n';
+      os << "    Lorentz:"
+         << spaces(req_spaces(Absorption::MirroringType::Lorentz))
+         << val.Lorentz << '\n';
       [[fallthrough]];
     case Absorption::MirroringType::SameAsLineShape:
-      os << "    SameAsLineShape:" << spaces(req_spaces(Absorption::MirroringType::SameAsLineShape)) << val.SameAsLineShape << '\n';
+      os << "    SameAsLineShape:"
+         << spaces(req_spaces(Absorption::MirroringType::SameAsLineShape))
+         << val.SameAsLineShape << '\n';
       [[fallthrough]];
     case Absorption::MirroringType::Manual:
-      os << "    Manual:" << spaces(req_spaces(Absorption::MirroringType::Manual)) << val.Manual;
+      os << "    Manual:"
+         << spaces(req_spaces(Absorption::MirroringType::Manual)) << val.Manual;
   }
   return os;
 }
@@ -2697,82 +2698,122 @@ std::ostream& operator<<(std::ostream& os,
       os << "Normalization tag types:\n";
       [[fallthrough]];
     case Absorption::NormalizationType::None:
-      os << "    None:" << spaces(req_spaces(Absorption::NormalizationType::None)) << val.None << '\n';
+      os << "    None:"
+         << spaces(req_spaces(Absorption::NormalizationType::None)) << val.None
+         << '\n';
       [[fallthrough]];
     case Absorption::NormalizationType::VVH:
-      os << "    VVH:" << spaces(req_spaces(Absorption::NormalizationType::VVH)) << val.VVH << '\n';
+      os << "    VVH:" << spaces(req_spaces(Absorption::NormalizationType::VVH))
+         << val.VVH << '\n';
       [[fallthrough]];
     case Absorption::NormalizationType::VVW:
-      os << "    VVW:" << spaces(req_spaces(Absorption::NormalizationType::VVW)) << val.VVW << '\n';
+      os << "    VVW:" << spaces(req_spaces(Absorption::NormalizationType::VVW))
+         << val.VVW << '\n';
       [[fallthrough]];
     case Absorption::NormalizationType::RQ:
-      os << "    RQ:" << spaces(req_spaces(Absorption::NormalizationType::RQ)) << val.RQ << '\n';
+      os << "    RQ:" << spaces(req_spaces(Absorption::NormalizationType::RQ))
+         << val.RQ << '\n';
       [[fallthrough]];
     case Absorption::NormalizationType::SFS:
-      os << "    SFS:" << spaces(req_spaces(Absorption::NormalizationType::SFS)) << val.SFS;
+      os << "    SFS:" << spaces(req_spaces(Absorption::NormalizationType::SFS))
+         << val.SFS;
   }
   return os;
 }
 
-  std::ostream& operator<<(std::ostream& os, AbsorptionPopulationTagTypeStatus val) {
+std::ostream& operator<<(std::ostream& os,
+                         AbsorptionPopulationTagTypeStatus val) {
   // Trick to never forget to update
   Absorption::PopulationType x{Absorption::PopulationType::FINAL};
-    switch(x) {
-      case Absorption::PopulationType::FINAL:
-      os <<"Population tag type:\n";
+  switch (x) {
+    case Absorption::PopulationType::FINAL:
+      os << "Population tag type:\n";
       [[fallthrough]];
-      case Absorption::PopulationType::LTE:
-      os <<"    LTE:" << spaces(req_spaces(Absorption::PopulationType::LTE)) << val.LTE << '\n';
+    case Absorption::PopulationType::LTE:
+      os << "    LTE:" << spaces(req_spaces(Absorption::PopulationType::LTE))
+         << val.LTE << '\n';
       [[fallthrough]];
-      case Absorption::PopulationType::NLTE:
-      os <<"    NLTE:" << spaces(req_spaces(Absorption::PopulationType::NLTE)) << val.NLTE << '\n';
+    case Absorption::PopulationType::NLTE:
+      os << "    NLTE:" << spaces(req_spaces(Absorption::PopulationType::NLTE))
+         << val.NLTE << '\n';
       [[fallthrough]];
-      case Absorption::PopulationType::VibTemps:
-      os <<"    VibTemps:" << spaces(req_spaces(Absorption::PopulationType::VibTemps)) << val.VibTemps << '\n';
+    case Absorption::PopulationType::VibTemps:
+      os << "    VibTemps:"
+         << spaces(req_spaces(Absorption::PopulationType::VibTemps))
+         << val.VibTemps << '\n';
       [[fallthrough]];
-      case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
-      os <<"    ByHITRANRosenkranzRelmat:" << spaces(req_spaces(Absorption::PopulationType::ByHITRANRosenkranzRelmat)) << val.ByHITRANRosenkranzRelmat << '\n';
+    case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
+      os << "    ByHITRANRosenkranzRelmat:"
+         << spaces(req_spaces(
+                Absorption::PopulationType::ByHITRANRosenkranzRelmat))
+         << val.ByHITRANRosenkranzRelmat << '\n';
       [[fallthrough]];
-      case Absorption::PopulationType::ByHITRANFullRelmat:
-      os <<"    ByHITRANFullRelmat:" << spaces(req_spaces(Absorption::PopulationType::ByHITRANFullRelmat)) << val.ByHITRANFullRelmat << '\n';
+    case Absorption::PopulationType::ByHITRANFullRelmat:
+      os << "    ByHITRANFullRelmat:"
+         << spaces(req_spaces(Absorption::PopulationType::ByHITRANFullRelmat))
+         << val.ByHITRANFullRelmat << '\n';
       [[fallthrough]];
-      case Absorption::PopulationType::ByMakarovFullRelmat:
-      os <<"    ByMakarovFullRelmat:" << spaces(req_spaces(Absorption::PopulationType::ByMakarovFullRelmat)) << val.ByMakarovFullRelmat << '\n';
+    case Absorption::PopulationType::ByMakarovFullRelmat:
+      os << "    ByMakarovFullRelmat:"
+         << spaces(req_spaces(Absorption::PopulationType::ByMakarovFullRelmat))
+         << val.ByMakarovFullRelmat << '\n';
       [[fallthrough]];
-      case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
-      os <<"    ByRovibLinearDipoleLineMixing:" << spaces(req_spaces(Absorption::PopulationType::ByRovibLinearDipoleLineMixing)) << val.ByRovibLinearDipoleLineMixing;
-    }
-    return os;
-    }
+    case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
+      os << "    ByRovibLinearDipoleLineMixing:"
+         << spaces(req_spaces(
+                Absorption::PopulationType::ByRovibLinearDipoleLineMixing))
+         << val.ByRovibLinearDipoleLineMixing;
+  }
+  return os;
+}
 
-
-  std::ostream& operator<<(std::ostream& os, AbsorptionLineShapeTagTypeStatus val) {
+std::ostream& operator<<(std::ostream& os,
+                         AbsorptionLineShapeTagTypeStatus val) {
   // Trick to never forget to update
   LineShapeType x{LineShapeType::FINAL};
-  switch(x) {
+  switch (x) {
     case LineShapeType::FINAL:
-    os << "Line shape tag type:\n";
-    [[fallthrough]];
+      os << "Line shape tag type:\n";
+      [[fallthrough]];
     case LineShapeType::DP:
-    os << "    DP:" << spaces(req_spaces(LineShapeType::DP))  << val.DP << '\n';
-    [[fallthrough]];
+      os << "    DP:" << spaces(req_spaces(LineShapeType::DP)) << val.DP
+         << '\n';
+      [[fallthrough]];
     case LineShapeType::LP:
-    os << "    LP:" << spaces(req_spaces(LineShapeType::LP)) << val.LP << '\n';
-    [[fallthrough]];
+      os << "    LP:" << spaces(req_spaces(LineShapeType::LP)) << val.LP
+         << '\n';
+      [[fallthrough]];
     case LineShapeType::VP:
-    os << "    VP:" << spaces(req_spaces(LineShapeType::VP)) << val.VP << '\n';
-    [[fallthrough]];
+      os << "    VP:" << spaces(req_spaces(LineShapeType::VP)) << val.VP
+         << '\n';
+      [[fallthrough]];
     case LineShapeType::SDVP:
-    os << "    SDVP:" << spaces(req_spaces(LineShapeType::SDVP)) << val.SDVP << '\n';
-    [[fallthrough]];
+      os << "    SDVP:" << spaces(req_spaces(LineShapeType::SDVP)) << val.SDVP
+         << '\n';
+      [[fallthrough]];
     case LineShapeType::HTP:
-    os << "    HTP:" << spaces(req_spaces(LineShapeType::HTP)) << val.HTP;
+      os << "    HTP:" << spaces(req_spaces(LineShapeType::HTP)) << val.HTP;
   }
-    return os;
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, AbsorptionTagTypesStatus val) {
+  return os << "Catalog tag summary:\n  " << val.cutoff << "\n  "
+            << val.lineshapetype << "\n  " << val.mirroring << "\n  "
+            << val.normalization << "\n  " << val.population;
+}
+
+AbsorptionSpeciesBandIndex flat_index(
+    Index i,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
+  const Index n = abs_species.nelem();
+
+  Index ispec{0};
+  while (ispec < n and i >= abs_lines_per_species[ispec].nelem()) {
+    i -= abs_lines_per_species[ispec].nelem();
+    ++ispec;
   }
 
-  std::ostream& operator<<(std::ostream& os, AbsorptionTagTypesStatus val) {
-    return os << "Catalog tag summary:\n  " << val.cutoff << "\n  "
-              << val.lineshapetype << "\n  " << val.mirroring << "\n  "
-              << val.normalization << "\n  " << val.population;
-  }
+  return {ispec, i};
+}

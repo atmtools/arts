@@ -459,13 +459,12 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
   ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(), "Bad atmospheric inputs");
   
   const Index n = lineshape_species.nelem();
-  const Index back = n - 1;  // Last index
   
   // Initialize list of VMRS to 0
   Vector line_vmrs(n, 0);
   
   // We need to know if bath is an actual species
-  const bool bath = lineshape_species.back() == Species::Species::Bath;
+  const bool bath = n and lineshape_species.back() == Species::Species::Bath;
   
   // Loop species
   for (Index i = 0; i < n - bath; i++) {
@@ -487,7 +486,7 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
   
   // Renormalize, if bath-species exist this is automatic.
   if (bath) {
-    line_vmrs[back] = 1.0 - line_vmrs.sum();
+    line_vmrs[n - 1] = 1.0 - line_vmrs.sum();
   } else if(line_vmrs.sum() == 0) {  // Special case
   } else {
     line_vmrs /= line_vmrs.sum();
@@ -504,14 +503,13 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                "Bad atmospheric inputs");
   
   const Index n = lineshape_species.nelem();
-  const Index back = n - 1;  // Last index
   
   // Initialize list of VMRS to 0
-  Vector line_vmrs(lineshape_species.nelem(), 0);
-  Vector line_mass(lineshape_species.nelem(), 0);
+  Vector line_vmrs(n, 0);
+  Vector line_mass(n, 0);
   
   // We need to know if bath is an actual species
-  const bool bath = lineshape_species.back() == Species::Species::Bath;
+  const bool bath = n and lineshape_species.back() == Species::Species::Bath;
   
   // Loop species ignoring self and bath
   for (Index i = 0; i < n - bath; i++) {
@@ -536,7 +534,7 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
   // Renormalize, if bath-species exist this is automatic.
   if(line_vmrs.sum() == 0) {  // Special case
   } else if (bath) {
-    line_mass[back] = (line_vmrs * line_mass) / line_vmrs.sum();
+    line_mass[n - 1] = (line_vmrs * line_mass) / line_vmrs.sum();
   }
     
   return line_mass;
