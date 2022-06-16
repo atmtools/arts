@@ -10,12 +10,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
 # Blackbody surface
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
 VectorSet( surface_scalar_reflectivity, [0] )
@@ -38,6 +32,8 @@ abs_speciesSet( species=[ "N2-SelfContStandardType",
 
 # No line data needed here
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaSetAutomatic
 
 # Dimensionality of the atmosphere
 AtmosphereSet1D
@@ -119,9 +115,7 @@ VectorCreate( y_hybrid )
 StringCreate( message )
 
 # Perform some basic checks
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 
 
