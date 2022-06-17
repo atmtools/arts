@@ -305,3 +305,6 @@ class Workspace(InternalWorkspace):
             else:
                 raise AttributeError(f"'Workspace' object has no attribute '{attr}'")
     
+    def __delattr__(self, attr):
+        if attr == '__class__': raise AttributeError("You cannot delete __class__")
+        getattr(self, attr).delete_level()
