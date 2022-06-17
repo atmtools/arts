@@ -138,8 +138,12 @@ void py_workspace(py::module_& m,
              return var_string("Workspace ",
                                global_data::wsv_groups.at(w.group()));
            })
-      .def_property_readonly("group", [](const WorkspaceVariable& w) {
-        return global_data::wsv_groups.at(w.group());
+      .def_property_readonly("group",
+                             [](const WorkspaceVariable& w) {
+                               return global_data::wsv_groups.at(w.group());
+                             })
+      .def("delete_level", [](WorkspaceVariable& v) {
+        if (v.stack_depth()) v.pop_workspace_level();
       });
 
   ws.def("number_of_initialized_variables", [](Workspace& w){

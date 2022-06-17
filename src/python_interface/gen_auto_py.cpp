@@ -1471,7 +1471,8 @@ struct WorkspaceVariable {
     return *this;
   }
 
-  bool is_initialized() const; 
+  [[nodiscard]] Index stack_depth() {return ws.depth(pos);}
+  [[nodiscard]] bool is_initialized() const; 
   void initialize_if_not();
   operator WorkspaceVariablesVariant();
   operator WorkspaceVariablesVariant() const;
