@@ -25,10 +25,13 @@
  */
 
 #include "disort.h"
+
+#include <cinttypes>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
+
 #include "agenda_class.h"
 #include "array.h"
 #include "auto_md.h"
@@ -923,7 +926,7 @@ void run_cdisort(Workspace& ws,
   get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
 
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
-    sprintf(ds.header, "ARTS Calc f_index = %lld", f_index);
+    sprintf(ds.header, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
                 dtauc(f_index, joker).get_c_array(),

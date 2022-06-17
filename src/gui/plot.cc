@@ -1,3 +1,4 @@
+#include <cinttypes>
 #include <mutex>
 
 #include "plot.h"
@@ -73,8 +74,13 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
       if (xdata.size() not_eq ydata.size())
         ImGui::Text("Invalid sizes, xdata is %ld elements and ydata is %ld elements", xdata.size(), ydata.size());
       else {
-        for (Index i=0; i<xdata.nelem(); i++) {
-          ImGui::Text("xdata[%lld] is %lld elements and ydata[%lld] is %lld elements", i, xdata[i].size(), i, ydata[i].size());
+        for (Index i = 0; i < xdata.nelem(); i++) {
+          ImGui::Text("xdata[%" PRId64 "] is %" PRId64 " elements and ydata[%" PRId64
+                      "] is %" PRId64 " elements",
+                      i,
+                      xdata[i].size(),
+                      i,
+                      ydata[i].size());
         }
       }
     }
