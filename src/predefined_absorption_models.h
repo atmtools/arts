@@ -29,6 +29,7 @@
 #define fullmodel_h
 
 #include "jacobian.h"
+#include "predefined/predef_data.h"
 #include "propagationmatrix.h"
 #include "species.h"
 #include <algorithm>
@@ -74,6 +75,7 @@ struct VMRS {
  * @param[in] rtp_temperature As WSV
  * @param[in] vmr The VMRS defined from WSVs abs_species and rtp_vmr
  * @param[in] jacobian_quantities As WSV
+ * @param[in] predefined_model_data As WSV
  */
 void compute(
     PropagationMatrix& propmat_clearsky,
@@ -83,7 +85,8 @@ void compute(
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
     const VMRS& vmr,
-    const ArrayOfRetrievalQuantity& jacobian_quantities);
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const PredefinedModelData& predefined_model_data);
 } // namespace Absorption::PredefinedModel
 
 #endif  // fullmodel_h

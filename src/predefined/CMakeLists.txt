@@ -1,6 +1,8 @@
 add_library(predef STATIC
     MPM2020.cc
     CKDMT350.cc
+    hitran_water_mtckd.cc
+    predef_data.cc
 )
 
 if (ENABLE_PCH)

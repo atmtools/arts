@@ -3285,6 +3285,16 @@ void Workspace::define_wsv_data() {
       GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("predefined_model_data"),
+      DESCRIPTION(
+          R"--(This contains predefined model data that cannot
+be distributed directly for whatever reason
+
+Can currently only contain data for new MT CKD models of water.
+)--"),
+      GROUP("PredefinedModelData")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky"),
       DESCRIPTION(
           "This contains the absorption coefficients for one point in the\n"

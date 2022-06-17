@@ -2089,7 +2089,7 @@ void xml_read_from_stream(istream&,
                           Agenda&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -2097,7 +2097,7 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 //=== MCAntenna ================================================
@@ -2106,7 +2106,7 @@ void xml_read_from_stream(istream&,
                           MCAntenna&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -2114,7 +2114,7 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 //=== TessemNN ================================================
@@ -2123,7 +2123,7 @@ void xml_read_from_stream(istream&,
                           TessemNN&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -2131,7 +2131,7 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 //=== Verbosity ================================================
@@ -2140,7 +2140,7 @@ void xml_read_from_stream(istream&,
                           Verbosity&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -2148,7 +2148,7 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 //=== CallbackFunction =========================================
@@ -2157,7 +2157,7 @@ void xml_read_from_stream(istream&,
                           CallbackFunction&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -2165,5 +2165,22 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+//=== PredefinedModelData =========================================
+
+void xml_read_from_stream(istream&,
+                          PredefinedModelData&,
+                          bifstream* /* pbifs */,
+                          const Verbosity&) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(ostream&,
+                         const PredefinedModelData&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */,
+                         const Verbosity&) {
+  ARTS_USER_ERROR("Method not implemented!");
 }

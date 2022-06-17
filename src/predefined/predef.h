@@ -1,3 +1,4 @@
+#include "predef_data.h"
 #include <propagationmatrix.h>
 
 namespace Absorption::PredefinedModel {
@@ -21,4 +22,20 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
                          const Numeric& Tave,
                          const Numeric& vmrh2o) noexcept;
 }  // namespace CKDMT350
+
+namespace Hitran::MTCKD {
+void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
+             const Vector& f_grid,
+             const Numeric& P,
+             const Numeric& T,
+             const Numeric& vmrh2o,
+             const WaterData& data);
+void compute_self_h2o(PropagationMatrix& propmat_clearsky,
+             const Vector& f_grid,
+             const Numeric& P,
+             const Numeric& T,
+             const Numeric& vmrh2o,
+             const WaterData& data);
+}  // namespace Hitran::MTCKD
+
 }  // namespace Absorption::PredefinedModel

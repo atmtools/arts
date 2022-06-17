@@ -76,6 +76,15 @@ bool is_sorted(ConstVectorView x);
 
 bool is_increasing(ConstVectorView x);
 
+/*! Checks if the vector is increasing with a regular interval
+
+  The check is abs((x[i] - x[i-1]) - (x[1] - x[0])) < epsilon
+
+  @param[in] x A vector
+  @param[in] epsilon A comparison
+*/
+bool is_regularly_increasing_within_epsilon(ConstVectorView x, const Numeric epsilon=1e-8);
+
 bool is_increasing(const ArrayOfIndex& x);
 
 bool is_decreasing(ConstVectorView x);

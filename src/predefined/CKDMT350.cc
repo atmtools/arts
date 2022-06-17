@@ -908,7 +908,7 @@ constexpr std::array FH2O_ckd_mt_350{
     1.650E-12, 1.310E-12, 1.060E-12, 8.350E-13, 6.450E-13, 5.020E-13, 3.940E-13,
     3.090E-13, 2.460E-13};
 
-constexpr Numeric RADFN_FUN(const Numeric XVI, const Numeric XKT) {
+Numeric RADFN_FUN(const Numeric XVI, const Numeric XKT) {
   // ---------------------------------------------------------------------- B18060
   //              LAST MODIFICATION:    12 AUGUST 1991                      B17940
   //                                                                        B17950
@@ -944,7 +944,7 @@ constexpr Numeric RADFN_FUN(const Numeric XVI, const Numeric XKT) {
     if (XVIOKT <= 0.01e0) {
       RADFN = 0.500e0 * XVIOKT * XVI;
     } else if (XVIOKT <= 10.0e0) {
-      Numeric EXPVKT = exp(-XVIOKT);
+      Numeric EXPVKT = std::exp(-XVIOKT);
       RADFN = XVI * (1.00e0 - EXPVKT) / (1.00e0 + EXPVKT);
     } else {
       RADFN = XVI;

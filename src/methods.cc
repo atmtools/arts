@@ -2393,6 +2393,24 @@ if they are defined.  Otherwise some values are just selected
       GIN_DESC("Load non-logical variables from workspace if true")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("predefined_model_dataSetHitranMTCKD"),
+      DESCRIPTION(R"--(Sets the data for Hitran MTCKD
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("predefined_model_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("predefined_model_data"),
+      GIN("self_absco_ref", "for_absco_ref", "wavenumbers", "self_texp"),
+      GIN_TYPE("Vector", "Vector", "Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("Self absorption [1/(cm-1 molecules/cm**2]",
+               "Foreign absorption [1/(cm-1 molecules/cm**2)]",
+               "Wavenumbers [cm-1]",
+               "Self temperature exponent [-]")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddPredefined"),
       DESCRIPTION("Adds all of the modern predefined models in *abs_species* to the propmat_clearsky\n"
         "\n"
@@ -2426,6 +2444,7 @@ if they are defined.  Otherwise some values are just selected
       GOUT_DESC(),
       IN("propmat_clearsky",
          "dpropmat_clearsky_dx",
+         "predefined_model_data",
          "abs_species",
          "select_abs_species",
          "jacobian_quantities",
