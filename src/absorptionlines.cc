@@ -2818,12 +2818,6 @@ AbsorptionSpeciesBandIndex flat_index(
   return {ispec, i};
 }
 
-  std::ostream& operator<<(std::ostream& os, AbsorptionTagTypesStatus val) {
-    return os << "Catalog tag summary:\n  " << val.cutoff << "\n  "
-              << val.lineshapetype << "\n  " << val.mirroring << "\n  "
-              << val.normalization << "\n  " << val.population;
-  }
-
 bool Absorption::any_cutoff(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
   return std::any_of(abs_lines_per_species.cbegin(), abs_lines_per_species.cend(),
                      [](auto& abs_lines){
