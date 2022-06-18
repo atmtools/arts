@@ -976,6 +976,13 @@ Numeric reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rati
  * @return As titled
  */
 Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
+
+/** Checks if there are any cutoffs in the lines
+ *
+ * @param[in] abs_lines_per_species As WSV
+ * @return true if any Lines have a cutoff enum value other than None
+ */
+[[nodiscard]] bool any_cutoff(const Array<Array<Lines>>& abs_lines_per_species);
 } // namespace Absorption
 
 using AbsorptionSingleLine = Absorption::SingleLine;

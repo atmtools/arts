@@ -1211,8 +1211,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
       "*dnlte_source_dx* must have frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
                      "Negative frequency (at least one value).")
-  ARTS_USER_ERROR_IF(not is_increasing(f_grid),
-                     "Must be sorted and increasing.")
+  ARTS_USER_ERROR_IF((any_cutoff(abs_lines_per_species) or speedup_option not_eq "None") and not is_increasing(f_grid),
+                     "Must be sorted and increasing if any cutoff or speedup is used.")
   ARTS_USER_ERROR_IF(any_negative(rtp_vmr),
                      "Negative VMR (at least one value).")
   ARTS_USER_ERROR_IF(any_negative(rtp_nlte.value),
