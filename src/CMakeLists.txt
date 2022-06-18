@@ -586,12 +586,6 @@ if (ENABLE_GUI)
   target_link_libraries(test_gui PUBLIC ${ALL_ARTS_LIBRARIES})
 endif()
 
-# Generate the RAW test file
-if (ENABLE_GUI)
-  add_executable(test_raw test_raw.cc)
-  target_link_libraries(test_raw ${ALL_ARTS_LIBRARIES} public_arts_interface test_utils)
-endif()
-
 ########################################################################################
 add_executable(gen_auto_partfun gen_auto_partfun.cc xml_io_partfun.cc)
 target_link_libraries (gen_auto_partfun PRIVATE matpack xmliobase)
