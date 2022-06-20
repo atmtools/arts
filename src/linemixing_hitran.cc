@@ -26,6 +26,7 @@
 
 #include "linemixing_hitran.h"
 #include <Faddeeva/Faddeeva.hh>
+#include <cinttypes>
 #include <fstream>
 
 #include "lin_alg.h"
@@ -301,7 +302,7 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
         char iv11, iv12, iv21, iv22, il21, il22, iv31, iv32, ir1, fv11, fv12, fv21, fv22, fl21, fl22, fv31, fv32, fr1;
         
         sscanf(line.c_str(), 
-               "%c%c" "%1lld" "%12lf" "%10lf"
+               "%c%c" "%1" PRId64 "%12lf" "%10lf"
                "%10lf" "%5lf" "%5lf" "%4lf"
                "%5lf" "%5lf" "%4lf" "%10lf"
                "%4lf" "%4lf" "%8lf" 
@@ -310,7 +311,7 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
                "%c%c%c%c%c%c"
                "%c%c" "%c%c" "%c%c" "%c%c" "%c"
                "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
-               "%c" "%3lld" "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
+               "%c" "%3" PRId64 "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
                "%5lf" "%5lf" "%4lf" "%5lf"
                "%20s" "%20s",
                &x,&x,
@@ -1783,15 +1784,15 @@ void detband(CommonBlock& cmn,
     Index isotr, lfr, lir, jmxp, jmxq, jmxr;
     char c11, c12, c21, c22, c31, c32, c41, c42, c51, c52, x;
     sscanf(line.c_str(), 
-           "%1lld"
-           "%c%c" "%1lld" "%c%c"
-           "%c%c" "%1lld" "%c%c"
+           "%1" PRId64
+           "%c%c" "%1" PRId64 "%c%c"
+           "%c%c" "%1" PRId64 "%c%c"
            "%c%c"
            "%12lf"
            "%c" "%12lf"
            "%c" "%12lf"
            "%c%c%c%c%c%c%c%c"
-           "%4lld" "%4lld" "%4lld",
+           "%4" PRId64 "%4" PRId64 "%4" PRId64,
            &isotr,
            &c11, &c12, &lfr, &c21, &c22,
            &c31, &c32, &lir, &c41, &c42,
@@ -1812,9 +1813,23 @@ void detband(CommonBlock& cmn,
         cmn.Bands.Isot[cmn.Bands.nBand] = 10;
       cmn.Bands.li[cmn.Bands.nBand] = lir;
       cmn.Bands.lf[cmn.Bands.nBand] = lfr;
-      
+
       char name[15];
-      sprintf(name, "S%lld%c%c%lld%c%c%c%c%lld%c%c%c%c", isotr, c11, c12, lfr, c21, c22, c31, c32, lir, c41, c42, c51, c52);
+      sprintf(name,
+              "S%" PRId64 "%c%c%" PRId64 "%c%c%c%c%" PRId64 "%c%c%c%c",
+              isotr,
+              c11,
+              c12,
+              lfr,
+              c21,
+              c22,
+              c31,
+              c32,
+              lir,
+              c41,
+              c42,
+              c51,
+              c52);
       cmn.Bands.BandFile[cmn.Bands.nBand] = name;
       cmn.Bands.nBand++;
       ARTS_USER_ERROR_IF (cmn.Bands.nBand > parameters::nBmx,
@@ -1846,7 +1861,7 @@ void readw(CommonBlock& cmn, const String& basedir="data_new/")
         sscanf(line.c_str(), 
                "%20s" "%20s"
                "%14lf" "%14lf"
-               "%4lld" "%4lld" "%4lld" "%4lld",
+               "%4" PRId64 "%4" PRId64 "%4" PRId64 "%4" PRId64,
                sw0r, sb0r, &dmaxdt, &wtmax, &jic, &jfc, &jipc, &jfpc);
         String ssw0r = sw0r;
         std::replace(ssw0r.begin(), ssw0r.end(), 'D', 'E');

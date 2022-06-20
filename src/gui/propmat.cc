@@ -1,6 +1,7 @@
 #include "propmat.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
@@ -877,7 +878,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
       // Display current frequency grid
       ImGui::Text(
-          "\tFrequency Grid:\n\t  Start: %g Hz%c\t\n\t  Stop: %g Hz%c\t\n\t  nelem: %lld%c\t",
+          "\tFrequency Grid:\n\t  Start: %g Hz%c\t\n\t  Stop: %g Hz%c\t\n\t  nelem: %" PRId64
+          "%c\t",
           v.f_grid[0],
           v.f_grid[0] == f_grid[0] ? ' ' : '*',
           v.f_grid[v.f_grid.nelem() - 1],
