@@ -2393,6 +2393,21 @@ if they are defined.  Otherwise some values are just selected
       GIN_DESC("Load non-logical variables from workspace if true")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("predefined_model_dataInit"),
+      DESCRIPTION(R"--(Initialize the predefined model data
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("predefined_model_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("predefined_model_dataSetHitranMTCKD"),
       DESCRIPTION(R"--(Sets the data for Hitran MTCKD
 

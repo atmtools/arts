@@ -373,8 +373,8 @@ bool is_lon_cyclic(ConstVectorView grid, const Numeric& epsilon) {
 
 bool is_regularly_increasing_within_epsilon(ConstVectorView x,
                                             const Numeric epsilon) {
-  const Numeric dx0 =
-      (x.size() < 2) ? x[1] - x[0] : std::numeric_limits<Numeric>::max();
+  if (x.size() < 2) return true;
+  const Numeric dx0 = x[1] - x[0];
   if (dx0 <= 0) return false;
 
   for (Index i = 2; i < x.size(); i++) {

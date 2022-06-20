@@ -31,6 +31,11 @@
 #include "predefined/predef_data.h"
 #include "predefined_absorption_models.h"
 
+void predefined_model_dataInit(PredefinedModelData& predefined_model_data,
+                               const Verbosity&) {
+  predefined_model_data = PredefinedModelData{};
+}
+
 void predefined_model_dataSetHitranMTCKD(
     PredefinedModelData& predefined_model_data,
     const Vector& self_absco_ref,
@@ -39,6 +44,7 @@ void predefined_model_dataSetHitranMTCKD(
     const Vector& self_texp,
     const Verbosity&) {
   const auto sz = self_absco_ref.size();
+
   ARTS_USER_ERROR_IF(
       sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or
           sz not_eq self_texp.size(),
