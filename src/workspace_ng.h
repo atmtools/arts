@@ -30,17 +30,19 @@
 #include <stack>
 #include <vector>
 
-
-class Workspace;
-
 #include "array.h"
 #include "wsv_aux.h"
 
-class Workspace;
-struct WorkspaceBorrowGuard {
-  Workspace &ws;
-  Index i;
-  ~WorkspaceBorrowGuard();
+struct WorkspaceVariableStruct final {
+  std::shared_ptr<void> wsv;
+  bool initialized;
+};
+
+using WorkspaceVariable = stack<WorkspaceVariableStruct, std::vector<WorkspaceVariableStruct>>;
+
+struct WorkspaceBorrowGuard final {
+  WorkspaceVariable &wsv;
+  ~WorkspaceBorrowGuard() noexcept { wsv.pop(); };
 };
 
 /** Workspace class.
@@ -49,15 +51,9 @@ struct WorkspaceBorrowGuard {
  */
 class Workspace final {
  protected:
-  struct WsvStruct {
-    std::shared_ptr<void> wsv;
-    bool initialized;
-  };
-
-  using Stack = stack<WsvStruct, std::vector<WsvStruct>>;
 
   /** Workspace variable container. */
-  Array<Stack> ws{};
+  Array<WorkspaceVariable> ws{};
 
  public:
   /** Global WSV data. */
@@ -146,11 +142,11 @@ class Workspace final {
   WorkspaceBorrowGuard borrow(Index i, T &wsv) {
     using U = std::remove_cv_t<T>;
     std::shared_ptr<U> wsv_ptr(const_cast<U *>(&wsv), [](U *) {});
-    WsvStruct wsvs;
+    WorkspaceVariableStruct wsvs;
     wsvs.initialized = true;
     wsvs.wsv = wsv_ptr;
     ws[i].push(wsvs);
-    return {*this, i};
+    return {ws[i]};
   }
 
   /** Put a new WSV onto its stack.
@@ -164,11 +160,11 @@ class Workspace final {
   WorkspaceBorrowGuard borrow_uninitialized(Index i, T &wsv) {
     using U = std::remove_cv_t<T>;
     std::shared_ptr<U> wsv_ptr(const_cast<U *>(&wsv), [](U *) {});
-    WsvStruct wsvs;
+    WorkspaceVariableStruct wsvs;
     wsvs.initialized = false;
     wsvs.wsv = wsv_ptr;
     ws[i].push(wsvs);
-    return {*this, i};
+    return {ws[i]};
   }
 
   /** Move a WSV onto its stack.
@@ -180,7 +176,7 @@ class Workspace final {
    */
   template <typename T>
   void push_move(Index i, std::shared_ptr<T> &&wsv_ptr) {
-    WsvStruct wsvs;
+    WorkspaceVariableStruct wsvs;
     wsvs.initialized = true;
     wsvs.wsv = std::forward<std::shared_ptr<T>>(wsv_ptr);
     ws[i].push(wsvs);
@@ -197,9 +193,9 @@ class Workspace final {
 
   /** Retrieve a value ptr if it exist (FIXME: C++20 allows const char* as template argument) */
   template <class T>
-  std::shared_ptr<T> get(const char *name) {
+  T* get(const char *name) {
     if (const Index pos = WsvMap.at(name); is_initialized(pos)) {
-      return static_pointer_cast<T>(operator[](pos));
+      return static_cast<T*>(ws[pos].top().wsv.get());
     }
     return nullptr;
   }
@@ -237,7 +233,5 @@ void PrintWsvNames(OutputStream &outstream, const Container &container) {
     PrintWsvName(outstream, *it);
   }
 }
-
-inline WorkspaceBorrowGuard::~WorkspaceBorrowGuard() { ws.pop(i); }
 
 #endif /* WORKSPACE_NG_INCLUDED */

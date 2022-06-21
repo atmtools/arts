@@ -32,7 +32,7 @@ void py_workspace(py::module_& m,
            [](Workspace& w, const std::filesystem::path& path) {
              std::unique_ptr<Agenda> a{parse_agenda(
                  correct_include_path(path).c_str(),
-                 *static_cast<Verbosity*>(w.get<Verbosity>("verbosity").get()))};
+                 *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")))};
              w.initialize();
              a->execute(w);
            })

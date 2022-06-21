@@ -62,7 +62,7 @@ void Workspace::set_empty(Index i) {
 }
 
 void Workspace::duplicate(Index i) {
-  WsvStruct wsvs;
+  WorkspaceVariableStruct wsvs;
 
   if (ws[i].size()) {
     wsvs.wsv = workspace_memory_handler.duplicate(wsv_data[i].Group(),
@@ -78,7 +78,7 @@ void Workspace::duplicate(Index i) {
 Workspace::Workspace(const Workspace &workspace) : ws(workspace.ws.nelem()) {
   for (Index i = 0; i < workspace.ws.nelem(); i++) {
     if (workspace.ws[i].size() && workspace.ws[i].top().wsv) {
-      WsvStruct wsvs;
+      WorkspaceVariableStruct wsvs;
       wsvs.wsv = workspace.ws[i].top().wsv;
       wsvs.initialized = workspace.ws[i].top().initialized;
       ws[i].push(std::move(wsvs));
@@ -96,7 +96,7 @@ void Workspace::swap(Workspace &other) {
 
 void Workspace::emplace(Index i) {
   ws[i].emplace(
-      WsvStruct{workspace_memory_handler.allocate(wsv_data[i].Group()), false});
+      WorkspaceVariableStruct{workspace_memory_handler.allocate(wsv_data[i].Group()), false});
 }
 
 std::shared_ptr<void> Workspace::operator[](Index i) {

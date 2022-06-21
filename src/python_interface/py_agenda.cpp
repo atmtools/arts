@@ -315,7 +315,7 @@ void py_agenda(py::module_& m) {
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
              Agenda* a = parse_agenda(
                  correct_include_path(path).c_str(),
-                 *w.get<Verbosity>("verbosity").get());
+                 *w.get<Verbosity>("verbosity"));
              w.initialize();
              return a;
            }),
@@ -329,7 +329,7 @@ void py_agenda(py::module_& m) {
       .def("set_outputs_to_push_and_dup",
            [](Agenda& a, Workspace& w) {
              a.set_outputs_to_push_and_dup(
-                 *w.get<Verbosity>("verbosity").get());
+                 *w.get<Verbosity>("verbosity"));
            })
       .def(
           "add_workspace_method",
@@ -594,7 +594,7 @@ Both agendas must be defined on the same workspace)--"),
           "check",
           [](Agenda& a, Workspace& w) {
             a.check(w,
-                    *static_cast<Verbosity*>(w.get<Verbosity>("verbosity").get()));
+                    *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")));
           },
           py::keep_alive<1, 2>(),
           py::doc("Checks if the agenda works"))
@@ -696,7 +696,7 @@ Both agendas must be defined on the same workspace)--"),
             for (auto& a : aa)
               a.check(
                   w,
-                  *static_cast<Verbosity*>(w.get<Verbosity>("verbosity").get()));
+                  *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")));
           },
           py::doc("Checks if the agenda works"))
       .def_property(
