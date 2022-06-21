@@ -24,6 +24,7 @@
 #ifndef __ARTS_WORKSPACE_MEMORY_HANDLER__
 #define __ARTS_WORKSPACE_MEMORY_HANDLER__
 #include "arts.h"
+#include <memory>
 #include <vector>
 
 /** Handling of workspace memory.
