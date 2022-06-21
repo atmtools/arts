@@ -711,8 +711,7 @@ String ArtsParser::set_gin_to_default(const MdRecord* mdd,
     if (wsvit == Workspace::WsvMap.end()) {
       wsvid = Workspace::add_wsv(WsvRecord(name.c_str(),
                                            "Automatically allocated variable.",
-                                           mdd->GInType()[gin_index],
-                                           true));
+                                           mdd->GInType()[gin_index]));
     } else {
       wsvid = wsvit->second;
     }
@@ -1250,8 +1249,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
         wsvid =
             Workspace::add_wsv(WsvRecord(wsvname.c_str(),
                                          "Automatically allocated variable.",
-                                         mdd->GOutType()[j],
-                                         true));
+                                         mdd->GOutType()[j]));
       }
 
       if (wsvid == -1) {
@@ -1545,8 +1543,7 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
           wsvid =
               Workspace::add_wsv(WsvRecord(wsvname.c_str(),
                                            "Automatically allocated variable.",
-                                           Workspace::wsv_data[*outs].Group(),
-                                           true));
+                                           Workspace::wsv_data[*outs].Group()));
         }
       }
 
@@ -1802,7 +1799,7 @@ Index ArtsParser::read_name_or_value(String& name,
   map<String, Index>::const_iterator wsvit = Workspace::WsvMap.find(name);
   if (wsvit == Workspace::WsvMap.end()) {
     wsvid = Workspace::add_wsv(WsvRecord(
-        name.c_str(), "Automatically allocated variable.", group, true));
+        name.c_str(), "Automatically allocated variable.", group));
   } else {
     wsvid = wsvit->second;
   }

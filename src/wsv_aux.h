@@ -59,8 +59,7 @@ class WsvRecord {
   WsvRecord()
       : mname(),
         mdescription(),
-        mgroup(-1),
-        mimplicit(false) { /* Nothing to do here */
+        mgroup(-1) { /* Nothing to do here */
   }
 
   /** Initializing constructor.
@@ -69,12 +68,10 @@ class WsvRecord {
     each workspace variable. */
   WsvRecord(const char name[],
             const char description[],
-            const String& group,
-            const bool implicit = false)
+            const String& group)
       : mname(name),
         mdescription(description),
-        mgroup(-1),
-        mimplicit(implicit) {
+        mgroup(-1) {
     // Map the group names to groups' indexes
     mgroup = get_wsv_group_id(group);
     if (mgroup == -1) {
@@ -90,12 +87,10 @@ class WsvRecord {
     This is used by the parser to create automatically allocated variables */
   WsvRecord(const char name[],
             const char description[],
-            const Index group,
-            const bool implicit = false)
+            const Index group)
       : mname(name),
         mdescription(description),
-        mgroup(group),
-        mimplicit(implicit) {
+        mgroup(group) {
     // Nothing to do here
   }
   /** Name of this workspace variable. */
@@ -104,14 +99,11 @@ class WsvRecord {
   const String& Description() const { return mdescription; }
   /** The wsv group to which this variable belongs. */
   Index Group() const { return mgroup; }
-  /** Returns true if the variable was automatically created. */
-  bool Implicit() const { return mimplicit; }
 
  private:
   String mname;
   String mdescription;
   Index mgroup;
-  bool mimplicit;
 };
 
 /** Output operator for WsvRecord.
