@@ -344,7 +344,7 @@ void Workspace::define_wsv_data() {
           "interpolation. In that case f_grid must match exactly the grid inside\n"
           "the lookup table. This is the global default value, set in\n"
           "general.arts.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
   
 
   wsv_data.push_back(WsvRecord(
@@ -429,7 +429,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{5}));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_p_interp_order"),
@@ -444,7 +444,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{5}));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_t_pert"),
@@ -471,7 +471,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{7}));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_lookup_is_adapted"),
@@ -1295,7 +1295,7 @@ void Workspace::define_wsv_data() {
           "Tensor4 is of no relevance and must be set to be empty.\n"
           "\n"
           "Dimensions: [n_quantities][ n_scattering_elements, n_p, n_lat, n_lon ]\n"),
-      GROUP("ArrayOfTensor4")));
+      GROUP("ArrayOfTensor4"), ArrayOfTensor4{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("dpropmat_clearsky_dx"),
@@ -1879,7 +1879,7 @@ void Workspace::define_wsv_data() {
           "for *iy_main_agenda* for the complete set of choices. Please not that\n"
           "if the calculations are done through *yCalc*, you can not select\n"
           "along-the-path variables.\n"),
-      GROUP("ArrayOfString")));
+      GROUP("ArrayOfString"), ArrayOfString{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_cloudbox_agenda"),
@@ -1922,7 +1922,7 @@ void Workspace::define_wsv_data() {
           "Setting of *iy_id* is not yet supported together with scattering\n"
           "calculations. The value of iy_id then differs, it is either set to 0\n"
           "or keeps its value set by *yCalc*.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(
       WsvRecord(NAME("iy_loop_freqs_agenda"),
@@ -1995,7 +1995,7 @@ void Workspace::define_wsv_data() {
           "methods, including not considering the variable at all.\n"
           "Accordingly, for details see the radiative method you have selected\n"
           "(e.g., *iyEmissionStandard*, *iyMC* and the like).\n"),
-      GROUP("String")));
+      GROUP("String"), String{"1"}));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_unit_radar"),
@@ -2116,7 +2116,7 @@ void Workspace::define_wsv_data() {
           "Usage: Set by the user.\n"
           "\n"
           "Unit:  degrees\n"),
-      GROUP("Vector")));
+      GROUP("Vector"), Vector{}));
 
   wsv_data.push_back(WsvRecord(
     NAME("lbl_checked"),
@@ -2221,7 +2221,7 @@ void Workspace::define_wsv_data() {
           "Usage: Set by the user.\n"
           "\n"
           "Unit:  degrees\n"),
-      GROUP("Vector")));
+      GROUP("Vector"), Vector{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("mag_u_field"),
@@ -2237,7 +2237,7 @@ void Workspace::define_wsv_data() {
           "Unit:       T\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("mag_u_field_raw"),
@@ -2269,7 +2269,7 @@ void Workspace::define_wsv_data() {
           "Unit:       T\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("mag_v_field_raw"),
@@ -2300,7 +2300,7 @@ void Workspace::define_wsv_data() {
           "Unit:       T\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("mag_w_field_raw"),
@@ -2418,7 +2418,7 @@ void Workspace::define_wsv_data() {
                   "calculations.\n"
                   "\n"
                   "Usage: Set by the user.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{100}));
 
   wsv_data.push_back(
       WsvRecord(NAME("mc_points"),
@@ -2498,7 +2498,7 @@ void Workspace::define_wsv_data() {
           "Carlo calculations.\n"
           "\n"
           "Usage: Set by the user.\n"),
-      GROUP("Numeric")));
+      GROUP("Numeric"), Numeric{0.1}));
 
   wsv_data.push_back(WsvRecord(
       NAME("met_amsu_data"),
@@ -2631,7 +2631,7 @@ void Workspace::define_wsv_data() {
       NAME("nlte_level_identifiers"),
       DESCRIPTION("An array of non-lte quantum identifiers for levels matching\n"
                   "*nlte_field_raw* and on request *nlte_vibrational_energies*.\n"),
-      GROUP("ArrayOfQuantumIdentifier")));
+      GROUP("ArrayOfQuantumIdentifier"), ArrayOfQuantumIdentifier{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("nlte_vibrational_energies"),
@@ -2699,7 +2699,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(
       WsvRecord(NAME("nlte_do"),
                 DESCRIPTION("Flag to perform Non-LTE calculations.\n"),
-                GROUP("Index")));
+                GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("nlte_source"),
@@ -2746,7 +2746,7 @@ void Workspace::define_wsv_data() {
           "To change the value of this variable use the workspace methods\n"
           "*output_file_formatSetAscii*, *output_file_formatSetZippedAscii*, and\n"
           "*output_file_formatSetBinary*\n"),
-      GROUP("String")));
+      GROUP("String"), String{"ascii"}));
 
   wsv_data.push_back(WsvRecord(
       NAME("particle_bulkprop_field"),
@@ -2761,7 +2761,7 @@ void Workspace::define_wsv_data() {
           "border of the cloudbox.\n"
           "\n"
           "Dimensions: [ particle_bulkprop_names, p_grid, lat_grid, lon_grid ]\n"),
-      GROUP("Tensor4")));
+      GROUP("Tensor4"), Tensor4{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("particle_bulkprop_names"),
@@ -2773,7 +2773,7 @@ void Workspace::define_wsv_data() {
           "first one will be selected.\n"
           "\n"
           "Dimensions: length should match book-dimension of *particle_bulkprop_field*\n"),
-      GROUP("ArrayOfString")));
+      GROUP("ArrayOfString"), ArrayOfString{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("particle_masses"),
@@ -2799,7 +2799,7 @@ void Workspace::define_wsv_data() {
           "Unit:       kg\n"
           "\n"
           "Dimensions: [number of scattering elements, number of mass categories]\n"),
-      GROUP("Matrix")));
+      GROUP("Matrix"), Matrix{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("pha_mat"),
@@ -3092,7 +3092,7 @@ void Workspace::define_wsv_data() {
           "cloudbox. Hence, this variable is for internal usage primarily.\n"
           "\n"
           "Usage: For communication between modules of arts.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppath_lmax"),
@@ -3102,7 +3102,7 @@ void Workspace::define_wsv_data() {
           "See *ppath_stepGeometric* for a description of this variable.\n"
           "\n"
           "Usage: Ppath methods such as *ppath_stepGeometric*.\n"),
-      GROUP("Numeric")));
+      GROUP("Numeric"), Numeric{10e3}));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppath_lraytrace"),
@@ -3113,7 +3113,7 @@ void Workspace::define_wsv_data() {
           "See *ppath_stepRefractionBasic* for a description of this variable.\n"
           "\n"
           "Usage: Refraction ppath methods such as *ppath_stepRefractionBasic*.\n"),
-      GROUP("Numeric")));
+      GROUP("Numeric"), Numeric{1e3}));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppath_step"),
@@ -3545,7 +3545,7 @@ void Workspace::define_wsv_data() {
           "system used that is fixed to the planets centre point.\n"
           "\n"
           "Unit: [ m/s ]\n"),
-      GROUP("Numeric")));
+      GROUP("Numeric"), Numeric{0.0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("rte_los"),
@@ -3706,7 +3706,7 @@ void Workspace::define_wsv_data() {
           "Switch between integration approaches for radiative transfer steps.\n"
           "\n"
           "See each WSM using this varaible as input for available options.\n"),
-      GROUP("String")));
+      GROUP("String"), String{"default"}));
 
   wsv_data.push_back(WsvRecord(
       NAME("rtp_nlte"),
@@ -3764,7 +3764,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Relevant checks are performed by *scat_data_checkedCalc. Only the\n"
           "value 1 is taken as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("scat_data_raw"),
@@ -3992,7 +3992,8 @@ void Workspace::define_wsv_data() {
           "  currently possible PSDs see *pnd_fieldCalcFromParticleBulkProps*.\n"
           "\n"
           "Example: [''IWC-MH97'', ''LWC-H98_STCO'', ...]\n"),
-      GROUP("ArrayOfString")));
+      GROUP("ArrayOfString"),
+      ArrayOfString{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("scat_species_a"),
@@ -4042,7 +4043,7 @@ void Workspace::define_wsv_data() {
 If set to empty, this selection is void.  It must otherwise match perfectly a tag inside
 *abs_species* for that to be the selection.
 )--"),
-                GROUP("ArrayOfSpeciesTag")));
+                GROUP("ArrayOfSpeciesTag"), ArrayOfSpeciesTag{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("sensor_checked"),
@@ -4653,7 +4654,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "*surface_props_names*.\n"
           "\n"
           "Size:  [ number of props., lat_grid, lon_grid ]\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("surface_props_names"),
@@ -4666,7 +4667,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "the documentation of each method for recognised choices.\n"
           "\n"
           "Size:  [ number of props. ]\n"),
-      GROUP("ArrayOfString")));
+      GROUP("ArrayOfString"), ArrayOfString{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("surface_rmatrix"),
@@ -4925,7 +4926,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Usage: Set by the user.\n"
           "\n"
           "Unit:  [ m, degrees, degrees ]\n"),
-      GROUP("Matrix")));
+      GROUP("Matrix"), Matrix{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("t_field"),
@@ -4970,7 +4971,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Units:       [ K or \% ]]\n"
           "\n"
           "Dimensions: [ NLTE levels, p_grid, lat_grid, lon_grid ] or [ 0, 0, 0, 0 ]\n"),
-      GROUP("EnergyLevelMap")));
+      GROUP("EnergyLevelMap"), EnergyLevelMap{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("t_field_raw"),
@@ -5150,7 +5151,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Unit:       m/s\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("wind_u_field_raw"),
@@ -5183,7 +5184,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Unit:       m/s\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ] or [ 0 0 0 ]\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("wind_v_field_raw"),
@@ -5214,7 +5215,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Unit:       m/s\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ] or [ 0 0 0 ]\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("wind_w_field_raw"),
@@ -5552,7 +5553,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
                   "See further *ybatchCalc*.\n"
                   "\n"
                   "Usage: Input to *ybatchCalc*.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("yf"),

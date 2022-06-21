@@ -60,8 +60,7 @@ class WsvRecord {
   /** Default constructor. */
   WsvRecord()
       : mname(),
-        mdescription(),
-        mgroup(-1) { /* Nothing to do here */
+        mdescription() { /* Nothing to do here */
   }
 
   /** Initializing constructor.
@@ -70,10 +69,11 @@ class WsvRecord {
     each workspace variable. */
   WsvRecord(const char name[],
             const char description[],
-            const String& group)
+            const String& group,
+            TokVal val={})
       : mname(name),
         mdescription(description),
-        mgroup(-1) {
+        defval(std::move(val)) {
     // Map the group names to groups' indexes
     mgroup = get_wsv_group_id(group);
     if (mgroup == -1) {
@@ -89,10 +89,12 @@ class WsvRecord {
     This is used by the parser to create automatically allocated variables */
   WsvRecord(const char name[],
             const char description[],
-            const Index group)
+            const Index group,
+            TokVal val={})
       : mname(name),
         mdescription(description),
-        mgroup(group) {
+        mgroup(group),
+        defval(std::move(val)) {
     // Nothing to do here
   }
   /** Name of this workspace variable. */
@@ -102,14 +104,19 @@ class WsvRecord {
   /** The wsv group to which this variable belongs. */
   Index Group() const { return mgroup; }
 
+  bool has_defaults() const {return not std::holds_alternative<std::unique_ptr<Any>>(defval.value);}
+
+  template <typename T>
+  T get_copy() const {if (has_defaults()) return T{defval}; else return T{};}
+
  private:
   String mname;
-  
+
   String mdescription;
 
-  Index mgroup;
+  Index mgroup{-1};
 
-  TokVal defval{Any{}};
+  TokVal defval;
 };
 
 /** Output operator for WsvRecord.
