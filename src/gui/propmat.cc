@@ -239,7 +239,7 @@ struct TraMatDataHolder {
 
   template <size_t stokes, size_t r, size_t c>
   static ImPlotPoint T(void* self, int i) {
-    auto* data_ptr = reinterpret_cast<TraMatDataHolder*>(self);
+    auto* data_ptr = static_cast<TraMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
@@ -274,7 +274,7 @@ struct PropMatDataHolder {
   }
 
   static ImPlotPoint Kjj(void* self, int i) {
-    auto* data_ptr = reinterpret_cast<PropMatDataHolder*>(self);
+    auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
@@ -285,7 +285,7 @@ struct PropMatDataHolder {
   }
 
   static ImPlotPoint K12(void* self, int i) {
-    auto* data_ptr = reinterpret_cast<PropMatDataHolder*>(self);
+    auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
@@ -296,7 +296,7 @@ struct PropMatDataHolder {
   }
 
   static ImPlotPoint K13(void* self, int i) {
-    auto* data_ptr = reinterpret_cast<PropMatDataHolder*>(self);
+    auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
@@ -307,7 +307,7 @@ struct PropMatDataHolder {
   }
 
   static ImPlotPoint K14(void* self, int i) {
-    auto* data_ptr = reinterpret_cast<PropMatDataHolder*>(self);
+    auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
@@ -318,7 +318,7 @@ struct PropMatDataHolder {
   }
 
   static ImPlotPoint K23(void* self, int i) {
-    auto* data_ptr = reinterpret_cast<PropMatDataHolder*>(self);
+    auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
@@ -329,7 +329,7 @@ struct PropMatDataHolder {
   }
 
   static ImPlotPoint K24(void* self, int i) {
-    auto* data_ptr = reinterpret_cast<PropMatDataHolder*>(self);
+    auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
@@ -340,7 +340,7 @@ struct PropMatDataHolder {
   }
 
   static ImPlotPoint K34(void* self, int i) {
-    auto* data_ptr = reinterpret_cast<PropMatDataHolder*>(self);
+    auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),

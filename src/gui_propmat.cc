@@ -146,13 +146,13 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
 
   // Set some defaults
   if (load) {
-    if (auto* val = ws.get<Vector>("f_grid")) f_grid = *val;
-    if (auto* val = ws.get<Vector>("rtp_mag")) rtp_mag = *val;
-    if (auto* val = ws.get<Vector>("rtp_los")) rtp_los = *val;
-    if (auto* val = ws.get<Vector>("rtp_vmr")) rtp_vmr = *val;
-    if (auto* val = ws.get<Numeric>("rtp_pressure")) rtp_pressure = *val;
-    if (auto* val = ws.get<Numeric>("rtp_temperature")) rtp_temperature = *val;
-    if (auto* val = ws.get<EnergyLevelMap>("rtp_nlte")) rtp_nlte = *val;
+    if (auto val = ws.get<Vector>("f_grid")) f_grid = *val;
+    if (auto val = ws.get<Vector>("rtp_mag")) rtp_mag = *val;
+    if (auto val = ws.get<Vector>("rtp_los")) rtp_los = *val;
+    if (auto val = ws.get<Vector>("rtp_vmr")) rtp_vmr = *val;
+    if (auto val = ws.get<Numeric>("rtp_pressure")) rtp_pressure = *val;
+    if (auto val = ws.get<Numeric>("rtp_temperature")) rtp_temperature = *val;
+    if (auto val = ws.get<EnergyLevelMap>("rtp_nlte")) rtp_nlte = *val;
   }
 
   auto success = std::async(std::launch::async,

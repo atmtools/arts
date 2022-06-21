@@ -417,12 +417,12 @@ void workspace_variables(size_t n, const NameMaps& arts) {
 
     if (data.varname_group == "Agenda")
       os << "    val.set_name(\"" << name
-         << "\");\n    val.check(w, *reinterpret_cast<Verbosity*>(w[" << verbpos
-         << "]));\n";
+         << "\");\n    val.check(w, *static_cast<Verbosity*>(w[" << verbpos
+         << "].get()));\n";
     if (data.varname_group == "ArrayOfAgenda")
       os << "    for(auto& a : val) a.set_name(\"" << name
-         << "\");\n    for(auto& a : val) a.check(w, *reinterpret_cast<Verbosity*>(w["
-         << verbpos << "]));\n";
+         << "\");\n    for(auto& a : val) a.check(w, *static_cast<Verbosity*>(w["
+         << verbpos << "].get()));\n";
     os << "    " << data.varname_group << "& v = WorkspaceVariable {w, "
        << data.artspos << "};\n    v = val;\n  }, py::doc(R\"-x-("
        << data.varname_desc << ")-x-\")\n); \n\n";
@@ -561,13 +561,13 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
        << group_index << R"--(, "Already exist of different group: ", name)
   }
 
-  if (value.has_value()) w.push(pos, new )--"
-       << group << R"--({*value});
+  if (value.has_value()) w.push_move(pos, std::make_shared<)--"
+       << group << R"--(>(*value));
 }, py::doc(R"-x-(
 Create new )--"
        << group << R"--( on the workspace
 
-It is recommended that this is only called once per Arts run
+It is recommended that this is only called once per Workspace instance.
 
 If there is no default value, the variable remains uninitialized
 
@@ -1531,7 +1531,7 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
     ARTS_USER_ERROR_IF(not allow_casting, "Only workspace variable objects allowed")
     ARTS_USER_ERROR_IF(group_index == )--"
      << arts.group.at("Any") << R"--(, "Cannot create type Any")
-    void * value_ptr = nullptr;
+    std::shared_ptr<void> value_ptr = nullptr;
     switch(group_index) {
 )--";
 
@@ -1541,8 +1541,8 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
     os << "      case " << group << ": {auto conv_obj = py::type::of<" << name
        << extra << ">()(";
     if (name == "Agenda") os << "ws, ";
-    os << "obj); value_ptr = new " << name << "{* conv_obj.cast<" << name
-       << extra << "*>()};} break;\n";
+    os << "obj); value_ptr = std::make_shared<" << name << ">(* conv_obj.cast<" << name
+       << extra << "*>());} break;\n";
   }
 
   os << R"--(      default: ARTS_USER_ERROR("Cannot create type")
@@ -1551,23 +1551,13 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
     // Create the variable and initialize it
     static std::size_t i = 0;
     pos = ws.add_wsv_inplace(WsvRecord(var_string("::anon::", i++).c_str(), "Anonymous agenda variable", group_index));
-    ws.push(pos, value_ptr);
+    ws.push_move(pos, std::move(value_ptr));
   }
 }
 
 void WorkspaceVariable::initialize_if_not() {
-  if (not ws.is_initialized(pos)) {
-    switch (ws.wsv_data[pos].Group()) {
-)--";
-
-  for (auto& [name, group] : arts.group)
-    os << "      case " << group << ":  ws.push(pos, new " << name
-       << "); break;\n";
-
-  os << R"--(
-      default: ARTS_USER_ERROR("Unknown variable group")
-    }
-  }
+  if (not ws.is_initialized(pos)) ws.emplace(pos);
+  ws[pos];
 }
 
 WorkspaceVariable::operator WorkspaceVariablesVariant() {
@@ -1577,9 +1567,9 @@ WorkspaceVariable::operator WorkspaceVariablesVariant() {
 )--";
 
   for (auto& [name, group] : arts.group) {
-    os << "    case " << group << ": return reinterpret_cast<" << name;
+    os << "    case " << group << ": return static_cast<" << name;
     if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>(ws[pos]);\n";
+    os << " *>(ws[pos].get());\n";
   }
 
   os << R"--(  }
@@ -1594,9 +1584,9 @@ WorkspaceVariable::operator WorkspaceVariablesVariant() const {
 )--";
 
   for (auto& [name, group] : arts.group) {
-    os << "    case " << group << ": return reinterpret_cast<" << name;
+    os << "    case " << group << ": return static_cast<" << name;
     if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>(ws[pos]);\n";
+    os << " *>(ws[pos].get());\n";
   }
 
   os << R"--(  }
@@ -1604,7 +1594,7 @@ WorkspaceVariable::operator WorkspaceVariablesVariant() const {
   ARTS_USER_ERROR("Cannot understand type")
 }
 
-void WorkspaceVariable::pop_workspace_level() { ws.pop_free(pos); }
+void WorkspaceVariable::pop_workspace_level() { ws.pop(pos); }
 
   WorkspaceVariable::operator TokVal() const {
   ARTS_USER_ERROR_IF(not is_initialized(), "Must be initialized")
@@ -1616,8 +1606,8 @@ void WorkspaceVariable::pop_workspace_level() { ws.pop_free(pos); }
     if (name == "Agenda" or name == "ArrayOfAgenda") continue;
 
     os << "    case " << group << ": return ";
-    os << "* reinterpret_cast<" << name;
-    os << " *>(ws[pos])";
+    os << "* static_cast<" << name;
+    os << " *>(ws[pos].get())";
     os << ";\n";
   }
 
@@ -1691,11 +1681,11 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
   )--" << name
        << "& x = WorkspaceVariable{w, i};\n";
     if (name == "Agenda")
-      os << "  val.set_name(name);\n  val.check(w, *reinterpret_cast<Verbosity*>(w["
-         << verbpos << "]));\n";
+      os << "  val.set_name(name);\n  val.check(w, *static_cast<Verbosity*>(w["
+         << verbpos << "].get()));\n";
     if (name == "ArrayOfAgenda")
-      os << "  for (auto& y: val) y.set_name(name);\n  for (auto& y: val) y.check(w, *reinterpret_cast<Verbosity*>(w["
-         << verbpos << "]));\n";
+      os << "  for (auto& y: val) y.set_name(name);\n  for (auto& y: val) y.check(w, *static_cast<Verbosity*>(w["
+         << verbpos << "].get()));\n";
     os << R"--(  x = val;
 });
 
@@ -1722,11 +1712,11 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
        << "*>(v);\n";
 
     if (name == "Agenda")
-      os << "        rh.set_name(w.name());\n        rh.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
-         << verbpos << "]));\n";
+      os << "        rh.set_name(w.name());\n        rh.check(w.ws, *static_cast<Verbosity*>(w.ws["
+         << verbpos << "].get()));\n";
     if (name == "ArrayOfAgenda")
-      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
-         << verbpos << "]));\n";
+      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws, *static_cast<Verbosity*>(w.ws["
+         << verbpos << "].get()));\n";
 
     os << "        lh = rh;\n";
 
@@ -1738,11 +1728,11 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
        << "*>();\n";
 
     if (name == "Agenda")
-      os << "        rh.set_name(w.name());\n        rh.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
-         << verbpos << "]));\n";
+      os << "        rh.set_name(w.name());\n        rh.check(w.ws, *static_cast<Verbosity*>(w.ws["
+         << verbpos << "].get()));\n";
     if (name == "ArrayOfAgenda")
-      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws, *reinterpret_cast<Verbosity*>(w.ws["
-         << verbpos << "]));\n";
+      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws, *static_cast<Verbosity*>(w.ws["
+         << verbpos << "].get()));\n";
 
     os << "        lh = rh;\n";
 
@@ -1796,8 +1786,8 @@ ws.def(py::pickle(
     const char extra = name == "Index" or name == "Numeric" ? '_' : ' ';
     os << "          case " << id << ": {\n";
     os << "            group.emplace_back(\"" << name << "\");\n";
-    os << "            " << name << extra << " val{*reinterpret_cast<" << name
-       << " *>(w[i])};\n";
+    os << "            " << name << extra << " val{*static_cast<" << name
+       << " *>(w[i].get())};\n";
     os << "            value.emplace_back(py::cast(val));\n";
     os << "          } break;\n";
   }
@@ -1834,8 +1824,8 @@ ws.def(py::pickle(
   for (auto& [name, id] : arts.group) {
     const char extra = name == "Index" or name == "Numeric" ? '_' : ' ';
     os << "        case " << id << ": {\n";
-    os << "          out -> push(wsv_pos, new " << name << "{* value[i].cast<"
-       << name << extra << " *>()});\n";
+    os << "          out -> push_move(wsv_pos, std::make_shared<" << name << ">(* value[i].cast<"
+       << name << extra << " *>()));\n";
     os << "          } break;\n";
   }
   os << R"--(        default: { ARTS_USER_ERROR("Bad group") }

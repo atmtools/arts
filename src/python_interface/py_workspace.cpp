@@ -22,8 +22,8 @@ void py_workspace(py::module_& m,
   ws.def(py::init([](Index verbosity, Index agenda_verbosity) {
            auto* w = new Workspace{};
            w->initialize();
-           w->push(w->WsvMap.at("verbosity"),
-                   new Verbosity{agenda_verbosity, verbosity, 0});
+           w->push_move(w->WsvMap.at("verbosity"),
+                   std::make_shared<Verbosity>(agenda_verbosity, verbosity, 0));
            return w;
          }),
          py::arg("verbosity") = 0,
@@ -32,7 +32,7 @@ void py_workspace(py::module_& m,
            [](Workspace& w, const std::filesystem::path& path) {
              std::unique_ptr<Agenda> a{parse_agenda(
                  correct_include_path(path).c_str(),
-                 *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]))};
+                 *static_cast<Verbosity*>(w.get<Verbosity>("verbosity").get()))};
              w.initialize();
              a->execute(w);
            })
@@ -43,8 +43,6 @@ void py_workspace(py::module_& m,
              const char* group,
              const char* name_,
              std::optional<const char*> desc) {
-            using global_data::workspace_memory_handler;
-
             const Index group_index = get_wsv_group_id(group);
             ARTS_USER_ERROR_IF(
                 group_index < 0, "Cannot recognize group: ", group)
@@ -71,7 +69,7 @@ void py_workspace(py::module_& m,
                 WsvRecord(name.c_str(),
                           desc.has_value() ? *desc : "No description",
                           group_index));
-            w.push(pos, workspace_memory_handler.allocate(group_index));
+            w.emplace(pos);
             return WorkspaceVariable{w, pos};
           },
           py::keep_alive<0, 1>(),

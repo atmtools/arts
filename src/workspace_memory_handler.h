@@ -35,39 +35,27 @@
  */
 class WorkspaceMemoryHandler {
  public:
-  WorkspaceMemoryHandler(){};
+  WorkspaceMemoryHandler() {};
 
   /** Allocate workspace WSV of given group.
    * @param group_index: Index of the group to allocate.
    * @return Void pointer to newly allocated group instance.
    */
-  void *allocate(Index group_index) { return allocation_ptrs_[group_index](); }
-
-  /** Getaway function to call the deallocation function for the
-      WSV group with the given Index.
-  */
-  /** Deallocate workspace variabe of given group.
-     * @param group_index: Index of the group to deallocate.
-     * @param ptr: Pointer to the WSV.
-     */
-  void deallocate(Index group_index, void *ptr) {
-    deallocation_ptrs_[group_index](ptr);
-  }
+  std::shared_ptr<void> allocate(Index group_index) { return allocation_ptrs_[group_index](); }
 
   /** Duplicate workspace variable of given group.
      * @param group_index The index of the group of the WSV.
      * @param Pointer to the WSV.
       WSV group with the given Index.
   */
-  void *duplicate(Index group_index, void *ptr) {
+  std::shared_ptr<void> duplicate(Index group_index, const std::shared_ptr<void>& ptr) {
     return duplication_ptrs_[group_index](ptr);
   }
 
   void initialize();
 
  private:
-  std::vector<void *(*)()> allocation_ptrs_;
-  std::vector<void (*)(void *)> deallocation_ptrs_;
-  std::vector<void *(*)(void *)> duplication_ptrs_;
+  std::vector<std::shared_ptr<void> (*)()> allocation_ptrs_;
+  std::vector<std::shared_ptr<void> (*)(const std::shared_ptr<void>&)> duplication_ptrs_;
 };
 #endif

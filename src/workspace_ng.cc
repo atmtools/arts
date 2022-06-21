@@ -29,21 +29,12 @@
 
 namespace global_data {
 WorkspaceMemoryHandler workspace_memory_handler{};
-} // namespace global_data
+}  // namespace global_data
 using global_data::workspace_memory_handler;
 
 Array<WsvRecord> Workspace::wsv_data;
 
 map<String, Index> Workspace::WsvMap;
-
-Workspace::Workspace()
-    : ws(0)
-#ifndef NDEBUG
-      ,
-      context("")
-#endif
-{
-}
 
 void Workspace::define_wsv_map() {
   for (Index i = 0; i < wsv_data.nelem(); ++i) {
@@ -59,127 +50,57 @@ Index Workspace::add_wsv(const WsvRecord &wsv) {
 
 Index Workspace::add_wsv_inplace(const WsvRecord &wsv) {
   const Index pos = add_wsv(wsv);
-  ws.push_back(stack<WsvStruct *>());
+  ws.emplace_back();
   return pos;
 }
 
-void Workspace::del(Index i) {
-  WsvStruct *wsvs = ws[i].top();
-
-  if (wsvs && wsvs->wsv) {
-    workspace_memory_handler.deallocate(wsv_data[i].Group(), wsvs->wsv);
-    wsvs->wsv = nullptr;
-    wsvs->auto_allocated = false;
-    wsvs->initialized = false;
+void Workspace::set_empty(Index i) {
+  if (ws[i].size()) {
+    ws[i].pop();
+    emplace(i);
   }
 }
 
 void Workspace::duplicate(Index i) {
-  auto *wsvs = new WsvStruct;
+  WsvStruct wsvs;
 
-  wsvs->auto_allocated = true;
-  if (ws[i].size() && ws[i].top()->wsv) {
-    wsvs->wsv = workspace_memory_handler.duplicate(wsv_data[i].Group(),
-                                                   ws[i].top()->wsv);
-    wsvs->initialized = true;
+  if (ws[i].size()) {
+    wsvs.wsv = workspace_memory_handler.duplicate(wsv_data[i].Group(),
+                                                  ws[i].top().wsv);
+    wsvs.initialized = true;
   } else {
-    wsvs->wsv = nullptr;
-    wsvs->initialized = false;
+    wsvs.wsv = workspace_memory_handler.allocate(wsv_data[i].Group());
+    wsvs.initialized = false;
   }
-  ws[i].push(wsvs);
+  ws[i].push(std::move(wsvs));
 }
 
 Workspace::Workspace(const Workspace &workspace) : ws(workspace.ws.nelem()) {
-#ifndef NDEBUG
-  context = workspace.context;
-#endif
   for (Index i = 0; i < workspace.ws.nelem(); i++) {
-    auto *wsvs = new WsvStruct;
-    wsvs->auto_allocated = false;
-    if (workspace.ws[i].size() && workspace.ws[i].top()->wsv) {
-      wsvs->wsv = workspace.ws[i].top()->wsv;
-      wsvs->initialized = workspace.ws[i].top()->initialized;
-    } else {
-      wsvs->wsv = nullptr;
-      wsvs->initialized = false;
-    }
-    ws[i].push(wsvs);
-  }
-}
-
-Workspace::~Workspace() {
-#ifndef NDEBUG
-#pragma omp critical(ws_destruct)
-  if (context != "") cout << "WS destruct: " << context << endl;
-#endif
-  for (int i = 0; i < ws.nelem(); i++) {
-    WsvStruct *wsvs;
-
-    while (ws[i].size()) {
-      wsvs = ws[i].top();
-      if (wsvs->auto_allocated && wsvs->wsv) {
-        workspace_memory_handler.deallocate(wsv_data[i].Group(), wsvs->wsv);
-      }
-      delete (wsvs);
-      ws[i].pop();
+    if (workspace.ws[i].size() && workspace.ws[i].top().wsv) {
+      WsvStruct wsvs;
+      wsvs.wsv = workspace.ws[i].top().wsv;
+      wsvs.initialized = workspace.ws[i].top().initialized;
+      ws[i].push(std::move(wsvs));
     }
   }
 }
 
-void *Workspace::pop(Index i) {
-  WsvStruct *wsvs = ws[i].top();
-  void *vp = nullptr;
-  if (wsvs) {
-    vp = wsvs->wsv;
-    delete wsvs;
-    ws[i].pop();
-  }
-  return vp;
-}
+void Workspace::pop(Index i) { ws[i].pop(); }
 
-void Workspace::pop_free(Index i) {
-  WsvStruct *wsvs = ws[i].top();
-
-  if (wsvs) {
-    if (wsvs->wsv)
-      workspace_memory_handler.deallocate(wsv_data[i].Group(), wsvs->wsv);
-
-    delete wsvs;
-    ws[i].pop();
-  }
-}
-
-void Workspace::push(Index i, void *wsv) {
-  auto *wsvs = new WsvStruct;
-  wsvs->auto_allocated = false;
-  wsvs->initialized = true;
-  wsvs->wsv = wsv;
-  ws[i].push(wsvs);
-}
-
-void Workspace::push_uninitialized(Index i, void *wsv) {
-  auto *wsvs = new WsvStruct;
-  wsvs->auto_allocated = false;
-  wsvs->initialized = false;
-  wsvs->wsv = wsv;
-  ws[i].push(wsvs);
-}
-
-void *Workspace::operator[](Index i) {
-  if (!ws[i].size()) push(i, nullptr);
-
-  if (!ws[i].top()->wsv) {
-    ws[i].top()->auto_allocated = true;
-    ws[i].top()->wsv = workspace_memory_handler.allocate(wsv_data[i].Group());
-  }
-
-  ws[i].top()->initialized = true;
-
-  return (ws[i].top()->wsv);
-}
-
-void Workspace::swap(Workspace& other) {
+void Workspace::swap(Workspace &other) {
   initialize();
   other.initialize();
   ws.swap(other.ws);
+}
+
+void Workspace::emplace(Index i) {
+  ws[i].emplace(
+      WsvStruct{workspace_memory_handler.allocate(wsv_data[i].Group()), false});
+}
+
+std::shared_ptr<void> Workspace::operator[](Index i) {
+  if (ws[i].size() == 0) emplace(i);
+  ws[i].top().initialized = true;
+  return ws[i].top().wsv;
 }

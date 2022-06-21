@@ -69,27 +69,21 @@ int main() {
 
     ofs << "// Allocation and deallocation routines for workspace groups\n";
     for (Index i = 0; i < wsv_groups.nelem(); ++i) {
-      ofs << "void *allocate_wsvg_" << wsv_groups[i] << "(){\n"
-          << "  return (void *)new " << wsv_groups[i] << ";\n}\n"
-          << "void deallocate_wsvg_" << wsv_groups[i]
-          << "(void *vp)\n"
-          << "  { delete (" << wsv_groups[i] << " *)vp;\n}\n"
-          << "void *duplicate_wsvg_" << wsv_groups[i]
-          << "(void *vp) {"
-          << "  return (new " << wsv_groups[i] << "(*("
-          << wsv_groups[i] << " *)vp));\n}\n\n";
+      ofs << "std::shared_ptr<void> allocate_wsvg_" << wsv_groups[i] << "(){\n"
+          << "  return std::make_shared<" << wsv_groups[i] << ">();\n}\n"
+          << "std::shared_ptr<void> duplicate_wsvg_" << wsv_groups[i]
+          << "(const std::shared_ptr<void>& vp) {"
+          << "  return std::make_shared<" << wsv_groups[i] << ">(*static_cast<"
+          << wsv_groups[i] << "*>(vp.get()));\n}\n\n";
     }
 
     ofs << "  /// Initialization dispatch functions.\n"
         << "void WorkspaceMemoryHandler::initialize() {\n"
         << "  allocation_ptrs_.resize(" << wsv_groups.size() << ");\n"
-        << "  deallocation_ptrs_.resize(" << wsv_groups.size() << ");\n"
         << "  duplication_ptrs_.resize(" << wsv_groups.size() << ");\n\n";
 
     for (Index i = 0; i < wsv_groups.nelem(); ++i) {
       ofs << "  allocation_ptrs_[" << i << "] = allocate_wsvg_" << wsv_groups[i]
-          << ";\n"
-          << "  deallocation_ptrs_[" << i << "] = deallocate_wsvg_" << wsv_groups[i]
           << ";\n"
           << "  duplication_ptrs_[" << i << "] = duplicate_wsvg_" << wsv_groups[i]
           << ";\n";

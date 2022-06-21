@@ -315,7 +315,7 @@ void py_agenda(py::module_& m) {
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
              Agenda* a = parse_agenda(
                  correct_include_path(path).c_str(),
-                 *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
+                 *w.get<Verbosity>("verbosity").get());
              w.initialize();
              return a;
            }),
@@ -329,7 +329,7 @@ void py_agenda(py::module_& m) {
       .def("set_outputs_to_push_and_dup",
            [](Agenda& a, Workspace& w) {
              a.set_outputs_to_push_and_dup(
-                 *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
+                 *w.get<Verbosity>("verbosity").get());
            })
       .def(
           "add_workspace_method",
@@ -539,7 +539,7 @@ so Copy(a, out=b) will not even see the b variable.
 
             Index in = ws.add_wsv_inplace(WsvRecord(
                 name.c_str(), "Callback created by pybind11 API", group_index));
-            ws.push(in, new CallbackFunction{f});
+            ws.push_move(in, std::make_shared<CallbackFunction>(f));
 
             auto method_ptr =
                 global_data::MdMap.find("CallbackFunctionExecute");
@@ -594,7 +594,7 @@ Both agendas must be defined on the same workspace)--"),
           "check",
           [](Agenda& a, Workspace& w) {
             a.check(w,
-                    *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
+                    *static_cast<Verbosity*>(w.get<Verbosity>("verbosity").get()));
           },
           py::keep_alive<1, 2>(),
           py::doc("Checks if the agenda works"))
@@ -696,7 +696,7 @@ Both agendas must be defined on the same workspace)--"),
             for (auto& a : aa)
               a.check(
                   w,
-                  *reinterpret_cast<Verbosity*>(w[w.WsvMap.at("verbosity")]));
+                  *static_cast<Verbosity*>(w.get<Verbosity>("verbosity").get()));
           },
           py::doc("Checks if the agenda works"))
       .def_property(

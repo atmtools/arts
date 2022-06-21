@@ -26,34 +26,40 @@
 #define WORKSPACE_NG_INCLUDED
 
 #include <map>
+#include <memory>
 #include <stack>
+#include <vector>
+
 
 class Workspace;
 
 #include "array.h"
 #include "wsv_aux.h"
 
+class Workspace;
+struct WorkspaceBorrowGuard {
+  Workspace &ws;
+  Index i;
+  ~WorkspaceBorrowGuard();
+};
+
 /** Workspace class.
  *
  * Manages the workspace variables.
  */
-class Workspace {
+class Workspace final {
  protected:
   struct WsvStruct {
-    void *wsv;
+    std::shared_ptr<void> wsv;
     bool initialized;
-    bool auto_allocated;
   };
 
+  using Stack = stack<WsvStruct, std::vector<WsvStruct>>;
+
   /** Workspace variable container. */
-  Array<stack<WsvStruct *> > ws;
+  Array<Stack> ws{};
 
  public:
-#ifndef NDEBUG
-  /** Debugging context. */
-  String context;
-#endif
-
   /** Global WSV data. */
   static Array<WsvRecord> wsv_data;
 
@@ -64,7 +70,7 @@ class Workspace {
    *
    * Create the stacks for the WSVs.
    */
-  Workspace();
+  Workspace() = default;
 
   /** Workspace copy constructor.
    *
@@ -74,9 +80,6 @@ class Workspace {
    * @param[in] workspace The workspace to be copied
    */
   Workspace(const Workspace &workspace);
-
-  /** Destruct the workspace and free all WSVs. */
-  virtual ~Workspace();
 
   /** Define workspace variables. */
   static void define_wsv_data();
@@ -93,7 +96,7 @@ class Workspace {
    *
    * @param[in] i WSV index.
    */
-  void del(Index i);
+  void set_empty(Index i);
 
   /** Duplicate WSV.
    *
@@ -116,29 +119,21 @@ class Workspace {
    * @return true if the WSV exists, otherwise false.
    */
   [[nodiscard]] bool is_initialized(Index i) const {
-    return ((ws[i].size() != 0) && (ws[i].top()->initialized == true));
+    return ws[i].size() and ws[i].top().initialized;
   }
 
   /** Return scoping level of the given WSV. */
-  Index depth(Index i) { return (Index)ws[i].size(); }
+  Index depth(Index i) { return static_cast<Index>(ws[i].size()); }
 
   /** Remove the topmost WSV from its stack.
    *
-   * Memory is not freed.
-   *
-   * @see pop_free
+   * Memory is freed depending on if it was borrowed or not.
    *
    * @param[in] i WSV index.
    */
-  void *pop(Index i);
+  void pop(Index i);
 
-  /** Remove the topmost WSV from its stack and free its memory.
-   *
-   * @see pop
-   *
-   *  @param[in] i WSV index.
-   */
-  void pop_free(Index i);
+  void emplace(Index);
 
   /** Push a new WSV onto its stack.
    *
@@ -147,7 +142,16 @@ class Workspace {
    * @param[in] i WSV index.
    * @param[in] Pointer to variable that should be put on the stack.
    */
-  void push(Index i, void *wsv);
+  template <typename T>
+  WorkspaceBorrowGuard borrow(Index i, T &wsv) {
+    using U = std::remove_cv_t<T>;
+    std::shared_ptr<U> wsv_ptr(const_cast<U *>(&wsv), [](U *) {});
+    WsvStruct wsvs;
+    wsvs.initialized = true;
+    wsvs.wsv = wsv_ptr;
+    ws[i].push(wsvs);
+    return {*this, i};
+  }
 
   /** Put a new WSV onto its stack.
    *
@@ -156,28 +160,52 @@ class Workspace {
    * @param[in] i WSV index.
    * @param[in] Pointer to the WSV to put on the stack.
    */
-  void push_uninitialized(Index i, void *wsv);
+  template <typename T>
+  WorkspaceBorrowGuard borrow_uninitialized(Index i, T &wsv) {
+    using U = std::remove_cv_t<T>;
+    std::shared_ptr<U> wsv_ptr(const_cast<U *>(&wsv), [](U *) {});
+    WsvStruct wsvs;
+    wsvs.initialized = false;
+    wsvs.wsv = wsv_ptr;
+    ws[i].push(wsvs);
+    return {*this, i};
+  }
+
+  /** Move a WSV onto its stack.
+   *
+   * @see push_uninitialized
+   *
+   * @param[in] i WSV index.
+   * @param[in] Pointer to variable that should be put on the stack.
+   */
+  template <typename T>
+  void push_move(Index i, std::shared_ptr<T> &&wsv_ptr) {
+    WsvStruct wsvs;
+    wsvs.initialized = true;
+    wsvs.wsv = std::forward<std::shared_ptr<T>>(wsv_ptr);
+    ws[i].push(wsvs);
+  }
 
   /** Get the number of workspace variables. */
   [[nodiscard]] Index nelem() const { return ws.nelem(); }
-  
+
   /** Add a new variable to existing workspace and to the static maps */
   Index add_wsv_inplace(const WsvRecord &wsv);
 
   /** Retrieve a pointer to the given WSV. */
-  void *operator[](Index i);
+  std::shared_ptr<void> operator[](Index i);
 
   /** Retrieve a value ptr if it exist (FIXME: C++20 allows const char* as template argument) */
   template <class T>
-  T *get(const char *name) {
+  std::shared_ptr<T> get(const char *name) {
     if (const Index pos = WsvMap.at(name); is_initialized(pos)) {
-      return static_cast<T *>(operator[](pos));
+      return static_pointer_cast<T>(operator[](pos));
     }
     return nullptr;
   }
 
   /** Swap with another workspace */
-  void swap(Workspace& other);
+  void swap(Workspace &other);
 };
 
 /** Print WSV name to output stream.
@@ -209,5 +237,7 @@ void PrintWsvNames(OutputStream &outstream, const Container &container) {
     PrintWsvName(outstream, *it);
   }
 }
+
+inline WorkspaceBorrowGuard::~WorkspaceBorrowGuard() { ws.pop(i); }
 
 #endif /* WORKSPACE_NG_INCLUDED */

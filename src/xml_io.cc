@@ -148,7 +148,7 @@ void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
   {
     ifs = std::shared_ptr<istream>(new igzstream());
     xml_open_input_file(
-        *(std::static_pointer_cast<igzstream>(ifs)), xml_file, verbosity);
+        *(static_cast<igzstream*>(ifs.get())), xml_file, verbosity);
   }
 #else
   {
@@ -160,7 +160,7 @@ void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
   else {
     ifs = shared_ptr<istream>(new ifstream());
     xml_open_input_file(
-        *(std::static_pointer_cast<ifstream>(ifs)), xml_file, verbosity);
+        *(static_cast<ifstream*>(ifs.get())), xml_file, verbosity);
   }
 }
 

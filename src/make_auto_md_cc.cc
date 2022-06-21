@@ -208,8 +208,8 @@ int main() {
         // variable for any other parameter
         ofs << "  if (mr.In().end() == find(mr.In().begin(), mr.In().end(),"
             << " mr.Out()[" << voutonly[j] << "]))\n";
-        ofs << "    (*((" << wsv_groups[wsv_data[vo[voutonly[j]]].Group()]
-            << " *)ws[mr.Out()[" << voutonly[j] << "]]))" << initstr.str();
+        ofs << "    (*(static_cast<" << wsv_groups[wsv_data[vo[voutonly[j]]].Group()]
+            << "*>(ws[mr.Out()[" << voutonly[j] << "]].get())))" << initstr.str();
         ofs << docstr.str();
       }
 #endif /* NDEBUG */
@@ -232,8 +232,8 @@ int main() {
         // Add comma and line break, if not first element:
         align(ofs, is_first_parameter, indent);
 
-        ofs << "*((" << wsv_groups[wsv_data[vo[j]].Group()]
-            << " *)ws[mr.Out()[" << j << "]])";
+        ofs << "*(static_cast<" << wsv_groups[wsv_data[vo[j]].Group()]
+            << "*>(ws[mr.Out()[" << j << "]].get()))";
       }
 
       // Write the Generic output workspace variables:
@@ -247,8 +247,8 @@ int main() {
         // Add comma and line break, if not first element:
         align(ofs, is_first_parameter, indent);
 
-        ofs << "*((" << wsv_groups[vgo[j]] << " *)ws[mr.Out()["
-            << j + vo.nelem() << "]])";
+        ofs << "*(static_cast<" << wsv_groups[vgo[j]] << "*>(ws[mr.Out()["
+            << j + vo.nelem() << "]].get()))";
       }
 
       // Write the Generic output workspace variable names:
@@ -268,11 +268,11 @@ int main() {
         align(ofs, is_first_parameter, indent);
 
         if (is_agenda_group_id(wsv_data[vi[j]].Group())) {
-          ofs << "*((" << wsv_groups[wsv_data[vi[j]].Group()]
-              << " *)ws[mr.In()[" << j << "]])";
+          ofs << "*(static_cast<" << wsv_groups[wsv_data[vi[j]].Group()]
+              << "*>(ws[mr.In()[" << j << "]].get()))";
         } else {
-          ofs << "*((" << wsv_groups[wsv_data[vi[j]].Group()]
-              << " *)ws[mr.In()[" << j << "]])";
+          ofs << "*(static_cast<" << wsv_groups[wsv_data[vi[j]].Group()]
+              << "*>(ws[mr.In()[" << j << "]].get()))";
         }
       }
 
@@ -295,8 +295,8 @@ int main() {
             // Add comma and line break, if not first element:
             align(ofs, is_first_parameter, indent);
 
-            ofs << "*((" << wsv_groups[vgi[j]] << " *)ws[mr.In()["
-                << j + vi.nelem() << "]])";
+            ofs << "*(static_cast<" << wsv_groups[vgi[j]] << "*>(ws[mr.In()["
+                << j + vi.nelem() << "]].get()))";
           }
 
           // Write the Generic input workspace variable names:
@@ -340,8 +340,8 @@ int main() {
         static Index verbosity_wsv_id = get_wsv_id("verbosity");
         static Index verbosity_group_id = get_wsv_group_id("Verbosity");
         align(ofs, is_first_parameter, indent);
-        ofs << "*((" << wsv_groups[verbosity_group_id] << " *)ws["
-            << verbosity_wsv_id << "])";
+        ofs << "*(static_cast<" << wsv_groups[verbosity_group_id] << "*>(ws["
+            << verbosity_wsv_id << "].get()))";
       }
 
       ofs << ");\n";
@@ -388,7 +388,7 @@ int main() {
     ofs << "        if (ws.is_initialized(i))\n";
     ofs << "            ws.duplicate(i);\n";
     ofs << "        else\n";
-    ofs << "            ws.push_uninitialized(i, NULL);\n";
+    ofs << "            ws.emplace(i);\n";
     ofs << "    }\n";
     ofs << "\n";
     ofs << "    for (auto&& i : outputs_to_dup)\n";
@@ -409,10 +409,10 @@ int main() {
     ofs << "    }\n";
     ofs << "\n";
     ofs << "    for (auto&& i : outputs_to_push)\n";
-    ofs << "        ws.pop_free(i);\n";
+    ofs << "        ws.pop(i);\n";
     ofs << "\n";
     ofs << "    for (auto&& i : outputs_to_dup)\n";
-    ofs << "        ws.pop_free(i);\n";
+    ofs << "        ws.pop(i);\n";
     ofs << "}\n\n";
 
     // Create implementation of the agenda wrappers
@@ -463,27 +463,25 @@ int main() {
       if (ago.nelem()) {
         for (Index j = 0; j < ago.nelem(); j++) {
           // Mark agenda output-only variables as uninitialized
-          ArrayOfIndex::const_iterator it = agi.begin();
+          auto it = agi.begin();
           while (it != agi.end() && *it != ago[j]) it++;
           if (it == agi.end()) {
-            aout_push_os << "  ws.push_uninitialized (aout[" << j << "], "
-                         << "(void *)&" << wsv_data[ago[j]].Name() << ");\n";
+            aout_push_os << "  auto borrowed_out_"<<j<<"{ws.borrow_uninitialized (aout[" << j << "], "
+                         << wsv_data[ago[j]].Name() << ")};\n";
           } else {
-            aout_push_os << "  ws.push (aout[" << j << "], "
-                         << "(void *)&" << wsv_data[ago[j]].Name() << ");\n";
+            aout_push_os << "  auto borrowed_out_"<<j<<"{ws.borrow (aout[" << j << "], "
+                         << wsv_data[ago[j]].Name() << ")};\n";
           }
-          aout_pop_os << "  ws.pop (aout[" << j << "]);\n";
         }
       }
       if (agi.nelem()) {
         for (Index j = 0; j < agi.nelem(); j++) {
           // Ignore Input parameters that are also output
-          ArrayOfIndex::const_iterator it = ago.begin();
+          auto it = ago.begin();
           while (it != ago.end() && *it != agi[j]) it++;
           if (it == ago.end()) {
-            ain_push_os << "  ws.push (ain[" << j << "], "
-                        << "(void *)&" << wsv_data[agi[j]].Name() << ");\n";
-            ain_pop_os << "  ws.pop (ain[" << j << "]);\n";
+            ain_push_os << "  auto borrowed_in_"<<j<<"{ws.borrow (ain[" << j << "], "
+                        << wsv_data[agi[j]].Name() << ")};\n";
           }
         }
       }
