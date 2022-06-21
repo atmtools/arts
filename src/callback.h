@@ -1,9 +1,10 @@
 #ifndef callback_h
 #define callback_h
 
-#include "workspace_ng.h"
+class Workspace;
 
 #include <functional>
+#include <ostream>
 
 struct CallbackFunction : public std::function<void(Workspace&)> {
   CallbackFunction() : std::function<void(Workspace&)>([](Workspace&){}) {}

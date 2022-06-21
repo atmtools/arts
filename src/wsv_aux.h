@@ -32,6 +32,8 @@
 #include "arts.h"
 #include "exceptions.h"
 
+#include <tokval.h>
+
 //! Returns list of ids of the given group names
 void get_wsv_group_ids(ArrayOfIndex& ids, String name);
 
@@ -102,8 +104,12 @@ class WsvRecord {
 
  private:
   String mname;
+  
   String mdescription;
+
   Index mgroup;
+
+  TokVal defval{Any{}};
 };
 
 /** Output operator for WsvRecord.

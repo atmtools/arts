@@ -105,6 +105,7 @@ add_executable (make_auto_md_h
         parameters.cc
         workspace.cc
         workspace_ng.cc
+        tokval.cc
         )
 
 if (ENABLE_PCH)
@@ -129,6 +130,7 @@ add_executable (make_auto_md_cc
         parameters.cc
         workspace.cc
         workspace_ng.cc
+        tokval.cc
         )
 
 if (ENABLE_PCH)
