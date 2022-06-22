@@ -48,7 +48,7 @@ class Workspace;
   for example to compute the lineshape in an absorption
   calculation. 
 */
-class Agenda {
+class Agenda final {
  public:
   Agenda()
       : mname(),

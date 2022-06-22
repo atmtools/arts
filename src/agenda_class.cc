@@ -179,7 +179,8 @@ void Agenda::execute(Workspace& ws) const {
   const Index wsv_id_verbosity = get_wsv_id("verbosity");
   ws.duplicate(wsv_id_verbosity);
 
-  Verbosity& averbosity = *((Verbosity*)ws[wsv_id_verbosity]);
+  Verbosity& averbosity =
+      *(static_cast<Verbosity*>(ws[wsv_id_verbosity].get()));
 
   averbosity.set_main_agenda(is_main_agenda());
 
@@ -194,7 +195,7 @@ void Agenda::execute(Workspace& ws) const {
   }
 
   for (Index i = 0; i < mml.nelem(); ++i) {
-    const Verbosity& verbosity = *((Verbosity*)ws[wsv_id_verbosity]);
+    const Verbosity& verbosity = * static_cast<Verbosity*>(ws[wsv_id_verbosity].get());
     CREATE_OUT1;
     CREATE_OUT3;
 
@@ -257,7 +258,7 @@ void Agenda::execute(Workspace& ws) const {
 
   aout1 << "}\n";
 
-  ws.pop_free(wsv_id_verbosity);
+  ws.pop(wsv_id_verbosity);
 }
 
 //! Retrieve indexes of all input and output WSVs
