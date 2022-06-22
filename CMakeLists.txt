@@ -554,6 +554,7 @@ add_subdirectory (controlfiles)
 add_subdirectory (controlfiles-python)
 add_subdirectory (python)
 add_subdirectory (examples)
+add_subdirectory (tests)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
