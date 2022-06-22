@@ -1656,8 +1656,7 @@ void iyb_calc(Workspace& ws,
          << " frequencies)\n";
 
     // Start of actual calculations
-#pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(ws, iy_main_agenda, geo_pos_agenda)
+#pragma omp parallel for if (!arts_omp_in_parallel()) firstprivate(ws)
     for (Index ilos = 0; ilos < nlos; ilos++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;

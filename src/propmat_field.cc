@@ -72,7 +72,7 @@ void field_of_propagation(Workspace& ws,
       FieldOfStokesVector(nalt, nlat, nlon, StokesVector(nf, stokes_dim));
 
 #pragma omp parallel for if (not arts_omp_in_parallel()) schedule(guided) \
-    firstprivate(ws, propmat_clearsky_agenda)
+    firstprivate(ws)
   for (Index i = 0; i < nalt; i++) {
     for (Index j = 0; j < nlat; j++) {
       for (Index k = 0; k < nlon; k++) {

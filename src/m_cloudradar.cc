@@ -966,7 +966,7 @@ void particle_bulkpropRadarOnionPeeling(
 
   // Loop all profiles
 #pragma omp parallel for if (!arts_omp_in_parallel() && nlat + nlon > 2) \
-    firstprivate(ws, propmat_clearsky_agenda) collapse(2)
+    firstprivate(ws) collapse(2)
   for (Index ilat = 0; ilat < nlat; ilat++) {
     for (Index ilon = 0; ilon < nlon; ilon++) {
       if (fail_msg.nelem() != 0) continue;

@@ -360,7 +360,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
     !arts_omp_in_parallel() &&                                        \
     these_t_pert_nelem >=                                             \
         arts_omp_get_max_threads()) private(this_t)                   \
-    firstprivate(ws, propmat_clearsky_agenda)
+    firstprivate(ws)
       for (Index j = 0; j < these_t_pert_nelem; ++j) {
         // Skip remaining iterations if an error occurred
         if (failed) continue;
@@ -2230,13 +2230,10 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
 
   // Now we have to loop all points in the atmosphere:
   if (n_pressures)
-#pragma omp parallel for if (!arts_omp_in_parallel() &&                        \
-                             n_pressures >= arts_omp_get_max_threads())        \
-    firstprivate(ws, abs_agenda, this_f_grid) private(abs,                 \
-                                                          nlte,                \
-                                                          partial_abs,         \
-                                                          partial_nlte,        \
-                                                          a_vmr_list)
+#pragma omp parallel for if (!arts_omp_in_parallel() &&                 \
+                             n_pressures >= arts_omp_get_max_threads()) \
+    firstprivate(ws, this_f_grid) private(                              \
+        abs, nlte, partial_abs, partial_nlte, a_vmr_list)
     for (Index ipr = 0; ipr < n_pressures; ++ipr)  // Pressure:  ipr
     {
       // Skip remaining iterations if an error occurred

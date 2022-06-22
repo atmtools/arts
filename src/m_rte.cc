@@ -897,7 +897,7 @@ void iyEmissionStandard(
 
     // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(ws, propmat_clearsky_agenda, a, B, dB_dT, S, da_dx, dS_dx)
+    firstprivate(ws, a, B, dB_dT, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
       if (do_abort) continue;
       try {
@@ -1744,12 +1744,7 @@ void iyMC(Workspace& ws,
   bool failed = false;
 
   if (nf)
-#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) \
-    firstprivate(ws,                                          \
-                 ppath_step_agenda,                           \
-                 iy_space_agenda,                             \
-                 propmat_clearsky_agenda,                     \
-                 surface_rtprop_agenda)
+#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(ws)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) continue;
 
@@ -1992,8 +1987,7 @@ void yCalc(Workspace& ws,
       (nf <= nmblock && nmblock >= nlos)) {
     out3 << "  Parallelizing mblock loop (" << nmblock << " iterations)\n";
 
-#pragma omp parallel for firstprivate( \
-    ws, jacobian_agenda, iy_main_agenda, geo_pos_agenda)
+#pragma omp parallel for firstprivate(ws)
     for (Index mblock_index = 0; mblock_index < nmblock; mblock_index++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;

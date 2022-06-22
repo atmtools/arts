@@ -121,8 +121,7 @@ void ybatchCalc(Workspace& ws,
 
   if (ybatch_n)
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1)              \
-    firstprivate(ws, ybatch_calc_agenda)
+                                               ybatch_n > 1) firstprivate(ws)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.
@@ -683,8 +682,7 @@ void DOBatchCalc(Workspace& ws,
 
   if (ybatch_n)
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1)              \
-    firstprivate(ws, dobatch_calc_agenda)
+                                               ybatch_n > 1) firstprivate(ws)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.

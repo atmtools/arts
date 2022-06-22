@@ -2809,8 +2809,7 @@ void DoitCalc(Workspace& ws,
     String fail_msg;
     bool failed = false;
 
-#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) \
-    firstprivate(ws, doit_mono_agenda)
+#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(ws)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) {
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
