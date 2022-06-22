@@ -71,23 +71,20 @@ void field_of_propagation(Workspace& ws,
   additional_source_field =
       FieldOfStokesVector(nalt, nlat, nlon, StokesVector(nf, stokes_dim));
 
-  Workspace l_ws(ws);
-  Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
-
 #pragma omp parallel for if (not arts_omp_in_parallel()) schedule(guided) \
-    firstprivate(l_ws, l_propmat_clearsky_agenda)
+    firstprivate(ws, propmat_clearsky_agenda)
   for (Index i = 0; i < nalt; i++) {
     for (Index j = 0; j < nlat; j++) {
       for (Index k = 0; k < nlon; k++) {
         thread_local Index itmp;
         get_stepwise_clearsky_propmat(
-            l_ws,
+            ws,
             propmat_field(i, j, k),
             additional_source_field(i, j, k),
             itmp,
             dK_dx,
             dS_dx,
-            l_propmat_clearsky_agenda,
+            propmat_clearsky_agenda,
             jacobian_quantities,
             f_grid,
             mag_field,

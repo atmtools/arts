@@ -1649,12 +1649,6 @@ void iyb_calc(Workspace& ws,
   // all outout
   ArrayOfArrayOfMatrix iy_aux_array(nlos);
 
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws(ws);
-  Agenda l_iy_main_agenda(iy_main_agenda);
-  Agenda l_geo_pos_agenda(geo_pos_agenda);
-
   String fail_msg;
   bool failed = false;
   if (nlos >= arts_omp_get_max_threads() || nlos * 10 >= nf) {
@@ -1663,7 +1657,7 @@ void iyb_calc(Workspace& ws,
 
     // Start of actual calculations
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
+    firstprivate(ws, iy_main_agenda, geo_pos_agenda)
     for (Index ilos = 0; ilos < nlos; ilos++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
@@ -1672,7 +1666,7 @@ void iyb_calc(Workspace& ws,
       iyb_calc_body(failed,
                     fail_msg,
                     iy_aux_array,
-                    l_ws,
+                    ws,
                     ppath,
                     iyb,
                     diyb_dx,
@@ -1686,7 +1680,7 @@ void iyb_calc(Workspace& ws,
                     transmitter_pos,
                     mblock_dlos_grid,
                     iy_unit,
-                    l_iy_main_agenda,
+                    iy_main_agenda,
                     j_analytical_do,
                     jacobian_quantities,
                     jacobian_indices,
@@ -1701,7 +1695,7 @@ void iyb_calc(Workspace& ws,
       // Note that this code is found in two places inside the function
       Vector geo_pos;
       try {
-        geo_pos_agendaExecute(l_ws, geo_pos, ppath, l_geo_pos_agenda);
+        geo_pos_agendaExecute(ws, geo_pos, ppath, geo_pos_agenda);
         if (geo_pos.nelem()) {
           ARTS_USER_ERROR_IF (geo_pos.nelem() != 5,
                 "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
@@ -1729,7 +1723,7 @@ void iyb_calc(Workspace& ws,
       iyb_calc_body(failed,
                     fail_msg,
                     iy_aux_array,
-                    l_ws,
+                    ws,
                     ppath,
                     iyb,
                     diyb_dx,
@@ -1743,7 +1737,7 @@ void iyb_calc(Workspace& ws,
                     transmitter_pos,
                     mblock_dlos_grid,
                     iy_unit,
-                    l_iy_main_agenda,
+                    iy_main_agenda,
                     j_analytical_do,
                     jacobian_quantities,
                     jacobian_indices,
@@ -1758,7 +1752,7 @@ void iyb_calc(Workspace& ws,
       // Note that this code is found in two places inside the function
       Vector geo_pos;
       try {
-        geo_pos_agendaExecute(l_ws, geo_pos, ppath, l_geo_pos_agenda);
+        geo_pos_agendaExecute(ws, geo_pos, ppath, geo_pos_agenda);
         if (geo_pos.nelem()) {
           ARTS_USER_ERROR_IF (geo_pos.nelem() != 5,
                 "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"

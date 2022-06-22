@@ -962,13 +962,11 @@ void particle_bulkpropRadarOnionPeeling(
   // relationship. 
   const Numeric extrap_fac = 100;
   
-  Workspace l_ws(ws);
-  Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
   ArrayOfString fail_msg;
 
   // Loop all profiles
 #pragma omp parallel for if (!arts_omp_in_parallel() && nlat + nlon > 2) \
-    firstprivate(l_ws, l_propmat_clearsky_agenda) collapse(2)
+    firstprivate(ws, propmat_clearsky_agenda) collapse(2)
   for (Index ilat = 0; ilat < nlat; ilat++) {
     for (Index ilon = 0; ilon < nlon; ilon++) {
       if (fail_msg.nelem() != 0) continue;
@@ -1059,7 +1057,7 @@ void particle_bulkpropRadarOnionPeeling(
                   ArrayOfStokesVector partial_nlte_dummy;
                   EnergyLevelMap rtp_nlte_local_dummy;
                   propmat_clearsky_agendaExecute(
-                      l_ws,
+                      ws,
                       propmat,
                       nlte_dummy,
                       partial_dummy,
@@ -1073,7 +1071,7 @@ void particle_bulkpropRadarOnionPeeling(
                       t_field(ip, ilat, ilon),
                       rtp_nlte_local_dummy,
                       vmr_field(joker, ip, ilat, ilon),
-                      l_propmat_clearsky_agenda);
+                      propmat_clearsky_agenda);
                   k_this = propmat.Kjj()[0];
                   // Optical thickness
                   Numeric tau =
