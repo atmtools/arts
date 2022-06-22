@@ -6,7 +6,7 @@ else()
     )
 endif()
 
-string(REGEX REPLACE ";" " arts-cat-data/" DOWNLOAD_CATDATA_DEPS "${DOWNLOAD_XMLDATA}")
+string(REGEX REPLACE ";" " arts-cat-data/" DOWNLOAD_CATDATA_DEPS "${DOWNLOAD_CATDATA}")
 
 if(DOWNLOAD_CATDATA_DEPS)
     string(PREPEND DOWNLOAD_CATDATA_DEPS "arts-cat-data/")
