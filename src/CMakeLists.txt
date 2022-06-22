@@ -384,6 +384,7 @@ add_library (methods STATIC
         methods.cc
         methods_aux.cc
         groups.cc
+        tokval.cc
         )
 
 ########### next target ###############

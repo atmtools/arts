@@ -155,7 +155,6 @@ void py_workspace(py::module_& m,
       .def_property_readonly("name", &WsvRecord::Name)
       .def_property_readonly("description", &WsvRecord::Description)
       .def_property_readonly("group", &WsvRecord::Group)
-      .def_property_readonly("implicit", &WsvRecord::Implicit)
       .def("__str__", [](const WsvRecord& mr) { return var_string(mr); })
       .def("__repr__", [](const WsvRecord& mr) { return var_string(mr); });
 
