@@ -387,6 +387,8 @@ add_library (methods STATIC
         tokval.cc
         )
 
+target_link_libraries(methods PUBLIC species)
+
 ########### next target ###############
 
 add_library (test_utils STATIC
