@@ -541,7 +541,6 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   // Create one altitude just above TOA
   const Numeric z_space = z_field(nl - 1, 0, 0) + 10;
 
-  Workspace l_ws(ws);
   ArrayOfString fail_msg;
   bool failed = false;
 
@@ -561,7 +560,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   //
   if (nza)
 #pragma omp parallel for if (!arts_omp_in_parallel() && nza > 1 && \
-                             use_parallel_za) firstprivate(l_ws)
+                             use_parallel_za) firstprivate(ws)
     for (Index i = 0; i < nza; i++) {
       if (failed) continue;
       try {
@@ -593,7 +592,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
-        iyEmissionStandard(l_ws,
+        iyEmissionStandard(ws,
                            iy,
                            iy_aux,
                            diy_dx,
@@ -797,7 +796,6 @@ void spectral_radiance_fieldExpandCloudboxField(
   // Create one altitude just above TOA
   const Numeric z_space = z_field(nl - 1, 0, 0) + 10;
 
-  Workspace l_ws(ws);
   ArrayOfString fail_msg;
   bool failed = false;
 
@@ -817,7 +815,7 @@ void spectral_radiance_fieldExpandCloudboxField(
   //
   if (nza)
 #pragma omp parallel for if (!arts_omp_in_parallel() && nza > 1 && \
-                             use_parallel_za) firstprivate(l_ws)
+                             use_parallel_za) firstprivate(ws)
     for (Index i = 0; i < nza; i++) {
       if (failed) continue;
       try {
@@ -849,7 +847,7 @@ void spectral_radiance_fieldExpandCloudboxField(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
-        iyEmissionStandard(l_ws,
+        iyEmissionStandard(ws,
                            iy,
                            iy_aux,
                            diy_dx,

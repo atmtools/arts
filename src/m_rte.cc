@@ -892,14 +892,12 @@ void iyEmissionStandard(
           })
     }
 
-    Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
-    Workspace l_ws(ws);
     ArrayOfString fail_msg;
     bool do_abort = false;
 
     // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(l_ws, l_propmat_clearsky_agenda, a, B, dB_dT, S, da_dx, dS_dx)
+    firstprivate(ws, a, B, dB_dT, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
       if (do_abort) continue;
       try {
@@ -907,13 +905,13 @@ void iyEmissionStandard(
             B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
 
         Index lte;
-        get_stepwise_clearsky_propmat(l_ws,
+        get_stepwise_clearsky_propmat(ws,
                                       K[ip],
                                       S,
                                       lte,
                                       dK_dx[ip],
                                       dS_dx,
-                                      l_propmat_clearsky_agenda,
+                                      propmat_clearsky_agenda,
                                       jacobian_quantities,
                                       ppvar_f(joker, ip),
                                       ppvar_mag(joker, ip),
@@ -1742,22 +1740,11 @@ void iyMC(Workspace& ws,
   pos(0, joker) = rte_pos;
   los(0, joker) = rte_los;
 
-  Workspace l_ws(ws);
-  Agenda l_ppath_step_agenda(ppath_step_agenda);
-  Agenda l_iy_space_agenda(iy_space_agenda);
-  Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
-  Agenda l_surface_rtprop_agenda(surface_rtprop_agenda);
-
   String fail_msg;
   bool failed = false;
 
   if (nf)
-#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) \
-    firstprivate(l_ws,                                          \
-                 l_ppath_step_agenda,                           \
-                 l_iy_space_agenda,                             \
-                 l_propmat_clearsky_agenda,                     \
-                 l_surface_rtprop_agenda)
+#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(ws)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) continue;
 
@@ -1772,7 +1759,7 @@ void iyMC(Workspace& ws,
         Tensor3 mc_points;
         ArrayOfIndex mc_scat_order, mc_source_domain;
 
-        MCGeneral(l_ws,
+        MCGeneral(ws,
                   y,
                   mc_iteration_count,
                   mc_error,
@@ -1786,12 +1773,12 @@ void iyMC(Workspace& ws,
                   los,
                   stokes_dim,
                   atmosphere_dim,
-                  l_ppath_step_agenda,
+                  ppath_step_agenda,
                   ppath_lmax,
                   ppath_lraytrace,
-                  l_iy_space_agenda,
-                  l_surface_rtprop_agenda,
-                  l_propmat_clearsky_agenda,
+                  iy_space_agenda,
+                  surface_rtprop_agenda,
+                  propmat_clearsky_agenda,
                   p_grid,
                   lat_grid,
                   lon_grid,
@@ -2000,15 +1987,7 @@ void yCalc(Workspace& ws,
       (nf <= nmblock && nmblock >= nlos)) {
     out3 << "  Parallelizing mblock loop (" << nmblock << " iterations)\n";
 
-    // We have to make a local copy of the Workspace and the agendas because
-    // only non-reference types can be declared firstprivate in OpenMP
-    Workspace l_ws(ws);
-    Agenda l_jacobian_agenda(jacobian_agenda);
-    Agenda l_iy_main_agenda(iy_main_agenda);
-    Agenda l_geo_pos_agenda(geo_pos_agenda);
-
-#pragma omp parallel for firstprivate( \
-    l_ws, l_jacobian_agenda, l_iy_main_agenda, l_geo_pos_agenda)
+#pragma omp parallel for firstprivate(ws)
     for (Index mblock_index = 0; mblock_index < nmblock; mblock_index++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
@@ -2016,7 +1995,7 @@ void yCalc(Workspace& ws,
       yCalc_mblock_loop_body(failed,
                              fail_msg,
                              iyb_aux_array,
-                             l_ws,
+                             ws,
                              y,
                              y_f,
                              y_pol,
@@ -2038,9 +2017,9 @@ void yCalc(Workspace& ws,
                              sensor_response_pol,
                              sensor_response_dlos,
                              iy_unit,
-                             l_iy_main_agenda,
-                             l_geo_pos_agenda,
-                             l_jacobian_agenda,
+                             iy_main_agenda,
+                             geo_pos_agenda,
+                             jacobian_agenda,
                              jacobian_do,
                              jacobian_quantities,
                              jacobian_indices,

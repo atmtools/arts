@@ -2802,11 +2802,6 @@ void DoitCalc(Workspace& ws,
 
   //-------- end of checks ----------------------------------------
 
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws(ws);
-  Agenda l_doit_mono_agenda(doit_mono_agenda);
-
   // OMP likes simple loop end conditions, so we make a local copy here:
   const Index nf = f_grid.nelem();
 
@@ -2814,8 +2809,7 @@ void DoitCalc(Workspace& ws,
     String fail_msg;
     bool failed = false;
 
-#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) \
-    firstprivate(l_ws, l_doit_mono_agenda)
+#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(ws)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) {
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
@@ -2829,11 +2823,11 @@ void DoitCalc(Workspace& ws,
 
         Tensor6 cloudbox_field_mono_local =
             cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
-        doit_mono_agendaExecute(l_ws,
+        doit_mono_agendaExecute(ws,
                                 cloudbox_field_mono_local,
                                 f_grid,
                                 f_index,
-                                l_doit_mono_agenda);
+                                doit_mono_agenda);
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
             cloudbox_field_mono_local;
       } catch (const std::exception& e) {
