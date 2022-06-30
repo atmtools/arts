@@ -51,12 +51,12 @@ if exists("b:current_syntax")
 endif
 
 " highlighting style for different classes
-hi def link ArtsMethod Constant
+hi def link ArtsMethod Function
 hi def link ArtsComment Comment
-hi def link ArtsVariable Structure
+hi def link ArtsVariable Identifier
 hi def link ArtsGroup Type
 hi def link ArtsNumber Number
-hi def link ArtsString Statement
+hi def link ArtsString String
 
 let b:current_syntax = "arts"
 
