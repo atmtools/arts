@@ -15,6 +15,9 @@ if ! which &> /dev/null $ARTS_BIN; then
     exit 1
 fi
 
+NVIM_DIR=$HOME/.config/nvim
+[[ ! -d $NVIM_DIR ]] && unset NVIM_DIR
+
 # create subdirectories in ~/.vim
 mkdir -p $HOME/.vim/{syntax,ftdetect}
 
@@ -24,6 +27,12 @@ f="$HOME/.vim/ftdetect/arts.vim"
 # enable file extension for auto recognition
 echo "au BufRead,BufNewFile *.arts set filetype=arts" > $f
 echo "Written $f"
+
+if [[ $NVIM_DIR ]]; then
+    mkdir -p $NVIM_DIR/ftdetect
+    cp $f $NVIM_DIR/ftdetect/
+    echo "Copied to nvim config dir"
+fi
 
 # generate arts.vim file
 f="$HOME/.vim/syntax/arts.vim"
@@ -78,5 +87,11 @@ echo -e \\n\" groups of variables >> $f
 $ARTS_BIN -p -g all | sed 's/^/syn keyword ArtsGroup /g' >> $f
 
 echo "Written $f"
+
+if [[ $NVIM_DIR ]]; then
+    mkdir -p $NVIM_DIR/syntax
+    cp $f $NVIM_DIR/syntax/
+    echo "Copied to nvim syntax dir"
+fi
 
 exit 0
