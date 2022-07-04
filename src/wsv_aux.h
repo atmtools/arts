@@ -110,7 +110,7 @@ class WsvRecord {
     if (has_defaults())
       return std::visit([](auto&& val) -> std::shared_ptr<void> {
         return std::make_shared<typename val::element_type>(*val);
-      }, defval.val);
+      }, defval.value);
     return nullptr;
   }
 
