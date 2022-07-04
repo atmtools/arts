@@ -109,8 +109,8 @@ std::shared_ptr<void> Workspace::operator[](Index i) {
 Workspace::Workspace() {
   initialize();
   for (Index i=0; i<wsv_data.nelem(); i++) {
-    if (wsv_data[i].has_default()) {
-      push_move(i, wsv_data[i].default_value());
+    if (wsv_data[i].has_defaults()) {
+      push_move(i, wsv_data[i].get_copy());
     }
   }
 }
