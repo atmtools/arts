@@ -1,183 +1,23 @@
 #DEFINITIONS:  -*-sh-*-
 #
 ############
-# General ARTS defaults
-#
-# The basic philosophy here is, that general.arts shall always be included by an
-# ARTS controlfile. general.arts contains such settings, which are (very often)
-# necessary, but on the other hand the user rarely wants/needs to reset (or is
-# discouraged to do so).
-# The settings done below can be divided into 3 categories:
-# 1) settings that serve (mainly) as initialisations
-# 2) settings the user is highly discouraged to change
-# 3) settings that define some meaningful, widely valid/applicable defaults
+# General ARTS defaults for some agendas
 #
 ############
-#
-# Authors: Stefan Buehler, Patrick Eriksson, Oliver Lemke, Jana Mendrok
-#
 
 
 Arts2 {
-
-############
-# PART 1 - following settings serve (mainly) as initialisations
-############
-
-#
-# Initialize verbosity levels
-#
+  
 verbosityInit
-
-
-#
-# Semi-mandatory variables associated with scattering calculations
-#
-ArrayOfStringSet( scat_species, [] )
-MatrixSet( particle_masses, [] )
-Tensor4SetConstant( particle_bulkprop_field, 0, 0, 0, 0, 0.0 )
-ArrayOfStringSet( particle_bulkprop_names, [] )
-Touch( dpnd_field_dx )
-
-
-#
-# Semi-mandatory variables associated with surface_props_data
-#
-Tensor3SetConstant( surface_props_data, 0, 0, 0, 0.0 )
-ArrayOfStringSet( surface_props_names, [] )
-
-
-#
-# Default is that no transmitter is involved
-#
-MatrixSet( transmitter_pos, [] )
-
-
-#
-# Default assumption is that the sensor cause no Doppler effect
-#
-NumericSet( rte_alonglos_v, 0 )
-
-
-#
-# No auxiliary variables as default
-#
-ArrayOfStringSet( iy_aux_vars, [] )
-
-
-# 
-# Wind and magnetic fields
-# (all components set to be empty, shorthand for no winds/magnetic/pnd field)
-#
-Tensor3SetConstant( wind_u_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( wind_v_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( mag_u_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( mag_v_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( mag_w_field, 0, 0, 0, 0.0 )
-
-
-
-############
-# PART 2 - following settings are highly recommended to be NOT changed
-############
-
-#
-# Set default interpolation orders for absorption lookup table. Do not
-# mess with these values, unless you know what you are doing! 
-#
-IndexSet( abs_p_interp_order,   5 )
-IndexSet( abs_t_interp_order,   7 )
-IndexSet( abs_nls_interp_order, 5 )
-
-# abs_f_interp_order should normally be set to 0. However, if you are doing
-# calculations with Doppler shift (e.g., wind, planet rotation, or satellite
-# movement considered in forward calculation), you NEED to set it to >=l. This
-# regardless of whether you use absorption lookup tables or on-the-fly
-# calculation of absorption. In case of on-the-fly it will have no practical
-# effects. In case of lookup tables, you should choose abs_f_interp_order
-# depending on the frequency interpolation scheme you want.
-IndexSet( abs_f_interp_order, 0 )
-
-#
-# Variable for calculation of propagation paths:
-#
-# You should not change the value of ppath_inside_cloudbox_do, if you don't 
-# know exactly what you are doing!)
-FlagOff( ppath_inside_cloudbox_do )
-
-
-
-############
-# PART 3 - following settings define some meaningful defaults
-############
-
-#
-# Default output format
-#
-output_file_formatSetAscii
-
-
-#
-# No unit conversion 
-#
-StringSet( iy_unit, "1" )
-
-#
-# Batch calculations start at index 0 by default
-#
-IndexSet( ybatch_start, 0 )
-
-
-#
-# Variables for calculation of propagation paths:
-#
-# The value for ppath_lmax of 10e3 is OK for limb sounding, and 
-# also for down-looking if not very accurate results are demanded.
-#
-NumericSet( ppath_lmax, 10e3 )
-#
-# The value for ppath_lraytrace of 1e3 should be OK in general for passive
-# observation, but lower values are needed for simulating radio links
-#
-NumericSet( ppath_lraytrace, 1e3 )
-
-
-#
-# Default is most basic type of radiative transfer integration
-#
-StringSet( rt_integration_option, "default" )
-
 
 #
 # Various geo-positioning
 #
 # Default is to leave the geo-pos undefined
-VectorSet( lat_true, [] )
-VectorSet( lon_true, [] )
 AgendaSet( geo_pos_agenda ){
   Ignore( ppath )
   VectorSet( geo_pos, [] )
 }
-
-
-#
-# iy_id = 0 means non-identified calculation
-#
-IndexSet( iy_id, 0 )
-
-
-#
-# MC
-#
-IndexSet( mc_min_iter, 100 )
-NumericSet( mc_taustep_limit, 0.1 )
-
-
-#
-# Turn off non-LTE calculations by default
-#
-nlteOff
 
 
 #
@@ -187,8 +27,4 @@ AgendaSet( water_p_eq_agenda ){
   water_p_eq_fieldMK05
 }
 
-
-IndexSet( scat_data_checked, 0 )
-
-Touch(select_abs_species)
 }
