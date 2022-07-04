@@ -109,7 +109,8 @@ class WsvRecord {
   std::shared_ptr<void> get_copy() const {
     if (has_defaults())
       return std::visit([](auto&& val) -> std::shared_ptr<void> {
-        return std::make_shared<typename val::element_type>(*val);
+        using value_type = std::remove_cv_t<std::remove_pointer_t<decltype(val.get())>>;
+        return std::make_shared<value_type>(*val);
       }, defval.value);
     return nullptr;
   }
