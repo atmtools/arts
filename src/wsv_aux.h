@@ -106,8 +106,13 @@ class WsvRecord {
 
   bool has_defaults() const {return not std::holds_alternative<std::unique_ptr<Any>>(defval.value);}
 
-  template <typename T>
-  T get_copy() const {if (has_defaults()) return T{defval}; else return T{};}
+  std::shared_ptr<void> get_copy() const {
+    if (has_defaults())
+      return std::visit([](auto&& val) -> std::shared_ptr<void> {
+        return std::make_shared<typename val::element_type>(*val);
+      }, defval.val);
+    return nullptr;
+  }
 
  private:
   String mname;
