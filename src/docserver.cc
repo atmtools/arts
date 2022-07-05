@@ -1009,8 +1009,9 @@ void Docserver::doc_variable(const string& vname) {
 
     if (Workspace::wsv_data[it -> second].has_defaults()) {
       get_os() << "<p><b>Default: </b>";
-      std::visit([&os=get_os()](auto&& val_ptr) {
-           os << *val_ptr;
+      auto& temp_os=get_os();
+      std::visit([&](auto&& val_ptr) {
+           temp_os << *val_ptr;
         }, Workspace::wsv_data[it -> second].default_value().value);
       get_os() << endl;
     }
