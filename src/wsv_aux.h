@@ -115,6 +115,8 @@ class WsvRecord {
     return nullptr;
   }
 
+const TokVal& default_value() const {return defval;}
+
  private:
   String mname;
 

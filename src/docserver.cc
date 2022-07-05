@@ -1007,6 +1007,9 @@ void Docserver::doc_variable(const string& vname) {
         Workspace::wsv_data[it->second].Description());
     get_os() << endl << "</pre>" << endl << endl;
 
+    if (Workspace::wsv_data[it -> second].has_defaults())
+    get_os() << "<p><b>Default: </b>" << Workspace::wsv_data[it -> second].default_value() << endl;
+
     get_os() << "<p><b>Group: </b>"
              << insert_group_link(
                     wsv_groups[Workspace::wsv_data[it->second].Group()].name)

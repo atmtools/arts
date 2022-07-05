@@ -68,6 +68,8 @@ struct TokVal {
   TokVal() noexcept;
   TokVal(const TokVal& v);
   TokVal& operator=(const TokVal& v);
+
+  friend std::ostream& operator<<(std::ostream& os, const TokVal& t);
 };
 
 #endif
@@ -93,6 +95,10 @@ file_cc << "// auto-generated tokval implementation\n\n#include <tokval.h>\n\n";
 TokVal::TokVal() noexcept : value(std::make_unique<Any>()) {} 
 TokVal::TokVal(const TokVal& v) { std::visit([&](auto&& in) {*this = *in;}, v.value); }
 TokVal& TokVal::operator=(const TokVal& v) { std::visit([&](auto&& in) {*this = *in;}, v.value); return *this; }
+
+std::ostream& operator<<(std::ostream& os, const TokVal& t) {
+  return std::visit([&](auto&& val){return os << val;}, t.value);
+}
 )--";
 
   return EXIT_SUCCESS;
