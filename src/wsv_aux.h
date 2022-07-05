@@ -117,6 +117,11 @@ class WsvRecord {
 
 const TokVal& default_value() const {return defval;}
 
+
+/** Output operator for WsvRecord.
+  \author Stefan Buehler */
+friend ostream& operator<<(ostream& os, const WsvRecord& wr);
+
  private:
   String mname;
 
@@ -126,9 +131,5 @@ const TokVal& default_value() const {return defval;}
 
   TokVal defval;
 };
-
-/** Output operator for WsvRecord.
-  \author Stefan Buehler */
-ostream& operator<<(ostream& os, const WsvRecord& wr);
 
 #endif  // wsv_aux_h
