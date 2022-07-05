@@ -10,7 +10,7 @@
 #include "py_macros.h"
 
 namespace Python {
-using Scalar = std::variant<Index, Numeric>;
+using Scalar = std::variant<Numeric, Index>;
 
 template <typename T>
 void test_correct_size(const std::vector<T>& x) {
