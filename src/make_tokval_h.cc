@@ -97,7 +97,8 @@ TokVal::TokVal(const TokVal& v) { std::visit([&](auto&& in) {*this = *in;}, v.va
 TokVal& TokVal::operator=(const TokVal& v) { std::visit([&](auto&& in) {*this = *in;}, v.value); return *this; }
 
 std::ostream& operator<<(std::ostream& os, const TokVal& t) {
-  return std::visit([&](auto&& val){return os << *val;}, t.value);
+  return std::visit([&](auto&& val){os << *val;}, t.value);
+  return os;
 }
 )--";
 
