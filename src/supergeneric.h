@@ -37,7 +37,7 @@
 */
 class Any {
   // Nothing to do here.
-  friend std::ostream& operator<<(std::ostream&, const Any&) {}
+  friend std::ostream& operator<<(std::ostream& os, const Any&) {return os;}
 };
 
 #endif  // supergeneric_h
