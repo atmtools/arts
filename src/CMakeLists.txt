@@ -284,6 +284,7 @@ add_library (artscore STATIC
   workspace.cc
   workspace_ng.cc
   workspace_memory_handler.cc
+  wsv_aux.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
