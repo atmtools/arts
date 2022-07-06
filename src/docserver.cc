@@ -27,12 +27,13 @@
 
 #ifdef ENABLE_DOCSERVER
 
-#include <stdint.h>
 #include <algorithm>
+#include <cstdint>
 #include <map>
 #include <sstream>
 #include <string>
 #include <vector>
+
 #include "agenda_record.h"
 #include "global_data.h"
 #include "libmicrohttpd/microhttpd.h"
@@ -1009,11 +1010,12 @@ void Docserver::doc_variable(const string& vname) {
 
     if (Workspace::wsv_data[it -> second].has_defaults()) {
       get_os() << "<p><b>Default: </b>";
-      auto& temp_os=get_os();
+      std::ostringstream temp_os;
       std::visit([&](auto&& val_ptr) {
            temp_os << *val_ptr;
         }, Workspace::wsv_data[it -> second].default_value().value);
-      get_os() << endl;
+      if (temp_os.str().empty()) temp_os << "[]";
+      get_os() << temp_os.str() << "\n";
     }
     get_os() << "<p><b>Group: </b>"
              << insert_group_link(
