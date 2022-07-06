@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2012 Stefan Buehler <sbuehler@ltu.se>
+/* Copyright (C) 2022 Oliver Lemke <oliver.lemke@uni-hamburg.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -16,11 +16,12 @@
    USA. */
 
 /*!
-  \file   agenda_record.cc
-  \author Stefan Buehler <sbuehler@ltu.se>
-  \date   Thu Mar 14 08:49:33 2002
+  \file   wsv_aux.cc
+  \author Stefan Buehler <stefan.buehler@uni-hamburg.de>,
+          Oliver Lemke <oliver.lemke@uni-hamburg.de>
+  \date   Wed Jul  6 09:47:47 CEST 2022
   
-  \brief  Implementation of agendas.
+  \brief  Implementation of WSV aux functions.
 */
 
 #include "wsv_aux.h"
