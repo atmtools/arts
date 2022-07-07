@@ -77,9 +77,6 @@ target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
 
 install (TARGETS arts RUNTIME DESTINATION bin)
 
-# Reduce compile time for very large initialization functions
-set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
-
 ########### next target ###############
 
 add_executable (make_workspace_memory_handler_cc
