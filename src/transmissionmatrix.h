@@ -33,8 +33,13 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wfloat-conversion"
+#if !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
+
 #pragma GCC diagnostic pop
 
 #include "jacobian.h"
