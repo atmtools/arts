@@ -404,6 +404,8 @@
 #include "global_data.h"
 #include "matpackI.h"
 
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
 // #################################################################################
 
 // global constants as defined in constants.cc
