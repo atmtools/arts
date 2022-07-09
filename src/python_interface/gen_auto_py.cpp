@@ -98,15 +98,17 @@ std::map<std::string, Group> groups() {
   std::map<std::string, std::size_t> name;
   for (auto& x : Workspace::wsv_data) name[x.Name()] = x.Group();
   std::map<std::string, std::string> desc;
-  for (auto& x : Workspace::wsv_data) desc[x.Name()] = x.Description();
-  for (auto& x : Workspace::wsv_data)
+  for (auto& x : Workspace::wsv_data) {
+    auto& val = desc[x.Name()];
+    val = x.Description();
     if (x.has_defaults())
-      desc[x.Name()] += var_string("\n\nDefault:",
+      val += var_string("\nDefault: ",
         std::visit([](auto&& tokval) {
           std::string out = var_string(*tokval);
           if (out.length() == 0) out += "[]";
           return out;
       }, x.default_value().value));
+  }
   std::map<std::string, std::size_t> pos;
   for (auto& x : Workspace::WsvMap) pos[x.first] = x.second;
 
