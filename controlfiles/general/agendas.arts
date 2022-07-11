@@ -27,6 +27,7 @@ AgendaCreate( iy_main_agenda__Emission )
 AgendaSet( iy_main_agenda__Emission ){
   ppathCalc
   iyEmissionStandard
+  VectorSet(geo_pos, [])
 }
 
 ###
@@ -36,6 +37,7 @@ AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_id )
   ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
+  VectorSet(geo_pos, [])
 }
 
 ###
@@ -49,6 +51,7 @@ AgendaSet( iy_main_agenda__Freqloop ){
   Ignore( jacobian_do )  
   iyLoopFrequencies
   Touch( ppath )
+  VectorSet(geo_pos, [])
 }
 
 ###
@@ -60,6 +63,7 @@ AgendaSet( iy_main_agenda__ScattMC ){
   Ignore( nlte_field )
   iyMC
   Touch( ppath )
+  VectorSet(geo_pos, [])
 }
 
 

@@ -2,8 +2,7 @@ Arts2{
   
 #   AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines}
   AgendaSet(propmat_clearsky_agenda) {Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddLines}
-  AgendaSet(iy_main_agenda){ppathCalc  iyEmissionStandard}
-  AgendaSet(geo_pos_agenda){Ignore(ppath) VectorSet(geo_pos, [])}
+  AgendaSet(iy_main_agenda){ppathCalc  iyEmissionStandard  VectorSet(geo_pos, [])}
   AgendaSet(ppath_agenda){Ignore(rte_pos2) ppathStepByStep}
   AgendaSet(ppath_step_agenda){Ignore(f_grid) Ignore(ppath_lraytrace) ppath_stepGeometric}
   AgendaSet(water_p_eq_agenda){water_p_eq_fieldMK05}

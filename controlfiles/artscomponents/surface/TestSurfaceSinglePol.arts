@@ -33,7 +33,6 @@ NumericCreate( inc_angle )
 
 
 # Standard emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 
@@ -41,9 +40,11 @@ Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
-# Position and angle of surface intersection
-AgendaSet( geo_pos_agenda ) {
-    geo_posEndOfPpath
+# Main radiation agenda
+AgendaSet( iy_main_agenda ) {
+  ppathCalc
+  iyEmissionStandard
+  geo_posEndOfPpath
 }
 
 

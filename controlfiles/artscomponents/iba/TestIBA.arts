@@ -121,6 +121,7 @@ sensor_checkedCalc
 #
 AgendaSet( iy_main_agenda ){
   iyIndependentBeamApproximation
+  VectorSet(geo_pos, [])
 }
 AgendaSet( iy_independent_beam_approx_agenda ){
   Ignore( lat_grid )

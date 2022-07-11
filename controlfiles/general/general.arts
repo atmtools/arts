@@ -10,15 +10,6 @@ Arts2 {
   
 verbosityInit
 
-#
-# Various geo-positioning
-#
-# Default is to leave the geo-pos undefined
-AgendaSet( geo_pos_agenda ){
-  Ignore( ppath )
-  VectorSet( geo_pos, [] )
-}
-
 
 #
 # Only one option so far for water_p_eq_agenda 

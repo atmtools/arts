@@ -1648,12 +1648,6 @@ void Workspace::define_wsv_data() {
                 GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("geo_pos_agenda"),
-      DESCRIPTION(
-          "Agenda deriving the geo-position of a pencil beam calculation.\n"),
-      GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("heating_rates"),
       DESCRIPTION(
           "The heating rates of atmospheric layers.\n"
@@ -5400,9 +5394,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "The geo-positioning associated with *y*.\n"
           "\n"
           "The columns of this matrix matches the elements of *geo_pos*.\n"
-          "\n"
-          "If no geo-position is obtained (i.e. *geo_pos_agenda* sets *geo_pos*\n"
-          "to be empty), all elements of *y_geo* is set to NaN.\n"
           "\n"
           "Unit:  [ m, deg, deg, deg, deg ]\n"),
       GROUP("Matrix")));

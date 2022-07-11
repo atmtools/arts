@@ -230,17 +230,6 @@ void define_agenda_data() {
                INPUT("lat", "lon")));
 
   agenda_data.push_back(AgRecord(
-      NAME("geo_pos_agenda"),
-      DESCRIPTION(
-          "Geo-positioning of a pencil beam calculation.\n"
-          "\n"
-          "The task of this agenda is to set *geo_pos*. The standard choices are\n"
-          "to set that WSV to be empty or select a position along the propagation\n"
-          "path (described by *ppath*).\n"),
-      OUTPUT("geo_pos"),
-      INPUT("ppath")));
-
-  agenda_data.push_back(AgRecord(
       NAME("inversion_iterate_agenda"),
       DESCRIPTION(
           "Work in progress ...\n"
@@ -343,7 +332,7 @@ void define_agenda_data() {
           "\n"
           "The include-file 'agendas.arts' predefines some typical alternatives\n"
           "that can be used directly, or adapted for specific applications.\n"),
-      OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
+      OUTPUT("iy", "iy_aux", "ppath", "diy_dx", "geo_pos"),
       INPUT("diy_dx",
             "iy_agenda_call1",
             "iy_transmittance",
@@ -365,7 +354,7 @@ void define_agenda_data() {
           "\n"
           "This agenda has a similar role for *yRadar* as *iy_main_agenda*.\n"
           "for *yCalc*.\n"),
-      OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
+      OUTPUT("iy", "iy_aux", "ppath", "diy_dx", "geo_pos"),
       INPUT("iy_aux_vars",
             "iy_id",
             "cloudbox_on",
