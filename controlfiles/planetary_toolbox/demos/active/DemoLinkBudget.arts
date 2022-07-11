@@ -62,7 +62,7 @@ ArrayOfIndexSet( instrument_pol, [ 5 ] )
 #
 # General initialisation
 #
-INCLUDE "general/general.arts"
+
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 

@@ -12,7 +12,7 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
+
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 INCLUDE "odinsmr_544_absorption.arts"

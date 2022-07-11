@@ -342,8 +342,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "As a special case, order 0 in this particular case means no\n"
           "interpolation. In that case f_grid must match exactly the grid inside\n"
-          "the lookup table. This is the global default value, set in\n"
-          "general.arts.\n"),
+          "the lookup table. This is the global default value.\n"),
       GROUP("Index"), Index{0}));
   
 
@@ -424,8 +423,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "This is used by methods extracting absorption coefficients\n"
           "from the lookup table, and by methods setting up\n"
-          "parameters for lookup table generation. Has a\n"
-          "default value, which is set in general.arts.\n"
+          "parameters for lookup table generation.\n"
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"),
@@ -439,8 +437,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "This is used by methods extracting absorption coefficients\n"
           "from the lookup table, and by methods\n"
-          "setting up parameters for lookup table generation. Has a\n"
-          "default value, which is set in general.arts.\n"
+          "setting up parameters for lookup table generation.\n"
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"),
@@ -466,8 +463,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "This is used by methods\n"
           "extracting absorption coefficients from the lookup table, and by\n"
-          "methods setting up parameters for lookup table generation. Has a\n"
-          "default value, which is set in general.arts.\n"
+          "methods setting up parameters for lookup table generation.\n"
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"),
@@ -5539,7 +5535,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       NAME("ybatch_start"),
       DESCRIPTION("Start index for *ybatchCalc*.\n"
                   "\n"
-                  "This is set to a default of zero in *general.arts*.\n"
+                  "This is set to a default of zero.\n"
                   "\n"
                   "See further *ybatchCalc*.\n"
                   "\n"

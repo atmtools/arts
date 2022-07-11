@@ -3,9 +3,8 @@
 ############
 # Agenda predefinitions
 #
-# There shall be NO pre-set (default) agendas in general.arts anymore, hiding
-# them away from the user. Instead, the user is forced to explicitly set all
-# the agendas needed. Here, we predefine a range of typical agenda settings,
+# The user is forced to explicitly set all the agendas needed.
+# Here, we predefine a range of typical agenda settings,
 # which the user can than copy into his/her setup using:
 #
 # Copy( agenda-name, predefined-agenda-name )
@@ -315,6 +314,19 @@ AgendaSet( refr_index_air_agenda__GasMicrowavesEarthAndElectrons ){
   NumericSet( refr_index_air_group, 1.0 )
   refr_index_airMicrowavesEarth
   refr_index_airFreeElectrons
+}
+
+
+##################################
+#    water_p_eq_agenda
+##################################
+
+###
+#
+# Only one option so far for water_p_eq_agenda 
+#
+AgendaSet( water_p_eq_agenda ){
+  water_p_eq_fieldMK05
 }
 
 

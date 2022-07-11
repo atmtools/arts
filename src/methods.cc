@@ -5421,8 +5421,7 @@ if they are defined.  Otherwise some values are just selected
           "Beside the *dobatch_calc_agenda*, the WSVs *ybatch_start*\n"
           "and *ybatch_n* must be set before calling this method.\n"
           "\n"
-          "The input variable *ybatch_start* is set to a default of zero in\n"
-          "*general.arts*.\n"),
+          "The input variable *ybatch_start* is set to a default of zero.\n"),
       AUTHORS("Oliver Lemke"),
       OUT("dobatch_cloudbox_field",
           "dobatch_radiance_field",
@@ -7054,10 +7053,10 @@ if they are defined.  Otherwise some values are just selected
           "syntax is different:\n"
           "\n"
           "Arts {\n"
-          "  INCLUDE \"general.arts\"\n"
+          "  INCLUDE \"agendas.arts\"\n"
           "}\n"
           "\n"
-          "Includes can also be nested. In the example above general.arts\n"
+          "Includes can also be nested. In the example above agendas.arts\n"
           "can contain further includes which will then be treated\n"
           "the same way.\n"
           "\n"
@@ -21172,8 +21171,7 @@ where N>=0 and the species name is something line "H2O".
           "spectrum and should accordingly include a call of *yCalc*\n"
           "(or asimilar method).\n"
           "\n"
-          "The input variable *ybatch_start* is set to a default of zero in\n"
-          "*general.arts*.\n"
+          "The input variable *ybatch_start* is set to a default of zero.\n"
           "\n"
           "An agenda that calculates spectra for different temperature profiles\n"
           "could look like this:\n"
