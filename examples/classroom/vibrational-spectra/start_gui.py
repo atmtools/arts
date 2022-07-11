@@ -52,7 +52,7 @@ ws.rtp_pressure = 110000
 ws.rtp_temperature = 2.942000e+02
 ws.f_grid = pyarts.arts.convert.kaycm2freq(np.linspace(300, 3000, 1000))
 ws.rtp_vmr = [1.000869e-09, 1.000869e-14, 2.850472e-06, 1.501303e-07,
-              3.019448e-08, 3.302947e-04, 1.877431e-02, 1.701397e-06]
+              3.019448e-08, 1.877431e-02, 3.302947e-04, 1.701397e-06]
 
 # Check that the calculations are OK
 ws.lbl_checkedCalc()
