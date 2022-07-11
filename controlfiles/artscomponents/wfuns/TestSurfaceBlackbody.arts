@@ -15,17 +15,11 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # sensor-only path
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
@@ -49,6 +43,8 @@ abs_speciesSet( species= [ "H2O-PWR98", "O2-PWR98", "N2-SelfContStandardType" ] 
 # No line data needed here
 # 
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaSetAutomatic
 
 # Dimensionality of the atmosphere
 #
@@ -99,8 +95,6 @@ sensorOff
 # Perform RT calculations
 #
 lbl_checkedCalc
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

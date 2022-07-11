@@ -6,9 +6,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
-
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
@@ -77,8 +74,8 @@ AtmFieldsCalc
 ReadXML( abs_lookup, "testdata/testdoit_gas_abs_lookup.xml" )
 abs_lookupAdapt
 
-# absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+abs_lines_per_speciesSetEmpty
+propmat_clearsky_agendaSetAutomaticForLookup
 
 
 # Definition of Earth surface

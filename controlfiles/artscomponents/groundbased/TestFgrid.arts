@@ -41,16 +41,12 @@ AtmFieldsCalc
 
 # ---- Absorption ------------------------------------------------------------
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
 ReadARTSCAT( abs_lines, "testdata/ozone_line.xml" )
 abs_linesSetCutoff(abs_lines, "ByLine", 750e9)
 abs_linesSetNormalization(abs_lines, "VVH")
 abs_lines_per_speciesCreateFromLines
+
+propmat_clearsky_agendaSetAutomatic
 
 abs_cont_descriptionInit
 
@@ -128,8 +124,6 @@ IndexSet( stokes_dim, 1 )
 jacobianOff
 cloudboxOff
 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

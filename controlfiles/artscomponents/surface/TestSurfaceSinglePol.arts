@@ -32,16 +32,10 @@ VectorCreate( vdummy )
 NumericCreate( inc_angle )
 
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA )
-
 # Standard emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
-
-# On-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # Ppaths
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
@@ -78,6 +72,8 @@ abs_speciesSet( species = [
 # 
 abs_lines_per_speciesSetEmpty
 
+propmat_clearsky_agendaSetAutomatic
+
 # Atmospheric grids
 #
 VectorNLogSpace( p_grid, 33, 1050e2, 100e2 )
@@ -106,8 +102,6 @@ AgendaSet( surface_rtprop_agenda ){
 
 # Check data and settings 
 # 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

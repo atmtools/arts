@@ -19,9 +19,6 @@ INCLUDE "general/planet_earth.arts"
 # 1.General Settings:---------------------------------------------
 #----------------------------------------------------------------- 
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
@@ -120,7 +117,6 @@ abs_lines_per_speciesCreateFromLines
 
 abs_lookupSetupBatch   	
 
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
 propmat_clearsky_agendaSetAutomatic
@@ -176,7 +172,6 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 # that none of the jobs fails. 
 # If settings are changed, especially if the input atmospheres are altered 
 # or exchanged, the robust option in *ybatchCalc* should be used.
-propmat_clearsky_agenda_checkedCalc
 ybatchCalc
 
 # Call *ybatchCalc* robust:

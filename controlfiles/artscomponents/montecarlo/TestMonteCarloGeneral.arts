@@ -11,9 +11,6 @@ INCLUDE "general/planet_earth.arts"
 
 jacobianOff
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 
@@ -62,12 +59,6 @@ ReadXML( scat_data, "TestMonteCarloDataPrepare.scat_data.xml" )
 scat_data_checkedCalc
 
 
-#### Define Agendas #################################################
-
-# absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-
-
 #### Define viewing position and line of sight #########################
 
 rte_losSet( rte_los, atmosphere_dim, 99.7841941981, 180 )
@@ -110,8 +101,8 @@ NumericSet( mc_std_err, -1 )
 IndexSet( mc_max_time, 30 )
 IndexSet( mc_max_iter, -1 )
 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
+abs_lines_per_speciesSetEmpty
+propmat_clearsky_agendaSetAutomaticForLookup
 
 MCGeneral
 

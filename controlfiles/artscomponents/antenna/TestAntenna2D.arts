@@ -12,18 +12,12 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA )
-
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # sensor-only path
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
@@ -67,6 +61,8 @@ abs_speciesSet( species = [
 # 
 abs_lines_per_speciesSetEmpty
 
+propmat_clearsky_agendaSetAutomatic
+
 # Atmospheric grids
 #
 VectorNLogSpace( p_grid, 41, 1050e2, 100e2 )
@@ -102,8 +98,6 @@ AgendaSet( surface_rtprop_agenda ){
 
 # Check data and settings (beside sensor)
 # 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

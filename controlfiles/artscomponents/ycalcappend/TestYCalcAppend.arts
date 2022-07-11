@@ -19,9 +19,6 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 
@@ -32,9 +29,6 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-
-# On-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 
 
@@ -58,6 +52,8 @@ abs_speciesSet( species=[
 ReadARTSCAT( abs_lines, "ozone_line.xml" )
 abs_lines_per_speciesCreateFromLines
 
+propmat_clearsky_agendaSetAutomatic
+
 # Surface altitude
 MatrixSetConstant( z_surface, 1, 1, 0 )
 
@@ -68,9 +64,6 @@ AtmRawRead( basename = "testdata/tropical" )
 AtmFieldsCalc
 
 
-
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 lbl_checkedCalc

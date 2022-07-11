@@ -204,11 +204,11 @@ class TestAgendas:
         variable is set to an invalid value.
         """
         @arts_agenda(ws=self.ws, allow_callbacks=True)
-        def abs_xsec_agenda(ws):
+        def propmat_clearsky_agenda(ws):
               pass
         self.ws = pyarts.workspace.Workspace()
         with pytest.raises(Exception):
-              self.ws.abs_xsec_agenda = abs_xsec_agenda
+              self.ws.propmat_clearsky_agenda = propmat_clearsky_agenda
               
     def test_multiple_workspace_defaults(self):
         """

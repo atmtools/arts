@@ -17,9 +17,6 @@ INCLUDE "general/planet_earth.arts"
 # 1.General Settings:---------------------------------------------
 #----------------------------------------------------------------- 
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 
@@ -129,8 +126,8 @@ ReadXML( abs_lookup, "abs_lookupBatch.xml" )
 # Check if lookup table is fitting input
 abs_lookupAdapt
 
-# absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+abs_lines_per_speciesSetEmpty
+propmat_clearsky_agendaSetAutomaticForLookup
 
 
 # 7.AGENDAS--------------------------------------------------------------
@@ -199,7 +196,6 @@ IndexSet(ybatch_n, 4)
 # that none of the jobs fails.
 # If settings are changed, especially if the input atmospheres are altered
 # or exchanged, the robust option in *ybatchCalc* should be used.
-propmat_clearsky_agenda_checkedCalc
 
 DOBatchCalc
 

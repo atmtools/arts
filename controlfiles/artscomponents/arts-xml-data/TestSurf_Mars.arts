@@ -40,9 +40,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_mars.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # the 3D geo grid for global case
 VectorCreate( lat_grid3D_glob )
 VectorCreate( lon_grid3D_glob )
@@ -109,7 +106,6 @@ abs_lines_per_speciesCreateFromLines
 #####
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
@@ -196,9 +192,7 @@ ReadXML( gf2tmp, casefull )
 GriddedFieldLatLonRegrid( gf2tmp, lat_grid, lon_grid, gf2tmp )
 FieldFromGriddedField( z_surface, p_grid, lat_grid, lon_grid, gf2tmp )
 
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 
@@ -215,6 +209,7 @@ AgendaSet( surface_rtprop_agenda ){
    #Print( surface_skin_t, 0 )
    surfaceFlatScalarReflectivity
 }
+propmat_clearsky_agendaSetAutomatic
 yCalc
 #Print( y, 0 )
 

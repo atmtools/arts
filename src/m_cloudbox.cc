@@ -1134,7 +1134,6 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
     ArrayOfGriddedField3& vmr_field_raw,
     ArrayOfArrayOfSpeciesTag& abs_species,
     Index& propmat_clearsky_agenda_checked,
-    Index& abs_xsec_agenda_checked,
     // WS Input (needed for checking the datafiles):
     const Index& atmosphere_dim,
     const Vector& f_grid,
@@ -1227,7 +1226,6 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
     out2 << "  Append 'particle' field to abs_species\n";
     abs_speciesAdd(abs_species,
                    propmat_clearsky_agenda_checked,
-                   abs_xsec_agenda_checked,
                    species,
                    verbosity);
   }

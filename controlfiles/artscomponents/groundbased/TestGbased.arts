@@ -14,13 +14,6 @@ INCLUDE "general/general.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-AgendaSet( abs_xsec_agenda ) {
-  abs_xsec_per_speciesInit
-  abs_xsec_per_speciesAddConts
-  abs_xsec_per_speciesAddLines
-}
-
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
@@ -118,17 +111,13 @@ AbsInputFromAtmFields
 abs_speciesSet( abs_species=abs_nls, species=[] )
 VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
 jacobianOff
 
 propmat_clearsky_agendaSetAutomatic
 abs_lookupCalc
-
-# absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-
+propmat_clearsky_agendaSetAutomaticForLookup
 
 # ---- Observation geometry --------------------------------------------------
 
@@ -222,7 +211,6 @@ sensor_responseBackend
 #
 jacobianOff
 #
-propmat_clearsky_agenda_checkedCalc
 sensor_checkedCalc
 #
 yCalc

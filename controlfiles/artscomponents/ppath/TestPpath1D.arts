@@ -11,9 +11,6 @@ Arts2{
 INCLUDE "general/general.arts"
 INCLUDE "general/agendas.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # sensor-only path
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 

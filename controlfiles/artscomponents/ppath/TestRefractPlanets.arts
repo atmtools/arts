@@ -11,9 +11,6 @@ Arts2{
 INCLUDE "general/general.arts"
 INCLUDE "general/agendas.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # Use sensor_pos/los to store each case
 VectorCreate( za )
 VectorCreate( ztan )

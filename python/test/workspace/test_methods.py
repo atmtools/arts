@@ -83,7 +83,7 @@ class TestMethods:
                     "O3"] )
 
         ws.ArrayOfArrayOfSpeciesTagCreate("abs_species_2")
-        ws.abs_speciesSet(ws.abs_species_2, ws.abs_xsec_agenda_checked,
+        ws.abs_speciesSet(ws.abs_species_2,
                           ws.propmat_clearsky_agenda_checked, species)
         ws.ArrayOfArrayOfSpeciesTagCreate("abs_species_3")
         ws.abs_speciesSet(abs_species = ws.abs_species_3, species = species)

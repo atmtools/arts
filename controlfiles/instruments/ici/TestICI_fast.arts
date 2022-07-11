@@ -14,9 +14,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # Basic settings (already needed in sensor part)
 # ---
 AtmosphereSet1D
@@ -85,6 +82,8 @@ abs_speciesSet( species=[ "H2O-PWR98",
 #abs_lines_per_speciesCreateFromLines
 abs_lines_per_speciesSetEmpty
 
+propmat_clearsky_agendaSetAutomatic
+
 # WARNING: If you redefine abs_species, and want to do a line-by-line
 # calculation, you also have to call
 # abs_lines_per_speciesCreateFromLines again.
@@ -116,7 +115,6 @@ abs_lookupSetupBatch
 
 # Create the lookup table
 # ---
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
 jacobianOff
@@ -125,7 +123,8 @@ abs_lookupCalc
 
 # Set propmat_clearsky_agenda to use lookup table
 # ---
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+
+propmat_clearsky_agendaSetAutomaticForLookup
 
 
 # Set up RT calculation
@@ -193,7 +192,6 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 
 # Execute the batch calculations:
 # ---
-propmat_clearsky_agenda_checkedCalc
 ybatchCalc
 
 

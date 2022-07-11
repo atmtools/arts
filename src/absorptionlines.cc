@@ -2817,3 +2817,12 @@ AbsorptionSpeciesBandIndex flat_index(
 
   return {ispec, i};
 }
+
+bool Absorption::any_cutoff(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
+  return std::any_of(abs_lines_per_species.cbegin(), abs_lines_per_species.cend(),
+                     [](auto& abs_lines){
+                       return std::any_of(abs_lines.cbegin(), abs_lines.cend(), [](auto& band) {
+                         return band.cutoff not_eq CutoffType::None;
+                      });
+                    });
+}
