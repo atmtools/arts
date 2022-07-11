@@ -77,16 +77,6 @@ target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
 
 install (TARGETS arts RUNTIME DESTINATION bin)
 
-set_source_files_properties (legacy_continua.cc PROPERTIES
-                             COMPILE_FLAGS "-fno-strict-aliasing")
-
-# Reduce compile time for very large initialization functions
-set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
-
-# Silence invlib warning spam
-set_source_files_properties (m_oem.cc PROPERTIES
-                             COMPILE_FLAGS "-Wno-conversion")
-
 ########### next target ###############
 
 add_executable (make_workspace_memory_handler_cc

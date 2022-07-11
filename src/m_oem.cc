@@ -53,6 +53,8 @@
 #include "surface.h"
 #include "check_input.h"
 
+#pragma GCC diagnostic ignored "-Wconversion"
+
 #ifdef OEM_SUPPORT
 #include "oem.h"
 #endif

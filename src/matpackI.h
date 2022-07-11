@@ -96,11 +96,17 @@
 #define matpackI_h
 
 #include <algorithm>
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wfloat-conversion"
+#if !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+
 #include <Eigen/Dense>
+
 #pragma GCC diagnostic pop
 
 #include "array.h"
