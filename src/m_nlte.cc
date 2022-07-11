@@ -144,7 +144,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
     // Reset change
     max_change = 0.0;
 
-    //     //Compute radiation and transmission
+    // Compute radiation and transmission
     line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
         ws,
         line_irradiance,

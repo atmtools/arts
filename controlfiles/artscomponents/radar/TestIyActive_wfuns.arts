@@ -91,6 +91,7 @@ AgendaSet( iy_main_agenda ){
   Ignore( iy_unit )
   ppathPlaneParallel( cloudbox_on = 0 )
   iyRadarSingleScat( trans_in_jacobian = 1 )
+  VectorSet(geo_pos, [])
 }
 #
 StringSet( iy_unit_radar, "Ze" )

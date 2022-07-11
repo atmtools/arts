@@ -810,6 +810,11 @@ void spectral_radiance_fieldExpandCloudboxField(
   Agenda iy_main_agenda;
   iy_main_agenda.append("ppathPlaneParallel", TokVal());
   iy_main_agenda.append("iyEmissionStandard", TokVal());
+  iy_main_agenda.push_back(MRecord(global_data::MdMap.at("VectorSet"),
+                                   {ws.WsvMap.at("geo_pos")},
+                                   {},
+                                   Vector{},
+                                   Agenda{}));
   iy_main_agenda.set_name("iy_main_agenda");
   iy_main_agenda.check(ws, verbosity);
 

@@ -111,6 +111,7 @@ AgendaSet( iy_main_agenda ){
   Ignore( diy_dx )
   Ignore( iy_id )
   iyRadioLink( defocus_method = 2 ) 
+  VectorSet(geo_pos, [])
 }
 
 

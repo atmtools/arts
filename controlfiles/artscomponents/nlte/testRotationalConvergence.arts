@@ -2,7 +2,7 @@ Arts2{
     
     AgendaSet(iy_space_agenda) { Ignore(rtp_pos) Ignore(rtp_los) MatrixCBR(iy, stokes_dim, f_grid) }
 
-    AgendaSet(iy_main_agenda) { ppathCalc iyEmissionStandard }
+    AgendaSet(iy_main_agenda) { ppathCalc iyEmissionStandard VectorSet(geo_pos, []) }
 
     AgendaSet(water_p_eq_agenda) { water_p_eq_fieldMK05 }
 
@@ -34,6 +34,7 @@ Arts2{
     # Data reading
     AtmRawRead(basename="testdata/")
     ReadARTSCAT(abs_lines=abs_lines, filename="testdata/lines.xml", globalquantumnumbers="Ka Kc J")
+    abs_linesSort
     
     collision_coefficientsFromSplitFiles(basename="spectroscopy/nlte/H2O/")
     ReadXML(nlte_level_identifiers, "testdata/qi.xml")
