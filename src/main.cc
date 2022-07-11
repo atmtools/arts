@@ -589,10 +589,16 @@ std::time_t to_time_t(TimePoint time_point) {
     \author Oliver Lemke
  */
 String arts_mod_time(std::string_view filename) {
-  auto modtime = to_time_t(std::filesystem::last_write_time(filename));
   ostringstream os;
-  os << " (compiled " << std::put_time(std::localtime(&modtime), "%F %T")
-     << ")\n";
+  try {
+    if (std::filesystem::is_regular_file(filename)) {
+      auto modtime = to_time_t(std::filesystem::last_write_time(filename));
+      os << " (compiled " << std::put_time(std::localtime(&modtime), "%F %T")
+         << ")\n";
+    }
+  } catch (const std::exception&) {
+    // Don't crash if we can't get the modification time.
+  }
   return os.str();
 }
 
