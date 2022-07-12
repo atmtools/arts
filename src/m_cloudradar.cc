@@ -575,7 +575,6 @@ void yRadar(Workspace& ws,
             const ArrayOfString& iy_aux_vars,
             const Index& stokes_dim,
             const Vector& f_grid,
-            const Index& atmosphere_dim,
             const Index& cloudbox_on,
             const Index& cloudbox_checked,
             const Matrix& sensor_pos,
@@ -584,7 +583,6 @@ void yRadar(Workspace& ws,
             const Index& jacobian_do,
             const ArrayOfRetrievalQuantity& jacobian_quantities,
             const Agenda& iy_radar_agenda,
-            const Agenda& geo_pos_agenda,
             const ArrayOfArrayOfIndex& instrument_pol_array,
             const Vector& range_bins,
             const Numeric& ze_tref,
@@ -716,6 +714,7 @@ void yRadar(Workspace& ws,
   for (Index p = 0; p < npos; p++) {
     // RT part
     ArrayOfTensor3 diy_dx;
+    Vector geo_pos;
     Matrix iy;
     Ppath ppath;
     ArrayOfMatrix iy_aux;
@@ -726,6 +725,7 @@ void yRadar(Workspace& ws,
                           iy_aux,
                           ppath,
                           diy_dx,
+                          geo_pos,
                           iy_aux_vars,
                           iy_id,
                           cloudbox_on,
@@ -852,19 +852,15 @@ void yRadar(Workspace& ws,
                 y_aux[a][iout] = hbin * auxvar[a];
               }
             }
+
+            // And geo pos
+            if (geo_pos.nelem()) y_geo(iout, joker) = geo_pos;
           }
         }  // Frequency
       }
     }
 
     // Other aux variables
-    //
-    Vector geo_pos;
-    geo_pos_agendaExecute(ws, geo_pos, ppath, geo_pos_agenda);
-    ARTS_USER_ERROR_IF (geo_pos.nelem() && geo_pos.nelem() != atmosphere_dim,
-          "Wrong size of *geo_pos* obtained from "
-          "*geo_pos_agenda*.\nThe length of *geo_pos* must "
-          "be zero or equal to *atmosphere_dim*.");
     //
     for (Index b = 0; b < nbins; b++) {
       for (Index iv = 0; iv < nf; iv++) {
@@ -874,9 +870,6 @@ void yRadar(Workspace& ws,
           y_pol[iout] = instrument_pol_array[iv][ip];
           y_pos(iout, joker) = sensor_pos(p, joker);
           y_los(iout, joker) = sensor_los(p, joker);
-          if (geo_pos.nelem()) {
-            y_geo(iout, joker) = geo_pos;
-          }
         }
       }
     }

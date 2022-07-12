@@ -9,7 +9,7 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
+
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
@@ -111,6 +111,7 @@ AgendaSet( iy_main_agenda ){
   Ignore( diy_dx )
   Ignore( iy_id )
   iyRadioLink( defocus_method = 2 ) 
+  VectorSet(geo_pos, [])
 }
 
 

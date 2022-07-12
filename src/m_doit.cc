@@ -2905,7 +2905,7 @@ void DoitGetIncoming(Workspace& ws,
   Ppath ppath;
   Tensor3 iy_transmittance(0, 0, 0);
   const ArrayOfString iy_aux_vars(0);
-
+  Vector geo_pos;
 
 
   //--- Check input ----------------------------------------------------------
@@ -2935,6 +2935,7 @@ void DoitGetIncoming(Workspace& ws,
                             iy_aux,
                             ppath,
                             diy_dx,
+                            geo_pos,
                             1,
                             iy_transmittance,
                             iy_aux_vars,
@@ -2959,6 +2960,7 @@ void DoitGetIncoming(Workspace& ws,
                               iy_aux,
                               ppath,
                               diy_dx,
+                              geo_pos,
                               1,
                               iy_transmittance,
                               iy_aux_vars,
@@ -3051,6 +3053,7 @@ void DoitGetIncoming(Workspace& ws,
                                       iy_aux,
                                       ppath,
                                       diy_dx,
+                                      geo_pos,
                                       1,
                                       iy_transmittance,
                                       iy_aux_vars,
@@ -3103,6 +3106,7 @@ void DoitGetIncoming(Workspace& ws,
                                       iy_aux,
                                       ppath,
                                       diy_dx,
+                                      geo_pos,
                                       1,
                                       iy_transmittance,
                                       iy_aux_vars,
@@ -3155,6 +3159,7 @@ void DoitGetIncoming(Workspace& ws,
                                       iy_aux,
                                       ppath,
                                       diy_dx,
+                                      geo_pos,
                                       1,
                                       iy_transmittance,
                                       iy_aux_vars,
@@ -3241,6 +3246,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
   Ppath ppath;
   Tensor3 iy_transmittance(0, 0, 0);
   const ArrayOfString iy_aux_vars(0);
+  Vector geo_pos;
 
   //--- Check input ----------------------------------------------------------
   ARTS_USER_ERROR_IF (atmosphere_dim != 3,
@@ -3287,6 +3293,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                             iy_aux,
                             ppath,
                             diy_dx,
+                            geo_pos,
                             1,
                             iy_transmittance,
                             iy_aux_vars,

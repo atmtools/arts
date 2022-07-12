@@ -3,9 +3,8 @@
 ############
 # Agenda predefinitions
 #
-# There shall be NO pre-set (default) agendas in general.arts anymore, hiding
-# them away from the user. Instead, the user is forced to explicitly set all
-# the agendas needed. Here, we predefine a range of typical agenda settings,
+# The user is forced to explicitly set all the agendas needed.
+# Here, we predefine a range of typical agenda settings,
 # which the user can than copy into his/her setup using:
 #
 # Copy( agenda-name, predefined-agenda-name )
@@ -27,6 +26,7 @@ AgendaCreate( iy_main_agenda__Emission )
 AgendaSet( iy_main_agenda__Emission ){
   ppathCalc
   iyEmissionStandard
+  VectorSet(geo_pos, [])
 }
 
 ###
@@ -36,6 +36,7 @@ AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_id )
   ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
+  VectorSet(geo_pos, [])
 }
 
 ###
@@ -49,6 +50,7 @@ AgendaSet( iy_main_agenda__Freqloop ){
   Ignore( jacobian_do )  
   iyLoopFrequencies
   Touch( ppath )
+  VectorSet(geo_pos, [])
 }
 
 ###
@@ -60,6 +62,7 @@ AgendaSet( iy_main_agenda__ScattMC ){
   Ignore( nlte_field )
   iyMC
   Touch( ppath )
+  VectorSet(geo_pos, [])
 }
 
 
@@ -311,6 +314,19 @@ AgendaSet( refr_index_air_agenda__GasMicrowavesEarthAndElectrons ){
   NumericSet( refr_index_air_group, 1.0 )
   refr_index_airMicrowavesEarth
   refr_index_airFreeElectrons
+}
+
+
+##################################
+#    water_p_eq_agenda
+##################################
+
+###
+#
+# Only one option so far for water_p_eq_agenda 
+#
+AgendaSet( water_p_eq_agenda ){
+  water_p_eq_fieldMK05
 }
 
 

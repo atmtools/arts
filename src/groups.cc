@@ -35,7 +35,6 @@
 #include "array.h"
 #include "arts.h"
 #include "mystring.h"
-#include "wsv_aux.h"
 
 /*! The names associated with Wsv groups as Strings.
   See function define_wsv_groups for more information. */
@@ -465,6 +464,13 @@ which holds information about the polarized absorption)--");
   define_wsv_group_map();
 }
 
+Index get_wsv_group_id(const String& name) {
+  using global_data::WsvGroupMap;
+  auto it = WsvGroupMap.find(name);
+  if (it == WsvGroupMap.end()) return -1;
+  return it->second;
+}
+
 void get_wsv_group_ids(ArrayOfIndex& ids, String name) {
   ids.resize(0);
 
@@ -500,13 +506,6 @@ void get_wsv_group_ids(ArrayOfIndex& ids, String name) {
 bool is_agenda_group_id(const Index group) {
   return (group == get_wsv_group_id("Agenda") ||
           group == get_wsv_group_id("ArrayOfAgenda"));
-}
-
-Index get_wsv_group_id(const String& name) {
-  using global_data::WsvGroupMap;
-  auto it = WsvGroupMap.find(name);
-  if (it == WsvGroupMap.end()) return -1;
-  return it->second;
 }
 
 String get_array_groups_as_string(bool basetype_is_group,

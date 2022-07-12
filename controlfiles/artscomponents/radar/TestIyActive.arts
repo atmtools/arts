@@ -9,7 +9,7 @@
 #
 Arts2 {
 
-INCLUDE "general/general.arts"
+
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
@@ -84,6 +84,7 @@ AgendaSet( iy_radar_agenda ){
   Ignore( iy_id )
   ppathPlaneParallel( cloudbox_on = 0 )
   iyRadarSingleScat( pext_scaling = weight_ext )
+  VectorSet(geo_pos, [])
 }
 IndexSet( stokes_dim, 3 )
 sensorOff

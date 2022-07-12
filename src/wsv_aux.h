@@ -32,6 +32,8 @@
 #include "arts.h"
 #include "exceptions.h"
 
+#include <tokval.h>
+
 //! Returns list of ids of the given group names
 void get_wsv_group_ids(ArrayOfIndex& ids, String name);
 
@@ -58,9 +60,7 @@ class WsvRecord {
   /** Default constructor. */
   WsvRecord()
       : mname(),
-        mdescription(),
-        mgroup(-1),
-        mimplicit(false) { /* Nothing to do here */
+        mdescription() { /* Nothing to do here */
   }
 
   /** Initializing constructor.
@@ -70,11 +70,10 @@ class WsvRecord {
   WsvRecord(const char name[],
             const char description[],
             const String& group,
-            const bool implicit = false)
+            TokVal val={})
       : mname(name),
         mdescription(description),
-        mgroup(-1),
-        mimplicit(implicit) {
+        defval(std::move(val)) {
     // Map the group names to groups' indexes
     mgroup = get_wsv_group_id(group);
     if (mgroup == -1) {
@@ -91,11 +90,11 @@ class WsvRecord {
   WsvRecord(const char name[],
             const char description[],
             const Index group,
-            const bool implicit = false)
+            TokVal val={})
       : mname(name),
         mdescription(description),
         mgroup(group),
-        mimplicit(implicit) {
+        defval(std::move(val)) {
     // Nothing to do here
   }
   /** Name of this workspace variable. */
@@ -104,18 +103,33 @@ class WsvRecord {
   const String& Description() const { return mdescription; }
   /** The wsv group to which this variable belongs. */
   Index Group() const { return mgroup; }
-  /** Returns true if the variable was automatically created. */
-  bool Implicit() const { return mimplicit; }
 
- private:
-  String mname;
-  String mdescription;
-  Index mgroup;
-  bool mimplicit;
-};
+  bool has_defaults() const {return not std::holds_alternative<std::unique_ptr<Any>>(defval.value);}
+
+  std::shared_ptr<void> get_copy() const {
+    if (has_defaults())
+      return std::visit([](auto&& val) -> std::shared_ptr<void> {
+        using value_type = std::remove_cv_t<std::remove_pointer_t<decltype(val.get())>>;
+        return std::make_shared<value_type>(*val);
+      }, defval.value);
+    return nullptr;
+  }
+
+const TokVal& default_value() const {return defval;}
+
 
 /** Output operator for WsvRecord.
   \author Stefan Buehler */
-ostream& operator<<(ostream& os, const WsvRecord& wr);
+friend ostream& operator<<(ostream& os, const WsvRecord& wr);
+
+ private:
+  String mname;
+
+  String mdescription;
+
+  Index mgroup{-1};
+
+  TokVal defval;
+};
 
 #endif  // wsv_aux_h

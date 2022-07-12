@@ -114,7 +114,6 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
   // from a previous calculation
   for (auto& lines : abs_lines_per_species) lines.resize(0);
 
-// Take copies because we have to support frequency ranges, so might have to delete
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
   for (Index ilines = 0; ilines < abs_lines.nelem(); ilines++) {
     AbsorptionLines lines = abs_lines[ilines];
@@ -165,6 +164,11 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
   }
 
   abs_lines_per_species.shrink_to_fit();
+  for (auto& spec_band : abs_lines_per_species)
+    std::sort(spec_band.begin(), spec_band.end(), [](auto& a, auto& b) {
+      return a.lines.size() and b.lines.size() and
+             a.lines.front().F0 < b.lines.front().F0;
+    });
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

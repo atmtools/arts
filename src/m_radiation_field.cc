@@ -28,7 +28,9 @@
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
+#include "debug.h"
 #include "lineshape.h"
+#include "logic.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "propmat_field.h"
@@ -83,6 +85,8 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
       }
     }
   }
+  
+  ARTS_USER_ERROR_IF(not is_increasing(f_grid), "Frequency grid is not increasing, abs_lines_per_species must be sorted and no overlap is allowed");
 
   ppath_fieldFromDownUpLimbGeoms(ws,
                                  ppath_field,

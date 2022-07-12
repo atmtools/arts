@@ -92,7 +92,7 @@
 Arts2 {
 
 # do NOT modify
-INCLUDE "general/general.arts"
+
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_mars.arts"

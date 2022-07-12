@@ -66,7 +66,7 @@ class Workspace final {
    *
    * Create the stacks for the WSVs.
    */
-  Workspace() = default;
+  Workspace();
 
   /** Workspace copy constructor.
    *

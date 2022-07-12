@@ -7,13 +7,11 @@
 
 Arts2{
 
-INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 
 # cosmic background radiation
@@ -25,8 +23,10 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
-# geo-positioning
-AgendaSet( geo_pos_agenda ){
+# Main radiation agenda
+AgendaSet( iy_main_agenda ) {
+  ppathCalc
+  iyEmissionStandard
   geo_posEndOfPpath
 }
 

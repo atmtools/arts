@@ -699,6 +699,7 @@ void get_iy(Workspace& ws,
   ArrayOfTensor3 diy_dx;
   ArrayOfMatrix iy_aux;
   Ppath ppath;
+  Vector geo_pos;
   Tensor3 iy_transmittance(0, 0, 0);
   const Index iy_agenda_call1 = 1;
   const ArrayOfString iy_aux_vars(0);
@@ -710,6 +711,7 @@ void get_iy(Workspace& ws,
                         iy_aux,
                         ppath,
                         diy_dx,
+                        geo_pos,
                         iy_agenda_call1,
                         iy_transmittance,
                         iy_aux_vars,
@@ -1492,6 +1494,7 @@ void iyb_calc_body(bool& failed,
                    Ppath& ppath,
                    Vector& iyb,
                    ArrayOfMatrix& diyb_dx,
+                   Vector& geo_pos,
                    const Index& mblock_index,
                    const Index& atmosphere_dim,
                    const EnergyLevelMap& nlte_field,
@@ -1553,6 +1556,7 @@ void iyb_calc_body(bool& failed,
                           iy_aux_array[ilos],
                           ppath,
                           diy_dx,
+                          geo_pos,
                           iy_agenda_call1,
                           iy_transmittance,
                           iy_aux_vars,
@@ -1618,7 +1622,6 @@ void iyb_calc(Workspace& ws,
               const ConstMatrixView& mblock_dlos_grid,
               const String& iy_unit,
               const Agenda& iy_main_agenda,
-              const Agenda& geo_pos_agenda,
               const Index& j_analytical_do,
               const ArrayOfRetrievalQuantity& jacobian_quantities,
               const ArrayOfArrayOfIndex& jacobian_indices,
@@ -1641,7 +1644,7 @@ void iyb_calc(Workspace& ws,
   } else {
     diyb_dx.resize(0);
   }
-  // Assume that geo_pos_agenda returns empty geo_pos.
+  // Assume empty geo_pos.
   geo_pos_matrix.resize(nlos, 5);
   geo_pos_matrix = NAN;
 
@@ -1662,6 +1665,7 @@ void iyb_calc(Workspace& ws,
       if (failed) continue;
 
       Ppath ppath;
+      Vector geo_pos;
       iyb_calc_body(failed,
                     fail_msg,
                     iy_aux_array,
@@ -1669,6 +1673,7 @@ void iyb_calc(Workspace& ws,
                     ppath,
                     iyb,
                     diyb_dx,
+                    geo_pos,
                     mblock_index,
                     atmosphere_dim,
                     nlte_field,
@@ -1688,27 +1693,10 @@ void iyb_calc(Workspace& ws,
                     ilos,
                     nf);
 
+      if (geo_pos.nelem()) geo_pos_matrix(ilos, joker) = geo_pos;
+
       // Skip remaining iterations if an error occurred
       if (failed) continue;
-
-      // Note that this code is found in two places inside the function
-      Vector geo_pos;
-      try {
-        geo_pos_agendaExecute(ws, geo_pos, ppath, geo_pos_agenda);
-        if (geo_pos.nelem()) {
-          ARTS_USER_ERROR_IF (geo_pos.nelem() != 5,
-                "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
-                "The length of *geo_pos* must be zero or five.");
-
-          geo_pos_matrix(ilos, joker) = geo_pos;
-        }
-      } catch (const std::exception& e) {
-#pragma omp critical(iyb_calc_fail)
-        {
-          fail_msg = e.what();
-          failed = true;
-        }
-      }
     }
   } else {
     out3 << "  Not parallelizing los loop (" << nlos << " iterations, " << nf
@@ -1719,6 +1707,7 @@ void iyb_calc(Workspace& ws,
       if (failed) continue;
 
       Ppath ppath;
+      Vector geo_pos;
       iyb_calc_body(failed,
                     fail_msg,
                     iy_aux_array,
@@ -1726,6 +1715,7 @@ void iyb_calc(Workspace& ws,
                     ppath,
                     iyb,
                     diyb_dx,
+                    geo_pos,
                     mblock_index,
                     atmosphere_dim,
                     nlte_field,
@@ -1745,27 +1735,10 @@ void iyb_calc(Workspace& ws,
                     ilos,
                     nf);
 
+      if (geo_pos.nelem()) geo_pos_matrix(ilos, joker) = geo_pos;
+
       // Skip remaining iterations if an error occurred
       if (failed) continue;
-
-      // Note that this code is found in two places inside the function
-      Vector geo_pos;
-      try {
-        geo_pos_agendaExecute(ws, geo_pos, ppath, geo_pos_agenda);
-        if (geo_pos.nelem()) {
-          ARTS_USER_ERROR_IF (geo_pos.nelem() != 5,
-                "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
-                "The length of *geo_pos* must be zero or five.");
-
-          geo_pos_matrix(ilos, joker) = geo_pos;
-        }
-      } catch (const std::exception& e) {
-#pragma omp critical(iyb_calc_fail)
-        {
-          fail_msg = e.what();
-          failed = true;
-        }
-      }
     }
   }
 
@@ -2193,7 +2166,6 @@ void yCalc_mblock_loop_body(bool& failed,
                             const Matrix& sensor_response_dlos,
                             const String& iy_unit,
                             const Agenda& iy_main_agenda,
-                            const Agenda& geo_pos_agenda,
                             const Agenda& jacobian_agenda,
                             const Index& jacobian_do,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -2227,7 +2199,6 @@ void yCalc_mblock_loop_body(bool& failed,
              mblock_dlos_grid,
              iy_unit,
              iy_main_agenda,
-             geo_pos_agenda,
              j_analytical_do,
              jacobian_quantities,
              jacobian_indices,

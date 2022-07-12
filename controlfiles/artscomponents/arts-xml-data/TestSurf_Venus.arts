@@ -24,7 +24,7 @@
 # Jana Mendrok 2013-02-26
 
 Arts2 {
-INCLUDE "general/general.arts"
+
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_venus.arts"

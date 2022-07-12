@@ -30,7 +30,7 @@
 #include <fstream>
 #include "matpackI.h"
 
-typedef struct {
+struct TessemNN {
   Index nb_inputs;
   Index nb_outputs;
   Index nb_cache;
@@ -42,7 +42,9 @@ typedef struct {
   Vector x_max;
   Vector y_min;
   Vector y_max;
-} TessemNN;
+
+  friend std::ostream& operator<<(std::ostream& os, const TessemNN&) {return os;}
+};
 
 void tessem_read_ascii(std::ifstream& is, TessemNN& net);
 

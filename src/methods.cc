@@ -5421,8 +5421,7 @@ if they are defined.  Otherwise some values are just selected
           "Beside the *dobatch_calc_agenda*, the WSVs *ybatch_start*\n"
           "and *ybatch_n* must be set before calling this method.\n"
           "\n"
-          "The input variable *ybatch_start* is set to a default of zero in\n"
-          "*general.arts*.\n"),
+          "The input variable *ybatch_start* is set to a default of zero.\n"),
       AUTHORS("Oliver Lemke"),
       OUT("dobatch_cloudbox_field",
           "dobatch_radiance_field",
@@ -7054,10 +7053,10 @@ if they are defined.  Otherwise some values are just selected
           "syntax is different:\n"
           "\n"
           "Arts {\n"
-          "  INCLUDE \"general.arts\"\n"
+          "  INCLUDE \"agendas.arts\"\n"
           "}\n"
           "\n"
-          "Includes can also be nested. In the example above general.arts\n"
+          "Includes can also be nested. In the example above agendas.arts\n"
           "can contain further includes which will then be treated\n"
           "the same way.\n"
           "\n"
@@ -7428,7 +7427,7 @@ if they are defined.  Otherwise some values are just selected
            "No sensor characteristics are applied. These are most easily\n"
            "incorporated by using *yCalc*\n"),
        AUTHORS("Patrick Eriksson"),
-       OUT("iy", "iy_aux", "ppath"),
+       OUT("iy", "iy_aux", "ppath", "geo_pos"),
        GOUT(),
        GOUT_TYPE(),
        GOUT_DESC(),
@@ -9422,7 +9421,6 @@ if they are defined.  Otherwise some values are just selected
          "sensor_time",
          "iy_unit",
          "iy_main_agenda",
-         "geo_pos_agenda",
          "jacobian_quantities"),
       GIN(),
       GIN_TYPE(),
@@ -21173,8 +21171,7 @@ where N>=0 and the species name is something line "H2O".
           "spectrum and should accordingly include a call of *yCalc*\n"
           "(or asimilar method).\n"
           "\n"
-          "The input variable *ybatch_start* is set to a default of zero in\n"
-          "*general.arts*.\n"
+          "The input variable *ybatch_start* is set to a default of zero.\n"
           "\n"
           "An agenda that calculates spectra for different temperature profiles\n"
           "could look like this:\n"
@@ -21427,7 +21424,6 @@ where N>=0 and the species name is something line "H2O".
          "sensor_response_dlos",
          "iy_unit",
          "iy_main_agenda",
-         "geo_pos_agenda",
          "jacobian_agenda",
          "jacobian_do",
          "jacobian_quantities",
@@ -21520,7 +21516,6 @@ where N>=0 and the species name is something line "H2O".
          "sensor_response_dlos",
          "iy_unit",
          "iy_main_agenda",
-         "geo_pos_agenda",
          "jacobian_agenda",
          "jacobian_do",
          "jacobian_quantities",
@@ -21592,7 +21587,6 @@ where N>=0 and the species name is something line "H2O".
          "iy_aux_vars",
          "stokes_dim",
          "f_grid",
-         "atmosphere_dim",
          "cloudbox_on",
          "cloudbox_checked",
          "sensor_pos",
@@ -21601,7 +21595,6 @@ where N>=0 and the species name is something line "H2O".
          "jacobian_do",
          "jacobian_quantities",
          "iy_radar_agenda",
-         "geo_pos_agenda",
          "instrument_pol_array",
          "range_bins"),
       GIN("ze_tref", "k2", "dbze_min"),

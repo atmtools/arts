@@ -10,6 +10,8 @@ struct Timer {
   std::chrono::time_point<std::chrono::high_resolution_clock> realtime_start;
   std::clock_t cputime_end;
   std::chrono::time_point<std::chrono::high_resolution_clock> realtime_end;
+
+  friend std::ostream& operator<<(std::ostream& os, const Timer&) {return os;}
 };
 
 #endif

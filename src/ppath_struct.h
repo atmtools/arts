@@ -53,6 +53,8 @@ struct Ppath {
   ArrayOfGridPos gp_lat;
   /** Index position with respect to the longitude grid */
   ArrayOfGridPos gp_lon;
+
+  friend std::ostream& operator<<(std::ostream& os, const Ppath&) {return os;}
 };
 
 /** An array of propagation paths. */

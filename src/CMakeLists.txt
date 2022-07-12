@@ -105,6 +105,7 @@ add_executable (make_auto_md_h
         parameters.cc
         workspace.cc
         workspace_ng.cc
+        tokval.cc
         )
 
 if (ENABLE_PCH)
@@ -129,6 +130,7 @@ add_executable (make_auto_md_cc
         parameters.cc
         workspace.cc
         workspace_ng.cc
+        tokval.cc
         )
 
 if (ENABLE_PCH)
@@ -282,6 +284,7 @@ add_library (artscore STATIC
   workspace.cc
   workspace_ng.cc
   workspace_memory_handler.cc
+  wsv_aux.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
@@ -382,7 +385,10 @@ add_library (methods STATIC
         methods.cc
         methods_aux.cc
         groups.cc
+        tokval.cc
         )
+
+target_link_libraries(methods PUBLIC species)
 
 ########### next target ###############
 

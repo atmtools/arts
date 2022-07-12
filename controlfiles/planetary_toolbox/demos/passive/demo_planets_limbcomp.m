@@ -114,7 +114,6 @@ Q0                       = qarts;
 Q0.F_GRID                = linspace( f0-df/2, f0+df/2, nf )';
 %
 Q0.INCLUDES{end+1}       = 'Position for inserting planet include file';  
-Q0.INCLUDES{end+1}       = fullfile( 'ARTS_INCLUDES', 'general.arts' );
 Q0.INCLUDES{end+1}       = fullfile( 'ARTS_INCLUDES', 'agendas.arts' ); 
 Q0.INCLUDES{end+1}       = fullfile( 'ARTS_INCLUDES', 'continua.arts' );
 %

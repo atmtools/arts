@@ -218,52 +218,6 @@ ostream& operator<<(ostream& os, const AgRecord& agr) {
   return os;
 }
 
-//! Output operator for WsvRecord.
-/*! 
-  This has to be here rather than with workspace.cc or
-  workspace_aux.cc, because it uses agenda_data and AgendaMap.
-
-  \param os  Output stream.
-  \param wr  Workspace variable record.
-
-  \return Output stream.
-*/
-ostream& operator<<(ostream& os, const WsvRecord& wr) {
-  using global_data::wsv_groups;
-
-  // We need a special treatment for the case that the WSV is an agenda.
-
-  if (get_wsv_group_id("Agenda") != wr.Group() &&
-      get_wsv_group_id("ArrayOfAgenda") != wr.Group()) {
-    // No agenda.
-
-    os << "\n*-------------------------------------------------------------------*\n"
-       << "Workspace variable = " << wr.Name()
-       << "\n---------------------------------------------------------------------\n"
-       << "\n"
-       << wr.Description() << "\n"
-       << "\n---------------------------------------------------------------------\n"
-       << "Group = " << wsv_groups[wr.Group()]
-       << "\n*-------------------------------------------------------------------*\n";
-  } else {
-    // Agenda.
-
-    using global_data::agenda_data;
-
-    // AgendaMap is constant here and should never be changed
-    using global_data::AgendaMap;
-
-    map<String, Index>::const_iterator j = AgendaMap.find(wr.Name());
-
-    // Just for added safety, check that we really found something:
-    ARTS_ASSERT(j != AgendaMap.end());
-
-    cout << agenda_data[j->second] << "\n";
-  }
-
-  return os;
-}
-
 //! Write a agenda wrapper header.
 /*!
   \param ofs The stream to write to.

@@ -1,7 +1,7 @@
 # example: limb case using an optimized polar angle grid.
 Arts2 {
 
-INCLUDE "general/general.arts"
+
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"

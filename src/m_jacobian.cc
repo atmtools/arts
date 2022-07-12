@@ -727,7 +727,6 @@ void jacobianCalcPointingZaRecalc(
     const ArrayOfTime& sensor_time,
     const String& iy_unit,
     const Agenda& iy_main_agenda,
-    const Agenda& geo_pos_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity& verbosity) {
   // Set some useful variables.
@@ -784,7 +783,6 @@ void jacobianCalcPointingZaRecalc(
              mblock_dlos_grid,
              iy_unit,
              iy_main_agenda,
-             geo_pos_agenda,
              0,
              ArrayOfRetrievalQuantity(),
              ArrayOfArrayOfIndex(),

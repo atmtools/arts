@@ -6,7 +6,7 @@
 
 Arts2{
 
-INCLUDE "general/general.arts"
+
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
@@ -121,6 +121,7 @@ sensor_checkedCalc
 #
 AgendaSet( iy_main_agenda ){
   iyIndependentBeamApproximation
+  VectorSet(geo_pos, [])
 }
 AgendaSet( iy_independent_beam_approx_agenda ){
   Ignore( lat_grid )

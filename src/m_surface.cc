@@ -367,6 +367,7 @@ void iySurfaceFastem(Workspace& ws,
   //
   const Index nf = f_grid.nelem();
   Vector transmittance(nf);
+  Vector geo_pos;
   ArrayOfMatrix iy_aux;
   Ppath ppath;
   //
@@ -375,6 +376,7 @@ void iySurfaceFastem(Workspace& ws,
                         iy_aux,
                         ppath,
                         diy_dx,
+                        geo_pos,
                         0,
                         iy_transmittance,
                         iy_aux_vars,
@@ -528,12 +530,14 @@ void iySurfaceRtpropAgenda(Workspace& ws,
       {
         ArrayOfMatrix iy_aux;
         Ppath ppath;
+        Vector geo_pos;
         Index iy_id_new = iy_id + ilos + 1;
         iy_main_agendaExecute(ws,
                               iy,
                               iy_aux,
                               ppath,
                               diy_dx,
+                              geo_pos,
                               0,
                               iy_trans_new,
                               ArrayOfString(0),
@@ -647,11 +651,13 @@ void iySurfaceRtpropCalc(Workspace& ws,
       {
         ArrayOfMatrix iy_aux;
         Ppath ppath;
+        Vector geo_pos;
         iy_main_agendaExecute(ws,
                               iy,
                               iy_aux,
                               ppath,
                               diy_dx,
+                              geo_pos,
                               0,
                               iy_trans_new,
                               ArrayOfString(0),

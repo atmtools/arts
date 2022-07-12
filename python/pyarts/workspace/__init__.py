@@ -32,7 +32,7 @@ Executing Controlfiles
 Controlfiles can be executed on a workspace using the
 :func:`Include` method.
 
->>> Include(ws, "general/general.arts")
+>>> Include(ws, "general/agendas.arts")
 
 The search path for controlfiles is the current directory, the paths
 provided in the environment variable ``ARTS_INCLUDE_PATH``, and the search paths
