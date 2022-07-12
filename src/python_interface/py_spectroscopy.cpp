@@ -851,6 +851,9 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
 
   py::class_<CIARecord>(m, "CIARecord")
       .def(py::init([]() { return new CIARecord{}; }))
+      .def(py::init([](const ArrayOfGriddedField2& data, Species::Species spec1, Species::Species spec2) {
+        return new CIARecord(data, spec1, spec2);
+      }))
       .PythonInterfaceCopyValue(CIARecord)
       .PythonInterfaceWorkspaceVariableConversion(CIARecord)
       .PythonInterfaceBasicRepresentation(CIARecord)
