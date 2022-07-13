@@ -295,6 +295,22 @@ void define_md_data_raw() {
                "If true, the new input clobbers the old cia data.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("abs_cia_dataReadSpeciesSplitCatalog"),
+      DESCRIPTION(
+          "Reads a species split CIA dataset.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_cia_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_species"),
+      GIN("basename", "robust"),
+      GIN_TYPE("String", "Index"),
+      GIN_DEFAULT(NODEF, "0"),
+      GIN_DESC("The path to the split catalog files",
+               "Flag to continue in case nothing is found [0 throws, 1 continues]")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataReadFromCIA"),
       DESCRIPTION(
           "Read data from a CIA data file for all CIA molecules defined\n"
