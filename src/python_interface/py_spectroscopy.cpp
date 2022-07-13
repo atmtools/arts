@@ -864,12 +864,12 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
       .PythonInterfaceFileIO(CIARecord)
       .def(
           "compute_abs",
-          [](CIARecord& cia, Numeric T, Numeric P, Numeric X0, Numeric X1, const Vector& f) {
+          [](CIARecord& cia, Numeric T, Numeric P, Numeric X0, Numeric X1, const Vector& f, Numeric T_extrapolfac, Index robust) {
             Vector out(f.nelem(), 0);
 
             for (auto& cia_data: cia.Data()) {
               Vector result(f.nelem(), 0);
-              cia_interpolation(result, f, T, cia_data, 1, 1, Verbosity{});
+              cia_interpolation(result, f, T, cia_data, T_extrapolfac, robust, Verbosity{});
               out += result;
             }
 
@@ -881,20 +881,39 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
           py::arg("X0"),
           py::arg("X1"),
           py::arg("f"),
+          py::arg("T_extrapolfac")=0.0,
+          py::arg("robust")=1,
           py::doc(
               R"--(Computes the collision-induced absorption in 1/m
 
-Parameters:
------------
-    T: Temperature [K]
+Parameters
+----------
+  T : Numeric
+    Temperature [K]
 
-    P: Pressure [Pa]
+  P : Numeric
+    Pressure [Pa]
 
-    X0: VMR of species 1 [-]
+  X0 : Numeric
+    VMR of species 1 [-]
 
-    X1: VMR of species 2 [-]
-    
-    f: Frequency grid [Hz]
+  X1 : Numeric
+    VMR of species 2 [-]
+
+  f : Vector
+    Frequency grid [Hz]
+  
+  T_extrapolfac : Numeric, optional
+    Extrapolation in temperature.  The default is 0
+  
+  robust : Index, optional
+    Returns NaN instead of throwing if it evaluates true.  The default is 1
+
+Returns
+-------
+  abs : Vector
+    Absorption profile [1/m]
+
 )--"))
       .def(py::pickle(
           [](const CIARecord& t) {

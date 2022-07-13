@@ -14,11 +14,18 @@ void py_physics(py::module_& m) {
               py::vectorize(&number_density),
               py::doc(R"--(Calculates the atmospheric number density.
 
-Parameters:
------------
-  P: Pressure [Pa]
+Parameters
+----------
+  P : Numeric
+    Pressure [Pa]
 
-  T: Temperature [K]
+  T : Numeric
+    Temperature [K]
+
+Returns
+-------
+  n : Numeric
+    Number density [1/m³]
 )--"),
               py::arg("P"),
               py::arg("T"));
