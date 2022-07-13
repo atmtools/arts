@@ -12,7 +12,9 @@
 #include <utility>
 
 #include "absorptionlines.h"
+#include "cia.h"
 #include "debug.h"
+#include "physics_funcs.h"
 #include "py_macros.h"
 #include "quantum_numbers.h"
 #include "species_tags.h"
@@ -851,13 +853,49 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
 
   py::class_<CIARecord>(m, "CIARecord")
       .def(py::init([]() { return new CIARecord{}; }))
-      .def(py::init([](const ArrayOfGriddedField2& data, Species::Species spec1, Species::Species spec2) {
+      .def(py::init([](const ArrayOfGriddedField2& data,
+                       Species::Species spec1,
+                       Species::Species spec2) {
         return new CIARecord(data, spec1, spec2);
       }))
       .PythonInterfaceCopyValue(CIARecord)
       .PythonInterfaceWorkspaceVariableConversion(CIARecord)
       .PythonInterfaceBasicRepresentation(CIARecord)
       .PythonInterfaceFileIO(CIARecord)
+      .def(
+          "compute_abs",
+          [](CIARecord& cia, Numeric T, Numeric P, Numeric X0, Numeric X1, const Vector& f) {
+            Vector out(f.nelem(), 0);
+
+            for (auto& cia_data: cia.Data()) {
+              Vector result(f.nelem(), 0);
+              cia_interpolation(result, f, T, cia_data, 1, 1, Verbosity{});
+              out += result;
+            }
+
+            out *= Constant::pow2(number_density(P, T)) * X0 * X1;
+            return out;
+          },
+          py::arg("T"),
+          py::arg("P"),
+          py::arg("X0"),
+          py::arg("X1"),
+          py::arg("f"),
+          py::doc(
+              R"--(Computes the collision-induced absorption in 1/m
+
+Parameters:
+-----------
+    T: Temperature [K]
+
+    P: Pressure [Pa]
+
+    X0: VMR of species 1 [-]
+
+    X1: VMR of species 2 [-]
+    
+    f: Frequency grid [Hz]
+)--"))
       .def(py::pickle(
           [](const CIARecord& t) {
             return py::make_tuple(t.Data(), t.TwoSpecies());

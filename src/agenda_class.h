@@ -36,6 +36,7 @@
 #include "tokval.h"
 #include <set>
 #include <utility>
+#include <variant>
 
 class MRecord;
 
