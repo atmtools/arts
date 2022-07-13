@@ -862,6 +862,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
       .PythonInterfaceWorkspaceVariableConversion(CIARecord)
       .PythonInterfaceBasicRepresentation(CIARecord)
       .PythonInterfaceFileIO(CIARecord)
+      .def_property_readonly("specs", [](const CIARecord& c){return c.TwoSpecies();})
+      .def_property_readonly("data", [](const CIARecord& c){return c.Data();})
       .def(
           "compute_abs",
           [](CIARecord& cia, Numeric T, Numeric P, Numeric X0, Numeric X1, const Vector& f, Numeric T_extrapolfac, Index robust) {
