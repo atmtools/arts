@@ -1,26 +1,24 @@
-#include "isotopologues.h"
+#include <iostream>
+
 #include "partfun.h"
 
-//! Don't call this manually, it only exists to catch a developer error
-constexpr std::size_t nonexistentPartfun() noexcept {
-  for (std::size_t i=0; i<Species::Isotopologues.size(); i++) {
-    auto& ir = Species::Isotopologues[i];
-    if (not Species::is_predefined_model(ir) and not ir.joker()) {
-      if (not PartitionFunctions::has_partfun(ir)) {
-        return i;
-      }
-    }
-  }
-  return Species::Isotopologues.size();
-}
+int main(int argc, char** argv) try {
+  ARTS_USER_ERROR_IF(
+      argc not_eq 4, "Call as ", argv[0], " SPECIES ISOTOPE TEMPERATURE");
 
-int main() try {
-  const auto i = nonexistentPartfun();
-  ARTS_USER_ERROR_IF(i not_eq Species::Isotopologues.size(),
-    "A species without partition functions have been found.  It is the species: ",
-    Species::Isotopologues[i].FullName())
+  Species::Species SPECIES = Species::fromShortName(argv[1]);
+  ARTS_USER_ERROR_IF(
+      not good_enum(SPECIES), argv[1], " is not a recognized species")
+  std::string_view ISOTOPE = argv[2];
+  Numeric TEMPERATURE = std::stod(argv[3]);
+  ARTS_USER_ERROR_IF(TEMPERATURE <= 0, "Must have positive temperature")
+
+  auto isotope = Species::IsotopeRecord(SPECIES, ISOTOPE);
+  std::cout << std::setprecision(15) << isotope.FullName() << ' ' << "Q("
+            << TEMPERATURE << ") "
+            << PartitionFunctions::Q(TEMPERATURE, isotope) << '\n';
   return EXIT_SUCCESS;
-} catch (std::runtime_error&e) {
+} catch (std::exception& e) {
   std::cerr << e.what() << '\n';
   return EXIT_FAILURE;
 }

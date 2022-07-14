@@ -256,6 +256,7 @@ add_library (artscore STATIC
   optproperties.cc
   parameters.cc
   parser.cc
+  partfun.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
@@ -603,7 +604,7 @@ add_library(species STATIC
 ########################################################################################
 
 ########################################################################################
-add_executable(partfun partfun.cc)
+add_executable(partfun test_partfun.cc partfun.cc)
 target_link_libraries (partfun species matpack)
 ########################################################################################
 
