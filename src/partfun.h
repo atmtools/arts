@@ -142,13 +142,9 @@ extern template Numeric partfun_impl<Derivatives::No>(Numeric T, const Species::
 
 } // namespace detail
 
-constexpr Numeric Q(Numeric T, const Species::IsotopeRecord& ir) {
-  return detail::partfun_impl<Derivatives::No>(T, ir);
-}
+Numeric Q(Numeric T, const Species::IsotopeRecord& ir);
 
-constexpr Numeric dQdT(Numeric T, const Species::IsotopeRecord& ir) {
-  return detail::partfun_impl<Derivatives::Yes>(T, ir);
-}
+Numeric dQdT(Numeric T, const Species::IsotopeRecord& ir);
 
 constexpr bool has_partfun(const Species::IsotopeRecord& ir) noexcept {
   using Species::Species;
