@@ -104,19 +104,11 @@ class WsvRecord {
   /** The wsv group to which this variable belongs. */
   Index Group() const { return mgroup; }
 
-  bool has_defaults() const {return not std::holds_alternative<std::unique_ptr<Any>>(defval.value);}
+  [[nodiscard]] bool has_defaults() const;
 
-  std::shared_ptr<void> get_copy() const {
-    if (has_defaults())
-      return std::visit([](auto&& val) -> std::shared_ptr<void> {
-        using value_type = std::remove_cv_t<std::remove_pointer_t<decltype(val.get())>>;
-        return std::make_shared<value_type>(*val);
-      }, defval.value);
-    return nullptr;
-  }
+  [[nodiscard]] std::shared_ptr<void> get_copy() const;
 
-const TokVal& default_value() const {return defval;}
-
+  const TokVal& default_value() const { return defval; }
 
 /** Output operator for WsvRecord.
   \author Stefan Buehler */

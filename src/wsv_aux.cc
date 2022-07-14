@@ -17,74 +17,26 @@
 
 /*!
   \file   wsv_aux.cc
-  \author Stefan Buehler <stefan.buehler@uni-hamburg.de>,
-          Oliver Lemke <oliver.lemke@uni-hamburg.de>
-  \date   Wed Jul  6 09:47:47 CEST 2022
+  \author Oliver Lemke <oliver.lemke@uni-hamburg.de>
+  \date   Thu Jul 14 14:43:37 CEST 2022
   
   \brief  Implementation of WSV aux functions.
 */
 
 #include "wsv_aux.h"
 
-#include <iostream>
-#include <map>
-
-#include "global_data.h"
-#include "workspace_ng.h"
-
-//! Output operator for WsvRecord.
-/*! 
-  This has to be here rather than with workspace.cc or
-  workspace_aux.cc, because it uses agenda_data and AgendaMap.
-
-  \param os  Output stream.
-  \param wr  Workspace variable record.
-
-  \return Output stream.
-*/
-ostream& operator<<(ostream& os, const WsvRecord& wr) {
-  using global_data::wsv_groups;
-
-  // We need a special treatment for the case that the WSV is an agenda.
-
-  if (get_wsv_group_id("Agenda") != wr.Group() &&
-      get_wsv_group_id("ArrayOfAgenda") != wr.Group()) {
-    // No agenda.
-
-    os << "\n*-------------------------------------------------------------------*\n"
-       << "Workspace variable = " << wr.Name()
-       << "\n---------------------------------------------------------------------\n"
-       << "\n"
-       << wr.Description() << "\n";
-    if (wr.has_defaults()) {
-      os << "Default: ";
-      std::ostringstream ostr;
-      std::visit([&](auto&& val_ptr) {
-           ostr << *val_ptr;
-        }, wr.default_value().value);
-      if (ostr.str().empty()) ostr << "[]";
-      if (ostr.str().find('\n') != std::string::npos) os << "\n";
-      os << ostr.str() << "\n";
-    }
-    os << "\n---------------------------------------------------------------------\n"
-       << "Group = " << wsv_groups[wr.Group()]
-       << "\n*-------------------------------------------------------------------*\n";
-  } else {
-    // Agenda.
-
-    using global_data::agenda_data;
-
-    // AgendaMap is constant here and should never be changed
-    using global_data::AgendaMap;
-
-    map<String, Index>::const_iterator j = AgendaMap.find(wr.Name());
-
-    // Just for added safety, check that we really found something:
-    ARTS_ASSERT(j != AgendaMap.end());
-
-    cout << agenda_data[j->second] << "\n";
-  }
-
-  return os;
+bool WsvRecord::has_defaults() const {
+  return not std::holds_alternative<std::unique_ptr<Any>>(defval.value);
 }
 
+std::shared_ptr<void> WsvRecord::get_copy() const {
+  if (has_defaults())
+    return std::visit(
+        [](auto&& val) -> std::shared_ptr<void> {
+          using value_type =
+              std::remove_cv_t<std::remove_pointer_t<decltype(val.get())>>;
+          return std::make_shared<value_type>(*val);
+        },
+        defval.value);
+  return nullptr;
+}

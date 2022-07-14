@@ -106,6 +106,7 @@ add_executable (make_auto_md_h
         workspace.cc
         workspace_ng.cc
         tokval.cc
+        wsv_aux.cc
         )
 
 if (ENABLE_PCH)
@@ -131,6 +132,7 @@ add_executable (make_auto_md_cc
         workspace.cc
         workspace_ng.cc
         tokval.cc
+        wsv_aux.cc
         )
 
 if (ENABLE_PCH)
@@ -286,6 +288,7 @@ add_library (artscore STATIC
   workspace_ng.cc
   workspace_memory_handler.cc
   wsv_aux.cc
+  wsv_aux_operator.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
