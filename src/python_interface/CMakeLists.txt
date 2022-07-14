@@ -82,6 +82,7 @@ pybind11_add_module(pyarts_cpp
     py_mcantenna.cpp
     py_scattering.cpp
     py_quantum.cpp
+    py_physics.cpp
     py_spectroscopy.cpp
     py_jac.cpp
     py_agenda.cpp

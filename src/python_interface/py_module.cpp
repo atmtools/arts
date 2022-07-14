@@ -33,6 +33,7 @@ void py_global(py::module_& m);
 void py_xsec(py::module_& m);
 void py_nlte(py::module_& m);
 void py_constants(py::module_& m);
+void py_physics(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -111,6 +112,7 @@ PYBIND11_MODULE(arts, m) {
   py_xsec(m);
   py_nlte(m);
   py_constants(m);
+  py_physics(m);
 
   py_agenda(m);
   py_global(m);

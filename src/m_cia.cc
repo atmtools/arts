@@ -26,13 +26,18 @@
 
 */
 
+#include <algorithm>
+#include <filesystem>
 #include "absorption.h"
 #include "arts.h"
 #include "auto_md.h"
 #include "cia.h"
+#include "debug.h"
 #include "file.h"
 #include "messages.h"
 #include "physics_funcs.h"
+#include "species.h"
+#include "species_tags.h"
 #include "xml_io.h"
 
 extern const Numeric SPEED_OF_LIGHT;
@@ -672,4 +677,48 @@ void CIAInfo(  // Generic Input:
   abs_cia_dataReadFromCIA(cia_data, species_tags, catalogpath, verbosity);
 
   Print(cia_data, 1, verbosity);
+}
+
+void abs_cia_dataReadSpeciesSplitCatalog(
+    ArrayOfCIARecord& abs_cia_data,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const String& basename,
+    const Index& robust,
+    const Verbosity& verbosity) {
+  ArrayOfString names{};
+  for (auto& spec : abs_species) {
+    for (auto& tag : spec) {
+      if (tag.type == Species::TagType::Cia) {
+        names.emplace_back(
+            var_string(Species::toShortName(tag.Spec()),
+                       "-CIA-",
+                       Species::toShortName(tag.cia_2nd_species)));
+      }
+    }
+  }
+
+  names.erase(std::unique(names.begin(), names.end()), names.end());
+
+  const std::filesystem::path inpath{basename.c_str()};
+  const bool is_dir = std::filesystem::is_directory(inpath);
+
+  for (auto& name : names) {
+    auto fil{inpath};
+    if (is_dir) {
+      fil /= name + ".xml";
+    } else {
+      fil += "." + name + ".xml";
+    }
+
+    if (std::filesystem::is_regular_file(fil)) {
+      xml_read_from_file(fil.c_str(), abs_cia_data.emplace_back(), verbosity);
+    } else {
+      ARTS_USER_ERROR_IF(not robust,
+                         "Cannot find ",
+                         fil,
+                         "\nIt is required to be there for ",
+                         name,
+                         " is found in a tag")
+    }
+  }
 }

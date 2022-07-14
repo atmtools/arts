@@ -34,15 +34,15 @@
 #include "arts.h"
 #include "gridded_fields.h"
 #include "matpackI.h"
+#include "messages.h"
 #include "mystring.h"
 #include "species.h"
-#include "messages.h"
 
 // Declare existance of some classes:
 class bifstream;
 class CIARecord;
 
-typedef Array<CIARecord> ArrayOfCIARecord;
+using ArrayOfCIARecord = Array<CIARecord>;
 
 /* Header with implementation. */
 void cia_interpolation(VectorView result,
@@ -75,7 +75,7 @@ class CIARecord {
                   is returned.
      
      */
-  String MoleculeName(const Index i) const;
+  [[nodiscard]] String MoleculeName(const Index i) const;
 
   /** Set each molecule name (from a string) that is associated with this CIARecord.
      
@@ -94,7 +94,7 @@ class CIARecord {
      \param[in] i Must be either 0 or 1. Then the first or second species index
      is returned.
      */
-  Species::Species Species(const Index i) const {
+  [[nodiscard]] Species::Species Species(const Index i) const {
     // Assert that i is 0 or 1:
     ARTS_ASSERT(i >= 0);
     ARTS_ASSERT(i <= 1);
@@ -104,11 +104,11 @@ class CIARecord {
 
   /** Return number of datasets in this record.
      */
-  Index DatasetCount() const { return mdata.nelem(); }
+  [[nodiscard]] Index DatasetCount() const { return mdata.nelem(); }
 
   /** Return frequency grid for given dataset.
      */
-  ConstVectorView FrequencyGrid(Index dataset) const {
+  [[nodiscard]] ConstVectorView FrequencyGrid(Index dataset) const {
     ARTS_ASSERT(dataset >= 0);
     ARTS_ASSERT(dataset < mdata.nelem());
 
@@ -117,7 +117,7 @@ class CIARecord {
 
   /** Return temperatur grid for given dataset.
      */
-  ConstVectorView TemperatureGrid(Index dataset) const {
+  [[nodiscard]] ConstVectorView TemperatureGrid(Index dataset) const {
     ARTS_ASSERT(dataset >= 0);
     ARTS_ASSERT(dataset < mdata.nelem());
 
@@ -126,7 +126,7 @@ class CIARecord {
 
   /** Return CIA dataset.
      */
-  const GriddedField2& Dataset(Index dataset) const {
+  [[nodiscard]] const GriddedField2& Dataset(Index dataset) const {
     ARTS_ASSERT(dataset >= 0);
     ARTS_ASSERT(dataset < mdata.nelem());
 
@@ -135,8 +135,8 @@ class CIARecord {
 
   /** Return CIA data.
      */
-  const ArrayOfGriddedField2& Data() const { return mdata; }
-  
+  [[nodiscard]] const ArrayOfGriddedField2& Data() const { return mdata; }
+
   /** Return CIA data.
    */
   ArrayOfGriddedField2& Data() { return mdata; }
@@ -182,12 +182,12 @@ class CIARecord {
      \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
      \param[in] verbosity   Standard verbosity object.
      */
-  Numeric Extract(const Numeric& frequency,
-                  const Numeric& temperature,
-                  const Index& dataset,
-                  const Numeric& T_extrapolfac,
-                  const Index& robust,
-                  const Verbosity& verbosity) const {
+  [[nodiscard]] Numeric Extract(const Numeric& frequency,
+                                const Numeric& temperature,
+                                const Index& dataset,
+                                const Numeric& T_extrapolfac,
+                                const Index& robust,
+                                const Verbosity& verbosity) const {
     Vector result(1);
     const Vector freqvec(1, frequency);
 
@@ -213,8 +213,17 @@ class CIARecord {
   /** Append other CIARecord to this. */
   void AppendDataset(const CIARecord& c2);
 
-std::array<Species::Species, 2> TwoSpecies() const {return mspecies;}
-std::array<Species::Species, 2>& TwoSpecies() {return mspecies;}
+  [[nodiscard]] std::array<Species::Species, 2> TwoSpecies() const {
+    return mspecies;
+  }
+  std::array<Species::Species, 2>& TwoSpecies() { return mspecies; }
+
+  CIARecord() = default;
+  
+  CIARecord(ArrayOfGriddedField2 data,
+            Species::Species spec1,
+            Species::Species spec2)
+      : mdata(std::move(data)), mspecies({spec1, spec2}) {}
 
  private:
   /** Append dataset to mdata. */
