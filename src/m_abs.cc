@@ -1705,9 +1705,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
   MethodAppender agenda{propmat_clearsky_agenda};
 
   // propmat_clearskyInit
-  if (abs_species.nelem()) {
-    agenda.append_nogin_method("propmat_clearskyInit");
-  }
+  agenda.append_nogin_method("propmat_clearskyInit");
 
   // propmat_clearskyAddLines
   if (any_species.Plain and
@@ -1794,9 +1792,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
   }
 
   // Ignore and touch all unused input and ouptut of the agenda
-  if (abs_species.nelem()) {
-    agenda.append_ignores(ws).append_touch(ws);
-  }
+  agenda.append_ignores(ws).append_touch(ws);
 
   // Extra check (should really never ever fail when species exist)
   propmat_clearsky_agenda.check(ws, verbosity);
@@ -1831,9 +1827,7 @@ void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
   MethodAppender agenda{propmat_clearsky_agenda};
 
   // propmat_clearskyInit
-  if (abs_species.nelem()) {
-    agenda.append_nogin_method("propmat_clearskyInit");
-  }
+  agenda.append_nogin_method("propmat_clearskyInit");
 
   // propmat_clearskyAddFromLookup
   {
@@ -1875,9 +1869,7 @@ void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
   }
 
   // Ignore and touch all unused input and ouptut of the agenda
-  if (abs_species.nelem()) {
-    agenda.append_ignores(ws).append_touch(ws);
-  }
+  agenda.append_ignores(ws).append_touch(ws);
 
   // Extra check (should really never ever fail when species exist)
   propmat_clearsky_agenda.check(ws, verbosity);
