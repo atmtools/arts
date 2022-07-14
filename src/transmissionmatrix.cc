@@ -27,40 +27,493 @@
  */
 
 #include "transmissionmatrix.h"
+
 #include "constants.h"
 #include "matpack_complex.h"
 
+TransmissionMatrix::operator Tensor3() const {
+  Tensor3 T(Frequencies(), stokes_dim, stokes_dim);
+  for (size_t i = 0; i < T4.size(); i++)
+    for (size_t j = 0; j < 4; j++)
+      for (size_t k = 0; k < 4; k++) T(i, j, k) = T4[i](j, k);
+  for (size_t i = 0; i < T3.size(); i++)
+    for (size_t j = 0; j < 3; j++)
+      for (size_t k = 0; k < 3; k++) T(i, j, k) = T3[i](j, k);
+  for (size_t i = 0; i < T2.size(); i++)
+    for (size_t j = 0; j < 2; j++)
+      for (size_t k = 0; k < 2; k++) T(i, j, k) = T2[i](j, k);
+  for (size_t i = 0; i < T1.size(); i++) T(i, 0, 0) = T1[i](0, 0);
+  return T;
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
+[[nodiscard]] Eigen::MatrixXd TransmissionMatrix::Mat(size_t i) const {
+  switch (stokes_dim) {
+    case 1:
+      return Mat1(i);
+    case 2:
+      return Mat2(i);
+    case 3:
+      return Mat3(i);
+    case 4:
+      return Mat4(i);
+  }
+}
+#pragma GCC diagnostic pop
+
+void TransmissionMatrix::setIdentity() {
+  std::fill(T4.begin(), T4.end(), Eigen::Matrix4d::Identity());
+  std::fill(T3.begin(), T3.end(), Eigen::Matrix3d::Identity());
+  std::fill(T2.begin(), T2.end(), Eigen::Matrix2d::Identity());
+  std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Identity());
+}
+
+void TransmissionMatrix::setZero() {
+  std::fill(T4.begin(), T4.end(), Eigen::Matrix4d::Zero());
+  std::fill(T3.begin(), T3.end(), Eigen::Matrix3d::Zero());
+  std::fill(T2.begin(), T2.end(), Eigen::Matrix2d::Zero());
+  std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Zero());
+}
+
+void TransmissionMatrix::mul(const TransmissionMatrix& A,
+                             const TransmissionMatrix& B) {
+  for (size_t i = 0; i < T4.size(); i++) T4[i].noalias() = A.T4[i] * B.T4[i];
+  for (size_t i = 0; i < T3.size(); i++) T3[i].noalias() = A.T3[i] * B.T3[i];
+  for (size_t i = 0; i < T2.size(); i++) T2[i].noalias() = A.T2[i] * B.T2[i];
+  for (size_t i = 0; i < T1.size(); i++) T1[i].noalias() = A.T1[i] * B.T1[i];
+}
+
+void TransmissionMatrix::mul_aliased(const TransmissionMatrix& A,
+                                     const TransmissionMatrix& B) {
+  for (size_t i = 0; i < T4.size(); i++) T4[i] = A.T4[i] * B.T4[i];
+  for (size_t i = 0; i < T3.size(); i++) T3[i] = A.T3[i] * B.T3[i];
+  for (size_t i = 0; i < T2.size(); i++) T2[i] = A.T2[i] * B.T2[i];
+  for (size_t i = 0; i < T1.size(); i++) T1[i] = A.T1[i] * B.T1[i];
+}
+
+Numeric TransmissionMatrix::operator()(const Index i,
+                                       const Index j,
+                                       const Index k) const {
+  switch (stokes_dim) {
+    case 4:
+      return T4[i](j, k);
+    case 3:
+      return T3[i](j, k);
+    case 2:
+      return T2[i](j, k);
+    default:
+      return T1[i](j, k);
+  }
+}
+
+[[nodiscard]] Index TransmissionMatrix::Frequencies() const {
+  switch (stokes_dim) {
+    case 4:
+      return Index(T4.size());
+    case 3:
+      return Index(T3.size());
+    case 2:
+      return Index(T2.size());
+    default:
+      return Index(T1.size());
+  }
+}
+
+TransmissionMatrix& TransmissionMatrix::operator+=(
+    const LazyScale<TransmissionMatrix>& lstm) {
+  for (size_t i = 0; i < T4.size(); i++)
+    T4[i].noalias() = lstm.scale * lstm.bas.Mat4(i);
+  for (size_t i = 0; i < T3.size(); i++)
+    T3[i].noalias() = lstm.scale * lstm.bas.Mat3(i);
+  for (size_t i = 0; i < T2.size(); i++)
+    T2[i].noalias() = lstm.scale * lstm.bas.Mat2(i);
+  for (size_t i = 0; i < T1.size(); i++)
+    T1[i].noalias() = lstm.scale * lstm.bas.Mat1(i);
+  return *this;
+}
+
+TransmissionMatrix& TransmissionMatrix::operator*=(const Numeric& scale) {
+  std::transform(
+      T4.begin(), T4.end(), T4.begin(), [scale](auto& T) { return T * scale; });
+  std::transform(
+      T3.begin(), T3.end(), T3.begin(), [scale](auto& T) { return T * scale; });
+  std::transform(
+      T2.begin(), T2.end(), T2.begin(), [scale](auto& T) { return T * scale; });
+  std::transform(
+      T1.begin(), T1.end(), T1.begin(), [scale](auto& T) { return T * scale; });
+  return *this;
+}
+
+LazyScale<TransmissionMatrix> operator*(const TransmissionMatrix& tm,
+                                        const Numeric& x) {
+  return {tm, x};
+}
+
+LazyScale<TransmissionMatrix> operator*(const Numeric& x,
+                                        const TransmissionMatrix& tm) {
+  return {tm, x};
+}
+
+void RadiationVector::leftMul(const TransmissionMatrix& T) {
+  for (size_t i = 0; i < R4.size(); i++) R4[i] = T.Mat4(i) * R4[i];
+  for (size_t i = 0; i < R3.size(); i++) R3[i] = T.Mat3(i) * R3[i];
+  for (size_t i = 0; i < R2.size(); i++) R2[i] = T.Mat2(i) * R2[i];
+  for (size_t i = 0; i < R1.size(); i++) R1[i] = T.Mat1(i) * R1[i];
+}
+
+void RadiationVector::SetZero(size_t i) {
+  switch (stokes_dim) {
+    case 4:
+      R4[i].noalias() = Eigen::Vector4d::Zero();
+      break;
+    case 3:
+      R3[i].noalias() = Eigen::Vector3d::Zero();
+      break;
+    case 2:
+      R2[i].noalias() = Eigen::Vector2d::Zero();
+      break;
+    case 1:
+      R1[i][0] = 0;
+      break;
+  }
+}
+
+Eigen::VectorXd RadiationVector::Vec(size_t i) const {
+  switch (stokes_dim) {
+    case 4:
+      return Vec4(i);
+    case 3:
+      return Vec3(i);
+    case 2:
+      return Vec2(i);
+    default:
+      return Vec1(i);
+  }
+}
+
+void RadiationVector::rem_avg(const RadiationVector& O1,
+                              const RadiationVector& O2) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i].noalias() -= 0.5 * (O1.R4[i] + O2.R4[i]);
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i].noalias() -= 0.5 * (O1.R3[i] + O2.R3[i]);
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i].noalias() -= 0.5 * (O1.R2[i] + O2.R2[i]);
+  for (size_t i = 0; i < R1.size(); i++)
+    R1[i].noalias() -= 0.5 * (O1.R1[i] + O2.R1[i]);
+}
+
+void RadiationVector::add_avg(const RadiationVector& O1,
+                              const RadiationVector& O2) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i].noalias() += 0.5 * (O1.R4[i] + O2.R4[i]);
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i].noalias() += 0.5 * (O1.R3[i] + O2.R3[i]);
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i].noalias() += 0.5 * (O1.R2[i] + O2.R2[i]);
+  for (size_t i = 0; i < R1.size(); i++)
+    R1[i].noalias() += 0.5 * (O1.R1[i] + O2.R1[i]);
+}
+
+void RadiationVector::add_weighted(const TransmissionMatrix& T,
+                                   const RadiationVector& far,
+                                   const RadiationVector& close,
+                                   const ConstMatrixView& Kfar,
+                                   const ConstMatrixView& Kclose,
+                                   const Numeric r) {
+  for (size_t i = 0; i < R4.size(); i++) {
+    R4[i].noalias() +=
+        T.second_order_integration_source<4>(T.TraMat<4>(i),
+                                             far.R4[i],
+                                             close.R4[i],
+                                             prop_matrix<4>(Kfar(i, joker)),
+                                             prop_matrix<4>(Kclose(i, joker)),
+                                             r);
+  }
+  for (size_t i = 0; i < R3.size(); i++) {
+    R3[i].noalias() +=
+        T.second_order_integration_source<3>(T.TraMat<3>(i),
+                                             far.R3[i],
+                                             close.R3[i],
+                                             prop_matrix<3>(Kfar(i, joker)),
+                                             prop_matrix<3>(Kclose(i, joker)),
+                                             r);
+  }
+  for (size_t i = 0; i < R2.size(); i++) {
+    R2[i].noalias() +=
+        T.second_order_integration_source<2>(T.TraMat<2>(i),
+                                             far.R2[i],
+                                             close.R2[i],
+                                             prop_matrix<2>(Kfar(i, joker)),
+                                             prop_matrix<2>(Kclose(i, joker)),
+                                             r);
+  }
+  for (size_t i = 0; i < R1.size(); i++) {
+    R1[i].noalias() +=
+        T.second_order_integration_source<1>(T.TraMat<1>(i),
+                                             far.R1[i],
+                                             close.R1[i],
+                                             prop_matrix<1>(Kfar(i, joker)),
+                                             prop_matrix<1>(Kclose(i, joker)),
+                                             r);
+  }
+}
+
+void RadiationVector::addDerivEmission(const TransmissionMatrix& PiT,
+                                       const TransmissionMatrix& dT,
+                                       const TransmissionMatrix& T,
+                                       const RadiationVector& ImJ,
+                                       const RadiationVector& dJ) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i].noalias() += PiT.Mat4(i) * (dT.Mat4(i) * ImJ.R4[i] + dJ.R4[i] -
+                                      T.Mat4(i) * dJ.R4[i]);
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i].noalias() += PiT.Mat3(i) * (dT.Mat3(i) * ImJ.R3[i] + dJ.R3[i] -
+                                      T.Mat3(i) * dJ.R3[i]);
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i].noalias() += PiT.Mat2(i) * (dT.Mat2(i) * ImJ.R2[i] + dJ.R2[i] -
+                                      T.Mat2(i) * dJ.R2[i]);
+  for (size_t i = 0; i < R1.size(); i++)
+    R1[i].noalias() += PiT.Mat1(i) * (dT.Mat1(i) * ImJ.R1[i] + dJ.R1[i] -
+                                      T.Mat1(i) * dJ.R1[i]);
+}
+
+void RadiationVector::addWeightedDerivEmission(const TransmissionMatrix& PiT,
+                                               const TransmissionMatrix& dT,
+                                               const TransmissionMatrix& T,
+                                               const RadiationVector& I,
+                                               const RadiationVector& far,
+                                               const RadiationVector& close,
+                                               const RadiationVector& d,
+                                               bool isfar) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i].noalias() +=
+        PiT.Mat4(i) * (dT.Mat4(i) * I.R4[i] +
+                       T.second_order_integration_dsource<4>(
+                           i, dT, far.R4[i], close.R4[i], d.R4[i], isfar));
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i].noalias() +=
+        PiT.Mat3(i) * (dT.Mat3(i) * I.R3[i] +
+                       T.second_order_integration_dsource<3>(
+                           i, dT, far.R3[i], close.R3[i], d.R3[i], isfar));
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i].noalias() +=
+        PiT.Mat2(i) * (dT.Mat2(i) * I.R2[i] +
+                       T.second_order_integration_dsource<2>(
+                           i, dT, far.R2[i], close.R2[i], d.R2[i], isfar));
+  for (size_t i = 0; i < R1.size(); i++)
+    R1[i].noalias() +=
+        PiT.Mat1(i) * (dT.Mat1(i) * I.R1[i] +
+                       T.second_order_integration_dsource<1>(
+                           i, dT, far.R1[i], close.R1[i], d.R1[i], isfar));
+}
+
+void RadiationVector::addDerivTransmission(const TransmissionMatrix& PiT,
+                                           const TransmissionMatrix& dT,
+                                           const RadiationVector& I) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i].noalias() += PiT.Mat4(i) * dT.Mat4(i) * I.R4[i];
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i].noalias() += PiT.Mat3(i) * dT.Mat3(i) * I.R3[i];
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i].noalias() += PiT.Mat2(i) * dT.Mat2(i) * I.R2[i];
+  for (size_t i = 0; i < R1.size(); i++)
+    R1[i].noalias() += PiT.Mat1(i) * dT.Mat1(i) * I.R1[i];
+}
+
+void RadiationVector::addMultiplied(const TransmissionMatrix& A,
+                                    const RadiationVector& x) {
+  for (size_t i = 0; i < R4.size(); i++) R4[i].noalias() += A.Mat4(i) * x.R4[i];
+  for (size_t i = 0; i < R3.size(); i++) R3[i].noalias() += A.Mat3(i) * x.R3[i];
+  for (size_t i = 0; i < R2.size(); i++) R2[i].noalias() += A.Mat2(i) * x.R2[i];
+  for (size_t i = 0; i < R1.size(); i++) R1[i].noalias() += A.Mat1(i) * x.R1[i];
+}
+
+void RadiationVector::setDerivReflection(const RadiationVector& I,
+                                         const TransmissionMatrix& PiT,
+                                         const TransmissionMatrix& Z,
+                                         const TransmissionMatrix& dZ) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i] = PiT.Mat4(i) * (Z.Mat4(i) * R4[i] + dZ.Mat4(i) * I.R4[i]);
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i] = PiT.Mat3(i) * (Z.Mat3(i) * R3[i] + dZ.Mat3(i) * I.R3[i]);
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i] = PiT.Mat2(i) * (Z.Mat2(i) * R2[i] + dZ.Mat2(i) * I.R2[i]);
+  for (size_t i = 0; i < R1.size(); i++)
+    R4[i][0] =
+        PiT.Mat1(i)[0] * (Z.Mat1(i)[0] * R1[i][0] + dZ.Mat1(i)[0] * I.R1[i][0]);
+}
+
+void RadiationVector::setBackscatterTransmission(const RadiationVector& I0,
+                                                 const TransmissionMatrix& Tr,
+                                                 const TransmissionMatrix& Tf,
+                                                 const TransmissionMatrix& Z) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i].noalias() = Tr.Mat4(i) * Z.Mat4(i) * Tf.Mat4(i) * I0.R4[i];
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i].noalias() = Tr.Mat3(i) * Z.Mat3(i) * Tf.Mat3(i) * I0.R3[i];
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i].noalias() = Tr.Mat2(i) * Z.Mat2(i) * Tf.Mat2(i) * I0.R2[i];
+  for (size_t i = 0; i < R1.size(); i++)
+    R1[i].noalias() = Tr.Mat1(i) * Z.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
+}
+
+void RadiationVector::setBackscatterTransmissionDerivative(
+    const RadiationVector& I0,
+    const TransmissionMatrix& Tr,
+    const TransmissionMatrix& Tf,
+    const TransmissionMatrix& dZ) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i].noalias() += Tr.Mat4(i) * dZ.Mat4(i) * Tf.Mat4(i) * I0.R4[i];
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i].noalias() += Tr.Mat3(i) * dZ.Mat3(i) * Tf.Mat3(i) * I0.R3[i];
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i].noalias() += Tr.Mat2(i) * dZ.Mat2(i) * Tf.Mat2(i) * I0.R2[i];
+  for (size_t i = 0; i < R1.size(); i++)
+    R1[i].noalias() += Tr.Mat1(i) * dZ.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
+}
+
+RadiationVector& RadiationVector::operator=(const ConstMatrixView& M) {
+  ARTS_ASSERT(M.ncols() == stokes_dim and M.nrows() == Frequencies());
+  for (size_t i = 0; i < R4.size(); i++) {
+    R4[i][0] = M(i, 0);
+    R4[i][1] = M(i, 1);
+    R4[i][2] = M(i, 2);
+    R4[i][3] = M(i, 3);
+  }
+  for (size_t i = 0; i < R3.size(); i++) {
+    R3[i][0] = M(i, 0);
+    R3[i][1] = M(i, 1);
+    R3[i][2] = M(i, 2);
+  }
+  for (size_t i = 0; i < R2.size(); i++) {
+    R2[i][0] = M(i, 0);
+    R2[i][1] = M(i, 1);
+  }
+  for (size_t i = 0; i < R1.size(); i++) {
+    R1[i][0] = M(i, 0);
+  }
+  return *this;
+}
+
+const Numeric& RadiationVector::operator()(const Index i, const Index j) const {
+  switch (stokes_dim) {
+    case 4:
+      return R4[i][j];
+    case 3:
+      return R3[i][j];
+    case 2:
+      return R2[i][j];
+    default:
+      return R1[i][j];
+  }
+}
+
+RadiationVector::operator Matrix() const {
+  Matrix M(Frequencies(), stokes_dim);
+  for (size_t i = 0; i < R4.size(); i++)
+    for (size_t j = 0; j < 4; j++) M(i, j) = R4[i](j);
+  for (size_t i = 0; i < R3.size(); i++)
+    for (size_t j = 0; j < 3; j++) M(i, j) = R3[i](j);
+  for (size_t i = 0; i < R2.size(); i++)
+    for (size_t j = 0; j < 2; j++) M(i, j) = R2[i](j);
+  for (size_t i = 0; i < R1.size(); i++) M(i, 0) = R1[i](0);
+  return M;
+}
+
+void RadiationVector::setSource(const StokesVector& a,
+                                const ConstVectorView& B,
+                                const StokesVector& S,
+                                Index i) {
+  ARTS_ASSERT(a.NumberOfAzimuthAngles() == 1);
+  ARTS_ASSERT(a.NumberOfZenithAngles() == 1);
+  ARTS_ASSERT(S.NumberOfAzimuthAngles() == 1);
+  ARTS_ASSERT(S.NumberOfZenithAngles() == 1);
+  switch (stokes_dim) {
+    case 4:
+      if (not S.IsEmpty())
+        R4[i].noalias() =
+            Eigen::Vector4d(a.Kjj()[i], a.K12()[i], a.K13()[i], a.K14()[i]) *
+                B[i] +
+            Eigen::Vector4d(S.Kjj()[i], S.K12()[i], S.K13()[i], S.K14()[i]);
+      else
+        R4[i].noalias() =
+            Eigen::Vector4d(a.Kjj()[i], a.K12()[i], a.K13()[i], a.K14()[i]) *
+            B[i];
+      break;
+    case 3:
+      if (not S.IsEmpty())
+        R3[i].noalias() =
+            Eigen::Vector3d(a.Kjj()[i], a.K12()[i], a.K13()[i]) * B[i] +
+            Eigen::Vector3d(S.Kjj()[i], S.K12()[i], S.K13()[i]);
+      else
+        R3[i].noalias() =
+            Eigen::Vector3d(a.Kjj()[i], a.K12()[i], a.K13()[i]) * B[i];
+      break;
+    case 2:
+      if (not S.IsEmpty())
+        R2[i].noalias() = Eigen::Vector2d(a.Kjj()[i], a.K12()[i]) * B[i] +
+                          Eigen::Vector2d(S.Kjj()[i], S.K12()[i]);
+      else
+        R2[i].noalias() = Eigen::Vector2d(a.Kjj()[i], a.K12()[i]) * B[i];
+      break;
+    default:
+      if (not S.IsEmpty())
+        R1[i][0] = a.Kjj()[i] * B[i] + S.Kjj()[i];
+      else
+        R1[i][0] = a.Kjj()[i] * B[i];
+  }
+}
+
+Index RadiationVector::Frequencies() const {
+  switch (stokes_dim) {
+    case 4:
+      return Index(R4.size());
+    case 3:
+      return Index(R3.size());
+    case 2:
+      return Index(R2.size());
+    default:
+      return Index(R1.size());
+  }
+}
+
 constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
 
-template <int N> constexpr
-Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
-                                           const ConstVectorView& B,
-                                           const StokesVector& da,
-                                           const ConstVectorView& dB_dT,
-                                           const StokesVector& dS,
-                                           bool dT,
-                                           Index i) {
-  static_assert(N>0 and N<5, "Bad stokes dimensions");
-  
+template <int N>
+constexpr Eigen::Matrix<Numeric, N, 1> source_vector(
+    const StokesVector& a,
+    const ConstVectorView& B,
+    const StokesVector& da,
+    const ConstVectorView& dB_dT,
+    const StokesVector& dS,
+    bool dT,
+    Index i) {
+  static_assert(N > 0 and N < 5, "Bad stokes dimensions");
+
   if constexpr (N == 1) {
     if (dT)
-      return Eigen::Matrix<Numeric, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i]);
+      return Eigen::Matrix<Numeric, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i] +
+                                          a.Kjj()[i] * dB_dT[i]);
     return Eigen::Matrix<Numeric, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i]);
   }
 
   if constexpr (N == 2) {
-    if (dT) 
-      return Eigen::Vector2d(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
-                             dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i]);
+    if (dT)
+      return Eigen::Vector2d(
+          dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
+          dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i]);
     return Eigen::Vector2d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
                            dS.K12()[i] + da.K12()[i] * B[i]);
   }
 
   if constexpr (N == 3) {
     if (dT)
-      return Eigen::Vector3d(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
-                             dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
-                             dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i]);
+      return Eigen::Vector3d(
+          dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
+          dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
+          dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i]);
     return Eigen::Vector3d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
                            dS.K12()[i] + da.K12()[i] * B[i],
                            dS.K13()[i] + da.K13()[i] * B[i]);
@@ -68,10 +521,11 @@ Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
 
   if constexpr (N == 4) {
     if (dT)
-      return Eigen::Vector4d(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
-                             dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
-                             dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i],
-                             dS.K14()[i] + da.K14()[i] * B[i] + a.K14()[i] * dB_dT[i]);
+      return Eigen::Vector4d(
+          dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
+          dS.K12()[i] + da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
+          dS.K13()[i] + da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i],
+          dS.K14()[i] + da.K14()[i] * B[i] + a.K14()[i] * dB_dT[i]);
     return Eigen::Vector4d(dS.Kjj()[i] + da.Kjj()[i] * B[i],
                            dS.K12()[i] + da.K12()[i] * B[i],
                            dS.K13()[i] + da.K13()[i] * B[i],
@@ -79,18 +533,20 @@ Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
   }
 }
 
-template <int N> constexpr
-Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
-                                           const ConstVectorView& B,
-                                           const StokesVector& da,
-                                           const ConstVectorView& dB_dT,
-                                           bool dT,
-                                           Index i) {
-  static_assert(N>0 and N<5, "Bad stokes dimensions");
+template <int N>
+constexpr Eigen::Matrix<Numeric, N, 1> source_vector(
+    const StokesVector& a,
+    const ConstVectorView& B,
+    const StokesVector& da,
+    const ConstVectorView& dB_dT,
+    bool dT,
+    Index i) {
+  static_assert(N > 0 and N < 5, "Bad stokes dimensions");
 
   if constexpr (N == 1) {
     if (dT)
-      return Eigen::Matrix<Numeric, 1, 1>(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i]);
+      return Eigen::Matrix<Numeric, 1, 1>(da.Kjj()[i] * B[i] +
+                                          a.Kjj()[i] * dB_dT[i]);
     return Eigen::Matrix<Numeric, 1, 1>(da.Kjj()[i] * B[i]);
   }
 
@@ -98,8 +554,7 @@ Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
     if (dT)
       return Eigen::Vector2d(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
                              da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i]);
-    return Eigen::Vector2d(da.Kjj()[i] * B[i],
-                           da.K12()[i] * B[i]);
+    return Eigen::Vector2d(da.Kjj()[i] * B[i], da.K12()[i] * B[i]);
   }
 
   if constexpr (N == 3) {
@@ -107,9 +562,8 @@ Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
       return Eigen::Vector3d(da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i],
                              da.K12()[i] * B[i] + a.K12()[i] * dB_dT[i],
                              da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i]);
-    return Eigen::Vector3d(da.Kjj()[i] * B[i],
-                            da.K12()[i] * B[i],
-                            da.K13()[i] * B[i]);
+    return Eigen::Vector3d(
+        da.Kjj()[i] * B[i], da.K12()[i] * B[i], da.K13()[i] * B[i]);
   }
 
   if constexpr (N == 4) {
@@ -119,9 +573,9 @@ Eigen::Matrix<Numeric, N, 1> source_vector(const StokesVector& a,
                              da.K13()[i] * B[i] + a.K13()[i] * dB_dT[i],
                              da.K14()[i] * B[i] + a.K14()[i] * dB_dT[i]);
     return Eigen::Vector4d(da.Kjj()[i] * B[i],
-                            da.K12()[i] * B[i],
-                            da.K13()[i] * B[i],
-                            da.K14()[i] * B[i]);
+                           da.K12()[i] * B[i],
+                           da.K13()[i] * B[i],
+                           da.K14()[i] * B[i]);
   }
 }
 
@@ -282,12 +736,12 @@ inline void transmat4(TransmissionMatrix& T,
       const Numeric C1 =
           either_zero ? 1.0 : ((sy * x2 * iy + sx * y2 * ix) * inv_x2y2).real();
       const Numeric C2 = both_zero ? 0.5 : ((cx - cy) * inv_x2y2).real();
-      const Numeric C3 =
-          both_zero ? 1.0 / 6.0
-                    : ((x_zero ? 1.0 - sy * iy
-                               : y_zero ? sx * ix - 1.0 : sx * ix - sy * iy) *
-                       inv_x2y2)
-                          .real();
+      const Numeric C3 = both_zero ? 1.0 / 6.0
+                                   : ((x_zero   ? 1.0 - sy * iy
+                                       : y_zero ? sx * ix - 1.0
+                                                : sx * ix - sy * iy) *
+                                      inv_x2y2)
+                                         .real();
       T.Mat4(i).noalias() =
           exp_a * (Eigen::Matrix4d() << C0 + C2 * (b2 + c2 + d2),
                    C1 * b + C2 * (-c * u - d * v) +
@@ -715,11 +1169,11 @@ inline void dtransmat4(TransmissionMatrix& T,
       const Complex C1c =
           either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
       const Complex C2c = both_zero ? 0.5 : (cx - cy) * inv_x2y2;
-      const Complex C3c =
-          both_zero ? 1.0 / 6.0
-                    : (x_zero ? 1.0 - sy * iy
-                              : y_zero ? sx * ix - 1.0 : sx * ix - sy * iy) *
-                          inv_x2y2;
+      const Complex C3c = both_zero ? 1.0 / 6.0
+                                    : (x_zero   ? 1.0 - sy * iy
+                                       : y_zero ? sx * ix - 1.0
+                                                : sx * ix - sy * iy) *
+                                          inv_x2y2;
 
       const Numeric& C0 = real_val(C0c);
       const Numeric& C1 = real_val(C1c);
@@ -847,13 +1301,13 @@ inline void dtransmat4(TransmissionMatrix& T,
           const Complex dC2c =
               both_zero ? 0.0 : (dcx - dcy - C2c * dx2dy2) * inv_x2y2;
           const Complex dC3c =
-              both_zero ? 0.0
-                        : ((x_zero ? -dsy * iy - sy * diy
-                                   : y_zero ? dsx * ix + sx * dix
-                                            : dsx * ix + sx * dix - dsy * iy -
-                                                  sy * diy) -
-                           C3c * dx2dy2) *
-                              inv_x2y2;
+              both_zero
+                  ? 0.0
+                  : ((x_zero   ? -dsy * iy - sy * diy
+                      : y_zero ? dsx * ix + sx * dix
+                               : dsx * ix + sx * dix - dsy * iy - sy * diy) -
+                     C3c * dx2dy2) *
+                        inv_x2y2;
 
           const Numeric& dC0 = real_val(dC0c);
           const Numeric& dC1 = real_val(dC1c);
@@ -1049,13 +1503,13 @@ inline void dtransmat4(TransmissionMatrix& T,
           const Complex dC2c =
               both_zero ? 0.0 : (dcx - dcy - C2c * dx2dy2) * inv_x2y2;
           const Complex dC3c =
-              both_zero ? 0.0
-                        : ((x_zero ? -dsy * iy - sy * diy
-                                   : y_zero ? dsx * ix + sx * dix
-                                            : dsx * ix + sx * dix - dsy * iy -
-                                                  sy * diy) -
-                           C3c * dx2dy2) *
-                              inv_x2y2;
+              both_zero
+                  ? 0.0
+                  : ((x_zero   ? -dsy * iy - sy * diy
+                      : y_zero ? dsx * ix + sx * dix
+                               : dsx * ix + sx * dix - dsy * iy - sy * diy) -
+                     C3c * dx2dy2) *
+                        inv_x2y2;
 
           const Numeric& dC0 = real_val(dC0c);
           const Numeric& dC1 = real_val(dC1c);
@@ -1265,23 +1719,30 @@ void stepwise_source(RadiationVector& J,
       J.SetZero(i);
       if (jacobian_do) {
         for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-          if (dJ[j].Frequencies())
-            dJ[j].SetZero(i);
+          if (dJ[j].Frequencies()) dJ[j].SetZero(i);
       }
     } else {
       J.setSource(a, B, S, i);
-      
+
       switch (J.stokes_dim) {
         case 4: {
           const auto invK = inv_prop_matrix<4>(K.Data()(0, 0, i, joker));
           J.Vec4(i) = invK * J.Vec4(i);
           if (jacobian_do) {
             for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
-                dJ[j].Vec4(i).noalias() = 0.5 * invK *
-                    (source_vector<4>(a, B, da[j], dB_dT, dS[j],
-                            jacobian_quantities[j] == Jacobian::Atm::Temperature, i) -
-                    prop_matrix<4>(dK[j].Data()(0, 0, i, joker)) * J.Vec4(i));
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
+                  dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+                dJ[j].Vec4(i).noalias() =
+                    0.5 * invK *
+                    (source_vector<4>(
+                         a,
+                         B,
+                         da[j],
+                         dB_dT,
+                         dS[j],
+                         jacobian_quantities[j] == Jacobian::Atm::Temperature,
+                         i) -
+                     prop_matrix<4>(dK[j].Data()(0, 0, i, joker)) * J.Vec4(i));
               }
             }
           }
@@ -1292,11 +1753,19 @@ void stepwise_source(RadiationVector& J,
           if (jacobian_do) {
             for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
               // Skip others!
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
-                dJ[j].Vec3(i).noalias() = 0.5 * invK *
-                    (source_vector<3>(a, B, da[j], dB_dT, dS[j],
-                            jacobian_quantities[j] == Jacobian::Atm::Temperature, i) -
-                    prop_matrix<3>(dK[j].Data()(0, 0, i, joker)) * J.Vec3(i));
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
+                  dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+                dJ[j].Vec3(i).noalias() =
+                    0.5 * invK *
+                    (source_vector<3>(
+                         a,
+                         B,
+                         da[j],
+                         dB_dT,
+                         dS[j],
+                         jacobian_quantities[j] == Jacobian::Atm::Temperature,
+                         i) -
+                     prop_matrix<3>(dK[j].Data()(0, 0, i, joker)) * J.Vec3(i));
               }
             }
           }
@@ -1307,11 +1776,19 @@ void stepwise_source(RadiationVector& J,
           if (jacobian_do) {
             for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
               // Skip others!
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
-                dJ[j].Vec2(i).noalias() = 0.5 * invK *
-                    (source_vector<2>(a, B, da[j], dB_dT, dS[j],
-                            jacobian_quantities[j] == Jacobian::Atm::Temperature, i) -
-                    prop_matrix<2>(dK[j].Data()(0, 0, i, joker)) * J.Vec2(i));
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
+                  dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+                dJ[j].Vec2(i).noalias() =
+                    0.5 * invK *
+                    (source_vector<2>(
+                         a,
+                         B,
+                         da[j],
+                         dB_dT,
+                         dS[j],
+                         jacobian_quantities[j] == Jacobian::Atm::Temperature,
+                         i) -
+                     prop_matrix<2>(dK[j].Data()(0, 0, i, joker)) * J.Vec2(i));
               }
             }
           }
@@ -1322,11 +1799,19 @@ void stepwise_source(RadiationVector& J,
           if (jacobian_do) {
             for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
               // Skip others!
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
-                dJ[j].Vec1(i).noalias() = 0.5 * invK *
-                    (source_vector<1>(a, B, da[j], dB_dT, dS[j],
-                            jacobian_quantities[j] == Jacobian::Atm::Temperature, i) -
-                    prop_matrix<1>(dK[j].Data()(0, 0, i, joker)) * J.Vec1(i));
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
+                  dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+                dJ[j].Vec1(i).noalias() =
+                    0.5 * invK *
+                    (source_vector<1>(
+                         a,
+                         B,
+                         da[j],
+                         dB_dT,
+                         dS[j],
+                         jacobian_quantities[j] == Jacobian::Atm::Temperature,
+                         i) -
+                     prop_matrix<1>(dK[j].Data()(0, 0, i, joker)) * J.Vec1(i));
               }
             }
           }
@@ -1336,27 +1821,28 @@ void stepwise_source(RadiationVector& J,
   }
 }
 
-void update_radiation_vector(RadiationVector& I,
-                             ArrayOfRadiationVector& dI1,
-                             ArrayOfRadiationVector& dI2,
-                             const RadiationVector& J1,
-                             const RadiationVector& J2,
-                             const ArrayOfRadiationVector& dJ1,
-                             const ArrayOfRadiationVector& dJ2,
-                             const TransmissionMatrix& T,
-                             const TransmissionMatrix& PiT,
-                             const ArrayOfTransmissionMatrix& dT1,
-                             const ArrayOfTransmissionMatrix& dT2,
-                             [[maybe_unused]] const PropagationMatrix& K1,
-                             [[maybe_unused]] const PropagationMatrix& K2,
-                             [[maybe_unused]] const ArrayOfPropagationMatrix& dK1,
-                             [[maybe_unused]] const ArrayOfPropagationMatrix& dK2,
-                             [[maybe_unused]] const Numeric r,
-                             [[maybe_unused]] const Vector& dr1,
-                             [[maybe_unused]] const Vector& dr2,
-                             [[maybe_unused]] const Index ia,
-                             [[maybe_unused]] const Index iz,
-                             const RadiativeTransferSolver solver) {
+void update_radiation_vector(
+    RadiationVector& I,
+    ArrayOfRadiationVector& dI1,
+    ArrayOfRadiationVector& dI2,
+    const RadiationVector& J1,
+    const RadiationVector& J2,
+    const ArrayOfRadiationVector& dJ1,
+    const ArrayOfRadiationVector& dJ2,
+    const TransmissionMatrix& T,
+    const TransmissionMatrix& PiT,
+    const ArrayOfTransmissionMatrix& dT1,
+    const ArrayOfTransmissionMatrix& dT2,
+    [[maybe_unused]] const PropagationMatrix& K1,
+    [[maybe_unused]] const PropagationMatrix& K2,
+    [[maybe_unused]] const ArrayOfPropagationMatrix& dK1,
+    [[maybe_unused]] const ArrayOfPropagationMatrix& dK2,
+    [[maybe_unused]] const Numeric r,
+    [[maybe_unused]] const Vector& dr1,
+    [[maybe_unused]] const Vector& dr2,
+    [[maybe_unused]] const Index ia,
+    [[maybe_unused]] const Index iz,
+    const RadiativeTransferSolver solver) {
   switch (solver) {
     case RadiativeTransferSolver::Emission: {
       I.rem_avg(J1, J2);
@@ -1375,14 +1861,20 @@ void update_radiation_vector(RadiationVector& I,
       }
       I.leftMul(T);
     } break;
-    
+
     case RadiativeTransferSolver::LinearWeightedEmission: {
-      ARTS_USER_ERROR_IF (dI1.size(),
-                          "Cannot support derivatives with current integration method\n");
-      
+      ARTS_USER_ERROR_IF(
+          dI1.size(),
+          "Cannot support derivatives with current integration method\n");
+
       I.leftMul(T);
-      I.add_weighted(T, J1, J2, K1.Data()(ia, iz, joker, joker), K2.Data()(ia, iz, joker, joker), r);  
-      
+      I.add_weighted(T,
+                     J1,
+                     J2,
+                     K1.Data()(ia, iz, joker, joker),
+                     K2.Data()(ia, iz, joker, joker),
+                     r);
+
     } break;
   }
 }
@@ -1411,7 +1903,7 @@ ArrayOfTransmissionMatrix cumulative_transmission(
 void set_backscatter_radiation_vector(
     ArrayOfRadiationVector& I,
     ArrayOfArrayOfArrayOfRadiationVector& dI,
-    const RadiationVector &I_incoming,
+    const RadiationVector& I_incoming,
     const ArrayOfTransmissionMatrix& T,
     const ArrayOfTransmissionMatrix& PiTf,
     const ArrayOfTransmissionMatrix& PiTr,
@@ -1424,38 +1916,38 @@ void set_backscatter_radiation_vector(
   const Index nv = np ? I[0].Frequencies() : 0;
   const Index ns = np ? I[0].stokes_dim : 1;
   const Index nq = np ? dI[0][0].nelem() : 0;
-  
+
   // For all transmission, the I-vector is the same
   for (Index ip = 0; ip < np; ip++)
     I[ip].setBackscatterTransmission(I_incoming, PiTr[ip], PiTf[ip], Z[ip]);
-  
+
   for (Index ip = 0; ip < np; ip++) {
     for (Index iq = 0; iq < nq; iq++) {
       dI[ip][ip][iq].setBackscatterTransmissionDerivative(
-        I_incoming, PiTr[ip], PiTf[ip], dZ[ip][iq]);
+          I_incoming, PiTr[ip], PiTf[ip], dZ[ip][iq]);
     }
   }
-  
-  switch(solver) {
+
+  switch (solver) {
     case BackscatterSolver::CommutativeTransmission: {
       // Forward and backwards transmission derivatives
-      switch(ns) { 
+      switch (ns) {
         case 1: {
-          BackscatterSolverCommutativeTransmissionStokesDimOne:
+        BackscatterSolverCommutativeTransmissionStokesDimOne:
           for (Index ip = 0; ip < np; ip++) {
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
                   dI[ip][j][iq].Vec1(iv).noalias() +=
-                    T[ip].Mat1(iv).inverse() *
-                    (dT1[ip][iq].Mat1(iv) + dT2[ip][iq].Mat1(iv)) *
-                    I[j].Vec1(iv);
-                  
-                  if (j < np - 1 and j > ip)
-                    dI[ip][j][iq].Vec1(iv).noalias() +=
-                      T[ip+1].Mat1(iv).inverse() *
+                      T[ip].Mat1(iv).inverse() *
                       (dT1[ip][iq].Mat1(iv) + dT2[ip][iq].Mat1(iv)) *
                       I[j].Vec1(iv);
+
+                  if (j < np - 1 and j > ip)
+                    dI[ip][j][iq].Vec1(iv).noalias() +=
+                        T[ip + 1].Mat1(iv).inverse() *
+                        (dT1[ip][iq].Mat1(iv) + dT2[ip][iq].Mat1(iv)) *
+                        I[j].Vec1(iv);
                 }
               }
             }
@@ -1467,15 +1959,15 @@ void set_backscatter_radiation_vector(
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
                   dI[ip][j][iq].Vec2(iv).noalias() +=
-                    T[ip].Mat2(iv).inverse() *
-                    (dT1[ip][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) *
-                    I[j].Vec2(iv);
-                    
-                  if (j < np - 1 and j > ip)
-                    dI[ip][j][iq].Vec2(iv).noalias() +=
-                      T[ip+1].Mat2(iv).inverse() *
+                      T[ip].Mat2(iv).inverse() *
                       (dT1[ip][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) *
                       I[j].Vec2(iv);
+
+                  if (j < np - 1 and j > ip)
+                    dI[ip][j][iq].Vec2(iv).noalias() +=
+                        T[ip + 1].Mat2(iv).inverse() *
+                        (dT1[ip][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) *
+                        I[j].Vec2(iv);
                 }
               }
             }
@@ -1487,15 +1979,15 @@ void set_backscatter_radiation_vector(
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
                   dI[ip][j][iq].Vec3(iv).noalias() +=
-                    T[ip].Mat3(iv).inverse() *
-                    (dT1[ip][iq].Mat3(iv) + dT2[ip][iq].Mat3(iv)) *
-                    I[j].Vec3(iv);
-                    
-                  if (j < np - 1 and j > ip)
-                    dI[ip][j][iq].Vec3(iv).noalias() +=
-                      T[ip+1].Mat3(iv).inverse() *
+                      T[ip].Mat3(iv).inverse() *
                       (dT1[ip][iq].Mat3(iv) + dT2[ip][iq].Mat3(iv)) *
                       I[j].Vec3(iv);
+
+                  if (j < np - 1 and j > ip)
+                    dI[ip][j][iq].Vec3(iv).noalias() +=
+                        T[ip + 1].Mat3(iv).inverse() *
+                        (dT1[ip][iq].Mat3(iv) + dT2[ip][iq].Mat3(iv)) *
+                        I[j].Vec3(iv);
                 }
               }
             }
@@ -1507,15 +1999,15 @@ void set_backscatter_radiation_vector(
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
                   dI[ip][j][iq].Vec4(iv).noalias() +=
-                    T[ip].Mat4(iv).inverse() *
-                    (dT1[ip][iq].Mat4(iv) + dT2[ip][iq].Mat4(iv)) *
-                    I[j].Vec4(iv);
-                    
-                  if (j < np - 1 and j > ip)
-                    dI[ip][j][iq].Vec4(iv).noalias() +=
-                      T[ip+1].Mat4(iv).inverse() *
+                      T[ip].Mat4(iv).inverse() *
                       (dT1[ip][iq].Mat4(iv) + dT2[ip][iq].Mat4(iv)) *
                       I[j].Vec4(iv);
+
+                  if (j < np - 1 and j > ip)
+                    dI[ip][j][iq].Vec4(iv).noalias() +=
+                        T[ip + 1].Mat4(iv).inverse() *
+                        (dT1[ip][iq].Mat4(iv) + dT2[ip][iq].Mat4(iv)) *
+                        I[j].Vec4(iv);
                 }
               }
             }
@@ -1525,7 +2017,7 @@ void set_backscatter_radiation_vector(
     } break;
     case BackscatterSolver::FullTransmission: {
       std::runtime_error("Do not activate this code.  It is not ready yet");
-      switch(ns) {
+      switch (ns) {
         case 1: {
           // This is the same as CommutativeTransmission, so use that code
           goto BackscatterSolverCommutativeTransmissionStokesDimOne;
@@ -1535,30 +2027,30 @@ void set_backscatter_radiation_vector(
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
-                  if(ip > 1) {
+                  if (ip > 1) {
                     dI[ip][j][iq].Vec2(iv).noalias() +=
-                      PiTr[ip-2].Mat2(iv) * 
-                      (dT1[ip-1][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) * 
-                      PiTr[ip-1].Mat2(iv).inverse() * I[j].Vec2(iv);
-                      
-                    if(j < np - 1)
+                        PiTr[ip - 2].Mat2(iv) *
+                        (dT1[ip - 1][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) *
+                        PiTr[ip - 1].Mat2(iv).inverse() * I[j].Vec2(iv);
+
+                    if (j < np - 1)
+                      dI[ip][j][iq].Vec2(iv).noalias() +=
+                          PiTr[ip].Mat2(iv) * Z[ip].Mat2(iv) *
+                          PiTf[ip - 2].Mat2(iv) *
+                          (dT1[ip][iq].Mat2(iv) + dT2[ip + 1][iq].Mat2(iv)) *
+                          PiTf[ip - 1].Mat2(iv).inverse() * PiTf[ip].Mat2(iv) *
+                          I[0].Vec2(iv);
+                  } else {
                     dI[ip][j][iq].Vec2(iv).noalias() +=
-                      PiTr[ip].Mat2(iv) * Z[ip].Mat2(iv) * PiTf[ip-2].Mat2(iv) *
-                      (dT1[ip][iq].Mat2(iv) + dT2[ip+1][iq].Mat2(iv)) * 
-                      PiTf[ip-1].Mat2(iv).inverse() * PiTf[ip].Mat2(iv) *
-                      I[0].Vec2(iv);
-                  }
-                  else {
-                    dI[ip][j][iq].Vec2(iv).noalias() +=
-                      (dT1[ip-1][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) * 
-                      PiTr[ip-1].Mat2(iv).inverse() * I[j].Vec2(iv);
-                    
-                    if(j < np - 1)
-                    dI[ip][j][iq].Vec2(iv).noalias() +=
-                      PiTr[ip].Mat2(iv) * Z[ip].Mat2(iv) *
-                      (dT1[ip][iq].Mat2(iv) + dT2[ip+1][iq].Mat2(iv)) * 
-                      PiTf[ip-1].Mat2(iv).inverse() * PiTf[ip].Mat2(iv) *
-                      I[0].Vec2(iv);
+                        (dT1[ip - 1][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) *
+                        PiTr[ip - 1].Mat2(iv).inverse() * I[j].Vec2(iv);
+
+                    if (j < np - 1)
+                      dI[ip][j][iq].Vec2(iv).noalias() +=
+                          PiTr[ip].Mat2(iv) * Z[ip].Mat2(iv) *
+                          (dT1[ip][iq].Mat2(iv) + dT2[ip + 1][iq].Mat2(iv)) *
+                          PiTf[ip - 1].Mat2(iv).inverse() * PiTf[ip].Mat2(iv) *
+                          I[0].Vec2(iv);
                   }
                 }
               }
@@ -1582,9 +2074,8 @@ ArrayOfTransmissionMatrix bulk_backscatter(const ConstTensor5View& Pe,
   const Index ne = Pe.nshelves();
 
   ArrayOfTransmissionMatrix aotm(np, TransmissionMatrix(nv, ns));
-  
-  for (Index ip = 0; ip < np; ip++) {
 
+  for (Index ip = 0; ip < np; ip++) {
     aotm[ip].setZero();
 
     switch (ns) {
@@ -1627,37 +2118,40 @@ ArrayOfArrayOfTransmissionMatrix bulk_backscatter_derivative(
 
   ArrayOfArrayOfTransmissionMatrix aoaotm(
       np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nv, ns)));
-  
+
   for (Index ip = 0; ip < np; ip++) {
     for (Index iq = 0; iq < nq; iq++) {
-
       aoaotm[ip][iq].setZero();
 
-      if(not dpnd_dx[iq].empty()) {
+      if (not dpnd_dx[iq].empty()) {
         switch (ns) {
           case 4:
             for (Index iv = 0; iv < nv; iv++)
               for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat4(iv).noalias() +=
-                    dpnd_dx[iq](ie, ip) * prop_matrix<4>(Pe(ie, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) *
+                    prop_matrix<4>(Pe(ie, ip, iv, joker, joker));
             break;
           case 3:
             for (Index iv = 0; iv < nv; iv++)
               for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat3(iv).noalias() +=
-                    dpnd_dx[iq](ie, ip) * prop_matrix<3>(Pe(ie, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) *
+                    prop_matrix<3>(Pe(ie, ip, iv, joker, joker));
             break;
           case 2:
             for (Index iv = 0; iv < nv; iv++)
               for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat2(iv).noalias() +=
-                    dpnd_dx[iq](ie, ip) * prop_matrix<2>(Pe(ie, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) *
+                    prop_matrix<2>(Pe(ie, ip, iv, joker, joker));
             break;
           case 1:
             for (Index iv = 0; iv < nv; iv++)
               for (Index ie = 0; ie < ne; ie++)
                 aoaotm[ip][iq].Mat1(iv).noalias() +=
-                    dpnd_dx[iq](ie, ip) * prop_matrix<1>(Pe(ie, ip, iv, joker, joker));
+                    dpnd_dx[iq](ie, ip) *
+                    prop_matrix<1>(Pe(ie, ip, iv, joker, joker));
             break;
         }
       }
@@ -1710,16 +2204,13 @@ std::ostream& operator<<(std::ostream& os,
 
 std::istream& operator>>(std::istream& is, TransmissionMatrix& tm) {
   for (auto& T : tm.T4)
-    is >> T(0, 0) >> T(0, 1) >> T(0, 2) >> T(0, 3) >>
-          T(1, 0) >> T(1, 1) >> T(1, 2) >> T(1, 3) >>
-          T(2, 0) >> T(2, 1) >> T(2, 2) >> T(2, 3) >>
-          T(3, 0) >> T(3, 1) >> T(3, 2) >> T(3, 3);
+    is >> T(0, 0) >> T(0, 1) >> T(0, 2) >> T(0, 3) >> T(1, 0) >> T(1, 1) >>
+        T(1, 2) >> T(1, 3) >> T(2, 0) >> T(2, 1) >> T(2, 2) >> T(2, 3) >>
+        T(3, 0) >> T(3, 1) >> T(3, 2) >> T(3, 3);
   for (auto& T : tm.T3)
-    is >> T(0, 0) >> T(0, 1) >> T(0, 2) >>
-          T(1, 0) >> T(1, 1) >> T(1, 2) >>
-          T(2, 0) >> T(2, 1) >> T(2, 2);
-  for (auto& T : tm.T2) is >> T(0, 0) >> T(0, 1) >>
-                              T(1, 0) >> T(1, 1);
+    is >> T(0, 0) >> T(0, 1) >> T(0, 2) >> T(1, 0) >> T(1, 1) >> T(1, 2) >>
+        T(2, 0) >> T(2, 1) >> T(2, 2);
+  for (auto& T : tm.T2) is >> T(0, 0) >> T(0, 1) >> T(1, 0) >> T(1, 1);
   for (auto& T : tm.T1) is >> T(0, 0);
   return is;
 }
