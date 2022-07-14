@@ -103,14 +103,14 @@ namespace PartitionFunctions {)AUTO_PARTFUN");
   std::cout << std::setprecision(std::numeric_limits<Numeric>::digits10 + 1);
   for (auto& [spec, vec_data]: data) {
     
-    std::cout << "constexpr std::array<std::string_view, " << vec_data.size() << "> has"<<spec<<"{\n";
+    std::cout << "static constexpr std::array<std::string_view, " << vec_data.size() << "> has"<<spec<<"{\n";
     for (auto& pfdata: vec_data) {
       std::cout << "\"" << pfdata.name << "\",\n";
     }
     std::cout << "};\n";
     
     std::cout << '\n';
-    std::cout << "template <Derivatives derivative>\nconstexpr Numeric compute"<<spec<<"(const Numeric T, const std::string_view name) {\n";
+    std::cout << "template <Derivatives derivative>\nNumeric compute"<<spec<<"(const Numeric T, const std::string_view name) {\n";
     
     bool first = true;
     for (auto& pfdata: vec_data) {
