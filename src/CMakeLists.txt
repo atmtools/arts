@@ -607,11 +607,6 @@ add_library(species STATIC
 ########################################################################################
 
 ########################################################################################
-add_executable(partfun test_partfun.cc partfun.cc)
-target_link_libraries (partfun species matpack)
-########################################################################################
-
-########################################################################################
 add_executable(test_species_tags test_species_tags.cc)
 target_link_libraries (test_species_tags ${ALL_ARTS_LIBRARIES})
 ########################################################################################
@@ -623,7 +618,7 @@ target_link_libraries (test_isotope species matpack)
 
 ########################################################################################
 # Test that the builtin partition functions are complete
-add_executable(test_partfun test_partfun.cc)
+add_executable(test_partfun test_partfun.cc partfun.cc)
 target_link_libraries(test_partfun ${ALL_ARTS_LIBRARIES})
 add_dependencies(check-deps test_partfun)
 add_test(NAME "arts.cpp.fast.test_partfun" COMMAND test_partfun)
