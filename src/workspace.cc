@@ -1637,7 +1637,7 @@ void define_wsv_data() {
           "If this variable is set to 0, no gas scattering will be considered,\n"
           "even if the gas_scattering_agenda is set.\n"
           "\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("gas_scattering_output_type"),
@@ -4717,7 +4717,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
   wsv_data.push_back(WsvRecord(
       NAME("star_do"),
       DESCRIPTION("Flag to activate the star(s).\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("stars"),
@@ -4728,7 +4728,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
                   "distance from center of planet to center of star,\n"
                   "temperature (if possible), latitude in the sky of the planet,\n"
                   "longitude in the sky of the planet and the type\n"),
-      GROUP("ArrayOfStar")));
+      GROUP("ArrayOfStar"), ArrayOfStar{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("star_spectrum_raw"),

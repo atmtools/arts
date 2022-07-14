@@ -330,6 +330,24 @@ AgendaSet( water_p_eq_agenda ){
   water_p_eq_fieldMK05
 }
 
+##################################
+#    dummy agenda
+##################################
+
+###
+AgendaSet( gas_scattering_agenda ){
+  Touch(sca_coef)
+  Touch(sca_mat)
+  Touch(sca_fct_legendre)
+  Ignore(f_grid)
+  Ignore(rtp_pressure)
+  Ignore(rtp_temperature)
+  Ignore(rtp_vmr)
+  Ignore(in_los)
+  Ignore(out_los)
+  Ignore(gas_scattering_output_type)
+}
+
 
 ###
 # all surface agendas are placed in s special file

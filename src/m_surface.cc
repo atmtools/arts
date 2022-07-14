@@ -1218,12 +1218,14 @@ void iySurfaceLambertian(Workspace& ws,
       // Calculate downwelling radiation for a los
       ArrayOfMatrix iy_aux;
       Ppath ppath;
+      Vector geo_pos_dumb;
       Index iy_id_new = iy_id + i_za + i_aa * N_za + 1;
       iy_main_agendaExecute(ws,
                             iy_temp,
                             iy_aux,
                             ppath,
                             diy_dx_dumb,
+                            geo_pos_dumb,
                             0,
                             iy_trans_new,
                             iy_aux_var,
@@ -1275,12 +1277,14 @@ void iySurfaceLambertian(Workspace& ws,
         // Calculate downwelling radiation for LOS ilos
         ArrayOfMatrix iy_aux;
         Ppath ppath;
+        Vector geo_pos_dumb;
         Index iy_id_new = iy_id + i_za + i_aa * N_za + 1;
         iy_main_agendaExecute(ws,
                               iy_temp,
                               iy_aux,
                               ppath,
                               diy_dx_dumb,
+                              geo_pos_dumb,
                               0,
                               iy_trans_new,
                               iy_aux_var,
