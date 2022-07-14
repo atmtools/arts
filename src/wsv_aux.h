@@ -28,11 +28,11 @@
 #ifndef wsv_aux_h
 #define wsv_aux_h
 
+#include <tokval.h>
+
 #include "array.h"
 #include "arts.h"
 #include "exceptions.h"
-
-#include <tokval.h>
 
 //! Returns list of ids of the given group names
 void get_wsv_group_ids(ArrayOfIndex& ids, String name);
@@ -58,9 +58,7 @@ String get_array_groups_as_string(bool basetype_is_group = false,
 class WsvRecord {
  public:
   /** Default constructor. */
-  WsvRecord()
-      : mname(),
-        mdescription() { /* Nothing to do here */
+  WsvRecord() : mname(), mdescription() { /* Nothing to do here */
   }
 
   /** Initializing constructor.
@@ -70,10 +68,8 @@ class WsvRecord {
   WsvRecord(const char name[],
             const char description[],
             const String& group,
-            TokVal val={})
-      : mname(name),
-        mdescription(description),
-        defval(std::move(val)) {
+            TokVal val = {})
+      : mname(name), mdescription(description), defval(std::move(val)) {
     // Map the group names to groups' indexes
     mgroup = get_wsv_group_id(group);
     if (mgroup == -1) {
@@ -90,7 +86,7 @@ class WsvRecord {
   WsvRecord(const char name[],
             const char description[],
             const Index group,
-            TokVal val={})
+            TokVal val = {})
       : mname(name),
         mdescription(description),
         mgroup(group),
@@ -98,21 +94,24 @@ class WsvRecord {
     // Nothing to do here
   }
   /** Name of this workspace variable. */
-  const String& Name() const { return mname; }
+  [[nodiscard]] const String& Name() const { return mname; }
+
   /** A text describing this workspace variable. */
-  const String& Description() const { return mdescription; }
+  [[nodiscard]] const String& Description() const { return mdescription; }
+
   /** The wsv group to which this variable belongs. */
-  Index Group() const { return mgroup; }
+  [[nodiscard]] Index Group() const { return mgroup; }
 
   [[nodiscard]] bool has_defaults() const;
 
   [[nodiscard]] std::shared_ptr<void> get_copy() const;
 
-  const TokVal& default_value() const { return defval; }
+  [[nodiscard]] const TokVal& default_value() const { return defval; }
 
-/** Output operator for WsvRecord.
-  \author Stefan Buehler */
-friend ostream& operator<<(ostream& os, const WsvRecord& wr);
+  /** Output operator for WsvRecord.
+
+      \author Stefan Buehler */
+  friend ostream& operator<<(ostream& os, const WsvRecord& wr);
 
  private:
   String mname;
