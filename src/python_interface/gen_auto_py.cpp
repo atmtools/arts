@@ -1187,9 +1187,9 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
             if (arg.types[i] == "Numeric" or arg.types[i] == "Index") os << '_';
             os << " *>() : ";
           }
-          os << "*std::get<" << arg.types[i];
+          os << "**std::get_if<" << arg.types[i];
           if (arg.types[i] == "Numeric" or arg.types[i] == "Index") os << '_';
-          os << " *>(wvv_arg" << counter << "_);\n";
+          os << " *>(&wvv_arg" << counter << "_);\n";
         }
         counter++;
       }
