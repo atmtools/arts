@@ -29,10 +29,13 @@
 #ifndef ppath_h
 #define ppath_h
 
-#include "agenda_class.h"
 #include "array.h"
 #include "arts.h"
+#include "messages.h"
 #include "ppath_struct.h"
+
+class Agenda;
+class Workspace;
 
 /** Size of north and south poles
  * 
