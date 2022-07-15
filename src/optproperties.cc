@@ -2352,18 +2352,8 @@ ostream& operator<<(ostream& os, const SingleScatteringData& /*ssd*/) {
   return os;
 }
 
-ostream& operator<<(ostream& os, const ArrayOfSingleScatteringData& /*assd*/) {
-  os << "ArrayOfSingleScatteringData: Output operator not implemented";
-  return os;
-}
-
 ostream& operator<<(ostream& os, const ScatteringMetaData& /*ssd*/) {
   os << "ScatteringMetaData: Output operator not implemented";
-  return os;
-}
-
-ostream& operator<<(ostream& os, const ArrayOfScatteringMetaData& /*assd*/) {
-  os << "ArrayOfScatteringMetaData: Output operator not implemented";
   return os;
 }
 

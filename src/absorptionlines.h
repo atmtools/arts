@@ -270,11 +270,11 @@ struct SingleLine {
   
   /** Binary write for AbsorptionLines */
   bofstream& write(bofstream& bof) const;
+
+  friend std::ostream& operator<<(std::ostream&, const SingleLine&);
+
+  friend std::istream& operator>>(std::istream&, SingleLine&);
 };  // SingleLine
-
-std::ostream& operator<<(std::ostream&, const SingleLine&);
-
-std::istream& operator>>(std::istream&, SingleLine&);
 
 /** Single line reading output */
 struct SingleLineExternal {
@@ -724,10 +724,11 @@ struct Lines {
   [[nodiscard]] Numeric DopplerConstant(Numeric T) const noexcept;
 
   [[nodiscard]] QuantumIdentifier QuantumIdentityOfLine(Index k) const noexcept;
-};  // Lines
 
-std::ostream& operator<<(std::ostream&, const Lines&);
-std::istream& operator>>(std::istream&, Lines&);
+  friend std::ostream& operator<<(std::ostream&, const Lines&);
+
+  friend std::istream& operator>>(std::istream&, Lines&);
+};  // Lines
 
 /** Read from ARTSCAT-3
  * 
@@ -990,10 +991,6 @@ using ArrayOfAbsorptionSingleLine = Array<AbsorptionSingleLine>;
 using AbsorptionLines = Absorption::Lines;
 using ArrayOfAbsorptionLines = Array<AbsorptionLines>;
 using ArrayOfArrayOfAbsorptionLines = Array<ArrayOfAbsorptionLines>;
-
-std::ostream& operator<<(std::ostream&, const ArrayOfAbsorptionLines&);
-
-std::ostream& operator<<(std::ostream&, const ArrayOfArrayOfAbsorptionLines&);
 
 using AbsorptionNormalizationType = Absorption::NormalizationType;
 using AbsorptionPopulationType = Absorption::PopulationType;
