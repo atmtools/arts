@@ -134,14 +134,7 @@ class MRecord {
           ArrayOfIndex  input,
           const TokVal&  setvalue,
           Agenda  tasks,
-          bool internal = false)
-      : mid(id),
-        moutput(std::move(output)),
-        minput(std::move(input)),
-        msetvalue(setvalue),
-        mtasks(std::move(tasks)),
-        minternal(internal) { /* Nothing to do here */
-  }
+          bool internal = false);
 
   [[nodiscard]] Index Id() const { return mid; }
   [[nodiscard]] const ArrayOfIndex& Out() const { return moutput; }

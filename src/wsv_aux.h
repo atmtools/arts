@@ -58,41 +58,36 @@ String get_array_groups_as_string(bool basetype_is_group = false,
 class WsvRecord {
  public:
   /** Default constructor. */
-  WsvRecord() : mname(), mdescription() { /* Nothing to do here */
-  }
+  WsvRecord();
 
   /** Initializing constructor.
 
     This is used by Workspace::define_wsv_data() to set the information for
     each workspace variable. */
-  WsvRecord(const char name[],
-            const char description[],
+  WsvRecord(const char* name,
+            const char* description,
             const String& group,
-            TokVal val = {})
-      : mname(name), mdescription(description), defval(std::move(val)) {
-    // Map the group names to groups' indexes
-    mgroup = get_wsv_group_id(group);
-    if (mgroup == -1) {
-      ostringstream os;
-
-      os << "Unknown WSV Group " << group << " WSV " << mname;
-      throw runtime_error(os.str());
-    }
-  }
+            const TokVal& val);
 
   /** Initializing constructor.
 
     This is used by the parser to create automatically allocated variables */
-  WsvRecord(const char name[],
-            const char description[],
+  WsvRecord(const char* name,
+            const char* description,
             const Index group,
-            TokVal val = {})
-      : mname(name),
-        mdescription(description),
-        mgroup(group),
-        defval(std::move(val)) {
-    // Nothing to do here
-  }
+            const TokVal& val);
+
+  /** Initializing constructor.
+
+    This is used by Workspace::define_wsv_data() to set the information for
+    each workspace variable. */
+  WsvRecord(const char* name, const char* description, const String& group);
+
+  /** Initializing constructor.
+
+    This is used by the parser to create automatically allocated variables */
+  WsvRecord(const char* name, const char* description, const Index group);
+
   /** Name of this workspace variable. */
   [[nodiscard]] const String& Name() const { return mname; }
 

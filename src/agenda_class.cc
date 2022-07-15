@@ -39,6 +39,20 @@
 #include "methods.h"
 #include "workspace_ng.h"
 
+MRecord::MRecord(const Index id,
+                 ArrayOfIndex output,
+                 ArrayOfIndex input,
+                 const TokVal& setvalue,
+                 Agenda tasks,
+                 bool internal)
+    : mid(id),
+      moutput(std::move(output)),
+      minput(std::move(input)),
+      msetvalue(setvalue),
+      mtasks(std::move(tasks)),
+      minternal(internal) { /* Nothing to do here */
+}
+
 //! Appends methods to an agenda
 /*!
   This function appends a workspace method to the agenda. It currently only
