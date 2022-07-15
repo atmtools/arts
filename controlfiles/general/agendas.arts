@@ -34,6 +34,7 @@ AgendaCreate( iy_main_agenda__Clearsky )
 AgendaSet( iy_main_agenda__Clearsky ){
   ppathCalc
   iyClearsky
+  VectorSet(geo_pos, [])
 }
 
 ###

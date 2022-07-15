@@ -71,7 +71,6 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     # select/define agendas
     # =============================================================================
 
-    ws.execute_controlfile("general/general.arts")
     ws.execute_controlfile("general/continua.arts")
     ws.execute_controlfile("general/agendas.arts")
     ws.execute_controlfile("general/planet_earth.arts")
@@ -84,11 +83,6 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
 
     # no refraction
     ws.ppath_step_agenda = ws.ppath_step_agenda__GeometricPath
-
-    # on-the-fly absorption
-    ws.propmat_clearsky_agenda = ws.propmat_clearsky_agenda__OnTheFly
-
-    ws.abs_xsec_agenda = ws.abs_xsec_agenda__noCIA
 
     # main agenda
     ws.iy_main_agenda = ws.iy_main_agenda__Clearsky
@@ -138,6 +132,8 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     # No line data needed here, because here we consider only rayleigh scattering
     ws.abs_lines_per_speciesSetEmpty()
 
+    ws.propmat_clearsky_agendaSetAutomatic()
+
     # Load atmospheric data
     ws.AtmRawRead(basename="testdata/tropical")
 
@@ -179,8 +175,6 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     ws.atmgeom_checkedCalc()
     ws.cloudbox_checkedCalc()
     ws.sensor_checkedCalc()
-    ws.abs_xsec_agenda_checkedCalc()
-    ws.propmat_clearsky_agenda_checkedCalc()
     ws.lbl_checkedCalc()
 
     # Switch on gas scattering

@@ -62,7 +62,6 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
     ws.verbositySetScreen(level=2)
 
     # import basic definitions
-    ws.execute_controlfile("general/general.arts")
     ws.execute_controlfile("general/continua.arts")
     ws.execute_controlfile("general/agendas.arts")
     ws.execute_controlfile("general/planet_earth.arts")
@@ -74,8 +73,6 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
     # set agenda
     ws.iy_main_agenda = ws.iy_main_agenda__Clearsky
     ws.iy_space_agenda = ws.iy_space_agenda__CosmicBackground
-    ws.abs_xsec_agenda = ws.abs_xsec_agenda__noCIA
-    ws.propmat_clearsky_agenda = ws.propmat_clearsky_agenda__OnTheFly
     ws.ppath_agenda = ws.ppath_agenda__FollowSensorLosPath
     ws.ppath_step_agenda = ws.ppath_step_agenda__GeometricPath
 
@@ -119,6 +116,8 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
 
     # No line data needed here
     ws.abs_lines_per_speciesSetEmpty()
+
+    ws.propmat_clearsky_agendaSetAutomatic()
 
     # Atmospheric profiles
     ws.AtmRawRead(basename="testdata/tropical")
@@ -164,8 +163,6 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
     # Propagation path agendas and variables
     ws.NumericSet(ws.ppath_lmax, -1)
 
-    ws.abs_xsec_agenda_checkedCalc()
-    ws.propmat_clearsky_agenda_checkedCalc()
     ws.lbl_checkedCalc()
 
     # Switch off star
