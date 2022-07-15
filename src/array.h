@@ -35,58 +35,6 @@
 
 #include "matpack.h"
 
-// Declare the existance of class Array:
-template <class base>
-class Array;
-
-// Declare the existance of Vector/Matrix/Tensor classes:
-class Vector;
-class Matrix;
-struct Sparse;
-class Tensor3;
-class Tensor4;
-class Tensor5;
-class Tensor6;
-class Tensor7;
-
-/** An array of vectors. */
-typedef Array<Vector> ArrayOfVector;
-
-typedef Array<ArrayOfVector> ArrayOfArrayOfVector;
-
-/** An array of matrices. */
-typedef Array<Matrix> ArrayOfMatrix;
-
-typedef Array<ArrayOfMatrix> ArrayOfArrayOfMatrix;
-
-/** An array of sparse matrices. */
-typedef Array<Sparse> ArrayOfSparse;
-
-/** An array of Tensor3. */
-typedef Array<Tensor3> ArrayOfTensor3;
-
-typedef Array<ArrayOfTensor3> ArrayOfArrayOfTensor3;
-
-/** An array of Tensor4. */
-typedef Array<Tensor4> ArrayOfTensor4;
-
-typedef Array<ArrayOfTensor4> ArrayOfArrayOfTensor4;
-
-/** An array of Tensor5. */
-typedef Array<Tensor5> ArrayOfTensor5;
-
-typedef Array<ArrayOfTensor5> ArrayOfArrayOfTensor5;
-
-/** An array of Tensor6. */
-typedef Array<Tensor6> ArrayOfTensor6;
-
-typedef Array<ArrayOfTensor6> ArrayOfArrayOfTensor6;
-
-/** An array of Tensor7. */
-typedef Array<Tensor7> ArrayOfTensor7;
-
-typedef Array<ArrayOfTensor7> ArrayOfArrayOfTensor7;
-
 /** This can be used to make arrays out of anything.
 
     A simple \#define does not do for this, since I have to implement

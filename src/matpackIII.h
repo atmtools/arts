@@ -202,6 +202,8 @@ class ConstTensor3View {
   friend class ConstTensor6View;
   friend class ConstTensor7View;
 
+  friend std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v);
+
   // Special constructor to make a Tensor3 view of a matrix.
   ConstTensor3View(const ConstMatrixView& a);
 
@@ -435,8 +437,6 @@ Numeric max(const ConstTensor3View& x);
 
 Numeric min(const ConstTensor3View& x);
 
-std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v);
-
 ////////////////////////////////
 // Helper function for debugging
 #ifndef NDEBUG
@@ -447,5 +447,10 @@ Numeric debug_tensor3view_get_elem(Tensor3View& tv, Index p, Index r, Index c);
 ////////////////////////////////
 
 void mult(Tensor3View A, const ConstVectorView B, const ConstMatrixView C);
+
+/** An array of Tensor3. */
+using ArrayOfTensor3 = Array<Tensor3>;
+
+using ArrayOfArrayOfTensor3 = Array<ArrayOfTensor3>;
 
 #endif  // matpackIII_h

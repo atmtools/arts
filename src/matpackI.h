@@ -114,6 +114,14 @@
 
 // Declare existance of some classes
 class bofstream;
+class Vector;
+class Matrix;
+struct Sparse;
+class Tensor3;
+class Tensor4;
+class Tensor5;
+class Tensor6;
+class Tensor7;
 
 // Declaration of Eigen types
 using StrideType = Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>;
@@ -373,6 +381,8 @@ class Range {
     return mstart + i * mstride;
   };
 
+  friend std::ostream& operator<<(std::ostream& os, const Range& r);
+
  private:
   /** The start index. */
   Index mstart;
@@ -617,6 +627,7 @@ class ConstVectorView {
   friend ConstMatrixViewMap MapToEigenCol(const ConstVectorView&);
   friend MatrixViewMap MapToEigen(VectorView&);
   friend MatrixViewMap MapToEigenCol(VectorView&);
+  friend std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
 
   /** A special constructor, which allows to make a ConstVectorView from
     a scalar. */
@@ -1142,6 +1153,7 @@ class ConstMatrixView {
 
   friend ConstMatrix4x4ViewMap MapToEigen4x4(const ConstMatrixView&);
   friend Matrix4x4ViewMap MapToEigen4x4(MatrixView&);
+  friend std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v);
 
  protected:
   // Constructors:
@@ -1402,12 +1414,6 @@ Numeric mean(const ConstMatrixView& x) ARTS_NOEXCEPT;
 Numeric operator*(const ConstVectorView& a,
                   const ConstVectorView& b) ARTS_NOEXCEPT;
 
-std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
-
-std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v);
-
-std::ostream& operator<<(std::ostream& os, const Range& r);
-
 // Converts constant matrix to constant eigen map
 ConstMatrixViewMap MapToEigen(const ConstMatrixView& A);
 // Converts constant vector to constant eigen row-view
@@ -1437,5 +1443,15 @@ Numeric debug_matrixview_get_elem(MatrixView& mv, Index r, Index c);
 
 #endif
 ////////////////////////////////
+
+/** An array of vectors. */
+using ArrayOfVector = Array<Vector>;
+
+using ArrayOfArrayOfVector = Array<ArrayOfVector>;
+
+/** An array of matrices. */
+using ArrayOfMatrix = Array<Matrix>;
+
+using ArrayOfArrayOfMatrix = Array<ArrayOfMatrix>;
 
 #endif  // matpackI_h
