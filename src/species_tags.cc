@@ -5,8 +5,18 @@
 #include <string_view>
 
 #include "debug.h"
+#include "partfun.h"
 
 namespace Species {
+
+Numeric Tag::Q(Numeric T) const {
+  return PartitionFunctions::Q(T, Isotopologue());
+}
+
+Numeric Tag::dQdT(Numeric T) const {
+  return PartitionFunctions::dQdT(T, Isotopologue());
+}
+
 /** Checks if the isotname of an isotopologue match a modern model
 *
 * Append to this list when new models are added
