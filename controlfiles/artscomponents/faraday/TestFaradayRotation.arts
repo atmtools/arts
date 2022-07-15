@@ -161,6 +161,7 @@ AgendaSet( iy_main_agenda){
   iy_transmitterSinglePol
   ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
+  VectorSet(geo_pos, [])
 }
 
 

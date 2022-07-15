@@ -54,6 +54,7 @@ AgendaSet( iy_main_agenda__TransmissionUnitUnpolIntensity ){
   MatrixUnitIntensity( iy_transmitter, stokes_dim, f_grid )
   ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
+  VectorSet(geo_pos, [])
 }
 
 ###
@@ -64,6 +65,7 @@ AgendaSet( iy_main_agenda__TransmissionUnitPolIntensity ){
   iy_transmitterSinglePol
   ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
+  VectorSet(geo_pos, [])
 }
 
 ###

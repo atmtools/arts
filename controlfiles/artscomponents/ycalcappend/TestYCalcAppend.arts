@@ -106,6 +106,7 @@ AgendaSet( iy_main_agenda){
   MatrixUnitIntensity( iy_transmitter, stokes_dim, f_grid )
   ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
+  VectorSet(geo_pos, [])
 }
 
 StringSet( iy_unit, "1" )
