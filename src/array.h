@@ -39,14 +39,6 @@
 template <class base>
 class Array;
 
-/** An array of Index. */
-typedef Array<Index> ArrayOfIndex;
-
-typedef Array<ArrayOfIndex> ArrayOfArrayOfIndex;
-
-/** An array of Numeric. */
-typedef Array<Numeric> ArrayOfNumeric;
-
 // Declare the existance of Vector/Matrix/Tensor classes:
 class Vector;
 class Matrix;
@@ -108,141 +100,97 @@ template <class base>
 class Array : public std::vector<base> {
  public:
   // Constructors:
-  Array() : std::vector<base>() { /* Nothing to do here. */
+  Array() : std::vector<base>() {}
+
+  explicit Array(Index n) : std::vector<base>(n) {}
+
+  Array(Index n, const base& fillvalue) : std::vector<base>(n) {
+    std::fill(this->begin(), this->end(), fillvalue);
   }
-  explicit Array(Index n) : std::vector<base>(n) { /* Nothing to do here. */
-  }
-  Array(Index n, const base& fillvalue);
-  Array(const Array<base>& A) : std::vector<base>(A) { /* Nothing to do here. */
-  }
-  Array(Array<base>&& A) noexcept
-      : std::vector<base>(std::move(A)) { /* Nothing to do here. */
-  }
-  Array(std::initializer_list<base> init)
-      : std::vector<base>(init) { /* Nothing to do here. */
-  }
-  template <class base2, size_t N> explicit Array(const std::array<base2, N>& input)
+
+  Array(const Array& A) : std::vector<base>(A) {}
+
+  Array(Array&& A) noexcept : std::vector<base>(std::move(A)) {}
+
+  Array(std::initializer_list<base> init) : std::vector<base>(init) {}
+
+  template <class base2, size_t N>
+  explicit Array(const std::array<base2, N>& input)
       : std::vector<base>(input.begin(), input.end()) {
-    static_assert(std::is_convertible<base, base2>::value, "Must be convertible");
+    static_assert(std::is_convertible<base, base2>::value,
+                  "Must be convertible");
   }
+
   Array(std::vector<base> x) : std::vector<base>(std::move(x)) {}
 
   // Assignment operators:
-  Array& operator=(base x);
-  Array& operator=(const Array<base>& A);
-  Array& operator=(Array<base>&& A) noexcept;
+  Array& operator=(base x) {
+    std::fill(this->begin(), this->end(), x);
+    return *this;
+  }
+
+  Array& operator=(const Array& A) {
+    this->resize(A.size());
+    std::copy(A.begin(), A.end(), this->begin());
+    return *this;
+  }
+
+  Array& operator=(Array&& A) noexcept {
+    std::vector<base>::operator=(std::move(A));
+    return *this;
+  }
 
   // Number of elements:
-  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT;
+  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT {
+    size_t s = this->size();
+    ARTS_ASSERT(s < LONG_MAX);
+    return static_cast<Index>(s);
+  }
 
   // Index operators:
-  const base& operator[](const Index n) const;
-  base& operator[](const Index n);
+  const base& operator[](const Index n) const {
+    ARTS_ASSERT(0 <= n);
+    ARTS_ASSERT(n < nelem());
+    return std::vector<base>::operator[](n);
+  }
+
+  base& operator[](const Index n) {
+    ARTS_ASSERT(0 <= n);
+    ARTS_ASSERT(n < nelem());
+    return std::vector<base>::operator[](n);
+  }
 
   // Helper functions
-  void push_back_n(const base& elem, const Index n);
+  void push_back_n(const base& elem, const Index n) {
+    for (Index i = 0; i < n; i++) std::vector<base>::push_back(elem);
+  }
 
   virtual ~Array() = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const Array& v) {
+    typename Array::const_iterator i = v.begin();
+    const typename Array::const_iterator end = v.end();
+
+    if (i != end) {
+      os << std::setw(3) << *i;
+      ++i;
+    }
+
+    for (; i != end; ++i) {
+      os << " " << std::setw(3) << *i;
+    }
+
+    return os;
+  }
 };
 
-// Member functions for Array:
+/** An array of Index. */
+using ArrayOfIndex = Array<Index>;
 
-/** Constructor filling with constant value. */
-template <class base>
-inline Array<base>::Array(Index n, const base& fillvalue)
-    : std::vector<base>(n) {
-  // Use fill to fill.
-  std::fill(this->begin(), this->end(), fillvalue);
-}
+using ArrayOfArrayOfIndex = Array<ArrayOfIndex>;
 
-/** Assignment from base type (fill entire Array with this value). */
-template <class base>
-inline Array<base>& Array<base>::operator=(base x) {
-  std::fill(this->begin(), this->end(), x);
-  return *this;
-}
-
-//! Assignment from another Array.
-/*!
-  This will adjust the size of the array automatically, so that
-  structures containing arrays can be correctly copied without having
-  an explicit assignment operator.
-
-  This is a deviation from the old ARTS paradigm that sizes must match
-  exactly before copying!
-
-  \param A The other array to copy to this one.
-
-  \return The freshly copied array (normally not used). 
-
-  \author Stefan Buehler
-  \date   2002-12-19
-*/
-template <class base>
-inline Array<base>& Array<base>::operator=(const Array<base>& A) {
-  //  cout << "size this / A = " << size() << " / " << A.size() << "\n";
-  this->resize(A.size());
-  std::copy(A.begin(), A.end(), this->begin());
-  return *this;
-}
-
-template <class base>
-inline Array<base>& Array<base>::operator=(Array<base>&& A) noexcept {
-  std::vector<base>::operator=(std::move(A));
-  return *this;
-}
-
-/** Number of elements. */
-template <class base>
-inline Index Array<base>::nelem() const ARTS_NOEXCEPT {
-  size_t s = this->size();
-  ARTS_ASSERT(s < LONG_MAX);
-  return static_cast<Index>(s);
-}
-
-/** Constant index operator. We redifine this here so that we can have
-    range checking by assert. */
-template <class base>
-inline const base& Array<base>::operator[](const Index n) const {
-  ARTS_ASSERT(0 <= n);
-  ARTS_ASSERT(n < nelem());
-  return std::vector<base>::operator[](n);
-}
-
-/** Non-constant index operator. We redefine this here so that we can
-    have range checking by assert. */
-template <class base>
-inline base& Array<base>::operator[](const Index n) {
-  ARTS_ASSERT(0 <= n);
-  ARTS_ASSERT(n < nelem());
-  return std::vector<base>::operator[](n);
-}
-
-/** Append element n times */
-template <class base>
-inline void Array<base>::push_back_n(const base& elem, const Index n) {
-  for (Index i = 0; i < n; i++) std::vector<base>::push_back(elem);
-}
-
-// Non-member functions:
-
-/** Output operator. */
-template <class base>
-inline std::ostream& operator<<(std::ostream& os, const Array<base>& v) {
-  typename Array<base>::const_iterator i = v.begin();
-  const typename Array<base>::const_iterator end = v.end();
-
-  if (i != end) {
-    os << std::setw(3) << *i;
-    ++i;
-  }
-
-  for (; i != end; ++i) {
-    os << " " << std::setw(3) << *i;
-  }
-
-  return os;
-}
+/** An array of Numeric. */
+using ArrayOfNumeric = Array<Numeric>;
 
 /** Max function. */
 template <class base>
@@ -372,16 +320,18 @@ Index FlattenedIndex(const Array<Array<base> >& aa,
 // the others.
 
 //! Make a std::array of a list of variables (must be 1-long at least)
-template <typename T, typename ... Ts>
-constexpr std::array<T, 1 + sizeof...(Ts)> stdarrayify(const T& first, const Ts&... the_rest)
-{
+template <typename T, typename... Ts>
+constexpr std::array<T, 1 + sizeof...(Ts)> stdarrayify(const T& first,
+                                                       const Ts&... the_rest) {
   return {first, T(the_rest)...};
 }
 
 template <typename T>
-std::string stringify(const Array<T>& list, const char * const sep=" ", const char * const beg="") {
+std::string stringify(const Array<T>& list,
+                      const char* const sep = " ",
+                      const char* const beg = "") {
   std::ostringstream os;
-  for (auto& x: list) os << beg << x << sep;
+  for (auto& x : list) os << beg << x << sep;
   return os.str();
 }
 
