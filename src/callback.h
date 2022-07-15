@@ -7,9 +7,9 @@ class Workspace;
 #include <ostream>
 
 struct CallbackFunction : public std::function<void(Workspace&)> {
-  CallbackFunction() : std::function<void(Workspace&)>([](Workspace&){}) {}
-  CallbackFunction(std::function<void(Workspace&)> x) : std::function<void(Workspace&)>(x) {}
-  friend std::ostream& operator<<(std::ostream& os, const CallbackFunction&) {return os << "Callback";}
+  CallbackFunction();
+  CallbackFunction(std::function<void(Workspace&)> x);
+  friend std::ostream& operator<<(std::ostream& os, const CallbackFunction&);
 };
 
 #endif

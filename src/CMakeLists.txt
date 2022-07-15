@@ -166,6 +166,7 @@ add_library (artscore STATIC
   arts_omp.cc
   artstime.cc
   auto_version.cc
+  callback.cc
   check_input.cc
   cia.cc
   cloudbox.cc
