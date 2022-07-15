@@ -1,5 +1,6 @@
 #include <py_auto_interface.h>
 #include <pybind11/attr.h>
+#include <pybind11/numpy.h>
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 
@@ -175,6 +176,21 @@ void py_species(py::module_& m) {
       .def_readwrite("type", &SpeciesTag::type)
       .def_readwrite("cia_2nd_species", &SpeciesTag::cia_2nd_species)
       .def_readwrite("cia_dataset_index", &SpeciesTag::cia_dataset_index)
+      .def("partfun",
+           py::vectorize(&SpeciesTag::Q),
+           py::doc(R"--(Compute the partition function at a given temperature
+
+Parameters
+----------
+  T : Numeric
+    Temperature [K]
+
+Returns
+-------
+  Q : Numeric
+    Partition function [-]
+)--"),
+           py::arg("T"))
       .def_property_readonly("full_name", &SpeciesTag::FullName)
       .PythonInterfaceBasicRepresentation(SpeciesTag)
       .def(py::self == py::self)

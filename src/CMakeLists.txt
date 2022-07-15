@@ -106,6 +106,7 @@ add_executable (make_auto_md_h
         workspace.cc
         workspace_ng.cc
         tokval.cc
+        wsv_aux.cc
         )
 
 if (ENABLE_PCH)
@@ -131,6 +132,7 @@ add_executable (make_auto_md_cc
         workspace.cc
         workspace_ng.cc
         tokval.cc
+        wsv_aux.cc
         )
 
 if (ENABLE_PCH)
@@ -256,6 +258,7 @@ add_library (artscore STATIC
   optproperties.cc
   parameters.cc
   parser.cc
+  partfun.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
@@ -285,6 +288,7 @@ add_library (artscore STATIC
   workspace_ng.cc
   workspace_memory_handler.cc
   wsv_aux.cc
+  wsv_aux_operator.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
@@ -603,11 +607,6 @@ add_library(species STATIC
 ########################################################################################
 
 ########################################################################################
-add_executable(partfun partfun.cc)
-target_link_libraries (partfun species matpack)
-########################################################################################
-
-########################################################################################
 add_executable(test_species_tags test_species_tags.cc)
 target_link_libraries (test_species_tags ${ALL_ARTS_LIBRARIES})
 ########################################################################################
@@ -619,7 +618,7 @@ target_link_libraries (test_isotope species matpack)
 
 ########################################################################################
 # Test that the builtin partition functions are complete
-add_executable(test_partfun test_partfun.cc)
+add_executable(test_partfun test_partfun.cc partfun.cc)
 target_link_libraries(test_partfun ${ALL_ARTS_LIBRARIES})
 add_dependencies(check-deps test_partfun)
 add_test(NAME "arts.cpp.fast.test_partfun" COMMAND test_partfun)

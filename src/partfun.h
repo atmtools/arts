@@ -11,7 +11,7 @@ namespace PartitionFunctions {
 
 namespace detail {
 template <Derivatives d>
-constexpr Numeric partfun_impl(Numeric T, const Species::IsotopeRecord& ir) {
+Numeric partfun_impl(Numeric T, const Species::IsotopeRecord& ir) {
   using Species::Species;
   
 #define deal_with_spec(SPEC) case Species::SPEC: return compute##SPEC<d>(T, ir.isotname);
@@ -136,15 +136,15 @@ constexpr Numeric partfun_impl(Numeric T, const Species::IsotopeRecord& ir) {
   
   ARTS_USER_ERROR("This is not a valid IsotopeRecord:\n", ir)
 }
+
+extern template Numeric partfun_impl<Derivatives::Yes>(Numeric T, const Species::IsotopeRecord& ir);
+extern template Numeric partfun_impl<Derivatives::No>(Numeric T, const Species::IsotopeRecord& ir);
+
 } // namespace detail
 
-constexpr Numeric Q(Numeric T, const Species::IsotopeRecord& ir) {
-  return detail::partfun_impl<Derivatives::No>(T, ir);
-}
+Numeric Q(Numeric T, const Species::IsotopeRecord& ir);
 
-constexpr Numeric dQdT(Numeric T, const Species::IsotopeRecord& ir) {
-  return detail::partfun_impl<Derivatives::Yes>(T, ir);
-}
+Numeric dQdT(Numeric T, const Species::IsotopeRecord& ir);
 
 constexpr bool has_partfun(const Species::IsotopeRecord& ir) noexcept {
   using Species::Species;
