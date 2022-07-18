@@ -48,26 +48,19 @@ class AgRecord {
   }
 
   // Initializing constructor. Implementation in .cc file.
-  AgRecord(const char name[],
-           const char description[],
+  AgRecord(const char* name,
+           const char* description,
            const ArrayOfString& output,
            const ArrayOfString& input);
 
   AgRecord(const AgRecord&) = default;
 
-  const String& Name() const { return mname; }
-  const String& Description() const { return mdescription; }
-  const ArrayOfIndex& Out() const { return moutput; }
-  const ArrayOfIndex& In() const { return minput; }
+  [[nodiscard]] const String& Name() const { return mname; }
+  [[nodiscard]] const String& Description() const { return mdescription; }
+  [[nodiscard]] const ArrayOfIndex& Out() const { return moutput; }
+  [[nodiscard]] const ArrayOfIndex& In() const { return minput; }
 
-  //! Assignment operator.
-  /*! To override the default assignment operator. AgRecords cannot be
-      assigned! */
-  AgRecord operator=(const AgRecord& /* m */) {
-    cout << "AgRecord cannot be assigned!\n";
-    arts_exit();
-    return AgRecord();
-  }
+  friend ostream& operator<<(ostream& os, const AgRecord& agr);
 
  private:
   //! The name of this agenda.
@@ -92,7 +85,5 @@ bool check_agenda_data();
 void write_agenda_wrapper_header(ofstream& ofs,
                                  const AgRecord& agr,
                                  bool is_agenda_array);
-
-ostream& operator<<(ostream& os, const AgRecord& agr);
 
 #endif

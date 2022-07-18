@@ -130,6 +130,10 @@ struct Time {
 
   // Conversion
   explicit operator Numeric() const { return Seconds(); }
+
+  friend std::ostream& operator<<(std::ostream& os, const Time& t);
+
+  friend std::istream& operator>>(std::istream& is, Time& t);
 };  // Time
 
 /** List of times */
@@ -141,16 +145,8 @@ using ArrayOfArrayOfTime = Array<ArrayOfTime>;
 /** List of time steps */
 using ArrayOfTimeStep = Array<TimeStep>;
 
-/** Output for Time */
-std::ostream& operator<<(std::ostream& os, const Time& t);
-
-/** Input for Time */
-std::istream& operator>>(std::istream& is, Time& t);
-
 /** Debug output for duration */
-inline std::ostream& operator<<(std::ostream& os, const TimeStep& dt) {
-  return os << dt.count() << " seconds";
-}
+std::ostream& operator<<(std::ostream& os, const TimeStep& dt);
 
 /** Returns a time step from valid string
  * 

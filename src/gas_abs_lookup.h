@@ -178,6 +178,8 @@ class GasAbsLookup {
   
   /** Absorption cross sections */
   Tensor4& Xsec() {return xsec;}
+
+  friend ostream& operator<<(ostream& os, const GasAbsLookup& gal);
   
  private:
   //! The species tags for which the table is valid.
@@ -296,7 +298,5 @@ class GasAbsLookup {
     computation of the lookup table with the old ARTS version.  */
   Tensor4 xsec;
 };
-
-ostream& operator<<(ostream& os, const GasAbsLookup& gal);
 
 #endif  //  gas_abs_lookup_h

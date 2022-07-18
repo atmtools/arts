@@ -225,6 +225,8 @@ class CIARecord {
             Species::Species spec2)
       : mdata(std::move(data)), mspecies({spec1, spec2}) {}
 
+  friend ostream& operator<<(ostream& os, const CIARecord& cr);
+
  private:
   /** Append dataset to mdata. */
   void AppendDataset(const Vector& freq,
@@ -254,7 +256,5 @@ class CIARecord {
      */
   std::array<Species::Species, 2> mspecies;
 };
-
-ostream& operator<<(ostream& os, const CIARecord& cr);
 
 #endif  // cia_h

@@ -115,6 +115,8 @@ class XsecRecord {
   /** Get coefficients */
   [[nodiscard]] ArrayOfGriddedField2& FitCoeffs() { return mfitcoeffs; };
 
+  friend std::ostream& operator<<(std::ostream& os, const XsecRecord& xd);
+
  private:
   /** Calculate crosssections */
   void CalcXsec(VectorView& xsec,
@@ -154,7 +156,5 @@ using ArrayOfXsecRecord = Array<XsecRecord>;
 
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
                             Species::Species species);
-
-std::ostream& operator<<(std::ostream& os, const XsecRecord& xd);
 
 #endif  // HITRAN_XSEC_H

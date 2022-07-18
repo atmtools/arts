@@ -146,9 +146,9 @@ struct MCAntenna {
                 Rng& rng,
                 ConstMatrixView R_ant2enu,
                 ConstVectorView bore_sight_los) const;
-};
 
-ostream& operator<<(ostream& os, const MCAntenna& mca);
+  friend ostream& operator<<(ostream& os, const MCAntenna& mca);
+};
 
 /** ran_gaussian.
  *

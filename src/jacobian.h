@@ -312,15 +312,9 @@ struct Target {
     return special == Special::ScatteringString or
            special == Special::SurfaceString;
   }
-};  // Target
 
-/** Output operator 
- *
- * @param[in,out] os A stream
- * @param[in] x A Target
- * @return A modified stream
- */
-std::ostream& operator<<(std::ostream& os, const Target& x);
+  friend std::ostream& operator<<(std::ostream& os, const Target& x);
+};  // Target
 } // namespace Jacobian
 using JacobianTarget = Jacobian::Target;
 using ArrayOfJacobianTarget = Array<Jacobian::Target>;
@@ -525,6 +519,8 @@ class RetrievalQuantity {
   Matrix& Transformation() {return transformation_matrix;}
   Vector& Offset() {return offset_vector;}
 
+  friend ostream& operator<<(ostream& os, const RetrievalQuantity& ot);
+
  private:
   String msubtag;
   String msubsubtag;
@@ -538,9 +534,6 @@ class RetrievalQuantity {
   Matrix transformation_matrix;
   Vector offset_vector;
 };
-
-/** Output operator for RetrievalQuantity */
-ostream& operator<<(ostream& os, const RetrievalQuantity& ot);
 
 using ArrayOfRetrievalQuantity = Array<RetrievalQuantity>;
 

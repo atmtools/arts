@@ -49,7 +49,7 @@ class Field3D {
    * @param[in] g Another field
    * @return Field3D<base>& *this
    */
-  Field3D<base>& operator=(const Field3D& g) = default;
+  Field3D& operator=(const Field3D& g) = default;
 
   /**
    * @brief Default move operator
@@ -57,7 +57,7 @@ class Field3D {
    * @param[in] g Another field
    * @return Field3D<base>& *this
    */
-  Field3D<base>& operator=(Field3D&& g) noexcept = default;
+  Field3D& operator=(Field3D&& g) noexcept = default;
 
   /**
    * @brief Construct a new Field3D object
@@ -174,15 +174,13 @@ class Field3D {
 
   /** Number of columns */
   [[nodiscard]] size_t ncols() const { return mcols; }
-};
 
-/** Output operator.  The object must have its own output operator. */
-template <class base>
-inline std::ostream& operator<<(std::ostream& os, const Field3D<base>& v) {
+  friend std::ostream& operator<<(std::ostream& os, const Field3D& v) {
   for (size_t i = 0; i < v.npages(); i++)
     for (size_t j = 0; j < v.nrows(); j++)
       for (size_t k = 0; k < v.ncols(); k++) os << v(i, j, k) << '\n';
   return os;
 }
+};
 
 #endif  // FIELD_HEADER

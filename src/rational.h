@@ -32,21 +32,12 @@ USA. */
 #include "bofstream.h"
 #include "math_funcs.h"
 #include "matpack.h"
+
+#include <numeric>
 #include <ostream>
 
 
-/** Returns the greatest common denominator of two numbers
- * 
- * @param[in] a number a
- * @param[in] b number b
- * @return num such that Rational(a/num, b/num) is the same as Rational(a, b)
- */
-constexpr Index gcd(Index a, Index b) noexcept {
-  if (b == 0)
-    return a;
-  return gcd(b, a%b);
-}
-
+using std::gcd;
 
 /** Implements rational numbers to work with other ARTS types */
 class Rational {
@@ -57,13 +48,7 @@ class Rational {
    * @param[in] denom Denominator
    */
   constexpr Rational(const Index nom = 0, const Index denom = 1) noexcept
-  : mnom(denom ? nom : 0), mdenom(denom) {
-    const auto div = gcd(nom, denom);
-    if (div) {
-      mnom /= div;
-      mdenom /= div;
-    }
-  }
+  : mnom(denom ? nom / gcd(nom, denom) : 0), mdenom(denom / gcd(nom, denom)) {}
   
   /** Initialization call
    * 
@@ -332,6 +317,10 @@ class Rational {
     }
     return *this;
   }
+
+  friend std::ostream& operator<<(std::ostream& os, const Rational& a);
+  
+  friend std::istream& operator>>(std::istream& is, Rational& a);
 
  private:
   // Rational is supposed to be used rationally ( mnom / mdenom )
@@ -767,12 +756,6 @@ inline Numeric pow(Numeric base, const Rational exp) {
 inline Numeric pow(const Rational base, const Rational exp) {
   return pow(base, exp.toNumeric());
 }
-
-/** Output operator */
-std::ostream& operator<<(std::ostream& os, const Rational& a);
-
-/** Input operator */
-std::istream& operator>>(std::istream& is, Rational& a);
 
 /** less
  * 

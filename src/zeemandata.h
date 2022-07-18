@@ -413,14 +413,6 @@ Model GetSimpleModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
  */
 Model GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
 
-std::ostream& operator<<(std::ostream& os, const Model& m);
-
-std::istream& operator>>(std::istream& is, Model& m);
-
-std::ostream& operator<<(bofstream& bof, const Model& m);
-
-std::istream& operator>>(bifstream& bif, Model& m);
-
 /** Polarization vector for Zeeman Propagation Matrix
  * 
  * Meant to contain the polarization state in two vectors

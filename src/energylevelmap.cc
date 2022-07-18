@@ -213,3 +213,5 @@ EnergyLevelMapType toEnergyLevelMapTypeOrThrow(std::string_view s) {
       '\n')
   return out;
 }
+
+std::ostream& operator<<(std::ostream& os, EnergyLevelMapType x) {return os << toString(x);}

@@ -65,8 +65,8 @@ void limit_line_length(ostream& os,
   inferred from the presence of Any_ in the generic input or output
   list. 
 */
-MdRecord::MdRecord(const char name[],
-                   const char description[],
+MdRecord::MdRecord(const char* name,
+                   const char* description,
                    const ArrayOfString& authors,
                    const ArrayOfString& output,
                    const ArrayOfString& gout,

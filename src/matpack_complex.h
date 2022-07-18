@@ -77,7 +77,7 @@ inline std::complex<float> operator*(const std::complex<float>& c,
 constexpr Numeric abs2(Complex c) noexcept { return a1 * a1 + b1 * b1; }
 
 /** the conjugate of c */
-constexpr Complex conj(Complex c) noexcept { return Complex(a1, -b1); }
+constexpr Complex conj(Complex c) noexcept { return {a1, -b1}; }
 
 /** real */
 constexpr Numeric real(Complex c) noexcept { return a1; }
@@ -89,44 +89,44 @@ constexpr Numeric imag(Complex c) noexcept { return b1; }
 // NOTE: Remove these if there is ever an overload warning updating the C++ compiler version
 
 constexpr Complex operator+(Complex c, Numeric n) noexcept {
-  return Complex(a1 + n, b1);
+  return {a1 + n, b1};
 }
 constexpr Complex operator-(Complex c, Numeric n) noexcept {
-  return Complex(a1 - n, b1);
+  return {a1 - n, b1};
 }
 constexpr Complex operator*(Complex c, Numeric n) noexcept {
-  return Complex(a1 * n, b1 * n);
+  return {a1 * n, b1 * n};
 }
 constexpr Complex operator/(Complex c, Numeric n) noexcept {
-  return Complex(a1 / n, b1 / n);
+  return {a1 / n, b1 / n};
 }
 
 constexpr Complex operator+(Numeric n, Complex c) noexcept {
-  return Complex(n + a1, b1);
+  return {n + a1, b1};
 }
 constexpr Complex operator-(Numeric n, Complex c) noexcept {
-  return Complex(n - a1, -b1);
+  return {n - a1, -b1};
 }
 constexpr Complex operator*(Numeric n, Complex c) noexcept {
-  return Complex(n * a1, n * b1);
+  return {n * a1, n * b1};
 }
 constexpr Complex operator/(Numeric n, Complex c) noexcept {
   return Complex(n * a1, -n * b1) / abs2(c);
 }
 
 constexpr Complex operator+(Complex c, Complex z) noexcept {
-  return Complex(a1 + a2, b1 + b2);
+  return {a1 + a2, b1 + b2};
 }
 constexpr Complex operator-(Complex c, Complex z) noexcept {
-  return Complex(a1 - a2, b1 - b2);
+  return {a1 - a2, b1 - b2};
 }
 constexpr Complex operator*(Complex c, Complex z) noexcept {
-  return Complex(a1 * a2 - b1 * b2, a1 * b2 + b1 * a2);
+  return {a1 * a2 - b1 * b2, a1 * b2 + b1 * a2};
 }
 constexpr Complex operator/(Complex c, Complex z) noexcept {
   return Complex(a1 * a2 + b1 * b2, -a1 * b2 + b1 * a2) / abs2(z);
 }
-constexpr Complex operator-(Complex c) noexcept { return Complex(-a1, -b1); }
+constexpr Complex operator-(Complex c) noexcept { return {-a1, -b1}; }
 
 // Remove helpers to keep global namespace usable
 #undef a1
@@ -356,6 +356,8 @@ class ConstComplexVectorView {
   friend ConstComplexMatrixViewMap MapToEigenCol(const ConstComplexVectorView&);
   friend ComplexMatrixViewMap MapToEigen(ComplexVectorView&);
   friend ComplexMatrixViewMap MapToEigenCol(ComplexVectorView&);
+
+  friend std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v);
 
   // A special constructor, that allows to make a ConstVectorView of a scalar.
   ConstComplexVectorView(const Complex& a);
@@ -735,6 +737,7 @@ class ConstComplexMatrixView {
                    const ConstComplexMatrixView&,
                    const ConstMatrixView&);
   
+  friend std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v);
 
   friend ConstComplexMatrixViewMap MapToEigen(const ConstComplexMatrixView&);
   friend ComplexMatrixViewMap MapToEigen(ComplexMatrixView&);
@@ -966,10 +969,6 @@ void mult(ComplexMatrixView A,
 
 Complex operator*(const ConstComplexVectorView& a,
                   const ConstComplexVectorView& b);
-
-std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v);
-
-std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v);
 
 // Converts constant matrix to constant eigen map
 ConstComplexMatrixViewMap MapToEigen(const ConstComplexMatrixView& A);

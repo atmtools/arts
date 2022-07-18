@@ -232,6 +232,10 @@ struct ModelParameters {
   [[nodiscard]] Numeric dT(Numeric T, Numeric T0) const noexcept;
   
   [[nodiscard]] Numeric dT0(Numeric T, Numeric T0) const noexcept;
+
+  friend std::ostream& operator<<(std::ostream& os, const ModelParameters& mp);
+
+  friend std::istream& operator>>(std::istream& is, ModelParameters& mp);
 };
 
 String modelparameters2metadata(const ModelParameters mp, const Numeric T0);
@@ -330,12 +334,6 @@ constexpr Numeric modelparameterFirstExponent(const ModelParameters mp) noexcept
   }
   return std::numeric_limits<Numeric>::quiet_NaN();
 }
-
-/** Output operator for ModelParameters */
-std::ostream& operator<<(std::ostream& os, const ModelParameters& mp);
-
-/** Input operator for ModelParameters */
-std::istream& operator>>(std::istream& is, ModelParameters& mp);
 
 /** Current max number of line shape variables */
 constexpr Index nVars = Index(Variable::FINAL);
@@ -436,13 +434,11 @@ class SingleSpeciesModel {
   bofstream& write(bofstream& bof) const;
   
   [[nodiscard]] std::pair<bool, bool> MatchTypes(const SingleSpeciesModel& other) const noexcept;
+
+  friend std::ostream& operator<<(std::ostream& os, const SingleSpeciesModel& ssm);
+
+  friend std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm);
 };
-
-/** Output operator for SingleSpeciesModel */
-std::ostream& operator<<(std::ostream& os, const SingleSpeciesModel& ssm);
-
-/** Input operator for SingleSpeciesModel */
-std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm);
 
 /** Type of line shape to compute */
 ENUMCLASS(Type, char,
@@ -502,10 +498,9 @@ struct Output {
   constexpr Output(Output&&) noexcept = default;
   constexpr Output& operator=(const Output&) noexcept = default;
   constexpr Output& operator=(Output&&) noexcept = default;
-};
 
-/** Output operator for LineShape::Output */
-std::ostream& operator<<(std::ostream& os, Output x);
+  friend std::ostream& operator<<(std::ostream& os, Output x);
+};
 
 /** Output to be used by mirroring calls */
 constexpr Output mirroredOutput(Output x) noexcept {
@@ -612,10 +607,10 @@ class Model {
   Model(Model&& m) noexcept : Model(std::move(m.mdata)) {}
   
   /** Copy and equals */
-  Model& operator=(const Model& m) {mdata=m.mdata; return *this;}
+  Model& operator=(const Model& m) = default;
   
   /** Move and equals */
-  Model& operator=(Model&& m) {mdata=std::move(m.mdata); return *this;}
+  Model& operator=(Model&& m) = default;
   
   /** Standard HITRAN init
    * 
@@ -896,7 +891,10 @@ class Model {
                               Model& m,
                               ArrayOfSpecies& species,
                               const QuantumIdentifier& qid);
-  
+
+  friend std::ostream& operator<<(std::ostream&, const Model&);
+
+  friend std::istream& operator>>(std::istream&, Model&);
   
   /** Binary read for Model */
   bifstream& read(bifstream& bif);
@@ -918,10 +916,6 @@ Model lblrtm_model(Numeric sgam,
                    Numeric nair,
                    Numeric psf,
                    std::array<Numeric, 12> aer_interp = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
-
-std::ostream& operator<<(std::ostream&, const Model&);
-
-std::istream& operator>>(std::istream&, Model&);
 
 String ModelShape2MetaData(const Model& m);
 
