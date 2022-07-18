@@ -56,7 +56,7 @@ struct TokVal {
 
   for (auto& group : global_data::wsv_groups) {
     if (group == "Agenda" or group == "ArrayOfAgenda") continue;
-    file_h << "  TokVal(" << group << " in) noexcept;\n"
+    file_h << "  TokVal(" << group << " in);\n"
          << "  TokVal& operator=(" << group << " in);\n"
          << "  operator " << group << R"--(() const;
 
@@ -65,7 +65,7 @@ struct TokVal {
 
   file_h << R"--(  TokVal(const char * const c);
     
-  TokVal() noexcept;
+  TokVal();
   TokVal(const TokVal& v);
   TokVal& operator=(const TokVal& v);
 
@@ -81,7 +81,7 @@ file_cc << "// auto-generated tokval implementation\n\n#include <tokval.h>\n\n";
 
   for (auto& group : global_data::wsv_groups) {
     if (group == "Agenda" or group == "ArrayOfAgenda") continue;
-    file_cc << "TokVal::TokVal(" << group << " in) noexcept : value(std::make_unique<"
+    file_cc << "TokVal::TokVal(" << group << " in) : value(std::make_unique<"
          << group << ">(std::move(in))) {}\n"
          << "TokVal& TokVal::operator=(" << group << " in) { value = std::make_unique<"
          << group << ">(std::move(in)); return *this; }\n"
@@ -92,7 +92,7 @@ file_cc << "// auto-generated tokval implementation\n\n#include <tokval.h>\n\n";
 
   file_cc << R"--(TokVal::TokVal(const char * const c) : TokVal(String(c)) {}
     
-TokVal::TokVal() noexcept : value(std::make_unique<Any>()) {} 
+TokVal::TokVal() : value(std::make_unique<Any>()) {} 
 TokVal::TokVal(const TokVal& v) { std::visit([&](auto&& in) {*this = *in;}, v.value); }
 TokVal& TokVal::operator=(const TokVal& v) { std::visit([&](auto&& in) {*this = *in;}, v.value); return *this; }
 
