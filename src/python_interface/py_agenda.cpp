@@ -13,6 +13,7 @@
 #include "py_auto_interface.h"
 #include "py_macros.h"
 #include "python_interface.h"
+#include "tokval_variant.h"
 
 extern Parameters parameters;
 
@@ -249,9 +250,9 @@ void py_agenda(py::module_& m) {
                 [](auto& v) -> py::object {
                   return py::cast(*v, py::return_value_policy::copy);
                 },
-                x.value);
+                *tokval_type(x.data()));
           },
-          [](TokVal& x, TokVal y) { x.value.swap(y.value); })
+          [](TokVal& x, TokVal y) { std::swap(x, y); })
       .def("__repr__",
            [](py::object& x) { return x.attr("value").attr("__repr__")(); })
       .def("__str__",

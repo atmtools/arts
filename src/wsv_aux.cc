@@ -84,17 +84,11 @@ WsvRecord::WsvRecord(const char* name, const char* description, const Index grou
 }
 
 bool WsvRecord::has_defaults() const {
-  return not std::holds_alternative<std::unique_ptr<Any>>(defval.value);
+  return not defval.holdsAny();
 }
 
 std::shared_ptr<void> WsvRecord::get_copy() const {
   if (has_defaults())
-    return std::visit(
-        [](auto&& val) -> std::shared_ptr<void> {
-          using value_type =
-              std::remove_cv_t<std::remove_pointer_t<decltype(val.get())>>;
-          return std::make_shared<value_type>(*val);
-        },
-        defval.value);
+    return defval.copy_value();
   return nullptr;
 }
