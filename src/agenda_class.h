@@ -28,8 +28,7 @@
 
 
 #include "array.h"
-#include "species_tags.h"
-#include "matpackI.h"
+#include "matpack.h"
 #include "mystring.h"
 
 #include "messages.h"
@@ -68,15 +67,12 @@ class Agenda final {
   void check(Workspace& ws, const Verbosity& verbosity);
   void push_back(const MRecord& n);
   void execute(Workspace& ws) const;
-  inline void resize(Index n);
-  [[nodiscard]] inline Index nelem() const;
-  inline Agenda& operator=(const Agenda& x);
+  void resize(Index n);
+  [[nodiscard]] Index nelem() const;
+  Agenda& operator=(const Agenda& x);
   [[nodiscard]] const Array<MRecord>& Methods() const { return mml; }
   [[nodiscard]] bool has_method(const String& methodname) const;
-  void set_methods(const Array<MRecord>& ml) {
-    mml = ml;
-    mchecked = false;
-  }
+  void set_methods(const Array<MRecord>& ml);
   void set_outputs_to_push_and_dup(const Verbosity& verbosity);
   bool is_input(Workspace& ws, Index var) const;
   [[nodiscard]] bool is_output(Index var) const;
@@ -119,12 +115,7 @@ class Agenda final {
     @author Stefan Buehler */
 class MRecord {
  public:
-  MRecord()
-      : moutput(),
-        minput(),
-        msetvalue(),
-        mtasks() { /* Nothing to do here. */
-  }
+  MRecord();
 
   MRecord(const MRecord& x) = default;
 
@@ -172,22 +163,7 @@ class MRecord {
     \author Stefan Buehler
     \date   2002-12-02
     */
-  MRecord& operator=(const MRecord& x) {
-    mid = x.mid;
-
-    msetvalue = x.msetvalue;
-
-    moutput.resize(x.moutput.nelem());
-    moutput = x.moutput;
-
-    minput.resize(x.minput.nelem());
-    minput = x.minput;
-
-    mtasks.resize(x.mtasks.nelem());
-    mtasks = x.mtasks;
-
-    return *this;
-  }
+  MRecord& operator=(const MRecord& x);
 
   //! Get list of generic input only WSVs.
   /*!
@@ -199,21 +175,7 @@ class MRecord {
     \author Oliver Lemke
     \date   2008-02-27
   */
-  void ginput_only(ArrayOfIndex& ginonly) const {
-    ginonly = minput;  // Input
-    for (auto j = moutput.begin(); j < moutput.end();
-         ++j)
-      for (auto k = ginonly.begin(); k < ginonly.end(); ++k)
-        if (*j == *k) {
-          //              erase_vector_element(vi,k);
-          k = ginonly.erase(k) - 1;
-          // We need the -1 here, otherwise due to the
-          // following increment we would miss the element
-          // behind the erased one, which is now at the
-          // position of the erased one.
-        }
-  }
-
+  void ginput_only(ArrayOfIndex& ginonly) const;
   // Output operator:
   void print(ostream& os, const String& indent) const;
 
@@ -235,44 +197,6 @@ class MRecord {
   bool minternal{false};
 };
 
-//! Resize the method list.
-/*!
-  Resizes the agenda's method list to n elements
- */
-inline void Agenda::resize(Index n) { mml.resize(n); }
-
-//! Return the number of agenda elements.
-/*!  
-  This is needed, so that we can find out the correct size for
-  resize, befor we do a copy.
-
-  \return Number of agenda elements.
-*/
-inline Index Agenda::nelem() const { return mml.nelem(); }
-
-//! Append a new method to end of list.
-/*! 
-  This is used by the parser to fill up the agenda.
-
-  \param n New method to add.
-*/
-inline void Agenda::push_back(const MRecord& n) {
-  mml.push_back(n);
-  mchecked = false;
-}
-
-//! Assignment operator.
-/*! 
-  Copies an agenda.
-*/
-inline Agenda& Agenda::operator=(const Agenda& x) {
-  mml = x.mml;
-  mname = x.mname;
-  moutput_push = x.moutput_push;
-  moutput_dup = x.moutput_dup;
-  mchecked = x.mchecked;
-  return *this;
-}
 
 /** An array of Agenda. */
 using ArrayOfAgenda = Array<Agenda>;

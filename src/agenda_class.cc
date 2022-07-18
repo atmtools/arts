@@ -39,6 +39,10 @@
 #include "methods.h"
 #include "workspace_ng.h"
 
+MRecord::MRecord()
+    : moutput(), minput(), msetvalue(), mtasks() { /* Nothing to do here. */
+}
+
 MRecord::MRecord(const Index id,
                  ArrayOfIndex output,
                  ArrayOfIndex input,
@@ -697,6 +701,11 @@ bool Agenda::has_method(const String& methodname) const {
   return found;
 }
 
+void Agenda::set_methods(const Array<MRecord>& ml) {
+  mml = ml;
+  mchecked = false;
+}
+
 //! Print an agenda.
 /*!
   This prints an agenda, by printing the individual methods, just as
@@ -713,6 +722,41 @@ void Agenda::print(ostream& os, const String& indent) const {
     // Print member methods with 3 characters more indentation:
     mml[i].print(os, indent);
   }
+}
+
+//! Resize the method list.
+/*!
+  Resizes the agenda's method list to n elements
+ */
+void Agenda::resize(Index n) { mml.resize(n); }
+
+//! Return the number of agenda elements.
+/*!  
+  This is needed, so that we can find out the correct size for
+  resize, befor we do a copy.
+
+  \return Number of agenda elements.
+*/
+Index Agenda::nelem() const { return mml.nelem(); }
+
+//! Append a new method to end of list.
+/*! 
+  This is used by the parser to fill up the agenda.
+
+  \param n New method to add.
+*/
+void Agenda::push_back(const MRecord& n) {
+  mml.push_back(n);
+  mchecked = false;
+}
+
+Agenda& Agenda::operator=(const Agenda& x) {
+  mml = x.mml;
+  mname = x.mname;
+  moutput_push = x.moutput_push;
+  moutput_dup = x.moutput_dup;
+  mchecked = x.mchecked;
+  return *this;
 }
 
 //! Output operator for Agenda.
@@ -800,6 +844,37 @@ void MRecord::print(ostream& os, const String& indent) const {
     os << indent << "}\n";
   } else
     os << "\n";
+}
+
+MRecord& MRecord::operator=(const MRecord& x) {
+  mid = x.mid;
+
+  msetvalue = x.msetvalue;
+
+  moutput.resize(x.moutput.nelem());
+  moutput = x.moutput;
+
+  minput.resize(x.minput.nelem());
+  minput = x.minput;
+
+  mtasks.resize(x.mtasks.nelem());
+  mtasks = x.mtasks;
+
+  return *this;
+}
+
+void MRecord::ginput_only(ArrayOfIndex& ginonly) const {
+  ginonly = minput;  // Input
+  for (auto j = moutput.begin(); j < moutput.end(); ++j)
+    for (auto k = ginonly.begin(); k < ginonly.end(); ++k)
+      if (*j == *k) {
+        //              erase_vector_element(vi,k);
+        k = ginonly.erase(k) - 1;
+        // We need the -1 here, otherwise due to the
+        // following increment we would miss the element
+        // behind the erased one, which is now at the
+        // position of the erased one.
+      }
 }
 
 //! Output operator for MRecord.
