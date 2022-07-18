@@ -74,6 +74,8 @@ struct GridPos {
   Index idx;     /*!< Original grid index below interpolation point. */
   std::array<Numeric, 2> fd; /*!< Fractional distance to next point
                                     (0<=fd[0]<=1), fd[1] = 1-fd[0]. */
+
+  friend ostream& operator<<(ostream& os, const GridPos& gp);
 };
 
 //! An Array of grid positions.
@@ -88,8 +90,6 @@ typedef Array<Array<Array<Array<GridPos> > > >
     ArrayOfArrayOfArrayOfArrayOfGridPos;
 
 // Function headers (documentation is in .cc file):
-
-ostream& operator<<(ostream& os, const GridPos& gp);
 
 void gridpos(ArrayOfGridPos& gp,
              ConstVectorView old_grid,

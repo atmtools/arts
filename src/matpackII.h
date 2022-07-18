@@ -172,4 +172,7 @@ void transpose(Sparse& A, const Sparse& B);
 
 void id_mat(Sparse& A);
 
+/** An array of sparse matrices. */
+using ArrayOfSparse = Array<Sparse>;
+
 #endif

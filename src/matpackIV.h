@@ -243,6 +243,8 @@ class ConstTensor4View {
   friend class ConstTensor6View;
   friend class ConstTensor7View;
 
+  friend std::ostream& operator<<(std::ostream& os, const ConstTensor4View& v);
+
   // Special constructor to make a Tensor4 view of a Tensor3.
   ConstTensor4View(const ConstTensor3View& a);
 
@@ -550,8 +552,6 @@ Numeric max(const ConstTensor4View& x);
 
 Numeric min(const ConstTensor4View& x);
 
-std::ostream& operator<<(std::ostream& os, const ConstTensor4View& v);
-
 ////////////////////////////////
 // Helper function for debugging
 #ifndef NDEBUG
@@ -561,5 +561,10 @@ Numeric debug_tensor4view_get_elem(
 
 #endif
 ////////////////////////////////
+
+/** An array of Tensor4. */
+using ArrayOfTensor4 = Array<Tensor4>;
+
+using ArrayOfArrayOfTensor4 = Array<ArrayOfTensor4>;
 
 #endif  // matpackIV_h

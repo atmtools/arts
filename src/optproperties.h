@@ -86,13 +86,12 @@ struct SingleScatteringData {
   Tensor7 pha_mat_data;
   Tensor5 ext_mat_data;
   Tensor5 abs_vec_data;
+
+  friend ostream& operator<<(ostream& os, const SingleScatteringData& ssd);
 };
 
 typedef Array<SingleScatteringData> ArrayOfSingleScatteringData;
 typedef Array<Array<SingleScatteringData> > ArrayOfArrayOfSingleScatteringData;
-
-ostream& operator<<(ostream& os, const SingleScatteringData& ssd);
-ostream& operator<<(ostream& os, const ArrayOfSingleScatteringData& assd);
 
 /*===========================================================================
   === The ScatteringMetaData structure
@@ -113,13 +112,12 @@ struct ScatteringMetaData {
   Numeric diameter_max;
   Numeric diameter_volume_equ;
   Numeric diameter_area_equ_aerodynamical;
+
+  friend ostream& operator<<(ostream& os, const ScatteringMetaData& ssd);
 };
 
 typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;
 typedef Array<Array<ScatteringMetaData> > ArrayOfArrayOfScatteringMetaData;
-
-ostream& operator<<(ostream& os, const ScatteringMetaData& ssd);
-ostream& operator<<(ostream& os, const ArrayOfScatteringMetaData& assd);
 
 // General functions:
 // =============================================================

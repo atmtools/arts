@@ -476,16 +476,6 @@ class GriddedField6 final : public GriddedField {
   Tensor6 data;
 };
 
-/********** Output operators **********/
-
-std::ostream& operator<<(std::ostream& os, const GriddedField& gf);
-std::ostream& operator<<(std::ostream& os, const GriddedField1& gf);
-std::ostream& operator<<(std::ostream& os, const GriddedField2& gf);
-std::ostream& operator<<(std::ostream& os, const GriddedField3& gf);
-std::ostream& operator<<(std::ostream& os, const GriddedField4& gf);
-std::ostream& operator<<(std::ostream& os, const GriddedField5& gf);
-std::ostream& operator<<(std::ostream& os, const GriddedField6& gf);
-
 /************ Array types *************/
 
 typedef Array<GriddedField1> ArrayOfGriddedField1;

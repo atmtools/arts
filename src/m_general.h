@@ -27,10 +27,11 @@
 #ifndef m_general_h
 #define m_general_h
 
-#include "arts.h"
-
 #include <iostream>
 #include <stdexcept>
+
+#include "agenda_class.h"
+#include "arts.h"
 #include "cia.h"
 #include "messages.h"
 #include "mystring.h"

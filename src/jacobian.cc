@@ -1203,19 +1203,31 @@ Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
     return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
-std::ostream& Jacobian::operator<<(std::ostream& os, const Target& x) {
+namespace Jacobian {
+std::ostream& operator<<(std::ostream& os, const Target& x) {
   os << x.TargetType() << ' ';
   switch (toType(x.TargetType())) {
-    case Type::Atm: os << x.atm; break;
-    case Type::Line: os << x.line; break;
-    case Type::Sensor: os << x.sensor; break;
-    case Type::Special: os << x.special; break;
-    case Type::FINAL: os << "BAD STATE"; break;
+    case Type::Atm:
+      os << x.atm;
+      break;
+    case Type::Line:
+      os << x.line;
+      break;
+    case Type::Sensor:
+      os << x.sensor;
+      break;
+    case Type::Special:
+      os << x.special;
+      break;
+    case Type::FINAL:
+      os << "BAD STATE";
+      break;
   }
   if (x.needQuantumIdentity()) os << ' ' << x.qid;
   if (x.needArrayOfSpeciesTag()) os << ' ' << x.species_array_id;
   if (x.needString()) os << ' ' << x.string_id;
   if (std::isnormal(x.perturbation)) os << ' ' << x.perturbation;
-  
+
   return os;
 }
+}  // namespace Jacobian

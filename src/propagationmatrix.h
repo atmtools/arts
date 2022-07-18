@@ -1074,6 +1074,8 @@ class PropagationMatrix {
                                const Index iz = 0,
                                const Index ia = 0) const;
 
+  friend std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm);
+
  protected:
   Index mfreqs, mstokes_dim;
   Index mza, maa;
@@ -1166,16 +1168,6 @@ void compute_transmission_matrix_and_derivative(
     const Index it = -1,
     const Index iz = 0,
     const Index ia = 0);
-
-/** output operator */
-std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm);
-
-/** output operator */
-std::ostream& operator<<(std::ostream& os, const ArrayOfPropagationMatrix& apm);
-
-/** output operator */
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfPropagationMatrix& aapm);
 
 /** Stokes vector is as Propagation matrix but only has 4 possible values */
 class StokesVector final : public PropagationMatrix {
@@ -1465,16 +1457,13 @@ class StokesVector final : public PropagationMatrix {
               return false;
     return true;
   }
+
+  friend std::ostream& operator<<(std::ostream& os, const StokesVector& pm);
 };
 
 using ArrayOfStokesVector = Array<StokesVector>;
 using ArrayOfArrayOfStokesVector = Array<ArrayOfStokesVector>;
 using ArrayOfArrayOfArrayOfStokesVector = Array<ArrayOfArrayOfStokesVector>;
-
-std::ostream& operator<<(std::ostream& os, const StokesVector& pm);
-std::ostream& operator<<(std::ostream& os, const ArrayOfStokesVector& apm);
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfStokesVector& aapm);
 
 /** Returns a lazy multiplier
  * 

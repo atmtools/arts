@@ -5,9 +5,10 @@
 #include <set>
 
 #include "array.h"
+#include "enums.h"
+#include "isotopologues.h"
 #include "matpackI.h"
 #include "mystring.h"
-#include "partfun.h"
 
 namespace Species {
 ENUMCLASS(TagType, unsigned char,
@@ -66,9 +67,9 @@ struct Tag {
   
   [[nodiscard]] constexpr Numeric Mass() const noexcept {return Isotopologue().mass;}
   
-  [[nodiscard]] Numeric Q(Numeric T) const {return PartitionFunctions::Q(T, Isotopologue());}
+  [[nodiscard]] Numeric Q(Numeric T) const;
   
-  [[nodiscard]] Numeric dQdT(Numeric T) const {return PartitionFunctions::dQdT(T, Isotopologue());}
+  [[nodiscard]] Numeric dQdT(Numeric T) const;
   
   [[nodiscard]] String FullName() const noexcept {return Isotopologue().FullName();}
   

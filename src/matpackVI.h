@@ -573,6 +573,8 @@ class ConstTensor6View {
   friend class Tensor6View;
   friend class ConstTensor7View;
 
+  friend std::ostream& operator<<(std::ostream& os, const ConstTensor6View& v);
+
   // Special constructor to make a Tensor6 view of a Tensor5.
   ConstTensor6View(const ConstTensor5View& a);
 
@@ -1316,8 +1318,6 @@ Numeric max(const ConstTensor6View& x);
 
 Numeric min(const ConstTensor6View& x);
 
-std::ostream& operator<<(std::ostream& os, const ConstTensor6View& v);
-
 ////////////////////////////////
 // Helper function for debugging
 #ifndef NDEBUG
@@ -1327,5 +1327,10 @@ Numeric debug_tensor6view_get_elem(
 
 #endif
 ////////////////////////////////
+
+/** An array of Tensor6. */
+using ArrayOfTensor6 = Array<Tensor6>;
+
+using ArrayOfArrayOfTensor6 = Array<ArrayOfTensor6>;
 
 #endif  // matpackVI_h

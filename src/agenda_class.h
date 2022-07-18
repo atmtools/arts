@@ -92,6 +92,8 @@ class Agenda final {
   [[nodiscard]] bool is_main_agenda() const { return main_agenda; }
   [[nodiscard]] bool checked() const { return mchecked; }
 
+  friend ostream& operator<<(ostream& os, const Agenda& a);
+
  private:
   String mname;       /*!< Agenda name. */
   Array<MRecord> mml; /*!< The actual list of methods to execute. */
@@ -106,9 +108,6 @@ class Agenda final {
   /** Flag indicating that the agenda was checked for consistency */
   bool mchecked{false};
 };
-
-// Documentation with implementation.
-ostream& operator<<(ostream& os, const Agenda& a);
 
 /** Method runtime data. In contrast to MdRecord, an object of this
     class contains the runtime information for one method: The method
@@ -134,14 +133,7 @@ class MRecord {
           ArrayOfIndex  input,
           const TokVal&  setvalue,
           Agenda  tasks,
-          bool internal = false)
-      : mid(id),
-        moutput(std::move(output)),
-        minput(std::move(input)),
-        msetvalue(setvalue),
-        mtasks(std::move(tasks)),
-        minternal(internal) { /* Nothing to do here */
-  }
+          bool internal = false);
 
   [[nodiscard]] Index Id() const { return mid; }
   [[nodiscard]] const ArrayOfIndex& Out() const { return moutput; }
@@ -225,6 +217,8 @@ class MRecord {
   // Output operator:
   void print(ostream& os, const String& indent) const;
 
+  friend ostream& operator<<(ostream& os, const MRecord& a);
+
  private:
   /** Method id. */
   Index mid{-1};
@@ -279,9 +273,6 @@ inline Agenda& Agenda::operator=(const Agenda& x) {
   mchecked = x.mchecked;
   return *this;
 }
-
-// Documentation is with implementation.
-ostream& operator<<(ostream& os, const MRecord& a);
 
 /** An array of Agenda. */
 using ArrayOfAgenda = Array<Agenda>;

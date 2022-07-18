@@ -42,7 +42,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "array.h"
 #include "arts.h"
 #include "arts_omp.h"
 

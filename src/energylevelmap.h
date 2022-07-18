@@ -84,7 +84,7 @@ constexpr std::string_view toString(EnergyLevelMapType x) noexcept {
   return "BAD EnergyLevelMapType";
 }
 
-inline std::ostream& operator<<(std::ostream& os, EnergyLevelMapType x) {return os << toString(x);}
+std::ostream& operator<<(std::ostream& os, EnergyLevelMapType x);
 
 struct EnergyLevelMap {
   EnergyLevelMapType type{EnergyLevelMapType::None_t};
@@ -139,8 +139,8 @@ struct EnergyLevelMap {
    * @return Upper and lower level distributions and energies
    */
   [[nodiscard]] Output4 get_vibtemp_params(const AbsorptionLines& band, const Numeric T) const;
-};
 
-std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm);
+  friend std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm);
+};
 
 #endif  // energylevelmap_h

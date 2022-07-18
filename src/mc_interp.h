@@ -65,9 +65,9 @@ class SLIData2 {
   Numeric interpolate(Numeric x1, Numeric x2) const;
   //checks that it is not empty
   //void check() const;
-};
 
-ostream& operator<<(ostream& os, const SLIData2& sli);
+  friend ostream& operator<<(ostream& os, const SLIData2& sli);
+};
 
 /** interp.
  *

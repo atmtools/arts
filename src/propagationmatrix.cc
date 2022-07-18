@@ -2039,31 +2039,8 @@ std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfPropagationMatrix& apm) {
-  for (auto& pm : apm) os << pm;
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfPropagationMatrix& aapm) {
-  for (auto& apm : aapm) os << apm;
-  return os;
-}
-
 // Needs to be implemented in this file!!!
 std::ostream& operator<<(std::ostream& os, const StokesVector& sv) {
   os << sv.Data() << "\n";
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfStokesVector& asv) {
-  for (auto& sv : asv) os << sv;
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfStokesVector& aasv) {
-  for (auto& asv : aasv) os << asv;
   return os;
 }

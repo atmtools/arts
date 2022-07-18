@@ -1790,19 +1790,18 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(
   return lines;
 }
 
-std::ostream& Absorption::operator<<(std::ostream& os,
-                                     const Absorption::Lines& lines) {
+namespace Absorption {
+std::ostream& operator<<(std::ostream& os, const Absorption::Lines& lines) {
   for (auto& line : lines.lines) os << line << '\n';
   return os;
 }
 
-std::istream& Absorption::operator>>(std::istream& is, Lines& lines) {
+std::istream& operator>>(std::istream& is, Lines& lines) {
   for (auto& line : lines.lines) is >> line;
   return is;
 }
 
-std::ostream& Absorption::operator<<(std::ostream& os,
-                                     const Absorption::SingleLine& line) {
+std::ostream& operator<<(std::ostream& os, const Absorption::SingleLine& line) {
   os << line.F0 << ' ' << line.I0 << ' ' << line.E0 << ' ' << line.glow << ' '
      << line.gupp << ' ' << line.A << ' ' << line.zeeman << ' '
      << line.lineshape;
@@ -1810,23 +1809,12 @@ std::ostream& Absorption::operator<<(std::ostream& os,
   return os;
 }
 
-std::istream& Absorption::operator>>(std::istream& is,
-                                     Absorption::SingleLine& line) {
+std::istream& operator>>(std::istream& is, Absorption::SingleLine& line) {
   is >> double_imanip() >> line.F0 >> line.I0 >> line.E0 >> line.glow >>
       line.gupp >> line.A;
   return is >> line.zeeman >> line.lineshape >> line.localquanta;
 }
-
-std::ostream& operator<<(std::ostream& os, const ArrayOfAbsorptionLines& aol) {
-  for (auto& l : aol) os << l << '\n';
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfAbsorptionLines& aol) {
-  for (auto& l : aol) os << l << '\n';
-  return os;
-}
+}  // namespace Absorption
 
 String Absorption::Lines::SpeciesName() const noexcept {
   return quantumidentity.Isotopologue().FullName();

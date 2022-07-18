@@ -675,33 +675,6 @@ using ArrayOfArrayOfRadiationVector = Array<ArrayOfRadiationVector>;
 using ArrayOfArrayOfArrayOfRadiationVector =
     Array<ArrayOfArrayOfRadiationVector>;
 
-/** Output operator */
-std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm);
-
-/** Output operator */
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfTransmissionMatrix& atm);
-
-/** Output operator */
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfTransmissionMatrix& aatm);
-
-/** Output operator */
-std::ostream& operator<<(std::ostream& os, const RadiationVector& rv);
-
-/** Output operator */
-std::ostream& operator<<(std::ostream& os, const ArrayOfRadiationVector& arv);
-
-/** Output operator */
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfRadiationVector& aarv);
-
-/** Input operator */
-std::istream& operator>>(std::istream& is, TransmissionMatrix& tm);
-
-/** Input operator */
-std::istream& operator>>(std::istream& is, RadiationVector& rv);
-
 /** Intended to hold various backscatter solvers */
 enum class BackscatterSolver {
   CommutativeTransmission,

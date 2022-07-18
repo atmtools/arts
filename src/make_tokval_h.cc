@@ -68,6 +68,8 @@ struct TokVal {
   TokVal() noexcept;
   TokVal(const TokVal& v);
   TokVal& operator=(const TokVal& v);
+
+  ~TokVal();
 };
 
 #endif
@@ -93,6 +95,8 @@ file_cc << "// auto-generated tokval implementation\n\n#include <tokval.h>\n\n";
 TokVal::TokVal() noexcept : value(std::make_unique<Any>()) {} 
 TokVal::TokVal(const TokVal& v) { std::visit([&](auto&& in) {*this = *in;}, v.value); }
 TokVal& TokVal::operator=(const TokVal& v) { std::visit([&](auto&& in) {*this = *in;}, v.value); return *this; }
+
+TokVal::~TokVal() {}
 )--";
 
   return EXIT_SUCCESS;
