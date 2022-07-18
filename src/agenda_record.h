@@ -54,6 +54,7 @@ class AgRecord {
            const ArrayOfString& input);
 
   AgRecord(const AgRecord&) = default;
+  AgRecord& operator=(const AgRecord&) = default;
 
   [[nodiscard]] const String& Name() const { return mname; }
   [[nodiscard]] const String& Description() const { return mdescription; }
