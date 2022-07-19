@@ -31,6 +31,32 @@
 #include "constants.h"
 #include "matpack_complex.h"
 
+TransmissionMatrix::TransmissionMatrix(Index nf, Index stokes)
+    : stokes_dim(stokes),
+      T4(stokes_dim == 4 ? nf : 0, Eigen::Matrix4d::Identity()),
+      T3(stokes_dim == 3 ? nf : 0, Eigen::Matrix3d::Identity()),
+      T2(stokes_dim == 2 ? nf : 0, Eigen::Matrix2d::Identity()),
+      T1(stokes_dim == 1 ? nf : 0, Eigen::Matrix<double, 1, 1>::Identity()) {
+  ARTS_ASSERT(stokes_dim < 5 and stokes_dim > 0);
+}
+
+const Eigen::Matrix4d& TransmissionMatrix::Mat4(size_t i) const { return T4[i]; }
+const Eigen::Matrix3d& TransmissionMatrix::Mat3(size_t i) const { return T3[i]; }
+const Eigen::Matrix2d& TransmissionMatrix::Mat2(size_t i) const { return T2[i]; }
+const Eigen::Matrix<double, 1, 1>& TransmissionMatrix::Mat1(size_t i) const { return T1[i]; }
+
+Eigen::Matrix4d& TransmissionMatrix::Mat4(size_t i) { return T4[i]; }
+Eigen::Matrix3d& TransmissionMatrix::Mat3(size_t i) { return T3[i]; }
+Eigen::Matrix2d& TransmissionMatrix::Mat2(size_t i) { return T2[i]; }
+Eigen::Matrix<double, 1, 1>& TransmissionMatrix::Mat1(size_t i) { return T1[i]; }
+
+TransmissionMatrix& TransmissionMatrix::operator=(
+    const LazyScale<TransmissionMatrix>& lstm) {
+  operator=(lstm.bas);
+  operator*=(lstm.scale);
+  return *this;
+}
+
 TransmissionMatrix::operator Tensor3() const {
   Tensor3 T(Frequencies(), stokes_dim, stokes_dim);
   for (size_t i = 0; i < T4.size(); i++)
@@ -154,6 +180,27 @@ LazyScale<TransmissionMatrix> operator*(const Numeric& x,
                                         const TransmissionMatrix& tm) {
   return {tm, x};
 }
+
+RadiationVector::RadiationVector(Index nf, Index stokes)
+    : stokes_dim(stokes),
+      R4(stokes_dim == 4 ? nf : 0, Eigen::Vector4d::Zero()),
+      R3(stokes_dim == 3 ? nf : 0, Eigen::Vector3d::Zero()),
+      R2(stokes_dim == 2 ? nf : 0, Eigen::Vector2d::Zero()),
+      R1(stokes_dim == 1 ? nf : 0, Eigen::Matrix<double, 1, 1>::Zero()) {
+  ARTS_ASSERT(stokes_dim < 5 and stokes_dim > 0);
+}
+
+const Eigen::Vector4d& RadiationVector::Vec4(size_t i) const { return R4[i]; }
+const Eigen::Vector3d& RadiationVector::Vec3(size_t i) const { return R3[i]; }
+const Eigen::Vector2d& RadiationVector::Vec2(size_t i) const { return R2[i]; }
+const Eigen::Matrix<double, 1, 1>& RadiationVector::Vec1(size_t i) const {
+  return R1[i];
+}
+
+Eigen::Vector4d& RadiationVector::Vec4(size_t i) { return R4[i]; }
+Eigen::Vector3d& RadiationVector::Vec3(size_t i) { return R3[i]; }
+Eigen::Vector2d& RadiationVector::Vec2(size_t i) { return R2[i]; }
+Eigen::Matrix<double, 1, 1>& RadiationVector::Vec1(size_t i) { return R1[i]; }
 
 void RadiationVector::leftMul(const TransmissionMatrix& T) {
   for (size_t i = 0; i < R4.size(); i++) R4[i] = T.Mat4(i) * R4[i];
