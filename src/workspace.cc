@@ -3292,7 +3292,7 @@ be distributed directly for whatever reason
 
 Can currently only contain data for new MT CKD models of water.
 )--"),
-      GROUP("PredefinedModelData")));
+      GROUP("PredefinedModelData"), PredefinedModelData{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky"),
