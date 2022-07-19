@@ -676,16 +676,8 @@ void ext2trans(MatrixView trans_mat,
     Matrix ext_mat_ds = ext_mat;
     ext_mat_ds *= -lstep;
     //
-    Index q = 10;  // index for the precision of the matrix exp function
-    //
-    switch (stokes_dim) {
-      case 4:
-        cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(
-            trans_mat, ext_mat_ds);
-        break;
-      default:
-        matrix_exp(trans_mat, ext_mat_ds, q);
-    }
+    constexpr Index q = 10;  // index for the precision of the matrix exp function
+    matrix_exp(trans_mat, ext_mat_ds, q);
   }
 }
 
