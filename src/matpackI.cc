@@ -1739,25 +1739,6 @@ MatrixViewMap MapToEigenCol(VectorView& A) {
                        StrideType(1, A.mrange.get_stride()));
 }
 
-// Special 4x4
-
-// Converts matrix to eigen map
-Matrix4x4ViewMap MapToEigen4x4(MatrixView& A) {
-  return Matrix4x4ViewMap(A.mdata + A.mrr.get_start() + A.mcr.get_start(),
-                          4,
-                          4,
-                          StrideType(A.mrr.get_stride(), A.mcr.get_stride()));
-}
-
-// Converts constant matrix to constant eigen map
-ConstMatrix4x4ViewMap MapToEigen4x4(const ConstMatrixView& A) {
-  return ConstMatrix4x4ViewMap(
-      A.mdata + A.mrr.get_start() + A.mcr.get_start(),
-      4,
-      4,
-      StrideType(A.mrr.get_stride(), A.mcr.get_stride()));
-}
-
 ////////////////////////////////
 // Helper function for debugging
 #ifndef NDEBUG

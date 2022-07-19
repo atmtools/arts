@@ -129,9 +129,6 @@ using MatrixType =
     Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 using MatrixViewMap = Eigen::Map<MatrixType, 0, StrideType>;
 using ConstMatrixViewMap = Eigen::Map<const MatrixType, 0, StrideType>;
-using Matrix4x4Type = Eigen::Matrix<Numeric, 4, 4, Eigen::RowMajor>;
-using Matrix4x4ViewMap = Eigen::Map<Matrix4x4Type, 0, StrideType>;
-using ConstMatrix4x4ViewMap = Eigen::Map<const Matrix4x4Type, 0, StrideType>;
 
 /** The Joker class.
 
@@ -1151,8 +1148,6 @@ class ConstMatrixView {
   friend ConstMatrixViewMap MapToEigen(const ConstMatrixView&);
   friend MatrixViewMap MapToEigen(MatrixView&);
 
-  friend ConstMatrix4x4ViewMap MapToEigen4x4(const ConstMatrixView&);
-  friend Matrix4x4ViewMap MapToEigen4x4(MatrixView&);
   friend std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v);
 
  protected:
@@ -1417,8 +1412,6 @@ Numeric operator*(const ConstVectorView& a,
 // Converts constant matrix to constant eigen map
 ConstMatrixViewMap MapToEigen(const ConstMatrixView& A);
 // Converts constant vector to constant eigen row-view
-ConstMatrix4x4ViewMap MapToEigen4x4(const ConstMatrixView& A);
-// Converts constant vector to constant eigen row-view
 ConstMatrixViewMap MapToEigen(const ConstVectorView& A);
 // Converts constant vector to constant eigen row-view
 ConstMatrixViewMap MapToEigenRow(const ConstVectorView& A);
@@ -1426,8 +1419,6 @@ ConstMatrixViewMap MapToEigenRow(const ConstVectorView& A);
 ConstMatrixViewMap MapToEigenCol(const ConstVectorView& A);
 // Converts matrix to eigen map
 MatrixViewMap MapToEigen(MatrixView& A);
-// Converts vector to eigen map row-view
-Matrix4x4ViewMap MapToEigen4x4(MatrixView& A);
 // Converts vector to eigen map row-view
 MatrixViewMap MapToEigen(VectorView& A);
 // Converts vector to eigen map row-view
