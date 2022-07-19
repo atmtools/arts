@@ -103,6 +103,8 @@ void TransmissionMatrix::setZero() {
   std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Zero());
 }
 
+
+
 void TransmissionMatrix::mul(const TransmissionMatrix& A,
                              const TransmissionMatrix& B) {
   for (size_t i = 0; i < T4.size(); i++) T4[i].noalias() = A.T4[i] * B.T4[i];
@@ -134,6 +136,19 @@ Numeric TransmissionMatrix::operator()(const Index i,
   }
 }
 
+Numeric& TransmissionMatrix::operator()(const Index i, const Index j, const Index k) {
+  switch (stokes_dim) {
+    case 4:
+      return T4[i](j, k);
+    case 3:
+      return T3[i](j, k);
+    case 2:
+      return T2[i](j, k);
+    default:
+      return T1[i](j, k);
+  }
+}
+
 [[nodiscard]] Index TransmissionMatrix::Frequencies() const {
   switch (stokes_dim) {
     case 4:
@@ -146,6 +161,13 @@ Numeric TransmissionMatrix::operator()(const Index i,
       return Index(T1.size());
   }
 }
+
+TransmissionMatrix::TransmissionMatrix(const ConstMatrixView& mat): TransmissionMatrix(1, mat.nrows()){
+  ARTS_ASSERT(mat.nrows() == mat.ncols());
+  for (Index i = 0; i < stokes_dim; i++)
+    for (Index j = 0; j < stokes_dim; j++)
+      operator()(0, i, j) = mat(i,j);
+};
 
 TransmissionMatrix& TransmissionMatrix::operator+=(
     const LazyScale<TransmissionMatrix>& lstm) {
@@ -203,6 +225,19 @@ Eigen::Vector3d& RadiationVector::Vec3(size_t i) { return R3[i]; }
 Eigen::Vector2d& RadiationVector::Vec2(size_t i) { return R2[i]; }
 Eigen::Matrix<double, 1, 1>& RadiationVector::Vec1(size_t i) { return R1[i]; }
 
+Numeric& RadiationVector::operator()(const Index i, const Index j) {
+  switch (stokes_dim) {
+    case 4:
+      return R4[i][j];
+    case 3:
+      return R3[i][j];
+    case 2:
+      return R2[i][j];
+    default:
+      return R1[i][j];
+  }
+}
+
 void RadiationVector::leftMul(const TransmissionMatrix& T) {
   for (size_t i = 0; i < R4.size(); i++) R4[i] = T.Mat4(i) * R4[i];
   for (size_t i = 0; i < R3.size(); i++) R3[i] = T.Mat3(i) * R3[i];
@@ -225,6 +260,10 @@ void RadiationVector::SetZero(size_t i) {
       R1[i][0] = 0;
       break;
   }
+}
+
+void RadiationVector::SetZero() {
+  for (Index i=0; i<Frequencies(); i++) SetZero(i);
 }
 
 Eigen::VectorXd RadiationVector::Vec(size_t i) const {
@@ -444,6 +483,20 @@ RadiationVector& RadiationVector::operator=(const ConstMatrixView& M) {
   }
   return *this;
 }
+
+RadiationVector& RadiationVector::operator+=(const RadiationVector& rv) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i].noalias() += rv.R4[i];
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i].noalias() += rv.R3[i];
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i].noalias() += rv.R2[i];
+  for (size_t i = 0; i < R1.size(); i++)
+    R1[i].noalias() += rv.R1[i];
+
+  return *this;
+}
+
 
 const Numeric& RadiationVector::operator()(const Index i, const Index j) const {
   switch (stokes_dim) {

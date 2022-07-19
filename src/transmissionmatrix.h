@@ -98,12 +98,7 @@ struct TransmissionMatrix {
 
   operator Tensor3() const;
 
-  explicit TransmissionMatrix(const ConstMatrixView& mat): TransmissionMatrix(1, mat.nrows()){
-   ARTS_ASSERT(mat.nrows() == mat.ncols());
-   for (Index i = 0; i < stokes_dim; i++)
-    for (Index j = 0; j < stokes_dim; j++)
-      operator()(0, i, j) = mat(i,j);
-  };
+  explicit TransmissionMatrix(const ConstMatrixView& mat);
 
   /** Get Matrix at position
    * 
@@ -210,20 +205,7 @@ struct TransmissionMatrix {
    * @param[in] k Col in matrix
    * @return const Numeric& value
    */
-  Numeric& operator()(const Index i, const Index j, const Index k) {
-    switch (stokes_dim) {
-      case 4:
-        return T4[i](j, k);
-      case 3:
-        return T3[i](j, k);
-      case 2:
-        return T2[i](j, k);
-      default:
-        return T1[i](j, k);
-    }
-  }
-
-
+  Numeric& operator()(const Index i, const Index j, const Index k);
 
   /** Number of frequencies */
   [[nodiscard]] Index Frequencies() const;
@@ -445,18 +427,7 @@ struct RadiationVector {
    * @param[in] rv Addition by rv
    * @return RadiationVector& *this
    */
-  RadiationVector& operator+=(const RadiationVector& rv) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() += rv.R4[i];
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() += rv.R3[i];
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() += rv.R2[i];
-    for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() += rv.R1[i];
-
-    return *this;
-  }
+  RadiationVector& operator+=(const RadiationVector& rv);
 
   /** Multiply radiation vector from the left
    * 
@@ -470,9 +441,7 @@ struct RadiationVector {
    */
   void SetZero(size_t i);
 
-  void SetZero() {
-    for (Index i=0; i<Frequencies(); i++) SetZero(i);
-  }
+  void SetZero();
 
   /** Return Vector at position
    * 
@@ -667,26 +636,13 @@ struct RadiationVector {
    */
   const Numeric& operator()(const Index i, const Index j) const;
 
-
   /** Access operator
    *
    * @param[in] i Position in outer vector
    * @param[in] j Position in inner vector
    * @return Numeric&
    */
-  [[nodiscard]] Numeric& operator()(const Index i, const Index j) {
-    switch (stokes_dim) {
-      case 4:
-        return R4[i][j];
-      case 3:
-        return R3[i][j];
-      case 2:
-        return R2[i][j];
-      default:
-        return R1[i][j];
-    }
-  }
-
+  [[nodiscard]] Numeric& operator()(const Index i, const Index j);
   /** Convert *this to Matrix class
    * 
    * @return Matrix
