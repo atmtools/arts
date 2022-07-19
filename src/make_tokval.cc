@@ -33,6 +33,7 @@ int main() {
 #include "mc_antenna.h"
 #include "optproperties.h"
 #include "supergeneric.h"
+#include "star.h"
 #include "telsem.h"
 #include "tessem.h"
 #include "timer_struct.h"
