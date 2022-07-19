@@ -24,6 +24,7 @@
   \brief  Implementation of WSV aux functions.
 */
 
+#include "tokval_io.h"
 #include "wsv_aux.h"
 
 #include <iostream>
@@ -59,8 +60,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr) {
     if (wr.has_defaults()) {
       os << "Default: ";
       std::ostringstream ostr;
-      std::visit([&](auto&& val_ptr) { ostr << *val_ptr; },
-                 wr.default_value().value);
+      ostr << TokValPrinter{wr.default_value()};
       if (ostr.str().empty()) ostr << "[]";
       if (ostr.str().find('\n') != std::string::npos) os << "\n";
       os << ostr.str() << "\n";

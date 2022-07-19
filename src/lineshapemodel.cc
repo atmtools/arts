@@ -540,86 +540,76 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
   return line_mass;
 }
 
-std::ostream& LineShape::operator<<(std::ostream& os, const LineShape::Model& m)
-{
-  for(auto& data: m.Data())
-    os << data;
+namespace LineShape {
+std::ostream& operator<<(std::ostream& os, const Model& m) {
+  for (auto& data : m.Data()) os << data;
   return os;
 }
 
-std::istream& LineShape::operator>>(std::istream& is, Model& m)
-{
-  for(auto& data: m.Data())
-    is >> data;
+std::istream& operator>>(std::istream& is, Model& m) {
+  for (auto& data : m.Data()) is >> data;
   return is;
 }
 
-
-String LineShape::ModelShape2MetaData(const Model& m)
-{
+String ModelShape2MetaData(const Model& m) {
   String out = "";
   const auto& vars = enumtyps::VariableTypes;
-  
-  for (auto& var: vars) {
-    if (std::any_of(m.Data().cbegin(), m.Data().cend(),
-      [var](auto& x){return x.Get(var).type not_eq TemperatureModel::None;})) {
+
+  for (auto& var : vars) {
+    if (std::any_of(m.Data().cbegin(), m.Data().cend(), [var](auto& x) {
+          return x.Get(var).type not_eq TemperatureModel::None;
+        })) {
       out += String(toString(var)) + ' ';
-      for (auto& ssm: m.Data())
+      for (auto& ssm : m.Data())
         out += String(toString(ssm.Get(var).type)) + ' ';
     }
   }
-  
-  if(out.size())
-    out.pop_back();
-  
+
+  if (out.size()) out.pop_back();
+
   return out;
 }
 
+Model MetaData2ModelShape(const String& s) {
+  if (s.nelem() == 0) return Model();
 
-LineShape::Model LineShape::MetaData2ModelShape(const String& s)
-{
-  if (s.nelem() == 0)
-    return LineShape::Model();
-  
   const auto& names = enumstrs::VariableNames;
-  
+
   std::istringstream str(s);
   String part;
-  Variable var=Variable::ETA;
-  TemperatureModel tm=TemperatureModel::None;
-  Index i=-100000;
-  
+  Variable var = Variable::ETA;
+  TemperatureModel tm = TemperatureModel::None;
+  Index i = -100000;
+
   std::vector<SingleSpeciesModel> ssms(0);
   while (not str.eof()) {
     str >> part;
-    if(std::any_of(names.cbegin(), names.cend(),
-      [part](auto x){return part == x;})) {
-      i=-1;
+    if (std::any_of(names.cbegin(), names.cend(), [part](auto x) {
+          return part == x;
+        })) {
+      i = -1;
       var = toVariable(part);
-    }
-    else {
+    } else {
       i++;
       tm = toTemperatureModel(part);
     }
-    
-    if (i < 0)
-      continue;
+
+    if (i < 0) continue;
     if (i < Index(ssms.size()))
       goto add_var;
     else {
       ssms.emplace_back();
-      add_var:
+    add_var:
       auto mp = ssms[i].Get(var);
       mp.type = tm;
       ssms[i].Set(var, mp);
     }
   }
-  
+
   return Model(ssms);
 }
 
-String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, const Numeric T0)
-{
+String modelparameters2metadata(const ModelParameters mp, const Numeric T0) {
   std::ostringstream os;
   switch (mp.type) {
     case TemperatureModel::None:
@@ -632,64 +622,71 @@ String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, 
       os << mp.X0 << " * (" << T0 << "/T)^" << mp.X1;
       break;
     case TemperatureModel::T2:
-      os << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " / (1 + " << mp.X2 << " * log(T/" << T0 << "))";
+      os << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " / (1 + " << mp.X2
+         << " * log(T/" << T0 << "))";
       break;
     case TemperatureModel::T3:
       os << mp.X0 << " + " << mp.X1 << " * (" << T0 << " - T)";
       break;
     case TemperatureModel::T4:
-      os << "(" << mp.X0 << " + " << mp.X1 << " * (" << T0 << "/T - 1)) * (" << T0 << "/T)^" << mp.X2;
+      os << "(" << mp.X0 << " + " << mp.X1 << " * (" << T0 << "/T - 1)) * ("
+         << T0 << "/T)^" << mp.X2;
       break;
     case TemperatureModel::T5:
       os << mp.X0 << " * (" << T0 << "/T)^(0.25 + 1.5 * " << mp.X1 << ")";
       break;
     case TemperatureModel::LM_AER:
-      os << '(' << "Linear interpolation to y(x) from x-ref = [200, 250, 296, 340] and y-ref = [" << mp.X0 << ", " << mp.X1 << ", " << mp.X2 << ", " << mp.X3 << ']' << ')';
+      os << '('
+         << "Linear interpolation to y(x) from x-ref = [200, 250, 296, 340] and y-ref = ["
+         << mp.X0 << ", " << mp.X1 << ", " << mp.X2 << ", " << mp.X3 << ']'
+         << ')';
       break;
     case TemperatureModel::DPL:
-      os << '(' << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " + "  << mp.X2 << " * (" << T0 << "/T)^" << mp.X3 << ')';
+      os << '(' << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " + " << mp.X2
+         << " * (" << T0 << "/T)^" << mp.X3 << ')';
       break;
     case TemperatureModel::POLY:
-      os << '(' << mp.X0 << " + " << mp.X1 << " * T  + " << mp.X2 << " * T * T + "  << mp.X3 << " * T * T * T)";
-    case TemperatureModel::FINAL: break;
+      os << '(' << mp.X0 << " + " << mp.X1 << " * T  + " << mp.X2
+         << " * T * T + " << mp.X3 << " * T * T * T)";
+    case TemperatureModel::FINAL:
+      break;
   }
-  
+
   return os.str();
 }
 
-ArrayOfString LineShape::ModelMetaDataArray(const LineShape::Model& m,
-                                            const bool self,
-                                            const ArrayOfSpecies& sts,
-                                            const Numeric T0)
-{
+ArrayOfString ModelMetaDataArray(const LineShape::Model& m,
+                                 const bool self,
+                                 const ArrayOfSpecies& sts,
+                                 const Numeric T0) {
   const auto& vars = enumtyps::VariableTypes;
   ArrayOfString as(0);
-  
-  for (Index i=0; i<Index(Variable::FINAL); i++) {
+
+  for (Index i = 0; i < Index(Variable::FINAL); i++) {
     Variable var = vars[i];
-    
-    if (std::any_of(m.Data().cbegin(), m.Data().cend(),
-      [var](auto& x){return x.Get(var).type not_eq TemperatureModel::None;})) {
-      
-    std::ostringstream os;
-    os << var << " ~ ";
-    for (Index j=0; j<sts.nelem(); j++) {
-      if (j == 0 and self)
-        os << "VMR(" << self_broadening << ") * " << modelparameters2metadata(m.Data().front().Get(var), T0);
-      else 
-        os << "VMR(" << toShortName(sts[j]) << ") * " << modelparameters2metadata(m.Data()[j].Get(var), T0);
-      
-      if (sts[j] not_eq sts.back()) os << " + ";
-    }
-    as.push_back(os.str());
+
+    if (std::any_of(m.Data().cbegin(), m.Data().cend(), [var](auto& x) {
+          return x.Get(var).type not_eq TemperatureModel::None;
+        })) {
+      std::ostringstream os;
+      os << var << " ~ ";
+      for (Index j = 0; j < sts.nelem(); j++) {
+        if (j == 0 and self)
+          os << "VMR(" << self_broadening << ") * "
+             << modelparameters2metadata(m.Data().front().Get(var), T0);
+        else
+          os << "VMR(" << toShortName(sts[j]) << ") * "
+             << modelparameters2metadata(m.Data()[j].Get(var), T0);
+
+        if (sts[j] not_eq sts.back()) os << " + ";
+      }
+      as.push_back(os.str());
     }
   }
-  
+
   return as;
 }
 
-
-namespace LineShape {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
 Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
@@ -1435,4 +1432,4 @@ Index self_listed(const QuantumIdentifier& qid,
   return false;
 }
 } // namespace LegacyPressureBroadeningData
-} // namespace LineShape
+}  // namespace LineShape

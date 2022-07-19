@@ -11,6 +11,7 @@
 #include "array.h"
 #include "debug.h"
 #include "mystring.h"
+#include "tokval_io.h"
 
 /** Implements pybind11 bindings generation for Arts workspace
  *
@@ -102,12 +103,11 @@ std::map<std::string, Group> groups() {
     auto& val = desc[x.Name()];
     val = x.Description();
     if (x.has_defaults())
-      val += var_string("\nDefault: ",
-        std::visit([](auto&& tokval) {
-          std::string out = var_string(*tokval);
-          if (out.length() == 0) out += "[]";
-          return out;
-      }, x.default_value().value));
+      val += var_string("\nDefault: ", [](auto&& tokval) {
+        std::string out = var_string(TokValPrinter{tokval});
+        if (out.length() == 0) out += "[]";
+        return out;
+      }(x.default_value()));
   }
   std::map<std::string, std::size_t> pos;
   for (auto& x : Workspace::WsvMap) pos[x.first] = x.second;

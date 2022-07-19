@@ -40,6 +40,7 @@
 #include "libmicrohttpd/platform.h"
 #include "messages.h"
 #include "methods.h"
+#include "tokval_io.h"
 #include "workspace_ng.h"
 
 #define DOCSERVER_NAME "ARTS built-in documentation server"
@@ -1011,9 +1012,7 @@ void Docserver::doc_variable(const string& vname) {
     if (Workspace::wsv_data[it -> second].has_defaults()) {
       get_os() << "<p><b>Default: </b>";
       std::ostringstream temp_os;
-      std::visit([&](auto&& val_ptr) {
-           temp_os << *val_ptr;
-        }, Workspace::wsv_data[it -> second].default_value().value);
+      temp_os << TokValPrinter(Workspace::wsv_data[it -> second].default_value());
       if (temp_os.str().empty()) temp_os << "[]";
       get_os() << temp_os.str() << "\n";
     }
