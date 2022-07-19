@@ -60,14 +60,7 @@ struct TransmissionMatrix {
    * @param[in] nf Number of frequencies
    * @param[in] stokes Stokes dimension
    */
-  TransmissionMatrix(Index nf = 0, Index stokes = 1)
-      : stokes_dim(stokes),
-        T4(stokes_dim == 4 ? nf : 0, Eigen::Matrix4d::Identity()),
-        T3(stokes_dim == 3 ? nf : 0, Eigen::Matrix3d::Identity()),
-        T2(stokes_dim == 2 ? nf : 0, Eigen::Matrix2d::Identity()),
-        T1(stokes_dim == 1 ? nf : 0, Eigen::Matrix<double, 1, 1>::Identity()) {
-    ARTS_ASSERT(stokes_dim < 5 and stokes_dim > 0);
-  }
+  TransmissionMatrix(Index nf = 0, Index stokes = 1);
 
   /** Construct a new Transmission Matrix object
    * 
@@ -110,30 +103,28 @@ struct TransmissionMatrix {
    * @param[in] i Position
    * @return const Eigen::Matrix4d& Matrix
    */
-  [[nodiscard]] const Eigen::Matrix4d& Mat4(size_t i) const { return T4[i]; }
+  [[nodiscard]] const Eigen::Matrix4d& Mat4(size_t i) const;
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return const Eigen::Matrix3d& Matrix
    */
-  [[nodiscard]] const Eigen::Matrix3d& Mat3(size_t i) const { return T3[i]; }
+  [[nodiscard]] const Eigen::Matrix3d& Mat3(size_t i) const;
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return const Eigen::Matrix2d& Matrix
    */
-  [[nodiscard]] const Eigen::Matrix2d& Mat2(size_t i) const { return T2[i]; }
+  [[nodiscard]] const Eigen::Matrix2d& Mat2(size_t i) const;
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return const Eigen::Matrix<double, 1, 1>& Matrix
    */
-  [[nodiscard]] const Eigen::Matrix<double, 1, 1>& Mat1(size_t i) const {
-    return T1[i];
-  }
+  [[nodiscard]] const Eigen::Matrix<double, 1, 1>& Mat1(size_t i) const;
 
   /** Get Matrix at position by copy
    * 
@@ -147,28 +138,28 @@ struct TransmissionMatrix {
    * @param [in]i Position
    * @return Eigen::Matrix4d& Matrix
    */
-  Eigen::Matrix4d& Mat4(size_t i) { return T4[i]; }
+  Eigen::Matrix4d& Mat4(size_t i);
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return Eigen::Matrix3d& Matrix
    */
-  Eigen::Matrix3d& Mat3(size_t i) { return T3[i]; }
+  Eigen::Matrix3d& Mat3(size_t i);
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return Eigen::Matrix42& Matrix
    */
-  Eigen::Matrix2d& Mat2(size_t i) { return T2[i]; }
+  Eigen::Matrix2d& Mat2(size_t i);
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return Eigen::Matrix<double, 1, 1>& Matrix
    */
-  Eigen::Matrix<double, 1, 1>& Mat1(size_t i) { return T1[i]; }
+  Eigen::Matrix<double, 1, 1>& Mat1(size_t i);
 
   /** Set to identity matrix */
   void setIdentity();
@@ -227,11 +218,7 @@ struct TransmissionMatrix {
    * @param[in] lstm Lazy value
    * @return TransmissionMatrix& *this
    */
-  TransmissionMatrix& operator=(const LazyScale<TransmissionMatrix>& lstm) {
-    operator=(lstm.bas);
-    operator*=(lstm.scale);
-    return *this;
-  }
+  TransmissionMatrix& operator=(const LazyScale<TransmissionMatrix>& lstm);
 
   /** Output operator */
   friend std::ostream& operator<<(std::ostream& os,
@@ -396,14 +383,7 @@ struct RadiationVector {
    * @param[in] nf Number of frequencies
    * @param[in] stokes Stokes dimension
    */
-  RadiationVector(Index nf = 0, Index stokes = 1)
-      : stokes_dim(stokes),
-        R4(stokes_dim == 4 ? nf : 0, Eigen::Vector4d::Zero()),
-        R3(stokes_dim == 3 ? nf : 0, Eigen::Vector3d::Zero()),
-        R2(stokes_dim == 2 ? nf : 0, Eigen::Vector2d::Zero()),
-        R1(stokes_dim == 1 ? nf : 0, Eigen::Matrix<double, 1, 1>::Zero()) {
-    ARTS_ASSERT(stokes_dim < 5 and stokes_dim > 0);
-  }
+  RadiationVector(Index nf = 0, Index stokes = 1);
 
   /** Construct a new Radiation Vector object
    * 
@@ -448,30 +428,28 @@ struct RadiationVector {
    * @param[in] i position
    * @return const Eigen::Vector4d& Vector
    */
-  [[nodiscard]] const Eigen::Vector4d& Vec4(size_t i) const { return R4[i]; }
+  [[nodiscard]] const Eigen::Vector4d& Vec4(size_t i) const;
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return const Eigen::Vector3d& Vector
    */
-  [[nodiscard]] const Eigen::Vector3d& Vec3(size_t i) const { return R3[i]; }
+  [[nodiscard]] const Eigen::Vector3d& Vec3(size_t i) const;
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return const Eigen::Vector2d& Vector
    */
-  [[nodiscard]] const Eigen::Vector2d& Vec2(size_t i) const { return R2[i]; }
+  [[nodiscard]] const Eigen::Vector2d& Vec2(size_t i) const;
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return const Eigen::Matrix<double, 1, 1>& Vector
    */
-  [[nodiscard]] const Eigen::Matrix<double, 1, 1>& Vec1(size_t i) const {
-    return R1[i];
-  }
+  [[nodiscard]] const Eigen::Matrix<double, 1, 1>& Vec1(size_t i) const;
 
   /** Return Vector at position by copy
    * 
@@ -485,28 +463,28 @@ struct RadiationVector {
    * @param[in] i position
    * @return Eigen::Vector4d& Vector
    */
-  Eigen::Vector4d& Vec4(size_t i) { return R4[i]; }
+  Eigen::Vector4d& Vec4(size_t i);
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return Eigen::Vector3d& Vector
    */
-  Eigen::Vector3d& Vec3(size_t i) { return R3[i]; }
+  Eigen::Vector3d& Vec3(size_t i);
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return Eigen::Vector2d& Vector
    */
-  Eigen::Vector2d& Vec2(size_t i) { return R2[i]; }
+  Eigen::Vector2d& Vec2(size_t i);
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return Eigen::Matrix<double, 1, 1>& Vector
    */
-  Eigen::Matrix<double, 1, 1>& Vec1(size_t i) { return R1[i]; }
+  Eigen::Matrix<double, 1, 1>& Vec1(size_t i);
 
   /** Remove the average of two other RadiationVector from *this
    * 
