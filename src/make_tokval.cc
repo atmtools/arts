@@ -120,7 +120,7 @@ file_cc << R"--(// auto-generated tokval implementation
   file_cc << '\n';
 
   for (auto& group : global_data::wsv_groups) {
-    file_cc << "[[nodiscard]] bool TokVal::holds" << group << "() const {return std::holds_alternative<std::unique_ptr<"<<group<<">>(*tokval_type(ptr));}\n";
+    file_cc << "bool TokVal::holds" << group << "() const {return std::holds_alternative<std::unique_ptr<"<<group<<">>(*tokval_type(ptr));}\n";
   }
 
   file_cc << '\n';
