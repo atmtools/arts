@@ -391,7 +391,7 @@ add_library (methods STATIC
         tokval.cc
         )
 
-target_link_libraries(methods PUBLIC species)
+target_link_libraries(methods PUBLIC predef species)
 
 ########### next target ###############
 

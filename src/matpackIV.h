@@ -473,6 +473,9 @@ class Tensor4 : public Tensor4View {
 
   // Destructor:
   virtual ~Tensor4();
+  
+  // Returns data as a Vector
+  Vector flatten() && ARTS_NOEXCEPT;
 
   /*! Reduce a Tensor4 to a Vector and leave this in an empty state */
   template <std::size_t dim0>

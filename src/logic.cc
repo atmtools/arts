@@ -32,9 +32,12 @@
 */
 
 #include "logic.h"
+
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <stdexcept>
+
 #include "sorting.h"
 
 // For checking, if a Numeric equal zero we have to take into account the
@@ -351,10 +354,7 @@ bool is_diagonal(ConstMatrixView A) {
 bool is_same_within_epsilon(const Numeric& a,
                             const Numeric& b,
                             const Numeric& epsilon) {
-  if (abs(a - b) <= epsilon * max(abs(a), abs(b)))
-    return true;
-  else
-    return false;
+  return abs(a - b) <= epsilon * max(abs(a), abs(b));
 }
 
 //! Check if the given longitude grid is cyclic.
@@ -369,4 +369,19 @@ bool is_same_within_epsilon(const Numeric& a,
 bool is_lon_cyclic(ConstVectorView grid, const Numeric& epsilon) {
   return is_same_within_epsilon(
       grid[grid.nelem() - 1] - grid[0], 360., epsilon);
+}
+
+bool is_regularly_increasing_within_epsilon(ConstVectorView x,
+                                            const Numeric epsilon) {
+  if (x.size() < 2) return true;
+  const Numeric dx0 = x[1] - x[0];
+  if (dx0 <= 0) return false;
+
+  for (Index i = 2; i < x.size(); i++) {
+    if (Numeric dxi = x[i] - x[i - 1];
+        dxi <= 0 or std::abs(dxi - dx0) >= epsilon) {
+      return false;
+    }
+  }
+  return true;
 }

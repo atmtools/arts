@@ -36,6 +36,7 @@
 #include "matpack.h"
 #include "matpackI.h"
 #include "predefined/predef.h"
+#include "predefined/predef_data.h"
 #include "propagationmatrix.h"
 #include "quantum_numbers.h"
 #include "species.h"
@@ -63,8 +64,30 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
                        const Vector& f [[maybe_unused]],
                        const Numeric& p [[maybe_unused]],
                        const Numeric& t [[maybe_unused]],
-                       const VMRS& vmr [[maybe_unused]]) {
+                       const VMRS& vmr [[maybe_unused]],
+                       const PredefinedModelData& predefined_model_data
+                       [[maybe_unused]]) {
   switch (Species::find_species_index(model)) {
+    case find_species_index(Species::Species::Water, "ForeignContHitranMTCKD"):
+      if constexpr (not check_exist)
+        Hitran::MTCKD::compute_foreign_h2o(
+            pm,
+            f,
+            p,
+            t,
+            vmr.H2O,
+            predefined_model_data.get<Hitran::MTCKD::WaterData>());
+      return true;
+    case find_species_index(Species::Species::Water, "SelfContHitranMTCKD"):
+      if constexpr (not check_exist)
+        Hitran::MTCKD::compute_self_h2o(
+            pm,
+            f,
+            p,
+            t,
+            vmr.H2O,
+            predefined_model_data.get<Hitran::MTCKD::WaterData>());
+      return true;
     case find_species_index(Species::Species::Oxygen, "MPM2020"):
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);
       return true;
@@ -122,7 +145,9 @@ bool compute_vmr_deriv(PropagationMatrix& dpm,
                        const Numeric& p,
                        const Numeric& t,
                        VMRS vmr,
-                       const Species::Species spec) {
+                       const Species::Species spec,
+                       const PredefinedModelData& predefined_model_data
+                       [[maybe_unused]]) {
   Numeric dvmr = 0;
 
   switch (spec) {
@@ -140,7 +165,7 @@ bool compute_vmr_deriv(PropagationMatrix& dpm,
 
   if constexpr (not special) {
     dpm.SetZero();
-    compute_selection<false>(dpm, model, f, p, t, vmr);
+    compute_selection<false>(dpm, model, f, p, t, vmr, predefined_model_data);
     dpm -= pm;
     dpm /= dvmr;
   } else {
@@ -148,7 +173,8 @@ bool compute_vmr_deriv(PropagationMatrix& dpm,
       dpm = pm;
       dpm /= dvmr;
     } else {
-      compute_vmr_deriv<false>(dpm, pm, model, f, p, t, vmr, spec);
+      compute_vmr_deriv<false>(
+          dpm, pm, model, f, p, t, vmr, spec, predefined_model_data);
     }
   }
   return true;
@@ -161,9 +187,15 @@ void compute(PropagationMatrix& propmat_clearsky,
              const Numeric& rtp_pressure,
              const Numeric& rtp_temperature,
              const VMRS& vmr,
-             const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  if (not compute_selection<true>(
-          propmat_clearsky, model, f_grid, rtp_pressure, rtp_temperature, vmr))
+             const ArrayOfRetrievalQuantity& jacobian_quantities,
+             const PredefinedModelData& predefined_model_data) {
+  if (not compute_selection<true>(propmat_clearsky,
+                                  model,
+                                  f_grid,
+                                  rtp_pressure,
+                                  rtp_temperature,
+                                  vmr,
+                                  predefined_model_data))
     return;
 
   const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
@@ -184,13 +216,16 @@ void compute(PropagationMatrix& propmat_clearsky,
                   });
 
   if (do_freq_jac or do_temp_jac or do_vmrs_jac) {
-    //! Set simple propagation matrices
-    PropagationMatrix pm(
-        f_grid.nelem());  // NOTE: Change if ever stokes_dim not_eq 1
-    PropagationMatrix dpm(
-        f_grid.nelem());  // NOTE: Change if ever stokes_dim not_eq 1
-    compute_selection<false>(
-        pm, model, f_grid, rtp_pressure, rtp_temperature, vmr);
+    //! Set simple propagation matrices (NOTE: stokes_dim == 1, if any model cahnges that, fix this!)
+    PropagationMatrix pm(f_grid.nelem());
+    PropagationMatrix dpm(f_grid.nelem());
+    compute_selection<false>(pm,
+                             model,
+                             f_grid,
+                             rtp_pressure,
+                             rtp_temperature,
+                             vmr,
+                             predefined_model_data);
 
     // Add absorption to the forward parameter
     propmat_clearsky.Kjj() += pm.Kjj();
@@ -200,8 +235,13 @@ void compute(PropagationMatrix& propmat_clearsky,
       ARTS_ASSERT(d not_eq 0)
 
       dpm.SetZero();
-      compute_selection<false>(
-          dpm, model, f_grid, rtp_pressure, rtp_temperature + d, vmr);
+      compute_selection<false>(dpm,
+                               model,
+                               f_grid,
+                               rtp_pressure,
+                               rtp_temperature + d,
+                               vmr,
+                               predefined_model_data);
       dpm -= pm;
       dpm /= d;
       for (Index iq = 0; iq < dpropmat_clearsky_dx.nelem(); iq++) {
@@ -219,8 +259,13 @@ void compute(PropagationMatrix& propmat_clearsky,
       f_grid_d += d;
 
       dpm.SetZero();
-      compute_selection<false>(
-          dpm, model, f_grid_d, rtp_pressure, rtp_temperature, vmr);
+      compute_selection<false>(dpm,
+                               model,
+                               f_grid_d,
+                               rtp_pressure,
+                               rtp_temperature,
+                               vmr,
+                               predefined_model_data);
       dpm -= pm;
       dpm /= d;
       for (Index iq = 0; iq < dpropmat_clearsky_dx.nelem(); iq++) {
@@ -240,7 +285,8 @@ void compute(PropagationMatrix& propmat_clearsky,
                                      rtp_pressure,
                                      rtp_temperature,
                                      vmr,
-                                     deriv.QuantumIdentity().Species()))
+                                     deriv.QuantumIdentity().Species(),
+                                     predefined_model_data))
           dpropmat_clearsky_dx[iq].Kjj() += dpm.Kjj();
       } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR and
                  std::any_of(deriv.Target().species_array_id.begin(),
@@ -256,13 +302,19 @@ void compute(PropagationMatrix& propmat_clearsky,
                 rtp_pressure,
                 rtp_temperature,
                 vmr,
-                deriv.Target().species_array_id.front().Spec()))
+                deriv.Target().species_array_id.front().Spec(),
+                predefined_model_data))
           dpropmat_clearsky_dx[iq].Kjj() += dpm.Kjj();
       }
     }
   } else {
-    compute_selection<false>(
-        propmat_clearsky, model, f_grid, rtp_pressure, rtp_temperature, vmr);
+    compute_selection<false>(propmat_clearsky,
+                             model,
+                             f_grid,
+                             rtp_pressure,
+                             rtp_temperature,
+                             vmr,
+                             predefined_model_data);
   }
 }
 }  // namespace Absorption::PredefinedModel

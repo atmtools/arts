@@ -21,6 +21,7 @@ ws.p_grid = np.array([1000000000000000000000000000000000000000000000000000000])
 ws.lat_grid = np.array([10000000000000000000000000000000000000000000000000000])
 ws.lon_grid = np.array([10000000000000000000000000000000000000000000000000000])
 ws.Touch(ws.select_abs_species)
+ws.Touch(ws.predefined_model_data)
 ##################### /SILLY ARTS DEFINITIONS
 
 f = np.linspace(1e-3, 20_001, 101)

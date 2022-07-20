@@ -34,6 +34,7 @@ void py_xsec(py::module_& m);
 void py_nlte(py::module_& m);
 void py_constants(py::module_& m);
 void py_physics(py::module_& m);
+void py_predefined(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -111,13 +112,17 @@ PYBIND11_MODULE(arts, m) {
   py_jac(m);
   py_xsec(m);
   py_nlte(m);
-  py_constants(m);
-  py_physics(m);
+  py_predefined(m);
 
   py_agenda(m);
-  py_global(m);
 
   // Must be last, it contains automatic conversion operations
   py_workspace(m, ws, wsv);
+
+  // Extras calling pure internal functions
+  py_constants(m);
+  py_physics(m);
+  py_global(m);
+  py_physics(m);
 }
 }  // namespace Python

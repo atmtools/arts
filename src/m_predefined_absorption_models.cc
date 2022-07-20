@@ -24,13 +24,56 @@
  * @brief  Full absorption models of various kinds
  */
 
+#include <algorithm>
+
 #include "debug.h"
+#include "logic.h"
+#include "predefined/predef_data.h"
 #include "predefined_absorption_models.h"
+
+void predefined_model_dataInit(PredefinedModelData& predefined_model_data,
+                               const Verbosity&) {
+  predefined_model_data = PredefinedModelData{};
+}
+
+void predefined_model_dataSetHitranMTCKD(
+    PredefinedModelData& predefined_model_data,
+    const Vector& self_absco_ref,
+    const Vector& for_absco_ref,
+    const Vector& wavenumbers,
+    const Vector& self_texp,
+    const Verbosity&) {
+  const auto sz = self_absco_ref.size();
+
+  ARTS_USER_ERROR_IF(
+      sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or
+          sz not_eq self_texp.size(),
+      "Mismatching size, all vector inputs must be the same length")
+  ARTS_USER_ERROR_IF(sz < 4, "It makes no sense to have input shorter than 4")
+  ARTS_USER_ERROR_IF(not is_regularly_increasing_within_epsilon(wavenumbers),
+                     "The wavenumbers must be increasing in a regular manner")
+
+  Absorption::PredefinedModel::Hitran::MTCKD::WaterData x;
+  x.self_absco_ref.resize(sz);
+  x.for_absco_ref.resize(sz);
+  x.wavenumbers.resize(sz);
+  x.self_texp.resize(sz);
+
+  std::copy(
+      self_absco_ref.begin(), self_absco_ref.end(), x.self_absco_ref.begin());
+  std::copy(
+      for_absco_ref.begin(), for_absco_ref.end(), x.for_absco_ref.begin());
+  std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
+  std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
+
+  predefined_model_data.set(std::move(x));
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddPredefined(
     PropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    const PredefinedModelData& predefined_model_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -72,7 +115,8 @@ void propmat_clearskyAddPredefined(
                                            rtp_pressure,
                                            rtp_temperature,
                                            vmr,
-                                           jacobian_quantities);
+                                           jacobian_quantities,
+                                           predefined_model_data);
     }
   }
 }

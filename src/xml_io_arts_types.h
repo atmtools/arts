@@ -57,6 +57,7 @@
 #include "template_partfun.h"
 #include "ppath.h"
 #include "propagationmatrix.h"
+#include <predefined/predef_data.h>
 #include "telsem.h"
 #include "tessem.h"
 #include "transmissionmatrix.h"
@@ -107,6 +108,7 @@ TMPL_XML_READ_WRITE_STREAM(SpeciesIsotopologueRatios)
 TMPL_XML_READ_WRITE_STREAM(MapOfErrorCorrectedSuddenData)
 TMPL_XML_READ_WRITE_STREAM(MCAntenna)
 TMPL_XML_READ_WRITE_STREAM(Ppath)
+TMPL_XML_READ_WRITE_STREAM(PredefinedModelData)
 TMPL_XML_READ_WRITE_STREAM(QuantumIdentifier)
 TMPL_XML_READ_WRITE_STREAM(RetrievalQuantity)
 TMPL_XML_READ_WRITE_STREAM(ScatteringMetaData)

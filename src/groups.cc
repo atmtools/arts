@@ -303,6 +303,9 @@ relaxation matrix are set)--");
 
   wsv_groups.emplace_back("Ppath", "Describes a propagation path");
 
+  wsv_groups.emplace_back("PredefinedModelData",
+                          R"--(Contains any data required for a predefined model)--");
+
   wsv_groups.emplace_back("PropagationMatrix",
                           R"--(The propagation matrix data is help by this type
 

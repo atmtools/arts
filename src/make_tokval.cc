@@ -39,6 +39,8 @@ int main() {
 #include "transmissionmatrix.h"
 #include "xsec_fit.h"
 
+#include <predefined/predef_data.h>
+
 template <class base> class Array;
 class Agenda;
 using ArrayOfAgenda = Array<Agenda>;

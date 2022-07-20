@@ -27,6 +27,8 @@ constexpr bool is_modern_predefined(const IsotopeRecord& isot) {
       find_species_index(Species::Oxygen, "MPM2020"),
       find_species_index(Species::Water, "ForeignContCKDMT350"),
       find_species_index(Species::Water, "SelfContCKDMT350"),
+      find_species_index(Species::Water, "ForeignContHitranMTCKD"),
+      find_species_index(Species::Water, "SelfContHitranMTCKD"),
   };
   const Index self = find_species_index(isot);
 
