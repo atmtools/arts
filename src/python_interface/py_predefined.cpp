@@ -34,11 +34,12 @@ void internalMTCKD(
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            auto* out = new Absorption::PredefinedModel::Hitran::MTCKD::WaterData{};
-            out ->self_absco_ref = t[0].cast<std::vector<double>>();
-            out ->for_absco_ref = t[1].cast<std::vector<double>>();
-            out ->wavenumbers = t[2].cast<std::vector<double>>();
-            out ->self_texp = t[3].cast<std::vector<double>>();
+            auto* out =
+                new Absorption::PredefinedModel::Hitran::MTCKD::WaterData{};
+            out->self_absco_ref = t[0].cast<std::vector<double>>();
+            out->for_absco_ref = t[1].cast<std::vector<double>>();
+            out->wavenumbers = t[2].cast<std::vector<double>>();
+            out->self_texp = t[3].cast<std::vector<double>>();
             return out;
           }));
 
@@ -200,19 +201,20 @@ void py_predefined(py::module_& m) {
               Absorption::PredefinedModel::Hitran::MTCKD::WaterData d) {
              x.set(std::move(d));
            })
-      .def("get_hitran_mtckd_water_data", [](PredefinedModelData& x) {
-        return x.get<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>();
-      })
+      .def("get_hitran_mtckd_water_data",
+           [](PredefinedModelData& x) {
+             return x
+                 .get<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>();
+           })
       .def(py::pickle(
-          [](const PredefinedModelData& t) {
-            return py::make_tuple(t.data);
-          },
+          [](const PredefinedModelData& t) { return py::make_tuple(t.data); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             auto* out = new PredefinedModelData{};
-            out -> data = t[0].cast<PredefinedModelData::DataMap>();
+            out->data = t[0].cast<PredefinedModelData::DataMap>();
             return out;
-          }));
+          }))
+      .PythonInterfaceWorkspaceDocumentation(PredefinedModelData);
 
   auto predef = m.def_submodule("predef");
   predef.doc() = "Contains predefined absorption models";
