@@ -60,8 +60,6 @@ void diagonalize(ComplexMatrixView P,
 // Exponential of a Matrix
 void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q = 10);
 void matrix_exp2(MatrixView F, ConstMatrixView A);
-void matrix_exp_4x4(MatrixView F, ConstMatrixView A, const Index& q = 10);
-void matrix_exp2_4x4(MatrixView F, ConstMatrixView A);
 
 // Exponential of a Matrix and its partial derivatives.
 // Includes a specialized function for speedier calculations
@@ -72,36 +70,6 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(MatrixView F,
                                                   ConstTensor3View dA_upp,
                                                   ConstTensor3View dA_low,
                                                   const Index& q = 10);
-
-void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(
-    MatrixView F, ConstMatrixView A);
-
-void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(
-    MatrixView F,
-    Tensor3View dF_upp,
-    Tensor3View dF_low,
-    ConstMatrixView A,
-    ConstTensor3View dA_upp,
-    ConstTensor3View dA_low);
-
-void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(
-    MatrixView F, ConstMatrixView A);
-
-void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(
-    MatrixView F,
-    Tensor3View dF_upp,
-    Tensor3View dF_low,
-    ConstMatrixView A,
-    ConstTensor3View dA_upp,
-    ConstTensor3View dA_low);
-
-void propmat4x4_to_transmat4x4(MatrixView F,
-                               Tensor3View dF_upp,
-                               Tensor3View dF_low,
-                               ConstMatrixView A,
-                               ConstTensor3View dA_upp,
-                               ConstTensor3View dA_low,
-                               const Index& q = 10);
 
 void matrix_exp_dmatrix_exp(MatrixView F,
                             Tensor3View dF,
@@ -138,13 +106,5 @@ void linreg(Vector& p, ConstVectorView x, ConstVectorView y);
  * @return Squared residual or 0
  */
 Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual=true) noexcept;
-
-
-/** Return the Eigen decomposition of the eigen matrix
- * 
- * @param[in] A a matrix to eigen value decompose
- * @return Object with eigenvalues and eigenvectors computed
- */
-Eigen::ComplexEigenSolver<Eigen::MatrixXcd> eig(const Eigen::Ref<Eigen::MatrixXcd> A);
 
 #endif  // linalg_h

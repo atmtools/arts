@@ -105,7 +105,6 @@ add_executable (make_auto_md_h
         parameters.cc
         workspace.cc
         workspace_ng.cc
-        tokval.cc
         wsv_aux.cc
         )
 
@@ -131,7 +130,6 @@ add_executable (make_auto_md_cc
         parameters.cc
         workspace.cc
         workspace_ng.cc
-        tokval.cc
         wsv_aux.cc
         )
 
@@ -282,7 +280,6 @@ add_library (artscore STATIC
   tessem.cc
   timings.cc
   tmatrix.cc
-  tokval.cc
   tokval_io.cc
   transmissionmatrix.cc
   wigner_functions.cc
