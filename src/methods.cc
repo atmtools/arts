@@ -12926,6 +12926,9 @@ Valid speed-up logic other than "None" includes:
         transition between dense-to-sparse grid calculations are given by *lines_sparse_lim*.
 
 Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
+
+By default we discourage negative values, which are common when using one of the line mixing
+approximations.   Change the value of no_negatives to 0 to allow these negative absorptions.
 )--"
       ),
       AUTHORS("Richard Larsson"),
@@ -12951,7 +12954,7 @@ Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
          "lbl_checked"),
       GIN("lines_sparse_df", "lines_sparse_lim", "lines_speedup_option", "no_negatives"),
       GIN_TYPE("Numeric", "Numeric", "String", "Index"),
-      GIN_DEFAULT("0", "0", "None", "0"),
+      GIN_DEFAULT("0", "0", "None", "1"),
       GIN_DESC(
         "The grid sparse separation",
         "The dense-to-sparse limit",
