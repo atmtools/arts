@@ -112,6 +112,7 @@ PYBIND11_MODULE(arts, m) {
   py_jac(m);
   py_xsec(m);
   py_nlte(m);
+  py_predefined(m);
 
   py_agenda(m);
 
@@ -123,6 +124,5 @@ PYBIND11_MODULE(arts, m) {
   py_physics(m);
   py_global(m);
   py_physics(m);
-  py_predefined(m);
 }
 }  // namespace Python
