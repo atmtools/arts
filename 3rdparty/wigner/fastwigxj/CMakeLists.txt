@@ -194,3 +194,8 @@ add_custom_target(fastwigxj_generate_tables
 )
 
 add_dependencies(fastwigxj fastwigxj_generate_tables)
+
+if (IPO_SUPPORTED)
+  set_property(TARGET fastwigxj PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET hashing_fastwigxj PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()

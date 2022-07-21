@@ -93,6 +93,10 @@ if (WIGXJPF_CPP_ERROR)
     target_link_libraries(wigxjpf PRIVATE wigxjpf_cpp_throw)
 
     target_compile_definitions(wigxjpf PUBLIC -DCPP_WIGXJPF_ERROR_HANDLING)
+
+    if (IPO_SUPPORTED)
+        set_property(TARGET wigxjpf_cpp_throw PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+    endif()
 endif()
 
 target_include_directories(wigxjpf
@@ -107,3 +111,7 @@ target_include_directories(wigxjpf
 set_target_properties(wigxjpf PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS}")
 
 target_compile_options(wigxjpf PRIVATE -Wno-shadow)
+
+if (IPO_SUPPORTED)
+  set_property(TARGET wigxjpf PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
