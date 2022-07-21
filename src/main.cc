@@ -732,6 +732,12 @@ int main(int argc, char** argv) {
 #else
                << "disabled" << endl
 #endif
+               << "   IPO/LTO support:      "
+#ifdef IPO_SUPPORTED
+               << "enabled" << endl
+#else
+               << "disabled" << endl
+#endif
                << endl;
 
     osfeatures << "Include search paths: " << endl;

@@ -301,7 +301,6 @@ if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
 
-
 if (ENABLE_GUI)
   add_subdirectory(gui)
   
@@ -656,3 +655,15 @@ add_custom_target(check-pyversion
   COMMENT "Check Python version")
 ########################################################################################
 
+########### IPO / LTO support
+if (IPO_SUPPORTED)
+  set_property(TARGET arts PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET artscore PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET binio PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET make_auto_md_cc PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET make_auto_md_h PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET matpack PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET methods PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()

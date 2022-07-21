@@ -10,3 +10,7 @@ if (ENABLE_PCH)
 endif()
 target_link_libraries(predef PUBLIC matpack)
 target_include_directories(predef PRIVATE ${ARTS_SOURCE_DIR}/3rdparty/)
+
+if (IPO_SUPPORTED)
+  set_property(TARGET predef PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
