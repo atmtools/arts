@@ -162,7 +162,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (ENABLE_IPO)
   include(CheckIPOSupported)
-  check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_ERROR)
+  check_ipo_supported(RESULT IPO_SUPPORTED LANGUAGES C CXX OUTPUT IPO_ERROR)
   if (NOT IPO_SUPPORTED)
     message(FATAL_ERROR "IPO / LTO not supported: ${IPO_ERROR}")
   endif()
