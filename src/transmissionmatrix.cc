@@ -29,6 +29,7 @@
 #include "transmissionmatrix.h"
 
 #include "constants.h"
+#include "double_imanip.h"
 #include "matpack_complex.h"
 
 TransmissionMatrix::TransmissionMatrix(Index nf, Index stokes)
