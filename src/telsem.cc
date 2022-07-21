@@ -70,7 +70,7 @@ void TelsemAtlas::read(std::istream& is) {
     is >> cellnum;
     ARTS_USER_ERROR_IF (is.fail(), "Error reading cellnum.");
     for (Index nssmi = 0; nssmi < 2 * nchan; nssmi++) {
-      is >> ssmi[nssmi];
+      is >> double_imanip() >> ssmi[nssmi];
       ARTS_USER_ERROR_IF (is.fail(), "Error reading emissivity.");
     }
 

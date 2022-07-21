@@ -369,7 +369,9 @@ void CIARecord::ReadFromCIA(const String& filename,
 
     istr.str(line);
     istr.clear();
-    istr >> set_wave_min >> set_wave_max >> set_npoints >> set_temp;
+    istr >> double_imanip() >> set_wave_min >> set_wave_max;
+    istr >> set_npoints;
+    istr >> double_imanip() >> set_temp;
 
     if (!istr || std::isnan(set_temp) || std::isnan(set_wave_min) ||
         std::isnan(set_wave_max)) {

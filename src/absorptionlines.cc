@@ -212,7 +212,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
     icecream >> double_imanip() >> data.T0;
 
     // Extract lower state energy:
-    icecream >> data.line.E0;
+    icecream >> double_imanip() >> data.line.E0;
 
     // Extract air broadening parameters:
     Numeric agam, sgam;
@@ -237,7 +237,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
     maux.resize(naux);
 
     for (Index j = 0; j < naux; j++) {
-      icecream >> maux[j];
+      icecream >> double_imanip() >> maux[j];
       //cout << "maux" << j << " = " << maux[j] << "\n";
     }
 
@@ -538,13 +538,13 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
 
             // cutoff frequency
             if (token == "CUT") {
-              icecream >> data.cutofffreq;
+              icecream >> double_imanip() >> data.cutofffreq;
               data.cutoff = CutoffType::ByLine;
             }
 
             // linemixing pressure limit
             if (token == "LML") {
-              icecream >> data.linemixinglimit;
+              icecream >> double_imanip() >> data.linemixinglimit;
             }
 
             // mirroring

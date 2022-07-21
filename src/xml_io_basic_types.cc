@@ -88,7 +88,7 @@ void xml_read_from_stream(istream& is_xml,
       xml_data_parse_error(tag, "");
     }
   } else {
-    is_xml >> jt.perturbation;
+    is_xml >> double_imanip() >> jt.perturbation;
     if (is_xml.fail()) {
       xml_data_parse_error(tag, "");
     }

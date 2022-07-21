@@ -42,30 +42,30 @@ void tessem_read_ascii(std::ifstream& is, TessemNN& net) {
   is >> net.nb_inputs >> net.nb_cache >> net.nb_outputs;
 
   net.b1.resize(net.nb_cache);
-  for (Index i = 0; i < net.nb_cache; i++) is >> net.b1[i];
+  for (Index i = 0; i < net.nb_cache; i++) is >> double_imanip() >> net.b1[i];
 
   net.b2.resize(net.nb_outputs);
-  for (Index i = 0; i < net.nb_outputs; i++) is >> net.b2[i];
+  for (Index i = 0; i < net.nb_outputs; i++) is >> double_imanip() >> net.b2[i];
 
   net.w1.resize(net.nb_cache, net.nb_inputs);
   for (Index i = 0; i < net.nb_cache; i++)
-    for (Index j = 0; j < net.nb_inputs; j++) is >> net.w1(i, j);
+    for (Index j = 0; j < net.nb_inputs; j++) is >> double_imanip() >> net.w1(i, j);
 
   net.w2.resize(net.nb_outputs, net.nb_cache);
   for (Index i = 0; i < net.nb_outputs; i++)
-    for (Index j = 0; j < net.nb_cache; j++) is >> net.w2(i, j);
+    for (Index j = 0; j < net.nb_cache; j++) is >> double_imanip() >> net.w2(i, j);
 
   net.x_min.resize(net.nb_inputs);
-  for (Index i = 0; i < net.nb_inputs; i++) is >> net.x_min[i];
+  for (Index i = 0; i < net.nb_inputs; i++) is >> double_imanip() >> net.x_min[i];
 
   net.x_max.resize(net.nb_inputs);
-  for (Index i = 0; i < net.nb_inputs; i++) is >> net.x_max[i];
+  for (Index i = 0; i < net.nb_inputs; i++) is >> double_imanip() >> net.x_max[i];
 
   net.y_min.resize(net.nb_outputs);
-  for (Index i = 0; i < net.nb_outputs; i++) is >> net.y_min[i];
+  for (Index i = 0; i < net.nb_outputs; i++) is >> double_imanip() >> net.y_min[i];
 
   net.y_max.resize(net.nb_outputs);
-  for (Index i = 0; i < net.nb_outputs; i++) is >> net.y_max[i];
+  for (Index i = 0; i < net.nb_outputs; i++) is >> double_imanip() >> net.y_max[i];
 }
 
 /*! Tessem emissivity calculation
