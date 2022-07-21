@@ -308,24 +308,25 @@ void extract(T& x, String& line, Index n) {
   // the output variable could `remember' old values.
   x = T(0);
 
-  // This will contain the short subString with the item to extract.
-  // Make it a String stream, for easy parsing,
-  // extracting subString of width n from line:
-  std::istringstream item(line.substr(0, n));
+  if constexpr (std::is_same_v<double, T> or std::is_same_v<float, T>) {
+    fast_float::from_chars(line.data(), line.data() + n, x);
+  } else {
+    // This will contain the short subString with the item to extract.
+    // Make it a String stream, for easy parsing,
+    // extracting subString of width n from line:
+    std::istringstream item(line.substr(0, n));
 
-  //  cout << "line = '" << line << "'\n";
-  //   cout << "line.substr(0,n) = " << line.substr(0,n) << endl;
-  //   cout << "item = " << item.str() << endl;
+    //  cout << "line = '" << line << "'\n";
+    //   cout << "line.substr(0,n) = " << line.substr(0,n) << endl;
+    //   cout << "item = " << item.str() << endl;
+    //  cout << "line = " << line << endl;
+
+    // Convert with the aid of String stream item:
+    item >> x;
+  }
 
   // Shorten line by n:
   line.erase(0, n);
-  //  cout << "line = " << line << endl;
-
-  // Convert with the aid of String stream item:
-  if constexpr (std::is_same_v<Numeric, T>)
-    item >> double_imanip() >> x;
-  else
-    item >> x;
 }
 
 #endif  // mystring_h
