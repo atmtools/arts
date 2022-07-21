@@ -32,8 +32,10 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include "array.h"
 #include "matpack.h"
+#include "double_imanip.h"
 
 /**
    The implementation for String, the ARTS string class. 
@@ -320,7 +322,10 @@ void extract(T& x, String& line, Index n) {
   //  cout << "line = " << line << endl;
 
   // Convert with the aid of String stream item:
-  item >> x;
+  if constexpr (std::is_same_v<Numeric, T>)
+    item >> double_imanip() >> x;
+  else
+    item >> x;
 }
 
 #endif  // mystring_h

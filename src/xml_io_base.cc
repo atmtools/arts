@@ -185,7 +185,7 @@ void XMLTag::get_attribute_value(const String& aname, Numeric& value) {
   
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
-  strstr >> value;
+  strstr >> double_imanip() >> value;
   if (strstr.fail()) {
     xml_parse_error("Error while parsing value of " + aname + " from <" + name +
     ">");

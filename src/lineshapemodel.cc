@@ -108,18 +108,18 @@ std::istream& LineShape::from_artscat4(std::istream& is,
   }
 
   // G0 main coefficient
-  for (auto& v : m.mdata) is >> v.G0().X0;
+  for (auto& v : m.mdata) is >> double_imanip() >> v.G0().X0;
 
   // G0 exponent is same as D0 exponent
   for (auto& v : m.mdata) {
-    is >> v.G0().X1;
+    is >> double_imanip() >> v.G0().X1;
     v.D0().X1 = v.G0().X1;
   }
 
   // D0 coefficient
   m.mdata.front().D0().X0 = 0;
   for (int k = 1; k < 7; k++)
-    is >> m.mdata[k].D0().X0;
+    is >> double_imanip() >> m.mdata[k].D0().X0;
 
   // Special case when self is part of this list, it needs to be removed
   for (int k = 1; k < 7; k++) {
@@ -209,14 +209,14 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
         if (ntemp <= ModelParameters::N) {
           switch (ntemp) {
             case 1:
-              data >> m.mdata[i].Data()[Index(param)].X0;
+              data >> double_imanip() >> m.mdata[i].Data()[Index(param)].X0;
               break;
             case 2:
-              data >> m.mdata[i].Data()[Index(param)].X0 >>
+              data >> double_imanip() >> m.mdata[i].Data()[Index(param)].X0 >>
                   m.mdata[i].Data()[Index(param)].X1;
               break;
             case 3:
-              data >> m.mdata[i].Data()[Index(param)].X0 >>
+              data >> double_imanip() >> m.mdata[i].Data()[Index(param)].X0 >>
                   m.mdata[i].Data()[Index(param)].X1 >>
                   m.mdata[i].Data()[Index(param)].X2;
               break;
@@ -230,11 +230,11 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
           ARTS_USER_ERROR_IF (ntemp > 12,
                 "Too many input parameters in interpolation results Legacy mode.");
           Numeric temp;
-          data >> temp;  // should be 200
-          data >> temp;  // should be 250
-          data >> temp;  // should be 296
-          data >> temp;  // should be 340
-          data >> m.mdata[i].Y().X0 >> m.mdata[i].Y().X1 >> m.mdata[i].Y().X2 >> m.mdata[i].Y().X3 
+          data >> double_imanip() >> temp;  // should be 200
+          data >> double_imanip() >> temp;  // should be 250
+          data >> double_imanip() >> temp;  // should be 296
+          data >> double_imanip() >> temp;  // should be 340
+          data >> double_imanip() >> m.mdata[i].Y().X0 >> m.mdata[i].Y().X1 >> m.mdata[i].Y().X2 >> m.mdata[i].Y().X3 
                >> m.mdata[i].G().X0 >> m.mdata[i].G().X1 >> m.mdata[i].G().X2 >> m.mdata[i].G().X3;
         }
       }
@@ -260,7 +260,7 @@ std::istream& LineShape::from_pressurebroadeningdata(
   const auto self_in_list = LegacyPressureBroadeningData::self_listed(qid, type);
 
   Vector x(n);
-  for (auto& num : x) data >> num;
+  for (auto& num : x) data >> double_imanip() >> num;
 
   LegacyPressureBroadeningData::vector2modelpb(mtype,
                                                self,
@@ -284,7 +284,7 @@ std::istream& LineShape::from_linemixingdata(std::istream& data,
   const auto n = LegacyLineMixingData::typelm2nelem(type);
 
   Vector x(n);
-  for (auto& num : x) data >> num;
+  for (auto& num : x) data >> double_imanip() >> num;
 
   lsc = LegacyLineMixingData::vector2modellm(x, type);
 

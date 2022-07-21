@@ -159,7 +159,7 @@ void telsem_atlasReadAscii(TelsemAtlas &atlas,
     std::getline(corr_is, s);
     for (Index j = 0; j < 7; j++) {
       for (Index k = 0; k < 7; k++) {
-        corr_is >> correlation(i, j, k);
+        corr_is >> double_imanip() >> correlation(i, j, k);
         ARTS_USER_ERROR_IF (corr_is.fail(),
                             "Error reading correlation.");
       }
@@ -208,7 +208,7 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
     std::getline(is, s);
     for (Index j = 0; j < 7; j++) {
       for (Index k = 0; k < 7; k++) {
-        is >> correlation(i, j, k);
+        is >> double_imanip() >> correlation(i, j, k);
         ARTS_USER_ERROR_IF (is.fail(), "Error reading correlation.");
       }
       std::getline(is, s);
