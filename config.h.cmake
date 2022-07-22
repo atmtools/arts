@@ -39,6 +39,9 @@
 #cmakedefine ENABLE_TMATRIX
 #cmakedefine ENABLE_TMATRIX_QUAD
 
+/* Defined if IPO/LTO support is available and enabled */
+#cmakedefine IPO_SUPPORTED
+
 /* Define to compile with zlib support */
 #cmakedefine ENABLE_ZLIB
 

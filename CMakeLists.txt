@@ -39,6 +39,7 @@ option (ENABLE_CCACHE "Turn on CCACHE" ON)
 option (ENABLE_CXX20 "Turn on C++20 (experimental)" OFF)
 option (ENABLE_FORTRAN "Turn on Fortran code" OFF)
 option (ENABLE_GUI "Turn on Debug GUI" OFF)
+option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
 option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
@@ -158,6 +159,16 @@ endif()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+if (ENABLE_IPO)
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT IPO_SUPPORTED LANGUAGES C CXX OUTPUT IPO_ERROR)
+  if (NOT IPO_SUPPORTED)
+    message(FATAL_ERROR "IPO / LTO not supported: ${IPO_ERROR}")
+  endif()
+else()
+  set(IPO_SUPPORTED OFF)
+endif()
 
 # Explicitly set C++ flags for Intel compiler because cmake
 # only supports it from version 3.6.0+. We don't want to
@@ -546,6 +557,12 @@ if (ENABLE_PCH)
   endif()
 else()
   message (STATUS "Precompiled headers disabled")
+endif()
+
+if (IPO_SUPPORTED)
+  message(STATUS "IPO / LTO enabled")
+else()
+  message(STATUS "IPO / LTO disabled")
 endif()
 
 add_subdirectory (src)
