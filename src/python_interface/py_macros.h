@@ -560,6 +560,7 @@ Returns:\
       .PythonInterfaceSelfAttribute(dtype)                 \
                                                            \
       .PythonInterfaceSelfOperator(__len__)                \
+      .PythonInterfaceSelfOperator(__iter__)               \
       .PythonInterfaceSelfOperator(__pos__)                \
       .PythonInterfaceSelfOperator(__neg__)                \
       .PythonInterfaceSelfOperator(__abs__)                \
