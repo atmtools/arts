@@ -1,7 +1,7 @@
 import os
 import sys
 from   ast      import parse, Call, Name, Expression, Expr, FunctionDef, \
-                       Starred, Module, Str, unparse
+                       Starred, Module, Str
 from   inspect  import getsource, getclosurevars
 from   copy     import copy
 
@@ -179,8 +179,13 @@ def continue_parser_function(arts, context, ast, allow_callbacks, set_agenda):
         try:
             ret = eval(compile(Expression(expr), "<unknown>", 'eval'), context)
         except NameError:
+            try:
+                from ast import unprse
+                errstr = f"the local Python variable `{unparse(expr)}`"
+            except ImportError:
+                errstr = "a local Python variable"
             raise NameError(
-                f"You seem to want to pass the local Python variable `{unparse(expr)}` into a WSM.\n"
+                f"You seem to want to pass {errstr} into a WSM.\n"
                 "This breaks scoping rules. You can only pass literals into WSMs."
             )
         return ret
