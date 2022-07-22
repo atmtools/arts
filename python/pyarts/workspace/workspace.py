@@ -176,14 +176,32 @@ def continue_parser_function(arts, context, ast, allow_callbacks, set_agenda):
         """
         if not hasattr(expr, "lineno"):
             setattr(expr, "lineno", 0)
-        return eval(compile(Expression(expr), "<unknown>", 'eval'), context)
+        try:
+            ret = eval(compile(Expression(expr), "<unknown>", 'eval'), context)
+        except NameError:
+            try:
+                from ast import unprse
+                errstr = f"the local Python variable `{unparse(expr)}`"
+            except ImportError:
+                errstr = "a local Python variable"
+            raise NameError(
+                f"You seem to want to pass {errstr} into a WSM.\n"
+                "This breaks scoping rules. You can only pass literals into WSMs."
+            )
+        return ret
 
-    illegal_statement_exception = Exception(
-        "Pure ARTS agenda definitions may only contain calls to WSMs of"
-        " the workspace argument '{arg_name}' or INCLUDE statements."
-        " If you want to allow Python callbacks you need to use"
-        " the '@arts_agenda' decorator with the 'allow_callbacks'"
-        " keyword argument set to 'True'.")
+    illegal_statement_exception = Exception("""
+Pure ARTS agenda definitions may only contain calls to WSMs of
+the workspace argument '{arg_name}' or INCLUDE statements.
+If you want to allow Python callbacks you need to use
+the '@arts_agenda' decorator with the 'allow_callbacks'
+keyword argument set to 'True'.
+
+WARNING: This will break the Agenda input-output control.
+To ensure proper scoping, you need to explicitly `ws.Touch`
+every WSV you modify. That includes output variables from WSMs
+you might call. Everything else is undefined behaviour. ;-)
+""")
 
     workspace_methods = [str(x.name) for x in cxx.get_md_data()]
     agenda = Agenda()
