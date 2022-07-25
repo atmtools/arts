@@ -397,7 +397,7 @@ int main() {
     ofs << "    agenda_failed = false;\n";
     ofs << "    try\n";
     ofs << "    {\n";
-    ofs << "        input_agenda.execute(ws);\n";
+    ofs << "        input_agenda.execute();\n";
     ofs << "    }\n";
     ofs << "    catch (const std::exception &e)\n";
     ofs << "    {\n";
@@ -513,27 +513,33 @@ int main() {
     // Create implementation of the GroupCreate WSMs
     //
     for (auto&& it : wsv_groups) {
-      if (it != "Any") {
+      if (it == "Any") continue;
+      ofs << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
+          << "void " << it << "Create(";
+
+      if (it == "Agenda") ofs << "Workspace& ws, ";
+
+      ofs << it << "& var, const Verbosity&)\n"
+          << "{ ";
+
+      // Treat atomic types separately.
+      // For objects the default constructor is used.
+      if (it == "Index")
+        ofs << "var = 0;";
+      else if (it == "Numeric")
+        ofs << "var = 0.;";
+      else {
+        ofs << "var = " << it << '(';
+        if (it == "Agenda") ofs << "borrow(ws)";
+        ofs << ");";
+      }
+
+      ofs << " }\n\n";
+
+      if (it not_eq "Agenda" and it not_eq "ArrayOfAgenda") {
         ofs << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
-            << "void " << it << "Create(" << it << "& var, const Verbosity&)\n"
-            << "{ ";
-
-        // Treat atomic types separately.
-        // For objects the default constructor is used.
-        if (it == "Index")
-          ofs << "var = 0;";
-        else if (it == "Numeric")
-          ofs << "var = 0.;";
-        else
-          ofs << "var = " << it << "();";
-
-        ofs << " }\n\n";
-
-        if (it not_eq "Agenda" and it not_eq "ArrayOfAgenda") {
-          ofs << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
-              << "void " << it << "Set(" << it << "& out, const " << it
-              << "& value, const Verbosity&) { out = value; }\n\n";
-        }
+            << "void " << it << "Set(" << it << "& out, const " << it
+            << "& value, const Verbosity&) { out = value; }\n\n";
       }
     }
   } catch (const std::runtime_error& x) {

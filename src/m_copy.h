@@ -47,7 +47,7 @@ void Copy(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Copy(Workspace& ws,
+inline void Copy(Workspace&,
           // WS Generic Output:
           Agenda& out,
           const String& out_name,
@@ -57,11 +57,11 @@ inline void Copy(Workspace& ws,
           const Verbosity& verbosity) {
   out = in;
   out.set_name(out_name);
-  out.check(ws, verbosity);
+  out.check(verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Copy(Workspace& ws,
+inline void Copy(Workspace&,
           // WS Generic Output:
           ArrayOfAgenda& out,
           const String& out_name,
@@ -72,7 +72,7 @@ inline void Copy(Workspace& ws,
   out = in;
   for (ArrayOfAgenda::iterator it = out.begin(); it != out.end(); it++) {
     (*it).set_name(out_name);
-    (*it).check(ws, verbosity);
+    (*it).check(verbosity);
   }
 }
 

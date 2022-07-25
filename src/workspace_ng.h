@@ -234,4 +234,7 @@ void PrintWsvNames(OutputStream &outstream, const Container &container) {
   }
 }
 
+std::shared_ptr<Workspace> borrow(Workspace * ws);
+std::shared_ptr<Workspace> borrow(Workspace & ws);
+
 #endif /* WORKSPACE_NG_INCLUDED */

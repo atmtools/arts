@@ -94,7 +94,7 @@ void AgendaExecute(Workspace& ws,
   bool agenda_failed = false;
 
   try {
-    this_agenda.execute(ws);
+    this_agenda.execute();
   } catch (const std::exception& e) {
     agenda_failed = true;
     msg = e.what();
@@ -141,7 +141,7 @@ void AgendaExecuteExclusive(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AgendaSet(Workspace& ws,
+void AgendaSet(Workspace&,
                // WS Generic Output:
                Agenda& output_agenda,
                // WS Generic Output Names:
@@ -152,11 +152,11 @@ void AgendaSet(Workspace& ws,
   output_agenda = input_agenda;
   output_agenda.set_name(agenda_name);
 
-  output_agenda.check(ws, verbosity);
+  output_agenda.check(verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfAgendaAppend(Workspace& ws,
+void ArrayOfAgendaAppend(Workspace&,
                          // WS Generic Output:
                          ArrayOfAgenda& out,
                          // WS Generic Names:
@@ -169,11 +169,11 @@ void ArrayOfAgendaAppend(Workspace& ws,
   Agenda& appended_agenda = out[out.nelem() - 1];
   appended_agenda.set_name(agenda_name);
 
-  appended_agenda.check(ws, verbosity);
+  appended_agenda.check(verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AgendaAppend(Workspace& ws,
+void AgendaAppend(Workspace&,
                   // WS Generic Output:
                   Agenda& output_agenda,
                   // WS Generic Output Names:
@@ -198,7 +198,7 @@ void AgendaAppend(Workspace& ws,
     methods.push_back(input_agenda.Methods()[i]);
 
   output_agenda.set_methods(methods);
-  output_agenda.check(ws, verbosity);
+  output_agenda.check(verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -228,5 +228,5 @@ void Arts2(Workspace& ws,
                                  out0);
   }
   (*v) = verbosity;
-  input_agenda.execute(ws);
+  input_agenda.execute();
 }

@@ -27,6 +27,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #include <ostream>
 
 #include "agenda_class.h"
@@ -39,8 +40,8 @@
 #include "methods.h"
 #include "workspace_ng.h"
 
-MRecord::MRecord()
-    : moutput(), minput(), msetvalue(), mtasks() { /* Nothing to do here. */
+MRecord::MRecord(std::shared_ptr<Workspace> ws)
+    : moutput(), minput(), msetvalue(), mtasks(std::move(ws)) { /* Nothing to do here. */
 }
 
 MRecord::MRecord(const Index id,
@@ -66,7 +67,6 @@ MRecord::MRecord(const Index id,
   The keyword value has to be a string, which for no value should be of length
   zero.
    
-  \param ws            Workspace reference
   \param methodname    The name of the WSM
   \param keywordvalue  The value of the keyword
 
@@ -76,7 +76,7 @@ MRecord::MRecord(const Index id,
 void Agenda::append(const String& methodname, const TokVal& keywordvalue) {
   using global_data::MdMap;
 
-  const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
+  const auto i2 = MdMap.find(methodname);
   ARTS_ASSERT(i2 != MdMap.end());
   Index id = i2->second;
 
@@ -86,7 +86,7 @@ void Agenda::append(const String& methodname, const TokVal& keywordvalue) {
   // Find explicit method id in MdMap.
   ArrayOfIndex input = md_data[id].InOnly();
 
-  mml.push_back(MRecord(id, output, input, keywordvalue, Agenda()));
+  mml.push_back(MRecord(id, output, input, keywordvalue, Agenda(ws)));
   mchecked = false;
 }
 
@@ -95,7 +95,13 @@ void Agenda::append(const String& methodname, const TokVal& keywordvalue) {
   Checks that the input used by the agenda and the output produced by the
   actual methods corresponds to what is desired in the lookup data.
 */
-void Agenda::check(Workspace& ws, const Verbosity& verbosity) {
+void Agenda::check(const Verbosity& verbosity) {
+  // Check that this agenda has a workspace
+  if (not ws.get()) {
+    mchecked = false;
+    return;
+  }
+
   // Make external data visible
   using global_data::agenda_data;
   using global_data::AgendaMap;
@@ -103,7 +109,7 @@ void Agenda::check(Workspace& ws, const Verbosity& verbosity) {
   // First we have to find the lookup information for this agenda. We
   // use AgendaMap for this.
 
-  map<String, Index>::const_iterator mi = AgendaMap.find(mname);
+  auto mi = AgendaMap.find(mname);
 
   // Find return end() if the string is not found. This means we deal with
   // agenda defined in the control file and therefore we don't check its
@@ -127,10 +133,10 @@ void Agenda::check(Workspace& ws, const Verbosity& verbosity) {
     if (!is_output(this_wsv)) {
       ostringstream os;
       os << "The agenda " << mname << " must generate the output WSV "
-         << Workspace::wsv_data[this_wsv].Name() << ",\n"
+         << ws->wsv_data[this_wsv].Name() << ",\n"
          << "but it does not. It only generates:\n";
-      for (Index j = 0; j < Workspace::wsv_data.nelem(); ++j)
-        if (is_output(j)) os << Workspace::wsv_data[j].Name() << "\n";
+      for (Index j = 0; j < ws->wsv_data.nelem(); ++j)
+        if (is_output(j)) os << ws->wsv_data[j].Name() << "\n";
       throw runtime_error(os.str());
     }
   }
@@ -141,13 +147,13 @@ void Agenda::check(Workspace& ws, const Verbosity& verbosity) {
     // The WSV for which to check:
     Index this_wsv = this_data.In()[i];
 
-    if (!is_input(ws, this_wsv)) {
+    if (!is_input(this_wsv)) {
       ostringstream os;
       os << "The agenda " << mname << " must use the input WSV "
-         << Workspace::wsv_data[this_wsv].Name() << ",\n"
+         << ws->wsv_data[this_wsv].Name() << ",\n"
          << "but it does not. It only uses:\n";
-      for (Index j = 0; j < Workspace::wsv_data.nelem(); ++j)
-        if (is_input(ws, j)) os << Workspace::wsv_data[j].Name() << "\n";
+      for (Index j = 0; j < ws->wsv_data.nelem(); ++j)
+        if (is_input(j)) os << ws->wsv_data[j].Name() << "\n";
       throw runtime_error(os.str());
     }
   }
@@ -163,7 +169,7 @@ void Agenda::check(Workspace& ws, const Verbosity& verbosity) {
   workspace. It also checks for errors during the method execution and
   stops the program if an error has occured. 
 */
-void Agenda::execute(Workspace& ws) const {
+void Agenda::execute() const {
   if (!mchecked) {
     ostringstream os;
     os << "Agenda *" << mname << "* hasn't been checked for consistency yet."
@@ -195,10 +201,10 @@ void Agenda::execute(Workspace& ws) const {
   extern void (*getaways[])(Workspace&, const MRecord&);
 
   const Index wsv_id_verbosity = get_wsv_id("verbosity");
-  ws.duplicate(wsv_id_verbosity);
+  ws->duplicate(wsv_id_verbosity);
 
   Verbosity& averbosity =
-      *(static_cast<Verbosity*>(ws[wsv_id_verbosity].get()));
+      *(static_cast<Verbosity*>((*ws)[wsv_id_verbosity].get()));
 
   averbosity.set_main_agenda(is_main_agenda());
 
@@ -213,7 +219,7 @@ void Agenda::execute(Workspace& ws) const {
   }
 
   for (Index i = 0; i < mml.nelem(); ++i) {
-    const Verbosity& verbosity = * static_cast<Verbosity*>(ws[wsv_id_verbosity].get());
+    const Verbosity& verbosity = * static_cast<Verbosity*>((*ws)[wsv_id_verbosity].get());
     CREATE_OUT1;
     CREATE_OUT3;
 
@@ -235,24 +241,24 @@ void Agenda::execute(Workspace& ws) const {
         const ArrayOfIndex& v(mrr.In());
         for (Index s = 0; s < v.nelem(); ++s)
           if ((s != v.nelem() - 1 || !mdd.SetMethod()) &&
-              !ws.is_initialized(v[s]))
+              !ws->is_initialized(v[s]))
             throw runtime_error(
                 "Method " + mdd.Name() +
-                " needs input variable: " + Workspace::wsv_data[v[s]].Name());
+                " needs input variable: " + ws->wsv_data[v[s]].Name());
       }
 
       {  // Check if all output variables which are also used as input
         // are initialized
         const ArrayOfIndex& v = mdd.InOut();
         for (Index s = 0; s < v.nelem(); ++s)
-          if (!ws.is_initialized(mrr.Out()[v[s]]))
+          if (!ws->is_initialized(mrr.Out()[v[s]]))
             throw runtime_error("Method " + mdd.Name() +
                                 " needs input variable: " +
-                                Workspace::wsv_data[mrr.Out()[v[s]]].Name());
+                                ws->wsv_data[mrr.Out()[v[s]]].Name());
       }
 
       // Call the getaway function:
-      getaways[mrr.Id()](ws, mrr);
+      getaways[mrr.Id()](*ws, mrr);
 
     } catch (const std::bad_alloc& x) {
       aout1 << "}\n";
@@ -276,7 +282,7 @@ void Agenda::execute(Workspace& ws) const {
 
   aout1 << "}\n";
 
-  ws.pop(wsv_id_verbosity);
+  ws->pop(wsv_id_verbosity);
 }
 
 //! Retrieve indexes of all input and output WSVs
@@ -303,10 +309,9 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
   const Index WsmDeleteIndex = MdMap.find("Delete")->second;
   const Index WsvAgendaGroupIndex = WsvGroupMap.find("Agenda")->second;
 
-  for (Array<MRecord>::const_iterator method = mml.begin(); method != mml.end();
-       method++) {
+  for (auto & method : mml) {
     // Collect output WSVs
-    const ArrayOfIndex& gouts = method->Out();
+    const ArrayOfIndex& gouts = method.Out();
 
     // Put the outputs into a new set to sort them. Otherwise
     // set_intersection and set_difference screw up.
@@ -314,14 +319,14 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
     souts.insert(gouts.begin(), gouts.end());
 
     // Collect generic input WSVs
-    const ArrayOfIndex& gins = method->In();
+    const ArrayOfIndex& gins = method.In();
     inputs.insert(gins.begin(), gins.end());
 
     /* Special case: For the Delete WSM add its input to the list
        * of output variables to force a duplication of those variables.
        * It avoids deleting variables outside the agenda's scope.
        */
-    if (method->Id() == WsmDeleteIndex) {
+    if (method.Id() == WsmDeleteIndex) {
       souts.insert(gins.begin(), gins.end());
     }
 
@@ -329,12 +334,12 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
          it is necessary for proper scoping to also add the output and input variables of the
          agenda to our output and input variable lists.
        */
-    if (method->Id() == WsmAgendaExecuteIndex ||
-        method->Id() == WsmAgendaExecuteExclIndex) {
-      for (Index j = 0; j < md_data[method->Id()].GInType().nelem(); j++) {
-        if (md_data[method->Id()].GInType()[j] == WsvAgendaGroupIndex) {
-          const String& agenda_name = Workspace::wsv_data[gins[j]].Name();
-          const map<String, Index>::const_iterator agenda_it =
+    if (method.Id() == WsmAgendaExecuteIndex ||
+        method.Id() == WsmAgendaExecuteExclIndex) {
+      for (Index j = 0; j < md_data[method.Id()].GInType().nelem(); j++) {
+        if (md_data[method.Id()].GInType()[j] == WsvAgendaGroupIndex) {
+          const String& agenda_name = ws->wsv_data[gins[j]].Name();
+          const auto agenda_it =
               AgendaMap.find(agenda_name);
           // The executed agenda must not be a user created agenda
           if (agenda_it == AgendaMap.end()) {
@@ -364,8 +369,8 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
                      insert_iterator<set<Index> >(outs2dup, outs2dup.begin()));
 
     // Get a handle on the InOut list for the current method:
-    const ArrayOfIndex& mdinout = md_data[method->Id()].InOut();
-    const ArrayOfIndex& output = method->Out();
+    const ArrayOfIndex& mdinout = md_data[method.Id()].InOut();
+    const ArrayOfIndex& output = method.Out();
 
     for (Index j = 0; j < mdinout.nelem(); j++) {
       inputs.insert(output[mdinout[j]]);
@@ -509,12 +514,11 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
   A variable is agenda input if it is an input variable to any of the
   methods making up the agenda. 
 
-  \param[in,out] ws Current Workspace
   \param[in] var The workspace variable to check.
 
   \return True if var is an input variable of this agenda.
 */
-bool Agenda::is_input(Workspace&, Index var) const {
+bool Agenda::is_input(Index var) const {
   // Make global method data visible:
   using global_data::agenda_data;
   using global_data::AgendaMap;
@@ -528,7 +532,7 @@ bool Agenda::is_input(Workspace&, Index var) const {
 
   // Make sure that var is the index of a valid WSV:
   ARTS_ASSERT(0 <= var);
-  ARTS_ASSERT(var < Workspace::wsv_data.nelem());
+  ARTS_ASSERT(var < ws.wsv_data.nelem());
 
   // Determine the index of WsvGroup Agenda
   const Index WsvAgendaGroupIndex = WsvGroupMap.find("Agenda")->second;
@@ -563,8 +567,8 @@ bool Agenda::is_input(Workspace&, Index var) const {
         for (Index j = 0; j < md_data[this_method.Id()].GInType().nelem();
              j++) {
           if (md_data[this_method.Id()].GInType()[j] == WsvAgendaGroupIndex) {
-            const String& agenda_name = Workspace::wsv_data[input[j]].Name();
-            const map<String, Index>::const_iterator agenda_it =
+            const String& agenda_name = ws->wsv_data[input[j]].Name();
+            const auto agenda_it =
                 AgendaMap.find(agenda_name);
             // The executed agenda must not be a user created agenda
             if (agenda_it == AgendaMap.end()) {
@@ -634,8 +638,8 @@ bool Agenda::is_output(Index var) const {
              j++) {
           if (md_data[this_method.Id()].GInType()[j] == WsvAgendaGroupIndex) {
             const String& agenda_name =
-                Workspace::wsv_data[this_method.In()[j]].Name();
-            const map<String, Index>::const_iterator agenda_it =
+                ws->wsv_data[this_method.In()[j]].Name();
+            const auto agenda_it =
                 AgendaMap.find(agenda_name);
             // The executed agenda must not be a user created agenda
             if (agenda_it == AgendaMap.end()) {
@@ -692,7 +696,7 @@ bool Agenda::has_method(const String& methodname) const {
   using global_data::md_data;
 
   bool found = false;
-  for (Array<MRecord>::const_iterator it = mml.begin();
+  for (auto it = mml.begin();
        !found && it != mml.end();
        it++) {
     if (md_data[it->Id()].Name() == methodname) found = true;
@@ -806,7 +810,7 @@ void MRecord::print(ostream& os, const String& indent) const {
   using global_data::md_data;
 
   // Get a handle on the right record:
-  const MdRecord tmd = md_data[Id()];
+  const MdRecord& tmd = md_data[Id()];
 
   os << indent << tmd.Name();
 
@@ -823,7 +827,7 @@ void MRecord::print(ostream& os, const String& indent) const {
       else
         os << ",";
 
-      os << Workspace::wsv_data[Out()[i]].Name();
+      os << mtasks.workspace().wsv_data[Out()[i]].Name();
     }
 
     for (Index i = 0; i < In().nelem(); ++i) {
@@ -832,7 +836,7 @@ void MRecord::print(ostream& os, const String& indent) const {
       else
         os << ",";
 
-      os << Workspace::wsv_data[In()[i]].Name();
+      os << mtasks.workspace().wsv_data[In()[i]].Name();
     }
 
     os << ")";

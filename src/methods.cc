@@ -227,23 +227,28 @@ void define_md_data_raw() {
           ArrayOfString(GIN()),
           ArrayOfString(GIN_TYPE()),
           ArrayOfString(GIN_DEFAULT()),
-          ArrayOfString(GIN_DESC())));
+          ArrayOfString(GIN_DESC()),
+          SETMETHOD(false),
+          AGENDAMETHOD(false),
+          USES_TEMPLATES(false),
+          PASSWORKSPACE(wsv_group == "Agenda"),
+          PASSWSVNAMES(false)));
 
-        if (wsv_group not_eq "Agenda" and wsv_group not_eq "ArrayOfAgenda") {
-            md_data_raw.push_back(MdRecord(
-                NAME(String(wsv_group.name + "Set").c_str()),
-                DESCRIPTION("Sets a workspace variable to the given value.\n"),
-                ArrayOfString(AUTHORS("Richard Larsson")),
-                ArrayOfString(OUT()),
-                ArrayOfString(GOUT("out")),
-                ArrayOfString(GOUT_TYPE(wsv_group.name.c_str())),
-                ArrayOfString(GOUT_DESC("Variable to initialize.")),
-                ArrayOfString(IN()),
-                ArrayOfString(GIN("value")),
-                ArrayOfString(GIN_TYPE(wsv_group.name.c_str())),
-                ArrayOfString(GIN_DEFAULT(NODEF)),
-                ArrayOfString(GIN_DESC("The value.")),
-                SETMETHOD(true)));
+      if (wsv_group not_eq "Agenda" and wsv_group not_eq "ArrayOfAgenda") {
+        md_data_raw.push_back(MdRecord(
+            NAME(String(wsv_group.name + "Set").c_str()),
+            DESCRIPTION("Sets a workspace variable to the given value.\n"),
+            ArrayOfString(AUTHORS("Richard Larsson")),
+            ArrayOfString(OUT()),
+            ArrayOfString(GOUT("out")),
+            ArrayOfString(GOUT_TYPE(wsv_group.name.c_str())),
+            ArrayOfString(GOUT_DESC("Variable to initialize.")),
+            ArrayOfString(IN()),
+            ArrayOfString(GIN("value")),
+            ArrayOfString(GIN_TYPE(wsv_group.name.c_str())),
+            ArrayOfString(GIN_DEFAULT(NODEF)),
+            ArrayOfString(GIN_DESC("The value.")),
+            SETMETHOD(true)));
         }
     }
   }
@@ -4043,7 +4048,12 @@ Possible models:
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN_DESC(),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true),
+      PASSWSVNAMES(false)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetAutomatically"),
@@ -9657,7 +9667,12 @@ Possible models:
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN_DESC(),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true),
+      PASSWSVNAMES(false)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianOff"),
@@ -9679,7 +9694,12 @@ Possible models:
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN_DESC(),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true),
+      PASSWSVNAMES(false)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianSetAffineTransformation"),
@@ -15446,7 +15466,12 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Index"),
       GIN_DEFAULT("1"),
       GIN_DESC("Flag whether or not to (re)initialize Jacobian-related\n"
-               "quantities. Set to 0 if Jacobian is already defined.")));
+               "quantities. Set to 0 if Jacobian is already defined."),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true),
+      PASSWSVNAMES(false)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddCatalogParameter"),

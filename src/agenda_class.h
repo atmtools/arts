@@ -28,17 +28,18 @@
 
 
 #include "array.h"
+#include "debug.h"
 #include "matpack.h"
 #include "mystring.h"
 
 #include "messages.h"
 #include "tokval.h"
+#include "workspace_ng.h"
+
 #include <set>
 #include <utility>
 
 class MRecord;
-
-class Workspace;
 
 //! The Agenda class.
 /*! An agenda is a list of workspace methods (including keyword data)
@@ -49,8 +50,9 @@ class Workspace;
 */
 class Agenda final {
  public:
-  Agenda()
-      : mname(),
+  explicit Agenda(std::shared_ptr<Workspace> workspace=nullptr)
+      : ws(std::move(workspace)),
+        mname(),
         mml(),
         moutput_push(),
         moutput_dup() { /* Nothing to do here */
@@ -64,9 +66,9 @@ class Agenda final {
   Agenda(Agenda&&) noexcept = default;
 
   void append(const String& methodname, const TokVal& keywordvalue);
-  void check(Workspace& ws, const Verbosity& verbosity);
+  void check(const Verbosity& verbosity);
   void push_back(const MRecord& n);
-  void execute(Workspace& ws) const;
+  void execute() const;
   void resize(Index n);
   [[nodiscard]] Index nelem() const;
   Agenda& operator=(const Agenda& x);
@@ -74,7 +76,7 @@ class Agenda final {
   [[nodiscard]] bool has_method(const String& methodname) const;
   void set_methods(const Array<MRecord>& ml);
   void set_outputs_to_push_and_dup(const Verbosity& verbosity);
-  bool is_input(Workspace& ws, Index var) const;
+  [[nodiscard]] bool is_input(Index var) const;
   [[nodiscard]] bool is_output(Index var) const;
   void set_name(const String& nname);
   [[nodiscard]] String name() const;
@@ -90,7 +92,12 @@ class Agenda final {
 
   friend ostream& operator<<(ostream& os, const Agenda& a);
 
+  [[nodiscard]] const Workspace& workspace() const {ARTS_ASSERT(ws.get()) return *ws;}
+  [[nodiscard]] Workspace& workspace() {ARTS_ASSERT(ws.get()) return *ws;}
+  [[nodiscard]] bool correct_workspace(Workspace& ws2) {return ws.get() == &ws2;}
+  
  private:
+  std::shared_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */
   String mname;       /*!< Agenda name. */
   Array<MRecord> mml; /*!< The actual list of methods to execute. */
 
@@ -115,7 +122,7 @@ class Agenda final {
     @author Stefan Buehler */
 class MRecord {
  public:
-  MRecord();
+  explicit MRecord(std::shared_ptr<Workspace> ws=nullptr);
 
   MRecord(const MRecord& x) = default;
 

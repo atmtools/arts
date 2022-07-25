@@ -28,6 +28,7 @@
    \date   2001-07-24
 */
 
+#include <memory>
 #include "arts.h"
 
 #ifdef ENABLE_DOCSERVER
@@ -153,7 +154,7 @@ void option_methods(const String& methods) {
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, Index>::const_iterator mi = Workspace::WsvMap.find(methods);
+  auto mi = Workspace::WsvMap.find(methods);
   if (mi != Workspace::WsvMap.end()) {
     // If we are here, then the given name matches a variable.
     Index wsv_key = mi->second;
@@ -309,7 +310,7 @@ void option_input(const String& input) {
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, Index>::const_iterator mi = Workspace::WsvMap.find(input);
+  auto mi = Workspace::WsvMap.find(input);
   if (mi != Workspace::WsvMap.end()) {
     // This is used to count the number of matches to a query, so
     // that `none' can be output if necessary
@@ -494,7 +495,7 @@ void option_workspacevariables(const String& workspacevariables) {
   }
 
   // Now check if the user gave the name of a method.
-  map<String, Index>::const_iterator mi = MdMap.find(workspacevariables);
+  auto mi = MdMap.find(workspacevariables);
   if (mi != MdMap.end()) {
     // If we are here, then the given name matches a method.
     // Assign the data record for this method to a local
@@ -552,7 +553,7 @@ void option_describe(const String& describe) {
   // described.
 
   // Find method id:
-  map<String, Index>::const_iterator i = MdRawMap.find(describe);
+  auto i = MdRawMap.find(describe);
   if (i != MdRawMap.end()) {
     // If we are here, then the given name matches a method.
     cout << md_data_raw[i->second] << "\n";
@@ -1022,11 +1023,13 @@ int main(int argc, char** argv) {
       try {
         out3 << "- " << parameters.controlfiles[i] << "\n";
 
+        auto workspace_shared = std::make_shared<Workspace>();
+
+        Workspace& workspace=*workspace_shared;
+
         // The list of methods to execute and their keyword data from
         // the control file.
-        Agenda tasklist;
-
-        Workspace workspace;
+        Agenda tasklist{workspace_shared};
 
         // Call the parser to parse the control text:
         ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);

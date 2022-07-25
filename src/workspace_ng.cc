@@ -114,3 +114,7 @@ Workspace::Workspace() {
     }
   }
 }
+
+std::shared_ptr<Workspace> borrow(Workspace &ws) {
+  return {&ws, [](Workspace *) {}};
+}

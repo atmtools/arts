@@ -344,7 +344,7 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
   // Input workspace variables:
   ArrayOfIndex input;
   // For Agenda, if there is any:
-  Agenda tasks;
+  Agenda tasks{borrow(tasklist.workspace())};
   // For include statements, holding the include file's name
   String include_file;
 
@@ -430,7 +430,7 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
           ARTS_ASSERT(mdit != MdMap.end());
 
           tasklist.push_back(MRecord(
-              mdit->second, ArrayOfIndex(), output, TokVal(), Agenda(), true));
+              mdit->second, ArrayOfIndex(), output, TokVal(), Agenda(borrow(tasklist.workspace())), true));
         }
       }
 
@@ -1595,7 +1595,7 @@ void ArtsParser::tasklist_insert_set_delete(
     TokVal auto_keyword_value;
     ArrayOfIndex auto_output_var;
     ArrayOfIndex auto_input_var;
-    Agenda auto_tasks;
+    Agenda auto_tasks{borrow(tasklist.workspace())};
 
     const Index auto_group = Workspace::wsv_data[auto_vars[i]].Group();
     if (auto_group != get_wsv_group_id("Index") &&
