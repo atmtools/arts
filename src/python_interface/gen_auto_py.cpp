@@ -97,9 +97,9 @@ std::map<std::string, Group> groups() {
   std::map<std::string, std::size_t> group;
   for (auto& x : global_data::WsvGroupMap) group[x.first] = x.second;
   std::map<std::string, std::size_t> name;
-  for (auto& x : Workspace::wsv_data) name[x.Name()] = x.Group();
+  for (auto& x : global_data::wsv_data) name[x.Name()] = x.Group();
   std::map<std::string, std::string> desc;
-  for (auto& x : Workspace::wsv_data) {
+  for (auto& x : global_data::wsv_data) {
     auto& val = desc[x.Name()];
     val = x.Description();
     if (x.has_defaults())
@@ -110,7 +110,7 @@ std::map<std::string, Group> groups() {
       }(x.default_value()));
   }
   std::map<std::string, std::size_t> pos;
-  for (auto& x : Workspace::WsvMap) pos[x.first] = x.second;
+  for (auto& x : global_data::WsvMap) pos[x.first] = x.second;
 
   std::map<std::string, Group> out;
   for (auto& x : name) {
@@ -180,7 +180,7 @@ std::vector<Method> methods() {
   std::map<std::string, std::size_t> vargroup;
   for (auto& x : global_data::WsvGroupMap) vargroup[x.first] = x.second;
   std::map<std::string, std::size_t> varpos;
-  for (auto& x : Workspace::WsvMap) varpos[x.first] = x.second;
+  for (auto& x : global_data::WsvMap) varpos[x.first] = x.second;
   std::map<std::string, std::size_t> methodpos;
   for (auto& x : global_data::MdMap) methodpos[x.first] = x.second;
 
@@ -570,14 +570,14 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
     if (group == "Index" or group == "Numeric") os << '_';
     os << R"--(> value) {
   Index pos=-1;
-  if (auto varptr = w.WsvMap.find(name); varptr == w.WsvMap.end()) {
+  if (auto varptr = w.WsvMap_ptr -> find(name); varptr == w.WsvMap_ptr -> end()) {
     ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == ':' or sv.back() == ':',
       "Cannot create variables without a name, or one that starts or ends with \":\"\nVariable name: \"", name, "\"")
     pos = w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "User-generated workspace variable", )--"
        << group_index << R"--());
   } else {
     pos = varptr->second;
-    ARTS_USER_ERROR_IF(w.wsv_data[pos].Group() not_eq )--"
+    ARTS_USER_ERROR_IF(w.wsv_data_ptr->operator[](pos).Group() not_eq )--"
        << group_index << R"--(, "Already exist of different group: ", name)
   }
 
@@ -1537,11 +1537,11 @@ namespace Python {
 bool WorkspaceVariable::is_initialized() const { return ws.is_initialized(pos); }
 
 const char * WorkspaceVariable::name() const {
-  return ws.wsv_data[pos].Name().c_str();
+  return ws.wsv_data_ptr -> operator[](pos).Name().c_str();
 }
 
 Index WorkspaceVariable::group() const {
-  return ws.wsv_data[pos].Group();
+  return ws.wsv_data_ptr -> operator[](pos).Group();
 }
 
 WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py::object& obj, bool allow_casting) : ws(ws_), pos(-1) {
@@ -1583,7 +1583,7 @@ void WorkspaceVariable::initialize_if_not() {
 }
 
 WorkspaceVariable::operator WorkspaceVariablesVariant() {
-  switch (ws.wsv_data[pos].Group()) {
+  switch (ws.wsv_data_ptr -> operator[](pos).Group()) {
 )--";
 
   for (auto& [name, group] : arts.group) {
@@ -1600,7 +1600,7 @@ WorkspaceVariable::operator WorkspaceVariablesVariant() {
 WorkspaceVariable::operator WorkspaceVariablesVariant() const {
   ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name())
 
-  switch (ws.wsv_data[pos].Group()) {
+  switch (ws.wsv_data_ptr -> operator[](pos).Group()) {
 )--";
 
   for (auto& [name, group] : arts.group) {
@@ -1619,7 +1619,7 @@ void WorkspaceVariable::pop_workspace_level() { ws.pop(pos); }
 WorkspaceVariable::operator TokVal() const {
   ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name())
   
-  switch (ws.wsv_data[pos].Group()) {
+  switch (ws.wsv_data_ptr -> operator[](pos).Group()) {
 )--";
 
   for (auto& [name, group] : arts.group) {
@@ -1670,8 +1670,8 @@ Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
 
   os << R"--(  };
 
-  auto ptr = ws.WsvMap.find(key);
-  Index pos = ptr == ws.WsvMap.end() ? -1 : ptr -> second;
+  auto ptr = ws.WsvMap_ptr -> find(key);
+  Index pos = ptr == ws.WsvMap_ptr -> end() ? -1 : ptr -> second;
 
   switch (gins.at(key)) {
 )--";
@@ -1715,8 +1715,8 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
     os << R"--(ws.def("_setattr_unchecked_", [](Workspace& w, const char* name, )--"
        << name << extra;
     os << R"--(& val) {
-  auto varpos = w.WsvMap.find(name);
-  Index i = (varpos == w.WsvMap.end()) ? w.add_wsv_inplace(WsvRecord(name, "User-created variable", )--"
+  auto varpos = w.WsvMap_ptr -> find(name);
+  Index i = (varpos == w.WsvMap_ptr -> end()) ? w.add_wsv_inplace(WsvRecord(name, "User-created variable", )--"
        << group << R"--()) : varpos -> second;
 )--";
     if (name == "Agenda")
@@ -1812,7 +1812,7 @@ ws.def(py::pickle(
     std::vector<std::string> description;
 
     for (Index i=0; i<w.nelem(); i++) {
-      auto& wsv_data = w.wsv_data[i];
+      auto& wsv_data = w.wsv_data_ptr -> operator[](i);
       if (w.is_initialized(i) and             // is initialized
           wsv_data.Group() != ag_index and    // is not Agenda (needs workspace variables in fixed positions)
           wsv_data.Group() != aag_index and   // is not ArrayOfAgenda (as above)
@@ -1850,16 +1850,15 @@ ws.def(py::pickle(
     ARTS_USER_ERROR_IF(n != name.size() or n != description.size() or n != value.size(), "Invalid state!")
 
     auto* out = new Workspace{};
-    out -> initialize();
 
     for (std::size_t i=0; i<n; i++) {
-      auto wsv_data = out -> WsvMap.find(name[i]);
+      auto wsv_data = out -> WsvMap_ptr -> find(name[i]);
       const Index wsv_pos =
-        (wsv_data == out -> WsvMap.end()) ?
+        (wsv_data == out -> WsvMap_ptr -> end()) ?
           out -> add_wsv_inplace(WsvRecord(name[i].c_str(), description[i].c_str(), group[i])) :
           wsv_data -> second;
 
-      switch (out -> wsv_data[wsv_pos].Group()) {
+      switch (out -> wsv_data_ptr -> operator[](wsv_pos).Group()) {
 )--";
   for (auto& [name, id] : arts.group) {
     const char extra = name == "Index" or name == "Numeric" ? '_' : ' ';
@@ -1880,8 +1879,8 @@ ws.def(py::pickle(
 
 int main(int argc, char** argv) {
   define_wsv_groups();
-  Workspace::define_wsv_data();
-  Workspace::define_wsv_map();
+  define_wsv_data();
+  define_wsv_map();
   define_md_data_raw();
   expand_md_data_raw_to_md_data();
   define_md_map();

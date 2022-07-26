@@ -57,8 +57,8 @@ PYBIND11_MODULE(arts, m) {
     init = false;
 
     define_wsv_groups();
-    Workspace::define_wsv_data();
-    Workspace::define_wsv_map();
+    define_wsv_data();
+    define_wsv_map();
     define_md_data_raw();
     expand_md_data_raw_to_md_data();
     define_md_map();

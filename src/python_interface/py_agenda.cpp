@@ -48,9 +48,10 @@ std::filesystem::path correct_include_path(
   return path;
 }
 
-Agenda* parse_agenda(const char* filename, const Verbosity& verbosity) {
-  auto* a = new Agenda;
-  ArtsParser parser = ArtsParser(*a, filename, verbosity);
+Agenda* parse_agenda(Workspace& ws, const char* filename, const Verbosity& verbosity) {
+  auto wsptr = std::shared_ptr<Workspace>{&ws, [](Workspace*){}};
+  auto* a = new Agenda{wsptr};
+  ArtsParser parser = ArtsParser(wsptr, *a, filename, verbosity);
 
   parser.parse_tasklist();
   a->set_name(filename);
@@ -75,8 +76,8 @@ Array<AgendaMethodVariable> sorted_mdrecord(
 
   for (auto& output : ptr->Out()) {
     auto& var = var_order.emplace_back();
-    var.name = ws.wsv_data[output].Name();
-    var.group = ws.wsv_data[output].Group();
+    var.name = ws.wsv_data_ptr->operator[](output).Name();
+    var.group = ws.wsv_data_ptr->operator[](output).Group();
     var.ws_pos = output;
     var.input = false;
   }
@@ -98,8 +99,8 @@ Array<AgendaMethodVariable> sorted_mdrecord(
       continue;
 
     auto& var = var_order.emplace_back();
-    var.name = ws.wsv_data[input].Name();
-    var.group = ws.wsv_data[input].Group();
+    var.name = ws.wsv_data_ptr->operator[](input).Name();
+    var.group = ws.wsv_data_ptr->operator[](input).Group();
     var.ws_pos = input;
     var.input = true;
   }
@@ -162,7 +163,7 @@ MRecord simple_set_method(WorkspaceVariable val) {
 
   // Set method set values
   TokVal t;
-  Agenda a;
+  Agenda a{std::shared_ptr<Workspace>{&val.ws, [](Workspace*){}}};
   if (group == "Agenda") {
     a = Agenda(val);
   } else {
@@ -196,7 +197,7 @@ MRecord simple_delete_method(WorkspaceVariable val) {
               "Expects to find a Delete method but encounters ",
               ptr->Name())
 
-  return MRecord(std::distance(md_data.begin(), ptr), {}, {val.pos}, {}, {});
+  return MRecord(std::distance(md_data.begin(), ptr), {}, {val.pos}, {}, Agenda{std::shared_ptr<Workspace>{&val.ws, [](Workspace*){}}});
 }
 
 void py_agenda(py::module_& m) {
@@ -304,8 +305,9 @@ void py_agenda(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Array<AgRecord>);
 
   py::class_<Agenda>(m, "Agenda")
-      .def(py::init([]() { return new Agenda{}; }))
-      .def(py::init([](Workspace&, const Agenda& a) { return a; }),
+      .def(py::init([]() { return new Agenda{nullptr}; }), py::doc("An Agenda that cannot be used on a workspace"))
+      .def(py::init([](Workspace& ws) { return new Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*){}}}; }))
+      .def(py::init([](Workspace& ws, const Agenda& a) { ARTS_USER_ERROR_IF(not a.correct_workspace(ws), "Cannot take another workspace's agenda") return a; }),
            py::doc("Copy Agenda with extra argument (to mimic DelayedAgenda)"))
       .def(py::init([](Workspace& ws,
                        const std::function<py::object(Workspace&)>& f) {
@@ -314,10 +316,9 @@ void py_agenda(py::module_& m) {
            py::keep_alive<0, 1>())
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
-             Agenda* a = parse_agenda(
+             Agenda* a = parse_agenda(w,
                  correct_include_path(path).c_str(),
                  *w.get<Verbosity>("verbosity"));
-             w.initialize();
              return a;
            }),
            py::keep_alive<0, 1>())
@@ -329,6 +330,7 @@ void py_agenda(py::module_& m) {
       .def_property_readonly("output2dup", &Agenda::get_output2dup)
       .def("set_outputs_to_push_and_dup",
            [](Agenda& a, Workspace& w) {
+            ARTS_USER_ERROR_IF(not a.correct_workspace(w), "Cannot use another workspace")
              a.set_outputs_to_push_and_dup(
                  *w.get<Verbosity>("verbosity"));
            })
@@ -339,6 +341,8 @@ void py_agenda(py::module_& m) {
              const char* name,
              const py::args& args,
              const py::kwargs& kwargs) {
+            ARTS_USER_ERROR_IF(not a.correct_workspace(ws), "Cannot use another workspace")
+
             const Index nargs = args.size();
 
             // The MdRecord
@@ -437,7 +441,7 @@ void py_agenda(py::module_& m) {
               // Ensure we have GIN and GOUT for all of the generic types
               for (Index i = 0; i < var_order.nelem(); i++) {
                 auto& var = var_order[i];
-                var.group = ws.wsv_data[var.ws_pos].Group();
+                var.group = ws.wsv_data_ptr->operator[](var.ws_pos).Group();
               }
 
               // Loop until all generic GIN and GOUT fits a known method
@@ -504,7 +508,7 @@ void py_agenda(py::module_& m) {
                                   a.Methods().back().SetValue(),
                                   a.Methods().back().Tasks()));
             } else {
-              a.push_back(MRecord(m_id, out, in, {}, {}));
+              a.push_back(MRecord(m_id, out, in, {}, Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*){}}}));
             }
 
             // Clean up the value
@@ -549,7 +553,7 @@ so Copy(a, out=b) will not even see the b variable.
 
             WorkspaceVariable val(ws, in);
             a.push_back(simple_set_method(val));
-            a.push_back(MRecord(method_ptr->second, {}, {in}, {}, {}));
+            a.push_back(MRecord(method_ptr->second, {}, {in}, {}, Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*){}}}));
             a.push_back(simple_delete_method(val));
           },
           py::keep_alive<1, 2>(),
