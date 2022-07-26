@@ -38,6 +38,24 @@
 
 #include <set>
 #include <utility>
+#include "workspace_global_data.h"
+
+/** Print list of WSV names to output stream.
+  *
+  * Runs through the list of WSV indexes and print all names to the given output
+  * stream. The list of indexes can be any STL container such as Array,
+  * vector...
+  * @param outstream OutputStream
+  * @param container List of WSV indexes
+  */
+template <typename OutputStream, typename Container>
+void PrintWsvNames(OutputStream &outstream, const Workspace& ws, const Container &container) {
+  for (typename Container::const_iterator it = container.begin();
+       it != container.end();
+       it++) {
+    ws.PrintWsvName(outstream, *it);
+  }
+}
 
 class MRecord;
 
@@ -50,25 +68,17 @@ class MRecord;
 */
 class Agenda final {
  public:
-  explicit Agenda(std::shared_ptr<Workspace> workspace=nullptr)
-      : ws(std::move(workspace)),
-        mname(),
-        mml(),
-        moutput_push(),
-        moutput_dup() { /* Nothing to do here */
-  }
+  explicit Agenda(const std::shared_ptr<Workspace>& workspace=nullptr);
 
   /*! 
     Copies an agenda.
   */
   Agenda(const Agenda& x) = default;
 
-  Agenda(Agenda&&) noexcept = default;
-
   void append(const String& methodname, const TokVal& keywordvalue);
-  void check(const Verbosity& verbosity);
+  void check(Workspace& ws_in, const Verbosity& verbosity);
   void push_back(const MRecord& n);
-  void execute() const;
+  void execute(Workspace& ws_in) const;
   void resize(Index n);
   [[nodiscard]] Index nelem() const;
   Agenda& operator=(const Agenda& x);
@@ -76,7 +86,7 @@ class Agenda final {
   [[nodiscard]] bool has_method(const String& methodname) const;
   void set_methods(const Array<MRecord>& ml);
   void set_outputs_to_push_and_dup(const Verbosity& verbosity);
-  [[nodiscard]] bool is_input(Index var) const;
+  [[nodiscard]] bool is_input(Workspace& ws_in, Index var) const;
   [[nodiscard]] bool is_output(Index var) const;
   void set_name(const String& nname);
   [[nodiscard]] String name() const;
@@ -92,9 +102,9 @@ class Agenda final {
 
   friend ostream& operator<<(ostream& os, const Agenda& a);
 
-  [[nodiscard]] const Workspace& workspace() const {ARTS_ASSERT(ws.get()) return *ws;}
-  [[nodiscard]] Workspace& workspace() {ARTS_ASSERT(ws.get()) return *ws;}
-  [[nodiscard]] bool correct_workspace(Workspace& ws2) {return ws.get() == &ws2;}
+  [[nodiscard]] bool correct_workspace(Workspace& ws2) const {return ws->original_workspace == ws2.original_workspace;}
+
+  [[nodiscard]] const std::shared_ptr<Workspace>& wsptr() const {return ws->original_workspace;};
   
  private:
   std::shared_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */
@@ -122,7 +132,7 @@ class Agenda final {
     @author Stefan Buehler */
 class MRecord {
  public:
-  explicit MRecord(std::shared_ptr<Workspace> ws=nullptr);
+  explicit MRecord(const std::shared_ptr<Workspace>& ws=nullptr);
 
   MRecord(const MRecord& x) = default;
 
@@ -130,7 +140,7 @@ class MRecord {
           ArrayOfIndex  output,
           ArrayOfIndex  input,
           const TokVal&  setvalue,
-          Agenda  tasks,
+          const Agenda& tasks,
           bool internal = false);
 
   [[nodiscard]] Index Id() const { return mid; }

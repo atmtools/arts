@@ -33,6 +33,7 @@
 #include "groups.h"
 #include "methods.h"
 #include "workspace_ng.h"
+#include "workspace_global_data.h"
 #include "wsv_aux.h"
 
 namespace global_data {
@@ -161,7 +162,7 @@ MdRecord::MdRecord(const char* name,
   // Map the WSV names to indexes
   moutput.resize(output.nelem());
   for (Index j = 0; j < output.nelem(); ++j) {
-    moutput[j] = get_wsv_id(output[j]);
+    moutput[j] = global_data::WsvMap.at(output[j]);
     if (moutput[j] == -1) {
       ostringstream os;
       os << "Unknown WSV " << output[j] << " for output (parameter #" << j
@@ -173,7 +174,7 @@ MdRecord::MdRecord(const char* name,
 
   minput.resize(input.nelem());
   for (Index j = 0; j < input.nelem(); ++j) {
-    minput[j] = get_wsv_id(input[j]);
+    minput[j] = global_data::WsvMap.at(input[j]);
     if (minput[j] == -1) {
       ostringstream os;
       os << "Unknown WSV " << input[j] << " for input (parameter #" << j << ") "
@@ -677,7 +678,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
       first = false;
     else
       buf << ", ";
-    param << Workspace::wsv_data[mdr.Out()[i]].Name();
+    param << global_data::wsv_data[mdr.Out()[i]].Name();
 
     limit_line_length(os, buf, param, indent, linelen);
   }
@@ -701,7 +702,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
       first = false;
     else
       buf << ", ";
-    param << Workspace::wsv_data[inonly[i]].Name();
+    param << global_data::wsv_data[inonly[i]].Name();
 
     limit_line_length(os, buf, param, indent, linelen);
   }
@@ -749,13 +750,13 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
     buf.str("");
     buf << "OUT   ";
 
-    buf << Workspace::wsv_data[mdr.Out()[i]].Name();
+    buf << global_data::wsv_data[mdr.Out()[i]].Name();
     buf << " (";
-    buf << wsv_groups[Workspace::wsv_data[mdr.Out()[i]].Group()];
+    buf << wsv_groups[global_data::wsv_data[mdr.Out()[i]].Group()];
     buf << "): ";
 
     get_short_wsv_description(desc,
-                              Workspace::wsv_data[mdr.Out()[i]].Description());
+                              global_data::wsv_data[mdr.Out()[i]].Description());
 
     if (buf.str().length() + desc.length() > linelen) {
       format_paragraph(desc, indent, linelen);
@@ -809,13 +810,13 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
     buf.str("");
     buf << "IN    ";
 
-    buf << Workspace::wsv_data[mdr.In()[i]].Name();
+    buf << global_data::wsv_data[mdr.In()[i]].Name();
     buf << " (";
-    buf << wsv_groups[Workspace::wsv_data[mdr.In()[i]].Group()];
+    buf << wsv_groups[global_data::wsv_data[mdr.In()[i]].Group()];
     buf << "): ";
 
     get_short_wsv_description(desc,
-                              Workspace::wsv_data[mdr.In()[i]].Description());
+                              global_data::wsv_data[mdr.In()[i]].Description());
 
     if (buf.str().length() + desc.length() > linelen) {
       format_paragraph(desc, indent, linelen, indent.length());

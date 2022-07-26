@@ -104,7 +104,6 @@ add_executable (make_auto_md_h
         messages.cc
         parameters.cc
         workspace.cc
-        workspace_ng.cc
         wsv_aux.cc
         )
 
@@ -129,7 +128,6 @@ add_executable (make_auto_md_cc
         messages.cc
         parameters.cc
         workspace.cc
-        workspace_ng.cc
         wsv_aux.cc
         )
 

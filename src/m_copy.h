@@ -30,6 +30,7 @@
 #define m_copy_h
 
 #include "agenda_class.h"
+#include "debug.h"
 #include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"
@@ -47,7 +48,7 @@ void Copy(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Copy(Workspace&,
+inline void Copy(Workspace& ws_in,
           // WS Generic Output:
           Agenda& out,
           const String& out_name,
@@ -55,13 +56,15 @@ inline void Copy(Workspace&,
           const Agenda& in,
           const String& /* in_name */,
           const Verbosity& verbosity) {
+  ARTS_ASSERT(in.correct_workspace(ws_in))
+
   out = in;
   out.set_name(out_name);
-  out.check(verbosity);
+  out.check(ws_in, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Copy(Workspace&,
+inline void Copy(Workspace& ws_in,
           // WS Generic Output:
           ArrayOfAgenda& out,
           const String& out_name,
@@ -70,9 +73,10 @@ inline void Copy(Workspace&,
           const String& /* in_name */,
           const Verbosity& verbosity) {
   out = in;
-  for (ArrayOfAgenda::iterator it = out.begin(); it != out.end(); it++) {
-    (*it).set_name(out_name);
-    (*it).check(verbosity);
+  for (auto & it : out) {
+    ARTS_ASSERT(it.correct_workspace(ws_in))
+    it.set_name(out_name);
+    it.check(ws_in, verbosity);
   }
 }
 

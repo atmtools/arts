@@ -54,10 +54,12 @@ void Ignore(  // WS Generic Input:
     const Verbosity&) {}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Touch(Workspace&,
-           // WS Generic Output:
-           Agenda&,
-           const Verbosity&) {}
+inline void Touch(Workspace& ws,
+                  // WS Generic Output:
+                  Agenda& out,
+                  const Verbosity&) {
+  out = Agenda{ws.original_workspace};
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <class T>

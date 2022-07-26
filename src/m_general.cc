@@ -287,12 +287,12 @@ void PrintWorkspace(  // Workspace reference
   for (Index i = 0; i < ws.nelem(); i++) {
     if (!only_allocated) {
       os << "    ";
-      PrintWsvName(os, i);
+      ws.PrintWsvName(os, i);
       if (ws.is_initialized(i)) os << ws.depth(i);
       os << "\n";
     } else if (ws.is_initialized(i)) {
       os << "    ";
-      PrintWsvName(os, i);
+      ws.PrintWsvName(os, i);
       os << ws.depth(i) << "\n";
     }
   }

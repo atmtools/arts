@@ -36,7 +36,15 @@
 #define DESCRIPTION(x) x
 #define GROUP(x) x
 
-void Workspace::define_wsv_data() {
+namespace global_data {
+Array<WsvRecord> wsv_data;
+
+map<String, Index> WsvMap;
+}  // namespace global_data
+
+using global_data::wsv_data;
+
+void define_wsv_data() {
   //--------------------< Build the wsv data >--------------------
   // Initialize to empty, just in case.
   wsv_data.resize(0);
@@ -5696,32 +5704,8 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("Matrix")));
 }
 
-//! Get index of WSV
-/** 
- Returns the index the Workspace of the given WSV.
- 
- \param[in]  name   WSV name
- \returns           Index in Workspace
- 
- \author Oliver Lemke
- */
-Index get_wsv_id(const String& name) {
-  auto it = Workspace::WsvMap.find(name);
-  if (it == Workspace::WsvMap.end())
-    return -1;
-  return it->second;
+void define_wsv_map() {
+  for (Index i = 0; i < global_data::wsv_data.nelem(); ++i) {
+    global_data::WsvMap[global_data::wsv_data[i].Name()] = i;
+  }
 }
-
-//! Get index of WSV
-/** 
- Returns the index the Workspace of the given WSV.
- 
- Convenience function which can be called from within the debugger because it
- takes a plain char pointer instead of a String object as input.
- 
- \param[in]  name   WSV name
- \returns           Index in Workspace
- 
- \author Oliver Lemke
- */
-Index get_wsv_id(const char* name) { return get_wsv_id(String(name)); }

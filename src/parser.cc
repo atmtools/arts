@@ -18,6 +18,7 @@
 #include "parser.h"
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include "arts.h"
 #include "exceptions.h"
 #include "file.h"
@@ -34,10 +35,13 @@
 
     \author Oliver Lemke
 */
-ArtsParser::ArtsParser(Agenda& tasklist,
-                       String controlfile,
-                       const Verbosity& rverbosity)
-    : mtasklist(tasklist),
+ArtsParser::ArtsParser(
+    const std::shared_ptr<Workspace>& workspace,
+    Agenda& tasklist,
+    String controlfile,
+    const Verbosity& rverbosity)
+    : ws(workspace),
+      mtasklist(tasklist),
       mcfile(controlfile),
       mcfile_version(1),
       verbosity(rverbosity) {
@@ -344,7 +348,7 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
   // Input workspace variables:
   ArrayOfIndex input;
   // For Agenda, if there is any:
-  Agenda tasks{borrow(tasklist.workspace())};
+  Agenda tasks{ws};
   // For include statements, holding the include file's name
   String include_file;
 
@@ -388,11 +392,12 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
       include_file = matching_files[0];
       out2 << "- Including control file " << include_file << "\n";
 
-      ArtsParser include_parser(tasks, include_file, verbosity);
+      ArtsParser include_parser(ws, tasks, include_file, verbosity);
       include_parser.parse_tasklist();
 
-      for (Index i = 0; i < tasks.nelem(); i++)
-        tasklist.push_back(tasks.Methods()[i]);
+      for (auto& method: tasks.Methods())
+        tasklist.push_back(method);
+
     } else {
       if (md_data[id].SetMethod()) {
         // Append task to task list:
@@ -424,13 +429,13 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
           using global_data::wsv_groups;
           String method_name =
               "Delete_sg_" +
-              wsv_groups[Workspace::wsv_data[output[0]].Group()].name;
+              wsv_groups[ws->wsv_data[output[0]].Group()].name;
           map<String, Index>::const_iterator mdit;
           mdit = MdMap.find(method_name);
           ARTS_ASSERT(mdit != MdMap.end());
 
           tasklist.push_back(MRecord(
-              mdit->second, ArrayOfIndex(), output, TokVal(), Agenda(borrow(tasklist.workspace())), true));
+              mdit->second, ArrayOfIndex(), output, TokVal(), Agenda{ws}, true));
         }
       }
 
@@ -445,13 +450,13 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
             md_data[id].GOutType().nelem() + md_data[id].GInType().nelem()) {
           out3 << "   Output: ";
           for (Index j = 0; j < output.nelem(); ++j) {
-            out3 << Workspace::wsv_data[output[j]].Name() << " ";
+            out3 << ws->wsv_data[output[j]].Name() << " ";
           }
           out3 << "\n";
 
           out3 << "   Input: ";
           for (Index j = 0; j < input.nelem(); ++j) {
-            out3 << Workspace::wsv_data[input[j]].Name() << " ";
+            out3 << ws->wsv_data[input[j]].Name() << " ";
           }
           out3 << "\n";
         }
@@ -707,9 +712,9 @@ String ArtsParser::set_gin_to_default(const MdRecord* mdd,
              mdd->GIn()[gin_index];
     }
 
-    map<String, Index>::const_iterator wsvit = Workspace::WsvMap.find(name);
-    if (wsvit == Workspace::WsvMap.end()) {
-      wsvid = Workspace::add_wsv(WsvRecord(name.c_str(),
+    map<String, Index>::const_iterator wsvit = ws->WsvMap.find(name);
+    if (wsvit == ws->WsvMap.end()) {
+      wsvid = ws->add_wsv(WsvRecord(name.c_str(),
                                            "Automatically allocated variable.",
                                            mdd->GInType()[gin_index]));
     } else {
@@ -943,8 +948,8 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
           {
             // Find Wsv id:
             const map<String, Index>::const_iterator wsvit =
-                Workspace::WsvMap.find(wsvname);
-            if (wsvit == Workspace::WsvMap.end()) {
+                ws->WsvMap.find(wsvname);
+            if (wsvit == ws->WsvMap.end()) {
               throw UnknownWsv(wsvname,
                                msource.File(),
                                msource.MarkedLine(),
@@ -1062,8 +1067,8 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
     {
       // Find Wsv id:
       const map<String, Index>::const_iterator wsvit =
-          Workspace::WsvMap.find(wsvname);
-      if (wsvit == Workspace::WsvMap.end()) {
+          ws->WsvMap.find(wsvname);
+      if (wsvit == ws->WsvMap.end()) {
         throw UnknownWsv(
             wsvname, msource.File(), msource.Line(), msource.Column());
       }
@@ -1078,7 +1083,7 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
       ostringstream os;
       if (wsv_groups[mdd->GInType()[j]] == "Any")
         supergeneric_args +=
-            wsv_groups[Workspace::wsv_data[wsvid].Group()].name;
+            wsv_groups[ws->wsv_data[wsvid].Group()].name;
       os << mdd->Name() << "_sg_" << supergeneric_args;
       methodname = os.str();
 
@@ -1104,7 +1109,7 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
         bool wrong_group_id = true;
         for (Index i = 0; wrong_group_id && i < mdd->GInSpecType()[j].nelem();
              i++) {
-          if (Workspace::wsv_data[wsvid].Group() == mdd->GInSpecType()[j][i]) {
+          if (ws->wsv_data[wsvid].Group() == mdd->GInSpecType()[j][i]) {
             wrong_group_id = false;
             supergeneric_index = i;
           }
@@ -1123,29 +1128,29 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
 
           throw WrongWsvGroup(
               "*" + mdd->Name() + "* is not defined for " +
-                  wsv_groups[Workspace::wsv_data[wsvid].Group()].name +
+                  wsv_groups[ws->wsv_data[wsvid].Group()].name +
                   " input. Check the online docs.",
               msource.File(),
               msource.Line(),
               msource.Column());
         }
       } else {
-        if (Workspace::wsv_data[wsvid].Group() !=
+        if (ws->wsv_data[wsvid].Group() !=
             mdd->GInSpecType()[j][supergeneric_index]) {
           throw WrongWsvGroup(
               wsvname + " is not " +
                   wsv_groups[mdd->GInSpecType()[j][supergeneric_index]].name +
                   ", it is " +
-                  wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
+                  wsv_groups[ws->wsv_data[wsvid].Group()].name,
               msource.File(),
               msource.Line(),
               msource.Column());
         }
       }
-    } else if (Workspace::wsv_data[wsvid].Group() != mdd->GInType()[j]) {
+    } else if (ws->wsv_data[wsvid].Group() != mdd->GInType()[j]) {
       throw WrongWsvGroup(
           wsvname + " is not " + wsv_groups[mdd->GInType()[j]].name +
-              ", it is " + wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
+              ", it is " + wsv_groups[ws->wsv_data[wsvid].Group()].name,
           msource.File(),
           msource.Line(),
           msource.Column());
@@ -1221,8 +1226,8 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
     {
       wsvid = -1;
       // Find Wsv id:
-      auto wsvit = Workspace::WsvMap.find(wsvname);
-      if (wsvit == Workspace::WsvMap.end()) {
+      auto wsvit = ws->WsvMap.find(wsvname);
+      if (wsvit == ws->WsvMap.end()) {
         if (still_supergeneric) {
           ostringstream os;
           os << "This might be either a typo or you have to create "
@@ -1247,7 +1252,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
         }
 
         wsvid =
-            Workspace::add_wsv(WsvRecord(wsvname.c_str(),
+            ws->add_wsv(WsvRecord(wsvname.c_str(),
                                          "Automatically allocated variable.",
                                          mdd->GOutType()[j]));
       }
@@ -1256,7 +1261,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
         if (mdd->Name().length() > 6 &&
             mdd->Name().find("Create") == mdd->Name().length() - 6) {
           const String& gn =
-              wsv_groups[Workspace::wsv_data[wsvit->second].Group()].name;
+              wsv_groups[ws->wsv_data[wsvit->second].Group()].name;
           if (mdd->Name().find(gn) not_eq 0) {
             throw WsvAlreadyExists(
                 var_string(
@@ -1281,7 +1286,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
       ostringstream os;
       if (wsv_groups[mdd->GOutType()[j]] == "Any")
         supergeneric_args +=
-            wsv_groups[Workspace::wsv_data[wsvid].Group()].name;
+            wsv_groups[ws->wsv_data[wsvid].Group()].name;
       os << mdd->Name() << "_sg_" << supergeneric_args;
       methodname = os.str();
 
@@ -1307,7 +1312,7 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
         bool wrong_group_id = true;
         for (Index i = 0; wrong_group_id && i < mdd->GOutSpecType()[j].nelem();
              i++) {
-          if (Workspace::wsv_data[wsvid].Group() == mdd->GOutSpecType()[j][i]) {
+          if (ws->wsv_data[wsvid].Group() == mdd->GOutSpecType()[j][i]) {
             wrong_group_id = false;
             supergeneric_index = i;
           }
@@ -1326,29 +1331,29 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
 
           throw WrongWsvGroup(
               "*" + mdd->Name() + "* is not defined for " +
-                  wsv_groups[Workspace::wsv_data[wsvid].Group()].name +
+                  wsv_groups[ws->wsv_data[wsvid].Group()].name +
                   " output. Check the online docs.",
               msource.File(),
               msource.Line(),
               msource.Column());
         }
       } else {
-        if (Workspace::wsv_data[wsvid].Group() !=
+        if (ws->wsv_data[wsvid].Group() !=
             mdd->GOutSpecType()[j][supergeneric_index]) {
           throw WrongWsvGroup(
               wsvname + " is not " +
                   wsv_groups[mdd->GOutSpecType()[j][supergeneric_index]].name +
                   ", it is " +
-                  wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
+                  wsv_groups[ws->wsv_data[wsvid].Group()].name,
               msource.File(),
               msource.Line(),
               msource.Column());
         }
       }
-    } else if (Workspace::wsv_data[wsvid].Group() != mdd->GOutType()[j]) {
+    } else if (ws->wsv_data[wsvid].Group() != mdd->GOutType()[j]) {
       throw WrongWsvGroup(
           wsvname + " is not " + wsv_groups[mdd->GOutType()[j]].name +
-              ", it is " + wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
+              ", it is " + wsv_groups[ws->wsv_data[wsvid].Group()].name,
           msource.File(),
           msource.Line(),
           msource.Column());
@@ -1395,7 +1400,7 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
     if (call_by_name) {
       Index this_arg_index;
 
-      wsvname = Workspace::wsv_data[*ins].Name();
+      wsvname = ws->wsv_data[*ins].Name();
 
       get_argument_index_by_name(this_arg_index, named_args, wsvname);
 
@@ -1407,9 +1412,9 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
         read_name_or_value(wsvname,
                            auto_vars,
                            auto_vars_values,
-                           Workspace::wsv_data[*ins].Name(),
+                           ws->wsv_data[*ins].Name(),
                            mdd,
-                           Workspace::wsv_data[*ins].Group());
+                           ws->wsv_data[*ins].Group());
         at_end_of_argument("specific input argument");
       }
     } else {
@@ -1420,7 +1425,7 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
           assertain_character(',');
         } catch (const UnexpectedChar&) {
           ostringstream os;
-          os << "Expected input WSV *" << Workspace::wsv_data[*ins].Name()
+          os << "Expected input WSV *" << ws->wsv_data[*ins].Name()
              << "*";
         }
         eat_whitespace();
@@ -1429,16 +1434,16 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
       read_name_or_value(wsvname,
                          auto_vars,
                          auto_vars_values,
-                         Workspace::wsv_data[*ins].Name(),
+                         ws->wsv_data[*ins].Name(),
                          mdd,
-                         Workspace::wsv_data[*ins].Group());
+                         ws->wsv_data[*ins].Group());
     }
 
     {
       // Find Wsv id:
       const map<String, Index>::const_iterator wsvit =
-          Workspace::WsvMap.find(wsvname);
-      if (wsvit == Workspace::WsvMap.end())
+          ws->WsvMap.find(wsvname);
+      if (wsvit == ws->WsvMap.end())
         throw UnknownWsv(
             wsvname, msource.File(), msource.Line(), msource.Column());
 
@@ -1446,12 +1451,12 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
     }
 
     // Check that this Wsv belongs to the correct group:
-    if (Workspace::wsv_data[wsvid].Group() !=
-        Workspace::wsv_data[*ins].Group()) {
+    if (ws->wsv_data[wsvid].Group() !=
+        ws->wsv_data[*ins].Group()) {
       throw WrongWsvGroup(
           wsvname + " is not " +
-              wsv_groups[Workspace::wsv_data[*ins].Group()].name + ", it is " +
-              wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
+              wsv_groups[ws->wsv_data[*ins].Group()].name + ", it is " +
+              wsv_groups[ws->wsv_data[wsvid].Group()].name,
           msource.File(),
           msource.Line(),
           msource.Column());
@@ -1492,7 +1497,7 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
     if (call_by_name) {
       Index this_arg_index = 0;
 
-      wsvname = Workspace::wsv_data[*outs].Name();
+      wsvname = ws->wsv_data[*outs].Name();
 
       get_argument_index_by_name(this_arg_index, named_args, wsvname);
 
@@ -1512,7 +1517,7 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
           assertain_character(',');
         } catch (const UnexpectedChar&) {
           ostringstream os;
-          os << "Expected output WSV *" << Workspace::wsv_data[*outs].Name()
+          os << "Expected output WSV *" << ws->wsv_data[*outs].Name()
              << "*";
           throw ParseError(
               os.str(), msource.File(), msource.Line(), msource.Column());
@@ -1527,23 +1532,23 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
       wsvid = -1;
       // Find Wsv id:
       map<String, Index>::const_iterator wsvit =
-          Workspace::WsvMap.find(wsvname);
-      if (wsvit == Workspace::WsvMap.end()) {
+          ws->WsvMap.find(wsvname);
+      if (wsvit == ws->WsvMap.end()) {
         if (mdd->Name().length() > 6 &&
             mdd->Name().substr(mdd->Name().length() - 6) != "Create") {
           ostringstream os;
           os << "This might be either a typo or you have to create "
              << "the variable\nby calling "
-             << wsv_groups[Workspace::wsv_data[*outs].Group()]
+             << wsv_groups[ws->wsv_data[*outs].Group()]
              << "Create( " << wsvname << " ) first.\n";
 
           throw UnknownWsv(
               os.str(), msource.File(), msource.Line(), msource.Column());
         } else {
           wsvid =
-              Workspace::add_wsv(WsvRecord(wsvname.c_str(),
+              ws->add_wsv(WsvRecord(wsvname.c_str(),
                                            "Automatically allocated variable.",
-                                           Workspace::wsv_data[*outs].Group()));
+                                           ws->wsv_data[*outs].Group()));
         }
       }
 
@@ -1551,12 +1556,12 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
     }
 
     // Check that this Wsv belongs to the correct group:
-    if (Workspace::wsv_data[wsvid].Group() !=
-        Workspace::wsv_data[*outs].Group()) {
+    if (ws->wsv_data[wsvid].Group() !=
+        ws->wsv_data[*outs].Group()) {
       throw WrongWsvGroup(
           wsvname + " is not " +
-              wsv_groups[Workspace::wsv_data[*outs].Group()].name + ", it is " +
-              wsv_groups[Workspace::wsv_data[wsvid].Group()].name,
+              wsv_groups[ws->wsv_data[*outs].Group()].name + ", it is " +
+              wsv_groups[ws->wsv_data[wsvid].Group()].name,
           msource.File(),
           msource.Line(),
           msource.Column());
@@ -1595,9 +1600,9 @@ void ArtsParser::tasklist_insert_set_delete(
     TokVal auto_keyword_value;
     ArrayOfIndex auto_output_var;
     ArrayOfIndex auto_input_var;
-    Agenda auto_tasks{borrow(tasklist.workspace())};
+    Agenda auto_tasks{ws};
 
-    const Index auto_group = Workspace::wsv_data[auto_vars[i]].Group();
+    const Index auto_group = ws->wsv_data[auto_vars[i]].Group();
     if (auto_group != get_wsv_group_id("Index") &&
         auto_group != get_wsv_group_id("Numeric") &&
         auto_group != get_wsv_group_id("ArrayOfIndex") &&
@@ -1608,7 +1613,7 @@ void ArtsParser::tasklist_insert_set_delete(
         auto_group != get_wsv_group_id("Matrix")) {
       ostringstream os;
       os << "Passing a "
-         << wsv_groups[Workspace::wsv_data[auto_vars[i]].Group()]
+         << wsv_groups[ws->wsv_data[auto_vars[i]].Group()]
          << " constant to a WSM is not supported!";
       throw ParseError(
           os.str(), msource.File(), msource.Line(), msource.Column());
@@ -1620,13 +1625,13 @@ void ArtsParser::tasklist_insert_set_delete(
         auto_keyword_value = auto_vars_values[i];
         auto_output_var.push_back(auto_vars[i]);
         method_name =
-            wsv_groups[Workspace::wsv_data[auto_vars[i]].Group()].name + "Set";
+            wsv_groups[ws->wsv_data[auto_vars[i]].Group()].name + "Set";
         break;
       case 1:
         auto_input_var.push_back(auto_vars[i]);
         method_name =
             "Delete_sg_" +
-            wsv_groups[Workspace::wsv_data[auto_vars[i]].Group()].name;
+            wsv_groups[ws->wsv_data[auto_vars[i]].Group()].name;
         break;
       default:
         throw ParseError("Invalid method type.",
@@ -1796,9 +1801,9 @@ Index ArtsParser::read_name_or_value(String& name,
   Index wsvid;
 
   name = "auto_" + mdd->Name() + "_" + default_name;
-  map<String, Index>::const_iterator wsvit = Workspace::WsvMap.find(name);
-  if (wsvit == Workspace::WsvMap.end()) {
-    wsvid = Workspace::add_wsv(WsvRecord(
+  map<String, Index>::const_iterator wsvit = ws->WsvMap.find(name);
+  if (wsvit == ws->WsvMap.end()) {
+    wsvid = ws->add_wsv(WsvRecord(
         name.c_str(), "Automatically allocated variable.", group));
   } else {
     wsvid = wsvit->second;

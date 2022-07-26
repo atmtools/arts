@@ -122,7 +122,7 @@ inline void Append(  // WS Generic Output:
 }
 
 /* Implementation for array types to append single element */
-inline void Append(Workspace&,
+inline void Append(Workspace& ws_in,
             // WS Generic Output:
             ArrayOfAgenda& out,
             const String& out_name,
@@ -133,13 +133,15 @@ inline void Append(Workspace&,
             const String& /* direction_name */,
             const Verbosity& verbosity) {
   // Append in to end of out:
-  out.push_back(in);
-  out[out.nelem() - 1].set_name(out_name);
-  out[out.nelem() - 1].check(verbosity);
+  auto& newag = out.emplace_back(in);
+  newag.set_name(out_name);
+  newag.check(ws_in, verbosity);
+
+  ARTS_ASSERT(newag.correct_workspace(ws_in))
 }
 
 /* Implementation for array types to append single element */
-inline void Append(Workspace&,
+inline void Append(Workspace& ws_in,
             // WS Generic Output:
             ArrayOfAgenda& out,
             const String& out_name,
@@ -153,7 +155,7 @@ inline void Append(Workspace&,
   for (const auto & it : in) {
     auto& newag = out.emplace_back(it);
     newag.set_name(out_name);
-    newag.check(verbosity);
+    newag.check(ws_in, verbosity);
   }
 }
 

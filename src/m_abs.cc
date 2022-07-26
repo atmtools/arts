@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <memory>
 #include <utility>
 
 #include "absorption.h"
@@ -1612,7 +1613,7 @@ struct MethodAppender {
     auto& in = rec.InOnly();
     for (auto& i : out) full_out.push_back(i);
     for (auto& i : in) full_in.push_back(i);
-    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{borrow(propmat_clearsky_agenda.workspace())}));
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{propmat_clearsky_agenda.wsptr()}));
   }
 
   template <typename T>
@@ -1630,7 +1631,7 @@ struct MethodAppender {
 
     for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
     for (auto& x : gins) in.push_back(x.pos);
-    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{borrow(propmat_clearsky_agenda.workspace())}));
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{propmat_clearsky_agenda.wsptr()}));
     for (auto& x : gins) propmat_clearsky_agenda.push_back(x.del);
   }
 
@@ -1643,9 +1644,9 @@ struct MethodAppender {
       if (end == std::find(full_in.begin(), end, val_pos)) {
         auto fun_pos = global_data::MdMap.at(
             "Ignore_sg_" +
-            global_data::wsv_groups.at(propmat_clearsky_agenda.workspace().wsv_data.at(val_pos).Group()).name);
+            global_data::wsv_groups.at(propmat_clearsky_agenda.wsptr() -> wsv_data.at(val_pos).Group()).name);
         propmat_clearsky_agenda.push_back(
-            MRecord(fun_pos, {}, {val_pos}, {}, Agenda{borrow(propmat_clearsky_agenda.workspace())}));
+            MRecord(fun_pos, {}, {val_pos}, {}, Agenda{propmat_clearsky_agenda.wsptr()}));
       }
     }
     return *this;
@@ -1660,9 +1661,9 @@ struct MethodAppender {
       if (end == std::find(full_out.begin(), end, val_pos)) {
         auto fun_pos = global_data::MdMap.at(
             "Touch_sg_" +
-            global_data::wsv_groups.at(propmat_clearsky_agenda.workspace().wsv_data.at(val_pos).Group()).name);
+            global_data::wsv_groups.at(propmat_clearsky_agenda.wsptr() -> wsv_data.at(val_pos).Group()).name);
         propmat_clearsky_agenda.push_back(
-            MRecord(fun_pos, {val_pos}, {}, {}, Agenda{borrow(propmat_clearsky_agenda.workspace())}));
+            MRecord(fun_pos, {val_pos}, {}, {}, Agenda{propmat_clearsky_agenda.wsptr()}));
       }
     }
     return *this;
@@ -1694,11 +1695,11 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const Numeric& eta,
     // Verbosity object:
     const Verbosity& verbosity) {
-  auto ws = borrow(ws_ref);
+  auto ws = std::shared_ptr<Workspace>(&ws_ref, [](Workspace*){});
   propmat_clearsky_agenda_checked = 0;  // In case of crash
 
   // Reset the agenda
-  propmat_clearsky_agenda.resize(0);
+  propmat_clearsky_agenda = Agenda{ws};
   propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
 
   const SpeciesTagTypeStatus any_species(abs_species);
@@ -1796,7 +1797,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
   agenda.append_ignores().append_touch();
 
   // Extra check (should really never ever fail when species exist)
-  propmat_clearsky_agenda.check(verbosity);
+  propmat_clearsky_agenda.check(ws_ref, verbosity);
   propmat_clearsky_agenda_checked=1;
 }
 
@@ -1817,11 +1818,11 @@ void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
     const Numeric& eta,
     // Verbosity object:
     const Verbosity& verbosity) {
-  auto ws = borrow(ws_ref);
+  auto ws = std::shared_ptr<Workspace>(&ws_ref, [](Workspace*){});
   propmat_clearsky_agenda_checked = 0;  // In case of crash
   
   // Reset the agenda
-  propmat_clearsky_agenda.resize(0);
+  propmat_clearsky_agenda = Agenda{ws};
   propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
 
   const SpeciesTagTypeStatus any_species(abs_species);
@@ -1874,6 +1875,6 @@ void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
   agenda.append_ignores().append_touch();
 
   // Extra check (should really never ever fail when species exist)
-  propmat_clearsky_agenda.check(verbosity);
+  propmat_clearsky_agenda.check(ws_ref, verbosity);
   propmat_clearsky_agenda_checked=1;
 }

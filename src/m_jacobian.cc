@@ -64,7 +64,7 @@ void jacobianCalcDoNothing(Matrix& jacobian _U_,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianClose(Workspace&,
+void jacobianClose(Workspace& ws_in,
                    Index& jacobian_do,
                    Agenda& jacobian_agenda,
                    const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -74,7 +74,7 @@ void jacobianClose(Workspace&,
     throw runtime_error(
         "No retrieval quantities has been added to *jacobian_quantities*.");
 
-  jacobian_agenda.check(verbosity);
+  jacobian_agenda.check(ws_in, verbosity);
   jacobian_do = 1;
 }
 
@@ -84,7 +84,7 @@ void jacobianInit(Workspace& ws,
                   Agenda& jacobian_agenda,
                   const Verbosity&) {
   jacobian_quantities.resize(0);
-  jacobian_agenda = Agenda{borrow(ws)};
+  jacobian_agenda = Agenda{ws.original_workspace};
   jacobian_agenda.set_name("jacobian_agenda");
 }
 

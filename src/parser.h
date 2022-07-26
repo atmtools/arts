@@ -25,7 +25,7 @@
 
 class ArtsParser {
  public:
-  ArtsParser(Agenda& tasklist, String controlfile, const Verbosity& verbosity);
+  ArtsParser(const std::shared_ptr<Workspace>& workspace, Agenda& tasklist, String controlfile, const Verbosity& verbosity);
 
   void parse_tasklist();
 
@@ -157,6 +157,8 @@ class ArtsParser {
   bool parse_numvector_from_string(Vector& res, String& str);
 
   bool parse_stringarray_from_string(ArrayOfString& res, String& str);
+
+  const std::shared_ptr<Workspace>& ws;
 
   Agenda& mtasklist;
 
