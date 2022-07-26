@@ -627,13 +627,15 @@ void get_pmom(Tensor3View pmom,
   pmom = 0.;
 
   // we need the cosine of the pfct angles
-  Vector u(nang), adu(nang - 1);
+  Vector u(nang), adu(nang - 1), ad_angs(nang - 1);
   Tensor3 px(nang - 1, Nlegendre, 2, 0.);
   u[0] = cos(pfct_angs[0] * PI / 180.);
   px(joker, 0, joker) = 1.;
   for (Index ia = 1; ia < nang; ia++) {
     u[ia] = cos(pfct_angs[ia] * PI / 180.);
     adu[ia - 1] = abs(u[ia] - u[ia - 1]);
+    ad_angs[ia - 1] =
+        abs(pfct_angs[ia] * PI / 180. - pfct_angs[ia - 1] * PI / 180.);
     px(ia - 1, 1, 0) = u[ia - 1];
     px(ia - 1, 1, 1) = u[ia];
     for (Index l = 2; l < Nlegendre; l++) {
@@ -652,9 +654,16 @@ void get_pmom(Tensor3View pmom,
           Vector pfct = pfct_bulk_par(f_index, il, joker);
 
           // Check if phase function is properly normalized
+          // For highly peaked phasefunctions, integrating over the angle instead
+          // of over the cosine of the angle is numerically more exact though both 
+          // ways are analytically equal. Furthermore in *scat_dataCalc* the 
+          // integration is also done over the angle.
           Numeric pint = 0.;
-          for (Index ia = 0; ia < nang - 1; ia++)
-            pint += 0.5 * adu[ia] * (pfct[ia] + pfct[ia + 1]);
+          for (Index ia = 0; ia < nang - 1; ia++) {
+            pint += 0.5 * ad_angs[ia] *
+                    (pfct[ia] * sin(pfct_angs[ia] * PI / 180.) +
+                     pfct[ia + 1] * sin(pfct_angs[ia + 1] * PI / 180.));
+          }
 
           if (abs(pint / 2. - 1.) > pfct_threshold) {
             ostringstream os;
@@ -672,12 +681,14 @@ void get_pmom(Tensor3View pmom,
 
           pmom(f_index, il, 0) = 1.;
           for (Index ia = 0; ia < nang - 1; ia++) {
-            //for (Index l=0; l<Nlegendre; l++)
-            for (Index l = 1; l < Nlegendre; l++)
+            for (Index l = 1; l < Nlegendre; l++) {
               pmom(f_index, il, l) +=
-                  0.25 * adu[ia] *
-                  (px(ia, l, 0) * pfct[ia] + px(ia, l, 1) * pfct[ia + 1]);
-          }
+                  0.25 * ad_angs[ia] *
+                  (px(ia, l, 0) * pfct[ia] * sin(pfct_angs[ia] * PI / 180.) +
+                   px(ia, l, 1) * pfct[ia + 1] *
+                       sin(pfct_angs[ia + 1] * PI / 180.));
+            }
+          }            
         }
       }
 }
