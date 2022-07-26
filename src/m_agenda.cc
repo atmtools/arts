@@ -225,7 +225,7 @@ void Arts2(Workspace& ws,
            // Agenda from controlfile:
            const Agenda& input_agenda,
            const Verbosity& verbosity) {
-  Verbosity* v = static_cast<Verbosity*>(ws[ws.WsvMap.find("verbosity") -> second].get());
+  Verbosity* v = static_cast<Verbosity*>(ws[ws.WsvMap_ptr->find("verbosity") -> second].get());
 
   // If the verbosity in the current workspace and the verbosity parameter point
   // to the same variable in memory, that means we were called

@@ -552,7 +552,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   iy_main_agenda.append("ppathPlaneParallel", TokVal());
   iy_main_agenda.append("iyEmissionStandard", TokVal());
   iy_main_agenda.push_back(MRecord(global_data::MdMap.at("VectorSet"),
-                                   {ws.WsvMap.at("geo_pos")},
+                                   {ws.WsvMap_ptr->at("geo_pos")},
                                    {},
                                    Vector{},
                                    Agenda{ws.original_workspace}));
@@ -811,7 +811,7 @@ void spectral_radiance_fieldExpandCloudboxField(
   iy_main_agenda.append("ppathPlaneParallel", TokVal());
   iy_main_agenda.append("iyEmissionStandard", TokVal());
   iy_main_agenda.push_back(MRecord(global_data::MdMap.at("VectorSet"),
-                                   {ws.WsvMap.at("geo_pos")},
+                                   {ws.WsvMap_ptr->at("geo_pos")},
                                    {},
                                    Vector{},
                                    Agenda{ws.original_workspace}));

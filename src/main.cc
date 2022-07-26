@@ -153,8 +153,8 @@ void option_methods(Workspace& workspace, const String& methods) {
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  auto mi = workspace.WsvMap.find(methods);
-  if (mi != workspace.WsvMap.end()) {
+  auto mi = workspace.WsvMap_ptr->find(methods);
+  if (mi != workspace.WsvMap_ptr->end()) {
     // If we are here, then the given name matches a variable.
     Index wsv_key = mi->second;
 
@@ -163,7 +163,7 @@ void option_methods(Workspace& workspace, const String& methods) {
     cout
         << "\n*-------------------------------------------------------------------*\n"
         << "Generic and supergeneric methods that can generate "
-        << workspace.wsv_data[wsv_key].Name() << ":\n"
+        << (*workspace.wsv_data_ptr)[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -175,7 +175,7 @@ void option_methods(Workspace& workspace, const String& methods) {
       // The else clause picks up methods with supergeneric input.
       if (count(mdd.GOutType().begin(),
                 mdd.GOutType().end(),
-                workspace.wsv_data[wsv_key].Group())) {
+                (*workspace.wsv_data_ptr)[wsv_key].Group())) {
         cout << "- " << mdd.Name() << "\n";
         ++hitcount;
       } else if (count(mdd.GOutType().begin(),
@@ -186,7 +186,7 @@ void option_methods(Workspace& workspace, const String& methods) {
             if (mdd.GOutSpecType()[j].nelem()) {
               if (count(mdd.GOutSpecType()[j].begin(),
                         mdd.GOutSpecType()[j].end(),
-                        workspace.wsv_data[wsv_key].Group())) {
+                        (*workspace.wsv_data_ptr)[wsv_key].Group())) {
                 cout << "- " << mdd.Name() << "\n";
                 ++hitcount;
               }
@@ -205,7 +205,7 @@ void option_methods(Workspace& workspace, const String& methods) {
     cout
         << "\n---------------------------------------------------------------------\n"
         << "Specific methods that can generate "
-        << workspace.wsv_data[wsv_key].Name() << ":\n"
+        << (*workspace.wsv_data_ptr)[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:

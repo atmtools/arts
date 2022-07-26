@@ -259,7 +259,7 @@ int main() {
           // Add comma and line break, if not first element:
           align(ofs, is_first_parameter, indent);
 
-          ofs << "ws.wsv_data[mr.Out()[" << j + vo.nelem()
+          ofs << "(*ws.wsv_data_ptr)[mr.Out()[" << j + vo.nelem()
               << "]].Name()";
         }
       }
@@ -307,7 +307,7 @@ int main() {
               // Add comma and line break, if not first element:
               align(ofs, is_first_parameter, indent);
 
-              ofs << "ws.wsv_data[mr.In()[" << j + vi.nelem()
+              ofs << "(*ws.wsv_data_ptr)[mr.In()[" << j + vi.nelem()
                   << "]].Name()";
             }
           }

@@ -137,10 +137,10 @@ void Agenda::check(Workspace& ws_in, const Verbosity& verbosity) {
     if (!is_output(this_wsv)) {
       ostringstream os;
       os << "The agenda " << mname << " must generate the output WSV "
-         << ws_in.wsv_data[this_wsv].Name() << ",\n"
+         << (*ws_in.wsv_data_ptr)[this_wsv].Name() << ",\n"
          << "but it does not. It only generates:\n";
-      for (Index j = 0; j < ws_in.wsv_data.nelem(); ++j)
-        if (is_output(j)) os << ws_in.wsv_data[j].Name() << "\n";
+      for (Index j = 0; j < (*ws_in.wsv_data_ptr).nelem(); ++j)
+        if (is_output(j)) os << (*ws_in.wsv_data_ptr)[j].Name() << "\n";
       throw runtime_error(os.str());
     }
   }
@@ -154,10 +154,10 @@ void Agenda::check(Workspace& ws_in, const Verbosity& verbosity) {
     if (!is_input(ws_in, this_wsv)) {
       ostringstream os;
       os << "The agenda " << mname << " must use the input WSV "
-         << ws_in.wsv_data[this_wsv].Name() << ",\n"
+         << (*ws_in.wsv_data_ptr)[this_wsv].Name() << ",\n"
          << "but it does not. It only uses:\n";
-      for (Index j = 0; j < ws_in.wsv_data.nelem(); ++j)
-        if (is_input(ws_in, j)) os << ws_in.wsv_data[j].Name() << "\n";
+      for (Index j = 0; j < (*ws_in.wsv_data_ptr).nelem(); ++j)
+        if (is_input(ws_in, j)) os << (*ws_in.wsv_data_ptr)[j].Name() << "\n";
       throw runtime_error(os.str());
     }
   }
@@ -211,7 +211,7 @@ void Agenda::execute(Workspace& ws_in) const {
   // The array holding the pointers to the getaway functions:
   extern void (*getaways[])(Workspace&, const MRecord&);
 
-  const Index wsv_id_verbosity = ws_in.WsvMap.at("verbosity");
+  const Index wsv_id_verbosity = ws_in.WsvMap_ptr->at("verbosity");
   ws_in.duplicate(wsv_id_verbosity);
 
   Verbosity& averbosity =
@@ -256,7 +256,7 @@ void Agenda::execute(Workspace& ws_in) const {
               !ws_in.is_initialized(v[s]))
             throw runtime_error(
                 "Method " + mdd.Name() +
-                " needs input variable: " + ws_in.wsv_data[v[s]].Name());
+                " needs input variable: " + (*ws_in.wsv_data_ptr)[v[s]].Name());
         }
       }
 
@@ -267,7 +267,7 @@ void Agenda::execute(Workspace& ws_in) const {
           if (!ws_in.is_initialized(mrr.Out()[v[s]]))
             throw runtime_error("Method " + mdd.Name() +
                                 " needs input variable: " +
-                                ws_in.wsv_data[mrr.Out()[v[s]]].Name());
+                                (*ws_in.wsv_data_ptr)[mrr.Out()[v[s]]].Name());
       }
 
       // Call the getaway function:
@@ -351,7 +351,7 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
         method.Id() == WsmAgendaExecuteExclIndex) {
       for (Index j = 0; j < md_data[method.Id()].GInType().nelem(); j++) {
         if (md_data[method.Id()].GInType()[j] == WsvAgendaGroupIndex) {
-          const String& agenda_name = ws->wsv_data[gins[j]].Name();
+          const String& agenda_name = (*ws->wsv_data_ptr)[gins[j]].Name();
           const auto agenda_it =
               AgendaMap.find(agenda_name);
           // The executed agenda must not be a user created agenda
@@ -545,7 +545,7 @@ bool Agenda::is_input(Workspace& ws_in, Index var) const {
 
   // Make sure that var is the index of a valid WSV:
   ARTS_ASSERT(0 <= var);
-  ARTS_ASSERT(var < ws_in.wsv_data.nelem());
+  ARTS_ASSERT(var < (*ws_in.wsv_data_ptr).nelem());
 
   // Determine the index of WsvGroup Agenda
   const Index WsvAgendaGroupIndex = WsvGroupMap.find("Agenda")->second;
@@ -580,7 +580,7 @@ bool Agenda::is_input(Workspace& ws_in, Index var) const {
         for (Index j = 0; j < md_data[this_method.Id()].GInType().nelem();
              j++) {
           if (md_data[this_method.Id()].GInType()[j] == WsvAgendaGroupIndex) {
-            const String& agenda_name = ws_in.wsv_data[input[j]].Name();
+            const String& agenda_name = (*ws_in.wsv_data_ptr)[input[j]].Name();
             const auto agenda_it =
                 AgendaMap.find(agenda_name);
             // The executed agenda must not be a user created agenda
@@ -651,7 +651,7 @@ bool Agenda::is_output(Index var) const {
              j++) {
           if (md_data[this_method.Id()].GInType()[j] == WsvAgendaGroupIndex) {
             const String& agenda_name =
-                ws->wsv_data[this_method.In()[j]].Name();
+                (*ws->wsv_data_ptr)[this_method.In()[j]].Name();
             const auto agenda_it =
                 AgendaMap.find(agenda_name);
             // The executed agenda must not be a user created agenda
@@ -841,7 +841,7 @@ void MRecord::print(ostream& os, const String& indent) const {
       else
         os << ",";
 
-      os << mtasks.wsptr() -> wsv_data[Out()[i]].Name();
+      os << (*mtasks.wsptr() -> wsv_data_ptr)[Out()[i]].Name();
     }
 
     for (Index i = 0; i < In().nelem(); ++i) {
@@ -850,7 +850,7 @@ void MRecord::print(ostream& os, const String& indent) const {
       else
         os << ",";
 
-      os << mtasks.wsptr() -> wsv_data[In()[i]].Name();
+      os << (*mtasks.wsptr() -> wsv_data_ptr)[In()[i]].Name();
     }
 
     os << ")";

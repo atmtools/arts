@@ -54,9 +54,9 @@ class Workspace final {
   /** Workspace variable container. */
   Array<WorkspaceVariable> ws;
 
-  Array<WsvRecord> wsv_data;
+  std::shared_ptr<Array<WsvRecord>> wsv_data_ptr;
 
-  map<String, Index> WsvMap;
+  std::shared_ptr<map<String, Index>> WsvMap_ptr;
 
   std::shared_ptr<Workspace> original_workspace;
 
@@ -177,7 +177,7 @@ class Workspace final {
   /** Retrieve a value ptr if it exist (FIXME: C++20 allows const char* as template argument) */
   template <class T>
   T* get(const char *name) {
-    if (const Index pos = WsvMap.at(name); is_initialized(pos)) {
+    if (const Index pos = WsvMap_ptr -> at(name); is_initialized(pos)) {
       return static_cast<T*>(ws[pos].top().wsv.get());
     }
     return nullptr;
@@ -196,7 +196,7 @@ class Workspace final {
  */
   template <typename OutputStream>
   void PrintWsvName(OutputStream &outstream, Index i) const {
-    outstream << wsv_data[i].Name() << "(" << i << ") ";
+    outstream << (*wsv_data_ptr)[i].Name() << "(" << i << ") ";
   }
 };
 
