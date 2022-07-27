@@ -1577,9 +1577,9 @@ struct MethodSetDelHelper {
       : name(std::move(n)), type(std::move(t)), del(ws), set(ws) {
     auto k = "::propmat_clearsky_agendaSetAutomatic::autogen::" + name;
     auto ptr = ws->WsvMap_ptr->find(k);
-    pos = ptr == ws->WsvMap_ptr->end() ? ws->add_wsv_inplace(WsvRecord(
-                                       k.c_str(), "Added automatically", type))
-                                 : ptr->second;
+    pos = ptr == ws->WsvMap_ptr->end()
+              ? ws->add_wsv(WsvRecord(k.c_str(), "Added automatically", type))
+              : ptr->second;
 
     set = MRecord(
         global_data::MdMap.at(type + "Set"), {pos}, {}, std::move(val), Agenda{ws});

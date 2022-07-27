@@ -9,7 +9,7 @@ import pyarts.arts as cxx
 assert cxx.Group.__doc__
 ws = cxx.Workspace()
 
-x = cxx.Group()
+x = cxx.Group()  # Except for Agenda which has x = cxx.Group(ws)
 ws.GroupCreate("Group__1", '', x)
 ws.Group__2 = x
 cxx.Group(ws.Group__1)
@@ -38,7 +38,8 @@ for g in list_of_groups:
         print("Running tests for", g)
 
         print("Trying to default init")
-        x = eval("cxx.{}()".format(g))
+        if g == "Agenda": x = eval("cxx.{}(ws)".format(g))
+        else: x = eval("cxx.{}()".format(g))
 
         print("Trying create workspace variable")
         eval("ws.{}Create('{}__1', '', x)".format(g, g))

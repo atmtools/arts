@@ -15,7 +15,8 @@ x = list(cxx.get_WsvGroupMap().keys())
 
 for i in range(len(x)):
     print(f"Create {x[i]} on workspace", end='; ')
-    exec(f"ws.v{i} = cxx.{x[i]}()")
+    if x[i] == "Agenda": exec(f"ws.v{i} = cxx.{x[i]}(ws)")
+    else: exec(f"ws.v{i} = cxx.{x[i]}()")
     
     print(f"pickling the workspace", end='; ')
     pickle.dump(ws, open("test.pcl", 'wb'))

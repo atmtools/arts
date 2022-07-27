@@ -63,7 +63,7 @@ void py_workspace(py::module_& m,
                 "Already exist of different group: ",
                 name)
 
-            const Index pos = w.add_wsv_inplace(
+            const Index pos = w.add_wsv(
                 WsvRecord(name.c_str(),
                           desc.has_value() ? *desc : "No description",
                           group_index));

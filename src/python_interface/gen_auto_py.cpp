@@ -573,7 +573,7 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
   if (auto varptr = w.WsvMap_ptr -> find(name); varptr == w.WsvMap_ptr -> end()) {
     ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == ':' or sv.back() == ':',
       "Cannot create variables without a name, or one that starts or ends with \":\"\nVariable name: \"", name, "\"")
-    pos = w.add_wsv_inplace(WsvRecord(name, desc.has_value() ? *desc : "User-generated workspace variable", )--"
+    pos = w.add_wsv(WsvRecord(name, desc.has_value() ? *desc : "User-generated workspace variable", )--"
        << group_index << R"--());
   } else {
     pos = varptr->second;
@@ -1572,7 +1572,7 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
 
     // Create the variable and initialize it
     static std::size_t i = 0;
-    pos = ws.add_wsv_inplace(WsvRecord(var_string("::anon::", i++).c_str(), "Anonymous agenda variable", group_index));
+    pos = ws.add_wsv(WsvRecord(var_string("::anon::", i++).c_str(), "Anonymous agenda variable", group_index));
     ws.push_move(pos, std::move(value_ptr));
   }
 }
@@ -1716,7 +1716,7 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
        << name << extra;
     os << R"--(& val) {
   auto varpos = w.WsvMap_ptr -> find(name);
-  Index i = (varpos == w.WsvMap_ptr -> end()) ? w.add_wsv_inplace(WsvRecord(name, "User-created variable", )--"
+  Index i = (varpos == w.WsvMap_ptr -> end()) ? w.add_wsv(WsvRecord(name, "User-created variable", )--"
        << group << R"--()) : varpos -> second;
 )--";
     if (name == "Agenda")
@@ -1855,7 +1855,7 @@ ws.def(py::pickle(
       auto wsv_data = out -> WsvMap_ptr -> find(name[i]);
       const Index wsv_pos =
         (wsv_data == out -> WsvMap_ptr -> end()) ?
-          out -> add_wsv_inplace(WsvRecord(name[i].c_str(), description[i].c_str(), group[i])) :
+          out -> add_wsv(WsvRecord(name[i].c_str(), description[i].c_str(), group[i])) :
           wsv_data -> second;
 
       switch (out -> wsv_data_ptr -> operator[](wsv_pos).Group()) {

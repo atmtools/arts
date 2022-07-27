@@ -306,23 +306,42 @@ _group_types = [eval(f"cxx.{x.name}") for x in list(cxx.get_wsv_groups())]
 
 class Workspace(InternalWorkspace):
     def __getattr__(self, attr):
-        if self._hasattr_check_(attr): return self._getattr_unchecked_(attr)
-        if attr == "__class__": return InternalWorkspace
+        if self._hasattr_check_(attr):
+            return self._getattr_unchecked_(attr)
+
+        if attr == "__class__":
+            return InternalWorkspace
+
         raise AttributeError(f"'Workspace' object has no attribute '{attr}'")
-    
+
     def __setattr__(self, attr, value):
         if self._hasattr_check_(attr):
-            if isinstance(value, DelayedAgenda): value = value(self)
+            if isinstance(value, cxx.Agenda):
+                assert value.correct_workspace(
+                    self), "Cannot transfer Agenda over workspace boundaries"
+
+            if isinstance(value, cxx.ArrayOfAgenda):
+                for v in value:
+                    assert v.correct_workspace(
+                        self), "Cannot transfer ArrayOfAgenda over workspace boundaries"
+
+            if isinstance(value, DelayedAgenda):
+                value = value(self)
+
             self._getattr_unchecked_(attr).initialize_if_not()
-            self._getattr_unchecked_(attr).value = type(self._getattr_unchecked_(attr).value)(value)
+            self._getattr_unchecked_(attr).value = type(
+                self._getattr_unchecked_(attr).value)(value)
         else:
             if type(value) in _group_types:
                 self._setattr_unchecked_(attr, value)
             elif isinstance(value, DelayedAgenda):
                 self._setattr_unchecked_(attr, value(self))
             else:
-                raise AttributeError(f"'Workspace' object has no attribute '{attr}'")
-    
+                raise AttributeError(
+                    f"'Workspace' object has no attribute '{attr}'")
+
     def __delattr__(self, attr):
-        if attr == '__class__': raise AttributeError("You cannot delete __class__")
+        if attr == '__class__':
+            raise AttributeError("You cannot delete __class__")
+
         getattr(self, attr).delete_level()

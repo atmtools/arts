@@ -46,8 +46,8 @@ void compute(Workspace& ws,
 
 bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
          ARTSGUI::PropmatClearsky::Control& ctrl,
-         Workspace&& ws,
-         const Agenda&& propmat_clearsky_agenda,
+         Workspace& ws,
+         const Agenda& propmat_clearsky_agenda,
          ArrayOfRetrievalQuantity& jacobian_quantities,
          ArrayOfSpeciesTag& select_abs_species,
          Vector& f_grid,
@@ -146,21 +146,21 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
 
   // Set some defaults
   if (load) {
-    if (auto val = ws.get<Vector>("f_grid")) f_grid = *val;
-    if (auto val = ws.get<Vector>("rtp_mag")) rtp_mag = *val;
-    if (auto val = ws.get<Vector>("rtp_los")) rtp_los = *val;
-    if (auto val = ws.get<Vector>("rtp_vmr")) rtp_vmr = *val;
-    if (auto val = ws.get<Numeric>("rtp_pressure")) rtp_pressure = *val;
-    if (auto val = ws.get<Numeric>("rtp_temperature")) rtp_temperature = *val;
-    if (auto val = ws.get<EnergyLevelMap>("rtp_nlte")) rtp_nlte = *val;
+    if (auto* val = ws.get<Vector>("f_grid")) f_grid = *val;
+    if (auto* val = ws.get<Vector>("rtp_mag")) rtp_mag = *val;
+    if (auto* val = ws.get<Vector>("rtp_los")) rtp_los = *val;
+    if (auto* val = ws.get<Vector>("rtp_vmr")) rtp_vmr = *val;
+    if (auto* val = ws.get<Numeric>("rtp_pressure")) rtp_pressure = *val;
+    if (auto* val = ws.get<Numeric>("rtp_temperature")) rtp_temperature = *val;
+    if (auto* val = ws.get<EnergyLevelMap>("rtp_nlte")) rtp_nlte = *val;
   }
 
   auto success = std::async(std::launch::async,
                             &PropmatClearskyAgendaGUI::run,
                             std::ref(res),
                             std::ref(ctrl),
-                            ws,
-                            propmat_clearsky_agenda,
+                            std::ref(ws),
+                            std::cref(propmat_clearsky_agenda),
                             std::ref(jacobian_quantities),
                             std::ref(select_abs_species),
                             std::ref(f_grid),

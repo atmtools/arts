@@ -554,7 +554,7 @@ so Copy(a, out=b) will not even see the b variable.
             static std::size_t counter = 0;
             const String name = var_string("::callback::", counter++);
 
-            Index in = ws.add_wsv_inplace(WsvRecord(
+            Index in = ws.add_wsv(WsvRecord(
                 name.c_str(), "Callback created by pybind11 API", group_index));
             ws.push_move(in, std::make_shared<CallbackFunction>(f));
 
@@ -631,6 +631,7 @@ Both agendas must be defined on the same workspace)--"),
              return out;
            })
       .def_property("methods", &Agenda::Methods, &Agenda::set_methods)
+      .def("correct_workspace", &Agenda::correct_workspace)
       .PythonInterfaceWorkspaceDocumentation(Agenda);
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")

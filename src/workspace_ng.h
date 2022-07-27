@@ -166,10 +166,8 @@ class Workspace final {
   /** Get the number of workspace variables. */
   [[nodiscard]] Index nelem() const { return ws.nelem(); }
 
+  /** Add a new variable to this workspace */
   Index add_wsv(const WsvRecord &wsv);
-
-  /** Add a new variable to existing workspace and to the static maps */
-  Index add_wsv_inplace(const WsvRecord &wsv);
 
   /** Retrieve a pointer to the given WSV. */
   std::shared_ptr<void> operator[](Index i);

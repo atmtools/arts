@@ -45,12 +45,6 @@ Index Workspace::add_wsv(const WsvRecord &wsv) {
   return wsv_data_ptr->nelem() - 1;
 }
 
-Index Workspace::add_wsv_inplace(const WsvRecord &wsv) {
-  const Index pos = add_wsv(wsv);
-  ws.emplace_back();
-  return pos;
-}
-
 void Workspace::set_empty(Index i) {
   if (ws[i].size()) {
     ws[i].pop();
