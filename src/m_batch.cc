@@ -143,7 +143,7 @@ void ybatchCalc(Workspace& ws,
         ArrayOfVector y_aux;
         Matrix jacobian;
 
-        ybatch_calc_agendaExecute(ws,
+        ybatch_calc_agendaExecute(WorkspaceOmpGuard{ws},
                                   y,
                                   y_aux,
                                   jacobian,
@@ -705,7 +705,7 @@ void DOBatchCalc(Workspace& ws,
         Tensor4 irradiance_field;
         Tensor5 spectral_irradiance_field;
 
-        dobatch_calc_agendaExecute(ws,
+        dobatch_calc_agendaExecute(WorkspaceOmpGuard{ws},
                                    cloudbox_field,
                                    radiance_field,
                                    irradiance_field,

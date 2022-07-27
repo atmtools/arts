@@ -14,10 +14,10 @@ std::filesystem::path correct_include_path(
 
 Agenda* parse_agenda(Workspace&, const char* filename, const Verbosity& verbosity);
 
-void py_auto_workspace(py::class_<Workspace>&, py::class_<WorkspaceVariable>&);
+void py_auto_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>&, py::class_<WorkspaceVariable>&);
 
 void py_workspace(py::module_& m,
-                  py::class_<Workspace>& ws,
+                  py::class_<Workspace, std::shared_ptr<Workspace>>& ws,
                   py::class_<WorkspaceVariable>& wsv) {
   ws.def(py::init([](Index verbosity, Index agenda_verbosity) {
            auto* w = new Workspace{};

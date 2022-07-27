@@ -420,7 +420,7 @@ void workspace_variables(size_t n, const NameMaps& arts) {
         std::ofstream(var_string("py_auto_workspace_split_vars_", i, ".cc"));
     oss[i]
         << "#include <python_interface.h>\n\n#include <pybind11/functional.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsv_"
-        << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+        << i << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
   }
 
   auto osptr = oss.begin();
@@ -556,7 +556,7 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
         std::ofstream(var_string("py_auto_workspace_split_create_", i, ".cc"));
     oss[i]
         << "#include \"py_auto_interface.h\"\n#include <pybind11/stl.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsc_"
-        << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+        << i << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
   }
   auto osptr = oss.begin();
 
@@ -629,7 +629,7 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
         std::ofstream(var_string("py_auto_workspace_split_methods_", i, ".cc"));
     oss[i]
         << "#include <python_interface.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsm_"
-        << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+        << i << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
   }
 
   auto osptr = oss.begin();
@@ -858,7 +858,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
         std::ofstream(var_string("py_auto_workspace_split_generic_", i, ".cc"));
     oss[i]
         << "#include <python_interface.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsg_"
-        << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
+        << i << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
   }
 
   auto osptr = oss.begin();
@@ -1918,22 +1918,22 @@ int main(int argc, char** argv) {
   py_workspace << '\n' << "namespace Python {\n";
   for (int i = 0; i < nwsv; i++) {
     py_workspace << "void py_auto_workspace_wsv_" << i
-                 << "(py::class_<Workspace>& ws);\n";
+                 << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
   }
   for (int i = 0; i < nwsg; i++) {
     py_workspace << "void py_auto_workspace_wsg_" << i
-                 << "(py::class_<Workspace>& ws);\n";
+                 << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
   }
   for (int i = 0; i < nwsc; i++) {
     py_workspace << "void py_auto_workspace_wsc_" << i
-                 << "(py::class_<Workspace>& ws);\n";
+                 << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
   }
   for (int i = 0; i < nwsm; i++) {
     py_workspace << "void py_auto_workspace_wsm_" << i
-                 << "(py::class_<Workspace>& ws);\n";
+                 << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
   }
   py_workspace
-      << "void py_auto_workspace(py::class_<Workspace>& ws, py::class_<WorkspaceVariable>& wsv) {\n";
+      << "void py_auto_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws, py::class_<WorkspaceVariable>& wsv) {\n";
   workspace_access(py_workspace, artsname);
   for (int i = 0; i < nwsv; i++) {
     py_workspace << "py_auto_workspace_wsv_" << i << "(ws);\n";

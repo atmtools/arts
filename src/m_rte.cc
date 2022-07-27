@@ -907,7 +907,7 @@ void iyEmissionStandard(
             B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
 
         Index lte;
-        get_stepwise_clearsky_propmat(ws,
+        get_stepwise_clearsky_propmat(WorkspaceOmpGuard{ws},
                                       K[ip],
                                       S,
                                       lte,
@@ -1761,7 +1761,7 @@ void iyMC(Workspace& ws,
         Tensor3 mc_points;
         ArrayOfIndex mc_scat_order, mc_source_domain;
 
-        MCGeneral(ws,
+        MCGeneral(WorkspaceOmpGuard{ws},
                   y,
                   mc_iteration_count,
                   mc_error,
@@ -1996,7 +1996,7 @@ void yCalc(Workspace& ws,
       yCalc_mblock_loop_body(failed,
                              fail_msg,
                              iyb_aux_array,
-                             ws,
+                             WorkspaceOmpGuard{ws},
                              y,
                              y_f,
                              y_pol,

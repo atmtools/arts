@@ -118,4 +118,4 @@ Data data_read_file(const std::filesystem::path& path) {
   
   return out;
 }
-}
+} // namespace PartitionFunctions

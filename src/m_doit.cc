@@ -2823,7 +2823,7 @@ void DoitCalc(Workspace& ws,
 
         Tensor6 cloudbox_field_mono_local =
             cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
-        doit_mono_agendaExecute(ws,
+        doit_mono_agendaExecute(WorkspaceOmpGuard{ws},
                                 cloudbox_field_mono_local,
                                 f_grid,
                                 f_index,

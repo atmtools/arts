@@ -1050,7 +1050,7 @@ void particle_bulkpropRadarOnionPeeling(
                   ArrayOfStokesVector partial_nlte_dummy;
                   EnergyLevelMap rtp_nlte_local_dummy;
                   propmat_clearsky_agendaExecute(
-                      ws,
+                      WorkspaceOmpGuard{ws},
                       propmat,
                       nlte_dummy,
                       partial_dummy,

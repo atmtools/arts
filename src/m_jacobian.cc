@@ -84,7 +84,7 @@ void jacobianInit(Workspace& ws,
                   Agenda& jacobian_agenda,
                   const Verbosity&) {
   jacobian_quantities.resize(0);
-  jacobian_agenda = Agenda{ws.original_workspace};
+  jacobian_agenda = Agenda{ws.shared_ptr()};
   jacobian_agenda.set_name("jacobian_agenda");
 }
 

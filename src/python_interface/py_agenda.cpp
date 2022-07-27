@@ -49,7 +49,7 @@ std::filesystem::path correct_include_path(
 }
 
 Agenda* parse_agenda(Workspace& ws, const char* filename, const Verbosity& verbosity) {
-  auto wsptr = std::shared_ptr<Workspace>{&ws, [](Workspace*){}};
+  auto wsptr = ws.shared_ptr();
   auto* a = new Agenda{wsptr};
   ArtsParser parser = ArtsParser(wsptr, *a, filename, verbosity);
 
@@ -163,7 +163,7 @@ MRecord simple_set_method(WorkspaceVariable val) {
 
   // Set method set values
   TokVal t;
-  Agenda a{std::shared_ptr<Workspace>{&val.ws, [](Workspace*){}}};
+  Agenda a{val.ws.shared_ptr()};
   if (group == "Agenda") {
     a = Agenda(val);
   } else {
@@ -202,7 +202,7 @@ MRecord simple_delete_method(WorkspaceVariable val) {
       {},
       {val.pos},
       {},
-      Agenda{std::shared_ptr<Workspace>{&val.ws, [](Workspace*) {}}});
+      Agenda{val.ws.shared_ptr()});
 }
 
 void py_agenda(py::module_& m) {
@@ -311,7 +311,7 @@ void py_agenda(py::module_& m) {
 
   py::class_<Agenda>(m, "Agenda")
       .def(py::init([](Workspace& ws) {
-        return new Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*) {}}};
+        return new Agenda{ws.shared_ptr()};
       }))
       .def(py::init([](Workspace& ws, const Agenda& a) {
              ARTS_USER_ERROR_IF(not a.correct_workspace(ws),
@@ -520,7 +520,7 @@ void py_agenda(py::module_& m) {
                   out,
                   in,
                   {},
-                  Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*) {}}}));
+                  Agenda{ws.shared_ptr()}));
             }
 
             // Clean up the value
@@ -570,7 +570,7 @@ so Copy(a, out=b) will not even see the b variable.
                 {},
                 {in},
                 {},
-                Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*) {}}}));
+                Agenda{val.ws.shared_ptr()}));
             a.push_back(simple_delete_method(val));
           },
           py::doc(R"--(

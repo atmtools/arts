@@ -532,7 +532,7 @@ int main() {
         ofs << "var = 0.;";
       else {
         ofs << "var = " << it << '(';
-        if (it == "Agenda") ofs << "ws.original_workspace";
+        if (it == "Agenda") ofs << "ws.shared_ptr()";
         ofs << ");";
       }
 

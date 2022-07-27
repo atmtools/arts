@@ -1,4 +1,5 @@
 #include <workspace_ng.h>
+#include <memory>
 
 #include "py_auto_interface.h"
 #include "python_interface.h"
@@ -26,7 +27,7 @@ void py_scattering(py::module_& m);
 void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
 void py_workspace(py::module_& m,
-                  py::class_<Workspace>& ws,
+                  py::class_<Workspace, std::shared_ptr<Workspace>>& ws,
                   py::class_<WorkspaceVariable>& wsv);
 void py_agenda(py::module_& m);
 void py_global(py::module_& m);
@@ -49,7 +50,7 @@ void py_predefined(py::module_& m);
  */
 PYBIND11_MODULE(arts, m) {
   m.doc() = "Contains direct C++ interface for Arts";
-  py::class_<Workspace> ws(m, "Pyarts::Workspace");
+  py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "Pyarts::Workspace");
   py::class_<WorkspaceVariable> wsv(m, "WorkspaceVariable");
 
   static bool init = true;

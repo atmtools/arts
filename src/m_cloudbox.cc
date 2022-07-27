@@ -41,6 +41,7 @@
   ===========================================================================*/
 #include <cmath>
 #include <cstdlib>
+#include <memory>
 #include <stdexcept>
 
 #include "array.h"
@@ -96,7 +97,7 @@ void cloudboxOff(Workspace& ws,
   cloudbox_on = 0;
   ppath_inside_cloudbox_do = 0;
   cloudbox_limits.resize(0);
-  iy_cloudbox_agenda = Agenda{ws.original_workspace};
+  iy_cloudbox_agenda = Agenda{ws.shared_ptr()};
   iy_cloudbox_agenda.set_name("iy_cloudbox_agenda");
   pnd_field.resize(0, 0, 0, 0);
   // we need to size dpnd_field to be consistent with jacobian_quantities.

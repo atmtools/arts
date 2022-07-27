@@ -548,14 +548,14 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   // Define iy_main_agenda to be consistent with the assumptions of
   // this method. This definition of iy_main_agenda will be used to when
   // calculating the the radiation reflected by the surface
-  Agenda iy_main_agenda(ws.original_workspace);
+  Agenda iy_main_agenda(ws.shared_ptr());
   iy_main_agenda.append("ppathPlaneParallel", TokVal());
   iy_main_agenda.append("iyEmissionStandard", TokVal());
   iy_main_agenda.push_back(MRecord(global_data::MdMap.at("VectorSet"),
                                    {ws.WsvMap_ptr->at("geo_pos")},
                                    {},
                                    Vector{},
-                                   Agenda{ws.original_workspace}));
+                                   Agenda{ws.shared_ptr()}));
   iy_main_agenda.set_name("iy_main_agenda");
   iy_main_agenda.check(ws, verbosity);
 
@@ -598,7 +598,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
-        iyEmissionStandard(ws,
+        iyEmissionStandard(WorkspaceOmpGuard{ws},
                            iy,
                            iy_aux,
                            diy_dx,
@@ -807,14 +807,14 @@ void spectral_radiance_fieldExpandCloudboxField(
 
   // Define iy_main_agenda to be consistent with the assumptions of
   // this method (but the agenda will not be used).
-  Agenda iy_main_agenda{ws.original_workspace};
+  Agenda iy_main_agenda{ws.shared_ptr()};
   iy_main_agenda.append("ppathPlaneParallel", TokVal());
   iy_main_agenda.append("iyEmissionStandard", TokVal());
   iy_main_agenda.push_back(MRecord(global_data::MdMap.at("VectorSet"),
                                    {ws.WsvMap_ptr->at("geo_pos")},
                                    {},
                                    Vector{},
-                                   Agenda{ws.original_workspace}));
+                                   Agenda{ws.shared_ptr()}));
   iy_main_agenda.set_name("iy_main_agenda");
   iy_main_agenda.check(ws, verbosity);
 
@@ -858,7 +858,7 @@ void spectral_radiance_fieldExpandCloudboxField(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
-        iyEmissionStandard(ws,
+        iyEmissionStandard(WorkspaceOmpGuard{ws},
                            iy,
                            iy_aux,
                            diy_dx,

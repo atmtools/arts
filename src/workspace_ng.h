@@ -49,7 +49,7 @@ struct WorkspaceBorrowGuard final {
  *
  * Manages the workspace variables.
  */
-class Workspace final {
+class Workspace final : public std::enable_shared_from_this<Workspace> {
  public:
   /** Workspace variable container. */
   Array<WorkspaceVariable> ws;
@@ -58,7 +58,7 @@ class Workspace final {
 
   std::shared_ptr<map<String, Index>> WsvMap_ptr;
 
-  std::shared_ptr<Workspace> original_workspace;
+  Workspace* original_workspace;
 
   /** Construct a new workspace
    *
@@ -100,7 +100,7 @@ class Workspace final {
   [[nodiscard]] bool is_initialized(Index i) const;
 
   /** Return scoping level of the given WSV. */
-  Index depth(Index i) const;
+  [[nodiscard]] Index depth(Index i) const;
 
   /** Remove the topmost WSV from its stack.
    *
@@ -196,10 +196,22 @@ class Workspace final {
   void PrintWsvName(OutputStream &outstream, Index i) const {
     outstream << (*wsv_data_ptr)[i].Name() << "(" << i << ") ";
   }
+
+  std::shared_ptr<Workspace> shared_ptr() {return shared_from_this();}
 };
 
 void define_wsv_data();
 
 void define_wsv_map();
+
+//! Class required to ensure that the object is 'owned' by a shared_ptr even in firstprivate(ws) settings
+class WorkspaceOmpGuard {
+  std::shared_ptr<Workspace> ptr;
+
+ public:
+  WorkspaceOmpGuard(Workspace &ws) noexcept
+      : ptr(std::shared_ptr<Workspace>{&ws, [](Workspace *) {}}) {}
+  operator Workspace &() { return *ptr; }
+};
 
 #endif /* WORKSPACE_NG_INCLUDED */

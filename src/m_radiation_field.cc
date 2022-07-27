@@ -185,7 +185,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     thread_local ArrayOfTransmissionMatrix lyr_tra;
     thread_local ArrayOfTransmissionMatrix tot_tra;
 
-    emission_from_propmat_field(ws,
+    emission_from_propmat_field(WorkspaceOmpGuard{ws},
                                 lvl_rad,
                                 src_rad,
                                 lyr_tra,

@@ -396,7 +396,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
             for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
 
             // Perform the propagation matrix computations
-            propmat_clearsky_agendaExecute(ws,
+            propmat_clearsky_agendaExecute(WorkspaceOmpGuard{ws},
                                            K,
                                            S,
                                            dK,
@@ -2272,7 +2272,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
             // Execute agenda to calculate local absorption.
             // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
             // Agenda output: abs, nlte
-            propmat_clearsky_agendaExecute(ws,
+            propmat_clearsky_agendaExecute(WorkspaceOmpGuard{ws},
                                            abs,
                                            nlte,
                                            partial_abs,

@@ -1695,7 +1695,7 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const Numeric& eta,
     // Verbosity object:
     const Verbosity& verbosity) {
-  auto ws = std::shared_ptr<Workspace>(&ws_ref, [](Workspace*){});
+  auto ws = ws_ref.shared_ptr();
   propmat_clearsky_agenda_checked = 0;  // In case of crash
 
   // Reset the agenda
@@ -1818,7 +1818,7 @@ void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
     const Numeric& eta,
     // Verbosity object:
     const Verbosity& verbosity) {
-  auto ws = std::shared_ptr<Workspace>(&ws_ref, [](Workspace*){});
+  auto ws = ws_ref.shared_ptr();
   propmat_clearsky_agenda_checked = 0;  // In case of crash
   
   // Reset the agenda

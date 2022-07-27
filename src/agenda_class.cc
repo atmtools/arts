@@ -177,9 +177,9 @@ void Agenda::execute(Workspace& ws_in) const {
   ARTS_USER_ERROR_IF(not correct_workspace(ws_in),
                      mname,
                      " is on another original workspace.  DEBUG: Pointers are at: ",
-                     ws_in.original_workspace.get(),
+                     ws_in.original_workspace,
                      " vs ",
-                     ws -> original_workspace.get())
+                     ws -> original_workspace)
 
   if (!mchecked) {
     ostringstream os;

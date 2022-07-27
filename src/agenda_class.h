@@ -103,9 +103,9 @@ class Agenda final {
   friend ostream& operator<<(ostream& os, const Agenda& a);
 
   [[nodiscard]] bool correct_workspace(Workspace& ws2) const {return ws->original_workspace == ws2.original_workspace;}
-
-  [[nodiscard]] const std::shared_ptr<Workspace>& wsptr() const {return ws->original_workspace;};
   
+  [[nodiscard]] const std::shared_ptr<Workspace>& wsptr() const {return ws;}
+
  private:
   std::shared_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */
   String mname;       /*!< Agenda name. */

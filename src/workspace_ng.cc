@@ -63,8 +63,7 @@ void Workspace::duplicate(Index i) {
     wsvs.initialized = true;
   } else {
     if ((*wsv_data_ptr)[i].Group() == agenda_index) {
-      wsvs.wsv = std::make_shared<Agenda>(
-          std::shared_ptr<Workspace>{this, [](Workspace *) {}});
+      wsvs.wsv = std::make_shared<Agenda>(shared_ptr());
     } else {
       wsvs.wsv = workspace_memory_handler.allocate((*wsv_data_ptr)[i].Group());
     }
@@ -106,8 +105,7 @@ void Workspace::emplace(Index i) {
 
   if ((*wsv_data_ptr)[i].Group() == agenda_index) {
     ws[i].emplace(WorkspaceVariableStruct{
-        std::make_shared<Agenda>(
-            std::shared_ptr<Workspace>{this, [](Workspace *) {}}),
+        std::make_shared<Agenda>(shared_ptr()),
         false});
   } else {
     ws[i].emplace(WorkspaceVariableStruct{
@@ -124,14 +122,13 @@ std::shared_ptr<void> Workspace::operator[](Index i) {
 Workspace::Workspace()
     : ws(global_data::wsv_data.nelem()),
       wsv_data_ptr(std::make_shared<Array<WsvRecord>>(global_data::wsv_data)),
-      WsvMap_ptr(std::make_shared<map<String, Index>>(global_data::WsvMap)) {
-  ARTS_ASSERT(ws.size() == (*wsv_data_ptr).size() and (*wsv_data_ptr).size() == WsvMap_ptr->size())
+      WsvMap_ptr(std::make_shared<map<String, Index>>(global_data::WsvMap)),
+      original_workspace(this) {
+  ARTS_ASSERT(wsv_data_ptr -> size() == WsvMap_ptr->size())
 
   for (Index i = 0; i < (*wsv_data_ptr).nelem(); i++) {
     if ((*wsv_data_ptr)[i].has_defaults()) {
       push_move(i, (*wsv_data_ptr)[i].get_copy());
     }
   }
-
-  original_workspace = std::shared_ptr<Workspace>{this, [](Workspace*){}};
 }
