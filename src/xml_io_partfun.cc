@@ -65,7 +65,7 @@ void Data::print_data() const {
   
   switch (type) {
     case PartitionFunctions::Type::Interp:
-      std::cout << "constexpr std::array<Numeric, " << n << "> data{";
+      std::cout << "static constexpr std::array<Numeric, " << n << "> data{";
       for (Index i=0; i<n; i++) {
         if (i % cutline == 0) {
           std::cout << '\n';
@@ -74,7 +74,7 @@ void Data::print_data() const {
       }
       std::cout << "};\n";
       
-      std::cout << "constexpr std::array<Numeric, " << n << "> grid{";
+      std::cout << "static constexpr std::array<Numeric, " << n << "> grid{";
       for (Index i=0; i<n; i++) {
         if (i % cutline == 0)  {
           std::cout << '\n';
@@ -84,7 +84,7 @@ void Data::print_data() const {
       std::cout << "};\n";
       break;
     case PartitionFunctions::Type::Coeff:
-      std::cout << "constexpr std::array<Numeric, " << n << "> coeff{";
+      std::cout << "static constexpr std::array<Numeric, " << n << "> coeff{";
       for (Index i=0; i<n; i++) {
         if (i % cutline == 0)  {
           std::cout << '\n';
