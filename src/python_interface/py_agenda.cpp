@@ -197,7 +197,12 @@ MRecord simple_delete_method(WorkspaceVariable val) {
               "Expects to find a Delete method but encounters ",
               ptr->Name())
 
-  return MRecord(std::distance(md_data.begin(), ptr), {}, {val.pos}, {}, Agenda{std::shared_ptr<Workspace>{&val.ws, [](Workspace*){}}});
+  return MRecord(
+      std::distance(md_data.begin(), ptr),
+      {},
+      {val.pos},
+      {},
+      Agenda{std::shared_ptr<Workspace>{&val.ws, [](Workspace*) {}}});
 }
 
 void py_agenda(py::module_& m) {
@@ -305,9 +310,14 @@ void py_agenda(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Array<AgRecord>);
 
   py::class_<Agenda>(m, "Agenda")
-      .def(py::init([]() { return new Agenda{nullptr}; }), py::doc("An Agenda that cannot be used on a workspace"))
-      .def(py::init([](Workspace& ws) { return new Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*){}}}; }))
-      .def(py::init([](Workspace& ws, const Agenda& a) { ARTS_USER_ERROR_IF(not a.correct_workspace(ws), "Cannot take another workspace's agenda") return a; }),
+      .def(py::init([](Workspace& ws) {
+        return new Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*) {}}};
+      }))
+      .def(py::init([](Workspace& ws, const Agenda& a) {
+             ARTS_USER_ERROR_IF(not a.correct_workspace(ws),
+                                "Cannot take another workspace's agenda")
+             return a;
+           }),
            py::doc("Copy Agenda with extra argument (to mimic DelayedAgenda)"))
       .def(py::init([](Workspace& ws,
                        const std::function<py::object(Workspace&)>& f) {
@@ -316,10 +326,9 @@ void py_agenda(py::module_& m) {
            py::keep_alive<0, 1>())
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
-             Agenda* a = parse_agenda(w,
-                 correct_include_path(path).c_str(),
-                 *w.get<Verbosity>("verbosity"));
-             return a;
+             return parse_agenda(w,
+                                 correct_include_path(path).c_str(),
+                                 *w.get<Verbosity>("verbosity"));
            }),
            py::keep_alive<0, 1>())
       .PythonInterfaceCopyValue(Agenda)
@@ -329,19 +338,17 @@ void py_agenda(py::module_& m) {
       .def_property_readonly("output2push", &Agenda::get_output2push)
       .def_property_readonly("output2dup", &Agenda::get_output2dup)
       .def("set_outputs_to_push_and_dup",
-           [](Agenda& a, Workspace& w) {
-            ARTS_USER_ERROR_IF(not a.correct_workspace(w), "Cannot use another workspace")
+           [](Agenda& a) {
              a.set_outputs_to_push_and_dup(
-                 *w.get<Verbosity>("verbosity"));
+                 *a.wsptr()->get<Verbosity>("verbosity"));
            })
       .def(
           "add_workspace_method",
           [](Agenda& a,
-             Workspace& ws,
              const char* name,
              const py::args& args,
              const py::kwargs& kwargs) {
-            ARTS_USER_ERROR_IF(not a.correct_workspace(ws), "Cannot use another workspace")
+            auto& ws = *a.wsptr();
 
             const Index nargs = args.size();
 
@@ -508,7 +515,12 @@ void py_agenda(py::module_& m) {
                                   a.Methods().back().SetValue(),
                                   a.Methods().back().Tasks()));
             } else {
-              a.push_back(MRecord(m_id, out, in, {}, Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*){}}}));
+              a.push_back(MRecord(
+                  m_id,
+                  out,
+                  in,
+                  {},
+                  Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*) {}}}));
             }
 
             // Clean up the value
@@ -519,8 +531,6 @@ void py_agenda(py::module_& m) {
               }
             }
           },
-          py::keep_alive<1, 2>(),
-          py::arg("ws"),
           py::arg("name").none(false),
           R"--(
 Adds a named method to the Agenda
@@ -534,7 +544,9 @@ so Copy(a, out=b) will not even see the b variable.
 )--")
       .def(
           "add_callback_method",
-          [](Agenda& a, Workspace& ws, const CallbackFunction& f) mutable {
+          [](Agenda& a, const CallbackFunction& f) mutable {
+            auto& ws = *a.wsptr();
+
             const Index group_index = get_wsv_group_id("CallbackFunction");
             ARTS_USER_ERROR_IF(group_index < 0,
                                "Cannot recognize CallbackFunction")
@@ -553,10 +565,14 @@ so Copy(a, out=b) will not even see the b variable.
 
             WorkspaceVariable val(ws, in);
             a.push_back(simple_set_method(val));
-            a.push_back(MRecord(method_ptr->second, {}, {in}, {}, Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*){}}}));
+            a.push_back(MRecord(
+                method_ptr->second,
+                {},
+                {in},
+                {},
+                Agenda{std::shared_ptr<Workspace>{&ws, [](Workspace*) {}}}));
             a.push_back(simple_delete_method(val));
           },
-          py::keep_alive<1, 2>(),
           py::doc(R"--(
 Adds a callback method to the Agenda
 
@@ -567,11 +583,11 @@ Parameters
     f : CallbackFunction
         A method that takes ws and only ws as input
 )--"),
-          py::arg("ws"),
           py::arg("f"))
       .def(
           "append_agenda_methods",
           [](Agenda& self, const Agenda& other) {
+            ARTS_USER_ERROR_IF(self.wsptr() not_eq other.wsptr(), "Agendas on different workspaces")
             const Index n = other.Methods().nelem();  // if other==self
             for (Index i = 0; i < n; i++) self.push_back(other.Methods()[i]);
           },
@@ -601,7 +617,6 @@ Both agendas must be defined on the same workspace)--"),
             a.check(w,
                     *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")));
           },
-          py::keep_alive<1, 2>(),
           py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",

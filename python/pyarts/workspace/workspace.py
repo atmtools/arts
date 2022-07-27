@@ -31,7 +31,7 @@ class DelayedAgenda:
     def append_agenda_methods(self, other):
         self.args.extend(other.args)
     def __call__(self, ws):
-        a = cxx.Agenda()
+        a = cxx.Agenda(ws)
         for args in self.args:
             a.append_agenda_methods(continue_parser_function(ws, *args))
         a.name = "<unknown>"
@@ -204,7 +204,7 @@ you might call. Everything else is undefined behaviour. ;-)
 """)
 
     workspace_methods = [str(x.name) for x in cxx.get_md_data()]
-    agenda = Agenda()
+    agenda = Agenda(arts)
     
     for e in func_ast.body:
         if not isinstance(e, Expr):
@@ -239,7 +239,7 @@ you might call. Everything else is undefined behaviour. ;-)
                     include_agenda =  Agenda(arts, *args)
 
                     if len(callback_body) > 0:
-                        agenda.add_callback_method(arts, callback_make_fun(callback_body))
+                        agenda.add_callback_method(callback_make_fun(callback_body))
                         callback_body = []
 
                     agenda.append_agenda_methods(include_agenda)
@@ -286,14 +286,14 @@ you might call. Everything else is undefined behaviour. ;-)
 
             # Add function to agenda
             if len(callback_body) > 0:
-                agenda.add_callback_method(arts, callback_make_fun(callback_body))
+                agenda.add_callback_method(callback_make_fun(callback_body))
                 callback_body = []
             
-            agenda.add_workspace_method(arts, name, *args, **kwargs)
+            agenda.add_workspace_method(name, *args, **kwargs)
 
     # Check if there's callback code left to add to the agenda.
     if len(callback_body) > 0:
-        agenda.add_callback_method(arts, callback_make_fun(callback_body))
+        agenda.add_callback_method(callback_make_fun(callback_body))
         callback_body = []
     
     agenda.name = func_ast.name
@@ -301,7 +301,7 @@ you might call. Everything else is undefined behaviour. ;-)
     return agenda
 
 
-_group_types = [type(eval(f"cxx.{x.name}()")) for x in list(cxx.get_wsv_groups())]
+_group_types = [eval(f"cxx.{x.name}") for x in list(cxx.get_wsv_groups())]
 
 
 class Workspace(InternalWorkspace):
