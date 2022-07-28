@@ -1638,7 +1638,7 @@ WorkspaceVariable::operator TokVal() const {
 template <typename T, Index group>
 Index get_and_set_wsv_gin_pos(Workspace& ws, Index pos, const char* const name, T&& data) {
   if (pos < 0) {
-    pos = ws.add_wsv_inplace(WsvRecord(name, "do not modify", group));
+    pos = ws.add_wsv(WsvRecord(name, "do not modify", group));
   }
 
   *static_cast<T *>(ws[pos].get()) = std::forward<T>(data);
