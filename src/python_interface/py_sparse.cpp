@@ -88,7 +88,7 @@ void py_sparse(py::module_& m) {
         return new Block(row_range,
                          column_range,
                          indices,
-                         std::shared_ptr<Matrix>{new Matrix{std::move(mat)}});
+                         std::make_shared<Matrix>(std::move(mat)));
       }))
       .def(py::init([](Range row_range,
                        Range column_range,
@@ -97,7 +97,7 @@ void py_sparse(py::module_& m) {
         return new Block(row_range,
                          column_range,
                          indices,
-                         std::shared_ptr<Sparse>{new Sparse{std::move(mat)}});
+                         std::make_shared<Sparse>(std::move(mat)));
       }))
       .PythonInterfaceCopyValue(Block)
       .def_property("matrix",
@@ -110,11 +110,11 @@ void py_sparse(py::module_& m) {
                         py::return_value_policy::reference_internal),
                     [](Block& x, std::variant<Matrix*, Sparse*> y) {
                       if (std::holds_alternative<Matrix*>(y)) {
-                        x.set_matrix(std::shared_ptr<Matrix>{
-                            new Matrix{*std::get<Matrix*>(y)}});
+                        x.set_matrix(std::make_shared<Matrix>(
+                            **std::get_if<Matrix*>(&y)));
                       } else {
-                        x.set_matrix(std::shared_ptr<Sparse>{
-                            new Sparse{*std::get<Sparse*>(y)}});
+                        x.set_matrix(std::make_shared<Sparse>(
+                            **std::get_if<Sparse*>(&y)));
                       }
                     })
       .def(py::pickle(
@@ -143,12 +143,12 @@ void py_sparse(py::module_& m) {
                   row_range,
                   column_range,
                   indices,
-                  std::shared_ptr<Sparse>(new Sparse{t[4].cast<Sparse>()})};
+                  std::make_shared<Sparse>(Sparse{t[4].cast<Sparse>()})};
             return new Block{
                 row_range,
                 column_range,
                 indices,
-                std::shared_ptr<Matrix>(new Matrix{t[4].cast<Matrix>()})};
+                std::make_shared<Matrix>(Matrix{t[4].cast<Matrix>()})};
           }));
 
   py::class_<CovarianceMatrix>(m, "CovarianceMatrix")
