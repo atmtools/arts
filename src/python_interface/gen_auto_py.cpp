@@ -149,6 +149,16 @@ std::pair<std::vector<std::string>, std::vector<bool>> fixed_defaults(
       }
     } else if (vardefaults[i] == "[]") {
       defaults[i] = var_string(vargroups[i], "{}");
+    } else if (vargroups[i] == "ArrayOfIndex") {
+      if (vardefaults[i][0] == '[')
+        defaults[i] = "std::initializer_list<Index>" + vardefaults[i];
+      else
+        defaults[i] = vardefaults[i];
+    } else if (vargroups[i] == "Vector") {
+      if (vardefaults[i][0] == '[')
+        defaults[i] = "std::initializer_list<Numeric>" + vardefaults[i];
+      else
+        defaults[i] = vardefaults[i];
     } else {
       defaults[i] = vardefaults[i];
     }
@@ -1518,6 +1528,7 @@ struct TypeVal {
 
 void auto_header_definitions(std::ofstream& os, const NameMaps& arts) {
   os << R"--(#include <python_interface.h>
+
 #include <pybind11/functional.h>
 
 namespace Python {
@@ -1571,8 +1582,6 @@ void WorkspaceVariable::initialize_if_not() {
 }
 
 WorkspaceVariable::operator WorkspaceVariablesVariant() {
-  initialize_if_not();
-
   switch (ws.wsv_data[pos].Group()) {
 )--";
 
@@ -1588,7 +1597,7 @@ WorkspaceVariable::operator WorkspaceVariablesVariant() {
 }
 
 WorkspaceVariable::operator WorkspaceVariablesVariant() const {
-  ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", ws.wsv_data[pos].Name())
+  ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name())
 
   switch (ws.wsv_data[pos].Group()) {
 )--";
@@ -1606,8 +1615,8 @@ WorkspaceVariable::operator WorkspaceVariablesVariant() const {
 
 void WorkspaceVariable::pop_workspace_level() { ws.pop(pos); }
 
-  WorkspaceVariable::operator TokVal() const {
-  ARTS_USER_ERROR_IF(not is_initialized(), "Must be initialized")
+WorkspaceVariable::operator TokVal() const {
+  ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name())
   
   switch (ws.wsv_data[pos].Group()) {
 )--";
@@ -1625,11 +1634,20 @@ void WorkspaceVariable::pop_workspace_level() { ws.pop(pos); }
   ARTS_USER_ERROR("Cannot support Agenda and ArrayOfAgenda")
 }
 
-Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
-  auto ptr = ws.WsvMap.find(key);
+template <typename T, Index group>
+Index get_and_set_wsv_gin_pos(Workspace& ws, Index pos, const char* const name, T&& data) {
+  if (pos < 0) {
+    pos = ws.add_wsv_inplace(WsvRecord(name, "do not modify", group));
+  }
+
+  *static_cast<T *>(ws[pos].get()) = std::forward<T>(data);
   
-  Index pos = ptr == ws.WsvMap.end() ? -1 : ptr -> second;
-  )--";
+  return pos;
+}
+
+Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
+  const static std::map<String, Index> gins {
+)--";
 
   std::map<String, TypeVal> has;
 
@@ -1642,38 +1660,49 @@ Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
     }
   }
 
-  for (auto& [key, items] : has) {
-    os << "if (key == \"" << key << "\") {\n";
-    os << "    if (pos < 0) pos = ws.add_wsv_inplace(WsvRecord(\""
-       << key << R"(", "do not modify", )"
-       << arts.group.at(items.type) << "));\n";
-    os << "    static_cast<" << items.type
-       << " &>(WorkspaceVariable{ws, pos}) = " << items.type << '('
-       << items.val << ')';
-    os << ";\n";
-    os << "  } else ";
+  {
+    Index counter=0;
+    for (auto& [key, items] : has) {
+      os << "    {\"" << key << "\", " << counter++ << "},\n";
+    }
   }
 
-  os << "ARTS_USER_ERROR(\"Cannot understand internal key\")\n  return pos;\n}\n\n";
+  os << R"--(  };
+
+  auto ptr = ws.WsvMap.find(key);
+  Index pos = ptr == ws.WsvMap.end() ? -1 : ptr -> second;
+
+  switch (gins.at(key)) {
+)--";
+  {
+    Index counter = 0;
+    for (auto& [key, items] : has) {
+      os << "    case " << counter++ << ": return get_and_set_wsv_gin_pos<"
+         << items.type << ", " << arts.group.at(items.type)
+         << ">(ws, pos, key.c_str(), " << items.val << ");\n";
+    }
+  }
+ os << R"--(  }
+
+  return pos;
+}
+)--";
 
   for (auto& [name, group] : arts.group) {
-    os << "WorkspaceVariable::operator " << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << "&() {return *std::get<" << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>(WorkspaceVariablesVariant(*this));}\n";
-    os << "WorkspaceVariable::operator " << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << "&() const {return *std::get<" << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>(WorkspaceVariablesVariant(*this));}\n";
+    const char extra = (name == "Index" or name == "Numeric") ? '_' : ' ';
+
+    os << "WorkspaceVariable::operator " << name << extra;
+    os << "&() {return *static_cast<" << name << extra << "*>(ws[pos].get());}\n";
+
+    os << "WorkspaceVariable::operator " << name << extra;
+    os << "&() const {ARTS_USER_ERROR_IF(not is_initialized(), \"Not initialized: \", name()) return *static_cast<" << name << extra << "*>(ws[pos].get());}\n";
   }
 
-  os << R"--(WorkspaceVariable::operator Index&() {return *std::get<Index_ *>(WorkspaceVariablesVariant(*this));}
-WorkspaceVariable::operator Index&() const {return *std::get<Index_ *>(WorkspaceVariablesVariant(*this));}
-WorkspaceVariable::operator Numeric&() {return *std::get<Numeric_ *>(WorkspaceVariablesVariant(*this));}
-WorkspaceVariable::operator Numeric&() const {return *std::get<Numeric_ *>(WorkspaceVariablesVariant(*this));}
-}
+  os << R"--(WorkspaceVariable::operator Index&() {return *static_cast<Index *>(ws[pos].get());}
+WorkspaceVariable::operator Index&() const {ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name()) return *static_cast<Index *>(ws[pos].get());}
+WorkspaceVariable::operator Numeric&() {return *static_cast<Numeric *>(ws[pos].get());}
+WorkspaceVariable::operator Numeric&() const {ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name()) return *static_cast<Numeric *>(ws[pos].get());}
+}  // namespace Python
 )--";
 }
 
