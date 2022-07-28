@@ -419,7 +419,7 @@ void workspace_variables(size_t n, const NameMaps& arts) {
     oss[i] =
         std::ofstream(var_string("py_auto_workspace_split_vars_", i, ".cc"));
     oss[i]
-        << "#include <python_interface.h>\n#include <pybind11/functional.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsv_"
+        << "#include <python_interface.h>\n\n#include <pybind11/functional.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsv_"
         << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
   }
 
@@ -443,15 +443,15 @@ void workspace_variables(size_t n, const NameMaps& arts) {
       os << "    for(auto& a : val) a.set_name(\"" << name
          << "\");\n    for(auto& a : val) a.check(w, *static_cast<Verbosity*>(w["
          << verbpos << "].get()));\n";
-    os << "    " << data.varname_group << "& v = WorkspaceVariable {w, "
-       << data.artspos << "};\n    v = val;\n  }, py::doc(R\"-x-("
+    os << "    " << data.varname_group << "& v = *static_cast<" <<  data.varname_group << " *>(w["
+       << data.artspos << "].get());\n    v = val;\n  }, py::doc(R\"-x-("
        << data.varname_desc << ")-x-\")\n); \n\n";
 
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
   }
 
-  for (auto& os : oss) os << "}\n}\n\n";
+  for (auto& os : oss) os << "}\n}  // namespace Python\n";
 }
 
 void print_method_desc(std::ofstream& os,
@@ -831,7 +831,7 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
     if (osptr == oss.end()) osptr = oss.begin();
   }
 
-  for (auto& os : oss) os << "}\n}\n\n";
+  for (auto& os : oss) os << "}\n}  // namespace Python\n";
 }
 
 struct ArgumentHelper {
