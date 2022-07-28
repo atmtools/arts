@@ -1101,11 +1101,11 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
         if (arg.in) os << "const ";
         os << "WorkspaceVariable*>(";
         if (arg.def) os << '*';
-        os << arg.name << ") ? std::get<";
+        os << arg.name << ") ? (*std::get_if<";
         if (arg.in) os << "const ";
-        os << "WorkspaceVariable*>(";
+        os << "WorkspaceVariable*>(&";
         if (arg.def) os << '*';
-        os << arg.name << ") -> name() : \"" << arg.name << "\"";
+        os << arg.name << ")) -> name() : \"" << arg.name << "\"";
         if (arg.def) os << ") : \"" << arg.name << "\"";
         os << "};\n";
       }
@@ -1182,7 +1182,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
                                   (num ? '_' : ' '),
                                   "*>(wvv_arg",
                                   counter,
-                                  "_)");
+                                  "_) /* Must use std::get because while it can only be a ", arg.types[i], " user input might disagree */ ");
             input_var_args.push_back(x);
             continue;
           }
@@ -1293,7 +1293,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
           path1_exe = var_string(
               "auto _tmp",
               last.counter,
-              " = py::type::of<Agenda>()(w_, * std::get<py::object *>(wvv_arg",
+              " = py::type::of<Agenda>()(w_, ** std::get_if<py::object *>(&wvv_arg",
               last.counter,
               "_));\n",
               spaces(s + 2),
@@ -1311,7 +1311,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
                                  " = py::type::of<",
                                  last.type,
                                  num ? '_' : ' ',
-                                 ">()(* std::get<py::object *>(wvv_arg",
+                                 ">()(** std::get_if<py::object *>(&wvv_arg",
                                  last.counter,
                                  "_));\n",
                                  spaces(s + 2),
@@ -1418,7 +1418,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
     if (osptr == oss.end()) osptr = oss.begin();
   }
 
-  for (auto& os : oss) os << "}\n}\n\n";
+  for (auto& os : oss) os << "}\n}  // namespace Python\n";
 }
 
 void auto_header(std::ofstream& os, const NameMaps& arts) {
