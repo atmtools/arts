@@ -619,7 +619,7 @@ Parameters:
     if (osptr == oss.end()) osptr = oss.begin();
   }
 
-  for (auto& os : oss) os << "}\n}\n\n";
+  for (auto& os : oss) os << "}\n}  // namespace Python\n";
 }
 
 void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
