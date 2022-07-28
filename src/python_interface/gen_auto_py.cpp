@@ -1182,7 +1182,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
                                   (num ? '_' : ' '),
                                   "*>(wvv_arg",
                                   counter,
-                                  "_) /* Must use std::get because while it can only be a ", arg.types[i], " user input might disagree */ ");
+                                  "_) /* Must use std::get because while it can only be a ", arg.types[i], ", user input might disagree */ ");
             input_var_args.push_back(x);
             continue;
           }
