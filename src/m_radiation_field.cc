@@ -175,8 +175,10 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
   for (Index i = 0; i < np; i++)
     line_radiance[i].resize(sorted_index[i].nelem(), nl);
 
+  WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for if (not arts_omp_in_parallel()) \
-    schedule(guided) default(shared) firstprivate(ws, il)
+    schedule(guided) default(shared) firstprivate(wss, il)
   for (Index i = 0; i < ppath_field.nelem(); i++) {
     const Ppath& path = ppath_field[i];
 
@@ -185,7 +187,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     thread_local ArrayOfTransmissionMatrix lyr_tra;
     thread_local ArrayOfTransmissionMatrix tot_tra;
 
-    emission_from_propmat_field(WorkspaceOmpGuard{ws},
+    emission_from_propmat_field(wss,
                                 lvl_rad,
                                 src_rad,
                                 lyr_tra,

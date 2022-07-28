@@ -564,9 +564,11 @@ void spectral_radiance_fieldClearskyPlaneParallel(
 
   // Loop zenith angles
   //
-  if (nza)
+  if (nza) {
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for if (!arts_omp_in_parallel() && nza > 1 && \
-                             use_parallel_za) firstprivate(ws)
+                             use_parallel_za) firstprivate(wss)
     for (Index i = 0; i < nza; i++) {
       if (failed) continue;
       try {
@@ -598,7 +600,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
-        iyEmissionStandard(WorkspaceOmpGuard{ws},
+        iyEmissionStandard(wss,
                            iy,
                            iy_aux,
                            diy_dx,
@@ -698,7 +700,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         fail_msg.push_back(os.str());
       }
     }
-
+  }
+  
   if (fail_msg.nelem()) {
     ostringstream os;
     for (auto& msg : fail_msg) os << msg << '\n';
@@ -824,9 +827,11 @@ void spectral_radiance_fieldExpandCloudboxField(
 
   // Loop zenith angles
   //
-  if (nza)
+  if (nza) {
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for if (!arts_omp_in_parallel() && nza > 1 && \
-                             use_parallel_za) firstprivate(ws)
+                             use_parallel_za) firstprivate(wss)
     for (Index i = 0; i < nza; i++) {
       if (failed) continue;
       try {
@@ -858,7 +863,7 @@ void spectral_radiance_fieldExpandCloudboxField(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
-        iyEmissionStandard(WorkspaceOmpGuard{ws},
+        iyEmissionStandard(wss,
                            iy,
                            iy_aux,
                            diy_dx,
@@ -940,6 +945,7 @@ void spectral_radiance_fieldExpandCloudboxField(
         fail_msg.push_back(os.str());
       }
     }
+  }
 
   if (fail_msg.nelem()) {
     ostringstream os;

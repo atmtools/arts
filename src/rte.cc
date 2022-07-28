@@ -1658,8 +1658,10 @@ void iyb_calc(Workspace& ws,
     out3 << "  Parallelizing los loop (" << nlos << " iterations, " << nf
          << " frequencies)\n";
 
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
     // Start of actual calculations
-#pragma omp parallel for if (!arts_omp_in_parallel()) firstprivate(ws)
+#pragma omp parallel for if (!arts_omp_in_parallel()) firstprivate(wss)
     for (Index ilos = 0; ilos < nlos; ilos++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
@@ -1669,7 +1671,7 @@ void iyb_calc(Workspace& ws,
       iyb_calc_body(failed,
                     fail_msg,
                     iy_aux_array,
-                    WorkspaceOmpGuard{ws},
+                    wss,
                     ppath,
                     iyb,
                     diyb_dx,

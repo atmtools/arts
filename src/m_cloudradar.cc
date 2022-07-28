@@ -957,9 +957,11 @@ void particle_bulkpropRadarOnionPeeling(
   
   ArrayOfString fail_msg;
 
+  WorkspaceOmpParallelCopyGuard wss{ws};
+  
   // Loop all profiles
 #pragma omp parallel for if (!arts_omp_in_parallel() && nlat + nlon > 2) \
-    firstprivate(ws) collapse(2)
+    firstprivate(wss) collapse(2)
   for (Index ilat = 0; ilat < nlat; ilat++) {
     for (Index ilon = 0; ilon < nlon; ilon++) {
       if (fail_msg.nelem() != 0) continue;
@@ -1050,7 +1052,7 @@ void particle_bulkpropRadarOnionPeeling(
                   ArrayOfStokesVector partial_nlte_dummy;
                   EnergyLevelMap rtp_nlte_local_dummy;
                   propmat_clearsky_agendaExecute(
-                      WorkspaceOmpGuard{ws},
+                      wss,
                       propmat,
                       nlte_dummy,
                       partial_dummy,

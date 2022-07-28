@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "array.h"
+#include "arts_omp.h"
 #include "wsv_aux.h"
 
 struct WorkspaceVariableStruct final {
@@ -204,14 +205,29 @@ void define_wsv_data();
 
 void define_wsv_map();
 
-//! Class required to ensure that the object is 'owned' by a shared_ptr even in firstprivate(ws) settings
-class WorkspaceOmpGuard {
-  std::shared_ptr<Workspace> ptr;
+template <class T>
+class OmpParallelCopyGuard {
+  T &ws_orig;
+  bool do_copy;
+  std::shared_ptr<T> ws_copy;
 
  public:
-  WorkspaceOmpGuard(Workspace &ws) noexcept
-      : ptr(std::shared_ptr<Workspace>{&ws, [](Workspace *) {}}) {}
-  operator Workspace &() { return *ptr; }
+  OmpParallelCopyGuard(T &ws) 
+    : ws_orig(ws),
+      do_copy(not arts_omp_in_parallel() and arts_omp_get_max_threads() not_eq 1),
+      ws_copy(nullptr) {}
+
+  OmpParallelCopyGuard(T &ws, bool do_copy_manually)
+    : ws_orig(ws), do_copy(do_copy_manually), ws_copy(nullptr) {}
+
+  OmpParallelCopyGuard(const OmpParallelCopyGuard &cp)
+    : ws_orig(cp.ws_orig),
+      do_copy(cp.do_copy),
+      ws_copy(do_copy ? new T{ws_orig} : nullptr) {}
+
+  operator T &() { return ws_copy ? *ws_copy : ws_orig; }
 };
+
+using WorkspaceOmpParallelCopyGuard = OmpParallelCopyGuard<Workspace>;
 
 #endif /* WORKSPACE_NG_INCLUDED */
