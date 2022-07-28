@@ -1710,22 +1710,22 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
   const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
 
   for (auto& [name, group] : arts.group) {
+    const char extra = (name == "Index" or name == "Numeric") ? '_' : ' ';
     os << R"--(ws.def("_setattr_unchecked_", [](Workspace& w, const char* name, )--"
-       << name;
-    if (name == "Index" or name == "Numeric") os << '_';
+       << name << extra;
     os << R"--(& val) {
   auto varpos = w.WsvMap.find(name);
   Index i = (varpos == w.WsvMap.end()) ? w.add_wsv_inplace(WsvRecord(name, "User-created variable", )--"
        << group << R"--()) : varpos -> second;
-  )--" << name
-       << "& x = WorkspaceVariable{w, i};\n";
+)--";
     if (name == "Agenda")
       os << "  val.set_name(name);\n  val.check(w, *static_cast<Verbosity*>(w["
          << verbpos << "].get()));\n";
     if (name == "ArrayOfAgenda")
       os << "  for (auto& y: val) y.set_name(name);\n  for (auto& y: val) y.check(w, *static_cast<Verbosity*>(w["
          << verbpos << "].get()));\n";
-    os << R"--(  x = val;
+    os << "  *static_cast<" << name << "*>(w[i].get()) = val;";
+    os << R"--(
 });
 
 )--";
@@ -1742,13 +1742,13 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
 
     os << "if (std::holds_alternative<" << name << extra << "*>(wvv)) {\n";
 
-    os << "      " << name << "& lh = *std::get<" << name << extra
-       << "*>(wvv);\n";
+    os << "      " << name << "& lh = **std::get_if<" << name << extra
+       << "*>(&wvv);\n";
 
     os << "      if (std::holds_alternative<" << name << extra << "*>(v)) {\n";
 
-    os << "        " << name << "& rh = *std::get<" << name << extra
-       << "*>(v);\n";
+    os << "        " << name << "& rh = **std::get_if<" << name << extra
+       << "*>(&v);\n";
 
     if (name == "Agenda")
       os << "        rh.set_name(w.name());\n        rh.check(w.ws, *static_cast<Verbosity*>(w.ws["
@@ -1759,7 +1759,7 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
 
     os << "        lh = rh;\n";
 
-    os << "      } else {\n";
+    os << "      } else {\n        // Use std::get because we only allow 'py::object *', but cannot enforce it\n";
     os << "        auto my_obj = py::type::of<" << name << extra << ">()(";
     if (name == "Agenda") os << "w.ws, ";
     os << "* std::get<py::object *>(v));\n";
