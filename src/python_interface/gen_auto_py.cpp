@@ -595,18 +595,19 @@ If the variable already exist, an error is thrown only if the group
 is not )--"
        << group << R"--(.  If the variable does exist, a new value
 is pushed onto its stack iff value is given.  This efficiently puts
-any current value out of reach for the current Agenda level.  Note
-that this should be OK inside Agendas as the stack should be freed
-at the end of the Agenda call, however if this is called directly
-on the workspace outside an Agenda, the extra memory allocated can
-only be freed using "del name" as an appropriate pair
+any current value out of reach for the current Agenda level.
 
 Parameters:
 -----------
-name (str): Name of the variable, can be accessed later with getattr() on the workspace
-desc (str): Description of the variable [Optional]
-value ()--"
-       << group << R"--(): Initialized value [Optional]
+  name : str
+    Name of the variable, can be accessed later with getattr() on the workspace
+
+  desc : str, optional:
+    Description of the variable
+
+  value : )--"
+       << group << R"--(, optional
+    Initialized value
 )-x-"),
   py::arg("name").none(false),
   py::arg("desc")=std::nullopt,
