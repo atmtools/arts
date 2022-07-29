@@ -150,8 +150,6 @@ void AgendaSet(Workspace& ws,
                // Agenda from controlfile:
                const Agenda& input_agenda,
                const Verbosity& verbosity) {
-  ARTS_ASSERT(input_agenda.correct_workspace(ws_in))
-
   output_agenda = input_agenda;
   
   output_agenda.set_name(agenda_name);
@@ -168,8 +166,6 @@ void ArrayOfAgendaAppend(Workspace& ws,
                          // Agenda from controlfile:
                          const Agenda& input_agenda,
                          const Verbosity& verbosity) {
-  ARTS_ASSERT(input_agenda.correct_workspace(ws_in))
-
   out.push_back(input_agenda);
 
   Agenda& appended_agenda = out[out.nelem() - 1];
