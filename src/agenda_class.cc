@@ -35,6 +35,7 @@
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
+#include "debug.h"
 #include "global_data.h"
 #include "messages.h"
 #include "methods.h"
@@ -106,6 +107,11 @@ void Agenda::check(Workspace& ws_in, const Verbosity& verbosity) {
     return;
   }
 
+  // Check that this workspace lives on ws_in
+  ARTS_USER_ERROR_IF(not has_same_origin(ws_in),
+    "Agendas must share workspace"
+  )
+
   // Make external data visible
   using global_data::agenda_data;
   using global_data::AgendaMap;
@@ -174,33 +180,24 @@ void Agenda::check(Workspace& ws_in, const Verbosity& verbosity) {
   stops the program if an error has occured. 
 */
 void Agenda::execute(Workspace& ws_in) const {
-  ARTS_USER_ERROR_IF(not correct_workspace(ws_in),
-                     mname,
-                     " is on another original workspace.  DEBUG: Pointers are at: ",
-                     ws_in.original_workspace,
-                     " vs ",
-                     ws -> original_workspace)
+  ARTS_USER_ERROR_IF (not mchecked, "Agenda *", mname, R"--(* hasn't been checked for consistency yet.
 
-  if (!mchecked) {
-    ostringstream os;
-    os << "Agenda *" << mname << "* hasn't been checked for consistency yet."
-       << endl
-       << "This check is usually done by AgendaSet or AgendaAppend." << endl
-       << "There are two possible causes for this:" << endl
-       << "1) You're trying to execute an agenda that has been created in"
-       << endl
-       << "   the controlfile with AgendaCreate. This is not allowed. You have"
-       << endl
-       << "   to use *Copy* to store it into one of the predefined agendas and"
-       << endl
-       << "   execute that one." << endl
-       << "2) Developer error: If you have written code that modifies an Agenda"
-       << endl
-       << "   directly (changing its name or altering its method list), it's up"
-       << endl
-       << "   to you to call Agenda::check in your code after your modifications.";
-    throw runtime_error(os.str());
-  }
+This check is usually done by AgendaSet or AgendaAppend.
+
+There are three possible causes for this:
+  1) Custom agenda: You're trying to execute an agenda that has been
+     created manually. This is not allowed. You have to use one of
+     the predefined agendas and execute that one.
+  2) Developer error: If you have written code that modifies an Agenda
+     directly (changing its name or altering its method list), it's up
+     to you to call Agenda::check in your code after your modifications.
+  3) Workspace mismatch: All Agendas live on the workspace and can only
+     be executed by the workspace, or a child of the workspace, that
+     was originally connected to the workspace
+)--")
+
+  ARTS_USER_ERROR_IF(
+      not has_same_origin(ws_in), mname, " is on another original workspace.")
 
   // An empty Agenda name indicates that something going wrong here
   ARTS_ASSERT(mname != "");
@@ -841,7 +838,7 @@ void MRecord::print(ostream& os, const String& indent) const {
       else
         os << ",";
 
-      os << (*mtasks.wsptr() -> wsv_data_ptr)[Out()[i]].Name();
+      os << mtasks.workspace().wsv_data_ptr -> operator[](Out()[i]).Name();
     }
 
     for (Index i = 0; i < In().nelem(); ++i) {
@@ -850,7 +847,7 @@ void MRecord::print(ostream& os, const String& indent) const {
       else
         os << ",";
 
-      os << (*mtasks.wsptr() -> wsv_data_ptr)[In()[i]].Name();
+      os << mtasks.workspace().wsv_data_ptr -> operator[](In()[i]).Name();
     }
 
     os << ")";

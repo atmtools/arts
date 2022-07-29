@@ -316,15 +316,6 @@ class Workspace(InternalWorkspace):
 
     def __setattr__(self, attr, value):
         if self._hasattr_check_(attr):
-            if isinstance(value, cxx.Agenda):
-                assert value.correct_workspace(
-                    self), "Cannot transfer Agenda over workspace boundaries"
-
-            if isinstance(value, cxx.ArrayOfAgenda):
-                for v in value:
-                    assert v.correct_workspace(
-                        self), "Cannot transfer ArrayOfAgenda over workspace boundaries"
-
             if isinstance(value, DelayedAgenda):
                 value = value(self)
 

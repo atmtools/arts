@@ -102,9 +102,10 @@ class Agenda final {
 
   friend ostream& operator<<(ostream& os, const Agenda& a);
 
-  [[nodiscard]] bool correct_workspace(Workspace& ws2) const {return ws->original_workspace == ws2.original_workspace;}
+  [[nodiscard]] bool has_same_origin(const Workspace& ws2) const {return ws->original_workspace == ws2.original_workspace;}
   
-  [[nodiscard]] const std::shared_ptr<Workspace>& wsptr() const {return ws;}
+  [[nodiscard]] Workspace& workspace() {return *ws;}
+  [[nodiscard]] const Workspace& workspace() const {return *ws;}
 
  private:
   std::shared_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */

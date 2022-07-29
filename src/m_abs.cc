@@ -1573,18 +1573,18 @@ struct MethodSetDelHelper {
   MRecord del, set;
 
   template <typename T>
-  MethodSetDelHelper(const std::shared_ptr<Workspace>& ws, String n, String t, T val)
-      : name(std::move(n)), type(std::move(t)), del(ws), set(ws) {
+  MethodSetDelHelper(Workspace& ws, String n, String t, T val)
+      : name(std::move(n)), type(std::move(t)), del(ws.shared_ptr()), set(ws.shared_ptr()) {
     auto k = "::propmat_clearsky_agendaSetAutomatic::autogen::" + name;
-    auto ptr = ws->WsvMap_ptr->find(k);
-    pos = ptr == ws->WsvMap_ptr->end()
-              ? ws->add_wsv(WsvRecord(k.c_str(), "Added automatically", type))
+    auto ptr = ws.WsvMap_ptr->find(k);
+    pos = ptr == ws.WsvMap_ptr->end()
+              ? ws.add_wsv(WsvRecord(k.c_str(), "Added automatically", type))
               : ptr->second;
 
     set = MRecord(
-        global_data::MdMap.at(type + "Set"), {pos}, {}, std::move(val), Agenda{ws});
+        global_data::MdMap.at(type + "Set"), {pos}, {}, std::move(val), Agenda{ws.shared_ptr()});
     del =
-        MRecord(global_data::MdMap.at("Delete_sg_" + type), {}, {pos}, {}, Agenda{ws});
+        MRecord(global_data::MdMap.at("Delete_sg_" + type), {}, {pos}, {}, Agenda{ws.shared_ptr()});
   }
 };
 
@@ -1601,10 +1601,11 @@ bool gins_are_ok(const MdRecord& rec, const T& gins) {
 }
 
 struct MethodAppender {
+  Workspace& ws;
   Agenda& propmat_clearsky_agenda;
   ArrayOfIndex full_out{};
   ArrayOfIndex full_in{};
-  MethodAppender(Agenda& agenda) : propmat_clearsky_agenda(agenda) {}
+  MethodAppender(Workspace& w, Agenda& agenda) : ws(w), propmat_clearsky_agenda(agenda) {}
   
   void append_nogin_method(std::string_view method) {
     const auto pos = global_data::MdMap.at(method);
@@ -1613,7 +1614,7 @@ struct MethodAppender {
     auto& in = rec.InOnly();
     for (auto& i : out) full_out.push_back(i);
     for (auto& i : in) full_in.push_back(i);
-    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{propmat_clearsky_agenda.wsptr()}));
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{ws.shared_ptr()}));
   }
 
   template <typename T>
@@ -1631,7 +1632,7 @@ struct MethodAppender {
 
     for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
     for (auto& x : gins) in.push_back(x.pos);
-    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{propmat_clearsky_agenda.wsptr()}));
+    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{ws.shared_ptr()}));
     for (auto& x : gins) propmat_clearsky_agenda.push_back(x.del);
   }
 
@@ -1644,9 +1645,9 @@ struct MethodAppender {
       if (end == std::find(full_in.begin(), end, val_pos)) {
         auto fun_pos = global_data::MdMap.at(
             "Ignore_sg_" +
-            global_data::wsv_groups.at(propmat_clearsky_agenda.wsptr() -> wsv_data_ptr->at(val_pos).Group()).name);
+            global_data::wsv_groups.at(ws.wsv_data_ptr->at(val_pos).Group()).name);
         propmat_clearsky_agenda.push_back(
-            MRecord(fun_pos, {}, {val_pos}, {}, Agenda{propmat_clearsky_agenda.wsptr()}));
+            MRecord(fun_pos, {}, {val_pos}, {}, Agenda{ws.shared_ptr()}));
       }
     }
     return *this;
@@ -1661,9 +1662,9 @@ struct MethodAppender {
       if (end == std::find(full_out.begin(), end, val_pos)) {
         auto fun_pos = global_data::MdMap.at(
             "Touch_sg_" +
-            global_data::wsv_groups.at(propmat_clearsky_agenda.wsptr() -> wsv_data_ptr->at(val_pos).Group()).name);
+            global_data::wsv_groups.at(ws.wsv_data_ptr->at(val_pos).Group()).name);
         propmat_clearsky_agenda.push_back(
-            MRecord(fun_pos, {val_pos}, {}, {}, Agenda{propmat_clearsky_agenda.wsptr()}));
+            MRecord(fun_pos, {val_pos}, {}, {}, Agenda{ws.shared_ptr()}));
       }
     }
     return *this;
@@ -1672,7 +1673,7 @@ struct MethodAppender {
 }  // namespace
 
 void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
-    Workspace& ws_ref,
+    Workspace& ws,
     // WS Output:
     Agenda& propmat_clearsky_agenda,
     Index& propmat_clearsky_agenda_checked,
@@ -1695,16 +1696,15 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
     const Numeric& eta,
     // Verbosity object:
     const Verbosity& verbosity) {
-  auto ws = ws_ref.shared_ptr();
   propmat_clearsky_agenda_checked = 0;  // In case of crash
 
   // Reset the agenda
-  propmat_clearsky_agenda = Agenda{ws};
+  propmat_clearsky_agenda = Agenda{ws.shared_ptr()};
   propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
 
   const SpeciesTagTypeStatus any_species(abs_species);
   const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
-  MethodAppender agenda{propmat_clearsky_agenda};
+  MethodAppender agenda{ws, propmat_clearsky_agenda};
 
   // propmat_clearskyInit
   agenda.append_nogin_method("propmat_clearskyInit");
@@ -1797,12 +1797,12 @@ void propmat_clearsky_agendaSetAutomatic(  // Workspace reference:
   agenda.append_ignores().append_touch();
 
   // Extra check (should really never ever fail when species exist)
-  propmat_clearsky_agenda.check(ws_ref, verbosity);
+  propmat_clearsky_agenda.check(ws, verbosity);
   propmat_clearsky_agenda_checked=1;
 }
 
 void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
-    Workspace& ws_ref,
+    Workspace& ws,
     // WS Output:
     Agenda& propmat_clearsky_agenda,
     Index& propmat_clearsky_agenda_checked,
@@ -1818,16 +1818,15 @@ void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
     const Numeric& eta,
     // Verbosity object:
     const Verbosity& verbosity) {
-  auto ws = ws_ref.shared_ptr();
   propmat_clearsky_agenda_checked = 0;  // In case of crash
   
   // Reset the agenda
-  propmat_clearsky_agenda = Agenda{ws};
+  propmat_clearsky_agenda = Agenda{ws.shared_ptr()};
   propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
 
   const SpeciesTagTypeStatus any_species(abs_species);
   const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
-  MethodAppender agenda{propmat_clearsky_agenda};
+  MethodAppender agenda{ws, propmat_clearsky_agenda};
 
   // propmat_clearskyInit
   agenda.append_nogin_method("propmat_clearskyInit");
@@ -1875,6 +1874,6 @@ void propmat_clearsky_agendaSetAutomaticForLookup(  // Workspace reference:
   agenda.append_ignores().append_touch();
 
   // Extra check (should really never ever fail when species exist)
-  propmat_clearsky_agenda.check(ws_ref, verbosity);
+  propmat_clearsky_agenda.check(ws, verbosity);
   propmat_clearsky_agenda_checked=1;
 }

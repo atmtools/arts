@@ -207,25 +207,27 @@ void define_wsv_map();
 
 template <class T>
 class OmpParallelCopyGuard {
-  T &ws_orig;
+  T &orig;
   bool do_copy;
-  std::shared_ptr<T> ws_copy;
+  std::shared_ptr<T> copy;
 
  public:
   OmpParallelCopyGuard(T &ws) 
-    : ws_orig(ws),
+    : orig(ws),
       do_copy(not arts_omp_in_parallel() and arts_omp_get_max_threads() not_eq 1),
-      ws_copy(nullptr) {}
+      copy(nullptr) {}
 
   OmpParallelCopyGuard(T &ws, bool do_copy_manually)
-    : ws_orig(ws), do_copy(do_copy_manually), ws_copy(nullptr) {}
+    : orig(ws), do_copy(do_copy_manually), copy(nullptr) {}
 
   OmpParallelCopyGuard(const OmpParallelCopyGuard &cp)
-    : ws_orig(cp.ws_orig),
+    : orig(cp.orig),
       do_copy(cp.do_copy),
-      ws_copy(do_copy ? new T{ws_orig} : nullptr) {}
+      copy(do_copy ? new T{orig} : nullptr) {}
 
-  operator T &() { return ws_copy ? *ws_copy : ws_orig; }
+  operator T &() { return copy ? *copy : orig; }
+
+  operator const T &() const { return copy ? *copy : orig; }
 };
 
 using WorkspaceOmpParallelCopyGuard = OmpParallelCopyGuard<Workspace>;

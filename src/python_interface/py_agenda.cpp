@@ -313,9 +313,7 @@ void py_agenda(py::module_& m) {
       .def(py::init([](Workspace& ws) {
         return new Agenda{ws.shared_ptr()};
       }))
-      .def(py::init([](Workspace& ws, const Agenda& a) {
-             ARTS_USER_ERROR_IF(not a.correct_workspace(ws),
-                                "Cannot take another workspace's agenda")
+      .def(py::init([](Workspace&, const Agenda& a) {
              return a;
            }),
            py::doc("Copy Agenda with extra argument (to mimic DelayedAgenda)"))
@@ -340,7 +338,7 @@ void py_agenda(py::module_& m) {
       .def("set_outputs_to_push_and_dup",
            [](Agenda& a) {
              a.set_outputs_to_push_and_dup(
-                 *a.wsptr()->get<Verbosity>("verbosity"));
+                 *a.workspace().get<Verbosity>("verbosity"));
            })
       .def(
           "add_workspace_method",
@@ -348,7 +346,7 @@ void py_agenda(py::module_& m) {
              const char* name,
              const py::args& args,
              const py::kwargs& kwargs) {
-            auto& ws = *a.wsptr();
+            auto& ws = a.workspace();
 
             const Index nargs = args.size();
 
@@ -545,7 +543,7 @@ so Copy(a, out=b) will not even see the b variable.
       .def(
           "add_callback_method",
           [](Agenda& a, const CallbackFunction& f) mutable {
-            auto& ws = *a.wsptr();
+            auto& ws = a.workspace();
 
             const Index group_index = get_wsv_group_id("CallbackFunction");
             ARTS_USER_ERROR_IF(group_index < 0,
@@ -587,7 +585,7 @@ Parameters
       .def(
           "append_agenda_methods",
           [](Agenda& self, const Agenda& other) {
-            ARTS_USER_ERROR_IF(self.wsptr() not_eq other.wsptr(), "Agendas on different workspaces")
+            ARTS_USER_ERROR_IF(not self.has_same_origin(other.workspace()), "Agendas on different workspaces")
             const Index n = other.Methods().nelem();  // if other==self
             for (Index i = 0; i < n; i++) self.push_back(other.Methods()[i]);
           },
@@ -631,7 +629,7 @@ Both agendas must be defined on the same workspace)--"),
              return out;
            })
       .def_property("methods", &Agenda::Methods, &Agenda::set_methods)
-      .def("correct_workspace", &Agenda::correct_workspace)
+      .def("has_same_origin", &Agenda::has_same_origin)
       .PythonInterfaceWorkspaceDocumentation(Agenda);
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
