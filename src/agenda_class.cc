@@ -193,7 +193,7 @@ There are three possible causes for this:
      to you to call Agenda::check in your code after your modifications.
   3) Workspace mismatch: All Agendas live on the workspace and can only
      be executed by the workspace, or a child of the workspace, that
-     was originally connected to the workspace
+     was originally connected to the workspace.
 )--")
 
   ARTS_USER_ERROR_IF(
