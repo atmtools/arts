@@ -24,11 +24,15 @@
  * @brief Wigner symbol interactions
  */
 
-#include "constants.h"
-#include "arts_omp.h"
-#include "debug.h"
 #include "wigner_functions.h"
+
+#include <sys/errno.h>
+
 #include <algorithm>
+
+#include "arts_omp.h"
+#include "constants.h"
+#include "debug.h"
 
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6
@@ -44,6 +48,8 @@ Numeric wigner3j(const Rational j1,
                  const Rational m1,
                  const Rational m2,
                  const Rational m3) {
+  errno = 0;
+
   const int a = (2 * j1).toInt(), b = (2 * j2).toInt(), c = (2 * j3).toInt(),
             d = (2 * m1).toInt(), e = (2 * m2).toInt(), f = (2 * m3).toInt();
   double g;
@@ -60,7 +66,10 @@ Numeric wigner3j(const Rational j1,
   g = WIGNER3(a, b, c, d, e, f);
   wig_temp_free();
 
-  ARTS_USER_ERROR_IF(errno == EDOM, "Bad state, perhaps you need to call Wigner3Init?")
+  if (errno == EDOM) {
+    errno = 0;
+    ARTS_USER_ERROR("Bad state, perhaps you need to call Wigner3Init?")
+  }
 
   return Numeric(g);
 }
@@ -71,6 +80,8 @@ Numeric wigner6j(const Rational j1,
                  const Rational l1,
                  const Rational l2,
                  const Rational l3) {
+  errno = 0;
+
   const int a = (2 * j1).toInt(), b = (2 * j2).toInt(), c = (2 * j3).toInt(),
             d = (2 * l1).toInt(), e = (2 * l2).toInt(), f = (2 * l3).toInt();
   double g;
@@ -85,74 +96,71 @@ Numeric wigner6j(const Rational j1,
   g = WIGNER6(a, b, c, d, e, f);
   wig_temp_free();
 
-  ARTS_USER_ERROR_IF(errno == EDOM, "Bad state, perhaps you need to call Wigner6Init?")
+  if (errno == EDOM) {
+    errno = 0;
+    ARTS_USER_ERROR("Bad state, perhaps you need to call Wigner6Init?")
+  }
 
   return Numeric(g);
 }
 
-
-std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a, std::pair<Rational, Rational> b) {
+std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a,
+                                            std::pair<Rational, Rational> b) {
   const bool invalid = a.first.isUndefined() or b.first.isUndefined();
   if (invalid) {
     return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
   }
 
-  std::pair<Rational, Rational> out {max(a.first, b.first), min(a.second, b.second)};
+  std::pair<Rational, Rational> out{max(a.first, b.first),
+                                    min(a.second, b.second)};
   if (out.first > out.second) out = {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
   return out;
 }
 
-
-Index make_wigner_ready(int largest, 
-       [[maybe_unused]] int fastest,
-                        int size)
-{
+Index make_wigner_ready(int largest, [[maybe_unused]] int fastest, int size) {
   if (size == 3) {
-    #if DO_FAST_WIGNER
+#if DO_FAST_WIGNER
     fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
-    #ifdef _OPENMP
+#ifdef _OPENMP
     fastwigxj_thread_dyn_init(3, fastest);
-    #else
+#else
     fastwigxj_dyn_init(3, fastest);
-    #endif
-    #endif
+#endif
+#endif
     wig_table_init(largest, 3);
-    
+
     return largest;
   }
-  
+
   if (size == 6) {
-    #if DO_FAST_WIGNER
+#if DO_FAST_WIGNER
     fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
     fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
-    #ifdef _OPENMP
+#ifdef _OPENMP
     fastwigxj_thread_dyn_init(3, fastest);
     fastwigxj_thread_dyn_init(6, fastest);
-    #else
+#else
     fastwigxj_dyn_init(3, fastest);
     fastwigxj_dyn_init(6, fastest);
-    #endif
-    #endif
+#endif
+#endif
     wig_table_init(largest * 2, 6);
-    
+
     return largest;
   }
 
   return 0;
 }
 
-
 bool is_wigner_ready(int j) {
   extern int wigxjpf_max_prime_decomp;
   return not(j > wigxjpf_max_prime_decomp);
 }
 
-
 bool is_wigner3_ready(const Rational& J) {
   const int test = J.toInt(6) / 2 + 1;  // nb. J can be half-valued
   return is_wigner_ready(test);
 }
-
 
 bool is_wigner6_ready(const Rational& J) {
   const int test = J.toInt(4) + 1;  // nb. J can be half-valued
